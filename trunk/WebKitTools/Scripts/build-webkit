@@ -1,0 +1,123 @@
+#!/usr/bin/perl -w
+
+# Copyright (C) 2005, 2006 Apple Computer, Inc.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1.  Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer. 
+# 2.  Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution. 
+# 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+#     its contributors may be used to endorse or promote products derived
+#     from this software without specific prior written permission. 
+#
+# THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Simplified build script for Web Kit Open Source Project.
+
+use strict;
+use FindBin;
+use Getopt::Long qw(:config pass_through);
+use lib $FindBin::Bin;
+use webkitdirs;
+use POSIX;
+
+my $svgSupport = 1;
+my $colorSupport = 1; # Default: colorize make output
+
+our @cmakeBuild;
+
+GetOptions('svg!' => \$svgSupport,
+           'color!' => \$colorSupport,
+           'cmake!' => \@cmakeBuild);
+
+checkRequiredSystemConfig();
+setConfiguration();
+chdirWebKit();
+
+my $productDir = productDir();
+my @options = XcodeOptions();
+my @overrideFeatureDefinesOption = ();
+
+push @overrideFeatureDefinesOption, "FEATURE_DEFINES=" if !$svgSupport;
+
+# Check that all the project directories are there.
+my @projects = ("JavaScriptCore", "JavaScriptGlue", "WebCore", "WebKit");
+my @otherDirs = ("WebKitLibraries");
+for my $dir (@projects, @otherDirs) {
+    if (! -d $dir) {
+        die "Error: No $dir directory found. Please do a fresh checkout.\n";
+    }
+}
+
+if (isOSX()) {
+    # Copy library and header from WebKitLibraries to a findable place in the product directory.
+    my $srcLib = "WebKitLibraries/libWebKitSystemInterface.a";
+    my $lib = "$productDir/libWebKitSystemInterface.a";
+    if (!-e $lib || -M $lib > -M $srcLib) {
+        print "Updating $lib\n";
+        system "ditto", $srcLib, $lib;
+        system "ranlib", $lib;
+    }
+    
+    my $srcHeader = "WebKitLibraries/WebKitSystemInterface.h";
+    my $header = "$productDir/usr/local/include/WebKitSystemInterface.h";
+    if (!-e $header || -M $header > -M $srcHeader) {
+        print "Updating $header\n";
+        system "mkdir", "-p", "$productDir/usr/local/include";
+        system "ditto", $srcHeader, $header;
+    }
+}
+
+# Force re-link of existing libraries if different than expected
+removeLibraryDependingOnSVG("WebCore", $svgSupport);
+
+# Build, and abort if the build fails.
+for my $dir (@projects) {
+    chdir $dir or die;
+    my $result = 0;
+    if (isQt()) {
+        if ($dir ne "WebKit") {
+            chdir ".." or die;
+            next;
+        }
+        if (isQtWithQMake()) {
+            $result = buildQMakeProject($dir, $colorSupport);
+        } else {
+            $result = buildCMakeProject($dir, $colorSupport);
+        }
+    } elsif (isOSX()) {
+        $result = system "xcodebuild", "-project", "$dir.xcodeproj", @options, @overrideFeatureDefinesOption, @ARGV;
+    } elsif (isCygwin()) {
+        if ($dir eq "WebKit") {
+            $result = buildVisualStudioProject($dir);
+        }
+    }
+
+    exit WEXITSTATUS($result) if WEXITSTATUS($result);
+    chdir ".." or die;
+}
+
+# Write out congratulations message.
+print "\n";
+print "===========================================================\n";
+print " WebKit is now built. To run Safari with this newly-built\n";
+print " code, use the \"run-safari\" script.\n";
+if ($svgSupport) {
+    print "\n NOTE: WebKit has been built with SVG support enabled.\n";
+    print " Safari will have basic SVG viewing capabilities.\n";
+}
+print "===========================================================\n";

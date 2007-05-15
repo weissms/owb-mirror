@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; see the file COPYING.LIB.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
+module html {
+
+    interface [LegacyParent=KJS::JSHTMLDocument, GenerateConstructor] HTMLDocument : Document {
+#if !defined(LANGUAGE_JAVASCRIPT)
+                 attribute DOMString title;
+        readonly attribute DOMString referrer;
+        readonly attribute DOMString domain;
+        readonly attribute DOMString URL;
+                
+        // FIXME: the DOM spec does NOT have this attribute
+        // raising an exception.
+                 attribute HTMLElement body
+                     setter raises (DOMException);
+                     
+        readonly attribute HTMLCollection images;
+        readonly attribute HTMLCollection applets;
+        readonly attribute HTMLCollection links;
+        readonly attribute HTMLCollection forms;
+        readonly attribute HTMLCollection anchors;
+        
+        // FIXME: the DOM spec states that this attribute can 
+        // raise an exception on setting.
+                 attribute DOMString cookie
+                     /*setter raises (DOMException)*/;
+
+        void               open();
+        void               close();
+        void               write(in DOMString text);
+        void               writeln(in DOMString text);
+        NodeList           getElementsByName(in DOMString elementName);
+
+        // non-standard
+
+        Element            getElementById(in DOMString elementId);
+#endif
+    };
+
+}
+    

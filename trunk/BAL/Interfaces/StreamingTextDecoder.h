@@ -1,0 +1,1 @@
+../../WebCore/platform/StreamingTextDecoder.h

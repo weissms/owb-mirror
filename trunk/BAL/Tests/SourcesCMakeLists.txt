@@ -1,0 +1,50 @@
+set(bal_tests_SRC
+        ${bal_tests_SRC}
+
+	#TestManager Directory
+	BAL/Tests/TestManager/main.cpp
+	BAL/Tests/TestManager/TestManager.cpp
+	BAL/Tests/TestManager/TestRunner.cpp
+
+	#TestHelpers Directory
+	BAL/Tests/TestHelpers/BitmapWriter.cpp
+	BAL/Tests/TestHelpers/FileHelper.cpp
+
+	#ImageDecodersTests Directory
+	BAL/Tests/ImageDecodersTests/ImageDecodersTest.cpp
+
+	#FacilitiesTests Directory
+	BAL/Tests/FacilitiesTests/LogManagerTest.cpp
+	BAL/Tests/FacilitiesTests/LogManagerTestInteractif.cpp
+
+	#EventsTests Directory
+	BAL/Tests/EventsTests/InputEventTest.cpp
+
+	#TestSamples Directory
+	#BAL/Tests/TestSamples/TestSample.cpp
+
+	#WidgetsTests Directory
+	BAL/Tests/WidgetsTests/ScrollViewImplTest.cpp
+	BAL/Tests/WidgetsTests/WidgetImplTest.cpp
+	BAL/Tests/WidgetsTests/WindowTest.cpp
+
+	#FontsTests Directory - FIXME disabled: not fully independent
+	#BAL/Tests/FontsTests/FontsTest.cpp
+
+	#TransfersTests Directory
+	BAL/Tests/NetworkTests/NetworkTest.cpp
+
+	#TypesTests Directory
+	BAL/Tests/TypesTests/TimerTest.cpp
+	BAL/Tests/TypesTests/TypeTest.cpp
+
+	#PosixTests Directory
+	BAL/Tests/PosixTests/PosixTest.cpp
+
+	#I18N Directory
+	BAL/Tests/InternationalizationTests/InternationalizationTests.cpp
+)
+IF (WEBKIT_USE_XML_SUPPORT)
+	#XMLTests Directory
+	set(bal_tests_SRC ${bal_tests_SRC} BAL/Tests/XMLTests/XmlTest.cpp)
+ENDIF (WEBKIT_USE_XML_SUPPORT)

@@ -1,0 +1,10 @@
+SET (webkit_SRC
+        ${webkit_SRC}
+	
+	WebKit/OrigynWebBrowser/Api/BCWebView.cpp
+	WebKit/OrigynWebBrowser/WebCoreSupport/ChromeClientBal.cpp
+	WebKit/OrigynWebBrowser/WebCoreSupport/ContextMenuClientBal.cpp
+	WebKit/OrigynWebBrowser/WebCoreSupport/DragClientBal.cpp
+	WebKit/OrigynWebBrowser/WebCoreSupport/EditorClientBal.cpp
+	WebKit/OrigynWebBrowser/WebCoreSupport/FrameLoaderClientBal.cpp
+)

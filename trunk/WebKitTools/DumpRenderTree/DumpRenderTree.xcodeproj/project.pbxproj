@@ -1,0 +1,630 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		A84F608D08B1370600E9745F /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = A84F609208B1371400E9745F /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				A84F609108B1370E00E9745F /* PBXTargetDependency */,
+				A84F608F08B1370E00E9745F /* PBXTargetDependency */,
+				141BF238096A451E00E0753C /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		141BF435096A455900E0753C /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9335435F03D75502008635CE /* WebKit.framework */; };
+		141BF436096A455900E0753C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A84F608908B136DA00E9745F /* Cocoa.framework */; };
+		141BF437096A455900E0753C /* WebCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A817090108B1643800CCB9FB /* WebCore.framework */; };
+		141BF438096A455900E0753C /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A817090308B164D300CCB9FB /* JavaScriptCore.framework */; };
+		141BF439096A455900E0753C /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE8257EF08D22389000507AB /* Carbon.framework */; };
+		141BF44A096A45C800E0753C /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 141BF445096A45C800E0753C /* main.c */; };
+		141BF44B096A45C800E0753C /* PluginObject.c in Sources */ = {isa = PBXBuildFile; fileRef = 141BF446096A45C800E0753C /* PluginObject.c */; };
+		141BF44C096A45C800E0753C /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 141BF448096A45C800E0753C /* Info.plist */; };
+		141BF453096A45EB00E0753C /* PluginObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 141BF447096A45C800E0753C /* PluginObject.h */; };
+		14770FE20A22ADF7009342EE /* GCController.h in Headers */ = {isa = PBXBuildFile; fileRef = 14770FE00A22ADF7009342EE /* GCController.h */; };
+		14770FE30A22ADF7009342EE /* GCController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 14770FE10A22ADF7009342EE /* GCController.mm */; };
+		14A6FB8A0971CAE5008B014F /* NavigationController.h in Headers */ = {isa = PBXBuildFile; fileRef = 14A6FB880971CAE5008B014F /* NavigationController.h */; };
+		14A6FB8B0971CAE5008B014F /* NavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 14A6FB890971CAE5008B014F /* NavigationController.m */; };
+		22181BD109DC8C4B008342E8 /* ObjCPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 22181BCD09DC8C4B008342E8 /* ObjCPlugin.h */; };
+		22181BD209DC8C4B008342E8 /* ObjCPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 22181BCE09DC8C4B008342E8 /* ObjCPlugin.m */; };
+		22181BD309DC8C4B008342E8 /* ObjCPluginFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = 22181BCF09DC8C4B008342E8 /* ObjCPluginFunction.h */; };
+		22181BD409DC8C4B008342E8 /* ObjCPluginFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 22181BD009DC8C4B008342E8 /* ObjCPluginFunction.m */; };
+		9340994C08540CAE007F3BC8 /* DumpRenderTreePrefix.h in Headers */ = {isa = PBXBuildFile; fileRef = 32A70AAB03705E1F00C91783 /* DumpRenderTreePrefix.h */; };
+		9340994E08540CAE007F3BC8 /* DumpRenderTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* DumpRenderTree.m */; settings = {ATTRIBUTES = (); }; };
+		9340995108540CAE007F3BC8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9335435F03D75502008635CE /* WebKit.framework */; };
+		93442CF608F8BA4900BFE8CA /* TextInputController.h in Headers */ = {isa = PBXBuildFile; fileRef = 93442CF408F8BA4900BFE8CA /* TextInputController.h */; };
+		93442CF708F8BA4900BFE8CA /* TextInputController.m in Sources */ = {isa = PBXBuildFile; fileRef = 93442CF508F8BA4900BFE8CA /* TextInputController.m */; };
+		A803FCC709CAAB8D009B2A37 /* EventSendingController.m in Sources */ = {isa = PBXBuildFile; fileRef = A803FCB809CAAAB1009B2A37 /* EventSendingController.m */; };
+		A803FCC809CAAB90009B2A37 /* EventSendingController.h in Headers */ = {isa = PBXBuildFile; fileRef = A803FCB709CAAAB0009B2A37 /* EventSendingController.h */; };
+		A803FFBD09CAAE99009B2A37 /* DumpRenderTreeDraggingInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = A803FFB309CAAE0B009B2A37 /* DumpRenderTreeDraggingInfo.m */; };
+		A803FFBE09CAAE9C009B2A37 /* DumpRenderTreeDraggingInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = A803FFB209CAAE0B009B2A37 /* DumpRenderTreeDraggingInfo.h */; };
+		A803FFF509CAAFE0009B2A37 /* EditingDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = A803FFF309CAAFE0009B2A37 /* EditingDelegate.h */; };
+		A803FFF609CAAFE0009B2A37 /* EditingDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A803FFF409CAAFE0009B2A37 /* EditingDelegate.m */; };
+		A817090008B163EF00CCB9FB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A84F608908B136DA00E9745F /* Cocoa.framework */; };
+		A817090208B1643800CCB9FB /* WebCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A817090108B1643800CCB9FB /* WebCore.framework */; };
+		A817090408B164D300CCB9FB /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A817090308B164D300CCB9FB /* JavaScriptCore.framework */; };
+		A84F608A08B136DA00E9745F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A84F608908B136DA00E9745F /* Cocoa.framework */; };
+		AE8259F308D22463000507AB /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE8257EF08D22389000507AB /* Carbon.framework */; };
+		AE8259F408D22463000507AB /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE8257EF08D22389000507AB /* Carbon.framework */; };
+		B5A752A008AF5CD400138E45 /* ImageDiff.m in Sources */ = {isa = PBXBuildFile; fileRef = B5A7525808AF4A3600138E45 /* ImageDiff.m */; };
+		B5A752A208AF5D1F00138E45 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A752A108AF5D1F00138E45 /* QuartzCore.framework */; };
+		E1330800099624DA00AC0A91 /* AppleScriptController.h in Headers */ = {isa = PBXBuildFile; fileRef = E13307FE099624DA00AC0A91 /* AppleScriptController.h */; };
+		E1330801099624DA00AC0A91 /* AppleScriptController.m in Sources */ = {isa = PBXBuildFile; fileRef = E13307FF099624DA00AC0A91 /* AppleScriptController.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		141BF237096A451E00E0753C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 141BF21E096A441D00E0753C;
+			remoteInfo = TestNetscapePlugIn;
+		};
+		A84F608E08B1370E00E9745F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B5A7525A08AF4A4A00138E45;
+			remoteInfo = ImageDiff;
+		};
+		A84F609008B1370E00E9745F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9340994A08540CAE007F3BC8;
+			remoteInfo = DumpRenderTree;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		08FB7796FE84155DC02AAC07 /* DumpRenderTree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DumpRenderTree.m; sourceTree = "<group>"; };
+		141BF233096A44CF00E0753C /* TestNetscapePlugIn.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestNetscapePlugIn.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		141BF445096A45C800E0753C /* main.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		141BF446096A45C800E0753C /* PluginObject.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = PluginObject.c; sourceTree = "<group>"; };
+		141BF447096A45C800E0753C /* PluginObject.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PluginObject.h; sourceTree = "<group>"; };
+		141BF448096A45C800E0753C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
+		14770FE00A22ADF7009342EE /* GCController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCController.h; sourceTree = "<group>"; };
+		14770FE10A22ADF7009342EE /* GCController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GCController.mm; sourceTree = "<group>"; };
+		14A6FB880971CAE5008B014F /* NavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NavigationController.h; sourceTree = "<group>"; };
+		14A6FB890971CAE5008B014F /* NavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NavigationController.m; sourceTree = "<group>"; };
+		22181BCD09DC8C4B008342E8 /* ObjCPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ObjCPlugin.h; sourceTree = "<group>"; };
+		22181BCE09DC8C4B008342E8 /* ObjCPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ObjCPlugin.m; sourceTree = "<group>"; };
+		22181BCF09DC8C4B008342E8 /* ObjCPluginFunction.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ObjCPluginFunction.h; sourceTree = "<group>"; };
+		22181BD009DC8C4B008342E8 /* ObjCPluginFunction.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ObjCPluginFunction.m; sourceTree = "<group>"; };
+		32A70AAB03705E1F00C91783 /* DumpRenderTreePrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DumpRenderTreePrefix.h; sourceTree = "<group>"; };
+		9335435F03D75502008635CE /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = WebKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9340995408540CAF007F3BC8 /* DumpRenderTree */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DumpRenderTree; sourceTree = BUILT_PRODUCTS_DIR; };
+		93442CF408F8BA4900BFE8CA /* TextInputController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextInputController.h; sourceTree = "<group>"; };
+		93442CF508F8BA4900BFE8CA /* TextInputController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TextInputController.m; sourceTree = "<group>"; };
+		A803FCB709CAAAB0009B2A37 /* EventSendingController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = EventSendingController.h; sourceTree = "<group>"; };
+		A803FCB809CAAAB1009B2A37 /* EventSendingController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = EventSendingController.m; sourceTree = "<group>"; };
+		A803FF7409CAAD08009B2A37 /* DumpRenderTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DumpRenderTree.h; sourceTree = "<group>"; };
+		A803FFB209CAAE0B009B2A37 /* DumpRenderTreeDraggingInfo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DumpRenderTreeDraggingInfo.h; sourceTree = "<group>"; };
+		A803FFB309CAAE0B009B2A37 /* DumpRenderTreeDraggingInfo.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = DumpRenderTreeDraggingInfo.m; sourceTree = "<group>"; };
+		A803FFF309CAAFE0009B2A37 /* EditingDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = EditingDelegate.h; sourceTree = "<group>"; };
+		A803FFF409CAAFE0009B2A37 /* EditingDelegate.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = EditingDelegate.m; sourceTree = "<group>"; };
+		A817090108B1643800CCB9FB /* WebCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = WebCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A817090308B164D300CCB9FB /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = JavaScriptCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A84F608908B136DA00E9745F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		AE8257EF08D22389000507AB /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		B5A7525808AF4A3600138E45 /* ImageDiff.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ImageDiff.m; sourceTree = "<group>"; };
+		B5A7526708AF4A4A00138E45 /* ImageDiff */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ImageDiff; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5A752A108AF5D1F00138E45 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
+		E13307FE099624DA00AC0A91 /* AppleScriptController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppleScriptController.h; sourceTree = "<group>"; };
+		E13307FF099624DA00AC0A91 /* AppleScriptController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppleScriptController.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		141BF21D096A441D00E0753C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				141BF435096A455900E0753C /* WebKit.framework in Frameworks */,
+				141BF436096A455900E0753C /* Cocoa.framework in Frameworks */,
+				141BF437096A455900E0753C /* WebCore.framework in Frameworks */,
+				141BF438096A455900E0753C /* JavaScriptCore.framework in Frameworks */,
+				141BF439096A455900E0753C /* Carbon.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9340994F08540CAE007F3BC8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9340995108540CAE007F3BC8 /* WebKit.framework in Frameworks */,
+				A84F608A08B136DA00E9745F /* Cocoa.framework in Frameworks */,
+				A817090208B1643800CCB9FB /* WebCore.framework in Frameworks */,
+				A817090408B164D300CCB9FB /* JavaScriptCore.framework in Frameworks */,
+				AE8259F308D22463000507AB /* Carbon.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B5A7525F08AF4A4A00138E45 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5A752A208AF5D1F00138E45 /* QuartzCore.framework in Frameworks */,
+				A817090008B163EF00CCB9FB /* Cocoa.framework in Frameworks */,
+				AE8259F408D22463000507AB /* Carbon.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* DumpRenderTree */ = {
+			isa = PBXGroup;
+			children = (
+				141BF1F5096A439800E0753C /* TestNetscapePlugIn.subproj */,
+				A803FFF309CAAFE0009B2A37 /* EditingDelegate.h */,
+				A803FFF409CAAFE0009B2A37 /* EditingDelegate.m */,
+				A803FF7409CAAD08009B2A37 /* DumpRenderTree.h */,
+				08FB7796FE84155DC02AAC07 /* DumpRenderTree.m */,
+				A803FFB209CAAE0B009B2A37 /* DumpRenderTreeDraggingInfo.h */,
+				A803FFB309CAAE0B009B2A37 /* DumpRenderTreeDraggingInfo.m */,
+				32A70AAB03705E1F00C91783 /* DumpRenderTreePrefix.h */,
+				A803FCB709CAAAB0009B2A37 /* EventSendingController.h */,
+				A803FCB809CAAAB1009B2A37 /* EventSendingController.m */,
+				14770FE00A22ADF7009342EE /* GCController.h */,
+				14770FE10A22ADF7009342EE /* GCController.mm */,
+				93442CF408F8BA4900BFE8CA /* TextInputController.h */,
+				93442CF508F8BA4900BFE8CA /* TextInputController.m */,
+				E13307FE099624DA00AC0A91 /* AppleScriptController.h */,
+				E13307FF099624DA00AC0A91 /* AppleScriptController.m */,
+				B5A7525808AF4A3600138E45 /* ImageDiff.m */,
+				14A6FB880971CAE5008B014F /* NavigationController.h */,
+				14A6FB890971CAE5008B014F /* NavigationController.m */,
+				22181BCD09DC8C4B008342E8 /* ObjCPlugin.h */,
+				22181BCE09DC8C4B008342E8 /* ObjCPlugin.m */,
+				22181BCF09DC8C4B008342E8 /* ObjCPluginFunction.h */,
+				22181BD009DC8C4B008342E8 /* ObjCPluginFunction.m */,
+				A803FF6409CAACC1009B2A37 /* Frameworks */,
+				9340995508540CAF007F3BC8 /* Products */,
+			);
+			name = DumpRenderTree;
+			sourceTree = "<group>";
+		};
+		141BF1F5096A439800E0753C /* TestNetscapePlugIn.subproj */ = {
+			isa = PBXGroup;
+			children = (
+				141BF445096A45C800E0753C /* main.c */,
+				141BF446096A45C800E0753C /* PluginObject.c */,
+				141BF447096A45C800E0753C /* PluginObject.h */,
+				141BF448096A45C800E0753C /* Info.plist */,
+			);
+			path = TestNetscapePlugIn.subproj;
+			sourceTree = "<group>";
+		};
+		9340995508540CAF007F3BC8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9340995408540CAF007F3BC8 /* DumpRenderTree */,
+				B5A7526708AF4A4A00138E45 /* ImageDiff */,
+				141BF233096A44CF00E0753C /* TestNetscapePlugIn.plugin */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A803FF6409CAACC1009B2A37 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9335435F03D75502008635CE /* WebKit.framework */,
+				A817090308B164D300CCB9FB /* JavaScriptCore.framework */,
+				A817090108B1643800CCB9FB /* WebCore.framework */,
+				B5A752A108AF5D1F00138E45 /* QuartzCore.framework */,
+				A84F608908B136DA00E9745F /* Cocoa.framework */,
+				AE8257EF08D22389000507AB /* Carbon.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		141BF44E096A45DD00E0753C /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				141BF453096A45EB00E0753C /* PluginObject.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9340994B08540CAE007F3BC8 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A803FFBE09CAAE9C009B2A37 /* DumpRenderTreeDraggingInfo.h in Headers */,
+				A803FCC809CAAB90009B2A37 /* EventSendingController.h in Headers */,
+				9340994C08540CAE007F3BC8 /* DumpRenderTreePrefix.h in Headers */,
+				93442CF608F8BA4900BFE8CA /* TextInputController.h in Headers */,
+				14A6FB8A0971CAE5008B014F /* NavigationController.h in Headers */,
+				E1330800099624DA00AC0A91 /* AppleScriptController.h in Headers */,
+				A803FFF509CAAFE0009B2A37 /* EditingDelegate.h in Headers */,
+				22181BD109DC8C4B008342E8 /* ObjCPlugin.h in Headers */,
+				22181BD309DC8C4B008342E8 /* ObjCPluginFunction.h in Headers */,
+				14770FE20A22ADF7009342EE /* GCController.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B5A7525B08AF4A4A00138E45 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		141BF21E096A441D00E0753C /* TestNetscapePlugIn */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 141BF221096A441E00E0753C /* Build configuration list for PBXNativeTarget "TestNetscapePlugIn" */;
+			buildPhases = (
+				141BF21B096A441D00E0753C /* Resources */,
+				141BF44E096A45DD00E0753C /* Headers */,
+				141BF21C096A441D00E0753C /* Sources */,
+				141BF21D096A441D00E0753C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TestNetscapePlugIn;
+			productName = TestNetscapePlugIn.plugin;
+			productReference = 141BF233096A44CF00E0753C /* TestNetscapePlugIn.plugin */;
+			productType = "com.apple.product-type.bundle";
+		};
+		9340994A08540CAE007F3BC8 /* DumpRenderTree */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 149C29BF08902C6D008A9EFC /* Build configuration list for PBXNativeTarget "DumpRenderTree" */;
+			buildPhases = (
+				9340994B08540CAE007F3BC8 /* Headers */,
+				9340994D08540CAE007F3BC8 /* Sources */,
+				9340994F08540CAE007F3BC8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DumpRenderTree;
+			productInstallPath = "$(HOME)/bin";
+			productName = DumpRenderTree;
+			productReference = 9340995408540CAF007F3BC8 /* DumpRenderTree */;
+			productType = "com.apple.product-type.tool";
+		};
+		B5A7525A08AF4A4A00138E45 /* ImageDiff */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B5A7526408AF4A4A00138E45 /* Build configuration list for PBXNativeTarget "ImageDiff" */;
+			buildPhases = (
+				B5A7525B08AF4A4A00138E45 /* Headers */,
+				B5A7525D08AF4A4A00138E45 /* Sources */,
+				B5A7525F08AF4A4A00138E45 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ImageDiff;
+			productInstallPath = "$(HOME)/bin";
+			productName = DumpRenderTree;
+			productReference = B5A7526708AF4A4A00138E45 /* ImageDiff */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 149C29C308902C6D008A9EFC /* Build configuration list for PBXProject "DumpRenderTree" */;
+			hasScannedForEncodings = 1;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* DumpRenderTree */;
+			productRefGroup = 9340995508540CAF007F3BC8 /* Products */;
+			projectDirPath = "";
+			targets = (
+				A84F608D08B1370600E9745F /* All */,
+				9340994A08540CAE007F3BC8 /* DumpRenderTree */,
+				B5A7525A08AF4A4A00138E45 /* ImageDiff */,
+				141BF21E096A441D00E0753C /* TestNetscapePlugIn */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		141BF21B096A441D00E0753C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				141BF44C096A45C800E0753C /* Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		141BF21C096A441D00E0753C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				141BF44A096A45C800E0753C /* main.c in Sources */,
+				141BF44B096A45C800E0753C /* PluginObject.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9340994D08540CAE007F3BC8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A803FFBD09CAAE99009B2A37 /* DumpRenderTreeDraggingInfo.m in Sources */,
+				A803FCC709CAAB8D009B2A37 /* EventSendingController.m in Sources */,
+				9340994E08540CAE007F3BC8 /* DumpRenderTree.m in Sources */,
+				93442CF708F8BA4900BFE8CA /* TextInputController.m in Sources */,
+				14A6FB8B0971CAE5008B014F /* NavigationController.m in Sources */,
+				E1330801099624DA00AC0A91 /* AppleScriptController.m in Sources */,
+				A803FFF609CAAFE0009B2A37 /* EditingDelegate.m in Sources */,
+				22181BD209DC8C4B008342E8 /* ObjCPlugin.m in Sources */,
+				22181BD409DC8C4B008342E8 /* ObjCPluginFunction.m in Sources */,
+				14770FE30A22ADF7009342EE /* GCController.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B5A7525D08AF4A4A00138E45 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5A752A008AF5CD400138E45 /* ImageDiff.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		141BF238096A451E00E0753C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 141BF21E096A441D00E0753C /* TestNetscapePlugIn */;
+			targetProxy = 141BF237096A451E00E0753C /* PBXContainerItemProxy */;
+		};
+		A84F608F08B1370E00E9745F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B5A7525A08AF4A4A00138E45 /* ImageDiff */;
+			targetProxy = A84F608E08B1370E00E9745F /* PBXContainerItemProxy */;
+		};
+		A84F609108B1370E00E9745F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9340994A08540CAE007F3BC8 /* DumpRenderTree */;
+			targetProxy = A84F609008B1370E00E9745F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		141BF222096A441E00E0753C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
+				INFOPLIST_FILE = TestNetscapePlugIn.subproj/Info.plist;
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Plugins";
+				LIBRARY_STYLE = BUNDLE;
+				OPTIMIZATION_CFLAGS = "-O0";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Carbon,
+				);
+				OTHER_REZFLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = TestNetscapePlugIn;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Debug;
+		};
+		141BF223096A441E00E0753C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
+				INFOPLIST_FILE = TestNetscapePlugIn.subproj/Info.plist;
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Plugins";
+				LIBRARY_STYLE = BUNDLE;
+				OPTIMIZATION_CFLAGS = "-O0";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Carbon,
+				);
+				OTHER_REZFLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = TestNetscapePlugIn;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Release;
+		};
+		149C29C008902C6D008A9EFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREFIX_HEADER = DumpRenderTreePrefix.h;
+				PRODUCT_NAME = DumpRenderTree;
+			};
+			name = Debug;
+		};
+		149C29C108902C6D008A9EFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREFIX_HEADER = DumpRenderTreePrefix.h;
+				PRODUCT_NAME = DumpRenderTree;
+			};
+			name = Release;
+		};
+		149C29C408902C6D008A9EFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = /System/Library/Frameworks/Quartz.framework/Frameworks;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-W",
+					"-Wno-unused-parameter",
+				);
+			};
+			name = Debug;
+		};
+		149C29C508902C6D008A9EFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = /System/Library/Frameworks/Quartz.framework/Frameworks;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-W",
+					"-Wno-unused-parameter",
+				);
+			};
+			name = Release;
+		};
+		A84F609308B1371400E9745F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				OPTIMIZATION_CFLAGS = "-O0";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = All;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+			};
+			name = Debug;
+		};
+		A84F609408B1371400E9745F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				OPTIMIZATION_CFLAGS = "-O0";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = All;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+			};
+			name = Release;
+		};
+		B5A7526508AF4A4A00138E45 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_PREFIX_HEADER = "";
+				PRODUCT_NAME = ImageDiff;
+			};
+			name = Debug;
+		};
+		B5A7526608AF4A4A00138E45 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_PREFIX_HEADER = "";
+				PRODUCT_NAME = ImageDiff;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		141BF221096A441E00E0753C /* Build configuration list for PBXNativeTarget "TestNetscapePlugIn" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				141BF222096A441E00E0753C /* Debug */,
+				141BF223096A441E00E0753C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		149C29BF08902C6D008A9EFC /* Build configuration list for PBXNativeTarget "DumpRenderTree" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				149C29C008902C6D008A9EFC /* Debug */,
+				149C29C108902C6D008A9EFC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		149C29C308902C6D008A9EFC /* Build configuration list for PBXProject "DumpRenderTree" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				149C29C408902C6D008A9EFC /* Debug */,
+				149C29C508902C6D008A9EFC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A84F609208B1371400E9745F /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A84F609308B1371400E9745F /* Debug */,
+				A84F609408B1371400E9745F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B5A7526408AF4A4A00138E45 /* Build configuration list for PBXNativeTarget "ImageDiff" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B5A7526508AF4A4A00138E45 /* Debug */,
+				B5A7526608AF4A4A00138E45 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

@@ -1,0 +1,41 @@
+IF (WEBKIT_USE_FONTS_FREETYPE)
+set(fonts_SRC
+        ${fonts_SRC}
+		BAL/Implementations/Fonts/freetype/FontPrivate.cpp
+		BAL/Implementations/Fonts/freetype/FontFamily.cpp
+		BAL/Implementations/Fonts/freetype/BTFontFallbackList.cpp
+		BAL/Implementations/Fonts/freetype/BTFont.cpp
+)
+ENDIF (WEBKIT_USE_FONTS_FREETYPE)
+
+IF (WEBKIT_USE_FONTS_SDL)
+set(fonts_SRC
+        ${fonts_SRC}
+	BAL/Implementations/Fonts/SDL/BTFont.cpp
+	BAL/Implementations/Fonts/SDL/BTFontFallbackList.cpp
+	BAL/Implementations/Fonts/SDL/FontFamily.cpp
+)
+ENDIF (WEBKIT_USE_FONTS_SDL)
+
+IF (WEBKIT_USE_FONTS_SDL_TTF)
+set(fonts_SRC
+        ${fonts_SRC}
+        BAL/Implementations/Fonts/SDL_TTF/BTFont.cpp
+        BAL/Implementations/Fonts/SDL_TTF/BTFontFallbackList.cpp
+        BAL/Implementations/Fonts/SDL_TTF/FontFamily.cpp
+)
+ENDIF (WEBKIT_USE_FONTS_SDL_TTF)
+
+IF (WEBKIT_USE_FONTS_CAIRO)
+set(fonts_SRC
+        ${fonts_SRC}
+	BAL/Implementations/Fonts/Cairo/BTFont.cpp
+        BAL/Implementations/Fonts/Cairo/BTFontFallbackList.cpp
+        BAL/Implementations/Fonts/Cairo/BTGlyphMap.cpp
+        BAL/Implementations/Fonts/Cairo/BTFontPlatformData.cpp
+        BAL/Implementations/Fonts/Cairo/BCFontData.cpp
+        BAL/Implementations/Fonts/Cairo/BCFontCache.cpp
+        BAL/Implementations/Fonts/Cairo/BCGlyphBuffer.cpp
+        BAL/Implementations/Fonts/Cairo/FontFamily.cpp
+)
+ENDIF (WEBKIT_USE_FONTS_CAIRO)

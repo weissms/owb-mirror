@@ -1,0 +1,40 @@
+set(graphics_SRC
+        ${graphics_SRC}
+
+	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ColorData.c #generated sources
+	BAL/Implementations/Graphics/Linux/BCAffineTransform.cpp
+	BAL/Implementations/Graphics/Common/BitmapImageBal.cpp
+	BAL/Implementations/Graphics/Common/Color.cpp
+	BAL/Implementations/Graphics/Common/DragControllerBal.cpp
+	BAL/Implementations/Graphics/Common/DragImageBal.cpp
+	BAL/Implementations/Graphics/Common/GraphicsTypes.cpp
+	BAL/Implementations/Graphics/Common/Image.cpp
+	BAL/Implementations/Graphics/Common/ImageSource.cpp
+	BAL/Implementations/Graphics/Common/Path.cpp
+	BAL/Implementations/Graphics/Common/PathCommon.cpp
+	BAL/Implementations/Graphics/Common/PathTraversalState.cpp
+	BAL/Implementations/Graphics/Common/ScrollBar.cpp
+	BAL/Implementations/Graphics/Common/PopupMenuBal.cpp
+	BAL/Implementations/Graphics/Common/SearchPopupMenuBal.cpp
+	BAL/Implementations/Graphics/Common/ScreenBal.cpp
+	BAL/Implementations/Graphics/Common/SoundBal.cpp
+)
+
+IF (WEBKIT_USE_GRAPHICS_SDL)
+set(graphics_SRC
+        ${graphics_SRC}
+	    BAL/Implementations/Graphics/SDL/BCGraphicsContext.cpp
+        BAL/Implementations/Graphics/SDL/BCNativeImage.cpp
+        BAL/Implementations/Graphics/SDL/CursorBal.cpp
+)
+ENDIF (WEBKIT_USE_GRAPHICS_SDL)
+
+IF (WEBKIT_USE_GRAPHICS_CAIRO)
+set(graphics_SRC
+        ${graphics_SRC}
+        BAL/Implementations/Graphics/Cairo/BCGraphicsContext.cpp
+        BAL/Implementations/Graphics/Cairo/BCNativeImage.cpp
+        BAL/Implementations/Graphics/Cairo/RGBA32GraphicsContext.cpp
+)
+ENDIF (WEBKIT_USE_GRAPHICS_CAIRO)
+
