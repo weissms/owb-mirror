@@ -25,52 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/ui/text/TestRunner.h>
+#include <cppunit/TestPath.h>
+#include <cppunit/Test.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
+#include <cppunit/TextTestProgressListener.h>
+#include <cppunit/CompilerOutputter.h>
+#include <iostream>
+#include <stdexcept>
 
-/**
- * @file  BCWindowEvent.h
- *
- * @brief Concretisation of window event
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date: 2006/05/11 13:44:56 $
- *
- * This header file is private. Only IDL interface is public.
- *
- */
+#include "BALComplex.h"
 
-#include "config.h"
-#include "PlatformString.h"
+class ComplexNumberTests : public CPPUNIT_NS::TestFixture  {
 
-#include "BIWindowEvent.h"
-#include "IntRect.h"
+  CPPUNIT_TEST_SUITE( ComplexNumberTests );
+  CPPUNIT_TEST( testConstructor );
+  CPPUNIT_TEST( testEquality );
+  CPPUNIT_TEST( testAddition );
+  CPPUNIT_TEST_SUITE_END();
 
-namespace BC
-{
+public: 
 
-/**
- * @brief the WindowEvent
- *
- * The window event. Events like expose, resize (not handled yet), etc.
- * are managed here.
- *
- * @see BIEvent, BIEventLoop
- */
-class BCWindowEvent : public BAL::BIWindowEvent {
-public:
-    BCWindowEvent(BIWindowEvent::ENUM_WINDOW, bool bGain = false,
-                   const WebCore::IntRect& rect = WebCore::IntRect());
+  void testConstructor()
+  {
+    BALComplex m_10_1( 10, 1 );
+    CPPUNIT_ASSERT_EQUAL( 10, (int) m_10_1.realPart() );
+    CPPUNIT_ASSERT_EQUAL( 1, (int) m_10_1.imaginaryPart() );
+  }
 
-    virtual BIEvent* clone() const;
-    virtual const WebCore::IntRect& getRectangle() const;
-    virtual BIWindowEvent::ENUM_WINDOW type() const;
-    virtual bool gain() const;
+  void testEquality()
+  {
+    BALComplex m_10_1( 10, 1 );
+    BALComplex m_1_10( 1, 10 );
+    CPPUNIT_ASSERT( m_10_1 == m_10_1 );
+    CPPUNIT_ASSERT( !(m_10_1 == m_1_10) );
+    CPPUNIT_ASSERT( m_10_1 != m_1_10 );
+  }
 
-protected:
-    BIWindowEvent::ENUM_WINDOW    m_aWindowType;
-    bool                          m_bGain; // 0 or 1 if active
-    WebCore::IntRect              m_rect;
+  void testAddition()
+  {
+    CPPUNIT_ASSERT( BALComplex(10, 1) + BALComplex(1, 2) == BALComplex(11, 3) );
+  }
+
 };
 
-}
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( ComplexNumberTests, "All Tests" );

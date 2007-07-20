@@ -45,7 +45,9 @@
 #include "Shared.h"
 #include <string>
 #include <vector>
+#ifndef __OWB_NSI__
 using std::string;
+#endif
 using std::vector;
 
 namespace BALFacilities {

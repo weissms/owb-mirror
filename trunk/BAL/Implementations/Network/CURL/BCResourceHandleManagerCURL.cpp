@@ -128,7 +128,7 @@ void BCResourceHandleManagerCURL::add(BIResourceHandle *resourceHandle)
 {
     BCResourceHandleCURL* job = static_cast<BCResourceHandleCURL*> (resourceHandle);
     logml(MODULE_NETWORK, LEVEL_WARNING,
-      make_message("ADD TRANSFER JOB: METHOD=%s\n", job->method().deprecatedString().ascii()));
+      make_message("ADD TRANSFER JOB: METHOD=%s for %s", job->method().deprecatedString().ascii(), job->url().url().ascii()));
 
     if (cookieJarFileName()) {
         logml(MODULE_NETWORK, LEVEL_INFO, make_message("ADD COOKIE to file: %s\n", m_cookieJarFileName));

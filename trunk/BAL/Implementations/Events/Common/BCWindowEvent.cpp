@@ -27,9 +27,9 @@
  */
 
 /**
- * @file  BCMouseEvent.cpp
+ * @file  BCWindowEvent.cpp
  *
- * @brief Bal Concretisation of mouse event
+ * @brief Bal Concretisation of window event
  *
  * Repository informations :
  * - $URL$
@@ -38,53 +38,41 @@
  *
  */
 
-#include "BALConfiguration.h"
-#include "BCMouseEvent.h"
+#include "BCWindowEvent.h"
 
 using namespace BC;
 
 namespace BAL {
+    BIWindowEvent* createBIWindowEvent(BIWindowEvent::ENUM_WINDOW aW, bool bGain = false, const WebCore::IntRect& rect = WebCore::IntRect(), const BTWidget* widget = NULL)
+    {
+        return new BC::BCWindowEvent(aW, bGain, rect, widget);
+    }
+}
 
-BIMouseEvent* createBIMouseEvent()
+BAL::BIWindowEvent::ENUM_WINDOW BCWindowEvent::type() const
 {
-    return new BCMouseEvent(BIMouseEvent::MouseEventMoved, IntPoint(), IntPoint(), BIMouseEvent::NoButton, 0, false, false, false, false);
+	return m_aWindowType;
 }
 
-}
-
-const IntPoint& BCMouseEvent::pos() const
+bool BCWindowEvent::gain() const
 {
-	return m_position;
+	return m_bGain;
 }
 
-const IntPoint& BCMouseEvent::globalPos() const
-{
-	return m_globalPosition;
-}
-
-BAL::BIMouseEvent::MouseButton BCMouseEvent::button() const
-{
-	return m_button;
-}
-
-int BCMouseEvent::clickCount() const
-{
-	return m_clickCount;
-}
-
-BCMouseEvent::BCMouseEvent(MouseEventType type, const IntPoint& pos, const IntPoint& globalPos, MouseButton button,
-                int clickCount, bool shift, bool ctrl, bool alt, bool meta)
-    : BCCommonInputEventData( shift, ctrl, alt, meta )
-	, m_position(pos)
-	, m_globalPosition(globalPos)
-	, m_button(button)
-	, m_eventType(type)
-	, m_clickCount(clickCount)
+BCWindowEvent::BCWindowEvent(BIWindowEvent::ENUM_WINDOW aW, bool bGain, const WebCore::IntRect& rect, const BAL::BTWidget* widget)
+    : m_aWindowType( aW )
+	, m_bGain( bGain )
+	, m_rect(rect)
+    , m_widget(widget)
 {
 }
 
-BAL::BIEvent* BCMouseEvent::clone() const
+BAL::BIEvent* BCWindowEvent::clone() const
 {
-	return new BCMouseEvent(m_eventType, m_position, m_globalPosition, m_button, m_clickCount,
-    shiftKey(), ctrlKey(), altKey(), metaKey());
+	return new BCWindowEvent(m_aWindowType, m_bGain);
+}
+
+const WebCore::IntRect& BCWindowEvent::getRectangle() const
+{
+    return m_rect;
 }

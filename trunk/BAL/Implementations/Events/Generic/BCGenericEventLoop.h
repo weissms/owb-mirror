@@ -25,32 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef BIRGBA32SURFACE_H_
-#define BIRGBA32SURFACE_H_
 
-#include "BISurface.h"
-#include "RGBA32Array.h"
+/**
+ * @file  BCSDLEventLoop.h
+ *
+ * @brief SDL Implementation of BIEventLoop
+ *
+ * Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date: 2006/05/11 13:44:56 $
+ *
+ * This header file is private. Only IDL interface is public.
+ *
+ */
 
-namespace BAL {
+#include "BIEventLoop.h"
+#include "BIEvent.h"
 
-    /**
-     * Holds a reference to a RGBA32Surface.
-     * Mainly for test purpose.
-     * It doesn't inherit from BISurface to allow implementors to inherit
-     * the whole GraphicsContext implementation for example.
-     */
-    class BIRGBA32Surface {
-        public:
-            virtual RGBA32Array* getRGBA32Array() = 0;
-            // this is mandatory
-            virtual ~BIRGBA32Surface() {};
+namespace BC
+{
 
-    };
+/**
+ * @brief the generic event loop
+ *
+ * @see BIEvent
+ */
+class BCGenericEventLoop : public BAL::BIEventLoop
+{
+public:
+    BCGenericEventLoop();
+    virtual ~BCGenericEventLoop();
+
+    virtual bool isInitialized() const;
+
+    virtual void quit();
+    virtual bool WaitEvent(BAL::BIEvent*&);
+    virtual bool PushEvent(BAL::BIEvent*);
+
+protected:
+    BAL::BIEvent* CreateEventFromGenericEvent(/*const SDL_Event&*/);
+    bool mIsInitialized;
+    Vector<BAL::BIEvent*> m_event;
+};
 
 }
-
-#define IMPLEMENT_BIRGBA32SURFACE  \
-    public: \
-        virtual RGBA32Array* getRGBA32Array();
-
-#endif // BIRGBA32SURFACE_H_

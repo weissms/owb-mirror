@@ -1282,7 +1282,7 @@ void Frame::paint(GraphicsContext* p, const IntRect& rect)
         fillWithRed = true;
 
     if (fillWithRed)
-        p->fillRect(rect, Color(0xFF, 0, 0));
+        p->fillRect(rect, Color(0, 0, 0, 0));
 #endif
 
     if (renderer()) {

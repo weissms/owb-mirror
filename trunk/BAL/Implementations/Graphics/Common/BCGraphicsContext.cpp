@@ -27,14 +27,12 @@
 #include "config.h"
 #include "BALConfiguration.h"
 #include "BCGraphicsContext.h"
-#include "BCNativeImage.h"
+#include "BINativeImage.h"
 #include "BTAffineTransform.h"
 #include "Color.h"
 #include "DeprecatedString.h"
-#include <SDL/SDL_gfxPrimitives.h>
-#include <SDL/SDL_rotozoom.h>
 #include <BIMath.h>
-
+#include "BIGraphicsDevice.h"
 #include "BTLogHelper.h"
 
 using namespace std;
@@ -48,7 +46,7 @@ using namespace WebCore;
 
 //FIXME: Should be elsewhere.
 void WebCore::setFocusRingColorChangeFunction(void (*)()) { BALNotImplemented(); }
-Color WebCore::focusRingColor() { return 0x000000ff; }
+Color WebCore::focusRingColor() { return 0x7f0000ff; }
 
 namespace BAL {
     // used by some rendering stuff that use a fake GC
@@ -83,7 +81,8 @@ struct GraphicsContextState {
     Color fillColor;
     int textDrawingMode;
     bool paintingDisabled;
-    SDL_Rect clippingRect;
+    IntRect clippingRect;
+    IntPoint origin;
 };
 
 //
@@ -118,29 +117,17 @@ class GraphicsContextPlatformPrivate {
         GraphicsContextPlatformPrivate();
         ~GraphicsContextPlatformPrivate();
 
-        SDL_Surface* context;
         BINativeImage* nativeImage;
 };
 
 
 GraphicsContextPlatformPrivate::GraphicsContextPlatformPrivate()
-    :  context(0)
 {
 }
 
 GraphicsContextPlatformPrivate::~GraphicsContextPlatformPrivate()
 {
-    delete context;
 }
-
-// A fillRect helper
-static inline void fillRectSourceOver(SDL_Surface* context, const FloatRect& rect, const Color& col)
-{
-    boxRGBA(context, static_cast<Sint16>(rect.x()), static_cast<Sint16>(rect.y()),
-                    static_cast<Sint16>(rect.x() + rect.width()), static_cast<Sint16>(rect.y() + rect.height()),
-                    col.red(), col.green(), col.blue(), col.alpha());
-}
-
 //
 // BCGraphicsContext implementation
 //
@@ -149,23 +136,14 @@ BCGraphicsContext::BCGraphicsContext(bool isReal)
     : m_common(createGraphicsContextPrivate())
     , m_data(new GraphicsContextPlatformPrivate)
     , m_alphaLayerValue(1.0)
+    , m_widget(NULL)
 {
-    if (!isReal)
-        m_data->nativeImage = createBCNativeImage(IntSize(0, 0));
-    else
-        m_data->nativeImage = createBCNativeImage(IntSize(800, 600));
-    m_data->context = static_cast<BCNativeImage*>(m_data->nativeImage)->getSurface();
 }
 
 BCGraphicsContext::~BCGraphicsContext()
 {
     destroyGraphicsContextPrivate(m_common);
     delete m_data;
-}
-
-SDL_Surface* BCGraphicsContext::platformContext() const
-{
-    return m_data->context;
 }
 
 GraphicsContextPrivate* BCGraphicsContext::createGraphicsContextPrivate()
@@ -178,9 +156,14 @@ void BCGraphicsContext::destroyGraphicsContextPrivate(GraphicsContextPrivate* de
     delete deleteMe;
 }
 
-BINativeImage* BCGraphicsContext::getNativeImage()
+void BCGraphicsContext::setWidget(const BTWidget* widget)
 {
-    return m_data->nativeImage;
+    m_widget = widget;
+}
+
+const BTWidget* BCGraphicsContext::widget()
+{
+    return m_widget;
 }
 
 void BCGraphicsContext::save()
@@ -193,6 +176,8 @@ void BCGraphicsContext::save()
 
 void BCGraphicsContext::restore()
 {
+    if (!m_widget)
+        return;
     if (paintingDisabled())
         return;
 
@@ -202,7 +187,7 @@ void BCGraphicsContext::restore()
     }
     m_common->state = m_common->stack.last();
     m_common->stack.removeLast();
-    SDL_SetClipRect(m_data->context, NULL);
+    getBIGraphicsDevice()->setClip(*m_widget, m_common->state.clippingRect);
 }
 
 const Font& BCGraphicsContext::font() const
@@ -314,8 +299,8 @@ void BCGraphicsContext::drawText(const TextRun& run, const IntPoint& point, cons
 {
     if (paintingDisabled())
         return;
-
-    font().drawText(this, run, style, point);
+    
+    font().drawText(this, run, style, point + origin());
 }
 
 void BCGraphicsContext::drawHighlightForText(const TextRun& run, const IntPoint& point, int h, const TextStyle& style, const Color& backgroundColor)
@@ -407,65 +392,77 @@ void BCGraphicsContext::drawTiledImage(BINativeImage* image, const IntRect& dest
 void BCGraphicsContext::realDraw(
   BINativeImage* nativeImage, const FloatRect& dst, const FloatRect& src, CompositeOperator op)
 {
+    if (!m_widget)
+        return;
     if (!nativeImage)
         return;
-    SDL_Rect srcRect, dstRect;
-    srcRect.x = static_cast<Sint16>(src.x());
-    srcRect.y = static_cast<Sint16>(src.y());
-    if (0 == src.width())
-        srcRect.w = nativeImage->size().width();
-    else
-        srcRect.w = static_cast<Uint16>(src.width());
-    if (0 == src.height())
-        srcRect.h = nativeImage->size().height();
-    else
-        srcRect.h = static_cast<Uint16>(src.height());
-    dstRect.x = static_cast<Sint16>(dst.x());
-    dstRect.y = static_cast<Sint16>(dst.y());
-    dstRect.w = static_cast<Sint16>(dst.width());
-    dstRect.h = static_cast<Sint16>(dst.height());
-    SDL_Surface *surface = zoomSurface(static_cast<BCNativeImage*>(nativeImage)->getSurface(),
-                        (((double)dst.width()/(double)srcRect.w)),
-                        ((double)dst.height()/((double)srcRect.h)),
-                        SMOOTHING_OFF);
-    srcRect.w = static_cast<Uint16>(dst.width());
-    srcRect.h = static_cast<Uint16>(dst.height());
-    srcRect.x = 0;
-    srcRect.y = 0;
 
-    SDL_BlitSurface(surface, &srcRect, m_data->context, &dstRect);
-    SDL_FreeSurface(surface);
+    IntRect source(src);
+    IntRect dest(dst);
+    
+    dest.setLocation(dest.location() + origin());
+    
+    if (source.size() != dest.size()) {
+        getBIGraphicsDevice()->stretchBlit(*m_widget, *nativeImage, source, dest, static_cast<int> (m_alphaLayerValue * 255));
+    } else {
+        getBIGraphicsDevice()->copy(*m_widget, *nativeImage, source, dest.location(), static_cast<int> (m_alphaLayerValue * 255));
+    }
 }
 
 void realDrawTiled(BINativeImage*, const FloatRect& dstRect, const FloatRect& srcRect, BIGraphicsContext::TileRule hRule, BIGraphicsContext::TileRule vRule, CompositeOperator)
 {
-  BALNotImplemented();
+    BALNotImplemented();
 }
 
 void BCGraphicsContext::realDrawTiled(
-  BINativeImage* image, const FloatRect& dstRect, const FloatPoint& srcPoint, const FloatSize& tileSize, CompositeOperator op)
+  BINativeImage* image, const FloatRect& destRect, const FloatPoint& srcPoint, const FloatSize& scaledTileSize, CompositeOperator op)
 {
+    if (!m_widget)
+        return;
     if (!image)
         return;
+        
+    FloatSize intrinsicTileSize = image->size();
+    FloatSize scale(scaledTileSize.width() / intrinsicTileSize.width(),
+                    scaledTileSize.height() / intrinsicTileSize.height());
+    AffineTransform patternTransform = AffineTransform().scale(scale.width(), scale.height());
 
-    SDL_Surface* ctxt = m_data->context;
-
-    float tileWidth = image->size().width();
-    float tileHeight = image->size().height();
-
-    // save context info
-    save();
-
-    clip(IntRect(dstRect)); // don't draw outside this
-
-    for(float x = dstRect.x(); x < dstRect.x() + dstRect.width(); x+= tileWidth) {
-        for(float y = dstRect.y(); y < dstRect.y() + dstRect.height(); y+=tileHeight) {
-            realDraw(image, FloatRect(x, y, tileWidth, tileHeight), FloatRect(0, 0, tileWidth, tileHeight), CompositeSourceOver);
-        }
+    FloatRect oneTileRect;
+    oneTileRect.setX(destRect.x() + fmodf(fmodf(-srcPoint.x(), scaledTileSize.width()) - scaledTileSize.width(), scaledTileSize.width()));
+    oneTileRect.setY(destRect.y() + fmodf(fmodf(-srcPoint.y(), scaledTileSize.height()) - scaledTileSize.height(), scaledTileSize.height()));
+    oneTileRect.setSize(scaledTileSize);
+   
+    // Check and see if a single draw of the image can cover the entire area we are supposed to tile.   
+    if (oneTileRect.contains(destRect)) {
+        FloatRect visibleSrcRect;
+        visibleSrcRect.setX((destRect.x() - oneTileRect.x()) / scale.width());
+        visibleSrcRect.setY((destRect.y() - oneTileRect.y()) / scale.height());
+        visibleSrcRect.setWidth(destRect.width() / scale.width());
+        visibleSrcRect.setHeight(destRect.height() / scale.height());
+        realDraw(image, destRect, visibleSrcRect, op);
+        return;
     }
-
-    // restore clipping
-    restore();
+    else {
+        // save context info
+        save();
+    
+        clip(IntRect(destRect)); // don't draw outside this
+        
+        // draw image pattern inside destRect
+        // NOTE doesn't work for deviantart.com
+        IntRect dest(IntPoint(), image->size());
+        IntRect src(0, 0, static_cast<int>(srcPoint.x()), static_cast<int>(srcPoint.y()));
+        int xMax = static_cast<int>(destRect.x() + destRect.width());
+        int yMax = static_cast<int>(destRect.y() + destRect.height());
+        for(int x = static_cast<int>(oneTileRect.x()); x < xMax; x+= image->size().width()) {
+            for(int y = static_cast<int>(oneTileRect.y()); y < yMax; y+=image->size().height()) {
+                dest.setLocation(IntPoint(x, y) + origin());
+                getBIGraphicsDevice()->copy(*m_widget, *image, src, dest.location(), alphaLayer());
+            }
+        }
+        
+        restore();
+    }
 }
 
 void BCGraphicsContext::clipOutRoundedRect(const IntRect& rect, const IntSize& topLeft, const IntSize& topRight,
@@ -522,23 +519,34 @@ void BCGraphicsContext::setTextDrawingMode(int mode)
 //
 
 // Draws a filled rectangle with a stroked border.
-void BCGraphicsContext::drawRect(const IntRect& rect)
+void BCGraphicsContext::drawRect(const IntRect& rectangle)
 {
+    if (!m_widget)
+    return;
+
     if (paintingDisabled())
         return;
 
-    SDL_Surface* context = m_data->context;
-    fillRectSourceOver(context, rect, fillColor());
+    IntRect rect(rectangle);
+    rect.setLocation(rectangle.location() + origin());
+    
+    if (m_alphaLayerValue != 1.0) {
+        Color rectFillColor(fillColor().red(), fillColor().green(), fillColor().blue(), static_cast<int> (fillColor().alpha() * m_alphaLayerValue));
+        getBIGraphicsDevice()->fillRect(*m_widget, rect, rectFillColor);
+    } else
+        getBIGraphicsDevice()->fillRect(*m_widget, rect, fillColor());
 
     if (strokeStyle() != NoStroke) {
-        FloatRect r(rect);
-        r.inflate(-.5f);
-        rectangleRGBA(context, static_cast<Sint16>(r.x()), static_cast<Sint16>(r.y()),
-                        static_cast<Sint16>(r.x() + r.width()), static_cast<Sint16>(r.y() + r.height()),
-                        strokeColor().red(), strokeColor().green(), strokeColor().blue(), strokeColor().alpha());
+        if (m_alphaLayerValue != 1.0) {
+            Color rectColor(strokeColor().red(), strokeColor().green(), strokeColor().blue(), static_cast<int> (strokeColor().alpha() * m_alphaLayerValue));
+            getBIGraphicsDevice()->drawRect(*m_widget, rect, rectColor);
+        } else
+            getBIGraphicsDevice()->drawRect(*m_widget, rect, strokeColor());
     }
 }
 
+#if 0 
+// NOTE SRO adjustLineToPixelBounderies is not used
 // FIXME: Now that this is refactored, it should be shared by all contexts.
 static void adjustLineToPixelBounderies(FloatPoint& p1, FloatPoint& p2, float strokeWidth, const StrokeStyle& strokeStyle)
 {
@@ -570,13 +578,16 @@ static void adjustLineToPixelBounderies(FloatPoint& p1, FloatPoint& p2, float st
         }
     }
 }
+#endif
 
 // This is only used to draw borders.
 void BCGraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
 {
+    if (!m_widget)
+    return;
+
     if (paintingDisabled())
         return;
-    SDL_Surface* context = m_data->context;
 
 /*    if (strokeStyle() == NoStroke)
         return;*/
@@ -584,138 +595,96 @@ void BCGraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
     if (width < 1)
         width = 1;
 
+/* NOTE SRO no rounding for now
     FloatPoint p1 = point1;
     FloatPoint p2 = point2;
 
     adjustLineToPixelBounderies(p1, p2, width, strokeStyle());
-
-    lineRGBA(context, static_cast<Sint16>(p1.x()), static_cast<Sint16>(p1.y()),
-             static_cast<Sint16>(p2.x()), static_cast<Sint16>(p2.y()),
-             strokeColor().red(),
-             strokeColor().green(),
-             strokeColor().blue(),
-             strokeColor().alpha());
-
+*/
+    if (m_alphaLayerValue != 1.0) {
+        Color lineColor(strokeColor().red(), strokeColor().green(), strokeColor().blue(), static_cast<int> (strokeColor().alpha() * m_alphaLayerValue));
+        getBIGraphicsDevice()->drawLine(*m_widget, point1 + origin(), point2 + origin(), lineColor);
+    } else
+        getBIGraphicsDevice()->drawLine(*m_widget, point1 + origin(), point2 + origin(), strokeColor());
 }
 
 // This method is only used to draw the little circles used in lists.
 void BCGraphicsContext::drawEllipse(const IntRect& rect)
 {
+    if (!m_widget)
+        return;
     if (paintingDisabled())
         return;
 
     float yRadius = .5 * rect.height();
     float xRadius = .5 * rect.width();
+    // Mean that we will draw a circle
+    if (xRadius == yRadius) {
+        strokeArc(rect, 0, 360);
+        return;
+    }
 
     if (strokeStyle() != NoStroke) {
         unsigned width = static_cast<unsigned int>(strokeThickness());
         if (width == 0)
             width++;
     }
-    ellipseRGBA(m_data->context, static_cast<Sint16>(rect.x() + xRadius), static_cast<Sint16>(rect.y() + yRadius),
-                static_cast<Sint16>(xRadius), static_cast<Sint16>(yRadius),
-                   strokeColor().red(),
-                   strokeColor().green(),
-                   strokeColor().blue(),
-                   strokeColor().alpha());
+
+    getBIGraphicsDevice()->drawEllipse(*m_widget, rect, strokeColor());
 }
 
 // FIXME: This function needs to be adjusted to match the functionality on the Mac side.
 void BCGraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSpan)
 {
-    // can't draw circles with bezierRGBA
-    // the drawMidpointCircle method is not accurate for small circles...
-    // so trying a simple way to draw arc
+    if (!m_widget)
+        return;
 
     if (paintingDisabled())
         return;
 
-    int x = rect.x();
-    int y = rect.y();
-    float w = (float)rect.width();
-
-    if (strokeStyle() != NoStroke) {
-        float r = w / 2;
-        float fa = startAngle;
-        float falen =  fa + angleSpan;
-
-        float xc = x + r;
-        float yc = y + r;
-        fa *= M_PI/180;
-        angleSpan *= static_cast<int>(M_PI/180);
-
-        int x1, x2, y1, y2;
-        float cosx1, cosx2, siny1, siny2;
-        float angleStep = angleSpan/r;
-        float angleCurrent = -fa;
-        cosx2 = cos(angleCurrent);
-        siny2 = sin(angleCurrent);
-        x2 = static_cast<int>(xc + r*cosx2);
-        y2 = static_cast<int>(yc + r*siny2);
-
-        for(int i=0; i<r; i++) {
-            cosx1 = cosx2;
-            siny1 = siny2;
-            cosx2 = cos(angleCurrent+angleStep);
-            siny2 = sin(angleCurrent+angleStep);
-
-            x1 = x2;
-            y1 = y2;
-            x2 = static_cast<int>(xc + r*cosx2);
-            y2 = static_cast<int>(yc + r*siny2);
-
-            lineRGBA(m_data->context, x1, y1, x2, y2,
-                   strokeColor().red(),
-                   strokeColor().green(),
-                   strokeColor().blue(),
-                   strokeColor().alpha());
-            angleCurrent += angleStep;
-        }
-    }
+    getBIGraphicsDevice()->drawArc(*m_widget, rect, startAngle, angleSpan, strokeColor());
 }
 
 void BCGraphicsContext::drawConvexPolygon(size_t npoints, const FloatPoint* points, bool shouldAntialias)
 {
+    if (!m_widget)
+        return;
+
     if (paintingDisabled())
         return;
 
-    if (npoints <= 1)
-        return;
-    Sint16 *vx = new Sint16[npoints];
-    Sint16 *vy = new Sint16[npoints];
-    for(unsigned int i=0; i<npoints; i++) {
-        vx[i] = static_cast<Sint16>(points[i].x());
-        vy[i] = static_cast<Sint16>(points[i].y());
+    IntPoint* intPoints = new IntPoint[npoints];
+    for(size_t i=0; i < npoints; i++) {
+        intPoints[i].setX(static_cast<int>(points[i].x()) + origin().x());
+        intPoints[i].setY(static_cast<int>(points[i].y()) + origin().y());
     }
-    filledPolygonRGBA(m_data->context, vx, vy, npoints,
-                   fillColor().red(),
-                   fillColor().green(),
-                   fillColor().blue(),
-                   fillColor().alpha());
-    delete[] vx;
-    delete[] vy;
+    getBIGraphicsDevice()->fillConvexPolygon(*m_widget, npoints, intPoints, fillColor());
+    delete[] intPoints;
 }
 
-void BCGraphicsContext::fillRect(const IntRect& rect, const Color& color)
+void BCGraphicsContext::fillRect(const IntRect& rectangle, const Color& color)
 {
     if (paintingDisabled())
         return;
+    if (!m_widget)
+        return;
 
+    IntRect rect(rectangle);
+    rect.setLocation(rectangle.location() + origin());
     Color c(color.red(), color.green(), color.blue(), static_cast<int>(color.alpha()*m_alphaLayerValue));
-    fillRectSourceOver(m_data->context, rect, c);
+    getBIGraphicsDevice()->fillRect(*m_widget, rect, c);
 }
 
 void BCGraphicsContext::fillRect(const FloatRect& rect, const Color& color)
 {
-    if (paintingDisabled())
-        return;
-
-    Color c(color.red(), color.green(), color.blue(), static_cast<int>(color.alpha()*m_alphaLayerValue));
-    fillRectSourceOver(m_data->context, rect, c);
+    fillRect(IntRect(rect), color);
 }
 
 void BCGraphicsContext::drawFocusRing(const Color& color)
 {
+    if (!m_widget)
+        return;
+
     if (paintingDisabled())
         return;
     int radius = (focusRingWidth() - 1) / 2;
@@ -726,15 +695,14 @@ void BCGraphicsContext::drawFocusRing(const Color& color)
     IntRect finalFocusRect;
     for (unsigned i = 0; i < rectCount; i++) {
         IntRect focusRect = rects[i];
+        focusRect.setLocation(focusRect.location() + origin());
         focusRect.inflate(offset);
         finalFocusRect.unite(focusRect);
     }
 
     // NOTE These rects are rounded on Mac
     // Force the alpha to 50%.  This matches what the Mac does with outline rings.
-    rectangleRGBA(m_data->context, finalFocusRect.x(), finalFocusRect.y(),
-                  finalFocusRect.x() + finalFocusRect.width(), finalFocusRect.y() + finalFocusRect.height(),
-                  color.red(), color.green(), color.blue(), 127);
+    getBIGraphicsDevice()->drawRect(*m_widget, finalFocusRect, color);
 }
 
 void BCGraphicsContext::setFocusRingClip(const IntRect&)
@@ -749,20 +717,20 @@ void BCGraphicsContext::clearFocusRingClip()
     //notImplemented();
 }
 
-void BCGraphicsContext::drawLineForText(const IntPoint& point, int width, bool /*printing*/)
+void BCGraphicsContext::drawLineForText(const IntPoint& startPoint, int width, bool /*printing*/)
 {
+    if (!m_widget)
+        return;
+
     if (paintingDisabled())
         return;
 
+    IntPoint point(startPoint + origin());
+    
     IntPoint endPoint = point + IntSize(width, 0);
-    SDL_Surface* context = m_data->context;
 
     // NOTE we should adjust line to pixel boundaries
-    lineRGBA(context, point.x(), point.y(), endPoint.x(), endPoint.y(),
-             strokeColor().red(),
-             strokeColor().green(),
-             strokeColor().blue(),
-             strokeColor().alpha());
+    getBIGraphicsDevice()->drawLine(*m_widget, point, endPoint, strokeColor());
 }
 
 void BCGraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint&, int /*width*/, bool /*grammar*/)
@@ -797,70 +765,149 @@ void BCGraphicsContext::concatCTM(const BAL::AffineTransform&)
 
 void BCGraphicsContext::addRoundedRectClip(const IntRect& /*rect*/,
                                            const IntSize& /*topLeft*/, const IntSize& /*topRight*/,
-                        const IntSize& /*bottomLeft*/, const IntSize& /*bottomRight*/) {
-                            notImplemented();
+                        const IntSize& /*bottomLeft*/, const IntSize& /*bottomRight*/)
+{
+    notImplemented();
 }
-void BCGraphicsContext::addInnerRoundedRectClip(const IntRect& /*rect*/, int /*thickness*/) { notImplemented(); }
-void BCGraphicsContext::setShadow(IntSize const&,int,Color const&) { notImplemented(); }
-void BCGraphicsContext::clearShadow() { notImplemented(); }
-void BCGraphicsContext::beginTransparencyLayer(float f) { m_alphaLayerValue = f; }
-void BCGraphicsContext::endTransparencyLayer() { m_alphaLayerValue = 1.0; }
-void BCGraphicsContext::clearRect(const FloatRect& rect) {
-    logml(MODULE_GRAPHICS, LEVEL_INFO, make_message("Not implemented for %fx%f+%f+%f", rect.width(), rect.height(), rect.x(), rect.y()));
+
+void BCGraphicsContext::addInnerRoundedRectClip(const IntRect& /*rect*/, int /*thickness*/)
+{
+    notImplemented();
 }
-void BCGraphicsContext::strokeRect(const FloatRect&, float) { notImplemented(); }
-void BCGraphicsContext::setLineCap(LineCap) { notImplemented(); }
-void BCGraphicsContext::setLineJoin(LineJoin) { notImplemented(); }
-void BCGraphicsContext::setMiterLimit(float) { notImplemented(); }
-void BCGraphicsContext::setAlpha(float) { notImplemented(); }
-void BCGraphicsContext::setCompositeOperation(CompositeOperator) { notImplemented(); }
-void BCGraphicsContext::clip(const Path&) { notImplemented(); }
-void BCGraphicsContext::clip(const IntRect& rect) {
+
+void BCGraphicsContext::setShadow(IntSize const&,int,Color const&)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::clearShadow()
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::beginTransparencyLayer(float f)
+{
+    m_alphaLayerValue = f;
+}
+
+void BCGraphicsContext::endTransparencyLayer()
+{
+    m_alphaLayerValue = 1.0;
+}
+
+uint8_t BCGraphicsContext::alphaLayer() const 
+{
+   return static_cast<uint8_t> (m_alphaLayerValue * 255);
+}
+
+void BCGraphicsContext::clearRect(const FloatRect& rect)
+{
+    logml(MODULE_GRAPHICS, LEVEL_INFO, make_message("clearRect (%fx%f) at position (%f,%f)", rect.width(), rect.height(), rect.x(), rect.y()));
+    IntRect rectangle(rect);
+    rectangle.setLocation(rectangle.location() + origin());
+    
+    getBIGraphicsDevice()->clear(*m_widget, rectangle);
+}
+
+void BCGraphicsContext::strokeRect(const FloatRect&, float)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::setLineCap(LineCap)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::setLineJoin(LineJoin)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::setMiterLimit(float)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::setAlpha(float)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::setCompositeOperation(CompositeOperator)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::clip(const Path&)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::clip(const IntRect& rectangle)
+{
+    if (!m_widget)
+        return;
 
     if (paintingDisabled())
         return;
+        
+    IntRect rect(rectangle);
     if (rect.isEmpty()) {
-        SDL_SetClipRect(m_data->context, NULL);
-        m_common->state.clippingRect.x = 0;
-        m_common->state.clippingRect.y = 0;
-        m_common->state.clippingRect.w = 0;
-        m_common->state.clippingRect.h = 0;
-    }
-    else {
-        SDL_Rect sdlRect;
-        SDL_GetClipRect(m_data->context, &sdlRect);
-        IntRect r(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
+        getBIGraphicsDevice()->setClip(*m_widget, rect);
+        m_common->state.clippingRect = rect;
+    } else {
+        IntRect r(getBIGraphicsDevice()->clip(*m_widget));
+        rect.setLocation(rectangle.location() + origin());
         r.intersect(rect);
-        sdlRect.x = r.x();
-        sdlRect.y = r.y();
-        sdlRect.w = r.width();
-        sdlRect.h = r.height();
-        SDL_SetClipRect(m_data->context, &sdlRect);
-        m_common->state.clippingRect = sdlRect;
+        getBIGraphicsDevice()->setClip(*m_widget, r);
+        m_common->state.clippingRect = r;
     }
 }
-void BCGraphicsContext::translate(float x, float y) { notImplemented(); }
-void BCGraphicsContext::rotate(float) { notImplemented(); }
-void BCGraphicsContext::scale(const FloatSize&) { notImplemented(); }
+
+void BCGraphicsContext::translate(float x, float y)
+{
+    m_common->state.origin = m_common->state.origin + IntPoint(static_cast<int>(x), static_cast<int>(y));
+}
+
+void BCGraphicsContext::rotate(float)
+{
+    notImplemented();
+}
+
+void BCGraphicsContext::scale(const FloatSize&)
+{
+    notImplemented();
+}
 
 void BCGraphicsContext::addPath(WebCore::Path const&)
 {
 }
+
 void BCGraphicsContext::beginPath()
 {
 }
+
 void BCGraphicsContext::clipOutEllipseInRect(WebCore::IntRect const&)
 {
 }
+
 void BCGraphicsContext::clipOut(WebCore::IntRect const&)
 {
 }
+
 void BCGraphicsContext::fillRoundedRect(WebCore::IntRect const&, WebCore::IntSize const&, WebCore::IntSize const&, WebCore::IntSize const&, WebCore::IntSize const&, WebCore::Color const&)
 {
 }
+
+/**
+ * Origin may move in the context according to translates that are done
+ */
 IntPoint BCGraphicsContext::origin()
 {
+    return m_common->state.origin;   
 }
+
 void BCGraphicsContext::setURLForRect(WebCore::KURL const&, WebCore::IntRect const&)
 {
 }

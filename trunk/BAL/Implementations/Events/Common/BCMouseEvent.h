@@ -25,27 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- #ifndef RGBA32GRAPHICSCONTEXT_H_
-#define RGBA32GRAPHICSCONTEXT_H_
 
-#include "BCGraphicsContext.h"
-#include "BIRGBA32Surface.h"
-#include "BIGraphicsContext.h"
+/**
+ * @file  BCMouseEvent.h
+ *
+ * @brief Concretisation of mouse event
+ *
+ * Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date: 2006/05/11 13:44:56 $
+ *
+ * This header file is private. Only IDL interface is public.
+ *
+ */
 
-namespace BAL {
+#include "BIMouseEvent.h"
+#include "../Common/BCCommonInputEventData.h"
 
-    /**
-     * A GraphicsContext holding a BIRGBA32Surface.
-     * Inherits the whole BIGraphicsContext.
-     */
-    class RGBA32GraphicsContext : public BIRGBA32Surface,
-    public BCGraphicsContext {
-        public:
-            IMPLEMENT_BIRGBA32SURFACE;
-            RGBA32GraphicsContext();
-            virtual ~RGBA32GraphicsContext();
-    };
+namespace BC
+{
+
+/**
+ * @brief the MouseEvent
+ *
+ * The mouse event
+ *
+ * @see BIEvent, BIEventLoop
+ */
+class BCMouseEvent : public BAL::BIMouseEvent, public BCCommonInputEventData {
+public:
+  BCMouseEvent(MouseEventType, const IntPoint& pos, const IntPoint& globalPos, MouseButton,
+                int clickCount, bool shift, bool ctrl, bool alt, bool meta);
+
+  virtual const IntPoint& pos() const;
+  virtual void shiftPos(int dx, int dy);
+  virtual const IntPoint& globalPos() const;
+
+  virtual MouseButton button() const;
+  virtual MouseEventType eventType() const { return m_eventType; }
+  virtual int clickCount() const;
+  virtual double timestamp() const { return m_timestamp; }
+  virtual BIEvent* clone() const;
+
+  virtual bool shiftKey() const { return BCCommonInputEventData::shiftKey(); }
+  virtual bool ctrlKey() const { return BCCommonInputEventData::ctrlKey(); }
+  virtual bool altKey() const { return BCCommonInputEventData::altKey(); }
+  virtual bool metaKey() const { return BCCommonInputEventData::metaKey(); }
+
+private:
+  IntPoint m_position;
+  IntPoint m_globalPosition;
+  MouseButton m_button;
+  MouseEventType m_eventType;
+  int m_clickCount;
+  double m_timestamp; // unit: seconds
+};
 
 }
-
-#endif // RGBA32GRAPHICSCONTEXT_H_

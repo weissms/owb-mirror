@@ -851,7 +851,15 @@ JSValue *Window::getValueProperty(ExecState *exec, int token) const
 #if __TVCORE__
     case TvCore_:
         if( !m_tvcore )
+		{
             m_tvcore = new TvCore(exec, m_frame);
+		}
+		else
+		{
+			printf( "not null, allocate new TvCore \n" );
+			m_tvcore=0;
+			m_tvcore = new TvCore(exec, m_frame);
+		}
 	// set attribute, or else tvCore will be garbage collected
 	const_cast<Window *>(this)->putDirect("tvCore", m_tvcore, DontDelete|ReadOnly);
 

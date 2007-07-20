@@ -46,8 +46,9 @@
 #include "BALConfiguration.h"
 #include <wtf/MathExtras.h>
 
-#include "../Implementations/Graphics/SDL/BCNativeImage.h"
+#include "../Implementations/Graphics/SDL/BCNativeImageSDL.h"
 #include "BIGraphicsContext.h"
+#include "BIGraphicsDevice.h"
 #include "BTLogHelper.h" // to be placed after math.h
 #include "FontFallbackList.h"
 #include "Font.h"
@@ -249,13 +250,31 @@ void Font::drawSimpleText(BIGraphicsContext* context, const TextRun& run, const 
       gfxPrimitivesSetFont(d->m_pixelFont->bold, d->m_pixelFont->width, d->m_pixelFont->height);
     else
       gfxPrimitivesSetFont(d->m_pixelFont->normal, d->m_pixelFont->width, d->m_pixelFont->height);
-
+    
+    IntPoint intPoint;
+    IntRect rect(0, 0, d->m_pixelFont->width, d->m_pixelFont->height); 
+    intPoint.setX(static_cast<uint16_t> (point.x()));
+    intPoint.setY(static_cast<uint16_t> (point.y()) - ascent());
+    
+    SDL_Surface* surface;
+    Uint32 rmask, gmask, bmask, amask;
+    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+       on the endianness (byte order) of the machine */
+    rmask = 0x00ff0000;
+    gmask = 0x0000ff00;
+    bmask = 0x000000ff;
+    amask = 0xff000000;
+    surface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA, d->m_pixelFont->width, d->m_pixelFont->height, 32,
+                                  rmask, gmask, bmask, amask);
+    BCNativeImage image(surface);
     for(int len=0; len<run.length(); len++) {
-      if (run[len] <= 0xff && run[len] >= 32)
-	characterRGBA(static_cast<BCNativeImage*> (context->getNativeImage())->getSurface(),
-                    static_cast<Sint16> (point.x() + d->m_pixelFont->width * len),
-                    static_cast<Sint16> (point.y() - d->m_pixelFont->height),
-                    run[len], color.red(), color.green(), color.blue(), color.alpha());
+        if (run[len] <= 0xff && run[len] >= 32)
+            // FIXME we should fill transparent black, but characterRGBA doesn't paint in it
+            SDL_FillRect(surface, NULL, 0xffffffff);                      
+            characterRGBA(surface, 0, 0, run[len], color.red(), color.green(), color.blue(), color.alpha());
+           
+	        getBIGraphicsDevice()->copy(*(context->widget()), image, rect, intPoint, context->alphaLayer());
+            intPoint.move(d->m_pixelFont->width, 0);
     }
 }
 

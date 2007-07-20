@@ -91,16 +91,15 @@ bool EventHandler::eventActivatedView(const PlatformMouseEvent& event) const
     return true;
 }
 
-bool EventHandler::passSubframeEventToSubframe(MouseEventWithHitTestResults& event, Frame* subframe)
-{
-    BALNotImplemented();
-    return false;
-}
-
 bool EventHandler::passWheelEventToWidget(Widget* widget)
 {
-    BALNotImplemented();
     return false;
+/*
+    if (!widget->isFrameView())
+        return false;
+
+    return static_cast<FrameView*>(widget)->frame()->eventHandler()->handleWheelEvent(wheelEvent);
+*/
 }
 
 Clipboard* EventHandler::createDraggingClipboard() const
@@ -111,17 +110,20 @@ Clipboard* EventHandler::createDraggingClipboard() const
 
 bool EventHandler::passMousePressEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)
 {
-    return passSubframeEventToSubframe(mev, subframe);
+    subframe->eventHandler()->handleMousePressEvent(mev.event());
+    return true;
 }
 
 bool EventHandler::passMouseMoveEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)
 {
-    return passSubframeEventToSubframe(mev, subframe);
+    subframe->eventHandler()->handleMouseMoveEvent(mev.event());
+    return true;
 }
 
 bool EventHandler::passMouseReleaseEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)
 {
-    return passSubframeEventToSubframe(mev, subframe);
+    subframe->eventHandler()->handleMouseReleaseEvent(mev.event());
+    return true;
 }
 
 bool EventHandler::passWheelEventToSubframe(PlatformWheelEvent&, Frame* subframe)
@@ -131,7 +133,12 @@ bool EventHandler::passWheelEventToSubframe(PlatformWheelEvent&, Frame* subframe
 
 bool EventHandler::passMousePressEventToScrollbar(MouseEventWithHitTestResults&, PlatformScrollbar* scrollbar)
 {
-    return passWheelEventToWidget(scrollbar);
+    return false;
+    /*
+    if (!scrollbar || !scrollbar->isEnabled())
+        return false;
+    return scrollbar->handleMousePressEvent(mev.event());
+    */
 }
 
 }

@@ -36,10 +36,13 @@
 #include "BIWindowEvent.h"
 #include "Font.h"
 #include "FrameLoaderClientBal.h"
+#include "FrameTree.h"
 #include "FrameView.h"
 #include "DocumentLoader.h"
 #include "FrameBal.h"
 #include "FrameLoader.h"
+#include "Page.h"
+#include "ProgressTracker.h"
 #include "PlatformString.h"
 #include "ResourceRequest.h"
 
@@ -60,9 +63,9 @@ Frame* FrameLoaderClientBal::frame()
 
 String FrameLoaderClientBal::userAgent()
 {
-    //FIXME: do this else http://www.commodoregaming.com/ returns an error 400
-    return "";
-//     return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/420+ (KHTML, like Gecko)";
+    //NOTE: some pages don't render with this UA
+     return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/420+ (KHTML, like Gecko)";
+//    return "";
 }
 
 WTF::PassRefPtr<WebCore::DocumentLoader> FrameLoaderClientBal::createDocumentLoader(const WebCore::ResourceRequest& request, const SubstituteData& substituteData)
@@ -113,16 +116,23 @@ void FrameLoaderClientBal::assignIdentifierToInitialRequest(unsigned long identi
 void FrameLoaderClientBal::postProgressStartedNotification()
 {
     // no progress notification for now
+    printf("Document download has started for %s.\n", m_frame->loader()->URL().url().ascii());
+    m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
 }
 
 void FrameLoaderClientBal::postProgressEstimateChangedNotification()
 {
-    // no progress notification for now
+    /*
+    if (m_frame && m_frame->page())
+        printf("Document loaded at %f%%\n", m_frame->page()->progress()->estimatedProgress() * 100);
+    */
+    m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
 }
 
 void FrameLoaderClientBal::postProgressFinishedNotification()
 {
-    // no progress notification for now
+    printf("Document progress ended for %s.\n", m_frame->loader()->URL().url().ascii());
+    m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
 }
 
 void FrameLoaderClientBal::frameLoaderDestroyed()
@@ -173,8 +183,29 @@ Widget* FrameLoaderClientBal::createPlugin(Element*, const KURL&, const Vector<S
 Frame* FrameLoaderClientBal::createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
                                         const String& referrer, bool allowsScrolling, int marginWidth, int marginHeight)
 {
-    BALNotImplemented();
-    return 0;
+    // new frame must have its frameloaderclient
+    FrameLoaderClientBal* frameLoader = new FrameLoaderClientBal();
+    // we create here our frame
+    RefPtr<Frame> childFrame = new FrameBal(frame()->page(), ownerElement, frameLoader);
+    frameLoader->setFrame(static_cast<FrameBal*>(childFrame.get()));
+ 
+    // do not attach new child to parent frame here, or else WindowBal positionning and frame paints will be wrong
+    //childFrame->view()->setParent(frame()->view());
+    // FIXME: All of the below should probably be moved over into WebCore
+    childFrame->tree()->setName(name);
+    frame()->tree()->appendChild(childFrame);
+
+ 
+    // load url in child
+    FrameLoadType loadType = frame()->loader()->loadType();
+    FrameLoadType childLoadType = FrameLoadTypeInternal;
+    childFrame->loader()->load(url, referrer, childLoadType, name, 0, 0, HashMap<String, String>());
+ 
+    // The frame's onload handler may have removed it from the document.
+    if (!childFrame->tree()->parent())
+        return 0;
+    
+    return childFrame.get();
 }
 
 void FrameLoaderClientBal::redirectDataToPlugin(Widget* pluginWidget)
@@ -207,9 +238,10 @@ void FrameLoaderClientBal::windowObjectCleared() const
     BALNotImplemented();
 }
 
-void FrameLoaderClientBal::setMainFrameDocumentReady(bool)
+void FrameLoaderClientBal::setMainFrameDocumentReady(bool ready)
 {
     // this is only interesting once we provide an external API for the DOM
+    BALNotImplemented();
 }
 
 bool FrameLoaderClientBal::hasWebView() const
@@ -224,6 +256,9 @@ bool FrameLoaderClientBal::hasFrameView() const
     return true;
 }
 
+/**
+ * called when document is completely loaded
+ */
 void FrameLoaderClientBal::dispatchDidFinishLoad()
 {
     BALNotImplemented();
@@ -232,12 +267,13 @@ void FrameLoaderClientBal::dispatchDidFinishLoad()
 void FrameLoaderClientBal::frameLoadCompleted()
 {
     BALNotImplemented();
-    if (m_frame->view()->drawable()->width() < m_frame->view()->contentsWidth())
-        m_frame->renderer()->layer()->setHasHorizontalScrollbar(true);
-    if (m_frame->view()->drawable()->height() < m_frame->view()->contentsHeight())
-        m_frame->renderer()->layer()->setHasVerticalScrollbar(true);
-    m_frame->renderer()->layer()->updateScrollInfoAfterLayout();
-
+    if (m_frame->renderer()) {
+        if (m_frame->view()->width() < m_frame->view()->contentsWidth())
+            m_frame->renderer()->layer()->setHasHorizontalScrollbar(true);
+        if (m_frame->view()->height() < m_frame->view()->contentsHeight())
+            m_frame->renderer()->layer()->setHasVerticalScrollbar(true);
+        m_frame->renderer()->layer()->updateScrollInfoAfterLayout();
+    }
 }
 
 void FrameLoaderClientBal::saveViewStateToItem(HistoryItem*)
@@ -268,6 +304,8 @@ void FrameLoaderClientBal::finishedLoading(DocumentLoader* loader)
         fl->setEncoding(m_response.textEncodingName(), false);
         m_firstData = false;
     }
+
+    
 }
 
 bool FrameLoaderClientBal::shouldGoToHistoryItem(HistoryItem* item) const
@@ -297,6 +335,8 @@ void FrameLoaderClientBal::makeRepresentation(DocumentLoader*)
 void FrameLoaderClientBal::forceLayout()
 {
     BALNotImplemented();
+//    m_frame->view()->setNeedsLayout();
+    m_frame->view()->layout();
 }
 
 void FrameLoaderClientBal::forceLayoutForNonHTML()
@@ -327,6 +367,7 @@ void FrameLoaderClientBal::detachedFromParent3()
 void FrameLoaderClientBal::detachedFromParent4()
 {
     BALNotImplemented();
+    m_frame = 0;
 }
 
 void FrameLoaderClientBal::loadedFromPageCache()
@@ -391,8 +432,6 @@ void FrameLoaderClientBal::dispatchDidFinishDocumentLoad()
 
 void FrameLoaderClientBal::dispatchDidFirstLayout()
 {
-    BIWindowEvent* event = createBIWindowEvent(BIWindowEvent::EXPOSE, true, IntRect(0,0,800,600));
-    getBIEventLoop()->PushEvent(event);
 }
 
 void FrameLoaderClientBal::dispatchShow()
@@ -512,8 +551,6 @@ void FrameLoaderClientBal::dispatchDidReceiveContentLength(DocumentLoader*, unsi
 
 void FrameLoaderClientBal::dispatchDidFinishLoading(DocumentLoader*, unsigned long  identifier)
 {
-    BIWindowEvent* event = createBIWindowEvent(BIWindowEvent::EXPOSE, true, IntRect(0,0,800,600));
-    getBIEventLoop()->PushEvent(event);
 }
 
 void FrameLoaderClientBal::dispatchDidFailLoading(DocumentLoader*, unsigned long  identifier, const ResourceError&)

@@ -27,9 +27,9 @@
  */
 
 /**
- * @file  BCWebView.h
+ * @file  BCWindowManager.h
  *
- * Header file for BCWebView.
+ * Header file for BCWindowManager.
  *
  * Repository informations :
  * - $URL$
@@ -37,34 +37,43 @@
  * - $Date$
  */
 
-#ifndef BCWEBVIEW_H
-#define BCWEBVIEW_H
+#ifndef BCWINDOWMANAGER_H
+#define BCWINDOWMANAGER_H
 
-#include "BIWebView.h"
-#include "FrameLoaderClientBal.h"
-#include "wtf/Vector.h"
-#include "KURL.h"
-#include "FrameBal.h"
+#include <stdint.h>
+#include "BIWindowManager.h"
+#include "Timer.h"
 
+namespace BAL {
 
+    class BIEventLoop;
+    class WindowBal;
 /**
- * The BIWebView implementation
- *
- * @see Font, FontData
+ * The WindowManager implementation
  */
-class BCWebView : public BIWebView {
+class BCWindowManager : public BIWindowManager {
 public:
-    BCWebView();
-    ~BCWebView();
+    BCWindowManager();
+    ~BCWindowManager();
+    virtual BAL::BIWindow* openWindow(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h);
+    virtual void closeWindow(BIWindow*);
+    virtual BIWindow* activeWindow();
+    virtual void handleEvent(BIEvent*);
 
-    IMPLEMENT_BIWEBVIEW;
+    void timerCallback(WebCore::Timer<BCWindowManager>* timer);
+
 private:
-    WebCore::FrameBal*      m_mainFrame;
-    KURL                    m_url;
-    WebCore::FrameLoaderClientBal*   m_frameLoaderClient;
+    void setActiveWindow(BIWindow*);
+    
+    BIEventLoop*                    m_eventLoop;
+    BIWindow*                       m_window;
+    BIGraphicsContext*              m_gc;
+    WebCore::Timer<BCWindowManager> m_timer;
+    Vector<BIWindow*>               m_windowList;
 };
 
+}
 
-#endif // BCWEBVIEW_H
+#endif // BCWINDOWMANAGER_H
 
 

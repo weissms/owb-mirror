@@ -27,7 +27,7 @@
 #include "JavaScriptCore.h"
 #include <wtf/UnusedParam.h>
 
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
@@ -73,7 +73,7 @@ static void assertEqualsAsUTF8String(JSValueRef value, const char* expectedValue
     JSStringRelease(valueAsString);
 }
 
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
 static void assertEqualsAsCharactersPtr(JSValueRef value, const char* expectedValue)
 {
     JSStringRef valueAsString = JSValueToStringCopy(context, value, NULL);
@@ -507,7 +507,7 @@ int main(int argc, char* argv[])
     JSStringRef jsOneIString = JSStringCreateWithUTF8CString("1");
     JSValueRef jsOneString = JSValueMakeString(context, jsOneIString);
 
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     UniChar singleUniChar = 65; // Capital A
     CFMutableStringRef cfString = 
         CFStringCreateMutableWithExternalCharactersNoCopy(kCFAllocatorDefault,
@@ -545,7 +545,7 @@ int main(int argc, char* argv[])
     assert(JSValueGetType(context, jsOneThird) == kJSTypeNumber);
     assert(JSValueGetType(context, jsEmptyString) == kJSTypeString);
     assert(JSValueGetType(context, jsOneString) == kJSTypeString);
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     assert(JSValueGetType(context, jsCFString) == kJSTypeString);
     assert(JSValueGetType(context, jsCFStringWithCharacters) == kJSTypeString);
     assert(JSValueGetType(context, jsCFEmptyString) == kJSTypeString);
@@ -594,7 +594,7 @@ int main(int argc, char* argv[])
     assertEqualsAsBoolean(jsOneThird, true);
     assertEqualsAsBoolean(jsEmptyString, false);
     assertEqualsAsBoolean(jsOneString, true);
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     assertEqualsAsBoolean(jsCFString, true);
     assertEqualsAsBoolean(jsCFStringWithCharacters, true);
     assertEqualsAsBoolean(jsCFEmptyString, false);
@@ -610,7 +610,7 @@ int main(int argc, char* argv[])
     assertEqualsAsNumber(jsOneThird, 1.0 / 3.0);
     assertEqualsAsNumber(jsEmptyString, 0);
     assertEqualsAsNumber(jsOneString, 1);
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     assertEqualsAsNumber(jsCFString, nan(""));
     assertEqualsAsNumber(jsCFStringWithCharacters, nan(""));
     assertEqualsAsNumber(jsCFEmptyString, 0);
@@ -627,7 +627,7 @@ int main(int argc, char* argv[])
     assertEqualsAsCharactersPtr(jsOneThird, "0.3333333333333333");
     assertEqualsAsCharactersPtr(jsEmptyString, "");
     assertEqualsAsCharactersPtr(jsOneString, "1");
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     assertEqualsAsCharactersPtr(jsCFString, "A");
     assertEqualsAsCharactersPtr(jsCFStringWithCharacters, "A");
     assertEqualsAsCharactersPtr(jsCFEmptyString, "");
@@ -643,7 +643,7 @@ int main(int argc, char* argv[])
     assertEqualsAsUTF8String(jsOneThird, "0.3333333333333333");
     assertEqualsAsUTF8String(jsEmptyString, "");
     assertEqualsAsUTF8String(jsOneString, "1");
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     assertEqualsAsUTF8String(jsCFString, "A");
     assertEqualsAsUTF8String(jsCFStringWithCharacters, "A");
     assertEqualsAsUTF8String(jsCFEmptyString, "");
@@ -656,7 +656,7 @@ int main(int argc, char* argv[])
     assert(JSValueIsEqual(context, jsOne, jsOneString, NULL));
     assert(!JSValueIsEqual(context, jsTrue, jsFalse, NULL));
     
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     CFStringRef cfJSString = JSStringCopyCFString(kCFAllocatorDefault, jsCFIString);
     CFStringRef cfJSEmptyString = JSStringCopyCFString(kCFAllocatorDefault, jsCFEmptyIString);
     assert(CFEqual(cfJSString, cfString));
@@ -827,7 +827,7 @@ int main(int argc, char* argv[])
 
     JSStringRelease(jsEmptyIString);
     JSStringRelease(jsOneIString);
-#if defined(__APPLE__)
+#if PLATFORM(MAC)
     JSStringRelease(jsCFIString);
     JSStringRelease(jsCFEmptyIString);
     JSStringRelease(jsCFIStringWithCharacters);

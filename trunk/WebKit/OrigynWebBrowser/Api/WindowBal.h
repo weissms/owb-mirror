@@ -27,51 +27,46 @@
  */
 
 /**
- * @file  BCWindowEvent.cpp
+ * @file WindowBal.h
  *
- * @brief Bal Concretisation of window event
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date: 2006/05/11 13:44:56 $
- *
+ * Generic implementation of a BIWindow
  */
+#ifndef WINDOWBAL_H_
+#define WINDOWBAL_H_
 
-#include "BCWindowEvent.h"
+#include "BIWindow.h"
+#include "BTWidget.h"
+#include "KURL.h"
+#include "Timer.h"
 
-using namespace BC;
+namespace WebCore {
+
+    class FrameBal;
+    class FrameLoaderClientBal;
+
+}
 
 namespace BAL {
-    BIWindowEvent* createBIWindowEvent(BIWindowEvent::ENUM_WINDOW aW, bool bGain = false, const WebCore::IntRect& rect = WebCore::IntRect())
-    {
-        return new BC::BCWindowEvent(aW, bGain, rect);
-    }
+
+    class BIPainter;
+
+    class WindowBal : public BIWindow {
+        public:
+            IMPLEMENT_BIWINDOW;
+
+            WindowBal(const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height);
+            ~WindowBal();
+
+        private:
+            RefPtr<WebCore::FrameBal>       m_mainFrame;
+            KURL                            m_url;
+            WebCore::FrameLoaderClientBal*  m_frameLoaderClient;
+            int                             m_x;
+            int                             m_y;
+            int                             m_width;
+            int                             m_height;
+    };
+
 }
 
-BAL::BIWindowEvent::ENUM_WINDOW BCWindowEvent::type() const
-{
-	return m_aWindowType;
-}
-
-bool BCWindowEvent::gain() const
-{
-	return m_bGain;
-}
-
-BCWindowEvent::BCWindowEvent(BIWindowEvent::ENUM_WINDOW aW, bool bGain, const WebCore::IntRect& rect)
-    : m_aWindowType( aW )
-	, m_bGain( bGain )
-	, m_rect(rect)
-{
-}
-
-BAL::BIEvent* BCWindowEvent::clone() const
-{
-	return new BCWindowEvent(m_aWindowType, m_bGain);
-}
-
-const WebCore::IntRect& BCWindowEvent::getRectangle() const
-{
-    return m_rect;
-}
+#endif // WINDOWBAL_H

@@ -20,7 +20,7 @@
 
 #include "BALConfiguration.h"
 #include "BIEventLoop.h"
-#include "BIWebView.h"
+#include "BIGraphicsDevice.h"
 #include "BTDeviceChannel.h"
 #include "BTTextLogFormatter.h"
 #include "CString.h"
@@ -36,6 +36,8 @@
 #include <signal.h>
 #include "SystemTime.h"
 #include "BTLogHelper.h"
+#include "BIWindow.h"
+#include "BIWindowManager.h"
 
 using namespace WebCore;
 using namespace BAL;
@@ -140,7 +142,7 @@ void DumpRenderTree::handleEvent() {
             }
 
             // In other cases, event is handled by frame
-            getBIWebView()->handleEvent( aEvent );
+            getBIWindowManager()->handleEvent(aEvent);
             delete aEvent;
         }
     }
@@ -158,12 +160,19 @@ void runTest(const char* filename)
     // mandatory but do not overwrite
     setenv("LAYOUT_TEST", "1", 0);
     setenv("DISABLE_DISPLAY", "1", 0);
-    BIWebView *view = getBIWebView();
-    view->setFrameLoaderClient(dumpRenderTree.m_loaderClient);
-    view->setURL(filename);
-    dumpRenderTree.handleEvent();
-    deleteBIWebView();
+    getBIGraphicsDevice()->initialize(800, 600, 32);
 
+    BIWindow *window = getBIWindowManager()->openWindow(0, 0, 800, 600);
+    window->setFrameLoaderClient(dumpRenderTree.m_loaderClient);
+    
+    window->setURL(filename);
+    
+    dumpRenderTree.handleEvent();
+
+    getBIWindowManager()->closeWindow(window);
+
+    getBIGraphicsDevice()->finalize();
+    
     // ENV var set will be removed
 }
 

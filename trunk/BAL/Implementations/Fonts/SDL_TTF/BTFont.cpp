@@ -45,8 +45,9 @@
 #include "BALConfiguration.h"
 #include <wtf/MathExtras.h>
 
-#include "../Implementations/Graphics/SDL/BCNativeImage.h"
+#include "../Implementations/Graphics/SDL/BCNativeImageSDL.h"
 #include "BIGraphicsContext.h"
+#include "BIGraphicsDevice.h"
 #include "BTLogHelper.h" // to be placed after math.h
 #include "Color.h"
 #include "FloatPoint.h"
@@ -87,7 +88,7 @@ Font::Font() : m_fontList(0), m_letterSpacing(0), m_wordSpacing(0), d(new FontPr
         exit(2);
     }
     if (m_fontMap[12] == 0)
-        m_fontMap[12] = TTF_OpenFont("/usr/share/fonts/ttf-bitstream-vera/Vera.ttf", 12);
+        m_fontMap[12] = TTF_OpenFont("/usr/share/fonts/owb.ttf", 12);
     d->m_ttfFont = m_fontMap[12];
     if (d->m_ttfFont == NULL)
     {
@@ -112,7 +113,7 @@ Font::Font(const WebCore::FontDescription& fd, short letterSpacing, short wordSp
     int size = static_cast<int>(m_fontDescription.specifiedSize());
 
     if (m_fontMap[size] == 0)
-        m_fontMap[size] = TTF_OpenFont("/usr/share/fonts/ttf-bitstream-vera/Vera.ttf", size);
+        m_fontMap[size] = TTF_OpenFont("/usr/share/fonts/owb.ttf", size);
     d->m_ttfFont = m_fontMap[size];
 
     if (d->m_ttfFont == NULL)
@@ -166,15 +167,6 @@ Font& Font::operator=(const Font& other)
 
 Font::~Font()
 {
-    // FIXME SRO crash on CloseFont
-    // Free the memory used by font
-/*    if (d->m_ttfFont) {
-        TTF_CloseFont(d->m_ttfFont); //for the moment cause a segfault!!!
-    }
-    d->m_ttfFont=NULL;
-*/
-    // Shutdown and cleanup the truetype font API.
-//    TTF_Quit();
     delete d;
 }
 
@@ -377,12 +369,19 @@ void Font::drawSimpleText(BIGraphicsContext* context, const TextRun& run, const 
     dst_rect.h = TTF_FontLineSkip(d->m_ttfFont);
     dst_rect.w = text_width;
 
+    IntPoint intPoint;
+    IntRect rect(0, 0, text_surface->w, text_surface->h); 
+    BCNativeImage image(text_surface);
+    intPoint.setX(static_cast<uint16_t> (point.x()));
+    intPoint.setY(static_cast<uint16_t> (point.y()) - ascent());
+    getBIGraphicsDevice()->copy(*(context->widget()), image, rect, intPoint, context->alphaLayer());
+/*    
     SDL_BlitSurface(text_surface,
                     NULL,
-                    static_cast<BCNativeImage*>(context->getNativeImage())->getSurface(),
+                    static_cast<BCNativeImage*>(context->widget()->backingStore())->getNativeSDL(),
                     &dst_rect);
-
-    SDL_FreeSurface(text_surface);
+*/
+    // text_surface will be freed by ~BCNativeImage
 }
 
 void Font::drawText(BIGraphicsContext* context, const TextRun& run, const TextStyle& style, const FloatPoint& point) const

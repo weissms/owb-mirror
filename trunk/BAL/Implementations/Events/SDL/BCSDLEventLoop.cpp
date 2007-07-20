@@ -87,11 +87,10 @@ static BC::BCSDLEventLoop* gMainLoop = NULL;
  */
 BC::BCSDLEventLoop::BCSDLEventLoop() : mIsInitialized(false)
 {
-    if( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) <0 ) {
+    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0) {
         logml(MODULE_EVENTS, LEVEL_CRITICAL,
               make_message("Unable to init SDL: %s\n", SDL_GetError()));
-    }
-    else {
+    } else {
         mIsInitialized = true;
         SDL_EnableUNICODE(1);
         if (1 != SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL))
@@ -152,9 +151,9 @@ void BC::BCSDLEventLoop::quit()
  * @return true if event ok and loop can go on
  * @return false else
  */
-bool BC::BCSDLEventLoop::WaitEvent( BIEvent*& aBALEvent )
+bool BC::BCSDLEventLoop::WaitEvent(BIEvent*& aBALEvent)
 {
-    if( !mIsInitialized )
+    if (!mIsInitialized)
         return false;
 
     SDL_Event aSDLEvent;
@@ -169,35 +168,31 @@ bool BC::BCSDLEventLoop::WaitEvent( BIEvent*& aBALEvent )
 
     if( aSDLReturn != 0 )
     {
-        if (aSDLEvent.type == SDL_USEREVENT && aSDLEvent.user.code == 1) {
-            WebCore::sharedTimerFiredFunction();
-            // do not return this event, so tell we do not support it
-            return false;
-        }
-        else if (aSDLEvent.type == SDL_USEREVENT && aSDLEvent.user.code == 2) {
-            // we've hidden BALEvent in user data 1
-            aBALEvent = reinterpret_cast<BIEvent*>(aSDLEvent.user.data1);
-            return (aBALEvent != NULL);
-        }
-        else
-        {
-            aBALEvent = CreateEventFromSDLEvent( aSDLEvent );
-            if( aBALEvent == NULL )
+        if (aSDLEvent.type == SDL_USEREVENT && aSDLEvent.user.code == 2) {
+	// we've hidden BALEvent in user data 1
+            aBALEvent = reinterpret_cast<BIEvent*> (aSDLEvent.user.data1);
+            if (aBALEvent->queryIsTimerEvent()) {
+                WebCore::sharedTimerFiredFunction();
+                // do not return this event, so tell we do not support it
+                return false;
+            } else 
+                return (aBALEvent != NULL);
+        } else {
+            aBALEvent = CreateEventFromSDLEvent(aSDLEvent);
+            if (aBALEvent == NULL)
                 logml(MODULE_EVENTS, LEVEL_CRITICAL, "NULL EVENT!!!!");
             return (aBALEvent != NULL);
         }
     }
 #ifdef OWB_CONSOLE_INPUT
-    else
-    {
+    else {
         // setup select for console
         FD_ZERO(&m_fdSet);
         FD_SET(fileno(stdin),&m_fdSet);
         m_timeout.tv_sec = 0;
         m_timeout.tv_usec = 50000;
         int ret = select(1, &m_fdSet, 0, 0, &m_timeout);
-        if (ret > 0)
-        {
+        if (ret > 0) {
             // test console keyboard
             int key = getchar();
             logm(MODULE_EVENTS, make_message("char %d pressed", key));
@@ -226,9 +221,11 @@ bool BC::BCSDLEventLoop::PushEvent( BIEvent* aBALEvent )
     event->user.code = 2;
     event->user.data1 = aBALEvent;
     int error = SDL_PushEvent(event);
-    if (error == -1)
+    if (error == -1) {
         logml(MODULE_EVENTS, LEVEL_WARNING, "event is lost: please increase SDL queue size (greater than the default 128)");
-    return false;
+    	return false;
+    } else
+        return true;
 }
 
 #ifdef OWB_CONSOLE_INPUT
@@ -241,22 +238,6 @@ BIEvent* BC::BCSDLEventLoop::CreateEventFromStdin(int key)
     bool bMetaKey = false; /*meta ?*/
     int aVKey = ConvertStdinToVirtualKey(key);
 
-//#ifdef WYPLAY_CONSOLE
-    // convert 'a' and 'q' to 'prev link', 'next link'
-    if (aVKey == BAL::BIKeyboardEvent::VK_A) {
-        aVKey = BAL::BIKeyboardEvent::VK_TAB;
-        key = 9;
-        bShiftKey = true;
-    }
-    if (aVKey == BAL::BIKeyboardEvent::VK_Q) {
-        aVKey = BAL::BIKeyboardEvent::VK_TAB;
-        key = 9;
-    }
-    if (aVKey == BAL::BIKeyboardEvent::VK_P) {
-        aVKey = BAL::BIKeyboardEvent::VK_RETURN;
-        key = 10;
-    }
-//#endif
     UChar aSrc[2];
     aSrc[0] = key;
     aSrc[1] = 0;
@@ -332,7 +313,7 @@ BIEvent* BC::BCSDLEventLoop::CreateEventFromSDLEvent( const SDL_Event& aSDLEvent
     }
     case SDL_VIDEOEXPOSE: /* Screen needs to be redrawn */
     {
-      BCWindowEvent* aWindowEvent = new BCWindowEvent( BIWindowEvent::EXPOSE );
+      BCWindowEvent* aWindowEvent = new BCWindowEvent(BIWindowEvent::EXPOSE);
       return aWindowEvent;
     }
     case SDL_MOUSEMOTION: 	/* Mouse moved */
@@ -340,12 +321,12 @@ BIEvent* BC::BCSDLEventLoop::CreateEventFromSDLEvent( const SDL_Event& aSDLEvent
     case SDL_MOUSEBUTTONUP: /* Mouse button released */
     {
       // Mouse event
-      BIInputEvent* aMouseEvent = CreateMouseorWheelEventFromSDLEvent( aSDLEvent );
+      BIInputEvent* aMouseEvent = CreateMouseorWheelEventFromSDLEvent(aSDLEvent);
       return aMouseEvent;
     }
     case SDL_QUIT: 	/* User-requested quit */
     {
-      BCWindowEvent* aWindowEvent = new BCWindowEvent( BIWindowEvent::QUIT );
+      BCWindowEvent* aWindowEvent = new BCWindowEvent(BIWindowEvent::QUIT);
       return aWindowEvent;
     }
     case SDL_JOYAXISMOTION: /* Joystick axis motion */
@@ -1043,7 +1024,7 @@ BIInputEvent* CreateMouseorWheelEventFromSDLEvent( const SDL_Event& aSDLEvent )
       else {
             BC::BCMouseEvent* aMouseEvent = new BC::BCMouseEvent(
                     type, aPos, aGlobalPos, aMouseButton, 1,
-                    false, false, false, false );
+                    false, false, false, false);
             return aMouseEvent;
       }
     }
@@ -1051,12 +1032,12 @@ BIInputEvent* CreateMouseorWheelEventFromSDLEvent( const SDL_Event& aSDLEvent )
     {
       const SDL_MouseMotionEvent& aMouseButtonEvent = aSDLEvent.motion;
       // Position
-      IntPoint aPos( aMouseButtonEvent.x, aMouseButtonEvent.y );
-      IntPoint aGlobalPos( aMouseButtonEvent.x, aMouseButtonEvent.y ); // FIXME RME not global yet
+      IntPoint aPos(aMouseButtonEvent.x, aMouseButtonEvent.y);
+      IntPoint aGlobalPos(aMouseButtonEvent.x, aMouseButtonEvent.y); // FIXME RME not global yet
       // Click count FIXME RME
       // Hot keys FIXME RME
-      BC::BCMouseEvent* aMouseEvent = new BC::BCMouseEvent( BIMouseEvent::MouseEventMoved, aPos, aGlobalPos,
-        BIMouseEvent::MouseButton(-1), 0, false, false, false, false );
+      BC::BCMouseEvent* aMouseEvent = new BC::BCMouseEvent(BIMouseEvent::MouseEventMoved, aPos, aGlobalPos,
+        BIMouseEvent::MouseButton(-1), 0, false, false, false, false);
 
       return aMouseEvent;
     }

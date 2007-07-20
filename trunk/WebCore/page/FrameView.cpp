@@ -35,6 +35,7 @@
 #include "FrameLoaderClient.h"
 #include "HTMLDocument.h"
 #include "HTMLFrameSetElement.h"
+#include "HTMLFrameOwnerElement.h"
 #include "HTMLNames.h"
 #include "OverflowEvent.h"
 #include "RenderPart.h"
@@ -61,7 +62,7 @@ public:
         , m_viewportRenderer(0)
     {
         isTransparent = false;
-        baseBackgroundColor = Color::white;
+        baseBackgroundColor = Color::transparent;
         vmode = hmode = ScrollbarAuto;
         needToInitScrollbars = true;
         reset();
@@ -743,7 +744,7 @@ Color FrameView::baseBackgroundColor() const
 void FrameView::setBaseBackgroundColor(Color bc)
 {
     if (!bc.isValid())
-        bc = Color::white;
+        bc = Color::transparent;
     d->baseBackgroundColor = bc;
 }
 
@@ -874,5 +875,20 @@ bool FrameView::handleMouseReleaseEvent(const PlatformMouseEvent& event)
 {
     return m_frame->eventHandler()->handleMouseReleaseEvent(event);
 }
+
+#ifdef __OWB__
+void FrameView::paint(GraphicsContext* context, const IntRect& updateRect)
+{
+    IntRect rect(updateRect);
+    context->save();
+    // all children share the same context, so just translate inside it
+    context->translate(x(), y());
+    // we need to move to a (0,0) reference because our updateRect is absolute
+    rect.move(-x(), -y());
+    m_frame->paint(context, rect);
+    context->restore();
+
+}
+#endif
 
 }

@@ -1,7 +1,9 @@
 SET (webkit_SRC
         ${webkit_SRC}
 	
-	WebKit/OrigynWebBrowser/Api/BCWebView.cpp
+	#WebKit/OrigynWebBrowser/Api/BCWebView.cpp
+	WebKit/OrigynWebBrowser/Api/BCWindowManager.cpp
+	WebKit/OrigynWebBrowser/Api/WindowBal.cpp
 	WebKit/OrigynWebBrowser/WebCoreSupport/ChromeClientBal.cpp
 	WebKit/OrigynWebBrowser/WebCoreSupport/ContextMenuClientBal.cpp
 	WebKit/OrigynWebBrowser/WebCoreSupport/DragClientBal.cpp

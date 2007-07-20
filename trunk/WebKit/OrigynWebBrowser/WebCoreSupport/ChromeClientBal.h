@@ -33,6 +33,10 @@
 #include "FloatRect.h"
 #include "Shared.h"
 
+namespace BAL {
+    class BIWindow;
+}
+
 namespace WebCore {
 
     class FloatRect;
@@ -104,6 +108,7 @@ namespace WebCore {
         virtual void setFrame(Frame*);
     private:
         Frame* m_frame;
+        BAL::BIWindow *m_window;
     };
 }
 

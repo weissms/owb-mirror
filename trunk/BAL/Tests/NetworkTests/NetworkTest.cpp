@@ -133,6 +133,10 @@ public:
    */
   static void TestNetworkBadURL()
   {
+    // FIXME Setup a http server to serve the files
+    TestManager::AssertTrue("No web server setup for the tests", false);
+    return;
+    
     BIResourceHandleManager* aResourceHandleManager = getBIResourceHandleManager();
     TestManager::AssertTrue("Transfer Job Manager obtained", aResourceHandleManager != NULL);
 
@@ -175,6 +179,10 @@ public:
    */
   static void TestNetworkConcurrentTransfer()
   {
+    // FIXME Setup a http server to serve the files
+    TestManager::AssertTrue("No web server setup for the tests", false);
+    return;
+    
     BIResourceHandleManager* aResourceHandleManager = getBIResourceHandleManager();
     TestManager::AssertTrue("Transfer Job Manager obtained", aResourceHandleManager != NULL);
 
@@ -249,7 +257,12 @@ public:
   /**
    * Test a POST form transfer
    */
-  static void TestNetworkPostTransfer() {
+  static void TestNetworkPostTransfer()
+  {
+    // FIXME Setup a http server to serve the files
+    TestManager::AssertTrue("No web server setup for the tests", false);
+    return;
+    
     const std::string aURL(TEST_WEB_SITE"testpostwithparam.php");
     std::string aPath = TestManager::GetInstance().getPath() + "NetworkTests/Refs/testpostwithparam.html";
     const std::string aRef(aPath);
@@ -310,6 +323,10 @@ protected:
    */
   static void TestNetworkSimpleTransfer( const std::string& aURL, const std::string& aRef )
   {
+    // FIXME Setup a http server to serve the files
+    TestManager::AssertTrue("No web server setup for the tests", false);
+    return;
+    
     BIResourceHandleManager* aResourceHandleManager = getBIResourceHandleManager();
     TestManager::AssertTrue("Transfer Job Manager obtained", aResourceHandleManager != NULL);
 

@@ -25,31 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- #ifndef RGBA32GRAPHICSCONTEXT_H_
-#define RGBA32GRAPHICSCONTEXT_H_
 
-#include "BCGraphicsContext.h"
-#include "BIRGBA32Surface.h"
-#include "BIGraphicsContext.h"
-#include <cairo/cairo.h>
+/**
+ * @file  BCTimerEvent.cpp
+ *
+ * @brief Bal Concretisation of window event
+ *
+ * Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date: 2006/05/11 13:44:56 $
+ *
+ */
+
+#include "BCTimerEvent.h"
+
+using namespace BC;
 
 namespace BAL {
-
-    /**
-     * A GraphicsContext holding a BIRGBA32Surface.
-     * Inherits the whole BIGraphicsContext.
-     */
-    class RGBA32GraphicsContext : public BIRGBA32Surface,
-    public BCGraphicsContext {
-        public:
-            IMPLEMENT_BIRGBA32SURFACE;
-            RGBA32GraphicsContext(PlatformGraphicsContext*);
-            virtual ~RGBA32GraphicsContext();
-
-        private:
-            cairo_surface_t*            m_surface;
-    };
-
+    BIEvent* createBITimerEvent()
+    {
+        return new BC::BCTimerEvent();
+    }
 }
 
-#endif // RGBA32GRAPHICSCONTEXT_H_
+BCTimerEvent::BCTimerEvent()
+{
+}
+
+BAL::BIEvent* BCTimerEvent::clone() const
+{
+	return new BCTimerEvent();
+}
+

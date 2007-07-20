@@ -181,7 +181,14 @@ namespace BAL {
 #if __OWB__
         BTScrollView();
         ~BTScrollView();
-        virtual void setDrawable(BIWindow*);
+        virtual void setBackingStore(BINativeImage*);
+        virtual BINativeImage* backingStore() const;
+        virtual const IntRect* dirtyRect() const;
+        virtual void setDirtyRect(IntRect);
+        virtual void resize(int, int);
+        virtual void setFrameGeometry(const IntRect &r); // called by renderers
+        virtual bool isFrameView() const { return false; }
+
     private:
         class BTScrollViewPrivate;
         BTScrollViewPrivate* m_data;

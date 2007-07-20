@@ -75,11 +75,11 @@ BCKeyboardEvent::BCKeyboardEvent(const WebCore::String& aText,
 	bool bMetaKey,
 	bool bIsAutorepeat,
 	int aVKey)
-	: m_text(aText)
+	: BCCommonInputEventData(bShiftKey, bCtrlKey, bAltKey, bMetaKey)
+    , m_text(aText)
 	, m_unmodifiedText(aUnmodifiedText)
 	, m_keyIdentifier(aKeyIdentifier)
 	, m_isKeyUp(bIsKeyUp)
-	, BCCommonInputEventData(bShiftKey, bCtrlKey, bAltKey, bMetaKey)
 	, m_autoRepeat(bIsAutorepeat)
 	, m_BALVirtualKeyCode(aVKey)
 {

@@ -28,7 +28,7 @@
 #include "config.h"
 #include "SharedTimer.h"
 #include "SystemTime.h"
-#include <SDL/SDL.h>
+#include "BIEventLoop.h"
 #include <wtf/Assertions.h>
 #include "BALConfiguration.h"
 #include "BTLogHelper.h"
@@ -55,19 +55,37 @@ void (*sharedTimerFiredFunction)() = NULL;
 // Single timer, shared to implement all the timers managed by the Timer class.
 // Not intended to be used directly; use the Timer class instead.
 void catcher( int sig ) {
+    sigset_t newmask, oldmask, zeromask;
+
+    // Initialize the signal sets
+    sigemptyset(&newmask); sigemptyset(&zeromask);
+    
+    // Add the signal to the set
+    sigaddset(&newmask, SIGALRM);
+    
+    // Block SIGALRM and save current signal mask in set variable 'oldmask'
+    sigprocmask(SIG_BLOCK, &newmask, &oldmask);
+    
+    // entering critical section
+    // because this signal handler uses a malloc it is not reentrant:
+    // we must enter in a critical section
+    
     if( sharedTimerFiredFunction ) {
-        // the main thread must call sharedTimerFiredFunction
-        // not the sdl thread for timers
-        SDL_Event userEvent;
-        userEvent.type = SDL_USEREVENT;
-        userEvent.user.code = 1;
-        int error = SDL_PushEvent(&userEvent);
-        if (error == -1) // the queue is full
+        BAL::BIEvent* event = BAL::createBITimerEvent();
+        // FIXME may deadlock of event loop concurrent access if sig occured in SDL_WaitEvent !
+        if (!BAL::getBIEventLoop()->PushEvent(event)) // the queue is full
             setSharedTimerFireTime(0);
     }
     else
         logml(MODULE_TYPES, LEVEL_WARNING, make_message(
                 "no sharedTimerFiredFunction"));
+
+    // Now allow all signals and pause: part skipped
+    // we can cope of a sigalrm lost in this window of time until sigprocmask
+    // sigsuspend(&zeromask);
+    
+    // Resume to the original signal mask
+    sigprocmask(SIG_SETMASK, &oldmask, NULL);
 }
 
 void setSharedTimerFiredFunction(void (*f)()) {
@@ -83,7 +101,6 @@ void setSharedTimerFiredFunction(void (*f)()) {
             perror("sigaction");
             exit(1);
         }
-        log("added timer function");
     }
 }
 

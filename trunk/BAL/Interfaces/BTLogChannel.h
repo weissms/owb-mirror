@@ -44,7 +44,9 @@
 #include "wtf/RefPtr.h"
 #include "Shared.h"
 #include <string>
+#ifndef __OWB_NSI__
 using std::string;
+#endif
 
 namespace BALFacilities {
 

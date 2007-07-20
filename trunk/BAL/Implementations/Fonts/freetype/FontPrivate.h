@@ -64,7 +64,7 @@ typedef struct cached_glyph
     int maxy;
     int yoffset;
     int advance;
-    Uint16 cached;
+    uint16_t cached;
 }
 c_glyph;
 
@@ -97,7 +97,7 @@ struct font_info
     c_glyph scratch;
 
     // We are responsible for closing the font stream
-    SDL_RWops* src;
+    FILE* src;
     int freesrc;
     FT_Open_Args args;
 
@@ -126,14 +126,14 @@ namespace BAL
             font_info* open(const char* file, int ptsize, long index);    // TODO return type !!!
             void close(struct font_info* font);
             void quit();
-            int sizeUnicode(font_info* font, const Uint16* text, int* w, int* h);
+            int sizeUnicode(font_info* font, const uint16_t* text, int* w, int* h);
 
 
-            SDL_Surface* renderUnicodeBlended(font_info* font,const Uint16* text, SDL_Color fg);
-            FT_Error findGlyph(font_info* font, Uint16 ch, int want);
+            BINativeImage* renderUnicodeBlended(font_info* font,const uint16_t* text, WebCore::Color fg, uint8_t alphaLayer);
+            FT_Error findGlyph(font_info* font, uint16_t ch, int want);
             void flushGlyph(c_glyph* glyph);
             void flushCache(font_info* font);
-            FT_Error loadGlyph(font_info* font, Uint16 ch, c_glyph* cached, int want);
+            FT_Error loadGlyph(font_info* font, uint16_t ch, c_glyph* cached, int want);
 
     };
 

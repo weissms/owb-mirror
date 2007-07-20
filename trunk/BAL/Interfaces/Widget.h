@@ -27,9 +27,10 @@
  */
 #ifndef Widget_h
 #define Widget_h
-#include "BTWidget.h"
 #define Widget BTWidget
+namespace BAL { class BTWidget; }
 namespace WebCore {
      using ::BAL::BTWidget;
 }
+#include "BTWidget.h"
 #endif

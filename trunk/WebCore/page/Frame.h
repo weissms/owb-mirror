@@ -150,6 +150,9 @@ public:
     WebCoreFrameBridge* bridge() const;
 #endif
 
+#ifdef __OWB__
+    void handleEvent(BAL::BIEvent *event);
+#endif
     Page* page() const;
     HTMLFrameOwnerElement* ownerElement() const;
 

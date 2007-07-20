@@ -26,7 +26,7 @@
 #define KHTML_XSLT 1
 #endif
 
-#if __APPLE__
+#if PLATFORM(MAC)
 #define HAVE_FUNC_USLEEP 1
 
 #ifndef CGFLOAT_DEFINED

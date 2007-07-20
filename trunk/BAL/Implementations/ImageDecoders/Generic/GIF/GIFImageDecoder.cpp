@@ -207,7 +207,8 @@ int BCGIFImageDecoder::repetitionCount() const
 
 RGBA32Buffer* BCGIFImageDecoder::frameBufferAtIndex(size_t index)
 {
-    if (index < 0 || index >= mImageDecoderCommonImplementation.getFrameBufferCache().size())
+    // index is unsigned so never < 0
+    if (index >= mImageDecoderCommonImplementation.getFrameBufferCache().size())
         return 0;
 
     RGBA32Buffer& frame = mImageDecoderCommonImplementation.getFrameBufferCache()[index];

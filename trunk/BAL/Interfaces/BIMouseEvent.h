@@ -62,6 +62,7 @@ namespace BAL {
 
         // position in window
         virtual const IntPoint& pos() const = 0;
+        virtual void shiftPos(int dx, int dy) = 0;
         // global position
         virtual const IntPoint& globalPos() const = 0;
         // the pressed or release button
@@ -72,9 +73,7 @@ namespace BAL {
 	// time in seconds
         virtual double timestamp() const = 0;
 
-        virtual BIKeyboardEvent* queryIsKeyboardEvent() { return NULL; }
         virtual BIMouseEvent* queryIsMouseEvent() { return this; }
-        virtual BIWheelEvent* queryIsWheelEvent() { return NULL; }
     };
 
 }

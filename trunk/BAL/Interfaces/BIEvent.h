@@ -40,6 +40,7 @@ namespace BAL {
     class BIKeyboardEvent;
     class BIMouseEvent;
     class BIWheelEvent;
+    class BITimerEvent;
     
     /**
     * @brief the BIEvent
@@ -55,11 +56,12 @@ namespace BAL {
 
             virtual BIEvent* clone() const = 0;
             
-            virtual BIWindowEvent* queryIsWindowEvent() = 0;
-            virtual BIInputEvent* queryIsInputEvent() = 0;
-            virtual BIKeyboardEvent* queryIsKeyboardEvent() = 0;
-            virtual BIMouseEvent* queryIsMouseEvent() = 0;
-            virtual BIWheelEvent* queryIsWheelEvent() = 0;
+            virtual BIWindowEvent* queryIsWindowEvent() { return NULL; }
+            virtual BIInputEvent* queryIsInputEvent() { return NULL; }
+            virtual BIKeyboardEvent* queryIsKeyboardEvent() { return NULL; }
+            virtual BIMouseEvent* queryIsMouseEvent() { return NULL; }
+            virtual BIWheelEvent* queryIsWheelEvent() { return NULL; }
+            virtual BITimerEvent* queryIsTimerEvent() { return NULL; }
     };
 
 }

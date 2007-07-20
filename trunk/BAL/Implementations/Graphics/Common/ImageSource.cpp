@@ -29,6 +29,7 @@
 
 #include "BALConfiguration.h"
 #include "BIImageDecoder.h"
+#include "BIGraphicsDevice.h"
 #include "BTLogHelper.h"
 #include "ImageAnimationObserver.h"
 
@@ -97,6 +98,8 @@ bool ImageSource::initialized() const
 
 void ImageSource::setData(const NativeBytePtr data, bool allDataReceived)
 {
+    if (!allDataReceived)
+        return;
     // Make the decoder by sniffing the bytes.
     // This method will examine the data and instantiate an instance of the appropriate decoder plugin.
     // If insufficient bytes are available to determine the image type, no decoder plugin will be
@@ -144,8 +147,7 @@ NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
     BAL::RGBA32Buffer* buffer = m_decoder->frameBufferAtIndex(index);
     if (!buffer || buffer->status() == BAL::RGBA32Buffer::FrameEmpty)
         return 0;
-
-    return BAL::createBCNativeImage( *buffer, size() );
+    return BAL::getBIGraphicsDevice()->createNativeImage(buffer->bytes(), size());
 }
 
 float ImageSource::frameDurationAtIndex(size_t index)
@@ -156,7 +158,6 @@ float ImageSource::frameDurationAtIndex(size_t index)
     BAL::RGBA32Buffer* buffer = m_decoder->frameBufferAtIndex(index);
     if (!buffer || buffer->status() == BAL::RGBA32Buffer::FrameEmpty)
         return 0;
-
     return buffer->duration() / 1000.0f;
 }
 

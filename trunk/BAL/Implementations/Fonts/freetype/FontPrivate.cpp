@@ -45,13 +45,17 @@
 
 #include "config.h"
 
+#include "BALConfiguration.h"
 #include <wtf/MathExtras.h>
+#include "BIGraphicsDevice.h"
+#include "BINativeImage.h"
 #include "BTLogHelper.h" // to be placed after math.h
+#include "Color.h"
+#include "IntSize.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
 #include FT_TRUETYPE_IDS_H
-#include "SDL/SDL.h"
 
 #include "FontPrivate.h"
 
@@ -65,6 +69,8 @@ FontPrivate::FontPrivate () : m_ttfFont( 0 )
 
 FontPrivate::~FontPrivate()
 {
+    if (initialized)
+        FT_Done_FreeType(library);
 }
 
 int FontPrivate::init(void)
@@ -95,9 +101,9 @@ font_info* FontPrivate::open(const char* file, int ptsize, long index)
     index = 0; // Assume first font face
     freesrc = 1; // Cf SDL_ttf => hardcoded to 1!
 
-    SDL_RWops* src = SDL_RWFromFile(file, "rb");
+    FILE* src = fopen(file, "rb");
     if (src == NULL) {
-        logml(MODULE_FONTS, LEVEL_EMERGENCY, make_message("Open: %s\n", SDL_GetError()));
+        logml(MODULE_FONTS, LEVEL_EMERGENCY, make_message("Open: %s error", file));
         return NULL;
     }
     if (!initialized) {
@@ -106,7 +112,7 @@ font_info* FontPrivate::open(const char* file, int ptsize, long index)
     }
 
     // Check to make sure we can seek in this stream
-    position = SDL_RWtell(src);
+    position = ftell(src);
     if (position < 0) {
         logml(MODULE_FONTS, LEVEL_EMERGENCY, make_message("Open : Can't seek in stream"));
         return NULL;
@@ -133,9 +139,9 @@ font_info* FontPrivate::open(const char* file, int ptsize, long index)
     stream->read = RWread;
     stream->descriptor.pointer = src;
     stream->pos = static_cast<unsigned long> (position);
-    SDL_RWseek(src, 0, SEEK_END);
-    stream->size = static_cast<unsigned long> (SDL_RWtell(src) - position);
-    SDL_RWseek(src, position, SEEK_SET);
+    fseek(src, 0, SEEK_END);
+    stream->size = static_cast<unsigned long> (ftell(src) - position);
+    fseek(src, position, SEEK_SET);
 
     font->args.flags = FT_OPEN_STREAM;
     font->args.stream = stream;
@@ -211,6 +217,7 @@ font_info* FontPrivate::open(const char* file, int ptsize, long index)
     font->glyph_italics = 0.207f;
     font->glyph_italics *= font->height;
     fflush (stdout);
+
     return font;
 }
 
@@ -224,7 +231,7 @@ void FontPrivate::close(struct font_info* font)
         free(font->args.stream);
 
     if (font->freesrc)
-        SDL_RWclose(font->src);
+        fclose(font->src);
 
     free(font);
 }
@@ -238,22 +245,22 @@ void FontPrivate::quit(void)
 
 unsigned long RWread(FT_Stream stream, unsigned long offset, unsigned char* buffer, unsigned long count)
 {
-    SDL_RWops* src;
-    src = static_cast<SDL_RWops*> (stream->descriptor.pointer);
-    SDL_RWseek(src, static_cast<int> (offset), SEEK_SET);
+    FILE* src;
+    src = static_cast<FILE*> (stream->descriptor.pointer);
+    fseek(src, static_cast<int> (offset), SEEK_SET);
     if (count == 0)
         return 0;
-    return SDL_RWread(src, buffer, 1, static_cast<int> (count));
+    return fread(buffer, 1, static_cast<int> (count), src);
 }
 
-int FontPrivate::sizeUnicode(font_info* font, const Uint16* text, int* w, int* h)
+int FontPrivate::sizeUnicode(font_info* font, const uint16_t* text, int* w, int* h)
 {
     int status;
     int swapped;
     int x, z;
     int minx, maxx;
     int miny, maxy;
-    const Uint16* ch;
+    const uint16_t* ch;
     FT_Long use_kerning;
     FT_Error error = 0;
     c_glyph* glyph;
@@ -275,7 +282,7 @@ int FontPrivate::sizeUnicode(font_info* font, const Uint16* text, int* w, int* h
     // Load each character and sum it's bounding box
     x = 0;
     for (ch = text; *ch; ++ch) {
-        Uint16 c = *ch;
+        uint16_t c = *ch;
         if (c == UNICODE_BOM_NATIVE) {
             swapped = 0;
             if (text == ch)
@@ -289,7 +296,7 @@ int FontPrivate::sizeUnicode(font_info* font, const Uint16* text, int* w, int* h
             continue;
         }
         if (swapped)
-            c = SDL_Swap16(c);
+            c = c << 8 | c >> 8;
         error = findGlyph(font, c, CACHED_METRICS);
         if (error)
             return -1;
@@ -331,16 +338,16 @@ int FontPrivate::sizeUnicode(font_info* font, const Uint16* text, int* w, int* h
     return status;
 }
 
-SDL_Surface* FontPrivate::renderUnicodeBlended(font_info* font, const Uint16* text, SDL_Color fg)
+BINativeImage* FontPrivate::renderUnicodeBlended(font_info* font, const uint16_t* text, WebCore::Color fg, uint8_t alphaLayer)
 {
-    int width, height;
-    Uint32* dst;
-    Uint32* dst_check;
+    int width, height, pitch;
+    uint32_t* dst;
+    uint32_t* dst_check;
     int xstart;
-    Uint32 alpha;
-    Uint32 pixel;
-    const Uint16* ch;
-    Uint8* src;
+    uint32_t alpha;
+    uint32_t pixel;
+    const uint16_t* ch;
+    uint8_t* src;
     int swapped;
     int row, col;
     c_glyph* glyph;
@@ -348,22 +355,24 @@ SDL_Surface* FontPrivate::renderUnicodeBlended(font_info* font, const Uint16* te
     FT_Error error;
     FT_UInt prev_index = 0;
     FT_Long use_kerning;
-    SDL_Surface* textbuf;
-
+    RGBA32Array* textbuf;
+    float alphaKey = alphaLayer/255.0;
     // Get the dimensions of the text surface
     if ((sizeUnicode( font, text, &width, NULL) < 0) || !width) {
         logml(MODULE_FONTS, LEVEL_EMERGENCY, make_message("Text has zero width\n"));
         return (NULL);
     }
     height = font->height;
+    textbuf = new RGBA32Array();
 
-    textbuf = SDL_AllocSurface(SDL_SWSURFACE, width, height, 32,
-                                0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
     if (textbuf == NULL)
         return NULL;
 
+    pitch = width * 4;
+    textbuf->resize(pitch * height);
+
     // Adding bound checking to avoid all kinds of memory corruption errors that may occur.
-    dst_check = static_cast<Uint32*> (textbuf->pixels) + textbuf->pitch / 4 * textbuf->h;
+    dst_check = static_cast<uint32_t*> (textbuf->data()) + pitch / 4 * height;
 
     // check kerning
     use_kerning = FT_HAS_KERNING(font->face);
@@ -371,11 +380,11 @@ SDL_Surface* FontPrivate::renderUnicodeBlended(font_info* font, const Uint16* te
     // Load and render each character
     xstart = 0;
     swapped = 0;
-    pixel = (fg.r << 16) | (fg.g << 8) | fg.b;
-    SDL_FillRect(textbuf, NULL, pixel); // Initialize with fg and 0 alpha
+    pixel = (fg.red() << 16) | (fg.green() << 8) | fg.blue();
+    textbuf->fill(pixel); // Initialize with fg and 0 alpha
 
     for (ch = text; *ch; ++ch) {
-        Uint16 c = *ch;
+        uint16_t c = *ch;
         if (c == UNICODE_BOM_NATIVE) {
             swapped = 0;
             if (text == ch)
@@ -389,11 +398,11 @@ SDL_Surface* FontPrivate::renderUnicodeBlended(font_info* font, const Uint16* te
             continue;
         }
         if (swapped)
-            c = SDL_Swap16(c);
+            c = c << 8 | c >> 8;
 
         error = findGlyph(font, c, CACHED_METRICS | CACHED_PIXMAP);
         if (error) {
-            SDL_FreeSurface(textbuf);
+            delete textbuf;
             return NULL;
         }
         glyph = font->current;
@@ -418,16 +427,17 @@ SDL_Surface* FontPrivate::renderUnicodeBlended(font_info* font, const Uint16* te
             //Make sure we don't go either over, or under the limit
             if (row + glyph->yoffset < 0)
                 continue;
-            if (row + glyph->yoffset >= textbuf->h)
+            if (row + glyph->yoffset >= height)
                 continue;
-            dst = static_cast<Uint32*> (textbuf->pixels) +
-                    (row + glyph->yoffset) * textbuf->pitch / 4 +
+            dst = static_cast<uint32_t*> (textbuf->data()) +
+                    (row + glyph->yoffset) * pitch / 4 +
                     xstart + glyph->minx;
 
             // Added code to adjust src pointer for pixmaps to account for pitch.
-            src = static_cast<Uint8*> (glyph->pixmap.buffer + glyph->pixmap.pitch * row);
+            src = static_cast<uint8_t*> (glyph->pixmap.buffer + glyph->pixmap.pitch * row);
             for (col = width; col > 0 && dst < dst_check; --col) {
                 alpha = *src++;
+                alpha = uint32_t((alpha & 0x000000ff) * alphaKey);
                 *dst++ |= pixel | (alpha << 24);
             }
         }
@@ -441,20 +451,21 @@ SDL_Surface* FontPrivate::renderUnicodeBlended(font_info* font, const Uint16* te
     // Handle the underline style
     if (font->style & FT_STYLE_UNDERLINE) {
         row = font->ascent - font->underline_offset - 1;
-        if (row >= textbuf->h)
-            row = (textbuf->h - 1) - font->underline_height;
-        dst = static_cast<Uint32*> (textbuf->pixels) + row * textbuf->pitch / 4;
+        if (row >= height)
+            row = (height - 1) - font->underline_height;
+        dst = static_cast<uint32_t*> (textbuf->data()) + row * pitch / 4;
         pixel |= 0xFF000000; /* Amask */
         for (row = font->underline_height; row > 0; --row) {
-            for (col = 0; col < textbuf->w; ++col)
+            for (col = 0; col < width; ++col)
                 dst[col] = pixel;
-            dst += textbuf->pitch / 4;
+            dst += width;
         }
     }
-    return textbuf;
+    // use pitch because width may be broken here
+    return getBIGraphicsDevice()->createNativeImage(*textbuf, WebCore::IntSize(pitch / 4, height));
 }
 
-FT_Error FontPrivate::findGlyph(font_info* font, Uint16 ch, int want)
+FT_Error FontPrivate::findGlyph(font_info* font, uint16_t ch, int want)
 {
     int retval = 0;
 
@@ -498,7 +509,7 @@ void FontPrivate::flushCache(font_info* font)
         flushGlyph(&font->scratch);
 }
 
-FT_Error FontPrivate::loadGlyph(font_info* font, Uint16 ch, c_glyph* cached, int want)
+FT_Error FontPrivate::loadGlyph(font_info* font, uint16_t ch, c_glyph* cached, int want)
 {
     FT_Face face;
     FT_Error error;
@@ -680,17 +691,17 @@ FT_Error FontPrivate::loadGlyph(font_info* font, Uint16 ch, c_glyph* cached, int
             int col;
             int offset;
             int pixel;
-            Uint8* pixmap;
+            uint8_t* pixmap;
 
             // The pixmap is a little hard, we have to add and clamp
             for (row = dst->rows - 1; row >= 0; --row) {
-                pixmap = static_cast<Uint8*> (dst->buffer + row * dst->pitch);
+                pixmap = static_cast<uint8_t*> (dst->buffer + row * dst->pitch);
                 for (offset = 1; offset <= font->glyph_overhang; ++offset) {
                     for (col = dst->width - 1; col > 0; --col) {
                         pixel = (pixmap[col] + pixmap[col - 1]);
                         if (pixel > NUM_GRAYS - 1)
                             pixel = NUM_GRAYS - 1;
-                        pixmap[col] = static_cast<Uint8> (pixel);
+                        pixmap[col] = static_cast<uint8_t> (pixel);
                     }
                 }
             }

@@ -106,7 +106,7 @@ void WTFLog(const char *file, int line, const char *function, WTFLogChannel *cha
 
 /* ASSERT, ASSERT_WITH_MESSAGE, ASSERT_NOT_REACHED */
 
-#if PLATFORM(WIN_OS)
+#if PLATFORM(WIN_OS) || __OWB_NSI__
 /* FIXME: Change to use something other than ASSERT to avoid this conflict with win32. */
 #undef ASSERT
 #endif

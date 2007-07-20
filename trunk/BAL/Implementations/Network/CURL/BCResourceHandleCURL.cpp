@@ -136,7 +136,9 @@ void  BCResourceHandleCURL::setupPOST()
     }
 
     //first add any data
-    static CString data = postData()->flattenToString().latin1();
+    static CString data;
+    data = postData()->flattenToString().latin1();
+    
     logml(MODULE_NETWORK, LEVEL_WARNING, make_message("ADD TRANSFER JOB: DATA=%s\n", data.data()));
 
     m_request.setHTTPHeaderField("PropagateHttpHeader", "true");
@@ -249,6 +251,12 @@ size_t BCResourceHandleCURL::write(void* ptr, size_t size, size_t nmemb)
 {
     if (!client())
         return 0;
+    long code = 0;
+    CURLcode res = curl_easy_getinfo(handle(), CURLINFO_RESPONSE_CODE, &code);
+    // avoid having redirection messages in the body ! see http://google.com/ for an example
+	if (code >= 300 && code < 400) {
+        return size*nmemb;
+	}
 
     if (!m_sentResponse) {
         m_sentResponse = true;
@@ -274,6 +282,7 @@ size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
     int realsize = size * nmemb;
     String header = String(ptr, realsize);
 
+    logml(MODULE_NETWORK, LEVEL_WARNING, make_message("CURL Receive Header\n\t%s for %s", ptr, m_response.url().url().ascii()));
     // Means 'end of header'
     if (realsize == 2 && header.contains('\n')) {
         m_sentResponse = true;
@@ -338,6 +347,19 @@ size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
     if (header.contains("Content-Length: ", false)) {
         String length = header.substring(16, realsize);
         m_response.setExpectedContentLength(length.toInt());
+        return realsize;
+    }
+
+	// Set Location
+    if (header.contains("Location: ", false)) {
+        String location = header.substring(10, realsize);
+		m_request.setURL(location.deprecatedString());
+		// a redirection occured, we must change the request or else we will
+		// only have the main document with all dependencies messed up
+		// mixing previous base url with new paths. It will end up with a
+		// serie of 404 errors, so change the request now.
+		if (client())
+			client()->willSendRequest(this, m_request, /*const ResourceResponse& redirectResponse*/m_response);
         return realsize;
     }
 
@@ -438,4 +460,3 @@ bool BIResourceHandle::loadsBlocked()
 }
 
 } // namespace BAL
-

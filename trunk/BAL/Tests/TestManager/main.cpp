@@ -36,6 +36,10 @@
 #include "BTDeviceChannel.h"
 #include "BTTextLogFormatter.h"
 #include "BTLogHelper.h"
+#ifdef __OWBAL_PLATFORM_MACPORT__
+// FIXME SDL on Mac has some tricks with main() but this dependency is not wanted here
+#include <SDL/SDL.h>
+#endif
 
 extern TestNode gTestRoot;
 

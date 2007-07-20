@@ -33,6 +33,8 @@
 #ifndef BINATIVEIMAGE_H_
 #define BINATIVEIMAGE_H_
 
+#include "RGBA32Array.h"
+
 namespace WebCore {
   class IntSize;
 }
@@ -40,12 +42,11 @@ using WebCore::IntSize;
 
 namespace BAL {
 
-    class RGBA32Buffer;
-
     /**
     * @brief the BINativeImage
     *
-    * The interface for native images
+    * The interface for native images.
+    * Internal buffer can be accessed in the private part of the implementation.
     */
     class BINativeImage {
         public:
@@ -58,10 +59,6 @@ namespace BAL {
 
         // Get size
             virtual IntSize size() const = 0;
-
-        // Creation is made through this method
-            virtual bool Create(const RGBA32Buffer& aBuffer, const IntSize& aSize) = 0;
-            virtual bool Create(const IntSize& size) = 0;
 
         // tell if alpha. FIXME is this usefull ?
             virtual bool hasAlpha() = 0;

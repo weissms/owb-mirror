@@ -46,9 +46,10 @@
 #include "BALConfiguration.h"
 #include <wtf/MathExtras.h>
 
-#include "../Implementations/Graphics/SDL/BCNativeImage.h"
 #include "BIGraphicsContext.h"
+#include "BIGraphicsDevice.h"
 #include "BTLogHelper.h" // to be placed after math.h
+#include "BTWidget.h"
 #include "Color.h"
 #include "FloatPoint.h"
 #include "FloatRect.h"
@@ -59,6 +60,7 @@
 #include FT_OUTLINE_H
 #include "IntPoint.h"
 #include <map>
+#include "RGBA32Array.h"
 #include "TextStyle.h"
 
 #include "FontPrivate.h"
@@ -91,7 +93,7 @@ Font::Font() :m_fontList(0), m_letterSpacing(0), m_wordSpacing(0), d(new FontPri
     if (!d->init())
         exit(2);
     if (m_fontMap[12] == 0)
-        m_fontMap[12] = d->open("/usr/share/fonts/ttf-bitstream-vera/Vera.ttf", 12, 0);
+        m_fontMap[12] = d->open("/usr/share/fonts/owb.ttf", 12, 0);
     d->m_ttfFont = m_fontMap[12];
     if (d->m_ttfFont == NULL)
         logml(MODULE_FONTS, LEVEL_EMERGENCY, make_message("Couldn't init FreeType engine"));
@@ -112,7 +114,7 @@ Font::Font(const WebCore::FontDescription& fd, short letterSpacing, short wordSp
     int size = static_cast<int>(m_fontDescription.specifiedSize());
 
     if (m_fontMap[size] == 0)
-        m_fontMap[size] = d->open("/usr/share/fonts/ttf-bitstream-vera/Vera.ttf", size, 0);
+        m_fontMap[size] = d->open("/usr/share/fonts/owb.ttf", size, 0);
     d->m_ttfFont = m_fontMap[size];
     if (d->m_ttfFont == NULL)
         logml(MODULE_FONTS, LEVEL_EMERGENCY, make_message("open : \n"));
@@ -162,15 +164,6 @@ Font& Font::operator=(const Font& other)
 
 Font::~Font()
 {
-    // FIXME SRO find the proper way to free font
-    // Free the memory used by font
-    /*    if (d->m_ttfFont) {
-            d->close(d->m_ttfFont); //for the moment cause a segfault!!!
-        }
-        d->m_ttfFont=NULL;
-    */
-    // Shutdown and cleanup the truetype font API.
-    //    d->quit();
 }
 
 const BIFontData* Font::primaryFont() const
@@ -318,10 +311,10 @@ void copyTextRunTo(const TextRun& run, UChar *word)
 // SDL ttf implementation may be lighter ???
 void Font::drawSimpleText(BIGraphicsContext* context, const TextRun& run, const TextStyle& style, const FloatPoint& point) const
 {
-    WebCore::Color  color = context->strokeColor();
-    SDL_Color       text_color;
-    SDL_Surface*    text_surface;
-    SDL_Rect        dst_rect;
+    WebCore::Color  text_color = context->strokeColor();
+    BINativeImage*  text_surface;
+    IntRect         dst_rect;
+    IntPoint        intPoint;
     static int oldx = 0;
     int         text_width, text_height;
     bool        init = false;
@@ -349,12 +342,6 @@ void Font::drawSimpleText(BIGraphicsContext* context, const TextRun& run, const 
         d->flushCache(d->m_ttfFont);
     }
 
-    // Set font color
-    text_color.r = color.red();
-    text_color.g = color.green();
-    text_color.b = color.blue();
-    text_color.unused = 0;
-
     // Draw font
     int wordSize = run.length() - run.from();
     UChar word[wordSize];
@@ -374,24 +361,23 @@ void Font::drawSimpleText(BIGraphicsContext* context, const TextRun& run, const 
     int j = 0;
     for (int i = 0; i <= wordSize; i++) {
         if (Font::treatAsSpace(word[i]) || i == wordSize) {
-			text[j] = ' ';
+            text[j] = ' ';
             text[++j] = '\0';
 
 			d->sizeUnicode(d->m_ttfFont, text, &text_width, &text_height);
-			text_surface = d->renderUnicodeBlended(d->m_ttfFont, text, text_color);
-			dst_rect.x = static_cast<Sint16> (wordPoint.x());
-			dst_rect.y = static_cast<Sint16> (wordPoint.y()) - ascent();
-			dst_rect.h = d->m_ttfFont->lineskip;
-			dst_rect.w = text_width;
-			
-			SDL_BlitSurface(text_surface,
-					NULL,
-					static_cast<BCNativeImage*> (context->getNativeImage())->getSurface(),
-					&dst_rect);	
-			SDL_FreeSurface(text_surface);
-
-			wordPoint = wordPoint + FloatSize(padPerSpace + text_width,0);
-			j = 0;
+			text_surface = d->renderUnicodeBlended(d->m_ttfFont, text, text_color, context->alphaLayer());
+			if (text_surface) {
+    			intPoint.setX(static_cast<uint16_t> (wordPoint.x()));
+    			intPoint.setY(static_cast<uint16_t> (wordPoint.y()) - ascent());
+                dst_rect.setX(0);
+                dst_rect.setY(0);
+                dst_rect.setWidth(text_surface->size().width());
+                dst_rect.setHeight(text_surface->size().height());
+                getBIGraphicsDevice()->copy(*(context->widget()), *text_surface, dst_rect, intPoint, context->alphaLayer());
+                delete text_surface;
+            }
+            wordPoint = wordPoint + FloatSize(padPerSpace + text_width,0);
+            j = 0;
         } else {
             text[j] = word[i];
             j++;

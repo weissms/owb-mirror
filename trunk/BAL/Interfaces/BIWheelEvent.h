@@ -62,8 +62,6 @@ namespace BAL {
 
         virtual BIEvent* clone() const = 0;
 
-        virtual BIKeyboardEvent* queryIsKeyboardEvent() { return NULL; }
-        virtual BIMouseEvent* queryIsMouseEvent() { return NULL; }
         virtual BIWheelEvent* queryIsWheelEvent() { return this; }
     };
 }

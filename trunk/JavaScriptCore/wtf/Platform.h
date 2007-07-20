@@ -67,7 +67,10 @@
 /* PLATFORM(QT) */
 /* PLATFORM(MAC) */
 /* PLATFORM(WIN) */
-#if defined(BUILDING_QT__)
+
+#if defined(__OWB__)
+#define WTF_PLATFORM_OWBAL
+#elif defined(BUILDING_QT__)
 #define WTF_PLATFORM_QT 1
 
 /* PLATFORM(KDE) */

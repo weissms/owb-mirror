@@ -472,7 +472,7 @@ public:
         printUnicodeString("readonly-aliasing string after modification: ", three);
         // the aliased array is not modified
         for(i=0; i<three.length(); ++i) {
-            printf("readonly buffer[%d] after modifying its string: 0x%lx\n",
+            printf("readonly buffer[%d] after modifying its string: 0x%x\n",
                 i, readonly[i]);
         }
         // setTo() readonly alias
@@ -494,15 +494,15 @@ public:
         // a modification writes through to the buffer
         four.setCharAt(1, 0x39);
         for(i=0; i<four.length(); ++i) {
-            printf("writeable-alias backing buffer[%d]=0x%lx "
+            printf("writeable-alias backing buffer[%d]=0x%x "
                 "after modification\n", i, writeable[i]);
         }
         // a copy will not alias any more;
         // instead, it will get a copy of the contents into allocated memory
         two=four;
         two.setCharAt(1, 0x21);
-        for(i=0; i<two.length(); ++i) {
-            printf("writeable-alias backing buffer[%d]=0x%lx after "
+        for (i=0; i<two.length(); ++i) {
+            printf("writeable-alias backing buffer[%d]=0x%x after "
                 "modification of string copy\n", i, writeable[i]);
         }
         // setTo() writeable alias, capacity==length
@@ -514,20 +514,20 @@ public:
         one.truncate(one.length()-1);
         // we still operate on the copy
         one.setCharAt(1, 0x25);
-        printf("string after growing too much and then shrinking[1]=0x%lx\n"
-            "                          backing store for this[1]=0x%lx\n",
+        printf("string after growing too much and then shrinking[1]=0x%x\n"
+            "                          backing store for this[1]=0x%x\n",
             one.charAt(1), writeable[1]);
         // if we need it in the original buffer, then extract() to it
         // extract() does not do anything if the string aliases that same buffer
         // i=min(one.length(), length of array)
-        if(one.length()<LENGTHOF(writeable)) {
+        if (static_cast<unsigned>(one.length())<LENGTHOF(writeable)) {
             i=one.length();
         } else {
             i=LENGTHOF(writeable);
         }
         one.extract(0, i, writeable);
-        for(i=0; i<LENGTHOF(writeable); ++i) {
-            printf("writeable-alias backing buffer[%d]=0x%lx after re-extract\n",
+        for (i=0; static_cast<unsigned>(i) < LENGTHOF(writeable); ++i) {
+            printf("writeable-alias backing buffer[%d]=0x%x after re-extract\n",
                 i, writeable[i]);
         }
     }

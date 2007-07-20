@@ -29,7 +29,10 @@
 #include "config.h"
 #include "Screen.h"
 
+#include "BALConfiguration.h"
+#include "BIGraphicsDevice.h"
 #include "BIWindow.h"
+#include "BIWindowManager.h"
 #include "IntRect.h"
 #include "FloatRect.h"
 #include "Widget.h"
@@ -37,35 +40,19 @@
 namespace BAL
 {
 
-// FIXME SRO BAL should be independant of Page !!
 FloatRect screenRect(Widget* widget)
 {
-//    return FloatRect(0, 0, 800, 600);
-    // XXX SRO old BIWindow based code was :
-    FloatRect rect;
-    BIWindow* window = widget->drawable();
-    if (!window) {
-        return rect;
-    }
-    rect.setWidth(window->width());
-    rect.setHeight(window->height());
-    return rect;
+    return FloatRect(0, 0, getBIGraphicsDevice()->size().width(), getBIGraphicsDevice()->size().height());
 }
 
 FloatRect screenAvailableRect(Widget* widget)
 {
-//    return FloatRect(0 ,0, 800, 600);
     return screenRect(widget);
 }
 
 int screenDepth(Widget* widget)
 {
-//    return 32;
-    // XXX SRO old BIWindow based code was :
-    BIWindow* window = widget->drawable();
-    if (!window)
-        return 32;
-    return window->depth();
+    return 32;
 }
 
 int screenDepthPerComponent(Widget*)

@@ -142,7 +142,7 @@ public:
         TestManager::AssertTrue("test xslsheetDoc", m_stylesheetDoc != NULL );
         
         
-        printf( "m_stylesheetDoc->type = %d, m_stylesheetDoc->encoding = 0x%x\n", m_stylesheetDoc->type, m_stylesheetDoc->encoding );
+        printf( "m_stylesheetDoc->type = %d, m_stylesheetDoc->encoding = %s\n", m_stylesheetDoc->type, m_stylesheetDoc->encoding );
         
         
         m_xlst->setLoaderFunc( docLoaderFunc );

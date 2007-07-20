@@ -171,9 +171,9 @@ protected:
 			const BAL::RGBA32Array& aByteArray = aRGBBuffer->bytes();
 
       TestManager::AssertTrue( "Buffer Height is equal to decoded size",
-        aDecoder->size().height() == aRGBBuffer->height());
+        static_cast<unsigned>(aDecoder->size().height()) == aRGBBuffer->height());
 			TestManager::AssertTrue( "Buffer Width is equal to decoded width",
-        aDecoder->size().width() == aRGBBuffer->width());
+        static_cast<unsigned>(aDecoder->size().width()) == aRGBBuffer->width());
 		
 			// Create temporary file
 			std::string aTempFile;

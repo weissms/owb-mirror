@@ -25,49 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/ui/text/TestRunner.h>
+#include <cppunit/TestPath.h>
+#include <cppunit/Test.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
+#include <cppunit/TextTestProgressListener.h>
+#include <cppunit/CompilerOutputter.h>
+#include <iostream>
+#include <stdexcept>
 
+#include "BALComplex.h"
 
-/**
- * @file  BIWebView.h
- *
- * Interface file for BIWebView.
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date$
- */
+class BALTestExample2 : public CPPUNIT_NS::TestFixture  {
 
-#ifndef BIWEBVIEW_H
-#define BIWEBVIEW_H
+  CPPUNIT_TEST_SUITE( BALTestExample2 );
+  CPPUNIT_TEST( test1 );
+  CPPUNIT_TEST( test2 );
+  CPPUNIT_TEST_SUITE_END();
 
-namespace BAL {
-class BIEvent;
-}
-namespace WebCore {
-class FrameLoaderClientBal;
-}
+public: 
 
-/**
- *
- */
-class BIWebView {
-public:
-    virtual void handleEvent(BAL::BIEvent *event) = 0;
-    virtual void setURL(const KURL& url) = 0;
-    virtual const KURL& getURL() = 0;
+  void test1()
+  {
+    int mytestresult = 10; /* here, you have your test */
+    CPPUNIT_ASSERT_EQUAL( 10, mytestresult );
+  }
 
-    virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*) = 0;
-    virtual ~BIWebView() {};
+  void test2()
+  {
+    int mytestresult = 12; /* here, you have your test */
+    CPPUNIT_ASSERT( mytestresult != 1000 );
+  }
+
 };
 
-#define IMPLEMENT_BIWEBVIEW \
-    public: \
-    virtual void handleEvent(BAL::BIEvent *event);\
-    virtual void setURL(const KURL& url);\
-    virtual const KURL& getURL();\
-    virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*);
-
-#endif // BIWEBVIEW_H
-
-
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( BALTestExample2, "All Tests" );

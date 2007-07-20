@@ -65,6 +65,7 @@ using WebCore::KURL;
 namespace BAL {
 
     class BINativeImage;
+    class BTWidget;
     class Font;
     class TextRun;
     class AffineTransform;
@@ -86,15 +87,17 @@ namespace BAL {
         DashedStroke
     };
 
-    class BIGraphicsContext : Noncopyable {
+    class BIGraphicsContext {
     public:
 
         enum TileRule { StretchTile, RepeatTile };
 
         virtual ~BIGraphicsContext() {}
 
-        virtual BINativeImage* getNativeImage() = 0;
-
+        //virtual BINativeImage* getNativeImage() = 0;
+        virtual void setWidget(const BTWidget*) = 0;
+        virtual const BTWidget* widget() = 0;
+        
         virtual const Font& font() const = 0;
         virtual void setFont(const Font&) = 0;
 
@@ -108,6 +111,8 @@ namespace BAL {
         virtual Color fillColor() const = 0;
         virtual void setFillColor(const Color&) = 0;
 
+        virtual uint8_t alphaLayer() const = 0;
+        
         virtual void save() = 0;
         virtual void restore() = 0;
 
@@ -207,7 +212,8 @@ namespace BAL {
 
 #define IMPLEMENT_BIGRAPHICSCONTEXT  \
     public: \
-        virtual BINativeImage* getNativeImage(); \
+        virtual void setWidget(const BTWidget*); \
+        virtual const BTWidget* widget(); \
         virtual const Font& font() const; \
         virtual void setFont(const Font&); \
         virtual float strokeThickness() const; \
@@ -218,6 +224,7 @@ namespace BAL {
         virtual void setStrokeColor(const Color&); \
         virtual Color fillColor() const; \
         virtual void setFillColor(const Color&); \
+        virtual uint8_t alphaLayer() const; \
         virtual void save(); \
         virtual void restore(); \
         virtual void drawRect(const IntRect&); \

@@ -21,6 +21,5 @@ set(bal_glue_SRC
 	BALGlue/PageCacheBal.cpp
 	BALGlue/PasteboardBal.cpp
 	BALGlue/RenderThemeBal.cpp
-	BALGlue/WindowBal.cpp
 
 )

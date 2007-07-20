@@ -1,9 +1,0 @@
-set(events_SRC
-        ${events_SRC}
-
-	BAL/Implementations/Events/SDL/BCSDLEventLoop.cpp
-	BAL/Implementations/Events/SDL/BCKeyboardEvent.cpp
-	BAL/Implementations/Events/SDL/BCMouseEvent.cpp
-	BAL/Implementations/Events/SDL/BCWheelEvent.cpp
-	BAL/Implementations/Events/SDL/BCWindowEvent.cpp
-)

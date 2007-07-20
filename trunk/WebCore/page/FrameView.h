@@ -139,6 +139,9 @@ public:
 
     void scheduleEvent(PassRefPtr<Event>, PassRefPtr<EventTargetNode>, bool tempEvent);
 
+#ifdef __OWB__
+    virtual void paint(GraphicsContext*, const IntRect&);
+#endif
 private:
     void init();
 

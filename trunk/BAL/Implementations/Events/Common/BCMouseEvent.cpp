@@ -27,44 +27,68 @@
  */
 
 /**
- * @file WindowBal.h
+ * @file  BCMouseEvent.cpp
  *
- * SDL implementation of BIWindow
+ * @brief Bal Concretisation of mouse event
+ *
+ * Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date: 2006/05/11 13:44:56 $
+ *
  */
-#ifndef WINDOWBAL_H_
-#define WINDOWBAL_H_
 
-#include "BIWindow.h"
-#include <SDL/SDL.h>
-#include "Timer.h"
+#include "BALConfiguration.h"
+#include "BCMouseEvent.h"
+
+using namespace BC;
 
 namespace BAL {
 
-    class BIPainter;
-
-    class WindowBal : public BIWindow {
-        public:
-            IMPLEMENT_BIWINDOW;
-            WindowBal(int x, int y, int width, int height, int depth);
-            ~WindowBal();
-
-        private:
-            int                 m_x;
-            int                 m_y;
-            int                 m_width;
-            int                 m_height;
-            static SDL_Surface* m_screen;
-            BIPainter*          m_painter;
-            unsigned char*      m_data;
-            BIGraphicsContext*  m_gc;
-            SDL_Surface*        m_surface;
-            WebCore::IntRect    m_needsDisplayInRect;
-
-#ifndef NDEBUG
-            bool                m_layoutTests;
-#endif
-    };
+BIMouseEvent* createBIMouseEvent()
+{
+    return new BCMouseEvent(BIMouseEvent::MouseEventMoved, IntPoint(), IntPoint(), BIMouseEvent::NoButton, 0, false, false, false, false);
+}
 
 }
 
-#endif // WINDOWBAL_H
+const IntPoint& BCMouseEvent::pos() const
+{
+    return m_position;
+}
+void BCMouseEvent::shiftPos(int dx, int dy)
+{
+    m_position = m_position + WebCore::IntSize(dx, dy);
+}
+
+const IntPoint& BCMouseEvent::globalPos() const
+{
+	return m_globalPosition;
+}
+
+BAL::BIMouseEvent::MouseButton BCMouseEvent::button() const
+{
+	return m_button;
+}
+
+int BCMouseEvent::clickCount() const
+{
+	return m_clickCount;
+}
+
+BCMouseEvent::BCMouseEvent(MouseEventType type, const IntPoint& pos, const IntPoint& globalPos, MouseButton button,
+                int clickCount, bool shift, bool ctrl, bool alt, bool meta)
+    : BCCommonInputEventData( shift, ctrl, alt, meta )
+	, m_position(pos)
+	, m_globalPosition(globalPos)
+	, m_button(button)
+	, m_eventType(type)
+	, m_clickCount(clickCount)
+{
+}
+
+BAL::BIEvent* BCMouseEvent::clone() const
+{
+	return new BCMouseEvent(m_eventType, m_position, m_globalPosition, m_button, m_clickCount,
+    shiftKey(), ctrlKey(), altKey(), metaKey());
+}

@@ -1469,6 +1469,7 @@ bool CSSParser::parseValue(int propId, bool important)
         const int properties[2] = { CSS_PROP__WEBKIT_TEXT_STROKE_WIDTH, CSS_PROP__WEBKIT_TEXT_STROKE_COLOR };
         return parseShorthand(propId, properties, 2, important);
     }
+    case CSS_PROP__WEBKIT_DASHBOARD_REGION:
     case CSS_PROP_INVALID:
         return false;
     case CSS_PROP_FONT_STRETCH:

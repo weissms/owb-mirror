@@ -105,7 +105,12 @@ inline IntPoint& operator-=(IntPoint& a, const IntSize& b)
     a.move(-b.width(), -b.height());
     return a;
 }
-
+#ifdef __OWB__
+inline IntPoint operator+(const IntPoint& a, const IntPoint& b)
+{
+    return IntPoint(a.x() + b.x(), a.y() + b.y());
+}
+#endif
 inline IntPoint operator+(const IntPoint& a, const IntSize& b)
 {
     return IntPoint(a.x() + b.width(), a.y() + b.height());

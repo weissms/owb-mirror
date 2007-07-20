@@ -36,6 +36,7 @@
 #include "TextStyle.h"
 #include <wtf/Noncopyable.h>
 #include "BIInternationalization.h"
+#include "Widget.h"
 
 typedef struct SDL_Surface PlatformGraphicsContext;
 
@@ -76,8 +77,7 @@ namespace BAL {
         void realDrawTiled(BINativeImage*, const FloatRect& dstRect, const FloatPoint& srcPoint, const FloatSize& tileSize, CompositeOperator);
         void realDrawTiled(BINativeImage*, const FloatRect& dstRect, const FloatRect& srcRect, TileRule hRule, TileRule vRule, CompositeOperator);
 
-        void drawCirclePoints(int centerX, int centerY, int x, int y, int startAngle, int endAngle);
-        void drawMidpointCircle(int cx, int cy, int radius, int startAngle, int endangle);
+        void drawArc(int zone, int xc, int yc, float& x0, float& y0, float x1, float y1, bool doSwap);
 
     private:
 
@@ -91,6 +91,8 @@ namespace BAL {
         GraphicsContextPrivate* m_common;
         GraphicsContextPlatformPrivate* m_data;
         float m_alphaLayerValue;
+        
+	const BTWidget* m_widget;
     };
 
 }

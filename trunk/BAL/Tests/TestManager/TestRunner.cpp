@@ -153,7 +153,7 @@ void ExecuteVisitor::Visit(TestRunner& aTestRunner, TestNode* aTestNode, int* bK
 			
 			aTestNode->mExecuteFunction();
 		
-			printf("=> Done\n", aTestNode->msName);
+			printf("=> '%s' done\n", aTestNode->msName);
 			
 			/* if test case has failed, and "stop at first error" mode is set, stops */
 			if( aTestRunner.GetTestManager().IsStopAtFirstErrorMode() )

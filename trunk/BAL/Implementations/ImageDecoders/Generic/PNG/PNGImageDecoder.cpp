@@ -58,7 +58,7 @@ const double cDefaultGamma = 2.2;
 const double cInverseGamma = 0.45455;
 
 // Protect against large PNGs. See Mozilla's bug #251381 for more info.
-const long cMaxPNGSize = 1000000L;
+const unsigned long cMaxPNGSize = 1000000L;
 
 // Called if the decoding of the image fails.
 static void PNGAPI decodingFailed(png_structp png_ptr, png_const_charp error_msg);
@@ -380,7 +380,7 @@ void BCPNGImageDecoder::rowAvailable(unsigned char* rowBuffer, unsigned rowIndex
         row = rowBuffer;
 
     // Copy the data into our buffer.
-    int width = mImageDecoderCommonImplementation.size().width();
+    unsigned int width = mImageDecoderCommonImplementation.size().width();
     unsigned* dst = buffer.bytes().data() + rowIndex * width;
     bool sawAlpha = false;
     for (unsigned i = 0; i < width; i++) {

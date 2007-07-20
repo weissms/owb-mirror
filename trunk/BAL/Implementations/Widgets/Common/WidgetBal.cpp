@@ -46,24 +46,12 @@ namespace BAL
 BTWidget::BTWidget()
         : data(new WidgetPrivate)
 {
-    data->drawable = 0;
 }
 
 BTWidget::~BTWidget()
 {
     delete data;
 }
-
-BIWindow * BTWidget::drawable() const
-{
-    return data->drawable;
-}
-
-void BTWidget::setDrawable(BIWindow *drawable)
-{
-    data->drawable = drawable;
-}
-
 void BTWidget::setClient(WidgetClient* c)
 {
     data->client = c;
@@ -76,7 +64,7 @@ WidgetClient* BTWidget::client() const
 
 IntRect BTWidget::frameGeometry() const
 {
-    return data->geometry;
+    return IntRect(data->x, data->y, data->width, data->height);
 }
 
 bool BTWidget::hasFocus() const
@@ -121,89 +109,120 @@ void BTWidget::hide()
     BALNotImplemented();
 }
 
-void BTWidget::setFrameGeometry(const IntRect &/*r*/)
+void BTWidget::setFrameGeometry(const IntRect &r)
 {
-    BALNotImplemented();
+    move(r.x(), r.y());
+    resize(r.width(), r.height());
 }
 
-void BTWidget::setEnabled(bool)
+void BTWidget::setEnabled(bool isEnabled)
 {
     BALNotImplemented();
+    data->m_isEnabled = isEnabled;
 }
+
 bool BTWidget::isEnabled() const
 {
     BALNotImplemented();
-    return false;
+    return data->m_isEnabled;
 }
-int BTWidget::x() const { BALNotImplemented(); return 0; }
-int BTWidget::y() const { BALNotImplemented(); return 0; }
-int BTWidget::width() const { BALNotImplemented(); return 0; }
-int BTWidget::height() const { BALNotImplemented(); return 0; }
+
+int BTWidget::x() const { return data->x; }
+int BTWidget::y() const { return data->y; }
+int BTWidget::width() const { return data->width; }
+int BTWidget::height() const { return data->height; }
+
 IntSize BTWidget::size() const
 {
-    BALNotImplemented();
-    return IntSize();
+    return IntSize(width(), height());
 }
-void BTWidget::resize(int, int)
+
+void BTWidget::resize(int w, int h)
 {
-    BALNotImplemented();
+    data->width = w;
+    data->height = h;
 }
-void BTWidget::resize(const IntSize&)
+
+void BTWidget::resize(const IntSize& size)
 {
-    BALNotImplemented();
+    data->width = size.width();
+    data->height = size.height();
 }
+
 IntPoint BTWidget::pos() const
 {
-    BALNotImplemented();
-    return IntPoint();
+    return IntPoint(x(), y());
 }
-void BTWidget::move(int, int)
+
+void BTWidget::move(int x, int y)
+{
+    if (data->m_parent) {
+        // we are in absolute coords in the frame, so take care of parents
+        data->x = data->m_parent->x() + x;
+        data->y = data->m_parent->y() + y;
+    } else {
+        data->x = x;
+        data->y = y;
+    }
+}
+
+void BTWidget::move(const IntPoint& point)
 {
     BALNotImplemented();
-}
-void BTWidget::move(const IntPoint&)
-{
-    BALNotImplemented();
+    if (data->m_parent) {
+        data->x = data->m_parent->x() + point.x();
+        data->y = data->m_parent->y() + point.y();
+    } else {
+        data->x = point.x();
+        data->y = point.y();
+    }
 }
 
 void BTWidget::paint(GraphicsContext*, const IntRect&)
 {
     BALNotImplemented();
 }
+
 Widget::FocusPolicy BTWidget::focusPolicy() const
 {
     BALNotImplemented();
     return NoFocus;
 }
+
 Cursor BTWidget::cursor()
 {
     BALNotImplemented();
     return Cursor();
 }
+
 GraphicsContext* BTWidget::lockDrawingFocus()
 {
     BALNotImplemented();
     return 0;
 }
+
 void BTWidget::unlockDrawingFocus(GraphicsContext*)
 {
      BALNotImplemented();
 }
+
 void BTWidget::enableFlushDrawing()
 {
     BALNotImplemented();
 }
+
 void BTWidget::disableFlushDrawing()
 {
      BALNotImplemented();
 }
+
 void BTWidget::setIsSelected(bool)
 {
      BALNotImplemented();
 }
+
 bool BTWidget::isFrameView() const
 {
-     BALNotImplemented();
      return false;
 }
 
@@ -220,6 +239,7 @@ void BTWidget::invalidateRect(const IntRect& r)
 void BTWidget::removeFromParent()
 {
      BALNotImplemented();
+     data->m_parent = NULL;
 }
 
 IntRect BTWidget::windowClipRect() const
@@ -227,4 +247,12 @@ IntRect BTWidget::windowClipRect() const
     BALNotImplemented();
     return IntRect();
 }
+
+void BTWidget::setParent(BTWidget* parent)
+{
+    data->m_parent = parent;   
 }
+
+}
+
+

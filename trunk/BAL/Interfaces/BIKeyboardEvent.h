@@ -109,8 +109,6 @@ namespace BAL {
         virtual BIEvent* clone() const = 0;
 
         virtual BIKeyboardEvent* queryIsKeyboardEvent() { return this; }
-        virtual BIMouseEvent* queryIsMouseEvent() { return NULL; }
-        virtual BIWheelEvent* queryIsWheelEvent() { return NULL; }
 
     public:
 

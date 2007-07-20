@@ -54,11 +54,7 @@ namespace BAL {
 
             virtual BIEvent* clone() const = 0;
             
-            virtual BIWindowEvent* queryIsWindowEvent() { return NULL; }
             virtual BIInputEvent* queryIsInputEvent() { return this; };
-            virtual BIKeyboardEvent* queryIsKeyboardEvent() = 0;
-            virtual BIMouseEvent* queryIsMouseEvent() = 0;
-            virtual BIWheelEvent* queryIsWheelEvent() = 0;
     
             virtual bool shiftKey() const = 0;
             virtual bool ctrlKey() const = 0;

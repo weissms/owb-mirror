@@ -27,9 +27,9 @@
  */
 
 /**
- * @file  BCMouseEvent.h
+ * @file  BCTimerEvent.h
  *
- * @brief Concretisation of mouse event
+ * @brief Concretisation of window event
  *
  * Repository informations :
  * - $URL$
@@ -40,45 +40,23 @@
  *
  */
 
-#include "BIMouseEvent.h"
-#include "../Common/BCCommonInputEventData.h"
+#include "config.h"
+
+#include "BITimerEvent.h"
 
 namespace BC
 {
 
 /**
- * @brief the MouseEvent
- *
- * The mouse event
+ * @brief the TimerEvent
  *
  * @see BIEvent, BIEventLoop
  */
-class BCMouseEvent : public BAL::BIMouseEvent, public BCCommonInputEventData {
+class BCTimerEvent : public BAL::BITimerEvent {
 public:
-  BCMouseEvent(MouseEventType, const IntPoint& pos, const IntPoint& globalPos, MouseButton,
-                int clickCount, bool shift, bool ctrl, bool alt, bool meta);
+    BCTimerEvent();
 
-  virtual const IntPoint& pos() const;
-  virtual const IntPoint& globalPos() const;
-
-  virtual MouseButton button() const;
-  virtual MouseEventType eventType() const { return m_eventType; }
-  virtual int clickCount() const;
-  virtual double timestamp() const { return m_timestamp; }
-  virtual BIEvent* clone() const;
-
-  virtual bool shiftKey() const { return BCCommonInputEventData::shiftKey(); }
-  virtual bool ctrlKey() const { return BCCommonInputEventData::ctrlKey(); }
-  virtual bool altKey() const { return BCCommonInputEventData::altKey(); }
-  virtual bool metaKey() const { return BCCommonInputEventData::metaKey(); }
-
-private:
-  IntPoint m_position;
-  IntPoint m_globalPosition;
-  MouseButton m_button;
-  MouseEventType m_eventType;
-  int m_clickCount;
-  double m_timestamp; // unit: seconds
+    virtual BIEvent* clone() const;
 };
 
 }

@@ -35,6 +35,7 @@ class IntRect;
 }
 
 namespace BAL {
+    class BTWidget;
 
     /**
     * @brief the BIWindowEvent
@@ -55,18 +56,11 @@ namespace BAL {
             virtual BIWindowEvent::ENUM_WINDOW type() const = 0;
             virtual bool gain() const = 0;
             virtual const WebCore::IntRect& getRectangle() const = 0;
+            virtual const BTWidget* widget() const = 0;
 
             virtual BIWindowEvent* queryIsWindowEvent() { return this; };
-            virtual BIInputEvent* queryIsInputEvent() { return 0; }
-            virtual BIKeyboardEvent* queryIsKeyboardEvent() { return 0; }
-            virtual BIMouseEvent* queryIsMouseEvent() { return 0; }
-            virtual BIWheelEvent* queryIsWheelEvent() { return 0; }
     };
 
 }
 
-#define IMPLEMENT_BIEVENT  \
-    public:
-
-
-#endif // BIEVENT_H
+#endif // BIWINDOWEVENT_H

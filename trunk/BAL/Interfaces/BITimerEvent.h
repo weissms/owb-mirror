@@ -25,32 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- #include "config.h"
-#include "BTLogHelper.h"
-#include "RGBA32GraphicsContext.h"
-#include <assert.h>
+#ifndef BITIMEREVENT_H_
+#define BITIMEREVENT_H_
+
+#include "BIEvent.h"
 
 namespace BAL {
+    class BTWidget;
 
-BIGraphicsContext* createRGBA32GraphicsContext(unsigned width, unsigned height) {
-    return reinterpret_cast<BIGraphicsContext*>(
-            static_cast<BCGraphicsContext*>(
-            new RGBA32GraphicsContext()));
-}
+    /**
+    * @brief the BITimerEvent
+    *
+    * @see BIEvent, BIEventLoop, BIKeyboardEvent, BIMouseEvent, BIWheelEvent
+    */
+    class BITimerEvent : public BIEvent {
+        public:
+        // this is mandatory
+            virtual ~BITimerEvent() {};
 
-void deleteRGBA32GraphicsContext(BIGraphicsContext* context) {
-    delete context;
-}
+            virtual BIEvent* clone() const = 0;
 
-RGBA32GraphicsContext::RGBA32GraphicsContext() :
-        BCGraphicsContext() {
-}
-
-RGBA32GraphicsContext::~RGBA32GraphicsContext() {
-}
-
-RGBA32Array* RGBA32GraphicsContext::getRGBA32Array() {
-    return 0;
-}
+            virtual BITimerEvent* queryIsTimerEvent() { return this; }
+    };
 
 }
+
+#endif // BITIMEREVENT_H

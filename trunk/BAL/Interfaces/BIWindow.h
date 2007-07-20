@@ -31,25 +31,27 @@
 namespace WebCore {
 
     class IntRect;
+    class FrameLoaderClientBal;
+    class KURL;
 
 }
 
 namespace BAL {
 
     class BIPainter;
+    class BIEvent;
 
     class BIWindow {
         public:
-            virtual int x() = 0;
-            virtual int y() = 0;
-            virtual int width() = 0;
-            virtual int height() = 0;
-            virtual int depth() = 0;
-            virtual void clear(const WebCore::IntRect&) = 0;
-            virtual void redraw(const WebCore::IntRect&) = 0;
-            virtual void expose(const WebCore::IntRect&) = 0;
-            virtual void scroll(int deltaX, int deltaY) = 0;
-            virtual void setPainter(BIPainter*) = 0;
+            virtual void handleEvent(BAL::BIEvent *event) = 0;
+			virtual bool canGoBackOrForward(int distance) = 0;
+			virtual void goBackOrForward(int distance) = 0;
+            virtual void setURL(const WebCore::KURL& url) = 0;
+            virtual const WebCore::KURL& URL() = 0;
+            virtual const BTWidget* widget() const = 0;
+
+            virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*) = 0;
+
         // this is mandatory
             virtual ~BIWindow() {};
 
@@ -59,16 +61,12 @@ namespace BAL {
 
 #define IMPLEMENT_BIWINDOW  \
     public: \
-            virtual int x(); \
-            virtual int y(); \
-            virtual int width(); \
-            virtual int height(); \
-            virtual int depth(); \
-            virtual void clear(const WebCore::IntRect&); \
-            virtual void redraw(const WebCore::IntRect&); \
-            virtual void expose(const WebCore::IntRect&); \
-            virtual void scroll(int deltaX, int deltaY); \
-            virtual void setPainter(BIPainter*);
-
+    virtual void handleEvent(BAL::BIEvent *event);\
+	virtual bool canGoBackOrForward(int distance); \
+	virtual void goBackOrForward(int distance); \
+    virtual void setURL(const KURL& url);\
+    virtual const WebCore::KURL& URL();\
+    virtual const BTWidget* widget() const;\
+    virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*);
 
 #endif // BIWINDOW_H

@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- #ifndef WidgetImpl_h
+#ifndef WidgetImpl_h
 #define WidgetImpl_h
 
 #include "Widget.h"
-#include "BIWindow.h"
+#include "BINativeImage.h"
 #include "Font.h"
 #include "IntRect.h"
 
@@ -37,10 +37,27 @@ namespace WebCore {
 
     class WidgetPrivate {
         public:
-            BAL::BIWindow *drawable;
+            WidgetPrivate()
+                : m_backingStore(NULL)
+                , client(NULL)
+                , x(0)
+                , y(0)
+                , width(0)
+                , height(0)
+                , m_parent(0)
+                , m_isEnabled(true)
+            {}
+            BAL::BINativeImage *m_backingStore;
+            WebCore::IntRect m_dirtyRect;
             WidgetClient* client;
             IntRect geometry;
             Font font;
+            int x;
+            int y;
+            int width;
+            int height;
+            BTWidget* m_parent;
+            bool m_isEnabled;
     };
 
 }

@@ -44,7 +44,17 @@ namespace BAL {
 }
 
 BCXML::BCXML()
-:m_doc(0), m_node(0), m_ns( 0 ), m_attr( 0 ), m_enc( 0 ), m_outbuf( 0 ), m_hashTable( 0 ), m_parser( 0 ), m_entity( 0 ), m_input (0 ), m_sax(0)
+    : m_parser(0)
+    , m_doc(0)
+    , m_node(0)
+    , m_outbuf( 0 )
+    , m_ns( 0 )
+    , m_attr( 0 )
+    , m_enc( 0 )
+    , m_hashTable( 0 )
+    , m_sax(0)
+    , m_entity( 0 )
+    , m_input (0 )
 {
 }
 

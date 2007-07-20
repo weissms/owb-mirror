@@ -34,6 +34,8 @@
 #include "assert.h"
 #include "BALConfiguration.h"
 #include "BIEventLoop.h"
+#include "BIGraphicsDevice.h"
+#include "BINativeImage.h"
 #include "BIWheelEvent.h"
 #include "BIWindow.h"
 #include "BTLogHelper.h"
@@ -57,7 +59,18 @@ public:
             , suppressScrollBars(false)
             , vScrollbarMode(ScrollbarAuto)
             , hScrollbarMode(ScrollbarAuto)
+            , m_nativeImage(NULL)
+            , m_dirtyRect(IntRect(0, 0, 0, 0))
+            , m_gc(createBIGraphicsContext())
     {}
+    
+    ~BTScrollViewPrivate()
+    {
+        if (m_nativeImage) {
+           delete m_nativeImage;
+        }
+    }
+    
     IntSize scrollOffset;
     IntSize contentsSize;
     bool hasStaticBackground;
@@ -65,6 +78,9 @@ public:
     ScrollbarMode vScrollbarMode;
     ScrollbarMode hScrollbarMode;
     IntRect viewportArea;
+    BINativeImage* m_nativeImage;
+    IntRect m_dirtyRect;
+    BIGraphicsContext* m_gc;
 };
 
 
@@ -78,32 +94,24 @@ BTScrollView::~BTScrollView()
     delete m_data;
 }
 
-void BTScrollView::setDrawable(BIWindow *drawable)
-{
-    BTWidget::setDrawable(drawable);
-    m_data->viewportArea = IntRect(drawable->x(), drawable->y(), drawable->width(), drawable->height());
-    m_data->contentsSize = IntSize(drawable->width(), drawable->height());
-}
-
 void BTScrollView::updateContents(const IntRect& updateRect, bool now)
 {
-    logm(MODULE_WIDGETS, make_message("viewportArea=%dx%d contentSize=%dx%d "
-            "scrollOffset=%dx%d\nupdateRect=(%d,%d) %dx%d",
+    logm(MODULE_WIDGETS, make_message("in %p viewportArea=%dx%d contentSize=%dx%d "
+            "scrollOffset=%dx%d\nupdateRect=(%d,%d) %dx%d", this,
             visibleWidth(), visibleHeight(), contentsWidth(), contentsHeight(),
             m_data->scrollOffset.width(), m_data->scrollOffset.height(),
             updateRect.x(), updateRect.y(), updateRect.width(), updateRect.height()));
+
     IntRect adjustedDirtyRect(updateRect);
     adjustedDirtyRect.move(-m_data->scrollOffset);
-    // do not redraw immediatly and synchronously :
-    // page is not yet completely rendered and it will be displayed incomplete
-    // Instead post an expose event which will call redraw() asynchronously
-    BIWindowEvent *event;
+
     if (updateRect.isEmpty()) {
         adjustedDirtyRect.setWidth(contentsWidth());
         adjustedDirtyRect.setHeight(contentsHeight());
     }
-    event = createBIWindowEvent(BIWindowEvent::EXPOSE, now, adjustedDirtyRect);
-    getBIEventLoop()->PushEvent(event);
+    m_data->m_dirtyRect.unite(adjustedDirtyRect);
+
+    // screen updates are handled by WindowManager
 }
 
 int BTScrollView::visibleWidth() const
@@ -117,9 +125,9 @@ int BTScrollView::visibleHeight() const
 }
 
 /**
-Region of the content currently visible in the viewport
-in the content views coordinate system
-**/
+ * Region of the content currently visible in the viewport
+ * in the content views coordinate system
+ **/
 FloatRect BTScrollView::visibleContentRect() const
 {
     FloatRect contentRect = FloatRect(m_data->viewportArea);
@@ -129,9 +137,7 @@ FloatRect BTScrollView::visibleContentRect() const
 
 void BTScrollView::setContentsPos(int newX, int newY)
 {
-    int dx = newX - contentsX();
-    int dy = newY - contentsY();
-    scrollBy(dx, dy);
+    m_data->scrollOffset = IntSize(newX, newY);
 }
 
 void BTScrollView::resizeContents(int w,int h)
@@ -141,6 +147,16 @@ void BTScrollView::resizeContents(int w,int h)
         m_data->contentsSize = newSize;
 //        updateScrollBars();
     }
+
+    m_data->viewportArea = IntRect(0, 0, width(), height());
+
+    // NOTE it is not necessary to have a backing store larger than screen
+    // on memory restricted device
+    IntRect newRect(0, 0, w, h);
+    newRect.intersect(m_data->viewportArea);
+    if (!backingStore() || (backingStore()->size() != newRect.size()))
+        setBackingStore(getBIGraphicsDevice()->createNativeImage(newRect.size()));
+    updateContents(newRect, true);
 }
 
 int BTScrollView::contentsX() const
@@ -166,7 +182,7 @@ int BTScrollView::contentsHeight() const
 
 IntPoint BTScrollView::windowToContents(const IntPoint& contentsPoint) const
 {
-  return contentsPoint + scrollOffset();
+    return contentsPoint + scrollOffset();
 }
 
 IntPoint BTScrollView::contentsToWindow(const IntPoint& viewportPoint) const
@@ -182,6 +198,7 @@ IntSize BTScrollView::scrollOffset() const
 void BTScrollView::scrollBy(int dx, int dy)
 {
     BALNotImplemented();
+    m_data->scrollOffset = m_data->scrollOffset + IntSize(dx, dy);
 }
 
 ScrollbarMode BTScrollView::hScrollbarMode() const
@@ -253,6 +270,41 @@ PlatformScrollbar* BTScrollView::scrollbarUnderMouse(const PlatformMouseEvent& m
 {
 //    BALNotImplemented();
     return 0;
+}
+
+void BTScrollView::setBackingStore(BINativeImage* native)
+{
+    if (m_data->m_nativeImage)
+        delete m_data->m_nativeImage;
+    m_data->m_nativeImage = native;
+}
+
+BINativeImage* BTScrollView::backingStore() const
+{
+    return m_data->m_nativeImage;
+}
+
+const IntRect* BTScrollView::dirtyRect() const
+{
+    return &m_data->m_dirtyRect;
+}
+
+void BTScrollView::setDirtyRect(IntRect rect)
+{
+    m_data->m_dirtyRect = rect;
+}
+void BTScrollView::resize(int w, int h)
+{
+    BTWidget::resize(w,h);
+    // do not forget to resize our contents also
+    resizeContents(w, h);
+}
+void BTScrollView::setFrameGeometry(const IntRect &r)
+{
+    // BTWidget will move and resize
+    BTWidget::setFrameGeometry(r);
+    // but we still must resize our contents
+    resizeContents(r.width(), r.height()); 
 }
 
 }

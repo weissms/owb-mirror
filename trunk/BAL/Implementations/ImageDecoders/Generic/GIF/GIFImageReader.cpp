@@ -730,7 +730,7 @@ bool GIFImageReader::read(const unsigned char* buf, unsigned len,
                 }
             }
 
-            if (query == BCGIFImageDecoder::GIFSizeQuery || haltAtFrame == images_decoded) {
+            if (query == BCGIFImageDecoder::GIFSizeQuery || haltAtFrame == static_cast<unsigned>(images_decoded)) {
                 // The decoder needs to stop.  Hand back the number of bytes we consumed from
                 // buffer minus 9 (the amount we consumed to read the header).
                 clientptr->decodingHalted(len + 9);

@@ -25,10 +25,10 @@ export SDL_VIDEODRIVER=fbcon
 
 * To run the layout tests:
 export LAYOUT_TEST=
-- Link the DumpRenderTree from your build dir to the root source dir.
+export OWB_BUILD_DIR=/path_to_your_build_dir
 - Copy the WebKit layout tests to a LayoutTests dir in your root source dir.
 cd WebKitTools/Scripts
-./run-webkit-tests
+./run-webkit-tests .
 - Results are in /tmp/layout-test-results/ (50% should pass)
 
 * To run the unit tests:
@@ -46,3 +46,4 @@ export MODULE_NETWORK=LEVEL_INFO
 export MODULE_TYPES=LEVEL_INFO
 export MODULE_WIDGETS=LEVEL_INFO
 
+to enable "not implemented" traces, use NOT_IMPLEMENT=1 ./owb

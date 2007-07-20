@@ -29,6 +29,8 @@
 
 #include "config.h"
 #include "BALConfiguration.h"
+#include "BIWindow.h"
+#include "BIWindowManager.h"
 #include "ChromeClientBal.h"
 
 #include "Frame.h"
@@ -38,7 +40,9 @@
 namespace WebCore
 {
 
-ChromeClientBal::ChromeClientBal()
+ChromeClientBal::ChromeClientBal() 
+    : m_frame(0)
+    , m_window(0)
 {
 
 }
@@ -52,7 +56,7 @@ void ChromeClientBal::setWindowRect(const FloatRect& rect)
 {
     if (!m_frame)
         return;
-    BALNotImplemented();
+    m_frame->view()->resize(static_cast<int>(rect.width()), static_cast<int>(rect.height()));
 }
 
 FloatRect ChromeClientBal::windowRect()
@@ -93,6 +97,7 @@ void ChromeClientBal::unfocus()
 
 bool ChromeClientBal::canTakeFocus(FocusDirection)
 {
+    BALNotImplemented();
     if (!m_frame)
         return false;
     return false;
@@ -100,20 +105,25 @@ bool ChromeClientBal::canTakeFocus(FocusDirection)
 
 void ChromeClientBal::takeFocus(FocusDirection)
 {
+    BALNotImplemented();
     if (!m_frame)
         return;
 }
 
 Page* ChromeClientBal::createWindow(const FrameLoadRequest& request)
 {
-    BALNotImplemented();
-    return 0;
+    // we must display the ui here
+    m_window = BAL::getBIWindowManager()->openWindow(100, 100, 200, 200);
+    m_window->setURL(request.resourceRequest().url());
+    return (static_cast<const FrameView*>(m_window->widget()))->frame()->page();
 }
 
-Page* ChromeClientBal::createModalDialog(const FrameLoadRequest&)
+Page* ChromeClientBal::createModalDialog(const FrameLoadRequest& request)
 {
-    BALNotImplemented();
-    return 0;
+    // we shouldn't display the ui here
+    m_window = BAL::getBIWindowManager()->openWindow(100, 100, 200, 200);
+    m_window->setURL(request.resourceRequest().url());
+    return (static_cast<const FrameView*>(m_window->widget()))->frame()->page();
 }
 
 void ChromeClientBal::show()
@@ -188,7 +198,7 @@ void ChromeClientBal::addMessageToConsole(const String& message, unsigned int li
                                          const String& sourceID)
 {
     BALNotImplemented();
-    printf("ConsoleMessage: line:%d source:%s msg:%s \n",lineNumber,sourceID.deprecatedString().ascii(),message.deprecatedString().ascii());
+    printf("Javascript: line:%d source:%s msg:%s \n",lineNumber,sourceID.deprecatedString().ascii(),message.deprecatedString().ascii());
 
 }
 
@@ -211,23 +221,24 @@ bool ChromeClientBal::runBeforeUnloadConfirmPanel(const String& message, Frame* 
 
 void ChromeClientBal::closeWindowSoon()
 {
-    BALNotImplemented();
+    // we do not know at this point which window will close: assuming it is activeWindow
+    BAL::getBIWindowManager()->closeWindow(BAL::getBIWindowManager()->activeWindow());
 }
 
-void ChromeClientBal::runJavaScriptAlert(Frame*, const String& msg)
+void ChromeClientBal::runJavaScriptAlert(Frame* frame, const String& msg)
 {
-    BALNotImplemented();
+    printf("Javascript Alert: %s (from frame %p)\n", msg.deprecatedString().ascii(), frame);   
 }
 
-bool ChromeClientBal::runJavaScriptConfirm(Frame*, const String&)
+bool ChromeClientBal::runJavaScriptConfirm(Frame* frame, const String& msg)
 {
-    BALNotImplemented();
+    printf("Javascript Confirm: %s (from frame %p), answer is 'false' by default.\n", msg.deprecatedString().ascii(), frame);   
     return false;
 }
 
-bool ChromeClientBal::runJavaScriptPrompt(Frame*, const String& message, const String& defaultValue, String& result)
+bool ChromeClientBal::runJavaScriptPrompt(Frame* frame, const String& msg, const String& defaultValue, String& result)
 {
-    BALNotImplemented();
+    printf("Javascript Prompt: %s (from frame %p), answer is 'false' by default.\n", msg.deprecatedString().ascii(), frame);   
     return false;
 }
 

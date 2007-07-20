@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+// for malloc/free
+#include <stdlib.h>
 
 #if PLATFORM(MAC)
 #include <CoreFoundation/CFString.h>

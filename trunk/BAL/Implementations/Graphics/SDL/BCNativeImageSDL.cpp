@@ -30,34 +30,44 @@
  * Implementation of native image
  */
 
-#ifndef BCNATIVEIMAGE_H
-#define BCNATIVEIMAGE_H
-
-#include "BINativeImage.h"
-#include "IntSize.h"
-#include "SDL/SDL.h"
-using WebCore::IntSize;
+#include "BCNativeImageSDL.h"
+#include "BTRGBA32Buffer.h"
 
 namespace BAL {
 
-    class BCNativeImage : public BINativeImage {
-    public:
-        BCNativeImage();
-        virtual ~BCNativeImage();
+// Native Image
+BCNativeImage::BCNativeImage(SDL_Surface* surface) 
+    : m_surface(surface)
+    , m_ownArray(NULL)
+    , m_hasAlpha(true)
+{
+    m_size = IntSize(surface->w, surface->h);
+}
+BCNativeImage::BCNativeImage(SDL_Surface* surface, RGBA32Array* array) 
+    : m_surface(surface)
+    , m_ownArray(array)
+    , m_hasAlpha(true)
+{
+    m_size = IntSize(surface->w, surface->h);
+}
 
-        virtual IntSize size() const;
+IntSize BCNativeImage::size() const
+{
+    return m_size;
+}
 
-        virtual bool hasAlpha();
 
-        virtual bool Create(const RGBA32Buffer& buffer, const IntSize& size);
-        virtual bool Create(const IntSize& size);
+BCNativeImage::~BCNativeImage()
+{
+    if (m_surface)
+        SDL_FreeSurface(m_surface);
+    if (m_ownArray)
+        delete m_ownArray;
+}
 
-        SDL_Surface* getSurface() { return m_surface; }
-    private:
-        SDL_Surface* m_surface;
-        bool m_hasAlpha;
-        IntSize m_size;
-    };
+bool BCNativeImage::hasAlpha()
+{
+    return m_hasAlpha;
+}
 
 }
-#endif

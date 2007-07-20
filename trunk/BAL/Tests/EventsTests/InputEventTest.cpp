@@ -182,6 +182,7 @@ private:
         m_eventLoop = NULL;
         return false;
       }
+    // FIXME window creation has changed, must update test
 /*
       m_window = createBCWindowBal(0,0,200,201,32);
       TestManager::AssertTrue("window ok", m_window != NULL);
@@ -189,8 +190,9 @@ private:
         m_eventLoop = NULL;
         return false;
       }
-      return true;
 */
+      return true;
+
    }
 
    void End()

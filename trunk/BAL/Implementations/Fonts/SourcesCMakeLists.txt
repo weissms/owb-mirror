@@ -1,3 +1,13 @@
+IF (WEBKIT_USE_FONTS_DIRECTFB)
+set(fonts_SRC
+        ${fonts_SRC}
+		BAL/Implementations/Fonts/freetype/FontPrivate.cpp
+		BAL/Implementations/Fonts/freetype/FontFamily.cpp
+		BAL/Implementations/Fonts/freetype/BTFontFallbackList.cpp
+		BAL/Implementations/Fonts/freetype/BTFont.cpp
+)
+ENDIF (WEBKIT_USE_FONTS_DIRECTFB)
+
 IF (WEBKIT_USE_FONTS_FREETYPE)
 set(fonts_SRC
         ${fonts_SRC}

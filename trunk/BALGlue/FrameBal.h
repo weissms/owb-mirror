@@ -34,13 +34,6 @@
 #include "Frame.h"
 #include "ResourceHandleClient.h"
 
-namespace BAL {
-
-class BIWindow;
-
-}
-using BAL::BIWindow;
-
 namespace WebCore {
 
 class Element;
@@ -49,11 +42,8 @@ class FormData;
 
 class FrameBal : public Frame {
 public:
-    FrameBal(BIWindow*, Page*, HTMLFrameOwnerElement*, FrameLoaderClientBal*);
+    FrameBal(Page*, HTMLFrameOwnerElement*, FrameLoaderClientBal*);
     virtual ~FrameBal();
-
-private:
-    BAL::BIWindow*  m_drawable;
 };
 
 }

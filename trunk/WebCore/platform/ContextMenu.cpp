@@ -92,6 +92,7 @@ static void createAndAppendFontSubMenu(const HitTestResult& result, ContextMenuI
     fontMenuItem.setSubMenu(fontMenu);
 }
 
+#ifndef __OWB__
 #ifndef BUILDING_ON_TIGER
 static void createAndAppendSpellingAndGrammarSubMenu(const HitTestResult& result, ContextMenuItem& spellingAndGrammarMenuItem)
 {
@@ -130,6 +131,7 @@ static void createAndAppendSpellingSubMenu(const HitTestResult& result, ContextM
 
     spellingMenuItem.setSubMenu(spellingMenu);
 }
+#endif
 #endif
 
 #if PLATFORM(MAC)
@@ -507,6 +509,7 @@ void ContextMenu::checkOrEnableIfNeeded(ContextMenuItem& item) const
         case ContextMenuItemTagStopSpeaking:
         case ContextMenuItemTagWritingDirectionMenu:
         case ContextMenuItemBaseApplicationTag:
+        case ContextMenuItemTagShowSpellingPanel:
             break;
     }
 

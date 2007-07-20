@@ -4,6 +4,7 @@ set(graphics_SRC
 	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ColorData.c #generated sources
 	BAL/Implementations/Graphics/Linux/BCAffineTransform.cpp
 	BAL/Implementations/Graphics/Common/BitmapImageBal.cpp
+	BAL/Implementations/Graphics/Common/BCGraphicsContext.cpp
 	BAL/Implementations/Graphics/Common/Color.cpp
 	BAL/Implementations/Graphics/Common/DragControllerBal.cpp
 	BAL/Implementations/Graphics/Common/DragImageBal.cpp
@@ -23,8 +24,8 @@ set(graphics_SRC
 IF (WEBKIT_USE_GRAPHICS_SDL)
 set(graphics_SRC
         ${graphics_SRC}
-	    BAL/Implementations/Graphics/SDL/BCGraphicsContext.cpp
-        BAL/Implementations/Graphics/SDL/BCNativeImage.cpp
+        BAL/Implementations/Graphics/SDL/BCGraphicsDeviceSDL.cpp
+        BAL/Implementations/Graphics/SDL/BCNativeImageSDL.cpp
         BAL/Implementations/Graphics/SDL/CursorBal.cpp
 )
 ENDIF (WEBKIT_USE_GRAPHICS_SDL)
@@ -32,7 +33,6 @@ ENDIF (WEBKIT_USE_GRAPHICS_SDL)
 IF (WEBKIT_USE_GRAPHICS_CAIRO)
 set(graphics_SRC
         ${graphics_SRC}
-        BAL/Implementations/Graphics/Cairo/BCGraphicsContext.cpp
         BAL/Implementations/Graphics/Cairo/BCNativeImage.cpp
         BAL/Implementations/Graphics/Cairo/RGBA32GraphicsContext.cpp
 )

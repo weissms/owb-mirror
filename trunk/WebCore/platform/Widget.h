@@ -163,8 +163,11 @@ namespace BAL {
 #endif
 
 #ifdef __OWB__
-        virtual void setDrawable(BIWindow*);
-        BIWindow* drawable() const;
+        virtual void setBackingStore(BINativeImage*) {}
+        virtual BINativeImage* backingStore() const { return NULL; }
+        virtual const IntRect* dirtyRect() const { return NULL; }
+        virtual void setDirtyRect(IntRect) {}
+        virtual void setParent(BTWidget* parent);
 #endif
 
 #if PLATFORM(GDK)

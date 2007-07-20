@@ -27,20 +27,19 @@
  */
 
 #include "config.h"
-#include "BALConfiguration.h"
 #include "FrameBal.h"
 
-#include "BIEventLoop.h"
-#include "BIWindow.h"
-#include "BIWindowEvent.h"
+#include "BALConfiguration.h"
 #include "BTLogHelper.h"
 #include "CString.h"
 #include "Document.h"
 #include "EventHandler.h"
+#include "FocusController.h"
 #include "FrameLoader.h"
 #include "FrameLoaderClientBal.h"
 #include "FramePrivate.h"
 #include "FrameView.h"
+#include "KeyboardEvent.h"
 #include "Page.h"
 #include "PlatformWheelEvent.h"
 #include "RenderTreeAsText.h"
@@ -63,9 +62,8 @@ Vector<char> loadResourceIntoArray(const char* resourceName)
 
 namespace WebCore {
 
-FrameBal::FrameBal(BIWindow* win, Page* p, HTMLFrameOwnerElement* ownerElement, FrameLoaderClientBal* frameLoader)
+FrameBal::FrameBal(Page* p, HTMLFrameOwnerElement* ownerElement, FrameLoaderClientBal* frameLoader)
     : Frame(p, ownerElement, frameLoader)
-    , m_drawable(win)
 {
     Settings* settings = new Settings;
     settings->setLoadsImagesAutomatically(true);
@@ -81,19 +79,19 @@ FrameBal::FrameBal(BIWindow* win, Page* p, HTMLFrameOwnerElement* ownerElement, 
     settings->setPluginsEnabled(true);
     settings->setDefaultFixedFontSize(14);
     settings->setDefaultFontSize(14);
-
     setSettings(settings);
-    frameLoader->setFrame(this);
 
-    FrameView* view = new FrameView(this);
-    setView(view);
-    view->setDrawable(win);
-    win->setPainter(this);
+    // frameLoader->setFrame(this);
+
+    RefPtr<WebCore::FrameView> frameView;
+    frameView = new FrameView(this);
+    frameView->deref();
+    setView(frameView.get());
 }
 
 FrameBal::~FrameBal()
 {
-    loader()->cancelAndClear();
+//    loader()->cancelAndClear();
 }
 
 void Frame::print()
@@ -129,6 +127,185 @@ DragImageRef Frame::dragImageForSelection()
 void Frame::setNeedsReapplyStyles()
 {
     BALNotImplemented();
+}
+
+#ifndef NDEBUG
+void dumpRenderer(WebCore::RenderObject* aRenderObject)
+{
+    WebCore::DeprecatedString str;
+    WebCore::DeprecatedString ind;
+    WebCore::TextStream ts(&str);
+    if (aRenderObject) {
+        logml(MODULE_GLUE, LEVEL_INFO, "DUMP RENDER TREE");
+        aRenderObject->dump( &ts, ind );
+        log( str.ascii() );
+    }
+    else
+        logml(MODULE_GLUE, LEVEL_INFO, "No renderer");
+}
+
+void dumpShowTree(WebCore::RenderObject* aRenderObject)
+{
+    if (aRenderObject) {
+        logm(MODULE_GLUE, "SHOW TREE FOR THIS" );
+        aRenderObject->showTreeForThis();
+    }
+    else
+        logm(MODULE_GLUE, "No object");
+}
+
+void dumpDOM(WebCore::Node* document)
+{
+    WebCore::DeprecatedString str;
+    WebCore::DeprecatedString ind;
+    WebCore::TextStream ts(&str);
+    if (document)
+        document->dump(&ts, ind);
+    else
+        ts << "No document\n";
+
+    log(str.ascii());
+}
+
+void dumpDebugData(BAL::BIEvent* event, Frame* f)
+{
+    BAL::BIKeyboardEvent* aKeyboardEvent = event->queryIsKeyboardEvent();
+    if (aKeyboardEvent) {
+        switch (aKeyboardEvent->virtualKeyCode()) {
+        case BAL::BIKeyboardEvent::VK_T:
+            if(aKeyboardEvent->ctrlKey()) {
+                String txt = WebCore::externalRepresentation(f->renderer());
+                WebCore::CString utf8Str = txt.utf8();
+                const char *utf8 = utf8Str.data();
+                if (utf8)
+                    printf("%s", utf8);
+            }
+            break;
+        case BAL::BIKeyboardEvent::VK_D:
+            if (aKeyboardEvent->ctrlKey())
+                dumpDOM(f->document());
+            break;
+        case BAL::BIKeyboardEvent::VK_S:
+            if (aKeyboardEvent->ctrlKey())
+                dumpShowTree(f->renderer());
+            break;
+        case BAL::BIKeyboardEvent::VK_I:
+            if (aKeyboardEvent->ctrlKey() && f->document())
+                dumpDOM(f->document()->hoverNode());
+            break;
+        }
+    }
+}
+#endif
+
+void Frame::handleEvent(BAL::BIEvent *event)
+{
+//    printf("handleEvent for frame %p\n", this);
+    bool isHandled = false;
+    EventHandler* handler = eventHandler();
+    BAL::BIKeyboardEvent* key = 0;
+    BAL::BIMouseEvent* mouseEvent = 0;
+    BAL::BIWheelEvent* wheelEvent = 0;
+    if ((key = event->queryIsKeyboardEvent()))
+        isHandled = handler->keyEvent(*key);
+    else if ((mouseEvent = (event->queryIsMouseEvent()))) {
+        switch (mouseEvent->eventType()) {
+        case BAL::BIMouseEvent::MouseEventPressed:
+            isHandled = handler->handleMousePressEvent(*mouseEvent);
+            break;
+        case BAL::BIMouseEvent::MouseEventReleased:
+            isHandled = handler->handleMouseReleaseEvent(*mouseEvent);
+            break;
+        case BAL::BIMouseEvent::MouseEventMoved:
+            isHandled =  handler->handleMouseMoveEvent(*mouseEvent);
+            break;
+        case BAL::BIMouseEvent::MouseEventScroll:
+            break;
+        }
+    }
+    else if ((wheelEvent = event->queryIsWheelEvent()))
+        isHandled = handler->handleWheelEvent(*wheelEvent);
+
+    if (isHandled)
+        return;
+
+    WebCore::RenderLayer* renderLayer = 0;
+    if (renderer())
+        renderLayer = renderer()->layer();
+
+    if (key && !key->isKeyUp() && renderLayer) {
+#ifndef NDEBUG
+    // first fire debug hook if needed
+    dumpDebugData(key, this);
+#endif
+    switch (key->virtualKeyCode()) {
+        // NOTE in all this scrolling we must find a way to scroll content also
+        // like m_mainFrame->view()->setContentsPos(renderLayer->scrollXOffset(), renderLayer->scrollYOffset());
+        // or else mouse interaction will be shifted after a scroll
+        case BAL::BIKeyboardEvent::VK_LEFT:
+            if (key->altKey())
+                loader()->goBackOrForward(-1);
+            else
+                renderLayer->scroll(WebCore::ScrollLeft, WebCore::ScrollByLine);
+            break;
+        case BAL::BIKeyboardEvent::VK_RIGHT:
+            if (key->altKey())
+                loader()->goBackOrForward(1);
+            else
+                renderLayer->scroll(WebCore::ScrollRight, WebCore::ScrollByLine);
+            break;
+        case BAL::BIKeyboardEvent::VK_UP:
+            renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByLine);
+            break;
+        case BAL::BIKeyboardEvent::VK_PRIOR:
+            renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByPage);
+            break;
+        case BAL::BIKeyboardEvent::VK_NEXT:
+            renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByPage);
+            break;
+        case BAL::BIKeyboardEvent::VK_DOWN:
+            renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByLine);
+//            view()->scrollBy(0, 10);
+            break;
+        case BAL::BIKeyboardEvent::VK_HOME:
+            renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByDocument);
+            break;
+        case BAL::BIKeyboardEvent::VK_END:
+            renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByDocument);
+            break;
+        case BAL::BIKeyboardEvent::VK_SPACE:
+            if (key->shiftKey())
+                renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByPage);
+            else
+                renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByPage);
+            break;
+        case BAL::BIKeyboardEvent::VK_TAB: // On tab, change focus
+        {
+            WebCore::KeyboardEvent* keyEvent = new WebCore::KeyboardEvent(*key, document()->defaultView());
+            page()->focusController()->advanceFocus(keyEvent);
+            delete keyEvent;
+        }
+            break;
+        case BAL::BIKeyboardEvent::VK_RETURN: // On enter, dispatch event to the focused node
+            break;
+        case BAL::BIKeyboardEvent::VK_BACK:
+            loader()->goBackOrForward(-1);
+            break;
+        default:
+            break;
+        } // end switch
+    } // end if key
+
+    if (wheelEvent && renderLayer) {
+        ScrollDirection direction = WebCore::ScrollDown;
+        if (wheelEvent->deltaX())
+            direction = wheelEvent->deltaX() < 0 ? WebCore::ScrollRight : WebCore::ScrollLeft;
+        if (wheelEvent->deltaY())
+            direction = wheelEvent->deltaY() < 0 ? WebCore::ScrollDown : WebCore::ScrollUp;
+        renderLayer->scroll(direction, WebCore::ScrollByWheel);
+    }
+
+    // Window events are handled in WindowManager
 }
 
 }

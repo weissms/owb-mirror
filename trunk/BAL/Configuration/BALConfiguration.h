@@ -46,11 +46,12 @@
 
 // must use log() to enable deactivation during LayoutTests
 #ifdef BAL_LOG
-  #define BALNotImplemented() if (!getenv("LAYOUT_TEST")) { printf("%s:%d:%s() Not implemented\n", __FILE__, __LINE__, __func__); }
+  #define BALNotImplemented() if (!getenv("LAYOUT_TEST") && getenv("NOT_IMPLEMENTED")) { printf("%s:%d:%s() Not implemented\n", __FILE__, __LINE__, __func__); }
 #else
   #define BALNotImplemented()
 #endif
 
+#include "RGBA32Array.h" // no forwarding due to typedef
 #include "BIWindowEvent.h" // need to include because of BIWindowEvent::ENUM_WINDOW use
 
 namespace WebCore {
@@ -87,14 +88,17 @@ namespace BAL
     void deleteBIEventLoop( BIEventLoop* );
     BIMouseEvent* createBIMouseEvent();
     BIWindowEvent* createBIWindowEvent(BIWindowEvent::ENUM_WINDOW, bool bGain,
-                                       const WebCore::IntRect& rect);
+       const WebCore::IntRect& rect, const BTWidget*);
     BIKeyboardEvent* createBIKeyboardEvent(  const WebCore::String& aText,
        const WebCore::String& aUnmodifiedText, const WebCore::String& aKeyIdentifier,
        bool bIsKeyUp, bool bShiftKey, bool bCtrlKey, bool bAltKey, bool bMetaKey, bool bIsAutoRepeat,
        int aVKey );
+    BIEvent* createBITimerEvent();
 
     // Window
+    class BIWindowManager;
     BIWindow* createBCWindowBal(int x, int y, int width, int height, int depth);
+    BIWindowManager* getBIWindowManager();
 
     // Observer
     class BIObserver;
@@ -121,19 +125,22 @@ namespace BAL
 
     // Graphics
     class BIGraphicsContext;
+    class BIGraphicsDevice;
     class BINativeImage;
-    class RGBA32Buffer;
+    class BISurface;
     BIGraphicsContext* createRGBA32GraphicsContext(unsigned width, unsigned height);
     void deleteRGBA32GraphicsContext(BIGraphicsContext*);
-    BINativeImage* createBCNativeImage(const RGBA32Buffer&, const WebCore::IntSize&);
-    BINativeImage* createBCNativeImage(const WebCore::IntSize&);
+//    BINativeImage* createBCNativeImage(const RGBA32Array&, const WebCore::IntSize&);
+//    BINativeImage* createBCNativeImage(const WebCore::IntSize&);
     BIGraphicsContext* getBIGraphicsContext();
     BIGraphicsContext* createBIGraphicsContext();
     BIGraphicsContext* createFakeBIGraphicsContext();
     void deleteBIGraphicsContext(BIGraphicsContext*);
     BTAffineTransform &createBiAffineTransform();
     BTAffineTransform &createBiAffineTransform(double a, double b, double c, double d, double tx, double ty);
-
+    BIGraphicsDevice* getBIGraphicsDevice();
+    BISurface* getBISurface();
+ 
     // XML
     class BIXSLT;
     BIXSLT* createBIXSLT();
@@ -144,10 +151,6 @@ namespace BAL
 
 // Bridge !
 // not in BAL namespace
-class BIWebView;
-BIWebView* getBIWebView();
-void deleteBIWebView();
-
 class BICookieJar;
 BICookieJar* getBICookieJar();
 void deleteBICookieJar(BICookieJar*);

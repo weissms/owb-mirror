@@ -61,7 +61,6 @@ void ContextMenu::insertItem(unsigned position, ContextMenuItem& item)
 
 void ContextMenu::setPlatformDescription(PlatformMenuDescription menu)
 {
-    delete m_platformDescription;
     m_platformDescription = static_cast<void*> (menu);
 }
 
