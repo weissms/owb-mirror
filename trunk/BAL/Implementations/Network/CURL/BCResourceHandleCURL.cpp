@@ -396,7 +396,6 @@ void  BCResourceHandleCURL::processMessage(CURLMsg* msg)
             //FIXME: make error descriptive
             if(client()) {
                 client()->didFail(this, jobError); //didFail release resources.
-                deref();
                 return;
             }
         }
@@ -416,8 +415,6 @@ void  BCResourceHandleCURL::finish()
         }
         client()->didFinishLoading(this);
     }
-    //FIXME: ResourceHandleManager should do this
-    deref();
 }
 
 } // namespace BC

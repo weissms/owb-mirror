@@ -182,6 +182,7 @@ bool BCResourceHandleManagerCURL::contains(BIResourceHandle* job)
 void BCResourceHandleManagerCURL::cancel(BIResourceHandle *job)
 {
     remove(job);
+    static_cast<BCResourceHandleCURL*> (job)->deref();
 }
 
 } // namespace WebCore
