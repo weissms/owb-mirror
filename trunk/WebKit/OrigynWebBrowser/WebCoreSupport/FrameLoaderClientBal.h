@@ -180,6 +180,7 @@ namespace WebCore {
         FrameBal* m_frame;
         ResourceResponse m_response;
         bool m_firstData;
+        bool m_loadFailed;
     };
 
 }

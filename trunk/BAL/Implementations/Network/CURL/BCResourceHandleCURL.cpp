@@ -353,6 +353,10 @@ size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
 	// Set Location
     if (header.contains("Location: ", false)) {
         String location = header.substring(10, realsize);
+        int ret = location.find("\r");
+        if (ret >= 0)
+            location.truncate(ret);
+
 		m_request.setURL(location.deprecatedString());
 		// a redirection occured, we must change the request or else we will
 		// only have the main document with all dependencies messed up

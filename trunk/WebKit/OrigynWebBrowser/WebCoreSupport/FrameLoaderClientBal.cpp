@@ -53,6 +53,7 @@ namespace WebCore {
 FrameLoaderClientBal::FrameLoaderClientBal()
     : m_frame(0)
     , m_firstData(false)
+    , m_loadFailed(false)
 {
 }
 
@@ -115,6 +116,7 @@ void FrameLoaderClientBal::assignIdentifierToInitialRequest(unsigned long identi
 
 void FrameLoaderClientBal::postProgressStartedNotification()
 {
+    m_loadFailed = false;
     // no progress notification for now
     printf("Document download has started for %s.\n", m_frame->loader()->URL().url().ascii());
     m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
@@ -131,8 +133,10 @@ void FrameLoaderClientBal::postProgressEstimateChangedNotification()
 
 void FrameLoaderClientBal::postProgressFinishedNotification()
 {
-    printf("Document progress ended for %s.\n", m_frame->loader()->URL().url().ascii());
-    m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
+    if (!m_loadFailed) {
+        printf("Document progress ended for %s.\n", m_frame->loader()->URL().url().ascii());
+        m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
+    }
 }
 
 void FrameLoaderClientBal::frameLoaderDestroyed()
@@ -564,8 +568,11 @@ bool FrameLoaderClientBal::dispatchDidLoadResourceFromMemoryCache(DocumentLoader
     return false;
 }
 
-void FrameLoaderClientBal::dispatchDidFailProvisionalLoad(const ResourceError&)
+void FrameLoaderClientBal::dispatchDidFailProvisionalLoad(const ResourceError& error)
 {
+    printf("Error for '%s': %s\n", error.failingURL().deprecatedString().ascii(),
+            error.localizedDescription().deprecatedString().ascii());
+    m_loadFailed = true;
     BALNotImplemented();
 }
 
