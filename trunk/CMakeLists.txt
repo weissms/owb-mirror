@@ -437,6 +437,12 @@ IF (WEBKIT_USE_JS)
 		jscore
 		bal
 	)
+	
+	ADD_EXECUTABLE (testbindings JavaScriptCore/bindings/testbindings.cpp)
+        TARGET_LINK_LIBRARIES (testbindings
+                jscore
+                bal
+         )
 
 IF (OWBAL_PLATFORM_MACPORT)
     TARGET_LINK_LIBRARIES (jscore
@@ -489,6 +495,7 @@ IF (OWBAL_PLATFORM_MACPORT)
 		jscore
 		bal
 		balglue
+        ${ADDONS_LINK}
     )
 ENDIF (OWBAL_PLATFORM_MACPORT)
 

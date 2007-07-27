@@ -30,16 +30,12 @@
 #include "interpreter.h"
 
 #include "npruntime.h"
+#include "npruntime_impl.h"
+#include "npruntime_priv.h"
 
 #include "runtime.h"
 #include "runtime_object.h"
-
-
-#define LOG(formatAndArgs...) { \
-    fprintf (stderr, "%s:  ", __PRETTY_FUNCTION__); \
-    fprintf(stderr, formatAndArgs); \
-}
-
+#include "runtime_root.h"
 
 // ------------------ NP Interface definition --------------------
 typedef struct
@@ -98,8 +94,8 @@ static const NPUTF8 *myMethodIdentifierNames[NUM_METHOD_IDENTIFIERS] = {
 
 static void initializeIdentifiers()
 {
-    NPN_GetStringIdentifiers (myPropertyIdentifierNames, NUM_PROPERTY_IDENTIFIERS, myPropertyIdentifiers);
-    NPN_GetStringIdentifiers (myMethodIdentifierNames, NUM_METHOD_IDENTIFIERS, myMethodIdentifiers);
+    _NPN_GetStringIdentifiers (myPropertyIdentifierNames, NUM_PROPERTY_IDENTIFIERS, myPropertyIdentifiers);
+    _NPN_GetStringIdentifiers (myMethodIdentifierNames, NUM_METHOD_IDENTIFIERS, myMethodIdentifiers);
 };
 
 bool myHasProperty (NPClass *theClass, NPIdentifier name)
@@ -127,77 +123,91 @@ bool myHasMethod (NPClass *theClass, NPIdentifier name)
 
 void logMessage (const NPVariant *message)
 {
-    if (message->type == NPVariantStringType) {
+    if (NPVARIANT_IS_STRING(*message)) {
         char msgBuf[1024];
         strncpy (msgBuf, message->value.stringValue.UTF8Characters, message->value.stringValue.UTF8Length);
         msgBuf[message->value.stringValue.UTF8Length] = 0;
         printf ("%s\n", msgBuf);
     }
-    else if (message->type == NPVariantDoubleType)
+    else if (NPVARIANT_IS_DOUBLE(*message))
         printf ("%f\n", (float)message->value.doubleValue);
-    else if (message->type == NPVariantInt32Type)
+    else if (NPVARIANT_IS_INT32(*message))
         printf ("%d\n", message->value.intValue);
-    else if (message->type == NPVariantObjectType)
+    else if (NPVARIANT_IS_OBJECT(*message))
         printf ("%p\n", message->value.objectValue);
 }
 
 void setDoubleValue (MyObject *obj, const NPVariant *variant)
 {
-    if (!NPN_VariantToDouble (variant, &obj->doubleValue)) {
+    if (!NPVARIANT_IS_DOUBLE(*variant)) {
         NPUTF8 *msg = "Attempt to set double value with invalid type.";
         NPString aString;
         aString.UTF8Characters = msg;
         aString.UTF8Length = strlen (msg);
-        NPN_SetException ((NPObject *)obj, &aString);
+        _NPN_SetException ((NPObject *)obj, aString.UTF8Characters);
     }
+    else
+        obj->doubleValue = NPVARIANT_TO_DOUBLE(*variant);
 }
 
 void setIntValue (MyObject *obj, const NPVariant *variant)
 {
-    if (!NPN_VariantToInt32 (variant, &obj->intValue)) {
+    if (NPVARIANT_IS_INT32(*variant))
+        obj->intValue = NPVARIANT_TO_INT32(*variant);
+    else if (NPVARIANT_IS_DOUBLE(*variant))
+        obj->intValue = static_cast<int>(NPVARIANT_TO_DOUBLE(*variant));
+    else {
         NPUTF8 *msg = "Attempt to set int value with invalid type.";
         NPString aString;
         aString.UTF8Characters = msg;
         aString.UTF8Length = strlen (msg);
-        NPN_SetException ((NPObject *)obj, &aString);
+        _NPN_SetException ((NPObject *)obj, aString.UTF8Characters);
     }
 }
 
 void setStringValue (MyObject *obj, const NPVariant *variant)
 {
-    NPN_ReleaseVariantValue (&obj->stringValue);
-    NPN_InitializeVariantWithVariant (&obj->stringValue, variant);
+    if (!NPVARIANT_IS_STRING(*variant)) {
+        _NPN_SetException((NPObject *)obj, "setstringvalue exception");
+    }
+    else {
+        _NPN_ReleaseVariantValue (&obj->stringValue);
+        NPN_InitializeVariantWithStringCopy(&obj->stringValue, &NPVARIANT_TO_STRING(*variant));
+    }
 }
 
 void setBooleanValue (MyObject *obj, const NPVariant *variant)
 {
-    if (!NPN_VariantToBool (variant, (NPBool *)&obj->boolValue)) {
+    if (!NPVARIANT_IS_BOOLEAN(*variant)) {
         NPUTF8 *msg = "Attempt to set bool value with invalid type.";
         NPString aString;
         aString.UTF8Characters = msg;
         aString.UTF8Length = strlen (msg);
-        NPN_SetException ((NPObject *)obj, &aString);
+        _NPN_SetException ((NPObject *)obj, aString.UTF8Characters);
     }
+    else
+        obj->boolValue = NPVARIANT_TO_BOOLEAN(*variant);
 }
 
 void getDoubleValue (MyObject *obj, NPVariant *variant)
 {
-    NPN_InitializeVariantWithDouble (variant, obj->doubleValue);
+    DOUBLE_TO_NPVARIANT(obj->doubleValue, *variant);
 }
 
 void getIntValue (MyObject *obj, NPVariant *variant)
 {
-    NPN_InitializeVariantWithInt32 (variant, obj->intValue);
+    INT32_TO_NPVARIANT(obj->intValue, *variant);
 }
 
 void getStringValue (MyObject *obj, NPVariant *variant)
 {
-    NPN_InitializeVariantWithVariant (variant, &obj->stringValue);
+//    STRINGZ_TO_NPVARIANT(obj->stringValue, *variant);
+    *variant = obj->stringValue;
 }
 
 void getBooleanValue (MyObject *obj, NPVariant *variant)
 {
-    NPN_InitializeVariantWithBool (variant, obj->boolValue);
+    BOOLEAN_TO_NPVARIANT(obj->boolValue, *variant);
 }
 
 void myGetProperty (MyObject *obj, NPIdentifier name, NPVariant *variant)
@@ -215,13 +225,13 @@ void myGetProperty (MyObject *obj, NPIdentifier name, NPVariant *variant)
         getBooleanValue (obj, variant);
     }
     else if (name == myPropertyIdentifiers[ID_NULL_VALUE]){
-        return NPN_InitializeVariantAsNull (variant);
+        NULL_TO_NPVARIANT(*variant);
     }
     else if (name == myPropertyIdentifiers[ID_UNDEFINED_VALUE]){
-        return NPN_InitializeVariantAsUndefined (variant); 
+        VOID_TO_NPVARIANT(*variant);
     }
     else
-        NPN_InitializeVariantAsUndefined(variant);
+        VOID_TO_NPVARIANT(*variant);
 }
 
 void mySetProperty (MyObject *obj, NPIdentifier name, const NPVariant *variant)
@@ -246,32 +256,32 @@ void mySetProperty (MyObject *obj, NPIdentifier name, const NPVariant *variant)
     }
 }
 
-void myInvoke (MyObject *obj, NPIdentifier name, NPVariant *args, unsigned argCount, NPVariant *result)
+void myInvoke (MyObject *obj, NPIdentifier name, NPVariant *args, uint32_t argCount, NPVariant *result)
 {
     if (name == myMethodIdentifiers[ID_LOG_MESSAGE]) {
-        if (argCount == 1 && NPN_VariantIsString(&args[0]))
+        if (argCount == 1 && NPVARIANT_IS_STRING (args[0]))
             logMessage (&args[0]);
-        NPN_InitializeVariantAsVoid (result);
+        VOID_TO_NPVARIANT(*result);
     }
     else if (name == myMethodIdentifiers[ID_SET_DOUBLE_VALUE]) {
-        if (argCount == 1 && NPN_VariantIsDouble (&args[0]))
+        if (argCount == 1 && NPVARIANT_IS_DOUBLE (args[0]))
             setDoubleValue (obj, &args[0]);
-        NPN_InitializeVariantAsVoid (result);
+        *result = args[0];
     }
     else if (name == myMethodIdentifiers[ID_SET_INT_VALUE]) {
-        if (argCount == 1 && (NPN_VariantIsDouble (&args[0]) || NPN_VariantIsInt32 (&args[0])))
+        if (argCount == 1 && (NPVARIANT_IS_DOUBLE (args[0]) || NPVARIANT_IS_INT32 (args[0])))
             setIntValue (obj, &args[0]);
-        NPN_InitializeVariantAsVoid (result);
+        *result = args[0];
     }
     else if (name == myMethodIdentifiers[ID_SET_STRING_VALUE]) {
-        if (argCount == 1 && NPN_VariantIsString (&args[0]))
+        if (argCount == 1 && NPVARIANT_IS_STRING (args[0]))
             setStringValue (obj, &args[0]);
-        NPN_InitializeVariantAsVoid (result);
+        VOID_TO_NPVARIANT(*result); // crash if *result = args[0];
     }
     else if (name == myMethodIdentifiers[ID_SET_BOOLEAN_VALUE]) {
-        if (argCount == 1 && NPN_VariantIsBool (&args[0]))
+        if (argCount == 1 && NPVARIANT_IS_BOOLEAN (args[0]))
             setBooleanValue (obj, &args[0]);
-        NPN_InitializeVariantAsVoid (result);
+        *result = args[0];
     }
     else if (name == myMethodIdentifiers[ID_GET_DOUBLE_VALUE]) {
         getDoubleValue (obj, result);
@@ -286,7 +296,7 @@ void myInvoke (MyObject *obj, NPIdentifier name, NPVariant *args, unsigned argCo
         getBooleanValue (obj, result);
     }
     else 
-        NPN_InitializeVariantAsUndefined (result);
+        VOID_TO_NPVARIANT(*result);
 }
 
 NPObject *myAllocate ()
@@ -320,15 +330,17 @@ void myDeallocate (MyObject *obj)
 }
 
 static NPClass _myFunctionPtrs = { 
-    kNPClassStructVersionCurrent,
+    NP_CLASS_STRUCT_VERSION,
     (NPAllocateFunctionPtr) myAllocate, 
     (NPDeallocateFunctionPtr) myDeallocate, 
     (NPInvalidateFunctionPtr) myInvalidate,
     (NPHasMethodFunctionPtr) myHasMethod,
     (NPInvokeFunctionPtr) myInvoke,
+    (NPInvokeDefaultFunctionPtr) NULL,
     (NPHasPropertyFunctionPtr) myHasProperty,
     (NPGetPropertyFunctionPtr) myGetProperty,
     (NPSetPropertyFunctionPtr) mySetProperty,
+    (NPRemovePropertyFunctionPtr) NULL
 };
 static NPClass *myFunctionPtrs = &_myFunctionPtrs;
 
@@ -337,7 +349,7 @@ static NPClass *myFunctionPtrs = &_myFunctionPtrs;
 using namespace KJS;
 using namespace KJS::Bindings;
 
-class GlobalImp : public ObjectImp {
+class Global : public JSObject {
 public:
   virtual UString className() const { return "global"; }
 };
@@ -376,29 +388,29 @@ int main(int argc, char **argv)
         JSLock lock;
         
         // create interpreter w/ global object
-        Object global(new GlobalImp());
-        Interpreter interp(global);
-        ExecState *exec = interp.globalExec();
+        Global* global = new Global();
+        RefPtr<Interpreter> interp = new Interpreter(global);
+        ExecState *exec = interp->globalExec();
         
-        MyObject *myObject = (MyObject *)NPN_CreateObject (myFunctionPtrs);
+        MyObject *myObject = (MyObject *)_NPN_CreateObject (NPP(0), myFunctionPtrs);
         
-        global.put(exec, Identifier("myInterface"), Instance::createRuntimeObject(Instance::CLanguage, (void *)myObject));
+        global->put(exec, Identifier("myInterface"), Instance::createRuntimeObject(Instance::CLanguage, (void *)myObject));
         
         for (int i = 1; i < argc; i++) {
             const char *code = readJavaScriptFromFile(argv[i]);
             
             if (code) {
                 // run
-                Completion comp(interp.evaluate(code));
+                Completion comp(interp->evaluate("", 0, code));
                 
                 if (comp.complType() == Throw) {
-                    Value exVal = comp.value();
-                    char *msg = exVal.toString(exec).ascii();
+                    JSValue *exVal = comp.value();
+                    char *msg = exVal->toString(exec).ascii();
                     int lineno = -1;
-                    if (exVal.type() == ObjectType) {
-                        Value lineVal = Object::dynamicCast(exVal).get(exec,Identifier("line"));
-                        if (lineVal.type() == NumberType)
-                            lineno = int(lineVal.toNumber(exec));
+                    if (exVal->type() == ObjectType) {
+                        JSValue *lineVal = exVal->getObject()->get(exec, Identifier("line"));
+                        if (lineVal->type() == NumberType)
+                            lineno = int(lineVal->toNumber(exec));
                     }
                     if (lineno != -1)
                         fprintf(stderr,"Exception, line %d: %s\n",lineno,msg);
@@ -407,13 +419,13 @@ int main(int argc, char **argv)
                     ret = false;
                 }
                 else if (comp.complType() == ReturnValue) {
-                    char *msg = comp.value().toString(interp.globalExec()).ascii();
+                    char *msg = comp.value()->toString(interp->globalExec()).ascii();
                     fprintf(stderr,"Return value: %s\n",msg);
                 }
             }
         }
                 
-        NPN_ReleaseObject ((NPObject *)myObject);
+        _NPN_ReleaseObject ((NPObject *)myObject);
         
     } // end block, so that Interpreter and global get deleted
     
