@@ -1,0 +1,17 @@
+IF (WEBKIT_USE_BAL_I18N)
+
+	SET (i18n_SRC
+    	    ${i18n_SRC}
+
+		BAL/Implementations/Internationalization/Empty/BCInternationalization.cpp
+	)
+
+ELSE (WEBKIT_USE_BAL_I18N)
+
+	SET (i18n_SRC
+    	    ${i18n_SRC}
+
+		BAL/Implementations/Internationalization/ICU/TextBreakIteratorICU.cpp
+	)
+	
+ENDIF (WEBKIT_USE_BAL_I18N)

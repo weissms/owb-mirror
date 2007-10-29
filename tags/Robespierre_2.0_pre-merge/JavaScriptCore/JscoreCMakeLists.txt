@@ -1,0 +1,106 @@
+IF (NOT WEBKIT_USE_JS)
+
+set(jscore_SRC
+        ${jscore_SRC}
+
+        #wtf diretory
+
+        JavaScriptCore/wtf/Assertions.cpp
+        JavaScriptCore/wtf/FastMalloc.cpp
+        JavaScriptCore/wtf/HashTable.cpp
+        JavaScriptCore/wtf/TCSystemAlloc.cpp
+)
+
+ELSE (NOT WEBKIT_USE_JS)
+
+set(jscore_SRC
+	${jscore_SRC}
+
+	#wtf diretory
+
+	JavaScriptCore/wtf/Assertions.cpp
+	JavaScriptCore/wtf/FastMalloc.cpp
+	JavaScriptCore/wtf/HashTable.cpp
+	JavaScriptCore/wtf/TCSystemAlloc.cpp
+	JavaScriptCore/wtf/FastMallocPCRE.cpp
+
+	#pcre directory
+	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs/chartables.c
+	JavaScriptCore/pcre/pcre_compile.c
+	JavaScriptCore/pcre/pcre_config.c
+	JavaScriptCore/pcre/pcre_exec.c
+	JavaScriptCore/pcre/pcre_fullinfo.c
+	JavaScriptCore/pcre/pcre_get.c
+#	JavaScriptCore/pcre/pcre_globals.c
+	JavaScriptCore/pcre/pcre_info.c
+	JavaScriptCore/pcre/pcre_maketables.c
+	JavaScriptCore/pcre/pcre_ord2utf8.c
+	JavaScriptCore/pcre/pcre_refcount.c
+	JavaScriptCore/pcre/pcre_study.c
+	JavaScriptCore/pcre/pcre_tables.c
+	JavaScriptCore/pcre/pcre_try_flipped.c
+	JavaScriptCore/pcre/pcre_ucp_findchar.c
+	JavaScriptCore/pcre/pcre_version.c
+	JavaScriptCore/pcre/pcre_xclass.c
+
+	#bindings directory
+	JavaScriptCore/bindings/c/c_class.cpp
+	JavaScriptCore/bindings/c/c_instance.cpp
+	JavaScriptCore/bindings/c/c_runtime.cpp
+	JavaScriptCore/bindings/c/c_utility.cpp
+	JavaScriptCore/bindings/NP_jsobject.cpp
+	JavaScriptCore/bindings/npruntime.cpp
+	JavaScriptCore/bindings/runtime_array.cpp
+	JavaScriptCore/bindings/runtime_method.cpp
+	JavaScriptCore/bindings/runtime_object.cpp
+	JavaScriptCore/bindings/runtime_root.cpp
+	JavaScriptCore/bindings/runtime.cpp
+	JavaScriptCore/bindings/bal/bal_class.cpp
+        JavaScriptCore/bindings/bal/bal_instance.cpp
+        JavaScriptCore/bindings/bal/bal_runtime.cpp
+	JavaScriptCore/bindings/bal/bal_object.cpp
+
+	#kjs directory
+	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs/grammar.cpp
+	JavaScriptCore/kjs/array_object.cpp
+	JavaScriptCore/kjs/bool_object.cpp
+	JavaScriptCore/kjs/collector.cpp
+	JavaScriptCore/kjs/Context.cpp
+	JavaScriptCore/kjs/date_object.cpp
+	JavaScriptCore/kjs/debugger.cpp
+	JavaScriptCore/kjs/dtoa.cpp
+	JavaScriptCore/kjs/error_object.cpp
+	JavaScriptCore/kjs/ExecState.cpp
+	JavaScriptCore/kjs/fpconst.cpp
+	JavaScriptCore/kjs/function.cpp
+	JavaScriptCore/kjs/function_object.cpp
+	JavaScriptCore/kjs/identifier.cpp
+	JavaScriptCore/kjs/internal.cpp
+	JavaScriptCore/kjs/interpreter.cpp
+	JavaScriptCore/kjs/JSImmediate.cpp
+	JavaScriptCore/kjs/JSLock.cpp
+	JavaScriptCore/kjs/lexer.cpp
+	JavaScriptCore/kjs/list.cpp
+	JavaScriptCore/kjs/lookup.cpp
+	JavaScriptCore/kjs/math_object.cpp
+	JavaScriptCore/kjs/nodes2string.cpp
+	JavaScriptCore/kjs/nodes.cpp
+	JavaScriptCore/kjs/number_object.cpp
+	JavaScriptCore/kjs/object.cpp
+	JavaScriptCore/kjs/object_object.cpp
+	JavaScriptCore/kjs/operations.cpp
+	JavaScriptCore/kjs/Parser.cpp
+	JavaScriptCore/kjs/property_map.cpp
+	JavaScriptCore/kjs/PropertyNameArray.cpp
+	JavaScriptCore/kjs/property_slot.cpp
+	JavaScriptCore/kjs/regexp.cpp
+	JavaScriptCore/kjs/regexp_object.cpp
+	JavaScriptCore/kjs/scope_chain.cpp
+	JavaScriptCore/kjs/string_object.cpp
+	JavaScriptCore/kjs/ustring.cpp
+	JavaScriptCore/kjs/value.cpp
+	JavaScriptCore/kjs/JSWrapperObject.cpp
+	JavaScriptCore/kjs/DateMath.cpp
+)
+
+ENDIF (NOT WEBKIT_USE_JS)

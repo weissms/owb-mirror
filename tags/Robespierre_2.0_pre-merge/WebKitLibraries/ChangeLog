@@ -1,0 +1,205 @@
+2006-10-11  Darin Adler  <darin@apple.com>
+
+        Reviewed by John Sullivan.
+
+        * WebKitSystemInterface.h: Updated to a C++-compatible version.
+
+2006-08-31  Adele Peterson  <adele@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Removed wkSecureEventInput and wkSetSecureEventInput, since this can be done with API.
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2006-08-30  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Hyatt.
+
+        Updated for http://bugs.webkit.org/show_bug.cgi?id=10575
+        Enable secure input mode for new password fields
+
+        * WebKitSystemInterface.h: Added WKSetSecureEventInput and WKSecureEventInput;
+        * libWebKitSystemInterface.a:
+
+2006-07-09  Anders Carlsson  <acarlsson@apple.com>
+
+        Reviewed by Darin.
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+        Add WKPathFromFont.
+        
+2006-07-05  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Maciej and Hyatt.
+
+        * WebKitSystemInterface.h: Updated.
+        * libWebKitSystemInterface.a: Updated.
+
+2006-06-16  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Alice.
+
+        * WebKitSystemInterface.h: Added WKDrawBezeledTextArea().
+        * libWebKitSystemInterface.a: ditto.
+
+2006-04-01  Eric Seidel  <eseidel@apple.com>
+
+        * libWebKitSystemInterface.a: commit a universal binary.
+
+2006-04-01  Darin Adler  <darin@apple.com>
+
+        Reviewed by Beth.
+
+        * libWebKitSystemInterface.a: Changed alpha in the focus-ring drawing
+        code to use the system default alpha.
+
+2006-03-17  Eric Seidel  <eseidel@apple.com>
+
+        * libWebKitSystemInterface.a: commit a universal binary.
+
+2006-03-17  Adele Peterson  <adele@apple.com>
+
+        * WebKitSystemInterface.h: Added WKDrawBezeledTextFieldCell()
+        * libWebKitSystemInterface.a: ditto
+
+2006-02-28  John Sullivan  <sullivan@apple.com>
+
+        * WebKitSystemInterface.h: Removed WKMouseIsDown()
+        * libWebKitSystemInterface.a: ditto
+
+2006-02-23  Timothy Hatcher  <timothy@apple.com>
+
+        New build to fix the i386 arch. (The _cuEnc64 symbol was missing.)
+
+        * libWebKitSystemInterface.a:
+
+2006-02-19  Darin Adler  <darin@apple.com>
+
+        * WebKitSystemInterface.h: Added WKDrawFocusRing.
+        * libWebKitSystemInterface.a: Ditto.
+
+2006-02-06  John Sullivan  <sullivan@apple.com>
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+        removed WKExecutableLinkedInTigerOrEarlier
+
+2005-11-01  Darin Adler  <darin@apple.com>
+
+        * libWebKitSystemInterface.a: Updated.
+
+2005-10-04  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-09-08  Justin Garcia  <justin.garcia@apple.com>
+
+        * WebKitSystemInterface.h: Update to latest
+        * libWebKitSystemInterface.a: ditto
+
+2005-09-04  Darin Adler  <darin@apple.com>
+
+        * WebKitSystemInterface.h: Update to latest
+        * libWebKitSystemInterface.a: Ditto.
+
+2005-08-07  Darin Adler  <darin@apple.com>
+
+        * libWebKitSystemInterface.a: Universal binary.
+        * WebKitSystemInterface.h: Updated for calls that Eric recently removed.
+
+2005-07-01  John Sullivan  <sullivan@apple.com>
+
+        - added WKExecutableLinkedInTigerOrEarlier
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated for crashing bugfix
+
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-06  Maciej Stachowiak  <mjs@apple.com>
+
+        - updated
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-05  Maciej Stachowiak  <mjs@apple.com>
+
+        - added a few more bits of SPI
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-05  Maciej Stachowiak  <mjs@apple.com>
+
+        - added file type and NSURLResponse caching SPI
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2005-06-05  Maciej Stachowiak  <mjs@apple.com>
+
+        - initial checkin of WebKitSystemInterface binary
+
+        * WebKitSystemInterface.h: Added.
+        * libWebKitSystemInterface.a: Added.
+

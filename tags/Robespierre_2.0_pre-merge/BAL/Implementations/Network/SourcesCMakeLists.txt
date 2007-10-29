@@ -1,0 +1,16 @@
+set(transfers_SRC
+        ${transfers_SRC}
+
+	BAL/Implementations/Network/CURL/BCResourceHandleManagerCURL.cpp
+	BAL/Implementations/Network/CURL/BCResourceHandleCURL.cpp
+	BAL/Implementations/Network/Common/AuthenticationChallenge.cpp
+	BAL/Implementations/Network/Common/Credential.cpp
+	BAL/Implementations/Network/Common/DocumentLoaderBal.cpp
+	BAL/Implementations/Network/Common/FileChooserBal.cpp
+	BAL/Implementations/Network/Common/FormData.cpp
+	BAL/Implementations/Network/Common/HTTPParsers.cpp
+	BAL/Implementations/Network/Common/KURL.cpp
+	BAL/Implementations/Network/Common/ProtectionSpace.cpp
+	BAL/Implementations/Network/Common/ResourceRequest.cpp
+	BAL/Implementations/Network/Common/ResourceResponse.cpp
+)

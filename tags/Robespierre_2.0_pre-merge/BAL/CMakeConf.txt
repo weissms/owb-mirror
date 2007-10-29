@@ -1,0 +1,386 @@
+# To be included by root CMakeLists.txt
+
+####################################
+# BINARY AND LIB REQUIREMENT FOR BAL
+####################################
+
+####################################
+#Find images libraries 
+####################################
+IF(WEBKIT_USE_IMAGEDECODER_LIBPNG)
+
+FIND_PACKAGE (PNG REQUIRED)
+
+IF(PNG_FOUND)
+    MESSAGE ("png found with this parameter for libs : ${PNG_LIBRARIES}")
+    MESSAGE ("png found with this parameter for cflags : ${PNG_INCLUDE_DIR}")
+    SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};${PNG_LIBRARIES}")
+    SET(LIBRARIES_TO_INCLUDE "${LIBRARIES_TO_INCLUDE};${PNG_INCLUDE_DIR}")
+    LINK_LIBRARIES(${PNG_LIBRARIES})
+ELSE(PNG_FOUND)
+    MESSAGE (FATAL_ERROR "Could not find libpng")
+ENDIF(PNG_FOUND)
+
+ENDIF(WEBKIT_USE_IMAGEDECODER_LIBPNG)
+
+
+
+IF(WEBKIT_USE_IMAGEDECODER_LIBJPEG)
+
+FIND_PACKAGE (JPEG REQUIRED)
+
+IF(JPEG_FOUND)
+    MESSAGE ("jpeg found with this parameter for libs : ${JPEG_LIBRARIES}")
+    MESSAGE ("jpeg found with this parameter for cflags : ${JPEG_INCLUDE_DIR}")
+    SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};${JPEG_LIBRARIES}")
+    SET(LIBRARIES_TO_INCLUDE "${LIBRARIES_TO_INCLUDE};${JPEG_INCLUDE_DIR}")
+    LINK_LIBRARIES(${JPEG_LIBRARIES})
+ELSE(JPEG_FOUND)
+    MESSAGE (FATAL_ERROR "Could not find libjpeg")
+ENDIF(JPEG_FOUND)
+
+ENDIF(WEBKIT_USE_IMAGEDECODER_LIBJPEG)
+
+IF(WEBKIT_USE_IMAGEDECODER_LIBUNGIF)
+# FIXME may be ungif instead of gif !
+    SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};gif")
+ENDIF(WEBKIT_USE_IMAGEDECODER_LIBUNGIF)
+
+
+#######################################
+# find perl executable
+#######################################
+FIND_PACKAGE(Perl REQUIRED)
+
+#######################################
+# find pkg-config executable
+#######################################
+FIND_PROGRAM (PKG_CONFIG_EXECUTABLE pkg-config)
+
+IF (NOT PKG_CONFIG_EXECUTABLE)
+    MESSAGE (FATAL_ERROR "Could not find pkg-config, cannot create owb without it, on debian you must install pkg-config package")
+ENDIF (NOT PKG_CONFIG_EXECUTABLE)
+
+#######################################
+# find BISON executable
+#######################################
+FIND_PROGRAM (BISON_EXECUTABLE bison)
+
+IF (NOT BISON_EXECUTABLE)
+   MESSAGE (FATAL_ERROR "Could not find bison, cannot create owb without it, on debian you must install bison package")
+ENDIF (NOT BISON_EXECUTABLE)
+
+#######################################
+# find flex executable
+#######################################
+FIND_PROGRAM (FLEX_EXECUTABLE flex)
+
+IF (NOT FLEX_EXECUTABLE)
+   MESSAGE (FATAL_ERROR "Could not find flex, cannot create owb without it, on debian you must install flex package")
+ENDIF (NOT FLEX_EXECUTABLE)
+
+#######################################
+# find GPERF executable
+#######################################
+FIND_PROGRAM (GPERF_EXECUTABLE gperf)
+
+IF (NOT GPERF_EXECUTABLE)
+   MESSAGE (FATAL_ERROR "Could not find gperf, cannot create owb without it, on debian you must install gperf package")
+ENDIF (NOT GPERF_EXECUTABLE)
+
+#######################################
+#quick search the libcairo is available
+#######################################
+
+IF (WEBKIT_USE_GRAPHICS_CAIRO OR WEBKIT_USE_FONTS_CAIRO)
+
+  EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --libs cairo | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed s/-l//"
+	OUTPUT_VARIABLE LIBCAIRO_LIBS
+	RETURN_VALUE ERROR_CODE)
+
+  IF (ERROR_CODE EQUAL 0)
+	MESSAGE ("cairo found with this parameter for libs : "${LIBCAIRO_LIBS})
+  ELSE (ERROR_CODE EQUAL 0)
+	MESSAGE (FATAL_ERROR "libcairo not found, cannot create owb without it, on debian you must install libcairo2-dev package")
+  ENDIF (ERROR_CODE EQUAL 0)
+
+  EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --cflags cairo | sed s/-I// | sed s/\\ .*//g"
+        OUTPUT_VARIABLE LIBCAIRO_CFLAGS
+        RETURN_VALUE ERROR_CODE)
+
+  IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("cairo found with this parameter for cflags : "${LIBCAIRO_CFLAGS})
+  ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "libcairo not found, cannot create owb without it, on debian you must install libcairo2-dev package")
+  ENDIF (ERROR_CODE EQUAL 0)
+
+ENDIF (WEBKIT_USE_GRAPHICS_CAIRO OR WEBKIT_USE_FONTS_CAIRO)
+
+#######################################
+#quick search the libicu is available
+#######################################
+
+FIND_PROGRAM (ICU_CONFIG_EXECUTABLE icu-config)
+
+IF (NOT ICU_CONFIG_EXECUTABLE)
+	MESSAGE (FATAL_ERROR "Could not find icu-config, cannot create owb without it, on debian you must install libicu34-dev package")
+ENDIF (NOT ICU_CONFIG_EXECUTABLE)
+
+IF (BUILD_SHARED_LIBS)
+	EXEC_PROGRAM ("${ICU_CONFIG_EXECUTABLE} --ldflags-libsonly"
+		OUTPUT_VARIABLE LIBICU_LIBS
+		RETURN_VALUE ERROR_CODE)
+		SEPARATE_ARGUMENTS(LIBICU_LIBS)
+ELSE (BUILD_SHARED_LIBS)
+	# static libs for icu begin with 's'
+	EXEC_PROGRAM ("${ICU_CONFIG_EXECUTABLE} --ldflags-libsonly | sed 's/-l/-ls/g'"
+		OUTPUT_VARIABLE LIBICU_LIBS
+		RETURN_VALUE ERROR_CODE)
+		SEPARATE_ARGUMENTS(LIBICU_LIBS)
+ENDIF (BUILD_SHARED_LIBS)
+
+IF (ERROR_CODE EQUAL 0)
+	MESSAGE ("icu found with this parameter for libs : ${LIBICU_LIBS}")
+	SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBICU_LIBS})
+ELSE (ERROR_CODE EQUAL 0)
+	MESSAGE (FATAL_ERROR "libicu not found, cannot create owb without it, on debian you must install libicu34-dev package")
+ENDIF (ERROR_CODE EQUAL 0)
+
+#######################################
+#quick search the libSDL is available
+#######################################
+
+
+IF (WEBKIT_USE_GRAPHICS_SDL OR WEBKIT_USE_FONTS_SDL OR WEBKIT_USE_EVENTS_SDL)
+
+FIND_PACKAGE (SDL REQUIRED)
+
+IF(SDL_FOUND)
+    MESSAGE ("sdl found with this parameter for libs : ${SDL_LIBRARY}")
+    MESSAGE ("sdl found with this parameter for cflags : ${SDL_INCLUDE_DIR}")
+    SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${SDL_LIBRARY})
+    SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${SDL_INCLUDE_DIR})
+ELSE(SDL_FOUND)
+    MESSAGE (FATAL_ERROR "Could not find libSDL")
+ENDIF(SDL_FOUND)
+
+FIND_PACKAGE (SDL_gfx REQUIRED)
+
+IF(SDLGFX_FOUND)
+    MESSAGE ("sdl_gfx found with this parameter for libs : ${SDLGFX_LIBRARY}")
+    MESSAGE ("sdl_gfx found with this parameter for cflags : ${SDLGFX_INCLUDE_DIR}")
+    SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK}  ${SDLGFX_LIBRARY})
+    SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${SDLGFX_INCLUDE_DIR})
+ELSE(SDLGFX_FOUND)
+    MESSAGE (FATAL_ERROR "Could not find SDL GFX")
+ENDIF(SDLGFX_FOUND)
+
+ENDIF (WEBKIT_USE_GRAPHICS_SDL OR WEBKIT_USE_FONTS_SDL OR WEBKIT_USE_EVENTS_SDL)
+
+
+
+IF (WEBKIT_USE_FONTS_SDL_TTF)
+
+FIND_PACKAGE (SDL_ttf REQUIRED)
+
+IF(SDLTTF_FOUND)
+    MESSAGE ("sdl-ttf found with this parameter for libs : ${SDLTTF_LIBRARY}")
+    MESSAGE ("sdl-ttf found with this parameter for cflags : ${SDLTTF_INCLUDE_DIR}")
+    SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${SDLTTF_LIBRARY})
+    SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${SDLTTF_INCLUDE_DIR})
+ELSE(SDLTFF_FOUND)
+    MESSAGE (FATAL_ERROR "Could not find sdl-ttf")
+ENDIF(SDLTTF_FOUND)
+
+ENDIF (WEBKIT_USE_FONTS_SDL_TTF)
+
+#######################################
+#search for directfb
+#######################################
+
+IF (WEBKIT_USE_FONTS_DIRECTFB)
+
+	FIND_PROGRAM (DIRECTFB_CONFIG_EXECUTABLE directfb-config 
+				PATHS /opt /opt/target
+				PATH_SUFFIXES bin usr/bin
+			)
+
+	IF (NOT DIRECTFB_CONFIG_EXECUTABLE)
+        	MESSAGE (FATAL_ERROR "Could not find directfb-config. Cannot create owb with directfb support without it. On debian you must install libdirectfb-dev package")
+	ENDIF (NOT DIRECTFB_CONFIG_EXECUTABLE)
+
+	EXEC_PROGRAM ("${DIRECTFB_CONFIG_EXECUTABLE} --cflags | sed s/-I// | sed s/\\ .*//g | sed 's/-D[^ ]+//g'"
+			OUTPUT_VARIABLE LIBDIRECTFB_CFLAGS
+			RETURN_VALUE ERROR_CODE)
+	IF (ERROR_CODE EQUAL 0)
+        	MESSAGE ("directfb found with this parameter for cflags : "${LIBDIRECTFB_CFLAGS})
+	ELSE (ERROR_CODE EQUAL 0)
+	        MESSAGE (FATAL_ERROR "libfreetype not found. Cannot create owb with freetype support without it. On debian you must install libfreetype6-dev package")
+	ENDIF (ERROR_CODE EQUAL 0)
+
+	EXEC_PROGRAM ("${DIRECTFB_CONFIG_EXECUTABLE} --libs | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed 's/-l//g' | sed 's/[ ]/;/g'"
+			OUTPUT_VARIABLE LIBDIRECTFB_LIBS
+			RETURN_VALUE ERROR_CODE)
+	IF (ERROR_CODE EQUAL 0)
+        	MESSAGE ("directfb found with this parameter for libs : ${LIBDIRECTFB_LIBS}")
+	ELSE (ERROR_CODE EQUAL 0)
+	        MESSAGE (FATAL_ERROR "libdirectfb not found. Cannot create owb with directfb support without it. On debian you must install libdirectfb-dev package")
+	ENDIF (ERROR_CODE EQUAL 0)
+
+SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBDIRECTFB_LIBS})
+SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${LIBDIRECTFB_CFLAGS})
+
+ENDIF (WEBKIT_USE_FONTS_DIRECTFB)
+
+#######################################
+#search for freetype 
+#######################################
+
+IF (WEBKIT_USE_FONTS_FREETYPE OR WEBKIT_USE_FONTS_DIRECTFB OR WEBKIT_USE_FONTS_SDL_TTF)
+
+	FIND_PROGRAM (FREETYPE_CONFIG_EXECUTABLE freetype-config)
+
+	IF (NOT FREETYPE_CONFIG_EXECUTABLE)
+        	MESSAGE (FATAL_ERROR "Could not find freetype-config. Cannot create owb with freetype support without it. On debian you must install libfreetype6-dev package")
+	ENDIF (NOT FREETYPE_CONFIG_EXECUTABLE)
+
+	EXEC_PROGRAM ("${FREETYPE_CONFIG_EXECUTABLE} --cflags | sed s/-I// | sed s/\\ .*//g"
+			OUTPUT_VARIABLE LIBFREETYPE_CFLAGS
+			RETURN_VALUE ERROR_CODE)
+	IF (ERROR_CODE EQUAL 0)
+        	MESSAGE ("freetype found with this parameter for cflags : ${LIBFREETYPE_CFLAGS}")
+        	SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${LIBFREETYPE_CFLAGS})
+	ELSE (ERROR_CODE EQUAL 0)
+	        MESSAGE (FATAL_ERROR "libfreetype not found. Cannot create owb with freetype support without it. On debian you must install libfreetype6-dev package")
+	ENDIF (ERROR_CODE EQUAL 0)
+
+	EXEC_PROGRAM ("${FREETYPE_CONFIG_EXECUTABLE} --libs | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed 's/-l//g' | sed 's/[ ]/;/g'"
+			OUTPUT_VARIABLE LIBFREETYPE_LIBS
+			RETURN_VALUE ERROR_CODE)
+	IF (ERROR_CODE EQUAL 0)
+        	MESSAGE ("freetype found with this parameter for libs : ${LIBFREETYPE_LIBS}")
+        	SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBFREETYPE_LIBS})
+	ELSE (ERROR_CODE EQUAL 0)
+	        MESSAGE (FATAL_ERROR "libfreetype not found. Cannot create owb with freetype support without it. On debian you must install libfreetype6-dev package")
+	ENDIF (ERROR_CODE EQUAL 0)
+
+ENDIF (WEBKIT_USE_FONTS_FREETYPE OR WEBKIT_USE_FONTS_DIRECTFB OR WEBKIT_USE_FONTS_SDL_TTF)
+
+#######################################
+#quick search the libcurl is available
+#######################################
+
+FIND_PROGRAM (CURL_CONFIG_EXECUTABLE curl-config)
+
+IF (NOT CURL_CONFIG_EXECUTABLE)
+	MESSAGE (FATAL_ERROR "Could not find curl-config, cannot create owb without it, on debian you must install libcurl3-gnutls-dev package")
+ENDIF (NOT CURL_CONFIG_EXECUTABLE)
+
+EXEC_PROGRAM ("${CURL_CONFIG_EXECUTABLE} --libs | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed 's/-l//g' | sed 's/[ ]/;/g'"
+	OUTPUT_VARIABLE LIBCURL_LIBS
+        RETURN_VALUE ERROR_CODE)
+
+IF (ERROR_CODE EQUAL 0)
+	MESSAGE ("curl found with this parameter for libs : ${LIBCURL_LIBS}")
+	SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBCURL_LIBS})
+ELSE (ERROR_CODE EQUAL 0)
+	MESSAGE (FATAL_ERROR "libcurl not found, cannot create owb without it, on debian you must install libcurl3-gnutls-dev package")
+ENDIF (ERROR_CODE EQUAL 0)
+
+#######################################
+#quick search the libxml2 is available
+#######################################
+
+IF (WEBKIT_USE_XML_SUPPORT)
+
+FIND_PROGRAM (XML2_CONFIG_EXECUTABLE xml2-config)
+
+IF (NOT XML2_CONFIG_EXECUTABLE)
+    MESSAGE (FATAL_ERROR "Could not find xml2-config, cannot create owb without it, on debian you must install libxml2-dev package")
+ENDIF (NOT XML2_CONFIG_EXECUTABLE)
+
+EXEC_PROGRAM ("${XML2_CONFIG_EXECUTABLE} --libs | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed 's/-l//g' | sed 's/[ ]/;/g'"
+	OUTPUT_VARIABLE LIBXML2_LIBS
+	RETURN_VALUE ERROR_CODE)
+
+IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("xml2 found with this parameter for libs : ${LIBXML2_LIBS}")
+        SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBXML2_LIBS})
+ELSE (ERROR_CODE EQUAL 0)
+	MESSAGE (FATAL_ERROR "libxml2 not found, cannot create owb without it, on debian you must install libxml2-dev package")
+ENDIF (ERROR_CODE EQUAL 0)
+
+EXEC_PROGRAM ("${XML2_CONFIG_EXECUTABLE} --cflags | sed s/-I// | sed s/\\ .*//g"
+        OUTPUT_VARIABLE LIBXML2_CFLAGS
+        RETURN_VALUE ERROR_CODE)
+
+IF (ERROR_CODE EQUAL 0)
+	MESSAGE ("xml2 found with this parameter for cflags : ${LIBXML2_CFLAGS}")
+	SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${LIBXML2_CFLAGS})
+ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "libxml2 not found, cannot create owb without it, on debian you must install libxml2-dev package")
+ENDIF (ERROR_CODE EQUAL 0)
+
+ENDIF (WEBKIT_USE_XML_SUPPORT)
+
+#######################################
+#quick search the libxslt is available
+#######################################
+
+IF (WEBKIT_USE_XSLT_SUPPORT)
+
+FIND_PROGRAM (XSLT_CONFIG_EXECUTABLE xslt-config)
+
+IF (NOT XSLT_CONFIG_EXECUTABLE)
+    MESSAGE (FATAL_ERROR "Could not find xslt-config, cannot create owb without it, on debian you must install libxslt1-dev package")
+ENDIF (NOT XSLT_CONFIG_EXECUTABLE)
+
+EXEC_PROGRAM ("${XSLT_CONFIG_EXECUTABLE} --libs | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed 's/-l//g' | sed 's/[ ]/;/g'"
+	OUTPUT_VARIABLE LIBXSLT_LIBS
+	RETURN_VALUE ERROR_CODE)
+
+IF (ERROR_CODE EQUAL 0)
+	MESSAGE ("xslt found with this parameter for libs : ${LIBXSLT_LIBS}")
+	SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBXSLT_LIBS})
+ELSE (ERROR_CODE EQUAL 0)
+	MESSAGE (FATAL_ERROR "libxslt not found, cannot create owb without it, on debian you must install libxslt1-dev package")
+ENDIF (ERROR_CODE EQUAL 0)
+
+ENDIF (WEBKIT_USE_XSLT_SUPPORT)
+
+#######################################
+#Configuration for font
+#######################################
+
+IF (WEBKIT_USE_FONTS_FREETYPE OR WEBKIT_USE_FONTS_SDL_TTF)
+	SET (OWB_DEFAULT_FONT "Vera.ttf" CACHE STRING "Font selection for browser font-rendering")
+	IF (OWBAL_PLATFORM_MACPORT)
+		EXEC_PROGRAM (find ARGS /opt/local/share/fonts/ -name ${OWB_DEFAULT_FONT} OUTPUT_VARIABLE OWB_DEFAULT_FONT)
+	ELSE (OWBAL_PLATFORM_MACPORT)
+		EXEC_PROGRAM (find ARGS /usr/share/fonts/ -name ${OWB_DEFAULT_FONT} OUTPUT_VARIABLE OWB_DEFAULT_FONT)
+	ENDIF (OWBAL_PLATFORM_MACPORT)
+	IF (EXISTS ${OWB_DEFAULT_FONT})
+		EXEC_PROGRAM (ln ARGS -sf ${OWB_DEFAULT_FONT} /usr/share/fonts/owb.ttf OUTPUT_VARIABLE OWB_DEFAULT_FONT)
+	ELSE (EXISTS ${OWB_DEFAULT_FONT})
+		MESSAGE (FATAL_ERROR "Could not find a suitable font. Install ttf-bitstream-vera package or set OWB_DEFAULT_FONT to a correct value")
+	ENDIF (EXISTS ${OWB_DEFAULT_FONT})
+ENDIF (WEBKIT_USE_FONTS_FREETYPE OR WEBKIT_USE_FONTS_SDL_TTF)
+
+#######################################
+#Specific for N800
+#######################################
+IF (N800_BUILD)
+	EXEC_PROGRAM ("pkg-config" ARGS " --cflags gtk+-2.0 hildon-libs | sed s/-I// | sed 's/ -I/;/g'" OUTPUT_VARIABLE GTK_CFLAGS)
+	SET (LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${GTK_CFLAGS})
+	EXEC_PROGRAM ("pkg-config" ARGS " --libs gtk+-2.0 hildon-libs" OUTPUT_VARIABLE GTK_LIBS)
+	SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${GTK_LIBS})
+ENDIF (N800_BUILD)
+
+######################################
+#Add -ldl for static link
+#Warning: keep it at the end of file!
+######################################
+IF (NOT BUILD_SHARED_LIBS)
+	SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};dl")	
+ENDIF (NOT BUILD_SHARED_LIBS)
+
