@@ -1,0 +1,35 @@
+SET (bal_glue_SRC
+        ${bal_glue_SRC}
+
+	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
+	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h
+	BALGlue/AXObjectCacheBal.cpp
+	BALGlue/ContextMenu.cpp
+	BALGlue/ContextMenuBal.cpp
+	BALGlue/ContextMenuItemBal.cpp
+	BALGlue/CookieJar.cpp
+	BALGlue/DragImage.cpp
+	BALGlue/EditorBal.cpp
+	BALGlue/EventHandlerBal.cpp
+	BALGlue/FrameBal.cpp
+	BALGlue/FrameViewBal.cpp
+	BALGlue/HistoryBal.cpp
+	BALGlue/Localizations.cpp
+	BALGlue/PageCacheBal.cpp
+	BALGlue/PasteboardBal.cpp
+	BALGlue/PlatformScreenBal.cpp
+	BALGlue/PlatformScrollBarBal.cpp
+)
+
+IF (N800_BUILD)
+	SET (bal_glue_SRC
+		${bal_glue_SRC}
+		BALGlue/RenderThemeN800.cpp
+	)
+ELSE (N800_BUILD)
+	SET (bal_glue_SRC
+		${bal_glue_SRC}
+		BALGlue/RenderThemeBal.cpp
+	)
+ENDIF (N800_BUILD)
+

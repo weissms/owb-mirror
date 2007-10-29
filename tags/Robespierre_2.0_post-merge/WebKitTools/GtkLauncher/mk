@@ -1,0 +1,6 @@
+cd ../../Bakefiles; bakefile_gen
+cd -
+cd ../../WebCore/Projects/gdk
+make 
+cd -
+

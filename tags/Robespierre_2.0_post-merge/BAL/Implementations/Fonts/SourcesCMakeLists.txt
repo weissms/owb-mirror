@@ -1,0 +1,36 @@
+SET (fonts_SRC
+    ${fonts_SRC}
+    BAL/Implementations/Fonts/Common/Font.cpp
+    BAL/Implementations/Fonts/Common/FontCache.cpp
+    BAL/Implementations/Fonts/Common/FontData.cpp
+    BAL/Implementations/Fonts/Common/FontFallbackList.cpp
+    BAL/Implementations/Fonts/Common/FontFamily.cpp
+    BAL/Implementations/Fonts/Common/GlyphPageTreeNode.cpp
+    BAL/Implementations/Fonts/Common/GlyphWidthMap.cpp
+)
+
+IF (WEBKIT_USE_FONTS_FREETYPE)
+SET (fonts_SRC
+    ${fonts_SRC}
+    BAL/Implementations/Fonts/FreeType/BCGlyphBufferFT.cpp
+    BAL/Implementations/Fonts/FreeType/BCFontPlatformDataPrivateFT.cpp
+    BAL/Implementations/Fonts/FreeType/FontCacheFT.cpp
+    BAL/Implementations/Fonts/FreeType/FontDataFT.cpp
+    BAL/Implementations/Fonts/FreeType/FontFT.cpp
+    BAL/Implementations/Fonts/FreeType/FontPlatformDataFT.cpp
+    BAL/Implementations/Fonts/FreeType/GlyphPageTreeNodeFT.cpp
+)
+ENDIF (WEBKIT_USE_FONTS_FREETYPE)
+
+IF (WEBKIT_USE_FONTS_EMBEDDED)
+set(fonts_SRC
+        ${fonts_SRC}
+    BAL/Implementations/Fonts/Embedded/BCGlyphBufferEmbedded.cpp
+    BAL/Implementations/Fonts/Embedded/BCFontPlatformDataPrivateEmbedded.cpp
+    BAL/Implementations/Fonts/Embedded/FontCacheEmbedded.cpp
+    BAL/Implementations/Fonts/Embedded/FontDataEmbedded.cpp
+    BAL/Implementations/Fonts/Embedded/FontEmbedded.cpp
+    BAL/Implementations/Fonts/Embedded/FontPlatformDataEmbedded.cpp
+    BAL/Implementations/Fonts/Embedded/GlyphPageTreeNodeEmbedded.cpp
+)
+ENDIF (WEBKIT_USE_FONTS_EMBEDDED)

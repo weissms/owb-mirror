@@ -1,0 +1,62 @@
+set(bindings_js_SRC
+        ${bindings_js_SRC}
+
+	WebCore/bindings/js/GCController.cpp
+	WebCore/bindings/js/JSAttrCustom.cpp
+	WebCore/bindings/js/JSCanvasRenderingContext2DCustom.cpp
+	WebCore/bindings/js/JSCSSRuleCustom.cpp
+	WebCore/bindings/js/JSCSSStyleDeclarationCustom.cpp
+	WebCore/bindings/js/JSCSSValueCustom.cpp
+	WebCore/bindings/js/JSCustomXPathNSResolver.cpp
+	WebCore/bindings/js/JSDocumentCustom.cpp
+	WebCore/bindings/js/JSDOMExceptionConstructor.cpp
+	WebCore/bindings/js/JSDOMWindowCustom.cpp
+	WebCore/bindings/js/JSElementCustom.cpp
+	WebCore/bindings/js/JSEventCustom.cpp
+	WebCore/bindings/js/JSEventTargetNode.cpp
+	WebCore/bindings/js/JSHTMLAppletElementCustom.cpp
+	WebCore/bindings/js/JSHTMLCollectionCustom.cpp
+	WebCore/bindings/js/JSHTMLDocumentCustom.cpp
+	WebCore/bindings/js/JSHTMLElementCustom.cpp
+	WebCore/bindings/js/JSHTMLElementWrapperFactory.cpp
+	WebCore/bindings/js/JSHTMLEmbedElementCustom.cpp
+	WebCore/bindings/js/JSHTMLFormElementCustom.cpp
+	WebCore/bindings/js/JSHTMLFrameElementCustom.cpp
+	WebCore/bindings/js/JSHTMLFrameSetElementCustom.cpp
+	WebCore/bindings/js/JSHTMLIFrameElementCustom.cpp
+	WebCore/bindings/js/JSHTMLInputElementBase.cpp
+	WebCore/bindings/js/JSHTMLObjectElementCustom.cpp
+	WebCore/bindings/js/JSHTMLOptionElementConstructor.cpp
+	WebCore/bindings/js/JSHTMLOptionsCollectionCustom.cpp
+	WebCore/bindings/js/JSHTMLSelectElementCustom.cpp
+	WebCore/bindings/js/JSLayoutTestController.cpp
+	WebCore/bindings/js/JSNamedNodesCollection.cpp
+	WebCore/bindings/js/JSNamedNodeMapCustom.cpp
+	WebCore/bindings/js/JSNodeCustom.cpp
+	WebCore/bindings/js/JSNodeIteratorCustom.cpp
+	WebCore/bindings/js/JSNodeFilterCondition.cpp
+	WebCore/bindings/js/JSNodeFilterCustom.cpp
+	WebCore/bindings/js/JSNodeListCustom.cpp
+	WebCore/bindings/js/JSTreeWalkerCustom.cpp
+	WebCore/bindings/js/JSStyleSheetCustom.cpp
+	WebCore/bindings/js/JSXMLHttpRequest.cpp
+	WebCore/bindings/js/JSXSLTProcessor.cpp
+	WebCore/bindings/js/kjs_binding.cpp
+	WebCore/bindings/js/kjs_css.cpp
+	WebCore/bindings/js/kjs_dom.cpp
+	WebCore/bindings/js/kjs_events.cpp
+	WebCore/bindings/js/kjs_html.cpp
+	WebCore/bindings/js/kjs_navigator.cpp
+	WebCore/bindings/js/kjs_proxy.cpp
+	WebCore/bindings/js/kjs_window.cpp
+)
+
+IF (WEBKIT_USE_SVG_SUPPORT)
+
+	set(bindings_js_SRC
+        	${bindings_js_SRC}
+
+	        WebCore/bindings/js/JSSVGElementWrapperFactory.cpp
+	)
+
+ENDIF (WEBKIT_USE_SVG_SUPPORT)

@@ -1,0 +1,20 @@
+IF (WEBKIT_USE_BAL_I18N)
+
+	SET (i18n_SRC
+    	    ${i18n_SRC}
+		BAL/Implementations/Internationalization/Common/BTTextCodec.cpp
+		BAL/Implementations/Internationalization/Common/TextBreakIterator.cpp
+		BAL/Implementations/Internationalization/Common/BCInternationalization.cpp
+
+	)
+
+ELSE (WEBKIT_USE_BAL_I18N)
+
+	SET (i18n_SRC
+    	    ${i18n_SRC}
+		BAL/Implementations/Internationalization/ICU/TextCodecICU.cpp
+		BAL/Implementations/Internationalization/ICU/TextBreakIteratorICU.cpp
+		BAL/Implementations/Internationalization/ICU/BCInternationalization.cpp
+	)
+	
+ENDIF (WEBKIT_USE_BAL_I18N)

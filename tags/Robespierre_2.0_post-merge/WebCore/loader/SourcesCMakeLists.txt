@@ -1,0 +1,30 @@
+set(loader_SRC
+        ${loader_SRC}
+
+	WebCore/loader/Cache.cpp
+	WebCore/loader/CachedCSSStyleSheet.cpp
+	WebCore/loader/CachedImage.cpp
+	WebCore/loader/CachedResource.cpp
+	WebCore/loader/CachedResourceClientWalker.cpp
+	WebCore/loader/CachedScript.cpp
+	WebCore/loader/CachedXBLDocument.cpp
+	WebCore/loader/CachedXSLStyleSheet.cpp
+	WebCore/loader/DocLoader.cpp
+	WebCore/loader/DocumentLoader.cpp
+	WebCore/loader/FrameLoader.cpp
+	WebCore/loader/FormState.cpp
+	WebCore/loader/FTPDirectoryDocument.cpp
+	WebCore/loader/FTPDirectoryParser.cpp
+	WebCore/loader/loader.cpp
+	WebCore/loader/ImageDocument.cpp
+	WebCore/loader/MainResourceLoader.cpp
+	WebCore/loader/NavigationAction.cpp
+	WebCore/loader/NetscapePlugInStreamLoader.cpp
+	WebCore/loader/PluginDocument.cpp
+	WebCore/loader/ProgressTracker.cpp
+	WebCore/loader/Request.cpp
+	WebCore/loader/ResourceLoader.cpp
+	WebCore/loader/SubresourceLoader.cpp
+	WebCore/loader/TextDocument.cpp
+	WebCore/loader/TextResourceDecoder.cpp
+)

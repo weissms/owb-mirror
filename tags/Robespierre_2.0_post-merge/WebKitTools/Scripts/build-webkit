@@ -1,0 +1,162 @@
+#!/usr/bin/perl -w
+
+# Copyright (C) 2005, 2006 Apple Computer, Inc.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1.  Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer. 
+# 2.  Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution. 
+# 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+#     its contributors may be used to endorse or promote products derived
+#     from this software without specific prior written permission. 
+#
+# THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Simplified build script for Web Kit Open Source Project.
+
+use strict;
+use File::Basename;
+use File::Spec;
+use FindBin;
+use Getopt::Long qw(:config pass_through);
+use lib $FindBin::Bin;
+use webkitdirs;
+use POSIX;
+
+my $originalWorkingDirectory = getcwd();
+
+my $svgSupport = 1;
+my $svgExperimentalSupport = 0;
+my $xpathSupport = 1;
+my $xsltSupport = 1;
+my $coverageSupport = 0;
+my $colorSupport = 1; # Default: colorize make output
+
+GetOptions('svg!' => \$svgSupport,
+           'svg-experimental!' => \$svgExperimentalSupport,
+           'xpath!' => \$xpathSupport,
+           'xslt!' => \$xsltSupport,
+           'coverage!' => \$coverageSupport,    
+           'color!' => \$colorSupport);
+
+checkRequiredSystemConfig();
+setConfiguration();
+chdirWebKit();
+
+my $productDir = productDir();
+my @options = XcodeOptions();
+my @overrideFeatureDefinesOption = ();
+
+push @overrideFeatureDefinesOption, "ENABLE_SVG" if $svgSupport;
+push @overrideFeatureDefinesOption, "ENABLE_SVG_EXPERIMENTAL_FEATURES" if $svgExperimentalSupport;
+push @overrideFeatureDefinesOption, "ENABLE_XPATH" if $xpathSupport;
+push @overrideFeatureDefinesOption, "ENABLE_XSLT" if $xsltSupport;
+my $overrideFeatureDefinesString = "FEATURE_DEFINES=" . join(" ", @overrideFeatureDefinesOption);
+
+my @coverageSupportOption = ();
+if ($coverageSupport) {
+    push @coverageSupportOption, "GCC_GENERATE_TEST_COVERAGE_FILES=YES";
+    push @coverageSupportOption, "GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES";
+    push @coverageSupportOption, "EXTRA_LINK= -ftest-coverage -fprofile-arcs";
+    push @coverageSupportOption, "OTHER_CFLAGS= -MD";
+    push @coverageSupportOption, "OTHER_LDFLAGS= -ftest-coverage -fprofile-arcs -framework AppKit";
+}
+
+# Check that all the project directories are there.
+my @projects = ("JavaScriptCore", "JavaScriptGlue", "WebCore", "WebKit");
+my @otherDirs = ("WebKitLibraries");
+for my $dir (@projects, @otherDirs) {
+    if (! -d $dir) {
+        die "Error: No $dir directory found. Please do a fresh checkout.\n";
+    }
+}
+
+if (isOSX()) {
+    # Copy library and header from WebKitLibraries to a findable place in the product directory.
+    my $srcLib = "WebKitLibraries/libWebKitSystemInterface.a";
+    my $lib = "$productDir/libWebKitSystemInterface.a";
+    if (!-e $lib || -M $lib > -M $srcLib) {
+        print "Updating $lib\n";
+        system "ditto", $srcLib, $lib;
+        system "ranlib", $lib;
+    }
+    
+    my $srcHeader = "WebKitLibraries/WebKitSystemInterface.h";
+    my $header = "$productDir/usr/local/include/WebKitSystemInterface.h";
+    if (!-e $header || -M $header > -M $srcHeader) {
+        print "Updating $header\n";
+        system "mkdir", "-p", "$productDir/usr/local/include";
+        system "ditto", $srcHeader, $header;
+    }
+}
+
+if (isCygwin()) {
+    # Copy WebKitSupportLibrary to the correct location in WebKitLibraries so it can be found.
+    # Will fail if WebKitSupportLibrary.zip is not in source root.
+    (system("perl WebKitTools/Scripts/update-webkit-support-libs") == 0) or die;
+}
+
+# Force re-link of existing libraries if different than expected
+removeLibraryDependingOnSVG("WebCore", $svgSupport);
+
+# Build, and abort if the build fails.
+for my $dir (@projects) {
+    chdir $dir or die;
+    my $result = 0;
+    if (isGtk()) {
+        if ($dir ne "WebKit") {
+            chdir ".." or die;
+            next;
+        }
+
+        $result = buildQMakeGtkProject($dir, $colorSupport);
+    } elsif (isQt()) {
+        if ($dir ne "WebKit") {
+            chdir ".." or die;
+            next;
+        }
+        $result = buildQMakeProject($dir, $colorSupport);
+    } elsif (isOSX()) {
+        $result = system "xcodebuild", "-project", "$dir.xcodeproj", @options, $overrideFeatureDefinesString, @coverageSupportOption, @ARGV;
+    } elsif (isCygwin()) {
+        if ($dir eq "WebKit") {
+            $result = buildVisualStudioProject("win/WebKit.vcproj/WebKit.sln");
+        }
+    }
+
+    exit WEXITSTATUS($result) if WEXITSTATUS($result);
+    chdir ".." or die;
+}
+
+# Write out congratulations message.
+
+my $launcherPath = launcherPath();
+my $launcherName = launcherName();
+
+print "\n";
+print "===========================================================\n";
+print " WebKit is now built. To run $launcherName with this newly-built\n";
+print " code, use the \"$launcherPath\" script.\n";
+if ($svgSupport) {
+    print "\n NOTE: WebKit has been built with SVG support enabled.\n";
+    print " $launcherName will have SVG viewing capabilities.\n";
+}
+if ($svgExperimentalSupport) {
+    print "\n NOTE: WebKit has been built with experimental SVG features enabled.\n";
+    print " Your build supports basic animation, filters, foreignObject & use support.\n";
+}    
+print "===========================================================\n";

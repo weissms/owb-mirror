@@ -1,0 +1,544 @@
+##############################
+##############################
+##############################
+#WEBCORE
+##############################
+##############################
+##############################
+
+SET (FEATURE_DEFINES_JAVASCRIPT LANGUAGE_JAVASCRIPT)
+
+IF (WEBKIT_USE_XPATH_SUPPORT)
+	IF (WEBKIT_USE_JS)
+		SET (IDL_BINDINGS_XPATH
+			WebCore/xml/XPathExpression.idl
+			WebCore/xml/XPathNSResolver.idl
+			WebCore/xml/XPathEvaluator.idl
+			WebCore/xml/XPathResult.idl
+		)
+	ENDIF (WEBKIT_USE_JS)
+ENDIF (WEBKIT_USE_XPATH_SUPPORT)
+
+IF (WEBKIT_USE_XSLT_SUPPORT)
+	SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} XSLT_SUPPORT)
+ENDIF (WEBKIT_USE_XSLT_SUPPORT)
+
+IF (WEBKIT_USE_XBL_SUPPORT)
+	SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} XBL_SUPPORT)
+ENDIF (WEBKIT_USE_XBL_SUPPORT)
+
+IF (WEBKIT_USE_SVG_SUPPORT)
+	SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} SVG_SUPPORT)
+
+	SET (IDL_BINDINGS_SVG
+    WebCore/ksvg2/events/SVGZoomEvent.idl
+
+    WebCore/ksvg2/svg/SVGAElement.idl
+    WebCore/ksvg2/svg/SVGAngle.idl
+    WebCore/ksvg2/svg/SVGAnimateColorElement.idl
+    WebCore/ksvg2/svg/SVGAnimatedAngle.idl
+    WebCore/ksvg2/svg/SVGAnimatedBoolean.idl
+    WebCore/ksvg2/svg/SVGAnimatedEnumeration.idl
+    WebCore/ksvg2/svg/SVGAnimatedInteger.idl
+    WebCore/ksvg2/svg/SVGAnimatedLength.idl
+    WebCore/ksvg2/svg/SVGAnimatedLengthList.idl
+    WebCore/ksvg2/svg/SVGAnimatedNumber.idl
+    WebCore/ksvg2/svg/SVGAnimatedNumberList.idl
+    WebCore/ksvg2/svg/SVGAnimatedPreserveAspectRatio.idl
+    WebCore/ksvg2/svg/SVGAnimatedRect.idl
+    WebCore/ksvg2/svg/SVGAnimatedString.idl
+    WebCore/ksvg2/svg/SVGAnimatedTransformList.idl
+    WebCore/ksvg2/svg/SVGAnimateElement.idl
+    WebCore/ksvg2/svg/SVGAnimateTransformElement.idl
+    WebCore/ksvg2/svg/SVGAnimationElement.idl
+    WebCore/ksvg2/svg/SVGCircleElement.idl
+    WebCore/ksvg2/svg/SVGClipPathElement.idl
+    WebCore/ksvg2/svg/SVGColor.idl
+    WebCore/ksvg2/svg/SVGComponentTransferFunctionElement.idl
+    WebCore/ksvg2/svg/SVGCursorElement.idl
+    WebCore/ksvg2/svg/SVGDefsElement.idl
+    WebCore/ksvg2/svg/SVGDescElement.idl
+    WebCore/ksvg2/svg/SVGDocument.idl
+    WebCore/ksvg2/svg/SVGElement.idl
+    WebCore/ksvg2/svg/SVGEllipseElement.idl
+    WebCore/ksvg2/svg/SVGFEBlendElement.idl
+    WebCore/ksvg2/svg/SVGFEColorMatrixElement.idl
+    WebCore/ksvg2/svg/SVGFEComponentTransferElement.idl
+    WebCore/ksvg2/svg/SVGFECompositeElement.idl
+    WebCore/ksvg2/svg/SVGFEDiffuseLightingElement.idl
+    WebCore/ksvg2/svg/SVGFEDisplacementMapElement.idl
+    WebCore/ksvg2/svg/SVGFEDistantLightElement.idl
+    WebCore/ksvg2/svg/SVGFEFloodElement.idl
+    WebCore/ksvg2/svg/SVGFEFuncAElement.idl
+    WebCore/ksvg2/svg/SVGFEFuncBElement.idl
+    WebCore/ksvg2/svg/SVGFEFuncGElement.idl
+    WebCore/ksvg2/svg/SVGFEFuncRElement.idl
+    WebCore/ksvg2/svg/SVGFEGaussianBlurElement.idl
+    WebCore/ksvg2/svg/SVGFEImageElement.idl
+    WebCore/ksvg2/svg/SVGFEMergeElement.idl
+    WebCore/ksvg2/svg/SVGFEMergeNodeElement.idl
+    WebCore/ksvg2/svg/SVGFEOffsetElement.idl
+    WebCore/ksvg2/svg/SVGFEPointLightElement.idl
+    WebCore/ksvg2/svg/SVGFESpecularLightingElement.idl
+    WebCore/ksvg2/svg/SVGFESpotLightElement.idl
+    WebCore/ksvg2/svg/SVGFETileElement.idl
+    WebCore/ksvg2/svg/SVGFETurbulenceElement.idl
+    WebCore/ksvg2/svg/SVGFilterElement.idl
+    WebCore/ksvg2/svg/SVGForeignObjectElement.idl
+    WebCore/ksvg2/svg/SVGGElement.idl
+    WebCore/ksvg2/svg/SVGGradientElement.idl
+    WebCore/ksvg2/svg/SVGImageElement.idl
+    WebCore/ksvg2/svg/SVGLength.idl
+    WebCore/ksvg2/svg/SVGLengthList.idl
+    WebCore/ksvg2/svg/SVGLinearGradientElement.idl
+    WebCore/ksvg2/svg/SVGLineElement.idl
+    WebCore/ksvg2/svg/SVGMarkerElement.idl
+    WebCore/ksvg2/svg/SVGMaskElement.idl
+    WebCore/ksvg2/svg/SVGMatrix.idl
+    WebCore/ksvg2/svg/SVGMetadataElement.idl
+    WebCore/ksvg2/svg/SVGNumberList.idl
+    WebCore/ksvg2/svg/SVGPaint.idl
+    WebCore/ksvg2/svg/SVGPathElement.idl
+    WebCore/ksvg2/svg/SVGPathSegArcAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegArcRel.idl
+    WebCore/ksvg2/svg/SVGPathSegClosePath.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoCubicAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoCubicRel.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoCubicSmoothAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoCubicSmoothRel.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoQuadraticAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoQuadraticRel.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoQuadraticSmoothAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegCurvetoQuadraticSmoothRel.idl
+    WebCore/ksvg2/svg/SVGPathSeg.idl
+    WebCore/ksvg2/svg/SVGPathSegLinetoAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegLinetoHorizontalAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegLinetoHorizontalRel.idl
+    WebCore/ksvg2/svg/SVGPathSegLinetoRel.idl
+    WebCore/ksvg2/svg/SVGPathSegLinetoVerticalAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegLinetoVerticalRel.idl
+    WebCore/ksvg2/svg/SVGPathSegList.idl
+    WebCore/ksvg2/svg/SVGPathSegMovetoAbs.idl
+    WebCore/ksvg2/svg/SVGPathSegMovetoRel.idl
+    WebCore/ksvg2/svg/SVGPatternElement.idl
+    WebCore/ksvg2/svg/SVGPointList.idl
+    WebCore/ksvg2/svg/SVGPolygonElement.idl
+    WebCore/ksvg2/svg/SVGPolylineElement.idl
+    WebCore/ksvg2/svg/SVGPreserveAspectRatio.idl
+    WebCore/ksvg2/svg/SVGRadialGradientElement.idl
+    WebCore/ksvg2/svg/SVGRectElement.idl
+    WebCore/ksvg2/svg/SVGRenderingIntent.idl
+    WebCore/ksvg2/svg/SVGScriptElement.idl
+    WebCore/ksvg2/svg/SVGSetElement.idl
+    WebCore/ksvg2/svg/SVGStopElement.idl
+    WebCore/ksvg2/svg/SVGStringList.idl
+    WebCore/ksvg2/svg/SVGStyleElement.idl
+    WebCore/ksvg2/svg/SVGSVGElement.idl
+    WebCore/ksvg2/svg/SVGSwitchElement.idl
+    WebCore/ksvg2/svg/SVGSymbolElement.idl
+    WebCore/ksvg2/svg/SVGTextContentElement.idl
+    WebCore/ksvg2/svg/SVGTextElement.idl
+    WebCore/ksvg2/svg/SVGTextPositioningElement.idl
+    WebCore/ksvg2/svg/SVGTitleElement.idl
+    WebCore/ksvg2/svg/SVGTransform.idl
+    WebCore/ksvg2/svg/SVGTransformList.idl
+    WebCore/ksvg2/svg/SVGTRefElement.idl
+    WebCore/ksvg2/svg/SVGTSpanElement.idl
+    WebCore/ksvg2/svg/SVGUnitTypes.idl
+    WebCore/ksvg2/svg/SVGUseElement.idl
+    WebCore/ksvg2/svg/SVGViewElement.idl
+)
+
+ENDIF (WEBKIT_USE_SVG_SUPPORT)
+
+IF (WEBKIT_USE_JS)
+
+	SET (IDL_BINDINGS
+        ${IDL_BINDINGS}
+
+    WebCore/css/Counter.idl
+    WebCore/css/CSSCharsetRule.idl
+    WebCore/css/CSSFontFaceRule.idl
+    WebCore/css/CSSImportRule.idl
+    WebCore/css/CSSMediaRule.idl
+    WebCore/css/CSSPageRule.idl
+    WebCore/css/CSSPrimitiveValue.idl
+    WebCore/css/CSSRule.idl
+    WebCore/css/CSSRuleList.idl
+    WebCore/css/CSSStyleDeclaration.idl
+    WebCore/css/CSSStyleRule.idl
+	WebCore/css/CSSStyleSheet.idl
+    WebCore/css/CSSValue.idl
+    WebCore/css/CSSValueList.idl
+    WebCore/css/MediaList.idl
+	WebCore/css/Rect.idl
+	WebCore/css/StyleSheet.idl
+
+    WebCore/dom/Attr.idl
+	WebCore/dom/CDATASection.idl
+    WebCore/dom/CharacterData.idl
+	WebCore/dom/Comment.idl
+    WebCore/dom/DocumentFragment.idl
+    WebCore/dom/Document.idl
+    WebCore/dom/DocumentType.idl
+    WebCore/dom/DOMImplementation.idl
+    WebCore/dom/Element.idl
+    WebCore/dom/Entity.idl
+	WebCore/dom/EntityReference.idl
+    WebCore/dom/Event.idl
+    WebCore/dom/KeyboardEvent.idl
+    WebCore/dom/MouseEvent.idl
+    WebCore/dom/MutationEvent.idl
+	WebCore/dom/NamedNodeMap.idl
+    WebCore/dom/Node.idl
+    WebCore/dom/NodeFilter.idl
+    WebCore/dom/NodeIterator.idl
+	WebCore/dom/NodeList.idl
+    WebCore/dom/Notation.idl
+    WebCore/dom/OverflowEvent.idl
+    WebCore/dom/ProcessingInstruction.idl
+    WebCore/dom/RangeException.idl
+    WebCore/dom/Range.idl
+    WebCore/dom/Text.idl
+    WebCore/dom/TextEvent.idl
+    WebCore/dom/TreeWalker.idl
+    WebCore/dom/UIEvent.idl
+    WebCore/dom/WheelEvent.idl
+
+    WebCore/html/CanvasGradient.idl
+    WebCore/html/CanvasPattern.idl
+    WebCore/html/CanvasRenderingContext2D.idl
+    WebCore/html/HTMLAnchorElement.idl
+    WebCore/html/HTMLAppletElement.idl
+    WebCore/html/HTMLAreaElement.idl
+    WebCore/html/HTMLBaseElement.idl
+    WebCore/html/HTMLBaseFontElement.idl
+    WebCore/html/HTMLBlockquoteElement.idl
+    WebCore/html/HTMLBodyElement.idl
+    WebCore/html/HTMLBRElement.idl
+    WebCore/html/HTMLButtonElement.idl
+    WebCore/html/HTMLCanvasElement.idl
+	WebCore/html/HTMLCollection.idl
+    WebCore/html/HTMLDirectoryElement.idl
+    WebCore/html/HTMLDivElement.idl
+    WebCore/html/HTMLDListElement.idl
+    WebCore/html/HTMLDocument.idl
+    WebCore/html/HTMLElement.idl
+    WebCore/html/HTMLEmbedElement.idl
+    WebCore/html/HTMLFieldSetElement.idl
+    WebCore/html/HTMLFontElement.idl
+    WebCore/html/HTMLFormElement.idl
+    WebCore/html/HTMLFrameElement.idl
+    WebCore/html/HTMLFrameSetElement.idl
+    WebCore/html/HTMLHeadElement.idl
+    WebCore/html/HTMLHeadingElement.idl
+    WebCore/html/HTMLHRElement.idl
+    WebCore/html/HTMLHtmlElement.idl
+    WebCore/html/HTMLIFrameElement.idl
+    WebCore/html/HTMLImageElement.idl
+    WebCore/html/HTMLInputElement.idl
+    WebCore/html/HTMLIsIndexElement.idl
+    WebCore/html/HTMLLabelElement.idl
+    WebCore/html/HTMLLegendElement.idl
+    WebCore/html/HTMLLIElement.idl
+    WebCore/html/HTMLLinkElement.idl
+    WebCore/html/HTMLMapElement.idl
+    WebCore/html/HTMLMarqueeElement.idl
+    WebCore/html/HTMLMenuElement.idl
+    WebCore/html/HTMLMetaElement.idl
+    WebCore/html/HTMLModElement.idl
+    WebCore/html/HTMLObjectElement.idl
+    WebCore/html/HTMLOListElement.idl
+    WebCore/html/HTMLOptGroupElement.idl
+    WebCore/html/HTMLOptionElement.idl
+    WebCore/html/HTMLOptionsCollection.idl
+    WebCore/html/HTMLParagraphElement.idl
+    WebCore/html/HTMLParamElement.idl
+    WebCore/html/HTMLPreElement.idl
+    WebCore/html/HTMLQuoteElement.idl
+    WebCore/html/HTMLSelectElement.idl
+    WebCore/html/HTMLScriptElement.idl
+    WebCore/html/HTMLStyleElement.idl
+    WebCore/html/HTMLTableCaptionElement.idl
+    WebCore/html/HTMLTableCellElement.idl
+    WebCore/html/HTMLTableColElement.idl
+    WebCore/html/HTMLTableElement.idl
+    WebCore/html/HTMLTableRowElement.idl
+    WebCore/html/HTMLTableSectionElement.idl
+    WebCore/html/HTMLTextAreaElement.idl
+    WebCore/html/HTMLTitleElement.idl
+    WebCore/html/HTMLUListElement.idl
+
+    WebCore/page/BarInfo.idl
+    WebCore/page/DOMSelection.idl
+    WebCore/page/DOMWindow.idl
+    WebCore/page/History.idl
+    WebCore/page/Screen.idl
+
+    WebCore/xml/DOMParser.idl
+    WebCore/xml/XMLSerializer.idl
+)
+
+ENDIF (WEBKIT_USE_JS)
+
+SET (IDL_BINDINGS
+	${IDL_BINDINGS}
+	${IDL_BINDINGS_SVG}
+	${IDL_BINDINGS_XPATH}
+)
+
+# create these files at build time on demand, NOT everytime at cmake-time, Alex
+FOREACH (idl ${IDL_BINDINGS})
+   GET_FILENAME_COMPONENT (_basename ${idl} NAME_WE)
+   ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/JS${_basename}.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/JS${_basename}.h
+      COMMAND ${PERL_EXECUTABLE} -I${CMAKE_CURRENT_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/bindings/scripts/generate-bindings.pl  --defines \"${FEATURE_DEFINES_JAVASCRIPT}\" --generator JS --include ${CMAKE_SOURCE_DIR}/WebCore/dom --include ${CMAKE_SOURCE_DIR}/WebCore/html --include ${CMAKE_SOURCE_DIR}/WebCore/xml --include ${CMAKE_SOURCE_DIR}/WebCore/WebCore/ksvg2/svg --outputdir ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore ${CMAKE_CURRENT_SOURCE_DIR}/${idl}
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${idl} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/bindings/scripts/CodeGenerator.pm ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/bindings/scripts/CodeGeneratorJS.pm)
+   SET (webcore_SRC ${webcore_SRC} ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/JS${_basename}.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/JS${_basename}.h )
+ENDFOREACH (idl)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ColorData.c
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND mkdir -p generated_sources
+  COMMAND mkdir -p generated_sources/WebCore
+  COMMAND echo '\#include <string.h>' > generated_sources/WebCore/ColorData.c
+  COMMAND ${GPERF_EXECUTABLE} -CDEot -L ANSI-C -k \"*\" -N findColor -D -s 2 < ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/platform/ColorData.gperf >> generated_sources/WebCore/ColorData.c
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/platform/ColorData.gperf
+)
+
+MACRO (CREATE_GENERATED_CPP_HELPER  _inlName)
+   GET_FILENAME_COMPONENT (_baseName ${_inlName} NAME_WE)
+   IF (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/${_baseName}.cpp)
+      FILE (WRITE ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/${_baseName}.cpp
+"/* This file is autogenerated by CMake.                                       *
+ * Do not edit, changes will be lost.                                         *
+ * With the CMake buildsystem giving generated-but-not-compiled-on-their-own  *
+ * files the suffix \".cpp\" is not recommended, because it breaks the          *
+ * dependency handling. So the actual generated file has the suffix \".inl\"    *
+ * and this file here only exists as a helper.                                */
+#include \"${CMAKE_CURRENT_BINARY_DIR}/${_inlName}\"\n")
+   ENDIF (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/${_baseName}.cpp)
+   SET (webcore_SRC ${webcore_SRC} ${CMAKE_CURRENT_BINARY_DIR}/${_inlName})
+ENDMACRO (CREATE_GENERATED_CPP_HELPER  _inlName)
+
+# NOTE: older versions of bison do not inject an inclusion guard, so we do it
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSGrammar.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSGrammar.h
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND mkdir -p generated_sources
+  COMMAND mkdir -p generated_sources/WebCore
+  COMMAND ${BISON_EXECUTABLE} -d -p cssyy ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/CSSGrammar.y -o CSSGrammar.tab.c
+  COMMAND echo '\#ifndef CSSGRAMMAR_H' > CSSGrammar.h
+  COMMAND echo '\#define CSSGRAMMAR_H' >> CSSGrammar.h 
+  COMMAND mv CSSGrammar.tab.c ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSGrammar.cpp
+  COMMAND cat CSSGrammar.h CSSGrammar.tab.h > ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSGrammar.h
+  COMMAND echo '\#endif' >> ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSGrammar.h 
+  COMMAND rm -f CSSGrammar.h
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/CSSGrammar.y
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/HTMLEntityNames.c
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND mkdir -p generated_sources/WebCore/html
+  COMMAND ${tvcore_dir}
+  COMMAND echo '\#include <string.h>' > generated_sources/WebCore/html/HTMLEntityNames.c
+  COMMAND ${GPERF_EXECUTABLE} -a -L ANSI-C -C -G -c -o -t -k '*' -N findEntity -D -s 2 < ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf >> generated_sources/WebCore/html/HTMLEntityNames.c
+
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html
+  COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/scripts/make_names.pl --tags ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --attrsNullNamespace --output generated_sources/WebCore/html
+
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.h
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/xml
+  COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/scripts/make_names.pl --attrs ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/xml/xmlattrs.in --namespace XML --cppNamespace WebCore --namespaceURI "http://www.w3.org/XML/1998/namespace" --output generated_sources/WebCore/xml
+
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/xml/xmlattrs.in
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.c
+
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore
+  COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
+  COMMAND perl ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/makeprop.pl
+
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.h ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.c
+
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore
+  COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.in
+  COMMAND perl ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/makevalues.pl
+
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ksvgcssproperties.h
+  COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/css/CSSPropertyNames.in ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ksvgcssproperties.in
+  COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/scripts/cssmakeprops -n SVG -f generated_sources/WebCore/ksvgcssproperties.in
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/scripts/cssmakeprops ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/css/CSSPropertyNames.in
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/tokenizer.inl
+  COMMAND flex -t < ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/tokenizer.flex | ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/maketokenizer > ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/tokenizer.inl
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/tokenizer.flex
+)
+CREATE_GENERATED_CPP_HELPER (generated_sources/WebCore/tokenizer.inl)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheets.h ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheetsData.cpp
+  COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/make-css-file-arrays.pl ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheets.h ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheetsData.cpp ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/html4.css ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/quirks.css ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/svg.css ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/view-source.css
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/html4.css ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/quirks.css ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/svg.css
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${BISON_EXECUTABLE} -d -p xpathyy ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/xml/XPathGrammar.y -o XPathGrammar.tab.c
+  COMMAND echo '\#ifndef XPATHGRAMMAR_H' > XPathGrammar.h
+  COMMAND echo '\#define XPATHGRAMMAR_H' >> XPathGrammar.h
+  COMMAND mv XPathGrammar.tab.c ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp
+  COMMAND cat XPathGrammar.h XPathGrammar.tab.h > ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
+  COMMAND echo '\#endif' >> ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
+  COMMAND rm -f XPathGrammar.h
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/xml/XPathGrammar.y
+)
+
+ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/DocTypeStrings.cpp
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND mkdir -p generated_sources/WebCore/html
+  COMMAND echo '\#include <string.h>' > generated_sources/WebCore/html/DocTypeStrings.cpp
+  COMMAND ${GPERF_EXECUTABLE} -CEot -L ANSI-C -k \"*\" -N findDoctypeEntry -F ,PubIDInfo::eAlmostStandards,PubIDInfo::eAlmostStandards < ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf >> generated_sources/WebCore/html/DocTypeStrings.cpp
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf
+)
+
+SET (CREATE_HASH_TABLE ${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore/kjs/create_hash_table)
+
+MACRO (CREATE_CPP_LUT _in_FILE _out_FILE _dep_FILE)
+   ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_out_FILE}
+      COMMAND ${PERL_EXECUTABLE} ${CREATE_HASH_TABLE} ${CMAKE_CURRENT_SOURCE_DIR}/${_in_FILE} > ${CMAKE_CURRENT_BINARY_DIR}/${_out_FILE}
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_in_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/${_dep_FILE} )
+ENDMACRO (CREATE_CPP_LUT)
+
+IF (WEBKIT_USE_JS)
+	CREATE_CPP_LUT (WebCore/bindings/js/JSHTMLInputElementBase.cpp generated_sources/WebCore/JSHTMLInputElementBaseTable.inl WebCore/bindings/js/JSHTMLInputElementBase.cpp)
+	CREATE_GENERATED_CPP_HELPER (generated_sources/WebCore/JSHTMLInputElementBaseTable.inl)
+ENDIF (WEBKIT_USE_JS)
+
+IF (WEBKIT_USE_SVG_SUPPORT)
+    CREATE_CPP_LUT (WebCore/bindings/js/JSSVGNumber.cpp generated_sources/WebCore/JSSVGNumberTable.inl WebCore/bindings/js/JSSVGNumber.cpp)
+    CREATE_CPP_LUT (WebCore/bindings/js/JSSVGPoint.cpp generated_sources/WebCore/JSSVGPointTable.inl WebCore/bindings/js/JSSVGPoint.cpp)
+    CREATE_GENERATED_CPP_HELPER (generated_sources/WebCore/JSSVGPointTable.inl)
+    CREATE_CPP_LUT (WebCore/bindings/js/JSSVGRect.cpp generated_sources/WebCore/JSSVGRectTable.inl WebCore/bindings/js/JSSVGRect.cpp)
+    CREATE_GENERATED_CPP_HELPER (generated_sources/WebCore/JSSVGRectTable.inl)
+ENDIF (WEBKIT_USE_SVG_SUPPORT)
+
+IF (WEBKIT_USE_JS)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/JSDOMExceptionConstructor.cpp generated_sources/WebCore/JSDOMExceptionConstructor.lut.h WebCore/bindings/js/JSDOMExceptionConstructor.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/JSEventTargetNode.cpp generated_sources/WebCore/JSEventTargetNode.lut.h WebCore/bindings/js/JSEventTargetNode.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/JSLayoutTestController.cpp generated_sources/WebCore/JSLayoutTestController.lut.h WebCore/bindings/js/JSLayoutTestController.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/JSXMLHttpRequest.cpp generated_sources/WebCore/JSXMLHttpRequest.lut.h WebCore/bindings/js/JSXMLHttpRequest.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/JSXSLTProcessor.cpp generated_sources/WebCore/JSXSLTProcessor.lut.h WebCore/bindings/js/JSXSLTProcessor.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/kjs_css.cpp generated_sources/WebCore/kjs_css.lut.h WebCore/bindings/js/kjs_css.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/kjs_dom.cpp generated_sources/WebCore/kjs_dom.lut.h WebCore/bindings/js/kjs_dom.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/kjs_events.cpp generated_sources/WebCore/kjs_events.lut.h WebCore/bindings/js/kjs_events.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/kjs_html.cpp generated_sources/WebCore/kjs_html.lut.h WebCore/bindings/js/kjs_html.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/kjs_navigator.cpp generated_sources/WebCore/kjs_navigator.lut.h WebCore/bindings/js/kjs_navigator.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/kjs_proxy.cpp generated_sources/WebCore/kjs_proxy.lut.h WebCore/bindings/js/kjs_proxy.cpp)
+	CREATE_LUT (webcore_SRC WebCore/bindings/js/kjs_window.cpp generated_sources/WebCore/kjs_window.lut.h WebCore/bindings/js/kjs_window.cpp)
+ENDIF (WEBKIT_USE_JS)
+
+
+IF (WEBKIT_USE_SVG_SUPPORT)
+
+	ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/WebCore/ksvg2/svg/SVGNames.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ksvg2/svg/SVGNames.h ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ksvg2/svg/SVGElementFactory.cpp ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ksvg2/svg/SVGElementFactory.h
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ksvg2/
+		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/WebCore/ksvg2/svg
+		COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/scripts/make_names.pl --tags ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/WebCore/ksvg2/svg/svgtags.in --attrs ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/svg/svgattrs.in --namespace SVG --cppNamespace WebCore --namespaceURI "http://www.w3.org/2000/svg" --factory --attrsNullNamespace --output generated_sources/WebCore/ksvg2/svg
+
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/WebCore/ksvg2/svg/svgtags.in ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/svg/svgattrs.in
+	)
+
+	ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ksvgcssvalues.h
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore
+		COMMAND ${PERL_EXECUTABLE} -ne 'print lc' ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/css/CSSValueKeywords.in > ksvgcssvalues.in
+		COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/scripts/cssmakevalues -n SVG -f ksvgcssvalues.in
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/scripts/cssmakevalues ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/ksvg2/css/CSSValueKeywords.in
+	)
+
+ENDIF (WEBKIT_USE_SVG_SUPPORT)
+
+INCLUDE (WebCore/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${generated_sources_SRC})
+
+INCLUDE (WebCore/page/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${page_SRC})
+
+INCLUDE (WebCore/loader/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${loader_SRC})
+
+INCLUDE (WebCore/platform/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${platform_SRC})
+
+INCLUDE (WebCore/css/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${css_SRC})
+
+INCLUDE (WebCore/rendering/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${rendering_SRC})
+
+INCLUDE (WebCore/xml/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${xml_SRC})
+
+INCLUDE (WebCore/dom/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${dom_SRC})
+
+INCLUDE (WebCore/editing/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${editing_SRC})
+
+INCLUDE (WebCore/html/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${html_SRC})
+
+INCLUDE (WebCore/history/SourcesCMakeLists.txt)
+SET (webcore_SRC ${webcore_SRC} ${history_SRC})
+
+IF (WEBKIT_USE_ICON_SUPPORT)
+	INCLUDE (WebCore/loader/icon/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${icon_SRC})
+ENDIF (WEBKIT_USE_ICON_SUPPORT)
+
+IF (WEBKIT_USE_SVG_SUPPORT)
+	INCLUDE (WebCore/ksvg2/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${svg_generated_sources_SRC})
+
+	INCLUDE (WebCore/ksvg2/css/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${svg_css_SRC})
+
+	INCLUDE (WebCore/WebCore/ksvg2/svg/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${svg_svg_SRC})
+
+	INCLUDE (WebCore/ksvg2/misc/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${svg_misc_SRC})
+
+	INCLUDE (WebCore/ksvg2/events/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${svg_events_SRC})
+
+	INCLUDE (WebCore/kcanvas/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${kcanvas_SRC})
+
+	INCLUDE (WebCore/kcanvas/device/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${kcanvas_device_SRC})
+
+ENDIF (WEBKIT_USE_SVG_SUPPORT)
+
+IF (WEBKIT_USE_JS)
+
+	INCLUDE (WebCore/bindings/js/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${bindings_js_SRC})
+
+ENDIF (WEBKIT_USE_JS)
+
