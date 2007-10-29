@@ -42,6 +42,7 @@ OPTION (OWBAL_USE_CONSOLE_INPUT "Compile OWBAL with console input support." OFF)
 OPTION (OWBAL_PLATFORM_MACPORT "OWBAL support for Mac port" OFF)
 IF (OWBAL_PLATFORM_MACPORT)
     ADD_DEFINITIONS (-D__OWBAL_PLATFORM_MACPORT__)
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -undefined dynamic_lookup")
 ENDIF (OWBAL_PLATFORM_MACPORT)
 
 # Global switch for Web UIF support
