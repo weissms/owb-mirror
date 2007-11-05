@@ -49,7 +49,7 @@ void BalObject::invalidate()
 
 bool BalObject::hasMethod(const char *name)
 {
-    for( uint i=0; i<m_balMethodList.size(); i++ )
+    for( unsigned i=0; i<m_balMethodList.size(); i++ )
     {
         if( !strcmp( name, m_balMethodList[i] ) )
         {
@@ -72,7 +72,7 @@ JSValue *BalObject::invokeDefault( ExecState* exec, const List& args)
 
 bool BalObject::hasProperty( const char *name)
 {
-    for( uint i=0; i<m_balPropertyList.size(); i++ )
+    for( unsigned i=0; i<m_balPropertyList.size(); i++ )
     {
         if( !strcmp( name, m_balPropertyList[i] ) )
         {
@@ -100,7 +100,7 @@ void BalObject::addMethod(const char *aMethod)
 
 void BalObject::removeMethod(const char *aMethod)
 {
-    for( uint i=0; i<m_balMethodList.size(); i++ )
+    for( unsigned i=0; i<m_balMethodList.size(); i++ )
     {
         if( !strcmp( aMethod, m_balMethodList[i] ) )
         {
@@ -117,7 +117,7 @@ void BalObject::addProperty(const char *aProperty)
 
 void BalObject::removeProperty(const char *aProperty)
 {
-    for( uint i=0; i<m_balPropertyList.size(); i++ )
+    for( unsigned i=0; i<m_balPropertyList.size(); i++ )
     {
         if( !strcmp( aProperty, m_balPropertyList[i] ) )
         {
