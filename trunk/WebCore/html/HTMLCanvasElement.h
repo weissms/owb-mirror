@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2007 Alp Toker <alp@atoker.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,7 +21,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef HTMLCanvasElement_h
@@ -28,7 +29,7 @@
 
 #ifdef __OWB__
 #include "GraphicsContext.h"
-#endif
+#endif //__OWB__
 #include "HTMLElement.h"
 #include "IntSize.h"
 
@@ -36,6 +37,11 @@
 // FIXME: CG-specific parts need to move to the platform directory.
 typedef struct CGContext* CGContextRef;
 typedef struct CGImage* CGImageRef;
+#elif PLATFORM(QT)
+class QImage;
+class QPainter;
+#elif PLATFORM(CAIRO)
+typedef struct _cairo_surface cairo_surface_t;
 #endif
 
 namespace WebCore {
@@ -73,11 +79,17 @@ public:
 
 #if PLATFORM(CG)
     CGImageRef createPlatformImage() const;
+#elif PLATFORM(QT)
+    QImage createPlatformImage() const;
+#elif PLATFORM(CAIRO)
+    cairo_surface_t* createPlatformImage() const;
 #endif
 
 private:
     void createDrawingContext() const;
     void reset();
+
+    bool m_rendererIsCanvas;
 
     RefPtr<CanvasRenderingContext2D> m_2DContext;
     IntSize m_size;
@@ -86,7 +98,17 @@ private:
     // if we ever drew any images outside the domain, so we can disable toDataURL.
 
     mutable bool m_createdDrawingContext;
+#if PLATFORM(CG)
     mutable void* m_data;
+#elif PLATFORM(QT)
+    mutable QImage* m_data;
+    mutable QPainter* m_painter;
+#elif PLATFORM(CAIRO)
+    mutable void* m_data;
+    mutable cairo_surface_t* m_surface;
+#else
+    mutable void* m_data;
+#endif
     mutable GraphicsContext* m_drawingContext;
 };
 

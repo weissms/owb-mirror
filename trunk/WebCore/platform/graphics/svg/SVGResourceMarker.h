@@ -26,7 +26,7 @@
 #ifndef SVGResourceMarker_h
 #define SVGResourceMarker_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "FloatRect.h"
 #include "SVGResource.h"
@@ -34,14 +34,14 @@
 namespace WebCore {
 
     class GraphicsContext;
-    class RenderSVGContainer;
+    class RenderSVGViewportContainer;
 
     class SVGResourceMarker : public SVGResource {
     public:
         SVGResourceMarker();
         virtual ~SVGResourceMarker();
 
-        void setMarker(RenderSVGContainer*);
+        void setMarker(RenderSVGViewportContainer*);
 
         void setRef(double refX, double refY);
         double refX() const { return m_refX; }
@@ -56,15 +56,15 @@ namespace WebCore {
 
         FloatRect cachedBounds() const;
         void draw(GraphicsContext*, const FloatRect&, double x, double y, double strokeWidth = 1, double angle = 0);
-
-        virtual bool isMarker() const { return true; }
+        
+        virtual SVGResourceType resourceType() const { return MarkerResourceType; }
         virtual TextStream& externalRepresentation(TextStream&) const;
 
     private:
         double m_refX, m_refY;
         FloatRect m_cachedBounds;
         float m_angle;
-        RenderSVGContainer* m_marker;
+        RenderSVGViewportContainer* m_marker;
         bool m_useStrokeWidth;
     };
 

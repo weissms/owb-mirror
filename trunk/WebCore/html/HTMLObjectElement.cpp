@@ -1,10 +1,8 @@
-/**
- * This file is part of the DOM implementation for KDE.
- *
+/*
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2000 Stefan Schimanski (1Stein@gmx.de)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Trolltech ASA
  *
  * This library is free software; you can redistribute it and/or
@@ -19,28 +17,32 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
+
 #include "config.h"
 #include "HTMLObjectElement.h"
 
+#include "CSSHelper.h"
 #include "EventNames.h"
 #include "ExceptionCode.h"
 #include "Frame.h"
+#include "FrameLoader.h"
+#include "FrameLoaderClient.h"
 #include "FrameView.h"
-#include "HTMLFormElement.h"
 #include "HTMLDocument.h"
+#include "HTMLFormElement.h"
 #include "HTMLImageLoader.h"
 #include "HTMLNames.h"
 #include "Image.h"
+#include "MIMETypeRegistry.h"
 #include "RenderImage.h"
 #include "RenderPartObject.h"
 #include "RenderWidget.h"
 #include "Text.h"
-#include "csshelper.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGDocument.h"
 #endif
 
@@ -49,7 +51,7 @@ namespace WebCore {
 using namespace EventNames;
 using namespace HTMLNames;
 
-HTMLObjectElement::HTMLObjectElement(Document *doc) 
+HTMLObjectElement::HTMLObjectElement(Document* doc) 
     : HTMLPlugInElement(objectTag, doc)
     , m_needWidgetUpdate(false)
     , m_useFallbackContent(false)
@@ -63,7 +65,7 @@ HTMLObjectElement::~HTMLObjectElement()
 {
 #if USE(JAVASCRIPTCORE_BINDINGS)
     // m_instance should have been cleaned up in detach().
-    assert(!m_instance);
+    ASSERT(!m_instance);
 #endif
     
     delete m_imageLoader;
@@ -79,25 +81,17 @@ KJS::Bindings::Instance *HTMLObjectElement::getInstance() const
     if (m_instance)
         return m_instance.get();
 
-    RenderObject* r = renderer();
-    if (r && r->isWidget()) {
-        if (Widget* widget = static_cast<RenderWidget*>(r)->widget()) 
-            m_instance = frame->createScriptInstanceForWidget(widget);
-    }
+    RenderWidget* renderWidget = (renderer() && renderer()->isWidget()) ? static_cast<RenderWidget*>(renderer()) : 0;
+    if (renderWidget && !renderWidget->widget()) {
+        document()->updateLayoutIgnorePendingStylesheets();
+        renderWidget = (renderer() && renderer()->isWidget()) ? static_cast<RenderWidget*>(renderer()) : 0;
+    }          
+    if (renderWidget && renderWidget->widget()) 
+        m_instance = frame->createScriptInstanceForWidget(renderWidget->widget());
 
     return m_instance.get();
 }
 #endif
-
-HTMLFormElement* HTMLObjectElement::form() const
-{
-    for (Node* p = parentNode(); p != 0; p = p->parentNode()) {
-        if (p->hasTagName(formTag))
-            return static_cast<HTMLFormElement*>(p);
-    }
-    
-    return 0;
-}
 
 void HTMLObjectElement::parseMappedAttribute(MappedAttribute *attr)
 {
@@ -192,7 +186,7 @@ void HTMLObjectElement::attach()
                 // Set m_needWidgetUpdate to false before calling updateWidget because updateWidget may cause
                 // this method or recalcStyle (which also calls updateWidget) to be called.
                 m_needWidgetUpdate = false;
-                static_cast<RenderPartObject*>(renderer())->updateWidget();
+                static_cast<RenderPartObject*>(renderer())->updateWidget(true);
             } else {
                 m_needWidgetUpdate = true;
                 setChanged();
@@ -201,12 +195,12 @@ void HTMLObjectElement::attach()
     }
 }
 
-void HTMLObjectElement::closeRenderer()
+void HTMLObjectElement::finishedParsing()
 {
     // The parser just reached </object>.
     setComplete(true);
     
-    HTMLPlugInElement::closeRenderer();
+    HTMLPlugInElement::finishedParsing();
 }
 
 void HTMLObjectElement::setComplete(bool complete)
@@ -294,7 +288,11 @@ bool HTMLObjectElement::isImageType()
                 m_serviceType = "text/plain"; // Data URLs with no MIME type are considered text/plain.
         }
     }
-    
+    if (Frame* frame = document()->frame()) {
+        KURL completedURL(frame->loader()->completeURL(m_url));
+        return frame->loader()->client()->objectContentType(completedURL, m_serviceType) == ObjectContentImage;
+    }
+
     return Image::supportsType(m_serviceType);
 }
 
@@ -315,14 +313,15 @@ void HTMLObjectElement::renderFallbackContent()
 void HTMLObjectElement::updateDocNamedItem()
 {
     // The rule is "<object> elements with no children other than
-    // <param> elements and whitespace can be found by name in a
-    // document, and other <object> elements cannot."
+    // <param> elements, unknown elements and whitespace can be
+    // found by name in a document, and other <object> elements cannot."
     bool wasNamedItem = m_docNamedItem;
     bool isNamedItem = true;
     Node* child = firstChild();
     while (child && isNamedItem) {
         if (child->isElementNode()) {
-            if (!static_cast<Element*>(child)->hasTagName(paramTag))
+            Element* element = static_cast<Element*>(child);
+            if (HTMLElement::isRecognizedTagName(element->tagQName()) && !element->hasTagName(paramTag))
                 isNamedItem = false;
         } else if (child->isTextNode()) {
             if (!static_cast<Text*>(child)->containsOnlyWhitespace())
@@ -469,7 +468,31 @@ void HTMLObjectElement::setVspace(int value)
     setAttribute(vspaceAttr, String::number(value));
 }
 
-#ifdef SVG_SUPPORT
+bool HTMLObjectElement::containsJavaApplet() const
+{
+    if (MIMETypeRegistry::isJavaAppletMIMEType(type()))
+        return true;
+        
+    Node* child = firstChild();
+    while (child) {
+        if (child->isElementNode()) {
+            Element* e = static_cast<Element*>(child);
+            if (e->hasTagName(paramTag) &&
+                e->getAttribute(nameAttr).domString().lower() == "type" &&
+                MIMETypeRegistry::isJavaAppletMIMEType(e->getAttribute(valueAttr).domString()))
+                return true;
+            else if (e->hasTagName(objectTag) && static_cast<HTMLObjectElement*>(e)->containsJavaApplet())
+                return true;
+            else if (e->hasTagName(appletTag))
+                return true;
+        }
+        child = child->nextSibling();
+    }
+    
+    return false;
+}
+
+#if ENABLE(SVG)
 SVGDocument* HTMLObjectElement::getSVGDocument(ExceptionCode& ec) const
 {
     Document* doc = contentDocument();

@@ -23,6 +23,7 @@
  */
 
 #include "context.h"
+#include "JSGlobalObject.h"
 #include "ExecState.h"
 #include "internal.h"
 
@@ -30,15 +31,14 @@ namespace KJS {
 
 Interpreter* ExecState::lexicalInterpreter() const
 {
-  if (!m_context)
+    if (!m_context)
+        return dynamicInterpreter();
+    
+    JSObject* object = m_context->scopeChain().bottom();
+    if (object && object->isGlobalObject())
+        return static_cast<JSGlobalObject*>(object)->interpreter();
+
     return dynamicInterpreter();
-
-  Interpreter* result = Interpreter::interpreterWithGlobalObject(m_context->scopeChain().bottom());
-
-  if (!result)
-    return dynamicInterpreter();
-
-  return result;
 }
 
 } // namespace KJS

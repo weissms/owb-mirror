@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -47,6 +47,14 @@ public:
 
     virtual bool rendererIsNeeded(RenderStyle*);
     virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
+    
+    virtual void parseMappedAttribute(MappedAttribute*);
+
+    bool hasFrameBorder() const { return m_frameBorder; }
+
+private:
+    bool m_frameBorder;
+    bool m_frameBorderSet;
 };
 
 } // namespace WebCore

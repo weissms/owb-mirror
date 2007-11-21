@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef RenderSVGImage_h
 #define RenderSVGImage_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "AffineTransform.h"
 #include "RenderImage.h"
@@ -39,41 +39,38 @@ namespace WebCore {
         RenderSVGImage(SVGImageElement*);
         virtual ~RenderSVGImage();
         
-#ifdef __OWB__
-        virtual BAL::BTAffineTransform localTransform() const { return m_transform; }
-        virtual void setLocalTransform(const BAL::BTAffineTransform& transform) { m_transform = transform; }
-#else
-        virtual AffineTransform localTransform() const { return m_transform; }
-        virtual void setLocalTransform(const AffineTransform& transform) { m_transform = transform; }
-#endif
+        virtual AffineTransform localTransform() const { return m_localTransform; }
         
         virtual FloatRect relativeBBox(bool includeStroke = true) const;
-        virtual IntRect getAbsoluteRepaintRect();
+        virtual IntRect absoluteClippedOverflowRect();
         
-        virtual void absoluteRects(Vector<IntRect>&, int tx, int ty);
+        virtual void absoluteRects(Vector<IntRect>&, int tx, int ty, bool topLevel = true);
+        virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
 
         virtual void imageChanged(CachedImage*);
         void adjustRectsForAspectRatio(FloatRect& destRect, FloatRect& srcRect, SVGPreserveAspectRatio*);
+        
+        virtual void layout();
         virtual void paint(PaintInfo&, int parentX, int parentY);
 
         bool requiresLayer();
 
         virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int _x, int _y, int _tx, int _ty, HitTestAction);
 
+        virtual void calcWidth();
+        virtual void calcHeight();
+        bool calculateLocalTransform();
+
     private:
-#ifdef __OWB__
-        BAL::BTAffineTransform translationForAttributes();
-        BAL::BTAffineTransform m_transform;
-#else
         AffineTransform translationForAttributes();
-        AffineTransform m_transform;
-#endif
-        IntRect m_absoluteBounds;
+        AffineTransform m_localTransform;
+        float m_imageWidth;
+        float m_imageHeight;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // RenderSVGImage_h
 
 // vim:ts=4:noet

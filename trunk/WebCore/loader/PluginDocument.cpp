@@ -30,6 +30,7 @@
 #include "FrameLoaderClient.h"
 #include "Element.h"
 #include "HTMLNames.h"
+#include "Page.h"
 #include "RenderWidget.h"
 #include "SegmentedString.h"
 #include "Settings.h"
@@ -74,7 +75,7 @@ void PluginTokenizer::createDocumentStructure()
     RefPtr<Element> body = m_doc->createElementNS(xhtmlNamespaceURI, "body", ec);
     body->setAttribute(marginwidthAttr, "0");
     body->setAttribute(marginheightAttr, "0");
-    body->setAttribute(bgcolorAttr, "rgb(128,128,128)");
+    body->setAttribute(bgcolorAttr, "rgb(38,38,38)");
 
     rootElement->appendChild(body, ec);
         
@@ -96,10 +97,16 @@ bool PluginTokenizer::writeRawData(const char* data, int len)
     if (!m_embedElement) {
         createDocumentStructure();
 
-        Frame* frame = m_doc->frame();
-        if (frame->settings()->arePluginsEnabled()) {
-            frame->loader()->client()->redirectDataToPlugin(static_cast<RenderWidget*>(m_embedElement->renderer())->widget());
-            finish();
+        if (Frame* frame = m_doc->frame()) {
+            Settings* settings = frame->settings();
+            if (settings && settings->arePluginsEnabled()) {
+                m_doc->updateLayout();
+            
+                if (RenderWidget* renderer = static_cast<RenderWidget*>(m_embedElement->renderer()))
+                    frame->loader()->client()->redirectDataToPlugin(renderer->widget());
+            
+                finish();
+            }
         }
         
         return false;
@@ -127,8 +134,8 @@ bool PluginTokenizer::isWaitingForScripts() const
     return false;
 }
     
-PluginDocument::PluginDocument(DOMImplementation* _implementation, FrameView* v)
-    : HTMLDocument(_implementation, v)
+PluginDocument::PluginDocument(DOMImplementation* implementation, Frame* frame)
+    : HTMLDocument(implementation, frame)
 {
     setParseMode(Compat);
 }

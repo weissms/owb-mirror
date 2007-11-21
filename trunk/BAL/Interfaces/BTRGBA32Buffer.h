@@ -57,23 +57,68 @@ public:
                      m_includeInNextFrame(false), m_hasAlpha(false)
     {}
 
+    /**
+     * get RGBA32Array
+     */
     const RGBA32Array& bytes() const { return m_bytes; }
     RGBA32Array& bytes() { return m_bytes; }
+    /**
+     * return rect
+     */
     const WebCore::IntRect& rect() const { return m_rect; }
+    /**
+     * return height
+     */
     unsigned height() const { return m_height; }
+    /**
+     * return width
+     */
     unsigned width() const { return m_rect.width(); }
+    /**
+     * return status
+     */
     FrameStatus status() const { return m_status; }
+    /**
+     * return duration
+     */
     unsigned duration() const { return m_duration; }
+    /**
+     * test if the buffer is include in next frame
+     */
     bool includeInNextFrame() const { return m_includeInNextFrame; }
+    /**
+     * test if the buffer has alpha
+     */
     bool hasAlpha() const { return m_hasAlpha; }
 
+    /**
+     * set buffet rect
+     */
     void setRect(const WebCore::IntRect& r) { m_rect = r; }
+    /**
+     * set height
+     */
     void ensureHeight(unsigned rowIndex) { if (rowIndex > m_height) m_height = rowIndex; }
+    /**
+     * set status
+     */
     void setStatus(FrameStatus s) { m_status = s; }
+    /**
+     * set duration
+     */
     void setDuration(unsigned duration) { m_duration = duration; }
+    /**
+     * set if the buffer is in next frame
+     */
     void setIncludeInNextFrame(bool n) { m_includeInNextFrame = n; }
+    /**
+     * set if the buffer has alpha
+     */
     void setHasAlpha(bool alpha) { m_hasAlpha = alpha; }
 
+    /**
+     * set RGBA
+     */
     static void setRGBA(unsigned& pos, unsigned r, unsigned g, unsigned b, unsigned a)
     {
         // We store this data pre-multiplied.

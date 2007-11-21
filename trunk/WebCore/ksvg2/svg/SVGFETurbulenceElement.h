@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGFETurbulenceElement_h
 #define SVGFETurbulenceElement_h
-#ifdef SVG_SUPPORT
 
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFETurbulence.h"
 #include "SVGFilterPrimitiveStandardAttributes.h"
 
@@ -41,28 +41,26 @@ namespace WebCore
         SVGFETurbulenceElement(const QualifiedName&, Document*);
         virtual ~SVGFETurbulenceElement();
 
-        // 'SVGFETurbulenceElement' functions
-        // Derived from: 'Element'
-        virtual void parseMappedAttribute(MappedAttribute* attr);
-
-        virtual SVGFETurbulence* filterEffect() const;
+        virtual void parseMappedAttribute(MappedAttribute*);
+        virtual SVGFETurbulence* filterEffect(SVGResourceFilter*) const;
 
     protected:
         virtual const SVGElement* contextElement() const { return this; }
 
     private:
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, double, double, BaseFrequencyX, baseFrequencyX)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, double, double, BaseFrequencyY, baseFrequencyY)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, float, float, BaseFrequencyX, baseFrequencyX)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, float, float, BaseFrequencyY, baseFrequencyY)
         ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, long, long, NumOctaves, numOctaves)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, double, double, Seed, seed)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, float, float, Seed, seed)
         ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, int, int, StitchTiles, stitchTiles)
         ANIMATED_PROPERTY_DECLARATIONS(SVGFETurbulenceElement, int, int, Type, type)
+
         mutable SVGFETurbulence* m_filterEffect;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

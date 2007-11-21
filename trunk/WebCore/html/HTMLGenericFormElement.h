@@ -1,10 +1,8 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2000 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -18,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -33,9 +31,10 @@ namespace WebCore {
 class FormDataList;
 class HTMLFormElement;
 
+// FIXME: Rename this class to HTMLFormControlElement.
 class HTMLGenericFormElement : public HTMLElement {
 public:
-    HTMLGenericFormElement(const QualifiedName& tagName, Document*, HTMLFormElement* = 0);
+    HTMLGenericFormElement(const QualifiedName& tagName, Document*, HTMLFormElement*);
     virtual ~HTMLGenericFormElement();
 
     virtual HTMLTagStatus endTagRequirement() const { return TagStatusRequired; }
@@ -52,14 +51,12 @@ public:
     virtual void attach();
     virtual void insertedIntoTree(bool deep);
     virtual void removedFromTree(bool deep);
-    virtual void closeRenderer();
 
     virtual void reset() {}
 
     bool valueMatchesRenderer() const { return m_valueMatchesRenderer; }
     void setValueMatchesRenderer(bool b = true) const { m_valueMatchesRenderer = b; }
 
-    void onSelect();
     void onChange();
 
     bool disabled() const;
@@ -87,9 +84,6 @@ public:
      */
     virtual bool appendFormData(FormDataList&, bool) { return false; }
 
-    virtual String stateValue() const;
-    virtual void restoreState(const String& value);
-
     virtual bool isSuccessfulSubmitButton() const { return false; }
     virtual bool isActivatedSubmit() const { return false; }
     virtual void setActivatedSubmit(bool flag) { }
@@ -98,15 +92,30 @@ public:
 
     void formDestroyed() { m_form = 0; }
 
-protected:
-    HTMLFormElement* getForm() const;
-
 private:
+    virtual HTMLFormElement* virtualForm() const;
+
     HTMLFormElement* m_form;
     bool m_disabled;
     bool m_readOnly;
     mutable bool m_valueMatchesRenderer;
+};
 
+class HTMLFormControlElementWithState : public HTMLGenericFormElement {
+public:
+    HTMLFormControlElementWithState(const QualifiedName& tagName, Document*, HTMLFormElement*);
+    virtual ~HTMLFormControlElementWithState();
+
+    virtual void finishedParsing();
+
+    virtual bool saveState(String& value) const = 0;
+
+protected:
+    virtual void willMoveToNewOwnerDocument();
+    virtual void didMoveToNewOwnerDocument();
+
+private:
+    virtual void restoreState(const String& value) = 0;
 };
 
 } //namespace

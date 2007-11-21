@@ -5,7 +5,12 @@ set(css_SRC
 	WebCore/css/CSSCursorImageValue.cpp
 	WebCore/css/CSSBorderImageValue.cpp
 	WebCore/css/CSSComputedStyleDeclaration.cpp
+	WebCore/css/CSSFontFace.cpp
 	WebCore/css/CSSFontFaceRule.cpp
+	WebCore/css/CSSFontFaceSource.cpp
+	WebCore/css/CSSFontFaceSrcValue.cpp
+	WebCore/css/CSSFontSelector.cpp
+	WebCore/css/CSSHelper.cpp
 	WebCore/css/CSSImageValue.cpp
 	WebCore/css/CSSImportRule.cpp
 	WebCore/css/CSSInheritedValue.cpp
@@ -13,6 +18,7 @@ set(css_SRC
 	WebCore/css/CSSMediaRule.cpp
 	WebCore/css/CSSMutableStyleDeclaration.cpp
 	WebCore/css/CSSPageRule.cpp
+	WebCore/css/CSSParser.cpp
 	WebCore/css/CSSPrimitiveValue.cpp
 	WebCore/css/CSSProperty.cpp
 	WebCore/css/CSSRule.cpp
@@ -20,7 +26,9 @@ set(css_SRC
 	WebCore/css/CSSSelector.cpp
 	WebCore/css/CSSStyleDeclaration.cpp
 	WebCore/css/CSSStyleRule.cpp
+	WebCore/css/CSSStyleSelector.cpp
 	WebCore/css/CSSStyleSheet.cpp
+	WebCore/css/CSSTransformValue.cpp
 	WebCore/css/CSSValueList.cpp
 	WebCore/css/FontFamilyValue.cpp
 	WebCore/css/FontValue.cpp
@@ -34,7 +42,4 @@ set(css_SRC
 	WebCore/css/StyleList.cpp
 	WebCore/css/StyleSheet.cpp
 	WebCore/css/StyleSheetList.cpp
-	WebCore/css/csshelper.cpp
-	WebCore/css/cssparser.cpp
-	WebCore/css/cssstyleselector.cpp
 )

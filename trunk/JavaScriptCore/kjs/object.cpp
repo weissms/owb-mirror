@@ -4,6 +4,7 @@
  *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
  *  Copyright (C) 2001 Peter Kelly (pmk@post.com)
  *  Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
+ *  Copyright (C) 2007 Eric Seidel (eric@webkit.org)
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -30,22 +31,14 @@
 #include "nodes.h"
 #include "operations.h"
 #include "PropertyNameArray.h"
-
-#ifdef __OWB__
-#include <BIMath.h>
-#else
 #include <math.h>
-#endif
+#include <wtf/Assertions.h>
 
 // maximum global call stack size. Protects against accidental or
 // malicious infinite recursions. Define to -1 if you want no limit.
-#if PLATFORM(DARWIN) || PLATFORM(WIN_OS)
-// Given OS X stack sizes we run out of stack at about 350 levels.
-// If we improve our stack usage, we can bump this number.
-#define KJS_MAX_STACK 100
-#else
-#define KJS_MAX_STACK 1000
-#endif
+// In real-world testing it appears ok to bump the stack depth count to 500.
+// This of course is dependent on stack frame size.
+#define KJS_MAX_STACK 500
 
 #define JAVASCRIPT_CALL_TRACING 0
 #define JAVASCRIPT_MARK_TRACING 0
@@ -72,7 +65,7 @@ namespace KJS {
 
 JSValue *JSObject::call(ExecState *exec, JSObject *thisObj, const List &args)
 {
-  assert(implementsCall());
+  ASSERT(implementsCall());
 
 #if KJS_MAX_STACK > 0
   static int depth = 0; // sum of all concurrent interpreters
@@ -210,12 +203,19 @@ static void throwSetterError(ExecState *exec)
 }
 
 // ECMA 8.6.2.2
-void JSObject::put(ExecState *exec, const Identifier &propertyName, JSValue *value, int attr)
+void JSObject::put(ExecState* exec, const Identifier &propertyName, JSValue *value, int attr)
 {
-  assert(value);
+  ASSERT(value);
 
   // non-standard netscape extension
-  if (propertyName == exec->dynamicInterpreter()->specialPrototypeIdentifier()) {
+  if (propertyName == exec->propertyNames().underscoreProto) {
+    JSObject* proto = value->getObject();
+    while (proto) {
+      if (proto == this)
+        throwError(exec, GeneralError, "cyclic __proto__ value");
+      proto = proto->prototype() ? proto->prototype()->getObject() : 0;
+    }
+    
     setPrototype(value);
     return;
   }
@@ -226,9 +226,6 @@ void JSObject::put(ExecState *exec, const Identifier &propertyName, JSValue *val
   // Assume that a C++ implementation knows what it is doing
   // and let it override the canPut() check.
   if ((attr == None || attr == DontDelete) && !canPut(exec,propertyName)) {
-#ifdef KJS_VERBOSE
-    fprintf( stderr, "WARNING: canPut %s said NO\n", propertyName.ascii() );
-#endif
     return;
   }
 
@@ -357,25 +354,28 @@ static ALWAYS_INLINE JSValue *tryGetAndCallProperty(ExecState *exec, const JSObj
   return NULL;
 }
 
-// ECMA 8.6.2.6
-JSValue *JSObject::defaultValue(ExecState *exec, JSType hint) const
+bool JSObject::getPrimitiveNumber(ExecState* exec, double& number) const
 {
-  Identifier firstPropertyName;
-  Identifier secondPropertyName;
+    JSValue* result = defaultValue(exec, NumberType);
+    number = result->toNumber(exec);
+    return !result->isString();
+}
+
+// ECMA 8.6.2.6
+JSValue* JSObject::defaultValue(ExecState* exec, JSType hint) const
+{
   /* Prefer String for Date objects */
   if ((hint == StringType) || (hint != StringType) && (hint != NumberType) && (_proto == exec->lexicalInterpreter()->builtinDatePrototype())) {
-    firstPropertyName = toStringPropertyName;
-    secondPropertyName = valueOfPropertyName;
+    if (JSValue* v = tryGetAndCallProperty(exec, this, exec->propertyNames().toString))
+      return v;
+    if (JSValue* v = tryGetAndCallProperty(exec, this, exec->propertyNames().valueOf))
+      return v;
   } else {
-    firstPropertyName = valueOfPropertyName;
-    secondPropertyName = toStringPropertyName;
+    if (JSValue* v = tryGetAndCallProperty(exec, this, exec->propertyNames().valueOf))
+      return v;
+    if (JSValue* v = tryGetAndCallProperty(exec, this, exec->propertyNames().toString))
+      return v;
   }
-
-  JSValue *v;
-  if ((v = tryGetAndCallProperty(exec, this, firstPropertyName)))
-    return v;
-  if ((v = tryGetAndCallProperty(exec, this, secondPropertyName)))
-    return v;
 
   if (exec->hadException())
     return exec->exception();
@@ -433,7 +433,7 @@ bool JSObject::implementsConstruct() const
 
 JSObject* JSObject::construct(ExecState*, const List& /*args*/)
 {
-  assert(false);
+  ASSERT(false);
   return NULL;
 }
 
@@ -449,7 +449,7 @@ bool JSObject::implementsCall() const
 
 JSValue *JSObject::callAsFunction(ExecState* /*exec*/, JSObject* /*thisObj*/, const List &/*args*/)
 {
-  assert(false);
+  ASSERT(false);
   return NULL;
 }
 
@@ -460,7 +460,7 @@ bool JSObject::implementsHasInstance() const
 
 bool JSObject::hasInstance(ExecState* exec, JSValue* value)
 {
-    JSValue* proto = get(exec, prototypePropertyName);
+    JSValue* proto = get(exec, exec->propertyNames().prototype);
     if (!proto->isObject()) {
         throwError(exec, TypeError, "intanceof called on an object with an invalid prototype property.");
         return false;
@@ -557,6 +557,11 @@ void JSObject::putDirect(const Identifier &propertyName, JSValue *value, int att
 void JSObject::putDirect(const Identifier &propertyName, int value, int attr)
 {
     _prop.put(propertyName, jsNumber(value), attr);
+}
+
+void JSObject::removeDirect(const Identifier &propertyName)
+{
+    _prop.remove(propertyName);
 }
 
 void JSObject::putDirectFunction(InternalFunctionImp* func, int attr)

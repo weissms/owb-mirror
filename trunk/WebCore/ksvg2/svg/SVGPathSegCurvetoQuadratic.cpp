@@ -16,20 +16,20 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPathSegCurvetoQuadratic.h"
 
 #include "SVGStyledElement.h"
 
 namespace WebCore {
 
-SVGPathSegCurvetoQuadraticAbs::SVGPathSegCurvetoQuadraticAbs(double x, double y, double x1, double y1)
+SVGPathSegCurvetoQuadraticAbs::SVGPathSegCurvetoQuadraticAbs(float x, float y, float x1, float y1)
     : SVGPathSeg()
     , m_x(x)
     , m_y(y)
@@ -42,42 +42,42 @@ SVGPathSegCurvetoQuadraticAbs::~SVGPathSegCurvetoQuadraticAbs()
 {
 }
 
-void SVGPathSegCurvetoQuadraticAbs::setX(double x)
+void SVGPathSegCurvetoQuadraticAbs::setX(float x)
 {
     m_x = x;
 }
 
-double SVGPathSegCurvetoQuadraticAbs::x() const
+float SVGPathSegCurvetoQuadraticAbs::x() const
 {
     return m_x;
 }
 
-void SVGPathSegCurvetoQuadraticAbs::setY(double y)
+void SVGPathSegCurvetoQuadraticAbs::setY(float y)
 {
     m_y = y;
 }
 
-double SVGPathSegCurvetoQuadraticAbs::y() const
+float SVGPathSegCurvetoQuadraticAbs::y() const
 {
     return m_y;
 }
 
-void SVGPathSegCurvetoQuadraticAbs::setX1(double x1)
+void SVGPathSegCurvetoQuadraticAbs::setX1(float x1)
 {
     m_x1 = x1;
 }
 
-double SVGPathSegCurvetoQuadraticAbs::x1() const
+float SVGPathSegCurvetoQuadraticAbs::x1() const
 {
     return m_x1;
 }
 
-void SVGPathSegCurvetoQuadraticAbs::setY1(double y1)
+void SVGPathSegCurvetoQuadraticAbs::setY1(float y1)
 {
     m_y1 = y1;
 }
 
-double SVGPathSegCurvetoQuadraticAbs::y1() const
+float SVGPathSegCurvetoQuadraticAbs::y1() const
 {
     return m_y1;
 }
@@ -85,7 +85,7 @@ double SVGPathSegCurvetoQuadraticAbs::y1() const
 
 
 
-SVGPathSegCurvetoQuadraticRel::SVGPathSegCurvetoQuadraticRel(double x, double y, double x1, double y1)
+SVGPathSegCurvetoQuadraticRel::SVGPathSegCurvetoQuadraticRel(float x, float y, float x1, float y1)
     : SVGPathSeg()
     , m_x(x)
     , m_y(y)
@@ -98,48 +98,48 @@ SVGPathSegCurvetoQuadraticRel::~SVGPathSegCurvetoQuadraticRel()
 {
 }
 
-void SVGPathSegCurvetoQuadraticRel::setX(double x)
+void SVGPathSegCurvetoQuadraticRel::setX(float x)
 {
     m_x = x;
 }
 
-double SVGPathSegCurvetoQuadraticRel::x() const
+float SVGPathSegCurvetoQuadraticRel::x() const
 {
     return m_x;
 }
 
-void SVGPathSegCurvetoQuadraticRel::setY(double y)
+void SVGPathSegCurvetoQuadraticRel::setY(float y)
 {
     m_y = y;
 }
 
-double SVGPathSegCurvetoQuadraticRel::y() const
+float SVGPathSegCurvetoQuadraticRel::y() const
 {
     return m_y;
 }
 
-void SVGPathSegCurvetoQuadraticRel::setX1(double x1)
+void SVGPathSegCurvetoQuadraticRel::setX1(float x1)
 {
     m_x1 = x1;
 }
 
-double SVGPathSegCurvetoQuadraticRel::x1() const
+float SVGPathSegCurvetoQuadraticRel::x1() const
 {
     return m_x1;
 }
 
-void SVGPathSegCurvetoQuadraticRel::setY1(double y1)
+void SVGPathSegCurvetoQuadraticRel::setY1(float y1)
 {
     m_y1 = y1;
 }
 
-double SVGPathSegCurvetoQuadraticRel::y1() const
+float SVGPathSegCurvetoQuadraticRel::y1() const
 {
     return m_y1;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

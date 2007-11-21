@@ -1,10 +1,8 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *           (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  * Copyright (C) 2007 Samuel Weinig (sam@webkit.org)
  *
@@ -20,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -46,21 +44,18 @@ namespace WebCore {
 using namespace EventNames;
 using namespace HTMLNames;
 
-HTMLTextAreaElement::HTMLTextAreaElement(Document *doc, HTMLFormElement *f)
-    : HTMLGenericFormElement(textareaTag, doc, f)
-    , m_rows(2)
-    , m_cols(20)
+static const int defaultRows = 2;
+static const int defaultCols = 20;
+
+HTMLTextAreaElement::HTMLTextAreaElement(Document* doc, HTMLFormElement* f)
+    : HTMLFormControlElementWithState(textareaTag, doc, f)
+    , m_rows(defaultRows)
+    , m_cols(defaultCols)
     , m_wrap(ta_Virtual)
     , cachedSelStart(-1)
     , cachedSelEnd(-1)
 {
     setValueMatchesRenderer();
-    document()->registerFormElementWithState(this);
-}
-
-HTMLTextAreaElement::~HTMLTextAreaElement()
-{
-    document()->deregisterFormElementWithState(this);
 }
 
 const AtomicString& HTMLTextAreaElement::type() const
@@ -69,9 +64,10 @@ const AtomicString& HTMLTextAreaElement::type() const
     return textarea;
 }
 
-String HTMLTextAreaElement::stateValue() const
+bool HTMLTextAreaElement::saveState(String& result) const
 {
-    return value();
+    result = value();
+    return true;
 }
 
 void HTMLTextAreaElement::restoreState(const String& state)
@@ -131,13 +127,23 @@ void HTMLTextAreaElement::childrenChanged()
 void HTMLTextAreaElement::parseMappedAttribute(MappedAttribute *attr)
 {
     if (attr->name() == rowsAttr) {
-        m_rows = !attr->isNull() ? attr->value().toInt() : 3;
-        if (renderer())
-            renderer()->setNeedsLayoutAndMinMaxRecalc();
+        int rows = attr->value().toInt();
+        if (rows <= 0)
+            rows = defaultRows;
+        if (m_rows != rows) {
+            m_rows = rows;
+            if (renderer())
+                renderer()->setNeedsLayoutAndPrefWidthsRecalc();
+        }
     } else if (attr->name() == colsAttr) {
-        m_cols = !attr->isNull() ? attr->value().toInt() : 60;
-        if (renderer())
-            renderer()->setNeedsLayoutAndMinMaxRecalc();
+        int cols = attr->value().toInt();
+        if (cols <= 0)
+            cols = defaultCols;
+        if (m_cols != cols) {
+            m_cols = cols;
+            if (renderer())
+                renderer()->setNeedsLayoutAndPrefWidthsRecalc();
+        }
     } else if (attr->name() == wrapAttr) {
         // virtual / physical is Netscape extension of HTML 3.0, now deprecated
         // soft/ hard / off is recommendation for HTML 4 extension by IE and NS 4
@@ -150,7 +156,7 @@ void HTMLTextAreaElement::parseMappedAttribute(MappedAttribute *attr)
         else if (equalIgnoringCase(attr->value(), "off"))
             m_wrap = ta_NoWrap;
         if (renderer())
-            renderer()->setNeedsLayoutAndMinMaxRecalc();
+            renderer()->setNeedsLayoutAndPrefWidthsRecalc();
     } else if (attr->name() == accesskeyAttr) {
         // ignore for the moment
     } else if (attr->name() == alignAttr) {
@@ -165,7 +171,7 @@ void HTMLTextAreaElement::parseMappedAttribute(MappedAttribute *attr)
     else if (attr->name() == onchangeAttr)
         setHTMLEventListener(changeEvent, attr);
     else
-        HTMLGenericFormElement::parseMappedAttribute(attr);
+        HTMLFormControlElementWithState::parseMappedAttribute(attr);
 }
 
 RenderObject* HTMLTextAreaElement::createRenderer(RenderArena* arena, RenderStyle* style)
@@ -192,30 +198,12 @@ void HTMLTextAreaElement::reset()
 bool HTMLTextAreaElement::isKeyboardFocusable(KeyboardEvent*) const
 {
     // If text areas can be focused, then they should always be keyboard focusable
-    return HTMLGenericFormElement::isFocusable();
+    return HTMLFormControlElementWithState::isFocusable();
 }
 
 bool HTMLTextAreaElement::isMouseFocusable() const
 {
-    return HTMLGenericFormElement::isFocusable();
-}
-
-void HTMLTextAreaElement::focus()
-{
-    Document* doc = document();
-    if (doc->focusedNode() == this)
-        return;
-    doc->updateLayout();
-    if (!supportsFocus())
-        return;
-    if (Page* page = doc->page())
-        page->focusController()->setFocusedNode(this);
-    // FIXME: Should isFocusable do the updateLayout?
-    if (!isFocusable()) {
-        setNeedsFocusAppearanceUpdate(true);
-        return;
-    }
-    updateFocusAppearance();
+    return HTMLFormControlElementWithState::isFocusable();
 }
 
 void HTMLTextAreaElement::updateFocusAppearance(bool restorePreviousSelection)
@@ -231,7 +219,7 @@ void HTMLTextAreaElement::updateFocusAppearance(bool restorePreviousSelection)
         // Restore the cached selection.  This matches other browsers' behavior.
         setSelectionRange(cachedSelStart, cachedSelEnd); 
 
-    if (document() && document()->frame())
+    if (document()->frame())
         document()->frame()->revealSelection();
 }
 
@@ -240,7 +228,7 @@ void HTMLTextAreaElement::defaultEventHandler(Event *evt)
     if (renderer() && (evt->isMouseEvent() || evt->isDragEvent() || evt->isWheelEvent() || evt->type() == blurEvent))
         static_cast<RenderTextControl*>(renderer())->forwardEvent(evt);
 
-    HTMLGenericFormElement::defaultEventHandler(evt);
+    HTMLFormControlElementWithState::defaultEventHandler(evt);
 }
 
 void HTMLTextAreaElement::rendererWillBeDestroyed()
@@ -277,14 +265,14 @@ void HTMLTextAreaElement::setValue(const String& value)
         document()->updateRendering();
     if (renderer())
         renderer()->updateFromElement();
-        
-    // Restore a caret at the starting point of the old selection.
-    // This matches Safari 2.0 behavior.
-    if (document()->focusedNode() == this && cachedSelStart != -1) {
-        ASSERT(cachedSelEnd != -1);
-        setSelectionRange(cachedSelStart, cachedSelStart);
+    
+    // Set the caret to the end of the text value.
+    if (document()->focusedNode() == this) {
+        unsigned endOfString = m_value.length();
+        setSelectionRange(endOfString, endOfString);
     }
-    setChanged(true);
+
+    setChanged();
 }
 
 String HTMLTextAreaElement::defaultValue() const
@@ -352,6 +340,11 @@ Selection HTMLTextAreaElement::selection() const
     if (!renderer() || cachedSelStart == -1 || cachedSelEnd == -1)
         return Selection();
     return static_cast<RenderTextControl*>(renderer())->selection(cachedSelStart, cachedSelEnd);
+}
+
+bool HTMLTextAreaElement::shouldUseInputMethod() const
+{
+    return true;
 }
 
 } // namespace

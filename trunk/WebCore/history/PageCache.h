@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,52 +26,58 @@
 #ifndef PageCache_h
 #define PageCache_h
 
-#include "DocumentLoader.h"
-#include "PageState.h"
-#include "Shared.h"
+#include "HistoryItem.h"
+#include "Timer.h"
 #include <wtf/Forward.h>
-#include <wtf/RefPtr.h>
-
-#if PLATFORM(MAC)
-#include "RetainPtr.h"
-typedef struct objc_object* id;
-#endif
+#include <wtf/HashSet.h>
+#include <wtf/Noncopyable.h>
 
 namespace WebCore {
 
-class PageCache : public Shared<PageCache> {
-public:
-    PageCache();
-    ~PageCache();
+    class CachedPage;
+    class HistoryItem;
     
-    void close();
-    
-    void setPageState(PassRefPtr<PageState>);
-    PageState* pageState();
-    void setTimeStamp(double);
-    void setTimeStampToNow();
-    double timeStamp() const;
-    void setDocumentLoader(PassRefPtr<DocumentLoader>);
-    DocumentLoader* documentLoader();
-#if PLATFORM(MAC)
-    void setDocumentView(id);
-    id documentView();
-#endif
+    class PageCache : Noncopyable {
+    public:
+        friend PageCache* pageCache();
 
-private:
-    // FIXME: <rdar://problem/4887095>
-    // PageCache should consume PageState and take its role, as well.  The reasons for the division are obsolete
-    // now that everything is in WebCore instead of split with WebKit
-    RefPtr<PageState> m_pageState;
-    RefPtr<DocumentLoader> m_documentLoader;
-    double m_timeStamp;
+        void setCapacity(int); // number of pages to cache
+        int capacity() { return m_capacity; }
+        
+        void add(PassRefPtr<HistoryItem>, PassRefPtr<CachedPage>); // Prunes if capacity() is exceeded.
+        void remove(HistoryItem*);
+        CachedPage* get(HistoryItem* item) { return item ? item->m_cachedPage.get() : 0; }
 
-#if PLATFORM(MAC)
-    RetainPtr<id> m_documentView;
-#endif
-}; // class PageCache
+        void releaseAutoreleasedPagesNow();
+
+    private:
+        typedef HashSet<RefPtr<CachedPage> > CachedPageSet;
+
+        PageCache(); // Use pageCache() instead.
+        ~PageCache(); // Not implemented to make sure nobody accidentally calls delete -- WebCore does not delete singletons.
+
+        void addToLRUList(HistoryItem*); // Adds to the head of the list.
+        void removeFromLRUList(HistoryItem*);
+
+        void prune();
+
+        void autorelease(PassRefPtr<CachedPage>);
+        void releaseAutoreleasedPagesNowOrReschedule(Timer<PageCache>*);
+
+        int m_capacity;
+        int m_size;
+
+        // LRU List
+        HistoryItem* m_head;
+        HistoryItem* m_tail;
+        
+        Timer<PageCache> m_autoreleaseTimer;
+        CachedPageSet m_autoreleaseSet;
+     };
+
+    // Function to obtain the global page cache.
+    PageCache* pageCache();
 
 } // namespace WebCore
 
 #endif // PageCache_h
-

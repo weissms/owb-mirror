@@ -1,10 +1,8 @@
-/**
- * This file is part of the DOM implementation for KDE.
- *
+/*
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Trolltech ASA
  *
  * This library is free software; you can redistribute it and/or
@@ -19,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -30,47 +28,51 @@
 #include "ChildNodeList.h"
 #include "DOMImplementation.h"
 #include "Document.h"
+#include "Element.h"
 #include "ExceptionCode.h"
 #include "Frame.h"
 #include "HTMLNames.h"
+#include "KURL.h"
 #include "Logging.h"
 #include "NamedAttrMap.h"
 #include "RenderObject.h"
 #include "Text.h"
 #include "TextStream.h"
+#include "XMLNames.h"
 #include "htmlediting.h"
+#ifdef __OWB_JS__
 #include "kjs_binding.h"
+#endif //__OWB_JS__
 
 namespace WebCore {
 
 using namespace HTMLNames;
 
-/**
- * NodeList which lists all Nodes in a document with a given tag name
- */
-class TagNodeList : public NodeList
-{
+typedef HashSet<NodeList*> NodeListSet;
+struct NodeListsNodeData {
+    NodeListSet m_registeredLists;
+    NodeList::Caches m_childNodeListCaches;
+};
+
+// NodeList that limits to a particular tag.
+class TagNodeList : public NodeList {
 public:
-    TagNodeList(Node *n, const AtomicString& namespaceURI, const AtomicString& localName);
+    TagNodeList(PassRefPtr<Node> rootNode, const AtomicString& namespaceURI, const AtomicString& localName);
 
-    // DOM methods overridden from  parent classes
     virtual unsigned length() const;
-    virtual Node *item (unsigned index) const;
+    virtual Node* item(unsigned index) const;
 
-    // Other methods (not part of DOM)
-
-protected:
-    virtual bool nodeMatches(Node *testNode) const;
+private:
+    virtual bool nodeMatches(Node*) const;
 
     AtomicString m_namespaceURI;
     AtomicString m_localName;
 };
 
-TagNodeList::TagNodeList(Node *n, const AtomicString& namespaceURI, const AtomicString& localName)
-    : NodeList(n), 
-      m_namespaceURI(namespaceURI), 
-      m_localName(localName)
+inline TagNodeList::TagNodeList(PassRefPtr<Node> rootNode, const AtomicString& namespaceURI, const AtomicString& localName)
+    : NodeList(rootNode), m_namespaceURI(namespaceURI), m_localName(localName)
 {
+    ASSERT(m_namespaceURI.isNull() || !m_namespaceURI.isEmpty());
 }
 
 unsigned TagNodeList::length() const
@@ -78,19 +80,19 @@ unsigned TagNodeList::length() const
     return recursiveLength();
 }
 
-Node *TagNodeList::item(unsigned index) const
+Node* TagNodeList::item(unsigned index) const
 {
     return recursiveItem(index);
 }
 
-bool TagNodeList::nodeMatches(Node *testNode) const
+bool TagNodeList::nodeMatches(Node* testNode) const
 {
     if (!testNode->isElementNode())
         return false;
 
     if (m_namespaceURI != starAtom && m_namespaceURI != testNode->namespaceURI())
         return false;
-    
+
     return m_localName == starAtom || m_localName == testNode->localName();
 }
 
@@ -142,19 +144,19 @@ Node::Node(Document *doc)
       m_tabIndex(0),
       m_hasId(false),
       m_hasClass(false),
-      m_hasStyle(false),
       m_attached(false),
-      m_changed(false),
+      m_styleChange(NoStyleChange),
       m_hasChangedChild(false),
       m_inDocument(false),
       m_isLink(false),
-      m_specified(false),
+      m_attrWasSpecifiedOrElementHasRareData(false),
       m_focused(false),
       m_active(false),
       m_hovered(false),
       m_inActiveChain(false),
-      m_implicit(false),
-      m_inDetach(false)
+      m_inDetach(false),
+      m_dispatchingSimulatedEvent(false),
+      m_inSubtreeMark(false)
 {
 #ifndef NDEBUG
     if (shouldIgnoreLeaks)
@@ -169,8 +171,17 @@ void Node::setDocument(Document* doc)
     if (inDocument() || m_document == doc)
         return;
 
-    KJS::ScriptInterpreter::updateDOMNodeDocument(this, m_document.get(), doc);
+    willMoveToNewOwnerDocument();
+    printf("Node::setDocument\n");
+#ifdef __OWB_JS__
+    {
+        KJS::JSLock lock;
+        KJS::ScriptInterpreter::updateDOMNodeDocument(this, m_document.get(), doc);
+    }    
+#endif //__OWB_JS__
     m_document = doc;
+
+    didMoveToNewOwnerDocument();
 }
 
 Node::~Node()
@@ -196,7 +207,7 @@ String Node::nodeValue() const
   return String();
 }
 
-void Node::setNodeValue( const String &/*_nodeValue*/, ExceptionCode& ec)
+void Node::setNodeValue(const String& /*nodeValue*/, ExceptionCode& ec)
 {
     // NO_MODIFICATION_ALLOWED_ERR: Raised when the node is readonly
     if (isReadOnlyNode()) {
@@ -204,22 +215,25 @@ void Node::setNodeValue( const String &/*_nodeValue*/, ExceptionCode& ec)
         return;
     }
 
-    // be default nodeValue is null, so setting it has no effect
+    // by default nodeValue is null, so setting it has no effect
 }
 
 PassRefPtr<NodeList> Node::childNodes()
 {
-    return new ChildNodeList(this);
+    if (!m_nodeLists)
+        m_nodeLists = new NodeListsNodeData;
+
+    return new ChildNodeList(this, &m_nodeLists->m_childNodeListCaches);
 }
 
-Node *Node::firstChild() const
+Node* Node::virtualFirstChild() const
 {
-  return 0;
+    return 0;
 }
 
-Node *Node::lastChild() const
+Node* Node::virtualLastChild() const
 {
-  return 0;
+    return 0;
 }
 
 Node *Node::lastDescendant() const
@@ -339,11 +353,11 @@ const AtomicString& Node::prefix() const
     return nullAtom;
 }
 
-void Node::setPrefix(const AtomicString &/*_prefix*/, ExceptionCode& ec)
+void Node::setPrefix(const AtomicString& /*prefix*/, ExceptionCode& ec)
 {
     // The spec says that for nodes other than elements and attributes, prefix is always null.
     // It does not say what to do when the user tries to set the prefix on another type of
-    // node, however mozilla throws a NAMESPACE_ERR exception
+    // node, however Mozilla throws a NAMESPACE_ERR exception.
     ec = NAMESPACE_ERR;
 }
 
@@ -372,6 +386,11 @@ bool Node::isContentRichlyEditable() const
     return parent() && parent()->isContentRichlyEditable();
 }
 
+bool Node::shouldUseInputMethod() const
+{
+    return isContentEditable();
+}
+
 IntRect Node::getRect() const
 {
     int _x, _y;
@@ -381,18 +400,17 @@ IntRect Node::getRect() const
     return IntRect();
 }
 
-void Node::setChanged(bool b)
+void Node::setChanged(StyleChangeType changeType)
 {
-    if (b && !attached()) // changed compared to what?
+    if ((changeType != NoStyleChange) && !attached()) // changed compared to what?
         return;
 
-    m_changed = b;
-    if ( b ) {
-        Node *p = parentNode();
-        while ( p ) {
-            p->setHasChangedChild( true );
-            p = p->parentNode();
-        }
+    if (!(changeType == InlineStyleChange && m_styleChange == FullStyleChange))
+        m_styleChange = changeType;
+
+    if (m_styleChange != NoStyleChange) {
+        for (Node* p = parentNode(); p; p = p->parentNode())
+            p->setHasChangedChild(true);
         document()->setDocumentChanged(true);
     }
 }
@@ -424,15 +442,19 @@ unsigned Node::nodeIndex() const
 void Node::registerNodeList(NodeList* list)
 {
     if (!m_nodeLists)
-        m_nodeLists = new NodeListSet;
-    m_nodeLists->add(list);
+        m_nodeLists = new NodeListsNodeData;
+    else if (m_nodeLists->m_registeredLists.isEmpty()) 
+        m_nodeLists->m_childNodeListCaches.reset();
+
+    m_nodeLists->m_registeredLists.add(list);
+    m_document->addNodeList();
 }
 
 void Node::unregisterNodeList(NodeList* list)
 {
-    if (!m_nodeLists)
-        return;
-    m_nodeLists->remove(list);
+    ASSERT(m_nodeLists);
+    m_document->removeNodeList();
+    m_nodeLists->m_registeredLists.remove(list);
 }
 
 void Node::notifyLocalNodeListsAttributeChanged()
@@ -440,8 +462,8 @@ void Node::notifyLocalNodeListsAttributeChanged()
     if (!m_nodeLists)
         return;
 
-    NodeListSet::iterator end = m_nodeLists->end();
-    for (NodeListSet::iterator i = m_nodeLists->begin(); i != end; ++i)
+    NodeListSet::iterator end = m_nodeLists->m_registeredLists.end();
+    for (NodeListSet::iterator i = m_nodeLists->m_registeredLists.begin(); i != end; ++i)
         (*i)->rootNodeAttributeChanged();
 }
 
@@ -456,8 +478,10 @@ void Node::notifyLocalNodeListsChildrenChanged()
     if (!m_nodeLists)
         return;
 
-    NodeListSet::iterator end = m_nodeLists->end();
-    for (NodeListSet::iterator i = m_nodeLists->begin(); i != end; ++i)
+    m_nodeLists->m_childNodeListCaches.reset();
+
+    NodeListSet::iterator end = m_nodeLists->m_registeredLists.end();
+    for (NodeListSet::iterator i = m_nodeLists->m_registeredLists.begin(); i != end; ++i)
         (*i)->rootNodeChildrenChanged();
 }
 
@@ -480,20 +504,20 @@ Node *Node::childNode(unsigned /*index*/) const
 Node *Node::traverseNextNode(const Node *stayWithin) const
 {
     if (firstChild()) {
-        assert(!stayWithin || firstChild()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || firstChild()->isDescendantOf(stayWithin));
         return firstChild();
     }
     if (this == stayWithin)
         return 0;
     if (nextSibling()) {
-        assert(!stayWithin || nextSibling()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || nextSibling()->isDescendantOf(stayWithin));
         return nextSibling();
     }
     const Node *n = this;
     while (n && !n->nextSibling() && (!stayWithin || n->parentNode() != stayWithin))
         n = n->parentNode();
     if (n) {
-        assert(!stayWithin || !n->nextSibling() || n->nextSibling()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || !n->nextSibling() || n->nextSibling()->isDescendantOf(stayWithin));
         return n->nextSibling();
     }
     return 0;
@@ -504,14 +528,14 @@ Node *Node::traverseNextSibling(const Node *stayWithin) const
     if (this == stayWithin)
         return 0;
     if (nextSibling()) {
-        assert(!stayWithin || nextSibling()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || nextSibling()->isDescendantOf(stayWithin));
         return nextSibling();
     }
     const Node *n = this;
     while (n && !n->nextSibling() && (!stayWithin || n->parentNode() != stayWithin))
         n = n->parentNode();
     if (n) {
-        assert(!stayWithin || !n->nextSibling() || n->nextSibling()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || !n->nextSibling() || n->nextSibling()->isDescendantOf(stayWithin));
         return n->nextSibling();
     }
     return 0;
@@ -533,20 +557,20 @@ Node *Node::traversePreviousNode(const Node *stayWithin) const
 Node *Node::traversePreviousNodePostOrder(const Node *stayWithin) const
 {
     if (lastChild()) {
-        assert(!stayWithin || lastChild()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || lastChild()->isDescendantOf(stayWithin));
         return lastChild();
     }
     if (this == stayWithin)
         return 0;
     if (previousSibling()) {
-        assert(!stayWithin || previousSibling()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || previousSibling()->isDescendantOf(stayWithin));
         return previousSibling();
     }
     const Node *n = this;
     while (n && !n->previousSibling() && (!stayWithin || n->parentNode() != stayWithin))
         n = n->parentNode();
     if (n) {
-        assert(!stayWithin || !n->previousSibling() || n->previousSibling()->isDescendantOf(stayWithin));
+        ASSERT(!stayWithin || !n->previousSibling() || n->previousSibling()->isDescendantOf(stayWithin));
         return n->previousSibling();
     }
     return 0;
@@ -786,11 +810,8 @@ void Node::dump(TextStream* stream, DeprecatedString ind) const
 {
     if (m_hasId) { *stream << " hasId"; }
     if (m_hasClass) { *stream << " hasClass"; }
-    if (m_hasStyle) { *stream << " hasStyle"; }
-    if (m_specified) { *stream << " specified"; }
     if (m_focused) { *stream << " focused"; }
     if (m_active) { *stream << " active"; }
-    if (m_implicit) { *stream << " implicit"; }
 
     *stream << " tabIndex=" << m_tabIndex;
     *stream << endl;
@@ -804,8 +825,8 @@ void Node::dump(TextStream* stream, DeprecatedString ind) const
 
 void Node::attach()
 {
-    assert(!attached());
-    assert(!renderer() || (renderer()->style() && renderer()->parent()));
+    ASSERT(!attached());
+    ASSERT(!renderer() || (renderer()->style() && renderer()->parent()));
     document()->incDOMTreeVersion();
     m_attached = true;
 }
@@ -882,7 +903,7 @@ Node *Node::previousEditable() const
 // the last child, it specifies to start at next sibling.
 Node *Node::nextEditable(int offset) const
 {
-    assert(offset>=0);
+    ASSERT(offset>=0);
     Node *node;
     if (hasChildNodes())
         node = (offset >= (int)childNodeCount()) ? nextSibling() : childNode(offset)->nextLeafNode();
@@ -988,27 +1009,29 @@ void Node::createRendererIfNeeded()
     if (!document()->shouldCreateRenderers())
         return;
     
-    assert(!attached());
-    assert(!renderer());
+    ASSERT(!attached());
+    ASSERT(!renderer());
     
     Node *parent = parentNode();    
-    assert(parent);
+    ASSERT(parent);
     
     RenderObject *parentRenderer = parent->renderer();
     if (parentRenderer && parentRenderer->canHaveChildren()
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
         && parent->childShouldCreateRenderer(this)
 #endif
         ) {
         RenderStyle* style = styleForRenderer(parentRenderer);
         if (rendererIsNeeded(style)) {
-            RenderObject* r = createRenderer(document()->renderArena(), style);
-            if (r && parentRenderer->isChildAllowed(r, style)) {
-                setRenderer(r);
-                renderer()->setStyle(style);
-                parentRenderer->addChild(renderer(), nextRenderer());
-            } else 
-                r->destroy();
+            if (RenderObject* r = createRenderer(document()->renderArena(), style)) {
+                if (!parentRenderer->isChildAllowed(r, style))
+                    r->destroy();
+                else {
+                    setRenderer(r);
+                    renderer()->setStyle(style);
+                    parentRenderer->addChild(renderer(), nextRenderer());
+                }
+            }
         }
         style->deref(document()->renderArena());
     }
@@ -1028,7 +1051,7 @@ bool Node::rendererIsNeeded(RenderStyle *style)
 
 RenderObject *Node::createRenderer(RenderArena *arena, RenderStyle *style)
 {
-    assert(false);
+    ASSERT(false);
     return 0;
 }
 
@@ -1041,6 +1064,11 @@ void Node::setRenderStyle(RenderStyle* s)
 {
     if (m_renderer)
         m_renderer->setStyle(s); 
+}
+
+RenderStyle* Node::computedStyle()
+{
+    return parent() ? parent()->computedStyle() : 0;
 }
 
 int Node::maxOffset() const
@@ -1075,9 +1103,16 @@ int Node::nextOffset (int current) const
     return renderer() ? renderer()->nextOffset(current) : current + 1;
 }
 
+bool Node::canStartSelection() const
+{
+    if (isContentEditable())
+        return true;
+    return parent() ? parent()->canStartSelection() : true;
+}
+
 Node* Node::shadowAncestorNode()
 {
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     // SVG elements living in a shadow tree only occour when <use> created them.
     // For these cases we do NOT want to return the shadowParentNode() here
     // but the actual shadow tree element - as main difference to the HTML forms
@@ -1186,15 +1221,15 @@ PassRefPtr<NodeList> Node::getElementsByTagName(const String& name)
     return getElementsByTagNameNS("*", name);
 }
  
-PassRefPtr<NodeList> Node::getElementsByTagNameNS(const String &namespaceURI, const String &localName)
+PassRefPtr<NodeList> Node::getElementsByTagNameNS(const String& namespaceURI, const String& localName)
 {
-    if (namespaceURI.isNull() || localName.isNull())
-        return 0; // FIXME: Who relies on getting 0 instead of a node list in this case?
-    
+    if (localName.isNull())
+        return 0;
+
     String name = localName;
     if (document()->isHTMLDocument())
         name = localName.lower();
-    return new TagNodeList(this, AtomicString(namespaceURI), AtomicString(name));
+    return new TagNodeList(this, namespaceURI.isEmpty() ? nullAtom : AtomicString(namespaceURI), name);
 }
 
 Document *Node::ownerDocument() const
@@ -1211,6 +1246,15 @@ bool Node::hasAttributes() const
 NamedAttrMap *Node::attributes() const
 {
     return 0;
+}
+
+String Node::baseURI() const
+{
+    Node* parent = parentNode();
+    if (parent)
+        return parent->baseURI();
+
+    return String();
 }
 
 bool Node::isEqualNode(Node *other) const

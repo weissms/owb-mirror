@@ -87,19 +87,15 @@ bool EventHandler::passMouseDownEventToWidget(Widget* widget)
 
 bool EventHandler::eventActivatedView(const PlatformMouseEvent& event) const
 {
-    //FIXME MERGE be sure to do this
     return true;
 }
 
-bool EventHandler::passWheelEventToWidget(Widget* widget)
+bool EventHandler::passWheelEventToWidget(PlatformWheelEvent& wheelEvent, Widget* widget)
 {
-    return false;
-/*
     if (!widget->isFrameView())
         return false;
 
     return static_cast<FrameView*>(widget)->frame()->eventHandler()->handleWheelEvent(wheelEvent);
-*/
 }
 
 Clipboard* EventHandler::createDraggingClipboard() const
@@ -114,7 +110,7 @@ bool EventHandler::passMousePressEventToSubframe(MouseEventWithHitTestResults& m
     return true;
 }
 
-bool EventHandler::passMouseMoveEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)
+bool EventHandler::passMouseMoveEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe, WebCore::HitTestResult*)
 {
     subframe->eventHandler()->handleMouseMoveEvent(mev.event());
     return true;
@@ -124,11 +120,6 @@ bool EventHandler::passMouseReleaseEventToSubframe(MouseEventWithHitTestResults&
 {
     subframe->eventHandler()->handleMouseReleaseEvent(mev.event());
     return true;
-}
-
-bool EventHandler::passWheelEventToSubframe(PlatformWheelEvent&, Frame* subframe)
-{
-    return passWheelEventToWidget(subframe->view());
 }
 
 bool EventHandler::passMousePressEventToScrollbar(MouseEventWithHitTestResults&, PlatformScrollbar* scrollbar)

@@ -25,10 +25,14 @@
  */
 
 #include "config.h"
+
+#if !PLATFORM(DARWIN) || !defined(__LP64__)
+
 #include "c_utility.h"
 
 #include "NP_jsobject.h"
-#include "c_instance.h" 
+#include "c_instance.h"
+#include "JSGlobalObject.h"
 #include "npruntime_impl.h"
 #include "npruntime_priv.h"
 #include "runtime_object.h"
@@ -36,11 +40,12 @@
 #include "Platform.h"
 #if USE(ICU_UNICODE)
 #ifdef __OWB__
-#include "BIInternationalization.h"
+//#include "BIInternationalization.h"
 #else
 #include <unicode/ucnv.h>
 #endif
 #endif
+#include <wtf/Assertions.h>
 
 namespace KJS { namespace Bindings {
 
@@ -54,8 +59,8 @@ void convertNPStringToUTF16(const NPString *string, NPUTF16 **UTF16Chars, unsign
 void convertUTF8ToUTF16(const NPUTF8 *UTF8Chars, int UTF8Length, NPUTF16 **UTF16Chars, unsigned int *UTF16Length)
 {
 #if USE(ICU_UNICODE)
-    assert(UTF8Chars || UTF8Length == 0);
-    assert(UTF16Chars);
+    ASSERT(UTF8Chars || UTF8Length == 0);
+    ASSERT(UTF16Chars);
     
     if (UTF8Length == -1)
         UTF8Length = static_cast<int>(strlen(UTF8Chars));
@@ -76,7 +81,7 @@ void convertUTF8ToUTF16(const NPUTF8 *UTF8Chars, int UTF8Length, NPUTF16 **UTF16
     } 
     
     // Check to see if the conversion was successful
-    // Some plugins return invalid UTF-8 in NPVariantType_String, see <http://bugzilla.opendarwin.org/show_bug.cgi?id=5163>
+    // Some plugins return invalid UTF-8 in NPVariantType_String, see <http://bugs.webkit.org/show_bug.cgi?id=5163>
     // There is no "bad data" for latin1. It is unlikely that the plugin was really sending text in this encoding,
     // but it should have used UTF-8, and now we are simply avoiding a crash.
     if (!U_SUCCESS(status)) {
@@ -89,22 +94,15 @@ void convertUTF8ToUTF16(const NPUTF8 *UTF8Chars, int UTF8Length, NPUTF16 **UTF16
             (*UTF16Chars)[i] = UTF8Chars[i] & 0xFF;
     }
 #else
-    assert(!"Implement me!");    
+    ASSERT(!"Implement me!");    
 #endif
-}
-
-// Variant value must be released with NPReleaseVariantValue()
-void coerceValueToNPVariantStringType(ExecState *exec, JSValue *value, NPVariant *result)
-{
-    UString ustring = value->toString(exec);
-    CString cstring = ustring.UTF8String();
-    NPString string = { (const NPUTF8 *)cstring.c_str(), static_cast<uint32_t>(cstring.size()) };
-    NPN_InitializeVariantWithStringCopy(result, &string);
 }
 
 // Variant value must be released with NPReleaseVariantValue()
 void convertValueToNPVariant(ExecState *exec, JSValue *value, NPVariant *result)
 {
+    JSLock lock;
+    
     JSType type = value->type();
     
     VOID_TO_NPVARIANT(*result);
@@ -127,17 +125,18 @@ void convertValueToNPVariant(ExecState *exec, JSValue *value, NPVariant *result)
         if (object->classInfo() == &RuntimeObjectImp::info) {
             RuntimeObjectImp* imp = static_cast<RuntimeObjectImp *>(value);
             CInstance* instance = static_cast<CInstance*>(imp->getInternalInstance());
-            NPObject* obj = instance->getObject();
-            _NPN_RetainObject(obj);
-            OBJECT_TO_NPVARIANT(obj, *result);
+            if (instance) {
+                NPObject* obj = instance->getObject();
+                _NPN_RetainObject(obj);
+                OBJECT_TO_NPVARIANT(obj, *result);
+            }
         } else {
             Interpreter* originInterpreter = exec->dynamicInterpreter();
             RootObject* originRootObject = findRootObject(originInterpreter);
 
             Interpreter* interpreter = 0;
-            if (originInterpreter->isGlobalObject(value)) {
-                interpreter = originInterpreter->interpreterForGlobalObject(value);
-            }
+            if (object->isGlobalObject())
+                interpreter = static_cast<JSGlobalObject*>(object)->interpreter();
 
             if (!interpreter)
                 interpreter = originInterpreter;
@@ -151,8 +150,10 @@ void convertValueToNPVariant(ExecState *exec, JSValue *value, NPVariant *result)
     }
 }
 
-JSValue *convertNPVariantToValue(ExecState*, const NPVariant* variant)
+JSValue *convertNPVariantToValue(ExecState*, const NPVariant* variant, RootObject* rootObject)
 {
+    JSLock lock;
+    
     NPVariantType type = variant->type;
 
     if (type == NPVariantType_Bool)
@@ -181,7 +182,7 @@ JSValue *convertNPVariantToValue(ExecState*, const NPVariant* variant)
             return ((JavaScriptObject *)obj)->imp;
 
         // Wrap NPObject in a CInstance.
-        return Instance::createRuntimeObject(Instance::CLanguage, obj);
+        return Instance::createRuntimeObject(Instance::CLanguage, obj, rootObject);
     }
     
     return jsUndefined();
@@ -198,3 +199,5 @@ Identifier identifierFromNPIdentifier(const NPUTF8* name)
 }
 
 } }
+
+#endif

@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef TextBoundaries_h
@@ -32,9 +32,6 @@ namespace WebCore {
 
     void findWordBoundary(const UChar*, int len, int position, int* start, int* end);
     int findNextWordFromIndex(const UChar*, int len, int position, bool forward);
-
-    void findSentenceBoundary(const UChar*, int len, int position, int* start, int* end);
-    int findNextSentenceFromIndex(const UChar*, int len, int position, bool forward);
 
 }
 

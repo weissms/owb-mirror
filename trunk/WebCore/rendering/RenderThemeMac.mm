@@ -15,13 +15,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #import "config.h"
 #import "RenderThemeMac.h"
 
+#import "CSSStyleSelector.h"
 #import "CSSValueKeywords.h"
 #import "Document.h"
 #import "Element.h"
@@ -33,13 +34,44 @@
 #import "LocalCurrentGraphicsContext.h"
 #import "RenderSlider.h"
 #import "RenderView.h"
-#import "RetainPtr.h"
 #import "WebCoreSystemInterface.h"
-#import "cssstyleselector.h"
 #import <Cocoa/Cocoa.h>
+#import <wtf/RetainPtr.h>
+#import <math.h>
 
+using std::min;
 
 // The methods in this file are specific to the Mac OS X platform.
+
+// FIXME: The platform-independent code in this class should be factored out and merged with RenderThemeSafari. 
+
+@interface WebCoreRenderThemeNotificationObserver : NSObject
+{
+    WebCore::RenderTheme *_theme;
+}
+
+- (id)initWithTheme:(WebCore::RenderTheme *)theme;
+- (void)systemColorsDidChange:(NSNotification *)notification;
+
+@end
+
+@implementation WebCoreRenderThemeNotificationObserver
+
+- (id)initWithTheme:(WebCore::RenderTheme *)theme
+{
+    [super init];
+    _theme = theme;
+    
+    return self;
+}
+
+- (void)systemColorsDidChange:(NSNotification *)notification
+{
+    ASSERT([[notification name] isEqualToString:NSSystemColorsDidChangeNotification]);
+    _theme->platformColorsDidChange();
+}
+
+@end
 
 namespace WebCore {
 
@@ -59,22 +91,26 @@ enum {
 
 RenderTheme* theme()
 {
-    static RenderThemeMac macTheme;
-    return &macTheme;
+    static RenderThemeMac* macTheme = new RenderThemeMac;
+    return macTheme;
 }
 
 RenderThemeMac::RenderThemeMac()
-    : m_checkbox(nil)
-    , m_radio(nil)
-    , m_button(nil)
-    , m_popupButton(nil)
-    , m_search(nil)
-    , m_sliderThumbHorizontal(nil)
-    , m_sliderThumbVertical(nil)
-    , m_resizeCornerImage(0)
+    : m_resizeCornerImage(0)
     , m_isSliderThumbHorizontalPressed(false)
     , m_isSliderThumbVerticalPressed(false)
+    , m_notificationObserver(AdoptNS, [[WebCoreRenderThemeNotificationObserver alloc] initWithTheme:this])
 {
+    [[NSNotificationCenter defaultCenter] addObserver:m_notificationObserver.get()
+                                                        selector:@selector(systemColorsDidChange:)
+                                                            name:NSSystemColorsDidChangeNotification
+                                                          object:nil];
+}
+
+RenderThemeMac::~RenderThemeMac()
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:m_notificationObserver.get()];
+    delete m_resizeCornerImage;
 }
 
 Color RenderThemeMac::platformActiveSelectionBackgroundColor() const
@@ -257,10 +293,8 @@ void RenderThemeMac::updateEnabledState(NSCell* cell, const RenderObject* o)
 
 void RenderThemeMac::updateFocusedState(NSCell* cell, const RenderObject* o)
 {
-    // FIXME: Need to add a key window test here, or the element will look
-    // focused even when in the background.
     bool oldFocused = [cell showsFirstResponder];
-    bool focused = (o->element() && o->document()->focusedNode() == o->element()) && (o->style()->outlineStyleIsAuto());
+    bool focused = isFocused(o) && o->style()->outlineStyleIsAuto();
     if (focused != oldFocused)
         [cell setShowsFirstResponder:focused];
 }
@@ -282,6 +316,11 @@ short RenderThemeMac::baselinePosition(const RenderObject* o) const
 
 bool RenderThemeMac::controlSupportsTints(const RenderObject* o) const
 {
+    // An alternate way to implement this would be to get the appropriate cell object
+    // and call the private _needRedrawOnWindowChangedKeyState method. An advantage of
+    // that would be that we would match AppKit behavior more closely, but a disadvantage
+    // would be that we would rely on an AppKit SPI method.
+
     if (!isEnabled(o))
         return false;
 
@@ -353,7 +392,7 @@ void RenderThemeMac::setFontFromControlSize(CSSStyleSelector* selector, RenderSt
     style->setLineHeight(RenderStyle::initialLineHeight());
 
     if (style->setFontDescription(fontDescription))
-        style->font().update();
+        style->font().update(0);
 }
 
 NSControlSize RenderThemeMac::controlSizeForSystemFont(RenderStyle* style) const
@@ -535,6 +574,8 @@ void RenderThemeMac::adjustButtonStyle(CSSStyleSelector* selector, RenderStyle* 
         style->resetBorderTop();
         style->resetBorderBottom();
     }
+
+    style->setBoxShadow(0);
 }
 
 const IntSize* RenderThemeMac::buttonSizes() const
@@ -666,15 +707,7 @@ const int* RenderThemeMac::popupButtonPadding(NSControlSize size) const
     return padding[size];
 }
 
-void RenderThemeMac::setPopupPaddingFromControlSize(RenderStyle* style, NSControlSize size) const
-{
-    style->setPaddingLeft(Length(popupButtonPadding(size)[leftPadding], Fixed));
-    style->setPaddingRight(Length(popupButtonPadding(size)[rightPadding], Fixed));
-    style->setPaddingTop(Length(popupButtonPadding(size)[topPadding], Fixed));
-    style->setPaddingBottom(Length(popupButtonPadding(size)[bottomPadding], Fixed));
-}
-
-bool RenderThemeMac::paintMenuList(RenderObject* o, const RenderObject::PaintInfo&, const IntRect& r)
+bool RenderThemeMac::paintMenuList(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
 {
     setPopupButtonCellState(o, r);
 
@@ -685,10 +718,22 @@ bool RenderThemeMac::paintMenuList(RenderObject* o, const RenderObject::PaintInf
     size.setWidth(r.width());
 
     // Now inflate it to account for the shadow.
-    inflatedRect = inflateRect(inflatedRect, size, popupButtonMargins());
+    if (r.width() >= minimumMenuListSize(o->style()))
+        inflatedRect = inflateRect(inflatedRect, size, popupButtonMargins());
+
+#ifndef BUILDING_ON_TIGER
+    // On Leopard, the cell will draw outside of the given rect, so we have to clip to the rect
+    paintInfo.context->save();
+    paintInfo.context->clip(inflatedRect);
+#endif
 
     [popupButton drawWithFrame:inflatedRect inView:o->view()->frameView()->getDocumentView()];
     [popupButton setControlView:nil];
+
+#ifndef BUILDING_ON_TIGER
+    paintInfo.context->restore();
+#endif
+
     return false;
 }
 
@@ -818,15 +863,19 @@ bool RenderThemeMac::paintMenuListButton(RenderObject* o, const RenderObject::Pa
     // Draw the gradients to give the styled popup menu a button appearance
     paintMenuListButtonGradients(o, paintInfo, bounds);
 
-    float fontScale = o->style()->fontSize() / baseFontSize;
+    // Since we actually know the size of the control here, we restrict the font scale to make sure the arrows will fit vertically in the bounds
+    float fontScale = min(o->style()->fontSize() / baseFontSize, bounds.height() / (baseArrowHeight * 2 + baseSpaceBetweenArrows));
     float centerY = bounds.y() + bounds.height() / 2.0f;
     float arrowHeight = baseArrowHeight * fontScale;
     float arrowWidth = baseArrowWidth * fontScale;
     float leftEdge = bounds.right() - arrowPaddingRight - arrowWidth;
     float spaceBetweenArrows = baseSpaceBetweenArrows * fontScale;
 
+    if (bounds.width() < arrowWidth + arrowPaddingLeft)
+        return false;
+    
     paintInfo.context->setFillColor(o->style()->color());
-    paintInfo.context->setStrokeColor(o->style()->color());
+    paintInfo.context->setStrokeStyle(NoStroke);
 
     FloatPoint arrow1[3];
     arrow1[0] = FloatPoint(leftEdge, centerY - spaceBetweenArrows / 2.0f);
@@ -846,10 +895,14 @@ bool RenderThemeMac::paintMenuListButton(RenderObject* o, const RenderObject::Pa
 
     Color leftSeparatorColor(0, 0, 0, 40);
     Color rightSeparatorColor(255, 255, 255, 40);
+
+    // FIXME: Should the separator thickness and space be scaled up by fontScale?
     int separatorSpace = 2;
     int leftEdgeOfSeparator = static_cast<int>(leftEdge - arrowPaddingLeft); // FIXME: Round?
 
     // Draw the separator to the left of the arrows
+    paintInfo.context->setStrokeThickness(1.0f);
+    paintInfo.context->setStrokeStyle(SolidStroke);
     paintInfo.context->setStrokeColor(leftSeparatorColor);
     paintInfo.context->drawLine(IntPoint(leftEdgeOfSeparator, bounds.y()),
                                 IntPoint(leftEdgeOfSeparator, bounds.bottom()));
@@ -867,7 +920,8 @@ void RenderThemeMac::adjustMenuListStyle(CSSStyleSelector* selector, RenderStyle
     NSControlSize controlSize = controlSizeForFont(style);
 
     style->resetBorder();
-
+    style->resetPadding();
+    
     // Height is locked to auto.
     style->setHeight(Length(Auto));
 
@@ -881,31 +935,64 @@ void RenderThemeMac::adjustMenuListStyle(CSSStyleSelector* selector, RenderStyle
     // Set the button's vertical size.
     setButtonSize(style);
 
-    // Add in the padding that we'd like to use.
-    setPopupPaddingFromControlSize(style, controlSize);
-
     // Our font is locked to the appropriate system font size for the control.  To clarify, we first use the CSS-specified font to figure out
     // a reasonable control size, but once that control size is determined, we throw that font away and use the appropriate
     // system font for the control size instead.
     setFontFromControlSize(selector, style, controlSize);
+
+    style->setBoxShadow(0);
+}
+
+int RenderThemeMac::popupInternalPaddingLeft(RenderStyle* style) const
+{
+    if (style->appearance() == MenulistAppearance)
+        return popupButtonPadding(controlSizeForFont(style))[leftPadding];
+    if (style->appearance() == MenulistButtonAppearance)
+        return styledPopupPaddingLeft;
+    return 0;
+}
+
+int RenderThemeMac::popupInternalPaddingRight(RenderStyle* style) const
+{
+    if (style->appearance() == MenulistAppearance)
+        return popupButtonPadding(controlSizeForFont(style))[rightPadding];
+    if (style->appearance() == MenulistButtonAppearance) {
+        float fontScale = style->fontSize() / baseFontSize;
+        float arrowWidth = baseArrowWidth * fontScale;
+        return static_cast<int>(ceilf(arrowWidth + arrowPaddingLeft + arrowPaddingRight + paddingBeforeSeparator));
+    }
+    return 0;
+}
+
+int RenderThemeMac::popupInternalPaddingTop(RenderStyle* style) const
+{
+    if (style->appearance() == MenulistAppearance)
+        return popupButtonPadding(controlSizeForFont(style))[topPadding];
+    if (style->appearance() == MenulistButtonAppearance)
+        return styledPopupPaddingTop;
+    return 0;
+}
+
+int RenderThemeMac::popupInternalPaddingBottom(RenderStyle* style) const
+{
+    if (style->appearance() == MenulistAppearance)
+        return popupButtonPadding(controlSizeForFont(style))[bottomPadding];
+    if (style->appearance() == MenulistButtonAppearance)
+        return styledPopupPaddingBottom;
+    return 0;
 }
 
 void RenderThemeMac::adjustMenuListButtonStyle(CSSStyleSelector* selector, RenderStyle* style, Element* e) const
 {
     float fontScale = style->fontSize() / baseFontSize;
-    float arrowWidth = baseArrowWidth * fontScale;
 
-    // We're overriding the padding to allow for the arrow control.  WinIE doesn't honor padding on selects, so
-    // this shouldn't cause problems on the web.  If IE7 changes that, we should reconsider this.
-    style->setPaddingLeft(Length(styledPopupPaddingLeft, Fixed));
-    style->setPaddingRight(Length(int(ceilf(arrowWidth + arrowPaddingLeft + arrowPaddingRight + paddingBeforeSeparator)), Fixed));
-    style->setPaddingTop(Length(styledPopupPaddingTop, Fixed));
-    style->setPaddingBottom(Length(styledPopupPaddingBottom, Fixed));
-
+    style->resetPadding();
     style->setBorderRadius(IntSize(int(baseBorderRadius + fontScale - 1), int(baseBorderRadius + fontScale - 1))); // FIXME: Round up?
 
     const int minHeight = 15;
     style->setMinHeight(Length(minHeight, Fixed));
+    
+    style->setLineHeight(RenderStyle::initialLineHeight());
 }
 
 void RenderThemeMac::setPopupButtonCellState(const RenderObject* o, const IntRect& r)
@@ -935,6 +1022,11 @@ int RenderThemeMac::minimumMenuListSize(RenderStyle* style) const
 
 const int trackWidth = 5;
 const int trackRadius = 2;
+
+void RenderThemeMac::adjustSliderTrackStyle(CSSStyleSelector* selector, RenderStyle* style, Element* e) const
+{
+    style->setBoxShadow(0);
+}
 
 bool RenderThemeMac::paintSliderTrack(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
 {
@@ -973,10 +1065,17 @@ bool RenderThemeMac::paintSliderTrack(RenderObject* o, const RenderObject::Paint
     return false;
 }
 
+void RenderThemeMac::adjustSliderThumbStyle(CSSStyleSelector* selector, RenderStyle* style, Element* e) const
+{
+    style->setBoxShadow(0);
+}
+
 const float verticalSliderHeightPadding = 0.1f;
 
 bool RenderThemeMac::paintSliderThumb(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
 {
+    ASSERT(o->parent()->isSlider());
+
     NSSliderCell* sliderThumbCell = o->style()->appearance() == SliderThumbVerticalAppearance
         ? sliderThumbVertical()
         : sliderThumbHorizontal();
@@ -1041,8 +1140,10 @@ bool RenderThemeMac::paintSearchField(RenderObject* o, const RenderObject::Paint
     [search setSearchButtonCell:nil];
 
     [search drawWithFrame:NSRect(r) inView:o->view()->frameView()->getDocumentView()];
+#ifdef BUILDING_ON_TIGER
     if ([search showsFirstResponder])
         wkDrawTextFieldCellFocusRing(search, NSRect(r));
+#endif
 
     [search setControlView:nil];
     [search resetSearchButtonCell];
@@ -1104,6 +1205,8 @@ void RenderThemeMac::adjustSearchFieldStyle(CSSStyleSelector* selector, RenderSt
     
     NSControlSize controlSize = controlSizeForFont(style);
     setFontFromControlSize(selector, style, controlSize);
+
+    style->setBoxShadow(0);
 }
 
 bool RenderThemeMac::paintSearchFieldCancelButton(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1133,6 +1236,7 @@ void RenderThemeMac::adjustSearchFieldCancelButtonStyle(CSSStyleSelector* select
     IntSize size = sizeForSystemFont(style, cancelButtonSizes());
     style->setWidth(Length(size.width(), Fixed));
     style->setHeight(Length(size.height(), Fixed));
+    style->setBoxShadow(0);
 }
 
 const IntSize* RenderThemeMac::resultsButtonSizes() const
@@ -1147,6 +1251,7 @@ void RenderThemeMac::adjustSearchFieldDecorationStyle(CSSStyleSelector* selector
     IntSize size = sizeForSystemFont(style, resultsButtonSizes());
     style->setWidth(Length(size.width() - emptyResultsOffset, Fixed));
     style->setHeight(Length(size.height(), Fixed));
+    style->setBoxShadow(0);
 }
 
 bool RenderThemeMac::paintSearchFieldDecoration(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1159,6 +1264,7 @@ void RenderThemeMac::adjustSearchFieldResultsDecorationStyle(CSSStyleSelector* s
     IntSize size = sizeForSystemFont(style, resultsButtonSizes());
     style->setWidth(Length(size.width(), Fixed));
     style->setHeight(Length(size.height(), Fixed));
+    style->setBoxShadow(0);
 }
 
 bool RenderThemeMac::paintSearchFieldResultsDecoration(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1168,7 +1274,6 @@ bool RenderThemeMac::paintSearchFieldResultsDecoration(RenderObject* o, const Re
 
     NSSearchFieldCell* search = this->search();
 
-    [search setMaximumRecents:0];
     if ([search searchMenuTemplate] != nil)
         [search setSearchMenuTemplate:nil];
 
@@ -1184,6 +1289,7 @@ void RenderThemeMac::adjustSearchFieldResultsButtonStyle(CSSStyleSelector* selec
     IntSize size = sizeForSystemFont(style, resultsButtonSizes());
     style->setWidth(Length(size.width() + resultsArrowWidth, Fixed));
     style->setHeight(Length(size.height(), Fixed));
+    style->setBoxShadow(0);
 }
 
 bool RenderThemeMac::paintSearchFieldResultsButton(RenderObject* o, const RenderObject::PaintInfo& paintInfo, const IntRect& r)
@@ -1193,7 +1299,8 @@ bool RenderThemeMac::paintSearchFieldResultsButton(RenderObject* o, const Render
 
     NSSearchFieldCell* search = this->search();
 
-    [search setMaximumRecents:1];
+    if (![search searchMenuTemplate])
+        [search setSearchMenuTemplate:searchMenuTemplate()];
 
     NSRect bounds = [search searchButtonRectForBounds:NSRect(input->renderer()->absoluteBoundingBoxRect())];
     [[search searchButtonCell] drawWithFrame:bounds inView:o->view()->frameView()->getDocumentView()];
@@ -1204,85 +1311,95 @@ bool RenderThemeMac::paintSearchFieldResultsButton(RenderObject* o, const Render
 NSButtonCell* RenderThemeMac::checkbox() const
 {
     if (!m_checkbox) {
-        m_checkbox = HardRetainWithNSRelease([[NSButtonCell alloc] init]);
-        [m_checkbox setButtonType:NSSwitchButton];
-        [m_checkbox setTitle:nil];
-        [m_checkbox setAllowsMixedState:YES];
+        m_checkbox.adoptNS([[NSButtonCell alloc] init]);
+        [m_checkbox.get() setButtonType:NSSwitchButton];
+        [m_checkbox.get() setTitle:nil];
+        [m_checkbox.get() setAllowsMixedState:YES];
+        [m_checkbox.get() setFocusRingType:NSFocusRingTypeExterior];
     }
     
-    return m_checkbox;
+    return m_checkbox.get();
 }
 
 NSButtonCell* RenderThemeMac::radio() const
 {
     if (!m_radio) {
-        m_radio = HardRetainWithNSRelease([[NSButtonCell alloc] init]);
-        [m_radio setButtonType:NSRadioButton];
-        [m_radio setTitle:nil];
+        m_radio.adoptNS([[NSButtonCell alloc] init]);
+        [m_radio.get() setButtonType:NSRadioButton];
+        [m_radio.get() setTitle:nil];
+        [m_radio.get() setFocusRingType:NSFocusRingTypeExterior];
     }
     
-    return m_radio;
+    return m_radio.get();
 }
 
 NSButtonCell* RenderThemeMac::button() const
 {
     if (!m_button) {
-        m_button = HardRetainWithNSRelease([[NSButtonCell alloc] init]);
-        [m_button setTitle:nil];
-        [m_button setButtonType:NSMomentaryPushInButton];
+        m_button.adoptNS([[NSButtonCell alloc] init]);
+        [m_button.get() setTitle:nil];
+        [m_button.get() setButtonType:NSMomentaryPushInButton];
     }
     
-    return m_button;
+    return m_button.get();
 }
 
 NSPopUpButtonCell* RenderThemeMac::popupButton() const
 {
     if (!m_popupButton) {
-        m_popupButton = HardRetainWithNSRelease([[NSPopUpButtonCell alloc] initTextCell:@"" pullsDown:NO]);
-        [m_popupButton setUsesItemFromMenu:NO];
+        m_popupButton.adoptNS([[NSPopUpButtonCell alloc] initTextCell:@"" pullsDown:NO]);
+        [m_popupButton.get() setUsesItemFromMenu:NO];
+        [m_popupButton.get() setFocusRingType:NSFocusRingTypeExterior];
     }
     
-    return m_popupButton;
+    return m_popupButton.get();
 }
 
 NSSearchFieldCell* RenderThemeMac::search() const
 {
     if (!m_search) {
-        m_search = HardRetainWithNSRelease([[NSSearchFieldCell alloc] initTextCell:@""]);
-        [m_search setBezelStyle:NSTextFieldRoundedBezel];
-        [m_search setBezeled:YES];
-        [m_search setEditable:YES];
-        
-        NSMenu* searchMenuTemplate = [[NSMenu alloc] initWithTitle:@""];
-        [m_search setSearchMenuTemplate:searchMenuTemplate];
-        [searchMenuTemplate release];
+        m_search.adoptNS([[NSSearchFieldCell alloc] initTextCell:@""]);
+        [m_search.get() setBezelStyle:NSTextFieldRoundedBezel];
+        [m_search.get() setBezeled:YES];
+        [m_search.get() setEditable:YES];
+        [m_search.get() setFocusRingType:NSFocusRingTypeExterior];
     }
 
-    return m_search;
+    return m_search.get();
+}
+
+NSMenu* RenderThemeMac::searchMenuTemplate() const
+{
+    if (!m_searchMenuTemplate)
+        m_searchMenuTemplate.adoptNS([[NSMenu alloc] initWithTitle:@""]);
+
+    return m_searchMenuTemplate.get();
 }
 
 NSSliderCell* RenderThemeMac::sliderThumbHorizontal() const
 {
     if (!m_sliderThumbHorizontal) {
-        m_sliderThumbHorizontal = HardRetainWithNSRelease([[NSSliderCell alloc] init]);
-        [m_sliderThumbHorizontal setTitle:nil];
-        [m_sliderThumbHorizontal setSliderType:NSLinearSlider];
-        [m_sliderThumbHorizontal setControlSize:NSSmallControlSize];
+        m_sliderThumbHorizontal.adoptNS([[NSSliderCell alloc] init]);
+        [m_sliderThumbHorizontal.get() setTitle:nil];
+        [m_sliderThumbHorizontal.get() setSliderType:NSLinearSlider];
+        [m_sliderThumbHorizontal.get() setControlSize:NSSmallControlSize];
+        [m_sliderThumbHorizontal.get() setFocusRingType:NSFocusRingTypeExterior];
     }
     
-    return m_sliderThumbHorizontal;
+    return m_sliderThumbHorizontal.get();
 }
 
 NSSliderCell* RenderThemeMac::sliderThumbVertical() const
 {
     if (!m_sliderThumbVertical) {
-        m_sliderThumbVertical = HardRetainWithNSRelease([[NSSliderCell alloc] init]);
-        [m_sliderThumbVertical setTitle:nil];
-        [m_sliderThumbVertical setSliderType:NSLinearSlider];
-        [m_sliderThumbVertical setControlSize:NSSmallControlSize];
+        m_sliderThumbVertical.adoptNS([[NSSliderCell alloc] init]);
+        [m_sliderThumbVertical.get() setTitle:nil];
+        [m_sliderThumbVertical.get() setSliderType:NSLinearSlider];
+        [m_sliderThumbVertical.get() setControlSize:NSSmallControlSize];
+        [m_sliderThumbVertical.get() setFocusRingType:NSFocusRingTypeExterior];
     }
     
-    return m_sliderThumbVertical;
+    return m_sliderThumbVertical.get();
 }
 
 Image* RenderThemeMac::resizeCornerImage() const

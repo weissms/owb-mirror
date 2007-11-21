@@ -28,9 +28,6 @@
 #ifndef BIXSLT_H_
 #define BIXSLT_H_
 
-//#include <libxml/xmlstring.h>
-//#include <libxml/HTMLparser.h>
-
 #include "BIXML.h"
 
 #include "BTXSLT.h"

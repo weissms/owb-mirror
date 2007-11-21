@@ -25,7 +25,7 @@
 
 #include "FastMalloc.h"
 #include "HashTraits.h"
-#include <assert.h>
+#include <wtf/Assertions.h>
 
 namespace WTF {
 
@@ -146,7 +146,7 @@ namespace WTF {
         const_iterator& operator++()
         {
             checkValidity();
-            assert(m_position != m_endPosition);
+            ASSERT(m_position != m_endPosition);
             ++m_position;
             skipEmptyBuckets();
             return *this;
@@ -170,7 +170,7 @@ namespace WTF {
         void checkValidity() const
         {
 #if CHECK_HASHTABLE_ITERATORS
-            assert(m_table);
+            ASSERT(m_table);
 #endif
         }
 
@@ -178,9 +178,9 @@ namespace WTF {
 #if CHECK_HASHTABLE_ITERATORS
         void checkValidity(const const_iterator& other) const
         {
-            assert(m_table);
-            assert(other.m_table);
-            assert(m_table == other.m_table);
+            ASSERT(m_table);
+            ASSERT(other.m_table);
+            ASSERT(m_table == other.m_table);
         }
 #else
         void checkValidity(const const_iterator&) const { }
@@ -384,7 +384,7 @@ namespace WTF {
     template<typename T, typename HashTranslator>
     inline typename HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::FullLookupType HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::lookup(const T& key)
     {
-        assert(m_table);
+        ASSERT(m_table);
 
         unsigned h = HashTranslator::hash(key);
         int sizeMask = m_tableSizeMask;
@@ -396,14 +396,20 @@ namespace WTF {
         int probeCount = 0;
 #endif
 
-        ValueType *table = m_table;
-        ValueType *entry;
-        ValueType *deletedEntry = 0;
-        while (!isEmptyBucket(*(entry = table + i))) {
+        ValueType* table = m_table;
+        ValueType* deletedEntry = 0;
+
+        while (1) {
+            ValueType* entry = table + i;
+
+            if (isEmptyBucket(*entry))
+                return makeLookupResult(deletedEntry ? deletedEntry : entry, false, h);
+            
             if (isDeletedBucket(*entry))
                 deletedEntry = entry;
             else if (HashTranslator::equal(Extractor::extract(*entry), key))
                 return makeLookupResult(entry, true, h);
+
 #if DUMP_HASHTABLE_STATS
             ++probeCount;
             HashTableStats::recordCollisionAtCount(probeCount);
@@ -412,10 +418,7 @@ namespace WTF {
                 k = 1 | (h % sizeMask);
             i = (i + k) & sizeMask;
         }
-
-        return makeLookupResult(deletedEntry ? deletedEntry : entry, false, h);
     }
-
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
     template<typename T, typename Extra, typename HashTranslator>
@@ -460,9 +463,9 @@ namespace WTF {
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
     inline void HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::reinsert(ValueType& entry)
     {
-        assert(m_table);
-        assert(!lookup(Extractor::extract(entry)).second);
-        assert(!isDeletedBucket(*(lookup(Extractor::extract(entry)).first)));
+        ASSERT(m_table);
+        ASSERT(!lookup(Extractor::extract(entry)).second);
+        ASSERT(!isDeletedBucket(*(lookup(Extractor::extract(entry)).first)));
 #if DUMP_HASHTABLE_STATS
         ++HashTableStats::numReinserts;
 #endif
@@ -471,7 +474,7 @@ namespace WTF {
     }
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
-    template <typename T, typename HashTranslator>
+    template <typename T, typename HashTranslator> 
     typename HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::iterator HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::find(const T& key)
     {
         if (!m_table)
@@ -484,7 +487,7 @@ namespace WTF {
     }
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
-    template <typename T, typename HashTranslator>
+    template <typename T, typename HashTranslator> 
     typename HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::const_iterator HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::find(const T& key) const
     {
         if (!m_table)
@@ -497,7 +500,7 @@ namespace WTF {
     }
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
-    template <typename T, typename HashTranslator>
+    template <typename T, typename HashTranslator> 
     bool HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::contains(const T& key) const
     {
         if (!m_table)
@@ -675,8 +678,8 @@ namespace WTF {
     void HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::checkTableConsistency() const
     {
         checkTableConsistencyExceptSize();
-        assert(!shouldExpand());
-        assert(!shouldShrink());
+        ASSERT(!shouldExpand());
+        ASSERT(!shouldShrink());
     }
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
@@ -698,15 +701,15 @@ namespace WTF {
             }
 
             const_iterator it = find(Extractor::extract(*entry));
-            assert(entry == it.m_position);
+            ASSERT(entry == it.m_position);
             ++count;
         }
 
-        assert(count == m_keyCount);
-        assert(deletedCount == m_deletedCount);
-        assert(m_tableSize >= m_minTableSize);
-        assert(m_tableSizeMask);
-        assert(m_tableSize == m_tableSizeMask + 1);
+        ASSERT(count == m_keyCount);
+        ASSERT(deletedCount == m_deletedCount);
+        ASSERT(m_tableSize >= m_minTableSize);
+        ASSERT(m_tableSizeMask);
+        ASSERT(m_tableSize == m_tableSizeMask + 1);
     }
 
 #endif // CHECK_HASHTABLE_CONSISTENCY
@@ -737,11 +740,11 @@ namespace WTF {
         if (!table) {
             it->m_next = 0;
         } else {
-            assert(table->m_iterators != it);
+            ASSERT(table->m_iterators != it);
             it->m_next = table->m_iterators;
             table->m_iterators = it;
             if (it->m_next) {
-                assert(!it->m_next->m_previous);
+                ASSERT(!it->m_next->m_previous);
                 it->m_next->m_previous = it;
             }
         }
@@ -755,19 +758,19 @@ namespace WTF {
 
         // Delete iterator from doubly-linked list of iterators.
         if (!it->m_table) {
-            assert(!it->m_next);
-            assert(!it->m_previous);
+            ASSERT(!it->m_next);
+            ASSERT(!it->m_previous);
         } else {
             if (it->m_next) {
-                assert(it->m_next->m_previous == it);
+                ASSERT(it->m_next->m_previous == it);
                 it->m_next->m_previous = it->m_previous;
             }
             if (it->m_previous) {
-                assert(it->m_table->m_iterators != it);
-                assert(it->m_previous->m_next == it);
+                ASSERT(it->m_table->m_iterators != it);
+                ASSERT(it->m_previous->m_next == it);
                 it->m_previous->m_next = it->m_next;
             } else {
-                assert(it->m_table->m_iterators == it);
+                ASSERT(it->m_table->m_iterators == it);
                 it->m_table->m_iterators = it->m_next;
             }
         }
@@ -837,7 +840,7 @@ namespace WTF {
     }
 
     // reference count manager
-
+    
     template<typename ValueTraits, typename ValueStorageTraits> struct NeedsRef {
         static const bool value = ValueTraits::needsRef && !ValueStorageTraits::needsRef;
     };
@@ -850,29 +853,29 @@ namespace WTF {
         static const bool value = firstNeedsRef || secondNeedsRef;
     };
 
-    template<bool needsRef, typename ValueTraits> struct RefCounterBase;
+    template<bool needsRef, typename ValueTraits, typename ValueStorageTraits> struct RefCounterBase;
 
-    template<typename ValueTraits>
-    struct RefCounterBase<false, ValueTraits> {
-        typedef typename ValueTraits::TraitType ValueType;
-        static void ref(const ValueType&) { }
-        static void deref(const ValueType&) { }
+    template<typename ValueTraits, typename ValueStorageTraits>
+    struct RefCounterBase<false, ValueTraits, ValueStorageTraits> {
+        typedef typename ValueStorageTraits::TraitType ValueStorageType;
+        static void ref(const ValueStorageType&) { }
+        static void deref(const ValueStorageType&) { }
     };
 
-    template<typename ValueTraits>
-    struct RefCounterBase<true, ValueTraits> {
-        typedef typename ValueTraits::TraitType ValueType;
-        static void ref(const ValueType& v) { ValueTraits::ref(*(const ValueType*)&v); }
-        static void deref(const ValueType& v) { ValueTraits::deref(*(const ValueType*)&v); }
+    template<typename ValueTraits, typename ValueStorageTraits>
+    struct RefCounterBase<true, ValueTraits, ValueStorageTraits> {
+        typedef typename ValueStorageTraits::TraitType ValueStorageType;
+        static void ref(const ValueStorageType& v) { ValueTraits::ref(v); }
+        static void deref(const ValueStorageType& v) { ValueTraits::deref(v); }
     };
 
     template<typename ValueTraits, typename ValueStorageTraits> struct RefCounter {
         typedef typename ValueTraits::TraitType ValueType;
         typedef typename ValueStorageTraits::TraitType ValueStorageType;
         static const bool needsRef = NeedsRef<ValueTraits, ValueStorageTraits>::value;
-        typedef RefCounterBase<needsRef, ValueTraits> Base;
-        static void ref(const ValueStorageType& v) { Base::ref(*(const ValueType*)&v); }
-        static void deref(const ValueStorageType& v) { Base::deref(*(const ValueType*)&v); }
+        typedef RefCounterBase<needsRef, ValueTraits, ValueStorageTraits> Base;
+        static void ref(const ValueStorageType& v) { Base::ref(v); }
+        static void deref(const ValueStorageType& v) { Base::deref(v); }
     };
 
     template<typename FirstTraits, typename SecondTraits, typename ValueStorageTraits>
@@ -884,25 +887,15 @@ namespace WTF {
         typedef typename ValueStorageTraits::TraitType ValueStorageType;
         static const bool firstNeedsRef = NeedsRef<FirstTraits, FirstStorageTraits>::value;
         static const bool secondNeedsRef = NeedsRef<SecondTraits, SecondStorageTraits>::value;
-        typedef RefCounterBase<firstNeedsRef, FirstTraits> FirstBase;
-        typedef RefCounterBase<secondNeedsRef, SecondTraits> SecondBase;
+        typedef RefCounterBase<firstNeedsRef, FirstTraits, FirstStorageTraits> FirstBase;
+        typedef RefCounterBase<secondNeedsRef, SecondTraits, SecondStorageTraits> SecondBase;
         static void ref(const ValueStorageType& v) {
-#ifdef __OWB__
-            FirstBase::ref(*(const FirstType*)(void*)&v.first);
-            SecondBase::ref(*(const SecondType*)(void*)&v.second);
-#else
-            FirstBase::ref(*(const FirstType*)&v.first);
-            SecondBase::ref(*(const SecondType*)&v.second);
-#endif
+            FirstBase::ref(v.first);
+            SecondBase::ref(v.second);
         }
         static void deref(const ValueStorageType& v) {
-#ifdef __OWB__
-            FirstBase::deref(*(const FirstType*)(void*)&v.first);
-            SecondBase::deref(*(const SecondType*)(void*)&v.second);
-#else
-            FirstBase::deref(*(const FirstType*)&v.first);
-            SecondBase::deref(*(const SecondType*)&v.second);
-#endif
+            FirstBase::deref(v.first);
+            SecondBase::deref(v.second);
         }
     };
 
@@ -947,6 +940,38 @@ namespace WTF {
         static void derefAll(HashTableType& table) { Base::derefAll(table); }
     };
 
+    // helper template for HashMap and HashSet.
+    template<bool needsRef, typename FromType, typename ToType, typename FromTraits> struct Assigner;
+    
+    template<typename FromType, typename ToType, typename FromTraits> struct Assigner<false, FromType, ToType, FromTraits> {
+        typedef union { 
+            FromType m_from; 
+            ToType m_to; 
+        } UnionType;
+
+        static void assign(const FromType& from, ToType& to) { reinterpret_cast<UnionType*>(&to)->m_from = from; }
+    };
+    
+    template<typename FromType, typename ToType, typename FromTraits> struct Assigner<true, FromType, ToType, FromTraits> {
+        static void assign(const FromType& from, ToType& to) 
+        { 
+            ToType oldTo = to; 
+            memcpy(&to, &from, sizeof(FromType)); 
+            FromTraits::ref(to);
+            FromTraits::deref(oldTo);
+        }
+    };
+    
+    template<typename FromType, typename FromTraits> struct Assigner<false, FromType, FromType, FromTraits> {
+        static void assign(const FromType& from, FromType& to) { to = from; }
+    };    
+    
+    template<typename FromType, typename FromTraits> struct Assigner<true, FromType, FromType, FromTraits> {
+        static void assign(const FromType& from, FromType& to) { to = from; }
+    };    
+
 } // namespace WTF
+
+#include "HashIterators.h"
 
 #endif // WTF_HashTable_h

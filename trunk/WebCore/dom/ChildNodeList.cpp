@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -30,50 +30,71 @@ using namespace WebCore;
 
 namespace WebCore {
 
-ChildNodeList::ChildNodeList( Node *n )
-    : NodeList(n)
+ChildNodeList::ChildNodeList(Node* n, NodeList::Caches* info)
+    : NodeList(n, info)
 {
 }
 
 unsigned ChildNodeList::length() const
 {
-    if (isLengthCacheValid)
-        return cachedLength;
+    if (m_caches->isLengthCacheValid)
+        return m_caches->cachedLength;
 
     unsigned len = 0;
     Node *n;
-    for(n = rootNode->firstChild(); n != 0; n = n->nextSibling())
+    for (n = m_rootNode->firstChild(); n != 0; n = n->nextSibling())
         len++;
 
-    cachedLength = len;
-    isLengthCacheValid = true;
+    m_caches->cachedLength = len;
+    m_caches->isLengthCacheValid = true;
 
     return len;
 }
 
-Node *ChildNodeList::item ( unsigned index ) const
+Node* ChildNodeList::item(unsigned index) const
 {
     unsigned int pos = 0;
-    Node *n = rootNode->firstChild();
+    Node* n = m_rootNode->firstChild();
 
-    if (isItemCacheValid) {
-        if (index == lastItemOffset) {
-            return lastItem;
-        } else if (index > lastItemOffset) {
-            n = lastItem;
-            pos = lastItemOffset;
+    if (m_caches->isItemCacheValid) {
+        if (index == m_caches->lastItemOffset)
+            return m_caches->lastItem;
+        
+        int diff = index - m_caches->lastItemOffset;
+        unsigned dist = abs(diff);
+        if (dist < index) {
+            n = m_caches->lastItem;
+            pos = m_caches->lastItemOffset;
         }
     }
 
-    while (n && pos < index) {
-        n = n->nextSibling();
-        pos++;
+    if (m_caches->isLengthCacheValid) {
+        if (index >= m_caches->cachedLength)
+            return 0;
+
+        int diff = index - pos;
+        unsigned dist = abs(diff);
+        if (dist > m_caches->cachedLength - 1 - index) {
+            n = m_rootNode->lastChild();
+            pos = m_caches->cachedLength - 1;
+        }
     }
 
+    if (pos <= index)
+        while (n && pos < index) {
+            n = n->nextSibling();
+            ++pos;
+        }
+    else
+        while (n && pos > index) {
+            n = n->previousSibling();
+            --pos;
+        }
+
     if (n) {
-        lastItem = n;
-        lastItemOffset = pos;
-        isItemCacheValid = true;
+        m_caches->lastItem = n;
+        m_caches->lastItemOffset = pos;
+        m_caches->isItemCacheValid = true;
         return n;
     }
 
@@ -82,7 +103,13 @@ Node *ChildNodeList::item ( unsigned index ) const
 
 bool ChildNodeList::nodeMatches(Node *testNode) const
 {
-    return testNode->parentNode() == rootNode;
+    return testNode->parentNode() == m_rootNode;
+}
+
+void ChildNodeList::rootNodeChildrenChanged()
+{
+    // For child node lists, the common cache is reset in Node::notifyLocalNodeListsChildrenChanged()
+    ASSERT(!m_ownsCaches);
 }
 
 }

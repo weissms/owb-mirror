@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
 */
 #ifndef HitTestResult_h
@@ -50,6 +50,8 @@ public:
     Element* URLElement() const { return m_innerURLElement.get(); }
     PlatformScrollbar* scrollbar() const { return m_scrollbar.get(); }
 
+    void setToNonShadowAncestor();
+
     void setInnerNode(Node*);
     void setInnerNonSharedNode(Node*);
     void setPoint(const IntPoint& p) { m_point = p; }
@@ -63,11 +65,11 @@ public:
     String spellingToolTip() const;
     String title() const;
     String altDisplayString() const;
+    String titleDisplayString() const;
     Image* image() const;
     IntRect imageRect() const;
     KURL absoluteImageURL() const;
     KURL absoluteLinkURL() const;
-    String titleDisplayString() const;
     String textContent() const;
     bool isLiveLink() const;
     bool isContentEditable() const;
@@ -81,6 +83,8 @@ private:
     RefPtr<Element> m_innerURLElement;
     RefPtr<PlatformScrollbar> m_scrollbar;
 };
+
+String displayString(const String&, const Node*);
 
 } // namespace WebCore
 

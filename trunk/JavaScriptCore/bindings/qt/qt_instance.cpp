@@ -30,12 +30,11 @@
 namespace KJS {
 namespace Bindings {
 
-QtInstance::QtInstance(QObject* o)
-    : Instance(),
+QtInstance::QtInstance(QObject* o, PassRefPtr<RootObject> rootObject)
+    : Instance(rootObject),
       _class(0),
       _object(o)
 {
-    setRootObject(0);
 }
 
 QtInstance::~QtInstance() 
@@ -43,9 +42,8 @@ QtInstance::~QtInstance()
 }
 
 QtInstance::QtInstance(const QtInstance& other)
-    : Instance(), _class(0), _object(other._object)
+    : Instance(other.rootObject()), _class(0), _object(other._object)
 {
-    setRootObject(other.rootObject());
 }
 
 QtInstance& QtInstance::operator=(const QtInstance& other)
@@ -81,15 +79,15 @@ bool QtInstance::implementsCall() const
     return true;
 }
 
-QVariant convertValueToQVariant(ExecState* exec, JSValue* value); 
+QVariant convertValueToQVariant(ExecState* exec, JSValue* value, QVariant::Type hint); 
 JSValue* convertQVariantToValue(ExecState* exec, const QVariant& variant);
     
 JSValue* QtInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const List& args)
 {
     // ### Should we support overloading methods?
-    ASSERT(methodList.length() == 1);
+    ASSERT(methodList.size() == 1);
 
-    QtMethod* method = static_cast<QtMethod*>(methodList.methodAt(0));
+    QtMethod* method = static_cast<QtMethod*>(methodList[0]);
 
     if (method->metaObject != _object->metaObject()) 
         return jsUndefined();
@@ -100,12 +98,38 @@ JSValue* QtInstance::invokeMethod(ExecState* exec, const MethodList& methodList,
         return jsUndefined();
 
     // only void methods work currently
-    if (args.size()) 
+    if (args.size() > 10) 
         return jsUndefined();
 
-    if (_object->qt_metacall(QMetaObject::InvokeMetaMethod, method->index, 0) >= 0) 
+    QVariant vargs[11];
+    void *qargs[11];
+
+    QVariant::Type returnType = (QVariant::Type)QMetaType::type(metaMethod.typeName());
+    if (!returnType && qstrlen(metaMethod.typeName())) {
+        qCritical("QtInstance::invokeMethod: Return type %s of method %s is not registered with QMetaType!", metaMethod.typeName(), metaMethod.signature());
+        return jsUndefined();
+    }
+    vargs[0] = QVariant(returnType);
+    qargs[0] = vargs[0].data();
+
+    for (int i = 0; i < args.size(); ++i) {
+        QVariant::Type type = (QVariant::Type) QMetaType::type(argTypes.at(i));
+        if (!type) {
+            qCritical("QtInstance::invokeMethod: Method %s has argument %s which is not registered with QMetaType!", metaMethod.signature(), argTypes.at(i).constData());
+            return jsUndefined();
+        }
+        vargs[i+1] = convertValueToQVariant(exec, args[i], type);
+        if (vargs[i+1].type() == QVariant::Invalid)
+            return jsUndefined();
+
+        qargs[i+1] = vargs[i+1].data();
+    }
+    if (_object->qt_metacall(QMetaObject::InvokeMetaMethod, method->index, qargs) >= 0) 
         return jsUndefined();
 
+
+    if (vargs[0].isValid())
+        return convertQVariantToValue(exec, vargs[0]);
     return jsNull();
 }
 
@@ -129,9 +153,13 @@ JSValue* QtInstance::defaultValue(JSType hint) const
 
 JSValue* QtInstance::stringValue() const
 {
-    char buf[1024];
-    snprintf(buf, sizeof(buf), "QObject %p (%s)", _object.operator->(), _object->metaObject()->className());
-    return jsString(buf);
+    QByteArray buf;
+    buf = "QObject ";
+    buf.append(QByteArray::number(quintptr(_object.operator->())));
+    buf.append(" (");
+    buf.append(_object->metaObject()->className());
+    buf.append(")");
+    return jsString(buf.constData());
 }
 
 JSValue* QtInstance::numberValue() const

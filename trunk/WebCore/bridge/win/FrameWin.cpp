@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,96 +26,171 @@
 #include "config.h"
 #include "FrameWin.h"
 
-#include "TextResourceDecoder.h"
+#include <winsock2.h>
+#include <windows.h>
+
+#include "AffineTransform.h"
+#include "FloatRect.h"
 #include "Document.h"
 #include "EditorClient.h"
 #include "FrameLoader.h"
 #include "FrameLoadRequest.h"
 #include "FramePrivate.h"
 #include "FrameView.h"
-#include "Settings.h"
-#include "PlatformKeyboardEvent.h"
+#include "HTMLIFrameElement.h"
+#include "HTMLNames.h"
+#include "HTMLTableCellElement.h"
+#include "KeyboardEvent.h"
+#include "NP_jsobject.h"
+#include "Page.h"
 #include "Plugin.h"
+#include "PluginDatabaseWin.h"
+#include "PluginViewWin.h"
+#include "RegularExpression.h"
 #include "RenderFrame.h"
+#include "RenderTableCell.h"
+#include "RenderView.h"
 #include "ResourceHandle.h"
-#include <windows.h>
+#include "TextResourceDecoder.h"
+#include "kjs_proxy.h"
+#include "kjs_window.h"
+#include "npruntime_impl.h"
+#include "runtime_root.h"
+#include "GraphicsContext.h"
+#include "Settings.h"
+
+#if PLATFORM(CG)
+#include <CoreGraphics/CoreGraphics.h>
+#endif
+
+using std::min;
+using namespace KJS::Bindings;
 
 namespace WebCore {
 
-FrameWin::FrameWin(Page* page, HTMLFrameOwnerElement* ownerElement, FrameWinClient* client, FrameLoaderClient* loaderClient)
-    : Frame(page, ownerElement, loaderClient)
-    , m_client(client)
+using namespace HTMLNames;
+
+void Frame::clearPlatformScriptObjects()
 {
-    Settings* settings = new Settings();
-    settings->setLoadsImagesAutomatically(true);
-    settings->setDefaultFixedFontSize(13);
-    settings->setDefaultFontSize(16);
-    settings->setSerifFontFamily("Times New Roman");
-    settings->setFixedFontFamily("Courier New");
-    settings->setSansSerifFontFamily("Arial");
-    settings->setStandardFontFamily("Times New Roman");
-    settings->setJavaScriptEnabled(true);
-    setSettings(settings);
 }
 
-FrameWin::~FrameWin()
+KJS::Bindings::Instance* Frame::createScriptInstanceForWidget(Widget* widget)
 {
-    setView(0);
-    loader()->clearRecordedFormValues();    
+    // FIXME: Ideally we'd have an isPluginView() here but we can't add that to the open source tree right now.
+    if (widget->isFrameView())
+        return 0;
+
+    return static_cast<PluginViewWin*>(widget)->bindingInstance();
 }
 
-void FrameWin::runJavaScriptAlert(String const& message)
-{
-    String text = message;
-    text.replace('\\', backslashAsCurrencySymbol());
-    UChar nullChar = 0;
-    text += String(&nullChar, 1);
-    MessageBox(view()->containingWindow(), text.characters(), L"JavaScript Alert", MB_OK);
-}
 
-bool FrameWin::runJavaScriptConfirm(String const& message)
+void computePageRectsForFrame(Frame* frame, const IntRect& printRect, float headerHeight, float footerHeight, float userScaleFactor,Vector<IntRect>& pages, int& outPageHeight)
 {
-    String text = message;
-    text.replace('\\', backslashAsCurrencySymbol());
-    UChar nullChar = 0;
-    text += String(&nullChar, 1);
-    return MessageBox(view()->containingWindow(), text.characters(), L"JavaScript Alert", MB_OKCANCEL) == IDOK;
-}
+    ASSERT(frame);
 
-// FIXME: This needs to be unified with the keyPress method on FrameMac
-bool FrameWin::keyPress(const PlatformKeyboardEvent& keyEvent)
-{
-    bool result;
-    // Check for cases where we are too early for events -- possible unmatched key up
-    // from pressing return in the location bar.
-    Document *doc = document();
-    if (!doc)
-        return false;
-    Node *node = doc->focusedNode();
-    if (!node) {
-        if (doc->isHTMLDocument())
-            node = doc->body();
-        else
-            node = doc->documentElement();
-        if (!node)
-            return false;
+    pages.clear();
+    outPageHeight = 0;
+
+    if (!frame->document() || !frame->view() || !frame->document()->renderer())
+        return;
+ 
+    RenderView* root = static_cast<RenderView *>(frame->document()->renderer());
+
+    if (!root) {
+        LOG_ERROR("document to be printed has no renderer");
+        return;
     }
 
-#ifdef MULTIPLE_FORM_SUBMISSION_PROTECTION
-    if (!keyEvent.isKeyUp())
-        loader()->resetMultipleFormSubmissionProtection();
-#endif
+    if (userScaleFactor <= 0) {
+        LOG_ERROR("userScaleFactor has bad value %.2f", userScaleFactor);
+        return;
+    }
+    
+    float ratio = (float)printRect.height() / (float)printRect.width();
+ 
+    float pageWidth  = (float) root->docWidth();
+    float pageHeight = pageWidth * ratio;
+    outPageHeight = (int) pageHeight;   // this is the height of the page adjusted by margins
+    pageHeight -= (headerHeight + footerHeight);
 
-    result = !EventTargetNodeCast(node)->dispatchKeyEvent(keyEvent);
+    if (pageHeight <= 0) {
+        LOG_ERROR("pageHeight has bad value %.2f", pageHeight);
+        return;
+    }
 
-    // FIXME: FrameMac has a keyDown/keyPress hack here which we are not copying.
+    float currPageHeight = pageHeight / userScaleFactor;
+    float docHeight      = root->layer()->height();
+    float docWidth       = root->layer()->width();
+    float currPageWidth  = pageWidth / userScaleFactor;
 
-    return result;
+    
+    // always return at least one page, since empty files should print a blank page
+    float printedPagesHeight = 0.0;
+    do {
+        float proposedBottom = min(docHeight, printedPagesHeight + pageHeight);
+        frame->adjustPageHeight(&proposedBottom, printedPagesHeight, proposedBottom, printedPagesHeight);
+        currPageHeight = max(1.0f, proposedBottom - printedPagesHeight);
+       
+        pages.append(IntRect(0,printedPagesHeight,currPageWidth,currPageHeight));
+        printedPagesHeight += currPageHeight;
+    } while (printedPagesHeight < docHeight);
 }
 
-FrameWinClient* FrameWin::client() const
+static void drawRectIntoContext(IntRect rect, FrameView* view, GraphicsContext* gc)
 {
-    return m_client;
+    IntSize offset = view->scrollOffset();
+    rect.move(-offset.width(), -offset.height());
+    rect = view->convertToContainingWindow(rect);
+
+    gc->concatCTM(AffineTransform().translate(-rect.x(), -rect.y()));
+
+    view->paint(gc, rect);
+}
+
+HBITMAP imageFromSelection(Frame* frame, bool forceBlackText)
+{
+    frame->setPaintRestriction(forceBlackText ? PaintRestrictionSelectionOnlyBlackText : PaintRestrictionSelectionOnly);
+    FloatRect fr = frame->selectionRect();
+    IntRect ir((int)fr.x(), (int)fr.y(),(int)fr.width(),(int)fr.height());
+
+    void* bits;
+    HDC hdc = CreateCompatibleDC(0);
+    int w = ir.width();
+    int h = ir.height();
+    BITMAPINFO bmp = { { sizeof(BITMAPINFOHEADER), w, h, 1, 32 } };
+
+    HBITMAP hbmp = CreateDIBSection(0, &bmp, DIB_RGB_COLORS, (void**)&bits, 0, 0);
+    HBITMAP hbmpOld = (HBITMAP)SelectObject(hdc, hbmp);
+    CGColorSpaceRef deviceRGB = CGColorSpaceCreateDeviceRGB();
+    CGContextRef context = CGBitmapContextCreate((void*)bits, w, h,
+        8, w * sizeof(RGBQUAD), deviceRGB, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
+    CGColorSpaceRelease(deviceRGB);
+    CGContextSaveGState(context);
+
+    GraphicsContext gc(context);
+
+    frame->document()->updateLayout();
+    drawRectIntoContext(ir, frame->view(), &gc);
+
+    CGContextRelease(context);
+    SelectObject(hdc, hbmpOld);
+    DeleteDC(hdc);
+
+    frame->setPaintRestriction(PaintRestrictionNone);
+
+    return hbmp;
+}
+
+DragImageRef Frame::dragImageForSelection()
+{    
+    if (selectionController()->isRange())
+        return imageFromSelection(this, false);
+
+    return 0;
+}
+
+void Frame::dashboardRegionsChanged()
+{
 }
 
 } // namespace WebCore

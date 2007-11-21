@@ -1,8 +1,7 @@
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2002 Harri Porten (porten@kde.org)
  *  Copyright (C) 2001 Peter Kelly (pmk@post.com)
- *  Copyright (C) 2004 Apple Computer, Inc.
+ *  Copyright (C) 2004, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -41,18 +40,12 @@
 #include "operations.h"
 #include "regexp_object.h"
 #include "string_object.h"
-#include <assert.h>
+#include <math.h>
+#include <stdio.h>
+#include <wtf/Assertions.h>
 #include <wtf/HashMap.h>
 #include <wtf/HashSet.h>
 #include <wtf/Vector.h>
-
-#ifdef __OWB__
-#include <BIMath.h>
-#else
-#include <math.h>
-#endif
-
-#include <stdio.h>
 
 namespace KJS {
 
@@ -62,9 +55,15 @@ namespace KJS {
 
 // ------------------------------ StringImp ------------------------------------
 
-JSValue *StringImp::toPrimitive(ExecState *, JSType) const
+JSValue* StringImp::toPrimitive(ExecState*, JSType) const
 {
-  return const_cast<StringImp *>(this);
+  return const_cast<StringImp*>(this);
+}
+
+bool StringImp::getPrimitiveNumber(ExecState*, double& number) const
+{
+    number = val.toDouble();
+    return false;
 }
 
 bool StringImp::toBoolean(ExecState *) const
@@ -82,16 +81,22 @@ UString StringImp::toString(ExecState *) const
   return val;
 }
 
-JSObject *StringImp::toObject(ExecState *exec) const
+JSObject* StringImp::toObject(ExecState *exec) const
 {
-    return new StringInstance(exec->lexicalInterpreter()->builtinStringPrototype(), val);
+    return new StringInstance(exec->lexicalInterpreter()->builtinStringPrototype(), const_cast<StringImp*>(this));
 }
 
 // ------------------------------ NumberImp ------------------------------------
 
-JSValue *NumberImp::toPrimitive(ExecState *, JSType) const
+JSValue* NumberImp::toPrimitive(ExecState*, JSType) const
 {
-  return const_cast<NumberImp *>(this);
+    return const_cast<NumberImp*>(this);
+}
+
+bool NumberImp::getPrimitiveNumber(ExecState*, double& number) const
+{
+    number = val;
+    return true;
 }
 
 bool NumberImp::toBoolean(ExecState *) const
@@ -118,12 +123,26 @@ JSObject *NumberImp::toObject(ExecState *exec) const
   return static_cast<JSObject *>(exec->lexicalInterpreter()->builtinNumber()->construct(exec,args));
 }
 
-// FIXME: We can optimize this to work like JSValue::getUInt32. I'm ignoring it for now
-// because it never shows up on profiles.
 bool NumberImp::getUInt32(uint32_t& uint32) const
 {
-  uint32 = (uint32_t)val;
-  return (double)uint32 == val;
+    uint32 = static_cast<uint32_t>(val);
+    return uint32 == val;
+}
+
+bool NumberImp::getTruncatedInt32(int32_t& int32) const
+{
+    if (!(val >= -2147483648.0 && val < 2147483648.0))
+        return false;
+    int32 = static_cast<int32_t>(val);
+    return true;
+}
+
+bool NumberImp::getTruncatedUInt32(uint32_t& uint32) const
+{
+    if (!(val >= 0.0 && val < 4294967296.0))
+        return false;
+    uint32 = static_cast<uint32_t>(val);
+    return true;
 }
 
 // --------------------------- GetterSetterImp ---------------------------------
@@ -137,33 +156,40 @@ void GetterSetterImp::mark()
         setter->mark();
 }
 
-JSValue *GetterSetterImp::toPrimitive(ExecState*, JSType) const
+JSValue* GetterSetterImp::toPrimitive(ExecState*, JSType) const
 {
-    assert(false);
+    ASSERT(false);
     return jsNull();
+}
+
+bool GetterSetterImp::getPrimitiveNumber(ExecState*, double& number) const
+{
+    ASSERT(false);
+    number = 0;
+    return true;
 }
 
 bool GetterSetterImp::toBoolean(ExecState*) const
 {
-    assert(false);
+    ASSERT(false);
     return false;
 }
 
 double GetterSetterImp::toNumber(ExecState *) const
 {
-    assert(false);
+    ASSERT(false);
     return 0.0;
 }
 
 UString GetterSetterImp::toString(ExecState *) const
 {
-    assert(false);
+    ASSERT(false);
     return UString::null();
 }
 
 JSObject *GetterSetterImp::toObject(ExecState *exec) const
 {
-    assert(false);
+    ASSERT(false);
     return jsNull()->toObject(exec);
 }
 

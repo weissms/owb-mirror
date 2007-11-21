@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,12 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGComponentTransferFunctionElement.h"
 
 #include "SVGFEComponentTransferElement.h"
@@ -32,13 +33,13 @@ namespace WebCore {
 
 SVGComponentTransferFunctionElement::SVGComponentTransferFunctionElement(const QualifiedName& tagName, Document* doc)
     : SVGElement(tagName, doc)
-    , m_type(0)
+    , m_type(SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN)
     , m_tableValues(new SVGNumberList)
-    , m_slope(0.0)
-    , m_intercept(0.0)
-    , m_amplitude(0.0)
-    , m_exponent(0.0)
-    , m_offset(0.0)
+    , m_slope(1.0f)
+    , m_intercept(0.0f)
+    , m_amplitude(1.0f)
+    , m_exponent(1.0f)
+    , m_offset(0.0f)
 {
 }
 
@@ -48,11 +49,11 @@ SVGComponentTransferFunctionElement::~SVGComponentTransferFunctionElement()
 
 ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, int, Enumeration, enumeration, Type, type, SVGNames::typeAttr.localName(), m_type)
 ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, SVGNumberList*, NumberList, numberList, TableValues, tableValues, SVGNames::tableValuesAttr.localName(), m_tableValues.get())
-ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, double, Number, number, Slope, slope, SVGNames::slopeAttr.localName(), m_slope)
-ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, double, Number, number, Intercept, intercept, SVGNames::interceptAttr.localName(), m_intercept)
-ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, double, Number, number, Amplitude, amplitude, SVGNames::amplitudeAttr.localName(), m_amplitude)
-ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, double, Number, number, Exponent, exponent, SVGNames::exponentAttr.localName(), m_exponent)
-ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, double, Number, number, Offset, offset, SVGNames::offsetAttr.localName(), m_offset)
+ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, float, Number, number, Slope, slope, SVGNames::slopeAttr.localName(), m_slope)
+ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, float, Number, number, Intercept, intercept, SVGNames::interceptAttr.localName(), m_intercept)
+ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, float, Number, number, Amplitude, amplitude, SVGNames::amplitudeAttr.localName(), m_amplitude)
+ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, float, Number, number, Exponent, exponent, SVGNames::exponentAttr.localName(), m_exponent)
+ANIMATED_PROPERTY_DEFINITIONS(SVGComponentTransferFunctionElement, float, Number, number, Offset, offset, SVGNames::offsetAttr.localName(), m_offset)
 
 void SVGComponentTransferFunctionElement::parseMappedAttribute(MappedAttribute* attr)
 {
@@ -73,15 +74,15 @@ void SVGComponentTransferFunctionElement::parseMappedAttribute(MappedAttribute* 
     else if (attr->name() == SVGNames::tableValuesAttr)
         tableValuesBaseValue()->parse(value);
     else if (attr->name() == SVGNames::slopeAttr)
-        setSlopeBaseValue(value.toDouble());
+        setSlopeBaseValue(value.toFloat());
     else if (attr->name() == SVGNames::interceptAttr)
-        setInterceptBaseValue(value.toDouble());
+        setInterceptBaseValue(value.toFloat());
     else if (attr->name() == SVGNames::amplitudeAttr)
-        setAmplitudeBaseValue(value.toDouble());
+        setAmplitudeBaseValue(value.toFloat());
     else if (attr->name() == SVGNames::exponentAttr)
-        setExponentBaseValue(value.toDouble());
+        setExponentBaseValue(value.toFloat());
     else if (attr->name() == SVGNames::offsetAttr)
-        setOffsetBaseValue(value.toDouble());
+        setOffsetBaseValue(value.toFloat());
     else
         SVGElement::parseMappedAttribute(attr);
 }
@@ -107,5 +108,5 @@ SVGComponentTransferFunction SVGComponentTransferFunctionElement::transferFuncti
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

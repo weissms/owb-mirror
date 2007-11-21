@@ -26,6 +26,7 @@
 #include "config.h"
 #include "InsertTextCommand.h"
 
+#include "CharacterNames.h"
 #include "CSSMutableStyleDeclaration.h"
 #include "CSSComputedStyleDeclaration.h"
 #include "Document.h"
@@ -57,29 +58,15 @@ Position InsertTextCommand::prepareForTextInsertion(const Position& p)
     // If an anchor was removed and the selection hasn't changed, we restore it.
     RefPtr<Node> anchor = document()->frame()->editor()->removedAnchor();
     if (anchor) {
-        insertNodeAt(anchor.get(), pos.node(), pos.offset());
+        insertNodeAt(anchor.get(), pos);
         document()->frame()->editor()->setRemovedAnchor(0);
         pos = Position(anchor.get(), 0);
     }
     // Prepare for text input by looking at the specified position.
     // It may be necessary to insert a text node to receive characters.
-    // FIXME: What is the rootEditable() check about?  Seems like it
-    // assumes that the content before (or after) pos.node() is editable
-    // (i.e. pos is at an editable/non-editable boundary).  That seems
-    // like a bad assumption.
     if (!pos.node()->isTextNode()) {
         RefPtr<Node> textNode = document()->createEditingTextNode("");
-
-        // Now insert the node in the right place
-        if (pos.node()->rootEditableElement() != NULL) {
-            insertNodeAt(textNode.get(), pos.node(), pos.offset());
-        } else if (pos.node()->caretMinOffset() == pos.offset()) {
-            insertNodeBefore(textNode.get(), pos.node());
-        } else if (pos.node()->caretMaxOffset() == pos.offset()) {
-            insertNodeAfter(textNode.get(), pos.node());
-        } else
-            ASSERT_NOT_REACHED();
-        
+        insertNodeAt(textNode.get(), pos);
         return Position(textNode.get(), 0);
     }
 
@@ -92,20 +79,35 @@ Position InsertTextCommand::prepareForTextInsertion(const Position& p)
     return pos;
 }
 
-void InsertTextCommand::input(const String &text, bool selectInsertedText)
+void InsertTextCommand::input(const String& originalText, bool selectInsertedText)
 {
-    assert(text.find('\n') == -1);
+    String text = originalText;
+    
+    ASSERT(text.find('\n') == -1);
 
     if (endingSelection().isNone())
         return;
+        
+    if (RenderObject* renderer = endingSelection().start().node()->renderer())
+        if (renderer->style()->collapseWhiteSpace())
+            // Turn all spaces into non breaking spaces, to make sure that they are treated
+            // literally, and aren't collapsed after insertion. They will be rebalanced 
+            // (turned into a sequence of regular and non breaking spaces) below.
+            text.replace(' ', noBreakSpace);
     
     // Delete the current selection.
+    // FIXME: This delete operation blows away the typing style.
     if (endingSelection().isRange())
         deleteSelection(false, true, true, false);
     
     // Insert the character at the leftmost candidate.
     Position startPosition = endingSelection().start().upstream();
+    // It is possible for the node that contains startPosition to contain only unrendered whitespace,
+    // and so deleteInsignificantText could remove it.  Save the position before the node in case that happens.
+    Position positionBeforeStartNode(positionBeforeNode(startPosition.node()));
     deleteInsignificantText(startPosition.upstream(), startPosition.downstream());
+    if (!startPosition.node()->inDocument())
+        startPosition = positionBeforeStartNode;
     if (!startPosition.isCandidate())
         startPosition = startPosition.downstream();
     
@@ -134,7 +136,7 @@ void InsertTextCommand::input(const String &text, bool selectInsertedText)
         // The insertion may require adjusting adjacent whitespace, if it is present.
         rebalanceWhitespaceAt(endPosition);
         // Rebalancing on both sides isn't necessary if we've inserted a space.
-        if (text != " ") 
+        if (originalText != " ") 
             rebalanceWhitespaceAt(startPosition);
             
         m_charactersAdded += text.length();
@@ -173,7 +175,7 @@ Position InsertTextCommand::insertTab(const Position& pos)
     
     // place it
     if (!node->isTextNode()) {
-        insertNodeAt(spanNode.get(), node, offset);
+        insertNodeAt(spanNode.get(), insertPos);
     } else {
         Text *textNode = static_cast<Text *>(node);
         if (offset >= textNode->length()) {

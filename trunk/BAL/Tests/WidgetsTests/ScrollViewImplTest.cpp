@@ -28,25 +28,78 @@
 #include <iostream>
 
 #include "config.h"
+#include "BALConfiguration.h"
+#include "BIGraphicsDevice.h"
+#include "BINativeImage.h"
+#include "BIWidget.h"
 #include "BTLogHelper.h"
 #include "TestManager/TestManager.h"
 #include "ScrollView.h"
 
-using BAL::BTScrollView;
+using namespace BAL;
 
 class ScrollViewImplTest {
 
 public:
 
-    static void creation()
-    {
-        log("start");
-        BTScrollView scrollView;
-        log(make_message("contentsX=%d contentsY=%d", scrollView.contentsX(), scrollView.contentsY()));
-        log(make_message("contentsWidth=%d contentsHeight=%d",
-            scrollView.contentsWidth(), scrollView.contentsHeight()));
-        log("end");
-    }
+static void creation()
+{
+    BTScrollView *scrollView = new BTScrollView;
+    TestManager::AssertTrue("scrollview creation", scrollView != NULL);
+    delete scrollView;
+    scrollView = NULL;
+}
+
+static void addChild()
+{
+    BTScrollView *scrollView = new BTScrollView;
+    BTWidget *widget = new BTWidget();
+    TestManager::AssertTrue("widget creation", widget != NULL);
+    scrollView->addChild(widget);
+    scrollView->removeChild(widget);
+    delete widget;
+    widget = NULL;
+    delete scrollView;
+    scrollView = NULL;
+}
+
+static void testBackingStore()
+{
+    BTScrollView *scrollView = new BTScrollView;
+    BIGraphicsDevice *device = getBIGraphicsDevice();
+    BINativeImage *img = device->createNativeImage(WebCore::IntSize());
+
+    scrollView->setBackingStore(img);
+    BINativeImage *image = scrollView->backingStore();
+    TestManager::AssertTrue("image is the same", img == image);
+
+    delete scrollView;
+    scrollView = NULL;
+    img = NULL;
+    deleteBIGraphicsDevice();
+    device = NULL;
+}
+
+static void testResize()
+{
+    BTScrollView *scrollView = new BTScrollView;
+    BIGraphicsDevice *device = getBIGraphicsDevice();
+    BINativeImage *img = device->createNativeImage(WebCore::IntSize());
+
+    scrollView->setBackingStore(img);
+    scrollView->resize(10, 10);
+    BINativeImage *image = scrollView->backingStore();
+    TestManager::AssertTrue("ScrollView is 10 width", scrollView->contentsWidth() == 10);
+    TestManager::AssertTrue("ScrollView is 10 height", scrollView->contentsHeight() == 10);
+    TestManager::AssertTrue("image is 10x10", image->size() == WebCore::IntSize(10, 10));
+
+
+    delete scrollView;
+    scrollView = NULL;
+    img = NULL;
+    deleteBIGraphicsDevice();
+    device = NULL;
+}
 
 private:
 
@@ -54,10 +107,16 @@ private:
 
 static TestNode gtestScrollViewCreation = { "testScrollViewCreation", "testScrollViewCreation",
   TestNode::AUTO, ScrollViewImplTest::creation, NULL };
+static TestNode gtestScrollViewAddWidget = { "testScrollViewAddWidget", "testScrollViewAddWidget", TestNode::AUTO, ScrollViewImplTest::addChild, NULL };
+static TestNode gtestScrollViewBackingStore = { "testScrollViewBackingStore", "testScrollViewBackingStore", TestNode::AUTO, ScrollViewImplTest::testBackingStore, NULL };
+static TestNode gtestScrollViewResize = { "testScrollViewResize", "testScrollViewResize", TestNode::AUTO, ScrollViewImplTest::testResize, NULL };
 
 TestNode* gScrollViewTestNodeList[] = {
-  &gtestScrollViewCreation,
-	NULL
+    &gtestScrollViewCreation,
+    &gtestScrollViewAddWidget,
+    &gtestScrollViewBackingStore,
+    &gtestScrollViewResize,
+    NULL
 };
 
 TestNode gTestSuiteScrollView = {
@@ -65,5 +124,5 @@ TestNode gTestSuiteScrollView = {
     "test scroll view",
     TestNode::TEST_SUITE,
     NULL, /* no function, it's a test suite */
-		gScrollViewTestNodeList 
+    gScrollViewTestNodeList 
 };  

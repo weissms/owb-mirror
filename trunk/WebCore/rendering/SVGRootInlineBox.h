@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2006 Oliver Hunt <ojh16@student.canterbury.ac.nz>
  *           (C) 2006 Apple Computer Inc.
+ *           (C) 2007 Nikolas Zimmermann <zimmermann@kde.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,19 +17,23 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #ifndef SVGRootInlineBox_h
 #define SVGRootInlineBox_h
 
-#ifdef SVG_SUPPORT
-
+#if ENABLE(SVG)
 #include "RootInlineBox.h"
+#include "SVGCharacterLayoutInfo.h"
 
 namespace WebCore {
+
+class InlineTextBox;
+class RenderSVGRoot;
+class SVGInlineTextBox;
 
 class SVGRootInlineBox : public RootInlineBox {
 public:
@@ -38,12 +43,47 @@ public:
     }
 
     virtual void paint(RenderObject::PaintInfo&, int tx, int ty);
+
     virtual int placeBoxesHorizontally(int x, int& leftPosition, int& rightPosition, bool& needsWordSpacing);
     virtual void verticallyAlignBoxes(int& heightOfBlock);
+
+    virtual void computePerCharacterLayoutInformation();
+
+    // Used by SVGInlineTextBox
+    const Vector<SVGTextChunk>& svgTextChunks() const;
+
+    void walkTextChunks(SVGTextChunkWalkerBase*, const SVGInlineTextBox* textBox = 0);
+
+private:
+    friend struct SVGRootInlineBoxPaintWalker;
+
+    void layoutInlineBoxes();
+    void layoutInlineBoxes(InlineFlowBox* start, Vector<SVGChar>::iterator& it, int& minX, int& maxX, int& minY, int& maxY);
+
+    void buildLayoutInformation(InlineFlowBox* start, SVGCharacterLayoutInfo&);
+    void buildLayoutInformationForTextBox(SVGCharacterLayoutInfo&, InlineTextBox*);
+
+    void buildTextChunks(Vector<SVGChar>&, Vector<SVGTextChunk>&, InlineFlowBox* start);
+    void buildTextChunks(Vector<SVGChar>&, InlineFlowBox* start, SVGTextChunkLayoutInfo&);
+    void layoutTextChunks();
+
+    SVGTextDecorationInfo retrievePaintServersForTextDecoration(RenderObject* start);
+
+private:
+    Vector<SVGChar> m_svgChars;
+    Vector<SVGTextChunk> m_svgTextChunks;
 };
+
+// Shared with SVGRenderTreeAsText / SVGInlineTextBox
+TextStyle svgTextStyleForInlineTextBox(RenderStyle* style, const InlineTextBox* textBox, float xPos);
+FloatPoint topLeftPositionOfCharacterRange(Vector<SVGChar>::iterator start, Vector<SVGChar>::iterator end);
+float cummulatedWidthOfInlineBoxCharacterRange(SVGInlineBoxCharacterRange& range);
+float cummulatedHeightOfInlineBoxCharacterRange(SVGInlineBoxCharacterRange& range);
+
+RenderSVGRoot* findSVGRootObject(RenderObject* start);
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 #endif // SVGRootInlineBox_h

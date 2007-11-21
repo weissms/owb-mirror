@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -55,29 +55,23 @@ ContainerNode::ContainerNode(Document* doc)
 {
 }
 
-void ContainerNode::removeAllChildren()
+void ContainerNode::addChildNodesToDeletionQueue(Node*& head, Node*& tail, ContainerNode* container)
 {
-    // Avoid deep recursion when destroying the node tree.
-    static bool alreadyInsideDestructor; 
-    bool topLevel = !alreadyInsideDestructor;
-    if (topLevel)
-        alreadyInsideDestructor = true;
-    
-    // List of nodes to be deleted.
-    static Node *head;
-    static Node *tail;
-    
     // We have to tell all children that their parent has died.
-    Node *n;
-    Node *next;
-
-    for (n = m_firstChild; n != 0; n = next ) {
+    Node* n;
+    Node* next;
+    for (n = container->firstChild(); n != 0; n = next) {
+        ASSERT(!n->m_deletionHasBegun);
+        
         next = n->nextSibling();
         n->setPreviousSibling(0);
         n->setNextSibling(0);
         n->setParent(0);
         
-        if ( !n->refCount() ) {
+        if (!n->refCount()) {
+#ifndef NDEBUG
+            n->m_deletionHasBegun = true;
+#endif
             // Add the node to the list of nodes to be deleted.
             // Reuse the nextSibling pointer for this purpose.
             if (tail)
@@ -88,23 +82,34 @@ void ContainerNode::removeAllChildren()
         } else if (n->inDocument())
             n->removedFromDocument();
     }
-    
-    // Only for the top level call, do the actual deleting.
-    if (topLevel) {
-        while ((n = head) != 0) {
-            next = n->nextSibling();
-            n->setNextSibling(0);
+    container->setFirstChild(0);
+    container->setLastChild(0);
+}
 
-            head = next;
-            if (next == 0)
-                tail = 0;
-            
-            delete n;
-        }
+void ContainerNode::removeAllChildren()
+{
+    // List of nodes to be deleted.
+    Node* head = 0;
+    Node* tail = 0;
+
+    addChildNodesToDeletionQueue(head, tail, this);
+
+    Node* n;
+    Node* next;
+    while ((n = head) != 0) {
+        ASSERT(n->m_deletionHasBegun);
+
+        next = n->nextSibling();
+        n->setNextSibling(0);
+
+        head = next;
+        if (next == 0)
+            tail = 0;
         
-        alreadyInsideDestructor = false;
-        m_firstChild = 0;
-        m_lastChild = 0;
+        if (n->hasChildNodes())
+            addChildNodesToDeletionQueue(head, tail, static_cast<ContainerNode*>(n));
+        
+        delete n;
     }
 }
 
@@ -114,12 +119,12 @@ ContainerNode::~ContainerNode()
 }
 
 
-Node* ContainerNode::firstChild() const
+Node* ContainerNode::virtualFirstChild() const
 {
     return m_firstChild;
 }
 
-Node* ContainerNode::lastChild() const
+Node* ContainerNode::virtualLastChild() const
 {
     return m_lastChild;
 }
@@ -184,20 +189,20 @@ bool ContainerNode::insertBefore(PassRefPtr<Node> newChild, Node* refChild, Exce
         if (child->parentNode())
             break;
 
-        assert(!child->nextSibling());
-        assert(!child->previousSibling());
+        ASSERT(!child->nextSibling());
+        ASSERT(!child->previousSibling());
 
         // Add child before "next".
         forbidEventDispatch();
         Node* prev = next->previousSibling();
-        assert(m_lastChild != prev);
+        ASSERT(m_lastChild != prev);
         next->setPreviousSibling(child.get());
         if (prev) {
-            assert(m_firstChild != next);
-            assert(prev->nextSibling() == next);
+            ASSERT(m_firstChild != next);
+            ASSERT(prev->nextSibling() == next);
             prev->setNextSibling(child.get());
         } else {
-            assert(m_firstChild == next);
+            ASSERT(m_firstChild == next);
             m_firstChild = child.get();
         }
         child->setParent(this);
@@ -209,7 +214,7 @@ bool ContainerNode::insertBefore(PassRefPtr<Node> newChild, Node* refChild, Exce
         dispatchChildInsertionEvents(child.get(), ec);
                 
         // Add child to the rendering tree.
-        if (attached() && !child->attached())
+        if (attached() && !child->attached() && child->parent() == this)
             child->attach();
 
         child = nextChild.release();
@@ -282,26 +287,26 @@ bool ContainerNode::replaceChild(PassRefPtr<Node> newChild, Node* oldChild, Exce
         if (child->parentNode())
             break;
 
-        assert(!child->nextSibling());
-        assert(!child->previousSibling());
+        ASSERT(!child->nextSibling());
+        ASSERT(!child->previousSibling());
 
         // Add child after "prev".
         forbidEventDispatch();
         Node* next;
         if (prev) {
             next = prev->nextSibling();
-            assert(m_firstChild != next);
+            ASSERT(m_firstChild != next);
             prev->setNextSibling(child.get());
         } else {
             next = m_firstChild;
             m_firstChild = child.get();
         }
         if (next) {
-            assert(m_lastChild != prev);
-            assert(next->previousSibling() == prev);
+            ASSERT(m_lastChild != prev);
+            ASSERT(next->previousSibling() == prev);
             next->setPreviousSibling(child.get());
         } else {
-            assert(m_lastChild == prev);
+            ASSERT(m_lastChild == prev);
             m_lastChild = child.get();
         }
         child->setParent(this);
@@ -313,7 +318,7 @@ bool ContainerNode::replaceChild(PassRefPtr<Node> newChild, Node* oldChild, Exce
         dispatchChildInsertionEvents(child.get(), ec);
                 
         // Add child to the rendering tree
-        if (attached() && !child->attached())
+        if (attached() && !child->attached() && child->parent() == this)
             child->attach();
 
         prev = child;
@@ -531,10 +536,9 @@ bool ContainerNode::appendChild(PassRefPtr<Node> newChild, ExceptionCode& ec)
 
         // Dispatch the mutation events
         dispatchChildInsertionEvents(child.get(), ec);
-                
+
         // Add child to the rendering tree
-        // ### should we detach() it first if it's already attached?
-        if (attached() && !child->attached())
+        if (attached() && !child->attached() && child->parent() == this)
             child->attach();
         
         child = nextChild.release();
@@ -571,6 +575,8 @@ ContainerNode* ContainerNode::addChild(PassRefPtr<Node> newChild)
 
     if (inDocument())
         newChild->insertedIntoDocument();
+    if (document()->hasNodeLists())
+        notifyNodeListsChildrenChanged();
     childrenChanged();
     
     if (newChild->isElementNode())
@@ -827,8 +833,11 @@ void ContainerNode::setActive(bool down, bool pause)
             double startTime = currentTime();
 #endif
 
+            // Ensure there are no pending changes
+            Document::updateDocumentsRendering();
             // Do an immediate repaint.
-            renderer()->repaint(true);
+            if (renderer())
+                renderer()->repaint(true);
             
             // FIXME: Find a substitute for usleep for Win32.
             // Better yet, come up with a way of doing this that doesn't use this sort of thing at all.            
@@ -878,10 +887,10 @@ Node *ContainerNode::childNode(unsigned index) const
 
 static void dispatchChildInsertionEvents(Node* child, ExceptionCode& ec)
 {
-    assert(!eventDispatchForbidden());
+    ASSERT(!eventDispatchForbidden());
 
     RefPtr<Node> c = child;
-    RefPtr<Document> doc = child->document();
+    DocPtr<Document> doc = child->document();
 
     if (c->parentNode() && c->parentNode()->inDocument())
         c->insertedIntoDocument();
@@ -915,7 +924,7 @@ static void dispatchChildInsertionEvents(Node* child, ExceptionCode& ec)
 static void dispatchChildRemovalEvents(Node* child, ExceptionCode& ec)
 {
     RefPtr<Node> c = child;
-    RefPtr<Document> doc = child->document();
+    DocPtr<Document> doc = child->document();
 
     // update auxiliary doc info (e.g. iterators) to note that node is being removed
     doc->notifyBeforeNodeRemoval(child); // ### use events instead

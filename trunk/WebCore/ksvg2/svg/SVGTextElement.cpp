@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,12 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+
+#if ENABLE(SVG)
 #include "SVGTextElement.h"
 
 #include "AffineTransform.h"
@@ -37,7 +38,7 @@ namespace WebCore {
 SVGTextElement::SVGTextElement(const QualifiedName& tagName, Document* doc)
     : SVGTextPositioningElement(tagName, doc)
     , SVGTransformable()
-    , m_transform(new SVGTransformList)
+    , m_transform(new SVGTransformList())
 {
 }
 
@@ -46,11 +47,6 @@ SVGTextElement::~SVGTextElement()
 }
 
 ANIMATED_PROPERTY_DEFINITIONS(SVGTextElement, SVGTransformList*, TransformList, transformList, Transform, transform, SVGNames::transformAttr.localName(), m_transform.get())
-
-AffineTransform SVGTextElement::localMatrix() const
-{
-    return m_localMatrix;
-}
 
 void SVGTextElement::parseMappedAttribute(MappedAttribute* attr)
 {
@@ -62,31 +58,13 @@ void SVGTextElement::parseMappedAttribute(MappedAttribute* attr)
 
         if (!SVGTransformable::parseTransformAttribute(localTransforms, attr->value()))
             localTransforms->clear(ec);
-        else
-            updateLocalTransform(localTransforms);
+        else {
+            setTransformBaseValue(localTransforms);
+            if (renderer())
+                renderer()->setNeedsLayout(true); // should be in setTransformBaseValue
+        }
     } else
         SVGTextPositioningElement::parseMappedAttribute(attr);
-}
-
-void SVGTextElement::updateLocalTransform(SVGTransformList* localTransforms)
-{
-    // Update cached local matrix
-    SVGTransform localTransform = localTransforms->concatenate();
-    if (localTransform.isValid()) {
-        m_localMatrix = localTransform.matrix();
-        if (renderer()) {
-            renderer()->setLocalTransform(m_localMatrix);
-            renderer()->setNeedsLayout(true);
-        }
-    }
-}
-
-void SVGTextElement::attach()
-{
-    SVGStyledElement::attach();
-
-    if (renderer() && !m_localMatrix.isIdentity())
-        renderer()->setLocalTransform(m_localMatrix);
 }
 
 SVGElement* SVGTextElement::nearestViewportElement() const
@@ -114,6 +92,11 @@ AffineTransform SVGTextElement::getCTM() const
     return SVGTransformable::getCTM(this);
 }
 
+AffineTransform SVGTextElement::animatedLocalTransform() const
+{
+    return transform()->concatenate().matrix();
+}
+
 RenderObject* SVGTextElement::createRenderer(RenderArena* arena, RenderStyle* style)
 {
     return new (arena) RenderSVGText(this);
@@ -122,13 +105,13 @@ RenderObject* SVGTextElement::createRenderer(RenderArena* arena, RenderStyle* st
 bool SVGTextElement::childShouldCreateRenderer(Node* child) const
 {
     if (child->isTextNode() || child->hasTagName(SVGNames::tspanTag) ||
-        child->hasTagName(SVGNames::trefTag))
+        child->hasTagName(SVGNames::trefTag) || child->hasTagName(SVGNames::aTag) || child->hasTagName(SVGNames::textPathTag))
         return true;
     return false;
 }
 
 }
 
-// vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
+// vim:ts=4:noet

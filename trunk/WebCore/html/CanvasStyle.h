@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef CanvasStyle_h
@@ -28,7 +28,7 @@
 
 #ifdef __OWB__
 #include "GraphicsContext.h"
-#endif
+#endif //__OWB__
 #include "PlatformString.h"
 
 namespace WebCore {
@@ -53,7 +53,9 @@ namespace WebCore {
         CanvasPattern* pattern() const { return m_pattern.get(); }
 
         // These do nothing for gradients or patterns.
+#if !PLATFORM(CAIRO)
         void applyFillColor(GraphicsContext*);
+#endif
         void applyStrokeColor(GraphicsContext*);
 
     private:

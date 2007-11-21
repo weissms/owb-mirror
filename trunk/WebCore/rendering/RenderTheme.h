@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -115,6 +115,8 @@ public:
     virtual Color inactiveListBoxSelectionBackgroundColor() const;
     virtual Color inactiveListBoxSelectionForegroundColor() const;
 
+    void platformColorsDidChange();
+
     // System fonts.
     virtual void systemFont(int propId, FontDescription&) const = 0;
 
@@ -130,6 +132,11 @@ public:
     bool isPressed(const RenderObject*) const;
     bool isHovered(const RenderObject*) const;
     bool isReadOnlyControl(const RenderObject*) const;
+    
+    virtual int popupInternalPaddingLeft(RenderStyle*) const { return 0; }
+    virtual int popupInternalPaddingRight(RenderStyle*) const { return 0; }
+    virtual int popupInternalPaddingTop(RenderStyle*) const { return 0; }
+    virtual int popupInternalPaddingBottom(RenderStyle*) const { return 0; }
 
 protected:
     // Methods for each appearance value.
@@ -177,6 +184,10 @@ protected:
 
     virtual void adjustSearchFieldResultsButtonStyle(CSSStyleSelector*, RenderStyle*, Element*) const;
     virtual bool paintSearchFieldResultsButton(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return true; }
+
+private:
+    mutable Color m_activeSelectionColor;
+    mutable Color m_inactiveSelectionColor;
 };
 
 // Function to obtain the theme.  This is implemented in your platform-specific theme implementation to hand

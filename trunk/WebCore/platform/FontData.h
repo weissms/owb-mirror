@@ -1,178 +1,164 @@
 /*
- * Copyright (C) 2007 Pleyo.  All rights reserved.
+ * This file is part of the internal font implementation.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Copyright (C) 2006 Apple Computer, Inc.
  *
- * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- * 2.  Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- * 3.  Neither the name of Pleyo nor the names of
- *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
  *
- * THIS SOFTWARE IS PROVIDED BY PLEYO AND ITS CONTRIBUTORS "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL PLEYO OR ITS CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; see the file COPYING.LIB.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ *
  */
 
-/**
- * @file  BIFontData.h
- *
- * Interface file for BIFontData.
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date$
- */
+#ifndef BTFontData_h
+#define BTFontData_h
 
-#ifndef BIFONTDATA_H
-#define BIFONTDATA_H
+#include "FontPlatformData.h"
+#include "GlyphPageTreeNode.h"
+#include "GlyphWidthMap.h"
+#include <wtf/Noncopyable.h>
 
-#include "BIInternationalization.h" //UChar
+#include <wtf/unicode/Unicode.h>
+
+#if PLATFORM(MAC)
+typedef struct OpaqueATSUStyle* ATSUStyle;
+#endif
+
+#if PLATFORM(WIN)
+#include <usp10.h>
+#endif
 
 namespace WebCore {
-    class FontDescription;
+
+class FontDescription;
+class FontPlatformData;
+class SharedBuffer;
+class WidthMap;
+
+#ifdef __OWB__
 }
+
+using WebCore::GlyphWidthMap;
 
 namespace BAL {
-    class GlyphMap;
+#endif //__OWB__
 
-/**
- * a Glyph is an ID representing a character in a font map.
- */
-    typedef unsigned short Glyph;
+enum Pitch { UnknownPitch, FixedPitch, VariablePitch };
 
-/**
- * FontData represents the metrics of a Font.
- * Vertical metrics are ascent, descent, lineSpacing, lineGap, xHeight
- * and horizontal metrics such as *WidthGlyph and Pitch.
- * It is linked with a GlyphMap of all needed characters for the font.
- * FontData manages the platform implementation of all Glyphs.
- *
- * @see Font
- */
-class BIFontData {
+class BTFontData : Noncopyable {
 public:
-    enum Pitch { UnknownPitch, FixedPitch, VariablePitch };
+	BTFontData(const FontPlatformData&, bool customFont = false, bool loading = false);
+    ~BTFontData();
 
-    /**
-     * Get the FontData for the small caps font.
-     * May be computed from the current font.
-     *
-     * @param[in] fontDescription
-     *
-     * @return BIFontData*
-     * @return 0
-     */
-    virtual BIFontData* smallCapsFontData(const WebCore::FontDescription& fontDescription) const = 0;
+public:
 
-    /**
-     * Vertical distance between baseline and top of the character.
-     *
-     * @return int
-     * @return 0
-     */
-    virtual int ascent() const = 0;
-    /**
-     * Vertical distance between baseline and bottom of the character.
-     *
-     * @return int
-     * @return 0
-     */
-    virtual int descent() const = 0;
-    /**
-     * TODO
-     *
-     * @return int
-     * @return 0
-     */
-    virtual int lineSpacing() const = 0;
-    /**
-     * TODO
-     *
-     * @return int
-     * @return 0
-     */
-    virtual int lineGap() const = 0;
-    /**
-     * TODO
-     *
-     * @return float
-     * @return 0
-     */
-    virtual float xHeight() const = 0;
+    const FontPlatformData& platformData() const { return m_font; }
 
-    /**
-     * Gets the pitch of the font.
-     *
-     * @return Pitch
-     * @return 0
-     */
-    virtual Pitch pitch() const = 0;
+    BTFontData* smallCapsFontData(const FontDescription& fontDescription) const;
 
-    /**
-     * Ask the GlyphWidthMap for a glyph width,
-     * or else returns platformWidthForGlyph.
-     *
-     * @return float the glyph's width
-     */
-    virtual float widthForGlyph(Glyph) const = 0;
-    /**
-     * Ask the font engine for a glyph width.
-     *
-     * @param[in] Glyph
-     *
-     * @return float the glyph's width
-     */
-    virtual float platformWidthForGlyph(Glyph) const = 0;
+    // vertical metrics
+    int ascent() const { return m_ascent; }
+    int descent() const { return m_descent; }
+    int lineSpacing() const { return m_lineSpacing; }
+    int lineGap() const { return m_lineGap; }
+    float xHeight() const { return m_xHeight; }
+    unsigned unitsPerEm() const { return m_unitsPerEm; }
 
-    /**
-     * Returns true if all characters are in the GlyphMap
-     *
-     * @param[in] characters to be found
-     * @param[in] length of the characters' string
-     *
-     * @return bool
-     */
-    virtual bool containsCharacters(const UChar* characters, int length) const = 0;
+    float widthForGlyph(Glyph) const;
+    float platformWidthForGlyph(Glyph) const;
 
-    /**
-     * Find if font is mono spaced or variable spaced.
-     *
-     */
-    virtual void determinePitch() = 0;
+    bool containsCharacters(const UChar* characters, int length) const;
 
-    // we should own a GlyphMap
-    virtual GlyphMap& getGlyphMap() const = 0;
+    void determinePitch();
+    Pitch pitch() const { return m_treatAsFixedPitch ? FixedPitch : VariablePitch; }
 
-    virtual float adjustedWidthForGlyph(Glyph glyph) const = 0;
-    /**
-     * Maps a Unicode char to a glyph index.
-     * This function uses information from several possible underlying encoding
-     * tables to work around broken fonts.  As a result, this function isn't
-     * designed to be used in performance sensitive areas; results from this
-     * function are intended to be cached by higher level functions.
-     */
-    // needed for GlyphMapGdk
-    virtual Glyph getGlyphIndex(UChar c) const = 0;
+    bool isCustomFont() const { return m_isCustomFont; }
+    bool isLoading() const { return m_isLoading; }
 
-    // mandatory
-    virtual ~BIFontData() {};
+    const GlyphData& missingGlyphData() const { return m_missingGlyphData; }
+
+#if PLATFORM(MAC)
+    NSFont* getNSFont() const { return m_font.font(); }
+    void checkShapesArabic() const;
+    bool shapesArabic() const
+    {
+        if (!m_checkedShapesArabic)
+            checkShapesArabic();
+        return m_shapesArabic;
+    }
+#endif
+
+#if PLATFORM(WIN)
+    bool isSystemFont() const { return m_isSystemFont; }
+    SCRIPT_FONTPROPERTIES* scriptFontProperties() const;
+    SCRIPT_CACHE* scriptCache() const { return &m_scriptCache; }
+#endif
+
+#if PLATFORM(GTK)
+    void setFont(cairo_t*) const;
+#endif
+
+private:
+    void platformInit();
+    void platformDestroy();
+    
+    void commonInit();
+
+public:
+    int m_ascent;
+    int m_descent;
+    int m_lineSpacing;
+    int m_lineGap;
+    float m_xHeight;
+	unsigned m_unitsPerEm;
+
+    FontPlatformData m_font;
+
+    mutable GlyphWidthMap m_glyphToWidthMap;
+
+    bool m_treatAsFixedPitch;
+
+	bool m_isCustomFont;  // Whether or not we are custom font loaded via @font-face
+	bool m_isLoading; // Whether or not this custom font is still in the act of loading.
+
+    Glyph m_spaceGlyph;
+    float m_spaceWidth;
+    float m_adjustedSpaceWidth;
+
+    GlyphData m_missingGlyphData;
+
+    mutable BTFontData* m_smallCapsFontData;
+
+#if PLATFORM(CG)
+    float m_syntheticBoldOffset;
+#endif
+
+#if PLATFORM(MAC)
+    void* m_styleGroup;
+    mutable ATSUStyle m_ATSUStyle;
+    mutable bool m_ATSUStyleInitialized;
+    mutable bool m_ATSUMirrors;
+    mutable bool m_checkedShapesArabic;
+    mutable bool m_shapesArabic;
+#endif
+
+#if PLATFORM(WIN)
+    bool m_isSystemFont;
+    mutable SCRIPT_CACHE m_scriptCache;
+    mutable SCRIPT_FONTPROPERTIES* m_scriptFontProperties;
+#endif
 };
 
-}
-#endif // BIFONTDATA_H
+} // namespace WebCore
 
-
+#endif // BTFontData_h

@@ -21,8 +21,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -55,7 +55,7 @@ void RenderTableCol::updateFromElement()
     } else
         m_span = !(style() && style()->display() == TABLE_COLUMN_GROUP);
     if (m_span != oldSpan && style() && parent())
-        setNeedsLayoutAndMinMaxRecalc();
+        setNeedsLayoutAndPrefWidthsRecalc();
 }
 
 bool RenderTableCol::isChildAllowed(RenderObject* child, RenderStyle* style) const
@@ -70,7 +70,7 @@ bool RenderTableCol::canHaveChildren() const
     return style()->display() == TABLE_COLUMN_GROUP;
 }
 
-IntRect RenderTableCol::getAbsoluteRepaintRect()
+IntRect RenderTableCol::absoluteClippedOverflowRect()
 {
     // For now, just repaint the whole table.
     // FIXME: Find a better way to do this, e.g., need to repaint all the cells that we
@@ -79,7 +79,7 @@ IntRect RenderTableCol::getAbsoluteRepaintRect()
     if (table && !table->isTable())
         table = table->parent();
     if (table && table->isTable())
-        return table->getAbsoluteRepaintRect();
+        return table->absoluteClippedOverflowRect();
 
     return IntRect();
 }

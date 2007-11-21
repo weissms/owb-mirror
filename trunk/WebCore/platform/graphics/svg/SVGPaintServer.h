@@ -26,7 +26,7 @@
 #ifndef SVGPaintServer_h
 #define SVGPaintServer_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGResource.h"
 
@@ -37,9 +37,15 @@
 #if PLATFORM(QT)
 class QPen;
 #endif
-    
+
+#if PLATFORM(CG)
+    typedef Vector<CGFloat> DashArray;
+#else
+    typedef Vector<float> DashArray;
+#endif
+
 namespace WebCore {
-    
+
     enum SVGPaintServerType {
         // Painting mode
         SolidPaintServer = 0,
@@ -56,7 +62,6 @@ namespace WebCore {
 
     class GraphicsContext;
     class RenderObject;
-    class RenderPath;
     class RenderStyle;
 
     class SVGPaintServer : public SVGResource {
@@ -64,24 +69,27 @@ namespace WebCore {
         SVGPaintServer();
         virtual ~SVGPaintServer();
 
-        virtual bool isPaintServer() const { return true; }
+        virtual SVGResourceType resourceType() const { return PaintServerResourceType; }
 
         virtual SVGPaintServerType type() const = 0;
         virtual TextStream& externalRepresentation(TextStream&) const = 0;
 
         // To be implemented in platform specific code.
-        virtual void draw(GraphicsContext*&, const RenderPath*, SVGPaintTargetType) const;
+        virtual void draw(GraphicsContext*&, const RenderObject*, SVGPaintTargetType) const;
         virtual void teardown(GraphicsContext*&, const RenderObject*, SVGPaintTargetType, bool isPaintingText = false) const;
-        virtual void renderPath(GraphicsContext*&, const RenderPath*, SVGPaintTargetType) const;
+        virtual void renderPath(GraphicsContext*&, const RenderObject*, SVGPaintTargetType) const;
 
         virtual bool setup(GraphicsContext*&, const RenderObject*, SVGPaintTargetType, bool isPaintingText = false) const = 0;
 
+        static SVGPaintServer* strokePaintServer(const RenderStyle*, const RenderObject*);
+        static SVGPaintServer* fillPaintServer(const RenderStyle*, const RenderObject*);
+
     protected:
 #if PLATFORM(CG)
-        void strokePath(CGContextRef, const RenderPath*) const;
-        void clipToStrokePath(CGContextRef, const RenderPath*) const;
-        void fillPath(CGContextRef, const RenderPath*) const;
-        void clipToFillPath(CGContextRef, const RenderPath*) const;
+        void strokePath(CGContextRef, const RenderObject*) const;
+        void clipToStrokePath(CGContextRef, const RenderObject*) const;
+        void fillPath(CGContextRef, const RenderObject*) const;
+        void clipToFillPath(CGContextRef, const RenderObject*) const;
 #endif
 
 #if PLATFORM(QT)
@@ -93,6 +101,7 @@ namespace WebCore {
 
     SVGPaintServer* getPaintServerById(Document*, const AtomicString&);
 
+    DashArray dashArrayFromRenderingStyle(const RenderStyle* style);
 } // namespace WebCore
 
 #endif

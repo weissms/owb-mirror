@@ -27,10 +27,10 @@
 #ifndef XPathPath_h
 #define XPathPath_h
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "XPathExpressionNode.h"
-#include "XPathUtil.h"
+#include "XPathNodeSet.h"
 
 int xpathyyparse(void*);
 
@@ -46,9 +46,9 @@ namespace WebCore {
             Filter(Expression*, const Vector<Predicate*>& = Vector<Predicate*>());
             virtual ~Filter();
 
-        private:
-            virtual Value doEvaluate() const;
+            virtual Value evaluate() const;
 
+        private:
             Expression* m_expr;
             Vector<Predicate*> m_predicates;
         };
@@ -57,19 +57,19 @@ namespace WebCore {
         public:
             LocationPath();
             virtual ~LocationPath();
+            void setAbsolute(bool value) { m_absolute = value; }
 
-            using Expression::evaluate;
-            Value evaluate(const NodeVector& startNodes) const;
+            virtual Value evaluate() const;
+            void evaluate(NodeSet& nodes) const; // nodes is an input/output parameter
 
-            void optimize();
+            void appendStep(Step* step);
+            void insertFirstStep(Step* step);
 
         private:
-            virtual Value doEvaluate() const;
+            void optimizeStepPair(unsigned index);
 
             Vector<Step*> m_steps;
             bool m_absolute;
-
-            friend int ::xpathyyparse(void*);
         };
 
         class Path : public Expression
@@ -78,9 +78,9 @@ namespace WebCore {
             Path(Filter*, LocationPath*);
             virtual ~Path();
 
-        private:
-            virtual Value doEvaluate() const;
+            virtual Value evaluate() const;
 
+        private:
             Filter* m_filter;
             LocationPath* m_path;
         };
@@ -88,6 +88,6 @@ namespace WebCore {
     }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 
 #endif // XPath_Path_H

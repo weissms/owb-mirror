@@ -21,7 +21,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef ImageSource_h
@@ -53,50 +53,53 @@ typedef struct _cairo_surface cairo_surface_t;
 namespace WebCore {
 
 class IntSize;
+class SharedBuffer;
 
 #if PLATFORM(CG)
 typedef CGImageSourceRef NativeImageSourcePtr;
 typedef CGImageRef NativeImagePtr;
-typedef CFDataRef NativeBytePtr;
 #elif PLATFORM(QT)
 class ImageDecoderQt;
 typedef ImageDecoderQt* NativeImageSourcePtr;
-typedef const Vector<char>* NativeBytePtr;
 typedef QPixmap* NativeImagePtr;
-#elif PLATFORM(CAIRO)
-class ImageDecoder;
-typedef ImageDecoder* NativeImageSourcePtr;
-typedef const Vector<char>* NativeBytePtr;
-typedef cairo_surface_t* NativeImagePtr;
 #elif defined(__OWB__)
 typedef BAL::BIImageDecoder* NativeImageSourcePtr;
 typedef const Vector<char>* NativeBytePtr;
 typedef BAL::BINativeImage* NativeImagePtr;
+#else
+class ImageDecoder;
+typedef ImageDecoder* NativeImageSourcePtr;
+typedef cairo_surface_t* NativeImagePtr;
 #endif
 
-#ifndef __OWB__ // moved to ImageAnimationObserver.h
+#ifndef __OWB__ // moved to ImageObserver.h
 const int cAnimationLoopOnce = -1;
 const int cAnimationNone = -2;
-#endif
+#endif //__OWB__
 
 class ImageSource : Noncopyable {
 public:
     ImageSource();
     ~ImageSource();
 
-    bool initialized() const;
+    void clear();
 
-    void setData(NativeBytePtr, bool allDataReceived);
+    bool initialized() const;
+    
+    void setData(SharedBuffer* data, bool allDataReceived);
 
     bool isSizeAvailable();
     IntSize size() const;
-
+    
     int repetitionCount();
-
+    
     size_t frameCount() const;
+    
     NativeImagePtr createFrameAtIndex(size_t);
+    
     float frameDurationAtIndex(size_t);
     bool frameHasAlphaAtIndex(size_t); // Whether or not the frame actually used any alpha.
+    bool frameIsCompleteAtIndex(size_t); // Whether or not the frame is completely decoded.
 
 private:
     NativeImageSourcePtr m_decoder;

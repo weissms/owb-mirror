@@ -77,6 +77,7 @@ class TestManager
 {
 public:
   static TestManager& GetInstance();
+  static void deleteInstance();
   
   static int AssertTrue( const char* aMessage, int aAssert );
   static int AddOk();

@@ -16,37 +16,46 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "RenderSVGTSpan.h"
-#include "GraphicsContext.h"
-#include "KCanvasRenderingStyle.h"
+
+#include "FloatRect.h"
+#include "SVGInlineTextBox.h"
 #include "SVGRootInlineBox.h"
-#include "SVGInlineFlowBox.h"
-#include "AffineTransform.h"
-#include "SVGTextPositioningElement.h"
-#include "SVGLengthList.h"
 
 namespace WebCore {
 
-RenderSVGTSpan::RenderSVGTSpan(Node* n) : RenderSVGInline(n)
+RenderSVGTSpan::RenderSVGTSpan(Node* n)
+    : RenderSVGInline(n)
 {
 }
 
-void RenderSVGTSpan::absoluteRects(Vector<IntRect>& rects, int tx, int ty)
+void RenderSVGTSpan::absoluteRects(Vector<IntRect>& rects, int, int, bool)
 {
-    InlineFlowBox* initFlow = firstLineBox();
-    FloatRect bounds(tx + initFlow->xPos(), ty + initFlow->yPos(), width(), height());
-    rects.append(enclosingIntRect(absoluteTransform().mapRect(bounds)));
+    InlineRunBox* firstBox = firstLineBox();
+
+    SVGRootInlineBox* rootBox = firstBox ? static_cast<SVGInlineTextBox*>(firstBox)->svgRootInlineBox() : 0;
+    RenderObject* object = rootBox ? rootBox->object() : 0;
+
+    if (!object)
+        return;
+
+    int xRef = object->xPos() + xPos();
+    int yRef = object->yPos() + yPos();
+ 
+    for (InlineRunBox* curr = firstBox; curr; curr = curr->nextLineBox()) {
+        FloatRect rect(xRef + curr->xPos(), yRef + curr->yPos(), curr->width(), curr->height());
+        rects.append(enclosingIntRect(absoluteTransform().mapRect(rect)));
+    }
 }
 
-
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

@@ -5,6 +5,7 @@
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
  * Copyright (C) 2003 Apple Computer, Inc.
+ *           (C) 2007 Rob Buis (buis@kde.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -18,8 +19,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLStyleElement.h"
@@ -33,6 +34,8 @@ using namespace HTMLNames;
 
 HTMLStyleElement::HTMLStyleElement(Document* doc)
     : HTMLElement(styleTag, doc)
+    , m_loading(false)
+    , m_createdByParser(false)
 {
 }
 
@@ -47,10 +50,18 @@ void HTMLStyleElement::parseMappedAttribute(MappedAttribute *attr)
         HTMLElement::parseMappedAttribute(attr);
 }
 
+void HTMLStyleElement::finishedParsing()
+{
+    StyleElement::process(this);
+    HTMLElement::finishedParsing();
+}
+
 void HTMLStyleElement::insertedIntoDocument()
 {
     HTMLElement::insertedIntoDocument();
-    StyleElement::insertedIntoDocument(document());
+
+    if (!m_createdByParser)
+        StyleElement::insertedIntoDocument(document(), this);
 }
 
 void HTMLStyleElement::removedFromDocument()
@@ -61,7 +72,12 @@ void HTMLStyleElement::removedFromDocument()
 
 void HTMLStyleElement::childrenChanged()
 {
-    StyleElement::childrenChanged(this);
+    StyleElement::process(this);
+}
+
+StyleSheet* HTMLStyleElement::sheet()
+{
+    return StyleElement::sheet(this);
 }
 
 bool HTMLStyleElement::isLoading() const
@@ -76,7 +92,7 @@ bool HTMLStyleElement::isLoading() const
 bool HTMLStyleElement::sheetLoaded()
 {
     if (!isLoading()) {
-        document()->stylesheetLoaded();
+        document()->removePendingSheet();
         return true;
     }
     return false;

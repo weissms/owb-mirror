@@ -30,6 +30,7 @@
 #include "Chrome.h"
 #include "Document.h"
 #include "Editor.h"
+#include "EditorClient.h"
 #include "Element.h"
 #include "Event.h"
 #include "EventHandler.h"
@@ -38,6 +39,7 @@
 #include "FrameView.h"
 #include "FrameTree.h"
 #include "HTMLFrameOwnerElement.h"
+#include "HTMLNames.h"
 #include "KeyboardEvent.h"
 #include "Page.h"
 #include "Range.h"
@@ -50,6 +52,7 @@
 namespace WebCore {
 
 using namespace EventNames;
+using namespace HTMLNames;
 
 FocusController::FocusController(Page* page)
     : m_page(page)
@@ -107,12 +110,17 @@ static Node* deepFocusableNode(FocusDirection direction, Node* node, KeyboardEve
     return node;
 }
 
+bool FocusController::setInitialFocus(FocusDirection direction, KeyboardEvent* event)
+{
+    return advanceFocus(direction, event, true);
+}
+
 bool FocusController::advanceFocus(KeyboardEvent* event)
 {
     return advanceFocus((event && event->shiftKey()) ? FocusDirectionBackward : FocusDirectionForward, event);
 }
 
-bool FocusController::advanceFocus(FocusDirection direction, KeyboardEvent* event)
+bool FocusController::advanceFocus(FocusDirection direction, KeyboardEvent* event, bool initialFocus)
 {
     Frame* frame = focusedOrMainFrame();
     ASSERT(frame);
@@ -149,7 +157,7 @@ bool FocusController::advanceFocus(FocusDirection direction, KeyboardEvent* even
 
     if (!node) {
         // We didn't find a node to focus, so we should try to pass focus to Chrome.
-        if (m_page->chrome()->canTakeFocus(direction)) {
+        if (!initialFocus && m_page->chrome()->canTakeFocus(direction)) {
             document->setFocusedNode(0);
             setFocusedFrame(0);
             m_page->chrome()->takeFocus(direction);
@@ -203,26 +211,78 @@ bool FocusController::advanceFocus(FocusDirection direction, KeyboardEvent* even
     if (newDocument)
         setFocusedFrame(newDocument->frame());
 
-    static_cast<Element*>(node)->focus();
+    static_cast<Element*>(node)->focus(false);
     return true;
 }
 
-bool FocusController::setFocusedNode(Node* node)
+static bool relinquishesEditingFocus(Node *node)
+{
+    ASSERT(node);
+    ASSERT(node->isContentEditable());
+
+    Node* root = node->rootEditableElement();
+    Frame* frame = node->document()->frame();
+    if (!frame || !root)
+        return false;
+
+    return frame->editor()->shouldEndEditing(rangeOfContents(root).get());
+}
+
+static void clearSelectionIfNeeded(Frame* oldFocusedFrame, Frame* newFocusedFrame, Node* newFocusedNode)
+{
+    if (!oldFocusedFrame || !newFocusedFrame)
+        return;
+        
+    if (oldFocusedFrame->document() != newFocusedFrame->document())
+        return;
+    
+    SelectionController* s = oldFocusedFrame->selectionController();
+    if (s->isNone())
+        return;
+    
+    Node* selectionStartNode = s->selection().start().node();
+    if (selectionStartNode == newFocusedNode || selectionStartNode->isDescendantOf(newFocusedNode) || selectionStartNode->shadowAncestorNode() == newFocusedNode)
+        return;
+        
+    if (Node* mousePressNode = newFocusedFrame->eventHandler()->mousePressNode())
+        if (mousePressNode->renderer() && !mousePressNode->canStartSelection())
+            if (Node* root = s->rootEditableElement())
+                if (Node* shadowAncestorNode = root->shadowAncestorNode())
+                    // Don't do this for textareas and text fields, when they lose focus their selections should be cleared
+                    // and then restored when they regain focus, to match other browsers.
+                    if (!shadowAncestorNode->hasTagName(inputTag) && !shadowAncestorNode->hasTagName(textareaTag))
+                        return;
+    
+    s->clear();
+}
+
+bool FocusController::setFocusedNode(Node* node, PassRefPtr<Frame> newFocusedFrame)
 {
     RefPtr<Frame> oldFocusedFrame = focusedFrame();
     RefPtr<Document> oldDocument = oldFocusedFrame ? oldFocusedFrame->document() : 0;
     
+    Node* oldFocusedNode = oldDocument ? oldDocument->focusedNode() : 0;
+    if (oldFocusedNode == node)
+        return true;
+        
+    if (oldFocusedNode && oldFocusedNode->rootEditableElement() == oldFocusedNode && !relinquishesEditingFocus(oldFocusedNode))
+        return false;
+        
+    clearSelectionIfNeeded(oldFocusedFrame.get(), newFocusedFrame.get(), node);
+    
     if (!node) {
         if (oldDocument)
             oldDocument->setFocusedNode(0);
+        m_page->editorClient()->setInputMethodState(false);
         return true;
     }
     
     RefPtr<Document> newDocument = node ? node->document() : 0;
-    RefPtr<Frame> newFocusedFrame = newDocument ? newDocument->frame() : 0;
     
-    if (newDocument && newDocument->focusedNode() == node)
+    if (newDocument && newDocument->focusedNode() == node) {
+        m_page->editorClient()->setInputMethodState(node->shouldUseInputMethod());
         return true;
+    }
     
     if (oldDocument && oldDocument != newDocument)
         oldDocument->setFocusedNode(0);
@@ -232,6 +292,8 @@ bool FocusController::setFocusedNode(Node* node)
     if (newDocument)
         newDocument->setFocusedNode(node);
     
+    m_page->editorClient()->setInputMethodState(node->shouldUseInputMethod());
+
     return true;
 }
 

@@ -52,11 +52,16 @@ ChromeClientBal::~ChromeClientBal()
 
 }
 
+bool ChromeClientBal::runDatabaseSizeLimitPrompt(Frame*, const String&)
+{
+    return false;
+}
+
 void ChromeClientBal::setWindowRect(const FloatRect& rect)
 {
     if (!m_frame)
         return;
-    m_frame->view()->resize(static_cast<int>(rect.width()), static_cast<int>(rect.height()));
+    //m_frame->view()->resize(static_cast<int>(rect.width()), static_cast<int>(rect.height()));
 }
 
 FloatRect ChromeClientBal::windowRect()
@@ -110,15 +115,16 @@ void ChromeClientBal::takeFocus(FocusDirection)
         return;
 }
 
-Page* ChromeClientBal::createWindow(const FrameLoadRequest& request)
+Page* ChromeClientBal::createWindow(Frame*, const FrameLoadRequest& request)
 {
     // we must display the ui here
-    m_window = BAL::getBIWindowManager()->openWindow(100, 100, 200, 200);
+    /*m_window = BAL::getBIWindowManager()->openWindow(100, 100, 200, 200);
     m_window->setURL(request.resourceRequest().url());
-    return (static_cast<const FrameView*>(m_window->widget()))->frame()->page();
+    return (static_cast<const FrameView*>(m_window->widget()))->frame()->page();*/
+    return 0;
 }
 
-Page* ChromeClientBal::createModalDialog(const FrameLoadRequest& request)
+Page* ChromeClientBal::createModalDialog(Frame*, const FrameLoadRequest& request)
 {
     // we shouldn't display the ui here
     m_window = BAL::getBIWindowManager()->openWindow(100, 100, 200, 200);
@@ -270,10 +276,12 @@ void ChromeClientBal::addToDirtyRegion(const IntRect&)
 
 void ChromeClientBal::scrollBackingStore(int, int, const IntRect&, const IntRect&)
 {
+    BALNotImplemented();
 }
 
 void ChromeClientBal::updateBackingStore()
 {
+    BALNotImplemented();
 }
 
 void ChromeClientBal::setFrame(Frame* frame)
@@ -281,6 +289,20 @@ void ChromeClientBal::setFrame(Frame* frame)
     m_frame = frame;
 }
 
+void ChromeClientBal::print(Frame*)
+{
+	BALNotImplemented();
+}
+
+void ChromeClientBal::setToolTip(const String&)
+{
+	BALNotImplemented();
+}
+
+void ChromeClientBal::mouseDidMoveOverElement(const HitTestResult&, unsigned int)
+{
+	BALNotImplemented();
+}
 }
 
 

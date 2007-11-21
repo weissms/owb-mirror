@@ -27,6 +27,7 @@
  */
 
 #include "config.h"
+#include "DeprecatedString.h"
 #include "History.h"
 
 namespace WebCore {

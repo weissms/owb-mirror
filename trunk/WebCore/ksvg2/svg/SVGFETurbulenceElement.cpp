@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFETurbulenceElement.h"
 
 #include "SVGParserUtilities.h"
@@ -32,12 +32,12 @@ namespace WebCore {
 
 SVGFETurbulenceElement::SVGFETurbulenceElement(const QualifiedName& tagName, Document* doc)
     : SVGFilterPrimitiveStandardAttributes(tagName, doc)
-    , m_baseFrequencyX(0.0)
-    , m_baseFrequencyY(0.0)
-    , m_numOctaves(0)
-    , m_seed(0.0)
-    , m_stitchTiles(0)
-    , m_type(0)
+    , m_baseFrequencyX(0.0f)
+    , m_baseFrequencyY(0.0f)
+    , m_numOctaves(1)
+    , m_seed(0.0f)
+    , m_stitchTiles(SVG_STITCHTYPE_NOSTITCH)
+    , m_type(SVG_TURBULENCE_TYPE_TURBULENCE)
     , m_filterEffect(0)
 {
 }
@@ -47,9 +47,9 @@ SVGFETurbulenceElement::~SVGFETurbulenceElement()
     delete m_filterEffect;
 }
 
-ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, double, Number, number, BaseFrequencyX, baseFrequencyX, "baseFrequencyX", m_baseFrequencyX)
-ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, double, Number, number, BaseFrequencyY, baseFrequencyY, "baseFrequencyY", m_baseFrequencyY)
-ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, double, Number, number, Seed, seed, SVGNames::seedAttr.localName(), m_seed)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, float, Number, number, BaseFrequencyX, baseFrequencyX, "baseFrequencyX", m_baseFrequencyX)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, float, Number, number, BaseFrequencyY, baseFrequencyY, "baseFrequencyY", m_baseFrequencyY)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, float, Number, number, Seed, seed, SVGNames::seedAttr.localName(), m_seed)
 ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, long, Integer, integer, NumOctaves, numOctaves, SVGNames::numOctavesAttr.localName(), m_numOctaves)
 ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, int, Enumeration, enumeration, StitchTiles, stitchTiles, SVGNames::stitchTilesAttr.localName(), m_stitchTiles)
 ANIMATED_PROPERTY_DEFINITIONS(SVGFETurbulenceElement, int, Enumeration, enumeration, Type, type, SVGNames::typeAttr.localName(), m_type)
@@ -68,38 +68,39 @@ void SVGFETurbulenceElement::parseMappedAttribute(MappedAttribute* attr)
         else if (value == "nostitch")
             setStitchTilesBaseValue(SVG_STITCHTYPE_NOSTITCH);
     } else if (attr->name() == SVGNames::baseFrequencyAttr) {
-        double x, y;
+        float x, y;
         if (parseNumberOptionalNumber(value, x, y)) {
             setBaseFrequencyXBaseValue(x);
             setBaseFrequencyYBaseValue(y);
         }
     } else if (attr->name() == SVGNames::seedAttr)
-        setSeedBaseValue(value.toDouble());
+        setSeedBaseValue(value.toFloat());
     else if (attr->name() == SVGNames::numOctavesAttr)
         setNumOctavesBaseValue(value.deprecatedString().toUInt());
     else
         SVGFilterPrimitiveStandardAttributes::parseMappedAttribute(attr);
 }
 
-SVGFETurbulence* SVGFETurbulenceElement::filterEffect() const
+SVGFETurbulence* SVGFETurbulenceElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFETurbulence*>(SVGResourceFilter::createFilterEffect(FE_TURBULENCE));
+        m_filterEffect = static_cast<SVGFETurbulence*>(SVGResourceFilter::createFilterEffect(FE_TURBULENCE, filter));
     if (!m_filterEffect)
         return 0;
     
     m_filterEffect->setType((SVGTurbulanceType) type());
-    setStandardAttributes(m_filterEffect);
     m_filterEffect->setBaseFrequencyX(baseFrequencyX());
     m_filterEffect->setBaseFrequencyY(baseFrequencyY());
     m_filterEffect->setNumOctaves(numOctaves());
     m_filterEffect->setSeed(seed());
     m_filterEffect->setStitchTiles(stitchTiles() == SVG_STITCHTYPE_STITCH);
+
+    setStandardAttributes(m_filterEffect); 
     return m_filterEffect;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

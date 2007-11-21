@@ -1,9 +1,7 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
- * Copyright (C) 2004, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -27,34 +25,27 @@
 
 #include "HTMLPlugInElement.h"
 
-#if USE(JAVASCRIPTCORE_BINDINGS)
-#include <JavaScriptCore/runtime.h>
-#else
-namespace KJS { namespace Bindings { class Instance; } }
-#endif
-
 namespace WebCore {
 
-class HTMLFormElement;
 class HTMLImageLoader;
-#ifdef SVG_SUPPORT
+
+#if ENABLE(SVG)
 class SVGDocument;
 #endif
 
-class HTMLObjectElement : public HTMLPlugInElement
-{
+class HTMLObjectElement : public HTMLPlugInElement {
 public:
     HTMLObjectElement(Document*);
     ~HTMLObjectElement();
 
-    virtual int tagPriority() const { return 7; }
+    virtual int tagPriority() const { return 5; }
 
     virtual void parseMappedAttribute(MappedAttribute*);
 
     virtual void attach();
     virtual bool rendererIsNeeded(RenderStyle*);
     virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
-    virtual void closeRenderer();
+    virtual void finishedParsing();
     virtual void detach();
     virtual void insertedIntoDocument();
     virtual void removedFromDocument();
@@ -93,8 +84,6 @@ public:
     bool declare() const;
     void setDeclare(bool);
 
-    HTMLFormElement* form() const;
-    
     int hspace() const;
     void setHspace(int);
 
@@ -117,7 +106,9 @@ public:
     
     bool isDocNamedItem() const { return m_docNamedItem; }
 
-#ifdef SVG_SUPPORT
+    bool containsJavaApplet() const;
+
+#if ENABLE(SVG)
     SVGDocument* getSVGDocument(ExceptionCode&) const;
 #endif
 

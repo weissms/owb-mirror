@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,13 +30,14 @@
 #include "SubresourceLoader.h"
 
 #include "Document.h"
+#include "DocumentLoader.h"
 #include "Frame.h"
+#include "FrameLoader.h"
 #include "Logging.h"
 #include "ResourceHandle.h"
 #include "ResourceRequest.h"
 #include "SubresourceLoaderClient.h"
 #include "SharedBuffer.h"
-#include "FrameLoader.h"
 
 namespace WebCore {
 
@@ -56,15 +57,15 @@ unsigned SubresourceLoaderCounter::count = 0;
 static SubresourceLoaderCounter subresourceLoaderCounter;
 #endif
 
-SubresourceLoader::SubresourceLoader(Frame* frame, SubresourceLoaderClient* client)
-    : ResourceLoader(frame)
+SubresourceLoader::SubresourceLoader(Frame* frame, SubresourceLoaderClient* client, bool sendResourceLoadCallbacks, bool shouldContentSniff)
+    : ResourceLoader(frame, sendResourceLoadCallbacks, shouldContentSniff)
     , m_client(client)
     , m_loadingMultipartContent(false)
 {
 #ifndef NDEBUG
     ++SubresourceLoaderCounter::count;
 #endif
-    frameLoader()->addSubresourceLoader(this);
+    m_documentLoader->addSubresourceLoader(this);
 }
 
 SubresourceLoader::~SubresourceLoader()
@@ -81,23 +82,25 @@ bool SubresourceLoader::load(const ResourceRequest& r)
     return ResourceLoader::load(r);
 }
 
-PassRefPtr<SubresourceLoader> SubresourceLoader::create(Frame* frame, SubresourceLoaderClient* client, const ResourceRequest& request)
+PassRefPtr<SubresourceLoader> SubresourceLoader::create(Frame* frame, SubresourceLoaderClient* client, const ResourceRequest& request, bool skipCanLoadCheck, bool sendResourceLoadCallbacks, bool shouldContentSniff)
 {
     if (!frame)
         return 0;
 
     FrameLoader* fl = frame->loader();
-    if (fl->state() == FrameStateProvisional)
+    if (!skipCanLoadCheck && fl->state() == FrameStateProvisional)
         return 0;
 
     ResourceRequest newRequest = request;
+
+    if (!skipCanLoadCheck
+            && FrameLoader::restrictAccessToLocal()
+            && !FrameLoader::canLoad(request.url(), frame->document())) {
+        FrameLoader::reportLocalLoadFailed(frame->page(), request.url().url());
+        return 0;
+    }
     
-    // Since this is a subresource, we can load any URL (we ignore the return value).
-    // But we still want to know whether we should hide the referrer or not, so we call the canLoadURL method.
-    // FIXME: is that really the rule we want for subresources?
-    bool hideReferrer;
-    fl->canLoad(request.url(), fl->outgoingReferrer(), hideReferrer);
-    if (hideReferrer)
+    if (FrameLoader::shouldHideReferrer(request.url(), fl->outgoingReferrer()))
         newRequest.clearHTTPReferrer();
     else if (!request.httpReferrer())
         newRequest.setHTTPReferrer(fl->outgoingReferrer());
@@ -115,7 +118,7 @@ PassRefPtr<SubresourceLoader> SubresourceLoader::create(Frame* frame, Subresourc
 
     fl->addExtraFieldsToRequest(newRequest, false, false);
 
-    RefPtr<SubresourceLoader> subloader(new SubresourceLoader(frame, client));
+    RefPtr<SubresourceLoader> subloader(new SubresourceLoader(frame, client, sendResourceLoadCallbacks, shouldContentSniff));
     if (!subloader->load(newRequest))
         return 0;
 
@@ -158,6 +161,7 @@ void SubresourceLoader::didReceiveResponse(const ResourceResponse& r)
         clearResourceData();
         
         // After the first multipart section is complete, signal to delegates that this load is "finished" 
+        m_documentLoader->subresourceLoaderFinishedLoadingOnePart(this);
         didFinishLoadingOnePart();
     }
 }
@@ -167,13 +171,13 @@ void SubresourceLoader::didReceiveData(const char* data, int length, long long l
     // Reference the object in this method since the additional processing can do
     // anything including removing the last reference to this object; one example of this is 3266216.
     RefPtr<SubresourceLoader> protect(this);
+    
+    ResourceLoader::didReceiveData(data, length, lengthReceived, allAtOnce);
 
     // A subresource loader does not load multipart sections progressively.
     // So don't deliver any data to the loader yet.
     if (!m_loadingMultipartContent && m_client)
         m_client->didReceiveData(this, data, length);
-
-    ResourceLoader::didReceiveData(data, length, lengthReceived, allAtOnce);
 }
 
 void SubresourceLoader::didFinishLoading()
@@ -192,7 +196,7 @@ void SubresourceLoader::didFinishLoading()
 
     if (cancelled())
         return;
-    frameLoader()->removeSubresourceLoader(this);
+    m_documentLoader->removeSubresourceLoader(this);
     ResourceLoader::didFinishLoading();
 }
 
@@ -212,7 +216,7 @@ void SubresourceLoader::didFail(const ResourceError& error)
     
     if (cancelled())
         return;
-    frameLoader()->removeSubresourceLoader(this);
+    m_documentLoader->removeSubresourceLoader(this);
     ResourceLoader::didFail(error);
 }
 
@@ -228,14 +232,21 @@ void SubresourceLoader::didCancel(const ResourceError& error)
     
     if (cancelled())
         return;
-    frameLoader()->removeSubresourceLoader(this);
+    m_documentLoader->removeSubresourceLoader(this);
     ResourceLoader::didCancel(error);
 }
 
-void SubresourceLoader::stopLoading()
+void SubresourceLoader::receivedCancellation(const AuthenticationChallenge& challenge)
 {
-    // FIXME: This should stop loading for real and not just clear the client.
-    m_client = 0;
+    ASSERT(!reachedTerminalState());
+        
+    RefPtr<SubresourceLoader> protect(this);
+
+    if (m_client)
+        m_client->receivedCancellation(this, challenge);
+    
+    ResourceLoader::receivedCancellation(challenge);
 }
     
+
 }

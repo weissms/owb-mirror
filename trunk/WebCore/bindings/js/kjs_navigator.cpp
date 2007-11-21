@@ -1,10 +1,9 @@
 // -*- c-basic-offset: 2 -*-
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 2000 Harri Porten (porten@kde.org)
  *  Copyright (c) 2000 Daniel Molkentin (molkentin@kde.org)
  *  Copyright (c) 2000 Stefan Schimanski (schimmi@kde.org)
- *  Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All Rights Reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -18,7 +17,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include "config.h"
@@ -26,9 +25,11 @@
 
 #include "AtomicString.h"
 #include "CookieJar.h"
+#include "Document.h"
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "Language.h"
+#include "Page.h"
 #include "PlugInInfoStore.h"
 #include "Settings.h"
 
@@ -69,7 +70,7 @@ namespace KJS {
         PluginBase(ExecState *exec);
         virtual ~PluginBase();
         
-        void refresh(bool reload);
+        static void refresh(bool reload);
 
     protected:
         static void cachePluginDataIfNecessary();
@@ -190,7 +191,7 @@ JSValue* Navigator::getValueProperty(ExecState* exec, int token) const
     return jsString("Netscape");
   case AppVersion: {
     // Version is everything in the user agent string past the "Mozilla/" prefix.
-    const String userAgent = m_frame->loader()->userAgent();
+    const String userAgent = m_frame->loader()->userAgent(m_frame->document() ? m_frame->document()->URL() : KURL());
     return jsString(userAgent.substring(userAgent.find('/') + 1));
   }
   case Product:
@@ -204,7 +205,7 @@ JSValue* Navigator::getValueProperty(ExecState* exec, int token) const
   case Language:
     return jsString(defaultLanguage());
   case UserAgent:
-    return jsString(m_frame->loader()->userAgent());
+    return jsString(m_frame->loader()->userAgent(m_frame->document() ? m_frame->document()->URL() : KURL()));
   case Platform:
     return jsString(WEBCORE_NAVIGATOR_PLATFORM);
   case _Plugins:
@@ -234,7 +235,7 @@ void PluginBase::cachePluginDataIfNecessary()
                 continue;
             
             plugins->append(plugin);
-            if (!plugin->mimes)
+            if (plugin->mimes.isEmpty())
                 continue;
             
             Vector<MimeClassInfo*>::iterator end = plugin->mimes.end();
@@ -299,7 +300,7 @@ KJS_IMPLEMENT_PROTOTYPE_FUNCTION(PluginsFunc)
 
 JSValue *Plugins::getValueProperty(ExecState *exec, int token) const
 {
-  assert(token == Length);
+  ASSERT(token == Length);
   return jsNumber(plugins->size());
 }
 
@@ -362,7 +363,7 @@ bool Plugins::getOwnPropertySlot(ExecState *exec, const Identifier& propertyName
 
 JSValue *MimeTypes::getValueProperty(ExecState *exec, int token) const
 {
-  assert(token == Length);
+  ASSERT(token == Length);
   return jsNumber(mimes->size());
 }
 
@@ -436,7 +437,7 @@ JSValue *Plugin::getValueProperty(ExecState *exec, int token) const
     case Length: 
         return jsNumber(m_info->mimes.size());
     default:
-        assert(0);
+        ASSERT(0);
         return jsUndefined();
     }
 }
@@ -513,7 +514,9 @@ JSValue *MimeType::getValueProperty(ExecState *exec, int token) const
     case EnabledPlugin: {
         ScriptInterpreter *interpreter = static_cast<ScriptInterpreter *>(exec->dynamicInterpreter());
         Frame *frame = interpreter->frame();
-        if (frame && frame->settings()->arePluginsEnabled())
+        ASSERT(frame);
+        Settings* settings = frame->settings();
+        if (settings && settings->arePluginsEnabled())
             return new Plugin(exec, m_info->plugin);
         else
             return jsUndefined();
@@ -530,7 +533,7 @@ bool MimeType::getOwnPropertySlot(ExecState *exec, const Identifier& propertyNam
 
 JSValue *PluginsFunc::callAsFunction(ExecState *exec, JSObject *, const List &args)
 {
-    PluginBase(exec).refresh(args[0]->toBoolean(exec));
+    PluginBase::refresh(args[0]->toBoolean(exec));
     return jsUndefined();
 }
 
@@ -540,7 +543,8 @@ JSValue *NavigatorFunc::callAsFunction(ExecState *exec, JSObject *thisObj, const
     return throwError(exec, TypeError);
   Navigator *nav = static_cast<Navigator *>(thisObj);
   // javaEnabled()
-  return jsBoolean(nav->frame()->settings()->isJavaEnabled());
+  Settings* settings = nav->frame() ? nav->frame()->settings() : 0;
+  return jsBoolean(settings && settings->isJavaEnabled());
 }
 
 } // namespace

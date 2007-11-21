@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Computer, Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,32 +26,57 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GlyphPageTreeNode_h
-#define GlyphPageTreeNode_h
+#ifndef BTGlyphPageTreeNode_h
+#define BTGlyphPageTreeNode_h
 
+#include "Shared.h"
 #include <wtf/unicode/Unicode.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/HashMap.h>
 
 namespace WebCore {
 
+#ifndef __OWB__
 class FontData;
 class GlyphPageTreeNode;
+#endif
 
+#ifdef __OWB__
+}
+
+using WebCore::Shared;
+
+namespace BAL {
+
+class BTFontData;
+class GlyphPageTreeNode;
+
+#endif //__OWB__
 typedef unsigned short Glyph;
 
-struct GlyphData {    
+// Holds the glyph index and the corresponding FontData information for a given
+// character.
+struct GlyphData {
     Glyph glyph;
-    const FontData* fontData;
+    const BTFontData* fontData;
 };
 
-struct GlyphPage {
-    GlyphPage()
+// A GlyphPage contains a fixed-size set of GlyphData mappings for a contiguous
+// range of characters in the Unicode code space. GlyphPages are indexed
+// starting from 0 and incrementing for each 256 glyphs.
+//
+// One page may actually include glyphs from other fonts if the characters are
+// missing in the parimary font. It is owned by exactly one GlyphPageTreeNode,
+// although multiple nodes may reference it as their "page" if they are supposed
+// to be overriding the parent's node, but provide no additional information.
+
+struct BTGlyphPage : public Shared<BTGlyphPage> {
+    BTGlyphPage()
         : m_owner(0)
     {
     }
 
-    GlyphPage(GlyphPageTreeNode* owner)
+    BTGlyphPage(GlyphPageTreeNode* owner)
         : m_owner(owner)
     {
     }
@@ -61,56 +86,92 @@ struct GlyphPage {
     GlyphPageTreeNode* m_owner;
 
     const GlyphData& glyphDataForCharacter(UChar32 c) const { return m_glyphs[c % size]; }
-    void setGlyphDataForCharacter(UChar32 c, Glyph g, const FontData* f)
+    void setGlyphDataForCharacter(UChar32 c, Glyph g, const BTFontData* f)
     {
         setGlyphDataForIndex(c % size, g, f);
     }
-    void setGlyphDataForIndex(unsigned index, Glyph g, const FontData* f)
+    void setGlyphDataForIndex(unsigned index, Glyph g, const BTFontData* f)
     {
         m_glyphs[index].glyph = g;
         m_glyphs[index].fontData = f;
     }
     GlyphPageTreeNode* owner() const { return m_owner; }
     // Implemented by the platform.
-    bool fill(UChar* characterBuffer, unsigned bufferLength, const FontData* fontData);
+    bool fill(UChar* characterBuffer, unsigned bufferLength, const BTFontData* fontData);
 };
 
+// The glyph page tree is a data structure that maps (FontData, glyph page number)
+// to a GlyphPage.  Level 0 (the "root") is special. There is one root
+// GlyphPageTreeNode for each glyph page number.  The roots do not have a
+// GlyphPage associated with them, and their initializePage() function is never
+// called to fill the glyphs.
+//
+// Each root node maps a FontData pointer to another GlyphPageTreeNode at
+// level 1 (the "root child") that stores the actual glyphs for a specific font data.
+// These nodes will only have a GlyphPage if they have glyphs for that range.
+//
+// Levels greater than one correspond to subsequent levels of the fallback list
+// for that font. These levels override their parent's page of glyphs by
+// filling in holes with the new font (thus making a more complete page).
+//
+// A NULL FontData pointer corresponds to the system fallback
+// font. It is tracked separately from the regular pages and overrides so that
+// the glyph pages do not get polluted with these last-resort glyphs. The
+// system fallback page is not populated at construction like the other pages,
+// but on demand for each glyph, because the system may need to use different
+// fallback fonts for each. This lazy population is done by the Font.
 class GlyphPageTreeNode {
 public:
     GlyphPageTreeNode()
         : m_parent(0)
-        , m_page(0)
         , m_level(0)
         , m_isSystemFallback(false)
         , m_systemFallbackChild(0)
+        , m_customFontCount(0)
 #ifndef NDEBUG
         , m_pageNumber(0)
 #endif
     {
     }
 
-    static GlyphPageTreeNode* getRootChild(const FontData* fontData, unsigned pageNumber)
+    ~GlyphPageTreeNode();
+
+    static HashMap<int, GlyphPageTreeNode*>* roots;
+    static GlyphPageTreeNode* pageZeroRoot;
+
+    static GlyphPageTreeNode* getRootChild(const BTFontData* fontData, unsigned pageNumber)
     {
         return getRoot(pageNumber)->getChild(fontData, pageNumber);
     }
 
-    GlyphPageTreeNode* parent() const { return m_parent; }
-    GlyphPageTreeNode* getChild(const FontData*, unsigned pageNumber);
+    static void pruneTreeCustomFontData(const BTFontData*);
 
-    GlyphPage* page() const { return m_page; }
+    void pruneCustomFontData(const BTFontData*);
+
+    GlyphPageTreeNode* parent() const { return m_parent; }
+    GlyphPageTreeNode* getChild(const BTFontData*, unsigned pageNumber);
+
+    // Returns a page of glyphs (or NULL if there are no glyphs in this page's character range).
+    BTGlyphPage* page() const { return m_page.get(); }
+
+    // Returns the level of this node. See class-level comment.
     unsigned level() const { return m_level; }
+
+    // The system fallback font has special rules (see above).
     bool isSystemFallback() const { return m_isSystemFallback; }
 
 private:
     static GlyphPageTreeNode* getRoot(unsigned pageNumber);
-    void initializePage(const FontData*, unsigned pageNumber);
+    void initializePage(const BTFontData*, unsigned pageNumber);
 
     GlyphPageTreeNode* m_parent;
-    GlyphPage* m_page;
+    RefPtr<BTGlyphPage> m_page;
     unsigned m_level;
     bool m_isSystemFallback;
-    HashMap<const FontData*, GlyphPageTreeNode*> m_children;
+    HashMap<const BTFontData*, GlyphPageTreeNode*> m_children;
     GlyphPageTreeNode* m_systemFallbackChild;
+    unsigned m_customFontCount;
+
 #ifndef NDEBUG
     unsigned m_pageNumber;
 #endif
@@ -118,4 +179,4 @@ private:
 
 } // namespace WebCore
 
-#endif // GlyphPageTreeNode_h
+#endif // BTGlyphPageTreeNode_h

@@ -2,9 +2,13 @@
 VPATH += $$PWD
 
 INCLUDEPATH += tmp
-INCLUDEPATH += $$PWD $$PWD/kjs $$PWD/bindings $$PWD/bindings/c $$PWD/bindings/qt $$PWD/wtf
+INCLUDEPATH += $$PWD $$PWD/kjs $$PWD/bindings $$PWD/bindings/c $$PWD/wtf
 DEFINES -= KJS_IDENTIFIER_HIDE_GLOBALS 
-DEFINES += BUILDING_QT__
+qt-port:INCLUDEPATH += $$PWD/bindings/qt
+qt-port:DEFINES += BUILDING_QT__
+gtk-port:DEFINES += BUILDING_GTK__
+
+win32-msvc*: INCLUDEPATH += $$PWD/os-win32
 
 include(pcre/pcre.pri)
 
@@ -22,11 +26,13 @@ KEYWORDLUT_FILES += \
 KJSBISON += \
     kjs/grammar.y
 
+gtk-port: SOURCES += wtf/TCSystemAlloc.cpp
+
 SOURCES += \
-    wtf/TCSystemAlloc.cpp \
     wtf/Assertions.cpp \
     wtf/HashTable.cpp \
     wtf/FastMalloc.cpp \
+    wtf/FastMallocPCRE.cpp \
     bindings/NP_jsobject.cpp \
     bindings/npruntime.cpp \
     bindings/runtime_array.cpp \
@@ -38,15 +44,23 @@ SOURCES += \
     bindings/c/c_instance.cpp \
     bindings/c/c_runtime.cpp \
     bindings/c/c_utility.cpp \
-    bindings/qt/qt_class.cpp \
-    bindings/qt/qt_instance.cpp \
-    bindings/qt/qt_runtime.cpp \
+    API/JSBase.cpp \
+    API/JSCallbackConstructor.cpp \
+    API/JSCallbackFunction.cpp \
+    API/JSCallbackObject.cpp \
+    API/JSClassRef.cpp \
+    API/JSContextRef.cpp \
+    API/JSObjectRef.cpp \
+    API/JSStringRef.cpp \
+    API/JSValueRef.cpp \
     kjs/DateMath.cpp \
     kjs/JSWrapperObject.cpp \
     kjs/PropertyNameArray.cpp \
+    kjs/array_instance.cpp \
     kjs/array_object.cpp \
     kjs/bool_object.cpp \
     kjs/collector.cpp \
+    kjs/CommonIdentifiers.cpp \
     kjs/Context.cpp \
     kjs/date_object.cpp \
     kjs/debugger.cpp \
@@ -81,6 +95,11 @@ SOURCES += \
     kjs/ustring.cpp \
     kjs/value.cpp
 
+qt-port:SOURCES += \
+    bindings/qt/qt_class.cpp \
+    bindings/qt/qt_instance.cpp \
+    bindings/qt/qt_runtime.cpp
+
 
 # GENERATOR 1-A: LUT creator
 lut.output = tmp/${QMAKE_FILE_BASE}.lut.h
@@ -100,7 +119,7 @@ QMAKE_EXTRA_COMPILERS += keywordlut
 
 # GENERATOR 2: bison grammar
 kjsbison.output = tmp/${QMAKE_FILE_BASE}.cpp
-kjsbison.commands = bison -d -p kjsyy ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_BASE}.tab.c && mv ${QMAKE_FILE_BASE}.tab.c ${QMAKE_FILE_OUT} && mv ${QMAKE_FILE_BASE}.tab.h tmp/${QMAKE_FILE_BASE}.h
+kjsbison.commands = bison -d -p kjsyy ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_BASE}.tab.c && $(MOVE) ${QMAKE_FILE_BASE}.tab.c ${QMAKE_FILE_OUT} && $(MOVE) ${QMAKE_FILE_BASE}.tab.h tmp/${QMAKE_FILE_BASE}.h
 kjsbison.depend = ${QMAKE_FILE_NAME}
 kjsbison.input = KJSBISON
 kjsbison.variable_out = GENERATED_SOURCES

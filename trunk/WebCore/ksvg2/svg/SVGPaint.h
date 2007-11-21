@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
     Copyright (C) 2006 Samuel Weinig (sam.weinig@gmial.com)
 
     This file is part of the KDE project
@@ -17,13 +17,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPaint_h
 #define SVGPaint_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGColor.h"
 
@@ -49,6 +49,7 @@ namespace WebCore {
         SVGPaint(SVGPaintType);
         SVGPaint(SVGPaintType, const String& uri, const String& rgbPaint = String(), const String& iccPaint = String());
         SVGPaint(const Color& c);
+        SVGPaint(const String& uri, const Color& c);
         virtual ~SVGPaint();
 
         // 'SVGPaint' functions
@@ -71,7 +72,7 @@ namespace WebCore {
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGPaint_h
 
 // vim:ts=4:noet

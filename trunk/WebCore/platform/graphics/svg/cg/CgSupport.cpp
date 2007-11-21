@@ -26,15 +26,16 @@
 
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include <ApplicationServices/ApplicationServices.h>
 #include "CgSupport.h"
 
+#include "FloatConversion.h"
 #include "GraphicsContext.h"
-#include "KCanvasRenderingStyle.h"
 #include "RenderStyle.h"
-#include <wtf/Assertions.h>
+#include "SVGPaintServer.h"
 #include "SVGRenderStyle.h"
+#include <wtf/Assertions.h>
 
 namespace WebCore {
 
@@ -53,17 +54,17 @@ CGAffineTransform CGAffineTransformMakeMapBetweenRects(CGRect source, CGRect des
 void applyStrokeStyleToContext(CGContextRef context, RenderStyle* style, const RenderObject* object)
 {
     /* Shouldn't all these be in the stroke painter? */
-    CGContextSetLineWidth(context, KSVGPainterFactory::cssPrimitiveToLength(object, style->svgStyle()->strokeWidth(), 1.0));
+    CGContextSetLineWidth(context, SVGRenderStyle::cssPrimitiveToLength(object, style->svgStyle()->strokeWidth(), 1.0f));
 
     CGContextSetLineCap(context, CGLineCapFromKC(style->svgStyle()->capStyle()));
     CGContextSetLineJoin(context, CGLineJoinFromKC(style->svgStyle()->joinStyle()));
 
     CGContextSetMiterLimit(context, style->svgStyle()->strokeMiterLimit());
 
-    const KCDashArray& dashes = KSVGPainterFactory::dashArrayFromRenderingStyle(style);
-    double dashOffset = KSVGPainterFactory::cssPrimitiveToLength(object, style->svgStyle()->strokeDashOffset(), 0.0);
+    const DashArray& dashes = dashArrayFromRenderingStyle(style);
+    double dashOffset = SVGRenderStyle::cssPrimitiveToLength(object, style->svgStyle()->strokeDashOffset(), 0.0f);
 
-    CGContextSetLineDash(context, dashOffset, dashes.data(), dashes.size());
+    CGContextSetLineDash(context, narrowPrecisionToCGFloat(dashOffset), dashes.data(), dashes.size());
 }
 
 CGContextRef scratchContext()
@@ -112,5 +113,5 @@ FloatRect strokeBoundingBox(const Path& path, RenderStyle* style, const RenderOb
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

@@ -48,9 +48,15 @@ namespace BAL {
     */
     class BIPainter {
         public:
-        // this is mandatory
+            // this is mandatory
+            /**
+            * BIPainter destructor
+            */
             virtual ~BIPainter() {};
 
+            /**
+            * paint the rect in context
+            */
             virtual void paint(BIGraphicsContext*, const WebCore::IntRect&) = 0;
     };
 

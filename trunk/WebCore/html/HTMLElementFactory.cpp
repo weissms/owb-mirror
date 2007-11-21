@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -50,6 +50,7 @@
 #include "HTMLIFrameElement.h"
 #include "HTMLImageElement.h"
 #include "HTMLIsIndexElement.h"
+#include "HTMLKeygenElement.h"
 #include "HTMLLabelElement.h"
 #include "HTMLLegendElement.h"
 #include "HTMLLIElement.h"
@@ -119,9 +120,11 @@ static PassRefPtr<HTMLElement> metaConstructor(const AtomicString&, Document* do
     return new HTMLMetaElement(doc);
 }
 
-static PassRefPtr<HTMLElement> styleConstructor(const AtomicString&, Document* doc, HTMLFormElement*, bool)
+static PassRefPtr<HTMLElement> styleConstructor(const AtomicString&, Document* doc, HTMLFormElement*, bool createdByParser)
 {
-    return new HTMLStyleElement(doc);
+    RefPtr<HTMLStyleElement> style = new HTMLStyleElement(doc);
+    style->setCreatedByParser(createdByParser);
+    return style.release();
 }
 
 static PassRefPtr<HTMLElement> titleConstructor(const AtomicString&, Document* doc, HTMLFormElement*, bool)
@@ -167,6 +170,11 @@ static PassRefPtr<HTMLElement> isindexConstructor(const AtomicString&, Document*
 static PassRefPtr<HTMLElement> fieldsetConstructor(const AtomicString&, Document* doc, HTMLFormElement* form, bool)
 {
     return new HTMLFieldSetElement(doc, form);
+}
+
+static PassRefPtr<HTMLElement> keygenConstructor(const AtomicString&, Document* doc, HTMLFormElement* form, bool)
+{
+    return new HTMLKeygenElement(doc, form);
 }
 
 static PassRefPtr<HTMLElement> labelConstructor(const AtomicString&, Document* doc, HTMLFormElement*, bool)
@@ -355,7 +363,7 @@ static PassRefPtr<HTMLElement> tableCellConstructor(const AtomicString& tagName,
 
 static PassRefPtr<HTMLElement> tableSectionConstructor(const AtomicString& tagName, Document* doc, HTMLFormElement*, bool)
 {
-    return new HTMLTableSectionElement(QualifiedName(nullAtom, tagName, xhtmlNamespaceURI), doc, false);
+    return new HTMLTableSectionElement(QualifiedName(nullAtom, tagName, xhtmlNamespaceURI), doc);
 }
 
 static PassRefPtr<HTMLElement> brConstructor(const AtomicString&, Document* doc, HTMLFormElement*, bool)
@@ -422,6 +430,7 @@ static void createFunctionMap()
     addTag(inputTag, inputConstructor);
     addTag(insTag, modConstructor);
     addTag(isindexTag, isindexConstructor);
+    addTag(keygenTag, keygenConstructor);
     addTag(labelTag, labelConstructor);
     addTag(legendTag, legendConstructor);
     addTag(liTag, liConstructor);

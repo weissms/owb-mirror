@@ -1,10 +1,8 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2000 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -18,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -33,7 +31,7 @@ namespace WebCore {
 class HTMLImageLoader;
 class Selection;
 
-class HTMLInputElement : public HTMLGenericFormElement {
+class HTMLInputElement : public HTMLFormControlElementWithState {
 public:
     enum InputType {
         TEXT,
@@ -61,11 +59,11 @@ public:
     virtual bool isKeyboardFocusable(KeyboardEvent*) const;
     virtual bool isMouseFocusable() const;
     virtual bool isEnumeratable() const { return inputType() != IMAGE; }
-    virtual void focus();
     virtual void dispatchFocusEvent();
     virtual void dispatchBlurEvent();
-    virtual void updateFocusAppearance(bool restorePreviousSelection = false);
+    virtual void updateFocusAppearance(bool restorePreviousSelection);
     virtual void aboutToUnload();
+    virtual bool shouldUseInputMethod() const;
 
     virtual const AtomicString& name() const;
 
@@ -97,9 +95,11 @@ public:
 
     void setValueFromRenderer(const String&);
 
-    virtual String stateValue() const;
+    virtual bool saveState(String& value) const;
     virtual void restoreState(const String&);
 
+    virtual bool canStartSelection() const;
+    
     bool canHaveSelection() const;
     int selectionStart() const;
     int selectionEnd() const;
@@ -182,7 +182,12 @@ public:
 
     String constrainValue(const String& proposedValue) const;
 
+    virtual void didRestoreFromCache();
+    
 protected:
+    virtual void willMoveToNewOwnerDocument();
+    virtual void didMoveToNewOwnerDocument();
+    
     AtomicString m_name;
 
 private:
@@ -192,8 +197,9 @@ private:
     void recheckValue();
 
     String m_value;
+    String m_originalValue;
     int xPos;
-    short m_maxLen;
+    int m_maxLen;
     short m_size;
     short yPos;
 

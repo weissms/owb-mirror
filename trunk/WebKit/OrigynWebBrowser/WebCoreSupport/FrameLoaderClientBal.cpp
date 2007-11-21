@@ -41,11 +41,24 @@
 #include "DocumentLoader.h"
 #include "FrameBal.h"
 #include "FrameLoader.h"
+#include "MIMETypeRegistry.h"
 #include "Page.h"
 #include "ProgressTracker.h"
 #include "PlatformString.h"
-#include "ResourceRequest.h"
+#ifdef __OWB_JS__
+#include "bindings/runtime.h"
+#include "bindings/runtime_root.h"
+#include "ExecState.h"
+#include "kjs/JSGlobalObject.h"
+#include "object.h"
+#endif //__OWB_JS__
 
+#ifdef __TVCORE__
+#include "TvCore.h"
+#endif
+#ifdef __DVBCORE__
+#include "DvbCore.h"
+#endif
 using namespace BAL;
 
 namespace WebCore {
@@ -54,19 +67,40 @@ FrameLoaderClientBal::FrameLoaderClientBal()
     : m_frame(0)
     , m_firstData(false)
     , m_loadFailed(false)
+#ifdef __TVCORE__
+    , m_tvCore(0)
+#endif
+#ifdef __DVBCORE__
+    , m_dvbCore(0)
+#endif
 {
+}
+FrameLoaderClientBal::~FrameLoaderClientBal()
+{
+#ifdef __TVCORE__
+    if (m_tvCore)
+        delete m_tvCore;
+#endif
+#ifdef __DVBCORE__
+    if (m_dvbCore)
+        delete m_dvbCore;
+#endif
 }
 
 Frame* FrameLoaderClientBal::frame()
 {
-    return static_cast<Frame*> (m_frame);
+    return static_cast<Frame*> (m_frame.get());
 }
 
-String FrameLoaderClientBal::userAgent()
+String FrameLoaderClientBal::userAgent(const KURL&)
 {
-    //NOTE: some pages don't render with this UA
-     return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/420+ (KHTML, like Gecko)";
-//    return "";
+#ifdef __OWBAL_PLATFORM_MACPORT__
+    //We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
+    return "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412";
+#else
+   //NOTE: some pages don't render with this UA
+    return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Robespierre";
+#endif
 }
 
 WTF::PassRefPtr<WebCore::DocumentLoader> FrameLoaderClientBal::createDocumentLoader(const WebCore::ResourceRequest& request, const SubstituteData& substituteData)
@@ -118,24 +152,30 @@ void FrameLoaderClientBal::postProgressStartedNotification()
 {
     m_loadFailed = false;
     // no progress notification for now
-    printf("Document download has started for %s.\n", m_frame->loader()->URL().url().ascii());
-    m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
+#ifndef NDEBUG
+    if (!getenv("LAYOUT_TEST"))
+        printf("Document download has started for %s.\n", m_frame->loader()->URL().url().ascii());
+#endif
+    //m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
 }
 
 void FrameLoaderClientBal::postProgressEstimateChangedNotification()
 {
-    /*
-    if (m_frame && m_frame->page())
-        printf("Document loaded at %f%%\n", m_frame->page()->progress()->estimatedProgress() * 100);
-    */
-    m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
+    IntRect rect(0, 0, m_frame->view()->width(), m_frame->view()->height());
+    rect.unite(*m_frame->view()->dirtyRect());
+    //m_frame->view()->setDirtyRect(rect);
 }
 
 void FrameLoaderClientBal::postProgressFinishedNotification()
 {
     if (!m_loadFailed) {
-        printf("Document progress ended for %s.\n", m_frame->loader()->URL().url().ascii());
-        m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
+#ifndef NDEBUG
+    if (!getenv("LAYOUT_TEST"))
+            printf("Document progress ended for %s.\n", m_frame->loader()->URL().url().ascii());
+#endif
+        IntRect rect(0, 0, m_frame->view()->width(), m_frame->view()->height());
+        rect.unite(*m_frame->view()->dirtyRect());
+//         m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->contentsWidth(), m_frame->view()->contentsHeight()));
     }
 }
 
@@ -178,13 +218,13 @@ void FrameLoaderClientBal::dispatchDecidePolicyForNavigationAction(FramePolicyFu
     (frame()->loader()->*policyFunction)(PolicyUse);
 }
 
-Widget* FrameLoaderClientBal::createPlugin(Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool)
+Widget* FrameLoaderClientBal::createPlugin(const IntSize&, Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool loadManually)
 {
     BALNotImplemented();
     return 0;
 }
 
-Frame* FrameLoaderClientBal::createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
+WTF::PassRefPtr<WebCore::Frame> FrameLoaderClientBal::createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
                                         const String& referrer, bool allowsScrolling, int marginWidth, int marginHeight)
 {
     // new frame must have its frameloaderclient
@@ -202,8 +242,8 @@ Frame* FrameLoaderClientBal::createFrame(const KURL& url, const String& name, HT
  
     // load url in child
     FrameLoadType loadType = frame()->loader()->loadType();
-    FrameLoadType childLoadType = FrameLoadTypeInternal;
-    childFrame->loader()->load(url, referrer, childLoadType, name, 0, 0, HashMap<String, String>());
+    FrameLoadType childLoadType = FrameLoadTypeRedirectWithLockedHistory;
+    childFrame->loader()->load(url, referrer, childLoadType, name, 0, 0);
  
     // The frame's onload handler may have removed it from the document.
     if (!childFrame->tree()->parent())
@@ -215,7 +255,6 @@ Frame* FrameLoaderClientBal::createFrame(const KURL& url, const String& name, HT
 void FrameLoaderClientBal::redirectDataToPlugin(Widget* pluginWidget)
 {
     BALNotImplemented();
-    return;
 }
 
 Widget* FrameLoaderClientBal::createJavaAppletWidget(const IntSize&, Element*, const KURL& baseURL,
@@ -237,9 +276,29 @@ String FrameLoaderClientBal::overrideMediaType() const
     return String();
 }
 
+void FrameLoaderClientBal::setFrame(FrameBal* frame)
+{
+    m_frame = frame;
+#ifdef __TVCORE__
+    if (!m_tvCore)
+        m_tvCore = new KJS::TvCore(m_frame.get());
+#endif
+#ifdef __DVBCORE__
+    if (!m_dvbCore)
+        m_dvbCore = new KJS::DvbCore(m_frame.get());
+#endif
+
+}
+
 void FrameLoaderClientBal::windowObjectCleared() const
 {
     BALNotImplemented();
+#ifdef __TVCORE__
+    m_frame->addToJSWindowObject("tvCore", m_tvCore);
+#endif
+#ifdef __DVBCORE__
+     m_frame->addToJSWindowObject("dvbCore", m_dvbCore);
+#endif
 }
 
 void FrameLoaderClientBal::setMainFrameDocumentReady(bool ready)
@@ -271,13 +330,13 @@ void FrameLoaderClientBal::dispatchDidFinishLoad()
 void FrameLoaderClientBal::frameLoadCompleted()
 {
     BALNotImplemented();
-    if (m_frame->renderer()) {
+/*    if (m_frame->renderer()) {
         if (m_frame->view()->width() < m_frame->view()->contentsWidth())
             m_frame->renderer()->layer()->setHasHorizontalScrollbar(true);
         if (m_frame->view()->height() < m_frame->view()->contentsHeight())
             m_frame->renderer()->layer()->setHasVerticalScrollbar(true);
         m_frame->renderer()->layer()->updateScrollInfoAfterLayout();
-    }
+    }*/
 }
 
 void FrameLoaderClientBal::saveViewStateToItem(HistoryItem*)
@@ -308,7 +367,8 @@ void FrameLoaderClientBal::finishedLoading(DocumentLoader* loader)
         fl->setEncoding(m_response.textEncodingName(), false);
         m_firstData = false;
     }
-
+    if (frame())
+        frame()->view()->setContentsPos(0, 0);
     
 }
 
@@ -339,7 +399,7 @@ void FrameLoaderClientBal::makeRepresentation(DocumentLoader*)
 void FrameLoaderClientBal::forceLayout()
 {
     BALNotImplemented();
-//    m_frame->view()->setNeedsLayout();
+    m_frame->view()->setNeedsLayout();
     m_frame->view()->layout();
 }
 
@@ -370,8 +430,13 @@ void FrameLoaderClientBal::detachedFromParent3()
 
 void FrameLoaderClientBal::detachedFromParent4()
 {
-    BALNotImplemented();
-    m_frame = 0;
+    //BALNotImplemented();
+    if( m_frame ){
+        Frame *f=m_frame.get();
+        f->deref();
+        m_frame = 0;
+        f=0;
+    }
 }
 
 void FrameLoaderClientBal::loadedFromPageCache()
@@ -436,6 +501,7 @@ void FrameLoaderClientBal::dispatchDidFinishDocumentLoad()
 
 void FrameLoaderClientBal::dispatchDidFirstLayout()
 {
+    BALNotImplemented();
 }
 
 void FrameLoaderClientBal::dispatchShow()
@@ -505,10 +571,19 @@ bool FrameLoaderClientBal::canHandleRequest(const ResourceRequest&) const
     return true;
 }
 
-bool FrameLoaderClientBal::canShowMIMEType(const String&) const
+bool FrameLoaderClientBal::canShowMIMEType(const String& MIMEType) const
 {
     BALNotImplemented();
     return true;
+/*
+    if (MIMETypeRegistry::isSupportedImageMIMEType(MIMEType))
+        return true;
+
+    if (MIMETypeRegistry::isSupportedNonImageMIMEType(MIMEType))
+        return true;
+
+    return false;
+*/
 }
 
 bool FrameLoaderClientBal::representationExistsForURLScheme(const String&) const
@@ -543,7 +618,7 @@ void FrameLoaderClientBal::setTitle(const String&, const KURL&)
     BALNotImplemented();
 }
 
-void FrameLoaderClientBal::setDocumentViewFromPageCache(WebCore::PageCache*)
+void FrameLoaderClientBal::setDocumentViewFromCachedPage(WebCore::CachedPage*)
 {
     BALNotImplemented();
 }
@@ -570,8 +645,11 @@ bool FrameLoaderClientBal::dispatchDidLoadResourceFromMemoryCache(DocumentLoader
 
 void FrameLoaderClientBal::dispatchDidFailProvisionalLoad(const ResourceError& error)
 {
-    printf("Error for '%s': %s\n", error.failingURL().deprecatedString().ascii(),
+#ifndef NDEBUG
+    if (!getenv("LAYOUT_TEST"))
+        printf("Error for '%s': %s\n", error.failingURL().deprecatedString().ascii(),
             error.localizedDescription().deprecatedString().ascii());
+#endif
     m_loadFailed = true;
     BALNotImplemented();
 }
@@ -581,7 +659,7 @@ void FrameLoaderClientBal::dispatchDidFailLoad(const ResourceError&)
     BALNotImplemented();
 }
 
-void FrameLoaderClientBal::download(ResourceHandle*, const ResourceRequest&, const ResourceResponse&)
+void FrameLoaderClientBal::download(ResourceHandle*, const ResourceRequest&, const ResourceRequest&, const ResourceResponse&)
 {
     BALNotImplemented();
 }
@@ -592,8 +670,19 @@ ResourceError FrameLoaderClientBal::cancelledError(const ResourceRequest&)
     return ResourceError();
 }
 
+ResourceError FrameLoaderClientBal::blockedError(const ResourceRequest&)
+{
+    BALNotImplemented();
+    return ResourceError();
+}
+
 ResourceError FrameLoaderClientBal::cannotShowURLError(const ResourceRequest&)
 {
+#ifndef NDEBUG
+    if (!getenv("LAYOUT_TEST"))
+        printf("Cannot show url.\n");
+#endif
+    m_loadFailed = true;
     BALNotImplemented();
     return ResourceError();
 }
@@ -606,6 +695,11 @@ ResourceError FrameLoaderClientBal::interruptForPolicyChangeError(const Resource
 
 ResourceError FrameLoaderClientBal::cannotShowMIMETypeError(const ResourceResponse&)
 {
+#ifndef NDEBUG
+    if (!getenv("LAYOUT_TEST"))
+        printf("Cannot show MIME type.\n");
+#endif
+    m_loadFailed = true;
     BALNotImplemented();
     return ResourceError();
 }
@@ -628,7 +722,7 @@ bool FrameLoaderClientBal::willUseArchive(ResourceLoader*, const ResourceRequest
     return false;
 }
 
-void FrameLoaderClientBal::saveDocumentViewToPageCache(PageCache*)
+void FrameLoaderClientBal::saveDocumentViewToCachedPage(CachedPage*)
 {
     BALNotImplemented();
 }
@@ -664,5 +758,17 @@ void FrameLoaderClientBal::updateGlobalHistoryForReload(const KURL&)
 {
     BALNotImplemented();
 }
+
+void FrameLoaderClientBal::didPerformFirstNavigation() const
+{
+    BALNotImplemented();
+}
+
+#ifdef OWB_ICON_SUPPORT
+void registerForIconNotification(bool)
+{
+    BALNotImplemented();
+}
+#endif //OWB_ICON_SUPPORT
 
 }

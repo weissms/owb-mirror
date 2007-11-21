@@ -63,32 +63,37 @@ void BCMouseEvent::shiftPos(int dx, int dy)
 
 const IntPoint& BCMouseEvent::globalPos() const
 {
-	return m_globalPosition;
+    return m_globalPosition;
 }
 
 BAL::BIMouseEvent::MouseButton BCMouseEvent::button() const
 {
-	return m_button;
+    return m_button;
 }
 
 int BCMouseEvent::clickCount() const
 {
-	return m_clickCount;
+    return m_clickCount;
+}
+
+unsigned BCMouseEvent::modifierFlags() const {
+    ASSERT(false); // FIXME implement !
+    return 0;
 }
 
 BCMouseEvent::BCMouseEvent(MouseEventType type, const IntPoint& pos, const IntPoint& globalPos, MouseButton button,
                 int clickCount, bool shift, bool ctrl, bool alt, bool meta)
     : BCCommonInputEventData( shift, ctrl, alt, meta )
-	, m_position(pos)
-	, m_globalPosition(globalPos)
-	, m_button(button)
-	, m_eventType(type)
-	, m_clickCount(clickCount)
+    , m_position(pos)
+    , m_globalPosition(globalPos)
+    , m_button(button)
+    , m_eventType(type)
+    , m_clickCount(clickCount)
 {
 }
 
 BAL::BIEvent* BCMouseEvent::clone() const
 {
-	return new BCMouseEvent(m_eventType, m_position, m_globalPosition, m_button, m_clickCount,
+    return new BCMouseEvent(m_eventType, m_position, m_globalPosition, m_button, m_clickCount,
     shiftKey(), ctrlKey(), altKey(), metaKey());
 }

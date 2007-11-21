@@ -35,6 +35,7 @@
 #include "PlatformString.h"
 #include "GraphicsContext.h"
 #include "AffineTransform.h"
+#include "NotImplemented.h"
 
 #include <QPixmap>
 #include <QPainter>
@@ -48,10 +49,8 @@
 
 #include <math.h>
 
-#define notImplemented() qDebug("FIXME: UNIMPLEMENTED: %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__)
-
-// This function loads resources from WebKit
-Vector<char> loadResourceIntoArray(const char*);
+// This function loads resources into WebKit
+QPixmap loadResourcePixmap(const char*);
 
 namespace WebCore {
 
@@ -72,9 +71,7 @@ void FrameData::clear()
 
 Image* Image::loadPlatformResource(const char* name)
 {
-    Vector<char> arr = loadResourceIntoArray(name);
-    Image* img = new BitmapImage();
-    img->setNativeData(&arr, true);
+    BitmapImage* img = new BitmapImage(loadResourcePixmap(name));
     return img;
 }
 
@@ -85,13 +82,33 @@ void Image::drawPattern(GraphicsContext* ctxt, const FloatRect& tileRect, const 
     notImplemented();
 }
 
+BitmapImage::BitmapImage(const QPixmap &pixmap, ImageObserver *observer)
+    : Image(observer)
+    , m_currentFrame(0)
+    , m_frames(0)
+    , m_frameTimer(0)
+    , m_repetitionCount(0)
+    , m_repetitionsComplete(0)
+    , m_isSolidColor(false)
+    , m_animatingImageType(true)
+    , m_animationFinished(false)
+    , m_allDataReceived(false)
+    , m_haveSize(false)
+    , m_sizeAvailable(false)
+    , m_decodedSize(0)
+{
+    m_pixmap = new QPixmap(pixmap);
+}
 
 void BitmapImage::initPlatformData()
 {
+    m_pixmap = 0;
 }
 
 void BitmapImage::invalidatePlatformData()
 {
+    delete m_pixmap;
+    m_pixmap = 0;
 }
     
 // Drawing Routines
@@ -108,8 +125,6 @@ void BitmapImage::draw(GraphicsContext* ctxt, const FloatRect& dst,
     }
 
     IntSize selfSize = size();
-    FloatRect srcRect(src);
-    FloatRect dstRect(dst);
 
     ctxt->save();
 
@@ -167,7 +182,10 @@ void BitmapImage::checkForSolidColor()
 
 QPixmap* BitmapImage::getPixmap() const
 {
-    return const_cast<BitmapImage*>(this)->frameAtIndex(0);
+    if (!m_pixmap)
+      return const_cast<BitmapImage*>(this)->frameAtIndex(0);
+    else
+      return m_pixmap;
 }
 
 }

@@ -64,14 +64,13 @@ public:
      *
      */
     virtual void initialize(uint16_t width, uint16_t height, uint8_t depth);
-    virtual void initialize(const BAL::BISurface&);
     /**
      *
      */
     virtual void finalize();
     virtual BINativeImage* createNativeImage(const WebCore::IntSize size);    
     virtual BINativeImage* createNativeImage(RGBA32Array&, const WebCore::IntSize size);    
-    
+
     /**
      *
      */
@@ -119,7 +118,7 @@ private:
     inline void drawArc(const BTWidget&, const WebCore::Color, int zone, int xc, int yc, float& x0, float& y0, float x1, float y1, bool doSwap = true);
     SDL_Surface* applyTransparency(const BINativeImage&, const uint8_t alphaChannel);
 
-    SDL_Surface* 	m_screen;
+    SDL_Surface*        m_screen;
 #ifndef NDEBUG
     bool                m_layoutTests;
 #endif

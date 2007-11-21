@@ -35,6 +35,10 @@
 #include <QtGui/QImageReader>
 #include <qdebug.h>
 
+#if !defined(Q_OS_WIN)
+Q_IMPORT_PLUGIN(qtwebico) //For ico format...
+#endif
+
 namespace {
     const  QImage::Format DesiredFormat = QImage::Format_ARGB32;
     const  bool debugImageDecoderQt = false;
@@ -250,7 +254,7 @@ int ImageDecoderQt::repetitionCount() const
 }
 
 
-bool ImageDecoderQt::ImageDecoderQt::supportsAlpha() const
+bool ImageDecoderQt::supportsAlpha() const
 {
     return hasFirstImageHeader() && m_imageList[0].m_image.hasAlphaChannel();
 }
@@ -281,6 +285,13 @@ const QPixmap* ImageDecoderQt::imageAtIndex(size_t index) const
                              QPixmap::fromImage(m_imageList[index].m_image));
     }
     return  &m_pixmapCache[index];
+}
+
+void ImageDecoderQt::clearFrame(size_t index)
+{
+    if (m_imageList.size() < (int)index)
+        m_imageList[index].m_image = QImage();
+    m_pixmapCache.take(index);
 }
 
 }

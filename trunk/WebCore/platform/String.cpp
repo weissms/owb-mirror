@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -29,14 +29,15 @@
 #include "TextEncoding.h"
 #ifdef __OWB_JS__
 #include <kjs/identifier.h>
-#endif
+#endif //__OWB_JS__
+#include <wtf/StringExtras.h>
 #include <wtf/Vector.h>
 #include <stdarg.h>
 
 #ifdef __OWB_JS__
 using KJS::Identifier;
 using KJS::UString;
-#endif
+#endif //__OWB_JS__
 
 namespace WebCore {
 
@@ -281,7 +282,7 @@ String String::format(const char *format, ...)
     Vector<char, 256> buffer;
 
     // Do the format once to get the length.
-#if PLATFORM(WIN_OS)
+#if COMPILER(MSVC)
     int result = _vscprintf(format, args);
 #else
     char ch;
@@ -364,6 +365,26 @@ int String::toInt(bool* ok) const
     return m_impl->toInt(ok);
 }
 
+int64_t String::toInt64(bool* ok) const
+{
+    if (!m_impl) {
+        if (ok)
+            *ok = false;
+        return 0;
+    }
+    return m_impl->toInt64(ok);
+}
+
+uint64_t String::toUInt64(bool* ok) const
+{
+    if (!m_impl) {
+        if (ok)
+            *ok = false;
+        return 0;
+    }
+    return m_impl->toUInt64(ok);
+}
+
 double String::toDouble(bool* ok) const
 {
     if (!m_impl) {
@@ -372,6 +393,16 @@ double String::toDouble(bool* ok) const
         return 0;
     }
     return m_impl->toDouble(ok);
+}
+
+float String::toFloat(bool* ok) const
+{
+    if (!m_impl) {
+        if (ok)
+            *ok = false;
+        return 0.0f;
+    }
+    return m_impl->toFloat(ok);
 }
 
 String String::copy() const
@@ -446,6 +477,17 @@ CString String::utf8() const
     return UTF8Encoding().encode(characters(), length());
 }
 
+String String::fromUTF8(const char* string, size_t size)
+{
+    return UTF8Encoding().decode(string, size);
+}
+
+String String::fromUTF8(const char* string)
+{
+    return UTF8Encoding().decode(string, strlen(string));
+}
+
+
 bool operator==(const String& a, const DeprecatedString& b)
 {
     unsigned l = a.length();
@@ -456,6 +498,7 @@ bool operator==(const String& a, const DeprecatedString& b)
     return false;
 }
 
+#ifdef __OWB_JS__
 String::String(const Identifier& str)
 {
     if (str.isNull())
@@ -491,6 +534,7 @@ String::operator UString() const
         return UString();
     return UString(reinterpret_cast<const KJS::UChar*>(m_impl->characters()), m_impl->length());
 }
+#endif //__OWB_JS__
 
 String String::newUninitialized(size_t length, UChar*& characterBuffer)
 {

@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,25 +16,29 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGDocument.h"
 
 #include "EventNames.h"
 #include "ExceptionCode.h"
+#include "FrameView.h"
+#include "RenderView.h"
 #include "SVGElement.h"
 #include "SVGNames.h"
 #include "SVGSVGElement.h"
+#include "SVGViewSpec.h"
 #include "SVGZoomEvent.h"
+#include "SVGZoomAndPan.h"
 
 namespace WebCore {
 
-SVGDocument::SVGDocument(DOMImplementation* i, FrameView* view)
-    : Document(i, view)
+SVGDocument::SVGDocument(DOMImplementation* i, Frame* frame)
+    : Document(i, frame)
 {
 }
 
@@ -49,11 +53,6 @@ SVGSVGElement* SVGDocument::rootElement() const
         return static_cast<SVGSVGElement*>(elem);
 
     return 0;
-}
-
-PassRefPtr<Element> SVGDocument::createElement(const String& tagName, ExceptionCode& ec)
-{
-    return createElementNS(SVGNames::svgNamespaceURI, tagName, ec);
 }
 
 void SVGDocument::dispatchZoomEvent(float prevScale, float newScale)
@@ -74,7 +73,35 @@ void SVGDocument::dispatchScrollEvent()
     rootElement()->dispatchEvent(event.release(), ec);
 }
 
+bool SVGDocument::zoomAndPanEnabled() const
+{
+    if (rootElement()) {
+        if (rootElement()->useCurrentView()) {
+            if (rootElement()->currentView())
+                return rootElement()->currentView()->zoomAndPan() == SVGZoomAndPan::SVG_ZOOMANDPAN_MAGNIFY;
+        } else
+            return rootElement()->zoomAndPan() == SVGZoomAndPan::SVG_ZOOMANDPAN_MAGNIFY;
+    }
+
+    return false;
+}
+
+void SVGDocument::startPan(const FloatPoint& start)
+{
+    if (rootElement())
+        m_translate = FloatPoint(start.x() - rootElement()->currentTranslate().x(), rootElement()->currentTranslate().y() + start.y());
+}
+
+void SVGDocument::updatePan(const FloatPoint& pos) const
+{
+    if (rootElement()) {
+        rootElement()->setCurrentTranslate(FloatPoint(pos.x() - m_translate.x(), m_translate.y() - pos.y()));
+        if (renderer())
+            renderer()->repaint();
+    }
+}
+
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

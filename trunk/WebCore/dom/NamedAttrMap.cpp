@@ -1,11 +1,10 @@
-/**
- * This file is part of the DOM implementation for KDE.
- *
+/*
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Peter Kelly (pmk@post.com)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
+ *           (C) 2007 Eric Seidel (eric@webkit.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -19,13 +18,15 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
+
 #include "config.h"
 #include "NamedAttrMap.h"
 
 #include "Document.h"
+#include "Element.h"
 #include "ExceptionCode.h"
 #include "HTMLNames.h"
 
@@ -33,9 +34,9 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-static inline bool inHTMLDocument(const Element* e)
+static inline bool shouldIgnoreAttributeCase(const Element* e)
 {
-    return e && e->document()->isHTMLDocument();
+    return e && e->document()->isHTMLDocument() && e->isHTMLElement();
 }
 
 NamedAttrMap::NamedAttrMap(Element *e)
@@ -57,7 +58,7 @@ bool NamedAttrMap::isMappedAttributeMap() const
 
 PassRefPtr<Node> NamedAttrMap::getNamedItem(const String& name) const
 {
-    String localName = inHTMLDocument(element) ? name.lower() : name;
+    String localName = shouldIgnoreAttributeCase(element) ? name.lower() : name;
     Attribute* a = getAttributeItem(localName);
     if (!a)
         return 0;
@@ -72,7 +73,7 @@ PassRefPtr<Node> NamedAttrMap::getNamedItemNS(const String& namespaceURI, const 
 
 PassRefPtr<Node> NamedAttrMap::removeNamedItem(const String& name, ExceptionCode& ec)
 {
-    String localName = inHTMLDocument(element) ? name.lower() : name;
+    String localName = shouldIgnoreAttributeCase(element) ? name.lower() : name;
     Attribute* a = getAttributeItem(localName);
     if (!a) {
         ec = NOT_FOUND_ERR;
@@ -356,6 +357,11 @@ bool NamedAttrMap::mapsEquivalent(const NamedAttrMap* otherMap) const
     }
     
     return true;
+}
+
+bool NamedAttrMap::isReadOnlyNode()
+{
+    return element && element->isReadOnlyNode();
 }
 
 }

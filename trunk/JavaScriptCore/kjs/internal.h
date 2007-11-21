@@ -1,9 +1,8 @@
 // -*- c-basic-offset: 2 -*-
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
  *  Copyright (C) 2001 Peter Kelly (pmk@post.com)
- *  Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -47,12 +46,15 @@ namespace KJS {
 
   class StringImp : public JSCell {
   public:
-    StringImp(const UString& v) : val(v) { }
+    StringImp(const UString& v) : val(v) { Collector::reportExtraMemoryCost(v.cost()); }
+    enum HasOtherOwnerType { HasOtherOwner };
+    StringImp(const UString& value, HasOtherOwnerType) : val(value) { }
     UString value() const { return val; }
 
     JSType type() const { return StringType; }
 
-    JSValue *toPrimitive(ExecState *exec, JSType preferred = UnspecifiedType) const;
+    JSValue* toPrimitive(ExecState*, JSType preferred = UnspecifiedType) const;
+    bool getPrimitiveNumber(ExecState*, double& number) const;
     bool toBoolean(ExecState *exec) const;
     double toNumber(ExecState *exec) const;
     UString toString(ExecState *exec) const;
@@ -70,7 +72,8 @@ namespace KJS {
 
     JSType type() const { return NumberType; }
 
-    JSValue *toPrimitive(ExecState *exec, JSType preferred = UnspecifiedType) const;
+    JSValue* toPrimitive(ExecState*, JSType preferred = UnspecifiedType) const;
+    bool getPrimitiveNumber(ExecState*, double& number) const;
     bool toBoolean(ExecState *exec) const;
     double toNumber(ExecState *exec) const;
     UString toString(ExecState *exec) const;
@@ -80,10 +83,12 @@ namespace KJS {
     NumberImp(double v) : val(v) { }
 
     virtual bool getUInt32(uint32_t&) const;
+    virtual bool getTruncatedInt32(int32_t&) const;
+    virtual bool getTruncatedUInt32(uint32_t&) const;
 
     double val;
   };
-  
+
 
   /**
    * @short The "label set" in Ecma-262 spec
@@ -109,7 +114,7 @@ namespace KJS {
      * Removes from the stack the last pushed id (what else?)
      */
     void pop();
-    
+
   private:
     struct StackElem {
       Identifier id;
@@ -123,11 +128,6 @@ namespace KJS {
   // ---------------------------------------------------------------------------
   //                            Evaluation
   // ---------------------------------------------------------------------------
-
-  enum CodeType { GlobalCode,
-                  EvalCode,
-                  FunctionCode,
-                  AnonymousCode };
 
   struct AttachedInterpreter;
   class DebuggerImp {
@@ -143,24 +143,6 @@ namespace KJS {
 
     AttachedInterpreter *interps;
     bool isAborted;
-  };
-
-  class InternalFunctionImp : public JSObject {
-  public:
-    InternalFunctionImp();
-    InternalFunctionImp(FunctionPrototype*);
-    InternalFunctionImp(FunctionPrototype*, const Identifier&);
-
-    virtual bool implementsCall() const;
-    virtual JSValue* callAsFunction(ExecState*, JSObject* thisObjec, const List& args) = 0;
-    virtual bool implementsHasInstance() const;
-
-    virtual const ClassInfo* classInfo() const { return &info; }
-    static const ClassInfo info;
-    const Identifier& functionName() const { return m_name; }
-
-  private:
-    Identifier m_name;
   };
 
   // helper function for toInteger, toInt32, toUInt32 and toUInt16

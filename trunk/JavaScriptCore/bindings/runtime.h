@@ -28,12 +28,15 @@
 
 #include "value.h"
 
+#include <wtf/Noncopyable.h>
 #include <wtf/HashMap.h>
+#include <wtf/Vector.h>
 
 namespace KJS  {
 
 class Identifier;
 class List;
+class PropertyNameArray;
 
 namespace Bindings {
 
@@ -41,34 +44,12 @@ class Instance;
 class Method;
 class RootObject;
 
-// For now just use Java style type descriptors.
-typedef const char * RuntimeType;
-
-// FIXME:  Parameter should be removed from abstract runtime classes.
-class Parameter
-{
-public:
-    virtual RuntimeType type() const = 0;
-    virtual ~Parameter() {}
-};
-
-// FIXME:  Constructor should be removed from abstract runtime classes
-// unless we want to support instantiation of runtime objects from
-// JavaScript.
-class Constructor
-{
-public:
-    virtual Parameter* parameterAt(int i) const = 0;
-    virtual int numParameters() const = 0;
-
-    virtual ~Constructor() {}
-};
+typedef Vector<Method*> MethodList;
 
 class Field
 {
 public:
     virtual const char* name() const = 0;
-    virtual RuntimeType type() const = 0;
 
     virtual JSValue* valueFromInstance(ExecState*, const Instance*) const = 0;
     virtual void setValueToInstance(ExecState*, const Instance*, JSValue*) const = 0;
@@ -76,26 +57,7 @@ public:
     virtual ~Field() {}
 };
 
-class MethodList
-{
-public:
-    MethodList() : _methods(0), _length(0) {}
-    
-    void addMethod(Method*);
-    unsigned int length() const;
-    Method* methodAt(unsigned int index) const;
-    
-    ~MethodList();
-    
-    MethodList(const MethodList&);
-    MethodList& operator=(const MethodList&);
-
-private:
-    Method **_methods;
-    unsigned int _length;
-};
-
-class Method
+class Method : Noncopyable
 {
 public:
     virtual const char *name() const = 0;
@@ -105,15 +67,12 @@ public:
     virtual ~Method() {}
 };
 
-class Class
+class Class : Noncopyable
 {
 public:
     virtual const char *name() const = 0;
     
     virtual MethodList methodsNamed(const Identifier&, Instance*) const = 0;
-    
-    virtual Constructor *constructorAt(int i) const = 0;
-    virtual int numConstructors() const = 0;
     
     virtual Field *fieldNamed(const Identifier&, Instance*) const = 0;
 
@@ -124,8 +83,7 @@ public:
 
 typedef void (*KJSDidExecuteFunctionPtr)(ExecState*, JSObject* rootObject);
 
-class Instance
-{
+class Instance : Noncopyable {
 public:
     typedef enum {
         JavaLanguage,
@@ -134,15 +92,18 @@ public:
 #if PLATFORM(QT)
         , QtLanguage
 #endif
+#ifdef __OWB__
+	,BalLanguage
+#endif
     } BindingLanguage;
 
-    Instance();
+    Instance(PassRefPtr<RootObject>);
 
     static void setDidExecuteFunction(KJSDidExecuteFunctionPtr func);
     static KJSDidExecuteFunctionPtr didExecuteFunction();
     
-    static Instance* createBindingForLanguageInstance(BindingLanguage, void* nativeInstance, PassRefPtr<RootObject> = 0);
-    static JSObject* createRuntimeObject(BindingLanguage, void* nativeInstance, PassRefPtr<RootObject> = 0);
+    static Instance* createBindingForLanguageInstance(BindingLanguage, void* nativeInstance, PassRefPtr<RootObject>);
+    static JSObject* createRuntimeObject(BindingLanguage, void* nativeInstance, PassRefPtr<RootObject>);
 
     void ref() { _refCount++; }
     void deref() 
@@ -170,11 +131,12 @@ public:
     virtual JSValue* invokeMethod(ExecState*, const MethodList&, const List& args) = 0;
     virtual JSValue* invokeDefaultMethod(ExecState*, const List&) { return jsUndefined(); }
     
+    virtual void getPropertyNames(ExecState*, PropertyNameArray&) { }
+
     virtual JSValue* defaultValue(JSType hint) const = 0;
     
     virtual JSValue* valueOf() const { return jsString(getClass()->name()); }
     
-    void setRootObject(PassRefPtr<RootObject>);
     RootObject* rootObject() const;
     
     virtual ~Instance();
@@ -182,19 +144,19 @@ public:
 protected:
     RefPtr<RootObject> _rootObject;
     unsigned _refCount;
-
-private:
-    Instance(const Instance &other); // prevent copying
-    Instance &operator=(const Instance &other); // ditto
 };
 
-class Array
+class Array : Noncopyable
 {
 public:
+    Array(PassRefPtr<RootObject>);
+    virtual ~Array();
+    
     virtual void setValueAt(ExecState *, unsigned index, JSValue*) const = 0;
     virtual JSValue* valueAt(ExecState *, unsigned index) const = 0;
     virtual unsigned int getLength() const = 0;
-    virtual ~Array() {}
+protected:
+    RefPtr<RootObject> _rootObject;
 };
 
 const char *signatureForParameters(const List&);

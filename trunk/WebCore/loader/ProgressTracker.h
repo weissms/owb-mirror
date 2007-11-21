@@ -50,7 +50,10 @@ public:
     
     void incrementProgress(unsigned long identifier, const ResourceResponse&);
     void incrementProgress(unsigned long identifier, const char*, int);
-    void completeProgress(unsigned long long identifier);
+    void completeProgress(unsigned long identifier);
+
+    long long totalPageAndResourceBytesToLoad() const { return m_totalPageAndResourceBytesToLoad; }
+    long long totalBytesReceived() const { return m_totalBytesReceived; }
 
 private:
     void reset();

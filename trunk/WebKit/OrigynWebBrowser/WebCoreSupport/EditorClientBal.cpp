@@ -96,12 +96,23 @@ bool EditorClientBal::shouldApplyStyle(WebCore::CSSStyleDeclaration*,
     return true;
 }
 
+bool EditorClientBal::shouldMoveRangeAfterDelete(Range*, Range*)
+{
+	//FIXME: maybe wrong value ?
+	return false;
+}
+
 void EditorClientBal::didBeginEditing()
 {
     m_editing = true;
 }
 
 void EditorClientBal::respondToChangedContents()
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::respondToChangedSelection()
 {
     BALNotImplemented();
 }
@@ -199,7 +210,7 @@ void EditorClientBal::toggleGrammarChecking()
     BALNotImplemented();
 }
 
-void EditorClientBal::handleKeyPress(KeyboardEvent* event)
+void EditorClientBal::handleKeypress(KeyboardEvent* event)
 {
     Frame* frame = m_page->focusController()->focusedOrMainFrame();
     if (!frame)
@@ -255,11 +266,16 @@ void EditorClientBal::handleKeyPress(KeyboardEvent* event)
                 break;
             default:
                 if (!kevent->ctrlKey() && !kevent->altKey())
-                    frame->editor()->insertText(kevent->text(), false, event);
+                    frame->editor()->insertText(kevent->text(), event);
                 event->setDefaultHandled();
             }
         }
     }
+}
+
+void EditorClientBal::handleInputMethodKeypress(KeyboardEvent*)
+{
+    BALNotImplemented();
 }
 
 EditorClientBal::EditorClientBal()
@@ -288,10 +304,63 @@ bool EditorClientBal::doTextFieldCommandFromEvent(Element*, KeyboardEvent*)
 
 void EditorClientBal::textWillBeDeletedInTextField(Element*)
 {
+    BALNotImplemented();
 }
 
 void EditorClientBal::textDidChangeInTextArea(Element*)
 {
+    BALNotImplemented();
+}
+
+void EditorClientBal::ignoreWordInSpellDocument(const String&)
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::learnWord(const String&)
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::checkSpellingOfString(const UChar*, int length, int* misspellingLocation, int* misspellingLength)
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::checkGrammarOfString(const UChar*, int length, Vector<GrammarDetail>&, int* badGrammarLocation, int* badGrammarLength)
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::updateSpellingUIWithGrammarString(const String&, const GrammarDetail& detail)
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::updateSpellingUIWithMisspelledWord(const String&)
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::showSpellingUI(bool show)
+{
+    BALNotImplemented();
+}
+
+bool EditorClientBal::spellingUIIsShowing()
+{
+    BALNotImplemented();
+	return false;
+}
+
+void EditorClientBal::getGuessesForWord(const String&, Vector<String>& guesses)
+{
+    BALNotImplemented();
+}
+
+void EditorClientBal::setInputMethodState(bool enabled)
+{
+    BALNotImplemented();
 }
 
 bool EditorClientBal::isEditing() const

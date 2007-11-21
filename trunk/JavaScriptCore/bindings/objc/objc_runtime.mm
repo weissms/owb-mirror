@@ -74,15 +74,6 @@ NSMethodSignature* ObjcMethod::getMethodSignature() const
 #endif
 }
 
-void ObjcMethod::setJavaScriptName (CFStringRef n)
-{
-    if (n != _javaScriptName) {
-        if (_javaScriptName)
-            CFRelease (_javaScriptName);
-        _javaScriptName = (CFStringRef)CFRetain (n);
-    }
-}
-
 // ---------------------- ObjcField ----------------------
 
 ObjcField::ObjcField(Ivar ivar) 
@@ -106,37 +97,28 @@ const char* ObjcField::name() const
     if (_ivar)
         return _ivar->ivar_name;
 #endif
-    return [(NSString*)_name UTF8String];
-}
-
-RuntimeType ObjcField::type() const 
-{ 
-#if defined(OBJC_API_VERSION) && OBJC_API_VERSION >= 2
-    if (_ivar)
-        return ivar_getTypeEncoding(_ivar);
-#else
-    if (_ivar)
-        return _ivar->ivar_type;
-#endif
-
-    // Type is irrelevant if we use KV to set/get the value.
-    return "";
+    return [(NSString*)_name.get() UTF8String];
 }
 
 JSValue* ObjcField::valueFromInstance(ExecState* exec, const Instance* instance) const
 {
+    JSValue* result = jsUndefined();
+    
     id targetObject = (static_cast<const ObjcInstance*>(instance))->getObject();
+
+   JSLock::DropAllLocks dropAllLocks; // Can't put this inside the @try scope because it unwinds incorrectly.
 
     @try {
         NSString* key = [NSString stringWithCString:name() encoding:NSASCIIStringEncoding];
-        id objcValue = [targetObject valueForKey:key];
-        if (objcValue)
-            return convertObjcValueToValue(exec, &objcValue, ObjcObjectType);
+        if (id objcValue = [targetObject valueForKey:key])
+            result = convertObjcValueToValue(exec, &objcValue, ObjcObjectType, instance->rootObject());
     } @catch(NSException* localException) {
+        JSLock::lock();
         throwError(exec, GeneralError, [localException reason]);
+        JSLock::unlock();
     }
 
-    return jsUndefined();
+    return result;
 }
 
 static id convertValueToObjcObject(ExecState* exec, JSValue* value)
@@ -152,49 +134,34 @@ void ObjcField::setValueToInstance(ExecState* exec, const Instance* instance, JS
     id targetObject = (static_cast<const ObjcInstance*>(instance))->getObject();
     id value = convertValueToObjcObject(exec, aValue);
 
+   JSLock::DropAllLocks dropAllLocks; // Can't put this inside the @try scope because it unwinds incorrectly.
+
     @try {
         NSString* key = [NSString stringWithCString:name() encoding:NSASCIIStringEncoding];
         [targetObject setValue:value forKey:key];
     } @catch(NSException* localException) {
+        JSLock::lock();
         throwError(exec, GeneralError, [localException reason]);
+        JSLock::unlock();
     }
 }
 
 // ---------------------- ObjcArray ----------------------
 
-ObjcArray::ObjcArray (ObjectStructPtr a) 
+ObjcArray::ObjcArray(ObjectStructPtr a, PassRefPtr<RootObject> rootObject)
+    : Array(rootObject)
+    , _array(a)
 {
-    _array = (id)CFRetain(a);
-}
-
-ObjcArray::~ObjcArray () 
-{
-    CFRelease(_array);
-}
-
-ObjcArray::ObjcArray (const ObjcArray &other) : Array() 
-{
-    _array = other._array;
-    CFRetain(_array);
-}
-
-ObjcArray &ObjcArray::operator=(const ObjcArray &other)
-{
-    ObjectStructPtr _oldArray = _array;
-    _array = other._array;
-    CFRetain(_array);
-    CFRelease(_oldArray);
-    return* this;
 }
 
 void ObjcArray::setValueAt(ExecState* exec, unsigned int index, JSValue* aValue) const
 {
-    if (![_array respondsToSelector:@selector(insertObject:atIndex:)]) {
+    if (![_array.get() respondsToSelector:@selector(insertObject:atIndex:)]) {
         throwError(exec, TypeError, "Array is not mutable.");
         return;
     }
 
-    if (index > [_array count]) {
+    if (index > [_array.get() count]) {
         throwError(exec, RangeError, "Index exceeds array size.");
         return;
     }
@@ -204,7 +171,7 @@ void ObjcArray::setValueAt(ExecState* exec, unsigned int index, JSValue* aValue)
     ObjcValue oValue = convertValueToObjcValue (exec, aValue, ObjcObjectType);
 
     @try {
-        [_array insertObject:oValue.objectValue atIndex:index];
+        [_array.get() insertObject:oValue.objectValue atIndex:index];
     } @catch(NSException* localException) {
         throwError(exec, GeneralError, "Objective-C exception.");
     }
@@ -212,12 +179,12 @@ void ObjcArray::setValueAt(ExecState* exec, unsigned int index, JSValue* aValue)
 
 JSValue* ObjcArray::valueAt(ExecState* exec, unsigned int index) const
 {
-    if (index > [_array count])
+    if (index > [_array.get() count])
         return throwError(exec, RangeError, "Index exceeds array size.");
     @try {
-        id obj = [_array objectAtIndex:index];
+        id obj = [_array.get() objectAtIndex:index];
         if (obj)
-            return convertObjcValueToValue (exec, &obj, ObjcObjectType);
+            return convertObjcValueToValue (exec, &obj, ObjcObjectType, _rootObject.get());
     } @catch(NSException* localException) {
         return throwError(exec, GeneralError, "Objective-C exception.");
     }
@@ -226,7 +193,7 @@ JSValue* ObjcArray::valueAt(ExecState* exec, unsigned int index) const
 
 unsigned int ObjcArray::getLength() const
 {
-    return [_array count];
+    return [_array.get() count];
 }
 
 const ClassInfo ObjcFallbackObjectImp::info = {"ObjcFallbackObject", 0, 0, 0};
@@ -284,6 +251,9 @@ JSValue* ObjcFallbackObjectImp::callAsFunction(ExecState* exec, JSObject* thisOb
     RuntimeObjectImp* imp = static_cast<RuntimeObjectImp*>(thisObj);
     Instance* instance = imp->getInternalInstance();
 
+    if (!instance)
+        return RuntimeObjectImp::throwInvalidAccessError(exec);
+    
     instance->begin();
 
     ObjcInstance* objcInstance = static_cast<ObjcInstance*>(instance);
@@ -294,7 +264,7 @@ JSValue* ObjcFallbackObjectImp::callAsFunction(ExecState* exec, JSObject* thisOb
         ObjcClass* objcClass = static_cast<ObjcClass*>(instance->getClass());
         ObjcMethod* fallbackMethod = new ObjcMethod (objcClass->isa(), sel_getName(@selector(invokeUndefinedMethodFromWebScript:withArguments:)));
         fallbackMethod->setJavaScriptName((CFStringRef)[NSString stringWithCString:_item.ascii() encoding:NSASCIIStringEncoding]);
-        methodList.addMethod ((Method*)fallbackMethod);
+        methodList.append(fallbackMethod);
         result = instance->invokeMethod(exec, methodList, args);
         delete fallbackMethod;
     }

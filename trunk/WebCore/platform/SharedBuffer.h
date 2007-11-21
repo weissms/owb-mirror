@@ -25,12 +25,13 @@
 #ifndef SharedBuffer_h
 #define SharedBuffer_h
 
+#include "PlatformString.h"
 #include "Shared.h"
 #include <wtf/Forward.h>
 #include <wtf/Vector.h>
 
 #if PLATFORM(MAC)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 
 #ifdef __OBJC__
 @class NSData;
@@ -46,19 +47,29 @@ class SharedBuffer : public Shared<SharedBuffer> {
 public:
     SharedBuffer();
     SharedBuffer(const char*, int);
+    SharedBuffer(const unsigned char*, int);
+
+    static PassRefPtr<SharedBuffer> createWithContentsOfFile(const String& filePath);
+    
 #if PLATFORM(MAC)
     NSData *createNSData();
+    CFDataRef createCFData();
     static PassRefPtr<SharedBuffer> wrapNSData(NSData *data);
 #endif
         
     const char* data() const;
     unsigned size() const;
+    const Vector<char> &buffer() { return m_buffer; }
+
+    bool isEmpty() const { return size() == 0; }
 
     void append(const char*, int);
     void clear();
     const char* platformData() const;
     unsigned platformDataSize() const;
 
+    PassRefPtr<SharedBuffer> copy() const;
+    
 private:
     void clearPlatformData();
     void maybeTransferPlatformData();

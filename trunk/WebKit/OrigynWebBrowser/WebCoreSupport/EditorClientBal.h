@@ -66,9 +66,11 @@ public:
     virtual bool shouldChangeSelectedRange(Range* fromRange, Range* toRange, EAffinity, bool stillSelecting);
 
     virtual bool shouldApplyStyle(CSSStyleDeclaration*, Range*);
+	virtual bool shouldMoveRangeAfterDelete(Range*, Range*);
 
     virtual void didBeginEditing();
     virtual void respondToChangedContents();
+	virtual void respondToChangedSelection();
     virtual void didEndEditing();
     virtual void didWriteSelectionToPasteboard();
     virtual void didSetSelectionTypesForPasteboard();
@@ -83,7 +85,8 @@ public:
     virtual void undo();
     virtual void redo();
 
-    virtual void handleKeyPress(KeyboardEvent*);
+    virtual void handleKeypress(KeyboardEvent*);
+	virtual void handleInputMethodKeypress(KeyboardEvent*);
 
     virtual void textFieldDidBeginEditing(Element*);
     virtual void textFieldDidEndEditing(Element*);
@@ -91,6 +94,17 @@ public:
     virtual bool doTextFieldCommandFromEvent(Element*, KeyboardEvent*);
     virtual void textWillBeDeletedInTextField(Element*);
     virtual void textDidChangeInTextArea(Element*);
+
+	virtual void ignoreWordInSpellDocument(const String&);
+	virtual void learnWord(const String&);
+	virtual void checkSpellingOfString(const UChar*, int length, int* misspellingLocation, int* misspellingLength);
+	virtual void checkGrammarOfString(const UChar*, int length, Vector<GrammarDetail>&, int* badGrammarLocation, int* badGrammarLength);
+	virtual void updateSpellingUIWithGrammarString(const String&, const GrammarDetail& detail);
+	virtual void updateSpellingUIWithMisspelledWord(const String&);
+	virtual void showSpellingUI(bool show);
+	virtual bool spellingUIIsShowing();
+	virtual void getGuessesForWord(const String&, Vector<String>& guesses);
+	virtual void setInputMethodState(bool enabled);
 
     bool isEditing() const;
 

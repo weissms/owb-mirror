@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006, 2007 Apple Inc.
  * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
@@ -14,37 +14,37 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module html {
 
-    interface HTMLTableElement : HTMLElement {
+    interface [GenerateConstructor] HTMLTableElement : HTMLElement {
 
         // FIXME: the dom spec states that the following 3 attributes
         // could raise excepetions on setting.
                  attribute HTMLTableCaptionElement caption
-                     /*setter raises (DOMException)*/;
+                     /*setter raises(DOMException)*/;
                  attribute HTMLTableSectionElement tHead
-                     /*setter raises (DOMException)*/;
+                     /*setter raises(DOMException)*/;
                  attribute HTMLTableSectionElement tFoot
-                     /*setter raises (DOMException)*/;
+                     /*setter raises(DOMException)*/;
 
         readonly attribute HTMLCollection rows;
         readonly attribute HTMLCollection tBodies;
-                 attribute DOMString align;
-                 attribute DOMString bgColor;
-                 attribute DOMString border;
-                 attribute DOMString cellPadding;
-                 attribute DOMString cellSpacing;
+                 attribute [ConvertNullToNullString] DOMString align;
+                 attribute [ConvertNullToNullString] DOMString bgColor;
+                 attribute [ConvertNullToNullString] DOMString border;
+                 attribute [ConvertNullToNullString] DOMString cellPadding;
+                 attribute [ConvertNullToNullString] DOMString cellSpacing;
 
         // FIXME: the obj-c attribute is called frameBorders
-                 attribute DOMString frame;
+                 attribute [ConvertNullToNullString] DOMString frame;
 
-                 attribute DOMString rules;
-                 attribute DOMString summary;
-                 attribute DOMString width;
+                 attribute [ConvertNullToNullString] DOMString rules;
+                 attribute [ConvertNullToNullString] DOMString summary;
+                 attribute [ConvertNullToNullString] DOMString width;
 
         HTMLElement        createTHead();
         void               deleteTHead();
@@ -54,10 +54,10 @@ module html {
         void               deleteCaption();
 
         HTMLElement insertRow(in long index)
-            raises (DOMException);
+            raises(DOMException);
 
         void deleteRow(in long index)
-            raises (DOMException);
+            raises(DOMException);
 
     };
 

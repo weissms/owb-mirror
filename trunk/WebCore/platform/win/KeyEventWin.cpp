@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,21 +25,24 @@
 
 #include "config.h"
 #include "PlatformKeyboardEvent.h"
+
 #include <windows.h>
+#include <wtf/ASCIICType.h>
 
-#define REPEAT_COUNT_MASK           0x0000FFFF
-#define NEW_RELEASE_STATE_MASK      0x80000000
-#define PREVIOUS_DOWN_STATE_MASK    0x40000000
-#define ALT_KEY_DOWN_MASK           0x20000000
-
-#define HIGH_BIT_MASK_SHORT         0x8000
+using namespace WTF;
 
 namespace WebCore {
 
-// FIXME: This is incomplete.  We should change this to mirror
+static const unsigned REPEAT_COUNT_MASK = 0x0000FFFF;
+static const unsigned NEW_RELEASE_STATE_MASK = 0x80000000;
+static const unsigned PREVIOUS_DOWN_STATE_MASK = 0x40000000;
+
+static const unsigned short HIGH_BIT_MASK_SHORT = 0x8000;
+
+// FIXME: This is incomplete. We could change this to mirror
 // more like what Firefox does, and generate these switch statements
 // at build time.
-static String keyIdentifierForWindowsKeyCode(short keyCode)
+static String keyIdentifierForWindowsKeyCode(unsigned short keyCode)
 {
     switch (keyCode) {
         case VK_MENU:
@@ -126,31 +129,29 @@ static String keyIdentifierForWindowsKeyCode(short keyCode)
             return "Select";
         case VK_UP:
             return "Up";
-        // Standard says that DEL becomes U+00007F.
+        // Standard says that DEL becomes U+007F.
         case VK_DELETE:
-            return "U+00007F";
+            return "U+007F";
         default:
-            return String::format("U+%06X", toupper(keyCode));
+            return String::format("U+%04X", toASCIIUpper(keyCode));
     }
 }
 
-static String singleCharacterString(UChar c) { return String(&c, 1); }
+static inline String singleCharacterString(UChar c) { return String(&c, 1); }
 
-PlatformKeyboardEvent::PlatformKeyboardEvent(HWND hWnd, WPARAM wParam, LPARAM lParam)
-    : m_text(singleCharacterString(wParam))
-    , m_unmodifiedText(singleCharacterString(wParam))
-    , m_keyIdentifier(keyIdentifierForWindowsKeyCode(wParam))
-    , m_isKeyUp((lParam & NEW_RELEASE_STATE_MASK))
-    , m_autoRepeat((lParam & REPEAT_COUNT_MASK) > 1)
-    , m_WindowsKeyCode(wParam)
-    , m_isKeypad(false) // FIXME
+PlatformKeyboardEvent::PlatformKeyboardEvent(HWND, WPARAM virtualKeyCode, LPARAM keyData, UChar characterCode)
+    : m_text(singleCharacterString(characterCode))
+    , m_unmodifiedText(singleCharacterString(characterCode))
+    , m_keyIdentifier(keyIdentifierForWindowsKeyCode(virtualKeyCode))
+    , m_isKeyUp((keyData & NEW_RELEASE_STATE_MASK))
+    , m_autoRepeat((keyData & REPEAT_COUNT_MASK) > 1)
+    , m_WindowsKeyCode(virtualKeyCode)
+    , m_isKeypad(false) // FIXME: Need to implement this.
     , m_shiftKey(GetKeyState(VK_SHIFT) & HIGH_BIT_MASK_SHORT)
     , m_ctrlKey(GetKeyState(VK_CONTROL) & HIGH_BIT_MASK_SHORT)
-    , m_altKey(lParam & ALT_KEY_DOWN_MASK)
-    , m_metaKey(lParam & ALT_KEY_DOWN_MASK) // FIXME: Is this right?
+    , m_altKey(GetKeyState(VK_MENU) & HIGH_BIT_MASK_SHORT)
+    , m_metaKey(m_altKey)
 {
-    if (!m_shiftKey)
-        m_text = String(singleCharacterString(tolower(wParam)));
 }
 
 }

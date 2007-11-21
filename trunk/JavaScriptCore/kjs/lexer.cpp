@@ -1,8 +1,8 @@
 // -*- c-basic-offset: 2 -*-
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2000 Harri Porten (porten@kde.org)
- *  Copyright (C) 2006 Apple Computer, Inc.
+ *  Copyright (C) 2006, 2007 Apple Inc. All Rights Reserved.
+ *  Copyright (C) 2007 Cameron Zwarich (cwzwarich@uwaterloo.ca)
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -24,11 +24,13 @@
 #include "config.h"
 #include "lexer.h"
 
-#include <ctype.h>
-#include <string.h>
-
+#include "function.h"
 #include "interpreter.h"
 #include "nodes.h"
+#include <ctype.h>
+#include <limits.h>
+#include <string.h>
+#include <wtf/Assertions.h>
 #include <wtf/unicode/Unicode.h>
 
 using namespace WTF;
@@ -129,7 +131,7 @@ void Lexer::setCode(const UString &sourceURL, int startingLineNumber, const KJS:
 void Lexer::shift(unsigned int p)
 {
   // Here would be a good place to strip Cf characters, but that has caused compatibility problems:
-  // <http://bugzilla.opendarwin.org/show_bug.cgi?id=10183>.
+  // <http://bugs.webkit.org/show_bug.cgi?id=10183>.
   while (p--) {
     pos++;
     current = next1;
@@ -438,7 +440,7 @@ int Lexer::lex()
       }
       break;
     default:
-      assert(!"Unhandled state in switch statement");
+      ASSERT(!"Unhandled state in switch statement");
     }
 
     // move on to the next character
@@ -472,6 +474,10 @@ int Lexer::lex()
       dval *= 16;
       dval += convertHex(c);
     }
+
+    if (dval >= mantissaOverflowLowerBound)
+      dval = parseIntOverflow(buffer8 + 2, p - (buffer8 + 3), 16);
+
     state = Number;
   } else if (state == Octal) {   // scan octal number
     const char *p = buffer8 + 1;
@@ -479,6 +485,10 @@ int Lexer::lex()
       dval *= 8;
       dval += c - '0';
     }
+
+    if (dval >= mantissaOverflowLowerBound)
+      dval = parseIntOverflow(buffer8 + 1, p - (buffer8 + 2), 8);
+
     state = Number;
   }
 
@@ -560,7 +570,7 @@ int Lexer::lex()
     error = true;
     return -1;
   default:
-    assert(!"unhandled numeration value in switch");
+    ASSERT(!"unhandled numeration value in switch");
     error = true;
     return -1;
   }

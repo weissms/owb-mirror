@@ -18,12 +18,13 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLLinkElement.h"
 
+#include "CSSHelper.h"
 #include "CachedCSSStyleSheet.h"
 #include "DocLoader.h"
 #include "Document.h"
@@ -32,7 +33,6 @@
 #include "FrameTree.h"
 #include "HTMLNames.h"
 #include "MediaList.h"
-#include "csshelper.h"
 #include "MediaQueryEvaluator.h"
 
 namespace WebCore {
@@ -55,7 +55,7 @@ HTMLLinkElement::~HTMLLinkElement()
     if (m_cachedSheet) {
         m_cachedSheet->deref(this);
         if (m_loading && !isDisabled() && !isAlternate())
-            document()->stylesheetLoaded();
+            document()->removePendingSheet();
     }
 }
 
@@ -71,7 +71,7 @@ void HTMLLinkElement::setDisabledState(bool _disabled)
             // a main sheet or a sheet that was previously enabled via script, then we need
             // to remove it from the list of pending sheets.
             if (m_disabledState == 2 && (!m_alternate || oldDisabledState == 1))
-                document()->stylesheetLoaded();
+                document()->removePendingSheet();
 
             // Check #2: An alternate sheet becomes enabled while it is still loading.
             if (m_alternate && m_disabledState == 1)
@@ -179,21 +179,24 @@ void HTMLLinkElement::process()
             // stylesheet.  Alternate stylesheets don't hold up render tree construction.
             if (!isAlternate())
                 document()->addPendingSheet();
-            
+
             String chset = getAttribute(charsetAttr);
             if (chset.isEmpty() && document()->frame())
                 chset = document()->frame()->loader()->encoding();
             
             if (m_cachedSheet) {
-                if (m_loading) {
-                    document()->stylesheetLoaded();
-                }
+                if (m_loading)
+                    document()->removePendingSheet();
                 m_cachedSheet->deref(this);
             }
             m_loading = true;
             m_cachedSheet = document()->docLoader()->requestCSSStyleSheet(m_url, chset);
             if (m_cachedSheet)
                 m_cachedSheet->ref(this);
+            else if (!isAlternate()) { // request may have been denied if stylesheet is local and document is remote.
+                m_loading = false;
+                document()->removePendingSheet();
+            }
         }
     } else if (m_sheet) {
         // we no longer contain a stylesheet, e.g. perhaps rel or type was changed
@@ -224,10 +227,7 @@ void HTMLLinkElement::setCSSStyleSheet(const String& url, const String& charset,
     m_sheet->setMedia(media.get());
 
     m_loading = false;
-
-    // Tell the doc about the sheet.
-    if (!isLoading() && m_sheet && !isDisabled() && !isAlternate())
-        document()->stylesheetLoaded();
+    m_sheet->checkLoaded();
 }
 
 bool HTMLLinkElement::isLoading() const
@@ -242,7 +242,7 @@ bool HTMLLinkElement::isLoading() const
 bool HTMLLinkElement::sheetLoaded()
 {
     if (!isLoading() && !isDisabled() && !isAlternate()) {
-        document()->stylesheetLoaded();
+        document()->removePendingSheet();
         return true;
     }
     return false;

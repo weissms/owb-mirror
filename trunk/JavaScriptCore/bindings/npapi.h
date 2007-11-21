@@ -96,7 +96,7 @@
 #endif
 
 #if defined(XP_MACOSX) && defined(__LP64__)
-    #define NP_NO_QUICKDRAW
+#error 64-bit Netscape plug-ins are not supported on Mac OS X
 #endif
 
 /*----------------------------------------------------------------------*/
@@ -104,7 +104,7 @@
 /*----------------------------------------------------------------------*/
 
 #define NP_VERSION_MAJOR 0
-#define NP_VERSION_MINOR 14
+#define NP_VERSION_MINOR 18
 
 
 
@@ -187,6 +187,16 @@ typedef struct _NPStream
     uint32       end;
     uint32       lastmodified;
     void*        notifyData;
+    const char*  headers;      /* Response headers from host.
+                                * Exists only for >= NPVERS_HAS_RESPONSE_HEADERS.
+                                * Used for HTTP only; NULL for non-HTTP.
+                                * Available from NPP_NewStream onwards.
+                                * Plugin should copy this data before storing it.
+                                * Includes HTTP status line and all headers,
+                                * preferably verbatim as received from server,
+                                * headers formatted as in HTTP ("Header: Value"),
+                                * and newlines (\n, NOT \r\n) separating lines.
+                                * Terminated by \n\0 (NOT \n\n\0). */
 } NPStream;
 
 
@@ -314,7 +324,13 @@ typedef enum {
     NPPVpluginNeedsXEmbed         = 14, /* Not implemented in WebKit */
 
     /* Get the NPObject for scripting the plugin. */
-    NPPVpluginScriptableNPObject  = 15
+    NPPVpluginScriptableNPObject  = 15,
+
+    /* Get the plugin value (as \0-terminated UTF-8 string data) for
+     * form submission if the plugin is part of a form. Use
+     * NPN_MemAlloc() to allocate memory for the string data.
+     */
+    NPPVformValue = 16    /* Not implemented in WebKit */
 } NPPVariable;
 
 /*
@@ -587,6 +603,12 @@ typedef struct NP_Port
 #define NPVERS_WIN16_HAS_LIVECONNECT    9
 #define NPVERS_68K_HAS_LIVECONNECT    11
 #define NPVERS_HAS_WINDOWLESS       11
+#define NPVERS_HAS_XPCONNECT_SCRIPTING    13  /* Not implemented in WebKit */
+#define NPVERS_HAS_NPRUNTIME_SCRIPTING    14
+#define NPVERS_HAS_FORM_VALUES            15  /* Not implemented in WebKit; see bug 13061 */
+#define NPVERS_HAS_POPUPS_ENABLED_STATE   16  /* Not implemented in WebKit */
+#define NPVERS_HAS_RESPONSE_HEADERS       17
+#define NPVERS_HAS_NPOBJECT_ENUM          18
 
 
 /*----------------------------------------------------------------------*/
@@ -677,6 +699,8 @@ NPError     NPN_SetValue(NPP instance, NPPVariable variable,
 void        NPN_InvalidateRect(NPP instance, NPRect *invalidRect);
 void        NPN_InvalidateRegion(NPP instance, NPRegion invalidRegion);
 void        NPN_ForceRedraw(NPP instance);
+void        NPN_PushPopupsEnabledState(NPP instance, NPBool enabled);
+void        NPN_PopPopupsEnabledState(NPP instance);
 
 #ifdef __cplusplus
 }  /* end extern "C" */

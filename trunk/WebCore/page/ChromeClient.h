@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef ChromeClient_h
@@ -27,6 +27,7 @@ namespace WebCore {
 
     class FloatRect;
     class Frame;
+    class HitTestResult;
     class IntRect;
     class Page;
     class String;
@@ -51,8 +52,12 @@ namespace WebCore {
         virtual bool canTakeFocus(FocusDirection) = 0;
         virtual void takeFocus(FocusDirection) = 0;
 
-        virtual Page* createWindow(const FrameLoadRequest&) = 0;
-        virtual Page* createModalDialog(const FrameLoadRequest&) = 0;
+        // The Frame pointer provides the ChromeClient with context about which
+        // Frame wants to create the new Page.  Also, the newly created window
+        // should not be shown to the user until the ChromeClient of the newly
+        // created Page has its show method called.
+        virtual Page* createWindow(Frame*, const FrameLoadRequest&) = 0;
+        virtual Page* createModalDialog(Frame*, const FrameLoadRequest&) = 0;
         virtual void show() = 0;
 
         virtual bool canRunModal() = 0;
@@ -91,6 +96,22 @@ namespace WebCore {
         virtual void addToDirtyRegion(const IntRect&) = 0;
         virtual void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect) = 0;
         virtual void updateBackingStore() = 0;
+
+        virtual void mouseDidMoveOverElement(const HitTestResult&, unsigned modifierFlags) = 0;
+
+        virtual void setToolTip(const String&) = 0;
+
+        virtual void print(Frame*) = 0;
+
+//  Possible permission levels -
+//  -Allow just this database to be created
+//  -Allow this domain to create whatever it wants
+//  -Don't allow this database
+//  -Don't allow this domain to ever create any
+//  -Don't allow any databases
+//        virtual bool runDatabaseCreationPrompt(Frame*, const String& origin, const String& name) = 0;
+
+        virtual bool runDatabaseSizeLimitPrompt(Frame*, const String& origin) = 0;
 };
 
 }

@@ -24,6 +24,16 @@ set(jscore_SRC
 	JavaScriptCore/wtf/TCSystemAlloc.cpp
 	JavaScriptCore/wtf/FastMallocPCRE.cpp
 
+	#API directory
+	JavaScriptCore/API/JSCallbackConstructor.cpp
+	JavaScriptCore/API/JSCallbackFunction.cpp
+	JavaScriptCore/API/JSCallbackObject.cpp
+	JavaScriptCore/API/JSClassRef.cpp
+	JavaScriptCore/API/JSContextRef.cpp
+	JavaScriptCore/API/JSObjectRef.cpp
+	JavaScriptCore/API/JSStringRef.cpp
+	JavaScriptCore/API/JSValueRef.cpp
+
 	#pcre directory
 	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs/chartables.c
 	JavaScriptCore/pcre/pcre_compile.c
@@ -36,6 +46,7 @@ set(jscore_SRC
 	JavaScriptCore/pcre/pcre_maketables.c
 	JavaScriptCore/pcre/pcre_ord2utf8.c
 	JavaScriptCore/pcre/pcre_refcount.c
+	JavaScriptCore/pcre/pcre_ucp_searchfuncs.c
 	JavaScriptCore/pcre/pcre_study.c
 	JavaScriptCore/pcre/pcre_tables.c
 	JavaScriptCore/pcre/pcre_try_flipped.c
@@ -44,24 +55,30 @@ set(jscore_SRC
 	JavaScriptCore/pcre/pcre_xclass.c
 
 	#bindings directory
-	JavaScriptCore/bindings/c/c_class.cpp
-	JavaScriptCore/bindings/c/c_instance.cpp
-	JavaScriptCore/bindings/c/c_runtime.cpp
-	JavaScriptCore/bindings/c/c_utility.cpp
-	JavaScriptCore/bindings/NP_jsobject.cpp
-	JavaScriptCore/bindings/npruntime.cpp
+	#JavaScriptCore/bindings/c/c_class.cpp
+	#JavaScriptCore/bindings/c/c_instance.cpp
+	#JavaScriptCore/bindings/c/c_runtime.cpp
+	#JavaScriptCore/bindings/c/c_utility.cpp
+	#JavaScriptCore/bindings/NP_jsobject.cpp
+	#JavaScriptCore/bindings/npruntime.cpp
 	JavaScriptCore/bindings/runtime_array.cpp
 	JavaScriptCore/bindings/runtime_method.cpp
 	JavaScriptCore/bindings/runtime_object.cpp
 	JavaScriptCore/bindings/runtime_root.cpp
 	JavaScriptCore/bindings/runtime.cpp
+	JavaScriptCore/bindings/bal/bal_class.cpp
+    JavaScriptCore/bindings/bal/bal_instance.cpp
+    JavaScriptCore/bindings/bal/bal_runtime.cpp
+	JavaScriptCore/bindings/bal/bal_object.cpp
 
 	#kjs directory
 	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs/grammar.cpp
+	JavaScriptCore/kjs/array_instance.cpp
 	JavaScriptCore/kjs/array_object.cpp
 	JavaScriptCore/kjs/bool_object.cpp
 	JavaScriptCore/kjs/collector.cpp
 	JavaScriptCore/kjs/Context.cpp
+	JavaScriptCore/kjs/CommonIdentifiers.cpp
 	JavaScriptCore/kjs/date_object.cpp
 	JavaScriptCore/kjs/debugger.cpp
 	JavaScriptCore/kjs/dtoa.cpp

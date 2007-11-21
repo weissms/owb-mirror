@@ -16,56 +16,54 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPathSegLinetoHorizontal_h
 #define SVGPathSegLinetoHorizontal_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGPathSeg.h"
 
-namespace WebCore
-{
-    class SVGPathSegLinetoHorizontalAbs : public SVGPathSeg
-    {
+namespace WebCore {
+
+    class SVGPathSegLinetoHorizontalAbs : public SVGPathSeg {
     public:
-        SVGPathSegLinetoHorizontalAbs(double x);
+        SVGPathSegLinetoHorizontalAbs(float x);
         virtual ~SVGPathSegLinetoHorizontalAbs();
 
         virtual unsigned short pathSegType() const { return PATHSEG_LINETO_HORIZONTAL_ABS; }
         virtual String pathSegTypeAsLetter() const { return "H"; }
         virtual String toString() const { return String::format("H %.6lg", m_x); }
 
-        void setX(double);
-        double x() const;
+        void setX(float);
+        float x() const;
 
     private:
-        double m_x;
+        float m_x;
     };
 
-    class SVGPathSegLinetoHorizontalRel : public SVGPathSeg
-    {
+    class SVGPathSegLinetoHorizontalRel : public SVGPathSeg {
     public:
-        SVGPathSegLinetoHorizontalRel(double x);
+        SVGPathSegLinetoHorizontalRel(float x);
         virtual ~SVGPathSegLinetoHorizontalRel();
 
         virtual unsigned short pathSegType() const { return PATHSEG_LINETO_HORIZONTAL_REL; }
         virtual String pathSegTypeAsLetter() const { return "h"; }
         virtual String toString() const { return String::format("h %.6lg", m_x); }
 
-        void setX(double);
-        double x() const;
+        void setX(float);
+        float x() const;
 
     private:
-        double m_x;
+        float m_x;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

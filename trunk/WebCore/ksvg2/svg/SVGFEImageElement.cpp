@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEImageElement.h"
 
 #include "Attr.h"
@@ -41,7 +41,7 @@ SVGFEImageElement::SVGFEImageElement(const QualifiedName& tagName, Document* doc
     , SVGURIReference()
     , SVGLangSpace()
     , SVGExternalResourcesRequired()
-    , m_preserveAspectRatio(new SVGPreserveAspectRatio(this))
+    , m_preserveAspectRatio(new SVGPreserveAspectRatio())
     , m_cachedImage(0)
     , m_filterEffect(0)
 {
@@ -59,9 +59,11 @@ ANIMATED_PROPERTY_DEFINITIONS(SVGFEImageElement, SVGPreserveAspectRatio*, Preser
 void SVGFEImageElement::parseMappedAttribute(MappedAttribute* attr)
 {
     const String& value = attr->value();
-    if (attr->name() == SVGNames::preserveAspectRatioAttr)
-        preserveAspectRatioBaseValue()->parsePreserveAspectRatio(value);
-    else {
+    if (attr->name() == SVGNames::preserveAspectRatioAttr) {
+        const UChar* c = value.characters();
+        const UChar* end = c + value.length();
+        preserveAspectRatioBaseValue()->parsePreserveAspectRatio(c, end);
+    } else {
         if (SVGURIReference::parseMappedAttribute(attr)) {
             if (!href().startsWith("#")) {
                 // FIXME: this code needs to special-case url fragments and later look them up using getElementById instead of loading them here
@@ -84,22 +86,27 @@ void SVGFEImageElement::parseMappedAttribute(MappedAttribute* attr)
 
 void SVGFEImageElement::notifyFinished(CachedResource* finishedObj)
 {
-    if (finishedObj == m_cachedImage && filterEffect())
-        filterEffect()->setCachedImage(m_cachedImage);
+    if (finishedObj == m_cachedImage && m_filterEffect)
+        m_filterEffect->setCachedImage(m_cachedImage);
 }
 
-SVGFEImage* SVGFEImageElement::filterEffect() const
+SVGFEImage* SVGFEImageElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFEImage*>(SVGResourceFilter::createFilterEffect(FE_IMAGE));
+        m_filterEffect = static_cast<SVGFEImage*>(SVGResourceFilter::createFilterEffect(FE_IMAGE, filter));
     if (!m_filterEffect)
         return 0;
+
+    // The resource may already be loaded!
+    if (m_cachedImage)
+        m_filterEffect->setCachedImage(m_cachedImage);
+
     setStandardAttributes(m_filterEffect);
     return m_filterEffect;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

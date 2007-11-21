@@ -60,7 +60,6 @@ namespace BAL {
         private:
             RefPtr<WebCore::FrameBal>       m_mainFrame;
             KURL                            m_url;
-            WebCore::FrameLoaderClientBal*  m_frameLoaderClient;
             int                             m_x;
             int                             m_y;
             int                             m_width;

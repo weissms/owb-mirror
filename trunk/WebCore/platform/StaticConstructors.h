@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -28,11 +28,22 @@
 
 #ifndef AVOID_STATIC_CONSTRUCTORS
     // Define an global in the normal way.
+#if COMPILER(MSVC7)
+#define DEFINE_GLOBAL(type, name) \
+    const type name;
+#else
 #define DEFINE_GLOBAL(type, name, ...) \
     const type name;
+#endif
+
 #else
 // Define an correctly-sized array of pointers to avoid static initialization.
 // Use an array of pointers instead of an array of char in case there is some alignment issue.
+#if COMPILER(MSVC7)
+#define DEFINE_GLOBAL(type, name) \
+    void * name[(sizeof(type) + sizeof(void *) - 1) / sizeof(void *)];
+#else
 #define DEFINE_GLOBAL(type, name, ...) \
     void * name[(sizeof(type) + sizeof(void *) - 1) / sizeof(void *)];
+#endif
 #endif

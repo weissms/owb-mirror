@@ -26,7 +26,7 @@
 #ifndef SVGImage_h
 #define SVGImage_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "Image.h"
 #include "ImageBuffer.h"
@@ -42,13 +42,13 @@ namespace WebCore {
     
     class SVGImage : public Image {
     public:
-        SVGImage(ImageAnimationObserver*);
+        SVGImage(ImageObserver*);
         ~SVGImage();
         
         virtual IntSize size() const;
         
-        virtual bool setData(bool allDataReceived);
-        
+        virtual bool dataChanged(bool allDataReceived);
+
         virtual NativeImagePtr frameAtIndex(size_t) { return 0; }
         
 private:
@@ -65,6 +65,6 @@ private:
     };
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 #endif

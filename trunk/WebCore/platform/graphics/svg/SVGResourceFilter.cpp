@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric.seidel@kdemail.net>
 
@@ -17,13 +17,13 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGResourceFilter.h"
 
 #include "SVGRenderTreeAsText.h"
@@ -41,19 +41,36 @@ void SVGResourceFilter::addFilterEffect(SVGFilterEffect* effect)
 {
     ASSERT(effect);
 
-    if (effect)
+    if (effect) {
+        ASSERT(effect->filter() == this);
         m_effects.append(effect);
+    }
 }
 
-FloatRect SVGResourceFilter::filterBBoxForItemBBox(FloatRect itemBBox) const
+FloatRect SVGResourceFilter::filterBBoxForItemBBox(const FloatRect& itemBBox) const
 {
     FloatRect filterBBox = filterRect();
 
-    if (filterBoundingBoxMode())
-        filterBBox = FloatRect(filterBBox.x() * itemBBox.width(),
-                               filterBBox.y() * itemBBox.height(),
+    float xOffset = 0.0f;
+    float yOffset = 0.0f;
+
+    if (!effectBoundingBoxMode()) {
+        xOffset = itemBBox.x();
+        yOffset = itemBBox.y();
+    }
+
+    if (filterBoundingBoxMode()) {
+        filterBBox = FloatRect(xOffset + filterBBox.x() * itemBBox.width(),
+                               yOffset + filterBBox.y() * itemBBox.height(),
                                filterBBox.width() * itemBBox.width(),
                                filterBBox.height() * itemBBox.height());
+    } else {
+        if (xBoundingBoxMode())
+            filterBBox.setX(xOffset + filterBBox.x());
+
+        if (yBoundingBoxMode())
+            filterBBox.setY(yOffset + filterBBox.y());
+    }
 
     return filterBBox;
 }
@@ -97,4 +114,4 @@ SVGResourceFilter* getFilterById(Document* document, const AtomicString& id)
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

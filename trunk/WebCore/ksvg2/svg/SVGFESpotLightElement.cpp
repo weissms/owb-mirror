@@ -13,13 +13,13 @@
      
      You should have received a copy of the GNU Library General Public License
      along with this library; see the file COPYING.LIB.  If not, write to
-     the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-     Boston, MA 02111-1307, USA.
+     the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+     Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFESpotLightElement.h"
 #include "SVGSpotLightSource.h"
 
@@ -40,14 +40,15 @@ SVGLightSource* SVGFESpotLightElement::lightSource() const
 
     // convert lookAt to a direction
     FloatPoint3D direction(pointsAtX() - pos.x(), 
-                             pointsAtY() - pos.y(), 
-                             pointsAtZ() - pos.z());
+                           pointsAtY() - pos.y(), 
+                           pointsAtZ() - pos.z());
+
     direction.normalize();
     return new SVGSpotLightSource(pos, direction, specularExponent(), limitingConeAngle());
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

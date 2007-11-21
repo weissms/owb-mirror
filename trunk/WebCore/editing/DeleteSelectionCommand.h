@@ -50,6 +50,7 @@ private:
     void handleGeneralDelete();
     void fixupWhitespace();
     void mergeParagraphs();
+    void removePreviouslySelectedEmptyTableRows();
     void calculateEndingPosition();
     void calculateTypingStyleAfterDelete(Node*);
     void clearTransientState();
@@ -76,6 +77,10 @@ private:
     RefPtr<Node> m_endBlock;
     RefPtr<CSSMutableStyleDeclaration> m_typingStyle;
     RefPtr<CSSMutableStyleDeclaration> m_deleteIntoBlockquoteStyle;
+    RefPtr<Node> m_startRoot;
+    RefPtr<Node> m_endRoot;
+    RefPtr<Node> m_startTableRow;
+    RefPtr<Node> m_endTableRow;
 };
 
 } // namespace WebCore

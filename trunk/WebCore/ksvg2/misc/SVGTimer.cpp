@@ -18,12 +18,12 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGTimer.h"
 
 #include <wtf/HashMap.h>
@@ -55,8 +55,9 @@ SVGTimer::TargetAnimationMap SVGTimer::animationsByElement(double elapsedSeconds
 {
     // Build a list of all animations which apply to each element
     // FIXME: This list should be sorted by animation priority
-    ExceptionCode ec = 0;
     TargetAnimationMap targetMap;
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
+    ExceptionCode ec = 0;
     SVGNotifySet::const_iterator end = m_notifySet.end();
     for (SVGNotifySet::const_iterator it = m_notifySet.begin(); it != end; ++it) {
         SVGAnimationElement* animation = *it;
@@ -80,12 +81,14 @@ SVGTimer::TargetAnimationMap SVGTimer::animationsByElement(double elapsedSeconds
             targetMap.set(target, list);
         }
     }
+#endif
     return targetMap;
 }
 
 // FIXME: This funtion will eventually become part of the AnimationCompositor
 void SVGTimer::applyAnimations(double elapsedSeconds, const SVGTimer::TargetAnimationMap& targetMap)
 {    
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
     TargetAnimationMap::const_iterator targetIterator = targetMap.begin();
     TargetAnimationMap::const_iterator tend = targetMap.end();
     for (; targetIterator != tend; ++targetIterator) {
@@ -120,12 +123,14 @@ void SVGTimer::applyAnimations(double elapsedSeconds, const SVGTimer::TargetAnim
     for (targetIterator = targetMap.begin(); targetIterator != tend; ++targetIterator) {
         SVGElement* key = targetIterator->first;
         if (key && key->isStyled())
-            static_cast<SVGStyledElement*>(key)->setChanged(true);
+            static_cast<SVGStyledElement*>(key)->setChanged();
     }
+#endif
 }
 
 void SVGTimer::notifyAll()
 {
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
     if (m_enabledNotifySet.isEmpty())
         return;
 
@@ -135,28 +140,33 @@ void SVGTimer::notifyAll()
     
     // Then composite those animations down to final values and apply
     applyAnimations(elapsedSeconds, targetMap);
+#endif
 }
 
 void SVGTimer::addNotify(SVGAnimationElement* element, bool enabled)
 {
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
     m_notifySet.add(element);
     if (enabled)
         m_enabledNotifySet.add(element);
     else
         m_enabledNotifySet.remove(element);
+#endif
 }
 
 void SVGTimer::removeNotify(SVGAnimationElement *element)
 {
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
     // FIXME: Why do we keep a pointer to the element forever (marked disabled)?
     // That can't be right!
 
     m_enabledNotifySet.remove(element);
     if (m_enabledNotifySet.isEmpty())
         stop();
+#endif
 }
 
 } // namespace
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

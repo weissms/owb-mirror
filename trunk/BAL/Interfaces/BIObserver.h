@@ -42,7 +42,13 @@ namespace BAL {
      */
     class BIObserver {
         public:
+            /**
+            * BIObserver destructor
+            */
             virtual ~BIObserver() {};
+            /**
+            * observe handler
+            */
             virtual void observe(const String&, const String&) = 0;
     };
 }

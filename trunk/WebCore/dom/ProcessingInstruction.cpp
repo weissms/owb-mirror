@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "ProcessingInstruction.h"
@@ -39,7 +39,7 @@ ProcessingInstruction::ProcessingInstruction(Document* doc)
     : ContainerNode(doc)
     , m_cachedSheet(0)
     , m_loading(false)
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
     , m_isXSL(false)
 #endif
 {
@@ -51,7 +51,7 @@ ProcessingInstruction::ProcessingInstruction(Document* doc, const String& target
     , m_data(data)
     , m_cachedSheet(0)
     , m_loading(false)
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
     , m_isXSL(false)
 #endif
 {
@@ -122,7 +122,7 @@ bool ProcessingInstruction::checkStyleSheet()
             type = i->second;
 
         bool isCSS = type.isEmpty() || type == "text/css";
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
         m_isXSL = (type == "text/xml" || type == "text/xsl" || type == "application/xml" ||
                    type == "application/xhtml+xml" || type == "application/rss+xml" || type == "application/atom=xml");
         if (!isCSS && !m_isXSL)
@@ -136,7 +136,7 @@ bool ProcessingInstruction::checkStyleSheet()
         if (href.length() > 1) {
             if (href[0] == '#') {
                 m_localHref = href.substring(1);
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
                 // We need to make a synthetic XSLStyleSheet that is embedded.  It needs to be able
                 // to kick off import/include loads that can hang off some parent sheet.
                 if (m_isXSL) {
@@ -154,7 +154,7 @@ bool ProcessingInstruction::checkStyleSheet()
                     document()->addPendingSheet();
                     if (m_cachedSheet)
                         m_cachedSheet->deref(this);
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
                     if (m_isXSL)
                         m_cachedSheet = document()->docLoader()->requestXSLStyleSheet(document()->completeURL(href));
                     else
@@ -168,7 +168,7 @@ bool ProcessingInstruction::checkStyleSheet()
                     }
                     if (m_cachedSheet)
                         m_cachedSheet->ref(this);
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
                     return !m_isXSL;
 #endif
                 }
@@ -191,7 +191,7 @@ bool ProcessingInstruction::isLoading() const
 bool ProcessingInstruction::sheetLoaded()
 {
     if (!isLoading()) {
-        document()->stylesheetLoaded();
+        document()->removePendingSheet();
         return true;
     }
     return false;
@@ -199,14 +199,14 @@ bool ProcessingInstruction::sheetLoaded()
 
 void ProcessingInstruction::setCSSStyleSheet(const String& url, const String& charset, const String& sheet)
 {
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
     ASSERT(!m_isXSL);
 #endif
     m_sheet = new CSSStyleSheet(this, url, charset);
     parseStyleSheet(sheet);
 }
 
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
 void ProcessingInstruction::setXSLStyleSheet(const String& url, const String& sheet)
 {
     ASSERT(m_isXSL);
@@ -217,16 +217,13 @@ void ProcessingInstruction::setXSLStyleSheet(const String& url, const String& sh
 
 void ProcessingInstruction::parseStyleSheet(const String& sheet)
 {
-    m_sheet->parseString(sheet);
+    m_sheet->parseString(sheet, true);
     if (m_cachedSheet)
         m_cachedSheet->deref(this);
     m_cachedSheet = 0;
 
     m_loading = false;
-
-    // Tell the doc about the sheet.
-    if (!isLoading() && m_sheet)
-        document()->stylesheetLoaded();
+    m_sheet->checkLoaded();
 }
 
 String ProcessingInstruction::toString() const

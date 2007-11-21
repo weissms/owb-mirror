@@ -1,6 +1,7 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
+                  2007 Eric Seidel <eric@webkit.org>
 
     This file is part of the KDE project
 
@@ -16,29 +17,35 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGAElement.h"
 
 #include "Attr.h"
+#include "CSSHelper.h"
 #include "Document.h"
+#include "EventHandler.h"
 #include "EventNames.h"
 #include "Frame.h"
 #include "FrameLoader.h"
+#include "KeyboardEvent.h"
 #include "MouseEvent.h"
-#include "RenderSVGContainer.h"
+#include "PlatformMouseEvent.h"
+#include "RenderSVGTransformableContainer.h"
+#include "RenderSVGInline.h"
 #include "ResourceRequest.h"
 #include "SVGNames.h"
 #include "XLinkNames.h"
-#include "csshelper.h"
 
 namespace WebCore {
+
+using namespace EventNames;
 
 SVGAElement::SVGAElement(const QualifiedName& tagName, Document *doc)
     : SVGStyledTransformableElement(tagName, doc)
@@ -84,29 +91,49 @@ void SVGAElement::parseMappedAttribute(MappedAttribute* attr)
 
 RenderObject* SVGAElement::createRenderer(RenderArena* arena, RenderStyle* style)
 {
-    return new (arena) RenderSVGContainer(this);
+    if (static_cast<SVGElement*>(parent())->isTextContent())
+        return new (arena) RenderSVGInline(this);
+
+    return new (arena) RenderSVGTransformableContainer(this);
 }
 
 void SVGAElement::defaultEventHandler(Event* evt)
 {
-    // TODO : should use CLICK instead
-    if ((evt->type() == EventNames::mouseupEvent && m_isLink)) {
-        MouseEvent* e = static_cast<MouseEvent*>(evt);
-
-        if (e && e->button() == 2) {
+    if (m_isLink && (evt->type() == clickEvent || (evt->type() == keydownEvent && m_focused))) {
+        MouseEvent* e = 0;
+        if (evt->type() == clickEvent && evt->isMouseEvent())
+            e = static_cast<MouseEvent*>(evt);
+        
+        KeyboardEvent* k = 0;
+        if (evt->type() == keydownEvent && evt->isKeyboardEvent())
+            k = static_cast<KeyboardEvent*>(evt);
+        
+        if (e && e->button() == RightButton) {
             SVGStyledTransformableElement::defaultEventHandler(evt);
             return;
         }
+        
+        if (k) {
+            if (k->keyIdentifier() != "Enter") {
+                SVGStyledTransformableElement::defaultEventHandler(evt);
+                return;
+            }
+            evt->setDefaultHandled();
+            dispatchSimulatedClick(evt);
+            return;
+        }
+        
+        String target = getAttribute(SVGNames::targetAttr);
+        String xlinktarget = getAttribute(XLinkNames::showAttr);
+        if (e && e->button() == MiddleButton)
+            target = "_blank";
+        else if (target.isEmpty()) // if target is empty, default to "_self" or use xlink:target if set
+            target = (xlinktarget == "new") ? "_blank" : "_self";
 
         String url = parseURL(href());
-
-        String target = getAttribute(SVGNames::targetAttr);
-        if (e && e->button() == 1)
-            target = "_blank";
-
         if (!evt->defaultPrevented())
-            if (document() && document()->frame())
-                document()->frame()->loader()->urlSelected(document()->completeURL(url), target, evt);
+            if (document()->frame())
+                document()->frame()->loader()->urlSelected(document()->completeURL(url), target, evt, false, true);
 
         evt->setDefaultHandled();
     }
@@ -114,7 +141,52 @@ void SVGAElement::defaultEventHandler(Event* evt)
     SVGStyledTransformableElement::defaultEventHandler(evt);
 }
 
+bool SVGAElement::supportsFocus() const
+{
+    if (isContentEditable())
+        return SVGStyledTransformableElement::supportsFocus();
+    return isFocusable() || (document() && !document()->haveStylesheetsLoaded());
+}
+
+bool SVGAElement::isFocusable() const
+{
+    if (isContentEditable())
+        return SVGStyledTransformableElement::isFocusable();
+    
+    // FIXME: Even if we are not visible, we might have a child that is visible.
+    // Dave wants to fix that some day with a "has visible content" flag or the like.
+    if (!renderer() || !(renderer()->style()->visibility() == VISIBLE))
+        return false;
+    
+    return !renderer()->absoluteClippedOverflowRect().isEmpty();
+}
+
+bool SVGAElement::isMouseFocusable() const
+{
+    return false;
+}
+
+bool SVGAElement::isKeyboardFocusable(KeyboardEvent* event) const
+{
+    if (!isFocusable())
+        return false;
+    
+    if (!document()->frame())
+        return false;
+    
+    return document()->frame()->eventHandler()->tabsToLinks(event);
+}
+
+bool SVGAElement::childShouldCreateRenderer(Node* child) const
+{
+    if (static_cast<SVGElement*>(parent())->isTextContent())
+        return child->isTextNode();
+
+    return SVGElement::childShouldCreateRenderer(child);
+}
+
+
 } // namespace WebCore
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

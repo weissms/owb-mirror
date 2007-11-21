@@ -11,6 +11,6 @@ set(transfers_SRC
 	BAL/Implementations/Network/Common/HTTPParsers.cpp
 	BAL/Implementations/Network/Common/KURL.cpp
 	BAL/Implementations/Network/Common/ProtectionSpace.cpp
-	BAL/Implementations/Network/Common/ResourceRequest.cpp
+	BAL/Implementations/Network/Common/ResourceRequestBase.cpp
 	BAL/Implementations/Network/Common/ResourceResponse.cpp
 )

@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,19 +16,21 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGRadialGradientElement.h"
 
+#include "FloatConversion.h"
+#include "FloatPoint.h"
 #include "RadialGradientAttributes.h"
-#include "SVGPaintServerRadialGradient.h"
 #include "SVGLength.h"
 #include "SVGNames.h"
+#include "SVGPaintServerRadialGradient.h"
 #include "SVGStopElement.h"
 #include "SVGTransform.h"
 #include "SVGTransformList.h"
@@ -62,19 +64,18 @@ ANIMATED_PROPERTY_DEFINITIONS(SVGRadialGradientElement, SVGLength, Length, lengt
 
 void SVGRadialGradientElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const AtomicString& value = attr->value();
     if (attr->name() == SVGNames::cxAttr)
-        setCxBaseValue(SVGLength(this, LengthModeWidth, value));
+        setCxBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::cyAttr)
-        setCyBaseValue(SVGLength(this, LengthModeHeight, value));
+        setCyBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
     else if (attr->name() == SVGNames::rAttr) {
-        setRBaseValue(SVGLength(this, LengthModeOther, value));
+        setRBaseValue(SVGLength(this, LengthModeOther, attr->value()));
         if (r().value() < 0.0)
             document()->accessSVGExtensions()->reportError("A negative value for radial gradient radius <r> is not allowed");
     } else if (attr->name() == SVGNames::fxAttr)
-        setFxBaseValue(SVGLength(this, LengthModeWidth, value));
+        setFxBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::fyAttr)
-        setFyBaseValue(SVGLength(this, LengthModeHeight, value));
+        setFyBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
     else
         SVGGradientElement::parseMappedAttribute(attr);
 }
@@ -94,9 +95,9 @@ void SVGRadialGradientElement::buildGradient() const
     radialGradient->setBoundingBoxMode(attributes.boundingBoxMode());
     radialGradient->setGradientSpreadMethod(attributes.spreadMethod()); 
     radialGradient->setGradientTransform(attributes.gradientTransform());
-    radialGradient->setGradientCenter(FloatPoint(attributes.cx(), attributes.cy()));
-    radialGradient->setGradientFocal(FloatPoint(attributes.fx(), attributes.fy()));
-    radialGradient->setGradientRadius(attributes.r());
+    radialGradient->setGradientCenter(FloatPoint::narrowPrecision(attributes.cx(), attributes.cy()));
+    radialGradient->setGradientFocal(FloatPoint::narrowPrecision(attributes.fx(), attributes.fy()));
+    radialGradient->setGradientRadius(narrowPrecisionToFloat(attributes.r()));
 }
 
 RadialGradientAttributes SVGRadialGradientElement::collectGradientProperties() const
@@ -169,6 +170,6 @@ RadialGradientAttributes SVGRadialGradientElement::collectGradientProperties() c
 }
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

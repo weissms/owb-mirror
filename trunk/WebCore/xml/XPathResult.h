@@ -27,7 +27,7 @@
 #ifndef XPathResult_h
 #define XPathResult_h
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "Shared.h"
 #include "XPathValue.h"
@@ -78,7 +78,7 @@ namespace WebCore {
     private:
         XPath::Value m_value;
         unsigned m_nodeSetPosition;
-        XPath::NodeVector m_nodeSet;
+        XPath::NodeSet m_nodeSet; // FIXME: why duplicate the node set stored in m_value?
         unsigned short m_resultType;
         bool m_invalidIteratorState;
         RefPtr<EventTargetNode> m_eventTarget;
@@ -87,6 +87,6 @@ namespace WebCore {
 
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 
 #endif // XPathResult_h

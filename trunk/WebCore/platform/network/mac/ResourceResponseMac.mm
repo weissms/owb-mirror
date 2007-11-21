@@ -34,13 +34,25 @@
 - (NSTimeInterval)_calculatedExpiration;
 @end
 
+#ifdef BUILDING_ON_TIGER
+typedef int NSInteger;
+#endif
+
 namespace WebCore {
 
 NSURLResponse *ResourceResponse::nsURLResponse() const
 {
-    if (!m_nsResponse && !m_isNull)
-        const_cast<ResourceResponse*>(this)->m_nsResponse.adoptNS([[NSURLResponse alloc] initWithURL:m_url.getNSURL() MIMEType:m_mimeType expectedContentLength:m_expectedContentLength textEncodingName:m_textEncodingName]);
-    
+    if (!m_nsResponse && !m_isNull) {
+        // Work around a mistake in the NSURLResponse class.
+        // The init function takes an NSInteger, even though the accessor returns a long long.
+        // For values that won't fit in an NSInteger, pass -1 instead.
+        NSInteger expectedContentLength;
+        if (m_expectedContentLength < 0 || m_expectedContentLength > std::numeric_limits<NSInteger>::max())
+            expectedContentLength = -1;
+        else
+            expectedContentLength = static_cast<NSInteger>(m_expectedContentLength);
+        const_cast<ResourceResponse*>(this)->m_nsResponse.adoptNS([[NSURLResponse alloc] initWithURL:m_url.getNSURL() MIMEType:m_mimeType expectedContentLength:expectedContentLength textEncodingName:m_textEncodingName]);
+    }
     return m_nsResponse.get();
 }
 
@@ -75,8 +87,29 @@ void ResourceResponse::doUpdateResourceResponse()
         NSEnumerator *e = [headers keyEnumerator];
         while (NSString *name = [e nextObject])
             m_httpHeaderFields.set(name, [headers objectForKey:name]);
-    } else
+#ifndef BUILDING_ON_TIGER
+        // FIXME: This is part of a workaround for <rdar://problem/5321972> REGRESSION: Plain text document from HTTP server detected
+        // as application/octet-stream
+        if (m_mimeType == "application/octet-stream") {
+            static const String textPlainMIMEType("text/plain");
+            if (m_httpHeaderFields.get("Content-Type").startsWith(textPlainMIMEType))
+                m_mimeType = textPlainMIMEType;
+        }
+#endif
+    } else {
         m_httpStatusCode = 0;
+
+#ifndef BUILDING_ON_TIGER
+        // FIXME: This is a work around for <rdar://problem/5230154> (-[NSURLConnection initWithRequest:delegate:] 
+        // is returning incorrect MIME type for local .xhtml files) which is only required in Leopard.
+        if (m_url.isLocalFile() && m_mimeType == "text/html") {
+            const String& path = m_url.path();
+            static const String xhtmlExt(".xhtml");
+            if (path.endsWith(xhtmlExt, false))
+                m_mimeType = "application/xhtml+xml";
+        }
+#endif
+    }
 }
 
 }

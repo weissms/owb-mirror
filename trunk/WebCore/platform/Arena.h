@@ -20,7 +20,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Alternatively, the contents of this file may be used under the terms
  * of either the Mozilla Public License Version 1.1, found at
@@ -98,7 +98,7 @@ void* ArenaAllocate(ArenaPool *pool, unsigned int nb);
 
 #ifdef DEBUG
 #define FREE_PATTERN 0xDA
-#define CLEAR_UNUSED(a) (assert((a)->avail <= (a)->limit), \
+#define CLEAR_UNUSED(a) (ASSERT((a)->avail <= (a)->limit), \
                            memset((void*)(a)->avail, FREE_PATTERN, \
                             (a)->limit - (a)->avail))
 #define CLEAR_ARENA(a)  memset((void*)(a), FREE_PATTERN, \

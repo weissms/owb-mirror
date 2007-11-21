@@ -52,15 +52,39 @@ namespace BAL {
     class BIEvent {
         public:
         // this is mandatory
+            /**
+            * BIEvent destructor
+            */
             virtual ~BIEvent() {};
 
+            /**
+            * clone BIEvent
+            */
             virtual BIEvent* clone() const = 0;
             
+            /**
+            * test if the event is a windowEvent
+            */
             virtual BIWindowEvent* queryIsWindowEvent() { return NULL; }
+            /**
+            * test if the event is a inputEvent
+            */
             virtual BIInputEvent* queryIsInputEvent() { return NULL; }
+            /**
+            * test if the event is a keyboardEvent
+            */
             virtual BIKeyboardEvent* queryIsKeyboardEvent() { return NULL; }
+            /**
+            * test if the event is a mouseEvent
+            */
             virtual BIMouseEvent* queryIsMouseEvent() { return NULL; }
+            /**
+            * test if the event is a wheelEvent
+            */
             virtual BIWheelEvent* queryIsWheelEvent() { return NULL; }
+            /**
+            * test if the event is a timerEvent
+            */
             virtual BITimerEvent* queryIsTimerEvent() { return NULL; }
     };
 

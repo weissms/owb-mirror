@@ -26,6 +26,8 @@
 #ifndef C_UTILITY_H_
 #define C_UTILITY_H_
 
+#if !PLATFORM(DARWIN) || !defined(__LP64__)
+
 #include "npruntime.h"
 
 namespace KJS {
@@ -36,6 +38,8 @@ class JSValue;
 
 namespace Bindings {
 
+class RootObject;
+    
 typedef uint16_t NPUTF16;
 
 enum NP_ValueType {
@@ -50,9 +54,8 @@ enum NP_ValueType {
 
 void convertNPStringToUTF16(const NPString*, NPUTF16** UTF16Chars, unsigned int* UTF16Length);
 void convertUTF8ToUTF16(const NPUTF8* UTF8Chars, int UTF8Length, NPUTF16** UTF16Chars, unsigned int* UTF16Length);
-void coerceValueToNPVariantStringType(ExecState*, JSValue*, NPVariant* result);
 void convertValueToNPVariant(ExecState*, JSValue*, NPVariant* result);
-JSValue* convertNPVariantToValue(ExecState*, const NPVariant*);
+JSValue* convertNPVariantToValue(ExecState*, const NPVariant*, RootObject*);
 Identifier identifierFromNPIdentifier(const NPUTF8* name);
 
 struct PrivateIdentifier {
@@ -65,4 +68,5 @@ struct PrivateIdentifier {
 
 } }
 
+#endif
 #endif

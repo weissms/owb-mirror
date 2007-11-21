@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef kjs_proxy_h
@@ -39,10 +39,12 @@ class String;
 class KJSProxy {
 public:
     KJSProxy(Frame*);
-    KJS::JSValue* evaluate(const String& filename, int baseLine, const String& code, Node*);
+    ~KJSProxy();
+
+    KJS::JSValue* evaluate(const String& filename, int baseLine, const String& code);
     void clear();
     EventListener* createHTMLEventHandler(const String& functionName, const String& code, Node*);
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     EventListener* createSVGEventHandler(const String& functionName, const String& code, Node*);
 #endif
     void finishedWithEvent(Event*);
@@ -52,6 +54,8 @@ public:
     void initScriptIfNeeded();
 
     bool haveInterpreter() const { return m_script; }
+    
+    void clearDocumentWrapper();
 
 private:
     RefPtr<KJS::ScriptInterpreter> m_script;

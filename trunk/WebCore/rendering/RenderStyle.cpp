@@ -14,18 +14,22 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
 #include "RenderStyle.h"
 
-#include "cssstyleselector.h"
+#include "CSSStyleSelector.h"
 #include "RenderArena.h"
 
 namespace WebCore {
+
+#ifdef __OWB_N800__
+Vector<RefPtr<TransformOperation> > RenderStyle::ops;
+#endif //__OWB_N800__
 
 static RenderStyle* defaultStyle;
 
@@ -107,6 +111,8 @@ StyleVisualData::StyleVisualData(const StyleVisualData& o)
 
 BackgroundLayer::BackgroundLayer()
     : m_image(RenderStyle::initialBackgroundImage())
+    , m_xPosition(RenderStyle::initialBackgroundXPosition())
+    , m_yPosition(RenderStyle::initialBackgroundYPosition())
     , m_bgAttachment(RenderStyle::initialBackgroundAttachment())
     , m_bgClip(RenderStyle::initialBackgroundClip())
     , m_bgOrigin(RenderStyle::initialBackgroundOrigin())
@@ -186,13 +192,12 @@ BackgroundLayer& BackgroundLayer::operator=(const BackgroundLayer& o)
 
 bool BackgroundLayer::operator==(const BackgroundLayer& o) const
 {
+    // We do not check the "isSet" booleans for each property, since those are only used during initial construction
+    // to propagate patterns into layers.  All layer comparisons happen after values have all been filled in anyway.
     return m_image == o.m_image && m_xPosition == o.m_xPosition && m_yPosition == o.m_yPosition &&
            m_bgAttachment == o.m_bgAttachment && m_bgClip == o.m_bgClip && 
            m_bgComposite == o.m_bgComposite && m_bgOrigin == o.m_bgOrigin && m_bgRepeat == o.m_bgRepeat &&
            m_backgroundSize.width == o.m_backgroundSize.width && m_backgroundSize.height == o.m_backgroundSize.height && 
-           m_imageSet == o.m_imageSet && m_attachmentSet == o.m_attachmentSet && m_compositeSet == o.m_compositeSet && 
-           m_repeatSet == o.m_repeatSet && m_xPosSet == o.m_xPosSet && m_yPosSet == o.m_yPosSet && 
-           m_backgroundSizeSet == o.m_backgroundSizeSet && 
            ((m_next && o.m_next) ? *m_next == *o.m_next : m_next == o.m_next);
 }
 
@@ -419,20 +424,52 @@ bool StyleMultiColData::operator==(const StyleMultiColData& o) const
            m_breakAfter == o.m_breakAfter && m_breakInside == o.m_breakInside;
 }
 
+StyleTransformData::StyleTransformData()
+    : m_operations(RenderStyle::initialTransform())
+    , m_x(RenderStyle::initialTransformOriginX())
+    , m_y(RenderStyle::initialTransformOriginY())
+{}
+
+StyleTransformData::StyleTransformData(const StyleTransformData& o)
+    : Shared<StyleTransformData>()
+    , m_operations(o.m_operations)
+    , m_x(o.m_x)
+    , m_y(o.m_y)
+{}
+
+bool StyleTransformData::operator==(const StyleTransformData& o) const
+{
+    return m_x == o.m_x && m_y == o.m_y && transformDataEquivalent(o);
+}
+
+bool StyleTransformData::transformDataEquivalent(const StyleTransformData& o) const
+{
+    if (m_operations.size() != o.m_operations.size())
+        return false;
+        
+    unsigned s = m_operations.size();
+    for (unsigned i = 0; i < s; i++) {
+        if (*m_operations[i] != *o.m_operations[i])
+            return false;
+    }
+    
+    return true;
+}
+
 StyleRareNonInheritedData::StyleRareNonInheritedData()
     : lineClamp(RenderStyle::initialLineClamp())
     , opacity(RenderStyle::initialOpacity())
     , m_content(0)
     , m_counterDirectives(0)
     , userDrag(RenderStyle::initialUserDrag())
-    , userSelect(RenderStyle::initialUserSelect())
     , textOverflow(RenderStyle::initialTextOverflow())
     , marginTopCollapse(MCOLLAPSE)
     , marginBottomCollapse(MCOLLAPSE)
     , matchNearestMailBlockquoteColor(RenderStyle::initialMatchNearestMailBlockquoteColor())
     , m_appearance(RenderStyle::initialAppearance())
+    , m_borderFit(RenderStyle::initialBorderFit())
     , m_boxShadow(0)
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
     , bindingURI(0)
 #endif
 {
@@ -445,17 +482,18 @@ StyleRareNonInheritedData::StyleRareNonInheritedData(const StyleRareNonInherited
     , flexibleBox(o.flexibleBox)
     , marquee(o.marquee)
     , m_multiCol(o.m_multiCol)
+    , m_transform(o.m_transform)
     , m_content(0)
     , m_counterDirectives(0)
     , userDrag(o.userDrag)
-    , userSelect(o.userSelect)
     , textOverflow(o.textOverflow)
     , marginTopCollapse(o.marginTopCollapse)
     , marginBottomCollapse(o.marginBottomCollapse)
     , matchNearestMailBlockquoteColor(o.matchNearestMailBlockquoteColor)
     , m_appearance(o.m_appearance)
+    , m_borderFit(o.m_borderFit)
     , m_boxShadow(o.m_boxShadow ? new ShadowData(*o.m_boxShadow) : 0)
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
     , bindingURI(o.bindingURI ? o.bindingURI->copy() : 0)
 #endif
 {
@@ -466,12 +504,12 @@ StyleRareNonInheritedData::~StyleRareNonInheritedData()
     delete m_content;
     delete m_counterDirectives;
     delete m_boxShadow;
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
     delete bindingURI;
 #endif
 }
 
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
 bool StyleRareNonInheritedData::bindingsEquivalent(const StyleRareNonInheritedData& o) const
 {
     if (this == &o) return true;
@@ -491,17 +529,18 @@ bool StyleRareNonInheritedData::operator==(const StyleRareNonInheritedData& o) c
         && flexibleBox == o.flexibleBox
         && marquee == o.marquee
         && m_multiCol == o.m_multiCol
+        && m_transform == o.m_transform
         && m_content == o.m_content
         && m_counterDirectives == o.m_counterDirectives
         && userDrag == o.userDrag
-        && userSelect == o.userSelect
         && textOverflow == o.textOverflow
         && marginTopCollapse == o.marginTopCollapse
         && marginBottomCollapse == o.marginBottomCollapse
         && matchNearestMailBlockquoteColor == o.matchNearestMailBlockquoteColor
         && m_appearance == o.m_appearance
+        && m_borderFit == o.m_borderFit
         && shadowDataEquivalent(o)
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
         && bindingsEquivalent(o)
 #endif
         ;
@@ -521,11 +560,13 @@ StyleRareInheritedData::StyleRareInheritedData()
     , textShadow(0)
     , textSecurity(RenderStyle::initialTextSecurity())
     , userModify(READ_ONLY)
-    , wordWrap(WBNORMAL)
+    , wordBreak(RenderStyle::initialWordBreak())
+    , wordWrap(RenderStyle::initialWordWrap())
     , nbspMode(NBNORMAL)
     , khtmlLineBreak(LBNORMAL)
     , textSizeAdjust(RenderStyle::initialTextSizeAdjust())
     , resize(RenderStyle::initialResize())
+    , userSelect(RenderStyle::initialUserSelect())
 {
 }
 
@@ -538,11 +579,13 @@ StyleRareInheritedData::StyleRareInheritedData(const StyleRareInheritedData& o)
     , highlight(o.highlight)
     , textSecurity(o.textSecurity)
     , userModify(o.userModify)
+    , wordBreak(o.wordBreak)
     , wordWrap(o.wordWrap)
     , nbspMode(o.nbspMode)
     , khtmlLineBreak(o.khtmlLineBreak)
     , textSizeAdjust(o.textSizeAdjust)
     , resize(o.resize)
+    , userSelect(o.userSelect)
 {
 }
 
@@ -560,10 +603,12 @@ bool StyleRareInheritedData::operator==(const StyleRareInheritedData& o) const
         && highlight == o.highlight
         && textSecurity == o.textSecurity
         && userModify == o.userModify
+        && wordBreak == o.wordBreak
         && wordWrap == o.wordWrap
         && nbspMode == o.nbspMode
         && khtmlLineBreak == o.khtmlLineBreak
-        && textSizeAdjust == o.textSizeAdjust;
+        && textSizeAdjust == o.textSizeAdjust
+        && userSelect == o.userSelect;
 }
 
 bool StyleRareInheritedData::shadowDataEquivalent(const StyleRareInheritedData& o) const
@@ -701,7 +746,7 @@ RenderStyle::RenderStyle()
     , m_affectedByAttributeSelectors(false)
     , m_unique(false)
     , m_ref(0)
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     , m_svgStyle(defaultStyle->m_svgStyle)
 #endif
 {
@@ -725,10 +770,11 @@ RenderStyle::RenderStyle(bool)
     rareNonInheritedData.access()->flexibleBox.init();
     rareNonInheritedData.access()->marquee.init();
     rareNonInheritedData.access()->m_multiCol.init();
+    rareNonInheritedData.access()->m_transform.init();
     rareInheritedData.init();
     inherited.init();
     
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     m_svgStyle.init();
 #endif
 }
@@ -748,7 +794,7 @@ RenderStyle::RenderStyle(const RenderStyle& o)
     , m_affectedByAttributeSelectors(false)
     , m_unique(false)
     , m_ref(0)
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     , m_svgStyle(o.m_svgStyle)
 #endif
 {
@@ -759,7 +805,7 @@ void RenderStyle::inheritFrom(const RenderStyle* inheritParent)
     rareInheritedData = inheritParent->rareInheritedData;
     inherited = inheritParent->inherited;
     inherited_flags = inheritParent->inherited_flags;
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     if (m_svgStyle != inheritParent->m_svgStyle)
         m_svgStyle.access()->inheritFrom(inheritParent->m_svgStyle.get());
 #endif
@@ -781,7 +827,7 @@ bool RenderStyle::operator==(const RenderStyle& o) const
             rareNonInheritedData == o.rareNonInheritedData &&
             rareInheritedData == o.rareInheritedData &&
             inherited == o.inherited
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
             && m_svgStyle == o.m_svgStyle
 #endif
             ;
@@ -862,7 +908,7 @@ bool RenderStyle::inheritedNotEqual(RenderStyle* other) const
 {
     return inherited_flags != other->inherited_flags ||
            inherited != other->inherited ||
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
            m_svgStyle->inheritedNotEqual(other->m_svgStyle.get()) ||
 #endif
            rareInheritedData != other->rareInheritedData;
@@ -885,7 +931,7 @@ bool RenderStyle::inheritedNotEqual(RenderStyle* other) const
 */
 RenderStyle::Diff RenderStyle::diff(const RenderStyle* other) const
 {
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     // This is horribly inefficient.  Eventually we'll have to integrate
     // this more directly by calling: Diff svgDiff = svgStyle->diff(other)
     // and then checking svgDiff and returning from the appropriate places below.
@@ -931,7 +977,11 @@ RenderStyle::Diff RenderStyle::diff(const RenderStyle* other) const
         if (rareNonInheritedData->m_multiCol.get() != other->rareNonInheritedData->m_multiCol.get() &&
             *rareNonInheritedData->m_multiCol.get() != *other->rareNonInheritedData->m_multiCol.get())
             return Layout;
-            
+        
+        if (rareNonInheritedData->m_transform.get() != other->rareNonInheritedData->m_transform.get() &&
+            *rareNonInheritedData->m_transform.get() != *other->rareNonInheritedData->m_transform.get())
+            return Layout;
+
         // If regions change trigger a relayout to re-calc regions.
         if (rareNonInheritedData->m_dashboardRegions != other->rareNonInheritedData->m_dashboardRegions)
             return Layout;
@@ -940,6 +990,7 @@ RenderStyle::Diff RenderStyle::diff(const RenderStyle* other) const
     if (rareInheritedData.get() != other->rareInheritedData.get()) {
         if (rareInheritedData->highlight != other->rareInheritedData->highlight ||
             rareInheritedData->textSizeAdjust != other->rareInheritedData->textSizeAdjust ||
+            rareInheritedData->wordBreak != other->rareInheritedData->wordBreak ||
             rareInheritedData->wordWrap != other->rareInheritedData->wordWrap ||
             rareInheritedData->nbspMode != other->rareInheritedData->nbspMode ||
             rareInheritedData->khtmlLineBreak != other->rareInheritedData->khtmlLineBreak ||
@@ -1052,8 +1103,9 @@ RenderStyle::Diff RenderStyle::diff(const RenderStyle* other) const
         *background.get() != *other->background.get() ||
         visual->textDecoration != other->visual->textDecoration ||
         rareInheritedData->userModify != other->rareInheritedData->userModify ||
-        rareNonInheritedData->userSelect != other->rareNonInheritedData->userSelect ||
+        rareInheritedData->userSelect != other->rareInheritedData->userSelect ||
         rareNonInheritedData->userDrag != other->rareNonInheritedData->userDrag ||
+        rareNonInheritedData->m_borderFit != other->rareNonInheritedData->m_borderFit ||
         rareInheritedData->textFillColor != other->rareInheritedData->textFillColor ||
         rareInheritedData->textStrokeColor != other->rareInheritedData->textStrokeColor)
         return Repaint;
@@ -1280,7 +1332,32 @@ void ContentData::clear()
     }
 }
 
-#ifdef XBL_SUPPORT
+void RenderStyle::applyTransform(AffineTransform& transform, const IntSize& borderBoxSize) const
+{
+    // transform-origin brackets the transform with translate operations.
+    // Optimize for the case where the only transform is a translation, since the transform-origin is irrelevant
+    // in that case.
+    bool applyTransformOrigin = false;
+    unsigned s = rareNonInheritedData->m_transform->m_operations.size();
+    unsigned i;
+    for (i = 0; i < s; i++) {
+        if (!rareNonInheritedData->m_transform->m_operations[i]->isTranslateOperation()) {
+            applyTransformOrigin = true;
+            break;
+        }
+    }
+    
+    if (applyTransformOrigin)
+        transform.translate(transformOriginX().calcValue(borderBoxSize.width()), transformOriginY().calcValue(borderBoxSize.height()));
+    
+    for (i = 0; i < s; i++)
+        rareNonInheritedData->m_transform->m_operations[i]->apply(transform, borderBoxSize);
+        
+    if (applyTransformOrigin)
+        transform.translate(-transformOriginX().calcValue(borderBoxSize.width()), -transformOriginY().calcValue(borderBoxSize.height()));
+}
+
+#if ENABLE(XBL)
 BindingURI::BindingURI(StringImpl* uri) 
 :m_next(0)
 { 

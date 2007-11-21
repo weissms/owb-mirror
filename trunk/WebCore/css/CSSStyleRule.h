@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef CSSStyleRule_h
@@ -33,6 +33,8 @@ namespace WebCore {
 class CSSMutableStyleDeclaration;
 class CSSSelector;
 
+typedef int ExceptionCode;
+
 class CSSStyleRule : public CSSRule {
 public:
     CSSStyleRule(StyleBase* parent);
@@ -41,7 +43,7 @@ public:
     virtual bool isStyleRule() { return true; }
 
     String selectorText() const;
-    void setSelectorText(String);
+    void setSelectorText(const String&, ExceptionCode&);
 
     CSSMutableStyleDeclaration* style() const { return m_style.get(); }
 

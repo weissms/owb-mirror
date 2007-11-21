@@ -52,7 +52,7 @@ namespace BAL {
         virtual IntSize size() const;
 
         virtual bool hasAlpha();
-        
+
     private:
         SDL_Surface* getNativeSDL() const { return m_surface; }
 

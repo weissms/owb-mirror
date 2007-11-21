@@ -19,8 +19,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -37,6 +37,8 @@ using namespace HTMLNames;
 
 HTMLFrameElement::HTMLFrameElement(Document* doc)
     : HTMLFrameElementBase(frameTag, doc)
+    , m_frameBorder(true)
+    , m_frameBorderSet(false)
 {
 }
 
@@ -65,10 +67,20 @@ void HTMLFrameElement::attach()
     
     if (HTMLFrameSetElement* frameSetElement = containingFrameSetElement(this)) {
         if (!m_frameBorderSet)
-            m_frameBorder = frameSetElement->frameBorder();
+            m_frameBorder = frameSetElement->hasFrameBorder();
         if (!m_noResize)
             m_noResize = frameSetElement->noResize();
     }
+}
+
+void HTMLFrameElement::parseMappedAttribute(MappedAttribute *attr)
+{
+    if (attr->name() == frameborderAttr) {
+        m_frameBorder = attr->value().toInt();
+        m_frameBorderSet = !attr->isNull();
+        // FIXME: If we are already attached, this has no effect.
+    } else
+        HTMLFrameElementBase::parseMappedAttribute(attr);
 }
 
 } // namespace WebCore

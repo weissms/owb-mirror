@@ -14,6 +14,7 @@ set(rendering_SRC
 	WebCore/rendering/InlineBox.cpp
 	WebCore/rendering/InlineFlowBox.cpp
 	WebCore/rendering/InlineTextBox.cpp
+	WebCore/rendering/LayoutState.cpp
 	WebCore/rendering/ListMarkerBox.cpp
 	WebCore/rendering/RenderApplet.cpp
 	WebCore/rendering/RenderArena.cpp
@@ -55,6 +56,7 @@ set(rendering_SRC
 	WebCore/rendering/RenderTreeAsText.cpp
 	WebCore/rendering/RenderView.cpp
 	WebCore/rendering/RenderWidget.cpp
+	WebCore/rendering/RenderWordBreak.cpp
 	WebCore/rendering/RootInlineBox.cpp
 	WebCore/rendering/bidi.cpp
 	WebCore/rendering/break_lines.cpp

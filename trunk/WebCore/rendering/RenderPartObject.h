@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -32,11 +32,12 @@ namespace WebCore {
 class RenderPartObject : public RenderPart {
 public:
     RenderPartObject(HTMLFrameOwnerElement*);
+    virtual ~RenderPartObject();
 
     virtual const char* renderName() const { return "RenderPartObject"; }
 
     virtual void layout();
-    virtual void updateWidget();
+    void updateWidget(bool onlyCreateNonPlugins);
 
     virtual void viewCleared();
 };

@@ -1,1 +1,1 @@
-../../../WebCore/platform/network/ResourceRequest.h
+../../../WebCore/platform/network/curl/ResourceRequest.h

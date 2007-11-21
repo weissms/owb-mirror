@@ -96,7 +96,7 @@ void GraphicsContext::setCompositeOperation(CompositeOperator op)
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     [[NSGraphicsContext graphicsContextWithGraphicsPort:platformContext() flipped:YES]
         setCompositingOperation:(NSCompositingOperation)op];
-    [pool release];
+    [pool drain];
 }
 
 void GraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint& point, int width, bool grammar)
@@ -105,11 +105,11 @@ void GraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint& point, 
         return;
         
     // Constants for spelling pattern color
-    static NSColor *spellingPatternColor = nil;
+    static RetainPtr<NSColor> spellingPatternColor = nil;
     static bool usingDotForSpelling = false;
 
     // Constants for grammar pattern color
-    static NSColor *grammarPatternColor = nil;
+    static RetainPtr<NSColor> grammarPatternColor = nil;
     static bool usingDotForGrammar = false;
     
     // These are the same for misspelling or bad grammar
@@ -125,7 +125,7 @@ void GraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint& point, 
             usingDotForSpelling = true;
         else
             color = [NSColor redColor];
-        spellingPatternColor = [color retain];
+        spellingPatternColor = color;
     }
     
     if (grammar && !grammarPatternColor) {
@@ -136,17 +136,17 @@ void GraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint& point, 
             usingDotForGrammar = true;
         else
             color = [NSColor greenColor];
-        grammarPatternColor = [color retain];
+        grammarPatternColor = color;
     }
     
     bool usingDot;
     NSColor *patternColor;
     if (grammar) {
         usingDot = usingDotForGrammar;
-        patternColor = grammarPatternColor;
+        patternColor = grammarPatternColor.get();
     } else {
         usingDot = usingDotForSpelling;
-        patternColor = spellingPatternColor;
+        patternColor = spellingPatternColor.get();
     }
 
     // Make sure to draw only complete dots.
@@ -163,7 +163,9 @@ void GraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint& point, 
     
     // FIXME: This code should not use NSGraphicsContext currentContext
     // In order to remove this requirement we will need to use CGPattern instead of NSColor
-    
+    // FIXME: This code should not be using wkSetPatternPhaseInUserSpace, as this approach is wrong
+    // for transforms.
+
     // Draw underline
     NSGraphicsContext *currentContext = [NSGraphicsContext currentContext];
     CGContextRef context = (CGContextRef)[currentContext graphicsPort];

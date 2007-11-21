@@ -16,15 +16,16 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGDocumentExtensions_h
 #define SVGDocumentExtensions_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
+#include <memory>
 #include <wtf/Forward.h>
 #include <wtf/HashSet.h>
 #include <wtf/HashMap.h>
@@ -78,13 +79,6 @@ private:
     {
         static HashMap<const SVGElement*, HashMap<StringImpl*, ValueType>*>* s_baseValueMap = new HashMap<const SVGElement*, HashMap<StringImpl*, ValueType>*>();
         return s_baseValueMap;
-    }
-
-    template<typename KeyType>
-    static HashMap<const KeyType*, const SVGElement*>* genericContextMap()
-    {
-        static HashMap<const KeyType*, const SVGElement*>* s_genericContextMap = new HashMap<const KeyType*, const SVGElement*>();
-        return s_genericContextMap;
     }
 
 public:
@@ -143,38 +137,6 @@ public:
 
         return false;
     }
-
-    // Used by several JS wrappers
-    template<typename KeyType>
-    const SVGElement* genericContext(const KeyType* obj) const
-    {
-        return genericContextMap<KeyType>()->get(obj);
-    }
-
-    template<typename KeyType>
-    void setGenericContext(const KeyType* obj, const SVGElement* context)
-    {
-        genericContextMap<KeyType>()->set(obj, context);
-    }
-
-    template<typename KeyType>
-    void removeGenericContext(const KeyType* obj)
-    {
-        genericContextMap<KeyType>()->remove(obj);
-    }
-
-    template<typename KeyType>
-    bool hasGenericContext(const KeyType* obj)
-    {
-        return genericContextMap<KeyType>()->contains(obj);
-    }
-
-    // Used by the generated JS wrappers only
-    template<typename KeyType>
-    static void forgetGenericContext(const KeyType* obj)
-    {
-        genericContextMap<KeyType>()->remove(obj);
-    }
 };
 
 // Special handling for WebCore::String
@@ -223,6 +185,6 @@ inline double SVGDocumentExtensions::baseValue<double>(const SVGElement* element
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 #endif

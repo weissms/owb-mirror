@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -177,11 +177,16 @@ bool EventTargetNode::dispatchGenericEvent(PassRefPtr<Event> e, ExceptionCode&, 
     
     // work out what nodes to send event to
     DeprecatedPtrList<Node> nodeChain;
-    Node *n;
-
-    for (n = this; n; n = n->eventParentNode()) {
-        n->ref();
-        nodeChain.prepend(n);
+    
+    if (inDocument()) {
+        for (Node* n = this; n; n = n->eventParentNode()) {
+            n->ref();
+            nodeChain.prepend(n);
+        } 
+    } else {
+        // if node is not in the document just send event to itself 
+        ref();
+        nodeChain.prepend(this);
     }
     
     DeprecatedPtrListIterator<Node> it(nodeChain);
@@ -270,6 +275,7 @@ bool EventTargetNode::dispatchGenericEvent(PassRefPtr<Event> e, ExceptionCode&, 
     
     Document::updateDocumentsRendering();
     
+#ifdef __OWB_JS__
     // If tempEvent is true, this means that the DOM implementation
     // will not be storing a reference to the event, i.e.  there is no
     // way to retrieve it from javascript if a script does not already
@@ -278,6 +284,7 @@ bool EventTargetNode::dispatchGenericEvent(PassRefPtr<Event> e, ExceptionCode&, 
     Frame *frame = document()->frame();
     if (tempEvent && frame && frame->scriptProxy())
         frame->scriptProxy()->finishedWithEvent(evt.get());
+#endif //__OWB_JS__
     
     return !evt->defaultPrevented(); // ### what if defaultPrevented was called before dispatchEvent?
 }
@@ -384,14 +391,14 @@ bool EventTargetNode::dispatchMouseEvent(const PlatformMouseEvent& event, const 
 
     short button = event.button();
 
-    ASSERT(event.eventType() == MouseEventMoved || button != NoButton);
+    ASSERT((int)event.eventType() == (int)MouseEventMoved || button != NoButton);
     
-    return dispatchMouseEvent(eventType, button == NoButton ? 0 : button , detail,
+    return dispatchMouseEvent(eventType, button, detail,
 #ifdef __OWB__
         contentsPos.x(), contentsPos.y(), event.globalPos().x(), event.globalPos().y(),
 #else
         contentsPos.x(), contentsPos.y(), event.globalX(), event.globalY(),
-#endif
+#endif //__OWB__
         event.ctrlKey(), event.altKey(), event.shiftKey(), event.metaKey(),
         false, relatedTarget);
 }
@@ -400,6 +407,9 @@ void EventTargetNode::dispatchSimulatedMouseEvent(const AtomicString& eventType,
     PassRefPtr<Event> underlyingEvent)
 {
     ASSERT(!eventDispatchForbidden());
+    
+    if (m_dispatchingSimulatedEvent)
+        return;
 
     bool ctrlKey = false;
     bool altKey = false;
@@ -411,15 +421,22 @@ void EventTargetNode::dispatchSimulatedMouseEvent(const AtomicString& eventType,
         shiftKey = keyStateEvent->shiftKey();
         metaKey = keyStateEvent->metaKey();
     }
+    
+    m_dispatchingSimulatedEvent = true;
 
     // Like Gecko, we just pass 0 for everything when we make a fake mouse event.
     // Internet Explorer instead gives the current mouse position and state.
     dispatchMouseEvent(eventType, 0, 0, 0, 0, 0, 0,
         ctrlKey, altKey, shiftKey, metaKey, true, 0, underlyingEvent);
+    
+    m_dispatchingSimulatedEvent = false;
 }
 
 void EventTargetNode::dispatchSimulatedClick(PassRefPtr<Event> event, bool sendMouseEvents, bool showPressedLook)
 {
+    if (m_dispatchingSimulatedEvent)
+        return;
+    
     // send mousedown and mouseup before the click, if requested
     if (sendMouseEvents)
         dispatchSimulatedMouseEvent(mousedownEvent, event.get());
@@ -512,7 +529,7 @@ void EventTargetNode::dispatchWheelEvent(PlatformWheelEvent& e)
     RefPtr<WheelEvent> we = new WheelEvent(e.deltaX(), e.deltaY(),
                                            document()->defaultView(), e.globalX(), e.globalY(), pos.x(), pos.y(),
                                            e.ctrlKey(), e.altKey(), e.shiftKey(), e.metaKey());
-#endif
+#endif //__OWB__
     ExceptionCode ec = 0;
     if (!dispatchEvent(we, ec, true))
         e.accept();
@@ -582,7 +599,7 @@ void EventTargetNode::defaultEventHandler(Event* event)
     if (event->target() != this)
         return;
     const AtomicString& eventType = event->type();
-    if (eventType == keypressEvent) {
+    if (eventType == keydownEvent || eventType == keypressEvent) {
         if (event->isKeyboardEvent())
             if (Frame* frame = document()->frame())
                 frame->eventHandler()->defaultKeyboardEventHandler(static_cast<KeyboardEvent*>(event));

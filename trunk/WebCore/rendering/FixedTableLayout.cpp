@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -152,6 +152,9 @@ int FixedTableLayout::calcWidthArray(int tableWidth)
         while (child) {
             if (child->isTableCell()) {
                 RenderTableCell* cell = static_cast<RenderTableCell*>(child);
+                if (cell->prefWidthsDirty())
+                    cell->calcPrefWidths();
+
                 Length w = cell->styleOrColWidth();
                 int span = cell->colSpan();
                 int effWidth = 0;
@@ -180,7 +183,7 @@ int FixedTableLayout::calcWidthArray(int tableWidth)
     return usedWidth;
 }
 
-void FixedTableLayout::calcMinMaxWidth(int& minWidth, int& maxWidth)
+void FixedTableLayout::calcPrefWidths(int& minWidth, int& maxWidth)
 {
     // FIXME: This entire calculation is incorrect for both minwidth and maxwidth.
     

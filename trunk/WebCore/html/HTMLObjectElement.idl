@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
@@ -14,34 +14,39 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module html {
 
-    interface HTMLObjectElement : HTMLElement {
-
+    interface [GenerateConstructor, CustomPutFunction, CustomGetOwnPropertySlot, CustomCall, HasOverridingNameGetter] HTMLObjectElement : HTMLElement {
         readonly attribute HTMLFormElement form;
-                 attribute DOMString       code;
-                 attribute DOMString       align;
-                 attribute DOMString       archive;
-                 attribute DOMString       border;
-                 attribute DOMString       codeBase;
-                 attribute DOMString       codeType;
-                 attribute DOMString       data;
+                 attribute [ConvertNullToNullString] DOMString       code;
+                 attribute [ConvertNullToNullString] DOMString       align;
+                 attribute [ConvertNullToNullString] DOMString       archive;
+                 attribute [ConvertNullToNullString] DOMString       border;
+                 attribute [ConvertNullToNullString] DOMString       codeBase;
+                 attribute [ConvertNullToNullString] DOMString       codeType;
+                 attribute [ConvertNullToNullString] DOMString       data;
                  attribute boolean         declare;
-                 attribute DOMString       height;
+                 attribute [ConvertNullToNullString] DOMString       height;
                  attribute long            hspace;
-                 attribute DOMString       name;
-                 attribute DOMString       standby;
+                 attribute [ConvertNullToNullString] DOMString       name;
+                 attribute [ConvertNullToNullString] DOMString       standby;
                  attribute long            tabIndex;
-                 attribute DOMString       type;
-                 attribute DOMString       useMap;
+                 attribute [ConvertNullToNullString] DOMString       type;
+                 attribute [ConvertNullToNullString] DOMString       useMap;
                  attribute long            vspace;
-                 attribute DOMString       width;
+                 attribute [ConvertNullToNullString] DOMString       width;
+
         // Introduced in DOM Level 2:
-        readonly attribute Document        contentDocument;
+        readonly attribute [CheckFrameSecurity] Document        contentDocument;
+
+#if ENABLE_SVG
+        [SVGCheckSecurityDocument] SVGDocument getSVGDocument()
+            raises(DOMException);
+#endif
 
 #if defined(LANGUAGE_OBJECTIVE_C)
         // Objective-C extension:

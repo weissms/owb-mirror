@@ -36,6 +36,7 @@
 #import "WebScriptObjectPrivate.h"
 #import <JavaScriptCore/context.h>
 #import <JavaScriptCore/debugger.h>
+#import <JavaScriptCore/JSGlobalObject.h>
 
 using namespace KJS;
 using namespace WebCore;
@@ -336,6 +337,8 @@ class WebCoreScriptDebuggerImp : public KJS::Debugger {
 
 - (id)evaluateWebScript:(NSString *)script
 {
+    JSLock lock;
+
     UString code = String(script);
 
     ExecState   *state   = _state;
@@ -359,7 +362,6 @@ class WebCoreScriptDebuggerImp : public KJS::Debugger {
     // evaluate
     JSValue *result;
     if (eval) {
-        JSLock lock;
         List args;
         args.append(jsString(code));
         result = eval->call(state, NULL, args);

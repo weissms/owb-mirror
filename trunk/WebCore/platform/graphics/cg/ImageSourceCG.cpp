@@ -25,6 +25,7 @@
 
 #include "config.h"
 #include "ImageSource.h"
+#include "SharedBuffer.h"
 
 #if PLATFORM(CG)
 
@@ -40,8 +41,15 @@ ImageSource::ImageSource()
 
 ImageSource::~ImageSource()
 {
-    if (m_decoder)
+    clear();
+}
+
+void ImageSource::clear()
+{
+    if (m_decoder) {
         CFRelease(m_decoder);
+        m_decoder = 0;
+    }
 }
 
 const CFStringRef kCGImageSourceShouldPreferRGB32 = CFSTR("kCGImageSourceShouldPreferRGB32");
@@ -64,11 +72,21 @@ bool ImageSource::initialized() const
     return m_decoder;
 }
 
-void ImageSource::setData(NativeBytePtr data, bool allDataReceived)
+void ImageSource::setData(SharedBuffer* data, bool allDataReceived)
 {
     if (!m_decoder)
-        m_decoder = CGImageSourceCreateIncremental(imageSourceOptions());
-    CGImageSourceUpdateData(m_decoder, data, allDataReceived);
+        m_decoder = CGImageSourceCreateIncremental(NULL);
+#if PLATFORM(MAC)
+    // On Mac the NSData inside the SharedBuffer can be secretly appended to without the SharedBuffer's knowledge.  We use SharedBuffer's ability
+    // to wrap itself inside CFData to get around this, ensuring that ImageIO is really looking at the SharedBuffer.
+    CFDataRef cfData = data->createCFData();
+#else
+    // If no NSData is available, then we know SharedBuffer will always just be a vector.  That means no secret changes can occur to it behind the
+    // scenes.  We use CFDataCreateWithBytesNoCopy in that case.
+    CFDataRef cfData = CFDataCreateWithBytesNoCopy(0, reinterpret_cast<const UInt8*>(data->data()), data->size(), kCFAllocatorNull);
+#endif
+    CGImageSourceUpdateData(m_decoder, cfData, allDataReceived);
+    CFRelease(cfData);
 }
 
 bool ImageSource::isSizeAvailable()
@@ -139,6 +157,11 @@ CGImageRef ImageSource::createFrameAtIndex(size_t index)
     return CGImageSourceCreateImageAtIndex(m_decoder, index, imageSourceOptions());
 }
 
+bool ImageSource::frameIsCompleteAtIndex(size_t index)
+{
+    return CGImageSourceGetStatusAtIndex(m_decoder, index) == kCGImageStatusComplete;
+}
+
 float ImageSource::frameDurationAtIndex(size_t index)
 {
     float duration = 0;
@@ -154,10 +177,10 @@ float ImageSource::frameDurationAtIndex(size_t index)
     }
 
     // Many annoying ads specify a 0 duration to make an image flash as quickly as possible.
-    // We follow Firefox's behavior and use a duration of 100 ms for any frames that specify
-    // a duration of <= 10 ms. See gfxImageFrame::GetTimeout in Gecko or Radar 4051389 for more.
-    if (duration <= 0.010)
-        return 0.100;
+    // We follow WinIE's behavior and use a duration of 100 ms for any frames that specify
+    // a duration of <= 50 ms. See <http://bugs.webkit.org/show_bug.cgi?id=14413> or Radar 4051389 for more.
+    if (duration < 0.051f)
+        return 0.100f;
     return duration;
 }
 

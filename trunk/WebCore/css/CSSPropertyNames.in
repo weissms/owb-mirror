@@ -39,7 +39,6 @@ border-top-style
 border-top-width
 border-width
 bottom
-box-sizing
 caption-side
 clear
 clip
@@ -107,6 +106,7 @@ scrollbar-highlight-color
 scrollbar-shadow-color
 scrollbar-track-color
 size
+src
 table-layout
 text-align
 text-decoration
@@ -136,6 +136,7 @@ visibility
 white-space
 widows
 width
+word-break
 word-spacing
 word-wrap
 z-index
@@ -148,6 +149,7 @@ z-index
 -webkit-binding
 -webkit-border-bottom-left-radius
 -webkit-border-bottom-right-radius
+-webkit-border-fit
 -webkit-border-horizontal-spacing
 -webkit-border-image
 -webkit-border-radius
@@ -163,6 +165,7 @@ z-index
 -webkit-box-orient
 -webkit-box-pack
 -webkit-box-shadow
+-webkit-box-sizing
 -webkit-column-break-after
 -webkit-column-break-before
 -webkit-column-break-inside
@@ -200,6 +203,10 @@ z-index
 -webkit-text-stroke
 -webkit-text-stroke-color
 -webkit-text-stroke-width
+-webkit-transform
+-webkit-transform-origin
+-webkit-transform-origin-x
+-webkit-transform-origin-y
 -webkit-user-drag
 -webkit-user-modify
 -webkit-user-select

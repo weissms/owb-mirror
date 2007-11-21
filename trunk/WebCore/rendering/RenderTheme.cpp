@@ -15,14 +15,15 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 #include "RenderTheme.h"
 
 #include "Document.h"
+#include "Frame.h"
 #include "GraphicsContext.h"
 #include "HTMLInputElement.h"
 #include "HTMLNames.h"
@@ -122,7 +123,10 @@ bool RenderTheme::paint(RenderObject* o, const RenderObject::PaintInfo& paintInf
             return paintSliderTrack(o, paintInfo, r);
         case SliderThumbHorizontalAppearance:
         case SliderThumbVerticalAppearance:
-            return paintSliderThumb(o, paintInfo, r);
+            if (o->parent()->isSlider())
+                return paintSliderThumb(o, paintInfo, r);
+            // We don't support drawing a slider thumb without a parent slider
+            break;
         case MenulistButtonAppearance:
         case TextFieldAppearance:
         case TextAreaAppearance:
@@ -150,7 +154,6 @@ bool RenderTheme::paintBorderOnly(RenderObject* o, const RenderObject::PaintInfo
     if (paintInfo.context->paintingDisabled())
         return false;
 
-    // NOTE SRO return true for all : let WebCore paint the border
     // Call the appropriate paint method based off the appearance value.
     switch (o->style()->appearance()) {
         case TextFieldAppearance:
@@ -159,6 +162,7 @@ bool RenderTheme::paintBorderOnly(RenderObject* o, const RenderObject::PaintInfo
         case TextAreaAppearance:
             return paintTextArea(o, paintInfo, r);
         case MenulistButtonAppearance:
+            return true;
         case CheckboxAppearance:
         case RadioAppearance:
         case PushButtonAppearance:
@@ -174,7 +178,6 @@ bool RenderTheme::paintBorderOnly(RenderObject* o, const RenderObject::PaintInfo
         case SearchFieldDecorationAppearance:
         case SearchFieldResultsDecorationAppearance:
         case SearchFieldResultsButtonAppearance:
-            return true;
         default:
             break;
     }
@@ -218,18 +221,16 @@ bool RenderTheme::paintDecorations(RenderObject* o, const RenderObject::PaintInf
 
 Color RenderTheme::activeSelectionBackgroundColor() const
 {
-    static Color activeSelectionColor;
-    if (!activeSelectionColor.isValid())
-        activeSelectionColor = platformActiveSelectionBackgroundColor().blendWithWhite();
-    return activeSelectionColor;
+    if (!m_activeSelectionColor.isValid())
+        m_activeSelectionColor = platformActiveSelectionBackgroundColor().blendWithWhite();
+    return m_activeSelectionColor;
 }
 
 Color RenderTheme::inactiveSelectionBackgroundColor() const
 {
-    static Color inactiveSelectionColor;
-    if (!inactiveSelectionColor.isValid())
-        inactiveSelectionColor = platformInactiveSelectionBackgroundColor().blendWithWhite();
-    return inactiveSelectionColor;
+    if (!m_inactiveSelectionColor.isValid())
+        m_inactiveSelectionColor = platformInactiveSelectionBackgroundColor().blendWithWhite();
+    return m_inactiveSelectionColor;
 }
 
 Color RenderTheme::platformActiveSelectionBackgroundColor() const
@@ -308,17 +309,11 @@ bool RenderTheme::isControlStyled(const RenderStyle* style, const BorderData& bo
         default:
             return false;
     }
-
-    return false;
 }
 
 bool RenderTheme::supportsFocusRing(const RenderStyle* style) const
 {
-#ifdef __OWB__
-    return false; // no focus ring supported natively, so let WebCore handle it
-#else
     return (style->hasAppearance() && style->appearance() != TextFieldAppearance && style->appearance() != TextAreaAppearance && style->appearance() != MenulistButtonAppearance && style->appearance() != ListboxAppearance);
-#endif
 }
 
 bool RenderTheme::stateChanged(RenderObject* o, ControlState state) const
@@ -359,9 +354,12 @@ bool RenderTheme::isEnabled(const RenderObject* o) const
 
 bool RenderTheme::isFocused(const RenderObject* o) const
 {
-    if (!o->element())
+    Node* node = o->element();
+    if (!node)
         return false;
-    return o->element() == o->element()->document()->focusedNode();
+    Document* document = node->document();
+    Frame* frame = document->frame();
+    return node == document->focusedNode() && frame && frame->isActive();
 }
 
 bool RenderTheme::isPressed(const RenderObject* o) const
@@ -398,6 +396,8 @@ void RenderTheme::adjustCheckboxStyle(CSSStyleSelector* selector, RenderStyle* s
     // border - honored by WinIE, but looks terrible (just paints in the control box and turns off the Windows XP theme)
     // for now, we will not honor it.
     style->resetBorder();
+
+    style->setBoxShadow(0);
 }
 
 void RenderTheme::adjustRadioStyle(CSSStyleSelector* selector, RenderStyle* style, Element* e) const
@@ -413,6 +413,8 @@ void RenderTheme::adjustRadioStyle(CSSStyleSelector* selector, RenderStyle* styl
     // border - honored by WinIE, but looks terrible (just paints in the control box and turns off the Windows XP theme)
     // for now, we will not honor it.
     style->resetBorder();
+
+    style->setBoxShadow(0);
 }
 
 void RenderTheme::adjustButtonStyle(CSSStyleSelector* selector, RenderStyle* style, Element* e) const
@@ -468,6 +470,12 @@ void RenderTheme::adjustSearchFieldResultsDecorationStyle(CSSStyleSelector* sele
 
 void RenderTheme::adjustSearchFieldResultsButtonStyle(CSSStyleSelector* selector, RenderStyle* style, Element* e) const
 {
+}
+
+void RenderTheme::platformColorsDidChange()
+{
+    m_activeSelectionColor = Color();
+    m_inactiveSelectionColor = Color();
 }
 
 } // namespace WebCore

@@ -52,7 +52,7 @@ namespace BALFacilities {
 class BTTextLogFormatter : public BTLogFormatter {
 public:
     /**
-     *
+     * format log
      */
     virtual char* format(BTLogModule balModule, BTLogLevel level, const char*
 filename, int lineNumber, const char* functionName);

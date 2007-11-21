@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -101,6 +101,7 @@ static String toAlphabetic(int number, const UChar* alphabet, int alphabetSize)
 static int toHebrewUnder1000(int number, UChar letters[5])
 {
     // FIXME: CSS3 mentions various refinements not implemented here.
+    // FIXME: Should take a look at Mozilla's HebrewToText function (in nsBulletFrame).
     ASSERT(number >= 0 && number < 1000);
     int length = 0;
     int fourHundreds = number / 400;
@@ -219,18 +220,18 @@ static String toGeorgian(int number)
     int length = 0;
 
     if (number > 9999)
-        letters[length++] = 0x10EF;
+        letters[length++] = 0x10F5;
 
     if (int thousands = (number / 1000) % 10) {
         static const UChar georgianThousands[9] = {
-            0x10E8, 0x10E9, 0x10EA, 0x10EB, 0x10EC, 0x10ED, 0x10EE, 0x10F4, 0x10F5
+            0x10E9, 0x10EA, 0x10EB, 0x10EC, 0x10ED, 0x10EE, 0x10F4, 0x10EF, 0x10F0
         };
         letters[length++] = georgianThousands[thousands - 1];
     }
 
     if (int hundreds = (number / 100) % 10) {
         static const UChar georgianHundreds[9] = {
-            0x10E0, 0x10E1, 0x10E2, 0x10E3, 0x10F3, 0x10E4, 0x10E5, 0x10E6, 0x10E7
+            0x10E0, 0x10E1, 0x10E2, 0x10F3, 0x10E4, 0x10E5, 0x10E6, 0x10E7, 0x10E8
         };
         letters[length++] = georgianHundreds[hundreds - 1];
     }
@@ -268,6 +269,9 @@ static String toCJKIdeographic(int number, const UChar table[16])
         digit5, digit6, digit7, digit8, digit9
     };
 
+    if (number == 0)
+        return String(&table[digit0 - 1], 1);
+
     const int groupLength = 8; // 4 digits, 3 digit markers, and a group marker
     const int bufferLength = 4 * groupLength;
     AbstractCJKChar buffer[bufferLength] = { noChar };
@@ -283,38 +287,39 @@ static String toCJKIdeographic(int number, const UChar table[16])
             group[7] = static_cast<AbstractCJKChar>(secondGroupMarker - 1 + i);
 
         // Put in the four digits and digit markers for any non-zero digits.
-        group[0] = static_cast<AbstractCJKChar>(digit0 + (groupValue % 10));
+        group[6] = static_cast<AbstractCJKChar>(digit0 + (groupValue % 10));
         if (number != 0 || groupValue > 9) {
             int digitValue = ((groupValue / 10) % 10);
-            group[1] = static_cast<AbstractCJKChar>(digit0 + digitValue);
+            group[4] = static_cast<AbstractCJKChar>(digit0 + digitValue);
             if (digitValue)
-                group[2] = secondDigitMarker;
+                group[5] = secondDigitMarker;
         }
         if (number != 0 || groupValue > 99) {
             int digitValue = ((groupValue / 100) % 10);
-            group[3] = static_cast<AbstractCJKChar>(digit0 + digitValue);
+            group[2] = static_cast<AbstractCJKChar>(digit0 + digitValue);
             if (digitValue)
-                group[4] = thirdDigitMarker;
+                group[3] = thirdDigitMarker;
         }
         if (number != 0 || groupValue > 999) {
             int digitValue = groupValue / 1000;
-            group[5] = static_cast<AbstractCJKChar>(digit0 + digitValue);
+            group[0] = static_cast<AbstractCJKChar>(digit0 + digitValue);
             if (digitValue)
-                group[6] = fourthDigitMarker;
+                group[1] = fourthDigitMarker;
         }
 
         // Remove the tens digit, but leave the marker, for any group that has
         // a value of less than 20.
         if (groupValue < 20) {
-            ASSERT(group[1] == noChar || group[1] == digit0 || group[1] == digit1);
-            group[1] = noChar;
+            ASSERT(group[4] == noChar || group[4] == digit0 || group[4] == digit1);
+            group[4] = noChar;
         }
 
         if (number == 0)
             break;
     }
 
-    // Convert into characters, omitting consecutive runs of digit0.
+    // Convert into characters, omitting consecutive runs of digit0 and
+    // any trailing digit0.
     int length = 0;
     UChar characters[bufferLength];
     AbstractCJKChar last = noChar;
@@ -326,6 +331,9 @@ static String toCJKIdeographic(int number, const UChar table[16])
             last = a;
         }
     }
+    if (last == digit0)
+        --length;
+
     return String(characters, length);
 }
 
@@ -436,8 +444,8 @@ String listMarkerText(EListStyleType type, int value)
         case CJK_IDEOGRAPHIC: {
             static const UChar traditionalChineseInformalTable[16] = {
                 0x842C, 0x5104, 0x5146,
-                0x842C, 0x5104, 0x5146,
-                0x96F6, 0x4E00, 0x4EBC, 0x4E09, 0x56DB,
+                0x5341, 0x767E, 0x5343,
+                0x96F6, 0x4E00, 0x4E8C, 0x4E09, 0x56DB,
                 0x4E94, 0x516D, 0x4E03, 0x516B, 0x4E5D
             };
             return toCJKIdeographic(value, traditionalChineseInformalTable);
@@ -482,9 +490,9 @@ RenderListMarker::~RenderListMarker()
 
 void RenderListMarker::setStyle(RenderStyle* s)
 {
-    if (s && style() && s->listStylePosition() != style()->listStylePosition())
-        setNeedsLayoutAndMinMaxRecalc();
-
+    if (style() && (s->listStylePosition() != style()->listStylePosition() || s->listStyleType() != style()->listStyleType()))
+        setNeedsLayoutAndPrefWidthsRecalc();
+    
     RenderBox::setStyle(s);
 
     if (m_image != style()->listStyleImage()) {
@@ -506,14 +514,14 @@ InlineBox* RenderListMarker::createInlineBox(bool, bool isRootLineBox, bool)
 
 bool RenderListMarker::isImage() const
 {
-    return m_image && !m_image->isErrorImage();
+    return m_image && !m_image->errorOccurred();
 }
 
 void RenderListMarker::paint(PaintInfo& paintInfo, int tx, int ty)
 {
     if (paintInfo.phase != PaintPhaseForeground)
         return;
-
+    
     if (style()->visibility() != VISIBLE)
         return;
 
@@ -525,7 +533,7 @@ void RenderListMarker::paint(PaintInfo& paintInfo, int tx, int ty)
     if (box.y() > paintInfo.rect.bottom() || box.y() + box.height() < paintInfo.rect.y())
         return;
 
-    if (hasBoxDecorations())
+    if (hasBoxDecorations()) 
         paintBoxDecorations(paintInfo, box.x(), box.y());
 
     GraphicsContext* context = paintInfo.context;
@@ -537,11 +545,11 @@ void RenderListMarker::paint(PaintInfo& paintInfo, int tx, int ty)
             paintCustomHighlight(tx, ty, style()->highlight(), true);
 #endif
 #ifdef __OWB__
-        context->drawImage(m_image->image()->nativeImageForCurrentFrame(), marker.location());
-        m_image->image()->startAnimation();
+		context->drawImage(m_image->image()->nativeImageForCurrentFrame(), marker.location());
+		m_image->image()->startAnimation();
 #else
         context->drawImage(m_image->image(), marker.location());
-#endif
+#endif //__OWB__
         if (selectionState() != SelectionNone)
             context->fillRect(selectionRect(), selectionBackgroundColor());
         return;
@@ -597,7 +605,7 @@ void RenderListMarker::paint(PaintInfo& paintInfo, int tx, int ty)
     if (m_text.isEmpty())
         return;
 
-    TextRun textRun(m_text.impl());
+    TextRun textRun(m_text);
 
     // Text is not arbitrary. We can judge whether it's RTL from the first character,
     // and we only need to handle the direction RightToLeft for now.
@@ -629,35 +637,50 @@ void RenderListMarker::paint(PaintInfo& paintInfo, int tx, int ty)
 void RenderListMarker::layout()
 {
     ASSERT(needsLayout());
-    if (!minMaxKnown())
-        calcMinMaxWidth();
+    ASSERT(!prefWidthsDirty());
+
+    if (isImage()) {
+        m_width = m_image->image()->width();
+        m_height = m_image->image()->height();
+    } else {
+        m_width = minPrefWidth();
+        m_height = style()->font().height();
+    }
+
+    m_marginLeft = m_marginRight = 0;
+
+    Length leftMargin = style()->marginLeft();
+    Length rightMargin = style()->marginRight();
+    if (leftMargin.isFixed())
+        m_marginLeft = leftMargin.value();
+    if (rightMargin.isFixed())
+        m_marginRight = rightMargin.value();
+
     setNeedsLayout(false);
 }
 
 void RenderListMarker::imageChanged(CachedImage* o)
 {
-    if (o != m_image) {
-        RenderBox::imageChanged(o);
+    // A list marker can't have a background or border image, so no need to call the base class method.
+    if (o != m_image)
         return;
-    }
 
-    if (m_width != m_image->imageSize().width() || m_height != m_image->imageSize().height())
-        setNeedsLayoutAndMinMaxRecalc();
+    if (m_width != m_image->imageSize().width() || m_height != m_image->imageSize().height() || m_image->errorOccurred())
+        setNeedsLayoutAndPrefWidthsRecalc();
     else
         repaint();
 }
 
-void RenderListMarker::calcMinMaxWidth()
+void RenderListMarker::calcPrefWidths()
 {
-    ASSERT(!minMaxKnown());
+    ASSERT(prefWidthsDirty());
 
     m_text = "";
 
     if (isImage()) {
-        m_width = m_image->image()->width();
-        m_height = m_image->image()->height();
-        m_minWidth = m_maxWidth = m_width;
-        setMinMaxKnown();
+        m_minPrefWidth = m_maxPrefWidth = m_image->image()->width();
+        setPrefWidthsDirty(false);
+        updateMargins();
         return;
     }
 
@@ -695,7 +718,7 @@ void RenderListMarker::calcMinMaxWidth()
             if (m_text.isEmpty())
                 width = 0;
             else {
-                int itemWidth = font.width(m_text.impl());
+                int itemWidth = font.width(m_text);
                 const UChar periodSpace[2] = { '.', ' ' };
                 int periodSpaceWidth = font.width(TextRun(periodSpace, 2));
                 width = itemWidth + periodSpaceWidth;
@@ -703,86 +726,83 @@ void RenderListMarker::calcMinMaxWidth()
             break;
     }
 
-    m_width = width;
-    m_minWidth = width;
-    m_maxWidth = width;
+    m_minPrefWidth = width;
+    m_maxPrefWidth = width;
 
-    // FIXME: A little strange to set the height in calcMinMaxWidth.
-    m_height = font.height();
-
-    setMinMaxKnown();
+    setPrefWidthsDirty(false);
+    
+    updateMargins();
 }
 
-void RenderListMarker::calcWidth()
+void RenderListMarker::updateMargins()
 {
-    // m_width is set in calcMinMaxWidth()
     const Font& font = style()->font();
+
+    int marginLeft = 0;
+    int marginRight = 0;
 
     if (isInside()) {
         if (isImage()) {
-            if (style()->direction() == LTR) {
-                m_marginLeft = 0;
-                m_marginRight = cMarkerPadding;
-            } else {
-                m_marginLeft = cMarkerPadding;
-                m_marginRight = 0;
-            }
+            if (style()->direction() == LTR)
+                marginRight = cMarkerPadding;
+            else
+                marginLeft = cMarkerPadding;
         } else switch (style()->listStyleType()) {
             case DISC:
             case CIRCLE:
             case SQUARE:
                 if (style()->direction() == LTR) {
-                    m_marginLeft = -1;
-                    m_marginRight = font.ascent() - m_width + 1;
+                    marginLeft = -1;
+                    marginRight = font.ascent() - minPrefWidth() + 1;
                 } else {
-                    m_marginLeft = font.ascent() - m_width + 1;
-                    m_marginRight = -1;
+                    marginLeft = font.ascent() - minPrefWidth() + 1;
+                    marginRight = -1;
                 }
                 break;
             default:
-                m_marginLeft = 0;
-                m_marginRight = 0;
+                break;
         }
     } else {
         if (style()->direction() == LTR) {
             if (isImage())
-                m_marginLeft = -m_width - cMarkerPadding;
+                marginLeft = -minPrefWidth() - cMarkerPadding;
             else {
                 int offset = font.ascent() * 2 / 3;
                 switch (style()->listStyleType()) {
                     case DISC:
                     case CIRCLE:
                     case SQUARE:
-                        m_marginLeft = -offset - cMarkerPadding - 1;
+                        marginLeft = -offset - cMarkerPadding - 1;
                         break;
                     case LNONE:
-                        m_marginLeft = 0;
                         break;
                     default:
-                        m_marginLeft = m_text.isEmpty() ? 0 : -m_width - offset / 2;
+                        marginLeft = m_text.isEmpty() ? 0 : -minPrefWidth() - offset / 2;
                 }
             }
         } else {
             if (isImage())
-                m_marginLeft = cMarkerPadding;
+                marginLeft = cMarkerPadding;
             else {
                 int offset = font.ascent() * 2 / 3;
                 switch (style()->listStyleType()) {
                     case DISC:
                     case CIRCLE:
                     case SQUARE:
-                        m_marginLeft = offset + cMarkerPadding + 1 - m_width;
+                        marginLeft = offset + cMarkerPadding + 1 - minPrefWidth();
                         break;
                     case LNONE:
-                        m_marginLeft = 0;
                         break;
                     default:
-                        m_marginLeft = m_text.isEmpty() ? 0 : offset / 2;
+                        marginLeft = m_text.isEmpty() ? 0 : offset / 2;
                 }
             }
         }
-        m_marginRight = -m_marginLeft - m_width;
+        marginRight = -marginLeft - minPrefWidth();
     }
+
+    style()->setMarginLeft(Length(marginLeft, Fixed));
+    style()->setMarginRight(Length(marginRight, Fixed));
 }
 
 short RenderListMarker::lineHeight(bool, bool) const
@@ -843,7 +863,7 @@ IntRect RenderListMarker::getRelativeMarkerRect()
             if (m_text.isEmpty())
                 return IntRect();
             const Font& font = style()->font();
-            int itemWidth = font.width(m_text.impl());
+            int itemWidth = font.width(m_text);
             const UChar periodSpace[2] = { '.', ' ' };
             int periodSpaceWidth = font.width(TextRun(periodSpace, 2));
             return IntRect(m_x, m_y + font.ascent(), itemWidth + periodSpaceWidth, font.height());
@@ -861,19 +881,25 @@ void RenderListMarker::setSelectionState(SelectionState state)
     containingBlock()->setSelectionState(state);
 }
 
-IntRect RenderListMarker::selectionRect()
+IntRect RenderListMarker::selectionRect(bool clipToVisibleContent)
 {
+    ASSERT(!needsLayout());
+
     if (selectionState() == SelectionNone || !inlineBoxWrapper())
         return IntRect();
 
-    int absx, absy;
-    RenderBlock* cb = containingBlock();
-    cb->absolutePosition(absx, absy);
-    if (cb->hasOverflowClip())
-        cb->layer()->subtractScrollOffset(absx, absy);
-
     RootInlineBox* root = inlineBoxWrapper()->root();
-    return IntRect(absx + xPos(), absy + root->selectionTop(), width(), root->selectionHeight());
+    IntRect rect(0, root->selectionTop() - yPos(), width(), root->selectionHeight());
+            
+    if (clipToVisibleContent)
+        computeAbsoluteRepaintRect(rect);
+    else {
+        int absx, absy;
+        absolutePosition(absx, absy);
+        rect.move(absx, absy);
+    }
+    
+    return rect;
 }
 
 } // namespace WebCore

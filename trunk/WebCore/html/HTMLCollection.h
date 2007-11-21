@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -35,10 +35,10 @@ namespace WebCore {
 class AtomicString;
 class AtomicStringImpl;
 class Node;
+class NodeList;
 class String;
 
-class HTMLCollection : public Shared<HTMLCollection>
-{
+class HTMLCollection : public Shared<HTMLCollection> {
 public:
     enum Type {
         // from JSHTMLDocument
@@ -83,24 +83,48 @@ public:
     // In case of multiple items named the same way
     virtual Node *nextNamedItem(const String &name) const;
 
+    // Extension
+    PassRefPtr<NodeList> tags(const String&);
+
     void namedItems(const AtomicString &name, Vector<RefPtr<Node> >&) const;
 
     Node *base() { return m_base.get(); }
 
     struct CollectionInfo {
         CollectionInfo();
+        CollectionInfo(const CollectionInfo&);
+        CollectionInfo& operator=(const CollectionInfo& other)
+        {
+            CollectionInfo tmp(other);    
+            swap(tmp);
+            return *this;
+        }
+        
         ~CollectionInfo();
         void reset();
+        void swap(CollectionInfo&);
+
         unsigned int version;
         Node *current;
         unsigned int position;
         unsigned int length;
         int elementsArrayPosition;
-        HashMap<AtomicStringImpl*, Vector<Node*>*> idCache;
-        HashMap<AtomicStringImpl*, Vector<Node*>*> nameCache;
+        typedef HashMap<AtomicStringImpl*, Vector<Node*>*> NodeCacheMap;
+        NodeCacheMap idCache;
+        NodeCacheMap nameCache;
         bool haslength;
         bool hasNameCache;
-     };
+    private:
+        static void copyCacheMap(NodeCacheMap& dest, const NodeCacheMap& src)
+        {
+            ASSERT(dest.isEmpty());
+            NodeCacheMap::const_iterator end = src.end();
+            for (NodeCacheMap::const_iterator it = src.begin(); it != end; ++it)
+                dest.add(it->first, new Vector<Node*>(*it->second));
+        }
+    };
+
+    Type collectionType() const { return type; }
 
 protected:
     virtual void updateNameCache() const;

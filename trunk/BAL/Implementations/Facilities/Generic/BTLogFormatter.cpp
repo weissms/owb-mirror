@@ -48,9 +48,9 @@ namespace BALFacilities {
 BTLogFormatter::BTLogFormatter()
 // FIXME SRO temporary length size to 0xffff
     : m_maxLength(65536)
-	, m_buffer(0)
-	, m_isTimed(true)
-	, m_isDated(true)
+    , m_buffer(0)
+    , m_isTimed(true)
+    , m_isDated(true)
 {
     m_buffer = new char[m_maxLength];
 }

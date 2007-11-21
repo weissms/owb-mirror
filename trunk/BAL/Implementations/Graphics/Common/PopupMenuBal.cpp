@@ -53,5 +53,10 @@ void PopupMenu::updateFromElement()
     BALNotImplemented(); 
 }
 
+bool PopupMenu::itemWritingDirectionIsNatural()
+{
+    return false;
+}
+
 }
 

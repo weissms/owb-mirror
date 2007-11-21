@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef Counter_h
@@ -43,7 +43,7 @@ public:
     String listStyle() const { return m_listStyle ? m_listStyle->getStringValue() : String(); }
     String separator() const { return m_separator ? m_separator->getStringValue() : String(); }
 
-    int listStyleNumber() const { return m_listStyle ? static_cast<int>(m_listStyle->getFloatValue()) : 0; }
+    int listStyleNumber() const { return m_listStyle ? m_listStyle->getIntValue() : 0; }
 
     void setIdentifier(PassRefPtr<CSSPrimitiveValue> identifier) { m_identifier = identifier; }
     void setListStyle(PassRefPtr<CSSPrimitiveValue> listStyle) { m_listStyle = listStyle; }

@@ -27,17 +27,17 @@
 #include "config.h"
 #include "XPathExpression.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
-#include "PlatformString.h"
 #include "Document.h"
+#include "ExceptionCode.h"
 #include "Node.h"
+#include "PlatformString.h"
+#include "XPathExpressionNode.h"
 #include "XPathNSResolver.h"
 #include "XPathParser.h"
 #include "XPathResult.h"
-#include "ExceptionCode.h"
-
-#include "XPathExpressionNode.h"
+#include "XPathUtil.h"
 
 namespace WebCore {
 
@@ -71,9 +71,12 @@ PassRefPtr<XPathResult> XPathExpression::evaluate(Node* contextNode, unsigned sh
         ? contextNode->ownerDocument()
         : static_cast<EventTargetNode*>(contextNode);
 
-    Expression::evaluationContext().node = contextNode;    
-    m_topExpression->optimize();
+    EvaluationContext& evaluationContext = Expression::evaluationContext();
+    evaluationContext.node = contextNode;
+    evaluationContext.size = 1;
+    evaluationContext.position = 1;
     RefPtr<XPathResult> result = new XPathResult(eventTarget, m_topExpression->evaluate());
+    evaluationContext.node = 0; // Do not hold a reference to the context node, as this may prevent the whole document from being destroyed in time.
 
     if (type != XPathResult::ANY_TYPE) {
         ec = 0;
@@ -87,4 +90,4 @@ PassRefPtr<XPathResult> XPathExpression::evaluate(Node* contextNode, unsigned sh
 
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

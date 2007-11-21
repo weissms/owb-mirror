@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- #ifndef AffineTransform_h
+#ifndef AffineTransform_h
 #define AffineTransform_h
 #include "BTAffineTransform.h"
 #define AffineTransform BTAffineTransform

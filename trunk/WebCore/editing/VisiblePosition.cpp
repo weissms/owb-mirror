@@ -47,6 +47,7 @@ VisiblePosition::VisiblePosition(const Position &pos, EAffinity affinity)
 
 VisiblePosition::VisiblePosition(Node *node, int offset, EAffinity affinity)
 {
+    ASSERT(offset >= 0);
     init(Position(node, offset), affinity);
 }
 
@@ -65,18 +66,10 @@ VisiblePosition VisiblePosition::next(bool stayInEditableContent) const
 {
     VisiblePosition next(nextVisuallyDistinctCandidate(m_deepPosition), m_affinity);
     
-    if (!stayInEditableContent || next.isNull())
+    if (!stayInEditableContent)
         return next;
     
-    Node* highestRoot = highestEditableRoot(deepEquivalent());
-    
-    if (!next.deepEquivalent().node()->isDescendantOf(highestRoot))
-        return VisiblePosition();
-
-    if (highestEditableRoot(next.deepEquivalent()) == highestRoot)
-        return next;
-    
-    return firstEditablePositionAfterPositionInRoot(next.deepEquivalent(), highestRoot);
+    return honorEditableBoundaryAtOrAfter(next);
 }
 
 VisiblePosition VisiblePosition::previous(bool stayInEditableContent) const
@@ -101,18 +94,73 @@ VisiblePosition VisiblePosition::previous(bool stayInEditableContent) const
     }
 #endif
 
-    if (!stayInEditableContent || prev.isNull())
+    if (!stayInEditableContent)
         return prev;
+    
+    return honorEditableBoundaryAtOrBefore(prev);
+}
+
+VisiblePosition VisiblePosition::honorEditableBoundaryAtOrBefore(const VisiblePosition &pos) const
+{
+    if (pos.isNull())
+        return pos;
     
     Node* highestRoot = highestEditableRoot(deepEquivalent());
     
-    if (!prev.deepEquivalent().node()->isDescendantOf(highestRoot))
+    // Return empty position if pos is not somewhere inside the editable region containing this position
+    if (highestRoot && !pos.deepEquivalent().node()->isDescendantOf(highestRoot))
         return VisiblePosition();
         
-    if (highestEditableRoot(prev.deepEquivalent()) == highestRoot)
-        return prev;
+    // Return pos itself if the two are from the very same editable region, or both are non-editable
+    // FIXME: In the non-editable case, just because the new position is non-editable doesn't mean movement
+    // to it is allowed.  Selection::adjustForEditableContent has this problem too.
+    if (highestEditableRoot(pos.deepEquivalent()) == highestRoot)
+        return pos;
+  
+    // Return empty position if this position is non-editable, but pos is editable
+    // FIXME: Move to the previous non-editable region.
+    if (!highestRoot)
+        return VisiblePosition();
 
-    return lastEditablePositionBeforePositionInRoot(prev.deepEquivalent(), highestRoot);
+    // Return the last position before pos that is in the same editable region as this position
+    return lastEditablePositionBeforePositionInRoot(pos.deepEquivalent(), highestRoot);
+}
+
+VisiblePosition VisiblePosition::honorEditableBoundaryAtOrAfter(const VisiblePosition &pos) const
+{
+    if (pos.isNull())
+        return pos;
+    
+    Node* highestRoot = highestEditableRoot(deepEquivalent());
+    
+    // Return empty position if pos is not somewhere inside the editable region containing this position
+    if (highestRoot && !pos.deepEquivalent().node()->isDescendantOf(highestRoot))
+        return VisiblePosition();
+    
+    // Return pos itself if the two are from the very same editable region, or both are non-editable
+    // FIXME: In the non-editable case, just because the new position is non-editable doesn't mean movement
+    // to it is allowed.  Selection::adjustForEditableContent has this problem too.
+    if (highestEditableRoot(pos.deepEquivalent()) == highestRoot)
+        return pos;
+
+    // Return empty position if this position is non-editable, but pos is editable
+    // FIXME: Move to the next non-editable region.
+    if (!highestRoot)
+        return VisiblePosition();
+
+    // Return the next position after pos that is in the same editable region as this position
+    return firstEditablePositionAfterPositionInRoot(pos.deepEquivalent(), highestRoot);
+}
+
+Position canonicalizeCandidate(const Position& candidate)
+{
+    if (candidate.isNull())
+        return Position();
+    ASSERT(candidate.isCandidate());
+    Position upstream = candidate.upstream();
+    if (upstream.isCandidate())
+        return upstream;
+    return candidate;
 }
 
 Position VisiblePosition::canonicalPosition(const Position& position)
@@ -137,8 +185,8 @@ Position VisiblePosition::canonicalPosition(const Position& position)
 
     // When neither upstream or downstream gets us to a candidate (upstream/downstream won't leave 
     // blocks or enter new ones), we search forward and backward until we find one.
-    Position next = nextCandidate(position);
-    Position prev = previousCandidate(position);
+    Position next = canonicalizeCandidate(nextCandidate(position));
+    Position prev = canonicalizeCandidate(previousCandidate(position));
     Node* nextNode = next.node();
     Node* prevNode = prev.node();
 
@@ -151,7 +199,7 @@ Position VisiblePosition::canonicalPosition(const Position& position)
         
     // If the html element is editable, descending into its body will look like a descent 
     // from non-editable to editable content since rootEditableElement() always stops at the body.
-    if (editingRoot && editingRoot->hasTagName(htmlTag))
+    if (editingRoot && editingRoot->hasTagName(htmlTag) || position.node()->isDocumentNode())
         return next.isNotNull() ? next : prev;
         
     bool prevIsInSameEditableElement = prevNode && editableRootForPosition(prev) == editingRoot;

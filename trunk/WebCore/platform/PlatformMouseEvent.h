@@ -48,8 +48,9 @@ typedef unsigned WPARAM;
 typedef long LPARAM;
 #endif
 
-#if PLATFORM(GDK)
-typedef union _GdkEvent GdkEvent;
+#if PLATFORM(GTK)
+typedef struct _GdkEventButton GdkEventButton;
+typedef struct _GdkEventMotion GdkEventMotion;
 #endif
 
 #if PLATFORM(QT)
@@ -64,8 +65,6 @@ namespace WebCore {
     
     class PlatformMouseEvent {
     public:
-        static const struct CurrentEventTag {} currentEvent;
-    
         PlatformMouseEvent()
             : m_button(NoButton)
             , m_eventType(MouseEventMoved)
@@ -75,10 +74,9 @@ namespace WebCore {
             , m_altKey(false)
             , m_metaKey(false)
             , m_timestamp(0)
+            , m_modifierFlags(0)
         {
         }
-
-        PlatformMouseEvent(const CurrentEventTag&);
 
         PlatformMouseEvent(const IntPoint& pos, const IntPoint& globalPos, MouseButton button, MouseEventType eventType,
                            int clickCount, bool shift, bool ctrl, bool alt, bool meta, double timestamp)
@@ -90,6 +88,7 @@ namespace WebCore {
             , m_altKey(alt)
             , m_metaKey(meta)
             , m_timestamp(timestamp)
+            , m_modifierFlags(0)
         {
         }
 
@@ -105,6 +104,7 @@ namespace WebCore {
         bool ctrlKey() const { return m_ctrlKey; }
         bool altKey() const { return m_altKey; }
         bool metaKey() const { return m_metaKey; }
+        unsigned modifierFlags() const { return m_modifierFlags; }
         
         //time in seconds
         double timestamp() const { return m_timestamp; }
@@ -118,8 +118,9 @@ namespace WebCore {
         void setClickCount(int count) { m_clickCount = count; }
         bool activatedWebView() const { return m_activatedWebView; }
 #endif
-#if PLATFORM(GDK) 
-        PlatformMouseEvent(GdkEvent*);
+#if PLATFORM(GTK) 
+        PlatformMouseEvent(GdkEventButton*);
+        PlatformMouseEvent(GdkEventMotion*);
 #endif
 #if PLATFORM(QT)
         PlatformMouseEvent(QMouseEvent*, int clickCount);
@@ -136,6 +137,7 @@ namespace WebCore {
         bool m_altKey;
         bool m_metaKey;
         double m_timestamp; // unit: seconds
+        unsigned m_modifierFlags;
 #if PLATFORM(MAC)
         int m_eventNumber;
 #endif

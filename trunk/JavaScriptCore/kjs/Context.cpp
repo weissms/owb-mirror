@@ -1,9 +1,9 @@
-// -*- c-basic-offset: 2 -*-
+// -*- mode: c++; c-basic-offset: 4 -*-
 /*
  *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
  *  Copyright (C) 2001 Peter Kelly (pmk@post.com)
- *  Copyright (C) 2003, 2006 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2006-2007 Apple Computer, Inc.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -24,13 +24,16 @@
 
 #include "context.h"
 
+#include "JSGlobalObject.h"
+
 namespace KJS {
 
 // ECMA 10.2
-Context::Context(JSObject* glob, Interpreter* interpreter, JSObject* thisV, 
+Context::Context(JSGlobalObject* glob, Interpreter* interpreter, JSObject* thisV, 
                  FunctionBodyNode* currentBody, CodeType type, Context* callingCon, 
                  FunctionImp* func, const List* args)
     : m_interpreter(interpreter)
+    , m_savedContext(interpreter->context())
     , m_currentBody(currentBody)
     , m_function(func)
     , m_arguments(args)
@@ -41,7 +44,7 @@ Context::Context(JSObject* glob, Interpreter* interpreter, JSObject* thisV,
     m_callingContext = callingCon;
     
     // create and initialize activation object (ECMA 10.1.6)
-    if (type == FunctionCode || type == AnonymousCode ) {
+    if (type == FunctionCode) {
         m_activation = new ActivationImp(func, *args);
         m_variable = m_activation;
     } else {
@@ -64,26 +67,27 @@ Context::Context(JSObject* glob, Interpreter* interpreter, JSObject* thisV,
         m_thisVal = static_cast<JSObject*>(glob);
         break;
     case FunctionCode:
-    case AnonymousCode:
-        if (type == FunctionCode) {
-            scope = func->scope();
-            scope.push(m_activation);
-        } else {
-            scope.clear();
-            scope.push(glob);
-            scope.push(m_activation);
-        }
+        scope = func->scope();
+        scope.push(m_activation);
         m_variable = m_activation; // TODO: DontDelete ? (ECMA 10.2.3)
         m_thisVal = thisV;
         break;
     }
-    
+
     m_interpreter->setContext(this);
 }
 
 Context::~Context()
 {
-    m_interpreter->setContext(m_callingContext);
+    m_interpreter->setContext(m_savedContext);
+
+    // The arguments list is only needed to potentially create the  arguments object, 
+    // which isn't accessible from nested scopes so we can discard the list as soon 
+    // as the function is done running.
+    // This prevents lists of Lists from building up, waiting to be garbage collected
+    ActivationImp* activation = static_cast<ActivationImp*>(m_activation);
+    if (activation)
+        activation->releaseArguments();
 }
 
 void Context::mark()

@@ -1,6 +1,6 @@
 /* -*- mode: c++; c-basic-offset: 4 -*- */
 /*
- * Copyright (C) 2003, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2003, 2006, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,11 +35,19 @@
 
    For non-debug builds, everything is disabled by default.
    Defining any of the symbols explicitly prevents this from having any effect.
+   
+   MSVC7 note: variadic macro support was added in MSVC8, so for now we disable
+   those macros in MSVC7. For more info, see the MSDN document on variadic 
+   macros here:
+   
+   http://msdn2.microsoft.com/en-us/library/ms177415(VS.80).aspx
 */
 
 #include "Platform.h"
 
-#if !COMPILER(MSVC)
+#if COMPILER(MSVC)
+#include <stddef.h>
+#else
 #include <inttypes.h>
 #endif
 
@@ -89,12 +97,13 @@ typedef struct {
     WTFLogChannelState state;
 } WTFLogChannel;
 
-void WTFReportAssertionFailure(const char *file, int line, const char *function, const char *assertion);
-void WTFReportAssertionFailureWithMessage(const char *file, int line, const char *function, const char *assertion, const char *format, ...);
-void WTFReportArgumentAssertionFailure(const char *file, int line, const char *function, const char *argName, const char *assertion);
-void WTFReportFatalError(const char *file, int line, const char *function, const char *format, ...) ;
-void WTFReportError(const char *file, int line, const char *function, const char *format, ...);
-void WTFLog(const char *file, int line, const char *function, WTFLogChannel *channel, const char *format, ...);
+void WTFReportAssertionFailure(const char* file, int line, const char* function, const char* assertion);
+void WTFReportAssertionFailureWithMessage(const char* file, int line, const char* function, const char* assertion, const char* format, ...);
+void WTFReportArgumentAssertionFailure(const char* file, int line, const char* function, const char* argName, const char* assertion);
+void WTFReportFatalError(const char* file, int line, const char* function, const char* format, ...) ;
+void WTFReportError(const char* file, int line, const char* function, const char* format, ...);
+void WTFLog(WTFLogChannel* channel, const char* format, ...);
+void WTFLogVerbose(const char* file, int line, const char* function, WTFLogChannel* channel, const char* format, ...);
 
 #ifdef __cplusplus
 }
@@ -102,7 +111,9 @@ void WTFLog(const char *file, int line, const char *function, WTFLogChannel *cha
 
 /* CRASH -- gets us into the debugger or the crash reporter -- signals are ignored by the crash reporter so we must do better */
 
+#ifndef CRASH
 #define CRASH() *(int *)(uintptr_t)0xbbadbeef = 0
+#endif
 
 /* ASSERT, ASSERT_WITH_MESSAGE, ASSERT_NOT_REACHED */
 
@@ -125,12 +136,16 @@ void WTFLog(const char *file, int line, const char *function, WTFLogChannel *cha
         CRASH(); \
     } \
 while (0)
+#if COMPILER(MSVC7)
+#define ASSERT_WITH_MESSAGE(assertion) ((void)0)
+#else
 #define ASSERT_WITH_MESSAGE(assertion, ...) do \
     if (!(assertion)) { \
         WTFReportAssertionFailureWithMessage(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, #assertion, __VA_ARGS__); \
         CRASH(); \
     } \
 while (0)
+#endif // COMPILER(MSVC7)
 #define ASSERT_NOT_REACHED() do { \
     WTFReportAssertionFailure(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, 0); \
     CRASH(); \
@@ -164,6 +179,8 @@ while (0)
 
 #if FATAL_DISABLED
 #define FATAL(...) ((void)0)
+#elif COMPILER(MSVC7)
+#define FATAL() ((void)0)
 #else
 #define FATAL(...) do { \
     WTFReportFatalError(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, __VA_ARGS__); \
@@ -175,6 +192,8 @@ while (0)
 
 #if ERROR_DISABLED
 #define LOG_ERROR(...) ((void)0)
+#elif COMPILER(MSVC7)
+#define LOG_ERROR() ((void)0)
 #else
 #define LOG_ERROR(...) WTFReportError(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, __VA_ARGS__)
 #endif
@@ -183,14 +202,26 @@ while (0)
 
 #if LOG_DISABLED
 #define LOG(channel, ...) ((void)0)
+#elif COMPILER(MSVC7)
+#define LOG() ((void)0)
 #else
 #ifdef __OWB__
-#define LOG(channel, ...) if (!getenv("LAYOUT_TEST")) WTFLog(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, &JOIN_LOG_CHANNEL_WITH_PREFIX(LOG_CHANNEL_PREFIX, channel), __VA_ARGS__)
+#define LOG(channel, ...) if (!getenv("LAYOUT_TEST")) WTFLog(&JOIN_LOG_CHANNEL_WITH_PREFIX(LOG_CHANNEL_PREFIX, channel), __VA_ARGS__)
 #else
-#define LOG(channel, ...) WTFLog(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, &JOIN_LOG_CHANNEL_WITH_PREFIX(LOG_CHANNEL_PREFIX, channel), __VA_ARGS__)
+#define LOG(channel, ...) WTFLog(&JOIN_LOG_CHANNEL_WITH_PREFIX(LOG_CHANNEL_PREFIX, channel), __VA_ARGS__)
 #endif //__OWB__
 #define JOIN_LOG_CHANNEL_WITH_PREFIX(prefix, channel) JOIN_LOG_CHANNEL_WITH_PREFIX_LEVEL_2(prefix, channel)
 #define JOIN_LOG_CHANNEL_WITH_PREFIX_LEVEL_2(prefix, channel) prefix ## channel
+#endif
+
+/* LOG_VERBOSE */
+
+#if LOG_DISABLED
+#define LOG_VERBOSE(channel, ...) ((void)0)
+#elif COMPILER(MSVC7)
+#define LOG_VERBOSE(channel) ((void)0)
+#else
+#define LOG_VERBOSE(channel, ...) WTFLogVerbose(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, &JOIN_LOG_CHANNEL_WITH_PREFIX(LOG_CHANNEL_PREFIX, channel), __VA_ARGS__)
 #endif
 
 #endif // WTF_Assertions_h

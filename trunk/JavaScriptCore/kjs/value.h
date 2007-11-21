@@ -1,8 +1,7 @@
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
  *  Copyright (C) 2001 Peter Kelly (pmk@post.com)
- *  Copyright (C) 2003-2005 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2004, 2005, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -25,17 +24,10 @@
 #define KJS_VALUE_H
 
 #include "JSImmediate.h"
+#include "collector.h"
 #include "ustring.h"
 #include <stddef.h> // for size_t
-
-#ifndef NDEBUG // protection against problems if committing with KJS_VERBOSE on
-
-// Uncomment this to enable very verbose output from KJS
-//#define KJS_VERBOSE
-// Uncomment this to debug memory allocation and garbage collection
-//#define KJS_DEBUG_MEM
-
-#endif
+#include <wtf/AlwaysInline.h>
 
 namespace KJS {
 
@@ -53,9 +45,9 @@ struct ClassInfo;
  * only (all of which are provided internally by KJS). Instead, inherit from
  * JSObject.
  */
-class JSValue {
+class JSValue : Noncopyable {
     friend class JSCell; // so it can derive from this class
-    friend class Collector; // so it can call downcast()
+    friend class Collector; // so it can call asCell()
 
 private:
     JSValue();
@@ -85,9 +77,13 @@ public:
 
     // Extracting integer values.
     bool getUInt32(uint32_t&) const;
+    bool getTruncatedInt32(int32_t&) const;
+    bool getTruncatedUInt32(uint32_t&) const;
 
     // Basic conversions.
-    JSValue *toPrimitive(ExecState *exec, JSType preferredType = UnspecifiedType) const;
+    JSValue* toPrimitive(ExecState* exec, JSType preferredType = UnspecifiedType) const;
+    bool getPrimitiveNumber(ExecState* exec, double& number) const;
+
     bool toBoolean(ExecState *exec) const;
     double toNumber(ExecState *exec) const;
     UString toString(ExecState *exec) const;
@@ -101,14 +97,20 @@ public:
     uint32_t toUInt32(ExecState*, bool& ok) const;
     uint16_t toUInt16(ExecState*) const;
 
+    // Floating point conversions.
+    float toFloat(ExecState*) const;
+
     // Garbage collection.
     void mark();
     bool marked() const;
 
 private:
+    int32_t toInt32SlowCase(ExecState*, bool& ok) const;
+    uint32_t toUInt32SlowCase(ExecState*, bool& ok) const;
+
     // Implementation details.
-    JSCell *downcast();
-    const JSCell *downcast() const;
+    JSCell *asCell();
+    const JSCell *asCell() const;
 
     // Give a compile time error if we try to copy one of these.
     JSValue(const JSValue&);
@@ -122,7 +124,7 @@ class JSCell : public JSValue {
     friend class JSObject;
     friend class GetterSetterImp;
 private:
-    explicit JSCell(bool destructorIsThreadSafe = true);
+    JSCell();
     virtual ~JSCell();
 public:
     // Querying the type.
@@ -142,9 +144,12 @@ public:
 
     // Extracting integer values.
     virtual bool getUInt32(uint32_t&) const;
+    virtual bool getTruncatedInt32(int32_t&) const;
+    virtual bool getTruncatedUInt32(uint32_t&) const;
 
     // Basic conversions.
     virtual JSValue *toPrimitive(ExecState *exec, JSType preferredType = UnspecifiedType) const = 0;
+    virtual bool getPrimitiveNumber(ExecState* exec, double& number) const = 0;
     virtual bool toBoolean(ExecState *exec) const = 0;
     virtual double toNumber(ExecState *exec) const = 0;
     virtual UString toString(ExecState *exec) const = 0;
@@ -154,20 +159,20 @@ public:
     void *operator new(size_t);
     virtual void mark();
     bool marked() const;
-
-private:
-    bool m_destructorIsThreadSafe : 1;
-    bool m_marked : 1;
 };
 
 JSValue *jsNumberCell(double);
 
-JSCell *jsString(const UString &); // returns empty string if passed null string
-JSCell *jsString(const char * = ""); // returns empty string if passed 0
+JSCell *jsString(const UString&); // returns empty string if passed null string
+JSCell *jsString(const char* = ""); // returns empty string if passed 0
+
+// should be used for strings that are owned by an object that will
+// likely outlive the JSValue this makes, such as the parse tree or a
+// DOM object that contains a UString
+JSCell *jsOwnedString(const UString&); 
 
 extern const double NaN;
 extern const double Inf;
-
 
 inline JSValue *jsUndefined()
 {
@@ -189,7 +194,7 @@ inline JSValue *jsBoolean(bool b)
     return b ? JSImmediate::trueImmediate() : JSImmediate::falseImmediate();
 }
 
-inline JSValue *jsNumber(double d)
+ALWAYS_INLINE JSValue* jsNumber(double d)
 {
     JSValue *v = JSImmediate::fromDouble(d);
     return v ? v : jsNumberCell(d);
@@ -203,9 +208,7 @@ inline JSValue::~JSValue()
 {
 }
 
-inline JSCell::JSCell(bool destructorIsThreadSafe)
-    : m_destructorIsThreadSafe(destructorIsThreadSafe)
-    , m_marked(false)
+inline JSCell::JSCell()
 {
 }
 
@@ -230,21 +233,21 @@ inline bool JSCell::isObject() const
 
 inline bool JSCell::marked() const
 {
-    return m_marked;
+    return Collector::isCellMarked(this);
 }
 
 inline void JSCell::mark()
 {
-    m_marked = true;
+    return Collector::markCell(this);
 }
 
-inline JSCell *JSValue::downcast()
+inline JSCell *JSValue::asCell()
 {
     ASSERT(!JSImmediate::isImmediate(this));
     return static_cast<JSCell *>(this);
 }
 
-inline const JSCell *JSValue::downcast() const
+inline const JSCell *JSValue::asCell() const
 {
     ASSERT(!JSImmediate::isImmediate(this));
     return static_cast<const JSCell *>(this);
@@ -272,17 +275,17 @@ inline bool JSValue::isBoolean() const
 
 inline bool JSValue::isNumber() const
 {
-    return JSImmediate::isNumber(this) || !JSImmediate::isImmediate(this) && downcast()->isNumber();
+    return JSImmediate::isNumber(this) || !JSImmediate::isImmediate(this) && asCell()->isNumber();
 }
 
 inline bool JSValue::isString() const
 {
-    return !JSImmediate::isImmediate(this) && downcast()->isString();
+    return !JSImmediate::isImmediate(this) && asCell()->isString();
 }
 
 inline bool JSValue::isObject() const
 {
-    return !JSImmediate::isImmediate(this) && downcast()->isObject();
+    return !JSImmediate::isImmediate(this) && asCell()->isObject();
 }
 
 inline bool JSValue::getBoolean(bool& v) const
@@ -306,85 +309,135 @@ inline bool JSValue::getNumber(double& v) const
         v = JSImmediate::toDouble(this);
         return true;
     }
-    return downcast()->getNumber(v);
+    return asCell()->getNumber(v);
 }
 
 inline double JSValue::getNumber() const
 {
-    return JSImmediate::isImmediate(this) ? JSImmediate::toDouble(this) : downcast()->getNumber();
+    return JSImmediate::isImmediate(this) ? JSImmediate::toDouble(this) : asCell()->getNumber();
 }
 
 inline bool JSValue::getString(UString& s) const
 {
-    return !JSImmediate::isImmediate(this) && downcast()->getString(s);
+    return !JSImmediate::isImmediate(this) && asCell()->getString(s);
 }
 
 inline UString JSValue::getString() const
 {
-    return JSImmediate::isImmediate(this) ? UString() : downcast()->getString();
+    return JSImmediate::isImmediate(this) ? UString() : asCell()->getString();
 }
 
 inline JSObject *JSValue::getObject()
 {
-    return JSImmediate::isImmediate(this) ? 0 : downcast()->getObject();
+    return JSImmediate::isImmediate(this) ? 0 : asCell()->getObject();
 }
 
 inline const JSObject *JSValue::getObject() const
 {
-    return JSImmediate::isImmediate(this) ? 0 : downcast()->getObject();
+    return JSImmediate::isImmediate(this) ? 0 : asCell()->getObject();
 }
 
 inline bool JSValue::getUInt32(uint32_t& v) const
 {
-    if (JSImmediate::isImmediate(this)) {
-        double d = JSImmediate::toDouble(this);
-        if (!(d >= 0) || d > 0xFFFFFFFFUL) // true for NaN
-            return false;
-        v = static_cast<uint32_t>(d);
-        return JSImmediate::isNumber(this);
-    }
-    return downcast()->getUInt32(v);
+    return JSImmediate::isImmediate(this) ? JSImmediate::getUInt32(this, v) : asCell()->getUInt32(v);
+}
+
+inline bool JSValue::getTruncatedInt32(int32_t& v) const
+{
+    return JSImmediate::isImmediate(this) ? JSImmediate::getTruncatedInt32(this, v) : asCell()->getTruncatedInt32(v);
+}
+
+inline bool JSValue::getTruncatedUInt32(uint32_t& v) const
+{
+    return JSImmediate::isImmediate(this) ? JSImmediate::getTruncatedUInt32(this, v) : asCell()->getTruncatedUInt32(v);
 }
 
 inline void JSValue::mark()
 {
     ASSERT(!JSImmediate::isImmediate(this)); // callers should check !marked() before calling mark()
-    downcast()->mark();
+    asCell()->mark();
 }
 
 inline bool JSValue::marked() const
 {
-    return JSImmediate::isImmediate(this) || downcast()->marked();
+    return JSImmediate::isImmediate(this) || asCell()->marked();
 }
 
 inline JSType JSValue::type() const
 {
-    return JSImmediate::isImmediate(this) ? JSImmediate::type(this) : downcast()->type();
+    return JSImmediate::isImmediate(this) ? JSImmediate::type(this) : asCell()->type();
 }
 
-inline JSValue *JSValue::toPrimitive(ExecState *exec, JSType preferredType) const
+inline JSValue* JSValue::toPrimitive(ExecState* exec, JSType preferredType) const
 {
-    return JSImmediate::isImmediate(this) ? const_cast<JSValue *>(this) : downcast()->toPrimitive(exec, preferredType);
+    return JSImmediate::isImmediate(this) ? const_cast<JSValue*>(this) : asCell()->toPrimitive(exec, preferredType);
+}
+
+inline bool JSValue::getPrimitiveNumber(ExecState* exec, double& number) const
+{
+    if (JSImmediate::isImmediate(this)) {
+        number = JSImmediate::toDouble(this);
+        return true;
+    }
+    return asCell()->getPrimitiveNumber(exec, number);
 }
 
 inline bool JSValue::toBoolean(ExecState *exec) const
 {
-    return JSImmediate::isImmediate(this) ? JSImmediate::toBoolean(this) : downcast()->toBoolean(exec);
+    return JSImmediate::isImmediate(this) ? JSImmediate::toBoolean(this) : asCell()->toBoolean(exec);
 }
 
 inline double JSValue::toNumber(ExecState *exec) const
 {
-    return JSImmediate::isImmediate(this) ? JSImmediate::toDouble(this) : downcast()->toNumber(exec);
+    return JSImmediate::isImmediate(this) ? JSImmediate::toDouble(this) : asCell()->toNumber(exec);
 }
 
 inline UString JSValue::toString(ExecState *exec) const
 {
-    return JSImmediate::isImmediate(this) ? JSImmediate::toString(this) : downcast()->toString(exec);
+    return JSImmediate::isImmediate(this) ? JSImmediate::toString(this) : asCell()->toString(exec);
 }
 
 inline JSObject* JSValue::toObject(ExecState* exec) const
 {
-    return JSImmediate::isImmediate(this) ? JSImmediate::toObject(this, exec) : downcast()->toObject(exec);
+    return JSImmediate::isImmediate(this) ? JSImmediate::toObject(this, exec) : asCell()->toObject(exec);
+}
+
+ALWAYS_INLINE int32_t JSValue::toInt32(ExecState* exec) const
+{
+    int32_t i;
+    if (JSImmediate::isImmediate(this) && JSImmediate::getTruncatedInt32(this, i))
+        return i;
+    bool ok;
+    return toInt32SlowCase(exec, ok);
+}
+
+inline uint32_t JSValue::toUInt32(ExecState* exec) const
+{
+    uint32_t i;
+    if (JSImmediate::isImmediate(this) && JSImmediate::getTruncatedUInt32(this, i))
+        return i;
+    bool ok;
+    return toUInt32SlowCase(exec, ok);
+}
+
+inline int32_t JSValue::toInt32(ExecState* exec, bool& ok) const
+{
+    int32_t i;
+    if (JSImmediate::isImmediate(this) && JSImmediate::getTruncatedInt32(this, i)) {
+        ok = true;
+        return i;
+    }
+    return toInt32SlowCase(exec, ok);
+}
+
+inline uint32_t JSValue::toUInt32(ExecState* exec, bool& ok) const
+{
+    uint32_t i;
+    if (JSImmediate::isImmediate(this) && JSImmediate::getTruncatedUInt32(this, i)) {
+        ok = true;
+        return i;
+    }
+    return toUInt32SlowCase(exec, ok);
 }
 
 } // namespace

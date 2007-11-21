@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -40,7 +40,8 @@ RenderView::RenderView(Node* node, FrameView* view)
     , m_selectionEndPos(-1)
     , m_printImages(true)
     , m_maximalOutlineSize(0)
-    , m_flexBoxInFirstLayout(0)
+    , m_layoutState(0)
+    , m_layoutStateDisableCount(0)
 {
     // Clear our anonymous bit, set because RenderObject assumes
     // any renderer with document as the node is anonymous.
@@ -52,13 +53,16 @@ RenderView::RenderView(Node* node, FrameView* view)
     // try to contrain the width to the views width
     m_width = 0;
     m_height = 0;
-    m_minWidth = 0;
-    m_maxWidth = 0;
+    m_minPrefWidth = 0;
+    m_maxPrefWidth = 0;
 
+    setPrefWidthsDirty(true, false);
+    
     setPositioned(true); // to 0,0 :)
 
     // Create a new root layer for our layer hierarchy.
     m_layer = new (node->document()->renderArena()) RenderLayer(this);
+    setHasLayer(true);
 }
 
 RenderView::~RenderView()
@@ -79,51 +83,43 @@ void RenderView::calcWidth()
     m_marginRight = 0;
 }
 
-void RenderView::calcMinMaxWidth()
+void RenderView::calcPrefWidths()
 {
-    ASSERT(!minMaxKnown());
+    ASSERT(prefWidthsDirty());
 
-    RenderBlock::calcMinMaxWidth();
+    RenderBlock::calcPrefWidths();
 
-    m_maxWidth = m_minWidth;
-
-    setMinMaxKnown();
+    m_maxPrefWidth = m_minPrefWidth;
 }
 
 void RenderView::layout()
 {
     if (printing())
-        m_minWidth = m_width;
+        m_minPrefWidth = m_maxPrefWidth = m_width;
 
-    // FIXME: This is all just a terrible workaround for bugs in layout when the view height changes.
-    // Find a better way to detect view height changes.  We're guessing that if we don't need layout that the reason
-    // we were called is because of a FrameView bounds change.
-    if (!needsLayout()) {
+    bool relayoutChildren = !printing() && (!m_frameView || m_width != m_frameView->visibleWidth() || m_height != m_frameView->visibleHeight());
+    if (relayoutChildren)
         setChildNeedsLayout(true, false);
-        setMinMaxKnown(false);
-        for (RenderObject* c = firstChild(); c; c = c->nextSibling())
-            c->setChildNeedsLayout(true, false);
-    }
+    
+    ASSERT(!m_layoutState);
+    LayoutState state;
+    // FIXME: May be better to push a clip and avoid issuing offscreen repaints.
+    state.m_clipped = false;
+    m_layoutState = &state;
 
-    if (recalcMinMax())
-        recalcMinMaxWidths();
+    if (needsLayout())
+        RenderBlock::layout();
 
-    RenderBlock::layout();
+    // Ensure that docWidth() >= width() and docHeight() >= height().
+    setOverflowWidth(m_width);
+    setOverflowHeight(m_height);
 
-    int docw = docWidth();
-    int doch = docHeight();
+    setOverflowWidth(docWidth());
+    setOverflowHeight(docHeight());
 
-    if (!printing()) {
-        setWidth(m_frameView->visibleWidth());
-        setHeight(m_frameView->visibleHeight());
-    }
-
-    // FIXME: we could maybe do the call below better and only pass true if the docsize changed.
-    layoutPositionedObjects(true);
-
-    layer()->setHeight(max(doch, m_height));
-    layer()->setWidth(max(docw, m_width));
-
+    ASSERT(m_layoutStateDisableCount == 0);
+    ASSERT(m_layoutState == &state);
+    m_layoutState = 0;
     setNeedsLayout(false);
 }
 
@@ -139,6 +135,9 @@ bool RenderView::absolutePosition(int& xPos, int& yPos, bool fixed) const
 
 void RenderView::paint(PaintInfo& paintInfo, int tx, int ty)
 {
+    // If we ever require layout but receive a paint anyway, something has gone horribly wrong.
+    ASSERT(!needsLayout());
+
     // Cache the print rect because the dirty rect could get changed during painting.
     if (printing())
         setPrintRect(paintInfo.rect);
@@ -151,7 +150,7 @@ void RenderView::paintBoxDecorations(PaintInfo& paintInfo, int tx, int ty)
 {
     // Check to see if we are enclosed by a transparent layer.  If so, we cannot blit
     // when scrolling, and we need to use slow repaints.
-    Element* elt = element()->document()->ownerElement();
+    Element* elt = document()->ownerElement();
     if (view() && elt && elt->renderer()) {
         RenderLayer* layer = elt->renderer()->enclosingLayer();
         if (layer->isTransparent() || layer->transparentAncestor())
@@ -162,8 +161,8 @@ void RenderView::paintBoxDecorations(PaintInfo& paintInfo, int tx, int ty)
         return;
 
     // This code typically only executes if the root element's visibility has been set to hidden.
-    // Only fill with white if we're the root document, since iframes/frames with
-    // no background in the child document should show the parent's background.
+    // Only fill with the base background color (typically white) if we're the root document, 
+    // since iframes/frames with no background in the child document should show the parent's background.
     if (view()->isTransparent())
         frameView()->setUseSlowRepaints(); // The parent must show behind the child.
     else {
@@ -183,26 +182,26 @@ void RenderView::repaintViewRectangle(const IntRect& ur, bool immediate)
     if (printing() || ur.width() == 0 || ur.height() == 0)
         return;
 
-    IntRect vr = viewRect();
-    if (m_frameView && ur.intersects(vr)) {
-        // We always just invalidate the root view, since we could be an iframe that is clipped out
-        // or even invisible.
-        IntRect r = intersection(ur, vr);
-        Element* elt = element()->document()->ownerElement();
-        if (!elt)
-            m_frameView->repaintRectangle(r, immediate);
-        else if (RenderObject* obj = elt->renderer()) {
-            // Subtract out the contentsX and contentsY offsets to get our coords within the viewing
-            // rectangle.
-            r.move(-m_frameView->contentsX(), -m_frameView->contentsY());
+    if (!m_frameView)
+        return;
 
-            // FIXME: Hardcoded offsets here are not good.
-            int yFrameOffset = m_frameView->hasBorder() ? 2 : 0;
-            int xFrameOffset = m_frameView->hasBorder() ? 1 : 0;
-            r.move(obj->borderLeft() + obj->paddingLeft() + xFrameOffset,
-                   obj->borderTop() + obj->paddingTop() + yFrameOffset);
-            obj->repaintRectangle(r, immediate);
-        }
+    // We always just invalidate the root view, since we could be an iframe that is clipped out
+    // or even invisible.
+    Element* elt = document()->ownerElement();
+    if (!elt)
+        m_frameView->repaintRectangle(ur, immediate);
+    else if (RenderObject* obj = elt->renderer()) {
+        IntRect vr = viewRect();
+        IntRect r = intersection(ur, vr);
+        
+        // Subtract out the contentsX and contentsY offsets to get our coords within the viewing
+        // rectangle.
+        r.move(-vr.x(), -vr.y());
+        
+        // FIXME: Hardcoded offsets here are not good.
+        r.move(obj->borderLeft() + obj->paddingLeft(),
+               obj->borderTop() + obj->paddingTop());
+        obj->repaintRectangle(r, immediate);
     }
 }
 
@@ -215,7 +214,7 @@ void RenderView::computeAbsoluteRepaintRect(IntRect& rect, bool fixed)
         rect.move(m_frameView->contentsX(), m_frameView->contentsY());
 }
 
-void RenderView::absoluteRects(Vector<IntRect>& rects, int tx, int ty)
+void RenderView::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool)
 {
     rects.append(IntRect(tx, ty, m_layer->width(), m_layer->height()));
 }
@@ -229,7 +228,7 @@ RenderObject* rendererAfterPosition(RenderObject* object, unsigned offset)
     return child ? child : object->nextInPreOrderAfterChildren();
 }
 
-IntRect RenderView::selectionRect() const
+IntRect RenderView::selectionRect(bool clipToVisibleContent) const
 {
     document()->updateRendering();
 
@@ -241,14 +240,13 @@ IntRect RenderView::selectionRect() const
     while (os && os != stop) {
         if ((os->canBeSelectionLeaf() || os == m_selectionStart || os == m_selectionEnd) && os->selectionState() != SelectionNone) {
             // Blocks are responsible for painting line gaps and margin gaps. They must be examined as well.
-//          assert(!selectedObjects.get(os));
-            selectedObjects.set(os, new SelectionInfo(os));
+            selectedObjects.set(os, new SelectionInfo(os, clipToVisibleContent));
             RenderBlock* cb = os->containingBlock();
             while (cb && !cb->isRenderView()) {
                 SelectionInfo* blockInfo = selectedObjects.get(cb);
                 if (blockInfo)
                     break;
-                selectedObjects.set(cb, new SelectionInfo(cb));
+                selectedObjects.set(cb, new SelectionInfo(cb, clipToVisibleContent));
                 cb = cb->containingBlock();
             }
         }
@@ -301,7 +299,7 @@ void RenderView::setSelection(RenderObject* start, int startPos, RenderObject* e
     while (os && os != stop) {
         if ((os->canBeSelectionLeaf() || os == m_selectionStart || os == m_selectionEnd) && os->selectionState() != SelectionNone) {
             // Blocks are responsible for painting line gaps and margin gaps.  They must be examined as well.
-            oldSelectedObjects.set(os, new SelectionInfo(os));
+            oldSelectedObjects.set(os, new SelectionInfo(os, true));
             RenderBlock* cb = os->containingBlock();
             while (cb && !cb->isRenderView()) {
                 BlockSelectionInfo* blockInfo = oldSelectedBlocks.get(cb);
@@ -350,7 +348,7 @@ void RenderView::setSelection(RenderObject* start, int startPos, RenderObject* e
     o = start;
     while (o && o != stop) {
         if ((o->canBeSelectionLeaf() || o == start || o == end) && o->selectionState() != SelectionNone) {
-            newSelectedObjects.set(o, new SelectionInfo(o));
+            newSelectedObjects.set(o, new SelectionInfo(o, true));
             RenderBlock* cb = o->containingBlock();
             while (cb && !cb->isRenderView()) {
                 BlockSelectionInfo* blockInfo = newSelectedBlocks.get(cb);
@@ -464,10 +462,7 @@ IntRect RenderView::viewRect() const
     if (printing())
         return IntRect(0, 0, m_width, m_height);
     if (m_frameView)
-        return IntRect(m_frameView->contentsX(),
-                       m_frameView->contentsY(),
-                       m_frameView->visibleWidth(),
-                       m_frameView->visibleHeight());
+        return enclosingIntRect(m_frameView->visibleContentRect());
     return IntRect();
 }
 
@@ -538,6 +533,15 @@ void RenderView::setBestTruncatedAt(int y, RenderObject* forRenderer, bool force
         m_truncatorWidth = width;
         m_bestTruncatedAt = y;
     }
+}
+
+void RenderView::pushLayoutState(RenderObject* root)
+{
+    ASSERT(!m_frameView->needsFullRepaint());
+    ASSERT(m_layoutStateDisableCount == 0);
+    ASSERT(m_layoutState == 0);
+
+    m_layoutState = new (renderArena()) LayoutState(root);
 }
 
 } // namespace WebCore

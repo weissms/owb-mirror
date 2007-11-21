@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric.seidel@kdemail.net>
 
@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGResourceFilter_h
 #define SVGResourceFilter_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGResource.h"
 #include "SVGFilterEffect.h"
 
@@ -48,6 +48,8 @@ class NSMutableDictionary;
 #endif
 #endif
 
+#include <wtf/RetainPtr.h>
+
 namespace WebCore {
 
 class GraphicsContext;
@@ -59,9 +61,9 @@ public:
     SVGResourceFilter();
     virtual ~SVGResourceFilter();
 
-    static SVGFilterEffect* createFilterEffect(const SVGFilterEffectType&);
-
-    virtual bool isFilter() const { return true; }
+    static SVGFilterEffect* createFilterEffect(const SVGFilterEffectType&, SVGResourceFilter*);
+    
+    virtual SVGResourceType resourceType() const { return FilterResourceType; }
 
     bool filterBoundingBoxMode() const { return m_filterBBoxMode; }
     void setFilterBoundingBoxMode(bool bboxMode) { m_filterBBoxMode = bboxMode; }
@@ -69,10 +71,16 @@ public:
     bool effectBoundingBoxMode() const { return m_effectBBoxMode; }
     void setEffectBoundingBoxMode(bool bboxMode) { m_effectBBoxMode = bboxMode; }
 
+    bool xBoundingBoxMode() const { return m_xBBoxMode; }
+    void setXBoundingBoxMode(bool bboxMode) { m_xBBoxMode = bboxMode; }
+
+    bool yBoundingBoxMode() const { return m_yBBoxMode; }
+    void setYBoundingBoxMode(bool bboxMode) { m_yBBoxMode = bboxMode; }
+
     FloatRect filterRect() const { return m_filterRect; }
     void setFilterRect(const FloatRect& rect) { m_filterRect = rect; }
 
-    FloatRect filterBBoxForItemBBox(FloatRect itemBBox) const;
+    FloatRect filterBBoxForItemBBox(const FloatRect& itemBBox) const;
 
     void clearEffects();
     void addFilterEffect(SVGFilterEffect*);
@@ -93,25 +101,27 @@ public:
 
 private:
 #if PLATFORM(CI)
-    NSArray* getCIFilterStack(CIImage* inputImage);
+    NSArray* getCIFilterStack(CIImage* inputImage, const FloatRect& bbox);
 
     CIContext* m_filterCIContext;
     CGLayerRef m_filterCGLayer;
-    GraphicsContext* m_savedContext;
-    NSMutableDictionary* m_imagesByName;
+    RetainPtr<NSMutableDictionary> m_imagesByName;
 #endif
+
+    bool m_filterBBoxMode : 1;
+    bool m_effectBBoxMode : 1;
+
+    bool m_xBBoxMode : 1;
+    bool m_yBBoxMode : 1;
 
     FloatRect m_filterRect;
     Vector<SVGFilterEffect*> m_effects;
-
-    bool m_filterBBoxMode;
-    bool m_effectBBoxMode;
 };
 
 SVGResourceFilter* getFilterById(Document*, const AtomicString&);
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 #endif // SVGResourceFilter_h

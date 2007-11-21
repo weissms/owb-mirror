@@ -25,6 +25,7 @@
 #define WTF_HashSet_h
 
 #include "HashTable.h"
+#include "Vector.h"
 
 namespace WTF {
 
@@ -57,6 +58,8 @@ namespace WTF {
         HashSet(const HashSet&);
         HashSet& operator=(const HashSet&);
         ~HashSet();
+
+        void swap(HashSet&);
 
         int size() const;
         int capacity() const;
@@ -100,22 +103,22 @@ namespace WTF {
         static const T& extract(const T& t) { return t; }
     };
 
-    template<bool canReplaceDeletedValue, typename ValueType, typename StorageTraits, typename HashFunctions>
+    template<bool canReplaceDeletedValue, typename ValueType, typename ValueTraits, typename StorageTraits, typename HashFunctions>
     struct HashSetTranslator;
 
-    template<typename ValueType, typename StorageTraits, typename HashFunctions>
-    struct HashSetTranslator<true, ValueType, StorageTraits, HashFunctions> {
+    template<typename ValueType, typename ValueTraits, typename StorageTraits, typename HashFunctions>
+    struct HashSetTranslator<true, ValueType, ValueTraits, StorageTraits, HashFunctions> {
         typedef typename StorageTraits::TraitType StorageType;
         static unsigned hash(const ValueType& key) { return HashFunctions::hash(key); }
         static bool equal(const StorageType& a, const ValueType& b) { return HashFunctions::equal(*(const ValueType*)&a, b); }
         static void translate(StorageType& location, const ValueType& key, const ValueType&, unsigned)
         {
-            *(ValueType*)&location = key;
+            Assigner<ValueTraits::needsRef, ValueType, StorageType, ValueTraits>::assign(key, location);
         }
     };
 
-    template<typename ValueType, typename StorageTraits, typename HashFunctions>
-    struct HashSetTranslator<false, ValueType, StorageTraits, HashFunctions> {
+    template<typename ValueType, typename ValueTraits, typename StorageTraits, typename HashFunctions>
+    struct HashSetTranslator<false, ValueType, ValueTraits, StorageTraits, HashFunctions> {
         typedef typename StorageTraits::TraitType StorageType;
         static unsigned hash(const ValueType& key) { return HashFunctions::hash(key); }
         static bool equal(const StorageType& a, const ValueType& b) { return HashFunctions::equal(*(const ValueType*)&a, b); }
@@ -123,7 +126,7 @@ namespace WTF {
         {
             if (location == StorageTraits::deletedValue())
                 location = StorageTraits::emptyValue();
-            *(ValueType*)&location = key;
+            Assigner<ValueTraits::needsRef, ValueType, StorageType, ValueTraits>::assign(key, location);
         }
     };
 
@@ -182,8 +185,14 @@ namespace WTF {
     inline HashSet<T, U, V>& HashSet<T, U, V>::operator=(const HashSet& other)
     {
         HashSet tmp(other);
-        m_impl.swap(tmp.m_impl); 
+        swap(tmp); 
         return *this;
+    }
+
+    template<typename T, typename U, typename V>
+    inline void HashSet<T, U, V>::swap(HashSet& other)
+    {
+        m_impl.swap(other.m_impl); 
     }
 
     template<typename T, typename U, typename V>
@@ -256,7 +265,7 @@ namespace WTF {
     pair<typename HashSet<T, U, V>::iterator, bool> HashSet<T, U, V>::add(const ValueType &value)
     {
         const bool canReplaceDeletedValue = !ValueTraits::needsDestruction || StorageTraits::needsDestruction;
-        typedef HashSetTranslator<canReplaceDeletedValue, ValueType, StorageTraits, HashFunctions> Translator;
+        typedef HashSetTranslator<canReplaceDeletedValue, ValueType, ValueTraits, StorageTraits, HashFunctions> Translator;
         return m_impl.template add<ValueType, ValueType, Translator>(value, value);
     }
 
@@ -306,7 +315,19 @@ namespace WTF {
     {
         deleteAllValues<typename HashSet<T, U, V>::ValueType>(collection.m_impl);
     }
-
+    
+    template<typename T, typename U, typename V>
+    inline void copyToVector(const HashSet<T, U, V>& collection, Vector<T>& vector)
+    {
+        typedef typename HashSet<T, U, V>::const_iterator iterator;
+        
+        vector.resize(collection.size());
+        
+        iterator it = collection.begin();
+        iterator end = collection.end();
+        for (unsigned i = 0; it != end; ++it, ++i)
+            vector[i] = *it;
+    }  
 } // namespace WTF
 
 using WTF::HashSet;

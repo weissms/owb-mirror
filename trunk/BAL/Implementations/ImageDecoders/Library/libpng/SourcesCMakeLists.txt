@@ -1,0 +1,4 @@
+SET (decoder_png_SRC
+	${decoder_png_SRC}
+	BAL/Implementations/ImageDecoders/${IMAGEDECODER_PNG}/PNGImageDecoder.cpp
+)

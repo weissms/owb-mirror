@@ -43,7 +43,7 @@ function loaded()
 function inputKeyDown(event)
 {
     if (event.keyCode == 13 && !event.altKey) {
-        if (mainWindow.isPaused() && mainWindow.currentStack) {
+        if (mainWindow.isPaused && mainWindow.currentStack) {
             history[history.length - 1] = inputElement.innerText;
             sendScript(inputElement.innerText);
             inputElement.innerText = "";
@@ -80,28 +80,32 @@ function appendMessage(exp, msg)
     row.className = "row";
     if (historyDisplay.childNodes.length % 2)
         row.className += " alt";
-    
+
     if (exp.length > 0) {
         var expression = document.createElement("div");
         expression.className = "expression";
         expression.innerText = exp;
         row.appendChild(expression);
     }
-    
+
     var result = document.createElement("div");
     result.className = "result";
     result.innerText = msg;
-    
+
     row.appendChild(result);
-    
+
     historyDisplay.appendChild(row);
     historyDisplay.scrollTop = historyDisplay.scrollHeight;
 }
 
 function sendScript(script)
 {
-    appendMessage(script, mainWindow.DebuggerDocument.evaluateScript_inCallFrame_(script, mainWindow.currentCallFrame.index));
-
+    appendMessage(script, mainWindow.DebuggerDocument.evaluateScript(script, mainWindow.currentCallFrame.index));
     if (script.indexOf("=") >= 0)
         mainWindow.currentCallFrame.loadVariables();
+}
+
+function unloading()
+{
+    mainWindow.consoleWindow = null;
 }

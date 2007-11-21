@@ -20,8 +20,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -31,6 +31,7 @@
 #include "Document.h"
 #include "HTMLNames.h"
 #include "RenderTableCell.h"
+#include "RenderView.h"
 
 namespace WebCore {
 
@@ -45,10 +46,12 @@ RenderTableRow::RenderTableRow(Node* node)
 
 void RenderTableRow::destroy()
 {
-    if (RenderTableSection* s = section())
-        s->setNeedsCellRecalc();
+    RenderTableSection* recalcSection = section();
     
     RenderContainer::destroy();
+    
+    if (recalcSection)
+        recalcSection->setNeedsCellRecalc();
 }
 
 void RenderTableRow::setStyle(RenderStyle* newStyle)
@@ -63,6 +66,10 @@ void RenderTableRow::setStyle(RenderStyle* newStyle)
 
 void RenderTableRow::addChild(RenderObject* child, RenderObject* beforeChild)
 {
+    // Make sure we don't append things after :after-generated content if we have it.
+    if (!beforeChild && isAfterContent(lastChild()))
+        beforeChild = lastChild();
+
     bool isTableRow = element() && element()->hasTagName(trTag);
     
     if (!child->isTableCell()) {
@@ -101,7 +108,9 @@ void RenderTableRow::addChild(RenderObject* child, RenderObject* beforeChild)
 
     RenderTableCell* cell = static_cast<RenderTableCell*>(child);
 
-    section()->addCell(cell, this);
+    // Generated content can result in us having a null section so make sure to null check our parent.
+    if (parent())
+        section()->addCell(cell, this);
 
     RenderContainer::addChild(cell, beforeChild);
 
@@ -112,7 +121,9 @@ void RenderTableRow::addChild(RenderObject* child, RenderObject* beforeChild)
 void RenderTableRow::layout()
 {
     ASSERT(needsLayout());
-    ASSERT(minMaxKnown());
+
+    // Table rows do not add translation.
+    view()->pushLayoutState(this, IntSize());
 
     for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
         if (child->isTableCell()) {
@@ -123,16 +134,30 @@ void RenderTableRow::layout()
             }
         }
     }
+
+    // We only ever need to repaint if our cells didn't, which menas that they didn't need
+    // layout, so we know that our bounds didn't change. This code is just making up for
+    // the fact that we did not repaint in setStyle() because we had a layout hint.
+    // We cannot call repaint() because our absoluteClippedOverflowRect() is taken from the
+    // parent table, and being mid-layout, that is invalid. Instead, we repaint our cells.
+    if (selfNeedsLayout() && checkForRepaintDuringLayout()) {
+        for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
+            if (child->isTableCell())
+                child->repaint();
+        }
+    }
+
+    view()->popLayoutState();
     setNeedsLayout(false);
 }
 
-IntRect RenderTableRow::getAbsoluteRepaintRect()
+IntRect RenderTableRow::absoluteClippedOverflowRect()
 {
     // For now, just repaint the whole table.
     // FIXME: Find a better way to do this, e.g., need to repaint all the cells that we
     // might have propagated a background color into.
     if (RenderTable* parentTable = table())
-        return parentTable->getAbsoluteRepaintRect();
+        return parentTable->absoluteClippedOverflowRect();
 
     return IntRect();
 }
@@ -147,7 +172,7 @@ bool RenderTableRow::nodeAtPoint(const HitTestRequest& request, HitTestResult& r
         // at the moment (a demoted inline <form> for example). If we ever implement a
         // table-specific hit-test method (which we should do for performance reasons anyway),
         // then we can remove this check.
-        if (!child->layer() && !child->isInlineFlow() && child->nodeAtPoint(request, result, x, y, tx, ty, action)) {
+        if (!child->hasLayer() && !child->isInlineFlow() && child->nodeAtPoint(request, result, x, y, tx, ty, action)) {
             updateHitTestResult(result, IntPoint(x - tx, y - ty));
             return true;
         }
@@ -169,7 +194,7 @@ void RenderTableRow::paint(PaintInfo& paintInfo, int tx, int ty)
                 RenderTableCell* cell = static_cast<RenderTableCell*>(child);
                 cell->paintBackgroundsBehindCell(paintInfo, tx, ty, this);
             }
-            if (!child->layer())
+            if (!child->hasLayer())
                 child->paint(paintInfo, tx, ty);
         }
     }

@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef AutoTableLayout_h
@@ -37,7 +37,7 @@ public:
     AutoTableLayout(RenderTable*);
     ~AutoTableLayout();
 
-    virtual void calcMinMaxWidth(int& minWidth, int& maxWidth);
+    virtual void calcPrefWidths(int& minWidth, int& maxWidth);
     virtual void layout();
 
 protected:
@@ -62,7 +62,8 @@ protected:
             , maxWidth(0)
             , effMinWidth(0)
             , effMaxWidth(0)
-            , calcWidth(0) {}
+            , calcWidth(0)
+            , emptyCellsOnly(true) {}
         Length width;
         Length effWidth;
         int minWidth;
@@ -70,10 +71,11 @@ protected:
         int effMinWidth;
         int effMaxWidth;
         int calcWidth;
+        bool emptyCellsOnly;
     };
 
-    Vector<Layout> m_layoutStruct;
-    Vector<RenderTableCell*> m_spanCells;
+    Vector<Layout, 4> m_layoutStruct;
+    Vector<RenderTableCell*, 4> m_spanCells;
     bool m_hasPercent : 1;
     mutable bool m_percentagesDirty : 1;
     mutable bool m_effWidthDirty : 1;

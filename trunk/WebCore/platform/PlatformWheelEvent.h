@@ -42,8 +42,8 @@ typedef unsigned WPARAM;
 typedef long LPARAM;
 #endif
 
-#if PLATFORM(GDK)
-typedef union _GdkEvent GdkEvent;
+#if PLATFORM(GTK)
+typedef struct _GdkEventScroll GdkEventScroll;
 #endif
 
 #if PLATFORM(QT)
@@ -73,15 +73,19 @@ namespace WebCore {
 
         void accept() { m_isAccepted = true; }
         void ignore() { m_isAccepted = false; }
+        
+        bool isContinuous() const { return m_isContinuous; }
+        float continuousDeltaX() const { return m_continuousDeltaX; }
+        float continuousDeltaY() const { return m_continuousDeltaY; }
 
 #if PLATFORM(MAC)
         PlatformWheelEvent(NSEvent*);
 #endif
 #if PLATFORM(WIN)
-        PlatformWheelEvent(HWND, WPARAM, LPARAM);
+        PlatformWheelEvent(HWND, WPARAM, LPARAM, bool isHorizontal);
 #endif
-#if PLATFORM(GDK)
-        PlatformWheelEvent(GdkEvent*);
+#if PLATFORM(GTK)
+        PlatformWheelEvent(GdkEventScroll*);
 #endif
 #if PLATFORM(QT)
         PlatformWheelEvent(QWheelEvent*);
@@ -97,6 +101,9 @@ namespace WebCore {
         bool m_ctrlKey;
         bool m_altKey;
         bool m_metaKey;
+        bool m_isContinuous;
+        float m_continuousDeltaX;
+        float m_continuousDeltaY;
     };
 
 } // namespace WebCore

@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -57,7 +57,7 @@ public:
 
     virtual const char* renderName() const { return "RenderMenuList"; }
 
-    virtual void calcMinMaxWidth();
+    virtual void calcPrefWidths();
 
     bool popupIsVisible() const { return m_popupIsVisible; }
     void showPopup();
@@ -71,12 +71,13 @@ private:
     // PopupMenuClient methods
     virtual String itemText(unsigned listIndex) const;
     virtual bool itemIsEnabled(unsigned listIndex) const;
+    virtual Color itemBackgroundColor(unsigned listIndex) const;
     virtual RenderStyle* itemStyle(unsigned listIndex) const;
     virtual RenderStyle* clientStyle() const;
     virtual Document* clientDocument() const;
     virtual int clientPaddingLeft() const;
     virtual int clientPaddingRight() const;
-    virtual unsigned listSize() const;
+    virtual int listSize() const;
     virtual int selectedIndex() const;
     virtual bool itemIsSeparator(unsigned listIndex) const;
     virtual bool itemIsLabel(unsigned listIndex) const;
@@ -85,10 +86,12 @@ private:
     virtual bool valueShouldChangeOnHotTrack() const { return true; }
     virtual bool shouldPopOver() const { return !POPUP_MENU_PULLS_DOWN; }
     virtual void valueChanged(unsigned listIndex, bool fireOnChange = true);
+    virtual FontSelector* fontSelector() const;
 
     virtual bool hasLineIfEmpty() const { return true; }
 
     void createInnerBlock();
+    void adjustInnerStyle();
     void setText(const String&);
     void setTextFromOption(int optionIndex);
     void updateOptionsWidth();

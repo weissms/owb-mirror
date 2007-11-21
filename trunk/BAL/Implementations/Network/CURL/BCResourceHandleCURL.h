@@ -15,6 +15,7 @@
 #include "Timer.h"
 #include <Vector.h>
 #include <wtf/HashMap.h>
+#include "BIObserver.h"
 
 class KURL;
 
@@ -23,31 +24,34 @@ using WebCore::DeprecatedString;
 using WebCore::FormData;
 using WebCore::SharedBuffer;
 using WebCore::String;
+using BAL::BIObserver;
 
 namespace BC {
 
 /**
  * BAL Transfer Job Implementation, with CURL.
  */
-class BCResourceHandleCURL : public BAL::BIResourceHandle, public BCResourceHandleCommonImplementation {
+    class BCResourceHandleCURL : public BAL::BIObserver, public BAL::BIResourceHandle, public BCResourceHandleCommonImplementation {
 public:
-    BCResourceHandleCURL(const ResourceRequest&, ResourceHandleClient*, bool defersLoading, bool mightDownloadFromHandle);
+    BCResourceHandleCURL(const ResourceRequest&, ResourceHandleClient*, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle);
 
     virtual ~BCResourceHandleCURL();
 
     virtual KURL url() const { return m_request.url(); }
     virtual WebCore::String method() const { return m_request.httpMethod(); }
     virtual PassRefPtr<FormData> postData() const { return m_request.httpBody(); }
-    virtual ResourceHandleClient* client() const { return m_client; }
+    // solve ambiguities of these 3 methods to BCResourceHandleCommonImplementation
+    virtual ResourceHandleClient* client() const { return BCResourceHandleCommonImplementation::client(); }
+    virtual void setClient(ResourceHandleClient* client) { BCResourceHandleCommonImplementation::setClient(client); }
+    virtual const ResourceRequest& request() const { return BCResourceHandleCommonImplementation::request(); }
     virtual const HTTPHeaderMap& requestHeaders() const { return m_request.httpHeaderFields(); }
 
     CURL* handle() { return m_handle; }
     void setHandle( CURL* a ) { m_handle = a; }
     const char* getURL() { return m_url; }
-    void setURL(const char* url) { if (m_url) free(m_url); m_url = strdup(url); }
+    void setURL(const char* url);
     void setHeaders(struct curl_slist* headers) { m_customHeaders = headers; }
 
-    //TODO: group methods in a more coherent way
     bool loadsBlocked();
     void clearAuthentication();
     void cancel();
@@ -59,10 +63,23 @@ public:
     void  processMessage(CURLMsg* msg);
     size_t write(void* ptr, size_t size, size_t nmemb);
     size_t header(char* ptr, size_t size, size_t nmemb);
+    
+    /**
+     * Link cookie manager to an observer.
+     * @param(in) the topic to register
+     * @param(in) the cookie
+     */
+    void observe(const String&, const String&);
+    
 private:
     void  finish();
     Vector<char> runImmediately(ResourceResponse& response);
-
+    
+    /**
+     * Send the cookies we have related to the domain we're connected to
+     * Uses CURL
+     */
+    void checkAndSendCookies(KURL url = "");
 
 protected:
     CURL* m_handle;

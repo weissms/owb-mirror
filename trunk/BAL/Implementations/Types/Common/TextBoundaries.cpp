@@ -56,6 +56,8 @@ int findNextWordFromIndex(UChar const* buffer, int len, int position, bool forwa
 void findWordBoundary(UChar const* buffer, int len, int position, int* start, int* end)
 {
 	BALNotImplemented();
+    *start = position;
+    *end = position;
 	//FIXME: implementation should be easy...
 	/*
     QString str(reinterpret_cast<QChar const*>(buffer), len);

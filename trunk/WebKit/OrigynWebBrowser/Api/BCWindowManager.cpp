@@ -46,6 +46,8 @@
 #include "BINativeImage.h"
 #include "BIWindowEvent.h"
 #include "BIWindow.h"
+#include "EventHandler.h"
+#include "HitTestResult.h"
 #include "FocusController.h"
 #include "Frame.h"
 #include "FrameView.h"
@@ -55,15 +57,15 @@
 #include "Timer.h"
 #include "WindowBal.h"
 
-using namespace BAL;
 
 IMPLEMENT_GET_DELETE(BIWindowManager, BCWindowManager);
 
+using namespace BAL;
+
 namespace BAL {
-    
-BCWindowManager::BCWindowManager() : m_timer(this, &BCWindowManager::timerCallback) 
+
+BCWindowManager::BCWindowManager() : m_timer(this, &BCWindowManager::timerCallback)
 {
-    m_timer.startRepeating(0.05); // 1/20th of a second
 }
 
 BCWindowManager::~BCWindowManager()
@@ -91,7 +93,7 @@ void BCWindowManager::closeWindow(BIWindow* window)
         if (!m_windowList.isEmpty()) {
             if (m_window == window) // do not forget to reset active window
                 setActiveWindow(m_windowList.last());
-            
+
             for(int i = m_windowList.size() - 1; i >= 0; i--) {
                 // post redraw event
                 BIWindowEvent* event = createBIWindowEvent(BIWindowEvent::EXPOSE, true, IntRect(0,0,0,0), m_windowList[i]->widget());
@@ -102,7 +104,7 @@ void BCWindowManager::closeWindow(BIWindow* window)
             setActiveWindow(NULL);
     }
     if (m_windowList.isEmpty()) {
-        // the last window was closed: quit the application   
+        // the last window was closed: quit the application
         BAL::getBIEventLoop()->quit();
     }
 }
@@ -115,8 +117,63 @@ BIWindow* BCWindowManager::activeWindow()
 void BCWindowManager::setActiveWindow(BIWindow* window)
 {
     m_window = window;
-                        
 }
+
+
+void BCWindowManager::expose(BIWindow* window)
+{
+    WebCore::FrameView* view = const_cast<WebCore::FrameView*>(static_cast<const WebCore::FrameView*>(window->widget()));
+    WebCore::FrameTree* childTree = view->frame()->tree();
+    WebCore::Frame* child = 0;
+
+    redrawView(view, false);
+}
+void BCWindowManager::redrawWindow(BIWindow* window)
+{
+    WebCore::FrameView* view = const_cast<WebCore::FrameView*>(static_cast<const WebCore::FrameView*>(window->widget()));
+    if (!view->didFirstLayout()) {
+            // no first layout yet, shall we really continue ?
+            return;
+    }
+    WebCore::FrameTree* childTree = view->frame()->tree();
+    // correct event pos to match window pos
+    WebCore::Frame* child = 0;
+    // paint main frame
+    redrawView(view, true);
+}
+
+void BCWindowManager::redrawView(WebCore::FrameView* view, bool repaint)
+{
+    if (!view->frame()->renderer() || view->dirtyRect()->isEmpty())
+        return;
+
+    view->layoutIfNeededRecursive();
+    IntRect rect(*view->dirtyRect());
+
+    m_gc->setWidget(view);
+    m_gc->save();
+
+    // we have to clip to rect, because background paint may erase the graphical buffer around rect zone
+    m_gc->clip(rect);
+    getBIGraphicsDevice()->clear(*view, rect);
+    // paint the needed rect in our m_gc
+    // do not try to paint() the view instead
+    if (repaint)
+        view->frame()->paint(m_gc, rect);
+
+    // intersect with frame's viewport or else subframe may overlap its viewport
+    rect.intersect(IntRect(view->contentsX(), view->contentsY(), view->width(), view->height()));
+    getBIGraphicsDevice()->update(*view, rect);
+    m_gc->restore();
+
+    view->setDirtyRect(IntRect(0, 0, 0, 0));
+
+    WebCore::FrameTree* childTree = view->frame()->tree();
+    // correct event pos to match window pos
+    WebCore::Frame* child = 0;
+}
+
+static bool isAccepted = false;
 
 // FIXME split this code into smaller methods
 void BCWindowManager::handleEvent(BIEvent* event)
@@ -128,141 +185,106 @@ void BCWindowManager::handleEvent(BIEvent* event)
     BTScrollView *mainView = (BTScrollView*)activeWindow()->widget();
     offset = mainView->scrollOffset();
     IntRect viewPort(0, 0, mainView->visibleWidth(), mainView->visibleHeight());
-    
+
     BAL::BIWindowEvent* windowEvent = event->queryIsWindowEvent();
     // window event handling
     if (windowEvent) {
         const BTWidget* widget = windowEvent->widget();
         if (windowEvent->type() == BAL::BIWindowEvent::EXPOSE ||
            windowEvent->type() == BAL::BIWindowEvent::ACTIVE && windowEvent->gain() ) {
-
-            if (widget) {
-                IntRect rect(0, 0, widget->width(), widget->height());
-                getBIGraphicsDevice()->update(*widget, rect);
-            }
-        } else if (windowEvent->type() == BAL::BIWindowEvent::REDRAW) {
-
-            const BIWindow* window;
+            BIWindow* window;
             // find the window to repaint, from back to front (new appended windows are in front)
             for(int i = m_windowList.size() - 1; i >= 0; i--) {
                 window = m_windowList[i];
-                
-                WebCore::FrameView* view = const_cast<WebCore::FrameView*>(static_cast<const WebCore::FrameView*>(window->widget()));
-    
-                if (!view->didFirstLayout()) {
-                     // no first layout yet, shall we really continue ?
-                     return;
-                }
-                // we must find  what window has to be redraw
-                // for now, assume activeWindow() is the only one
-                    widget = window->widget();
-                    if (view->didFirstLayout() && widget && widget->isFrameView() && !widget->dirtyRect()->isEmpty()) {
-        
-                        view = const_cast<WebCore::FrameView*>(static_cast<const WebCore::FrameView*>(widget));
-        
-                        if (view->frame()->renderer()) {
-                        if (view->layoutPending())
-                            view->layout(true);
-                        // paint the needed rect in our m_gc
-                        
-                        IntRect rect(*widget->dirtyRect());
-                        getBIGraphicsDevice()->clear(*widget, rect);
-                        m_gc->setWidget(widget);
-                        view->frame()->paint(m_gc, rect);
-                        // NOTE do something to scroll view before copy !
-                        // we must clip our widget or else the update won't work
-                        rect.intersect(viewPort);
-                        getBIGraphicsDevice()->update(*widget, rect);
-                        // FIXME we shouldn't const cast here
-                        const_cast<BTWidget*>(widget)->setDirtyRect(IntRect(0, 0, 0, 0));
-                        }
-                    }
+                expose(window);
+            }
+        } else if (windowEvent->type() == BAL::BIWindowEvent::RESIZE) {
+            if (!widget)
+                widget = mainView;
+            if (widget->isFrameView()) {
+                WebCore::FrameView* view = const_cast<WebCore::FrameView*>(static_cast<const WebCore::FrameView*>(widget));
+                IntRect rect = windowEvent->getRectangle();
+                getBIGraphicsDevice()->initialize(rect.width(), rect.height(), 32);
+                view->setFrameGeometry(rect);
+                view->frame()->forceLayout();
+                view->adjustViewSize();
+            }
+
+        } else if (windowEvent->type() == BAL::BIWindowEvent::REDRAW) {
+            BIWindow* window;
+            // find the window to repaint, from back to front (new appended windows are in front)
+            for(int i = m_windowList.size() - 1; i >= 0; i--) {
+                window = m_windowList[i];
+                redrawWindow(window);
             }
         }
     // mouse event handling
     } else {
-        IntRect mouseRect;
-        // all other events (ie not windowing ones) are treated here
-        BIMouseEvent* mouseEvent = event->queryIsMouseEvent();
-        if (mouseEvent)
-            mouseRect = IntRect(mouseEvent->pos(), IntSize(1,1));
-        BIWheelEvent* wheelEvent = event->queryIsWheelEvent();
-        if (wheelEvent)
-            mouseRect = IntRect(wheelEvent->pos(), IntSize(1,1));
+        isAccepted = false;
+        shiftEventPos(event, static_cast<WebCore::FrameView*> (mainView)->frame());
+    static_cast<WebCore::FrameView*> (mainView)->frame()->handleEvent(event);
+    }
 
-        BIWindow* window = NULL; // the window that will handle the event 
-        if (mouseEvent || wheelEvent) {
-                               
-            // find active window for mouse event
-            for(int i = m_windowList.size() - 1; i >= 0; i--) {
-                window = m_windowList[i];
-                IntRect winRect(window->widget()->pos(), window->widget()->size());
-                if (mouseRect.intersects(winRect))
-                    break;    
-            }
-            
-               WebCore::FrameTree* childTree = ((WebCore::FrameView*)window->widget())->frame()->tree();
-                // correct event pos to match window pos
-               WebCore::Frame* child = 0;
-               const BTWidget* widget;
-               bool accepted = false;
-               for (child = childTree->firstChild(); child; child = child->tree()->nextSibling()) {
-                   widget = child->view();
-                   IntRect widgetRect(widget->pos() + window->widget()->pos(), widget->size());
+}
 
-                   if (mouseRect.intersects(widgetRect)) {
-                        // we found our frame
-                        if (mouseEvent) {
-                            mouseEvent->shiftPos(-widget->x() - window->widget()->x(), -widget->y() - window->widget()->y());
-                            if (mouseEvent->button() == BIMouseEvent::LeftButton &&
-                                mouseEvent->eventType() == BIMouseEvent::MouseEventPressed) {
-                                setActiveWindow(window);
-                                child->view()->frame()->page()->focusController()->setFocusedFrame(child->view()->frame());
-                            }
-                        }
-                        else if (wheelEvent) {
-                            // NOTE wheelEvent should have right pos also
-//                            wheelEvent->shiftPos(-widget->x() - window->widget()->x(), -widget->y() - window->widget()->y());
-                        }
-                        ((WebCore::FrameView*)widget)->frame()->handleEvent(event);
-                        // do not propagate this event twice
-                        accepted = true;
+void BCWindowManager::shiftEventPos(BIEvent* event, WebCore::Frame* f)
+{
+    WebCore::Frame *frame = f;
+
+    WebCore::FrameTree* childTree = frame->tree();
+
+    // correct event pos to match window pos
+    WebCore::Frame* child = 0;
+    bool isFound = false;
+    // iterate all frame child to find one matching the event
+    for (child = childTree->firstChild(); child; child = child->tree()->nextSibling()) {
+        WebCore::FrameView* view = const_cast<WebCore::FrameView*>(child->view());
+        if (view){
+            BIMouseEvent *mouseEvent = event->queryIsMouseEvent();
+            if (mouseEvent){
+                IntPoint mousePos(mouseEvent->pos());
+                if( ( view->x() <= mousePos.x() )
+                &&  ( view->y() <= mousePos.y() )
+                &&  ( view->x() + view->width() >= mousePos.x() )
+                &&  ( view->y() + view->height() >= mousePos.y() ) ){
+                    shiftEventPos( event, view->frame());
+                    if (!isAccepted){
+                        isAccepted = true;
+                        mouseEvent->shiftPos(-view->x(), -view->y());
+                        view->frame()->handleEvent(event);
+                    }
+                    else{
                         break;
-                   }
-               }
-        
-            IntRect widgetRect(window->widget()->pos(), window->widget()->size());
-            if (!accepted && mouseRect.intersects(widgetRect)) {
-                // shift event coordsw
-                int dx = window->widget()->x();
-                int dy = window->widget()->y();
-                if (mouseEvent) {
-                    mouseEvent->shiftPos(-dx, -dy);
-                    if (mouseEvent->button() == BIMouseEvent::LeftButton &&
-                        mouseEvent->eventType() == BIMouseEvent::MouseEventPressed)
-                        setActiveWindow(window);
+                    }
                 }
-                else if (wheelEvent) {
-                    // NOTE wheelEvent should have right pos also
-//                    wheelEvent->shiftPos(-dx, -dy);
-                }
-                
-                ((WebCore::FrameView*)window->widget())->frame()->handleEvent(event);
             }
-        }
-        // keyboard and wheel events handling
-        else {
-            ((WebCore::FrameView*)(activeWindow())->widget())->frame()->handleEvent(event);
+            else
+            {
+                BIWheelEvent *wheelEvent = event->queryIsWheelEvent();
+                if (wheelEvent){
+                    IntPoint mousePos(wheelEvent->pos());
+                    if( ( view->x() <= mousePos.x() )
+                    &&  ( view->y() <= mousePos.y() )
+                    &&  ( view->x() + view->width() >= mousePos.x() )
+                    &&  ( view->y() + view->height() >= mousePos.y() ) ){
+                        shiftEventPos( event, view->frame());
+                        if (!wheelEvent->isAccepted()){
+                            view->frame()->setIsActive(true);
+                            view->frame()->handleEvent(event);
+                            redrawView(view, true);
+                        }
+                        else
+                            break;
+                    }
+                }
+            }
         }
     }
-    
-}   
+}
 
 void BCWindowManager::timerCallback(WebCore::Timer<BCWindowManager>* timer)
 {
-    // post redraw event
-    BIWindowEvent* event = createBIWindowEvent(BIWindowEvent::REDRAW, true, IntRect(0,0,0,0), NULL);
-    getBIEventLoop()->PushEvent(event);
+// disabled because ScrollView::updateContents posts redraw event directly
 }
 
 }

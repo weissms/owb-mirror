@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #include "config.h"
@@ -29,13 +29,16 @@
 #include "PlatformString.h"
 #include "TextCodecLatin1.h"
 #include "TextCodecUTF16.h"
-#include "TextEncoding.h"
-#include <ctype.h>
+#include <wtf/ASCIICType.h>
 #include <wtf/Assertions.h>
 #include <wtf/HashMap.h>
 
 #if USE(ICU_UNICODE)
+#ifndef __BAL_I18N__
 #include "TextCodecICU.h"
+#else
+#include "BTTextCodec.h"
+#endif
 #endif
 #if PLATFORM(MAC)
 #include "TextCodecMac.h"
@@ -43,6 +46,8 @@
 #if PLATFORM(QT)
 #include "qt/TextCodecQt.h"
 #endif
+
+using namespace WTF;
 
 namespace WebCore {
 
@@ -65,11 +70,11 @@ struct TextEncodingNameHash {
         do {
             do
                 c1 = *s1++;
-            while (c1 && !isalnum(c1));
+            while (c1 && !isASCIIAlphanumeric(c1));
             do
                 c2 = *s2++;
-            while (c2 && !isalnum(c2));
-            if (tolower(c1) != tolower(c2))
+            while (c2 && !isASCIIAlphanumeric(c2));
+            if (toASCIILower(c1) != toASCIILower(c2))
                 return false;
         } while (c1 && c2);
         return !c1 && !c2;
@@ -91,10 +96,10 @@ struct TextEncodingNameHash {
                     h += (h << 15);
                     return h;
                 }
-            } while (!isalnum(c));
-            h += tolower(c);
-            h += (h << 10);
-            h ^= (h >> 6);
+            } while (!isASCIIAlphanumeric(c));
+            h += toASCIILower(c);
+            h += (h << 10); 
+            h ^= (h >> 6); 
         }
     }
 
@@ -111,6 +116,7 @@ typedef HashMap<const char*, TextCodecFactory> TextCodecMap;
 
 static TextEncodingNameMap* textEncodingNameMap;
 static TextCodecMap* textCodecMap;
+static bool didExtendTextCodecMaps;
 
 #if ERROR_DISABLED
 
@@ -140,7 +146,7 @@ static void addToTextEncodingNameMap(const char* alias, const char* name)
 {
     ASSERT(strlen(alias) <= maxEncodingNameLength);
     const char* atomicName = textEncodingNameMap->get(name);
-    ASSERT(alias == name || atomicName);
+    ASSERT(strcmp(alias, name) == 0 || atomicName);
     if (!atomicName)
         atomicName = name;
     checkExistingName(alias, atomicName);
@@ -154,44 +160,55 @@ static void addToTextCodecMap(const char* name, NewTextCodecFunction function, c
     textCodecMap->add(encoding.name(), TextCodecFactory(function, additionalData));
 }
 
-void buildTextEncodingNameMap()
+static void buildBaseTextCodecMaps()
 {
+    textCodecMap = new TextCodecMap;
     textEncodingNameMap = new TextEncodingNameMap;
 
-    TextCodecUTF16::registerEncodingNames(addToTextEncodingNameMap);
     TextCodecLatin1::registerEncodingNames(addToTextEncodingNameMap);
+    TextCodecLatin1::registerCodecs(addToTextCodecMap);
+
+    TextCodecUTF16::registerEncodingNames(addToTextEncodingNameMap);
+    TextCodecUTF16::registerCodecs(addToTextCodecMap);
+
 #if USE(ICU_UNICODE)
-    TextCodecICU::registerEncodingNames(addToTextEncodingNameMap);
+#ifndef __BAL_I18N__
+    TextCodecICU::registerBaseEncodingNames(addToTextEncodingNameMap);
+    TextCodecICU::registerBaseCodecs(addToTextCodecMap);
+#else
+    //BTTextCodec::registerEncodingNames(addToTextEncodingNameMap);
+    //BTTextCodec::registerCodecs(addToTextCodecMap);
 #endif
-#if USE(QT4_UNICODE)
-    TextCodecQt::registerEncodingNames(addToTextEncodingNameMap);
-#endif
-#if PLATFORM(MAC)
-    TextCodecMac::registerEncodingNames(addToTextEncodingNameMap);
 #endif
 }
 
-static void buildTextCodecMap()
+static void extendTextCodecMaps()
 {
-    textCodecMap = new TextCodecMap;
-
-    TextCodecUTF16::registerCodecs(addToTextCodecMap);
-    TextCodecLatin1::registerCodecs(addToTextCodecMap);
 #if USE(ICU_UNICODE)
-    TextCodecICU::registerCodecs(addToTextCodecMap);
+#ifndef __BAL_I18N__
+    TextCodecICU::registerExtendedEncodingNames(addToTextEncodingNameMap);
+    TextCodecICU::registerExtendedCodecs(addToTextCodecMap);
+#else
+    BTTextCodec::registerEncodingNames(addToTextEncodingNameMap);
+    BTTextCodec::registerCodecs(addToTextCodecMap);
 #endif
+#endif
+
 #if USE(QT4_UNICODE)
+    TextCodecQt::registerEncodingNames(addToTextEncodingNameMap);
     TextCodecQt::registerCodecs(addToTextCodecMap);
 #endif
+
 #if PLATFORM(MAC)
+    TextCodecMac::registerEncodingNames(addToTextEncodingNameMap);
     TextCodecMac::registerCodecs(addToTextCodecMap);
 #endif
+
 }
 
 std::auto_ptr<TextCodec> newTextCodec(const TextEncoding& encoding)
 {
-    if (!textCodecMap)
-        buildTextCodecMap();
+    ASSERT(textCodecMap);
     TextCodecFactory factory = textCodecMap->get(encoding.name());
     ASSERT(factory.function);
     return factory.function(encoding, factory.additionalData);
@@ -199,10 +216,16 @@ std::auto_ptr<TextCodec> newTextCodec(const TextEncoding& encoding)
 
 const char* atomicCanonicalTextEncodingName(const char* name)
 {
-    if (!name)
+    if (!name || !name[0])
         return 0;
     if (!textEncodingNameMap)
-        buildTextEncodingNameMap();
+        buildBaseTextCodecMaps();
+    if (const char* atomicName = textEncodingNameMap->get(name))
+        return atomicName;
+    if (didExtendTextCodecMaps)
+        return 0;
+    extendTextCodecMaps();
+    didExtendTextCodecMaps = true;
     return textEncodingNameMap->get(name);
 }
 
@@ -212,7 +235,7 @@ const char* atomicCanonicalTextEncodingName(const UChar* characters, size_t leng
     size_t j = 0;
     for (size_t i = 0; i < length; ++i) {
         UChar c = characters[i];
-        if (isalnum(c)) {
+        if (isASCIIAlphanumeric(c)) {
             if (j == maxEncodingNameLength)
                 return 0;
             buffer[j++] = c;
@@ -220,6 +243,11 @@ const char* atomicCanonicalTextEncodingName(const UChar* characters, size_t leng
     }
     buffer[j] = 0;
     return atomicCanonicalTextEncodingName(buffer);
+}
+
+bool noExtendedTextEncodingNameUsed()
+{
+    return !didExtendTextCodecMaps;
 }
 
 } // namespace WebCore

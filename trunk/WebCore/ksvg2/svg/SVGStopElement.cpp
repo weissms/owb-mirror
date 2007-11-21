@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGStopElement.h"
 
 #include "Document.h"
@@ -33,7 +33,7 @@ namespace WebCore {
 
 SVGStopElement::SVGStopElement(const QualifiedName& tagName, Document* doc)
     : SVGStyledElement(tagName, doc)
-    , m_offset(0.0)
+    , m_offset(0.0f)
 {
 }
 
@@ -41,16 +41,16 @@ SVGStopElement::~SVGStopElement()
 {
 }
 
-ANIMATED_PROPERTY_DEFINITIONS(SVGStopElement, double, Number, number, Offset, offset, SVGNames::offsetAttr.localName(), m_offset)
+ANIMATED_PROPERTY_DEFINITIONS(SVGStopElement, float, Number, number, Offset, offset, SVGNames::offsetAttr.localName(), m_offset)
 
 void SVGStopElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const String& value = attr->value();
     if (attr->name() == SVGNames::offsetAttr) {
+        const String& value = attr->value();
         if (value.endsWith("%"))
-            setOffsetBaseValue(value.left(value.length() - 1).toDouble() / 100.);
+            setOffsetBaseValue(value.left(value.length() - 1).toFloat() / 100.0f);
         else
-            setOffsetBaseValue(value.toDouble());
+            setOffsetBaseValue(value.toFloat());
     } else
         SVGStyledElement::parseMappedAttribute(attr);
 }
@@ -62,7 +62,7 @@ RenderObject* SVGStopElement::createRenderer(RenderArena* arena, RenderStyle* st
 
 void SVGStopElement::notifyAttributeChange() const
 {
-    if (!attached() || ownerDocument()->parsing())
+    if (!attached() || document()->parsing())
         return;
 
     const_cast<SVGStopElement*>(this)->recalcStyle(Force);
@@ -71,6 +71,6 @@ void SVGStopElement::notifyAttributeChange() const
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

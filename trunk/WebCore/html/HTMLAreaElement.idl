@@ -14,21 +14,21 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module html {
 
-    interface [LegacyParent=KJS::JSHTMLElement, GenerateConstructor] HTMLAreaElement : HTMLElement {
-        attribute DOMString accessKey;
-        attribute DOMString alt;
-        attribute DOMString coords;
-        attribute DOMString href;
+    interface [GenerateConstructor] HTMLAreaElement : HTMLElement {
+        attribute [ConvertNullToNullString] DOMString accessKey;
+        attribute [ConvertNullToNullString] DOMString alt;
+        attribute [ConvertNullToNullString] DOMString coords;
+        attribute [ConvertNullToNullString] DOMString href;
         attribute boolean noHref;
-        attribute DOMString shape;
+        attribute [ConvertNullToNullString] DOMString shape;
         attribute long tabIndex;
-        attribute DOMString target;
+        attribute [ConvertNullToNullString] DOMString target;
 
         // IE Extensions
         readonly attribute DOMString hash;

@@ -32,6 +32,7 @@
 #include "AffineTransform.h"
 #include "KURL.h"
 #include "Path.h"
+#include <CoreGraphics/CGPDFContext.h>
 #include <wtf/MathExtras.h>
 
 #include <GraphicsContextPlatformPrivate.h> // FIXME: Temporary.
@@ -167,12 +168,12 @@ void GraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
     if (((int)width) % 2) {
         if (isVerticalLine) {
             // We're a vertical line.  Adjust our x.
-            p1.move(0.5, 0);
-            p2.move(0.5, 0);
+            p1.move(0.5f, 0.0f);
+            p2.move(0.5f, 0.0f);
         } else {
             // We're a horizontal line. Adjust our y.
-            p1.move(0, 0.5);
-            p2.move(0, 0.5);
+            p1.move(0.0f, 0.5f);
+            p2.move(0.0f, 0.5f);
         }
     }
     
@@ -214,10 +215,10 @@ void GraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
         int coverage = distance - remainder;
         int numSegments = coverage / patWidth;
 
-        float patternOffset = 0;
+        float patternOffset = 0.0f;
         // Special case 1px dotted borders for speed.
         if (patWidth == 1)
-            patternOffset = 1.0;
+            patternOffset = 1.0f;
         else {
             bool evenNumberOfSegments = numSegments % 2 == 0;
             if (remainder)
@@ -261,7 +262,7 @@ void GraphicsContext::drawEllipse(const IntRect& rect)
     CGContextRef context = platformContext();
     CGContextBeginPath(context);
     float r = (float)rect.width() / 2;
-    CGContextAddArc(context, rect.x() + r, rect.y() + r, r, 0, 2*M_PI, true);
+    CGContextAddArc(context, rect.x() + r, rect.y() + r, r, 0.0f, 2.0f * piFloat, 0);
     CGContextClosePath(context);
 
     if (fillColor().alpha()) {
@@ -299,8 +300,8 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
     float vRadius = h / 2;
     float fa = startAngle;
     float falen =  fa + angleSpan;
-    float start = -fa * M_PI/180;
-    float end = -falen * M_PI/180;
+    float start = -fa * piFloat / 180.0f;
+    float end = -falen * piFloat / 180.0f;
     CGContextAddArc(context, x + hRadius, (y + vRadius) * reverseScaleFactor, hRadius, start, end, true);
 
     if (w != h)
@@ -329,18 +330,18 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
         // will be 50 pixels.
         int distance;
         if (hRadius == vRadius)
-            distance = (int)(M_PI * hRadius) / 2;
+            distance = static_cast<int>((piFloat * hRadius) / 2.0f);
         else // We are elliptical and will have to estimate the distance
-            distance = (int)(M_PI * sqrt((hRadius * hRadius + vRadius * vRadius) / 2)) / 2;
+            distance = static_cast<int>((piFloat * sqrtf((hRadius * hRadius + vRadius * vRadius) / 2.0f)) / 2.0f);
         
         int remainder = distance % patWidth;
         int coverage = distance - remainder;
         int numSegments = coverage / patWidth;
 
-        float patternOffset = 0;
+        float patternOffset = 0.0f;
         // Special case 1px dotted borders for speed.
         if (patWidth == 1)
-            patternOffset = 1.0;
+            patternOffset = 1.0f;
         else {
             bool evenNumberOfSegments = numSegments % 2 == 0;
             if (remainder)
@@ -348,12 +349,12 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
             if (evenNumberOfSegments) {
                 if (remainder) {
                     patternOffset += patWidth - remainder;
-                    patternOffset += remainder / 2;
+                    patternOffset += remainder / 2.0f;
                 } else
-                    patternOffset = patWidth / 2;
+                    patternOffset = patWidth / 2.0f;
             } else {
                 if (remainder)
-                    patternOffset = (patWidth - remainder) / 2;
+                    patternOffset = (patWidth - remainder) / 2.0f;
             }
         }
     
@@ -369,7 +370,7 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
 
 void GraphicsContext::drawConvexPolygon(size_t npoints, const FloatPoint* points, bool shouldAntialias)
 {
-    if (paintingDisabled())
+    if (paintingDisabled() || !fillColor().alpha() && (strokeThickness() <= 0 || strokeStyle() == NoStroke))
         return;
 
     if (npoints <= 1)
@@ -387,10 +388,12 @@ void GraphicsContext::drawConvexPolygon(size_t npoints, const FloatPoint* points
         CGContextAddLineToPoint(context, points[i].x(), points[i].y());
     CGContextClosePath(context);
 
-    if (fillColor().alpha())
-        CGContextEOFillPath(context);
-
-    if (strokeStyle() != NoStroke)
+    if (fillColor().alpha()) {
+        if (strokeStyle() != NoStroke)
+            CGContextDrawPath(context, kCGPathEOFillStroke);
+        else
+            CGContextEOFillPath(context);
+    } else
         CGContextStrokePath(context);
 
     CGContextRestoreGState(context);
@@ -436,37 +439,9 @@ void GraphicsContext::fillRoundedRect(const IntRect& rect, const IntSize& topLef
     if (oldFillColor != color)
         setCGFillColor(context, color);
 
-    // Add the four ellipses to the path.  Technically this really isn't good enough, since we could end up
-    // not clipping the other 3/4 of the ellipse we don't care about.  We're relying on the fact that for
-    // normal use cases these ellipses won't overlap one another (or when they do the curvature of one will
-    // be subsumed by the other).
-    CGContextAddEllipseInRect(context, CGRectMake(rect.x(), rect.y(), topLeft.width() * 2, topLeft.height() * 2));
-    CGContextAddEllipseInRect(context, CGRectMake(rect.right() - topRight.width() * 2, rect.y(),
-                                                  topRight.width() * 2, topRight.height() * 2));
-    CGContextAddEllipseInRect(context, CGRectMake(rect.x(), rect.bottom() - bottomLeft.height() * 2,
-                                                  bottomLeft.width() * 2, bottomLeft.height() * 2));
-    CGContextAddEllipseInRect(context, CGRectMake(rect.right() - bottomRight.width() * 2,
-                                                  rect.bottom() - bottomRight.height() * 2,
-                                                  bottomRight.width() * 2, bottomRight.height() * 2));
-    
-    // Now add five rects (one for each edge rect in between the rounded corners and one for the interior).
-    CGContextAddRect(context, CGRectMake(rect.x() + topLeft.width(), rect.y(),
-                                         rect.width() - topLeft.width() - topRight.width(),
-                                         max(topLeft.height(), topRight.height())));
-    CGContextAddRect(context, CGRectMake(rect.x() + bottomLeft.width(), 
-                                         rect.bottom() - max(bottomLeft.height(), bottomRight.height()),
-                                         rect.width() - bottomLeft.width() - bottomRight.width(),
-                                         max(bottomLeft.height(), bottomRight.height())));
-    CGContextAddRect(context, CGRectMake(rect.x(), rect.y() + topLeft.height(),
-                                         max(topLeft.width(), bottomLeft.width()), rect.height() - topLeft.height() - bottomLeft.height()));
-    CGContextAddRect(context, CGRectMake(rect.right() - max(topRight.width(), bottomRight.width()),
-                                         rect.y() + topRight.height(),
-                                         max(topRight.width(), bottomRight.width()), rect.height() - topRight.height() - bottomRight.height()));
-    CGContextAddRect(context, CGRectMake(rect.x() + max(topLeft.width(), bottomLeft.width()),
-                                         rect.y() + max(topLeft.height(), topRight.height()),
-                                         rect.width() - max(topLeft.width(), bottomLeft.width()) - max(topRight.width(), bottomRight.width()),
-                                         rect.height() - max(topLeft.height(), topRight.height()) - max(bottomLeft.height(), bottomRight.height())));
+    addPath(Path::createRoundedRectangle(rect, topLeft, topRight, bottomLeft, bottomRight));
     CGContextFillPath(context);
+
     if (oldFillColor != color)
         setCGFillColor(context, oldFillColor);
 }
@@ -500,59 +475,6 @@ void GraphicsContext::clipOutEllipseInRect(const IntRect& rect)
     CGContextAddRect(platformContext(), CGContextGetClipBoundingBox(platformContext()));
     CGContextAddEllipseInRect(platformContext(), rect);
     CGContextEOClip(platformContext());
-}
-
-void GraphicsContext::addRoundedRectClip(const IntRect& rect, const IntSize& topLeft, const IntSize& topRight,
-    const IntSize& bottomLeft, const IntSize& bottomRight)
-{
-    if (paintingDisabled())
-        return;
-
-    // Need sufficient width and height to contain these curves.  Sanity check our
-    // corner radii and our width/height values to make sure the curves can all fit.
-    if (static_cast<unsigned>(rect.width()) < static_cast<unsigned>(topLeft.width()) + static_cast<unsigned>(topRight.width()) ||
-        static_cast<unsigned>(rect.width()) < static_cast<unsigned>(bottomLeft.width()) + static_cast<unsigned>(bottomRight.width()) ||
-        static_cast<unsigned>(rect.height()) < static_cast<unsigned>(topLeft.height()) + static_cast<unsigned>(bottomLeft.height()) ||
-        static_cast<unsigned>(rect.height()) < static_cast<unsigned>(topRight.height()) + static_cast<unsigned>(bottomRight.height()))
-        return;
- 
-    // Clip to our rect.
-    clip(rect);
-
-    // OK, the curves can fit.
-    CGContextRef context = platformContext();
-    
-    // Add the four ellipses to the path.  Technically this really isn't good enough, since we could end up
-    // not clipping the other 3/4 of the ellipse we don't care about.  We're relying on the fact that for
-    // normal use cases these ellipses won't overlap one another (or when they do the curvature of one will
-    // be subsumed by the other).
-    CGContextAddEllipseInRect(context, CGRectMake(rect.x(), rect.y(), topLeft.width() * 2, topLeft.height() * 2));
-    CGContextAddEllipseInRect(context, CGRectMake(rect.right() - topRight.width() * 2, rect.y(),
-                                                  topRight.width() * 2, topRight.height() * 2));
-    CGContextAddEllipseInRect(context, CGRectMake(rect.x(), rect.bottom() - bottomLeft.height() * 2,
-                                                  bottomLeft.width() * 2, bottomLeft.height() * 2));
-    CGContextAddEllipseInRect(context, CGRectMake(rect.right() - bottomRight.width() * 2,
-                                                  rect.bottom() - bottomRight.height() * 2,
-                                                  bottomRight.width() * 2, bottomRight.height() * 2));
-    
-    // Now add five rects (one for each edge rect in between the rounded corners and one for the interior).
-    CGContextAddRect(context, CGRectMake(rect.x() + topLeft.width(), rect.y(),
-                                         rect.width() - topLeft.width() - topRight.width(),
-                                         max(topLeft.height(), topRight.height())));
-    CGContextAddRect(context, CGRectMake(rect.x() + bottomLeft.width(), 
-                                         rect.bottom() - max(bottomLeft.height(), bottomRight.height()),
-                                         rect.width() - bottomLeft.width() - bottomRight.width(),
-                                         max(bottomLeft.height(), bottomRight.height())));
-    CGContextAddRect(context, CGRectMake(rect.x(), rect.y() + topLeft.height(),
-                                         max(topLeft.width(), bottomLeft.width()), rect.height() - topLeft.height() - bottomLeft.height()));
-    CGContextAddRect(context, CGRectMake(rect.right() - max(topRight.width(), bottomRight.width()),
-                                         rect.y() + topRight.height(),
-                                         max(topRight.width(), bottomRight.width()), rect.height() - topRight.height() - bottomRight.height()));
-    CGContextAddRect(context, CGRectMake(rect.x() + max(topLeft.width(), bottomLeft.width()),
-                                         rect.y() + max(topLeft.height(), topRight.height()),
-                                         rect.width() - max(topLeft.width(), bottomLeft.width()) - max(topRight.width(), bottomRight.width()),
-                                         rect.height() - max(topLeft.height(), topRight.height()) - max(bottomLeft.height(), bottomRight.height())));
-    CGContextClip(context);
 }
 
 void GraphicsContext::addInnerRoundedRectClip(const IntRect& rect, int thickness)
@@ -705,6 +627,17 @@ void GraphicsContext::clip(const Path& path)
     m_data->clip(path);
 }
 
+void GraphicsContext::clipOut(const Path& path)
+{
+    if (paintingDisabled())
+        return;
+        
+    CGContextBeginPath(platformContext());
+    CGContextAddRect(platformContext(), CGContextGetClipBoundingBox(platformContext()));
+    CGContextAddPath(platformContext(), path.platformPath());
+    CGContextEOClip(platformContext());
+}
+
 void GraphicsContext::scale(const FloatSize& size)
 {
     if (paintingDisabled())
@@ -744,6 +677,9 @@ FloatRect GraphicsContext::roundToDevicePixels(const FloatRect& rect)
     // rotating image like the hands of the world clock widget. We just need the scale, so 
     // we get the affine transform matrix and extract the scale.
     CGAffineTransform deviceMatrix = CGContextGetUserSpaceToDeviceSpaceTransform(platformContext());
+    if (CGAffineTransformIsIdentity(deviceMatrix))
+        return rect;
+
     float deviceScaleX = sqrtf(deviceMatrix.a * deviceMatrix.a + deviceMatrix.b * deviceMatrix.b);
     float deviceScaleY = sqrtf(deviceMatrix.c * deviceMatrix.c + deviceMatrix.d * deviceMatrix.d);
 
@@ -771,46 +707,41 @@ void GraphicsContext::drawLineForText(const IntPoint& point, int width, bool pri
 {
     if (paintingDisabled())
         return;
-    
-    // Note: This function assumes that point.x and point.y are integers (and that's currently always the case).
+
+    if (width <= 0)
+        return;
+
+    CGContextSaveGState(platformContext());
+
     float x = point.x();
     float y = point.y();
+    float lineLength = width;
 
-    float thickness = strokeThickness();
-    if (printing) {
-        // When printing, use a minimum thickness of 0.5 in user space.
-        // See bugzilla bug 4255 for details of why 0.5 is the right minimum thickness to use while printing.
-        if (thickness < 0.5)
-            thickness = 0.5;
+    // Use a minimum thickness of 0.5 in user space.
+    // See http://bugs.webkit.org/show_bug.cgi?id=4255 for details of why 0.5 is the right minimum thickness to use.
+    float thickness = max(strokeThickness(), 0.5f);
 
-        // When printing, use antialiasing instead of putting things on integral pixel boundaries.
-    } else {
+    if (!printing) {
         // On screen, use a minimum thickness of 1.0 in user space (later rounded to an integral number in device space).
-        if (thickness < 1)
-            thickness = 1;
+        float adjustedThickness = max(thickness, 1.0f);
 
-        // On screen, round all parameters to integer boundaries in device space.
-        CGRect lineRect = roundToDevicePixels(FloatRect(x, y, width, thickness));
-        x = lineRect.origin.x;
-        y = lineRect.origin.y;
-        width = (int)(lineRect.size.width);
-        thickness = lineRect.size.height;
+        // FIXME: This should be done a better way.
+        // We try to round all parameters to integer boundaries in device space. If rounding pixels in device space
+        // makes our thickness more than double, then there must be a shrinking-scale factor and rounding to pixels
+        // in device space will make the underlines too thick.
+        CGRect lineRect = roundToDevicePixels(FloatRect(x, y, lineLength, adjustedThickness));
+        if (lineRect.size.height < thickness * 2.0) {
+            x = lineRect.origin.x;
+            y = lineRect.origin.y;
+            lineLength = lineRect.size.width;
+            thickness = lineRect.size.height;
+            CGContextSetShouldAntialias(platformContext(), false);
+        }
     }
-
-    // FIXME: How about using a rectangle fill instead of drawing a line?
-    CGContextSaveGState(platformContext());
     
-    CGContextSetLineWidth(platformContext(), thickness);
-    CGContextSetShouldAntialias(platformContext(), printing);
-
-    float halfThickness = thickness / 2;
-
-    CGPoint linePoints[2];
-    linePoints[0].x = x + halfThickness;
-    linePoints[0].y = y + halfThickness;
-    linePoints[1].x = x + width - halfThickness;
-    linePoints[1].y = y + halfThickness;
-    CGContextStrokeLineSegments(platformContext(), linePoints, 2);
+    if (fillColor() != strokeColor())
+        setCGFillColor(platformContext(), strokeColor());
+    CGContextFillRect(platformContext(), CGRectMake(x, y, lineLength, thickness));
 
     CGContextRestoreGState(platformContext());
 }
@@ -836,6 +767,22 @@ void GraphicsContext::setURLForRect(const KURL& link, const IntRect& destRect)
 
         CFRelease(urlRef);
     }
+}
+
+void GraphicsContext::setUseLowQualityImageInterpolation(bool lowQualityMode)
+{
+    if (paintingDisabled())
+        return;
+        
+    CGContextSetInterpolationQuality(platformContext(), lowQualityMode ? kCGInterpolationNone : kCGInterpolationDefault);
+}
+
+bool GraphicsContext::useLowQualityImageInterpolation() const
+{
+    if (paintingDisabled())
+        return false;
+    
+    return CGContextGetInterpolationQuality(platformContext());
 }
 
 void GraphicsContext::setPlatformTextDrawingMode(int mode)

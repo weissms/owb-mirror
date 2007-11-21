@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,17 +16,17 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGMarkerElement.h"
 
 #include "PlatformString.h"
-#include "RenderSVGContainer.h"
+#include "RenderSVGViewportContainer.h"
 #include "SVGAngle.h"
 #include "SVGFitToViewBox.h"
 #include "SVGLength.h"
@@ -47,8 +47,11 @@ SVGMarkerElement::SVGMarkerElement(const QualifiedName& tagName, Document* doc)
     , m_markerHeight(this, LengthModeHeight) 
     , m_markerUnits(SVG_MARKERUNITS_STROKEWIDTH)
     , m_orientType(0)
-    , m_orientAngle(new SVGAngle(this))
+    , m_orientAngle(new SVGAngle())
 {
+    // Spec: If the attribute is not specified, the effect is as if a value of "3" were specified.
+    setMarkerWidthBaseValue(SVGLength(this, LengthModeWidth, "3"));
+    setMarkerHeightBaseValue(SVGLength(this, LengthModeHeight, "3"));
 }
 
 SVGMarkerElement::~SVGMarkerElement()
@@ -65,24 +68,23 @@ ANIMATED_PROPERTY_DEFINITIONS(SVGMarkerElement, SVGAngle*, Angle, angle, OrientA
 
 void SVGMarkerElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const AtomicString& value = attr->value();
     if (attr->name() == SVGNames::markerUnitsAttr) {
-        if (value == "userSpaceOnUse")
+        if (attr->value() == "userSpaceOnUse")
             setMarkerUnitsBaseValue(SVG_MARKERUNITS_USERSPACEONUSE);
     } else if (attr->name() == SVGNames::refXAttr)
-        setRefXBaseValue(SVGLength(this, LengthModeWidth, value));
+        setRefXBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::refYAttr)
-        setRefYBaseValue(SVGLength(this, LengthModeHeight, value));
+        setRefYBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
     else if (attr->name() == SVGNames::markerWidthAttr)
-        setMarkerWidthBaseValue(SVGLength(this, LengthModeWidth, value));
+        setMarkerWidthBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::markerHeightAttr)
-        setMarkerHeightBaseValue(SVGLength(this, LengthModeHeight, value));
+        setMarkerHeightBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
     else if (attr->name() == SVGNames::orientAttr) {
-        if (value == "auto")
+        if (attr->value() == "auto")
             setOrientToAuto();
         else {
-            SVGAngle* angle = new SVGAngle(0);
-            angle->setValueAsString(value);
+            SVGAngle* angle = new SVGAngle();
+            angle->setValueAsString(attr->value());
             setOrientToAngle(angle);
         }
     } else {
@@ -113,7 +115,7 @@ SVGResource* SVGMarkerElement::canvasResource()
     if (!m_marker)
         m_marker = new SVGResourceMarker();
 
-    m_marker->setMarker(static_cast<RenderSVGContainer*>(renderer()));
+    m_marker->setMarker(static_cast<RenderSVGViewportContainer*>(renderer()));
 
     // Spec: If the attribute is not specified, the effect is as if a
     // value of "0" were specified.
@@ -133,27 +135,21 @@ SVGResource* SVGMarkerElement::canvasResource()
 
 RenderObject* SVGMarkerElement::createRenderer(RenderArena* arena, RenderStyle* style)
 {
-    RenderSVGContainer* markerContainer = new (arena) RenderSVGContainer(this);
-    markerContainer->setViewBox(viewBox());
-    markerContainer->setAlign(KCAlign(preserveAspectRatio()->align() - 1));
-    markerContainer->setSlice(preserveAspectRatio()->meetOrSlice() == SVGPreserveAspectRatio::SVG_MEETORSLICE_SLICE);
+    RenderSVGViewportContainer* markerContainer = new (arena) RenderSVGViewportContainer(this);
     markerContainer->setDrawsContents(false); // Marker contents will be explicitly drawn.
     return markerContainer;
 }
 
 void SVGMarkerElement::notifyAttributeChange() const
 {
-    if (!m_marker || !attached() || ownerDocument()->parsing())
+    if (!m_marker || !attached() || document()->parsing())
         return;
 
-    RenderSVGContainer* markerContainer = static_cast<RenderSVGContainer*>(renderer());
+    RenderSVGViewportContainer* markerContainer = static_cast<RenderSVGViewportContainer*>(renderer());
 
     // NOTE: This is a typical case, where proper "attributeChanged" usage would reduce the number of updates needed.
-    if (markerContainer) {
-        markerContainer->setViewBox(viewBox());
-        markerContainer->setAlign(KCAlign(preserveAspectRatio()->align() - 1));
-        markerContainer->setSlice(preserveAspectRatio()->meetOrSlice() == SVGPreserveAspectRatio::SVG_MEETORSLICE_SLICE);
-    }
+    if (markerContainer)
+        markerContainer->setNeedsLayout(true);
 
     m_marker->invalidate();
     m_marker->repaintClients();
@@ -161,6 +157,6 @@ void SVGMarkerElement::notifyAttributeChange() const
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

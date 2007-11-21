@@ -29,6 +29,9 @@
 #ifndef DocumentLoader_h
 #define DocumentLoader_h
 
+#ifdef OWB_ICON_SUPPORT
+#include "IconDatabase.h"
+#endif //OWB_ICON_SUPPORT
 #include "NavigationAction.h"
 #include "Shared.h"
 #include "PlatformString.h"
@@ -42,12 +45,12 @@
 
 namespace WebCore {
 
+    class CachedPage;
     class Frame;
     class FrameLoader;
     class HistoryItem;
     class KURL;
     class MainResourceLoader;
-    class PageCache;
     class ResourceLoader;
     class SharedBuffer;
     class SubstituteData;
@@ -61,6 +64,8 @@ namespace WebCore {
         virtual ~DocumentLoader();
 
         void setFrame(Frame*);
+        Frame* frame() const { return m_frame; }
+
         virtual void attachToFrame();
         virtual void detachFromFrame();
 
@@ -126,18 +131,23 @@ namespace WebCore {
         String title() const;
         KURL urlForHistory() const;
         
-        void loadFromPageCache(PassRefPtr<PageCache>);
-        void setLoadingFromPageCache(bool);
-        bool isLoadingFromPageCache() const;
+        void loadFromCachedPage(PassRefPtr<CachedPage>);
+        void setLoadingFromCachedPage(bool);
+        bool isLoadingFromCachedPage() const;
         
         void setDefersLoading(bool);
 
         bool startLoadingMainResource(unsigned long identifier);
         void cancelMainResourceLoad(const ResourceError&);
-
+        
+#ifdef OWB_ICON_SUPPORT
+        void iconLoadDecisionAvailable();
+#endif //OWB_ICON_SUPPORT
+        
         bool isLoadingMainResource() const;
         bool isLoadingSubresources() const;
         bool isLoadingPlugIns() const;
+        bool isLoadingMultipartContent() const;
 
         void stopLoadingPlugIns();
         void stopLoadingSubresources();
@@ -146,6 +156,12 @@ namespace WebCore {
         void removeSubresourceLoader(ResourceLoader*);
         void addPlugInStreamLoader(ResourceLoader*);
         void removePlugInStreamLoader(ResourceLoader*);
+
+        void subresourceLoaderFinishedLoadingOnePart(ResourceLoader*);
+        
+        bool deferMainResourceDataLoad() const { return m_deferMainResourceDataLoad; }
+    protected:
+        bool m_deferMainResourceDataLoad;
 
     private:
         void setupForReplace();
@@ -159,6 +175,7 @@ namespace WebCore {
 
         RefPtr<MainResourceLoader> m_mainResourceLoader;
         ResourceLoaderSet m_subresourceLoaders;
+        ResourceLoaderSet m_multipartSubresourceLoaders;
         ResourceLoaderSet m_plugInStreamLoaders;
 
         RefPtr<SharedBuffer> m_mainResourceData;
@@ -192,7 +209,7 @@ namespace WebCore {
         bool m_gotFirstByte;
         bool m_primaryLoadComplete;
         bool m_isClientRedirect;
-        bool m_loadingFromPageCache;
+        bool m_loadingFromCachedPage;
 
         String m_pageTitle;
 

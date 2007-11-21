@@ -53,6 +53,30 @@ void setSharedTimerFiredFunction(void (*f)()) {
     if( sharedTimerFiredFunction == NULL )
     {
       sharedTimerFiredFunction = f;
+        if (SDL_InitSubSystem(SDL_INIT_TIMER) < 0) {
+            DBGML(MODULE_EVENTS, LEVEL_CRITICAL, "Unable to init SDL: %s\n", SDL_GetError());
+            exit(1);
+        }
+    }
+}
+
+
+static unsigned int m_count = 0;
+/**
+ * We absolutely need to protect these 2 functions in a critical section.
+ * Signals/timers will increment count, event loop will decrement it: 2 concurrent accesses.
+ * Increment is usually done in 3 machine instructions, so there's room for a concurrent access.
+ * See ticket #123. Maybe we should put timers in a separate thread to be able to use mutexes.
+ */
+void incrementTimerCount()
+{
+    m_count++;
+}
+void fireTimerIfNeeded()
+{
+    if (m_count>0) {
+            m_count--;
+            sharedTimerFiredFunction();
     }
 }
 
@@ -60,12 +84,7 @@ Uint32 sdlTimeoutCallback(Uint32 interval, void *param) {
     if( sharedTimerFiredFunction ) {
         // the main thread must call sharedTimerFiredFunction
         // not the sdl thread for timers
-        SDL_Event userEvent;
-        userEvent.type = SDL_USEREVENT;
-        userEvent.user.code = 1;
-        int error = SDL_PushEvent(&userEvent);
-        if (error == -1) // the queue is full
-            setSharedTimerFireTime(0);
+        incrementTimerCount();
     }
     // 0 cancels the repetition of the callback
     return 0;
@@ -90,14 +109,13 @@ void setSharedTimerFireTime(double fireTime) {
     timerId = SDL_AddTimer(intervalInMS, sdlTimeoutCallback, 0);
     // Do not put method call in assert ! Because it won't work in release
     assert(timerId);
-//    logm(MODULE_TYPES, make_message("set a timer at %f, interval %f (in ms:%d), id 0x%x", fireTime, interval, intervalInMS, timerId));
 }
 
 void stopSharedTimer() {
     if (timerId) {
         //ASSERT(SDL_RemoveTimer(timerId)); // XXX FIXME SRO fails everytime !
         if (!SDL_RemoveTimer(timerId))
-            ;//logm(MODULE_TYPES, SDL_GetError()); // FIXME error is empty
+            ;
         timerId = 0;
     }
 }

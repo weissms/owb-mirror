@@ -46,4 +46,4 @@ export MODULE_NETWORK=LEVEL_INFO
 export MODULE_TYPES=LEVEL_INFO
 export MODULE_WIDGETS=LEVEL_INFO
 
-to enable "not implemented" traces, use NOT_IMPLEMENT=1 ./owb
+to enable "not implemented" traces, use NOT_IMPLEMENTED=1 ./owb

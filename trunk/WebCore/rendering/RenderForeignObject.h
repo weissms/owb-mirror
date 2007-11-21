@@ -15,14 +15,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #ifndef RenderForeignObject_h
 #define RenderForeignObject_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "AffineTransform.h"
 #include "RenderSVGBlock.h"
@@ -39,12 +39,8 @@ public:
 
     virtual void paint(PaintInfo&, int parentX, int parentY);
 
-#ifdef __OWB__
-    virtual BAL::BTAffineTransform localTransform() const { return m_transform; }
-    virtual void setLocalTransform(const BAL::BTAffineTransform& transform) { m_transform = transform; }
-#else
-    virtual AffineTransform localTransform() const { return m_transform; }
-    virtual void setLocalTransform(const AffineTransform& transform) { m_transform = transform; }
+    virtual AffineTransform localTransform() const { return m_localTransform; }
+    virtual bool calculateLocalTransform();
 
     virtual void computeAbsoluteRepaintRect(IntRect&, bool fixed);
     virtual bool requiresLayer();
@@ -53,18 +49,13 @@ public:
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
 
  private:
-#ifdef __OWB__
-    BAL::BTAffineTransform translationForAttributes();
-    BAL::BTAffineTransform m_transform;
-#else
     AffineTransform translationForAttributes();
 
-    AffineTransform m_transform;
-#endif
+    AffineTransform m_localTransform;
     IntRect m_absoluteBounds;
 };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // RenderForeignObject_h

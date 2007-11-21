@@ -28,10 +28,13 @@
 #include "config.h"
 #include "XPathFunctions.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "Document.h"
+#include "Element.h"
 #include "NamedAttrMap.h"
+#include "XMLNames.h"
+#include "XPathUtil.h"
 #include "XPathValue.h"
 #include <wtf/MathExtras.h>
 
@@ -70,121 +73,113 @@ struct FunctionRec {
 static HashMap<String, FunctionRec>* functionMap;
 
 class FunLast : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunPosition : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunCount : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunId : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunLocalName : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunNamespaceURI : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunName : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunString : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunConcat : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunStartsWith : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunContains : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunSubstringBefore : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunSubstringAfter : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunSubstring : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunStringLength : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunNormalizeSpace : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunTranslate : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunBoolean : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunNot : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunTrue : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunFalse : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunLang : public Function {
-    virtual bool isConstant() const;
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunNumber : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunSum : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunFloor : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunCeiling : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
 };
 
 class FunRound : public Function {
-    virtual Value doEvaluate() const;
+    virtual Value evaluate() const;
+public:
+    static double round(double);
 };
 
 DEFINE_FUNCTION_CREATOR(FunLast)
@@ -257,67 +252,25 @@ void Function::setArguments(const Vector<Expression*>& args)
         addSubExpression(*it);
 }
 
-void Function::setName(const String& name)
-{
-    m_name = name;
-}
-
-Expression* Function::arg(int i)
-{
-    return subExpr(i);
-}
-
-const Expression* Function::arg(int i) const
-{
-    return subExpr(i);
-}
-
-unsigned int Function::argCount() const
-{
-    return subExprCount();
-}
-
-String Function::name() const
-{
-    return m_name;
-}
-
-Value FunLast::doEvaluate() const
+Value FunLast::evaluate() const
 {
     return Expression::evaluationContext().size;
 }
 
-bool FunLast::isConstant() const
-{
-    return false;
-}
-
-Value FunPosition::doEvaluate() const
+Value FunPosition::evaluate() const
 {
     return Expression::evaluationContext().position;
 }
 
-bool FunPosition::isConstant() const
+Value FunId::evaluate() const
 {
-    return false;
-}
-
-bool FunId::isConstant() const
-{
-    return false;
-}
-
-Value FunId::doEvaluate() const
-{
-    // FIXME: this algorithm does not produce an ordered node-set, as it should.
-
     Value a = arg(0)->evaluate();
     Vector<UChar> idList; // A whitespace-separated list of IDs
 
-    if (a.isNodeVector()) {
-        const NodeVector& nodes = a.toNodeVector();
+    if (a.isNodeSet()) {
+        const NodeSet& nodes = a.toNodeSet();
         for (size_t i = 0; i < nodes.size(); ++i) {
-            String str = stringValue(nodes[i].get());
+            String str = stringValue(nodes[i]);
             idList.append(str.characters(), str.length());
             idList.append(' ');
         }
@@ -327,7 +280,7 @@ Value FunId::doEvaluate() const
     }
     
     Document* contextDocument = evaluationContext().node->document();
-    NodeVector result;
+    NodeSet result;
     HashSet<Node*> resultSet;
 
     size_t startPos = 0;
@@ -336,12 +289,12 @@ Value FunId::doEvaluate() const
         while (startPos < length && isWhitespace(idList[startPos]))
             ++startPos;
         
+        if (startPos == length)
+            break;
+
         size_t endPos = startPos;
         while (endPos < length && !isWhitespace(idList[endPos]))
             ++endPos;
-
-        if (endPos == length)
-            break;
 
         // If there are several nodes with the same id, id() should return the first one.
         // In WebKit, getElementById behaves so, too, although its behavior in this case is formally undefined.
@@ -352,109 +305,100 @@ Value FunId::doEvaluate() const
         startPos = endPos;
     }
     
-    return result;
+    result.markSorted(false);
+    
+    return Value(result, Value::adopt);
 }
 
-bool FunLocalName::isConstant() const
-{
-    return false;
-}
-
-Value FunLocalName::doEvaluate() const
+Value FunLocalName::evaluate() const
 {
     Node* node = 0;
     if (argCount() > 0) {
         Value a = arg(0)->evaluate();
-        if (!a.isNodeVector() || a.toNodeVector().size() == 0)
+        if (!a.isNodeSet())
             return "";
-        
-        node = a.toNodeVector()[0].get();
+
+        node = a.toNodeSet().firstNode();
+        if (!node)
+            return "";
     }
 
     if (!node)
         node = evaluationContext().node.get();
 
-    return Value(node->localName());
+    return node->localName().domString();
 }
 
-bool FunNamespaceURI::isConstant() const
-{
-    return false;
-}
-
-Value FunNamespaceURI::doEvaluate() const
+Value FunNamespaceURI::evaluate() const
 {
     Node* node = 0;
     if (argCount() > 0) {
         Value a = arg(0)->evaluate();
-        if (!a.isNodeVector() || a.toNodeVector().size() == 0)
+        if (!a.isNodeSet())
             return "";
 
-        node = a.toNodeVector()[0].get();
+        node = a.toNodeSet().firstNode();
+        if (!node)
+            return "";
     }
 
     if (!node)
         node = evaluationContext().node.get();
 
-    return Value(node->namespaceURI());
+    return node->namespaceURI().domString();
 }
 
-bool FunName::isConstant() const
-{
-    return false;
-}
-
-Value FunName::doEvaluate() const
+Value FunName::evaluate() const
 {
     Node* node = 0;
     if (argCount() > 0) {
         Value a = arg(0)->evaluate();
-        if (!a.isNodeVector() || a.toNodeVector().size() == 0)
+        if (!a.isNodeSet())
             return "";
 
-        node = a.toNodeVector()[0].get();
+        node = a.toNodeSet().firstNode();
+        if (!node)
+            return "";
     }
 
     if (!node)
         node = evaluationContext().node.get();
 
     const AtomicString& prefix = node->prefix();
-    return prefix.isEmpty() ? node->localName().domString() : node->prefix() + ":" + node->localName();
+    return prefix.isEmpty() ? node->localName().domString() : prefix + ":" + node->localName();
 }
 
-Value FunCount::doEvaluate() const
+Value FunCount::evaluate() const
 {
     Value a = arg(0)->evaluate();
     
-    if (!a.isNodeVector())
+    if (!a.isNodeSet())
         return 0.0;
     
-    return a.toNodeVector().size();
+    return a.toNodeSet().size();
 }
 
-bool FunCount::isConstant() const
-{
-    return false;
-}
-
-Value FunString::doEvaluate() const
+Value FunString::evaluate() const
 {
     if (!argCount())
         return Value(Expression::evaluationContext().node.get()).toString();
     return arg(0)->evaluate().toString();
 }
 
-Value FunConcat::doEvaluate() const
+Value FunConcat::evaluate() const
 {
-    String str = "";
+    Vector<UChar, 1024> result;
 
-    for (unsigned i = 0; i < argCount(); ++i)
-        str += arg(i)->evaluate().toString();
+    unsigned count = argCount();
+    for (unsigned i = 0; i < count; ++i) {
+        String str(arg(i)->evaluate().toString());
+        result.append(str.characters(), str.length());
+    }
 
-    return str;
+    return String(result.data(), result.size());
 }
 
-Value FunStartsWith::doEvaluate() const
+Value FunStartsWith::evaluate() const
 {
     String s1 = arg(0)->evaluate().toString();
     String s2 = arg(1)->evaluate().toString();
@@ -465,7 +409,7 @@ Value FunStartsWith::doEvaluate() const
     return s1.startsWith(s2);
 }
 
-Value FunContains::doEvaluate() const
+Value FunContains::evaluate() const
 {
     String s1 = arg(0)->evaluate().toString();
     String s2 = arg(1)->evaluate().toString();
@@ -476,7 +420,7 @@ Value FunContains::doEvaluate() const
     return s1.contains(s2) != 0;
 }
 
-Value FunSubstringBefore::doEvaluate() const
+Value FunSubstringBefore::evaluate() const
 {
     String s1 = arg(0)->evaluate().toString();
     String s2 = arg(1)->evaluate().toString();
@@ -492,29 +436,30 @@ Value FunSubstringBefore::doEvaluate() const
     return s1.left(i);
 }
 
-Value FunSubstringAfter::doEvaluate() const
+Value FunSubstringAfter::evaluate() const
 {
     String s1 = arg(0)->evaluate().toString();
     String s2 = arg(1)->evaluate().toString();
-
-    if (s2.isEmpty())
-        return s2;
 
     int i = s1.find(s2);
     if (i == -1)
         return "";
 
-    return s1.substring(s2.length());
+    return s1.substring(i + s2.length());
 }
 
-Value FunSubstring::doEvaluate() const
+Value FunSubstring::evaluate() const
 {
     String s = arg(0)->evaluate().toString();
-    long pos = lround(arg(1)->evaluate().toNumber());
+    long pos = static_cast<long>(FunRound::round(arg(1)->evaluate().toNumber()));
     bool haveLength = argCount() == 3;
     long len = -1;
-    if (haveLength)
-        len = lround(arg(2)->evaluate().toNumber());
+    if (haveLength) {
+        double doubleLen = arg(2)->evaluate().toNumber();
+        if (isnan(doubleLen))
+            return "";
+        len = static_cast<long>(FunRound::round(doubleLen));
+    }
 
     if (pos > long(s.length())) 
         return "";
@@ -529,25 +474,25 @@ Value FunSubstring::doEvaluate() const
     return s.substring(pos - 1, len);
 }
 
-Value FunStringLength::doEvaluate() const
+Value FunStringLength::evaluate() const
 {
     if (!argCount())
         return Value(Expression::evaluationContext().node.get()).toString().length();
     return arg(0)->evaluate().toString().length();
 }
 
-Value FunNormalizeSpace::doEvaluate() const
+Value FunNormalizeSpace::evaluate() const
 {
     if (!argCount()) {
         String s = Value(Expression::evaluationContext().node.get()).toString();
-        return Value(s.simplifyWhiteSpace());
+        return s.simplifyWhiteSpace();
     }
 
     String s = arg(0)->evaluate().toString();
-    return Value(s.simplifyWhiteSpace());
+    return s.simplifyWhiteSpace();
 }
 
-Value FunTranslate::doEvaluate() const
+Value FunTranslate::evaluate() const
 {
     String s1 = arg(0)->evaluate().toString();
     String s2 = arg(1)->evaluate().toString();
@@ -570,36 +515,31 @@ Value FunTranslate::doEvaluate() const
     return newString;
 }
 
-Value FunBoolean::doEvaluate() const
+Value FunBoolean::evaluate() const
 {
     return arg(0)->evaluate().toBoolean();
 }
 
-Value FunNot::doEvaluate() const
+Value FunNot::evaluate() const
 {
     return !arg(0)->evaluate().toBoolean();
 }
 
-Value FunTrue::doEvaluate() const
+Value FunTrue::evaluate() const
 {
     return true;
 }
 
-bool FunTrue::isConstant() const
-{
-    return true;
-}
-
-Value FunLang::doEvaluate() const
+Value FunLang::evaluate() const
 {
     String lang = arg(0)->evaluate().toString();
 
     RefPtr<Node> langNode = 0;
     Node* node = evaluationContext().node.get();
-    String xmsnsURI = node->lookupNamespaceURI("xms");
     while (node) {
         NamedAttrMap* attrs = node->attributes();
-        langNode = attrs->getNamedItemNS(xmsnsURI, "lang");
+        if (attrs)
+            langNode = attrs->getNamedItemNS(XMLNames::xmlNamespaceURI, "lang");
         if (langNode)
             break;
         node = node->parentNode();
@@ -609,63 +549,71 @@ Value FunLang::doEvaluate() const
         return false;
 
     String langNodeValue = langNode->nodeValue();
+    while (true) {
+        if (equalIgnoringCase(langNodeValue, lang))
+            return true;
 
-    // extract 'en' out of 'en-us'
-    int index = langNodeValue.find('-');
-    if (index != -1)
+        // Remove suffixes one by one.
+        int index = langNodeValue.reverseFind('-');
+        if (index == -1)
+            break;
         langNodeValue = langNodeValue.left(index);
+    }
 
-    return equalIgnoringCase(langNodeValue, lang);
+    return false;
 }
 
-bool FunLang::isConstant() const
+Value FunFalse::evaluate() const
 {
     return false;
 }
 
-Value FunFalse::doEvaluate() const
-{
-    return false;
-}
-
-bool FunFalse::isConstant() const
-{
-    return true;
-}
-
-Value FunNumber::doEvaluate() const
+Value FunNumber::evaluate() const
 {
     if (!argCount())
         return Value(Expression::evaluationContext().node.get()).toNumber();
     return arg(0)->evaluate().toNumber();
 }
 
-Value FunSum::doEvaluate() const
+Value FunSum::evaluate() const
 {
     Value a = arg(0)->evaluate();
-    if (!a.isNodeVector())
+    if (!a.isNodeSet())
         return 0.0;
 
     double sum = 0.0;
-    NodeVector nodes = a.toNodeVector();
-    
+    const NodeSet& nodes = a.toNodeSet();
+    // To be really compliant, we should sort the node-set, as floating point addition is not associative.
+    // However, this is unlikely to ever become a practical issue, and sorting is slow.
+
     for (unsigned i = 0; i < nodes.size(); i++)
-        sum += Value(stringValue(nodes[i].get())).toNumber();
+        sum += Value(stringValue(nodes[i])).toNumber();
     
     return sum;
 }
 
-Value FunFloor::doEvaluate() const
+Value FunFloor::evaluate() const
 {
     return floor(arg(0)->evaluate().toNumber());
 }
 
-Value FunCeiling::doEvaluate() const
+Value FunCeiling::evaluate() const
 {
     return ceil(arg(0)->evaluate().toNumber());
 }
 
-Value FunRound::doEvaluate() const
+double FunRound::round(double val)
+{
+    if (!isnan(val) && !isinf(val)) {
+        if (signbit(val) && val >= -0.5)
+            val *= 0; // negative zero
+        else
+            val = floor(val + 0.5);
+    }
+    return val;
+}
+
+Value FunRound::evaluate() const
 {
     return round(arg(0)->evaluate().toNumber());
 }
@@ -720,14 +668,8 @@ Function* createFunction(const String& name, const Vector<Expression*>& args)
     HashMap<String, FunctionRec>::iterator functionMapIter = functionMap->find(name);
     FunctionRec* functionRec = 0;
 
-    if (functionMapIter == functionMap->end() || !(functionRec = &functionMapIter->second)->args.contains(args.size())) {
-        deleteAllValues(args);
-
-        // Return a dummy function instead of 0.
-        Function* funcTrue = functionMap->get("true").factoryFn();
-        funcTrue->setName("true");
-        return funcTrue;
-    }
+    if (functionMapIter == functionMap->end() || !(functionRec = &functionMapIter->second)->args.contains(args.size()))
+        return 0;
 
     Function* function = functionRec->factoryFn();
     function->setArguments(args);
@@ -738,4 +680,4 @@ Function* createFunction(const String& name, const Vector<Expression*>& args)
 }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

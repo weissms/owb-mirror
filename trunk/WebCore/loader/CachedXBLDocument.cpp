@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     This class provides all functionality needed for loading images, style sheets and html
     pages from the web. It has a memory cache for these objects.
@@ -28,7 +28,7 @@
 
 #include "config.h"
 
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
 
 #include "CachedXBLDocument.h"
 
@@ -40,8 +40,8 @@
 
 namespace WebCore {
 
-CachedXBLDocument::CachedXBLDocument(DocLoader* dl, const String &url, CachePolicy cachePolicy, time_t _expireDate)
-: CachedResource(url, XBL, cachePolicy, _expireDate), m_document(0)
+CachedXBLDocument::CachedXBLDocument(DocLoader* dl, const String &url)
+: CachedResource(url, XBL), m_document(0)
 {
     // It's XML we want.
     setAccept("text/xml, application/xml, application/xhtml+xml, text/xsl, application/rss+xml, application/atom+xml");
@@ -75,7 +75,7 @@ void CachedXBLDocument::data(Vector<char>& data, bool )
     if (!allDataReceived)
         return;
     
-    assert(!m_document);
+    ASSERT(!m_document);
     
     m_document = new XBL::XBLDocument();
     m_document->ref();
@@ -103,6 +103,7 @@ void CachedXBLDocument::checkNotify()
 void CachedXBLDocument::error()
 {
     m_loading = false;
+    m_errorOccurred = true;
     checkNotify();
 }
 

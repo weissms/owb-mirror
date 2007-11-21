@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEComponentTransferElement.h"
 
 #include "Attr.h"
@@ -58,17 +58,17 @@ void SVGFEComponentTransferElement::parseMappedAttribute(MappedAttribute* attr)
         SVGFilterPrimitiveStandardAttributes::parseMappedAttribute(attr);
 }
 
-SVGFEComponentTransfer* SVGFEComponentTransferElement::filterEffect() const
+SVGFEComponentTransfer* SVGFEComponentTransferElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFEComponentTransfer*>(SVGResourceFilter::createFilterEffect(FE_COMPONENT_TRANSFER));
+        m_filterEffect = static_cast<SVGFEComponentTransfer*>(SVGResourceFilter::createFilterEffect(FE_COMPONENT_TRANSFER, filter));
     if (!m_filterEffect)
         return 0;
     
     m_filterEffect->setIn(in1());
     setStandardAttributes(m_filterEffect);
     
-    for (Node *n = firstChild(); n != 0; n = n->nextSibling()) {
+    for (Node* n = firstChild(); n != 0; n = n->nextSibling()) {
         if (n->hasTagName(SVGNames::feFuncRTag))
             m_filterEffect->setRedFunction(static_cast<SVGFEFuncRElement*>(n)->transferFunction());
         else if (n->hasTagName(SVGNames::feFuncGTag))
@@ -84,6 +84,6 @@ SVGFEComponentTransfer* SVGFEComponentTransferElement::filterEffect() const
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

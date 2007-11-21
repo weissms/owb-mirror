@@ -29,13 +29,7 @@
 #include "config.h"
 #include "JSValueWrapper.h"
 #include <JavaScriptCore/PropertyNameArray.h>
-
-#ifdef __OWB__
-#include <BIthread.h>
-#else
 #include <pthread.h>
-#endif
-
 
 JSValueWrapper::JSValueWrapper(JSValue *inValue)
     : fValue(inValue)

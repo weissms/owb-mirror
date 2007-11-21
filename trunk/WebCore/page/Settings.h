@@ -32,6 +32,8 @@
 
 namespace WebCore {
 
+    class Page;
+
     enum EditableLinkBehavior {
         EditableLinkDefaultBehavior = 0,
         EditableLinkAlwaysLive,
@@ -43,7 +45,7 @@ namespace WebCore {
     class Settings
     {
     public:
-        Settings();
+        Settings(Page*);
 
         void setStandardFontFamily(const AtomicString&);
         const AtomicString& standardFontFamily() const { return m_standardFontFamily; }
@@ -111,19 +113,43 @@ namespace WebCore {
         void setUsesDashboardBackwardCompatibilityMode(bool);
         bool usesDashboardBackwardCompatibilityMode() const { return m_usesDashboardBackwardCompatibilityMode; }
         
-        void setNeedsAcrobatFrameReloadingQuirk(bool);
-        bool needsAcrobatFrameReloadingQuirk() const { return m_needsAcrobatFrameReloadingQuirk; }
+        void setNeedsAdobeFrameReloadingQuirk(bool);
+        bool needsAcrobatFrameReloadingQuirk() const { return m_needsAdobeFrameReloadingQuirk; }
+        
+        void setDOMPasteAllowed(bool);
+        bool isDOMPasteAllowed() const { return m_isDOMPasteAllowed; }
+        
+        void setUsesPageCache(bool);
+        bool usesPageCache() const { return m_usesPageCache; }
+
+        void setShrinksStandaloneImagesToFit(bool);
+        bool shrinksStandaloneImagesToFit() const { return m_shrinksStandaloneImagesToFit; }
+
+        void setShowsURLsInToolTips(bool);
+        bool showsURLsInToolTips() const { return m_showsURLsInToolTips; }
+
+        void setFTPDirectoryTemplatePath(const String&);
+        const String& ftpDirectoryTemplatePath() const { return m_ftpDirectoryTemplatePath; }
+        
+        void setForceFTPDirectoryListings(bool);
+        bool forceFTPDirectoryListings() const { return m_forceFTPDirectoryListings; }
+        
+        void setDeveloperExtrasEnabled(bool);
+        bool developerExtrasEnabled() const { return m_developerExtrasEnabled; }
         
     private:
+        Page* m_page;
+        
         String m_defaultTextEncodingName;
+        String m_ftpDirectoryTemplatePath;
         KURL m_userStyleSheetLocation;
-        EditableLinkBehavior m_editableLinkBehavior;
         AtomicString m_standardFontFamily;
         AtomicString m_fixedFontFamily;
         AtomicString m_serifFontFamily;
         AtomicString m_sansSerifFontFamily;
         AtomicString m_cursiveFontFamily;
         AtomicString m_fantasyFontFamily;
+        EditableLinkBehavior m_editableLinkBehavior;
         int m_minimumFontSize;
         int m_minimumLogicalFontSize;
         int m_defaultFontSize;
@@ -137,7 +163,13 @@ namespace WebCore {
         bool m_shouldPrintBackgrounds : 1;
         bool m_textAreasAreResizable : 1;
         bool m_usesDashboardBackwardCompatibilityMode : 1;
-        bool m_needsAcrobatFrameReloadingQuirk : 1;
+        bool m_needsAdobeFrameReloadingQuirk : 1;
+        bool m_isDOMPasteAllowed : 1;
+        bool m_shrinksStandaloneImagesToFit : 1;
+        bool m_usesPageCache: 1;
+        bool m_showsURLsInToolTips : 1;
+        bool m_forceFTPDirectoryListings : 1;
+        bool m_developerExtrasEnabled : 1;
     };
 
 } // namespace WebCore

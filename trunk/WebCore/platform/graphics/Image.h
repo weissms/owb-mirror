@@ -22,7 +22,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef Image_h
@@ -37,6 +37,9 @@ namespace WebCore { using ::BAL::BIGraphicsContext; }
 #endif
 #include "GraphicsTypes.h"
 #include "ImageSource.h"
+#include <wtf/RefPtr.h>
+#include <wtf/PassRefPtr.h>
+#include "SharedBuffer.h"
 
 #if PLATFORM(MAC)
 #ifdef __OBJC__
@@ -55,7 +58,7 @@ typedef struct HBITMAP__ *HBITMAP;
 #endif
 
 #if PLATFORM(QT)
-class QPixmap;
+#include <QPixmap>
 #endif
 
 namespace WebCore {
@@ -67,19 +70,20 @@ class FloatSize;
 class GraphicsContext;
 class IntRect;
 class IntSize;
+class SharedBuffer;
 class String;
 
-// This class gets notified when an image advances animation frames.
-class ImageAnimationObserver;
+// This class gets notified when an image creates or destroys decoded frames and when it advances animation frames.
+class ImageObserver;
 
 class Image : Noncopyable {
     friend class GraphicsContext;
 public:
-    Image(ImageAnimationObserver* = 0);
+    Image(ImageObserver* = 0);
     virtual ~Image();
-
+    
     static Image* loadPlatformResource(const char* name);
-    static bool supportsType(const String&);
+    static bool supportsType(const String&); 
 
     bool isNull() const;
 
@@ -88,22 +92,27 @@ public:
     int width() const;
     int height() const;
 
-    virtual bool setData(bool allDataReceived);
-    virtual bool setNativeData(NativeBytePtr, bool allDataReceived) { return false; }
+    bool setData(PassRefPtr<SharedBuffer> data, bool allDataReceived);
+    virtual bool dataChanged(bool allDataReceived) { return false; }
+    
+    // FIXME: PDF/SVG will be underreporting decoded sizes and will be unable to prune because these functions are not
+    // implemented yet for those image types.
+    virtual void destroyDecodedData(bool incremental = false) {};
+    virtual unsigned decodedSize() const { return 0; }
 
-    Vector<char>& dataBuffer() { return m_data; }
+    SharedBuffer* data() { return m_data.get(); }
 
     // It may look unusual that there is no start animation call as public API.  This is because
     // we start and stop animating lazily.  Animation begins whenever someone draws the image.  It will
     // automatically pause once all observers no longer want to render the image anywhere.
     virtual void stopAnimation() {}
     virtual void resetAnimation() {}
-
+    
     // Typically the CachedImage that owns us.
-    ImageAnimationObserver* animationObserver() const { return m_animationObserver; }
+    ImageObserver* imageObserver() const { return m_imageObserver; }
 
-    enum TileRule { StretchTile, RepeatTile };
-
+    enum TileRule { StretchTile, RoundTile, RepeatTile };
+    
 #if PLATFORM(MAC)
     // Accessors for native image formats.
     virtual NSImage* getNSImage() { return 0; }
@@ -120,6 +129,7 @@ public:
 
 #if PLATFORM(WIN)
     virtual bool getHBITMAP(HBITMAP) { return false; }
+    virtual bool getHBITMAPOfSize(HBITMAP, LPSIZE) { return false; }
 #endif
 
 #ifdef __OWB__
@@ -131,30 +141,38 @@ protected:
     static void fillWithSolidColor(GraphicsContext* ctxt, const FloatRect& dstRect, const Color& color, CompositeOperator op);
 
 private:
-    // every drawing functions should be in GraphicsContext
+#if PLATFORM(WIN)
+    virtual void drawFrameMatchingSourceSize(GraphicsContext*, const FloatRect& dstRect, const IntSize& srcSize, CompositeOperator) { }
+#endif
+
 #ifndef __OWB__
     virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator) = 0;
     void drawTiled(GraphicsContext*, const FloatRect& dstRect, const FloatPoint& srcPoint, const FloatSize& tileSize, CompositeOperator);
     void drawTiled(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, TileRule hRule, TileRule vRule, CompositeOperator);
-#endif
+#endif //__OWB__
+
     // Supporting tiled drawing
     virtual bool mayFillWithSolidColor() const { return false; }
     virtual Color solidColor() const { return Color(); }
+
 #ifndef __OWB__
     virtual NativeImagePtr nativeImageForCurrentFrame() { return 0; }
+    
     virtual void startAnimation() { }
-#endif
 
+    
     virtual void drawPattern(GraphicsContext*, const FloatRect& srcRect, const AffineTransform& patternTransform,
                              const FloatPoint& phase, CompositeOperator, const FloatRect& destRect);
+#endif //__OWB__
 #if PLATFORM(CG)
     // These are private to CG.  Ideally they would be only in the .cpp file, but the callback requires access
     // to the private function nativeImageForCurrentFrame()
     static void drawPatternCallback(void* info, CGContext*);
 #endif
-
-    Vector<char> m_data; // The encoded raw data for the image.
-    ImageAnimationObserver* m_animationObserver;
+    
+protected:
+    RefPtr<SharedBuffer> m_data; // The encoded raw data for the image. 
+    ImageObserver* m_imageObserver;
 };
 
 }

@@ -274,6 +274,8 @@ alias
 progress
 no-drop
 not-allowed
+-webkit-zoom-in
+-webkit-zoom-out
 e-resize
 ne-resize
 nw-resize
@@ -463,6 +465,11 @@ skip-white-space
 #
 # CSS_PROP_WORD_BREAK
 #
+break-all
+
+#
+# CSS_PROP_WORD_WRAP
+#
 break-word
 
 #
@@ -538,3 +545,8 @@ content-box
 #
 logical
 visual
+
+#
+# CSS_PROP__WEBKIT_BORDER_FIT
+#
+lines

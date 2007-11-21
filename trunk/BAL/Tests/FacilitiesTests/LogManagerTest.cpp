@@ -67,26 +67,26 @@ public:
     {
         initialize();
         // one char test
-        log("a");
+        DBG("a\n");
         // null argument
-        log(NULL);
+        DBG(NULL);
         // testing string > 256 chars
-        log(
-        "000000000011111111112222222222333333333344444444445555555555"
-        "6666666666777777777788888888889999999999"
-        "000000000011111111112222222222333333333344444444445555555555"
-        "6666666666777777777788888888889999999999"
-        "000000000011111111112222222222333333333344444444445555555555"
-        "6666666666777777777788888888889999999999");
+        DBG(
+        "000000000011111111112222222222333333333344444444445555555555\n"
+        "6666666666777777777788888888889999999999\n"
+        "000000000011111111112222222222333333333344444444445555555555\n"
+        "6666666666777777777788888888889999999999\n"
+        "000000000011111111112222222222333333333344444444445555555555\n"
+        "6666666666777777777788888888889999999999\n");
 
         // testing modules
-        logm(MODULE_FONTS, "FONT");
+        DBGM(MODULE_FONTS, "FONT\n");
 
-        logml(MODULE_FONTS,LEVEL_CRITICAL, "FONT/CRITICAL" );
+        DBGML(MODULE_FONTS,LEVEL_CRITICAL, "FONT/CRITICAL\n");
 
         // now trying to log to pts console 2
-        m_channel->setPathName( "/dev/pts/2" );
-        log("You should see this on pts console 2");
+        m_channel->setPathName("/dev/pts/2");
+        DBG("You should see this on pts console 2\n");
         finalize();
     }
 

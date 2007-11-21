@@ -43,10 +43,22 @@ namespace BAL {
      */
     class BIObserverService {
         public:
+            /**
+            * BIObserverService destructor
+            */
             virtual ~BIObserverService() {};
 
+            /**
+            * register observer
+            */
             virtual void registerObserver(const String&, BIObserver*) = 0;
+            /**
+            * notify observer
+            */
             virtual void notifyObserver(const String&, const String&) = 0;
+            /**
+            * remove observer
+            */
             virtual void removeObserver(const String&, BIObserver*) = 0;
     };
 }

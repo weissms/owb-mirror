@@ -3,7 +3,7 @@
 /*
  *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2000 Harri Porten (porten@kde.org)
- *  Copyright (C) 2006 Apple Computer, Inc.
+ *  Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,8 @@
 #include "nodes.h"
 #include "lexer.h"
 #include "internal.h"
+#include "CommonIdentifiers.h"
+#include <wtf/MathExtras.h>
 
 // Not sure why, but yacc doesn't add this define along with the others.
 #define yylloc kjsyylloc
@@ -55,13 +57,15 @@ static bool allowAutomaticSemicolon();
 
 using namespace KJS;
 
-static bool makeAssignNode(Node*& result, Node *loc, Operator op, Node *expr);
-static bool makePrefixNode(Node*& result, Node *expr, Operator op);
-static bool makePostfixNode(Node*& result, Node *expr, Operator op);
+static Node* makeAssignNode(Node* loc, Operator, Node* expr);
+static Node* makePrefixNode(Node* expr, Operator);
+static Node* makePostfixNode(Node* expr, Operator);
 static bool makeGetterOrSetterPropertyNode(PropertyNode*& result, Identifier &getOrSet, Identifier& name, ParameterNode *params, FunctionBodyNode *body);
 static Node *makeFunctionCallNode(Node *func, ArgumentsNode *args);
 static Node *makeTypeOfNode(Node *expr);
 static Node *makeDeleteNode(Node *expr);
+static Node *makeNegateNode(Node *expr);
+static Node* makeNumberNode(double);
 
 #if COMPILER(MSVC)
 
@@ -113,9 +117,9 @@ static Node *makeDeleteNode(Node *expr);
 %token NULLTOKEN TRUETOKEN FALSETOKEN
 
 /* keywords */
-%token BREAK CASE DEFAULT FOR NEW VAR CONST CONTINUE
-%token FUNCTION RETURN VOID DELETE
-%token IF THIS DO WHILE IN INSTANCEOF TYPEOF
+%token BREAK CASE DEFAULT FOR NEW VAR CONSTTOKEN CONTINUE
+%token FUNCTION RETURN VOIDTOKEN DELETETOKEN
+%token IF THISTOKEN DO WHILE INTOKEN INSTANCEOF TYPEOF
 %token SWITCH WITH RESERVED
 %token THROW TRY CATCH FINALLY
 %token DEBUGGER
@@ -207,7 +211,7 @@ Literal:
     NULLTOKEN                           { $$ = new NullNode(); }
   | TRUETOKEN                           { $$ = new BooleanNode(true); }
   | FALSETOKEN                          { $$ = new BooleanNode(false); }
-  | NUMBER                              { $$ = new NumberNode($1); }
+  | NUMBER                              { $$ = makeNumberNode($1); }
   | STRING                              { $$ = new StringNode($1); }
   | '/' /* regexp */                    {
                                             Lexer *l = Lexer::curr();
@@ -243,12 +247,12 @@ PrimaryExpr:
     PrimaryExprNoBrace
   | '{' '}'                             { $$ = new ObjectLiteralNode(); }
   | '{' PropertyList '}'                { $$ = new ObjectLiteralNode($2); }
-  /* allow extra comma, see http://bugzilla.opendarwin.org/show_bug.cgi?id=5939 */
+  /* allow extra comma, see http://bugs.webkit.org/show_bug.cgi?id=5939 */
   | '{' PropertyList ',' '}'            { $$ = new ObjectLiteralNode($2); }
 ;
 
 PrimaryExprNoBrace:
-    THIS                                { $$ = new ThisNode(); }
+    THISTOKEN                           { $$ = new ThisNode(); }
   | Literal
   | ArrayLiteral
   | IDENT                               { $$ = new ResolveNode(*$1); }
@@ -339,26 +343,26 @@ LeftHandSideExprNoBF:
 
 PostfixExpr:
     LeftHandSideExpr
-  | LeftHandSideExpr PLUSPLUS           { if (!makePostfixNode($$, $1, OpPlusPlus)) YYABORT; }
-  | LeftHandSideExpr MINUSMINUS         { if (!makePostfixNode($$, $1, OpMinusMinus)) YYABORT; }
+  | LeftHandSideExpr PLUSPLUS           { $$ = makePostfixNode($1, OpPlusPlus); }
+  | LeftHandSideExpr MINUSMINUS         { $$ = makePostfixNode($1, OpMinusMinus); }
 ;
 
 PostfixExprNoBF:
     LeftHandSideExprNoBF
-  | LeftHandSideExprNoBF PLUSPLUS       { if (!makePostfixNode($$, $1, OpPlusPlus)) YYABORT; }
-  | LeftHandSideExprNoBF MINUSMINUS     { if (!makePostfixNode($$, $1, OpMinusMinus)) YYABORT; }
+  | LeftHandSideExprNoBF PLUSPLUS       { $$ = makePostfixNode($1, OpPlusPlus); }
+  | LeftHandSideExprNoBF MINUSMINUS     { $$ = makePostfixNode($1, OpMinusMinus); }
 ;
 
 UnaryExprCommon:
-    DELETE UnaryExpr                    { $$ = makeDeleteNode($2); }
-  | VOID UnaryExpr                      { $$ = new VoidNode($2); }
+    DELETETOKEN UnaryExpr               { $$ = makeDeleteNode($2); }
+  | VOIDTOKEN UnaryExpr                 { $$ = new VoidNode($2); }
   | TYPEOF UnaryExpr                    { $$ = makeTypeOfNode($2); }
-  | PLUSPLUS UnaryExpr                  { if (!makePrefixNode($$, $2, OpPlusPlus)) YYABORT; }
-  | AUTOPLUSPLUS UnaryExpr              { if (!makePrefixNode($$, $2, OpPlusPlus)) YYABORT; }
-  | MINUSMINUS UnaryExpr                { if (!makePrefixNode($$, $2, OpMinusMinus)) YYABORT; }
-  | AUTOMINUSMINUS UnaryExpr            { if (!makePrefixNode($$, $2, OpMinusMinus)) YYABORT; }
+  | PLUSPLUS UnaryExpr                  { $$ = makePrefixNode($2, OpPlusPlus); }
+  | AUTOPLUSPLUS UnaryExpr              { $$ = makePrefixNode($2, OpPlusPlus); }
+  | MINUSMINUS UnaryExpr                { $$ = makePrefixNode($2, OpMinusMinus); }
+  | AUTOMINUSMINUS UnaryExpr            { $$ = makePrefixNode($2, OpMinusMinus); }
   | '+' UnaryExpr                       { $$ = new UnaryPlusNode($2); }
-  | '-' UnaryExpr                       { $$ = new NegateNode($2); }
+  | '-' UnaryExpr                       { $$ = makeNegateNode($2); }
   | '~' UnaryExpr                       { $$ = new BitwiseNotNode($2); }
   | '!' UnaryExpr                       { $$ = new LogicalNotNode($2); }
 
@@ -374,192 +378,192 @@ UnaryExprNoBF:
 
 MultiplicativeExpr:
     UnaryExpr
-  | MultiplicativeExpr '*' UnaryExpr    { $$ = new MultNode($1, $3, '*'); }
-  | MultiplicativeExpr '/' UnaryExpr    { $$ = new MultNode($1, $3, '/'); }
-  | MultiplicativeExpr '%' UnaryExpr    { $$ = new MultNode($1, $3,'%'); }
+  | MultiplicativeExpr '*' UnaryExpr    { $$ = new MultNode($1, $3); }
+  | MultiplicativeExpr '/' UnaryExpr    { $$ = new DivNode($1, $3); }
+  | MultiplicativeExpr '%' UnaryExpr    { $$ = new ModNode($1, $3); }
 ;
 
 MultiplicativeExprNoBF:
     UnaryExprNoBF
   | MultiplicativeExprNoBF '*' UnaryExpr
-                                        { $$ = new MultNode($1, $3, '*'); }
+                                        { $$ = new MultNode($1, $3); }
   | MultiplicativeExprNoBF '/' UnaryExpr
-                                        { $$ = new MultNode($1, $3, '/'); }
+                                        { $$ = new DivNode($1, $3); }
   | MultiplicativeExprNoBF '%' UnaryExpr
-                                        { $$ = new MultNode($1, $3,'%'); }
+                                        { $$ = new ModNode($1, $3); }
 ;
 
 AdditiveExpr:
     MultiplicativeExpr
-  | AdditiveExpr '+' MultiplicativeExpr { $$ = new AddNode($1, $3, '+'); }
-  | AdditiveExpr '-' MultiplicativeExpr { $$ = new AddNode($1, $3, '-'); }
+  | AdditiveExpr '+' MultiplicativeExpr { $$ = new AddNode($1, $3); }
+  | AdditiveExpr '-' MultiplicativeExpr { $$ = new SubNode($1, $3); }
 ;
 
 AdditiveExprNoBF:
     MultiplicativeExprNoBF
   | AdditiveExprNoBF '+' MultiplicativeExpr
-                                        { $$ = new AddNode($1, $3, '+'); }
+                                        { $$ = new AddNode($1, $3); }
   | AdditiveExprNoBF '-' MultiplicativeExpr
-                                        { $$ = new AddNode($1, $3, '-'); }
+                                        { $$ = new SubNode($1, $3); }
 ;
 
 ShiftExpr:
     AdditiveExpr
-  | ShiftExpr LSHIFT AdditiveExpr       { $$ = new ShiftNode($1, OpLShift, $3); }
-  | ShiftExpr RSHIFT AdditiveExpr       { $$ = new ShiftNode($1, OpRShift, $3); }
-  | ShiftExpr URSHIFT AdditiveExpr      { $$ = new ShiftNode($1, OpURShift, $3); }
+  | ShiftExpr LSHIFT AdditiveExpr       { $$ = new LeftShiftNode($1, $3); }
+  | ShiftExpr RSHIFT AdditiveExpr       { $$ = new RightShiftNode($1, $3); }
+  | ShiftExpr URSHIFT AdditiveExpr      { $$ = new UnsignedRightShiftNode($1, $3); }
 ;
 
 ShiftExprNoBF:
     AdditiveExprNoBF
-  | ShiftExprNoBF LSHIFT AdditiveExpr   { $$ = new ShiftNode($1, OpLShift, $3); }
-  | ShiftExprNoBF RSHIFT AdditiveExpr   { $$ = new ShiftNode($1, OpRShift, $3); }
-  | ShiftExprNoBF URSHIFT AdditiveExpr  { $$ = new ShiftNode($1, OpURShift, $3); }
+  | ShiftExprNoBF LSHIFT AdditiveExpr   { $$ = new LeftShiftNode($1, $3); }
+  | ShiftExprNoBF RSHIFT AdditiveExpr   { $$ = new RightShiftNode($1, $3); }
+  | ShiftExprNoBF URSHIFT AdditiveExpr  { $$ = new UnsignedRightShiftNode($1, $3); }
 ;
 
 RelationalExpr:
     ShiftExpr
-  | RelationalExpr '<' ShiftExpr        { $$ = new RelationalNode($1, OpLess, $3); }
-  | RelationalExpr '>' ShiftExpr        { $$ = new RelationalNode($1, OpGreater, $3); }
-  | RelationalExpr LE ShiftExpr         { $$ = new RelationalNode($1, OpLessEq, $3); }
-  | RelationalExpr GE ShiftExpr         { $$ = new RelationalNode($1, OpGreaterEq, $3); }
-  | RelationalExpr INSTANCEOF ShiftExpr { $$ = new RelationalNode($1, OpInstanceOf, $3); }
-  | RelationalExpr IN ShiftExpr         { $$ = new RelationalNode($1, OpIn, $3); }
+  | RelationalExpr '<' ShiftExpr        { $$ = new LessNode($1, $3); }
+  | RelationalExpr '>' ShiftExpr        { $$ = new GreaterNode($1, $3); }
+  | RelationalExpr LE ShiftExpr         { $$ = new LessEqNode($1, $3); }
+  | RelationalExpr GE ShiftExpr         { $$ = new GreaterEqNode($1, $3); }
+  | RelationalExpr INSTANCEOF ShiftExpr { $$ = new InstanceOfNode($1, $3); }
+  | RelationalExpr INTOKEN ShiftExpr    { $$ = new InNode($1, $3); }
 ;
 
 RelationalExprNoIn:
     ShiftExpr
-  | RelationalExprNoIn '<' ShiftExpr    { $$ = new RelationalNode($1, OpLess, $3); }
-  | RelationalExprNoIn '>' ShiftExpr    { $$ = new RelationalNode($1, OpGreater, $3); }
-  | RelationalExprNoIn LE ShiftExpr     { $$ = new RelationalNode($1, OpLessEq, $3); }
-  | RelationalExprNoIn GE ShiftExpr     { $$ = new RelationalNode($1, OpGreaterEq, $3); }
+  | RelationalExprNoIn '<' ShiftExpr    { $$ = new LessNode($1, $3); }
+  | RelationalExprNoIn '>' ShiftExpr    { $$ = new GreaterNode($1, $3); }
+  | RelationalExprNoIn LE ShiftExpr     { $$ = new LessEqNode($1, $3); }
+  | RelationalExprNoIn GE ShiftExpr     { $$ = new GreaterEqNode($1, $3); }
   | RelationalExprNoIn INSTANCEOF ShiftExpr
-                                        { $$ = new RelationalNode($1, OpInstanceOf, $3); }
+                                        { $$ = new InstanceOfNode($1, $3); }
 ;
 
 RelationalExprNoBF:
     ShiftExprNoBF
-  | RelationalExprNoBF '<' ShiftExpr    { $$ = new RelationalNode($1, OpLess, $3); }
-  | RelationalExprNoBF '>' ShiftExpr    { $$ = new RelationalNode($1, OpGreater, $3); }
-  | RelationalExprNoBF LE ShiftExpr     { $$ = new RelationalNode($1, OpLessEq, $3); }
-  | RelationalExprNoBF GE ShiftExpr     { $$ = new RelationalNode($1, OpGreaterEq, $3); }
+  | RelationalExprNoBF '<' ShiftExpr    { $$ = new LessNode($1, $3); }
+  | RelationalExprNoBF '>' ShiftExpr    { $$ = new GreaterNode($1, $3); }
+  | RelationalExprNoBF LE ShiftExpr     { $$ = new LessEqNode($1, $3); }
+  | RelationalExprNoBF GE ShiftExpr     { $$ = new GreaterEqNode($1, $3); }
   | RelationalExprNoBF INSTANCEOF ShiftExpr
-                                        { $$ = new RelationalNode($1, OpInstanceOf, $3); }
-  | RelationalExprNoBF IN ShiftExpr     { $$ = new RelationalNode($1, OpIn, $3); }
+                                        { $$ = new InstanceOfNode($1, $3); }
+  | RelationalExprNoBF INTOKEN ShiftExpr     { $$ = new InNode($1, $3); }
 ;
 
 EqualityExpr:
     RelationalExpr
-  | EqualityExpr EQEQ RelationalExpr    { $$ = new EqualNode($1, OpEqEq, $3); }
-  | EqualityExpr NE RelationalExpr      { $$ = new EqualNode($1, OpNotEq, $3); }
-  | EqualityExpr STREQ RelationalExpr   { $$ = new EqualNode($1, OpStrEq, $3); }
-  | EqualityExpr STRNEQ RelationalExpr  { $$ = new EqualNode($1, OpStrNEq, $3);}
+  | EqualityExpr EQEQ RelationalExpr    { $$ = new EqualNode($1, $3); }
+  | EqualityExpr NE RelationalExpr      { $$ = new NotEqualNode($1, $3); }
+  | EqualityExpr STREQ RelationalExpr   { $$ = new StrictEqualNode($1, $3); }
+  | EqualityExpr STRNEQ RelationalExpr  { $$ = new NotStrictEqualNode($1, $3); }
 ;
 
 EqualityExprNoIn:
     RelationalExprNoIn
   | EqualityExprNoIn EQEQ RelationalExprNoIn
-                                        { $$ = new EqualNode($1, OpEqEq, $3); }
+                                        { $$ = new EqualNode($1, $3); }
   | EqualityExprNoIn NE RelationalExprNoIn
-                                        { $$ = new EqualNode($1, OpNotEq, $3); }
+                                        { $$ = new NotEqualNode($1, $3); }
   | EqualityExprNoIn STREQ RelationalExprNoIn
-                                        { $$ = new EqualNode($1, OpStrEq, $3); }
+                                        { $$ = new StrictEqualNode($1, $3); }
   | EqualityExprNoIn STRNEQ RelationalExprNoIn
-                                        { $$ = new EqualNode($1, OpStrNEq, $3);}
+                                        { $$ = new NotStrictEqualNode($1, $3); }
 ;
 
 EqualityExprNoBF:
     RelationalExprNoBF
   | EqualityExprNoBF EQEQ RelationalExpr
-                                        { $$ = new EqualNode($1, OpEqEq, $3); }
-  | EqualityExprNoBF NE RelationalExpr  { $$ = new EqualNode($1, OpNotEq, $3); }
+                                        { $$ = new EqualNode($1, $3); }
+  | EqualityExprNoBF NE RelationalExpr  { $$ = new NotEqualNode($1, $3); }
   | EqualityExprNoBF STREQ RelationalExpr
-                                        { $$ = new EqualNode($1, OpStrEq, $3); }
+                                        { $$ = new StrictEqualNode($1, $3); }
   | EqualityExprNoBF STRNEQ RelationalExpr
-                                        { $$ = new EqualNode($1, OpStrNEq, $3);}
+                                        { $$ = new NotStrictEqualNode($1, $3); }
 ;
 
 BitwiseANDExpr:
     EqualityExpr
-  | BitwiseANDExpr '&' EqualityExpr     { $$ = new BitOperNode($1, OpBitAnd, $3); }
+  | BitwiseANDExpr '&' EqualityExpr     { $$ = new BitAndNode($1, $3); }
 ;
 
 BitwiseANDExprNoIn:
     EqualityExprNoIn
   | BitwiseANDExprNoIn '&' EqualityExprNoIn
-                                        { $$ = new BitOperNode($1, OpBitAnd, $3); }
+                                        { $$ = new BitAndNode($1, $3); }
 ;
 
 BitwiseANDExprNoBF:
     EqualityExprNoBF
-  | BitwiseANDExprNoBF '&' EqualityExpr { $$ = new BitOperNode($1, OpBitAnd, $3); }
+  | BitwiseANDExprNoBF '&' EqualityExpr { $$ = new BitAndNode($1, $3); }
 ;
 
 BitwiseXORExpr:
     BitwiseANDExpr
-  | BitwiseXORExpr '^' BitwiseANDExpr   { $$ = new BitOperNode($1, OpBitXOr, $3); }
+  | BitwiseXORExpr '^' BitwiseANDExpr   { $$ = new BitXOrNode($1, $3); }
 ;
 
 BitwiseXORExprNoIn:
     BitwiseANDExprNoIn
   | BitwiseXORExprNoIn '^' BitwiseANDExprNoIn
-                                        { $$ = new BitOperNode($1, OpBitXOr, $3); }
+                                        { $$ = new BitXOrNode($1, $3); }
 ;
 
 BitwiseXORExprNoBF:
     BitwiseANDExprNoBF
   | BitwiseXORExprNoBF '^' BitwiseANDExpr
-                                        { $$ = new BitOperNode($1, OpBitXOr, $3); }
+                                        { $$ = new BitXOrNode($1, $3); }
 ;
 
 BitwiseORExpr:
     BitwiseXORExpr
-  | BitwiseORExpr '|' BitwiseXORExpr    { $$ = new BitOperNode($1, OpBitOr, $3); }
+  | BitwiseORExpr '|' BitwiseXORExpr    { $$ = new BitOrNode($1, $3); }
 ;
 
 BitwiseORExprNoIn:
     BitwiseXORExprNoIn
   | BitwiseORExprNoIn '|' BitwiseXORExprNoIn
-                                        { $$ = new BitOperNode($1, OpBitOr, $3); }
+                                        { $$ = new BitOrNode($1, $3); }
 ;
 
 BitwiseORExprNoBF:
     BitwiseXORExprNoBF
   | BitwiseORExprNoBF '|' BitwiseXORExpr
-                                        { $$ = new BitOperNode($1, OpBitOr, $3); }
+                                        { $$ = new BitOrNode($1, $3); }
 ;
 
 LogicalANDExpr:
     BitwiseORExpr
-  | LogicalANDExpr AND BitwiseORExpr    { $$ = new BinaryLogicalNode($1, OpAnd, $3); }
+  | LogicalANDExpr AND BitwiseORExpr    { $$ = new LogicalAndNode($1, $3); }
 ;
 
 LogicalANDExprNoIn:
     BitwiseORExprNoIn
   | LogicalANDExprNoIn AND BitwiseORExprNoIn
-                                        { $$ = new BinaryLogicalNode($1, OpAnd, $3); }
+                                        { $$ = new LogicalAndNode($1, $3); }
 ;
 
 LogicalANDExprNoBF:
     BitwiseORExprNoBF
   | LogicalANDExprNoBF AND BitwiseORExpr
-                                        { $$ = new BinaryLogicalNode($1, OpAnd, $3); }
+                                        { $$ = new LogicalAndNode($1, $3); }
 ;
 
 LogicalORExpr:
     LogicalANDExpr
-  | LogicalORExpr OR LogicalANDExpr     { $$ = new BinaryLogicalNode($1, OpOr, $3); }
+  | LogicalORExpr OR LogicalANDExpr     { $$ = new LogicalOrNode($1, $3); }
 ;
 
 LogicalORExprNoIn:
     LogicalANDExprNoIn
   | LogicalORExprNoIn OR LogicalANDExprNoIn
-                                        { $$ = new BinaryLogicalNode($1, OpOr, $3); }
+                                        { $$ = new LogicalOrNode($1, $3); }
 ;
 
 LogicalORExprNoBF:
     LogicalANDExprNoBF
-  | LogicalORExprNoBF OR LogicalANDExpr { $$ = new BinaryLogicalNode($1, OpOr, $3); }
+  | LogicalORExprNoBF OR LogicalANDExpr { $$ = new LogicalOrNode($1, $3); }
 ;
 
 ConditionalExpr:
@@ -583,19 +587,19 @@ ConditionalExprNoBF:
 AssignmentExpr:
     ConditionalExpr
   | LeftHandSideExpr AssignmentOperator AssignmentExpr
-                                        { if (!makeAssignNode($$, $1, $2, $3)) YYABORT; }
+                                        { $$ = makeAssignNode($1, $2, $3); }
 ;
 
 AssignmentExprNoIn:
     ConditionalExprNoIn
   | LeftHandSideExpr AssignmentOperator AssignmentExprNoIn
-                                        { if (!makeAssignNode($$, $1, $2, $3)) YYABORT; }
+                                        { $$ = makeAssignNode($1, $2, $3); }
 ;
 
 AssignmentExprNoBF:
     ConditionalExprNoBF
   | LeftHandSideExprNoBF AssignmentOperator AssignmentExpr
-                                        { if (!makeAssignNode($$, $1, $2, $3)) YYABORT; }
+                                        { $$ = makeAssignNode($1, $2, $3); }
 ;
 
 AssignmentOperator:
@@ -680,8 +684,9 @@ VariableDeclarationNoIn:
 ;
 
 ConstStatement:
-    CONST ConstDeclarationList ';'      { $$ = new VarStatementNode($2); DBG($$, @1, @3); }
-  | CONST ConstDeclarationList error    { $$ = new VarStatementNode($2); DBG($$, @1, @2); AUTO_SEMICOLON; }
+    CONSTTOKEN ConstDeclarationList ';' { $$ = new VarStatementNode($2); DBG($$, @1, @3); }
+  | CONSTTOKEN ConstDeclarationList error
+                                        { $$ = new VarStatementNode($2); DBG($$, @1, @2); AUTO_SEMICOLON; }
 ;
 
 ConstDeclarationList:
@@ -720,13 +725,14 @@ IfStatement:
 ;
 
 IterationStatement:
-    DO Statement WHILE '(' Expr ')'     { $$ = new DoWhileNode($2, $5); DBG($$, @1, @3);}
+    DO Statement WHILE '(' Expr ')' ';'    { $$ = new DoWhileNode($2, $5); DBG($$, @1, @3);}
+  | DO Statement WHILE '(' Expr ')'     { $$ = new DoWhileNode($2, $5); DBG($$, @1, @3);}
   | WHILE '(' Expr ')' Statement        { $$ = new WhileNode($3, $5); DBG($$, @1, @4); }
   | FOR '(' ExprNoInOpt ';' ExprOpt ';' ExprOpt ')' Statement
                                         { $$ = new ForNode($3, $5, $7, $9); DBG($$, @1, @8); }
   | FOR '(' VAR VariableDeclarationListNoIn ';' ExprOpt ';' ExprOpt ')' Statement
                                         { $$ = new ForNode($4, $6, $8, $10); DBG($$, @1, @9); }
-  | FOR '(' LeftHandSideExpr IN Expr ')' Statement
+  | FOR '(' LeftHandSideExpr INTOKEN Expr ')' Statement
                                         {
                                             Node *n = $3->nodeInsideAllParens();
                                             if (!n->isLocation())
@@ -734,9 +740,9 @@ IterationStatement:
                                             $$ = new ForInNode(n, $5, $7);
                                             DBG($$, @1, @6);
                                         }
-  | FOR '(' VAR IDENT IN Expr ')' Statement
+  | FOR '(' VAR IDENT INTOKEN Expr ')' Statement
                                         { $$ = new ForInNode(*$4, 0, $6, $8); DBG($$, @1, @7); }
-  | FOR '(' VAR IDENT InitializerNoIn IN Expr ')' Statement
+  | FOR '(' VAR IDENT InitializerNoIn INTOKEN Expr ')' Statement
                                         { $$ = new ForInNode(*$4, $5, $7, $9); DBG($$, @1, @8); }
 ;
 
@@ -815,15 +821,15 @@ ThrowStatement:
 ;
 
 TryStatement:
-    TRY Block FINALLY Block             { $$ = new TryNode($2, Identifier::null(), 0, $4); DBG($$, @1, @2); }
+    TRY Block FINALLY Block             { $$ = new TryNode($2, CommonIdentifiers::shared()->nullIdentifier, 0, $4); DBG($$, @1, @2); }
   | TRY Block CATCH '(' IDENT ')' Block { $$ = new TryNode($2, *$5, $7, 0); DBG($$, @1, @2); }
   | TRY Block CATCH '(' IDENT ')' Block FINALLY Block
                                         { $$ = new TryNode($2, *$5, $7, $9); DBG($$, @1, @2); }
 ;
 
 DebuggerStatement:
-    DEBUGGER ';'                           { $$ = new EmptyStatementNode(); DBG($$, @1, @2); }
-  | DEBUGGER error                         { $$ = new EmptyStatementNode(); DBG($$, @1, @1); AUTO_SEMICOLON; }
+    DEBUGGER ';'                        { $$ = new EmptyStatementNode(); DBG($$, @1, @2); }
+  | DEBUGGER error                      { $$ = new EmptyStatementNode(); DBG($$, @1, @1); AUTO_SEMICOLON; }
 ;
 
 FunctionDeclaration:
@@ -833,9 +839,9 @@ FunctionDeclaration:
 ;
 
 FunctionExpr:
-    FUNCTION '(' ')' FunctionBody       { $$ = new FuncExprNode(Identifier::null(), $4); }
+    FUNCTION '(' ')' FunctionBody       { $$ = new FuncExprNode(CommonIdentifiers::shared()->nullIdentifier, $4); }
   | FUNCTION '(' FormalParameterList ')' FunctionBody
-                                        { $$ = new FuncExprNode(Identifier::null(), $5, $3); }
+                                        { $$ = new FuncExprNode(CommonIdentifiers::shared()->nullIdentifier, $5, $3); }
   | FUNCTION IDENT '(' ')' FunctionBody { $$ = new FuncExprNode(*$2, $5); }
   | FUNCTION IDENT '(' FormalParameterList ')' FunctionBody
                                         { $$ = new FuncExprNode(*$2, $6, $4); }
@@ -868,70 +874,64 @@ SourceElement:
  
 %%
 
-static bool makeAssignNode(Node*& result, Node *loc, Operator op, Node *expr)
+static Node* makeAssignNode(Node* loc, Operator op, Node* expr)
 { 
     Node *n = loc->nodeInsideAllParens();
 
     if (!n->isLocation())
-        return false;
+        return new AssignErrorNode(loc, op, expr);
 
     if (n->isResolveNode()) {
         ResolveNode *resolve = static_cast<ResolveNode *>(n);
-        result = new AssignResolveNode(resolve->identifier(), op, expr);
-    } else if (n->isBracketAccessorNode()) {
-        BracketAccessorNode *bracket = static_cast<BracketAccessorNode *>(n);
-        result = new AssignBracketNode(bracket->base(), bracket->subscript(), op, expr);
-    } else {
-        assert(n->isDotAccessorNode());
-        DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
-        result = new AssignDotNode(dot->base(), dot->identifier(), op, expr);
+        return new AssignResolveNode(resolve->identifier(), op, expr);
     }
-
-    return true;
+    if (n->isBracketAccessorNode()) {
+        BracketAccessorNode *bracket = static_cast<BracketAccessorNode *>(n);
+        return new AssignBracketNode(bracket->base(), bracket->subscript(), op, expr);
+    }
+    ASSERT(n->isDotAccessorNode());
+    DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
+    return new AssignDotNode(dot->base(), dot->identifier(), op, expr);
 }
 
-static bool makePrefixNode(Node*& result, Node *expr, Operator op)
+static Node* makePrefixNode(Node *expr, Operator op)
 { 
     Node *n = expr->nodeInsideAllParens();
 
     if (!n->isLocation())
-        return false;
+        return new PrefixErrorNode(expr, op);
     
     if (n->isResolveNode()) {
         ResolveNode *resolve = static_cast<ResolveNode *>(n);
-        result = new PrefixResolveNode(resolve->identifier(), op);
-    } else if (n->isBracketAccessorNode()) {
-        BracketAccessorNode *bracket = static_cast<BracketAccessorNode *>(n);
-        result = new PrefixBracketNode(bracket->base(), bracket->subscript(), op);
-    } else {
-        assert(n->isDotAccessorNode());
-        DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
-        result = new PrefixDotNode(dot->base(), dot->identifier(), op);
+        return new PrefixResolveNode(resolve->identifier(), op);
     }
-
-    return true;
+    if (n->isBracketAccessorNode()) {
+        BracketAccessorNode *bracket = static_cast<BracketAccessorNode *>(n);
+        return new PrefixBracketNode(bracket->base(), bracket->subscript(), op);
+    }
+    ASSERT(n->isDotAccessorNode());
+    DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
+    return new PrefixDotNode(dot->base(), dot->identifier(), op);
 }
 
-static bool makePostfixNode(Node*& result, Node *expr, Operator op)
+static Node* makePostfixNode(Node* expr, Operator op)
 { 
     Node *n = expr->nodeInsideAllParens();
 
     if (!n->isLocation())
-        return false;
+        return new PostfixErrorNode(expr, op);
     
     if (n->isResolveNode()) {
         ResolveNode *resolve = static_cast<ResolveNode *>(n);
-        result = new PostfixResolveNode(resolve->identifier(), op);
-    } else if (n->isBracketAccessorNode()) {
-        BracketAccessorNode *bracket = static_cast<BracketAccessorNode *>(n);
-        result = new PostfixBracketNode(bracket->base(), bracket->subscript(), op);
-    } else {
-        assert(n->isDotAccessorNode());
-        DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
-        result = new PostfixDotNode(dot->base(), dot->identifier(), op);
+        return new PostfixResolveNode(resolve->identifier(), op);
     }
-
-    return true;
+    if (n->isBracketAccessorNode()) {
+        BracketAccessorNode *bracket = static_cast<BracketAccessorNode *>(n);
+        return new PostfixBracketNode(bracket->base(), bracket->subscript(), op);
+    }
+    ASSERT(n->isDotAccessorNode());
+    DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
+    return new PostfixDotNode(dot->base(), dot->identifier(), op);
 }
 
 static Node *makeFunctionCallNode(Node *func, ArgumentsNode *args)
@@ -950,7 +950,7 @@ static Node *makeFunctionCallNode(Node *func, ArgumentsNode *args)
         else
             return new FunctionCallBracketNode(bracket->base(), bracket->subscript(), args);
     } else {
-        assert(n->isDotAccessorNode());
+        ASSERT(n->isDotAccessorNode());
         DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
         if (n != func)
             return new FunctionCallParenDotNode(dot->base(), dot->identifier(), args);
@@ -967,7 +967,7 @@ static Node *makeTypeOfNode(Node *expr)
         ResolveNode *resolve = static_cast<ResolveNode *>(n);
         return new TypeOfResolveNode(resolve->identifier());
     } else
-        return new TypeOfValueNode(n);
+        return new TypeOfValueNode(expr);
 }
 
 static Node *makeDeleteNode(Node *expr)
@@ -983,7 +983,7 @@ static Node *makeDeleteNode(Node *expr)
         BracketAccessorNode *bracket = static_cast<BracketAccessorNode *>(n);
         return new DeleteBracketNode(bracket->base(), bracket->subscript());
     } else {
-        assert(n->isDotAccessorNode());
+        ASSERT(n->isDotAccessorNode());
         DotAccessorNode *dot = static_cast<DotAccessorNode *>(n);
         return new DeleteDotNode(dot->base(), dot->identifier());
     }
@@ -1001,9 +1001,38 @@ static bool makeGetterOrSetterPropertyNode(PropertyNode*& result, Identifier& ge
         return false;
     
     result = new PropertyNode(new PropertyNameNode(name), 
-                              new FuncExprNode(Identifier::null(), body, params), type);
+                              new FuncExprNode(CommonIdentifiers::shared()->nullIdentifier, body, params), type);
 
     return true;
+}
+
+static Node* makeNegateNode(Node *n)
+{
+    if (n->isNumber()) {
+        NumberNode* number = static_cast<NumberNode*>(n);
+
+        if (number->value() > 0.0) {
+            number->setValue(-number->value());
+            return number;
+        }
+    } else if (n->isImmediateValue()) {
+        ImmediateNumberNode* number = static_cast<ImmediateNumberNode*>(n);
+        double value = number->value();
+        if (value > 0.0) {
+            number->setValue(-value);
+            return number;
+        }
+    }
+
+    return new NegateNode(n);
+}
+
+static Node* makeNumberNode(double d)
+{
+    JSValue* value = JSImmediate::fromDouble(d);
+    if (value)
+        return new ImmediateNumberNode(value);
+    return new NumberNode(d);
 }
 
 /* called by yyparse on error */

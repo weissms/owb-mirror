@@ -34,7 +34,7 @@
 #import <wtf/Vector.h>
 #import "KURL.h"
 #import "LocalizedStrings.h"
-#import "MimeTypeRegistry.h"
+#import "MIMETypeRegistry.h"
 #import "PlatformString.h"
 #import "WebCoreNSStringExtras.h"
 #import "WebCoreSystemInterface.h"
@@ -178,7 +178,7 @@ NSURL *canonicalURL(NSURL *url)
 {
     if (!url)
         return nil;
-
+    
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:url];
     Class concreteClass = wkNSURLProtocolClassForReqest(request);
     if (!concreteClass) {
@@ -186,10 +186,13 @@ NSURL *canonicalURL(NSURL *url)
         return url;
     }
     
-    NSURL *result = nil;
+    // This applies NSURL's concept of canonicalization, but not KURL's concept. It would
+    // make sense to apply both, but when we tried that it caused a performance degradation
+    // (see 5315926). It might make sense to apply only the KURL concept and not the NSURL
+    // concept, but it's too risky to make that change for WebKit 3.0.
     NSURLRequest *newRequest = [concreteClass canonicalRequestForRequest:request];
-    NSURL *newURL = [newRequest URL];
-    result = [[newURL retain] autorelease];
+    NSURL *newURL = [newRequest URL]; 
+    NSURL *result = [[newURL retain] autorelease]; 
     [request release];
     
     return result;
@@ -241,11 +244,11 @@ NSString *suggestedFilenameWithMIMEType(NSURL *url, NSString *MIMEType)
     // I don't think we need to worry about this for the image case
     // If the type is known, check the extension and correct it if necessary.
     if (![MIMEType isEqualToString:@"application/octet-stream"] && ![MIMEType isEqualToString:@"text/plain"]) {
-        Vector<String> extensions = MimeTypeRegistry::getExtensionsForMIMEType(MIMEType);
+        Vector<String> extensions = MIMETypeRegistry::getExtensionsForMIMEType(MIMEType);
 
-        if (!extensions.size() || (extensions && !vectorContainsString(extensions, extension))) {
+        if (extensions.isEmpty() || !vectorContainsString(extensions, extension)) {
             // The extension doesn't match the MIME type. Correct this.
-            NSString *correctExtension = MimeTypeRegistry::getPreferredExtensionForMIMEType(MIMEType);
+            NSString *correctExtension = MIMETypeRegistry::getPreferredExtensionForMIMEType(MIMEType);
             if ([correctExtension length] != 0) {
                 // Append the correct extension.
                 filename = [filename stringByAppendingPathExtension:correctExtension];

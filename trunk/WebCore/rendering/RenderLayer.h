@@ -24,7 +24,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Alternatively, the contents of this file may be used under the terms
  * of either the Mozilla Public License Version 1.1, found at
@@ -51,9 +51,11 @@
 #include "RenderObject.h"
 #include "ScrollBar.h"
 #include "Timer.h"
+#include <wtf/OwnPtr.h>
 
 namespace WebCore {
 
+class AffineTransform;
 class CachedResource;
 class HitTestResult;
 class PlatformScrollbar;
@@ -102,7 +104,7 @@ public:
 
     // Overridden to prevent the normal delete from being called.
     void operator delete(void*, size_t);
-
+        
 private:
     // The normal operator new is disallowed on all render objects.
     void* operator new(size_t) throw();
@@ -133,7 +135,7 @@ public:
     int computePosition(EMarqueeDirection, bool stopAtClientEdge);
 
     void setEnd(int end) { m_end = end; }
-
+    
     void start();
     void suspend();
     void stop();
@@ -164,7 +166,7 @@ public:
         noScroll,
         alignCenter,
         alignTop,
-        alignBottom,
+        alignBottom, 
         alignLeft,
         alignRight,
         alignToClosestEdge
@@ -213,7 +215,7 @@ public:
 
     bool isTransparent() const;
     RenderLayer* transparentAncestor();
-    void beginTransparencyLayers(GraphicsContext*, const IntRect&);
+    void beginTransparencyLayers(GraphicsContext*, const RenderLayer* rootLayer);
 
     const RenderLayer* root() const
     {
@@ -222,7 +224,7 @@ public:
             curr = curr->parent();
         return curr;
     }
-
+    
     int xPos() const { return m_x; }
     int yPos() const { return m_y; }
     void setPos(int xPos, int yPos)
@@ -249,7 +251,7 @@ public:
     void scrollToYOffset(int y) { scrollToOffset(m_scrollX + m_scrollOriginX, y); }
     void scrollRectToVisible(const IntRect&, const ScrollAlignment& alignX = gAlignCenterIfNeeded, const ScrollAlignment& alignY = gAlignCenterIfNeeded);
 
-    IntRect getRectToExpose(const IntRect& visibleRect, const IntRect& exposeRect, const ScrollAlignment& alignX, const ScrollAlignment& alignY);
+    IntRect getRectToExpose(const IntRect& visibleRect, const IntRect& exposeRect, const ScrollAlignment& alignX, const ScrollAlignment& alignY);    
 
     void setHasHorizontalScrollbar(bool);
     void setHasVerticalScrollbar(bool);
@@ -260,7 +262,7 @@ public:
     Scrollbar* horizontalScrollbar() { return m_hBar.get(); }
     Scrollbar* verticalScrollbar() { return m_vBar.get(); }
 
-    PlatformScrollbar* horizontaScrollbarWidget() const;
+    PlatformScrollbar* horizontalScrollbarWidget() const;
     PlatformScrollbar* verticalScrollbarWidget() const;
 
     int verticalScrollbarWidth() const;
@@ -268,6 +270,7 @@ public:
 
     void positionOverflowControls();
     bool isPointInResizeControl(const IntPoint&);
+    bool hitTestOverflowControls(HitTestResult&);
     IntSize offsetFromResizeCorner(const IntPoint&) const;
 
     void paintOverflowControls(GraphicsContext*, int tx, int ty, const IntRect& damageRect);
@@ -280,10 +283,11 @@ public:
     void resize(const PlatformMouseEvent&, const IntSize&);
     bool inResizeMode() const { return m_inResizeMode; }
     void setInResizeMode(bool b) { m_inResizeMode = b; }
-
+    
     void updateLayerPosition();
     void updateLayerPositions(bool doFullRepaint = false, bool checkForRepaint = true);
-    void checkForRepaintOnResize();
+
+    void updateTransform();
 
     void relativePositionOffset(int& relX, int& relY) { relX += m_relX; relY += m_relY; }
 
@@ -334,14 +338,22 @@ public:
     IntRect childrenClipRect() const; // Returns the foreground clip rect of the layer in the document's coordinate space.
     IntRect selfClipRect() const; // Returns the background clip rect of the layer in the document's coordinate space.
 
-    bool intersectsDamageRect(const IntRect& layerBounds, const IntRect& damageRect) const;
+    bool intersectsDamageRect(const IntRect& layerBounds, const IntRect& damageRect, const RenderLayer* rootLayer) const;
 
     // Returns a bounding box for this layer only.
-    IntRect absoluteBoundingBox() const;
+    IntRect boundingBox(const RenderLayer* rootLayer) const;
 
     void updateHoverActiveState(const HitTestRequest&, HitTestResult&);
 
     IntRect repaintRect() const { return m_repaintRect; }
+    void setNeedsFullRepaint(bool f = true) { m_needsFullRepaint = f; }
+    
+    int staticX() const { return m_staticX; }
+    int staticY() const { return m_staticY; }
+    void setStaticX(int staticX) { m_staticX = staticX; }
+    void setStaticY(int staticY) { m_staticY = staticY; }
+
+    AffineTransform* transform() const { return m_transform.get(); }
 
     void destroy(RenderArena*);
 
@@ -367,7 +379,7 @@ private:
 
     void paintLayer(RenderLayer* rootLayer, GraphicsContext*, const IntRect& paintDirtyRect,
                     bool haveTransparency, PaintRestriction, RenderObject* paintingRoot);
-    RenderLayer* hitTestLayer(RenderLayer* rootLayer, const HitTestRequest&, HitTestResult&, const IntRect& hitTestRect);
+    RenderLayer* hitTestLayer(RenderLayer* rootLayer, const HitTestRequest&, HitTestResult&, const IntRect& hitTestRect, const IntPoint& hitTestPoint);
     void computeScrollDimensions(bool* needHBar = 0, bool* needVBar = 0);
 
     bool shouldBeOverflowOnly() const;
@@ -381,7 +393,9 @@ private:
     void dirtyVisibleDescendantStatus();
     void updateVisibilityStatus();
 
-protected:
+    Node* enclosingElement() const;
+
+protected:   
     RenderObject* m_object;
 
     RenderLayer* m_parent;
@@ -391,8 +405,7 @@ protected:
     RenderLayer* m_last;
 
     IntRect m_repaintRect; // Cached repaint rects. Used by layout.
-    int m_repaintX;
-    int m_repaintY;
+    IntRect m_outlineBox;
 
     // Our current relative position offset.
     int m_relX;
@@ -444,7 +457,7 @@ protected:
                                  // we ended up painting this layer or any descendants (and therefore need to
                                  // blend).
     bool m_inOverflowRelayout : 1;
-    bool m_repaintOverflowOnResize : 1;
+    bool m_needsFullRepaint : 1;
 
     bool m_overflowStatusDirty : 1;
     bool m_horizontalOverflow : 1;
@@ -455,6 +468,12 @@ protected:
     bool m_hasVisibleDescendant : 1;
 
     Marquee* m_marquee; // Used by layers with overflow:marquee
+    
+    // Cached normal flow values for absolute positioned elements with static left/top values.
+    int m_staticX;
+    int m_staticY;
+    
+    OwnPtr<AffineTransform> m_transform;
 };
 
 } // namespace WebCore

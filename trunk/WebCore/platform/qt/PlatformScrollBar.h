@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2004, 2006 Apple Computer, Inc.  All rights reserved.
- * Copyright (C) 2007 Pleyo.  All rights reserved.
- * 
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc.  All rights reserved.
+ * Copyright (C) 2007 Staikos Computing Services Inc. <info@staikos.net>
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -21,38 +21,79 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef PlatformScrollBar_h
-#define PlatformScrollBar_h
+#ifndef PlatformScrollbar_h
+#define PlatformScrollbar_h
 
 #include "Widget.h"
 #include "ScrollBar.h"
+#include "Timer.h"
+
+#ifndef __OWB__
+#include <QStyleOptionSlider>
+#endif //__OWB__
 
 namespace WebCore {
 
 class PlatformScrollbar : public Widget, public Scrollbar {
 public:
-    PlatformScrollbar(ScrollbarClient* c, ScrollbarOrientation o, ScrollbarControlSize s) : Scrollbar(c,o,s) {}
-    virtual ~PlatformScrollbar() {}
+    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
+    virtual ~PlatformScrollbar();
 
     virtual bool isWidget() const { return true; }
-    virtual int width() const { return 0; }
-    virtual int height() const { return 0; }
-    virtual void setRect(const IntRect&) { }
-    virtual void setEnabled(bool) { }
-    virtual void paint(GraphicsContext*, const IntRect& damageRect) { }
+    virtual int width() const;
+    virtual int height() const;
+    virtual void setRect(const IntRect&);
 
-    // FIXME: Implement.
-    static int horizontalScrollbarHeight() { return 15; }
-    static int verticalScrollbarWidth() { return 15; }
+    virtual IntRect frameGeometry() const;
+    virtual void setFrameGeometry(const IntRect& r);
 
-protected:
-    virtual void updateThumbPosition() {}
-    virtual void updateThumbProportion() {}
+    virtual void setEnabled(bool);
+    virtual void paint(GraphicsContext*, const IntRect& damageRect);
+
+    virtual bool handleMouseMoveEvent(const PlatformMouseEvent&);
+    virtual bool handleMouseOutEvent(const PlatformMouseEvent&);
+    virtual bool handleMousePressEvent(const PlatformMouseEvent&);
+    virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&);
+
+    virtual IntRect windowClipRect() const;
+
+    bool isEnabled() const;
+
+    static int horizontalScrollbarHeight(ScrollbarControlSize size = RegularScrollbar);
+    static int verticalScrollbarWidth(ScrollbarControlSize size = RegularScrollbar);
+
+    void autoscrollTimerFired(Timer<PlatformScrollbar>*);
+
+protected:    
+    virtual void updateThumbPosition();
+    virtual void updateThumbProportion();
+
+private:
+    int thumbPosition() const;
+    int thumbLength() const;
+    int trackLength() const;
+
+    void startTimerIfNeeded(double delay);
+    void stopTimerIfNeeded();
+    void autoscrollPressedPart(double delay);
+    ScrollDirection pressedPartScrollDirection();
+    ScrollGranularity pressedPartScrollGranularity();
+
+    bool thumbUnderMouse();
+
+    int m_pressedPos;
+#ifndef __OWB__
+    QStyle::SubControl m_pressedPart;
+    QStyle::SubControl m_hoveredPart;
+    Timer<PlatformScrollbar> m_scrollTimer;
+    QStyleOptionSlider m_opt;
+#endif //__OWB__
 };
 
 }
 
-#endif // PlatformScrollBar_h
+#endif // PlatformScrollbar_h
+

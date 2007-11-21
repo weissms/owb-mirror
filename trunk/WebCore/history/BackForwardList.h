@@ -34,13 +34,17 @@
 namespace WebCore {
 
 class HistoryItem;
+class Page;
+
 typedef Vector<RefPtr<HistoryItem> > HistoryItemVector;
 typedef HashSet<RefPtr<HistoryItem> > HistoryItemHashSet;
 
 class BackForwardList : public Shared<BackForwardList> {
 public: 
-    BackForwardList();
+    BackForwardList(Page*);
     ~BackForwardList();
+    
+    Page* page() { return m_page; }
     
     void addItem(PassRefPtr<HistoryItem>);
     void goBack();
@@ -57,30 +61,26 @@ public:
 
     int capacity();
     void setCapacity(int);
+    bool enabled();
+    void setEnabled(bool);
     int backListCount();
     int forwardListCount();
     bool containsItem(HistoryItem*);
 
-    static void setDefaultPageCacheSize(unsigned);
-    static unsigned defaultPageCacheSize();
-    void setPageCacheSize(unsigned);
-    unsigned pageCacheSize();
-    bool usesPageCache();
-    
     void close();
     bool closed();
     
-    void clearPageCache();
     void removeItem(HistoryItem*);
     HistoryItemVector& entries();
     
 private:
+    Page* m_page;
     HistoryItemVector m_entries;
     HistoryItemHashSet m_entryHash;
     unsigned m_current;
     unsigned m_capacity;
-    unsigned m_pageCacheSize;
     bool m_closed;
+    bool m_enabled;
 }; //class BackForwardList
     
 }; //namespace WebCore

@@ -15,15 +15,15 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
 */
 
 #include "config.h"
 #include "HitTestResult.h"
 
-#include "csshelper.h"
+#include "CSSHelper.h"
 #include "Document.h"
 #include "Frame.h"
 #include "FrameTree.h"
@@ -34,11 +34,11 @@
 #include "HTMLNames.h"
 #include "KURL.h"
 #include "PlatformScrollBar.h"
-#include "RenderObject.h"
 #include "RenderImage.h"
+#include "RenderObject.h"
 #include "SelectionController.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGNames.h"
 #include "XLinkNames.h"
 #endif
@@ -74,6 +74,18 @@ HitTestResult& HitTestResult::operator=(const HitTestResult& other)
     m_innerURLElement = other.URLElement();
     m_scrollbar = other.scrollbar();
     return *this;
+}
+
+void HitTestResult::setToNonShadowAncestor()
+{
+    Node* node = innerNode();
+    if (node)
+        node = node->shadowAncestorNode();
+    setInnerNode(node);
+    node = innerNonSharedNode();
+    if (node)
+        node = node->shadowAncestorNode();
+    setInnerNonSharedNode(node);
 }
 
 void HitTestResult::setInnerNode(Node* n)
@@ -159,15 +171,12 @@ String HitTestResult::title() const
     return String();
 }
 
-static String displayString(const String& string, const Node* node)
+String displayString(const String& string, const Node* node)
 {
     if (!node)
         return string;
-    Document* document = node->document();
-    if (!document)
-        return string;
     String copy(string);
-    copy.replace('\\', document->backslashAsCurrencySymbol());
+    copy.replace('\\', node->document()->backslashAsCurrencySymbol());
     return copy;
 }
 
@@ -197,7 +206,7 @@ Image* HitTestResult::image() const
     RenderObject* renderer = m_innerNonSharedNode->renderer();
     if (renderer && renderer->isImage()) {
         RenderImage* image = static_cast<WebCore::RenderImage*>(renderer);
-        if (image->cachedImage() && !image->cachedImage()->isErrorImage())
+        if (image->cachedImage() && !image->cachedImage()->errorOccurred())
             return image->cachedImage()->image();
     }
 
@@ -222,7 +231,7 @@ KURL HitTestResult::absoluteImageURL() const
     AtomicString urlString;
     if (m_innerNonSharedNode->hasTagName(imgTag) || m_innerNonSharedNode->hasTagName(inputTag))
         urlString = static_cast<Element*>(m_innerNonSharedNode.get())->getAttribute(srcAttr);
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     else if (m_innerNonSharedNode->hasTagName(SVGNames::imageTag))
         urlString = static_cast<Element*>(m_innerNonSharedNode.get())->getAttribute(XLinkNames::hrefAttr);
 #endif
@@ -242,7 +251,7 @@ KURL HitTestResult::absoluteLinkURL() const
     AtomicString urlString;
     if (m_innerURLElement->hasTagName(aTag) || m_innerURLElement->hasTagName(areaTag) || m_innerURLElement->hasTagName(linkTag))
         urlString = m_innerURLElement->getAttribute(hrefAttr);
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     else if (m_innerURLElement->hasTagName(SVGNames::aTag))
         urlString = m_innerURLElement->getAttribute(XLinkNames::hrefAttr);
 #endif
@@ -259,7 +268,7 @@ bool HitTestResult::isLiveLink() const
 
     if (m_innerURLElement->hasTagName(aTag))
         return static_cast<HTMLAnchorElement*>(m_innerURLElement.get())->isLiveLink();
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     if (m_innerURLElement->hasTagName(SVGNames::aTag))
         return m_innerURLElement->isLink();
 #endif

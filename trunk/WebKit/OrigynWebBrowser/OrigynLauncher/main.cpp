@@ -56,6 +56,9 @@
 #include <SDL/SDL.h>
 #endif
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 /**
  * Signal 11 catcher to prevent process from freezing on segfaults.
@@ -98,6 +101,10 @@ static void handle_event( BIEventLoop& aEventLoop ) {
             getBIWindowManager()->handleEvent(aEvent);
         }
     }
+    if (aEvent) {
+        delete aEvent;
+        aEvent = NULL;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -112,9 +119,57 @@ int main(int argc, char *argv[])
     channel->setFormatter(textLogFormatter.get());
     BALFacilities::logger.addChannel(channel.get());
 #endif
+    // default values for arguments
+    int width = 800, height = 600, depth = 32;
+    char* url = "http://google.com";
+
+    // simple arg parsing
+    int argCount = 1;
+    char* option;
+    while (argCount < argc) {
+        bool optionIsUnknown=true;
+        option = argv[argCount];
+        if ((strcmp(option, "--help")==0) || (strcmp(option,"-h")==0))
+        {
+            printf("usage:\n%s [--help] [-h] [--width w] [--height h] [--depth d] [[--url] url]\n",argv[0]);
+            return 0;
+        }
+        else if (argv[argCount][0]!='-')
+        {
+            optionIsUnknown=false;
+            url=argv[argCount];
+        }else if (argCount+1<argc){
+            if (strcmp(option, "--width") == 0){
+                optionIsUnknown=false;
+                width = (int)strtol(argv[++argCount], NULL, 10);
+                }
+            else if (strcmp(option, "--height") == 0){
+                optionIsUnknown=false;
+                height = (int)strtol(argv[++argCount], NULL, 10);
+            }
+            else if (strcmp(option, "--depth") == 0){
+                optionIsUnknown=false;
+                depth = (int)strtol(argv[++argCount], NULL, 10);
+            }
+            else if (strcmp(option, "--url") == 0){
+                optionIsUnknown=false;
+                url = argv[++argCount];
+            }
+        }
+
+        
+        
+        if (optionIsUnknown)
+            fprintf(stderr, "error: unknown option %s\n", argv[argCount]);
+
+        // next arg
+        argCount += 1;
+    }
+    printf("Using --width %d --height %d --depth %d --url %s\n", width, height, depth, url);
 
     // FIXME first thing to do, because event loop may rely on GraphicsDevice (eg SDL)
-    getBIGraphicsDevice()->initialize(800, 600, 32);
+    getBIGraphicsDevice()->initialize(width, height, depth);
+ 
     BIEventLoop* aEventLoop = getBIEventLoop();
     if( aEventLoop == NULL ) {
       printf("No event loop\n");
@@ -122,7 +177,7 @@ int main(int argc, char *argv[])
     }
 
 #if 1
-    BIWindow *window = getBIWindowManager()->openWindow(10, 10, 780, 580);
+    BIWindow *window = getBIWindowManager()->openWindow(0, 0, width, height);
 #else // code below left as example
     BIWindow *window = getBIWindowManager()->openWindow(10, 10, 385, 
 285);
@@ -133,17 +188,23 @@ int main(int argc, char *argv[])
     BIWindow *window4 = getBIWindowManager()->openWindow(405, 305, 385, 285);
     window4->setURL("http://www.ubuntu-fr.org");
 #endif
-    if( argc >= 2 ) {
-        window->setURL(argv[1]);
-    } else {
-        window->setURL("http://www.google.com");
-    }
+    
+    if(::WebCore::cookiesEnabled())
+        getBICookieJar();
+        
+    window->setURL(url);
+    
     handle_event( *aEventLoop );
     getBIWindowManager()->closeWindow(window);
-    delete getBIWindowManager();
-    delete aEventLoop;
+    deleteBIWindowManager();
+    deleteBIEventLoop();
+    aEventLoop = NULL;
 
     getBIGraphicsDevice()->finalize();
-    delete getBIGraphicsDevice();
+    deleteBIGraphicsDevice();
+    
+    if(::WebCore::cookiesEnabled())
+        deleteBICookieJar(getBICookieJar());
+    
     return 0;
 }

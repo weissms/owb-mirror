@@ -25,12 +25,14 @@
 
 module html {
 
-    interface [LegacyParent=KJS::JSHTMLElement, GenerateConstructor] HTMLCanvasElement : HTMLElement {
+    interface [GenerateConstructor] HTMLCanvasElement : HTMLElement {
 
         attribute long width;
         attribute long height;
 
+#if !defined(LANGUAGE_OBJECTIVE_C)
         DOMObject getContext(in DOMString contextId);
+#endif
 
     };
 

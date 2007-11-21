@@ -29,12 +29,15 @@
 #include "runtime.h"
 #include "object.h"
 
+#include <wtf/Noncopyable.h>
+
 namespace KJS {
 
 class RuntimeObjectImp : public JSObject {
 public:
     RuntimeObjectImp(Bindings::Instance *i);
-
+    virtual ~RuntimeObjectImp();
+    
     const ClassInfo *classInfo() const { return &info; }
 
     virtual bool getOwnPropertySlot(ExecState *, const Identifier&, PropertySlot&);
@@ -44,15 +47,17 @@ public:
     virtual JSValue *defaultValue(ExecState *exec, JSType hint) const;
     virtual bool implementsCall() const;
     virtual JSValue *callAsFunction(ExecState *exec, JSObject *thisObj, const List &args);
-    
-    Bindings::Instance *getInternalInstance() const { return instance.get(); }
+    virtual void getPropertyNames(ExecState*, PropertyNameArray&);
 
+    void invalidate();
+    Bindings::Instance *getInternalInstance() const { return instance.get(); }
+    
+    static JSObject* throwInvalidAccessError(ExecState*);
+    
     static const ClassInfo info;
 
 private:
     RuntimeObjectImp(); // prevent default construction
-    RuntimeObjectImp(const RuntimeObjectImp& other); // prevent copying
-    RuntimeObjectImp& operator=(const RuntimeObjectImp& other); // ditto
     
     static JSValue *fallbackObjectGetter(ExecState *, JSObject *, const Identifier&, const PropertySlot&);
     static JSValue *fieldGetter(ExecState *, JSObject *, const Identifier&, const PropertySlot&);

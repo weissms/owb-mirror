@@ -32,23 +32,55 @@
 
 #include <wtf/MathExtras.h>
 
+#ifdef __OWB__
+namespace BAL {
+#else
 namespace WebCore {
+#endif //__OWB__
 
-FontData::FontData(const FontPlatformData& f)
+FontData::FontData(const FontPlatformData& f, bool customFont, bool loading)
     : m_font(f)
     , m_treatAsFixedPitch(false)
+    , m_isCustomFont(customFont)
+    , m_isLoading(loading)
     , m_smallCapsFontData(0)
 {    
     platformInit();
     
+    GlyphPage* glyphPageZero = GlyphPageTreeNode::getRootChild(this, 0)->page();
+    if (!glyphPageZero) {
+        LOG_ERROR("Failed to get glyph page zero.");
+        m_spaceGlyph = 0;
+        m_spaceWidth = 0;
+        m_adjustedSpaceWidth = 0;
+        determinePitch();
+        m_missingGlyphData.fontData = this;
+        m_missingGlyphData.glyph = 0;
+        return;
+    }
+
     // Nasty hack to determine if we should round or ceil space widths.
     // If the font is monospace or fake monospace we ceil to ensure that 
     // every character and the space are the same width.  Otherwise we round.
-    m_spaceGlyph = GlyphPageTreeNode::getRootChild(this, 0)->page()->glyphDataForCharacter(' ').glyph;
+    m_spaceGlyph = glyphPageZero->glyphDataForCharacter(' ').glyph;
     float width = widthForGlyph(m_spaceGlyph);
     m_spaceWidth = width;
     determinePitch();
     m_adjustedSpaceWidth = m_treatAsFixedPitch ? ceilf(width) : roundf(width);
+
+    // Force the glyph for ZERO WIDTH SPACE to have zero width, unless it is shared with SPACE.
+    // Helvetica is an example of a non-zero width ZERO WIDTH SPACE glyph.
+    // See <http://bugs.webkit.org/show_bug.cgi?id=13178>
+    // Ask for the glyph for 0 to avoid paging in ZERO WIDTH SPACE. Control characters, including 0,
+    // are mapped to the ZERO WIDTH SPACE glyph.
+    Glyph zeroWidthSpaceGlyph = glyphPageZero->glyphDataForCharacter(0).glyph;
+    if (zeroWidthSpaceGlyph) {
+        if (zeroWidthSpaceGlyph != m_spaceGlyph)
+            m_glyphToWidthMap.setWidthForGlyph(zeroWidthSpaceGlyph, 0);
+        else
+            LOG_ERROR("Font maps SPACE and ZERO WIDTH SPACE to the same glyph. Glyph width not overridden.");
+    }
+
     m_missingGlyphData.fontData = this;
     m_missingGlyphData.glyph = 0;
 }
@@ -64,7 +96,11 @@ FontData::~FontData()
 float FontData::widthForGlyph(Glyph glyph) const
 {
     float width = m_glyphToWidthMap.widthForGlyph(glyph);
+#ifdef __OWB__
+    if (width != WebCore::cGlyphWidthUnknown)
+#else
     if (width != cGlyphWidthUnknown)
+#endif //__OWB__
         return width;
     
     width = platformWidthForGlyph(glyph);

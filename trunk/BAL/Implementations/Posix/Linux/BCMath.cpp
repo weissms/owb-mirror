@@ -43,158 +43,158 @@ namespace BAL{
 
 float BIMath::ceilf(float)
 {
-	return 0;
+    return 0;
 }
 
 float BIMath::fmodf(float, float)
 {
-	return 0;
+    return 0;
 }
 
 long int BIMath::lroundf(float)
 {
-	return 0;
+    return 0;
 }
 
 float BIMath::floorf(float)
 {
-	return 0;
+    return 0;
 }
 
 float BIMath::roundf(float)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::round(double)
 {
-	return 0;
+    return 0;
 }
 
 long int BIMath::lround(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::nextafter(double, double)
 {
-	return 0;
+    return 0;
 }
 
 float BIMath::nextafterf(float, float)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::floor(double)
 {
-	return 0;
+    return 0;
 }
 
 
 int BIMath::isfinite(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::fabs(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::copysign(double, double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::exp(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::log(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::sqrt(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::acos(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::asin(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::atan(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::atan2(double, double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::ceil(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::cos(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::sin(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::tan(double)
 {
-	return 0;
+    return 0;
 }
 
 int BIMath::signbit(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::pow(double, double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::fmod(double, double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::log10(double)
 {
-	return 0;
+    return 0;
 }
 
 int BIMath::isnan(double)
 {
-	return 0;
+    return 0;
 }
 
 int BIMath::isinf(double)
 {
-	return 0;
+    return 0;
 }
 
 double BIMath::remainder(double, double)
 {
-	return 0;
+    return 0;
 }
 }
 

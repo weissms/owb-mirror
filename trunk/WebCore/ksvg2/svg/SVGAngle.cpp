@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,29 +16,25 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+
+#if ENABLE(SVG)
 #include "SVGAngle.h"
 
 #include <math.h>
+#include <wtf/MathExtras.h>
 
 namespace WebCore {
 
-const double deg2rad = 0.017453292519943295769; // pi/180
-const double deg2grad = 400.0 / 360.0;
-
-#define rad2grad deg2grad / deg2rad
-
-SVGAngle::SVGAngle(const SVGStyledElement* context)
+SVGAngle::SVGAngle()
     : Shared<SVGAngle>()
     , m_unitType(SVG_ANGLETYPE_UNKNOWN)
     , m_value(0)
     , m_valueInSpecifiedUnits(0)
-    , m_context(context)
 {
 }
 
@@ -65,9 +61,9 @@ float SVGAngle::value() const
 void SVGAngle::calculate()
 {
     if (m_unitType == SVG_ANGLETYPE_GRAD)
-        m_value = m_valueInSpecifiedUnits / deg2grad;
+        m_value = grad2deg(m_valueInSpecifiedUnits);
     else if (m_unitType == SVG_ANGLETYPE_RAD)
-        m_value = m_valueInSpecifiedUnits / deg2rad;
+        m_value = rad2deg(m_valueInSpecifiedUnits);
     else if (m_unitType == SVG_ANGLETYPE_UNSPECIFIED || m_unitType == SVG_ANGLETYPE_DEG)
         m_value = m_valueInSpecifiedUnits;
 }
@@ -88,7 +84,7 @@ void SVGAngle::setValueAsString(const String& s)
     m_valueAsString = s;
 
     bool bOK;
-    m_valueInSpecifiedUnits = m_valueAsString.toDouble(&bOK);
+    m_valueInSpecifiedUnits = m_valueAsString.toFloat(&bOK);
     m_unitType = SVG_ANGLETYPE_UNSPECIFIED;
 
     if (!bOK) {
@@ -138,17 +134,17 @@ void SVGAngle::convertToSpecifiedUnits(unsigned short unitType)
         return;
 
     if (m_unitType == SVG_ANGLETYPE_DEG && unitType == SVG_ANGLETYPE_RAD)
-        m_valueInSpecifiedUnits *= deg2rad;
+        m_valueInSpecifiedUnits = deg2rad(m_valueInSpecifiedUnits);
     else if (m_unitType == SVG_ANGLETYPE_GRAD && unitType == SVG_ANGLETYPE_RAD)
-        m_valueInSpecifiedUnits /= rad2grad;
+        m_valueInSpecifiedUnits = grad2rad(m_valueInSpecifiedUnits);
     else if (m_unitType == SVG_ANGLETYPE_DEG && unitType == SVG_ANGLETYPE_GRAD)
-        m_valueInSpecifiedUnits *= deg2grad;
+        m_valueInSpecifiedUnits = deg2grad(m_valueInSpecifiedUnits);
     else if (m_unitType == SVG_ANGLETYPE_RAD && unitType == SVG_ANGLETYPE_GRAD)
-        m_valueInSpecifiedUnits *= rad2grad;
+        m_valueInSpecifiedUnits = rad2grad(m_valueInSpecifiedUnits);
     else if (m_unitType == SVG_ANGLETYPE_RAD && unitType == SVG_ANGLETYPE_DEG)
-        m_valueInSpecifiedUnits /= deg2rad;
+        m_valueInSpecifiedUnits = rad2deg(m_valueInSpecifiedUnits);
     else if (m_unitType == SVG_ANGLETYPE_GRAD && unitType == SVG_ANGLETYPE_DEG)
-        m_valueInSpecifiedUnits /= deg2grad;
+        m_valueInSpecifiedUnits = grad2deg(m_valueInSpecifiedUnits);
 
     m_unitType = (SVGAngleType)unitType;
 }
@@ -156,12 +152,12 @@ void SVGAngle::convertToSpecifiedUnits(unsigned short unitType)
 // Helpers
 double SVGAngle::todeg(double rad)
 {
-    return rad / deg2rad;
+    return rad2deg(rad);
 }
 
 double SVGAngle::torad(double deg)
 {
-    return deg * deg2rad;
+    return deg2rad(deg);
 }
 
 double SVGAngle::shortestArcBisector(double angle1, double angle2)
@@ -174,18 +170,8 @@ double SVGAngle::shortestArcBisector(double angle1, double angle2)
     return bisector;
 }
 
-const SVGStyledElement* SVGAngle::context() const
-{
-    return m_context;
 }
 
-void SVGAngle::setContext(const SVGStyledElement* context)
-{
-    m_context = context;
-}
-
-}
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
-

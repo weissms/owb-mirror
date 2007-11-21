@@ -28,27 +28,21 @@
 #include "config.h"
 #include "XPathStep.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "Document.h"
+#include "Element.h"
 #include "NamedAttrMap.h"
 #include "XPathNSResolver.h"
 #include "XPathParser.h"
+#include "XPathUtil.h"
 
 namespace WebCore {
 namespace XPath {
 
-Step::Step(Axis axis, const String& nodeTest, const Vector<Predicate*>& predicates)
+Step::Step(Axis axis, const NodeTest& nodeTest, const Vector<Predicate*>& predicates)
     : m_axis(axis)
     , m_nodeTest(nodeTest)
-    , m_predicates(predicates)
-{
-}
-
-Step::Step(Axis axis, const String& nodeTest, const String& namespaceURI, const Vector<Predicate*>& predicates)
-    : m_axis(axis)
-    , m_nodeTest(nodeTest)
-    , m_namespaceURI(namespaceURI)
     , m_predicates(predicates)
 {
 }
@@ -58,213 +52,245 @@ Step::~Step()
     deleteAllValues(m_predicates);
 }
 
-NodeVector Step::evaluate(Node* context) const
+void Step::evaluate(Node* context, NodeSet& nodes) const
 {
-    NodeVector inNodes = nodesInAxis(context), outNodes;
-    inNodes = nodeTestMatches(inNodes);
+    nodesInAxis(context, nodes);
     
-    outNodes = inNodes;
+    EvaluationContext& evaluationContext = Expression::evaluationContext();
+    
     for (unsigned i = 0; i < m_predicates.size(); i++) {
         Predicate* predicate = m_predicates[i];
 
-        outNodes.clear();
-        Expression::evaluationContext().size = inNodes.size();
-        Expression::evaluationContext().position = 1;
-        for (unsigned j = 0; j < inNodes.size(); j++) {
-            Node* node = inNodes[j].get();
+        NodeSet newNodes;
+        if (!nodes.isSorted())
+            newNodes.markSorted(false);
+
+        evaluationContext.size = nodes.size();
+        evaluationContext.position = 1;
+        for (unsigned j = 0; j < nodes.size(); j++) {
+            Node* node = nodes[j];
 
             Expression::evaluationContext().node = node;
-            EvaluationContext backupCtx = Expression::evaluationContext();
+            EvaluationContext backupCtx = evaluationContext;
             if (predicate->evaluate())
-                outNodes.append(node);
+                newNodes.append(node);
 
-            Expression::evaluationContext() = backupCtx;
-            ++Expression::evaluationContext().position;
+            evaluationContext = backupCtx;
+            ++evaluationContext.position;
         }
 
-        inNodes = outNodes;
+        nodes.swap(newNodes);
     }
-    return outNodes;
 }
 
-NodeVector Step::nodesInAxis(Node* context) const
+void Step::nodesInAxis(Node* context, NodeSet& nodes) const
 {
-    NodeVector nodes;
+    ASSERT(nodes.isEmpty());
     switch (m_axis) {
         case ChildAxis:
+            if (context->isAttributeNode()) // In XPath model, attribute nodes do not have children.
+                return;
+
             for (Node* n = context->firstChild(); n; n = n->nextSibling())
-                nodes.append(n);
-            return nodes;
-        case DescendantAxis: 
+                if (nodeMatches(n))
+                    nodes.append(n);
+            return;
+        case DescendantAxis:
+            if (context->isAttributeNode()) // In XPath model, attribute nodes do not have children.
+                return;
+
             for (Node* n = context->firstChild(); n; n = n->traverseNextNode(context))
-                nodes.append(n);
-            return nodes;
+                if (nodeMatches(n))
+                    nodes.append(n);
+            return;
         case ParentAxis:
-            nodes.append(context->parentNode());
-            return nodes;
-        case AncestorAxis:
-            for (Node* n = context->parentNode(); n; n = n->parentNode())
-                nodes.append(n);
-            return nodes;
+            if (context->isAttributeNode()) {
+                Node* n = static_cast<Attr*>(context)->ownerElement();
+                if (nodeMatches(n))
+                    nodes.append(n);
+            } else {
+                Node* n = context->parentNode();
+                if (n && nodeMatches(n))
+                    nodes.append(n);
+            }
+            return;
+        case AncestorAxis: {
+            Node* n = context;
+            if (context->isAttributeNode()) {
+                n = static_cast<Attr*>(context)->ownerElement();
+                if (nodeMatches(n))
+                    nodes.append(n);
+            }
+            for (n = n->parentNode(); n; n = n->parentNode())
+                if (nodeMatches(n))
+                    nodes.append(n);
+            nodes.markSorted(false);
+            return;
+        }
         case FollowingSiblingAxis:
             if (context->nodeType() == Node::ATTRIBUTE_NODE ||
                  context->nodeType() == Node::XPATH_NAMESPACE_NODE) 
-                return NodeVector();
+                return;
             
             for (Node* n = context->nextSibling(); n; n = n->nextSibling())
-                nodes.append(n);
-            return nodes;
+                if (nodeMatches(n))
+                    nodes.append(n);
+            return;
         case PrecedingSiblingAxis:
             if (context->nodeType() == Node::ATTRIBUTE_NODE ||
                  context->nodeType() == Node::XPATH_NAMESPACE_NODE)
-                return NodeVector();
+                return;
             
             for (Node* n = context->previousSibling(); n; n = n->previousSibling())
-                nodes.append(n);
-            return nodes;
-        case FollowingAxis: 
-            for (Node *p = context; !isRootDomNode(p); p = p->parentNode()) {
-                for (Node* n = p->nextSibling(); n; n = n->nextSibling()) {
+                if (nodeMatches(n))
                     nodes.append(n);
-                    for (Node* c = n->firstChild(); c; c = c->traverseNextNode(n))
-                        nodes.append(c);
+
+            nodes.markSorted(false);
+            return;
+        case FollowingAxis:
+            if (context->isAttributeNode()) {
+                Node* p = static_cast<Attr*>(context)->ownerElement();
+                while ((p = p->traverseNextNode()))
+                    if (nodeMatches(p))
+                        nodes.append(p);
+            } else {
+                for (Node* p = context; !isRootDomNode(p); p = p->parentNode()) {
+                    for (Node* n = p->nextSibling(); n; n = n->nextSibling()) {
+                        if (nodeMatches(n))
+                            nodes.append(n);
+                        for (Node* c = n->firstChild(); c; c = c->traverseNextNode(n))
+                            if (nodeMatches(c))
+                                nodes.append(c);
+                    }
                 }
             }
-            return nodes;
+            return;
         case PrecedingAxis:
+            if (context->isAttributeNode())
+                context = static_cast<Attr*>(context)->ownerElement();
+
             for (Node* p = context; !isRootDomNode(p); p = p->parentNode()) {
                 for (Node* n = p->previousSibling(); n ; n = n->previousSibling()) {
-                    nodes.append(n);
-                    for (Node* c = n->firstChild(); c; c = c->traverseNextNode(n))
-                        nodes.append(c);
+                    for (Node* c = n->lastChild(); c && c != n; c = c->traversePreviousNode(n))
+                        if (nodeMatches(c))
+                            nodes.append(c);
+                    if (nodeMatches(n))
+                        nodes.append(n);
                 }
             }
-            return nodes;
+            nodes.markSorted(false);
+            return;
         case AttributeAxis: {
             if (context->nodeType() != Node::ELEMENT_NODE)
-                return NodeVector();
+                return;
 
+            // Avoid lazily creating attribute nodes for attributes that we do not need anyway.
+            if (m_nodeTest.kind() == NodeTest::NameTest && m_nodeTest.data() != "*") {
+                RefPtr<Node> n = static_cast<Element*>(context)->getAttributeNodeNS(m_nodeTest.namespaceURI(), m_nodeTest.data());
+                if (n && n->namespaceURI() != "http://www.w3.org/2000/xmlns/") // In XPath land, namespace nodes are not accessible on the attribute axis.
+                    nodes.append(n.release());
+                return;
+            }
+            
             NamedAttrMap* attrs = context->attributes();
             if (!attrs)
-                return nodes;
+                return;
 
-            for (unsigned long i = 0; i < attrs->length(); ++i) 
-                nodes.append (attrs->item(i));
-            return nodes;
+            for (unsigned long i = 0; i < attrs->length(); ++i) {
+                RefPtr<Node> n = attrs->item(i);
+                if (nodeMatches(n.get()))
+                    nodes.append(n.release());
+            }
+            return;
         }
-        case NamespaceAxis: {
+        case NamespaceAxis:
             // XPath namespace nodes are not implemented yet.
-            return NodeVector();
-        }
+            return;
         case SelfAxis:
-            nodes.append(context);
-            return nodes;
+            if (nodeMatches(context))
+                nodes.append(context);
+            return;
         case DescendantOrSelfAxis:
-            nodes.append(context);
+            if (nodeMatches(context))
+                nodes.append(context);
+            if (context->isAttributeNode()) // In XPath model, attribute nodes do not have children.
+                return;
+
             for (Node* n = context->firstChild(); n; n = n->traverseNextNode(context))
+            if (nodeMatches(n))
                 nodes.append(n);
-            return nodes;
-        case AncestorOrSelfAxis:
-            nodes.append(context);
-            for (Node* n = context->parentNode(); n; n = n->parentNode())
-                nodes.append(n);
-            return nodes;
-    }
+            return;
+        case AncestorOrSelfAxis: {
+            if (nodeMatches(context))
+                nodes.append(context);
+            Node* n = context;
+            if (context->isAttributeNode()) {
+                n = static_cast<Attr*>(context)->ownerElement();
+                if (nodeMatches(n))
+                    nodes.append(n);
+            }
+            for (n = n->parentNode(); n; n = n->parentNode())
+                if (nodeMatches(n))
+                    nodes.append(n);
 
-    return NodeVector();
+            nodes.markSorted(false);
+            return;
+        }
+    }
+    ASSERT_NOT_REACHED();
 }
 
 
-NodeVector Step::nodeTestMatches(const NodeVector& nodes) const
+bool Step::nodeMatches(Node* node) const
 {
-    NodeVector matches;
-
-    if (m_nodeTest == "*") {
-        for (unsigned i = 0; i < nodes.size(); i++) {
-            Node* node = nodes[i].get();
-            if (node->nodeType() == primaryNodeType(m_axis) &&
-                (m_namespaceURI.isEmpty() || m_namespaceURI == node->namespaceURI()))
-                matches.append(node);
+    switch (m_nodeTest.kind()) {
+        case NodeTest::TextNodeTest:
+            return node->nodeType() == Node::TEXT_NODE || node->nodeType() == Node::CDATA_SECTION_NODE;
+        case NodeTest::CommentNodeTest:
+            return node->nodeType() == Node::COMMENT_NODE;
+        case NodeTest::ProcessingInstructionNodeTest: {
+            const String& name = m_nodeTest.data();
+            return node->nodeType() == Node::PROCESSING_INSTRUCTION_NODE && (name.isEmpty() || node->nodeName() == name);
         }
-        return matches;
-    } else if (m_nodeTest == "text()") {
-        HashSet<Node*> nodeSet;
-        for (unsigned i = 0; i < nodes.size(); i++) {
-            Node* node = nodes[i].get();
-            if ((node->nodeType() == Node::TEXT_NODE || node->nodeType() == Node::CDATA_SECTION_NODE)) {
-                nodeSet.add(node);
-                if (!nodeSet.contains(node->previousSibling())) // See <http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#TextNodes>
-                    matches.append(node);
-            }
-        }
-        return matches;
-    } else if (m_nodeTest == "comment()") {
-        for (unsigned i = 0; i < nodes.size(); i++) {
-            Node* node = nodes[i].get();
-            if (node->nodeType() == Node::COMMENT_NODE)
-                matches.append(node);
-        }
-        return matches;
-    } else if (m_nodeTest.startsWith("processing-instruction")) {
-        String param;
+        case NodeTest::ElementNodeTest:
+            return node->isElementNode();
+        case NodeTest::AnyNodeTest:
+            return true;
+        case NodeTest::NameTest: {
+            const String& name = m_nodeTest.data();
+            const String& namespaceURI = m_nodeTest.namespaceURI();
 
-        const int space = m_nodeTest.find(' ');
-        if (space > -1)
-            param = m_nodeTest.substring(space + 1);
+            if (m_axis == AttributeAxis) {
+                ASSERT(node->isAttributeNode());
 
-        for (unsigned i = 0; i < nodes.size(); i++) {
-            Node* node = nodes[i].get();
+                // In XPath land, namespace nodes are not accessible on the attribute axis.
+                if (node->namespaceURI() == "http://www.w3.org/2000/xmlns/")
+                    return false;
 
-            if (node->nodeType() == Node::PROCESSING_INSTRUCTION_NODE &&
-                (param.isEmpty() || node->nodeName() == param))
-                    matches.append(node);
-        }    
-        return matches;
-    } else if (m_nodeTest == "node()")
-        return nodes;
-    else {
-        if (m_axis == AttributeAxis) {
-            // In XPath land, namespace nodes are not accessible
-            // on the attribute axis.
-            if (m_nodeTest == "xmlns")
-                return matches;
+                if (name == "*")
+                    return namespaceURI.isEmpty() || node->namespaceURI() == namespaceURI;
 
-            for (unsigned i = 0; i < nodes.size(); i++) {
-                Node* node = nodes[i].get();
-                
-                if (node->nodeName() == m_nodeTest) {
-                    matches.append(node);
-                    break; // There can only be one.
-                }
+                return node->localName() == name && node->namespaceURI() == namespaceURI;
             }
 
-            return matches;
-        } else if (m_axis == NamespaceAxis) {
-            // Node test on the namespace axis is not implemented yet
-        } else {
-            for (unsigned i = 0; i < nodes.size(); i++) {
-                Node* node = nodes[i].get();
-
-                // We use tagQName here because we don't want the element name in uppercase 
-                // like we get with HTML elements.
-                // Paths without namespaces should match HTML elements in HTML documents despite those having an XHTML namespace.
-                if (node->nodeType() == Node::ELEMENT_NODE
-                    && static_cast<Element*>(node)->tagQName().localName() == m_nodeTest
-                    && ((node->isHTMLElement() && node->document()->isHTMLDocument() && m_namespaceURI.isNull()) || m_namespaceURI == node->namespaceURI()))
-                    matches.append(node);
+            if (m_axis == NamespaceAxis) {
+                // Node test on the namespace axis is not implemented yet
+                return false;
             }
+            
+            if (name == "*")
+                return node->nodeType() == primaryNodeType(m_axis) && (namespaceURI.isEmpty() || namespaceURI == node->namespaceURI());
 
-            return matches;
+            // We use tagQName here because we don't want the element name in uppercase 
+            // like we get with HTML elements.
+            // Paths without namespaces should match HTML elements in HTML documents despite those having an XHTML namespace.
+            return node->nodeType() == Node::ELEMENT_NODE
+                    && static_cast<Element*>(node)->tagQName().localName() == name
+                    && ((node->isHTMLElement() && node->document()->isHTMLDocument() && namespaceURI.isNull()) || namespaceURI == node->namespaceURI());
         }
     }
-
-    return matches;
-}
-
-void Step::optimize()
-{
-    for (unsigned i = 0; i < m_predicates.size(); i++)
-        m_predicates[i]->optimize();
+    ASSERT_NOT_REACHED();
+    return false;
 }
 
 Node::NodeType Step::primaryNodeType(Axis axis) const
@@ -282,4 +308,4 @@ Node::NodeType Step::primaryNodeType(Axis axis) const
 }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

@@ -41,63 +41,27 @@
 #if PLATFORM(QT)
 #include "qt_instance.h"
 #endif
+#ifdef __OWB__
+#include "bal_instance.h"
+#endif
 
 namespace KJS { namespace Bindings {
 
-void MethodList::addMethod(Method *aMethod)
+Array::Array(PassRefPtr<RootObject> rootObject)
+    : _rootObject(rootObject)
 {
-    Method **_newMethods = new Method *[_length + 1];
-    if (_length > 0) {
-        memcpy(_newMethods, _methods, sizeof(Method *) * _length);
-        delete [] _methods;
-    }
-    _methods = _newMethods;
-    _methods[_length++] = aMethod;
+    ASSERT(_rootObject);
 }
 
-unsigned int MethodList::length() const
+Array::~Array()
 {
-    return _length;
 }
 
-Method *MethodList::methodAt(unsigned int index) const
+Instance::Instance(PassRefPtr<RootObject> rootObject)
+    : _rootObject(rootObject)
+    , _refCount(0)
 {
-    assert(index < _length);
-    return _methods[index];
-}
-    
-MethodList::~MethodList()
-{
-    delete [] _methods;
-}
-
-MethodList::MethodList(const MethodList &other)
-{
-    _length = other._length;
-    _methods = new Method *[_length];
-    if (_length > 0)
-        memcpy (_methods, other._methods, sizeof(Method *) * _length);
-}
-
-MethodList &MethodList::operator=(const MethodList &other)
-{
-    if (this == &other)
-        return *this;
-            
-    delete [] _methods;
-    
-    _length = other._length;
-    _methods = new Method *[_length];
-    if (_length > 0)
-        memcpy(_methods, other._methods, sizeof(Method *) * _length);
-
-    return *this;
-}
-
-
-Instance::Instance()
-    : _refCount(0)
-{
+    ASSERT(_rootObject);
 }
 
 Instance::~Instance()
@@ -126,23 +90,33 @@ Instance* Instance::createBindingForLanguageInstance(BindingLanguage language, v
     switch (language) {
 #if HAVE(JNI)
         case Instance::JavaLanguage: {
-            newInstance = new Bindings::JavaInstance((jobject)nativeInstance);
+            newInstance = new Bindings::JavaInstance((jobject)nativeInstance, rootObject);
             break;
         }
 #endif
 #if PLATFORM(MAC)
         case Instance::ObjectiveCLanguage: {
-            newInstance = new Bindings::ObjcInstance((ObjectStructPtr)nativeInstance);
+            newInstance = new Bindings::ObjcInstance((ObjectStructPtr)nativeInstance, rootObject);
             break;
         }
 #endif
+#if !PLATFORM(DARWIN) || !defined(__LP64__)
         case Instance::CLanguage: {
-            newInstance = new Bindings::CInstance((NPObject *)nativeInstance);
+#ifndef __OWB__
+	    newInstance = new Bindings::CInstance((NPObject *)nativeInstance, rootObject);
+#endif
             break;
         }
+#endif
 #if PLATFORM(QT)
         case Instance::QtLanguage: {
-            newInstance = new Bindings::QtInstance((QObject *)nativeInstance);
+            newInstance = new Bindings::QtInstance((QObject *)nativeInstance, rootObject);
+            break;
+        }
+#endif
+#ifdef __OWB__
+	case Instance::BalLanguage: {
+            newInstance = new Bindings::BalInstance((BalObject *)nativeInstance, rootObject);
             break;
         }
 #endif
@@ -150,9 +124,6 @@ Instance* Instance::createBindingForLanguageInstance(BindingLanguage language, v
             break;
     }
 
-    if (newInstance)
-        newInstance->setRootObject(rootObject);
-        
     return newInstance;
 }
 
@@ -162,11 +133,6 @@ JSObject* Instance::createRuntimeObject(BindingLanguage language, void* nativeIn
     
     JSLock lock;
     return new RuntimeObjectImp(instance);
-}
-
-void Instance::setRootObject(PassRefPtr<RootObject> rootObject)
-{
-    _rootObject = rootObject;
 }
 
 RootObject* Instance::rootObject() const 

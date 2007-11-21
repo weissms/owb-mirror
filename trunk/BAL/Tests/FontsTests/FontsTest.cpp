@@ -30,15 +30,18 @@
 #include "BALConfiguration.h"
 #include "TestHelpers/BALBitmapWriter.h"
 #include "TestHelpers/BALFileReader.h"
+#include "BIGraphicsDevice.h"
 #include "BTLogHelper.h"
-#include "BTFont.h"
+#include "BTScrollView.h"
+#include "Font.h"
 #include "FontFamily.h"
-#include "BIFontCache.h"
+#include "FontCache.h"
 #include "AtomicString.h"
 #include "BIGraphicsContext.h"
-#include "BIRGBA32Surface.h"
+#include "BINativeImage.h"
 #include "StringImpl.h"
-#include "../Implementations/Graphics/Cairo/RGBA32GraphicsContext.h"
+#include "TextStyle.h"
+//#include "../Implementations/Graphics/Cairo/RGBA32GraphicsContext.h"
 #include "TestHelpers/BALFileComparison.h"
 
 using WebCore::FontFamily;
@@ -94,7 +97,7 @@ public:
     static void testAnsiLowerHalf()
     {
         setUp();
-        
+
         // we should do it once :
         WebCore::StringImpl message(asciiFirstHalf);
 
@@ -102,7 +105,7 @@ public:
         TextRun textRun(&message);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         FontDescription fontDescription;
         // this is normally computed by CSS and fixes the minimum size
@@ -111,11 +114,12 @@ public:
         // update m_fontList
         // needed or else Assertion `m_fontList' will failed.
         font.update();
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
 
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_ansilower", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
-        
+        writeBitmap("text_ansilower", context, array, font, textRun, textStyle, rect);
+        delete context;
+
         tearDown();
     }
 
@@ -130,12 +134,13 @@ public:
         TextRun textRun(&message);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         Font font = createFont();
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_ansiupper", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_ansiupper", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -148,11 +153,13 @@ public:
         TextRun textRun(&message);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
+
         Font font = createFont();
-        context = createContextForFont(font, textRun, textStyle, rect);
-        //writeBitmap("/tmp/nulltext", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        //RGBA32Array *array = init(widget, IntRect(rect));
+        //writeBitmap("/tmp/nulltext", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -168,7 +175,7 @@ public:
         TextRun textRun(&ansiMessage);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         // create bold font
         FontDescription fontDescription;
@@ -177,9 +184,10 @@ public:
         Font font(fontDescription,0,0);
         font.update();
 
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_bold", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_bold", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -196,7 +204,7 @@ public:
         TextStyle textStyle;
         textStyle.setRTL(true);
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         // create bold font
         FontDescription fontDescription;
@@ -205,9 +213,10 @@ public:
         Font font(fontDescription,0,0);
         font.update();
 
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_rtl", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_rtl", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -223,7 +232,7 @@ public:
         TextRun textRun(&ansiMessage);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         // create italic font
         FontDescription fontDescription;
@@ -232,9 +241,10 @@ public:
         Font font(fontDescription,0,0);
         font.update();
 
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_italic", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_italic", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -250,7 +260,7 @@ public:
         TextRun textRun(&ansiMessage);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         // create bold font
         FontDescription fontDescription;
@@ -260,9 +270,10 @@ public:
         Font font(fontDescription,0,0);
         font.update();
 
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_bolditalic", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_bolditalic", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -278,7 +289,7 @@ public:
         TextRun textRun(&ansiMessage);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         // create bold font
         FontDescription fontDescription;
@@ -287,9 +298,10 @@ public:
         Font font(fontDescription,0,0);
         font.update();
 
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_smallcaps", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_smallcaps", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -321,7 +333,7 @@ public:
         TextRun textRun(&message);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         FontDescription fontDescription;
         fontDescription.setComputedSize(size);
@@ -329,9 +341,10 @@ public:
         Font font(fontDescription,0,0);
         font.update();
 
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap(filename, context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap(filename, context, array, font, textRun, textStyle, rect);
+        delete context;
     }
 
     static void testArial() {
@@ -344,8 +357,7 @@ public:
         TextRun textRun(&ansiMessage);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
-
+        BTScrollView widget;
 
         // create font with custom family
         FontDescription fontDescription;
@@ -356,10 +368,10 @@ public:
         Font font(fontDescription,0,0);
 
         font.update();
-        context = createContextForFont(font, textRun, textStyle, rect);
-
-        writeBitmap("text_Arial", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_Arial", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -374,8 +386,7 @@ public:
         TextRun textRun(&ansiMessage);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
-
+        BTScrollView widget;
 
         // create font with custom family
         FontDescription fontDescription;
@@ -386,10 +397,10 @@ public:
         Font font(fontDescription,0,0);
 
         font.update();
-        context = createContextForFont(font, textRun, textStyle, rect);
-
-        writeBitmap("text_Times", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_Times", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -404,7 +415,7 @@ public:
         TextRun textRun(&ansiMessage);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
 
         // create font with custom family
@@ -416,10 +427,10 @@ public:
         Font font(fontDescription,0,0);
 
         font.update();
-        context = createContextForFont(font, textRun, textStyle, rect);
-
-        writeBitmap("text_Courier", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_Courier", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -437,12 +448,13 @@ public:
         TextRun textRun(message, 0x80);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         Font font = createFullGlyphsFont();
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_latinA", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_LatinA", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -467,12 +479,13 @@ public:
         TextRun textRun(message, 0x80);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         Font font = createFullGlyphsFont();
-        context = createContextForFont(font, textRun, textStyle, rect);
-        writeBitmap("text_latinB", context, font, textRun, textStyle, rect);
-        deleteRGBA32GraphicsContext(context);
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        writeBitmap("text_LatinB", context, array, font, textRun, textStyle, rect);
+        delete context;
         
         tearDown();
     }
@@ -509,14 +522,15 @@ public:
         TextRun textRun(message, to-from);
         TextStyle textStyle;
         FloatRect rect;
-        BIGraphicsContext* context;
+        BTScrollView widget;
 
         Font font = createFullGlyphsFont();
-        context = createContextForFont(font, textRun, textStyle, rect);
-        log(file);
-        TestManager::AssertTrue(file, shouldFail == writeBitmap(file, context,
+        BIGraphicsContext *context = createContextForFont(widget, font, textRun, textStyle, rect);
+        RGBA32Array *array = init(widget, IntRect(rect));
+        DBG(file);
+        TestManager::AssertTrue(file, shouldFail == writeBitmap(file, context, array,
                                         font, textRun, textStyle, rect));
-        deleteRGBA32GraphicsContext(context);
+        delete context;
         
         tearDown();
     }
@@ -552,60 +566,67 @@ public:
 
         return font;
     }
-    static BIGraphicsContext* createContextForFont(
+
+    static BIGraphicsContext* createContextForFont(BTScrollView& widget,
             Font& font, TextRun& textRun, TextStyle& textStyle, FloatRect& rect) {
         // get rectangle dimension to hold text
         rect = font.selectionRectForText(textRun, TextStyle(),
                                          IntPoint(), font.height());
-        log(make_message("selectRectForText : %f,%f,%f,%f",
+        DBG(make_message("selectRectForText : %f,%f,%f,%f\n",
             rect.x(), rect.y(), rect.width(), rect.height()));
 
         // now create a GraphicContext with rect to hold our text
-        BIGraphicsContext* context =
-                createRGBA32GraphicsContext((unsigned)rect.width(), font.height());
+        BIGraphicsContext* context = createBIGraphicsContext();
         context->setAlpha(0.0);
-        context->setPen(Color::white);
+        context->setStrokeColor(Color::white);
+        context->setWidget(&widget);
         return context;
     }
 
-    static int writeBitmap(const char* filename, BIGraphicsContext* context, Font& font,
-                TextRun& textRun, TextStyle& textStyle, FloatRect& rect) {
+    static RGBA32Array* init(BTScrollView& widget, IntRect rect)
+    {
+        BIGraphicsDevice* device = getBIGraphicsDevice();
+        //there is no need to initialize the graphic device
+        RGBA32Array *array = new RGBA32Array(rect.height() * rect.width());
+        memset(array, 0, sizeof(array));
+        BINativeImage *image = device->createNativeImage(*array, rect.size());
+        widget.setBackingStore(image);
+        return array;
+    }
 
+    static int writeBitmap(const char* filename, BIGraphicsContext* context, RGBA32Array* surface,
+                           Font& font, TextRun& textRun, TextStyle& textStyle, FloatRect& rect)
+    {
+
+        if (0 == surface) {
+            DBG("Invalid RGBA32Array\n");
+            return 1;
+        }
         // can't do a font.drawText, color info is in context !!
         //font.drawText(context, textRun, textStyle, FloatPoint(0,font.ascent()));
         context->setFont(font);
         context->drawText(textRun, IntPoint(0, font.ascent()), textStyle);
-        // get surface and write it to a file
-        RGBA32Array* surface =
-                ((BIRGBA32Surface*)(RGBA32GraphicsContext*)(context))->getRGBA32Array();
-        if (0 == surface)
-        {
-            log("Can't create RGBA32Array");
-            return 1;
-        }
 
         std::string testFile("/tmp/");
         testFile += filename;
         testFile += ".bmp";
         if (0 == WriteRGBA32Bitmap(testFile.c_str(), *surface,
                     (int)rect.width(), (int)rect.height())) {
-            delete surface;
             // Compare data to reference
             BALFileComparison aComparison;
-                        
+
             std::string aPath = TestManager::GetInstance().getPath() + "FontsTests/Refs/";
-            
+
             std::string referenceFile(aPath);
             referenceFile += filename;
             referenceFile += ".bmp";
             bool areEqual = aComparison.AreEqual(testFile, referenceFile);
-            log(make_message("%s == %s ? %d", testFile.c_str(), referenceFile.c_str(), areEqual));
+            DBG("%s == %s ? %d\n", testFile.c_str(), referenceFile.c_str(), areEqual);
             TestManager::AssertTrue( "Decoded result matches reference", areEqual );
             return 0;
         }
         else {
-            delete surface;
-            log("WriteRGBA32Bitmap failed");
+            DBG("WriteRGBA32Bitmap failed\n");
             return 1;
         }
     }

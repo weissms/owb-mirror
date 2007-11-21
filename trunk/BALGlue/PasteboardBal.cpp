@@ -68,12 +68,12 @@ PassRefPtr<DocumentFragment> Pasteboard::documentFragment(Frame* frame, PassRefP
     return 0;
 }
 
-void Pasteboard::writeURL(const KURL&, const String&, Frame*, bool isImage)
+void Pasteboard::writeURL(const KURL&, const String&, Frame*)
 {
     BALNotImplemented();
 }
 
-void Pasteboard::writeImage(const HitTestResult&)
+void Pasteboard::writeImage(Node*, const KURL&, const String& title)
 {
     BALNotImplemented();
 }

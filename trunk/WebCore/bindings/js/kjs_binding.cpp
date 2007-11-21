@@ -1,7 +1,8 @@
 /*
  *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
- *  Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ *  Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
+ *  Copyright (C) 2007 Samuel Weinig <sam@webkit.org>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -15,7 +16,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 // gcc 3.x can't handle including the HashMap pointer specialization in this file
@@ -30,37 +31,36 @@
 #include "Event.h"
 #include "EventNames.h"
 #include "Frame.h"
+#include "HTMLImageElement.h"
+#include "HTMLNames.h"
+#include "JSNode.h"
 #include "Page.h"
 #include "PlatformString.h"
 #include "Range.h"
 #include "RangeException.h"
-#include "xmlhttprequest.h"
+#include "XMLHttpRequest.h"
 #include "kjs_dom.h"
 #include "kjs_window.h"
 #include <kjs/collector.h>
 #include <wtf/HashMap.h>
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGException.h"
 #endif
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 #include "XPathEvaluator.h"
 #endif
 
 using namespace WebCore;
 using namespace EventNames;
+using namespace HTMLNames;
 
 namespace KJS {
 
 typedef HashMap<void*, DOMObject*> DOMObjectMap;
-typedef HashMap<Node*, DOMNode*> NodeMap;
+typedef HashMap<Node*, JSNode*> NodeMap;
 typedef HashMap<Document*, NodeMap*> NodePerDocMap;
-
-UString DOMObject::toString(ExecState*) const
-{
-    return "[object " + className() + "]";
-}
 
 // For debugging, keep a set of wrappers currently registered, and check that
 // all are unregistered before they are destroyed. This has helped us fix at
@@ -113,17 +113,24 @@ DOMObject::~DOMObject()
 
 static DOMObjectMap& domObjects()
 { 
+    // Don't use malloc here. Calling malloc from a mark function can deadlock.
     static DOMObjectMap staticDOMObjects;
     return staticDOMObjects;
 }
 
 static NodePerDocMap& domNodesPerDocument()
 {
+    // domNodesPerDocument() callers must synchronize using the JSLock because 
+    // domNodesPerDocument() is called from a mark function, which can run
+    // on a secondary thread.
+    ASSERT(JSLock::lockCount());
+
+    // Don't use malloc here. Calling malloc from a mark function can deadlock.
     static NodePerDocMap staticDOMNodesPerDocument;
     return staticDOMNodesPerDocument;
 }
 
-ScriptInterpreter::ScriptInterpreter(JSObject* global, Frame* frame)
+ScriptInterpreter::ScriptInterpreter(JSGlobalObject* global, Frame* frame)
     : Interpreter(global)
     , m_frame(frame)
     , m_currentEvent(0)
@@ -131,7 +138,7 @@ ScriptInterpreter::ScriptInterpreter(JSObject* global, Frame* frame)
     , m_timerCallback(false)
 {
     // Time in milliseconds before the script timeout handler kicks in.
-    setTimeoutTime(5000);
+    setTimeoutTime(10000);
 }
 
 DOMObject* ScriptInterpreter::getDOMObject(void* objectHandle) 
@@ -151,10 +158,10 @@ void ScriptInterpreter::forgetDOMObject(void* objectHandle)
     domObjects().remove(objectHandle);
 }
 
-DOMNode* ScriptInterpreter::getDOMNodeForDocument(Document* document, Node* node)
+JSNode* ScriptInterpreter::getDOMNodeForDocument(Document* document, Node* node)
 {
     if (!document)
-        return static_cast<DOMNode*>(domObjects().get(node));
+        return static_cast<JSNode*>(domObjects().get(node));
     NodeMap* documentDict = domNodesPerDocument().get(document);
     if (documentDict)
         return documentDict->get(node);
@@ -173,7 +180,7 @@ void ScriptInterpreter::forgetDOMNodeForDocument(Document* document, Node* node)
         documentDict->remove(node);
 }
 
-void ScriptInterpreter::putDOMNodeForDocument(Document* document, Node* node, DOMNode* wrapper)
+void ScriptInterpreter::putDOMNodeForDocument(Document* document, Node* node, JSNode* wrapper)
 {
     ADD_WRAPPER(wrapper);
     if (!document) {
@@ -206,30 +213,19 @@ void ScriptInterpreter::markDOMNodesForDocument(Document* doc)
         NodeMap* nodeDict = dictIt->second;
         NodeMap::iterator nodeEnd = nodeDict->end();
         for (NodeMap::iterator nodeIt = nodeDict->begin(); nodeIt != nodeEnd; ++nodeIt) {
-            DOMNode* node = nodeIt->second;
+            JSNode* jsNode = nodeIt->second;
+            Node* node = jsNode->impl();
+            
             // don't mark wrappers for nodes that are no longer in the
             // document - they should not be saved if the node is not
             // otherwise reachable from JS.
-            if (node->impl()->inDocument() && !node->marked())
-                node->mark();
+            // However, image elements that aren't in the document are also
+            // marked, if they are not done loading yet.
+            if (!jsNode->marked() && (node->inDocument() || (node->hasTagName(imgTag) &&
+                                                             !static_cast<HTMLImageElement*>(node)->haveFiredLoadEvent())))
+                jsNode->mark();
         }
     }
-}
-
-void ScriptInterpreter::mark(bool currentThreadIsMainThread)
-{
-    if (!currentThreadIsMainThread) {
-        // On alternate threads, DOMObjects remain in the cache because they're not collected.
-        // So, they need an opportunity to mark their children.
-        DOMObjectMap::iterator objectEnd = domObjects().end();
-        for (DOMObjectMap::iterator objectIt = domObjects().begin(); objectIt != objectEnd; ++objectIt) {
-            DOMObject* object = objectIt->second;
-            if (!object->marked())
-                object->mark();
-        }
-    }
-
-    Interpreter::mark(currentThreadIsMainThread);
 }
 
 ExecState* ScriptInterpreter::globalExec()
@@ -243,7 +239,7 @@ ExecState* ScriptInterpreter::globalExec()
 void ScriptInterpreter::updateDOMNodeDocument(Node* node, Document* oldDoc, Document* newDoc)
 {
     ASSERT(oldDoc != newDoc);
-    DOMNode* wrapper = getDOMNodeForDocument(oldDoc, node);
+    JSNode* wrapper = getDOMNodeForDocument(oldDoc, node);
     if (wrapper) {
         REMOVE_WRAPPER(wrapper);
         putDOMNodeForDocument(newDoc, node, wrapper);
@@ -295,19 +291,33 @@ Interpreter* ScriptInterpreter::interpreterForGlobalObject(const JSValue* imp)
 
 bool ScriptInterpreter::shouldInterruptScript() const
 {
-    if (Page *page = m_frame->page())
-        return page->chrome()->shouldInterruptJavaScript();
-    
-    return false;
+    Page* page = m_frame->page();
+
+    // See <rdar://problem/5479443>. We don't think that page can ever be NULL
+    // in this case, but if it is, we've gotten into a state where we may have
+    // hung the UI, with no way to ask the client whether to cancel execution. 
+    // For now, our solution is just to cancel execution no matter what, 
+    // ensuring that we never hang. We might want to consider other solutions 
+    // if we discover problems with this one.
+    ASSERT(page);
+    if (!page)
+        return true;
+
+    return page->chrome()->shouldInterruptJavaScript();
 }
-    
-//////
 
 JSValue* jsStringOrNull(const String& s)
 {
     if (s.isNull())
         return jsNull();
     return jsString(s);
+}
+
+JSValue* jsOwnedStringOrNull(const KJS::UString& s)
+{
+    if (s.isNull())
+        return jsNull();
+    return jsOwnedString(s);
 }
 
 JSValue* jsStringOrUndefined(const String& s)
@@ -327,6 +337,13 @@ JSValue* jsStringOrFalse(const String& s)
 String valueToStringWithNullCheck(ExecState* exec, JSValue* val)
 {
     if (val->isNull())
+        return String();
+    return val->toString(exec);
+}
+
+String valueToStringWithUndefinedOrNullCheck(ExecState* exec, JSValue* val)
+{
+    if (val->isUndefinedOrNull())
         return String();
     return val->toString(exec);
 }
@@ -364,14 +381,14 @@ static const char* const xmlHttpRequestExceptionNames[] = {
     "NETWORK_ERR"
 };
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 static const char* const xpathExceptionNames[] = {
     "INVALID_EXPRESSION_ERR",
     "TYPE_ERR"
 };
 #endif
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 static const char* const svgExceptionNames[] = {
     "SVG_WRONG_TYPE_ERR",
     "SVG_INVALID_VALUE_ERR",
@@ -414,7 +431,7 @@ void setDOMException(ExecState* exec, ExceptionCode ec)
         code -= XMLHttpRequestExceptionOffset;
         nameTable = xmlHttpRequestExceptionNames;
         nameTableSize = sizeof(xmlHttpRequestExceptionNames) / sizeof(xmlHttpRequestExceptionNames[0]);
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
     } else if (code >= XPathExceptionOffset && code <= XPathExceptionMax) {
         type = "DOM XPath";
         // XPath exception codes start with 51 and we don't want 51 empty elements in the name array
@@ -423,7 +440,7 @@ void setDOMException(ExecState* exec, ExceptionCode ec)
         nameTable = xpathExceptionNames;
         nameTableSize = sizeof(xpathExceptionNames) / sizeof(xpathExceptionNames[0]);
 #endif
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     } else if (code >= SVGExceptionOffset && code <= SVGExceptionMax) {
         type = "DOM SVG";
         code -= SVGExceptionOffset;

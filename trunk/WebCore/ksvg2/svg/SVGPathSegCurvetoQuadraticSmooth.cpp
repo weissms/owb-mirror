@@ -16,20 +16,20 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPathSegCurvetoQuadraticSmooth.h"
 
 #include "SVGStyledElement.h"
 
 namespace WebCore {
 
-SVGPathSegCurvetoQuadraticSmoothAbs::SVGPathSegCurvetoQuadraticSmoothAbs(double x, double y)
+SVGPathSegCurvetoQuadraticSmoothAbs::SVGPathSegCurvetoQuadraticSmoothAbs(float x, float y)
     : SVGPathSeg()
     , m_x(x)
     , m_y(y)
@@ -40,29 +40,29 @@ SVGPathSegCurvetoQuadraticSmoothAbs::~SVGPathSegCurvetoQuadraticSmoothAbs()
 {
 }
 
-void SVGPathSegCurvetoQuadraticSmoothAbs::setX(double x)
+void SVGPathSegCurvetoQuadraticSmoothAbs::setX(float x)
 {
     m_x = x;
 }
 
-double SVGPathSegCurvetoQuadraticSmoothAbs::x() const
+float SVGPathSegCurvetoQuadraticSmoothAbs::x() const
 {
     return m_x;
 }
 
-void SVGPathSegCurvetoQuadraticSmoothAbs::setY(double y)
+void SVGPathSegCurvetoQuadraticSmoothAbs::setY(float y)
 {
     m_y = y;
 }
 
-double SVGPathSegCurvetoQuadraticSmoothAbs::y() const
+float SVGPathSegCurvetoQuadraticSmoothAbs::y() const
 {
     return m_y;
 }
 
 
 
-SVGPathSegCurvetoQuadraticSmoothRel::SVGPathSegCurvetoQuadraticSmoothRel(double x, double y)
+SVGPathSegCurvetoQuadraticSmoothRel::SVGPathSegCurvetoQuadraticSmoothRel(float x, float y)
     : SVGPathSeg()
     , m_x(x)
     , m_y(y)
@@ -73,28 +73,28 @@ SVGPathSegCurvetoQuadraticSmoothRel::~SVGPathSegCurvetoQuadraticSmoothRel()
 {
 }
 
-void SVGPathSegCurvetoQuadraticSmoothRel::setX(double x)
+void SVGPathSegCurvetoQuadraticSmoothRel::setX(float x)
 {
     m_x = x;
 }
 
-double SVGPathSegCurvetoQuadraticSmoothRel::x() const
+float SVGPathSegCurvetoQuadraticSmoothRel::x() const
 {
     return m_x;
 }
 
-void SVGPathSegCurvetoQuadraticSmoothRel::setY(double y)
+void SVGPathSegCurvetoQuadraticSmoothRel::setY(float y)
 {
     m_y = y;
 }
 
-double SVGPathSegCurvetoQuadraticSmoothRel::y() const
+float SVGPathSegCurvetoQuadraticSmoothRel::y() const
 {
     return m_y;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

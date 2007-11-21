@@ -29,7 +29,7 @@
 
 #include "BIImageDecoder.h"
 #include "ImageDecoderCommonImplementation.h"
-#include "ImageAnimationObserver.h"
+#include "ImageObserver.h"
 
 namespace BC {
 
@@ -54,9 +54,9 @@ public:
 
     virtual IntSize size() const { return mImageDecoderCommonImplementation.size(); }
 
-		virtual int frameCount() { return 1; }
+    virtual int frameCount() { return 1; }
 
-		virtual int repetitionCount() const { return WebCore::cAnimationNone; }
+    virtual int repetitionCount() const { return WebCore::cAnimationNone; }
 
 public:
     void decode(bool sizeOnly = false) const;

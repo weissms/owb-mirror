@@ -20,7 +20,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Alternatively, the contents of this file may be used under the terms
  * of either the Mozilla Public License Version 1.1, found at
@@ -47,9 +47,9 @@
 #include "Arena.h"
 
 #include <algorithm>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wtf/Assertions.h>
 #include <wtf/FastMalloc.h>
 
 using namespace std;
@@ -84,7 +84,7 @@ static int freelist_count = 0;
       if ((j_) >> 1)                  \
       (_log2) += 1;
 
-int CeilingLog2(unsigned int i) {
+static int CeilingLog2(unsigned int i) {
     int log2;
     CEILING_LOG2(log2,i);
     return log2;
@@ -128,7 +128,7 @@ void* ArenaAllocate(ArenaPool *pool, unsigned int nb)
     Arena *a;   
     char *rp;     /* returned pointer */
 
-    assert((nb & pool->mask) == 0);
+    ASSERT((nb & pool->mask) == 0);
     
     nb = (uword)ARENA_ALIGN(pool, nb); /* force alignment */
 
@@ -225,7 +225,7 @@ static void FreeArenaList(ArenaPool *pool, Arena *head, bool reallyFree)
 
 #ifdef DEBUG
     do {
-        assert(a->base <= a->avail && a->avail <= a->limit);
+        ASSERT(a->base <= a->avail && a->avail <= a->limit);
         a->avail = a->base;
         CLEAR_UNUSED(a);
     } while ((a = a->next) != 0);
@@ -281,17 +281,6 @@ void FreeArenaPool(ArenaPool *pool)
 void FinishArenaPool(ArenaPool *pool)
 {
     FreeArenaList(pool, &pool->first, true);
-}
-
-void ArenaFinish(void)
-{
-    Arena *a, *next;
-
-    for (a = arena_freelist; a; a = next) {
-        next = a->next;
-        fastFree(a); a = 0;
-    }
-    arena_freelist = NULL;
 }
 
 }

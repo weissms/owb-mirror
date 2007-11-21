@@ -16,64 +16,61 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPathSegLineto_h
 #define SVGPathSegLineto_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGPathSeg.h"
 
-namespace WebCore
-{
-    class SVGPathSegLinetoAbs : public SVGPathSeg
-    { 
+namespace WebCore {
+    class SVGPathSegLinetoAbs : public SVGPathSeg { 
     public:
-        SVGPathSegLinetoAbs(double x, double y);
+        SVGPathSegLinetoAbs(float x, float y);
         virtual ~SVGPathSegLinetoAbs();
 
         virtual unsigned short pathSegType() const { return PATHSEG_LINETO_ABS; }
         virtual String pathSegTypeAsLetter() const { return "L"; }
         virtual String toString() const { return String::format("L %.6lg %.6lg", m_x, m_y); }
 
-        void setX(double);
-        double x() const;
+        void setX(float);
+        float x() const;
 
-        void setY(double);
-        double y() const;
+        void setY(float);
+        float y() const;
 
     private:
-        double m_x;
-        double m_y;
+        float m_x;
+        float m_y;
     };
 
-    class SVGPathSegLinetoRel : public SVGPathSeg
-    { 
+    class SVGPathSegLinetoRel : public SVGPathSeg { 
     public:
-        SVGPathSegLinetoRel(double x, double y);
+        SVGPathSegLinetoRel(float x, float y);
         virtual ~SVGPathSegLinetoRel();
 
         virtual unsigned short pathSegType() const { return PATHSEG_LINETO_REL; }
         virtual String pathSegTypeAsLetter() const { return "l"; }
         virtual String toString() const { return String::format("l %.6lg %.6lg", m_x, m_y); }
 
-        void setX(double);
-        double x() const;
+        void setX(float);
+        float x() const;
 
-        void setY(double);
-        double y() const;
+        void setY(float);
+        float y() const;
 
     private:
-        double m_x;
-        double m_y;
+        float m_x;
+        float m_y;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

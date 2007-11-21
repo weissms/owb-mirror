@@ -1,6 +1,0 @@
-set(svg_events_SRC
-        ${svg_events_SRC}
-
-        WebCore/ksvg2/events/JSSVGLazyEventListener.cpp
-        WebCore/ksvg2/events/SVGZoomEvent.cpp
-)

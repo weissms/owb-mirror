@@ -19,21 +19,22 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLEmbedElement.h"
 
+#include "CSSHelper.h"
 #include "CSSPropertyNames.h"
 #include "Frame.h"
 #include "FrameView.h"
 #include "HTMLDocument.h"
+#include "HTMLObjectElement.h"
 #include "HTMLNames.h"
-#include "csshelper.h"
 #include "RenderPartObject.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "ExceptionCode.h"
 #include "SVGDocument.h"
 #endif
@@ -51,11 +52,22 @@ HTMLEmbedElement::~HTMLEmbedElement()
 {
 #if USE(JAVASCRIPTCORE_BINDINGS)
     // m_instance should have been cleaned up in detach().
-    assert(!m_instance);
+    ASSERT(!m_instance);
 #endif
 }
 
 #if USE(JAVASCRIPTCORE_BINDINGS)
+static inline RenderWidget* findWidgetRenderer(const Node* n) 
+{
+    if (!n->renderer())
+        do
+            n = n->parentNode();
+        while (n && !n->hasTagName(objectTag));
+    
+    return (n && n->renderer() && n->renderer()->isWidget()) 
+        ? static_cast<RenderWidget*>(n->renderer()) : 0;
+}
+    
 KJS::Bindings::Instance *HTMLEmbedElement::getInstance() const
 {
     Frame* frame = document()->frame();
@@ -65,17 +77,15 @@ KJS::Bindings::Instance *HTMLEmbedElement::getInstance() const
     if (m_instance)
         return m_instance.get();
     
-    RenderObject *r = renderer();
-    if (!r) {
-        Node *p = parentNode();
-        if (p && p->hasTagName(objectTag))
-            r = p->renderer();
+    RenderWidget* renderWidget = findWidgetRenderer(this);
+    if (renderWidget && !renderWidget->widget()) {
+        document()->updateLayoutIgnorePendingStylesheets();
+        renderWidget = findWidgetRenderer(this);
     }
-
-    if (r && r->isWidget()) {
-        if (Widget* widget = static_cast<RenderWidget*>(r)->widget()) 
-            m_instance = frame->createScriptInstanceForWidget(widget);
-    }
+    
+    if (renderWidget && renderWidget->widget()) 
+        m_instance = frame->createScriptInstanceForWidget(renderWidget->widget());
+    
     return m_instance.get();
 }
 #endif
@@ -129,7 +139,7 @@ bool HTMLEmbedElement::rendererIsNeeded(RenderStyle *style)
 
     Node *p = parentNode();
     if (p && p->hasTagName(objectTag)) {
-        assert(p->renderer());
+        ASSERT(p->renderer());
         return false;
     }
 
@@ -146,7 +156,7 @@ void HTMLEmbedElement::attach()
     HTMLPlugInElement::attach();
 
     if (renderer())
-        static_cast<RenderPartObject*>(renderer())->updateWidget();
+        static_cast<RenderPartObject*>(renderer())->updateWidget(true);
 }
 
 void HTMLEmbedElement::detach()
@@ -164,6 +174,20 @@ void HTMLEmbedElement::insertedIntoDocument()
         doc->addNamedItem(oldNameAttr);
     }
 
+    String width = getAttribute(widthAttr);
+    String height = getAttribute(heightAttr);
+    if (!width.isEmpty() || !height.isEmpty()) {
+        Node* n = parent();
+        while (n && !n->hasTagName(objectTag))
+            n = n->parent();
+        if (n) {
+            if (!width.isEmpty())
+                static_cast<HTMLObjectElement*>(n)->setAttribute(widthAttr, width);
+            if (!height.isEmpty())
+                static_cast<HTMLObjectElement*>(n)->setAttribute(heightAttr, height);
+        }
+    }
+
     HTMLPlugInElement::insertedIntoDocument();
 }
 
@@ -175,6 +199,19 @@ void HTMLEmbedElement::removedFromDocument()
     }
 
     HTMLPlugInElement::removedFromDocument();
+}
+
+void HTMLEmbedElement::attributeChanged(Attribute* attr, bool preserveDecls)
+{
+    HTMLPlugInElement::attributeChanged(attr, preserveDecls);
+
+    if ((attr->name() == widthAttr || attr->name() == heightAttr) && !attr->isEmpty()) {
+        Node* n = parent();
+        while (n && !n->hasTagName(objectTag))
+            n = n->parent();
+        if (n)
+            static_cast<HTMLObjectElement*>(n)->setAttribute(attr->name(), attr->value());
+    }
 }
 
 bool HTMLEmbedElement::isURLAttribute(Attribute *attr) const
@@ -202,7 +239,7 @@ void HTMLEmbedElement::setType(const String& value)
     setAttribute(typeAttr, value);
 }
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 SVGDocument* HTMLEmbedElement::getSVGDocument(ExceptionCode& ec) const
 {
     Document* doc = contentDocument();

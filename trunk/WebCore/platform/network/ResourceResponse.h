@@ -31,14 +31,14 @@
 #include "KURL.h"
 
 #if PLATFORM(MAC)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 #ifdef __OBJC__
 @class NSURLResponse;
 #else
 class NSURLResponse;
 #endif
 #elif USE(CFNETWORK)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 typedef struct _CFURLResponse* CFURLResponseRef;
 #endif
 
@@ -69,27 +69,24 @@ public:
     {
     }
  
-    bool isNull() const;
-    void  setIsNull( bool isNull);
-
+    bool isNull() const { return m_isNull; }
     bool isHTTP() const;
     
     const KURL& url() const;
-    void setURL(const KURL& url);
+    void setUrl(const KURL& url);
 
     const String& mimeType() const;
-    void setMimeType(String& mimeType);
+    void setMimeType(const String& mimeType);
 
     long long expectedContentLength() const;
-    void setExpectedContentLength(long long length);
+    void setExpectedContentLength(long long expectedContentLength);
 
     const String& textEncodingName() const;
-    void setTextEncoding(String& encoding);
+    void setTextEncodingName(const String& name);
 
     // FIXME should compute this on the fly
     const String& suggestedFilename() const;
-    void setSuggestedFilename(String& filename);
-
+    void setSuggestedFilename(const String&);
 
     int httpStatusCode() const;
     void setHTTPStatusCode(int);
@@ -102,6 +99,8 @@ public:
     const HTTPHeaderMap& httpHeaderFields() const;
 
     bool isMultipart() const { return mimeType() == "multipart/x-mixed-replace"; }
+
+    bool isAttachment() const;
 
     void setExpirationDate(time_t);
     time_t expirationDate() const;

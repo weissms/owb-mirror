@@ -45,9 +45,9 @@ using BAL::RGBA32Buffer;
 using BAL::RGBA32Array;
 
 namespace BAL {
-	BIImageDecoder* createBCPNGImageDecoder() {
-			return new BC::BCPNGImageDecoder();
-	}
+    BIImageDecoder* createBCPNGImageDecoder() {
+        return new BC::BCPNGImageDecoder();
+    }
 }
 
 namespace BC {
@@ -144,7 +144,7 @@ private:
 BCPNGImageDecoder::BCPNGImageDecoder()
 : m_reader(0)
 {
-    logml(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Create PNG Decoder");
+    DBGML(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Create PNG Decoder\n");
 }
 
 BCPNGImageDecoder::~BCPNGImageDecoder()
@@ -203,8 +203,8 @@ void BCPNGImageDecoder::decode(bool sizeOnly) const
     if (mImageDecoderCommonImplementation.failed())
         return;
 
-		ImageDecoderCommonImplementation* pImpl = const_cast<ImageDecoderCommonImplementation*>
-			(&mImageDecoderCommonImplementation);
+    ImageDecoderCommonImplementation* pImpl = const_cast<ImageDecoderCommonImplementation*>
+        (&mImageDecoderCommonImplementation);
 
     m_reader->decode(mImageDecoderCommonImplementation.data(), sizeOnly);
 

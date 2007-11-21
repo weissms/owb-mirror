@@ -1,10 +1,8 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -18,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -45,6 +43,7 @@ class IntRect;
 class KeyboardEvent;
 class NamedAttrMap;
 class NodeList;
+struct NodeListsNodeData;
 class PlatformKeyboardEvent;
 class PlatformMouseEvent;
 class PlatformWheelEvent;
@@ -56,6 +55,8 @@ class RenderStyle;
 class TextStream;
 
 typedef int ExceptionCode;
+
+enum StyleChangeType { NoStyleChange, InlineStyleChange, FullStyleChange };
 
 // this class implements nodes, which can have a parent but no children:
 class Node : public TreeShared<Node> {
@@ -93,13 +94,16 @@ public:
     virtual void setNodeValue(const String&, ExceptionCode&);
     virtual NodeType nodeType() const = 0;
     Node* parentNode() const { return parent(); }
+    Node* parentElement() const { return parent(); } // IE extension
     Node* previousSibling() const { return m_previous; }
     Node* nextSibling() const { return m_next; }
     virtual PassRefPtr<NodeList> childNodes();
-    virtual Node* firstChild() const;
-    virtual Node* lastChild() const;
+    Node* firstChild() const { return virtualFirstChild(); }
+    Node* lastChild() const { return virtualLastChild(); }
     virtual bool hasAttributes() const;
     virtual NamedAttrMap* attributes() const;
+
+    virtual String baseURI() const;
 
     // These should all actually return a node, but this is only important for language bindings,
     // which will already know and hold a ref on the right node to return. Returning bool allows
@@ -135,7 +139,7 @@ public:
 
     virtual bool isElementNode() const { return false; }
     virtual bool isHTMLElement() const { return false; }
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     virtual bool isSVGElement() const { return false; }
 #endif
     virtual bool isStyledElement() const { return false; }
@@ -204,7 +208,7 @@ public:
     // until they know all of their nested <param>s. [Radar 3603191, 4040848].
     // Also used for script elements and some SVG elements for similar purposes,
     // but making parsing a special case in this respect should be avoided if possible.
-    virtual void closeRenderer() { }
+    virtual void finishedParsing() { }
 
     // Called by the frame right before dispatching an unloadEvent. [Radar 4532113]
     // This is needed for HTMLInputElements to tell the frame that it is done editing 
@@ -216,7 +220,6 @@ public:
 
     bool hasID() const { return m_hasId; }
     bool hasClass() const { return m_hasClass; }
-    bool hasStyle() const { return m_hasStyle; }
     bool active() const { return m_active; }
     bool inActiveChain() const { return m_inActiveChain; }
     bool inDetach() const { return m_inDetach; }
@@ -224,17 +227,16 @@ public:
     bool focused() const { return m_focused; }
     bool attached() const { return m_attached; }
     void setAttached(bool b = true) { m_attached = b; }
-    bool changed() const { return m_changed; }
+    bool changed() const { return m_styleChange != NoStyleChange; }
+    StyleChangeType styleChangeType() const { return static_cast<StyleChangeType>(m_styleChange); }
     bool hasChangedChild() const { return m_hasChangedChild; }
     bool isLink() const { return m_isLink; }
-    bool implicitNode() const { return m_implicit; }
     void setHasID(bool b = true) { m_hasId = b; }
     void setHasClass(bool b = true) { m_hasClass = b; }
-    void setHasStyle(bool b = true) { m_hasStyle = b; }
     void setHasChangedChild( bool b = true ) { m_hasChangedChild = b; }
     void setInDocument(bool b = true) { m_inDocument = b; }
     void setInActiveChain(bool b = true) { m_inActiveChain = b; }
-    void setChanged(bool b = true);
+    void setChanged(StyleChangeType changeType = FullStyleChange);
 
     virtual void setFocus(bool b = true) { m_focused = b; }
     virtual void setActive(bool b = true, bool pause=false) { m_active = b; }
@@ -259,6 +261,7 @@ public:
 
     virtual bool isContentEditable() const;
     virtual bool isContentRichlyEditable() const;
+    virtual bool shouldUseInputMethod() const;
     virtual IntRect getRect() const;
 
     enum StyleChange { NoChange, NoInherit, Inherit, Detach, Force };
@@ -359,6 +362,9 @@ public:
     virtual bool canSelectAll() const { return false; }
     virtual void selectAll() { }
 
+    // Whether or not a selection can be started in this object
+    virtual bool canStartSelection() const;
+
 #ifndef NDEBUG
     virtual void dump(TextStream*, DeprecatedString indent = "") const;
 #endif
@@ -383,7 +389,7 @@ public:
     void createRendererIfNeeded();
     virtual RenderStyle* styleForRenderer(RenderObject* parent);
     virtual bool rendererIsNeeded(RenderStyle*);
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     virtual bool childShouldCreateRenderer(Node*) const { return true; }
 #endif
     virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
@@ -391,6 +397,8 @@ public:
     // Wrapper for nodes that don't have a renderer, but still cache the style (like HTMLOptionElement).
     virtual RenderStyle* renderStyle() const;
     virtual void setRenderStyle(RenderStyle*);
+
+    virtual RenderStyle* computedStyle();
 
     // -----------------------------------------------------------------------------
     // Notification of document structure changes
@@ -454,31 +462,41 @@ private: // members
     RenderObject* m_renderer;
 
 protected:
-    typedef HashSet<NodeList*> NodeListSet;
-    NodeListSet* m_nodeLists;
+    virtual void willMoveToNewOwnerDocument() { }
+    virtual void didMoveToNewOwnerDocument() { }
+    
+    NodeListsNodeData* m_nodeLists;
 
     short m_tabIndex;
 
+    // make sure we don't use more than 16 bits here -- adding more would increase the size of all Nodes
+
     bool m_hasId : 1;
     bool m_hasClass : 1;
-    bool m_hasStyle : 1;
     bool m_attached : 1;
-    bool m_changed : 1;
+    unsigned m_styleChange : 2;
     bool m_hasChangedChild : 1;
     bool m_inDocument : 1;
 
     bool m_isLink : 1;
-    bool m_specified : 1; // used in Attr; accessor functions there
+    bool m_attrWasSpecifiedOrElementHasRareData : 1; // used in Attr for one thing and Element for another
     bool m_focused : 1;
     bool m_active : 1;
     bool m_hovered : 1;
     bool m_inActiveChain : 1;
-    bool m_implicit : 1; // implicitly generated by the parser
 
     bool m_inDetach : 1;
+    bool m_dispatchingSimulatedEvent : 1;
+
+public:
+    bool m_inSubtreeMark : 1;
+    // 0 bits left
 
 private:
     Element* ancestorElement() const;
+
+    virtual Node* virtualFirstChild() const;
+    virtual Node* virtualLastChild() const;
 };
 
 } //namespace

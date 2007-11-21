@@ -24,10 +24,14 @@
  */
 
 #include "config.h"
+
+#if !PLATFORM(DARWIN) || !defined(__LP64__)
+
 #include "npruntime.h"
 #include "npruntime_impl.h"
 #include "npruntime_priv.h"
 
+#include "JSLock.h"
 #include "c_utility.h"
 #include "identifier.h"
 #include <wtf/Assertions.h>
@@ -61,6 +65,8 @@ NPIdentifier _NPN_GetStringIdentifier(const NPUTF8* name)
     
     if (name) {
         PrivateIdentifier* identifier = 0;
+        
+        KJS::JSLock lock;
         
         identifier = getStringIdentifierMap()->get(identifierFromNPIdentifier(name).ustring().rep());
         if (identifier == 0) {
@@ -203,3 +209,5 @@ void _NPN_DeallocateObject(NPObject *obj)
             free(obj);
     }
 }
+
+#endif

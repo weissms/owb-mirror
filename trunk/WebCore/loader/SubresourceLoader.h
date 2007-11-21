@@ -28,10 +28,7 @@
 
 #ifndef SubresourceLoader_h
 #define SubresourceLoader_h
-
-#ifdef __OWB__
-#include "ResourceHandle.h"
-#endif //__OWB__
+ 
 #include "ResourceHandleClient.h"
 #include "ResourceLoader.h"
 #include <wtf/PassRefPtr.h>
@@ -52,12 +49,10 @@ namespace WebCore {
     
     class SubresourceLoader : public ResourceLoader {
     public:
-        static PassRefPtr<SubresourceLoader> create(Frame*, SubresourceLoaderClient*, const ResourceRequest&);
+        static PassRefPtr<SubresourceLoader> create(Frame*, SubresourceLoaderClient*, const ResourceRequest&, bool skipCanLoadCheck = false, bool sendResourceLoadCallbacks = true, bool shouldContentSniff = true);
         
         virtual ~SubresourceLoader();
 
-        void stopLoading();
-        
         virtual bool load(const ResourceRequest&);
         
         virtual void willSendRequest(ResourceRequest&, const ResourceResponse& redirectResponse);
@@ -65,9 +60,10 @@ namespace WebCore {
         virtual void didReceiveData(const char*, int, long long lengthReceived, bool allAtOnce);
         virtual void didFinishLoading();
         virtual void didFail(const ResourceError&);
+        virtual void receivedCancellation(const AuthenticationChallenge&);
 
     private:
-        SubresourceLoader(Frame*, SubresourceLoaderClient*);
+        SubresourceLoader(Frame*, SubresourceLoaderClient*, bool sendResourceLoadCallbacks, bool shouldContentSniff);
 
         virtual void didCancel(const ResourceError&);
         SubresourceLoaderClient* m_client;

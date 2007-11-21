@@ -3,7 +3,7 @@
 /*
  *  This file is part of the KDE libraries
  *  Copyright (C) 2002-2003 Lars Knoll (knoll@kde.org)
- *  Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ *  Copyright (C) 2004, 2005, 2006, 2007 Apple Inc.
  *  Copyright (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  *
  *  This library is free software; you can redistribute it and/or
@@ -18,13 +18,14 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
 #include "config.h"
 
 #include "CSSMediaRule.h"
+#include "CSSParser.h"
 #include "CSSPrimitiveValue.h"
 #include "CSSRule.h"
 #include "CSSRuleList.h"
@@ -36,15 +37,8 @@
 #include "MediaQuery.h"
 #include "MediaQueryExp.h"
 #include "PlatformString.h"
-#include "cssparser.h"
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef SVG_SUPPORT
-#include "ksvgcssproperties.h"
-#include "ksvgcssvalues.h"
-#endif
 
 using namespace WebCore;
 using namespace HTMLNames;
@@ -173,7 +167,8 @@ static int cssyylex(YYSTYPE* yylval) { return CSSParser::current()->lex(yylval);
 
 %right <string> IDENT
 
-%nonassoc <string> HASH
+%nonassoc <string> HEX
+%nonassoc <string> IDSEL
 %nonassoc ':'
 %nonassoc '.'
 %nonassoc '['
@@ -215,7 +210,7 @@ static int cssyylex(YYSTYPE* yylval) { return CSSParser::current()->lex(yylval);
 %token <val> KHERZ
 %token <string> DIMEN
 %token <val> PERCENTAGE
-%token <val> FLOAT
+%token <val> FLOATTOKEN
 %token <val> INTEGER
 
 %token <string> URI
@@ -551,11 +546,6 @@ page:
 pseudo_page
   : ':' IDENT
   ;
-
-font_face
-  : FONT_FACE_SYM maybe_space
-    '{' maybe_space declaration [ ';' maybe_space declaration ]* '}' maybe_space
-  ;
 */
 
 page:
@@ -568,10 +558,14 @@ page:
     ;
 
 font_face:
-    FONT_FACE_SYM error invalid_block {
+    FONT_FACE_SYM maybe_space
+    '{' maybe_space declaration_list '}'  maybe_space {
+        $$ = static_cast<CSSParser*>(parser)->createFontFaceRule();
+    }
+    | FONT_FACE_SYM error invalid_block {
       $$ = 0;
     }
-  | FONT_FACE_SYM error ';' {
+    | FONT_FACE_SYM error ';' {
       $$ = 0;
     }
 ;
@@ -741,7 +735,7 @@ specifier_list:
 ;
 
 specifier:
-    HASH {
+    IDSEL {
         CSSParser* p = static_cast<CSSParser*>(parser);
         $$ = p->createFloatingSelector();
         $$->m_match = CSSSelector::Id;
@@ -749,6 +743,19 @@ specifier:
             $1.lower();
         $$->m_attr = idAttr;
         $$->m_value = atomicString($1);
+    }
+  | HEX {
+        if ($1.characters[0] >= '0' && $1.characters[0] <= '9') {
+            $$ = 0;
+        } else {
+            CSSParser* p = static_cast<CSSParser*>(parser);
+            $$ = p->createFloatingSelector();
+            $$->m_match = CSSSelector::Id;
+            if (!p->strict)
+                $1.lower();
+            $$->m_attr = idAttr;
+            $$->m_value = atomicString($1);
+        }
     }
   | class
   | attrib
@@ -852,6 +859,10 @@ pseudo:
             Document* doc = p->document();
             if (doc)
                 doc->setUsesSiblingRules(true);
+        } else if (type == CSSSelector::PseudoFirstLine) {
+            CSSParser* p = static_cast<CSSParser*>(parser);
+            if (Document* doc = p->document())
+                doc->setUsesFirstLineRules(true);
         }
     }
     | ':' ':' IDENT {
@@ -859,8 +870,14 @@ pseudo:
         $$->m_match = CSSSelector::PseudoElement;
         $3.lower();
         $$->m_value = atomicString($3);
-        if ($$->pseudoType() == CSSSelector::PseudoUnknown)
+        CSSSelector::PseudoType type = $$->pseudoType();
+        if (type == CSSSelector::PseudoUnknown)
             $$ = 0;
+        else if (type == CSSSelector::PseudoFirstLine) {
+            CSSParser* p = static_cast<CSSParser*>(parser);
+            if (Document* doc = p->document())
+                doc->setUsesFirstLineRules(true);
+        }
     }
     // used by :lang
     | ':' FUNCTION IDENT ')' {
@@ -980,10 +997,6 @@ property:
         const char* s = str.ascii();
         int l = str.length();
         $$ = getPropertyID(s, l);
-#ifdef SVG_SUPPORT
-        if ($$ == 0)
-            $$ = SVG::getSVGCSSPropertyID(s, l);
-#endif
     }
   ;
 
@@ -1036,10 +1049,6 @@ term:
   | IDENT maybe_space {
       DeprecatedString str = deprecatedString($1);
       $$.id = getValueID(str.lower().latin1(), str.length());
-#ifdef SVG_SUPPORT
-      if ($$.id == 0)
-          $$.id = SVG::getSVGCSSValueID(str.lower().latin1(), str.length());
-#endif
       $$.unit = CSSPrimitiveValue::CSS_IDENT;
       $$.string = $1;
   }
@@ -1054,11 +1063,12 @@ term:
   | function {
       $$ = $1;
   }
+  | '%' maybe_space {} /* Handle width: %; */
   ;
 
 unary_term:
   INTEGER maybe_space { $$.id = 0; $$.isInt = true; $$.fValue = $1; $$.unit = CSSPrimitiveValue::CSS_NUMBER; }
-  | FLOAT maybe_space { $$.id = 0; $$.isInt = false; $$.fValue = $1; $$.unit = CSSPrimitiveValue::CSS_NUMBER; }
+  | FLOATTOKEN maybe_space { $$.id = 0; $$.isInt = false; $$.fValue = $1; $$.unit = CSSPrimitiveValue::CSS_NUMBER; }
   | PERCENTAGE maybe_space { $$.id = 0; $$.fValue = $1; $$.unit = CSSPrimitiveValue::CSS_PERCENTAGE; }
   | PXS maybe_space { $$.id = 0; $$.fValue = $1; $$.unit = CSSPrimitiveValue::CSS_PX; }
   | CMS maybe_space { $$.id = 0; $$.fValue = $1; $$.unit = CSSPrimitiveValue::CSS_CM; }
@@ -1105,7 +1115,8 @@ function:
  * after the "#"; e.g., "#000" is OK, but "#abcd" is not.
  */
 hexcolor:
-  HASH maybe_space { $$ = $1; }
+  HEX maybe_space { $$ = $1; }
+  | IDSEL maybe_space { $$ = $1; }
   ;
 
 

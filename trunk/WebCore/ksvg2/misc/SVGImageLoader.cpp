@@ -15,12 +15,12 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "Attr.h"
 #include "DocLoader.h"
@@ -50,8 +50,14 @@ void SVGImageLoader::updateFromElement()
     WebCore::Document* doc = imageElement->ownerDocument();
     
     CachedImage *newImage = 0;
-    if (!imageElement->href().isEmpty())
-        newImage = doc->docLoader()->requestImage(imageElement->href());
+    if (!imageElement->href().isEmpty()) {
+        DeprecatedString uri = imageElement->baseURI().deprecatedString();;
+        if (!uri.isEmpty())
+            uri = KURL(uri, imageElement->href().deprecatedString()).url();
+        else
+            uri = imageElement->href().deprecatedString();
+        newImage = doc->docLoader()->requestImage(uri);
+    }
 
     CachedImage *oldImage = image();
     if (newImage != oldImage) {
@@ -70,7 +76,7 @@ void SVGImageLoader::dispatchLoadEvent()
 {
     if (!haveFiredLoadEvent() && image()) {
         setHaveFiredLoadEvent(true);
-        if (image()->isErrorImage()) {
+        if (image()->errorOccurred()) {
             // FIXME: We're supposed to put the document in an "error state" per the spec.
         } else
             static_cast<SVGElement*>(element())->sendSVGLoadEventIfPossible(true);
@@ -79,4 +85,4 @@ void SVGImageLoader::dispatchLoadEvent()
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

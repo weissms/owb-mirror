@@ -27,7 +27,7 @@
 #define AffineTransform_h
 
 #if PLATFORM(CG)
-#include <ApplicationServices/ApplicationServices.h>
+#include <CoreGraphics/CGAffineTransform.h>
 #elif PLATFORM(QT)
 #include <QMatrix>
 #elif PLATFORM(CAIRO)
@@ -36,6 +36,7 @@
 
 namespace WebCore {
 
+class IntPoint;
 class IntRect;
 class FloatRect;
 
@@ -53,6 +54,7 @@ public:
 
     void setMatrix(double a, double b, double c, double d, double e, double f);
     void map(double x, double y, double *x2, double *y2) const;
+    IntPoint mapPoint(const IntPoint&) const;
     IntRect mapRect(const IntRect&) const;
     FloatRect mapRect(const FloatRect&) const;
     
@@ -88,6 +90,7 @@ public:
     AffineTransform& shear(double sx, double sy);
     AffineTransform& flipX();
     AffineTransform& flipY();
+    AffineTransform& skew(double angleX, double angleY);
     AffineTransform& skewX(double angle);
     AffineTransform& skewY(double angle);
  
@@ -104,6 +107,7 @@ public:
 #endif
 
     bool operator==(const AffineTransform&) const;
+    bool operator!=(const AffineTransform& other) const { return !(*this == other); }
     AffineTransform& operator*=(const AffineTransform&);
     AffineTransform operator*(const AffineTransform&);
     

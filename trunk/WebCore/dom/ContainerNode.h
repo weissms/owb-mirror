@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -32,14 +32,13 @@ namespace WebCore {
     
 typedef void (*NodeCallback)(Node*);
 
-class ContainerNode : public EventTargetNode
-{
+class ContainerNode : public EventTargetNode {
 public:
     ContainerNode(Document *doc);
     virtual ~ContainerNode();
 
-    virtual Node* firstChild() const;
-    virtual Node* lastChild() const;
+    Node* firstChild() const { return m_firstChild; }
+    Node* lastChild() const { return m_lastChild; }
 
     virtual bool insertBefore(PassRefPtr<Node> newChild, Node* refChild, ExceptionCode&);
     virtual bool replaceChild(PassRefPtr<Node> newChild, Node* oldChild, ExceptionCode&);
@@ -63,9 +62,6 @@ public:
     virtual void insertedIntoTree(bool deep);
     virtual void removedFromTree(bool deep);
 
-    Node* fastFirstChild() const { return m_firstChild; }
-    Node* fastLastChild() const { return m_lastChild; }
-    
     void removeAllChildren();
     void removeChildren();
     void cloneChildNodes(Node* clone);
@@ -73,12 +69,20 @@ public:
 protected:
     static void queuePostAttachCallback(NodeCallback, Node*);
 
+    void setFirstChild(Node* child) { m_firstChild = child; }
+    void setLastChild(Node* child) { m_lastChild = child; }
+    
 private:
-    Node* m_firstChild;
-    Node* m_lastChild;
+    virtual Node* virtualFirstChild() const;
+    virtual Node* virtualLastChild() const;
+    
+    static void addChildNodesToDeletionQueue(Node*& head, Node*& tail, ContainerNode*);
 
     bool getUpperLeftCorner(int& x, int& y) const;
     bool getLowerRightCorner(int& x, int& y) const;
+
+    Node* m_firstChild;
+    Node* m_lastChild;
 };
 
 } // namespace WebCore

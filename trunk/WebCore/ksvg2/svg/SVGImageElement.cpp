@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
                   2006 Alexander Kellett <lypanov@kde.org>
 
     This file is part of the KDE project
@@ -17,17 +17,16 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGImageElement.h"
 
 #include "CSSPropertyNames.h"
-#include "RenderSVGContainer.h"
 #include "RenderSVGImage.h"
 #include "SVGDocument.h"
 #include "SVGLength.h"
@@ -48,7 +47,7 @@ SVGImageElement::SVGImageElement(const QualifiedName& tagName, Document* doc)
     , m_y(this, LengthModeHeight)
     , m_width(this, LengthModeWidth)
     , m_height(this, LengthModeHeight)
-    , m_preserveAspectRatio(new SVGPreserveAspectRatio(this))
+    , m_preserveAspectRatio(new SVGPreserveAspectRatio())
     , m_imageLoader(this)
 {
 }
@@ -65,21 +64,22 @@ ANIMATED_PROPERTY_DEFINITIONS(SVGImageElement, SVGPreserveAspectRatio*, Preserve
 
 void SVGImageElement::parseMappedAttribute(MappedAttribute *attr)
 {
-    const AtomicString& value = attr->value();
     if (attr->name() == SVGNames::xAttr)
-        setXBaseValue(SVGLength(this, LengthModeWidth, value));
+        setXBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::yAttr)
-        setYBaseValue(SVGLength(this, LengthModeHeight, value));
-    else if (attr->name() == SVGNames::preserveAspectRatioAttr)
-        preserveAspectRatioBaseValue()->parsePreserveAspectRatio(value);
-    else if (attr->name() == SVGNames::widthAttr) {
-        setWidthBaseValue(SVGLength(this, LengthModeWidth, value));
-        addCSSProperty(attr, CSS_PROP_WIDTH, value);
+        setYBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
+    else if (attr->name() == SVGNames::preserveAspectRatioAttr) {
+        const UChar* c = attr->value().characters();
+        const UChar* end = c + attr->value().length();
+        preserveAspectRatioBaseValue()->parsePreserveAspectRatio(c, end);
+    } else if (attr->name() == SVGNames::widthAttr) {
+        setWidthBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
+        addCSSProperty(attr, CSS_PROP_WIDTH, attr->value());
         if (width().value() < 0.0)
             document()->accessSVGExtensions()->reportError("A negative value for image attribute <width> is not allowed");
     } else if (attr->name() == SVGNames::heightAttr) {
-        setHeightBaseValue(SVGLength(this, LengthModeHeight, value));
-        addCSSProperty(attr, CSS_PROP_HEIGHT, value);
+        setHeightBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
+        addCSSProperty(attr, CSS_PROP_HEIGHT, attr->value());
         if (height().value() < 0.0)
             document()->accessSVGExtensions()->reportError("A negative value for image attribute <height> is not allowed");
     } else {
@@ -90,7 +90,7 @@ void SVGImageElement::parseMappedAttribute(MappedAttribute *attr)
         if (SVGExternalResourcesRequired::parseMappedAttribute(attr))
             return;
         if (SVGURIReference::parseMappedAttribute(attr)) {
-            if (attr->name().matches(XLinkNames::hrefAttr))
+            if (attr->name().matches(XLinkNames::hrefAttr) && attached())
                 m_imageLoader.updateFromElement();
             return;
         }
@@ -100,10 +100,16 @@ void SVGImageElement::parseMappedAttribute(MappedAttribute *attr)
 
 void SVGImageElement::notifyAttributeChange() const
 {
-    if (!ownerDocument()->parsing())
-        rebuildRenderer();
+    if (!document()->parsing() && renderer())
+        renderer()->setNeedsLayout(true);
 
-    SVGStyledElement::notifyAttributeChange();
+    SVGStyledTransformableElement::notifyAttributeChange();
+}
+
+bool SVGImageElement::hasRelativeValues() const
+{
+    return (x().isRelative() || width().isRelative() ||
+            y().isRelative() || height().isRelative());
 }
 
 RenderObject* SVGImageElement::createRenderer(RenderArena* arena, RenderStyle* style)
@@ -119,12 +125,13 @@ bool SVGImageElement::haveLoadedRequiredResources()
 void SVGImageElement::attach()
 {
     SVGStyledTransformableElement::attach();
+    m_imageLoader.updateFromElement();
     if (RenderSVGImage* imageObj = static_cast<RenderSVGImage*>(renderer()))
         imageObj->setCachedImage(m_imageLoader.image());
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

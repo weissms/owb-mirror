@@ -63,8 +63,8 @@ namespace WebCore {
         virtual bool canTakeFocus(FocusDirection);
         virtual void takeFocus(FocusDirection);
 
-        virtual Page* createWindow(const FrameLoadRequest&);
-        virtual Page* createModalDialog(const FrameLoadRequest&);
+        virtual Page* createWindow(Frame*, const FrameLoadRequest&);
+        virtual Page* createModalDialog(Frame*, const FrameLoadRequest&);
         virtual void show();
 
         virtual bool canRunModal();
@@ -92,6 +92,7 @@ namespace WebCore {
 
         virtual void closeWindowSoon();
 
+        virtual bool runDatabaseSizeLimitPrompt(Frame*, const WebCore::String&);
         virtual void runJavaScriptAlert(Frame*, const String&);
         virtual bool runJavaScriptConfirm(Frame*, const String&);
         virtual bool runJavaScriptPrompt(Frame*, const String& message, const String& defaultValue, String& result);
@@ -106,7 +107,11 @@ namespace WebCore {
         virtual void updateBackingStore();
 
         virtual void setFrame(Frame*);
-    private:
+
+		virtual void print(Frame*);
+		virtual void setToolTip(const String&);
+		virtual void mouseDidMoveOverElement(const HitTestResult&, unsigned int);
+    protected:
         Frame* m_frame;
         BAL::BIWindow *m_window;
     };

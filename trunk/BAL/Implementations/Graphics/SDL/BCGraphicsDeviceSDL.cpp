@@ -41,11 +41,15 @@
 #include "BALConfiguration.h"
 #include "BCGraphicsDeviceSDL.h"
 #include "BCNativeImageSDL.h"
+#include "BTLogHelper.h"
+#include "BTScrollView.h"
+#include "BTWidget.h"
 #include "Color.h"
 #include <SDL/SDL_gfxPrimitives.h>
 #include <SDL/SDL_rotozoom.h>
-#include "BTLogHelper.h"
-#include "BTWidget.h"
+
+#define WIDTH_MAX 16384
+#define HEIGHT_MAX 65536
 
 using WebCore::Image;
 
@@ -70,32 +74,56 @@ void BCGraphicsDeviceSDL::initialize(uint16_t width, uint16_t height, uint8_t de
         m_layoutTests = false;
 #endif
     const SDL_VideoInfo* vi;
+    // for now, resizable flag is the only way to enable resize event handling, so put it to default
+    int flags =  SDL_RESIZABLE;
 
-    vi = SDL_GetVideoInfo();
-    if(vi && vi->wm_available) /* Change les titres */
-        SDL_WM_SetCaption("Origyn Web Browser", "Origyn Web Browser");
+    if (m_screen) {
+        // this is not the first time we initialize the graphics device, we're in a resize process
+        SDL_FreeSurface(m_screen);
+        m_screen = 0;
+    }
+    else {
+        // first time initialization
+        if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+            DBGML(MODULE_GRAPHICS, LEVEL_CRITICAL, "Unable to init SDL: %s\n", SDL_GetError());
+        }
 
-    /* Initialize only once with main frame size */
-    if (!m_screen)
-        m_screen = SDL_SetVideoMode(width, height, depth, 0/*SDL_HWSURFACE|SDL_NOFRAME|SDL_SRCALPHA*/);
+        vi = SDL_GetVideoInfo();
+        if(vi && vi->wm_available) /* Change title */
+            SDL_WM_SetCaption("Origyn Web Browser", "Origyn Web Browser");
+    }
+
+    m_screen = SDL_SetVideoMode(width, height, depth, flags);
 
     if (!m_screen) {
-        logml(MODULE_GRAPHICS, LEVEL_CRITICAL, make_message("SDL_SetVideoMode failed: %s", SDL_GetError()));
+        DBGML(MODULE_GRAPHICS, LEVEL_CRITICAL, "SDL_SetVideoMode failed: %s\n", SDL_GetError());
         exit(1);
     } else
-        logm(MODULE_GRAPHICS, "SDL_SetVideoMode succeeded");
-}
-
-void BCGraphicsDeviceSDL::initialize(const BAL::BISurface&)
-{
+        DBGM(MODULE_GRAPHICS, "SDL_SetVideoMode succeeded\n");
 }
 
 void BCGraphicsDeviceSDL::finalize()
 {
+     if (m_screen) {
+//         SDL_FreeSurface(m_screen);
+         m_screen = 0;
+     }
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    SDL_Quit();
 }
-    
+
 BINativeImage* BCGraphicsDeviceSDL::createNativeImage(const IntSize size)
 {
+    int width, height;
+    if( size.width() >= WIDTH_MAX )
+        width = WIDTH_MAX - 1;
+    else
+        width = size.width();
+    if( size.height() >= HEIGHT_MAX )
+        height = HEIGHT_MAX - 1;
+    else
+        height = size.height();
+
     SDL_Surface* surface;
     Uint32 rmask, gmask, bmask, amask;
     /* SDL interprets each pixel as a 32-bit number, so our masks must depend
@@ -104,9 +132,8 @@ BINativeImage* BCGraphicsDeviceSDL::createNativeImage(const IntSize size)
     gmask = 0x0000ff00;
     bmask = 0x000000ff;
     amask = 0xff000000;
-    surface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA, size.width(), size.height(), 32,
+    surface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA, width, height, 32,
                                   rmask, gmask, bmask, amask);
-
     return new BCNativeImage(surface);
 }
 
@@ -132,8 +159,7 @@ BINativeImage* BCGraphicsDeviceSDL::createNativeImage(RGBA32Array& array, const 
         size.width(),
         size.height(),
         32, size.width()*4, rmask, gmask, bmask, amask);
-//     SDL_SetAlpha(surface, SDL_SRCALPHA, SDL_ALPHA_TRANSPARENT);
-        
+
     return new BCNativeImage(surface, &array);
 }
 
@@ -163,14 +189,15 @@ void BCGraphicsDeviceSDL::copy(const BTWidget& widget, const BINativeImage& imag
 
 void BCGraphicsDeviceSDL::fillRect(const BTWidget& widget, IntRect rect, const WebCore::Color color)
 {
-    if (!widget.backingStore())
+    if (color.alpha() == 0 || !widget.backingStore() || rect.isEmpty())
         return;
 
-    boxRGBA(GET_NATIVE(widget.backingStore()), static_cast<Sint16>(rect.x()), 
-                    static_cast<Sint16>(rect.y()),
-                    static_cast<Sint16>(rect.x() + rect.width()), 
-                    static_cast<Sint16>(rect.y() + rect.height()),
-                    color.red(), color.green(), color.blue(), color.alpha());
+    SDL_Rect dstRect;
+    dstRect.x = rect.x();
+    dstRect.y = rect.y();
+    dstRect.w = rect.width();
+    dstRect.h = rect.height();
+    SDL_FillRect(GET_NATIVE(widget.backingStore()), &dstRect, color.rgb());
 }
 
 //TODO: draw points instead of lines for nicer circles
@@ -183,18 +210,17 @@ inline void BCGraphicsDeviceSDL::drawArc(const BTWidget& widget, const WebCore::
     switch(zone) {
         case 0:
             lineRGBA(GET_NATIVE(widget.backingStore()),
-                     static_cast<int> (xc - ceilf(x0)), static_cast<int> (yc - ceilf(y0)),
-                     static_cast<int> (xc - ceilf(x1)), static_cast<int> (yc - ceilf(y1)),
+                     static_cast<int> (xc + ceilf(x0)), static_cast<int> (yc - ceilf(y0)),
+                     static_cast<int> (xc + ceilf(x1)), static_cast<int> (yc - ceilf(y1)),
                      color.red(),
                      color.green(),
                      color.blue(),
                      color.alpha());
-
             break;
         case 1:
             lineRGBA(GET_NATIVE(widget.backingStore()),
-                     static_cast<int> (ceilf(y0) + xc), static_cast<int> (yc - ceilf(x0)),
-                     static_cast<int> (ceilf(y1) + xc), static_cast<int> (yc - ceilf(x1)),
+                     static_cast<int> (xc - ceilf(y0)), static_cast<int> (yc - ceilf(x0)),
+                     static_cast<int> (xc - ceilf(y1)), static_cast<int> (yc - ceilf(x1)),
                      color.red(),
                      color.green(),
                      color.blue(),
@@ -202,8 +228,8 @@ inline void BCGraphicsDeviceSDL::drawArc(const BTWidget& widget, const WebCore::
             break;
         case 2:
             lineRGBA(GET_NATIVE(widget.backingStore()),
-                     static_cast<int> (ceilf(x0) + xc), static_cast<int> (ceilf(y0) + yc),
-                     static_cast<int> (ceilf(x1) + xc), static_cast<int> (ceilf(y1) + yc),
+                     static_cast<int> (xc - ceilf(x0)), static_cast<int> (yc + ceilf(y0)),
+                     static_cast<int> (xc - ceilf(x1)), static_cast<int> (yc + ceilf(y1)),
                      color.red(),
                      color.green(),
                      color.blue(),
@@ -211,8 +237,8 @@ inline void BCGraphicsDeviceSDL::drawArc(const BTWidget& widget, const WebCore::
             break;
         case 3:
             lineRGBA(GET_NATIVE(widget.backingStore()),
-                     static_cast<int> (xc - ceilf(y0)), static_cast<int> (ceilf(x0) + yc),
-                     static_cast<int> (xc - ceilf(y1)), static_cast<int> (ceilf(x1) + yc),
+                     static_cast<int> (xc + ceilf(y0)), static_cast<int> (yc + ceilf(x0)),
+                     static_cast<int> (xc + ceilf(y1)), static_cast<int> (yc + ceilf(x1)),
                      color.red(),
                      color.green(),
                      color.blue(),
@@ -243,9 +269,9 @@ void BCGraphicsDeviceSDL::drawArc(const BTWidget& widget, const IntRect rect, ui
     //        |             Note: 0 <= alpha0, alpha1 <= 90
     //        |
 
-    int r = rect.width() / 2;
+    int r = (rect.width() - 1) / 2;
     int xc = rect.x() + r;
-    int yc = rect.y() + rect.height() / 2;
+    int yc = rect.y() + (rect.height() - 1)/ 2;
     int z0 = startAngle / 90;
     int z1 = (startAngle + angleSpan) / 90;
     int alpha0 = startAngle % 90;
@@ -321,22 +347,31 @@ void BCGraphicsDeviceSDL::drawLine(const BTWidget& widget, IntPoint p1, IntPoint
     if (!widget.backingStore())
         return;
 
-    lineRGBA(GET_NATIVE(widget.backingStore()),
-             static_cast<Sint16>(p1.x()), static_cast<Sint16>(p1.y()),
-             static_cast<Sint16>(p2.x()), static_cast<Sint16>(p2.y()),
-             color.red(),
-             color.green(),
-             color.blue(),
-             color.alpha());
+    if (p1.y() == p2.y())
+        lineRGBA(GET_NATIVE(widget.backingStore()),
+                static_cast<Sint16>(p1.x()), static_cast<Sint16>(p1.y()),
+                static_cast<Sint16>(p2.x() - 1), static_cast<Sint16>(p2.y()),
+                color.red(),
+                color.green(),
+                color.blue(),
+                color.alpha());
+    else
+        lineRGBA(GET_NATIVE(widget.backingStore()),
+                static_cast<Sint16>(p1.x()), static_cast<Sint16>(p1.y()),
+                static_cast<Sint16>(p2.x()), static_cast<Sint16>(p2.y()),
+                color.red(),
+                color.green(),
+                color.blue(),
+                color.alpha());
 }
 
 void BCGraphicsDeviceSDL::drawEllipse(const BTWidget& widget, WebCore::IntRect rect, const WebCore::Color color)
 {
     float yRadius = .5 * rect.height();
     float xRadius = .5 * rect.width();
-    ellipseRGBA(GET_NATIVE(widget.backingStore()), static_cast<Sint16>(rect.x() + xRadius), 
+    ellipseRGBA(GET_NATIVE(widget.backingStore()), static_cast<Sint16>(rect.x() + xRadius),
                 static_cast<Sint16>(rect.y() + yRadius),
-                static_cast<Sint16>(xRadius), 
+                static_cast<Sint16>(xRadius),
                 static_cast<Sint16>(yRadius),
                 color.red(),
                 color.green(),
@@ -346,14 +381,12 @@ void BCGraphicsDeviceSDL::drawEllipse(const BTWidget& widget, WebCore::IntRect r
 
 void BCGraphicsDeviceSDL::drawRect(const BTWidget& widget, IntRect rect, const WebCore::Color color)
 {
-    if (!widget.backingStore())
+     if (color.alpha() == 0 || !widget.backingStore() || rect.isEmpty())
         return;
-    FloatRect r(rect);
-    r.inflate(-.5f);
 
     rectangleRGBA(GET_NATIVE(widget.backingStore()),
-                    static_cast<Sint16>(r.x()), static_cast<Sint16>(r.y()),
-                    static_cast<Sint16>(r.x() + r.width()), static_cast<Sint16>(r.y() + r.height()),
+                    static_cast<Sint16>(rect.x()), static_cast<Sint16>(rect.y()),
+                    static_cast<Sint16>(rect.x() + rect.width() - 1), static_cast<Sint16>(rect.y() + rect.height() - 1),
                     color.red(), color.green(), color.blue(), color.alpha());
 }
 
@@ -374,7 +407,6 @@ void BCGraphicsDeviceSDL::stretchBlit(const BTWidget& widget, const BINativeImag
     dstRect.y = static_cast<Sint16>(dst.y());
     dstRect.w = static_cast<Sint16>(dst.width());
     dstRect.h = static_cast<Sint16>(dst.height());
-
     SDL_Surface *surface = NULL;
     if (alphaChannel != 255) {
         SDL_Surface *surfaceWithAlpha = applyTransparency(nativeImage, alphaChannel);
@@ -385,7 +417,7 @@ void BCGraphicsDeviceSDL::stretchBlit(const BTWidget& widget, const BINativeImag
         free(surfaceWithAlpha->pixels);
         SDL_FreeSurface(surfaceWithAlpha);
     } else {
-    	surface = zoomSurface(GET_NATIVE(&nativeImage),
+        surface = zoomSurface(GET_NATIVE(&nativeImage),
                             (((double)dst.width()/(double)srcRect.w)),
                             ((double)dst.height()/((double)srcRect.h)),
                              SMOOTHING_OFF);
@@ -424,9 +456,9 @@ void BCGraphicsDeviceSDL::setClip(const BTWidget& widget, IntRect r)
 {
     if (!widget.backingStore())
         return;
-    if (r.isEmpty())
+    if (r.isEmpty()) {
         SDL_SetClipRect(GET_NATIVE(widget.backingStore()), NULL);
-    else {
+    } else {
         SDL_Rect sdlRect;
         sdlRect.x = r.x();
         sdlRect.y = r.y();
@@ -470,8 +502,20 @@ void BCGraphicsDeviceSDL::update(const BTWidget& widget, const IntRect rect)
     sdlRect.h = rect.height();
     sdlRect.w = rect.width();
 
-    sdlDest.x = sdlRect.x + widget.x();
-    sdlDest.y = sdlRect.y + widget.y();
+   if (widget.isFrameView()) {
+        const BTScrollView* view = static_cast<const BTScrollView*>(&widget);
+        sdlDest.x = sdlRect.x + widget.x() - view->contentsX();
+        sdlDest.y = sdlRect.y + widget.y() - view->contentsY();
+    }
+    else {
+        sdlDest.x = sdlRect.x + widget.x();
+        sdlDest.y = sdlRect.y + widget.y();
+    }
+
+    if (sdlRect.w + sdlDest.x > size().width())
+        sdlRect.w = size().width() - sdlDest.x;
+    if (sdlRect.h + sdlDest.y > size().height())
+        sdlRect.h = size().height() - sdlDest.y;
 #ifndef NDEBUG
     if (getenv("FLASHING_RECTS")) {
         // flash a red rect
@@ -480,8 +524,20 @@ void BCGraphicsDeviceSDL::update(const BTWidget& widget, const IntRect rect)
         SDL_Delay(10); // wait 10ms in order to see flashing rect
     }
 #endif
+    if (sdlRect.w > size().width())
+        sdlRect.w = size().width();
+    if (sdlRect.h > size().height())
+        sdlRect.h = size().height();
+
+    //We need to disable the SDL_SRCAPLHA from the widget SDL_Surface to avoid blending on the upcoming SDL_BlitSurface
+    SDL_SetAlpha(GET_NATIVE(widget.backingStore()), 0, 255);
     SDL_BlitSurface(GET_NATIVE(widget.backingStore()), &sdlRect, m_screen, &sdlDest);
-    SDL_UpdateRect(m_screen, sdlDest.x, sdlDest.y, sdlRect.w, sdlRect.h);
+    //only update when rect is visible!
+    if ((sdlDest.x<size().width())
+        &&(sdlDest.y<size().height())
+        &&(sdlDest.x+sdlRect.w>=0)
+        &&(sdlDest.y+sdlRect.h>=0))
+        SDL_UpdateRect(m_screen, sdlDest.x, sdlDest.y, sdlRect.w, sdlRect.h);
 }
 
 void BCGraphicsDeviceSDL::clear(const BTWidget& widget, const IntRect rect)
@@ -501,7 +557,7 @@ SDL_Surface* BCGraphicsDeviceSDL::applyTransparency(const BINativeImage& image, 
     SDL_Surface *final = NULL;
     SDL_Surface *origin = GET_NATIVE(&image);
     Uint32 rmask, gmask, bmask, amask;
-        /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
     on the endianness (byte order) of the machine */
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;

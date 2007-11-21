@@ -14,16 +14,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 #include "QWebPopup.h"
 
 #include <QCoreApplication>
 #include <QMouseEvent>
-
-#include "QWebPopup.moc"
 
 namespace WebCore {
 
@@ -51,8 +49,11 @@ void QWebPopup::hideEvent(QHideEvent* e)
 
 void QWebPopup::activeChanged(int index)
 {
-    if (m_client)
-        m_client->valueChanged(index);
+    if (m_client) {
+        if (index >= 0)
+            m_client->valueChanged(index);
+        m_client->hidePopup();
+    }
 }
 
 }

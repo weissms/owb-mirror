@@ -28,16 +28,20 @@
 #include "BitmapImage.h"
 
 #include "FloatRect.h"
-#include "ImageAnimationObserver.h"
+#include "ImageObserver.h"
 #include "IntRect.h"
 #include "PlatformString.h"
 #include "Timer.h"
 #include <wtf/Vector.h>
-#include "MimeTypeRegistry.h"
+#include "MIMETypeRegistry.h"
 
 namespace WebCore {
 
-BitmapImage::BitmapImage(ImageAnimationObserver* observer)
+// Animated images >5MB are considered large enough that we'll only hang on to
+// one frame at a time.
+const unsigned cLargeAnimationCutoff = 5242880;
+
+BitmapImage::BitmapImage(ImageObserver* observer)
     : Image(observer)
     , m_currentFrame(0)
     , m_frames(0)
@@ -47,31 +51,58 @@ BitmapImage::BitmapImage(ImageAnimationObserver* observer)
     , m_isSolidColor(false)
     , m_animatingImageType(true)
     , m_animationFinished(false)
+    , m_allDataReceived(false)
     , m_haveSize(false)
     , m_sizeAvailable(false)
+    , m_decodedSize(0)
 {
     initPlatformData();
 }
 
 BitmapImage::~BitmapImage()
 {
-    invalidateData();
+    invalidatePlatformData();
     stopAnimation();
 }
 
-void BitmapImage::invalidateData()
+void BitmapImage::destroyDecodedData(bool incremental)
 {
     // Destroy the cached images and release them.
     if (m_frames.size()) {
-        m_frames.last().clear();
+        int sizeChange = 0;
+        int frameSize = m_size.width() * m_size.height() * 4;
+        for (unsigned i = incremental ? m_frames.size() - 1 : 0; i < m_frames.size(); i++) {
+            if (m_frames[i].m_frame) {
+                sizeChange -= frameSize;
+                m_frames[i].clear();
+            }
+        }
+
+        // We just always invalidate our platform data, even in the incremental case.
+        // This could be better, but it's not a big deal.
         m_isSolidColor = false;
         invalidatePlatformData();
+        
+        if (sizeChange) {
+            m_decodedSize += sizeChange;
+            if (imageObserver())
+                imageObserver()->decodedSizeChanged(this, sizeChange);
+        }
+        
+        if (!incremental) {
+            // Reset the image source, since Image I/O has an underlying cache that it uses
+            // while animating that it seems to never clear.
+            m_source.clear();
+            m_source.setData(m_data.get(), m_allDataReceived);
+        }
     }
 }
 
 void BitmapImage::cacheFrame(size_t index)
 {
     size_t numFrames = frameCount();
+    ASSERT(m_decodedSize == 0 || numFrames > 1);
+    
     if (!m_frames.size() && shouldAnimate()) {            
         // Snag the repetition count.
         m_repetitionCount = m_source.repetitionCount();
@@ -83,12 +114,19 @@ void BitmapImage::cacheFrame(size_t index)
         m_frames.resize(numFrames);
 
     m_frames[index].m_frame = m_source.createFrameAtIndex(index);
-    if (m_frames[index].m_frame)
+    if (numFrames == 1 && m_frames[index].m_frame)
         checkForSolidColor();
 
     if (shouldAnimate())
         m_frames[index].m_duration = m_source.frameDurationAtIndex(index);
     m_frames[index].m_hasAlpha = m_source.frameHasAlphaAtIndex(index);
+    
+    int sizeChange = m_frames[index].m_frame ? m_size.width() * m_size.height() * 4 : 0;
+    if (sizeChange) {
+        m_decodedSize += sizeChange;
+        if (imageObserver())
+            imageObserver()->decodedSizeChanged(this, sizeChange);
+    }
 }
 
 IntSize BitmapImage::size() const
@@ -100,12 +138,13 @@ IntSize BitmapImage::size() const
     return m_size;
 }
 
-bool BitmapImage::setNativeData(NativeBytePtr data, bool allDataReceived)
+bool BitmapImage::dataChanged(bool allDataReceived)
 {
-    invalidateData();
+    destroyDecodedData(true);
     
     // Feed all the data we've seen so far to the image decoder.
-    m_source.setData(data, allDataReceived);
+    m_allDataReceived = allDataReceived;
+    m_source.setData(m_data.get(), allDataReceived);
     
     // Image properties will not be available until the first frame of the file
     // reaches kCGImageStatusIncomplete.
@@ -162,12 +201,16 @@ bool BitmapImage::frameHasAlphaAtIndex(size_t index)
 
 bool BitmapImage::shouldAnimate()
 {
-    return (m_animatingImageType && !m_animationFinished && animationObserver());
+    return (m_animatingImageType && !m_animationFinished && imageObserver());
 }
 
 void BitmapImage::startAnimation()
 {
     if (m_frameTimer || !shouldAnimate() || frameCount() <= 1)
+        return;
+
+    // Don't advance the animation until the current frame has completely loaded.
+    if (!m_source.frameIsCompleteAtIndex(m_currentFrame))
         return;
 
     m_frameTimer = new Timer<BitmapImage>(this, &BitmapImage::advanceAnimation);
@@ -188,8 +231,12 @@ void BitmapImage::resetAnimation()
     m_currentFrame = 0;
     m_repetitionsComplete = 0;
     m_animationFinished = false;
+    int frameSize = m_size.width() * m_size.height() * 4;
+    
+    // For extremely large animations, when the animation is reset, we just throw everything away.
+    if (frameCount() * frameSize > cLargeAnimationCutoff)
+        destroyDecodedData();
 }
-
 
 void BitmapImage::advanceAnimation(Timer<BitmapImage>* timer)
 {
@@ -197,15 +244,15 @@ void BitmapImage::advanceAnimation(Timer<BitmapImage>* timer)
     stopAnimation();
     
     // See if anyone is still paying attention to this animation.  If not, we don't
-    // advance and will simply pause the animation.
-    if (animationObserver()->shouldStopAnimation(this))
+    // advance and will remain suspended at the current frame until the animation is resumed.
+    if (imageObserver()->shouldPauseAnimation(this))
         return;
 
     m_currentFrame++;
     if (m_currentFrame >= frameCount()) {
         m_repetitionsComplete += 1;
         if (m_repetitionCount && m_repetitionsComplete >= m_repetitionCount) {
-            m_animationFinished = false;
+            m_animationFinished = true;
             m_currentFrame--;
             return;
         }
@@ -213,11 +260,23 @@ void BitmapImage::advanceAnimation(Timer<BitmapImage>* timer)
     }
 
     // Notify our observer that the animation has advanced.
-    animationObserver()->animationAdvanced(this);
-        
-    // Kick off a timer to move to the next frame.
-    m_frameTimer = new Timer<BitmapImage>(this, &BitmapImage::advanceAnimation);
-    m_frameTimer->startOneShot(frameDurationAtIndex(m_currentFrame));
+    imageObserver()->animationAdvanced(this);
+
+    // For large animated images, go ahead and throw away frames as we go to save
+    // footprint.
+    int frameSize = m_size.width() * m_size.height() * 4;
+    if (frameCount() * frameSize > cLargeAnimationCutoff) {
+        // Destroy all of our frames and just redecode every time.
+        destroyDecodedData();
+
+        // Go ahead and decode the next frame.
+        frameAtIndex(m_currentFrame);
+    }
+    
+    // We do not advance the animation explicitly.  We rely on a subsequent draw of the image
+    // to force a request for the next frame via startAnimation().  This allows images that move offscreen while
+    // scrolling to stop animating (thus saving memory from additional decoded frames and
+    // CPU time spent doing the decoding).
 }
 
 }

@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,35 +16,30 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGStyledElement.h"
 
 #include "Attr.h"
-#include "cssstyleselector.h"
+#include "CSSStyleSelector.h"
 #include "Document.h"
 #include "HTMLNames.h"
-#include "ksvgcssproperties.h"
 #include "PlatformString.h"
-#include "RenderView.h"
-#include "RenderPath.h"
 #include "SVGElement.h"
 #include "SVGElementInstance.h"
 #include "SVGNames.h"
+#include "RenderObject.h"
 #include "SVGRenderStyle.h"
+#include "SVGResource.h"
 #include "SVGSVGElement.h"
-
 #include <wtf/Assertions.h>
 
 namespace WebCore {
-
-// Defined in CSSGrammar.y, but not in any header, so just declare it here for now.
-int getPropertyID(const char* str, int len);
 
 using namespace SVGNames;
 
@@ -59,28 +54,27 @@ SVGStyledElement::~SVGStyledElement()
 
 ANIMATED_PROPERTY_DEFINITIONS(SVGStyledElement, String, String, string, ClassName, className, HTMLNames::classAttr.localName(), m_className)
 
-RenderObject* SVGStyledElement::createRenderer(RenderArena* arena, RenderStyle* style)
+bool SVGStyledElement::rendererIsNeeded(RenderStyle* style)
 {
-    // The path data is set upon the first layout() call.
-    return new (arena) RenderPath(style, this);
-}
+    // http://www.w3.org/TR/SVG/extend.html#PrivateData
+    // Prevent anything other than SVG renderers from appearing in our render tree
+    // Spec: SVG allows inclusion of elements from foreign namespaces anywhere
+    // with the SVG content. In general, the SVG user agent will include the unknown
+    // elements in the DOM but will otherwise ignore unknown elements. 
+    if (!parentNode() || parentNode()->isSVGElement())
+        return StyledElement::rendererIsNeeded(style);
 
-static inline int cssPropertyIdForName(const char* propertyName, int propertyLength)
-{
-    int propertyId = getPropertyID(propertyName, propertyLength);
-    if (propertyId == 0)
-        propertyId = SVG::getSVGCSSPropertyID(propertyName, propertyLength);
-    return propertyId;
+    return false;
 }
 
 static inline void mapAttributeToCSSProperty(HashMap<AtomicStringImpl*, int>* propertyNameToIdMap, const QualifiedName& attrName, const char* cssPropertyName = 0)
 {
     int propertyId = 0;
     if (cssPropertyName)
-        propertyId = cssPropertyIdForName(cssPropertyName, strlen(cssPropertyName));
+        propertyId = getPropertyID(cssPropertyName, strlen(cssPropertyName));
     else {
         DeprecatedString propertyName = attrName.localName().deprecatedString();
-        propertyId = cssPropertyIdForName(propertyName.ascii(), propertyName.length());
+        propertyId = getPropertyID(propertyName.ascii(), propertyName.length());
     }
     ASSERT(propertyId > 0);
     propertyNameToIdMap->set(attrName.localName().impl(), propertyId);
@@ -101,8 +95,10 @@ int SVGStyledElement::cssPropertyIdForSVGAttributeName(const QualifiedName& attr
         mapAttributeToCSSProperty(propertyNameToIdMap, clip_pathAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, clip_ruleAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, colorAttr);
+        mapAttributeToCSSProperty(propertyNameToIdMap, color_interpolationAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, color_interpolation_filtersAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, color_profileAttr);
+        mapAttributeToCSSProperty(propertyNameToIdMap, color_renderingAttr); 
         mapAttributeToCSSProperty(propertyNameToIdMap, cursorAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, directionAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, displayAttr);
@@ -150,6 +146,7 @@ int SVGStyledElement::cssPropertyIdForSVGAttributeName(const QualifiedName& attr
         mapAttributeToCSSProperty(propertyNameToIdMap, unicode_bidiAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, visibilityAttr);
         mapAttributeToCSSProperty(propertyNameToIdMap, word_spacingAttr);
+        mapAttributeToCSSProperty(propertyNameToIdMap, writing_modeAttr);
     }
     
     return propertyNameToIdMap->get(attrName.localName().impl());
@@ -195,6 +192,22 @@ void SVGStyledElement::notifyAttributeChange() const
     notifyResourceParentIfExistant();
 }
 
+void SVGStyledElement::childrenChanged()
+{
+    SVGElement::childrenChanged();
+    if (document()->parsing())
+        return;
+
+    SVGDocumentExtensions* extensions = document()->accessSVGExtensions();
+    if (!extensions)
+        return;
+
+    // In case we're referenced by a <use> element, we have element instances registered
+    // to us in the SVGDocumentExtensions. If childrenChanged() is called, we need
+    // to recursively update all children including ourselves.
+    updateElementInstance(extensions);
+}
+
 void SVGStyledElement::notifyResourceParentIfExistant() const
 {
     Node* node = parentNode();
@@ -202,10 +215,7 @@ void SVGStyledElement::notifyResourceParentIfExistant() const
         if (node->hasTagName(SVGNames::linearGradientTag) || node->hasTagName(SVGNames::radialGradientTag) ||
             node->hasTagName(SVGNames::patternTag) || node->hasTagName(SVGNames::clipPathTag) ||
             node->hasTagName(SVGNames::markerTag) || node->hasTagName(SVGNames::maskTag)) {
-            SVGElement* element = svg_dynamic_cast(node);
-            ASSERT(element);
-
-            element->notifyAttributeChange();
+            static_cast<SVGElement*>(node)->notifyAttributeChange();
         }
 
         node = node->parentNode();
@@ -248,25 +258,33 @@ void SVGStyledElement::attributeChanged(Attribute* attr, bool preserveDecls)
     notifyAttributeChange();
 }
 
-RenderView* SVGStyledElement::view() const
+RenderStyle* SVGStyledElement::resolveStyle(RenderStyle* parentStyle)
 {
-    return static_cast<RenderView*>(document()->renderer());
+    if (renderer()) {
+        RenderStyle* renderStyle = renderer()->style();
+        renderStyle->ref();
+        return renderStyle;
+    }
+
+    return document()->styleSelector()->styleForElement(this, parentStyle);
 }
 
-void SVGStyledElement::rebuildRenderer() const
+PassRefPtr<CSSValue> SVGStyledElement::getPresentationAttribute(const String& name)
 {
-    if (!renderer() || !renderer()->isRenderPath())
-        return;
+    MappedAttribute* cssSVGAttr = mappedAttributes()->getAttributeItem(name);
+    if (!cssSVGAttr || !cssSVGAttr->style())
+        return 0;
+    return cssSVGAttr->style()->getPropertyCSSValue(name);
+}
 
-    RenderPath* renderPath = static_cast<RenderPath*>(renderer());
-    SVGElement* parentElement = svg_dynamic_cast(parentNode());
-    if (parentElement && parentElement->renderer() && parentElement->isStyled() &&
-        parentElement->childShouldCreateRenderer(const_cast<SVGStyledElement*>(this)))
-        renderPath->setNeedsLayout(true);
+void SVGStyledElement::detach()
+{
+    SVGResource::removeClient(this);
+    SVGElement::detach();
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

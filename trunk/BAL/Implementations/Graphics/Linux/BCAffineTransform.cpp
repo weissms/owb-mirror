@@ -25,7 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- #include "config.h"
+#include "config.h"
+#include "BALConfiguration.h"
+
 #include "AffineTransform.h"
 #include "IntRect.h"
 #include "FloatRect.h"
@@ -63,6 +65,13 @@ void AffineTransform::map(double x, double y, double *x2, double *y2) const
     *y2 = m_dy + y;
 }
 
+IntPoint AffineTransform::mapPoint(const IntPoint& point) const
+{
+    //FIXME: do a real implementation
+    BALNotImplemented();
+    return point;
+}
+
 IntRect AffineTransform::mapRect(const IntRect& rect) const
 {
     IntRect r ( (int)( m_dx + rect.x()), (int)(m_dy + rect.y()), rect.width(), rect.height() );
@@ -98,6 +107,13 @@ void AffineTransform::reset()
     m_m22 = 1;
     m_dx = 0;
     m_dy = 0;
+}
+
+AffineTransform& AffineTransform::multiply(const BTAffineTransform&)
+{
+    //FIXME: do a real implementation
+    BALNotImplemented();
+    return *this;
 }
 
 AffineTransform &AffineTransform::scale(double sx, double sy)
@@ -142,14 +158,22 @@ AffineTransform &AffineTransform::shear(double sx, double sy)
     return *this;
 }
 
+AffineTransform& AffineTransform::skew(double angleX, double angleY)
+{
+    //FIXME: do a real implementation
+    BALNotImplemented();
+    return *this;
+}
+
 double AffineTransform::det() const
 {
     return m_m11 * m_m22 - m_m21 * m_m12;
 }
 
-/*bool AffineTransform::isInvertible() const
+bool AffineTransform::isInvertible() const
 {
-}*/
+    return false;
+}
 
 AffineTransform AffineTransform::inverse() const
 {

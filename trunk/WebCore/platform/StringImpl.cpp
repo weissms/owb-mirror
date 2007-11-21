@@ -1,10 +1,8 @@
 /**
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller ( mueller@kde.org )
- * Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2006 Andrew Wellington (proton@wiretapped.net)
  * Copyright (C) 2007 Pleyo
  * 
@@ -20,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -32,6 +30,7 @@
 #include "CString.h"
 #include "CharacterNames.h"
 #include "DeprecatedString.h"
+#include "FloatConversion.h"
 #include "Length.h"
 #include "StringHash.h"
 #include "TextBreakIterator.h"
@@ -57,7 +56,7 @@ static inline bool isSpace(UChar c)
 {
     // Use isspace() for basic Latin-1.
     // This will include newlines, which aren't included in unicode DirWS.
-    return c <= 0x7F ? isspace(c) : direction(c) == WhiteSpaceNeutral;
+    return c <= 0x7F ? isASCIISpace(c) : direction(c) == WhiteSpaceNeutral;
 }    
     
 static inline UChar* newUCharVector(unsigned n)
@@ -263,7 +262,7 @@ bool StringImpl::containsOnlyWhitespace(unsigned from, unsigned len) const
     // the "len" parameter means are different here from what's done in RenderText.
     // FIXME: No range checking here.
     for (unsigned i = from; i < len; i++)
-        if (m_data[i] > 0x7F || !isspace(m_data[i]))
+        if (m_data[i] > 0x7F || !isASCIISpace(m_data[i]))
             return false;
     return true;
 }
@@ -360,12 +359,12 @@ Length* StringImpl::toCoordsArray(int& len) const
 
 Length* StringImpl::toLengthArray(int& len) const
 {
-    if (!length()) {
+    DeprecatedString str(reinterpret_cast<const DeprecatedChar*>(m_data), m_length);
+    str = str.simplifyWhiteSpace();
+    if (!str.length()) {
         len = 1;
         return 0;
     }
-    DeprecatedString str(reinterpret_cast<const DeprecatedChar*>(m_data), m_length);
-    str = str.simplifyWhiteSpace();
 
     len = str.contains(',') + 1;
     Length* r = new Length[len];
@@ -390,22 +389,26 @@ Length* StringImpl::toLengthArray(int& len) const
 
 bool StringImpl::isLower() const
 {
-    // Do a quick check for the case where it's all ASCII.
-    int allLower = true;
+    // Do a faster loop for the case where all the characters are ASCII.
+    bool allLower = true;
     UChar ored = 0;
     for (unsigned i = 0; i < m_length; i++) {
         UChar c = m_data[i];
-        allLower &= islower(c);
+        allLower = allLower && isASCIILower(c);
         ored |= c;
     }
     if (!(ored & ~0x7F))
         return allLower;
 
-    // Do a slower check for the other cases.
-    bool allLower2 = true;
-    for (unsigned i = 0; i < m_length; i++)
-        allLower2 &= Unicode::isLower(m_data[i]);
-    return allLower2;
+    // Do a slower check for cases that include non-ASCII characters.
+    allLower = true;
+    unsigned i = 0;
+    while (i < m_length) {
+        UChar32 character;
+        U16_NEXT(m_data, i, m_length, character)
+        allLower = allLower && Unicode::isLower(character);
+    }
+    return allLower;
 }
 
 StringImpl* StringImpl::lower() const
@@ -420,16 +423,17 @@ StringImpl* StringImpl::lower() const
     c->m_data = data;
     c->m_length = length;
 
-    // Do a faster loop for the case where it's all ASCII.
+    // Do a faster loop for the case where all the characters are ASCII.
     UChar ored = 0;
     for (int i = 0; i < length; i++) {
         UChar c = m_data[i];
         ored |= c;
-        data[i] = tolower(c);
+        data[i] = toASCIILower(c);
     }
     if (!(ored & ~0x7F))
         return c;
 
+    // Do a slower implementation for cases that include non-ASCII characters.
     bool error;
     int32_t realLength = Unicode::toLower(data, length, m_data, m_length, &error);
     if (!error && realLength == length)
@@ -623,6 +627,44 @@ int StringImpl::toInt(bool* ok) const
     return DeprecatedConstString(reinterpret_cast<const DeprecatedChar*>(m_data), i).string().toInt(ok);
 }
 
+int64_t StringImpl::toInt64(bool* ok) const
+{
+    unsigned i = 0;
+
+    // Allow leading spaces.
+    for (; i != m_length; ++i)
+        if (!isSpace(m_data[i]))
+            break;
+    
+    // Allow sign.
+    if (i != m_length && (m_data[i] == '+' || m_data[i] == '-'))
+        ++i;
+    
+    // Allow digits.
+    for (; i != m_length; ++i)
+        if (!Unicode::isDigit(m_data[i]))
+            break;
+    
+    return DeprecatedConstString(reinterpret_cast<const DeprecatedChar*>(m_data), i).string().toInt64(ok);
+}
+
+uint64_t StringImpl::toUInt64(bool* ok) const
+{
+    unsigned i = 0;
+
+    // Allow leading spaces.
+    for (; i != m_length; ++i)
+        if (!isSpace(m_data[i]))
+            break;
+
+    // Allow digits.
+    for (; i != m_length; ++i)
+        if (!Unicode::isDigit(m_data[i]))
+            break;
+    
+    return DeprecatedConstString(reinterpret_cast<const DeprecatedChar*>(m_data), i).string().toUInt64(ok);
+}
+
 double StringImpl::toDouble(bool* ok) const
 {
     if (!m_length) {
@@ -633,13 +675,19 @@ double StringImpl::toDouble(bool* ok) const
     char *end;
     CString latin1String = Latin1Encoding().encode(characters(), length());
 #ifdef __OWB_JS__
-    double val = kjs_strtod(latin1String, &end);
+    double val = kjs_strtod(latin1String.data(), &end);
     if (ok)
         *ok = end == 0 || *end == '\0';
     return val;
 #else
-    return 0;
-#endif
+	return 0;
+#endif //__OWB_JS__
+}
+
+float StringImpl::toFloat(bool* ok) const
+{
+    // FIXME: this will return ok even when the string does not fit into a float
+    return narrowPrecisionToFloat(toDouble(ok));
 }
 
 static bool equal(const UChar* a, const char* b, int length)
@@ -768,8 +816,8 @@ int StringImpl::find(const StringImpl* str, int index, bool caseSensitive) const
         }
     } else {
         for (int i = 0; i < lstr; i++ ) {
-            hthis += tolower(uthis[i]);
-            hstr += tolower(ustr[i]);
+            hthis += toASCIILower(uthis[i]);
+            hstr += toASCIILower(ustr[i]);
         }
         int i = 0;
         while (1) {
@@ -777,8 +825,8 @@ int StringImpl::find(const StringImpl* str, int index, bool caseSensitive) const
                 return index + i;
             if (i == delta)
                 return -1;
-            hthis += tolower(uthis[i + lstr]);
-            hthis -= tolower(uthis[i]);
+            hthis += toASCIILower(uthis[i + lstr]);
+            hthis -= toASCIILower(uthis[i]);
             i++;
         }
     }
@@ -786,7 +834,7 @@ int StringImpl::find(const StringImpl* str, int index, bool caseSensitive) const
 
 int StringImpl::reverseFind(const UChar c, int index) const
 {
-    if (index >= (int)m_length)
+    if (index >= (int)m_length || m_length == 0)
         return -1;
 
     if (index < 0)
@@ -840,8 +888,8 @@ int StringImpl::reverseFind(const StringImpl* str, int index, bool caseSensitive
         }
     } else {
         for (i = 0; i < lstr; i++) {
-            hthis += tolower(uthis[index + i]);
-            hstr += tolower(ustr[i]);
+            hthis += toASCIILower(uthis[index + i]);
+            hstr += toASCIILower(ustr[i]);
         }
         i = index;
         while (1) {
@@ -850,8 +898,8 @@ int StringImpl::reverseFind(const StringImpl* str, int index, bool caseSensitive
             if (i == 0)
                 return -1;
             i--;
-            hthis -= tolower(uthis[i + lstr]);
-            hthis += tolower(uthis[i]);
+            hthis -= toASCIILower(uthis[i + lstr]);
+            hthis += toASCIILower(uthis[i]);
         }
     }
     
@@ -1036,23 +1084,24 @@ bool equalIgnoringCase(const StringImpl* a, const char* b)
     unsigned length = a->length();
     const UChar* as = a->characters();
 
-    // Do a faster loop for the case where it's all ASCII.
+    // Do a faster loop for the case where all the characters are ASCII.
     UChar ored = 0;
     bool equal = true;
     for (unsigned i = 0; i != length; ++i) {
-        unsigned char bc = b[i];
+        char bc = b[i];
         if (!bc)
             return false;
         UChar ac = as[i];
         ored |= ac;
-        equal &= tolower(ac) == tolower(bc);
+        equal = equal && (toASCIILower(ac) == toASCIILower(bc));
     }
 
+    // Do a slower implementation for cases that include non-ASCII characters.
     if (ored & ~0x7F) {
         equal = true;
         for (unsigned i = 0; i != length; ++i) {
             unsigned char bc = b[i];
-            equal &= foldCase(as[i]) == foldCase(bc);
+            equal = equal && (foldCase(as[i]) == foldCase(bc));
         }
     }
 
@@ -1108,35 +1157,34 @@ unsigned StringImpl::computeHash(const UChar* m_data, unsigned len)
 
 // Paul Hsieh's SuperFastHash
 // http://www.azillionmonkeys.com/qed/hash.html
-unsigned StringImpl::computeHash(const char* m_data)
+unsigned StringImpl::computeHash(const char* data)
 {
     // This hash is designed to work on 16-bit chunks at a time. But since the normal case
     // (above) is to hash UTF-16 characters, we just treat the 8-bit chars as if they
     // were 16-bit chunks, which should give matching results
 
-    unsigned m_length = strlen(m_data);
     uint32_t hash = PHI;
     uint32_t tmp;
     
-    int rem = m_length & 1;
-    m_length >>= 1;
-    
     // Main loop
-    for (; m_length > 0; m_length--) {
-        hash += (unsigned char)m_data[0];
-        tmp = ((unsigned char)m_data[1] << 11) ^ hash;
+    for (;;) {
+        unsigned char b0 = data[0];
+        if (!b0)
+            break;
+        unsigned char b1 = data[1];
+        if (!b1) {
+            hash += b0;
+            hash ^= hash << 11;
+            hash += hash >> 17;
+            break;
+        }
+        hash += b0;
+        tmp = (b1 << 11) ^ hash;
         hash = (hash << 16) ^ tmp;
-        m_data += 2;
+        data += 2;
         hash += hash >> 11;
     }
     
-    // Handle end case
-    if (rem) {
-        hash += (unsigned char)m_data[0];
-        hash ^= hash << 11;
-        hash += hash >> 17;
-    }
-
     // Force "avalanching" of final 127 bits
     hash ^= hash << 3;
     hash += hash >> 5;
@@ -1168,6 +1216,19 @@ Vector<char> StringImpl::ascii() const
     buffer[i] = '\0';
     return buffer;
 }
+
+WTF::Unicode::Direction StringImpl::defaultWritingDirection() const
+{
+    for (unsigned i = 0; i < m_length; ++i) {
+        WTF::Unicode::Direction charDirection = WTF::Unicode::direction(m_data[i]);
+        if (charDirection == WTF::Unicode::LeftToRight)
+            return WTF::Unicode::LeftToRight;
+        if (charDirection == WTF::Unicode::RightToLeft || charDirection == WTF::Unicode::RightToLeftArabic)
+            return WTF::Unicode::RightToLeft;
+    }
+    return WTF::Unicode::LeftToRight;
+}
+
 #ifdef __OWB_JS__
 StringImpl::StringImpl(const Identifier& str)
 {
@@ -1178,7 +1239,8 @@ StringImpl::StringImpl(const UString& str)
 {
     init(reinterpret_cast<const UChar*>(str.data()), str.size());
 }
-#endif
+#endif //__OWB_JS__
+
 PassRefPtr<StringImpl> StringImpl::createStrippingNull(const UChar* str, unsigned len)
 {
     StringImpl* result = new StringImpl;
@@ -1186,10 +1248,20 @@ PassRefPtr<StringImpl> StringImpl::createStrippingNull(const UChar* str, unsigne
         return result;
     
     UChar* strippedCopy = newUCharVector(len);
-    int strippedLength = 0;
-    for (unsigned i = 0; i < len; i++)
-        if (UChar c = str[i])
-            strippedCopy[strippedLength++] = c;
+    int strippedLength = len;
+    bool foundNull = false;
+    for (unsigned i = 0; i < len; i++) {
+        UChar c = str[i];
+        strippedCopy[i] = c;
+        foundNull |= !c;
+    }
+    if (foundNull) {
+        strippedLength = 0;
+        for (unsigned i = 0; i < len; i++) {
+            if (UChar c = str[i])
+                strippedCopy[strippedLength++] = c;
+        }
+    }
 
     result->m_data = strippedCopy;
     result->m_length = strippedLength;

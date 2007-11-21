@@ -29,13 +29,14 @@
 #include "config.h"
 #include "DocumentLoader.h"
 
+#include "CachedPage.h"
 #include "Document.h"
 #include "Event.h"
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "HistoryItem.h"
+#include "Logging.h"
 #include "MainResourceLoader.h"
-#include "PageCache.h"
 #include "PlatformString.h"
 #include "SharedBuffer.h"
 #include "XMLTokenizer.h"
@@ -120,7 +121,8 @@ static void setAllDefersLoading(const ResourceLoaderSet& loaders, bool defers)
 }
 
 DocumentLoader::DocumentLoader(const ResourceRequest& req, const SubstituteData& substituteData)
-    : m_frame(0)
+    : m_deferMainResourceDataLoad(true)
+    , m_frame(0)
     , m_originalRequest(req)
     , m_substituteData(substituteData)
     , m_originalRequestCopy(req)
@@ -131,7 +133,7 @@ DocumentLoader::DocumentLoader(const ResourceRequest& req, const SubstituteData&
     , m_gotFirstByte(false)
     , m_primaryLoadComplete(false)
     , m_isClientRedirect(false)
-    , m_loadingFromPageCache(false)
+    , m_loadingFromCachedPage(false)
     , m_stopRecordingResponses(false)
 {
 }
@@ -204,7 +206,7 @@ void DocumentLoader::setRequest(const ResourceRequest& req)
     // redirect at this point, but we can replace a committed dataSource.
     bool handlingUnreachableURL = false;
 
-    handlingUnreachableURL = substituteData().isValid();
+    handlingUnreachableURL = m_substituteData.isValid() && !m_substituteData.failingURL().isEmpty();
 
     if (handlingUnreachableURL)
         m_committed = false;
@@ -249,12 +251,24 @@ void DocumentLoader::mainReceivedError(const ResourceError& error, bool isComple
 // but not loads initiated by child frames' data sources -- that's the WebFrame's job.
 void DocumentLoader::stopLoading()
 {
-    // Always attempt to stop the frame because it may still be loading/parsing after the data source
-    // is done loading and not stopping it can cause a world leak.
-    if (m_committed)
-        m_frame->loader()->stopLoading(false);
+    // In some rare cases, calling FrameLoader::stopLoading could set m_loading to false.
+    // (This can happen when there's a single XMLHttpRequest currently loading and stopLoading causes it
+    // to stop loading. Because of this, we need to save it so we don't return early.
+    bool loading = m_loading;
     
-    if (!m_loading)
+    if (m_committed) {
+        // Attempt to stop the frame if the document loader is loading, or if it is done loading but
+        // still  parsing. Failure to do so can cause a world leak.
+        Document* doc = m_frame->document();
+        
+        if (loading || (doc && doc->parsing()))
+            m_frame->loader()->stopLoading(false);
+    }
+
+    // Always cancel multipart loaders
+    cancelAll(m_multipartSubresourceLoaders);
+
+    if (!loading)
         return;
     
     RefPtr<Frame> protectFrame(m_frame);
@@ -300,8 +314,10 @@ void DocumentLoader::finishedLoading()
 {
     m_gotFirstByte = true;   
     commitIfReady();
-    frameLoader()->finishedLoadingDocument(this);
-    m_frame->loader()->end();
+    if (FrameLoader* loader = frameLoader()) {
+        loader->finishedLoadingDocument(this);
+        loader->end();
+    }
 }
 
 void DocumentLoader::setCommitted(bool f)
@@ -530,12 +546,14 @@ KURL DocumentLoader::urlForHistory() const
     return m_originalRequestCopy.url();
 }
 
-void DocumentLoader::loadFromPageCache(PassRefPtr<PageCache> pageCache)
+void DocumentLoader::loadFromCachedPage(PassRefPtr<CachedPage> cachedPage)
 {
+    LOG(PageCache, "WebCorePageCache: DocumentLoader %p loading from cached page %p", this, cachedPage.get());
+    
     prepareForLoadStart();
-    setLoadingFromPageCache(true);
+    setLoadingFromCachedPage(true);
     setCommitted(true);
-    frameLoader()->commitProvisionalLoad(pageCache);
+    frameLoader()->commitProvisionalLoad(cachedPage);
 }
 
 const ResourceResponse& DocumentLoader::response() const
@@ -543,14 +561,14 @@ const ResourceResponse& DocumentLoader::response() const
     return m_response;
 }
 
-void DocumentLoader::setLoadingFromPageCache(bool loading)
+void DocumentLoader::setLoadingFromCachedPage(bool loading)
 {
-    m_loadingFromPageCache = loading;
+    m_loadingFromCachedPage = loading;
 }
 
-bool DocumentLoader::isLoadingFromPageCache() const
+bool DocumentLoader::isLoadingFromCachedPage() const
 {
-    return m_loadingFromPageCache;
+    return m_loadingFromCachedPage;
 }
 
 void DocumentLoader::setResponse(const ResourceResponse& response) 
@@ -652,6 +670,12 @@ bool DocumentLoader::isLoadingPlugIns() const
     return !m_plugInStreamLoaders.isEmpty();
 }
 
+bool DocumentLoader::isLoadingMultipartContent() const
+{
+    ASSERT(m_mainResourceLoader);
+    return m_mainResourceLoader->isLoadingMultipartContent();
+}
+
 bool DocumentLoader::startLoadingMainResource(unsigned long identifier)
 {
     ASSERT(!m_mainResourceLoader);
@@ -662,7 +686,7 @@ bool DocumentLoader::startLoadingMainResource(unsigned long identifier)
     // If not, it would be great to remove this line of code.
     frameLoader()->addExtraFieldsToRequest(m_request, true, false);
 
-    if (!m_mainResourceLoader->load(m_request, substituteData())) {
+    if (!m_mainResourceLoader->load(m_request, m_substituteData)) {
         // FIXME: If this should really be caught, we should just ASSERT this doesn't happen;
         // should it be caught by other parts of WebKit or other parts of the app?
         LOG_ERROR("could not create WebResourceHandle for URL %s -- should be caught by policy handler level", m_request.url().url().ascii());
@@ -677,5 +701,22 @@ void DocumentLoader::cancelMainResourceLoad(const ResourceError& error)
 {
     m_mainResourceLoader->cancel(error);
 }
+
+void DocumentLoader::subresourceLoaderFinishedLoadingOnePart(ResourceLoader* loader)
+{
+    m_multipartSubresourceLoaders.add(loader);
+    m_subresourceLoaders.remove(loader);
+    updateLoading();
+    if (Frame* frame = m_frame)
+        frame->loader()->checkLoadComplete();    
+}
+
+#ifdef OWB_ICON_SUPPORT
+void DocumentLoader::iconLoadDecisionAvailable()
+{
+    if (m_frame)
+        m_frame->loader()->iconLoadDecisionAvailable();
+}
+#endif //OWB_ICON_SUPPORT
 
 }

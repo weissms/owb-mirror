@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 #ifndef NameNodeList_h
@@ -43,7 +43,6 @@ public:
     virtual Node* item(unsigned index) const;
 
     // Other methods (not part of DOM)
-    virtual void rootNodeChildrenChanged() { }
     virtual void rootNodeAttributeChanged() { NodeList::rootNodeChildrenChanged(); }
 
 protected:

@@ -31,6 +31,8 @@
 #include <JavaScriptCore/object.h>
 #include <JavaScriptCore/runtime.h>
 
+#include <wtf/RetainPtr.h>
+
 namespace KJS {
 namespace Bindings {
 
@@ -45,50 +47,14 @@ public:
     ObjcField(IvarStructPtr ivar);
     ObjcField(CFStringRef name);
     
-    ~ObjcField()
-    {
-        if (_name)
-            CFRelease(_name);
-    }
-
-    ObjcField(const ObjcField &other) : Field()
-    {
-        _ivar = other._ivar;
-
-        if (other._name)
-            _name = (CFStringRef)CFRetain(other._name);
-        else 
-            _name = 0;
-    }
-    
-    ObjcField &operator=(const ObjcField &other)
-    {
-        if (this == &other)
-            return *this;
-
-        _ivar = other._ivar;
-        
-        if (other._name != _name) {
-            if (_name)
-                CFRelease(_name);
-            if (other._name)
-                _name = (CFStringRef)CFRetain(other._name);
-            else 
-                _name = 0;
-        }
-        
-        return *this;
-    }
-
     virtual JSValue *valueFromInstance(ExecState *exec, const Instance *instance) const;
     virtual void setValueToInstance(ExecState *exec, const Instance *instance, JSValue *aValue) const;
     
     virtual const char *name() const;
-    virtual RuntimeType type() const;
         
 private:
     IvarStructPtr _ivar;
-    CFStringRef _name;
+    RetainPtr<CFStringRef> _name;
 };
 
 class ObjcMethod : public Method
@@ -96,26 +62,6 @@ class ObjcMethod : public Method
 public:
     ObjcMethod() : _objcClass(0), _selector(0), _javaScriptName(0) {}
     ObjcMethod(ClassStructPtr aClass, const char *_selector);
-    ~ObjcMethod ()
-    {
-        if (_javaScriptName)
-            CFRelease(_javaScriptName);
-    }
-
-    ObjcMethod(const ObjcMethod &other) : Method()
-    {
-        _objcClass = other._objcClass;
-        _selector = other._selector;
-    }
-    
-    ObjcMethod &operator=(const ObjcMethod &other)
-    {
-        if (this == &other)
-            return *this;
-        _objcClass = other._objcClass;
-        _selector = other._selector;
-        return *this;
-    }
 
     virtual const char *name() const;
 
@@ -124,35 +70,30 @@ public:
     NSMethodSignature *getMethodSignature() const;
     
     bool isFallbackMethod() const { return strcmp(_selector, "invokeUndefinedMethodFromWebScript:withArguments:") == 0; }
-    void setJavaScriptName(CFStringRef n);
-    CFStringRef javaScriptName() const { return _javaScriptName; }
+    void setJavaScriptName(CFStringRef n) { _javaScriptName = n; }
+    CFStringRef javaScriptName() const { return _javaScriptName.get(); }
     
 private:
     ClassStructPtr _objcClass;
     const char *_selector;
-    CFStringRef _javaScriptName;
+    RetainPtr<CFStringRef> _javaScriptName;
 };
 
 class ObjcArray : public Array
 {
 public:
-    ObjcArray(ObjectStructPtr);
-
-    ObjcArray(const ObjcArray &);
-    ObjcArray &operator=(const ObjcArray &);
-    
-    virtual ~ObjcArray();
+    ObjcArray(ObjectStructPtr, PassRefPtr<RootObject>);
 
     virtual void setValueAt(ExecState *exec, unsigned int index, JSValue *aValue) const;
     virtual JSValue *valueAt(ExecState *exec, unsigned int index) const;
     virtual unsigned int getLength() const;
     
-    ObjectStructPtr getObjcArray() const { return _array; }
+    ObjectStructPtr getObjcArray() const { return _array.get(); }
 
     static JSValue *convertObjcArrayToArray(ExecState *exec, ObjectStructPtr anObject);
 
 private:
-    ObjectStructPtr _array;
+    RetainPtr<ObjectStructPtr> _array;
 };
 
 class ObjcFallbackObjectImp : public JSObject {
@@ -174,8 +115,6 @@ public:
 
 private:
     ObjcFallbackObjectImp(); // prevent default construction
-    ObjcFallbackObjectImp(const ObjcFallbackObjectImp& other); // prevent copying
-    ObjcFallbackObjectImp& operator=(const ObjcFallbackObjectImp& other); // ditto
     
     static const ClassInfo info;
 

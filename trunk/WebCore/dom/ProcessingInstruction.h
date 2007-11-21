@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -57,7 +57,7 @@ public:
     StyleSheet* sheet() const { return m_sheet.get(); }
     bool checkStyleSheet();
     virtual void setCSSStyleSheet(const String& URL, const String& charset, const String& sheet);
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
     virtual void setXSLStyleSheet(const String& URL, const String& sheet);
 #endif
     void setCSSStyleSheet(CSSStyleSheet*);
@@ -65,7 +65,7 @@ public:
     virtual bool sheetLoaded();
     virtual String toString() const;
 
-#ifdef XSLT_SUPPORT
+#if ENABLE(XSLT)
     bool isXSL() const { return m_isXSL; }
 #endif
 
@@ -78,7 +78,7 @@ private:
     CachedResource* m_cachedSheet;
     RefPtr<StyleSheet> m_sheet;
     bool m_loading;
-#ifdef XSLT_SUPPORT
+#if ENABLE(XSLT)
     bool m_isXSL;
 #endif
 };

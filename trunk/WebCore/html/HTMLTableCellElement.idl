@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006, 2007 Apple Inc.
  * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
@@ -14,29 +14,29 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module html {
 
-    interface HTMLTableCellElement : HTMLElement {
+    interface [GenerateConstructor] HTMLTableCellElement : HTMLElement {
 
         readonly attribute long            cellIndex;
-                 attribute DOMString       abbr;
-                 attribute DOMString       align;
-                 attribute DOMString       axis;
-                 attribute DOMString       bgColor;
-                 attribute DOMString       ch;
-                 attribute DOMString       chOff;
+                 attribute [ConvertNullToNullString] DOMString       abbr;
+                 attribute [ConvertNullToNullString] DOMString       align;
+                 attribute [ConvertNullToNullString] DOMString       axis;
+                 attribute [ConvertNullToNullString] DOMString       bgColor;
+                 attribute [ConvertNullToNullString] DOMString       ch;
+                 attribute [ConvertNullToNullString] DOMString       chOff;
                  attribute long            colSpan;
-                 attribute DOMString       headers;
-                 attribute DOMString       height;
+                 attribute [ConvertNullToNullString] DOMString       headers;
+                 attribute [ConvertNullToNullString] DOMString       height;
                  attribute boolean         noWrap;
                  attribute long            rowSpan;
-                 attribute DOMString       scope;
-                 attribute DOMString       vAlign;
-                 attribute DOMString       width;
+                 attribute [ConvertNullToNullString] DOMString       scope;
+                 attribute [ConvertNullToNullString] DOMString       vAlign;
+                 attribute [ConvertNullToNullString] DOMString       width;
 
     };
 

@@ -55,44 +55,40 @@ namespace BC
     * @brief the XSLT Implementation
     * 
     */
-    class BCXSLT : public BAL::BIXSLT {
-        public:
-            BCXSLT();
-            ~BCXSLT();
-            
-            int isBlank( unsigned char *);
-            int isXsltElem( BAL::BTXMLNode *);
-            int isXlstName( BAL::BTXMLNode *, char * );
-            unsigned char *xsltGetNsProp( BAL::BTXMLNode *node, const unsigned char *name, const unsigned char *nameSpace);
-            BAL::BTXSLTStyleSheet* xsltLoadStylesheetPI( BAL::BTXMLDoc *doc );
-            BAL::BTXSLTStyleSheet* xsltParseStylesheetDoc( BAL::BTXMLDoc *doc );
-            void setLoaderFunc( BAL::BIXSLTDocLoaderFunc f );
-            int xsltSaveResultTo( BAL::BTXMLOutputBuffer *buf, BAL::BTXMLDoc *result, BAL::BTXSLTStyleSheet *style);
-            void getImportPtr( const unsigned char *res, BAL::BTXSLTStyleSheet *style );
-            BAL::BTXSLTTransformContext *xsltNewTransformContext( BAL::BTXSLTStyleSheet *style, BAL::BTXMLDoc *doc );
-            int xsltQuoteUserParams( BAL::BTXSLTTransformContext *ctxt, const char **params);
-            BAL::BTXMLDoc *xsltApplyStylesheetUser( BAL::BTXSLTStyleSheet *style,
-                                               BAL::BTXMLDoc *doc,
-                                               const char **params,
-                                               const char *output,
-                                               FILE * profile,
-                                               BAL::BTXSLTTransformContext *userCtxt);
-            void xsltFreeTransformContext( BAL::BTXSLTTransformContext *ctxt );
-            void xsltFreeStylesheet( BAL::BTXSLTStyleSheet *sheet );
-            static xmlDocPtr XSLTDocLoaderFunc( const xmlChar *URI,
-                                                xmlDictPtr dict,
-                                                int options,
-                                                void *ctxt,
-                                                xsltLoadType type );
-       private:
-       
-            //void convertBTXMLNode( BAL::BTXMLNode *node );
-       
-            BAL::BTXSLTStyleSheet *m_sheet;
-            BAL::BTXSLTTransformContext *m_trans;
-            xsltStylesheetPtr m_xsltsheet;
-            xsltTransformContextPtr m_xsltTransform;
-            BCXML *m_xml;
-    
+class BCXSLT : public BAL::BIXSLT {
+    public:
+        BCXSLT();
+        ~BCXSLT();
+
+        int isBlank( unsigned char *);
+        int isXsltElem( BAL::BTXMLNode *);
+        int isXlstName( BAL::BTXMLNode *, char * );
+        unsigned char *xsltGetNsProp( BAL::BTXMLNode *node, const unsigned char *name, const unsigned char *nameSpace);
+        BAL::BTXSLTStyleSheet* xsltLoadStylesheetPI( BAL::BTXMLDoc *doc );
+        BAL::BTXSLTStyleSheet* xsltParseStylesheetDoc( BAL::BTXMLDoc *doc );
+        void setLoaderFunc( BAL::BIXSLTDocLoaderFunc f );
+        int xsltSaveResultTo( BAL::BTXMLOutputBuffer *buf, BAL::BTXMLDoc *result, BAL::BTXSLTStyleSheet *style);
+        void getImportPtr( const unsigned char *res, BAL::BTXSLTStyleSheet *style );
+        BAL::BTXSLTTransformContext *xsltNewTransformContext( BAL::BTXSLTStyleSheet *style, BAL::BTXMLDoc *doc );
+        int xsltQuoteUserParams( BAL::BTXSLTTransformContext *ctxt, const char **params);
+        BAL::BTXMLDoc *xsltApplyStylesheetUser( BAL::BTXSLTStyleSheet *style,
+                                            BAL::BTXMLDoc *doc,
+                                            const char **params,
+                                            const char *output,
+                                            FILE * profile,
+                                            BAL::BTXSLTTransformContext *userCtxt);
+        void xsltFreeTransformContext( BAL::BTXSLTTransformContext *ctxt );
+        void xsltFreeStylesheet( BAL::BTXSLTStyleSheet *sheet );
+        static xmlDocPtr XSLTDocLoaderFunc( const xmlChar *URI,
+                                            xmlDictPtr dict,
+                                            int options,
+                                            void *ctxt,
+                                            xsltLoadType type );
+    private:
+        BAL::BTXSLTStyleSheet *m_sheet;
+        BAL::BTXSLTTransformContext *m_trans;
+        xsltStylesheetPtr m_xsltsheet;
+        xsltTransformContextPtr m_xsltTransform;
+        BCXML *m_xml;
     };
 }

@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -69,6 +69,7 @@ public:
     
     int toInt(bool* ok = 0) const { return m_string.toInt(ok); }
     double toDouble(bool* ok = 0) const { return m_string.toDouble(ok); }
+    float toFloat(bool* ok = 0) const { return m_string.toFloat(ok); }
     bool percentage(int& p) const { return m_string.percentage(p); }
     Length* toLengthArray(int& len) const { return m_string.toLengthArray(len); }
     Length* toCoordsArray(int& len) const { return m_string.toCoordsArray(len); }
@@ -85,6 +86,10 @@ public:
 #if PLATFORM(SYMBIAN)
     AtomicString(const TDesC& s) : m_string(add(String(s).impl())) { }
     operator TPtrC() const { return m_string; }
+#endif
+#if PLATFORM(QT)
+    AtomicString(const QString& s) : m_string(add(String(s).impl())) { }
+    operator QString() const { return m_string; }
 #endif
 
     AtomicString(const DeprecatedString&);

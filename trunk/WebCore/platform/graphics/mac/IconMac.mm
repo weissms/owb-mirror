@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -66,7 +66,7 @@ void Icon::paint(GraphicsContext* context, const IntRect& rect)
 
     [m_nsImage.get() drawInRect:rect
         fromRect:NSMakeRect(0, 0, [m_nsImage.get() size].width, [m_nsImage.get() size].height)
-        operation:NSCompositeSourceOver fraction:1.0];
+        operation:NSCompositeSourceOver fraction:1.0f];
 }
 
 }

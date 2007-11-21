@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -31,6 +31,7 @@
 #include "EventNames.h"
 #include "Frame.h"
 #include "FrameView.h"
+#include "GraphicsContext.h"
 #include "HTMLFrameSetElement.h"
 #include "HitTestRequest.h"
 #include "HitTestResult.h"
@@ -65,6 +66,98 @@ inline HTMLFrameSetElement* RenderFrameSet::frameSet() const
     return static_cast<HTMLFrameSetElement*>(node());
 }
 
+static Color borderStartEdgeColor()
+{
+    return Color(170,170,170);
+}
+
+static Color borderEndEdgeColor()
+{
+    return Color::black;
+}
+
+static Color borderFillColor()
+{
+    return Color(208, 208, 208);
+}
+
+void RenderFrameSet::paintColumnBorder(const PaintInfo& paintInfo, const IntRect& borderRect)
+{
+    if (!paintInfo.rect.intersects(borderRect))
+        return;
+        
+    // FIXME: We should do something clever when borders from distinct framesets meet at a join.
+    
+    // Fill first.
+    GraphicsContext* context = paintInfo.context;
+    context->fillRect(borderRect, frameSet()->hasBorderColor() ? style()->borderLeftColor() : borderFillColor());
+    
+    // Now stroke the edges but only if we have enough room to paint both edges with a little
+    // bit of the fill color showing through.
+    if (borderRect.width() >= 3) {
+        context->fillRect(IntRect(borderRect.topLeft(), IntSize(1, height())), borderStartEdgeColor());
+        context->fillRect(IntRect(borderRect.topRight(), IntSize(1, height())), borderEndEdgeColor());
+    }
+}
+
+void RenderFrameSet::paintRowBorder(const PaintInfo& paintInfo, const IntRect& borderRect)
+{
+    if (!paintInfo.rect.intersects(borderRect))
+        return;
+
+    // FIXME: We should do something clever when borders from distinct framesets meet at a join.
+    
+    // Fill first.
+    GraphicsContext* context = paintInfo.context;
+    context->fillRect(borderRect, frameSet()->hasBorderColor() ? style()->borderLeftColor() : borderFillColor());
+
+    // Now stroke the edges but only if we have enough room to paint both edges with a little
+    // bit of the fill color showing through.
+    if (borderRect.height() >= 3) {
+        context->fillRect(IntRect(borderRect.topLeft(), IntSize(width(), 1)), borderStartEdgeColor());
+        context->fillRect(IntRect(borderRect.bottomLeft(), IntSize(width(), 1)), borderEndEdgeColor());
+    }
+}
+
+void RenderFrameSet::paint(PaintInfo& paintInfo, int tx, int ty)
+{
+    if (paintInfo.phase != PaintPhaseForeground)
+        return;
+    
+    RenderObject* child = firstChild();
+    if (!child)
+        return;
+
+    // Add in our offsets.
+    tx += m_x;
+    ty += m_y;
+
+    int rows = frameSet()->totalRows();
+    int cols = frameSet()->totalCols();
+    int borderThickness = frameSet()->border();
+    
+    int yPos = 0;
+    for (int r = 0; r < rows; r++) {
+        int xPos = 0;
+        for (int c = 0; c < cols; c++) {
+            child->paint(paintInfo, tx, ty);
+            xPos += m_cols.m_sizes[c];
+            if (borderThickness && m_cols.m_allowBorder[c + 1]) {
+                paintColumnBorder(paintInfo, IntRect(tx + xPos, ty + yPos, borderThickness, height()));
+                xPos += borderThickness;
+            }
+            child = child->nextSibling();
+            if (!child)
+                return;
+        }
+        yPos += m_rows.m_sizes[r];
+        if (borderThickness && m_rows.m_allowBorder[r + 1]) {
+            paintRowBorder(paintInfo, IntRect(tx, ty + yPos, width(), borderThickness));
+            yPos += borderThickness;
+        }
+    }
+}
+
 bool RenderFrameSet::nodeAtPoint(const HitTestRequest& request, HitTestResult& result,
     int x, int y, int tx, int ty, HitTestAction action)
 {
@@ -88,14 +181,19 @@ void RenderFrameSet::GridAxis::resize(int size)
     m_sizes.resize(size);
     m_deltas.resize(size);
     m_deltas.fill(0);
-    m_isSplitResizable.resize(size);
+    
+    // To track edges for resizability and borders, we need to be (size + 1).  This is because a parent frameset
+    // may ask us for information about our left/top/right/bottom edges in order to make its own decisions about
+    // what to do.  We are capable of tainting that parent frameset's borders, so we have to cache this info.
+    m_preventResize.resize(size + 1);
+    m_allowBorder.resize(size + 1);
 }
 
 void RenderFrameSet::layOutAxis(GridAxis& axis, const Length* grid, int availableLen)
 {
     availableLen = max(availableLen, 0);
 
-    int* gridLayout = axis.m_sizes;
+    int* gridLayout = axis.m_sizes.data();
 
     if (!grid) {
         gridLayout[0] = availableLen;
@@ -269,7 +367,7 @@ void RenderFrameSet::layOutAxis(GridAxis& axis, const Length* grid, int availabl
 
     // now we have the final layout, distribute the delta over it
     bool worked = true;
-    int* gridDelta = axis.m_deltas;
+    int* gridDelta = axis.m_deltas.data();
     for (int i = 0; i < gridLen; ++i) {
         if (gridLayout[i] && gridLayout[i] + gridDelta[i] <= 0)
             worked = false;
@@ -283,11 +381,34 @@ void RenderFrameSet::layOutAxis(GridAxis& axis, const Length* grid, int availabl
     }
 }
 
-void RenderFrameSet::findNonResizableSplits()
+void RenderFrameSet::fillFromEdgeInfo(const FrameEdgeInfo& edgeInfo, int r, int c)
 {
-    m_rows.m_isSplitResizable.fill(true);
-    m_cols.m_isSplitResizable.fill(true);
+    if (edgeInfo.allowBorder(LeftFrameEdge))
+        m_cols.m_allowBorder[c] = true;
+    if (edgeInfo.allowBorder(RightFrameEdge))
+        m_cols.m_allowBorder[c + 1] = true;
+    if (edgeInfo.preventResize(LeftFrameEdge))
+        m_cols.m_preventResize[c] = true;
+    if (edgeInfo.preventResize(RightFrameEdge))
+        m_cols.m_preventResize[c + 1] = true;
+    
+    if (edgeInfo.allowBorder(TopFrameEdge))
+        m_rows.m_allowBorder[r] = true;
+    if (edgeInfo.allowBorder(BottomFrameEdge))
+        m_rows.m_allowBorder[r + 1] = true;
+    if (edgeInfo.preventResize(TopFrameEdge))
+        m_rows.m_preventResize[r] = true;
+    if (edgeInfo.preventResize(BottomFrameEdge))
+        m_rows.m_preventResize[r + 1] = true;
+}
 
+void RenderFrameSet::computeEdgeInfo()
+{
+    m_rows.m_preventResize.fill(frameSet()->noResize());    
+    m_rows.m_allowBorder.fill(false);
+    m_cols.m_preventResize.fill(frameSet()->noResize());    
+    m_cols.m_allowBorder.fill(false);
+    
     RenderObject* child = firstChild();
     if (!child)
         return;
@@ -296,23 +417,12 @@ void RenderFrameSet::findNonResizableSplits()
     int cols = frameSet()->totalCols();
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
-            bool fixed;
+            FrameEdgeInfo edgeInfo;
             if (child->isFrameSet())
-                fixed = static_cast<RenderFrameSet*>(child)->frameSet()->noResize();
+                edgeInfo = static_cast<RenderFrameSet*>(child)->edgeInfo();
             else
-                fixed = static_cast<RenderFrame*>(child)->element()->noResize();
-            if (fixed) {
-                if (cols > 1) {
-                    if (c > 0)
-                        m_cols.m_isSplitResizable[c - 1] = false;
-                    m_cols.m_isSplitResizable[c] = false;
-                }
-                if (rows > 1) {
-                    if (r > 0)
-                        m_rows.m_isSplitResizable[r - 1] = false;
-                    m_rows.m_isSplitResizable[r] = false;
-                }
-            }
+                edgeInfo = static_cast<RenderFrame*>(child)->edgeInfo();
+            fillFromEdgeInfo(edgeInfo, r, c);
             child = child->nextSibling();
             if (!child)
                 return;
@@ -320,10 +430,34 @@ void RenderFrameSet::findNonResizableSplits()
     }
 }
 
+FrameEdgeInfo RenderFrameSet::edgeInfo() const
+{
+    FrameEdgeInfo result(frameSet()->noResize(), true);
+    
+    int rows = frameSet()->totalRows();
+    int cols = frameSet()->totalCols();
+    if (rows && cols) {
+        result.setPreventResize(LeftFrameEdge, m_cols.m_preventResize[0]);
+        result.setAllowBorder(LeftFrameEdge, m_cols.m_allowBorder[0]);
+        result.setPreventResize(RightFrameEdge, m_cols.m_preventResize[cols]);
+        result.setAllowBorder(RightFrameEdge, m_cols.m_allowBorder[cols]);
+        result.setPreventResize(TopFrameEdge, m_rows.m_preventResize[0]);
+        result.setAllowBorder(TopFrameEdge, m_rows.m_allowBorder[0]);
+        result.setPreventResize(BottomFrameEdge, m_rows.m_preventResize[rows]);
+        result.setAllowBorder(BottomFrameEdge, m_rows.m_allowBorder[rows]);
+    }
+    
+    return result;
+}
+
 void RenderFrameSet::layout()
 {
     ASSERT(needsLayout());
-    ASSERT(minMaxKnown());
+
+    bool doFullRepaint = selfNeedsLayout() && checkForRepaintDuringLayout();
+    IntRect oldBounds;
+    if (doFullRepaint)
+        oldBounds = absoluteClippedOverflowRect();
 
     if (!parent()->isFrameSet()) {
         FrameView* v = view()->frameView();
@@ -337,7 +471,6 @@ void RenderFrameSet::layout()
     if (m_rows.m_sizes.size() != rows || m_cols.m_sizes.size() != cols) {
         m_rows.resize(rows);
         m_cols.resize(cols);
-        findNonResizableSplits();
     }
 
     int borderThickness = frameSet()->border();
@@ -347,6 +480,15 @@ void RenderFrameSet::layout()
     positionFrames();
 
     RenderContainer::layout();
+
+    computeEdgeInfo();
+
+    if (doFullRepaint) {
+        view()->repaintViewRectangle(oldBounds);
+        IntRect newBounds = absoluteClippedOverflowRect();
+        if (newBounds != oldBounds)
+            view()->repaintViewRectangle(newBounds);
+    }
 
     setNeedsLayout(false);
 }
@@ -397,7 +539,7 @@ void RenderFrameSet::positionFrames()
 void RenderFrameSet::startResizing(GridAxis& axis, int position)
 {
     int split = hitTestSplit(axis, position);
-    if (split == noSplit || !axis.m_isSplitResizable[split]) {
+    if (split == noSplit || !axis.m_allowBorder[split] || axis.m_preventResize[split]) {
         axis.m_splitBeingResized = noSplit;
         return;
     }
@@ -413,18 +555,19 @@ void RenderFrameSet::continueResizing(GridAxis& axis, int position)
         return;
     int currentSplitPosition = splitPosition(axis, axis.m_splitBeingResized);
     int delta = (position - currentSplitPosition) - axis.m_splitResizeOffset;
-    axis.m_deltas[axis.m_splitBeingResized] += delta;
-    axis.m_deltas[axis.m_splitBeingResized + 1] -= delta;
+    if (delta == 0)
+        return;
+    axis.m_deltas[axis.m_splitBeingResized - 1] += delta;
+    axis.m_deltas[axis.m_splitBeingResized] -= delta;
     setNeedsLayout(true);
 }
 
 bool RenderFrameSet::userResize(MouseEvent* evt)
 {
-    if (needsLayout())
-        return false;
-    
     if (!m_isResizing) {
-        if (evt->type() == mousedownEvent) {
+        if (needsLayout())
+            return false;
+        if (evt->type() == mousedownEvent && evt->button() == LeftButton) {
             startResizing(m_cols, evt->pageX() - xPos());
             startResizing(m_rows, evt->pageY() - yPos());
             if (m_cols.m_splitBeingResized != noSplit || m_rows.m_splitBeingResized != noSplit) {
@@ -433,10 +576,10 @@ bool RenderFrameSet::userResize(MouseEvent* evt)
             }
         }
     } else {
-        if (evt->type() == mousemoveEvent || evt->type() == mouseupEvent) {
+        if (evt->type() == mousemoveEvent || (evt->type() == mouseupEvent && evt->button() == LeftButton)) {
             continueResizing(m_cols, evt->pageX() - xPos());
             continueResizing(m_rows, evt->pageY() - yPos());
-            if (evt->type() == mouseupEvent) {
+            if (evt->type() == mouseupEvent && evt->button() == LeftButton) {
                 setIsResizing(false);
                 return true;
             }
@@ -474,13 +617,13 @@ bool RenderFrameSet::canResize(const IntPoint& p) const
 bool RenderFrameSet::canResizeRow(const IntPoint& p) const
 {
     int r = hitTestSplit(m_rows, p.y() - yPos());
-    return r != noSplit && m_rows.m_isSplitResizable[r];
+    return r != noSplit && m_rows.m_allowBorder[r] && !m_rows.m_preventResize[r];
 }
 
 bool RenderFrameSet::canResizeColumn(const IntPoint& p) const
 {
     int c = hitTestSplit(m_cols, p.x() - xPos());
-    return c != noSplit && m_cols.m_isSplitResizable[c];
+    return c != noSplit && m_cols.m_allowBorder[c] && !m_cols.m_preventResize[c];
 }
 
 int RenderFrameSet::splitPosition(const GridAxis& axis, int split) const
@@ -495,7 +638,7 @@ int RenderFrameSet::splitPosition(const GridAxis& axis, int split) const
         return 0;
 
     int position = 0;
-    for (int i = 0; i <= split && i < size; ++i)
+    for (int i = 0; i < split && i < size; ++i)
         position += axis.m_sizes[i] + borderThickness;
     return position - borderThickness;
 }
@@ -516,10 +659,15 @@ int RenderFrameSet::hitTestSplit(const GridAxis& axis, int position) const
     int splitPosition = axis.m_sizes[0];
     for (size_t i = 1; i < size; ++i) {
         if (position >= splitPosition && position < splitPosition + borderThickness)
-            return i - 1;
+            return i;
         splitPosition += borderThickness + axis.m_sizes[i];
     }
     return noSplit;
+}
+
+bool RenderFrameSet::isChildAllowed(RenderObject* child, RenderStyle* style) const
+{
+    return child->isFrame() || child->isFrameSet();
 }
 
 #ifndef NDEBUG
@@ -528,11 +676,11 @@ void RenderFrameSet::dump(TextStream* stream, DeprecatedString ind) const
     *stream << " totalrows=" << frameSet()->totalRows();
     *stream << " totalcols=" << frameSet()->totalCols();
 
-    for (int i = 0; i < frameSet()->totalRows(); i++)
-        *stream << " hSplitvar(" << i << ")=" << m_rows.m_isSplitResizable[i];
+    for (int i = 1; i <= frameSet()->totalRows(); i++)
+        *stream << " hSplitvar(" << i << ")=" << m_rows.m_preventResize[i];
 
-    for (int i = 0; i < frameSet()->totalCols(); i++)
-        *stream << " vSplitvar(" << i << ")=" << m_cols.m_isSplitResizable[i];
+    for (int i = 1; i < frameSet()->totalCols(); i++)
+        *stream << " vSplitvar(" << i << ")=" << m_cols.m_preventResize[i];
 
     RenderContainer::dump(stream,ind);
 }

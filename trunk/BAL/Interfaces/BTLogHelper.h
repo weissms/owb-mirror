@@ -58,42 +58,26 @@
 namespace BALFacilities {
 
 extern BTLogManager logger;
-// FIXME SRO temporary length size to 0xfff
-static char m_logMessage[0xffff];
+// FIXME SRO temporary length of variadic args size to 0xff
 
-#define log(message) BALFacilities::logger.send(MODULE_UNDEFINED, LEVEL_INFO, __FILE__,     __LINE__, __func__, message)
+#define DBG(...) BALFacilities::logger.send(MODULE_UNDEFINED, LEVEL_INFO, __FILE__,     __LINE__, __func__, __VA_ARGS__)
 
-#define logm(module, message) BALFacilities::logger.send(module, LEVEL_INFO, \
-                   __FILE__, __LINE__, __func__, message)
+#define DBGM(module, ...) BALFacilities::logger.send(module, LEVEL_INFO, \
+                   __FILE__, __LINE__, __func__, __VA_ARGS__)
 
-#define logml(module, level, message) BALFacilities::logger.send(module, level,\
-                   __FILE__, __LINE__, __func__, message)
-
-    // C style macro
-inline char* make_message(const char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    int n = vsnprintf(m_logMessage, 0xffff, format, ap);
-    va_end(ap);
-    if( n < 0 || n > 0xffff ) {
-      // message was too long
-      snprintf(m_logMessage+0xffff-8, 8, "TRUNCATED");
-    }
-    return m_logMessage;
-};
+#define DBGML(module, level, ...) BALFacilities::logger.send(module, level,\
+                   __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 } // namespace BALFacilities
-
-using BALFacilities::make_message;
 
 #else  // BAL_LOG
 // we're in release mode
 
 namespace BALFacilities {
 
-#define log(message)                    ((void)0)
-#define logm(module, message)           ((void)0)
-#define logml(module, level, message)   ((void)0)
+#define DBG(...)                    ((void)0)
+#define DBGM(module, ...)           ((void)0)
+#define DBGML(module, level, ...)   ((void)0)
 
 inline char* make_message(const char *format, ...) { return 0; }
 

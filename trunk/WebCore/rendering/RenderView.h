@@ -16,19 +16,19 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #ifndef RenderView_h
 #define RenderView_h
 
+#include "FrameView.h"
+#include "LayoutState.h"
 #include "RenderBlock.h"
 
 namespace WebCore {
-
-class FrameView;
 
 class RenderView : public RenderBlock {
 public:
@@ -42,7 +42,7 @@ public:
     virtual void layout();
     virtual void calcWidth();
     virtual void calcHeight();
-    virtual void calcMinMaxWidth();
+    virtual void calcPrefWidths();
     virtual bool absolutePosition(int& xPos, int& yPos, bool fixed = false) const;
 
     int docHeight() const;
@@ -72,9 +72,9 @@ public:
 
     int truncatedAt() const { return m_truncatedAt; }
 
-    virtual void absoluteRects(Vector<IntRect>&, int tx, int ty);
+    virtual void absoluteRects(Vector<IntRect>&, int tx, int ty, bool topLevel = true);
 
-    IntRect selectionRect() const;
+    IntRect selectionRect(bool clipToVisibleContent = true) const;
 
     void setMaximalOutlineSize(int o) { m_maximalOutlineSize = o; }
     int maximalOutlineSize() const { return m_maximalOutlineSize; }
@@ -90,11 +90,34 @@ public:
     void addWidget(RenderObject*);
     void removeWidget(RenderObject*);
 
-    void setFlexBoxInFirstLayout(RenderObject* r) { m_flexBoxInFirstLayout = r; }
-    RenderObject* flexBoxInFirstLayout() { return m_flexBoxInFirstLayout; }
-
     const IntSize& layoutDelta() const { return m_layoutDelta; }
     void addLayoutDelta(const IntSize& delta) { m_layoutDelta += delta; }
+
+    void pushLayoutState(RenderBox* renderer, const IntSize& offset)
+    {
+        if (m_layoutStateDisableCount || m_frameView->needsFullRepaint())
+            return;
+        m_layoutState = new (renderArena()) LayoutState(m_layoutState, renderer, offset);
+    }
+
+    void pushLayoutState(RenderObject*);
+
+    void popLayoutState()
+    {
+        if (m_layoutStateDisableCount || m_frameView->needsFullRepaint())
+            return;
+        LayoutState* state = m_layoutState;
+        m_layoutState = state->m_next;
+        state->destroy(renderArena());
+    }
+
+    LayoutState* layoutState() const { return m_layoutStateDisableCount ? 0 : m_layoutState; }
+
+    // Suspends the LayoutState optimization. Used under transforms that cannot be represented by
+    // LayoutState (common in SVG) and when manipulating the render tree during layout in ways
+    // that can trigger repaint of a non-child (e.g. when a list item moves its list marker around).
+    void disableLayoutState() { m_layoutStateDisableCount++; }
+    void enableLayoutState() { ASSERT(m_layoutStateDisableCount > 0); m_layoutStateDisableCount--; }
 
 protected:
     FrameView* m_frameView;
@@ -115,13 +138,13 @@ protected:
 
     RenderObjectSet m_widgets;
 
-    RenderObject* m_flexBoxInFirstLayout;
-
 private:
     int m_bestTruncatedAt;
     int m_truncatorWidth;
     bool m_forcedPageBreak;
     IntSize m_layoutDelta;
+    LayoutState* m_layoutState;
+    unsigned m_layoutStateDisableCount;
 };
 
 } // namespace WebCore

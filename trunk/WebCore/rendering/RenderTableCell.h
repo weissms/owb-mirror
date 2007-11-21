@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef RenderTableCell_h
@@ -33,7 +33,7 @@ class RenderTableCell : public RenderBlock {
 public:
     RenderTableCell(Node*);
 
-    virtual const char* renderName() const { return "RenderTableCell"; }
+    virtual const char* renderName() const { return isAnonymous() ? "RenderTableCell (anonymous)" : "RenderTableCell"; }
 
     virtual bool isTableCell() const { return true; }
 
@@ -57,11 +57,11 @@ public:
     RenderTableSection* section() const { return static_cast<RenderTableSection*>(parent()->parent()); }
     RenderTable* table() const { return static_cast<RenderTable*>(parent()->parent()->parent()); }
 
-    Length styleOrColWidth();
+    Length styleOrColWidth() const;
 
     virtual bool requiresLayer();
 
-    virtual void calcMinMaxWidth();
+    virtual void calcPrefWidths();
     virtual void calcWidth();
     virtual void setWidth(int);
     virtual void setStyle(RenderStyle*);
@@ -99,7 +99,7 @@ public:
     // Lie about position to outside observers.
     virtual int yPos() const { return m_y + m_topExtra; }
 
-    virtual IntRect getAbsoluteRepaintRect();
+    virtual IntRect absoluteClippedOverflowRect();
     virtual void computeAbsoluteRepaintRect(IntRect&, bool fixed = false);
     virtual bool absolutePosition(int& x, int& y, bool fixed = false) const;
 

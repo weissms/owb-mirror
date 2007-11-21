@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Alternatively, the contents of this file may be used under the terms
  * of either the Mozilla Public License Version 1.1, found at
@@ -134,7 +134,9 @@ private:
 
 PNGImageDecoder::PNGImageDecoder()
 : m_reader(0)
-{}
+{
+    m_frameBufferCache.resize(1);
+}
 
 PNGImageDecoder::~PNGImageDecoder()
 {
@@ -142,7 +144,7 @@ PNGImageDecoder::~PNGImageDecoder()
 }
 
 // Take the data and store it.
-void PNGImageDecoder::setData(const Vector<char>& data, bool allDataReceived)
+void PNGImageDecoder::setData(SharedBuffer* data, bool allDataReceived)
 {
     if (m_failed)
         return;
@@ -176,9 +178,6 @@ RGBA32Buffer* PNGImageDecoder::frameBufferAtIndex(size_t index)
     if (index)
         return 0;
 
-    if (m_frameBufferCache.isEmpty())
-        m_frameBufferCache.resize(1);
-
     RGBA32Buffer& frame = m_frameBufferCache[0];
     if (frame.status() != RGBA32Buffer::FrameComplete && m_reader)
         // Decode this frame.
@@ -192,9 +191,9 @@ void PNGImageDecoder::decode(bool sizeOnly) const
     if (m_failed)
         return;
 
-    m_reader->decode(m_data, sizeOnly);
+    m_reader->decode(m_data->buffer(), sizeOnly);
     
-    if (m_failed || (!m_frameBufferCache.isEmpty() && m_frameBufferCache[0].status() == RGBA32Buffer::FrameComplete)) {
+    if (m_failed || (m_frameBufferCache[0].status() == RGBA32Buffer::FrameComplete)) {
         delete m_reader;
         m_reader = 0;
     }
@@ -289,7 +288,7 @@ void PNGImageDecoder::headerAvailable()
 
     if (reader()->decodingSizeOnly()) {
         // If we only needed the size, halt the reader.     
-        reader()->setReadOffset(m_data.size() - png->buffer_size);
+        reader()->setReadOffset(m_data->size() - png->buffer_size);
         png->buffer_size = 0;
     }
 }
@@ -302,9 +301,6 @@ void rowAvailable(png_structp png, png_bytep rowBuffer,
 
 void PNGImageDecoder::rowAvailable(unsigned char* rowBuffer, unsigned rowIndex, int interlacePass)
 {
-    if (m_frameBufferCache.isEmpty())
-        return;
-
     // Resize to the width and height of the image.
     RGBA32Buffer& buffer = m_frameBufferCache[0];
     if (buffer.status() == RGBA32Buffer::FrameEmpty) {
@@ -369,7 +365,7 @@ void PNGImageDecoder::rowAvailable(unsigned char* rowBuffer, unsigned rowIndex, 
     int width = m_size.width();
     unsigned* dst = buffer.bytes().data() + rowIndex * width;
     bool sawAlpha = false;
-    for (unsigned i = 0; i < width; i++) {
+    for (int i = 0; i < width; i++) {
         unsigned red = *row++;
         unsigned green = *row++;
         unsigned blue = *row++;
@@ -391,9 +387,6 @@ void pngComplete(png_structp png, png_infop info)
 
 void PNGImageDecoder::pngComplete()
 {
-    if (m_frameBufferCache.isEmpty())
-        return;
-
     // Hand back an appropriately sized buffer, even if the image ended up being empty.
     RGBA32Buffer& buffer = m_frameBufferCache[0];
     buffer.setStatus(RGBA32Buffer::FrameComplete);

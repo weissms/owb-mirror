@@ -1,13 +1,12 @@
 // -*- c-basic-offset: 4 -*-
- /* This file is part of the KDE project
- *
+/*
  * Copyright (C) 1998, 1999 Torben Weis <weis@kde.org>
  *                     1999-2001 Lars Knoll <knoll@kde.org>
  *                     1999-2001 Antti Koivisto <koivisto@kde.org>
  *                     2000-2001 Simon Hausmann <hausmann@kde.org>
  *                     2000-2001 Dirk Mueller <mueller@kde.org>
  *                     2000 Stefan Schimanski <1Stein@gmx.de>
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Trolltech ASA
  *
  * This library is free software; you can redistribute it and/or
@@ -22,65 +21,58 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef Frame_h
 #define Frame_h
 
 #ifdef __OWB__
+#include "BIEvent.h"
 #include "BIPainter.h"
 #include "GraphicsContext.h"
 #include "Widget.h"
-#endif
+#endif //__OWB__
 #include "Color.h"
 #include "EditAction.h"
 #include "DragImage.h"
 #include "RenderLayer.h"
 #include "TextGranularity.h"
+#include "VisiblePosition.h"
 #include <wtf/unicode/Unicode.h>
 #include <wtf/Forward.h>
 #include <wtf/Vector.h>
 
-class NPObject;
-
 #ifdef __OWB_JS__
+struct NPObject;
+
 namespace KJS {
     class Interpreter;
-    class JSObject;
-
     namespace Bindings {
         class Instance;
         class RootObject;
     }
 }
-#endif
+#endif //__OWB_JS__
 
 #if PLATFORM(MAC)
 #ifdef __OBJC__
-@class WebCoreFrameBridge;
-@class WebScriptObject;
 @class NSArray;
 @class NSDictionary;
-@class NSFont;
-@class NSImage;
 @class NSMenu;
 @class NSMutableDictionary;
 @class NSString;
 @class WebCoreFrameBridge;
+@class WebScriptObject;
 #else
-class WebCoreFrameBridge;
-class WebScriptObject;
 class NSArray;
 class NSDictionary;
-class NSFont;
-class NSImage;
 class NSMenu;
 class NSMutableDictionary;
 class NSString;
 class WebCoreFrameBridge;
-typedef unsigned int NSDragOperation;
+class WebScriptObject;
 typedef int NSWritingDirection;
 #endif
 #endif
@@ -90,7 +82,6 @@ namespace WebCore {
 class CSSComputedStyleDeclaration;
 class CSSMutableStyleDeclaration;
 class CSSStyleDeclaration;
-class CommandByName;
 class DOMWindow;
 class Document;
 class Editor;
@@ -107,14 +98,14 @@ class FrameView;
 class GraphicsContext;
 class HTMLFormElement;
 class IntRect;
+#ifdef __OWB_JS__
 class KJSProxy;
+#endif //__OWB_JS__
 class KURL;
 class Node;
 class Page;
 class Range;
-class RenderObject;
 class RenderPart;
-class RenderStyle;
 class Selection;
 class SelectionController;
 class Settings;
@@ -123,17 +114,6 @@ class Widget;
 struct FrameLoadRequest;
 
 template <typename T> class Timer;
-
-struct MarkedTextUnderline {
-    MarkedTextUnderline()
-        : startOffset(0), endOffset(0), thick(false) { }
-    MarkedTextUnderline(unsigned s, unsigned e, const Color& c, bool t)
-        : startOffset(s), endOffset(e), color(c), thick(t) { }
-    unsigned startOffset;
-    unsigned endOffset;
-    Color color;
-    bool thick;
-};
 
 #ifdef __OWB__
 class Frame : public Shared<Frame>, public BAL::BIPainter {
@@ -144,8 +124,10 @@ public:
     Frame(Page*, HTMLFrameOwnerElement*, FrameLoaderClient*);
     virtual void setView(FrameView*);
     virtual ~Frame();
+    
+    void init();
 
-#if PLATFORM(MAC)
+#if PLATFORM(MAC)    
     void setBridge(WebCoreFrameBridge*);
     WebCoreFrameBridge* bridge() const;
 #endif
@@ -162,7 +144,6 @@ public:
     Document* document() const;
     FrameView* view() const;
 
-    CommandByName* command() const;
     DOMWindow* domWindow() const;
     Editor* editor() const;
     EventHandler* eventHandler() const;
@@ -170,81 +151,60 @@ public:
     SelectionController* selectionController() const;
     FrameTree* tree() const;
 
+    // FIXME: Rename to contentRenderer and change type to RenderView.
     RenderObject* renderer() const; // root renderer for the document contained in this frame
     RenderPart* ownerRenderer(); // renderer for the element that contains this frame
 
-    friend class FrameLoader;
     friend class FramePrivate;
-
-    DragImageRef dragImageForSelection();
 
 private:
     FramePrivate* d;
-
-// === undecided, may or may not belong here
+    
+// === undecided, would like to consider moving to another class
 
 public:
     static Frame* frameForWidget(const Widget*);
 
-    void setSettings(Settings*);
-    const Settings* settings() const;
+    Settings* settings() const; // can be NULL
     void reparseConfiguration();
-
-    // should move to FrameView
-    void paint(GraphicsContext*, const IntRect&);
-    void setPaintRestriction(PaintRestriction pr);
 
     void setUserStyleSheetLocation(const KURL&);
     void setUserStyleSheet(const String& styleSheetData);
 
-    void setZoomFactor(int percent);
-    int zoomFactor() const;
+    void setPrinting(bool printing, float minPageWidth, float maxPageWidth, bool adjustViewSize);
 
     bool inViewSourceMode() const;
     void setInViewSourceMode(bool = true) const;
-
-    void setJSStatusBarText(const String&);
-    void setJSDefaultStatusBarText(const String&);
-    String jsStatusBarText() const;
-    String jsDefaultStatusBarText() const;
 
     void keepAlive(); // Used to keep the frame alive when running a script that might destroy it.
 #ifndef NDEBUG
     static void cancelAllKeepAlive();
 #endif
 
+#ifdef __OWB_JS__
     KJS::Bindings::Instance* createScriptInstanceForWidget(Widget*);
     KJS::Bindings::RootObject* bindingRootObject();
-
+    
     PassRefPtr<KJS::Bindings::RootObject> createRootObject(void* nativeHandle, PassRefPtr<KJS::Interpreter>);
+#endif //__OWB_JS__
 
 #if PLATFORM(MAC)
     WebScriptObject* windowScriptObject();
 #endif
+
+#if USE(NPOBJECT)
     NPObject* windowScriptNPObject();
-
-    void setDocument(Document*);
-
+#endif    
+    
+    void setDocument(PassRefPtr<Document>);
 #ifdef __OWB_JS__
     KJSProxy* scriptProxy();
 #endif
-
-    bool isFrameSet() const;
-
-    void adjustPageHeight(float* newBottom, float oldTop, float oldBottom, float bottomLimit);
-
-    void forceLayout();
-    void forceLayoutWithPageWidthRange(float minPageWidth, float maxPageWidth);
-
-    void sendResizeEvent();
-    void sendScrollEvent();
-
     void clearTimers();
     static void clearTimers(FrameView*);
 
     bool isActive() const;
     void setIsActive(bool flag);
-    void setWindowHasFocus(bool flag);
 
     // Convenience, to avoid repeating the code to dig down to get this.
     UChar backslashAsCurrencySymbol() const;
@@ -252,28 +212,73 @@ public:
     void setNeedsReapplyStyles();
     String documentTypeString() const;
 
+    void dashboardRegionsChanged();
+
+    void clearScriptProxy();
+    void clearDOMWindow();
+#ifdef __OWB_JS__
+    void clearScriptObjects();
+    void cleanupScriptObjectsForPlugin(void*);
+#endif
+private:
+#ifdef __OWB_JS__
+    void clearPlatformScriptObjects();
+#endif
+    void lifeSupportTimerFired(Timer<Frame>*);
+    
+// === to be moved into Document
+
+public:
+    bool isFrameSet() const;
+
+// === to be moved into EventHandler
+
+public:
+    void sendResizeEvent();
+    void sendScrollEvent();
+
+    void setWindowHasFocus(bool flag);
+
+// === to be moved into FrameView
+
+public:
+    void paint(GraphicsContext*, const IntRect&);
+    void setPaintRestriction(PaintRestriction);
+    bool isPainting() const;
+
+    static double currentPaintTimeStamp() { return s_currentPaintTimeStamp; } // returns 0 if not painting
+    
+    void forceLayout(bool allowSubtree = false);
+    void forceLayoutWithPageWidthRange(float minPageWidth, float maxPageWidth, bool adjustViewSize);
+
+    void adjustPageHeight(float* newBottom, float oldTop, float oldBottom, float bottomLimit);
+
+    void setZoomFactor(int percent);
+    int zoomFactor() const; // FIXME: This is a multiplier for text size only; needs a better name.
+
     bool prohibitsScrolling() const;
     void setProhibitsScrolling(const bool);
 
 private:
-    void cleanupScriptObjects();
-    void cleanupPlatformScriptObjects();
-
-    void lifeSupportTimerFired(Timer<Frame>*);
+    static double s_currentPaintTimeStamp; // used for detecting decoded resource thrash in the cache
 
 // === to be moved into Chrome
 
 public:
     void focusWindow();
     void unfocusWindow();
-    void print();
     bool shouldClose();
     void scheduleClose();
+
+    void setJSStatusBarText(const String&);
+    void setJSDefaultStatusBarText(const String&);
+    String jsStatusBarText() const;
+    String jsDefaultStatusBarText() const;
 
 // === to be moved into Editor
 
 public:
-    String selectedText() const;
+    String selectedText() const;  
     bool findString(const String&, bool forward, bool caseFlag, bool wrapFlag, bool startInSelection);
 
     const Selection& mark() const; // Mark, to be used as emacs uses it.
@@ -290,18 +295,13 @@ public:
     void applyEditingStyleToElement(Element*) const;
     void removeEditingStyleFromElement(Element*) const;
 
-    Range* markedTextRange() const;
-#if PLATFORM(MAC)
-    void issuePasteCommand();
-#endif
+    IntRect firstRectForRange(Range*) const;
+    
     void issueTransposeCommand();
     void respondToChangedSelection(const Selection& oldSelection, bool closeTyping);
     bool shouldChangeSelection(const Selection& oldSelection, const Selection& newSelection, EAffinity, bool stillSelecting) const;
 
     RenderStyle* styleForSelectionStart(Node*& nodeToRemove) const;
-
-    const Vector<MarkedTextUnderline>& markedTextUnderlines() const;
-    bool markedTextUsesUnderlines() const;
 
     unsigned markAllMatchesForText(const String&, bool caseFlag, unsigned limit);
     bool markedTextMatchesAreHighlighted() const;
@@ -316,6 +316,8 @@ public:
     void textWillBeDeletedInTextField(Element* input);
     void textDidChangeInTextArea(Element*);
 
+    DragImageRef dragImageForSelection();
+    
 // === to be moved into SelectionController
 
 public:
@@ -332,20 +334,19 @@ public:
     void invalidateSelection();
 
     void setCaretVisible(bool = true);
-    void paintCaret(GraphicsContext*, const IntRect&) const;
+    void paintCaret(GraphicsContext*, const IntRect&) const;  
     void paintDragCaret(GraphicsContext*, const IntRect&) const;
 
     bool isContentEditable() const; // if true, everything in frame is editable
 
-    void setSecureKeyboardEntry(bool);
-    bool isSecureKeyboardEntry();
+    void updateSecureKeyboardEntryIfActive();
 
     CSSMutableStyleDeclaration* typingStyle() const;
     void setTypingStyle(CSSMutableStyleDeclaration*);
     void clearTypingStyle();
 
-    IntRect selectionRect() const;
-    FloatRect visibleSelectionRect() const;
+    FloatRect selectionRect(bool clipToVisibleContent = true) const;
+    void selectionTextRects(Vector<FloatRect>&, bool clipToVisibleContent = true) const;
 
     HTMLFormElement* currentForm() const;
 
@@ -355,13 +356,7 @@ public:
 
 private:
     void caretBlinkTimerFired(Timer<Frame>*);
-
-// === to be moved into the Platform directory
-
-public:
-    bool isCharacterSmartReplaceExempt(UChar, bool);
-
-// === to be deleted
+    void setUseSecureKeyboardEntry(bool);
 
 public:
     SelectionController* dragCaretController() const;
@@ -369,9 +364,13 @@ public:
     String searchForLabelsAboveCell(RegularExpression*, HTMLTableCellElement*);
     String searchForLabelsBeforeElement(const Vector<String>& labels, Element*);
     String matchLabelsAgainstElement(const Vector<String>& labels, Element*);
+    
+    VisiblePosition visiblePositionForPoint(const IntPoint& framePoint);
+    Document* documentAtPoint(const IntPoint& windowPoint);
 
 #if PLATFORM(MAC)
-// === undecided, may or may not belong here
+
+// === undecided, would like to consider moving to another class
 
 public:
     NSString* searchForNSLabelsAboveCell(RegularExpression*, HTMLTableCellElement*);
@@ -379,32 +378,30 @@ public:
     NSString* matchLabelsAgainstElement(NSArray* labels, Element*);
 
     NSMutableDictionary* dashboardRegionsDictionary();
-    void dashboardRegionsChanged();
 
     void willPopupMenu(NSMenu*);
 
-    NSImage* selectionImage(bool forceWhiteText = false) const;
+    NSImage* selectionImage(bool forceBlackText = false) const;
     NSImage* snapshotDragImage(Node*, NSRect* imageRect, NSRect* elementRect) const;
 
-private:
+private:    
     NSImage* imageFromRect(NSRect) const;
 
 // === to be moved into Chrome
 
 public:
-
-    FloatRect customHighlightLineRect(const AtomicString& type, const FloatRect& lineRect);
-    void paintCustomHighlight(const AtomicString& type, const FloatRect& boxRect, const FloatRect& lineRect, bool text, bool line);
+    FloatRect customHighlightLineRect(const AtomicString& type, const FloatRect& lineRect, Node*);
+    void paintCustomHighlight(const AtomicString& type, const FloatRect& boxRect, const FloatRect& lineRect, bool text, bool line, Node*);
 
 // === to be moved into Editor
 
 public:
-
     NSDictionary* fontAttributesForSelectionStart() const;
     NSWritingDirection baseWritingDirectionForSelectionStart() const;
+    void issuePasteCommand();
 
-    void setMarkedTextRange(const Range* , NSArray* attributes, NSArray* ranges);
 #endif
+
 };
 
 } // namespace WebCore

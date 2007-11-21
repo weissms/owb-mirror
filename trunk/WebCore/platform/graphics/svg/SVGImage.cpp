@@ -24,28 +24,31 @@
  */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
+#include "CachedPage.h"
 #include "DocumentLoader.h"
+#include "EditCommand.h"
 #include "FloatRect.h"
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
+#include "ImageObserver.h"
+#include "NotImplemented.h"
 #include "Page.h"
-#include "PageCache.h"
 #include "ResourceError.h"
 #include "SVGDocument.h"
 #include "SVGImage.h"
 #include "SVGLength.h"
+#include "SVGRenderSupport.h"
 #include "SVGSVGElement.h"
-#include "Settings.h"
 
 #include "SVGImageEmptyClients.h"
 
 namespace WebCore {
 
-SVGImage::SVGImage(ImageAnimationObserver* observer)
+SVGImage::SVGImage(ImageObserver* observer)
     : Image(observer)
     , m_document(0)
     , m_page(0)
@@ -100,6 +103,9 @@ void SVGImage::draw(GraphicsContext* context, const FloatRect& dstRect, const Fl
     context->scale(FloatSize(dstRect.width()/srcRect.width(), dstRect.height()/srcRect.height()));
     m_frame->paint(context, enclosingIntRect(srcRect));
     context->restore();
+
+    if (imageObserver())
+        imageObserver()->didDraw(this);
 }
 
 NativeImagePtr SVGImage::nativeImageForCurrentFrame()
@@ -109,18 +115,25 @@ NativeImagePtr SVGImage::nativeImageForCurrentFrame()
     // having a tiled drawing callback (hopefully non-virtual).
     if (!m_frameCache) {
         m_frameCache.set(ImageBuffer::create(size(), false).release());
-        ImageBuffer::renderSubtreeToImage(m_frameCache.get(), m_frame->renderer());
+        if (!m_frameCache) // failed to allocate image
+            return 0;
+        renderSubtreeToImage(m_frameCache.get(), m_frame->renderer());
     }
 #if PLATFORM(CG)
     return m_frameCache->cgImage();
 #elif PLATFORM(QT)
     return m_frameCache->pixmap();
+#elif PLATFORM(CAIRO)
+    return m_frameCache->surface();
+#else
+    notImplemented();
+    return 0;
 #endif
 }
 
-bool SVGImage::setData(bool allDataReceived)
+bool SVGImage::dataChanged(bool allDataReceived)
 {
-    int length = dataBuffer().size();
+    int length = m_data->size();
     if (!length) // if this was an empty image
         return true;
     
@@ -130,23 +143,23 @@ bool SVGImage::setData(bool allDataReceived)
         static EditorClient* dummyEditorClient = new SVGEmptyEditorClient;
         static ContextMenuClient* dummyContextMenuClient = new SVGEmptyContextMenuClient;
         static DragClient* dummyDragClient = new SVGEmptyDragClient;
-        static Settings* dummySettings = new Settings;
+        static InspectorClient* dummyInspectorClient = new SVGEmptyInspectorClient;
 
         // FIXME: If this SVG ends up loading itself, we'll leak this Frame (and associated DOM & render trees).
         // The Cache code does not know about CachedImages holding Frames and won't know to break the cycle.
-        m_page.set(new Page(dummyChromeClient, dummyContextMenuClient, dummyEditorClient, dummyDragClient));
+        m_page.set(new Page(dummyChromeClient, dummyContextMenuClient, dummyEditorClient, dummyDragClient, dummyInspectorClient));
         m_frame = new Frame(m_page.get(), 0, dummyFrameLoaderClient);
+        m_frame->init();
         m_frameView = new FrameView(m_frame.get());
         m_frameView->deref(); // FIXME: FrameView starts with a refcount of 1
         m_frame->setView(m_frameView.get());
-        m_frame->setSettings(dummySettings);
         ResourceRequest fakeRequest(KURL(""));
         m_frame->loader()->load(fakeRequest); // Make sure the DocumentLoader is created
         m_frame->loader()->cancelContentPolicyCheck(); // cancel any policy checks
         m_frame->loader()->commitProvisionalLoad(0);
         m_frame->loader()->setResponseMIMEType("image/svg+xml");
         m_frame->loader()->begin("placeholder.svg"); // create the empty document
-        m_frame->loader()->write(dataBuffer().data(), dataBuffer().size());
+        m_frame->loader()->write(m_data->data(), m_data->size());
         m_frame->loader()->end();
     }
     return m_frameView;
@@ -154,4 +167,4 @@ bool SVGImage::setData(bool allDataReceived)
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

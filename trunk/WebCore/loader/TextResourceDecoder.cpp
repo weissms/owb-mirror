@@ -1,9 +1,7 @@
 /*
-    This file is part of the KDE libraries
-
     Copyright (C) 1999 Lars Knoll (knoll@mpi-hd.mpg.de)
-    Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
-    Copyright (C) 2005, 2006 Alexey Proskuryakov (ap@nypop.com)
+    Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
+    Copyright (C) 2005, 2006, 2007 Alexey Proskuryakov (ap@nypop.com)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -17,8 +15,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 
@@ -31,6 +29,9 @@
 #include "DeprecatedString.h"
 #include "HTMLNames.h"
 #include "TextCodec.h"
+#include <wtf/ASCIICType.h>
+
+using namespace WTF;
 
 namespace WebCore {
 
@@ -346,7 +347,7 @@ static inline bool skipWhitespace(const char*& pos, const char* dataEnd)
 
 void TextResourceDecoder::checkForBOM(const char* data, size_t len)
 {
-    // Check for UTF-16 or UTF-8 BOM mark at the beginning, which is a sure sign of a Unicode encoding.
+    // Check for UTF-16/32 or UTF-8 BOM mark at the beginning, which is a sure sign of a Unicode encoding.
 
     if (m_source == UserChosenEncoding) {
         // FIXME: Maybe a BOM should override even a user-chosen encoding.
@@ -356,27 +357,34 @@ void TextResourceDecoder::checkForBOM(const char* data, size_t len)
 
     // Check if we have enough data.
     size_t bufferLength = m_buffer.size();
-    if (bufferLength + len < 3)
+    if (bufferLength + len < 4)
         return;
 
     m_checkedForBOM = true;
 
-    // Extract the first three bytes.
+    // Extract the first four bytes.
     // Handle the case where some of bytes are already in the buffer.
     // The last byte is always guaranteed to not be in the buffer.
     const unsigned char* udata = reinterpret_cast<const unsigned char*>(data);
     unsigned char c1 = bufferLength >= 1 ? m_buffer[0] : *udata++;
     unsigned char c2 = bufferLength >= 2 ? m_buffer[1] : *udata++;
-    ASSERT(bufferLength < 3);
-    unsigned char c3 = *udata;
+    unsigned char c3 = bufferLength >= 3 ? m_buffer[2] : *udata++;
+    ASSERT(bufferLength < 4);
+    unsigned char c4 = *udata;
 
     // Check for the BOM.
-    if (c1 == 0xFE && c2 == 0xFF)
-        setEncoding(UTF16BigEndianEncoding(), AutoDetectedEncoding);
-    else if (c1 == 0xFF && c2 == 0xFE)
-        setEncoding(UTF16LittleEndianEncoding(), AutoDetectedEncoding);
+    if (c1 == 0xFF && c2 == 0xFE) {
+        if (c3 !=0 || c4 != 0)
+            setEncoding(UTF16LittleEndianEncoding(), AutoDetectedEncoding);
+        else 
+            setEncoding(UTF32LittleEndianEncoding(), AutoDetectedEncoding);
+    }
     else if (c1 == 0xEF && c2 == 0xBB && c3 == 0xBF)
         setEncoding(UTF8Encoding(), AutoDetectedEncoding);
+    else if (c1 == 0xFE && c2 == 0xFF)
+        setEncoding(UTF16BigEndianEncoding(), AutoDetectedEncoding);
+    else if (c1 == 0 && c2 == 0 && c3 == 0xFE && c4 == 0xFF)
+        setEncoding(UTF32BigEndianEncoding(), AutoDetectedEncoding);
 }
 
 bool TextResourceDecoder::checkForCSSCharset(const char* data, size_t len, bool& movedDataToBuffer)
@@ -421,7 +429,7 @@ bool TextResourceDecoder::checkForCSSCharset(const char* data, size_t len, bool&
                     return false;
 
                 if (*pos == ';')
-                    setEncoding(TextEncoding(encodingName), EncodingFromCSSCharset);
+                    setEncoding(TextEncoding(encodingName.data()), EncodingFromCSSCharset);
             }
         }
         m_checkedForCSSCharset = true;
@@ -473,7 +481,42 @@ bool TextResourceDecoder::checkForHeadCharset(const char* data, size_t len, bool
     memcpy(m_buffer.data() + oldSize, data, len);
 
     movedDataToBuffer = true;
-    
+
+    const char* ptr = m_buffer.data();
+    const char* pEnd = ptr + m_buffer.size();
+
+    // Is there enough data available to check for XML declaration?
+    if (m_buffer.size() < 8)
+        return false;
+
+    // Handle XML declaration, which can have encoding in it. This encoding is honored even for HTML documents.
+    // It is an error for an XML declaration not to be at the start of an XML document, and it is ignored in HTML documents in such case.
+    if (ptr[0] == '<' && ptr[1] == '?' && ptr[2] == 'x' && ptr[3] == 'm' && ptr[4] == 'l') {
+        const char* xmlDeclarationEnd = ptr;
+        while (xmlDeclarationEnd != pEnd && *xmlDeclarationEnd != '>')
+            ++xmlDeclarationEnd;
+        if (xmlDeclarationEnd == pEnd)
+            return false;
+        DeprecatedCString str(ptr, xmlDeclarationEnd - ptr); // No need for +1, because we have an extra "?" to lose at the end of XML declaration.
+        int len = 0;
+        int pos = findXMLEncoding(str, len);
+        if (pos != -1)
+            setEncoding(TextEncoding(str.mid(pos, len)), EncodingFromXMLHeader);
+        // continue looking for a charset - it may be specified in an HTTP-Equiv meta
+    } else if (ptr[0] == '<' && ptr[1] == 0 && ptr[2] == '?' && ptr[3] == 0 && ptr[4] == 'x' && ptr[5] == 0) {
+        setEncoding(UTF16LittleEndianEncoding(), AutoDetectedEncoding);
+        return true;
+    } else if (ptr[0] == 0 && ptr[1] == '<' && ptr[2] == 0 && ptr[3] == '?' && ptr[4] == 0 && ptr[5] == 'x') {
+        setEncoding(UTF16BigEndianEncoding(), AutoDetectedEncoding);
+        return true;
+    } else if (ptr[0] == '<' && ptr[1] == 0 && ptr[2] == 0 && ptr[3] == 0 && ptr[4] == '?' && ptr[5] == 0 && ptr[6] == 0 && ptr[7] == 0) {
+        setEncoding(UTF32LittleEndianEncoding(), AutoDetectedEncoding);
+        return true;
+    } else if (ptr[0] == 0 && ptr[1] == 0 && ptr[2] == 0 && ptr[3] == '<' && ptr[4] == 0 && ptr[5] == 0 && ptr[6] == 0 && ptr[7] == '?') {
+        setEncoding(UTF32BigEndianEncoding(), AutoDetectedEncoding);
+        return true;
+    }
+
     // we still don't have an encoding, and are in the head
     // the following tags are allowed in <head>:
     // SCRIPT|STYLE|META|LINK|OBJECT|TITLE|BASE
@@ -489,9 +532,7 @@ bool TextResourceDecoder::checkForHeadCharset(const char* data, size_t len, bool
     
     AtomicStringImpl* enclosingTagName = 0;
 
-    const char* ptr = m_buffer.data();
-    const char* pEnd = ptr + m_buffer.size();
-    while (ptr + 7 < pEnd) { // +7 guarantees that "<!--" and "<?xml" fit in the buffer - and certainly we aren't going to lose any "charset" that way.
+    while (ptr + 3 < pEnd) { // +3 guarantees that "<!--" fits in the buffer - and certainly we aren't going to lose any "charset" that way.
         if (*ptr == '<') {
             bool end = false;
             ptr++;
@@ -503,26 +544,6 @@ bool TextResourceDecoder::checkForHeadCharset(const char* data, size_t len, bool
                 continue;
             }
 
-            // Handle XML declaration, which can have encoding in it.
-            // This encoding is honored even for HTML documents.
-            if (ptr[0] == '?' && ptr[1] == 'x' && ptr[2] == 'm' && ptr[3] == 'l') {
-                const char* xmlDeclarationEnd = ptr;
-                while (xmlDeclarationEnd != pEnd && *xmlDeclarationEnd != '>')
-                    ++xmlDeclarationEnd;
-                if (xmlDeclarationEnd == pEnd)
-                    return false;
-                DeprecatedCString str(ptr, xmlDeclarationEnd - ptr); // No need for +1, because we have an extra "?" to lose at the end of XML declaration.
-                int len = 0;
-                int pos = findXMLEncoding(str, len);
-                if (pos != -1)
-                    setEncoding(TextEncoding(str.mid(pos, len)), EncodingFromXMLHeader);
-                // continue looking for a charset - it may be specified in an HTTP-Equiv meta
-            } else if (ptr[0] == 0 && ptr[1] == '?' && ptr[2] == 0 && ptr[3] == 'x' && ptr[4] == 0 && ptr[5] == 'm' && ptr[6] == 0 && ptr[7] == 'l') {
-                // UTF-16 without BOM
-                setEncoding(((ptr - m_buffer.data()) % 2) ? "UTF-16LE" : "UTF-16BE", AutoDetectedEncoding);
-                return true;
-            }
-
             // the HTTP-EQUIV meta has no effect on XHTML
             if (m_contentType == XML)
                 return true;
@@ -532,22 +553,31 @@ bool TextResourceDecoder::checkForHeadCharset(const char* data, size_t len, bool
                 end = true;
             }
 
-            char tmp[20];
+            // Grab the tag name, but mostly ignore namespaces.
+            bool sawNamespace = false;
+            char tagBuffer[20];
             int len = 0;
-            while (
-                ((*ptr >= 'a') && (*ptr <= 'z') ||
-                 (*ptr >= 'A') && (*ptr <= 'Z') ||
-                 (*ptr >= '0') && (*ptr <= '9'))
-                && len < 19 )
-            {
+            while (len < 19) {
                 if (ptr == pEnd)
                     return false;
-                tmp[len] = tolower(*ptr);
+                char c = *ptr;
+                if (c == ':') {
+                    len = 0;
+                    sawNamespace = true;
+                    ptr++;
+                    continue;
+                }
+                if (c >= 'a' && c <= 'z' || c >= '0' && c <= '9')
+                    ;
+                else if (c >= 'A' && c <= 'Z')
+                    c += 'a' - 'A';
+                else
+                    break;
+                tagBuffer[len++] = c;
                 ptr++;
-                len++;
             }
-            tmp[len] = 0;
-            AtomicString tag(tmp);
+            tagBuffer[len] = 0;
+            AtomicString tag(tagBuffer);
             
             if (enclosingTagName) {
                 if (end && tag.impl() == enclosingTagName)
@@ -580,7 +610,7 @@ bool TextResourceDecoder::checkForHeadCharset(const char* data, size_t len, bool
                 ++ptr;
             }
             
-            if (!end && tag == metaTag) {
+            if (!end && tag == metaTag && !sawNamespace) {
                 DeprecatedCString str(tagContentStart, ptr - tagContentStart);
                 str = str.lower();
                 int pos = 0;
@@ -588,7 +618,7 @@ bool TextResourceDecoder::checkForHeadCharset(const char* data, size_t len, bool
                     if ((pos = str.find("charset", pos, false)) == -1)
                         break;
                     pos += 7;
-                    // skip whitespace..
+                    // skip whitespace
                     while (pos < (int)str.length() && str[pos] <= ' ')
                         pos++;
                     if (pos == (int)str.length())
@@ -620,7 +650,7 @@ bool TextResourceDecoder::checkForHeadCharset(const char* data, size_t len, bool
                        tag != linkTag && tag != metaTag && tag != objectTag &&
                        tag != titleTag && tag != baseTag && 
                        (end || tag != htmlTag) && !enclosingTagName &&
-                       (tag != headTag) && isalpha(tmp[0])) {
+                       (tag != headTag) && isASCIIAlpha(tagBuffer[0])) {
                 m_checkedForHeadCharset = true;
                 return true;
             }

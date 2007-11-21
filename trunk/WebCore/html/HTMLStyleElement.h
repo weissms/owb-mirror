@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 #ifndef HTMLStyleElement_h
@@ -45,20 +45,29 @@ public:
     virtual void removedFromDocument();
     virtual void childrenChanged();
 
+    void setCreatedByParser(bool createdByParser) { m_createdByParser = createdByParser; }
+    virtual void finishedParsing();
+
     virtual bool isLoading() const;
     virtual bool sheetLoaded();
 
     bool disabled() const;
     void setDisabled(bool);
 
-    const AtomicString& media() const;
+    virtual const AtomicString& media() const;
     void setMedia(const AtomicString&);
 
-    const AtomicString& type() const;
+    virtual const AtomicString& type() const;
     void setType(const AtomicString&);
+
+    StyleSheet* sheet();
+
+    virtual void setLoading(bool loading) { m_loading = loading; }
 
 protected:
     String m_media;
+    bool m_loading;
+    bool m_createdByParser;
 };
 
 } //namespace

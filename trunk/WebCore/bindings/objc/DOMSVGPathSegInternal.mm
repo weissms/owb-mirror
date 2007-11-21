@@ -26,7 +26,7 @@
  
 #import "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #import "DOMSVGPathSegInternal.h"
 
@@ -73,7 +73,7 @@
     return self;
 }
 
-+ (DOMSVGPathSeg *)_SVGPathSegWith:(WebCore::SVGPathSeg *)impl
++ (DOMSVGPathSeg *)_wrapSVGPathSeg:(WebCore::SVGPathSeg *)impl
 {
     if (!impl)
         return nil;
@@ -151,4 +151,4 @@
 
 @end
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

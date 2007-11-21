@@ -1,23 +1,23 @@
 /*
- * Copyright (C) 2007 Pleyo.  All rights reserved.
+ * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  *
  * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
+ *     notice, this list of conditions and the following disclaimer. 
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- * 3.  Neither the name of Pleyo nor the names of
+ *     documentation and/or other materials provided with the distribution. 
+ * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
  *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *     from this software without specific prior written permission. 
  *
- * THIS SOFTWARE IS PROVIDED BY PLEYO AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL PLEYO OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -26,83 +26,76 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file  BIFontCache.h
- *
- * Interface file for BIFontCache.
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date$
- */
+#ifndef BTFontCache_h
+#define BTFontCache_h
 
-#ifndef BIFONTCACHE_H
-#define BIFONTCACHE_H
+#ifdef __OWB__
+#include "Font.h"
+#include "FontData.h"
+#include "FontPlatformData.h"
+#endif //__OWB__
+#include <wtf/unicode/Unicode.h>
 
-#include "BIInternationalization.h"
+#if PLATFORM(WIN)
+#include <mlang.h>
+#endif
+
+namespace WebCore
+{
+
+class AtomicString;
+#ifndef __OWB__
+class FontData;
+class FontPlatformData;
+class Font;
+#endif //__OWB__
+class FontDescription;
+class FontSelector;
+
+#ifdef __OWB__
+}
+
+using BAL::BTFont;
+using BAL::BTFontData;
+using BAL::BTFontPlatformData;
+using WebCore::AtomicString;
 
 namespace BAL {
+#endif //__OWB__
 
-    class BIFontData;
-    class Font;
-/**
- * The FontCache caches FontData.
- *
- * Depending on the implementation, FontData may be cached on the basis of its
- * font's family, font's size, bold and italic state.
- *
- * TODO Move Font and FontData from WebCore to BAL
- * @see Font, FontData
- */
-class BIFontCache {
+class BTFontCache {
 public:
-    /**
-     * Find a FontData in cache or create one the most similar possible.
-     *
-     * getFontData loops on all font families starting from familyIndex.
-     * If not in cache, it creates it, and depending on the implementation,
-     * it may return an approaching FontData or a LastResortFallbackFont.
-     *
-     * @param[in] Font the font associated with the FontData
-     * @param[in] familyIndex the first index in the family list to start with
-     *
-     * @return FontData*
-     * @return 0
-     */
-    virtual const BIFontData* getFontData(const Font&, int& familyIndex) = 0;
+    static const FontData* getFontData(const Font&, int& familyIndex, FontSelector*);
 
-    /**
-     * Find a FontData in cache supporting the given characters or create it.
-     *
-     * @warning Not implemented currently : returns simply a new FontData.
-     *
-     * @param[in] Font the font involved
-     * @param[in] characters to be supported
-     * @param[in] length of characters
-     *
-     * @return FontData*
-     * @return 0
-     */
-    virtual const BIFontData* getFontDataForCharacters(
-            const Font&, const UChar* characters, int length) = 0;
+    // This method is implemented by the platform.
+    static const FontData* getFontDataForCharacters(const Font&, const UChar* characters, int length);
+    
+    // Also implemented by the platform.
+    static void platformInit();
 
-    /**
-     * TODO platformInit() may be private...
-     */
-    virtual void Init() = 0;
+#if PLATFORM(WIN)
+    static IMLangFontLink2* getFontLinkInterface();
+#endif
 
-    virtual ~BIFontCache() {};
+    static bool fontExists(const FontDescription&, const AtomicString& family);
+
+    static FontPlatformData* getCachedFontPlatformData(const FontDescription&, const AtomicString& family, bool checkingAlternateName = false);
+    static FontData* getCachedFontData(const FontPlatformData*);
+    static FontPlatformData* getLastResortFallbackFont(const FontDescription&);
+    
+private:
+    // These methods are implemented by each platform.
+    static FontPlatformData* getSimilarFontPlatformData(const Font&);
+    static FontPlatformData* createFontPlatformData(const FontDescription&, const AtomicString& family);
+
+    friend class FontData;
+#ifdef __OWB__
+    friend class WebCore::FontFallbackList;
+#else
+    friend class FontFallbackList;
+#endif //__OWB__
 };
 
-#define IMPLEMENT_BIFONTCACHE \
-    public: \
-    virtual const BIFontData* getFontData(const Font&, int& familyIndex);\
-    virtual const BIFontData* getFontDataForCharacters(\
-            const Font&, const UChar* characters, int length);\
-    virtual void Init();
-
 }
-#endif // BIFONTCACHE_H
 
-
+#endif //BTFontCache_h

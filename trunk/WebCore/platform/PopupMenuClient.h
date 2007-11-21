@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -23,7 +23,9 @@
 
 namespace WebCore {
 
+class Color;
 class Document;
+class FontSelector;
 class String;
 class RenderStyle;
 
@@ -34,12 +36,13 @@ public:
 
     virtual String itemText(unsigned listIndex) const = 0;
     virtual bool itemIsEnabled(unsigned listIndex) const = 0;
+    virtual Color itemBackgroundColor(unsigned listIndex) const = 0;
     virtual RenderStyle* itemStyle(unsigned listIndex) const = 0;
     virtual RenderStyle* clientStyle() const = 0;
     virtual Document* clientDocument() const = 0;
     virtual int clientPaddingLeft() const = 0;
     virtual int clientPaddingRight() const = 0;
-    virtual unsigned listSize() const = 0;
+    virtual int listSize() const = 0;
     virtual int selectedIndex() const = 0;
     virtual void hidePopup() = 0;
     virtual bool itemIsSeparator(unsigned listIndex) const = 0;
@@ -48,6 +51,7 @@ public:
     virtual bool shouldPopOver() const = 0;
     virtual bool valueShouldChangeOnHotTrack() const = 0;
     virtual void setTextFromItem(unsigned listIndex) = 0;
+    virtual FontSelector* fontSelector() const = 0;
 };
 
 }

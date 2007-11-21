@@ -51,27 +51,48 @@ namespace BAL {
     public:
         static const struct CurrentEventTag {} currentEvent;
 
+        /**
+        * BIMouseEvent destructor
+        */
         virtual ~BIMouseEvent() {};
 
-        // These button numbers match the ones used in the DOM API, 0 through 2, except for NoButton which isn't specified.
+        /**
+        * These button numbers match the ones used in the DOM API, 0 through 2, except for NoButton which isn't specified.
+        */
         enum MouseButton { NoButton = -1, LeftButton, MiddleButton, RightButton };
         enum MouseEventType { MouseEventMoved, MouseEventPressed, MouseEventReleased, MouseEventScroll };
 
-        // clone the event
+        /**
+        * clone the event
+        */
         virtual BIEvent* clone() const = 0;
 
-        // position in window
+        /**
+        * position in window
+        */
         virtual const IntPoint& pos() const = 0;
         virtual void shiftPos(int dx, int dy) = 0;
-        // global position
+        /**
+        * global position
+        */
         virtual const IntPoint& globalPos() const = 0;
-        // the pressed or release button
+        /**
+        * the pressed or release button
+        */
         virtual MouseButton button() const = 0;
         virtual MouseEventType eventType() const = 0;
-        // click count 1=simple click, 2=double click 3=triple click
+        /**
+        * click count 1=simple click, 2=double click 3=triple click
+        */
         virtual int clickCount() const = 0;
-	// time in seconds
+        /**
+        * time in seconds
+        */
         virtual double timestamp() const = 0;
+        /**
+        * modifier flags
+        */
+        virtual unsigned modifierFlags() const = 0;
 
         virtual BIMouseEvent* queryIsMouseEvent() { return this; }
     };

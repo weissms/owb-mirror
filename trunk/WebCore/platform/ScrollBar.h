@@ -28,6 +28,7 @@
 
 #include "Shared.h"
 #include "ScrollTypes.h"
+#include <wtf/MathExtras.h>
 
 namespace WebCore {
 
@@ -61,11 +62,11 @@ public:
     virtual bool isWidget() const = 0;
 
     ScrollbarOrientation orientation() const { return m_orientation; }
-    int value() const { return m_currentPos; } 
+    int value() const { return lroundf(m_currentPos); } 
     
     ScrollbarControlSize controlSize() const { return m_controlSize; }
 
-    void setSteps(int lineStep, int pageStep);
+    void setSteps(int lineStep, int pageStep, int pixelsPerStep = 1);
     
     bool setValue(int);
     void setProportion(int visibleSize, int totalSize);
@@ -91,6 +92,9 @@ public:
     virtual bool handleMouseMoveEvent(const PlatformMouseEvent&) { return false; }
     virtual bool handleMouseOutEvent(const PlatformMouseEvent&) { return false; }
 
+    // Used by some platform scrollbars to know when they've been released from capture.
+    virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&) { return false; }
+   
 protected:
     virtual void updateThumbPosition() = 0;
     virtual void updateThumbProportion() = 0;
@@ -102,9 +106,10 @@ protected:
     ScrollbarControlSize m_controlSize;
     int m_visibleSize;
     int m_totalSize;
-    int m_currentPos;
+    float m_currentPos;
     int m_lineStep;
     int m_pageStep;
+    float m_pixelStep;
 };
 
 }

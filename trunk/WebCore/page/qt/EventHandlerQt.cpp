@@ -46,19 +46,18 @@
 #include "PlatformScrollBar.h"
 #include "PlatformWheelEvent.h"
 #include "RenderWidget.h"
+#include "NotImplemented.h"
 
 namespace WebCore {
 
 using namespace EventNames;
-
-#define notImplemented() qDebug("FIXME: UNIMPLEMENTED: %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__)
 
 static bool isKeyboardOptionTab(KeyboardEvent* event)
 {
     return event
         && (event->type() == keydownEvent || event->type() == keypressEvent)
         && event->altKey()
-        && event->keyIdentifier() == "U+000009";
+        && event->keyIdentifier() == "U+0009";
 }
 
 bool EventHandler::invertSenseOfTabsToLinks(KeyboardEvent* event) const
@@ -109,19 +108,34 @@ bool EventHandler::eventActivatedView(const PlatformMouseEvent&) const
     return false;
 }
 
-bool EventHandler::passSubframeEventToSubframe(MouseEventWithHitTestResults& event, Frame* subframe)
+bool EventHandler::passSubframeEventToSubframe(MouseEventWithHitTestResults& event, Frame* subframe, HitTestResult*)
 {
-    notImplemented();
-    return false;
+    Q_ASSERT(subframe);
+    PlatformMouseEvent ev = event.event();
+    switch(ev.eventType()) {
+    case MouseEventMoved:
+        return subframe->eventHandler()->handleMouseMoveEvent(ev);
+    case MouseEventPressed:
+        return subframe->eventHandler()->handleMousePressEvent(ev);
+    case MouseEventReleased:
+        return subframe->eventHandler()->handleMouseReleaseEvent(ev);
+    case MouseEventScroll:
+        return subframe->eventHandler()->handleMouseMoveEvent(ev);
+    default:
+      return false;
+    }
 }
 
-bool EventHandler::passWheelEventToWidget(Widget* widget)
+bool EventHandler::passWheelEventToWidget(PlatformWheelEvent& event, Widget* widget)
 {
-    notImplemented();
-    return false;
+    Q_ASSERT(widget);
+    if (!widget->isFrameView())
+        return false;
+
+    return static_cast<FrameView*>(widget)->frame()->eventHandler()->handleWheelEvent(event);
 }
-    
-Clipboard* EventHandler::createDraggingClipboard() const 
+
+Clipboard* EventHandler::createDraggingClipboard() const
 {
     return new ClipboardQt(ClipboardWritable, true);
 }
@@ -131,9 +145,9 @@ bool EventHandler::passMousePressEventToSubframe(MouseEventWithHitTestResults& m
     return passSubframeEventToSubframe(mev, subframe);
 }
 
-bool EventHandler::passMouseMoveEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)
+bool EventHandler::passMouseMoveEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe, HitTestResult* hoveredNode)
 {
-    return passSubframeEventToSubframe(mev, subframe);
+    return passSubframeEventToSubframe(mev, subframe, hoveredNode);
 }
 
 bool EventHandler::passMouseReleaseEventToSubframe(MouseEventWithHitTestResults& mev, Frame* subframe)
@@ -141,14 +155,10 @@ bool EventHandler::passMouseReleaseEventToSubframe(MouseEventWithHitTestResults&
     return passSubframeEventToSubframe(mev, subframe);
 }
 
-bool EventHandler::passWheelEventToSubframe(PlatformWheelEvent&, Frame* subframe)
+bool EventHandler::passMousePressEventToScrollbar(MouseEventWithHitTestResults& event, PlatformScrollbar* scrollbar)
 {
-    return passWheelEventToWidget(subframe->view());
-}
-
-bool EventHandler::passMousePressEventToScrollbar(MouseEventWithHitTestResults&, PlatformScrollbar* scrollbar)
-{
-    return passWheelEventToWidget(scrollbar);
+    Q_ASSERT(scrollbar);
+    return scrollbar->handleMousePressEvent(event.event());
 }
 
 }

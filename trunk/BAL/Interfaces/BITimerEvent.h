@@ -40,9 +40,15 @@ namespace BAL {
     */
     class BITimerEvent : public BIEvent {
         public:
-        // this is mandatory
+            // this is mandatory
+            /**
+            * BITimerEvent destructor
+            */
             virtual ~BITimerEvent() {};
 
+            /**
+            * BITimerEvent clone
+            */
             virtual BIEvent* clone() const = 0;
 
             virtual BITimerEvent* queryIsTimerEvent() { return this; }

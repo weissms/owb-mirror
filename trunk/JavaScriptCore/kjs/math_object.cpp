@@ -1,7 +1,7 @@
 // -*- c-basic-offset: 2 -*-
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2000 Harri Porten (porten@kde.org)
+ *  Copyright (C) 2007 Apple Inc. All Rights Reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -22,17 +22,12 @@
 #include "config.h"
 #include "math_object.h"
 #include "math_object.lut.h"
-#include "wtf/MathExtras.h"
+#include <wtf/MathExtras.h>
 
 #include "operations.h"
-
-#ifdef __OWB__
-#include <BIMath.h>
-#else
 #include <math.h>
-#endif
-
 #include <time.h>
+#include <wtf/Assertions.h>
 
 using namespace KJS;
 
@@ -104,7 +99,7 @@ JSValue *MathObjectImp::getValueProperty(ExecState *, int token) const
     d = 1.0/log(10.0);
     break;
   case Pi:
-    d = M_PI;
+    d = piDouble;
     break;
   case Sqrt1_2:
     d = sqrt(0.5);
@@ -113,7 +108,7 @@ JSValue *MathObjectImp::getValueProperty(ExecState *, int token) const
     d = sqrt(2.0);
     break;
   default:
-    assert(0);
+    ASSERT(0);
   }
 
   return jsNumber(d);
@@ -121,13 +116,13 @@ JSValue *MathObjectImp::getValueProperty(ExecState *, int token) const
 
 // ------------------------------ MathObjectImp --------------------------------
 
-static bool randomSeeded = false;
+static bool didInitRandom;
 
 MathFuncImp::MathFuncImp(ExecState* exec, int i, int l, const Identifier& name)
   : InternalFunctionImp(static_cast<FunctionPrototype*>(exec->lexicalInterpreter()->builtinFunctionPrototype()), name)
   , id(i)
 {
-  putDirect(lengthPropertyName, l, DontDelete|ReadOnly|DontEnum);
+  putDirect(exec->propertyNames().length, l, DontDelete|ReadOnly|DontEnum);
 }
 
 JSValue *MathFuncImp::callAsFunction(ExecState *exec, JSObject* /*thisObj*/, const List &args)
@@ -138,7 +133,7 @@ JSValue *MathFuncImp::callAsFunction(ExecState *exec, JSObject* /*thisObj*/, con
 
   switch (id) {
   case MathObjectImp::Abs:
-    result = ( arg < 0 || arg == -0) ? (-arg) : arg;
+    result = signbit(arg) ? -arg : arg;
     break;
   case MathObjectImp::ACos:
     result = acos(arg);
@@ -153,7 +148,10 @@ JSValue *MathFuncImp::callAsFunction(ExecState *exec, JSObject* /*thisObj*/, con
     result = atan2(arg, arg2);
     break;
   case MathObjectImp::Ceil:
-    result = ceil(arg);
+    if (signbit(arg) && arg > -1.0)
+      result = -0.0;
+    else
+      result = ceil(arg);
     break;
   case MathObjectImp::Cos:
     result = cos(arg);
@@ -162,7 +160,10 @@ JSValue *MathFuncImp::callAsFunction(ExecState *exec, JSObject* /*thisObj*/, con
     result = exp(arg);
     break;
   case MathObjectImp::Floor:
-    result = floor(arg);
+    if (signbit(arg) && arg == 0.0)
+      result = -0.0;
+    else
+      result = floor(arg);
     break;
   case MathObjectImp::Log:
     result = log(arg);
@@ -211,11 +212,11 @@ JSValue *MathFuncImp::callAsFunction(ExecState *exec, JSObject* /*thisObj*/, con
       result = ::pow(arg, arg2);
     break;
   case MathObjectImp::Random:
-      if (!randomSeeded) {
-          srand(static_cast<unsigned>(time(0)));
-          randomSeeded = true;
+      if (!didInitRandom) {
+          wtf_random_init();
+          didInitRandom = true;
       }
-      result = (double)rand() / RAND_MAX;
+      result = wtf_random();
       break;
   case MathObjectImp::Round:
     if (signbit(arg) && arg >= -0.5)
@@ -235,7 +236,7 @@ JSValue *MathFuncImp::callAsFunction(ExecState *exec, JSObject* /*thisObj*/, con
 
   default:
     result = 0.0;
-    assert(0);
+    ASSERT(0);
   }
 
   return jsNumber(result);

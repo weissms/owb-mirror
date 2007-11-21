@@ -38,7 +38,7 @@
 #ifndef _GIF_H_
 #define _GIF_H_
 
-#include "ImageAnimationObserver.h"
+#include "ImageObserver.h"
 
 // Define ourselves as the clientPtr.  Mozilla just hacked their C++ callback class into this old C decoder,
 // so we will too.

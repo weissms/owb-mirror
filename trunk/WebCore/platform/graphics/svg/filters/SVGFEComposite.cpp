@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric.seidel@kdemail.net>
 
@@ -17,17 +17,27 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEComposite.h"
 #include "TextStream.h"
 
 namespace WebCore {
+
+SVGFEComposite::SVGFEComposite(SVGResourceFilter* filter)
+    : SVGFilterEffect(filter)
+    , m_operation(SVG_FECOMPOSITE_OPERATOR_UNKNOWN)
+    , m_k1(0.0f)
+    , m_k2(0.0f)
+    , m_k3(0.0f)
+    , m_k4(0.0f)
+{
+}
 
 String SVGFEComposite::in2() const
 {
@@ -101,4 +111,4 @@ TextStream& SVGFEComposite::externalRepresentation(TextStream& ts) const
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)

@@ -23,12 +23,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#import "config.h"
-#import "Pasteboard.h"
+#include "config.h"
+#include "Pasteboard.h"
 
-#import "DocumentFragment.h"
-#import "Editor.h"
-#import "markup.h"
+#include "DocumentFragment.h"
+#include "Editor.h"
+#include "markup.h"
+#include "NotImplemented.h"
+
+#include <qdebug.h>
+#include <qclipboard.h>
+#include <qmimedata.h>
+#include <qapplication.h>
+
+#define methodDebug() qDebug() << "PasteboardQt: " << __FUNCTION__;
 
 namespace WebCore {
 
@@ -38,12 +46,18 @@ Pasteboard::Pasteboard()
 
 Pasteboard* Pasteboard::generalPasteboard()
 {
-    static Pasteboard* pasteboard = new Pasteboard();
+    static Pasteboard* pasteboard = 0;
+    if (!pasteboard)
+        pasteboard = new Pasteboard();
     return pasteboard;
 }
 
 void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
 {
+    QMimeData *md = new QMimeData;
+    md->setText(selectedRange->text());
+    md->setHtml(selectedRange->toHTML());
+    QApplication::clipboard()->setMimeData(md);
 }
 
 bool Pasteboard::canSmartReplace()
@@ -53,25 +67,48 @@ bool Pasteboard::canSmartReplace()
 
 String Pasteboard::plainText(Frame* frame)
 {
-    return String();
+    return QApplication::clipboard()->text();
 }
 
 PassRefPtr<DocumentFragment> Pasteboard::documentFragment(Frame* frame, PassRefPtr<Range> context,
                                                           bool allowPlainText, bool& chosePlainText)
 {
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+    
+    chosePlainText = false;
+
+    if (mimeData->hasHtml()) {
+        QString html = mimeData->html();
+        if (!html.isEmpty()) {
+            RefPtr<DocumentFragment> fragment = createFragmentFromMarkup(frame->document(), html, "");
+            if (fragment)
+                return fragment.release();
+        }
+    }
+    
+    if (allowPlainText && mimeData->hasText()) {
+        chosePlainText = true;
+        RefPtr<DocumentFragment> fragment = createFragmentFromText(context.get(), mimeData->text());
+        if (fragment)
+            return fragment.release();
+    }
+    
     return 0;
 }
 
-void Pasteboard::writeURL(const KURL&, const String&, Frame*, bool isImage)
+void Pasteboard::writeURL(const KURL&, const String&, Frame*)
 {
+    notImplemented();
 }
 
-void Pasteboard::writeImage(const HitTestResult&)
+void Pasteboard::writeImage(Node*, const KURL&, const String&)
 {
+    notImplemented();
 }
 
 void Pasteboard::clear()
 {
+    QApplication::clipboard()->clear();
 }
 
 }

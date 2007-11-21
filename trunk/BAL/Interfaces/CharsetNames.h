@@ -30,7 +30,13 @@
 
 namespace WebCore {
 #ifndef __OWB__
+/**
+* return textEncodingID from CharsetName
+*/
 const TextEncoding& textEncodingIDFromCharsetName(const char*, TextEncodingFlags* flags = 0);
+/**
+* return charsetName from TextEncodingID
+*/
 const char* charsetNameFromTextEncodingID(const TextEncoding&);
 #endif
 } // namespace WebCore

@@ -46,7 +46,7 @@ namespace KJS {
     virtual const ClassInfo* classInfo() const { return &info; }
     static const ClassInfo info;
     // dumpAsTest is a function *and* an attribute
-    enum { DumpAsText_func, DumpAsText_attr, Unimplemented };
+    enum { DumpAsText_func, DumpAsText_attr, WaitUntilDone, NotifyDone, Unimplemented };
 
     virtual bool getOwnPropertySlot(ExecState *, const Identifier&, PropertySlot&);
     JSValue *getValueProperty(ExecState *, int token) const;

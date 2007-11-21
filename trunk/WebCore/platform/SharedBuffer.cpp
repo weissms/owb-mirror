@@ -37,6 +37,11 @@ SharedBuffer::SharedBuffer(const char* data, int size)
     m_buffer.append(data, size);
 }
 
+SharedBuffer::SharedBuffer(const unsigned char* data, int size)
+{
+    m_buffer.append(data, size);
+}
+
 unsigned SharedBuffer::size() const
 {
     if (hasPlatformData())
@@ -67,7 +72,14 @@ void SharedBuffer::clear()
     m_buffer.resize(0);
 }
 
+PassRefPtr<SharedBuffer> SharedBuffer::copy() const
+{
+    return new SharedBuffer(data(), size());
+}
+
+
 #if !PLATFORM(MAC)
+
 inline void SharedBuffer::clearPlatformData()
 {
 }
@@ -94,6 +106,16 @@ inline unsigned SharedBuffer::platformDataSize() const
     
     return 0;
 }
+
+#endif
+
+#if !PLATFORM(MAC) && !PLATFORM(WIN)
+
+PassRefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
+{
+    return 0;
+}
+
 #endif
 
 }

@@ -12,6 +12,7 @@ nmstart         [_a-zA-Z]|{nonascii}|{escape}
 nmchar          [_a-zA-Z0-9-]|{nonascii}|{escape}
 string1         \"([\t !#$%&(-~]|\\{nl}|\'|{nonascii}|{escape})*\"
 string2         \'([\t !#$%&(-~]|\\{nl}|\"|{nonascii}|{escape})*\'
+hexcolor        {h}{3}|{h}{6}
 
 ident           -?{nmstart}{nmchar}*
 name            {nmchar}+
@@ -44,7 +45,8 @@ range           \?{1,6}|{h}(\?{0,5}|{h}(\?{0,4}|{h}(\?{0,3}|{h}(\?{0,2}|{h}(\??|
 
 {ident}                 {yyTok = IDENT; return yyTok;}
 
-"#"{name}               {yyTok = HASH; return yyTok;}
+"#"{hexcolor}           {yyTok = HEX; return yyTok;}
+"#"{ident}              {yyTok = IDSEL; return yyTok;}
 
 "@import"               {BEGIN(mediaquery); yyTok = IMPORT_SYM; return yyTok;}
 "@page"                 {yyTok = PAGE_SYM; return yyTok;}
@@ -78,7 +80,7 @@ range           \?{1,6}|{h}(\?{0,5}|{h}(\?{0,4}|{h}(\?{0,3}|{h}(\?{0,2}|{h}(\??|
 {num}{ident}            {yyTok = DIMEN; return yyTok;}
 {num}%+                 {yyTok = PERCENTAGE; return yyTok;}
 {intnum}                {yyTok = INTEGER; return yyTok;}
-{num}                   {yyTok = FLOAT; return yyTok;}
+{num}                   {yyTok = FLOATTOKEN; return yyTok;}
 
 "not("                  {yyTok = NOTFUNCTION; return yyTok;}
 "url("{w}{string}{w}")" {yyTok = URI; return yyTok;}

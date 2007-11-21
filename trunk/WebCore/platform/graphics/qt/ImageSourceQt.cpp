@@ -29,7 +29,7 @@
 #include "config.h"
 #include "ImageSource.h"
 #include "ImageDecoderQt.h"
-
+#include "SharedBuffer.h"
 
 #include <QImage>
 #include <qdebug.h>
@@ -39,7 +39,7 @@ namespace WebCore {
     enum ImageFormat { ImageFormat_None, ImageFormat_GIF, ImageFormat_PNG, ImageFormat_JPEG,
                        ImageFormat_BMP,  ImageFormat_ICO,  ImageFormat_XBM };
 
-ImageFormat  detectImageFormat(const Vector<char>& data)
+ImageFormat detectImageFormat(const SharedBuffer& data)
 {
     // We need at least 4 bytes to figure out what kind of image we're dealing with.
     int length = data.size();
@@ -84,7 +84,7 @@ ImageFormat  detectImageFormat(const Vector<char>& data)
     return ImageFormat_None;
 }
     
-ImageDecoderQt* createDecoder(const Vector<char>& data) {
+ImageDecoderQt* createDecoder(const SharedBuffer& data) {
     if (detectImageFormat(data) != ImageFormat_None) 
         return new ImageDecoderQt();
     return 0;
@@ -105,22 +105,19 @@ bool ImageSource::initialized() const
     return m_decoder;
 }
 
-void ImageSource::setData(const Vector<char>* data, bool allDataReceived)
+void ImageSource::setData(SharedBuffer* data, bool allDataReceived)
 {
-    if ( m_decoder) {
-        delete  m_decoder;
-        m_decoder = 0;
-    }
     // Make the decoder by sniffing the bytes.
     // This method will examine the data and instantiate an instance of the appropriate decoder plugin.
     // If insufficient bytes are available to determine the image type, no decoder plugin will be
     // made.
-    m_decoder = createDecoder(*data);
+    if (!m_decoder)
+        m_decoder = createDecoder(*data);
 
     if (!m_decoder)
         return;
 
-    m_decoder->setData(*data, allDataReceived);
+    m_decoder->setData(data->buffer(), allDataReceived);
 }
 
 bool ImageSource::isSizeAvailable()
@@ -173,7 +170,13 @@ float ImageSource::frameDurationAtIndex(size_t index)
     if (!m_decoder)
         return 0;
     
-    return m_decoder->duration(index) / 1000.0f;
+    // Many annoying ads specify a 0 duration to make an image flash as quickly
+    // as possible.  We follow WinIE's behavior and use a duration of 100 ms
+    // for any frames that specify a duration of <= 50 ms.  See
+    // <http://bugs.webkit.org/show_bug.cgi?id=14413> or Radar 4051389 for
+    // more.
+    const float duration = m_decoder->duration(index) / 1000.0f;
+    return (duration < 0.051f) ? 0.100f : duration;
 }
 
 bool ImageSource::frameHasAlphaAtIndex(size_t index)
@@ -187,6 +190,18 @@ bool ImageSource::frameHasAlphaAtIndex(size_t index)
     
     return source->hasAlphaChannel();
 }
+
+bool ImageSource::frameIsCompleteAtIndex(size_t index)
+{
+    return (m_decoder && m_decoder->imageAtIndex(index) != 0);
+}
+
+void ImageSource::clear()
+{
+    delete  m_decoder;
+    m_decoder = 0;
+}
+
 
 }
 

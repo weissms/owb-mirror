@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006 Apple Computer, Inc.
+ *  Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -13,12 +13,12 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "JSSVGElementWrapperFactory.h"
 
@@ -30,6 +30,7 @@
 #include "JSSVGClipPathElement.h"
 #include "JSSVGCursorElement.h"
 #include "JSSVGDefsElement.h"
+#include "JSSVGDefinitionSrcElement.h"
 #include "JSSVGDescElement.h"
 #include "JSSVGEllipseElement.h"
 #include "JSSVGFEBlendElement.h"
@@ -56,6 +57,11 @@
 #include "JSSVGFETurbulenceElement.h"
 #include "JSSVGFilterElement.h"
 #include "JSSVGForeignObjectElement.h"
+#include "JSSVGFontFaceElement.h"
+#include "JSSVGFontFaceFormatElement.h"
+#include "JSSVGFontFaceNameElement.h"
+#include "JSSVGFontFaceSrcElement.h"
+#include "JSSVGFontFaceUriElement.h"
 #include "JSSVGGElement.h"
 #include "JSSVGImageElement.h"
 #include "JSSVGLinearGradientElement.h"
@@ -77,6 +83,7 @@
 #include "JSSVGSwitchElement.h"
 #include "JSSVGSymbolElement.h"
 #include "JSSVGTextElement.h"
+#include "JSSVGTextPathElement.h"
 #include "JSSVGTitleElement.h"
 #include "JSSVGTRefElement.h"
 #include "JSSVGTSpanElement.h"
@@ -93,6 +100,7 @@
 #include "SVGClipPathElement.h"
 #include "SVGCursorElement.h"
 #include "SVGDefsElement.h"
+#include "SVGDefinitionSrcElement.h"
 #include "SVGDescElement.h"
 #include "SVGEllipseElement.h"
 #include "SVGFEBlendElement.h"
@@ -119,6 +127,11 @@
 #include "SVGFETurbulenceElement.h"
 #include "SVGFilterElement.h"
 #include "SVGForeignObjectElement.h"
+#include "SVGFontFaceElement.h"
+#include "SVGFontFaceFormatElement.h"
+#include "SVGFontFaceNameElement.h"
+#include "SVGFontFaceSrcElement.h"
+#include "SVGFontFaceUriElement.h"
 #include "SVGGElement.h"
 #include "SVGImageElement.h"
 #include "SVGLinearGradientElement.h"
@@ -140,6 +153,7 @@
 #include "SVGSwitchElement.h"
 #include "SVGSymbolElement.h"
 #include "SVGTextElement.h"
+#include "SVGTextPathElement.h"
 #include "SVGTitleElement.h"
 #include "SVGTRefElement.h"
 #include "SVGTSpanElement.h"
@@ -154,8 +168,9 @@ namespace WebCore {
 
 using namespace SVGNames;
 
-typedef DOMNode* (*CreateSVGElementWrapperFunction)(ExecState*, PassRefPtr<SVGElement>);
+typedef JSNode* (*CreateSVGElementWrapperFunction)(ExecState*, PassRefPtr<SVGElement>);
 
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #define FOR_EACH_TAG(macro) \
     macro(a, A) \
     macro(animateColor, AnimateColor) \
@@ -164,6 +179,7 @@ typedef DOMNode* (*CreateSVGElementWrapperFunction)(ExecState*, PassRefPtr<SVGEl
     macro(circle, Circle) \
     macro(clipPath, ClipPath) \
     macro(cursor, Cursor) \
+    macro(definition_src, DefinitionSrc) \
     macro(defs, Defs) \
     macro(desc, Desc) \
     macro(ellipse, Ellipse) \
@@ -189,6 +205,11 @@ typedef DOMNode* (*CreateSVGElementWrapperFunction)(ExecState*, PassRefPtr<SVGEl
     macro(feSpotLight, FESpotLight) \
     macro(feTile, FETile) \
     macro(feTurbulence, FETurbulence) \
+    macro(font_face, FontFace) \
+    macro(font_face_format, FontFaceFormat) \
+    macro(font_face_name, FontFaceName) \
+    macro(font_face_src, FontFaceSrc) \
+    macro(font_face_uri, FontFaceUri) \
     macro(filter, Filter) \
     macro(foreignObject, ForeignObject) \
     macro(g, G) \
@@ -212,6 +233,7 @@ typedef DOMNode* (*CreateSVGElementWrapperFunction)(ExecState*, PassRefPtr<SVGEl
     macro(switch, Switch) \
     macro(symbol, Symbol) \
     macro(text, Text) \
+    macro(textPath, TextPath) \
     macro(title, Title) \
     macro(tref, TRef) \
     macro(tspan, TSpan) \
@@ -219,15 +241,57 @@ typedef DOMNode* (*CreateSVGElementWrapperFunction)(ExecState*, PassRefPtr<SVGEl
     macro(view, View) \
     // end of macro
 
+#else
+
+#define FOR_EACH_TAG(macro) \
+    macro(a, A) \
+    macro(circle, Circle) \
+    macro(clipPath, ClipPath) \
+    macro(cursor, Cursor) \
+    macro(defs, Defs) \
+    macro(desc, Desc) \
+    macro(ellipse, Ellipse) \
+    macro(foreignObject, ForeignObject) \
+    macro(g, G) \
+    macro(image, Image) \
+    macro(linearGradient, LinearGradient) \
+    macro(line, Line) \
+    macro(marker, Marker) \
+    macro(mask, Mask) \
+    macro(metadata, Metadata) \
+    macro(path, Path) \
+    macro(pattern, Pattern) \
+    macro(polyline, Polyline) \
+    macro(polygon, Polygon) \
+    macro(radialGradient, RadialGradient) \
+    macro(rect, Rect) \
+    macro(script, Script) \
+    macro(set, Set) \
+    macro(stop, Stop) \
+    macro(style, Style) \
+    macro(svg, SVG) \
+    macro(switch, Switch) \
+    macro(symbol, Symbol) \
+    macro(text, Text) \
+    macro(textPath, TextPath) \
+    macro(title, Title) \
+    macro(tref, TRef) \
+    macro(tspan, TSpan) \
+    macro(use, Use) \
+    macro(view, View) \
+    // end of macro
+
+#endif
+
 #define CREATE_WRAPPER_FUNCTION(tag, name) \
-static DOMNode* create##name##Wrapper(ExecState* exec, PassRefPtr<SVGElement> element) \
+static JSNode* create##name##Wrapper(ExecState* exec, PassRefPtr<SVGElement> element) \
 { \
     return new JSSVG##name##Element(exec, static_cast<SVG##name##Element*>(element.get())); \
 }
 FOR_EACH_TAG(CREATE_WRAPPER_FUNCTION)
 #undef CREATE_WRAPPER_FUNCTION
 
-DOMNode* createJSSVGWrapper(ExecState* exec, PassRefPtr<SVGElement> element)
+JSNode* createJSSVGWrapper(ExecState* exec, PassRefPtr<SVGElement> element)
 {
     static HashMap<WebCore::AtomicStringImpl*, CreateSVGElementWrapperFunction> map;
     if (map.isEmpty()) {
@@ -243,4 +307,4 @@ FOR_EACH_TAG(ADD_TO_HASH_MAP)
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

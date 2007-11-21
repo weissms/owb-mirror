@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Alternatively, the contents of this file may be used under the terms
  * of either the Mozilla Public License Version 1.1, found at
@@ -35,9 +35,9 @@
 #include "config.h"
 #include "RenderArena.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wtf/Assertions.h>
 
 #define ROUNDUP(x,y) ((((x)+((y)-1))/(y))*(y))
 
@@ -67,15 +67,14 @@ RenderArena::RenderArena(unsigned arenaSize)
 
 RenderArena::~RenderArena()
 {
-    // Free the arena in the pool and finish using it
-    FreeArenaPool(&m_pool);
+    FinishArenaPool(&m_pool);
 }
 
 void* RenderArena::allocate(size_t size)
 {
 #ifndef NDEBUG
     // Use standard malloc so that memory debugging tools work.
-    assert(this);
+    ASSERT(this);
     void* block = ::malloc(sizeof(RenderArenaDebugHeader) + size);
     RenderArenaDebugHeader* header = (RenderArenaDebugHeader*)block;
     header->arena = this;
@@ -114,9 +113,9 @@ void RenderArena::free(size_t size, void* ptr)
 #ifndef NDEBUG
     // Use standard free so that memory debugging tools work.
     RenderArenaDebugHeader* header = (RenderArenaDebugHeader*)ptr - 1;
-    assert(header->signature == signature);
-    assert(header->size == size);
-    assert(header->arena == this);
+    ASSERT(header->signature == signature);
+    ASSERT(header->size == size);
+    ASSERT(header->arena == this);
     header->signature = signatureDead;
     ::free(header);
 #else

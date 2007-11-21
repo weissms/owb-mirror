@@ -27,6 +27,7 @@
 #import "config.h"
 #import "DOMHTML.h"
 
+#import "CSSHelper.h"
 #import "DOMExtensions.h"
 #import "DOMInternal.h"
 #import "DOMPrivate.h"
@@ -38,7 +39,6 @@
 #import "KURL.h"
 #import "Range.h"
 #import "RenderTextControl.h"
-#import "csshelper.h"
 #import "markup.h"
 
 //------------------------------------------------------------------------------------------
@@ -48,13 +48,13 @@
 
 - (DOMDocumentFragment *)createDocumentFragmentWithMarkupString:(NSString *)markupString baseURL:(NSURL *)baseURL
 {
-    return [DOMDocumentFragment _documentFragmentWith:createFragmentFromMarkup([self _document], markupString, [baseURL absoluteString]).get()];
+    return [DOMDocumentFragment _wrapDocumentFragment:createFragmentFromMarkup([self _document], markupString, [baseURL absoluteString]).get()];
 }
 
 - (DOMDocumentFragment *)createDocumentFragmentWithText:(NSString *)text
 {
     // FIXME: Since this is not a contextual fragment, it won't handle whitespace properly.
-    return [DOMDocumentFragment _documentFragmentWith:createFragmentFromText([self _document]->createRange().get(), text).get()];
+    return [DOMDocumentFragment _wrapDocumentFragment:createFragmentFromText([self _document]->createRange().get(), text).get()];
 }
 
 @end
@@ -163,4 +163,26 @@
     // FIXME: Needs implementation for non-NSView <select>!
 }
 
+@end
+
+@implementation DOMHTMLInputElement (FormPromptAdditions)
+- (BOOL)_isEdited
+{
+    WebCore::RenderObject *renderer = [self _node]->renderer();
+    if (renderer && [self _isTextField])
+        return static_cast<WebCore::RenderTextControl *>(renderer)->isUserEdited();
+    
+    return NO;
+}
+@end
+
+@implementation DOMHTMLTextAreaElement (FormPromptAdditions)
+- (BOOL)_isEdited
+{
+    WebCore::RenderObject *renderer = [self _node]->renderer();
+    if (renderer)
+        return static_cast<WebCore::RenderTextControl *>(renderer)->isUserEdited();
+    
+    return NO;
+}
 @end

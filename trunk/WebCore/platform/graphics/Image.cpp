@@ -22,7 +22,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #include "config.h"
@@ -31,7 +31,7 @@
 #include "AffineTransform.h"
 #include "GraphicsContext.h"
 #include "IntRect.h"
-#include "MimeTypeRegistry.h"
+#include "MIMETypeRegistry.h"
 
 #include <math.h>
 
@@ -41,8 +41,8 @@
 
 namespace WebCore {
 
-Image::Image(ImageAnimationObserver* observer)
-    : m_animationObserver(observer)
+Image::Image(ImageObserver* observer)
+    : m_imageObserver(observer)
 {
 }
 
@@ -52,40 +52,25 @@ Image::~Image()
 
 bool Image::supportsType(const String& type)
 {
-    return MimeTypeRegistry::isSupportedImageResourceMIMEType(type);
-}
+    return MIMETypeRegistry::isSupportedImageResourceMIMEType(type); 
+} 
 
 bool Image::isNull() const
 {
     return size().isEmpty();
 }
 
-bool Image::setData(bool allDataReceived)
+bool Image::setData(PassRefPtr<SharedBuffer> data, bool allDataReceived)
 {
-    int length = m_data.size();
-    if (!length)
+    m_data = data;
+    if (!m_data.get())
         return true;
 
-#ifdef kImageBytesCutoff
-    // This is a hack to help with testing display of partially-loaded images.
-    // To enable it, define kImageBytesCutoff to be a size smaller than that of the image files
-    // being loaded. They'll never finish loading.
-    if (length > kImageBytesCutoff) {
-        length = kImageBytesCutoff;
-        allDataReceived = false;
-    }
-#endif
-
-#if PLATFORM(CG)
-    // Avoid the extra copy of bytes by just handing the byte array directly to a CFDataRef.
-    CFDataRef data = CFDataCreateWithBytesNoCopy(0, reinterpret_cast<const UInt8*>(m_data.data()), length, kCFAllocatorNull);
-    bool result = setNativeData(data, allDataReceived);
-    CFRelease(data);
-#else
-    bool result = setNativeData(&m_data, allDataReceived);
-#endif
-
-    return result;
+    int length = m_data->size();
+    if (!length)
+        return true;
+    
+    return dataChanged(allDataReceived);
 }
 
 IntRect Image::rect() const
@@ -107,7 +92,7 @@ void Image::fillWithSolidColor(GraphicsContext* ctxt, const FloatRect& dstRect, 
 {
     if (color.alpha() <= 0)
         return;
-
+    
     ctxt->save();
     ctxt->setCompositeOperation(!color.hasAlpha() && op == CompositeSourceOver ? CompositeCopy : op);
     ctxt->fillRect(dstRect, color);
@@ -117,23 +102,92 @@ void Image::fillWithSolidColor(GraphicsContext* ctxt, const FloatRect& dstRect, 
 static inline FloatSize calculatePatternScale(const FloatRect& dstRect, const FloatRect& srcRect, Image::TileRule hRule, Image::TileRule vRule)
 {
     float scaleX = 1.0f, scaleY = 1.0f;
-
+    
     if (hRule == Image::StretchTile)
         scaleX = dstRect.width() / srcRect.width();
     if (vRule == Image::StretchTile)
         scaleY = dstRect.height() / srcRect.height();
-
+    
     if (hRule == Image::RepeatTile)
         scaleX = scaleY;
     if (vRule == Image::RepeatTile)
         scaleY = scaleX;
-
+    
     return FloatSize(scaleX, scaleY);
 }
 
-// FIXME MERGE should not be here but in GraphicsContext
-void Image::drawPattern(GraphicsContext*, FloatRect const&, WebCore::AffineTransform const&, FloatPoint const&, CompositeOperator, FloatRect const&)
-{
+#ifndef __OWB__
+void Image::drawTiled(GraphicsContext* ctxt, const FloatRect& destRect, const FloatPoint& srcPoint, const FloatSize& scaledTileSize, CompositeOperator op)
+{    
+    if (!nativeImageForCurrentFrame())
+        return;
+    
+    if (mayFillWithSolidColor()) {
+        fillWithSolidColor(ctxt, destRect, solidColor(), op);
+        return;
+    }
+
+    FloatSize intrinsicTileSize = size();
+    FloatSize scale(scaledTileSize.width() / intrinsicTileSize.width(),
+                    scaledTileSize.height() / intrinsicTileSize.height());
+    AffineTransform patternTransform = AffineTransform().scale(scale.width(), scale.height());
+
+    FloatRect oneTileRect;
+    oneTileRect.setX(destRect.x() + fmodf(fmodf(-srcPoint.x(), scaledTileSize.width()) - scaledTileSize.width(), scaledTileSize.width()));
+    oneTileRect.setY(destRect.y() + fmodf(fmodf(-srcPoint.y(), scaledTileSize.height()) - scaledTileSize.height(), scaledTileSize.height()));
+    oneTileRect.setSize(scaledTileSize);
+    
+    // Check and see if a single draw of the image can cover the entire area we are supposed to tile.    
+    if (oneTileRect.contains(destRect)) {
+        FloatRect visibleSrcRect;
+        visibleSrcRect.setX((destRect.x() - oneTileRect.x()) / scale.width());
+        visibleSrcRect.setY((destRect.y() - oneTileRect.y()) / scale.height());
+        visibleSrcRect.setWidth(destRect.width() / scale.width());
+        visibleSrcRect.setHeight(destRect.height() / scale.height());
+        draw(ctxt, destRect, visibleSrcRect, op);
+        return;
+    }
+
+    FloatRect tileRect(FloatPoint(), intrinsicTileSize);    
+    drawPattern(ctxt, tileRect, patternTransform, oneTileRect.location(), op, destRect);
+    
+    startAnimation();
 }
+
+// FIXME: Merge with the other drawTiled eventually, since we need a combination of both for some things.
+void Image::drawTiled(GraphicsContext* ctxt, const FloatRect& dstRect, const FloatRect& srcRect, TileRule hRule, TileRule vRule, CompositeOperator op)
+{    
+    if (!nativeImageForCurrentFrame())
+        return;
+
+    if (mayFillWithSolidColor()) {
+        fillWithSolidColor(ctxt, dstRect, solidColor(), op);
+        return;
+    }
+    
+    // FIXME: We do not support 'round' yet.  For now just map it to 'repeat'.
+    if (hRule == RoundTile)
+        hRule = RepeatTile;
+    if (vRule == RoundTile)
+        vRule = RepeatTile;
+
+    FloatSize scale = calculatePatternScale(dstRect, srcRect, hRule, vRule);
+    AffineTransform patternTransform = AffineTransform().scale(scale.width(), scale.height());
+
+    // We want to construct the phase such that the pattern is centered (when stretch is not
+    // set for a particular rule).
+    float hPhase = scale.width() * srcRect.x();
+    float vPhase = scale.height() * srcRect.y();
+    if (hRule == Image::RepeatTile)
+        hPhase -= fmodf(dstRect.width(), scale.width() * srcRect.width()) / 2.0f;
+    if (vRule == Image::RepeatTile)
+        vPhase -= fmodf(dstRect.height(), scale.height() * srcRect.height()) / 2.0f;
+    FloatPoint patternPhase(dstRect.x() - hPhase, dstRect.y() - vPhase);
+    
+    drawPattern(ctxt, srcRect, patternTransform, patternPhase, op, dstRect);
+
+    startAnimation();
+}
+#endif
 
 }

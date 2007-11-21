@@ -32,7 +32,7 @@
 #import "DocumentFragment.h"
 #import "DOMDocumentFragment.h"
 #import "DOMDocumentFragmentInternal.h"
-#import "MimeTypeRegistry.h"
+#import "MIMETypeRegistry.h"
 #import "Pasteboard.h"
 #import "PasteboardHelper.h"
 
@@ -55,10 +55,24 @@ bool DragData::canSmartReplace() const
     Pasteboard::generalPasteboard();
     return [[[m_platformDragData draggingPasteboard] types] containsObject:WebSmartPastePboardType];
 }
-    
+
 bool DragData::containsColor() const
 {
     return [[[m_platformDragData draggingPasteboard] types] containsObject:NSColorPboardType];
+}
+
+bool DragData::containsFiles() const
+{
+    return [[[m_platformDragData draggingPasteboard] types] containsObject:NSFilenamesPboardType];
+}
+
+void DragData::asFilenames(Vector<String>& result) const
+{
+    NSArray *filenames = [[m_platformDragData draggingPasteboard] propertyListForType:NSFilenamesPboardType];
+    NSEnumerator *fileEnumerator = [filenames objectEnumerator];
+    
+    while (NSString *filename = [fileEnumerator nextObject])
+        result.append(filename);
 }
 
 bool DragData::containsPlainText() const
@@ -90,34 +104,18 @@ Clipboard* DragData::createClipboard(ClipboardAccessPolicy policy) const
     return new ClipboardMac(true, [m_platformDragData draggingPasteboard], policy);
 }
 
-static bool imageExistsAtPaths(NSArray* paths)
-{
-    NSEnumerator *enumerator = [paths objectEnumerator];
-    NSString *path;
-    
-    while ((path = [enumerator nextObject]) != nil)
-        if (MimeTypeRegistry::isSupportedImageResourceMIMEType(MimeTypeRegistry::getMIMETypeForExtension([path pathExtension])))
-            return true;
-    
-    return false;
-}
-    
 bool DragData::containsCompatibleContent() const
 {
     
     NSPasteboard *pasteboard = [m_platformDragData draggingPasteboard];
     NSMutableSet *types = [NSMutableSet setWithArray:[pasteboard types]];
     [types intersectSet:[NSSet setWithArray:m_pasteboardHelper->insertablePasteboardTypes()]];
-    if ([types count] == 0)
-        return false;
-    return !([types count] == 1 && [types containsObject:NSFilenamesPboardType] &&
-        !imageExistsAtPaths([pasteboard propertyListForType:NSFilenamesPboardType]));
+    return [types count] != 0;
 }
     
 bool DragData::containsURL() const
 {
-    //FIXME: is it worth doing the initial [types contains URL] check?
-    return [[[m_platformDragData draggingPasteboard] types] containsObject:NSURLPboardType] || !asURL().isEmpty();
+    return !asURL().isEmpty();
 }
     
 String DragData::asURL(String* title) const

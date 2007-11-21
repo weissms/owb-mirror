@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.  All rights reserved.
  * Copyright (C) 2007 Pleyo.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -27,12 +27,12 @@
 #ifndef BTWidget_h
 #define BTWidget_h
 
+
 #include <wtf/Platform.h>
 #ifdef __OWB__
-#include "Font.h"
-#include "PlatformMouseEvent.h"
+#include "IntRect.h"
+#include "GraphicsContext.h"
 #endif
-
 #if PLATFORM(MAC)
 #ifdef __OBJC__
 @class NSView;
@@ -45,31 +45,32 @@ class NSView;
 typedef struct HWND__* HWND;
 #endif
 
-#if PLATFORM(GDK)
+#if PLATFORM(GTK)
 typedef struct _GdkDrawable GdkDrawable;
+typedef struct _GtkWidget GtkWidget;
+typedef struct _GtkContainer GtkContainer;
 #endif
 
 #if PLATFORM(QT)
 class QWidget;
+class QWebFrame;
 #endif
 
 namespace WebCore {
 
     class Cursor;
     class Event;
-    class Font;
     class GraphicsContext;
     class IntPoint;
-    class IntRect;
     class IntSize;
     class PlatformMouseEvent;
-#ifndef __OWB__
     class ScrollView;
-#endif
     class WidgetClient;
     class WidgetPrivate;
+
 #ifdef __OWB__
 }
+using BAL::BTFont;
 using WebCore::IntSize;
 using WebCore::IntPoint;
 using WebCore::IntRect;
@@ -77,9 +78,10 @@ using WebCore::Cursor;
 using WebCore::WidgetClient;
 using WebCore::WidgetPrivate;
 using WebCore::Event;
-using WebCore::Font;
-using WebCore::GraphicsContext;
+
 namespace BAL {
+    class BINativeImage;
+    class BTScrollView;
     class BIWindow;
 #endif
     class BTWidget {
@@ -141,11 +143,26 @@ namespace BAL {
 
         virtual void geometryChanged() const {};
 
-        bool capturingMouse() const;
-        void setCapturingMouse(bool);
-        Widget* capturingTarget();
-        Widget* capturingChild();
-        void setCapturingChild(Widget*);
+        IntRect convertToContainingWindow(const IntRect&) const;
+        IntPoint convertToContainingWindow(const IntPoint&) const;
+        IntPoint convertFromContainingWindow(const IntPoint&) const;
+
+        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
+        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
+
+        bool suppressInvalidation() const;
+        void setSuppressInvalidation(bool);
+
+#endif
+
+#if PLATFORM(GTK)
+        virtual void setParent(ScrollView*);
+        ScrollView* parent() const;
+
+        void setContainingWindow(GtkContainer*);
+        GtkContainer* containingWindow() const;
+
+        virtual void geometryChanged() const;
 
         IntRect convertToContainingWindow(const IntRect&) const;
         IntPoint convertToContainingWindow(const IntPoint&) const;
@@ -157,29 +174,28 @@ namespace BAL {
         bool suppressInvalidation() const;
         void setSuppressInvalidation(bool);
 
-        // These methods will be called on a widget while it is capturing the mouse.
-        virtual bool handleMouseMoveEvent(const PlatformMouseEvent&) { return false; }
-        virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&) { return false; }
-#endif
-
-#ifdef __OWB__
-        virtual void setBackingStore(BINativeImage*) {}
-        virtual BINativeImage* backingStore() const { return NULL; }
-        virtual const IntRect* dirtyRect() const { return NULL; }
-        virtual void setDirtyRect(IntRect) {}
-        virtual void setParent(BTWidget* parent);
-#endif
-
-#if PLATFORM(GDK)
-        Widget(GdkDrawable*);
-        virtual void setDrawable(GdkDrawable*);
-        GdkDrawable* drawable() const;
+        GtkWidget* gtkWidget() const;
+protected:
+        void setGtkWidget(GtkWidget*);
 #endif
 
 #if PLATFORM(QT)
         QWidget* qwidget() const;
-        QWidget* canvas() const;
-        void setQWidget(QWidget*);
+        void setQWidget(QWidget *widget);
+        QWidget* containingWindow() const;
+
+        QWebFrame* qwebframe() const;
+        void setQWebFrame(QWebFrame *webFrame);
+        virtual void setParent(ScrollView*);
+        ScrollView* parent() const;
+        virtual void geometryChanged() const;
+
+        IntRect convertToContainingWindow(const IntRect&) const;
+        IntPoint convertToContainingWindow(const IntPoint&) const;
+        IntPoint convertFromContainingWindow(const IntPoint&) const;
+
+        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
+        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
 #endif
 
 #if PLATFORM(MAC)
@@ -189,26 +205,22 @@ namespace BAL {
         NSView* getOuterView() const;
         void setView(NSView*);
 
-        void sendConsumedMouseUp();
-
         static void beforeMouseDown(NSView*, Widget*);
         static void afterMouseDown(NSView*, Widget*);
 
         void addToSuperview(NSView* superview);
         void removeFromSuperview();
+        IntPoint convertToScreenCoordinate(NSView*, const IntPoint&);
 #endif
 
-        // To be deleted.
-        enum FocusPolicy { NoFocus, TabFocus, ClickFocus, StrongFocus, WheelFocus };
-        GraphicsContext* lockDrawingFocus();
-        const Font& font() const;
-        virtual FocusPolicy focusPolicy() const;
-        virtual bool hasFocus() const;
-        virtual void clearFocus();
-        virtual void setFont(const Font&);
-        void disableFlushDrawing();
-        void enableFlushDrawing();
-        void unlockDrawingFocus(GraphicsContext*);
+#ifdef __OWB__
+        virtual void setBackingStore(BINativeImage*) {}
+        virtual BINativeImage* backingStore() const { return NULL; }
+        virtual const IntRect* dirtyRect() const { return NULL; }
+        virtual void setDirtyRect(IntRect) {}
+        virtual void setParent(BTScrollView* parent);
+        virtual BTScrollView* parent() const;
+#endif
 
     private:
         WidgetPrivate* data;
@@ -216,4 +228,4 @@ namespace BAL {
 
 } // namespace WebCore
 
-#endif // BTWidget_h
+#endif // Widget_h

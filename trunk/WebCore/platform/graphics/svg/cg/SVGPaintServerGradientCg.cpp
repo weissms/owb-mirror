@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2006 Nikolas Zimmermann <zimmermann@kde.org>
+    Copyright (C) 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
 
     This file is part of the KDE project
 
@@ -15,22 +15,26 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPaintServerGradient.h"
 
 #include "CgSupport.h"
+#include "FloatConversion.h"
 #include "GraphicsContext.h"
 #include "ImageBuffer.h"
-#include "RenderPath.h"
+#include "RenderObject.h"
 #include "SVGGradientElement.h"
 #include "SVGPaintServerLinearGradient.h"
 #include "SVGPaintServerRadialGradient.h"
+#include "SVGRenderSupport.h"
+
+#include <wtf/MathExtras.h>
 
 using namespace std;
 
@@ -69,10 +73,10 @@ static void cgGradientCallback(void* info, const CGFloat* inValues, CGFloat* out
         CGFloat diffFromPrevious = inValue - stops[nextStopIndex - 1].offset;
         CGFloat percent = diffFromPrevious * stops[nextStopIndex].previousDeltaInverse;
 
-        outColor[0] = ((1.0 - percent) * previousColorArray[0] + percent * nextColorArray[0]);
-        outColor[1] = ((1.0 - percent) * previousColorArray[1] + percent * nextColorArray[1]);
-        outColor[2] = ((1.0 - percent) * previousColorArray[2] + percent * nextColorArray[2]);
-        outColor[3] = ((1.0 - percent) * previousColorArray[3] + percent * nextColorArray[3]);
+        outColor[0] = ((1.0f - percent) * previousColorArray[0] + percent * nextColorArray[0]);
+        outColor[1] = ((1.0f - percent) * previousColorArray[1] + percent * nextColorArray[1]);
+        outColor[2] = ((1.0f - percent) * previousColorArray[2] + percent * nextColorArray[2]);
+        outColor[3] = ((1.0f - percent) * previousColorArray[3] + percent * nextColorArray[3]);
     }
     // FIXME: have to handle the spreadMethod()s here SPREADMETHOD_REPEAT, etc.
 }
@@ -105,10 +109,10 @@ static CGShadingRef CGShadingRefForRadialGradient(const SVGPaintServerRadialGrad
 
     // Spec: If (fx, fy) lies outside the circle defined by (cx, cy) and r, set (fx, fy)
     // to the point of intersection of the line through (fx, fy) and the circle.
-    if (sqrtf(fdx * fdx + fdy * fdy) > radius) { 
+    if (sqrt(fdx * fdx + fdy * fdy) > radius) { 
         double angle = atan2(focus.y * 100.0, focus.x * 100.0);
-        focus.x = cos(angle) * radius;
-        focus.y = sin(angle) * radius;
+        focus.x = narrowPrecisionToCGFloat(cos(angle) * radius);
+        focus.y = narrowPrecisionToCGFloat(sin(angle) * radius);
     }
 
     CGFunctionCallbacks callbacks = {0, cgGradientCallback, NULL};
@@ -117,7 +121,7 @@ static CGShadingRef CGShadingRefForRadialGradient(const SVGPaintServerRadialGrad
     CGFunctionRef shadingFunction = CGFunctionCreate((void *)server, 1, domainLimits, 4, rangeLimits, &callbacks);
 
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGShadingRef shading = CGShadingCreateRadial(colorSpace, focus, 0, center, radius, shadingFunction, true, true);
+    CGShadingRef shading = CGShadingCreateRadial(colorSpace, focus, 0, center, narrowPrecisionToCGFloat(radius), shadingFunction, true, true);
     CGColorSpaceRelease(colorSpace);
     CGFunctionRelease(shadingFunction);
     return shading;
@@ -130,11 +134,11 @@ void SVGPaintServerGradient::updateQuartzGradientStopsCache(const Vector<SVGGrad
     m_stopsCount = stops.size();
     m_stopsCache = new SVGPaintServerGradient::QuartzGradientStop[m_stopsCount];
 
-    CGFloat previousOffset = 0.0;
+    CGFloat previousOffset = 0.0f;
     for (unsigned i = 0; i < stops.size(); ++i) {
         CGFloat currOffset = min(max(stops[i].first, previousOffset), static_cast<CGFloat>(1.0));
         m_stopsCache[i].offset = currOffset;
-        m_stopsCache[i].previousDeltaInverse = 1.0 / (currOffset - previousOffset);
+        m_stopsCache[i].previousDeltaInverse = 1.0f / (currOffset - previousOffset);
         previousOffset = currOffset;
         CGFloat* ca = m_stopsCache[i].colorArray;
         stops[i].second.getRGBA(ca[0], ca[1], ca[2], ca[3]);
@@ -159,70 +163,83 @@ void SVGPaintServerGradient::updateQuartzGradientCache(const SVGPaintServerGradi
     }
 }
 
+// Helper function for text painting
+static inline const RenderObject* findTextRootObject(const RenderObject* start)
+{
+    while (start && !start->isSVGText())
+        start = start->parent();
+
+    ASSERT(start);
+    ASSERT(start->isSVGText());
+
+    return start;
+}
+
 void SVGPaintServerGradient::teardown(GraphicsContext*& context, const RenderObject* object, SVGPaintTargetType type, bool isPaintingText) const
 {
     CGShadingRef shading = m_shadingCache;
     CGContextRef contextRef = context->platformContext();
-    RenderStyle* style = object->style();
     ASSERT(contextRef);
 
     // As renderPath() is not used when painting text, special logic needed here.
     if (isPaintingText) {
-        IntRect textBoundary = const_cast<RenderObject*>(object)->absoluteBoundingBoxRect();
-        FloatRect targetRect = object->absoluteTransform().inverse().mapRect(textBoundary);
-        handleBoundingBoxModeAndGradientTransformation(context, targetRect);
-    }
+        if (m_savedContext) {
+            FloatRect maskBBox = const_cast<RenderObject*>(findTextRootObject(object))->relativeBBox(false);
 
-    if ((type & ApplyToFillTargetType) && style->svgStyle()->hasFill()) {
-        // workaround for filling the entire screen with the shading in the case that no text was intersected with the clip
-        if (!isPaintingText || (object->width() > 0 && object->height() > 0))
-            CGContextDrawShading(contextRef, shading);
+            // Fixup transformations to be able to clip to mask
+            AffineTransform transform = object->absoluteTransform();
+            FloatRect textBoundary = transform.mapRect(maskBBox);
 
-        context->restore();
-    }
+            IntSize maskSize(lroundf(textBoundary.width()), lroundf(textBoundary.height()));
+            clampImageBufferSizeToViewport(object->document()->renderer(), maskSize);
 
-    if ((type & ApplyToStrokeTargetType) && style->svgStyle()->hasStroke()) {
-        if (isPaintingText && m_savedContext) {
-            IntRect maskRect = const_cast<RenderObject*>(object)->absoluteBoundingBoxRect();
-            maskRect = object->absoluteTransform().inverse().mapRect(maskRect);
+            if (maskSize.width() < static_cast<int>(textBoundary.width()))
+                textBoundary.setWidth(maskSize.width());
 
-            // Translate from 0x0 image origin to actual rendering position
-            m_savedContext->translate(maskRect.x(), maskRect.y());
+            if (maskSize.height() < static_cast<int>(textBoundary.height()))
+                textBoundary.setHeight(maskSize.height());
 
             // Clip current context to mask image (gradient)
-            CGContextClipToMask(m_savedContext->platformContext(), CGRectMake(0, 0, maskRect.width(), maskRect.height()), m_imageBuffer->cgImage());
-            m_savedContext->translate(-maskRect.x(), -maskRect.y());
+            m_savedContext->concatCTM(transform.inverse());
+            CGContextClipToMask(m_savedContext->platformContext(), CGRect(textBoundary), m_imageBuffer->cgImage());
+            m_savedContext->concatCTM(transform);
+
+            handleBoundingBoxModeAndGradientTransformation(m_savedContext, maskBBox);
 
             // Restore on-screen drawing context, after we got the image of the gradient
             delete m_imageBuffer;
+
             context = m_savedContext;
             contextRef = context->platformContext();
+
             m_savedContext = 0;
             m_imageBuffer = 0;
         }
-
-        CGContextDrawShading(contextRef, shading);
-        context->restore();
     }
 
+    CGContextDrawShading(contextRef, shading);
     context->restore();
 }
 
-void SVGPaintServerGradient::renderPath(GraphicsContext*& context, const RenderPath* path, SVGPaintTargetType type) const
+void SVGPaintServerGradient::renderPath(GraphicsContext*& context, const RenderObject* path, SVGPaintTargetType type) const
 {
-    RenderStyle* style = path->style(); 
+    RenderStyle* style = path->style();
     CGContextRef contextRef = context->platformContext();
     ASSERT(contextRef);
+    
+    bool isFilled = (type & ApplyToFillTargetType) && style->svgStyle()->hasFill();
 
     // Compute destination object bounding box
     FloatRect objectBBox;
-    if (boundingBoxMode())
-        objectBBox = CGContextGetPathBoundingBox(contextRef);
+    if (boundingBoxMode()) {
+        FloatRect bbox = path->relativeBBox(false);
+        if (bbox.width() > 0 && bbox.height() > 0)
+            objectBBox = bbox;
+    }
 
-    if ((type & ApplyToFillTargetType) && style->svgStyle()->hasFill())
+    if (isFilled)
         clipToFillPath(contextRef, path);
-
-    if ((type & ApplyToStrokeTargetType) && style->svgStyle()->hasStroke())
+    else
         clipToStrokePath(contextRef, path);
 
     handleBoundingBoxModeAndGradientTransformation(context, objectBBox);
@@ -230,11 +247,11 @@ void SVGPaintServerGradient::renderPath(GraphicsContext*& context, const RenderP
 
 void SVGPaintServerGradient::handleBoundingBoxModeAndGradientTransformation(GraphicsContext* context, const FloatRect& targetRect) const
 {
-    CGContextRef contextRef = context->platformContext(); 
+    CGContextRef contextRef = context->platformContext();
 
     if (boundingBoxMode()) {
         // Choose default gradient bounding box
-        CGRect gradientBBox = CGRectMake(0.0, 0.0, 1.0, 1.0);
+        CGRect gradientBBox = CGRectMake(0.0f, 0.0f, 1.0f, 1.0f);
 
         // Generate a transform to map between both bounding boxes
         CGAffineTransform gradientIntoObjectBBox = CGAffineTransformMakeMapBetweenRects(gradientBBox, CGRect(targetRect));
@@ -254,44 +271,49 @@ bool SVGPaintServerGradient::setup(GraphicsContext*& context, const RenderObject
     if (!m_shadingCache)
         const_cast<SVGPaintServerGradient*>(this)->updateQuartzGradientCache(this);
 
-    CGContextRef contextRef = context->platformContext(); 
-    RenderStyle* style = object->style();
+    CGContextRef contextRef = context->platformContext();
     ASSERT(contextRef);
 
+    RenderStyle* style = object->style();
+
+    bool isFilled = (type & ApplyToFillTargetType) && style->svgStyle()->hasFill();
+    bool isStroked = (type & ApplyToStrokeTargetType) && style->svgStyle()->hasStroke();
+
+    ASSERT(isFilled && !isStroked || !isFilled && isStroked);
+
     context->save();
-    CGContextSetAlpha(contextRef, style->opacity());
+    CGContextSetAlpha(contextRef, isFilled ? style->svgStyle()->fillOpacity() : style->svgStyle()->strokeOpacity());
 
-    if ((type & ApplyToFillTargetType) && style->svgStyle()->hasFill()) {
-        context->save();      
+    if (isPaintingText) {
+        FloatRect maskBBox = const_cast<RenderObject*>(findTextRootObject(object))->relativeBBox(false);
+        IntRect maskRect = enclosingIntRect(object->absoluteTransform().mapRect(maskBBox));
 
-        if (isPaintingText)
-            context->setTextDrawingMode(cTextClip);
-    }
+        IntSize maskSize(maskRect.width(), maskRect.height());
+        clampImageBufferSizeToViewport(object->document()->renderer(), maskSize);
 
-    if ((type & ApplyToStrokeTargetType) && style->svgStyle()->hasStroke()) {
-        context->save();
-        applyStrokeStyleToContext(contextRef, style, object);
+        auto_ptr<ImageBuffer> maskImage = ImageBuffer::create(maskSize, false);
 
-        if (isPaintingText) {
-            IntRect maskRect = const_cast<RenderObject*>(object)->absoluteBoundingBoxRect();
-            maskRect = object->absoluteTransform().inverse().mapRect(maskRect);
-
-            auto_ptr<ImageBuffer> maskImage = ImageBuffer::create(IntSize(maskRect.width(), maskRect.height()), false);
-            // FIXME: maskImage could be NULL
-
-            GraphicsContext* maskImageContext = maskImage->context();
-
-            maskImageContext->save();
-            maskImageContext->translate(-maskRect.x(), -maskRect.y());
-
-            const_cast<RenderObject*>(object)->style()->setColor(Color(255, 255, 255));
-            maskImageContext->setTextDrawingMode(cTextStroke);
-
-            m_imageBuffer = maskImage.release();
-            m_savedContext = context;
-            context = maskImageContext;
+        if (!maskImage.get()) {
+            context->restore();
+            return false;
         }
+
+        GraphicsContext* maskImageContext = maskImage->context();
+        maskImageContext->save();
+
+        maskImageContext->setTextDrawingMode(isFilled ? cTextFill : cTextStroke);
+        maskImageContext->translate(-maskRect.x(), -maskRect.y());
+        maskImageContext->concatCTM(object->absoluteTransform());
+
+        m_imageBuffer = maskImage.release();
+        m_savedContext = context;
+
+        context = maskImageContext;
+        contextRef = context->platformContext();
     }
+
+    if (isStroked)
+        applyStrokeStyleToContext(contextRef, style, object);
 
     return true;
 }

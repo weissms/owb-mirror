@@ -1,8 +1,6 @@
-/**
- * This file is part of the DOM implementation for KDE.
- *
+/*
  * (C) 1999-2003 Lars Knoll (knoll@kde.org)
- * Copyright (C) 2004, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,15 +14,16 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
+
 #include "config.h"
 #include "CSSStyleSheet.h"
 
 #include "CSSImportRule.h"
 #include "CSSNamespace.h"
-#include "cssparser.h"
+#include "CSSParser.h"
 #include "CSSRuleList.h"
 #include "Document.h"
 #include "ExceptionCode.h"
@@ -94,14 +93,21 @@ unsigned CSSStyleSheet::insertRule(const String& rule, unsigned index, Exception
     return index;
 }
 
-unsigned CSSStyleSheet::addRule(const String &selector, const String &style, int index, ExceptionCode& ec)
+int CSSStyleSheet::addRule(const String& selector, const String& style, int index, ExceptionCode& ec)
 {
-    if (index == -1)
-        index = length();
-    return insertRule(selector + " { " + style + " }", index, ec);
+    insertRule(selector + " { " + style + " }", index, ec);
+
+    // As per Microsoft documentation, always return -1.
+    return -1;
 }
 
-CSSRuleList *CSSStyleSheet::cssRules(bool omitCharsetRules)
+int CSSStyleSheet::addRule(const String& selector, const String& style, ExceptionCode& ec)
+{
+    return addRule(selector, style, length(), ec);
+}
+
+
+CSSRuleList* CSSStyleSheet::cssRules(bool omitCharsetRules)
 {
     return new CSSRuleList(this, omitCharsetRules);
 }
@@ -184,12 +190,17 @@ DocLoader *CSSStyleSheet::docLoader()
 
 void CSSStyleSheet::styleSheetChanged()
 {
+    StyleBase* root = this;
+    while (StyleBase* parent = root->parent())
+        root = parent;
+    Document* documentToUpdate = (root && root->isCSSStyleSheet()) ? static_cast<CSSStyleSheet*>(root)->doc() : 0;
+    
     /* FIXME: We don't need to do everything updateStyleSelector does,
      * basically we just need to recreate the document's selector with the
      * already existing style sheets.
      */
-    if (m_doc)
-        m_doc->updateStyleSelector();
+    if (documentToUpdate)
+        documentToUpdate->updateStyleSelector();
 }
 
 }

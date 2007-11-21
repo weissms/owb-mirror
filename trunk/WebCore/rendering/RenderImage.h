@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -62,7 +62,7 @@ public:
     virtual int calcReplacedWidth() const;
     virtual int calcReplacedHeight() const;
 
-    virtual void calcMinMaxWidth();
+    virtual void calcPrefWidths();
 
     HTMLMapElement* imageMap();
 
@@ -70,6 +70,8 @@ public:
 
 protected:
     Image* image() { return m_cachedImage ? m_cachedImage->image() : nullImage(); }
+    
+    bool errorOccurred() const { return m_cachedImage && m_cachedImage->errorOccurred(); }
 
 private:
     int calcAspectRatioWidth() const;
@@ -77,8 +79,6 @@ private:
 
     bool isWidthSpecified() const;
     bool isHeightSpecified() const;
-
-    bool isErrorImage() const { return m_cachedImage && m_cachedImage->isErrorImage(); }
 
     // The image we are rendering.
     CachedImage* m_cachedImage;

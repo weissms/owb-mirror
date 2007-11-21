@@ -29,16 +29,6 @@
 
 namespace WebCore {
 
-bool ResourceResponse::isNull() const
-{
-    return m_isNull;
-}
-
-void ResourceResponse::setIsNull(bool isNull)
-{
-    m_isNull=isNull;
-}
-
 bool ResourceResponse::isHTTP() const
 {
     updateResourceResponse();
@@ -55,10 +45,12 @@ const KURL& ResourceResponse::url() const
     return m_url; 
 }
 
-void ResourceResponse::setURL( const KURL& url)
+void ResourceResponse::setUrl(const KURL& url)
 {
     updateResourceResponse();
-    m_url = url;
+    m_isNull = false;
+    
+    m_url = url; 
 }
 
 const String& ResourceResponse::mimeType() const
@@ -68,10 +60,12 @@ const String& ResourceResponse::mimeType() const
     return m_mimeType; 
 }
 
-void ResourceResponse::setMimeType( String& mimeType)
+void ResourceResponse::setMimeType(const String& mimeType)
 {
     updateResourceResponse();
-    m_mimeType = mimeType;
+    m_isNull = false;
+    
+    m_mimeType = mimeType; 
 }
 
 long long ResourceResponse::expectedContentLength() const 
@@ -81,9 +75,12 @@ long long ResourceResponse::expectedContentLength() const
     return m_expectedContentLength;
 }
 
-void ResourceResponse::setExpectedContentLength(long long length)
+void ResourceResponse::setExpectedContentLength(long long expectedContentLength)
 {
-    m_expectedContentLength = length;
+    updateResourceResponse();
+    m_isNull = false;
+    
+    m_expectedContentLength = expectedContentLength; 
 }
 
 const String& ResourceResponse::textEncodingName() const
@@ -93,10 +90,12 @@ const String& ResourceResponse::textEncodingName() const
     return m_textEncodingName;
 }
 
-void ResourceResponse::setTextEncoding( String& textEncoding)
+void ResourceResponse::setTextEncodingName(const String& encodingName)
 {
     updateResourceResponse();
-    m_textEncodingName = textEncoding;
+    m_isNull = false;
+    
+    m_textEncodingName = encodingName; 
 }
 
 // FIXME should compute this on the fly
@@ -107,9 +106,12 @@ const String& ResourceResponse::suggestedFilename() const
     return m_suggestedFilename;
 }
 
-void ResourceResponse::setSuggestedFilename(String& suggestedFilename)
+void ResourceResponse::setSuggestedFilename(const String& suggestedName)
 {
-    m_suggestedFilename = suggestedFilename;
+    updateResourceResponse();
+    m_isNull = false;
+    
+    m_suggestedFilename = suggestedName; 
 }
 
 int ResourceResponse::httpStatusCode() const
@@ -118,7 +120,6 @@ int ResourceResponse::httpStatusCode() const
 
     return m_httpStatusCode; 
 }
-
 
 void ResourceResponse::setHTTPStatusCode(int statusCode)
 {
@@ -160,6 +161,18 @@ const HTTPHeaderMap& ResourceResponse::httpHeaderFields() const
     updateResourceResponse();
 
     return m_httpHeaderFields; 
+}
+
+bool ResourceResponse::isAttachment() const
+{
+    updateResourceResponse();
+
+    String value = m_httpHeaderFields.get("Content-Disposition");
+    int loc = value.find(';');
+    if (loc != -1)
+        value = value.left(loc);
+    value = value.stripWhiteSpace();
+    return equalIgnoringCase(value, "attachment");
 }
 
 void ResourceResponse::setExpirationDate(time_t expirationDate)

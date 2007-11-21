@@ -48,19 +48,18 @@ inline bool isCollapsibleWhitespace(UChar c)
 }
 
 DeprecatedString plainText(const Range*);
+UChar* plainTextToMallocAllocatedBuffer(const Range*, unsigned& bufferLength);
 PassRefPtr<Range> findPlainText(const Range*, const String&, bool forward, bool caseSensitive);
 
 // Iterates through the DOM range, returning all the text, and 0-length boundaries
 // at points where replaced elements break up the text flow.  The text comes back in
 // chunks so as to optimize for performance of the iteration.
 
-enum IteratorKind { CONTENT = 0, RUNFINDER = 1 };
-
 class TextIterator
 {
 public:
     TextIterator();
-    explicit TextIterator(const Range *, IteratorKind kind = CONTENT );
+    explicit TextIterator(const Range*, bool emitCharactersBetweenAllVisiblePositions = false);
     
     bool atEnd() const { return !m_positionNode; }
     void advance();
@@ -70,17 +69,21 @@ public:
     
     PassRefPtr<Range> range() const;
      
-    static int rangeLength(const Range *r);
-    static PassRefPtr<Range> rangeFromLocationAndLength(Element *scope, int rangeLocation, int rangeLength);
+    static int rangeLength(const Range*, bool spacesForReplacedElements = false);
+    static PassRefPtr<Range> rangeFromLocationAndLength(Element* scope, int rangeLocation, int rangeLength, bool spacesForReplacedElements = false);
     static PassRefPtr<Range> subrange(Range* entireRange, int characterOffset, int characterCount);
     
 private:
     void exitNode();
+    bool shouldRepresentNodeOffsetZero();
+    bool shouldEmitSpaceBeforeAndAfterNode(Node*);
+    void representNodeOffsetZero();
     bool handleTextNode();
     bool handleReplacedElement();
     bool handleNonTextNode();
     void handleTextBox();
     void emitCharacter(UChar, Node *textNode, Node *offsetBaseNode, int textStartOffset, int textEndOffset);
+    void emitText(Node *textNode, int textStartOffset, int textEndOffset);
     
     // Current position, not necessarily of the text being returned, but position
     // as we walk through the DOM tree.
@@ -89,7 +92,9 @@ private:
     bool m_handledNode;
     bool m_handledChildren;
     
-    // End of the range.
+    // The range.
+    Node *m_startContainer;
+    int m_startOffset;
     Node *m_endContainer;
     int m_endOffset;
     Node *m_pastEndNode;
@@ -118,6 +123,13 @@ private:
     // Used when text boxes are out of order (Hebrew/Arabic w/ embeded LTR text)
     Vector<InlineTextBox*> m_sortedTextBoxes;
     size_t m_sortedTextBoxesPosition;
+    
+    // Used when deciding whether to emit a "positioning" (e.g. newline) before any other content
+    bool m_haveEmitted;
+    
+    // Used by selection preservation code.  There should be one character emitted between every VisiblePosition
+    // in the Range used to create the TextIterator.
+    bool m_emitCharactersBetweenAllVisiblePositions;
 };
 
 // Iterates through the DOM range, returning all the text, and 0-length boundaries
@@ -143,7 +155,6 @@ private:
     bool handleReplacedElement();
     bool handleNonTextNode();
     void emitCharacter(UChar, Node *Node, int startOffset, int endOffset);
-    void emitNewline();
     
     // Current position, not necessarily of the text being returned, but position
     // as we walk through the DOM tree.
@@ -155,6 +166,9 @@ private:
     // End of the range.
     Node* m_startNode;
     int m_startOffset;
+    // Start of the range.
+    Node* m_endNode;
+    int m_endOffset;
     
     // The current text and its position, in the form to be returned from the iterator.
     Node* m_positionNode;
@@ -169,6 +183,9 @@ private:
     
     // Used for whitespace characters that aren't in the DOM, so we can point at them.
     UChar m_singleCharacterBuffer;
+    
+    // The node after the last node this iterator should process.
+    Node* m_pastStartNode;
 };
 
 // Builds on the text iterator, adding a character position so we can walk one
@@ -176,7 +193,7 @@ private:
 class CharacterIterator {
 public:
     CharacterIterator();
-    explicit CharacterIterator(const Range *r);
+    explicit CharacterIterator(const Range* r, bool emitCharactersBetweenAllVisiblePositions = false);
     
     void advance(int numCharacters);
     

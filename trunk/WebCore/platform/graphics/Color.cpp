@@ -38,6 +38,9 @@ using namespace std;
 
 namespace WebCore {
 
+const RGBA32 lightenedBlack = 0xFF545454;
+const RGBA32 darkenedWhite = 0xFFABABAB;
+
 RGBA32 makeRGB(int r, int g, int b)
 {
     return 0xFF000000 | max(0, min(r, 255)) << 16 | max(0, min(g, 255)) << 8 | max(0, min(b, 255));
@@ -48,7 +51,7 @@ RGBA32 makeRGBA(int r, int g, int b, int a)
     return max(0, min(a, 255)) << 24 | max(0, min(r, 255)) << 16 | max(0, min(g, 255)) << 8 | max(0, min(b, 255));
 }
 
-double calcHue(double temp1, double temp2, double hueVal)
+static double calcHue(double temp1, double temp2, double hueVal)
 {
     if (hueVal < 0.0)
         hueVal++;
@@ -153,109 +156,52 @@ void Color::setNamedColor(const String& name)
     m_valid = foundColor;
 }
 
-const float undefinedHue = -1;
-
-// Explanations of these algorithms can be found at http://www.acm.org/jgt/papers/SmithLyons96/hsv_rgb.html
-static void convertRGBToHSV(float r, float g, float b, float& h, float& s, float& v)
-{
-    float x = min(r, min(g, b));
-    v = max(r, max(g, b));
-
-    if (v == x) {
-        h = undefinedHue;
-        s = 0;
-    } else {
-        float f = (r == x) ? g - b : ((g == x) ? b - r : r - g); 
-        int i = (r == x) ? 3 : ((g == x) ? 5 : 1); 
-        h = i - f / (v - x);
-        if (v != 0)
-            s = (v - x) / v;
-        else
-            s = 0;
-    }
-}
-
-static void convertHSVToRGB(float h, float s, float v, float& r, float& g, float& b)
-{
-    if (h == undefinedHue) {
-        r = v;
-        g = v;
-        b = v;
-        return;
-    }
-
-    int i = static_cast<int>(h); // sector 0 to 5
-    float f = h - i; // fractional part of h
-    if (!(i & 1))
-        f = 1 - f;
-    float m = v * (1 - s);
-    float n = v * (1 - s * f);
-
-    switch (i) {
-        default: // 0 and 6
-            r = v;
-            g = n;
-            b = m;
-            break;
-        case 1:
-            r = n;
-            g = v;
-            b = m;
-            break;
-        case 2:
-            r = m;
-            g = v;
-            b = n;
-            break;
-        case 3:
-            r = m;
-            g = n;
-            b = v;
-            break;
-        case 4:
-            r = n;
-            g = m;
-            b = v;
-            break;
-        case 5:
-            r = v;
-            g = m;
-            b = n;
-            break;
-    }
-}
-
 Color Color::light() const
 {
+    // Hardcode this common case for speed.
+    if (m_color == black)
+        return lightenedBlack;
+    
     const float scaleFactor = nextafterf(256.0f, 0.0f);
 
-    float r, g, b, a, h, s, v;
+    float r, g, b, a;
     getRGBA(r, g, b, a);
-    convertRGBToHSV(r, g, b, h, s, v);
-    v = max(0.0f, min(v + 0.33f, 1.0f));
-    convertHSVToRGB(h, s, v, r, g, b);
-    return Color(static_cast<int>(r * scaleFactor),
-                 static_cast<int>(g * scaleFactor),
-                 static_cast<int>(b * scaleFactor),
-                 static_cast<int>(a * scaleFactor));
+
+    float v = max(r, max(g, b));
+
+    if (v == 0.0f)
+        // Lightened black with alpha.
+        return Color(0x54, 0x54, 0x54, alpha());
+
+    float multiplier = min(1.0f, v + 0.33f) / v;
+
+    return Color(static_cast<int>(multiplier * r * scaleFactor),
+                 static_cast<int>(multiplier * g * scaleFactor),
+                 static_cast<int>(multiplier * b * scaleFactor),
+                 alpha());
 }
 
 Color Color::dark() const
 {
+    // Hardcode this common case for speed.
+    if (m_color == white)
+        return darkenedWhite;
+    
     const float scaleFactor = nextafterf(256.0f, 0.0f);
 
-    float r, g, b, a, h, s, v;
+    float r, g, b, a;
     getRGBA(r, g, b, a);
-    convertRGBToHSV(r, g, b, h, s, v);
-    v = max(0.0f, min(v - 0.33f, 1.0f));
-    convertHSVToRGB(h, s, v, r, g, b);
-    return Color(static_cast<int>(r * scaleFactor),
-                 static_cast<int>(g * scaleFactor),
-                 static_cast<int>(b * scaleFactor),
-                 static_cast<int>(a * scaleFactor));
+
+    float v = max(r, max(g, b));
+    float multiplier = max(0.0f, (v - 0.33f) / v);
+
+    return Color(static_cast<int>(multiplier * r * scaleFactor),
+                 static_cast<int>(multiplier * g * scaleFactor),
+                 static_cast<int>(multiplier * b * scaleFactor),
+                 alpha());
 }
 
-static int blend(int c, int a)
+static int blendComponent(int c, int a)
 {
     // We use white.
     float alpha = a / 255.0f;
@@ -268,6 +214,22 @@ const int cStartAlpha = 153; // 60%
 const int cEndAlpha = 204; // 80%;
 const int cAlphaIncrement = 17; // Increments in between.
 
+Color Color::blend(const Color& source) const
+{
+    if (!alpha() || !source.hasAlpha())
+        return source;
+
+    if (!source.alpha())
+        return *this;
+
+    int d = 255 * (alpha() + source.alpha()) - alpha() * source.alpha();
+    int a = d / 255;
+    int r = (red() * alpha() * (255 - source.alpha()) + 255 * source.alpha() * source.red()) / d;
+    int g = (green() * alpha() * (255 - source.alpha()) + 255 * source.alpha() * source.green()) / d;
+    int b = (blue() * alpha() * (255 - source.alpha()) + 255 * source.alpha() * source.blue()) / d;
+    return Color(r, g, b, a);
+}
+
 Color Color::blendWithWhite() const
 {
     // If the color contains alpha already, we leave it alone.
@@ -278,9 +240,9 @@ Color Color::blendWithWhite() const
     for (int alpha = cStartAlpha; alpha <= cEndAlpha; alpha += cAlphaIncrement) {
         // We have a solid color.  Convert to an equivalent color that looks the same when blended with white
         // at the current alpha.  Try using less transparency if the numbers end up being negative.
-        int r = blend(red(), alpha);
-        int g = blend(green(), alpha);
-        int b = blend(blue(), alpha);
+        int r = blendComponent(red(), alpha);
+        int g = blendComponent(green(), alpha);
+        int b = blendComponent(blue(), alpha);
         
         newColor = Color(r, g, b, alpha);
 

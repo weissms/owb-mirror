@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -25,6 +25,7 @@
 
 namespace WebCore {
 
+class DOMWindow;
 class Frame;
 class KeyboardEvent;
 
@@ -36,16 +37,21 @@ public:
     virtual ~HTMLFrameOwnerElement();
 
     Frame* contentFrame() const { return m_contentFrame; }
+    DOMWindow* contentWindow() const;
     Document* contentDocument() const;
 
     virtual bool isFrameOwnerElement() const { return true; }
     virtual bool isKeyboardFocusable(KeyboardEvent*) const { return m_contentFrame; }
+    
+    bool createdByParser() const { return m_createdByParser; }
+    void setCreatedByParser(bool createdByParser) { m_createdByParser = createdByParser; }
 
 private:
     friend class Frame;
     Frame* m_contentFrame;
+    bool m_createdByParser;
 };
 
-}
+} // namespace WebCore
 
-#endif
+#endif // HTMLFrameOwnerElement_h

@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -69,7 +69,7 @@ public:
     void dispatchSimulatedMouseEvent(const AtomicString& eventType, PassRefPtr<Event> underlyingEvent = 0);
     void dispatchSimulatedClick(PassRefPtr<Event> underlyingEvent, bool sendMouseEvents = false, bool showPressedLook = true);
 
-    void handleLocalEvents(Event*, bool useCapture);
+    virtual void handleLocalEvents(Event*, bool useCapture);
 
     virtual void dispatchFocusEvent();
     virtual void dispatchBlurEvent();
@@ -92,7 +92,7 @@ public:
      * to event listeners, and prevents DOMActivate events from being sent at all.
      */
     virtual bool disabled() const;
-
+    
 #ifndef NDEBUG
     virtual void dump(TextStream*, DeprecatedString indent = "") const;
 #endif
@@ -103,7 +103,7 @@ public:
 private:
     friend class SVGElement;
     bool dispatchEvent(PassRefPtr<Event>, ExceptionCode&, bool tempEvent, EventTarget* target);
-
+ 
 protected:
     typedef DeprecatedValueList<RefPtr<RegisteredEventListener> > RegisteredEventListenerList;
     RegisteredEventListenerList* m_regdListeners;
@@ -113,16 +113,16 @@ private:
     virtual void derefEventTarget() { deref(); }
 };
 
-inline EventTargetNode* EventTargetNodeCast(Node* n)
-{
+inline EventTargetNode* EventTargetNodeCast(Node* n) 
+{ 
     ASSERT(n->isEventTargetNode());
-    return static_cast<EventTargetNode*>(n);
+    return static_cast<EventTargetNode*>(n); 
 }
 
-inline const EventTargetNode* EventTargetNodeCast(const Node* n)
-{
+inline const EventTargetNode* EventTargetNodeCast(const Node* n) 
+{ 
     ASSERT(n->isEventTargetNode());
-    return static_cast<const EventTargetNode*>(n);
+    return static_cast<const EventTargetNode*>(n); 
 }
 
 #ifndef NDEBUG
@@ -136,7 +136,7 @@ bool eventDispatchForbidden();
 inline void forbidEventDispatch() { }
 inline void allowEventDispatch() { }
 
-#endif // NDEBUG
+#endif // NDEBUG 
 
 } // namespace WebCore
 

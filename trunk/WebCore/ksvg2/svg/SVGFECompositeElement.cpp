@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFECompositeElement.h"
 
 #include "SVGNames.h"
@@ -32,11 +32,11 @@ namespace WebCore {
 
 SVGFECompositeElement::SVGFECompositeElement(const QualifiedName& tagName, Document* doc)
     : SVGFilterPrimitiveStandardAttributes(tagName, doc)
-    , m__operator(0)
-    , m_k1(0.0)
-    , m_k2(0.0)
-    , m_k3(0.0)
-    , m_k4(0.0)
+    , m__operator(SVG_FECOMPOSITE_OPERATOR_OVER)
+    , m_k1(0.0f)
+    , m_k2(0.0f)
+    , m_k3(0.0f)
+    , m_k4(0.0f)
     , m_filterEffect(0)
 {
 }
@@ -49,16 +49,15 @@ SVGFECompositeElement::~SVGFECompositeElement()
 ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, String, String, string, In1, in1, SVGNames::inAttr.localName(), m_in1)
 ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, String, String, string, In2, in2, SVGNames::in2Attr.localName(), m_in2)
 ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, int, Enumeration, enumeration, _operator, _operator, SVGNames::operatorAttr.localName(), m__operator)
-ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, double, Number, number, K1, k1, SVGNames::k1Attr.localName(), m_k1)
-ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, double, Number, number, K2, k2, SVGNames::k2Attr.localName(), m_k2)
-ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, double, Number, number, K3, k3, SVGNames::k3Attr.localName(), m_k3)
-ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, double, Number, number, K4, k4, SVGNames::k4Attr.localName(), m_k4)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, float, Number, number, K1, k1, SVGNames::k1Attr.localName(), m_k1)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, float, Number, number, K2, k2, SVGNames::k2Attr.localName(), m_k2)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, float, Number, number, K3, k3, SVGNames::k3Attr.localName(), m_k3)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFECompositeElement, float, Number, number, K4, k4, SVGNames::k4Attr.localName(), m_k4)
 
 void SVGFECompositeElement::parseMappedAttribute(MappedAttribute *attr)
 {
     const String& value = attr->value();
-    if (attr->name() == SVGNames::operatorAttr)
-    {
+    if (attr->name() == SVGNames::operatorAttr) {
         if (value == "over")
             set_operatorBaseValue(SVG_FECOMPOSITE_OPERATOR_OVER);
         else if (value == "in")
@@ -77,36 +76,38 @@ void SVGFECompositeElement::parseMappedAttribute(MappedAttribute *attr)
     else if (attr->name() == SVGNames::in2Attr)
         setIn2BaseValue(value);
     else if (attr->name() == SVGNames::k1Attr)
-        setK1BaseValue(value.toDouble());
+        setK1BaseValue(value.toFloat());
     else if (attr->name() == SVGNames::k2Attr)
-        setK2BaseValue(value.toDouble());
+        setK2BaseValue(value.toFloat());
     else if (attr->name() == SVGNames::k3Attr)
-        setK3BaseValue(value.toDouble());
+        setK3BaseValue(value.toFloat());
     else if (attr->name() == SVGNames::k4Attr)
-        setK4BaseValue(value.toDouble());
+        setK4BaseValue(value.toFloat());
     else
         SVGFilterPrimitiveStandardAttributes::parseMappedAttribute(attr);
 }
 
-SVGFEComposite* SVGFECompositeElement::filterEffect() const
+SVGFEComposite* SVGFECompositeElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFEComposite*>(SVGResourceFilter::createFilterEffect(FE_COMPOSITE));
+        m_filterEffect = static_cast<SVGFEComposite*>(SVGResourceFilter::createFilterEffect(FE_COMPOSITE, filter));
     if (!m_filterEffect)
         return 0;
+
     m_filterEffect->setOperation((SVGCompositeOperationType) _operator());
     m_filterEffect->setIn(in1());
     m_filterEffect->setIn2(in2());
-    setStandardAttributes(m_filterEffect);
     m_filterEffect->setK1(k1());
     m_filterEffect->setK2(k2());
     m_filterEffect->setK3(k3());
     m_filterEffect->setK4(k4());
+
+    setStandardAttributes(m_filterEffect);
     return m_filterEffect;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

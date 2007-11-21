@@ -1,6 +1,5 @@
 /*
- *  This file is part of the KDE libraries
- *  Copyright (C) 2003-2006 Apple Computer, Inc
+ *  Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *  Copyright (C) 2006 Alexey Proskuryakov (ap@webkit.org)
  *
  *  This library is free software; you can redistribute it and/or
@@ -25,12 +24,9 @@
 
 #include "JSType.h"
 #include <wtf/Assertions.h>
+#include <stdarg.h>
 #include <stdint.h>
-#ifdef __OWB__
-#include "BIMemoryManager.h"
-#else
 #include <stdlib.h>
-#endif
 
 namespace KJS {
 
@@ -85,12 +81,16 @@ public:
     }
 
     static JSValue* fromDouble(double d);
-    static double toDouble(const JSValue* v);
-    static bool toBoolean(const JSValue* v);
+    static double toDouble(const JSValue*);
+    static bool toBoolean(const JSValue*);
     static JSObject* toObject(const JSValue*, ExecState*);
     static UString toString(const JSValue*);
     static JSType type(const JSValue*);
-    
+
+    static bool getUInt32(const JSValue*, uint32_t&);
+    static bool getTruncatedInt32(const JSValue*, int32_t&);
+    static bool getTruncatedUInt32(const JSValue*, uint32_t&);
+
     // It would nice just to use fromDouble() to create these values, but that would prevent them from
     // turning into compile-time constants.
     static JSValue* trueImmediate();
@@ -155,22 +155,44 @@ template<> struct JSImmediate::FPBitValues<true, false> {
             return 0;
 
         // check for data loss from conversion to float
-        DoubleUnion doubleUnion1, doubleUnion2;
-        doubleUnion1.asDouble = floatUnion.asFloat;
-        doubleUnion2.asDouble = d;
-        if (doubleUnion1.asBits != doubleUnion2.asBits)
+        // The d == d check is to allow NaN - it does not
+        // compare equal to itself, but we do want to allow it
+        if (floatUnion.asFloat != d && d == d)
             return 0;
 
         return tag(floatUnion.asBits, NumberType);
     }
 
-    static double toDouble(const JSValue* v)
+    static float toFloat(const JSValue* v)
     {
         ASSERT(isImmediate(v));
 
         FloatUnion floatUnion;
         floatUnion.asBits = static_cast<uint32_t>(unTag(v));
         return floatUnion.asFloat;
+    }
+
+    static double toDouble(const JSValue* v)
+    {
+        return toFloat(v);
+    }
+
+    static bool getTruncatedInt32(const JSValue* v, int32_t& i)
+    {
+        float f = toFloat(v);
+        if (!(f >= -2147483648.0F && f < 2147483648.0F))
+            return false;
+        i = static_cast<int32_t>(f);
+        return isNumber(v);
+    }
+
+    static bool getTruncatedUInt32(const JSValue* v, uint32_t& i)
+    {
+        float f = toFloat(v);
+        if (!(f >= 0.0F && f < 4294967296.0F))
+            return false;
+        i = static_cast<uint32_t>(f);
+        return isNumber(v);
     }
 };
 
@@ -199,6 +221,24 @@ template<> struct JSImmediate::FPBitValues<false, true> {
         doubleUnion.asBits = unTag(v);
         return doubleUnion.asDouble;
     }
+
+    static bool getTruncatedInt32(const JSValue* v, int32_t& i)
+    {
+        double d = toDouble(v);
+        if (!(d >= -2147483648.0 && d < 2147483648.0))
+            return false;
+        i = static_cast<int32_t>(d);
+        return isNumber(v);
+    }
+
+    static bool getTruncatedUInt32(const JSValue* v, uint32_t& i)
+    {
+        double d = toDouble(v);
+        if (!(d >= 0.0 && d < 4294967296.0))
+            return false;
+        i = static_cast<uint32_t>(d);
+        return isNumber(v);
+    }
 };
 
 inline JSValue* JSImmediate::trueImmediate() { return tag(FPBitValues<is32bit, is64bit>::oneAsBits, BooleanType); }
@@ -226,6 +266,23 @@ inline JSValue* JSImmediate::fromDouble(double d)
 inline double JSImmediate::toDouble(const JSValue* v)
 {
     return FPBitValues<is32bit, is64bit>::toDouble(v);
+}
+
+inline bool JSImmediate::getUInt32(const JSValue* v, uint32_t& i)
+{
+    double d = toDouble(v);
+    i = static_cast<uint32_t>(d);
+    return isNumber(v) & (i == d);
+}
+
+inline bool JSImmediate::getTruncatedInt32(const JSValue* v, int32_t& i)
+{
+    return FPBitValues<is32bit, is64bit>::getTruncatedInt32(v, i);
+}
+
+inline bool JSImmediate::getTruncatedUInt32(const JSValue* v, uint32_t& i)
+{
+    return FPBitValues<is32bit, is64bit>::getTruncatedUInt32(v, i);
 }
 
 } // namespace KJS

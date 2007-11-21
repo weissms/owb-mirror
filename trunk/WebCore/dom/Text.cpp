@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -27,10 +27,11 @@
 #include "Document.h"
 #include "ExceptionCode.h"
 #include "RenderText.h"
+#include "TextBreakIterator.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "RenderSVGInlineText.h"
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 namespace WebCore {
 
@@ -155,10 +156,10 @@ bool Text::rendererIsNeeded(RenderStyle *style)
 
 RenderObject *Text::createRenderer(RenderArena *arena, RenderStyle *style)
 {
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     if (parentNode()->isSVGElement())
         return new (arena) RenderSVGInlineText(this, str);
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
     
     return new (arena) RenderText(this, str);
 }
@@ -176,7 +177,7 @@ void Text::recalcStyle( StyleChange change )
             renderer()->setStyle(parentNode()->renderer()->style());
     if (changed() && renderer() && renderer()->isText())
         static_cast<RenderText*>(renderer())->setText(str);
-    setChanged(false);
+    setChanged(NoStyleChange);
 }
 
 // DOM Section 1.1.1
@@ -194,6 +195,31 @@ String Text::toString() const
 {
     // FIXME: substitute entity references as needed!
     return nodeValue();
+}
+
+PassRefPtr<Text> Text::createWithLengthLimit(Document* doc, const String& text, unsigned& charsLeft, unsigned maxChars)
+{
+    if (charsLeft == text.length() && charsLeft <= maxChars) {
+        charsLeft = 0;
+        return new Text(doc, text);
+    }
+    
+    unsigned start = text.length() - charsLeft;
+    unsigned end = start + std::min(charsLeft, maxChars);
+    
+    // check we are not on an unbreakable boundary
+    TextBreakIterator* it = characterBreakIterator(text.characters(), text.length());
+    if (end < text.length() && !isTextBreak(it, end))
+        end = textBreakPreceding(it, end);
+        
+    // maxChars of unbreakable characters could lead to infinite loop
+    if (end <= start)
+        end = text.length();
+    
+    String nodeText = text.substring(start, end - start);
+    charsLeft = text.length() - end;
+        
+    return new Text(doc, nodeText);
 }
 
 #ifndef NDEBUG

@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPointList_h
 #define SVGPointList_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGList.h"
 #include "FloatPoint.h"
@@ -35,18 +35,13 @@ namespace WebCore
     class SVGPointList : public SVGPODList<FloatPoint>
     {
     public:
-        SVGPointList(const SVGElement* context);
+        SVGPointList();
         virtual ~SVGPointList();
-
-        const SVGElement* context() const;
-
-    private:
-        const SVGElement* m_context;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

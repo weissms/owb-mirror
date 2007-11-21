@@ -1,6 +1,7 @@
 /*
  * Copyright 2005 Frerich Raabe <raabe@kde.org>
  * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2007 Alexey Proskuryakov <ap@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,7 +28,7 @@
 #include "config.h"
 #include "XPathPath.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "Document.h"
 #include "XPathPredicate.h"
@@ -48,32 +49,35 @@ Filter::~Filter()
     deleteAllValues(m_predicates);
 }
 
-Value Filter::doEvaluate() const
+Value Filter::evaluate() const
 {
     Value v = m_expr->evaluate();
     
-    if (!v.isNodeVector()) 
+    if (!v.isNodeSet()) 
         return v;
 
-    NodeVector inNodes = v.toNodeVector(), outNodes;
+    NodeSet& nodes = v.modifiableNodeSet();
+    nodes.sort();
+
+    EvaluationContext& evaluationContext = Expression::evaluationContext();
     for (unsigned i = 0; i < m_predicates.size(); i++) {
-        outNodes.clear();
-        Expression::evaluationContext().size = inNodes.size();
-        Expression::evaluationContext().position = 0;
+        NodeSet newNodes;
+        evaluationContext.size = nodes.size();
+        evaluationContext.position = 0;
         
-        for (unsigned j = 0; j < inNodes.size(); j++) {
-            Node* node = inNodes[j].get();
+        for (unsigned j = 0; j < nodes.size(); j++) {
+            Node* node = nodes[j];
             
-            Expression::evaluationContext().node = node;
-            ++Expression::evaluationContext().position;
+            evaluationContext.node = node;
+            ++evaluationContext.position;
             
             if (m_predicates[i]->evaluate())
-                outNodes.append(node);
+                newNodes.append(node);
         }
-        inNodes = outNodes;
+        nodes.swap(newNodes);
     }
 
-    return outNodes;
+    return v;
 }
 
 LocationPath::LocationPath()
@@ -86,13 +90,7 @@ LocationPath::~LocationPath()
     deleteAllValues(m_steps);
 }
 
-void LocationPath::optimize()
-{
-    for (unsigned i = 0; i < m_steps.size(); i++)
-        m_steps[i]->optimize();
-}
-
-Value LocationPath::doEvaluate() const
+Value LocationPath::evaluate() const
 {
     /* For absolute location paths, the context node is ignored - the
      * document's root node is used instead.
@@ -101,35 +99,75 @@ Value LocationPath::doEvaluate() const
     if (m_absolute && context->nodeType() != Node::DOCUMENT_NODE) 
         context = context->ownerDocument();
 
-    NodeVector startNodes;
-    startNodes.append(context);
+    NodeSet nodes;
+    nodes.append(context);
+    evaluate(nodes);
     
-    return evaluate(startNodes);
+    return Value(nodes, Value::adopt);
 }
 
-Value LocationPath::evaluate(const NodeVector& startNodes) const
+void LocationPath::evaluate(NodeSet& nodes) const
 {
-    NodeVector inDOMNodes = startNodes;
-    
     for (unsigned i = 0; i < m_steps.size(); i++) {
         Step* step = m_steps[i];
-        NodeVector outDOMNodes;
-        HashSet<Node*> outDOMNodesSet;
+        NodeSet newNodes;
+        HashSet<Node*> newNodesSet;
 
-        for (unsigned j = 0; j < inDOMNodes.size(); j++) {
-            NodeVector matches = step->evaluate(inDOMNodes[j].get());
+        for (unsigned j = 0; j < nodes.size(); j++) {
+            NodeSet matches;
+            step->evaluate(nodes[j], matches);
             
             for (size_t nodeIndex = 0; nodeIndex < matches.size(); ++nodeIndex) {
-                Node* node = matches[nodeIndex].get();
-                if (outDOMNodesSet.add(node).second)
-                    outDOMNodes.append(node);
+                Node* node = matches[nodeIndex];
+                if (newNodesSet.add(node).second)
+                    newNodes.append(node);
             }
         }
         
-        inDOMNodes = outDOMNodes;
+        nodes.swap(newNodes);
     }
 
-    return inDOMNodes;
+    nodes.markSorted(false);
+}
+
+void LocationPath::optimizeStepPair(unsigned index)
+{
+    Step* first = m_steps[index];
+    
+    if (first->axis() == Step::DescendantOrSelfAxis
+        && first->nodeTest().kind() == Step::NodeTest::AnyNodeTest
+        && first->predicates().size() == 0) {
+
+        Step* second = m_steps[index + 1];
+        if (second->axis() == Step::ChildAxis
+            && second->nodeTest().namespaceURI().isEmpty()
+            && second->nodeTest().kind() == Step::NodeTest::NameTest
+            && second->nodeTest().data() == "*") {
+
+            // Optimize the common case of "//*" AKA descendant-or-self::node()/child::*.
+            first->setAxis(Step::DescendantAxis);
+            second->setAxis(Step::SelfAxis);
+            second->setNodeTest(Step::NodeTest::ElementNodeTest);
+            ASSERT(second->nodeTest().data().isEmpty());
+        }
+    }
+}
+
+void LocationPath::appendStep(Step* step)
+{
+    m_steps.append(step);
+    
+    unsigned stepCount = m_steps.size();
+    if (stepCount > 1)
+        optimizeStepPair(stepCount - 2);
+}
+
+void LocationPath::insertFirstStep(Step* step)
+{
+    m_steps.insert(0, step);
+
+    if (m_steps.size() > 1)
+        optimizeStepPair(0);
 }
 
 Path::Path(Filter* filter, LocationPath* path)
@@ -144,12 +182,17 @@ Path::~Path()
     delete m_path;
 }
 
-Value Path::doEvaluate() const
+Value Path::evaluate() const
 {
-    return m_path->evaluate(m_filter->evaluate().toNodeVector());
+    Value v = m_filter->evaluate();
+
+    NodeSet& nodes = v.modifiableNodeSet();
+    m_path->evaluate(nodes);
+    
+    return v;
 }
 
 }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

@@ -1,8 +1,0 @@
-set(svg_css_SRC
-        ${svg_css_SRC}
-
-	WebCore/ksvg2/css/SVGCSSParser.cpp
-	WebCore/ksvg2/css/SVGRenderStyleDefs.cpp
-	WebCore/ksvg2/css/SVGRenderStyle.cpp
-	WebCore/ksvg2/css/SVGCSSStyleSelector.cpp
-)

@@ -1,12 +1,10 @@
-/* This file is part of the KDE project
- *
- * Copyright (C) 1998, 1999 Torben Weis <weis@kde.org>
+/* Copyright (C) 1998, 1999 Torben Weis <weis@kde.org>
  *                     1999-2001 Lars Knoll <knoll@kde.org>
  *                     1999-2001 Antti Koivisto <koivisto@kde.org>
  *                     2000-2001 Simon Hausmann <hausmann@kde.org>
  *                     2000-2001 Dirk Mueller <mueller@kde.org>
  *                     2000 Stefan Schimanski <1Stein@gmx.de>
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Trolltech ASA
  *
  * This library is free software; you can redistribute it and/or
@@ -21,14 +19,13 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef FramePrivate_h
 #define FramePrivate_h
 
-#include "CommandByName.h"
 #include "Editor.h"
 #include "EventHandler.h"
 #include "FrameTree.h"
@@ -36,7 +33,7 @@
 #include "SelectionController.h"
 #include "StringHash.h"
 
-#ifdef __OWB__
+#ifdef __OWB_JS__
 namespace KJS {
     class Interpreter;
         
@@ -45,7 +42,7 @@ namespace KJS {
         class RootObject;
     }
 }
-#endif
+#endif //__OWB_JS__
 
 #if PLATFORM(MAC)
 #ifdef __OBJC__
@@ -65,6 +62,10 @@ namespace WebCore {
 
     class UserStyleSheetLoader;
 
+#ifdef __OWB_JS__
+    typedef HashMap<void*, RefPtr<KJS::Bindings::RootObject> > RootObjectMap;
+#endif //__OWB_JS__
+    
     class FramePrivate {
     public:
         FramePrivate(Page*, Frame* parent, Frame* thisFrame, HTMLFrameOwnerElement*, FrameLoaderClient*);
@@ -78,12 +79,16 @@ namespace WebCore {
         RefPtr<FrameView> m_view;
         RefPtr<Document> m_doc;
 
+#ifdef __OWB_JS__
         KJSProxy* m_jscript;
+#endif //__OWB_JS__
 
         Settings* m_settings;
 
+// #ifdef __OWB_JS__
         String m_kjsStatusBarText;
         String m_kjsDefaultStatusBarText;
+// #endif //__OWB_JS__
 
         int m_zoomFactor;
 
@@ -93,12 +98,12 @@ namespace WebCore {
         Selection m_mark;
         Timer<Frame> m_caretBlinkTimer;
         Editor m_editor;
-        CommandByName m_command;
         EventHandler m_eventHandler;
 
         bool m_caretVisible : 1;
         bool m_caretPaint : 1;
         bool m_isActive : 1;
+        bool m_isPainting : 1;
 
         RefPtr<CSSMutableStyleDeclaration> m_typingStyle;
 
@@ -111,8 +116,6 @@ namespace WebCore {
         RefPtr<Node> m_elementToDraw;
         PaintRestriction m_paintRestriction;
         
-        bool m_markedTextUsesUnderlines;
-        Vector<MarkedTextUnderline> m_markedTextUnderlines;
         bool m_highlightTextMatches;
         bool m_windowHasFocus;
         
@@ -122,14 +125,14 @@ namespace WebCore {
 
         bool m_prohibitsScrolling;
 
-        RefPtr<Range> m_markedTextRange;
-
+#ifdef __OWB_JS__
         // The root object used for objects bound outside the context of a plugin.
         RefPtr<KJS::Bindings::RootObject> m_bindingRootObject; 
-        Vector<RefPtr<KJS::Bindings::RootObject> > m_rootObjects;
+        RootObjectMap m_rootObjects;
         NPObject* m_windowScriptNPObject;
+#endif //__OWB_JS__
 #if PLATFORM(MAC)
-        WebScriptObject* m_windowScriptObject;
+        RetainPtr<WebScriptObject> m_windowScriptObject;
         WebCoreFrameBridge* m_bridge;
 #endif
     };

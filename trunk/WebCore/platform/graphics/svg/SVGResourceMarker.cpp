@@ -25,12 +25,12 @@
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGResourceMarker.h"
 
 #include "AffineTransform.h"
 #include "GraphicsContext.h"
-#include "RenderSVGContainer.h"
+#include "RenderSVGViewportContainer.h"
 #include "TextStream.h"
 
 namespace WebCore {
@@ -49,7 +49,7 @@ SVGResourceMarker::~SVGResourceMarker()
 {
 }
 
-void SVGResourceMarker::setMarker(RenderSVGContainer* marker)
+void SVGResourceMarker::setMarker(RenderSVGViewportContainer* marker)
 {
     m_marker = marker;
 }
@@ -65,6 +65,14 @@ void SVGResourceMarker::draw(GraphicsContext* context, const FloatRect& rect, do
     if (!m_marker)
         return;
 
+    static HashSet<SVGResourceMarker*> currentlyDrawingMarkers;
+
+    // avoid drawing circular marker references
+    if (currentlyDrawingMarkers.contains(this))
+        return;
+
+    currentlyDrawingMarkers.add(this);
+
     AffineTransform transform;
     transform.translate(x, y);
     transform.rotate(m_angle > -1 ? m_angle : angle);
@@ -74,8 +82,7 @@ void SVGResourceMarker::draw(GraphicsContext* context, const FloatRect& rect, do
     AffineTransform viewportTransform;
     if (m_useStrokeWidth)
         viewportTransform.scale(strokeWidth, strokeWidth);
-    if (!m_marker->viewBox().isEmpty())
-        viewportTransform *= m_marker->viewportTransform();
+    viewportTransform *= m_marker->viewportTransform();
     double refX, refY;
     viewportTransform.map(m_refX, m_refY, &refX, &refY);
     transform.translate(-refX, -refY);
@@ -94,7 +101,9 @@ void SVGResourceMarker::draw(GraphicsContext* context, const FloatRect& rect, do
     m_marker->setDrawsContents(false);
     context->restore();
 
-    m_cachedBounds = transform.mapRect(m_marker->getAbsoluteRepaintRect());
+    m_cachedBounds = transform.mapRect(m_marker->absoluteClippedOverflowRect());
+
+    currentlyDrawingMarkers.remove(this);
 }
 
 FloatRect SVGResourceMarker::cachedBounds() const

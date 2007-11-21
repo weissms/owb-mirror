@@ -55,6 +55,9 @@ namespace BAL {
 class BIImageDecoder
 {
 public:
+    /**
+    * BIImageDecoder destructor
+    */
     virtual ~BIImageDecoder() { };
 
     /**

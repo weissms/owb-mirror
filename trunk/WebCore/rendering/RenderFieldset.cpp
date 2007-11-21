@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -41,11 +41,11 @@ RenderFieldset::RenderFieldset(HTMLGenericFormElement* element)
 {
 }
 
-void RenderFieldset::calcMinMaxWidth()
+void RenderFieldset::calcPrefWidths()
 {
-    RenderBlock::calcMinMaxWidth();
+    RenderBlock::calcPrefWidths();
     if (RenderObject* legend = findLegend()) {
-        int legendMinWidth = legend->minWidth();
+        int legendMinWidth = legend->minPrefWidth();
 
         Length legendMarginLeft = legend->style()->marginLeft();
         Length legendMarginRight = legend->style()->marginLeft();
@@ -56,7 +56,7 @@ void RenderFieldset::calcMinMaxWidth()
         if (legendMarginRight.isFixed())
             legendMinWidth += legendMarginRight.value();
 
-        m_minWidth = max(m_minWidth, legendMinWidth + paddingLeft() + paddingRight() + borderLeft() + borderRight());
+        m_minPrefWidth = max(m_minPrefWidth, legendMinWidth + paddingLeft() + paddingRight() + borderLeft() + borderRight());
     }
 }
 

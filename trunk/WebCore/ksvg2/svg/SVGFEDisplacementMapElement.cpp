@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2006 Oliver Hunt <ojh16@student.canterbury.ac.nz>
+ Copyright (C) 2006 Oliver Hunt <oliver@nerget.com>
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Library General Public
@@ -13,14 +13,14 @@
  
  You should have received a copy of the GNU Library General Public License
  along with this library; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
+ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA 02110-1301, USA.
  */
 
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEDisplacementMapElement.h"
 
 #include "SVGResourceFilter.h"
@@ -29,9 +29,9 @@ namespace WebCore {
 
 SVGFEDisplacementMapElement::SVGFEDisplacementMapElement(const QualifiedName& tagName, Document* doc)
     : SVGFilterPrimitiveStandardAttributes(tagName, doc)
-    , m_xChannelSelector(0)
-    , m_yChannelSelector(0)
-    , m_scale(0.0)
+    , m_xChannelSelector(SVG_CHANNEL_A)
+    , m_yChannelSelector(SVG_CHANNEL_A)
+    , m_scale(0.0f)
     , m_filterEffect(0)
 {
 }
@@ -45,7 +45,7 @@ ANIMATED_PROPERTY_DEFINITIONS(SVGFEDisplacementMapElement, String, String, strin
 ANIMATED_PROPERTY_DEFINITIONS(SVGFEDisplacementMapElement, String, String, string, In2, in2, SVGNames::in2Attr.localName(), m_in2)
 ANIMATED_PROPERTY_DEFINITIONS(SVGFEDisplacementMapElement, int, Enumeration, enumeration, XChannelSelector, xChannelSelector, SVGNames::xChannelSelectorAttr.localName(), m_xChannelSelector)
 ANIMATED_PROPERTY_DEFINITIONS(SVGFEDisplacementMapElement, int, Enumeration, enumeration, YChannelSelector, yChannelSelector, SVGNames::yChannelSelectorAttr.localName(), m_yChannelSelector)
-ANIMATED_PROPERTY_DEFINITIONS(SVGFEDisplacementMapElement, double, Number, number, Scale, scale, SVGNames::scaleAttr.localName(), m_scale)
+ANIMATED_PROPERTY_DEFINITIONS(SVGFEDisplacementMapElement, float, Number, number, Scale, scale, SVGNames::scaleAttr.localName(), m_scale)
 
 SVGChannelSelectorType SVGFEDisplacementMapElement::stringToChannel(const String& key)
 {
@@ -73,28 +73,30 @@ void SVGFEDisplacementMapElement::parseMappedAttribute(MappedAttribute* attr)
     else if (attr->name() == SVGNames::in2Attr)
         setIn2BaseValue(value);
     else if (attr->name() == SVGNames::scaleAttr)
-        setScaleBaseValue(value.toDouble());
+        setScaleBaseValue(value.toFloat());
     else
         SVGFilterPrimitiveStandardAttributes::parseMappedAttribute(attr);
 }
 
-SVGFEDisplacementMap* SVGFEDisplacementMapElement::filterEffect() const
+SVGFEDisplacementMap* SVGFEDisplacementMapElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFEDisplacementMap*>(SVGResourceFilter::createFilterEffect(FE_DISPLACEMENT_MAP));
+        m_filterEffect = static_cast<SVGFEDisplacementMap*>(SVGResourceFilter::createFilterEffect(FE_DISPLACEMENT_MAP, filter));
     if (!m_filterEffect)
         return 0;
+
     m_filterEffect->setXChannelSelector((SVGChannelSelectorType) xChannelSelector());
     m_filterEffect->setYChannelSelector((SVGChannelSelectorType) yChannelSelector());
     m_filterEffect->setIn(in1());
     m_filterEffect->setIn2(in2());
     m_filterEffect->setScale(scale());
+
     setStandardAttributes(m_filterEffect);
     return m_filterEffect;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

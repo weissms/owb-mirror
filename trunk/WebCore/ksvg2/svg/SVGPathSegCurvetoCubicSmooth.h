@@ -16,80 +16,78 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPathSegCurvetoCubicSmooth_h
 #define SVGPathSegCurvetoCubicSmooth_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGPathSeg.h"
 
-namespace WebCore
-{
-    class SVGPathSegCurvetoCubicSmoothAbs : public SVGPathSeg
-    {
+namespace WebCore {
+
+    class SVGPathSegCurvetoCubicSmoothAbs : public SVGPathSeg {
     public:
-        SVGPathSegCurvetoCubicSmoothAbs(double x, double y, double x2, double y2);
+        SVGPathSegCurvetoCubicSmoothAbs(float x, float y, float x2, float y2);
         virtual ~SVGPathSegCurvetoCubicSmoothAbs();
 
         virtual unsigned short pathSegType() const { return PATHSEG_CURVETO_CUBIC_SMOOTH_ABS; }
         virtual String pathSegTypeAsLetter() const { return "S"; }
         virtual String toString() const { return String::format("S %.6lg %.6lg %.6lg %.6lg", m_x2, m_y2, m_x, m_y); }
 
-        void setX(double);
-        double x() const;
+        void setX(float);
+        float x() const;
 
-        void setY(double);
-        double y() const;
+        void setY(float);
+        float y() const;
 
-        void setX2(double);
-        double x2() const;
+        void setX2(float);
+        float x2() const;
 
-        void setY2(double);
-        double y2() const;
+        void setY2(float);
+        float y2() const;
 
     private:
-        double m_x;
-        double m_y;
-        double m_x2;
-        double m_y2;
+        float m_x;
+        float m_y;
+        float m_x2;
+        float m_y2;
     };
 
-    class SVGPathSegCurvetoCubicSmoothRel : public SVGPathSeg
-    { 
+    class SVGPathSegCurvetoCubicSmoothRel : public SVGPathSeg { 
     public:
-        SVGPathSegCurvetoCubicSmoothRel(double x, double y, double x2, double y2);
+        SVGPathSegCurvetoCubicSmoothRel(float x, float y, float x2, float y2);
         virtual ~SVGPathSegCurvetoCubicSmoothRel();
 
         virtual unsigned short pathSegType() const { return PATHSEG_CURVETO_CUBIC_SMOOTH_REL; }
         virtual String pathSegTypeAsLetter() const { return "s"; }
         virtual String toString() const { return String::format("s %.6lg %.6lg %.6lg %.6lg", m_x2, m_y2, m_x, m_y); }
 
-        void setX(double);
-        double x() const;
+        void setX(float);
+        float x() const;
 
-        void setY(double);
-        double y() const;
+        void setY(float);
+        float y() const;
 
-        void setX2(double);
-        double x2() const;
+        void setX2(float);
+        float x2() const;
 
-        void setY2(double);
-        double y2() const;
+        void setY2(float);
+        float y2() const;
 
     private:
-        double m_x;
-        double m_y;
-        double m_x2;
-        double m_y2;
+        float m_x;
+        float m_y;
+        float m_x2;
+        float m_y2;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

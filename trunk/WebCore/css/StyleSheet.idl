@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
@@ -14,20 +14,20 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module stylesheets {
 
     // Introduced in DOM Level 2:
-    interface [ObjCCustomInternalImpl] StyleSheet {
-        readonly attribute DOMString        type;
+    interface [GenerateConstructor, ObjCCustomInternalImpl] StyleSheet {
+        readonly attribute [ConvertNullStringTo=Null] DOMString        type;
                  attribute boolean          disabled;
         readonly attribute Node             ownerNode;
         readonly attribute StyleSheet       parentStyleSheet;
-        readonly attribute DOMString        href;
-        readonly attribute DOMString        title;
+        readonly attribute [ConvertNullStringTo=Null] DOMString        href;
+        readonly attribute [ConvertNullStringTo=Null] DOMString        title;
         readonly attribute MediaList        media;
     };
 

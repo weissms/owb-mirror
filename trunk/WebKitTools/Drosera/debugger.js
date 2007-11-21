@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
  * Copyright (C) 2006 David Smith (catfish.man@gmail.com)
- * Copyright (C) 2006 Vladimir Olexa (vladimir.olexa@gmail.com)
+ * Copyright (C) 2007 Vladimir Olexa (vladimir.olexa@gmail.com)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,6 +49,7 @@ var pausedWhileLeavingFrame = false;
 var consoleWindow = null;
 var breakpointEditorHTML = DebuggerDocument.breakpointEditorHTML();
 var pendingAction = null;
+var isPaused = false;
 
 ScriptCallFrame = function (functionName, index, row)
 {
@@ -60,16 +61,19 @@ ScriptCallFrame = function (functionName, index, row)
 
 ScriptCallFrame.prototype.valueForScopeVariable = function (name)
 {
-    return DebuggerDocument.valueForScopeVariableNamed_inCallFrame_(name, this.index);
+    return DebuggerDocument.valueForScopeVariableNamed(name, this.index);
 }
 
 ScriptCallFrame.prototype.loadVariables = function ()
 {
     if (!this.localVariableNames)
-        this.localVariableNames = DebuggerDocument.localScopeVariableNamesForCallFrame_(this.index);
+        this.localVariableNames = DebuggerDocument.localScopeVariableNamesForCallFrame(this.index);
 
     var variablesTable = document.getElementById("variablesTable");
     variablesTable.innerHTML = "";
+
+    if (!this.localVariableNames)
+        return;
 
     for(var i = 0; i < this.localVariableNames.length; i++) {
         var tr = document.createElement("tr");
@@ -283,14 +287,10 @@ function loaded()
     document.getElementById("variableColumnResizer").addEventListener("mousedown", columnResizerDragStart, false);
 }
 
-function isPaused() 
-{
-    return DebuggerDocument.isPaused();
-}
-
 function pause() 
 {
     DebuggerDocument.pause();
+    isPaused = true;
 }
 
 function resume()
@@ -314,6 +314,7 @@ function resume()
     steppingStack = 0;
 
     DebuggerDocument.resume();
+    isPaused = false;
 }
 
 function stepInto()
@@ -385,12 +386,11 @@ function breakpointAction(event)
 {
     var file = files[currentFile];
     var lineNum = event.target.title;
-    
-    if (file.breakpoints[lineNum]) {
-        if (!pendingAction)
-            pendingAction = setTimeout(toggleBreakpointOnLine, DebuggerDocument.doubleClickMilliseconds(), lineNum);  
-    } else
+
+    if (!file.breakpoints[lineNum])
         file.breakpoints[lineNum] = new BreakPoint(event.target.parentNode, file, lineNum);
+    else
+        toggleBreakpointOnLine(lineNum);
 }
 
 BreakPoint = function(row, file, line) 
@@ -425,7 +425,7 @@ function toggleBreakpointEditorOnLine(lineNum)
             editor.innerHTML = breakpointEditorHTML;
             
             bp.row.childNodes[1].appendChild(editor);
-            
+
             bp.editor = editor;
             file.breakpoints[lineNum] = bp;
 
@@ -465,7 +465,7 @@ function updateBreakpointTypeOnLine(line)
 function setConditionFieldText(breakpoint)
 {
     var conditionField = breakpoint.editor.query('.//div[@class="condition"]');
-    
+
     var functionBody = breakpoint.value;
     if (!functionBody || functionBody == "break")
         functionBody = "";
@@ -506,7 +506,7 @@ function toggleBreakpointOnLine(lineNum)
     var breakpoint = files[currentFile].breakpoints[lineNum];
     pendingAction = null;
     if (breakpoint.enabled)
-        breakpoint.row.addStyleClass("disabled");    
+        breakpoint.row.addStyleClass("disabled");
     else
         breakpoint.row.removeStyleClass("disabled");
     
@@ -516,7 +516,7 @@ function toggleBreakpointOnLine(lineNum)
     var editor = breakpoint.editor;
     if (editor) {
         editor.query('.//input[@class="enable"]').checked = breakpoint.enabled;
-        setConditionFieldText(editor, lineNum);
+        setConditionFieldText(breakpoint, lineNum);
     }
 }
 
@@ -664,11 +664,15 @@ function totalOffsetTop(element, stop)
     return currentTop;
 }
 
-function switchFile()
+function switchFile(fileIndex)
 {
     var filesSelect = document.getElementById("files");
-    fileClicked(filesSelect.options[filesSelect.selectedIndex].value, false);
-    loadFile(filesSelect.options[filesSelect.selectedIndex].value, true);
+    
+    if (fileIndex === undefined) 
+        fileIndex = filesSelect.selectedIndex;
+    
+    fileClicked(filesSelect.options[fileIndex].value, false);
+    loadFile(filesSelect.options[fileIndex].value, true);    
 }
 
 function syntaxHighlight(code, file)
@@ -961,7 +965,7 @@ function switchFunction(index, shouldResetPopup)
     var selectedFunction = functionSelect.childNodes[index];
     var selection = sourcesFrame.getSelection();
     var currentFunction = selectedFunction.value;     
-    var currentFunctionElement = sourcesFrame.document.getElementById(currentFunction);
+    var currentFunctionElement = sourcesFrame.contentDocument.getElementById(currentFunction);
     
     functionSelect.blur();
     sourcesFrame.focus();
@@ -998,7 +1002,7 @@ function loadFile(fileIndex, manageNavLists)
             td.className = "gutter";
             td.title = (i + 1);
             td.addEventListener("click", breakpointAction, true);
-            td.addEventListener("dblclick", function() { toggleBreakpointEditorOnLine(event.target.title); }, true);
+            td.addEventListener("dblclick", function(event) { toggleBreakpointEditorOnLine(event.target.title); }, true);
             td.addEventListener("mousedown", moveBreakPoint, true);
             tr.appendChild(td);
 
@@ -1051,7 +1055,7 @@ function loadFile(fileIndex, manageNavLists)
         if (currentFile != -1)
             previousFiles.push(currentFile);
     }
-    
+
     document.getElementById("navFileLeftButton").disabled = (previousFiles.length == 0);
     document.getElementById("navFileRightButton").disabled = (nextFiles.length == 0);
 
@@ -1165,6 +1169,19 @@ function SiteBrowser()
         div.appendChild(ul);
         fileBrowser.appendChild(div);        
     }
+    
+    function removeFile(fileIndex)
+    {
+        var theFile = document.getElementById(fileIndex);
+        // If we are removing the last file from its site, go ahead and remove the whole site
+        if (theFile.parentNode.childNodes.length < 2) { 
+            var theSite = theFile.parentNode.parentNode;
+            theSite.removeChildren();
+            theSite.parentNode.removeChild(theSite);
+        }
+        else
+            theFile.parentNode.removeChild(theFile);
+    }
 }
 
 function fileBrowserMouseEvents(event)
@@ -1181,9 +1198,10 @@ function fileBrowserMouseEvents(event)
 
 function fileClicked(fileId, shouldLoadFile)
 {
-    if (shouldLoadFile === undefined) shouldLoadFile = true;
-    
-    document.getElementById(currentFile).className = "passive";
+    if (shouldLoadFile === undefined) 
+        shouldLoadFile = true;
+    if (currentFile != -1) 
+        document.getElementById(currentFile).className = "passive";
     document.getElementById(fileId).className = "active";
     if (shouldLoadFile) 
         loadFile(fileId, false);
@@ -1295,7 +1313,7 @@ function willExecuteStatement(sourceId, line, fromLeavingFrame)
         return;
 
     lastStatement = [sourceId, line];
-    
+
     var breakpoint = file.breakpoints[line];
 
     var shouldBreak = false;
@@ -1303,14 +1321,14 @@ function willExecuteStatement(sourceId, line, fromLeavingFrame)
     if (breakpoint && breakpoint.enabled) {
         switch(breakpoint.type) {
             case 0:
-                shouldBreak = (breakpoint.value == "break" || DebuggerDocument.evaluateScript_inCallFrame_(breakpoint.value, 0) == 1);
+                shouldBreak = (breakpoint.value == "break" || DebuggerDocument.evaluateScript(breakpoint.value, 0) == 1);
                 if (shouldBreak)
                     breakpoint.hitcount++;
                 break;
             case 1:
                 var message = "Hit breakpoint on line " + line;
                 if (breakpoint.value != "break")
-                    message = DebuggerDocument.evaluateScript_inCallFrame_(breakpoint.value, 0);
+                    message = DebuggerDocument.evaluateScript(breakpoint.value, 0);
                 if (consoleWindow)
                     consoleWindow.appendMessage("", message);
                 breakpoint.hitcount++;
@@ -1323,14 +1341,14 @@ function willExecuteStatement(sourceId, line, fromLeavingFrame)
         if (counter)
             counter.innerText = breakpoint.hitcount;
     }
-    
+
     if (pauseOnNextStatement || shouldBreak || (steppingOver && !steppingStack)) {
         pause();
         pauseOnNextStatement = false;
         pausedWhileLeavingFrame = fromLeavingFrame || false;
     }
 
-    if (isPaused()) {
+    if (isPaused) {
         updateFunctionStack();
         jumpToLine(sourceId, line);
     }
@@ -1375,4 +1393,41 @@ function showConsoleWindow()
         consoleWindow = window.open("console.html", "console", "top=200, left=200, width=500, height=300, toolbar=yes, resizable=yes");
     else
         consoleWindow.focus();
+}
+
+function closeFile(fileIndex)
+{
+    if (fileIndex != -1) {
+        currentFile = -1;
+        var file = files[fileIndex];
+        var sourcesDocument = document.getElementById("sources").contentDocument;
+        // Clean up our file's content 
+        sourcesDocument.getElementById("file" + fileIndex).removeChildren();
+        // Remove the file from the open files pool
+        delete sourcesDocument.getElementById("file" + fileIndex);
+
+        var filesSelect = document.getElementById("files");
+        // Select the next loaded file. If we're at the end of the list, loop back to beginning. 
+        var nextSelectedFile = (filesSelect.selectedIndex + 1 >= filesSelect.options.length) ? 0 : filesSelect.selectedIndex;
+        // Remove the file from file lists
+        filesSelect.options[filesSelect.selectedIndex] = null;        
+        SiteBrowser.removeFile(fileIndex);
+        delete files[fileIndex];
+        
+        // Clean up the function list
+        document.getElementById("functions").removeChildren();
+
+        // Display appropriate place-holders, if we closed all files
+        if (filesSelect.options.length < 1) {
+            document.getElementById("filesPopupButtonContent").innerHTML = "<span class='placeholder'>&lt;No files loaded&gt;</span>";
+            document.getElementById("functionNamesPopup").style.display = "none";
+        }
+        else 
+            switchFile(nextSelectedFile);
+    }    
+}
+
+function closeCurrentFile()
+{
+    closeFile(currentFile);
 }

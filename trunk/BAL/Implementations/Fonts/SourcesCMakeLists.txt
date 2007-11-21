@@ -1,51 +1,17 @@
-IF (WEBKIT_USE_FONTS_DIRECTFB)
-set(fonts_SRC
-        ${fonts_SRC}
-		BAL/Implementations/Fonts/freetype/FontPrivate.cpp
-		BAL/Implementations/Fonts/freetype/FontFamily.cpp
-		BAL/Implementations/Fonts/freetype/BTFontFallbackList.cpp
-		BAL/Implementations/Fonts/freetype/BTFont.cpp
+SET (fonts_SRC
+    ${fonts_SRC}
+    BAL/Implementations/Fonts/Common/Font.cpp
+    BAL/Implementations/Fonts/Common/FontCache.cpp
+    BAL/Implementations/Fonts/Common/FontData.cpp
+    BAL/Implementations/Fonts/Common/FontFallbackList.cpp
+    BAL/Implementations/Fonts/Common/FontFamily.cpp
+    BAL/Implementations/Fonts/Common/GlyphPageTreeNode.cpp
+    BAL/Implementations/Fonts/Common/GlyphWidthMap.cpp
+    BAL/Implementations/Fonts/${FONTS}/BCGlyphBuffer${FONTS}.cpp
+    BAL/Implementations/Fonts/${FONTS}/BCFontPlatformDataPrivate${FONTS}.cpp
+    BAL/Implementations/Fonts/${FONTS}/FontCache${FONTS}.cpp
+    BAL/Implementations/Fonts/${FONTS}/FontData${FONTS}.cpp
+    BAL/Implementations/Fonts/${FONTS}/Font${FONTS}.cpp
+    BAL/Implementations/Fonts/${FONTS}/FontPlatformData${FONTS}.cpp
+    BAL/Implementations/Fonts/${FONTS}/GlyphPageTreeNode${FONTS}.cpp
 )
-ENDIF (WEBKIT_USE_FONTS_DIRECTFB)
-
-IF (WEBKIT_USE_FONTS_FREETYPE)
-set(fonts_SRC
-        ${fonts_SRC}
-		BAL/Implementations/Fonts/freetype/FontPrivate.cpp
-		BAL/Implementations/Fonts/freetype/FontFamily.cpp
-		BAL/Implementations/Fonts/freetype/BTFontFallbackList.cpp
-		BAL/Implementations/Fonts/freetype/BTFont.cpp
-)
-ENDIF (WEBKIT_USE_FONTS_FREETYPE)
-
-IF (WEBKIT_USE_FONTS_SDL)
-set(fonts_SRC
-        ${fonts_SRC}
-	BAL/Implementations/Fonts/SDL/BTFont.cpp
-	BAL/Implementations/Fonts/SDL/BTFontFallbackList.cpp
-	BAL/Implementations/Fonts/SDL/FontFamily.cpp
-)
-ENDIF (WEBKIT_USE_FONTS_SDL)
-
-IF (WEBKIT_USE_FONTS_SDL_TTF)
-set(fonts_SRC
-        ${fonts_SRC}
-        BAL/Implementations/Fonts/SDL_TTF/BTFont.cpp
-        BAL/Implementations/Fonts/SDL_TTF/BTFontFallbackList.cpp
-        BAL/Implementations/Fonts/SDL_TTF/FontFamily.cpp
-)
-ENDIF (WEBKIT_USE_FONTS_SDL_TTF)
-
-IF (WEBKIT_USE_FONTS_CAIRO)
-set(fonts_SRC
-        ${fonts_SRC}
-	BAL/Implementations/Fonts/Cairo/BTFont.cpp
-        BAL/Implementations/Fonts/Cairo/BTFontFallbackList.cpp
-        BAL/Implementations/Fonts/Cairo/BTGlyphMap.cpp
-        BAL/Implementations/Fonts/Cairo/BTFontPlatformData.cpp
-        BAL/Implementations/Fonts/Cairo/BCFontData.cpp
-        BAL/Implementations/Fonts/Cairo/BCFontCache.cpp
-        BAL/Implementations/Fonts/Cairo/BCGlyphBuffer.cpp
-        BAL/Implementations/Fonts/Cairo/FontFamily.cpp
-)
-ENDIF (WEBKIT_USE_FONTS_CAIRO)

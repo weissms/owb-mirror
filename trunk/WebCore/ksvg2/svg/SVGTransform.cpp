@@ -16,16 +16,18 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
+#include "FloatPoint.h"
+#include "FloatSize.h"
 #include "SVGAngle.h"
-#include "SVGTransform.h"
 #include "SVGSVGElement.h"
+#include "SVGTransform.h"
 
 #include <math.h>
 
@@ -100,7 +102,7 @@ void SVGTransform::setTranslate(float tx, float ty)
 
 FloatPoint SVGTransform::translate() const
 {
-    return FloatPoint(m_matrix.e(), m_matrix.f());
+    return FloatPoint::narrowPrecision(m_matrix.e(), m_matrix.f());
 }
 
 void SVGTransform::setScale(float sx, float sy)
@@ -115,7 +117,7 @@ void SVGTransform::setScale(float sx, float sy)
 
 FloatSize SVGTransform::scale() const
 {
-    return FloatSize(m_matrix.a(), m_matrix.d());
+    return FloatSize::narrowPrecision(m_matrix.a(), m_matrix.d());
 }
 
 void SVGTransform::setRotate(float angle, float cx, float cy)
@@ -150,5 +152,5 @@ void SVGTransform::setSkewY(float angle)
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

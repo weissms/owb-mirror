@@ -32,6 +32,7 @@
 #include "IntSize.h"
 
 #if PLATFORM(MAC)
+#include <wtf/RetainPtr.h>
 #ifdef __OBJC__
 @class NSImage;
 #else
@@ -89,12 +90,15 @@ struct FrameData : Noncopyable {
 class BitmapImage : public Image {
     friend class GraphicsContext;
 public:
-    BitmapImage(ImageAnimationObserver* = 0);
+#if PLATFORM(QT)
+    BitmapImage(const QPixmap &pixmap, ImageObserver* = 0);
+#endif
+    BitmapImage(ImageObserver* = 0);
     ~BitmapImage();
     
     virtual IntSize size() const;
 
-    virtual bool setNativeData(NativeBytePtr, bool allDataReceived);
+    virtual bool dataChanged(bool allDataReceived);
 
     // It may look unusual that there is no start animation call as public API.  This is because
     // we start and stop animating lazily.  Animation begins whenever someone draws the image.  It will
@@ -102,6 +106,8 @@ public:
     virtual void stopAnimation();
     virtual void resetAnimation();
     
+    virtual unsigned decodedSize() const { return m_decodedSize; }
+
 #if PLATFORM(MAC)
     // Accessors for native image formats.
     virtual NSImage* getNSImage();
@@ -118,11 +124,15 @@ public:
     
 #if PLATFORM(WIN)
     virtual bool getHBITMAP(HBITMAP);
+    virtual bool getHBITMAPOfSize(HBITMAP, LPSIZE);
 #endif
 
     virtual NativeImagePtr nativeImageForCurrentFrame() { return frameAtIndex(currentFrame()); }
 
 private:
+#if PLATFORM(WIN)
+    virtual void drawFrameMatchingSourceSize(GraphicsContext*, const FloatRect& dstRect, const IntSize& srcSize, CompositeOperator);
+#endif
     virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator);
 #if PLATFORM(QT)
     virtual void drawPattern(GraphicsContext*, const FloatRect& srcRect, const AffineTransform& patternTransform,
@@ -137,8 +147,9 @@ private:
     // Decodes and caches a frame. Never accessed except internally.
     void cacheFrame(size_t index);
 
-    // Called to invalidate all our cached data when more bytes are available.
-    void invalidateData();
+    // Called to invalidate all our cached data.  If an image is loading incrementally, we only
+    // invalidate the last cached frame.
+    virtual void destroyDecodedData(bool incremental = false);
 
     // Whether or not size is available yet.    
     bool isSizeAvailable();
@@ -151,7 +162,7 @@ private:
     // Handle platform-specific data
     void initPlatformData();
     void invalidatePlatformData();
-
+    
     // Checks to see if the image is a 1x1 solid color.  We optimize these images and just do a fill rect instead.
     void checkForSolidColor();
     
@@ -169,8 +180,8 @@ private:
     int m_repetitionsComplete;  // How many repetitions we've finished.
 
 #if PLATFORM(MAC)
-    mutable NSImage* m_nsImage; // A cached NSImage of frame 0. Only built lazily if someone actually queries for one.
-    mutable CFDataRef m_tiffRep; // Cached TIFF rep for frame 0.  Only built lazily if someone queries for one.
+    mutable RetainPtr<NSImage> m_nsImage; // A cached NSImage of frame 0. Only built lazily if someone actually queries for one.
+    mutable RetainPtr<CFDataRef> m_tiffRep; // Cached TIFF rep for frame 0.  Only built lazily if someone queries for one.
 #endif
 
     Color m_solidColor;  // If we're a 1x1 solid color, this is the color to use to fill.
@@ -179,8 +190,16 @@ private:
     bool m_animatingImageType;  // Whether or not we're an image type that is capable of animating (GIF).
     bool m_animationFinished;  // Whether or not we've completed the entire animation.
 
+    bool m_allDataReceived;  // Whether or not we've received all our data.
+
     mutable bool m_haveSize; // Whether or not our |m_size| member variable has the final overall image size yet.
     bool m_sizeAvailable; // Whether or not we can obtain the size of the first image frame yet from ImageIO.
+    unsigned m_decodedSize; // The current size of all decoded frames.
+
+#if PLATFORM(QT)
+    QPixmap *m_pixmap;
+#endif
+
 };
 
 }

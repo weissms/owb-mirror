@@ -61,6 +61,7 @@ set(html_SRC
 	WebCore/html/HTMLParagraphElement.cpp
 	WebCore/html/HTMLParamElement.cpp
 	WebCore/html/HTMLParser.cpp
+	WebCore/html/HTMLParserErrorCodes.cpp
 	WebCore/html/HTMLPlugInElement.cpp
 	WebCore/html/HTMLPreElement.cpp
 	WebCore/html/HTMLQuoteElement.cpp

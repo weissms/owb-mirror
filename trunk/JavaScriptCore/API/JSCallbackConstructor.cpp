@@ -69,7 +69,9 @@ JSObject* JSCallbackConstructor::construct(ExecState* exec, const List &args)
         Vector<JSValueRef, 16> arguments(argumentCount);
         for (int i = 0; i < argumentCount; i++)
             arguments[i] = toRef(args[i]);
-        return toJS(m_callback(ctx, thisRef, argumentCount, arguments, toRef(exec->exceptionSlot())));
+            
+        JSLock::DropAllLocks dropAllLocks;
+        return toJS(m_callback(ctx, thisRef, argumentCount, arguments.data(), toRef(exec->exceptionSlot())));
     }
     
     return toJS(JSObjectMake(ctx, m_class, 0));

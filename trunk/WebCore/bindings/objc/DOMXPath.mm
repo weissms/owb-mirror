@@ -26,7 +26,7 @@
 
 #import "config.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #import "DOMXPath.h"
 
@@ -71,7 +71,7 @@
     return self;    
 }
 
-+ (DOMNativeXPathNSResolver *)_xpathNSResolverWith:(WebCore::XPathNSResolver *)impl
++ (DOMNativeXPathNSResolver *)_wrapXPathNSResolver:(WebCore::XPathNSResolver *)impl
 {
     if (!impl)
         return nil;
@@ -91,4 +91,4 @@
 
 @end
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

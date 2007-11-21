@@ -57,14 +57,14 @@ public:
     bool isNotNull() const { return m_deepPosition.isNotNull(); }
 
     Position deepEquivalent() const { return m_deepPosition; }
-    EAffinity affinity() const { assert(m_affinity == UPSTREAM || m_affinity == DOWNSTREAM); return m_affinity; }
+    EAffinity affinity() const { ASSERT(m_affinity == UPSTREAM || m_affinity == DOWNSTREAM); return m_affinity; }
     void setAffinity(EAffinity affinity) { m_affinity = affinity; }
 
     // next() and previous() will increment/decrement by a character cluster.
     VisiblePosition next(bool stayInEditableContent = false) const;
     VisiblePosition previous(bool stayInEditableContent = false) const;
-
-    bool isLastInBlock() const;
+    VisiblePosition honorEditableBoundaryAtOrBefore(const VisiblePosition&) const;
+    VisiblePosition honorEditableBoundaryAtOrAfter(const VisiblePosition&) const;
 
     UChar characterAfter() const;
     UChar characterBefore() const { return previous().characterAfter(); }
@@ -88,19 +88,18 @@ private:
     EAffinity m_affinity;
 };
 
-inline bool operator==(const VisiblePosition &a, const VisiblePosition &b)
+// FIXME: This shouldn't ignore affinity.
+inline bool operator==(const VisiblePosition& a, const VisiblePosition& b)
 {
-    return a.deepEquivalent() == b.deepEquivalent() || 
-           // FIXME (8622): This is a slow but temporary workaround. 
-           a.deepEquivalent().downstream() == b.deepEquivalent().downstream();
+    return a.deepEquivalent() == b.deepEquivalent();
 }
  
-inline bool operator!=(const VisiblePosition &a, const VisiblePosition &b)
+inline bool operator!=(const VisiblePosition& a, const VisiblePosition& b)
 {
     return !(a == b);
 }
 
-PassRefPtr<Range> makeRange(const VisiblePosition &, const VisiblePosition &);
+PassRefPtr<Range> makeRange(const VisiblePosition&, const VisiblePosition&);
 bool setStart(Range*, const VisiblePosition&);
 bool setEnd(Range*, const VisiblePosition&);
 VisiblePosition startVisiblePosition(const Range*, EAffinity);

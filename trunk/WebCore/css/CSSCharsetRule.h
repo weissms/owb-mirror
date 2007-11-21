@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef CSSCharsetRule_h
@@ -29,6 +29,8 @@
 
 namespace WebCore {
 
+typedef int ExceptionCode;
+
 class CSSCharsetRule : public CSSRule {
 public:
     CSSCharsetRule(StyleBase* parent, const String& encoding);
@@ -37,14 +39,12 @@ public:
     virtual bool isCharsetRule() { return true; }
 
     String encoding() const { return m_encoding; }
+    void setEncoding(const String& encoding, ExceptionCode&) { m_encoding = encoding; }
 
     // Inherited from CSSRule
     virtual unsigned short type() const { return CHARSET_RULE; }
 
     virtual String cssText() const;
-
-    // Not part of the CSSOM
-    void setEncoding(const String& encoding) { m_encoding = encoding; }
 
 protected:
     String m_encoding;

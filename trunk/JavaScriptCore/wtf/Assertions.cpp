@@ -1,6 +1,6 @@
 // -*- mode: c++; c-basic-offset: 4 -*-
 /*
- * Copyright (C) 2003, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2003, 2006, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "Assertions.h"
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -36,9 +37,13 @@
 #include <CoreFoundation/CFString.h>
 #endif
 
-#if PLATFORM(WIN)
+#if COMPILER(MSVC)
+#ifndef WINVER
 #define WINVER 0x0500
+#endif
+#ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500
+#endif
 #include <windows.h>
 #include <crtdbg.h>
 #endif
@@ -67,7 +72,7 @@ static void vprintf_stderr_common(const char* format, va_list args)
         CFRelease(str);
         CFRelease(cfFormat);
     } else
-#elif PLATFORM(WIN)
+#elif COMPILER(MSVC)
     if (IsDebuggerPresent()) {
         size_t size = 1024;
 
@@ -156,17 +161,31 @@ void WTFReportError(const char* file, int line, const char* function, const char
     printCallSite(file, line, function);
 }
 
-void WTFLog(const char*, int, const char*, WTFLogChannel *channel, const char* format, ...)
-{    
+void WTFLog(WTFLogChannel* channel, const char* format, ...)
+{
     if (channel->state != WTFLogChannelOn)
         return;
-    
+
     va_list args;
     va_start(args, format);
     vprintf_stderr_common(format, args);
     va_end(args);
     if (format[strlen(format) - 1] != '\n')
         printf_stderr_common("\n");
+}
+
+void WTFLogVerbose(const char* file, int line, const char* function, WTFLogChannel* channel, const char* format, ...)
+{
+    if (channel->state != WTFLogChannelOn)
+        return;
+
+    va_list args;
+    va_start(args, format);
+    vprintf_stderr_common(format, args);
+    va_end(args);
+    if (format[strlen(format) - 1] != '\n')
+        printf_stderr_common("\n");
+    printCallSite(file, line, function);
 }
 
 } // extern "C"

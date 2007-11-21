@@ -26,7 +26,7 @@
 #ifndef SVGPaintServerSolid_h
 #define SVGPaintServerSolid_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "Color.h"
 #include "SVGPaintServer.h"
@@ -45,7 +45,7 @@ namespace WebCore {
 
         virtual TextStream& externalRepresentation(TextStream&) const;
 
-#if PLATFORM(CG) || PLATFORM(QT)
+#if PLATFORM(CG) || PLATFORM(QT) || PLATFORM(CAIRO)
         virtual bool setup(GraphicsContext*&, const RenderObject*, SVGPaintTargetType, bool isPaintingText) const;
 #endif
 

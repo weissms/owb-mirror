@@ -32,36 +32,42 @@
 namespace WebCore
 {
 
-DragDestinationAction DragClientBal::actionMaskForDrag(DragData*)
-{
-    return DragDestinationActionAny;
-}
-
 void DragClientBal::willPerformDragDestinationAction(DragDestinationAction, DragData*)
 {
-}
-
-void DragClientBal::dragControllerDestroyed()
-{
-}
-
-DragSourceAction DragClientBal::dragSourceActionMaskForPoint(const IntPoint&)
-{
-    return DragSourceActionAny;
+    BALNotImplemented();
 }
 
 void DragClientBal::willPerformDragSourceAction(DragSourceAction, const IntPoint&, Clipboard*)
 {
+    BALNotImplemented();
 }
 
-void DragClientBal::startDrag(DragImageRef dragImage, const IntPoint&, const IntPoint&, Clipboard*, Frame*, bool)
+DragDestinationAction DragClientBal::actionMaskForDrag(DragData*)
 {
+    BALNotImplemented();
+    return DragDestinationActionAny;
 }
 
-DragImageRef DragClientBal::createDragImageForLink(KURL&, const String&, Frame*)
+DragSourceAction DragClientBal::dragSourceActionMaskForPoint(const IntPoint&)
+{
+    BALNotImplemented();
+    return DragSourceActionAny;
+}
+
+void DragClientBal::startDrag(DragImageRef, const IntPoint&, const IntPoint&, Clipboard*, Frame*, bool)
+{
+    BALNotImplemented();
+}
+
+DragImageRef DragClientBal::createDragImageForLink(KURL&, const String& label, Frame*)
 {
     BALNotImplemented();
     return 0;
+}
+
+void DragClientBal::dragControllerDestroyed()
+{
+    delete this;
 }
 
 }

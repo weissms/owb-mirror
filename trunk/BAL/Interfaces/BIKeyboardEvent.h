@@ -50,6 +50,9 @@ namespace BAL {
     */
     class BIKeyboardEvent : public BIInputEvent {
     public:
+        /**
+        * BIKeyboardEvent destructor
+        */
         virtual ~BIKeyboardEvent() {};
 
          /**
@@ -89,6 +92,11 @@ namespace BAL {
           * Get the windows keycode
           */
         virtual int WindowsKeyCode() const = 0;
+
+        /**
+          * Get the windows keycode
+          */
+        virtual int setWindowsKeyCode(int) const = 0;
 
          /**
           * returns a VK for a key. It is important to note that

@@ -19,6 +19,7 @@ class BCResourceHandleManagerCURL : public BIResourceHandleManager
 {
 public:
     BCResourceHandleManagerCURL();
+    ~BCResourceHandleManagerCURL();
 
     virtual void add(BIResourceHandle* job);
     virtual bool contains(BIResourceHandle* job);
@@ -37,6 +38,7 @@ private:
 
     CURLM* m_curlMultiHandle; // FIXME: never freed
     CURLSH* m_curlShareHandle; // FIXME: never freed
+
     char* m_cookieJarFileName; // FIXME: never freed
 
     char m_curlErrorBuffer[CURL_ERROR_SIZE];

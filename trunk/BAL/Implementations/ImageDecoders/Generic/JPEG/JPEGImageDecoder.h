@@ -30,7 +30,7 @@
 
 #include "BIImageDecoder.h"
 #include "ImageDecoderCommonImplementation.h"
-#include "ImageAnimationObserver.h"
+#include "ImageObserver.h"
 
 namespace BC {
 
@@ -61,7 +61,7 @@ public:
 
     virtual int frameCount() { return 1; }
 
-    virtual int repetitionCount() const { return WebCore::cAnimationNone; } // FIXME RME move cAnimationNone
+    virtual int repetitionCount() const { return WebCore::cAnimationNone; }
 
 public:
     // Following implementation needs to be public, to be accessed by reader

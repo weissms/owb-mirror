@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGSVGElement_h
 #define SVGSVGElement_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGExternalResourcesRequired.h"
 #include "SVGFitToViewBox.h"
@@ -37,7 +37,8 @@ namespace WebCore
     class SVGAngle;
     class SVGLength;
     class SVGTransform;
-    class SVGLength;
+    class SVGViewSpec;
+    class SVGViewElement;
     class TimeScheduler;
     class SVGSVGElement : public SVGStyledLocatableElement,
                           public SVGTests,
@@ -71,12 +72,13 @@ namespace WebCore
         bool useCurrentView() const;
         void setUseCurrentView(bool currentView);
 
-        // SVGViewSpec* currentView() const;
+        SVGViewSpec* currentView() const;
 
         float currentScale() const;
         void setCurrentScale(float scale);
 
         FloatPoint currentTranslate() const;
+        void setCurrentTranslate(const FloatPoint&);
         
         TimeScheduler* timeScheduler() { return m_timeScheduler; }
         
@@ -98,7 +100,7 @@ namespace WebCore
         bool checkEnclosure(SVGElement*, const FloatRect&);
         void deselectAll();
 
-        static double createSVGNumber();
+        static float createSVGNumber();
         static SVGLength createSVGLength();
         static SVGAngle* createSVGAngle();
         static FloatPoint createSVGPoint();
@@ -119,16 +121,21 @@ namespace WebCore
         virtual void insertedIntoDocument();
         virtual void removedFromDocument();
 
-        // 'virtual SVGZoomAndPan functions
-        virtual void setZoomAndPan(unsigned short zoomAndPan);
-
         virtual void attributeChanged(Attribute*, bool preserveDecls = false);
+
+        virtual AffineTransform viewBoxToViewTransform(float viewWidth, float viewHeight) const;
+
+        void inheritViewAttributes(SVGViewElement*);
 
     protected:
         virtual const SVGElement* contextElement() const { return this; }
 
-        friend class RenderSVGContainer;
+        friend class RenderSVGRoot;
+        friend class RenderSVGViewportContainer;
+
         virtual bool hasRelativeValues() const;
+        
+        bool isOutermostSVG() const;
 
     private:
         void addSVGWindowEventListener(const AtomicString& eventType, const Attribute* attr);   
@@ -144,11 +151,13 @@ namespace WebCore
 
         bool m_useCurrentView;
         TimeScheduler* m_timeScheduler;
+        FloatPoint m_translation;
+        mutable OwnPtr<SVGViewSpec> m_viewSpec;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

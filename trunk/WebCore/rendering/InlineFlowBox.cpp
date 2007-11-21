@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003, 2006, 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -39,6 +39,17 @@
 using namespace std;
 
 namespace WebCore {
+
+#ifndef NDEBUG
+
+InlineFlowBox::~InlineFlowBox()
+{
+    if (!m_hasBadChildList)
+        for (InlineBox* child = firstChild(); child; child = child->nextOnLine())
+            child->setHasBadParent();
+}
+
+#endif
 
 RenderFlow* InlineFlowBox::flowObject()
 {
@@ -94,24 +105,32 @@ int InlineFlowBox::getFlowSpacingWidth()
 void InlineFlowBox::addToLine(InlineBox* child) 
 {
     ASSERT(!child->parent());
+    ASSERT(!child->nextOnLine());
+    ASSERT(!child->prevOnLine());
+    checkConsistency();
 
-    if (!m_firstChild)
-        m_firstChild = m_lastChild = child;
-    else {
-        m_lastChild->m_next = child;
-        child->m_prev = m_lastChild;
+    child->setParent(this);
+    if (!m_firstChild) {
+        m_firstChild = child;
+        m_lastChild = child;
+    } else {
+        m_lastChild->setNextOnLine(child);
+        child->setPrevOnLine(m_lastChild);
         m_lastChild = child;
     }
     child->setFirstLineStyleBit(m_firstLine);
-    child->setParent(this);
     if (child->isText())
         m_hasTextChildren = true;
     if (child->object()->selectionState() != RenderObject::SelectionNone)
         root()->setHasSelectedChildren(true);
+
+    checkConsistency();
 }
 
 void InlineFlowBox::removeChild(InlineBox* child)
 {
+    checkConsistency();
+
     if (!m_dirty)
         dirtyLineBoxes();
 
@@ -127,19 +146,28 @@ void InlineFlowBox::removeChild(InlineBox* child)
         child->prevOnLine()->setNextOnLine(child->nextOnLine());
     
     child->setParent(0);
+
+    checkConsistency();
 }
 
 void InlineFlowBox::deleteLine(RenderArena* arena)
 {
-    InlineBox* child = m_firstChild;
+    InlineBox* child = firstChild();
     InlineBox* next = 0;
     while (child) {
         ASSERT(this == child->parent());
         next = child->nextOnLine();
+#ifndef NDEBUG
+        child->setParent(0);
+#endif
         child->deleteLine(arena);
         child = next;
     }
-    
+#ifndef NDEBUG
+    m_firstChild = 0;
+    m_lastChild = 0;
+#endif
+
     static_cast<RenderFlow*>(m_object)->removeLineBox(this);
     destroy(arena);
 }
@@ -148,7 +176,7 @@ void InlineFlowBox::extractLine()
 {
     if (!m_extracted)
         static_cast<RenderFlow*>(m_object)->extractLineBox(this);
-    for (InlineBox* child = m_firstChild; child; child = child->nextOnLine())
+    for (InlineBox* child = firstChild(); child; child = child->nextOnLine())
         child->extractLine();
 }
 
@@ -156,14 +184,14 @@ void InlineFlowBox::attachLine()
 {
     if (m_extracted)
         static_cast<RenderFlow*>(m_object)->attachLineBox(this);
-    for (InlineBox* child = m_firstChild; child; child = child->nextOnLine())
+    for (InlineBox* child = firstChild(); child; child = child->nextOnLine())
         child->attachLine();
 }
 
 void InlineFlowBox::adjustPosition(int dx, int dy)
 {
     InlineRunBox::adjustPosition(dx, dy);
-    for (InlineBox* child = m_firstChild; child; child = child->nextOnLine())
+    for (InlineBox* child = firstChild(); child; child = child->nextOnLine())
         child->adjustPosition(dx, dy);
 }
 
@@ -246,7 +274,14 @@ int InlineFlowBox::placeBoxesHorizontally(int x, int& leftPosition, int& rightPo
 {
     // Set our x position.
     setXPos(x);
-    leftPosition = min(x, leftPosition);
+
+    int boxShadowLeft = 0;
+    int boxShadowRight = 0;
+    if (ShadowData* boxShadow = object()->style(m_firstLine)->boxShadow()) {
+        boxShadowLeft = min(boxShadow->x - boxShadow->blur, 0);
+        boxShadowRight = max(boxShadow->x + boxShadow->blur, 0);
+    }
+    leftPosition = min(x + boxShadowLeft, leftPosition);
 
     int startX = x;
     x += borderLeft() + paddingLeft();
@@ -262,15 +297,22 @@ int InlineFlowBox::placeBoxesHorizontally(int x, int& leftPosition, int& rightPo
             }
             text->setXPos(x);
             
-            // FIXME: Setting this as layout overflow is bad.  We need to have a separate concept of
-            // visual overflow.
-            int strokeOverflow = static_cast<int>(ceilf(rt->style()->textStrokeWidth() / 2.0));
-            int visualOverflowLeft = -strokeOverflow;
-            int visualOverflowRight = strokeOverflow;
+            int strokeOverflow = static_cast<int>(ceilf(rt->style()->textStrokeWidth() / 2.0f));
+            
+            // If letter-spacing is negative, we should factor that into right overflow. (Even in RTL, letter-spacing is
+            // applied to the right, so this is not an issue with left overflow.
+            int letterSpacing = min(0, (int)rt->style(m_firstLine)->font().letterSpacing());
+            
+            int leftGlyphOverflow = -strokeOverflow;
+            int rightGlyphOverflow = strokeOverflow - letterSpacing;
+            
+            int visualOverflowLeft = leftGlyphOverflow;
+            int visualOverflowRight = rightGlyphOverflow;
             for (ShadowData* shadow = rt->style()->textShadow(); shadow; shadow = shadow->next) {
-                visualOverflowLeft = min(visualOverflowLeft, shadow->x - shadow->blur - strokeOverflow);
-                visualOverflowRight = max(visualOverflowRight, shadow->x + shadow->blur + strokeOverflow);
+                visualOverflowLeft = min(visualOverflowLeft, shadow->x - shadow->blur + leftGlyphOverflow);
+                visualOverflowRight = max(visualOverflowRight, shadow->x + shadow->blur + rightGlyphOverflow);
             }
+            
             leftPosition = min(x + visualOverflowLeft, leftPosition);
             rightPosition = max(x + text->width() + visualOverflowRight, rightPosition);
             m_maxHorizontalVisualOverflow = max(max(visualOverflowRight, -visualOverflowLeft), m_maxHorizontalVisualOverflow);
@@ -307,8 +349,8 @@ int InlineFlowBox::placeBoxesHorizontally(int x, int& leftPosition, int& rightPo
     }
 
     x += borderRight() + paddingRight();
-    setWidth(x-startX);
-    rightPosition = max(xPos() + width(), rightPosition);
+    setWidth(x - startX);
+    rightPosition = max(xPos() + width() + boxShadowRight, rightPosition);
 
     return x;
 }
@@ -468,14 +510,19 @@ void InlineFlowBox::placeBoxesVertically(int y, int maxHeight, int maxAscent, bo
                 overflowTop = min(overflowTop, shadow->y - shadow->blur);
                 overflowBottom = max(overflowBottom, shadow->y + shadow->blur);
             }
+
+            if (ShadowData* boxShadow = curr->object()->style(m_firstLine)->boxShadow()) {
+                overflowTop = min(overflowTop, boxShadow->y - boxShadow->blur);
+                overflowBottom = max(overflowBottom, boxShadow->y + boxShadow->blur);
+            }
+
             if (curr->isInlineFlowBox()) {
                 newHeight += curr->object()->borderTop() + curr->object()->paddingTop() +
                             curr->object()->borderBottom() + curr->object()->paddingBottom();
                 newY -= curr->object()->borderTop() + curr->object()->paddingTop();
                 newBaseline += curr->object()->borderTop() + curr->object()->paddingTop();
             }
-        }
-        else if (!curr->object()->isBR()) {
+        } else if (!curr->object()->isBR()) {
             newY += curr->object()->marginTop();
             newHeight = curr->height() - (curr->object()->marginTop() + curr->object()->marginBottom());
             overflowTop = curr->object()->overflowTop(false);
@@ -532,7 +579,7 @@ bool InlineFlowBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& re
 {
     // Check children first.
     for (InlineBox* curr = lastChild(); curr; curr = curr->prevOnLine()) {
-        if (!curr->object()->layer() && curr->nodeAtPoint(request, result, x, y, tx, ty)) {
+        if (!curr->object()->hasLayer() && curr->nodeAtPoint(request, result, x, y, tx, ty)) {
             object()->updateHitTestResult(result, IntPoint(x - tx, y - ty));
             return true;
         }
@@ -552,15 +599,26 @@ void InlineFlowBox::paint(RenderObject::PaintInfo& paintInfo, int tx, int ty)
 {
     int xPos = tx + m_x - object()->maximalOutlineSize(paintInfo.phase);
     int w = width() + 2 * object()->maximalOutlineSize(paintInfo.phase);
+    if (ShadowData* boxShadow = object()->style(m_firstLine)->boxShadow()) {
+        int shadowLeft = min(boxShadow->x - boxShadow->blur, 0);
+        xPos += shadowLeft;
+        w += -shadowLeft + max(boxShadow->x + boxShadow->blur, 0);
+    }
     bool intersectsDamageRect = xPos < paintInfo.rect.right() && xPos + w > paintInfo.rect.x();
 
     if (intersectsDamageRect && paintInfo.phase != PaintPhaseChildOutlines) {
         if (paintInfo.phase == PaintPhaseOutline || paintInfo.phase == PaintPhaseSelfOutline) {
             // Add ourselves to the paint info struct's list of inlines that need to paint their
             // outlines.
-            if (object()->style()->visibility() == VISIBLE && object()->hasOutline() &&
-                    !object()->isInlineContinuation() && !isRootInlineBox())
-                paintInfo.outlineObjects->add(flowObject());
+            if (object()->style()->visibility() == VISIBLE && object()->hasOutline() && !isRootInlineBox()) {
+                if ((object()->continuation() || object()->isInlineContinuation()) && !object()->hasLayer()) {
+                    // Add ourselves to the containing block of the entire continuation so that it can
+                    // paint us atomically.
+                    RenderBlock* block = object()->containingBlock()->containingBlock();
+                    block->addContinuationWithOutline(static_cast<RenderFlow*>(object()->element()->renderer()));
+                } else if (!object()->isInlineContinuation())
+                    paintInfo.outlineObjects->add(flowObject());
+            }
         } else {
             // 1. Paint our background, border and box-shadow.
             paintBoxDecorations(paintInfo, tx, ty);
@@ -578,7 +636,7 @@ void InlineFlowBox::paint(RenderObject::PaintInfo& paintInfo, int tx, int ty)
     // 3. Paint our children.
     if (paintPhase != PaintPhaseSelfOutline) {
         for (InlineBox* curr = firstChild(); curr; curr = curr->nextOnLine()) {
-            if (!curr->object()->layer())
+            if (!curr->object()->hasLayer())
                 curr->paint(childInfo, tx, ty);
         }
     }
@@ -737,7 +795,7 @@ void InlineFlowBox::paintTextDecorations(RenderObject::PaintInfo& paintInfo, int
         return;
     
     // We don't want underlines or other decorations when we're trying to draw nothing but the selection as white text.
-    if (paintInfo.phase == PaintPhaseSelection && paintInfo.forceWhiteText)
+    if (paintInfo.phase == PaintPhaseSelection && paintInfo.forceBlackText)
         return;
 
     GraphicsContext* context = paintInfo.context;
@@ -868,5 +926,23 @@ void InlineFlowBox::clearTruncation()
     for (InlineBox *box = firstChild(); box; box = box->nextOnLine())
         box->clearTruncation();
 }
+
+#ifndef NDEBUG
+
+void InlineFlowBox::checkConsistency() const
+{
+#ifdef CHECK_CONSISTENCY
+    ASSERT(!m_hasBadChildList);
+    const InlineBox* prev = 0;
+    for (const InlineBox* child = m_firstChild; child; child = child->nextOnLine()) {
+        ASSERT(child->parent() == this);
+        ASSERT(child->prevOnLine() == prev);
+        prev = child;
+    }
+    ASSERT(prev == m_lastChild);
+#endif
+}
+
+#endif
 
 } // namespace WebCore

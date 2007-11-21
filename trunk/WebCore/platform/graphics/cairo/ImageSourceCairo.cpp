@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2007 Alp Toker <alp.toker@collabora.co.uk>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,6 +26,7 @@
 
 #include "config.h"
 #include "ImageSource.h"
+#include "SharedBuffer.h"
 
 #if PLATFORM(CAIRO)
 
@@ -90,7 +92,13 @@ ImageSource::ImageSource()
 
 ImageSource::~ImageSource()
 {
+    clear();
+}
+
+void ImageSource::clear()
+{
     delete m_decoder;
+    m_decoder = 0;
 }
 
 bool ImageSource::initialized() const
@@ -98,17 +106,17 @@ bool ImageSource::initialized() const
     return m_decoder;
 }
 
-void ImageSource::setData(const Vector<char>* data, bool allDataReceived)
+void ImageSource::setData(SharedBuffer* data, bool allDataReceived)
 {
     // Make the decoder by sniffing the bytes.
     // This method will examine the data and instantiate an instance of the appropriate decoder plugin.
     // If insufficient bytes are available to determine the image type, no decoder plugin will be
     // made.
     delete m_decoder;
-    m_decoder = createDecoder(*data);
+    m_decoder = createDecoder(data->buffer());
     if (!m_decoder)
         return;
-    m_decoder->setData(*data, allDataReceived);
+    m_decoder->setData(data, allDataReceived);
 }
 
 bool ImageSource::isSizeAvailable()
@@ -156,6 +164,15 @@ NativeImagePtr ImageSource::createFrameAtIndex(size_t index)
                                                size().width()*4);
 }
 
+bool ImageSource::frameIsCompleteAtIndex(size_t index)
+{
+    if (!m_decoder)
+        return false;
+
+    RGBA32Buffer* buffer = m_decoder->frameBufferAtIndex(index);
+    return buffer && buffer->status() == RGBA32Buffer::FrameComplete;
+}
+
 float ImageSource::frameDurationAtIndex(size_t index)
 {
     if (!m_decoder)
@@ -165,7 +182,13 @@ float ImageSource::frameDurationAtIndex(size_t index)
     if (!buffer || buffer->status() == RGBA32Buffer::FrameEmpty)
         return 0;
 
-    return buffer->duration() / 1000.0f;
+    // Many annoying ads specify a 0 duration to make an image flash as quickly
+    // as possible.  We follow WinIE's behavior and use a duration of 100 ms
+    // for any frames that specify a duration of <= 50 ms.  See
+    // <http://bugs.webkit.org/show_bug.cgi?id=14413> or Radar 4051389 for
+    // more.
+    const float duration = buffer->duration() / 1000.0f;
+    return (duration < 0.051f) ? 0.100f : duration;
 }
 
 bool ImageSource::frameHasAlphaAtIndex(size_t index)

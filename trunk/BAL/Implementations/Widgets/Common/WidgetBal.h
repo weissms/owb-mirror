@@ -30,10 +30,13 @@
 
 #include "Widget.h"
 #include "BINativeImage.h"
+#include "BTScrollView.h"
 #include "Font.h"
 #include "IntRect.h"
 
 namespace WebCore {
+
+    class WidgetClient;
 
     class WidgetPrivate {
         public:
@@ -51,12 +54,12 @@ namespace WebCore {
             WebCore::IntRect m_dirtyRect;
             WidgetClient* client;
             IntRect geometry;
-            Font font;
+            BAL::Font font;
             int x;
             int y;
             int width;
             int height;
-            BTWidget* m_parent;
+            BAL::BTScrollView* m_parent;
             bool m_isEnabled;
     };
 

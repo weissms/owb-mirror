@@ -3,7 +3,7 @@
 
     Copyright (C) 1998 Lars Knoll (knoll@mpi-hd.mpg.de)
     Copyright (C) 2001 Dirk Mueller <mueller@kde.org>
-    Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     This class provides all functionality needed for loading images, style sheets and html
     pages from the web. It has a memory cache for these objects.
@@ -29,59 +29,97 @@
 
 #include "CachePolicy.h"
 #include "CachedResource.h"
-#include "loader.h"
 #include "PlatformString.h"
 #include "StringHash.h"
-#include <wtf/Vector.h>
-#include <wtf/HashSet.h>
+#include "loader.h"
 #include <wtf/HashMap.h>
+#include <wtf/HashSet.h>
+#include <wtf/Noncopyable.h>
+#include <wtf/Vector.h>
 
 namespace WebCore  {
 
-class CachedCSSStyleSheet;
-class CachedImage;
 class CachedResource;
-class CachedScript;
-class CachedXSLStyleSheet;
 class DocLoader;
-class Image;
 class KURL;
 
-struct LRUList {
-    CachedResource* m_head;
-    CachedResource* m_tail;
-    LRUList() : m_head(0), m_tail(0) { }
-};
+// This cache holds subresources used by Web pages: images, scripts, stylesheets, etc.
 
-typedef HashMap<String, CachedResource*> CachedResourceMap;
+// The cache keeps a flexible but bounded window of dead resources that grows/shrinks 
+// depending on the live resource load. Here's an example of cache growth over time,
+// with a min dead resource capacity of 25% and a max dead resource capacity of 50%:
 
-// This cache hold subresources used by Web pages.  These resources consist of images, scripts and stylesheets.
-class Cache {
+//        |-----|                              Dead: -
+//        |----------|                         Live: +
+//      --|----------|                         Cache boundary: | (objects outside this mark have been evicted)
+//      --|----------++++++++++|
+// -------|-----+++++++++++++++|
+// -------|-----+++++++++++++++|+++++
+
+class Cache : Noncopyable {
 public:
-    Cache();
-       
+    friend Cache* cache();
+
+    typedef HashMap<String, CachedResource*> CachedResourceMap;
+
+    struct LRUList {
+        CachedResource* m_head;
+        CachedResource* m_tail;
+        LRUList() : m_head(0), m_tail(0) { }
+    };
+
+    struct TypeStatistic {
+        int count;
+        int size;
+        int liveSize;
+        int decodedSize;
+        TypeStatistic() : count(0), size(0), liveSize(0), decodedSize(0) { }
+    };
+    
+    struct Statistics {
+        TypeStatistic images;
+        TypeStatistic cssStyleSheets;
+        TypeStatistic scripts;
+#if ENABLE(XSLT)
+        TypeStatistic xslStyleSheets;
+#endif
+#if ENABLE(XBL)
+        TypeStatistic xblDocs;
+#endif
+        TypeStatistic fonts;
+    };
+
     // The loader that fetches resources.
     Loader* loader() { return &m_loader; }
 
     // Request resources from the cache.  A load will be initiated and a cache object created if the object is not
     // found in the cache.
-    CachedResource* requestResource(DocLoader*, CachedResource::Type, const KURL& url, time_t expireDate = 0, const String* charset = 0);
+    CachedResource* requestResource(DocLoader*, CachedResource::Type, const KURL& url, const String* charset = 0, bool skipCanLoadCheck = false, bool sendResourceLoadCallbacks = true);
 
-    // Set/retreive the size of the cache. This will only hold approximately, since the size some 
-    // cached objects (like stylesheets) take up in memory is not exactly known.
-    void setMaximumSize(unsigned bytes);
-    unsigned maximumSize() const { return m_maximumSize; };
+    // Sets the cache's memory capacities, in bytes. These will hold only approximately, 
+    // since the decoded cost of resources like scripts and stylesheets is not known.
+    //  - minDeadBytes: The maximum number of bytes that dead resources should consume when the cache is under pressure.
+    //  - maxDeadBytes: The maximum number of bytes that dead resources should consume when the cache is not under pressure.
+    //  - totalBytes: The maximum number of bytes that the cache should consume overall.
+    void setCapacities(unsigned minDeadBytes, unsigned maxDeadBytes, unsigned totalBytes);
 
     // Turn the cache on and off.  Disabling the cache will remove all resources from the cache.  They may
     // still live on if they are referenced by some Web page though.
     void setDisabled(bool);
     bool disabled() const { return m_disabled; }
     
+    void setPruneEnabled(bool enabled) { m_pruneEnabled = enabled; }
+    void prune()
+    {
+        if (m_liveSize + m_deadSize <= m_capacity && m_deadSize <= m_maxDeadCapacity) // Fast path.
+            return;
+            
+        pruneDeadResources(); // Prune dead first, in case it was "borrowing" capacity from live.
+        pruneLiveResources();
+    }
+
     // Remove an existing cache entry from both the resource map and from the LRU list.
     void remove(CachedResource*);
-
-    // Flush the cache.  Any resources still referenced by Web pages will not be removed by this call.
-    void prune();
 
     void addDocLoader(DocLoader*);
     void removeDocLoader(DocLoader*);
@@ -93,53 +131,55 @@ public:
     void removeFromLRUList(CachedResource*);
 
     // Called to adjust the cache totals when a resource changes size.
-    void adjustSize(bool live, unsigned oldResourceSize, unsigned newResourceSize);
+    void adjustSize(bool live, int delta);
 
-    // Track the size of all resources that are in the cache and still referenced by a Web page. 
-    void addToLiveObjectSize(unsigned s) { m_liveResourcesSize += s; }
-    void removeFromLiveObjectSize(unsigned s) { m_liveResourcesSize -= s; }
+    // Track decoded resources that are in the cache and referenced by a Web page.
+    void insertInLiveDecodedResourcesList(CachedResource*);
+    void removeFromLiveDecodedResourcesList(CachedResource*);
 
-    // Functions to collect cache statistics for the caches window in the Safari Debug menu.
-    struct TypeStatistic {
-        int count;
-        int size;
-        TypeStatistic() : count(0), size(0) { }
-    };
-    
-    struct Statistics {
-        TypeStatistic images;
-        TypeStatistic cssStyleSheets;
-        TypeStatistic scripts;
-#ifdef XSLT_SUPPORT
-        TypeStatistic xslStyleSheets;
-#endif
-#ifdef XBL_SUPPORT
-        TypeStatistic xblDocs;
-#endif
-    };
+    void addToLiveResourcesSize(CachedResource*);
+    void removeFromLiveResourcesSize(CachedResource*);
 
+    // Function to collect cache statistics for the caches window in the Safari Debug menu.
     Statistics getStatistics();
 
 private:
+    Cache();
+    ~Cache(); // Not implemented to make sure nobody accidentally calls delete -- WebCore does not delete singletons.
+       
     LRUList* lruListFor(CachedResource*);
-    
     void resourceAccessed(CachedResource*);
+#ifndef NDEBUG
+    void dumpLRULists(bool includeLive) const;
+#endif
 
-private:
+    unsigned liveCapacity() const;
+    unsigned deadCapacity() const;
+    
+    void pruneDeadResources(); // Flush decoded and encoded data from resources not referenced by Web pages.
+    void pruneLiveResources(); // Flush decoded data from resources still referenced by Web pages.
+
     // Member variables.
     HashSet<DocLoader*> m_docLoaders;
     Loader m_loader;
 
     bool m_disabled;  // Whether or not the cache is enabled.
+    bool m_pruneEnabled;
 
-    unsigned m_maximumSize;  // The maximum size in bytes that the global cache can consume.
-    unsigned m_currentSize;  // The current size of the global cache in bytes.
-    unsigned m_liveResourcesSize; // The current size of "live" resources that cannot be flushed.
+    unsigned m_capacity;
+    unsigned m_minDeadCapacity;
+    unsigned m_maxDeadCapacity;
+
+    unsigned m_liveSize; // The number of bytes currently consumed by "live" resources in the cache.
+    unsigned m_deadSize; // The number of bytes currently consumed by "dead" resources in the cache.
 
     // Size-adjusted and popularity-aware LRU list collection for cache objects.  This collection can hold
     // more resources than the cached resource map, since it can also hold "stale" muiltiple versions of objects that are
     // waiting to die when the clients referencing them go away.
-    Vector<LRUList, 32> m_lruLists;
+    Vector<LRUList, 32> m_allResources;
+    
+    // List just for live resources with decoded data.  Access to this list is based off of painting the resource.
+    LRUList m_liveDecodedResources;
     
     // A URL-based map of all resources that are in the cache (including the freshest version of objects that are currently being 
     // referenced by a Web page).

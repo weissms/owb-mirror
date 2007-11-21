@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGStyledTransformableElement_h
 #define SVGStyledTransformableElement_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGStyledLocatableElement.h"
 #include "SVGTransformable.h"
@@ -42,31 +42,31 @@ namespace WebCore {
         
         virtual bool isStyledTransformable() const { return true; }
 
-        // 'SVGTransformable' functions
-        virtual AffineTransform localMatrix() const;
-
         // Derived from: 'SVGLocatable'
         virtual AffineTransform getCTM() const;
         virtual AffineTransform getScreenCTM() const;
         virtual SVGElement* nearestViewportElement() const;
         virtual SVGElement* farthestViewportElement() const;
+        
+        virtual AffineTransform animatedLocalTransform() const;
 
         virtual FloatRect getBBox() const;
 
-        virtual void parseMappedAttribute(MappedAttribute* attr);
-
-        void updateLocalTransform(SVGTransformList* localTransforms);
+        virtual void parseMappedAttribute(MappedAttribute*);
         
-        virtual void attach();
+        // "base class" methods for all the elements which render as paths
+        virtual Path toPathData() const { return Path(); }
+        virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
+        
+        virtual void notifyAttributeChange() const;
 
     protected:
-        mutable AffineTransform m_localMatrix;
         ANIMATED_PROPERTY_DECLARATIONS(SVGStyledTransformableElement, SVGTransformList*, RefPtr<SVGTransformList>, Transform, transform)
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGStyledTransformableElement_h
 
 // vim:ts=4:noet

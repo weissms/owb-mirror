@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -33,16 +33,35 @@ class HTMLElement;
 
 class HTMLDocument : public Document, public CachedResourceClient {
 public:
-    HTMLDocument(DOMImplementation*, FrameView* = 0);
+    HTMLDocument(DOMImplementation*, Frame*);
     virtual ~HTMLDocument();
 
     virtual bool isHTMLDocument() const { return true; }
 
-    String lastModified() const;
-    String cookie() const;
-    void setCookie(const String&);
+    int width();
+    int height();
 
-    void setBody(HTMLElement*, ExceptionCode&);
+    String dir();
+    void setDir(const String&);
+
+    String designMode() const;
+    void setDesignMode(const String&);
+
+    String compatMode() const;
+
+    String bgColor();
+    void setBgColor(const String&);
+    String fgColor();
+    void setFgColor(const String&);
+    String alinkColor();
+    void setAlinkColor(const String&);
+    String linkColor();
+    void setLinkColor(const String&);
+    String vlinkColor();
+    void setVlinkColor(const String&);
+
+    void captureEvents();
+    void releaseEvents();
 
     virtual Tokenizer* createTokenizer();
 

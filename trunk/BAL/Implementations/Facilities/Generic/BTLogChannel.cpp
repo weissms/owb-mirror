@@ -44,10 +44,10 @@
 namespace BALFacilities {
 
 BTLogChannel::BTLogChannel()
-	: m_logFormatter(0)
-	, m_isActive(true)
-	, m_levelThreshold(0)
-	, m_isSynchronized(true)
+    : m_logFormatter(0)
+    , m_isActive(true)
+    , m_levelThreshold(0)
+    , m_isSynchronized(true)
 {
 }
 

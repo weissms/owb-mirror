@@ -19,15 +19,15 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #ifndef NamedAttrMap_h
 #define NamedAttrMap_h
 
-#include "Element.h"
+#include "Attribute.h"
 #include "NamedNodeMap.h"
 
 #ifdef __OBJC__
@@ -40,7 +40,7 @@ namespace WebCore {
 class NamedAttrMap : public NamedNodeMap {
     friend class Element;
 public:
-    NamedAttrMap(Element *e);
+    NamedAttrMap(Element*);
     virtual ~NamedAttrMap();
     NamedAttrMap(const NamedAttrMap&);
     NamedAttrMap &operator =(const NamedAttrMap &other);
@@ -61,16 +61,16 @@ public:
     unsigned length() const { return len; }
 
     // Other methods (not part of DOM)
-    Attribute* attributeItem(unsigned index) const { return attrs ? attrs[index] : 0; }
+    Attribute* attributeItem(unsigned index) const { return attrs[index]; }
     Attribute* getAttributeItem(const QualifiedName& name) const;
     Attribute* getAttributeItem(const String& name) const;
-    virtual bool isReadOnlyNode() { return element ? element->isReadOnlyNode() : false; }
+    virtual bool isReadOnlyNode();
 
     // used during parsing: only inserts if not already there
     // no error checking!
-    void insertAttribute(Attribute* newAttribute) {
-        assert(!element);
-        if (!getAttributeItem(newAttribute->name()))
+    void insertAttribute(Attribute* newAttribute, bool allowDuplicates) {
+        ASSERT(!element);
+        if (allowDuplicates || !getAttributeItem(newAttribute->name()))
             addAttribute(newAttribute);
         else
             newAttribute->deref();

@@ -24,71 +24,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "config.h"
-#import "Editor.h"
+#include "config.h"
+#include "Editor.h"
 
-#import "ClipboardAccessPolicy.h"
-#import "Clipboard.h"
-#import "Document.h"
-#import "Element.h"
-#import "Selection.h"
-#import "SelectionController.h"
-#import "TextIterator.h"
-#import "htmlediting.h"
-#import "visible_units.h"
+#include "ClipboardAccessPolicy.h"
+#include "ClipboardQt.h"
+#include "Document.h"
+#include "Element.h"
+#include "Selection.h"
+#include "SelectionController.h"
+#include "TextIterator.h"
+#include "htmlediting.h"
+#include "visible_units.h"
+
+#include <QApplication>
+#include <QClipboard>
 
 namespace WebCore {
 
 PassRefPtr<Clipboard> Editor::newGeneralClipboard(ClipboardAccessPolicy policy)
 {
-    return 0;
-}
-
-void Editor::ignoreSpelling()
-{
-    String text = frame()->selectedText();
-}
-
-void Editor::learnSpelling()
-{
-    String text = frame()->selectedText();
-}
-
-void Editor::advanceToNextMisspelling(bool startBeforeSelection)
-{
-
-}
-
-bool Editor::isSelectionMisspelled()
-{
-    return false;
-}
-
-bool Editor::isSelectionUngrammatical()
-{
-    return false;
-}
-
-Vector<String> Editor::guessesForUngrammaticalSelection()
-{
-    return Vector<String>();
-}
-
-Vector<String> Editor::guessesForMisspelledSelection()
-{
-    String selectedString = frame()->selectedText();
-    return Vector<String>();
-}
-
-void Editor::markMisspellingsAfterTypingToPosition(const VisiblePosition &p)
-{
-    if (!isContinuousSpellCheckingEnabled())
-        return;
-}
-
-void Editor::markMisspellings(const Selection& selection)
-{
-
+    return new ClipboardQt(policy, QApplication::clipboard()->mimeData(), false); 
 }
 
 } // namespace WebCore

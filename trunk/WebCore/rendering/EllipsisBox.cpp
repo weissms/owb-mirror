@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -26,7 +26,6 @@
 #include "GraphicsContext.h"
 #include "HitTestResult.h"
 #include "TextStyle.h"
-#include "Font.h"
 
 namespace WebCore {
 
@@ -49,7 +48,7 @@ void EllipsisBox::paint(RenderObject::PaintInfo& paintInfo, int tx, int ty)
 
     const String& str = m_str;
     TextStyle textStyle(0, 0, 0, false, style->visuallyOrdered());
-    context->drawText(TextRun(str.impl()), IntPoint(m_x + tx, m_y + ty + m_baseline), textStyle);
+    context->drawText(TextRun(str.characters(), str.length()), IntPoint(m_x + tx, m_y + ty + m_baseline), textStyle);
 
     if (setShadow)
         context->clearShadow();

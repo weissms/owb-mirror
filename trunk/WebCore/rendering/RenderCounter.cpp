@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -135,32 +135,38 @@ static bool planCounter(RenderObject* object, const AtomicString& counterName, b
 static bool findPlaceForCounter(RenderObject* object, const AtomicString& counterName,
     bool isReset, CounterNode*& parent, CounterNode*& previousSibling)
 {
-    // Look for the parent node.
-    // Start with the render tree parent for a reset node, or the render tree sibling for an increment node.
-    parent = 0;
-    RenderObject* candidate = isReset ? object->parent() : previousSiblingOrParent(object);
-    for (; candidate; candidate = previousSiblingOrParent(candidate))
-        if (CounterNode* c = counter(candidate, counterName, false))
-            if (c->isReset()) {
-                parent = c;
-                break;
-            }
-    if (!parent)
-        return false;
-
     // Find the appropriate previous sibling for insertion into the parent node
     // by searching in render tree order for a child of the counter.
+    parent = 0;
     previousSibling = 0;
-    candidate = object;
-    while ((candidate = candidate->previousInPreOrder())) {
-        CounterNode* c = counter(candidate, counterName, false);
-        if (c && c->parent() == parent) {
-            previousSibling = c;
-            break;
+    RenderObject* resetCandidate = isReset ? object->parent() : previousSiblingOrParent(object);
+    RenderObject* prevCounterCandidate = object;
+    CounterNode* candidateCounter = 0;
+    while ((prevCounterCandidate = prevCounterCandidate->previousInPreOrder())) {
+        CounterNode* c = counter(prevCounterCandidate, counterName, false);
+        if (prevCounterCandidate == resetCandidate) {
+            if (!candidateCounter)
+                candidateCounter = c;
+            if (candidateCounter) {
+                if (candidateCounter->isReset()) {
+                    parent = candidateCounter;
+                    previousSibling = 0;
+                } else {
+                    parent = candidateCounter->parent();
+                    previousSibling = candidateCounter;
+                }
+                return true;
+            }
+            resetCandidate = previousSiblingOrParent(resetCandidate);
+        } else if (c) {
+            if (c->isReset())
+                candidateCounter = 0;
+            else if (!candidateCounter)
+                candidateCounter = c;
         }
     }
 
-    return true;
+    return false;
 }
 
 static CounterNode* counter(RenderObject* object, const AtomicString& counterName, bool alwaysCreateCounter)
@@ -202,7 +208,7 @@ static CounterNode* counter(RenderObject* object, const AtomicString& counterNam
 }
 
 RenderCounter::RenderCounter(Document* node, const CounterContent& counter)
-    : RenderText(node, 0)
+    : RenderText(node, StringImpl::empty())
     , m_counter(counter)
     , m_counterNode(0)
 {
@@ -224,7 +230,7 @@ PassRefPtr<StringImpl> RenderCounter::originalText() const
         return 0;
 
     if (!m_counterNode)
-        m_counterNode = counter(const_cast<RenderCounter*>(this), m_counter.identifier(), true);
+        m_counterNode = counter(parent(), m_counter.identifier(), true);
 
     CounterNode* child = m_counterNode;
     int value = child->isReset() ? child->value() : child->countInParent();
@@ -244,10 +250,17 @@ PassRefPtr<StringImpl> RenderCounter::originalText() const
     return text.impl();
 }
 
-void RenderCounter::calcMinMaxWidth()
+void RenderCounter::dirtyLineBoxes(bool fullLayout, bool dummy)
+{
+    if (prefWidthsDirty())
+        calcPrefWidths(0);
+    RenderText::dirtyLineBoxes(fullLayout, dummy);
+}
+
+void RenderCounter::calcPrefWidths(int lead)
 {
     setTextInternal(originalText());
-    RenderText::calcMinMaxWidth();
+    RenderText::calcPrefWidths(lead);
 }
 
 static void destroyCounterNodeChildren(AtomicStringImpl* identifier, CounterNode* node)

@@ -17,14 +17,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 #include "HTMLImageElement.h"
 
-#include "csshelper.h"
+#include "CSSHelper.h"
 #include "CSSPropertyNames.h"
 #include "CSSValueKeywords.h"
 #include "EventNames.h"
@@ -89,7 +89,7 @@ void HTMLImageElement::parseMappedAttribute(MappedAttribute* attr)
 {
     const QualifiedName& attrName = attr->name();
     if (attrName == altAttr) {
-        if (renderer())
+        if (renderer() && renderer()->isImage())
             static_cast<RenderImage*>(renderer())->updateAltText();
     } else if (attrName == srcAttr)
         m_imageLoader.updateFromElement();
@@ -139,6 +139,16 @@ void HTMLImageElement::parseMappedAttribute(MappedAttribute* attr)
             doc->addNamedItem(newNameAttr);
         }
         oldNameAttr = newNameAttr;
+    } else if (attr->name() == idAttr) {
+        String newIdAttr = attr->value();
+        if (inDocument() && document()->isHTMLDocument()) {
+            HTMLDocument *doc = static_cast<HTMLDocument *>(document());
+            doc->removeDocExtraNamedItem(oldIdAttr);
+            doc->addDocExtraNamedItem(newIdAttr);
+        }
+        oldIdAttr = newIdAttr;
+        // also call superclass
+        HTMLElement::parseMappedAttribute(attr);
     } else
         HTMLElement::parseMappedAttribute(attr);
 }
@@ -167,7 +177,7 @@ void HTMLImageElement::attach()
 {
     HTMLElement::attach();
 
-    if (renderer()) {
+    if (renderer() && renderer()->isImage()) {
         RenderImage* imageObj = static_cast<RenderImage*>(renderer());
         imageObj->setCachedImage(m_imageLoader.image());
         
@@ -180,18 +190,24 @@ void HTMLImageElement::attach()
 
 void HTMLImageElement::insertedIntoDocument()
 {
-    Document* doc = document();
-    if (doc->isHTMLDocument())
-        static_cast<HTMLDocument*>(doc)->addNamedItem(oldNameAttr);
+    if (document()->isHTMLDocument()) {
+        HTMLDocument* doc = static_cast<HTMLDocument*>(document());
+
+        doc->addNamedItem(oldNameAttr);
+        doc->addDocExtraNamedItem(oldIdAttr);
+    }
 
     HTMLElement::insertedIntoDocument();
 }
 
 void HTMLImageElement::removedFromDocument()
 {
-    Document* doc = document();
-    if (doc->isHTMLDocument())
-        static_cast<HTMLDocument*>(doc)->removeNamedItem(oldNameAttr);
+    if (document()->isHTMLDocument()) {
+        HTMLDocument* doc = static_cast<HTMLDocument*>(document());
+
+        doc->removeNamedItem(oldNameAttr);
+        doc->removeDocExtraNamedItem(oldIdAttr);
+    }
 
     HTMLElement::removedFromDocument();
 }
@@ -240,10 +256,27 @@ int HTMLImageElement::height(bool ignorePendingStylesheets) const
     return renderer() ? renderer()->contentHeight() : 0;
 }
 
+int HTMLImageElement::naturalWidth() const
+{
+    if (!m_imageLoader.image())
+        return 0;
+
+    return m_imageLoader.image()->imageSize().width();
+}
+
+int HTMLImageElement::naturalHeight() const
+{
+    if (!m_imageLoader.image())
+        return 0;
+    
+    return m_imageLoader.image()->imageSize().height();
+}
+    
 bool HTMLImageElement::isURLAttribute(Attribute* attr) const
 {
     return attr->name() == srcAttr
         || attr->name() == lowsrcAttr
+        || attr->name() == longdescAttr
         || (attr->name() == usemapAttr && attr->value().domString()[0] != '#');
 }
 
@@ -315,7 +348,7 @@ void HTMLImageElement::setIsMap(bool isMap)
 
 String HTMLImageElement::longDesc() const
 {
-    return getAttribute(longdescAttr);
+    return document()->completeURL(getAttribute(longdescAttr));
 }
 
 void HTMLImageElement::setLongDesc(const String& value)

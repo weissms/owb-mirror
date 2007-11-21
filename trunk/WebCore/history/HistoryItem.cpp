@@ -26,26 +26,26 @@
 #include "config.h"
 #include "HistoryItem.h"
 
+#include "Document.h"
 #include "FrameLoader.h"
-#include "HistoryItemTimer.h"
+#ifdef OWB_ICON_SUPPORT
 #include "IconDatabase.h"
+#endif //OWB_ICON_SUPPORT
 #include "IntSize.h"
 #include "KURL.h"
 #include "Logging.h"
 #include "PageCache.h"
 #include "ResourceRequest.h"
-#include "SystemTime.h"
 
 namespace WebCore {
 
-void defaultNotifyHistoryItemChanged() {}
+static void defaultNotifyHistoryItemChanged() {}
 void (*notifyHistoryItemChanged)() = defaultNotifyHistoryItemChanged;
 
 HistoryItem::HistoryItem()
     : m_lastVisitedTime(0)
-    , m_pageCacheIsPendingRelease(false)
+    , m_isInPageCache(false)
     , m_isTargetItem(false)
-    , m_alwaysAttemptToUsePageCache(false)
     , m_visitCount(0)
 {
 }
@@ -55,13 +55,27 @@ HistoryItem::HistoryItem(const String& urlString, const String& title, double ti
     , m_originalURLString(urlString)
     , m_title(title)
     , m_lastVisitedTime(time)
-    , m_pageCacheIsPendingRelease(false)
+    , m_isInPageCache(false)
     , m_isTargetItem(false)
-    , m_alwaysAttemptToUsePageCache(false)
+    , m_visitCount(0)
+{ 
+#ifdef OWB_ICON_SUPPORT
+    iconDatabase()->retainIconForPageURL(m_urlString);
+#endif //OWB_ICON_SUPPORT
+}
+
+HistoryItem::HistoryItem(const String& urlString, const String& title, const String& alternateTitle, double time)
+    : m_urlString(urlString)
+    , m_originalURLString(urlString)
+    , m_title(title)
+    , m_displayTitle(alternateTitle)
+    , m_lastVisitedTime(time)
+    , m_isInPageCache(false)
+    , m_isTargetItem(false)
     , m_visitCount(0)
 {    
 #ifdef OWB_ICON_SUPPORT
-    retainIconInDatabase(true);
+    iconDatabase()->retainIconForPageURL(m_urlString);
 #endif //OWB_ICON_SUPPORT
 }
 
@@ -70,13 +84,12 @@ HistoryItem::HistoryItem(const KURL& url, const String& title)
     , m_originalURLString(url.url())
     , m_title(title)
     , m_lastVisitedTime(0)
-    , m_pageCacheIsPendingRelease(false)
+    , m_isInPageCache(false)
     , m_isTargetItem(false)
-    , m_alwaysAttemptToUsePageCache(false)
     , m_visitCount(0)
 {    
 #ifdef OWB_ICON_SUPPORT
-    retainIconInDatabase(true);
+    iconDatabase()->retainIconForPageURL(m_urlString);
 #endif //OWB_ICON_SUPPORT
 }
 
@@ -87,20 +100,20 @@ HistoryItem::HistoryItem(const KURL& url, const String& target, const String& pa
     , m_parent(parent)
     , m_title(title)
     , m_lastVisitedTime(0)
-    , m_pageCacheIsPendingRelease(false)
+    , m_isInPageCache(false)
     , m_isTargetItem(false)
-    , m_alwaysAttemptToUsePageCache(false)
     , m_visitCount(0)
 {    
 #ifdef OWB_ICON_SUPPORT
-    retainIconInDatabase(true);
+    iconDatabase()->retainIconForPageURL(m_urlString);
 #endif //OWB_ICON_SUPPORT
 }
 
 HistoryItem::~HistoryItem()
 {
+    ASSERT(!m_isInPageCache);
 #ifdef OWB_ICON_SUPPORT
-    retainIconInDatabase(false);
+    iconDatabase()->releaseIconForPageURL(m_urlString);
 #endif //OWB_ICON_SUPPORT
 }
 
@@ -114,10 +127,8 @@ HistoryItem::HistoryItem(const HistoryItem& item)
     , m_displayTitle(item.m_displayTitle)
     , m_lastVisitedTime(item.m_lastVisitedTime)
     , m_scrollPoint(item.m_scrollPoint)
-    , m_subItems(item.m_subItems.size())
-    , m_pageCacheIsPendingRelease(false)
+    , m_isInPageCache(item.m_isInPageCache)
     , m_isTargetItem(item.m_isTargetItem)
-    , m_alwaysAttemptToUsePageCache(item.m_alwaysAttemptToUsePageCache)
     , m_visitCount(item.m_visitCount)
     , m_formContentType(item.m_formContentType)
     , m_formReferrer(item.m_formReferrer)
@@ -127,6 +138,7 @@ HistoryItem::HistoryItem(const HistoryItem& item)
         m_formData = item.m_formData->copy();
         
     unsigned size = item.m_subItems.size();
+    m_subItems.reserveCapacity(size);
     for (unsigned i = 0; i < size; ++i)
         m_subItems.append(item.m_subItems[i]->copy());
 }
@@ -135,31 +147,6 @@ PassRefPtr<HistoryItem> HistoryItem::copy() const
 {
     return new HistoryItem(*this);
 }
-
-void HistoryItem::setHasPageCache(bool hasCache)
-{
-    LOG(PageCache, "WebCorePageCache - HistoryItem %p setting has page cache to %s", this, hasCache ? "TRUE" : "FALSE" );
-        
-    if (hasCache) {
-        if (!m_pageCache)
-            m_pageCache = new PageCache;
-        else if (m_pageCacheIsPendingRelease)
-            cancelRelease();
-    } else if (m_pageCache)
-        scheduleRelease();
-}
-
-#ifdef OWB_ICON_SUPPORT
-void HistoryItem::retainIconInDatabase(bool retain)
-{
-    if (!m_urlString.isEmpty()) {
-        if (retain)
-            IconDatabase::sharedIconDatabase()->retainIconForPageURL(m_urlString);
-        else
-            IconDatabase::sharedIconDatabase()->releaseIconForPageURL(m_urlString);
-    }
-}
-#endif //OWB_ICON_SUPPORT
 
 const String& HistoryItem::urlString() const
 {
@@ -183,13 +170,15 @@ const String& HistoryItem::alternateTitle() const
     return m_displayTitle;
 }
 
-#ifdef OWB_ICON_SUPPORT
 Image* HistoryItem::icon() const
 {
-    Image* result = IconDatabase::sharedIconDatabase()->iconForPageURL(m_urlString, IntSize(16,16));
-    return result ? result : IconDatabase::sharedIconDatabase()->defaultIcon(IntSize(16,16));
-}
+#ifdef OWB_ICON_SUPPORT
+    Image* result = iconDatabase()->iconForPageURL(m_urlString, IntSize(16,16));
+    return result ? result : iconDatabase()->defaultIcon(IntSize(16,16));
+#else
+	return 0;
 #endif //OWB_ICON_SUPPORT
+}
 
 double HistoryItem::lastVisitedTime() const
 {
@@ -224,23 +213,22 @@ void HistoryItem::setAlternateTitle(const String& alternateTitle)
 
 void HistoryItem::setURLString(const String& urlString)
 {
+#ifdef OWB_ICON_SUPPORT
     if (m_urlString != urlString) {
-#ifdef OWB_ICON_SUPPORT
-        retainIconInDatabase(false);
-#endif //OWB_ICON_SUPPORT
+        iconDatabase()->releaseIconForPageURL(m_urlString);
         m_urlString = urlString;
-#ifdef OWB_ICON_SUPPORT
-        retainIconInDatabase(true);
-#endif //OWB_ICON_SUPPORT
+        iconDatabase()->retainIconForPageURL(m_urlString);
     }
+#endif //OWB_ICON_SUPPORT
     
     notifyHistoryItemChanged();
 }
 
 void HistoryItem::setURL(const KURL& url)
 {
+    pageCache()->remove(this);
     setURLString(url.url());
-    setHasPageCache(false);
+    clearDocumentState();
 }
 
 void HistoryItem::setOriginalURLString(const String& urlString)
@@ -325,16 +313,6 @@ void HistoryItem::setIsTargetItem(bool flag)
     m_isTargetItem = flag;
 }
 
-bool HistoryItem::alwaysAttemptToUsePageCache() const
-{
-    return m_alwaysAttemptToUsePageCache;
-}
-
-void HistoryItem::setAlwaysAttemptToUsePageCache(bool flag)
-{
-    m_alwaysAttemptToUsePageCache = flag;
-}
-
 void HistoryItem::addChildItem(PassRefPtr<HistoryItem> child)
 {
     m_subItems.append(child);
@@ -373,20 +351,6 @@ HistoryItem* HistoryItem::targetItem()
     if (!m_subItems.size())
         return this;
     return recurseToFindTargetItem();
-}
-
-PageCache* HistoryItem::pageCache()
-{
-    if (m_pageCacheIsPendingRelease)
-        return 0;
-    return m_pageCache.get();
-}
-
-bool HistoryItem::hasPageCache() const
-{
-    if (m_pageCacheIsPendingRelease)
-        return false;
-    return m_pageCache;
 }
 
 const HistoryItemVector& HistoryItem::children() const
@@ -439,6 +403,12 @@ FormData* HistoryItem::formData()
     return m_formData.get();
 }
 
+bool HistoryItem::isCurrentDocument(Document* doc) const
+{
+    // FIXME: We should find a better way to check if this is the current document.
+    return urlString() == doc->URL();
+}
+
 void HistoryItem::mergeAutoCompleteHints(HistoryItem* otherItem)
 {
     ASSERT(otherItem);
@@ -446,77 +416,6 @@ void HistoryItem::mergeAutoCompleteHints(HistoryItem* otherItem)
         m_visitCount += otherItem->m_visitCount;
 }
 
-// Timer management functions
-
-static HistoryItemTimer& timer()
-{
-    static HistoryItemTimer historyItemTimer;
-    return historyItemTimer;
-}
-
-static HashSet<RefPtr<HistoryItem> >& itemsWithPendingPageCacheToRelease()
-{
-    // We keep this on the heap because otherwise, at app shutdown, we run into the "static destruction order fiasco" 
-    // where the vector is torn down, the PageCaches destroyed, and all havok may break loose.  Instead, we just leak at shutdown
-    // since nothing here persists
-    static HashSet<RefPtr<HistoryItem> >* itemsWithPendingPageCacheToRelease = new HashSet<RefPtr<HistoryItem> >;
-    return *itemsWithPendingPageCacheToRelease;
-}
-
-void HistoryItem::releasePageCachesOrReschedule()
-{
-    double loadDelta = currentTime() - FrameLoader::timeOfLastCompletedLoad();
-    float userDelta = userIdleTime();
-    
-    // FIXME: This size of 42 pending caches to release seems awfully arbitrary
-    // Wonder if anyone knows the rationalization
-    if ((userDelta < 0.5 || loadDelta < 1.25) && itemsWithPendingPageCacheToRelease().size() < 42) {
-        LOG(PageCache, "WebCorePageCache: Postponing releasePageCachesOrReschedule() - %f since last load, %f since last input, %i objects pending release", loadDelta, userDelta, itemsWithPendingPageCacheToRelease().size());
-        timer().schedule();
-        return;
-    }
-
-    LOG(PageCache, "WebCorePageCache: Releasing page caches - %f seconds since last load, %f since last input, %i objects pending release", loadDelta, userDelta, itemsWithPendingPageCacheToRelease().size());
-    releaseAllPendingPageCaches();
-}
-
-void HistoryItem::releasePageCache()
-{
-    m_pageCache->close();
-    m_pageCache = 0;
-    m_pageCacheIsPendingRelease = false;
-}
-
-void HistoryItem::releaseAllPendingPageCaches()
-{
-    timer().invalidate();
-
-    HashSet<RefPtr<HistoryItem> >::iterator i = itemsWithPendingPageCacheToRelease().begin();
-    HashSet<RefPtr<HistoryItem> >::iterator end = itemsWithPendingPageCacheToRelease().end();
-    for (; i != end; ++i)
-        (*i)->releasePageCache();
-
-    itemsWithPendingPageCacheToRelease().clear();
-}
-
-void HistoryItem::scheduleRelease()
-{
-    LOG (PageCache, "WebCorePageCache: Scheduling release of %s", m_urlString.ascii().data());
-    // Don't reschedule the timer if its already running
-    if (!timer().isActive())
-        timer().schedule();
-
-    if (m_pageCache && !m_pageCacheIsPendingRelease) {
-        m_pageCacheIsPendingRelease = true;
-        itemsWithPendingPageCacheToRelease().add(this);
-    }
-}
-
-void HistoryItem::cancelRelease()
-{
-    itemsWithPendingPageCacheToRelease().remove(this);
-    m_pageCacheIsPendingRelease = false;
-}
 #ifndef NDEBUG
 int HistoryItem::showTree() const
 {

@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGStyledTransformableElement.h"
 
@@ -39,7 +39,7 @@ namespace WebCore {
 SVGStyledTransformableElement::SVGStyledTransformableElement(const QualifiedName& tagName, Document* doc)
     : SVGStyledLocatableElement(tagName, doc)
     , SVGTransformable()
-    , m_transform(new SVGTransformList)
+    , m_transform(new SVGTransformList())
 {
 }
 
@@ -48,11 +48,6 @@ SVGStyledTransformableElement::~SVGStyledTransformableElement()
 }
 
 ANIMATED_PROPERTY_DEFINITIONS(SVGStyledTransformableElement, SVGTransformList*, TransformList, transformList, Transform, transform, SVGNames::transformAttr.localName(), m_transform.get())
-
-AffineTransform SVGStyledTransformableElement::localMatrix() const
-{
-    return m_localMatrix;
-}
 
 AffineTransform SVGStyledTransformableElement::getCTM() const
 {
@@ -64,17 +59,9 @@ AffineTransform SVGStyledTransformableElement::getScreenCTM() const
     return SVGTransformable::getScreenCTM(this);
 }
 
-void SVGStyledTransformableElement::updateLocalTransform(SVGTransformList* localTransforms)
+AffineTransform SVGStyledTransformableElement::animatedLocalTransform() const
 {
-    // Update cached local matrix
-    SVGTransform localTransform = localTransforms->concatenate();
-    if (localTransform.isValid()) {
-        m_localMatrix = localTransform.matrix();
-        if (renderer()) {
-            renderer()->setLocalTransform(m_localMatrix);
-            renderer()->setNeedsLayout(true);
-        }
-    }
+    return transform()->concatenate().matrix();
 }
 
 void SVGStyledTransformableElement::parseMappedAttribute(MappedAttribute* attr)
@@ -87,8 +74,11 @@ void SVGStyledTransformableElement::parseMappedAttribute(MappedAttribute* attr)
  
         if (!SVGTransformable::parseTransformAttribute(localTransforms, attr->value()))
             localTransforms->clear(ec);
-        else
-            updateLocalTransform(localTransforms);
+        else {
+            setTransformBaseValue(localTransforms);
+            if (renderer())
+                renderer()->setNeedsLayout(true); // should really be in setTransform
+        }
     } else
         SVGStyledLocatableElement::parseMappedAttribute(attr);
 }
@@ -108,16 +98,21 @@ FloatRect SVGStyledTransformableElement::getBBox() const
     return SVGTransformable::getBBox(this);
 }
 
-void SVGStyledTransformableElement::attach()
+void SVGStyledTransformableElement::notifyAttributeChange() const
 {
-    SVGStyledElement::attach();
+    if (renderer())
+        renderer()->setNeedsLayout(true);
+    SVGStyledLocatableElement::notifyAttributeChange();
+}
 
-    if (renderer() && !m_localMatrix.isIdentity())
-        renderer()->setLocalTransform(m_localMatrix);
+RenderObject* SVGStyledTransformableElement::createRenderer(RenderArena* arena, RenderStyle* style)
+{
+    // By default, any subclass is expected to do path-based drawing
+    return new (arena) RenderPath(style, this);
 }
 
 }
+
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
-

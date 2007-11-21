@@ -20,8 +20,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef RenderTableSection_h
@@ -39,7 +39,7 @@ public:
     RenderTableSection(Node*);
     ~RenderTableSection();
 
-    virtual const char* renderName() const { return "RenderTableSection"; }
+    virtual const char* renderName() const { return isAnonymous() ? "RenderTableSection (anonymous)" : "RenderTableSection"; }
 
     virtual bool isTableSection() const { return true; }
 
@@ -70,7 +70,7 @@ public:
     struct RowStruct {
         Row* row;
         RenderObject* rowRenderer;
-        int baseLine;
+        int baseline;
         Length height;
     };
 
@@ -119,9 +119,9 @@ public:
         table()->setNeedsSectionRecalc();
     }
 
-    int getBaseline(int row) { return m_grid[row].baseLine; }
+    int getBaseline(int row) { return m_grid[row].baseline; }
 
-    virtual RenderObject* removeChildNode(RenderObject*);
+    virtual RenderObject* removeChildNode(RenderObject*, bool fullRemove = true);
 
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
 

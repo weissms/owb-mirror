@@ -80,6 +80,13 @@ public:
     void setWidth(int width) { m_size.setWidth(width); }
     void setHeight(int height) { m_size.setHeight(height); }
 
+    // Be careful with these functions.  The point is considered to be to the right and below.  These are not
+    // substitutes for right() and bottom().
+    IntPoint topLeft() const { return m_location; }
+    IntPoint topRight() const { return IntPoint(right() - 1, y()); }
+    IntPoint bottomLeft() const { return IntPoint(x(), bottom() - 1); }
+    IntPoint bottomRight() const { return IntPoint(right() - 1, bottom() - 1); }
+
     bool isEmpty() const { return m_size.isEmpty(); }
 
     int right() const { return x() + width(); }

@@ -1,7 +1,7 @@
 // -*- c-basic-offset: 2 -*-
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2000,2003 Harri Porten (porten@kde.org)
+ *  Copyright (C) 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -15,7 +15,8 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+ *  USA
  *
  */
 
@@ -26,6 +27,7 @@
 #include "dtoa.h"
 #include "error_object.h"
 #include "operations.h"
+#include <wtf/Assertions.h>
 #include <wtf/MathExtras.h>
 #include <wtf/Vector.h>
 
@@ -52,22 +54,22 @@ NumberPrototype::NumberPrototype(ExecState *exec,
 
   // The constructor will be added later, after NumberObjectImp has been constructed
 
-  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToString,       1, toStringPropertyName), DontEnum);
-  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToLocaleString, 0, toLocaleStringPropertyName), DontEnum);
-  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ValueOf,        0, valueOfPropertyName), DontEnum);
-  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToFixed,        1, toFixedPropertyName), DontEnum);
-  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToExponential,  1, toExponentialPropertyName), DontEnum);
-  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToPrecision,    1, toPrecisionPropertyName), DontEnum);
+  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToString,       1, exec->propertyNames().toString), DontEnum);
+  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToLocaleString, 0, exec->propertyNames().toLocaleString), DontEnum);
+  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ValueOf,        0, exec->propertyNames().valueOf), DontEnum);
+  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToFixed,        1, exec->propertyNames().toFixed), DontEnum);
+  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToExponential,  1, exec->propertyNames().toExponential), DontEnum);
+  putDirectFunction(new NumberProtoFunc(exec, funcProto, NumberProtoFunc::ToPrecision,    1, exec->propertyNames().toPrecision), DontEnum);
 }
 
 
 // ------------------------------ NumberProtoFunc ---------------------------
 
-NumberProtoFunc::NumberProtoFunc(ExecState*, FunctionPrototype* funcProto, int i, int len, const Identifier& name)
+NumberProtoFunc::NumberProtoFunc(ExecState* exec, FunctionPrototype* funcProto, int i, int len, const Identifier& name)
    : InternalFunctionImp(funcProto, name)
    , id(i)
 {
-  putDirect(lengthPropertyName, len, DontDelete|ReadOnly|DontEnum);
+  putDirect(exec->propertyNames().length, len, DontDelete|ReadOnly|DontEnum);
 }
 
 static UString integer_part_noexp(double d)
@@ -86,13 +88,13 @@ static UString integer_part_noexp(double d)
         Vector<char, 1024> buf(decimalPoint + 1);
         
         if (static_cast<int>(length) <= decimalPoint) {
-            strcpy(buf, result);
-            memset(buf + length, '0', decimalPoint - length);
+            strcpy(buf.data(), result);
+            memset(buf.data() + length, '0', decimalPoint - length);
         } else
-            strncpy(buf, result, decimalPoint);
+            strncpy(buf.data(), result, decimalPoint);
         
         buf[decimalPoint] = '\0';
-        str += UString(buf);
+        str += UString(buf.data());
     }
     
     kjs_freedtoa(result);
@@ -105,7 +107,7 @@ static UString char_sequence(char c, int count)
     Vector<char, 2048> buf(count + 1, c);
     buf[count] = '\0';
 
-    return UString(buf);
+    return UString(buf.data());
 }
 
 static double intPow10(int e)
@@ -238,7 +240,7 @@ JSValue *NumberProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, con
               z += "0";
           m = z + m;
           k = f + 1;
-          assert(k == m.size());
+          ASSERT(k == m.size());
       }
       if (k-f < m.size())
           return jsString(s+m.substr(0,k-f)+"."+m.substr(k-f));
@@ -259,7 +261,7 @@ JSValue *NumberProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, con
       
       int decimalAdjust = 0;
       if (!fractionDigits->isUndefined()) {
-          double logx = floor(log10(x));
+          double logx = floor(log10(fabs(x)));
           x /= pow(10.0, logx);
           double fx = floor(x * pow(10.0, f)) / pow(10.0, f);
           double cx = ceil(x * pow(10.0, f)) / pow(10.0, f);
@@ -329,7 +331,7 @@ JSValue *NumberProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, con
           buf[i++] = '\0';
       }
       
-      assert(i <= 80);
+      ASSERT(i <= 80);
       
       kjs_freedtoa(result);
       
@@ -367,8 +369,13 @@ JSValue *NumberProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, con
           
           if (fabs((n + 1.0) * tens - x) <= fabs(n * tens - x))
             ++n;
-          assert(intPow10(p - 1) <= n);
-          assert(n < intPow10(p));
+          // maintain n < 10^(p)
+          if (n >= intPow10(p)) {
+              n = n / 10.0;
+              e = e + 1;
+          }
+          ASSERT(intPow10(p - 1) <= n);
+          ASSERT(n < intPow10(p));
           
           m = integer_part_noexp(n);
           if (e < -6 || e >= p) {
@@ -416,14 +423,14 @@ const ClassInfo NumberObjectImp::info = {"Function", &InternalFunctionImp::info,
   MIN_VALUE             NumberObjectImp::MinValue       DontEnum|DontDelete|ReadOnly
 @end
 */
-NumberObjectImp::NumberObjectImp(ExecState*, FunctionPrototype* funcProto, NumberPrototype* numberProto)
+NumberObjectImp::NumberObjectImp(ExecState* exec, FunctionPrototype* funcProto, NumberPrototype* numberProto)
   : InternalFunctionImp(funcProto)
 {
   // Number.Prototype
-  putDirect(prototypePropertyName, numberProto,DontEnum|DontDelete|ReadOnly);
+  putDirect(exec->propertyNames().prototype, numberProto,DontEnum|DontDelete|ReadOnly);
 
   // no. of arguments for constructor
-  putDirect(lengthPropertyName, jsNumber(1), ReadOnly|DontDelete|DontEnum);
+  putDirect(exec->propertyNames().length, jsNumber(1), ReadOnly|DontDelete|DontEnum);
 }
 
 bool NumberObjectImp::getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot)

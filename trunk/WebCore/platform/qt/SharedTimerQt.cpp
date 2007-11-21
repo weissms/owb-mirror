@@ -39,7 +39,8 @@ void setSharedTimerFiredFunction(void (*f)())
 
 void setSharedTimerFireTime(double fireTime)
 {
-    SharedTimerQt::inst()->start(qMax(0, int(fireTime - currentTime())));
+    qreal fireTimeMs = (fireTime - currentTime()) * 1000;
+    SharedTimerQt::inst()->start(qMax(0, int(fireTimeMs)));
 }
 
 void stopSharedTimer()
@@ -48,7 +49,5 @@ void stopSharedTimer()
 }
 
 }
-
-#include "SharedTimerQt.moc"
 
 // vim: ts=4 sw=4 et

@@ -26,7 +26,7 @@
 #ifndef XPathVariableReference_h
 #define XPathVariableReference_h
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "XPathExpressionNode.h"
 
@@ -37,15 +37,14 @@ namespace WebCore {
         class VariableReference : public Expression {
         public:
             VariableReference(const String& name);
-            virtual bool isConstant() const;
         private:
-            virtual Value doEvaluate() const;
+            virtual Value evaluate() const;
             String m_name;
         };
 
     }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 
 #endif // XPath_VariableReference_H

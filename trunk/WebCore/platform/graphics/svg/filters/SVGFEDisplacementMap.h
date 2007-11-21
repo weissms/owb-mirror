@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric.seidel@kdemail.net>
 
@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGFEDisplacementMap_h
 #define SVGFEDisplacementMap_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFilterEffect.h"
 
 namespace WebCore {
@@ -39,7 +39,7 @@ enum SVGChannelSelectorType {
 
 class SVGFEDisplacementMap : public SVGFilterEffect {
 public:
-    SVGFEDisplacementMap();
+    SVGFEDisplacementMap(SVGResourceFilter*);
 
     String in2() const;
     void setIn2(const String&);
@@ -56,18 +56,18 @@ public:
     virtual TextStream& externalRepresentation(TextStream&) const;
 
 #if PLATFORM(CI)
-    virtual CIFilter* getCIFilter(SVGResourceFilter*) const;
+    virtual CIFilter* getCIFilter(const FloatRect& bbox) const;
 #endif
 
 private:
-    String m_in2;
     SVGChannelSelectorType m_xChannelSelector;
     SVGChannelSelectorType m_yChannelSelector;
     float m_scale;
+    String m_in2;
 };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 
 #endif // SVGFEDisplacementMap_h

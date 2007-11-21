@@ -14,19 +14,19 @@
 
    You should have received a copy of the GNU Library General Public License
    along with this library; see the file COPYING.LIB.  If not, write to
-   the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.
+   the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.
 */
 
 #ifndef MouseEventWithHitTestResults_h
 #define MouseEventWithHitTestResults_h
 
-#include "Element.h"
+#include "HitTestResult.h"
 #ifdef __OWB__
 #include "BIMouseEvent.h"
 #else
 #include "PlatformMouseEvent.h"
-#endif
+#endif //__OWB__
 
 namespace WebCore {
 
@@ -36,35 +36,32 @@ class PlatformScrollbar;
 class MouseEventWithHitTestResults {
 public:
 #ifdef __OWB__
-    MouseEventWithHitTestResults& operator=(const MouseEventWithHitTestResults& mev);
-    /* Mouse event will be cloned by this object */
-    MouseEventWithHitTestResults(const BIMouseEvent&, PassRefPtr<Node>, const IntPoint& localPoint, PlatformScrollbar*, bool isOverLink);
-    ~MouseEventWithHitTestResults();
+	MouseEventWithHitTestResults& operator=(const MouseEventWithHitTestResults& mev);
+	/* Mouse event will be cloned by this object */
+	MouseEventWithHitTestResults(const BIMouseEvent&, const HitTestResult&);
+	~MouseEventWithHitTestResults();
 #else
-    MouseEventWithHitTestResults(const PlatformMouseEvent&, PassRefPtr<Node>, const IntPoint& localPoint, PlatformScrollbar*, bool isOverLink);
-#endif
+    MouseEventWithHitTestResults(const PlatformMouseEvent&, const HitTestResult&);
+#endif //__OWB__
 
 #ifdef __OWB__
     const BIMouseEvent& event() const { return *m_event; }
 #else
     const PlatformMouseEvent& event() const { return m_event; }
-#endif
+#endif //__OWB__
+    const HitTestResult& hitTestResult() const { return m_hitTestResult; }
     Node* targetNode() const;
-    const IntPoint& localPoint() const { return m_localPoint; }
-    PlatformScrollbar* scrollbar() const { return m_scrollbar; }
-    bool isOverLink() const { return m_isOverLink; }
+    const IntPoint localPoint() const;
+    PlatformScrollbar* scrollbar() const;
+    bool isOverLink() const;
 
 private:
 #ifdef __OWB__
     BIMouseEvent* m_event;
 #else
     PlatformMouseEvent m_event;
-#endif
-    RefPtr<Node> m_targetNode;
-    RefPtr<Element> m_targetElement;
-    IntPoint m_localPoint;
-    PlatformScrollbar* m_scrollbar;
-    bool m_isOverLink;
+#endif //__OWB__
+    HitTestResult m_hitTestResult;
 };
 
 }

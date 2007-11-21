@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006, 2007 Apple Inc.
  * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
@@ -14,25 +14,25 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module html {
 
-    interface [LegacyParent=KJS::JSHTMLElement, GenerateConstructor] HTMLAnchorElement : HTMLElement {
-        attribute DOMString accessKey;
-        attribute DOMString charset;
-        attribute DOMString coords;
-        attribute DOMString href;
-        attribute DOMString hreflang;
-        attribute DOMString name;
-        attribute DOMString rel;
-        attribute DOMString rev;
-        attribute DOMString shape;
+    interface [GenerateConstructor] HTMLAnchorElement : HTMLElement {
+        attribute [ConvertNullToNullString] DOMString accessKey;
+        attribute [ConvertNullToNullString] DOMString charset;
+        attribute [ConvertNullToNullString] DOMString coords;
+        attribute [ConvertNullToNullString] DOMString href;
+        attribute [ConvertNullToNullString] DOMString hreflang;
+        attribute [ConvertNullToNullString] DOMString name;
+        attribute [ConvertNullToNullString] DOMString rel;
+        attribute [ConvertNullToNullString] DOMString rev;
+        attribute [ConvertNullToNullString] DOMString shape;
         attribute long tabIndex;
-        attribute DOMString target;
-        attribute DOMString type;
+        attribute [ConvertNullToNullString] DOMString target;
+        attribute [ConvertNullToNullString] DOMString type;
         
         void blur();
         void focus();
@@ -47,10 +47,14 @@ module html {
         readonly attribute DOMString search;
         readonly attribute DOMString text;
 
+#if defined(LANGUAGE_JAVASCRIPT)
+        [DontEnum] DOMString toString();
+#endif
+
 #if defined(LANGUAGE_OBJECTIVE_C)
         // Objective-C extension:
         readonly attribute URL absoluteLinkURL;
-#endif    
+#endif
     };
 
 }

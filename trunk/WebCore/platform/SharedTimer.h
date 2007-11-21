@@ -21,7 +21,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef SharedTimer_h
@@ -31,6 +31,8 @@ namespace WebCore {
 
 #ifdef __OWB__
     extern void (*sharedTimerFiredFunction)();
+    void incrementTimerCount();
+    void fireTimerIfNeeded();
 #endif
 
     // Single timer, shared to implement all the timers managed by the Timer class.

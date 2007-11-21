@@ -86,7 +86,7 @@ void BCObserverService::registerObserver(const String& topic, BIObserver* observ
 
 void BCObserverService::notifyObserver(const String& topic, const String& data)
 {
-    logml(MODULE_FACILITIES, LEVEL_INFO, make_message("notify data %s for topic %s", data.deprecatedString().ascii(), topic.deprecatedString().ascii()));
+    DBGML(MODULE_FACILITIES, LEVEL_INFO, "notify data %s for topic %s\n", data.deprecatedString().ascii(), topic.deprecatedString().ascii());
     
     Vector<BIObserver*> listObserver = m_topic.get(topic);
     Vector<BIObserver*>::iterator it;

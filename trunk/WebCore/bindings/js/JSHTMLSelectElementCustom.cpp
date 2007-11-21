@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -26,6 +26,7 @@
 #include "HTMLOptionElement.h"
 #include "HTMLSelectElement.h"
 #include "JSHTMLOptionElement.h"
+#include "kjs_html.h"
 
 namespace WebCore {
 
@@ -41,7 +42,7 @@ JSValue* JSHTMLSelectElement::remove(ExecState* exec, const List& args)
     if (element && element->hasTagName(optionTag))
         select.remove(static_cast<HTMLOptionElement*>(element)->index());
     else
-        select.remove(static_cast<int>(args[0]->toNumber(exec)));
+        select.remove(args[0]->toInt32(exec));
 
     return jsUndefined();
 }

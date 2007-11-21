@@ -15,21 +15,7 @@ using BC::BCResourceHandleManagerCURL;
 using BAL::BIResourceHandleManager;
 using BAL::BIResourceHandle;
 
-// Configuration
-namespace BAL
-{
-
-static BCResourceHandleManagerCURL* singleton = NULL;
-
-BIResourceHandleManager* getBIResourceHandleManager()
-{
-    if (!singleton)
-        singleton = new BCResourceHandleManagerCURL();
-
-    return singleton;
-}
-
-}
+IMPLEMENT_GET_DELETE(BIResourceHandleManager, BCResourceHandleManagerCURL);
 
 // CURL Implementation
 namespace BC
@@ -44,8 +30,12 @@ BCResourceHandleManagerCURL::BCResourceHandleManagerCURL()
     curl_global_init(CURL_GLOBAL_ALL);
     m_curlMultiHandle = curl_multi_init();
     m_curlShareHandle = curl_share_init();
-    curl_share_setopt(m_curlShareHandle, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
     curl_share_setopt(m_curlShareHandle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+}
+BCResourceHandleManagerCURL::~BCResourceHandleManagerCURL()
+{
+    curl_share_cleanup(m_curlShareHandle);
+    curl_multi_cleanup(m_curlMultiHandle);
 }
 
 void BCResourceHandleManagerCURL::setCookieJarFileName(const char* cookieJarFileName)
@@ -98,11 +88,12 @@ void BCResourceHandleManagerCURL::downloadTimerCallback(WebCore::Timer<BCResourc
     int messagesInQueue;
     while (CURLMsg* msg = curl_multi_info_read(m_curlMultiHandle, &messagesInQueue)) {
         CURL* handle = msg->easy_handle;
-        assert(handle);
+        ASSERT(handle);
         BCResourceHandleCURL* job;
         curl_easy_getinfo(handle, CURLINFO_PRIVATE, &job);
         job->processMessage(msg);
     }
+
     if (!m_downloadTimer.isActive() && (runningHandles > 0))
         m_downloadTimer.startOneShot(pollTimeSeconds);
 }
@@ -127,14 +118,8 @@ void BCResourceHandleManagerCURL::remove(BIResourceHandle *job)
 void BCResourceHandleManagerCURL::add(BIResourceHandle *resourceHandle)
 {
     BCResourceHandleCURL* job = static_cast<BCResourceHandleCURL*> (resourceHandle);
-    logml(MODULE_NETWORK, LEVEL_WARNING,
-      make_message("ADD TRANSFER JOB: METHOD=%s for %s", job->method().deprecatedString().ascii(), job->url().url().ascii()));
-
-    if (cookieJarFileName()) {
-        logml(MODULE_NETWORK, LEVEL_INFO, make_message("ADD COOKIE to file: %s\n", m_cookieJarFileName));
-        curl_easy_setopt(job->handle(), CURLOPT_COOKIEFILE, cookieJarFileName());
-        curl_easy_setopt(job->handle(), CURLOPT_COOKIEJAR, cookieJarFileName());
-    }
+    DBGML(MODULE_NETWORK, LEVEL_WARNING,
+      "ADD TRANSFER JOB: METHOD=%s for %s \n", job->method().deprecatedString().ascii(), job->url().url().ascii());
 
     CURLMcode ret = curl_multi_add_handle(m_curlMultiHandle, job->handle());
     // don't call perform, because events must be async
@@ -182,7 +167,6 @@ bool BCResourceHandleManagerCURL::contains(BIResourceHandle* job)
 void BCResourceHandleManagerCURL::cancel(BIResourceHandle *job)
 {
     remove(job);
-    static_cast<BCResourceHandleCURL*> (job)->deref();
 }
 
 } // namespace WebCore

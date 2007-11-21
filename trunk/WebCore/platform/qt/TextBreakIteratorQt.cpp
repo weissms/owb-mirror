@@ -15,12 +15,160 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "TextBreakIterator.h"
+
+#if QT_VERSION >= 0x040400
+#include <QtCore/qtextboundaryfinder.h>
+#include <qdebug.h>
+
+#ifdef DEBUG_TEXT_ITERATORS
+#define DEBUG qDebug
+#else
+#define DEBUG if (1) {} else qDebug
+#endif
+
+namespace WebCore {
+
+    class TextBreakIterator : public QTextBoundaryFinder
+    {
+    };
+
+
+    TextBreakIterator* wordBreakIterator(const UChar* string, int length)
+    {
+        static QTextBoundaryFinder* iterator = 0;
+        static const UChar* cachedString = 0;
+        static int cachedLength = 0;
+        if (!string)
+            return 0;
+        if (string != cachedString || length != cachedLength) {
+            if (!iterator)
+                iterator = new QTextBoundaryFinder;
+
+            QString s((const QChar*)string, length);
+            DEBUG() << "wordBreakIterator" << length << s;
+            *iterator = QTextBoundaryFinder(QTextBoundaryFinder::Word, s);
+            cachedString = string;
+            cachedLength = length;
+        } else {
+            iterator->setPosition(0);
+        }
+        return static_cast<TextBreakIterator*>(iterator);
+    }
+
+    TextBreakIterator* characterBreakIterator(const UChar* string, int length)
+    {
+        static QTextBoundaryFinder* iterator = 0;
+        static const UChar* cachedString = 0;
+        static int cachedLength = 0;
+        if (!string)
+            return 0;
+        if (string != cachedString || length != cachedLength) {
+            if (!iterator)
+                iterator = new QTextBoundaryFinder;
+
+            QString s((const QChar*)string, length);
+            DEBUG() << "characterBreakIterator" << length << s;
+            *iterator = QTextBoundaryFinder(QTextBoundaryFinder::Grapheme, s);
+            cachedString = string;
+            cachedLength = length;
+        } else {
+            iterator->setPosition(0);
+        }
+        return static_cast<TextBreakIterator*>(iterator);
+    }
+
+    TextBreakIterator* lineBreakIterator(const UChar* string, int length)
+    {
+        static QTextBoundaryFinder *iterator = 0;
+        static const UChar *cachedString = 0;
+        static int cachedLength = 0;
+        if (!string)
+            return 0;
+        if (string != cachedString || length != cachedLength) {
+            if (!iterator)
+                iterator = new QTextBoundaryFinder;
+
+            QString s((const QChar *)string, length);
+            DEBUG() << "lineBreakIterator" << length << s;
+            *iterator = QTextBoundaryFinder(QTextBoundaryFinder::Line, s);
+            cachedString = string;
+            cachedLength = length;
+        } else {
+            iterator->setPosition(0);
+        }
+        return static_cast<TextBreakIterator*>(iterator);
+    }
+
+    TextBreakIterator* sentenceBreakIterator(const UChar* string, int length)
+    {
+        static QTextBoundaryFinder* iterator = 0;
+        static const UChar* cachedString = 0;
+        static int cachedLength = 0;
+        if (!string)
+            return 0;
+        if (string != cachedString || length != cachedLength) {
+            if (!iterator)
+                iterator = new QTextBoundaryFinder;
+
+            QString s((const QChar*)string, length);
+            DEBUG() << "sentenceBreakIterator" << length << s;
+            *iterator = QTextBoundaryFinder(QTextBoundaryFinder::Sentence, s);
+            cachedString = string;
+            cachedLength = length;
+        } else {
+            iterator->setPosition(0);
+        }
+        return static_cast<TextBreakIterator*>(iterator);
+    }
+
+    int textBreakFirst(TextBreakIterator* bi)
+    {
+        bi->toStart();
+        DEBUG() << "textBreakFirst" << bi->position();
+        return bi->position();
+    }
+
+    int textBreakNext(TextBreakIterator* bi)
+    {
+        int pos = bi->toNextBoundary();
+        DEBUG() << "textBreakNext" << pos;
+        return pos;
+    }
+
+    int textBreakPreceding(TextBreakIterator* bi, int pos)
+    {
+        bi->setPosition(pos);
+        int newpos = bi->toPreviousBoundary();
+        DEBUG() << "textBreakPreceding" << pos << newpos;
+        return newpos;
+    }
+
+    int textBreakFollowing(TextBreakIterator* bi, int pos)
+    {
+        bi->setPosition(pos);
+        int newpos = bi->toNextBoundary();
+        DEBUG() << "textBreakFollowing" << pos << newpos;
+        return newpos;
+    }
+
+    int textBreakCurrent(TextBreakIterator* bi)
+    {
+        return bi->position();
+    }
+
+    bool isTextBreak(TextBreakIterator*, int)
+    {
+        return true;
+    }
+
+}
+#else
 #include <qtextlayout.h>
 
 namespace WebCore {
@@ -67,7 +215,7 @@ namespace WebCore {
     }
 
     int WordBreakIteratorQt::next() {
-        if (currentPos == length) {
+        if (currentPos >= length) {
             currentPos = -1;
             return currentPos;
         }
@@ -82,7 +230,7 @@ namespace WebCore {
         return currentPos;
     }
     int WordBreakIteratorQt::previous() {
-        if (currentPos == 0) {
+        if (currentPos <= 0) {
             currentPos = -1;
             return currentPos;
         }
@@ -103,13 +251,13 @@ namespace WebCore {
     }
 
     int CharBreakIteratorQt::next() {
-        if (currentPos == length)
+        if (currentPos >= length)
             return -1;
         currentPos = layout.nextCursorPosition(currentPos);
         return currentPos;
     }
     int CharBreakIteratorQt::previous() {
-        if (currentPos == 0)
+        if (currentPos <= 0)
             return -1;
         currentPos = layout.previousCursorPosition(currentPos);
         return currentPos;
@@ -139,11 +287,17 @@ TextBreakIterator* characterBreakIterator(const UChar* string, int length)
     iterator->length = length;
     iterator->currentPos = 0;
     iterator->layout.setText(QString(reinterpret_cast<const QChar*>(string), length));
-
+    
     return iterator;
 }
 
 TextBreakIterator* lineBreakIterator(const UChar*, int)
+{
+    // not yet implemented
+    return 0;
+}
+
+TextBreakIterator* sentenceBreakIterator(const UChar*, int)
 {
     // not yet implemented
     return 0;
@@ -181,3 +335,4 @@ bool isTextBreak(TextBreakIterator*, int)
 
 }
 
+#endif

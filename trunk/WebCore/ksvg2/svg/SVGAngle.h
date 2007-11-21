@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,13 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGAngle_h
 #define SVGAngle_h
-#ifdef SVG_SUPPORT
+
+#if ENABLE(SVG)
 
 #include "PlatformString.h"
 
@@ -32,7 +33,7 @@ namespace WebCore {
 
     class SVGAngle : public Shared<SVGAngle> {
     public:
-        SVGAngle(const SVGStyledElement* context);
+        SVGAngle();
         virtual ~SVGAngle();
         
         enum SVGAngleType {
@@ -64,22 +65,18 @@ namespace WebCore {
         // Returns the angle that divides the shortest arc between the two angles.
         static double shortestArcBisector(double angle1, double angle2);
 
-        const SVGStyledElement* context() const;
-        void setContext(const SVGStyledElement*);
-
     private:
         SVGAngleType m_unitType;
         float m_value;
         float m_valueInSpecifiedUnits;
         mutable String m_valueAsString;
-        const SVGStyledElement* m_context;
 
         void calculate();
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGAngle_h
 
 // vim:ts=4:noet

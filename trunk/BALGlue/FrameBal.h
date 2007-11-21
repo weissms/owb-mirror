@@ -3,7 +3,7 @@
  * Copyright (C) 2006 Michael Emmel mike.emmel@gmail.com
  * All rights reserved.
  * Copyright (C) 2007 Pleyo.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -44,6 +44,74 @@ class FrameBal : public Frame {
 public:
     FrameBal(Page*, HTMLFrameOwnerElement*, FrameLoaderClientBal*);
     virtual ~FrameBal();
+
+    /**
+    * addToJSWindowObject
+    *
+    * example :
+    * @code
+    *      class MyObject : public BalObject
+    *       {
+    *       public:
+    *           MyObject():val(5)
+    *           {
+    *               addMethod("log");
+    *               addProperty("val");
+    *           }
+    *
+    *           ~MyObject()
+    *           {
+    *           }
+    *
+    *           JSValue *invoke( const char *name, ExecState* exec, const List& args, uint32_t argCount)
+    *           {
+    *               if (!strcmp(name, "log") ) {
+    *                   JSType type = args.at(0)->type();
+    *                   if (argCount == 1 && type == StringType)
+    *                   {
+    *                       logMessage (args.at(0)->toString(exec).ascii());
+    *                   }
+    *               }
+    *               return jsUndefined();
+    *           }
+    *
+    *           JSValue *getProperty( const char *name, ExecState* exec )
+    *           {
+    *               if( !strcmp( name, "val" ) )
+    *               {
+    *                   return jsNumber(val);
+    *               }
+    *               return jsUndefined();
+    *           };
+    *           void setProperty( const char *name, ExecState* exec, const JSValue *value)
+    *           {
+    *              if( !strcmp( name, "val" ) )
+    *              {
+    *                  val = (int)value->toNumber(exec);
+    *              }
+    *           };
+    *           void logMessage (const char *message)
+    *           {
+    *               printf ("%s\n", message);
+    *           }
+    *       private:
+    *           int val;
+    *       };
+    *
+    *
+    *       ....
+    *
+    *       MyObject *myObject = new MyObject();
+    *       m_balFrame->addToJSWindowObject("myInterface", (void *)myObject );
+    *
+    *
+    *      JS Code :
+    *           window.myInterface.logMessage ("myInterface.intValue = " + myInterface.intValue);
+    *      or  myInterface.logMessage ("myInterface.intValue = " + myInterface.intValue);
+    *
+    *  @endcode
+    */
+    void addToJSWindowObject(const char* name, void *object);
 };
 
 }

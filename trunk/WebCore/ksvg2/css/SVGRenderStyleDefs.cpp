@@ -1,6 +1,6 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
 
     Based on khtml code by:
     Copyright (C) 1999 Antti Koivisto (koivisto@kde.org)
@@ -22,12 +22,12 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGRenderStyleDefs.h"
 
 #include "RenderStyle.h"
@@ -49,22 +49,22 @@ StyleFillData::StyleFillData(const StyleFillData &other) : Shared<StyleFillData>
 
 bool StyleFillData::operator==(const StyleFillData &other) const
 {
-    if(opacity != other.opacity)
+    if (opacity != other.opacity)
         return false;
 
-    if(!paint || !other.paint)
+    if (!paint || !other.paint)
         return paint == other.paint;
 
-    if(paint->paintType() != other.paint->paintType())
+    if (paint->paintType() != other.paint->paintType())
         return false;
 
-    if(paint->paintType() == SVGPaint::SVG_PAINTTYPE_URI)
+    if (paint->paintType() == SVGPaint::SVG_PAINTTYPE_URI)
         return paint->uri() == other.paint->uri();
 
-    if(paint->paintType() == SVGPaint::SVG_PAINTTYPE_RGBCOLOR)
+    if (paint->paintType() == SVGPaint::SVG_PAINTTYPE_RGBCOLOR)
         return paint->color() == other.paint->color();
 
-    return (paint == other.paint) && (opacity == other.opacity);
+    return paint == other.paint;
 }
 
 StyleStrokeData::StyleStrokeData() : Shared<StyleStrokeData>()
@@ -113,6 +113,21 @@ bool StyleStopData::operator==(const StyleStopData &other) const
 {
     return (color == other.color) &&
            (opacity == other.opacity);
+}
+
+StyleTextData::StyleTextData() : Shared<StyleTextData>()
+{
+    kerning = SVGRenderStyle::initialKerning();
+}
+
+StyleTextData::StyleTextData(const StyleTextData& other) : Shared<StyleTextData>()
+{
+    kerning = other.kerning;
+}
+
+bool StyleTextData::operator==(const StyleTextData& other) const
+{
+    return kerning == other.kerning;
 }
 
 StyleClipData::StyleClipData() : Shared<StyleClipData>()
@@ -166,8 +181,10 @@ bool StyleMarkerData::operator==(const StyleMarkerData &other) const
 
 StyleMiscData::StyleMiscData() : Shared<StyleMiscData>()
 {
-    floodColor = RenderStyle::initialColor();
-    floodOpacity = RenderStyle::initialOpacity();
+    floodColor = SVGRenderStyle::initialFloodColor();
+    floodOpacity = SVGRenderStyle::initialFloodOpacity();
+    lightingColor = SVGRenderStyle::initialLightingColor();
+    baselineShiftValue = SVGRenderStyle::initialBaselineShiftValue();
 }
 
 StyleMiscData::StyleMiscData(const StyleMiscData &other) : Shared<StyleMiscData>()
@@ -175,13 +192,19 @@ StyleMiscData::StyleMiscData(const StyleMiscData &other) : Shared<StyleMiscData>
     filter = other.filter;
     floodColor = other.floodColor;
     floodOpacity = other.floodOpacity;
+    lightingColor = other.lightingColor;
+    baselineShiftValue = other.baselineShiftValue;
 }
 
 bool StyleMiscData::operator==(const StyleMiscData &other) const
 {
-    return (filter == other.filter && floodOpacity == other.floodOpacity && floodColor == other.floodColor);
+    return filter == other.filter
+           && floodOpacity == other.floodOpacity
+           && floodColor == other.floodColor
+           && lightingColor == other.lightingColor
+           && baselineShiftValue == other.baselineShiftValue;
 }
 
-// vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
+// vim:ts=4:noet

@@ -15,13 +15,13 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEComponentTransfer.h"
 #include "SVGFEHelpersCg.h"
 
@@ -82,6 +82,7 @@ static CIFilter* filterForComponentFunc(const SVGComponentTransferFunction& func
 {
     CIFilter *filter;
     switch (func.type) {
+    case SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN:
     case SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY:
         filter = [CIFilter filterWithName:@"WKIdentityTransfer"];
         break;
@@ -132,7 +133,7 @@ CIFilter* SVGFEComponentTransfer::getFunctionFilter(SVGChannelSelectorType chann
     }
 }
 
-CIFilter* SVGFEComponentTransfer::getCIFilter(SVGResourceFilter* svgFilter) const
+CIFilter* SVGFEComponentTransfer::getCIFilter(const FloatRect& bbox) const
 {
     [WKComponentMergeFilter class];
     [WKIdentityTransferFilter class];
@@ -141,6 +142,7 @@ CIFilter* SVGFEComponentTransfer::getCIFilter(SVGResourceFilter* svgFilter) cons
     [WKLinearTransferFilter class];
     [WKGammaTransferFilter class];
 
+    SVGResourceFilter* svgFilter = filter();
     CIFilter* filter = nil;
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
     filter = [CIFilter filterWithName:@"WKComponentMerge"];
@@ -155,10 +157,10 @@ CIFilter* SVGFEComponentTransfer::getCIFilter(SVGResourceFilter* svgFilter) cons
     [filter setValue:getFunctionFilter(SVG_CHANNEL_B, inputImage) forKey:@"inputFuncB"];
     [filter setValue:getFunctionFilter(SVG_CHANNEL_A, inputImage) forKey:@"inputFuncA"];
 
+    FE_QUARTZ_MAP_TO_SUBREGION(bbox);
     FE_QUARTZ_OUTPUT_RETURN;
-    return nil;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)

@@ -15,8 +15,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
@@ -26,7 +26,7 @@ namespace WebCore {
 
 SegmentedString::SegmentedString(const SegmentedString &other) :
     m_pushedChar1(other.m_pushedChar1), m_pushedChar2(other.m_pushedChar2), m_currentString(other.m_currentString),
-    m_substrings(other.m_substrings), m_lines(other.m_lines), m_composite(other.m_composite)
+    m_substrings(other.m_substrings), m_composite(other.m_composite)
 {
     if (other.m_currentChar == &other.m_pushedChar1)
         m_currentChar = &m_pushedChar1;
@@ -42,7 +42,6 @@ const SegmentedString& SegmentedString::operator=(const SegmentedString &other)
     m_pushedChar2 = other.m_pushedChar2;
     m_currentString = other.m_currentString;
     m_substrings = other.m_substrings;
-    m_lines = other.m_lines;
     m_composite = other.m_composite;
     if (other.m_currentChar == &other.m_pushedChar1)
         m_currentChar = &m_pushedChar1;
@@ -70,6 +69,17 @@ unsigned SegmentedString::length() const
     return length;
 }
 
+void SegmentedString::setExcludeLineNumbers()
+{
+    if (m_composite) {
+        DeprecatedValueListIterator<SegmentedSubstring> i = m_substrings.begin();
+        DeprecatedValueListIterator<SegmentedSubstring> e = m_substrings.end();
+        for (; i != e; ++i)
+            (*i).setExcludeLineNumbers();
+    } else
+        m_currentString.setExcludeLineNumbers();
+}
+
 void SegmentedString::clear()
 {
     m_pushedChar1 = 0;
@@ -77,7 +87,6 @@ void SegmentedString::clear()
     m_currentChar = 0;
     m_currentString.clear();
     m_substrings.clear();
-    m_lines = 0;
     m_composite = false;
 }
 
@@ -95,7 +104,7 @@ void SegmentedString::append(const SegmentedSubstring &s)
 
 void SegmentedString::prepend(const SegmentedSubstring &s)
 {
-    assert(!escaped());
+    ASSERT(!escaped());
     if (s.m_length) {
         if (!m_currentString.m_length)
             m_currentString = s;
@@ -110,7 +119,7 @@ void SegmentedString::prepend(const SegmentedSubstring &s)
 
 void SegmentedString::append(const SegmentedString &s)
 {
-    assert(!s.escaped());
+    ASSERT(!s.escaped());
     append(s.m_currentString);
     if (s.m_composite) {
         DeprecatedValueListConstIterator<SegmentedSubstring> i = s.m_substrings.begin();
@@ -123,8 +132,8 @@ void SegmentedString::append(const SegmentedString &s)
 
 void SegmentedString::prepend(const SegmentedString &s)
 {
-    assert(!escaped());
-    assert(!s.escaped());
+    ASSERT(!escaped());
+    ASSERT(!s.escaped());
     if (s.m_composite) {
         DeprecatedValueListConstIterator<SegmentedSubstring> i = s.m_substrings.fromLast();
         DeprecatedValueListConstIterator<SegmentedSubstring> e = s.m_substrings.end();

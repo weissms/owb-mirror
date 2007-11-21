@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef Page_h
@@ -44,6 +44,8 @@ namespace WebCore {
     class EditorClient;
     class FocusController;
     class Frame;
+    class InspectorClient;
+    class InspectorController;
     class Node;
     class ProgressTracker;
     class Selection;
@@ -52,7 +54,10 @@ namespace WebCore {
 
     class Page : Noncopyable {
     public:
-        Page(ChromeClient*, ContextMenuClient*, EditorClient*, DragClient*);
+        static void setNeedsReapplyStyles();
+        static const HashSet<Page*>* frameNamespace(const String&);
+
+        Page(ChromeClient*, ContextMenuClient*, EditorClient*, DragClient*, InspectorClient*);
         ~Page();
         
         EditorClient* editorClient() const { return m_editorClient; }
@@ -74,22 +79,22 @@ namespace WebCore {
         String groupName() const { return m_groupName; }
 
         const HashSet<Page*>* frameNamespace() const;
-        static const HashSet<Page*>* frameNamespace(const String&);
 
         void incrementFrameCount() { ++m_frameCount; }
         void decrementFrameCount() { --m_frameCount; }
         int frameCount() const { return m_frameCount; }
-
-        static void setNeedsReapplyStyles();
-        static void setNeedsReapplyStylesForSettingsChange(Settings*);
 
         Chrome* chrome() const { return m_chrome.get(); }
         SelectionController* dragCaretController() const { return m_dragCaretController.get(); }
         DragController* dragController() const { return m_dragController.get(); }
         FocusController* focusController() const { return m_focusController.get(); }
         ContextMenuController* contextMenuController() const { return m_contextMenuController.get(); }
+        InspectorController* inspectorController() const { return m_inspectorController.get(); }
         Settings* settings() const { return m_settings.get(); }
         ProgressTracker* progress() const { return m_progress.get(); }
+
+        void setParentInspectorController(InspectorController* controller) { m_parentInspectorController = controller; }
+        InspectorController* parentInspectorController() const { return m_parentInspectorController; }
         
         void setTabKeyCyclesThroughElements(bool b) { m_tabKeyCyclesThroughElements = b; }
         bool tabKeyCyclesThroughElements() const { return m_tabKeyCyclesThroughElements; }
@@ -98,15 +103,16 @@ namespace WebCore {
 
         void setDefersLoading(bool);
         bool defersLoading() const { return m_defersLoading; }
+        
+        void clearUndoRedoOperations();
+
+        bool inLowQualityImageInterpolationMode() const;
+        void setInLowQualityImageInterpolationMode(bool = true);
 
 #if PLATFORM(WIN)
         // The global DLL or application instance used for all windows.
         static void setInstanceHandle(HINSTANCE instanceHandle) { s_instanceHandle = instanceHandle; }
         static HINSTANCE instanceHandle() { return s_instanceHandle; }
-#endif
-
-#ifdef __OWB__
-        Page();
 #endif
 
     private:
@@ -115,18 +121,25 @@ namespace WebCore {
         OwnPtr<DragController> m_dragController;
         OwnPtr<FocusController> m_focusController;
         OwnPtr<ContextMenuController> m_contextMenuController;
-        RefPtr<BackForwardList> m_backForwardList;
+        OwnPtr<InspectorController> m_inspectorController;
         OwnPtr<Settings> m_settings;
         OwnPtr<ProgressTracker> m_progress;
         
-        EditorClient* m_editorClient;
+        RefPtr<BackForwardList> m_backForwardList;
         RefPtr<Frame> m_mainFrame;
         RefPtr<Node> m_focusedNode;
+
+        EditorClient* m_editorClient;
+
         int m_frameCount;
         String m_groupName;
 
         bool m_tabKeyCyclesThroughElements;
         bool m_defersLoading;
+
+        bool m_inLowQualityInterpolationMode;
+    
+        InspectorController* m_parentInspectorController;
 
 #if PLATFORM(WIN)
         static HINSTANCE s_instanceHandle;

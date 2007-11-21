@@ -30,6 +30,8 @@
 #if PLATFORM(CG)
 
 #include "GraphicsContext.h"
+#include "ImageObserver.h"
+#include <wtf/MathExtras.h>
 
 using namespace std;
 
@@ -50,13 +52,30 @@ PDFDocumentImage::~PDFDocumentImage()
 
 IntSize PDFDocumentImage::size() const
 {
-    return IntSize((int)m_mediaBox.size().width(), (int)m_mediaBox.size().height());
+    const float sina = sinf(-m_rotation);
+    const float cosa = cosf(-m_rotation);
+    const float width = m_mediaBox.size().width();
+    const float height = m_mediaBox.size().height();
+    const float rotWidth = width * cosa - height * sina;
+    const float rotHeight = width * sina + height * cosa;
+    
+    return IntSize((int)(fabsf(rotWidth) + 0.5f), (int)(fabsf(rotHeight) + 0.5f));
 }
 
-bool PDFDocumentImage::setNativeData(NativeBytePtr data, bool allDataReceived)
+bool PDFDocumentImage::dataChanged(bool allDataReceived)
 {
-    if (allDataReceived && !m_document && data) {
+    if (allDataReceived && !m_document) {
+#if PLATFORM(MAC)
+        // On Mac the NSData inside the SharedBuffer can be secretly appended to without the SharedBuffer's knowledge.  We use SharedBuffer's ability
+        // to wrap itself inside CFData to get around this, ensuring that ImageIO is really looking at the SharedBuffer.
+        CFDataRef data = m_data->createCFData();
+#else
+        // If no NSData is available, then we know SharedBuffer will always just be a vector.  That means no secret changes can occur to it behind the
+        // scenes.  We use CFDataCreateWithBytesNoCopy in that case.
+        CFDataRef data = CFDataCreateWithBytesNoCopy(0, reinterpret_cast<const UInt8*>(m_data->data()), m_data->size(), kCFAllocatorNull);
+#endif
         CGDataProviderRef dataProvider = CGDataProviderCreateWithCFData(data);
+        CFRelease(data);
         m_document = CGPDFDocumentCreateWithProvider(dataProvider);
         CGDataProviderRelease(dataProvider);
         setCurrentPage(0);
@@ -114,7 +133,7 @@ void PDFDocumentImage::setCurrentPage(int page)
         m_cropBox = m_mediaBox;
 
     // get page rotation angle
-    m_rotation = CGPDFPageGetRotationAngle(cgPage) * M_PI / 180.0; // to radians
+    m_rotation = CGPDFPageGetRotationAngle(cgPage) * piFloat / 180.0f; // to radians
 }
 
 int PDFDocumentImage::pageCount() const
@@ -140,17 +159,20 @@ void PDFDocumentImage::draw(GraphicsContext* context, const FloatRect& dstRect, 
     CGContextTranslateCTM(context->platformContext(), dstRect.x() - srcRect.x() * hScale, dstRect.y() - srcRect.y() * vScale);
     CGContextScaleCTM(context->platformContext(), hScale, vScale);
     CGContextScaleCTM(context->platformContext(), 1, -1);
-    CGContextTranslateCTM(context->platformContext(), 0, -dstRect.height());
+    CGContextTranslateCTM(context->platformContext(), 0, -srcRect.height());
     CGContextClipToRect(context->platformContext(), CGRectIntegral(srcRect));
 
     // Rotate translate image into position according to doc properties.
     adjustCTM(context);
 
     // Media box may have non-zero origin which we ignore. Pass 1 for the page number.
-    CGContextDrawPDFDocument(context->platformContext(), FloatRect(FloatPoint(), size()),
+    CGContextDrawPDFDocument(context->platformContext(), FloatRect(FloatPoint(), m_mediaBox.size()),
         m_document, m_currentPage + 1);
-
+    
     context->restore();
+
+    if (imageObserver())
+        imageObserver()->didDraw(this);
 }
 
 }

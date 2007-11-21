@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 #include "config.h"
@@ -29,6 +29,7 @@
 #include "EventHandler.h"
 #include "Frame.h"
 #include "FrameLoader.h"
+#include "FrameLoaderClient.h"
 #include "FrameTree.h"
 #include "FrameView.h"
 #include "HTMLEmbedElement.h"
@@ -37,7 +38,9 @@
 #include "HTMLObjectElement.h"
 #include "HTMLParamElement.h"
 #include "KURL.h"
+#include "MIMETypeRegistry.h"
 #include "Page.h"
+#include "RenderView.h"
 #include "Text.h"
 
 namespace WebCore {
@@ -50,6 +53,12 @@ RenderPartObject::RenderPartObject(HTMLFrameOwnerElement* element)
     // init RenderObject attributes
     setInline(true);
     m_hasFallbackContent = false;
+}
+
+RenderPartObject::~RenderPartObject()
+{
+    if (m_view)
+        m_view->removeWidgetToUpdate(this);
 }
 
 static bool isURLAllowed(Document *doc, const String &url)
@@ -99,16 +108,14 @@ static inline void mapClassIdToServiceType(const String& classId, String& servic
     // TODO: add more plugins here
 }
 
-void RenderPartObject::updateWidget()
+void RenderPartObject::updateWidget(bool onlyCreateNonNetscapePlugins)
 {
   String url;
   String serviceType;
   Vector<String> paramNames;
   Vector<String> paramValues;
   Frame* frame = m_view->frame();
-
-  setNeedsLayoutAndMinMaxRecalc();
-
+  
   if (element()->hasTagName(objectTag)) {
 
       HTMLObjectElement* o = static_cast<HTMLObjectElement*>(element());
@@ -131,12 +138,6 @@ void RenderPartObject::updateWidget()
       HTMLElement *embedOrObject;
       if (embed) {
           embedOrObject = (HTMLElement *)embed;
-          String attribute = embedOrObject->getAttribute(widthAttr);
-          if (!attribute.isEmpty())
-              o->setAttribute(widthAttr, attribute);
-          attribute = embedOrObject->getAttribute(heightAttr);
-          if (!attribute.isEmpty())
-              o->setAttribute(heightAttr, attribute);
           url = embed->url;
           serviceType = embed->m_serviceType;
       } else
@@ -181,7 +182,7 @@ void RenderPartObject::updateWidget()
       // we have to explicitly suppress the tag's CODEBASE attribute if there is none in a PARAM,
       // else our Java plugin will misinterpret it. [4004531]
       String codebase;
-      if (!embed && serviceType.lower() == "application/x-java-applet") {
+      if (!embed && MIMETypeRegistry::isJavaAppletMIMEType(serviceType)) {
           codebase = "codebase";
           uniqueParamNames.add(codebase.impl()); // pretend we found it in a PARAM already
       }
@@ -216,6 +217,16 @@ void RenderPartObject::updateWidget()
               (child->isTextNode() && !static_cast<Text*>(child)->containsOnlyWhitespace()))
               m_hasFallbackContent = true;
       }
+      
+      if (onlyCreateNonNetscapePlugins) {
+          KURL completedURL;
+          if (!url.isEmpty())
+              completedURL = frame->loader()->completeURL(url);
+        
+          if (frame->loader()->client()->objectContentType(completedURL, serviceType) == ObjectContentNetscapePlugin)
+              return;
+      }
+      
       bool success = frame->loader()->requestObject(this, url, AtomicString(o->name()), serviceType, paramNames, paramValues);
       if (!success && m_hasFallbackContent)
           o->renderFallbackContent();
@@ -238,6 +249,17 @@ void RenderPartObject::updateWidget()
               paramValues.append(it->value().domString());
           }
       }
+      
+      if (onlyCreateNonNetscapePlugins) {
+          KURL completedURL;
+          if (!url.isEmpty())
+              completedURL = frame->loader()->completeURL(url);
+          
+          if (frame->loader()->client()->objectContentType(completedURL, serviceType) == ObjectContentNetscapePlugin)
+              return;
+          
+      }
+      
       frame->loader()->requestObject(this, url, o->getAttribute(nameAttr), serviceType, paramNames, paramValues);
   }
 }
@@ -245,13 +267,16 @@ void RenderPartObject::updateWidget()
 void RenderPartObject::layout()
 {
     ASSERT(needsLayout());
-    ASSERT(minMaxKnown());
 
     calcWidth();
     calcHeight();
+    adjustOverflowForBoxShadow();
 
     RenderPart::layout();
 
+    if (!m_widget && m_view)
+        m_view->addWidgetToUpdate(this);
+    
     setNeedsLayout(false);
 }
 
@@ -259,17 +284,13 @@ void RenderPartObject::viewCleared()
 {
     if (element() && m_widget && m_widget->isFrameView()) {
         FrameView* view = static_cast<FrameView*>(m_widget);
-        bool hasBorder = false;
         int marginw = -1;
         int marginh = -1;
         if (element()->hasTagName(iframeTag)) {
             HTMLIFrameElement* frame = static_cast<HTMLIFrameElement*>(element());
-            hasBorder = frame->hasFrameBorder();
             marginw = frame->getMarginWidth();
             marginh = frame->getMarginHeight();
         }
-
-        view->setHasBorder(hasBorder);
         if (marginw != -1)
             view->setMarginWidth(marginw);
         if (marginh != -1)

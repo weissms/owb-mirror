@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  * Copyright (C) 2007 Trolltech ASA
  *
@@ -31,10 +31,12 @@
 #import "AXObjectCache.h"
 #import "BeforeUnloadEvent.h"
 #import "BlockExceptions.h"
-#import "Chrome.h"
+#import "CSSHelper.h"
 #import "Cache.h"
+#import "Chrome.h"
 #import "ClipboardEvent.h"
 #import "ClipboardMac.h"
+#import "ColorMac.h"
 #import "Cursor.h"
 #import "DOMInternal.h"
 #import "DocumentLoader.h"
@@ -84,7 +86,6 @@
 #import "WebCoreViewFactory.h"
 #import "WebDashboardRegion.h"
 #import "WebScriptObjectPrivate.h"
-#import "csshelper.h"
 #import "kjs_proxy.h"
 #import "kjs_window.h"
 #import "visible_units.h"
@@ -97,6 +98,10 @@
 @interface NSObject (WebPlugIn)
 - (id)objectForWebScript;
 - (NPObject *)createPluginScriptableObject;
+@end
+ 
+@interface NSView (WebCoreHTMLDocumentView)
+- (void)drawSingleRect:(NSRect)rect;
 @end
  
 using namespace std;
@@ -261,9 +266,8 @@ NSString* Frame::searchForLabelsBeforeElement(NSArray* labels, Element* element)
             startingTableCell = static_cast<HTMLTableCellElement*>(n);
         } else if (n->hasTagName(trTag) && startingTableCell) {
             NSString* result = searchForLabelsAboveCell(regExp, startingTableCell);
-            if (result) {
+            if (result && [result length] > 0)
                 return result;
-            }
             searchedCellAbove = true;
         } else if (n->isTextNode() && n->renderer() && n->renderer()->style()->visibility() == VISIBLE) {
             // For each text chunk, run the regexp
@@ -274,18 +278,20 @@ NSString* Frame::searchForLabelsBeforeElement(NSArray* labels, Element* element)
             int pos = regExp->searchRev(nodeString);
             if (pos >= 0)
                 return nodeString.mid(pos, regExp->matchedLength()).getNSString();
-            else
-                lengthSearched += nodeString.length();
+
+            lengthSearched += nodeString.length();
         }
     }
 
     // If we started in a cell, but bailed because we found the start of the form or the
     // previous element, we still might need to search the row above us for a label.
     if (startingTableCell && !searchedCellAbove) {
-         return searchForLabelsAboveCell(regExp, startingTableCell);
-    } else {
-        return nil;
+        NSString* result = searchForLabelsAboveCell(regExp, startingTableCell);
+        if (result && [result length] > 0)
+            return result;
     }
+    
+    return nil;
 }
 
 NSString* Frame::matchLabelsAgainstElement(NSArray* labels, Element* element)
@@ -324,6 +330,8 @@ NSImage* Frame::imageFromRect(NSRect rect) const
     NSView* view = d->m_view->getDocumentView();
     if (!view)
         return nil;
+    if (![view respondsToSelector:@selector(drawSingleRect:)])
+        return nil;
     
     NSImage* resultImage;
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
@@ -341,12 +349,15 @@ NSImage* Frame::imageFromRect(NSRect rect) const
     if (rect.size.width != 0 && rect.size.height != 0) {
         [resultImage setFlipped:YES];
         [resultImage lockFocus];
-
         CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-
         CGContextSaveGState(context);
         CGContextTranslateCTM(context, bounds.origin.x - rect.origin.x, bounds.origin.y - rect.origin.y);
-        [view drawRect:rect];
+
+        // Note: Must not call drawRect: here, because drawRect: assumes that it's called from AppKit's
+        // display machinery. It calls getRectsBeingDrawn:count:, which can only be called inside
+        // when a real AppKit display is underway.
+        [view drawSingleRect:rect];
+
         CGContextRestoreGState(context);
         [resultImage unlockFocus];
         [resultImage setFlipped:NO];
@@ -359,10 +370,11 @@ NSImage* Frame::imageFromRect(NSRect rect) const
     return nil;
 }
 
-NSImage* Frame::selectionImage(bool forceWhiteText) const
+NSImage* Frame::selectionImage(bool forceBlackText) const
 {
-    d->m_paintRestriction = forceWhiteText ? PaintRestrictionSelectionOnlyWhiteText : PaintRestrictionSelectionOnly;
-    NSImage* result = imageFromRect(visibleSelectionRect());
+    d->m_paintRestriction = forceBlackText ? PaintRestrictionSelectionOnlyBlackText : PaintRestrictionSelectionOnly;
+    d->m_doc->updateLayout();
+    NSImage* result = imageFromRect(selectionRect());
     d->m_paintRestriction = PaintRestrictionNone;
     return result;
 }
@@ -480,11 +492,6 @@ NSWritingDirection Frame::baseWritingDirectionForSelectionStart() const
     return result;
 }
 
-void Frame::print()
-{
-    [d->m_bridge print];
-}
-
 void Frame::issuePasteCommand()
 {
     [d->m_bridge issuePasteCommand];
@@ -495,117 +502,28 @@ void Frame::issueTransposeCommand()
     [d->m_bridge issueTransposeCommand];
 }
 
-void Frame::respondToChangedSelection(const Selection &oldSelection, bool closeTyping)
-{
-    if (document()) {
-        if (editor()->isContinuousSpellCheckingEnabled()) {
-            Selection oldAdjacentWords;
-            
-            // If this is a change in selection resulting from a delete operation, oldSelection may no longer
-            // be in the document.
-            if (oldSelection.start().node() && oldSelection.start().node()->inDocument()) {
-                VisiblePosition oldStart(oldSelection.visibleStart());
-                oldAdjacentWords = Selection(startOfWord(oldStart, LeftWordIfOnBoundary), endOfWord(oldStart, RightWordIfOnBoundary));   
-            }
-            
-            VisiblePosition newStart(selectionController()->selection().visibleStart());
-            Selection newAdjacentWords(startOfWord(newStart, LeftWordIfOnBoundary), endOfWord(newStart, RightWordIfOnBoundary));
-            
-            // When typing we check spelling elsewhere, so don't redo it here.
-            if (closeTyping && oldAdjacentWords != newAdjacentWords)
-                editor()->markMisspellings(oldAdjacentWords);
-            
-            // This only erases a marker in the first word of the selection.
-            // Perhaps peculiar, but it matches AppKit.
-            document()->removeMarkers(newAdjacentWords.toRange().get(), DocumentMarker::Spelling);
-            document()->removeMarkers(newAdjacentWords.toRange().get(), DocumentMarker::Grammar);
-        } else {
-            // When continuous spell checking is off, existing markers disappear after the selection changes.
-            document()->removeMarkers(DocumentMarker::Spelling);
-            document()->removeMarkers(DocumentMarker::Grammar);
-        }
-    }
-    
-    [d->m_bridge respondToChangedSelection];
-}
-
 const short enableRomanKeyboardsOnly = -23;
-void Frame::setSecureKeyboardEntry(bool enable)
+void Frame::setUseSecureKeyboardEntry(bool enable)
 {
+    if (enable == IsSecureEventInputEnabled())
+        return;
     if (enable) {
         EnableSecureEventInput();
-// FIXME: KeyScript is deprecated in Leopard, we need a new solution for this <rdar://problem/4727607>
-#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
+#ifdef BUILDING_ON_TIGER
         KeyScript(enableRomanKeyboardsOnly);
+#else
+        CFArrayRef inputSources = TISCreateASCIICapableInputSourceList();
+        TSMSetDocumentProperty(TSMGetActiveDocument(), kTSMDocumentEnabledInputSourcesPropertyTag, sizeof(CFArrayRef), &inputSources);
+        CFRelease(inputSources);
 #endif
     } else {
         DisableSecureEventInput();
-#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
+#ifdef BUILDING_ON_TIGER
         KeyScript(smKeyEnableKybds);
+#else
+        TSMRemoveDocumentProperty(TSMGetActiveDocument(), kTSMDocumentEnabledInputSourcesPropertyTag);
 #endif
     }
-}
-
-bool Frame::isSecureKeyboardEntry()
-{
-    return IsSecureEventInputEnabled();
-}
-
-static void convertAttributesToUnderlines(Vector<MarkedTextUnderline>& result, const Range* markedTextRange, NSArray* attributes, NSArray* ranges)
-{
-    int exception = 0;
-    int baseOffset = markedTextRange->startOffset(exception);
-
-    unsigned length = [attributes count];
-    ASSERT([ranges count] == length);
-
-    for (unsigned i = 0; i < length; i++) {
-        NSNumber* style = [[attributes objectAtIndex:i] objectForKey:NSUnderlineStyleAttributeName];
-        if (!style)
-            continue;
-        NSRange range = [[ranges objectAtIndex:i] rangeValue];
-        NSColor* color = [[attributes objectAtIndex:i] objectForKey:NSUnderlineColorAttributeName];
-        Color qColor = Color::black;
-        if (color) {
-            NSColor* deviceColor = [color colorUsingColorSpaceName:NSDeviceRGBColorSpace];
-            qColor = Color(makeRGBA((int)(255 * [deviceColor redComponent]),
-                                    (int)(255 * [deviceColor blueComponent]),
-                                    (int)(255 * [deviceColor greenComponent]),
-                                    (int)(255 * [deviceColor alphaComponent])));
-        }
-
-        result.append(MarkedTextUnderline(range.location + baseOffset, 
-                                          range.location + baseOffset + range.length, 
-                                          qColor,
-                                          [style intValue] > 1));
-    }
-}
-
-void Frame::setMarkedTextRange(const Range* range, NSArray* attributes, NSArray* ranges)
-{
-    int exception = 0;
-
-    ASSERT(!range || range->startContainer(exception) == range->endContainer(exception));
-    ASSERT(!range || range->collapsed(exception) || range->startContainer(exception)->isTextNode());
-
-    d->m_markedTextUnderlines.clear();
-    if (attributes == nil)
-        d->m_markedTextUsesUnderlines = false;
-    else {
-        d->m_markedTextUsesUnderlines = true;
-        convertAttributesToUnderlines(d->m_markedTextUnderlines, range, attributes, ranges);
-    }
-
-    if (d->m_markedTextRange.get() && document() && d->m_markedTextRange->startContainer(exception)->renderer())
-        d->m_markedTextRange->startContainer(exception)->renderer()->repaint();
-
-    if (range && range->collapsed(exception))
-        d->m_markedTextRange = 0;
-    else
-        d->m_markedTextRange = const_cast<Range*>(range);
-
-    if (d->m_markedTextRange.get() && document() && d->m_markedTextRange->startContainer(exception)->renderer())
-        d->m_markedTextRange->startContainer(exception)->renderer()->repaint();
 }
 
 NSMutableDictionary* Frame::dashboardRegionsDictionary()
@@ -657,26 +575,21 @@ void Frame::willPopupMenu(NSMenu * menu)
     [d->m_bridge willPopupMenu:menu];
 }
 
-bool Frame::isCharacterSmartReplaceExempt(UChar c, bool isPreviousChar)
-{
-    return [d->m_bridge isCharacterSmartReplaceExempt:c isPreviousCharacter:isPreviousChar];
-}
-
 void Frame::setNeedsReapplyStyles()
 {
     [d->m_bridge setNeedsReapplyStyles];
 }
 
-FloatRect Frame::customHighlightLineRect(const AtomicString& type, const FloatRect& lineRect)
+FloatRect Frame::customHighlightLineRect(const AtomicString& type, const FloatRect& lineRect, Node* node)
 {
-    return [d->m_bridge customHighlightRect:type forLine:lineRect];
+    return [d->m_bridge customHighlightRect:type forLine:lineRect representedNode:node];
 }
 
-void Frame::paintCustomHighlight(const AtomicString& type, const FloatRect& boxRect, const FloatRect& lineRect, bool text, bool line)
+void Frame::paintCustomHighlight(const AtomicString& type, const FloatRect& boxRect, const FloatRect& lineRect, bool text, bool line, Node* node)
 {
-    [d->m_bridge paintCustomHighlight:type forBox:boxRect onLine:lineRect behindText:text entireLine:line];
+    [d->m_bridge paintCustomHighlight:type forBox:boxRect onLine:lineRect behindText:text entireLine:line representedNode:node];
 }
-    
+
 DragImageRef Frame::dragImageForSelection() 
 {
     if (!selectionController()->isRange())
@@ -701,6 +614,7 @@ KJS::Bindings::Instance* Frame::createScriptInstanceForWidget(WebCore::Widget* w
             return Instance::createBindingForLanguageInstance(Instance::ObjectiveCLanguage, objectForWebScript, rootObject.release());
         return 0;
     } else if ([aView respondsToSelector:@selector(createPluginScriptableObject)]) {
+#if USE(NPOBJECT)
         NPObject* npObject = [aView createPluginScriptableObject];
         if (npObject) {
             Instance* instance = Instance::createBindingForLanguageInstance(Instance::CLanguage, npObject, rootObject.release());
@@ -709,6 +623,7 @@ KJS::Bindings::Instance* Frame::createScriptInstanceForWidget(WebCore::Widget* w
             _NPN_ReleaseObject(npObject);
             return instance;
         }
+#endif
         return 0;
     }
 
@@ -732,23 +647,26 @@ KJS::Bindings::Instance* Frame::createScriptInstanceForWidget(WebCore::Widget* w
 
 WebScriptObject* Frame::windowScriptObject()
 {
-    if (!d->m_settings->isJavaScriptEnabled())
+    Settings* settings = this->settings();
+    if (!settings || !settings->isJavaScriptEnabled())
         return 0;
 
     if (!d->m_windowScriptObject) {
         KJS::JSLock lock;
         KJS::JSObject* win = KJS::Window::retrieveWindow(this);
         KJS::Bindings::RootObject *root = bindingRootObject();
-        d->m_windowScriptObject = HardRetainWithNSRelease([[WebScriptObject alloc] _initWithJSObject:win originRootObject:root rootObject:root]);
+        d->m_windowScriptObject = [WebScriptObject scriptObjectForJSObject:toRef(win) originRootObject:root rootObject:root];
     }
 
-    return d->m_windowScriptObject;
+    return d->m_windowScriptObject.get();
 }
 
-void Frame::cleanupPlatformScriptObjects()
+void Frame::clearPlatformScriptObjects()
 {
-    HardRelease(d->m_windowScriptObject);
-    d->m_windowScriptObject = 0;
+    if (d->m_windowScriptObject) {
+        KJS::Bindings::RootObject* root = bindingRootObject();
+        [d->m_windowScriptObject.get() _setOriginRootObject:root andRootObject:root];
+    }
 }
 
 } // namespace WebCore

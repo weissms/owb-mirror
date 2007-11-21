@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -26,9 +26,7 @@
 #define RenderObject_h
 
 #include "CachedResourceClient.h"
-#ifdef __OWB__
-#include "GraphicsContext.h"
-#endif
+#include "Document.h"
 #include "RenderStyle.h"
 #include "ScrollTypes.h"
 #include "VisiblePosition.h"
@@ -36,9 +34,7 @@
 
 namespace WebCore {
 
-#ifndef __OWB__
-    class AffineTransform;
-#endif
+class AffineTransform;
 class Color;
 class Document;
 class Element;
@@ -88,7 +84,7 @@ enum PaintPhase {
 enum PaintRestriction {
     PaintRestrictionNone,
     PaintRestrictionSelectionOnly,
-    PaintRestrictionSelectionOnlyWhiteText
+    PaintRestrictionSelectionOnlyBlackText
 };
 
 enum HitTestFilter {
@@ -106,9 +102,9 @@ enum HitTestAction {
 };
 
 enum VerticalPositionHint {
-    PositionTop = -0x4000,
-    PositionBottom = 0x4000,
-    PositionUndefined = 0x3fff
+    PositionTop = -0x2000,
+    PositionBottom = 0x2000,
+    PositionUndefined = 0x1fff
 };
 
 struct DashboardRegionValue {
@@ -130,6 +126,7 @@ typedef HashSet<RenderFlow*> RenderFlowSequencedSet;
 // Base class for all rendering tree objects.
 class RenderObject : public CachedResourceClient {
     friend class RenderContainer;
+    friend class RenderSVGContainer;
 public:
     // Anonymous objects should pass the document as their node, and they will then automatically be
     // marked as anonymous in the constructor.
@@ -181,7 +178,6 @@ public:
     // Obtains the nearest enclosing block (including this block) that contributes a first-line style to our inline
     // children.
     virtual RenderBlock* firstLineBlock() const;
-    virtual void updateFirstLetter();
 
     // Called when an object that was floating or positioned becomes a normal flow object
     // again.  We have to make sure the render tree updates as needed to accommodate the new
@@ -210,9 +206,12 @@ public:
     virtual bool createsAnonymousWrapper() const { return false; }
 
     // raw tree manipulation
-    virtual RenderObject* removeChildNode(RenderObject*);
-    virtual void appendChildNode(RenderObject*);
-    virtual void insertChildNode(RenderObject* child, RenderObject* before);
+    virtual RenderObject* removeChildNode(RenderObject*, bool fullRemove = true);
+    virtual void appendChildNode(RenderObject*, bool fullAppend = true);
+    virtual void insertChildNode(RenderObject* child, RenderObject* before, bool fullInsert = true);
+    // Designed for speed.  Don't waste time doing a bunch of work like layer updating and repainting when we know that our
+    // change in parentage is not going to affect anything.
+    virtual void moveChildNode(RenderObject*);
     //////////////////////////////////////////
 
 protected:
@@ -246,7 +245,7 @@ private:
     void* operator new(size_t) throw();
 
 public:
-    RenderArena* renderArena() const;
+    RenderArena* renderArena() const { return document()->renderArena(); }
 
     virtual bool isRenderBlock() const { return false; }
     virtual bool isRenderInline() const { return false; }
@@ -268,12 +267,14 @@ public:
     virtual bool isImage() const { return false; }
     virtual bool isTextArea() const { return false; }
     virtual bool isTextField() const { return false; }
+    virtual bool isFrame() const { return false; }
     virtual bool isFrameSet() const { return false; }
     virtual bool isApplet() const { return false; }
     virtual bool isMenuList() const { return false; }
     virtual bool isListBox() const { return false; }
+    virtual bool isSlider() const { return false; }
 
-    bool isRoot() const;
+    bool isRoot() const { return document()->documentElement() == node(); }
     bool isBody() const;
     bool isHR() const;
 
@@ -284,23 +285,19 @@ public:
 
     virtual RenderFlow* continuation() const;
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
+    virtual bool isSVGRoot() const { return false; }
     virtual bool isSVGContainer() const { return false; }
+    virtual bool isSVGHiddenContainer() const { return false; }
     virtual bool isRenderPath() const { return false; }
     virtual bool isSVGText() const { return false; }
 
     virtual FloatRect relativeBBox(bool includeStroke = true) const;
 
-#ifdef __OWB__
-    virtual BAL::BTAffineTransform localTransform() const;
-    virtual void setLocalTransform(const BAL::BTAffineTransform&);
-    virtual BAL::BTAffineTransform absoluteTransform() const;
-#else
     virtual AffineTransform localTransform() const;
-    virtual void setLocalTransform(const AffineTransform&);
     virtual AffineTransform absoluteTransform() const;
 #endif
-#endif
+
     virtual bool isEditable() const;
 
     bool isAnonymous() const { return m_isAnonymous; }
@@ -319,7 +316,9 @@ public:
     bool isRunIn() const { return style()->display() == RUN_IN; } // run-in object
     bool isDragging() const { return m_isDragging; }
     bool isReplaced() const { return m_replaced; } // a "replaced" element (see CSS)
-
+    
+    bool hasLayer() const { return m_hasLayer; }
+    
     bool hasBoxDecorations() const { return m_paintBackground; }
     bool mustRepaintBackgroundOrBorder() const;
 
@@ -328,8 +327,7 @@ public:
     bool posChildNeedsLayout() const { return m_posChildNeedsLayout; }
     bool normalChildNeedsLayout() const { return m_normalChildNeedsLayout; }
 
-    bool minMaxKnown() const { return m_minMaxKnown; }
-    bool recalcMinMax() const { return m_recalcMinMax; }
+    bool prefWidthsDirty() const { return m_prefWidthsDirty; }
 
     bool isSelectionBorder() const;
 
@@ -346,6 +344,9 @@ public:
 
     virtual int verticalScrollbarWidth() const;
     virtual int horizontalScrollbarHeight() const;
+    
+    bool hasTransform() const { return m_hasTransform; }
+
 private:
     bool includeVerticalScrollbarSize() const { return hasOverflowClip() && (style()->overflowY() == OSCROLL || style()->overflowY() == OAUTO); }
     bool includeHorizontalScrollbarSize() const { return hasOverflowClip() && (style()->overflowX() == OSCROLL || style()->overflowX() == OAUTO); }
@@ -378,24 +379,13 @@ public:
     void setNeedsLayout(bool b, bool markParents = true);
     void setChildNeedsLayout(bool b, bool markParents = true);
 
-    void setMinMaxKnown(bool b = true)
+    void setPrefWidthsDirty(bool, bool markParents = true);
+    void invalidateContainerPrefWidths();
+    
+    void setNeedsLayoutAndPrefWidthsRecalc()
     {
-        m_minMaxKnown = b;
-        if (!b) {
-            RenderObject* o = this;
-            RenderObject* root = this;
-            while(o) { // FIXME: && !o->m_recalcMinMax ) {
-                o->m_recalcMinMax = true;
-                root = o;
-                o = o->m_parent;
-            }
-        }
-    }
-
-    void setNeedsLayoutAndMinMaxRecalc()
-    {
-        setMinMaxKnown(false);
         setNeedsLayout(true);
+        setPrefWidthsDirty(true);
     }
 
     void setPositioned(bool b = true)  { m_positioned = b;  }
@@ -406,6 +396,8 @@ public:
     void setRenderText() { m_isText = true; }
     void setReplaced(bool b = true) { m_replaced = b; }
     void setHasOverflowClip(bool b = true) { m_hasOverflowClip = b; }
+    void setHasLayer(bool b = true) { m_hasLayer = b; }
+    void setHasTransform(bool b = true) { m_hasTransform = b; }
 
     void scheduleRelayout();
 
@@ -430,20 +422,18 @@ public:
     virtual short verticalPositionHint(bool firstLine) const;
     // the offset of baseline from the top of the object.
     virtual short baselinePosition(bool firstLine, bool isRootLineBox = false) const;
-    // width of tab character
-    int tabWidth() const;
 
     /*
      * Paint the object and its children, clipped by (x|y|w|h).
      * (tx|ty) is the calculated position of the parent
      */
     struct PaintInfo {
-        PaintInfo(GraphicsContext* newContext, const IntRect& newRect, PaintPhase newPhase, bool newForceWhiteText,
+        PaintInfo(GraphicsContext* newContext, const IntRect& newRect, PaintPhase newPhase, bool newForceBlackText,
                   RenderObject* newPaintingRoot, RenderFlowSequencedSet* newOutlineObjects)
             : context(newContext)
             , rect(newRect)
             , phase(newPhase)
-            , forceWhiteText(newForceWhiteText)
+            , forceBlackText(newForceBlackText)
             , paintingRoot(newPaintingRoot)
             , outlineObjects(newOutlineObjects)
         {
@@ -452,7 +442,7 @@ public:
         GraphicsContext* context;
         IntRect rect;
         PaintPhase phase;
-        bool forceWhiteText;
+        bool forceBlackText;
         RenderObject* paintingRoot; // used to draw just one element and its visual kids
         RenderFlowSequencedSet* outlineObjects; // used to list outlines that should be painted by a block with inline children
     };
@@ -470,26 +460,7 @@ public:
                                          int clipy, int cliph, int tx, int ty, int width, int height,
                                          bool includeLeftEdge = true, bool includeRightEdge = true) { }
 
-    /*
-     * This function calculates the minimum & maximum width that the object
-     * can be set to.
-     *
-     * when the Element calls setMinMaxKnown(true), calcMinMaxWidth() will
-     * be no longer called.
-     *
-     * when a element has a fixed size, m_minWidth and m_maxWidth should be
-     * set to the same value. This has the special meaning that m_width,
-     * contains the actual value.
-     *
-     * assumes calcMinMaxWidth has already been called for all children.
-     */
-    virtual void calcMinMaxWidth() { }
-
-    /*
-     * Does the min max width recalculations after changes.
-     */
-    void recalcMinMaxWidths();
-
+    
     /*
      * Calculates the actual width of the object (only for non inline
      * objects)
@@ -517,7 +488,7 @@ public:
 
     // Block flows subclass availableWidth to handle multi column layout (shrinking the width available to children when laying out.)
     virtual int availableWidth() const { return contentWidth(); }
-
+    
     virtual int availableHeight() const { return 0; }
 
     virtual void updateWidgetPosition();
@@ -538,7 +509,7 @@ public:
         IntRect m_repaintRect;
     };
 
-    bool hitTest(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestFilter = HitTestAll);
+    bool hitTest(const HitTestRequest&, HitTestResult&, const IntPoint&, int tx, int ty, HitTestFilter = HitTestAll);
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
     void updateHitTestResult(HitTestResult&, const IntPoint&);
 
@@ -567,10 +538,6 @@ public:
     IntRect absoluteContentBox() const;
     int contentWidth() const { return clientWidth() - paddingLeft() - paddingRight(); }
     int contentHeight() const { return clientHeight() - paddingTop() - paddingBottom(); }
-
-    // intrinsic extend of replaced elements. undefined otherwise
-    virtual int intrinsicWidth() const { return 0; }
-    virtual int intrinsicHeight() const { return 0; }
 
     // used by flexible boxes to impose a flexed width/height override
     virtual int overrideSize() const { return 0; }
@@ -603,6 +570,7 @@ public:
     virtual int height() const { return 0; }
 
     virtual IntRect borderBox() const { return IntRect(0, 0, width(), height()); }
+    IntRect absoluteOutlineBox() const;
 
     // The height of a block when you include normal flow overflow spillage out of the bottom
     // of the block (e.g., a <div style="height:25px"> that has a 100px tall image inside
@@ -649,6 +617,7 @@ public:
     virtual bool shouldAutoscroll() const;
     virtual void autoscroll();
     virtual void stopAutoscroll() { }
+    virtual bool isScrollable() const;
 
     // The following seven functions are used to implement collapsing margins.
     // All objects know their maximal positive and negative margins.  The
@@ -683,9 +652,9 @@ public:
     virtual int borderLeft() const { return style()->borderLeftWidth(); }
     virtual int borderRight() const { return style()->borderRightWidth(); }
 
-    virtual void addLineBoxRects(Vector<IntRect>&, unsigned startOffset = 0, unsigned endOffset = UINT_MAX);
+    virtual void addLineBoxRects(Vector<IntRect>&, unsigned startOffset = 0, unsigned endOffset = UINT_MAX, bool useSelectionHeight = false);
 
-    virtual void absoluteRects(Vector<IntRect>&, int tx, int ty);
+    virtual void absoluteRects(Vector<IntRect>&, int tx, int ty, bool topLevel = true);
     IntRect absoluteBoundingBoxRect();
 
     // the rect that will be painted if this object is passed as the paintingRoot
@@ -695,8 +664,8 @@ public:
 
     virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
 
-    virtual int minWidth() const { return 0; }
-    virtual int maxWidth() const { return 0; }
+    virtual int minPrefWidth() const { return 0; }
+    virtual int maxPrefWidth() const { return 0; }
 
     RenderStyle* style() const { return m_style; }
     RenderStyle* firstLineStyle() const;
@@ -717,8 +686,6 @@ public:
     void drawBorder(GraphicsContext*, int x1, int y1, int x2, int y2, BorderSide,
                     Color, const Color& textcolor, EBorderStyle, int adjbw1, int adjbw2);
 
-    virtual void setTable(RenderTable*) { }
-
     // Repaint the entire object.  Called when, e.g., the color of a border changes, or when a border
     // style changes.
     void repaint(bool immediate = false);
@@ -727,7 +694,7 @@ public:
     void repaintRectangle(const IntRect&, bool immediate = false);
 
     // Repaint only if our old bounds and new bounds are different.
-    bool repaintAfterLayoutIfNeeded(const IntRect& oldBounds);
+    bool repaintAfterLayoutIfNeeded(const IntRect& oldBounds, const IntRect& oldOutlineBox);
 
     // Repaint only if the object moved.
     virtual void repaintDuringLayoutIfMoved(const IntRect& rect);
@@ -735,14 +702,11 @@ public:
     // Called to repaint a block's floats.
     virtual void repaintOverhangingFloats(bool paintAllDescendants = false);
 
-    // Called before layout to repaint all dirty children (with selfNeedsLayout() set).
-    virtual void repaintObjectsBeforeLayout();
-
     bool checkForRepaintDuringLayout() const;
 
     // Returns the rect that should be repainted whenever this object changes.  The rect is in the view's
     // coordinate space.  This method deals with outlines and overflow.
-    virtual IntRect getAbsoluteRepaintRect();
+    virtual IntRect absoluteClippedOverflowRect();
 
     IntRect getAbsoluteRepaintRectWithOutline(int ow);
 
@@ -789,20 +753,13 @@ public:
 
     // A single rectangle that encompasses all of the selected objects within this object.  Used to determine the tightest
     // possible bounding box for the selection.
-    virtual IntRect selectionRect() { return IntRect(); }
+    virtual IntRect selectionRect(bool) { return IntRect(); }
 
     // Whether or not an object can be part of the leaf elements of the selection.
     virtual bool canBeSelectionLeaf() const { return false; }
 
     // Whether or not a block has selected children.
     virtual bool hasSelectedChildren() const { return false; }
-
-    // Whether or not a selection can be attempted on this object.
-    bool canSelect() const;
-
-    // Whether or not a selection can be attempted on this object.  Should only be called right before actually beginning a selection,
-    // since it fires the selectstart DOM event.
-    bool shouldSelect() const;
 
     // Obtains the selection colors that should be used when painting a selection.
     Color selectionBackgroundColor() const;
@@ -819,9 +776,9 @@ public:
         {
         }
 
-        SelectionInfo(RenderObject* o)
+        SelectionInfo(RenderObject* o, bool clipToVisibleContent)
             : m_object(o)
-            , m_rect(o->selectionRect())
+            , m_rect(o->needsLayout() ? IntRect() : o->selectionRect(clipToVisibleContent))
             , m_state(o->selectionState())
         {
         }
@@ -891,17 +848,23 @@ public:
         return !paintInfo.paintingRoot || paintInfo.paintingRoot == this;
     }
 
+    bool hasOverrideSize() const { return m_hasOverrideSize; }
+    void setHasOverrideSize(bool b) { m_hasOverrideSize = b; }
+    
     void remove() { if (parent()) parent()->removeChild(this); }
+
+    void invalidateVerticalPosition() { m_verticalPosition = PositionUndefined; }
+    
+    virtual void removeLeftoverAnonymousBlock(RenderBlock* child);
 
 protected:
     virtual void printBoxDecorations(GraphicsContext*, int /*x*/, int /*y*/, int /*w*/, int /*h*/, int /*tx*/, int /*ty*/) { }
 
     virtual IntRect viewRect() const;
 
-    void invalidateVerticalPositions();
     short getVerticalPosition(bool firstLine) const;
 
-    virtual void removeLeftoverAnonymousBoxes();
+    void adjustRectForOutlineAndShadow(IntRect&) const;
 
     void arenaDelete(RenderArena*, void* objectBase);
 
@@ -914,12 +877,12 @@ private:
     RenderObject* m_previous;
     RenderObject* m_next;
 
-    mutable short m_verticalPosition;
+    mutable short m_verticalPosition : 15;
 
     bool m_needsLayout               : 1;
     bool m_normalChildNeedsLayout    : 1;
     bool m_posChildNeedsLayout       : 1;
-    bool m_minMaxKnown               : 1;
+    bool m_prefWidthsDirty           : 1;
     bool m_floating                  : 1;
 
     bool m_positioned                : 1;
@@ -928,14 +891,17 @@ private:
                                           // background painting phase (background, border, etc)
 
     bool m_isAnonymous               : 1;
-    bool m_recalcMinMax              : 1;
     bool m_isText                    : 1;
     bool m_inline                    : 1;
     bool m_replaced                  : 1;
     bool m_isDragging                : 1;
 
+    bool m_hasLayer                  : 1;
     bool m_hasOverflowClip           : 1;
+    bool m_hasTransform              : 1;
 
+    bool m_hasOverrideSize           : 1;
+    
 public:
     bool m_hasCounterNodeMap         : 1;
 };

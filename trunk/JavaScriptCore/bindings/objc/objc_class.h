@@ -37,8 +37,6 @@ protected:
     ObjcClass (ClassStructPtr aClass); // Use classForIsA to create an ObjcClass.
     
 public:
-    ~ObjcClass();
-
     // Return the cached ObjC of the specified name.
     static ObjcClass *classForIsA(ClassStructPtr);
     
@@ -49,18 +47,12 @@ public:
 
     virtual JSValue *fallbackObject(ExecState *exec, Instance *instance, const Identifier &propertyName);
     
-    virtual Constructor *constructorAt(int) const { return 0; }
-    virtual int numConstructors() const { return 0; }
-    
     ClassStructPtr isa() { return _isa; }
     
 private:
-    ObjcClass(const ObjcClass &other); // prohibit copying
-    ObjcClass &operator=(const ObjcClass &other); // ditto
-    
     ClassStructPtr _isa;
-    CFMutableDictionaryRef _methods;
-    CFMutableDictionaryRef _fields;
+    RetainPtr<CFMutableDictionaryRef> _methods;
+    RetainPtr<CFMutableDictionaryRef> _fields;
 };
 
 } // namespace Bindings

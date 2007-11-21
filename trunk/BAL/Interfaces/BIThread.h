@@ -127,59 +127,86 @@ namespace BAL {
     */
     class BIThread {
         public:
-        // this is mandatory
+            // this is mandatory
+            /**
+            * BIThread destructor
+            */
             ~BIThread(){}
-            /* Create a key value identifying a location in the thread-specific
+
+            /**
+            * Create a key value identifying a location in the thread-specific
                data area.  Each thread maintains a distinct thread-specific data
                area.  DESTR_FUNCTION, if non-NULL, is called with the value
                associated to that key when the key is destroyed.
                DESTR_FUNCTION is not called if the value associated is NULL when
-               the key is destroyed.  */
-
+               the key is destroyed.
+            */
             static int pthread_key_create (pthread_key_t *__key,
                                void (*__destr_function) (void *));
-            /*Guarantee that the initialization function INIT_ROUTINE will be called
+
+            /**
+            * Guarantee that the initialization function INIT_ROUTINE will be called
               only once, even if pthread_once is executed several times with the
               same ONCE_CONTROL argument. ONCE_CONTROL must point to a static or
-              extern variable initialized to PTHREAD_ONCE_INIT.*/
+              extern variable initialized to PTHREAD_ONCE_INIT.
+            */
             static int pthread_once (pthread_once_t *__once_control,
                          void (*__init_routine) (void));
 
-            /* Return current value of the thread-specific data slot identified by KEY.  */
+            /**
+            * Return current value of the thread-specific data slot identified by KEY.
+            */
             static void *pthread_getspecific (pthread_key_t __key);
 
-            /* Obtain the identifier of the current thread.  */
+            /**
+            * Obtain the identifier of the current thread.
+            */
             static pthread_t pthread_self (void);
 
-            /* Store POINTER in the thread-specific data slot identified by KEY. */
+            /**
+            * Store POINTER in the thread-specific data slot identified by KEY.
+            */
             static int pthread_setspecific (pthread_key_t __key,
                                 __const void *__pointer);
 
-            /* Return the previously set address for the stack.  */
-            /* pthread_attr_getstackaddr is deprecated */
-            /* static int pthread_attr_getstackaddr (__const pthread_attr_t *attr, void **__stackaddr); */
-	    static int pthread_attr_getstack(const pthread_attr_t *__attr, void **__stackaddr, size_t *__stacksize); 
+            /**
+            * Return the previously set address for the stack.
+            * pthread_attr_getstackaddr is deprecated
+            * static int pthread_attr_getstackaddr (__const pthread_attr_t *attr, void **__stackaddr);
+            */
+            static int pthread_attr_getstack(const pthread_attr_t *__attr, void **__stackaddr, size_t *__stacksize); 
 
-            /* Initialize mutex attribute object ATTR with default attributes
-               (kind is PTHREAD_MUTEX_TIMED_NP).  */
+            /**
+            * Initialize mutex attribute object ATTR with default attributes(kind is PTHREAD_MUTEX_TIMED_NP).
+            */
             static int pthread_mutexattr_init (pthread_mutexattr_t *__attr);
 
-            /* Set the mutex kind attribute in *ATTR to KIND (either PTHREAD_MUTEX_NORMAL,
+            /**
+            * Set the mutex kind attribute in *ATTR to KIND (either PTHREAD_MUTEX_NORMAL,
                PTHREAD_MUTEX_RECURSIVE, PTHREAD_MUTEX_ERRORCHECK, or
-               PTHREAD_MUTEX_DEFAULT).  */
+               PTHREAD_MUTEX_DEFAULT).
+            */
             static int pthread_mutexattr_settype (pthread_mutexattr_t *__attr, int __kind);
 
-            /* Initialize a mutex.  */
+            /**
+            * Initialize a mutex.
+            */
             static int pthread_mutex_init (pthread_mutex_t *__mutex,
                                __const pthread_mutexattr_t *__mutexattr);
 
-            /* Destroy a mutex.  */
+            /**
+            * Destroy a mutex.
+            */
             static int pthread_mutex_destroy (pthread_mutex_t *__mutex);
 
-            /* Lock a mutex.  */
+            /**
+            * Lock a mutex.
+            */
             static int pthread_mutex_lock (pthread_mutex_t *__mutex);
 
-            /* Unlock a mutex.  */
+            /**
+            * Unlock a mutex.
+            */
             static int pthread_mutex_unlock (pthread_mutex_t *__mutex);
     };
 }
@@ -216,14 +243,9 @@ inline int pthread_setspecific (pthread_key_t __key,
     return BAL::BIThread::pthread_setspecific ( __key, __pointer);
 }
 
-/* inline int pthread_attr_getstackaddr (__const pthread_attr_t *__attr, void **__stackaddr)
-{
-    return BAL::BIThread::pthread_attr_getstackaddr (__attr, __stackaddr);
-}*/
-
 inline int pthread_attr_getstack(const pthread_attr_t *__attr, void **__stackaddr, size_t *__stacksize) 
 {
-	return BAL::BIThread::pthread_attr_getstack(__attr, __stackaddr, __stacksize);
+    return BAL::BIThread::pthread_attr_getstack(__attr, __stackaddr, __stacksize);
 }
 
 inline int pthread_mutexattr_init (pthread_mutexattr_t *__attr)

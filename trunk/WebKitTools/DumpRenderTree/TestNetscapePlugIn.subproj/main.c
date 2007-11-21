@@ -72,27 +72,81 @@ void NP_Shutdown(void)
 
 NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16 mode, int16 argc, char *argn[], char *argv[], NPSavedData *saved)
 {
-    if (browser->version >= 14)
-        instance->pdata = browser->createobject(instance, getPluginClass());
+    if (browser->version >= 14) {
+        PluginObject* obj = (PluginObject*)browser->createobject(instance, getPluginClass());
+    
+        obj->onStreamLoad = NULL;
+        
+        for (uint i = 0; i < argc; i++) {
+            if (strcasecmp(argn[i], "onstreamload") == 0 && !obj->onStreamLoad)
+                obj->onStreamLoad = strdup(argv[i]);
+            else if (strcasecmp(argn[i], "src") == 0 &&
+                     strcasecmp(argv[i], "data:application/x-webkit-test-netscape,returnerrorfromnewstream") == 0)
+                obj->returnErrorFromNewStream = TRUE;
+            else if (strcasecmp(argn[i], "logfirstsetwindow") == 0)
+                obj->logSetWindow = TRUE;
+        }
+        
+        instance->pdata = obj;
+    }
+    
     return NPERR_NO_ERROR;
 }
 
 NPError NPP_Destroy(NPP instance, NPSavedData **save)
 {
     PluginObject *obj = instance->pdata;
-    if (obj)
+    if (obj) {
+        if (obj->onStreamLoad)
+            free(obj->onStreamLoad);
+        
+        if (obj->logDestroy)
+            printf("PLUGIN: NPP_Destroy\n");
+
         browser->releaseobject(&obj->header);
+    }
     return NPERR_NO_ERROR;
 }
 
 NPError NPP_SetWindow(NPP instance, NPWindow *window)
 {
+    PluginObject *obj = instance->pdata;
+
+    if (obj) {
+        if (obj->logSetWindow) {
+            printf("PLUGIN: NPP_SetWindow: %d %d\n", (int)window->width, (int)window->height);
+            obj->logSetWindow = false;
+        }
+    }
+    
     return NPERR_NO_ERROR;
 }
 
 NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream *stream, NPBool seekable, uint16 *stype)
 {
+    PluginObject* obj = instance->pdata;
+    obj->stream = stream;
     *stype = NP_ASFILEONLY;
+
+    if (obj->returnErrorFromNewStream)
+        return NPERR_GENERIC_ERROR;
+    
+    if (browser->version >= NPVERS_HAS_RESPONSE_HEADERS)
+        notifyStream(obj, stream->url, stream->headers);
+
+    if (obj->onStreamLoad) {
+        NPObject *windowScriptObject;
+        browser->getvalue(obj->npp, NPNVWindowNPObject, &windowScriptObject);
+                
+        NPString script;
+        script.UTF8Characters = obj->onStreamLoad;
+        script.UTF8Length = strlen(obj->onStreamLoad);
+        
+        NPVariant browserResult;
+        browser->evaluate(obj->npp, windowScriptObject, &script, &browserResult);
+        browser->releasevariantvalue(&browserResult);
+    }
+    
     return NPERR_NO_ERROR;
 }
 
@@ -192,6 +246,9 @@ int16 NPP_HandleEvent(NPP instance, void *event)
 
 void NPP_URLNotify(NPP instance, const char *url, NPReason reason, void *notifyData)
 {
+    PluginObject *obj = instance->pdata;
+        
+    handleCallback(obj, url, reason, notifyData);
 }
 
 NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value)

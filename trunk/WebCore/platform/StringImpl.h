@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -100,7 +100,10 @@ public:
     bool containsOnlyWhitespace(unsigned from, unsigned len) const;
 
     int toInt(bool* ok = 0) const; // ignores trailing garbage, unlike DeprecatedString
+    int64_t toInt64(bool* ok = 0) const; // ignores trailing garbage, unlike DeprecatedString
+    uint64_t toUInt64(bool* ok = 0) const; // ignores trailing garbage, unlike DeprecatedString
     double toDouble(bool* ok = 0) const;
+    float toFloat(bool* ok = 0) const;
 
     Length* toCoordsArray(int& len) const;
     Length* toLengthArray(int& len) const;
@@ -133,6 +136,8 @@ public:
     static StringImpl* empty();
 
     Vector<char> ascii() const;
+
+    WTF::Unicode::Direction defaultWritingDirection() const;
 
 #if PLATFORM(CF)
     StringImpl(CFStringRef);

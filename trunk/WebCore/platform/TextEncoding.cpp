@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2004, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2006 Alexey Proskuryakov <ap@nypop.com>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,12 @@
 #include "TextDecoder.h"
 #include "TextEncodingRegistry.h"
 #if USE(ICU_UNICODE)
+#ifdef __OWB__
+#include "BALConfiguration.h"
+#include "BIInternationalization.h"
+#else
 #include <unicode/unorm.h>
+#endif
 #elif USE(QT4_UNICODE)
 #include <QString>
 #endif
@@ -76,6 +81,10 @@ CString TextEncoding::encode(const UChar* characters, size_t length, bool allowE
         return "";
 
 #if USE(ICU_UNICODE)
+#ifdef __OWB__
+    const UChar* source = ::BAL::getBIInternationalization()->normalize(characters, UNORM_NFC, &length);
+    return newTextCodec(*this)->encode(source, length, allowEntities);
+#else
     // FIXME: What's the right place to do normalization?
     // It's a little strange to do it inside the encode function.
     // Perhaps normalization should be an explicit step done before calling encode.
@@ -101,21 +110,28 @@ CString TextEncoding::encode(const UChar* characters, size_t length, bool allowE
         sourceLength = normalizedLength;
     }
     return newTextCodec(*this)->encode(source, sourceLength, allowEntities);
+#endif //__OWB__
 #elif USE(QT4_UNICODE)
     QString str(reinterpret_cast<const QChar*>(characters), length);
     str = str.normalized(QString::NormalizationForm_C);
-    return newTextCodec(*this)->encode(str.utf16(), str.length(), allowEntities);
+    return newTextCodec(*this)->encode(reinterpret_cast<const UChar *>(str.utf16()), str.length(), allowEntities);
 #endif
 }
 
 bool TextEncoding::usesVisualOrdering() const
 {
+    if (noExtendedTextEncodingNameUsed())
+        return false;
+
     static const char* const a = atomicCanonicalTextEncodingName("ISO-8859-8");
     return m_name == a;
 }
 
 bool TextEncoding::isJapanese() const
 {
+    if (noExtendedTextEncodingNameUsed())
+        return false;
+
     static HashSet<const char*> set;
     if (set.isEmpty()) {
         addEncodingName(set, "x-mac-japanese");
@@ -138,6 +154,9 @@ bool TextEncoding::isJapanese() const
 
 UChar TextEncoding::backslashAsCurrencySymbol() const
 {
+    if (noExtendedTextEncodingNameUsed())
+        return '\\';
+
     // The text encodings below treat backslash as a currency symbol.
     // See http://blogs.msdn.com/michkap/archive/2005/09/17/469941.aspx for more information.
     static const char* const a = atomicCanonicalTextEncodingName("Shift_JIS_X0213-2000");
@@ -175,6 +194,19 @@ const TextEncoding& UTF16LittleEndianEncoding()
     static TextEncoding globalUTF16LittleEndianEncoding("UTF-16LE");
     return globalUTF16LittleEndianEncoding;
 }
+
+const TextEncoding& UTF32BigEndianEncoding()
+{
+    static TextEncoding globalUTF32BigEndianEncoding("UTF-32BE");
+    return globalUTF32BigEndianEncoding;
+}
+
+const TextEncoding& UTF32LittleEndianEncoding()
+{
+    static TextEncoding globalUTF32LittleEndianEncoding("UTF-32LE");
+    return globalUTF32LittleEndianEncoding;
+}
+
 
 const TextEncoding& UTF8Encoding()
 {

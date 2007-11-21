@@ -31,7 +31,6 @@
 #include "BALConfiguration.h"
 #include "BIKeyboardEvent.h"
 #include "BIMouseEvent.h"
-#include "BTLogHelper.h"
 #include "ChromeClientBal.h"
 #include "ContextMenuClientBal.h"
 #include "CString.h"
@@ -44,10 +43,17 @@
 #include "FrameLoader.h"
 #include "FrameLoadRequest.h"
 #include "FrameView.h"
+#include "InspectorClientBal.h"
 #include "Page.h"
 #include "RenderTreeAsText.h"
+#include "Settings.h"
 #include "TextStream.h"
 #include "WindowBal.h"
+#ifdef __OWB_WEB_UI__
+#include "ChromeClientWebUI.h"
+#include "FrameLoaderClientWebUI.h"
+#endif
+#include "BTLogHelper.h"
 
 using WebCore::EventHandler;
 using WebCore::Frame;
@@ -63,30 +69,57 @@ const uint16_t x,
 const uint16_t y, 
 const uint16_t width, 
 const uint16_t height) 
-    : m_frameLoaderClient(0)
-    , m_x(x)
+    : m_x(x)
     , m_y(y)
     , m_width(width)
     , m_height(height)
 {
+#ifdef __OWB_WEB_UI__
+    WebCore::ChromeClientBal* chromeClient = new WebCore::ChromeClientWebUI();
+    FrameLoaderClientBal* frameLoaderClient = new WebCore::FrameLoaderClientWebUI();
+#else
     WebCore::ChromeClientBal* chromeClient = new WebCore::ChromeClientBal();
+    FrameLoaderClientBal* frameLoaderClient = new WebCore::FrameLoaderClientBal();
+#endif
     WebCore::ContextMenuClientBal* contextMenuClient = new WebCore::ContextMenuClientBal();
     WebCore::EditorClientBal* editorClient = new WebCore::EditorClientBal();
     Page* page = new Page(chromeClient, contextMenuClient, editorClient,
-                    new WebCore::DragClientBal());
+                    new WebCore::DragClientBal(), new WebCore::InspectorClientBal());
+    page->settings()->setLoadsImagesAutomatically(true);
+    page->settings()->setMinimumFontSize(5);
+    page->settings()->setMinimumLogicalFontSize(5);
+    page->settings()->setShouldPrintBackgrounds(true);
+#ifdef __OWB_JS__
+    page->settings()->setJavaScriptEnabled(true);
+#else
+    page->settings()->setJavaScriptEnabled(false);
+#endif
+    page->settings()->setPluginsEnabled(true);
+    page->settings()->setDefaultFixedFontSize(14);
+    page->settings()->setDefaultFontSize(14);
+
     editorClient->setPage(page);
-    FrameLoaderClientBal* frameLoaderClient = new FrameLoaderClientBal();
     m_mainFrame = new FrameBal(page, 0, frameLoaderClient);
+
     frameLoaderClient->setFrame(m_mainFrame.get());
     chromeClient->setFrame(m_mainFrame.get());
     page->chrome()->setWindowRect(FloatRect(x, y, width, height));
     m_mainFrame->view()->resize(width, height);
     m_mainFrame->view()->move(x, y);
+
 }
 
 WindowBal::~WindowBal()
 {
-    delete m_mainFrame->page();
+    //delete m_mainFrame->page();
+    //hack to free frame
+#ifndef NDEBUG
+    m_mainFrame->cancelAllKeepAlive();
+#endif //NDEBUG
+    Frame * f = m_mainFrame.get();
+    delete f;
+    f=0;
+    
     m_mainFrame = 0;
     // how do we release WebCore::allPages ?
 }
@@ -99,12 +132,12 @@ void WindowBal::handleEvent(BAL::BIEvent *event)
 
 bool WindowBal::canGoBackOrForward(int distance)
 {
-	return m_mainFrame->loader()->canGoBackOrForward(distance);
+    return m_mainFrame->loader()->canGoBackOrForward(distance);
 }
 
 void WindowBal::goBackOrForward(int distance)
 {
-	m_mainFrame->loader()->goBackOrForward(distance);
+    m_mainFrame->loader()->goBackOrForward(distance);
 }
 
 void WindowBal::setURL(const KURL& url)
@@ -119,6 +152,11 @@ void WindowBal::setURL(const KURL& url)
     m_mainFrame->loader()->load(url);
 }
 
+void WindowBal::stop()
+{
+    m_mainFrame->loader()->stopForUserCancel();
+}
+
 const KURL& WindowBal::URL()
 {
     return m_url;
@@ -129,15 +167,27 @@ const BTWidget* WindowBal::widget() const
     return m_mainFrame->view();
 }
 
-void WindowBal::setFrameLoaderClient(WebCore::FrameLoaderClientBal* client)
+void WindowBal::setFrameLoaderClient(WebCore::FrameLoaderClientBal* frameLoaderClient)
 {
-    m_frameLoaderClient = client;
-    Page* page = m_mainFrame->page();
-    page->setMainFrame(0);
-    static_cast<WebCore::ChromeClientBal*>(page->chrome()->client())->setFrame(0);
-    m_mainFrame = new FrameBal(page, 0, m_frameLoaderClient);
-    static_cast<WebCore::ChromeClientBal*>(page->chrome()->client())->setFrame(m_mainFrame.get());
-    m_frameLoaderClient->setFrame(m_mainFrame.get());
+    delete m_mainFrame->page();
+
+#ifdef __OWB_WEB_UI__
+    WebCore::ChromeClientBal* chromeClient = new WebCore::ChromeClientWebUI();
+#else
+    WebCore::ChromeClientBal* chromeClient = new WebCore::ChromeClientBal();
+#endif
+    WebCore::ContextMenuClientBal* contextMenuClient = new WebCore::ContextMenuClientBal();
+    WebCore::EditorClientBal* editorClient = new WebCore::EditorClientBal();
+    Page* page = new Page(chromeClient, contextMenuClient, editorClient,
+                    new WebCore::DragClientBal(), new WebCore::InspectorClientBal());
+    editorClient->setPage(page);
+
+    m_mainFrame = new FrameBal(page, 0, frameLoaderClient);
+    frameLoaderClient->setFrame(m_mainFrame.get());
+    chromeClient->setFrame(m_mainFrame.get());
+    page->chrome()->setWindowRect(FloatRect(m_x, m_y, m_width, m_height));
+    m_mainFrame->view()->resize(m_width, m_height);
+    m_mainFrame->view()->move(m_x, m_y);
 }
 
 }

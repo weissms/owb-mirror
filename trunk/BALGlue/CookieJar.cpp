@@ -43,6 +43,7 @@ namespace WebCore {
 
 void setCookies(const KURL& url, const KURL& policyURL, const String& value)
 {
+    DBGML(MODULE_FACILITIES, LEVEL_INFO, "New JS created cookie : %s\n\n", value.deprecatedString().ascii());
     BICookieJar* jar = getBICookieJar();
     if (jar)
         jar->setCookies(url, policyURL, value);
@@ -61,11 +62,11 @@ bool cookiesEnabled()
 {
     BICookieJar* jar = getBICookieJar();
     if (jar) {
-        logm(MODULE_BRIDGE, "yes");
+        DBGM(MODULE_BRIDGE, "yes\n");
         return true;
     }
     else {
-        logm(MODULE_BRIDGE, "no");
+        DBGM(MODULE_BRIDGE, "no\n");
         return false;
     }
 }

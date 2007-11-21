@@ -50,15 +50,36 @@ namespace BAL {
     class BIInputEvent : public BIEvent {
         public:
         // this is mandatory
+            /**
+            * BIInputEvent destructor
+            */
             virtual ~BIInputEvent() {};
 
+            /**
+            * clone a BIInputEvent
+            */
             virtual BIEvent* clone() const = 0;
             
+            /**
+            * get the InputEvent
+            */
             virtual BIInputEvent* queryIsInputEvent() { return this; };
     
+            /**
+            * test if the shift is pressed
+            */
             virtual bool shiftKey() const = 0;
+            /**
+            * test if the ctrl is pressed
+            */
             virtual bool ctrlKey() const = 0;
+            /**
+            * test if the alt is pressed
+            */
             virtual bool altKey() const = 0;
+            /**
+            * test if a metaKey is pressed
+            */
             virtual bool metaKey() const = 0;
    };
 }

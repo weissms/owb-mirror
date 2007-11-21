@@ -31,15 +31,9 @@ using namespace KJS;
 const ClassInfo RuntimeArray::info = {"RuntimeArray", &ArrayInstance::info, 0, 0};
 
 RuntimeArray::RuntimeArray(ExecState *exec, Bindings::Array *a)
-    : ArrayInstance(exec->lexicalInterpreter()->builtinArrayPrototype(), a->getLength())
+    : JSObject(exec->lexicalInterpreter()->builtinArrayPrototype())
+    , _array(a)
 {
-    // Always takes ownership of concrete array.
-    _array = a;
-}
-
-RuntimeArray::~RuntimeArray()
-{
-    delete _array;
 }
 
 JSValue *RuntimeArray::lengthGetter(ExecState*, JSObject*, const Identifier&, const PropertySlot& slot)
@@ -54,9 +48,9 @@ JSValue *RuntimeArray::indexGetter(ExecState* exec, JSObject*, const Identifier&
     return thisObj->getConcreteArray()->valueAt(exec, slot.index());
 }
 
-bool RuntimeArray::getOwnPropertySlot(ExecState *exec, const Identifier& propertyName, PropertySlot& slot)
+bool RuntimeArray::getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot)
 {
-    if (propertyName == lengthPropertyName) {
+    if (propertyName == exec->propertyNames().length) {
         slot.setCustom(this, lengthGetter);
         return true;
     }
@@ -70,7 +64,7 @@ bool RuntimeArray::getOwnPropertySlot(ExecState *exec, const Identifier& propert
         }
     }
     
-    return ArrayInstance::getOwnPropertySlot(exec, propertyName, slot);
+    return JSObject::getOwnPropertySlot(exec, propertyName, slot);
 }
 
 bool RuntimeArray::getOwnPropertySlot(ExecState *exec, unsigned index, PropertySlot& slot)
@@ -80,12 +74,12 @@ bool RuntimeArray::getOwnPropertySlot(ExecState *exec, unsigned index, PropertyS
         return true;
     }
     
-    return ArrayInstance::getOwnPropertySlot(exec, index, slot);
+    return JSObject::getOwnPropertySlot(exec, index, slot);
 }
 
-void RuntimeArray::put(ExecState *exec, const Identifier &propertyName, JSValue *value, int attr)
+void RuntimeArray::put(ExecState* exec, const Identifier& propertyName, JSValue* value, int attr)
 {
-    if (propertyName == lengthPropertyName) {
+    if (propertyName == exec->propertyNames().length) {
         throwError(exec, RangeError);
         return;
     }

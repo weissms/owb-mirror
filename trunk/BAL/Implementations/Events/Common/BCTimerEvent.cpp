@@ -43,10 +43,10 @@
 using namespace BC;
 
 namespace BAL {
-    BIEvent* createBITimerEvent()
-    {
-        return new BC::BCTimerEvent();
-    }
+BIEvent* createBITimerEvent()
+{
+    return new BC::BCTimerEvent();
+}
 }
 
 BCTimerEvent::BCTimerEvent()
@@ -55,6 +55,6 @@ BCTimerEvent::BCTimerEvent()
 
 BAL::BIEvent* BCTimerEvent::clone() const
 {
-	return new BCTimerEvent();
+    return new BCTimerEvent();
 }
 

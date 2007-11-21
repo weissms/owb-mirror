@@ -45,7 +45,8 @@
 #endif
 
 #if PLATFORM(QT)
-#include <QString>
+class QWebFrame;
+class QWebNetworkJob;
 #endif
 
 #if PLATFORM(MAC)
@@ -65,11 +66,12 @@ namespace WebCore {
 
     class ResourceHandleInternal : Noncopyable {
     public:
-        ResourceHandleInternal(ResourceHandle* loader, const ResourceRequest& request, ResourceHandleClient* c, bool defersLoading, bool mightDownloadFromHandle)
+        ResourceHandleInternal(ResourceHandle* loader, const ResourceRequest& request, ResourceHandleClient* c, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle)
             : m_client(c)
             , m_request(request)
             , status(0)
             , m_defersLoading(defersLoading)
+            , m_shouldContentSniff(shouldContentSniff)
             , m_mightDownloadFromHandle(mightDownloadFromHandle)
 #if USE(CFNETWORK)
             , m_connection(0)
@@ -91,7 +93,12 @@ namespace WebCore {
 #if USE(CURL)
             , m_handle(0)
             , m_url(0)
+            , m_fileName(0)
             , m_customHeaders(0)
+#endif
+#if PLATFORM(QT)
+            , m_job(0)
+            , m_frame(0)
 #endif
 #if PLATFORM(MAC)
             , m_currentMacChallenge(nil)
@@ -111,6 +118,7 @@ namespace WebCore {
         int status;
 
         bool m_defersLoading;
+        bool m_shouldContentSniff;
         bool m_mightDownloadFromHandle;
 #if USE(CFNETWORK)
         RetainPtr<CFURLConnectionRef> m_connection;
@@ -137,7 +145,14 @@ namespace WebCore {
 #if USE(CURL)
         CURL* m_handle;
         char* m_url;
+        char* m_fileName;
         struct curl_slist* m_customHeaders;        
+        Vector<char> m_postBytes;
+        ResourceResponse m_response;
+#endif
+#if PLATFORM(QT)
+        QWebNetworkJob *m_job;
+        QWebFrame *m_frame;
 #endif
 #if PLATFORM(MAC)
         NSURLAuthenticationChallenge *m_currentMacChallenge;

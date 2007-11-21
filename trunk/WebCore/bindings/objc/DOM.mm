@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2006 James G. Speth (speth@end.com)
  * Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
  *
@@ -29,9 +29,10 @@
 #import "DOM.h"
 
 #import "CDATASection.h"
+#import "CSSHelper.h"
 #import "CSSStyleSheet.h"
 #import "Comment.h"
-#import "DOMImplementationFront.h"
+#import "DOMHTMLCanvasElement.h"
 #import "DOMInternal.h"
 #import "DOMPrivate.h"
 #import "Document.h"
@@ -45,6 +46,7 @@
 #import "FontData.h"
 #import "FoundationExtras.h"
 #import "Frame.h"
+#import "FrameView.h"
 #import "HTMLDocument.h"
 #import "HTMLNames.h"
 #import "HTMLPlugInElement.h"
@@ -58,17 +60,18 @@
 #import "QualifiedName.h"
 #import "Range.h"
 #import "RenderImage.h"
+#import "RenderView.h"
 #import "Text.h"
 #import "TreeWalker.h"
 #import "WebScriptObjectPrivate.h"
-#import "csshelper.h"
 #import <objc/objc-class.h>
 #import <wtf/HashMap.h>
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #import "SVGDocument.h"
 #import "SVGElement.h"
 #import "SVGNames.h"
+#import "DOMSVG.h"
 #endif
 
 namespace WebCore {
@@ -122,13 +125,15 @@ static void createElementClassMap()
     addElementClass(HTMLNames::bodyTag, [DOMHTMLBodyElement class]);
     addElementClass(HTMLNames::brTag, [DOMHTMLBRElement class]);
     addElementClass(HTMLNames::buttonTag, [DOMHTMLButtonElement class]);
-    addElementClass(HTMLNames::canvasTag, [DOMHTMLImageElement class]);
+    addElementClass(HTMLNames::canvasTag, [DOMHTMLCanvasElement class]);
     addElementClass(HTMLNames::captionTag, [DOMHTMLTableCaptionElement class]);
     addElementClass(HTMLNames::colTag, [DOMHTMLTableColElement class]);
     addElementClass(HTMLNames::colgroupTag, [DOMHTMLTableColElement class]);
+    addElementClass(HTMLNames::delTag, [DOMHTMLModElement class]);
     addElementClass(HTMLNames::dirTag, [DOMHTMLDirectoryElement class]);
     addElementClass(HTMLNames::divTag, [DOMHTMLDivElement class]);
     addElementClass(HTMLNames::dlTag, [DOMHTMLDListElement class]);
+    addElementClass(HTMLNames::embedTag, [DOMHTMLEmbedElement class]);
     addElementClass(HTMLNames::fieldsetTag, [DOMHTMLFieldSetElement class]);
     addElementClass(HTMLNames::fontTag, [DOMHTMLFontElement class]);
     addElementClass(HTMLNames::formTag, [DOMHTMLFormElement class]);
@@ -146,6 +151,7 @@ static void createElementClassMap()
     addElementClass(HTMLNames::iframeTag, [DOMHTMLIFrameElement class]);
     addElementClass(HTMLNames::imgTag, [DOMHTMLImageElement class]);
     addElementClass(HTMLNames::inputTag, [DOMHTMLInputElement class]);
+    addElementClass(HTMLNames::insTag, [DOMHTMLModElement class]);
     addElementClass(HTMLNames::isindexTag, [DOMHTMLIsIndexElement class]);
     addElementClass(HTMLNames::labelTag, [DOMHTMLLabelElement class]);
     addElementClass(HTMLNames::legendTag, [DOMHTMLLegendElement class]);
@@ -153,6 +159,7 @@ static void createElementClassMap()
     addElementClass(HTMLNames::linkTag, [DOMHTMLLinkElement class]);
     addElementClass(HTMLNames::listingTag, [DOMHTMLPreElement class]);
     addElementClass(HTMLNames::mapTag, [DOMHTMLMapElement class]);
+    addElementClass(HTMLNames::marqueeTag, [DOMHTMLMarqueeElement class]);
     addElementClass(HTMLNames::menuTag, [DOMHTMLMenuElement class]);
     addElementClass(HTMLNames::metaTag, [DOMHTMLMetaElement class]);
     addElementClass(HTMLNames::objectTag, [DOMHTMLObjectElement class]);
@@ -164,6 +171,7 @@ static void createElementClassMap()
     addElementClass(HTMLNames::preTag, [DOMHTMLPreElement class]);
     addElementClass(HTMLNames::qTag, [DOMHTMLQuoteElement class]);
     addElementClass(HTMLNames::scriptTag, [DOMHTMLScriptElement class]);
+    addElementClass(HTMLNames::keygenTag, [DOMHTMLSelectElement class]);
     addElementClass(HTMLNames::selectTag, [DOMHTMLSelectElement class]);
     addElementClass(HTMLNames::styleTag, [DOMHTMLStyleElement class]);
     addElementClass(HTMLNames::tableTag, [DOMHTMLTableElement class]);
@@ -171,22 +179,28 @@ static void createElementClassMap()
     addElementClass(HTMLNames::tdTag, [DOMHTMLTableCellElement class]);
     addElementClass(HTMLNames::textareaTag, [DOMHTMLTextAreaElement class]);
     addElementClass(HTMLNames::tfootTag, [DOMHTMLTableSectionElement class]);
+    addElementClass(HTMLNames::thTag, [DOMHTMLTableCellElement class]);
     addElementClass(HTMLNames::theadTag, [DOMHTMLTableSectionElement class]);
     addElementClass(HTMLNames::titleTag, [DOMHTMLTitleElement class]);
     addElementClass(HTMLNames::trTag, [DOMHTMLTableRowElement class]);
     addElementClass(HTMLNames::ulTag, [DOMHTMLUListElement class]);
+    addElementClass(HTMLNames::xmpTag, [DOMHTMLPreElement class]);
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     addElementClass(SVGNames::aTag, [DOMSVGAElement class]);
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
     addElementClass(SVGNames::animateTag, [DOMSVGAnimateElement class]);
     addElementClass(SVGNames::animateColorTag, [DOMSVGAnimateColorElement class]);
     addElementClass(SVGNames::animateTransformTag, [DOMSVGAnimateTransformElement class]);
+#endif
     addElementClass(SVGNames::circleTag, [DOMSVGCircleElement class]);
     addElementClass(SVGNames::clipPathTag, [DOMSVGClipPathElement class]);
     addElementClass(SVGNames::cursorTag, [DOMSVGCursorElement class]);
+    addElementClass(SVGNames::definition_srcTag, [DOMSVGDefinitionSrcElement class]);
     addElementClass(SVGNames::defsTag, [DOMSVGDefsElement class]);
     addElementClass(SVGNames::descTag, [DOMSVGDescElement class]);
     addElementClass(SVGNames::ellipseTag, [DOMSVGEllipseElement class]);
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
     addElementClass(SVGNames::feBlendTag, [DOMSVGFEBlendElement class]);
     addElementClass(SVGNames::feColorMatrixTag, [DOMSVGFEColorMatrixElement class]);
     addElementClass(SVGNames::feComponentTransferTag, [DOMSVGFEComponentTransferElement class]);
@@ -210,7 +224,12 @@ static void createElementClassMap()
     addElementClass(SVGNames::feTileTag, [DOMSVGFETileElement class]);
     addElementClass(SVGNames::feTurbulenceTag, [DOMSVGFETurbulenceElement class]);
     addElementClass(SVGNames::filterTag, [DOMSVGFilterElement class]);
-    addElementClass(SVGNames::foreignObjectTag, [DOMSVGForeignObjectElement class]);
+#endif
+    addElementClass(SVGNames::font_faceTag, [DOMSVGFontFaceElement class]);
+    addElementClass(SVGNames::font_face_formatTag, [DOMSVGFontFaceFormatElement class]);
+    addElementClass(SVGNames::font_face_nameTag, [DOMSVGFontFaceNameElement class]);
+    addElementClass(SVGNames::font_face_srcTag, [DOMSVGFontFaceSrcElement class]);
+    addElementClass(SVGNames::font_face_uriTag, [DOMSVGFontFaceUriElement class]);
     addElementClass(SVGNames::gTag, [DOMSVGGElement class]);
     addElementClass(SVGNames::imageTag, [DOMSVGImageElement class]);
     addElementClass(SVGNames::lineTag, [DOMSVGLineElement class]);
@@ -235,16 +254,26 @@ static void createElementClassMap()
     addElementClass(SVGNames::titleTag, [DOMSVGTitleElement class]);
     addElementClass(SVGNames::trefTag, [DOMSVGTRefElement class]);
     addElementClass(SVGNames::tspanTag, [DOMSVGTSpanElement class]);
+    addElementClass(SVGNames::textPathTag, [DOMSVGTextPathElement class]);
     addElementClass(SVGNames::useTag, [DOMSVGUseElement class]);
     addElementClass(SVGNames::viewTag, [DOMSVGViewElement class]);
 #endif
+}
+
+static Class lookupElementClass(const QualifiedName& tag)
+{
+    // Do a special lookup to ignore element prefixes
+    if (tag.hasPrefix())
+        return elementClassMap->get(QualifiedName(nullAtom, tag.localName(), tag.namespaceURI()).impl());
+    
+    return elementClassMap->get(tag.impl());
 }
 
 static Class elementClass(const QualifiedName& tag, Class defaultClass)
 {
     if (!elementClassMap)
         createElementClassMap();
-    Class objcClass = elementClassMap->get(tag.impl());
+    Class objcClass = lookupElementClass(tag);
     if (!objcClass)
         objcClass = defaultClass;
     return objcClass;
@@ -288,7 +317,7 @@ static NSArray *kit(const Vector<IntRect>& rects)
     return self;
 }
 
-+ (DOMNode *)_nodeWith:(WebCore::Node *)impl
++ (DOMNode *)_wrapNode:(WebCore::Node *)impl
 {
     if (!impl)
         return nil;
@@ -303,7 +332,7 @@ static NSArray *kit(const Vector<IntRect>& rects)
         case WebCore::Node::ELEMENT_NODE:
             if (impl->isHTMLElement())
                 wrapperClass = WebCore::elementClass(static_cast<WebCore::HTMLElement*>(impl)->tagQName(), [DOMHTMLElement class]);
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
             else if (impl->isSVGElement())
                 wrapperClass = WebCore::elementClass(static_cast<WebCore::SVGElement*>(impl)->tagQName(), [DOMSVGElement class]);
 #endif
@@ -334,7 +363,7 @@ static NSArray *kit(const Vector<IntRect>& rects)
         case WebCore::Node::DOCUMENT_NODE:
             if (static_cast<WebCore::Document*>(impl)->isHTMLDocument())
                 wrapperClass = [DOMHTMLDocument class];
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
             else if (static_cast<WebCore::Document*>(impl)->isSVGDocument())
                 wrapperClass = [DOMSVGDocument class];
 #endif
@@ -358,13 +387,13 @@ static NSArray *kit(const Vector<IntRect>& rects)
     return [[[wrapperClass alloc] _initWithNode:impl] autorelease];
 }
 
-+ (id <DOMEventTarget>)_eventTargetWith:(WebCore::EventTarget *)eventTarget
++ (id <DOMEventTarget>)_wrapEventTarget:(WebCore::EventTarget *)eventTarget
 {
     if (!eventTarget)
         return nil;
     
     // We don't have an ObjC binding for XMLHttpRequest
-    return [DOMNode _nodeWith:eventTarget->toNode()];
+    return [DOMNode _wrapNode:eventTarget->toNode()];
 }
 
 - (WebCore::Node *)_node
@@ -389,6 +418,7 @@ static NSArray *kit(const Vector<IntRect>& rects)
 // If it was, we could even autogenerate.
 - (NSRect)boundingBox
 {
+    [self _node]->document()->updateLayoutIgnorePendingStylesheets();
     WebCore::RenderObject *renderer = [self _node]->renderer();
     if (renderer)
         return renderer->absoluteBoundingBoxRect();
@@ -399,6 +429,7 @@ static NSArray *kit(const Vector<IntRect>& rects)
 // If it was, we could even autogenerate.
 - (NSArray *)lineBoxRects
 {
+    [self _node]->document()->updateLayoutIgnorePendingStylesheets();
     WebCore::RenderObject *renderer = [self _node]->renderer();
     if (renderer) {
         Vector<WebCore::IntRect> rects;
@@ -414,12 +445,14 @@ static NSArray *kit(const Vector<IntRect>& rects)
 
 - (NSRect)boundingBox
 {
+    [self _range]->ownerDocument()->updateLayoutIgnorePendingStylesheets();
     return [self _range]->boundingBox();
 }
 
 - (NSArray *)lineBoxRects
 {
     Vector<WebCore::IntRect> rects;
+    [self _range]->ownerDocument()->updateLayoutIgnorePendingStylesheets();
     [self _range]->addLineBoxRects(rects);
     return kit(rects);
 }
@@ -485,7 +518,7 @@ static NSArray *kit(const Vector<IntRect>& rects)
     WebCore::RenderObject* renderer = [self _element]->renderer();
     if (renderer && renderer->isImage()) {
         WebCore::RenderImage* img = static_cast<WebCore::RenderImage*>(renderer);
-        if (img->cachedImage() && !img->cachedImage()->isErrorImage())
+        if (img->cachedImage() && !img->cachedImage()->errorOccurred())
             return img->cachedImage()->image()->getNSImage();
     }
     return nil;
@@ -510,10 +543,22 @@ static NSArray *kit(const Vector<IntRect>& rects)
     WebCore::RenderObject* renderer = [self _element]->renderer();
     if (renderer && renderer->isImage()) {
         WebCore::RenderImage* img = static_cast<WebCore::RenderImage*>(renderer);
-        if (img->cachedImage() && !img->cachedImage()->isErrorImage())
+        if (img->cachedImage() && !img->cachedImage()->errorOccurred())
             return (NSData*)(img->cachedImage()->image()->getTIFFRepresentation());
     }
     return nil;
+}
+
+- (NSRect)_windowClipRect
+{
+    WebCore::RenderObject* renderer = [self _element]->renderer();
+    if (renderer && renderer->view()) {
+        WebCore::FrameView* frameView = renderer->view()->frameView();
+        if (!frameView)
+            return WebCore::IntRect();
+        return frameView->windowClipRectForLayer(renderer->enclosingLayer(), true);
+    }
+    return WebCore::IntRect();
 }
 
 // FIXME: this should be implemented in the implementation
@@ -528,9 +573,11 @@ static NSArray *kit(const Vector<IntRect>& rects)
 // FIXME: this should be implemented in the implementation
 - (void *)_NPObject
 {
+#if USE(NPOBJECT)
     WebCore::Element* element = [self _element];
     if (element->hasTagName(WebCore::HTMLNames::appletTag) || element->hasTagName(WebCore::HTMLNames::embedTag) || element->hasTagName(WebCore::HTMLNames::objectTag))
         return static_cast<WebCore::HTMLPlugInElement*>(element)->getNPObject();
+#endif
     return 0;
 }
 
@@ -587,7 +634,7 @@ static NSArray *kit(const Vector<IntRect>& rects)
     return self;
 }
 
-+ (DOMNodeFilter *)_nodeFilterWith:(WebCore::NodeFilter *)impl
++ (DOMNodeFilter *)_wrapNodeFilter:(WebCore::NodeFilter *)impl
 {
     if (!impl)
         return nil;
@@ -659,7 +706,7 @@ short ObjCNodeFilterCondition::acceptNode(WebCore::Node* node) const
 {
     if (!node)
         return WebCore::NodeFilter::FILTER_REJECT;
-    return [m_filter acceptNode:[DOMNode _nodeWith:node]];
+    return [m_filter acceptNode:[DOMNode _wrapNode:node]];
 }
 
 
@@ -671,24 +718,24 @@ short ObjCNodeFilterCondition::acceptNode(WebCore::Node* node) const
 
 - (DOMNodeIterator *)createNodeIterator:(DOMNode *)root whatToShow:(unsigned)whatToShow filter:(id <DOMNodeFilter>)filter expandEntityReferences:(BOOL)expandEntityReferences
 {
-    RefPtr<WebCore::NodeFilter> cppFilter;
+    WebCore::NodeFilter* cppFilter = 0;
     if (filter)
         cppFilter = new WebCore::NodeFilter(new ObjCNodeFilterCondition(filter));
     WebCore::ExceptionCode ec = 0;
     RefPtr<WebCore::NodeIterator> impl = [self _document]->createNodeIterator([root _node], whatToShow, cppFilter, expandEntityReferences, ec);
     WebCore::raiseOnDOMError(ec);
-    return [DOMNodeIterator _nodeIteratorWith:impl.get() filter:filter];
+    return [DOMNodeIterator _wrapNodeIterator:impl.get() filter:filter];
 }
 
 - (DOMTreeWalker *)createTreeWalker:(DOMNode *)root whatToShow:(unsigned)whatToShow filter:(id <DOMNodeFilter>)filter expandEntityReferences:(BOOL)expandEntityReferences
 {
-    RefPtr<WebCore::NodeFilter> cppFilter;
+    WebCore::NodeFilter* cppFilter = 0;
     if (filter)
         cppFilter = new WebCore::NodeFilter(new ObjCNodeFilterCondition(filter));
     WebCore::ExceptionCode ec = 0;
     RefPtr<WebCore::TreeWalker> impl = [self _document]->createTreeWalker([root _node], whatToShow, cppFilter, expandEntityReferences, ec);
     WebCore::raiseOnDOMError(ec);
-    return [DOMTreeWalker _treeWalkerWith:impl.get() filter:filter];
+    return [DOMTreeWalker _wrapTreeWalker:impl.get() filter:filter];
 }
 
 @end
@@ -748,7 +795,7 @@ ObjCEventListener::~ObjCEventListener()
 
 void ObjCEventListener::handleEvent(Event* event, bool)
 {
-    [m_listener handleEvent:[DOMEvent _eventWith:event]];
+    [m_listener handleEvent:[DOMEvent _wrapEvent:event]];
 }
 
 } // namespace WebCore

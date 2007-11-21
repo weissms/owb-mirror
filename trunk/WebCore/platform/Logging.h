@@ -49,16 +49,11 @@ namespace WebCore {
     extern WTFLogChannel LogPageCache;
     extern WTFLogChannel LogPlatformLeaks;
     extern WTFLogChannel LogNetwork;
+    extern WTFLogChannel LogFTP;
+    extern WTFLogChannel LogThreading;
+    extern WTFLogChannel LogStorageAPI;
 
     void InitializeLoggingChannelsIfNecessary();
-
-    void _WebCoreThreadViolationCheck(const char* function);
-} // namespace WebCore
-
-extern "C" void WebCoreReportThreadViolation(const char* funciton, bool threadViolationIsException);
-
-#define WebCoreThreadViolationCheck() do \
-WebCore::_WebCoreThreadViolationCheck(WTF_PRETTY_FUNCTION); \
-while (0)
+}
 
 #endif // Logging_h

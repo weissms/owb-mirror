@@ -15,27 +15,30 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEOffset.h"
 #include "SVGFEHelpersCg.h"
 
 namespace WebCore {
 
-CIFilter* SVGFEOffset::getCIFilter(SVGResourceFilter* svgFilter) const
+CIFilter* SVGFEOffset::getCIFilter(const FloatRect& bbox) const
 {
+    SVGResourceFilter* svgFilter = filter();
     FE_QUARTZ_SETUP_INPUT(@"CIAffineTransform");
     NSAffineTransform* offsetTransform = [NSAffineTransform transform];
     [offsetTransform translateXBy:dx() yBy:dy()];
     [filter setValue:offsetTransform  forKey:@"inputTransform"];
+
+    FE_QUARTZ_MAP_TO_SUBREGION(bbox);
     FE_QUARTZ_OUTPUT_RETURN;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)

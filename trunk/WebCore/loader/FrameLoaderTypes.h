@@ -53,7 +53,7 @@ namespace WebCore {
         FrameLoadTypeReload,
         FrameLoadTypeReloadAllowingStaleData,
         FrameLoadTypeSame,               // user loads same URL again (but not reload button)
-        FrameLoadTypeInternal,
+        FrameLoadTypeRedirectWithLockedHistory,
         FrameLoadTypeReplace
     };
 
@@ -70,7 +70,8 @@ namespace WebCore {
         ObjectContentNone,
         ObjectContentImage,
         ObjectContentFrame,
-        ObjectContentPlugin
+        ObjectContentNetscapePlugin,
+        ObjectContentOtherPlugin
     };
 }
 

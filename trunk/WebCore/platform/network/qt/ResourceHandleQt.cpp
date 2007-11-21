@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 Nikolas Zimmermann <zimmermann@kde.org>
+ * Copyright (C) 2007 Trolltech AS
  *
  * All rights reserved.
  *
@@ -27,22 +28,77 @@
 
 #include "config.h"
 
-#if PLATFORM(KDE)
-#include <kio/job.h>
-#endif
-
-#include <QRegExp>
-
 #include "Frame.h"
 #include "DocLoader.h"
 #include "ResourceHandle.h"
 #include "DeprecatedString.h"
-#include "ResourceHandleManagerQt.h"
+#include "ResourceHandleClient.h"
 #include "ResourceHandleInternal.h"
+#include "qwebnetworkinterface_p.h"
+#include "qwebpage_p.h"
+#include "ChromeClientQt.h"
+#include "FrameLoaderClientQt.h"
+#include "Page.h"
 
-#define notImplemented() qDebug("FIXME: UNIMPLEMENTED: %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__)
+#include "NotImplemented.h"
+
+#include <QCoreApplication>
 
 namespace WebCore {
+
+class WebCoreSynchronousLoader : public ResourceHandleClient {
+public:
+    WebCoreSynchronousLoader();
+
+    void waitForCompletion();
+
+    virtual void didReceiveResponse(ResourceHandle*, const ResourceResponse&);
+    virtual void didReceiveData(ResourceHandle*, const char*, int, int lengthReceived);
+    virtual void didFinishLoading(ResourceHandle*);
+    virtual void didFail(ResourceHandle*, const ResourceError&);
+
+    ResourceResponse resourceResponse() const { return m_response; }
+    ResourceError resourceError() const { return m_error; }
+    Vector<char> data() const { return m_data; }
+
+private:
+    ResourceResponse m_response;
+    ResourceError m_error;
+    Vector<char> m_data;
+    bool m_finished;
+};
+
+WebCoreSynchronousLoader::WebCoreSynchronousLoader()
+    : m_finished(false)
+{
+}
+
+void WebCoreSynchronousLoader::didReceiveResponse(ResourceHandle*, const ResourceResponse& response)
+{
+    m_response = response;
+}
+
+void WebCoreSynchronousLoader::didReceiveData(ResourceHandle*, const char* data, int length, int)
+{
+    m_data.append(data, length);
+}
+
+void WebCoreSynchronousLoader::didFinishLoading(ResourceHandle*)
+{
+    m_finished = true;
+}
+
+void WebCoreSynchronousLoader::didFail(ResourceHandle*, const ResourceError& error)
+{
+    m_error = error;
+    m_finished = true;
+}
+
+void WebCoreSynchronousLoader::waitForCompletion()
+{
+    while (!m_finished)
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+}
 
 ResourceHandleInternal::~ResourceHandleInternal()
 {
@@ -50,20 +106,34 @@ ResourceHandleInternal::~ResourceHandleInternal()
 
 ResourceHandle::~ResourceHandle()
 {
-    cancel();
+    if (d->m_job)
+        cancel();
 }
 
 bool ResourceHandle::start(Frame* frame)
 {
-    ASSERT(frame);
+    if (!frame)
+        return false;
 
-    ResourceHandleManager::self()->add(this);
-    return true;
+    Page *page = frame->page();
+    // If we are no longer attached to a Page, this must be an attempted load from an
+    // onUnload handler, so let's just block it.
+    if (!page)
+        return false;
+
+    // check for (probably) broken requests
+    if (d->m_request.httpMethod() != "GET" && d->m_request.httpMethod() != "POST") {
+        notImplemented();
+        return false;
+    }
+
+    getInternal()->m_frame = static_cast<FrameLoaderClientQt*>(frame->loader()->client())->webFrame();
+    return QWebNetworkManager::self()->add(this, getInternal()->m_frame->page()->d->networkInterface);
 }
 
 void ResourceHandle::cancel()
 {
-    ResourceHandleManager::self()->cancel(this);
+    QWebNetworkManager::self()->cancel(this);
 }
 
 bool ResourceHandle::loadsBlocked()
@@ -90,9 +160,24 @@ PassRefPtr<SharedBuffer> ResourceHandle::bufferedData()
     return 0;
 }
 
-void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, ResourceError& e, ResourceResponse& r, Vector<char>& data)
+void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, ResourceError& error, ResourceResponse& response, Vector<char>& data)
 {
-    notImplemented();
+    WebCoreSynchronousLoader syncLoader;
+    ResourceHandle handle(request, &syncLoader, true, false, true);
+
+    // check for (probably) broken requests
+    if (handle.d->m_request.httpMethod() != "GET" && handle.d->m_request.httpMethod() != "POST" && handle.d->m_request.httpMethod() != "HEAD") {
+        // FIXME Create a sane ResourceError
+        error = ResourceError(String(), -1, String(), String());
+        return;
+    }
+
+    QWebNetworkManager::self()->add(&handle, QWebNetworkInterface::defaultInterface(), QWebNetworkManager::SynchronousJob);
+    syncLoader.waitForCompletion();
+    error = syncLoader.resourceError();
+    data = syncLoader.data();
+    qDebug() << data.size();
+    response = syncLoader.resourceResponse();
 }
 
  

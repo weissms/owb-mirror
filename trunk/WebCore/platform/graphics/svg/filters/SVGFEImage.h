@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric.seidel@kdemail.net>
 
@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGFEImage_h
 #define SVGFEImage_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "CachedImage.h"
 #include "CachedResourceClient.h"
 #include "SVGFilterEffect.h"
@@ -32,12 +32,12 @@
 namespace WebCore {
 
 class SVGFEImage : public SVGFilterEffect
-                         , public CachedResourceClient {
+                 , public CachedResourceClient {
 public:
-    SVGFEImage();
+    SVGFEImage(SVGResourceFilter*);
     virtual ~SVGFEImage();
 
-    // FIXME: Eventually we need to support <svg> (RenderObject*) as well as image data.
+    // FIXME: We need to support <svg> (RenderObject*) as well as image data.
 
     CachedImage* cachedImage() const;
     void setCachedImage(CachedImage*);
@@ -45,15 +45,17 @@ public:
     virtual TextStream& externalRepresentation(TextStream&) const;
 
 #if PLATFORM(CI)
-    virtual CIFilter* getCIFilter(SVGResourceFilter*) const;
+    virtual CIFilter* getCIFilter(const FloatRect& bbox) const;
 #endif
 
+    virtual void imageChanged(CachedImage*);
+    
 private:
     CachedImage* m_cachedImage;
 };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 
 #endif // SVGFEImage_h

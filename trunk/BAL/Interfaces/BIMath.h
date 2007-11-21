@@ -48,90 +48,146 @@ namespace BAL {
     */
     class BIMath {
         public:
-        // this is mandatory
+            // this is mandatory
+            /**
+            * BIKeyboardEvent destructor
+            */
             ~BIMath(){}
 
-            //These functions round x up to the nearest integer.
+            /**
+             * These functions round x up to the nearest integer.
+             */
             static float ceilf(float );
             static double ceil(double );
 
-            //The  fmod() function computes the remainder of dividing x by y.  The return value is x - n * y, where n is the quotient of x / y, rounded towards zero to an integer.
+            /**
+             * The  fmod() function computes the remainder of dividing x by y.  The return value is x - n * y, where n is the quotient of x / y, rounded towards zero to an integer.
+             */
             static float fmodf(float , float );
 
-            // These  functions  round their argument to the nearest integer value, rounding away from zero, regardless of the current rounding direction.  If x is infinite or NaN, or if the rounded value is outside the range of the return type, the numeric result is unspecified.  A domain error may occur if the magnitude of x is too large.
+            /**
+             * These  functions  round their argument to the nearest integer value, rounding away from zero, regardless of the current rounding direction.  If x is infinite or NaN, or if the rounded value is outside the range of the return type, the numeric result is unspecified.  A domain error may occur if the magnitude of x is too large.
+             */
             static long int lroundf(float );
             static long int lround(double );
 
-            //These functions round x down to the nearest integer.
+            /**
+             * These functions round x down to the nearest integer.
+             */
             static float floorf(float );
             static double floor(double );
 
-            //These functions round x to the nearest integer, but round halfway cases away from zero (regardless of the current rounding direction), instead of to the nearest even integer like rint().
+            /**
+             * These functions round x to the nearest integer, but round halfway cases away from zero (regardless of the current rounding direction), instead of to the nearest even integer like rint().
+             */
             static float roundf(float );
             static double round(double );
 
-            //The  nextafter() functions return the next representable neighbor of x in the direction towards y.  The size of the step between x and the result depends on the type of the result.  If x = y the function simply returns y.  If either value is NaN, then NaN is  returned.   Otherwise  a  value corresponding to the value of the least significant bit in the mantissa is added or subtracted, depending on the direction.
+            /**
+             * The  nextafter() functions return the next representable neighbor of x in the direction towards y.  The size of the step between x and the result depends on the type of the result.  If x = y the function simply returns y.  If either value is NaN, then NaN is  returned.   Otherwise  a  value corresponding to the value of the least significant bit in the mantissa is added or subtracted, depending on the direction.
+             */
             static double nextafter(double , double );
             static float nextafterf(float , float );
 
-            //Returns a non-zero value if (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
+            /**
+             * Returns a non-zero value if (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
+             */
             static int isfinite(double );
 
-            //The fabs() functions return the absolute value of the floating-point number x.
+            /**
+             * The fabs() functions return the absolute value of the floating-point number x.
+             */
             static double fabs(double );
 
-            //The copysign() functions return a value whose absolute value matches that of x, but whose sign matches that of y.  If x is a NaN, then a NaN with the sign of y is returned.
+            /**
+             * The copysign() functions return a value whose absolute value matches that of x, but whose sign matches that of y.  If x is a NaN, then a NaN with the sign of y is returned.
+             */
             static double copysign(double , double );
 
-            //The exp() function returns the value of e (the base of natural logarithms) raised to the power of x.
+            /**
+             * The exp() function returns the value of e (the base of natural logarithms) raised to the power of x.
+             */
             static double exp(double );
 
-            //The log() function returns the natural logarithm of x.
+            /**
+             * The log() function returns the natural logarithm of x.
+             */
             static double log(double );
 
-            //The sqrt() function returns the non-negative square root of x.  It fails and sets errno to EDOM, if x is negative.
+            /**
+             * The sqrt() function returns the non-negative square root of x.  It fails and sets errno to EDOM, if x is negative.
+             */
             static double sqrt (double );
 
-            //The  acos() function calculates the arc cosine of x; that is the value whose cosine is x.  If x falls outside the range -1 to 1, acos() fails and errno is set.
+            /**
+             * The  acos() function calculates the arc cosine of x; that is the value whose cosine is x.  If x falls outside the range -1 to 1, acos() fails and errno is set.
+             */
             static double acos(double );
 
-            //The  asin()  function  calculates  the  arc sine of x; that is the value whose sine is x.  If x falls outside the range -1 to 1, asin() fails and errno is set.
+            /**
+             * The  asin()  function  calculates  the  arc sine of x; that is the value whose sine is x.  If x falls outside the range -1 to 1, asin() fails and errno is set.
+             */
             static double asin(double );
 
-            //The atan() function calculates the arc tangent of x; that is the value whose tangent is x.
+            /**
+             * The atan() function calculates the arc tangent of x; that is the value whose tangent is x.
+             */
             static double atan(double );
 
-            //The atan2() function calculates the arc tangent of the two variables x and y.  It is similar to calculating the arc tangent of y / x, except that the signs of both arguments are used to determine the quadrant of the result.
+            /**
+             * The atan2() function calculates the arc tangent of the two variables x and y.  It is similar to calculating the arc tangent of y / x, except that the signs of both arguments are used to determine the quadrant of the result.
+             */
             static double atan2(double , double );
 
-            //The cos() function returns the cosine of x, where x is given in radians.
+            /**
+             * The cos() function returns the cosine of x, where x is given in radians.
+             */
             static double cos(double );
 
-            //The sin() function returns the sine of x, where x is given in radians.
+            /**
+             * The sin() function returns the sine of x, where x is given in radians.
+             */
             static double sin(double );
 
-            //The tan() function returns the tangent of x, where x is given in radians.
+            /**
+             * The tan() function returns the tangent of x, where x is given in radians.
+             */
             static double tan(double );
 
-            //`signbit'  is  a  generic  macro which can work on all real floating-point types.  It returns a non-zero value if the value of X has its sign bit set.
-            //This is not the same as `x < 0.0', because IEEE 754 floating point allows zero to be signed.  The comparison `-0.0 < 0.0' is false, but  `signbit (-0.0)' will return a non-zero value.
+            /**
+             * `signbit'  is  a  generic  macro which can work on all real floating-point types.  It returns a non-zero value if the value of X has its sign bit set.
+             * This is not the same as `x < 0.0', because IEEE 754 floating point allows zero to be signed.  The comparison `-0.0 < 0.0' is false, but  `signbit (-0.0)' will return a non-zero value.
+             */
             static int signbit( double  );
 
-            //The pow() function  returns the value of x raised to the power of y.
+            /**
+             * The pow() function  returns the value of x raised to the power of y.
+             */
             static double pow(double , double );
 
-            //The  fmod() function computes the remainder of dividing x by y.  The return value is x - n * y, where n is the quotient of x / y, rounded towards zero to an integer.
+            /**
+             * The  fmod() function computes the remainder of dividing x by y.  The return value is x - n * y, where n is the quotient of x / y, rounded towards zero to an integer.
+             */
             static double fmod(double , double );
 
-            //The log10() function returns the base 10 logarithm of x.
+            /**
+             * The log10() function returns the base 10 logarithm of x.
+             */
             static double log10(double );
 
-            //returns a non-zero value if (fpclassify(x) == FP_NAN)
+            /**
+             * returns a non-zero value if (fpclassify(x) == FP_NAN)
+             */
             static int isnan( double );
-            //returns 1 if x is positive infinity, and -1 if x is negative infinity.
+
+            /**
+             * returns 1 if x is positive infinity, and -1 if x is negative infinity.
+             */
             static int isinf( double );
 
-            //The  remainder()  function  computes the remainder of dividing x by y.  The return value is x - n * y, where n is the value x / y, rounded to the nearest integer.  If this quotient is 1/2 (mod 1), it is rounded to the nearest even number (independent of the current rounding mode).   If  the return value is 0, it has the sign of x.
+            /**
+             * The  remainder()  function  computes the remainder of dividing x by y.  The return value is x - n * y, where n is the value x / y, rounded to the nearest integer.  If this quotient is 1/2 (mod 1), it is rounded to the nearest even number (independent of the current rounding mode).   If  the return value is 0, it has the sign of x.
+             */
             static double remainder(double , double );
     };
 }

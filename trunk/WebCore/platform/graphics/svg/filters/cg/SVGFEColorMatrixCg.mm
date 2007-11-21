@@ -15,15 +15,17 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEColorMatrix.h"
 #include "SVGFEHelpersCg.h"
+
+#include <wtf/MathExtras.h>
 
 namespace WebCore {
 
@@ -35,8 +37,9 @@ namespace WebCore {
         return nil; \
     }
 
-CIFilter* SVGFEColorMatrix::getCIFilter(SVGResourceFilter* svgFilter) const
+CIFilter* SVGFEColorMatrix::getCIFilter(const FloatRect& bbox) const
 {
+    SVGResourceFilter* svgFilter = filter();
     CIFilter* filter = nil;
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
     switch (type()) {
@@ -82,7 +85,7 @@ CIFilter* SVGFEColorMatrix::getCIFilter(SVGResourceFilter* svgFilter) const
         filter = [CIFilter filterWithName:@"CIColorMatrix"];
         [filter setDefaults];
         CGFloat zero[4] = {0, 0, 0, 0};
-        CGFloat alpha[4] = {0.2125, 0.7154, 0.0721, 0};
+        CGFloat alpha[4] = {0.2125f, 0.7154f, 0.0721f, 0};
         [filter setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputRVector"];
         [filter setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputGVector"];
         [filter setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputBVector"];
@@ -98,9 +101,10 @@ CIFilter* SVGFEColorMatrix::getCIFilter(SVGResourceFilter* svgFilter) const
     FE_QUARTZ_CHECK_INPUT(inputImage);
     [filter setValue:inputImage forKey:@"inputImage"];
 
+    FE_QUARTZ_MAP_TO_SUBREGION(bbox);
     FE_QUARTZ_OUTPUT_RETURN;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)

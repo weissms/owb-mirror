@@ -7,13 +7,13 @@
  * are met:
  *
  * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
+ *     notice, this list of conditions and the following disclaimer. 
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
+ *     documentation and/or other materials provided with the distribution. 
  * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
  *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *     from this software without specific prior written permission. 
  *
  * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -31,14 +31,11 @@
 #ifndef FileChooser_h
 #define FileChooser_h
 
-#ifdef __OWB__
-#include "Font.h"
-#endif
 #include "PlatformString.h"
 #include <wtf/RefPtr.h>
 
 #if PLATFORM(MAC)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 #ifdef __OBJC__
 @class OpenPanelController;
 #else
@@ -46,10 +43,18 @@ class OpenPanelController;
 #endif
 #endif
 
+#ifdef __OWB__
+namespace BAL {
+	class BTFont;
+}
+#endif
+
 namespace WebCore {
 
 class Document;
+#ifndef __OWB__
 class Font;
+#endif //__OWB__
 #ifdef OWB_ICON_SUPPORT
 class Icon;
 #endif //OWB_ICON_SUPPORT
@@ -75,11 +80,16 @@ public:
     void openFileChooser(Document*);
 
     const String& filename() const { return m_filename; }
+#ifdef __OWB__
+    String basenameForWidth(const BAL::BTFont&, int width) const;
+#else
     String basenameForWidth(const Font&, int width) const;
+#endif //__OWB__
 
 #ifdef OWB_ICON_SUPPORT
     Icon* icon() const { return m_icon.get(); }
 #endif //OWB_ICON_SUPPORT
+	void clear(); // for use by client; does not call valueChanged
 
     void chooseFile(const String& filename);
 

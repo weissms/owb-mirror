@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
-                  2005 Oliver Hunt <ojh16@student.canterbury.ac.nz>
+                  2005 Oliver Hunt <oliver@nerget.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -15,14 +15,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
  */
 
 #ifndef SVGFELightElement_h
 #define SVGFELightElement_h
-#ifdef SVG_SUPPORT
 
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGElement.h"
 #include "SVGLightSource.h"
 
@@ -36,25 +36,23 @@ namespace WebCore
         SVGFELightElement(const QualifiedName&, Document*);
         virtual ~SVGFELightElement();
         
-        // 'SVGComponentTransferFunctionElement' functions
         virtual SVGLightSource* lightSource() const = 0;
-        
-        // Derived from: 'Element'
-        virtual void parseMappedAttribute(MappedAttribute* attr);        
+        virtual void parseMappedAttribute(MappedAttribute*);
+
     private:
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, Azimuth, azimuth)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, Elevation, elevation)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, X, x)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, Y, y)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, Z, z)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, PointsAtX, pointsAtX)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, PointsAtY, pointsAtY)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, PointsAtZ, pointsAtZ)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, SpecularExponent, specularExponent)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, double, double, LimitingConeAngle, limitingConeAngle)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, Azimuth, azimuth)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, Elevation, elevation)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, X, x)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, Y, y)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, Z, z)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, PointsAtX, pointsAtX)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, PointsAtY, pointsAtY)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, PointsAtZ, pointsAtZ)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, SpecularExponent, specularExponent)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFELightElement, float, float, LimitingConeAngle, limitingConeAngle)
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #endif

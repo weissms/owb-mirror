@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,16 +16,17 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGZoomAndPan.h"
 
 #include "MappedAttribute.h"
 #include "SVGNames.h"
+#include "SVGParserUtilities.h"
 
 namespace WebCore {
 
@@ -50,20 +51,33 @@ void SVGZoomAndPan::setZoomAndPan(unsigned short zoomAndPan)
 
 bool SVGZoomAndPan::parseMappedAttribute(MappedAttribute* attr)
 {
-    const String& value = attr->value();
     if (attr->name() == SVGNames::zoomAndPanAttr) {
-        if (value == "disable")
-            setZoomAndPan(SVG_ZOOMANDPAN_DISABLE);
-        else if (value == "magnify")
-            setZoomAndPan(SVG_ZOOMANDPAN_MAGNIFY);
+        const UChar* start = attr->value().characters();
+        const UChar* end = start + attr->value().length();
+        parseZoomAndPan(start, end);
         return true;
     }
 
     return false;
 }
 
+static const UChar disable[] =  {'d', 'i', 's', 'a', 'b', 'l', 'e'};
+static const UChar magnify[] =  {'m', 'a', 'g', 'n', 'i', 'f', 'y'};
+
+bool SVGZoomAndPan::parseZoomAndPan(const UChar*& start, const UChar* end)
+{
+    if (skipString(start, end, disable, sizeof(disable) / sizeof(UChar)))
+        setZoomAndPan(SVG_ZOOMANDPAN_DISABLE);
+    else if (skipString(start, end, magnify, sizeof(magnify) / sizeof(UChar)))
+        setZoomAndPan(SVG_ZOOMANDPAN_MAGNIFY);
+    else
+        return false;
+
+    return true;
+}
+
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

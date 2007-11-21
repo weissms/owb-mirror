@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGStyledElement_h
 #define SVGStyledElement_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "AffineTransform.h"
 #include "Path.h"
@@ -34,39 +34,39 @@
 
 namespace WebCore {
 
-    class CSSStyleDeclaration;
     class RenderPath;
-    class RenderView;
 
-    class SVGStyledElement : public SVGElement {
+    class SVGStyledElement : public SVGElement, public SVGStylable {
     public:
         SVGStyledElement(const QualifiedName&, Document*);
         virtual ~SVGStyledElement();
         
         virtual bool isStyled() const { return true; }
+        virtual bool supportsMarkers() const { return false; }
 
         // 'SVGStylable' functions
-        // These need to be implemented.
-        virtual bool rendererIsNeeded(RenderStyle*) { return false; }
-        virtual Path toPathData() const { return Path(); }
-        virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
+        virtual PassRefPtr<CSSValue> getPresentationAttribute(const String& name);
+        virtual CSSStyleDeclaration* style() { return StyledElement::style(); }
+
+        virtual bool rendererIsNeeded(RenderStyle*);
         virtual SVGResource* canvasResource() { return 0; }
         
         virtual bool mapToEntry(const QualifiedName&, MappedAttributeEntry&) const;
         virtual void parseMappedAttribute(MappedAttribute*);
 
-        RenderView* view() const;
-
         virtual void notifyAttributeChange() const;
+        virtual void childrenChanged();
         void notifyResourceParentIfExistant() const;
 
         virtual void attributeChanged(Attribute*, bool preserveDecls = false);
 
+        // Centralized place to force a manual style resolution. Hacky but needed for now.
+        RenderStyle* resolveStyle(RenderStyle* parentStyle);
+        
+        virtual void detach();
+        
     protected:
-        friend class RenderPath;
-        void rebuildRenderer() const;
-
-        virtual bool hasRelativeValues() const { return false; }
+        virtual bool hasRelativeValues() const { return true; }
         
         static int cssPropertyIdForSVGAttributeName(const QualifiedName&);
 
@@ -78,7 +78,7 @@ namespace WebCore {
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGStyledElement
 
 // vim:ts=4:noet

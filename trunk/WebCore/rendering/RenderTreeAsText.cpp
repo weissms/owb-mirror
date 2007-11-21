@@ -42,8 +42,11 @@
 #include "SelectionController.h"
 #include <wtf/Vector.h>
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
+#include "RenderSVGRoot.h"
 #include "RenderSVGContainer.h"
+#include "RenderSVGInlineText.h"
+#include "RenderSVGText.h"
 #include "SVGRenderTreeAsText.h"
 #endif
 
@@ -53,7 +56,7 @@ using namespace HTMLNames;
 
 static void writeLayers(TextStream&, const RenderLayer* rootLayer, RenderLayer*, const IntRect& paintDirtyRect, int indent = 0);
 
-#ifndef SVG_SUPPORT
+#if !ENABLE(SVG)
 static TextStream &operator<<(TextStream& ts, const IntRect& r)
 {
     return ts << "at (" << r.x() << "," << r.y() << ") size " << r.width() << "x" << r.height();
@@ -129,7 +132,7 @@ static bool isEmptyOrUnstyledAppleStyleSpan(const Node* node)
     return (!inlineStyleDecl || inlineStyleDecl->length() == 0);
 }
 
-static String quoteAndEscapeNonPrintables(const String& s)
+String quoteAndEscapeNonPrintables(const String& s)
 {
     Vector<UChar> result;
     result.append('"');
@@ -314,13 +317,24 @@ static void writeTextRun(TextStream& ts, const RenderText& o, const InlineTextBo
 
 void write(TextStream& ts, const RenderObject& o, int indent)
 {
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     if (o.isRenderPath()) {
         write(ts, static_cast<const RenderPath&>(o), indent);
         return;
     }
     if (o.isSVGContainer()) {
         write(ts, static_cast<const RenderSVGContainer&>(o), indent);
+        return;
+    }
+    if (o.isSVGRoot()) {
+        write(ts, static_cast<const RenderSVGRoot&>(o), indent);
+        return;
+    }
+    if (o.isSVGText()) {
+        if (!o.isText())
+            write(ts, static_cast<const RenderSVGText&>(o), indent);
+        else
+            write(ts, static_cast<const RenderSVGInlineText&>(o), indent);
         return;
     }
 #endif
@@ -338,7 +352,7 @@ void write(TextStream& ts, const RenderObject& o, int indent)
     }
 
     for (RenderObject* child = o.firstChild(); child; child = child->nextSibling()) {
-        if (child->layer())
+        if (child->hasLayer())
             continue;
         write(ts, *child, indent + 1);
     }
@@ -408,7 +422,7 @@ static void writeLayers(TextStream& ts, const RenderLayer* rootLayer, RenderLaye
     l->updateZOrderLists();
     l->updateOverflowList();
 
-    bool shouldPaint = l->intersectsDamageRect(layerBounds, damageRect);
+    bool shouldPaint = l->intersectsDamageRect(layerBounds, damageRect, rootLayer);
     Vector<RenderLayer*>* negList = l->negZOrderList();
     if (shouldPaint && negList && negList->size() > 0)
         write(ts, *l, layerBounds, damageRect, clipRectToApply, outlineRect, -1, indent);
@@ -478,16 +492,15 @@ static void writeSelection(TextStream& ts, const RenderObject* o)
 
 DeprecatedString externalRepresentation(RenderObject* o)
 {
-    JSEditor::setSupportsPasteCommand(true);
-
     DeprecatedString s;
     if (o) {
         TextStream ts(&s);
         ts.precision(2);
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
         writeRenderResources(ts, o->document());
 #endif
-        o->view()->frameView()->layout();
+        if (o->view()->frameView())
+            o->view()->frameView()->layout();
         RenderLayer* l = o->layer();
         if (l) {
             writeLayers(ts, l, l, IntRect(l->xPos(), l->yPos(), l->width(), l->height()));

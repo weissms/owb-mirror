@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -25,20 +25,20 @@ namespace WebCore {
 
 class TextStyle {
 public:
-    TextStyle(int tabWidth = 0, int xpos = 0, int padding = 0, bool rtl = false, bool directionalOverride = false,
-              bool applyRunRounding = true, bool applyWordRounding = true, bool attemptFontSubstitution = true)
-        : m_tabWidth(tabWidth)
+    TextStyle(bool allowTabs = false, int xpos = 0, int padding = 0, bool rtl = false, bool directionalOverride = false,
+              bool applyRunRounding = true, bool applyWordRounding = true)
+        : m_allowTabs(allowTabs)
         , m_xpos(xpos)
         , m_padding(padding)
         , m_rtl(rtl)
         , m_directionalOverride(directionalOverride)
         , m_applyRunRounding(applyRunRounding)
         , m_applyWordRounding(applyWordRounding)
-        , m_attemptFontSubstitution(attemptFontSubstitution)
+        , m_disableSpacing(false)
     {
     }
 
-    int tabWidth() const { return m_tabWidth; }
+    bool allowTabs() const { return m_allowTabs; }
     int xPos() const { return m_xpos; }
     int padding() const { return m_padding; }
     bool rtl() const { return m_rtl; }
@@ -46,20 +46,22 @@ public:
     bool directionalOverride() const { return m_directionalOverride; }
     bool applyRunRounding() const { return m_applyRunRounding; }
     bool applyWordRounding() const { return m_applyWordRounding; }
-    bool attemptFontSubstitution() const { return m_attemptFontSubstitution; }
+    bool spacingDisabled() const { return m_disableSpacing; }
 
+    void disableSpacing() { m_disableSpacing = true; }
     void disableRoundingHacks() { m_applyRunRounding = m_applyWordRounding = false; }
     void setRTL(bool b) { m_rtl = b; }
+    void setDirectionalOverride(bool override) { m_directionalOverride = override; }
     
 private:
-    int m_tabWidth;
+    bool m_allowTabs;
     int m_xpos;
     int m_padding;
     bool m_rtl;
     bool m_directionalOverride;
     bool m_applyRunRounding;
     bool m_applyWordRounding;
-    bool m_attemptFontSubstitution;
+    bool m_disableSpacing;
 };
 
 }

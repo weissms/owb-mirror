@@ -415,6 +415,8 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
       // Not enough in 'buf' to complete current block, get more
       bytes_in_hold += l;
       bytes_to_consume -= l;
+      if (clientptr)
+        clientptr->decodingHalted(0);
       return true;
     }
     // Reset hold buffer count
@@ -651,11 +653,7 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
         // Let's choose 3 (the more popular)
         if (frame_reader->disposal_method == 4)
           frame_reader->disposal_method = (gdispose)3;
-        unsigned short n = GETINT16(q + 1);
-        // Many annoying ads specify a 0 duration to make an image flash as quickly as possible.
-        // We follow Firefox's behavior and use a duration of 100 ms for any frames that specify
-        // a duration of <= 10 ms. See gfxImageFrame::GetTimeout in Gecko or Radar 4051389 for more.
-        frame_reader->delay_time = n <= 1 ? 100 : n * 10;
+        frame_reader->delay_time = GETINT16(q + 1) * 10;
       }
       GETN(1, gif_consume_block);
     }
@@ -760,7 +758,8 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
       if (query == GIFImageDecoder::GIFSizeQuery || haltAtFrame == images_decoded) {
         // The decoder needs to stop.  Hand back the number of bytes we consumed from
         // buffer minus 9 (the amount we consumed to read the header).
-        clientptr->decodingHalted(len + 9);
+        if (clientptr)
+            clientptr->decodingHalted(len + 9);
         GETN(9, gif_image_header);
         return true;
       }
@@ -924,7 +923,7 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
     // Handle general errors
     case gif_error:
       // nsGIFDecoder2::EndGIF(gs->clientptr, gs->loop_count);
-      return true;
+      return false;
 
     // We shouldn't ever get here.
     default:
@@ -948,6 +947,8 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
     bytes_to_consume -= len;
   }
 
+  if (clientptr)
+    clientptr->decodingHalted(0);
   return true;
 }
 

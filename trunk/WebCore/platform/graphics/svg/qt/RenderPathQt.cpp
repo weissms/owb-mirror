@@ -17,13 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 #include "RenderPath.h"
-#include "KCanvasRenderingStyle.h"
+#include "SVGRenderStyle.h"
+#include "SVGPaintServer.h"
 
 #include <QDebug>
 #include <QPainterPathStroker>
@@ -35,7 +36,7 @@ bool RenderPath::strokeContains(const FloatPoint& point, bool requiresStroke) co
     if (path().isEmpty())
         return false;
 
-    if (requiresStroke && !KSVGPainterFactory::strokePaintServer(style(), this))
+    if (requiresStroke && !SVGPaintServer::strokePaintServer(style(), this))
         return false;
 
     return false;
@@ -44,7 +45,7 @@ bool RenderPath::strokeContains(const FloatPoint& point, bool requiresStroke) co
 static QPainterPath getPathStroke(const QPainterPath &path, const RenderObject* object, const RenderStyle* style)
 { 
     QPainterPathStroker s;
-    s.setWidth(KSVGPainterFactory::cssPrimitiveToLength(object, style->svgStyle()->strokeWidth(), 1.0));
+    s.setWidth(SVGRenderStyle::cssPrimitiveToLength(object, style->svgStyle()->strokeWidth(), 1.0));
 
     if (style->svgStyle()->capStyle() == ButtCap)
         s.setCapStyle(Qt::FlatCap);
@@ -57,8 +58,8 @@ static QPainterPath getPathStroke(const QPainterPath &path, const RenderObject* 
     } else if(style->svgStyle()->joinStyle() == RoundJoin)
         s.setJoinStyle(Qt::RoundJoin);
 
-    const KCDashArray& dashes = KSVGPainterFactory::dashArrayFromRenderingStyle(style);
-    double dashOffset = KSVGPainterFactory::cssPrimitiveToLength(object, style->svgStyle()->strokeDashOffset(), 0.0);
+    const DashArray& dashes = WebCore::dashArrayFromRenderingStyle(style);
+    double dashOffset = SVGRenderStyle::cssPrimitiveToLength(object, style->svgStyle()->strokeDashOffset(), 0.0);
 
     unsigned int dashLength = !dashes.isEmpty() ? dashes.size() : 0;
     if(dashLength) {

@@ -28,20 +28,21 @@
 
 #include "HistoryItem.h"
 #include "Logging.h"
+#include "PageCache.h"
 
 using namespace std;
 
 namespace WebCore {
 
-static unsigned DefaultPageCacheSize = 2;
-static const unsigned DefaultCapacitiy = 100;
+static const unsigned DefaultCapacity = 100;
 static const unsigned NoCurrentItemIndex = UINT_MAX;
 
-BackForwardList::BackForwardList()
-    : m_current(NoCurrentItemIndex)
-    , m_capacity(DefaultCapacitiy)
-    , m_pageCacheSize(DefaultPageCacheSize)
+BackForwardList::BackForwardList(Page* page)
+    : m_page(page)
+    , m_current(NoCurrentItemIndex)
+    , m_capacity(DefaultCapacity)
     , m_closed(true)
+    , m_enabled(true)
 {
 }
 
@@ -53,7 +54,7 @@ BackForwardList::~BackForwardList()
 void BackForwardList::addItem(PassRefPtr<HistoryItem> prpItem)
 {
     ASSERT(prpItem);
-    if (m_capacity == 0)
+    if (m_capacity == 0 || !m_enabled)
         return;
     
     // Toss anything in the forward list    
@@ -63,16 +64,17 @@ void BackForwardList::addItem(PassRefPtr<HistoryItem> prpItem)
             RefPtr<HistoryItem> item = m_entries.last();
             m_entries.removeLast();
             m_entryHash.remove(item);
-            item->setHasPageCache(false);
+            pageCache()->remove(item.get());
         }
     }
 
     // Toss the first item if the list is getting too big, as long as we're not using it
-    if (m_entries.size() == m_capacity && m_current != 0) {
+    // (or even if we are, if we only want 1 entry).
+    if (m_entries.size() == m_capacity && (m_current != 0 || m_capacity == 1)) {
         RefPtr<HistoryItem> item = m_entries[0];
         m_entries.remove(0);
         m_entryHash.remove(item);
-        item->setHasPageCache(false);
+        pageCache()->remove(item.get());
         m_current--;
     }
     
@@ -91,7 +93,7 @@ void BackForwardList::goBack()
 void BackForwardList::goForward()
 {
     ASSERT(m_current < m_entries.size() - 1);
-    if (m_current < m_entries.size() - 1);
+    if (m_current < m_entries.size() - 1)
         m_current++;
 }
 
@@ -166,47 +168,30 @@ void BackForwardList::setCapacity(int size)
         RefPtr<HistoryItem> item = m_entries.last();
         m_entries.removeLast();
         m_entryHash.remove(item);
-        item->setHasPageCache(false);
+        pageCache()->remove(item.get());
     }
 
-    if (m_current > m_entries.size() - 1)
+    if (!size)
+        m_current = NoCurrentItemIndex;
+    else if (m_current > m_entries.size() - 1)
         m_current = m_entries.size() - 1;
         
     m_capacity = size;
 }
 
-void BackForwardList::setPageCacheSize(unsigned size)
+bool BackForwardList::enabled()
 {
-    if (size == 0)
-        clearPageCache();
-    else if (size < m_pageCacheSize) {
-        for (signed i = m_current - size - 1; i > -1; --i)
-            m_entries[i]->setHasPageCache(false);
-        HistoryItem::releaseAllPendingPageCaches();
+    return m_enabled;
+}
+
+void BackForwardList::setEnabled(bool enabled)
+{
+    m_enabled = enabled;
+    if (!enabled) {
+        int capacity = m_capacity;
+        setCapacity(0);
+        setCapacity(capacity);
     }
-    
-    m_pageCacheSize = size;
-}
-
-unsigned BackForwardList::pageCacheSize()
-{
-    return m_pageCacheSize;
-}
-
-void BackForwardList::clearPageCache()
-{    
-    for (unsigned i = 0; i < m_entries.size(); i++) {
-        // Don't clear the current item.  Objects are still in use.
-        if (i != m_current)
-            m_entries[i]->setHasPageCache(false);
-    }
-    
-    HistoryItem::releaseAllPendingPageCaches();
-}
-
-bool BackForwardList::usesPageCache()
-{
-    return m_pageCacheSize != 0;
 }
 
 int BackForwardList::backListCount()
@@ -216,7 +201,7 @@ int BackForwardList::backListCount()
 
 int BackForwardList::forwardListCount()
 {
-    return (int)m_entries.size() - (m_current + 1);
+    return m_current == NoCurrentItemIndex ? 0 : (int)m_entries.size() - (m_current + 1);
 }
 
 HistoryItem* BackForwardList::itemAtIndex(int index)
@@ -240,9 +225,10 @@ void BackForwardList::close()
 {
     int size = m_entries.size();
     for (int i = 0; i < size; ++i)
-        m_entries[i]->setHasPageCache(false);
+        pageCache()->remove(m_entries[i].get());
     m_entries.clear();
     m_entryHash.clear();
+    m_page = 0;
     m_closed = true;
 }
 
@@ -269,17 +255,4 @@ bool BackForwardList::containsItem(HistoryItem* entry)
     return m_entryHash.contains(entry);
 }
 
-void BackForwardList::setDefaultPageCacheSize(unsigned size)
-{
-    DefaultPageCacheSize = size;
-    LOG(PageCache, "WebCorePageCache: Default page cache size set to %d pages", size);
-}
-
-unsigned BackForwardList::defaultPageCacheSize()
-{
-   return DefaultPageCacheSize;
-}
-
-
-}; //namespace WebCore
-
+}; // namespace WebCore

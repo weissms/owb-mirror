@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -32,6 +32,29 @@ namespace WebCore {
 class HTMLFrameSetElement;
 class MouseEvent;
 
+enum FrameEdge { LeftFrameEdge, RightFrameEdge, TopFrameEdge, BottomFrameEdge };
+
+struct FrameEdgeInfo
+{
+    FrameEdgeInfo(bool preventResize = false, bool allowBorder = true)
+    {
+        m_preventResize.resize(4);
+        m_preventResize.fill(preventResize);
+        m_allowBorder.resize(4);
+        m_allowBorder.fill(allowBorder);
+    }
+
+    bool preventResize(FrameEdge edge) const { return m_preventResize[edge]; }
+    bool allowBorder(FrameEdge edge) const { return m_allowBorder[edge]; }
+
+    void setPreventResize(FrameEdge edge, bool preventResize) { m_preventResize[edge] = preventResize; }
+    void setAllowBorder(FrameEdge edge, bool allowBorder) { m_allowBorder[edge] = allowBorder; }
+
+private:
+    Vector<bool> m_preventResize;
+    Vector<bool> m_allowBorder;
+};
+
 class RenderFrameSet : public RenderContainer {
 public:
     RenderFrameSet(HTMLFrameSetElement*);
@@ -42,6 +65,10 @@ public:
 
     virtual void layout();
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
+    virtual void paint(PaintInfo& paintInfo, int tx, int ty);
+    virtual bool isChildAllowed(RenderObject*, RenderStyle*) const;
+    
+    FrameEdgeInfo edgeInfo() const;
 
     bool userResize(MouseEvent*);
 
@@ -64,7 +91,8 @@ private:
         void resize(int);
         Vector<int> m_sizes;
         Vector<int> m_deltas;
-        Vector<bool> m_isSplitResizable;
+        Vector<bool> m_preventResize;
+        Vector<bool> m_allowBorder;
         int m_splitBeingResized;
         int m_splitResizeOffset;
     };
@@ -75,7 +103,8 @@ private:
     void setIsResizing(bool);
 
     void layOutAxis(GridAxis&, const Length*, int availableSpace);
-    void findNonResizableSplits();
+    void computeEdgeInfo();
+    void fillFromEdgeInfo(const FrameEdgeInfo& edgeInfo, int r, int c);
     void positionFrames();
 
     int splitPosition(const GridAxis&, int split) const;
@@ -83,6 +112,9 @@ private:
 
     void startResizing(GridAxis&, int position);
     void continueResizing(GridAxis&, int position);
+
+    void paintRowBorder(const PaintInfo& paintInfo, const IntRect& rect);
+    void paintColumnBorder(const PaintInfo& paintInfo, const IntRect& rect);
 
     GridAxis m_rows;
     GridAxis m_cols;

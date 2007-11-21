@@ -44,8 +44,8 @@ namespace WebCore {
 
 WebCore::PluginInfo* PlugInInfoStore::createPluginInfoForPluginAtIndex(unsigned int)
 {
-	BALNotImplemented();
-	return 0;
+    BALNotImplemented();
+    return 0;
 }
 
 unsigned int PlugInInfoStore::pluginCount() const
@@ -56,14 +56,14 @@ unsigned int PlugInInfoStore::pluginCount() const
 
 bool PlugInInfoStore::supportsMIMEType(WebCore::String const& mimetype)
 {
-    logm(MODULE_FACILITIES, mimetype.deprecatedString().ascii());
+    DBGM(MODULE_FACILITIES, mimetype.deprecatedString().ascii());
     if (mimetype == "application/x-origyn-mediaplayer") {
-        logm(MODULE_FACILITIES, make_message("mime-type '%s' is supported",
-             mimetype.deprecatedString().ascii()));
+        DBGM(MODULE_FACILITIES, "mime-type '%s' is supported\n",
+             mimetype.deprecatedString().ascii());
         return true;
     } else {
-        logm(MODULE_FACILITIES, make_message("mime-type '%s' is not supported",
-             mimetype.deprecatedString().ascii()));
+        DBGM(MODULE_FACILITIES, "mime-type '%s' is not supported\n",
+             mimetype.deprecatedString().ascii());
         return false;
     }
 }

@@ -2,7 +2,7 @@
  * This file is part of the DOM implementation for KDE.
  *
  * (C) 1999-2003 Lars Knoll (knoll@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "CSSValueList.h"
@@ -25,6 +25,11 @@
 #include "PlatformString.h"
 
 namespace WebCore {
+
+CSSValueList::CSSValueList(bool isSpaceSeparated)
+    : m_isSpaceSeparated(isSpaceSeparated)
+{
+}
 
 CSSValueList::~CSSValueList()
 {
@@ -46,12 +51,16 @@ String CSSValueList::cssText() const
 
     unsigned size = m_values.size();
     for (unsigned i = 0; i < size; i++) {
-        if (!result.isEmpty())
-            result += ", ";
+        if (!result.isEmpty()) {
+            if (m_isSpaceSeparated)
+                result += " ";
+            else
+                result += ", ";
+        }
         result += m_values[i]->cssText();
     }
-    
+
     return result;
 }
 
-}
+} // namespace WebCore

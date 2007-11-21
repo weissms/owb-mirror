@@ -16,17 +16,20 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPolyElement.h"
 
 #include "Document.h"
+#include "FloatPoint.h"
+#include "RenderPath.h"
 #include "SVGNames.h"
+#include "SVGParserUtilities.h"
 #include "SVGPointList.h"
 
 namespace WebCore {
@@ -37,7 +40,6 @@ SVGPolyElement::SVGPolyElement(const QualifiedName& tagName, Document* doc)
     , SVGLangSpace()
     , SVGExternalResourcesRequired()
     , SVGAnimatedPoints()
-    , SVGPolyParser()
 {
     m_ignoreAttributeChanges = false;
 }
@@ -49,7 +51,7 @@ SVGPolyElement::~SVGPolyElement()
 SVGPointList* SVGPolyElement::points() const
 {
     if (!m_points)
-        m_points = new SVGPointList(this);
+        m_points = new SVGPointList();
 
     return m_points.get();
 }
@@ -66,7 +68,7 @@ void SVGPolyElement::parseMappedAttribute(MappedAttribute* attr)
     if (attr->name() == SVGNames::pointsAttr) {
         ExceptionCode ec = 0;
         points()->clear(ec);
-        if (!parsePoints(value) && !m_ignoreAttributeChanges) {
+        if (!pointsListFromSVGData(points(), value) && !m_ignoreAttributeChanges) {
             points()->clear(ec);
             document()->accessSVGExtensions()->reportError("Problem parsing points=\"" + value + "\"");
         }
@@ -81,20 +83,15 @@ void SVGPolyElement::parseMappedAttribute(MappedAttribute* attr)
     }
 }
 
-void SVGPolyElement::svgPolyTo(double x1, double y1, int) const
-{
-    ExceptionCode ec = 0;
-    points()->appendItem(FloatPoint(x1, y1), ec);
-}
-
 void SVGPolyElement::notifyAttributeChange() const
 {
-    if (m_ignoreAttributeChanges || ownerDocument()->parsing())
+    if (m_ignoreAttributeChanges || document()->parsing())
         return;
 
     m_ignoreAttributeChanges = true;
-    rebuildRenderer();
-
+    if (renderer())
+        renderer()->setNeedsLayout(true);
+    
     ExceptionCode ec = 0;
 
     // Spec: Additionally, the 'points' attribute on the original element
@@ -115,11 +112,11 @@ void SVGPolyElement::notifyAttributeChange() const
 
     m_ignoreAttributeChanges = false;
 
-    SVGStyledElement::notifyAttributeChange();
+    SVGStyledTransformableElement::notifyAttributeChange();
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

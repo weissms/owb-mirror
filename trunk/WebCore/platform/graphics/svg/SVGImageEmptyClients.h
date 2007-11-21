@@ -26,7 +26,7 @@
 #ifndef SVGImageEmptyClients_h
 #define SVGImageEmptyClients_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "ChromeClient.h"
 #include "ContextMenuClient.h"
@@ -34,6 +34,7 @@
 #include "EditorClient.h"
 #include "FocusDirection.h"
 #include "FrameLoaderClient.h"
+#include "InspectorClient.h"
 #include "SharedBuffer.h"
 
 /*
@@ -68,8 +69,8 @@ public:
     virtual bool canTakeFocus(FocusDirection) { return false; }
     virtual void takeFocus(FocusDirection) { }
     
-    virtual Page* createWindow(const FrameLoadRequest&) { return 0; }
-    virtual Page* createModalDialog(const FrameLoadRequest&) { return 0; }
+    virtual Page* createWindow(Frame*, const FrameLoadRequest&) { return 0; }
+    virtual Page* createModalDialog(Frame*, const FrameLoadRequest&) { return 0; }
     virtual void show() { }
     
     virtual bool canRunModal() { return false; }
@@ -109,7 +110,15 @@ public:
     virtual void addToDirtyRegion(const IntRect&) { }
     virtual void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect) { }
     virtual void updateBackingStore() { }
+
+    virtual void mouseDidMoveOverElement(const HitTestResult&, unsigned modifierFlags) { }
     
+    virtual void setToolTip(const String&) { }
+
+    virtual void print(Frame*) { }
+
+    virtual bool runDatabaseSizeLimitPrompt(Frame*, const String&) { return false; }
+
 };
 
 class SVGEmptyFrameLoaderClient : public FrameLoaderClient {
@@ -124,8 +133,8 @@ public:
     virtual void resetBackForwardList() { }
     
     virtual bool provisionalItemIsTarget() const { return false; }
-    virtual bool loadProvisionalItemFromPageCache() { return false; }
-    virtual void invalidateCurrentItemPageCache() { }
+    virtual bool loadProvisionalItemFromCachedPage() { return false; }
+    virtual void invalidateCurrentItemCachedPage() { }
     
     virtual bool privateBrowsingEnabled() const { return false; }
     
@@ -149,9 +158,7 @@ public:
     virtual void detachedFromParent3() { }
     virtual void detachedFromParent4() { }
     
-    virtual void loadedFromPageCache() { }
-    
-    virtual void download(ResourceHandle*, const ResourceRequest&, const ResourceResponse&) { }
+    virtual void download(ResourceHandle*, const ResourceRequest&, const ResourceRequest&, const ResourceResponse&) { }
     
     virtual void assignIdentifierToInitialRequest(unsigned long identifier, DocumentLoader*, const ResourceRequest&) { }
     virtual void dispatchWillSendRequest(DocumentLoader*, unsigned long identifier, ResourceRequest&, const ResourceResponse& redirectResponse) { }
@@ -192,8 +199,8 @@ public:
     virtual void dispatchWillSubmitForm(FramePolicyFunction, PassRefPtr<FormState>) { }
     
     virtual void dispatchDidLoadMainResource(DocumentLoader*) { }
-    virtual void clearLoadingFromPageCache(DocumentLoader*) { }
-    virtual bool isLoadingFromPageCache(DocumentLoader*) { return 0; }
+    virtual void clearLoadingFromCachedPage(DocumentLoader*) { }
+    virtual bool isLoadingFromCachedPage(DocumentLoader*) { return 0; }
     virtual void revertToProvisionalState(DocumentLoader*) { }
     virtual void setMainDocumentError(DocumentLoader*, const ResourceError&) { }
     virtual void clearUnarchivingState(DocumentLoader*) { }
@@ -216,6 +223,7 @@ public:
     virtual void finalSetupForReplace(DocumentLoader*) { }
     
     virtual ResourceError cancelledError(const ResourceRequest&) { return ResourceError(); }
+    virtual ResourceError blockedError(const ResourceRequest&) { return ResourceError(); }
     virtual ResourceError cannotShowURLError(const ResourceRequest&) { return ResourceError(); }
     virtual ResourceError interruptForPolicyChangeError(const ResourceRequest&) { return ResourceError(); }
     
@@ -247,19 +255,19 @@ public:
     virtual PassRefPtr<DocumentLoader> createDocumentLoader(const ResourceRequest& request, const SubstituteData& substituteData) { return new DocumentLoader(request, substituteData); }
     virtual void setTitle(const String& title, const KURL&) { }
     
-    virtual String userAgent() { return ""; }
+    virtual String userAgent(const KURL&) { return ""; }
     
-    virtual void setDocumentViewFromPageCache(PageCache*) { }
+    virtual void setDocumentViewFromCachedPage(CachedPage*) { }
     virtual void updateGlobalHistoryForStandardLoad(const KURL&) { }
     virtual void updateGlobalHistoryForReload(const KURL&) { }
     virtual bool shouldGoToHistoryItem(HistoryItem*) const { return false; }
     virtual void saveViewStateToItem(HistoryItem*) { }
-    virtual void saveDocumentViewToPageCache(PageCache*) { }
+    virtual void saveDocumentViewToCachedPage(CachedPage*) { }
     virtual bool canCachePage() const { return false; }
 
-    virtual Frame* createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
+    virtual PassRefPtr<Frame> createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
                                const String& referrer, bool allowsScrolling, int marginWidth, int marginHeight) { return 0; }
-    virtual Widget* createPlugin(Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool) { return 0; }
+    virtual Widget* createPlugin(const IntSize&,Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool) { return 0; }
     virtual Widget* createJavaAppletWidget(const IntSize&, Element*, const KURL&, const Vector<String>&, const Vector<String>&) { return 0; }
     
     virtual ObjectContentType objectContentType(const KURL& url, const String& mimeType) { return ObjectContentType(); }
@@ -267,6 +275,14 @@ public:
 
     virtual void redirectDataToPlugin(WebCore::Widget*) {}
     virtual void windowObjectCleared() const {}
+    virtual void didPerformFirstNavigation() const {}
+
+    virtual void registerForIconNotification(bool listen) {}
+
+#if PLATFORM(MAC)
+    virtual NSCachedURLResponse* willCacheResponse(DocumentLoader*, unsigned long identifier, NSCachedURLResponse* response) const { return response; }
+#endif
+
 };
 
 class SVGEmptyEditorClient : public EditorClient {
@@ -294,11 +310,13 @@ public:
     virtual bool shouldChangeSelectedRange(Range* fromRange, Range* toRange, EAffinity, bool stillSelecting) { return false; }
 
     virtual bool shouldApplyStyle(CSSStyleDeclaration*, Range*) { return false; }
+    virtual bool shouldMoveRangeAfterDelete(Range*, Range*) { return false; }
     //  virtual bool shouldChangeTypingStyle(CSSStyleDeclaration* fromStyle, CSSStyleDeclaration* toStyle) { return false; }
     //  virtual bool doCommandBySelector(SEL selector) { return false; }
     //
     virtual void didBeginEditing() { }
     virtual void respondToChangedContents() { }
+    virtual void respondToChangedSelection() { }
     virtual void didEndEditing() { }
     virtual void didWriteSelectionToPasteboard() { }
     virtual void didSetSelectionTypesForPasteboard() { }
@@ -316,7 +334,8 @@ public:
     virtual void undo() { }
     virtual void redo() { }
 
-    virtual void handleKeyPress(KeyboardEvent*) { }
+    virtual void handleKeypress(KeyboardEvent*) { }
+    virtual void handleInputMethodKeypress(KeyboardEvent*) { }
 
     virtual void textFieldDidBeginEditing(Element*) { }
     virtual void textFieldDidEndEditing(Element*) { }
@@ -336,6 +355,16 @@ public:
     virtual NSArray* pasteboardTypesForSelection(Frame*) { return 0; }
 #endif
 #endif
+    virtual void ignoreWordInSpellDocument(const String&) { }
+    virtual void learnWord(const String&) { }
+    virtual void checkSpellingOfString(const UChar*, int length, int* misspellingLocation, int* misspellingLength) { }
+    virtual void checkGrammarOfString(const UChar*, int length, Vector<GrammarDetail>&, int* badGrammarLocation, int* badGrammarLength) { }
+    virtual void updateSpellingUIWithGrammarString(const String&, const GrammarDetail&) { }
+    virtual void updateSpellingUIWithMisspelledWord(const String&) { }
+    virtual void showSpellingUI(bool show) { }
+    virtual bool spellingUIIsShowing() { return false; }
+    virtual void getGuessesForWord(const String&, Vector<String>& guesses) { }
+    virtual void setInputMethodState(bool enabled) { }
   
     
 };
@@ -354,7 +383,7 @@ public:
     virtual void lookUpInDictionary(Frame*) { }
     virtual void speak(const String&) { }
     virtual void stopSpeaking() { }
-    
+
 #if PLATFORM(MAC)
     virtual void searchWithSpotlight() { }
 #endif
@@ -371,10 +400,29 @@ public:
     virtual DragImageRef createDragImageForLink(KURL&, const String& label, Frame*) { return 0; } 
     virtual void dragControllerDestroyed() { }
 };
+
+class SVGEmptyInspectorClient : public InspectorClient {
+public:
+    virtual ~SVGEmptyInspectorClient() {}
+
+    virtual void inspectorDestroyed() {};
+
+    virtual WebCore::Page* createPage() { return 0; };
+
+    virtual void showWindow() {};
+    virtual void closeWindow() {};
+
+    virtual void attachWindow() {};
+    virtual void detachWindow() {};
+
+    virtual void highlight(WebCore::Node*) {};
+    virtual void hideHighlight() {};
+    virtual void inspectedURLChanged(const WebCore::String& newURL) {};
+};
     
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 #endif // SVGImageEmptyClients_h
 

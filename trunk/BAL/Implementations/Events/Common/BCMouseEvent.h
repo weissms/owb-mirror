@@ -67,7 +67,7 @@ public:
   virtual int clickCount() const;
   virtual double timestamp() const { return m_timestamp; }
   virtual BIEvent* clone() const;
-
+  virtual unsigned modifierFlags() const;
   virtual bool shiftKey() const { return BCCommonInputEventData::shiftKey(); }
   virtual bool ctrlKey() const { return BCCommonInputEventData::ctrlKey(); }
   virtual bool altKey() const { return BCCommonInputEventData::altKey(); }

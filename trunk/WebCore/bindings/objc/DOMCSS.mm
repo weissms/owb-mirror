@@ -45,7 +45,7 @@
 #import "StyleSheet.h"
 #import <objc/objc-class.h>
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #import "DOMSVGColor.h"
 #import "DOMSVGPaint.h"
 #endif
@@ -69,7 +69,7 @@
     return self;
 }
 
-+ (DOMStyleSheet *)_styleSheetWith:(WebCore::StyleSheet *)impl
++ (DOMStyleSheet *)_wrapStyleSheet:(WebCore::StyleSheet *)impl
 {
     if (!impl)
         return nil;
@@ -108,7 +108,7 @@
     return self;
 }
 
-+ (DOMCSSRule *)_CSSRuleWith:(WebCore::CSSRule *)impl
++ (DOMCSSRule *)_wrapCSSRule:(WebCore::CSSRule *)impl
 {
     if (!impl)
         return nil;
@@ -121,7 +121,7 @@
     Class wrapperClass = nil;
     switch (impl->type()) {
         case DOM_UNKNOWN_RULE:
-            wrapperClass = [DOMCSSRule class];
+            wrapperClass = [DOMCSSUnknownRule class];
             break;
         case DOM_STYLE_RULE:
             wrapperClass = [DOMCSSStyleRule class];
@@ -167,7 +167,7 @@
     return self;
 }
 
-+ (DOMCSSValue *)_CSSValueWith:(WebCore::CSSValue *)impl
++ (DOMCSSValue *)_wrapCSSValue:(WebCore::CSSValue *)impl
 {
     if (!impl)
         return nil;
@@ -189,7 +189,7 @@
             wrapperClass = [DOMCSSValue class];
             break;
         case DOM_CSS_CUSTOM:
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
             if (impl->isSVGPaint())
                 wrapperClass = [DOMSVGPaint class];
             else if (impl->isSVGColor())

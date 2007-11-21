@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,24 +16,24 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPathElement_h
 #define SVGPathElement_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGAnimatedPathData.h"
 #include "SVGExternalResourcesRequired.h"
 #include "SVGLangSpace.h"
-#include "SVGParserUtilities.h"
+//#include "SVGParserUtilities.h"
 #include "SVGStyledTransformableElement.h"
 #include "SVGTests.h"
 
-namespace WebCore
-{
+namespace WebCore {
+
     class SVGPathSeg;
     class SVGPathSegArcAbs;
     class SVGPathSegArcRel;
@@ -58,37 +58,36 @@ namespace WebCore
                            public SVGTests,
                            public SVGLangSpace,
                            public SVGExternalResourcesRequired,
-                           public SVGAnimatedPathData,
-                           public SVGPathParser
+                           public SVGAnimatedPathData
     {
     public:
         SVGPathElement(const QualifiedName&, Document*);
         virtual ~SVGPathElement();
         
         virtual bool isValid() const { return SVGTests::isValid(); }
-        double getTotalLength();
-        FloatPoint getPointAtLength(double distance);
-        unsigned long getPathSegAtLength(double distance);
+        float getTotalLength();
+        FloatPoint getPointAtLength(float distance);
+        unsigned long getPathSegAtLength(float distance);
 
-        SVGPathSegClosePath* createSVGPathSegClosePath();
-        SVGPathSegMovetoAbs* createSVGPathSegMovetoAbs(double x, double y);
-        SVGPathSegMovetoRel* createSVGPathSegMovetoRel(double x, double y);
-        SVGPathSegLinetoAbs* createSVGPathSegLinetoAbs(double x, double y);
-        SVGPathSegLinetoRel* createSVGPathSegLinetoRel(double x, double y);
-        SVGPathSegCurvetoCubicAbs* createSVGPathSegCurvetoCubicAbs(double x, double y, double x1, double y1, double x2, double y2);
-        SVGPathSegCurvetoCubicRel* createSVGPathSegCurvetoCubicRel(double x, double y, double x1, double y1, double x2, double y2);
-        SVGPathSegCurvetoQuadraticAbs* createSVGPathSegCurvetoQuadraticAbs(double x, double y, double x1, double y1);
-        SVGPathSegCurvetoQuadraticRel* createSVGPathSegCurvetoQuadraticRel(double x, double y, double x1, double y1);
-        SVGPathSegArcAbs* createSVGPathSegArcAbs(double x, double y, double r1, double r2, double angle, bool largeArcFlag, bool sweepFlag);
-        SVGPathSegArcRel* createSVGPathSegArcRel(double x, double y, double r1, double r2, double angle, bool largeArcFlag, bool sweepFlag);
-        SVGPathSegLinetoHorizontalAbs* createSVGPathSegLinetoHorizontalAbs(double x);
-        SVGPathSegLinetoHorizontalRel* createSVGPathSegLinetoHorizontalRel(double x);
-        SVGPathSegLinetoVerticalAbs* createSVGPathSegLinetoVerticalAbs(double y);
-        SVGPathSegLinetoVerticalRel* createSVGPathSegLinetoVerticalRel(double y);
-        SVGPathSegCurvetoCubicSmoothAbs* createSVGPathSegCurvetoCubicSmoothAbs(double x, double y, double x2, double y2);
-        SVGPathSegCurvetoCubicSmoothRel* createSVGPathSegCurvetoCubicSmoothRel(double x, double y, double x2, double y2);
-        SVGPathSegCurvetoQuadraticSmoothAbs* createSVGPathSegCurvetoQuadraticSmoothAbs(double x, double y);
-        SVGPathSegCurvetoQuadraticSmoothRel* createSVGPathSegCurvetoQuadraticSmoothRel(double x, double y);
+        static SVGPathSegClosePath* createSVGPathSegClosePath();
+        static SVGPathSegMovetoAbs* createSVGPathSegMovetoAbs(float x, float y);
+        static SVGPathSegMovetoRel* createSVGPathSegMovetoRel(float x, float y);
+        static SVGPathSegLinetoAbs* createSVGPathSegLinetoAbs(float x, float y);
+        static SVGPathSegLinetoRel* createSVGPathSegLinetoRel(float x, float y);
+        static SVGPathSegCurvetoCubicAbs* createSVGPathSegCurvetoCubicAbs(float x, float y, float x1, float y1, float x2, float y2);
+        static SVGPathSegCurvetoCubicRel* createSVGPathSegCurvetoCubicRel(float x, float y, float x1, float y1, float x2, float y2);
+        static SVGPathSegCurvetoQuadraticAbs* createSVGPathSegCurvetoQuadraticAbs(float x, float y, float x1, float y1);
+        static SVGPathSegCurvetoQuadraticRel* createSVGPathSegCurvetoQuadraticRel(float x, float y, float x1, float y1);
+        static SVGPathSegArcAbs* createSVGPathSegArcAbs(float x, float y, float r1, float r2, float angle, bool largeArcFlag, bool sweepFlag);
+        static SVGPathSegArcRel* createSVGPathSegArcRel(float x, float y, float r1, float r2, float angle, bool largeArcFlag, bool sweepFlag);
+        static SVGPathSegLinetoHorizontalAbs* createSVGPathSegLinetoHorizontalAbs(float x);
+        static SVGPathSegLinetoHorizontalRel* createSVGPathSegLinetoHorizontalRel(float x);
+        static SVGPathSegLinetoVerticalAbs* createSVGPathSegLinetoVerticalAbs(float y);
+        static SVGPathSegLinetoVerticalRel* createSVGPathSegLinetoVerticalRel(float y);
+        static SVGPathSegCurvetoCubicSmoothAbs* createSVGPathSegCurvetoCubicSmoothAbs(float x, float y, float x2, float y2);
+        static SVGPathSegCurvetoCubicSmoothRel* createSVGPathSegCurvetoCubicSmoothRel(float x, float y, float x2, float y2);
+        static SVGPathSegCurvetoQuadraticSmoothAbs* createSVGPathSegCurvetoQuadraticSmoothAbs(float x, float y);
+        static SVGPathSegCurvetoQuadraticSmoothRel* createSVGPathSegCurvetoQuadraticSmoothRel(float x, float y);
 
         // Derived from: 'SVGAnimatedPathData'
         virtual SVGPathSegList* pathSegList() const;
@@ -99,8 +98,9 @@ namespace WebCore
         virtual void parseMappedAttribute(MappedAttribute* attr);
         virtual void notifyAttributeChange() const;
 
-        virtual bool rendererIsNeeded(RenderStyle* style) { return StyledElement::rendererIsNeeded(style); }
         virtual Path toPathData() const;
+
+        virtual bool supportsMarkers() const { return true; }
 
     protected:
         virtual const SVGElement* contextElement() const { return this; }
@@ -110,23 +110,12 @@ namespace WebCore
 
         ANIMATED_PROPERTY_FORWARD_DECLARATIONS(SVGExternalResourcesRequired, bool, ExternalResourcesRequired, externalResourcesRequired)
  
-        ANIMATED_PROPERTY_DECLARATIONS(SVGPathElement, double, double, PathLength, pathLength)
-
-        virtual void svgMoveTo(double x1, double y1, bool closed, bool abs = true);
-        virtual void svgLineTo(double x1, double y1, bool abs = true);
-        virtual void svgLineToHorizontal(double x, bool abs = true);
-        virtual void svgLineToVertical(double y, bool abs = true);
-        virtual void svgCurveToCubic(double x1, double y1, double x2, double y2, double x, double y, bool abs = true);
-        virtual void svgCurveToCubicSmooth(double x, double y, double x2, double y2, bool abs = true);
-        virtual void svgCurveToQuadratic(double x, double y, double x1, double y1, bool abs = true);
-        virtual void svgCurveToQuadraticSmooth(double x, double y, bool abs = true);
-        virtual void svgArcTo(double x, double y, double r1, double r2, double angle, bool largeArcFlag, bool sweepFlag, bool abs = true);
-        virtual void svgClosePath();
+        ANIMATED_PROPERTY_DECLARATIONS(SVGPathElement, float, float, PathLength, pathLength)
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

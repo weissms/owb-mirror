@@ -14,11 +14,17 @@ set(bal_tests_SRC
 	BAL/Tests/ImageDecodersTests/ImageDecodersTest.cpp
 
 	#FacilitiesTests Directory
-	BAL/Tests/FacilitiesTests/LogManagerTest.cpp
+	BAL/Tests/FacilitiesTests/CookiesTest.cpp
+        BAL/Tests/FacilitiesTests/LogManagerTest.cpp
 	BAL/Tests/FacilitiesTests/LogManagerTestInteractif.cpp
+
+        #GraphicsTests Directory
+	BAL/Tests/GraphicsTests/GraphicsDevice.cpp
+	BAL/Tests/GraphicsTests/GraphicsDeviceStress.cpp
 
 	#EventsTests Directory
 	BAL/Tests/EventsTests/InputEventTest.cpp
+	BAL/Tests/EventsTests/EventLoopTest.cpp
 
 	#TestSamples Directory
 	#BAL/Tests/TestSamples/TestSample.cpp
@@ -26,13 +32,14 @@ set(bal_tests_SRC
 	#WidgetsTests Directory
 	BAL/Tests/WidgetsTests/ScrollViewImplTest.cpp
 	BAL/Tests/WidgetsTests/WidgetImplTest.cpp
-	BAL/Tests/WidgetsTests/WindowTest.cpp
 
 	#FontsTests Directory - FIXME disabled: not fully independent
 	#BAL/Tests/FontsTests/FontsTest.cpp
+	BAL/Tests/FontsTests/FontTestStress.cpp
 
 	#TransfersTests Directory
 	BAL/Tests/NetworkTests/NetworkTest.cpp
+	BAL/Tests/NetworkTests/NetworkTestStress.cpp
 
 	#TypesTests Directory
 	BAL/Tests/TypesTests/TimerTest.cpp

@@ -13,17 +13,21 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
 #include "FileChooser.h"
 
+#include "Document.h"
+#include "Frame.h"
+#include "FrameLoaderClientQt.h"
 #include "Icon.h"
+#include "Page.h"
 
-#define notImplemented() qDebug("FIXME: UNIMPLEMENTED: %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__)
+#include <QFontMetrics>
 
 namespace WebCore {
 
@@ -38,15 +42,26 @@ FileChooser::~FileChooser()
 {
 }
 
-void FileChooser::openFileChooser(Document*)
+void FileChooser::openFileChooser(Document* doc)
 {
-    notImplemented();
+    Page *page = doc->page();
+    Frame *frame = doc->frame();
+    if (!page || !frame)
+        return;
+
+    FrameLoaderClientQt *fl = static_cast<FrameLoaderClientQt*>(frame->loader()->client());
+    if (!fl)
+        return;
+
+    QString f = fl->chooseFile(m_filename);
+    if (!f.isEmpty())
+        chooseFile(f);
 }
 
-String FileChooser::basenameForWidth(const Font&, int width) const
+String FileChooser::basenameForWidth(const Font& f, int width) const
 {
-    notImplemented();
-    return String();
+    QFontMetrics fm(f.font());
+    return fm.elidedText(m_filename, Qt::ElideLeft, width);
 }
 
 }

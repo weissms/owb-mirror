@@ -51,8 +51,30 @@ TypingCommand::TypingCommand(Document *document, ETypingCommand commandType, con
       m_applyEditing(false), 
       m_selectInsertedText(selectInsertedText),
       m_smartDelete(false),
-      m_granularity(granularity)
+      m_granularity(granularity),
+      m_openedByBackwardDelete(false)
 {
+}
+
+void TypingCommand::deleteSelection(Document* document, bool smartDelete)
+{
+    ASSERT(document);
+    
+    Frame* frame = document->frame();
+    ASSERT(frame);
+    
+    if (!frame->selectionController()->isRange())
+        return;
+    
+    EditCommand* lastEditCommand = frame->editor()->lastEditCommand();
+    if (isOpenForMoreTypingCommand(lastEditCommand)) {
+        static_cast<TypingCommand*>(lastEditCommand)->deleteSelection(smartDelete);
+        return;
+    }
+    
+    RefPtr<TypingCommand> typingCommand = new TypingCommand(document, DeleteSelection, "", false);
+    typingCommand->setSmartDelete(smartDelete);
+    typingCommand->apply();
 }
 
 void TypingCommand::deleteKeyPressed(Document *document, bool smartDelete, TextGranularity granularity)
@@ -75,6 +97,7 @@ void TypingCommand::deleteKeyPressed(Document *document, bool smartDelete, TextG
 
 void TypingCommand::forwardDeleteKeyPressed(Document *document, bool smartDelete, TextGranularity granularity)
 {
+    // FIXME: Forward delete in TextEdit appears to open and close a new typing command.
     ASSERT(document);
     
     Frame *frame = document->frame();
@@ -91,17 +114,17 @@ void TypingCommand::forwardDeleteKeyPressed(Document *document, bool smartDelete
     typingCommand->apply();
 }
 
-void TypingCommand::insertText(Document* document, const String& text, bool selectInsertedText)
+void TypingCommand::insertText(Document* document, const String& text, bool selectInsertedText, bool insertedTextIsComposition)
 {
     ASSERT(document);
     
     Frame* frame = document->frame();
     ASSERT(frame);
 
-    insertText(document, text, frame->selectionController()->selection(), selectInsertedText);
+    insertText(document, text, frame->selectionController()->selection(), selectInsertedText, insertedTextIsComposition);
 }
 
-void TypingCommand::insertText(Document* document, const String& text, const Selection& selectionForInsertion, bool selectInsertedText)
+void TypingCommand::insertText(Document* document, const String& text, const Selection& selectionForInsertion, bool selectInsertedText, bool insertedTextIsComposition)
 {
     ASSERT(document);
     
@@ -114,7 +137,7 @@ void TypingCommand::insertText(Document* document, const String& text, const Sel
     String newText = text;
     Node* startNode = selectionForInsertion.start().node();
     
-    if (startNode && startNode->rootEditableElement()) {        
+    if (startNode && startNode->rootEditableElement() && !insertedTextIsComposition) {        
         // Send BeforeTextInsertedEvent. The event handler will update text if necessary.
         ExceptionCode ec = 0;
         RefPtr<BeforeTextInsertedEvent> evt = new BeforeTextInsertedEvent(text);
@@ -131,9 +154,10 @@ void TypingCommand::insertText(Document* document, const String& text, const Sel
     RefPtr<EditCommand> lastEditCommand = frame->editor()->lastEditCommand();
     if (isOpenForMoreTypingCommand(lastEditCommand.get())) {
         TypingCommand* lastTypingCommand = static_cast<TypingCommand*>(lastEditCommand.get());
-        if (changeSelection)
+        if (changeSelection) {
             lastTypingCommand->setStartingSelection(selectionForInsertion);
             lastTypingCommand->setEndingSelection(selectionForInsertion);
+        }
         lastTypingCommand->insertText(newText, selectInsertedText);
         if (changeSelection) {
             lastTypingCommand->setEndingSelection(currentSelection);
@@ -143,9 +167,10 @@ void TypingCommand::insertText(Document* document, const String& text, const Sel
     }
 
     RefPtr<TypingCommand> cmd = new TypingCommand(document, InsertText, newText, selectInsertedText);
-    if (changeSelection)
+    if (changeSelection)  {
         cmd->setStartingSelection(selectionForInsertion);
         cmd->setEndingSelection(selectionForInsertion);
+    }
     applyCommand(cmd);
     if (changeSelection) {
         cmd->setEndingSelection(currentSelection);
@@ -216,8 +241,15 @@ void TypingCommand::doApply()
 {
     if (endingSelection().isNone())
         return;
+        
+    if (m_commandType == DeleteKey)
+        if (m_commands.isEmpty())
+            m_openedByBackwardDelete = true;
 
     switch (m_commandType) {
+        case DeleteSelection:
+            deleteSelection(m_smartDelete);
+            return;
         case DeleteKey:
             deleteKeyPressed(m_granularity);
             return;
@@ -336,15 +368,16 @@ void TypingCommand::insertParagraphSeparatorInQuotedContent()
 void TypingCommand::deleteKeyPressed(TextGranularity granularity)
 {
     Selection selectionToDelete;
+    Selection selectionAfterUndo;
     
     switch (endingSelection().state()) {
         case Selection::RANGE:
             selectionToDelete = endingSelection();
+            selectionAfterUndo = selectionToDelete;
             break;
         case Selection::CARET: {
-            // Handle delete at beginning-of-block case.
-            // Do nothing in the case that the caret is at the start of a
-            // root editable element or at the start of a document.
+            m_smartDelete = false;
+
             SelectionController selectionController;
             selectionController.setSelection(endingSelection());
             selectionController.modify(SelectionController::EXTEND, SelectionController::BACKWARD, granularity);
@@ -357,19 +390,29 @@ void TypingCommand::deleteKeyPressed(TextGranularity granularity)
                 }
             }
             
-            // When the caret is a) just after a table, or b) at the beginning of the paragraph after a table, select the table.
-            Position upstreamStart = endingSelection().start().upstream();
-            VisiblePosition visibleStart = endingSelection().visibleStart();
-            if (isStartOfParagraph(visibleStart))
-                upstreamStart = visibleStart.previous(true).deepEquivalent().upstream();
-            if (upstreamStart.node() && upstreamStart.node()->renderer() && upstreamStart.node()->renderer()->isTable() && upstreamStart.offset() == maxDeepOffset(upstreamStart.node())) {
-                setEndingSelection(Selection(Position(upstreamStart.node(), 0), endingSelection().start(), DOWNSTREAM));
+            VisiblePosition visibleStart(endingSelection().visibleStart());
+            // If the caret is at the start of a paragraph after a table, move content into the last table cell.
+            if (isStartOfParagraph(visibleStart) && isFirstPositionAfterTable(visibleStart.previous(true))) {
+                // Unless the caret is just before a table.  We don't want to move a table into the last table cell.
+                if (isLastPositionBeforeTable(visibleStart))
+                    return;
+                // Extend the selection backward into the last cell, then deletion will handle the move.
+                selectionController.modify(SelectionController::EXTEND, SelectionController::BACKWARD, granularity);
+            // If the caret is just after a table, select the table and don't delete anything.
+            } else if (Node* table = isFirstPositionAfterTable(visibleStart)) {
+                setEndingSelection(Selection(Position(table, 0), endingSelection().start(), DOWNSTREAM));
                 typingAddedToOpenCommand();
                 return;
             }
 
             selectionToDelete = selectionController.selection();
-            
+            if (!startingSelection().isRange() || selectionToDelete.base() != startingSelection().start())
+                selectionAfterUndo = selectionToDelete;
+            else
+                // It's a little tricky to compute what the starting selection would have been in the original document.
+                // We can't let the Selection class's validation kick in or it'll adjust for us based on
+                // the current state of the document and we'll get the wrong result.
+                selectionAfterUndo.setWithoutValidation(startingSelection().end(), selectionToDelete.extent());
             break;
         }
         case Selection::NONE:
@@ -378,12 +421,12 @@ void TypingCommand::deleteKeyPressed(TextGranularity granularity)
     }
     
     if (selectionToDelete.isCaretOrRange() && document()->frame()->shouldDeleteSelection(selectionToDelete)) {
-    
-        // setStartingSelection so that undo selects what was deleted
-        if (granularity != CharacterGranularity)
-            setStartingSelection(selectionToDelete);
-    
-        deleteSelection(selectionToDelete, m_smartDelete);
+        // Make undo select everything that has been deleted, unless an undo will undo more than just this deletion.
+        // FIXME: This behaves like TextEdit except for the case where you open with text insertion and then delete
+        // more text than you insert.  In that case all of the text that was around originally should be selected.
+        if (m_openedByBackwardDelete)
+            setStartingSelection(selectionAfterUndo);
+        CompositeEditCommand::deleteSelection(selectionToDelete, m_smartDelete);
         setSmartDelete(false);
         typingAddedToOpenCommand();
     }
@@ -392,12 +435,16 @@ void TypingCommand::deleteKeyPressed(TextGranularity granularity)
 void TypingCommand::forwardDeleteKeyPressed(TextGranularity granularity)
 {
     Selection selectionToDelete;
-    
+    Selection selectionAfterUndo;
+
     switch (endingSelection().state()) {
         case Selection::RANGE:
             selectionToDelete = endingSelection();
+            selectionAfterUndo = selectionToDelete;
             break;
         case Selection::CARET: {
+            m_smartDelete = false;
+
             // Handle delete at beginning-of-block case.
             // Do nothing in the case that the caret is at the start of a
             // root editable element or at the start of a document.
@@ -420,7 +467,25 @@ void TypingCommand::forwardDeleteKeyPressed(TextGranularity granularity)
                 selectionController.modify(SelectionController::EXTEND, SelectionController::FORWARD, CharacterGranularity);
 
             selectionToDelete = selectionController.selection();
-            
+            if (!startingSelection().isRange() || selectionToDelete.base() != startingSelection().start())
+                selectionAfterUndo = selectionToDelete;
+            else {
+                // It's a little tricky to compute what the starting selection would have been in the original document.
+                // We can't let the Selection class's validation kick in or it'll adjust for us based on
+                // the current state of the document and we'll get the wrong result.
+                Position extent = startingSelection().end();
+                if (extent.node() != selectionToDelete.end().node())
+                    extent = selectionToDelete.extent();
+                else {
+                    int extraCharacters;
+                    if (selectionToDelete.start().node() == selectionToDelete.end().node())
+                        extraCharacters = selectionToDelete.end().offset() - selectionToDelete.start().offset();
+                    else
+                        extraCharacters = selectionToDelete.end().offset();
+                    extent = Position(extent.node(), extent.offset() + extraCharacters);
+                }
+                selectionAfterUndo.setWithoutValidation(startingSelection().start(), extent);
+            }
             break;
         }
         case Selection::NONE:
@@ -429,19 +494,23 @@ void TypingCommand::forwardDeleteKeyPressed(TextGranularity granularity)
     }
     
     if (selectionToDelete.isCaretOrRange() && document()->frame()->shouldDeleteSelection(selectionToDelete)) {
-        // setStartingSelection so that undo selects what was deleted
-        if (granularity != CharacterGranularity)
-            setStartingSelection(selectionToDelete);
-    
-        deleteSelection(selectionToDelete, m_smartDelete);
+        // make undo select what was deleted
+        setStartingSelection(selectionAfterUndo);
+        CompositeEditCommand::deleteSelection(selectionToDelete, m_smartDelete);
         setSmartDelete(false);
         typingAddedToOpenCommand();
     }
 }
 
+void TypingCommand::deleteSelection(bool smartDelete)
+{
+    CompositeEditCommand::deleteSelection(smartDelete);
+}
+
 bool TypingCommand::preservesTypingStyle() const
 {
     switch (m_commandType) {
+        case DeleteSelection:
         case DeleteKey:
         case ForwardDeleteKey:
         case InsertParagraphSeparator:

@@ -26,6 +26,7 @@
 #include "config.h"
 #include "GraphicsContext.h"
 
+#include "BidiResolver.h"
 #include "Font.h"
 #include "TextStyle.h"
 
@@ -33,12 +34,50 @@ using namespace std;
 
 namespace WebCore {
 
+class TextRunIterator {
+public:
+    TextRunIterator()
+        : m_textRun(0)
+        , m_offset(0)
+    {
+    }
+
+    TextRunIterator(const TextRun* textRun, unsigned offset)
+        : m_textRun(textRun)
+        , m_offset(offset)
+    {
+    }
+
+    TextRunIterator(const TextRunIterator& other)
+        : m_textRun(other.m_textRun)
+        , m_offset(other.m_offset)
+    {
+    }
+
+    unsigned offset() const { return m_offset; }
+    void increment(BidiResolver<TextRunIterator, BidiCharacterRun>&) { m_offset++; }
+    bool atEnd() const { return !m_textRun || m_offset >= m_textRun->length(); }
+    UChar current() const { return (*m_textRun)[m_offset]; }
+    WTF::Unicode::Direction direction() const { return atEnd() ? WTF::Unicode::OtherNeutral : WTF::Unicode::direction(current()); }
+
+    bool operator==(const TextRunIterator& other)
+    {
+        return m_offset == other.m_offset && m_textRun == other.m_textRun;
+    }
+
+    bool operator!=(const TextRunIterator& other) { return !operator==(other); }
+
+private:
+    const TextRun* m_textRun;
+    int m_offset;
+};
+
 struct GraphicsContextState {
     GraphicsContextState() 
     : strokeStyle(SolidStroke)
     , strokeThickness(0)
     , strokeColor(Color::black)
-    , fillColor(Color::transparent)
+    , fillColor(Color::black)
     , textDrawingMode(cTextFill)
     , paintingDisabled(false)
     {}
@@ -187,9 +226,9 @@ void GraphicsContext::drawImage(Image* image, const IntPoint& p, CompositeOperat
     drawImage(image, p, IntRect(0, 0, -1, -1), op);
 }
 
-void GraphicsContext::drawImage(Image* image, const IntRect& r, CompositeOperator op)
+void GraphicsContext::drawImage(Image* image, const IntRect& r, CompositeOperator op, bool useLowQualityScale)
 {
-    drawImage(image, r, IntRect(0, 0, -1, -1), op);
+    drawImage(image, r, IntRect(0, 0, -1, -1), op, useLowQualityScale);
 }
 
 void GraphicsContext::drawImage(Image* image, const IntPoint& dest, const IntRect& srcRect, CompositeOperator op)
@@ -197,30 +236,65 @@ void GraphicsContext::drawImage(Image* image, const IntPoint& dest, const IntRec
     drawImage(image, IntRect(dest, srcRect.size()), srcRect, op);
 }
 
-void GraphicsContext::drawImage(Image* image, const IntRect& dest, const IntRect& srcRect, CompositeOperator op)
+void GraphicsContext::drawImage(Image* image, const IntRect& dest, const IntRect& srcRect, CompositeOperator op, bool useLowQualityScale)
 {
-    drawImage(image, FloatRect(dest), srcRect, op);
+    drawImage(image, FloatRect(dest), srcRect, op, useLowQualityScale);
 }
 
-void GraphicsContext::drawText(const TextRun& run, const IntPoint& point)
+void GraphicsContext::drawText(const TextRun& run, const IntPoint& point, int from, int to)
 {
-    drawText(run, point, TextStyle());
+    drawText(run, point, TextStyle(), from, to);
 }
 
-void GraphicsContext::drawText(const TextRun& run, const IntPoint& point, const TextStyle& style)
+void GraphicsContext::drawText(const TextRun& run, const IntPoint& point, const TextStyle& style, int from, int to)
 {
     if (paintingDisabled())
         return;
     
-    font().drawText(this, run, style, point);
+    font().drawText(this, run, style, point, from, to);
 }
 
-void GraphicsContext::drawHighlightForText(const TextRun& run, const IntPoint& point, int h, const TextStyle& style, const Color& backgroundColor)
+void GraphicsContext::drawBidiText(const TextRun& run, const IntPoint& point, const TextStyle& style)
 {
     if (paintingDisabled())
         return;
 
-    fillRect(font().selectionRectForText(run, style, point, h), backgroundColor);
+    BidiResolver<TextRunIterator, BidiCharacterRun> bidiResolver;
+    WTF::Unicode::Direction paragraphDirection = style.ltr() ? WTF::Unicode::LeftToRight : WTF::Unicode::RightToLeft;
+
+    bidiResolver.setStatus(BidiStatus(paragraphDirection, paragraphDirection, paragraphDirection, new BidiContext(style.ltr() ? 0 : 1, paragraphDirection, style.directionalOverride())));
+
+    bidiResolver.createBidiRunsForLine(TextRunIterator(&run, 0), TextRunIterator(&run, run.length()));
+
+    if (!bidiResolver.runCount())
+        return;
+
+    FloatPoint currPoint = point;
+    BidiCharacterRun* bidiRun = bidiResolver.firstRun();
+    while (bidiRun) {
+        TextStyle subrunStyle(style);
+        subrunStyle.setRTL(bidiRun->level() % 2);
+        subrunStyle.setDirectionalOverride(bidiRun->dirOverride(false));
+
+        TextRun subrun(run.data(bidiRun->start()), bidiRun->stop() - bidiRun->start());
+
+        font().drawText(this, subrun, subrunStyle, currPoint);
+
+        bidiRun = bidiRun->next();
+        // FIXME: Have Font::drawText return the width of what it drew so that we don't have to re-measure here.
+        if (bidiRun)
+            currPoint.move(font().floatWidth(subrun, subrunStyle), 0.f);
+    }
+
+    bidiResolver.deleteRuns();
+}
+
+void GraphicsContext::drawHighlightForText(const TextRun& run, const IntPoint& point, int h, const TextStyle& style, const Color& backgroundColor, int from, int to)
+{
+    if (paintingDisabled())
+        return;
+
+    fillRect(font().selectionRectForText(run, style, point, h, from, to), backgroundColor);
 }
 
 void GraphicsContext::initFocusRing(int width, int offset)
@@ -272,7 +346,9 @@ const Vector<IntRect>& GraphicsContext::focusRingRects() const
     return m_common->m_focusRingRects;
 }
 
-void GraphicsContext::drawImage(Image* image, const FloatRect& dest, const FloatRect& src, CompositeOperator op)
+static const int cInterpolationCutoff = 800 * 800;
+
+void GraphicsContext::drawImage(Image* image, const FloatRect& dest, const FloatRect& src, CompositeOperator op, bool useLowQualityScale)
 {
     if (paintingDisabled())
         return;
@@ -292,7 +368,14 @@ void GraphicsContext::drawImage(Image* image, const FloatRect& dest, const Float
     if (th == -1)
         th = image->height();
 
+    bool shouldUseLowQualityInterpolation = useLowQualityScale && (tsw != tw || tsh != th) && tsw * tsh > cInterpolationCutoff;
+    if (shouldUseLowQualityInterpolation) {
+        save();
+        setUseLowQualityImageInterpolation(true);
+    }
     image->draw(this, FloatRect(dest.location(), FloatSize(tw, th)), FloatRect(src.location(), FloatSize(tsw, tsh)), op);
+    if (shouldUseLowQualityInterpolation)
+        restore();
 }
 
 void GraphicsContext::drawTiledImage(Image* image, const IntRect& rect, const IntPoint& srcPoint, const IntSize& tileSize, CompositeOperator op)
@@ -315,41 +398,22 @@ void GraphicsContext::drawTiledImage(Image* image, const IntRect& dest, const In
     image->drawTiled(this, dest, srcRect, hRule, vRule, op);
 }
 
+void GraphicsContext::addRoundedRectClip(const IntRect& rect, const IntSize& topLeft, const IntSize& topRight,
+    const IntSize& bottomLeft, const IntSize& bottomRight)
+{
+    if (paintingDisabled())
+        return;
+
+    clip(Path::createRoundedRectangle(rect, topLeft, topRight, bottomLeft, bottomRight));
+}
+
 void GraphicsContext::clipOutRoundedRect(const IntRect& rect, const IntSize& topLeft, const IntSize& topRight,
                                          const IntSize& bottomLeft, const IntSize& bottomRight)
 {
     if (paintingDisabled())
         return;
-        
-    // Need sufficient width and height to contain these curves.  Sanity check our
-    // corner radii and our width/height values to make sure the curves can all fit.
-    if (static_cast<unsigned>(rect.width()) < static_cast<unsigned>(topLeft.width()) + static_cast<unsigned>(topRight.width()) ||
-        static_cast<unsigned>(rect.width()) < static_cast<unsigned>(bottomLeft.width()) + static_cast<unsigned>(bottomRight.width()) ||
-        static_cast<unsigned>(rect.height()) < static_cast<unsigned>(topLeft.height()) + static_cast<unsigned>(bottomLeft.height()) ||
-        static_cast<unsigned>(rect.height()) < static_cast<unsigned>(topRight.height()) + static_cast<unsigned>(bottomRight.height()))
-        return;
-    
-    // Clip out each shape one by one.
-    clipOutEllipseInRect(IntRect(rect.x(), rect.y(), topLeft.width() * 2, topLeft.height() * 2));
-    clipOutEllipseInRect(IntRect(rect.right() - topRight.width() * 2, rect.y(), topRight.width() * 2, topRight.height() * 2));
-    clipOutEllipseInRect(IntRect(rect.x(), rect.bottom() - bottomLeft.height() * 2, bottomLeft.width() * 2, bottomLeft.height() * 2));
-    clipOutEllipseInRect(IntRect(rect.right() - bottomRight.width() * 2, rect.bottom() - bottomRight.height() * 2, bottomRight.width() * 2, bottomRight.height() * 2));
-    clipOut(IntRect(rect.x() + topLeft.width(), rect.y(),
-                    rect.width() - topLeft.width() - topRight.width(),
-                    max(topLeft.height(), topRight.height())));
-    clipOut(IntRect(rect.x() + bottomLeft.width(), 
-                    rect.bottom() - max(bottomLeft.height(), bottomRight.height()),
-                    rect.width() - bottomLeft.width() - bottomRight.width(),
-                    max(bottomLeft.height(), bottomRight.height())));
-    clipOut(IntRect(rect.x(), rect.y() + topLeft.height(),
-                    max(topLeft.width(), bottomLeft.width()), rect.height() - topLeft.height() - bottomLeft.height()));
-    clipOut(IntRect(rect.right() - max(topRight.width(), bottomRight.width()),
-                    rect.y() + topRight.height(),
-                    max(topRight.width(), bottomRight.width()), rect.height() - topRight.height() - bottomRight.height()));
-    clipOut(IntRect(rect.x() + max(topLeft.width(), bottomLeft.width()),
-                    rect.y() + max(topLeft.height(), topRight.height()),
-                    rect.width() - max(topLeft.width(), bottomLeft.width()) - max(topRight.width(), bottomRight.width()),
-                    rect.height() - max(topLeft.height(), topRight.height()) - max(bottomLeft.height(), bottomRight.height())));
+
+    clipOut(Path::createRoundedRectangle(rect, topLeft, topRight, bottomLeft, bottomRight));
 }
 
 int GraphicsContext::textDrawingMode()

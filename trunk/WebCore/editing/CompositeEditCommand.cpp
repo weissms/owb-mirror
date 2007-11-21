@@ -35,6 +35,7 @@
 #include "DeleteSelectionCommand.h"
 #include "Document.h"
 #include "DocumentFragment.h"
+#include "EditorInsertAction.h"
 #include "Element.h"
 #include "HTMLNames.h"
 #include "InlineTextBox.h"
@@ -116,9 +117,9 @@ void CompositeEditCommand::removeStyledElement(Element* element)
     applyCommandToComposite(new ApplyStyleCommand(element, true));
 }
 
-void CompositeEditCommand::insertParagraphSeparator()
+void CompositeEditCommand::insertParagraphSeparator(bool useDefaultParagraphElement)
 {
-    applyCommandToComposite(new InsertParagraphSeparatorCommand(document()));
+    applyCommandToComposite(new InsertParagraphSeparatorCommand(document(), useDefaultParagraphElement));
 }
 
 void CompositeEditCommand::insertNodeBefore(Node* insertChild, Node* refChild)
@@ -138,8 +139,15 @@ void CompositeEditCommand::insertNodeAfter(Node* insertChild, Node* refChild)
     }
 }
 
-void CompositeEditCommand::insertNodeAt(Node* insertChild, Node* refChild, int offset)
+void CompositeEditCommand::insertNodeAt(Node* insertChild, const Position& editingPosition)
 {
+    ASSERT(isEditablePosition(editingPosition));
+    // For editing positions like [table, 0], insert before the table,
+    // likewise for replaced elements, brs, etc.
+    Position p = rangeCompliantEquivalent(editingPosition);
+    Node* refChild = p.node();
+    int offset = p.offset();
+    
     if (canHaveChildrenForEditing(refChild)) {
         Node* child = refChild->firstChild();
         for (int i = 0; child && i < offset; i++)
@@ -296,7 +304,7 @@ void CompositeEditCommand::insertNodeAtTabSpanPosition(Node* node, const Positio
 {
     // insert node before, after, or at split of tab span
     Position insertPos = positionOutsideTabSpan(pos);
-    insertNodeAt(node, insertPos.node(), insertPos.offset());
+    insertNodeAt(node, insertPos);
 }
 
 void CompositeEditCommand::deleteSelection(bool smartDelete, bool mergeBlocksAfterDelete, bool replace, bool expandForSpecialElements)
@@ -403,7 +411,7 @@ void CompositeEditCommand::prepareWhitespaceAtPositionForSplit(Position& positio
     position = upstreamPos.downstream();
 
     VisiblePosition visiblePos(position);
-    VisiblePosition previousVisiblePos(visiblePos.next());
+    VisiblePosition previousVisiblePos(visiblePos.previous());
     Position previous(previousVisiblePos.deepEquivalent());
     
     if (isCollapsibleWhitespace(previousVisiblePos.characterAfter()) && previous.node()->isTextNode() && !previous.node()->hasTagName(brTag))
@@ -534,7 +542,7 @@ Node* CompositeEditCommand::insertBlockPlaceholder(const Position& pos)
     ASSERT(pos.node()->renderer());
 
     RefPtr<Node> placeholder = createBlockPlaceholderElement(document());
-    insertNodeAt(placeholder.get(), pos.node(), pos.offset());
+    insertNodeAt(placeholder.get(), pos);
     return placeholder.get();
 }
 
@@ -572,15 +580,15 @@ void CompositeEditCommand::removePlaceholderAt(const VisiblePosition& visiblePos
     if (isEndOfBlock(visiblePosition) && isStartOfParagraph(visiblePosition)) {
         if (p.node()->hasTagName(brTag) && p.offset() == 0)
             removeNode(p.node());
-        else if (p.node()->renderer()->style()->preserveNewline() && visiblePosition.characterAfter() == '\n')
+        else if (lineBreakExistsAtPosition(visiblePosition))
             deleteTextFromNode(static_cast<Text*>(p.node()), p.offset(), 1);
     }
 }
 
-void CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessary(const Position& pos)
+Node* CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessary(const Position& pos)
 {
     if (pos.isNull())
-        return;
+        return 0;
     
     updateLayout();
     
@@ -596,7 +604,7 @@ void CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessary(const Posi
     // If there are no VisiblePositions in the same block as pos then 
     // paragraphStart will be outside the paragraph
     if (Range::compareBoundaryPoints(pos, paragraphStart) < 0)
-        return;
+        return 0;
 
     // Perform some checks to see if we need to perform work in this function.
     if (isBlock(paragraphStart.node())) {
@@ -604,51 +612,28 @@ void CompositeEditCommand::moveParagraphContentsToNewBlockIfNecessary(const Posi
             if (!end.node()->isDescendantOf(paragraphStart.node())) {
                 // If the paragraph end is a descendant of paragraph start, then we need to run
                 // the rest of this function. If not, we can bail here.
-                return;
+                return 0;
             }
         }
         else if (enclosingBlock(end.node()) != paragraphStart.node()) {
             // The visibleEnd.  It must be an ancestor of the paragraph start.
             // We can bail as we have a full block to work with.
             ASSERT(paragraphStart.node()->isDescendantOf(enclosingBlock(end.node())));
-            return;
+            return 0;
         }
         else if (isEndOfDocument(visibleEnd)) {
             // At the end of the document. We can bail here as well.
-            return;
+            return 0;
         }
     }
 
     RefPtr<Node> newBlock = createDefaultParagraphElement(document());
-
-    Node* moveNode = paragraphStart.node();
-    if (paragraphStart.offset() >= paragraphStart.node()->caretMaxOffset())
-        moveNode = moveNode->traverseNextNode();
-    Node* endNode = end.node();
+    appendNode(createBreakElement(document()).get(), newBlock.get());
+    insertNodeAt(newBlock.get(), paragraphStart);
     
-    if (!isAtomicNode(paragraphStart.node()))
-        insertNodeAt(newBlock.get(), paragraphStart.node(), paragraphStart.offset());
-    else {
-        ASSERT(paragraphStart.offset() <= 1);
-        ASSERT(paragraphStart.node()->parentNode());
-        insertNodeAt(newBlock.get(), paragraphStart.node()->parentNode(), paragraphStart.node()->nodeIndex() + paragraphStart.offset());
-    }
-
-    while (moveNode && !isBlock(moveNode)) {
-        Node* next = moveNode->traverseNextSibling();
-        removeNode(moveNode);
-        appendNode(moveNode, newBlock.get());
-        if (moveNode == endNode)
-            break;
-        moveNode = next;
-    }
-}
-
-Node* enclosingAnchorElement(Node* node)
-{
-    while (node && !(node->isElementNode() && node->isLink()))
-        node = node->parentNode();
-    return node;
+    moveParagraphs(visibleParagraphStart, visibleParagraphEnd, VisiblePosition(Position(newBlock.get(), 0)));
+    
+    return newBlock.get();
 }
 
 void CompositeEditCommand::pushAnchorElementDown(Node* anchorNode)
@@ -660,6 +645,9 @@ void CompositeEditCommand::pushAnchorElementDown(Node* anchorNode)
     
     setEndingSelection(Selection::selectionFromContentsOfNode(anchorNode));
     applyStyledElement(static_cast<Element*>(anchorNode));
+    // Clones of anchorNode have been pushed down, now remove it.
+    if (anchorNode->inDocument())
+        removeNodePreservingChildren(anchorNode);
 }
 
 // We must push partially selected anchors down before creating or removing
@@ -672,12 +660,12 @@ void CompositeEditCommand::pushPartiallySelectedAnchorElementsDown()
     VisiblePosition visibleStart(originalSelection.start());
     VisiblePosition visibleEnd(originalSelection.end());
     
-    Node* startAnchor = enclosingAnchorElement(originalSelection.start().node());
+    Node* startAnchor = enclosingAnchorElement(originalSelection.start());
     VisiblePosition startOfStartAnchor(Position(startAnchor, 0));
     if (startAnchor && startOfStartAnchor != visibleStart)
         pushAnchorElementDown(startAnchor);
 
-    Node* endAnchor = enclosingAnchorElement(originalSelection.end().node());
+    Node* endAnchor = enclosingAnchorElement(originalSelection.end());
     VisiblePosition endOfEndAnchor(Position(endAnchor, 0));
     if (endAnchor && endOfEndAnchor != visibleEnd)
         pushAnchorElementDown(endAnchor);
@@ -715,14 +703,14 @@ void CompositeEditCommand::moveParagraphs(const VisiblePosition& startOfParagrap
             
             startIndex = 0;
             if (startInParagraph) {
-                RefPtr<Range> startRange = new Range(document(), startOfParagraphToMove.deepEquivalent(), visibleStart.deepEquivalent());
-                startIndex = TextIterator::rangeLength(startRange.get());
+                RefPtr<Range> startRange = new Range(document(), rangeCompliantEquivalent(startOfParagraphToMove.deepEquivalent()), rangeCompliantEquivalent(visibleStart.deepEquivalent()));
+                startIndex = TextIterator::rangeLength(startRange.get(), true);
             }
 
             endIndex = 0;
             if (endInParagraph) {
-                RefPtr<Range> endRange = new Range(document(), startOfParagraphToMove.deepEquivalent(), visibleEnd.deepEquivalent());
-                endIndex = TextIterator::rangeLength(endRange.get());
+                RefPtr<Range> endRange = new Range(document(), rangeCompliantEquivalent(startOfParagraphToMove.deepEquivalent()), rangeCompliantEquivalent(visibleEnd.deepEquivalent()));
+                endIndex = TextIterator::rangeLength(endRange.get(), true);
             }
         }
     }
@@ -742,7 +730,9 @@ void CompositeEditCommand::moveParagraphs(const VisiblePosition& startOfParagrap
 
     // FIXME: This is an inefficient way to preserve style on nodes in the paragraph to move.  It 
     // shouldn't matter though, since moved paragraphs will usually be quite small.
-    RefPtr<DocumentFragment> fragment = startOfParagraphToMove != endOfParagraphToMove ? createFragmentFromMarkup(document(), range->toHTML(), "") : 0;
+    RefPtr<DocumentFragment> fragment = startOfParagraphToMove != endOfParagraphToMove ? createFragmentFromMarkup(document(), createMarkup(range.get(), 0, DoNotAnnotateForInterchange, true), "") : 0;
+    
+    // FIXME (5098931): We should add a new insert action "WebViewInsertActionMoved" and call shouldInsertFragment here.
     
     setEndingSelection(Selection(start, end, DOWNSTREAM));
     deleteSelection(false, false, false, false);
@@ -769,7 +759,7 @@ void CompositeEditCommand::moveParagraphs(const VisiblePosition& startOfParagrap
         // expects this behavior).
         else if (isBlock(node))
             removeNodeAndPruneAncestors(node);
-        else if (node->renderer() && node->renderer()->style()->preserveNewline() && caretAfterDelete.characterAfter() == '\n')
+        else if (lineBreakExistsAtPosition(caretAfterDelete))
             deleteTextFromNode(static_cast<Text*>(node), position.offset(), 1);
     }
 
@@ -784,21 +774,27 @@ void CompositeEditCommand::moveParagraphs(const VisiblePosition& startOfParagrap
     afterParagraph = VisiblePosition(afterParagraph.deepEquivalent());
     if (beforeParagraph.isNotNull() && (!isEndOfParagraph(beforeParagraph) || beforeParagraph == afterParagraph)) {
         // FIXME: Trim text between beforeParagraph and afterParagraph if they aren't equal.
-        insertNodeAt(createBreakElement(document()).get(), beforeParagraph.deepEquivalent().node(), beforeParagraph.deepEquivalent().offset());
+        insertNodeAt(createBreakElement(document()).get(), beforeParagraph.deepEquivalent());
         // Need an updateLayout here in case inserting the br has split a text node.
         updateLayout();
     }
         
     RefPtr<Range> startToDestinationRange(new Range(document(), Position(document(), 0), rangeCompliantEquivalent(destination.deepEquivalent())));
-    destinationIndex = TextIterator::rangeLength(startToDestinationRange.get());
+    destinationIndex = TextIterator::rangeLength(startToDestinationRange.get(), true);
     
     setEndingSelection(destination);
-    applyCommandToComposite(new ReplaceSelectionCommand(document(), fragment.get(), true, false, !preserveStyle, false));
+    applyCommandToComposite(new ReplaceSelectionCommand(document(), fragment.get(), true, false, !preserveStyle, false, true));
     
     if (preserveSelection && startIndex != -1) {
-        setEndingSelection(Selection(TextIterator::rangeFromLocationAndLength(document()->documentElement(), destinationIndex + startIndex, 0)->startPosition(), 
-                                     TextIterator::rangeFromLocationAndLength(document()->documentElement(), destinationIndex + endIndex, 0)->startPosition(), 
-                                     DOWNSTREAM));
+        // Fragment creation (using createMarkup) incorrectly uses regular
+        // spaces instead of nbsps for some spaces that were rendered (11475), which
+        // causes spaces to be collapsed during the move operation.  This results
+        // in a call to rangeFromLocationAndLength with a location past the end
+        // of the document (which will return null).
+        RefPtr<Range> start = TextIterator::rangeFromLocationAndLength(document()->documentElement(), destinationIndex + startIndex, 0, true);
+        RefPtr<Range> end = TextIterator::rangeFromLocationAndLength(document()->documentElement(), destinationIndex + endIndex, 0, true);
+        if (start && end)
+            setEndingSelection(Selection(start->startPosition(), end->startPosition(), DOWNSTREAM));
     }
 }
 
@@ -833,6 +829,60 @@ bool CompositeEditCommand::breakOutOfEmptyListItem()
         applyStyle(style.get());
     
     return true;
+}
+
+// Operations use this function to avoid inserting content into an anchor when at the start or the end of 
+// that anchor, as in NSTextView.
+// FIXME: This is only an approximation of NSTextViews insertion behavior, which varies depending on how
+// the caret was made. 
+Position CompositeEditCommand::positionAvoidingSpecialElementBoundary(const Position& original, bool alwaysAvoidAnchors)
+{
+    if (original.isNull())
+        return original;
+        
+    VisiblePosition visiblePos(original);
+    Node* enclosingAnchor = enclosingAnchorElement(original);
+    Position result = original;
+    // Don't avoid block level anchors, because that would insert content into the wrong paragraph.
+    if (enclosingAnchor && !isBlock(enclosingAnchor)) {
+        VisiblePosition firstInAnchor(Position(enclosingAnchor, 0));
+        VisiblePosition lastInAnchor(Position(enclosingAnchor, maxDeepOffset(enclosingAnchor)));
+        // If visually just after the anchor, insert *inside* the anchor unless it's the last 
+        // VisiblePosition in the document, to match NSTextView.
+        if (visiblePos == lastInAnchor && (isEndOfDocument(visiblePos) || alwaysAvoidAnchors)) {
+            // Make sure anchors are pushed down before avoiding them so that we don't
+            // also avoid structural elements like lists and blocks (5142012).
+            if (original.node() != enclosingAnchor && original.node()->parentNode() != enclosingAnchor) {
+                pushAnchorElementDown(enclosingAnchor);
+                enclosingAnchor = enclosingAnchorElement(original);
+                if (!enclosingAnchor)
+                    return original;
+            }
+            // Don't insert outside an anchor if doing so would skip over a line break.  It would
+            // probably be safe to move the line break so that we could still avoid the anchor here.
+            Position downstream(visiblePos.deepEquivalent().downstream());
+            if (lineBreakExistsAtPosition(visiblePos) && downstream.node()->isDescendantOf(enclosingAnchor))
+                return original;
+            
+            result = positionAfterNode(enclosingAnchor);
+        }
+        // If visually just before an anchor, insert *outside* the anchor unless it's the first
+        // VisiblePosition in a paragraph, to match NSTextView.
+        if (visiblePos == firstInAnchor && (!isStartOfParagraph(visiblePos) || alwaysAvoidAnchors)) {
+            // Make sure anchors are pushed down before avoiding them so that we don't
+            // also avoid structural elements like lists and blocks (5142012).
+            if (original.node() != enclosingAnchor && original.node()->parentNode() != enclosingAnchor) {
+                pushAnchorElementDown(enclosingAnchor);
+                enclosingAnchor = enclosingAnchorElement(original);
+            }
+            result = positionBeforeNode(enclosingAnchor);
+        }
+    }
+        
+    if (result.isNull() || !editableRootForPosition(result))
+        result = original;
+    
+    return result;
 }
 
 PassRefPtr<Element> createBlockPlaceholderElement(Document* document)

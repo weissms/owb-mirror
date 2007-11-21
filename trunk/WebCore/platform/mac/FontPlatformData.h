@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -32,6 +32,9 @@
 class NSFont;
 #endif
 
+typedef struct CGFont* CGFontRef;
+typedef UInt32 ATSUFontID;
+
 #include <CoreFoundation/CFBase.h>
 #include <objc/objc-auto.h>
 
@@ -41,41 +44,45 @@ struct FontPlatformData {
     class Deleted {};
 
     FontPlatformData(Deleted)
-    : font((NSFont*)-1), syntheticBold(false), syntheticOblique(false)
+    : m_syntheticBold(false), m_syntheticOblique(false), m_cgFont(0), m_atsuFontID(0), m_size(0), m_font((NSFont*)-1)
     {}
 
-    FontPlatformData(NSFont* f = 0, bool b = false, bool o = false)
-    : font(f), syntheticBold(b), syntheticOblique(o)
+    FontPlatformData(NSFont* f = 0, bool b = false, bool o = false);
+    
+    FontPlatformData(CGFontRef f, ATSUFontID fontID, float s, bool b , bool o)
+    : m_syntheticBold(b), m_syntheticOblique(o), m_cgFont(f), m_atsuFontID(fontID), m_size(s), m_font(0)
     {
-        if (f && objc_collecting_enabled()) CFRetain(f); // fix for <rdar://problems/4223619>
     }
 
-    FontPlatformData(const FontPlatformData& f)
-    {
-        font = (f.font && f.font != (NSFont*)-1 && objc_collecting_enabled()) ? (NSFont*)CFRetain(f.font) : f.font;
-        syntheticBold = f.syntheticBold;
-        syntheticOblique = f.syntheticOblique;
-    }
+    FontPlatformData(const FontPlatformData& f);
+    
+    ~FontPlatformData();
 
-    ~FontPlatformData()
-    {
-        if (font && font != (NSFont*)-1 && objc_collecting_enabled()) CFRelease(font);
-    }
-
-    NSFont *font;
-    bool syntheticBold;
-    bool syntheticOblique;
+    bool m_syntheticBold;
+    bool m_syntheticOblique;
+    
+    CGFontRef m_cgFont; // It is not necessary to refcount this, since either an NSFont owns it or some CachedFont has it referenced.
+    ATSUFontID m_atsuFontID;
+    float m_size;
 
     unsigned hash() const
-    { 
-        uintptr_t hashCodes[2] = { (uintptr_t)font, syntheticBold << 1 | syntheticOblique };
+    {
+        ASSERT(m_font != 0 || m_cgFont == 0);
+        uintptr_t hashCodes[2] = { (uintptr_t)m_font, m_syntheticBold << 1 | m_syntheticOblique };
         return StringImpl::computeHash(reinterpret_cast<UChar*>(hashCodes), sizeof(hashCodes) / sizeof(UChar));
     }
 
     bool operator==(const FontPlatformData& other) const
     { 
-        return font == other.font && syntheticBold == other.syntheticBold && syntheticOblique == other.syntheticOblique;
+        return m_font == other.m_font && m_syntheticBold == other.m_syntheticBold && m_syntheticOblique == other.m_syntheticOblique && 
+               m_cgFont == other.m_cgFont && m_size == other.m_size && m_atsuFontID == other.m_atsuFontID;
     }
+
+    NSFont *font() const { return m_font; }
+    void setFont(NSFont* font);
+
+private:
+    NSFont *m_font;
 };
 
 }

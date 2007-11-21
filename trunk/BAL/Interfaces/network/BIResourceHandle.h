@@ -33,11 +33,6 @@
 #ifndef BIResourceHandle_H_
 #define BIResourceHandle_H_
 
-//#include "StringHash.h"
-//#include "ResourceHandleClient.h"
-//#include "BTFormData.h"
-//#include <wtf/HashMap.h>
-//ODO include
 #include "AuthenticationChallenge.h"
 #include "HTTPHeaderMap.h"
 #include <Shared.h>
@@ -69,33 +64,13 @@ using WebCore::ResourceRequest;
 using WebCore::ResourceResponse;
 using WebCore::Shared;
 using WebCore::KURL;
-// using WebCore::FormData;
 using WebCore::String;
 
 
 namespace BAL {
 
-// class AuthenticationChallenge;
-// class Credential;
-// class FormData;
-// class Frame;
-// class KURL;
-// class ResourceError;
-// class ResourceHandleClient;
-// class ResourceHandleInternal;
-// class ResourceRequest;
-// class ResourceResponse;
-// class SharedBuffer;
-// class SubresourceLoader;
-// class SubresourceLoaderClient;
-
-//class BIResourceHandleClient;
-
 class BIResourceHandle : public Shared<BIResourceHandle> {
-//Private method add by ODO
-// private:
-/*     BIResourceHandle(const ResourceRequest&, ResourceHandleClient*,
-                      bool defersLoading, bool mightDownloadFromHandle);*/
+
 public:
     virtual ~BIResourceHandle() {}
     /**
@@ -117,110 +92,66 @@ public:
      * returns the post data
      */
     virtual PassRefPtr<FormData> postData() const = 0;
-    //PassRefPtr<FormData> postData() const;
 
     /**
      * returns the client
      */
     virtual ResourceHandleClient* client() const = 0;
+    virtual void setClient(ResourceHandleClient*) = 0;
 
     /**
-     * returns the error or 0 is none
-     */
-//     deprecated by new merge
-//     virtual int error() const = 0;
-
-    /**
-     * get the error in a text
-     */
-    //virtual WebCore::String errorText() const = 0;
-
-    /**
-     * query a metadata
-     */
-//     deprecated by new merge
-//     virtual String queryMetaData(const String&) const = 0;
-
-    /**
-     * add a metadata
-     */
-//     deprecated by new merge
-//     virtual void addMetaData(const String& key, const String& value) = 0;
-
-    /**
-     * add a map of metadata
-     */
-//     deprecated by new merge
-//     virtual void addMetaData(const HashMap<String, String>&) = 0;
-
-    /**
-     * returns the responseEncoding
-     */
-//    virtual String responseEncoding() const = 0;
-
-    /**
-     * returns the response HTTP Headers as a string
-     */
-//    virtual String responseHTTPHeadersAsString() const = 0;
-
-    /**
-     * returns the request header value for the given name
-     */
-//    virtual String getRequestHeader(const String& name) const = 0;
-
-//protected: frienship is not transitive!
-//    friend class BIResourceHandleManager;
-
-    /**
-     * during the transfer, manager can set error state
-     */
-//     deprecated by new merge
-//     virtual void setError(int) = 0;
-    /**
-     *
+     * test if ResourceHandle loads is blocked
      */
     static bool loadsBlocked();
 
     /**
-     *
+     * clear authentification
      */
     virtual void clearAuthentication() = 0;
 
     /**
-     *
+     * cancel the loading
      */
     virtual void cancel() = 0;
 
     /**
-     *
+     * load resource synchronously
      */
     static void loadResourceSynchronously(const ResourceRequest&, ResourceError&, ResourceResponse&, Vector<char>& data);
 
     /**
-     *
+     * test if the resource will load from cache 
      */
     static bool willLoadFromCache(ResourceRequest&);
 
     /**
-     *
+     * return the bufferData
      */
     virtual PassRefPtr<WebCore::SharedBuffer> bufferedData() = 0;
 
     /**
-     *
+     * test if the ResourceHandle supports buffered data
      */
     static bool supportsBufferedData();
 
     /**
-     *
+     * set if the ResourceHandle defers loading
      */
     virtual void setDefersLoading(bool) = 0;
+    /**
+     * get request headers
+     */
     virtual const HTTPHeaderMap& requestHeaders() const = 0;
 
     /**
-     *
+     * get request
      */
-    static PassRefPtr<BIResourceHandle> create(const WebCore::ResourceRequest&, ResourceHandleClient*, Frame*, bool defersLoading, bool mightDownloadFromHandle = false);
+    virtual const ResourceRequest& request() const = 0;
+
+    /**
+     * create the ResourceHandle
+     */
+    static PassRefPtr<BIResourceHandle> create(const WebCore::ResourceRequest&, ResourceHandleClient*, Frame*, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle = false);
   };
 
 }

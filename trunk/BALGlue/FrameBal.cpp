@@ -3,7 +3,7 @@
  * Copyright (C) 2006 Michael Emmel mike.emmel@gmail.com
  * All rights reserved.
  * Copyright (C) 2007 Pleyo.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -44,8 +44,15 @@
 #include "PlatformWheelEvent.h"
 #include "RenderTreeAsText.h"
 #include "SelectionController.h"
-#include "Settings.h"
 #include "TypingCommand.h"
+
+#ifdef __OWB_JS__
+#include "bindings/runtime.h"
+#include "bindings/runtime_root.h"
+#include "ExecState.h"
+#include "kjs/JSGlobalObject.h"
+#include "object.h"
+#endif //__OWB_JS__
 
 // This function loads resources from WebKit
 // This does not belong here and I'm not sure where
@@ -65,38 +72,26 @@ namespace WebCore {
 FrameBal::FrameBal(Page* p, HTMLFrameOwnerElement* ownerElement, FrameLoaderClientBal* frameLoader)
     : Frame(p, ownerElement, frameLoader)
 {
-    Settings* settings = new Settings;
-    settings->setLoadsImagesAutomatically(true);
-    settings->setMinimumFontSize(5);
-    settings->setMinimumLogicalFontSize(5);
-    settings->setShouldPrintBackgrounds(true);
-#ifdef __OWB_JS__
-    settings->setJavaScriptEnabled(true);
-#else
-    settings->setJavaScriptEnabled(false);
+#ifdef __OWB_WEB_UI__
+	if(!ownerElement)
+		tree()->setName("_ui");
 #endif
-
-    settings->setPluginsEnabled(true);
-    settings->setDefaultFixedFontSize(14);
-    settings->setDefaultFontSize(14);
-    setSettings(settings);
-
-    // frameLoader->setFrame(this);
-
+    
     RefPtr<WebCore::FrameView> frameView;
     frameView = new FrameView(this);
     frameView->deref();
     setView(frameView.get());
+    init();
 }
 
 FrameBal::~FrameBal()
 {
-//    loader()->cancelAndClear();
-}
-
-void Frame::print()
-{
-    BALNotImplemented();
+    //hack to free frame
+#ifndef NDEBUG
+    cancelAllKeepAlive();
+#endif //NDEBUG
+    //loader()->cancelAndClear();
+    //setView(0);
 }
 
 void Frame::issueTransposeCommand()
@@ -104,20 +99,16 @@ void Frame::issueTransposeCommand()
     BALNotImplemented();
 }
 
-void Frame::respondToChangedSelection(WebCore::Selection const&, bool)
+void Frame::dashboardRegionsChanged()
 {
-    // FIXME: If we want continous spell checking, we need to implement this.
+    BALNotImplemented();
 }
 
-void Frame::cleanupPlatformScriptObjects()
+#ifdef __OWB_JS__
+void Frame::clearPlatformScriptObjects()
 {
 }
-
-bool Frame::isCharacterSmartReplaceExempt(UChar, bool)
-{
-    // no smart replace
-    return true;
-}
+#endif //__OWB_JS__
 
 DragImageRef Frame::dragImageForSelection()
 {
@@ -136,22 +127,22 @@ void dumpRenderer(WebCore::RenderObject* aRenderObject)
     WebCore::DeprecatedString ind;
     WebCore::TextStream ts(&str);
     if (aRenderObject) {
-        logml(MODULE_GLUE, LEVEL_INFO, "DUMP RENDER TREE");
+        DBGML(MODULE_GLUE, LEVEL_INFO, "DUMP RENDER TREE\n");
         aRenderObject->dump( &ts, ind );
-        log( str.ascii() );
+        DBG( str.ascii() );
     }
     else
-        logml(MODULE_GLUE, LEVEL_INFO, "No renderer");
+        DBGML(MODULE_GLUE, LEVEL_INFO, "No renderer\n");
 }
 
 void dumpShowTree(WebCore::RenderObject* aRenderObject)
 {
     if (aRenderObject) {
-        logm(MODULE_GLUE, "SHOW TREE FOR THIS" );
+        DBGM(MODULE_GLUE, "SHOW TREE FOR THIS\n" );
         aRenderObject->showTreeForThis();
     }
     else
-        logm(MODULE_GLUE, "No object");
+        DBGM(MODULE_GLUE, "No object\n");
 }
 
 void dumpDOM(WebCore::Node* document)
@@ -164,7 +155,7 @@ void dumpDOM(WebCore::Node* document)
     else
         ts << "No document\n";
 
-    log(str.ascii());
+    DBG(str.ascii());
 }
 
 void dumpDebugData(BAL::BIEvent* event, Frame* f)
@@ -174,7 +165,7 @@ void dumpDebugData(BAL::BIEvent* event, Frame* f)
         switch (aKeyboardEvent->virtualKeyCode()) {
         case BAL::BIKeyboardEvent::VK_T:
             if(aKeyboardEvent->ctrlKey()) {
-                String txt = WebCore::externalRepresentation(f->renderer());
+                DeprecatedString txt = WebCore::externalRepresentation(f->renderer());
                 WebCore::CString utf8Str = txt.utf8();
                 const char *utf8 = utf8Str.data();
                 if (utf8)
@@ -200,13 +191,12 @@ void dumpDebugData(BAL::BIEvent* event, Frame* f)
 
 void Frame::handleEvent(BAL::BIEvent *event)
 {
-//    printf("handleEvent for frame %p\n", this);
     bool isHandled = false;
     EventHandler* handler = eventHandler();
     BAL::BIKeyboardEvent* key = 0;
     BAL::BIMouseEvent* mouseEvent = 0;
     BAL::BIWheelEvent* wheelEvent = 0;
-    if ((key = event->queryIsKeyboardEvent()))
+    if ((key = event->queryIsKeyboardEvent()) && !key->altKey())
         isHandled = handler->keyEvent(*key);
     else if ((mouseEvent = (event->queryIsMouseEvent()))) {
         switch (mouseEvent->eventType()) {
@@ -239,45 +229,43 @@ void Frame::handleEvent(BAL::BIEvent *event)
     dumpDebugData(key, this);
 #endif
     switch (key->virtualKeyCode()) {
-        // NOTE in all this scrolling we must find a way to scroll content also
-        // like m_mainFrame->view()->setContentsPos(renderLayer->scrollXOffset(), renderLayer->scrollYOffset());
-        // or else mouse interaction will be shifted after a scroll
         case BAL::BIKeyboardEvent::VK_LEFT:
             if (key->altKey())
-                loader()->goBackOrForward(-1);
+                if (loader()->canGoBackOrForward(-1))
+                    loader()->goBackOrForward(-1);
             else
-                renderLayer->scroll(WebCore::ScrollLeft, WebCore::ScrollByLine);
+                view()->scrollBy(-30, 0);
             break;
         case BAL::BIKeyboardEvent::VK_RIGHT:
             if (key->altKey())
-                loader()->goBackOrForward(1);
+                if (loader()->canGoBackOrForward(1))
+                    loader()->goBackOrForward(1);
             else
-                renderLayer->scroll(WebCore::ScrollRight, WebCore::ScrollByLine);
+                view()->scrollBy(30, 0);
             break;
         case BAL::BIKeyboardEvent::VK_UP:
-            renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByLine);
+            view()->scrollBy(0, -30);
             break;
         case BAL::BIKeyboardEvent::VK_PRIOR:
-            renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByPage);
+            view()->scrollBy(0, -300);
             break;
         case BAL::BIKeyboardEvent::VK_NEXT:
-            renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByPage);
+            view()->scrollBy(0, 300);
             break;
         case BAL::BIKeyboardEvent::VK_DOWN:
-            renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByLine);
-//            view()->scrollBy(0, 10);
+            view()->scrollBy(0, 30);
             break;
         case BAL::BIKeyboardEvent::VK_HOME:
-            renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByDocument);
+            view()->setContentsPos(0, 0);
             break;
         case BAL::BIKeyboardEvent::VK_END:
-            renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByDocument);
+            view()->setContentsPos(0, view()->contentsHeight() - view()->visibleHeight());
             break;
         case BAL::BIKeyboardEvent::VK_SPACE:
             if (key->shiftKey())
-                renderLayer->scroll(WebCore::ScrollUp, WebCore::ScrollByPage);
+                view()->scrollBy(0, -300);
             else
-                renderLayer->scroll(WebCore::ScrollDown, WebCore::ScrollByPage);
+                view()->scrollBy(0, 300);
             break;
         case BAL::BIKeyboardEvent::VK_TAB: // On tab, change focus
         {
@@ -289,23 +277,41 @@ void Frame::handleEvent(BAL::BIEvent *event)
         case BAL::BIKeyboardEvent::VK_RETURN: // On enter, dispatch event to the focused node
             break;
         case BAL::BIKeyboardEvent::VK_BACK:
-            loader()->goBackOrForward(-1);
+            if (loader()->canGoBackOrForward(-1))
+                loader()->goBackOrForward(-1);
             break;
         default:
             break;
         } // end switch
     } // end if key
 
-    if (wheelEvent && renderLayer) {
-        ScrollDirection direction = WebCore::ScrollDown;
-        if (wheelEvent->deltaX())
-            direction = wheelEvent->deltaX() < 0 ? WebCore::ScrollRight : WebCore::ScrollLeft;
-        if (wheelEvent->deltaY())
-            direction = wheelEvent->deltaY() < 0 ? WebCore::ScrollDown : WebCore::ScrollUp;
-        renderLayer->scroll(direction, WebCore::ScrollByWheel);
-    }
-
     // Window events are handled in WindowManager
 }
+
+#ifdef __OWB_JS__
+KJS::Bindings::Instance* Frame::createScriptInstanceForWidget(Widget*)
+{
+    BALNotImplemented();
+    return 0;
+}
+
+void FrameBal::addToJSWindowObject(const char* name, void *object)
+{
+    KJS::Bindings::RootObject *root = this->bindingRootObject();
+    KJS::ExecState *exec = root->interpreter()->globalExec();
+    KJS::JSGlobalObject *rootObject = root->interpreter()->globalObject();
+    KJS::JSObject *window = rootObject->get(exec, KJS::Identifier("window"))->getObject();
+    if (!window) {
+        return;
+    }
+
+    KJS::JSObject *testController =
+        KJS::Bindings::Instance::createRuntimeObject(KJS::Bindings::Instance::BalLanguage,
+                                                     object, root);
+
+    window->put(exec, KJS::Identifier(name), testController);
+
+}
+#endif //__OWB_JS__
 
 }

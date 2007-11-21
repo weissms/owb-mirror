@@ -1,0 +1,4 @@
+SET (decoder_jpeg_SRC
+	${decoder_jpeg_SRC}
+	BAL/Implementations/ImageDecoders/${IMAGEDECODER_JPEG}/JPEGImageDecoder.cpp
+)

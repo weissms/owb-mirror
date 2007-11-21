@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -27,7 +27,7 @@
 #include "GraphicsContext.h"
 #include "HTMLInputElement.h"
 #include "HTMLNames.h"
-#include "RenderText.h"
+#include "RenderTextFragment.h"
 
 namespace WebCore {
 
@@ -82,6 +82,14 @@ void RenderButton::updateFromElement()
     }
 }
 
+bool RenderButton::canHaveChildren() const
+{
+    // Input elements can't have children, but button elements can.  We'll
+    // write the code assuming any other button types that might emerge in the future
+    // can also have children.
+    return !element()->hasTagName(inputTag);
+}
+
 void RenderButton::setText(const String& str)
 {
     if (str.isEmpty()) {
@@ -93,19 +101,19 @@ void RenderButton::setText(const String& str)
         if (m_buttonText)
             m_buttonText->setText(str.impl());
         else {
-            m_buttonText = new (renderArena()) RenderText(document(), str.impl());
+            m_buttonText = new (renderArena()) RenderTextFragment(document(), str.impl());
             m_buttonText->setStyle(style());
             addChild(m_buttonText);
         }
     }
 }
 
-void RenderButton::updatePseudoChild(RenderStyle::PseudoId type)
+void RenderButton::updateBeforeAfterContent(RenderStyle::PseudoId type)
 {
     if (m_inner)
-        m_inner->updatePseudoChildForObject(type, this);
+        m_inner->updateBeforeAfterContentForContainer(type, this);
     else
-        updatePseudoChildForObject(type, this);
+        updateBeforeAfterContentForContainer(type, this);
 }
 
 IntRect RenderButton::controlClipRect(int tx, int ty) const

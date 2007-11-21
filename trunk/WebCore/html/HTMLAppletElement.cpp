@@ -19,8 +19,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLAppletElement.h"
@@ -46,7 +46,7 @@ HTMLAppletElement::~HTMLAppletElement()
 {
 #if USE(JAVASCRIPTCORE_BINDINGS)
     // m_instance should have been cleaned up in detach().
-    assert(!m_instance);
+    ASSERT(!m_instance);
 #endif
 }
 
@@ -110,9 +110,9 @@ bool HTMLAppletElement::rendererIsNeeded(RenderStyle *style)
 
 RenderObject *HTMLAppletElement::createRenderer(RenderArena *arena, RenderStyle *style)
 {
-    Frame *frame = document()->frame();
+    Settings* settings = document()->settings();
 
-    if (frame && frame->settings()->isJavaEnabled()) {
+    if (settings && settings->isJavaEnabled()) {
         HashMap<String, String> args;
 
         args.set("code", getAttribute(codeAttr));
@@ -137,36 +137,35 @@ RenderObject *HTMLAppletElement::createRenderer(RenderArena *arena, RenderStyle 
         return new (document()->renderArena()) RenderApplet(this, args);
     }
 
-    return new (document()->renderArena()) RenderInline(this);
+    return RenderObject::createObject(this, style);
 }
 
 #if USE(JAVASCRIPTCORE_BINDINGS)
 KJS::Bindings::Instance *HTMLAppletElement::getInstance() const
 {
-    Frame *frame = document()->frame();
-    if (!frame || !frame->settings()->isJavaEnabled())
+    Settings* settings = document()->settings();
+    if (!settings || !settings->isJavaEnabled())
         return 0;
 
     if (m_instance)
         return m_instance.get();
     
-    RenderApplet *r = static_cast<RenderApplet*>(renderer());
-    if (r) {
+    if (RenderApplet* r = static_cast<RenderApplet*>(renderer())) {
         r->createWidgetIfNecessary();
-        if (r->widget())
-            m_instance = frame->createScriptInstanceForWidget(r->widget());
+        if (r->widget() && document()->frame())
+            m_instance = document()->frame()->createScriptInstanceForWidget(r->widget());
     }
     return m_instance.get();
 }
 #endif
 
-void HTMLAppletElement::closeRenderer()
+void HTMLAppletElement::finishedParsing()
 {
     // The parser just reached </applet>, so all the params are available now.
     m_allParamsAvailable = true;
     if (renderer())
         renderer()->setNeedsLayout(true); // This will cause it to create its widget & the Java applet
-    HTMLPlugInElement::closeRenderer();
+    HTMLPlugInElement::finishedParsing();
 }
 
 void HTMLAppletElement::detach()

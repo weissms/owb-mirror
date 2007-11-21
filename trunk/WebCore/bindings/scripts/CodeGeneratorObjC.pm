@@ -1,9 +1,9 @@
 # 
 # Copyright (C) 2005, 2006 Nikolas Zimmermann <zimmermann@kde.org>
 # Copyright (C) 2006 Anders Carlsson <andersca@mac.com> 
-# Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
+# Copyright (C) 2006, 2007 Samuel Weinig <sam@webkit.org>
 # Copyright (C) 2006 Alexey Proskuryakov <ap@webkit.org>
-# Copyright (C) 2006, 2007 Apple Inc.
+# Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -17,8 +17,8 @@
 # 
 # You should have received a copy of the GNU Library General Public License
 # aint with this library; see the file COPYING.LIB.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 #
 
 package CodeGeneratorObjC;
@@ -204,7 +204,7 @@ sub finish
 }
 
 # Uppercase the first letter, while respecting WebKit style guidelines. 
-# E.g., xmlEncoding becomes XMLEncoding, but xmlllang becomes Xmllang.
+# E.g., xmlEncoding becomes XMLEncoding, but xmllang becomes Xmllang.
 sub WK_ucfirst
 {
     my $param = shift;
@@ -331,11 +331,8 @@ sub GetImplClassName
 {
     my $name = $codeGenerator->StripModule(shift);
 
-    # special cases
     return "DOMImplementationFront" if $name eq "DOMImplementation";
-    return "RectImpl" if $name eq "Rect";
     return "DOMWindow" if $name eq "AbstractView";
-
     return $name;
 }
 
@@ -389,6 +386,9 @@ sub GetParentAndProtocols
         my $firstParent = $codeGenerator->StripModule(shift(@parents));
         if (IsProtocolType($firstParent)) {
             push(@protocols, "DOM" . $firstParent);
+            if (!$isProtocol) {
+                $parent = "DOMObject";
+            }
         } else {
             $parent = "DOM" . $firstParent;
         }
@@ -478,22 +478,8 @@ sub GetObjCTypeMaker
     my $type = $codeGenerator->StripModule(shift);
 
     return "" if $codeGenerator->IsNonPointerType($type) or $codeGenerator->IsStringType($type) or IsNativeObjCType($type);
-    return "_RGBColorWithRGB" if $type eq "RGBColor";
-
-    my $typeMaker = "";
-    if ($type =~ /^(HTML|CSS|SVG)/ or $type eq "DOMImplementation" or $type eq "CDATASection") {
-        $typeMaker = $type;
-    } elsif ($type =~ /^XPath(.+)/) {
-        $typeMaker = "xpath" . $1;
-    } elsif ($type eq "DOMWindow") {
-        $typeMaker = "abstractView";
-    } else {
-        $typeMaker = lcfirst($type);
-    }
-
-    # put into the form "_fooBarWith" for type FooBar.
-    $typeMaker = "_" . $typeMaker . "With";
-    return $typeMaker;
+    return "_wrapAbstractView" if $type eq "DOMWindow";
+    return "_wrap$type";
 }
 
 sub GetObjCTypeGetterName
@@ -561,12 +547,6 @@ sub AddIncludesForType
 
     if ($codeGenerator->IsStringType($type)) {
         $implIncludes{"PlatformString.h"} = 1;
-        return;
-    }
-
-    if ($type eq "Rect") {
-        $implIncludes{"RectImpl.h"} = 1;
-        $implIncludes{"DOM$type.h"} = 1;
         return;
     }
 
@@ -727,9 +707,6 @@ sub GenerateHeader
     my @headerAttributes = ();
     my @privateHeaderAttributes = ();
 
-    my @headerAttributesOldStyle = ();
-    my @privateHeaderAttributesOldStyle = ();
-
     # - Add attribute getters/setters.
     if ($numAttributes > 0) {
         # Add ivars, if any, first
@@ -789,12 +766,6 @@ sub GenerateHeader
                 $property .= "\n";
                 push(@headerAttributes, $property) if $public;
                 push(@privateHeaderAttributes, $property) unless $public;
-
-                my $oldStyleProperty = "\@property" . ($attributeIsReadonly ? "(readonly)" : "");
-                $oldStyleProperty .= " " . $attributeType . ($attributeType =~ /\*$/ ? "" : " ") . $attributeName . ";\n";
-
-                push(@headerAttributesOldStyle, $oldStyleProperty) if $public;
-                push(@privateHeaderAttributesOldStyle, $oldStyleProperty) unless $public;
             } else {
                 # - GETTER
                 my $getter = "- (" . $attributeType . ")" . $attributeName . ";\n";
@@ -810,11 +781,7 @@ sub GenerateHeader
             }
         }
 
-        push(@headerContent, "#ifdef OBJC_NEW_PROPERTIES\n") if $buildingForLeopardOrLater;
         push(@headerContent, @headerAttributes) if @headerAttributes > 0;
-        push(@headerContent, "#else\n") if $buildingForLeopardOrLater;
-        push(@headerContent, @headerAttributesOldStyle) if @headerAttributesOldStyle > 0 and $buildingForLeopardOrLater;
-        push(@headerContent, "#endif\n") if $buildingForLeopardOrLater;
     }
 
     my @headerFunctions = ();
@@ -930,11 +897,7 @@ sub GenerateHeader
 
         @privateHeaderContent = ();
         push(@privateHeaderContent, "\@interface $className (" . $className . "Private)\n");
-        push(@privateHeaderContent, "#ifdef OBJC_NEW_PROPERTIES\n") if $buildingForLeopardOrLater;
         push(@privateHeaderContent, @privateHeaderAttributes) if @privateHeaderAttributes > 0;
-        push(@privateHeaderContent, "#else\n") if $buildingForLeopardOrLater;
-        push(@privateHeaderContent, @privateHeaderAttributesOldStyle) if @privateHeaderAttributesOldStyle > 0 and $buildingForLeopardOrLater;
-        push(@privateHeaderContent, "#endif\n") if $buildingForLeopardOrLater;
         push(@privateHeaderContent, "\n") if $buildingForLeopardOrLater and @privateHeaderAttributes > 0 and @privateHeaderFunctions > 0;
         push(@privateHeaderContent, @privateHeaderFunctions) if @privateHeaderFunctions > 0;
         push(@privateHeaderContent, "\@end\n");
@@ -968,7 +931,7 @@ sub GenerateImplementation
     my $podTypeWithNamespace;
 
     if ($podType) {
-        $podTypeWithNamespace = ($podType eq "double") ? "$podType" : "WebCore::$podType";
+        $podTypeWithNamespace = ($podType eq "float") ? "$podType" : "WebCore::$podType";
     }
 
     # - Add default header template.
@@ -976,9 +939,16 @@ sub GenerateImplementation
 
     # - INCLUDES -
     push(@implContentHeader, "\n#import \"config.h\"\n");
-    push(@implContentHeader, "\n#import \"logging.h\"\n");
-    push(@implContentHeader, "\n#ifdef ${conditional}_SUPPORT\n\n") if $conditional;
-    push(@implContentHeader, "#import \"$classHeaderName.h\"\n\n");
+
+    my $conditionalString;
+    if ($conditional) {
+        $conditionalString = "ENABLE(" . join(") && ENABLE(", split(/&/, $conditional)) . ")";
+        push(@implContentHeader, "\n#if ${conditionalString}\n");
+    }
+
+    push(@implContentHeader, "\n#import \"$classHeaderName.h\"\n\n");
+
+    push(@implContentHeader, "#import \"ThreadCheck.h\"\n");
     push(@implContentHeader, "#import <wtf/GetPtr.h>\n\n");
 
     if ($codeGenerator->IsSVGAnimatedType($interfaceName)) {
@@ -989,7 +959,7 @@ sub GenerateImplementation
         if (!$podType) {
             $implIncludes{"$implClassName.h"} = 1;
         } else {
-            $implIncludes{"$podType.h"} = 1 unless $podType eq "double";
+            $implIncludes{"$podType.h"} = 1 unless $podType eq "float";
         }
     } 
 
@@ -1096,7 +1066,7 @@ sub GenerateImplementation
             my $getterContentTail = ")";
 
             # Special case for DOMSVGNumber
-            if ($podType and $podType eq "double") {
+            if ($podType and $podType eq "float") {
                 $getterContentHead = "*IMPL";
                 $getterContentTail = "";
             }
@@ -1213,7 +1183,7 @@ sub GenerateImplementation
 
                 if ($podType) {
                     # Special case for DOMSVGNumber
-                    if ($podType eq "double") {
+                    if ($podType eq "float") {
                         push(@implContent, "    *IMPL = $arg;\n");
                     } else {
                         push(@implContent, "    IMPL->$attributeName($arg);\n");
@@ -1330,14 +1300,14 @@ sub GenerateImplementation
                 push(@functionContent, "    if (x == 0.0 || y == 0.0)\n");
                 push(@functionContent, "        ec = WebCore::SVG_INVALID_VALUE_ERR;\n");
                 push(@functionContent, "    $exceptionRaiseOnError\n");
-                push(@functionContent, "    return [DOMSVGMatrix _SVGMatrixWith:$content];\n");
+                push(@functionContent, "    return [DOMSVGMatrix _wrapSVGMatrix:$content];\n");
             } elsif ($svgMatrixInverse) {
                 # Special case with inverse & SVGMatrix
                 push(@functionContent, "    $exceptionInit\n");
                 push(@functionContent, "    if (!$caller->isInvertible())\n");
                 push(@functionContent, "        ec = WebCore::SVG_MATRIX_NOT_INVERTABLE;\n");
                 push(@functionContent, "    $exceptionRaiseOnError\n");
-                push(@functionContent, "    return [DOMSVGMatrix _SVGMatrixWith:$content];\n");
+                push(@functionContent, "    return [DOMSVGMatrix _wrapSVGMatrix:$content];\n");
             } elsif ($returnType eq "void") {
                 # Special case 'void' return type.
                 if ($raisesExceptions) {
@@ -1476,7 +1446,7 @@ sub GenerateImplementation
     if ($codeGenerator->IsSVGAnimatedType($interfaceName)) {
         push(@internalHeaderContent, "#import <WebCore/SVGAnimatedTemplate.h>\n\n");
     } else {
-        if ($podType and $podType ne "double") {
+        if ($podType and $podType ne "float") {
             push(@internalHeaderContent, "\nnamespace WebCore { class $podType; }\n\n");
         } elsif ($interfaceName eq "Node") {
             push(@internalHeaderContent, "\nnamespace WebCore { class Node; class EventTarget; }\n\n");
@@ -1489,7 +1459,7 @@ sub GenerateImplementation
     push(@internalHeaderContent, $typeGetterSig . ";\n");
     push(@internalHeaderContent, $typeMakerSig . ";\n");
     if ($interfaceName eq "Node") {
-        push(@internalHeaderContent, "+ (id <DOMEventTarget>)_eventTargetWith:(WebCore::EventTarget *)eventTarget;\n");
+        push(@internalHeaderContent, "+ (id <DOMEventTarget>)_wrapEventTarget:(WebCore::EventTarget *)eventTarget;\n");
     }
     push(@internalHeaderContent, "\@end\n");
 
@@ -1523,7 +1493,7 @@ sub GenerateImplementation
             push(@implContent, "    return self;\n");
             push(@implContent, "}\n\n");
 
-            # - (DOMFooBar)_FooBarWith:(WebCore::FooBar)impl for implementation class FooBar
+            # - (DOMFooBar)_wrapFooBar:(WebCore::FooBar)impl for implementation class FooBar
             push(@implContent, "$typeMakerSig\n");
             push(@implContent, "{\n");
             push(@implContent, "    $assertMainThread;\n");
@@ -1545,7 +1515,7 @@ sub GenerateImplementation
             push(@implContent, "    return self;\n");
             push(@implContent, "}\n\n");
 
-            # - (DOMFooBar)_FooBarWith:(WebCore::FooBar *)impl for implementation class FooBar
+            # - (DOMFooBar)_wrapFooBar:(WebCore::FooBar *)impl for implementation class FooBar
             push(@implContent, "$typeMakerSig\n");
             push(@implContent, "{\n");
             push(@implContent, "    $assertMainThread;\n");
@@ -1561,7 +1531,7 @@ sub GenerateImplementation
             my $internalBaseType = "DOM$baseClass";
             my $internalBaseTypeMaker = GetObjCTypeMaker($baseClass);
 
-            # - (DOMFooBar)_FooBarWith:(WebCore::FooBar *)impl for implementation class FooBar
+            # - (DOMFooBar)_wrapFooBar:(WebCore::FooBar *)impl for implementation class FooBar
             push(@implContent, "$typeMakerSig\n");
             push(@implContent, "{\n");
             push(@implContent, "    $assertMainThread;\n");
@@ -1574,7 +1544,7 @@ sub GenerateImplementation
     }
 
     # - End the ifdef conditional if necessary
-    push(@implContent, "\n#endif // ${conditional}_SUPPORT\n") if $conditional;
+    push(@implContent, "\n#endif // ${conditionalString}\n") if $conditional;
 }
 
 # Internal helper

@@ -4,9 +4,8 @@
  * Copyright (C) 2000 Lars Knoll (knoll@kde.org)
  *           (C) 2000 Antti Koivisto (koivisto@kde.org)
  *           (C) 2000 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2003, 2006 Apple Computer, Inc.
- * Copyright (C) 2007 Pleyo.
- * 
+ * Copyright (C) 2003, 2006, 2007 Apple Computer, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
@@ -19,126 +18,100 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
-#ifndef Font_h
-#define Font_h
+#ifndef BTFont_h
+#define BTFont_h
 
-#ifdef __OWB__
-#include "FontData.h"
-#endif
 #include "FontDescription.h"
 #ifdef __OWB__
-#include "GlyphBuffer.h"
+#include "FontData.h"
+#include "FontPlatformData.h"
 #include "GraphicsContext.h"
-#endif
+#endif //__OWB__
 #include <wtf/HashMap.h>
 
 #if PLATFORM(QT)
-class QFont;
+#include <QtGui/qfont.h>
+#include <QtGui/qfontmetrics.h>
 #endif
 
 namespace WebCore {
 
 class FloatPoint;
 class FloatRect;
+#ifndef __OWB__
 class FontData;
+#endif //__OWB__
 class FontFallbackList;
 class FontPlatformData;
+class FontSelector;
 class GlyphBuffer;
 class GlyphPageTreeNode;
 class GraphicsContext;
 class IntPoint;
 class TextStyle;
 
-struct GlyphData;
-
 #ifdef __OWB__
 }
 
-namespace BAL {
-class FontFallbackList;
-class BIGraphicsContext;
-struct PixelFont;
-}
-
-using BAL::FontFallbackList;
-using WebCore::TextStyle;
-using WebCore::StringImpl;
+using BAL::BTFontData;
+using BAL::BTFontPlatformData;
+using WebCore::FloatPoint;
+using WebCore::FloatRect;
 using WebCore::FontDescription;
-using WebCore::FontPlatformData;
+using WebCore::FontFallbackList;
 using WebCore::FontFamily;
-using WebCore::FontData;
+using WebCore::FontSelector;
 using WebCore::GlyphBuffer;
-using WebCore::GlyphData;
 using WebCore::GlyphPageTreeNode;
+using WebCore::IntPoint;
+using WebCore::String;
+using WebCore::TextStyle;
 
 namespace BAL {
-#endif
+#endif //__OWB__
+
+struct GlyphData;
 
 class TextRun {
 public:
     TextRun(const UChar* c, int len)
-    :m_characters(c), m_len(len), m_from(0), m_to(len)
+    :m_characters(c), m_len(len)
     {}
 
-    TextRun(const UChar* c, int len, int from, int to) // This constructor is only used in Mac-specific code.
-    :m_characters(c), m_len(len), m_from(from), m_to(to)
-    {}
-
-    TextRun(const StringImpl* s, int offset = 0, int length = -1, int from = -1, int to = -1)
-    :m_characters(s->characters() + offset), m_len(length == -1 ? s->length() - offset : length), m_from(adjustFrom(from)), m_to(adjustTo(to))
+    TextRun(const String& s)
+    :m_characters(s.characters()), m_len(s.length())
     {}
 
     const UChar operator[](int i) const { return m_characters[i]; }
     const UChar* data(int i) const { return &m_characters[i]; }
 
-    int adjustFrom(int from) const { return from == -1 ? 0 : from; }
-    int adjustTo(int to) const { return to == -1 ? m_len : to; }
-    void makeComplete() { m_from = 0; m_to = m_len; }
-
     const UChar* characters() const { return m_characters; }
     int length() const { return m_len; }
-    int from() const { return m_from; }
-    int to() const { return m_to; }
-
+   
 private:
     const UChar* m_characters;
     int m_len;
-    int m_from;
-    int m_to;
 };
 
-#ifdef __OWB__
-class FontPrivate;
-#endif
-
-/**
- * The Font implementation
- *
- */
-class Font {
+class BTFont {
 public:
-    Font();
-    Font(const FontDescription&, short letterSpacing, short wordSpacing);
-    Font(const FontPlatformData&, bool isPrinting); // This constructor is only used if the platform wants to start with a native font.
-    ~Font();
+    BTFont();
+    BTFont(const FontDescription&, short letterSpacing, short wordSpacing);
+#if !PLATFORM(QT)
+    BTFont(const FontPlatformData&, bool isPrinting); // This constructor is only used if the platform wants to start with a native font.
+#endif
+    ~BTFont();
+    
+    BTFont(const BTFont&);
+    BTFont& operator=(const BTFont&);
 
-    Font(const Font&);
-    Font& operator=(const Font&);
-
-    bool operator==(const Font& other) const {
-        // Our FontData doesn't have to be checked, since
-        // checking the font description will be fine.
-        return (m_fontDescription == other.m_fontDescription &&
-                m_letterSpacing == other.m_letterSpacing &&
-                m_wordSpacing == other.m_wordSpacing);
-    }
-
-    bool operator!=(const Font& other) const {
+    bool operator==(const BTFont& other) const;
+    bool operator!=(const BTFont& other) const {
         return !(*this == other);
     }
 
@@ -146,18 +119,18 @@ public:
 
     int pixelSize() const { return fontDescription().computedPixelSize(); }
     float size() const { return fontDescription().computedSize(); }
+    
+    void update(PassRefPtr<FontSelector>) const;
 
-    void update() const;
-
-    void drawText(GraphicsContext*, const TextRun&, const TextStyle&, const FloatPoint&) const;
+    void drawText(GraphicsContext*, const TextRun&, const TextStyle&, const FloatPoint&, int from = 0, int to = -1) const;
 
     int width(const TextRun&, const TextStyle&) const;
     int width(const TextRun&) const;
     float floatWidth(const TextRun&, const TextStyle&) const;
     float floatWidth(const TextRun&) const;
-
+    
     int offsetForPosition(const TextRun&, const TextStyle&, int position, bool includePartialGlyphs) const;
-    FloatRect selectionRectForText(const TextRun&, const TextStyle&, const IntPoint&, int h) const;
+    FloatRect selectionRectForText(const TextRun&, const TextStyle&, const IntPoint&, int h, int from = 0, int to = -1) const;
 
     bool isSmallCaps() const { return m_fontDescription.smallCaps(); }
 
@@ -176,70 +149,80 @@ public:
     unsigned weight() const { return m_fontDescription.weight(); }
     bool bold() const { return m_fontDescription.bold(); }
 
-#if PLATFORM(QT)
-    operator QFont() const;
+#if !PLATFORM(QT)
+    bool isPlatformFont() const { return m_isPlatformFont; }
 #endif
-
+    
+#if PLATFORM(QT)
+    inline const QFont &font() const { return m_font; }
+    inline const QFont &scFont() const { return m_scFont; }
+#endif
+    
     // Metrics that we query the FontFallbackList for.
     int ascent() const;
     int descent() const;
     int height() const { return ascent() + descent(); }
     int lineSpacing() const;
     float xHeight() const;
+    unsigned unitsPerEm() const;
+    int spaceWidth() const;
+    int tabWidth() const { return 8 * spaceWidth(); }
 
+#if !PLATFORM(QT)
     const FontData* primaryFont() const;
     const FontData* fontDataAt(unsigned) const;
-    const GlyphData& glyphDataForCharacter(UChar32, const UChar* cluster, unsigned clusterLength, bool mirror, bool attemptFontSubstitution) const;
+    const GlyphData& glyphDataForCharacter(UChar32, bool mirror) const;
     // Used for complex text, and does not utilize the glyph map cache.
     const FontData* fontDataForCharacters(const UChar*, int length) const;
 
 private:
-    // FIXME: This will eventually be cross-platform, but we want to keep Windows compiling for now.
     bool canUseGlyphCache(const TextRun&) const;
-    void drawSimpleText(GraphicsContext*, const TextRun&, const TextStyle&, const FloatPoint&) const;
+    void drawSimpleText(GraphicsContext*, const TextRun&, const TextStyle&, const FloatPoint&, int from, int to) const;
     void drawGlyphs(GraphicsContext*, const FontData*, const GlyphBuffer&, int from, int to, const FloatPoint&) const;
-    void drawComplexText(GraphicsContext*, const TextRun&, const TextStyle&, const FloatPoint&) const;
-    float floatWidthForSimpleText(const TextRun&, const TextStyle&, float* startX, GlyphBuffer*) const;
+    void drawGlyphBuffer(GraphicsContext*, const GlyphBuffer&, const TextRun&, const TextStyle&, const FloatPoint&) const;
+    void drawComplexText(GraphicsContext*, const TextRun&, const TextStyle&, const FloatPoint&, int from, int to) const;
+    float floatWidthForSimpleText(const TextRun&, const TextStyle&, GlyphBuffer*) const;
     float floatWidthForComplexText(const TextRun&, const TextStyle&) const;
     int offsetForPositionForSimpleText(const TextRun&, const TextStyle&, int position, bool includePartialGlyphs) const;
     int offsetForPositionForComplexText(const TextRun&, const TextStyle&, int position, bool includePartialGlyphs) const;
-    FloatRect selectionRectForSimpleText(const TextRun&, const TextStyle&, const IntPoint&, int h) const;
-    FloatRect selectionRectForComplexText(const TextRun&, const TextStyle&, const IntPoint&, int h) const;
-
+    FloatRect selectionRectForSimpleText(const TextRun&, const TextStyle&, const IntPoint&, int h, int from, int to) const;
+    FloatRect selectionRectForComplexText(const TextRun&, const TextStyle&, const IntPoint&, int h, int from, int to) const;
+#endif
     friend struct WidthIterator;
-
+    
     // Useful for debugging the different font rendering code paths.
 public:
+#if !PLATFORM(QT)
     enum CodePath { Auto, Simple, Complex };
     static void setCodePath(CodePath);
     static CodePath codePath;
-
+    
     static const uint8_t gRoundingHackCharacterTable[256];
-    static bool treatAsSpace(UChar c) { return c == ' ' || c == '\t' || c == '\n' || c == 0x00A0; }
     static bool isRoundingHackCharacter(UChar32 c)
     {
-        return (((c & ~0xFF) == 0 && gRoundingHackCharacterTable[c]));
+        return (((c & ~0xFF) == 0 && gRoundingHackCharacterTable[c])); 
     }
-
+#endif
+    static bool treatAsSpace(UChar c) { return c == ' ' || c == '\t' || c == '\n' || c == 0x00A0; }
+    static bool treatAsZeroWidthSpace(UChar c) { return c < 0x20 || (c >= 0x7F && c < 0xA0) || c == 0x200e || c == 0x200f; }
 private:
     FontDescription m_fontDescription;
+#if !PLATFORM(QT)
     mutable RefPtr<FontFallbackList> m_fontList;
     mutable HashMap<int, GlyphPageTreeNode*> m_pages;
     mutable GlyphPageTreeNode* m_pageZero;
+#endif
     short m_letterSpacing;
     short m_wordSpacing;
-#ifdef __OWB__
-    FontPrivate* d;
+#if !PLATFORM(QT)
+    bool m_isPlatformFont;
+#else
+    QFont m_font;
+    QFont m_scFont;
+    int m_spaceWidth;
 #endif
 };
 
 }
-
-#ifdef __OWB__
-namespace WebCore {
-    using BAL::Font;
-    using BAL::TextRun;
-}
-#endif
 
 #endif

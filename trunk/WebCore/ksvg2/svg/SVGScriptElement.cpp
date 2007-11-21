@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,18 +16,15 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
-#include "PlatformString.h"
-#include "Attr.h"
-#include "StringImpl.h"
+#if ENABLE(SVG)
+#include "SVGScriptElement.h"
 
 #include "SVGNames.h"
-#include "SVGScriptElement.h"
 
 namespace WebCore {
 
@@ -52,69 +49,22 @@ void SVGScriptElement::setType(const String& type)
     m_type = type;
 }
 
-void SVGScriptElement::parseMappedAttribute(MappedAttribute *attr)
+void SVGScriptElement::parseMappedAttribute(MappedAttribute* attr)
 {
     if (attr->name() == SVGNames::typeAttr)
-            setType(attr->value());
+        setType(attr->value());
     else {
-        if(SVGURIReference::parseMappedAttribute(attr))
+        if (SVGURIReference::parseMappedAttribute(attr))
             return;
-        if(SVGExternalResourcesRequired::parseMappedAttribute(attr))
+        if (SVGExternalResourcesRequired::parseMappedAttribute(attr))
             return;
 
         SVGElement::parseMappedAttribute(attr);
     }
 }
 
-void SVGScriptElement::executeScript(Document *document, StringImpl *jsCode)
-{
-    if(!document || !jsCode)
-        return;
-#if 0
-    Ecma *ecmaEngine = document->ecmaEngine();
-    if(!ecmaEngine)
-        return;
-                
-    KJS::Interpreter::lock();
-
-    // Run script
-    KJS::Completion comp = ecmaEngine->evaluate(jsCode.deprecatedString(), ecmaEngine->globalObject());
-    if (comp.complType() == KJS::Throw) {
-        KJS::ExecState *exec = ecmaEngine->globalExec();
-        KJS::JSValue *exVal = comp.value();
-
-        int lineno = -1;
-        if (exVal->isObject()) {
-            KJS::JSValue *lineVal = static_cast<KJS::JSObject *>(exVal)->get(exec, "line");
-            if(lineVal->type() == KJS::NumberType)
-                lineno = int(lineVal->toNumber(exec));
-        }
-
-        // Fire ERROR_EVENT upon errors...
-        SVGDocument *svgDocument = static_cast<SVGDocument *>(document);
-        if (svgDocument && document->hasListenerType(ERROR_EVENT)) {
-            RefPtr<Event> event = svgDocument->createEvent("SVGEvents");
-            event->initEvent(EventNames::errorEvent, false, false);
-            svgDocument->dispatchRecursiveEvent(event.get(), svgDocument->lastChild());
-        }
-
-        kdDebug() << "[SVGScriptElement] Evaluation error, line " << (lineno != -1 ? DeprecatedString::number(lineno) : DeprecatedString::fromLatin1("N/A"))  << " " << exVal->toString(exec).deprecatedString() << endl;
-    }
-    else if(comp.complType() == KJS::ReturnValue)
-        kdDebug() << "[SVGScriptElement] Return value: " << comp.value()->toString(ecmaEngine->globalExec()).deprecatedString() << endl;
-    else if(comp.complType() == KJS::Normal)
-        kdDebug() << "[SVGScriptElement] Evaluated ecma script!" << endl;
-    
-    KJS::Interpreter::unlock();
-#else
-    if (jsCode)
-        // Hack to close memory leak due to #if 0
-        String(jsCode);
-#endif
-}
-
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

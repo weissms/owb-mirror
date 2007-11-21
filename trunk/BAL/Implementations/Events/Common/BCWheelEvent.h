@@ -64,7 +64,9 @@ public:
     virtual int deltaX() const;
     virtual int deltaY() const;
     virtual bool isAccepted() const;
-
+    virtual bool isContinuous() const;
+    virtual float continuousDeltaX() const;
+    virtual float continuousDeltaY() const;
     virtual void accept();
     virtual void ignore();
 

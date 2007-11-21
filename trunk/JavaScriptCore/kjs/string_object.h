@@ -24,12 +24,14 @@
 
 #include "function_object.h"
 #include "JSWrapperObject.h"
+#include "internal.h"
 
 namespace KJS {
 
   class StringInstance : public JSWrapperObject {
   public:
     StringInstance(JSObject *proto);
+    StringInstance(JSObject *proto, StringImp* string);
     StringInstance(JSObject *proto, const UString &string);
 
     virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
@@ -39,6 +41,9 @@ namespace KJS {
 
     virtual const ClassInfo *classInfo() const { return &info; }
     static const ClassInfo info;
+
+    StringImp* internalValue() const { return static_cast<StringImp*>(JSWrapperObject::internalValue());}
+
   private:
     static JSValue *lengthGetter(ExecState *exec, JSObject *, const Identifier&, const PropertySlot &slot);
     static JSValue *indexGetter(ExecState *exec, JSObject *, const Identifier&, const PropertySlot &slot);

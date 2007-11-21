@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
     Copyright (C) 2004, 2005, 2006 Rob Buis <buis@kde.org>
     Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
 
@@ -17,13 +17,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFilterElement.h"
 
 #include "Attr.h"
@@ -116,49 +116,47 @@ SVGResource* SVGFilterElement::canvasResource()
     bool filterBBoxMode = filterUnits() == SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX;
     m_filter->setFilterBoundingBoxMode(filterBBoxMode);
 
-    float _x, _y, w, h;
+    float _x, _y, _width, _height;
 
-    if (filterBBoxMode && x().unitType() == LengthTypePercentage)
-        _x = x().valueInSpecifiedUnits() / 100.0;
-    else
+    if (filterBBoxMode) {
+        _x = x().valueAsPercentage();
+        _y = y().valueAsPercentage();
+        _width = width().valueAsPercentage();
+        _height = height().valueAsPercentage();
+    } else {
+        m_filter->setXBoundingBoxMode(x().unitType() == LengthTypePercentage);
+        m_filter->setYBoundingBoxMode(y().unitType() == LengthTypePercentage);
+
         _x = x().value();
-
-    if (filterBBoxMode && y().unitType() == LengthTypePercentage)
-        _y = y().valueInSpecifiedUnits() / 100.0;
-    else
         _y = y().value();
+        _width = width().value();
+        _height = height().value();
+    } 
 
-    if (filterBBoxMode && width().unitType() == LengthTypePercentage)
-        w = width().valueInSpecifiedUnits() / 100.0;
-    else
-        w = width().value();
-
-    if (filterBBoxMode && height().unitType() == LengthTypePercentage)
-        h = height().valueInSpecifiedUnits() / 100.0;
-    else
-        h = height().value();
-
-    m_filter->setFilterRect(FloatRect(_x, _y, w, h));
+    m_filter->setFilterRect(FloatRect(_x, _y, _width, _height));
 
     bool primitiveBBoxMode = primitiveUnits() == SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX;
     m_filter->setEffectBoundingBoxMode(primitiveBBoxMode);
-    // FIXME: When does this info get passed to the filters elements?
 
     // TODO : use switch/case instead?
     m_filter->clearEffects();
     for (Node* n = firstChild(); n != 0; n = n->nextSibling()) {
         SVGElement* element = svg_dynamic_cast(n);
         if (element && element->isFilterEffect()) {
-            SVGFilterPrimitiveStandardAttributes* fe = static_cast<SVGFilterPrimitiveStandardAttributes*>(element);
-            if (fe->filterEffect())
-                m_filter->addFilterEffect(fe->filterEffect());
+            SVGFilterPrimitiveStandardAttributes* filterAttributes = static_cast<SVGFilterPrimitiveStandardAttributes*>(element);
+            SVGFilterEffect* filterEffect = filterAttributes->filterEffect(m_filter.get());
+            if (!filterEffect)
+                continue;
+
+            m_filter->addFilterEffect(filterEffect);
         }
     }
+
     return m_filter.get();
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

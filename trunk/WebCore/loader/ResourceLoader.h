@@ -29,9 +29,6 @@
 #ifndef ResourceLoader_h
 #define ResourceLoader_h
 
-#ifdef __OWB__
-#include "ResourceHandle.h"
-#endif //__OWB__
 #include "ResourceHandleClient.h"
 #include "ResourceRequest.h"
 #include "ResourceResponse.h"
@@ -42,19 +39,9 @@
 
 #include <wtf/Forward.h>
 
-#if PLATFORM(MAC)
-
-#import <objc/objc.h>
-
-#ifdef __OBJC__
-@class NSCachedURLResponse;
-#else
-class NSCachedURLResponse;
-#endif
-#endif
-
 namespace WebCore {
 
+    class DocumentLoader;
     class Frame;
     class FrameLoader;
     class ResourceHandle;
@@ -68,11 +55,13 @@ namespace WebCore {
 
         virtual bool load(const ResourceRequest&);
 
-        FrameLoader *frameLoader() const;
-
+        FrameLoader* frameLoader() const;
+        DocumentLoader* documentLoader() const { return m_documentLoader.get(); }
+        
         virtual void cancel(const ResourceError&);
         ResourceError cancelledError();
-
+        ResourceError blockedError();
+        
         virtual void setDefersLoading(bool);
 
         void setIdentifier(unsigned long identifier) { m_identifier = identifier; }
@@ -91,13 +80,11 @@ namespace WebCore {
         void willStopBufferingData(const char*, int);
         virtual void didFinishLoading();
         virtual void didFail(const ResourceError&);
-#if PLATFORM(MAC)
-        NSCachedURLResponse *willCacheResponse(NSCachedURLResponse *);
-#endif
+        virtual void wasBlocked();
 
         void didReceiveAuthenticationChallenge(const AuthenticationChallenge&);
         void didCancelAuthenticationChallenge(const AuthenticationChallenge&);
-        void receivedCancellation(const AuthenticationChallenge&);
+        virtual void receivedCancellation(const AuthenticationChallenge&);
 
         // ResourceHandleClient
         virtual void willSendRequest(ResourceHandle*, ResourceRequest&, const ResourceResponse& redirectResponse);        
@@ -105,16 +92,23 @@ namespace WebCore {
         virtual void didReceiveData(ResourceHandle*, const char*, int, int lengthReceived);
         virtual void didFinishLoading(ResourceHandle*);
         virtual void didFail(ResourceHandle*, const ResourceError&);
+        virtual void wasBlocked(ResourceHandle*);
         virtual void willStopBufferingData(ResourceHandle*, const char* data, int length) { willStopBufferingData(data, length); } 
         virtual void didReceiveAuthenticationChallenge(ResourceHandle*, const AuthenticationChallenge& challenge) { didReceiveAuthenticationChallenge(challenge); } 
         virtual void didCancelAuthenticationChallenge(ResourceHandle*, const AuthenticationChallenge& challenge) { didCancelAuthenticationChallenge(challenge); } 
         virtual void receivedCancellation(ResourceHandle*, const AuthenticationChallenge& challenge) { receivedCancellation(challenge); }
         virtual void willCacheResponse(ResourceHandle*, CacheStoragePolicy&);
+#if PLATFORM(MAC)
+        virtual NSCachedURLResponse* willCacheResponse(ResourceHandle*, NSCachedURLResponse*);
+#endif
 
         ResourceHandle* handle() const { return m_handle.get(); }
+        bool sendResourceLoadCallbacks() const { return m_sendResourceLoadCallbacks; }
+
+        void setShouldBufferData(bool shouldBufferData) { m_shouldBufferData = shouldBufferData; }
 
     protected:
-        ResourceLoader(Frame*);
+        ResourceLoader(Frame*, bool sendResourceLoadCallbacks, bool shouldContentSniff);
 
         virtual void didCancel(const ResourceError&);
         void didFinishLoadingOnePart();
@@ -134,9 +128,13 @@ namespace WebCore {
         bool m_cancelled;
         bool m_calledDidFinishLoad;
 
+        bool m_sendResourceLoadCallbacks;
+        bool m_shouldContentSniff;
+        bool m_shouldBufferData;
 protected:
         // FIXME: Once everything is made cross platform, these can be private instead of protected
         RefPtr<Frame> m_frame;
+        RefPtr<DocumentLoader> m_documentLoader;
         ResourceResponse m_response;
         unsigned long m_identifier;
 

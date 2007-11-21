@@ -48,7 +48,7 @@ namespace BALFacilities {
  * Constructors/Destructors
  */
 BTDeviceChannel::BTDeviceChannel()
-	: m_descriptor(STDERR_FILENO)
+    : m_descriptor(STDERR_FILENO)
 {
 }
 

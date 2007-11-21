@@ -120,24 +120,24 @@ public:
     void testLogMacro()
     {
         initialize();
-        log(
-        "000000000011111111112222222222333333333344444444445555555555"
-        "6666666666777777777788888888889999999999"
-        "000000000011111111112222222222333333333344444444445555555555"
-        "6666666666777777777788888888889999999999"
-        "000000000011111111112222222222333333333344444444445555555555"
-        "6666666666777777777788888888889999999999");
+        DBG(
+        "000000000011111111112222222222333333333344444444445555555555\n"
+        "6666666666777777777788888888889999999999\n"
+        "000000000011111111112222222222333333333344444444445555555555\n"
+        "6666666666777777777788888888889999999999\n"
+        "000000000011111111112222222222333333333344444444445555555555\n"
+        "6666666666777777777788888888889999999999\n");
         ask("You shouldn't see 300 chars, but a line with TRUNCATED at the end");
         // testing modules
-        logm(MODULE_FONTS, "FONT");
+        DBGM(MODULE_FONTS, "FONT\n");
         ask("is the log from MODULE_FONTS");
-        logml(MODULE_FONTS,LEVEL_CRITICAL, "FONT/CRITICAL" );
+        DBGML(MODULE_FONTS,LEVEL_CRITICAL, "FONT/CRITICAL\n");
         ask("is the log from MODULE_FONTS and at LEVEL_CRITICAL");
 
         // now trying to log to pts console 2
-        m_channel->setPathName( "/dev/pts/2" );
+        m_channel->setPathName("/dev/pts/2");
         if (errno)
-            log(strerror(errno));
+            DBG(strerror(errno));
         TestManager::AssertTrue("open /dev/pts/2", errno == 0 );
         ask("You should see this on pts console 2");
         finalize();
@@ -149,7 +149,7 @@ public:
         BALFacilities::BTLogManager trace;
         // shouldn't do anything
         trace.send( MODULE_UNDEFINED, LEVEL_UNDEFINED, 0, 1, 0,
-                    "default log" );
+                    "default log\n" );
         ask("do you see 'M0,L0 (null):1 at (null)'");
 
         // remove inexistant channel
@@ -162,7 +162,7 @@ public:
         trace.removeChannel(channel.get());
 
         trace.send( MODULE_UNDEFINED, LEVEL_UNDEFINED, 0, 2, 0,
-                    "Removing twice the same channel" );
+                    "Removing twice the same channel\n" );
         ask("do you see a log");
 
         // add twice the same channel
@@ -171,12 +171,12 @@ public:
         trace.addChannel(channel2.get());
         trace.removeChannel(channel2.get());
         trace.send( MODULE_UNDEFINED, LEVEL_UNDEFINED, 0, 3, 0,
-                    "log with channel" );
+                    "log with channel\n" );
         ask("do you see '(no formatter) 0|0|(null)|3|(null)|log with channel'");
 
         trace.removeChannel(channel2.get());
         trace.send( MODULE_UNDEFINED, LEVEL_UNDEFINED, 0, 4, 0,
-                    "log without channel" );
+                    "log without channel\n" );
         ask("do you see only 'M0,L0 (null):4 at (null): log without channel'");
     }
 

@@ -114,6 +114,7 @@ void ContextMenu::appendItem(ContextMenuItem& item)
         setMenuItemTarget(platformItem);
 
     [m_platformDescription.get() addObject:platformItem];
+    [platformItem release];
 }
 
 void ContextMenu::insertItem(unsigned position, ContextMenuItem& item)
@@ -126,6 +127,7 @@ void ContextMenu::insertItem(unsigned position, ContextMenuItem& item)
         setMenuItemTarget(platformItem);
 
     [m_platformDescription.get() insertObject:platformItem atIndex:position];
+    [platformItem release];
 }
 
 unsigned ContextMenu::itemCount() const
@@ -142,6 +144,11 @@ void ContextMenu::setPlatformDescription(NSMutableArray* menu)
 NSMutableArray* ContextMenu::platformDescription() const
 {
     return m_platformDescription.get();
+}
+
+NSMutableArray* ContextMenu::releasePlatformDescription()
+{
+    return m_platformDescription.releaseRef();
 }
 
 }

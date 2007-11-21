@@ -22,7 +22,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Alternatively, the contents of this file may be used under the terms
  * of either the Mozilla Public License Version 1.1, found at
@@ -44,7 +44,21 @@
 
 #include <math.h>
 #include <stdint.h>
-#include <wtf/OwnPtr.h>
+#include <value.h>
+
+#include <wtf/Assertions.h>
+
+#if PLATFORM(DARWIN)
+#include <notify.h>
+#endif
+
+#if HAVE(SYS_TIME_H)
+#include <sys/time.h>
+#endif
+
+#if HAVE(SYS_TIMEB_H)
+#include <sys/timeb.h>
+#endif
 
 namespace KJS {
 
@@ -56,26 +70,29 @@ static const double secondsPerYear = 24.0 * 60.0 * 60.0 * 365.0;
 
 static const double usecPerSec = 1000000.0;
 
-static const double maxUnixTime = 2145859200.0; /*equivalent to 12/31/2037 */
+static const double maxUnixTime = 2145859200.0; // 12/31/2037
 
-/*
- * The following array contains the day of year for the first day of
- * each month, where index 0 is January, and day 0 is January 1.
- */
-static int firstDayOfMonth[2][12] = {
+// Day of year for the first day of each month, where index 0 is January, and day 0 is January 1.
+// First for non-leap years, then for leap years.
+static const int firstDayOfMonth[2][12] = {
     {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334},
     {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335}
 };
 
-static inline int daysInYear(int year)
+static inline bool isLeapYear(int year)
 {
     if (year % 4 != 0)
-        return 365;
+        return false;
     if (year % 400 == 0)
-        return 366;
+        return true;
     if (year % 100 == 0)
-        return 365;
-    return 366;
+        return false;
+    return true;
+}
+
+static inline int daysInYear(int year)
+{
+    return 365 + isLeapYear(year);
 }
 
 static inline double daysFrom1970ToYear(int year)
@@ -98,9 +115,8 @@ static inline double msToDays(double ms)
 
 static inline int msToYear(double ms)
 {
-    int y = static_cast<int>(floor(ms /(msPerDay*365.2425)) + 1970);
+    int y = static_cast<int>(floor(ms / (msPerDay * 365.2425)) + 1970);
     double t2 = msFrom1970ToYear(y);
-
     if (t2 > ms) {
         y--;
     } else {
@@ -108,17 +124,6 @@ static inline int msToYear(double ms)
             y++;
     }
     return y;
-}
-
-static inline bool isLeapYear(int year)
-{
-    if (year % 4 != 0)
-        return false;
-    if (year % 400 == 0)
-        return true;
-    if (year % 100 == 0)
-        return false;
-    return true;
 }
 
 static inline bool isInLeapYear(double ms)
@@ -133,8 +138,7 @@ static inline int dayInYear(double ms, int year)
 
 static inline double msToMilliseconds(double ms)
 {
-    double result;
-    result = fmod(ms, msPerDay);
+    double result = fmod(ms, msPerDay);
     if (result < 0)
         result += msPerDay;
     return result;
@@ -143,7 +147,7 @@ static inline double msToMilliseconds(double ms)
 // 0: Sunday, 1: Monday, etc.
 static inline int msToWeekDay(double ms)
 {
-    int wd = ((int)msToDays(ms) + 4) % 7;
+    int wd = (static_cast<int>(msToDays(ms)) + 4) % 7;
     if (wd < 0)
         wd += 7;
     return wd;
@@ -151,33 +155,33 @@ static inline int msToWeekDay(double ms)
 
 static inline int msToSeconds(double ms)
 {
-    int result = (int) fmod(floor(ms / msPerSecond), secondsPerMinute);
+    double result = fmod(floor(ms / msPerSecond), secondsPerMinute);
     if (result < 0)
-        result += (int)secondsPerMinute;
-    return result;
+        result += secondsPerMinute;
+    return static_cast<int>(result);
 }
 
 static inline int msToMinutes(double ms)
 {
-    int result = (int) fmod(floor(ms / msPerMinute), minutesPerHour);
+    double result = fmod(floor(ms / msPerMinute), minutesPerHour);
     if (result < 0)
-        result += (int)minutesPerHour;
-    return result;
+        result += minutesPerHour;
+    return static_cast<int>(result);
 }
 
 static inline int msToHours(double ms)
 {
-    int result = (int) fmod(floor(ms/msPerHour), hoursPerDay);
+    double result = fmod(floor(ms/msPerHour), hoursPerDay);
     if (result < 0)
-        result += (int)hoursPerDay;
-    return result;
+        result += hoursPerDay;
+    return static_cast<int>(result);
 }
 
 static inline int msToMonth(double ms)
 {
-    int d, step;
+    int step;
     int year = msToYear(ms);
-    d = dayInYear(ms, year);
+    int d = dayInYear(ms, year);
 
     if (d < (step = 31))
         return 0;
@@ -207,9 +211,9 @@ static inline int msToMonth(double ms)
 
 static inline int msToDayInMonth(double ms)
 {
-    int d, step, next;
+    int step, next;
     int year = msToYear(ms);
-    d = dayInYear(ms, year);
+    int d = dayInYear(ms, year);
 
     if (d <= (next = 30))
         return d + 1;
@@ -274,26 +278,106 @@ static int dateToDayInYear(int year, int month, int day)
     return yearday + monthday + day - 1;
 }
 
+double getCurrentUTCTime()
+{
+#if PLATFORM(WIN_OS)
+#if COMPILER(BORLAND)
+    struct timeb timebuffer;
+    ftime(&timebuffer);
+#else
+    struct _timeb timebuffer;
+    _ftime(&timebuffer);
+#endif
+    double utc = timebuffer.time * msPerSecond + timebuffer.millitm;
+#else
+    struct timeval tv;
+    gettimeofday(&tv, 0);
+    double utc = floor(tv.tv_sec * msPerSecond + tv.tv_usec / 1000);
+#endif
+    return utc;
+}
+
+// There is a hard limit at 2038 that we currently do not have a workaround
+// for (rdar://problem/5052975).
+static inline int maximumYearForDST()
+{
+    return 2037;
+}
+
+// It is ok if the cached year is not the current year (e.g. Dec 31st)
+// so long as the rules for DST did not change between the two years, if it does
+// the app would need to be restarted.
+static int mimimumYearForDST()
+{
+    // Because of the 2038 issue (see maximumYearForDST) if the current year is
+    // greater than the max year minus 27 (2010), we want to use the max year
+    // minus 27 instead, to ensure there is a range of 28 years that all years
+    // can map to.
+    static int minYear = std::min(msToYear(getCurrentUTCTime()), maximumYearForDST()-27) ;
+    return minYear;
+}
+
 /*
- * Find a year for which any given date will fall on the same weekday.
+ * Find an equivalent year for the one given, where equivalence is deterined by
+ * the two years having the same leapness and the first day of the year, falling
+ * on the same day of the week.
  *
- * This function should be used with caution when used other than
- * for determining DST; it hasn't been proven not to produce an
- * incorrect year for times near year boundaries.
+ * This function returns a year between this current year and 2037, however this
+ * function will potentially return incorrect results if the current year is after
+ * 2010, (rdar://problem/5052975), if the year passed in is before 1900 or after
+ * 2100, (rdar://problem/5055038).
  */
 int equivalentYearForDST(int year)
 {
-    int difference = 2000 - year;   // Arbitrary year around which most dates equivalence is correct
-    int quotient = difference / 28; // Integer division, no remainder.
-    int product = quotient * 28;
-    return year + product;
+    static int minYear = mimimumYearForDST();
+    static int maxYear = maximumYearForDST();
+    
+    int difference;
+    if (year > maxYear)
+        difference = minYear - year;
+    else if (year < minYear)
+        difference = maxYear - year;
+    else
+        return year;
+
+    int quotient = difference / 28;
+    int product = (quotient) * 28;
+
+    year += product;
+    ASSERT((year >= minYear && year <= maxYear) || (product - year == static_cast<int>(NaN)));
+    return year;
 }
 
 /*
  * Get the difference in milliseconds between this time zone and UTC (GMT)
  * NOT including DST.
  */
-double getUTCOffset() {
+double getUTCOffset()
+{
+#if PLATFORM(DARWIN)
+    // Register for a notification whenever the time zone changes.
+    static bool triedToRegister = false;
+    static bool haveNotificationToken = false;
+    static int notificationToken;
+    if (!triedToRegister) {
+        triedToRegister = true;
+        uint32_t status = notify_register_check("com.apple.system.timezone", &notificationToken);
+        if (status == NOTIFY_STATUS_OK)
+            haveNotificationToken = true;
+    }
+
+    // If we can verify that we have not received a time zone notification,
+    // then use the cached offset from the last time this function was called.
+    static bool haveCachedOffset = false;
+    static double cachedOffset;
+    if (haveNotificationToken && haveCachedOffset) {
+        int notified;
+        uint32_t status = notify_check(notificationToken, &notified);
+        if (status == NOTIFY_STATUS_OK && !notified)
+            return cachedOffset;
+    }
+#endif
+
     tm localt;
 
     memset(&localt, 0, sizeof(localt));
@@ -305,6 +389,11 @@ double getUTCOffset() {
 
     utcOffset *= msPerSecond;
 
+#if PLATFORM(DARWIN)
+    haveCachedOffset = true;
+    cachedOffset = utcOffset;
+#endif
+
     return utcOffset;
 }
 
@@ -315,13 +404,13 @@ double getUTCOffset() {
  */
 static double getDSTOffsetSimple(double localTimeSeconds)
 {
-    if(localTimeSeconds > maxUnixTime)
+    if (localTimeSeconds > maxUnixTime)
         localTimeSeconds = maxUnixTime;
     else if(localTimeSeconds < 0) // Go ahead a day to make localtime work (does not work with 0)
         localTimeSeconds += secondsPerDay;
 
     //input is UTC so we have to shift back to local time to determine DST thus the + getUTCOffset()
-    double offsetTime = (localTimeSeconds * msPerSecond) + getUTCOffset() ;
+    double offsetTime = (localTimeSeconds * msPerSecond) + getUTCOffset();
 
     // Offset from UTC but doesn't include DST obviously
     int offsetHour =  msToHours(offsetTime);
@@ -331,12 +420,23 @@ static double getDSTOffsetSimple(double localTimeSeconds)
     time_t localTime = static_cast<time_t>(localTimeSeconds);
 
     tm localTM;
-    #if PLATFORM(WIN_OS)
-    localtime_s(&localTM, &localTime);
+#if PLATFORM(QT)
+    // ### this is not threadsafe but we don't use multiple threads anyway
+    // in the Qt build
+#if USE(MULTIPLE_THREADS)
+#error Mulitple threads are currently not supported in the Qt/mingw build
+#endif
+    localTM = *localtime(&localTime);
+#elif PLATFORM(WIN_OS)
+    #if COMPILER(MSVC7)
+    localTM = *localtime(&localTime);
     #else
-    localtime_r(&localTime, &localTM);
+    localtime_s(&localTM, &localTime);
     #endif
-    
+#else
+    localtime_r(&localTime, &localTM);
+#endif
+
     double diff = ((localTM.tm_hour - offsetHour) * secondsPerHour) + ((localTM.tm_min - offsetMinute) * 60);
 
     if(diff < 0)
@@ -345,23 +445,18 @@ static double getDSTOffsetSimple(double localTimeSeconds)
     return (diff * msPerSecond);
 }
 
-// Get the DST offset the time passed in
-// ms is in UTC
+// Get the DST offset, given a time in UTC
 static double getDSTOffset(double ms)
 {
-    // On mac the call to localtime (see getDSTOffsetSimple) will return historically accurate
+    // On Mac OS X, the call to localtime (see getDSTOffsetSimple) will return historically accurate
     // DST information (e.g. New Zealand did not have DST from 1946 to 1974) however the JavaScript
     // standard explicitly dictates that historical information should not be considered when
-    // determining DST.  For this reason we shift years that localtime can handle but would
+    // determining DST. For this reason we shift away from years that localtime can handle but would
     // return historically accurate information.
-
-    // if before Jan 01, 2000 12:00:00 AM UTC or after Jan 01, 2038 12:00:00 AM UTC
-    if (ms < 946684800000.0 || ms > 2145916800000.0) {
-        int year;
-        int day;
-
-        year = equivalentYearForDST(msToYear(ms));
-        day = dateToDayInYear(year, msToMonth(ms), msToDayInMonth(ms));
+    int year = msToYear(ms);
+    int equvalentYear = equivalentYearForDST(year);
+    if (year != equvalentYear) {
+        int day = dateToDayInYear(equvalentYear, msToMonth(ms), msToDayInMonth(ms));
         ms = (day * msPerDay) + msToMilliseconds(ms);
     }
 
@@ -370,12 +465,11 @@ static double getDSTOffset(double ms)
 
 double gregorianDateTimeToMS(const GregorianDateTime& t, double milliSeconds, bool inputIsUTC)
 {
-
     int day = dateToDayInYear(t.year + 1900, t.month, t.monthDay);
     double ms = timeToMS(t.hour, t.minute, t.second, milliSeconds);
     double result = (day * msPerDay) + ms;
 
-    if(!inputIsUTC) { // convert to UTC
+    if (!inputIsUTC) { // convert to UTC
         result -= getUTCOffset();       
         result -= getDSTOffset(result);
     }
@@ -383,12 +477,12 @@ double gregorianDateTimeToMS(const GregorianDateTime& t, double milliSeconds, bo
     return result;
 }
 
-void msToGregorianDateTime(double ms, bool outputIsUTC, struct GregorianDateTime& tm)
+void msToGregorianDateTime(double ms, bool outputIsUTC, GregorianDateTime& tm)
 {
     // input is UTC
     double dstOff = 0.0;
     
-    if(!outputIsUTC) {  // convert to local time
+    if (!outputIsUTC) {  // convert to local time
         dstOff = getDSTOffset(ms);
         ms += dstOff + getUTCOffset();
     }
@@ -401,10 +495,10 @@ void msToGregorianDateTime(double ms, bool outputIsUTC, struct GregorianDateTime
     tm.yearDay  =  dayInYear(ms, msToYear(ms));
     tm.month    =  msToMonth(ms);
     tm.year     =  msToYear(ms) - 1900;
-    tm.isDST =  dstOff != 0.0;
+    tm.isDST    =  dstOff != 0.0;
 
     tm.utcOffset = static_cast<long>((dstOff + getUTCOffset()) / msPerSecond);
     tm.timeZone = NULL;
 }
 
-}   // namespace KJS
+} // namespace KJS

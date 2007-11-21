@@ -16,16 +16,16 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGColor.h"
 
+#include "CSSParser.h"
 #include "SVGException.h"
-#include "SVGParserUtilities.h"
 
 namespace WebCore {
 
@@ -79,43 +79,17 @@ void SVGColor::setRGBColor(const String& rgbColor, ExceptionCode& ec)
         ec = SVG_INVALID_VALUE_ERR;
 }
 
-static inline bool parseNumberOrPercent(const UChar*& ptr, const UChar* end, double& value)
-{
-    if (!parseNumber(ptr, end, value))
-        return false;
-    if (*ptr == '%') {
-        value = int((255.0 * value) / 100.0);
-        ptr++;
-    }
-    return true;
-}
-
 Color SVGColor::colorFromRGBColorString(const String& colorString)
 {
-    if (colorString.isNull())
+    String s = colorString.stripWhiteSpace();
+    // hsl, hsla and rgba are not in the SVG spec.
+    // FIXME: rework css parser so it is more svg aware
+    if (s.startsWith("hsl") || s.startsWith("rgba"))
         return Color();
-
-    Color color;
-    String parse = colorString.stripWhiteSpace();
-    if (parse.startsWith("rgb(")) {
-        double r = -1, g = -1, b = -1;
-        const UChar* ptr = parse.characters() + 4;
-        const UChar* end = parse.characters() + parse.length();
-        skipOptionalSpaces(ptr, end);
-        if (!parseNumberOrPercent(ptr, end, r)
-         || !parseNumberOrPercent(ptr, end, g)
-         || !parseNumberOrPercent(ptr, end, b))
-            return Color();
-
-        if (*ptr != ')')
-            return Color();
-        ptr++;
-        if (ptr != end)
-            return Color();
-
-         return Color(int(r), int(g), int(b));
-    }
-    return Color(parse.lower());
+    RGBA32 color;
+    if (CSSParser::parseColor(color, s))
+        return color;
+    return Color();
 }
 
 void SVGColor::setRGBColorICCColor(const String& /* rgbColor */, const String& /* iccColor */, ExceptionCode& ec)
@@ -145,5 +119,5 @@ const Color& SVGColor::color() const
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

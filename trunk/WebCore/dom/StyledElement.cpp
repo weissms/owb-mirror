@@ -19,18 +19,18 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 #include "StyledElement.h"
 
+#include "CSSStyleSelector.h"
 #include "CSSStyleSheet.h"
 #include "CSSValueKeywords.h"
 #include "Document.h"
 #include "HTMLNames.h"
-#include "cssstyleselector.h"
 
 using namespace std;
 
@@ -129,7 +129,7 @@ void StyledElement::createInlineStyleDecl()
     m_inlineStyleDecl = new CSSMutableStyleDeclaration;
     m_inlineStyleDecl->setParent(document()->elementSheet());
     m_inlineStyleDecl->setNode(this);
-    m_inlineStyleDecl->setStrictParsing(!document()->inCompatMode());
+    m_inlineStyleDecl->setStrictParsing(isHTMLElement() && !document()->inCompatMode());
 }
 
 void StyledElement::destroyInlineStyleDecl()
@@ -220,7 +220,6 @@ void StyledElement::parseMappedAttribute(MappedAttribute *attr)
             mappedAttributes()->parseClassAttribute(attr->value());
         setChanged();
     } else if (attr->name() == styleAttr) {
-        setHasStyle(!attr->isNull());
         if (attr->isNull())
             destroyInlineStyleDecl();
         else
@@ -382,7 +381,7 @@ void StyledElement::addCSSColor(MappedAttribute* attr, int id, const String &c)
             colors[0] >>= 4*maxDigit;
             colors[1] >>= 4*maxDigit;
             colors[2] >>= 4*maxDigit;
-            // assert(colors[0] < 0x100 && colors[1] < 0x100 && colors[2] < 0x100);
+            // ASSERT(colors[0] < 0x100 && colors[1] < 0x100 && colors[2] < 0x100);
             
             color = String::format("#%02x%02x%02x", colors[0], colors[1], colors[2]);
             if (attr->decl()->setProperty(id, color, false))
@@ -419,7 +418,7 @@ unsigned MappedAttributeHash::hash(const MappedAttributeKey& key)
     tmp = (p[1] << 11) ^ hash;
     hash = (hash << 16) ^ tmp;
     hash += hash >> 11;
-    assert(sizeof(key.name) == 4 || sizeof(key.name) == 8);
+    ASSERT(sizeof(key.name) == 4 || sizeof(key.name) == 8);
     if (sizeof(key.name) == 8) {
         p += 2;
         hash += p[0];
@@ -433,7 +432,7 @@ unsigned MappedAttributeHash::hash(const MappedAttributeKey& key)
     tmp = (p[1] << 11) ^ hash;
     hash = (hash << 16) ^ tmp;
     hash += hash >> 11;
-    assert(sizeof(key.value) == 4 || sizeof(key.value) == 8);
+    ASSERT(sizeof(key.value) == 4 || sizeof(key.value) == 8);
     if (sizeof(key.value) == 8) {
         p += 2;
         hash += p[0];

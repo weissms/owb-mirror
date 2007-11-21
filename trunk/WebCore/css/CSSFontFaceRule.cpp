@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -37,10 +37,18 @@ CSSFontFaceRule::~CSSFontFaceRule()
 {
 }
 
+void CSSFontFaceRule::setDeclaration(PassRefPtr<CSSMutableStyleDeclaration> style)
+{
+    m_style = style;
+}
+
 String CSSFontFaceRule::cssText() const
 {
-    // FIXME: Implement!
-    return String();
+    String result("@font-face");
+    result += " { ";
+    result += m_style->cssText();
+    result += "}";
+    return result;
 }
 
 } // namespace WebCore

@@ -1,6 +1,6 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,17 +16,17 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEFloodElement.h"
 
 #include "Attr.h"
-#include "RenderView.h"
+#include "RenderStyle.h"
 #include "SVGNames.h"
 #include "SVGRenderStyle.h"
 #include "SVGResourceFilter.h"
@@ -55,25 +55,32 @@ void SVGFEFloodElement::parseMappedAttribute(MappedAttribute* attr)
         SVGFilterPrimitiveStandardAttributes::parseMappedAttribute(attr);
 }
 
-SVGFEFlood* SVGFEFloodElement::filterEffect() const
+SVGFEFlood* SVGFEFloodElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFEFlood*>(SVGResourceFilter::createFilterEffect(FE_FLOOD));
+        m_filterEffect = static_cast<SVGFEFlood*>(SVGResourceFilter::createFilterEffect(FE_FLOOD, filter));
     if (!m_filterEffect)
         return 0;
+
     m_filterEffect->setIn(in1());
     setStandardAttributes(m_filterEffect);
-    RenderStyle* filterStyle = const_cast<SVGFEFloodElement *>(this)->styleForRenderer(parentNode()->renderer());
-    const SVGRenderStyle* svgStyle = filterStyle->svgStyle();
-    m_filterEffect->setFloodColor(svgStyle->floodColor());
-    m_filterEffect->setFloodOpacity(svgStyle->floodOpacity());
-    filterStyle->deref(view()->renderArena());
 
+    SVGFEFloodElement* nonConstThis = const_cast<SVGFEFloodElement*>(this);
+
+    RenderStyle* parentStyle = nonConstThis->styleForRenderer(parent()->renderer());
+    RenderStyle* filterStyle = nonConstThis->resolveStyle(parentStyle);
+    
+    m_filterEffect->setFloodColor(filterStyle->svgStyle()->floodColor());
+    m_filterEffect->setFloodOpacity(filterStyle->svgStyle()->floodOpacity());
+    
+    parentStyle->deref(document()->renderArena());
+    filterStyle->deref(document()->renderArena());
+    
     return m_filterEffect;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

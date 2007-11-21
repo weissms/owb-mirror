@@ -24,7 +24,7 @@
 #ifndef KJS_FUNCTION_H
 #define KJS_FUNCTION_H
 
-#include "internal.h"
+#include "object.h"
 #include <wtf/OwnPtr.h>
 #include <wtf/Vector.h>
 
@@ -32,68 +32,74 @@ namespace KJS {
 
   class ActivationImp;
   class FunctionBodyNode;
-  class Parameter;
+  class FunctionPrototype;
+
+  enum CodeType {
+      GlobalCode,
+      EvalCode,
+      FunctionCode,
+  };
+
+  class InternalFunctionImp : public JSObject {
+  public:
+    InternalFunctionImp();
+    InternalFunctionImp(FunctionPrototype*);
+    InternalFunctionImp(FunctionPrototype*, const Identifier&);
+
+    virtual bool implementsCall() const;
+    virtual JSValue* callAsFunction(ExecState*, JSObject* thisObjec, const List& args) = 0;
+    virtual bool implementsHasInstance() const;
+
+    virtual const ClassInfo* classInfo() const { return &info; }
+    static const ClassInfo info;
+    const Identifier& functionName() const { return m_name; }
+
+  private:
+    Identifier m_name;
+  };
 
   /**
-   * @short Implementation class for internal Functions.
+   * @internal
+   *
+   * The initial value of Function.prototype (and thus all objects created
+   * with the Function constructor)
    */
+  class FunctionPrototype : public InternalFunctionImp {
+  public:
+    FunctionPrototype(ExecState *exec);
+    virtual ~FunctionPrototype();
+
+    virtual JSValue *callAsFunction(ExecState *exec, JSObject *thisObj, const List &args);
+  };
+
   class FunctionImp : public InternalFunctionImp {
     friend class ActivationImp;
   public:
-    FunctionImp(ExecState*, const Identifier& n, FunctionBodyNode* b);
-    virtual ~FunctionImp();
+    FunctionImp(ExecState*, const Identifier& name, FunctionBodyNode*, const ScopeChain&);
 
     virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
     virtual void put(ExecState*, const Identifier& propertyName, JSValue* value, int attr = None);
     virtual bool deleteProperty(ExecState*, const Identifier& propertyName);
 
+    virtual bool implementsConstruct() const { return true; }
+    virtual JSObject* construct(ExecState*, const List& args);
+    
     virtual JSValue* callAsFunction(ExecState*, JSObject* thisObj, const List& args);
+    Completion execute(ExecState*);
 
-    void addParameter(const Identifier& n);
+    // Note: unlike body->paramName, this returns Identifier::null for parameters 
+    // that will never get set, due to later param having the same name
     Identifier getParameterName(int index);
-    // parameters in string representation, e.g. (a, b, c)
-    UString parameterString() const;
-    virtual CodeType codeType() const = 0;
-
-    virtual Completion execute(ExecState*) = 0;
 
     virtual const ClassInfo* classInfo() const { return &info; }
     static const ClassInfo info;
 
     RefPtr<FunctionBodyNode> body;
 
-    /**
-     * Returns the scope of this object. This is used when execution declared
-     * functions - the execution context for the function is initialized with
-     * extra object in it's scope. An example of this is functions declared
-     * inside other functions:
-     *
-     * \code
-     * function f() {
-     *
-     *   function b() {
-     *     return prototype;
-     *   }
-     *
-     *   var x = 4;
-     *   // do some stuff
-     * }
-     * f.prototype = new String();
-     * \endcode
-     *
-     * When the function f.b is executed, its scope will include properties of
-     * f. So in the example above the return value of f.b() would be the new
-     * String object that was assigned to f.prototype.
-     *
-     * @param exec The current execution state
-     * @return The function's scope
-     */
-    const ScopeChain& scope() const { return _scope; }
     void setScope(const ScopeChain& s) { _scope = s; }
+    const ScopeChain& scope() const { return _scope; }
 
     virtual void mark();
-  protected:
-    OwnPtr<Vector<Parameter> > parameters;
 
   private:
     ScopeChain _scope;
@@ -101,27 +107,6 @@ namespace KJS {
     static JSValue* argumentsGetter(ExecState*, JSObject*, const Identifier&, const PropertySlot&);
     static JSValue* callerGetter(ExecState*, JSObject*, const Identifier&, const PropertySlot&);
     static JSValue* lengthGetter(ExecState*, JSObject*, const Identifier&, const PropertySlot&);
-
-    void processParameters(ExecState*, const List&);
-    virtual void processVarDecls(ExecState*);
-  };
-
-  class DeclaredFunctionImp : public FunctionImp {
-  public:
-    DeclaredFunctionImp(ExecState*, const Identifier& n,
-                        FunctionBodyNode* b, const ScopeChain& sc);
-
-    bool implementsConstruct() const;
-    JSObject* construct(ExecState*, const List& args);
-
-    virtual Completion execute(ExecState*);
-    CodeType codeType() const { return FunctionCode; }
-
-    virtual const ClassInfo* classInfo() const { return &info; }
-    static const ClassInfo info;
-
-  private:
-    virtual void processVarDecls(ExecState*);
   };
 
   class IndexToNameMap {
@@ -152,7 +137,7 @@ namespace KJS {
   private:
     static JSValue* mappedIndexGetter(ExecState*, JSObject*, const Identifier&, const PropertySlot& slot);
 
-    ActivationImp* _activationObject; 
+    ActivationImp* _activationObject;
     mutable IndexToNameMap indexToNameMap;
   };
 
@@ -166,15 +151,18 @@ namespace KJS {
 
     virtual const ClassInfo* classInfo() const { return &info; }
     static const ClassInfo info;
-    
+
     virtual void mark();
 
     bool isActivation() { return true; }
+
+    void releaseArguments() { _arguments.reset(); }
+
   private:
     static PropertySlot::GetValueFunc getArgumentsGetter();
     static JSValue* argumentsGetter(ExecState*, JSObject*, const Identifier&, const PropertySlot& slot);
-    void createArgumentsObject(ExecState*) const;
-    
+    void createArgumentsObject(ExecState*);
+
     FunctionImp* _function;
     List _arguments;
     mutable Arguments* _argumentsObject;
@@ -184,7 +172,6 @@ namespace KJS {
   public:
     GlobalFuncImp(ExecState*, FunctionPrototype*, int i, int len, const Identifier&);
     virtual JSValue* callAsFunction(ExecState*, JSObject* thisObj, const List& args);
-    virtual CodeType codeType() const;
     enum { Eval, ParseInt, ParseFloat, IsNaN, IsFinite, Escape, UnEscape,
            DecodeURI, DecodeURIComponent, EncodeURI, EncodeURIComponent
 #ifndef NDEBUG
@@ -194,6 +181,9 @@ namespace KJS {
   private:
     int id;
   };
+
+  static const double mantissaOverflowLowerBound = 9007199254740992.0;
+  double parseIntOverflow(const char* s, int length, int radix);
 
 UString escapeStringForPrettyPrinting(const UString& s);
 

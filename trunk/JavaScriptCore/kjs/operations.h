@@ -23,12 +23,7 @@
 #ifndef _KJS_OPERATIONS_H_
 #define _KJS_OPERATIONS_H_
 
-
-#ifdef __OWB__
-#include <BIMath.h>
-#else
 #include <math.h>
-#endif
 
 namespace KJS {
 
@@ -49,32 +44,8 @@ namespace KJS {
 
   bool equal(ExecState *exec, JSValue *v1, JSValue *v2);
   bool strictEqual(ExecState *exec, JSValue *v1, JSValue *v2);
-  /**
-   * This operator performs an abstract relational comparison of the two
-   * arguments that can be of arbitrary type. If possible, conversions to the
-   * string or number type will take place before the comparison.
-   *
-   * @return 1 if v1 is "less-than" v2, 0 if the relation is "greater-than-or-
-   * equal". -1 if the result is undefined.
-   */
-  int relation(ExecState *exec, JSValue *v1, JSValue *v2);
   int maxInt(int d1, int d2);
   int minInt(int d1, int d2);
-  /**
-   * Additive operator. Either performs an addition or substraction of v1
-   * and v2.
-   * @param oper '+' or '-' for an addition or substraction, respectively.
-   * @return The result of the operation.
-   */
-  JSValue *add(ExecState *exec, JSValue *v1, JSValue *v2, char oper);
-  /**
-   * Multiplicative operator. Either multiplies/divides v1 and v2 or
-   * calculates the remainder from an division.
-   * @param oper '*', '/' or '%' for a multiplication, division or
-   * modulo operation.
-   * @return The result of the operation.
-   */
-  JSValue *mult(ExecState *exec, JSValue *v1, JSValue *v2, char oper);
 
 }
 

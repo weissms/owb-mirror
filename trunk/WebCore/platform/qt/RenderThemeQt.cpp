@@ -19,8 +19,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -63,7 +63,7 @@ bool RenderThemeQt::supportsHover(const RenderStyle*) const
 
 bool RenderThemeQt::supportsFocusRing(const RenderStyle* style) const
 {
-    return true;
+    return supportsFocus(style->appearance());
 }
 
 short RenderThemeQt::baselinePosition(const RenderObject* o) const
@@ -258,8 +258,12 @@ bool RenderThemeQt::paintTextField(RenderObject* o, const RenderObject::PaintInf
         return true;
 
     QStyleOptionFrameV2 panel;
+    
     panel.initFrom(widget);
     panel.rect = r;
+    panel.state |= QStyle::State_Sunken;
+    panel.features = QStyleOptionFrameV2::None;
+
     // Get the correct theme data for a button
     EAppearance appearance = applyTheme(panel, o);
     Q_ASSERT(appearance == TextFieldAppearance);
@@ -267,7 +271,7 @@ bool RenderThemeQt::paintTextField(RenderObject* o, const RenderObject::PaintInf
     // Now paint the text field.
     style->drawPrimitive(QStyle::PE_PanelLineEdit, &panel, painter, widget);
     style->drawPrimitive(QStyle::PE_FrameLineEdit, &panel, painter, widget);
-
+      
     return false;
 }
 
@@ -307,10 +311,16 @@ bool RenderThemeQt::paintMenuList(RenderObject* o, const RenderObject::PaintInfo
 
     QStyleOptionComboBox opt;
     opt.initFrom(widget);
-    opt.rect = r;
+    EAppearance appearance = applyTheme(opt, o);
+    const QPoint topLeft = r.topLeft();
+    painter->translate(topLeft);
+    opt.rect.moveTo(QPoint(0,0));
+    opt.rect.setSize(r.size());
+
     opt.frame = false;
 
     style->drawComplexControl(QStyle::CC_ComboBox, &opt, painter, widget);
+    painter->translate(-topLeft);
     return false;
 }
 
@@ -394,6 +404,8 @@ bool RenderThemeQt::supportsFocus(EAppearance appearance) const
         case ButtonAppearance:
         case TextFieldAppearance:
         case MenulistAppearance:
+        case RadioAppearance:
+        case CheckboxAppearance:
             return true;
         default: // No for all others...
             return false;
@@ -430,10 +442,28 @@ EAppearance RenderThemeQt::applyTheme(QStyleOption& option, RenderObject* o) con
 
     EAppearance result = o->style()->appearance();
 
-    if (isPressed(o))
-        option.state |= QStyle::State_Sunken;
-    else if (result == PushButtonAppearance)
-        option.state |= QStyle::State_Raised;
+    switch (result) {
+        case PushButtonAppearance:
+        case SquareButtonAppearance:
+        case ButtonAppearance:
+        case ButtonBevelAppearance:
+        case ListItemAppearance:
+        case MenulistButtonAppearance:
+        case ScrollbarButtonLeftAppearance:
+        case ScrollbarButtonRightAppearance:
+        case ScrollbarTrackHorizontalAppearance:
+        case ScrollbarTrackVerticalAppearance:
+        case ScrollbarThumbHorizontalAppearance:
+        case ScrollbarThumbVerticalAppearance:
+        case SearchFieldResultsButtonAppearance:
+        case SearchFieldCancelButtonAppearance: {
+            if (isPressed(o))
+                option.state |= QStyle::State_Sunken;
+            else if (result == PushButtonAppearance)
+                option.state |= QStyle::State_Raised;
+            break;
+        }
+    }
 
     if(result == RadioAppearance || result == CheckboxAppearance)
         option.state |= (isChecked(o) ? QStyle::State_On : QStyle::State_Off);
@@ -453,7 +483,7 @@ void RenderThemeQt::setSizeFromFont(RenderStyle* style) const
 
 IntSize RenderThemeQt::sizeForFont(RenderStyle* style) const
 {
-    const QFontMetrics fm(style->font());
+    const QFontMetrics fm(style->font().font());
     QSize size(0, 0);
     switch (style->appearance()) {
     case CheckboxAppearance: {
@@ -514,7 +544,10 @@ void RenderThemeQt::setPopupPadding(RenderStyle* style) const
 {
     const int padding = 8;
     style->setPaddingLeft(Length(padding, Fixed));
-    style->setPaddingRight(Length(padding, Fixed));
+    QStyleOptionComboBox opt;
+    int w = QApplication::style()->pixelMetric(QStyle::PM_ButtonIconSize, &opt, 0);
+    style->setPaddingRight(Length(padding + w, Fixed));
+
     style->setPaddingTop(Length(1, Fixed));
     style->setPaddingBottom(Length(0, Fixed));
 }

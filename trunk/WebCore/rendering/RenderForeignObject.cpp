@@ -15,20 +15,21 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
-
+#if ENABLE(SVG)
 #include "RenderForeignObject.h"
 
 #include "GraphicsContext.h"
+#include "RenderView.h"
 #include "SVGForeignObjectElement.h"
 #include "SVGLength.h"
+#include "SVGTransformList.h"
 
 namespace WebCore {
 
@@ -37,18 +38,10 @@ RenderForeignObject::RenderForeignObject(SVGForeignObjectElement* node)
 {
 }
 
-#ifdef __OWB__
-BAL::BTAffineTransform RenderForeignObject::translationForAttributes()
-#else
 AffineTransform RenderForeignObject::translationForAttributes()
-#endif
 {
     SVGForeignObjectElement* foreign = static_cast<SVGForeignObjectElement*>(element());
-#ifdef __OWB__
-    return BAL::BTAffineTransform().translate(foreign->x().value(), foreign->y().value());
-#else
     return AffineTransform().translate(foreign->x().value(), foreign->y().value());
-#endif
 }
 
 void RenderForeignObject::paint(PaintInfo& paintInfo, int parentX, int parentY)
@@ -79,11 +72,7 @@ void RenderForeignObject::paint(PaintInfo& paintInfo, int parentX, int parentY)
 
 void RenderForeignObject::computeAbsoluteRepaintRect(IntRect& r, bool f)
 {
-#ifdef __OWB__
-    BAL::BTAffineTransform transform = translationForAttributes() * localTransform();
-#else
     AffineTransform transform = translationForAttributes() * localTransform();
-#endif
     r = transform.mapRect(r);
 
     RenderBlock::computeAbsoluteRepaintRect(r, f);
@@ -94,33 +83,44 @@ bool RenderForeignObject::requiresLayer()
     return false;
 }
 
+bool RenderForeignObject::calculateLocalTransform()
+{
+    AffineTransform oldTransform = m_localTransform;
+    m_localTransform = static_cast<SVGForeignObjectElement*>(element())->animatedLocalTransform();
+    return (oldTransform != m_localTransform);
+}
+
 void RenderForeignObject::layout()
 {
     ASSERT(needsLayout());
-    ASSERT(minMaxKnown());
+
+    // Arbitrary affine transforms are incompatible with LayoutState.
+    view()->disableLayoutState();
 
     IntRect oldBounds;
+    IntRect oldOutlineBox;
     bool checkForRepaint = checkForRepaintDuringLayout();
-    if (checkForRepaint)
+    if (checkForRepaint) {
         oldBounds = m_absoluteBounds;
-
+        oldOutlineBox = absoluteOutlineBox();
+    }
+    
+    calculateLocalTransform();
+    
     RenderBlock::layout();
 
-    m_absoluteBounds = getAbsoluteRepaintRect();
+    m_absoluteBounds = absoluteClippedOverflowRect();
 
     if (checkForRepaint)
-        repaintAfterLayoutIfNeeded(oldBounds);
+        repaintAfterLayoutIfNeeded(oldBounds, oldOutlineBox);
 
+    view()->enableLayoutState();
     setNeedsLayout(false);
 }
 
 bool RenderForeignObject::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int x, int y, int tx, int ty, HitTestAction hitTestAction)
 {
-#ifdef __OWB__
-    BAL::BTAffineTransform totalTransform = absoluteTransform();
-#else
     AffineTransform totalTransform = absoluteTransform();
-#endif
     totalTransform *= translationForAttributes();
     double localX, localY;
     totalTransform.inverse().map(x, y, &localX, &localY);
@@ -129,4 +129,4 @@ bool RenderForeignObject::nodeAtPoint(const HitTestRequest& request, HitTestResu
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

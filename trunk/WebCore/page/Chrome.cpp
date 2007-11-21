@@ -1,6 +1,6 @@
 // -*- mode: c++; c-basic-offset: 4 -*-
 /*
- * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Trolltech ASA
  *
  * This library is free software; you can redistribute it and/or
@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -25,13 +25,42 @@
 #include "ChromeClient.h"
 #include "FloatRect.h"
 #include "Frame.h"
+#include "FrameTree.h"
+#include "HTMLFormElement.h"
+#include "HTMLInputElement.h"
+#include "HTMLNames.h"
+#include "HitTestResult.h"
+#include "InspectorController.h"
 #include "Page.h"
 #include "ResourceHandle.h"
+#include "Settings.h"
+#ifdef __OWB_JS__
+#include "kjs_window.h"
+#endif //__OWB_JS__
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefPtr.h>
 #include <wtf/Vector.h>
 
 namespace WebCore {
+
+using namespace HTMLNames;
+#ifdef __OWB_JS__
+using namespace KJS;
+#endif //__OWB_JS__
+using namespace std;
+
+class PageGroupLoadDeferrer : Noncopyable {
+public:
+    PageGroupLoadDeferrer(Page*, bool deferSelf);
+    ~PageGroupLoadDeferrer();
+private:
+    Vector<RefPtr<Frame>, 16> m_deferredFrames;
+#ifdef __OWB_JS__
+#if !PLATFORM(MAC)
+    Vector<pair<RefPtr<Frame>, PausedTimeouts*>, 16> m_pausedTimeouts;
+#endif
+#endif //__OWB_JS__
+};
 
 Chrome::Chrome(Page* page, ChromeClient* client)
     : m_page(page)
@@ -85,14 +114,14 @@ void Chrome::takeFocus(FocusDirection direction) const
     m_client->takeFocus(direction);
 }
 
-Page* Chrome::createWindow(const FrameLoadRequest& request) const
+Page* Chrome::createWindow(Frame* frame, const FrameLoadRequest& request) const
 {
-    return m_client->createWindow(request);
+    return m_client->createWindow(frame, request);
 }
 
-Page* Chrome::createModalDialog(const FrameLoadRequest& request) const
+Page* Chrome::createModalDialog(Frame* frame, const FrameLoadRequest& request) const
 {
-    return m_client->createModalDialog(request);
+    return m_client->createModalDialog(frame, request);
 }
 
 void Chrome::show() const
@@ -121,25 +150,10 @@ void Chrome::runModal() const
 
     // Defer callbacks in all the other pages in this group, so we don't try to run JavaScript
     // in a way that could interact with this view.
-    Vector<Page*> pagesToDefer;
-    if (const HashSet<Page*>* group = m_page->frameNamespace()) {
-        HashSet<Page*>::const_iterator end = group->end();
-        for (HashSet<Page*>::const_iterator it = group->begin(); it != end; ++it) {
-            Page* otherPage = *it;
-            if (otherPage != m_page && !otherPage->defersLoading())
-                pagesToDefer.append(otherPage);
-        }
-    }
-    size_t count = pagesToDefer.size();
-    for (size_t i = 0; i < count; ++i)
-        pagesToDefer[i]->setDefersLoading(true);
+    PageGroupLoadDeferrer deferrer(m_page, false);
 
-    // Go run the modal event loop.
+    TimerBase::fireTimersInNestedEventLoop();
     m_client->runModal();
-    
-    // Restore loading for any views that we shut down.
-    for (size_t i = 0; i < count; ++i)
-        pagesToDefer[i]->setDefersLoading(false);
 }
 
 void Chrome::setToolbarsVisible(bool b) const
@@ -187,9 +201,13 @@ void Chrome::setResizable(bool b) const
     m_client->setResizable(b);
 }
 
-void Chrome::addMessageToConsole(const String &message, unsigned lineNumber, const String &sourceURL)
+void Chrome::addMessageToConsole(MessageSource source, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceID)
 {
-    m_client->addMessageToConsole(message, lineNumber, sourceURL);
+    if (source == JSMessageSource && level == ErrorMessageLevel)
+        m_client->addMessageToConsole(message, lineNumber, sourceID);
+
+    if (InspectorController* inspector = m_page->inspectorController())
+        inspector->addMessageToConsole(source, level, message, lineNumber, sourceID);
 }
 
 bool Chrome::canRunBeforeUnloadConfirmPanel()
@@ -199,6 +217,10 @@ bool Chrome::canRunBeforeUnloadConfirmPanel()
 
 bool Chrome::runBeforeUnloadConfirmPanel(const String& message, Frame* frame)
 {
+    // Defer loads in case the client method runs a new event loop that would 
+    // otherwise cause the load to continue while we're in the middle of executing JavaScript.
+    PageGroupLoadDeferrer deferrer(m_page, true);
+
     return m_client->runBeforeUnloadConfirmPanel(message, frame);
 }
 
@@ -209,14 +231,23 @@ void Chrome::closeWindowSoon()
 
 void Chrome::runJavaScriptAlert(Frame* frame, const String& message)
 {
+    // Defer loads in case the client method runs a new event loop that would 
+    // otherwise cause the load to continue while we're in the middle of executing JavaScript.
+    PageGroupLoadDeferrer deferrer(m_page, true);
+
     ASSERT(frame);
     String text = message;
     text.replace('\\', frame->backslashAsCurrencySymbol());
+
     m_client->runJavaScriptAlert(frame, text);
 }
 
 bool Chrome::runJavaScriptConfirm(Frame* frame, const String& message)
 {
+    // Defer loads in case the client method runs a new event loop that would 
+    // otherwise cause the load to continue while we're in the middle of executing JavaScript.
+    PageGroupLoadDeferrer deferrer(m_page, true);
+
     ASSERT(frame);
     String text = message;
     text.replace('\\', frame->backslashAsCurrencySymbol());
@@ -226,6 +257,10 @@ bool Chrome::runJavaScriptConfirm(Frame* frame, const String& message)
 
 bool Chrome::runJavaScriptPrompt(Frame* frame, const String& prompt, const String& defaultValue, String& result)
 {
+    // Defer loads in case the client method runs a new event loop that would 
+    // otherwise cause the load to continue while we're in the middle of executing JavaScript.
+    PageGroupLoadDeferrer deferrer(m_page, true);
+
     ASSERT(frame);
     String promptText = prompt;
     promptText.replace('\\', frame->backslashAsCurrencySymbol());
@@ -251,6 +286,10 @@ void Chrome::setStatusbarText(Frame* frame, const String& status)
 
 bool Chrome::shouldInterruptJavaScript()
 {
+    // Defer loads in case the client method runs a new event loop that would 
+    // otherwise cause the load to continue while we're in the middle of executing JavaScript.
+    PageGroupLoadDeferrer deferrer(m_page, true);
+
     return m_client->shouldInterruptJavaScript();
 }
 
@@ -274,5 +313,106 @@ void Chrome::updateBackingStore()
     m_client->updateBackingStore();
 }
 
-} // namespace WebCore
+void Chrome::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)
+{
+    m_client->mouseDidMoveOverElement(result, modifierFlags);
+}
 
+void Chrome::setToolTip(const HitTestResult& result)
+{
+    // First priority is a potential toolTip representing a spelling or grammar error
+    String toolTip = result.spellingToolTip();
+
+    // Next priority is a toolTip from a URL beneath the mouse (if preference is set to show those).
+    if (toolTip.isEmpty() && m_page->settings()->showsURLsInToolTips()) {
+        if (Node* node = result.innerNonSharedNode()) {
+            // Get tooltip representing form action, if relevant
+            if (node->hasTagName(inputTag)) {
+                HTMLInputElement* input = static_cast<HTMLInputElement*>(node);
+                if (input->inputType() == HTMLInputElement::SUBMIT)
+                    if (HTMLFormElement* form = input->form())
+                        toolTip = form->action();
+            }
+        }
+
+        // Get tooltip representing link's URL
+        if (toolTip.isEmpty())
+            // FIXME: Need to pass this URL through userVisibleString once that's in WebCore
+            toolTip = result.absoluteLinkURL().url();
+    }
+
+    // Lastly we'll consider a tooltip for element with "title" attribute
+    if (toolTip.isEmpty())
+        toolTip = result.title();
+
+    m_client->setToolTip(toolTip);
+}
+
+void Chrome::print(Frame* frame)
+{
+    m_client->print(frame);
+}
+
+bool Chrome::runDatabaseSizeLimitPrompt(Frame* f, const String& origin)
+{
+    return m_client->runDatabaseSizeLimitPrompt(f, origin);
+}
+
+
+PageGroupLoadDeferrer::PageGroupLoadDeferrer(Page* page, bool deferSelf)
+{
+    const HashSet<Page*>* group = page->frameNamespace();
+
+    if (!group)
+        return;
+
+    HashSet<Page*>::const_iterator end = group->end();
+    for (HashSet<Page*>::const_iterator it = group->begin(); it != end; ++it) {
+        Page* otherPage = *it;
+        if ((deferSelf || otherPage != page)) {
+            if (!otherPage->defersLoading())
+                m_deferredFrames.append(otherPage->mainFrame());
+
+#ifdef __OWB_JS__
+#if !PLATFORM(MAC)
+            for (Frame* frame = otherPage->mainFrame(); frame; frame = frame->tree()->traverseNext()) {
+                if (KJS::Window* window = KJS::Window::retrieveWindow(frame)) {
+                    PausedTimeouts* timeouts = window->pauseTimeouts();
+
+                    m_pausedTimeouts.append(make_pair(frame, timeouts));
+                }
+            }
+#endif
+#endif //__OWB_JS__
+        }
+    }
+
+    size_t count = m_deferredFrames.size();
+    for (size_t i = 0; i < count; ++i)
+        if (Page* page = m_deferredFrames[i]->page())
+            page->setDefersLoading(true);
+}
+
+PageGroupLoadDeferrer::~PageGroupLoadDeferrer()
+{
+    size_t count = m_deferredFrames.size();
+    for (size_t i = 0; i < count; ++i)
+        if (Page* page = m_deferredFrames[i]->page())
+            page->setDefersLoading(false);
+
+#ifdef __OWB_JS__
+#if !PLATFORM(MAC)
+    count = m_pausedTimeouts.size();
+
+    for (size_t i = 0; i < count; i++) {
+        KJS::Window* window = KJS::Window::retrieveWindow(m_pausedTimeouts[i].first.get());
+        if (window)
+            window->resumeTimeouts(m_pausedTimeouts[i].second);
+        delete m_pausedTimeouts[i].second;
+    }
+#endif
+#endif //__OWB_JS__
+}
+
+
+} // namespace WebCore

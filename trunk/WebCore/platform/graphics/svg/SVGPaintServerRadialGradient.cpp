@@ -25,7 +25,7 @@
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPaintServerRadialGradient.h"
 #include "SVGRenderTreeAsText.h"
 
@@ -33,7 +33,7 @@ namespace WebCore {
 
 SVGPaintServerRadialGradient::SVGPaintServerRadialGradient(const SVGGradientElement* owner)
     : SVGPaintServerGradient(owner)
-    , m_radius(0.0)
+    , m_radius(0.0f)
 {
 }
 

@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -25,23 +25,12 @@
 #include "Page.h"
 #include <stdarg.h>
 #include <wtf/Platform.h>
+#include <wtf/StringExtras.h>
 #include <wtf/Vector.h>
 
 using std::swap;
 
 namespace WebCore {
-
-// FIXME: This belongs in some header file where multiple clients can share it.
-#if PLATFORM(WIN_OS)
-int snprintf(char* str, size_t size, const char* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    int result = vsnprintf_s(str, size, _TRUNCATE, format, args);
-    va_end(args);
-    return result;
-}
-#endif
 
 FrameTree::~FrameTree()
 {
@@ -173,10 +162,21 @@ Frame* FrameTree::find(const AtomicString& name) const
         return m_thisFrame;
     
     if (name == "_top")
-        return m_thisFrame->page()->mainFrame();
+#ifdef __OWB_WEB_UI__
+        if (m_thisFrame->tree()->parent()->tree()->name() == "_ui")
+        	return m_thisFrame;
+	    else
+#endif
+    		return m_thisFrame->page()->mainFrame();
+
     
     if (name == "_parent")
-        return parent() ? parent() : m_thisFrame;
+#ifdef __OWB_WEB_UI__
+        if (m_thisFrame->tree()->parent()->tree()->name() == "_ui")
+		    return m_thisFrame;
+	    else
+#endif
+        	return parent() ? parent() : m_thisFrame;
 
     // Since "_blank" should never be any frame's name, the following just amounts to an optimization.
     if (name == "_blank")

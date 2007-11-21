@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,14 +27,12 @@
 #define DeprecatedString_h
 
 #include "DeprecatedCString.h"
-
+#include <wtf/ASCIICType.h>
 #include <wtf/unicode/Unicode.h>
 
-#include <ctype.h>
-
-/* On ARM some versions of GCC don't pack structures by default so sizeof(DeprecatedChar)
+/* On some ARM platforms GCC won't pack structures by default so sizeof(DeprecatedChar)
    will end up being != 2 which causes crashes since the code depends on that. */
-#if COMPILER(GCC) && PLATFORM(ARM)
+#if COMPILER(GCC) && PLATFORM(FORCE_PACK)
 #define PACK_STRUCT __attribute__((packed))
 #else
 #define PACK_STRUCT
@@ -56,12 +54,12 @@ class NSString;
 class QString;
 #endif
 
-namespace KJS {
 #ifdef __OWB_JS__
+namespace KJS {
     class Identifier;
     class UString;
-#endif
 }
+#endif //__OWB_JS__
 
 namespace WebCore {
 
@@ -123,9 +121,13 @@ inline unsigned short DeprecatedChar::unicode() const
 inline bool DeprecatedChar::isSpace() const
 {
 #if USE(ICU_UNICODE)
+#ifdef __OWB__
+    return ::BAL::getBIInternationalization()->isSpace(c);
+#else
     // Use isspace() for basic Latin-1.
     // This will include newlines, which aren't included in unicode DirWS.
-    return c <= 0x7F ? isspace(c) : (u_charDirection(c) == U_WHITE_SPACE_NEUTRAL);
+    return c <= 0x7F ? WTF::isASCIISpace(c) : (u_charDirection(c) == U_WHITE_SPACE_NEUTRAL);
+#endif // __OWB__
 #elif USE(QT4_UNICODE)
     return QChar(c).isSpace();
 #endif
@@ -134,8 +136,12 @@ inline bool DeprecatedChar::isSpace() const
 inline DeprecatedChar DeprecatedChar::lower() const
 {
 #if USE(ICU_UNICODE)
+#ifdef __OWB__
+    return ::BAL::getBIInternationalization()->toLower(c);
+#else
     // FIXME: If fast enough, we should just call u_tolower directly.
-    return c <= 0x7F ? tolower(c) : u_tolower(c);
+    return c <= 0x7F ? WTF::toASCIILower(c) : u_tolower(c);
+#endif // __OWB__
 #elif USE(QT4_UNICODE)
     return QChar(c).toLower().unicode();
 #endif
@@ -144,8 +150,12 @@ inline DeprecatedChar DeprecatedChar::lower() const
 inline DeprecatedChar DeprecatedChar::upper() const
 {
 #if USE(ICU_UNICODE)
+#ifdef __OWB__
+    return ::BAL::getBIInternationalization()->toUpper(c);
+#else
     // FIXME: If fast enough, we should just call u_toupper directly.
-    return c <= 0x7F ? toupper(c) : u_toupper(c);
+    return c <= 0x7F ? WTF::toASCIIUpper(c) : u_toupper(c);
+#endif //__OWB__
 #elif USE(QT4_UNICODE)
     return QChar(c).toUpper().unicode();
 #endif
@@ -212,7 +222,7 @@ struct DeprecatedStringData
     void initialize(const char *u, unsigned l);
 
     // Move from destination to source.
-    DeprecatedStringData(DeprecatedStringData &);
+    static DeprecatedStringData* createAndAdopt(DeprecatedStringData &);
 
     ~DeprecatedStringData();
 
@@ -251,6 +261,8 @@ struct DeprecatedStringData
     char _internalBuffer[WEBCORE_DS_INTERNAL_BUFFER_SIZE]; // Pad out to a (((size + 1) & ~15) + 14) size
     
 private:
+    void adopt(DeprecatedStringData&);
+
     DeprecatedStringData(const DeprecatedStringData &);
     DeprecatedStringData &operator=(const DeprecatedStringData &);
 };
@@ -272,7 +284,8 @@ public:
 #ifdef __OWB_JS__
     DeprecatedString(const KJS::Identifier&);
     DeprecatedString(const KJS::UString&);
-#endif    
+#endif //__OWB_JS__
+    
     DeprecatedString(const DeprecatedString &);
     DeprecatedString &operator=(const DeprecatedString &);
 
@@ -281,7 +294,7 @@ public:
 #ifdef __OWB_JS__
     operator KJS::Identifier() const;
     operator KJS::UString() const;
-#endif
+#endif //__OWB_JS__
 
 #if PLATFORM(QT)
     DeprecatedString(const QString&);
@@ -352,8 +365,12 @@ public:
     short toShort(bool *ok = 0, int base = 10) const;
     unsigned short toUShort(bool *ok = 0, int base = 10) const;
     int toInt(bool *ok = 0, int base = 10) const;
+    int64_t toInt64(bool *ok = 0, int base = 10) const;
     unsigned toUInt(bool *ok = 0, int base = 10) const;
+    uint64_t toUInt64(bool *ok = 0, int base = 10) const;
+
     double toDouble(bool *ok = 0) const;
+    float toFloat(bool* ok = 0) const;
 
     static DeprecatedString number(int);
     static DeprecatedString number(unsigned);
@@ -466,6 +483,7 @@ private:
 
     friend bool operator==(const DeprecatedString &, const DeprecatedString &);
     friend bool operator==(const DeprecatedString &, const char *);
+    friend bool equalIgnoringCase(const DeprecatedString&, const DeprecatedString&);
 
     friend class DeprecatedConstString;
     friend class QGDict;
@@ -479,6 +497,10 @@ DeprecatedString operator+(const DeprecatedString &, char);
 DeprecatedString operator+(const char *, const DeprecatedString &);
 DeprecatedString operator+(DeprecatedChar, const DeprecatedString &);
 DeprecatedString operator+(char, const DeprecatedString &);
+
+bool equalIgnoringCase(const DeprecatedString&, const DeprecatedString&);
+inline bool equalIgnoringCase(const DeprecatedString& a, const char* b) { return equalIgnoringCase(a, DeprecatedString(b)); }
+inline bool equalIgnoringCase(const char* a, const DeprecatedString& b) { return equalIgnoringCase(DeprecatedString(a), b); }
 
 inline char *DeprecatedStringData::ascii()
 {

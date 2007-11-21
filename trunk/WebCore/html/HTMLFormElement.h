@@ -1,10 +1,8 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2000 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -18,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -29,11 +27,15 @@
 #include "HTMLCollection.h" 
 #include "HTMLElement.h"
 
+#include <wtf/OwnPtr.h>
+
 namespace WebCore {
+
 class Event;
 class FormData;
 class HTMLGenericFormElement;
 class HTMLImageElement;
+class HTMLInputElement;
 class HTMLFormCollection;
 
 class HTMLFormElement : public HTMLElement {
@@ -48,7 +50,11 @@ public:
     virtual void insertedIntoDocument();
     virtual void removedFromDocument();
  
+    virtual void handleLocalEvents(Event*, bool useCapture);
+     
     PassRefPtr<HTMLCollection> elements();
+    void getNamedElements(const AtomicString&, Vector<RefPtr<Node> >&);
+    
     unsigned length() const;
     Node* item(unsigned index);
 
@@ -57,9 +63,6 @@ public:
 
     String encoding() const { return m_enctype; }
     void setEncoding(const String& enctype) { setEnctype(enctype); }
-
-    String boundary() const { return m_boundary; }
-    void setBoundary(const String&);
 
     bool autoComplete() const { return m_autocomplete; }
 
@@ -77,9 +80,6 @@ public:
 
     void setMalformed(bool malformed) { m_malformed = malformed; }
     virtual bool isMalformed() { return m_malformed; }
-    
-    void setPreserveAcrossRemove(bool b) { m_preserveAcrossRemove = b; }
-    bool preserveAcrossRemove() const { return m_preserveAcrossRemove; }
 
     virtual bool isURLAttribute(Attribute*) const;
     
@@ -100,17 +100,44 @@ public:
 
     virtual String target() const;
     void setTarget(const String&);
+    
+    PassRefPtr<HTMLGenericFormElement> elementForAlias(const AtomicString&);
+    void addElementAlias(HTMLGenericFormElement*, const AtomicString& alias);
+
+    // FIXME: Change this to be private after getting rid of all the clients.
+    Vector<HTMLGenericFormElement*> formElements;
+
+    class CheckedRadioButtons {
+    public:
+        void addButton(HTMLGenericFormElement*);
+        void removeButton(HTMLGenericFormElement*);
+        HTMLInputElement* checkedButtonForGroup(const AtomicString& name) const;
+
+    private:
+        typedef HashMap<AtomicStringImpl*, HTMLInputElement*> NameToInputMap;
+        OwnPtr<NameToInputMap> m_nameToCheckedRadioButtonMap;
+    };
+    
+    CheckedRadioButtons& checkedRadioButtons() { return m_checkedRadioButtons; }
+    
+private:
+    void parseEnctype(const String&);
+    PassRefPtr<FormData> formData(const char* boundary) const;
+    unsigned formElementIndex(HTMLGenericFormElement*);
 
     friend class HTMLFormCollection;
 
+    typedef HashMap<RefPtr<AtomicStringImpl>, RefPtr<HTMLGenericFormElement> > AliasMap;
+    
+    AliasMap* m_elementAliases;
     HTMLCollection::CollectionInfo* collectionInfo;
 
-    Vector<HTMLGenericFormElement*> formElements;
+    CheckedRadioButtons m_checkedRadioButtons;
+    
     Vector<HTMLImageElement*> imgElements;
     String m_url;
     String m_target;
     String m_enctype;
-    String m_boundary;
     String m_acceptcharset;
     bool m_post : 1;
     bool m_multipart : 1;
@@ -119,14 +146,6 @@ public:
     bool m_doingsubmit : 1;
     bool m_inreset : 1;
     bool m_malformed : 1;
-    bool m_preserveAcrossRemove : 1;
-
-private:
-    void parseEnctype(const String&);
-    PassRefPtr<FormData> formData() const;
-
-    unsigned formElementIndex(HTMLGenericFormElement*);
-
     String oldNameAttr;
 };
 

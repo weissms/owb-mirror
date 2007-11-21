@@ -15,8 +15,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SegmentedString_h
@@ -24,7 +24,6 @@
 
 #include "DeprecatedValueList.h"
 #include "PlatformString.h"
-#include <assert.h>
 
 namespace WebCore {
 
@@ -34,15 +33,18 @@ class SegmentedSubstring {
 private:
     friend class SegmentedString;
     
-    SegmentedSubstring() : m_length(0), m_current(0) {}
-    SegmentedSubstring(const String& str) : m_string(str), m_length(str.length()) {
+    SegmentedSubstring() : m_length(0), m_current(0), m_excludeLineNumbers(false) {}
+    SegmentedSubstring(const String& str) : m_string(str), m_length(str.length()), m_excludeLineNumbers(false) {
         m_current = m_length == 0 ? 0 : m_string.characters();
     }
 
-    SegmentedSubstring(const UChar* str, int length) : m_length(length), m_current(length == 0 ? 0 : str) {}
+    SegmentedSubstring(const UChar* str, int length) : m_length(length), m_current(length == 0 ? 0 : str), m_excludeLineNumbers(false) {}
 
     void clear() { m_length = 0; m_current = 0; }
     
+    bool excludeLineNumbers() const { return m_excludeLineNumbers; }
+    void setExcludeLineNumbers() { m_excludeLineNumbers = true; }
+
     void appendTo(String& str) const {
         if (m_string.characters() == m_current) {
             if (str.isEmpty())
@@ -57,20 +59,18 @@ private:
     String m_string;
     int m_length;
     const UChar* m_current;
+    bool m_excludeLineNumbers;
 };
 
 class SegmentedString {
 public:
     SegmentedString()
-        : m_pushedChar1(0), m_pushedChar2(0), m_currentChar(0)
-        , m_lines(0), m_composite(false) {}
+        : m_pushedChar1(0), m_pushedChar2(0), m_currentChar(0), m_composite(false) {}
     SegmentedString(const UChar* str, int length) : m_pushedChar1(0), m_pushedChar2(0)
-        , m_currentString(str, length), m_currentChar(m_currentString.m_current)
-        , m_lines(0), m_composite(false) {}
+        , m_currentString(str, length), m_currentChar(m_currentString.m_current), m_composite(false) {}
     SegmentedString(const String& str)
         : m_pushedChar1(0), m_pushedChar2(0), m_currentString(str)
-        , m_currentChar(m_currentString.m_current)
-        , m_lines(0), m_composite(false) {}
+        , m_currentChar(m_currentString.m_current), m_composite(false) {}
     SegmentedString(const SegmentedString&);
 
     const SegmentedString& operator=(const SegmentedString&);
@@ -80,12 +80,15 @@ public:
     void append(const SegmentedString &);
     void prepend(const SegmentedString &);
     
+    bool excludeLineNumbers() const { return m_currentString.excludeLineNumbers(); }
+    void setExcludeLineNumbers();
+
     void push(UChar c) {
         if (!m_pushedChar1) {
             m_pushedChar1 = c;
             m_currentChar = m_pushedChar1 ? &m_pushedChar1 : m_currentString.m_current;
         } else {
-            assert(!m_pushedChar2);
+            ASSERT(!m_pushedChar2);
             m_pushedChar2 = c;
         }
     }
@@ -93,12 +96,13 @@ public:
     bool isEmpty() const { return !current(); }
     unsigned length() const;
 
-    void advance() {
+    void advance(int* lineNumber = 0) {
         if (m_pushedChar1) {
             m_pushedChar1 = m_pushedChar2;
             m_pushedChar2 = 0;
         } else if (m_currentString.m_current) {
-            m_lines += *m_currentString.m_current++ == '\n';
+            if (*m_currentString.m_current++ == '\n' && lineNumber && !m_currentString.excludeLineNumbers())
+                *lineNumber = *lineNumber + 1;
             if (--m_currentString.m_length == 0)
                 advanceSubstring();
         }
@@ -106,13 +110,9 @@ public:
     }
     
     bool escaped() const { return m_pushedChar1; }
-
-    int lineCount() const { return m_lines; }
-    void resetLineCount() { m_lines = 0; }
     
     String toString() const;
 
-    void operator++() { advance(); }
     const UChar& operator*() const { return *current(); }
     const UChar* operator->() const { return current(); }
     
@@ -128,7 +128,6 @@ private:
     SegmentedSubstring m_currentString;
     const UChar* m_currentChar;
     DeprecatedValueList<SegmentedSubstring> m_substrings;
-    int m_lines;
     bool m_composite;
 };
 

@@ -25,83 +25,53 @@
  */
 
 #include "config.h"
-
-#ifdef XPATH_SUPPORT
-
 #include "XPathValue.h"
+
+#if ENABLE(XPATH)
+
 #include "Node.h"
+#include "XPathUtil.h"
+
 #include <wtf/MathExtras.h>
-#ifdef __OWB__
-#include <BIMath.h>
-#else
-#include <math.h>
-#endif
+#include <limits>
+
+using std::numeric_limits;
 
 namespace WebCore {
 namespace XPath {
 
-Value::Value()
-    : m_type(BooleanValue), m_bool(false)
-{
-}
+const Value::AdoptTag Value::adopt = {};
 
-Value::Value(Node* value)
-    : m_type(NodeVectorValue)
+const NodeSet& Value::toNodeSet() const
 {
-    m_nodeVector.append(value);
-}
+    if (!m_data) {
+        static NodeSet emptyNodeSet;
+        return emptyNodeSet;
+    }
 
-Value::Value(const NodeVector& value)
-    : m_type(NodeVectorValue), m_nodeVector(value)
-{
-}
-
-Value::Value(bool value)
-    : m_type(BooleanValue), m_bool(value)
-{
-}
-
-Value::Value(unsigned value)
-    : m_type(NumberValue), m_number(value)
-{
-}
-
-Value::Value(unsigned long value)
-    : m_type(NumberValue), m_number(value)
-{
-}
-
-Value::Value(double value)
-    : m_type(NumberValue), m_number(value)
-{
-}
-
-Value::Value(const char* value)
-    : m_type(StringValue), m_string(value)
-{
-}
-
-Value::Value(const String& value)
-    : m_type(StringValue), m_string(value)
-{
-}
-
-const NodeVector &Value::toNodeVector() const
-{
-    return m_nodeVector;    
+    return m_data->m_nodeSet;
 }    
+
+NodeSet& Value::modifiableNodeSet()
+{
+    if (!m_data)
+        m_data = new ValueData;
+    
+    m_type = NodeSetValue;
+    return m_data->m_nodeSet;
+}
 
 bool Value::toBoolean() const
 {
     switch (m_type) {
-        case NodeVectorValue:
-            return !m_nodeVector.isEmpty();
+        case NodeSetValue:
+            return !m_data->m_nodeSet.isEmpty();
         case BooleanValue:
             return m_bool;
         case NumberValue:
             return m_number != 0 && !isnan(m_number);
         case StringValue:
-            return !m_string.isEmpty();
+            return !m_data->m_string.isEmpty();
     }
     ASSERT_NOT_REACHED();
     return false;
@@ -110,16 +80,16 @@ bool Value::toBoolean() const
 double Value::toNumber() const
 {
     switch (m_type) {
-        case NodeVectorValue:
+        case NodeSetValue:
             return Value(toString()).toNumber();
         case NumberValue:
             return m_number;
         case StringValue: {
             bool canConvert;
-            double value = m_string.deprecatedString().simplifyWhiteSpace().toDouble(&canConvert);
+            double value = m_data->m_string.simplifyWhiteSpace().toDouble(&canConvert);
             if (canConvert)
                 return value;
-            return NAN;
+            return numeric_limits<double>::quiet_NaN();
         }
         case BooleanValue:
             return m_bool;
@@ -131,12 +101,12 @@ double Value::toNumber() const
 String Value::toString() const
 {
     switch (m_type) {
-        case NodeVectorValue:
-            if (m_nodeVector.isEmpty()) 
+        case NodeSetValue:
+            if (m_data->m_nodeSet.isEmpty()) 
                 return "";
-            return stringValue(m_nodeVector[0].get());
+            return stringValue(m_data->m_nodeSet.firstNode());
         case StringValue:
-            return m_string;
+            return m_data->m_string;
         case NumberValue:
             if (isnan(m_number))
                 return "NaN";
@@ -155,4 +125,4 @@ String Value::toString() const
 }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

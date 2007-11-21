@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGStyleElement_h
 #define SVGStyleElement_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include <SVGElement.h>
 #include "StyleElement.h"
@@ -39,23 +39,33 @@ namespace WebCore {
         virtual void removedFromDocument();
         virtual void childrenChanged();
 
+        void setCreatedByParser(bool createdByParser) { m_createdByParser = createdByParser; }
+        virtual void finishedParsing();
+
         // 'SVGStyleElement' functions
         const AtomicString& xmlspace() const;
         void setXmlspace(const AtomicString&, ExceptionCode&);
 
+        virtual bool sheetLoaded();
+
         virtual const AtomicString& type() const;
         void setType(const AtomicString&, ExceptionCode&);
 
-        const AtomicString& media() const;
+        virtual const AtomicString& media() const;
         void setMedia(const AtomicString&, ExceptionCode&);
 
         virtual String title() const;
         void setTitle(const AtomicString&, ExceptionCode&);
+
+        StyleSheet* sheet();
+        
+    protected:
+        bool m_createdByParser;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGStyleElement_h
 
 // vim:ts=4:noet

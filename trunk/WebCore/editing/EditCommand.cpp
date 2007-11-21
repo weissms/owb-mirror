@@ -53,7 +53,8 @@ EditCommand::EditCommand(Document* document)
 {
     ASSERT(m_document);
     ASSERT(m_document->frame());
-    setStartingSelection(m_document->frame()->selectionController()->selection());
+    DeleteButtonController* deleteButton = m_document->frame()->editor()->deleteButtonController();
+    setStartingSelection(avoidIntersectionWithNode(m_document->frame()->selectionController()->selection(), deleteButton ? deleteButton->containerElement() : 0));
     setEndingSelection(m_startingSelection);
 }
 
@@ -85,7 +86,10 @@ void EditCommand::apply()
         }
     }
 
+    DeleteButtonController *deleteButtonController = frame->editor()->deleteButtonController();
+    deleteButtonController->disable();
     doApply();
+    deleteButtonController->enable();
 
     // FIXME: Improve typing style.
     // See this bug: <rdar://problem/3769899> Implementation of typing style needs improvement
@@ -108,7 +112,10 @@ void EditCommand::unapply()
  
     Frame* frame = m_document->frame();
     
+    DeleteButtonController *deleteButtonController = frame->editor()->deleteButtonController();
+    deleteButtonController->disable();
     doUnapply();
+    deleteButtonController->enable();
 
     if (!m_parent) {
         updateLayout();
@@ -123,7 +130,10 @@ void EditCommand::reapply()
  
     Frame* frame = m_document->frame();
 
+    DeleteButtonController *deleteButtonController = frame->editor()->deleteButtonController();
+    deleteButtonController->disable();
     doReapply();
+    deleteButtonController->enable();
 
     if (!m_parent) {
         updateLayout();
@@ -221,10 +231,7 @@ void EditCommand::setParent(CompositeEditCommand* parent)
 
 void applyCommand(PassRefPtr<EditCommand> command)
 {
-    DeleteButtonController *deleteButtonController = command->document()->frame()->editor()->deleteButtonController();
-    deleteButtonController->disable();
     command->apply();
-    deleteButtonController->enable();
 }
 
 } // namespace WebCore

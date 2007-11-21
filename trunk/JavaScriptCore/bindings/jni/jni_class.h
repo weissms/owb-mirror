@@ -40,15 +40,8 @@ public:
 
     virtual const char *name() const { return _name; };
     
-    virtual MethodList methodsNamed(const Identifier&, Instance *instance) const;
-    
-    virtual Field *fieldNamed(const Identifier&, Instance *instance) const;
-    
-    virtual Constructor *constructorAt(int i) const {
-        return &_constructors[i]; 
-    };
-    
-    virtual int numConstructors() const { return _numConstructors; };
+    virtual MethodList methodsNamed(const Identifier&, Instance* instance) const;    
+    virtual Field *fieldNamed(const Identifier&, Instance* instance) const;
     
     bool isNumberClass() const;
     bool isBooleanClass() const;
@@ -56,14 +49,10 @@ public:
     
 private:
     JavaClass ();                                 // prevent default construction
-    JavaClass (const JavaClass &other);           // prevent copying
-    JavaClass &operator=(const JavaClass &other); // prevent copying
     
     const char *_name;
     FieldMap _fields;
     MethodListMap _methods;
-    JavaConstructor *_constructors;
-    int _numConstructors;
 };
 
 } // namespace Bindings

@@ -1,7 +1,7 @@
 /*
  *  This file is part of the KDE libraries
  *  Copyright (C) 2002 Harri Porten (porten@kde.org)
- *  Copyright (C) 2003 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -31,20 +31,23 @@ namespace KJS {
   class SourceStream {
   public:
     enum Format {
-      Endl, Indent, Unindent
+      Endl, Indent, Unindent, DotExpr
     };
-
+    SourceStream() : m_groupIfNumber(false) {}
     UString toString() const { return str; }
     SourceStream& operator<<(const Identifier &);
     SourceStream& operator<<(const UString &);
     SourceStream& operator<<(const char *);
+    SourceStream& operator<<(double);
     SourceStream& operator<<(char);
     SourceStream& operator<<(Format f);
     SourceStream& operator<<(const Node *);
     template <typename T> SourceStream& operator<<(RefPtr<T> n) { return this->operator<<(n.get()); }
+
   private:
     UString str; /* TODO: buffer */
     UString ind;
+    bool m_groupIfNumber;
   };
 }
 
@@ -52,6 +55,7 @@ using namespace KJS;
 
 SourceStream& SourceStream::operator<<(char c)
 {
+  m_groupIfNumber = false;
   UChar ch(c);
   str += UString(&ch, 1);
   return *this;
@@ -59,18 +63,35 @@ SourceStream& SourceStream::operator<<(char c)
 
 SourceStream& SourceStream::operator<<(const char *s)
 {
+  m_groupIfNumber = false;
   str += UString(s);
+  return *this;
+}
+
+SourceStream& SourceStream::operator<<(double value)
+{
+  if (m_groupIfNumber)
+    str.append("(");
+
+  str += UString::from(value);
+
+  if (m_groupIfNumber)
+    str.append(")");
+
+  m_groupIfNumber = false;
   return *this;
 }
 
 SourceStream& SourceStream::operator<<(const UString &s)
 {
+  m_groupIfNumber = false;
   str += s;
   return *this;
 }
 
 SourceStream& SourceStream::operator<<(const Identifier &s)
 {
+  m_groupIfNumber = false;
   str += s.ustring();
   return *this;
 }
@@ -79,11 +100,13 @@ SourceStream& SourceStream::operator<<(const Node *n)
 {
   if (n)
     n->streamTo(*this);
+  m_groupIfNumber = false;
   return *this;
 }
 
 SourceStream& SourceStream::operator<<(Format f)
 {
+  m_groupIfNumber = false;
   switch (f) {
     case Endl:
       str += "\n" + ind;
@@ -93,6 +116,9 @@ SourceStream& SourceStream::operator<<(Format f)
       break;
     case Unindent:
       ind = ind.substr(0, ind.size() - 2);
+      break;
+  case DotExpr:
+      m_groupIfNumber = true;
       break;
   }
 
@@ -114,7 +140,12 @@ void BooleanNode::streamTo(SourceStream &s) const
   s << (value ? "true" : "false");
 }
 
-void NumberNode::streamTo(SourceStream &s) const { s << UString::from(value); }
+void NumberNode::streamTo(SourceStream &s) const { s << val; }
+
+void ImmediateNumberNode::streamTo(SourceStream& s) const
+{
+    s << value();
+}
 
 void StringNode::streamTo(SourceStream &s) const
 {
@@ -150,6 +181,10 @@ void ArrayNode::streamTo(SourceStream &s) const
 {
   s << "[" << element;
   for (int i = 0; i < elision; i++)
+    s << ",";
+  // Parser consumes one elision comma if there's array elements 
+  // present in the expression.
+  if (opt && element)
     s << ",";
   s << "]";
 }
@@ -205,7 +240,7 @@ void BracketAccessorNode::streamTo(SourceStream &s) const
 
 void DotAccessorNode::streamTo(SourceStream &s) const
 {
-  s << expr << "." << ident;
+  s << SourceStream::DotExpr << expr << "." << ident;
 }
 
 void ArgumentListNode::streamTo(SourceStream &s) const
@@ -247,12 +282,12 @@ void FunctionCallParenBracketNode::streamTo(SourceStream &s) const
 
 void FunctionCallDotNode::streamTo(SourceStream &s) const
 {
-  s << base << "." << ident << args;
+  s << SourceStream::DotExpr << base << "." << ident << args;
 }
 
 void FunctionCallParenDotNode::streamTo(SourceStream &s) const
 {
-  s << "(" << base << "." << ident << ")" << args;
+  s << "(" << SourceStream::DotExpr << base << "." << ident << ")" << args;
 }
 
 void PostfixResolveNode::streamTo(SourceStream &s) const
@@ -275,7 +310,16 @@ void PostfixBracketNode::streamTo(SourceStream &s) const
 
 void PostfixDotNode::streamTo(SourceStream &s) const
 {
-  s << m_base << "." << m_ident;
+  s << SourceStream::DotExpr << m_base << "." << m_ident;
+  if (m_oper == OpPlusPlus)
+    s << "++";
+  else
+    s << "--";
+}
+
+void PostfixErrorNode::streamTo(SourceStream& s) const
+{
+  s << m_expr;
   if (m_oper == OpPlusPlus)
     s << "++";
   else
@@ -294,7 +338,7 @@ void DeleteBracketNode::streamTo(SourceStream &s) const
 
 void DeleteDotNode::streamTo(SourceStream &s) const
 {
-  s << "delete " << m_base << "." << m_ident;
+  s << "delete " << SourceStream::DotExpr << m_base << "." << m_ident;
 }
 
 void DeleteValueNode::streamTo(SourceStream &s) const
@@ -341,17 +385,26 @@ void PrefixDotNode::streamTo(SourceStream &s) const
     s << "++";
   else
     s << "--";
-  s << m_base << "." << m_ident;
+  s << SourceStream::DotExpr << m_base << "." << m_ident;
+}
+
+void PrefixErrorNode::streamTo(SourceStream& s) const
+{
+  if (m_oper == OpPlusPlus)
+    s << "++";
+  else
+    s << "--";
+  s << m_expr;
 }
 
 void UnaryPlusNode::streamTo(SourceStream &s) const
 {
-  s << "+" << expr;
+  s << "+ " << expr;
 }
 
 void NegateNode::streamTo(SourceStream &s) const
 {
-  s << "-" << expr;
+  s << "- " << expr;
 }
 
 void BitwiseNotNode::streamTo(SourceStream &s) const
@@ -366,91 +419,117 @@ void LogicalNotNode::streamTo(SourceStream &s) const
 
 void MultNode::streamTo(SourceStream &s) const
 {
-  s << term1 << oper << term2;
+    s << term1 << " * " << term2;
+}
+
+void DivNode::streamTo(SourceStream &s) const
+{
+    s << term1 << " / " << term2;
+}
+
+void ModNode::streamTo(SourceStream &s) const
+{
+    s << term1 << " % " << term2;
 }
 
 void AddNode::streamTo(SourceStream &s) const
 {
-  s << term1 << oper << term2;
+    s << term1 << " + " << term2;
 }
 
-void ShiftNode::streamTo(SourceStream &s) const
+void SubNode::streamTo(SourceStream &s) const
 {
-  s << term1;
-  if (oper == OpLShift)
-    s << "<<";
-  else if (oper == OpRShift)
-    s << ">>";
-  else
-    s << ">>>";
-  s << term2;
+    s << term1 << " - " << term2;
 }
 
-void RelationalNode::streamTo(SourceStream &s) const
+void LeftShiftNode::streamTo(SourceStream &s) const
 {
-  s << expr1;
-  switch (oper) {
-  case OpLess:
-    s << " < ";
-    break;
-  case OpGreater:
-    s << " > ";
-    break;
-  case OpLessEq:
-    s << " <= ";
-    break;
-  case OpGreaterEq:
-    s << " >= ";
-    break;
-  case OpInstanceOf:
-    s << " instanceof ";
-    break;
-  case OpIn:
-    s << " in ";
-    break;
-  default:
-    ;
-  }
-  s << expr2;
+  s << term1 << "<<" << term2;
+}
+
+void RightShiftNode::streamTo(SourceStream &s) const
+{
+  s << term1 << ">>" << term2;
+}
+
+void UnsignedRightShiftNode::streamTo(SourceStream &s) const
+{
+  s << term1 << ">>>" << term2;
+}
+
+void LessNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " < " << expr2;
+}
+
+void GreaterNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " > " << expr2;
+}
+
+void LessEqNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " <= " << expr2;
+}
+
+void GreaterEqNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " >= " << expr2;
+}
+
+void InstanceOfNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " instanceof " << expr2;
+}
+
+void InNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " in " << expr2;
 }
 
 void EqualNode::streamTo(SourceStream &s) const
 {
-  s << expr1;
- switch (oper) {
- case OpEqEq:
-   s << " == ";
-   break;
- case OpNotEq:
-   s << " != ";
-   break;
- case OpStrEq:
-   s << " === ";
-   break;
- case OpStrNEq:
-   s << " !== ";
-   break;
- default:
-   ;
- }
-  s << expr2;
+  s << expr1 << " == " << expr2;
 }
 
-void BitOperNode::streamTo(SourceStream &s) const
+void NotEqualNode::streamTo(SourceStream &s) const
 {
-  s << expr1;
-  if (oper == OpBitAnd)
-    s << " & ";
-  else if (oper == OpBitXOr)
-    s << " ^ ";
-  else
-    s << " | ";
-  s << expr2;
+  s << expr1 << " == " << expr2;
 }
 
-void BinaryLogicalNode::streamTo(SourceStream &s) const
+void StrictEqualNode::streamTo(SourceStream &s) const
 {
-  s << expr1 << (oper == OpAnd ? " && " : " || ") << expr2;
+  s << expr1 << " === " << expr2;
+}
+
+void NotStrictEqualNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " !== " << expr2;
+}
+
+void BitAndNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " & " << expr2;
+}
+
+void BitXOrNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " ^ " << expr2;
+}
+
+void BitOrNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " | " << expr2;
+}
+
+void LogicalAndNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " && " << expr2;
+}
+
+void LogicalOrNode::streamTo(SourceStream &s) const
+{
+  s << expr1 << " || " << expr2;
 }
 
 void ConditionalNode::streamTo(SourceStream &s) const
@@ -520,7 +599,14 @@ void AssignBracketNode::streamTo(SourceStream &s) const
 
 void AssignDotNode::streamTo(SourceStream &s) const
 {
-  s << m_base << "." << m_ident;
+  s << SourceStream::DotExpr << m_base << "." << m_ident;
+  streamAssignmentOperatorTo(s, m_oper);
+  s << m_right;
+}
+
+void AssignErrorNode::streamTo(SourceStream& s) const
+{
+  s << m_left;
   streamAssignmentOperatorTo(s, m_oper);
   s << m_right;
 }
@@ -542,14 +628,14 @@ void VarDeclNode::streamTo(SourceStream &s) const
 
 void VarDeclListNode::streamTo(SourceStream &s) const
 {
-  s << var;
+  s << "var " << var;
   for (VarDeclListNode *n = next.get(); n; n = n->next.get())
     s << ", " << n->var;
 }
 
 void VarStatementNode::streamTo(SourceStream &s) const
 {
-  s << SourceStream::Endl << "var " << next << ";";
+  s << SourceStream::Endl << next << ";";
 }
 
 void BlockNode::streamTo(SourceStream &s) const
@@ -593,7 +679,7 @@ void WhileNode::streamTo(SourceStream &s) const
 void ForNode::streamTo(SourceStream &s) const
 {
   s << SourceStream::Endl << "for ("
-    << expr1  // TODO: doesn't properly do "var i = 0"
+    << expr1
     << "; " << expr2
     << "; " << expr3
     << ")" << SourceStream::Indent << statement << SourceStream::Unindent;
@@ -606,9 +692,7 @@ void ForInNode::streamTo(SourceStream &s) const
     s << "var " << varDecl;
   else
     s << lexpr;
-  
-  if (init)
-    s << " = " << init;
+
   s << " in " << expr << ")" << SourceStream::Indent
     << statement << SourceStream::Unindent;
 }
@@ -692,7 +776,7 @@ void ThrowNode::streamTo(SourceStream &s) const
 
 void TryNode::streamTo(SourceStream &s) const
 {
-  s << "try " << tryBlock;
+  s << SourceStream::Endl << "try " << tryBlock;
   if (catchBlock)
     s << SourceStream::Endl << "catch (" << exceptionIdent << ")" << catchBlock;
   if (finallyBlock)

@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,12 +16,12 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPreserveAspectRatio.h"
 
 #include "SVGParserUtilities.h"
@@ -29,23 +29,10 @@
 
 namespace WebCore {
 
-static bool checkString(const UChar*& ptr, const UChar*& end, const char* str)
-{
-    int length = strlen(str);
-    if (end - ptr < length)
-        return false;
-    for (int i = 0; i < length; ++i)
-        if (ptr[i] != str[i])
-            return false;
-    ptr += length;
-    return true;
-}
-
-SVGPreserveAspectRatio::SVGPreserveAspectRatio(const SVGStyledElement* context)
+SVGPreserveAspectRatio::SVGPreserveAspectRatio()
     : Shared<SVGPreserveAspectRatio>()
     , m_align(SVG_PRESERVEASPECTRATIO_XMIDYMID)
     , m_meetOrSlice(SVG_MEETORSLICE_MEET)
-    , m_context(context)
 {
     // FIXME: Should the two values default to UNKNOWN instead?
 }
@@ -57,7 +44,6 @@ SVGPreserveAspectRatio::~SVGPreserveAspectRatio()
 void SVGPreserveAspectRatio::setAlign(unsigned short align)
 {
     m_align = align;
-    // FIXME: Do we need a call to notifyAttributeChange here?
 }
 
 unsigned short SVGPreserveAspectRatio::align() const
@@ -68,7 +54,6 @@ unsigned short SVGPreserveAspectRatio::align() const
 void SVGPreserveAspectRatio::setMeetOrSlice(unsigned short meetOrSlice)
 {
     m_meetOrSlice = meetOrSlice;
-    // FIXME: Do we need a call to notifyAttributeChange here?
 }
 
 unsigned short SVGPreserveAspectRatio::meetOrSlice() const
@@ -76,19 +61,17 @@ unsigned short SVGPreserveAspectRatio::meetOrSlice() const
     return m_meetOrSlice;
 }
 
-void SVGPreserveAspectRatio::parsePreserveAspectRatio(const String& string)
+bool SVGPreserveAspectRatio::parsePreserveAspectRatio(const UChar*& currParam, const UChar* end, bool validate)
 {
     SVGPreserveAspectRatioType align = SVG_PRESERVEASPECTRATIO_NONE;
     SVGMeetOrSliceType meetOrSlice = SVG_MEETORSLICE_MEET;
-
-    const UChar* currParam = string.characters();
-    const UChar* end = currParam + string.length();
+    bool ret = false;
 
     if (!skipOptionalSpaces(currParam, end))
         goto bail_out;
 
     if (*currParam == 'd') {
-        if (!checkString(currParam, end, "defer"))
+        if (!skipString(currParam, end, "defer"))
             goto bail_out;
         // FIXME: We just ignore the "defer" here.
         if (!skipOptionalSpaces(currParam, end))
@@ -96,7 +79,7 @@ void SVGPreserveAspectRatio::parsePreserveAspectRatio(const String& string)
     }
 
     if (*currParam == 'n') {
-        if (!checkString(currParam, end, "none"))
+        if (!skipString(currParam, end, "none"))
             goto bail_out;
         skipOptionalSpaces(currParam, end);
     } else if (*currParam == 'x') {
@@ -152,11 +135,11 @@ void SVGPreserveAspectRatio::parsePreserveAspectRatio(const String& string)
 
     if (currParam < end) {
         if (*currParam == 'm') {
-            if (!checkString(currParam, end, "meet"))
+            if (!skipString(currParam, end, "meet"))
                 goto bail_out;
             skipOptionalSpaces(currParam, end);
         } else if (*currParam == 's') {
-            if (!checkString(currParam, end, "slice"))
+            if (!skipString(currParam, end, "slice"))
                 goto bail_out;
             skipOptionalSpaces(currParam, end);
             if (align != SVG_PRESERVEASPECTRATIO_NONE)
@@ -164,20 +147,20 @@ void SVGPreserveAspectRatio::parsePreserveAspectRatio(const String& string)
         }
     }
 
-    if (end != currParam) {
+    if (end != currParam && validate) {
 bail_out:
         // FIXME: Should the two values be set to UNKNOWN instead?
         align = SVG_PRESERVEASPECTRATIO_NONE;
         meetOrSlice = SVG_MEETORSLICE_MEET;
-    }
+    } else
+        ret = true;
 
     if (m_align == align && m_meetOrSlice == meetOrSlice)
-        return;
+        return ret;
 
     m_align = align;
     m_meetOrSlice = meetOrSlice;
-    if (m_context)
-        m_context->notifyAttributeChange();
+    return ret;
 }
 
 AffineTransform SVGPreserveAspectRatio::getCTM(float logicX, float logicY,
@@ -222,4 +205,4 @@ AffineTransform SVGPreserveAspectRatio::getCTM(float logicX, float logicY,
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

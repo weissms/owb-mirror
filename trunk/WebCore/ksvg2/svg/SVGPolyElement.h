@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,19 +16,18 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPolyElement_h
 #define SVGPolyElement_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGAnimatedPoints.h"
 #include "SVGExternalResourcesRequired.h"
 #include "SVGLangSpace.h"
-#include "SVGParserUtilities.h"
 #include "SVGStyledTransformableElement.h"
 #include "SVGTests.h"
 
@@ -38,8 +37,7 @@ namespace WebCore
                             public SVGTests,
                             public SVGLangSpace,
                             public SVGExternalResourcesRequired,
-                            public SVGAnimatedPoints,
-                            public SVGPolyParser
+                            public SVGAnimatedPoints
     {
     public:
         SVGPolyElement(const QualifiedName&, Document*);
@@ -55,6 +53,7 @@ namespace WebCore
         virtual void notifyAttributeChange() const;
 
         virtual bool rendererIsNeeded(RenderStyle* style) { return StyledElement::rendererIsNeeded(style); }
+        virtual bool supportsMarkers() const { return true; }
 
     protected:
         virtual const SVGElement* contextElement() const { return this; }
@@ -64,13 +63,11 @@ namespace WebCore
         mutable RefPtr<SVGPointList> m_points;
 
         ANIMATED_PROPERTY_FORWARD_DECLARATIONS(SVGExternalResourcesRequired, bool, ExternalResourcesRequired, externalResourcesRequired)
-
-        virtual void svgPolyTo(double x1, double y1, int nr) const;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

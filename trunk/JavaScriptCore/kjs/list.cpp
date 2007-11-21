@@ -1,6 +1,5 @@
 /*
- *  This file is part of the KDE libraries
- *  Copyright (C) 2003 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -33,7 +32,7 @@ namespace KJS {
 
 // tunable parameters
 const int poolSize = 512;
-const int inlineValuesSize = 4;
+const int inlineValuesSize = 5;
 
 enum ListImpState { unusedInPool = 0, usedInPool, usedOnHeap, immortal };
 
@@ -141,6 +140,8 @@ void List::markProtectedLists()
 
 static inline ListImp *allocateListImp()
 {
+    ASSERT(JSLock::lockCount() > 0);
+    
     // Find a free one in the pool.
     if (poolUsed < poolSize) {
         ListImp *imp = poolFreeList ? poolFreeList : &pool[0];
@@ -163,28 +164,12 @@ static inline ListImp *allocateListImp()
     return imp;
 }
 
-List::List() : _impBase(allocateListImp()), _needsMarking(false)
+List::List() : _impBase(allocateListImp())
 {
     ListImp *imp = static_cast<ListImp *>(_impBase);
     imp->size = 0;
     imp->refCount = 1;
     imp->valueRefCount = 1;
-    imp->capacity = 0;
-    imp->overflow = 0;
-
-#if DUMP_STATISTICS
-    if (++numLists > numListsHighWaterMark)
-        numListsHighWaterMark = numLists;
-    imp->sizeHighWaterMark = 0;
-#endif
-}
-
-List::List(bool needsMarking) : _impBase(allocateListImp()), _needsMarking(needsMarking)
-{
-    ListImp *imp = static_cast<ListImp *>(_impBase);
-    imp->size = 0;
-    imp->refCount = 1;
-    imp->valueRefCount = !needsMarking;
     imp->capacity = 0;
     imp->overflow = 0;
 
@@ -201,7 +186,9 @@ void List::markValues()
 }
 
 void List::release()
-{
+{   
+    ASSERT(JSLock::lockCount() > 0);
+    
     ListImp *imp = static_cast<ListImp *>(_impBase);
     
 #if DUMP_STATISTICS
@@ -221,7 +208,7 @@ void List::release()
         poolFreeList = imp;
         poolUsed--;
     } else {
-        assert(imp->state == usedOnHeap);
+        ASSERT(imp->state == usedOnHeap);
         HeapListImp *list = static_cast<HeapListImp *>(imp);
 
         // unlink from heap list
@@ -258,6 +245,8 @@ void List::clear()
 
 void List::append(JSValue *v)
 {
+    ASSERT(JSLock::lockCount() > 0);
+    
     ListImp *imp = static_cast<ListImp *>(_impBase);
 
     int i = imp->size++;
@@ -331,18 +320,17 @@ List List::copyTail() const
     return copy;
 }
 
-const List &List::empty()
+const List& List::empty()
 {
-    static List emptyList;
-    return emptyList;
+    static List* staticEmptyList = new List;
+    return *staticEmptyList;
 }
 
 List &List::operator=(const List &b)
 {
     ListImpBase *bImpBase = b._impBase;
     ++bImpBase->refCount;
-    if (!_needsMarking)
-        ++bImpBase->valueRefCount;
+    ++bImpBase->valueRefCount;
     deref();
     _impBase = bImpBase;
     return *this;

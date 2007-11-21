@@ -15,14 +15,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
+
 #include "config.h"
 
-#ifdef SVG_SUPPORT
-
+#if ENABLE(SVG)
 #include "RenderSVGHiddenContainer.h"
 
 #include "RenderPath.h"
@@ -31,7 +31,7 @@
 namespace WebCore {
 
 RenderSVGHiddenContainer::RenderSVGHiddenContainer(SVGStyledElement* element)
-    : RenderContainer(element)
+    : RenderSVGContainer(element)
 {
 }
 
@@ -54,43 +54,34 @@ short RenderSVGHiddenContainer::baselinePosition(bool b, bool isRootLineBox) con
     return 0;
 }
 
-void RenderSVGHiddenContainer::calcMinMaxWidth()
-{
-    ASSERT(!minMaxKnown());
-    m_minWidth = m_maxWidth = 0;
-    setMinMaxKnown();
-}
-
 void RenderSVGHiddenContainer::layout()
 {
     ASSERT(needsLayout());
  
     // Layout our kids to prevent a kid from being marked as needing layout
     // then never being asked to layout.
-    RenderObject* child = firstChild();
-    while (child) {
-        if (!child->isRenderPath() || static_cast<RenderPath*>(child)->hasRelativeValues())
+    for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
+        if (selfNeedsLayout())
             child->setNeedsLayout(true);
         
         child->layoutIfNeeded();
         ASSERT(!child->needsLayout());
-        child = child->nextSibling();
     }
     
     setNeedsLayout(false);    
 }
 
-void RenderSVGHiddenContainer::paint(PaintInfo&, int parentX, int parentY)
+void RenderSVGHiddenContainer::paint(PaintInfo&, int, int)
 {
     // This subtree does not paint.
 }
 
-IntRect RenderSVGHiddenContainer::getAbsoluteRepaintRect()
+IntRect RenderSVGHiddenContainer::absoluteClippedOverflowRect()
 {
     return IntRect();
 }
 
-void RenderSVGHiddenContainer::absoluteRects(Vector<IntRect>& rects, int tx, int ty)
+void RenderSVGHiddenContainer::absoluteRects(Vector<IntRect>& rects, int, int, bool)
 {
     // This subtree does not take up space or paint
 }
@@ -110,6 +101,11 @@ bool RenderSVGHiddenContainer::nodeAtPoint(const HitTestRequest& request, HitTes
     return false;
 }
 
+FloatRect RenderSVGHiddenContainer::relativeBBox(bool includeStroke) const
+{
+    return FloatRect();
 }
 
-#endif // SVG_SUPPORT
+}
+
+#endif // ENABLE(SVG)

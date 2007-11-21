@@ -27,7 +27,7 @@
 #ifndef XPathExpressionNode_h
 #define XPathExpressionNode_h
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "StringHash.h"
 #include <wtf/HashMap.h>
@@ -63,29 +63,24 @@ namespace WebCore {
             Expression();
             virtual ~Expression();
 
-            virtual Value evaluate() const;
+            virtual Value evaluate() const = 0;
 
-            void addSubExpression(Expression*);
-            void optimize();
-            virtual bool isConstant() const;
+            void addSubExpression(Expression* expr) { m_subExpressions.append(expr); }
 
         protected:
-            unsigned subExprCount() const;
-            Expression* subExpr(unsigned);
-            const Expression* subExpr(unsigned) const;
+            unsigned subExprCount() const { return m_subExpressions.size(); }
+            Expression* subExpr(unsigned i) { return m_subExpressions[i]; }
+            const Expression* subExpr(unsigned i) const { return m_subExpressions[i]; }
 
         private:
-            virtual Value doEvaluate() const = 0;
-
             Vector<Expression*> m_subExpressions;
-            Value* m_constantValue;
         };
 
     }
 
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 
 #endif // EXPRESSION_H
 

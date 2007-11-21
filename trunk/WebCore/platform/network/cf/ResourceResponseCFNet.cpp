@@ -1,6 +1,5 @@
-// -*- mode: c++; c-basic-offset: 4 -*-
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,8 +26,11 @@
 #include "config.h"
 #include "ResourceResponseCFNet.h"
 
+#include "HTTPParsers.h"
+#include "MIMETypeRegistry.h"
 #include "ResourceResponse.h"
 #include <CFNetwork/CFURLResponsePriv.h>
+#include <wtf/RetainPtr.h>
 
 using std::min;
 
@@ -39,42 +41,61 @@ using std::min;
 
 namespace WebCore {
 
-   void getResourceResponse(ResourceResponse& response, CFURLResponseRef cfResponse)
-   {
-       if (!cfResponse)
-           return;
+CFURLResponseRef ResourceResponse::cfURLResponse() const
+{  
+    return m_cfResponse.get();
+}
 
-       // FIXME: we may need to do MIME type sniffing here (unless that is done
-       // in CFURLResponseGetMIMEType
+static inline bool filenameHasSaneExtension(const String& filename)
+{
+    int dot = filename.find('.');
 
-       response = ResourceResponse(CFURLResponseGetURL(cfResponse), CFURLResponseGetMIMEType(cfResponse), CFURLResponseGetExpectedContentLength(cfResponse), CFURLResponseGetTextEncodingName(cfResponse), /* suggestedFilename */ "");
+    // The dot can't be the first or last character in the filename.
+    int length = filename.length();
+    return dot > 0 && dot < length - 1;
+}
 
-       CFAbsoluteTime expiration = CFURLResponseGetExpirationTime(cfResponse);
-       response.setExpirationDate(min((time_t)(expiration + kCFAbsoluteTimeIntervalSince1970), MAX_TIME_T));
+void ResourceResponse::doUpdateResourceResponse()
+{
+    if (!m_cfResponse.get())
+        return;
 
-       CFAbsoluteTime lastModified = CFURLResponseGetLastModifiedDate(cfResponse);
-       response.setLastModifiedDate(min((time_t)(lastModified + kCFAbsoluteTimeIntervalSince1970), MAX_TIME_T));
+    // FIXME: We may need to do MIME type sniffing here (unless that is done in CFURLResponseGetMIMEType).
 
-       CFHTTPMessageRef httpResponse = CFURLResponseGetHTTPResponse(cfResponse);
-       if (httpResponse) {
-           response.setHTTPStatusCode(CFHTTPMessageGetResponseStatusCode(httpResponse));
+    m_url = CFURLResponseGetURL(m_cfResponse.get());
+    m_mimeType = CFURLResponseGetMIMEType(m_cfResponse.get());
+    m_expectedContentLength = CFURLResponseGetExpectedContentLength(m_cfResponse.get());
+    m_textEncodingName = CFURLResponseGetTextEncodingName(m_cfResponse.get());
 
-           CFStringRef statusLine = CFHTTPMessageCopyResponseStatusLine(httpResponse);
-           String statusText(statusLine);
-           CFRelease(statusLine);
-           int spacePos = statusText.find(" ");
-           if (spacePos != -1)
-               statusText = statusText.substring(spacePos + 1);
-           response.setHTTPStatusText(statusText);
+    CFAbsoluteTime expiration = CFURLResponseGetExpirationTime(m_cfResponse.get());
+    m_expirationDate = min((time_t)(expiration + kCFAbsoluteTimeIntervalSince1970), MAX_TIME_T);
 
-           CFDictionaryRef headers = CFHTTPMessageCopyAllHeaderFields(httpResponse);
-           CFIndex headerCount = CFDictionaryGetCount(headers);
-           Vector<const void*, 128> keys(headerCount);
-           Vector<const void*, 128> values(headerCount);
-           CFDictionaryGetKeysAndValues(headers, keys.data(), values.data());
-           for (int i = 0; i < headerCount; ++i)
-               response.httpHeaderFields().set((CFStringRef)keys[i], (CFStringRef)values[i]);
-       }
-   }
+    CFAbsoluteTime lastModified = CFURLResponseGetLastModifiedDate(m_cfResponse.get());
+    m_lastModifiedDate = min((time_t)(lastModified + kCFAbsoluteTimeIntervalSince1970), MAX_TIME_T);
+
+    RetainPtr<CFStringRef> suggestedFilename(AdoptCF, CFURLResponseCopySuggestedFilename(m_cfResponse.get()));
+    m_suggestedFilename = suggestedFilename.get();
+
+    CFHTTPMessageRef httpResponse = CFURLResponseGetHTTPResponse(m_cfResponse.get());
+    if (httpResponse) {
+        m_httpStatusCode = CFHTTPMessageGetResponseStatusCode(httpResponse);
+
+        RetainPtr<CFStringRef> statusLine(AdoptCF, CFHTTPMessageCopyResponseStatusLine(httpResponse));
+        String statusText(statusLine.get());
+        int spacePos = statusText.find(" ");
+        if (spacePos != -1)
+            statusText = statusText.substring(spacePos + 1);
+        m_httpStatusText = statusText;
+
+        RetainPtr<CFDictionaryRef> headers(AdoptCF, CFHTTPMessageCopyAllHeaderFields(httpResponse));
+        CFIndex headerCount = CFDictionaryGetCount(headers.get());
+        Vector<const void*, 128> keys(headerCount);
+        Vector<const void*, 128> values(headerCount);
+        CFDictionaryGetKeysAndValues(headers.get(), keys.data(), values.data());
+        for (int i = 0; i < headerCount; ++i)
+            m_httpHeaderFields.set((CFStringRef)keys[i], (CFStringRef)values[i]);
+    } else
+        m_httpStatusCode = 0;
+}
 
 }

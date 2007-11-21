@@ -47,6 +47,9 @@ namespace BAL {
     class BIEventLoop {
         public:
         // this is mandatory
+        /**
+        * BIEventLoop destructor
+        */
         virtual ~BIEventLoop() {};
 
         /**

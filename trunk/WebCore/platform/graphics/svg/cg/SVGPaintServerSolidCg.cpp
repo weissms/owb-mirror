@@ -15,13 +15,13 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPaintServerSolid.h"
 
 #include "GraphicsContext.h"
@@ -35,8 +35,6 @@ bool SVGPaintServerSolid::setup(GraphicsContext*& context, const RenderObject* o
     CGContextRef contextRef = context->platformContext();
     RenderStyle* style = object->style();
 
-    CGContextSetAlpha(contextRef, style->opacity());
-
     static CGColorSpaceRef deviceRGBColorSpace = CGColorSpaceCreateDeviceRGB(); // This should be shared from GraphicsContext, or some other central location
 
     if ((type & ApplyToFillTargetType) && style->svgStyle()->hasFill()) {
@@ -44,12 +42,12 @@ bool SVGPaintServerSolid::setup(GraphicsContext*& context, const RenderObject* o
         color().getRGBA(colorComponents[0], colorComponents[1], colorComponents[2], colorComponents[3]);
         ASSERT(!color().hasAlpha());
         colorComponents[3] = style->svgStyle()->fillOpacity(); // SVG/CSS colors are not specified w/o alpha
+
         CGContextSetFillColorSpace(contextRef, deviceRGBColorSpace);
         CGContextSetFillColor(contextRef, colorComponents);
-        if (isPaintingText) {
-            const_cast<RenderObject*>(object)->style()->setColor(color());
+
+        if (isPaintingText)
             context->setTextDrawingMode(cTextFill);
-        }
     }
 
     if ((type & ApplyToStrokeTargetType) && style->svgStyle()->hasStroke()) {
@@ -57,13 +55,14 @@ bool SVGPaintServerSolid::setup(GraphicsContext*& context, const RenderObject* o
         color().getRGBA(colorComponents[0], colorComponents[1], colorComponents[2], colorComponents[3]);
         ASSERT(!color().hasAlpha());
         colorComponents[3] = style->svgStyle()->strokeOpacity(); // SVG/CSS colors are not specified w/o alpha
+
         CGContextSetStrokeColorSpace(contextRef, deviceRGBColorSpace);
         CGContextSetStrokeColor(contextRef, colorComponents);
+
         applyStrokeStyleToContext(contextRef, style, object);
-        if (isPaintingText) {
-            const_cast<RenderObject*>(object)->style()->setColor(color());
+
+        if (isPaintingText)
             context->setTextDrawingMode(cTextStroke);
-        }
     }
 
     return true;

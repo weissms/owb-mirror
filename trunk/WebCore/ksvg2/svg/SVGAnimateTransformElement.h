@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
     Copyright (C) 2007 Eric Seidel <eric@webkit.org>
     
     This file is part of the KDE project
@@ -17,29 +17,21 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGAnimateTransformElement_h
 #define SVGAnimateTransformElement_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 
 #include "SVGAnimationElement.h"
 #include "SVGTransform.h"
 #include "SVGTransformDistance.h"
 
-#ifdef __OWB__
-namespace BAL {
-    class BTAffineTransform;
-}
-#endif
-
 namespace WebCore {
 
-#ifndef __OWB__
     class AffineTransform;
-#endif
 
     class SVGAnimateTransformElement : public SVGAnimationElement {
     public:
@@ -60,14 +52,9 @@ namespace WebCore {
         virtual bool calculateFromAndToValues(EAnimationMode, unsigned valueIndex);
 
     private:
-        // Helpers
         SVGTransform parseTransformValue(const String&) const;
-#ifdef __OWB__
-        void calculateRotationFromMatrix(const BAL::BTAffineTransform&, double& angle, double& cx, double& cy) const;
-#else
         void calculateRotationFromMatrix(const AffineTransform&, double& angle, double& cx, double& cy) const;
-#endif
-
+        
         SVGTransform::SVGTransformType m_type;
 
         SVGTransform m_toTransform;
@@ -79,7 +66,7 @@ namespace WebCore {
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGAnimateTransformElement_h
 
 // vim:ts=4:noet

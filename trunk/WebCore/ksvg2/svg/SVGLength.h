@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGLength_h
 #define SVGLength_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "PlatformString.h"
 
@@ -82,7 +82,7 @@ namespace WebCore {
         float valueAsPercentage() const;
 
         String valueAsString() const;
-        void setValueAsString(const String&);
+        bool setValueAsString(const String&);
 
         void newValueSpecifiedUnits(unsigned short, float valueInSpecifiedUnits);
         void convertToSpecifiedUnits(unsigned short);
@@ -105,7 +105,7 @@ namespace WebCore {
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGLength_h
 
 // vim:ts=4:noet

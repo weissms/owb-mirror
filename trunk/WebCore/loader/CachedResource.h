@@ -1,10 +1,8 @@
 /*
-    This file is part of the KDE libraries
-
     Copyright (C) 1998 Lars Knoll (knoll@mpi-hd.mpg.de)
     Copyright (C) 2001 Dirk Mueller <mueller@kde.org>
     Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
-    Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -18,21 +16,17 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
-
-    This class provides all functionality needed for loading images, style sheets and html
-    pages from the web. It has a memory cache for these objects.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef CachedResource_h
 #define CachedResource_h
 
-#include "CachePolicy.h"
 #include "PlatformString.h"
 #include "ResourceResponse.h"
 #include "SharedBuffer.h"
-#include <wtf/HashSet.h>
+#include <wtf/HashCountedSet.h>
 #include <wtf/Vector.h>
 #include <time.h>
 
@@ -40,21 +34,25 @@ namespace WebCore {
 
 class Cache;
 class CachedResourceClient;
+class DocLoader;
 class Request;
 
 // A resource that is held in the cache. Classes who want to use this object should derive
 // from CachedResourceClient, to get the function calls in case the requested data has arrived.
 // This class also does the actual communication with the loader to obtain the resource from the network.
 class CachedResource {
+    friend class Cache;
+    
 public:
     enum Type {
         ImageResource,
         CSSStyleSheet,
-        Script
-#ifdef XSLT_SUPPORT
+        Script,
+        FontResource
+#if ENABLE(XSLT)
         , XSLStyleSheet
 #endif
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
         , XBL
 #endif
     };
@@ -67,12 +65,11 @@ public:
         Cached       // regular case
     };
 
-    CachedResource(const String& URL, Type type, CachePolicy cachePolicy, unsigned size = 0);
+    CachedResource(const String& URL, Type, bool forCache = true, bool sendResourceLoadCallbacks = false);
     virtual ~CachedResource();
 
     virtual void setEncoding(const String&) { }
-    virtual Vector<char>& bufferData(const char* bytes, int addedSize, Request*);
-    virtual void data(Vector<char>&, bool allDataReceived) = 0;
+    virtual void data(PassRefPtr<SharedBuffer> data, bool allDataReceived) = 0;
     virtual void error() = 0;
 
     const String &url() const { return m_url; }
@@ -81,13 +78,16 @@ public:
     virtual void ref(CachedResourceClient*);
     void deref(CachedResourceClient*);
     bool referenced() const { return !m_clients.isEmpty(); }
+    virtual void allReferencesRemoved() {};
 
     unsigned count() const { return m_clients.size(); }
 
     Status status() const { return m_status; }
 
-    unsigned size() const { return m_size; }
-
+    unsigned size() const { return encodedSize() + decodedSize(); }
+    unsigned encodedSize() const { return m_encodedSize; }
+    unsigned decodedSize() const { return m_decodedSize; }
+    
     bool isLoaded() const { return !m_loading; }
     void setLoading(bool b) { m_loading = b; }
 
@@ -106,12 +106,12 @@ public:
     void setInCache(bool b) { m_inCache = b; }
     bool inCache() const { return m_inCache; }
     
-    CachePolicy cachePolicy() const { return m_cachePolicy; }
-
+    void setInLiveDecodedResourcesList(bool b) { m_inLiveDecodedResourcesList = b; }
+    bool inLiveDecodedResourcesList() { return m_inLiveDecodedResourcesList; }
+    
     void setRequest(Request*);
 
-    SharedBuffer* allData() const { return m_allData.get(); }
-    void setAllData(PassRefPtr<SharedBuffer> allData) { m_allData = allData; }
+    SharedBuffer* data() const { return m_data.get(); }
 
     void setResponse(const ResourceResponse& response) { m_response = response; }
     const ResourceResponse& response() const { return m_response; }
@@ -127,27 +127,42 @@ public:
     String accept() const { return m_accept; }
     void setAccept(const String& accept) { m_accept = accept; }
 
-protected:
-    void setSize(unsigned size);
+    bool errorOccurred() const { return m_errorOccurred; }
+    bool treatAsLocal() const { return m_shouldTreatAsLocal; }
+    bool sendResourceLoadCallbacks() const { return m_sendResourceLoadCallbacks; }
+    
+    virtual void destroyDecodedData() {};
 
-    HashSet<CachedResourceClient*> m_clients;
+    void setDocLoader(DocLoader* docLoader) { m_docLoader = docLoader; }
+    
+protected:
+    void setEncodedSize(unsigned);
+    void setDecodedSize(unsigned);
+    void didAccessDecodedData(double timeStamp);
+    
+    HashCountedSet<CachedResourceClient*> m_clients;
 
     String m_url;
     String m_accept;
     Request* m_request;
 
     ResourceResponse m_response;
-    RefPtr<SharedBuffer> m_allData;
+    RefPtr<SharedBuffer> m_data;
 
     Type m_type;
     Status m_status;
 
-private:
-    unsigned m_size;
-    unsigned m_accessCount;
+    bool m_errorOccurred;
 
+private:
+    unsigned m_encodedSize;
+    unsigned m_decodedSize;
+    unsigned m_accessCount;
+    unsigned m_inLiveDecodedResourcesList;
+    double m_lastDecodedAccessTime; // Used as a "thrash guard" in the cache
+    
+    bool m_sendResourceLoadCallbacks;
 protected:
-    CachePolicy m_cachePolicy;
     bool m_inCache;
     bool m_loading;
     bool m_expireDateChanged;
@@ -157,9 +172,15 @@ protected:
 #endif
 
 private:
-    CachedResource* m_nextInLRUList;
-    CachedResource* m_prevInLRUList;
-    friend class Cache;
+    CachedResource* m_nextInAllResourcesList;
+    CachedResource* m_prevInAllResourcesList;
+    
+    CachedResource* m_nextInLiveResourcesList;
+    CachedResource* m_prevInLiveResourcesList;
+
+    bool m_shouldTreatAsLocal;
+
+    DocLoader* m_docLoader; // only non-0 for resources that are not in the cache
 };
 
 }

@@ -37,7 +37,7 @@ class NSMutableArray;
 typedef struct HMENU__* HMENU;
 #elif PLATFORM(QT)
 class QMenu;
-#elif PLATFORM(GDK)
+#elif PLATFORM(GTK)
 typedef struct _GtkMenu GtkMenu;
 #endif
 
@@ -49,7 +49,7 @@ namespace WebCore {
     typedef HMENU PlatformMenuDescription;
 #elif PLATFORM(QT)
     typedef QMenu* PlatformMenuDescription;
-#elif PLATFORM(GDK)
+#elif PLATFORM(GTK)
     typedef GtkMenu* PlatformMenuDescription;
 #elif defined __OWB__
     typedef void* PlatformMenuDescription;

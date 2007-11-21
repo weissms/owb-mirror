@@ -28,8 +28,10 @@
 #define EditorClient_h
 
 #include "EditorInsertAction.h"
+#include "PlatformString.h"
 #include "TextAffinity.h"
 #include <wtf/Forward.h>
+#include <wtf/Vector.h>
 
 #if PLATFORM(MAC)
 class NSArray;
@@ -48,7 +50,16 @@ class HTMLElement;
 class KeyboardEvent;
 class Node;
 class Range;
+class Selection;
 class String;
+class VisiblePosition;
+
+struct GrammarDetail {
+    int location;
+    int length;
+    Vector<String> guesses;
+    String userDescription;
+};
 
 class EditorClient {
 public:
@@ -64,7 +75,6 @@ public:
     virtual void toggleGrammarChecking() = 0;
     virtual int spellCheckerDocumentTag() = 0;
     
-    virtual bool selectWordBeforeMenuEvent() = 0;
     virtual bool isEditable() = 0;
 
     virtual bool shouldBeginEditing(Range*) = 0;
@@ -76,9 +86,11 @@ public:
     virtual bool shouldApplyStyle(CSSStyleDeclaration*, Range*) = 0;
 //  virtual bool shouldChangeTypingStyle(CSSStyleDeclaration* fromStyle, CSSStyleDeclaration* toStyle) = 0;
 //  virtual bool doCommandBySelector(SEL selector) = 0;
+    virtual bool shouldMoveRangeAfterDelete(Range*, Range*) = 0;
 
     virtual void didBeginEditing() = 0;
     virtual void respondToChangedContents() = 0;
+    virtual void respondToChangedSelection() = 0;
     virtual void didEndEditing() = 0;
     virtual void didWriteSelectionToPasteboard() = 0;
     virtual void didSetSelectionTypesForPasteboard() = 0;
@@ -96,7 +108,8 @@ public:
     virtual void undo() = 0;
     virtual void redo() = 0;
 
-    virtual void handleKeyPress(KeyboardEvent*) = 0;
+    virtual void handleKeypress(KeyboardEvent*) = 0;
+    virtual void handleInputMethodKeypress(KeyboardEvent*) = 0;
     
     virtual void textFieldDidBeginEditing(Element*) = 0;
     virtual void textFieldDidEndEditing(Element*) = 0;
@@ -106,8 +119,6 @@ public:
     virtual void textDidChangeInTextArea(Element*) = 0;
 
 #if PLATFORM(MAC)
-    virtual void markedTextAbandoned(Frame*) = 0;
-
     // FIXME: This should become SelectionController::toWebArchive()
     virtual NSData* dataForArchivedSelection(Frame*) = 0; 
 
@@ -117,6 +128,16 @@ public:
 #endif
 #endif
 
+    virtual void ignoreWordInSpellDocument(const String&) = 0;
+    virtual void learnWord(const String&) = 0;
+    virtual void checkSpellingOfString(const UChar*, int length, int* misspellingLocation, int* misspellingLength) = 0;
+    virtual void checkGrammarOfString(const UChar*, int length, Vector<GrammarDetail>&, int* badGrammarLocation, int* badGrammarLength) = 0;
+    virtual void updateSpellingUIWithGrammarString(const String&, const GrammarDetail& detail) = 0;
+    virtual void updateSpellingUIWithMisspelledWord(const String&) = 0;
+    virtual void showSpellingUI(bool show) = 0;
+    virtual bool spellingUIIsShowing() = 0;
+    virtual void getGuessesForWord(const String&, Vector<String>& guesses) = 0;
+    virtual void setInputMethodState(bool enabled) = 0;
 };
 
 }

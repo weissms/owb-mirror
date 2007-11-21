@@ -1,10 +1,8 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2000 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -18,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -32,12 +30,11 @@ namespace WebCore {
 
 class Selection;
 
-class HTMLTextAreaElement : public HTMLGenericFormElement {
+class HTMLTextAreaElement : public HTMLFormControlElementWithState {
 public:
     enum WrapMethod { ta_NoWrap, ta_Virtual, ta_Physical };
 
     HTMLTextAreaElement(Document*, HTMLFormElement* = 0);
-    ~HTMLTextAreaElement();
 
     virtual bool checkDTD(const Node* newChild) { return newChild->isTextNode(); }
 
@@ -50,7 +47,7 @@ public:
 
     virtual const AtomicString& type() const;
 
-    virtual String stateValue() const;
+    virtual bool saveState(String& value) const;
     virtual void restoreState(const String&);
 
     bool readOnly() const { return isReadOnlyControl(); }
@@ -72,8 +69,7 @@ public:
     virtual void defaultEventHandler(Event*);
     virtual bool isMouseFocusable() const;
     virtual bool isKeyboardFocusable(KeyboardEvent*) const;
-    virtual void focus();
-    virtual void updateFocusAppearance(bool restorePreviousSelection = true);
+    virtual void updateFocusAppearance(bool restorePreviousSelection);
 
     String value() const;
     void setValue(const String&);
@@ -93,6 +89,7 @@ public:
     void cacheSelection(int s, int e) { cachedSelStart = s; cachedSelEnd = e; };
     Selection selection() const;
 
+    virtual bool shouldUseInputMethod() const;
 private:
     void updateValue() const;
 

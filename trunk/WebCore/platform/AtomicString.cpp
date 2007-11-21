@@ -1,7 +1,5 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2007 Pleyo.
  * 
  * This library is free software; you can redistribute it and/or
@@ -16,8 +14,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -34,13 +32,13 @@
 #include "StringHash.h"
 #ifdef __OWB_JS__
 #include <kjs/identifier.h>
-#endif
+#endif //__OWB_JS__
 #include <wtf/HashSet.h>
 
 #ifdef __OWB_JS__
 using KJS::Identifier;
 using KJS::UString;
-#endif
+#endif //__OWB_JS__
 
 namespace WebCore {
 
@@ -88,10 +86,8 @@ StringImpl* AtomicString::add(const char* c)
 {
     if (!c)
         return 0;
-    int length = strlen(c);
-    if (length == 0)
-        return StringImpl::empty();
-    
+    if (!*c)
+        return StringImpl::empty();    
     return *stringTable->add<const char*, CStringTranslator>(c).first;
 }
 
@@ -112,7 +108,18 @@ struct UCharBufferTranslator {
         unsigned bufLength = buf.length;
         if (strLength != bufLength)
             return false;
-        
+
+#if PLATFORM(ARM)
+        const UChar* strChars = str->characters();
+        const UChar* bufChars = buf.s;
+
+        for (unsigned i = 0; i != strLength; ++i) {
+            if (*strChars++ != *bufChars++)
+                return false;
+        }
+        return true;
+#else
+        /* Do it 4-bytes-at-a-time on architectures where it's safe */
         const uint32_t* strChars = reinterpret_cast<const uint32_t*>(str->characters());
         const uint32_t* bufChars = reinterpret_cast<const uint32_t*>(buf.s);
         
@@ -127,6 +134,7 @@ struct UCharBufferTranslator {
             return false;
         
         return true;
+#endif
     }
 
     static void translate(StringImpl*& location, const UCharBuffer& buf, unsigned hash)
@@ -169,6 +177,7 @@ void AtomicString::remove(StringImpl* r)
 {
     stringTable->remove(r);
 }
+
 #ifdef __OWB_JS__
 StringImpl* AtomicString::add(const KJS::Identifier& str)
 {
@@ -189,7 +198,7 @@ AtomicString::operator UString() const
 {
     return m_string;
 }
-#endif
+#endif //__OWB_JS__
 
 AtomicString::AtomicString(const DeprecatedString& s)
     : m_string(add(reinterpret_cast<const UChar*>(s.unicode()), s.length()))

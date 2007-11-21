@@ -51,16 +51,31 @@ namespace WebCore {
 class BICookieJar {
 public:
 
+    /**
+     * get cookies
+     */
     virtual WebCore::String cookies(const KURL&) = 0;
+    /**
+     * set cookies
+     */
     virtual void setCookies(const KURL&, const KURL& policyBaseURL, const WebCore::String&) = 0;
 
-    virtual ~BICookieJar() {};
+    /**
+     * Cookie destructor
+     */
+    virtual ~BICookieJar() {}
+    
+    /**
+     * Return the number of cookies handled by the Cookie Manager
+     */
+    virtual unsigned short cookiesCount() = 0;
 };
 
 #define IMPLEMENT_BICOOKIEJAR \
     public: \
     virtual WebCore::String cookies(const KURL&);\
-    virtual void setCookies(const KURL&, const KURL& policyBaseURL, const WebCore::String&);
+    virtual void setCookies(const KURL&, const KURL& policyBaseURL, const WebCore::String&);\
+    virtual unsigned short cookiesCount();
 
 #endif // BICOOKIEJAR_H
 

@@ -16,13 +16,13 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 
-#ifdef XSLT_SUPPORT
+#if ENABLE(XSLT)
 
 #include "XSLTProcessor.h"
 
@@ -42,18 +42,30 @@
 #include "Text.h"
 #include "TextResourceDecoder.h"
 #include "XMLTokenizer.h"
+#include "XSLTExtensions.h"
 #include "loader.h"
 #include "markup.h"
-
-#ifndef __OWB_BIXML__
 #include <libxslt/imports.h>
 #include <libxslt/variables.h>
 #include <libxslt/xsltutils.h>
-#endif
-
 #include <wtf/Assertions.h>
 #include <wtf/Platform.h>
 #include <wtf/Vector.h>
+#if PLATFORM(MAC)
+#include "SoftLinking.h"
+#endif
+
+#if PLATFORM(MAC)
+SOFT_LINK_LIBRARY(libxslt);
+SOFT_LINK(libxslt, xsltFreeStylesheet, void, (xsltStylesheetPtr sheet), (sheet))
+SOFT_LINK(libxslt, xsltFreeTransformContext, void, (xsltTransformContextPtr ctxt), (ctxt))
+SOFT_LINK(libxslt, xsltNewTransformContext, xsltTransformContextPtr, (xsltStylesheetPtr style, xmlDocPtr doc), (style, doc))
+SOFT_LINK(libxslt, xsltApplyStylesheetUser, xmlDocPtr, (xsltStylesheetPtr style, xmlDocPtr doc, const char **params, const char *output, FILE * profile, xsltTransformContextPtr userCtxt), (style, doc, params, output, profile, userCtxt))
+SOFT_LINK(libxslt, xsltQuoteUserParams, int, (xsltTransformContextPtr ctxt, const char **params), (ctxt, params))
+SOFT_LINK(libxslt, xsltSetLoaderFunc, void, (xsltDocLoaderFunc f), (f))
+SOFT_LINK(libxslt, xsltSaveResultTo, int, (xmlOutputBufferPtr buf, xmlDocPtr result, xsltStylesheetPtr style), (buf, result, style))
+SOFT_LINK(libxslt, xsltNextImport, xsltStylesheetPtr, (xsltStylesheetPtr style), (style))
+#endif
 
 namespace WebCore {
 
@@ -78,48 +90,17 @@ static void parseErrorFunc(void *ctxt, const char *msg, ...)
 // FIXME: There seems to be no way to control the ctxt pointer for loading here, thus we have globals.
 static XSLTProcessor *globalProcessor = 0;
 static DocLoader *globalDocLoader = 0;
-#ifdef __OWB_BIXML__
-static BTXMLDoc *docLoaderFunc(const unsigned char *uri,
-                                    BTXMLDict *dict,
-                                    int options,
-                                    void* ctxt,
-                                    BAL::BIXsltLoadType type)
-#else
 static xmlDocPtr docLoaderFunc(const xmlChar *uri,
                                     xmlDictPtr dict,
                                     int options,
                                     void* ctxt,
                                     xsltLoadType type)
-#endif
 {
     if (!globalProcessor)
         return 0;
-
+    
     switch (type) {
         case XSLT_LOAD_DOCUMENT: {
-#ifdef __OWB_BIXML__
-            BAL::BIXML *m_xml = createBIXML();
-            BTXSLTTransformContext *context = (BTXSLTTransformContext *)ctxt;
-            unsigned char *base = m_xml->xmlNodeGetBase(context->document->doc, context->node);
-            KURL url((const char*)base, (const char*)uri);
-            m_xml->xmlFree(base);
-            ResourceRequest request(url);
-            KURL finalURL;
-
-            DeprecatedString headers;
-            BTXMLGenericErrorFunc oldErrorFunc = m_xml->getXMLGenericError();
-            void *oldErrorContext = m_xml->getXMLGenericErrorContext();
-
-            Vector<char> data = ServeSynchronousRequest(cache()->loader(), globalDocLoader, request, finalURL, headers);
-
-            m_xml->xmlSetGenericErrorFunc(0, parseErrorFunc);
-
-            // We don't specify an encoding here. Neither Gecko nor WinIE respects
-            // the encoding specified in the HTTP headers.
-
-            BTXMLDoc *doc = m_xml->xmlReadMemory(data.data(), data.size(), (const char*)uri, 0, options);
-            m_xml->xmlSetGenericErrorFunc(oldErrorContext, oldErrorFunc);
-#else
             xsltTransformContextPtr context = (xsltTransformContextPtr)ctxt;
             xmlChar *base = xmlNodeGetBase(context->document->doc, context->node);
             KURL url((const char*)base, (const char*)uri);
@@ -135,41 +116,28 @@ static xmlDocPtr docLoaderFunc(const xmlChar *uri,
                 globalDocLoader->frame()->loader()->loadResourceSynchronously(url, error, response, data);
 
             xmlSetGenericErrorFunc(0, parseErrorFunc);
-
             // We don't specify an encoding here. Neither Gecko nor WinIE respects
             // the encoding specified in the HTTP headers.
             xmlDocPtr doc = xmlReadMemory(data.data(), data.size(), (const char*)uri, 0, options);
             xmlSetGenericErrorFunc(oldErrorContext, oldErrorFunc);
-#endif
-
             return doc;
         }
         case XSLT_LOAD_STYLESHEET:
-#ifdef __OWB_BIXML__
-            return globalProcessor->xslStylesheet()->locateStylesheetSubResource(((BTXSLTStyleSheet *)ctxt)->doc, uri);
-#else
             return globalProcessor->xslStylesheet()->locateStylesheetSubResource(((xsltStylesheetPtr)ctxt)->doc, uri);
-#endif
         default:
             break;
     }
-
+    
     return 0;
 }
 
-#ifdef __OWB_BIXML__
-static inline void setXSLTLoadCallBack(BIXSLTDocLoaderFunc func, XSLTProcessor *processor, DocLoader *loader)
-{
-    BAL::BIXSLT *m_xlst = createBIXSLT();
-    m_xlst->setLoaderFunc(func);
-#else
 static inline void setXSLTLoadCallBack(xsltDocLoaderFunc func, XSLTProcessor *processor, DocLoader *loader)
 {
     xsltSetLoaderFunc(func);
-#endif
     globalProcessor = processor;
     globalDocLoader = loader;
 }
+
 static int writeToQString(void *context, const char *buffer, int len)
 {
     DeprecatedString &resultOutput = *static_cast<DeprecatedString *>(context);
@@ -177,31 +145,17 @@ static int writeToQString(void *context, const char *buffer, int len)
     return len;
 }
 
-#ifdef __OWB_BIXML__
-static bool saveResultToString(BTXMLDoc *resultDoc, BTXSLTStyleSheet *sheet, DeprecatedString &resultString)
-{
-    BAL::BIXML *m_xml = createBIXML();
-    BTXMLOutputBuffer *outputBuf = m_xml->xmlAllocOutputBuffer(0);
-#else
 static bool saveResultToString(xmlDocPtr resultDoc, xsltStylesheetPtr sheet, DeprecatedString &resultString)
 {
     xmlOutputBufferPtr outputBuf = xmlAllocOutputBuffer(0);
-#endif
-
     if (!outputBuf)
         return false;
     outputBuf->context = &resultString;
     outputBuf->writecallback = writeToQString;
-
-#ifdef __OWB_BIXML__
-    BAL::BIXSLT *m_xlst = createBIXSLT();
-    int retval = m_xlst->xsltSaveResultTo(outputBuf, resultDoc, sheet);
-    m_xml->xmlOutputBufferClose(outputBuf);
-#else
+    
     int retval = xsltSaveResultTo(outputBuf, resultDoc, sheet);
     xmlOutputBufferClose(outputBuf);
-#endif
-
+    
     return (retval >= 0);
 }
 
@@ -230,8 +184,8 @@ static const char **xsltParamArrayFromParameterMap(XSLTProcessor::ParameterMap& 
     XSLTProcessor::ParameterMap::iterator end = parameters.end();
     unsigned index = 0;
     for (XSLTProcessor::ParameterMap::iterator it = parameters.begin(); it != end; ++it) {
-        parameterArray[index++] = strdup(it->first.utf8());
-        parameterArray[index++] = strdup(it->second.utf8());
+        parameterArray[index++] = strdup(it->first.utf8().data());
+        parameterArray[index++] = strdup(it->second.utf8().data());
     }
     parameterArray[index] = 0;
 
@@ -243,7 +197,7 @@ static void freeXsltParamArray(const char **params)
     const char **temp = params;
     if (!params)
         return;
-
+    
     while (*temp) {
         free((void *)*(temp++)); // strdup returns malloc'd blocks, so we have to use free() here
         free((void *)*(temp++));
@@ -253,54 +207,50 @@ static void freeXsltParamArray(const char **params)
 
 
 RefPtr<Document> XSLTProcessor::createDocumentFromSource(const DeprecatedString& sourceString,
-    const DeprecatedString& sourceEncoding, const DeprecatedString& sourceMIMEType, Node* sourceNode, FrameView* view)
+    const DeprecatedString& sourceEncoding, const DeprecatedString& sourceMIMEType, Node* sourceNode, Frame* frame)
 {
     RefPtr<Document> ownerDocument = sourceNode->document();
     bool sourceIsDocument = (sourceNode == ownerDocument.get());
     String documentSource = sourceString;
 
     RefPtr<Document> result;
-    if (sourceMIMEType == "text/html")
-        result = ownerDocument->implementation()->createHTMLDocument(view);
-    else {
-        result = ownerDocument->implementation()->createDocument(view);
-        if (sourceMIMEType == "text/plain")
-            transformTextStringToXHTMLDocumentString(documentSource);
-    }
-
+    if (sourceMIMEType == "text/plain") {
+        result = ownerDocument->implementation()->createDocument(frame);
+        transformTextStringToXHTMLDocumentString(documentSource);
+    } else
+        result = ownerDocument->implementation()->createDocument(sourceMIMEType, frame, false);
+    
     // Before parsing, we need to save & detach the old document and get the new document
     // in place. We have to do this only if we're rendering the result document.
-    if (view) {
-        view->clear();
-        result->setTransformSourceDocument(view->frame()->document());
-        view->frame()->setDocument(result.get());
+    if (frame) {
+        if (FrameView* view = frame->view())
+            view->clear();
+        result->setTransformSourceDocument(frame->document());
+        frame->setDocument(result);
     }
-
+    
     result->open();
     if (sourceIsDocument) {
         result->setURL(ownerDocument->URL());
         result->setBaseURL(ownerDocument->baseURL());
     }
     result->determineParseMode(documentSource); // Make sure we parse in the correct mode.
-
+    
     RefPtr<TextResourceDecoder> decoder = new TextResourceDecoder(sourceMIMEType);
     decoder->setEncoding(sourceEncoding.isEmpty() ? UTF8Encoding() : TextEncoding(sourceEncoding), TextResourceDecoder::EncodingFromXMLHeader);
     result->setDecoder(decoder.get());
-
+    
     result->write(documentSource);
     result->finishParsing();
-    if (view)
-        view->frame()->loader()->checkCompleted();
-    else
-        result->close(); // FIXME: Even viewless docs can load subresources. onload will fire too early.
-                         // This is probably a bug in XMLHttpRequestObjects as well.
+    result->close();
+
     return result;
 }
 
 static inline RefPtr<DocumentFragment> createFragmentFromSource(DeprecatedString sourceString, DeprecatedString sourceMIMEType, Node *sourceNode, Document *outputDoc)
 {
     RefPtr<DocumentFragment> fragment = new DocumentFragment(outputDoc);
-
+    
     if (sourceMIMEType == "text/html")
         parseHTMLDocumentFragment(sourceString, fragment.get());
     else if (sourceMIMEType == "text/plain")
@@ -310,47 +260,30 @@ static inline RefPtr<DocumentFragment> createFragmentFromSource(DeprecatedString
         if (!successfulParse)
             return 0;
     }
-
+    
     // FIXME: Do we need to mess with URLs here?
-
+        
     return fragment;
 }
 
-#ifdef __OWB_BIXML__
-static BTXSLTStyleSheet *xsltStylesheetPointer(RefPtr<XSLStyleSheet> &cachedStylesheet, Node *stylesheetRootNode)
-#else
 static xsltStylesheetPtr xsltStylesheetPointer(RefPtr<XSLStyleSheet> &cachedStylesheet, Node *stylesheetRootNode)
-#endif
 {
     if (!cachedStylesheet && stylesheetRootNode) {
         cachedStylesheet = new XSLStyleSheet(stylesheetRootNode->parent() ? stylesheetRootNode->parent() : stylesheetRootNode, stylesheetRootNode->document()->URL());
         cachedStylesheet->parseString(createMarkup(stylesheetRootNode));
     }
-
+    
     if (!cachedStylesheet || !cachedStylesheet->document())
         return 0;
-
+    
     return cachedStylesheet->compileStyleSheet();
 }
 
-#ifdef __OWB_BIXML__
-static inline BTXMLDoc *xmlDocPtrFromNode(Node *sourceNode, bool &shouldDelete)
-#else
 static inline xmlDocPtr xmlDocPtrFromNode(Node *sourceNode, bool &shouldDelete)
-#endif
 {
     RefPtr<Document> ownerDocument = sourceNode->document();
     bool sourceIsDocument = (sourceNode == ownerDocument.get());
-
-#ifdef __OWB_BIXML__
-    BTXMLDoc *sourceDoc = 0;
-    if (sourceIsDocument)
-        sourceDoc = (BTXMLDoc *)ownerDocument->transformSource();
-    if (!sourceDoc) {
-        sourceDoc = (BTXMLDoc *)xmlDocPtrForString(ownerDocument->docLoader(), createMarkup(sourceNode), sourceIsDocument ? ownerDocument->URL() : DeprecatedString());
-        shouldDelete = (sourceDoc != 0);
-    }
-#else
+    
     xmlDocPtr sourceDoc = 0;
     if (sourceIsDocument)
         sourceDoc = (xmlDocPtr)ownerDocument->transformSource();
@@ -358,61 +291,34 @@ static inline xmlDocPtr xmlDocPtrFromNode(Node *sourceNode, bool &shouldDelete)
         sourceDoc = (xmlDocPtr)xmlDocPtrForString(ownerDocument->docLoader(), createMarkup(sourceNode), sourceIsDocument ? ownerDocument->URL() : DeprecatedString());
         shouldDelete = (sourceDoc != 0);
     }
-#endif
-
     return sourceDoc;
 }
 
-#ifdef __OWB_BIXML__
-static inline DeprecatedString resultMIMEType(BTXMLDoc *resultDoc, BTXSLTStyleSheet *sheet)
-#else
 static inline DeprecatedString resultMIMEType(xmlDocPtr resultDoc, xsltStylesheetPtr sheet)
-#endif
 {
     // There are three types of output we need to be able to deal with:
     // HTML (create an HTML document), XML (create an XML document),
     // and text (wrap in a <pre> and create an XML document).
 
-#ifdef __OWB_BIXML__
-    const unsigned char *resultType = 0;
-    BAL::BIXSLT *m_xlst = createBIXSLT();
-    m_xlst->getImportPtr( resultType, sheet );
-
-    if (resultType == 0 && resultDoc->type == BTXML_HTML_DOCUMENT_NODE)
-        resultType = (const unsigned char *)"html";
-
-    BAL::BIXML *m_xml = createBIXML();
-    if (m_xml->xmlStrEqual(resultType, (const unsigned char *)"html"))
-        return DeprecatedString("text/html");
-    else if (m_xml->xmlStrEqual(resultType, (const unsigned char *)"text"))
-        return DeprecatedString("text/plain");
-#else
     const xmlChar *resultType = 0;
     XSLT_GET_IMPORT_PTR(resultType, sheet, method);
-
     if (resultType == 0 && resultDoc->type == XML_HTML_DOCUMENT_NODE)
         resultType = (const xmlChar *)"html";
-
+    
     if (xmlStrEqual(resultType, (const xmlChar *)"html"))
         return DeprecatedString("text/html");
     else if (xmlStrEqual(resultType, (const xmlChar *)"text"))
         return DeprecatedString("text/plain");
-#endif
-
+        
     return DeprecatedString("application/xml");
 }
 
 bool XSLTProcessor::transformToString(Node *sourceNode, DeprecatedString &mimeType, DeprecatedString &resultString, DeprecatedString &resultEncoding)
 {
     RefPtr<Document> ownerDocument = sourceNode->document();
-
+    
     setXSLTLoadCallBack(docLoaderFunc, this, ownerDocument->docLoader());
-#ifdef __OWB_BIXML__
-    BAL::BIXSLT *m_xlst = createBIXSLT();
-    BTXSLTStyleSheet *sheet = xsltStylesheetPointer(m_stylesheet, m_stylesheetRootNode.get());
-#else
     xsltStylesheetPtr sheet = xsltStylesheetPointer(m_stylesheet, m_stylesheetRootNode.get());
-#endif
     if (!sheet) {
         setXSLTLoadCallBack(0, 0, 0);
         return false;
@@ -425,74 +331,39 @@ bool XSLTProcessor::transformToString(Node *sourceNode, DeprecatedString &mimeTy
 
     bool success = false;
     bool shouldFreeSourceDoc = false;
-#ifdef __OWB_BIXML__
-    if (BTXMLDoc *sourceDoc = xmlDocPtrFromNode(sourceNode, shouldFreeSourceDoc)) {
-#else
     if (xmlDocPtr sourceDoc = xmlDocPtrFromNode(sourceNode, shouldFreeSourceDoc)) {
-#endif
-        // The XML declaration would prevent parsing the result as a fragment, and it's not needed even for documents,
+        // The XML declaration would prevent parsing the result as a fragment, and it's not needed even for documents, 
         // as the result of this function is always immediately parsed.
         sheet->omitXmlDeclaration = true;
 
-#ifdef __OWB_BIXML__
-        BAL::BIXML *m_xml = createBIXML();
-        BTXSLTTransformContext *transformContext = m_xlst->xsltNewTransformContext(sheet, sourceDoc);
-
-        // This is a workaround for a bug in libxslt.
-        // The bug has been fixed in version 1.1.13, so once we ship that this can be removed.
-        if (transformContext->globalVars == NULL)
-           transformContext->globalVars = m_xml->xmlHashCreate(20);
-#else
         xsltTransformContextPtr transformContext = xsltNewTransformContext(sheet, sourceDoc);
+        registerXSLTExtensions(transformContext);
 
-        // This is a workaround for a bug in libxslt.
+        // This is a workaround for a bug in libxslt. 
         // The bug has been fixed in version 1.1.13, so once we ship that this can be removed.
         if (transformContext->globalVars == NULL)
            transformContext->globalVars = xmlHashCreate(20);
-#endif
-
 
         const char **params = xsltParamArrayFromParameterMap(m_parameters);
-#ifdef __OWB_BIXML__
-        m_xlst->xsltQuoteUserParams(transformContext, params);
-        BTXMLDoc *resultDoc = m_xlst->xsltApplyStylesheetUser(sheet, sourceDoc, 0, 0, 0, transformContext);
-        m_xlst->xsltFreeTransformContext(transformContext);
-#else
         xsltQuoteUserParams(transformContext, params);
         xmlDocPtr resultDoc = xsltApplyStylesheetUser(sheet, sourceDoc, 0, 0, 0, transformContext);
-        xsltFreeTransformContext(transformContext);
-#endif
-
-
+        
+        xsltFreeTransformContext(transformContext);        
         freeXsltParamArray(params);
-
+        
         if (shouldFreeSourceDoc)
-#ifdef __OWB_BIXML__
-            m_xml->xmlFreeDoc(sourceDoc);
-#else
             xmlFreeDoc(sourceDoc);
-#endif
-
+        
         if (success = saveResultToString(resultDoc, sheet, resultString)) {
             mimeType = resultMIMEType(resultDoc, sheet);
             resultEncoding = (char *)resultDoc->encoding;
         }
-#ifdef __OWB_BIXML__
-        m_xml->xmlFreeDoc(resultDoc);
-#else
         xmlFreeDoc(resultDoc);
-#endif
-
     }
-
+    
     sheet->method = origMethod;
     setXSLTLoadCallBack(0, 0, 0);
-
-#ifdef __OWB_BIXML__
-    m_xlst->xsltFreeStylesheet(sheet);
-#else
     xsltFreeStylesheet(sheet);
-#endif
     m_stylesheet = 0;
 
     return success;
@@ -505,7 +376,7 @@ RefPtr<Document> XSLTProcessor::transformToDocument(Node *sourceNode)
     DeprecatedString resultEncoding;
     if (!transformToString(sourceNode, resultMIMEType, resultString, resultEncoding))
         return 0;
-    return createDocumentFromSource(resultString, resultEncoding, resultMIMEType, sourceNode);
+    return createDocumentFromSource(resultString, resultEncoding, resultMIMEType, sourceNode, 0);
 }
 
 RefPtr<DocumentFragment> XSLTProcessor::transformToFragment(Node* sourceNode, Document* outputDoc)
@@ -545,4 +416,4 @@ void XSLTProcessor::removeParameter(const String& namespaceURI, const String& lo
 
 } // namespace WebCore
 
-#endif // XSLT_SUPPORT
+#endif // ENABLE(XSLT)

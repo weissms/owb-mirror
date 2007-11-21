@@ -21,8 +21,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -34,6 +34,7 @@
 #include "RenderTableCell.h"
 #include "RenderTableCol.h"
 #include "RenderTableRow.h"
+#include "RenderView.h"
 #include "TextStream.h"
 #include <limits>
 #include <wtf/Vector.h>
@@ -71,12 +72,14 @@ RenderTableSection::~RenderTableSection()
 
 void RenderTableSection::destroy()
 {
+    RenderTable* recalcTable = table();
+    
+    RenderContainer::destroy();
+    
     // recalc cell info because RenderTable has unguarded pointers
     // stored that point to this RenderTableSection.
-    if (table())
-        table()->setNeedsSectionRecalc();
-
-    RenderContainer::destroy();
+    if (recalcTable)
+        recalcTable->setNeedsSectionRecalc();
 }
 
 void RenderTableSection::setStyle(RenderStyle* newStyle)
@@ -92,6 +95,10 @@ void RenderTableSection::setStyle(RenderStyle* newStyle)
 
 void RenderTableSection::addChild(RenderObject* child, RenderObject* beforeChild)
 {
+    // Make sure we don't append things after :after-generated content if we have it.
+    if (!beforeChild && isAfterContent(lastChild()))
+        beforeChild = lastChild();
+
     bool isTableSection = element() && (element()->hasTagName(theadTag) || element()->hasTagName(tbodyTag) || element()->hasTagName(tfootTag));
 
     if (!child->isTableRow()) {
@@ -172,7 +179,7 @@ bool RenderTableSection::ensureRows(int numRows)
             m_grid[r].row = new Row(nCols);
             m_grid[r].row->fill(emptyCellStruct);
             m_grid[r].rowRenderer = 0;
-            m_grid[r].baseLine = 0;
+            m_grid[r].baseline = 0;
             m_grid[r].height = Length();
         }
     }
@@ -263,6 +270,7 @@ void RenderTableSection::addCell(RenderTableCell* cell, RenderObject* row)
 void RenderTableSection::setCellWidths()
 {
     Vector<int>& columnPos = table()->columnPositions();
+    bool pushedLayoutState = false;
 
     for (int i = 0; i < m_gridRows; i++) {
         Row& row = *m_grid[i].row;
@@ -282,14 +290,23 @@ void RenderTableSection::setCellWidths()
             int w = columnPos[endCol] - columnPos[j] - table()->hBorderSpacing();
             int oldWidth = cell->width();
             if (w != oldWidth) {
-                bool neededLayout = cell->selfNeedsLayout();
                 cell->setNeedsLayout(true);
-                if (!neededLayout && !selfNeedsLayout() && cell->checkForRepaintDuringLayout())
-                    cell->repaintObjectsBeforeLayout();
+                if (!table()->selfNeedsLayout() && cell->checkForRepaintDuringLayout()) {
+                    if (!pushedLayoutState) {
+                        // Technically, we should also push state for the row, but since
+                        // rows don't push a coordinate transform, that's not necessary.
+                        view()->pushLayoutState(this, IntSize(m_x, m_y));
+                        pushedLayoutState = true;
+                    }
+                    cell->repaint();
+                }
                 cell->setWidth(w);
             }
         }
     }
+    
+    if (pushedLayoutState)
+        view()->popLayoutState();
 }
 
 void RenderTableSection::calcRowHeight()
@@ -297,13 +314,14 @@ void RenderTableSection::calcRowHeight()
     RenderTableCell* cell;
 
     int spacing = table()->vBorderSpacing();
+    bool pushedLayoutState = false;
 
     m_rowPos.resize(m_gridRows + 1);
     m_rowPos[0] = spacing;
 
     for (int r = 0; r < m_gridRows; r++) {
         m_rowPos[r + 1] = 0;
-
+        m_grid[r].baseline = 0;
         int baseline = 0;
         int bdesc = 0;
         int ch = m_grid[r].height.calcMinValue(0);
@@ -325,6 +343,12 @@ void RenderTableSection::calcRowHeight()
             int indx = max(r - cell->rowSpan() + 1, 0);
 
             if (cell->overrideSize() != -1) {
+                if (!pushedLayoutState) {
+                    // Technically, we should also push state for the row, but since
+                    // rows don't push a coordinate transform, that's not necessary.
+                    view()->pushLayoutState(this, IntSize(m_x, m_y));
+                    pushedLayoutState = true;
+                }
                 cell->setOverrideSize(-1);
                 cell->setChildNeedsLayout(true, false);
                 cell->layoutIfNeeded();
@@ -356,11 +380,14 @@ void RenderTableSection::calcRowHeight()
         if (baseline) {
             // increase rowheight if baseline requires
             m_rowPos[r + 1] = max(m_rowPos[r + 1], baseline + bdesc + (m_grid[r].rowRenderer ? spacing : 0));
-            m_grid[r].baseLine = baseline;
+            m_grid[r].baseline = baseline;
         }
 
         m_rowPos[r + 1] = max(m_rowPos[r + 1], m_rowPos[r]);
     }
+
+    if (pushedLayoutState)
+        view()->popLayoutState();
 }
 
 int RenderTableSection::layoutRows(int toAdd)
@@ -443,6 +470,8 @@ int RenderTableSection::layoutRows(int toAdd)
     int vspacing = table()->vBorderSpacing();
     int nEffCols = table()->numEffCols();
 
+    view()->pushLayoutState(this, IntSize(m_x, m_y));
+
     for (int r = 0; r < totalRows; r++) {
         // Set the row's x/y position and width/height.
         if (RenderObject* rowRenderer = m_grid[r].rowRenderer) {
@@ -494,45 +523,50 @@ int RenderTableSection::layoutRows(int toAdd)
                 // Alignment within a cell is based off the calculated
                 // height, which becomes irrelevant once the cell has
                 // been resized based off its percentage. -dwh
-                cell->setCellTopExtra(0);
-                cell->setCellBottomExtra(0);
-
                 cell->setOverrideSize(max(0, 
                                            rHeight - cell->borderTop() - cell->paddingTop() - 
                                                      cell->borderBottom() - cell->paddingBottom()));
                 cell->layoutIfNeeded();
-            } else {
-                int te = 0;
-                switch (cell->style()->verticalAlign()) {
-                    case SUB:
-                    case SUPER:
-                    case TEXT_TOP:
-                    case TEXT_BOTTOM:
-                    case BASELINE:
-                        te = getBaseline(r) - cell->baselinePosition() ;
-                        break;
-                    case TOP:
-                        te = 0;
-                        break;
-                    case MIDDLE:
-                        te = (rHeight - cell->height()) / 2;
-                        break;
-                    case BOTTOM:
-                        te = rHeight - cell->height();
-                        break;
-                    default:
-                        break;
+                
+                // If the baseline moved, we may have to update the data for our row. Find out the new baseline.
+                EVerticalAlign va = cell->style()->verticalAlign();
+                if (va == BASELINE || va == TEXT_BOTTOM || va == TEXT_TOP || va == SUPER || va == SUB) {
+                    int b = cell->baselinePosition();
+                    if (b > cell->borderTop() + cell->paddingTop())
+                        m_grid[r].baseline = max(m_grid[r].baseline, b);
                 }
-                
-                int oldTe = cell->borderTopExtra();
-                int oldBe = cell->borderBottomExtra();
-                
-                int be = rHeight - cell->height() - te;
-                cell->setCellTopExtra(te);
-                cell->setCellBottomExtra(be);
-                if ((te != oldTe || be > oldBe) && !table()->selfNeedsLayout() && cell->checkForRepaintDuringLayout())
-                    cell->repaint();
             }
+            
+            int te = 0;
+            switch (cell->style()->verticalAlign()) {
+                case SUB:
+                case SUPER:
+                case TEXT_TOP:
+                case TEXT_BOTTOM:
+                case BASELINE:
+                    te = getBaseline(r) - cell->baselinePosition();
+                    break;
+                case TOP:
+                    te = 0;
+                    break;
+                case MIDDLE:
+                    te = (rHeight - cell->height()) / 2;
+                    break;
+                case BOTTOM:
+                    te = rHeight - cell->height();
+                    break;
+                default:
+                    break;
+            }
+                
+            int oldTe = cell->borderTopExtra();
+            int oldBe = cell->borderBottomExtra();
+                
+            int be = rHeight - cell->height() - te;
+            cell->setCellTopExtra(te);
+            cell->setCellBottomExtra(be);
+            if ((te != oldTe || be > oldBe) && !table()->selfNeedsLayout() && cell->checkForRepaintDuringLayout())
+                cell->repaint();
             
             IntRect oldCellRect(cell->xPos(), cell->yPos() - cell->borderTopExtra() , cell->width(), cell->height());
         
@@ -554,6 +588,8 @@ int RenderTableSection::layoutRows(int toAdd)
                 cell->repaintDuringLayoutIfMoved(oldCellRect);
         }
     }
+
+    view()->popLayoutState();
 
     m_height = m_rowPos[totalRows];
     m_overflowHeight = max(m_overflowHeight, m_height);
@@ -820,6 +856,12 @@ void RenderTableSection::recalcOuterBorder()
 
 void RenderTableSection::paint(PaintInfo& paintInfo, int tx, int ty)
 {
+    // put this back in when all layout tests can handle it
+    // ASSERT(!needsLayout());
+    // avoid crashing on bugs that cause us to paint with dirty layout
+    if (needsLayout())
+        return;
+    
     unsigned totalRows = m_gridRows;
     unsigned totalCols = table()->columns().size();
 
@@ -894,6 +936,8 @@ void RenderTableSection::paint(PaintInfo& paintInfo, int tx, int ty)
                 if (!cell || (r > startrow && (cellAt(r - 1, c).cell == cell)))
                     continue;
 
+                RenderTableRow* row = static_cast<RenderTableRow*>(cell->parent());
+
                 if (paintPhase == PaintPhaseBlockBackground || paintPhase == PaintPhaseChildBlockBackground) {
                     // We need to handle painting a stack of backgrounds.  This stack (from bottom to top) consists of
                     // the column group, column, row group, row, and then the cell.
@@ -901,8 +945,6 @@ void RenderTableSection::paint(PaintInfo& paintInfo, int tx, int ty)
                     RenderObject* colGroup = 0;
                     if (col && col->parent()->style()->display() == TABLE_COLUMN_GROUP)
                         colGroup = col->parent();
-
-                    RenderObject* row = cell->parent();
 
                     // Column groups and columns first.
                     // FIXME: Columns and column groups do not currently support opacity, and they are being painted "too late" in
@@ -917,11 +959,11 @@ void RenderTableSection::paint(PaintInfo& paintInfo, int tx, int ty)
 
                     // Paint the row next, but only if it doesn't have a layer.  If a row has a layer, it will be responsible for
                     // painting the row background for the cell.
-                    if (!row->layer())
+                    if (!row->hasLayer())
                         cell->paintBackgroundsBehindCell(paintInfo, tx, ty, row);
                 }
 
-                if ((!cell->layer() && !cell->parent()->layer()) || paintInfo.phase == PaintPhaseCollapsedTableBorders)
+                if ((!cell->hasLayer() && !row->hasLayer()) || paintInfo.phase == PaintPhaseCollapsedTableBorders)
                     cell->paint(paintInfo, tx, ty);
             }
         }
@@ -1007,10 +1049,10 @@ void RenderTableSection::splitColumn(int pos, int newSize)
     }
 }
 
-RenderObject* RenderTableSection::removeChildNode(RenderObject* child)
+RenderObject* RenderTableSection::removeChildNode(RenderObject* child, bool fullRemove)
 {
     setNeedsCellRecalc();
-    return RenderContainer::removeChildNode(child);
+    return RenderContainer::removeChildNode(child, fullRemove);
 }
 
 // Hit Testing
@@ -1026,7 +1068,7 @@ bool RenderTableSection::nodeAtPoint(const HitTestRequest& request, HitTestResul
         // at the moment (a demoted inline <form> for example). If we ever implement a
         // table-specific hit-test method (which we should do for performance reasons anyway),
         // then we can remove this check.
-        if (!child->layer() && !child->isInlineFlow() && child->nodeAtPoint(request, result, x, y, tx, ty, action)) {
+        if (!child->hasLayer() && !child->isInlineFlow() && child->nodeAtPoint(request, result, x, y, tx, ty, action)) {
             updateHitTestResult(result, IntPoint(x - tx, y - ty));
             return true;
         }

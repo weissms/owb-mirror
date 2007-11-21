@@ -1,24 +1,10 @@
-set(events_SRC
-        ${events_SRC}
-
-	BAL/Implementations/Events/Common/BCKeyboardEvent.cpp
-	BAL/Implementations/Events/Common/BCMouseEvent.cpp
-	BAL/Implementations/Events/Common/BCWheelEvent.cpp
-	BAL/Implementations/Events/Common/BCWindowEvent.cpp
-	BAL/Implementations/Events/Common/BCTimerEvent.cpp
+SET (events_SRC
+    ${events_SRC}
+    BAL/Implementations/Events/Common/BCKeyboardEvent.cpp
+    BAL/Implementations/Events/Common/BCMouseEvent.cpp
+    BAL/Implementations/Events/Common/BCWheelEvent.cpp
+    BAL/Implementations/Events/Common/BCWindowEvent.cpp
+    BAL/Implementations/Events/Common/BCTimerEvent.cpp
+    ${EVENTS_PREFIX}BAL/Implementations/Events/${EVENTS}/BCEventLoop${EVENTS}${TARGET}.cpp
 )
-
-IF (WEBKIT_USE_EVENTS_SDL)
-set(events_SRC
-        ${events_SRC}
-	BAL/Implementations/Events/SDL/BCSDLEventLoop.cpp
-)
-ENDIF (WEBKIT_USE_EVENTS_SDL)
-
-IF (WEBKIT_USE_EVENTS_GENERIC)
-set(events_SRC
-        ${events_SRC}
-	BAL/Implementations/Events/Generic/BCGenericEventLoop.cpp
-)
-ENDIF (WEBKIT_USE_EVENTS_GENERIC)
 

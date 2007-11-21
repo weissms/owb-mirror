@@ -9,4 +9,8 @@
 		Value="_debug"
 		PerformEnvironmentSet="true"
 	/>
+	<UserMacro
+		Name="WebKitDLLConfigSuffix"
+		Value=""
+	/>
 </VisualStudioPropertySheet>

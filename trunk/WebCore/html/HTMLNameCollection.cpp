@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -66,9 +66,9 @@ Node* HTMLNameCollection::traverseNextItem(Node* current) const
                 break;
             case DocumentNamedItems:
                 // find images, forms, applets, embeds, objects and iframes by name, 
-                // but only applets and object by id (this strange rule matches IE)
-                if (e->hasTagName(imgTag) ||
-                    e->hasTagName(formTag) ||
+                // applets and object by id, and images by id but only if they have
+                // a name attribute (this very strange rule matches IE)
+                if (e->hasTagName(formTag) ||
                     e->hasTagName(embedTag) ||
                     e->hasTagName(iframeTag))
                     found = e->getAttribute(nameAttr) == m_name;
@@ -78,6 +78,8 @@ Node* HTMLNameCollection::traverseNextItem(Node* current) const
                 else if (e->hasTagName(objectTag))
                     found = (e->getAttribute(nameAttr) == m_name || e->getAttribute(idAttr) == m_name) &&
                         static_cast<HTMLObjectElement*>(e)->isDocNamedItem();
+                else if (e->hasTagName(imgTag))
+                    found = e->getAttribute(nameAttr) == m_name || (e->getAttribute(idAttr) == m_name && e->hasAttribute(nameAttr));
                 break;
             default:
                 ASSERT(0);

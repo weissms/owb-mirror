@@ -16,22 +16,22 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "RenderSVGInline.h"
+
 #include "SVGInlineFlowBox.h"
-#include "SVGTextPositioningElement.h"
-#include "SVGLengthList.h"
 
 namespace WebCore {
     
-RenderSVGInline::RenderSVGInline(Node* n) : RenderInline(n)
+RenderSVGInline::RenderSVGInline(Node* n)
+    : RenderInline(n)
 {
 }
 
@@ -55,4 +55,4 @@ InlineBox* RenderSVGInline::createInlineBox(bool makePlaceHolderBox, bool isRoot
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

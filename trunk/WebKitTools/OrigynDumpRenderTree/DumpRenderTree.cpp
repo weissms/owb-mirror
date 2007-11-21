@@ -21,6 +21,7 @@
 #include "BALConfiguration.h"
 #include "BIEventLoop.h"
 #include "BIGraphicsDevice.h"
+#include "BIResourceHandleManager.h"
 #include "BTDeviceChannel.h"
 #include "BTTextLogFormatter.h"
 #include "CString.h"
@@ -28,25 +29,77 @@
 #include "Frame.h"
 #include "FrameLoaderClientBal.h"
 #include "HTMLElement.h"
+#ifdef __OWB_JS__
 #include "JSLayoutTestController.h"
+#endif //__OWB_JS__
 #include "KURL.h"
 #include "markup.h"
+#include "Page.h"
 #include "RenderTreeAsText.h"
 #include <iostream> // NOTE log define interferes with iostream
 #include <signal.h>
 #include "SystemTime.h"
 #include "BTLogHelper.h"
+#include "BIObserver.h"
+#include "BIObserverService.h"
 #include "BIWindow.h"
 #include "BIWindowManager.h"
 
 using namespace WebCore;
 using namespace BAL;
 
-class DumpClient : public FrameLoaderClientBal {
-        virtual void frameLoadCompleted();
+class DumpClient : public BIObserver, public FrameLoaderClientBal {
+public:
+    DumpClient();
+    ~DumpClient();
+    virtual void dispatchDidFinishLoad();
+    virtual void dispatchDidFailProvisionalLoad(const ResourceError& error);
+    /**
+     * JSLayoutTestController notifies us.
+     * @param(in) "layoutTestController"
+     * @param(in) notifyDone, waitUntilDone
+     */
+    void observe(const String&, const String&);
+private:
+    void dump();
+    bool m_waitUntilDone;
 };
 
-void DumpClient::frameLoadCompleted() {
+DumpClient::DumpClient()
+    : m_waitUntilDone(false)
+{
+    BAL::getBIObserverService()->registerObserver("layoutTestController", this);
+}
+DumpClient::~DumpClient()
+{
+    BAL::getBIObserverService()->removeObserver("layoutTestController", this);
+}
+
+void DumpClient::observe(const String& topic, const String& data)
+{
+    if (data == "waitUntilDone")
+        m_waitUntilDone = true;
+    else if (data == "notifyDone")
+        dump();
+}
+void DumpClient::dispatchDidFailProvisionalLoad(const ResourceError& error)
+{
+    printf("Error for '%s': %s\n", error.failingURL().deprecatedString().ascii(),
+        error.localizedDescription().deprecatedString().ascii());
+
+    getBIEventLoop()->quit();
+}
+
+void DumpClient::dispatchDidFinishLoad()
+{
+    if (m_waitUntilDone)
+        return;
+    else 
+        dump();
+
+}
+void DumpClient::dump()
+{
     Document* my_doc;
     my_doc = frame()->renderer()->document();
     bool dumpAsText = false;
@@ -65,7 +118,9 @@ void DumpClient::frameLoadCompleted() {
 
     dumpAsText = dumpProperty->getBoolean();
 #endif
+#ifdef __OWB_JS__
     dumpAsText = KJS::JSLayoutTestController::GetDumpAsText();
+#endif //__OWB_JS__
 
     if (dumpAsText)
     {
@@ -80,10 +135,9 @@ void DumpClient::frameLoadCompleted() {
             printf("%s", utf8);
         else
             printf("FrameBal::dumpRenderTree() no data\n");
-//        DeprecatedString renderDump = externalRepresentation(aFrame->renderer());
-//        printf( "%s", renderDump.ascii());
     }
-        BAL::getBIEventLoop()->quit();
+
+    BAL::getBIEventLoop()->quit();
 
 }
 /**
@@ -98,8 +152,9 @@ public:
         m_loaderClient = new DumpClient;
     }
     ~DumpRenderTree() {
-        // BCEventLoop is a singleton, do not destroy (may be used later by runTest)
+        // EventLoop is a singleton, but destroy it as some events may be left in and thus interfere with next test
         m_eventLoop = 0;
+        BAL::deleteBIEventLoop();
         // m_loaderClient will destroy itself
     }
     BAL::BIEventLoop*       m_eventLoop;
@@ -107,34 +162,25 @@ public:
 
     void handleEvent();
 protected:
-//    void dumpRenderTreeToStdOut(WebCore::Frame* aFrame);
     void serializeToStdOut(WebCore::Frame* /*frame*/);
 };
 
 
 void DumpRenderTree::serializeToStdOut(WebCore::Frame* frame)
 {
-    DeprecatedString markup = createMarkup( frame->document() );
-    fprintf( stderr, "Source:\n\n%s", markup.ascii());
+    String markup = createMarkup(frame->document());
+    fprintf( stderr, "Source:\n\n%s", markup.utf8().data());
 }
 
 void DumpRenderTree::handleEvent() {
-    BIEvent* aEvent;
+    BIEvent* aEvent = NULL;
     double startTime = WebCore::currentTime();
     // wait for QUIT event or 5s and exit
-    while (WebCore::currentTime() - startTime < 5.0)
+    bool isEventValid = true;
+    while (isEventValid)
     {
-        bool isEventValid = m_eventLoop->WaitEvent(aEvent);
+        isEventValid = m_eventLoop->WaitEvent(aEvent);
         if (isEventValid) {
-            BIKeyboardEvent* aKeyboardEvent = aEvent->queryIsKeyboardEvent();
-            if(aKeyboardEvent)
-            {
-                if(aKeyboardEvent->virtualKeyCode() == BAL::BIKeyboardEvent::VK_ESCAPE )
-                {
-                    break; // stop loop
-                }
-            }
-
             BIWindowEvent* aWindowEvent = aEvent->queryIsWindowEvent();
             if( aWindowEvent && aWindowEvent->type() == BAL::BIWindowEvent::QUIT )
             {
@@ -142,9 +188,17 @@ void DumpRenderTree::handleEvent() {
             }
 
             // In other cases, event is handled by frame
-            getBIWindowManager()->handleEvent(aEvent);
+            //tBIWindowManager()->handleEvent(aEvent);
             delete aEvent;
         }
+        else {
+        
+        }
+        if (WebCore::currentTime() - startTime > 5.0) {
+            printf("Timeout !\n");
+            BAL::getBIEventLoop()->quit();
+        }
+        aEvent = NULL;
     }
 }
 
@@ -153,26 +207,24 @@ void runTest(const char* filename)
     DumpRenderTree dumpRenderTree;
 
     if( dumpRenderTree.m_eventLoop == NULL ) {
-      log("No event loop\n");
+      DBG("No event loop\n");
       return;
     }
 
     // mandatory but do not overwrite
     setenv("LAYOUT_TEST", "1", 0);
     setenv("DISABLE_DISPLAY", "1", 0);
-    getBIGraphicsDevice()->initialize(800, 600, 32);
 
     BIWindow *window = getBIWindowManager()->openWindow(0, 0, 800, 600);
     window->setFrameLoaderClient(dumpRenderTree.m_loaderClient);
-    
+
     window->setURL(filename);
-    
+
     dumpRenderTree.handleEvent();
 
     getBIWindowManager()->closeWindow(window);
-
-    getBIGraphicsDevice()->finalize();
-    
+    deleteBIWindowManager();
+    deleteBIResourceHandleManager();
     // ENV var set will be removed
 }
 
@@ -185,6 +237,7 @@ static void crashHandler(int sig)
 int
 main(int argc, char *argv[])
 {
+
 #ifdef BAL_LOG // logger is not defined in NDEBUG
     // disable logging
     BALFacilities::logger.setIsActive(false);
@@ -202,13 +255,16 @@ main(int argc, char *argv[])
 
     if( argc > 2 ) {
         printf("Usage: %s /absolute/file/path/or/url\n", argv[0] );
-    } else if (argc == 2) {
+    } else if (argc == 2 && strcmp(argv[1], "-")) {
         runTest(argv[1]);
     } else {
         // to be used with run-webkit-tests
         // waits for filenames on stdin and then run test
         char filenameBuffer[2048];
+
+     
         while (fgets(filenameBuffer, sizeof(filenameBuffer), stdin)) {
+
             char *newLineCharacter = strchr(filenameBuffer, '\n');
             if (newLineCharacter)
                 *newLineCharacter = '\0';
@@ -216,10 +272,18 @@ main(int argc, char *argv[])
             if (strlen(filenameBuffer) == 0)
                 continue;
 
-            log(filenameBuffer);
+            DBG(filenameBuffer);
             runTest(filenameBuffer);
             puts("#EOF");
             fflush(stdout);
+            if (ferror(stdin)) {
+                printf("error stdin\n");
+                break;
+            }
+            if (ferror(stdout)) {
+                printf("error stdout\n");
+                break;
+            }
         }
     }
     fflush(stdout);

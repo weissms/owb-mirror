@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,12 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEBlendElement.h"
 
 #include "SVGResourceFilter.h"
@@ -30,7 +31,7 @@ namespace WebCore {
 
 SVGFEBlendElement::SVGFEBlendElement(const QualifiedName& tagName, Document* doc)
     : SVGFilterPrimitiveStandardAttributes(tagName, doc)
-    , m_mode(0)
+    , m_mode(SVG_FEBLEND_MODE_NORMAL)
     , m_filterEffect(0)
 {
 }
@@ -66,10 +67,10 @@ void SVGFEBlendElement::parseMappedAttribute(MappedAttribute* attr)
         SVGFilterPrimitiveStandardAttributes::parseMappedAttribute(attr);
 }
 
-SVGFEBlend* SVGFEBlendElement::filterEffect() const
+SVGFEBlend* SVGFEBlendElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFEBlend*>(SVGResourceFilter::createFilterEffect(FE_BLEND));
+        m_filterEffect = static_cast<SVGFEBlend*>(SVGResourceFilter::createFilterEffect(FE_BLEND, filter));
     if (!m_filterEffect)
         return 0;
     m_filterEffect->setBlendMode((SVGBlendModeType) mode());
@@ -81,6 +82,6 @@ SVGFEBlend* SVGFEBlendElement::filterEffect() const
 
 }
 
-// vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
+// vim:ts=4:noet

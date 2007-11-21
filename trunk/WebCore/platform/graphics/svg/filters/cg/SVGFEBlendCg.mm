@@ -15,21 +15,22 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEBlend.h"
 #include "SVGFEHelpersCg.h"
 
 namespace WebCore {
 
-CIFilter* SVGFEBlend::getCIFilter(SVGResourceFilter* svgFilter) const
+CIFilter* SVGFEBlend::getCIFilter(const FloatRect& bbox) const
 {
-    CIFilter *filter = nil;
+    SVGResourceFilter* svgFilter = filter();
+    CIFilter* filter = nil;
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
 
     switch (blendMode()) {
@@ -57,16 +58,19 @@ CIFilter* SVGFEBlend::getCIFilter(SVGResourceFilter* svgFilter) const
     }
 
     [filter setDefaults];
-    CIImage *inputImage = svgFilter->inputImage(this);
+
+    CIImage* inputImage = svgFilter->inputImage(this);
     FE_QUARTZ_CHECK_INPUT(inputImage);
     [filter setValue:inputImage forKey:@"inputImage"];
-    CIImage *backgroundImage = svgFilter->imageForName(in2());
+
+    CIImage* backgroundImage = svgFilter->imageForName(in2());
     FE_QUARTZ_CHECK_INPUT(backgroundImage);
     [filter setValue:backgroundImage forKey:@"inputBackgroundImage"];
 
+    FE_QUARTZ_MAP_TO_SUBREGION(bbox);
     FE_QUARTZ_OUTPUT_RETURN;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)

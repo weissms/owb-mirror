@@ -23,6 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#if !PLATFORM(DARWIN) || !defined(__LP64__)
+
 #ifndef BINDINGS_C_CLASS_H_
 #define BINDINGS_C_CLASS_H_
 
@@ -45,13 +47,7 @@ public:
     virtual MethodList methodsNamed(const Identifier&, Instance*) const;
     virtual Field* fieldNamed(const Identifier&, Instance*) const;
 
-    virtual Constructor* constructorAt(int) const { return 0; }
-    virtual int numConstructors() const { return 0; }
-
 private:
-    CClass(const CClass&); // prohibit copying
-    CClass& operator=(const CClass&); // prohibit assignment
-
     NPClass* _isa;
     mutable MethodMap _methods;
     mutable FieldMap _fields;
@@ -60,4 +56,5 @@ private:
 } // namespace Bindings
 } // namespace KJS
 
+#endif
 #endif

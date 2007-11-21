@@ -89,8 +89,11 @@
 - (NSString *)contextMenuItemTagDefaultDirection;
 - (NSString *)contextMenuItemTagLeftToRight;
 - (NSString *)contextMenuItemTagRightToLeft;
+- (NSString *)contextMenuItemTagInspectElement;
 
-- (NSMenu *)cellMenuForSearchField;
+- (NSString *)searchMenuNoRecentSearchesText;
+- (NSString *)searchMenuRecentSearchesText;
+- (NSString *)searchMenuClearRecentSearchesText;
 
 - (NSString *)defaultLanguageCode;
 
@@ -110,6 +113,15 @@
 - (void)unregisterUniqueIdForUIElement:(id)element;
 
 - (WebCoreFrameBridge *)bridgeForView:(NSView *)aView;
+
+- (NSString *)AXWebAreaText;
+- (NSString *)AXLinkText;
+- (NSString *)AXListMarkerText;
+- (NSString *)AXImageMapText;
+- (NSString *)AXHeadingText;
+
+// FTP Directory Related
+- (NSString *)unknownFileSizeText;
 
 @end
 

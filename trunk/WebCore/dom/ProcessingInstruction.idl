@@ -14,19 +14,19 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module core {
 
-    interface ProcessingInstruction : Node {
+    interface [GenerateConstructor] ProcessingInstruction : Node {
 
         // DOM Level 1
 
         readonly attribute [ConvertNullStringTo=Null] DOMString target;
-                 attribute [ConvertNullStringTo=Null] DOMString data
-                     setter raises (DOMException);
+                 attribute [ConvertNullStringTo=Null, ConvertNullToNullString] DOMString data
+                     setter raises(DOMException);
 
         // interface LinkStyle from DOM Level 2 Style Sheets
 

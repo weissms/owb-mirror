@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -72,7 +72,7 @@ HTMLSliderThumbElement::HTMLSliderThumbElement(Document* doc, Node* shadowParent
 void HTMLSliderThumbElement::defaultEventHandler(Event* event)
 {
     const AtomicString& eventType = event->type();
-    if (eventType == mousedownEvent && event->isMouseEvent()) {
+    if (eventType == mousedownEvent && event->isMouseEvent() && static_cast<MouseEvent*>(event)->button() == LeftButton) {
         MouseEvent* mouseEvent = static_cast<MouseEvent*>(event);
         if (document()->frame() && renderer() && renderer()->parent()
                 && static_cast<RenderSlider*>(renderer()->parent())->mouseEventIsInThumb(mouseEvent)) {
@@ -87,7 +87,7 @@ void HTMLSliderThumbElement::defaultEventHandler(Event* event)
             event->setDefaultHandled();
             return;
         }
-    } else if (eventType == mouseupEvent) {
+    } else if (eventType == mouseupEvent && event->isMouseEvent() && static_cast<MouseEvent*>(event)->button() == LeftButton) {
         if (m_inDragMode) {
             if (Frame* frame = document()->frame())
                 frame->eventHandler()->setCapturingMouseEventsNode(0);      
@@ -132,52 +132,57 @@ short RenderSlider::baselinePosition(bool b, bool isRootLineBox) const
     return height() + marginTop();
 }
 
-void RenderSlider::calcMinMaxWidth()
+void RenderSlider::calcPrefWidths()
 {
-    m_minWidth = 0;
-    m_maxWidth = 0;
+    m_minPrefWidth = 0;
+    m_maxPrefWidth = 0;
 
     if (style()->width().isFixed() && style()->width().value() > 0)
-        m_minWidth = m_maxWidth = calcContentBoxWidth(style()->width().value());
+        m_minPrefWidth = m_maxPrefWidth = calcContentBoxWidth(style()->width().value());
     else
-        m_maxWidth = defaultTrackLength;
+        m_maxPrefWidth = defaultTrackLength;
 
     if (style()->minWidth().isFixed() && style()->minWidth().value() > 0) {
-        m_maxWidth = max(m_maxWidth, calcContentBoxWidth(style()->minWidth().value()));
-        m_minWidth = max(m_minWidth, calcContentBoxWidth(style()->minWidth().value()));
+        m_maxPrefWidth = max(m_maxPrefWidth, calcContentBoxWidth(style()->minWidth().value()));
+        m_minPrefWidth = max(m_minPrefWidth, calcContentBoxWidth(style()->minWidth().value()));
     } else if (style()->width().isPercent() || (style()->width().isAuto() && style()->height().isPercent()))
-        m_minWidth = 0;
+        m_minPrefWidth = 0;
     else
-        m_minWidth = m_maxWidth;
+        m_minPrefWidth = m_maxPrefWidth;
     
     if (style()->maxWidth().isFixed() && style()->maxWidth().value() != undefinedLength) {
-        m_maxWidth = min(m_maxWidth, calcContentBoxWidth(style()->maxWidth().value()));
-        m_minWidth = min(m_minWidth, calcContentBoxWidth(style()->maxWidth().value()));
+        m_maxPrefWidth = min(m_maxPrefWidth, calcContentBoxWidth(style()->maxWidth().value()));
+        m_minPrefWidth = min(m_minPrefWidth, calcContentBoxWidth(style()->maxWidth().value()));
     }
 
     int toAdd = paddingLeft() + paddingRight() + borderLeft() + borderRight();
-    m_minWidth += toAdd;
-    m_maxWidth += toAdd;
+    m_minPrefWidth += toAdd;
+    m_maxPrefWidth += toAdd;
 
-    setMinMaxKnown(); 
+    setPrefWidthsDirty(false); 
 }
 
 void RenderSlider::setStyle(RenderStyle* newStyle)
 {
     RenderBlock::setStyle(newStyle);
     
-    RenderStyle* thumbStyle = createThumbStyle(newStyle);
-
-    if (m_thumb)
+    if (m_thumb) {
+        RenderStyle* thumbStyle = createThumbStyle(newStyle);
         m_thumb->renderer()->setStyle(thumbStyle);
+    }
         
     setReplaced(isInline());
 }
 
 RenderStyle* RenderSlider::createThumbStyle(RenderStyle* parentStyle)
 {
-    RenderStyle* style = getPseudoStyle(RenderStyle::SLIDER_THUMB);
-    if (!style)
+    RenderStyle* style;
+
+    RenderStyle* pseudoStyle = getPseudoStyle(RenderStyle::SLIDER_THUMB);
+    if (pseudoStyle)
+        // We may be sharing style with another slider, but we must not share the thumb style.
+        style = new (renderArena()) RenderStyle(*pseudoStyle);
+    else
         style = new (renderArena()) RenderStyle();
 
     if (parentStyle)
@@ -279,7 +284,7 @@ void RenderSlider::setValueForPosition(int position)
 
     // Force integer value if not float.
     if (!equalIgnoringCase(precision, "float"))
-        val = lroundf(val);
+        val = lround(val);
 
     static_cast<HTMLInputElement*>(node())->setValueFromRenderer(String::number(val));
     
@@ -309,7 +314,7 @@ double RenderSlider::setPositionFromValue(bool inLayout)
         
     // Force integer value if not float.
     if (!equalIgnoringCase(precision, "float"))
-        val = lroundf(val);
+        val = lround(val);
 
     // Calculate the new position based on the value
     double factor = (val - minVal) / (maxVal - minVal);

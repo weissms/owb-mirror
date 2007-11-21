@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
                   2005 Alexander Kellett <lypanov@kde.org>
 
     This file is part of the KDE project
@@ -17,21 +17,23 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGMaskElement.h"
 
+#include "CSSStyleSelector.h"
 #include "GraphicsContext.h"
 #include "ImageBuffer.h"
 #include "RenderSVGContainer.h"
 #include "SVGLength.h"
 #include "SVGNames.h"
-#include "cssstyleselector.h"
+#include "SVGRenderSupport.h"
+#include "SVGUnitTypes.h"
 #include <math.h>
 #include <wtf/MathExtras.h>
 #include <wtf/OwnPtr.h>
@@ -46,11 +48,12 @@ SVGMaskElement::SVGMaskElement(const QualifiedName& tagName, Document* doc)
     , SVGTests()
     , SVGLangSpace()
     , SVGExternalResourcesRequired()
+    , m_maskUnits(SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX)
+    , m_maskContentUnits(SVGUnitTypes::SVG_UNIT_TYPE_USERSPACEONUSE)
     , m_x(this, LengthModeWidth)
     , m_y(this, LengthModeHeight)
     , m_width(this, LengthModeWidth)
     , m_height(this, LengthModeHeight)
-    , m_dirty(true)
 {
     // Spec: If the attribute is not specified, the effect is as if a value of "-10%" were specified.
     setXBaseValue(SVGLength(this, LengthModeWidth, "-10%"));
@@ -65,6 +68,9 @@ SVGMaskElement::~SVGMaskElement()
 {
 }
 
+ANIMATED_PROPERTY_DEFINITIONS(SVGMaskElement, int, Enumeration, enumeration, MaskUnits, maskUnits, SVGNames::maskUnitsAttr.localName(), m_maskUnits)
+ANIMATED_PROPERTY_DEFINITIONS(SVGMaskElement, int, Enumeration, enumeration, MaskContentUnits, maskContentUnits, SVGNames::maskContentUnitsAttr.localName(), m_maskContentUnits)
+
 ANIMATED_PROPERTY_DEFINITIONS(SVGMaskElement, SVGLength, Length, length, X, x, SVGNames::xAttr.localName(), m_x)
 ANIMATED_PROPERTY_DEFINITIONS(SVGMaskElement, SVGLength, Length, length, Y, y, SVGNames::yAttr.localName(), m_y)
 ANIMATED_PROPERTY_DEFINITIONS(SVGMaskElement, SVGLength, Length, length, Width, width, SVGNames::widthAttr.localName(), m_width)
@@ -72,15 +78,24 @@ ANIMATED_PROPERTY_DEFINITIONS(SVGMaskElement, SVGLength, Length, length, Height,
 
 void SVGMaskElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const String& value = attr->value();
-    if (attr->name() == SVGNames::xAttr)
-        setXBaseValue(SVGLength(this, LengthModeWidth, value));
+    if (attr->name() == SVGNames::maskUnitsAttr) {
+        if (attr->value() == "userSpaceOnUse")
+            setMaskUnitsBaseValue(SVGUnitTypes::SVG_UNIT_TYPE_USERSPACEONUSE);
+        else if (attr->value() == "objectBoundingBox")
+            setMaskUnitsBaseValue(SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX);
+    } else if (attr->name() == SVGNames::maskContentUnitsAttr) {
+        if (attr->value() == "userSpaceOnUse")
+            setMaskContentUnitsBaseValue(SVGUnitTypes::SVG_UNIT_TYPE_USERSPACEONUSE);
+        else if (attr->value() == "objectBoundingBox")
+            setMaskContentUnitsBaseValue(SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX);
+    } else if (attr->name() == SVGNames::xAttr)
+        setXBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::yAttr)
-        setYBaseValue(SVGLength(this, LengthModeHeight, value));
+        setYBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
     else if (attr->name() == SVGNames::widthAttr)
-        setWidthBaseValue(SVGLength(this, LengthModeWidth, value));
+        setWidthBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::heightAttr)
-        setHeightBaseValue(SVGLength(this, LengthModeHeight, value));
+        setHeightBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
     else {
         if (SVGURIReference::parseMappedAttribute(attr))
             return;
@@ -94,21 +109,70 @@ void SVGMaskElement::parseMappedAttribute(MappedAttribute* attr)
     }
 }
 
-auto_ptr<ImageBuffer> SVGMaskElement::drawMaskerContent()
-{
-    IntSize size = IntSize(lroundf(width().value()), lroundf(height().value()));
+auto_ptr<ImageBuffer> SVGMaskElement::drawMaskerContent(const FloatRect& targetRect, FloatRect& maskDestRect) const
+{    
+    // Determine specified mask size
+    float xValue;
+    float yValue;
+    float widthValue;
+    float heightValue;
 
-    auto_ptr<ImageBuffer> maskImage = ImageBuffer::create(size, false);
+    if (maskUnits() == SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX) {
+        xValue = x().valueAsPercentage() * targetRect.width();
+        yValue = y().valueAsPercentage() * targetRect.height();
+        widthValue = width().valueAsPercentage() * targetRect.width();
+        heightValue = height().valueAsPercentage() * targetRect.height();
+    } else {
+        xValue = x().value();
+        yValue = y().value();
+        widthValue = width().value();
+        heightValue = height().value();
+    } 
+
+    IntSize imageSize(lroundf(widthValue), lroundf(heightValue));
+    clampImageBufferSizeToViewport(document()->renderer(), imageSize);
+
+    if (imageSize.width() < static_cast<int>(widthValue))
+        widthValue = imageSize.width();
+
+    if (imageSize.height() < static_cast<int>(heightValue))
+        heightValue = imageSize.height();
+
+    auto_ptr<ImageBuffer> maskImage = ImageBuffer::create(imageSize, false);
     if (!maskImage.get())
         return maskImage;
+
+    maskDestRect = FloatRect(xValue, yValue, widthValue, heightValue);
+    if (maskUnits() == SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX)
+        maskDestRect.move(targetRect.x(), targetRect.y());
 
     GraphicsContext* maskImageContext = maskImage->context();
     ASSERT(maskImageContext);
 
     maskImageContext->save();
-    maskImageContext->translate(-x().value(), -y().value());
+    maskImageContext->translate(-xValue, -yValue);
 
-    ImageBuffer::renderSubtreeToImage(maskImage.get(), renderer());
+    if (maskContentUnits() == SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX) {
+        maskImageContext->save();
+        maskImageContext->scale(FloatSize(targetRect.width(), targetRect.height()));
+    }
+
+    // Render subtree into ImageBuffer
+    for (Node* n = firstChild(); n; n = n->nextSibling()) {
+        SVGElement* elem = svg_dynamic_cast(n);
+        if (!elem || !elem->isStyled())
+            continue;
+
+        SVGStyledElement* e = static_cast<SVGStyledElement*>(elem);
+        RenderObject* item = e->renderer();
+        if (!item)
+            continue;
+
+        renderSubtreeToImage(maskImage.get(), item);
+    }
+
+    if (maskContentUnits() == SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX)
+        maskImageContext->restore();
 
     maskImageContext->restore();
     return maskImage;
@@ -123,26 +187,16 @@ RenderObject* SVGMaskElement::createRenderer(RenderArena* arena, RenderStyle*)
 
 SVGResource* SVGMaskElement::canvasResource()
 {
-    if (!m_masker) {
-        m_masker = new SVGResourceMasker();
-        m_dirty = true;
-    }
-    if (m_dirty) {
-        m_masker->setMask(drawMaskerContent());
-        m_dirty = !m_masker->mask();
-    }
+    if (!m_masker)
+        m_masker = new SVGResourceMasker(this);
     return m_masker.get();
 }
 
 void SVGMaskElement::notifyAttributeChange() const
 {
-    if (!attached() || ownerDocument()->parsing())
+    if (!attached() || document()->parsing())
         return;
-
-    IntSize newSize = IntSize(lroundf(width().value()), lroundf(height().value()));
-    if (!m_masker || !m_masker->mask() || (m_masker->mask()->size() != newSize))
-        m_dirty = true;
-
+    
     if (m_masker) {
         m_masker->invalidate();
         m_masker->repaintClients();
@@ -151,6 +205,6 @@ void SVGMaskElement::notifyAttributeChange() const
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

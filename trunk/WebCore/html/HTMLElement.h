@@ -1,9 +1,7 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -31,12 +29,11 @@ namespace WebCore {
 
 class DocumentFragment;
 class HTMLCollection;
-class String;
+class HTMLFormElement;
 
 enum HTMLTagStatus { TagStatusOptional, TagStatusRequired, TagStatusForbidden };
                        
-class HTMLElement : public StyledElement
-{
+class HTMLElement : public StyledElement {
 public:
     HTMLElement(const QualifiedName& tagName, Document*);
     virtual ~HTMLElement();
@@ -99,10 +96,17 @@ public:
 
     void setHTMLEventListener(const AtomicString& eventType, Attribute*);
 
-protected:
+    virtual bool rendererIsNeeded(RenderStyle*);
+    virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
 
-    // for IMG, OBJECT and APPLET
+    HTMLFormElement* form() const { return virtualForm(); }
+    HTMLFormElement* findFormAncestor() const;
+
+protected:
     void addHTMLAlignment(MappedAttribute*);
+
+private:
+    virtual HTMLFormElement* virtualForm() const;
 };
 
 } //namespace

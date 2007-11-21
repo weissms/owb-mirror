@@ -1,7 +1,6 @@
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2000 Harri Porten (porten@kde.org)
- *  Copyright (C) 2004 Apple Computer, Inc.
+ *  Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -15,13 +14,15 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+ *  USA
  *
  */
 
 #include "config.h"
 #include "date_object.h"
 #include "date_object.lut.h"
+#include "internal.h"
 
 #if HAVE(ERRNO_H)
 #include <errno.h>
@@ -39,17 +40,10 @@
 #include <sys/timeb.h>
 #endif
 
-#include <ctype.h>
 #include <float.h>
 #include <limits.h>
 #include <locale.h>
-
-#ifdef __OWB__
-#include <BIMath.h>
-#else
 #include <math.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,12 +53,16 @@
 #include "operations.h"
 #include "DateMath.h"
 
+#include <wtf/ASCIICType.h>
+#include <wtf/Assertions.h>
 #include <wtf/MathExtras.h>
 #include <wtf/StringExtras.h>
 
 #if PLATFORM(MAC)
     #include <CoreFoundation/CoreFoundation.h>
 #endif
+
+using namespace WTF;
 
 namespace KJS {
 
@@ -150,7 +148,7 @@ static UString formatLocaleDate(ExecState *exec, double time, bool includeDate, 
     UChar buffer[200];
     const size_t bufferLength = sizeof(buffer) / sizeof(buffer[0]);
     size_t length = CFStringGetLength(string);
-    assert(length <= bufferLength);
+    ASSERT(length <= bufferLength);
     if (length > bufferLength)
         length = bufferLength;
     CFStringGetCharacters(string, CFRangeMake(0, length), reinterpret_cast<UniChar *>(buffer));
@@ -164,16 +162,16 @@ static UString formatLocaleDate(ExecState *exec, double time, bool includeDate, 
 
 enum LocaleDateTimeFormat { LocaleDateAndTime, LocaleDate, LocaleTime };
  
-static JSCell* formatLocaleDate(GregorianDateTime gdt, const LocaleDateTimeFormat format)
+static JSCell* formatLocaleDate(const GregorianDateTime& gdt, const LocaleDateTimeFormat format)
 {
     static const char* formatStrings[] = {"%#c", "%#x", "%X"};
  
     // Offset year if needed
     struct tm localTM = gdt;
-    gdt.year += 1900;
-    bool yearNeedsOffset = gdt.year < 1900 || gdt.year > 2038;
+    int year = gdt.year + 1900;
+    bool yearNeedsOffset = year < 1900 || year > 2038;
     if (yearNeedsOffset) {
-        localTM.tm_year = equivalentYearForDST(gdt.year) - 1900;
+        localTM.tm_year = equivalentYearForDST(year) - 1900;
      }
  
     // Do the formatting
@@ -191,7 +189,7 @@ static JSCell* formatLocaleDate(GregorianDateTime gdt, const LocaleDateTimeForma
  
         snprintf(yearString, yearLen, "%d", localTM.tm_year + 1900);
         char* yearLocation = strstr(timebuffer, yearString);
-        snprintf(yearString, yearLen, "%d", gdt.year);
+        snprintf(yearString, yearLen, "%d", year);
  
         strncpy(yearLocation, yearString, yearLen - 1);
     }
@@ -439,13 +437,13 @@ bool DatePrototype::getOwnPropertySlot(ExecState *exec, const Identifier& proper
 
 // ------------------------------ DateProtoFunc -----------------------------
 
-DateProtoFunc::DateProtoFunc(ExecState *exec, int i, int len, const Identifier& name)
+DateProtoFunc::DateProtoFunc(ExecState* exec, int i, int len, const Identifier& name)
   : InternalFunctionImp(static_cast<FunctionPrototype*>(exec->lexicalInterpreter()->builtinFunctionPrototype()), name)
   , id(abs(i))
   , utc(i < 0)
   // We use a negative ID to denote the "UTC" variant.
 {
-    putDirect(lengthPropertyName, len, DontDelete|ReadOnly|DontEnum);
+    putDirect(exec->propertyNames().length, len, DontDelete|ReadOnly|DontEnum);
 }
 
 JSValue *DateProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, const List &args)
@@ -602,16 +600,13 @@ DateObjectImp::DateObjectImp(ExecState *exec,
                              DatePrototype *dateProto)
   : InternalFunctionImp(funcProto)
 {
-  // ECMA 15.9.4.1 Date.prototype
-  putDirect(prototypePropertyName, dateProto, DontEnum|DontDelete|ReadOnly);
+  static const Identifier* parsePropertyName = new Identifier("parse");
+  static const Identifier* UTCPropertyName = new Identifier("UTC");
 
-  static const Identifier parsePropertyName("parse");
-  putDirectFunction(new DateObjectFuncImp(exec, funcProto, DateObjectFuncImp::Parse, 1, parsePropertyName), DontEnum);
-  static const Identifier UTCPropertyName("UTC");
-  putDirectFunction(new DateObjectFuncImp(exec, funcProto, DateObjectFuncImp::UTC, 7, UTCPropertyName), DontEnum);
-
-  // no. of arguments for constructor
-  putDirect(lengthPropertyName, 7, ReadOnly|DontDelete|DontEnum);
+  putDirect(exec->propertyNames().prototype, dateProto, DontEnum|DontDelete|ReadOnly);
+  putDirectFunction(new DateObjectFuncImp(exec, funcProto, DateObjectFuncImp::Parse, 1, *parsePropertyName), DontEnum);
+  putDirectFunction(new DateObjectFuncImp(exec, funcProto, DateObjectFuncImp::UTC, 7, *UTCPropertyName), DontEnum);
+  putDirect(exec->propertyNames().length, 7, ReadOnly|DontDelete|DontEnum);
 }
 
 bool DateObjectImp::implementsConstruct() const
@@ -627,21 +622,7 @@ JSObject *DateObjectImp::construct(ExecState *exec, const List &args)
   double value;
 
   if (numArgs == 0) { // new Date() ECMA 15.9.3.3
-#if PLATFORM(WIN_OS)
-#if COMPILER(BORLAND)
-    struct timeb timebuffer;
-    ftime(&timebuffer);
-#else
-    struct _timeb timebuffer;
-    _ftime(&timebuffer);
-#endif
-    double utc = timebuffer.time * msPerSecond + timebuffer.millitm;
-#else
-    struct timeval tv;
-    gettimeofday(&tv, 0);
-    double utc = floor(tv.tv_sec * msPerSecond + tv.tv_usec / 1000);
-#endif
-    value = utc;
+    value = getCurrentUTCTime();
   } else if (numArgs == 1) {
     if (args[0]->isObject(&DateInstance::info))
       value = static_cast<DateInstance*>(args[0])->internalValue()->toNumber(exec);
@@ -691,10 +672,10 @@ JSValue *DateObjectImp::callAsFunction(ExecState * /*exec*/, JSObject * /*thisOb
 
 // ------------------------------ DateObjectFuncImp ----------------------------
 
-DateObjectFuncImp::DateObjectFuncImp(ExecState*, FunctionPrototype* funcProto, int i, int len, const Identifier& name)
+DateObjectFuncImp::DateObjectFuncImp(ExecState* exec, FunctionPrototype* funcProto, int i, int len, const Identifier& name)
     : InternalFunctionImp(funcProto, name), id(i)
 {
-    putDirect(lengthPropertyName, len, DontDelete|ReadOnly|DontEnum);
+    putDirect(exec->propertyNames().length, len, DontDelete|ReadOnly|DontEnum);
 }
 
 // ECMA 15.9.4.2 - 3
@@ -764,12 +745,12 @@ static const struct KnownZone {
     { "PDT", -420 }
 };
 
-inline static void skipSpacesAndComments(const char *&s)
+inline static void skipSpacesAndComments(const char*& s)
 {
     int nesting = 0;
     char ch;
     while ((ch = *s)) {
-        if (!isspace(ch)) {
+        if (!isASCIISpace(ch)) {
             if (ch == '(')
                 nesting++;
             else if (ch == ')' && nesting > 0)
@@ -782,14 +763,14 @@ inline static void skipSpacesAndComments(const char *&s)
 }
 
 // returns 0-11 (Jan-Dec); -1 on failure
-static int findMonth(const char *monthStr)
+static int findMonth(const char* monthStr)
 {
-    assert(monthStr);
+    ASSERT(monthStr);
     char needle[4];
     for (int i = 0; i < 3; ++i) {
         if (!*monthStr)
             return -1;
-        needle[i] = static_cast<char>(tolower(*monthStr++));
+        needle[i] = static_cast<char>(toASCIILower(*monthStr++));
     }
     needle[3] = '\0';
     const char *haystack = "janfebmaraprmayjunjulaugsepoctnovdec";
@@ -827,8 +808,8 @@ static double parseDate(const UString &date)
     long month = -1;
     const char *wordStart = dateString;
     // Check contents of first words if not number
-    while (*dateString && !isdigit(*dateString)) {
-        if (isspace(*dateString) || *dateString == '(') {
+    while (*dateString && !isASCIIDigit(*dateString)) {
+        if (isASCIISpace(*dateString) || *dateString == '(') {
             if (dateString - wordStart >= 3)
                 month = findMonth(wordStart);
             skipSpacesAndComments(dateString);
@@ -838,7 +819,7 @@ static double parseDate(const UString &date)
     }
 
     // Missing delimiter between month and day (like "January29")?
-    if (month == -1 && dateString && wordStart != dateString)
+    if (month == -1 && wordStart != dateString)
         month = findMonth(wordStart);
 
     skipSpacesAndComments(dateString);
@@ -907,14 +888,14 @@ static double parseDate(const UString &date)
             if (month == -1)
                 return NaN;
 
-            while (*dateString && (*dateString != '-') && !isspace(*dateString))
+            while (*dateString && *dateString != '-' && *dateString != ',' && !isASCIISpace(*dateString))
                 dateString++;
 
             if (!*dateString)
                 return NaN;
 
             // '-99 23:12:40 GMT'
-            if (*dateString != '-' && *dateString != '/' && !isspace(*dateString))
+            if (*dateString != '-' && *dateString != '/' && *dateString != ',' && !isASCIISpace(*dateString))
                 return NaN;
             dateString++;
         }
@@ -938,7 +919,7 @@ static double parseDate(const UString &date)
         dateString = newPosStr;
     else {
         // ' 23:12:40 GMT'
-        if (!isspace(*newPosStr)) {
+        if (!(isASCIISpace(*newPosStr) || *newPosStr == ',')) {
             if (*newPosStr != ':')
                 return NaN;
             // There was no year; the number was the hour.
@@ -977,7 +958,7 @@ static double parseDate(const UString &date)
                 return NaN;
 
             // ':40 GMT'
-            if (*dateString && *dateString != ':' && !isspace(*dateString))
+            if (*dateString && *dateString != ':' && !isASCIISpace(*dateString))
                 return NaN;
 
             // seconds are optional in rfc822 + rfc2822

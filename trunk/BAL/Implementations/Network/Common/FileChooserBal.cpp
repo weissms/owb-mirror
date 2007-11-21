@@ -44,7 +44,7 @@ void FileChooser::openFileChooser(Document*)
     BALNotImplemented();
 }
 
-String FileChooser::basenameForWidth(const Font&, int width) const
+String FileChooser::basenameForWidth(const BAL::BTFont&, int width) const
 {
     BALNotImplemented();
     return String();

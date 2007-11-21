@@ -1,6 +1,6 @@
 // -*- mode: c++; c-basic-offset: 4 -*-
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ JSValueRef JSEvaluateScript(JSContextRef ctx, JSStringRef script, JSObjectRef th
     ExecState* exec = toJS(ctx);
     JSObject* jsThisObject = toJS(thisObject);
     UString::Rep* scriptRep = toJS(script);
-    UString::Rep* sourceURLRep = toJS(sourceURL);
+    UString::Rep* sourceURLRep = sourceURL ? toJS(sourceURL) : &UString::Rep::null;
     // Interpreter::evaluate sets "this" to the global object if it is NULL
     Completion completion = exec->dynamicInterpreter()->evaluate(UString(sourceURLRep), startingLineNumber, UString(scriptRep), jsThisObject);
 
@@ -65,7 +65,7 @@ bool JSCheckScriptSyntax(JSContextRef ctx, JSStringRef script, JSStringRef sourc
 
     ExecState* exec = toJS(ctx);
     UString::Rep* scriptRep = toJS(script);
-    UString::Rep* sourceURLRep = toJS(sourceURL);
+    UString::Rep* sourceURLRep = sourceURL ? toJS(sourceURL) : &UString::Rep::null;
     Completion completion = exec->dynamicInterpreter()->checkSyntax(UString(sourceURLRep), startingLineNumber, UString(scriptRep));
     if (completion.complType() == Throw) {
         if (exception)
@@ -79,5 +79,9 @@ bool JSCheckScriptSyntax(JSContextRef ctx, JSStringRef script, JSStringRef sourc
 void JSGarbageCollect(JSContextRef)
 {
     JSLock lock;
-    Collector::collect();
+    if (!Collector::isBusy())
+        Collector::collect();
+    // FIXME: Perhaps we should trigger a second mark and sweep
+    // once the garbage collector is done if this is called when
+    // the collector is busy.
 }

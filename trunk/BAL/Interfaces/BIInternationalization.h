@@ -28,21 +28,110 @@
 #ifndef BIINTERNATIONALIZATION_H_
 #define BIINTERNATIONALIZATION_H_
 
-#ifndef __BAL_I18N__
-#include <unicode/uchar.h>
-#include <unicode/ubrk.h>
-#include <unicode/umachine.h>
-#include <unicode/ucnv.h>
-#include <unicode/unorm.h>
-#include <unicode/ustring.h>
-#include <unicode/utf8.h>
-#include <unicode/uidna.h>
-#include <unicode/urename.h>
-#else
-
+#include "BALConfiguration.h"
 #include "BTInternationalization.h"
 
+ namespace WebCore{
+     class DeprecatedString;
+ }
+
+using WebCore::DeprecatedString;
+
+namespace WTF {
+  namespace Unicode {
+
+    enum Direction {
+      LeftToRight = U_LEFT_TO_RIGHT,
+      RightToLeft = U_RIGHT_TO_LEFT,
+      EuropeanNumber = U_EUROPEAN_NUMBER,
+      EuropeanNumberSeparator = U_EUROPEAN_NUMBER_SEPARATOR,
+      EuropeanNumberTerminator = U_EUROPEAN_NUMBER_TERMINATOR,
+      ArabicNumber = U_ARABIC_NUMBER,
+      CommonNumberSeparator = U_COMMON_NUMBER_SEPARATOR,
+      BlockSeparator = U_BLOCK_SEPARATOR,
+      SegmentSeparator = U_SEGMENT_SEPARATOR,
+      WhiteSpaceNeutral = U_WHITE_SPACE_NEUTRAL,
+      OtherNeutral = U_OTHER_NEUTRAL,
+      LeftToRightEmbedding = U_LEFT_TO_RIGHT_EMBEDDING,
+      LeftToRightOverride = U_LEFT_TO_RIGHT_OVERRIDE,
+      RightToLeftArabic = U_RIGHT_TO_LEFT_ARABIC,
+      RightToLeftEmbedding = U_RIGHT_TO_LEFT_EMBEDDING,
+      RightToLeftOverride = U_RIGHT_TO_LEFT_OVERRIDE,
+      PopDirectionalFormat = U_POP_DIRECTIONAL_FORMAT,
+      NonSpacingMark = U_DIR_NON_SPACING_MARK,
+      BoundaryNeutral = U_BOUNDARY_NEUTRAL
+    };
+
+    enum DecompositionType {
+      DecompositionNone = U_DT_NONE,
+      DecompositionCanonical = U_DT_CANONICAL,
+      DecompositionCompat = U_DT_COMPAT,
+      DecompositionCircle = U_DT_CIRCLE,
+      DecompositionFinal = U_DT_FINAL,
+      DecompositionFont = U_DT_FONT,
+      DecompositionFraction = U_DT_FRACTION,
+      DecompositionInitial = U_DT_INITIAL,
+      DecompositionIsolated = U_DT_ISOLATED,
+      DecompositionMedial = U_DT_MEDIAL,
+      DecompositionNarrow = U_DT_NARROW,
+      DecompositionNoBreak = U_DT_NOBREAK,
+      DecompositionSmall = U_DT_SMALL,
+      DecompositionSquare = U_DT_SQUARE,
+      DecompositionSub = U_DT_SUB,
+      DecompositionSuper = U_DT_SUPER,
+      DecompositionVertical = U_DT_VERTICAL,
+      DecompositionWide = U_DT_WIDE,
+    };
+
+    enum CharCategory {
+      NoCategory =  0,
+      Other_NotAssigned = U_MASK(U_GENERAL_OTHER_TYPES),
+      Letter_Uppercase = U_MASK(U_UPPERCASE_LETTER),
+      Letter_Lowercase = U_MASK(U_LOWERCASE_LETTER),
+      Letter_Titlecase = U_MASK(U_TITLECASE_LETTER),
+      Letter_Modifier = U_MASK(U_MODIFIER_LETTER),
+      Letter_Other = U_MASK(U_OTHER_LETTER),
+
+      Mark_NonSpacing = U_MASK(U_NON_SPACING_MARK),
+      Mark_Enclosing = U_MASK(U_ENCLOSING_MARK),
+      Mark_SpacingCombining = U_MASK(U_COMBINING_SPACING_MARK),
+
+      Number_DecimalDigit = U_MASK(U_DECIMAL_DIGIT_NUMBER),
+      Number_Letter = U_MASK(U_LETTER_NUMBER),
+      Number_Other = U_MASK(U_OTHER_NUMBER),
+
+      Separator_Space = U_MASK(U_SPACE_SEPARATOR),
+      Separator_Line = U_MASK(U_LINE_SEPARATOR),
+      Separator_Paragraph = U_MASK(U_PARAGRAPH_SEPARATOR),
+
+      Other_Control = U_MASK(U_CONTROL_CHAR),
+      Other_Format = U_MASK(U_FORMAT_CHAR),
+      Other_PrivateUse = U_MASK(U_PRIVATE_USE_CHAR),
+      Other_Surrogate = U_MASK(U_SURROGATE),
+
+      Punctuation_Dash = U_MASK(U_DASH_PUNCTUATION),
+      Punctuation_Open = U_MASK(U_START_PUNCTUATION),
+      Punctuation_Close = U_MASK(U_END_PUNCTUATION),
+      Punctuation_Connector = U_MASK(U_CONNECTOR_PUNCTUATION),
+      Punctuation_Other = U_MASK(U_OTHER_PUNCTUATION),
+
+      Symbol_Math = U_MASK(U_MATH_SYMBOL),
+      Symbol_Currency = U_MASK(U_CURRENCY_SYMBOL),
+      Symbol_Modifier = U_MASK(U_MODIFIER_SYMBOL),
+      Symbol_Other = U_MASK(U_OTHER_SYMBOL),
+
+      Punctuation_InitialQuote = U_MASK(U_INITIAL_PUNCTUATION),
+      Punctuation_FinalQuote = U_MASK(U_FINAL_PUNCTUATION)
+    };
+  }
+}
+
+using WTF::Unicode::CharCategory;
+using WTF::Unicode::Direction;
+using WTF::Unicode::DecompositionType;
+
 namespace BAL {
+
     /**
     * @brief the BIInternationalization
     *
@@ -51,503 +140,261 @@ namespace BAL {
     */
     class BIInternationalization {
     public:
-        // this is mandatory
-            ~BIInternationalization(){}
-            static int u_charDirection(UChar32 c);
-            static UChar32 u_tolower(UChar32 c);
-            static UChar32 u_toupper(UChar32 c);
-            static UChar32 u_foldCase(UChar32 c, uint32_t options);
-            static int32_t u_memcasecmp(const UChar *s1, const UChar *s2, int32_t length, uint32_t options);
-            static int32_t uidna_IDNToASCII(  const UChar* src, int32_t srcLength,
-                            UChar* dest, int32_t destCapacity,
-                            int32_t options,
-                            UParseError* parseError,
-                            UErrorCode* status);
-            static UChar32 u_charMirror(UChar32 c);
-            static UBool u_isUUppercase(UChar32 c);
-            static uint8_t u_getCombiningClass(UChar32 c);
-            static int32_t unorm_normalize(const UChar *source, int32_t sourceLength,
-                            UNormalizationMode mode, int32_t options,
-                            UChar *result, int32_t resultLength,
-                            UErrorCode *status);
-            static const char *ucnv_getStandardName(const char *name, const char *standard, UErrorCode *pErrorCode);
-            static UBool u_isdigit(UChar32 c);
-            static UBool u_islower(UChar32 c);
-            static int32_t u_strToLower(UChar *dest, int32_t destCapacity,
-                        const UChar *src, int32_t srcLength,
-                        const char *locale,
-                        UErrorCode *pErrorCode);
-            static UBool U_SUCCESS(UErrorCode code);
-            static UBool U_FAILURE(UErrorCode code);
-            static int32_t u_strToUpper(UChar *dest, int32_t destCapacity,
-                        const UChar *src, int32_t srcLength,
-                        const char *locale,
-                        UErrorCode *pErrorCode);
-            static UChar *u_memset(UChar *dest, UChar c, int32_t count);
-            static int32_t u_strFoldCase(UChar *dest, int32_t destCapacity,
-                        const UChar *src, int32_t srcLength,
-                        uint32_t options,
-                        UErrorCode *pErrorCode);
-            static int32_t ubrk_first(UBreakIterator *bi);
-            static int32_t ubrk_next(UBreakIterator *bi);
-            static UChar32 u_totitle(UChar32 c);
-            static UBreakIterator *ubrk_open(UBreakIteratorType type,
-                const char *locale,
-                const UChar *text,
-                int32_t textLength,
-                UErrorCode *status);
-            static void ubrk_setText(UBreakIterator* bi,
-                        const UChar*    text,
-                        int32_t         textLength,
-                        UErrorCode*     status);
-            static void ucnv_close(UConverter * converter);
-            static UConverter* ucnv_open(const char *converterName, UErrorCode *err);
-            static UNormalizationCheckResult unorm_quickCheck(const UChar *source, int32_t sourcelength,
-                            UNormalizationMode mode,
-                            UErrorCode *status);
-            static void UCNV_FROM_U_CALLBACK_ESCAPE (
-                            const void *context,
-                            UConverterFromUnicodeArgs *fromUArgs,
-                            const UChar* codeUnits,
-                            int32_t length,
-                            UChar32 codePoint,
-                            UConverterCallbackReason reason,
-                            UErrorCode * err);
-
-            static void ucnv_setFromUCallBack (UConverter * converter,
-                                UConverterFromUCallback newAction,
-                                const void *newContext,
-                                UConverterFromUCallback *oldAction,
-                                const void **oldContext,
-                                UErrorCode * err);
-            static void ucnv_setSubstChars(UConverter *converter,
-                            const char *subChars,
-                            int8_t len,
-                            UErrorCode *err);
-            static void UCNV_FROM_U_CALLBACK_SUBSTITUTE (
-                            const void *context,
-                            UConverterFromUnicodeArgs *fromUArgs,
-                            const UChar* codeUnits,
-                            int32_t length,
-                            UChar32 codePoint,
-                            UConverterCallbackReason reason,
-                            UErrorCode * err);
-
-            static void ucnv_fromUnicode (UConverter * converter,
-                            char **target,
-                            const char *targetLimit,
-                            const UChar ** source,
-                            const UChar * sourceLimit,
-                            int32_t* offsets,
-                            UBool flush,
-                            UErrorCode * err);
-            static void ucnv_toUnicode(UConverter *converter,
-                        UChar **target,
-                        const UChar *targetLimit,
-                        const char **source,
-                        const char *sourceLimit,
-                        int32_t *offsets,
-                        UBool flush,
-                        UErrorCode *err);
-            static void UCNV_TO_U_CALLBACK_STOP (
-                            const void *context,
-                            UConverterToUnicodeArgs *toUArgs,
-                            const char* codeUnits,
-                            int32_t length,
-                            UConverterCallbackReason reason,
-                            UErrorCode * err);
-            static void ucnv_setToUCallBack (UConverter * converter,
-                                UConverterToUCallback newAction,
-                                const void* newContext,
-                                UConverterToUCallback *oldAction,
-                                const void** oldContext,
-                                UErrorCode * err);
-            static int32_t ucnv_toUChars(UConverter *cnv,
-                        UChar *dest, int32_t destCapacity,
-                        const char *src, int32_t srcLength,
-                        UErrorCode *pErrorCode);
-            static int8_t u_charType(UChar32 c);
-            static UBool u_isprint(UChar32 c);
-            static UBool u_ispunct(UChar32 c);
-            static int32_t ubrk_preceding(UBreakIterator *bi,
-                    int32_t offset);
-            static int32_t ubrk_following(UBreakIterator *bi,
-                    int32_t offset);
-            static int32_t u_getIntPropertyValue(UChar32 c, UProperty which);
-            static int32_t u_charDigitValue(UChar32 c);
-            static int32_t ubrk_current(const UBreakIterator *bi);
+            // this is mandatory
             /**
-            * Returns the number of available converters, as per the alias file.
-            *
-            * @return the number of available converters
-            * @see ucnv_getAvailableName
-            * @stable ICU 2.0
+            * BIInternationalization destructor
             */
-            static int32_t ucnv_countAvailable(void);
-
-/**
- * Gets the canonical converter name of the specified converter from a list of
- * all available converters contaied in the alias file. All converters
- * in this list can be opened.
- *
- * @param n the index to a converter available on the system (in the range <TT>[0..ucnv_countAvaiable()]</TT>)
- * @return a pointer a string (library owned), or <TT>NULL</TT> if the index is out of bounds.
- * @see ucnv_countAvailable
- * @stable ICU 2.0
- */
-static const char* ucnv_getAvailableName(int32_t n);
+            virtual ~BIInternationalization(){}
 
             /**
- * Gives the number of aliases for a given converter or alias name.
- * If the alias is ambiguous, then the preferred converter is used
- * and the status is set to U_AMBIGUOUS_ALIAS_WARNING.
- * This method only enumerates the listed entries in the alias file.
- * @param alias alias name
- * @param pErrorCode error status
- * @return number of names on alias list for given alias
- * @stable ICU 2.0
- */
-static uint16_t ucnv_countAliases(const char *alias, UErrorCode *pErrorCode);
-/**
- * Gives the name of the alias at given index of alias list.
- * This method only enumerates the listed entries in the alias file.
- * If the alias is ambiguous, then the preferred converter is used
- * and the status is set to U_AMBIGUOUS_ALIAS_WARNING.
- * @param alias alias name
- * @param n index in alias list
- * @param pErrorCode result of operation
- * @return returns the name of the alias at given index
- * @see ucnv_countAliases
- * @stable ICU 2.0
- */
-static const char * ucnv_getAlias(const char *alias, uint16_t n, UErrorCode *pErrorCode);
-/**
- * Gets the internal, canonical name of the converter (zero-terminated).
- * The lifetime of the returned string will be that of the converter
- * passed to this function.
- * @param converter the Unicode converter
- * @param err UErrorCode status
- * @return the internal name of the converter
- * @see ucnv_getDisplayName
- * @stable ICU 2.0
- */
-static const char * ucnv_getName(const UConverter *converter, UErrorCode *err);
-
+            * Returns the ASCII Compatible Encoding of the given domain name domain. The result of this function is considered equivalent to domain.
+            */
+            virtual DeprecatedString *toAce( const DeprecatedString *s, const unsigned l ) = 0;
+            
+            /**
+            * Normalization is used to convert text to a unique, equivalent form
+            */
+            virtual const UChar* normalize(const UChar* characters, unsigned norm, size_t *length ) = 0;
+            /**
+            * test is a space
+            */
+            virtual bool isSpace(unsigned short c) = 0;
+            /**
+            * converts an uppercase letter to the corresponding lowercase letter.
+            */
+            virtual UChar32 toLower(unsigned short c) = 0;
+            /**
+            * converts an uppercase letter to the corresponding lowercase letter.
+            */
+            virtual int toLower(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error) = 0;
+            /**
+            * converts a lowercase letter to the corresponding uppercase letter.
+            */
+            virtual UChar32 toUpper(unsigned short c) = 0;
+            /**
+            * converts a lowercase letter to the corresponding uppercase letter.
+            */
+            virtual int toUpper(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error) = 0;
+            /**
+            * Returns the case folded equivalent of the UCS-2-encoded character specified by ucs2. For most Unicode characters this is the same as toLower().
+            */
+            virtual UChar32 foldCase(UChar32 c) = 0;
+            /**
+            * Returns the case folded equivalent of the UCS-2-encoded character specified by ucs2. For most Unicode characters this is the same as toLower().
+            */
+            virtual int foldCase(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error) = 0;
+            /**
+            * Returns the title case equivalent of the UCS-2-encoded character specified by ucs2 if the character is lowercase or uppercase; otherwise returns the character itself.
+            */
+            virtual UChar32 toTitleCase(UChar32 c) = 0;
+            /**
+            * test if c is another format
+            */
+            virtual bool isFormatChar(UChar32 c) = 0;
+            /**
+            * test if c is a separator space
+            */
+            virtual bool isSeparatorSpace(UChar32 c) = 0;
+            /**
+            * test if c is printable
+            */
+            virtual bool isPrintableChar(UChar32 c) = 0;
+            /**
+            * test if c is a digit
+            */
+            virtual bool isDigit(UChar32 c) = 0;
+            /**
+            * test if c is a punctuation
+            */
+            virtual bool isPunct(UChar32 c) = 0;
+            /**
+            * Returns the mirrored character if this character is a mirrored character; otherwise returns the character itself.
+            */
+            virtual UChar32 mirroredChar(UChar32 c) = 0;
+            /**
+            * return the category
+            */
+            virtual CharCategory category(UChar32 c) = 0;
+            /**
+            * return the direction
+            */
+            virtual Direction direction(UChar32 c) = 0;
+            /**
+            * test if c is lowercase
+            */
+            virtual bool isLower(UChar32 c) = 0;
+            /**
+            * test if c is uppercase
+            */
+            virtual bool isUpper(UChar32 c) = 0;
+            /**
+            * return the digit value
+            */
+            virtual int digitValue(UChar32 c) = 0;
+            /**
+            * Returns the combining class for the UCS-2-encoded character specified by ucs2, as defined in the Unicode standard.
+            */
+            virtual uint8_t combiningClass(UChar32 c) = 0;
+            /**
+            * Returns the type defining the composition of the character.
+            */
+            virtual DecompositionType decompositionType(UChar32 c) = 0;
+            /**
+            * compare lower(a) and lower(b) on len 
+            */
+            virtual int umemcasecmp(const UChar* a, const UChar* b, int len) = 0;
     };
 }
 
+using BAL::BIInternationalization;
 
-inline int u_charDirection(UChar32 c)
-{
-    return BAL::BIInternationalization::u_charDirection( c );
-}
-inline UChar32 u_tolower(UChar32 c)
-{
-    return BAL::BIInternationalization::u_tolower( c );
-}
+namespace WTF {
+  namespace Unicode {
 
-inline UChar32 u_toupper(UChar32 c)
-{
-    return BAL::BIInternationalization::u_toupper( c );
-}
-
-inline UChar32 u_foldCase(UChar32 c, uint32_t options)
-{
-    return BAL::BIInternationalization::u_foldCase( c, options );
-}
-
-inline int32_t u_memcasecmp(const UChar *s1, const UChar *s2, int32_t length, uint32_t options)
-{
-    return BAL::BIInternationalization::u_memcasecmp( s1, s2, length, options );
-}
-
-inline int32_t uidna_IDNToASCII(  const UChar* src, int32_t srcLength,
-                   UChar* dest, int32_t destCapacity,
-                   int32_t options,
-                   UParseError* parseError,
-                   UErrorCode* status)
-{
-    return BAL::BIInternationalization::uidna_IDNToASCII( src, srcLength, dest, destCapacity, options, parseError, status );
-}
-
-inline UChar32 u_charMirror(UChar32 c)
-{
-    return BAL::BIInternationalization::u_charMirror( c );
-}
-
-inline UBool u_isUUppercase(UChar32 c)
-{
-    return BAL::BIInternationalization::u_isUUppercase( c );
-}
-
-inline uint8_t u_getCombiningClass(UChar32 c)
-{
-    return BAL::BIInternationalization::u_getCombiningClass( c );
-}
-
-inline int32_t unorm_normalize(const UChar *source, int32_t sourceLength,
-                UNormalizationMode mode, int32_t options,
-                UChar *result, int32_t resultLength,
-                UErrorCode *status)
-{
-    return BAL::BIInternationalization::unorm_normalize( source, sourceLength, mode, options, result, resultLength, status );
-}
-
-inline const char *ucnv_getStandardName(const char *name, const char *standard, UErrorCode *pErrorCode)
-{
-    return BAL::BIInternationalization::ucnv_getStandardName( name, standard, pErrorCode );
-}
-
-inline UBool u_isdigit(UChar32 c)
-{
-    return BAL::BIInternationalization::u_isdigit( c );
-}
-
-inline UBool u_islower(UChar32 c)
-{
-    return BAL::BIInternationalization::u_islower( c );
-}
-
-inline int32_t u_strToLower(UChar *dest, int32_t destCapacity,
-             const UChar *src, int32_t srcLength,
-             const char *locale,
-             UErrorCode *pErrorCode)
-{
-    return BAL::BIInternationalization::u_strToLower( dest, destCapacity, src, srcLength, locale, pErrorCode );
-}
-
-inline int32_t u_strToUpper(UChar *dest, int32_t destCapacity,
-             const UChar *src, int32_t srcLength,
-             const char *locale,
-             UErrorCode *pErrorCode)
-{
-    return BAL::BIInternationalization::u_strToUpper( dest, destCapacity, src, srcLength, locale, pErrorCode );
-}
-
-inline UChar *u_memset(UChar *dest, UChar c, int32_t count)
-{
-    return BAL::BIInternationalization::u_memset( dest, c, count );
-}
-
-inline int32_t u_strFoldCase(UChar *dest, int32_t destCapacity,
-              const UChar *src, int32_t srcLength,
-              uint32_t options,
-              UErrorCode *pErrorCode)
-{
-    return BAL::BIInternationalization::u_strFoldCase( dest, destCapacity, src, srcLength, options, pErrorCode );
-}
-
-inline int32_t ubrk_first(UBreakIterator *bi)
-{
-    return BAL::BIInternationalization::ubrk_first( bi );
-}
-
-inline int32_t ubrk_next(UBreakIterator *bi)
-{
-    return BAL::BIInternationalization::ubrk_next( bi );
-}
-
-inline UChar32 u_totitle(UChar32 c)
-{
-    return BAL::BIInternationalization::u_totitle( c );
-}
-
-inline UBreakIterator *ubrk_open(UBreakIteratorType type,
-      const char *locale,
-      const UChar *text,
-      int32_t textLength,
-      UErrorCode *status)
-{
-    return BAL::BIInternationalization::ubrk_open( type, locale, text, textLength, status );
-}
-
-inline void ubrk_setText(UBreakIterator* bi,
-             const UChar*    text,
-             int32_t         textLength,
-             UErrorCode*     status)
-{
-    return BAL::BIInternationalization::ubrk_setText( bi, text, textLength, status );
-}
-
-inline void ucnv_close(UConverter * converter)
-{
-    return BAL::BIInternationalization::ucnv_close( converter );
-}
-
-inline UConverter* ucnv_open(const char *converterName, UErrorCode *err)
-{
-    return BAL::BIInternationalization::ucnv_open( converterName, err );
-}
-
-inline UNormalizationCheckResult unorm_quickCheck(const UChar *source, int32_t sourcelength,
-                 UNormalizationMode mode,
-                 UErrorCode *status)
-{
-    return BAL::BIInternationalization::unorm_quickCheck( source, sourcelength, mode, status );
-}
-
-inline void UCNV_FROM_U_CALLBACK_ESCAPE (
-                  const void *context,
-                  UConverterFromUnicodeArgs *fromUArgs,
-                  const UChar* codeUnits,
-                  int32_t length,
-                  UChar32 codePoint,
-                  UConverterCallbackReason reason,
-                  UErrorCode * err)
-{
-    return BAL::BIInternationalization::UCNV_FROM_U_CALLBACK_ESCAPE( context, fromUArgs, codeUnits, length, codePoint, reason, err );
+    inline DeprecatedString *toAce( const DeprecatedString *s, const unsigned l )
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->toAce(s, l);
+    }
+    
+    inline const UChar* normalize(const UChar* characters, unsigned norm, size_t *length )
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->normalize(characters, norm, length);
+    }
+    
+    inline bool isSpace(unsigned short c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->isSpace(c);
+    }
+    
+     inline UChar32 toLower(unsigned short c)
+     {
+         BIInternationalization *inter = ::BAL::getBIInternationalization();
+         return inter->toLower(c);
+     }
+    
+    inline int toLower(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->toLower(result, resultLength, src, srcLength, error);
+    }
+    
+    inline UChar32 toUpper(unsigned short c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->toUpper(c);
+    }
+    
+    inline int toUpper(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->toUpper(result, resultLength, src, srcLength, error);
+    }
+    
+    inline UChar32 foldCase(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->foldCase(c);
+    }
+    
+    inline int foldCase(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->foldCase(result, resultLength, src, srcLength, error);
+    }
+    
+    inline UChar32 toTitleCase(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->toTitleCase(c);
+    }
+    
+    inline bool isFormatChar(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->isFormatChar(c);
+    }
+    
+     inline bool isSeparatorSpace(UChar32 c)
+     {
+         BIInternationalization *inter = ::BAL::getBIInternationalization();
+         return inter->isSeparatorSpace(c);
+     }
+     
+     inline bool isPrintableChar(UChar32 c)
+     {
+         BIInternationalization *inter = ::BAL::getBIInternationalization();
+         return inter->isPrintableChar(c);
+     }
+    
+    inline bool isDigit(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->isDigit(c);
+    }
+    
+    inline bool isPunct(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->isPunct(c);
+    }
+    
+    inline UChar32 mirroredChar(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->mirroredChar(c);
+    }
+    
+     inline CharCategory category(UChar32 c)
+     {
+         BIInternationalization *inter = ::BAL::getBIInternationalization();
+         return inter->category(c);
+     }
+    
+    inline Direction direction(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->direction(c);
+    }
+    
+    inline bool isLower(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->isLower(c);
+    }
+    
+    inline bool isUpper(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->isUpper(c);
+    }
+    
+    inline int digitValue(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->digitValue(c);
+    }
+    
+    inline uint8_t combiningClass(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->combiningClass(c);
+    }
+    
+    inline DecompositionType decompositionType(UChar32 c)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->decompositionType(c);
+    }
+    
+    inline int umemcasecmp(const UChar* a, const UChar* b, int len)
+    {
+        BIInternationalization *inter = ::BAL::getBIInternationalization();
+        return inter->umemcasecmp(a, b, len);
+    }
+   }
 }
 
-inline void ucnv_setFromUCallBack (UConverter * converter,
-                       UConverterFromUCallback newAction,
-                       const void *newContext,
-                       UConverterFromUCallback *oldAction,
-                       const void **oldContext,
-                       UErrorCode * err)
-{
-    return BAL::BIInternationalization::ucnv_setFromUCallBack( converter, newAction, newContext, oldAction, oldContext, err );
-}
-
-inline void ucnv_setSubstChars(UConverter *converter,
-                   const char *subChars,
-                   int8_t len,
-                   UErrorCode *err)
-{
-    return BAL::BIInternationalization::ucnv_setSubstChars( converter, subChars, len, err );
-}
-
-inline void UCNV_FROM_U_CALLBACK_SUBSTITUTE (
-                  const void *context,
-                  UConverterFromUnicodeArgs *fromUArgs,
-                  const UChar* codeUnits,
-                  int32_t length,
-                  UChar32 codePoint,
-                  UConverterCallbackReason reason,
-                  UErrorCode * err)
-{
-    return BAL::BIInternationalization::UCNV_FROM_U_CALLBACK_SUBSTITUTE( context, fromUArgs, codeUnits, length, codePoint, reason, err);
-}
-
-inline void ucnv_fromUnicode (UConverter * converter,
-                  char **target,
-                  const char *targetLimit,
-                  const UChar ** source,
-                  const UChar * sourceLimit,
-                  int32_t* offsets,
-                  UBool flush,
-                  UErrorCode * err)
-{
-    return BAL::BIInternationalization::ucnv_fromUnicode( converter, target, targetLimit, source, sourceLimit, offsets, flush, err );
-}
-
-inline void ucnv_toUnicode(UConverter *converter,
-               UChar **target,
-               const UChar *targetLimit,
-               const char **source,
-               const char *sourceLimit,
-               int32_t *offsets,
-               UBool flush,
-               UErrorCode *err)
-{
-    return BAL::BIInternationalization::ucnv_toUnicode( converter, target, targetLimit, source, sourceLimit, offsets, flush, err );
-}
-
-inline void UCNV_TO_U_CALLBACK_STOP (
-                  const void *context,
-                  UConverterToUnicodeArgs *toUArgs,
-                  const char* codeUnits,
-                  int32_t length,
-                  UConverterCallbackReason reason,
-                  UErrorCode * err)
-{
-    return BAL::BIInternationalization::UCNV_TO_U_CALLBACK_STOP( context, toUArgs, codeUnits, length, reason, err );
-}
-
-inline void ucnv_setToUCallBack (UConverter * converter,
-                     UConverterToUCallback newAction,
-                     const void* newContext,
-                     UConverterToUCallback *oldAction,
-                     const void** oldContext,
-                     UErrorCode * err)
-{
-    return BAL::BIInternationalization::ucnv_setToUCallBack( converter, newAction, newContext, oldAction, oldContext, err );
-}
-
-inline int32_t ucnv_toUChars(UConverter *cnv,
-              UChar *dest, int32_t destCapacity,
-              const char *src, int32_t srcLength,
-              UErrorCode *pErrorCode)
-{
-    return BAL::BIInternationalization::ucnv_toUChars( cnv, dest, destCapacity, src, srcLength, pErrorCode );
-}
-
-inline int8_t u_charType(UChar32 c)
-{
-    return BAL::BIInternationalization::u_charType( c );
-}
-
-inline UBool u_isprint(UChar32 c)
-{
-    return BAL::BIInternationalization::u_isprint( c );
-}
-
-inline UBool u_ispunct(UChar32 c)
-{
-    return BAL::BIInternationalization::u_ispunct( c );
-}
-
-inline int32_t ubrk_preceding(UBreakIterator *bi,
-           int32_t offset)
-{
-    return BAL::BIInternationalization::ubrk_preceding( bi, offset );
-}
-
-inline int32_t ubrk_following(UBreakIterator *bi,
-           int32_t offset)
-{
-    return BAL::BIInternationalization::ubrk_following( bi, offset );
-}
-
-inline int32_t u_getIntPropertyValue(UChar32 c, UProperty which)
-{
-    return BAL::BIInternationalization::u_getIntPropertyValue( c, which );
-}
-
-inline int32_t u_charDigitValue(UChar32 c)
-{
-    return BAL::BIInternationalization::u_charDigitValue( c );
-}
-
-inline int32_t ubrk_current(const UBreakIterator *bi)
-{
-    return BAL::BIInternationalization::ubrk_current( bi );
-}
-
-inline int32_t ucnv_countAvailable(void)
-{
-    return BAL::BIInternationalization::ucnv_countAvailable();
-}
-
-inline const char* ucnv_getAvailableName(int32_t n)
-{
-    return BAL::BIInternationalization::ucnv_getAvailableName(n);
-}
-
-inline uint16_t ucnv_countAliases(const char *alias, UErrorCode *pErrorCode)
-{
-    return BAL::BIInternationalization::ucnv_countAliases(alias, pErrorCode);
-}
-
-inline const char * ucnv_getAlias(const char *alias, uint16_t n, UErrorCode *pErrorCode)
-{
-    return BAL::BIInternationalization::ucnv_getAlias(alias, n, pErrorCode);
-}
-
-inline const char * ucnv_getName(const UConverter *converter, UErrorCode *err)
-{
-    return BAL::BIInternationalization::ucnv_getName(converter, err);
-}
-
-#endif // __INTER__
 #endif // BIINTERNATIONALIZATION_H_
-

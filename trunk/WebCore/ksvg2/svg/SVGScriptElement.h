@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGScriptElement_h
 #define SVGScriptElement_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGElement.h"
 #include "SVGURIReference.h"
@@ -31,8 +31,8 @@
 namespace WebCore
 {
     class SVGScriptElement : public SVGElement,
-                                 public SVGURIReference,
-                                 public SVGExternalResourcesRequired
+                             public SVGURIReference,
+                             public SVGExternalResourcesRequired
     {
     public:
         SVGScriptElement(const QualifiedName&, Document*);
@@ -44,8 +44,6 @@ namespace WebCore
 
         // Internal
         virtual void parseMappedAttribute(MappedAttribute *attr);
-
-        static void executeScript(Document *document, StringImpl *jsCode);
 
     protected:
         virtual const SVGElement* contextElement() const { return this; }
@@ -59,7 +57,7 @@ namespace WebCore
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

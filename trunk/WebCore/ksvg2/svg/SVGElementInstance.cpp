@@ -15,13 +15,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGElementInstance.h"
 
 #include "Event.h"
@@ -48,8 +48,7 @@ SVGElementInstance::SVGElementInstance(SVGUseElement* useElement, PassRefPtr<SVG
     ASSERT(m_element);
 
     // Register as instance for passed element.
-    if (Document* document = m_element->document())
-        document->accessSVGExtensions()->mapInstanceToElement(this, m_element.get());
+    m_element->document()->accessSVGExtensions()->mapInstanceToElement(this, m_element.get());
 }
 
 SVGElementInstance::~SVGElementInstance()
@@ -58,8 +57,7 @@ SVGElementInstance::~SVGElementInstance()
         child->setParent(0);
 
     // Deregister as instance for passed element.
-    if (Document* document = m_element->document())
-        document->accessSVGExtensions()->removeInstanceMapping(this, m_element.get());
+    m_element->document()->accessSVGExtensions()->removeInstanceMapping(this, m_element.get());
 }
 
 SVGElement* SVGElementInstance::correspondingElement() const
@@ -127,7 +125,7 @@ void SVGElementInstance::appendChild(PassRefPtr<SVGElementInstance> child)
 }
 
 // Helper function for updateInstance
-bool containsUseChildNode(Node* start)
+static bool containsUseChildNode(Node* start)
 {
     if (start->hasTagName(SVGNames::useTag))
         return true;
@@ -203,6 +201,6 @@ bool SVGElementInstance::dispatchEvent(PassRefPtr<Event>, ExceptionCode& ec, boo
  
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

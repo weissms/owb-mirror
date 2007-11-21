@@ -1,9 +1,7 @@
 /*
- * This file is part of the DOM implementation for KDE.
- *
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
- * Copyright (C) 2003 Apple Computer, Inc.
+ * Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -46,8 +44,20 @@ public:
         , m_firstLineBox(0)
         , m_lastLineBox(0)
         , m_lineHeight(-1)
+        , m_childrenInline(true)
+        , m_firstLine(false)
+        , m_clearStatus(CNONE)
+        , m_topMarginQuirk(false) 
+        , m_bottomMarginQuirk(false)
+        , m_hasMarkupTruncation(false)
+        , m_selectionState(SelectionNone)
+        , m_hasColumns(false)
+        , m_isContinuation(false)
     {
     }
+#ifndef NDEBUG
+    virtual ~RenderFlow();
+#endif
 
     virtual RenderFlow* continuation() const { return m_continuation; }
     void setContinuation(RenderFlow* c) { m_continuation = c; }
@@ -78,7 +88,7 @@ public:
     void paintLines(PaintInfo&, int tx, int ty);
     bool hitTestLines(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
 
-    virtual IntRect getAbsoluteRepaintRect();
+    virtual IntRect absoluteClippedOverflowRect();
 
     virtual int lowestPosition(bool includeOverflowInterior = true, bool includeSelf = true) const;
     virtual int rightmostPosition(bool includeOverflowInterior = true, bool includeSelf = true) const;
@@ -90,7 +100,11 @@ public:
     void paintOutlineForLine(GraphicsContext*, int tx, int ty, const IntRect& prevLine, const IntRect& thisLine, const IntRect& nextLine);
     void paintOutline(GraphicsContext*, int tx, int ty);
 
-    virtual bool hasColumns() const { return false; }
+    virtual bool hasColumns() const { return m_hasColumns; }
+
+    virtual bool isWordBreak() const { ASSERT(isInlineFlow()); return false; }
+
+    void checkConsistency() const;
 
 private:
     // An inline can be split with blocks occurring in between the inline content.
@@ -107,7 +121,27 @@ protected:
     InlineFlowBox* m_lastLineBox;
 
     mutable short m_lineHeight;
+    
+    // These bitfields are moved here from subclasses to pack them together
+    // from RenderBlock
+    bool m_childrenInline : 1;
+    bool m_firstLine : 1;
+    unsigned m_clearStatus  : 2; // EClear
+    bool m_topMarginQuirk : 1;
+    bool m_bottomMarginQuirk : 1;
+    bool m_hasMarkupTruncation : 1;
+    unsigned m_selectionState : 3; // SelectionState
+    bool m_hasColumns : 1;
+    
+    // from RenderInline
+    bool m_isContinuation : 1; // Whether or not we're a continuation of an inline.
 };
+
+#ifdef NDEBUG
+inline void RenderFlow::checkConsistency() const
+{
+}
+#endif
 
 } // namespace WebCore
 

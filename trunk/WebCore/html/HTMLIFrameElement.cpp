@@ -19,8 +19,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLIFrameElement.h"
@@ -38,7 +38,6 @@ using namespace HTMLNames;
 HTMLIFrameElement::HTMLIFrameElement(Document* doc)
     : HTMLFrameElementBase(iframeTag, doc)
 {
-    m_frameBorder = false;
 }
 
 bool HTMLIFrameElement::mapToEntry(const QualifiedName& attrName, MappedAttributeEntry& result) const
@@ -53,6 +52,11 @@ bool HTMLIFrameElement::mapToEntry(const QualifiedName& attrName, MappedAttribut
         return false;
     }
     
+    if (attrName == frameborderAttr) {
+        result = eReplaced;
+        return false;
+    }
+
     return HTMLFrameElementBase::mapToEntry(attrName, result);
 }
 
@@ -72,6 +76,12 @@ void HTMLIFrameElement::parseMappedAttribute(MappedAttribute *attr)
             doc->addDocExtraNamedItem(newNameAttr);
         }
         oldNameAttr = newNameAttr;
+    } else if (attr->name() == frameborderAttr) {
+        // Frame border doesn't really match the HTML4 spec definition for iframes.  It simply adds
+        // a presentational hint that the border should be off if set to zero.
+        if (!attr->isNull() && !attr->value().toInt())
+            // Add a rule that nulls out our border width.
+            addCSSLength(attr, CSS_PROP_BORDER_WIDTH, "0");
     } else
         HTMLFrameElementBase::parseMappedAttribute(attr);
 }
@@ -111,7 +121,7 @@ void HTMLIFrameElement::attach()
     HTMLFrameElementBase::attach();
 
     if (RenderPartObject* renderPartObject = static_cast<RenderPartObject*>(renderer()))
-        renderPartObject->updateWidget();
+        renderPartObject->updateWidget(false);
 }
 
 bool HTMLIFrameElement::isURLAttribute(Attribute* attr) const

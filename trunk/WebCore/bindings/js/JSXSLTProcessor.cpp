@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,12 +20,12 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
 
-#ifdef XSLT_SUPPORT
+#if ENABLE(XSLT)
 
 #include "JSXSLTProcessor.h"
 
@@ -78,8 +78,8 @@ JSValue *XSLTProcessorPrototypeFunction::callAsFunction(ExecState *exec, JSObjec
         case JSXSLTProcessor::ImportStylesheet:
         {
             JSValue *nodeVal = args[0];
-            if (nodeVal->isObject(&DOMNode::info)) {
-                DOMNode *node = static_cast<DOMNode *>(nodeVal);
+            if (nodeVal->isObject(&JSNode::info)) {
+                JSNode* node = static_cast<JSNode*>(nodeVal);
                 processor.importStylesheet(node->impl());
                 return jsUndefined();
             }
@@ -90,8 +90,8 @@ JSValue *XSLTProcessorPrototypeFunction::callAsFunction(ExecState *exec, JSObjec
         {
             JSValue *nodeVal = args[0];
             JSValue *docVal = args[1];
-            if (nodeVal->isObject(&DOMNode::info) && docVal->isObject(&JSDocument::info)) {
-                Node* node = static_cast<DOMNode *>(nodeVal)->impl();
+            if (nodeVal->isObject(&JSNode::info) && docVal->isObject(&JSDocument::info)) {
+                Node* node = static_cast<JSNode*>(nodeVal)->impl();
                 Document* doc = static_cast<Document*>(static_cast<JSDocument *>(docVal)->impl());
                 return toJS(exec, processor.transformToFragment(node, doc).get());
             }
@@ -101,8 +101,8 @@ JSValue *XSLTProcessorPrototypeFunction::callAsFunction(ExecState *exec, JSObjec
         case JSXSLTProcessor::TransformToDocument:
         {
             JSValue *nodeVal = args[0];
-            if (nodeVal->isObject(&DOMNode::info)) {
-                DOMNode *node = static_cast<DOMNode *>(nodeVal);
+            if (nodeVal->isObject(&JSNode::info)) {
+                JSNode* node = static_cast<JSNode*>(nodeVal);
                 RefPtr<Document> resultDocument = processor.transformToDocument(node->impl());
                 if (resultDocument)
                     return toJS(exec, resultDocument.get());
@@ -154,9 +154,9 @@ JSValue *XSLTProcessorPrototypeFunction::callAsFunction(ExecState *exec, JSObjec
 XSLTProcessorConstructorImp::XSLTProcessorConstructorImp(ExecState *exec)
 {
     setPrototype(exec->lexicalInterpreter()->builtinObjectPrototype());
-    putDirect(prototypePropertyName, XSLTProcessorPrototype::self(exec), None);
+    putDirect(exec->propertyNames().prototype, XSLTProcessorPrototype::self(exec), None);
 }
 
 }
 
-#endif // XSLT_SUPPORT
+#endif // ENABLE(XSLT)

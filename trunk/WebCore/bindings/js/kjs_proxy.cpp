@@ -15,21 +15,25 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include "config.h"
 #include "kjs_proxy.h"
 
 #include "Chrome.h"
+#include "Document.h"
 #include "Frame.h"
 #include "FrameLoader.h"
+#include "GCController.h"
+#include "JSDocument.h"
 #include "JSDOMWindow.h"
 #include "Page.h"
+#include "Settings.h"
 #include "kjs_events.h"
 #include "kjs_window.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "JSSVGLazyEventListener.h"
 #endif
 
@@ -43,7 +47,21 @@ KJSProxy::KJSProxy(Frame* frame)
     m_handlerLineno = 0;
 }
 
-JSValue* KJSProxy::evaluate(const String& filename, int baseLine, const String& str, Node* n) 
+KJSProxy::~KJSProxy()
+{
+    // Check for <rdar://problem/4876466>. In theory, no JS should be executing
+    // in our interpreter. 
+    ASSERT(!m_script || !m_script->context());
+    
+    if (m_script) {
+        m_script = 0;
+    
+        // It's likely that destroying the interpreter has created a lot of garbage.
+        gcController().garbageCollectSoon();
+    }
+}
+
+JSValue* KJSProxy::evaluate(const String& filename, int baseLine, const String& str) 
 {
     // evaluate code. Returns the JS return value or 0
     // if there was none, an error occured or the type couldn't be converted.
@@ -59,7 +77,11 @@ JSValue* KJSProxy::evaluate(const String& filename, int baseLine, const String& 
 
     JSLock lock;
 
-    JSValue* thisNode = n ? Window::retrieve(m_frame) : toJS(m_script->globalExec(), n);
+    // Evaluating the JavaScript could cause the frame to be deallocated
+    // so we start the keep alive timer here.
+    m_frame->keepAlive();
+    
+    JSValue* thisNode = KJS::Window::retrieve(m_frame);
   
     m_script->startTimeoutCheck();
     Completion comp = m_script->evaluate(filename, baseLine, reinterpret_cast<const KJS::UChar*>(str.characters()), str.length(), thisNode);
@@ -73,7 +95,7 @@ JSValue* KJSProxy::evaluate(const String& filename, int baseLine, const String& 
         int lineNumber = comp.value()->toObject(m_script->globalExec())->get(m_script->globalExec(), "line")->toInt32(m_script->globalExec());
         UString sourceURL = comp.value()->toObject(m_script->globalExec())->get(m_script->globalExec(), "sourceURL")->toString(m_script->globalExec());
         if (Page* page = m_frame->page())
-            page->chrome()->addMessageToConsole(errorMessage, lineNumber, sourceURL);
+            page->chrome()->addMessageToConsole(JSMessageSource, ErrorMessageLevel, errorMessage, lineNumber, sourceURL);
     }
 
     return 0;
@@ -81,10 +103,10 @@ JSValue* KJSProxy::evaluate(const String& filename, int baseLine, const String& 
 
 void KJSProxy::clear() {
   // clear resources allocated by the interpreter, and make it ready to be used by another page
-  // We have to keep it, so that the Window object for the frame remains the same.
+  // We have to keep it, so that the KJS::Window object for the frame remains the same.
   // (we used to delete and re-create it, previously)
   if (m_script) {
-    Window *win = Window::retrieveWindow(m_frame);
+    KJS::Window *win = KJS::Window::retrieveWindow(m_frame);
     if (win)
         win->clear();
   }
@@ -94,15 +116,15 @@ EventListener* KJSProxy::createHTMLEventHandler(const String& functionName, cons
 {
     initScriptIfNeeded();
     JSLock lock;
-    return new JSLazyEventListener(functionName, code, Window::retrieveWindow(m_frame), node, m_handlerLineno);
+    return new JSLazyEventListener(functionName, code, KJS::Window::retrieveWindow(m_frame), node, m_handlerLineno);
 }
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 EventListener* KJSProxy::createSVGEventHandler(const String& functionName, const String& code, Node* node)
 {
     initScriptIfNeeded();
     JSLock lock;
-    return new JSSVGLazyEventListener(functionName, code, Window::retrieveWindow(m_frame), node, m_handlerLineno);
+    return new JSSVGLazyEventListener(functionName, code, KJS::Window::retrieveWindow(m_frame), node, m_handlerLineno);
 }
 #endif
 
@@ -118,7 +140,7 @@ void KJSProxy::finishedWithEvent(Event* event)
 ScriptInterpreter* KJSProxy::interpreter()
 {
   initScriptIfNeeded();
-  assert(m_script);
+  ASSERT(m_script);
   return m_script.get();
 }
 
@@ -129,18 +151,29 @@ void KJSProxy::initScriptIfNeeded()
 
   // Build the global object - which is a Window instance
   JSLock lock;
-  JSObject* globalObject = new JSDOMWindow(m_frame->domWindow());
+  JSDOMWindow* globalObject = new JSDOMWindow(m_frame->domWindow());
 
   // Create a KJS interpreter for this frame
   m_script = new ScriptInterpreter(globalObject, m_frame);
 
-  String userAgent = m_frame->loader()->userAgent();
+  String userAgent = m_frame->loader()->userAgent(m_frame->document() ? m_frame->document()->URL() : KURL());
   if (userAgent.find("Microsoft") >= 0 || userAgent.find("MSIE") >= 0)
     m_script->setCompatMode(Interpreter::IECompat);
   else
     // If we find "Mozilla" but not "(compatible, ...)" we are a real Netscape
     if (userAgent.find("Mozilla") >= 0 && userAgent.find("compatible") == -1)
       m_script->setCompatMode(Interpreter::NetscapeCompat);
+
+  m_frame->loader()->dispatchWindowObjectAvailable();
+}
+    
+void KJSProxy::clearDocumentWrapper() 
+{
+    if (!m_script)
+        return;
+
+    JSLock lock;
+    m_script->globalObject()->removeDirect("document");
 }
 
 }

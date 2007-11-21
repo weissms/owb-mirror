@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -43,7 +43,7 @@ struct QualifiedNameComponents {
 // Golden ratio - arbitrary start value to avoid mapping all 0's to all 0's
 static const unsigned PHI = 0x9e3779b9U;
     
-inline unsigned hashComponents(const QualifiedNameComponents& buf)
+static inline unsigned hashComponents(const QualifiedNameComponents& buf)
 {
     ASSERT(sizeof(QualifiedNameComponents) % (sizeof(uint16_t) * 2) == 0);
 

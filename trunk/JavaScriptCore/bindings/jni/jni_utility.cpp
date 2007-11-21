@@ -85,14 +85,17 @@ JavaVM *getJavaVM()
     return jvm;
 }
 
-JNIEnv *getJNIEnv()
+JNIEnv* getJNIEnv()
 {
-    JNIEnv *env;
+    union {
+        JNIEnv* env;
+        void* dummy;
+    } u;
     jint jniError = 0;
 
-    jniError = (getJavaVM())->AttachCurrentThread((void**)&env, (void *)NULL);
-    if ( jniError == JNI_OK )
-        return env;
+    jniError = (getJavaVM())->AttachCurrentThread(&u.dummy, NULL);
+    if (jniError == JNI_OK)
+        return u.env;
     else
         fprintf(stderr, "%s: AttachCurrentThread failed, returned %ld\n", __PRETTY_FUNCTION__, (long)jniError);
     return NULL;
@@ -747,8 +750,10 @@ jvalue getJNIField( jobject obj, JNIType type, const char *name, const char *sig
     return result;
 }
 
-jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, const char *javaClassName) {
+static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, const char *javaClassName) {
 
+    ASSERT(JSLock::lockCount() > 0);
+    
     JNIEnv *env = getJNIEnv();
     // As JS Arrays can contain a mixture of objects, assume we can convert to
     // the requested Java Array type requested, unless the array type is some object array
@@ -871,6 +876,8 @@ jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, const c
 
 jvalue convertValueToJValue (ExecState *exec, JSValue *value, JNIType _JNIType, const char *javaClassName)
 {
+    JSLock lock;
+    
     jvalue result;
    
     switch (_JNIType){
@@ -884,7 +891,8 @@ jvalue convertValueToJValue (ExecState *exec, JSValue *value, JNIType _JNIType, 
                 if (objectImp->classInfo() == &RuntimeObjectImp::info) {
                     RuntimeObjectImp *imp = static_cast<RuntimeObjectImp *>(value);
                     JavaInstance *instance = static_cast<JavaInstance*>(imp->getInternalInstance());
-                    result.l = instance->javaInstance();
+                    if (instance)
+                        result.l = instance->javaInstance();
                 }
                 else if (objectImp->classInfo() == &RuntimeArray::info) {
                 // Input is a JavaScript Array that was originally created from a Java Array

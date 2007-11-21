@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
     Copyright (C) 2006 Apple Computer, Inc.
 
     This file is part of the KDE project
@@ -17,12 +17,12 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGStyleElement.h"
 
 #include "CSSStyleSheet.h"
@@ -37,6 +37,7 @@ using namespace HTMLNames;
 
 SVGStyleElement::SVGStyleElement(const QualifiedName& tagName, Document* doc)
      : SVGElement(tagName, doc)
+     , m_createdByParser(false)
 {
 }
 
@@ -92,10 +93,18 @@ void SVGStyleElement::parseMappedAttribute(MappedAttribute* attr)
         SVGElement::parseMappedAttribute(attr);
 }
 
+void SVGStyleElement::finishedParsing()
+{
+    StyleElement::process(this);
+    SVGElement::finishedParsing();
+}
+
 void SVGStyleElement::insertedIntoDocument()
 {
     SVGElement::insertedIntoDocument();
-    StyleElement::insertedIntoDocument(document());
+
+    if (!m_createdByParser)
+        StyleElement::insertedIntoDocument(document(), this);
 }
 
 void SVGStyleElement::removedFromDocument()
@@ -106,10 +115,21 @@ void SVGStyleElement::removedFromDocument()
 
 void SVGStyleElement::childrenChanged()
 {
-    StyleElement::childrenChanged(this);
+    StyleElement::process(this);
+}
+
+StyleSheet* SVGStyleElement::sheet()
+{
+    return StyleElement::sheet(this);
+}
+
+bool SVGStyleElement::sheetLoaded()
+{
+    document()->removePendingSheet();
+    return true;
 }
 
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

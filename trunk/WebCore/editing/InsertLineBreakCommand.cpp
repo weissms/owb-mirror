@@ -77,16 +77,6 @@ void InsertLineBreakCommand::insertNodeBeforePosition(Node *node, const Position
         insertNodeBefore(node, pos.node());
 }
 
-static bool lineBreakExistsAtPosition(VisiblePosition& visiblePosition)
-{
-    if (visiblePosition.isNull())
-        return false;
-        
-    Position downstream(visiblePosition.deepEquivalent().downstream());
-    return downstream.node()->hasTagName(brTag) ||
-           downstream.node()->isTextNode() && downstream.node()->renderer()->style()->preserveNewline() && visiblePosition.characterAfter() == '\n';
-}
-
 void InsertLineBreakCommand::doApply()
 {
     deleteSelection();
@@ -133,7 +123,7 @@ void InsertLineBreakCommand::doApply()
             // There aren't any VisiblePositions like this yet.
             ASSERT_NOT_REACHED();
     } else if (isEndOfParagraph(caret) && !lineBreakExistsAtPosition(caret)) {
-        insertNodeAt(nodeToInsert.get(), pos.node(), pos.offset());
+        insertNodeAt(nodeToInsert.get(), pos);
         insertNodeBefore(nodeToInsert->cloneNode(false).get(), nodeToInsert.get());
         VisiblePosition endingPosition(Position(nodeToInsert.get(), 0));
         setEndingSelection(Selection(endingPosition));
@@ -164,10 +154,18 @@ void InsertLineBreakCommand::doApply()
         // Handle whitespace that occurs after the split
         updateLayout();
         if (!endingPosition.isRenderedCharacter()) {
+            Position positionBeforeTextNode(positionBeforeNode(textNode));
             // Clear out all whitespace and insert one non-breaking space
             deleteInsignificantTextDownstream(endingPosition);
             ASSERT(!textNode->renderer() || textNode->renderer()->style()->collapseWhiteSpace());
-            insertTextIntoNode(textNode, 0, nonBreakingSpaceString());
+            // Deleting insignificant whitespace will remove textNode if it contains nothing but insignificant whitespace.
+            if (textNode->inDocument())
+                insertTextIntoNode(textNode, 0, nonBreakingSpaceString());
+            else {
+                RefPtr<Text> nbspNode = document()->createTextNode(nonBreakingSpaceString());
+                insertNodeAt(nbspNode.get(), positionBeforeTextNode);
+                endingPosition = Position(nbspNode.get(), 0);
+            }
         }
         
         setEndingSelection(Selection(endingPosition, DOWNSTREAM));

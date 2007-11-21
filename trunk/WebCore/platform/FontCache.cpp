@@ -32,29 +32,40 @@
 #include "Font.h"
 #include "FontFallbackList.h"
 #include "FontPlatformData.h"
+#include "FontSelector.h"
 #include "StringHash.h"
 #include <wtf/HashMap.h>
 
+#ifdef __OWB__
+using WebCore::StringImpl;
+
+namespace BAL {
+#else
 namespace WebCore {
+#endif //__OWB__
 
 struct FontPlatformDataCacheKey {
-    FontPlatformDataCacheKey(const AtomicString& family = AtomicString(), unsigned size = 0, bool bold = false, bool italic = false)
+    FontPlatformDataCacheKey(const AtomicString& family = AtomicString(), unsigned size = 0, bool bold = false, bool italic = false,
+                             bool isPrinterFont = false)
         : m_family(family)
         , m_size(size)
         , m_bold(bold)
         , m_italic(italic)
+        , m_printerFont(isPrinterFont)
     {
     }
 
     bool operator==(const FontPlatformDataCacheKey& other) const
     {
-        return equalIgnoringCase(m_family, other.m_family) && m_size == other.m_size && m_bold == other.m_bold && m_italic == other.m_italic;
+        return equalIgnoringCase(m_family, other.m_family) && m_size == other.m_size && 
+               m_bold == other.m_bold && m_italic == other.m_italic && m_printerFont == other.m_printerFont;
     }
     
     AtomicString m_family;
     unsigned m_size;
     bool m_bold;
     bool m_italic;
+    bool m_printerFont;
 };
 
 inline unsigned computeHash(const FontPlatformDataCacheKey& fontKey)
@@ -62,7 +73,7 @@ inline unsigned computeHash(const FontPlatformDataCacheKey& fontKey)
     unsigned hashCodes[3] = {
         CaseInsensitiveHash<String>::hash(fontKey.m_family),
         fontKey.m_size,
-        static_cast<unsigned>(fontKey.m_bold) << 1 | static_cast<unsigned>(fontKey.m_italic)
+        static_cast<unsigned>(fontKey.m_bold) << 2 | static_cast<unsigned>(fontKey.m_italic) << 1 | static_cast<unsigned>(fontKey.m_printerFont)
     };
     return StringImpl::computeHash(reinterpret_cast<UChar*>(hashCodes), 3 * sizeof(unsigned) / sizeof(UChar));
 }
@@ -84,12 +95,20 @@ struct FontPlatformDataCacheKeyTraits : WTF::GenericHashTraits<FontPlatformDataC
     static const bool needsDestruction = false;
     static const FontPlatformDataCacheKey& deletedValue()
     {
+#ifdef __OWB__
+        static FontPlatformDataCacheKey key(WebCore::nullAtom, 0xFFFFFFFFU, false, false);
+#else
         static FontPlatformDataCacheKey key(nullAtom, 0xFFFFFFFFU, false, false);
+#endif //__OWB__
         return key;
     }
     static const FontPlatformDataCacheKey& emptyValue()
     {
+#ifdef __OWB__
+        static FontPlatformDataCacheKey key(WebCore::nullAtom, 0, false, false);
+#else
         static FontPlatformDataCacheKey key(nullAtom, 0, false, false);
+#endif
         return key;
     }
 };
@@ -121,7 +140,11 @@ static const AtomicString& alternateFamilyName(const AtomicString& familyName)
     if (equalIgnoringCase(familyName, helvetica))
         return arial;
 
+#ifdef __OWB__
+    return WebCore::emptyAtom;
+#else
     return emptyAtom;
+#endif //__OWB__
 }
 
 FontPlatformData* FontCache::getCachedFontPlatformData(const FontDescription& fontDescription, 
@@ -133,7 +156,8 @@ FontPlatformData* FontCache::getCachedFontPlatformData(const FontDescription& fo
         platformInit();
     }
 
-    FontPlatformDataCacheKey key(familyName, fontDescription.computedPixelSize(), fontDescription.bold(), fontDescription.italic());
+    FontPlatformDataCacheKey key(familyName, fontDescription.computedPixelSize(), fontDescription.bold(), fontDescription.italic(),
+                                 fontDescription.usePrinterFont());
     FontPlatformData* result = 0;
     bool foundResult;
     FontPlatformDataCache::iterator it = gFontPlatformDataCache->find(key);
@@ -207,7 +231,7 @@ FontData* FontCache::getCachedFontData(const FontPlatformData* platformData)
     return result;
 }
 
-const FontData* FontCache::getFontData(const Font& font, int& familyIndex)
+const FontData* FontCache::getFontData(const Font& font, int& familyIndex, FontSelector* fontSelector)
 {
     FontPlatformData* result = 0;
 
@@ -218,13 +242,23 @@ const FontData* FontCache::getFontData(const Font& font, int& familyIndex)
     const FontFamily* currFamily = startFamily;
     while (currFamily && !result) {
         familyIndex++;
-        if (currFamily->family().length())
+        if (currFamily->family().length()) {
+            if (fontSelector) {
+                FontData* data = fontSelector->getFontData(font.fontDescription(), currFamily->family());
+                if (data)
+                    return data;
+            }
             result = getCachedFontPlatformData(font.fontDescription(), currFamily->family());
+        }
         currFamily = currFamily->next();
     }
 
     if (!currFamily)
+#ifdef __OWB__
+        familyIndex = WebCore::cAllFamiliesScanned;
+#else
         familyIndex = cAllFamiliesScanned;
+#endif //__OWB__
 
     if (!result)
         // We didn't find a font. Try to find a similar font using our own specific knowledge about our platform.
@@ -235,7 +269,7 @@ const FontData* FontCache::getFontData(const Font& font, int& familyIndex)
     if (!result && startIndex == 0)
         // We still don't have a result.  Hand back our last resort fallback font.  We only do the last resort fallback
         // when trying to find the primary font.  Otherwise our fallback will rely on the actual characters used.
-        result = getLastResortFallbackFont(font);
+        result = getLastResortFallbackFont(font.fontDescription());
 
     // Now that we have a result, we need to go from FontPlatformData -> FontData.
     return getCachedFontData(result);

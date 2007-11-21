@@ -28,34 +28,98 @@
 #include <iostream>
 
 #include "config.h"
-#include "BTLogHelper.h"
+#include "BALConfiguration.h"
+#include "BIGraphicsDevice.h"
+#include "BINativeImage.h"
+#include "BIWidget.h"
+#include "BTScrollView.h"
 #include "TestManager/TestManager.h"
 #include "Widget.h"
 
-using BAL::BTWidget;
+using namespace BAL;
 
 class WidgetImplTest {
 
 public:
 
-    static void creation()
-    {
-        log("start");
-        BTWidget widget;
-        log("end");
-    }
+static void widgetCreation()
+{
+    BTWidget *widget = new BTWidget();
+    TestManager::AssertTrue("widget exist", widget != NULL);
+    delete widget;
+    widget = NULL;
+}
+
+static void widgetParent()
+{
+    BTScrollView *widgetParent = new BTScrollView();
+    BTWidget *widgetChild = new BTWidget();
+
+    widgetChild->setParent(widgetParent);
+    widgetChild->removeFromParent();
+
+    delete widgetChild;
+    widgetChild = NULL;
+    delete widgetParent;
+    widgetParent = NULL;
+}
+
+//FIXME: Re-enable this test as soon as backingStore for widget is implemented
+static void widgetBackingStore()
+{
+    BTWidget *widget = new BTWidget();
+    BIGraphicsDevice *device = getBIGraphicsDevice();
+    BINativeImage *img = device->createNativeImage(WebCore::IntSize());
+
+    widget->setBackingStore(img);
+    BINativeImage *image = widget->backingStore();
+    TestManager::AssertTrue("image is the same", img == image);
+
+    delete widget;
+    widget = NULL;
+    img = NULL;
+    deleteBIGraphicsDevice();
+    device = NULL;
+}
+
+//FIXME: Re-enable this test as soon as backingStore for widget is implemented
+static void widgetResize()
+{
+    BTWidget *widget = new BTWidget;
+    BIGraphicsDevice *device = getBIGraphicsDevice();
+    BINativeImage *img = device->createNativeImage(WebCore::IntSize());
+
+    widget->setBackingStore(img);
+    widget->resize(10, 10);
+    BINativeImage *image = widget->backingStore();
+    TestManager::AssertTrue("widget is 10x10 size", widget->size() == WebCore::IntSize(10, 10));
+    TestManager::AssertTrue("image is 10x10 size", image->size() == WebCore::IntSize(10, 10));
+
+
+    delete widget;
+    widget = NULL;
+    img = NULL;
+    deleteBIGraphicsDevice();
+    device = NULL;
+}
+
 
 
 private:
 
 };
 
-static TestNode gtestWidgetCreation = { "testWidgetCreation", "testWidgetCreation",
-  TestNode::AUTO, WidgetImplTest::creation, NULL };
+static TestNode gtestWidgetCreation = { "testWidgetCreation", "testWidgetCreation", TestNode::AUTO, WidgetImplTest::widgetCreation, NULL };
+static TestNode gtestWidgetParent = { "testWidgetParent", "testWidgetParent", TestNode::AUTO, WidgetImplTest::widgetParent, NULL };
+static TestNode gtestWidgetBackingStore = { "testWidgetBackingStore", "testWidgetBackingStore", TestNode::AUTO, WidgetImplTest::widgetBackingStore, NULL };
+static TestNode gtestWidgetResize = { "testWidgetResize", "testWidgetResize", TestNode::AUTO, WidgetImplTest::widgetResize, NULL };
 
 TestNode* gWidgetTestNodeList[] = {
-  &gtestWidgetCreation,
-	NULL
+    &gtestWidgetCreation,
+    &gtestWidgetParent,
+//     &gtestWidgetBackingStore,
+//     &gtestWidgetResize,
+    NULL
 };
 
 TestNode gTestSuiteWidget = {
@@ -63,5 +127,5 @@ TestNode gTestSuiteWidget = {
     "test vidget",
     TestNode::TEST_SUITE,
     NULL, /* no function, it's a test suite */
-		gWidgetTestNodeList 
-};  
+    gWidgetTestNodeList 
+};

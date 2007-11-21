@@ -53,14 +53,13 @@ extern "C" {
 using BAL::RGBA32Buffer;
 using BAL::RGBA32Array;
 
-//IMPLEMENT_CREATE_DELETE(BIImageDecoder,BCJPEGImageDecoder)
 namespace BAL {
-	BIImageDecoder* createBCJPEGImageDecoder() {
-			return new BC::BCJPEGImageDecoder();
-	}
-	void deleteBIImageDecoder( BAL::BIImageDecoder* p ) {
-		delete p;
-	}
+    BIImageDecoder* createBCJPEGImageDecoder() {
+        return new BC::BCJPEGImageDecoder();
+    }
+    void deleteBIImageDecoder( BAL::BIImageDecoder* p ) {
+        delete p;
+    }
 }
 
 
@@ -109,7 +108,7 @@ public:
         , m_state(JPEG_HEADER)
         , m_samples(0)
     {
-        logml(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Create JPEG Decoder");
+        DBGML(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Create JPEG Decoder\n");
     
         memset(&m_info, 0, sizeof(jpeg_decompress_struct));
 
@@ -464,15 +463,14 @@ void BCJPEGImageDecoder::decode(bool sizeOnly) const
     if (mImageDecoderCommonImplementation.failed())
         return;
 
-		ImageDecoderCommonImplementation* aImpl =
-			const_cast<ImageDecoderCommonImplementation*>(&mImageDecoderCommonImplementation);
+    ImageDecoderCommonImplementation* aImpl =
+        const_cast<ImageDecoderCommonImplementation*>(&mImageDecoderCommonImplementation);
 
-		aImpl->setFailed( !m_reader->decode(
-			mImageDecoderCommonImplementation.data(), sizeOnly) );
+    aImpl->setFailed( !m_reader->decode(mImageDecoderCommonImplementation.data(), sizeOnly));
 
     if (mImageDecoderCommonImplementation.failed() ||
-				 (!aImpl->getFrameBufferCache().isEmpty() &&
-				 	 aImpl->getFrameBufferCache()[0].status() == RGBA32Buffer::FrameComplete)) {
+        (!aImpl->getFrameBufferCache().isEmpty() &&
+        aImpl->getFrameBufferCache()[0].status() == RGBA32Buffer::FrameComplete)) {
         delete m_reader;
         m_reader = 0;
     }
@@ -489,15 +487,15 @@ bool BCJPEGImageDecoder::outputScanlines()
         // Let's resize our buffer now to the correct width/height.
         RGBA32Array& bytes = buffer.bytes();
         bytes.resize(
-					mImageDecoderCommonImplementation.size().width() * mImageDecoderCommonImplementation.size().height());
+            mImageDecoderCommonImplementation.size().width() * mImageDecoderCommonImplementation.size().height());
 
         // Update our status to be partially complete.
         buffer.setStatus(RGBA32Buffer::FramePartial);
 
         // For JPEGs, the frame always fills the entire image.
         buffer.setRect(IntRect(0, 0,
-					mImageDecoderCommonImplementation.size().width(),
-					mImageDecoderCommonImplementation.size().height()));
+            mImageDecoderCommonImplementation.size().width(),
+            mImageDecoderCommonImplementation.size().height()));
 
         // We don't have alpha (this is the default when the buffer is constructed).
     }

@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,20 +16,20 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGClipPathElement.h"
 
+#include "CSSStyleSelector.h"
 #include "Document.h"
-#include "RenderView.h"
 #include "SVGNames.h"
+#include "SVGTransformList.h"
 #include "SVGUnitTypes.h"
-#include "cssstyleselector.h"
 
 namespace WebCore {
 
@@ -50,11 +50,10 @@ ANIMATED_PROPERTY_DEFINITIONS(SVGClipPathElement, int, Enumeration, enumeration,
 
 void SVGClipPathElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const String& value = attr->value();
     if (attr->name() == SVGNames::clipPathUnitsAttr) {
-        if (value == "userSpaceOnUse")
+        if (attr->value() == "userSpaceOnUse")
             setClipPathUnitsBaseValue(SVGUnitTypes::SVG_UNIT_TYPE_USERSPACEONUSE);
-        else if (value == "objectBoundingBox")
+        else if (attr->value() == "objectBoundingBox")
             setClipPathUnitsBaseValue(SVGUnitTypes::SVG_UNIT_TYPE_OBJECTBOUNDINGBOX);
     } else {
         if (SVGTests::parseMappedAttribute(attr))
@@ -69,9 +68,6 @@ void SVGClipPathElement::parseMappedAttribute(MappedAttribute* attr)
 
 SVGResource* SVGClipPathElement::canvasResource()
 {
-    if (!view())
-        return 0;
-
     if (!m_clipper)
         m_clipper = new SVGResourceClipper();
     else
@@ -81,25 +77,24 @@ SVGResource* SVGClipPathElement::canvasResource()
 
     RenderStyle* clipPathStyle = styleForRenderer(parent()->renderer()); // FIXME: Manual style resolution is a hack
     for (Node* n = firstChild(); n; n = n->nextSibling()) {
-        SVGElement* e = svg_dynamic_cast(n);
-        if (e && e->isStyled()) {
-            SVGStyledElement* styled = static_cast<SVGStyledElement*>(e);
+        if (n->isSVGElement() && static_cast<SVGElement*>(n)->isStyledTransformable()) {
+            SVGStyledTransformableElement* styled = static_cast<SVGStyledTransformableElement*>(n);
             RenderStyle* pathStyle = document()->styleSelector()->styleForElement(styled, clipPathStyle);
             Path pathData = styled->toPathData();
-            if (e->isStyledTransformable())
-                pathData.transform(static_cast<SVGStyledTransformableElement*>(e)->localMatrix());
+            // FIXME: How do we know the element has done a layout?
+            pathData.transform(styled->animatedLocalTransform());
             if (!pathData.isEmpty())
                 m_clipper->addClipData(pathData, pathStyle->svgStyle()->clipRule(), bbox);
-            pathStyle->deref(view()->renderArena());
+            pathStyle->deref(document()->renderArena());
         }
     }
-    clipPathStyle->deref(view()->renderArena());
+    clipPathStyle->deref(document()->renderArena());
     return m_clipper.get();
 }
 
 void SVGClipPathElement::notifyAttributeChange() const
 {
-    if (!m_clipper || !attached() || ownerDocument()->parsing())
+    if (!m_clipper || !attached() || document()->parsing())
         return;
 
     m_clipper->invalidate();
@@ -108,6 +103,6 @@ void SVGClipPathElement::notifyAttributeChange() const
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

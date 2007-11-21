@@ -20,7 +20,7 @@
  * DISCLAIMED. IN NO EVENT SHALL PLEYO OR ITS CONTRIBUTORS BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+    * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -43,54 +43,59 @@ static bool gTimerExecuted = false;
 class TTest
 {
 public:
-  TTest() : m_timer(this,&TTest::timerCallback) { }
+    TTest() : m_timer(this,&TTest::timerCallback) { }
+    
+    void start()
+    {
+        m_timer.startOneShot(1);
+    }
 
-  void start()
-  {
-    m_timer.startOneShot(1);
-  }
-
-  void timerCallback( WebCore::Timer<TTest>* timer )
-  {
-    gTimerExecuted = true;
-  }
+    void timerCallback( WebCore::Timer<TTest>* timer )
+    {
+        gTimerExecuted = true;
+    }
 protected:
-  WebCore::Timer<TTest> m_timer;
+    WebCore::Timer<TTest> m_timer;
 };
 
 
 class TimerTest {
-
+    
 public:
-  /**
-   */
-  static void TestTimer()
-  {
-    BIEventLoop* aEventLoop = BAL::getBIEventLoop();
-
-    int aNbLoop = 10;
-    gTimerExecuted = false;
-    TTest aT;
-    aT.start();
-
-    BIEvent* event;
-    while( aNbLoop && !gTimerExecuted )
+    /**
+    */
+    static void TestTimer()
     {
-      if (!aEventLoop->WaitEvent(event))
-        continue;
-      sleep(1);
-      aNbLoop--;
+        BIEventLoop* aEventLoop = BAL::getBIEventLoop();
+        
+        int aNbLoop = 10;
+        gTimerExecuted = false;
+        TTest aT;
+        aT.start();
+        BIEvent* event = NULL;
+        while (aNbLoop && !gTimerExecuted)
+        {
+            if (!aEventLoop->WaitEvent(event))
+                continue;
+            else {
+                delete event;
+                event = NULL;
+            }
+            sleep(1);
+            aNbLoop--;
+        }
+        
+        TestManager::AssertTrue("Timer callback called", gTimerExecuted);
+        BAL::deleteBIEventLoop();
+        aEventLoop = NULL;
     }
-
-    TestManager::AssertTrue("Timer callback called", gTimerExecuted );
-  }
 };
 
 static TestNode gTestTimer = { "TestTimer", "TestTimer",
-  TestNode::AUTO, TimerTest::TestTimer, NULL };
+    TestNode::AUTO, TimerTest::TestTimer, NULL };
 
 TestNode* gTimerTestNodeList[] = {
-  &gTestTimer,
+    &gTestTimer,
 	NULL
 };
 
@@ -99,5 +104,5 @@ TestNode gTestSuiteTimer = {
     "test timers",
     TestNode::TEST_SUITE,
     NULL, /* no function, it's a test suite */
-		gTimerTestNodeList
+    gTimerTestNodeList
 };

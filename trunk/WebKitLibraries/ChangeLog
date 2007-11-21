@@ -1,3 +1,221 @@
+2007-10-25  Adam Roben  <aroben@apple.com>
+
+        Add wkSetPatternBaseCTM.
+
+        Reviewed by NOBODY.
+
+        * win/include/WebKitSystemInterface/WebKitSystemInterface.h:
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-10-25  Sam Weinig  <sam@webkit.org>
+
+        Fix the windows build.
+
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-10-25  Timothy Hatcher  <timothy@apple.com>
+
+        Add WKSetPatternBaseCTM.
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterfaceLeopard.a:
+        * libWebKitSystemInterfaceTiger.a:
+
+2007-10-25  Timothy Hatcher  <timothy@apple.com>
+
+        Reviewed by Adam.
+
+        Update the Leopard WebKitSystemInterface to be 4-way univeral to include 64-bit.
+
+        * libWebKitSystemInterfaceLeopard.a:
+
+2007-10-25  Sam Weinig  <sam@webkit.org>
+
+        Added wrapper for getting the foundation cache directory.
+
+        Reviewed by Adam Roben.
+
+        * win/include/WebKitSystemInterface/WebKitSystemInterface.h:
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-10-24  Adam Roben  <aroben@apple.com>
+
+        Added some font-related functions needed for <rdar://5549919>
+
+        Reviewed by Ada.
+
+        * win/include/WebKitSystemInterface/WebKitSystemInterface.h:
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-10-24  Timothy Hatcher  <timothy@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/5069711> OpenSource version of libWebKitSystemInterface.a is Tiger only, causes issues if used on Leopard
+
+        Add system specific versions of WebKitSystemInterface.
+
+        * libWebKitSystemInterface.a: Removed.
+        * libWebKitSystemInterfaceLeopard.a: Added.
+        * libWebKitSystemInterfaceTiger.a: Added.
+
+2007-10-11  Ada Chan  <adachan@apple.com>
+
+        <rdar://problem/5534421>
+        Added wkGetDefaultHTTPCookieStorage().  Updated libraries.
+
+        Reviewed by Darin.
+
+        * win/include/WebKitSystemInterface/WebKitSystemInterface.h:
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-09-27  Sam Weinig  <sam@webkit.org>
+
+        Build fix. Ran update-webkitsysteminterface script on Tiger, because
+        the resulting binary differs when built on Tiger.
+
+        * libWebKitSystemInterface.a:
+
+2007-09-27  David Hyatt  <hyatt@apple.com>
+
+        Update WebKitSYstemInterface for @font-face changes.
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2007-09-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix. Ran update-webkitsysteminterface script on Tiger, because
+        the resulting binary differs when built on Tiger. See 
+        <rdar://problem/5490613>.
+
+        * libWebKitSystemInterface.a:
+
+2007-09-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix. Ran update-webkitsysteminterface script.
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2007-08-28  Anders Carlsson  <andersca@apple.com>
+
+        Add WKSetNSURLRequestShouldContentSniff.
+        
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2007-08-28  Ada Chan  <adachan@apple.com>
+
+        <rdar://problem/4876242> Added SPI to fetch SSL certificate information.
+        Updated libraries.
+        
+        Reviewed by Adam.
+
+        * win/include/WebKitSystemInterface/WebKitSystemInterface.h:
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-07-23  Ada Chan  <adachan@apple.com>
+
+        Reviewed by Steve.
+        
+        Update WebKitSystemInterface.{h,lib}.
+
+        * win/include/WebKitSystemInterface/WebKitSystemInterface.h:
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-07-19  Ada Chan  <adachan@apple.com>
+
+        Rubber-stamped by Adam.
+        
+        Update libraries.
+
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-07-06  Adam Roben  <aroben@apple.com>
+
+        Update WebKitSystemInterface.{h,lib} for <rdar://problem/5301994>
+
+        Reviewed by Alice.
+
+        * win/include/WebKitSystemInterface/WebKitSystemInterface.h:
+        * win/lib/WebKitSystemInterface.lib:
+        * win/lib/WebKitSystemInterface_debug.lib:
+
+2007-06-29  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Maciej.
+        
+        Added WKQTMovieDataRate and WKQTMovieMaxTimeLoaded
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2007-03-29  Beth Dakin  <bdakin@apple.com>
+
+        Rubber-stamped by Adam.
+
+        Keep OpenSource building.
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2007-03-28  Antti Koivisto  <antti@apple.com>
+
+        Update libWebKitSystemInterface, previous version was out of date.
+
+        * libWebKitSystemInterface.a:
+
+2007-03-27  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Darin.
+        
+        Added wkGetWheelEventDeltas
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2007-03-07  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.  Rebuild against 10.4 SDK.
+
+        * libWebKitSystemInterface.a:
+
+2007-03-06  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Brady
+
+        Fixed: <rdar://problem/4126976> private keys imported by WebKit should not be accessible by all applications
+
+        * libWebKitSystemInterface.a:
+
+2007-02-21  Anders Carlsson  <acarlsson@apple.com>
+
+        Add new version with WKCGContextIsBitmapContext.
+        
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
+2006-12-16  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Adam.
+
+        WebKitLibraries part of fix for:
+        <rdar://problem/4463829> Switch to use new search field implementation for <input type="search">
+
+        Added wkDrawTextFieldCellFocusRing.
+
+        * WebKitSystemInterface.h:
+        * libWebKitSystemInterface.a:
+
 2006-10-11  Darin Adler  <darin@apple.com>
 
         Reviewed by John Sullivan.

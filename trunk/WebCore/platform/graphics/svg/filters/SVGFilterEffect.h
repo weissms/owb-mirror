@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric.seidel@kdemail.net>
 
@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGFilterEffect_h
 #define SVGFilterEffect_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "FloatRect.h"
 #include "PlatformString.h"
 
@@ -65,11 +65,24 @@ class TextStream;
 
 class SVGFilterEffect {
 public:
-    // this default constructor is only needed for gcc 3.3
-    SVGFilterEffect() { }
+    SVGFilterEffect(SVGResourceFilter*);
     virtual ~SVGFilterEffect() { }
 
     virtual SVGFilterEffectType effectType() const { return FE_TURBULENCE; }
+
+    bool xBoundingBoxMode() const { return m_xBBoxMode; }
+    void setXBoundingBoxMode(bool bboxMode) { m_xBBoxMode = bboxMode; }
+
+    bool yBoundingBoxMode() const { return m_yBBoxMode; }
+    void setYBoundingBoxMode(bool bboxMode) { m_yBBoxMode = bboxMode; }
+
+    bool widthBoundingBoxMode() const { return m_widthBBoxMode; }
+    void setWidthBoundingBoxMode(bool bboxMode) { m_widthBBoxMode = bboxMode; }
+
+    bool heightBoundingBoxMode() const { return m_heightBBoxMode; }
+    void setHeightBoundingBoxMode(bool bboxMode) { m_heightBBoxMode = bboxMode; }
+
+    FloatRect primitiveBBoxForFilterBBox(const FloatRect& filterBBox, const FloatRect& itemBBox) const;
 
     FloatRect subRegion() const;
     void setSubRegion(const FloatRect&);
@@ -80,15 +93,25 @@ public:
     String result() const;
     void setResult(const String&);
 
+    SVGResourceFilter* filter() const;
+    void setFilter(SVGResourceFilter*);
+
     virtual TextStream& externalRepresentation(TextStream&) const;
 
 #if PLATFORM(CI)
-    virtual CIFilter* getCIFilter(SVGResourceFilter*) const;
+    virtual CIFilter* getCIFilter(const FloatRect& bbox) const;
 #endif
 
 private:
-    FloatRect m_subRegion;
+    SVGResourceFilter* m_filter;
 
+    bool m_xBBoxMode : 1;
+    bool m_yBBoxMode : 1;
+    bool m_widthBBoxMode : 1;
+    bool m_heightBBoxMode : 1;
+
+    FloatRect m_subRegion;
+ 
     String m_in;
     String m_result;
 };
@@ -97,6 +120,6 @@ TextStream& operator<<(TextStream&, const SVGFilterEffect&);
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 
 #endif // SVGFilterEffect_h

@@ -34,8 +34,6 @@
 
 namespace WebCore {
 
-const PlatformMouseEvent::CurrentEventTag PlatformMouseEvent::currentEvent = { };
-
 PlatformMouseEvent::PlatformMouseEvent(QMouseEvent* event, int clickCount)
 {
     m_position = IntPoint(event->pos());
@@ -62,6 +60,8 @@ PlatformMouseEvent::PlatformMouseEvent(QMouseEvent* event, int clickCount)
         m_button = RightButton;
     else if (event->button() == Qt::MidButton || (event->buttons() & Qt::MidButton))
         m_button = MiddleButton;
+    else
+        m_button = NoButton;
 
     m_clickCount = clickCount;
     m_shiftKey =  (event->modifiers() & Qt::ShiftModifier) != 0;

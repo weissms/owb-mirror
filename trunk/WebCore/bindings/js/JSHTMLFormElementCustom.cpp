@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,26 +26,34 @@
 #include "config.h"
 #include "JSHTMLFormElement.h"
 
-#include "HTMLFormElement.h"
 #include "HTMLCollection.h"
+#include "HTMLFormElement.h"
+#include "JSNamedNodesCollection.h"
+#include "kjs_dom.h"
 
 using namespace KJS;
 
 namespace WebCore {
 
-bool JSHTMLFormElement::canGetItemsForName(ExecState* exec, HTMLFormElement* form, const AtomicString& propertyName)
+bool JSHTMLFormElement::canGetItemsForName(ExecState* exec, HTMLFormElement* form, const Identifier& propertyName)
 {
-    // FIXME: ideally there should be a lighter-weight way of doing this
-    JSValue* namedItems = JSHTMLCollection(exec, form->elements().get()).getNamedItems(exec, propertyName);
-    return !namedItems->isUndefined();
+    Vector<RefPtr<Node> > namedItems;
+    form->getNamedElements(propertyName, namedItems);
+    return namedItems.size();
 }
 
 JSValue* JSHTMLFormElement::nameGetter(ExecState* exec, JSObject*, const Identifier& propertyName, const PropertySlot& slot)
 {
-    JSHTMLElement* thisObj = static_cast<JSHTMLElement*>(slot.slotBase());
-    HTMLFormElement* form = static_cast<HTMLFormElement*>(thisObj->impl());
+    HTMLFormElement* form = static_cast<HTMLFormElement*>(static_cast<JSHTMLElement*>(slot.slotBase())->impl());
     
-    return JSHTMLCollection(exec, form->elements().get()).getNamedItems(exec, propertyName);
+    Vector<RefPtr<Node> > namedItems;
+    form->getNamedElements(propertyName, namedItems);
+    
+    if (namedItems.size() == 1)
+        return toJS(exec, namedItems[0].get());
+    if (namedItems.size() > 1) 
+        return new JSNamedNodesCollection(exec, namedItems);
+    return jsUndefined();
 }
 
 }

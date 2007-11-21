@@ -1,11 +1,9 @@
 /*
-    This file is part of the KDE libraries
-
     Copyright (C) 1998 Lars Knoll (knoll@mpi-hd.mpg.de)
     Copyright (C) 2001 Dirk Mueller (mueller@kde.org)
     Copyright (C) 2002 Waldo Bastian (bastian@kde.org)
     Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
-    Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -19,11 +17,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
-
-    This class provides all functionality needed for loading images, style sheets and html
-    pages from the web. It has a memory cache for these objects.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
@@ -34,14 +29,16 @@
 #include "CachedResourceClient.h"
 #include "CachedResourceClientWalker.h"
 #include "DocLoader.h"
+#include "Frame.h"
 #include "Request.h"
+#include "SystemTime.h"
 #include <wtf/Vector.h>
 
 #if PLATFORM(CG)
 #include "PDFDocumentImage.h"
 #endif
 
-#ifdef SVG_IMAGE_SUPPORT
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #if PLATFORM(MAC) || PLATFORM(QT)
 #include "SVGImage.h"
 #endif
@@ -51,12 +48,10 @@ using std::max;
 
 namespace WebCore {
 
-CachedImage::CachedImage(DocLoader* docLoader, const String& url, CachePolicy cachePolicy, time_t _expireDate)
-    : CachedResource(url, ImageResource, cachePolicy, _expireDate)
-    , m_dataSize(0)
+CachedImage::CachedImage(DocLoader* docLoader, const String& url, bool forCache)
+    : CachedResource(url, ImageResource, forCache)
 {
     m_image = 0;
-    m_errorOccurred = false;
     m_status = Unknown;
     if (!docLoader || docLoader->autoLoadImages())  {
         m_loading = true;
@@ -66,11 +61,9 @@ CachedImage::CachedImage(DocLoader* docLoader, const String& url, CachePolicy ca
 }
 
 CachedImage::CachedImage(Image* image)
-    : CachedResource(String(), ImageResource, CachePolicyCache, 0)
-    , m_dataSize(0)
+    : CachedResource(String(), ImageResource, false /* not for cache */)
 {
     m_image = image;
-    m_errorOccurred = false;
     m_status = Cached;
     m_loading = false;
 }
@@ -89,6 +82,12 @@ void CachedImage::ref(CachedResourceClient* c)
 
     if (!m_loading)
         c->notifyFinished(this);
+}
+
+void CachedImage::allReferencesRemoved()
+{
+    if (m_image && !m_errorOccurred)
+        m_image->resetAnimation();
 }
 
 static Image* brokenImage()
@@ -135,9 +134,10 @@ void CachedImage::notifyObservers()
 
 void CachedImage::clear()
 {
+    destroyDecodedData();
     delete m_image;
     m_image = 0;
-    setSize(0);
+    setEncodedSize(0);
 }
 
 inline void CachedImage::createImage()
@@ -151,7 +151,7 @@ inline void CachedImage::createImage()
         return;
     }
 #endif
-#ifdef SVG_IMAGE_SUPPORT
+#if ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #if PLATFORM(MAC) || PLATFORM(QT)
     if (m_response.mimeType() == "image/svg+xml") {
         m_image = new SVGImage(this);
@@ -162,53 +162,18 @@ inline void CachedImage::createImage()
     m_image = new BitmapImage(this);
 }
 
-Vector<char>& CachedImage::bufferData(const char* bytes, int addedSize, Request* request)
+void CachedImage::data(PassRefPtr<SharedBuffer> data, bool allDataReceived)
 {
-    createImage();
+    m_data = data;
 
-    Vector<char>& imageBuffer = m_image->dataBuffer();
-
-    if (addedSize > 0) {
-        bool success = false;
-        unsigned oldSize = imageBuffer.size();
-        unsigned newSize = oldSize + addedSize;
-
-        // Check for overflow
-        if (newSize > oldSize) {
-            // Use temporary Vector so we can safely detect if the allocation fails
-            //
-            // The code that was here before, just called resize of the imageBuffer.  Vector<>::resize
-            // will crash if the resize of a non-empty Vector<> fails.
-            Vector<char> tempBuffer(newSize);
-
-            char* tempBufferBytes = tempBuffer.data();
-            if (tempBufferBytes) {
-                memcpy(tempBufferBytes, imageBuffer.data(), oldSize);
-                memcpy(tempBufferBytes + oldSize, bytes, addedSize);
-                tempBuffer.swap(imageBuffer);
-                success = true;
-            }
-        }
-
-        if (!success)
-            error();
-    }
-
-    return imageBuffer;
-}
-
-void CachedImage::data(Vector<char>& data, bool allDataReceived)
-{
     createImage();
 
     bool sizeAvailable = false;
 
-    m_dataSize = data.size();
-
     // Have the image update its data from its internal buffer.
     // It will not do anything now, but will delay decoding until 
     // queried for info (like size or specific image frames).
-    sizeAvailable = m_image->setData(allDataReceived);
+    sizeAvailable = m_image->setData(m_data, allDataReceived);
 
     // Go ahead and tell our observers to try to draw if we have either
     // received all the data or the size is known.  Each chunk from the
@@ -216,19 +181,17 @@ void CachedImage::data(Vector<char>& data, bool allDataReceived)
     // to decode.
     if (sizeAvailable || allDataReceived) {
         if (m_image->isNull()) {
-            m_errorOccurred = true;
-            notifyObservers();
+            // FIXME: I'm not convinced this case can even be hit.
+            error();
             if (inCache())
                 cache()->remove(this);
-        } else
-            notifyObservers();
+            return;
+        }
+        
+        notifyObservers();
 
-        // FIXME: An animated GIF with a huge frame count can't have its size properly estimated.  The reason is that we don't
-        // want to decode the image to determine the frame count, so what we do instead is max the projected size of a single
-        // RGBA32 buffer (width*height*4) with the data size.  This will help ensure that large animated GIFs with thousands of
-        // frames are at least given a reasonably large size.
-        IntSize s = imageSize();
-        setSize(max(s.width() * s.height() * 4, m_dataSize));
+        if (m_image)
+            setEncodedSize(m_image->data() ? m_image->data()->size() : 0);
     }
     
     if (allDataReceived) {
@@ -256,7 +219,33 @@ void CachedImage::checkNotify()
         c->notifyFinished(this);
 }
 
-bool CachedImage::shouldStopAnimation(const Image* image)
+void CachedImage::destroyDecodedData()
+{
+    if (m_image && !m_errorOccurred)
+        m_image->destroyDecodedData();
+}
+
+void CachedImage::decodedSizeChanged(const Image* image, int delta)
+{
+    if (image != m_image)
+        return;
+    
+    setDecodedSize(decodedSize() + delta);
+}
+
+void CachedImage::didDraw(const Image* image)
+{
+    if (image != m_image)
+        return;
+    
+    double timeStamp = Frame::currentPaintTimeStamp();
+    if (!timeStamp) // If didDraw is called outside of a Frame paint.
+        timeStamp = currentTime();
+    
+    CachedResource::didAccessDecodedData(timeStamp);
+}
+
+bool CachedImage::shouldPauseAnimation(const Image* image)
 {
     if (image != m_image)
         return false;

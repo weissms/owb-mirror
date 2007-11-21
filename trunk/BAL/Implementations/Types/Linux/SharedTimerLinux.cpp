@@ -51,41 +51,58 @@ static struct sigaction sa;
 
 void (*sharedTimerFiredFunction)() = NULL;
 
-
 // Single timer, shared to implement all the timers managed by the Timer class.
 // Not intended to be used directly; use the Timer class instead.
-void catcher( int sig ) {
-    sigset_t newmask, oldmask, zeromask;
 
-    // Initialize the signal sets
-    sigemptyset(&newmask); sigemptyset(&zeromask);
-    
-    // Add the signal to the set
-    sigaddset(&newmask, SIGALRM);
-    
-    // Block SIGALRM and save current signal mask in set variable 'oldmask'
-    sigprocmask(SIG_BLOCK, &newmask, &oldmask);
+
+/**
+ * Macro to use to protect code from firing timers.
+ * This ensures that there is no concurrent access on ressource and prevent deadlocks.
+ */
+#define ENTER_CRITICAL_SECTION sigset_t newmask, oldmask, zeromask; \
+                                sigemptyset(&newmask); sigemptyset(&zeromask); \
+                                sigaddset(&newmask, SIGALRM); \
+                                sigprocmask(SIG_BLOCK, &newmask, &oldmask);
+
+#define LEAVE_CRITICAL_SECTION sigprocmask(SIG_SETMASK, &oldmask, NULL);
+
+
+static unsigned int m_count = 0;
+/**
+ * We absolutely need to protect these 2 functions in a critical section.
+ * Signals/timers will increment count, event loop will decrement it: 2 concurrent accesses.
+ * Increment is usually done in 3 machine instructions, so there's room for a concurrent access.
+ * See ticket #123. Maybe we should put timers in a separate thread to be able to use mutexes.
+ */
+void incrementTimerCount()
+{
+    ENTER_CRITICAL_SECTION;
+    m_count++;
+    LEAVE_CRITICAL_SECTION;
+}
+void fireTimerIfNeeded()
+{
+    ENTER_CRITICAL_SECTION;
+    if (m_count>0) {
+        m_count--;
+        sharedTimerFiredFunction();
+    }
+    LEAVE_CRITICAL_SECTION;
+}
+
+void catcher( int sig ) {
     
     // entering critical section
     // because this signal handler uses a malloc it is not reentrant:
     // we must enter in a critical section
     
     if( sharedTimerFiredFunction ) {
-        BAL::BIEvent* event = BAL::createBITimerEvent();
-        // FIXME may deadlock of event loop concurrent access if sig occured in SDL_WaitEvent !
-        if (!BAL::getBIEventLoop()->PushEvent(event)) // the queue is full
-            setSharedTimerFireTime(0);
+        incrementTimerCount();
     }
-    else
-        logml(MODULE_TYPES, LEVEL_WARNING, make_message(
-                "no sharedTimerFiredFunction"));
+    else {
+        DBGML(MODULE_TYPES, LEVEL_WARNING, "no sharedTimerFiredFunction\n");
+    }
 
-    // Now allow all signals and pause: part skipped
-    // we can cope of a sigalrm lost in this window of time until sigprocmask
-    // sigsuspend(&zeromask);
-    
-    // Resume to the original signal mask
-    sigprocmask(SIG_SETMASK, &oldmask, NULL);
 }
 
 void setSharedTimerFiredFunction(void (*f)()) {
@@ -95,13 +112,14 @@ void setSharedTimerFiredFunction(void (*f)()) {
         /* Install our signal handler */
         sa.sa_handler = catcher;
         sigemptyset( &sa.sa_mask );
-	    sa.sa_flags = SA_RESTART;
+        sa.sa_flags = SA_RESTART|SA_SIGINFO;
         /*use SIGVTALRM if  ITIMER_VIRTUAL */
         if (sigaction (SIGALRM, &sa, 0) == -1) {
             perror("sigaction");
             exit(1);
         }
     }
+
 }
 
 // The fire time is relative to the classic POSIX epoch of January 1, 1970,
@@ -110,7 +128,6 @@ void setSharedTimerFireTime(double fireTime) {
     assert(sharedTimerFiredFunction);
 
     double interval = fireTime - currentTime();
-    stopSharedTimer();
 
     if( interval <= 0 )
         interval = 0.000001; 
@@ -127,8 +144,6 @@ void setSharedTimerFireTime(double fireTime) {
     /*modes ITIMER_PROF ITIMER_REAL ITIMER_VIRTUAL*/ 
     if (-1 == setitimer(ITIMER_REAL, &itimer, NULL))
         perror("setSharedTimerFireTime");
-
-    //log(make_message("set fire time  %f interval=%f value=%d.%d",fireTime, interval, (long)interval, (long)((interval-(long)interval)*1000000.0)));
 }
 
 void stopSharedTimer() {
@@ -139,6 +154,15 @@ void stopSharedTimer() {
 
     if (-1 == setitimer(ITIMER_REAL, &itimer, NULL))
         perror("can't stopSharedTimer");
+    
+    /* Install our signal handler */
+    sa.sa_handler = NULL;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction (SIGALRM, 0, 0) == -1) {
+        perror("sigaction");
+        exit(1);
+    }
 }
 
 }

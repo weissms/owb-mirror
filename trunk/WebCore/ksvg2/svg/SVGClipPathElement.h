@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGClipPathElement_h
 #define SVGClipPathElement_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGResourceClipper.h"
 #include "SVGExternalResourcesRequired.h"
@@ -50,6 +50,8 @@ namespace WebCore
         virtual void parseMappedAttribute(MappedAttribute*);
         virtual void notifyAttributeChange() const;
 
+        virtual bool rendererIsNeeded(RenderStyle*) { return false; }
+
     protected:
         virtual const SVGElement* contextElement() const { return this; }
 
@@ -63,7 +65,7 @@ namespace WebCore
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

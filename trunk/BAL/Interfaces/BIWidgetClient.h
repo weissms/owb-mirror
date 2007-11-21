@@ -40,22 +40,52 @@ namespace BAL {
 
     class WidgetClient {
     public:
+        /**
+        * WidgetClient destructor
+        */
         virtual ~WidgetClient() { }
 
+        /**
+        * scroll to visible widget
+        */
         virtual void scrollToVisible(Widget*) { }
 
+        /**
+        * set focus in 
+        */
         virtual void focusIn(Widget*) { }
+        /**
+        * set focus out
+        */
         virtual void focusOut(Widget*) { }
 
+        /**
+        * set clicked on widget
+        */
         virtual void clicked(Widget*) { }
+        /**
+        * change value
+        */
         virtual void valueChanged(Widget*) { }
+        /**
+        * change selection
+        */
         virtual void selectionChanged(Widget*) { }
 
         virtual void returnPressed(Widget*) { }
         virtual void performSearch(Widget*) { }
 
+        /**
+        * get element
+        */
         virtual Element* element(Widget*) { return 0; }
+        /**
+        * send consumed mouse up
+        */
         virtual void sendConsumedMouseUp(Widget*) { }
+        /**
+        * test if it's visible
+        */
         virtual bool isVisible(Widget*) { return false; }
     };
 

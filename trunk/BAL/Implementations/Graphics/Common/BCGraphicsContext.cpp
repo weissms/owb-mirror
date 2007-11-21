@@ -42,17 +42,22 @@ using namespace WebCore;
 #define M_PI 3.14159265358979323846
 #endif
 
-#define notImplemented() logm(MODULE_GRAPHICS, "not implemented");
+#define notImplemented() DBGM(MODULE_GRAPHICS, "not implemented\n");
 
 //FIXME: Should be elsewhere.
 void WebCore::setFocusRingColorChangeFunction(void (*)()) { BALNotImplemented(); }
 Color WebCore::focusRingColor() { return 0x7f0000ff; }
 
 namespace BAL {
-    // used by some rendering stuff that use a fake GC
+// used by some rendering stuff that use a fake GC
 BIGraphicsContext* createBIGraphicsContext()
 {
     return new BCGraphicsContext(true);
+}
+
+void deleteBIGraphicsContext(BIGraphicsContext* context)
+{
+    delete context;
 }
 
 BIGraphicsContext* createFakeBIGraphicsContext()
@@ -290,20 +295,24 @@ void BCGraphicsContext::drawImage(BINativeImage* image, const IntRect& dest, con
     return;
 }
 
-void BCGraphicsContext::drawText(const TextRun& run, const IntPoint& point)
+void BCGraphicsContext::drawText(const TextRun& run, const IntPoint& point, int from = 0, int to = -1)
 {
-    drawText(run, point, TextStyle());
+    drawText(run, point, TextStyle(), from, to);
 }
 
-void BCGraphicsContext::drawText(const TextRun& run, const IntPoint& point, const TextStyle& style)
+void BCGraphicsContext::drawText(const TextRun& run, const IntPoint& point, const TextStyle& style, int from = 0, int to = -1)
 {
     if (paintingDisabled())
         return;
-    
+
     font().drawText(this, run, style, point + origin());
 }
 
-void BCGraphicsContext::drawHighlightForText(const TextRun& run, const IntPoint& point, int h, const TextStyle& style, const Color& backgroundColor)
+void BCGraphicsContext::drawBidiText(const TextRun& run, const IntPoint& point, const TextStyle& style)
+{
+}
+
+void BCGraphicsContext::drawHighlightForText(const TextRun& run, const IntPoint& point, int h, const TextStyle& style, const Color& backgroundColor, int from = 0, int to = -1)
 {
     if (paintingDisabled())
         return;
@@ -399,14 +408,13 @@ void BCGraphicsContext::realDraw(
 
     IntRect source(src);
     IntRect dest(dst);
-    
+
     dest.setLocation(dest.location() + origin());
-    
-    if (source.size() != dest.size()) {
+
+    if (source.size() != dest.size())
         getBIGraphicsDevice()->stretchBlit(*m_widget, *nativeImage, source, dest, static_cast<int> (m_alphaLayerValue * 255));
-    } else {
+    else
         getBIGraphicsDevice()->copy(*m_widget, *nativeImage, source, dest.location(), static_cast<int> (m_alphaLayerValue * 255));
-    }
 }
 
 void realDrawTiled(BINativeImage*, const FloatRect& dstRect, const FloatRect& srcRect, BIGraphicsContext::TileRule hRule, BIGraphicsContext::TileRule vRule, CompositeOperator)
@@ -421,7 +429,7 @@ void BCGraphicsContext::realDrawTiled(
         return;
     if (!image)
         return;
-        
+
     FloatSize intrinsicTileSize = image->size();
     FloatSize scale(scaledTileSize.width() / intrinsicTileSize.width(),
                     scaledTileSize.height() / intrinsicTileSize.height());
@@ -444,24 +452,25 @@ void BCGraphicsContext::realDrawTiled(
     }
     else {
         // save context info
-        save();
-    
-        clip(IntRect(destRect)); // don't draw outside this
-        
-        // draw image pattern inside destRect
-        // NOTE doesn't work for deviantart.com
+        if (!destRect.isEmpty()) {
+            save();
+            clip(IntRect(destRect)); // don't draw outside this
+         }
+        // draw image pattern inside destRect 
         IntRect dest(IntPoint(), image->size());
-        IntRect src(0, 0, static_cast<int>(srcPoint.x()), static_cast<int>(srcPoint.y()));
+        IntRect src(static_cast<int>(oneTileRect.x()), static_cast<int>(oneTileRect.y()), static_cast<int>(oneTileRect.size().width()), static_cast<int>(oneTileRect.size().height()));
+
         int xMax = static_cast<int>(destRect.x() + destRect.width());
         int yMax = static_cast<int>(destRect.y() + destRect.height());
-        for(int x = static_cast<int>(oneTileRect.x()); x < xMax; x+= image->size().width()) {
-            for(int y = static_cast<int>(oneTileRect.y()); y < yMax; y+=image->size().height()) {
+
+        for(int x = static_cast<int>(oneTileRect.x()); x <= xMax; x+= image->size().width()) {
+            for(int y = static_cast<int>(oneTileRect.y()); y <= yMax; y+=image->size().height()) {
                 dest.setLocation(IntPoint(x, y) + origin());
-                getBIGraphicsDevice()->copy(*m_widget, *image, src, dest.location(), alphaLayer());
+                getBIGraphicsDevice()->stretchBlit(*m_widget, *image, src, dest, alphaLayer());
             }
         }
-        
-        restore();
+        if (!destRect.isEmpty())
+            restore();
     }
 }
 
@@ -524,12 +533,15 @@ void BCGraphicsContext::drawRect(const IntRect& rectangle)
     if (!m_widget)
     return;
 
+    if (rectangle.isEmpty())
+        return;
+
     if (paintingDisabled())
         return;
 
     IntRect rect(rectangle);
     rect.setLocation(rectangle.location() + origin());
-    
+
     if (m_alphaLayerValue != 1.0) {
         Color rectFillColor(fillColor().red(), fillColor().green(), fillColor().blue(), static_cast<int> (fillColor().alpha() * m_alphaLayerValue));
         getBIGraphicsDevice()->fillRect(*m_widget, rect, rectFillColor);
@@ -545,41 +557,6 @@ void BCGraphicsContext::drawRect(const IntRect& rectangle)
     }
 }
 
-#if 0 
-// NOTE SRO adjustLineToPixelBounderies is not used
-// FIXME: Now that this is refactored, it should be shared by all contexts.
-static void adjustLineToPixelBounderies(FloatPoint& p1, FloatPoint& p2, float strokeWidth, const StrokeStyle& strokeStyle)
-{
-    // For odd widths, we add in 0.5 to the appropriate x/y so that the float arithmetic
-    // works out.  For example, with a border width of 3, KHTML will pass us (y1+y2)/2, e.g.,
-    // (50+53)/2 = 103/2 = 51 when we want 51.5.  It is always true that an even width gave
-    // us a perfect position, but an odd width gave us a position that is off by exactly 0.5.
-    if (strokeStyle == DottedStroke || strokeStyle == DashedStroke) {
-        if (p1.x() == p2.x()) {
-            p1.setY(p1.y() + strokeWidth);
-            p2.setY(p2.y() - strokeWidth);
-        }
-        else {
-            p1.setX(p1.x() + strokeWidth);
-            p2.setX(p2.x() - strokeWidth);
-        }
-    }
-
-    if (((int)strokeWidth)%2) {
-        if (p1.x() == p2.x()) {
-            // We're a vertical line.  Adjust our x.
-            p1.setX(p1.x() + 0.5);
-            p2.setX(p2.x() + 0.5);
-        }
-        else {
-            // We're a horizontal line. Adjust our y.
-            p1.setY(p1.y() + 0.5);
-            p2.setY(p2.y() + 0.5);
-        }
-    }
-}
-#endif
-
 // This is only used to draw borders.
 void BCGraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
 {
@@ -589,18 +566,10 @@ void BCGraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
     if (paintingDisabled())
         return;
 
-/*    if (strokeStyle() == NoStroke)
-        return;*/
     float width = strokeThickness();
     if (width < 1)
         width = 1;
 
-/* NOTE SRO no rounding for now
-    FloatPoint p1 = point1;
-    FloatPoint p2 = point2;
-
-    adjustLineToPixelBounderies(p1, p2, width, strokeStyle());
-*/
     if (m_alphaLayerValue != 1.0) {
         Color lineColor(strokeColor().red(), strokeColor().green(), strokeColor().blue(), static_cast<int> (strokeColor().alpha() * m_alphaLayerValue));
         getBIGraphicsDevice()->drawLine(*m_widget, point1 + origin(), point2 + origin(), lineColor);
@@ -726,7 +695,7 @@ void BCGraphicsContext::drawLineForText(const IntPoint& startPoint, int width, b
         return;
 
     IntPoint point(startPoint + origin());
-    
+
     IntPoint endPoint = point + IntSize(width, 0);
 
     // NOTE we should adjust line to pixel boundaries
@@ -802,10 +771,10 @@ uint8_t BCGraphicsContext::alphaLayer() const
 
 void BCGraphicsContext::clearRect(const FloatRect& rect)
 {
-    logml(MODULE_GRAPHICS, LEVEL_INFO, make_message("clearRect (%fx%f) at position (%f,%f)", rect.width(), rect.height(), rect.x(), rect.y()));
+    DBGML(MODULE_GRAPHICS, LEVEL_INFO, "clearRect (%fx%f) at position (%f,%f)\n", rect.width(), rect.height(), rect.x(), rect.y());
     IntRect rectangle(rect);
     rectangle.setLocation(rectangle.location() + origin());
-    
+
     getBIGraphicsDevice()->clear(*m_widget, rectangle);
 }
 
@@ -851,7 +820,7 @@ void BCGraphicsContext::clip(const IntRect& rectangle)
 
     if (paintingDisabled())
         return;
-        
+
     IntRect rect(rectangle);
     if (rect.isEmpty()) {
         getBIGraphicsDevice()->setClip(*m_widget, rect);
@@ -859,7 +828,9 @@ void BCGraphicsContext::clip(const IntRect& rectangle)
     } else {
         IntRect r(getBIGraphicsDevice()->clip(*m_widget));
         rect.setLocation(rectangle.location() + origin());
-        r.intersect(rect);
+        if (r.intersects(rect))
+            r.intersect(rect);
+
         getBIGraphicsDevice()->setClip(*m_widget, r);
         m_common->state.clippingRect = r;
     }

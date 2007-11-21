@@ -31,19 +31,20 @@
 #include "BIImageDecoder.h"
 #include "BIGraphicsDevice.h"
 #include "BTLogHelper.h"
-#include "ImageAnimationObserver.h"
+#include "ImageObserver.h"
+#include "SharedBuffer.h"
 
 namespace WebCore {
 
-BAL::BIImageDecoder* createDecoder(const NativeBytePtr data)
+BAL::BIImageDecoder* createDecoder(const SharedBuffer& data)
 {
     // We need at least 4 bytes to figure out what kind of image we're dealing with.
-    int length = data->size();
+    int length = data.size();
     if (length < 4)
         return 0;
 
-    const unsigned char* uContents = (const unsigned char*)data->data();
-    const char* contents = data->data();
+    const unsigned char* uContents = (const unsigned char*)data.data();
+    const char* contents = data.data();
 
     // GIFs begin with GIF8(7 or 9).
     if (strncmp(contents, "GIF8", 4) == 0)
@@ -76,7 +77,7 @@ BAL::BIImageDecoder* createDecoder(const NativeBytePtr data)
     if (length >= 8 && strncmp(contents, "#define ", 8) == 0)
         return 0; // FIXME needs a new XBMImageDecoder();
 
-    logml(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Unknown Image Type. No decoder");
+    DBGML(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Unknown Image Type. No decoder\n");
 
     // Give up. We don't know what the heck this is.
     return 0;
@@ -96,18 +97,21 @@ bool ImageSource::initialized() const
     return m_decoder;
 }
 
-void ImageSource::setData(const NativeBytePtr data, bool allDataReceived)
+void ImageSource::setData(SharedBuffer* data, bool allDataReceived)
 {
-    if (!allDataReceived)
+    if(!allDataReceived)
         return;
     // Make the decoder by sniffing the bytes.
     // This method will examine the data and instantiate an instance of the appropriate decoder plugin.
     // If insufficient bytes are available to determine the image type, no decoder plugin will be
     // made.
-    m_decoder = createDecoder(data);
+    if (!m_decoder)
+        m_decoder = createDecoder(*data);
+
     if (!m_decoder)
         return;
-    m_decoder->setData(data, allDataReceived);
+
+    m_decoder->setData(&data->buffer(), allDataReceived);
 }
 
 bool ImageSource::isSizeAvailable()
@@ -157,8 +161,15 @@ float ImageSource::frameDurationAtIndex(size_t index)
 
     BAL::RGBA32Buffer* buffer = m_decoder->frameBufferAtIndex(index);
     if (!buffer || buffer->status() == BAL::RGBA32Buffer::FrameEmpty)
-        return 0;
-    return buffer->duration() / 1000.0f;
+        return 0.100f;
+
+    // Many annoying ads specify a 0 duration to make an image flash as quickly
+    // as possible.  We follow WinIE's behavior and use a duration of 100 ms
+    // for any frames that specify a duration of <= 50 ms.  See
+    // <http://bugs.webkit.org/show_bug.cgi?id=14413> or Radar 4051389 for
+    // more.
+    const float duration = buffer->duration() / 1000.0f;
+    return (duration < 0.051f) ? 0.100f : duration;
 }
 
 bool ImageSource::frameHasAlphaAtIndex(size_t index)
@@ -171,6 +182,17 @@ bool ImageSource::frameHasAlphaAtIndex(size_t index)
         return false;
 
     return buffer->hasAlpha();
+}
+
+bool ImageSource::frameIsCompleteAtIndex(size_t index)
+{
+    return (m_decoder && m_decoder->frameBufferAtIndex(index) != 0);
+}
+
+void ImageSource::clear()
+{
+    delete  m_decoder;
+    m_decoder = 0;
 }
 
 }

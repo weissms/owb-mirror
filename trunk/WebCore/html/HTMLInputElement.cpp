@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -53,11 +53,6 @@
 #include "SelectionController.h"
 #include "TextBreakIterator.h"
 #include "TextEvent.h"
-#ifdef __OWB__
-#include "BIInternationalization.h"
-#else
-#include <unicode/ubrk.h>
-#endif
 
 using namespace std;
 
@@ -65,6 +60,14 @@ namespace WebCore {
 
 using namespace EventNames;
 using namespace HTMLNames;
+
+const int maxSavedResults = 256;
+
+// FIXME: According to HTML4, the length attribute's value can be arbitrarily
+// large. However, due to http://bugs.webkit.org/show_bugs.cgi?id=14536 things
+// get rather sluggish when a text field has a larger number of characters than
+// this, even when just clicking in the text field.
+static const int cMaxLen = 524288;
 
 static int numGraphemeClusters(const StringImpl* s)
 {
@@ -94,14 +97,14 @@ static int numCharactersInGraphemeClusters(const StringImpl* s, int numGraphemeC
     return textBreakCurrent(it);
 }
 
-HTMLInputElement::HTMLInputElement(Document *doc, HTMLFormElement *f)
-    : HTMLGenericFormElement(inputTag, doc, f)
+HTMLInputElement::HTMLInputElement(Document* doc, HTMLFormElement* f)
+    : HTMLFormControlElementWithState(inputTag, doc, f)
 {
     init();
 }
 
-HTMLInputElement::HTMLInputElement(const QualifiedName& tagName, Document *doc, HTMLFormElement *f)
-    : HTMLGenericFormElement(tagName, doc, f)
+HTMLInputElement::HTMLInputElement(const QualifiedName& tagName, Document* doc, HTMLFormElement* f)
+    : HTMLFormControlElementWithState(tagName, doc, f)
 {
     init();
 }
@@ -110,7 +113,7 @@ void HTMLInputElement::init()
 {
     m_imageLoader = 0;
     m_type = TEXT;
-    m_maxLen = 1024;
+    m_maxLen = cMaxLen;
     m_size = 20;
     m_checked = false;
     m_defaultChecked = false;
@@ -133,13 +136,15 @@ void HTMLInputElement::init()
 
     if (form())
         m_autocomplete = form()->autoComplete();
-
-    document()->registerFormElementWithState(this);
 }
 
 HTMLInputElement::~HTMLInputElement()
 {
-    document()->deregisterFormElementWithState(this);
+    if (inputType() == PASSWORD)
+        document()->unregisterForDidRestoreFromCacheCallback(this);
+
+    document()->checkedRadioButtons().removeButton(this);
+    
     delete m_imageLoader;
 }
 
@@ -148,14 +153,22 @@ const AtomicString& HTMLInputElement::name() const
     return m_name.isNull() ? emptyAtom : m_name;
 }
 
+static inline HTMLFormElement::CheckedRadioButtons& checkedRadioButtons(const HTMLInputElement *element)
+{
+    if (HTMLFormElement* form = element->form())
+        return form->checkedRadioButtons();
+    
+    return element->document()->checkedRadioButtons();
+}
+
 bool HTMLInputElement::isKeyboardFocusable(KeyboardEvent* event) const
 {
     // If text fields can be focused, then they should always be keyboard focusable
     if (isTextField())
-        return HTMLGenericFormElement::isFocusable();
+        return HTMLFormControlElementWithState::isFocusable();
         
     // If the base class says we can't be focused, then we can stop now.
-    if (!HTMLGenericFormElement::isKeyboardFocusable(event))
+    if (!HTMLFormControlElementWithState::isKeyboardFocusable(event))
         return false;
 
     if (inputType() == RADIO) {
@@ -174,7 +187,7 @@ bool HTMLInputElement::isKeyboardFocusable(KeyboardEvent* event) const
         }
         
         // Allow keyboard focus if we're checked or if nothing in the group is checked.
-        return checked() || !document()->checkedRadioButtonForGroup(name().impl(), form());
+        return checked() || !checkedRadioButtons(this).checkedButtonForGroup(name());
     }
     
     return true;
@@ -183,30 +196,8 @@ bool HTMLInputElement::isKeyboardFocusable(KeyboardEvent* event) const
 bool HTMLInputElement::isMouseFocusable() const
 {
     if (isTextField())
-        return HTMLGenericFormElement::isFocusable();
-    return HTMLGenericFormElement::isMouseFocusable();
-}
-
-void HTMLInputElement::focus()
-{
-    if (isTextField()) {
-        Document* doc = document();
-        if (doc->focusedNode() == this)
-            return;
-        doc->updateLayout();
-        if (!supportsFocus())
-            return;
-        if (Page* page = doc->page())
-            page->focusController()->setFocusedNode(this);
-        // FIXME: Should isFocusable do the updateLayout?
-        if (!isFocusable()) {
-            setNeedsFocusAppearanceUpdate(true);
-            return;
-        }
-        updateFocusAppearance();
-        return;
-    }
-    HTMLGenericFormElement::focus();
+        return HTMLFormControlElementWithState::isFocusable();
+    return HTMLFormControlElementWithState::isMouseFocusable();
 }
 
 void HTMLInputElement::updateFocusAppearance(bool restorePreviousSelection)
@@ -218,12 +209,10 @@ void HTMLInputElement::updateFocusAppearance(bool restorePreviousSelection)
             // Restore the cached selection.
             setSelectionRange(cachedSelStart, cachedSelEnd); 
         
-        if (document() && document()->frame()) {
-            document()->frame()->editor()->didBeginEditing();
+        if (document() && document()->frame())
             document()->frame()->revealSelection();
-        }
     } else
-        HTMLGenericFormElement::updateFocusAppearance();
+        HTMLFormControlElementWithState::updateFocusAppearance(restorePreviousSelection);
 }
 
 void HTMLInputElement::aboutToUnload()
@@ -232,24 +221,29 @@ void HTMLInputElement::aboutToUnload()
         document()->frame()->textFieldDidEndEditing(this);
 }
 
+bool HTMLInputElement::shouldUseInputMethod() const
+{
+    return m_type == TEXT || m_type == SEARCH || m_type == ISINDEX;
+}
+
 void HTMLInputElement::dispatchFocusEvent()
 {
     if (isTextField()) {
         setAutofilled(false);
         if (inputType() == PASSWORD && document()->frame())
-            document()->frame()->setSecureKeyboardEntry(true);
+            document()->setUseSecureKeyboardEntryWhenActive(true);
     }
-    HTMLGenericFormElement::dispatchFocusEvent();
+    HTMLFormControlElementWithState::dispatchFocusEvent();
 }
 
 void HTMLInputElement::dispatchBlurEvent()
 {
     if (isTextField() && document()->frame()) {
         if (inputType() == PASSWORD)
-            document()->frame()->setSecureKeyboardEntry(false);
+            document()->setUseSecureKeyboardEntryWhenActive(false);
         document()->frame()->textFieldDidEndEditing(this);
     }
-    HTMLGenericFormElement::dispatchBlurEvent();
+    HTMLFormControlElementWithState::dispatchBlurEvent();
 }
 
 void HTMLInputElement::setType(const String& t)
@@ -301,20 +295,18 @@ void HTMLInputElement::setInputType(const String& t)
             // Useful in case we were called from inside parseMappedAttribute.
             setAttribute(typeAttr, type());
         else {
-            if (inputType() == RADIO && !name().isEmpty())
-                if (document()->checkedRadioButtonForGroup(name().impl(), form()) == this)
-                    document()->removeRadioButtonGroup(name().impl(), form());
+            checkedRadioButtons(this).removeButton(this);
 
             bool wasAttached = m_attached;
             if (wasAttached)
                 detach();
 
             bool didStoreValue = storesValueSeparateFromAttribute();
-            bool didMaintainState = inputType() != PASSWORD;
+            bool wasPasswordField = inputType() == PASSWORD;
             bool didRespectHeightAndWidth = respectHeightAndWidthAttrs();
             m_type = newType;
             bool willStoreValue = storesValueSeparateFromAttribute();
-            bool willMaintainState = inputType() != PASSWORD;
+            bool isPasswordField = inputType() == PASSWORD;
             bool willRespectHeightAndWidth = respectHeightAndWidthAttrs();
 
             if (didStoreValue && !willStoreValue && !m_value.isNull()) {
@@ -326,10 +318,10 @@ void HTMLInputElement::setInputType(const String& t)
             else
                 recheckValue();
 
-            if (willMaintainState && !didMaintainState)
-                document()->registerFormElementWithState(this);
-            else if (!willMaintainState && didMaintainState)
-                document()->deregisterFormElementWithState(this);
+            if (wasPasswordField && !isPasswordField)
+                document()->unregisterForDidRestoreFromCacheCallback(this);
+            else if (!wasPasswordField && isPasswordField)
+                document()->registerForDidRestoreFromCacheCallback(this);
 
             if (didRespectHeightAndWidth != willRespectHeightAndWidth) {
                 NamedMappedAttrMap* map = mappedAttributes();
@@ -344,10 +336,7 @@ void HTMLInputElement::setInputType(const String& t)
             if (wasAttached)
                 attach();
 
-            // If our type morphs into a radio button and we are checked, then go ahead
-            // and signal this to the form.
-            if (inputType() == RADIO && checked())
-                document()->radioButtonChecked(this, form());
+            checkedRadioButtons(this).addButton(this);
         }
     }
     m_haveType = true;
@@ -416,9 +405,8 @@ const AtomicString& HTMLInputElement::type() const
     return emptyAtom;
 }
 
-String HTMLInputElement::stateValue() const
+bool HTMLInputElement::saveState(String& result) const
 {
-    ASSERT(inputType() != PASSWORD); // should never save/restore password fields
     switch (inputType()) {
         case BUTTON:
         case FILE:
@@ -430,14 +418,17 @@ String HTMLInputElement::stateValue() const
         case SEARCH:
         case SUBMIT:
         case TEXT:
-            return value();
+            result = value();
+            return true;
         case CHECKBOX:
         case RADIO:
-            return checked() ? "on" : "off";
+            result = checked() ? "on" : "off";
+            return true;
         case PASSWORD:
-            break;
+            return false;
     }
-    return String();
+    ASSERT_NOT_REACHED();
+    return false;
 }
 
 void HTMLInputElement::restoreState(const String& state)
@@ -463,6 +454,13 @@ void HTMLInputElement::restoreState(const String& state)
         case PASSWORD:
             break;
     }
+}
+
+bool HTMLInputElement::canStartSelection() const
+{
+    if (!isTextField())
+        return false;
+    return HTMLFormControlElementWithState::canStartSelection();
 }
 
 bool HTMLInputElement::canHaveSelection() const
@@ -539,8 +537,7 @@ void HTMLInputElement::accessKeyAction(bool sendToAnyElement)
         case RANGE:
         case RESET:
         case SUBMIT:
-            // focus
-            focus();
+            focus(false);
             // send the mouse button events iff the caller specified sendToAnyElement
             dispatchSimulatedClick(0, sendToAnyElement);
             break;
@@ -551,7 +548,8 @@ void HTMLInputElement::accessKeyAction(bool sendToAnyElement)
         case PASSWORD:
         case SEARCH:
         case TEXT:
-            focus();
+            // should never restore previous selection here
+            focus(false);
             break;
     }
 }
@@ -579,23 +577,9 @@ bool HTMLInputElement::mapToEntry(const QualifiedName& attrName, MappedAttribute
 void HTMLInputElement::parseMappedAttribute(MappedAttribute *attr)
 {
     if (attr->name() == nameAttr) {
-        if (inputType() == RADIO && checked()) {
-            // Remove the radio from its old group.
-            if (!m_name.isEmpty())
-                document()->removeRadioButtonGroup(m_name.impl(), form());
-        }
-        
-        // Update our cached reference to the name.
+        checkedRadioButtons(this).removeButton(this);
         m_name = attr->value();
-        
-        if (inputType() == RADIO) {
-            // In case we parsed the checked attribute first, call setChecked if the element is checked by default.
-            if (m_useDefaultChecked)
-                setChecked(m_defaultChecked);
-            // Add the button to its new group.
-            if (checked())
-                document()->radioButtonChecked(this, form());
-        }
+        checkedRadioButtons(this).addButton(this);
     } else if (attr->name() == autocompleteAttr) {
         m_autocomplete = !equalIgnoringCase(attr->value(), "off");
     } else if (attr->name() == typeAttr) {
@@ -613,9 +597,9 @@ void HTMLInputElement::parseMappedAttribute(MappedAttribute *attr)
         }
     } else if (attr->name() == maxlengthAttr) {
         int oldMaxLen = m_maxLen;
-        m_maxLen = !attr->isNull() ? attr->value().toInt() : 1024;
-        if (m_maxLen <= 0 || m_maxLen > 1024)
-            m_maxLen = 1024;
+        m_maxLen = !attr->isNull() ? attr->value().toInt() : cMaxLen;
+        if (m_maxLen <= 0 || m_maxLen > cMaxLen)
+            m_maxLen = cMaxLen;
         if (oldMaxLen != m_maxLen)
             recheckValue();
         setChanged();
@@ -665,7 +649,7 @@ void HTMLInputElement::parseMappedAttribute(MappedAttribute *attr)
         setHTMLEventListener(searchEvent, attr);
     } else if (attr->name() == resultsAttr) {
         int oldResults = m_maxResults;
-        m_maxResults = !attr->isNull() ? attr->value().toInt() : -1;
+        m_maxResults = !attr->isNull() ? min(attr->value().toInt(), maxSavedResults) : -1;
         // FIXME: Detaching just for maxResults change is not ideal.  We should figure out the right
         // time to relayout for this change.
         if (m_maxResults != oldResults && (m_maxResults <= 0 || oldResults <= 0) && attached()) {
@@ -681,7 +665,7 @@ void HTMLInputElement::parseMappedAttribute(MappedAttribute *attr)
                attr->name() == precisionAttr) {
         setChanged();
     } else
-        HTMLGenericFormElement::parseMappedAttribute(attr);
+        HTMLFormControlElementWithState::parseMappedAttribute(attr);
 }
 
 bool HTMLInputElement::rendererIsNeeded(RenderStyle *style)
@@ -699,11 +683,11 @@ bool HTMLInputElement::rendererIsNeeded(RenderStyle *style)
         case SEARCH:
         case SUBMIT:
         case TEXT:
-            return HTMLGenericFormElement::rendererIsNeeded(style);
+            return HTMLFormControlElementWithState::rendererIsNeeded(style);
         case HIDDEN:
             return false;
     }
-    assert(false);
+    ASSERT(false);
     return false;
 }
 
@@ -731,7 +715,7 @@ RenderObject *HTMLInputElement::createRenderer(RenderArena *arena, RenderStyle *
         case TEXT:
             return new (arena) RenderTextControl(this, false);             
     }
-    assert(false);
+    ASSERT(false);
     return 0;
 }
 
@@ -743,7 +727,7 @@ void HTMLInputElement::attach()
         m_inited = true;
     }
 
-    HTMLGenericFormElement::attach();
+    HTMLFormControlElementWithState::attach();
 
     if (inputType() == IMAGE) {
         if (!m_imageLoader)
@@ -759,16 +743,11 @@ void HTMLInputElement::attach()
                 imageObj->setImageSizeForAltText();
         }
     }
-
-    // note we don't deal with calling passwordFieldRemoved() on detach, because the timing
-    // was such that it cleared our state too early
-    if (inputType() == PASSWORD)
-        document()->passwordFieldAdded();
 }
 
 void HTMLInputElement::detach()
 {
-    HTMLGenericFormElement::detach();
+    HTMLFormControlElementWithState::detach();
     setValueMatchesRenderer(false);
 }
 
@@ -848,17 +827,14 @@ bool HTMLInputElement::appendFormData(FormDataList& encoding, bool multipart)
         case SUBMIT:
             if (m_activeSubmit) {
                 String enc_str = valueWithDefault();
-                if (!enc_str.isEmpty()) {
-                    encoding.appendData(name(), enc_str);
-                    return true;
-                }
+                encoding.appendData(name(), enc_str);
+                return true;
             }
             break;
 
         case FILE:
             // Can't submit file on GET.
-            // Don't submit if display: none or display: hidden to avoid uploading files quietly.
-            if (!multipart || !renderer() || renderer()->style()->visibility() != VISIBLE)
+            if (!multipart)
                 return false;
 
             // If no filename at all is entered, return successful but empty.
@@ -878,22 +854,22 @@ void HTMLInputElement::reset()
 {
     if (storesValueSeparateFromAttribute())
         setValue(String());
+
     setChecked(m_defaultChecked);
     m_useDefaultChecked = true;
 }
 
 void HTMLInputElement::setChecked(bool nowChecked, bool sendChangeEvent)
 {
-    // We mimic WinIE and don't allow unnamed radio buttons to be checked.
-    if (checked() == nowChecked || (inputType() == RADIO && name().isEmpty()))
+    if (checked() == nowChecked)
         return;
-
-    if (inputType() == RADIO && nowChecked)
-        document()->radioButtonChecked(this, form());
 
     m_useDefaultChecked = false;
     m_checked = nowChecked;
     setChanged();
+
+    checkedRadioButtons(this).addButton(this);
+    
     if (renderer() && renderer()->style()->hasAppearance())
         theme()->stateChanged(renderer(), CheckedState);
 
@@ -928,7 +904,7 @@ void HTMLInputElement::copyNonAttributeProperties(const Element *source)
     m_checked = sourceElem->m_checked;
     m_indeterminate = sourceElem->m_indeterminate;
     
-    HTMLGenericFormElement::copyNonAttributeProperties(source);
+    HTMLFormControlElementWithState::copyNonAttributeProperties(source);
 }
 
 String HTMLInputElement::value() const
@@ -978,7 +954,8 @@ String HTMLInputElement::valueWithDefault() const
 
 void HTMLInputElement::setValue(const String& value)
 {
-    if (inputType() == FILE)
+    // For security reasons, we don't allow setting the filename, but we do allow clearing it.
+    if (inputType() == FILE && !value.isEmpty())
         return;
 
     setValueMatchesRenderer(false);
@@ -988,17 +965,18 @@ void HTMLInputElement::setValue(const String& value)
             document()->updateRendering();
         if (renderer())
             renderer()->updateFromElement();
-        // Changes to hidden values don't require re-rendering.
-        if (m_type != HIDDEN)
-            setChanged();
+        setChanged();
     } else
         setAttribute(valueAttr, constrainValue(value));
     
-    // Restore a caret at the starting point of the old selection.
-    // This matches Safari 2.0 behavior.
-    if (isTextField() && document()->focusedNode() == this && cachedSelStart != -1) {
-        ASSERT(cachedSelEnd != -1);
-        setSelectionRange(cachedSelStart, cachedSelStart);
+    if (isTextField()) {
+        unsigned max = m_value.length();
+        if (document()->focusedNode() == this)
+            setSelectionRange(max, max);
+        else {
+            cachedSelStart = max;
+            cachedSelEnd = max;
+        }
     }
 }
 
@@ -1026,16 +1004,16 @@ bool HTMLInputElement::storesValueSeparateFromAttribute() const
     switch (inputType()) {
         case BUTTON:
         case CHECKBOX:
-        case FILE:
+        case HIDDEN:
         case IMAGE:
         case RADIO:
-        case RANGE:
         case RESET:
         case SUBMIT:
             return false;
-        case HIDDEN:
+        case FILE:
         case ISINDEX:
         case PASSWORD:
+        case RANGE:
         case SEARCH:
         case TEXT:
             return true;
@@ -1049,7 +1027,7 @@ void* HTMLInputElement::preDispatchEventHandler(Event *evt)
     // This result gives us enough info to perform the "undo" in postDispatch of the action we take here.
     void* result = 0; 
     if ((inputType() == CHECKBOX || inputType() == RADIO) && evt->isMouseEvent()
-            && evt->type() == clickEvent && static_cast<MouseEvent*>(evt)->button() == 0) {
+            && evt->type() == clickEvent && static_cast<MouseEvent*>(evt)->button() == LeftButton) {
         if (inputType() == CHECKBOX) {
             // As a way to store the state, we return 0 if we were unchecked, 1 if we were checked, and 2 for
             // indeterminate.
@@ -1064,13 +1042,14 @@ void* HTMLInputElement::preDispatchEventHandler(Event *evt)
         } else {
             // For radio buttons, store the current selected radio object.
             if (name().isEmpty() || checked())
-                return 0; // Unnamed radio buttons dont get checked. Checked buttons just stay checked.
+                return 0; // Match WinIE and don't allow unnamed radio buttons to be checked.
+                          // Checked buttons just stay checked.
                           // FIXME: Need to learn to work without a form.
 
             // We really want radio groups to end up in sane states, i.e., to have something checked.
             // Therefore if nothing is currently selected, we won't allow this action to be "undone", since
             // we want some object in the radio group to actually get selected.
-            HTMLInputElement* currRadio = document()->checkedRadioButtonForGroup(name().impl(), form());
+            HTMLInputElement* currRadio = checkedRadioButtons(this).checkedButtonForGroup(name());
             if (currRadio) {
                 // We have a radio button selected that is not us.  Cache it in our result field and ref it so
                 // that it can't be destroyed.
@@ -1086,7 +1065,7 @@ void* HTMLInputElement::preDispatchEventHandler(Event *evt)
 void HTMLInputElement::postDispatchEventHandler(Event *evt, void* data)
 {
     if ((inputType() == CHECKBOX || inputType() == RADIO) && evt->isMouseEvent()
-            && evt->type() == clickEvent && static_cast<MouseEvent*>(evt)->button() == 0) {
+            && evt->type() == clickEvent && static_cast<MouseEvent*>(evt)->button() == LeftButton) {
         if (inputType() == CHECKBOX) {
             // Reverse the checking we did in preDispatch.
             if (evt->defaultPrevented() || evt->defaultHandled()) {
@@ -1101,7 +1080,9 @@ void HTMLInputElement::postDispatchEventHandler(Event *evt, void* data)
                 // Restore the original selected radio button if possible.
                 // Make sure it is still a radio button and only do the restoration if it still
                 // belongs to our group.
-                if (input->form() == form() && input->inputType() == RADIO && input->name() == name()) {
+
+                // Match WinIE and don't allow unnamed radio buttons to be checked.
+                if (input->form() == form() && input->inputType() == RADIO && !name().isEmpty() && input->name() == name()) {
                     // Ok, the old radio button is still in our form and in our group and is still a 
                     // radio button, so it's safe to restore selection to it.
                     input->setChecked(true);
@@ -1109,6 +1090,9 @@ void HTMLInputElement::postDispatchEventHandler(Event *evt, void* data)
             }
             input->deref();
         }
+
+        // Left clicks on radio buttons and check boxes already performed default actions in preDispatchEventHandler(). 
+        evt->setDefaultHandled();
     }
 }
 
@@ -1136,8 +1120,22 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
         }
     }
 
+    // Before calling the base class defaultEventHandler, which will call handleKeypress, call doTextFieldCommandFromEvent.
+    if (isTextField() && evt->type() == keypressEvent && evt->isKeyboardEvent() && focused() && document()->frame()
+                && document()->frame()->doTextFieldCommandFromEvent(this, static_cast<KeyboardEvent*>(evt))) {
+        evt->setDefaultHandled();
+        return;
+    }
+
+    if (inputType() == RADIO && evt->isMouseEvent()
+            && evt->type() == clickEvent && static_cast<MouseEvent*>(evt)->button() == LeftButton) {
+        evt->setDefaultHandled();
+        return;
+    }
+    
+    // Let the key handling done in EventTargetNode take precedence over the event handling here for editable text fields
     if (!clickDefaultFormButton) {
-        HTMLGenericFormElement::defaultEventHandler(evt);
+        HTMLFormControlElementWithState::defaultEventHandler(evt);
         if (evt->defaultHandled())
             return;
     }
@@ -1173,15 +1171,9 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
     if (evt->type() == keypressEvent && evt->isKeyboardEvent()) {
         bool clickElement = false;
 
-        if (isTextField() && focused() && document()->frame()
-                && document()->frame()->doTextFieldCommandFromEvent(this, static_cast<KeyboardEvent*>(evt))) {
-            evt->setDefaultHandled();
-            return;
-        }
-
         String key = static_cast<KeyboardEvent*>(evt)->keyIdentifier();
 
-        if (key == "U+000020") {
+        if (key == "U+0020") {
             switch (inputType()) {
                 case BUTTON:
                 case CHECKBOX:
@@ -1255,9 +1247,9 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
                     if (elt->form() != form())
                         break;
                     if (n->hasTagName(inputTag)) {
+                        // Match WinIE and don't allow unnamed radio buttons to be checked.
                         HTMLInputElement* inputElt = static_cast<HTMLInputElement*>(n);
-                        if (inputElt->inputType() == RADIO && inputElt->name() == name() &&
-                            inputElt->isFocusable()) {
+                        if (inputElt->inputType() == RADIO && !name().isEmpty() && inputElt->name() == name() && inputElt->isFocusable()) {
                             inputElt->setChecked(true);
                             document()->setFocusedNode(inputElt);
                             inputElt->dispatchSimulatedClick(evt, false, false);
@@ -1281,8 +1273,16 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
             addSearchResult();
             onSearch();
         }
-        blur();
-        // Form may never have been present, or may have been destroyed by the blur event.
+        // Fire onChange for text fields.
+        RenderObject* r = renderer();
+        if (r && r->isTextField() && r->isEdited()) {
+            onChange();
+            // Refetch the renderer since arbitrary JS code run during onchange can do anything, including destroying it.
+            r = renderer();
+            if (r)
+                r->setEdited(false);
+        }
+        // Form may never have been present, or may have been destroyed by the change event.
         if (form())
             form()->submitClick(evt);
         evt->setDefaultHandled();
@@ -1307,7 +1307,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
 
     if (inputType() == RANGE && renderer()) {
         RenderSlider* slider = static_cast<RenderSlider*>(renderer());
-        if (evt->isMouseEvent() && evt->type() == mousedownEvent) {
+        if (evt->isMouseEvent() && evt->type() == mousedownEvent && static_cast<MouseEvent*>(evt)->button() == LeftButton) {
             MouseEvent* mEvt = static_cast<MouseEvent*>(evt);
             if (!slider->mouseEventIsInThumb(mEvt)) {
                 slider->setValueForPosition(slider->positionForOffset(IntPoint(mEvt->offsetX(), mEvt->offsetY())));
@@ -1431,11 +1431,13 @@ String HTMLInputElement::constrainValue(const String& proposedValue, int maxLen)
     if (isTextField()) {
         StringImpl* s = proposedValue.impl();
         int newLen = numCharactersInGraphemeClusters(s, maxLen);
-        for (int i = 0; i < newLen; ++i)
-            if ((*s)[i] < ' ') {
+        for (int i = 0; i < newLen; ++i) {
+            const UChar current = (*s)[i];
+            if (current < ' ' && current != '\t') {
                 newLen = i;
                 break;
             }
+        }
         if (newLen < static_cast<int>(proposedValue.length()))
             return proposedValue.substring(0, newLen);
     }
@@ -1462,6 +1464,30 @@ Selection HTMLInputElement::selection() const
    if (!renderer() || !isTextField() || cachedSelStart == -1 || cachedSelEnd == -1)
         return Selection();
    return static_cast<RenderTextControl*>(renderer())->selection(cachedSelStart, cachedSelEnd);
+}
+
+void HTMLInputElement::didRestoreFromCache()
+{
+    ASSERT(inputType() == PASSWORD);
+    reset();
+}
+
+void HTMLInputElement::willMoveToNewOwnerDocument()
+{
+    if (inputType() == PASSWORD)
+        document()->unregisterForDidRestoreFromCacheCallback(this);
+        
+    document()->checkedRadioButtons().removeButton(this);
+    
+    HTMLFormControlElementWithState::willMoveToNewOwnerDocument();
+}
+
+void HTMLInputElement::didMoveToNewOwnerDocument()
+{
+    if (inputType() == PASSWORD)
+        document()->registerForDidRestoreFromCacheCallback(this);
+        
+    HTMLFormControlElementWithState::didMoveToNewOwnerDocument();
 }
     
 } // namespace

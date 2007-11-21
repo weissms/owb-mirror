@@ -3,6 +3,7 @@
  *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
  *  Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
+ *  Copyright (C) 2007 Samuel Weinig <sam@webkit.org>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -16,12 +17,13 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef kjs_binding_h
 #define kjs_binding_h
 
+#include <kjs/function.h>
 #include <kjs/lookup.h>
 #include <wtf/Noncopyable.h>
 
@@ -30,33 +32,38 @@
 #endif
 
 namespace WebCore {
+    class AtomicString;
     class Document;
     class Event;
     class Frame;
     class Node;
     class String;
+    class JSNode;
 
     typedef int ExceptionCode;
+
+#if ENABLE(SVG)
+    class SVGElement;
+#endif
 }
 
 namespace KJS {
 
     /**
-     * Base class for all objects in this binding.
+     * Base class for all objects in this binding EXCEPT Window
      */
     class DOMObject : public JSObject {
     protected:
-        // DOMObject Destruction is not thread-safe because JS DOM objects 
-        // wrap unsafe WebCore DOM data structures
-        DOMObject() : JSObject(false) {}
+        DOMObject()
+        {
+            // DOMObject destruction is not thread-safe because DOMObjects wrap 
+            // unsafe WebCore DOM data structures.
+            Collector::collectOnMainThreadOnly(this);
+        }
 #ifndef NDEBUG
         virtual ~DOMObject();
 #endif
-    public:
-        virtual UString toString(ExecState*) const;
     };
-
-    class DOMNode;
 
     /**
      * We inherit from Interpreter, to save a pointer to the HTML part
@@ -65,14 +72,14 @@ namespace KJS {
      */
     class ScriptInterpreter : public Interpreter {
     public:
-        ScriptInterpreter(JSObject* global, WebCore::Frame*);
+        ScriptInterpreter(JSGlobalObject*, WebCore::Frame*);
 
         static DOMObject* getDOMObject(void* objectHandle);
         static void putDOMObject(void* objectHandle, DOMObject*);
         static void forgetDOMObject(void* objectHandle);
 
-        static DOMNode *getDOMNodeForDocument(WebCore::Document*, WebCore::Node*);
-        static void putDOMNodeForDocument(WebCore::Document*, WebCore::Node*, DOMNode *nodeWrapper);
+        static WebCore::JSNode* getDOMNodeForDocument(WebCore::Document*, WebCore::Node*);
+        static void putDOMNodeForDocument(WebCore::Document*, WebCore::Node*, WebCore::JSNode* nodeWrapper);
         static void forgetDOMNodeForDocument(WebCore::Document*, WebCore::Node*);
         static void forgetAllDOMNodesForDocument(WebCore::Document*);
         static void updateDOMNodeDocument(WebCore::Node*, WebCore::Document* oldDoc, WebCore::Document* newDoc);
@@ -92,7 +99,6 @@ namespace KJS {
          */
         bool wasRunByUserGesture() const;
 
-        virtual void mark(bool currentThreadIsMainThread);
         virtual ExecState* globalExec();
 
         WebCore::Event* getCurrentEvent() const { return m_currentEvent; }
@@ -127,6 +133,23 @@ namespace KJS {
         return ret;
     }
 
+#if ENABLE(SVG)
+    /**
+     * Retrieve from cache, or create, a KJS object around a SVG DOM object
+     */
+    template<class DOMObj, class KJSDOMObj> inline JSValue* cacheSVGDOMObject(ExecState* exec, DOMObj* domObj, WebCore::SVGElement* context)
+    {
+        if (!domObj)
+            return jsNull();
+        ScriptInterpreter* interp = static_cast<ScriptInterpreter*>(exec->dynamicInterpreter());
+        if (DOMObject* ret = interp->getDOMObject(domObj))
+            return ret;
+        DOMObject* ret = new KJSDOMObj(exec, domObj, context);
+        interp->putDOMObject(domObj, ret);
+        return ret;
+    }
+#endif
+
     // Convert a DOM implementation exception code into a JavaScript exception in the execution state.
     void setDOMException(ExecState*, WebCore::ExceptionCode);
 
@@ -144,10 +167,16 @@ namespace KJS {
     JSValue* jsStringOrNull(const WebCore::String&); // null if the string is null
     JSValue* jsStringOrUndefined(const WebCore::String&); // undefined if the string is null
     JSValue* jsStringOrFalse(const WebCore::String&); // boolean false if the string is null
+
+    // see JavaScriptCore for explanation should be used for UString that is already owned
+    // by another object, so that collecting the JSString wrapper is unlikely to save memory.
+    JSValue* jsOwnedStringOrNull(const KJS::UString&); 
+
     WebCore::String valueToStringWithNullCheck(ExecState*, JSValue*); // null String if the value is null
+    WebCore::String valueToStringWithUndefinedOrNullCheck(ExecState*, JSValue*); // null String if the value is null or undefined
 
     template <typename T> inline JSValue* toJS(ExecState* exec, PassRefPtr<T> ptr) { return toJS(exec, ptr.get()); }
-  
+
 } // namespace
 
 #endif

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
                   2005 Eric Seidel <eric.seidel@kdemail.net>
 
@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGFEConvolveMatrix_h
 #define SVGFEConvolveMatrix_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFilterEffect.h"
 
 namespace WebCore {
@@ -38,6 +38,8 @@ enum SVGEdgeModeType {
 
 class SVGFEConvolveMatrix : public SVGFilterEffect {
 public:
+    SVGFEConvolveMatrix(SVGResourceFilter*);
+
     FloatSize kernelSize() const;
     void setKernelSize(FloatSize);
 
@@ -66,17 +68,17 @@ public:
 
 private:
     FloatSize m_kernelSize;
-    Vector<float> m_kernelMatrix; // maybe should be a real matrix?
     float m_divisor;
     float m_bias;
     FloatSize m_targetOffset;
     SVGEdgeModeType m_edgeMode;
     FloatPoint m_kernelUnitLength;
     bool m_preserveAlpha;
+    Vector<float> m_kernelMatrix; // maybe should be a real matrix?
 };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 
 #endif // SVGFEConvolveMatrix_h

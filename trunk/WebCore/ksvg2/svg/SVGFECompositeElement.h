@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGFECompositeElement_h
 #define SVGFECompositeElement_h
-#ifdef SVG_SUPPORT
 
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEComposite.h"
 #include "SVGFilterPrimitiveStandardAttributes.h"
 
@@ -36,11 +36,8 @@ namespace WebCore
         SVGFECompositeElement(const QualifiedName&, Document*);
         virtual ~SVGFECompositeElement();
 
-        // 'SVGFECompositeElement' functions
-        // Derived from: 'Element'
-        virtual void parseMappedAttribute(MappedAttribute* attr);
-
-        virtual SVGFEComposite* filterEffect() const;
+        virtual void parseMappedAttribute(MappedAttribute*);
+        virtual SVGFEComposite* filterEffect(SVGResourceFilter*) const;
 
     protected:
         virtual const SVGElement* contextElement() const { return this; }
@@ -49,16 +46,17 @@ namespace WebCore
         ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, String, String, In1, in1)
         ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, String, String, In2, in2)
         ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, int, int, _operator, _operator)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, double, double, K1, k1)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, double, double, K2, k2)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, double, double, K3, k3)
-        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, double, double, K4, k4)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, float, float, K1, k1)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, float, float, K2, k2)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, float, float, K3, k3)
+        ANIMATED_PROPERTY_DECLARATIONS(SVGFECompositeElement, float, float, K4, k4)
+
         mutable SVGFEComposite* m_filterEffect;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

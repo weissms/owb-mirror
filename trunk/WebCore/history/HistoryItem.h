@@ -26,6 +26,7 @@
 #ifndef HistoryItem_h
 #define HistoryItem_h
 
+#include "CachedPage.h"
 #include "FormData.h"
 #include "IntPoint.h"
 #include "KURL.h"
@@ -38,16 +39,16 @@
 #include <wtf/Vector.h>
 
 #if PLATFORM(MAC)
-#import "RetainPtr.h"
+#import <wtf/RetainPtr.h>
 typedef struct objc_object* id;
 #endif
 
 namespace WebCore {
 
+class Document;
 class Image;
 class KURL;
-class PageCache;
-class ResourceRequest;
+struct ResourceRequest;
 
 class HistoryItem;
 typedef Vector<RefPtr<HistoryItem> > HistoryItemVector;
@@ -55,10 +56,12 @@ typedef Vector<RefPtr<HistoryItem> > HistoryItemVector;
 extern void (*notifyHistoryItemChanged)();
 
 class HistoryItem : public Shared<HistoryItem> {
-    friend class HistoryItemTimer;
+    friend class PageCache;
+
 public: 
     HistoryItem();
     HistoryItem(const String& urlString, const String& title, double lastVisited);
+    HistoryItem(const String& urlString, const String& title, const String& alternateTitle, double lastVisited);
     HistoryItem(const KURL& url, const String& title);
     HistoryItem(const KURL& url, const String& target, const String& parent, const String& title);
     
@@ -70,21 +73,16 @@ public:
     const String& urlString() const;
     const String& title() const;
     
+    void setInPageCache(bool inPageCache) { m_isInPageCache = inPageCache; }
+    bool isInPageCache() const { return m_isInPageCache; }
+    
     double lastVisitedTime() const;
     
     void setAlternateTitle(const String& alternateTitle);
     const String& alternateTitle() const;
     
-#ifdef OWB_ICON_SUPPORT
     Image* icon() const;
     
-    void retainIconInDatabase(bool retain);
-#endif //OWB_ICON_SUPPORT
-    static void releaseAllPendingPageCaches();
-    bool hasPageCache() const;
-    void setHasPageCache(bool);
-    PageCache* pageCache();
-
     const String& parent() const;
     KURL url() const;
     KURL originalURL() const;
@@ -127,12 +125,11 @@ public:
     const HistoryItemVector& children() const;
     bool hasChildren() const;
 
-    void setAlwaysAttemptToUsePageCache(bool);
-    bool alwaysAttemptToUsePageCache() const;
-
     // This should not be called directly for HistoryItems that are already included
     // in GlobalHistory. The WebKit api for this is to use -[WebHistory setLastVisitedTimeInterval:forItem:] instead.
     void setLastVisitedTime(double);
+    
+    bool isCurrentDocument(Document*) const;
     
 #if PLATFORM(MAC)
     id viewState() const;
@@ -144,10 +141,6 @@ public:
     void setTransientProperty(const String&, id);
 #endif
 
-    void scheduleRelease();
-    void cancelRelease();
-    void releasePageCache();  
-    
 #ifndef NDEBUG
     int showTree() const;
     int showTreeWithIndent(unsigned indentLevel) const;
@@ -155,7 +148,6 @@ public:
 
 private:
     HistoryItem(const HistoryItem&);
-    static void releasePageCachesOrReschedule();
     
     String m_urlString;
     String m_originalURLString;
@@ -165,16 +157,14 @@ private:
     String m_displayTitle;
     
     double m_lastVisitedTime;
-    
+
     IntPoint m_scrollPoint;
     Vector<String> m_documentState;
     
     HistoryItemVector m_subItems;
-    bool m_pageCacheIsPendingRelease;
-    RefPtr<PageCache> m_pageCache;
     
+    bool m_isInPageCache;
     bool m_isTargetItem;
-    bool m_alwaysAttemptToUsePageCache;
     int m_visitCount;
     
     // info used to repost form data
@@ -184,6 +174,11 @@ private:
     
     // info used to support RSS feeds
     String m_rssFeedReferrer;
+
+    // PageCache controls these fields.
+    HistoryItem* m_next;
+    HistoryItem* m_prev;
+    RefPtr<CachedPage> m_cachedPage;
     
 #if PLATFORM(MAC)
     RetainPtr<id> m_viewState;

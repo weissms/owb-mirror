@@ -18,14 +18,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
 #include "RenderFrame.h"
-
+#include "RenderFrameSet.h"
 #include "FrameView.h"
 #include "HTMLFrameSetElement.h"
 #include "HTMLNames.h"
@@ -40,16 +40,18 @@ RenderFrame::RenderFrame(HTMLFrameElement* frame)
     setInline(false);
 }
 
+FrameEdgeInfo RenderFrame::edgeInfo() const
+{
+    return FrameEdgeInfo(element()->noResize(), element()->hasFrameBorder());
+}
+
 void RenderFrame::viewCleared()
 {
     if (element() && m_widget && m_widget->isFrameView()) {
         FrameView* view = static_cast<FrameView*>(m_widget);
-        HTMLFrameSetElement* frameSet = static_cast<HTMLFrameSetElement*>(element()->parentNode());
-        bool hasBorder = element()->hasFrameBorder() && frameSet->frameBorder();
         int marginw = element()->getMarginWidth();
         int marginh = element()->getMarginHeight();
 
-        view->setHasBorder(hasBorder);
         if (marginw != -1)
             view->setMarginWidth(marginw);
         if (marginh != -1)

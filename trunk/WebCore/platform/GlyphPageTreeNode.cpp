@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,35 +33,75 @@
 #include "FontData.h"
 #include <wtf/unicode/Unicode.h>
 
+#ifdef __OWB__
+namespace BAL {
+#else
 namespace WebCore {
+#endif //__OWB__
+
+HashMap<int, GlyphPageTreeNode*>* GlyphPageTreeNode::roots = 0;
+GlyphPageTreeNode* GlyphPageTreeNode::pageZeroRoot = 0;
 
 GlyphPageTreeNode* GlyphPageTreeNode::getRoot(unsigned pageNumber)
 {
-    static HashMap<int, GlyphPageTreeNode*> roots;
-    static GlyphPageTreeNode* pageZeroRoot;
-    GlyphPageTreeNode* node = pageNumber ? roots.get(pageNumber) : pageZeroRoot;
+    static bool initialized;
+    if (!initialized) {
+        initialized = true;
+        roots = new HashMap<int, GlyphPageTreeNode*>;
+        pageZeroRoot = new GlyphPageTreeNode;
+    }
+
+    GlyphPageTreeNode* node = pageNumber ? roots->get(pageNumber) : pageZeroRoot;
     if (!node) {
         node = new GlyphPageTreeNode;
 #ifndef NDEBUG
         node->m_pageNumber = pageNumber;
 #endif
         if (pageNumber)
-            roots.set(pageNumber, node);
+            roots->set(pageNumber, node);
         else
             pageZeroRoot = node;
     }
     return node;
 }
 
+void GlyphPageTreeNode::pruneTreeCustomFontData(const FontData* fontData)
+{
+    // Enumerate all the roots and prune any tree that contains our custom font data.
+    if (roots) {
+        HashMap<int, GlyphPageTreeNode*>::iterator end = roots->end();
+        for (HashMap<int, GlyphPageTreeNode*>::iterator it = roots->begin(); it != end; ++it)
+            it->second->pruneCustomFontData(fontData);
+    }
+    
+    if (pageZeroRoot)
+        pageZeroRoot->pruneCustomFontData(fontData);
+}
+
+GlyphPageTreeNode::~GlyphPageTreeNode()
+{
+    deleteAllValues(m_children);
+    delete m_systemFallbackChild;
+}
+
 void GlyphPageTreeNode::initializePage(const FontData* fontData, unsigned pageNumber)
 {
     ASSERT(!m_page);
 
-    GlyphPage* parentPage = m_parent->m_page;
+    // This function must not be called for the root of the tree, because that
+    // level does not contain any glyphs.
+    ASSERT(m_level > 0 && m_parent);
 
+    // The parent's page will be 0 if we are level one or the parent's font data
+    // did not contain any glyphs for that page.
+    GlyphPage* parentPage = m_parent->page();
+
+    // NULL FontData means we're being asked for the system fallback font.
     if (fontData) {
         if (m_level == 1) {
-            // Children of the root hold pure pages.
+            // Children of the root hold pure pages. These will cover only one
+            // font data's glyphs, and will have glyph index 0 if the font data does not
+            // contain the glyph.
             unsigned start = pageNumber * GlyphPage::size;
             UChar buffer[GlyphPage::size * 2 + 2];
             unsigned bufferLength;
@@ -76,15 +116,41 @@ void GlyphPageTreeNode::initializePage(const FontData* fontData, unsigned pageNu
                 if (start == 0) {
                     // Control characters must not render at all.
                     for (i = 0; i < 0x20; ++i)
+#ifdef __OWB__
+                        buffer[i] = WebCore::zeroWidthSpace;
+#else
                         buffer[i] = zeroWidthSpace;
+#endif //__OWB__
                     for (i = 0x7F; i < 0xA0; i++)
+#ifdef __OWB__
+                        buffer[i] = WebCore::zeroWidthSpace;
+#else
                         buffer[i] = zeroWidthSpace;
+#endif //__OWB__
 
                     // \n, \t, and nonbreaking space must render as a space.
                     buffer[(int)'\n'] = ' ';
                     buffer[(int)'\t'] = ' ';
-                    buffer[noBreakSpace] = ' ';
+#ifdef __OWB__
+                    buffer[WebCore::noBreakSpace] = ' ';
+                } else if (start == (WebCore::leftToRightMark & ~(GlyphPage::size - 1))) {
+                    // LRM/RLM must not render at all.
+                    buffer[WebCore::leftToRightMark - start] = WebCore::zeroWidthSpace;
+                    buffer[WebCore::rightToLeftMark - start] = WebCore::zeroWidthSpace;
+                } else if (start == (WebCore::objectReplacementCharacter & ~(GlyphPage::size - 1))) {
+                    // Object replacement character must not render at all.
+                    buffer[WebCore::objectReplacementCharacter - start] = WebCore::zeroWidthSpace;
                 }
+#else
+                    buffer[noBreakSpace] = ' ';
+                } else if (start == (leftToRightMark & ~(GlyphPage::size - 1))) {
+                    buffer[leftToRightMark - start] = zeroWidthSpace;
+                    buffer[rightToLeftMark - start] = zeroWidthSpace;
+                } else if (start == (objectReplacementCharacter & ~(GlyphPage::size - 1))) {
+                    // Object replacement character must not render at all.
+                    buffer[objectReplacementCharacter - start] = zeroWidthSpace;
+                }
+#endif //__OWB__
             } else {
                 bufferLength = GlyphPage::size * 2;
                 for (i = 0; i < GlyphPage::size; i++) {
@@ -103,22 +169,36 @@ void GlyphPageTreeNode::initializePage(const FontData* fontData, unsigned pageNu
             // for only 128 out of 256 characters.
             bool haveGlyphs = m_page->fill(buffer, bufferLength, fontData);
 
-            if (!haveGlyphs) {
-                delete m_page;
+            if (!haveGlyphs)
                 m_page = 0;
-            }
-        } else if (parentPage && parentPage->owner() != m_parent)
-            // Ensures that the overlay page is owned by the child of the owner of the
-            // parent page, and therefore will be shared.
+        } else if (parentPage && parentPage->owner() != m_parent) {
+            // The page we're overriding may not be owned by our parent node.
+            // This happens when our parent node provides no useful overrides
+            // and just copies the pointer to an already-existing page (see
+            // below).
+            //
+            // We want our override to be shared by all nodes that reference
+            // that page to avoid duplication, and so standardize on having the
+            // page's owner collect all the overrides.  Call getChild on the
+            // page owner with the desired font data (this will populate
+            // the page) and then reference it.
             m_page = parentPage->owner()->getChild(fontData, pageNumber)->page();
-        else {
-            // Get the pure page for the fallback font.
+        } else {
+            // Get the pure page for the fallback font (at level 1 with no
+            // overrides). getRootChild will always create a page if one
+            // doesn't exist, but the page doesn't necessarily have glyphs
+            // (this pointer may be 0).
             GlyphPage* fallbackPage = getRootChild(fontData, pageNumber)->page();
-            if (!parentPage)
+            if (!parentPage) {
+                // When the parent has no glyphs for this page, we can easily
+                // override it just by supplying the glyphs from our font.
                 m_page = fallbackPage;
-            else if (!fallbackPage) {
+            } else if (!fallbackPage) {
+                // When our font has no glyphs for this page, we can just reference the
+                // parent page.
                 m_page = parentPage;
             } else {
+                // Combine the parent's glyphs and ours to form a new more complete page.
                 m_page = new GlyphPage(this);
 
                 // Overlay the parent page on the fallback page. Check if the fallback font
@@ -136,16 +216,17 @@ void GlyphPageTreeNode::initializePage(const FontData* fontData, unsigned pageNu
                     }
                 }
 
-                if (!newGlyphs) {
-                    delete m_page;
+                if (!newGlyphs)
+                    // We didn't override anything, so our override is just the parent page.
                     m_page = parentPage;
-                }
             }
         }
     } else {
         m_page = new GlyphPage(this);
         // System fallback. Initialized with the parent's page here, as individual
-        // entries may use different fonts depending on character.
+        // entries may use different fonts depending on character. If the Font
+        // ever finds it needs a glyph out of the system fallback page, it will
+        // ask the system for the best font to use and fill that glyph in for us.
         if (parentPage)
             memcpy(m_page->m_glyphs, parentPage->m_glyphs, GlyphPage::size * sizeof(m_page->m_glyphs[0]));
         else {
@@ -166,6 +247,11 @@ GlyphPageTreeNode* GlyphPageTreeNode::getChild(const FontData* fontData, unsigne
         child = new GlyphPageTreeNode;
         child->m_parent = this;
         child->m_level = m_level + 1;
+        if (fontData && fontData->isCustomFont()) {
+            for (GlyphPageTreeNode* curr = this; curr; curr = curr->m_parent)
+                curr->m_customFontCount++;
+        }
+
 #ifndef NDEBUG
         child->m_pageNumber = m_pageNumber;
 #endif
@@ -178,6 +264,29 @@ GlyphPageTreeNode* GlyphPageTreeNode::getChild(const FontData* fontData, unsigne
         child->initializePage(fontData, pageNumber);
     }
     return child;
+}
+
+void GlyphPageTreeNode::pruneCustomFontData(const FontData* fontData)
+{
+    if (!fontData || !m_customFontCount)
+        return;
+        
+    // Prune any branch that contains this FontData.
+    GlyphPageTreeNode* node = m_children.get(fontData);
+    if (node) {
+        m_children.remove(fontData);
+        unsigned fontCount = node->m_customFontCount + 1;
+        delete node;
+        for (GlyphPageTreeNode* curr = this; curr; curr = curr->m_parent)
+            curr->m_customFontCount -= fontCount;
+    }
+    
+    // Check any branches that remain that still have custom fonts underneath them.
+    if (!m_customFontCount)
+        return;
+    HashMap<const FontData*, GlyphPageTreeNode*>::iterator end = m_children.end();
+    for (HashMap<const FontData*, GlyphPageTreeNode*>::iterator it = m_children.begin(); it != end; ++it)
+        it->second->pruneCustomFontData(fontData);
 }
 
 }

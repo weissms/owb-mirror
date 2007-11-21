@@ -85,7 +85,7 @@ namespace BAL
     // Events
     class BIKeyboardEvent;
     BIEventLoop* getBIEventLoop();
-    void deleteBIEventLoop( BIEventLoop* );
+    void deleteBIEventLoop();
     BIMouseEvent* createBIMouseEvent();
     BIWindowEvent* createBIWindowEvent(BIWindowEvent::ENUM_WINDOW, bool bGain,
        const WebCore::IntRect& rect, const BTWidget*);
@@ -97,8 +97,9 @@ namespace BAL
 
     // Window
     class BIWindowManager;
-    BIWindow* createBCWindowBal(int x, int y, int width, int height, int depth);
+//    BIWindow* createBCWindowBal(int x, int y, int width, int height, int depth);
     BIWindowManager* getBIWindowManager();
+    void deleteBIWindowManager();
 
     // Observer
     class BIObserver;
@@ -108,20 +109,21 @@ namespace BAL
     // ResourceHandleManager
     class BIResourceHandleManager;
     class BIResourceHandle;
-    BIResourceHandleManager* getBIResourceHandleManager( );
+    BIResourceHandleManager* getBIResourceHandleManager();
+    void deleteBIResourceHandleManager();
     // BIResourceHandle* createBCResourceHandle removed because of a static create
 
 
     // Fonts
-    class BIFontCache;
-    class BIFontData;
-    class FontPlatformData;
+//     class BIFontCache;
+//     class BIFontData;
+    class BIFontPlatformDataPrivate;
     class BIGlyphBuffer;
-    BIFontCache* getBIFontCache();
+//     BIFontCache* getBIFontCache();
     BIGlyphBuffer* createBIGlyphBuffer();
     void deleteBIGlyphBuffer(BIGlyphBuffer*);
-    BIFontData* createBIFontData(const FontPlatformData& f);
-    void deleteBIFontData(BIFontData* data);
+    BIFontPlatformDataPrivate* createBIFontPlatformDataPrivate();
+    void deleteBIFontPlatformDataPrivate(BIFontPlatformDataPrivate* data);
 
     // Graphics
     class BIGraphicsContext;
@@ -139,7 +141,8 @@ namespace BAL
     BTAffineTransform &createBiAffineTransform();
     BTAffineTransform &createBiAffineTransform(double a, double b, double c, double d, double tx, double ty);
     BIGraphicsDevice* getBIGraphicsDevice();
-    BISurface* getBISurface();
+    void deleteBIGraphicsDevice();
+    
  
     // XML
     class BIXSLT;
@@ -147,6 +150,9 @@ namespace BAL
     class BIXML;
     BIXML* createBIXML();
 
+    //Internationalization
+    class BIInternationalization;
+    BIInternationalization *getBIInternationalization();
 }
 
 // Bridge !
@@ -177,7 +183,11 @@ void deleteBICookieJar(BICookieJar*);
             else \
                 return __##classname = new classname(); \
         } \
-        void delete##interfacename(interfacename*) { \
+        void delete##interfacename() { \
+            if (__##classname) { \
+                delete __##classname; \
+                __##classname = NULL; \
+            } \
         } \
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 #include "RenderObject.h"
 #include "RegularExpression.h"
 #include "Range.h"
+#include "Selection.h"
 #include "Text.h"
 #include "VisiblePosition.h"
 #include "visible_units.h"
@@ -242,7 +243,7 @@ Position previousVisuallyDistinctCandidate(const Position& position)
 
 VisiblePosition firstEditablePositionAfterPositionInRoot(const Position& position, Node* highestRoot)
 {
-    if (comparePositions(position, Position(highestRoot, 0)) == -1)
+    if (comparePositions(position, Position(highestRoot, 0)) == -1 && highestRoot->isContentEditable())
         return VisiblePosition(Position(highestRoot, 0));
     
     Position p = nextVisuallyDistinctCandidate(position);
@@ -351,6 +352,9 @@ Position rangeCompliantEquivalent(const VisiblePosition& vpos)
 // on a Position before using it to create a DOM Range, or an exception will be thrown.
 int maxDeepOffset(const Node *node)
 {
+    ASSERT(node);
+    if (!node)
+        return 0;
     if (node->offsetInCharacters())
         return node->maxOffset();
         
@@ -409,9 +413,6 @@ bool isSpecialElement(const Node *n)
         return false;
 
     if (n->isLink())
-        return true;
-
-    if (n->hasTagName(ulTag) || n->hasTagName(olTag) || n->hasTagName(dlTag))
         return true;
 
     RenderObject *renderer = n->renderer();
@@ -489,7 +490,6 @@ bool isFirstVisiblePositionInSpecialElement(const Position& pos)
 Position positionBeforeContainingSpecialElement(const Position& pos, Node** containingSpecialElement)
 {
     Node* n = firstInSpecialElement(pos);
-    ASSERT(n);
     if (!n)
         return pos;
     Position result = positionBeforeNode(n);
@@ -508,7 +508,6 @@ bool isLastVisiblePositionInSpecialElement(const Position& pos)
 Position positionAfterContainingSpecialElement(const Position& pos, Node **containingSpecialElement)
 {
     Node* n = lastInSpecialElement(pos);
-    ASSERT(n);
     if (!n)
         return pos;
     Position result = positionAfterNode(n);
@@ -526,6 +525,24 @@ Position positionOutsideContainingSpecialElement(const Position &pos, Node **con
     if (isLastVisiblePositionInSpecialElement(pos))
         return positionAfterContainingSpecialElement(pos, containingSpecialElement);
     return pos;
+}
+
+Node* isFirstPositionAfterTable(const VisiblePosition& visiblePosition)
+{
+    Position upstream(visiblePosition.deepEquivalent().upstream());
+    if (upstream.node() && upstream.node()->renderer() && upstream.node()->renderer()->isTable() && upstream.offset() == maxDeepOffset(upstream.node()))
+        return upstream.node();
+    
+    return 0;
+}
+
+Node* isLastPositionBeforeTable(const VisiblePosition& visiblePosition)
+{
+    Position downstream(visiblePosition.deepEquivalent().downstream());
+    if (downstream.node() && downstream.node()->renderer() && downstream.node()->renderer()->isTable() && downstream.offset() == 0)
+        return downstream.node();
+    
+    return 0;
 }
 
 Position positionBeforeNode(const Node *node)
@@ -566,6 +583,8 @@ Node* enclosingNodeOfType(Node* node, bool (*nodeIsOfType)(Node*))
         return 0;
         
     Node* root = highestEditableRoot(Position(node, 0));
+    if (root == node)
+        return 0;
     
     for (Node* n = node->parentNode(); n; n = n->parentNode()) {
         if ((*nodeIsOfType)(n))
@@ -577,16 +596,29 @@ Node* enclosingNodeOfType(Node* node, bool (*nodeIsOfType)(Node*))
     return 0;
 }
 
-Node* enclosingTableCell(Node* node)
+Node* enclosingTableCell(const Position& p)
 {
-    if (!node)
+    if (p.isNull())
         return 0;
-        
-    for (Node* n = node->parentNode(); n; n = n->parentNode())
+    // Note: Should theoretically start with p.node()->parentNode() if p is a position 
+    // that internally means before or after p.node(), but we don't use position's like 
+    // that for table cells.
+    for (Node* n = p.node(); n; n = n->parentNode())
         if (n->renderer() && n->renderer()->isTableCell())
             return n;
             
     return 0;
+}
+
+Node* enclosingAnchorElement(const Position& p)
+{
+    if (p.isNull())
+        return 0;
+    
+    Node* node = p.node();
+    while (node && !(node->isElementNode() && node->isLink()))
+        node = node->parentNode();
+    return node;
 }
 
 Node* enclosingList(Node* node)
@@ -606,7 +638,7 @@ Node* enclosingList(Node* node)
     return 0;
 }
 
-Node* enclosingListChild (Node *node)
+Node* enclosingListChild(Node *node)
 {
     if (!node)
         return 0;
@@ -699,72 +731,6 @@ bool isTableElement(Node* n)
     return (renderer && (renderer->style()->display() == TABLE || renderer->style()->display() == INLINE_TABLE));
 }
 
-bool isFirstVisiblePositionAfterTableElement(const Position& pos)
-{
-    return isTableElement(pos.upstream().node());
-}
-
-Position positionBeforePrecedingTableElement(const Position& pos)
-{
-    ASSERT(isFirstVisiblePositionAfterTableElement(pos));
-    Position result = positionBeforeNode(pos.upstream().node());
-    if (result.isNull() || !result.node()->rootEditableElement())
-        return pos;
-    return result;
-}
-
-bool isLastVisiblePositionBeforeTableElement(const Position &pos)
-{
-    return isTableElement(pos.downstream().node());
-}
-
-Position positionAfterFollowingTableElement(const Position &pos)
-{
-    ASSERT(isLastVisiblePositionBeforeTableElement(pos));
-    Position result = positionAfterNode(pos.downstream().node());
-    if (result.isNull() || !result.node()->rootEditableElement())
-        return pos;
-    return result;
-}
-
-// This function is necessary because a VisiblePosition is allowed
-// to be at the start or end of elements where we do not want to
-// add content directly.  For example, clicking at the end of a hyperlink,
-// then typing, needs to add the text after the link.  Also, table
-// offset 0 and table offset childNodeCount are valid VisiblePostions,
-// but we can not add more content right there... it needs to go before
-// or after the table.
-Position positionAvoidingSpecialElementBoundary(const Position &pos, bool avoidAnchor)
-{
-    if (pos.isNull())
-        return pos;
-        
-    VisiblePosition vPos = VisiblePosition(pos, DOWNSTREAM);
-    Node* enclosingAnchor = enclosingNodeWithTag(pos.node(), aTag);
-    Position result;
-    if (enclosingAnchor && !isBlock(enclosingAnchor)) {
-        // If the caret is after an anchor, do insertion inside the anchor unless it's the last 
-        // VisiblePosition in the document, to match TextEdit.
-        if (VisiblePosition(Position(enclosingAnchor, maxDeepOffset(enclosingAnchor))) == vPos && (isEndOfDocument(vPos) || avoidAnchor))
-            result = positionAfterNode(enclosingAnchor);
-        // If the caret is before an anchor, do insertion outside the anchor unless it's the first
-        // VisiblePosition in a paragraph, to match TextEdit.
-        if (VisiblePosition(Position(enclosingAnchor, 0)) == vPos && (!isStartOfParagraph(vPos) || avoidAnchor))
-            result = positionBeforeNode(enclosingAnchor);
-    } else if (isTableElement(pos.node())) {
-        if (VisiblePosition(Position(pos.node(), maxDeepOffset(pos.node()))) == vPos)
-            result = positionAfterNode(pos.node());
-        if (VisiblePosition(Position(pos.node(), 0)) == vPos)
-            result = positionBeforeNode(pos.node());
-    } else
-        return pos;
-        
-    if (result.isNull() || !editableRootForPosition(result))
-        result = pos;
-    
-    return result;
-}
-
 PassRefPtr<Element> createDefaultParagraphElement(Document *document)
 {
     ExceptionCode ec = 0;
@@ -844,7 +810,7 @@ PassRefPtr<Element> createTabSpanElement(Document* document, PassRefPtr<Node> ta
     // make the span to hold the tab
     ExceptionCode ec = 0;
     RefPtr<Element> spanElement = document->createElementNS(xhtmlNamespaceURI, "span", ec);
-    assert(ec == 0);
+    ASSERT(ec == 0);
     spanElement->setAttribute(classAttr, AppleTabSpanClass);
     spanElement->setAttribute(styleAttr, "white-space:pre");
 
@@ -852,7 +818,7 @@ PassRefPtr<Element> createTabSpanElement(Document* document, PassRefPtr<Node> ta
     if (!tabTextNode)
         tabTextNode = document->createEditingTextNode("\t");
     spanElement->appendChild(tabTextNode, ec);
-    assert(ec == 0);
+    ASSERT(ec == 0);
 
     return spanElement.release();
 }
@@ -894,6 +860,74 @@ bool isMailBlockquote(const Node *node)
         return false;
         
     return static_cast<const Element *>(node)->getAttribute("type") == "cite";
+}
+
+bool lineBreakExistsAtPosition(const VisiblePosition& visiblePosition)
+{
+    if (visiblePosition.isNull())
+        return false;
+        
+    Position downstream(visiblePosition.deepEquivalent().downstream());
+    return downstream.node()->hasTagName(brTag) ||
+           downstream.node()->isTextNode() && downstream.node()->renderer()->style()->preserveNewline() && visiblePosition.characterAfter() == '\n';
+}
+
+PassRefPtr<Range> avoidIntersectionWithNode(const Range* range, Node* node)
+{
+    if (!range || range->isDetached())
+        return 0;
+
+    Document* document = range->ownerDocument();
+
+    ExceptionCode ec = 0;
+    Node* startContainer = range->startContainer(ec);
+    ASSERT(ec == 0);
+    int startOffset = range->startOffset(ec);
+    ASSERT(ec == 0);
+    Node* endContainer = range->endContainer(ec);
+    ASSERT(ec == 0);
+    int endOffset = range->endOffset(ec);
+    ASSERT(ec == 0);
+
+    ASSERT(startContainer);
+    ASSERT(endContainer);
+
+    if (startContainer == node || startContainer->isDescendantOf(node)) {
+        ASSERT(node->parentNode());
+        startContainer = node->parentNode();
+        startOffset = node->nodeIndex();
+    }
+    if (endContainer == node || endContainer->isDescendantOf(node)) {
+        ASSERT(node->parentNode());
+        endContainer = node->parentNode();
+        endOffset = node->nodeIndex();
+    }
+
+    return new Range(document, startContainer, startOffset, endContainer, endOffset);
+}
+
+Selection avoidIntersectionWithNode(const Selection& selection, Node* node)
+{
+    if (selection.isNone())
+        return Selection(selection);
+        
+    Selection updatedSelection(selection);
+    Node* base = selection.base().node();
+    Node* extent = selection.extent().node();
+    ASSERT(base);
+    ASSERT(extent);
+    
+    if (base == node || base->isDescendantOf(node)) {
+        ASSERT(node->parentNode());
+        updatedSelection.setBase(Position(node->parentNode(), node->nodeIndex()));
+    }
+    
+    if (extent == node || extent->isDescendantOf(node)) {
+        ASSERT(node->parentNode());
+        updatedSelection.setExtent(Position(node->parentNode(), node->nodeIndex()));
+    }
+        
+    return updatedSelection;
 }
 
 } // namespace WebCore

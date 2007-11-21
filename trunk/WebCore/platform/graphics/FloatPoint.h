@@ -28,11 +28,12 @@
 #ifndef FloatPoint_h
 #define FloatPoint_h
 
+#include "FloatSize.h"
+#include <wtf/Platform.h>
+
 #ifdef __OWB__
 #include "AffineTransform.h"
 #endif
-#include "FloatSize.h"
-#include <wtf/Platform.h>
 
 #if PLATFORM(CG)
 typedef struct CGPoint CGPoint;
@@ -64,6 +65,8 @@ public:
     FloatPoint() : m_x(0), m_y(0) { }
     FloatPoint(float x, float y) : m_x(x), m_y(y) { }
     FloatPoint(const IntPoint&);
+
+    static FloatPoint narrowPrecision(double x, double y);
 
     float x() const { return m_x; }
     float y() const { return m_y; }

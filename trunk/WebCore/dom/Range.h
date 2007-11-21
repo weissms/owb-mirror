@@ -19,8 +19,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -79,7 +79,6 @@ public:
     PassRefPtr<DocumentFragment> cloneContents(ExceptionCode&);
     void insertNode(PassRefPtr<Node>, ExceptionCode&);
     String toString(ExceptionCode&) const;
-    String toString(bool convertBRsToNewlines, ExceptionCode&) const;
 
     String toHTML() const;
     String text() const;
@@ -114,7 +113,7 @@ public:
     Position editingStartPosition() const;
 
     IntRect boundingBox();
-    void addLineBoxRects(Vector<IntRect>&);
+    void addLineBoxRects(Vector<IntRect>&, bool useSelectionHeight = false);
 
 #ifndef NDEBUG
     void formatForDebugger(char* buffer, unsigned length) const;

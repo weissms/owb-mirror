@@ -32,7 +32,7 @@
 #include <wtf/OwnPtr.h>
 
 #if PLATFORM(MAC)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 
 #ifdef __OBJC__
 @class NSMenuItem;
@@ -41,25 +41,17 @@ class NSMenuItem;
 #endif
 #elif PLATFORM(WIN)
 typedef struct tagMENUITEMINFOW* LPMENUITEMINFO;
-#elif PLATFORM(GDK)
+#elif PLATFORM(GTK)
 typedef struct _GtkMenuItem GtkMenuItem;
+#elif PLATFORM(QT)
+#include <QAction>
+#elif defined __OWB__
+typedef void* PlatformMenuItemDescription;
 #endif
 
 namespace WebCore {
 
     class ContextMenu;
-
-#if PLATFORM(MAC)
-    typedef NSMenuItem* PlatformMenuItemDescription;
-#elif PLATFORM(WIN)
-    typedef LPMENUITEMINFO PlatformMenuItemDescription;
-#elif PLATFORM(QT)
-    typedef void* PlatformMenuItemDescription;
-#elif PLATFORM(GDK)
-    typedef GtkMenuItem* PlatformMenuItemDescription;
-#elif defined __OWB__
-    typedef void* PlatformMenuItemDescription;
-#endif
 
     // This enum needs to be in sync with the WebMenuItemTag enum in WebUIDelegate.h and the
     // extra values in WebUIDelegatePrivate.h
@@ -120,6 +112,9 @@ namespace WebCore {
         ContextMenuItemTagDefaultDirection,
         ContextMenuItemTagLeftToRight,
         ContextMenuItemTagRightToLeft,
+        ContextMenuItemTagPDFSinglePageScrolling,
+        ContextMenuItemTagPDFFacingPagesScrolling,
+        ContextMenuItemTagInspectElement,
         ContextMenuItemBaseApplicationTag = 10000
     };
 
@@ -128,6 +123,25 @@ namespace WebCore {
         SeparatorType,
         SubmenuType
     };
+
+#if PLATFORM(MAC)
+    typedef NSMenuItem* PlatformMenuItemDescription;
+#elif PLATFORM(WIN)
+    typedef LPMENUITEMINFO PlatformMenuItemDescription;
+#elif PLATFORM(QT)
+    struct PlatformMenuItemDescriptionType {
+        PlatformMenuItemDescriptionType() : qaction(0), menu(0), action(ContextMenuItemTagNoAction), type(ActionType), subMenu(0) {}
+        QAction *qaction;
+        QMenu *menu;
+        ContextMenuAction action;
+        QString title;
+        ContextMenuItemType type;
+        PlatformMenuDescription subMenu;
+    };
+    typedef PlatformMenuItemDescriptionType* PlatformMenuItemDescription;
+#elif PLATFORM(GTK)
+    typedef GtkMenuItem* PlatformMenuItemDescription;
+#endif
 
     class ContextMenuItem {
     public:

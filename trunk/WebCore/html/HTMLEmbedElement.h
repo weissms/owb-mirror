@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -28,7 +28,7 @@
 #include "HTMLPlugInElement.h"
 
 #if USE(JAVASCRIPTCORE_BINDINGS)
-#include <JavaScriptCore/runtime.h>
+#include <bindings/runtime.h>
 #endif
 
 namespace WebCore {
@@ -40,6 +40,7 @@ public:
     HTMLEmbedElement(Document*);
     ~HTMLEmbedElement();
 
+    virtual HTMLTagStatus endTagRequirement() const { return TagStatusForbidden; }
     virtual int tagPriority() const { return 0; }
 
     virtual bool mapToEntry(const QualifiedName& attrName, MappedAttributeEntry& result) const;
@@ -51,6 +52,7 @@ public:
     virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
     virtual void insertedIntoDocument();
     virtual void removedFromDocument();
+    virtual void attributeChanged(Attribute*, bool preserveDecls = false);
     
     virtual bool isURLAttribute(Attribute*) const;
 
@@ -64,7 +66,7 @@ public:
     String type() const;
     void setType(const String&);
     
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     SVGDocument* getSVGDocument(ExceptionCode&) const;
 #endif
 

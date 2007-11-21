@@ -14,18 +14,18 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module html {
-    interface [LegacyParent=KJS::JSHTMLElement, GenerateConstructor] HTMLBodyElement : HTMLElement {
-        attribute DOMString aLink;
-        attribute DOMString background;
-        attribute DOMString bgColor;
-        attribute DOMString link;
-        attribute DOMString text;
-        attribute DOMString vLink; 
+    interface [GenerateConstructor] HTMLBodyElement : HTMLElement {
+        attribute [ConvertNullToNullString] DOMString aLink;
+        attribute [ConvertNullToNullString] DOMString background;
+        attribute [ConvertNullToNullString] DOMString bgColor;
+        attribute [ConvertNullToNullString] DOMString link;
+        attribute [ConvertNullToNullString] DOMString text;
+        attribute [ConvertNullToNullString] DOMString vLink; 
         
         // IE Extensions
         attribute long scrollLeft;

@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef SelectionController_h
@@ -28,7 +28,7 @@
 
 #ifdef __OWB__
 #include "GraphicsContext.h"
-#endif
+#endif //__OWB__
 #include "IntRect.h"
 #include "Selection.h"
 #include "Range.h"
@@ -63,7 +63,7 @@ public:
     void setSelectedRange(Range*, EAffinity, bool closeTyping, ExceptionCode&);
     void selectAll();
     void clear();
-
+    
     // Call this after doing user-triggered selections to make it easy to delete the frame you entirely selected.
     void selectFrameElementInParentIfFullySelected();
 
@@ -90,48 +90,50 @@ public:
     IntRect caretRect() const;
     void setNeedsLayout(bool flag = true);
 
-    void clearModifyBias() { m_modifyBiasSet = false; }
-    void setModifyBias(EAlteration, EDirection);
-
+    void setLastChangeWasHorizontalExtension(bool b) { m_lastChangeWasHorizontalExtension = b; }
+    void willBeModified(EAlteration, EDirection);
+    
     bool isNone() const { return m_sel.isNone(); }
     bool isCaret() const { return m_sel.isCaret(); }
     bool isRange() const { return m_sel.isRange(); }
     bool isCaretOrRange() const { return m_sel.isCaretOrRange(); }
     bool isInPasswordField() const;
     bool isInsideNode() const;
-
+    
     PassRefPtr<Range> toRange() const { return m_sel.toRange(); }
 
     void debugRenderer(RenderObject*, bool selected) const;
-
+    
     void nodeWillBeRemoved(Node*);
 
     // Safari Selection Object API
-    Node* baseNode() const { return m_sel.base().node(); }
-    Node* extentNode() const { return m_sel.extent().node(); }
-    int baseOffset() const { return m_sel.base().offset(); }
-    int extentOffset() const { return m_sel.extent().offset(); }
+    // These methods return the valid equivalents of internal editing positions.
+    Node* baseNode() const;
+    Node* extentNode() const;
+    int baseOffset() const;
+    int extentOffset() const;
     String type() const;
-    void setBaseAndExtent(Node* baseNode, int baseOffset, Node* extentNode, int extentOffset);
-    void setPosition(Node*, int offset);
+    void setBaseAndExtent(Node* baseNode, int baseOffset, Node* extentNode, int extentOffset, ExceptionCode&);
+    void setPosition(Node*, int offset, ExceptionCode&);
     bool modify(const String& alterString, const String& directionString, const String& granularityString, bool userTriggered = false);
-
+    
     // Mozilla Selection Object API
     // In FireFox, anchor/focus are the equal to the start/end of the selection,
     // but reflect the direction in which the selection was made by the user.  That does
     // not mean that they are base/extent, since the base/extent don't reflect
     // expansion.
-    Node* anchorNode() const { return m_sel.isBaseFirst() ? m_sel.start().node() : m_sel.end().node(); }
-    int anchorOffset() const { return m_sel.isBaseFirst() ? m_sel.start().offset() : m_sel.end().offset(); }
-    Node* focusNode() const { return m_sel.isBaseFirst() ? m_sel.end().node() : m_sel.start().node(); }
-    int focusOffset() const { return m_sel.isBaseFirst() ? m_sel.end().offset() : m_sel.start().offset(); }
+    // These methods return the valid equivalents of internal editing positions.
+    Node* anchorNode() const;
+    int anchorOffset() const;
+    Node* focusNode() const;
+    int focusOffset() const;
     bool isCollapsed() const { return !isRange(); }
     String toString() const;
-    void collapse(Node*, int offset);
+    void collapse(Node*, int offset, ExceptionCode&);
     void collapseToEnd();
     void collapseToStart();
-    void extend(Node*, int offset);
-    PassRefPtr<Range> getRangeAt(int index) const;
+    void extend(Node*, int offset, ExceptionCode&);
+    PassRefPtr<Range> getRangeAt(int index, ExceptionCode&) const;
     int rangeCount() const { return !isNone() ? 1 : 0; }
     void removeAllRanges();
     void addRange(const Range*);
@@ -139,12 +141,12 @@ public:
     //bool containsNode(Node *node, bool entirelyContained);
     //void selectAllChildren(const Node *);
     //void removeRange(const Range *);
-
+    
     // Microsoft Selection Object API
     void empty();
     //void clear();
     //TextRange *createRange();
-
+    
     bool recomputeCaretRect(); // returns true if caret rect moved
     void invalidateCaretRect();
     void paintCaret(GraphicsContext*, const IntRect&);
@@ -170,24 +172,29 @@ private:
     IntRect caretRepaintRect() const;
 
     int xPosForVerticalArrowNavigation(EPositionType);
+    
+#if PLATFORM(MAC)
+    void notifyAccessibilityForSelectionChange();
+#else
+    void notifyAccessibilityForSelectionChange() {};
+#endif
 
     Selection m_sel;
 
     IntRect m_caretRect;            // caret coordinates, size, and position
-
+    
     // m_caretPositionOnLayout stores the scroll offset on the previous call to SelectionController::layout().
     // When asked for caretRect(), we correct m_caretRect for offset due to scrolling since the last layout().
     // This is faster than doing another layout().
     IntPoint m_caretPositionOnLayout;
-
+    
     bool m_needsLayout : 1;       // true if the caret and expectedVisible rectangles need to be calculated
-    bool m_modifyBiasSet : 1;     // true if the selection has been horizontally
-                                  // modified with EAlteration::EXTEND
+    bool m_lastChangeWasHorizontalExtension : 1;
     Frame* m_frame;
     bool m_isDragCaretController;
 
     bool m_isCaretBlinkingSuspended;
-
+    
     int m_xPosForVerticalArrowNavigation;
 };
 

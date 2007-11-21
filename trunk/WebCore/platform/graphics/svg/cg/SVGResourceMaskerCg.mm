@@ -26,12 +26,15 @@
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #import "SVGResourceMasker.h"
 
+#import "BlockExceptions.h"
 #import "CgSupport.h"
 #import "GraphicsContext.h"
 #import "ImageBuffer.h"
+#import "SVGMaskElement.h"
+#import "SVGRenderSupport.h"
 #import "SVGRenderStyle.h"
 #import "SVGResourceFilter.h"
 #import <QuartzCore/CIFilter.h>
@@ -45,8 +48,8 @@ static CIImage* applyLuminanceToAlphaFilter(CIImage* inputImage)
 {
     CIFilter* luminanceToAlpha = [CIFilter filterWithName:@"CIColorMatrix"];
     [luminanceToAlpha setDefaults];
-    CGFloat alpha[4] = {0.2125, 0.7154, 0.0721, 0};
-    CGFloat zero[4] = {0, 0, 0, 0};
+    CGFloat alpha[4] = {0.2125f, 0.7154f, 0.0721f, 0.0f};
+    CGFloat zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     [luminanceToAlpha setValue:inputImage forKey:@"inputImage"];  
     [luminanceToAlpha setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputRVector"];
     [luminanceToAlpha setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputGVector"];
@@ -65,15 +68,15 @@ static CIImage* applyExpandAlphatoGrayscaleFilter(CIImage* inputImage)
     [alphaToGrayscale setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputRVector"];
     [alphaToGrayscale setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputGVector"];
     [alphaToGrayscale setValue:[CIVector vectorWithValues:zero count:4] forKey:@"inputBVector"];
-    [alphaToGrayscale setValue:[CIVector vectorWithX:0.0 Y:0.0 Z:0.0 W:1.0] forKey:@"inputAVector"];
-    [alphaToGrayscale setValue:[CIVector vectorWithX:1.0 Y:1.0 Z:1.0 W:0.0] forKey:@"inputBiasVector"];
+    [alphaToGrayscale setValue:[CIVector vectorWithX:0.0f Y:0.0f Z:0.0f W:1.0f] forKey:@"inputAVector"];
+    [alphaToGrayscale setValue:[CIVector vectorWithX:1.0f Y:1.0f Z:1.0f W:0.0f] forKey:@"inputBiasVector"];
     return [alphaToGrayscale valueForKey:@"outputImage"];
 }
 
 static CIImage* transformImageIntoGrayscaleMask(CIImage* inputImage)
 {
     CIFilter* blackBackground = [CIFilter filterWithName:@"CIConstantColorGenerator"];
-    [blackBackground setValue:[CIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:1.0] forKey:@"inputColor"];
+    [blackBackground setValue:[CIColor colorWithRed:0.0f green:0.0f blue:0.0f alpha:1.0f] forKey:@"inputColor"];
 
     CIFilter* layerOverBlack = [CIFilter filterWithName:@"CISourceOverCompositing"];
     [layerOverBlack setValue:[blackBackground valueForKey:@"outputImage"] forKey:@"inputBackgroundImage"];  
@@ -89,35 +92,36 @@ static CIImage* transformImageIntoGrayscaleMask(CIImage* inputImage)
     return [multipliedGrayscale valueForKey:@"outputImage"];
 }
 
-void SVGResourceMasker::applyMask(GraphicsContext* context, const FloatRect& boundingBox) const
+void SVGResourceMasker::applyMask(GraphicsContext* context, const FloatRect& boundingBox)
 {
     if (!m_mask)
+        m_mask.set(m_ownerElement->drawMaskerContent(boundingBox, m_maskRect).release());
+    if (!m_mask)
         return;
-
-    IntSize maskSize = m_mask->size();
-
-    // The mask we operate on is has it's top left corner at (0, 0) on the CGImage.
-    // We have to translate to the current relative bbox, to get the clipping right.
-    CGRect maskDestinationRect = CGRectMake(lroundf(boundingBox.x()), lroundf(boundingBox.y()),
-                                            maskSize.width(), maskSize.height());
+    
+    IntSize maskSize(static_cast<int>(m_maskRect.width()), static_cast<int>(m_maskRect.height()));
+    clampImageBufferSizeToViewport(m_ownerElement->document()->renderer(), maskSize);
 
     // Create new graphics context in gray scale mode for image rendering
     auto_ptr<ImageBuffer> grayScaleImage(ImageBuffer::create(maskSize, true));
     if (!grayScaleImage.get())
         return;
+    
+    BEGIN_BLOCK_OBJC_EXCEPTIONS
     CGContextRef grayScaleContext = grayScaleImage->context()->platformContext();
-
-    // Wrap CG context in CI context
     CIContext* ciGrayscaleContext = [CIContext contextWithCGContext:grayScaleContext options:nil];
 
     // Transform colorized mask to gray scale
-    CIImage* grayScaleMask = transformImageIntoGrayscaleMask([CIImage imageWithCGImage:m_mask->cgImage()]);
+    CIImage* colorMask = [CIImage imageWithCGImage:m_mask->cgImage()];
+    if (!colorMask)
+        return;
+    CIImage* grayScaleMask = transformImageIntoGrayscaleMask(colorMask);
     [ciGrayscaleContext drawImage:grayScaleMask atPoint:CGPointZero fromRect:CGRectMake(0, 0, maskSize.width(), maskSize.height())];
 
-    // Do the actual masking!
-    CGContextClipToMask(context->platformContext(), maskDestinationRect, grayScaleImage->cgImage());
+    CGContextClipToMask(context->platformContext(), m_maskRect, grayScaleImage->cgImage());
+    END_BLOCK_OBJC_EXCEPTIONS
 }
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)

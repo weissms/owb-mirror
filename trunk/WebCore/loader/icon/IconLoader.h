@@ -30,11 +30,12 @@
 #include "SubresourceLoaderClient.h"
 #include <memory>
 #include <wtf/Noncopyable.h>
-#include <wtf/Vector.h>
+#include <wtf/PassRefPtr.h>
 
 namespace WebCore {
 
 class Frame;
+class SharedBuffer;
 
 class IconLoader : private SubresourceLoaderClient, Noncopyable {
 public:
@@ -43,6 +44,7 @@ public:
     
     void startLoading();
     void stopLoading();
+
 private:
     IconLoader(Frame*);
 
@@ -51,13 +53,12 @@ private:
     virtual void didFinishLoading(SubresourceLoader*);
     virtual void didFail(SubresourceLoader*, const ResourceError&);
 
-    void finishLoading(const KURL&);
+    void finishLoading(const KURL&, PassRefPtr<SharedBuffer> data);
     void clearLoadingState();
 
     Frame* m_frame;
 
     RefPtr<SubresourceLoader> m_resourceLoader;
-    Vector<char> m_buffer;
     bool m_loadIsInProgress;
 }; // class IconLoader
 

@@ -16,12 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
+
 #include "SVGLocatable.h"
 
 #include "AffineTransform.h"
@@ -96,8 +97,8 @@ AffineTransform SVGLocatable::getCTM(const SVGElement* element)
     AffineTransform ctm;
 
     Node* parent = element->parentNode();
-    if (parent && parent->isElementNode()) {
-        SVGElement* parentElement = svg_dynamic_cast(parent);
+    if (parent && parent->isSVGElement()) {
+        SVGElement* parentElement = static_cast<SVGElement*>(parent);
         if (parentElement && parentElement->isStyledLocatable()) {
             AffineTransform parentCTM = static_cast<SVGStyledLocatableElement*>(parentElement)->getCTM();
             ctm = parentCTM * ctm;
@@ -115,8 +116,8 @@ AffineTransform SVGLocatable::getScreenCTM(const SVGElement* element)
     AffineTransform ctm;
 
     Node* parent = element->parentNode();
-    if (parent && parent->isElementNode()) {
-        SVGElement* parentElement = svg_dynamic_cast(parent);
+    if (parent && parent->isSVGElement()) {
+        SVGElement* parentElement = static_cast<SVGElement*>(parent);
         if (parentElement && parentElement->isStyledLocatable()) {
             AffineTransform parentCTM = static_cast<SVGStyledLocatableElement*>(parentElement)->getScreenCTM();
             ctm = parentCTM * ctm;
@@ -145,6 +146,6 @@ AffineTransform SVGLocatable::getTransformToElement(SVGElement* target, Exceptio
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

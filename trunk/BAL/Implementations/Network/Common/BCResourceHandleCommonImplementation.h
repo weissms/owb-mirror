@@ -54,7 +54,7 @@ namespace BC {
  */
     class BCResourceHandleCommonImplementation : Noncopyable {
     public:
-        BCResourceHandleCommonImplementation(BAL::BIResourceHandle* loader, const ResourceRequest& request, ResourceHandleClient* c, bool defersLoading, bool mightDownloadFromHandle)
+        BCResourceHandleCommonImplementation(BAL::BIResourceHandle* loader, const ResourceRequest& request, ResourceHandleClient* c, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle)
             : m_client(c)
             , m_request(request)
             , status(0)
@@ -65,7 +65,9 @@ namespace BC {
 
         ~BCResourceHandleCommonImplementation() {}
 
-        ResourceHandleClient* client() { return m_client; }
+        ResourceHandleClient* client() const { return m_client; }
+        void setClient(ResourceHandleClient* client) { m_client = client; }
+        const ResourceRequest& request() const { return m_request; }
         ResourceHandleClient* m_client;
 
         ResourceRequest m_request;

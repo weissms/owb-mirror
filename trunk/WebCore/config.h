@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
- * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -14,32 +13,18 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include <wtf/Platform.h>
 
-#ifndef __OWB__
-#define KHTML_NO_XBL 1
-#define KHTML_XSLT 1
-#endif
+#define MOBILE 0
 
-#if PLATFORM(MAC)
+#if __APPLE__
 #define HAVE_FUNC_USLEEP 1
-
-#ifndef CGFLOAT_DEFINED
-#ifdef __LP64__
-typedef double CGFloat;
-#else
-typedef float CGFloat;
-#endif
-#define CGFLOAT_DEFINED 1
-#endif
-
 #endif /* __APPLE__ */
-
 
 #if PLATFORM(WIN_OS)
 
@@ -53,17 +38,16 @@ typedef float CGFloat;
 
 // If we don't define these, they get defined in windef.h. 
 // We want to use std::min and std::max
+#ifndef max
 #define max max
+#endif
+#ifndef min
 #define min min
+#endif
 
-// Hack to match configuration of JavaScriptCore.
-// Maybe there's a better way to do this.
-#define USE_SYSTEM_MALLOC 1
-
-// FIXME: Should probably just dump this eventually, but it's needed for now.
-// We get this from some system place on OS X; probably better not to use it
-// in WebCore code.
-#include <assert.h>
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_ // Prevent inclusion of winsock.h in windows.h
+#endif
 
 #endif /* PLATFORM(WIN_OS) */
 
@@ -82,19 +66,37 @@ typedef float CGFloat;
 
 #endif
 
+#if !PLATFORM(QT) // this breaks compilation of <QFontDatabase>, at least, so turn it off for now
+#include <wtf/DisallowCType.h>
+#endif
+
 #if !COMPILER(MSVC) // can't get this to compile on Visual C++ yet
 #define AVOID_STATIC_CONSTRUCTORS 1
 #endif
 
-#if PLATFORM(MAC)
+#if PLATFORM(WIN)
 #define WTF_USE_JAVASCRIPTCORE_BINDINGS 1
 #define WTF_USE_NPOBJECT 1
+#define WTF_PLATFORM_CG 1
+#undef WTF_PLATFORM_CAIRO
+#define WTF_USE_CFNETWORK 1
+#undef WTF_USE_WININET
+#define WTF_PLATFORM_CF 1
+#define WTF_USE_PTHREADS 1
+#endif
+
+#if PLATFORM(MAC)
+#define WTF_USE_JAVASCRIPTCORE_BINDINGS 1
+#ifdef __LP64__
+#define WTF_USE_NPOBJECT 0
+#else
+#define WTF_USE_NPOBJECT 1
+#endif
 #endif
 
 #if PLATFORM(SYMBIAN)
 #define WTF_USE_JAVASCRIPTCORE_BINDINGS 1
 #define WTF_USE_NPOBJECT 1
-#undef XSLT_SUPPORT
 #undef WIN32
 #undef _WIN32
 #undef AVOID_STATIC_CONSTRUCTORS
@@ -109,4 +111,20 @@ typedef float CGFloat;
 #include <snprintf.h>
 #include <limits.h>
 #include <wtf/MathExtras.h>
+#endif
+
+#if PLATFORM(CG)
+#ifndef CGFLOAT_DEFINED
+#ifdef __LP64__
+typedef double CGFloat;
+#else
+typedef float CGFloat;
+#endif
+#define CGFLOAT_DEFINED 1
+#endif
+#endif /* PLATFORM(CG) */
+
+#ifdef BUILDING_ON_TIGER
+#undef ENABLE_FTPDIR
+#define ENABLE_FTPDIR 0
 #endif

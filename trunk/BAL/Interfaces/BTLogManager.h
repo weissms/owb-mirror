@@ -114,7 +114,7 @@ public:
      * @param aMessage the message to log
      */
     void send(BTLogModule module, BTLogLevel level, const char* file, int
-lineNumber, const char* functionName, const char* message);
+lineNumber, const char* functionName, const char* message, ...);
 
 private:
     /**

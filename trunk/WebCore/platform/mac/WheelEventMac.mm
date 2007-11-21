@@ -27,6 +27,7 @@
 #import "PlatformWheelEvent.h"
 
 #import "PlatformMouseEvent.h"
+#import "WebCoreSystemInterface.h"
 
 namespace WebCore {
 
@@ -41,6 +42,9 @@ PlatformWheelEvent::PlatformWheelEvent(NSEvent* event)
     , m_altKey([event modifierFlags] & NSAlternateKeyMask)
     , m_metaKey([event modifierFlags] & NSCommandKeyMask)
 {
+    BOOL continuous;
+    wkGetWheelEventDeltas(event, &m_continuousDeltaX, &m_continuousDeltaY, &continuous);
+    m_isContinuous = continuous;
 }
 
 } // namespace WebCore

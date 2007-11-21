@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     This class provides all functionality needed for loading images, style sheets and html
     pages from the web. It has a memory cache for these objects.
@@ -38,10 +38,10 @@
 
 namespace WebCore {
 
-#ifdef XSLT_SUPPORT
+#if ENABLE(XSLT)
 
-CachedXSLStyleSheet::CachedXSLStyleSheet(DocLoader* dl, const String &url, CachePolicy cachePolicy, time_t _expireDate)
-    : CachedResource(url, XSLStyleSheet, cachePolicy, _expireDate)
+CachedXSLStyleSheet::CachedXSLStyleSheet(DocLoader* dl, const String &url)
+    : CachedResource(url, XSLStyleSheet)
     , m_decoder(new TextResourceDecoder("text/xsl"))
 {
     // It's XML we want.
@@ -66,14 +66,17 @@ void CachedXSLStyleSheet::setEncoding(const String& chs)
     m_decoder->setEncoding(chs, TextResourceDecoder::EncodingFromHTTPHeader);
 }
 
-void CachedXSLStyleSheet::data(Vector<char>& data, bool allDataReceived)
+void CachedXSLStyleSheet::data(PassRefPtr<SharedBuffer> data, bool allDataReceived)
 {
     if (!allDataReceived)
         return;
 
-    setSize(data.size());
-    m_sheet = String(m_decoder->decode(data.data(), size()));
-    m_sheet += m_decoder->flush();
+    m_data = data;     
+    setEncodedSize(m_data.get() ? m_data->size() : 0);
+    if (m_data.get()) {
+        m_sheet = String(m_decoder->decode(m_data->data(), encodedSize()));
+        m_sheet += m_decoder->flush();
+    }
     m_loading = false;
     checkNotify();
 }
@@ -92,6 +95,7 @@ void CachedXSLStyleSheet::checkNotify()
 void CachedXSLStyleSheet::error()
 {
     m_loading = false;
+    m_errorOccurred = true;
     checkNotify();
 }
 

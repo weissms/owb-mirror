@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -27,13 +27,15 @@
 
 #include "HTMLFrameOwnerElement.h"
 
+#ifdef __OWB_JS__
 #if USE(JAVASCRIPTCORE_BINDINGS)
-#include <JavaScriptCore/runtime.h>
+#include <bindings/runtime.h>
 #endif
 
 #if USE(NPOBJECT)
-#include <JavaScriptCore/npruntime.h>
+#include <bindings/npruntime.h>
 #endif
+#endif //__OWB_JS__
 
 namespace WebCore {
 
@@ -45,8 +47,8 @@ public:
     virtual bool mapToEntry(const QualifiedName& attrName, MappedAttributeEntry& result) const;
     virtual void parseMappedAttribute(MappedAttribute*);
 
-    virtual void detach();
-    
+    virtual void willRemove();
+
     virtual HTMLTagStatus endTagRequirement() const { return TagStatusRequired; }
     virtual bool checkDTD(const Node* newChild);
 
@@ -62,9 +64,11 @@ public:
     String width() const;
     void setWidth(const String&);
 
+#ifdef __OWB_JS__
 #if USE(JAVASCRIPTCORE_BINDINGS)
     virtual KJS::Bindings::Instance* getInstance() const = 0;
 #endif
+#endif //__OWB_JS__
 #if USE(NPOBJECT)
     virtual NPObject* getNPObject();
 #endif
@@ -79,9 +83,11 @@ private:
 
 protected:
     String oldNameAttr;
+#ifdef __OWB_JS__
 #if USE(JAVASCRIPTCORE_BINDINGS)
     mutable RefPtr<KJS::Bindings::Instance> m_instance;
 #endif
+#endif //__OWB_JS__
 #if USE(NPOBJECT)
     NPObject* m_NPObject;
 #endif

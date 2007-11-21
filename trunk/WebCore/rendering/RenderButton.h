@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -26,6 +26,8 @@
 #include "RenderFlexibleBox.h"
 
 namespace WebCore {
+
+class RenderTextFragment;
 
 // RenderButtons are just like normal flexboxes except that they will generate an anonymous block child.
 // For inputs, they will also generate an anonymous RenderText and keep its style and content up
@@ -38,23 +40,25 @@ public:
 
     virtual void addChild(RenderObject* newChild, RenderObject *beforeChild = 0);
     virtual void removeChild(RenderObject*);
-    virtual void removeLeftoverAnonymousBoxes() { }
+    virtual void removeLeftoverAnonymousBlock(RenderBlock*) { }
     virtual bool createsAnonymousWrapper() const { return true; }
 
     virtual void setStyle(RenderStyle*);
     virtual void updateFromElement();
 
-    virtual void updatePseudoChild(RenderStyle::PseudoId);
+    virtual void updateBeforeAfterContent(RenderStyle::PseudoId);
 
     virtual bool hasControlClip() const { return true; }
     virtual IntRect controlClipRect(int /*tx*/, int /*ty*/) const;
 
     void setText(const String&);
+    
+    virtual bool canHaveChildren() const;
 
 protected:
     virtual bool hasLineIfEmpty() const { return true; }
 
-    RenderText* m_buttonText;
+    RenderTextFragment* m_buttonText;
     RenderBlock* m_inner;
 };
 

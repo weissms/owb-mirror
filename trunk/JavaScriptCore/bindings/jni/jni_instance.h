@@ -42,6 +42,7 @@ class JObjectWrapper
 {
 friend class RefPtr<JObjectWrapper>;
 friend class JavaArray;
+friend class JavaField;
 friend class JavaInstance;
 friend class JavaMethod;
 
@@ -66,7 +67,7 @@ private:
 class JavaInstance : public Instance
 {
 public:
-    JavaInstance(jobject instance);
+    JavaInstance(jobject instance, PassRefPtr<RootObject>);
     ~JavaInstance();
     
     virtual Class *getClass() const;
@@ -86,9 +87,6 @@ public:
     JSValue *booleanValue() const;
         
 private:
-    JavaInstance (JavaInstance &);           // prevent copying
-    JavaInstance &operator=(JavaInstance &); // prevent copying
-    
     RefPtr<JObjectWrapper> _instance;
     mutable JavaClass *_class;
 };

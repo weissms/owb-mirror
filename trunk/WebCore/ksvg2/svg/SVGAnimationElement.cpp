@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
     Copyright (C) 2007 Eric Seidel <eric@webkit.org>
 
     This file is part of the KDE project
@@ -17,26 +17,26 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGAnimationElement.h"
 
 #include "CSSPropertyNames.h"
 #include "Document.h"
-#include "TimeScheduler.h"
+#include "FloatConversion.h"
 #include "SVGParserUtilities.h"
 #include "SVGSVGElement.h"
 #include "SVGURIReference.h"
+#include "TimeScheduler.h"
 #include "XLinkNames.h"
-#include "ksvgcssproperties.h"
 #include <float.h>
 #include <math.h>
-#include <wtf/Vector.h>
 #include <wtf/MathExtras.h>
+#include <wtf/Vector.h>
 
 using namespace std;
 
@@ -96,29 +96,29 @@ SVGElement* SVGAnimationElement::targetElement() const
     return m_targetElement;
 }
 
-double SVGAnimationElement::getEndTime() const
+float SVGAnimationElement::getEndTime() const
 {
-    return m_end;
+    return narrowPrecisionToFloat(m_end);
 }
 
-double SVGAnimationElement::getStartTime() const
+float SVGAnimationElement::getStartTime() const
 {
-    return m_begin;
+    return narrowPrecisionToFloat(m_begin);
 }
 
-double SVGAnimationElement::getCurrentTime() const
+float SVGAnimationElement::getCurrentTime() const
 {
-    return m_currentTime;
+    return narrowPrecisionToFloat(m_currentTime);
 }
 
-double SVGAnimationElement::getSimpleDuration(ExceptionCode&) const
+float SVGAnimationElement::getSimpleDuration(ExceptionCode&) const
 {
-    return m_simpleDuration;
+    return narrowPrecisionToFloat(m_simpleDuration);
 }
 
 void SVGAnimationElement::parseKeyNumbers(Vector<float>& keyNumbers, const String& value)
 {
-    double number = 0.f;
+    float number = 0.0f;
     
     const UChar* ptr = value.characters();
     const UChar* end = ptr + value.length();
@@ -161,7 +161,7 @@ static void parseValues(Vector<String>& values, const String& value)
 
 static void parseKeySplines(Vector<SVGAnimationElement::KeySpline>& keySplines, const String& value)
 {
-    double number = 0.f;
+    float number = 0.0f;
     SVGAnimationElement::KeySpline keySpline;
     
     const UChar* ptr = value.characters();
@@ -242,86 +242,85 @@ void SVGAnimationElement::parseBeginOrEndValue(double& number, const String& val
 
 void SVGAnimationElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const String& value = attr->value();
     if (attr->name().matches(XLinkNames::hrefAttr))
-        m_href = value;
+        m_href = attr->value();
     else if (attr->name() == SVGNames::attributeNameAttr)
-        m_attributeName = value;
+        m_attributeName = attr->value();
     else if (attr->name() == SVGNames::attributeTypeAttr) {
-        if (value == "CSS")
+        if (attr->value() == "CSS")
             m_attributeType = ATTRIBUTETYPE_CSS;
-        else if (value == "XML")
+        else if (attr->value() == "XML")
             m_attributeType = ATTRIBUTETYPE_XML;
-        else if (value == "auto")
+        else if (attr->value() == "auto")
             m_attributeType = ATTRIBUTETYPE_AUTO;
     } else if (attr->name() == SVGNames::beginAttr)
-        parseBeginOrEndValue(m_begin, value);
+        parseBeginOrEndValue(m_begin, attr->value());
     else if (attr->name() == SVGNames::endAttr)
-        parseBeginOrEndValue(m_end, value);
+        parseBeginOrEndValue(m_end, attr->value());
     else if (attr->name() == SVGNames::durAttr) {
-        m_simpleDuration = parseClockValue(value);
+        m_simpleDuration = parseClockValue(attr->value());
         if (!isIndefinite(m_simpleDuration))
             m_simpleDuration *= 1000.0;
     } else if (attr->name() == SVGNames::minAttr) {
-        m_min = parseClockValue(value);
+        m_min = parseClockValue(attr->value());
         if (!isIndefinite(m_min))
             m_min *= 1000.0;
     } else if (attr->name() == SVGNames::maxAttr) {
-        m_max = parseClockValue(value);
+        m_max = parseClockValue(attr->value());
         if (!isIndefinite(m_max))
             m_max *= 1000.0;
     } else if (attr->name() == SVGNames::restartAttr) {
-        if (value == "whenNotActive")
+        if (attr->value() == "whenNotActive")
             m_restart = RESTART_WHENNOTACTIVE;
-        else if (value == "never")
+        else if (attr->value() == "never")
             m_restart = RESTART_NEVER;
-        else if (value == "always")
+        else if (attr->value() == "always")
             m_restart = RESTART_ALWAYS;
     } else if (attr->name() == SVGNames::repeatCountAttr) {
-        if (value == "indefinite")
+        if (attr->value() == "indefinite")
             m_repeatCount = DBL_MAX;
         else
-            m_repeatCount = value.toDouble();
+            m_repeatCount = attr->value().toDouble();
     } else if (attr->name() == SVGNames::repeatDurAttr)
-        m_repeatDur = value;
+        m_repeatDur = attr->value();
     else if (attr->name() == SVGNames::fillAttr) {
-        if (value == "freeze")
+        if (attr->value() == "freeze")
             m_fill = FILL_FREEZE;
-        else if (value == "remove")
+        else if (attr->value() == "remove")
             m_fill = FILL_REMOVE;
     } else if (attr->name() == SVGNames::calcModeAttr) {
-        if (value == "discrete")
+        if (attr->value() == "discrete")
             m_calcMode = CALCMODE_DISCRETE;
-        else if (value == "linear")
+        else if (attr->value() == "linear")
             m_calcMode = CALCMODE_LINEAR;
-        else if (value == "spline")
+        else if (attr->value() == "spline")
             m_calcMode = CALCMODE_SPLINE;
-        else if (value == "paced")
+        else if (attr->value() == "paced")
             m_calcMode = CALCMODE_PACED;
     } else if (attr->name() == SVGNames::valuesAttr) {
         m_values.clear();
-        parseValues(m_values, value);
+        parseValues(m_values, attr->value());
     } else if (attr->name() == SVGNames::keyTimesAttr) {
         m_keyTimes.clear();
-        parseKeyNumbers(m_keyTimes, value);
+        parseKeyNumbers(m_keyTimes, attr->value());
     } else if (attr->name() == SVGNames::keySplinesAttr) {
         m_keySplines.clear();
-        parseKeySplines(m_keySplines, value);
+        parseKeySplines(m_keySplines, attr->value());
     } else if (attr->name() == SVGNames::fromAttr)
-        m_from = value;
+        m_from = attr->value();
     else if (attr->name() == SVGNames::toAttr)
-        m_to = value;
+        m_to = attr->value();
     else if (attr->name() == SVGNames::byAttr)
-        m_by = value;
+        m_by = attr->value();
     else if (attr->name() == SVGNames::additiveAttr) {
-        if (value == "sum")
+        if (attr->value() == "sum")
             m_additive = ADDITIVE_SUM;
-        else if (value == "replace")
+        else if (attr->value() == "replace")
             m_additive = ADDITIVE_REPLACE;
     } else if (attr->name() == SVGNames::accumulateAttr) {
-        if (value == "sum")
+        if (attr->value() == "sum")
             m_accumulate = ACCUMULATE_SUM;
-        else if (value == "none")
+        else if (attr->value() == "none")
             m_accumulate = ACCUMULATE_NONE;
     } else {
         if (SVGTests::parseMappedAttribute(attr))
@@ -411,10 +410,10 @@ double SVGAnimationElement::parseClockValue(const String& data)
     return result;
 }
 
-void SVGAnimationElement::closeRenderer()
+void SVGAnimationElement::finishedParsing()
 {
     ownerSVGElement()->timeScheduler()->addTimer(this, lround(getStartTime()));
-    SVGElement::closeRenderer();
+    SVGElement::finishedParsing();
 }
 
 String SVGAnimationElement::targetAttributeAnimatedValue() const
@@ -721,11 +720,11 @@ void SVGAnimationElement::handleTimerEvent(double elapsedSeconds, double timePer
     
     unsigned valueIndex = 0;
     float percentagePast = 0;
-    calculateValueIndexAndPercentagePast(timePercentage, valueIndex, percentagePast);
+    calculateValueIndexAndPercentagePast(narrowPrecisionToFloat(timePercentage), valueIndex, percentagePast);
         
     calculateFromAndToValues(animationMode, valueIndex);
     
-    updateAnimatedValue(animationMode, timePercentage, valueIndex, percentagePast);
+    updateAnimatedValue(animationMode, narrowPrecisionToFloat(timePercentage), valueIndex, percentagePast);
     
     if (timePercentage == 1.0) {
         if ((m_repeatCount > 0 && m_repetitions < m_repeatCount - 1) || isIndefinite(m_repeatCount)) {
@@ -752,7 +751,7 @@ bool SVGAnimationElement::updateAnimatedValueForElapsedSeconds(double elapsedSec
     if ((m_simpleDuration <= 0.0 && m_end <= 0.0) || (isIndefinite(m_simpleDuration) && m_end <= 0.0))
         return false; // Ignore dur="0" or dur="-neg"
     
-    float percentage = calculateTimePercentage(elapsedSeconds, m_begin, m_end, m_simpleDuration, m_repetitions);
+    double percentage = calculateTimePercentage(elapsedSeconds, m_begin, m_end, m_simpleDuration, m_repetitions);
     
     if (percentage <= 1.0 || connectedToTimer())
         handleTimerEvent(elapsedSeconds, percentage);
@@ -763,5 +762,5 @@ bool SVGAnimationElement::updateAnimatedValueForElapsedSeconds(double elapsedSec
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

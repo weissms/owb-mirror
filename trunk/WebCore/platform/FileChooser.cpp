@@ -40,6 +40,14 @@ PassRefPtr<FileChooser> FileChooser::create(FileChooserClient* client, const Str
     return new FileChooser(client, filename);
 }
 
+void FileChooser::clear()
+{
+    m_filename = String();
+#ifdef OWB_ICON_SUPPORT
+    m_icon = chooseIcon(m_filename);
+#endif //OWB_ICON_SUPPORT
+}
+
 void FileChooser::chooseFile(const String& filename)
 {
     if (m_filename == filename)

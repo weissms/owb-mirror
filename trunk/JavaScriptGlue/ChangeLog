@@ -1,3 +1,167 @@
+2007-10-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Geoff.
+        
+        Make JSG build again after JSGlobalObject change.
+
+        * JSRun.cpp:
+        (JSRun::JSRun):
+        (JSRun::GlobalObject):
+        * JSRun.h:
+        (JSInterpreter::JSInterpreter):
+        * JSUtils.h:
+
+2007-10-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Fix for <rdar://problem/5488678>.  Disable debugging symbols in production builds for 10.4
+        PowerPC to prevent a huge STABS section from being generated.
+
+        * Configurations/Base.xcconfig:
+
+2007-10-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver.
+
+        Switch to default level of debugging symbols to resolve <rdar://problem/5488678>.
+        The "full" level appears to offer no observable benefits even though the documentation
+        suggests it be used for dead code stripping.  This should also decrease link times.
+
+        * Configurations/Base.xcconfig:
+
+2007-09-03  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        <rdar://problem/5452164> Production build with in symbols directory has no debug info
+
+        Enable debug symbol generation on all build configurations.  Production builds are stripped
+        of symbols by Xcode during deployment post-processing.
+
+        * Configurations/Base.xcconfig:
+        * JavaScriptGlue.xcodeproj/project.pbxproj:
+
+2007-08-09  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Antti.
+
+        <rdar://problem/5400709> Versioning in debug and release builds should include minor and tiny version before +
+
+        * Configurations/Version.xcconfig:
+        * JavaScriptGlue.xcodeproj/project.pbxproj: Add a shell script phase to make to dependency between
+        Version.xcconfig and Info.plist explicit to Xcode.
+
+2007-07-16  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver.
+
+        Turn off -Wshorten-64-to-32 warning for 64-bit builds.
+
+        * Configurations/Base.xcconfig:
+
+2007-04-27  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver.
+
+        * JavaScriptGlue.xcodeproj/project.pbxproj: Improve dependencies in Xcode project
+        by marking JavaScriptGlue as a dependency of testjsglue.
+
+2007-03-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        * JavaScriptGlue.xcodeproj/project.pbxproj: Use GCC 4.0 for testjsglue.
+
+2007-03-24  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Darin.
+
+        * Configurations/JavaScriptGlue.xcconfig: Remove unnecessary INFOPLIST_PREPROCESS.
+
+2007-03-19  Andrew Wellington  <proton@wiretapped.net>
+
+        Reviewed by Maciej.
+
+        Really set Xcode editor to use 4 space indentation (http://webkit.org/coding/coding-style.html)
+
+        * JavaScriptGlue.xcodeproj/project.pbxproj:
+
+2007-03-18  Andrew Wellington  <proton@wiretapped.net>
+
+        Reviewed by Mark Rowe
+        
+        Set Xcode editor to use 4 space indentation (http://webkit.org/coding/coding-style.html)
+
+        * JavaScriptGlue.xcodeproj/project.pbxproj:
+
+2007-03-17  Timothy Hatcher  <timothy@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Made Version.xcconfig smarter when building for different configurations.
+        Now uses the 522+ OpenSource version for Debug and Release, while using the    
+        full 522.4 version for Production builds. The system prefix is also computed
+        based on the current system, so 4522.4 on Tiger and 5522.4 on Leopard.
+
+        * Configurations/JavaScriptGlue.xcconfig:
+        * Configurations/Version.xcconfig:
+
+2007-03-15  Timothy Hatcher  <timothy@apple.com>
+
+        Reviewed by John.
+
+        * Factored out most of our common build settings into .xcconfig files. Anything that was common in
+          each build configuration was factored out into the shared .xcconfig file.
+        * Adds a Version.xcconfig file to define the current framework version, to be used in other places.
+        * Use the new $(BUNDLE_VERSION) (defined in Version.xcconfig) in the preprocessed Info.plist.
+        * Use the versions defined in Version.xcconfig to set $(DYLIB_CURRENT_VERSION).
+
+        * Configurations/Base.xcconfig: Added.
+        * Configurations/DebugRelease.xcconfig: Added.
+        * Configurations/JavaScriptGlue.xcconfig: Added.
+        * Configurations/Version.xcconfig: Added.
+        * Info.plist:
+        * JavaScriptGlue.xcodeproj/project.pbxproj:
+
+=== Safari-5522.4 ===
+
+2007-03-12  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Updated in light of fix for <rdar://problem/4681051> Installer crashes 
+        in KJS::Collector::markOtherThreadConservatively(KJS::Collector::Thread*) 
+        trying to install iLife 06 using Rosetta on an Intel Machine
+        
+        * JavaScriptGlue.cpp:
+        (JSLockInterpreter): Ensure backwards compatibility by calling 
+        registerThread() when explicitly taking the JSLock. (This doesn't happen 
+        automatically anymore.) I doubt this actally matters, but in JavaScriptGlue
+        territory, that kind of thinking will get you killed.
+
+2007-03-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fixed all known crashers exposed by run-webkit-tests --threaded while using
+        a PAC file (for maximum carnage). See JavaScriptCore ChangeLog for 
+        more details.
+
+        * JSBase.cpp:
+        (JSBase::Release): Lock when deleting, because we may be deleting an object
+        (like a JSRun) that holds thread-unsafe data.
+
+        * JSUtils.cpp:
+        (CFStringToUString): Don't lock, because our caller locks. Also, locking
+        inside a function that returns thread-unsafe data by copy will only mask
+        threading problems.
+
+        * JavaScriptGlue.cpp:
+        (JSRunEvaluate): Added missing JSLock.
+        (JSRunCheckSyntax): Converted to JSLock.
+        * JavaScriptGlue.xcodeproj/project.pbxproj:
+
 2007-02-22  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Darin Adler.

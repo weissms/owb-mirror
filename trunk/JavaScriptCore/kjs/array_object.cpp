@@ -1,8 +1,6 @@
-// -*- c-basic-offset: 2 -*-
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2000 Harri Porten (porten@kde.org)
- *  Copyright (C) 2003 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2007 Apple Inc. All rights reserved.
  *  Copyright (C) 2003 Peter Kelly (pmk@post.com)
  *  Copyright (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  *
@@ -18,7 +16,8 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+ *  USA
  *
  */
 
@@ -29,370 +28,11 @@
 #include "error_object.h"
 #include "lookup.h"
 #include "operations.h"
-#include "PropertyNameArray.h"
-#include <wtf/HashSet.h>
 #include <stdio.h>
+#include <wtf/Assertions.h>
+#include <wtf/HashSet.h>
 
-
-using namespace KJS;
-
-// ------------------------------ ArrayInstance -----------------------------
-
-const unsigned sparseArrayCutoff = 10000;
-
-const ClassInfo ArrayInstance::info = {"Array", 0, 0, 0};
-
-ArrayInstance::ArrayInstance(JSObject *proto, unsigned initialLength)
-  : JSObject(proto)
-  , length(initialLength)
-  , storageLength(initialLength < sparseArrayCutoff ? initialLength : 0)
-  , capacity(storageLength)
-  , storage(capacity ? (JSValue **)fastCalloc(capacity, sizeof(JSValue *)) : 0)
-{
-}
-
-ArrayInstance::ArrayInstance(JSObject *proto, const List &list)
-  : JSObject(proto)
-  , length(list.size())
-  , storageLength(length)
-  , capacity(storageLength)
-  , storage(capacity ? (JSValue **)fastMalloc(sizeof(JSValue *) * capacity) : 0)
-{
-  ListIterator it = list.begin();
-  unsigned l = length;
-  for (unsigned i = 0; i < l; ++i) {
-    storage[i] = it++;
-  }
-}
-
-ArrayInstance::~ArrayInstance()
-{
-  fastFree(storage);
-}
-
-JSValue* ArrayInstance::getItem(unsigned i) const
-{
-    if (i >= length)
-        return jsUndefined();
-    
-    JSValue* val = (i < storageLength) ? 
-                            storage[i] :
-                            getDirect(Identifier::from(i));
-
-    return val ? val : jsUndefined();
-}
-
-JSValue *ArrayInstance::lengthGetter(ExecState*, JSObject*, const Identifier&, const PropertySlot& slot)
-{
-  return jsNumber(static_cast<ArrayInstance *>(slot.slotBase())->length);
-}
-
-bool ArrayInstance::getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot)
-{
-  if (propertyName == lengthPropertyName) {
-    slot.setCustom(this, lengthGetter);
-    return true;
-  }
-
-  bool ok;
-  unsigned index = propertyName.toArrayIndex(&ok);
-  if (ok) {
-    if (index >= length)
-      return false;
-    if (index < storageLength) {
-      JSValue *v = storage[index];
-      if (!v || v->isUndefined())
-        return false;      
-      slot.setValueSlot(this, &storage[index]);
-      return true;
-    }
-  }
-
-  return JSObject::getOwnPropertySlot(exec, propertyName, slot);
-}
-
-bool ArrayInstance::getOwnPropertySlot(ExecState *exec, unsigned index, PropertySlot& slot)
-{
-  if (index > MAX_ARRAY_INDEX)
-    return getOwnPropertySlot(exec, Identifier::from(index), slot);
-
-  if (index >= length)
-    return false;
-  if (index < storageLength) {
-    JSValue *v = storage[index];
-    if (!v || v->isUndefined())
-      return false;
-    slot.setValueSlot(this, &storage[index]);
-    return true;
-  }
-
-  return JSObject::getOwnPropertySlot(exec, index, slot);
-}
-
-// Special implementation of [[Put]] - see ECMA 15.4.5.1
-void ArrayInstance::put(ExecState *exec, const Identifier &propertyName, JSValue *value, int attr)
-{
-  if (propertyName == lengthPropertyName) {
-    unsigned int newLen = value->toUInt32(exec);
-    if (value->toNumber(exec) != double(newLen)) {
-      throwError(exec, RangeError, "Invalid array length.");
-      return;
-    }
-    setLength(newLen, exec);
-    return;
-  }
-  
-  bool ok;
-  unsigned index = propertyName.toArrayIndex(&ok);
-  if (ok) {
-    put(exec, index, value, attr);
-    return;
-  }
-  
-  JSObject::put(exec, propertyName, value, attr);
-}
-
-void ArrayInstance::put(ExecState *exec, unsigned index, JSValue *value, int attr)
-{
-  //0xFFFF FFFF is a bit weird --- it should be treated as a non-array index, even when
-  //it's a string 
-  if (index > MAX_ARRAY_INDEX) {
-    put(exec, Identifier::from(index), value, attr);
-    return;
-  }
-
-  if (index < sparseArrayCutoff && index >= storageLength) {
-    resizeStorage(index + 1);
-  }
-
-  if (index >= length) {
-    length = index + 1;
-  }
-
-  if (index < storageLength) {
-    storage[index] = value;
-    return;
-  }
-  
-  assert(index >= sparseArrayCutoff);
-  JSObject::put(exec, Identifier::from(index), value, attr);
-}
-
-bool ArrayInstance::deleteProperty(ExecState *exec, const Identifier &propertyName)
-{
-  if (propertyName == lengthPropertyName)
-    return false;
-  
-  bool ok;
-  uint32_t index = propertyName.toArrayIndex(&ok);
-  if (ok) {
-    if (index >= length)
-      return true;
-    if (index < storageLength) {
-      storage[index] = 0;
-      return true;
-    }
-  }
-  
-  return JSObject::deleteProperty(exec, propertyName);
-}
-
-bool ArrayInstance::deleteProperty(ExecState *exec, unsigned index)
-{
-  if (index > MAX_ARRAY_INDEX)
-    return deleteProperty(exec, Identifier::from(index));
-
-  if (index >= length)
-    return true;
-  if (index < storageLength) {
-    storage[index] = 0;
-    return true;
-  }
-  
-  return JSObject::deleteProperty(exec, Identifier::from(index));
-}
-
-void ArrayInstance::getPropertyNames(ExecState* exec, PropertyNameArray& propertyNames)
-{
-  // avoid fetching this every time through the loop
-  JSValue* undefined = jsUndefined();
-  
-  for (unsigned i = 0; i < storageLength; ++i) {
-    JSValue* value = storage[i];
-    if (value && value != undefined)
-      propertyNames.add(Identifier::from(i));
-  }
- 
-  JSObject::getPropertyNames(exec, propertyNames);
-}
-
-void ArrayInstance::resizeStorage(unsigned newLength)
-{
-    if (newLength < storageLength) {
-      memset(storage + newLength, 0, sizeof(JSValue *) * (storageLength - newLength));
-    }
-    if (newLength > capacity) {
-      unsigned newCapacity;
-      if (newLength > sparseArrayCutoff) {
-        newCapacity = newLength;
-      } else {
-        newCapacity = (newLength * 3 + 1) / 2;
-        if (newCapacity > sparseArrayCutoff) {
-          newCapacity = sparseArrayCutoff;
-        }
-      }
-      storage = (JSValue **)fastRealloc(storage, newCapacity * sizeof (JSValue *));
-      memset(storage + capacity, 0, sizeof(JSValue *) * (newCapacity - capacity));
-      capacity = newCapacity;
-    }
-    storageLength = newLength;
-}
-
-void ArrayInstance::setLength(unsigned newLength, ExecState *exec)
-{
-  if (newLength <= storageLength) {
-    resizeStorage(newLength);
-  }
-
-  if (newLength < length) {
-    PropertyNameArray sparseProperties;
-    
-    _prop.getSparseArrayPropertyNames(sparseProperties);
-    
-    PropertyNameArrayIterator end = sparseProperties.end();
-    
-    for (PropertyNameArrayIterator it = sparseProperties.begin(); it != end; ++it) {
-      Identifier name = *it;
-      bool ok;
-      unsigned index = name.toArrayIndex(&ok);
-      if (ok && index > newLength)
-        deleteProperty(exec, name);
-    }
-  }
-  
-  length = newLength;
-}
-
-void ArrayInstance::mark()
-{
-  JSObject::mark();
-  unsigned l = storageLength;
-  for (unsigned i = 0; i < l; ++i) {
-    JSValue *imp = storage[i];
-    if (imp && !imp->marked())
-      imp->mark();
-  }
-}
-
-static ExecState *execForCompareByStringForQSort;
-
-static int compareByStringForQSort(const void *a, const void *b)
-{
-    ExecState *exec = execForCompareByStringForQSort;
-    JSValue *va = *(JSValue **)a;
-    JSValue *vb = *(JSValue **)b;
-    if (va->isUndefined()) {
-        return vb->isUndefined() ? 0 : 1;
-    }
-    if (vb->isUndefined()) {
-        return -1;
-    }
-    return compare(va->toString(exec), vb->toString(exec));
-}
-
-void ArrayInstance::sort(ExecState *exec)
-{
-    int lengthNotIncludingUndefined = pushUndefinedObjectsToEnd(exec);
-    
-    execForCompareByStringForQSort = exec;
-    qsort(storage, lengthNotIncludingUndefined, sizeof(JSValue *), compareByStringForQSort);
-    execForCompareByStringForQSort = 0;
-}
-
-struct CompareWithCompareFunctionArguments {
-    CompareWithCompareFunctionArguments(ExecState *e, JSObject *cf)
-        : exec(e)
-        , compareFunction(cf)
-        , globalObject(e->dynamicInterpreter()->globalObject())
-    {
-        arguments.append(jsUndefined());
-        arguments.append(jsUndefined());
-    }
-
-    ExecState *exec;
-    JSObject *compareFunction;
-    List arguments;
-    JSObject *globalObject;
-};
-
-static CompareWithCompareFunctionArguments *compareWithCompareFunctionArguments;
-
-static int compareWithCompareFunctionForQSort(const void *a, const void *b)
-{
-    CompareWithCompareFunctionArguments *args = compareWithCompareFunctionArguments;
-
-    JSValue *va = *(JSValue **)a;
-    JSValue *vb = *(JSValue **)b;
-    if (va->isUndefined()) {
-        return vb->isUndefined() ? 0 : 1;
-    }
-    if (vb->isUndefined()) {
-        return -1;
-    }
-
-    args->arguments.clear();
-    args->arguments.append(va);
-    args->arguments.append(vb);
-    double compareResult = args->compareFunction->call
-        (args->exec, args->globalObject, args->arguments)->toNumber(args->exec);
-    return compareResult < 0 ? -1 : compareResult > 0 ? 1 : 0;
-}
-
-void ArrayInstance::sort(ExecState *exec, JSObject *compareFunction)
-{
-    int lengthNotIncludingUndefined = pushUndefinedObjectsToEnd(exec);
-    
-    CompareWithCompareFunctionArguments args(exec, compareFunction);
-    compareWithCompareFunctionArguments = &args;
-    qsort(storage, lengthNotIncludingUndefined, sizeof(JSValue *), compareWithCompareFunctionForQSort);
-    compareWithCompareFunctionArguments = 0;
-}
-
-unsigned ArrayInstance::pushUndefinedObjectsToEnd(ExecState *exec)
-{
-    JSValue *undefined = jsUndefined();
-
-    unsigned o = 0;
-    
-    for (unsigned i = 0; i != storageLength; ++i) {
-        JSValue *v = storage[i];
-        if (v && v != undefined) {
-            if (o != i)
-                storage[o] = v;
-            o++;
-        }
-    }
-   
-    PropertyNameArray sparseProperties;
-    _prop.getSparseArrayPropertyNames(sparseProperties);
-    unsigned newLength = o + sparseProperties.size();
-    
-    if (newLength > storageLength)
-        resizeStorage(newLength);
-    
-    PropertyNameArrayIterator end = sparseProperties.end();
-    for (PropertyNameArrayIterator it = sparseProperties.begin(); it != end; ++it) {
-        Identifier name = *it;
-        storage[o] = get(exec, name);
-        JSObject::deleteProperty(exec, name);
-        o++;
-    }
-    
-    if (newLength != storageLength)
-        memset(storage + o, 0, sizeof(JSValue *) * (storageLength - o));
-    
-    return o;
-}
+namespace KJS {
 
 // ------------------------------ ArrayPrototype ----------------------------
 
@@ -435,12 +75,12 @@ bool ArrayPrototype::getOwnPropertySlot(ExecState* exec, const Identifier& prope
 
 // ------------------------------ ArrayProtoFunc ----------------------------
 
-ArrayProtoFunc::ArrayProtoFunc(ExecState *exec, int i, int len, const Identifier& name)
+ArrayProtoFunc::ArrayProtoFunc(ExecState* exec, int i, int len, const Identifier& name)
   : InternalFunctionImp(static_cast<FunctionPrototype*>
                         (exec->lexicalInterpreter()->builtinFunctionPrototype()), name)
   , id(i)
 {
-  put(exec,lengthPropertyName,jsNumber(len),DontDelete|ReadOnly|DontEnum);
+  put(exec, exec->propertyNames().length, jsNumber(len), DontDelete | ReadOnly | DontEnum);
 }
 
 static JSValue *getProperty(ExecState *exec, JSObject *obj, unsigned index)
@@ -452,9 +92,9 @@ static JSValue *getProperty(ExecState *exec, JSObject *obj, unsigned index)
 }
 
 // ECMA 15.4.4
-JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, const List &args)
+JSValue* ArrayProtoFunc::callAsFunction(ExecState* exec, JSObject* thisObj, const List& args)
 {
-  unsigned length = thisObj->get(exec,lengthPropertyName)->toUInt32(exec);
+  unsigned length = thisObj->get(exec, exec->propertyNames().length)->toUInt32(exec);
 
   JSValue *result = 0; // work around gcc 4.0 bug in uninitialized variable warning
   
@@ -468,17 +108,24 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     // fall through
   case Join: {
     static HashSet<JSObject*> visitedElems;
-    if (visitedElems.contains(thisObj))
-        return jsString("");
-    UString separator = ",";
-    UString str = "";
+    static const UString* empty = new UString("");
+    static const UString* comma = new UString(",");
+    bool alreadyVisited = !visitedElems.add(thisObj).second;
+    if (alreadyVisited)
+        return jsString(*empty);
+    UString separator = *comma;
+    UString str = *empty;
 
-    visitedElems.add(thisObj);
     if (id == Join && !args[0]->isUndefined())
         separator = args[0]->toString(exec);
     for (unsigned int k = 0; k < length; k++) {
         if (k >= 1)
             str += separator;
+        if (str.isNull()) {
+            JSObject *error = Error::create(exec, GeneralError, "Out of memory");
+            exec->setException(error);
+            break;
+        }
 
         JSValue* element = thisObj->get(exec, k);
         if (element->isUndefinedOrNull())
@@ -487,7 +134,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
         bool fallback = false;
         if (id == ToLocaleString) {
             JSObject* o = element->toObject(exec);
-            JSValue* conversionFunction = o->get(exec, toLocaleStringPropertyName);
+            JSValue* conversionFunction = o->get(exec, exec->propertyNames().toLocaleString);
             if (conversionFunction->isObject() && static_cast<JSObject*>(conversionFunction)->implementsCall())
                 str += static_cast<JSObject*>(conversionFunction)->call(exec, o, List())->toString(exec);
             else
@@ -497,6 +144,11 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
 
         if (id == ToString || id == Join || fallback)
             str += element->toString(exec);
+
+        if (str.isNull()) {
+            JSObject *error = Error::create(exec, GeneralError, "Out of memory");
+            exec->setException(error);
+        }
 
         if (exec->hadException())
             break;
@@ -517,7 +169,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
         unsigned int k = 0;
         // Older versions tried to optimize out getting the length of thisObj
         // by checking for n != 0, but that doesn't work if thisObj is an empty array.
-        length = curObj->get(exec,lengthPropertyName)->toUInt32(exec);
+        length = curObj->get(exec, exec->propertyNames().length)->toUInt32(exec);
         while (k < length) {
           if (JSValue *v = getProperty(exec, curObj, k))
             arr->put(exec, n, v);
@@ -533,18 +185,18 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
       curArg = *it;
       curObj = static_cast<JSObject *>(it++); // may be 0
     }
-    arr->put(exec,lengthPropertyName, jsNumber(n), DontEnum | DontDelete);
+    arr->put(exec, exec->propertyNames().length, jsNumber(n), DontEnum | DontDelete);
 
     result = arr;
     break;
   }
   case Pop:{
     if (length == 0) {
-      thisObj->put(exec, lengthPropertyName, jsNumber(length), DontEnum | DontDelete);
+      thisObj->put(exec, exec->propertyNames().length, jsNumber(length), DontEnum | DontDelete);
       result = jsUndefined();
     } else {
       result = thisObj->get(exec, length - 1);
-      thisObj->put(exec, lengthPropertyName, jsNumber(length - 1), DontEnum | DontDelete);
+      thisObj->put(exec, exec->propertyNames().length, jsNumber(length - 1), DontEnum | DontDelete);
     }
     break;
   }
@@ -552,7 +204,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     for (int n = 0; n < args.size(); n++)
       thisObj->put(exec, length + n, args[n]);
     length += args.size();
-    thisObj->put(exec,lengthPropertyName, jsNumber(length), DontEnum | DontDelete);
+    thisObj->put(exec, exec->propertyNames().length, jsNumber(length), DontEnum | DontDelete);
     result = jsNumber(length);
     break;
   }
@@ -580,7 +232,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
   }
   case Shift: {
     if (length == 0) {
-      thisObj->put(exec, lengthPropertyName, jsNumber(length), DontEnum | DontDelete);
+      thisObj->put(exec, exec->propertyNames().length, jsNumber(length), DontEnum | DontDelete);
       result = jsUndefined();
     } else {
       result = thisObj->get(exec, 0);
@@ -591,7 +243,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
           thisObj->deleteProperty(exec, k-1);
       }
       thisObj->deleteProperty(exec, length - 1);
-      thisObj->put(exec, lengthPropertyName, jsNumber(length - 1), DontEnum | DontDelete);
+      thisObj->put(exec, exec->propertyNames().length, jsNumber(length - 1), DontEnum | DontDelete);
     }
     break;
   }
@@ -634,7 +286,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
       if (JSValue *v = getProperty(exec, thisObj, k))
         resObj->put(exec, n, v);
     }
-    resObj->put(exec, lengthPropertyName, jsNumber(n), DontEnum | DontDelete);
+    resObj->put(exec, exec->propertyNames().length, jsNumber(n), DontEnum | DontDelete);
     break;
   }
   case Sort:{
@@ -661,7 +313,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     }
 
     if (length == 0) {
-      thisObj->put(exec, lengthPropertyName, jsNumber(0), DontEnum | DontDelete);
+      thisObj->put(exec, exec->propertyNames().length, jsNumber(0), DontEnum | DontDelete);
       result = thisObj;
       break;
     }
@@ -727,7 +379,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
       if (JSValue *v = getProperty(exec, thisObj, k+begin))
         resObj->put(exec, k, v);
     }
-    resObj->put(exec, lengthPropertyName, jsNumber(deleteCount), DontEnum | DontDelete);
+    resObj->put(exec, exec->propertyNames().length, jsNumber(deleteCount), DontEnum | DontDelete);
 
     unsigned int additionalArgs = maxInt( args.size() - 2, 0 );
     if ( additionalArgs != deleteCount )
@@ -759,7 +411,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     {
       thisObj->put(exec, k+begin, args[k+2]);
     }
-    thisObj->put(exec, lengthPropertyName, jsNumber(length - deleteCount + additionalArgs), DontEnum | DontDelete);
+    thisObj->put(exec, exec->propertyNames().length, jsNumber(length - deleteCount + additionalArgs), DontEnum | DontDelete);
     break;
   }
   case UnShift: { // 15.4.4.13
@@ -774,7 +426,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     for ( unsigned int k = 0; k < nrArgs; ++k )
       thisObj->put(exec, k, args[k]);
     result = jsNumber(length + nrArgs);
-    thisObj->put(exec, lengthPropertyName, result, DontEnum | DontDelete);
+    thisObj->put(exec, exec->propertyNames().length, result, DontEnum | DontDelete);
     break;
   }
   case Filter:
@@ -789,7 +441,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     
     if (id == Filter) 
       resultArray = static_cast<JSObject *>(exec->lexicalInterpreter()->builtinArray()->construct(exec, List::empty()));
-    else {
+    else {
       List args;
       args.append(jsNumber(length));
       resultArray = static_cast<JSObject *>(exec->lexicalInterpreter()->builtinArray()->construct(exec, args));
@@ -838,7 +490,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     if (id == Some || id == Every)
       result = jsBoolean(id == Every);
     else
-      result = thisObj;
+      result = jsUndefined();
     
     for (unsigned k = 0; k < length && !exec->hadException(); ++k) {
       PropertySlot slot;
@@ -885,7 +537,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     for (; index < length; ++index) {
         JSValue* e = getProperty(exec, thisObj, index);
         if (!e)
-            e = jsUndefined();
+            continue;
         if (strictEqual(exec, searchElement, e))
             return jsNumber(index);
     }
@@ -911,7 +563,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     for (; index >= 0; --index) {
         JSValue* e = getProperty(exec, thisObj, index);
         if (!e)
-            e = jsUndefined();
+            continue;
         if (strictEqual(exec, searchElement, e))
             return jsNumber(index);
     }
@@ -919,7 +571,7 @@ JSValue *ArrayProtoFunc::callAsFunction(ExecState *exec, JSObject *thisObj, cons
     return jsNumber(-1);
 }
   default:
-    assert(0);
+    ASSERT(0);
     result = 0;
     break;
   }
@@ -934,10 +586,10 @@ ArrayObjectImp::ArrayObjectImp(ExecState *exec,
   : InternalFunctionImp(funcProto)
 {
   // ECMA 15.4.3.1 Array.prototype
-  put(exec, prototypePropertyName, arrayProto, DontEnum|DontDelete|ReadOnly);
+  put(exec, exec->propertyNames().prototype, arrayProto, DontEnum|DontDelete|ReadOnly);
 
   // no. of arguments for constructor
-  put(exec, lengthPropertyName, jsNumber(1), ReadOnly|DontDelete|DontEnum);
+  put(exec, exec->propertyNames().length, jsNumber(1), ReadOnly|DontDelete|DontEnum);
 }
 
 bool ArrayObjectImp::implementsConstruct() const
@@ -965,4 +617,6 @@ JSValue *ArrayObjectImp::callAsFunction(ExecState *exec, JSObject *, const List 
 {
   // equivalent to 'new Array(....)'
   return construct(exec,args);
+}
+
 }

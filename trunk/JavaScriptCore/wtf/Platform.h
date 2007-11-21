@@ -32,6 +32,7 @@
 #define COMPILER(WTF_FEATURE) (defined( WTF_COMPILER_##WTF_FEATURE ) && WTF_COMPILER_##WTF_FEATURE)
 #define HAVE(WTF_FEATURE) (defined( HAVE_##WTF_FEATURE ) && HAVE_##WTF_FEATURE)
 #define USE(WTF_FEATURE) (defined( WTF_USE_##WTF_FEATURE ) && WTF_USE_##WTF_FEATURE)
+#define ENABLE(WTF_FEATURE) (defined( ENABLE_##WTF_FEATURE ) && ENABLE_##WTF_FEATURE)
 
 /* Operating systems - low-level dependencies */
 
@@ -49,11 +50,18 @@
 #define WTF_PLATFORM_WIN_OS 1
 #endif
 
+/* PLATFORM(FREEBSD) */
+/* Operating system level dependencies for FreeBSD-like systems that */
+/* should be used regardless of operating environment */
+#ifdef __FreeBSD__
+#define WTF_PLATFORM_FREEBSD 1
+#endif
+
 /* PLATFORM(UNIX) */
 /* Operating system level dependencies for Unix-like systems that */
 /* should be used regardless of operating environment */
-/* (includes PLATFORM(DARWIN)) */
-#if   defined(__APPLE__)   \
+#if   PLATFORM(DARWIN)     \
+   || PLATFORM(FREEBSD)    \
    || defined(unix)        \
    || defined(__unix)      \
    || defined(__unix__)    \
@@ -65,11 +73,12 @@
 /* Operating environments */
 
 /* PLATFORM(QT) */
+/* PLATFORM(GTK) */
 /* PLATFORM(MAC) */
 /* PLATFORM(WIN) */
 
 #if defined(__OWB__)
-#define WTF_PLATFORM_OWBAL
+#define WTF_PLATFORM_OWBAL 1
 #elif defined(BUILDING_QT__)
 #define WTF_PLATFORM_QT 1
 
@@ -78,13 +87,12 @@
 #define WTF_PLATFORM_KDE 1
 #endif
 
+#elif defined(BUILDING_GTK__)
+#define WTF_PLATFORM_GTK 1
 #elif PLATFORM(DARWIN)
 #define WTF_PLATFORM_MAC 1
 #elif PLATFORM(WIN_OS)
 #define WTF_PLATFORM_WIN 1
-#endif
-#if defined(BUILDING_GDK__)
-#define WTF_PLATFORM_GDK 1
 #endif
 
 /* Graphics engines */
@@ -94,7 +102,7 @@
 #if PLATFORM(MAC)
 #define WTF_PLATFORM_CG 1
 #define WTF_PLATFORM_CI 1
-#elif !PLATFORM(QT)
+#elif !PLATFORM(QT) && !PLATFORM(OWBAL)
 #define WTF_PLATFORM_CAIRO 1
 #endif
 
@@ -106,10 +114,6 @@
 #undef WTF_PLATFORM_CAIRO
 #define WTF_PLATFORM_S60 1
 #define WTF_PLATFORM_SYMBIAN 1
-#endif
-
-#ifdef __OWB__
-#undef WTF_PLATFORM_CAIRO
 #endif
 
 /* CPU */
@@ -133,9 +137,17 @@
 #define WTF_PLATFORM_BIG_ENDIAN 1
 #endif
 
-#if defined(arm)
+#if   defined(arm) \
+   || defined(__arm__)
 #define WTF_PLATFORM_ARM 1
+#if defined(__ARMEB__)
+#define WTF_PLATFORM_BIG_ENDIAN 1
+#elif !defined(__ARM_EABI__) && !defined(__ARMEB__)
 #define WTF_PLATFORM_MIDDLE_ENDIAN 1
+#endif
+#if !defined(__ARM_EABI__)
+#define WTF_PLATFORM_FORCE_PACK 1
+#endif
 #endif
 
 /* PLATFORM(X86) */
@@ -158,6 +170,9 @@
 /* COMPILER(MSVC) */
 #if defined(_MSC_VER)
 #define WTF_COMPILER_MSVC 1
+#if _MSC_VER < 1400
+#define WTF_COMPILER_MSVC7 1
+#endif
 #endif
 
 /* COMPILER(GCC) */
@@ -178,7 +193,7 @@
 #endif
 
 /* multiple threads only supported on Mac for now */
-#if PLATFORM(MAC)
+#if PLATFORM(MAC) || PLATFORM(WIN)
 #define WTF_USE_MULTIPLE_THREADS 1
 #endif
 
@@ -193,14 +208,31 @@
 
 #if PLATFORM(MAC)
 #define WTF_PLATFORM_CF 1
+#define WTF_USE_PTHREADS 1
 #endif
 
 #if PLATFORM(WIN)
 #define WTF_USE_WININET 1
 #endif
 
-#if PLATFORM(GDK)
+#if PLATFORM(GTK)
 #define WTF_USE_CURL 1
+#endif
+
+#if PLATFORM(QT)
+#define USE_SYSTEM_MALLOC 1
+#endif
+
+#if !defined(ENABLE_ICONDATABASE)
+#define ENABLE_ICONDATABASE 1
+#endif
+
+#if !defined(ENABLE_DATABASE)
+#define ENABLE_DATABASE 1
+#endif
+
+#if !defined(ENABLE_FTPDIR)
+#define ENABLE_FTPDIR 1
 #endif
 
 #endif /* WTF_Platform_h */

@@ -44,6 +44,10 @@ bool KJS::Bindings::dispatchJNICall (const void *targetAppletView, jobject obj, 
 {
     id view = (id)targetAppletView;
     
+    // As array_type is not known by the Mac JVM, change it to a compatible type.
+    if (returnType == array_type)
+        returnType = object_type;
+    
     if ([view respondsToSelector:@selector(webPlugInCallJava:isStatic:returnType:method:arguments:callingURL:exceptionDescription:)]) {
         NSString *_exceptionDescription = 0;
 
@@ -51,13 +55,18 @@ bool KJS::Bindings::dispatchJNICall (const void *targetAppletView, jobject obj, 
         // of the page that contains the applet. The execution restrictions 
         // implemented in WebCore will guarantee that only appropriate JavaScript
         // can reference the applet.
-        result = [view webPlugInCallJava:obj isStatic:isStatic returnType:returnType method:methodID arguments:args callingURL:nil exceptionDescription:&_exceptionDescription];
+        {
+           JSLock::DropAllLocks dropAllLocks;
+            result = [view webPlugInCallJava:obj isStatic:isStatic returnType:returnType method:methodID arguments:args callingURL:nil exceptionDescription:&_exceptionDescription];
+        }
+
         if (_exceptionDescription != 0) {
             exceptionDescription = convertNSStringToString(_exceptionDescription);
         }
         return true;
     }
     else if ([view respondsToSelector:@selector(webPlugInCallJava:method:returnType:arguments:)]) {
+       JSLock::DropAllLocks dropAllLocks;
         result = [view webPlugInCallJava:obj method:methodID returnType:returnType arguments:args];
         return true;
     }

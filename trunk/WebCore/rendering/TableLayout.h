@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef TableLayout_h
@@ -36,7 +36,7 @@ public:
 
     virtual ~TableLayout() { }
 
-    virtual void calcMinMaxWidth(int& minWidth, int& maxWidth) = 0;
+    virtual void calcPrefWidths(int& minWidth, int& maxWidth) = 0;
     virtual void layout() = 0;
 
 protected:

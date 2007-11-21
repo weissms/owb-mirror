@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,6 +29,9 @@
 
 #include "Image.h"
 #include "IntPoint.h"
+
+#include <wtf/OwnPtr.h>
+
 #include <windows.h>
 
 #define ALPHA_CURSORS
@@ -51,9 +54,8 @@ static inline bool supportsAlphaCursors()
 Cursor::Cursor(Image* img, const IntPoint& hotspot) 
 { 
     static bool doAlpha = supportsAlphaCursors();
-    HBITMAP hCursor;
     BITMAPINFO cursorImage = {0};
-    cursorImage.bmiHeader.biSize = sizeof(BITMAPINFO);
+    cursorImage.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     cursorImage.bmiHeader.biWidth = img->width();
     cursorImage.bmiHeader.biHeight = img->height();
     cursorImage.bmiHeader.biPlanes = 1;
@@ -62,43 +64,39 @@ Cursor::Cursor(Image* img, const IntPoint& hotspot)
     HDC dc = GetDC(0);
     HDC workingDC = CreateCompatibleDC(dc);
     if (doAlpha) {
-        hCursor = CreateDIBSection(dc, (BITMAPINFO *)&cursorImage, DIB_RGB_COLORS, 0, 0, 0);
-        assert(hCursor);
+        OwnPtr<HBITMAP> hCursor(CreateDIBSection(dc, (BITMAPINFO *)&cursorImage, DIB_RGB_COLORS, 0, 0, 0));
+        ASSERT(hCursor);
 
-        img->getHBITMAP(hCursor); 
-        HBITMAP hOldBitmap = (HBITMAP)SelectObject(workingDC, hCursor);
-        SetBkMode(workingDC,TRANSPARENT);
+        img->getHBITMAP(hCursor.get()); 
+        HBITMAP hOldBitmap = (HBITMAP)SelectObject(workingDC, hCursor.get());
+        SetBkMode(workingDC, TRANSPARENT);
         SelectObject(workingDC, hOldBitmap);
 
-        HBITMAP hMask = CreateBitmap(img->width(),img->height(),1,1,NULL);
+        OwnPtr<HBITMAP> hMask(CreateBitmap(img->width(), img->height(), 1, 1, NULL));
 
         ICONINFO ii;
         ii.fIcon = FALSE;
         ii.xHotspot = hotspot.x();
         ii.yHotspot = hotspot.y();
-        ii.hbmMask = hMask;
-        ii.hbmColor = hCursor;
+        ii.hbmMask = hMask.get();
+        ii.hbmColor = hCursor.get();
 
-        m_impl = CreateIconIndirect(&ii);
-      
-        DeleteObject(hMask); 
-        DeleteObject(hCursor); 
-        DeleteObject(hOldBitmap);    
+        m_impl = new SharedCursor(CreateIconIndirect(&ii));
     } else {
-        //Platform doesn't support alpha blended cursors, so we need
-        //to create the mask manually
+        // Platform doesn't support alpha blended cursors, so we need
+        // to create the mask manually
         HDC andMaskDC = CreateCompatibleDC(dc);
         HDC xorMaskDC = CreateCompatibleDC(dc);
-        hCursor = CreateDIBSection(dc, &cursorImage, DIB_RGB_COLORS, 0, 0, 0);
-        assert(hCursor);
-        img->getHBITMAP(hCursor); 
+        OwnPtr<HBITMAP> hCursor(CreateDIBSection(dc, &cursorImage, DIB_RGB_COLORS, 0, 0, 0));
+        ASSERT(hCursor);
+        img->getHBITMAP(hCursor.get()); 
         BITMAP cursor;
-        GetObject(hCursor, sizeof(BITMAP), &cursor);
-        HBITMAP andMask = CreateBitmap(cursor.bmWidth, cursor.bmHeight, 1, 1, NULL);
-        HBITMAP xorMask = CreateCompatibleBitmap(dc, cursor.bmWidth, cursor.bmHeight);
-        HBITMAP oldCursor = (HBITMAP)SelectObject(workingDC, hCursor);
-        HBITMAP oldAndMask = (HBITMAP)SelectObject(andMaskDC, andMask);
-        HBITMAP oldXorMask = (HBITMAP)SelectObject(xorMaskDC, xorMask);
+        GetObject(hCursor.get(), sizeof(BITMAP), &cursor);
+        OwnPtr<HBITMAP> andMask(CreateBitmap(cursor.bmWidth, cursor.bmHeight, 1, 1, NULL));
+        OwnPtr<HBITMAP> xorMask(CreateCompatibleBitmap(dc, cursor.bmWidth, cursor.bmHeight));
+        HBITMAP oldCursor = (HBITMAP)SelectObject(workingDC, hCursor.get());
+        HBITMAP oldAndMask = (HBITMAP)SelectObject(andMaskDC, andMask.get());
+        HBITMAP oldXorMask = (HBITMAP)SelectObject(xorMaskDC, xorMask.get());
 
         SetBkColor(workingDC, RGB(0,0,0));  
         BitBlt(andMaskDC, 0, 0, cursor.bmWidth, cursor.bmHeight, workingDC, 0, 0, SRCCOPY);
@@ -112,18 +110,14 @@ Cursor::Cursor(Image* img, const IntPoint& hotspot)
         SelectObject(andMaskDC, oldAndMask);
         SelectObject(xorMaskDC, oldXorMask);
 
-
         ICONINFO icon = {0};
         icon.fIcon = FALSE;
         icon.xHotspot = hotspot.x();
         icon.yHotspot = hotspot.y();
-        icon.hbmMask = andMask;
-        icon.hbmColor = xorMask;
-        m_impl = CreateIconIndirect(&icon);
+        icon.hbmMask = andMask.get();
+        icon.hbmColor = xorMask.get();
+        m_impl = new SharedCursor(CreateIconIndirect(&icon));
 
-        DeleteObject(andMask);
-        DeleteObject(xorMask);
-        DeleteObject(hCursor);
         DeleteDC(xorMaskDC);
         DeleteDC(andMaskDC);
     }
@@ -133,7 +127,6 @@ Cursor::Cursor(Image* img, const IntPoint& hotspot)
 
 Cursor::~Cursor()
 {
-    DestroyIcon(m_impl);
 }
 
 Cursor& Cursor::operator=(const Cursor& other)
@@ -142,136 +135,214 @@ Cursor& Cursor::operator=(const Cursor& other)
     return *this;
 }
 
-Cursor::Cursor(HCURSOR c)
+Cursor::Cursor(PlatformCursor c)
     : m_impl(c)
 {
 }
 
+static Cursor loadCursorByName(char* name, int x, int y) 
+{
+    IntPoint hotSpot(x, y);
+    Cursor c;
+    OwnPtr<Image> cursorImage(Image::loadPlatformResource(name));
+    if (cursorImage && !cursorImage->isNull()) 
+        c = Cursor(cursorImage.get(), hotSpot);
+    else
+        c = pointerCursor();
+    return c;
+}
+
+static PassRefPtr<SharedCursor> loadSharedCursor(HINSTANCE hInstance, LPCTSTR lpCursorName)
+{
+    return new SharedCursor(LoadCursor(hInstance, lpCursorName));
+}
+
 const Cursor& pointerCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_ARROW);
+    static Cursor c = loadSharedCursor(0, IDC_ARROW);
     return c;
 }
 
 const Cursor& crossCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_CROSS);
+    static Cursor c = loadSharedCursor(0, IDC_CROSS);
     return c;
 }
 
 const Cursor& handCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_HAND);
+    static Cursor c = loadSharedCursor(0, IDC_HAND);
     return c;
 }
 
 const Cursor& iBeamCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_IBEAM);
+    static Cursor c = loadSharedCursor(0, IDC_IBEAM);
     return c;
 }
 
 const Cursor& waitCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_WAIT);
+    static Cursor c = loadSharedCursor(0, IDC_WAIT);
     return c;
 }
 
 const Cursor& helpCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_HELP);
+    static Cursor c = loadSharedCursor(0, IDC_HELP);
     return c;
 }
 
 const Cursor& eastResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZEWE);
+    static Cursor c = loadSharedCursor(0, IDC_SIZEWE);
     return c;
 }
 
 const Cursor& northResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENS);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENS);
     return c;
 }
 
 const Cursor& northEastResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENESW);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENESW);
     return c;
 }
 
 const Cursor& northWestResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENWSE);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENWSE);
     return c;
 }
 
 const Cursor& southResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENS);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENS);
     return c;
 }
 
 const Cursor& southEastResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENWSE);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENWSE);
     return c;
 }
 
 const Cursor& southWestResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENESW);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENESW);
     return c;
 }
 
 const Cursor& westResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZEWE);
+    static Cursor c = loadSharedCursor(0, IDC_SIZEWE);
     return c;
 }
 
 const Cursor& northSouthResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENS);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENS);
     return c;
 }
 
 const Cursor& eastWestResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZEWE);
+    static Cursor c = loadSharedCursor(0, IDC_SIZEWE);
     return c;
 }
 
 const Cursor& northEastSouthWestResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENESW);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENESW);
     return c;
 }
 
 const Cursor& northWestSouthEastResizeCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_SIZENWSE);
+    static Cursor c = loadSharedCursor(0, IDC_SIZENWSE);
     return c;
 }
 
 const Cursor& columnResizeCursor()
 {
-    // FIXME: Windows does not have a standard column resize cursor
-    static Cursor c = LoadCursor(0, IDC_SIZEWE);
+    // FIXME: Windows does not have a standard column resize cursor <rdar://problem/5018591>
+    static Cursor c = loadSharedCursor(0, IDC_SIZEWE);
     return c;
 }
 
 const Cursor& rowResizeCursor()
 {
-    // FIXME: Windows does not have a standard row resize cursor
-    static Cursor c = LoadCursor(0, IDC_SIZENS);
+    // FIXME: Windows does not have a standard row resize cursor <rdar://problem/5018591>
+    static Cursor c = loadSharedCursor(0, IDC_SIZENS);
     return c;
+}
+
+const Cursor& moveCursor() 
+{
+    static Cursor c = loadSharedCursor(0, IDC_SIZEALL);
+    return c;
+}
+
+const Cursor& verticalTextCursor()
+{
+    static const Cursor c = loadCursorByName("verticalTextCursor", 7, 7);
+    return c;
+}
+
+const Cursor& cellCursor()
+{
+    return pointerCursor();
+}
+
+const Cursor& contextMenuCursor()
+{
+    return pointerCursor();
+}
+
+const Cursor& aliasCursor()
+{
+    return pointerCursor();
+}
+
+const Cursor& progressCursor()
+{
+    static Cursor c = loadSharedCursor(0, IDC_APPSTARTING);
+    return c;
+}
+
+const Cursor& noDropCursor()
+{
+    static Cursor c = loadSharedCursor(0, IDC_NO);
+    return c;
+}
+
+const Cursor& copyCursor()
+{
+    return pointerCursor();
 }
 
 const Cursor& noneCursor()
 {
-    static Cursor c = LoadCursor(0, IDC_ARROW);
+    return pointerCursor();
+}
+
+const Cursor& notAllowedCursor()
+{
+    static Cursor c = loadSharedCursor(0, IDC_NO);
+    return c;
+}
+
+const Cursor& zoomInCursor()
+{
+    static const Cursor c = loadCursorByName("zoomInCursor", 7, 7);
+    return c;
+}
+
+const Cursor& zoomOutCursor()
+{
+    static const Cursor c = loadCursorByName("zoomOutCursor", 7, 7);
     return c;
 }
 

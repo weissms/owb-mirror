@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLScriptElement.h"
@@ -30,9 +30,7 @@
 #include "EventNames.h"
 #include "Frame.h"
 #include "HTMLNames.h"
-#ifdef __OWB_JS__
 #include "kjs_proxy.h"
-#endif
 #include "Text.h"
 
 namespace WebCore {
@@ -83,7 +81,10 @@ void HTMLScriptElement::parseMappedAttribute(MappedAttribute *attr)
         const AtomicString& url = attr->value();
         if (!url.isEmpty()) {
             m_cachedScript = document()->docLoader()->requestScript(url, getAttribute(charsetAttr));
-            m_cachedScript->ref(this);
+            if (m_cachedScript)
+                m_cachedScript->ref(this);
+            else
+                dispatchHTMLEvent(errorEvent, true, false);
         }
     } else if (attrName == onloadAttr)
         setHTMLEventListener(loadEvent, attr);
@@ -91,20 +92,20 @@ void HTMLScriptElement::parseMappedAttribute(MappedAttribute *attr)
         HTMLElement::parseMappedAttribute(attr);
 }
 
-void HTMLScriptElement::closeRenderer()
+void HTMLScriptElement::finishedParsing()
 {
     // The parser just reached </script>. If we have no src and no text,
     // allow dynamic loading later.
     if (getAttribute(srcAttr).isEmpty() && text().isEmpty())
         setCreatedByParser(false);
-    HTMLElement::closeRenderer();
+    HTMLElement::finishedParsing();
 }
 
 void HTMLScriptElement::insertedIntoDocument()
 {
     HTMLElement::insertedIntoDocument();
 
-    assert(!m_cachedScript);
+    ASSERT(!m_cachedScript);
 
     if (m_createdByParser)
         return;
@@ -118,7 +119,10 @@ void HTMLScriptElement::insertedIntoDocument()
     const AtomicString& url = getAttribute(srcAttr);
     if (!url.isEmpty()) {
         m_cachedScript = document()->docLoader()->requestScript(url, getAttribute(charsetAttr));
-        m_cachedScript->ref(this);
+        if (m_cachedScript)
+            m_cachedScript->ref(this);
+        else
+            dispatchHTMLEvent(errorEvent, true, false);
         return;
     }
 
@@ -144,7 +148,7 @@ void HTMLScriptElement::notifyFinished(CachedResource* o)
 {
     CachedScript *cs = static_cast<CachedScript *>(o);
 
-    assert(cs == m_cachedScript);
+    ASSERT(cs == m_cachedScript);
 
     // Evaluating the script could lead to a garbage collection which
     // can delete the script element so we need to protect it.
@@ -157,8 +161,11 @@ void HTMLScriptElement::notifyFinished(CachedResource* o)
         dispatchHTMLEvent(loadEvent, false, false);
     }
 
-    cs->deref(this);
-    m_cachedScript = 0;
+    // script evaluation may have dereffed it already
+    if (m_cachedScript) {
+        m_cachedScript->deref(this);
+        m_cachedScript = 0;
+    }
 }
 
 bool HTMLScriptElement::shouldExecuteAsJavaScript()
@@ -239,16 +246,18 @@ void HTMLScriptElement::evaluateScript(const String& URL, const String& script)
     
     if (!shouldExecuteAsJavaScript())
         return;
-    
+
+#ifdef __OWB_JS__
     Frame* frame = document()->frame();
     if (frame) {
         KJSProxy* proxy = frame->scriptProxy();
         if (proxy) {
             m_evaluated = true;
-            proxy->evaluate(URL, 0, script, 0);
+            proxy->evaluate(URL, 0, script);
             Document::updateDocumentsRendering();
         }
     }
+#endif //__OWB_JS__
 }
 
 String HTMLScriptElement::text() const

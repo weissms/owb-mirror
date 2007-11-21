@@ -49,17 +49,59 @@ namespace BAL {
     */
     class BIWheelEvent : public BIInputEvent {
     public:
+        /**
+        * BIWheelEvent destructor
+        */
         virtual ~BIWheelEvent() {}
 
+        /**
+        * get position
+        */
         virtual const IntPoint& pos() const = 0;
+        /**
+        * get global position
+        */
         virtual const IntPoint& globalPos() const = 0;
+        /**
+        * get delta X
+        */
         virtual int deltaX() const = 0;
+        /**
+        * get delta Y
+        */
         virtual int deltaY() const = 0;
+        /**
+        * return if it's accepted
+        */
         virtual bool isAccepted() const = 0;
 
+        /**
+        * force accept
+        */
         virtual void accept() = 0;
+        /**
+        * force ignore
+        */
         virtual void ignore() = 0;
 
+        /**
+        * return if it's continuous
+        */
+        virtual bool isContinuous() const = 0;
+
+        /**
+        * return the continuous delata X
+        */
+        virtual float continuousDeltaX() const = 0;
+
+        /**
+        * return the continuous delata Y
+        */
+        virtual float continuousDeltaY() const = 0;
+
+        /**
+        * BIWheelEvent clone
+        */
         virtual BIEvent* clone() const = 0;
 
         virtual BIWheelEvent* queryIsWheelEvent() { return this; }

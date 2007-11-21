@@ -24,22 +24,26 @@
  */
 
 #include "config.h"
+
+#if !PLATFORM(DARWIN) || !defined(__LP64__)
+
 #include "NP_jsobject.h"
 
 #include "c_utility.h"
 #include "npruntime_impl.h"
 #include "npruntime_priv.h"
 #include "object.h"
+#include "PropertyNameArray.h"
 #include "runtime_root.h"
 
 using namespace KJS;
 using namespace KJS::Bindings;
 
-static List listFromVariantArgs(ExecState* exec, const NPVariant* args, unsigned argCount)
+static List listFromVariantArgs(ExecState* exec, const NPVariant* args, unsigned argCount, RootObject* rootObject)
 {
     List aList; 
     for (unsigned i = 0; i < argCount; i++)
-        aList.append(convertNPVariantToValue(exec, &args[i]));    
+        aList.append(convertNPVariantToValue(exec, &args[i], rootObject));
     return aList;
 }
 
@@ -64,8 +68,8 @@ static void jsDeallocate(NPObject* npObj)
     free(obj);
 }
 
-static NPClass javascriptClass = { 1, jsAllocate, jsDeallocate, 0, 0, 0, 0, 0, 0, 0, 0 };
-static NPClass noScriptClass = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static NPClass javascriptClass = { 1, jsAllocate, jsDeallocate, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static NPClass noScriptClass = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 NPClass* NPScriptObjectClass = &javascriptClass;
 static NPClass* NPNoScriptObjectClass = &noScriptClass;
@@ -102,9 +106,36 @@ NPObject *_NPN_CreateNoScriptObject(void)
 
 bool _NPN_InvokeDefault(NPP, NPObject* o, const NPVariant* args, uint32_t argCount, NPVariant* result)
 {
-    if (o->_class == NPScriptObjectClass)
-        // No notion of a default function on JS objects. Just return false, can't handle.
-        return false;
+    if (o->_class == NPScriptObjectClass) {
+        JavaScriptObject* obj = (JavaScriptObject*)o; 
+        if (!_isSafeScript(obj))
+            return false;        
+        
+        VOID_TO_NPVARIANT(*result);
+        
+        // Lookup the function object.
+        RootObject* rootObject = obj->rootObject;
+        if (!rootObject || !rootObject->isValid())
+            return false;
+        
+        ExecState* exec = rootObject->interpreter()->globalExec();
+        JSLock lock;
+        
+        // Call the function object.
+        JSObject *funcImp = static_cast<JSObject*>(obj->imp);
+        if (!funcImp->implementsCall())
+            return false;
+        
+        List argList = listFromVariantArgs(exec, args, argCount, rootObject);
+        rootObject->interpreter()->startTimeoutCheck();
+        JSValue *resultV = funcImp->call (exec, funcImp, argList);
+        rootObject->interpreter()->stopTimeoutCheck();
+
+        // Convert and return the result of the function call.
+        convertValueToNPVariant(exec, resultV, result);
+        return true;        
+    }
+
     if (o->_class->invokeDefault)
         return o->_class->invokeDefault(o, args, argCount, result);    
     VOID_TO_NPVARIANT(*result);
@@ -150,8 +181,10 @@ bool _NPN_Invoke(NPP npp, NPObject* o, NPIdentifier methodName, const NPVariant*
         // Call the function object.
         JSObject *funcImp = static_cast<JSObject*>(func);
         JSObject *thisObj = const_cast<JSObject*>(obj->imp);
-        List argList = listFromVariantArgs(exec, args, argCount);
+        List argList = listFromVariantArgs(exec, args, argCount, rootObject);
+        rootObject->interpreter()->startTimeoutCheck();
         JSValue *resultV = funcImp->call (exec, thisObj, argList);
+        rootObject->interpreter()->stopTimeoutCheck();
 
         // Convert and return the result of the function call.
         convertValueToNPVariant(exec, resultV, result);
@@ -183,7 +216,9 @@ bool _NPN_Evaluate(NPP, NPObject* o, NPString* s, NPVariant* variant)
         NPUTF16* scriptString;
         unsigned int UTF16Length;
         convertNPStringToUTF16(s, &scriptString, &UTF16Length); // requires free() of returned memory
+        rootObject->interpreter()->startTimeoutCheck();
         Completion completion = rootObject->interpreter()->evaluate(UString(), 0, UString((const UChar*)scriptString,UTF16Length));
+        rootObject->interpreter()->stopTimeoutCheck();
         ComplType type = completion.complType();
         
         JSValue* result;
@@ -263,9 +298,9 @@ bool _NPN_SetProperty(NPP, NPObject* o, NPIdentifier propertyName, const NPVaria
         JSLock lock;
         PrivateIdentifier* i = (PrivateIdentifier*)propertyName;
         if (i->isString)
-            obj->imp->put(exec, identifierFromNPIdentifier(i->value.string), convertNPVariantToValue(exec, variant));
+            obj->imp->put(exec, identifierFromNPIdentifier(i->value.string), convertNPVariantToValue(exec, variant, rootObject));
         else
-            obj->imp->put(exec, i->value.number, convertNPVariantToValue(exec, variant));
+            obj->imp->put(exec, i->value.number, convertNPVariantToValue(exec, variant, rootObject));
         return true;
     }
 
@@ -372,3 +407,40 @@ void _NPN_SetException(NPObject* o, const NPUTF8* message)
         throwError(exec, GeneralError, message);
     }
 }
+
+bool _NPN_Enumerate(NPP, NPObject *o, NPIdentifier **identifier, uint32_t *count)
+{
+    if (o->_class == NPScriptObjectClass) {
+        JavaScriptObject* obj = (JavaScriptObject*)o; 
+        if (!_isSafeScript(obj))
+            return false;
+        
+        RootObject* rootObject = obj->rootObject;
+        if (!rootObject || !rootObject->isValid())
+            return false;
+        
+        ExecState* exec = rootObject->interpreter()->globalExec();
+        JSLock lock;
+        PropertyNameArray propertyNames;
+
+        obj->imp->getPropertyNames(exec, propertyNames);
+        unsigned size = static_cast<unsigned>(propertyNames.size());
+        // FIXME: This should really call NPN_MemAlloc but that's in WebKit
+        NPIdentifier *identifiers = static_cast<NPIdentifier*>(malloc(sizeof(NPIdentifier) * size));
+        
+        for (unsigned i = 0; i < size; i++)
+            identifiers[i] = _NPN_GetStringIdentifier(propertyNames[i].ustring().UTF8String().c_str());
+
+        *identifier = identifiers;
+        *count = size;
+        
+        return true;
+    }
+    
+    if (NP_CLASS_STRUCT_VERSION_HAS_ENUM(o->_class) && o->_class->enumerate)
+        return o->_class->enumerate(o, identifier, count);
+    
+    return false;
+}
+
+#endif

@@ -20,8 +20,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLTableSectionElement.h"
@@ -32,19 +32,21 @@
 #include "HTMLTableRowElement.h"
 #include "HTMLTableElement.h"
 #include "NodeList.h"
+#include "Text.h"
 
 namespace WebCore {
 
 using namespace HTMLNames;
 
-HTMLTableSectionElement::HTMLTableSectionElement(const QualifiedName& tagName, Document *doc, bool implicit)
-    : HTMLTablePartElement(tagName, doc)
+HTMLTableSectionElement::HTMLTableSectionElement(const QualifiedName& tagName, Document* document)
+    : HTMLTablePartElement(tagName, document)
 {
-    m_implicit = implicit;
 }
 
 bool HTMLTableSectionElement::checkDTD(const Node* newChild)
 {
+    if (newChild->isTextNode())
+        return static_cast<const Text*>(newChild)->containsOnlyWhitespace();
     return newChild->hasTagName(trTag) || newChild->hasTagName(formTag) ||
            newChild->hasTagName(scriptTag);
 }
@@ -75,32 +77,32 @@ CSSMutableStyleDeclaration* HTMLTableSectionElement::additionalAttributeStyleDec
 
 // these functions are rather slow, since we need to get the row at
 // the index... but they aren't used during usual HTML parsing anyway
-HTMLElement* HTMLTableSectionElement::insertRow(int index, ExceptionCode& ec)
+PassRefPtr<HTMLElement> HTMLTableSectionElement::insertRow(int index, ExceptionCode& ec)
 {
-    HTMLTableRowElement* r = 0L;
-    RefPtr<NodeList> children = childNodes();
+    RefPtr<HTMLTableRowElement> r;
+    RefPtr<HTMLCollection> children = rows();
     int numRows = children ? (int)children->length() : 0;
     if (index < -1 || index > numRows)
         ec = INDEX_SIZE_ERR; // per the DOM
     else {
         r = new HTMLTableRowElement(document());
-        if ( numRows == index || index == -1 )
+        if (numRows == index || index == -1)
             appendChild(r, ec);
         else {
-            Node *n;
+            Node* n;
             if (index < 1)
                 n = firstChild();
             else
                 n = children->item(index);
-            insertBefore(r, n, ec );
+            insertBefore(r, n, ec);
         }
     }
-    return r;
+    return r.release();
 }
 
 void HTMLTableSectionElement::deleteRow( int index, ExceptionCode& ec)
 {
-    RefPtr<NodeList> children = childNodes();
+    RefPtr<HTMLCollection> children = rows();
     int numRows = children ? (int)children->length() : 0;
     if (index == -1)
         index = numRows - 1;

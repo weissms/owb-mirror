@@ -36,12 +36,14 @@
 #include "FormatBlockCommand.h"
 #include "Frame.h"
 #include "HTMLFontElement.h"
-#include "HTMLNames.h"
 #include "HTMLImageElement.h"
+#include "HTMLNames.h"
 #include "IndentOutdentCommand.h"
 #include "InsertListCommand.h"
+#include "Page.h"
 #include "ReplaceSelectionCommand.h"
 #include "SelectionController.h"
+#include "Settings.h"
 #include "TypingCommand.h"
 #include "UnlinkCommand.h"
 #include "htmlediting.h"
@@ -54,8 +56,6 @@ using namespace HTMLNames;
 class Document;
 
 namespace {
-
-bool supportsPasteCommand = false;
 
 struct CommandImp {
     bool (*execFn)(Frame*, bool userInterface, const String& value);
@@ -126,7 +126,8 @@ bool JSEditor::queryCommandState(const String& command)
 
 bool JSEditor::queryCommandSupported(const String& command)
 {
-    if (!supportsPasteCommand && command.lower() == "paste")
+    Settings* settings = m_document->settings();
+    if ((!settings || !settings->isDOMPasteAllowed()) && command.lower() == "paste")
         return false;
     return commandImp(command) != 0;
 }
@@ -141,11 +142,6 @@ String JSEditor::queryCommandValue(const String& command)
         return String();
     m_document->updateLayoutIgnorePendingStylesheets();
     return cmd->valueFn(frame);
-}
-
-void JSEditor::setSupportsPasteCommand(bool flag)
-{
-    supportsPasteCommand = flag;
 }
 
 // =============================================================================================
@@ -241,7 +237,6 @@ bool execDelete(Frame* frame, bool, const String&)
     return true;
 }
 
-// FIXME: Come up with a way to send more parameters to execCommand so that we can support all of the features of Frame::findString.
 bool execFindString(Frame* frame, bool, const String& value)
 {
     return frame->findString(value, true, false, true, false);
@@ -299,7 +294,7 @@ bool execInsertHorizontalRule(Frame* frame, bool userInterface, const String& va
         return false;
     
     applyCommand(new ReplaceSelectionCommand(frame->document(), fragment.release(),
-        false, false, false, true, EditActionUnspecified));
+        false, false, false, true, false, EditActionUnspecified));
     return true;
 }
 
@@ -416,7 +411,8 @@ bool execPasteAndMatchStyle(Frame* frame, bool, const String&)
 
 bool execPrint(Frame* frame, bool, const String&)
 {
-    frame->print();
+    if (Page* page = frame->page())
+        page->chrome()->print(frame);
     return true;
 }
 
@@ -526,12 +522,8 @@ bool enabledCopy(Frame* frame)
 
 bool enabledPaste(Frame* frame)
 {
-    return supportsPasteCommand && frame->editor()->canPaste();
-}
-
-bool enabledPasteAndMatchStyle(Frame* frame)
-{
-    return supportsPasteCommand && frame->editor()->canPaste();
+    Settings* settings = frame ? frame->settings() : 0;
+    return settings && settings->isDOMPasteAllowed() && frame->editor()->canPaste();
 }
 
 bool enabledAnyRangeSelection(Frame* frame)
@@ -667,7 +659,7 @@ CommandMap* createCommandDictionary()
         { "BackColor", { execBackColor, enabledAnyRichlyEditableRangeSelection, stateNone, valueBackColor } },
         { "Bold", { execBold, enabledAnyRichlyEditableSelection, stateBold, valueNull } },
         { "Copy", { execCopy, enabledCopy, stateNone, valueNull } },
-        { "CreateLink", { execCreateLink, enabledAnyRichlyEditableRangeSelection, stateNone, valueNull } },
+        { "CreateLink", { execCreateLink, enabledAnyRichlyEditableSelection, stateNone, valueNull } },
         { "Cut", { execCut, enabledAnyEditableRangeSelection, stateNone, valueNull } },
         { "Delete", { execDelete, enabledAnyEditableSelection, stateNone, valueNull } },
         { "FindString", { execFindString, enabled, stateNone, valueNull } },
@@ -696,7 +688,7 @@ CommandMap* createCommandDictionary()
         { "JustifyRight", { execJustifyRight, enabledAnyRichlyEditableSelection, stateNone, valueNull } },
         { "Outdent", { execOutdent, enabledAnyRichlyEditableSelection, stateNone, valueNull } },
         { "Paste", { execPaste, enabledPaste, stateNone, valueNull } },
-        { "PasteAndMatchStyle", { execPasteAndMatchStyle, enabledPasteAndMatchStyle, stateNone, valueNull } },
+        { "PasteAndMatchStyle", { execPasteAndMatchStyle, enabledPaste, stateNone, valueNull } },
         { "Print", { execPrint, enabled, stateNone, valueNull } },
         { "Redo", { execRedo, enabledRedo, stateNone, valueNull } },
         { "RemoveFormat", { execRemoveFormat, enabledAnyEditableRangeSelection, stateNone, valueNull } },
@@ -768,9 +760,6 @@ CommandMap* createCommandDictionary()
         name->ref();
         commandMap->set(name, &commands[i].imp);
     }
-#ifndef NDEBUG
-    supportsPasteCommand = true;
-#endif
     return commandMap;
 }
 

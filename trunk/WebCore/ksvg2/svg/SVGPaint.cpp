@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,12 +16,12 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPaint.h"
 
 namespace WebCore {
@@ -34,7 +34,7 @@ SVGPaint::SVGPaint()
 
 SVGPaint::SVGPaint(const String& uri)
     : SVGColor()
-    , m_paintType(SVG_PAINTTYPE_URI)
+    , m_paintType(SVG_PAINTTYPE_URI_RGBCOLOR)
 {
     setUri(uri);
 }
@@ -58,13 +58,20 @@ SVGPaint::SVGPaint(const Color& c)
 {
 }
 
+SVGPaint::SVGPaint(const String& uri, const Color& c)
+    : SVGColor(c)
+    , m_paintType(SVG_PAINTTYPE_URI_RGBCOLOR)
+{
+    setUri(uri);
+}
+
 SVGPaint::~SVGPaint()
 {
 }
 
 SVGPaint* SVGPaint::defaultFill()
 {
-    static SVGPaint* _defaultFill = new SVGPaint(SVG_PAINTTYPE_RGBCOLOR, String(), "black");
+    static SVGPaint* _defaultFill = new SVGPaint(Color::black);
     return _defaultFill;
 }
 
@@ -109,5 +116,5 @@ String SVGPaint::cssText() const
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

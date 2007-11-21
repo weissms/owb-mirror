@@ -1,8 +1,7 @@
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2001 Harri Porten (porten@kde.org)
  *  Copyright (C) 2001 Peter Kelly (pmk@post.com)
- *  Copyright (C) 2003 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -41,7 +40,17 @@ void *JSCell::operator new(size_t size)
     return Collector::allocate(size);
 }
 
-bool JSCell::getUInt32(unsigned&) const
+bool JSCell::getUInt32(uint32_t&) const
+{
+    return false;
+}
+
+bool JSCell::getTruncatedInt32(int32_t&) const
+{
+    return false;
+}
+
+bool JSCell::getTruncatedUInt32(uint32_t&) const
 {
     return false;
 }
@@ -49,27 +58,20 @@ bool JSCell::getUInt32(unsigned&) const
 // ECMA 9.4
 double JSValue::toInteger(ExecState *exec) const
 {
-    uint32_t i;
-    if (getUInt32(i))
+    int32_t i;
+    if (getTruncatedInt32(i))
         return i;
     return roundValue(exec, const_cast<JSValue*>(this));
 }
 
-int32_t JSValue::toInt32(ExecState* exec) const
-{
-    bool ok;
-    return toInt32(exec, ok);
-}
-
-int32_t JSValue::toInt32(ExecState* exec, bool& ok) const
+int32_t JSValue::toInt32SlowCase(ExecState* exec, bool& ok) const
 {
     ok = true;
 
-    uint32_t i;
-    if (getUInt32(i))
-        return i;
-
     double d = roundValue(exec, const_cast<JSValue*>(this));
+    if (d >= -D32 / 2 && d < D32 / 2)
+        return static_cast<int32_t>(d);
+
     if (isNaN(d) || isInf(d)) {
         ok = false;
         return 0;
@@ -84,21 +86,14 @@ int32_t JSValue::toInt32(ExecState* exec, bool& ok) const
     return static_cast<int32_t>(d32);
 }
 
-uint32_t JSValue::toUInt32(ExecState* exec) const
-{
-    bool ok;
-    return toUInt32(exec, ok);
-}
-
-uint32_t JSValue::toUInt32(ExecState* exec, bool& ok) const
+uint32_t JSValue::toUInt32SlowCase(ExecState* exec, bool& ok) const
 {
     ok = true;
 
-    uint32_t i;
-    if (getUInt32(i))
-        return i;
-
     double d = roundValue(exec, const_cast<JSValue*>(this));
+    if (d >= 0.0 && d < D32)
+        return static_cast<uint32_t>(d);
+
     if (isNaN(d) || isInf(d)) {
         ok = false;
         return 0;
@@ -114,10 +109,13 @@ uint32_t JSValue::toUInt32(ExecState* exec, bool& ok) const
 uint16_t JSValue::toUInt16(ExecState *exec) const
 {
     uint32_t i;
-    if (getUInt32(i))
+    if (getTruncatedUInt32(i))
         return static_cast<uint16_t>(i);
 
     double d = roundValue(exec, const_cast<JSValue*>(this));
+    if (d >= 0.0 && d < D16)
+        return static_cast<uint16_t>(d);
+
     if (isNaN(d) || isInf(d))
         return 0;
     double d16 = fmod(d, D16);
@@ -126,6 +124,11 @@ uint16_t JSValue::toUInt16(ExecState *exec) const
         d16 += D16;
 
     return static_cast<uint16_t>(d16);
+}
+
+float JSValue::toFloat(ExecState* exec) const
+{
+    return static_cast<float>(toNumber(exec));
 }
 
 bool JSCell::getNumber(double &numericValue) const
@@ -164,14 +167,19 @@ const JSObject *JSCell::getObject() const
     return isObject() ? static_cast<const JSObject *>(this) : 0;
 }
 
-JSCell *jsString(const char *s)
+JSCell* jsString(const char* s)
 {
     return new StringImp(s ? s : "");
 }
 
-JSCell *jsString(const UString &s)
+JSCell* jsString(const UString& s)
 {
     return s.isNull() ? new StringImp("") : new StringImp(s);
+}
+
+JSCell* jsOwnedString(const UString& s)
+{
+    return s.isNull() ? new StringImp("", StringImp::HasOtherOwner) : new StringImp(s, StringImp::HasOtherOwner);
 }
 
 // This method includes a PIC branch to set up the NumberImp's vtable, so we quarantine

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005, 2006 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGFEColorMatrixElement.h"
 
 #include "SVGNames.h"
@@ -33,7 +33,7 @@ namespace WebCore {
 
 SVGFEColorMatrixElement::SVGFEColorMatrixElement(const QualifiedName& tagName, Document* doc)
     : SVGFilterPrimitiveStandardAttributes(tagName, doc)
-    , m_type(0)
+    , m_type(SVG_FECOLORMATRIX_TYPE_UNKNOWN)
     , m_values(new SVGNumberList)
     , m_filterEffect(0)
 {
@@ -69,15 +69,16 @@ void SVGFEColorMatrixElement::parseMappedAttribute(MappedAttribute* attr)
         SVGFilterPrimitiveStandardAttributes::parseMappedAttribute(attr);
 }
 
-SVGFEColorMatrix* SVGFEColorMatrixElement::filterEffect() const
+SVGFEColorMatrix* SVGFEColorMatrixElement::filterEffect(SVGResourceFilter* filter) const
 {
     if (!m_filterEffect)
-        m_filterEffect = static_cast<SVGFEColorMatrix*>(SVGResourceFilter::createFilterEffect(FE_COLOR_MATRIX));
+        m_filterEffect = static_cast<SVGFEColorMatrix*>(SVGResourceFilter::createFilterEffect(FE_COLOR_MATRIX, filter));
     if (!m_filterEffect)
         return 0;
         
     m_filterEffect->setIn(in1());
     setStandardAttributes(m_filterEffect);
+
     Vector<float> _values;
     SVGNumberList* numbers = values();
 
@@ -85,6 +86,7 @@ SVGFEColorMatrix* SVGFEColorMatrixElement::filterEffect() const
     unsigned int nr = numbers->numberOfItems();
     for (unsigned int i = 0;i < nr;i++)
         _values.append(numbers->getItem(i, ec));
+
     m_filterEffect->setValues(_values);
     m_filterEffect->setType((SVGColorMatrixType) type());
     
@@ -93,6 +95,6 @@ SVGFEColorMatrix* SVGFEColorMatrixElement::filterEffect() const
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

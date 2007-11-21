@@ -43,16 +43,44 @@ namespace BAL {
 
     class BIWindow {
         public:
+            /**
+            * event handler
+            */
             virtual void handleEvent(BAL::BIEvent *event) = 0;
-			virtual bool canGoBackOrForward(int distance) = 0;
-			virtual void goBackOrForward(int distance) = 0;
+            /**
+            * test if it can go back or forward
+            */
+            virtual bool canGoBackOrForward(int distance) = 0;
+            /**
+            * go back or forward
+            */
+            virtual void goBackOrForward(int distance) = 0;
+            /**
+            * set the url
+            */
             virtual void setURL(const WebCore::KURL& url) = 0;
+            /**
+            * stop the loading
+            */
+            virtual void stop() = 0;
+            /**
+            * get url
+            */
             virtual const WebCore::KURL& URL() = 0;
+            /**
+            * get the widget
+            */
             virtual const BTWidget* widget() const = 0;
 
+            /**
+            * set frameLoaderClient
+            */
             virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*) = 0;
 
-        // this is mandatory
+            // this is mandatory
+            /**
+            * BIWindow destructor
+            */
             virtual ~BIWindow() {};
 
     };
@@ -62,9 +90,10 @@ namespace BAL {
 #define IMPLEMENT_BIWINDOW  \
     public: \
     virtual void handleEvent(BAL::BIEvent *event);\
-	virtual bool canGoBackOrForward(int distance); \
-	virtual void goBackOrForward(int distance); \
+    virtual bool canGoBackOrForward(int distance); \
+    virtual void goBackOrForward(int distance); \
     virtual void setURL(const KURL& url);\
+    virtual void stop();\
     virtual const WebCore::KURL& URL();\
     virtual const BTWidget* widget() const;\
     virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*);

@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #import "config.h"
@@ -100,8 +100,11 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
 {
     populate();
     int numItems = [m_popup.get() numberOfItems];
-    if (numItems <= 0)
+    if (numItems <= 0) {
+        if (client())
+            client()->hidePopup();
         return;
+    }
     ASSERT(numItems > index);
 
     // Workaround for crazy bug where a selected index of -1 for a menu with only 1 item will cause a blank menu.
@@ -117,7 +120,7 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
     
     NSPoint location;
     NSFont* font = client()->clientStyle()->font().primaryFont()->getNSFont();
-    
+
     // These values were borrowed from AppKit to match their placement of the menu.
     const int popOverHorizontalAdjust = -10;
     const int popUnderHorizontalAdjust = 6;
@@ -130,7 +133,7 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
         // Adjust for fonts other than the system font.
         NSFont* defaultFont = [NSFont systemFontOfSize:[font pointSize]];
         vertOffset += [font descender] - [defaultFont descender];
-        vertOffset = fmin(NSHeight(r), vertOffset);
+        vertOffset = fminf(NSHeight(r), vertOffset);
     
         location = NSMakePoint(NSMinX(r) + popOverHorizontalAdjust, NSMaxY(r) - vertOffset);
     } else
@@ -142,9 +145,16 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
     NSEvent* event = [frame->eventHandler()->currentNSEvent() retain];
     
     RefPtr<PopupMenu> protector(this);
+
+    RetainPtr<NSView> dummyView(AdoptNS, [[NSView alloc] initWithFrame:r]);
+    [view addSubview:dummyView.get()];
+    location = [dummyView.get() convertPoint:location fromView:view];
     
     frame->willPopupMenu(menu);
-    wkPopupMenu(menu, location, roundf(NSWidth(r)), view, index, font);
+    wkPopupMenu(menu, location, roundf(NSWidth(r)), dummyView.get(), index, font);
+
+    [m_popup.get() dismissPopUp];
+    [dummyView.get() removeFromSuperview];
 
     if (client()) {
         int newIndex = [m_popup.get() indexOfSelectedItem];
@@ -172,6 +182,11 @@ void PopupMenu::hide()
     
 void PopupMenu::updateFromElement()
 {
+}
+
+bool PopupMenu::itemWritingDirectionIsNatural()
+{
+    return true;
 }
 
 }

@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -42,13 +42,13 @@ public:
 
     virtual void destroy();
 
-    virtual int minWidth() const { return m_minWidth; }
-    virtual int maxWidth() const { return m_maxWidth; }
+    virtual int minPrefWidth() const;
+    virtual int maxPrefWidth() const;
 
-    virtual int overrideSize() const { return m_overrideSize; }
+    virtual int overrideSize() const;
     virtual int overrideWidth() const;
     virtual int overrideHeight() const;
-    virtual void setOverrideSize(int s) { m_overrideSize = s; }
+    virtual void setOverrideSize(int);
 
     virtual bool absolutePosition(int& x, int& y, bool fixed = false) const;
 
@@ -73,6 +73,8 @@ public:
     int calcContentBoxWidth(int width) const;
     int calcContentBoxHeight(int height) const;
 
+    virtual void borderFitAdjust(int& x, int& w) const {}; // Shrink the box in which the border paints if border-fit is set.
+
     // This method is now public so that centered objects like tables that are
     // shifted right by left-aligned floats can recompute their left and
     // right margins (so that they can remain centered after being
@@ -94,8 +96,9 @@ public:
     virtual int rightmostPosition(bool includeOverflowInterior = true, bool includeSelf = true) const;
     virtual int leftmostPosition(bool includeOverflowInterior = true, bool includeSelf = true) const;
 
-    virtual IntRect getAbsoluteRepaintRect();
+    virtual IntRect absoluteClippedOverflowRect();
     virtual void computeAbsoluteRepaintRect(IntRect&, bool fixed = false);
+    IntSize offsetForPositionedInContainer(RenderObject*) const;
 
     virtual void repaintDuringLayoutIfMoved(const IntRect&);
 
@@ -108,6 +111,8 @@ public:
     {
         return style()->htmlHacks() && style()->height().isAuto() && !isFloatingOrPositioned() && (isRoot() || isBody());
     }
+
+    virtual IntSize intrinsicSize() const { return IntSize(); }
 
     // Whether or not the element shrinks to its intrinsic width (rather than filling the width
     // of a containing block).  HTML4 buttons, <select>s, <input>s, legends, and floating/compact elements do this.
@@ -139,9 +144,9 @@ public:
     virtual void paintBackgroundExtended(GraphicsContext*, const Color&, const BackgroundLayer*, int clipY, int clipHeight,
                                          int tx, int ty, int width, int height, bool includeLeftEdge = true, bool includeRightEdge = true);
 
-    virtual int staticX() const { return m_staticX; }
-    virtual int staticY() const { return m_staticY; }
-    virtual void setStaticX(int staticX) { m_staticX = staticX; }
+    virtual int staticX() const;
+    virtual int staticY() const;
+    virtual void setStaticX(int staticX);
     virtual void setStaticY(int staticY);
 
     virtual IntRect getOverflowClipRect(int tx, int ty);
@@ -180,6 +185,11 @@ private:
     void calcAbsoluteVerticalReplaced();
     void calcAbsoluteHorizontalReplaced();
 
+    // This function calculates the minimum and maximum preferred widths for an object.
+    // These values are used in shrink-to-fit layout systems.
+    // These include tables, positioned objects, floats and flexible boxes.
+    virtual void calcPrefWidths() = 0;
+
 protected:
     // The width/height of the contents + borders + padding.
     int m_width;
@@ -193,27 +203,17 @@ protected:
     int m_marginTop;
     int m_marginBottom;
 
-    // The minimum width the element needs to be able to render
-    // its content without clipping.
-    int m_minWidth;
-    // The maximum width the element can fill horizontally
-    // (the width of the element with line breaking disabled).
-    int m_maxWidth;
+    // The preferred width of the element if it were to break its lines at every possible opportunity.
+    int m_minPrefWidth;
+    
+    // The preferred width of the element if it never breaks any lines at all.
+    int m_maxPrefWidth;
 
-    // A pointer to our layer if we have one.  Currently only positioned elements
-    // and floaters have layers.
+    // A pointer to our layer if we have one.
     RenderLayer* m_layer;
 
     // For inline replaced elements, the inline box that owns us.
     InlineBox* m_inlineBoxWrapper;
-
-private:
-    // Used by flexible boxes when flexing this element.
-    int m_overrideSize;
-
-    // Cached normal flow values for absolute positioned elements with static left/top values.
-    int m_staticX;
-    int m_staticY;
 };
 
 } // namespace WebCore

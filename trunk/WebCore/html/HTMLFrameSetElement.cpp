@@ -19,13 +19,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 #include "HTMLFrameSetElement.h"
 
+#include "CSSPropertyNames.h"
 #include "Document.h"
 #include "Event.h"
 #include "EventNames.h"
@@ -33,6 +34,7 @@
 #include "Length.h"
 #include "MouseEvent.h"
 #include "RenderFrameSet.h"
+#include "Text.h"
 
 namespace WebCore {
 
@@ -45,7 +47,9 @@ HTMLFrameSetElement::HTMLFrameSetElement(Document *doc)
     , m_cols(0)
     , m_totalRows(1)
     , m_totalCols(1)
-    , m_border(4)
+    , m_border(6)
+    , m_borderSet(false)
+    , m_borderColorSet(false)
     , frameborder(true)
     , frameBorderSet(false)
     , noresize(false)
@@ -64,7 +68,19 @@ bool HTMLFrameSetElement::checkDTD(const Node* newChild)
 {
     // FIXME: Old code had adjacent double returns and seemed to want to do something with NOFRAMES (but didn't).
     // What is the correct behavior?
+    if (newChild->isTextNode())
+        return static_cast<const Text*>(newChild)->containsOnlyWhitespace();
     return newChild->hasTagName(framesetTag) || newChild->hasTagName(frameTag);
+}
+
+bool HTMLFrameSetElement::mapToEntry(const QualifiedName& attrName, MappedAttributeEntry& result) const
+{
+    if (attrName == bordercolorAttr) {
+        result = eUniversal;
+        return true;
+    }
+
+    return HTMLElement::mapToEntry(attrName, result);
 }
 
 void HTMLFrameSetElement::parseMappedAttribute(MappedAttribute *attr)
@@ -82,18 +98,33 @@ void HTMLFrameSetElement::parseMappedAttribute(MappedAttribute *attr)
             setChanged();
         }
     } else if (attr->name() == frameborderAttr) {
-        // false or "no" or "0"..
-        if (attr->value().toInt() == 0) {
+        if (!attr->isNull()) {
+            // false or "no" or "0"..
+            if (attr->value().toInt() == 0) {
+                frameborder = false;
+                m_border = 0;
+            }
+            frameBorderSet = true;
+        } else {
             frameborder = false;
-            m_border = 0;
+            frameBorderSet = false;
         }
-        frameBorderSet = true;
     } else if (attr->name() == noresizeAttr) {
         noresize = true;
     } else if (attr->name() == borderAttr) {
-        m_border = attr->value().toInt();
-        if(!m_border)
-            frameborder = false;
+        if (!attr->isNull()) {
+            m_border = attr->value().toInt();
+            if (!m_border)
+                frameborder = false;
+            m_borderSet = true;
+        } else
+            m_borderSet = false;
+    } else if (attr->name() == bordercolorAttr) {
+        m_borderColorSet = attr->decl();
+        if (!attr->decl() && !attr->isEmpty()) {
+            addCSSColor(attr, CSS_PROP_BORDER_COLOR, attr->value());
+            m_borderColorSet = true;
+        }
     } else if (attr->name() == onloadAttr) {
         document()->setHTMLWindowEventListener(loadEvent, attr);
     } else if (attr->name() == onbeforeunloadAttr) {
@@ -121,13 +152,22 @@ RenderObject *HTMLFrameSetElement::createRenderer(RenderArena *arena, RenderStyl
 
 void HTMLFrameSetElement::attach()
 {
-    // inherit default settings from parent frameset
+    // Inherit default settings from parent frameset
+    // FIXME: This is not dynamic.
     HTMLElement* node = static_cast<HTMLElement*>(parentNode());
     while (node) {
         if (node->hasTagName(framesetTag)) {
             HTMLFrameSetElement* frameset = static_cast<HTMLFrameSetElement*>(node);
-            if(!frameBorderSet)  frameborder = frameset->frameBorder();
-            if(!noresize)  noresize = frameset->noResize();
+            if (!frameBorderSet)
+                frameborder = frameset->hasFrameBorder();
+            if (frameborder) {
+                if (!m_borderSet)
+                    m_border = frameset->border();
+                if (!m_borderColorSet)
+                    m_borderColorSet = frameset->hasBorderColor();
+            }
+            if (!noresize)
+                noresize = frameset->noResize();
             break;
         }
         node = static_cast<HTMLElement*>(node->parentNode());
@@ -150,7 +190,7 @@ void HTMLFrameSetElement::recalcStyle(StyleChange ch)
 {
     if (changed() && renderer()) {
         renderer()->setNeedsLayout(true);
-        setChanged(false);
+        setChanged(NoStyleChange);
     }
     HTMLElement::recalcStyle(ch);
 }

@@ -16,14 +16,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGElement_h
 #define SVGElement_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "Document.h"
 #include "FloatRect.h"
@@ -61,7 +61,7 @@ public: \
     virtual void setBaseVal(BareType newBaseVal); \
     virtual BareType animVal() const; \
     virtual void setAnimVal(BareType newAnimVal); \
-\
+    \
 protected: \
     ClassStorageType m_element; \
 }; \
@@ -162,14 +162,14 @@ PassRefPtr<ClassName::SVGAnimatedTemplate##UpperProperty> ClassName::LowerProper
 { \
     const SVGElement* context = contextElement(); \
     ASSERT(context); \
-    return RefPtr<ClassName::SVGAnimatedTemplate##UpperProperty>(new ClassName::SVGAnimatedTemplate##UpperProperty(context)); \
+    return lookupOrCreateWrapper<ClassName::SVGAnimatedTemplate##UpperProperty, SVGElement>(context, AttrName); \
 }
 
 #define ANIMATED_PROPERTY_DEFINITIONS(ClassName, BareType, UpperClassName, LowerClassName, UpperProperty, LowerProperty, AttrName, StorageGetter) \
 ANIMATED_PROPERTY_DEFINITIONS_INTERNAL(ClassName, ClassName, BareType, UpperClassName, LowerClassName, UpperProperty, LowerProperty, AttrName, StorageGetter, this) \
 PassRefPtr<ClassName::SVGAnimatedTemplate##UpperProperty> ClassName::LowerProperty##Animated() const \
 { \
-    return RefPtr<ClassName::SVGAnimatedTemplate##UpperProperty>(new ClassName::SVGAnimatedTemplate##UpperProperty(this)); \
+    return lookupOrCreateWrapper<ClassName::SVGAnimatedTemplate##UpperProperty, ClassName>(this, AttrName); \
 }
 
 namespace WebCore {
@@ -203,6 +203,7 @@ namespace WebCore {
         virtual bool isSVG() const { return false; }
         virtual bool isFilterEffect() const { return false; }
         virtual bool isGradientStop() const { return false; }
+        virtual bool isTextContent() const { return false; }
 
         virtual bool isShadowNode() const { return m_shadowParent; }
         virtual Node* shadowParentNode() { return m_shadowParent; }
@@ -212,7 +213,7 @@ namespace WebCore {
         // For SVGTests
         virtual bool isValid() const { return true; }
   
-        virtual void closeRenderer();
+        virtual void finishedParsing();
         virtual bool rendererIsNeeded(RenderStyle*) { return false; }
         virtual bool childShouldCreateRenderer(Node*) const;
 
@@ -253,7 +254,7 @@ namespace WebCore {
 
 } // namespace WebCore 
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGElement_h
 
 // vim:ts=4:noet

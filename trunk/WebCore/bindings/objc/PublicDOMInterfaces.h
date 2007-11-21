@@ -80,6 +80,17 @@
 @property(readonly, retain) DOMElement *documentElement;
 @property(readonly, retain) DOMAbstractView *defaultView;
 @property(readonly, retain) DOMStyleSheetList *styleSheets;
+@property(readonly, retain) DOMHTMLCollection *images;
+@property(readonly, retain) DOMHTMLCollection *applets;
+@property(readonly, retain) DOMHTMLCollection *links;
+@property(readonly, retain) DOMHTMLCollection *forms;
+@property(readonly, retain) DOMHTMLCollection *anchors;
+@property(copy) NSString *title;
+@property(readonly, copy) NSString *referrer;
+@property(readonly, copy) NSString *domain;
+@property(readonly, copy) NSString *URL;
+@property(retain) DOMHTMLElement *body;
+@property(copy) NSString *cookie;
 - (DOMElement *)createElement:(NSString *)tagName;
 - (DOMDocumentFragment *)createDocumentFragment;
 - (DOMText *)createTextNode:(NSString *)data;
@@ -109,7 +120,8 @@
 - (DOMCSSStyleDeclaration *)getComputedStyle:(DOMElement *)element pseudoElement:(NSString *)pseudoElement;
 - (DOMCSSRuleList *)getMatchedCSSRules:(DOMElement *)element pseudoElement:(NSString *)pseudoElement;
 - (DOMCSSRuleList *)getMatchedCSSRules:(DOMElement *)element pseudoElement:(NSString *)pseudoElement authorOnly:(BOOL)authorOnly;
-#ifdef XPATH_SUPPORT
+- (DOMNodeList *)getElementsByName:(NSString *)elementName;
+#ifdef ENABLE_XPATH
 - (DOMXPathExpression *)createExpression:(NSString *)expression :(id <DOMXPathNSResolver>)resolver;
 - (DOMXPathExpression *)createExpression:(NSString *)expression resolver:(id <DOMXPathNSResolver>)resolver;
 - (id <DOMXPathNSResolver>)createNSResolver:(DOMNode *)nodeResolver;
@@ -323,6 +335,11 @@
 @property(copy) NSString *value;
 @end
 
+@interface DOMHTMLCanvasElement : DOMHTMLElement
+@property int height;
+@property int width;
+@end
+
 @interface DOMHTMLCollection : DOMObject
 @property(readonly) unsigned length;
 - (DOMNode *)item:(unsigned)index;
@@ -342,23 +359,11 @@
 @end
 
 @interface DOMHTMLDocument : DOMDocument
-@property(copy) NSString *title;
-@property(readonly, copy) NSString *referrer;
-@property(readonly, copy) NSString *domain;
-@property(readonly, copy) NSString *URL;
-@property(retain) DOMHTMLElement *body;
-@property(readonly, retain) DOMHTMLCollection *images;
-@property(readonly, retain) DOMHTMLCollection *applets;
-@property(readonly, retain) DOMHTMLCollection *links;
-@property(readonly, retain) DOMHTMLCollection *forms;
-@property(readonly, retain) DOMHTMLCollection *anchors;
-@property(copy) NSString *cookie;
 - (void)open;
 - (void)close;
 - (void)write:(NSString *)text;
 - (void)writeln:(NSString *)text;
 - (DOMElement *)getElementById:(NSString *)elementId;
-- (DOMNodeList *)getElementsByName:(NSString *)elementName;
 @end
 
 @interface DOMHTMLElement : DOMElement
@@ -541,6 +546,11 @@
 @interface DOMHTMLMapElement : DOMHTMLElement
 @property(readonly, retain) DOMHTMLCollection *areas;
 @property(copy) NSString *name;
+@end
+
+@interface DOMHTMLMarqueeElement : DOMHTMLElement
+- (void)start;
+- (void)stop;
 @end
 
 @interface DOMHTMLMenuElement : DOMHTMLElement
@@ -933,6 +943,7 @@
 @property(readonly) unsigned short orient;
 @property(readonly) BOOL horizontalOverflow;
 @property(readonly) BOOL verticalOverflow;
+- (void)initOverflowEvent:(unsigned short)orient horizontalOverflow:(BOOL)horizontalOverflow verticalOverflow:(BOOL)verticalOverflow;
 @end
 
 @interface DOMWheelEvent : DOMUIEvent

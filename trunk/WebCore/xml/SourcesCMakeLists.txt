@@ -9,12 +9,13 @@ IF (WEBKIT_USE_XSLT_SUPPORT)
         ${xml_SRC}
     WebCore/xml/XSLImportRule.cpp
     WebCore/xml/XSLStyleSheet.cpp
+    WebCore/xml/XSLTExtensions.cpp
     WebCore/xml/XSLTProcessor.cpp)
 ENDIF (WEBKIT_USE_XSLT_SUPPORT)
 
 IF (WEBKIT_USE_JS)
     set(xml_SRC ${xml_SRC}
-    WebCore/xml/xmlhttprequest.cpp)
+    WebCore/xml/XMLHttpRequest.cpp)
 ENDIF (WEBKIT_USE_JS)
 
 IF (WEBKIT_USE_XPATH_SUPPORT)
@@ -25,6 +26,7 @@ IF (WEBKIT_USE_XPATH_SUPPORT)
     WebCore/xml/XPathExpressionNode.cpp
     WebCore/xml/XPathFunctions.cpp
     WebCore/xml/XPathNamespace.cpp
+    WebCore/xml/XPathNodeSet.cpp
     WebCore/xml/XPathNSResolver.cpp
     WebCore/xml/XPathParser.cpp
     WebCore/xml/XPathPath.cpp

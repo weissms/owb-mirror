@@ -15,13 +15,13 @@
  
  You should have received a copy of the GNU Library General Public License
  along with this library; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
+ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA 02110-1301, USA.
  */
 
 #ifndef SVGTransformDistance_h
 #define SVGTransformDistance_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGTransform.h"
 
@@ -44,15 +44,15 @@ namespace WebCore {
         
         float distance() const;
     private:
-        SVGTransformDistance(SVGTransform::SVGTransformType, double angle, double cx, double cy, const AffineTransform&);
+        SVGTransformDistance(SVGTransform::SVGTransformType, float angle, float cx, float cy, const AffineTransform&);
             
         SVGTransform::SVGTransformType m_type;
-        double m_angle;
-        double m_cx;
-        double m_cy;
+        float m_angle;
+        float m_cx;
+        float m_cy;
         AffineTransform m_transform; // for storing scale, translation or matrix transforms
     };
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGTransformDistance_h

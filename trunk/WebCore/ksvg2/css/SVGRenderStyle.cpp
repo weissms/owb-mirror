@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
                   2004, 2005 Rob Buis <buis@kde.org>
 
     Based on khtml code by:
@@ -22,13 +22,19 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGRenderStyle.h"
+
+#include "CSSPrimitiveValue.h"
+#include "CSSValueList.h"
+#include "RenderObject.h"
+#include "RenderStyle.h"
+#include "SVGStyledElement.h"
 
 namespace WebCore {
 
@@ -36,11 +42,12 @@ SVGRenderStyle *SVGRenderStyle::s_defaultStyle = 0;
 
 SVGRenderStyle::SVGRenderStyle()
 {
-    if(!s_defaultStyle)    
+    if (!s_defaultStyle)    
         s_defaultStyle = new SVGRenderStyle(true);
 
     fill = s_defaultStyle->fill;
     stroke = s_defaultStyle->stroke;
+    text = s_defaultStyle->text;
     stops = s_defaultStyle->stops;
     clip = s_defaultStyle->clip;
     mask = s_defaultStyle->mask;
@@ -56,6 +63,7 @@ SVGRenderStyle::SVGRenderStyle(bool)
 
     fill.init();
     stroke.init();
+    text.init();
     stops.init();
     clip.init();
     mask.init();
@@ -67,6 +75,7 @@ SVGRenderStyle::SVGRenderStyle(const SVGRenderStyle &other) : Shared<SVGRenderSt
 {
     fill = other.fill;
     stroke = other.stroke;
+    text = other.text;
     stops = other.stops;
     clip = other.clip;
     mask = other.mask;
@@ -83,7 +92,7 @@ SVGRenderStyle::~SVGRenderStyle()
 
 bool SVGRenderStyle::operator==(const SVGRenderStyle& o) const
 {
-    return (fill == o.fill && stroke == o.stroke &&
+    return (fill == o.fill && stroke == o.stroke && text == o.text &&
         stops == o.stops && clip == o.clip && mask == o.mask &&
         misc == o.misc && markers == o.markers &&
         svg_inherited_flags == o.svg_inherited_flags &&
@@ -95,23 +104,45 @@ bool SVGRenderStyle::inheritedNotEqual(const SVGRenderStyle* other) const
     return (fill != other->fill
             || stroke != other->stroke
             || markers != other->markers
+            || text != other->text
             || svg_inherited_flags != other->svg_inherited_flags);
 }
 
 void SVGRenderStyle::inheritFrom(const SVGRenderStyle* svgInheritParent)
 {
-    if(!svgInheritParent)
+    if (!svgInheritParent)
         return;
 
     fill = svgInheritParent->fill;
     stroke = svgInheritParent->stroke;
     markers = svgInheritParent->markers;
+    text = svgInheritParent->text;
 
     svg_inherited_flags = svgInheritParent->svg_inherited_flags;
 }
 
+float SVGRenderStyle::cssPrimitiveToLength(const RenderObject* item, CSSValue* value, float defaultValue)
+{
+    CSSPrimitiveValue* primitive = static_cast<CSSPrimitiveValue*>(value);
+
+    unsigned short cssType = (primitive ? primitive->primitiveType() : (unsigned short) CSSPrimitiveValue::CSS_UNKNOWN);
+    if (!(cssType > CSSPrimitiveValue::CSS_UNKNOWN && cssType <= CSSPrimitiveValue::CSS_PC))
+        return defaultValue;
+
+    if (cssType == CSSPrimitiveValue::CSS_PERCENTAGE) {
+        SVGStyledElement* element = static_cast<SVGStyledElement*>(item->element());
+        SVGElement* viewportElement = (element ? element->viewportElement() : 0);
+        if (viewportElement) {
+            float result = primitive->getFloatValue() / 100.0f;
+            return SVGLength::PercentageOfViewport(result, element, LengthModeOther);
+        }
+    }
+
+    return primitive->computeLengthFloat(const_cast<RenderStyle*>(item->style()));
 }
 
-// vim:ts=4:noet
-#endif // SVG_SUPPORT
+}
 
+#endif // ENABLE(SVG)
+
+// vim:ts=4:noet

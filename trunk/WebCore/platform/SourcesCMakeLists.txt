@@ -2,6 +2,7 @@ set(platform_SRC
         ${platform_SRC}
 
 	WebCore/platform/Arena.cpp
+	WebCore/platform/BidiContext.cpp
 	WebCore/platform/DeprecatedPtrListImpl.cpp
 	WebCore/platform/DeprecatedStringList.cpp
 	WebCore/platform/FileChooser.cpp

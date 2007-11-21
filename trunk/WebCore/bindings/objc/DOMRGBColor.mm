@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  * Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,10 @@
 
 #import "CSSPrimitiveValue.h"
 #import "Color.h"
+#import "ColorMac.h"
 #import "DOMCSSPrimitiveValue.h"
 #import "DOMInternal.h"
+#import "WebCoreObjCExtras.h"
 #import <wtf/GetPtr.h>
 
 namespace WebCore {
@@ -65,6 +67,13 @@ void removeWrapperForRGB(WebCore::RGBA32 value)
 
 @implementation DOMRGBColor
 
+#ifndef BUILDING_ON_TIGER
++ (void)initialize
+{
+    WebCoreObjCFinalizeOnMainThread(self);
+}
+#endif
+
 - (void)dealloc
 {
     WebCore::removeWrapperForRGB(reinterpret_cast<uintptr_t>(_internal));
@@ -81,28 +90,28 @@ void removeWrapperForRGB(WebCore::RGBA32 value)
 {
     WebCore::RGBA32 rgb = reinterpret_cast<uintptr_t>(_internal);
     int value = (rgb >> 16) & 0xFF;
-    return [DOMCSSPrimitiveValue _CSSPrimitiveValueWith:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
+    return [DOMCSSPrimitiveValue _wrapCSSPrimitiveValue:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
 }
 
 - (DOMCSSPrimitiveValue *)green
 {
     WebCore::RGBA32 rgb = reinterpret_cast<uintptr_t>(_internal);
     int value = (rgb >> 8) & 0xFF;
-    return [DOMCSSPrimitiveValue _CSSPrimitiveValueWith:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
+    return [DOMCSSPrimitiveValue _wrapCSSPrimitiveValue:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
 }
 
 - (DOMCSSPrimitiveValue *)blue
 {
     WebCore::RGBA32 rgb = reinterpret_cast<uintptr_t>(_internal);
     int value = rgb & 0xFF;
-    return [DOMCSSPrimitiveValue _CSSPrimitiveValueWith:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
+    return [DOMCSSPrimitiveValue _wrapCSSPrimitiveValue:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
 }
 
 - (DOMCSSPrimitiveValue *)alpha
 {
     WebCore::RGBA32 rgb = reinterpret_cast<uintptr_t>(_internal);
     float value = static_cast<float>(WebCore::Color(rgb).alpha()) / 0xFF;
-    return [DOMCSSPrimitiveValue _CSSPrimitiveValueWith:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
+    return [DOMCSSPrimitiveValue _wrapCSSPrimitiveValue:new WebCore::CSSPrimitiveValue(value, WebCore::CSSPrimitiveValue::CSS_NUMBER)];
     
 }
 
@@ -140,7 +149,7 @@ void removeWrapperForRGB(WebCore::RGBA32 value)
     return self;
 }
 
-+ (DOMRGBColor *)_RGBColorWithRGB:(WebCore::RGBA32)value
++ (DOMRGBColor *)_wrapRGBColor:(WebCore::RGBA32)value
 {
     id cachedInstance;
     cachedInstance = WebCore::getWrapperForRGB(value);

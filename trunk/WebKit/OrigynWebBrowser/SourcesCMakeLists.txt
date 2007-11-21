@@ -1,12 +1,19 @@
 SET (webkit_SRC
         ${webkit_SRC}
-	
-	#WebKit/OrigynWebBrowser/Api/BCWebView.cpp
-	WebKit/OrigynWebBrowser/Api/BCWindowManager.cpp
-	WebKit/OrigynWebBrowser/Api/WindowBal.cpp
-	WebKit/OrigynWebBrowser/WebCoreSupport/ChromeClientBal.cpp
-	WebKit/OrigynWebBrowser/WebCoreSupport/ContextMenuClientBal.cpp
-	WebKit/OrigynWebBrowser/WebCoreSupport/DragClientBal.cpp
-	WebKit/OrigynWebBrowser/WebCoreSupport/EditorClientBal.cpp
-	WebKit/OrigynWebBrowser/WebCoreSupport/FrameLoaderClientBal.cpp
+        WebKit/OrigynWebBrowser/Api/BCWindowManager.cpp
+        WebKit/OrigynWebBrowser/Api/WindowBal.cpp
+        WebKit/OrigynWebBrowser/WebCoreSupport/ContextMenuClientBal.cpp
+        WebKit/OrigynWebBrowser/WebCoreSupport/DragClientBal.cpp
+        WebKit/OrigynWebBrowser/WebCoreSupport/EditorClientBal.cpp
+        WebKit/OrigynWebBrowser/WebCoreSupport/ChromeClientBal.cpp
+        WebKit/OrigynWebBrowser/WebCoreSupport/FrameLoaderClientBal.cpp
+        WebKit/OrigynWebBrowser/WebCoreSupport/InspectorClientBal.cpp
 )
+
+IF (USE_WEB_UI)
+    SET (webkit_SRC
+        ${webkit_SRC}
+        WebKit/OrigynWebBrowser/WebCoreSupport/ChromeClientWebUI.cpp
+        WebKit/OrigynWebBrowser/WebCoreSupport/FrameLoaderClientWebUI.cpp
+    )
+ENDIF (USE_WEB_UI)

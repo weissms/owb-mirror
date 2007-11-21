@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef CSSBorderImageValue_h
@@ -30,12 +30,12 @@
 namespace WebCore {
 
 class CSSImageValue;
-class RectImpl;
+class Rect;
 
 class CSSBorderImageValue : public CSSValue {
 public:
     CSSBorderImageValue();
-    CSSBorderImageValue(PassRefPtr<CSSImageValue>, PassRefPtr<RectImpl>, int horizontalRule, int verticalRule);
+    CSSBorderImageValue(PassRefPtr<CSSImageValue>, PassRefPtr<Rect>, int horizontalRule, int verticalRule);
 
     virtual String cssText() const;
 
@@ -45,7 +45,7 @@ public:
 
     // These four values are used to make "cuts" in the image.  They can be numbers
     // or percentages.
-    RefPtr<RectImpl> m_imageSliceRect;
+    RefPtr<Rect> m_imageSliceRect;
 
     // Values for how to handle the scaling/stretching/tiling of the image slices.
     int m_horizontalSizeRule; // Rule for how to adjust the widths of the top/middle/bottom

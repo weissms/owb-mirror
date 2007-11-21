@@ -30,11 +30,13 @@
 #import "Color.h"
 #import "DOMObject.h"
 #import "DOMRGBColor.h"
+#import "HitTestResult.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
+#import "DOMXPathExpressionInternal.h"
 #import "DOMXPathNSResolver.h"
-#endif // XPATH_SUPPORT
-
+#import "DOMXPathResultInternal.h"
+#endif // ENABLE(XPATH)
 
 // Auto-generated internal interfaces
 #import "DOMAbstractViewInternal.h"
@@ -98,6 +100,7 @@
 #import "DOMHTMLLegendElementInternal.h"
 #import "DOMHTMLLinkElementInternal.h"
 #import "DOMHTMLMapElementInternal.h"
+#import "DOMHTMLMarqueeElementInternal.h"
 #import "DOMHTMLMenuElementInternal.h"
 #import "DOMHTMLMetaElementInternal.h"
 #import "DOMHTMLModElementInternal.h"
@@ -143,7 +146,7 @@
 #import "DOMUIEventInternal.h"
 #import "DOMWheelEventInternal.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #import "DOMSVGAElementInternal.h"
 #import "DOMSVGAngleInternal.h"
 #import "DOMSVGAnimateColorElementInternal.h"
@@ -256,6 +259,7 @@
 #import "DOMSVGTSpanElementInternal.h"
 #import "DOMSVGTextContentElementInternal.h"
 #import "DOMSVGTextElementInternal.h"
+#import "DOMSVGTextPathElementInternal.h"
 #import "DOMSVGTextPositioningElementInternal.h"
 #import "DOMSVGTitleElementInternal.h"
 #import "DOMSVGTransformInternal.h"
@@ -264,12 +268,7 @@
 #import "DOMSVGUseElementInternal.h"
 #import "DOMSVGViewElementInternal.h"
 #import "DOMSVGZoomEventInternal.h"
-#endif // SVG_SUPPORT
-
-#ifdef XPATH_SUPPORT
-#import "DOMXPathExpressionInternal.h"
-#import "DOMXPathResultInternal.h"
-#endif // XPATH_SUPPORT
+#endif // ENABLE(SVG)
 
 namespace KJS {
     class JSObject;
@@ -282,15 +281,15 @@ namespace KJS {
 namespace WebCore {
     class NodeFilter;
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
     class AffineTransform;
     class FloatPoint;
     class FloatRect;
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
     class XPathNSResolver;
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 }
 
 // Core Internal Interfaces
@@ -302,34 +301,32 @@ namespace WebCore {
 // CSS Internal Interfaces
 
 @interface DOMRGBColor (WebCoreInternal)
-+ (DOMRGBColor *)_RGBColorWithRGB:(WebCore::RGBA32)value;
++ (DOMRGBColor *)_wrapRGBColor:(WebCore::RGBA32)value;
 - (WebCore::RGBA32)_RGBColor;
 @end
 
 // Traversal Internal Interfaces
 
 @interface DOMNodeFilter : DOMObject <DOMNodeFilter>
-+ (DOMNodeFilter *)_nodeFilterWith:(WebCore::NodeFilter *)impl;
++ (DOMNodeFilter *)_wrapNodeFilter:(WebCore::NodeFilter *)impl;
 @end
 
+#if ENABLE(XPATH)
 
-#ifdef XPATH_SUPPORT
 // XPath Internal Interfaces
 
 @interface DOMNativeXPathNSResolver : DOMObject <DOMXPathNSResolver>
-+ (DOMNativeXPathNSResolver *)_xpathNSResolverWith:(WebCore::XPathNSResolver *)impl;
++ (DOMNativeXPathNSResolver *)_wrapXPathNSResolver:(WebCore::XPathNSResolver *)impl;
 - (WebCore::XPathNSResolver *)_xpathNSResolver;
 @end
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 
 // Helper functions for DOM wrappers and gluing to Objective-C
 
-namespace KJS {
-    id createDOMWrapper(KJS::JSObject*, PassRefPtr<Bindings::RootObject> origin, PassRefPtr<Bindings::RootObject> current);
-} // namespace KJS
-
 namespace WebCore {
+
+    id createDOMWrapper(KJS::JSObject*, PassRefPtr<KJS::Bindings::RootObject> origin, PassRefPtr<KJS::Bindings::RootObject> current);
 
     NSObject* getDOMWrapper(DOMObjectInternal*);
     void addDOMWrapper(NSObject* wrapper, DOMObjectInternal*);
@@ -346,7 +343,5 @@ namespace WebCore {
     {
         addDOMWrapper(wrapper, reinterpret_cast<DOMObjectInternal*>(impl));
     }
-
-    NSString* displayString(const String&, const Node*);
 
 } // namespace WebCore

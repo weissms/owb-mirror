@@ -15,14 +15,15 @@
  
  You should have received a copy of the GNU Library General Public License
  along with this library; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
+ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGTransformDistance.h"
 
+#include "FloatConversion.h"
 #include "FloatPoint.h"
 #include "FloatSize.h"
 #include "SVGTransform.h"
@@ -37,7 +38,7 @@ SVGTransformDistance::SVGTransformDistance()
 {
 }
 
-SVGTransformDistance::SVGTransformDistance(SVGTransform::SVGTransformType type, double angle, double cx, double cy, const AffineTransform& transform)
+SVGTransformDistance::SVGTransformDistance(SVGTransform::SVGTransformType type, float angle, float cx, float cy, const AffineTransform& transform)
     : m_type(type)
     , m_angle(angle)
     , m_cx(cx)
@@ -76,8 +77,8 @@ SVGTransformDistance::SVGTransformDistance(const SVGTransform& fromSVGTransform,
     }
     case SVGTransform::SVG_TRANSFORM_SCALE:
     {
-        float scaleX = fromSVGTransform.scale().width() != 0 ? toSVGTransform.scale().width() / fromSVGTransform.scale().width() : toSVGTransform.scale().width() / 0.00001;
-        float scaleY = fromSVGTransform.scale().height() != 0 ? toSVGTransform.scale().height() / fromSVGTransform.scale().height() : toSVGTransform.scale().height() / 0.00001;
+        float scaleX = fromSVGTransform.scale().width() != 0 ? toSVGTransform.scale().width() / fromSVGTransform.scale().width() : toSVGTransform.scale().width() / 0.00001f;
+        float scaleY = fromSVGTransform.scale().height() != 0 ? toSVGTransform.scale().height() / fromSVGTransform.scale().height() : toSVGTransform.scale().height() / 0.00001f;
         m_transform.scale(scaleX, scaleY);
         return;
     }
@@ -214,14 +215,14 @@ SVGTransform SVGTransformDistance::addToSVGTransform(const SVGTransform& transfo
     case SVGTransform::SVG_TRANSFORM_TRANSLATE:
     {
         FloatPoint translation = transform.translate();
-        translation += FloatSize(m_transform.e(), m_transform.f());
+        translation += FloatSize::narrowPrecision(m_transform.e(), m_transform.f());
         newTransform.setTranslate(translation.x(), translation.y());
         return newTransform;
     }
     case SVGTransform::SVG_TRANSFORM_SCALE:
     {
         FloatSize scale = transform.scale();
-        scale += FloatSize(m_transform.a(), m_transform.d());
+        scale += FloatSize::narrowPrecision(m_transform.a(), m_transform.d());
         newTransform.setScale(scale.width(), scale.height());
         return newTransform;
     }
@@ -229,7 +230,9 @@ SVGTransform SVGTransformDistance::addToSVGTransform(const SVGTransform& transfo
     {
         // FIXME: I'm not certain the translation is calculated correctly here
         FloatPoint center = transform.rotationCenter();
-        newTransform.setRotate(transform.angle() + m_angle, center.x() + m_cx, center.y() + m_cy);
+        newTransform.setRotate(transform.angle() + m_angle,
+                               center.x() + m_cx,
+                               center.y() + m_cy);
         return newTransform;
     }
     case SVGTransform::SVG_TRANSFORM_SKEWX:
@@ -253,21 +256,21 @@ float SVGTransformDistance::distance() const
 {
     switch (m_type) {
     case SVGTransform::SVG_TRANSFORM_UNKNOWN:
-        return 0;
+        return 0.0f;
     case SVGTransform::SVG_TRANSFORM_ROTATE:
         return sqrtf(m_angle * m_angle + m_cx * m_cx + m_cy * m_cy);
     case SVGTransform::SVG_TRANSFORM_MATRIX:
-        return 0; // I'm not quite sure yet what distance between two matrices means.
+        return 0.0f; // I'm not quite sure yet what distance between two matrices means.
     case SVGTransform::SVG_TRANSFORM_SCALE:
-        return sqrtf(m_transform.a() * m_transform.a() + m_transform.d() * m_transform.d());
+        return static_cast<float>(sqrt(m_transform.a() * m_transform.a() + m_transform.d() * m_transform.d()));
     case SVGTransform::SVG_TRANSFORM_TRANSLATE:
-        return sqrtf(m_transform.e() * m_transform.e() + m_transform.f() * m_transform.f());
+        return static_cast<float>(sqrt(m_transform.e() * m_transform.e() + m_transform.f() * m_transform.f()));
     case SVGTransform::SVG_TRANSFORM_SKEWX:
     case SVGTransform::SVG_TRANSFORM_SKEWY:
         return m_angle;
     }
     ASSERT_NOT_REACHED();
-    return 0;
+    return 0.0f;
 }
 
 }

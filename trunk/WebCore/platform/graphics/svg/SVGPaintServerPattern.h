@@ -26,11 +26,13 @@
 #ifndef SVGPaintServerPattern_h
 #define SVGPaintServerPattern_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "AffineTransform.h"
 #include "FloatRect.h"
 #include "SVGPaintServer.h"
+
+#include <memory>
 
 #include <wtf/OwnPtr.h>
 
@@ -64,7 +66,7 @@ namespace WebCore {
         virtual void teardown(GraphicsContext*&, const RenderObject*, SVGPaintTargetType, bool isPaintingText) const; 
 #endif
 
-#if PLATFORM(QT)
+#if PLATFORM(QT) || PLATFORM(CAIRO)
         virtual bool setup(GraphicsContext*&, const RenderObject*, SVGPaintTargetType, bool isPaintingText) const;
 #endif
 
@@ -73,7 +75,6 @@ namespace WebCore {
         const SVGPatternElement* m_ownerElement;
         AffineTransform m_patternTransform;
         FloatRect m_patternBoundaries;
-        bool m_boundingBoxMode;
 
 #if PLATFORM(CG)
         mutable CGColorSpaceRef m_patternSpace;

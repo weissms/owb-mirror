@@ -21,11 +21,13 @@
 #include "config.h"
 #include "JSLayoutTestController.h"
 
+#include "BALConfiguration.h"
+#include "BIObserverService.h"
 #include "Frame.h"
 #include "HTMLDocument.h"
 #include "kjs_events.h"
 #include "kjs_window.h"
-#include "xmlhttprequest.h"
+#include "XMLHttpRequest.h"
 
 #include "JSLayoutTestController.lut.h"
 
@@ -41,8 +43,8 @@ bool JSLayoutTestController::m_dumpAsText = false;
 /* Source for JSLayoutTestControllerProtoTable.
 @begin JSLayoutTestControllerProtoTable 1
   dumpAsText                    JSLayoutTestController::DumpAsText_func              DontDelete|Function 0
-    waitUntilDone               JSLayoutTestController::Unimplemented              DontDelete|Function 0
-    notifyDone                  JSLayoutTestController::Unimplemented              DontDelete|Function 0
+    waitUntilDone               JSLayoutTestController::WaitUntilDone              DontDelete|Function 0
+    notifyDone                  JSLayoutTestController::NotifyDone                 DontDelete|Function 0
     dumpSelectionRect           JSLayoutTestController::Unimplemented              DontDelete|Function 0
     setMainFrameIsFirstResponder JSLayoutTestController::Unimplemented              DontDelete|Function 0
     setWindowIsKey              JSLayoutTestController::Unimplemented              DontDelete|Function 0
@@ -64,7 +66,7 @@ JSLayoutTestControllerConstructorImp::JSLayoutTestControllerConstructorImp(ExecS
 {
     // set up prototype
     setPrototype(exec->lexicalInterpreter()->builtinObjectPrototype());
-    putDirect(prototypePropertyName, JSLayoutTestControllerProto::self(exec), None);
+    putDirect(exec->propertyNames().prototype, JSLayoutTestControllerProto::self(exec), None);
     // Now there's a prototype named LayoutTestController
 }
 
@@ -148,6 +150,12 @@ JSValue* JSLayoutTestControllerProtoFunc::callAsFunction(ExecState *exec, JSObje
     switch (id) {
     case JSLayoutTestController::DumpAsText_func:
         controller->m_dumpAsText = true;
+        return jsUndefined();
+    case JSLayoutTestController::WaitUntilDone:
+        BAL::getBIObserverService()->notifyObserver("layoutTestController", "waitUntilDone");
+        return jsUndefined();
+    case JSLayoutTestController::NotifyDone:
+        BAL::getBIObserverService()->notifyObserver("layoutTestController", "notifyDone");
         return jsUndefined();
     case JSLayoutTestController::Unimplemented:
         return jsUndefined();

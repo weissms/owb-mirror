@@ -51,16 +51,22 @@ namespace BAL {
     class BINativeImage {
         public:
 
-        // Destructor frees any resources
+            /**
+            * Destructor frees any resources
+            */
             virtual ~BINativeImage() {};
 
-        // Default constructor should have no parameters. real Creation is made
-        // with Create method.
+            // Default constructor should have no parameters. real Creation is made
+            // with Create method.
 
-        // Get size
+            /**
+            * Get size
+            */
             virtual IntSize size() const = 0;
 
-        // tell if alpha. FIXME is this usefull ?
+            /**
+            * tell if alpha. FIXME is this usefull ?
+            */
             virtual bool hasAlpha() = 0;
     };
 }

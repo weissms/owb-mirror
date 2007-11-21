@@ -28,14 +28,13 @@
 #if USE(QT4_UNICODE)
 #include "qt4/UnicodeQt4.h"
 #elif USE(ICU_UNICODE)
+#ifdef __OWB__
+#include "BIInternationalization.h"
+#else
 #include <wtf/unicode/icu/UnicodeIcu.h>
+#endif //__OWB__
 #else
-#ifndef __OWB__
 #error "Unknown Unicode implementation"
-#else
-// we don't want to use StreamingTextDecoderICU, because everything else is ok
-#include "icu/UnicodeIcu.h"
-#endif
 #endif
 
 #endif

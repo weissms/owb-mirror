@@ -28,7 +28,7 @@
 
 #ifdef __OWB__
 #include "BIMouseEvent.h"
-#endif
+#endif //__OWB__
 #include "DragActions.h"
 #include "DragImage.h"
 #include "IntPoint.h"
@@ -82,12 +82,15 @@ namespace WebCore {
         DragSourceAction delegateDragSourceAction(const IntPoint& pagePoint);
         
         bool mayStartDragAtEventLocation(const Frame*, const IntPoint& framePos);
-        void dragEnded() { m_dragInitiator = 0; m_didInitiateDrag = false; }
-#ifdef __OWB__        
+        void dragEnded();
+        
+        void placeDragCaret(const IntPoint&);
+        
+#ifdef __OWB__
         bool startDrag(Frame* src, Clipboard*, DragOperation srcOp, const BAL::BIMouseEvent& dragEvent, const IntPoint& dragOrigin, bool isDHTMLDrag);
 #else
         bool startDrag(Frame* src, Clipboard*, DragOperation srcOp, const PlatformMouseEvent& dragEvent, const IntPoint& dragOrigin, bool isDHTMLDrag);
-#endif
+#endif //__OWB__
         static const IntSize& maxDragImageSize();
         
         static const int LinkDragBorderInset;

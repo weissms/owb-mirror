@@ -26,15 +26,21 @@
 #ifndef SystemTime_h
 #define SystemTime_h
 
+#include "PlatformString.h"
+
 namespace WebCore {
 
     // Return the current system time in seconds, using the classic POSIX epoch of January 1, 1970.
     // Like time(0) from <time.h>, except with a wider range of values and higher precision.
     double currentTime();
+    
+#ifdef __OWB__    
+    // The string format must be like : "Thu, 01-Jan-1970 00:00:10 GMT"
+    double timeFromString(String dateString);
+#endif
 
     // Return the number of seconds since a user event has been generated
     float userIdleTime();
-    
 }
 
 #endif

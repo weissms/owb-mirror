@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     This class provides all functionality needed for loading images, style sheets and html
     pages from the web. It has a memory cache for these objects.
@@ -36,17 +36,17 @@ namespace WebCore {
     class DocLoader;
     class TextResourceDecoder;
 
-#ifdef XSLT_SUPPORT
+#if ENABLE(XSLT)
     class CachedXSLStyleSheet : public CachedResource {
     public:
-        CachedXSLStyleSheet(DocLoader*, const String& url, CachePolicy, time_t expireDate);
+        CachedXSLStyleSheet(DocLoader*, const String& url);
 
         const String& sheet() const { return m_sheet; }
         
         virtual void ref(CachedResourceClient*);
         
         virtual void setEncoding(const String&);
-        virtual void data(Vector<char>&, bool allDataReceived);
+        virtual void data(PassRefPtr<SharedBuffer> data, bool allDataReceived);
         virtual void error();
         
         virtual bool schedule() const { return true; }

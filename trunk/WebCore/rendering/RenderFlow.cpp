@@ -1,9 +1,7 @@
-/**
- * This file is part of the html renderer for KDE.
- *
+/*
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
- * Copyright (C) 2003, 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
@@ -38,6 +36,16 @@ using namespace std;
 namespace WebCore {
 
 using namespace HTMLNames;
+
+#ifndef NDEBUG
+
+RenderFlow::~RenderFlow()
+{
+    ASSERT(!m_firstLineBox);
+    ASSERT(!m_lastLineBox);
+}
+
+#endif
 
 RenderFlow* RenderFlow::createAnonymousFlow(Document* doc, RenderStyle* style)
 {
@@ -77,6 +85,16 @@ RenderFlow* RenderFlow::continuationBefore(RenderObject* beforeChild)
 
 void RenderFlow::addChildWithContinuation(RenderObject* newChild, RenderObject* beforeChild)
 {
+    if (beforeChild && (beforeChild->parent()->isTableRow() || beforeChild->parent()->isTableSection() || beforeChild->parent()->isTable())) {
+        RenderObject* anonymousTablePart = beforeChild->parent();
+        ASSERT(anonymousTablePart->isAnonymous());
+        while (!anonymousTablePart->isTable()) {
+            anonymousTablePart = anonymousTablePart->parent();
+            ASSERT(anonymousTablePart->isAnonymous());
+        }
+        return anonymousTablePart->addChild(newChild, beforeChild);
+    }
+
     RenderFlow* flow = continuationBefore(beforeChild);
     ASSERT(!beforeChild || beforeChild->parent()->isRenderBlock() ||
                 beforeChild->parent()->isRenderInline());
@@ -115,6 +133,8 @@ void RenderFlow::addChild(RenderObject* newChild, RenderObject* beforeChild)
 
 void RenderFlow::extractLineBox(InlineFlowBox* box)
 {
+    checkConsistency();
+
     m_lastLineBox = box->prevFlowBox();
     if (box == m_firstLineBox)
         m_firstLineBox = 0;
@@ -123,10 +143,14 @@ void RenderFlow::extractLineBox(InlineFlowBox* box)
     box->setPreviousLineBox(0);
     for (InlineRunBox* curr = box; curr; curr = curr->nextLineBox())
         curr->setExtracted();
+
+    checkConsistency();
 }
 
 void RenderFlow::attachLineBox(InlineFlowBox* box)
 {
+    checkConsistency();
+
     if (m_lastLineBox) {
         m_lastLineBox->setNextLineBox(box);
         box->setPreviousLineBox(m_lastLineBox);
@@ -138,10 +162,14 @@ void RenderFlow::attachLineBox(InlineFlowBox* box)
         last = curr;
     }
     m_lastLineBox = last;
+
+    checkConsistency();
 }
 
 void RenderFlow::removeLineBox(InlineFlowBox* box)
 {
+    checkConsistency();
+
     if (box == m_firstLineBox)
         m_firstLineBox = box->nextFlowBox();
     if (box == m_lastLineBox)
@@ -150,17 +178,18 @@ void RenderFlow::removeLineBox(InlineFlowBox* box)
         box->nextLineBox()->setPreviousLineBox(box->prevLineBox());
     if (box->prevLineBox())
         box->prevLineBox()->setNextLineBox(box->nextLineBox());
+
+    checkConsistency();
 }
 
 void RenderFlow::deleteLineBoxes()
 {
     if (m_firstLineBox) {
         RenderArena* arena = renderArena();
-        InlineRunBox *curr=m_firstLineBox, *next=0;
-        while (curr) {
+        InlineRunBox* next;
+        for (InlineRunBox* curr = m_firstLineBox; curr; curr = next) {
             next = curr->nextLineBox();
             curr->destroy(arena);
-            curr = next;
         }
         m_firstLineBox = 0;
         m_lastLineBox = 0;
@@ -202,9 +231,8 @@ void RenderFlow::destroy()
             // children will be destroyed by the time we return from this function.
             if (isAnonymousBlock()) {
                 for (InlineFlowBox* box = m_firstLineBox; box; box = box->nextFlowBox()) {
-                    while (InlineBox* childBox = box->firstChild()) {
+                    while (InlineBox* childBox = box->firstChild())
                         childBox->remove();
-                    }
                 }
             }
         } else if (isInline() && parent())
@@ -221,10 +249,15 @@ void RenderFlow::dirtyLinesFromChangedChild(RenderObject* child)
     if (!parent() || (selfNeedsLayout() && !isInlineFlow()) || isTable())
         return;
 
-    // For an empty inline, go ahead and propagate the check up to our parent.
-    if (isInline() && !firstLineBox())
-        return parent()->dirtyLinesFromChangedChild(this);
-    
+    // If we have no first line box, then just bail early.
+    if (!firstLineBox()) {
+        // For an empty inline, go ahead and propagate the check up to our parent, unless the parent
+        // is already dirty.
+        if (isInline() && !parent()->selfNeedsLayout())
+            parent()->dirtyLinesFromChangedChild(this);
+        return;
+    }
+
     // Try to figure out which line box we belong in.  First try to find a previous
     // line box by examining our siblings.  If we didn't find a line box, then use our 
     // parent's first line box.
@@ -251,7 +284,7 @@ void RenderFlow::dirtyLinesFromChangedChild(RenderObject* child)
         if (box)
             break;
     }
-    if (!box && firstLineBox())
+    if (!box)
         box = firstLineBox()->root();
 
     // If we found a line box, then dirty it.
@@ -315,6 +348,8 @@ void RenderFlow::dirtyLineBoxes(bool fullLayout, bool isRootLineBox)
 
 InlineBox* RenderFlow::createInlineBox(bool makePlaceHolderBox, bool isRootLineBox, bool isOnlyRun)
 {
+    checkConsistency();
+
     if (!isRootLineBox &&
         (isReplaced() || makePlaceHolderBox))                     // Inline tables and inline blocks
         return RenderContainer::createInlineBox(false, isRootLineBox);  // (or positioned element placeholders).
@@ -332,6 +367,8 @@ InlineBox* RenderFlow::createInlineBox(bool makePlaceHolderBox, bool isRootLineB
         flowBox->setPreviousLineBox(m_lastLineBox);
         m_lastLineBox = flowBox;
     }
+
+    checkConsistency();
 
     return flowBox;
 }
@@ -442,9 +479,15 @@ bool RenderFlow::hitTestLines(const HitTestRequest& request, HitTestResult& resu
     return false;
 }
 
-IntRect RenderFlow::getAbsoluteRepaintRect()
+IntRect RenderFlow::absoluteClippedOverflowRect()
 {
     if (isInlineFlow()) {
+        // Only compacts and run-ins are allowed in here during layout.
+        ASSERT(!view() || !view()->layoutState() || isCompact() || isRunIn());
+
+        if (!firstLineBox() && !continuation())
+            return IntRect();
+
         // Find our leftmost position.
         int left = 0;
         int top = firstLineBox() ? firstLineBox()->yPos() : 0;
@@ -463,7 +506,7 @@ IntRect RenderFlow::getAbsoluteRepaintRect()
         RenderBlock* cb = containingBlock();
         for (RenderObject* inlineFlow = this; inlineFlow && inlineFlow->isInlineFlow() && inlineFlow != cb; 
              inlineFlow = inlineFlow->parent()) {
-             if (inlineFlow->style()->position() == RelativePosition && inlineFlow->layer())
+             if (inlineFlow->style()->position() == RelativePosition && inlineFlow->hasLayer())
                 inlineFlow->layer()->relativePositionOffset(left, top);
         }
 
@@ -501,16 +544,16 @@ IntRect RenderFlow::getAbsoluteRepaintRect()
         return r;
     }
 
-    return RenderContainer::getAbsoluteRepaintRect();
+    return RenderContainer::absoluteClippedOverflowRect();
 }
 
 int RenderFlow::lowestPosition(bool includeOverflowInterior, bool includeSelf) const
 {
     ASSERT(!isInlineFlow());
-    int bottom = includeSelf && m_width > 0 ? m_height : 0;
     if (!includeOverflowInterior && hasOverflowClip())
-        return bottom;
+        return includeSelf && m_width > 0 ? overflowHeight(false) : 0;
 
+    int bottom = includeSelf && m_width > 0 ? m_height : 0;
     if (!hasColumns()) {
         // FIXME: Come up with a way to use the layer tree to avoid visiting all the kids.
         // For now, we have to descend into all the children, since we may have a huge abs div inside
@@ -531,10 +574,10 @@ int RenderFlow::lowestPosition(bool includeOverflowInterior, bool includeSelf) c
 int RenderFlow::rightmostPosition(bool includeOverflowInterior, bool includeSelf) const
 {
     ASSERT(!isInlineFlow());
-    int right = includeSelf && m_height > 0 ? m_width : 0;
     if (!includeOverflowInterior && hasOverflowClip())
-        return right;
+        return includeSelf && m_height > 0 ? overflowWidth(false) : 0;
 
+    int right = includeSelf && m_height > 0 ? m_width : 0;
     if (!hasColumns()) {
         // FIXME: Come up with a way to use the layer tree to avoid visiting all the kids.
         // For now, we have to descend into all the children, since we may have a huge abs div inside
@@ -555,10 +598,10 @@ int RenderFlow::rightmostPosition(bool includeOverflowInterior, bool includeSelf
 int RenderFlow::leftmostPosition(bool includeOverflowInterior, bool includeSelf) const
 {
     ASSERT(!isInlineFlow());
-    int left = includeSelf && m_height > 0 ? 0 : m_width;
     if (!includeOverflowInterior && hasOverflowClip())
-        return left;
+        return includeSelf && m_height > 0 ? overflowLeft(false) : m_width;
 
+    int left = includeSelf && m_height > 0 ? 0 : m_width;
     if (!hasColumns()) {
         // FIXME: Come up with a way to use the layer tree to avoid visiting all the kids.
         // For now, we have to descend into all the children, since we may have a huge abs div inside
@@ -605,14 +648,14 @@ IntRect RenderFlow::caretRect(int offset, EAffinity affinity, int* extraWidthToE
                 alignment = alignRight;
             break;
         case LEFT:
-        case KHTML_LEFT:
+        case WEBKIT_LEFT:
             break;
         case CENTER:
-        case KHTML_CENTER:
+        case WEBKIT_CENTER:
             alignment = alignCenter;
             break;
         case RIGHT:
-        case KHTML_RIGHT:
+        case WEBKIT_RIGHT:
             alignment = alignRight;
             break;
     }
@@ -660,22 +703,47 @@ IntRect RenderFlow::caretRect(int offset, EAffinity affinity, int* extraWidthToE
 
 void RenderFlow::addFocusRingRects(GraphicsContext* graphicsContext, int tx, int ty)
 {
-    if (isRenderBlock())
-       graphicsContext->addFocusRingRect(IntRect(tx, ty, width(), height()));
+    if (isRenderBlock()) {
+        // Continuations should include their margins in the outline rect.
+        if (continuation()) {
+            bool nextInlineHasLineBox = continuation()->firstLineBox();
+            bool prevInlineHasLineBox = static_cast<RenderFlow*>(continuation()->element()->renderer())->firstLineBox();
+            int topMargin = prevInlineHasLineBox ? collapsedMarginTop() : 0;
+            int bottomMargin = nextInlineHasLineBox ? collapsedMarginBottom() : 0;
+            graphicsContext->addFocusRingRect(IntRect(tx, ty - topMargin, 
+                                                      width(), height() + topMargin + bottomMargin));
+        } else
+            graphicsContext->addFocusRingRect(IntRect(tx, ty, width(), height()));
+    }
 
     if (!hasOverflowClip() && !hasControlClip()) {
         for (InlineRunBox* curr = firstLineBox(); curr; curr = curr->nextLineBox())
             graphicsContext->addFocusRingRect(IntRect(tx + curr->xPos(), ty + curr->yPos(), curr->width(), curr->height()));
 
         for (RenderObject* curr = firstChild(); curr; curr = curr->nextSibling())
-            if (!curr->isText() && !curr->isListMarker())
-                curr->addFocusRingRects(graphicsContext, tx + curr->xPos(), ty + curr->yPos());
+            if (!curr->isText() && !curr->isListMarker()) {
+                int x = 0;
+                int y = 0;
+                if (curr->layer()) 
+                    curr->absolutePosition(x, y);
+                else {
+                    x = tx + curr->xPos();
+                    y = ty + curr->yPos();
+                }
+                curr->addFocusRingRects(graphicsContext, x, y);
+            }
     }
 
-    if (continuation())
-        continuation()->addFocusRingRects(graphicsContext, 
-                                          tx - containingBlock()->xPos() + continuation()->xPos(),
-                                          ty - containingBlock()->yPos() + continuation()->yPos());
+    if (continuation()) {
+        if (isInline())
+            continuation()->addFocusRingRects(graphicsContext, 
+                                              tx - containingBlock()->xPos() + continuation()->xPos(),
+                                              ty - containingBlock()->yPos() + continuation()->yPos());
+        else
+            continuation()->addFocusRingRects(graphicsContext, 
+                                              tx - xPos() + continuation()->containingBlock()->xPos(),
+                                              ty - yPos() + continuation()->containingBlock()->yPos());
+    }
 }
 
 void RenderFlow::paintOutline(GraphicsContext* graphicsContext, int tx, int ty)
@@ -701,17 +769,16 @@ void RenderFlow::paintOutline(GraphicsContext* graphicsContext, int tx, int ty)
     if (style()->outlineStyleIsAuto() || style()->outlineStyle() <= BHIDDEN)
         return;
 
-    Vector<IntRect*> rects;
+    Vector<IntRect> rects;
 
-    rects.append(new IntRect);
+    rects.append(IntRect());
     for (InlineRunBox* curr = firstLineBox(); curr; curr = curr->nextLineBox())
-        rects.append(new IntRect(curr->xPos(), curr->yPos(), curr->width(), curr->height()));
+        rects.append(IntRect(curr->xPos(), curr->yPos(), curr->width(), curr->height()));
 
-    rects.append(new IntRect);
+    rects.append(IntRect());
 
     for (unsigned i = 1; i < rects.size() - 1; i++)
-        paintOutlineForLine(graphicsContext, tx, ty, *rects.at(i - 1), *rects.at(i), *rects.at(i + 1));
-    deleteAllValues(rects);
+        paintOutlineForLine(graphicsContext, tx, ty, rects.at(i - 1), rects.at(i), rects.at(i + 1));
 }
 
 void RenderFlow::paintOutlineForLine(GraphicsContext* graphicsContext, int tx, int ty,
@@ -793,5 +860,22 @@ void RenderFlow::paintOutlineForLine(GraphicsContext* graphicsContext, int tx, i
                    (!nextline.isEmpty() && l - ow < tx + nextline.right()) ? -ow : ow,
                    ow);
 }
+
+#ifndef NDEBUG
+
+void RenderFlow::checkConsistency() const
+{
+#ifdef CHECK_CONSISTENCY
+    const InlineFlowBox* prev = 0;
+    for (const InlineFlowBox* child = m_firstLineBox; child != 0; child = child->nextFlowBox()) {
+        ASSERT(child->object() == this);
+        ASSERT(child->prevFlowBox() == prev);
+        prev = child;
+    }
+    ASSERT(prev == m_lastLineBox);
+#endif
+}
+
+#endif
 
 } // namespace WebCore

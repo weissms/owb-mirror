@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef CSSMutableStyleDeclaration_h
@@ -26,6 +26,7 @@
 #include "CSSStyleDeclaration.h"
 #include "CSSPrimitiveValue.h"
 #include "DeprecatedValueList.h"
+#include "Node.h"
 #include "PlatformString.h"
 
 namespace WebCore {
@@ -72,16 +73,16 @@ public:
         return setProperty(propertyId, value, important, notifyChanged, ec);
     }
 
-    String removeProperty(int propertyID, bool notifyChanged, ExceptionCode&);
-    String removeProperty(int propertyID, bool notifyChanged = true)
+    String removeProperty(int propertyID, bool notifyChanged, bool returnText, ExceptionCode&);
+    void removeProperty(int propertyID, bool notifyChanged = true)
     {
         ExceptionCode ec;
-        return removeProperty(propertyID, notifyChanged, ec);
+        removeProperty(propertyID, notifyChanged, false, ec);
     }
 
     void clear();
 
-    void setChanged();
+    void setChanged(StyleChangeType changeType = FullStyleChange);
  
     // setLengthProperty treats integers as pixels! (Needed for conversion of HTML attributes.)
     void setLengthProperty(int propertyId, const String& value, bool important, bool multiLength = false);
@@ -103,6 +104,7 @@ public:
 
 private:
     String getShorthandValue(const int* properties, int number) const;
+    String getLayeredShorthandValue(const int* properties, unsigned number) const;
     String get4Values(const int* properties) const;
  
     DeprecatedValueList<CSSProperty> m_values;

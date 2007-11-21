@@ -42,8 +42,9 @@ namespace WebCore {
 
 using namespace HTMLNames;
 
-InsertParagraphSeparatorCommand::InsertParagraphSeparatorCommand(Document *document) 
+InsertParagraphSeparatorCommand::InsertParagraphSeparatorCommand(Document *document, bool useDefaultParagraphElement) 
     : CompositeEditCommand(document)
+    , m_useDefaultParagraphElement(useDefaultParagraphElement)
 {
 }
 
@@ -136,7 +137,9 @@ void InsertParagraphSeparatorCommand::doApply()
     if (startBlock == startBlock->rootEditableElement()) {
         blockToInsert = static_pointer_cast<Node>(createDefaultParagraphElement(document()));
         nestNewBlock = true;
-    } else
+    } else if (m_useDefaultParagraphElement)
+        blockToInsert = static_pointer_cast<Node>(createDefaultParagraphElement(document()));
+    else
         blockToInsert = startBlock->cloneNode(false);
     
     //---------------------------------------------------------------------
@@ -165,8 +168,6 @@ void InsertParagraphSeparatorCommand::doApply()
     // Handle case when position is in the first visible position in its block, and
     // similar case where previous position is in another, presumeably nested, block.
     if (isFirstInBlock || !inSameBlock(visiblePos, visiblePos.previous())) {
-        pos = pos.downstream();
-        Position refPos;
         Node *refNode;
         if (isFirstInBlock && !nestNewBlock)
             refNode = startBlock;
@@ -176,6 +177,9 @@ void InsertParagraphSeparatorCommand::doApply()
         } else
             refNode = pos.node();
 
+        // find ending selection position easily before inserting the paragraph
+        pos = pos.downstream();
+        
         insertNodeBefore(blockToInsert.get(), refNode);
         appendBlockPlaceholder(blockToInsert.get());
         setEndingSelection(Selection(Position(blockToInsert.get(), 0), DOWNSTREAM));
@@ -187,10 +191,13 @@ void InsertParagraphSeparatorCommand::doApply()
     //---------------------------------------------------------------------
     // Handle the (more complicated) general case,
 
-    Position upstreamPos = pos.upstream();
-    if (upstreamPos.node()->hasTagName(brTag)) {
+    // All of the content in the current block after visiblePos is
+    // about to be wrapped in a new paragraph element.  Add a br before 
+    // it if visiblePos is at the start of a paragraph so that the 
+    // content will move down a line.
+    if (isStartOfParagraph(visiblePos)) {
         RefPtr<Element> br = createBreakElement(document());
-        insertNodeAfter(br.get(), upstreamPos.node());
+        insertNodeAt(br.get(), pos);
         pos = positionAfterNode(br.get());
     }
     
@@ -234,6 +241,8 @@ void InsertParagraphSeparatorCommand::doApply()
     else
         insertNodeAfter(blockToInsert.get(), startBlock);
 
+    updateLayout();
+    
     // Make clones of ancestors in between the start node and the start block.
     RefPtr<Node> parent = blockToInsert;
     for (size_t i = ancestors.size(); i != 0; --i) {
@@ -245,8 +254,7 @@ void InsertParagraphSeparatorCommand::doApply()
     // If the paragraph separator was inserted at the end of a paragraph, an empty line must be
     // created.  All of the nodes, starting at visiblePos, are about to be added to the new paragraph 
     // element.  If the first node to be inserted won't be one that will hold an empty line open, add a br.
-    if (isEndOfParagraph(visiblePos) && !startNode->hasTagName(brTag) &&
-        !(startNode->renderer()->style()->preserveNewline() && visiblePos.characterAfter() == '\n'))
+    if (isEndOfParagraph(visiblePos) && !lineBreakExistsAtPosition(visiblePos))
         appendNode(createBreakElement(document()).get(), blockToInsert.get());
         
     // Move the start node and the siblings of the start node.

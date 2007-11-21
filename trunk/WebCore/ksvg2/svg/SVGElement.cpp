@@ -16,13 +16,13 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGElement.h"
 
 #include "DOMImplementation.h"
@@ -32,6 +32,7 @@
 #include "EventNames.h"
 #include "HTMLNames.h"
 #include "PlatformString.h"
+#include "RenderObject.h"
 #include "SVGDocumentExtensions.h"
 #include "SVGElementInstance.h"
 #include "SVGNames.h"
@@ -87,7 +88,7 @@ SVGSVGElement* SVGElement::ownerSVGElement() const
 {
     Node* n = parentNode();
     while (n) {
-        if (n->nodeType() == ELEMENT_NODE && n->hasTagName(SVGNames::svgTag))
+        if (n->hasTagName(SVGNames::svgTag))
             return static_cast<SVGSVGElement*>(n);
 
         n = n->parentNode();
@@ -102,8 +103,7 @@ SVGElement* SVGElement::viewportElement() const
     // to determine the "overflow" property. <use> on <symbol> wouldn't work otherwhise.
     Node* n = isShadowNode() ? const_cast<SVGElement*>(this)->shadowParentNode() : parentNode();
     while (n) {
-        if (n->isElementNode() &&
-            (n->hasTagName(SVGNames::svgTag) || n->hasTagName(SVGNames::imageTag) || n->hasTagName(SVGNames::symbolTag)))
+        if (n->hasTagName(SVGNames::svgTag) || n->hasTagName(SVGNames::imageTag) || n->hasTagName(SVGNames::symbolTag))
             return static_cast<SVGElement*>(n);
 
         n = n->isShadowNode() ? n->shadowParentNode() : n->parentNode();
@@ -135,17 +135,19 @@ void SVGElement::parseMappedAttribute(MappedAttribute* attr)
         addSVGEventListener(mouseoverEvent, attr);
     else if (attr->name() == onmouseupAttr)
         addSVGEventListener(mouseupEvent, attr);
-    else if (attr->name() == onfocusAttr)
+    else if (attr->name() == SVGNames::onfocusinAttr)
         addSVGEventListener(DOMFocusInEvent, attr);
-    else if (attr->name() == onblurAttr)
+    else if (attr->name() == SVGNames::onfocusoutAttr)
         addSVGEventListener(DOMFocusOutEvent, attr);
+    else if (attr->name() == SVGNames::onactivateAttr)
+        addSVGEventListener(DOMActivateEvent, attr);
     else
         StyledElement::parseMappedAttribute(attr);
 }
 
 bool SVGElement::haveLoadedRequiredResources()
 {
-    Node* child = fastFirstChild();
+    Node* child = firstChild();
     while (child) {
         if (child->isSVGElement() && !static_cast<SVGElement*>(child)->haveLoadedRequiredResources())
             return false;
@@ -171,9 +173,9 @@ void SVGElement::sendSVGLoadEventIfPossible(bool sendParentLoadEvents)
     }
 }
 
-void SVGElement::closeRenderer()
+void SVGElement::finishedParsing()
 {
-    // closeRenderer() is called when the close tag is reached for an element (e.g. </svg>)
+    // finishedParsing() is called when the close tag is reached for an element (e.g. </svg>)
     // we send SVGLoad events here if we can, otherwise they'll be sent when any required loads finish
     sendSVGLoadEventIfPossible();
 }
@@ -238,6 +240,6 @@ bool SVGElement::dispatchEvent(PassRefPtr<Event> e, ExceptionCode& ec, bool temp
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

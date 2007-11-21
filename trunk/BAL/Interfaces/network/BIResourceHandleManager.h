@@ -54,7 +54,7 @@ class BIResourceHandleManager
 {
 public:
      virtual ~BIResourceHandleManager() {};
-     
+
     /**
      * add a transfer job. Transfer starts immediatly.
      * When transfer is completed (normal or error case), it is
@@ -72,13 +72,6 @@ public:
      * and removed from the manager's job list.
      **/
     virtual void cancel(BIResourceHandle *job) = 0;
-    
-    /**
-     * To tell if tranfer is made one by one (simple) or parallel.
-     * Default value is false (parallel mode)
-     **/
-//     deprecated by new merge
-//     virtual void useSimpleTransfer( bool useSimple ) = 0;
 };
 
 }

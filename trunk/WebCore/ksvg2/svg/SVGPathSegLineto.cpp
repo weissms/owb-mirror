@@ -16,20 +16,20 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPathSegLineto.h"
 
 #include "SVGStyledElement.h"
 
 namespace WebCore {
 
-SVGPathSegLinetoAbs::SVGPathSegLinetoAbs(double x, double y)
+SVGPathSegLinetoAbs::SVGPathSegLinetoAbs(float x, float y)
     : SVGPathSeg()
     , m_x(x)
     , m_y(y)
@@ -40,27 +40,27 @@ SVGPathSegLinetoAbs::~SVGPathSegLinetoAbs()
 {
 }
 
-void SVGPathSegLinetoAbs::setX(double x)
+void SVGPathSegLinetoAbs::setX(float x)
 {
     m_x = x;
 }
 
-double SVGPathSegLinetoAbs::x() const
+float SVGPathSegLinetoAbs::x() const
 {
     return m_x;
 }
 
-void SVGPathSegLinetoAbs::setY(double y)
+void SVGPathSegLinetoAbs::setY(float y)
 {
     m_y = y;
 }
 
-double SVGPathSegLinetoAbs::y() const
+float SVGPathSegLinetoAbs::y() const
 {
     return m_y;
 }
 
-SVGPathSegLinetoRel::SVGPathSegLinetoRel(double x, double y)
+SVGPathSegLinetoRel::SVGPathSegLinetoRel(float x, float y)
     : SVGPathSeg()
     , m_x(x)
     , m_y(y)
@@ -71,28 +71,28 @@ SVGPathSegLinetoRel::~SVGPathSegLinetoRel()
 {
 }
 
-void SVGPathSegLinetoRel::setX(double x)
+void SVGPathSegLinetoRel::setX(float x)
 {
     m_x = x;
 }
 
-double SVGPathSegLinetoRel::x() const
+float SVGPathSegLinetoRel::x() const
 {
     return m_x;
 }
 
-void SVGPathSegLinetoRel::setY(double y)
+void SVGPathSegLinetoRel::setY(float y)
 {
     m_y = y;
 }
 
-double SVGPathSegLinetoRel::y() const
+float SVGPathSegLinetoRel::y() const
 {
     return m_y;
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

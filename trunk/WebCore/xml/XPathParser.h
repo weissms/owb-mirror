@@ -27,7 +27,7 @@
 #ifndef XPathParser_h
 #define XPathParser_h
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "XPathStep.h"
 #include "XPathPredicate.h"
@@ -86,6 +86,9 @@ namespace WebCore {
             void registerString(String*);
             void deleteString(String*);
 
+            void registerNodeTest(Step::NodeTest*);
+            void deleteNodeTest(Step::NodeTest*);
+
         private:
             bool isOperatorContext() const;
 
@@ -117,11 +120,12 @@ namespace WebCore {
             HashSet<Vector<Predicate*>*> m_predicateVectors;
             HashSet<Vector<Expression*>*> m_expressionVectors;
             HashSet<String*> m_strings;
+            HashSet<Step::NodeTest*> m_nodeTests;
         };
 
     }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 
 #endif

@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2007 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005 Rob Buis <buis@kde.org>
+                  2004, 2005, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,39 +16,49 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef RenderSVGContainer_h
 #define RenderSVGContainer_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
-#include "RenderContainer.h"
 #include "RenderPath.h"
+#include "SVGPreserveAspectRatio.h"
 
 namespace WebCore {
 
-enum KCAlign {
-    ALIGN_NONE = 0,
-    ALIGN_XMINYMIN = 1,
-    ALIGN_XMIDYMIN = 2,
-    ALIGN_XMAXYMIN = 3,
-    ALIGN_XMINYMID = 4,
-    ALIGN_XMIDYMID = 5,
-    ALIGN_XMAXYMID = 6,
-    ALIGN_XMINYMAX = 7,
-    ALIGN_XMIDYMAX = 8,
-    ALIGN_XMAXYMAX = 9
-};
-
 class SVGElement;
 
-class RenderSVGContainer : public RenderContainer {
+class RenderSVGContainer : public RenderObject {
 public:
     RenderSVGContainer(SVGStyledElement*);
     ~RenderSVGContainer();
+
+    virtual RenderObject* firstChild() const { return m_firstChild; }
+    virtual RenderObject* lastChild() const { return m_lastChild; }
+
+    virtual int width() const { return m_width; }
+    virtual int height() const { return m_height; }
+
+    virtual bool canHaveChildren() const;
+    virtual void addChild(RenderObject* newChild, RenderObject* beforeChild = 0);
+    virtual void removeChild(RenderObject*);
+
+    virtual void destroy();
+    void destroyLeftoverChildren();
+
+    virtual RenderObject* removeChildNode(RenderObject*, bool fullRemove = true);
+    virtual void appendChildNode(RenderObject*, bool fullAppend = true);
+    virtual void insertChildNode(RenderObject* child, RenderObject* before, bool fullInsert = true);
+
+    // Designed for speed.  Don't waste time doing a bunch of work like layer updating and repainting when we know that our
+    // change in parentage is not going to affect anything.
+    virtual void moveChildNode(RenderObject* child) { appendChildNode(child->parent()->removeChildNode(child, false), false); }
+
+    virtual void calcPrefWidths() { setPrefWidthsDirty(false); }
 
     // Some containers do not want it's children
     // to be drawn, because they may be 'referenced'
@@ -58,80 +68,52 @@ public:
 
     virtual bool isSVGContainer() const { return true; }
     virtual const char* renderName() const { return "RenderSVGContainer"; }
-        
+
     virtual bool requiresLayer();
     virtual short lineHeight(bool b, bool isRootLineBox = false) const;
     virtual short baselinePosition(bool b, bool isRootLineBox = false) const;
-    
-    virtual void calcMinMaxWidth();
+
     virtual void layout();
     virtual void paint(PaintInfo&, int parentX, int parentY);
-    
-    virtual IntRect getAbsoluteRepaintRect();
-    virtual void absoluteRects(Vector<IntRect>& rects, int tx, int ty);
 
-#ifdef __OWB__
-    virtual BAL::BTAffineTransform absoluteTransform() const;
-#else
-    virtual AffineTransform absoluteTransform() const;
-#endif
+    virtual IntRect absoluteClippedOverflowRect();
+    virtual void absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool topLevel = true);
+    virtual void addFocusRingRects(GraphicsContext*, int tx, int ty);
 
-    bool fillContains(const FloatPoint&) const;
-    bool strokeContains(const FloatPoint&) const;
     FloatRect relativeBBox(bool includeStroke = true) const;
-    
-#ifdef __OWB__
-    virtual BAL::BTAffineTransform localTransform() const;
-    void setLocalTransform(const BAL::BTAffineTransform&);
-#else
+
+    virtual bool calculateLocalTransform();
     virtual AffineTransform localTransform() const;
-    void setLocalTransform(const AffineTransform&);
-#endif
-   
-    FloatRect viewport() const;
+    virtual AffineTransform viewportTransform() const;
 
-    void setViewBox(const FloatRect&);
-    FloatRect viewBox() const;
-
-    void setAlign(KCAlign);
-    KCAlign align() const;
-
-    void setSlice(bool);
-    bool slice() const;
-    
-#ifdef __OWB__
-    BAL::BTAffineTransform viewportTransform() const;
-#else
-    AffineTransform viewportTransform() const;
-#endif
-    
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
 
+protected:
+    virtual void applyContentTransforms(PaintInfo&);
+    virtual void applyAdditionalTransforms(PaintInfo&);
+
 private:
-    void calcViewport(); 
-#ifdef __OWB__
-    BAL::BTAffineTransform getAspectRatio(const FloatRect& logical, const FloatRect& physical) const;
-#else
-    AffineTransform getAspectRatio(const FloatRect& logical, const FloatRect& physical) const;
-#endif
+    int calcReplacedWidth() const;
+    int calcReplacedHeight() const;
+
+    RenderObject* m_firstChild;
+    RenderObject* m_lastChild;
+
+    int m_width;
+    int m_height;
+    
+    bool selfWillPaint() const;
 
     bool m_drawsContents : 1;
-    bool m_slice : 1;
-#ifdef __OWB__
-    BAL::BTAffineTransform m_matrix;
-#else
-    AffineTransform m_matrix;
-#endif
     
-    FloatRect m_viewport;
-    FloatRect m_viewBox;
-    KCAlign m_align;
+protected:    
     IntRect m_absoluteBounds;
+    AffineTransform m_localTransform;
 };
-
+  
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // RenderSVGContainer_h
 
 // vim:ts=4:noet

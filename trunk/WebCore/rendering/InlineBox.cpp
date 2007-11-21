@@ -1,7 +1,5 @@
-/**
-* This file is part of the html renderer for KDE.
- *
- * Copyright (C) 2003, 2006 Apple Computer, Inc.
+/*
+ * Copyright (C) 2003, 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -15,15 +13,15 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 #include "InlineBox.h"
 
-#include "InlineFlowBox.h"
 #include "HitTestResult.h"
+#include "InlineFlowBox.h"
 #include "RenderArena.h"
 #include "RootInlineBox.h"
 
@@ -33,6 +31,16 @@ namespace WebCore {
     
 #ifndef NDEBUG
 static bool inInlineBoxDetach;
+#endif
+
+#ifndef NDEBUG
+
+InlineBox::~InlineBox()
+{
+    if (!m_hasBadParent && m_parent)
+        m_parent->setHasBadChildList();
+}
+
 #endif
 
 void InlineBox::remove()
@@ -62,7 +70,7 @@ void* InlineBox::operator new(size_t sz, RenderArena* renderArena) throw()
 
 void InlineBox::operator delete(void* ptr, size_t sz)
 {
-    assert(inInlineBoxDetach);
+    ASSERT(inInlineBoxDetach);
 
     // Stash size where destroy can find it.
     *(size_t *)ptr = sz;
@@ -154,48 +162,45 @@ bool InlineBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& result
     // Hit test all phases of replaced elements atomically, as though the replaced element established its
     // own stacking context.  (See Appendix E.2, section 6.4 on inline block/table elements in the CSS2.1
     // specification.)
-    return object()->hitTest(request, result, x, y, tx, ty);
-}
-
-bool InlineBox::isChildOfParent()
-{
-    if (!m_parent)
-        return true;
-
-    for (InlineBox* box = m_parent->firstChild(); box; box = box->nextOnLine())
-        if (box == this)
-            return true;
-
-    return false;
+    return object()->hitTest(request, result, IntPoint(x, y), tx, ty);
 }
 
 RootInlineBox* InlineBox::root()
 { 
     if (m_parent)
         return m_parent->root(); 
+    ASSERT(isRootInlineBox());
     return static_cast<RootInlineBox*>(this);
 }
 
 bool InlineBox::nextOnLineExists() const
 {
-    if (!parent())
-        return false;
-    
-    if (nextOnLine())
-        return true;
-    
-    return parent()->nextOnLineExists();
+    if (!m_determinedIfNextOnLineExists) {
+        m_determinedIfNextOnLineExists = true;
+
+        if (!parent())
+            m_nextOnLineExists = false;
+        else if (nextOnLine())
+            m_nextOnLineExists = true;
+        else
+            m_nextOnLineExists = parent()->nextOnLineExists();
+    }
+    return m_nextOnLineExists;
 }
 
 bool InlineBox::prevOnLineExists() const
 {
-    if (!parent())
-        return false;
-    
-    if (prevOnLine())
-        return true;
-    
-    return parent()->prevOnLineExists();
+    if (!m_determinedIfPrevOnLineExists) {
+        m_determinedIfPrevOnLineExists = true;
+        
+        if (!parent())
+            m_prevOnLineExists = false;
+        else if (prevOnLine())
+            m_prevOnLineExists = true;
+        else
+            m_prevOnLineExists = parent()->prevOnLineExists();
+    }
+    return m_prevOnLineExists;
 }
 
 InlineBox* InlineBox::firstLeafChild()

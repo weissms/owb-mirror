@@ -1,7 +1,7 @@
 /*
  * This file is part of the DOM implementation for KDE.
  *
- * Copyright (C) 2006 Rob Buis
+ * Copyright (C) 2006, 2007 Rob Buis
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 #ifndef StyleElement_h
@@ -33,20 +33,22 @@ public:
     StyleElement();
     virtual ~StyleElement() {}
 
-    StyleSheet* sheet() const;
+protected:
+    StyleSheet* sheet(Element*);
 
-    virtual bool isLoading() const { return false; }
+    virtual void setLoading(bool) {}
 
     virtual const AtomicString& type() const = 0;
     virtual const AtomicString& media() const = 0;
 
-    void insertedIntoDocument(Document*);
+    void insertedIntoDocument(Document*, Element*);
     void removedFromDocument(Document*);
-    void childrenChanged(Element*);
+    void process(Element*);
+
+    void createSheet(Element* e, const String& text = String());
 
 protected:
     RefPtr<CSSStyleSheet> m_sheet;
-    bool m_loading;
 };
 
 } //namespace

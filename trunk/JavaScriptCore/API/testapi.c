@@ -25,15 +25,9 @@
  */
 
 #include "JavaScriptCore.h"
-#include <wtf/UnusedParam.h>
-
-#if PLATFORM(MAC)
-#include <CoreFoundation/CoreFoundation.h>
-#endif
-
-#include <assert.h>
 #include <math.h>
-#include <setjmp.h>
+#include <wtf/Assertions.h>
+#include <wtf/UnusedParam.h>
 
 static JSGlobalContextRef context = 0;
 
@@ -73,7 +67,6 @@ static void assertEqualsAsUTF8String(JSValueRef value, const char* expectedValue
     JSStringRelease(valueAsString);
 }
 
-#if PLATFORM(MAC)
 static void assertEqualsAsCharactersPtr(JSValueRef value, const char* expectedValue)
 {
     JSStringRef valueAsString = JSValueToStringCopy(context, value, NULL);
@@ -97,8 +90,6 @@ static void assertEqualsAsCharactersPtr(JSValueRef value, const char* expectedVa
     
     JSStringRelease(valueAsString);
 }
-
-#endif // __APPLE__
 
 static JSValueRef jsGlobalValue; // non-stack value for testing JSValueProtect()
 
@@ -327,7 +318,7 @@ static bool TestInitializeFinalize;
 static void Base_initialize(JSContextRef context, JSObjectRef object)
 {
     if (TestInitializeFinalize) {
-        assert((void*)1 == JSObjectGetPrivate(object));
+        ASSERT((void*)1 == JSObjectGetPrivate(object));
         JSObjectSetPrivate(object, (void*)2);
     }
 }
@@ -336,7 +327,7 @@ static unsigned Base_didFinalize;
 static void Base_finalize(JSObjectRef object)
 {
     if (TestInitializeFinalize) {
-        assert((void*)4 == JSObjectGetPrivate(object));
+        ASSERT((void*)4 == JSObjectGetPrivate(object));
         Base_didFinalize = true;
     }
 }
@@ -403,7 +394,7 @@ static JSStaticValue Derived_staticValues[] = {
 static void Derived_initialize(JSContextRef context, JSObjectRef object)
 {
     if (TestInitializeFinalize) {
-        assert((void*)2 == JSObjectGetPrivate(object));
+        ASSERT((void*)2 == JSObjectGetPrivate(object));
         JSObjectSetPrivate(object, (void*)3);
     }
 }
@@ -411,7 +402,7 @@ static void Derived_initialize(JSContextRef context, JSObjectRef object)
 static void Derived_finalize(JSObjectRef object)
 {
     if (TestInitializeFinalize) {
-        assert((void*)3 == JSObjectGetPrivate(object));
+        ASSERT((void*)3 == JSObjectGetPrivate(object));
         JSObjectSetPrivate(object, (void*)4);
     }
 }
@@ -462,12 +453,18 @@ static JSObjectRef myConstructor_callAsConstructor(JSContextRef context, JSObjec
     return result;
 }
 
+static void testInitializeOfGlobalObjectClassHasNonNullContext(JSContextRef context, JSObjectRef object)
+{
+    UNUSED_PARAM(object);
+    ASSERT(context);
+}
+
 static char* createStringWithContentsOfFile(const char* fileName);
 
 static void testInitializeFinalize()
 {
     JSObjectRef o = JSObjectMake(context, Derived_class(context), (void*)1);
-    assert(JSObjectGetPrivate(o) == (void*)3);
+    ASSERT(JSObjectGetPrivate(o) == (void*)3);
 }
 
 int main(int argc, char* argv[])
@@ -483,12 +480,15 @@ int main(int argc, char* argv[])
     JSGarbageCollect(context);
     TestInitializeFinalize = false;
 
-    assert(Base_didFinalize);
+    ASSERT(Base_didFinalize);
 
-    context = JSGlobalContextCreate(NULL);
+    JSClassDefinition globalObjectClassDefinition = kJSClassDefinitionEmpty;
+    globalObjectClassDefinition.initialize = testInitializeOfGlobalObjectClassHasNonNullContext;
+    JSClassRef globalObjectClass = JSClassCreate(&globalObjectClassDefinition);
+    context = JSGlobalContextCreate(globalObjectClass);
     
     JSObjectRef globalObject = JSContextGetGlobalObject(context);
-    assert(JSValueIsObject(context, globalObject));
+    ASSERT(JSValueIsObject(context, globalObject));
     
     JSValueRef jsUndefined = JSValueMakeUndefined(context);
     JSValueRef jsNull = JSValueMakeNull(context);
@@ -507,7 +507,6 @@ int main(int argc, char* argv[])
     JSStringRef jsOneIString = JSStringCreateWithUTF8CString("1");
     JSValueRef jsOneString = JSValueMakeString(context, jsOneIString);
 
-#if PLATFORM(MAC)
     UniChar singleUniChar = 65; // Capital A
     CFMutableStringRef cfString = 
         CFStringCreateMutableWithExternalCharactersNoCopy(kCFAllocatorDefault,
@@ -534,23 +533,20 @@ int main(int argc, char* argv[])
     
     JSStringRef jsCFEmptyIStringWithCharacters = JSStringCreateWithCharacters(buffer, CFStringGetLength(cfEmptyString));
     JSValueRef jsCFEmptyStringWithCharacters = JSValueMakeString(context, jsCFEmptyIStringWithCharacters);
-#endif // __APPLE__
 
-    assert(JSValueGetType(context, jsUndefined) == kJSTypeUndefined);
-    assert(JSValueGetType(context, jsNull) == kJSTypeNull);
-    assert(JSValueGetType(context, jsTrue) == kJSTypeBoolean);
-    assert(JSValueGetType(context, jsFalse) == kJSTypeBoolean);
-    assert(JSValueGetType(context, jsZero) == kJSTypeNumber);
-    assert(JSValueGetType(context, jsOne) == kJSTypeNumber);
-    assert(JSValueGetType(context, jsOneThird) == kJSTypeNumber);
-    assert(JSValueGetType(context, jsEmptyString) == kJSTypeString);
-    assert(JSValueGetType(context, jsOneString) == kJSTypeString);
-#if PLATFORM(MAC)
-    assert(JSValueGetType(context, jsCFString) == kJSTypeString);
-    assert(JSValueGetType(context, jsCFStringWithCharacters) == kJSTypeString);
-    assert(JSValueGetType(context, jsCFEmptyString) == kJSTypeString);
-    assert(JSValueGetType(context, jsCFEmptyStringWithCharacters) == kJSTypeString);
-#endif // __APPLE__
+    ASSERT(JSValueGetType(context, jsUndefined) == kJSTypeUndefined);
+    ASSERT(JSValueGetType(context, jsNull) == kJSTypeNull);
+    ASSERT(JSValueGetType(context, jsTrue) == kJSTypeBoolean);
+    ASSERT(JSValueGetType(context, jsFalse) == kJSTypeBoolean);
+    ASSERT(JSValueGetType(context, jsZero) == kJSTypeNumber);
+    ASSERT(JSValueGetType(context, jsOne) == kJSTypeNumber);
+    ASSERT(JSValueGetType(context, jsOneThird) == kJSTypeNumber);
+    ASSERT(JSValueGetType(context, jsEmptyString) == kJSTypeString);
+    ASSERT(JSValueGetType(context, jsOneString) == kJSTypeString);
+    ASSERT(JSValueGetType(context, jsCFString) == kJSTypeString);
+    ASSERT(JSValueGetType(context, jsCFStringWithCharacters) == kJSTypeString);
+    ASSERT(JSValueGetType(context, jsCFEmptyString) == kJSTypeString);
+    ASSERT(JSValueGetType(context, jsCFEmptyStringWithCharacters) == kJSTypeString);
 
     JSObjectRef myObject = JSObjectMake(context, MyObject_class(context), NULL);
     JSStringRef myObjectIString = JSStringCreateWithUTF8CString("MyObject");
@@ -561,29 +557,29 @@ int main(int argc, char* argv[])
 
     // Conversions that throw exceptions
     exception = NULL;
-    assert(NULL == JSValueToObject(context, jsNull, &exception));
-    assert(exception);
+    ASSERT(NULL == JSValueToObject(context, jsNull, &exception));
+    ASSERT(exception);
     
     exception = NULL;
     // FIXME <rdar://4668451> - On i386 the isnan(double) macro tries to map to the isnan(float) function,
     // causing a build break with -Wshorten-64-to-32 enabled.  The issue is known by the appropriate team.
     // After that's resolved, we can remove these casts
-    assert(isnan((float)JSValueToNumber(context, jsObjectNoProto, &exception)));
-    assert(exception);
+    ASSERT(isnan((float)JSValueToNumber(context, jsObjectNoProto, &exception)));
+    ASSERT(exception);
 
     exception = NULL;
-    assert(!JSValueToStringCopy(context, jsObjectNoProto, &exception));
-    assert(exception);
+    ASSERT(!JSValueToStringCopy(context, jsObjectNoProto, &exception));
+    ASSERT(exception);
     
-    assert(JSValueToBoolean(context, myObject));
+    ASSERT(JSValueToBoolean(context, myObject));
     
     exception = NULL;
-    assert(!JSValueIsEqual(context, jsObjectNoProto, JSValueMakeNumber(context, 1), &exception));
-    assert(exception);
+    ASSERT(!JSValueIsEqual(context, jsObjectNoProto, JSValueMakeNumber(context, 1), &exception));
+    ASSERT(exception);
     
     exception = NULL;
     JSObjectGetPropertyAtIndex(context, myObject, 0, &exception);
-    assert(1 == JSValueToNumber(context, exception, NULL));
+    ASSERT(1 == JSValueToNumber(context, exception, NULL));
 
     assertEqualsAsBoolean(jsUndefined, false);
     assertEqualsAsBoolean(jsNull, false);
@@ -594,12 +590,10 @@ int main(int argc, char* argv[])
     assertEqualsAsBoolean(jsOneThird, true);
     assertEqualsAsBoolean(jsEmptyString, false);
     assertEqualsAsBoolean(jsOneString, true);
-#if PLATFORM(MAC)
     assertEqualsAsBoolean(jsCFString, true);
     assertEqualsAsBoolean(jsCFStringWithCharacters, true);
     assertEqualsAsBoolean(jsCFEmptyString, false);
     assertEqualsAsBoolean(jsCFEmptyStringWithCharacters, false);
-#endif // __APPLE__
     
     assertEqualsAsNumber(jsUndefined, nan(""));
     assertEqualsAsNumber(jsNull, 0);
@@ -610,13 +604,11 @@ int main(int argc, char* argv[])
     assertEqualsAsNumber(jsOneThird, 1.0 / 3.0);
     assertEqualsAsNumber(jsEmptyString, 0);
     assertEqualsAsNumber(jsOneString, 1);
-#if PLATFORM(MAC)
     assertEqualsAsNumber(jsCFString, nan(""));
     assertEqualsAsNumber(jsCFStringWithCharacters, nan(""));
     assertEqualsAsNumber(jsCFEmptyString, 0);
     assertEqualsAsNumber(jsCFEmptyStringWithCharacters, 0);
-    assert(sizeof(JSChar) == sizeof(UniChar));
-#endif // __APPLE__
+    ASSERT(sizeof(JSChar) == sizeof(UniChar));
     
     assertEqualsAsCharactersPtr(jsUndefined, "undefined");
     assertEqualsAsCharactersPtr(jsNull, "null");
@@ -627,12 +619,10 @@ int main(int argc, char* argv[])
     assertEqualsAsCharactersPtr(jsOneThird, "0.3333333333333333");
     assertEqualsAsCharactersPtr(jsEmptyString, "");
     assertEqualsAsCharactersPtr(jsOneString, "1");
-#if PLATFORM(MAC)
     assertEqualsAsCharactersPtr(jsCFString, "A");
     assertEqualsAsCharactersPtr(jsCFStringWithCharacters, "A");
     assertEqualsAsCharactersPtr(jsCFEmptyString, "");
     assertEqualsAsCharactersPtr(jsCFEmptyStringWithCharacters, "");
-#endif // __APPLE__
     
     assertEqualsAsUTF8String(jsUndefined, "undefined");
     assertEqualsAsUTF8String(jsNull, "null");
@@ -643,41 +633,37 @@ int main(int argc, char* argv[])
     assertEqualsAsUTF8String(jsOneThird, "0.3333333333333333");
     assertEqualsAsUTF8String(jsEmptyString, "");
     assertEqualsAsUTF8String(jsOneString, "1");
-#if PLATFORM(MAC)
     assertEqualsAsUTF8String(jsCFString, "A");
     assertEqualsAsUTF8String(jsCFStringWithCharacters, "A");
     assertEqualsAsUTF8String(jsCFEmptyString, "");
     assertEqualsAsUTF8String(jsCFEmptyStringWithCharacters, "");
-#endif // __APPLE__
     
-    assert(JSValueIsStrictEqual(context, jsTrue, jsTrue));
-    assert(!JSValueIsStrictEqual(context, jsOne, jsOneString));
+    ASSERT(JSValueIsStrictEqual(context, jsTrue, jsTrue));
+    ASSERT(!JSValueIsStrictEqual(context, jsOne, jsOneString));
 
-    assert(JSValueIsEqual(context, jsOne, jsOneString, NULL));
-    assert(!JSValueIsEqual(context, jsTrue, jsFalse, NULL));
+    ASSERT(JSValueIsEqual(context, jsOne, jsOneString, NULL));
+    ASSERT(!JSValueIsEqual(context, jsTrue, jsFalse, NULL));
     
-#if PLATFORM(MAC)
     CFStringRef cfJSString = JSStringCopyCFString(kCFAllocatorDefault, jsCFIString);
     CFStringRef cfJSEmptyString = JSStringCopyCFString(kCFAllocatorDefault, jsCFEmptyIString);
-    assert(CFEqual(cfJSString, cfString));
-    assert(CFEqual(cfJSEmptyString, cfEmptyString));
+    ASSERT(CFEqual(cfJSString, cfString));
+    ASSERT(CFEqual(cfJSEmptyString, cfEmptyString));
     CFRelease(cfJSString);
     CFRelease(cfJSEmptyString);
 
     CFRelease(cfString);
     CFRelease(cfEmptyString);
-#endif // __APPLE__
     
     jsGlobalValue = JSObjectMake(context, NULL, NULL);
     JSValueProtect(context, jsGlobalValue);
     JSGarbageCollect(context);
-    assert(JSValueIsObject(context, jsGlobalValue));
+    ASSERT(JSValueIsObject(context, jsGlobalValue));
     JSValueUnprotect(context, jsGlobalValue);
 
     JSStringRef goodSyntax = JSStringCreateWithUTF8CString("x = 1;");
     JSStringRef badSyntax = JSStringCreateWithUTF8CString("x := 1;");
-    assert(JSCheckScriptSyntax(context, goodSyntax, NULL, 0, NULL));
-    assert(!JSCheckScriptSyntax(context, badSyntax, NULL, 0, NULL));
+    ASSERT(JSCheckScriptSyntax(context, goodSyntax, NULL, 0, NULL));
+    ASSERT(!JSCheckScriptSyntax(context, badSyntax, NULL, 0, NULL));
 
     JSValueRef result;
     JSValueRef v;
@@ -685,34 +671,34 @@ int main(int argc, char* argv[])
     JSStringRef string;
 
     result = JSEvaluateScript(context, goodSyntax, NULL, NULL, 1, NULL);
-    assert(result);
-    assert(JSValueIsEqual(context, result, jsOne, NULL));
+    ASSERT(result);
+    ASSERT(JSValueIsEqual(context, result, jsOne, NULL));
 
     exception = NULL;
     result = JSEvaluateScript(context, badSyntax, NULL, NULL, 1, &exception);
-    assert(!result);
-    assert(JSValueIsObject(context, exception));
+    ASSERT(!result);
+    ASSERT(JSValueIsObject(context, exception));
     
     JSStringRef array = JSStringCreateWithUTF8CString("Array");
     JSObjectRef arrayConstructor = JSValueToObject(context, JSObjectGetProperty(context, globalObject, array, NULL), NULL);
     JSStringRelease(array);
     result = JSObjectCallAsConstructor(context, arrayConstructor, 0, NULL, NULL);
-    assert(result);
-    assert(JSValueIsObject(context, result));
-    assert(JSValueIsInstanceOfConstructor(context, result, arrayConstructor, NULL));
-    assert(!JSValueIsInstanceOfConstructor(context, JSValueMakeNull(context), arrayConstructor, NULL));
+    ASSERT(result);
+    ASSERT(JSValueIsObject(context, result));
+    ASSERT(JSValueIsInstanceOfConstructor(context, result, arrayConstructor, NULL));
+    ASSERT(!JSValueIsInstanceOfConstructor(context, JSValueMakeNull(context), arrayConstructor, NULL));
 
     o = JSValueToObject(context, result, NULL);
     exception = NULL;
-    assert(JSValueIsUndefined(context, JSObjectGetPropertyAtIndex(context, o, 0, &exception)));
-    assert(!exception);
+    ASSERT(JSValueIsUndefined(context, JSObjectGetPropertyAtIndex(context, o, 0, &exception)));
+    ASSERT(!exception);
     
     JSObjectSetPropertyAtIndex(context, o, 0, JSValueMakeNumber(context, 1), &exception);
-    assert(!exception);
+    ASSERT(!exception);
     
     exception = NULL;
-    assert(1 == JSValueToNumber(context, JSObjectGetPropertyAtIndex(context, o, 0, &exception), &exception));
-    assert(!exception);
+    ASSERT(1 == JSValueToNumber(context, JSObjectGetPropertyAtIndex(context, o, 0, &exception), &exception));
+    ASSERT(!exception);
 
     JSStringRef functionBody;
     JSObjectRef function;
@@ -720,8 +706,8 @@ int main(int argc, char* argv[])
     exception = NULL;
     functionBody = JSStringCreateWithUTF8CString("rreturn Array;");
     JSStringRef line = JSStringCreateWithUTF8CString("line");
-    assert(!JSObjectMakeFunction(context, NULL, 0, NULL, functionBody, NULL, 1, &exception));
-    assert(JSValueIsObject(context, exception));
+    ASSERT(!JSObjectMakeFunction(context, NULL, 0, NULL, functionBody, NULL, 1, &exception));
+    ASSERT(JSValueIsObject(context, exception));
     v = JSObjectGetProperty(context, JSValueToObject(context, exception, NULL), line, NULL);
     assertEqualsAsNumber(v, 2); // FIXME: Lexer::setCode bumps startingLineNumber by 1 -- we need to change internal callers so that it doesn't have to (saying '0' to mean '1' in the API would be really confusing -- it's really confusing internally, in fact)
     JSStringRelease(functionBody);
@@ -731,18 +717,18 @@ int main(int argc, char* argv[])
     functionBody = JSStringCreateWithUTF8CString("return Array;");
     function = JSObjectMakeFunction(context, NULL, 0, NULL, functionBody, NULL, 1, &exception);
     JSStringRelease(functionBody);
-    assert(!exception);
-    assert(JSObjectIsFunction(context, function));
+    ASSERT(!exception);
+    ASSERT(JSObjectIsFunction(context, function));
     v = JSObjectCallAsFunction(context, function, NULL, 0, NULL, NULL);
-    assert(v);
-    assert(JSValueIsEqual(context, v, arrayConstructor, NULL));
+    ASSERT(v);
+    ASSERT(JSValueIsEqual(context, v, arrayConstructor, NULL));
     
     exception = NULL;
     function = JSObjectMakeFunction(context, NULL, 0, NULL, jsEmptyIString, NULL, 0, &exception);
-    assert(!exception);
+    ASSERT(!exception);
     v = JSObjectCallAsFunction(context, function, NULL, 0, NULL, &exception);
-    assert(v && !exception);
-    assert(JSValueIsUndefined(context, v));
+    ASSERT(v && !exception);
+    ASSERT(JSValueIsUndefined(context, v));
     
     exception = NULL;
     v = NULL;
@@ -750,7 +736,7 @@ int main(int argc, char* argv[])
     JSStringRef argumentNames[] = { foo };
     functionBody = JSStringCreateWithUTF8CString("return foo;");
     function = JSObjectMakeFunction(context, foo, 1, argumentNames, functionBody, NULL, 1, &exception);
-    assert(function && !exception);
+    ASSERT(function && !exception);
     JSValueRef arguments[] = { JSValueMakeNumber(context, 2) };
     v = JSObjectCallAsFunction(context, function, NULL, 1, arguments, &exception);
     JSStringRelease(foo);
@@ -765,16 +751,16 @@ int main(int argc, char* argv[])
     JSObjectSetProperty(context, globalObject, print, printFunction, kJSPropertyAttributeNone, NULL); 
     JSStringRelease(print);
     
-    assert(!JSObjectSetPrivate(printFunction, (void*)1));
-    assert(!JSObjectGetPrivate(printFunction));
+    ASSERT(!JSObjectSetPrivate(printFunction, (void*)1));
+    ASSERT(!JSObjectGetPrivate(printFunction));
 
     JSStringRef myConstructorIString = JSStringCreateWithUTF8CString("MyConstructor");
     JSObjectRef myConstructor = JSObjectMakeConstructor(context, NULL, myConstructor_callAsConstructor);
     JSObjectSetProperty(context, globalObject, myConstructorIString, myConstructor, kJSPropertyAttributeNone, NULL);
     JSStringRelease(myConstructorIString);
     
-    assert(!JSObjectSetPrivate(myConstructor, (void*)1));
-    assert(!JSObjectGetPrivate(myConstructor));
+    ASSERT(!JSObjectSetPrivate(myConstructor, (void*)1));
+    ASSERT(!JSObjectGetPrivate(myConstructor));
     
     string = JSStringCreateWithUTF8CString("Derived");
     JSObjectRef derivedConstructor = JSObjectMakeConstructor(context, Derived_class(context), NULL);
@@ -790,7 +776,7 @@ int main(int argc, char* argv[])
     for (count = 0; count < expectedCount; ++count)
         JSPropertyNameArrayGetNameAtIndex(nameArray, count);
     JSPropertyNameArrayRelease(nameArray);
-    assert(count == 1); // jsCFString should not be enumerated
+    ASSERT(count == 1); // jsCFString should not be enumerated
 
     JSClassDefinition nullDefinition = kJSClassDefinitionEmpty;
     nullDefinition.attributes = kJSClassAttributeNoAutomaticPrototype;
@@ -805,9 +791,9 @@ int main(int argc, char* argv[])
     function = JSObjectMakeFunction(context, NULL, 0, NULL, functionBody, NULL, 1, NULL);
     JSStringRelease(functionBody);
     v = JSObjectCallAsFunction(context, function, NULL, 0, NULL, NULL);
-    assert(JSValueIsEqual(context, v, globalObject, NULL));
+    ASSERT(JSValueIsEqual(context, v, globalObject, NULL));
     v = JSObjectCallAsFunction(context, function, o, 0, NULL, NULL);
-    assert(JSValueIsEqual(context, v, o, NULL));
+    ASSERT(JSValueIsEqual(context, v, o, NULL));
     
     char* scriptUTF8 = createStringWithContentsOfFile("testapi.js");
     JSStringRef script = JSStringCreateWithUTF8CString(scriptUTF8);
@@ -827,17 +813,16 @@ int main(int argc, char* argv[])
 
     JSStringRelease(jsEmptyIString);
     JSStringRelease(jsOneIString);
-#if PLATFORM(MAC)
     JSStringRelease(jsCFIString);
     JSStringRelease(jsCFEmptyIString);
     JSStringRelease(jsCFIStringWithCharacters);
     JSStringRelease(jsCFEmptyIStringWithCharacters);
-#endif // __APPLE__
     JSStringRelease(goodSyntax);
     JSStringRelease(badSyntax);
     
     JSGlobalContextRelease(context);
     JSGarbageCollect(context);
+    JSClassRelease(globalObjectClass);
 
     printf("PASS: Program exited normally.\n");
     return 0;
@@ -862,10 +847,10 @@ static char* createStringWithContentsOfFile(const char* fileName)
         if (buffer_size == buffer_capacity) { // guarantees space for trailing '\0'
             buffer_capacity *= 2;
             buffer = (char*)realloc(buffer, buffer_capacity);
-            assert(buffer);
+            ASSERT(buffer);
         }
         
-        assert(buffer_size < buffer_capacity);
+        ASSERT(buffer_size < buffer_capacity);
     }
     fclose(f);
     buffer[buffer_size] = '\0';

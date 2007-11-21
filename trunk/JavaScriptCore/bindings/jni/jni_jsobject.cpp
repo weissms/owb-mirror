@@ -27,15 +27,15 @@
 #include "identifier.h"
 #include "internal.h"
 #include "interpreter.h"
-#include "list.h"
 #include "jni_jsobject.h"
 #include "jni_runtime.h"
 #include "jni_utility.h"
+#include "JSGlobalObject.h"
+#include "list.h"
 #include "runtime_object.h"
 #include "runtime_root.h"
-
 #include <CoreFoundation/CoreFoundation.h>
-#include <assert.h>
+#include <wtf/Assertions.h>
 
 using namespace KJS::Bindings;
 using namespace KJS;
@@ -177,7 +177,9 @@ jobject JavaJSObject::call(jstring methodName, jobjectArray args) const
     JSObject *funcImp = static_cast<JSObject*>(func);
     JSObject *thisObj = const_cast<JSObject*>(_imp);
     List argList = listFromJArray(args);
+    rootObject->interpreter()->startTimeoutCheck();
     JSValue *result = funcImp->call(exec, thisObj, argList);
+    rootObject->interpreter()->stopTimeoutCheck();
 
     return convertValueToJObject(result);
 }
@@ -195,7 +197,9 @@ jobject JavaJSObject::eval(jstring script) const
     if (!rootObject)
         return 0;
 
+    rootObject->interpreter()->startTimeoutCheck();
     Completion completion = rootObject->interpreter()->evaluate(UString(), 0, JavaString(script).ustring(),thisObj);
+    rootObject->interpreter()->stopTimeoutCheck();
     ComplType type = completion.complType();
     
     if (type == Normal) {
@@ -333,14 +337,21 @@ jlong JavaJSObject::createNative(jlong nativeHandle)
     // If rootObject is !NULL We must have been called via netscape.javascript.JavaJSObject.getWindow(),
     // otherwise we are being called after creating a JavaJSObject in
     // JavaJSObject::convertValueToJObject().
-    if (rootObject)
-        return ptr_to_jlong(rootObject->interpreter()->globalObject());
-
+    if (rootObject) {
+        JSObject* globalObject = rootObject->interpreter()->globalObject();
+        // We call gcProtect here to get the object into the root object's "protect set" which
+        // is used to test if a native handle is valid as well as getting the root object given the handle.
+        rootObject->gcProtect(globalObject);
+        return ptr_to_jlong(globalObject);
+    }
+    
     return nativeHandle;
 }
 
 jobject JavaJSObject::convertValueToJObject (JSValue *value) const
 {
+    JSLock lock;
+    
     RootObject* rootObject = this->rootObject();
     if (!rootObject)
         return 0;
@@ -391,6 +402,9 @@ jobject JavaJSObject::convertValueToJObject (JSValue *value) const
             if (imp->classInfo() && strcmp(imp->classInfo()->className, "RuntimeObject") == 0) {
                 RuntimeObjectImp *runtimeImp = static_cast<RuntimeObjectImp*>(value);
                 JavaInstance *runtimeInstance = static_cast<JavaInstance *>(runtimeImp->getInternalInstance());
+                if (!runtimeInstance)
+                    return 0;
+                
                 return runtimeInstance->javaInstance();
             }
             else {
@@ -453,8 +467,7 @@ JSValue *JavaJSObject::convertJObjectToValue (jobject theObject) const
     }
 
     JSLock lock;
-    JavaInstance* javaInstance = new JavaInstance(theObject);
-    javaInstance->setRootObject(rootObject());
+    JavaInstance* javaInstance = new JavaInstance(theObject, _rootObject);
     RuntimeObjectImp* newImp = new RuntimeObjectImp(javaInstance);
 
     return newImp;

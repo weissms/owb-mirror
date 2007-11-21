@@ -43,33 +43,33 @@
 using namespace BC;
 
 namespace BAL {
-    BIWindowEvent* createBIWindowEvent(BIWindowEvent::ENUM_WINDOW aW, bool bGain = false, const WebCore::IntRect& rect = WebCore::IntRect(), const BTWidget* widget = NULL)
-    {
-        return new BC::BCWindowEvent(aW, bGain, rect, widget);
-    }
+BIWindowEvent* createBIWindowEvent(BIWindowEvent::ENUM_WINDOW aW, bool bGain = false, const WebCore::IntRect& rect = WebCore::IntRect(), const BTWidget* widget = NULL)
+{
+    return new BC::BCWindowEvent(aW, bGain, rect, widget);
+}
 }
 
 BAL::BIWindowEvent::ENUM_WINDOW BCWindowEvent::type() const
 {
-	return m_aWindowType;
+    return m_aWindowType;
 }
 
 bool BCWindowEvent::gain() const
 {
-	return m_bGain;
+    return m_bGain;
 }
 
 BCWindowEvent::BCWindowEvent(BIWindowEvent::ENUM_WINDOW aW, bool bGain, const WebCore::IntRect& rect, const BAL::BTWidget* widget)
     : m_aWindowType( aW )
-	, m_bGain( bGain )
-	, m_rect(rect)
+    , m_bGain( bGain )
+    , m_rect(rect)
     , m_widget(widget)
 {
 }
 
 BAL::BIEvent* BCWindowEvent::clone() const
 {
-	return new BCWindowEvent(m_aWindowType, m_bGain);
+    return new BCWindowEvent(m_aWindowType, m_bGain);
 }
 
 const WebCore::IntRect& BCWindowEvent::getRectangle() const

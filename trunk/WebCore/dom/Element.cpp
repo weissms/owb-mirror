@@ -1,11 +1,10 @@
-/**
- * This file is part of the DOM implementation for KDE.
- *
+/*
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Peter Kelly (pmk@post.com)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
+ *           (C) 2007 Eric Seidel (eric@webkit.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -19,36 +18,81 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #include "config.h"
 #include "Element.h"
 
-#include "cssstyleselector.h"
+#include "CSSStyleSelector.h"
 #include "Document.h"
 #include "Editor.h"
 #include "ExceptionCode.h"
 #include "FocusController.h"
 #include "Frame.h"
 #include "FrameView.h"
+#include "HTMLElement.h"
 #include "HTMLNames.h"
+#include "KURL.h"
 #include "NamedAttrMap.h"
 #include "Page.h"
 #include "RenderBlock.h"
 #include "SelectionController.h"
 #include "TextIterator.h"
 #include "TextStream.h"
+#include "XMLNames.h"
 
 namespace WebCore {
 
 using namespace HTMLNames;
+using namespace XMLNames;
+
+class ElementRareData {
+public:
+    ElementRareData(Element*);
+    void resetComputedStyle(Element*);
+
+    IntSize m_minimumSizeForResizing;
+    RenderStyle* m_computedStyle;
+    bool m_needsFocusAppearanceUpdateSoonAfterAttach;
+};
+
+typedef HashMap<const Element*, ElementRareData*> ElementRareDataMap;
+
+static ElementRareDataMap& rareDataMap()
+{
+    static ElementRareDataMap* dataMap = new ElementRareDataMap;
+    return *dataMap;
+}
+
+static ElementRareData* rareDataFromMap(const Element* element)
+{
+    return rareDataMap().get(element);
+}
+
+static inline IntSize defaultMinimumSizeForResizing()
+{
+    return IntSize(INT_MAX, INT_MAX);
+}
+
+inline ElementRareData::ElementRareData(Element* element)
+    : m_minimumSizeForResizing(defaultMinimumSizeForResizing())
+    , m_computedStyle(0)
+    , m_needsFocusAppearanceUpdateSoonAfterAttach(false)
+{
+}
+
+void ElementRareData::resetComputedStyle(Element* element)
+{
+    if (!m_computedStyle)
+        return;
+    m_computedStyle->deref(element->document()->renderArena());
+    m_computedStyle = 0;
+}
 
 Element::Element(const QualifiedName& qName, Document *doc)
     : ContainerNode(doc)
-    , m_updateFocusAppearanceTimer(this, &Element::updateFocusAppearanceTimerFired)
-    , m_needsFocusAppearanceUpdate(false)
     , m_tagName(qName)
 {
 }
@@ -57,13 +101,44 @@ Element::~Element()
 {
     if (namedAttrMap)
         namedAttrMap->detachFromElement();
+
+    if (!m_attrWasSpecifiedOrElementHasRareData)
+        ASSERT(!rareDataMap().contains(this));
+    else {
+        ElementRareDataMap& dataMap = rareDataMap();
+        ElementRareDataMap::iterator it = dataMap.find(this);
+        ASSERT(it != dataMap.end());
+        delete it->second;
+        dataMap.remove(it);
+    }
+}
+
+inline ElementRareData* Element::rareData()
+{
+    return m_attrWasSpecifiedOrElementHasRareData ? rareDataFromMap(this) : 0;
+}
+
+inline const ElementRareData* Element::rareData() const
+{
+    return m_attrWasSpecifiedOrElementHasRareData ? rareDataFromMap(this) : 0;
+}
+
+ElementRareData* Element::createRareData()
+{
+    if (m_attrWasSpecifiedOrElementHasRareData)
+        return rareDataMap().get(this);
+    ASSERT(!rareDataMap().contains(this));
+    ElementRareData* data = new ElementRareData(this);
+    rareDataMap().set(this, data);
+    m_attrWasSpecifiedOrElementHasRareData = true;
+    return data;
 }
 
 PassRefPtr<Node> Element::cloneNode(bool deep)
 {
     ExceptionCode ec = 0;
     RefPtr<Element> clone = document()->createElementNS(namespaceURI(), nodeName(), ec);
-    assert(!ec);
+    ASSERT(!ec);
     
     // clone attributes
     if (namedAttrMap)
@@ -251,12 +326,16 @@ int Element::clientWidth()
 {
     document()->updateLayoutIgnorePendingStylesheets();
 
-    // When in strict mode, clientWidth for the document
-    // element should return the width of the containing frame.
-    if (!document()->inCompatMode() && document()->documentElement() == this)
+    // When in strict mode, clientWidth for the document element should return the width of the containing frame.
+    // When in quirks mode, clientWidth for the body element should return the width of the containing frame.
+    bool inCompatMode = document()->inCompatMode();
+    if ((!inCompatMode && document()->documentElement() == this) ||
+        (inCompatMode && isHTMLElement() && document()->body() == this)) {
         if (FrameView* view = document()->view())
             return view->visibleWidth();
+    }
     
+
     if (RenderObject* rend = renderer())
         return rend->clientWidth();
     return 0;
@@ -266,11 +345,15 @@ int Element::clientHeight()
 {
     document()->updateLayoutIgnorePendingStylesheets();
 
-    // When in strict mode, clientHeight for the document
-    // element should return the height of the containing frame.
-    if (!document()->inCompatMode() && document()->documentElement() == this)
+    // When in strict mode, clientHeight for the document element should return the height of the containing frame.
+    // When in quirks mode, clientHeight for the body element should return the height of the containing frame.
+    bool inCompatMode = document()->inCompatMode();     
+
+    if ((!inCompatMode && document()->documentElement() == this) ||
+        (inCompatMode && isHTMLElement() && document()->body() == this)) {
         if (FrameView* view = document()->view())
             return view->visibleHeight();
+    }
     
     if (RenderObject* rend = renderer())
         return rend->clientHeight();
@@ -323,14 +406,14 @@ int Element::scrollHeight()
     return 0;
 }
 
-static inline bool inHTMLDocument(const Element* e)
+static inline bool shouldIgnoreAttributeCase(const Element* e)
 {
-    return e && e->document()->isHTMLDocument();
+    return e && e->document()->isHTMLDocument() && e->isHTMLElement();
 }
 
 const AtomicString& Element::getAttribute(const String& name) const
 {
-    String localName = inHTMLDocument(this) ? name.lower() : name;
+    String localName = shouldIgnoreAttributeCase(this) ? name.lower() : name;
     if (localName == styleAttr.localName())
         updateStyleAttributeIfNeeded();
     
@@ -353,7 +436,7 @@ void Element::setAttribute(const String& name, const String& value, ExceptionCod
         return;
     }
 
-    String localName = inHTMLDocument(this) ? name.lower() : name;
+    String localName = shouldIgnoreAttributeCase(this) ? name.lower() : name;
 
     // allocate attributemap if necessary
     Attribute* old = attributes(false)->getAttributeItem(localName);
@@ -464,6 +547,20 @@ void Element::setPrefix(const AtomicString &_prefix, ExceptionCode& ec)
     m_tagName.setPrefix(_prefix);
 }
 
+String Element::baseURI() const
+{
+    KURL xmlbase(getAttribute(baseAttr).deprecatedString());
+
+    if (!xmlbase.protocol().isEmpty())
+        return xmlbase.url();
+
+    Node* parent = parentNode();
+    if (parent)
+        return KURL(parent->baseURI().deprecatedString(), xmlbase.url()).url();
+
+    return xmlbase.url();
+}
+
 Node* Element::insertAdjacentElement(const String& where, Node* newChild, int& exception)
 {
     if (!newChild) {
@@ -562,17 +659,22 @@ void Element::removedFromDocument()
 
 void Element::attach()
 {
-#if !defined(SPEED_DEBUG) || SPEED_DEBUG < 1
     createRendererIfNeeded();
-#endif
     ContainerNode::attach();
-    if (needsFocusAppearanceUpdate() && !m_updateFocusAppearanceTimer.isActive() && document()->focusedNode() == this)
-        m_updateFocusAppearanceTimer.startOneShot(0);
+    if (ElementRareData* rd = rareData()) {
+        if (rd->m_needsFocusAppearanceUpdateSoonAfterAttach) {
+            if (isFocusable() && document()->focusedNode() == this)
+                document()->updateFocusAppearanceSoon();
+            rd->m_needsFocusAppearanceUpdateSoonAfterAttach = false;
+        }
+    }
 }
 
 void Element::detach()
 {
-    stopUpdateFocusAppearanceTimer();
+    cancelFocusAppearanceUpdate();
+    if (ElementRareData* rd = rareData())
+        rd->resetComputedStyle(this);
     ContainerNode::detach();
 }
 
@@ -581,7 +683,16 @@ void Element::recalcStyle(StyleChange change)
     // ### should go away and be done in renderobject
     RenderStyle* _style = renderStyle();
     bool hasParentStyle = parentNode() ? parentNode()->renderStyle() : false;
-    
+
+#if ENABLE(SVG)
+    if (!hasParentStyle && isShadowNode() && isSVGElement())
+        hasParentStyle = true;
+#endif
+
+    if ((change > NoChange || changed())) {
+        if (ElementRareData* rd = rareData())
+            rd->resetComputedStyle(this);
+    }
     if (hasParentStyle && (change >= Inherit || changed())) {
         RenderStyle *newStyle = document()->styleSelector()->styleForElement(this);
         StyleChange ch = diff(_style, newStyle);
@@ -591,7 +702,7 @@ void Element::recalcStyle(StyleChange change)
             // ### Suboptimal. Style gets calculated again.
             attach();
             // attach recalulates the style for all children. No need to do it twice.
-            setChanged(false);
+            setChanged(NoStyleChange);
             setHasChangedChild(false);
             newStyle->deref(document()->renderArena());
             return;
@@ -614,19 +725,19 @@ void Element::recalcStyle(StyleChange change)
         newStyle->deref(document()->renderArena());
 
         if (change != Force) {
-            if (document()->usesDescendantRules())
+            if (document()->usesDescendantRules() && styleChangeType() == FullStyleChange)
                 change = Force;
             else
                 change = ch;
         }
     }
 
-    for (Node *n = fastFirstChild(); n; n = n->nextSibling()) {
+    for (Node *n = firstChild(); n; n = n->nextSibling()) {
         if (change >= Inherit || n->isTextNode() || n->hasChangedChild() || n->changed())
             n->recalcStyle(change);
     }
 
-    setChanged(false);
+    setChanged(NoStyleChange);
     setHasChangedChild(false);
 }
 
@@ -648,7 +759,7 @@ bool Element::childTypeAllowed(NodeType type)
 
 void Element::dispatchAttrRemovalEvent(Attribute*)
 {
-    assert(!eventDispatchForbidden());
+    ASSERT(!eventDispatchForbidden());
 #if 0
     if (!document()->hasListenerType(Document::DOMATTRMODIFIED_LISTENER))
         return;
@@ -660,7 +771,7 @@ void Element::dispatchAttrRemovalEvent(Attribute*)
 
 void Element::dispatchAttrAdditionEvent(Attribute *attr)
 {
-    assert(!eventDispatchForbidden());
+    ASSERT(!eventDispatchForbidden());
 #if 0
     if (!document()->hasListenerType(Document::DOMATTRMODIFIED_LISTENER))
         return;
@@ -784,6 +895,12 @@ PassRefPtr<Attr> Element::setAttributeNode(Attr *attr, ExceptionCode& ec)
     return static_pointer_cast<Attr>(attributes(false)->setNamedItem(attr, ec));
 }
 
+PassRefPtr<Attr> Element::setAttributeNodeNS(Attr* attr, ExceptionCode& ec)
+{
+    ASSERT(attr);
+    return static_pointer_cast<Attr>(attributes(false)->setNamedItem(attr, ec));
+}
+
 PassRefPtr<Attr> Element::removeAttributeNode(Attr *attr, ExceptionCode& ec)
 {
     if (!attr || attr->ownerElement() != this) {
@@ -814,7 +931,7 @@ void Element::setAttributeNS(const String& namespaceURI, const String& qualified
 
 void Element::removeAttribute(const String& name, ExceptionCode& ec)
 {
-    String localName = inHTMLDocument(this) ? name.lower() : name;
+    String localName = shouldIgnoreAttributeCase(this) ? name.lower() : name;
 
     if (namedAttrMap) {
         namedAttrMap->removeNamedItem(localName, ec);
@@ -833,7 +950,7 @@ PassRefPtr<Attr> Element::getAttributeNode(const String& name)
     NamedAttrMap* attrs = attributes(true);
     if (!attrs)
         return 0;
-    String localName = inHTMLDocument(this) ? name.lower() : name;
+    String localName = shouldIgnoreAttributeCase(this) ? name.lower() : name;
     return static_pointer_cast<Attr>(attrs->getNamedItem(localName));
 }
 
@@ -850,7 +967,7 @@ bool Element::hasAttribute(const String& name) const
     NamedAttrMap* attrs = attributes(true);
     if (!attrs)
         return false;
-    String localName = inHTMLDocument(this) ? name.lower() : name;
+    String localName = shouldIgnoreAttributeCase(this) ? name.lower() : name;
     return attrs->getAttributeItem(localName);
 }
 
@@ -867,23 +984,27 @@ CSSStyleDeclaration *Element::style()
     return 0;
 }
 
-void Element::focus()
+void Element::focus(bool restorePreviousSelection)
 {
     Document* doc = document();
-    doc->updateLayout();
+    if (doc->focusedNode() == this)
+        return;
+
+    doc->updateLayoutIgnorePendingStylesheets();
     
     if (!supportsFocus())
         return;
     
     if (Page* page = doc->page())
-        page->focusController()->setFocusedNode(this);
+        page->focusController()->setFocusedNode(this, doc->frame());
 
     if (!isFocusable()) {
-        setNeedsFocusAppearanceUpdate(true);
+        createRareData()->m_needsFocusAppearanceUpdateSoonAfterAttach = true;
         return;
     }
         
-    updateFocusAppearance();
+    cancelFocusAppearanceUpdate();
+    updateFocusAppearance(restorePreviousSelection);
 }
 
 void Element::updateFocusAppearance(bool restorePreviousSelection)
@@ -892,8 +1013,6 @@ void Element::updateFocusAppearance(bool restorePreviousSelection)
         Frame* frame = document()->frame();
         if (!frame)
             return;
-        
-        frame->editor()->didBeginEditing();
 
         // FIXME: We should restore the previous selection if there is one.
         Selection newSelection = hasTagName(htmlTag) || hasTagName(bodyTag) ? Selection(Position(this, 0), DOWNSTREAM) : Selection::selectionFromContentsOfNode(this);
@@ -906,39 +1025,27 @@ void Element::updateFocusAppearance(bool restorePreviousSelection)
         renderer()->enclosingLayer()->scrollRectToVisible(getRect());
 }
 
-void Element::updateFocusAppearanceTimerFired(Timer<Element>*)
-{
-    stopUpdateFocusAppearanceTimer();
-    Document* doc = document();
-    doc->updateLayout();
-    if (isFocusable())
-        updateFocusAppearance();
-}
-    
 void Element::blur()
 {
-    stopUpdateFocusAppearanceTimer();
+    cancelFocusAppearanceUpdate();
     Document* doc = document();
-    if (doc->focusedNode() == this)
-        doc->setFocusedNode(0);
-}
-
-void Element::stopUpdateFocusAppearanceTimer()
-{
-    if (m_updateFocusAppearanceTimer.isActive()) {
-        m_updateFocusAppearanceTimer.stop();
-        setNeedsFocusAppearanceUpdate(false);
+    if (doc->focusedNode() == this) {
+        if (doc->frame())
+            doc->frame()->page()->focusController()->setFocusedNode(0, doc->frame());
+        else
+            doc->setFocusedNode(0);
     }
 }
 
 String Element::innerText() const
 {
+    // We need to update layout, since plainText uses line boxes in the render tree.
+    document()->updateLayoutIgnorePendingStylesheets();
+
     if (!renderer())
         return textContent(true);
 
-    // We need to update layout, since plainText uses line boxes in the render tree.
-    document()->updateLayoutIgnorePendingStylesheets();
-    return plainText(rangeOfContents(const_cast<Element *>(this)).get());
+    return plainText(rangeOfContents(const_cast<Element*>(this)).get());
 }
 
 String Element::outerText() const
@@ -954,6 +1061,43 @@ String Element::outerText() const
 String Element::title() const
 {
     return String();
+}
+
+IntSize Element::minimumSizeForResizing() const
+{
+    const ElementRareData* rd = rareData();
+    return rd ? rd->m_minimumSizeForResizing : defaultMinimumSizeForResizing();
+}
+
+void Element::setMinimumSizeForResizing(const IntSize& size)
+{
+    if (size == defaultMinimumSizeForResizing() && !rareData())
+        return;
+    createRareData()->m_minimumSizeForResizing = size;
+}
+
+RenderStyle* Element::computedStyle()
+{
+    if (RenderStyle* usedStyle = renderStyle())
+        return usedStyle;
+
+    if (!attached())
+        // FIXME: Try to do better than this. Ensure that styleForElement() works for elements that are not in the
+        // document tree and figure out when to destroy the computed style for such elements.
+        return 0;
+
+    ElementRareData* rd = createRareData();
+    if (!rd->m_computedStyle)
+        rd->m_computedStyle = document()->styleSelector()->styleForElement(this, parent() ? parent()->computedStyle() : 0);
+    return rd->m_computedStyle;
+}
+
+void Element::cancelFocusAppearanceUpdate()
+{
+    if (ElementRareData* rd = rareData())
+        rd->m_needsFocusAppearanceUpdateSoonAfterAttach = false;
+    if (document()->focusedNode() == this)
+        document()->cancelFocusAppearanceUpdate();
 }
 
 }

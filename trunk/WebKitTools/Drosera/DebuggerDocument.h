@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,22 +26,77 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@interface DebuggerDocument : NSWindowController <WebScriptDebugListener>
-{
-    IBOutlet WebView *webView;
-    id<WebScriptDebugServer> server;
-    WebScriptCallFrame *currentFrame;
-    NSString *currentServerName;
-    BOOL webViewLoaded;
-    BOOL paused;
-}
-- (id)initWithServerName:(NSString *)serverName;
-- (void)switchToServerNamed:(NSString *)name;
+#ifndef DebuggerDocument_H
+#define DebuggerDocument_H
 
-- (IBAction)pause:(id)sender;
-- (IBAction)resume:(id)sender;
-- (IBAction)stepInto:(id)sender;
-- (IBAction)stepOver:(id)sender;
-- (IBAction)stepOut:(id)sender;
-- (IBAction)showConsole:(id)sender;
-@end
+#pragma warning(push)
+#pragma warning(disable: 4510 4512 4610)
+#include <JavaScriptCore/JSObjectRef.h>
+#pragma warning(pop)
+
+#include <JavaScriptCore/Vector.h>
+
+// Forward Declarations
+#if PLATFORM(MAC)
+#include <JavaScriptCore/RetainPtr.h>
+@class ServerConnection;
+typedef RetainPtr<ServerConnection> ServerConnectionRef;
+#else if PLATFORM(WIN)
+#include <wtf/OwnPtr.h>
+class ServerConnection;
+typedef OwnPtr<ServerConnection> ServerConnectionRef;
+#endif
+
+typedef struct OpaqueJSString* JSStringRef;
+typedef struct OpaqueJSValue* JSObjectRef;
+
+class DebuggerDocument {
+public:
+    DebuggerDocument(ServerConnection*);
+
+    // These are all calls from the JS
+    static JSValueRef breakpointEditorHTMLCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef pauseCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef resumeCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef stepIntoCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef evaluateScriptCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef currentFunctionStackCallback(JSContextRef /*context*/, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef localScopeVariableNamesForCallFrameCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef valueForScopeVariableNamedCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+    static JSValueRef logCallback(JSContextRef context, JSObjectRef /*function*/, JSObjectRef /*thisObject*/, size_t /*argumentCount*/, const JSValueRef /*arguments*/[], JSValueRef* /*exception*/);
+
+    // Non Cross-platform functions
+    void platformPause();
+    void platformResume();
+    void platformStepInto();
+    JSValueRef platformEvaluateScript(JSContextRef, JSStringRef script, int callFrame);
+    void getPlatformCurrentFunctionStack(JSContextRef, Vector<JSValueRef>& currentStack);
+    void getPlatformLocalScopeVariableNamesForCallFrame(JSContextRef, int callFrame, Vector<JSValueRef>& variableNames);
+    JSValueRef platformValueForScopeVariableNamed(JSContextRef, JSStringRef key, int callFrame);
+    static void platformLog(JSStringRef msg);
+
+    // These are the calls into the JS.
+    bool isPaused(JSContextRef) const;
+    static void updateFileSource(JSContextRef, JSStringRef documentSource, JSStringRef url);
+    static void didParseScript(JSContextRef, JSStringRef source, JSStringRef documentSource, JSStringRef url, JSValueRef sourceId, JSValueRef baseLine);
+    static void willExecuteStatement(JSContextRef, JSValueRef sourceId, JSValueRef lineno, JSValueRef* exception = 0);
+    static void didEnterCallFrame(JSContextRef, JSValueRef sourceId, JSValueRef lineno, JSValueRef* exception = 0);
+    static void willLeaveCallFrame(JSContextRef, JSValueRef sourceId, JSValueRef lineno, JSValueRef* exception = 0);
+    static void exceptionWasRaised(JSContextRef, JSValueRef sourceId, JSValueRef lineno, JSValueRef* exception = 0);
+
+    static JSValueRef toJSArray(JSContextRef, Vector<JSValueRef>&, JSValueRef* exception);
+    static JSValueRef callGlobalFunction(JSContextRef, const char* functionName, int argumentCount, JSValueRef arguments[], JSValueRef* exception = 0);   // Implementation for calls into JS
+
+    void windowScriptObjectAvailable(JSContextRef, JSObjectRef windowObject, JSValueRef* exception = 0);
+private:
+    static JSValueRef callFunctionOnObject(JSContextRef, JSObjectRef object, const char* functionName, int argumentCount, JSValueRef arguments[], JSValueRef* exception = 0);   // Implementation for calls into JS
+    static JSClassRef getDroseraJSClass();
+    static JSStaticFunction* staticFunctions();
+
+    static void logException(JSContextRef, JSValueRef exception);
+
+    ServerConnectionRef m_server;
+};
+
+#endif //DebuggerDocument_H
+

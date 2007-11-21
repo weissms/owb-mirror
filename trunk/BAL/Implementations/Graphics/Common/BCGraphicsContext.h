@@ -35,7 +35,7 @@
 #include "TextDirection.h"
 #include "TextStyle.h"
 #include <wtf/Noncopyable.h>
-#include "BIInternationalization.h"
+//#include "BIInternationalization.h"
 #include "Widget.h"
 
 typedef struct SDL_Surface PlatformGraphicsContext;

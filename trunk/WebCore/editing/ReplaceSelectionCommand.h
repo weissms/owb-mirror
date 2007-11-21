@@ -49,6 +49,7 @@ public:
     bool hasInterchangeNewlineAtEnd() const { return m_hasInterchangeNewlineAtEnd; }
     
     void removeNode(PassRefPtr<Node>);
+    void removeNodePreservingChildren(Node*);
 
 private:
     PassRefPtr<Node> insertFragmentForTestRendering(Node* context);
@@ -56,7 +57,6 @@ private:
     void restoreTestRenderingNodesToFragment(Node*);
     void removeInterchangeNodes(Node*);
     
-    void removeNodePreservingChildren(Node*);
     void insertNodeBefore(Node* node, Node* refNode);
 
     RefPtr<Document> m_document;
@@ -69,7 +69,7 @@ private:
 class ReplaceSelectionCommand : public CompositeEditCommand {
 public:
     ReplaceSelectionCommand(Document*, PassRefPtr<DocumentFragment>,
-        bool selectReplacement = true, bool smartReplace = false, bool matchStyle = false, bool preventNesting = true,
+        bool selectReplacement = true, bool smartReplace = false, bool matchStyle = false, bool preventNesting = true, bool movingParagraph = false,
         EditAction = EditActionPaste);
     
     virtual void doApply();
@@ -79,21 +79,25 @@ private:
     void completeHTMLReplacement(const Position& lastPositionToSelect);
 
     void insertNodeAfterAndUpdateNodesInserted(Node* insertChild, Node* refChild);
-    void insertNodeAtAndUpdateNodesInserted(Node* insertChild, Node* refChild, int offset);
+    void insertNodeAtAndUpdateNodesInserted(Node*, const Position&);
     void insertNodeBeforeAndUpdateNodesInserted(Node* insertChild, Node* refChild);
 
     void updateNodesInserted(Node*);
-    bool shouldRemoveEndBR(Node*);
+    bool shouldRemoveEndBR(Node*, const VisiblePosition&);
     
     bool shouldMergeStart(bool, bool);
     bool shouldMergeEnd(bool);
     bool shouldMerge(const VisiblePosition&, const VisiblePosition&);
     
+    void removeUnrenderedTextNodesAtEnds();
+    
+    void negateStyleRulesThatAffectAppearance();
     void removeRedundantStyles(Node*);
     
     void handlePasteAsQuotationNode();
     
     virtual void removeNodePreservingChildren(Node*);
+    virtual void removeNodeAndPruneAncestors(Node*);
     
     VisiblePosition positionAtStartOfInsertedContent();
     VisiblePosition positionAtEndOfInsertedContent();
@@ -106,6 +110,7 @@ private:
     bool m_matchStyle;
     RefPtr<DocumentFragment> m_documentFragment;
     bool m_preventNesting;
+    bool m_movingParagraph;
     EditAction m_editAction;
 };
 

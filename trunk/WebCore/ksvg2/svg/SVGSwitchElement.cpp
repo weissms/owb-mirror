@@ -16,15 +16,15 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGSwitchElement.h"
 
-#include "RenderSVGContainer.h"
+#include "RenderSVGTransformableContainer.h"
 #include "SVGNames.h"
 
 namespace WebCore {
@@ -54,11 +54,11 @@ bool SVGSwitchElement::childShouldCreateRenderer(Node* child) const
 
 RenderObject* SVGSwitchElement::createRenderer(RenderArena* arena, RenderStyle*)
 {
-    return new (arena) RenderSVGContainer(this);
+    return new (arena) RenderSVGTransformableContainer(this);
 }
 
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

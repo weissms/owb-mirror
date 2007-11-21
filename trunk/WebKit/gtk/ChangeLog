@@ -1,0 +1,1032 @@
+2007-10-25  Alp Toker  <alp@atoker.com>
+
+        Reviewed by Brady.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15686
+        GtkLauncher aborts on launch due to uninitialized threading subsystem
+
+        Re-enable database support in the GTK+ port, with a fix.
+
+        Initialize GLib threading as early as possible.
+
+        * Api/webkitgtkglobal.cpp:
+
+2007-10-25  Alp Toker  <alp@atoker.com>
+
+        Unreviewed fix to make the GTK+ port run.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15686
+        GtkLauncher aborts on launch due to uninitialized threading subsystem
+
+        http://bugs.webkit.org/show_bug.cgi?id=15688
+        [GTK] Make it possible to disable database support
+
+        Make database path initialization conditional on database support
+        being enabled.
+
+        * Api/webkitgtkglobal.cpp:
+
+2007-10-24  Mark Rowe  <mrowe@apple.com>
+
+        Gtk build fix.  Track WebCore changes in r27004.
+
+        * Api/webkitgtkglobal.cpp:
+
+2007-10-22  Alp Toker  <alp@atoker.com>
+
+        Reviewed by Mark Rowe.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15611
+        [GTK] Text selection behaviour different in Debug and Release builds
+
+        http://bugs.webkit.org/show_bug.cgi?id=15578
+        [GTK] Text editor caret does not blink
+
+        Never allow control to reach the end of non-void functions.
+
+        Return more sensible values, or in some cases, nulls.
+
+        * Api/webkitgtksettings.cpp:
+        * Api/webkitgtksettings.h:
+        * WebCoreSupport/DragClientGtk.cpp:
+        (WebKit::DragClient::actionMaskForDrag):
+        (WebKit::DragClient::dragSourceActionMaskForPoint):
+        (WebKit::DragClient::createDragImageForLink):
+
+2007-10-20  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Alp.
+
+        Gtk changes needed to enable HTML 5 client-side database storage.
+
+        * Api/webkitgtkglobal.cpp: Set a default database path based on the user data directory.
+        This should become configurable by client applications in the future.
+
+2007-10-20  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Eric.
+
+        Don't allow control characters to be inserted into editable regions.
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::handleKeypress):
+
+2007-10-19  Alp Toker  <alp@atoker.com>
+
+        Reviewed by Oliver.
+
+        GTK+ build fix enabling the new local database storage feature.
+        There is also a prospective Qt build fix.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::runDatabaseSizeLimitPrompt):
+        * WebCoreSupport/ChromeClientGtk.h:
+
+2007-10-14  Jan Michael Alonzo  <jmalonzo@unpluggable.com>
+
+        Reviewed by Adam.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15299
+        Fix "hovering_over_link" signal not emitted when consecutive links
+        are hovered.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::mouseDidMoveOverElement):
+        * WebCoreSupport/ChromeClientGtk.h:
+        - Remove m_didSendLinkSignal as it is superseded by m_hoveredLinkURL
+
+2007-10-10  Alice Liu  <alice.liu@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        changes to keep the build from breaking
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::createFrame):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2007-10-03  Alp Toker  <alp@atoker.com>
+
+        Reviewed by Adam.
+
+        http://bugs.webkit.org/show_bug.cgi?id=14726
+        [gtk] API design. Mapping the WebView delegates to signals.
+
+        Change the API namespace of the Gtk+ port from 'WebKitGtk' to 'WebKit'.
+
+        * Api/webkitgtkdefines.h:
+        * Api/webkitgtkframe.cpp:
+        * Api/webkitgtkframe.h:
+        * Api/webkitgtkglobal.cpp:
+        * Api/webkitgtkglobal.h:
+        * Api/webkitgtknetworkrequest.h:
+        * Api/webkitgtkpage.cpp:
+        * Api/webkitgtkpage.h:
+        * Api/webkitgtkprivate.cpp:
+        (WebKit::apply):
+        (WebKit::create):
+        (WebKit::getFrameFromPage):
+        (WebKit::getPageFromFrame):
+        (WebKit::core):
+        (WebKit::kit):
+        * Api/webkitgtkprivate.h:
+        * Api/webkitgtksettings.cpp:
+        * Api/webkitgtksettings.h:
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::ChromeClient):
+        (WebKit::ChromeClient::createWindow):
+        (WebKit::ChromeClient::addMessageToConsole):
+        (WebKit::ChromeClient::runJavaScriptAlert):
+        (WebKit::ChromeClient::runJavaScriptConfirm):
+        (WebKit::ChromeClient::runJavaScriptPrompt):
+        * WebCoreSupport/ChromeClientGtk.h:
+        (WebKit::ChromeClient::webPage):
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::EditorClient):
+        * WebCoreSupport/EditorClientGtk.h:
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::FrameLoaderClient):
+        (WebKit::FrameLoaderClient::postProgressStartedNotification):
+        (WebKit::FrameLoaderClient::postProgressEstimateChangedNotification):
+        (WebKit::FrameLoaderClient::postProgressFinishedNotification):
+        (WebKit::FrameLoaderClient::createFrame):
+        (WebKit::FrameLoaderClient::dispatchDidReceiveIcon):
+        (WebKit::FrameLoaderClient::setTitle):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+        (WebKit::FrameLoaderClient::webFrame):
+
+2007-10-02  Cosimo Cecchi  <cosimoc@svn.gnome.org>
+
+        Reviewed by Mark.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15299
+        Fix "hovering_over_link" signal being fired every time mouse moves.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::ChromeClient):
+        (WebKit::ChromeClient::mouseDidMoveOverElement):
+        * WebCoreSupport/ChromeClientGtk.h:
+
+2007-09-21  Sean Egan  <seanegan@gmail.com>
+
+        Reviewed by Alp.
+
+        Add an "execute_script" method to programmatically call Javascript
+        http://bugs.webkit.org/show_bug.cgi?id=15255
+
+        * Api/webkitgtkpage.cpp:
+        * Api/webkitgtkpage.h:
+
+2007-09-29  Lars Lindner  <lars.lindner@gmail.com>
+
+        Reviewed by Adam.
+
+        ChromeClientGtk.cpp does not implement mouseDidMoveOverElement()
+        http://bugs.webkit.org/show_bug.cgi?id=15299
+
+        Implementing "hovering_over_link" signal.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::mouseDidMoveOverElement):
+
+2007-09-26  Mark Rowe  <mrowe@apple.com>
+
+        Gtk build fix.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:  Check for empty URL instead of invalid URL.
+
+2007-09-17  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        WebKitGtkPage and WebKitGtkFrame have a dependency on each other. To
+        allow client code to include both headers the typedef's for
+        WebKitGtkFrame, WebKitGtkPage, WebKitGtkFrameData and WebKitGtkNetworkRequest
+        are moved into webkitgtkdefines.h and included by both webkitgtkpage.h and
+        webkitgtkframe.h
+
+        * Api/webkitgtkdefines.h:
+        * Api/webkitgtkframe.h:
+        * Api/webkitgtkpage.h:
+
+2007-09-17  Cyril Brulebois  <cyril.brulebois@enst-bretagne.fr>
+
+        Reviewed by Mark, some Coding Style changes by Holger.
+
+        This is from http://bugs.webkit.org/show_bug.cgi?id=14812.
+
+        Add title and location to WebKitGtkFramePrivate, add
+        webkit_gtk_frame_get_location to the WebKitGtkFrame API as well
+        as a title_changed callback, implement
+        webkit_gtk_frame_get_title and webkit_gtk_frame_get_location.
+
+        Initial patch by Diego Escalante Urrelo.
+
+        * Api/webkitgtkframe.cpp:
+        * Api/webkitgtkframe.h:
+        * Api/webkitgtkprivate.h:
+
+2007-09-15  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Mark.
+
+        Use the new WebCore::String::fromUTF8 function to convert
+        from the Gtk+ representation of a string to WebCore::String.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::runJavaScriptPrompt):
+
+2007-09-10  Nigel Tao  <nigeltao@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix a typo where webkit_gtk_page_can_copy was declared twice,
+        rather than webkit_gtk_page_can_paste.
+
+        * Api/webkitgtkpage.h:
+
+2007-09-08  Brady Eidson  <beidson@apple.com>
+
+        Better build fix
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::registerForIconNotification):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2007-09-08  Brady Eidson  <beidson@apple.com>
+
+        Build fix
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::registerForIconNotification):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2007-09-05  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler, Maciej Stachowiak, Mark Rowe, Tim Hatcher.
+        
+        Fixed <rdar://problem/5326009> Make non-browser WebKit clients have no 
+        memory cache, or a very tiny one
+        
+        Keep the GTK build working with an empty stub.
+        
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::didPerformFirstNavigation):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2007-09-01  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Sam.
+
+        <rdar://problem/5344848> IME is incorrectly used for key events when on non-editable regions
+ 
+        EditorClient::setInputMethodState stub
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::setInputMethodState):
+        * WebCoreSupport/EditorClientGtk.h:
+
+2007-08-18  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix. Add const to the first parameter of createPlugin
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+
+2007-08-17  Anders Carlsson  <andersca@apple.com>
+
+        Build fix.
+        
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::createPlugin):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2007-08-11  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        To not hit the needsLayout() assert of Frame::paint for subframes we need to
+        make sure they are layed out. Use the newly created FrameView::layoutIfNeededRecursive
+        method to do this.
+
+        * Api/webkitgtkpage.cpp:
+
+2007-08-11  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        Fix text selection by setting a DragClient when creating the Page. Now
+        that we have a DragClient we can free the Page when WebKitGtkPage gets
+        destructed.
+
+        * Api/webkitgtkpage.cpp:
+        * WebCoreSupport/DragClientGtk.cpp: Added.
+        (WebKit::DragClient::willPerformDragDestinationAction):
+        (WebKit::DragClient::willPerformDragSourceAction):
+        (WebKit::DragClient::actionMaskForDrag):
+        (WebKit::DragClient::dragSourceActionMaskForPoint):
+        (WebKit::DragClient::startDrag):
+        (WebKit::DragClient::createDragImageForLink):
+        * WebCoreSupport/DragClientGtk.h: Added.
+
+2007-08-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Anders.
+
+        Make WebKitGtkPage a GtkContainer to avoid a size_allocate
+        race of GtkScrollBar and GtkLayout.
+
+        * Api/webkitgtk-marshal.list:
+        * Api/webkitgtkframe.cpp:
+        * Api/webkitgtkpage.cpp:
+        * Api/webkitgtkpage.h:
+        * Api/webkitgtkprivate.h:
+
+2007-08-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Niko.
+
+        Minor changes to the WebKit::EditorClient to allow removing
+        of text from TextFields. Remove the selectWordBeforeMenuEvent method
+        which is not used and not within WebCore::EditorClient. 
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::shouldDeleteRange):
+        (WebKit::EditorClient::shouldBeginEditing):
+        (WebKit::EditorClient::shouldEndEditing):
+        (WebKit::EditorClient::shouldApplyStyle):
+        (WebKit::EditorClient::shouldInsertNode):
+        * WebCoreSupport/EditorClientGtk.h:
+
+2007-08-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Mark.
+
+        Rename the namespace from WebKitGtk to WebKit. Move the various *Client
+        classes into the WebKit namespace. Change the class names to not contain Gtk.
+        The file names have to contain the Gtk suffix to not clash with files in WebCore (e.g.
+        bridge/EditorClient.h).
+        
+
+        * Api/webkitgtkframe.cpp:
+        * Api/webkitgtkpage.cpp:
+        * Api/webkitgtkprivate.cpp:
+        * Api/webkitgtkprivate.h:
+        * ChangeLog:
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::ChromeClient):
+        (WebKit::ChromeClient::chromeDestroyed):
+        (WebKit::ChromeClient::windowRect):
+        (WebKit::ChromeClient::setWindowRect):
+        (WebKit::ChromeClient::pageRect):
+        (WebKit::ChromeClient::scaleFactor):
+        (WebKit::ChromeClient::focus):
+        (WebKit::ChromeClient::unfocus):
+        (WebKit::ChromeClient::createWindow):
+        (WebKit::ChromeClient::createModalDialog):
+        (WebKit::ChromeClient::show):
+        (WebKit::ChromeClient::canRunModal):
+        (WebKit::ChromeClient::runModal):
+        (WebKit::ChromeClient::setToolbarsVisible):
+        (WebKit::ChromeClient::toolbarsVisible):
+        (WebKit::ChromeClient::setStatusbarVisible):
+        (WebKit::ChromeClient::statusbarVisible):
+        (WebKit::ChromeClient::setScrollbarsVisible):
+        (WebKit::ChromeClient::scrollbarsVisible):
+        (WebKit::ChromeClient::setMenubarVisible):
+        (WebKit::ChromeClient::menubarVisible):
+        (WebKit::ChromeClient::setResizable):
+        (WebKit::ChromeClient::closeWindowSoon):
+        (WebKit::ChromeClient::canTakeFocus):
+        (WebKit::ChromeClient::takeFocus):
+        (WebKit::ChromeClient::canRunBeforeUnloadConfirmPanel):
+        (WebKit::ChromeClient::runBeforeUnloadConfirmPanel):
+        (WebKit::ChromeClient::runJavaScriptAlert):
+        (WebKit::ChromeClient::runJavaScriptConfirm):
+        (WebKit::ChromeClient::setStatusbarText):
+        (WebKit::ChromeClient::shouldInterruptJavaScript):
+        (WebKit::ChromeClient::tabsToLinks):
+        (WebKit::ChromeClient::windowResizerRect):
+        (WebKit::ChromeClient::addToDirtyRegion):
+        (WebKit::ChromeClient::scrollBackingStore):
+        (WebKit::ChromeClient::updateBackingStore):
+        (WebKit::ChromeClient::mouseDidMoveOverElement):
+        (WebKit::ChromeClient::setToolTip):
+        * WebCoreSupport/ChromeClientGtk.h:
+        * WebCoreSupport/ContextMenuClientGtk.cpp:
+        (WebKit::ContextMenuClient::contextMenuDestroyed):
+        (WebKit::ContextMenuClient::getCustomMenuFromDefaultItems):
+        (WebKit::ContextMenuClient::contextMenuItemSelected):
+        (WebKit::ContextMenuClient::downloadURL):
+        (WebKit::ContextMenuClient::copyImageToClipboard):
+        (WebKit::ContextMenuClient::searchWithGoogle):
+        (WebKit::ContextMenuClient::lookUpInDictionary):
+        (WebKit::ContextMenuClient::speak):
+        * WebCoreSupport/ContextMenuClientGtk.h:
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::shouldDeleteRange):
+        (WebKit::EditorClient::shouldShowDeleteInterface):
+        (WebKit::EditorClient::isContinuousSpellCheckingEnabled):
+        (WebKit::EditorClient::isGrammarCheckingEnabled):
+        (WebKit::EditorClient::spellCheckerDocumentTag):
+        (WebKit::EditorClient::shouldBeginEditing):
+        (WebKit::EditorClient::shouldEndEditing):
+        (WebKit::EditorClient::shouldInsertText):
+        (WebKit::EditorClient::shouldChangeSelectedRange):
+        (WebKit::EditorClient::shouldApplyStyle):
+        (WebKit::EditorClient::shouldMoveRangeAfterDelete):
+        (WebKit::EditorClient::didBeginEditing):
+        (WebKit::EditorClient::respondToChangedContents):
+        (WebKit::EditorClient::respondToChangedSelection):
+        (WebKit::EditorClient::didEndEditing):
+        (WebKit::EditorClient::didWriteSelectionToPasteboard):
+        (WebKit::EditorClient::didSetSelectionTypesForPasteboard):
+        (WebKit::EditorClient::selectWordBeforeMenuEvent):
+        (WebKit::EditorClient::isEditable):
+        (WebKit::EditorClient::registerCommandForUndo):
+        (WebKit::EditorClient::registerCommandForRedo):
+        (WebKit::EditorClient::clearUndoRedoOperations):
+        (WebKit::EditorClient::canUndo):
+        (WebKit::EditorClient::canRedo):
+        (WebKit::EditorClient::undo):
+        (WebKit::EditorClient::redo):
+        (WebKit::EditorClient::shouldInsertNode):
+        (WebKit::EditorClient::pageDestroyed):
+        (WebKit::EditorClient::smartInsertDeleteEnabled):
+        (WebKit::EditorClient::toggleContinuousSpellChecking):
+        (WebKit::EditorClient::toggleGrammarChecking):
+        (WebKit::EditorClient::handleInputMethodKeypress):
+        (WebKit::EditorClient::EditorClient):
+        (WebKit::EditorClient::textFieldDidBeginEditing):
+        (WebKit::EditorClient::textFieldDidEndEditing):
+        (WebKit::EditorClient::textDidChangeInTextField):
+        (WebKit::EditorClient::doTextFieldCommandFromEvent):
+        (WebKit::EditorClient::textWillBeDeletedInTextField):
+        (WebKit::EditorClient::textDidChangeInTextArea):
+        (WebKit::EditorClient::ignoreWordInSpellDocument):
+        (WebKit::EditorClient::learnWord):
+        (WebKit::EditorClient::checkSpellingOfString):
+        (WebKit::EditorClient::checkGrammarOfString):
+        (WebKit::EditorClient::updateSpellingUIWithGrammarString):
+        (WebKit::EditorClient::updateSpellingUIWithMisspelledWord):
+        (WebKit::EditorClient::showSpellingUI):
+        (WebKit::EditorClient::spellingUIIsShowing):
+        * WebCoreSupport/EditorClientGtk.h:
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::FrameLoaderClient):
+        (WebKit::FrameLoaderClient::userAgent):
+        (WebKit::FrameLoaderClient::createDocumentLoader):
+        (WebKit::FrameLoaderClient::committedLoad):
+        (WebKit::FrameLoaderClient::dispatchDidReceiveAuthenticationChallenge):
+        (WebKit::FrameLoaderClient::dispatchDidCancelAuthenticationChallenge):
+        (WebKit::FrameLoaderClient::dispatchWillSendRequest):
+        (WebKit::FrameLoaderClient::assignIdentifierToInitialRequest):
+        (WebKit::FrameLoaderClient::postProgressStartedNotification):
+        (WebKit::FrameLoaderClient::postProgressFinishedNotification):
+        (WebKit::FrameLoaderClient::frameLoaderDestroyed):
+        (WebKit::FrameLoaderClient::dispatchDidReceiveResponse):
+        (WebKit::FrameLoaderClient::createPlugin):
+        (WebKit::FrameLoaderClient::redirectDataToPlugin):
+        (WebKit::FrameLoaderClient::createJavaAppletWidget):
+        (WebKit::FrameLoaderClient::overrideMediaType):
+        (WebKit::FrameLoaderClient::windowObjectCleared):
+        (WebKit::FrameLoaderClient::setMainFrameDocumentReady):
+        (WebKit::FrameLoaderClient::hasWebView):
+        (WebKit::FrameLoaderClient::hasFrameView):
+        (WebKit::FrameLoaderClient::dispatchDidFinishLoad):
+        (WebKit::FrameLoaderClient::frameLoadCompleted):
+        (WebKit::FrameLoaderClient::saveViewStateToItem):
+        (WebKit::FrameLoaderClient::restoreViewState):
+        (WebKit::FrameLoaderClient::privateBrowsingEnabled):
+        (WebKit::FrameLoaderClient::makeDocumentView):
+        (WebKit::FrameLoaderClient::makeRepresentation):
+        (WebKit::FrameLoaderClient::forceLayout):
+        (WebKit::FrameLoaderClient::forceLayoutForNonHTML):
+        (WebKit::FrameLoaderClient::setCopiesOnScroll):
+        (WebKit::FrameLoaderClient::detachedFromParent1):
+        (WebKit::FrameLoaderClient::detachedFromParent2):
+        (WebKit::FrameLoaderClient::detachedFromParent3):
+        (WebKit::FrameLoaderClient::detachedFromParent4):
+        (WebKit::FrameLoaderClient::loadedFromCachedPage):
+        (WebKit::FrameLoaderClient::dispatchDidHandleOnloadEvents):
+        (WebKit::FrameLoaderClient::dispatchDidReceiveServerRedirectForProvisionalLoad):
+        (WebKit::FrameLoaderClient::dispatchDidCancelClientRedirect):
+        (WebKit::FrameLoaderClient::dispatchWillPerformClientRedirect):
+        (WebKit::FrameLoaderClient::dispatchDidChangeLocationWithinPage):
+        (WebKit::FrameLoaderClient::dispatchWillClose):
+        (WebKit::FrameLoaderClient::dispatchDidReceiveIcon):
+        (WebKit::FrameLoaderClient::dispatchDidStartProvisionalLoad):
+        (WebKit::FrameLoaderClient::dispatchDidReceiveTitle):
+        (WebKit::FrameLoaderClient::dispatchDidCommitLoad):
+        (WebKit::FrameLoaderClient::dispatchDidFinishDocumentLoad):
+        (WebKit::FrameLoaderClient::dispatchDidFirstLayout):
+        (WebKit::FrameLoaderClient::dispatchShow):
+        (WebKit::FrameLoaderClient::cancelPolicyCheck):
+        (WebKit::FrameLoaderClient::dispatchDidLoadMainResource):
+        (WebKit::FrameLoaderClient::revertToProvisionalState):
+        (WebKit::FrameLoaderClient::clearUnarchivingState):
+        (WebKit::FrameLoaderClient::willChangeTitle):
+        (WebKit::FrameLoaderClient::didChangeTitle):
+        (WebKit::FrameLoaderClient::finishedLoading):
+        (WebKit::FrameLoaderClient::finalSetupForReplace):
+        (WebKit::FrameLoaderClient::setDefersLoading):
+        (WebKit::FrameLoaderClient::isArchiveLoadPending):
+        (WebKit::FrameLoaderClient::cancelPendingArchiveLoad):
+        (WebKit::FrameLoaderClient::clearArchivedResources):
+        (WebKit::FrameLoaderClient::canHandleRequest):
+        (WebKit::FrameLoaderClient::canShowMIMEType):
+        (WebKit::FrameLoaderClient::representationExistsForURLScheme):
+        (WebKit::FrameLoaderClient::generatedMIMETypeForURLScheme):
+        (WebKit::FrameLoaderClient::provisionalLoadStarted):
+        (WebKit::FrameLoaderClient::didFinishLoad):
+        (WebKit::FrameLoaderClient::setDocumentViewFromCachedPage):
+        (WebKit::FrameLoaderClient::dispatchDidReceiveContentLength):
+        (WebKit::FrameLoaderClient::dispatchDidFinishLoading):
+        (WebKit::FrameLoaderClient::dispatchDidFailLoading):
+        (WebKit::FrameLoaderClient::dispatchDidLoadResourceFromMemoryCache):
+        (WebKit::FrameLoaderClient::dispatchDidFailProvisionalLoad):
+        (WebKit::FrameLoaderClient::dispatchDidFailLoad):
+        (WebKit::FrameLoaderClient::download):
+        (WebKit::FrameLoaderClient::cancelledError):
+        (WebKit::FrameLoaderClient::blockedError):
+        (WebKit::FrameLoaderClient::cannotShowURLError):
+        (WebKit::FrameLoaderClient::interruptForPolicyChangeError):
+        (WebKit::FrameLoaderClient::cannotShowMIMETypeError):
+        (WebKit::FrameLoaderClient::fileDoesNotExistError):
+        (WebKit::FrameLoaderClient::shouldFallBack):
+        (WebKit::FrameLoaderClient::willUseArchive):
+        (WebKit::FrameLoaderClient::saveDocumentViewToCachedPage):
+        (WebKit::FrameLoaderClient::canCachePage):
+        (WebKit::FrameLoaderClient::dispatchCreatePage):
+        (WebKit::FrameLoaderClient::dispatchUnableToImplementPolicy):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+        * WebCoreSupport/InspectorClientGtk.cpp:
+        (WebKit::InspectorClient::inspectorDestroyed):
+        (WebKit::InspectorClient::createPage):
+        (WebKit::InspectorClient::showWindow):
+        (WebKit::InspectorClient::closeWindow):
+        (WebKit::InspectorClient::attachWindow):
+        (WebKit::InspectorClient::detachWindow):
+        (WebKit::InspectorClient::highlight):
+        (WebKit::InspectorClient::hideHighlight):
+        * WebCoreSupport/InspectorClientGtk.h:
+
+2007-08-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        As of http://bugs.webkit.org/show_bug.cgi?id=14727 move the
+        various *ClientGdk.{cpp,h} files from WebCore to WebKit/gtk/WebCoreSupport and
+        rename it from Gdk to Gtk.
+
+        * Api/webkitgtkdefines.h:
+        * Api/webkitgtkframe.cpp:
+        * Api/webkitgtkframe.h:
+        * Api/webkitgtkglobal.cpp:
+        * Api/webkitgtkglobal.h:
+        * Api/webkitgtknetworkrequest.cpp:
+        * Api/webkitgtknetworkrequest.h:
+        * Api/webkitgtkpage.cpp:
+        * Api/webkitgtkpage.h:
+        * Api/webkitgtkprivate.cpp:
+        * Api/webkitgtkprivate.h:
+        * Api/webkitgtksettings.cpp:
+        * Api/webkitgtksettings.h:
+        * WebCoreSupport/ChromeClientGtk.cpp: Renamed from WebKit/gtk/WebCoreSupport/ChromeClientGdk.cpp.
+        (WebKitGtk::ChromeClientGtk::ChromeClientGtk):
+        (WebKitGtk::ChromeClientGtk::chromeDestroyed):
+        (WebKitGtk::ChromeClientGtk::windowRect):
+        (WebKitGtk::ChromeClientGtk::setWindowRect):
+        (WebKitGtk::ChromeClientGtk::pageRect):
+        (WebKitGtk::ChromeClientGtk::scaleFactor):
+        (WebKitGtk::ChromeClientGtk::focus):
+        (WebKitGtk::ChromeClientGtk::unfocus):
+        (WebKitGtk::ChromeClientGtk::createWindow):
+        (WebKitGtk::ChromeClientGtk::createModalDialog):
+        (WebKitGtk::ChromeClientGtk::show):
+        (WebKitGtk::ChromeClientGtk::canRunModal):
+        (WebKitGtk::ChromeClientGtk::runModal):
+        (WebKitGtk::ChromeClientGtk::setToolbarsVisible):
+        (WebKitGtk::ChromeClientGtk::toolbarsVisible):
+        (WebKitGtk::ChromeClientGtk::setStatusbarVisible):
+        (WebKitGtk::ChromeClientGtk::statusbarVisible):
+        (WebKitGtk::ChromeClientGtk::setScrollbarsVisible):
+        (WebKitGtk::ChromeClientGtk::scrollbarsVisible):
+        (WebKitGtk::ChromeClientGtk::setMenubarVisible):
+        (WebKitGtk::ChromeClientGtk::menubarVisible):
+        (WebKitGtk::ChromeClientGtk::setResizable):
+        (WebKitGtk::ChromeClientGtk::closeWindowSoon):
+        (WebKitGtk::ChromeClientGtk::canTakeFocus):
+        (WebKitGtk::ChromeClientGtk::takeFocus):
+        (WebKitGtk::ChromeClientGtk::canRunBeforeUnloadConfirmPanel):
+        (WebKitGtk::ChromeClientGtk::runBeforeUnloadConfirmPanel):
+        (WebKitGtk::ChromeClientGtk::addMessageToConsole):
+        (WebKitGtk::ChromeClientGtk::runJavaScriptAlert):
+        (WebKitGtk::ChromeClientGtk::runJavaScriptConfirm):
+        (WebKitGtk::ChromeClientGtk::runJavaScriptPrompt):
+        (WebKitGtk::ChromeClientGtk::setStatusbarText):
+        (WebKitGtk::ChromeClientGtk::shouldInterruptJavaScript):
+        (WebKitGtk::ChromeClientGtk::tabsToLinks):
+        (WebKitGtk::ChromeClientGtk::windowResizerRect):
+        (WebKitGtk::ChromeClientGtk::addToDirtyRegion):
+        (WebKitGtk::ChromeClientGtk::scrollBackingStore):
+        (WebKitGtk::ChromeClientGtk::updateBackingStore):
+        (WebKitGtk::ChromeClientGtk::mouseDidMoveOverElement):
+        (WebKitGtk::ChromeClientGtk::setToolTip):
+        * WebCoreSupport/ChromeClientGtk.h: Renamed from WebKit/gtk/WebCoreSupport/ChromeClientGdk.h.
+        (WebKitGtk::ChromeClientGtk::webPage):
+        * WebCoreSupport/ContextMenuClientGtk.cpp: Renamed from WebCore/page/gdk/ContextMenuClientGdk.cpp.
+        (WebCore::ContextMenuClientGtk::contextMenuDestroyed):
+        (WebCore::ContextMenuClientGtk::getCustomMenuFromDefaultItems):
+        (WebCore::ContextMenuClientGtk::contextMenuItemSelected):
+        (WebCore::ContextMenuClientGtk::downloadURL):
+        (WebCore::ContextMenuClientGtk::copyImageToClipboard):
+        (WebCore::ContextMenuClientGtk::searchWithGoogle):
+        (WebCore::ContextMenuClientGtk::lookUpInDictionary):
+        (WebCore::ContextMenuClientGtk::speak):
+        (WebCore::ContextMenuClientGtk::stopSpeaking):
+        * WebCoreSupport/ContextMenuClientGtk.h: Renamed from WebCore/page/gdk/ContextMenuClientGdk.h.
+        * WebCoreSupport/EditorClientGtk.cpp: Renamed from WebCore/platform/gdk/EditorClientGdk.cpp.
+        (WebCore::EditorClientGtk::shouldDeleteRange):
+        (WebCore::EditorClientGtk::shouldShowDeleteInterface):
+        (WebCore::EditorClientGtk::isContinuousSpellCheckingEnabled):
+        (WebCore::EditorClientGtk::isGrammarCheckingEnabled):
+        (WebCore::EditorClientGtk::spellCheckerDocumentTag):
+        (WebCore::EditorClientGtk::shouldBeginEditing):
+        (WebCore::EditorClientGtk::shouldEndEditing):
+        (WebCore::EditorClientGtk::shouldInsertText):
+        (WebCore::EditorClientGtk::shouldChangeSelectedRange):
+        (WebCore::EditorClientGtk::shouldApplyStyle):
+        (WebCore::EditorClientGtk::shouldMoveRangeAfterDelete):
+        (WebCore::EditorClientGtk::didBeginEditing):
+        (WebCore::EditorClientGtk::respondToChangedContents):
+        (WebCore::EditorClientGtk::respondToChangedSelection):
+        (WebCore::EditorClientGtk::didEndEditing):
+        (WebCore::EditorClientGtk::didWriteSelectionToPasteboard):
+        (WebCore::EditorClientGtk::didSetSelectionTypesForPasteboard):
+        (WebCore::EditorClientGtk::selectWordBeforeMenuEvent):
+        (WebCore::EditorClientGtk::isEditable):
+        (WebCore::EditorClientGtk::registerCommandForUndo):
+        (WebCore::EditorClientGtk::registerCommandForRedo):
+        (WebCore::EditorClientGtk::clearUndoRedoOperations):
+        (WebCore::EditorClientGtk::canUndo):
+        (WebCore::EditorClientGtk::canRedo):
+        (WebCore::EditorClientGtk::undo):
+        (WebCore::EditorClientGtk::redo):
+        (WebCore::EditorClientGtk::shouldInsertNode):
+        (WebCore::EditorClientGtk::pageDestroyed):
+        (WebCore::EditorClientGtk::smartInsertDeleteEnabled):
+        (WebCore::EditorClientGtk::toggleContinuousSpellChecking):
+        (WebCore::EditorClientGtk::toggleGrammarChecking):
+        (WebCore::EditorClientGtk::handleKeypress):
+        (WebCore::EditorClientGtk::handleInputMethodKeypress):
+        (WebCore::EditorClientGtk::EditorClientGtk):
+        (WebCore::EditorClientGtk::textFieldDidBeginEditing):
+        (WebCore::EditorClientGtk::textFieldDidEndEditing):
+        (WebCore::EditorClientGtk::textDidChangeInTextField):
+        (WebCore::EditorClientGtk::doTextFieldCommandFromEvent):
+        (WebCore::EditorClientGtk::textWillBeDeletedInTextField):
+        (WebCore::EditorClientGtk::textDidChangeInTextArea):
+        (WebCore::EditorClientGtk::ignoreWordInSpellDocument):
+        (WebCore::EditorClientGtk::learnWord):
+        (WebCore::EditorClientGtk::checkSpellingOfString):
+        (WebCore::EditorClientGtk::checkGrammarOfString):
+        (WebCore::EditorClientGtk::updateSpellingUIWithGrammarString):
+        (WebCore::EditorClientGtk::updateSpellingUIWithMisspelledWord):
+        (WebCore::EditorClientGtk::showSpellingUI):
+        (WebCore::EditorClientGtk::spellingUIIsShowing):
+        (WebCore::EditorClientGtk::getGuessesForWord):
+        * WebCoreSupport/EditorClientGtk.h: Renamed from WebCore/platform/gdk/EditorClientGdk.h.
+        * WebCoreSupport/FrameLoaderClientGtk.cpp: Renamed from WebCore/loader/gdk/FrameLoaderClientGdk.cpp.
+        (WebCore::FrameLoaderClientGtk::FrameLoaderClientGtk):
+        (WebCore::FrameLoaderClientGtk::userAgent):
+        (WebCore::FrameLoaderClientGtk::createDocumentLoader):
+        (WebCore::FrameLoaderClientGtk::dispatchWillSubmitForm):
+        (WebCore::FrameLoaderClientGtk::committedLoad):
+        (WebCore::FrameLoaderClientGtk::dispatchDidReceiveAuthenticationChallenge):
+        (WebCore::FrameLoaderClientGtk::dispatchDidCancelAuthenticationChallenge):
+        (WebCore::FrameLoaderClientGtk::dispatchWillSendRequest):
+        (WebCore::FrameLoaderClientGtk::assignIdentifierToInitialRequest):
+        (WebCore::FrameLoaderClientGtk::postProgressStartedNotification):
+        (WebCore::FrameLoaderClientGtk::postProgressEstimateChangedNotification):
+        (WebCore::FrameLoaderClientGtk::postProgressFinishedNotification):
+        (WebCore::FrameLoaderClientGtk::frameLoaderDestroyed):
+        (WebCore::FrameLoaderClientGtk::dispatchDidReceiveResponse):
+        (WebCore::FrameLoaderClientGtk::dispatchDecidePolicyForMIMEType):
+        (WebCore::FrameLoaderClientGtk::dispatchDecidePolicyForNewWindowAction):
+        (WebCore::FrameLoaderClientGtk::dispatchDecidePolicyForNavigationAction):
+        (WebCore::FrameLoaderClientGtk::createPlugin):
+        (WebCore::FrameLoaderClientGtk::createFrame):
+        (WebCore::FrameLoaderClientGtk::redirectDataToPlugin):
+        (WebCore::FrameLoaderClientGtk::createJavaAppletWidget):
+        (WebCore::FrameLoaderClientGtk::objectContentType):
+        (WebCore::FrameLoaderClientGtk::overrideMediaType):
+        (WebCore::FrameLoaderClientGtk::windowObjectCleared):
+        (WebCore::FrameLoaderClientGtk::setMainFrameDocumentReady):
+        (WebCore::FrameLoaderClientGtk::hasWebView):
+        (WebCore::FrameLoaderClientGtk::hasFrameView):
+        (WebCore::FrameLoaderClientGtk::dispatchDidFinishLoad):
+        (WebCore::FrameLoaderClientGtk::frameLoadCompleted):
+        (WebCore::FrameLoaderClientGtk::saveViewStateToItem):
+        (WebCore::FrameLoaderClientGtk::restoreViewState):
+        (WebCore::FrameLoaderClientGtk::shouldGoToHistoryItem):
+        (WebCore::FrameLoaderClientGtk::privateBrowsingEnabled):
+        (WebCore::FrameLoaderClientGtk::makeDocumentView):
+        (WebCore::FrameLoaderClientGtk::makeRepresentation):
+        (WebCore::FrameLoaderClientGtk::forceLayout):
+        (WebCore::FrameLoaderClientGtk::forceLayoutForNonHTML):
+        (WebCore::FrameLoaderClientGtk::setCopiesOnScroll):
+        (WebCore::FrameLoaderClientGtk::detachedFromParent1):
+        (WebCore::FrameLoaderClientGtk::detachedFromParent2):
+        (WebCore::FrameLoaderClientGtk::detachedFromParent3):
+        (WebCore::FrameLoaderClientGtk::detachedFromParent4):
+        (WebCore::FrameLoaderClientGtk::loadedFromCachedPage):
+        (WebCore::FrameLoaderClientGtk::dispatchDidHandleOnloadEvents):
+        (WebCore::FrameLoaderClientGtk::dispatchDidReceiveServerRedirectForProvisionalLoad):
+        (WebCore::FrameLoaderClientGtk::dispatchDidCancelClientRedirect):
+        (WebCore::FrameLoaderClientGtk::dispatchWillPerformClientRedirect):
+        (WebCore::FrameLoaderClientGtk::dispatchDidChangeLocationWithinPage):
+        (WebCore::FrameLoaderClientGtk::dispatchWillClose):
+        (WebCore::FrameLoaderClientGtk::dispatchDidReceiveIcon):
+        (WebCore::FrameLoaderClientGtk::dispatchDidStartProvisionalLoad):
+        (WebCore::FrameLoaderClientGtk::dispatchDidReceiveTitle):
+        (WebCore::FrameLoaderClientGtk::dispatchDidCommitLoad):
+        (WebCore::FrameLoaderClientGtk::dispatchDidFinishDocumentLoad):
+        (WebCore::FrameLoaderClientGtk::dispatchDidFirstLayout):
+        (WebCore::FrameLoaderClientGtk::dispatchShow):
+        (WebCore::FrameLoaderClientGtk::cancelPolicyCheck):
+        (WebCore::FrameLoaderClientGtk::dispatchDidLoadMainResource):
+        (WebCore::FrameLoaderClientGtk::revertToProvisionalState):
+        (WebCore::FrameLoaderClientGtk::clearUnarchivingState):
+        (WebCore::FrameLoaderClientGtk::willChangeTitle):
+        (WebCore::FrameLoaderClientGtk::didChangeTitle):
+        (WebCore::FrameLoaderClientGtk::finishedLoading):
+        (WebCore::FrameLoaderClientGtk::finalSetupForReplace):
+        (WebCore::FrameLoaderClientGtk::setDefersLoading):
+        (WebCore::FrameLoaderClientGtk::isArchiveLoadPending):
+        (WebCore::FrameLoaderClientGtk::cancelPendingArchiveLoad):
+        (WebCore::FrameLoaderClientGtk::clearArchivedResources):
+        (WebCore::FrameLoaderClientGtk::canHandleRequest):
+        (WebCore::FrameLoaderClientGtk::canShowMIMEType):
+        (WebCore::FrameLoaderClientGtk::representationExistsForURLScheme):
+        (WebCore::FrameLoaderClientGtk::generatedMIMETypeForURLScheme):
+        (WebCore::FrameLoaderClientGtk::provisionalLoadStarted):
+        (WebCore::FrameLoaderClientGtk::didFinishLoad):
+        (WebCore::FrameLoaderClientGtk::prepareForDataSourceReplacement):
+        (WebCore::FrameLoaderClientGtk::setTitle):
+        (WebCore::FrameLoaderClientGtk::setDocumentViewFromCachedPage):
+        (WebCore::FrameLoaderClientGtk::dispatchDidReceiveContentLength):
+        (WebCore::FrameLoaderClientGtk::dispatchDidFinishLoading):
+        (WebCore::FrameLoaderClientGtk::dispatchDidFailLoading):
+        (WebCore::FrameLoaderClientGtk::dispatchDidLoadResourceFromMemoryCache):
+        (WebCore::FrameLoaderClientGtk::dispatchDidFailProvisionalLoad):
+        (WebCore::FrameLoaderClientGtk::dispatchDidFailLoad):
+        (WebCore::FrameLoaderClientGtk::download):
+        (WebCore::FrameLoaderClientGtk::cancelledError):
+        (WebCore::FrameLoaderClientGtk::blockedError):
+        (WebCore::FrameLoaderClientGtk::cannotShowURLError):
+        (WebCore::FrameLoaderClientGtk::interruptForPolicyChangeError):
+        (WebCore::FrameLoaderClientGtk::cannotShowMIMETypeError):
+        (WebCore::FrameLoaderClientGtk::fileDoesNotExistError):
+        (WebCore::FrameLoaderClientGtk::shouldFallBack):
+        (WebCore::FrameLoaderClientGtk::willUseArchive):
+        (WebCore::FrameLoaderClientGtk::saveDocumentViewToCachedPage):
+        (WebCore::FrameLoaderClientGtk::canCachePage):
+        (WebCore::FrameLoaderClientGtk::dispatchCreatePage):
+        (WebCore::FrameLoaderClientGtk::dispatchUnableToImplementPolicy):
+        * WebCoreSupport/FrameLoaderClientGtk.h: Renamed from WebCore/loader/gdk/FrameLoaderClientGdk.h.
+        (WebCore::FrameLoaderClientGtk::~FrameLoaderClientGtk):
+        (WebCore::FrameLoaderClientGtk::webFrame):
+        * WebCoreSupport/InspectorClientGtk.cpp: Renamed from WebCore/page/gdk/InspectorClientGdk.cpp.
+        (WebCore::InspectorClientGtk::inspectorDestroyed):
+        (WebCore::InspectorClientGtk::createPage):
+        (WebCore::InspectorClientGtk::showWindow):
+        (WebCore::InspectorClientGtk::closeWindow):
+        (WebCore::InspectorClientGtk::attachWindow):
+        (WebCore::InspectorClientGtk::detachWindow):
+        (WebCore::InspectorClientGtk::highlight):
+        (WebCore::InspectorClientGtk::hideHighlight):
+        (WebCore::InspectorClientGtk::inspectedURLChanged):
+        * WebCoreSupport/InspectorClientGtk.h: Renamed from WebCore/page/gdk/InspectorClientGdk.h.
+
+2007-08-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix.
+
+        * Api/webkitgtkframe.cpp:
+
+2007-08-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        Remove the create_frame virtual method of WebKitGtkPage. This method was inspired
+        by the Qt port but to be useful for reimplementations WebKitGtkFrameData would need
+        to export/expose WebCore types. WebView doesn't offer such a method so I decided to
+        remove it.
+        Add a internal constructor to WebKitGtkFrame to be used for constructing Sub-Frames. This
+        is currently used by FrameLoaderClientGdk::createFrame.
+
+        * Api/webkitgtkframe.cpp:
+        * Api/webkitgtkframedata.cpp: Removed.
+        * Api/webkitgtkframedata.h: Removed.
+        * Api/webkitgtkpage.cpp:
+        * Api/webkitgtkpage.h:
+        * Api/webkitgtkprivate.h:
+
+2007-08-10  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        Follow the changes of ScrollView in WebCore and call setContainingWindow, set the
+        GtkAdjustment of the GtkLayout and reimplement the set_scroll_adjustments method and pass
+        the GtkAdjustments to ScrollView.
+        This makes having one GdkWindow for the complete FrameTree possible.
+        
+
+        * gtk/Api/webkitgtkframe.cpp:
+        * gtk/Api/webkitgtkpage.cpp:
+
+2007-08-08  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Niko.
+
+        We only need to set the Settings of the Page once so do it in
+        WebKitGtkPage instead of WebKitGtkFrame.
+
+        * gtk/Api/webkitgtkframe.cpp:
+        * gtk/Api/webkitgtkpage.cpp:
+
+2007-08-08  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Niko.
+
+        Instead of reimplementing the general event method, reimplement
+        the specific mouse, expose, keyboard event methods.
+
+        Call the finalize implementation of the base class from WebKitGtkPage
+        and WebKitGtkFrame.
+
+        * gtk/Api/webkitgtkframe.cpp:
+        * gtk/Api/webkitgtkpage.cpp:
+
+2007-08-08  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Niko.
+
+        Remove the custom painting in favor of the Widget::paint
+        implementation.
+
+        * gtk/Api/webkitgtkpage.cpp:
+
+2007-08-08  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        Moved code from class FrameGdk into WebKitGtkFrame. Update the
+        webkitgrkprivate.h header file to not include FrameGdk.h.
+
+        * gtk/Api/webkitgtkframe.cpp:
+        * gtk/Api/webkitgtkprivate.h:
+
+2007-08-08  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        Change variable names to follow the Coding-Style. Replace occurences
+        of a_b with aB and place the '*' correctly.
+
+        * gtk/Api/webkitgtkframe.cpp:
+        * gtk/Api/webkitgtkpage.cpp:
+        * gtk/Api/webkitgtkprivate.h:
+
+2007-08-08  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        Reimplement GtkWidget::event and handle the keyboard and mouse
+        events inside WebKitGtkPage.
+
+        * gtk/Api/webkitgtkpage.cpp:
+        (FrameGdkExposeData::frame_gdk_expose_child):
+        (FrameGdkExposeData::webkit_gtk_page_rendering_area_handle_gdk_event):
+        (FrameGdkExposeData::webkit_gtk_page_register_rendering_area_events):
+        (FrameGdkExposeData::webkit_gtk_page_class_init):
+
+2007-08-07  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Mark Rowe.
+
+        http://bugs.webkit.org/show_bug.cgi?id=14815
+        [gtk] API implementation: reload
+
+        * gtk/Api/webkitgtkpage.cpp: Implement the webkit_gtk_page_reload()
+        function.
+
+2007-07-30  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+        Reviewed by Adam.
+
+        http://bugs.webkit.org/show_bug.cgi?id=14806
+        Implement can_go_backward and can_go_forward in webkitgtkpage.cpp
+
+        * gtk/Api/webkitgtkpage.cpp: Implement webkit_gtk_page_can_go_backward() and
+        webkit_gtk_page_can_go_forward() functions.
+
+2007-07-30  Diego Escalante Urrelo  <diegoe@gnome.org> 
+
+        Reviewed by Alp Toker.
+
+        http://bugs.webkit.org/show_bug.cgi?id=14810
+        Bad n_params on load_finished's g_signal_new in webkitgtkpage.cpp
+
+        This is the proper fix for #14810.
+
+        * gtk/Api/webkitgtkframe.cpp:
+        * gtk/Api/webkitgtkpage.cpp: Fix the marshaller type of the "load_finished" signal and
+        correct the class_offset parameters.
+
+2007-07-29  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+        Reviewed by Alp Toker.
+
+        http://bugs.webkit.org/show_bug.cgi?id=14810
+        Bad n_params on load_finished's g_signal_new in webkitgtkpage.cpp
+
+        * gtk/Api/webkitgtkpage.cpp: Use a correct n_params value and the corresponding types for
+        them in the "load_finished" signal.
+
+2007-07-22  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Adam.
+
+        Add the first API and partial implementation of the WebKit/Gtk port as
+        of http://bugs.webkit.org/show_bug.cgi?id=14678.
+
+        The delegates of WebView will be modeled as signals. Delegates like the
+        WebPolicyDelegate will be implemented as signals with default handlers.
+
+        Start moving files to WebKit/gtk/WebCoreSupport.
+
+        * gtk: Added.
+        * gtk/Api: Added.
+        * gtk/Api/headers.pri: Added.
+        * gtk/Api/webkitgtk-marshal.list: Added.
+        * gtk/Api/webkitgtkdefines.h: Added.
+        * gtk/Api/webkitgtkframe.cpp: Added.
+        * gtk/Api/webkitgtkframe.h: Added.
+        * gtk/Api/webkitgtkframedata.cpp: Added.
+        * gtk/Api/webkitgtkframedata.h: Added.
+        * gtk/Api/webkitgtkglobal.cpp: Added.
+        * gtk/Api/webkitgtkglobal.h: Added.
+        * gtk/Api/webkitgtknetworkrequest.cpp: Added.
+        * gtk/Api/webkitgtknetworkrequest.h: Added.
+        * gtk/Api/webkitgtkpage.cpp: Added.
+        * gtk/Api/webkitgtkpage.h: Added.
+        * gtk/Api/webkitgtkprivate.cpp: Added.
+        * gtk/Api/webkitgtkprivate.h: Added.
+        * gtk/Api/webkitgtksettings.cpp: Added.
+        * gtk/Api/webkitgtksettings.h: Added.
+        * gtk/WebCoreSupport: Added.
+        * gtk/WebCoreSupport/ChromeClientGdk.cpp: Added.
+        (WebCore::ChromeClientGdk::ChromeClientGdk):
+        (WebCore::ChromeClientGdk::chromeDestroyed):
+        (WebCore::ChromeClientGdk::windowRect):
+        (WebCore::ChromeClientGdk::setWindowRect):
+        (WebCore::ChromeClientGdk::pageRect):
+        (WebCore::ChromeClientGdk::scaleFactor):
+        (WebCore::ChromeClientGdk::focus):
+        (WebCore::ChromeClientGdk::unfocus):
+        (WebCore::ChromeClientGdk::createWindow):
+        (WebCore::ChromeClientGdk::createModalDialog):
+        (WebCore::ChromeClientGdk::show):
+        (WebCore::ChromeClientGdk::canRunModal):
+        (WebCore::ChromeClientGdk::runModal):
+        (WebCore::ChromeClientGdk::setToolbarsVisible):
+        (WebCore::ChromeClientGdk::toolbarsVisible):
+        (WebCore::ChromeClientGdk::setStatusbarVisible):
+        (WebCore::ChromeClientGdk::statusbarVisible):
+        (WebCore::ChromeClientGdk::setScrollbarsVisible):
+        (WebCore::ChromeClientGdk::scrollbarsVisible):
+        (WebCore::ChromeClientGdk::setMenubarVisible):
+        (WebCore::ChromeClientGdk::menubarVisible):
+        (WebCore::ChromeClientGdk::setResizable):
+        (WebCore::ChromeClientGdk::closeWindowSoon):
+        (WebCore::ChromeClientGdk::canTakeFocus):
+        (WebCore::ChromeClientGdk::takeFocus):
+        (WebCore::ChromeClientGdk::canRunBeforeUnloadConfirmPanel):
+        (WebCore::ChromeClientGdk::runBeforeUnloadConfirmPanel):
+        (WebCore::ChromeClientGdk::addMessageToConsole):
+        (WebCore::ChromeClientGdk::runJavaScriptAlert):
+        (WebCore::ChromeClientGdk::runJavaScriptConfirm):
+        (WebCore::ChromeClientGdk::runJavaScriptPrompt):
+        (WebCore::ChromeClientGdk::setStatusbarText):
+        (WebCore::ChromeClientGdk::shouldInterruptJavaScript):
+        (WebCore::ChromeClientGdk::tabsToLinks):
+        (WebCore::ChromeClientGdk::windowResizerRect):
+        (WebCore::ChromeClientGdk::addToDirtyRegion):
+        (WebCore::ChromeClientGdk::scrollBackingStore):
+        (WebCore::ChromeClientGdk::updateBackingStore):
+        (WebCore::ChromeClientGdk::mouseDidMoveOverElement):
+        (WebCore::ChromeClientGdk::setToolTip):
+        (WebCore::ChromeClientGdk::print):
+        * gtk/WebCoreSupport/ChromeClientGdk.h: Added.
+

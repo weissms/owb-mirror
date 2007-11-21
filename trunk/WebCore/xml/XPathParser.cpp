@@ -1,6 +1,7 @@
 /*
  * Copyright 2005 Maksim Orlovich <maksim@kde.org>
  * Copyright (C) 2006 Apple Computer, Inc.
+ * Copyright (C) 2007 Alexey Proskuryakov <ap@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,7 +28,7 @@
 #include "config.h"
 #include "XPathParser.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "ExceptionCode.h"
 #include "StringHash.h"
@@ -307,12 +308,12 @@ Token Parser::nextTokenInternal()
             return Token(ERROR);
         case '<':
             if (peekAheadHelper() == '=')
-                return makeTokenAndAdvance(RELOP, NumericOp::OP_LE, 2);
-            return makeTokenAndAdvance(RELOP, NumericOp::OP_LT);
+                return makeTokenAndAdvance(RELOP, EqTestOp::OP_LE, 2);
+            return makeTokenAndAdvance(RELOP, EqTestOp::OP_LT);
         case '>':
             if (peekAheadHelper() == '=')
-                return makeTokenAndAdvance(RELOP, NumericOp::OP_GE, 2);
-            return makeTokenAndAdvance(RELOP, NumericOp::OP_GT);
+                return makeTokenAndAdvance(RELOP, EqTestOp::OP_GE, 2);
+            return makeTokenAndAdvance(RELOP, EqTestOp::OP_GT);
         case '*':
             if (isOperatorContext())
                 return makeTokenAndAdvance(MULOP, NumericOp::OP_Mul);
@@ -425,9 +426,9 @@ int Parser::lex(void* data)
             yylval->axis = tok.axis;
             break;
         case MULOP:
-        case RELOP:
             yylval->numop = tok.numop;
             break;
+        case RELOP:
         case EQOP:
             yylval->eqop = tok.eqop;
             break;
@@ -494,6 +495,9 @@ Expression* Parser::parseStatement(const String& statement, PassRefPtr<XPathNSRe
         deleteAllValues(m_strings);
         m_strings.clear();
 
+        deleteAllValues(m_nodeTests);
+        m_nodeTests.clear();
+
         m_topExpr = 0;
 
         if (m_gotNamespaceError)
@@ -508,6 +512,7 @@ Expression* Parser::parseStatement(const String& statement, PassRefPtr<XPathNSRe
     ASSERT(m_expressionVectors.size() == 0);
     ASSERT(m_predicateVectors.size() == 0);
     ASSERT(m_strings.size() == 0);
+    ASSERT(m_nodeTests.size() == 0);
 
     m_parseNodes.clear();
     Expression* result = m_topExpr;
@@ -600,7 +605,28 @@ void Parser::deleteString(String* s)
     delete s;
 }
 
+void Parser::registerNodeTest(Step::NodeTest* t)
+{
+    if (t == 0)
+        return;
+    
+    ASSERT(!m_nodeTests.contains(t));
+    
+    m_nodeTests.add(t);        
+}
+
+void Parser::deleteNodeTest(Step::NodeTest* t)
+{
+    if (t == 0)
+        return;
+    
+    ASSERT(m_nodeTests.contains(t));
+    
+    m_nodeTests.remove(t);
+    delete t;
+}
+
 }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

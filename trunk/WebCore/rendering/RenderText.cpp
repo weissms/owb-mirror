@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -61,16 +61,25 @@ RenderText::RenderText(Node* node, PassRefPtr<StringImpl> str)
      , m_minWidth(-1)
      , m_maxWidth(-1)
      , m_selectionState(SelectionNone)
+     , m_hasTab(false)
      , m_linesDirty(false)
      , m_containsReversedText(false)
-     , m_isAllASCII(m_text ? charactersAreAllASCII(m_text.get()) : true)
-     , m_monospaceCharacterWidth(0)
+     , m_isAllASCII(charactersAreAllASCII(m_text.get()))
 {
+    ASSERT(m_text);
     setRenderText();
-    if (m_text)
-        m_text = m_text->replace('\\', backslashAsCurrencySymbol());
-    ASSERT(!m_text || !textLength() || characters());
+    m_text = m_text->replace('\\', backslashAsCurrencySymbol());
 }
+
+#ifndef NDEBUG
+
+RenderText::~RenderText()
+{
+    ASSERT(!m_firstTextBox);
+    ASSERT(!m_lastTextBox);
+}
+
+#endif
 
 void RenderText::setStyle(RenderStyle* newStyle)
 {
@@ -78,24 +87,19 @@ void RenderText::setStyle(RenderStyle* newStyle)
     if (oldStyle == newStyle)
         return;
 
-    bool fontChanged = !oldStyle || oldStyle->font() != newStyle->font();
-
     ETextTransform oldTransform = oldStyle ? oldStyle->textTransform() : TTNONE;
     ETextSecurity oldSecurity = oldStyle ? oldStyle->textSecurity() : TSNONE;
 
     RenderObject::setStyle(newStyle);
 
     if (oldTransform != newStyle->textTransform() || oldSecurity != newStyle->textSecurity()
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
         || isSVGText() /* All SVG text has to be transformed */
 #endif
        ) {
         if (RefPtr<StringImpl> textToTransform = originalText())
             setText(textToTransform.release(), true);
     }
-
-    if (fontChanged)
-        updateMonospaceCharacterWidth();
 }
 
 void RenderText::destroy()
@@ -118,6 +122,8 @@ void RenderText::destroy()
 
 void RenderText::extractTextBox(InlineTextBox* box)
 {
+    checkConsistency();
+
     m_lastTextBox = box->prevTextBox();
     if (box == m_firstTextBox)
         m_firstTextBox = 0;
@@ -126,10 +132,14 @@ void RenderText::extractTextBox(InlineTextBox* box)
     box->setPreviousLineBox(0);
     for (InlineRunBox* curr = box; curr; curr = curr->nextLineBox())
         curr->setExtracted();
+
+    checkConsistency();
 }
 
 void RenderText::attachTextBox(InlineTextBox* box)
 {
+    checkConsistency();
+
     if (m_lastTextBox) {
         m_lastTextBox->setNextLineBox(box);
         box->setPreviousLineBox(m_lastTextBox);
@@ -141,10 +151,14 @@ void RenderText::attachTextBox(InlineTextBox* box)
         last = curr;
     }
     m_lastTextBox = last;
+
+    checkConsistency();
 }
 
 void RenderText::removeTextBox(InlineTextBox* box)
 {
+    checkConsistency();
+
     if (box == m_firstTextBox)
         m_firstTextBox = box->nextTextBox();
     if (box == m_lastTextBox)
@@ -153,17 +167,18 @@ void RenderText::removeTextBox(InlineTextBox* box)
         box->nextTextBox()->setPreviousLineBox(box->prevTextBox());
     if (box->prevTextBox())
         box->prevTextBox()->setNextLineBox(box->nextTextBox());
+
+    checkConsistency();
 }
 
 void RenderText::deleteTextBoxes()
 {
     if (firstTextBox()) {
         RenderArena* arena = renderArena();
-        InlineTextBox *curr = firstTextBox(), *next = 0;
-        while (curr) {
+        InlineTextBox* next;
+        for (InlineTextBox* curr = firstTextBox(); curr; curr = next) {
             next = curr->nextTextBox();
             curr->destroy(arena);
-            curr = next;
         }
         m_firstTextBox = m_lastTextBox = 0;
     }
@@ -175,13 +190,13 @@ PassRefPtr<StringImpl> RenderText::originalText() const
     return e ? static_cast<Text*>(e)->string() : 0;
 }
 
-void RenderText::absoluteRects(Vector<IntRect>& rects, int tx, int ty)
+void RenderText::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool)
 {
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox())
         rects.append(IntRect(tx + box->xPos(), ty + box->yPos(), box->width(), box->height()));
 }
 
-void RenderText::addLineBoxRects(Vector<IntRect>& rects, unsigned start, unsigned end)
+void RenderText::addLineBoxRects(Vector<IntRect>& rects, unsigned start, unsigned end, bool useSelectionHeight)
 {
     int x, y;
     absolutePositionForContent(x, y);
@@ -190,11 +205,14 @@ void RenderText::addLineBoxRects(Vector<IntRect>& rects, unsigned start, unsigne
         if (start <= box->start() && box->end() <= end)
             rects.append(IntRect(x + box->xPos(), y + box->yPos(), box->width(), box->height()));
         else {
-            IntRect r = box->selectionRect(x, y, start, end);
+            unsigned realEnd = min(box->end() + 1, end); // box->end() points at the last char, not after it
+            IntRect r = box->selectionRect(x, y, start, realEnd);
             if (!r.isEmpty()) {
-                // change the height and y position because selectionRect uses selection-specific values
-                r.setHeight(box->height());
-                r.setY(y + box->yPos());
+                if (!useSelectionHeight) {
+                    // change the height and y position because selectionRect uses selection-specific values
+                    r.setHeight(box->height());
+                    r.setY(y + box->yPos());
+                }
                 rects.append(r);
             }
         }
@@ -247,7 +265,8 @@ VisiblePosition RenderText::positionForCoordinates(int x, int y)
     InlineTextBox* lastBoxAbove = 0;
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox()) {
         if (y >= box->root()->topOverflow()) {
-            if (y < box->root()->bottomOverflow()) {
+            int bottom = box->root()->nextRootBox() ? box->root()->nextRootBox()->topOverflow() : box->root()->bottomOverflow();
+            if (y < bottom) {
                 offset = box->offsetForPosition(x);
 
                 if (x == box->m_x)
@@ -276,32 +295,6 @@ VisiblePosition RenderText::positionForCoordinates(int x, int y)
     }
 
     return VisiblePosition(element(), lastBoxAbove ? lastBoxAbove->m_start + lastBoxAbove->m_len : 0, DOWNSTREAM);
-}
-
-#if __GNUC__
-static RenderObject* firstRendererOnNextLine(InlineBox* box) __attribute__ ((unused));
-#endif
-static RenderObject* firstRendererOnNextLine(InlineBox* box)
-{
-    if (!box)
-        return 0;
-
-    RootInlineBox* root = box->root();
-    if (!root)
-        return 0;
-
-    if (root->endsWithBreak())
-        return 0;
-
-    RootInlineBox* nextRoot = root->nextRootBox();
-    if (!nextRoot)
-        return 0;
-
-    InlineBox* firstChild = nextRoot->firstChild();
-    if (!firstChild)
-        return 0;
-
-    return firstChild->object();
 }
 
 static RenderObject* lastRendererOnPrevLine(InlineBox* box)
@@ -394,22 +387,13 @@ IntRect RenderText::caretRect(int offset, EAffinity affinity, int* extraWidthToE
     return IntRect(left, top, 1, height);
 }
 
-void RenderText::updateMonospaceCharacterWidth()
+ALWAYS_INLINE int RenderText::widthFromCache(const Font& f, int start, int len, int xPos) const
 {
-    const Font& f = style()->font();
     if (f.isFixedPitch() && !f.isSmallCaps() && m_isAllASCII) {
-        const UChar c = ' ';
-        m_monospaceCharacterWidth = f.width(TextRun(&c, 1));
-        return;
-    }
-    m_monospaceCharacterWidth = 0;
-}
-
-ALWAYS_INLINE int RenderText::widthFromCache(const Font& f, int start, int len, int tabWidth, int xPos) const
-{
-    if (m_monospaceCharacterWidth) {
         // FIXME: This code should be simplfied; it's only run when m_text is known to be all 0000-007F,
         // but is uses the general purpose Unicode direction function.
+        int monospaceCharacterWidth = f.spaceWidth();
+        int tabWidth = allowTabs() ? monospaceCharacterWidth * 8 : 0;
         int w = 0;
         char previousChar = ' '; // FIXME: Preserves historical behavior, but seems wrong for start > 0.
         for (int i = start; i < start + len; i++) {
@@ -419,8 +403,8 @@ ALWAYS_INLINE int RenderText::widthFromCache(const Font& f, int start, int len, 
                 if (c == '\t' && tabWidth)
                     w += tabWidth - ((xPos + w) % tabWidth);
                 else
-                    w += m_monospaceCharacterWidth;
-                if (isspace(c) && !isspace(previousChar))
+                    w += monospaceCharacterWidth;
+                if (isASCIISpace(c) && !isASCIISpace(previousChar))
                     w += f.wordSpacing();
             }
             previousChar = c;
@@ -428,19 +412,22 @@ ALWAYS_INLINE int RenderText::widthFromCache(const Font& f, int start, int len, 
         return w;
     }
 
-    return f.width(TextRun(text(), start, len, 0), TextStyle(tabWidth, xPos));
+    return f.width(TextRun(text()->characters() + start, len), TextStyle(allowTabs(), xPos));
 }
 
-void RenderText::trimmedMinMaxWidth(int leadWidth,
-                                    int& beginMinW, bool& beginWS,
-                                    int& endMinW, bool& endWS,
-                                    bool& hasBreakableChar, bool& hasBreak,
-                                    int& beginMaxW, int& endMaxW,
-                                    int& minW, int& maxW, bool& stripFrontSpaces)
+void RenderText::trimmedPrefWidths(int leadWidth,
+                                   int& beginMinW, bool& beginWS,
+                                   int& endMinW, bool& endWS,
+                                   bool& hasBreakableChar, bool& hasBreak,
+                                   int& beginMaxW, int& endMaxW,
+                                   int& minW, int& maxW, bool& stripFrontSpaces)
 {
     bool collapseWhiteSpace = style()->collapseWhiteSpace();
     if (!collapseWhiteSpace)
         stripFrontSpaces = false;
+
+    if (m_hasTab || prefWidthsDirty())
+        calcPrefWidths(leadWidth);
 
     int len = textLength();
     if (!len || (stripFrontSpaces && m_text->containsOnlyWhitespace())) {
@@ -448,9 +435,6 @@ void RenderText::trimmedMinMaxWidth(int leadWidth,
         hasBreak = false;
         return;
     }
-
-    if (m_hasTab)
-        calcMinMaxWidthInternal(leadWidth);
 
     minW = m_minWidth;
     maxW = m_maxWidth;
@@ -463,11 +447,14 @@ void RenderText::trimmedMinMaxWidth(int leadWidth,
     hasBreakableChar = m_hasBreakableChar;
     hasBreak = m_hasBreak;
 
-    if (stripFrontSpaces && ((*m_text)[0] == ' ' || ((*m_text)[0] == '\n' && !style()->preserveNewline()) || (*m_text)[0] == '\t')) {
+    if ((*m_text)[0] == ' ' || ((*m_text)[0] == '\n' && !style()->preserveNewline()) || (*m_text)[0] == '\t') {
         const Font& f = style()->font(); // FIXME: This ignores first-line.
-        const UChar space = ' ';
-        int spaceWidth = f.width(TextRun(&space, 1));
-        maxW -= spaceWidth + f.wordSpacing();
+        if (stripFrontSpaces) {
+            const UChar space = ' ';
+            int spaceWidth = f.width(TextRun(&space, 1));
+            maxW -= spaceWidth;
+        } else
+            maxW += f.wordSpacing();
     }
 
     stripFrontSpaces = collapseWhiteSpace && m_hasEndWS;
@@ -487,7 +474,7 @@ void RenderText::trimmedMinMaxWidth(int leadWidth,
                 linelen++;
 
             if (linelen) {
-                endMaxW = widthFromCache(f, i, linelen, tabWidth(), leadWidth + endMaxW);
+                endMaxW = widthFromCache(f, i, linelen, leadWidth + endMaxW);
                 if (firstLine) {
                     firstLine = false;
                     leadWidth = 0;
@@ -508,21 +495,31 @@ void RenderText::trimmedMinMaxWidth(int leadWidth,
     }
 }
 
-void RenderText::calcMinMaxWidth()
-{
-    // Use 0 for the leadWidth. If the text contains a variable width tab, the real width
-    // will get measured when trimmedMinMaxWidth calls again with the real leadWidth.
-    ASSERT(!minMaxKnown());
-    calcMinMaxWidthInternal(0);
-}
-
-inline bool isSpaceAccordingToStyle(UChar c, RenderStyle* style)
+static inline bool isSpaceAccordingToStyle(UChar c, RenderStyle* style)
 {
     return c == ' ' || (c == noBreakSpace && style->nbspMode() == SPACE);
 }
 
-void RenderText::calcMinMaxWidthInternal(int leadWidth)
+int RenderText::minPrefWidth() const
 {
+    if (prefWidthsDirty())
+        const_cast<RenderText*>(this)->calcPrefWidths(0);
+        
+    return m_minWidth;
+}
+
+int RenderText::maxPrefWidth() const
+{
+    if (prefWidthsDirty())
+        const_cast<RenderText*>(this)->calcPrefWidths(0);
+        
+    return m_maxWidth;
+}
+
+void RenderText::calcPrefWidths(int leadWidth)
+{
+    ASSERT(m_hasTab || prefWidthsDirty());
+
     m_minWidth = 0;
     m_beginMinWidth = 0;
     m_endMinWidth = 0;
@@ -549,7 +546,10 @@ void RenderText::calcMinMaxWidthInternal(int leadWidth)
     bool firstWord = true;
     bool firstLine = true;
     int nextBreakable = -1;
+    int lastWordBoundary = 0;
+
     bool breakNBSP = style()->autoWrap() && style()->nbspMode() == SPACE;
+    bool breakAll = (style()->wordBreak() == BreakAllWordBreak || style()->wordBreak() == BreakWordBreak) && style()->autoWrap();
 
     for (int i = 0; i < len; i++) {
         UChar c = txt[i];
@@ -585,10 +585,18 @@ void RenderText::calcMinMaxWidthInternal(int leadWidth)
             ignoringSpaces = false;
 
         // Ignore spaces and soft hyphens
-        if (ignoringSpaces || c == softHyphen)
+        if (ignoringSpaces) {
+            ASSERT(lastWordBoundary == i);
+            lastWordBoundary++;
             continue;
+        } else if (c == softHyphen) {
+            currMaxWidth += widthFromCache(f, lastWordBoundary, i - lastWordBoundary, leadWidth + currMaxWidth);
+            lastWordBoundary = i + 1;
+            continue;
+        }
 
-        bool hasBreak = isBreakable(txt, i, len, nextBreakable, breakNBSP);
+        bool hasBreak = breakAll || isBreakable(txt, i, len, nextBreakable, breakNBSP);
+        bool betweenWords = true;
         int j = i;
         while (c != '\n' && !isSpaceAccordingToStyle(c, style()) && c != '\t' && c != softHyphen) {
             j++;
@@ -597,13 +605,23 @@ void RenderText::calcMinMaxWidthInternal(int leadWidth)
             c = txt[j];
             if (isBreakable(txt, j, len, nextBreakable, breakNBSP))
                 break;
+            if (breakAll) {
+                betweenWords = false;
+                break;
+            }
         }
 
         int wordLen = j - i;
         if (wordLen) {
-            int w = widthFromCache(f, i, wordLen, tabWidth(), leadWidth + currMaxWidth);
+            int w = widthFromCache(f, i, wordLen, leadWidth + currMaxWidth);
             currMinWidth += w;
-            currMaxWidth += w;
+            if (betweenWords) {
+                if (lastWordBoundary == i)
+                    currMaxWidth += w;
+                else
+                    currMaxWidth += widthFromCache(f, lastWordBoundary, j - lastWordBoundary, leadWidth + currMaxWidth);
+                lastWordBoundary = j;
+            }
 
             bool isSpace = (j < len) && isSpaceAccordingToStyle(c, style());
             bool isCollapsibleWhiteSpace = (j < len) && style()->isCollapsibleWhiteSpace(c);
@@ -645,20 +663,23 @@ void RenderText::calcMinMaxWidthInternal(int leadWidth)
                 if (firstLine) {
                     firstLine = false;
                     leadWidth = 0;
-                    m_beginMinWidth = currMaxWidth;
+                    if (!style()->autoWrap())
+                        m_beginMinWidth = currMaxWidth;
                 }
 
                 if (currMaxWidth > m_maxWidth)
                     m_maxWidth = currMaxWidth;
                 currMaxWidth = 0;
             } else {
-                currMaxWidth += f.width(TextRun(txt + i, 1), TextStyle(tabWidth(), leadWidth + currMaxWidth));
+                currMaxWidth += f.width(TextRun(txt + i, 1), TextStyle(allowTabs(), leadWidth + currMaxWidth));
                 needsWordSpacing = isSpace && !previousCharacterIsSpace && i == len - 1;
             }
+            ASSERT(lastWordBoundary == i);
+            lastWordBoundary++;
         }
     }
 
-    if (needsWordSpacing && len > 1)
+    if (needsWordSpacing && len > 1 || ignoringSpaces && !firstWord)
         currMaxWidth += wordSpacing;
 
     m_minWidth = max(currMinWidth, m_minWidth);
@@ -668,14 +689,12 @@ void RenderText::calcMinMaxWidthInternal(int leadWidth)
         m_minWidth = m_maxWidth;
 
     if (style()->whiteSpace() == PRE) {
-        // FIXME: pre-wrap and pre-line need to be dealt with possibly?  This code won't be right
-        // for them though.
         if (firstLine)
             m_beginMinWidth = m_maxWidth;
         m_endMinWidth = currMaxWidth;
     }
 
-    setMinMaxKnown();
+    setPrefWidthsDirty(false);
 }
 
 bool RenderText::containsOnlyWhitespace(unsigned from, unsigned len) const
@@ -746,8 +765,8 @@ void RenderText::setSelectionState(SelectionState state)
 
 void RenderText::setTextWithOffset(PassRefPtr<StringImpl> text, unsigned offset, unsigned len, bool force)
 {
-    unsigned oldLen = m_text ? textLength() : 0;
-    unsigned newLen = text ? text->length() : 0;
+    unsigned oldLen = textLength();
+    unsigned newLen = text->length();
     int delta = newLen - oldLen;
     unsigned end = len ? offset + len - 1 : offset;
 
@@ -821,108 +840,103 @@ static inline bool isInlineFlowOrEmptyText(RenderObject* o)
     return !text->length();
 }
 
+UChar RenderText::previousCharacter()
+{
+    // find previous text renderer if one exists
+    RenderObject* previousText = this;
+    while ((previousText = previousText->previousInPreOrder()))
+        if (!isInlineFlowOrEmptyText(previousText))
+            break;
+    UChar prev = ' ';
+    if (previousText && previousText->isText())
+        if (StringImpl* previousString = static_cast<RenderText*>(previousText)->text())
+            prev = (*previousString)[previousString->length() - 1];
+    return prev;
+}
+
 void RenderText::setTextInternal(PassRefPtr<StringImpl> text)
 {
-    bool wasAllASCII = m_isAllASCII;
-    bool isAllASCII = true;
-
     m_text = text;
+    ASSERT(m_text);
 
-    if (m_text) {
-        m_text = m_text->replace('\\', backslashAsCurrencySymbol());
+    m_text = m_text->replace('\\', backslashAsCurrencySymbol());
 
-#ifdef SVG_SUPPORT
-        if (isSVGText()) {
-            if (style() && style()->whiteSpace() == PRE) {
-                // Spec: When xml:space="preserve", the SVG user agent will do the following using a
-                // copy of the original character data content. It will convert all newline and tab
-                // characters into space characters. Then, it will draw all space characters, including
-                // leading, trailing and multiple contiguous space characters.
+#if ENABLE(SVG)
+    if (isSVGText()) {
+        if (style() && style()->whiteSpace() == PRE) {
+            // Spec: When xml:space="preserve", the SVG user agent will do the following using a
+            // copy of the original character data content. It will convert all newline and tab
+            // characters into space characters. Then, it will draw all space characters, including
+            // leading, trailing and multiple contiguous space characters.
 
-                m_text = m_text->replace('\n', ' ');
+            m_text = m_text->replace('\n', ' ');
 
-                // If xml:space="preserve" is set, white-space is set to "pre", which
-                // preserves leading, trailing & contiguous space character for us.
-           } else {
-                // Spec: When xml:space="default", the SVG user agent will do the following using a
-                // copy of the original character data content. First, it will remove all newline
-                // characters. Then it will convert all tab characters into space characters.
-                // Then, it will strip off all leading and trailing space characters.
-                // Then, all contiguous space characters will be consolidated.    
+            // If xml:space="preserve" is set, white-space is set to "pre", which
+            // preserves leading, trailing & contiguous space character for us.
+       } else {
+            // Spec: When xml:space="default", the SVG user agent will do the following using a
+            // copy of the original character data content. First, it will remove all newline
+            // characters. Then it will convert all tab characters into space characters.
+            // Then, it will strip off all leading and trailing space characters.
+            // Then, all contiguous space characters will be consolidated.    
 
-                static StringImpl empty("", 0);
-                m_text = m_text->replace('\n', &empty);
-    
-                // If xml:space="default" is set, white-space is set to "nowrap", which handles
-                // leading, trailing & contiguous space character removal for us.
-            }
+           m_text = m_text->replace('\n', StringImpl::empty());
 
-            m_text = m_text->replace('\t', ' ');
+           // If xml:space="default" is set, white-space is set to "nowrap", which handles
+           // leading, trailing & contiguous space character removal for us.
         }
+
+        m_text = m_text->replace('\t', ' ');
+    }
 #endif
 
-        if (style()) {
-            switch (style()->textTransform()) {
-                case TTNONE:
-                    break;
-                case CAPITALIZE: {
-                    // find previous text renderer if one exists
-                    RenderObject* previousText = this;
-                    while ((previousText = previousText->previousInPreOrder()))
-                        if (!isInlineFlowOrEmptyText(previousText))
-                            break;
-                    UChar previousCharacter = ' ';
-                    if (previousText && previousText->isText())
-                        if (StringImpl* previousString = static_cast<RenderText*>(previousText)->text())
-                            previousCharacter = (*previousString)[previousString->length() - 1];
-                    m_text = m_text->capitalize(previousCharacter);
-                    break;
-                }
-                case UPPERCASE:
-                    m_text = m_text->upper();
-                    break;
-                case LOWERCASE:
-                    m_text = m_text->lower();
-                    break;
+    if (style()) {
+        switch (style()->textTransform()) {
+            case TTNONE:
+                break;
+            case CAPITALIZE: {
+                m_text = m_text->capitalize(previousCharacter());
+                break;
             }
-
-            // We use the same characters here as for list markers.
-            // See the listMarkerText function in RenderListMarker.cpp.
-            switch (style()->textSecurity()) {
-                case TSNONE:
-                    break;
-                case TSCIRCLE:
-                    m_text = m_text->secure(whiteBullet);
-                    break;
-                case TSDISC:
-                    m_text = m_text->secure(bullet);
-                    break;
-                case TSSQUARE:
-                    m_text = m_text->secure(blackSquare);
-            }
+            case UPPERCASE:
+                m_text = m_text->upper();
+                break;
+            case LOWERCASE:
+                m_text = m_text->lower();
+                break;
         }
 
-        isAllASCII = charactersAreAllASCII(m_text.get());
+        // We use the same characters here as for list markers.
+        // See the listMarkerText function in RenderListMarker.cpp.
+        switch (style()->textSecurity()) {
+            case TSNONE:
+                break;
+            case TSCIRCLE:
+                m_text = m_text->secure(whiteBullet);
+                break;
+            case TSDISC:
+                m_text = m_text->secure(bullet);
+                break;
+            case TSSQUARE:
+                m_text = m_text->secure(blackSquare);
+        }
     }
 
-    m_isAllASCII = isAllASCII;
-
+    ASSERT(m_text);
     ASSERT(!isBR() || (textLength() == 1 && (*m_text)[0] == '\n'));
-    ASSERT(!textLength() || characters());
 
-    if (wasAllASCII != isAllASCII)
-        updateMonospaceCharacterWidth();
+    m_isAllASCII = charactersAreAllASCII(m_text.get());
 }
 
 void RenderText::setText(PassRefPtr<StringImpl> text, bool force)
 {
-    if (!text)
-        return;
+    ASSERT(text);
+
     if (!force && equal(m_text.get(), text.get()))
         return;
 
     setTextInternal(text);
-    setNeedsLayoutAndMinMaxRecalc();
+    setNeedsLayoutAndPrefWidthsRecalc();
 }
 
 int RenderText::height() const
@@ -1007,11 +1021,11 @@ unsigned int RenderText::width(unsigned int from, unsigned int len, const Font& 
     int w;
     if (&f == &style()->font()) {
         if (!style()->preserveNewline() && !from && len == textLength())
-            w = m_maxWidth;
+            w = maxPrefWidth();
         else
-            w = widthFromCache(f, from, len, tabWidth(), xPos);
+            w = widthFromCache(f, from, len, xPos);
     } else
-        w = f.width(TextRun(text(), from, len, 0), TextStyle(tabWidth(), xPos));
+        w = f.width(TextRun(text()->characters() + from, len), TextStyle(allowTabs(), xPos));
 
     return w;
 }
@@ -1032,14 +1046,16 @@ int RenderText::width() const
     return max(0, maxx - minx);
 }
 
-IntRect RenderText::getAbsoluteRepaintRect()
+IntRect RenderText::absoluteClippedOverflowRect()
 {
     RenderObject* cb = containingBlock();
-    return cb->getAbsoluteRepaintRect();
+    return cb->absoluteClippedOverflowRect();
 }
 
-IntRect RenderText::selectionRect()
+IntRect RenderText::selectionRect(bool clipToVisibleContent)
 {
+    ASSERT(!needsLayout());
+
     IntRect rect;
     if (selectionState() == SelectionNone)
         return rect;
@@ -1068,24 +1084,23 @@ IntRect RenderText::selectionRect()
     for (InlineTextBox* box = firstTextBox(); box; box = box->nextTextBox())
         rect.unite(box->selectionRect(0, 0, startPos, endPos));
 
-    if (cb->hasColumns())
-        cb->adjustRectForColumns(rect);
-
-    if (cb->hasOverflowClip()) {
-        int x = rect.x();
-        int y = rect.y();
-        IntRect boxRect(0, 0, cb->layer()->width(), cb->layer()->height());
-        cb->layer()->subtractScrollOffset(x, y);
-        IntRect repaintRect(x, y, rect.width(), rect.height());
-        rect = intersection(repaintRect, boxRect);
+    if (clipToVisibleContent)
+        computeAbsoluteRepaintRect(rect);
+    else {
+        if (cb->hasColumns())
+            cb->adjustRectForColumns(rect);
+        int absx, absy;
+        absolutePosition(absx, absy);
+        rect.move(absx, absy);
     }
-    cb->computeAbsoluteRepaintRect(rect);
 
     return rect;
 }
 
 short RenderText::verticalPositionHint(bool firstLine) const
 {
+    if (parent()->isReplaced())
+        return 0; // Treat inline blocks just like blocks.  There can't be any vertical position hint.
     return parent()->verticalPositionHint(firstLine);
 }
 
@@ -1164,5 +1179,22 @@ InlineBox* RenderText::inlineBox(int offset, EAffinity affinity)
 
     return 0;
 }
+
+#ifndef NDEBUG
+
+void RenderText::checkConsistency() const
+{
+#ifdef CHECK_CONSISTENCY
+    const InlineTextBox* prev = 0;
+    for (const InlineTextBox* child = m_firstTextBox; child != 0; child = child->nextTextBox()) {
+        ASSERT(child->object() == this);
+        ASSERT(child->prevTextBox() == prev);
+        prev = child;
+    }
+    ASSERT(prev == m_lastTextBox);
+#endif
+}
+
+#endif
 
 } // namespace WebCore

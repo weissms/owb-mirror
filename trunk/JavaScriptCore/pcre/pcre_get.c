@@ -6,7 +6,7 @@
 and semantics are as close as possible to those of the Perl 5 language.
 
                        Written by Philip Hazel
-           Copyright (c) 1997-2005 University of Cambridge
+           Copyright (c) 1997-2006 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -62,11 +62,11 @@ Returns:      the number of the named parentheses, or a negative number
                 (PCRE_ERROR_NOSUBSTRING) if not found
 */
 
+/* FIXME: This doesn't work for UTF-16 because the name table has 8-bit characters in it! */
+#if !PCRE_UTF16
 int
 pcre_get_stringnumber(const pcre *code, const pcre_char *stringname)
 {
-/* FIXME: This doesn't work for UTF-16 because the name table has 8-bit characters in it! */
-#if !PCRE_UTF16
 int rc;
 int entrysize;
 int top, bot;
@@ -90,13 +90,10 @@ while (top > bot)
   if (c == 0) return (entry[0] << 8) + entry[1];
   if (c > 0) bot = mid + 1; else top = mid;
   }
-#else
- UNUSED_PARAM(code);
- UNUSED_PARAM(stringname);
-#endif
 
 return PCRE_ERROR_NOSUBSTRING;
 }
+#endif
 
 
 
@@ -171,15 +168,17 @@ Returns:         if successful:
                    PCRE_ERROR_NOSUBSTRING (-7) no such captured substring
 */
 
+/* FIXME: This is not available until pcre_get_stringnumber is available for UTF-16. */
+#if !PCRE_UTF16
 int
 pcre_copy_named_substring(const pcre *code, const pcre_char *subject, int *ovector,
   int stringcount, const pcre_char *stringname, pcre_char *buffer, int size)
 {
-int n = pcre_get_stringnumber(code, stringname);
+
 if (n <= 0) return n;
 return pcre_copy_substring(subject, ovector, stringcount, n, buffer, size);
 }
-
+#endif
 
 
 /*************************************************
@@ -213,9 +212,8 @@ int double_count = stringcount * 2;
 pcre_char **stringlist;
 pcre_char *p;
 
-for (i = 0; i < double_count; i += 2) {
-  size += INT_CAST(sizeof(pcre_char *) + (ovector[i+1] - ovector[i] + 1) * sizeof(pcre_char));
-}
+for (i = 0; i < double_count; i += 2)
+  size += sizeof(pcre_char *) + (ovector[i+1] - ovector[i] + 1) * sizeof(pcre_char);
 
 stringlist = (pcre_char **)(pcre_malloc)(size);
 if (stringlist == NULL) return PCRE_ERROR_NOMEMORY;
@@ -328,6 +326,8 @@ Returns:         if successful:
                    PCRE_ERROR_NOSUBSTRING (-7) no such captured substring
 */
 
+/* FIXME: This is not available until pcre_get_stringnumber is available for UTF-16. */
+#if !PCRE_UTF16
 int
 pcre_get_named_substring(const pcre *code, const pcre_char *subject, int *ovector,
   int stringcount, const pcre_char *stringname, const pcre_char **stringptr)
@@ -336,7 +336,7 @@ int n = pcre_get_stringnumber(code, stringname);
 if (n <= 0) return n;
 return pcre_get_substring(subject, ovector, stringcount, n, stringptr);
 }
-
+#endif
 
 
 

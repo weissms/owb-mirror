@@ -50,7 +50,7 @@ BIKeyboardEvent* createBIKeyboardEvent(const WebCore::String& aText,
     bool bIsKeyUp, bool bShiftKey, bool bCtrlKey, bool bAltKey, bool bMetaKey, bool bIsAutoRepeat,
     int aVKey)
 {
-	return new BCKeyboardEvent(aText, aUnmodifiedText, aKeyIdentifier, bIsKeyUp, bShiftKey, bCtrlKey, bAltKey, bMetaKey, bIsAutoRepeat, aVKey);
+    return new BCKeyboardEvent(aText, aUnmodifiedText, aKeyIdentifier, bIsKeyUp, bShiftKey, bCtrlKey, bAltKey, bMetaKey, bIsAutoRepeat, aVKey);
 }
 
 }
@@ -62,33 +62,34 @@ bool BCKeyboardEvent::isKeyUp() const { return m_isKeyUp; }
 bool BCKeyboardEvent::isAutoRepeat() const { return m_autoRepeat; }
 void BCKeyboardEvent::setIsAutoRepeat(bool b) { m_autoRepeat = b; }
 int BCKeyboardEvent::WindowsKeyCode() const { return m_BALVirtualKeyCode; }
+int BCKeyboardEvent::setWindowsKeyCode(int code) const { return m_BALVirtualKeyCode; } // FIXME why const ?
 int BCKeyboardEvent::virtualKeyCode() const { return m_BALVirtualKeyCode; }
 bool BCKeyboardEvent::isKeypad() const { return m_isKeypad; }
 
 BCKeyboardEvent::BCKeyboardEvent(const WebCore::String& aText,
-	const WebCore::String& aUnmodifiedText,
-	const WebCore::String& aKeyIdentifier,
-	bool bIsKeyUp,
-	bool bShiftKey,
-	bool bCtrlKey,
-	bool bAltKey,
-	bool bMetaKey,
-	bool bIsAutorepeat,
-	int aVKey)
-	: BCCommonInputEventData(bShiftKey, bCtrlKey, bAltKey, bMetaKey)
+    const WebCore::String& aUnmodifiedText,
+    const WebCore::String& aKeyIdentifier,
+    bool bIsKeyUp,
+    bool bShiftKey,
+    bool bCtrlKey,
+    bool bAltKey,
+    bool bMetaKey,
+    bool bIsAutorepeat,
+    int aVKey)
+    : BCCommonInputEventData(bShiftKey, bCtrlKey, bAltKey, bMetaKey)
     , m_text(aText)
-	, m_unmodifiedText(aUnmodifiedText)
-	, m_keyIdentifier(aKeyIdentifier)
-	, m_isKeyUp(bIsKeyUp)
-	, m_autoRepeat(bIsAutorepeat)
-	, m_BALVirtualKeyCode(aVKey)
+    , m_unmodifiedText(aUnmodifiedText)
+    , m_keyIdentifier(aKeyIdentifier)
+    , m_isKeyUp(bIsKeyUp)
+    , m_autoRepeat(bIsAutorepeat)
+    , m_BALVirtualKeyCode(aVKey)
 {
   m_isKeypad = false; // FIXME
 }
 
 BIEvent* BCKeyboardEvent::clone() const
 {
-	BCKeyboardEvent* aCloned = new BCKeyboardEvent(
+    BCKeyboardEvent* aCloned = new BCKeyboardEvent(
     m_text, m_unmodifiedText, m_keyIdentifier, m_isKeyUp,
     shiftKey(),
     ctrlKey(),
@@ -97,6 +98,6 @@ BIEvent* BCKeyboardEvent::clone() const
     isAutoRepeat(),
     m_BALVirtualKeyCode);
 
-	return aCloned;
+    return aCloned;
 }
 

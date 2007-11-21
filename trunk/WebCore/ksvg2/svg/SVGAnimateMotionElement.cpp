@@ -1,5 +1,6 @@
 /*
     Copyright (C) 2007 Eric Seidel <eric@webkit.org>
+              (C) 2007 Rob Buis <buis@kde.org>
 
     This file is part of the WebKit project
 
@@ -15,15 +16,17 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGAnimateMotionElement.h"
 
+#include "RenderObject.h"
 #include "SVGMPathElement.h"
+#include "SVGParserUtilities.h"
 #include "SVGPathElement.h"
 #include "SVGTransformList.h"
 
@@ -73,27 +76,21 @@ bool SVGAnimateMotionElement::hasValidTarget() const
 
 void SVGAnimateMotionElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const QualifiedName& name = attr->name();
-    const String& value = attr->value();
-    if (name == SVGNames::rotateAttr) {
-        if (value == "auto")
+    if (attr->name() == SVGNames::rotateAttr) {
+        if (attr->value() == "auto")
             m_rotateMode = AutoMode;
-        else if (value == "auto-reverse")
+        else if (attr->value() == "auto-reverse")
             m_rotateMode = AutoReverseMode;
         else {
             m_rotateMode = AngleMode;
-            m_angle = value.toDouble();
+            m_angle = attr->value().toFloat();
         }
-    } else if (name == SVGNames::keyPointsAttr) {
+    } else if (attr->name() == SVGNames::keyPointsAttr) {
         m_keyPoints.clear();
-        parseKeyNumbers(m_keyPoints, value);
-    } else if (name == SVGNames::dAttr) {
-        // FIXME: This dummy object is necessary until path parsing is untangled from SVGPathElement, see bug 12122
-        RefPtr<SVGPathElement> dummyPath = new SVGPathElement(SVGNames::pathTag, document());
-        if (dummyPath->parseSVG(attr->value(), true))
-            m_path = dummyPath->toPathData();
-        else
-            m_path = Path();
+        parseKeyNumbers(m_keyPoints, attr->value());
+    } else if (attr->name() == SVGNames::dAttr) {
+        m_path = Path();
+        pathFromSVGData(m_path, attr->value());
     } else
         SVGAnimationElement::parseMappedAttribute(attr);
 }
@@ -120,7 +117,7 @@ bool SVGAnimateMotionElement::updateAnimatedValue(EAnimationMode animationMode, 
         // to-animations have a special equation: value = (to - base) * (time/duration) + base
         m_animatedTranslation.setWidth((m_toPoint.x() - m_basePoint.x()) * timePercentage + m_basePoint.x());
         m_animatedTranslation.setHeight((m_toPoint.y() - m_basePoint.y()) * timePercentage + m_basePoint.y());
-        m_animatedAngle = 0;
+        m_animatedAngle = 0.0f;
     } else {
         m_animatedTranslation.setWidth(m_pointDiff.width() * percentagePast + m_fromPoint.x());
         m_animatedTranslation.setHeight(m_pointDiff.height() * percentagePast + m_fromPoint.y());
@@ -139,11 +136,11 @@ static bool parsePoint(const String& s, FloatPoint& point)
     if (!skipOptionalSpaces(cur, end))
         return false;
     
-    double x = 0;
+    float x = 0.0f;
     if (!parseNumber(cur, end, x))
         return false;
     
-    double y = 0;
+    float y = 0.0f;
     if (!parseNumber(cur, end, y))
         return false;
     
@@ -155,8 +152,8 @@ static bool parsePoint(const String& s, FloatPoint& point)
 
 bool SVGAnimateMotionElement::calculateFromAndToValues(EAnimationMode animationMode, unsigned valueIndex)
 {
-    m_fromAngle = 0;
-    m_toAngle = 0;
+    m_fromAngle = 0.0f;
+    m_toAngle = 0.0f;
     switch (animationMode) {
     case FROM_TO_ANIMATION:
         parsePoint(m_from, m_fromPoint);
@@ -188,7 +185,7 @@ bool SVGAnimateMotionElement::calculateFromAndToValues(EAnimationMode animationM
     }
     
     m_pointDiff = m_toPoint - m_fromPoint;
-    m_angleDiff = 0;
+    m_angleDiff = 0.0f;
     return (m_pointDiff.width() != 0 || m_pointDiff.height() != 0);
 }
 
@@ -220,12 +217,14 @@ void SVGAnimateMotionElement::applyAnimatedValueToElement()
     transform.translate(m_animatedTranslation.width(), m_animatedTranslation.height());
     if (!transform.isIdentity()) {
         transformList->appendItem(SVGTransform(transform), ec);
-        transformableElement->updateLocalTransform(transformList.get());
+        transformableElement->setTransform(transformList.get());
+        if (transformableElement->renderer())
+            transformableElement->renderer()->setNeedsLayout(true); // should be part of setTransform
     }
 }
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

@@ -54,7 +54,10 @@ JavaClass::JavaClass(jobject anInstance)
     for (i = 0; i < numFields; i++) {
         jobject aJField = env->GetObjectArrayElement((jobjectArray)fields, i);
         Field *aField = new JavaField(env, aJField); // deleted in the JavaClass destructor
-        _fields.set(Identifier(aField->name()).ustring().rep(), aField);
+        {
+            JSLock lock;
+            _fields.set(Identifier(aField->name()).ustring().rep(), aField);
+        }
         env->DeleteLocalRef(aJField);
     }
     
@@ -64,39 +67,36 @@ JavaClass::JavaClass(jobject anInstance)
     for (i = 0; i < numMethods; i++) {
         jobject aJMethod = env->GetObjectArrayElement((jobjectArray)methods, i);
         Method *aMethod = new JavaMethod(env, aJMethod); // deleted in the JavaClass destructor
-        MethodList *methodList = _methods.get(Identifier(aMethod->name()).ustring().rep());
-        if (!methodList) {
-            methodList = new MethodList();
-            _methods.set(Identifier(aMethod->name()).ustring().rep(), methodList);
+        MethodList* methodList;
+        {
+            JSLock lock;
+
+            methodList = _methods.get(Identifier(aMethod->name()).ustring().rep());
+            if (!methodList) {
+                methodList = new MethodList();
+                _methods.set(Identifier(aMethod->name()).ustring().rep(), methodList);
+            }
         }
-        methodList->addMethod(aMethod);
+        methodList->append(aMethod);
         env->DeleteLocalRef(aJMethod);
-    }
-    
-    // Get the constructors
-    jarray constructors = (jarray)callJNIObjectMethod (aClass, "getConstructors", "()[Ljava/lang/reflect/Constructor;");
-    _numConstructors = env->GetArrayLength(constructors);    
-    _constructors = new JavaConstructor[_numConstructors];
-    for (i = 0; i < _numConstructors; i++) {
-        jobject aConstructor = env->GetObjectArrayElement((jobjectArray)constructors, i);
-        _constructors[i] = JavaConstructor(env, aConstructor);
-        env->DeleteLocalRef(aConstructor);
-    }
+    }    
 }
 
 JavaClass::~JavaClass() {
     free((void *)_name);
+
+    JSLock lock;
+
     deleteAllValues(_fields);
-    
+    _fields.clear();
+
     MethodListMap::const_iterator end = _methods.end();
     for (MethodListMap::const_iterator it = _methods.begin(); it != end; ++it) {
         const MethodList* methodList = it->second;
-        int length = methodList->length();
-        for (int i = 0; i < length; i++)
-            delete methodList->methodAt(i);    
+        deleteAllValues(*methodList);
         delete methodList;
     }
-    delete [] _constructors;
+    _methods.clear();
 }
 
 MethodList JavaClass::methodsNamed(const Identifier& identifier, Instance*) const

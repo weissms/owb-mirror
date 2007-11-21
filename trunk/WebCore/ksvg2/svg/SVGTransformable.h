@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,20 +16,22 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGTransformable_h
 #define SVGTransformable_h
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGLocatable.h"
+#include <PlatformString.h>
 
 namespace WebCore {
     
     class AtomicString;
     class AffineTransform;
+    class SVGTransform;
     class SVGTransformList;
 
     class SVGTransformable : virtual public SVGLocatable {
@@ -37,19 +39,19 @@ namespace WebCore {
         SVGTransformable();
         virtual ~SVGTransformable();
 
-        // 'SVGTransformable' functions
-        virtual AffineTransform localMatrix() const = 0;
-
-        virtual void updateLocalTransform(SVGTransformList*) = 0;
-
         static bool parseTransformAttribute(SVGTransformList*, const AtomicString& transform);
+        static bool parseTransformAttribute(SVGTransformList*, const UChar*& ptr, const UChar* end);
+        static bool parseTransformValue(unsigned type, const UChar*& ptr, const UChar* end, SVGTransform&);
+        
         AffineTransform getCTM(const SVGElement*) const;
         AffineTransform getScreenCTM(const SVGElement*) const;
+        
+        virtual AffineTransform animatedLocalTransform() const = 0;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif // SVGTransformable_h
 
 // vim:ts=4:noet

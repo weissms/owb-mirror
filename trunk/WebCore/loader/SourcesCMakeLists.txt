@@ -3,6 +3,7 @@ set(loader_SRC
 
 	WebCore/loader/Cache.cpp
 	WebCore/loader/CachedCSSStyleSheet.cpp
+	WebCore/loader/CachedFont.cpp
 	WebCore/loader/CachedImage.cpp
 	WebCore/loader/CachedResource.cpp
 	WebCore/loader/CachedResourceClientWalker.cpp
@@ -13,8 +14,11 @@ set(loader_SRC
 	WebCore/loader/DocumentLoader.cpp
 	WebCore/loader/FrameLoader.cpp
 	WebCore/loader/FormState.cpp
-	WebCore/loader/loader.cpp
+	# Compile ImageDocument.cpp before FTPDirectoryDocument.cpp (N800)
 	WebCore/loader/ImageDocument.cpp
+	WebCore/loader/FTPDirectoryDocument.cpp
+	WebCore/loader/FTPDirectoryParser.cpp
+	WebCore/loader/loader.cpp
 	WebCore/loader/MainResourceLoader.cpp
 	WebCore/loader/NavigationAction.cpp
 	WebCore/loader/NetscapePlugInStreamLoader.cpp

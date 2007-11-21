@@ -25,8 +25,10 @@
 
 #import "config.h"
 #import "Color.h"
+#import "ColorMac.h"
 
 #import <wtf/Assertions.h>
+#import <wtf/RetainPtr.h>
 
 @interface WebCoreControlTintObserver : NSObject
 + (void)controlTintDidChange;
@@ -36,9 +38,22 @@ namespace WebCore {
 
 // NSColor calls don't throw, so no need to block Cocoa exceptions in this file
 
+static RGBA32 oldAquaFocusRingColor = 0xFF7DADD9;
 static bool tintIsKnown;
-static bool tintIsKnownToBeGraphite;
 static void (*tintChangeFunction)();
+static RGBA32 systemFocusRingColor;
+static bool useOldAquaFocusRingColor;
+
+
+static RGBA32 makeRGBAFromNSColor(NSColor *c)
+{
+    return makeRGBA((int)(255 * [c redComponent]), (int)(255 * [c greenComponent]), (int)(255 * [c blueComponent]), (int)(255 * [c alphaComponent]));
+}
+
+Color colorFromNSColor(NSColor *c)
+{
+    return Color(makeRGBAFromNSColor(c));
+}
 
 NSColor* nsColor(const Color& color)
 {
@@ -46,42 +61,41 @@ NSColor* nsColor(const Color& color)
     switch (c) {
         case 0: {
             // Need this to avoid returning nil because cachedRGBAValues will default to 0.
-            static NSColor* clearColor = [[NSColor clearColor] retain];
-            return clearColor;
+            static RetainPtr<NSColor> clearColor = [NSColor clearColor];
+            return clearColor.get();
         }
         case Color::black: {
-            static NSColor* blackColor = [[NSColor blackColor] retain];
-            return blackColor;
+            static RetainPtr<NSColor> blackColor = [NSColor blackColor];
+            return blackColor.get();
         }
         case Color::white: {
-            static NSColor* whiteColor = [[NSColor whiteColor] retain];
-            return whiteColor;
+            static RetainPtr<NSColor> whiteColor = [NSColor whiteColor];
+            return whiteColor.get();
         }
         default: {
             const int cacheSize = 32;
             static unsigned cachedRGBAValues[cacheSize];
-            static NSColor* cachedColors[cacheSize];
+            static RetainPtr<NSColor> cachedColors[cacheSize];
 
             for (int i = 0; i != cacheSize; ++i)
                 if (cachedRGBAValues[i] == c)
-                    return cachedColors[i];
+                    return cachedColors[i].get();
 
 #ifdef COLORMATCH_EVERYTHING
-            NSColor* result = [NSColor colorWithCalibratedRed:color.red() / 255.0
-                                                        green:color.green() / 255.0
-                                                         blue:color.blue() / 255.0
-                                                        alpha:color.alpha() /255.0];
+            NSColor* result = [NSColor colorWithCalibratedRed:color.red() / 255.0f
+                                                        green:color.green() / 255.0f
+                                                         blue:color.blue() / 255.0f
+                                                        alpha:color.alpha() /255.0f];
 #else
-            NSColor* result = [NSColor colorWithDeviceRed:color.red() / 255.0
-                                                    green:color.green() / 255.0
-                                                     blue:color.blue() / 255.0
-                                                    alpha:color.alpha() /255.0];
+            NSColor* result = [NSColor colorWithDeviceRed:color.red() / 255.0f
+                                                    green:color.green() / 255.0f
+                                                     blue:color.blue() / 255.0f
+                                                    alpha:color.alpha() /255.0f];
 #endif
 
             static int cursor;
             cachedRGBAValues[cursor] = c;
-            [cachedColors[cursor] autorelease];
-            cachedColors[cursor] = [result retain];
+            cachedColors[cursor] = result;
             if (++cursor == cacheSize)
                 cursor = 0;
             return result;
@@ -135,7 +149,21 @@ Color focusRingColor()
 {
     if (!tintIsKnown)
         observeTint();
-    return tintIsKnownToBeGraphite ? 0xFF9CABBD : 0xFF7DADD9;
+    
+    if (usesTestModeFocusRingColor())
+        return oldAquaFocusRingColor;
+    
+    return systemFocusRingColor;
+}
+
+bool usesTestModeFocusRingColor()
+{
+    return useOldAquaFocusRingColor;
+}
+
+void setUsesTestModeFocusRingColor(bool newValue)
+{
+    useOldAquaFocusRingColor = newValue;
 }
 
 }
@@ -144,7 +172,12 @@ Color focusRingColor()
 
 + (void)controlTintDidChange
 {
-    WebCore::tintIsKnownToBeGraphite = [NSColor currentControlTint] == NSGraphiteControlTint;
+#ifdef COLORMATCH_EVERYTHING
+#error Not yet implemented.
+#else
+    NSColor* color = [[NSColor keyboardFocusIndicatorColor] colorUsingColorSpaceName:NSDeviceRGBColorSpace];
+    WebCore::systemFocusRingColor = WebCore::makeRGBAFromNSColor(color);
+#endif
 }
 
 @end

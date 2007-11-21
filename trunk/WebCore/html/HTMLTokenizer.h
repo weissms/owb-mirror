@@ -1,6 +1,4 @@
 /*
-    This file is part of the KDE libraries
-
     Copyright (C) 1997 Martin Jones (mjones@kde.org)
               (C) 1997 Torben Weis (weis@kde.org)
               (C) 1998 Waldo Bastian (bastian@kde.org)
@@ -19,8 +17,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef HTMLTokenizer_h
@@ -32,6 +30,8 @@
 #include "Timer.h"
 #include "Tokenizer.h"
 #include "CachedResourceClient.h"
+#include <wtf/Vector.h>
+#include <wtf/OwnPtr.h>
 
 namespace WebCore {
 
@@ -52,9 +52,10 @@ class Node;
  */
 class Token {
 public:
-    Token() : beginTag(true), flat(false) { }
+    Token() : beginTag(true), flat(false), brokenXMLStyle(false), m_sourceInfo(0) { }
+    ~Token() { }
 
-    void addAttribute(Document*, const AtomicString& attrName, const AtomicString& v);
+    void addAttribute(Document*, AtomicString& attrName, const AtomicString& v, bool viewSourceMode);
 
     bool isOpenTag(const QualifiedName& fullName) const { return beginTag && fullName.localName() == tagName; }
     bool isCloseTag(const QualifiedName& fullName) const { return !beginTag && fullName.localName() == tagName; }
@@ -66,20 +67,27 @@ public:
         tagName = nullAtom;
         beginTag = true;
         flat = false;
+        brokenXMLStyle = false;
+        if (m_sourceInfo)
+            m_sourceInfo->clear();
     }
+
+    void addViewSourceChar(UChar c) { if (!m_sourceInfo.get()) m_sourceInfo.set(new Vector<UChar>); m_sourceInfo->append(c); }
 
     RefPtr<NamedMappedAttrMap> attrs;
     RefPtr<StringImpl> text;
     AtomicString tagName;
     bool beginTag;
     bool flat;
+    bool brokenXMLStyle;
+    OwnPtr<Vector<UChar> > m_sourceInfo;
 };
 
 //-----------------------------------------------------------------------------
 
 class HTMLTokenizer : public Tokenizer, public CachedResourceClient {
 public:
-    HTMLTokenizer(HTMLDocument*);
+    HTMLTokenizer(HTMLDocument*, bool reportErrors);
     HTMLTokenizer(HTMLViewSourceDocument*);
     HTMLTokenizer(DocumentFragment*);
     virtual ~HTMLTokenizer();
@@ -94,6 +102,15 @@ public:
 
     virtual int lineNumber() const { return lineno; }
     virtual int columnNumber() const { return 1; }
+
+    int* lineNumberPtr() { return &lineno; }
+
+    bool processingContentWrittenByScript() const { return src.excludeLineNumbers(); }
+    
+    virtual void executeScriptsWaitingForStylesheets();
+    
+    virtual bool isHTMLTokenizer() const { return true; }
+    HTMLParser* htmlParser() const { return parser; }
 
 private:
     class State;
@@ -114,9 +131,9 @@ private:
     State parseEntity(SegmentedString&, UChar*& dest, State, unsigned& _cBufferPos, bool start, bool parsingTag);
     State parseProcessingInstruction(SegmentedString&, State);
     State scriptHandler(State);
-    State scriptExecution(const DeprecatedString& script, State state, DeprecatedString scriptURL = DeprecatedString(), int baseLine = 0);
+    State scriptExecution(const DeprecatedString& script, State, DeprecatedString scriptURL, int baseLine = 0);
     void setSrc(const SegmentedString&);
-
+ 
     // check if we have enough space in the buffer.
     // if not enlarge it
     inline void checkBuffer(int len = 10)
@@ -310,6 +327,7 @@ private:
     RefPtr<Node> scriptNode;
 
     bool m_requestingScript;
+    bool m_hasScriptsWaitingForStylesheets;
 
     // if we found one broken comment, there are most likely others as well
     // store a flag to get rid of the O(n^2) behaviour in such a case.

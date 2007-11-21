@@ -25,20 +25,32 @@
  
  IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR CONSEQUENTIAL 
  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS 
-          OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, 
+ OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, 
  REPRODUCTION, MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED AND 
  WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR 
  OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <WebKit/npfunctions.h>
+#include <WebKit/npfunctions.h>
 
 extern NPNetscapeFuncs *browser;
 
 typedef struct {
     NPObject header;
     NPP npp;
-    Boolean eventLogging;
+    NPBool eventLogging;
+    NPBool logSetWindow;
+    NPBool logDestroy;
+    NPBool returnErrorFromNewStream;
+    NPObject* testObject;
+    NPStream* stream;
+    char* onStreamLoad;
+    char* firstUrl;
+    char* firstHeaders;
+    char* lastUrl;
+    char* lastHeaders;
 } PluginObject;
 
 extern NPClass *getPluginClass(void);
+extern void handleCallback(PluginObject* object, const char *url, NPReason reason, void *notifyData);
+extern void notifyStream(PluginObject* object, const char *url, const char *headers);

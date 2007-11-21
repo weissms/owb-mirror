@@ -1,9 +1,7 @@
-/**
- * This file is part of the DOM implementation for KDE.
- *
+/*
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
- * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,13 +15,14 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
+
 #include "config.h"
 #include "HTMLImageLoader.h"
 
-#include "csshelper.h"
+#include "CSSHelper.h"
 #include "CachedImage.h"
 #include "DocLoader.h"
 #include "Document.h"
@@ -68,8 +67,9 @@ void HTMLImageLoader::setImage(CachedImage *newImage)
             oldImage->deref(this);
     }
 
-    if (RenderImage* renderer = static_cast<RenderImage*>(element()->renderer()))
-        renderer->resetAnimation();
+    if (RenderObject* renderer = element()->renderer())
+        if (renderer->isImage())
+            static_cast<RenderImage*>(renderer)->resetAnimation();
 }
 
 void HTMLImageLoader::setLoadingImage(CachedImage *loadingImage)
@@ -95,8 +95,9 @@ void HTMLImageLoader::updateFromElement()
     if (!attr.isEmpty()) {
         if (m_loadManually) {
             doc->docLoader()->setAutoLoadImages(false);
-            newImage = new CachedImage(doc->docLoader(), parseURL(attr), CachePolicyVerify, 0);
+            newImage = new CachedImage(doc->docLoader(), parseURL(attr), false /* not for cache */);
             newImage->setLoading(true);
+            newImage->setDocLoader(doc->docLoader());
             doc->docLoader()->m_docResources.set(newImage->url(), newImage);
         } else
             newImage = doc->docLoader()->requestImage(parseURL(attr));
@@ -115,15 +116,16 @@ void HTMLImageLoader::updateFromElement()
             oldImage->deref(this);
     }
 
-    if (RenderImage* renderer = static_cast<RenderImage*>(elem->renderer()))
-        renderer->resetAnimation();
+    if (RenderObject* renderer = elem->renderer())
+        if (renderer->isImage())
+            static_cast<RenderImage*>(renderer)->resetAnimation();
 }
 
 void HTMLImageLoader::dispatchLoadEvent()
 {
     if (!haveFiredLoadEvent() && image()) {
         setHaveFiredLoadEvent(true);
-        element()->dispatchHTMLEvent(image()->isErrorImage() ? errorEvent : loadEvent, false, false);
+        element()->dispatchHTMLEvent(image()->errorOccurred() ? errorEvent : loadEvent, false, false);
     }
 }
 
@@ -137,8 +139,9 @@ void HTMLImageLoader::notifyFinished(CachedResource *image)
         if (!doc->ownerElement())
             printf("Image loaded at %d\n", doc->elapsedTime());
 #endif
-    if (RenderImage* renderer = static_cast<RenderImage*>(elem->renderer()))
-        renderer->setCachedImage(m_image);
+    if (RenderObject* renderer = elem->renderer())
+        if (renderer->isImage())
+            static_cast<RenderImage*>(renderer)->setCachedImage(m_image);
 }
 
 }

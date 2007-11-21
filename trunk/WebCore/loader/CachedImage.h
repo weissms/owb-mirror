@@ -1,10 +1,8 @@
 /*
-    This file is part of the KDE libraries
-
     Copyright (C) 1998 Lars Knoll (knoll@mpi-hd.mpg.de)
     Copyright (C) 2001 Dirk Mueller <mueller@kde.org>
     Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
-    Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007 Apple Inc. All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -18,18 +16,15 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
-
-    This class provides all functionality needed for loading images, style sheets and html
-    pages from the web. It has a memory cache for these objects.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef CachedImage_h
 #define CachedImage_h
 
 #include "CachedResource.h"
-#include "ImageAnimationObserver.h"
+#include "ImageObserver.h"
 #include "IntRect.h"
 #include <wtf/Vector.h>
 
@@ -39,26 +34,28 @@ class DocLoader;
 class Cache;
 class Image;
 
-class CachedImage : public CachedResource, public ImageAnimationObserver {
+class CachedImage : public CachedResource, public ImageObserver {
+    friend class Cache;
+
 public:
-    CachedImage(DocLoader*, const String& url, CachePolicy, time_t expireDate);
+    CachedImage(DocLoader*, const String& url, bool forCache);
     CachedImage(Image*);
     virtual ~CachedImage();
 
     Image* image() const;
 
-    bool canRender() const { return !isErrorImage() && imageSize().width() > 0 && imageSize().height() > 0; }
+    bool canRender() const { return !errorOccurred() && imageSize().width() > 0 && imageSize().height() > 0; }
 
     IntSize imageSize() const;  // returns the size of the complete image
     IntRect imageRect() const;  // The size of the image.
 
     virtual void ref(CachedResourceClient*);
+    
+    virtual void allReferencesRemoved();
+    virtual void destroyDecodedData();
 
-    virtual Vector<char>& bufferData(const char* bytes, int addedSize, Request*);
-    virtual void data(Vector<char>&, bool allDataReceived);
+    virtual void data(PassRefPtr<SharedBuffer> data, bool allDataReceived);
     virtual void error();
-
-    bool isErrorImage() const { return m_errorOccurred; }
 
     virtual bool schedule() const { return true; }
 
@@ -68,22 +65,21 @@ public:
 
     void clear();
     
-    virtual bool shouldStopAnimation(const Image* image);
-    virtual void animationAdvanced(const Image* image);
-
     bool stillNeedsLoad() const { return !m_errorOccurred && m_status == Unknown && m_loading == false; }
     void load();
+
+    // ImageObserver
+    virtual void decodedSizeChanged(const Image* image, int delta);
+    virtual void didDraw(const Image*);
+
+    virtual bool shouldPauseAnimation(const Image*);
+    virtual void animationAdvanced(const Image*);
 
 private:
     void createImage();
     void notifyObservers();
 
     Image* m_image;
-    int m_dataSize;
-    
-    bool m_errorOccurred : 1;
-
-    friend class Cache;
 };
 
 }

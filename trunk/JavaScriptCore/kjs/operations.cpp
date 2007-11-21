@@ -24,13 +24,7 @@
 #include "operations.h"
 
 #include "object.h"
-
-#ifdef __OWB__
-#include <BIMath.h>
-#else
 #include <math.h>
-#endif
-
 #include <stdio.h>
 #include <wtf/MathExtras.h>
 
@@ -195,23 +189,6 @@ bool strictEqual(ExecState *exec, JSValue *v1, JSValue *v2)
     return false;
 }
 
-int relation(ExecState *exec, JSValue *v1, JSValue *v2)
-{
-    JSValue *p1 = v1->toPrimitive(exec,NumberType);
-    JSValue *p2 = v2->toPrimitive(exec,NumberType);
-    
-    if (p1->isString() && p2->isString())
-        return p1->toString(exec) < p2->toString(exec) ? 1 : 0;
-    
-    double n1 = p1->toNumber(exec);
-    double n2 = p2->toNumber(exec);
-    if (n1 < n2)
-        return 1;
-    if (n1 >= n2)
-        return 0;
-    return -1; // must be NaN, so undefined
-}
-
 int maxInt(int d1, int d2)
 {
     return (d1 > d2) ? d1 : d2;
@@ -220,48 +197,6 @@ int maxInt(int d1, int d2)
 int minInt(int d1, int d2)
 {
     return (d1 < d2) ? d1 : d2;
-}
-
-// ECMA 11.6
-JSValue *add(ExecState *exec, JSValue *v1, JSValue *v2, char oper)
-{
-    // exception for the Date exception in defaultValue()
-    JSType preferred = oper == '+' ? UnspecifiedType : NumberType;
-    JSValue *p1 = v1->toPrimitive(exec, preferred);
-    JSValue *p2 = v2->toPrimitive(exec, preferred);
-    
-    if ((p1->isString() || p2->isString()) && oper == '+') {
-        UString value = p1->toString(exec) + p2->toString(exec);
-        if (value.isNull()) {
-            JSObject *error = Error::create(exec, GeneralError, "Out of memory");
-            exec->setException(error);
-            return error;
-        } else
-            return jsString(value);
-    }
-    
-    if (oper == '+')
-        return jsNumber(p1->toNumber(exec) + p2->toNumber(exec));
-    else
-        return jsNumber(p1->toNumber(exec) - p2->toNumber(exec));
-}
-
-// ECMA 11.5
-JSValue *mult(ExecState *exec, JSValue *v1, JSValue *v2, char oper)
-{
-    double n1 = v1->toNumber(exec);
-    double n2 = v2->toNumber(exec);
-    
-    double result;
-    
-    if (oper == '*')
-        result = n1 * n2;
-    else if (oper == '/')
-        result = n1 / n2;
-    else
-        result = fmod(n1, n2);
-    
-    return jsNumber(result);
 }
 
 }

@@ -31,6 +31,7 @@
 #include "Text.h"
 #include "VisiblePosition.h"
 #include "htmlediting.h"
+#include "RenderListItem.h"
 
 namespace WebCore {
 
@@ -92,12 +93,15 @@ void BreakBlockquoteCommand::doApply()
         // If a new start node was determined, find a new top block quote.
         if (newStartNode) {
             startNode = newStartNode;
+            topBlockquote = 0;
             for (Node *node = startNode->parentNode(); node; node = node->parentNode()) {
                 if (isMailBlockquote(node))
                     topBlockquote = node;
             }
-            if (!topBlockquote || !topBlockquote->parentNode())
+            if (!topBlockquote || !topBlockquote->parentNode()) {
+                setEndingSelection(Selection(VisiblePosition(Position(startNode, 0))));
                 return;
+            }
         }
         
         // Build up list of ancestors in between the start node and the top blockquote.
@@ -116,6 +120,17 @@ void BreakBlockquoteCommand::doApply()
         RefPtr<Node> clonedAncestor = clonedBlockquote;
         for (size_t i = ancestors.size(); i != 0; --i) {
             RefPtr<Node> clonedChild = ancestors[i - 1]->cloneNode(false); // shallow clone
+            // Preserve list item numbering in cloned lists.
+            if (clonedChild->isElementNode() && clonedChild->hasTagName(olTag)) {
+                Node* listChildNode = i > 1 ? ancestors[i - 2] : startNode;
+                // The first child of the cloned list might not be a list item element, 
+                // find the first one so that we know where to start numbering.
+                while (listChildNode && !listChildNode->hasTagName(liTag))
+                    listChildNode = listChildNode->nextSibling();
+                if (listChildNode && listChildNode->renderer())
+                    setNodeAttribute(static_cast<Element*>(clonedChild.get()), startAttr, String::number(static_cast<RenderListItem*>(listChildNode->renderer())->value()));
+            }
+                
             appendNode(clonedChild.get(), clonedAncestor.get());
             clonedAncestor = clonedChild;
         }

@@ -35,16 +35,25 @@ namespace KJS
 namespace Bindings
 {
 
+typedef const char* RuntimeType;
+
 class JavaString
 {
 public:
-    JavaString () {};
-    
+    JavaString()
+    {
+        JSLock lock;
+        _rep = UString().rep();
+    }
+
     void _commonInit (JNIEnv *e, jstring s)
     {
         int _size = e->GetStringLength (s);
         const jchar *uc = getUCharactersFromJStringInEnv (e, s);
-        _ustring = UString((UChar *)uc,_size);
+        {
+            JSLock lock;
+            _rep = UString((UChar *)uc,_size).rep();
+        }
         releaseUCharactersForJStringInEnv (e, s, uc);
     }
     
@@ -56,48 +65,36 @@ public:
         _commonInit (getJNIEnv(), s);
     }
     
+    ~JavaString()
+    {
+        JSLock lock;
+        _rep = 0;
+    }
+    
     const char *UTF8String() const { 
-        if (_utf8String.c_str() == 0)
-            _utf8String = _ustring.UTF8String();
+        if (_utf8String.c_str() == 0) {
+            JSLock lock;
+            _utf8String = UString(_rep).UTF8String();
+        }
         return _utf8String.c_str();
     }
-    const jchar *uchars() const { return (const jchar *)_ustring.data(); }
-    int length() const { return _ustring.size(); }
-    UString ustring() const { return _ustring; }
-    
+    const jchar *uchars() const { return (const jchar *)_rep->data(); }
+    int length() const { return _rep->size(); }
+    UString ustring() const { return UString(_rep); }
+
 private:
-    UString _ustring;
+    RefPtr<UString::Rep> _rep;
     mutable CString _utf8String;
 };
 
-class JavaParameter : public Parameter
+class JavaParameter
 {
 public:
     JavaParameter () : _JNIType(invalid_type) {};
-    
     JavaParameter (JNIEnv *env, jstring type);
-        
-    ~JavaParameter() {
-    };
+    virtual ~JavaParameter() { }
 
-    JavaParameter(const JavaParameter &other) : Parameter() {
-        _type = other._type;
-        _JNIType = other._JNIType;
-    };
-
-    JavaParameter &operator=(const JavaParameter &other)
-    {
-        if (this == &other)
-            return *this;
-                    
-        _type = other._type;
-        _JNIType = other._JNIType;
-
-        return *this;
-    }
-    
-    virtual RuntimeType type() const { return _type.UTF8String(); }
-
+    RuntimeType type() const { return _type.UTF8String(); }
     JNIType getJNIType() const { return _JNIType; }
     
 private:
@@ -106,77 +103,11 @@ private:
 };
 
 
-class JavaConstructor : public Constructor
-{
-public:
-    JavaConstructor() : _parameters (0), _numParameters(0) {};
-    
-    JavaConstructor (JNIEnv *e, jobject aConstructor);
-    
-    ~JavaConstructor() {
-        delete [] _parameters;
-    };
-
-    void _commonCopy(const JavaConstructor &other) {
-        _numParameters = other._numParameters;
-        _parameters = new JavaParameter[_numParameters];
-        int i;
-        for (i = 0; i < _numParameters; i++) {
-            _parameters[i] = other._parameters[i];
-        }
-    }
-    
-    JavaConstructor(const JavaConstructor &other) : Constructor() {
-        _commonCopy (other);
-    };
-
-    JavaConstructor &operator=(const JavaConstructor &other)
-    {
-        if (this == &other)
-            return *this;
-            
-        delete [] _parameters;
-        
-        _commonCopy (other);
-
-        return *this;
-    }
-
-    virtual Parameter *parameterAt(int i) const { return &_parameters[i]; };
-    virtual int numParameters() const { return _numParameters; };
-    
-private:
-    JavaParameter *_parameters;
-    int _numParameters;
-};
-
-
 class JavaField : public Field
 {
 public:
-    JavaField() : _field(0) {};
     JavaField (JNIEnv *env, jobject aField);
-    ~JavaField() {
-        delete _field;
-    };
 
-    JavaField(const JavaField &other) : 
-        Field(), _name(other._name), _type(other._type), _field(other._field) {};
-
-    JavaField &operator=(const JavaField &other)
-    {
-        if (this == &other)
-            return *this;
-            
-        delete _field;
-        
-        _name = other._name;
-        _type = other._type;
-        _field = other._field;
-
-        return *this;
-    }
-    
     virtual JSValue *valueFromInstance(ExecState *exec, const Instance *instance) const;
     virtual void setValueToInstance(ExecState *exec, const Instance *instance, JSValue *aValue) const;
     
@@ -192,58 +123,20 @@ private:
     JavaString _name;
     JavaString _type;
     JNIType _JNIType;
-    JavaInstance *_field;
+    RefPtr<JObjectWrapper> _field;
 };
 
 
 class JavaMethod : public Method
 {
 public:
-    JavaMethod() : Method(), _signature(0), _methodID(0) {};
-    
-    JavaMethod (JNIEnv *env, jobject aMethod);
-    
-    void _commonDelete() {
-        delete _signature;
-        delete [] _parameters;
-    };
-    
-    ~JavaMethod () {
-        _commonDelete();
-    };
-
-    void _commonCopy(const JavaMethod &other) {
-        _name = other._name;
-        _returnType = other._returnType;
-
-        _numParameters = other._numParameters;
-        _parameters = new JavaParameter[_numParameters];
-        int i;
-        for (i = 0; i < _numParameters; i++) {
-            _parameters[i] = other._parameters[i];
-        }
-        _signature = other._signature;
-    };
-    
-    JavaMethod(const JavaMethod &other) : Method() {
-        _commonCopy(other);
-    };
-
-    JavaMethod &operator=(const JavaMethod &other)
-    {
-        if (this == &other)
-            return *this;
-            
-        _commonDelete();
-        _commonCopy(other);
-
-        return *this;
-    };
+    JavaMethod(JNIEnv* env, jobject aMethod);
+    ~JavaMethod();
 
     virtual const char *name() const { return _name.UTF8String(); };
     RuntimeType returnType() const { return _returnType.UTF8String(); };
-    virtual Parameter *parameterAt(int i) const { return &_parameters[i]; };
-    virtual int numParameters() const { return _numParameters; };
+    JavaParameter* parameterAt(int i) const { return &_parameters[i]; };
+    int numParameters() const { return _numParameters; };
     
     const char *signature() const;
     JNIType JNIReturnType() const;
@@ -253,10 +146,10 @@ public:
     bool isStatic() const { return _isStatic; }
 
 private:
-    JavaParameter *_parameters;
+    JavaParameter* _parameters;
     int _numParameters;
     JavaString _name;
-    mutable UString *_signature;
+    mutable char* _signature;
     JavaString _returnType;
     JNIType _JNIReturnType;
     mutable jmethodID _methodID;
@@ -280,13 +173,9 @@ public:
     static JSValue* convertJObjectToArray (ExecState* exec, jobject anObject, const char* type, PassRefPtr<RootObject>);
 
 private:
-    JavaArray(const JavaArray&);
-    JavaArray& operator=(const JavaArray&);
-
     RefPtr<JObjectWrapper> _array;
     unsigned int _length;
     const char *_type;
-    RefPtr<RootObject> _rootObject;
 };
 
 } // namespace Bindings

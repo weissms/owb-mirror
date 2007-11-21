@@ -24,50 +24,84 @@
  */
 
 #include "config.h"
-#include "HashTable.h"
 #include "ClipboardQt.h"
-#include "IntPoint.h"
-#include "PlatformString.h"
-#include "StringHash.h"
 
-#define notImplemented() qDebug("FIXME: UNIMPLEMENTED: %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__)
+#include "NotImplemented.h"
+#include "DeprecatedString.h"
+#include "Document.h"
+#include "Frame.h"
+#include "IntPoint.h"
+#include "KURL.h"
+#include "PlatformString.h"
+#include "Range.h"
+#include "StringHash.h"
+#include <QList>
+#include <QMimeData>
+#include <QStringList>
+#include <QUrl>
+
 
 namespace WebCore {
     
-ClipboardQt::ClipboardQt(ClipboardAccessPolicy policy, bool forDragging) 
+ClipboardQt::ClipboardQt(ClipboardAccessPolicy policy, const QMimeData* readableClipboard, bool forDragging)
     : Clipboard(policy, forDragging)
-    , m_isForDragging(forDragging)
+    , m_readableData(readableClipboard)
+    , m_writableData(0)
 {
-    notImplemented();
+    ASSERT(m_readableData);
+}    
+
+ClipboardQt::ClipboardQt(ClipboardAccessPolicy policy, bool forDragging)
+    : Clipboard(policy, forDragging)
+{
+    m_writableData = new QMimeData();
+    m_readableData = m_writableData;    
+}
+
+ClipboardQt::~ClipboardQt()
+{
+    delete m_writableData;
+    m_readableData = 0;
 }
 
 void ClipboardQt::clearData(const String& type)
 {
+    ASSERT(m_writableData);
     notImplemented();
 }
 
 void ClipboardQt::clearAllData() 
 {
-    notImplemented();
+    ASSERT(m_writableData);
+    m_writableData->clear();
 }
 
 String ClipboardQt::getData(const String& type, bool& success) const 
 {
-    notImplemented();
-    return ""; 
+    ASSERT(m_writableData);
+    QByteArray data = m_writableData->data(QString(type));
+    success = !data.isEmpty();
+    return String(data.data(), data.size());
 }
 
 bool ClipboardQt::setData(const String& type, const String& data) 
 {
-    notImplemented();
-    return false;
+    ASSERT(m_writableData);
+    QByteArray array(reinterpret_cast<const char*>(data.characters()),
+                     data.length());
+    m_writableData->setData(QString(type), array);
+    return true;
 }
 
 // extensions beyond IE's API
-HashSet<String> ClipboardQt::types() const 
+HashSet<String> ClipboardQt::types() const
 {
-    notImplemented();
     HashSet<String> result;
+    QStringList formats = m_writableData->formats();
+    for (int i = 0; i < formats.count(); ++i) {
+        String type(formats.at(i).toLatin1().data());
+        result.add(type);
+    }
     return result;
 }
 
@@ -107,23 +141,28 @@ DragImageRef ClipboardQt::createDragImage(IntPoint& dragLoc) const
 
 void ClipboardQt::declareAndWriteDragImage(Element*, const KURL&, const String&, Frame*) 
 {
+    ASSERT(m_writableData);
     notImplemented();
 }
 
-void ClipboardQt::writeURL(const KURL&, const String&, Frame*) 
+void ClipboardQt::writeURL(const KURL& url, const String&, Frame* frame) 
 {
-    notImplemented();
+    ASSERT(m_writableData);
+    QList<QUrl> urls;
+    urls.append(QUrl(frame->document()->completeURL(url.url())));
+    m_writableData->setUrls(urls);
 }
 
-void ClipboardQt::writeRange(Range*, Frame*) 
+void ClipboardQt::writeRange(Range* range, Frame*) 
 {
-    notImplemented();
+    ASSERT(m_writableData);
+    m_writableData->setText(range->text());
+    m_writableData->setHtml(range->toHTML());
 }
 
 bool ClipboardQt::hasData() 
 {
-    notImplemented();
-    return false;
+    return m_readableData->formats().count() > 0;
 }
 
 }

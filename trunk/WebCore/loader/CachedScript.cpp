@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     This class provides all functionality needed for loading images, style sheets and html
     pages from the web. It has a memory cache for these objects.
@@ -37,15 +37,14 @@
 
 namespace WebCore {
 
-CachedScript::CachedScript(DocLoader* dl, const String& url, CachePolicy cachePolicy, time_t _expireDate, const String& charset)
-    : CachedResource(url, Script, cachePolicy, _expireDate)
+CachedScript::CachedScript(DocLoader* dl, const String& url, const String& charset)
+    : CachedResource(url, Script)
     , m_encoding(charset)
 {
     // It's javascript we want.
     // But some websites think their scripts are <some wrong mimetype here>
     // and refuse to serve them if we only accept application/x-javascript.
     setAccept("*/*");
-    m_errorOccurred = false;
     // load the file
     cache()->loader()->load(dl, this, false);
     m_loading = true;
@@ -71,13 +70,15 @@ void CachedScript::setEncoding(const String& chs)
         m_encoding = encoding;
 }
 
-void CachedScript::data(Vector<char>& data, bool allDataReceived)
+void CachedScript::data(PassRefPtr<SharedBuffer> data, bool allDataReceived)
 {
     if (!allDataReceived)
         return;
 
-    setSize(data.size());
-    m_script = m_encoding.decode(data.data(), size());
+    m_data = data;
+    setEncodedSize(m_data.get() ? m_data->size() : 0);
+    if (m_data.get())
+        m_script = m_encoding.decode(m_data->data(), encodedSize());
     m_loading = false;
     checkNotify();
 }

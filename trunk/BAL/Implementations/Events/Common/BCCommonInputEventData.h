@@ -54,22 +54,22 @@
  */
 class BCCommonInputEventData {
 public:
-	inline BCCommonInputEventData(bool shiftKey, bool ctrlKey, bool altKey, bool metaKey)
-    	: m_shiftKey( shiftKey )
-		, m_ctrlKey( ctrlKey )
-		, m_altKey( altKey )
-		, m_metaKey( metaKey )
-		{}
+    inline BCCommonInputEventData(bool shiftKey, bool ctrlKey, bool altKey, bool metaKey)
+    : m_shiftKey( shiftKey )
+    , m_ctrlKey( ctrlKey )
+    , m_altKey( altKey )
+    , m_metaKey( metaKey )
+    {}
 
-	inline bool shiftKey() const { return m_shiftKey; }
-	inline bool ctrlKey() const { return m_ctrlKey; }
-	inline bool altKey() const { return m_altKey; }
-	inline bool metaKey() const { return m_metaKey; }
+    inline bool shiftKey() const { return m_shiftKey; }
+    inline bool ctrlKey() const { return m_ctrlKey; }
+    inline bool altKey() const { return m_altKey; }
+    inline bool metaKey() const { return m_metaKey; }
 
 protected:
-	bool m_shiftKey;
-	bool m_ctrlKey;
-	bool m_altKey;
-	bool m_metaKey;
+    bool m_shiftKey;
+    bool m_ctrlKey;
+    bool m_altKey;
+    bool m_metaKey;
 };
 #endif

@@ -34,15 +34,15 @@
 #include "PlatformMenuDescription.h"
 #include "PlatformString.h"
 #if PLATFORM(MAC)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 #elif PLATFORM(QT)
 #include <QMenu>
-typedef QMenu* PlatformMenuDescription;
 #elif defined __OWB__
 typedef void* PlatformMenuDescription;
 #endif
 
 namespace WebCore {
+class MenuEventProxy;
 
     class ContextMenuController;
 
@@ -54,12 +54,14 @@ namespace WebCore {
         ~ContextMenu();
 
         void populate();
+        void addInspectElementItem();
         void checkOrEnableIfNeeded(ContextMenuItem&) const;
 
         void insertItem(unsigned position, ContextMenuItem&);
         void appendItem(ContextMenuItem&);
         
         ContextMenuItem* itemWithAction(unsigned);
+        ContextMenuItem* itemAtIndex(unsigned, const PlatformMenuDescription);
 
         unsigned itemCount() const;
 
@@ -69,6 +71,8 @@ namespace WebCore {
         PlatformMenuDescription platformDescription() const;
         void setPlatformDescription(PlatformMenuDescription);
 
+        PlatformMenuDescription releasePlatformDescription();
+
     private:
         HitTestResult m_hitTestResult;
 
@@ -77,6 +81,7 @@ namespace WebCore {
         RetainPtr<NSMutableArray> m_platformDescription;
 #elif PLATFORM(QT)
         QMenu *m_menu;
+        MenuEventProxy *m_proxy;
 #else
         PlatformMenuDescription m_platformDescription;
 #endif

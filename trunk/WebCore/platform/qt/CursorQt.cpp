@@ -30,12 +30,14 @@
 #include "config.h"
 #include "Cursor.h"
 
+#include "Image.h"
+#include "IntPoint.h"
+
 #include "DeprecatedString.h"
+#include "NotImplemented.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#define notImplemented() qDebug("FIXME: UNIMPLEMENTED: %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__)
 
 namespace WebCore {
 
@@ -53,9 +55,11 @@ Cursor::~Cursor()
 {
 }
 
-Cursor::Cursor(Image*, const IntPoint&)
+Cursor::Cursor(Image* image, const IntPoint& hotspot)
+#ifndef QT_NO_CURSOR
+    : m_impl(*(image->getPixmap()), hotspot.x(), hotspot.y())
+#endif
 {
-    notImplemented();
 }
 
 Cursor& Cursor::operator=(const Cursor& other)
@@ -272,10 +276,19 @@ const Cursor& noneCursor()
 
 const Cursor& notAllowedCursor()
 {
-   //FIXME: Build fix -- what is correct here?
+   // FIXME: Build fix -- what is correct here?
    return Cursors::self()->BlankCursor;
 }
 
+const Cursor& zoomInCursor()
+{
+    return Cursors::self()->PointerCursor;
+}
+
+const Cursor& zoomOutCursor()
+{
+    return Cursors::self()->PointerCursor;
+}
 
 }
 

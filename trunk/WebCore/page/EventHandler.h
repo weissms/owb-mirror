@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef EventHandler_h
@@ -30,7 +30,7 @@
 #include "PlatformKeyboardEvent.h"
 #include "PlatformWheelEvent.h"
 #include "Widget.h"
-#endif
+#endif //__OWB__
 #include "DragActions.h"
 #include "FocusDirection.h"
 #include "PlatformMouseEvent.h"
@@ -53,6 +53,7 @@ namespace WebCore {
 
 class AtomicString;
 class Clipboard;
+class Cursor;
 class EventTargetNode;
 class Event;
 class FloatPoint;
@@ -73,7 +74,7 @@ class String;
 class TextEvent;
 class VisiblePosition;
 class Widget;
-
+    
 struct HitTestRequest;
 
 extern const int LinkDragHysteresis;
@@ -89,7 +90,7 @@ public:
 
     void clear();
 
-    void updateSelectionForMouseDragOverPosition(const VisiblePosition&);
+    void updateSelectionForMouseDrag();
 
     Node* mousePressNode() const;
     void setMousePressNode(PassRefPtr<Node>);
@@ -125,8 +126,10 @@ public:
 
     bool mouseDownMayStartSelect() const { return m_mouseDownMayStartSelect; }
 
+    bool mouseMoved(const PlatformMouseEvent&);
+
     bool handleMousePressEvent(const PlatformMouseEvent&);
-    bool handleMouseMoveEvent(const PlatformMouseEvent&);
+    bool handleMouseMoveEvent(const PlatformMouseEvent&, HitTestResult* hoveredNode = 0);
     bool handleMouseReleaseEvent(const PlatformMouseEvent&);
     bool handleWheelEvent(PlatformWheelEvent&);
 
@@ -142,9 +145,11 @@ public:
     void defaultTextInputEventHandler(TextEvent*);
 
     bool eventMayStartDrag(const PlatformMouseEvent&) const;
-
+    
     void dragSourceMovedTo(const PlatformMouseEvent&);
     void dragSourceEndedAt(const PlatformMouseEvent&, DragOperation);
+
+    void focusDocumentView();
 
 #if PLATFORM(MAC)
     PassRefPtr<KeyboardEvent> currentKeyboardEvent() const;
@@ -175,9 +180,9 @@ private:
         RefPtr<Clipboard> m_dragClipboard; // used on only the source side of dragging
     };
     static EventHandlerDragState& dragState();
-
+    
     Clipboard* createDraggingClipboard() const;
-
+    
     bool eventActivatedView(const PlatformMouseEvent&) const;
     void selectClosestWordFromMouseEvent(const MouseEventWithHitTestResults& event);
 
@@ -187,12 +192,15 @@ private:
     bool handleMousePressEventSingleClick(const MouseEventWithHitTestResults&);
     bool handleMousePressEventDoubleClick(const MouseEventWithHitTestResults&);
     bool handleMousePressEventTripleClick(const MouseEventWithHitTestResults&);
-    bool handleMouseMoveEvent(const MouseEventWithHitTestResults&);
+    bool handleMouseDraggedEvent(const MouseEventWithHitTestResults&);
     bool handleMouseReleaseEvent(const MouseEventWithHitTestResults&);
+
+    Cursor selectCursor(const MouseEventWithHitTestResults&, PlatformScrollbar*);
 
     void hoverTimerFired(Timer<EventHandler>*);
 
     static bool canMouseDownStartSelect(Node*);
+    static bool canMouseDragExtendSelect(Node*);
 
     void handleAutoscroll(RenderObject*);
     void startAutoscrollTimer();
@@ -203,17 +211,16 @@ private:
     void invalidateClick();
 
     Node* nodeUnderMouse() const;
-
+    
+    void updateMouseEventTargetNode(Node*, const PlatformMouseEvent&, bool fireMouseOverOut);
+    void fireMouseOverOut(bool fireMouseOver = true, bool fireMouseOut = true, bool updateLastNodeUnderMouse = true);
+    
     MouseEventWithHitTestResults prepareMouseEvent(const HitTestRequest&, const PlatformMouseEvent&);
 
-    bool dispatchMouseEvent(const AtomicString& eventType, Node* target,
-        bool cancelable, int clickCount, const PlatformMouseEvent&, bool setUnder);
-    bool dispatchDragEvent(const AtomicString& eventType, Node* target,
-        const PlatformMouseEvent&, Clipboard*);
+    bool dispatchMouseEvent(const AtomicString& eventType, Node* target, bool cancelable, int clickCount, const PlatformMouseEvent&, bool setUnder);
+    bool dispatchDragEvent(const AtomicString& eventType, Node* target, const PlatformMouseEvent&, Clipboard*);
 
     void freeClipboard();
-
-    void focusDocumentView();
 
     bool handleDrag(const MouseEventWithHitTestResults&);
     bool handleMouseUp(const MouseEventWithHitTestResults&);
@@ -224,11 +231,10 @@ private:
     bool dragHysteresisExceeded(const IntPoint&) const;
 
     bool passMousePressEventToSubframe(MouseEventWithHitTestResults&, Frame* subframe);
-    bool passMouseMoveEventToSubframe(MouseEventWithHitTestResults&, Frame* subframe);
+    bool passMouseMoveEventToSubframe(MouseEventWithHitTestResults&, Frame* subframe, HitTestResult* hoveredNode = 0);
     bool passMouseReleaseEventToSubframe(MouseEventWithHitTestResults&, Frame* subframe);
-    bool passWheelEventToSubframe(PlatformWheelEvent&, Frame* subframe);
 
-    bool passSubframeEventToSubframe(MouseEventWithHitTestResults&, Frame* subframe);
+    bool passSubframeEventToSubframe(MouseEventWithHitTestResults&, Frame* subframe, HitTestResult* hoveredNode = 0);
 
     bool passMousePressEventToScrollbar(MouseEventWithHitTestResults&, PlatformScrollbar*);
 
@@ -236,13 +242,13 @@ private:
     bool passWidgetMouseDownEventToWidget(RenderWidget*);
 
     bool passMouseDownEventToWidget(Widget*);
-    bool passWheelEventToWidget(Widget*);
+    bool passWheelEventToWidget(PlatformWheelEvent&, Widget*);
 
     void defaultTabEventHandler(Event*, bool isBackTab);
 
     void allowDHTMLDrag(bool& flagDHTML, bool& flagUA) const;
 
-    // The following are called at the beginning of handleMouseUp and handleDrag.
+    // The following are called at the beginning of handleMouseUp and handleDrag.  
     // If they return true it indicates that they have consumed the event.
 #if PLATFORM(MAC)
     bool eventLoopHandleMouseUp(const MouseEventWithHitTestResults&);
@@ -254,6 +260,8 @@ private:
 #endif
 
     bool invertSenseOfTabsToLinks(KeyboardEvent*) const;
+
+    void updateSelectionForMouseDrag(Node* targetNode, const IntPoint& localPoint);
 
     Frame* m_frame;
 
@@ -268,16 +276,19 @@ private:
     IntPoint m_dragStartPos;
 
     Timer<EventHandler> m_hoverTimer;
-
+    
     Timer<EventHandler> m_autoscrollTimer;
     RenderObject* m_autoscrollRenderer;
     bool m_mouseDownMayStartAutoscroll;
     bool m_mouseDownWasInSubframe;
+#if ENABLE(SVG)
+    bool m_svgPan;
+#endif
 
     RenderLayer* m_resizeLayer;
 
     RefPtr<Node> m_capturingMouseEventsNode;
-
+    
     RefPtr<Node> m_nodeUnderMouse;
     RefPtr<Node> m_lastNodeUnderMouse;
     RefPtr<Frame> m_lastMouseMoveEventSubframe;
@@ -287,11 +298,11 @@ private:
     RefPtr<Node> m_clickNode;
 
     RefPtr<Node> m_dragTarget;
-
+    
     RefPtr<HTMLFrameSetElement> m_frameSetBeingResized;
 
-    IntSize m_offsetFromResizeCorner;
-
+    IntSize m_offsetFromResizeCorner;    
+    
     IntPoint m_currentMousePosition;
     IntPoint m_mouseDownPos; // in our view's coords
     double m_mouseDownTimestamp;

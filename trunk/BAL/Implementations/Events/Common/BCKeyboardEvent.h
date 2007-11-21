@@ -76,6 +76,7 @@ public:
   virtual bool isAutoRepeat() const;
   virtual void setIsAutoRepeat(bool);
   virtual int WindowsKeyCode() const;
+  virtual int setWindowsKeyCode(int code) const;
   virtual int virtualKeyCode() const;
   virtual bool isKeypad() const;
 

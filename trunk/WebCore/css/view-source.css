@@ -22,19 +22,91 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+body {
+    margin: 0
+}
+
+table {
+    border-spacing: 0;
+    counter-reset: lines;
+    white-space: pre-wrap !important;
+    margin: 0;
+    word-break: break-word;
+    font-family: monospace;
+}
+
+td {
+    padding: 0;
+    vertical-align: baseline
+}
+
+.webkit-line-gutter-backdrop, .webkit-line-number {
+    padding: 0 2px;
+    min-width: 21px;
+    background-color: rgb(240, 240, 240);
+    border-right: 1px solid rgb(128, 128, 128) !important;
+    -webkit-user-select: none;
+}
+
+.webkit-line-gutter-backdrop {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    height: 100%
+}
+
+.webkit-line-number {
+    text-align: right;
+    color: rgb(128, 128, 128);
+    word-break: normal;
+    white-space: nowrap;
+    font-size: 9px;
+    font-family: Helvetica
+}
+
+.webkit-line-number::before {
+    content: counter(lines);
+    counter-increment: lines;
+    -webkit-user-select: none
+}
+
+.webkit-line-content {
+    padding: 0 5px;
+}
+
 .webkit-html-tag {
-    color: rgb(136, 18, 128)
+    /* Keep this in sync with inspector.css (.webkit-html-tag) */
+    color: rgb(136, 18, 128);
 }
 
 .webkit-html-attribute-name {
-    color: rgb(153, 69, 0)
+    /* Keep this in sync with inspector.css (.webkit-html-attribute-name) */
+    color: rgb(153, 69, 0);
 }
 
 .webkit-html-attribute-value {
-    color: rgb(26, 26, 166)
+    /* Keep this in sync with inspector.css (.webkit-html-attribute-value) */
+    color: rgb(26, 26, 166);
+}
+
+.webkit-html-external-link, .webkit-html-resource-link {
+    /* Keep this in sync with inspector.css (.webkit-html-external-link, .webkit-html-resource-link) */
+    color: #00e;
+}
+
+.webkit-html-external-link {
+    /* Keep this in sync with inspector.css (.webkit-html-external-link) */
+    text-decoration: none;
+}
+
+.webkit-html-external-link:hover {
+    /* Keep this in sync with inspector.css (.webkit-html-external-link:hover) */
+    text-decoration: underline;
 }
 
 .webkit-html-comment {
+    /* Keep this in sync with inspector.css (.comment) */
     color: rgb(35, 110, 37);
 }
 
@@ -44,4 +116,36 @@
 
 .webkit-html-entity {
     rgb(136, 18, 128);
+}
+
+.webkit-html-message-bubble {
+    -webkit-box-shadow: black 0px 2px 5px;
+    -webkit-border-radius: 9px;
+    -webkit-border-fit: lines;
+    font-size: 9px;
+    font-family: Lucida Grande;
+    font-weight: bold;
+    margin: 6px 25px;
+    padding: 0 7px 1px;
+}
+
+.webkit-html-warning-message {
+    background-color: rgb(100%, 62%, 42%);
+    border: 2px solid rgb(100%, 52%, 21%);
+}
+
+.webkit-html-error-message {
+    background-color: rgb(100%, 42%, 42%);
+    border: 2px solid rgb(100%, 31%, 31%);
+}
+
+.webkit-html-message-line {
+    padding-left: 23px;
+    text-indent: -20px;
+}
+
+.webkit-html-message-icon {
+    position: relative;
+    top: 2px;
+    margin: 0 4px;
 }

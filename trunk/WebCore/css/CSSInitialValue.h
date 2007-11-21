@@ -16,8 +16,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef CSSInitialValue_h
@@ -29,8 +29,17 @@ namespace WebCore {
 
 class CSSInitialValue : public CSSValue {
 public:
+    CSSInitialValue(bool implicit)
+    :m_implicit(implicit)
+    {}
+
     virtual unsigned short cssValueType() const;
     virtual String cssText() const;
+        
+    virtual bool isImplicitInitialValue() const { return m_implicit; }
+
+private:
+    bool m_implicit;
 };
 
 } // namespace WebCore

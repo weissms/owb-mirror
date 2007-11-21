@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
 
     This file is part of the KDE project
 
@@ -16,8 +16,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
@@ -28,13 +28,15 @@
 // Dump the deep-expanded shadow tree (where the renderes are built from)
 // #define DUMP_SHADOW_TREE
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGUseElement.h"
 
+#include "CSSStyleSelector.h"
 #include "CString.h"
 #include "Document.h"
+#include "Event.h"
 #include "HTMLNames.h"
-#include "RenderSVGContainer.h"
+#include "RenderSVGTransformableContainer.h"
 #include "SVGElementInstance.h"
 #include "SVGElementInstanceList.h"
 #include "SVGGElement.h"
@@ -45,7 +47,6 @@
 #include "SVGSymbolElement.h"
 #include "XLinkNames.h"
 #include "XMLSerializer.h"
-
 #include <wtf/OwnPtr.h>
 
 namespace WebCore {
@@ -85,18 +86,16 @@ SVGElementInstance* SVGUseElement::animatedInstanceRoot() const
  
 void SVGUseElement::parseMappedAttribute(MappedAttribute* attr)
 {
-    const AtomicString& value = attr->value();
-    
     if (attr->name() == SVGNames::xAttr)
-        setXBaseValue(SVGLength(this, LengthModeWidth, value));
+        setXBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
     else if (attr->name() == SVGNames::yAttr)
-        setYBaseValue(SVGLength(this, LengthModeHeight, value));
+        setYBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
     else if (attr->name() == SVGNames::widthAttr) {
-        setWidthBaseValue(SVGLength(this, LengthModeWidth, value));
+        setWidthBaseValue(SVGLength(this, LengthModeWidth, attr->value()));
         if (width().value() < 0.0)
             document()->accessSVGExtensions()->reportError("A negative value for use attribute <width> is not allowed");
     } else if (attr->name() == SVGNames::heightAttr) {
-        setHeightBaseValue(SVGLength(this, LengthModeHeight, value));
+        setHeightBaseValue(SVGLength(this, LengthModeHeight, attr->value()));
         if (height().value() < 0.0)
             document()->accessSVGExtensions()->reportError("A negative value for use attribute <height> is not allowed");
     } else {
@@ -134,6 +133,23 @@ void SVGUseElement::removedFromDocument()
     m_shadowTreeRootElement = 0;
 }
 
+void SVGUseElement::attributeChanged(Attribute* attr, bool preserveDecls)
+{
+    // Avoid calling SVGStyledElement::attributeChanged(), as it always calls notifyAttributeChange.
+    SVGElement::attributeChanged(attr, preserveDecls);
+
+    if (!attached())
+       return;
+
+    // Only update the tree if x/y/width/height or xlink:href changed.
+    if (attr->name() == SVGNames::xAttr || attr->name() == SVGNames::yAttr ||
+        attr->name() == SVGNames::widthAttr || attr->name() == SVGNames::heightAttr ||
+        attr->name().matches(XLinkNames::hrefAttr))
+        buildPendingResource();
+    else if (m_shadowTreeRootElement)
+        m_shadowTreeRootElement->setChanged();
+}
+
 void SVGUseElement::notifyAttributeChange() const
 {
     if (!attached())
@@ -143,10 +159,42 @@ void SVGUseElement::notifyAttributeChange() const
     // It has to be done correctly, by implementing attributeChanged().
     const_cast<SVGUseElement*>(this)->buildPendingResource();
 
-    if (renderer())
-        renderer()->setNeedsLayout(true); 
+    if (m_shadowTreeRootElement)
+        m_shadowTreeRootElement->setChanged();
+}
 
-    SVGStyledElement::notifyAttributeChange();
+void SVGUseElement::recalcStyle(StyleChange change)
+{
+    SVGStyledElement::recalcStyle(change);
+
+    // The shadow tree root element is NOT a direct child element of us.
+    // So we have to take care it receives style updates, manually.
+    if (!m_shadowTreeRootElement || !m_shadowTreeRootElement->attached())
+        return;
+
+    // Mimic Element::recalcStyle(). The main difference is that we don't call attach() on the
+    // shadow tree root element, but call attachShadowTree() here. Calling attach() will crash
+    // as the shadow tree root element has no (direct) parent node. Yes, shadow trees are tricky.
+    if (change >= Inherit || m_shadowTreeRootElement->changed()) {
+        RenderStyle* newStyle = document()->styleSelector()->styleForElement(m_shadowTreeRootElement.get());
+        StyleChange ch = m_shadowTreeRootElement->diff(m_shadowTreeRootElement->renderStyle(), newStyle);
+        if (ch == Detach) {
+            ASSERT(m_shadowTreeRootElement->attached());
+            m_shadowTreeRootElement->detach();
+            attachShadowTree();
+
+            // attach recalulates the style for all children. No need to do it twice.
+            m_shadowTreeRootElement->setChanged(NoStyleChange);
+            m_shadowTreeRootElement->setHasChangedChild(false);
+            newStyle->deref(document()->renderArena());
+            return;
+        }
+
+        newStyle->deref(document()->renderArena());
+    }
+
+    // Only change==Detach needs special treatment, for anything else recalcStyle() works.
+    m_shadowTreeRootElement->recalcStyle(change);
 }
 
 #ifdef DUMP_INSTANCE_TREE
@@ -175,6 +223,28 @@ void dumpInstanceTree(unsigned int& depth, String& text, SVGElementInstance* tar
 }
 #endif
 
+static bool isDisallowedElement(Node* element)
+{
+    // <foreignObject> should never be contained in a <use> tree. Too dangerous side effects possible.
+    if (element->hasTagName(SVGNames::foreignObjectTag))
+        return true;
+
+    return false;
+}
+
+static bool subtreeContainsDisallowedElement(Node* start)
+{
+    if (isDisallowedElement(start))
+        return true;
+
+    for (Node* cur = start->firstChild(); cur; cur = cur->nextSibling()) {
+        if (subtreeContainsDisallowedElement(cur))
+            return true;
+    }
+
+    return false;
+}
+
 void SVGUseElement::buildPendingResource()
 {
     // Do not build the shadow/instance tree for <use> elements living in a shadow tree.
@@ -190,11 +260,14 @@ void SVGUseElement::buildPendingResource()
     String id = SVGURIReference::getTarget(href());
     Element* targetElement = ownerDocument()->getElementById(id); 
     SVGElement* target = svg_dynamic_cast(targetElement);
-    ASSERT(target);
 
     // Do not allow self-referencing.
-    if (target == this)
+    // 'target' may be null, if it's a non SVG namespaced element.
+    if (!target || target == this) {
+        m_targetElementInstance = 0;
+        m_shadowTreeRootElement = 0;
         return;
+    }
 
     // Why a seperated instance/shadow tree? SVG demands it:
     // The instance tree is accesable from JavaScript, and has to
@@ -209,12 +282,12 @@ void SVGUseElement::buildPendingResource()
     m_targetElementInstance = new SVGElementInstance(this, target);
 
     // Eventually enter recursion to build SVGElementInstance objects for the sub-tree children
-    bool foundCycle = false;
-    buildInstanceTree(target, m_targetElementInstance.get(), foundCycle);
+    bool foundProblem = false;
+    buildInstanceTree(target, m_targetElementInstance.get(), foundProblem);
 
     // SVG specification does not say a word about <use> & cycles. My view on this is: just ignore it!
     // Non-appearing <use> content is easier to debug, then half-appearing content.
-    if (foundCycle) {
+    if (foundProblem) {
         m_targetElementInstance = 0;
         m_shadowTreeRootElement = 0;
         return;
@@ -226,22 +299,31 @@ void SVGUseElement::buildPendingResource()
 
     // Setup shadow tree root node
     m_shadowTreeRootElement = new SVGGElement(SVGNames::gTag, document());
-    m_shadowTreeRootElement->setInDocument(true);
+    m_shadowTreeRootElement->setInDocument();
     m_shadowTreeRootElement->setShadowParentNode(this);
 
     // Spec: An additional transformation translate(x,y) is appended to the end
     // (i.e., right-side) of the transform attribute on the generated 'g', where x
     // and y represent the values of the x and y attributes on the 'use' element. 
-    String transformString = String::format("translate(%f, %f)", x().value(), y().value());
-    m_shadowTreeRootElement->setAttribute(SVGNames::transformAttr, transformString);
+    if (x().value() != 0.0 || y().value() != 0.0) {
+        String transformString = String::format("translate(%f, %f)", x().value(), y().value());
+        m_shadowTreeRootElement->setAttribute(SVGNames::transformAttr, transformString);
+    }
 
     // Build shadow tree from instance tree
     // This also handles the special cases: <use> on <symbol>, <use> on <svg>.
     buildShadowTree(target, m_targetElementInstance.get());
 
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
     // Expand all <use> elements in the shadow tree.
     // Expand means: replace the actual <use> element by what it references.
     expandUseElementsInShadowTree(m_shadowTreeRootElement.get());
+
+    // Expand all <symbol> elements in the shadow tree.
+    // Expand means: replace the actual <symbol> element by the <svg> element.
+    expandSymbolElementsInShadowTree(m_shadowTreeRootElement.get());
+
+#endif
 
     // Now that the shadow tree is completly expanded, we can associate
     // shadow tree elements <-> instances in the instance tree.
@@ -274,7 +356,7 @@ void SVGUseElement::buildPendingResource()
 
 RenderObject* SVGUseElement::createRenderer(RenderArena* arena, RenderStyle*)
 {
-    return new (arena) RenderSVGContainer(this);
+    return new (arena) RenderSVGTransformableContainer(this);
 }
 
 void SVGUseElement::attach()
@@ -285,7 +367,15 @@ void SVGUseElement::attach()
     attachShadowTree();
 }
 
-void SVGUseElement::buildInstanceTree(SVGElement* target, SVGElementInstance* targetInstance, bool& foundCycle)
+void SVGUseElement::detach()
+{
+    SVGStyledTransformableElement::detach();
+
+    if (m_shadowTreeRootElement)
+        m_shadowTreeRootElement->detach();
+}
+
+void SVGUseElement::buildInstanceTree(SVGElement* target, SVGElementInstance* targetInstance, bool& foundProblem)
 {
     ASSERT(target);
     ASSERT(targetInstance);
@@ -300,8 +390,8 @@ void SVGUseElement::buildInstanceTree(SVGElement* target, SVGElementInstance* ta
     for (Node* node = target->firstChild(); node; node = node->nextSibling()) {
         SVGElement* element = svg_dynamic_cast(node);
 
-        // Skip any non-svg nodes.
-        if (!element)
+        // Skip any non-svg nodes or any disallowed element.
+        if (!element || isDisallowedElement(element))
             continue;
 
         // Create SVGElementInstance object, for both container/non-container nodes.
@@ -312,21 +402,21 @@ void SVGUseElement::buildInstanceTree(SVGElement* target, SVGElementInstance* ta
 
         // Enter recursion, appending new instance tree nodes to the "instance" object.
         if (element->hasChildNodes())
-            buildInstanceTree(element, instancePtr, foundCycle);
+            buildInstanceTree(element, instancePtr, foundProblem);
 
         // Spec: If the referenced object is itself a 'use', or if there are 'use' subelements within the referenced
         // object, the instance tree will contain recursive expansion of the indirect references to form a complete tree.
         if (element->hasTagName(SVGNames::useTag))
-            handleDeepUseReferencing(element, instancePtr, foundCycle);
+            handleDeepUseReferencing(element, instancePtr, foundProblem);
     }
 
     // Spec: If the referenced object is itself a 'use', or if there are 'use' subelements within the referenced
     // object, the instance tree will contain recursive expansion of the indirect references to form a complete tree.
     if (target->hasTagName(SVGNames::useTag))
-        handleDeepUseReferencing(target, targetInstance, foundCycle);
+        handleDeepUseReferencing(target, targetInstance, foundProblem);
 }
 
-void SVGUseElement::handleDeepUseReferencing(SVGElement* use, SVGElementInstance* targetInstance, bool& foundCycle)
+void SVGUseElement::handleDeepUseReferencing(SVGElement* use, SVGElementInstance* targetInstance, bool& foundProblem)
 {
     String id = SVGURIReference::getTarget(use->href());
     Element* targetElement = ownerDocument()->getElementById(id); 
@@ -336,10 +426,10 @@ void SVGUseElement::handleDeepUseReferencing(SVGElement* use, SVGElementInstance
         return;
 
     // Cycle detection first!
-    foundCycle = (target == this);
+    foundProblem = (target == this);
 
     // Shortcut for self-references
-    if (foundCycle)
+    if (foundProblem)
         return;
 
     SVGElementInstance* instance = targetInstance->parentNode();
@@ -347,7 +437,7 @@ void SVGUseElement::handleDeepUseReferencing(SVGElement* use, SVGElementInstance
         SVGElement* element = instance->correspondingElement();
 
         if (element->getIDAttribute() == id) {
-            foundCycle = true;
+            foundProblem = true;
             return;
         }
     
@@ -359,66 +449,68 @@ void SVGUseElement::handleDeepUseReferencing(SVGElement* use, SVGElementInstance
     targetInstance->appendChild(newInstance);
 
     // Eventually enter recursion to build SVGElementInstance objects for the sub-tree children
-    buildInstanceTree(target, newInstance, foundCycle);
+    buildInstanceTree(target, newInstance, foundProblem);
+}
+
+void SVGUseElement::alterShadowTreeForSVGTag(SVGElement* target)
+{
+    String widthString = String::number(width().value());
+    String heightString = String::number(height().value());
+
+    if (hasAttribute(SVGNames::widthAttr))
+        target->setAttribute(SVGNames::widthAttr, widthString);
+
+    if (hasAttribute(SVGNames::heightAttr))
+        target->setAttribute(SVGNames::heightAttr, heightString);
+}
+
+void SVGUseElement::removeDisallowedElementsFromSubtree(Node* element)
+{
+    ExceptionCode ec = 0;
+
+    for (RefPtr<Node> child = element->firstChild(); child; child = child->nextSibling()) {
+        if (isDisallowedElement(child.get())) {
+            ASSERT(child->parent());
+            child->parent()->removeChild(child.get(), ec);
+            ASSERT(ec == 0);
+
+            continue;
+        }
+
+        if (child->hasChildNodes())
+            removeDisallowedElementsFromSubtree(child.get());
+    }
 }
 
 void SVGUseElement::buildShadowTree(SVGElement* target, SVGElementInstance* targetInstance)
 {
-    ExceptionCode ec = 0;
-
-    String widthString = String::number(width().value());
-    String heightString = String::number(height().value());
- 
-    if (target->hasTagName(SVGNames::symbolTag)) {
-        // Spec: The referenced 'symbol' and its contents are deep-cloned into the generated tree,
-        // with the exception that the 'symbol' is replaced by an 'svg'. This generated 'svg' will
-        // always have explicit values for attributes width and height. If attributes width and/or
-        // height are provided on the 'use' element, then these attributes will be transferred to
-        // the generated 'svg'. If attributes width and/or height are not specified, the generated
-        // 'svg' element will use values of 100% for these attributes.
-        RefPtr<SVGSVGElement> svgElement = new SVGSVGElement(SVGNames::svgTag, document());
- 
-        // Transfer all attributes from <symbol> to the new <svg> element
-        *svgElement->attributes() = *target->attributes();
-
-        // Explicitly re-set width/height values
-        svgElement->setAttribute(SVGNames::widthAttr, hasAttribute(SVGNames::widthAttr) ? widthString : "100%");
-        svgElement->setAttribute(SVGNames::heightAttr, hasAttribute(SVGNames::heightAttr) ? heightString : "100%");
-
-        // Only clone symbol children, and add them to the new <svg> element
-        for (SVGElementInstance* instance = targetInstance->firstChild(); instance; instance = instance->nextSibling()) {
-            RefPtr<Node> newChild = instance->correspondingElement()->cloneNode(true);
-            svgElement->appendChild(newChild.release(), ec);
-            ASSERT(ec == 0);
-        }
-
-        m_shadowTreeRootElement->appendChild(svgElement.release(), ec);
-        ASSERT(ec == 0);
-
+    // For instance <use> on <foreignObject> (direct case).
+    if (isDisallowedElement(target))
         return;
-    }
 
-    // For all other target types, we just need to clone the whole referenced subtree.
     RefPtr<Node> newChild = targetInstance->correspondingElement()->cloneNode(true);
+
+    // We don't walk the target tree element-by-element, and clone each element,
+    // but instead use cloneNode(deep=true). This is an optimization for the common
+    // case where <use> doesn't contain disallowed elements (ie. <foreignObject>).
+    // Though if there are disallowed elements in the subtree, we have to remove them.
+    // For instance: <use> on <g> containing <foreignObject> (indirect case).
+    if (subtreeContainsDisallowedElement(newChild.get()))
+        removeDisallowedElementsFromSubtree(newChild.get());
 
     SVGElement* newChildPtr = svg_dynamic_cast(newChild.get());
     ASSERT(newChildPtr);
 
+    ExceptionCode ec = 0;
     m_shadowTreeRootElement->appendChild(newChild.release(), ec);
     ASSERT(ec == 0);
 
     // Handle use referencing <svg> special case
-    if (target->hasTagName(SVGNames::svgTag)) {
-        ASSERT(newChildPtr->hasTagName(SVGNames::svgTag));
-
-        if (hasAttribute(SVGNames::widthAttr))
-            newChildPtr->setAttribute(SVGNames::widthAttr, widthString);
-
-        if (hasAttribute(SVGNames::heightAttr))
-            newChildPtr->setAttribute(SVGNames::heightAttr, heightString);
-    }
+    if (target->hasTagName(SVGNames::svgTag))
+        alterShadowTreeForSVGTag(newChildPtr);
 }
 
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 void SVGUseElement::expandUseElementsInShadowTree(Node* element)
 {
     // Why expand the <use> elements in the shadow tree here, and not just
@@ -437,11 +529,6 @@ void SVGUseElement::expandUseElementsInShadowTree(Node* element)
 
         // Don't ASSERT(target) here, it may be "pending", too.
         if (target) {
-            ExceptionCode ec = 0;
-
-            // Clone whole target sub-tree
-            RefPtr<Node> clone = target->cloneNode(true);
-
             // Setup sub-shadow tree root node
             RefPtr<SVGElement> cloneParent = new SVGGElement(SVGNames::gTag, document());
 
@@ -451,17 +538,55 @@ void SVGUseElement::expandUseElementsInShadowTree(Node* element)
 
             // Spec: An additional transformation translate(x,y) is appended to the end
             // (i.e., right-side) of the transform attribute on the generated 'g', where x
-            // and y represent the values of the x and y attributes on the 'use' element. 
-            String transformString = String::format("translate(%f, %f)", use->x().value(), use->y().value());
-            cloneParent->setAttribute(SVGNames::transformAttr, transformString);
+            // and y represent the values of the x and y attributes on the 'use' element.
+            if (use->x().value() != 0.0 || use->y().value() != 0.0) {
+                if (!cloneParent->hasAttribute(SVGNames::transformAttr)) {
+                    String transformString = String::format("translate(%f, %f)", use->x().value(), use->y().value());
+                    cloneParent->setAttribute(SVGNames::transformAttr, transformString);
+                } else {
+                    String transformString = String::format(" translate(%f, %f)", use->x().value(), use->y().value());
+                    const AtomicString& transformAttribute = cloneParent->getAttribute(SVGNames::transformAttr);
+                    cloneParent->setAttribute(SVGNames::transformAttr, transformAttribute + transformString); 
+                }
+            }
 
-            cloneParent->appendChild(clone.release(), ec);
+            ExceptionCode ec = 0;
+ 
+            // For instance <use> on <foreignObject> (direct case).
+            if (isDisallowedElement(target)) {
+                // We still have to setup the <use> replacment (<g>). Otherwhise
+                // associateInstancesWithShadowTreeElements() makes wrong assumptions.
+                // Replace <use> with referenced content.
+                ASSERT(use->parentNode()); 
+                use->parentNode()->replaceChild(cloneParent.release(), use, ec);
+                ASSERT(ec == 0);
+                return;
+            }
+
+            RefPtr<Node> newChild = target->cloneNode(true);
+
+            // We don't walk the target tree element-by-element, and clone each element,
+            // but instead use cloneNode(deep=true). This is an optimization for the common
+            // case where <use> doesn't contain disallowed elements (ie. <foreignObject>).
+            // Though if there are disallowed elements in the subtree, we have to remove them.
+            // For instance: <use> on <g> containing <foreignObject> (indirect case).
+            if (subtreeContainsDisallowedElement(newChild.get()))
+                removeDisallowedElementsFromSubtree(newChild.get());
+
+            SVGElement* newChildPtr = svg_dynamic_cast(newChild.get());
+            ASSERT(newChildPtr);
+
+            cloneParent->appendChild(newChild.release(), ec);
             ASSERT(ec == 0);
 
             // Replace <use> with referenced content.
             ASSERT(use->parentNode()); 
             use->parentNode()->replaceChild(cloneParent.release(), use, ec);
             ASSERT(ec == 0);
+
+            // Handle use referencing <svg> special case
+            if (target->hasTagName(SVGNames::svgTag))
+                alterShadowTreeForSVGTag(newChildPtr);
 
             // Immediately stop here, and restart expanding.
             expandUseElementsInShadowTree(m_shadowTreeRootElement.get());
@@ -473,13 +598,64 @@ void SVGUseElement::expandUseElementsInShadowTree(Node* element)
         expandUseElementsInShadowTree(child.get());
 }
 
+void SVGUseElement::expandSymbolElementsInShadowTree(Node* element)
+{
+    if (element->hasTagName(SVGNames::symbolTag)) {
+        // Spec: The referenced 'symbol' and its contents are deep-cloned into the generated tree,
+        // with the exception that the 'symbol' is replaced by an 'svg'. This generated 'svg' will
+        // always have explicit values for attributes width and height. If attributes width and/or
+        // height are provided on the 'use' element, then these attributes will be transferred to
+        // the generated 'svg'. If attributes width and/or height are not specified, the generated
+        // 'svg' element will use values of 100% for these attributes.
+        RefPtr<SVGSVGElement> svgElement = new SVGSVGElement(SVGNames::svgTag, document());
+
+        // Transfer all attributes from <symbol> to the new <svg> element
+        *svgElement->attributes() = *element->attributes();
+
+        // Explicitly re-set width/height values
+        String widthString = String::number(width().value());
+        String heightString = String::number(height().value()); 
+
+        svgElement->setAttribute(SVGNames::widthAttr, hasAttribute(SVGNames::widthAttr) ? widthString : "100%");
+        svgElement->setAttribute(SVGNames::heightAttr, hasAttribute(SVGNames::heightAttr) ? heightString : "100%");
+
+        ExceptionCode ec = 0;
+
+        // Only clone symbol children, and add them to the new <svg> element    
+        for (Node* child = element->firstChild(); child; child = child->nextSibling()) {
+            RefPtr<Node> newChild = child->cloneNode(true);
+            svgElement->appendChild(newChild.release(), ec);
+            ASSERT(ec == 0);
+        }
+    
+        // We don't walk the target tree element-by-element, and clone each element,
+        // but instead use cloneNode(deep=true). This is an optimization for the common
+        // case where <use> doesn't contain disallowed elements (ie. <foreignObject>).
+        // Though if there are disallowed elements in the subtree, we have to remove them.
+        // For instance: <use> on <g> containing <foreignObject> (indirect case).
+        if (subtreeContainsDisallowedElement(svgElement.get()))
+            removeDisallowedElementsFromSubtree(svgElement.get());
+
+        // Replace <symbol> with <svg>.
+        ASSERT(element->parentNode()); 
+        element->parentNode()->replaceChild(svgElement.release(), element, ec);
+        ASSERT(ec == 0);
+
+        // Immediately stop here, and restart expanding.
+        expandSymbolElementsInShadowTree(m_shadowTreeRootElement.get());
+        return;
+    }
+
+    for (RefPtr<Node> child = element->firstChild(); child; child = child->nextSibling())
+        expandSymbolElementsInShadowTree(child.get());
+}
+
+#endif
+    
 void SVGUseElement::attachShadowTree()
 {
-    if (!m_shadowTreeRootElement || !document()->shouldCreateRenderers() || !attached() || !renderer())
+    if (!m_shadowTreeRootElement || m_shadowTreeRootElement->attached() || !document()->shouldCreateRenderers() || !attached() || !renderer())
         return;
-
-    if (m_shadowTreeRootElement->attached())
-        m_shadowTreeRootElement->detach();
 
     // Inspired by RenderTextControl::createSubtreeIfNeeded(). 
     if (renderer()->canHaveChildren() && childShouldCreateRenderer(m_shadowTreeRootElement.get())) {
@@ -487,14 +663,9 @@ void SVGUseElement::attachShadowTree()
 
         if (m_shadowTreeRootElement->rendererIsNeeded(style)) {
             m_shadowTreeRootElement->setRenderer(m_shadowTreeRootElement->createRenderer(document()->renderArena(), style));
-            if (m_shadowTreeRootElement->renderer()) {
-                m_shadowTreeRootElement->renderer()->setStyle(style);
-                renderer()->addChild(m_shadowTreeRootElement->renderer(), m_shadowTreeRootElement->nextRenderer());
-
-                // Mimic SVGStyledTransformableElement::attach() functionality
-                SVGGElement* gElement = static_cast<SVGGElement*>(m_shadowTreeRootElement.get());
-                m_shadowTreeRootElement->renderer()->setLocalTransform(gElement->localMatrix());
-
+            if (RenderObject* shadowRenderer = m_shadowTreeRootElement->renderer()) {
+                shadowRenderer->setStyle(style);
+                renderer()->addChild(shadowRenderer, m_shadowTreeRootElement->nextRenderer());
                 m_shadowTreeRootElement->setAttached();
             }
         }
@@ -515,8 +686,12 @@ void SVGUseElement::associateInstancesWithShadowTreeElements(Node* target, SVGEl
     SVGElement* originalElement = targetInstance->correspondingElement();
 
     if (originalElement->hasTagName(SVGNames::useTag)) {
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
         // <use> gets replaced by <g>
         ASSERT(target->nodeName() == SVGNames::gTag);
+#else 
+        ASSERT(target->nodeName() == SVGNames::gTag || target->nodeName() == SVGNames::useTag);
+#endif
     } else if (originalElement->hasTagName(SVGNames::symbolTag)) {
         // <symbol> gets replaced by <svg>
         ASSERT(target->nodeName() == SVGNames::svgTag);
@@ -589,6 +764,6 @@ void SVGUseElement::transferUseAttributesToReplacedElement(SVGElement* from, SVG
 
 }
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 
 // vim:ts=4:noet

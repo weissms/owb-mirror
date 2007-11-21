@@ -32,7 +32,19 @@
 
 #include "FrameLoaderClient.h"
 #include "ResourceHandle.h"
+#include "ResourceRequest.h"
 #include "ResourceResponse.h"
+
+#ifdef __TVCORE__
+namespace KJS {
+    class TvCore;
+}
+#endif
+#ifdef __DVBCORE__
+namespace KJS {
+    class DvbCore;
+}
+#endif
 
 namespace WebCore {
 
@@ -41,10 +53,10 @@ namespace WebCore {
     class FrameLoaderClientBal : public FrameLoaderClient {
     public:
         FrameLoaderClientBal();
-        virtual ~FrameLoaderClientBal() { }
+        virtual ~FrameLoaderClientBal();
         virtual void frameLoaderDestroyed();
 
-        void setFrame(FrameBal* frame) { m_frame = frame; }
+        void setFrame(FrameBal* frame);
         Frame* frame();
 
         virtual bool hasWebView() const;
@@ -54,7 +66,7 @@ namespace WebCore {
 
         virtual void makeDocumentView();
         virtual void makeRepresentation(DocumentLoader*);
-        virtual void setDocumentViewFromPageCache(PageCache*);
+        virtual void setDocumentViewFromCachedPage(CachedPage*);
         virtual void forceLayout();
         virtual void forceLayoutForNonHTML();
 
@@ -115,9 +127,9 @@ namespace WebCore {
         virtual void postProgressEstimateChangedNotification();
         virtual void postProgressFinishedNotification();
 
-        virtual Frame* createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
+        virtual WTF::PassRefPtr<WebCore::Frame> createFrame(const KURL& url, const String& name, HTMLFrameOwnerElement* ownerElement,
                                    const String& referrer, bool allowsScrolling, int marginWidth, int marginHeight);
-        virtual Widget* createPlugin(Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool);
+        virtual Widget* createPlugin(const IntSize&, Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool loadManually);
         virtual void redirectDataToPlugin(Widget* pluginWidget);
         virtual Widget* createJavaAppletWidget(const IntSize&, Element*, const KURL& baseURL, const Vector<String>& paramNames, const Vector<String>& paramValues);
         virtual String overrideMediaType() const;
@@ -141,6 +153,7 @@ namespace WebCore {
         virtual bool shouldGoToHistoryItem(HistoryItem*) const;
 
         virtual ResourceError cancelledError(const ResourceRequest&);
+		virtual ResourceError blockedError(const ResourceRequest&);
         virtual ResourceError cannotShowURLError(const ResourceRequest&);
         virtual ResourceError interruptForPolicyChangeError(const ResourceRequest&);
 
@@ -171,16 +184,27 @@ namespace WebCore {
         virtual WTF::PassRefPtr<WebCore::DocumentLoader> createDocumentLoader(const WebCore::ResourceRequest&, const WebCore::SubstituteData&);
         virtual void setTitle(const String& title, const KURL&);
 
-        virtual String userAgent();
+        virtual String userAgent(const KURL&);
 
-        virtual void saveDocumentViewToPageCache(PageCache*);
+        virtual void saveDocumentViewToCachedPage(CachedPage*);
         virtual bool canCachePage() const;
-        virtual void download(ResourceHandle*, const ResourceRequest&, const ResourceResponse&);
-    private:
-        FrameBal* m_frame;
+        virtual void download(ResourceHandle*, const ResourceRequest&, const ResourceRequest&, const ResourceResponse&);
+
+		virtual void didPerformFirstNavigation() const;
+#ifdef OWB_ICON_SUPPORT
+		virtual void registerForIconNotification(bool);
+#endif //OWB_ICON_SUPPORT
+    protected:
+        RefPtr<FrameBal> m_frame;
         ResourceResponse m_response;
         bool m_firstData;
         bool m_loadFailed;
+#ifdef __TVCORE__
+        KJS::TvCore *m_tvCore;
+#endif
+#ifdef __DVBCORE__
+        KJS::DvbCore *m_dvbCore;
+#endif
     };
 
 }

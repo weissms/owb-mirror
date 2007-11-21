@@ -18,8 +18,14 @@ MACRO (CREATE_LUT _srcs_LIST _in_FILE _out_FILE _dep_FILE)
 ENDMACRO (CREATE_LUT)
 
 ADD_EXECUTABLE (dftables JavaScriptCore/pcre/dftables.c)
-
-GET_TARGET_PROPERTY (dftables_executable dftables LOCATION)
+IF (CMAKE_MAJOR_VERSION EQUAL 2 AND CMAKE_MINOR_VERSION LESS 5)
+	SET (CMAKE_CROSSCOMPILING OFF CACHE BOOL "Cross compile")
+ENDIF (CMAKE_MAJOR_VERSION EQUAL 2 AND CMAKE_MINOR_VERSION LESS 5)
+IF(CMAKE_CROSSCOMPILING)
+	SET (dftables_executable "${CMAKE_CURRENT_BINARY_DIR}/../build/dftables" CACHE FILEPATH "Path to dftables")
+ELSE (CMAKE_CROSSCOMPILING)
+	GET_TARGET_PROPERTY (dftables_executable dftables LOCATION)
+ENDIF(CMAKE_CROSSCOMPILING)
 
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs/chartables.c
    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_sources
@@ -43,7 +49,7 @@ ADD_CUSTOM_COMMAND (
 
   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_sources
   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs
-  COMMAND ${BISON_EXECUTABLE} -d -p kjsyy ${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore/kjs/grammar.y
+  COMMAND ${BISON_EXECUTABLE} -d -p kjsyy ${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore/kjs/grammar.y -o grammar.tab.c
   COMMAND mv grammar.tab.c ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs/grammar.cpp
   COMMAND mv grammar.tab.h ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/kjs/grammar.h
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore/kjs/grammar.y

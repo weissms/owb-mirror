@@ -6,9 +6,9 @@
 
 #include "config.h"
 #include "BALConfiguration.h"
-#include "BCCookieManager.h"
 #include "BCResourceHandleManagerCURL.h"
 #include "BCResourceHandleCURL.h"
+#include "BICookieJar.h"
 #include "BIObserverService.h"
 #include "DeprecatedString.h"
 #include "FormData.h"
@@ -27,7 +27,7 @@ static char error_buffer[CURL_ERROR_SIZE];
 static size_t writeCallback(void* ptr, size_t size, size_t nmemb, void* obj)
 {
     BCResourceHandleCURL* job = static_cast<BCResourceHandleCURL*> (obj);
-    assert(job);
+    ASSERT(job);
     return job->write(ptr, size, nmemb);
 }
 
@@ -39,15 +39,17 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* obj)
 
 
 
-BCResourceHandleCURL::BCResourceHandleCURL(const ResourceRequest& request, ResourceHandleClient* client, bool defersLoading, bool mightDownloadFromHandle)
-    : BCResourceHandleCommonImplementation(this, request, client, defersLoading, mightDownloadFromHandle)
-	, m_handle(0)
-	, m_url(0)
-	, m_customHeaders(0)
+BCResourceHandleCURL::BCResourceHandleCURL(const ResourceRequest& request, ResourceHandleClient* client, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle)
+    : BCResourceHandleCommonImplementation(this, request, client, defersLoading, shouldContentSniff, mightDownloadFromHandle)
+    , m_handle(0)
+    , m_url(0)
+    , m_customHeaders(0)
+    , m_useSimple(false)
 {
+    BAL::getBIObserverService()->registerObserver(String("SendCookies"), this);
     DeprecatedString surl = url().url();
     m_loading = true;
-    m_response.setURL(url());
+    m_response.setUrl(url());
 
     //remove any query part sent to a local file
     //allows http style get options to be handled by a local file
@@ -74,12 +76,14 @@ BCResourceHandleCURL::BCResourceHandleCURL(const ResourceRequest& request, Resou
     // enable gzip and deflate through Accept-Encoding:
     curl_easy_setopt(m_handle, CURLOPT_ENCODING, "");
     curl_easy_setopt(m_handle, CURLOPT_URL, m_url);
+    m_request.setHTTPHeaderField("Connection", "Keep-Alive");
 
     //xmlHttpRequest see xml/xmlhttprequest.cpp
     HTTPHeaderMap customHeaders =  m_request.httpHeaderFields();
     if (!customHeaders.isEmpty()) {
         struct curl_slist *slist=NULL;
         HTTPHeaderMap::const_iterator end = customHeaders.end();
+        
         for (HTTPHeaderMap::const_iterator it = customHeaders.begin(); it != end; ++it) {
             String key = it->first;
             String value = it->second;
@@ -90,32 +94,50 @@ BCResourceHandleCURL::BCResourceHandleCURL(const ResourceRequest& request, Resou
             m_cstrings.append(cstring);
             slist = curl_slist_append(slist, cstring.data());
         }
+        
         curl_easy_setopt(m_handle, CURLOPT_HTTPHEADER, slist);
         m_customHeader = slist;
     }
+    
     //default to get
-    curl_easy_setopt(m_handle, CURLOPT_HTTPGET, TRUE);
-    if (method() == "POST")
+    curl_easy_setopt(m_handle, CURLOPT_HTTPGET, true);
+    if (method() == "POST") 
         setupPOST();
     else if (method() == "PUT")
         setupPUT();
-    else if (method() == "HEAD")
-        curl_easy_setopt(m_handle, CURLOPT_NOBODY, TRUE);
+    else if (method() == "HEAD") 
+        curl_easy_setopt(m_handle, CURLOPT_NOBODY, true);
+    checkAndSendCookies();
 }
 
 BCResourceHandleCURL::~BCResourceHandleCURL()
 {
-  BAL::getBIResourceHandleManager()->cancel(this); // ensure that job is removed from manager's job list
+    BAL::getBIObserverService()->removeObserver(String("SendCookies"), this);
+    BAL::getBIResourceHandleManager()->cancel(this); // ensure that job is removed from manager's job list
+    if (m_customHeaders)
+        curl_slist_free_all(m_customHeaders);
+    if (m_customHeader)
+        curl_slist_free_all(m_customHeader);
+
+    curl_easy_cleanup(m_handle);
+}
+
+void BCResourceHandleCURL::setURL(const char* url)
+{ 
+    if (m_url) free(m_url);
+    m_url = strdup(url);
+    
+    //send the new url to curl
+    curl_easy_setopt(m_handle, CURLOPT_URL, m_url);
 }
 
 void  BCResourceHandleCURL::setupPUT()
 {
     if (method() != "PUT")
         return;
-    curl_easy_setopt(m_handle, CURLOPT_UPLOAD, TRUE) ;
+    curl_easy_setopt(m_handle, CURLOPT_UPLOAD, true) ;
     struct curl_slist *slist=NULL;
     //FIXME: hmmm disable Expect: 100-continue
-    //slist = curl_slist_append(slist,"Expect:");
     //just supprot Http 1.1 chuncked encoding now
     slist = curl_slist_append(slist, "Transfer-Encoding: chunked");
     curl_easy_setopt(m_handle, CURLOPT_HTTPHEADER, slist);
@@ -134,12 +156,11 @@ void  BCResourceHandleCURL::setupPOST()
         curl_easy_setopt(m_handle, CURLOPT_HTTPHEADER, slist);
         m_customPostHeader = slist;
     }
-
+    
     //first add any data
     static CString data;
     data = postData()->flattenToString().latin1();
-    
-    logml(MODULE_NETWORK, LEVEL_WARNING, make_message("ADD TRANSFER JOB: DATA=%s\n", data.data()));
+    DBGML(MODULE_NETWORK, LEVEL_WARNING, "ADD TRANSFER JOB: DATA=%s\n", data.data());
 
     m_request.setHTTPHeaderField("PropagateHttpHeader", "true");
     m_request.setHTTPContentType("Content-Type: application/x-www-form-urlencoded");
@@ -147,7 +168,7 @@ void  BCResourceHandleCURL::setupPOST()
         curl_easy_setopt(m_handle, CURLOPT_POSTFIELDS, data.data());
         curl_easy_setopt(m_handle, CURLOPT_POSTFIELDSIZE, data.length());
     }
-
+        
     Vector<FormDataElement> elements = postData()->elements();
     int size = elements.size();
     struct curl_httppost *lastptr = NULL;
@@ -181,6 +202,8 @@ void  BCResourceHandleCURL::setupPOST()
                          CURLFORM_END);
         }
     }
+    
+    
 }
 
 void BCResourceHandleCURL::clearAuthentication()
@@ -192,8 +215,6 @@ void BCResourceHandleCURL::clearAuthentication()
 void BCResourceHandleCURL::cancel()
 {
     //FIXME: send error on cancel ?
-    //if(client())
-    // client()->didFail(this,ResourceError());
     if (!m_sentResponse) {
         m_sentResponse = true;
     }
@@ -221,12 +242,11 @@ Vector<char>  BCResourceHandleCURL::runImmediately(ResourceResponse& response)
     m_resultData.clear();
     response = m_response;
     //copy of callback part of finish
-    logml(MODULE_NETWORK, LEVEL_WARNING, make_message("IMMEDIATE TRANSFER JOB: METHOD=%s\n", m_url));
+    DBGML(MODULE_NETWORK, LEVEL_WARNING, "IMMEDIATE TRANSFER JOB: METHOD=%s\n", m_url);
     if (client()) {
         //empty page if true
         if (!m_sentResponse) {
             m_sentResponse = true;
-            m_response.setIsNull(false);
             client()->didReceiveResponse(this, m_response);
         }
         client()->didFinishLoading(this);
@@ -260,7 +280,6 @@ size_t BCResourceHandleCURL::write(void* ptr, size_t size, size_t nmemb)
 
     if (!m_sentResponse) {
         m_sentResponse = true;
-        m_response.setIsNull(false);
         if(client())
             client()->didReceiveResponse(this, m_response);
     }
@@ -278,15 +297,13 @@ size_t BCResourceHandleCURL::write(void* ptr, size_t size, size_t nmemb)
 
 size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
 {
-    m_response.setIsNull(false);
     int realsize = size * nmemb;
     String header = String(ptr, realsize);
 
-    logml(MODULE_NETWORK, LEVEL_WARNING, make_message("CURL Receive Header\n\t%s for %s", ptr, m_response.url().url().ascii()));
+    DBGML(MODULE_NETWORK, LEVEL_WARNING, "CURL Receive Header\n\t%s for %s \n", ptr, m_response.url().url().ascii());
     // Means 'end of header'
     if (realsize == 2 && header.contains('\n')) {
         m_sentResponse = true;
-		m_response.setIsNull(false);
         if(client())
             client()->didReceiveResponse(this, m_response);
         return realsize;
@@ -306,7 +323,7 @@ size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
         m_response.setHTTPStatusCode(status.toInt());
         // Set URL for Response
         if (m_response.url().isEmpty()) {
-            m_response.setURL(url());
+            m_response.setUrl(url());
             int index = m_response.url().url().findRev('/');
             //use remove because right() method from deprecatedString seems to have a bug!
             String filename = m_response.url().url().remove(0, index + 1);
@@ -334,7 +351,7 @@ size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
             int equal = charset.find("=");
             if (equal >= 0)
                 charset.remove(0, equal + 1);
-            m_response.setTextEncoding(charset);
+            m_response.setTextEncodingName(charset);
 
             content.truncate(index);
         }
@@ -350,26 +367,62 @@ size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
         return realsize;
     }
 
-	// Set Location
+    // Set Location
     if (header.contains("Location: ", false)) {
-        String location = header.substring(10, realsize);
+        String location, receivedLocation = header.substring(10, realsize);
+        
+        //handle the case of a relative path
+        if (!receivedLocation.contains("://",false)) {
+            int index = 0;
+            
+            //relative to the domain
+            if (receivedLocation.startsWith("/",false)) {
+                //we are looking for the 3rd '/' of the url ex : http://www.domain.com/ <- this one
+                for (int i=0; i<3; i++) {
+                    while (m_url[index] != '/')
+                        index++;
+                    index++;
+                }
+                //the index should be located 2 caracters before the slash if we want the slash to be troncated
+                index = index-2;
+            }
+            
+            //relative to the url
+            else {
+                //we're looking backwards for the first '/' of the url to remove the name of the page
+                index = strlen(m_url);
+                while (m_url[index] != '/')
+                    index--;
+            }
+            String absolute(m_url, index+1);
+            absolute.append(receivedLocation);
+            location = absolute;
+            printf("The W3C recommands that Location headers uses absolute paths and not relative ones, this website used :' %s '\n", header.deprecatedString().ascii());
+        }
+        else
+            location = receivedLocation;
+        
         int ret = location.find("\r");
         if (ret >= 0)
             location.truncate(ret);
+        
+        m_request.setURL(location.deprecatedString());
+        // a redirection occured, we must change the request or else we will
+        // only have the main document with all dependencies messed up
+        // mixing previous base url with new paths. It will end up with a
+        // serie of 404 errors, so change the request now.
+        
+        this->setURL(location.deprecatedString().ascii());
+        
+        if (client())
+            client()->willSendRequest(this, m_request, m_response);
 
-		m_request.setURL(location.deprecatedString());
-		// a redirection occured, we must change the request or else we will
-		// only have the main document with all dependencies messed up
-		// mixing previous base url with new paths. It will end up with a
-		// serie of 404 errors, so change the request now.
-		if (client())
-			client()->willSendRequest(this, m_request, /*const ResourceResponse& redirectResponse*/m_response);
         return realsize;
     }
 
     if (header.contains("Set-Cookie: ", false)) {
-        BCResourceHandleManagerCURL* mgr = static_cast<BCResourceHandleManagerCURL*> (BAL::getBIResourceHandleManager());
-
+        //BCResourceHandleManagerCURL* mgr = static_cast<BCResourceHandleManagerCURL*> (BAL::getBIResourceHandleManager());
+        
         int ret = header.find("\r");
         if (ret >= 0)
             header.truncate(ret);
@@ -381,6 +434,11 @@ size_t BCResourceHandleCURL::header(char* ptr, size_t size, size_t nmemb)
     return realsize;
 }
 
+void BCResourceHandleCURL::observe(const String& topic, const String& data)
+{
+    checkAndSendCookies(KURL(data.deprecatedString()));
+}
+
 void  BCResourceHandleCURL::processMessage(CURLMsg* msg)
 {
     if (msg->msg == CURLMSG_DONE) {
@@ -389,7 +447,7 @@ void  BCResourceHandleCURL::processMessage(CURLMsg* msg)
             char *handle_url = 0;
             curl_easy_getinfo(m_handle, CURLINFO_EFFECTIVE_URL, &handle_url);
             const char *error =  curl_easy_strerror(msg->data.result);
-            logml(MODULE_NETWORK, LEVEL_WARNING, make_message("JOB:%s ERROR=%s\n", handle_url, error));
+            DBGML(MODULE_NETWORK, LEVEL_WARNING, "JOB:%s ERROR=%s\n", handle_url, error);
             free(handle_url);
             // Set error code to '1' as it is not a HTTP error.
             ResourceError jobError(url().host(), 1, url().url(), String(error));
@@ -410,10 +468,35 @@ void  BCResourceHandleCURL::finish()
         //FIXME: should we really do this here on a cancelled page ?
         if (!m_sentResponse) {
             m_sentResponse = true;
-            m_response.setIsNull(false);
             client()->didReceiveResponse(this, m_response);
         }
         client()->didFinishLoading(this);
+    }
+    m_client = NULL;
+}
+
+void BCResourceHandleCURL::checkAndSendCookies(KURL url)
+{
+    //cookies are a part of the http protocol only
+    if (!String(m_url).startsWith("http"))
+        return;
+    
+    if (url == "")
+        url = m_url;
+    
+    DBGML(MODULE_FACILITIES, LEVEL_INFO, "Method : %s \nCheck&Send Cookies for : %s \n", method().deprecatedString().ascii(), url.url().ascii());
+    //prepare a cookie header if there are cookies related to this url.
+    String cookiePairs;
+    cookiePairs = getBICookieJar()->cookies(url);
+    
+    /* We choose a max size of 81920 caracters because a cookie max size is 4096 and a domain can have at max 20 cookies so 20*4096=81920 */
+    //FIXME: if an url depends on more than one map, cookie string may be truncated
+    static char cookieChar[81920];
+    strncpy(cookieChar,cookiePairs.deprecatedString().ascii(),81920);
+    
+    if (!cookiePairs.isEmpty() && m_handle) {
+        DBGML(MODULE_FACILITIES, LEVEL_INFO, "\n CURL POST Cookie : %s \n", cookieChar);
+        curl_easy_setopt(m_handle, CURLOPT_COOKIE, cookieChar);
     }
 }
 
@@ -426,14 +509,14 @@ void  BCResourceHandleCURL::finish()
 namespace BAL {
 
 PassRefPtr<BIResourceHandle> BIResourceHandle::create(const ResourceRequest& request,
-        ResourceHandleClient* client, Frame* frame, bool defersLoading, bool mightDownloadFromHandle)
+        ResourceHandleClient* client, Frame* frame, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle)
 {
-    RefPtr<ResourceHandle> newLoader(new BCResourceHandleCURL(request, client, defersLoading, mightDownloadFromHandle));
-    newLoader->ref();
+    RefPtr<ResourceHandle> newLoader(new BCResourceHandleCURL(request, client, defersLoading, shouldContentSniff, mightDownloadFromHandle));
     BAL::getBIResourceHandleManager()->add(newLoader.get());
 
     return newLoader;
 }
+
 
 void BIResourceHandle::loadResourceSynchronously(const ResourceRequest&, ResourceError& error,
         ResourceResponse&, Vector<char>& data)

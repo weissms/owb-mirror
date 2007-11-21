@@ -27,11 +27,11 @@
 #ifndef XPathStep_h
 #define XPathStep_h
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "Node.h"
 #include "XPathExpressionNode.h"
-#include "XPathUtil.h"
+#include "XPathNodeSet.h"
 
 namespace WebCore {
 
@@ -48,24 +48,50 @@ namespace WebCore {
                 ParentAxis, PrecedingAxis, PrecedingSiblingAxis,
                 SelfAxis
             };
+            
+            class NodeTest {
+            public:
+                enum Kind {
+                    TextNodeTest, CommentNodeTest, ProcessingInstructionNodeTest, AnyNodeTest, NameTest,
+                    ElementNodeTest // XPath 2.0
+                };
+                
+                NodeTest(Kind kind) : m_kind(kind) {}
+                NodeTest(Kind kind, const String& data) : m_kind(kind), m_data(data) {}
+                NodeTest(Kind kind, const String& data, const String& namespaceURI) : m_kind(kind), m_data(data), m_namespaceURI(namespaceURI) {}
+                
+                Kind kind() const { return m_kind; }
+                const String data() const { return m_data; }
+                const String namespaceURI() const { return m_namespaceURI; }
+                
+            private:
+                Kind m_kind;
+                String m_data;
+                String m_namespaceURI;
+            };
 
-            Step(Axis, const String& nodeTest, const Vector<Predicate*>& predicates = Vector<Predicate*>());
-            Step(Axis, const String& nodeTest, const String& namespaceURI, const Vector<Predicate*>& predicates = Vector<Predicate*>());
+            Step(Axis, const NodeTest& nodeTest, const Vector<Predicate*>& predicates = Vector<Predicate*>());
             ~Step();
 
-            NodeVector evaluate(Node* context) const;
-
-            void optimize();
-
+            void evaluate(Node* context, NodeSet&) const;
+            
+            Axis axis() const { return m_axis; }
+            NodeTest nodeTest() const { return m_nodeTest; }
+            const Vector<Predicate*>& predicates() const { return m_predicates; }
+            
+            void setAxis(Axis axis) { m_axis = axis; }
+            void setNodeTest(NodeTest nodeTest) { m_nodeTest = nodeTest; }
+            void setPredicates(const Vector<Predicate*>& predicates) { m_predicates = predicates; }
+            
         private:
-            NodeVector nodesInAxis(Node* context) const;
-            NodeVector nodeTestMatches(const NodeVector& nodes) const;
+            void parseNodeTest(const String&);
+            void nodesInAxis(Node* context, NodeSet&) const;
+            bool nodeMatches(Node*) const;
             String namespaceFromNodetest(const String& nodeTest) const;
             Node::NodeType primaryNodeType(Axis) const;
 
             Axis m_axis;
-            String m_nodeTest;
-            String m_namespaceURI;
+            NodeTest m_nodeTest;
             Vector<Predicate*> m_predicates;
         };
 
@@ -73,6 +99,6 @@ namespace WebCore {
 
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)
 
 #endif // XPath_Step_H

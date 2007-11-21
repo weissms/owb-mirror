@@ -26,7 +26,6 @@
 
 #include "GIFImageDecoder.h"
 #include "GIFImageReader.h"
-#include "ImageAnimationObserver.h"
 #include "BTLogHelper.h"
 
 using BAL::RGBA32Buffer;
@@ -134,7 +133,7 @@ BCGIFImageDecoder::BCGIFImageDecoder()
     : m_frameCountValid(true)
     , m_reader(0)
 {
-    logml(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Create GIF Decoder");
+    DBGML(MODULE_IMAGEDECODERS, LEVEL_WARNING, "Create GIF Decoder\n");
 }
 
 BCGIFImageDecoder::~BCGIFImageDecoder()
@@ -225,7 +224,7 @@ void BCGIFImageDecoder::decode(GIFQuery query, unsigned haltAtFrame) const
         return;
 
     ImageDecoderCommonImplementation* pImpl = const_cast<ImageDecoderCommonImplementation*>
-			( &mImageDecoderCommonImplementation );
+                    ( &mImageDecoderCommonImplementation );
 
     pImpl->setFailed( !m_reader->decode(mImageDecoderCommonImplementation.data(), query, haltAtFrame) );
 

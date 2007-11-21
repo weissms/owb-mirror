@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (C) 2005, 2006 Apple Computer, Inc.  All rights reserved.
+# Copyright (C) 2005, 2006, 2007 Apple Inc.  All rights reserved.
 # Copyright (C) 2006 Alexey Proskuryakov (ap@nypop.com)
 #
 # Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
 # 2.  Redistributions in binary form must reproduce the above copyright
 #     notice, this list of conditions and the following disclaimer in the
 #     documentation and/or other materials provided with the distribution. 
-# 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+# 3.  Neither the name of Apple Inc. ("Apple") nor the names of
 #     its contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission. 
 #
@@ -33,6 +33,7 @@ use strict;
 use warnings;
 
 use Cwd;
+use File::Basename;
 use Getopt::Long;
 use FindBin;
 
@@ -42,11 +43,21 @@ use webkitdirs;
 # Argument handling
 my $httpdPort = 8000;
 my $allInterfaces = 0;
+my $showHelp;
 
-GetOptions(
-    'port=i' => \$httpdPort,
+my $result = GetOptions(
     'all-interfaces|a' => \$allInterfaces,
+    'help|h' => \$showHelp,
+    'port=i' => \$httpdPort,
 );
+
+if (!$result || @ARGV || $showHelp) {
+    print "Usage: " . basename($0) . " [options]\n";
+    print "  -a|--all-interfaces  Bind to all interfaces\n";
+    print "  -h|--help            Show this help message\n";
+    print "  -p|--port NNNN       Bind to port NNNN\n";
+    exit 1;
+}
 
 setConfiguration();
 my $productDir = productDir();
@@ -74,9 +85,11 @@ if (-f "/tmp/WebKit/httpd.pid") {
 my $testDirectory = getcwd() . "/LayoutTests";
 my $httpdPath = "/usr/sbin/httpd";
 my $httpdConfig = "$testDirectory/http/conf/httpd.conf";
+$httpdConfig = "$testDirectory/http/conf/cygwin-httpd.conf" if isCygwin();
 $httpdConfig = "$testDirectory/http/conf/apache2-httpd.conf" if `$httpdPath -v` =~ m|Apache/2|;
 my $documentRoot = "$testDirectory/http/tests";
 my $typesConfig = "$testDirectory/http/conf/mime.types";
+my $sslCertificate = "$testDirectory/http/conf/webkit-httpd.pem";
 
 my $listen = "127.0.0.1:$httpdPort";
 $listen = "$httpdPort" if ($allInterfaces);
@@ -88,7 +101,7 @@ if ($allInterfaces) {
 }
 print "Press Ctrl+C to stop it.\n\n";
 
-system($httpdPath, 
+my @args = (
     "-f", "$httpdConfig",
     "-C", "DocumentRoot \"$documentRoot\"",
     "-C", "Listen $listen",
@@ -101,6 +114,12 @@ system($httpdPath,
     "-X",
     # Disable Keep-Alive support. Makes testing in multiple browsers easier (no need to wait
     # for another browser's connection to expire).
-    "-c", "KeepAlive 0");
+    "-c", "KeepAlive 0"
+);
+
+# FIXME: Enable this on Windows once <rdar://problem/5345985> is fixed
+push(@args, "-c", "SSLCertificateFile \"$sslCertificate\"") unless isCygwin();
+
+system($httpdPath, @args);
 
 unlink "/tmp/WebKit/httpd.pid";

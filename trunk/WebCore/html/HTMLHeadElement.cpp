@@ -19,8 +19,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 #include "config.h"
 #include "HTMLHeadElement.h"
@@ -62,7 +62,7 @@ bool HTMLHeadElement::childAllowed(Node* newChild)
 
 bool HTMLHeadElement::checkDTD(const Node* newChild)
 {
-    return newChild->hasTagName(titleTag) || newChild->hasTagName(isindexTag) ||
+    return newChild->hasTagName(noscriptTag) || newChild->hasTagName(titleTag) || newChild->hasTagName(isindexTag) ||
            newChild->hasTagName(baseTag) || newChild->hasTagName(scriptTag) ||
            newChild->hasTagName(styleTag) || newChild->hasTagName(metaTag) ||
            newChild->hasTagName(linkTag) || newChild->isTextNode();

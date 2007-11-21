@@ -18,17 +18,24 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
+#ifdef __OWB__
+#include "BALConfiguration.h"
+#endif //__OWB__
 #include "Font.h"
 
+#include "CharacterNames.h"
 #include "FloatRect.h"
 #include "FontCache.h"
 #include "FontFallbackList.h"
+#ifdef __OWB__
+#include "FontPlatformData.h"
+#endif //__OWB__
 #include "IntPoint.h"
 #include "GlyphBuffer.h"
 #include "TextStyle.h"
@@ -36,13 +43,22 @@
 #include <wtf/MathExtras.h>
 
 #if USE(ICU_UNICODE)
+#ifdef __OWB__
+#include "BALConfiguration.h"
+#include "BIInternationalization.h"
+#else
 #include <unicode/unorm.h>
+#endif //__OWB__
 #endif
 
 using namespace WTF;
 using namespace Unicode;
 
+#ifdef __OWB__
+namespace BAL {
+#else
 namespace WebCore {
+#endif //__OWB__
 
 // According to http://www.unicode.org/Public/UNIDATA/UCD.html#Canonical_Combining_Class_Values
 const uint8_t hiraganaKatakanaVoicingMarksCombiningClass = 8;
@@ -75,7 +91,6 @@ struct WidthIterator {
     
     unsigned m_currentCharacter;
     float m_runWidthSoFar;
-    float m_widthToStart;
     float m_padding;
     float m_padPerSpace;
     float m_finalRoundingWidth;
@@ -87,9 +102,9 @@ private:
 WidthIterator::WidthIterator(const Font* font, const TextRun& run, const TextStyle& style)
     : m_font(font)
     , m_run(run)
-    , m_end(style.rtl() ? run.length() : run.to())
+    , m_end(run.length())
     , m_style(style)
-    , m_currentCharacter(run.from())
+    , m_currentCharacter(0)
     , m_runWidthSoFar(0)
     , m_finalRoundingWidth(0)
 {
@@ -100,7 +115,7 @@ WidthIterator::WidthIterator(const Font* font, const TextRun& run, const TextSty
         m_padPerSpace = 0;
     else {
         float numSpaces = 0;
-        for (int i = run.from(); i < m_end; i++)
+        for (int i = 0; i < run.length(); i++)
             if (Font::treatAsSpace(m_run[i]))
                 numSpaces++;
 
@@ -108,19 +123,6 @@ WidthIterator::WidthIterator(const Font* font, const TextRun& run, const TextSty
             m_padPerSpace = 0;
         else
             m_padPerSpace = ceilf(m_style.padding() / numSpaces);
-    }
-    
-    // Calculate width up to starting position of the run.  This is
-    // necessary to ensure that our rounding hacks are always consistently
-    // applied.
-    if (run.from() == 0)
-        m_widthToStart = 0;
-    else {
-        TextRun completeRun(run);
-        completeRun.makeComplete();
-        WidthIterator startPositionIterator(font, completeRun, style);
-        startPositionIterator.advance(run.from());
-        m_widthToStart = startPositionIterator.m_runWidthSoFar;
     }
 }
 
@@ -133,7 +135,6 @@ void WidthIterator::advance(int offset, GlyphBuffer* glyphBuffer)
     const UChar* cp = m_run.data(currentCharacter);
 
     bool rtl = m_style.rtl();
-    bool attemptFontSubstitution = m_style.attemptFontSubstitution();
     bool hasExtraSpacing = m_font->letterSpacing() || m_font->wordSpacing() || m_padding;
 
     float runWidthSoFar = m_runWidthSoFar;
@@ -169,7 +170,7 @@ void WidthIterator::advance(int offset, GlyphBuffer* glyphBuffer)
             }
         }
 
-        const GlyphData& glyphData = m_font->glyphDataForCharacter(c, cp, clusterLength, rtl, attemptFontSubstitution);
+        const GlyphData& glyphData = m_font->glyphDataForCharacter(c, rtl);
         Glyph glyph = glyphData.glyph;
         const FontData* fontData = glyphData.fontData;
 
@@ -177,9 +178,10 @@ void WidthIterator::advance(int offset, GlyphBuffer* glyphBuffer)
 
         // Now that we have a glyph and font data, get its width.
         float width;
-        if (c == '\t' && m_style.tabWidth())
-            width = m_style.tabWidth() - fmodf(m_style.xPos() + runWidthSoFar, m_style.tabWidth());
-        else {
+        if (c == '\t' && m_style.allowTabs()) {
+            float tabWidth = m_font->tabWidth();
+            width = tabWidth - fmodf(m_style.xPos() + runWidthSoFar, tabWidth);
+        } else {
             width = fontData->widthForGlyph(glyph);
             // We special case spaces in two ways when applying word rounding.
             // First, we round spaces to an adjusted width in all fonts.
@@ -189,7 +191,7 @@ void WidthIterator::advance(int offset, GlyphBuffer* glyphBuffer)
                 width = fontData->m_adjustedSpaceWidth;
         }
 
-        if (hasExtraSpacing) {
+        if (hasExtraSpacing && !m_style.spacingDisabled()) {
             // Account for letter-spacing.
             if (width && m_font->letterSpacing())
                 width += m_font->letterSpacing();
@@ -235,7 +237,7 @@ void WidthIterator::advance(int offset, GlyphBuffer* glyphBuffer)
         // width so that the total run width will be on an integer boundary.
         if ((m_style.applyWordRounding() && currentCharacter < m_run.length() && Font::isRoundingHackCharacter(*cp))
                 || (m_style.applyRunRounding() && currentCharacter >= m_end)) {
-            float totalWidth = m_widthToStart + runWidthSoFar + width;
+            float totalWidth = runWidthSoFar + width;
             width += ceilf(totalWidth) - totalWidth;
         }
 
@@ -268,6 +270,13 @@ UChar32 WidthIterator::normalizeVoicingMarks(int currentCharacter)
     if (currentCharacter + 1 < m_end) {
         if (combiningClass(m_run[currentCharacter + 1]) == hiraganaKatakanaVoicingMarksCombiningClass) {
 #if USE(ICU_UNICODE)
+#ifdef __OWB__
+            BIInternationalization *inter = getBIInternationalization();
+            size_t length = 2;
+            const UChar* source = inter->normalize(m_run.data(currentCharacter), UNORM_UNICODE_3_2, &length );
+            if (length == 1)
+                return source[0];
+#else
             // Normalize into composed form using 3.2 rules.
             UChar normalizedCharacters[2] = { 0, 0 };
             UErrorCode uStatus = U_ZERO_ERROR;  
@@ -275,6 +284,7 @@ UChar32 WidthIterator::normalizeVoicingMarks(int currentCharacter)
                 UNORM_NFC, UNORM_UNICODE_3_2, &normalizedCharacters[0], 2, &uStatus);
             if (resultLength == 1 && uStatus == 0)
                 return normalizedCharacters[0];
+#endif //__OWB__
 #elif USE(QT4_UNICODE)
             QString tmp(reinterpret_cast<const QChar*>(m_run.data(currentCharacter)), 2);
             QString res = tmp.normalized(QString::NormalizationForm_C, QChar::Unicode_3_2);
@@ -290,47 +300,54 @@ UChar32 WidthIterator::normalizeVoicingMarks(int currentCharacter)
 // Font Implementation (Cross-Platform Portion)
 // ============================================================================================
 
-Font::Font() :m_fontList(0), m_letterSpacing(0), m_wordSpacing(0)
-{}
-
-Font::Font(const FontDescription& fd, short letterSpacing, short wordSpacing) 
-: m_fontDescription(fd),
-  m_fontList(0),
-  m_pageZero(0),
-  m_letterSpacing(letterSpacing),
-  m_wordSpacing(wordSpacing)
-{}
-
-Font::Font(const FontPlatformData& fontData, bool isPrinterFont)
+Font::Font()
     : m_pageZero(0)
     , m_letterSpacing(0)
     , m_wordSpacing(0)
+    , m_isPlatformFont(false)
+{
+}
+
+Font::Font(const FontDescription& fd, short letterSpacing, short wordSpacing) 
+    : m_fontDescription(fd)
+    , m_pageZero(0)
+    , m_letterSpacing(letterSpacing)
+    , m_wordSpacing(wordSpacing)
+    , m_isPlatformFont(false)
+{
+}
+
+Font::Font(const FontPlatformData& fontData, bool isPrinterFont)
+    : m_fontList(new FontFallbackList)
+    , m_pageZero(0)
+    , m_letterSpacing(0)
+    , m_wordSpacing(0)
+    , m_isPlatformFont(true)
 {
     m_fontDescription.setUsePrinterFont(isPrinterFont);
-    m_fontList = new FontFallbackList();
     m_fontList->setPlatformFont(fontData);
 }
 
 Font::Font(const Font& other)
+    : m_fontDescription(other.m_fontDescription)
+    , m_fontList(other.m_fontList)
+    , m_pages(other.m_pages)
+    , m_pageZero(other.m_pageZero)
+    , m_letterSpacing(other.m_letterSpacing)
+    , m_wordSpacing(other.m_wordSpacing)
+    , m_isPlatformFont(other.m_isPlatformFont)
 {
-    m_fontDescription = other.m_fontDescription;
-    m_fontList = other.m_fontList;
-    m_letterSpacing = other.m_letterSpacing;
-    m_wordSpacing = other.m_wordSpacing;
-    m_pages = other.m_pages;
-    m_pageZero = other.m_pageZero;
 }
 
 Font& Font::operator=(const Font& other)
 {
-    if (&other != this) {
-        m_fontDescription = other.m_fontDescription;
-        m_fontList = other.m_fontList;
-        m_pages = other.m_pages;
-        m_pageZero = other.m_pageZero;
-        m_letterSpacing = other.m_letterSpacing;
-        m_wordSpacing = other.m_wordSpacing;
-    }
+    m_fontDescription = other.m_fontDescription;
+    m_fontList = other.m_fontList;
+    m_pages = other.m_pages;
+    m_pageZero = other.m_pageZero;
+    m_letterSpacing = other.m_letterSpacing;
+    m_wordSpacing = other.m_wordSpacing;
+    m_isPlatformFont = other.m_isPlatformFont;
     return *this;
 }
 
@@ -338,20 +355,35 @@ Font::~Font()
 {
 }
 
+bool Font::operator==(const Font& other) const
+{
+    // Our FontData don't have to be checked, since checking the font description will be fine.
+    // FIXME: This does not work if the font was made with the FontPlatformData constructor.
+    if ((m_fontList && m_fontList->loadingCustomFonts()) ||
+        (other.m_fontList && other.m_fontList->loadingCustomFonts()))
+        return false;
+    
+    FontSelector* first = m_fontList ? m_fontList->fontSelector() : 0;
+    FontSelector* second = other.m_fontList ? other.m_fontList->fontSelector() : 0;
+    
+    return first == second
+           && m_fontDescription == other.m_fontDescription
+           && m_letterSpacing == other.m_letterSpacing
+           && m_wordSpacing == other.m_wordSpacing;
+}
+    
 // FIXME: It is unfortunate that this function needs to be passed the original cluster.
 // It is only required for the platform's FontCache::getFontDataForCharacters(), and it means
 // that this function is not correct if it transforms the character to uppercase and calls
 // FontCache::getFontDataForCharacters() afterwards.
-const GlyphData& Font::glyphDataForCharacter(UChar32 c, const UChar* cluster, unsigned clusterLength, bool mirror, bool attemptFontSubstitution) const
+const GlyphData& Font::glyphDataForCharacter(UChar32 c, bool mirror) const
 {
-    bool smallCaps = false;
-
-    if (m_fontDescription.smallCaps() && !Unicode::isUpper(c)) {
-        // Convert lowercase to upper.
+    bool useSmallCapsFont = false;
+    if (m_fontDescription.smallCaps()) {
         UChar32 upperC = Unicode::toUpper(c);
         if (upperC != c) {
             c = upperC;
-            smallCaps = true;
+            useSmallCapsFont = true;
         }
     }
 
@@ -369,104 +401,136 @@ const GlyphData& Font::glyphDataForCharacter(UChar32 c, const UChar* cluster, un
             m_pageZero = node;
     }
 
-    if (!attemptFontSubstitution && node->level() != 1)
-        node = GlyphPageTreeNode::getRootChild(primaryFont(), pageNumber);
-
-    while (true) {
-        GlyphPage* page = node->page();
-
-        if (page) {
-            const GlyphData& data = page->glyphDataForCharacter(c);
-            if (data.glyph || !attemptFontSubstitution) {
-                if (!smallCaps)
+    GlyphPage* page;
+    if (!useSmallCapsFont) {
+        // Fastest loop, for the common case (not small caps).
+        while (true) {
+            page = node->page();
+            if (page) {
+                const GlyphData& data = page->glyphDataForCharacter(c);
+                if (data.fontData)
                     return data;
+                if (node->isSystemFallback())
+                    break;
+            }
 
-                const FontData* smallCapsFontData = data.fontData->smallCapsFontData(m_fontDescription);
-
-                if (!smallCapsFontData)
-                    // This should not happen, but if it does, we will return a big cap.
-                    return data;
-
-                GlyphPageTreeNode* smallCapsNode = GlyphPageTreeNode::getRootChild(smallCapsFontData, pageNumber);
-                GlyphPage* smallCapsPage = smallCapsNode->page();
-
-                if (smallCapsPage) {
-                    const GlyphData& data = smallCapsPage->glyphDataForCharacter(c);
-                    if (data.glyph || !attemptFontSubstitution)
+            // Proceed with the fallback list.
+            node = node->getChild(fontDataAt(node->level()), pageNumber);
+            if (pageNumber)
+                m_pages.set(pageNumber, node);
+            else
+                m_pageZero = node;
+        }
+    } else {
+        while (true) {
+            page = node->page();
+            if (page) {
+                const GlyphData& data = page->glyphDataForCharacter(c);
+                if (data.fontData) {
+                    // The smallCapsFontData function should not normally return 0.
+                    // But if it does, we will just render the capital letter big.
+                    const FontData* smallCapsFontData = data.fontData->smallCapsFontData(m_fontDescription);
+                    if (!smallCapsFontData)
                         return data;
-                }
-                // Not attempting system fallback off the smallCapsFontData. This is the very unlikely case that
-                // a font has the lowercase character but not its uppercase version.
-                return smallCapsFontData->missingGlyphData();
-            }
-        } else if (!attemptFontSubstitution) {
-            if (smallCaps) {
-                if (const FontData* smallCapsFontData = primaryFont()->smallCapsFontData(m_fontDescription))
+
+                    GlyphPageTreeNode* smallCapsNode = GlyphPageTreeNode::getRootChild(smallCapsFontData, pageNumber);
+                    const GlyphData& data = smallCapsNode->page()->glyphDataForCharacter(c);
+                    if (data.fontData)
+                        return data;
+
+                    // Do not attempt system fallback off the smallCapsFontData. This is the very unlikely case that
+                    // a font has the lowercase character but the small caps font does not have its uppercase version.
                     return smallCapsFontData->missingGlyphData();
+                }
+
+                if (node->isSystemFallback())
+                    break;
             }
-            return primaryFont()->missingGlyphData();
+
+            // Proceed with the fallback list.
+            node = node->getChild(fontDataAt(node->level()), pageNumber);
+            if (pageNumber)
+                m_pages.set(pageNumber, node);
+            else
+                m_pageZero = node;
         }
-
-        if (node->isSystemFallback()) {
-            // System fallback is character-dependent.
-            const FontData* characterFontData = FontCache::getFontDataForCharacters(*this, cluster, clusterLength);
-            if (smallCaps)
-                characterFontData = characterFontData->smallCapsFontData(m_fontDescription);
-            if (characterFontData) {
-                GlyphPage* fallbackPage = GlyphPageTreeNode::getRootChild(characterFontData, pageNumber)->page();
-                const GlyphData& data = fallbackPage ? fallbackPage->glyphDataForCharacter(c) : characterFontData->missingGlyphData();
-                if (!smallCaps)
-                    page->setGlyphDataForCharacter(c, data.glyph, characterFontData);
-                return data;
-            }
-            // Even system fallback can fail.
-            // FIXME: Should the last resort font be used?
-            const GlyphData& data = primaryFont()->missingGlyphData();
-            if (!smallCaps)
-                page->setGlyphDataForCharacter(c, data.glyph, data.fontData);
-            return data;
-        }
-
-        // Proceed with the fallback list.
-        const FontData* fontData = fontDataAt(node->level());
-        node = node->getChild(fontData, pageNumber);
-
-        if (pageNumber)
-            m_pages.set(pageNumber, node);
-        else
-            m_pageZero = node;
     }
 
+    ASSERT(page);
+    ASSERT(node->isSystemFallback());
+
+    // System fallback is character-dependent. When we get here, we
+    // know that the character in question isn't in the system fallback
+    // font's glyph page. Try to lazily create it here.
+    UChar codeUnits[2];
+    int codeUnitsLength;
+    if (c <= 0xFFFF) {
+        UChar c16 = c;
+        if (Font::treatAsSpace(c16))
+            codeUnits[0] = ' ';
+        else if (Font::treatAsZeroWidthSpace(c16))
+#ifdef __OWB__
+            codeUnits[0] = WebCore::zeroWidthSpace;
+#else
+            codeUnits[0] = zeroWidthSpace;
+#endif //__OWB__
+        else
+            codeUnits[0] = c16;
+        codeUnitsLength = 1;
+    } else {
+        codeUnits[0] = U16_LEAD(c);
+        codeUnits[1] = U16_TRAIL(c);
+        codeUnitsLength = 2;
+    }
+    const FontData* characterFontData = FontCache::getFontDataForCharacters(*this, codeUnits, codeUnitsLength);
+    if (useSmallCapsFont)
+        characterFontData = characterFontData->smallCapsFontData(m_fontDescription);
+    if (characterFontData) {
+        // Got the fallback glyph and font.
+        GlyphPage* fallbackPage = GlyphPageTreeNode::getRootChild(characterFontData, pageNumber)->page();
+        const GlyphData& data = fallbackPage && fallbackPage->glyphDataForCharacter(c).fontData ? fallbackPage->glyphDataForCharacter(c) : characterFontData->missingGlyphData();
+        // Cache it so we don't have to do system fallback again next time.
+        if (!useSmallCapsFont)
+            page->setGlyphDataForCharacter(c, data.glyph, data.fontData);
+        return data;
+    }
+
+    // Even system fallback can fail; use the missing glyph in that case.
+    // FIXME: It would be nicer to use the missing glyph from the last resort font instead.
+    const GlyphData& data = primaryFont()->missingGlyphData();
+    if (!useSmallCapsFont)
+        page->setGlyphDataForCharacter(c, data.glyph, data.fontData);
+    return data;
 }
 
 const FontData* Font::primaryFont() const
 {
-    assert(m_fontList);
+    ASSERT(m_fontList);
     return m_fontList->primaryFont(this);
 }
 
 const FontData* Font::fontDataAt(unsigned index) const
 {
-    assert(m_fontList);
+    ASSERT(m_fontList);
     return m_fontList->fontDataAt(this, index);
 }
 
 const FontData* Font::fontDataForCharacters(const UChar* characters, int length) const
 {
-    assert(m_fontList);
+    ASSERT(m_fontList);
     return m_fontList->fontDataForCharacters(this, characters, length);
 }
 
-void Font::update() const
+void Font::update(PassRefPtr<FontSelector> fontSelector) const
 {
     // FIXME: It is pretty crazy that we are willing to just poke into a RefPtr, but it ends up 
     // being reasonably safe (because inherited fonts in the render tree pick up the new
-    // style anyway.  Other copies are transient, e.g., the state in the GraphicsContext, and
-    // won't stick around long enough to get you in trouble).  Still, this is pretty disgusting,
+    // style anyway. Other copies are transient, e.g., the state in the GraphicsContext, and
+    // won't stick around long enough to get you in trouble). Still, this is pretty disgusting,
     // and could eventually be rectified by using RefPtrs for Fonts themselves.
     if (!m_fontList)
         m_fontList = new FontFallbackList();
-    m_fontList->invalidate();
+    m_fontList->invalidate(fontSelector);
     m_pageZero = 0;
     m_pages.clear();
 }
@@ -501,9 +565,19 @@ float Font::xHeight() const
     return primaryFont()->xHeight();
 }
 
+unsigned Font::unitsPerEm() const
+{
+    return primaryFont()->unitsPerEm();
+}
+
+int Font::spaceWidth() const
+{
+    return (int)ceilf(primaryFont()->m_adjustedSpaceWidth + m_letterSpacing);
+}
+
 bool Font::isFixedPitch() const
 {
-    assert(m_fontList);
+    ASSERT(m_fontList);
     return m_fontList->isFixedPitch(this);
 }
 
@@ -524,7 +598,7 @@ bool Font::canUseGlyphCache(const TextRun& run) const
     }
     
     // Start from 0 since drawing and highlighting also measure the characters before run->from
-    for (int i = 0; i < run.to(); i++) {
+    for (int i = 0; i < run.length(); i++) {
         const UChar c = run[i];
         if (c < 0x300)      // U+0300 through U+036F Combining diacritical marks
             continue;
@@ -571,40 +645,81 @@ bool Font::canUseGlyphCache(const TextRun& run) const
 
 }
 
-void Font::drawSimpleText(GraphicsContext* context, const TextRun& run, const TextStyle& style, const FloatPoint& point) const
+void Font::drawSimpleText(GraphicsContext* context, const TextRun& run, const TextStyle& style, const FloatPoint& point, int from, int to) const
 {
     // This glyph buffer holds our glyphs+advances+font data for each glyph.
+#ifdef __OWB__
+    GlyphBuffer *glyphBuffer = createBIGlyphBuffer();
+#else
     GlyphBuffer glyphBuffer;
+#endif //__OWB__
 
-    // Our measuring code will generate glyphs and advances for us.
-    float startX;
-    floatWidthForSimpleText(run, style, &startX, &glyphBuffer);
+    float startX = point.x();
+    WidthIterator it(this, run, style);
+    it.advance(from);
+    float beforeWidth = it.m_runWidthSoFar;
+#ifdef __OWB__
+    it.advance(to, glyphBuffer);
+    
+    // We couldn't generate any glyphs for the run.  Give up.
+    if (glyphBuffer->isEmpty())
+        return;
+#else
+    it.advance(to, &glyphBuffer);
     
     // We couldn't generate any glyphs for the run.  Give up.
     if (glyphBuffer.isEmpty())
         return;
+#endif //__OWB__
     
-    // Calculate the starting point of the glyphs to be displayed by adding
-    // all the advances up to the first glyph.
-    startX += point.x();
-    FloatPoint startPoint(startX, point.y());
+    float afterWidth = it.m_runWidthSoFar;
+
+    if (style.rtl()) {
+        float finalRoundingWidth = it.m_finalRoundingWidth;
+        it.advance(run.length());
+        startX += finalRoundingWidth + it.m_runWidthSoFar - afterWidth;
+    } else
+        startX += beforeWidth;
 
     // Swap the order of the glyphs if right-to-left.
     if (style.rtl())
+#ifdef __OWB__
+        for (int i = 0, end = glyphBuffer->size() - 1; i < glyphBuffer->size() / 2; ++i, --end)
+            glyphBuffer->swap(i, end);
+#else
         for (int i = 0, end = glyphBuffer.size() - 1; i < glyphBuffer.size() / 2; ++i, --end)
             glyphBuffer.swap(i, end);
+#endif //__OWB__
 
+    // Calculate the starting point of the glyphs to be displayed by adding
+    // all the advances up to the first glyph.
+    FloatPoint startPoint(startX, point.y());
+#ifdef __OWB__
+    drawGlyphBuffer(context, *glyphBuffer, run, style, startPoint);
+    deleteBIGlyphBuffer(glyphBuffer);
+#else
+    drawGlyphBuffer(context, glyphBuffer, run, style, startPoint);
+#endif //__OWB__
+}
+
+void Font::drawGlyphBuffer(GraphicsContext* context, const GlyphBuffer& glyphBuffer, 
+                           const TextRun& run, const TextStyle& style, const FloatPoint& point) const
+{   
     // Draw each contiguous run of glyphs that use the same font data.
     const FontData* fontData = glyphBuffer.fontDataAt(0);
-    float nextX = startX;
+    FloatSize offset = glyphBuffer.offsetAt(0);
+    FloatPoint startPoint(point);
+    float nextX = startPoint.x();
     int lastFrom = 0;
     int nextGlyph = 0;
     while (nextGlyph < glyphBuffer.size()) {
         const FontData* nextFontData = glyphBuffer.fontDataAt(nextGlyph);
-        if (nextFontData != fontData) {
+        FloatSize nextOffset = glyphBuffer.offsetAt(nextGlyph);
+        if (nextFontData != fontData || nextOffset != offset) {
             drawGlyphs(context, fontData, glyphBuffer, lastFrom, nextGlyph - lastFrom, startPoint);
             lastFrom = nextGlyph;
             fontData = nextFontData;
+            offset = nextOffset;
             startPoint.setX(nextX);
         }
         nextX += glyphBuffer.advanceAt(nextGlyph);
@@ -613,55 +728,47 @@ void Font::drawSimpleText(GraphicsContext* context, const TextRun& run, const Te
     drawGlyphs(context, fontData, glyphBuffer, lastFrom, nextGlyph - lastFrom, startPoint);
 }
 
-void Font::drawText(GraphicsContext* context, const TextRun& run, const TextStyle& style, const FloatPoint& point) const
+void Font::drawText(GraphicsContext* context, const TextRun& run, const TextStyle& style, const FloatPoint& point, int from, int to) const
 {
+    // Don't draw anything while we are using custom fonts that are in the process of loading.
+    if (m_fontList && m_fontList->loadingCustomFonts())
+        return;
+    
+    to = (to == -1 ? run.length() : to);
     if (canUseGlyphCache(run))
-        drawSimpleText(context, run, style, point);
+        drawSimpleText(context, run, style, point, from, to);
     else
-        drawComplexText(context, run, style, point);
+        drawComplexText(context, run, style, point, from, to);
 }
 
 float Font::floatWidth(const TextRun& run, const TextStyle& style) const
 {
     if (canUseGlyphCache(run))
-        return floatWidthForSimpleText(run, style, 0, 0);
+        return floatWidthForSimpleText(run, style, 0);
     return floatWidthForComplexText(run, style);
 }
 
-float Font::floatWidthForSimpleText(const TextRun& run, const TextStyle& style, float* startPosition, GlyphBuffer* glyphBuffer) const
+float Font::floatWidthForSimpleText(const TextRun& run, const TextStyle& style, GlyphBuffer* glyphBuffer) const
 {
-    
     WidthIterator it(this, run, style);
-    it.advance(run.to(), glyphBuffer);
-    float runWidth = it.m_runWidthSoFar;
-    if (startPosition) {
-        if (style.ltr())
-            *startPosition = it.m_widthToStart;
-        else {
-            float finalRoundingWidth = it.m_finalRoundingWidth;
-            it.advance(run.length());
-            *startPosition = it.m_runWidthSoFar - runWidth + finalRoundingWidth;
-        }
-    }
-    return runWidth;
+    it.advance(run.length(), glyphBuffer);
+    return it.m_runWidthSoFar;
 }
 
-FloatRect Font::selectionRectForText(const TextRun& run, const TextStyle& style, const IntPoint& point, int h) const
+FloatRect Font::selectionRectForText(const TextRun& run, const TextStyle& style, const IntPoint& point, int h, int from, int to) const
 {
+    to = (to == -1 ? run.length() : to);
     if (canUseGlyphCache(run))
-        return selectionRectForSimpleText(run, style, point, h);
-    return selectionRectForComplexText(run, style, point, h);
+        return selectionRectForSimpleText(run, style, point, h, from, to);
+    return selectionRectForComplexText(run, style, point, h, from, to);
 }
 
-FloatRect Font::selectionRectForSimpleText(const TextRun& run, const TextStyle& style, const IntPoint& point, int h) const
+FloatRect Font::selectionRectForSimpleText(const TextRun& run, const TextStyle& style, const IntPoint& point, int h, int from, int to) const
 {
-    TextRun completeRun(run);
-    completeRun.makeComplete();
-
-    WidthIterator it(this, completeRun, style);
-    it.advance(run.from());
+    WidthIterator it(this, run, style);
+    it.advance(from);
     float beforeWidth = it.m_runWidthSoFar;
-    it.advance(run.to());
+    it.advance(to);
     float afterWidth = it.m_runWidthSoFar;
 
     // Using roundf() rather than ceilf() for the right edge as a compromise to ensure correct caret positioning
@@ -686,15 +793,24 @@ int Font::offsetForPositionForSimpleText(const TextRun& run, const TextStyle& st
     float delta = (float)x;
 
     WidthIterator it(this, run, style);
+#ifdef __OWB__
+    GlyphBuffer *localGlyphBuffer = createBIGlyphBuffer();
+#else
     GlyphBuffer localGlyphBuffer;
+#endif //__OWB__
     unsigned offset;
     if (style.rtl()) {
-        delta -= floatWidthForSimpleText(run, style, 0, 0);
+        delta -= floatWidthForSimpleText(run, style, 0);
         while (1) {
             offset = it.m_currentCharacter;
             float w;
+#ifdef __OWB__
+            if (!it.advanceOneCharacter(w, localGlyphBuffer))
+                break;
+#else
             if (!it.advanceOneCharacter(w, &localGlyphBuffer))
                 break;
+#endif //__OWB__
             delta += w;
             if (includePartialGlyphs) {
                 if (delta - w / 2 >= 0)
@@ -708,8 +824,13 @@ int Font::offsetForPositionForSimpleText(const TextRun& run, const TextStyle& st
         while (1) {
             offset = it.m_currentCharacter;
             float w;
+#ifdef __OWB__
+            if (!it.advanceOneCharacter(w, localGlyphBuffer))
+                break;
+#else
             if (!it.advanceOneCharacter(w, &localGlyphBuffer))
                 break;
+#endif //__OWB__
             delta -= w;
             if (includePartialGlyphs) {
                 if (delta + w / 2 <= 0)
@@ -721,7 +842,11 @@ int Font::offsetForPositionForSimpleText(const TextRun& run, const TextStyle& st
         }
     }
 
-    return offset - run.from();
+#ifdef __OWB__
+    deleteBIGlyphBuffer(localGlyphBuffer);
+#endif //__OWB__
+
+    return offset;
 }
 
 }

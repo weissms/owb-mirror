@@ -41,6 +41,7 @@
 #include "BTLogFormatter.h"
 #include "BTLogManager.h"
 #include "BTLogChannel.h"
+#include <stdarg.h>
 
 namespace BALFacilities {
 
@@ -48,8 +49,8 @@ namespace BALFacilities {
 BTLogManager logger;
 
 BTLogManager::BTLogManager()
-	: m_isActive( true )
-	, m_levelThreshold( 0 )
+    : m_isActive( true )
+    , m_levelThreshold( 0 )
 {
     char* envVar;
     // for each module defined, find the level threshold in environment variable
@@ -138,10 +139,13 @@ void BTLogManager::removeChannel (BTLogChannel* aChannel)
  * TODO make the default formatter case a class : DefaultFormatter
  */
 void BTLogManager::send(BTLogModule module, BTLogLevel level, const char* file, int
-lineNumber, const char* functionName, const char* message)
+lineNumber, const char* functionName, const char* message, ...)
 {
     vector< RefPtr<BTLogChannel> >::iterator it;
     BTLogFormatter* formatter;
+
+    va_list args;
+    va_start(args, message);
 
     // exit if log manager is not active
     if (!m_isActive)
@@ -155,56 +159,64 @@ lineNumber, const char* functionName, const char* message)
     if (level < m_levelForModule[module])
         return;
 
+    if (!message)
+        return;
+    
     if (m_channels.empty()) {
-        fprintf( stderr, "M%d,L%d %s:%d at %s: %s\n", module,
-                  level, file, lineNumber, functionName, message);
+        fprintf( stderr, "M%d,L%d %s:%d at %s ", module,
+                  level, file, lineNumber, functionName);
+        vfprintf(stderr, message, args);
     } else {
+        uint16_t size = strlen(file) + strlen(functionName) + strlen(message);
+        char string[size + 256];
+        vsnprintf(string, size + 256, message, args);
         for (it = m_channels.begin(); it != m_channels.end(); ++it) {
             formatter = (*it)->getFormatter();
             if (formatter) {
                 (*it)->send(formatter->format(module, level, file, lineNumber, functionName));
-                (*it)->send(message);
-                (*it)->send("\n");
+                (*it)->send(string);
             } else {
                 // there is no formatter for this channel so using default one
+                // FIXME: str is 256 long whereas string is size + 256!!!
                 static char str[256];
-                snprintf(str, 256, "(no formatter) %d|%d|%s|%d|%s|%s\n", module, level, file, lineNumber, functionName, message);
+                snprintf(str, 256, "(no formatter) %d|%d|%s|%d|%s|%s\n", module, level, file, lineNumber, functionName, string);
                 (*it)->send(str);
             }
         }
     }
+    va_end(args);
 }
 
 const char* getNameForLevel(BALFacilities::BTLogLevel level)
 {
-	static const char* LogLevelNames[] = {
-    	"LEVEL_INFO",
-    	"LEVEL_WARNING",
-    	"LEVEL_ERROR",
-    	"LEVEL_CRITICAL",
-    	"LEVEL_EMERGENCY",
-    	"LEVEL_UNDEFINED"
-	};
+    static const char* LogLevelNames[] = {
+        "LEVEL_INFO",
+        "LEVEL_WARNING",
+        "LEVEL_ERROR",
+        "LEVEL_CRITICAL",
+        "LEVEL_EMERGENCY",
+        "LEVEL_UNDEFINED"
+    };
 
-	return LogLevelNames[level];
+    return LogLevelNames[level];
 }
 
 const char* getNameForModule(BALFacilities::BTLogModule module)
 {
-	static const char* LogModuleNames[] = {
-		"MODULE_BRIDGE",
-		"MODULE_EVENTS",
-		"MODULE_FACILITIES",
-		"MODULE_FONTS",
-		"MODULE_GLUE",
-		"MODULE_GRAPHICS",
-		"MODULE_IMAGEDECODERS",
-		"MODULE_NETWORK",
-		"MODULE_TYPES",
-		"MODULE_WIDGETS",
-		"MODULE_UNDEFINED"
-	};
-	return LogModuleNames[module];
+    static const char* LogModuleNames[] = {
+        "MODULE_BRIDGE",
+        "MODULE_EVENTS",
+        "MODULE_FACILITIES",
+        "MODULE_FONTS",
+        "MODULE_GLUE",
+        "MODULE_GRAPHICS",
+        "MODULE_IMAGEDECODERS",
+        "MODULE_NETWORK",
+        "MODULE_TYPES",
+        "MODULE_WIDGETS",
+        "MODULE_UNDEFINED"
+    };
+    return LogModuleNames[module];
 }
 
 } // namespace BALFacilities

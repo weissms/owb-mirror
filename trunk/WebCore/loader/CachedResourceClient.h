@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     This class provides all functionality needed for loading images, style sheets and html
     pages from the web. It has a memory cache for these objects.
@@ -27,7 +27,7 @@
 #ifndef CachedResourceClient_h
 #define CachedResourceClient_h
 
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
 namespace XBL {
     class XBLDocument;
 }
@@ -35,6 +35,7 @@ namespace XBL {
 
 namespace WebCore {
 
+    class CachedFont;
     class CachedResource;
     class CachedImage;
     class String;
@@ -66,7 +67,9 @@ namespace WebCore {
         virtual void setCSSStyleSheet(const String& /*URL*/, const String& /*charset*/, const String& /*sheet*/) { }
         virtual void setXSLStyleSheet(const String& /*URL*/, const String& /*sheet*/) { }
 
-#ifdef XBL_SUPPORT
+        virtual void fontLoaded(CachedFont*) {};
+
+#if ENABLE(XBL)
         virtual void setXBLDocument(const String& /*URL*/, XBL::XBLDocument*) { }
 #endif
 

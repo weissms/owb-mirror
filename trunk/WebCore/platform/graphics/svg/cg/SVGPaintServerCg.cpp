@@ -15,21 +15,21 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPaintServer.h"
 
 #include "GraphicsContext.h"
-#include "RenderPath.h"
+#include "RenderObject.h"
 
 namespace WebCore {
 
-void SVGPaintServer::draw(GraphicsContext*& context, const RenderPath* path, SVGPaintTargetType type) const
+void SVGPaintServer::draw(GraphicsContext*& context, const RenderObject* path, SVGPaintTargetType type) const
 {
     if (!setup(context, path, type))
         return;
@@ -43,7 +43,7 @@ void SVGPaintServer::teardown(GraphicsContext*&, const RenderObject*, SVGPaintTa
     // no-op
 }
 
-void SVGPaintServer::renderPath(GraphicsContext*& context, const RenderPath* path, SVGPaintTargetType type) const
+void SVGPaintServer::renderPath(GraphicsContext*& context, const RenderObject* path, SVGPaintTargetType type) const
 {
     RenderStyle* style = path->style();
     CGContextRef contextRef = context->platformContext();
@@ -55,18 +55,18 @@ void SVGPaintServer::renderPath(GraphicsContext*& context, const RenderPath* pat
         strokePath(contextRef, path);
 }
 
-void SVGPaintServer::strokePath(CGContextRef context, const RenderPath*) const
+void SVGPaintServer::strokePath(CGContextRef context, const RenderObject*) const
 {
     CGContextStrokePath(context);
 }
 
-void SVGPaintServer::clipToStrokePath(CGContextRef context, const RenderPath*) const
+void SVGPaintServer::clipToStrokePath(CGContextRef context, const RenderObject*) const
 {
     CGContextReplacePathWithStrokedPath(context);
     CGContextClip(context);
 }
 
-void SVGPaintServer::fillPath(CGContextRef context, const RenderPath* path) const
+void SVGPaintServer::fillPath(CGContextRef context, const RenderObject* path) const
 {
     if (path->style()->svgStyle()->fillRule() == RULE_EVENODD)
         CGContextEOFillPath(context);
@@ -74,7 +74,7 @@ void SVGPaintServer::fillPath(CGContextRef context, const RenderPath* path) cons
         CGContextFillPath(context);
 }
 
-void SVGPaintServer::clipToFillPath(CGContextRef context, const RenderPath* path) const
+void SVGPaintServer::clipToFillPath(CGContextRef context, const RenderObject* path) const
 {
     if (path->style()->svgStyle()->fillRule() == RULE_EVENODD)
         CGContextEOClip(context);

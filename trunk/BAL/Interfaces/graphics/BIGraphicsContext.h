@@ -66,7 +66,7 @@ namespace BAL {
 
     class BINativeImage;
     class BTWidget;
-    class Font;
+    class BTFont;
     class TextRun;
     class AffineTransform;
 
@@ -94,12 +94,27 @@ namespace BAL {
 
         virtual ~BIGraphicsContext() {}
 
-        //virtual BINativeImage* getNativeImage() = 0;
+        /**
+         * Set widget.
+         * @param[in] BTWidget*: a pointer to the widget to set
+         */
         virtual void setWidget(const BTWidget*) = 0;
+        /**
+         * get widget associated to the GraphicsContext.
+         * @return BTWidget*: a pointer to the widget associated to the GraphicsContext
+         */
         virtual const BTWidget* widget() = 0;
-        
-        virtual const Font& font() const = 0;
-        virtual void setFont(const Font&) = 0;
+
+        /**
+         * get font associated to the GraphicsContext.
+         * @return BTFont&: the font associated to the GraphicsContext
+         */
+        virtual const BTFont& font() const = 0;
+        /**
+         * set font associated to the GraphicsContext.
+         * @param[in] BTFont: the font to set
+         */
+        virtual void setFont(const BTFont&) = 0;
 
         virtual float strokeThickness() const = 0;
         virtual void setStrokeThickness(float) = 0;
@@ -108,29 +123,88 @@ namespace BAL {
         virtual Color strokeColor() const = 0;
         virtual void setStrokeColor(const Color&) = 0;
 
+        /**
+         * get the color with which the GraphicsContext will draw.
+         * @return Color: a color
+         */
         virtual Color fillColor() const = 0;
+        /**
+         * set the color with which the GraphicsContext will draw.
+         * @param[in] Color
+         */
         virtual void setFillColor(const Color&) = 0;
-
+        /**
+         * get alpha value for the GraphicsContext.
+         * @return uint8_t: alpha
+         */
         virtual uint8_t alphaLayer() const = 0;
-        
+
+        /**
+         * Save current GraphicsContext.
+         */
         virtual void save() = 0;
+        /**
+         * Restore current GraphicsContext.
+         */
         virtual void restore() = 0;
 
         // These draw methods will do both stroking and filling.
+        /**
+         * draw an empty rectangle into the GraphicsContext.
+         * @param[in] IntRect&: rectangle to draw
+         */
         virtual void drawRect(const IntRect&) = 0;
+        /**
+         * draw a line into the GraphicsContext.
+         * @param[in] IntPoint&: starting point
+         * @param[in] IntPoint&: end point
+         */
         virtual void drawLine(const IntPoint&, const IntPoint&) = 0;
+        /**
+         * draw an ellipse into the GraphicsContext.
+         * @param[in] IntRect&: rectangle which contains ellipse
+         */
         virtual void drawEllipse(const IntRect&) = 0;
+        /**
+         * draw an empty rectangle into the GraphicsContext.
+         * @param[in] size_t: number of points of the polygon
+         * @param[in] IntPoint*: list of numPoint size which contains each point coordinate
+         * @param[in] bool: should apply an antialiased algorithm or not
+         */
         virtual void drawConvexPolygon(size_t numPoints, const FloatPoint*, bool shouldAntialias = false) = 0;
 
         // Arc drawing (used by border-radius in CSS) just supports stroking at the moment.
+        /**
+         * draw an arc into the GraphicsContext.
+         * Arc drawing (used by border-radius in CSS) just supports stroking at the moment.
+         * @param[in] IntRect: rectangle which contains arc
+         * @param[in] startAngle
+         * @param[in] angleSpan: endAngle = startAngle + angleSpan
+         */
         virtual void strokeArc(const IntRect&, int startAngle, int angleSpan) = 0;
 
+        /**
+         * draw a filled rectangle into the GraphicsContext.
+         * @param[in] IntRect: rectangle to draw
+         * @param[in] Color: color for the filled rectangle
+         */
         virtual void fillRect(const IntRect&, const Color&) = 0;
+        /**
+         * draw a filled rectangle into the GraphicsContext.
+         * @param[in] FloatRect: rectangle to draw
+         * @param[in] Color: color for the filled rectangle
+         */
         virtual void fillRect(const FloatRect&, const Color&) = 0;
         virtual void fillRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color&) = 0;
+        /**
+         * Clear a rectangular area.
+         */
         virtual void clearRect(const FloatRect&) = 0;
         virtual void strokeRect(const FloatRect&, float lineWidth) = 0;
 
+        /**
+         * Draw the BINativeImage into the GraphicsContext.
+         */
         virtual void drawImage(BINativeImage*, const IntPoint&, CompositeOperator = CompositeSourceOver) = 0;
         virtual void drawImage(BINativeImage*, const IntRect&, CompositeOperator = CompositeSourceOver) = 0;
         virtual void drawImage(BINativeImage*, const IntPoint& destPoint, const IntRect& srcRect, CompositeOperator = CompositeSourceOver) = 0;
@@ -143,6 +217,9 @@ namespace BAL {
                             TileRule hRule = StretchTile, TileRule vRule = StretchTile,
                             CompositeOperator = CompositeSourceOver) = 0;
 
+        /**
+         * Clip the rectangular area.
+         */
         virtual void clip(const IntRect&) = 0;
         virtual void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight) = 0;
         virtual void addInnerRoundedRectClip(const IntRect&, int thickness) = 0;
@@ -157,9 +234,25 @@ namespace BAL {
         virtual int textDrawingMode() = 0;
         virtual void setTextDrawingMode(int) = 0;
 
-        virtual void drawText(const TextRun&, const IntPoint&) = 0;
-        virtual void drawText(const TextRun&, const IntPoint&, const TextStyle&) = 0;
-        virtual void drawHighlightForText(const TextRun&, const IntPoint&, int h, const TextStyle&, const Color& backgroundColor) = 0;
+        /**
+         * Draw text in the GraphicsContext.
+         * @param[in] TextRun: text to draw
+         * @param[in] IntPoint: position in the GraphicsContext where to begin to draw text
+         * @param[in] int: position in the text of the first character to draw
+         * @param[in] int: position in the text of the last character to draw
+         */
+        virtual void drawText(const TextRun&, const IntPoint&, int from = 0, int to = -1) = 0;
+        /**
+         * Draw text in the GraphicsContext.
+         * @param[in] TextRun: text to draw
+         * @param[in] IntPoint: position in the GraphicsContext where to begin to draw text
+         * @param[in] TextStyle: style to apply to the text
+         * @param[in] int: position in the text of the first character to draw
+         * @param[in] int: position in the text of the last character to draw
+         */
+        virtual void drawText(const TextRun&, const IntPoint&, const TextStyle&, int from = 0, int to = -1) = 0;
+        virtual void drawBidiText(const TextRun&, const IntPoint&, const TextStyle&) = 0;
+        virtual void drawHighlightForText(const TextRun&, const IntPoint&, int h, const TextStyle&, const Color& backgroundColor, int from = 0, int to = -1) = 0;
 
         virtual FloatRect roundToDevicePixels(const FloatRect&) = 0;
 
@@ -188,6 +281,9 @@ namespace BAL {
         virtual void setLineJoin(LineJoin) = 0;
         virtual void setMiterLimit(float) = 0;
 
+        /**
+         * set an alpha value for the GraphicsContext.
+         */
         virtual void setAlpha(float) = 0;
 
         virtual void setCompositeOperation(CompositeOperator) = 0;
@@ -214,8 +310,8 @@ namespace BAL {
     public: \
         virtual void setWidget(const BTWidget*); \
         virtual const BTWidget* widget(); \
-        virtual const Font& font() const; \
-        virtual void setFont(const Font&); \
+        virtual const BTFont& font() const; \
+        virtual void setFont(const BTFont&); \
         virtual float strokeThickness() const; \
         virtual void setStrokeThickness(float); \
         virtual StrokeStyle strokeStyle() const; \
@@ -254,9 +350,10 @@ namespace BAL {
         virtual void clearFocusRingClip(); \
         virtual int textDrawingMode(); \
         virtual void setTextDrawingMode(int); \
-        virtual void drawText(const TextRun&, const IntPoint&); \
-        virtual void drawText(const TextRun&, const IntPoint&, const TextStyle&); \
-        virtual void drawHighlightForText(const TextRun&, const IntPoint&, int h, const TextStyle&, const Color& backgroundColor); \
+        virtual void drawText(const TextRun&, const IntPoint&, int, int); \
+        virtual void drawText(const TextRun&, const IntPoint&, const TextStyle&, int, int); \
+        virtual void drawBidiText(const TextRun&, const IntPoint&, const TextStyle&); \
+        virtual void drawHighlightForText(const TextRun&, const IntPoint&, int h, const TextStyle&, const Color& backgroundColor, int, int); \
         virtual FloatRect roundToDevicePixels(const FloatRect&); \
         virtual void drawLineForText(const IntPoint&, int width, bool printing); \
         virtual void drawLineForMisspellingOrBadGrammar(const IntPoint&, int width, bool grammar); \

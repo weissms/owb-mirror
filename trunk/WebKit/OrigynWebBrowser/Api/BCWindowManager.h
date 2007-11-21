@@ -44,6 +44,11 @@
 #include "BIWindowManager.h"
 #include "Timer.h"
 
+namespace WebCore {
+    class FrameView;
+    class Frame;
+}
+
 namespace BAL {
 
     class BIEventLoop;
@@ -64,7 +69,11 @@ public:
 
 private:
     void setActiveWindow(BIWindow*);
-    
+    void expose(BIWindow*);
+    void redrawWindow(BIWindow*);
+    void redrawView(WebCore::FrameView*, bool repaint);
+    void shiftEventPos(BIEvent* event, WebCore::Frame* f);
+
     BIEventLoop*                    m_eventLoop;
     BIWindow*                       m_window;
     BIGraphicsContext*              m_gc;

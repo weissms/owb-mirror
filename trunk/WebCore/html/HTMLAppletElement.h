@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -28,7 +28,7 @@
 #include "HTMLPlugInElement.h"
 
 #if USE(JAVASCRIPTCORE_BINDINGS)
-#include <JavaScriptCore/runtime.h>
+#include <bindings/runtime.h>
 #else
 namespace KJS { namespace Bindings { class Instance; } }
 #endif
@@ -50,7 +50,7 @@ public:
     
     virtual bool rendererIsNeeded(RenderStyle*);
     virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
-    virtual void closeRenderer();
+    virtual void finishedParsing();
     virtual void detach();
     
 #if USE(JAVASCRIPTCORE_BINDINGS)

@@ -44,48 +44,63 @@ using namespace BC;
 
 const IntPoint& BCWheelEvent::pos() const
 {
-	return m_position;
+    return m_position;
 }
 
 const IntPoint& BCWheelEvent::globalPos() const
 {
-	return m_globalPosition;
+    return m_globalPosition;
 }
 
 int BCWheelEvent::deltaX() const
 {
-	return m_deltaX;
+    return m_deltaX;
 }
 
 int BCWheelEvent::deltaY() const
 {
-	return m_deltaY;
+    return m_deltaY;
 }
 
 bool BCWheelEvent::isAccepted() const
 {
-	return m_isAccepted;
+    return m_isAccepted;
 }
 
 void BCWheelEvent::accept()
 {
-	m_isAccepted = true;
+    m_isAccepted = true;
 }
 
 void BCWheelEvent::ignore()
 {
-	m_isAccepted = false;
+    m_isAccepted = false;
+}
+
+bool BCWheelEvent::isContinuous() const
+{
+    return true;
+}
+
+float BCWheelEvent::continuousDeltaX() const
+{
+    return 1.0;
+}
+
+float BCWheelEvent::continuousDeltaY() const
+{
+    return 1.0;
 }
 
 BCWheelEvent::BCWheelEvent(const IntPoint& pos, const IntPoint& globalPos,
                            int deltaX, int deltaY, bool isAccepted,
                            bool shift, bool ctrl, bool alt, bool meta)
-	: BCCommonInputEventData( shift, ctrl, alt, meta )
-	, m_position(pos)
-	, m_globalPosition(globalPos)
-	, m_deltaX(deltaX)
-	, m_deltaY(deltaY)
-	, m_isAccepted(isAccepted)
+    : BCCommonInputEventData( shift, ctrl, alt, meta )
+    , m_position(pos)
+    , m_globalPosition(globalPos)
+    , m_deltaX(deltaX)
+    , m_deltaY(deltaY)
+    , m_isAccepted(isAccepted)
 {
 }
 

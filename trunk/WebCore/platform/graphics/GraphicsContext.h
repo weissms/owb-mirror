@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef GraphicsContext_h
@@ -41,6 +41,13 @@ typedef struct _cairo PlatformGraphicsContext;
 #elif PLATFORM(QT)
 class QPainter;
 typedef QPainter PlatformGraphicsContext;
+#else
+typedef void PlatformGraphicsContext;
+#endif
+
+#if PLATFORM(GTK)
+typedef struct _GdkDrawable GdkDrawable;
+typedef struct _GdkEventExpose GdkEventExpose;
 #endif
 
 #if PLATFORM(WIN)
@@ -67,7 +74,7 @@ namespace WebCore {
     const int cTextFill = 1;
     const int cTextStroke = 2;
     const int cTextClip = 4;
-
+    
     enum StrokeStyle {
         NoStroke,
         SolidStroke,
@@ -79,12 +86,12 @@ namespace WebCore {
     public:
         GraphicsContext(PlatformGraphicsContext*);
         ~GraphicsContext();
-
+       
         PlatformGraphicsContext* platformContext() const;
 
         const Font& font() const;
         void setFont(const Font&);
-
+        
         float strokeThickness() const;
         void setStrokeThickness(float);
         StrokeStyle strokeStyle() const;
@@ -94,10 +101,10 @@ namespace WebCore {
 
         Color fillColor() const;
         void setFillColor(const Color&);
-
+        
         void save();
         void restore();
-
+        
         // These draw methods will do both stroking and filling.
         void drawRect(const IntRect&);
         void drawLine(const IntPoint&, const IntPoint&);
@@ -106,7 +113,7 @@ namespace WebCore {
 
         // Arc drawing (used by border-radius in CSS) just supports stroking at the moment.
         void strokeArc(const IntRect&, int startAngle, int angleSpan);
-
+        
         void fillRect(const IntRect&, const Color&);
         void fillRect(const FloatRect&, const Color&);
         void fillRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color&);
@@ -114,16 +121,23 @@ namespace WebCore {
         void strokeRect(const FloatRect&, float lineWidth);
 
         void drawImage(Image*, const IntPoint&, CompositeOperator = CompositeSourceOver);
-        void drawImage(Image*, const IntRect&, CompositeOperator = CompositeSourceOver);
+        void drawImage(Image*, const IntRect&, CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
         void drawImage(Image*, const IntPoint& destPoint, const IntRect& srcRect, CompositeOperator = CompositeSourceOver);
-        void drawImage(Image*, const IntRect& destRect, const IntRect& srcRect, CompositeOperator = CompositeSourceOver);
+        void drawImage(Image*, const IntRect& destRect, const IntRect& srcRect, CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
         void drawImage(Image*, const FloatRect& destRect, const FloatRect& srcRect = FloatRect(0, 0, -1, -1),
-                       CompositeOperator = CompositeSourceOver);
+                       CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
         void drawTiledImage(Image*, const IntRect& destRect, const IntPoint& srcPoint, const IntSize& tileSize,
                        CompositeOperator = CompositeSourceOver);
-        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect,
+        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect, 
                             Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
                             CompositeOperator = CompositeSourceOver);
+#if PLATFORM(CG)
+        void setUseLowQualityImageInterpolation(bool = true);
+        bool useLowQualityImageInterpolation() const;
+#else
+        void setUseLowQualityImageInterpolation(bool = true) {}
+        bool useLowQualityImageInterpolation() const { return false; }
+#endif
 
         void clip(const IntRect&);
         void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
@@ -139,18 +153,19 @@ namespace WebCore {
         int textDrawingMode();
         void setTextDrawingMode(int);
 
-        void drawText(const TextRun&, const IntPoint&);
-        void drawText(const TextRun&, const IntPoint&, const TextStyle&);
-        void drawHighlightForText(const TextRun&, const IntPoint&, int h, const TextStyle&, const Color& backgroundColor);
+        void drawText(const TextRun&, const IntPoint&, int from = 0, int to = -1);
+        void drawText(const TextRun&, const IntPoint&, const TextStyle&, int from = 0, int to = -1);
+        void drawBidiText(const TextRun&, const IntPoint&, const TextStyle&);
+        void drawHighlightForText(const TextRun&, const IntPoint&, int h, const TextStyle&, const Color& backgroundColor, int from = 0, int to = -1);
 
         FloatRect roundToDevicePixels(const FloatRect&);
-
+        
         void drawLineForText(const IntPoint&, int width, bool printing);
         void drawLineForMisspellingOrBadGrammar(const IntPoint&, int width, bool grammar);
-
+        
         bool paintingDisabled() const;
         void setPaintingDisabled(bool);
-
+        
         bool updatingControlTints() const;
         void setUpdatingControlTints(bool);
 
@@ -175,15 +190,16 @@ namespace WebCore {
         void setCompositeOperation(CompositeOperator);
 
         void beginPath();
-        void addPath(const Path& path);
+        void addPath(const Path&);
 
         void clip(const Path&);
+        void clipOut(const Path&);
 
         void scale(const FloatSize&);
         void rotate(float angleInRadians);
         void translate(float x, float y);
         IntPoint origin();
-
+        
         void setURLForRect(const KURL&, const IntRect&);
 
         void concatCTM(const AffineTransform&);
@@ -197,6 +213,13 @@ namespace WebCore {
 #if PLATFORM(QT)
         void setFillRule(WindRule);
         PlatformPath* currentPath();
+#endif
+
+#if PLATFORM(GTK)
+        void setGdkExposeEvent(GdkEventExpose*);
+        GdkDrawable* gdkDrawable() const;
+        GdkEventExpose* gdkExposeEvent() const;
+        IntPoint translatePoint(const IntPoint&) const;
 #endif
 
     private:

@@ -15,18 +15,18 @@
 
     You should have received a copy of the GNU Library General Public License
     aint with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 #include "SVGPaintServer.h"
 
 #include "GraphicsContext.h"
-#include "KCanvasRenderingStyle.h"
-#include "RenderPath.h"
+#include "SVGRenderStyle.h"
+#include "RenderObject.h"
 
 #include <QPainter>
 #include <QVector>
@@ -35,7 +35,7 @@ namespace WebCore {
 
 void SVGPaintServer::setPenProperties(const RenderObject* object, const RenderStyle* style, QPen& pen) const
 {
-    pen.setWidthF(KSVGPainterFactory::cssPrimitiveToLength(object, style->svgStyle()->strokeWidth(), 1.0));
+    pen.setWidthF(SVGRenderStyle::cssPrimitiveToLength(object, style->svgStyle()->strokeWidth(), 1.0));
 
     if (style->svgStyle()->capStyle() == ButtCap)
         pen.setCapStyle(Qt::FlatCap);
@@ -48,8 +48,8 @@ void SVGPaintServer::setPenProperties(const RenderObject* object, const RenderSt
     } else if(style->svgStyle()->joinStyle() == RoundJoin)
         pen.setJoinStyle(Qt::RoundJoin);
 
-    const KCDashArray& dashes = KSVGPainterFactory::dashArrayFromRenderingStyle(style);
-    double dashOffset = KSVGPainterFactory::cssPrimitiveToLength(object, style->svgStyle()->strokeDashOffset(), 0.0);
+    const DashArray& dashes = WebCore::dashArrayFromRenderingStyle(style);
+    double dashOffset = SVGRenderStyle::cssPrimitiveToLength(object, style->svgStyle()->strokeDashOffset(), 0.0);
 
     unsigned int dashLength = !dashes.isEmpty() ? dashes.size() : 0;
     if(dashLength) {
@@ -66,7 +66,7 @@ void SVGPaintServer::setPenProperties(const RenderObject* object, const RenderSt
     }
 }
 
-void SVGPaintServer::draw(GraphicsContext*& context, const RenderPath* path, SVGPaintTargetType type) const
+void SVGPaintServer::draw(GraphicsContext*& context, const RenderObject* path, SVGPaintTargetType type) const
 {
     if (!setup(context, path, type))
         return;
@@ -80,7 +80,7 @@ void SVGPaintServer::teardown(GraphicsContext*&, const RenderObject*, SVGPaintTa
     // no-op
 }
 
-void SVGPaintServer::renderPath(GraphicsContext*& context, const RenderPath* path, SVGPaintTargetType type) const
+void SVGPaintServer::renderPath(GraphicsContext*& context, const RenderObject* path, SVGPaintTargetType type) const
 {
     RenderStyle* renderStyle = path->style();
 

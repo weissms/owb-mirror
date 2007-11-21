@@ -17,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -37,14 +37,14 @@ public:
 
     // DOM methods & attributes for CharacterData
 
-    virtual String data() const;
-    virtual void setData(const String&, ExceptionCode&);
-    virtual unsigned length() const;
-    virtual String substringData(unsigned offset, unsigned count, ExceptionCode&);
-    virtual void appendData(const String&, ExceptionCode&);
-    virtual void insertData(unsigned offset, const String&, ExceptionCode&);
-    virtual void deleteData(unsigned offset, unsigned count, ExceptionCode&);
-    virtual void replaceData(unsigned offset, unsigned count, const String &arg, ExceptionCode&);
+    String data() const { return str; }
+    void setData(const String&, ExceptionCode&);
+    unsigned length() const { return str->length(); }
+    String substringData(unsigned offset, unsigned count, ExceptionCode&);
+    void appendData(const String&, ExceptionCode&);
+    void insertData(unsigned offset, const String&, ExceptionCode&);
+    void deleteData(unsigned offset, unsigned count, ExceptionCode&);
+    void replaceData(unsigned offset, unsigned count, const String &arg, ExceptionCode&);
 
     bool containsOnlyWhitespace() const;
     bool containsOnlyWhitespace(unsigned from, unsigned len) const;

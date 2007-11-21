@@ -1,9 +1,9 @@
 /*
     Copyright (C) 2004, 2005 Nikolas Zimmermann <wildfox@kde.org>
-                  2004, 2005, 2006 Rob Buis <buis@kde.org>
+                  2004, 2005, 2006, 2007 Rob Buis <buis@kde.org>
     Copyright (C) 2007 Eric Seidel <eric@webkit.org>
 
-    This file is part of the KDE project
+    This file is part of the WebKit project
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -17,22 +17,24 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #include "config.h"
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGAnimateTransformElement.h"
 
-#include "TimeScheduler.h"
-#include "SVGAngle.h"
 #include "AffineTransform.h"
+#include "RenderObject.h"
+#include "SVGAngle.h"
+#include "SVGParserUtilities.h"
 #include "SVGSVGElement.h"
 #include "SVGStyledTransformableElement.h"
 #include "SVGTransform.h"
 #include "SVGTransformList.h"
-#include "SVGParserUtilities.h"
+#include "TimeScheduler.h"
+
 #include <math.h>
 #include <wtf/MathExtras.h>
 
@@ -58,16 +60,15 @@ bool SVGAnimateTransformElement::hasValidTarget() const
 void SVGAnimateTransformElement::parseMappedAttribute(MappedAttribute* attr)
 {
     if (attr->name() == SVGNames::typeAttr) {
-        const String& value = attr->value();
-        if (value == "translate")
+        if (attr->value() == "translate")
             m_type = SVGTransform::SVG_TRANSFORM_TRANSLATE;
-        else if (value == "scale")
+        else if (attr->value() == "scale")
             m_type = SVGTransform::SVG_TRANSFORM_SCALE;
-        else if (value == "rotate")
+        else if (attr->value() == "rotate")
             m_type = SVGTransform::SVG_TRANSFORM_ROTATE;
-        else if (value == "skewX")
+        else if (attr->value() == "skewX")
             m_type = SVGTransform::SVG_TRANSFORM_SKEWX;
-        else if (value == "skewY")
+        else if (attr->value() == "skewY")
             m_type = SVGTransform::SVG_TRANSFORM_SKEWY;
     } else
         SVGAnimationElement::parseMappedAttribute(attr);
@@ -123,7 +124,9 @@ void SVGAnimateTransformElement::applyAnimatedValueToElement()
         transformList->clear(ec);
     
     transformList->appendItem(m_animatedTransform, ec);
-    transform->updateLocalTransform(transformList.get());
+    transform->setTransform(transformList.get());
+    if (transform->renderer())
+        transform->renderer()->setNeedsLayout(true); // should really be in setTransform
 }
 
 bool SVGAnimateTransformElement::calculateFromAndToValues(EAnimationMode animationMode, unsigned valueIndex)
@@ -154,86 +157,16 @@ bool SVGAnimateTransformElement::calculateFromAndToValues(EAnimationMode animati
     return true;
 }
 
-SVGTransform SVGAnimateTransformElement::parseTransformValue(const String& data) const
+SVGTransform SVGAnimateTransformElement::parseTransformValue(const String& value) const
 {
-    // FIXME: This parser should be combined with the one in SVGTransformable::parseTransformAttribute
-    
-    String parse = data.stripWhiteSpace();
-    if (parse.isEmpty())
-        return SVGTransform();
-
-    // Careful, cur changes as parseNumber is called. 
-    const UChar* cur = parse.characters();
-    const UChar* end = cur + parse.length();
-    
-    SVGTransform parsedTransform;
-    
-    switch (m_type) {
-        case SVGTransform::SVG_TRANSFORM_TRANSLATE:
-        {
-            double tx = 0.0, ty = 0.0;
-            
-            if (!parseNumber(cur, end, tx))
-                tx = 0.0;
-            
-            if (!parseNumber(cur, end, ty))
-                ty = 0.0;
-
-            parsedTransform.setTranslate(tx, ty);
-            break;
-        }
-        case SVGTransform::SVG_TRANSFORM_SCALE:
-        {
-            double sx = 1.0, sy = 1.0;
-
-            if (!parseNumber(cur, end, sx))
-                sx = 1.0;
-            
-            if (!parseNumber(cur, end, sy))
-                sy = sx;
-            
-            parsedTransform.setScale(sx, sy);
-            break;
-        }
-        case SVGTransform::SVG_TRANSFORM_ROTATE:
-        {
-            double angle = 0, cx = 0, cy = 0;
-
-            if (parseNumber(cur, end, angle)) {
-                // Successful, try to read cx and cy. It's either both cx and cy or none
-                if (!parseNumber(cur, end, cx) || !parseNumber(cur, end, cy)) {
-                    cx = 0;
-                    cy = 0;
-                }
-            }
-
-            parsedTransform.setRotate(angle, cx, cy);
-            break;    
-        }
-        case SVGTransform::SVG_TRANSFORM_SKEWX:
-        case SVGTransform::SVG_TRANSFORM_SKEWY:
-        {
-            double angle = 0;
-            
-            if (!parseNumber(cur, end, angle))
-                angle = 0;
-            
-            if (m_type == SVGTransform::SVG_TRANSFORM_SKEWX)
-                parsedTransform.setSkewX(angle);
-            else
-                parsedTransform.setSkewY(angle);
-
-            break;
-        }
-        default:
-            return SVGTransform();
-    }
-    
-    return parsedTransform;
+    SVGTransform result;
+    const UChar* ptr = value.characters();
+    SVGTransformable::parseTransformValue(m_type, ptr, ptr + value.length(), result); // ignoring return value
+    return result;
 }
 
 }
 
 // vim:ts=4:noet
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 

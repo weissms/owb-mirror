@@ -56,9 +56,9 @@ protected:
     virtual void deleteTextFromNode(Text* node, int offset, int count);
     void inputText(const String&, bool selectInsertedText = false);
     void insertNodeAfter(Node* insertChild, Node* refChild);
-    void insertNodeAt(Node* insertChild, Node* refChild, int offset);
+    void insertNodeAt(Node* insertChild, const Position&);
     void insertNodeBefore(Node* insertChild, Node* refChild);
-    void insertParagraphSeparator();
+    void insertParagraphSeparator(bool useDefaultParagraphElement = false);
     void insertTextIntoNode(Text* node, int offset, const String& text);
     void joinTextNodes(Text*, Text*);
     void rebalanceWhitespace();
@@ -90,7 +90,7 @@ protected:
     Node *addBlockPlaceholderIfNeeded(Node*);
     void removePlaceholderAt(const VisiblePosition&);
 
-    void moveParagraphContentsToNewBlockIfNecessary(const Position&);
+    Node* moveParagraphContentsToNewBlockIfNecessary(const Position&);
     
     void pushAnchorElementDown(Node*);
     void pushPartiallySelectedAnchorElementsDown();
@@ -99,6 +99,8 @@ protected:
     void moveParagraphs(const VisiblePosition&, const VisiblePosition&, const VisiblePosition&, bool preserveSelection = false, bool preserveStyle = true);
     
     bool breakOutOfEmptyListItem();
+    
+    Position positionAvoidingSpecialElementBoundary(const Position&, bool alwaysAvoidAnchors = true);
 
     Vector<RefPtr<EditCommand> > m_commands;
 

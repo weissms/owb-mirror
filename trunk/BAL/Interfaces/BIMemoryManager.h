@@ -42,26 +42,40 @@ namespace BAL {
     */
     class BIMemoryManager {
         public:
-        // this is mandatory
+            // this is mandatory
+            /**
+            * BIKeyboardEvent destructor
+            */
             ~BIMemoryManager(){}
 
-       static void *calloc(size_t nmemb, size_t size);
-       static void *malloc(size_t size);
-       static void free(void *ptr);
-       static void *realloc(void *ptr, size_t size);
+            /**
+            * calloc
+            */
+            static void *calloc(size_t nmemb, size_t size);
+            /**
+            * malloc
+            */
+            static void *malloc(size_t size);
+            /**
+            * free
+            */
+            static void free(void *ptr);
+            /**
+            * realloc
+            */
+            static void *realloc(void *ptr, size_t size);
 
     };
 }
 
 inline void *calloc(size_t nmemb, size_t size)
 {
-   // return BAL::BIMemoryManager::ceilf( x );
-	return 0;
+    return 0;
 }
 
 inline void *malloc(size_t size)
 {
-	return 0;
+    return 0;
 }
 
 inline void free(void *ptr)
@@ -70,7 +84,7 @@ inline void free(void *ptr)
 
 inline void *realloc(void *ptr, size_t size)
 {
-	return 0;
+    return 0;
 }
 
 

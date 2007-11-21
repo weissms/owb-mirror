@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2006, 2007 Apple Inc.
+ * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -13,19 +13,22 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #include "config.h"
 #include "RenderTextControl.h"
 
+#include "CharacterNames.h"
+#include "CSSStyleSelector.h"
 #include "Document.h"
 #include "Editor.h"
 #include "EditorClient.h"
 #include "Event.h"
 #include "EventNames.h"
+#include "FontSelector.h"
 #include "Frame.h"
 #include "HTMLBRElement.h"
 #include "HTMLInputElement.h"
@@ -33,21 +36,19 @@
 #include "HTMLTextAreaElement.h"
 #include "HTMLTextFieldInnerElement.h"
 #include "HitTestResult.h"
+#include "LocalizedStrings.h"
 #include "MouseEvent.h"
+#include "PlatformScrollBar.h"
 #include "RenderTheme.h"
 #include "SearchPopupMenu.h"
 #include "SelectionController.h"
 #include "Settings.h"
+#include "Text.h"
 #include "TextIterator.h"
 #include "TextStyle.h"
 #include "htmlediting.h"
 #include "visible_units.h"
-
-#ifdef __OWB__
-#include <BIMath.h>
-#else
 #include <math.h>
-#endif
 
 using namespace std;
 
@@ -56,11 +57,26 @@ namespace WebCore {
 using namespace EventNames;
 using namespace HTMLNames;
 
+class RenderTextControlInnerBlock : public RenderBlock {
+public:
+    RenderTextControlInnerBlock(Node* node) : RenderBlock(node) { }
+
+    virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
+};
+
+bool RenderTextControlInnerBlock::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int x, int y, int tx, int ty, HitTestAction hitTestAction)
+{
+    RenderTextControl* renderer = static_cast<RenderTextControl*>(node()->shadowAncestorNode()->renderer());
+    
+    return RenderBlock::nodeAtPoint(request, result, x, y, tx, ty, renderer->placeholderIsVisible() ? HitTestBlockBackground : hitTestAction);
+}
+
 RenderTextControl::RenderTextControl(Node* node, bool multiLine)
     : RenderBlock(node)
     , m_dirty(false)
     , m_multiLine(multiLine)
     , m_placeholderVisible(false)
+    , m_userEdited(false)
     , m_searchPopup(0)
     , m_searchPopupIsVisible(false)
     , m_searchEventTimer(this, &RenderTextControl::searchEventTimerFired)
@@ -85,12 +101,21 @@ RenderTextControl::~RenderTextControl()
 void RenderTextControl::setStyle(RenderStyle* style)
 {
     RenderBlock::setStyle(style);
-    if (m_innerBlock)
+    if (m_innerBlock) {
+        // We may have set the width and the height in the old style in layout(). Reset them now to avoid
+        // getting a spurious layout hint.
+        m_innerBlock->renderer()->style()->setHeight(Length());
+        m_innerBlock->renderer()->style()->setWidth(Length());
         m_innerBlock->renderer()->setStyle(createInnerBlockStyle(style));
+    }
 
     if (m_innerText) {
         RenderBlock* textBlockRenderer = static_cast<RenderBlock*>(m_innerText->renderer());
         RenderStyle* textBlockStyle = createInnerTextStyle(style);
+        // We may have set the width and the height in the old style in layout(). Reset them now to avoid
+        // getting a spurious layout hint.
+        textBlockRenderer->style()->setHeight(Length());
+        textBlockRenderer->style()->setWidth(Length());
         textBlockRenderer->setStyle(textBlockStyle);
         for (Node* n = m_innerText->firstChild(); n; n = n->traverseNextNode(m_innerText.get())) {
             if (n->renderer())
@@ -109,7 +134,9 @@ void RenderTextControl::setStyle(RenderStyle* style)
 
 static Color disabledTextColor(const Color& textColor, const Color& backgroundColor)
 {
-    if (differenceSquared(textColor, Color::white) > differenceSquared(backgroundColor, Color::white))
+    // The explcit check for black is an optimization for the 99% case (black on white).
+    // This also means that black on black will turn into grey on black when disabled.
+    if (textColor.rgb() == Color::black || differenceSquared(textColor, Color::white) > differenceSquared(backgroundColor, Color::white))
         return textColor.light();
     return textColor.dark();
 }
@@ -150,13 +177,14 @@ RenderStyle* RenderTextControl::createInnerTextStyle(RenderStyle* startStyle)
         // Set word wrap property based on wrap attribute
         if (static_cast<HTMLTextAreaElement*>(element)->wrap() == HTMLTextAreaElement::ta_NoWrap) {
             textBlockStyle->setWhiteSpace(PRE);
-            textBlockStyle->setWordWrap(WBNORMAL);
+            textBlockStyle->setWordWrap(NormalWordWrap);
         } else {
             textBlockStyle->setWhiteSpace(PRE_WRAP);
-            textBlockStyle->setWordWrap(BREAK_WORD);
+            textBlockStyle->setWordWrap(BreakWordWrap);
         }
     } else {
         textBlockStyle->setWhiteSpace(PRE);
+        textBlockStyle->setWordWrap(NormalWordWrap);
         textBlockStyle->setOverflowX(OHIDDEN);
         textBlockStyle->setOverflowY(OHIDDEN);
         
@@ -206,8 +234,12 @@ RenderStyle* RenderTextControl::createResultsButtonStyle(RenderStyle* startStyle
 
 RenderStyle* RenderTextControl::createCancelButtonStyle(RenderStyle* startStyle)
 {
-    RenderStyle* cancelBlockStyle = getPseudoStyle(RenderStyle::SEARCH_CANCEL_BUTTON);
-    if (!cancelBlockStyle)
+    RenderStyle* cancelBlockStyle;
+    
+    if (RenderStyle* pseudoStyle = getPseudoStyle(RenderStyle::SEARCH_CANCEL_BUTTON))
+        // We may be sharing style with another search field, but we must not share the cancel button style.
+        cancelBlockStyle = new (renderArena()) RenderStyle(*pseudoStyle);
+    else
         cancelBlockStyle = new (renderArena()) RenderStyle();
 
     if (startStyle)
@@ -302,7 +334,7 @@ void RenderTextControl::createSubtreeIfNeeded()
         // For non-search fields, there is no intermediate m_innerBlock as the shadow node.
         // m_innerText will be the shadow node in that case.
         m_innerText = new HTMLTextFieldInnerTextElement(document(), m_innerBlock ? 0 : node());
-        RenderBlock* textBlockRenderer = new (renderArena()) RenderBlock(m_innerText.get());
+        RenderTextControlInnerBlock* textBlockRenderer = new (renderArena()) RenderTextControlInnerBlock(m_innerText.get());
         m_innerText->setRenderer(textBlockRenderer);
         m_innerText->setAttached();
         m_innerText->setInDocument(true);
@@ -371,6 +403,7 @@ void RenderTextControl::updateFromElement()
             if (Frame* frame = document()->frame())
                 frame->editor()->clearUndoRedoOperations();
             m_dirty = false;
+            m_userEdited = false;
         }
         element->setValueMatchesRenderer();
     }
@@ -417,7 +450,7 @@ void RenderTextControl::setSelectionRange(int start, int end)
 
     document()->updateLayout();
 
-    if (style()->visibility() == HIDDEN) {
+    if (style()->visibility() == HIDDEN || !m_innerText || !m_innerText->renderer() || !m_innerText->renderer()->height()) {
         if (m_multiLine)
             static_cast<HTMLTextAreaElement*>(node())->cacheSelection(start, end);
         else
@@ -489,6 +522,7 @@ void RenderTextControl::subtreeHasChanged()
 {
     bool wasDirty = m_dirty;
     m_dirty = true;
+    m_userEdited = true;
     HTMLGenericFormElement* element = static_cast<HTMLGenericFormElement*>(node());
     if (m_multiLine) {
         element->setValueMatchesRenderer(false);
@@ -516,52 +550,127 @@ void RenderTextControl::subtreeHasChanged()
     }
 }
 
+String RenderTextControl::finishText(Vector<UChar>& result) const
+{
+    UChar symbol = backslashAsCurrencySymbol();
+    if (symbol != '\\') {
+        size_t size = result.size();
+        for (size_t i = 0; i < size; ++i)
+            if (result[i] == '\\')
+                result[i] = symbol;
+    }
+
+    return String::adopt(result);
+}
+
 String RenderTextControl::text()
 {
-    if (m_innerText)
-        return m_innerText->textContent().replace('\\', backslashAsCurrencySymbol());
-    return String();
+    if (!m_innerText)
+        return "";
+ 
+    Frame* frame = document()->frame();
+    Text* compositionNode = frame ? frame->editor()->compositionNode() : 0;
+
+    Vector<UChar> result;
+
+    for (Node* n = m_innerText.get(); n; n = n->traverseNextNode(m_innerText.get())) {
+        if (n->isTextNode()) {
+            Text* text = static_cast<Text*>(n);
+            String data = text->data();
+            unsigned length = data.length();
+            if (text != compositionNode)
+                result.append(data.characters(), length);
+            else {
+                unsigned compositionStart = min(frame->editor()->compositionStart(), length);
+                unsigned compositionEnd = min(max(compositionStart, frame->editor()->compositionEnd()), length);
+                result.append(data.characters(), compositionStart);
+                result.append(data.characters() + compositionEnd, length - compositionEnd);
+            }
+        }
+    }
+
+    return finishText(result);
+}
+
+static void getNextSoftBreak(RootInlineBox*& line, Node*& breakNode, unsigned& breakOffset)
+{
+    RootInlineBox* next;
+    for (; line; line = next) {
+        next = line->nextRootBox();
+        if (next && !line->endsWithBreak()) {
+            ASSERT(line->lineBreakObj());
+            breakNode = line->lineBreakObj()->node();
+            breakOffset = line->lineBreakPos();
+            line = next;
+            return;
+        }
+    }
+    breakNode = 0;
 }
 
 String RenderTextControl::textWithHardLineBreaks()
 {
-    String s("");
-
-    if (!m_innerText || !m_innerText->firstChild())
-        return s;
+    if (!m_innerText)
+        return "";
+    Node* firstChild = m_innerText->firstChild();
+    if (!firstChild)
+        return "";
 
     document()->updateLayout();
 
-    RenderObject* renderer = m_innerText->firstChild()->renderer();
+    RenderObject* renderer = firstChild->renderer();
     if (!renderer)
-        return s;
+        return "";
 
     InlineBox* box = renderer->inlineBox(0, DOWNSTREAM);
     if (!box)
-        return s;
+        return "";
 
-    ExceptionCode ec = 0;
-    RefPtr<Range> range = new Range(document());
-    range->selectNodeContents(m_innerText.get(), ec);
-    for (RootInlineBox* line = box->root(); line; line = line->nextRootBox()) {
-        // If we're at a soft wrap, then insert the hard line break here
-        if (!line->endsWithBreak() && line->nextRootBox()) {
-            // Update range so it ends before this wrap
-            ASSERT(line->lineBreakObj());
-            range->setEnd(line->lineBreakObj()->node(), line->lineBreakPos(), ec);
+    Frame* frame = document()->frame();
+    Text* compositionNode = frame ? frame->editor()->compositionNode() : 0;
 
-            s.append(range->toString(true, ec));
-            s.append("\n");
+    Node* breakNode;
+    unsigned breakOffset;
+    RootInlineBox* line = box->root();
+    getNextSoftBreak(line, breakNode, breakOffset);
 
-            // Update range so it starts after this wrap
-            range->setEnd(m_innerText.get(), maxDeepOffset(m_innerText.get()), ec);
-            range->setStart(line->lineBreakObj()->node(), line->lineBreakPos(), ec);
+    Vector<UChar> result;
+
+    for (Node* n = firstChild; n; n = n->traverseNextNode(m_innerText.get())) {
+        if (n->hasTagName(brTag))
+            result.append(&newlineCharacter, 1);
+        else if (n->isTextNode()) {
+            Text* text = static_cast<Text*>(n);
+            String data = text->data();
+            unsigned length = data.length();
+            unsigned compositionStart = (text == compositionNode)
+                ? min(frame->editor()->compositionStart(), length) : 0;
+            unsigned compositionEnd = (text == compositionNode)
+                ? min(max(compositionStart, frame->editor()->compositionEnd()), length) : 0;
+            unsigned position = 0;
+            while (breakNode == n && breakOffset < compositionStart) {
+                result.append(data.characters() + position, breakOffset - position);
+                position = breakOffset;
+                result.append(&newlineCharacter, 1);
+                getNextSoftBreak(line, breakNode, breakOffset);
+            }
+            result.append(data.characters() + position, compositionStart - position);
+            position = compositionEnd;
+            while (breakNode == n && breakOffset <= length) {
+                if (breakOffset > position) {
+                    result.append(data.characters() + position, breakOffset - position);
+                    position = breakOffset;
+                    result.append(&newlineCharacter, 1);
+                }
+                getNextSoftBreak(line, breakNode, breakOffset);
+            }
+            result.append(data.characters() + position, length - position);
         }
+        while (breakNode == n)
+            getNextSoftBreak(line, breakNode, breakOffset);
     }
-    s.append(range->toString(true, ec));
-    ASSERT(!ec);
 
-    return s.replace('\\', backslashAsCurrencySymbol());
+    return finishText(result);
 }
 
 void RenderTextControl::calcHeight()
@@ -595,11 +704,11 @@ void RenderTextControl::calcHeight()
     }
     toAdd += innerToAdd;
 
-    // FIXME: We should get the size of the scrollbar from the RenderTheme instead of hard coding it here.
+    // FIXME: We should get the size of the scrollbar from the RenderTheme instead.
     int scrollbarSize = 0;
     // We are able to have a horizontal scrollbar if the overflow style is scroll, or if its auto and there's no word wrap.
-    if (m_innerText->renderer()->style()->overflowX() == OSCROLL ||  (m_innerText->renderer()->style()->overflowX() == OAUTO && m_innerText->renderer()->style()->wordWrap() == WBNORMAL))
-        scrollbarSize = 15;
+    if (m_innerText->renderer()->style()->overflowX() == OSCROLL ||  (m_innerText->renderer()->style()->overflowX() == OAUTO && m_innerText->renderer()->style()->wordWrap() == NormalWordWrap))
+        scrollbarSize = PlatformScrollbar::horizontalScrollbarHeight();
 
     m_height = line * rows + toAdd + scrollbarSize;
 
@@ -652,6 +761,13 @@ bool RenderTextControl::nodeAtPoint(const HitTestRequest& request, HitTestResult
     return false;
 }
 
+IntRect RenderTextControl::controlClipRect(int tx, int ty) const
+{
+    IntRect clipRect = contentBox();
+    clipRect.move(tx, ty);
+    return clipRect;
+}
+
 void RenderTextControl::layout()
 {
     int oldHeight = m_height;
@@ -660,9 +776,17 @@ void RenderTextControl::layout()
 
     // Set the text block's height
     int textBlockHeight = m_height - paddingTop() - paddingBottom() - borderTop() - borderBottom();
-    m_innerText->renderer()->style()->setHeight(Length(textBlockHeight, Fixed));
-    if (m_innerBlock)
+    int currentTextBlockHeight = m_innerText->renderer()->height();
+    if (m_multiLine || m_innerBlock || currentTextBlockHeight > m_height) {
+        if (textBlockHeight != currentTextBlockHeight)
+            relayoutChildren = true;
+        m_innerText->renderer()->style()->setHeight(Length(textBlockHeight, Fixed));
+    }
+    if (m_innerBlock) {
+        if (textBlockHeight != m_innerBlock->renderer()->height())
+            relayoutChildren = true;
         m_innerBlock->renderer()->style()->setHeight(Length(textBlockHeight, Fixed));
+    }
 
     int oldWidth = m_width;
     calcWidth();
@@ -682,20 +806,36 @@ void RenderTextControl::layout()
     // Set the text block's width
     int textBlockWidth = m_width - paddingLeft() - paddingRight() - borderLeft() - borderRight() -
                          m_innerText->renderer()->paddingLeft() - m_innerText->renderer()->paddingRight() - searchExtrasWidth;
+    if (textBlockWidth != m_innerText->renderer()->width())
+        relayoutChildren = true;
     m_innerText->renderer()->style()->setWidth(Length(textBlockWidth, Fixed));
-    if (m_innerBlock)
-        m_innerBlock->renderer()->style()->setWidth(Length(m_width - paddingLeft() - paddingRight() - borderLeft() - borderRight(), Fixed));
+    if (m_innerBlock) {
+        int innerBlockWidth = m_width - paddingLeft() - paddingRight() - borderLeft() - borderRight();
+        if (innerBlockWidth != m_innerBlock->renderer()->width())
+            relayoutChildren = true;
+        m_innerBlock->renderer()->style()->setWidth(Length(innerBlockWidth, Fixed));
+    }
 
     RenderBlock::layoutBlock(relayoutChildren);
+    
+    // For text fields, center the inner text vertically
+    // Don't do this for search fields, since we don't honor height for them
+    if (!m_multiLine) {
+        currentTextBlockHeight = m_innerText->renderer()->height();
+        if (!m_innerBlock && currentTextBlockHeight < m_height)
+            m_innerText->renderer()->setPos(m_innerText->renderer()->xPos(), (m_height - currentTextBlockHeight) / 2);
+    }
 }
 
-void RenderTextControl::calcMinMaxWidth()
+void RenderTextControl::calcPrefWidths()
 {
-    m_minWidth = 0;
-    m_maxWidth = 0;
+    ASSERT(prefWidthsDirty());
+
+    m_minPrefWidth = 0;
+    m_maxPrefWidth = 0;
 
     if (style()->width().isFixed() && style()->width().value() > 0)
-        m_minWidth = m_maxWidth = calcContentBoxWidth(style()->width().value());
+        m_minPrefWidth = m_maxPrefWidth = calcContentBoxWidth(style()->width().value());
     else {
         // Figure out how big a text control needs to be for a given number of characters
         // (using "0" as the nominal character).
@@ -705,44 +845,44 @@ void RenderTextControl::calcMinMaxWidth()
         int scrollbarSize = 0;
         if (m_multiLine) {
             factor = static_cast<HTMLTextAreaElement*>(node())->cols();
-            // FIXME: We should get the size of the scrollbar from the RenderTheme instead of hard coding it here.
+            // FIXME: We should get the size of the scrollbar from the RenderTheme instead.
             if (m_innerText->renderer()->style()->overflowY() != OHIDDEN)
-                scrollbarSize = 15;
+                scrollbarSize = PlatformScrollbar::verticalScrollbarWidth();
         } else {
             factor = static_cast<HTMLInputElement*>(node())->size();
             if (factor <= 0)
                 factor = 20;
         }
-        m_maxWidth = static_cast<int>(ceilf(charWidth * factor)) + scrollbarSize;
+        m_maxPrefWidth = static_cast<int>(ceilf(charWidth * factor)) + scrollbarSize +
+                         m_innerText->renderer()->paddingLeft() + m_innerText->renderer()->paddingRight();
+                
+        if (m_resultsButton)
+            m_maxPrefWidth += m_resultsButton->renderer()->borderLeft() + m_resultsButton->renderer()->borderRight() +
+                              m_resultsButton->renderer()->paddingLeft() + m_resultsButton->renderer()->paddingRight();
+        if (m_cancelButton)
+            m_maxPrefWidth += m_cancelButton->renderer()->borderLeft() + m_cancelButton->renderer()->borderRight() +
+                              m_cancelButton->renderer()->paddingLeft() + m_cancelButton->renderer()->paddingRight();
     }
 
     if (style()->minWidth().isFixed() && style()->minWidth().value() > 0) {
-        m_maxWidth = max(m_maxWidth, calcContentBoxWidth(style()->minWidth().value()));
-        m_minWidth = max(m_minWidth, calcContentBoxWidth(style()->minWidth().value()));
+        m_maxPrefWidth = max(m_maxPrefWidth, calcContentBoxWidth(style()->minWidth().value()));
+        m_minPrefWidth = max(m_minPrefWidth, calcContentBoxWidth(style()->minWidth().value()));
     } else if (style()->width().isPercent() || (style()->width().isAuto() && style()->height().isPercent()))
-        m_minWidth = 0;
+        m_minPrefWidth = 0;
     else
-        m_minWidth = m_maxWidth;
+        m_minPrefWidth = m_maxPrefWidth;
 
     if (style()->maxWidth().isFixed() && style()->maxWidth().value() != undefinedLength) {
-        m_maxWidth = min(m_maxWidth, calcContentBoxWidth(style()->maxWidth().value()));
-        m_minWidth = min(m_minWidth, calcContentBoxWidth(style()->maxWidth().value()));
+        m_maxPrefWidth = min(m_maxPrefWidth, calcContentBoxWidth(style()->maxWidth().value()));
+        m_minPrefWidth = min(m_minPrefWidth, calcContentBoxWidth(style()->maxWidth().value()));
     }
 
-    int toAdd = paddingLeft() + paddingRight() + borderLeft() + borderRight() +
-                m_innerText->renderer()->paddingLeft() + m_innerText->renderer()->paddingRight();
+    int toAdd = paddingLeft() + paddingRight() + borderLeft() + borderRight();
 
-    if (m_resultsButton)
-        toAdd += m_resultsButton->renderer()->borderLeft() + m_resultsButton->renderer()->borderRight() +
-                 m_resultsButton->renderer()->paddingLeft() + m_resultsButton->renderer()->paddingRight();
-    if (m_cancelButton)
-        toAdd += m_cancelButton->renderer()->borderLeft() + m_cancelButton->renderer()->borderRight() +
-                 m_cancelButton->renderer()->paddingLeft() + m_cancelButton->renderer()->paddingRight();
+    m_minPrefWidth += toAdd;
+    m_maxPrefWidth += toAdd;
 
-    m_minWidth += toAdd;
-    m_maxWidth += toAdd;
-
-    setMinMaxKnown();
+    setPrefWidthsDirty(false);
 }
 
 void RenderTextControl::forwardEvent(Event* evt)
@@ -843,8 +983,8 @@ void RenderTextControl::addSearchResult()
     if (value.isEmpty())
         return;
 
-    Frame* frame = document()->frame();
-    if (!frame || frame->settings()->privateBrowsingEnabled())
+    Settings* settings = document()->settings();
+    if (!settings || settings->privateBrowsingEnabled())
         return;
 
     int size = static_cast<int>(m_recentSearches.size());
@@ -869,6 +1009,10 @@ void RenderTextControl::showPopup()
 
     if (!m_searchPopup)
         m_searchPopup = SearchPopupMenu::create(this);
+
+    if (!m_searchPopup->enabled())
+        return;
+    
     m_searchPopupIsVisible = true;
 
     const AtomicString& name = autosaveName();
@@ -895,9 +1039,9 @@ void RenderTextControl::hidePopup()
 
 void RenderTextControl::valueChanged(unsigned listIndex, bool fireEvents)
 {
-    ASSERT(listIndex < listSize());
+    ASSERT(static_cast<int>(listIndex) < listSize());
     HTMLInputElement* input = static_cast<HTMLInputElement*>(node());
-    if (listIndex == (listSize() - 1)) {
+    if (static_cast<int>(listIndex) == (listSize() - 1)) {
         if (fireEvents) {
             m_recentSearches.clear();
             const AtomicString& name = autosaveName();
@@ -917,17 +1061,17 @@ void RenderTextControl::valueChanged(unsigned listIndex, bool fireEvents)
 
 String RenderTextControl::itemText(unsigned listIndex) const
 {
-    unsigned size = listSize();
+    int size = listSize();
     if (size == 1) {
         ASSERT(!listIndex);
-        return String("No recent searches");
+        return searchMenuNoRecentSearchesText();
     }
     if (!listIndex)
-        return String("Recent Searches");
+        return searchMenuRecentSearchesText();
     if (itemIsSeparator(listIndex))
         return String();
-    if (listIndex == (size - 1))
-        return String("Clear Recent Searches");
+    if (static_cast<int>(listIndex) == (size - 1))
+        return searchMenuClearRecentSearchesText();
     return m_recentSearches[listIndex - 1];
 }
 
@@ -941,6 +1085,11 @@ bool RenderTextControl::itemIsEnabled(unsigned listIndex) const
 RenderStyle* RenderTextControl::itemStyle(unsigned listIndex) const
 {
     return style();
+}
+
+Color RenderTextControl::itemBackgroundColor(unsigned listIndex) const
+{
+    return style()->backgroundColor();
 }
 
 RenderStyle* RenderTextControl::clientStyle() const
@@ -963,7 +1112,7 @@ int RenderTextControl::clientPaddingRight() const
     return paddingRight() + m_cancelButton->renderer()->width();
 }
 
-unsigned RenderTextControl::listSize() const
+int RenderTextControl::listSize() const
 {
     // If there are no recent searches, then our menu will have 1 "No recent searches" item.
     if (!m_recentSearches.size())
@@ -980,7 +1129,7 @@ int RenderTextControl::selectedIndex() const
 bool RenderTextControl::itemIsSeparator(unsigned listIndex) const
 {
    // The separator will be the second to last item in our list.
-   return listIndex == (listSize() - 2);
+   return static_cast<int>(listIndex) == (listSize() - 2);
 }
 
 bool RenderTextControl::itemIsLabel(unsigned listIndex) const
@@ -1030,6 +1179,18 @@ void RenderTextControl::startSearchEventTimer()
     // After typing the first key, we wait 0.5 seconds.
     // After the second key, 0.4 seconds, then 0.3, then 0.2 from then on.
     m_searchEventTimer.startOneShot(max(0.2, 0.6 - 0.1 * length));
+}
+
+bool RenderTextControl::isScrollable() const
+{
+    if (m_innerText && m_innerText->renderer()->isScrollable())
+        return true;
+    return RenderObject::isScrollable();
+}
+
+FontSelector* RenderTextControl::fontSelector() const
+{
+    return document()->styleSelector()->fontSelector();
 }
 
 } // namespace WebCore

@@ -35,6 +35,7 @@ set(editing_SRC
 	WebCore/editing/Selection.cpp
 	WebCore/editing/SelectionController.cpp
 	WebCore/editing/SetNodeAttributeCommand.cpp
+	WebCore/editing/SmartReplace.cpp
 	WebCore/editing/SplitElementCommand.cpp
 	WebCore/editing/SplitTextNodeCommand.cpp
 	WebCore/editing/SplitTextNodeContainingElementCommand.cpp

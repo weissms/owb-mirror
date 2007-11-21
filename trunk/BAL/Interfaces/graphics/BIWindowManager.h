@@ -53,13 +53,37 @@ namespace BAL {
     class BTWidget;
 
 /**
- * The IWindowManager implementation
+ * The BIWindowManager implementation
  */
 class BIWindowManager {
 public:
+
+    /**
+     * Create and open a window.
+     * @param[in] x: x position of the window
+     * @param[in] y: y position of the window
+     * @param[in] w: width of the window
+     * @param[in] h: height of the window
+     * @return BIWindow*: a pointer to the opened window
+     */
     virtual BIWindow* openWindow(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h) = 0;
+
+    /**
+     * Close a window.
+     * @param[in] BIWindow*: the window to destroy
+     */
     virtual void closeWindow(BIWindow*) = 0;
+
+    /**
+     * Retrieve the active window
+     * @return BIWindow*: a pointer to the active window
+     */
     virtual BIWindow* activeWindow() = 0;
+
+    /**
+     * handle the received event if it is a window event, else send it to the frame.
+     * @param[in] BIEvent*: a pointer to the event to handle
+     */
     virtual void handleEvent(BIEvent*) = 0;
 
     virtual ~BIWindowManager() {}
@@ -67,6 +91,6 @@ public:
 
 }
 
-#endif // IWINDOWMANAGER_H
+#endif // BIWINDOWMANAGER_H
 
 

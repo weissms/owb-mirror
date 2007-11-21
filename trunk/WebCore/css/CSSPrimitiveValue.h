@@ -3,6 +3,7 @@
  *
  * (C) 1999-2003 Lars Knoll (knoll@kde.org)
  * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
+ * Copyright (C) 2007 Alexey Proskuryakov <ap@webkit.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,8 +17,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef CSSPrimitiveValue_h
@@ -30,8 +31,9 @@ namespace WebCore {
 
 class Counter;
 class DashboardRegion;
+struct Length;
 class Pair;
-class RectImpl;
+class Rect;
 class RenderStyle;
 class StringImpl;
 
@@ -75,14 +77,11 @@ public:
     CSSPrimitiveValue(int ident);
     CSSPrimitiveValue(double, UnitTypes);
     CSSPrimitiveValue(const String&, UnitTypes);
-    CSSPrimitiveValue(PassRefPtr<Counter>);
-    CSSPrimitiveValue(PassRefPtr<RectImpl>);
     CSSPrimitiveValue(unsigned color); // RGB value
-    CSSPrimitiveValue(PassRefPtr<Pair>);
-
-#if PLATFORM(MAC)
-    CSSPrimitiveValue(PassRefPtr<DashboardRegion>); // FIXME: Why is dashboard region a primitive value? This makes no sense.
-#endif
+    CSSPrimitiveValue(const Length&);
+    template<typename T> CSSPrimitiveValue(T); // Defined in CSSPrimitiveValueMappings.h
+    template<typename T> CSSPrimitiveValue(T* val) { init(PassRefPtr<T>(val)); }
+    template<typename T> CSSPrimitiveValue(PassRefPtr<T> val) { init(val); }
 
     virtual ~CSSPrimitiveValue();
 
@@ -106,31 +105,37 @@ public:
     int computeLengthIntForLength(RenderStyle*, double multiplier);
     short computeLengthShort(RenderStyle*);
     short computeLengthShort(RenderStyle*, double multiplier);
-    double computeLengthFloat(RenderStyle*, bool applyZoomFactor = true);
+    float computeLengthFloat(RenderStyle*, bool applyZoomFactor = true);
+    double computeLengthDouble(RenderStyle*, bool applyZoomFactor = true);
 
     // use with care!!!
     void setPrimitiveType(unsigned short type) { m_type = type; }
+
+    double getDoubleValue(unsigned short unitType);
+    double getDoubleValue() const { return m_value.num; }
+
     void setFloatValue(unsigned short unitType, double floatValue, ExceptionCode&);
-    double getFloatValue(unsigned short unitType);
-    double getFloatValue() { return m_value.num; }
+    float getFloatValue(unsigned short unitType) { return static_cast<float>(getDoubleValue(unitType)); }
+    float getFloatValue() const { return static_cast<float>(m_value.num); }
+    int getIntValue(unsigned short unitType) { return static_cast<int>(getDoubleValue(unitType)); }
+    int getIntValue() const { return static_cast<int>(m_value.num); }
 
     void setStringValue(unsigned short stringType, const String& stringValue, ExceptionCode&);
     String getStringValue() const;
 
     Counter* getCounterValue () const { return m_type != CSS_COUNTER ? 0 : m_value.counter; }
-    RectImpl* getRectValue () const { return m_type != CSS_RECT ? 0 : m_value.rect; }
+    Rect* getRectValue () const { return m_type != CSS_RECT ? 0 : m_value.rect; }
     unsigned getRGBColorValue() const { return m_type != CSS_RGBCOLOR ? 0 : m_value.rgbcolor; }
     Pair* getPairValue() const { return m_type != CSS_PAIR ? 0 : m_value.pair; }
 
-#if PLATFORM(MAC)
     DashboardRegion* getDashboardRegionValue () const { return m_type != CSS_DASHBOARD_REGION ? 0 : m_value.region; }
-#endif
 
     virtual bool isPrimitiveValue() const { return true; }
 
     virtual unsigned short cssValueType() const;
 
     int getIdent();
+    template<typename T> operator T() const; // Defined in CSSPrimitiveValueMappings.h
 
     virtual bool parseString(const String&, bool = false);
     virtual String cssText() const;
@@ -144,13 +149,19 @@ protected:
         double num;
         StringImpl* string;
         Counter* counter;
-        RectImpl* rect;
+        Rect* rect;
         unsigned rgbcolor;
         Pair* pair;
-#if PLATFORM(MAC)
         DashboardRegion* region;
-#endif
     } m_value;
+
+private:
+    template<typename T> operator T*(); // compile-time guard
+
+    void init(PassRefPtr<Counter>);
+    void init(PassRefPtr<Rect>);
+    void init(PassRefPtr<Pair>);
+    void init(PassRefPtr<DashboardRegion>); // FIXME: Why is dashboard region a primitive value? This makes no sense.
 };
 
 } // namespace WebCore

@@ -24,15 +24,17 @@
 #ifndef _KJS_USTRING_H_
 #define _KJS_USTRING_H_
 
-#include <wtf/FastMalloc.h>
-#include <wtf/RefPtr.h>
-#include <wtf/PassRefPtr.h>
-
+#include "JSLock.h"
+#include "collector.h"
 #include <stdint.h>
+#include <wtf/Assertions.h>
+#include <wtf/FastMalloc.h>
+#include <wtf/PassRefPtr.h>
+#include <wtf/RefPtr.h>
 
-/* On ARM some versions of GCC don't pack structures by default so sizeof(UChar)
+/* On some ARM platforms GCC won't pack structures by default so sizeof(UChar)
    will end up being != 2 which causes crashes since the code depends on that. */
-#if COMPILER(GCC) && PLATFORM(ARM)
+#if COMPILER(GCC) && PLATFORM(FORCE_PACK)
 #define PACK_STRUCT __attribute__((packed))
 #else
 #define PACK_STRUCT
@@ -49,7 +51,6 @@ class KJScript;
 
 namespace KJS {
 
-  class UCharReference;
   class UString;
 
   /**
@@ -77,7 +78,6 @@ namespace KJS {
     UChar(char u);
     UChar(unsigned char u);
     UChar(unsigned short u);
-    UChar(const UCharReference &c);
     /**
      * @return The higher byte of the character.
      */
@@ -99,56 +99,6 @@ namespace KJS {
   inline UChar::UChar(char u) : uc((unsigned char)u) { }
   inline UChar::UChar(unsigned char u) : uc(u) { }
   inline UChar::UChar(unsigned short u) : uc(u) { }
-
-  /**
-   * @short Dynamic reference to a string character.
-   *
-   * UCharReference is the dynamic counterpart of UChar. It's used when
-   * characters retrieved via index from a UString are used in an
-   * assignment expression (and therefore can't be treated as being const):
-   * \code
-   * UString s("hello world");
-   * s[0] = 'H';
-   * \endcode
-   *
-   * If that sounds confusing your best bet is to simply forget about the
-   * existence of this class and treat is as being identical to UChar.
-   */
-  class UCharReference {
-    friend class UString;
-    UCharReference(UString *s, unsigned int off) : str(s), offset(off) { }
-  public:
-    /**
-     * Set the referenced character to c.
-     */
-    UCharReference& operator=(UChar c);
-    /**
-     * Same operator as above except the argument that it takes.
-     */
-    UCharReference& operator=(char c) { return operator=(UChar(c)); }
-    /**
-     * @return Unicode value.
-     */
-    unsigned short unicode() const { return ref().uc; }
-    /**
-     * @return Lower byte.
-     */
-    unsigned char low() const { return static_cast<unsigned char>(ref().uc); }
-    /**
-     * @return Higher byte.
-     */
-    unsigned char high() const { return static_cast<unsigned char>(ref().uc >> 8); }
-
-  private:
-    // not implemented, can only be constructed from UString
-    UCharReference();
-
-    UChar& ref() const;
-    UString *str;
-    int offset;
-  };
-
-  inline UChar::UChar(const UCharReference &c) : uc(c.unicode()) { }
 
   /**
    * @short 8 bit char based string class
@@ -192,15 +142,16 @@ namespace KJS {
 
       void destroy();
       
-      UChar *data() const { return baseString ? (baseString->buf + baseString->preCapacity + offset) : (buf + preCapacity + offset); }
+      bool baseIsSelf() const { return baseString == this; }
+      UChar* data() const { return baseString->buf + baseString->preCapacity + offset; }
       int size() const { return len; }
       
       unsigned hash() const { if (_hash == 0) _hash = computeHash(data(), len); return _hash; }
       static unsigned computeHash(const UChar *, int length);
       static unsigned computeHash(const char *);
 
-      Rep* ref() { ++rc; return this; }
-      void deref() { if (--rc == 0) destroy(); }
+      Rep* ref() { ASSERT(JSLock::lockCount() > 0); ++rc; return this; }
+      void deref() { ASSERT(JSLock::lockCount() > 0); if (--rc == 0) destroy(); }
 
       // unshared data
       int offset;
@@ -208,7 +159,7 @@ namespace KJS {
       int rc;
       mutable unsigned _hash;
       bool isIdentifier;
-      UString::Rep *baseString;
+      UString::Rep* baseString;
 
       // potentially shared data
       UChar *buf;
@@ -369,11 +320,7 @@ namespace KJS {
     /**
      * Const character at specified position.
      */
-    UChar operator[](int pos) const;
-    /**
-     * Writable reference to character at specified position.
-     */
-    UCharReference operator[](int pos);
+    const UChar operator[](int pos) const;
 
     /**
      * Attempts an conversion to a number. Apart from floating point numbers,
@@ -432,13 +379,13 @@ namespace KJS {
     static void globalClear();
 #endif
 
-    Rep *rep() const { return m_rep.get(); }
-    UString(PassRefPtr<Rep> r) : m_rep(r) { }
+    Rep* rep() const { return m_rep.get(); }
+    UString(PassRefPtr<Rep> r) : m_rep(r) { ASSERT(m_rep); }
 
-    void copyForWriting();
+    size_t cost() const;
 
   private:
-    int expandedSize(int size, int otherSize) const;
+    size_t expandedSize(size_t size, size_t otherSize) const;
     int usedCapacity() const;
     int usedPreCapacity() const;
     void expandCapacity(int requiredLength);
@@ -495,6 +442,24 @@ inline unsigned UString::toArrayIndex(bool *ok) const
     if (ok && i >= 0xFFFFFFFFU)
         *ok = false;
     return i;
+}
+
+inline size_t UString::cost() const
+{
+    // If this string is sharing with a base, then don't count any cost. We will never share
+    // with a base that wasn't already big enough to register extra cost, so a string holding that
+    // buffer has already paid extra cost at some point; and if we just
+    // enlarged it by a huge amount, it must have been by appending a string
+    // that itself paid extra cost, or a huge number of small strings. Either way, GC will come
+    // relatively soon.
+  
+    // If we didn't do this, the shared substring optimization would result
+    // in constantly garbage collecting when sharing with one big string.
+
+    if (!m_rep->baseIsSelf())
+        return 0;
+
+    return (m_rep->capacity + m_rep->preCapacity) * sizeof(UChar);
 }
 
 } // namespace

@@ -1,12 +1,9 @@
-set(bal_glue_SRC
-        ${bal_glue_SRC}
+SET (bal_glue_SRC
+	${bal_glue_SRC}
 
 	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
 	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h
 	BALGlue/AXObjectCacheBal.cpp
-	BALGlue/BCCookieManager.cpp
-	BALGlue/BitmapImage.cpp
-	BALGlue/BTCookie.cpp
 	BALGlue/ContextMenu.cpp
 	BALGlue/ContextMenuBal.cpp
 	BALGlue/ContextMenuItemBal.cpp
@@ -17,9 +14,11 @@ set(bal_glue_SRC
 	BALGlue/FrameBal.cpp
 	BALGlue/FrameViewBal.cpp
 	BALGlue/HistoryBal.cpp
-	BALGlue/ImageBal.cpp
 	BALGlue/PageCacheBal.cpp
 	BALGlue/PasteboardBal.cpp
-	BALGlue/RenderThemeBal.cpp
-
+	BALGlue/PlatformScreenBal.cpp
+	BALGlue/PlatformScrollBarBal.cpp
+	BALGlue/RenderThemeBal${TARGET}.cpp
+	BALGlue/SecurityOrigin.cpp
 )
+

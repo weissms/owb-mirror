@@ -17,8 +17,8 @@
 # 
 # You should have received a copy of the GNU Library General Public License
 # aint with this library; see the file COPYING.LIB.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 # 
 
 # This script is a temporary hack.
@@ -41,11 +41,13 @@ my @idlDirectories;
 my $outputDirectory;
 my $generator;
 my $defines;
+my $preprocessor;
 
 GetOptions('include=s@' => \@idlDirectories,
            'outputdir=s' => \$outputDirectory,
            'generator=s' => \$generator,
-           'defines=s' => \$defines);
+           'defines=s' => \$defines,
+           'preprocessor=s' => \$preprocessor);
 
 my $idlFile = $ARGV[0];
 
@@ -60,8 +62,8 @@ $defines =~ s/^\s+|\s+$//g; # trim whitespace
 
 # Parse the given IDL file.
 my $parser = IDLParser->new(1);
-my $document = $parser->Parse($idlFile, $defines);
+my $document = $parser->Parse($idlFile, $defines, $preprocessor);
 
 # Generate desired output for given IDL file.
-my $codeGen = CodeGenerator->new(\@idlDirectories, $generator, $outputDirectory);
+my $codeGen = CodeGenerator->new(\@idlDirectories, $generator, $outputDirectory, 0, $preprocessor);
 $codeGen->ProcessDocument($document, $defines);

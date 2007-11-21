@@ -94,7 +94,7 @@ GIFImageDecoder::~GIFImageDecoder()
 }
 
 // Take the data and store it.
-void GIFImageDecoder::setData(const Vector<char>& data, bool allDataReceived)
+void GIFImageDecoder::setData(SharedBuffer* data, bool allDataReceived)
 {
     if (m_failed)
         return;
@@ -138,7 +138,7 @@ int GIFImageDecoder::frameCount()
         // state, but for now we just crawl all the data.  Note that this is no worse than what
         // ImageIO does on Mac right now (it also crawls all the data again).
         GIFImageDecoderPrivate reader;
-        reader.decode(m_data, GIFFrameCountQuery);
+        reader.decode(m_data->buffer(), GIFFrameCountQuery);
         m_frameCountValid = true;
         m_frameBufferCache.resize(reader.frameCount());
     }
@@ -158,7 +158,7 @@ int GIFImageDecoder::repetitionCount() const
 
 RGBA32Buffer* GIFImageDecoder::frameBufferAtIndex(size_t index)
 {
-    if (index < 0 || index >= m_frameBufferCache.size())
+    if (index < 0 || index >= frameCount())
         return 0;
 
     RGBA32Buffer& frame = m_frameBufferCache[index];
@@ -174,7 +174,7 @@ void GIFImageDecoder::decode(GIFQuery query, unsigned haltAtFrame) const
     if (m_failed)
         return;
 
-    m_failed = !m_reader->decode(m_data, query, haltAtFrame);
+    m_failed = !m_reader->decode(m_data->buffer(), query, haltAtFrame);
     
     if (m_failed) {
         delete m_reader;
@@ -191,7 +191,7 @@ void GIFImageDecoder::sizeNowAvailable(unsigned width, unsigned height)
 
 void GIFImageDecoder::decodingHalted(unsigned bytesLeft)
 {
-    m_reader->setReadOffset(m_data.size() - bytesLeft);
+    m_reader->setReadOffset(m_data->size() - bytesLeft);
 }
 
 void GIFImageDecoder::initFrameBuffer(RGBA32Buffer& buffer, 
@@ -257,7 +257,6 @@ void GIFImageDecoder::initFrameBuffer(RGBA32Buffer& buffer,
                 bool sawAlpha = buffer.hasAlpha();
                 IntRect prevRect = previousBuffer->rect();
                 unsigned end = prevRect.y() + prevRect.height();
-                unsigned* src;
 
                 // Given that we allocate buffers to be the same size as previous buffers,
                 // I think this assert should be valid.
@@ -345,12 +344,13 @@ void GIFImageDecoder::haveDecodedRow(unsigned frameIndex,
 
     if (repeatCount > 1) {
         // Copy the row |repeatCount|-1 times.
-        unsigned size = (currDst - dst) * sizeof(unsigned);
+        unsigned num = currDst - dst;
+        unsigned size = num * sizeof(unsigned);
         unsigned width = m_size.width();
         unsigned* end = buffer.bytes().data() + width * m_size.height();
         currDst = dst + width;
         for (unsigned i = 1; i < repeatCount; i++) {
-            if (currDst + size > end) // Protect against a buffer overrun from a bogus repeatCount.
+            if (currDst + num > end) // Protect against a buffer overrun from a bogus repeatCount.
                 break;
             memcpy(currDst, dst, size);
             currDst += width;

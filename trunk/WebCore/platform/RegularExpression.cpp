@@ -65,6 +65,7 @@ RegularExpression::Private::Private(DeprecatedString p, bool caseSensitive, bool
     compile(caseSensitive, glob);
 }
 
+#ifdef __OWB_JS__
 static DeprecatedString RegExpFromGlob(DeprecatedString glob)
 {
     DeprecatedString result = glob;
@@ -87,6 +88,7 @@ static DeprecatedString RegExpFromGlob(DeprecatedString glob)
 
     return result;
 }
+#endif //__OWB_JS__
 
 void RegularExpression::Private::compile(bool caseSensitive, bool glob)
 {
@@ -108,14 +110,14 @@ void RegularExpression::Private::compile(bool caseSensitive, bool glob)
     if (regex == NULL) {
         LOG_ERROR("RegularExpression: pcre_compile failed with '%s'", errorMessage);
     }
-#endif
+#endif //__OWB_JS__
 }
 
 RegularExpression::Private::~Private()
 {
 #ifdef __OWB_JS__
     pcre_free(regex);
-#endif
+#endif //__OWB_JS__
 }
 
 
@@ -180,8 +182,8 @@ int RegularExpression::match(const DeprecatedString &str, int startFrom, int *ma
     }
     return d->lastMatchPos;
 #else
-    return -1;
-#endif
+	return -1;
+#endif //__OWB_JS__
 }
 
 int RegularExpression::search(const DeprecatedString &str, int startFrom) const
@@ -237,7 +239,7 @@ DeprecatedString RegularExpression::cap(int n) const
        pcre_free_substring(substring);
        return capture;
     }
-#endif
+#endif //__OWB_JS__
     return DeprecatedString();
 }
 

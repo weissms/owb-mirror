@@ -26,9 +26,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Simplified build script for Web Kit Open Source Project.
-# Modified copy of build-webkit. Perhaps these could share code.
-# Currently only works for the Deployment build style.
 
 use strict;
 use FindBin;
@@ -47,11 +44,11 @@ my $result;
 if (isOSX()) {
     $result = system "xcodebuild", "-project", "DumpRenderTree.xcodeproj", @options;
 } elsif (isCygwin()) {
-    $result = buildVisualStudioProject("DumpRenderTree");
-} elsif (isQt() || isOwb()) {
+    $result = buildVisualStudioProject("DumpRenderTree.sln");
+} elsif (isQt()) {
     # Qt/Linux builds everything in one-shot. No need to build anything here.
     $result = 0;
 } else {
     die "Building not defined for this platform!\n";
 }
-exit WEXITSTATUS($result);
+exit exitStatus($result);

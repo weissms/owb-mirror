@@ -17,8 +17,8 @@
 # 
 # You should have received a copy of the GNU Library General Public License
 # aint with this library; see the file COPYING.LIB.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 # 
 
 package IDLParser;
@@ -60,11 +60,19 @@ sub Parse
     my $object = shift;
     my $fileName = shift;
     my $defines = shift;
+    my $preprocessor = shift;
+
+    if (!$preprocessor) {
+        $preprocessor = "/usr/bin/gcc -E -P -x c++";
+    }
+
+    if (!$defines) {
+        $defines = "";
+    }
 
     print " | *** Starting to parse $fileName...\n |\n" unless $beQuiet;
 
-    open FILE, "-|", "/usr/bin/gcc", "-E", "-P", "-x", "c++", 
-        (map { "-D$_" } split(/ /, $defines)), $fileName or die "Could not open $fileName";
+    open FILE, $preprocessor . " " . join(" ", (map { "-D$_" } split(/ /, $defines))) . " ". $fileName . "|" or die "Could not open $fileName";
     my @documentContent = <FILE>;
     close FILE;
 
@@ -165,7 +173,7 @@ sub ParseInterface
     $data =~ /};/g;
     $data = substr($data, index($data, $sectionName), pos($data) - length($data));
 
-    $data =~ s/[\n\r]//g;
+    $data =~ s/[\n\r]/ /g;
 
     # Beginning of the regexp parsing magic
     if ($sectionName eq "exception") {
@@ -230,7 +238,7 @@ sub ParseInterface
             push(@$arrayRef, $line);
         }
 
-        $interfaceData =~ s/[\n\r]//g;
+        $interfaceData =~ s/[\n\r]/ /g;
         my @interfaceMethods = split(/;/, $interfaceData);
 
         foreach my $line (@interfaceMethods) {
@@ -269,7 +277,7 @@ sub ParseInterface
                 $setterException =~ s/\s+//g;
                 @{$newDataNode->getterExceptions} = split(/,/, $getterException);
                 @{$newDataNode->setterExceptions} = split(/,/, $setterException);
-            } elsif (($line !~ s/^\s*$//g) and ($line !~ /^\s+const/)) {
+            } elsif (($line !~ s/^\s*$//g) and ($line !~ /^\s*const/)) {
                 $line =~ /$IDLStructure::interfaceMethodSelector/ or die "Parsing error!\nSource:\n$line\n)";
 
                 my $methodExtendedAttributes = (defined($1) ? $1 : " "); chop($methodExtendedAttributes);
@@ -318,7 +326,7 @@ sub ParseInterface
 
                 my $arrayRef = $dataNode->functions;
                 push(@$arrayRef, $newDataNode);
-            } elsif ($line =~ /^\s+const/) {
+            } elsif ($line =~ /^\s*const/) {
                 $line =~ /$IDLStructure::constantSelector/;
                 my $constType = (defined($1) ? $1 : die("Parsing error!\nSource:\n$line\n)"));
                 my $constName = (defined($2) ? $2 : die("Parsing error!\nSource:\n$line\n)"));

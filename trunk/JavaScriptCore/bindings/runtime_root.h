@@ -32,8 +32,13 @@
 #endif
 #include "protect.h"
 
+#include <wtf/HashSet.h>
+#include <wtf/Noncopyable.h>
+
 namespace KJS {
 
+class RuntimeObjectImp;
+    
 namespace Bindings {
 
 class RootObject;
@@ -44,7 +49,7 @@ typedef HashCountedSet<JSObject*> ProtectCountSet;
 extern RootObject* findRootObject(JSObject*);
 extern RootObject* findRootObject(Interpreter*);
 
-class RootObject
+class RootObject : Noncopyable
 {
 friend class JavaJSObject;
 public:
@@ -80,13 +85,11 @@ public:
     static void dispatchToJavaScriptThread(JSObjectCallContext *context);
 #endif
 
+    void addRuntimeObject(RuntimeObjectImp*);
+    void removeRuntimeObject(RuntimeObjectImp*);
 private:
     RootObject(const void* nativeHandle, PassRefPtr<Interpreter> interpreter);
     ~RootObject();
-    
-    // Uncopyable
-    RootObject(const RootObject&);
-    RootObject& operator=(const RootObject&);
     
     unsigned m_refCount;
     bool m_isValid;
@@ -95,6 +98,8 @@ private:
     RefPtr<Interpreter> m_interpreter;
     ProtectCountSet m_protectCountSet;
 
+    HashSet<RuntimeObjectImp*> m_runtimeObjects;
+    
 #if PLATFORM(MAC)
     static CreateRootObjectFunction _createRootObject;
     static CFRunLoopRef _runLoop;

@@ -23,11 +23,10 @@
 #include "regexp.h"
 
 #include "lexer.h"
-
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wtf/Assertions.h>
 
 namespace KJS {
 
@@ -50,14 +49,8 @@ RegExp::RegExp(const UString &p, int flags)
   m_regex = pcre_compile(reinterpret_cast<const uint16_t*>(p.data()), p.size(),
                         options, &errorMessage, &errorOffset, NULL);
   if (!m_regex) {
-    // Try again, this time handle any \u we might find.
-    UString uPattern = sanitizePattern(p);
-    m_regex = pcre_compile(reinterpret_cast<const uint16_t*>(uPattern.data()), uPattern.size(),
-                          options, &errorMessage, &errorOffset, NULL);
-    if (!m_regex) {
-      m_constructionError = strdup(errorMessage);
-      return;
-    }
+    m_constructionError = strdup(errorMessage);
+    return;
   }
 
 #ifdef PCRE_INFO_CAPTURECOUNT
@@ -72,7 +65,7 @@ RegExp::RegExp(const UString &p, int flags)
   regflags |= REG_EXTENDED;
 #endif
 #ifdef REG_ICASE
-  if ( f & IgnoreCase )
+  if (flags & IgnoreCase)
     regflags |= REG_ICASE;
 #endif
 
@@ -83,7 +76,7 @@ RegExp::RegExp(const UString &p, int flags)
 
   // FIXME: support \u Unicode escapes.
 
-  int errorCode = regcomp(&m_regex, intern.ascii(), regflags);
+  int errorCode = regcomp(&m_regex, p.ascii(), regflags);
   if (errorCode != 0) {
     char errorMessage[80];
     regerror(errorCode, &m_regex, errorMessage, sizeof errorMessage);
@@ -187,48 +180,6 @@ UString RegExp::match(const UString &s, int i, int *pos, int **ovector)
   return s.substr((*ovector)[0], (*ovector)[1] - (*ovector)[0]);
 
 #endif
-}
-
-UString RegExp::sanitizePattern(const UString& p)
-{
-  UString newPattern;
-  
-  int startPos = 0;
-  int pos = p.find("\\u", 0) + 2; // Skip the \u
-  
-  while (pos != 1) { // p.find failing is -1 + 2 = 1 
-    if (pos + 3 < p.size()) {
-      if (isHexDigit(p[pos]) && isHexDigit(p[pos + 1]) &&
-          isHexDigit(p[pos + 2]) && isHexDigit(p[pos + 3])) {
-        newPattern.append(p.substr(startPos, pos - startPos - 2));
-        UChar escapedUnicode(convertUnicode(p[pos], p[pos + 1], 
-                                            p[pos + 2], p[pos + 3]));
-        // \u encoded characters should be treated as if they were escaped,
-        // so add an escape for certain characters that need it.
-        switch (escapedUnicode.unicode()) {
-          case '|':
-          case '+':
-          case '*':
-          case '(':
-          case ')':
-          case '[':
-          case ']':
-          case '{':
-          case '}':
-          case '?':
-          case '\\':
-            newPattern.append('\\');
-        }
-        newPattern.append(escapedUnicode);
-
-        startPos = pos + 4;
-      }
-    }
-    pos = p.find("\\u", pos) + 2;
-  }
-  newPattern.append(p.substr(startPos, p.size() - startPos));
-
-  return newPattern;
 }
 
 bool RegExp::isHexDigit(UChar uc)

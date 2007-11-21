@@ -1,8 +1,7 @@
 // -*- c-basic-offset: 2 -*-
 /*
- *  This file is part of the KDE libraries
  *  Copyright (C) 1999-2000 Harri Porten (porten@kde.org)
- *  Copyright (C) 2003 Apple Computer, Inc.
+ *  Copyright (C) 2003, 2006, 2007 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -20,19 +19,18 @@
  *
  */
 
-#ifndef _KJSLOOKUP_H_
-#define _KJSLOOKUP_H_
+#ifndef KJS_lookup_h
+#define KJS_lookup_h
 
-#include "interpreter.h"
-#include "internal.h"
+#include "context.h"
 #include "identifier.h"
-#include "function_object.h"
+#include "interpreter.h"
+#include "JSGlobalObject.h"
 #include "object.h"
 #include <stdio.h>
+#include <wtf/Assertions.h>
 
 namespace KJS {
-
-  class FunctionPrototype;
 
   /**
    * An entry in a hash table.
@@ -50,7 +48,7 @@ namespace KJS {
     /**
      * attr is a set for flags (e.g. the property flags, see object.h)
      */
-    short int attr;
+    unsigned char attr;
     /**
      * params is another number. For property hashtables, it is used to
      * denote the number of argument of the function
@@ -90,9 +88,9 @@ namespace KJS {
      */
     const HashEntry* entries;
     /**
-     * the maximum value for the hash. Always smaller than size.
+     * the maximum value for the hash minus 1. Always smaller than size.
      */
-    int hashSize;
+    int hashSizeMask;
   };
 
   /**
@@ -105,7 +103,6 @@ namespace KJS {
      */
     static int find(const struct HashTable*, const Identifier&);
     static int find(const struct HashTable*, const UChar*, unsigned int len);
-
 
     /**
      * Find an entry in the table, and return the entry
@@ -180,7 +177,7 @@ namespace KJS {
 
     if (entry->attr & Function)
       slot.setStaticEntry(thisObj, entry, staticFunctionGetter<FuncImp>);
-    else 
+    else
       slot.setStaticEntry(thisObj, entry, staticValueGetter<ThisImp>);
 
     return true;
@@ -188,11 +185,11 @@ namespace KJS {
 
   /**
    * Simplified version of getStaticPropertySlot in case there are only functions.
-   * Using this instead of getStaticPropertySlot allows 'this' to avoid implementing 
+   * Using this instead of getStaticPropertySlot allows 'this' to avoid implementing
    * a dummy getValueProperty.
    */
   template <class FuncImp, class ParentImp>
-  inline bool getStaticFunctionSlot(ExecState* exec, const HashTable* table, 
+  inline bool getStaticFunctionSlot(ExecState* exec, const HashTable* table,
                                     JSObject* thisObj, const Identifier& propertyName, PropertySlot& slot)
   {
     const HashEntry* entry = Lookup::findEntry(table, propertyName);
@@ -200,7 +197,7 @@ namespace KJS {
     if (!entry) // not found, forward to parent
       return static_cast<ParentImp*>(thisObj)->ParentImp::getOwnPropertySlot(exec, propertyName, slot);
 
-    assert(entry->attr & Function);
+    ASSERT(entry->attr & Function);
 
     slot.setStaticEntry(thisObj, entry, staticFunctionGetter<FuncImp>);
     return true;
@@ -211,7 +208,7 @@ namespace KJS {
    * Using this instead of getStaticPropertySlot removes the need for a FuncImp class.
    */
   template <class ThisImp, class ParentImp>
-  inline bool getStaticValueSlot(ExecState* exec, const HashTable* table, 
+  inline bool getStaticValueSlot(ExecState* exec, const HashTable* table,
                                  ThisImp* thisObj, const Identifier& propertyName, PropertySlot& slot)
   {
     const HashEntry* entry = Lookup::findEntry(table, propertyName);
@@ -219,7 +216,7 @@ namespace KJS {
     if (!entry) // not found, forward to parent
       return thisObj->ParentImp::getOwnPropertySlot(exec, propertyName, slot);
 
-    assert(!(entry->attr & Function));
+    ASSERT(!(entry->attr & Function));
 
     slot.setStaticEntry(thisObj, entry, staticValueGetter<ThisImp>);
     return true;
@@ -242,13 +239,7 @@ namespace KJS {
 
     if (entry->attr & Function) // function: put as override property
       thisObj->JSObject::put(exec, propertyName, value, attr);
-    else if (entry->attr & ReadOnly) // readonly! Can't put!
-#ifdef KJS_VERBOSE
-      fprintf(stderr,"WARNING: Attempt to change value of readonly property '%s'\n",propertyName.ascii());
-#else
-      ; // do nothing
-#endif
-    else
+    else if (!(entry->attr & ReadOnly))
       thisObj->putValueProperty(exec, entry->value, value, attr);
 
     return true;
@@ -279,10 +270,10 @@ namespace KJS {
   template <class ClassCtor>
   inline JSObject* cacheGlobalObject(ExecState* exec, const Identifier& propertyName)
   {
-    JSObject* globalObject = static_cast<JSObject*>(exec->lexicalInterpreter()->globalObject());
+    JSGlobalObject* globalObject = exec->lexicalInterpreter()->globalObject();
     JSValue* obj = globalObject->getDirect(propertyName);
     if (obj) {
-      assert(obj->isObject());
+      ASSERT(obj->isObject());
       return static_cast<JSObject* >(obj);
     }
     JSObject* newObject = new ClassCtor(exec);
@@ -338,7 +329,8 @@ namespace KJS {
     const ClassInfo ClassPrototype::info = { ClassName"Prototype", 0, &ClassPrototype##Table, 0 }; \
     JSObject* ClassPrototype::self(ExecState* exec) \
     { \
-        return KJS::cacheGlobalObject<ClassPrototype>(exec, "[[" ClassName ".prototype]]"); \
+        static Identifier* prototypeIdentifier = new Identifier("[[" ClassName ".prototype]]"); \
+        return KJS::cacheGlobalObject<ClassPrototype>(exec, *prototypeIdentifier); \
     } \
     bool ClassPrototype::getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot) \
     { \
@@ -352,7 +344,7 @@ namespace KJS {
       : InternalFunctionImp(static_cast<FunctionPrototype*>(exec->lexicalInterpreter()->builtinFunctionPrototype()), name) \
       , id(i) \
     { \
-       put(exec, lengthPropertyName, jsNumber(len), DontDelete|ReadOnly|DontEnum); \
+       put(exec, exec->propertyNames().length, jsNumber(len), DontDelete|ReadOnly|DontEnum); \
     } \
     /* Macro user needs to implement the callAsFunction function. */ \
     virtual JSValue* callAsFunction(ExecState* exec, JSObject* thisObj, const List& args); \
@@ -360,4 +352,4 @@ namespace KJS {
     int id; \
   };
 
-#endif
+#endif // KJS_lookup_h

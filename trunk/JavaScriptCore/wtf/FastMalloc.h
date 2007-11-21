@@ -24,9 +24,7 @@
 #define WTF_FastMalloc_h
 
 #include "Platform.h"
-#ifndef __OWB__
 #include <stdlib.h>
-#endif
 #include <new>
 
 namespace WTF {
@@ -36,6 +34,11 @@ namespace WTF {
     void fastFree(void* p);
     void *fastRealloc(void* p, size_t n);
 
+#ifndef NDEBUG    
+    void fastMallocForbid();
+    void fastMallocAllow();
+#endif
+
 } // namespace WTF
 
 using WTF::fastMalloc;
@@ -43,9 +46,14 @@ using WTF::fastCalloc;
 using WTF::fastRealloc;
 using WTF::fastFree;
 
-#if PLATFORM(GCC) && PLATFORM(DARWIN)
+#ifndef NDEBUG    
+using WTF::fastMallocForbid;
+using WTF::fastMallocAllow;
+#endif
+
+#if COMPILER(GCC) && PLATFORM(DARWIN)
 #define WTF_PRIVATE_INLINE __private_extern__ inline __attribute__((always_inline))
-#elif PLATFORM(GCC)
+#elif COMPILER(GCC)
 #define WTF_PRIVATE_INLINE inline __attribute__((always_inline))
 #else
 #define WTF_PRIVATE_INLINE inline
@@ -53,10 +61,12 @@ using WTF::fastFree;
 
 #ifndef _CRTDBG_MAP_ALLOC
 
+#if !defined(USE_SYSTEM_MALLOC) || !(USE_SYSTEM_MALLOC)
 WTF_PRIVATE_INLINE void* operator new(size_t s) { return fastMalloc(s); }
 WTF_PRIVATE_INLINE void operator delete(void* p) { fastFree(p); }
 WTF_PRIVATE_INLINE void* operator new[](size_t s) { return fastMalloc(s); }
 WTF_PRIVATE_INLINE void operator delete[](void* p) { fastFree(p); }
+#endif
 
 #endif // _CRTDBG_MAP_ALLOC
 

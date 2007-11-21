@@ -30,7 +30,7 @@
 #include <wtf/Platform.h>
 
 #if PLATFORM(MAC)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 #ifdef __OBJC__
 @class NSEvent;
 #else
@@ -44,8 +44,8 @@ typedef unsigned WPARAM;
 typedef long LPARAM;
 #endif
 
-#if PLATFORM(GDK)
-typedef union _GdkEvent GdkEvent;
+#if PLATFORM(GTK)
+typedef struct _GdkEventKey GdkEventKey;
 #endif
 
 #if PLATFORM(QT)
@@ -63,6 +63,7 @@ namespace WebCore {
         bool isAutoRepeat() const { return m_autoRepeat; }
         void setIsAutoRepeat(bool in) { m_autoRepeat = in; }
         int WindowsKeyCode() const { return m_WindowsKeyCode; }
+        void setWindowsKeyCode(int code) { m_WindowsKeyCode = code; }
         bool isKeypad() const { return m_isKeypad; }
         bool shiftKey() const { return m_shiftKey; }
         bool ctrlKey() const { return m_ctrlKey; }
@@ -75,15 +76,15 @@ namespace WebCore {
 #endif
 
 #if PLATFORM(WIN)
-        PlatformKeyboardEvent(HWND, WPARAM, LPARAM);
+        PlatformKeyboardEvent(HWND, WPARAM, LPARAM, UChar);
 #endif
 
-#if PLATFORM(GDK)
-        PlatformKeyboardEvent(GdkEvent*);
+#if PLATFORM(GTK)
+        PlatformKeyboardEvent(GdkEventKey*);
 #endif
 
 #if PLATFORM(QT)
-        PlatformKeyboardEvent(QKeyEvent*, bool isKeyUp);
+        PlatformKeyboardEvent(QKeyEvent*);
 #endif
 
     private:

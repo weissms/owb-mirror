@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2004, 2005, 2006 Nikolas Zimmermann <wildfox@kde.org>
+    Copyright (C) 2004, 2005, 2006, 2007 Nikolas Zimmermann <zimmermann@kde.org>
     Copyright (C) 2004, 2005, 2006 Rob Buis <buis@kde.org>
     Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
 
@@ -17,15 +17,14 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGFilterElement_h
 #define SVGFilterElement_h
 
-#ifdef SVG_SUPPORT
-
+#if ENABLE(SVG) && ENABLE(SVG_EXPERIMENTAL_FEATURES)
 #include "SVGResourceFilter.h"
 #include "SVGExternalResourcesRequired.h"
 #include "SVGLangSpace.h"
@@ -46,10 +45,10 @@ namespace WebCore {
 
         virtual SVGResource* canvasResource();
 
-        // 'SVGFilterElement' functions
         void setFilterRes(unsigned long filterResX, unsigned long filterResY) const;
 
-        virtual void parseMappedAttribute(MappedAttribute* attr);
+        virtual void parseMappedAttribute(MappedAttribute*);
+        virtual bool rendererIsNeeded(RenderStyle*) { return false; }
 
     protected:
         virtual const SVGElement* contextElement() const { return this; }
@@ -72,7 +71,7 @@ namespace WebCore {
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

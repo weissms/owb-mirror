@@ -1,6 +1,4 @@
 /*
-    This file is part of the KDE libraries
-
     Copyright (C) 1998 Lars Knoll (knoll@mpi-hd.mpg.de)
     Copyright (C) 2001 Dirk Mueller <mueller@kde.org>
     Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.
@@ -17,8 +15,8 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     This class provides all functionality needed for loading images, style sheets and html
     pages from the web. It has a memory cache for these objects.
@@ -29,7 +27,6 @@
 
 #include "CachedResource.h"
 #include "CachePolicy.h"
-#include "Settings.h"
 #include "StringHash.h"
 #include <wtf/HashMap.h>
 #include <wtf/HashSet.h>
@@ -37,6 +34,7 @@
 namespace WebCore {
 
 class CachedCSSStyleSheet;
+class CachedFont;
 class CachedImage;
 class CachedScript;
 class CachedXSLStyleSheet;
@@ -59,11 +57,12 @@ public:
     CachedCSSStyleSheet* requestCSSStyleSheet(const String& url, const String& charset, bool isUserStyleSheet = false);
     CachedCSSStyleSheet* requestUserCSSStyleSheet(const String& url, const String& charset);
     CachedScript* requestScript(const String& url, const String& charset);
+    CachedFont* requestFont(const String& url);
 
-#ifdef XSLT_SUPPORT
+#if ENABLE(XSLT)
     CachedXSLStyleSheet* requestXSLStyleSheet(const String& url);
 #endif
-#ifdef XBL_SUPPORT
+#if ENABLE(XBL)
     CachedXBLDocument* requestXBLDocument(const String &url);
 #endif
 
@@ -76,9 +75,6 @@ public:
     CachePolicy cachePolicy() const { return m_cachePolicy; }
     void setCachePolicy(CachePolicy);
     
-    time_t expireDate() const { return m_expireDate; }
-    void setExpireDate(time_t);
-    
     Frame* frame() const { return m_frame; }
     Document* doc() const { return m_doc; }
 
@@ -86,9 +82,18 @@ public:
 
     void setLoadInProgress(bool);
     bool loadInProgress() const { return m_loadInProgress; }
+    
+    void setAllowStaleResources(bool allowStaleResources) { m_allowStaleResources = allowStaleResources; }
 
+#if USE(LOW_BANDWIDTH_DISPLAY)
+    void replaceDocument(Document* doc) { m_doc = doc; }
+#endif
+
+    void incrementRequestCount();
+    void decrementRequestCount();
+    int requestCount();
 private:
-    CachedResource* requestResource(CachedResource::Type, const String& url, const String* charset = 0, bool skipCanLoadCheck = false);
+    CachedResource* requestResource(CachedResource::Type, const String& url, const String* charset = 0, bool skipCanLoadCheck = false, bool sendResourceLoadCallbacks = true);
 
     void checkForReload(const KURL&);
     void checkCacheObjectStatus(CachedResource*);
@@ -96,12 +101,16 @@ private:
     Cache* m_cache;
     HashSet<String> m_reloadedURLs;
     mutable HashMap<String, CachedResource*> m_docResources;
-    time_t m_expireDate;
     CachePolicy m_cachePolicy;
-    bool m_autoLoadImages : 1;
     Frame* m_frame;
     Document *m_doc;
-    bool m_loadInProgress;
+    
+    int m_requestCount;
+    
+    //29 bits left
+    bool m_autoLoadImages : 1;
+    bool m_loadInProgress : 1;
+    bool m_allowStaleResources : 1;
 };
 
 }

@@ -91,9 +91,6 @@ CanvasPattern::CanvasPattern(CachedImage* cachedImage, bool repeatX, bool repeat
 
 CanvasPattern::~CanvasPattern()
 {
-#if PLATFORM(CG)
-    CGImageRelease(m_platformImage);
-#endif
     if (m_cachedImage)
         m_cachedImage->deref(this);
 }
@@ -121,6 +118,10 @@ static void patternCallback(void* info, CGContextRef context)
 
     if (image->getCGImageRef()) {
         CGContextDrawImage(context, rect, image->getCGImageRef());
+        // FIXME: We should refactor this code to use the platform-independent 
+        // drawing API in all cases. Then, this didDraw call will happen 
+        // automatically, and we can remove it.
+        cachedImage->didDraw(image);
         return;
     }
 
@@ -138,8 +139,8 @@ CGPatternRef CanvasPattern::createPattern(const CGAffineTransform& transform)
     rect.origin.x = 0;
     rect.origin.y = 0;
     if (m_platformImage) {
-        rect.size.width = CGImageGetWidth(m_platformImage);
-        rect.size.height = CGImageGetHeight(m_platformImage);
+        rect.size.width = CGImageGetWidth(m_platformImage.get());
+        rect.size.height = CGImageGetHeight(m_platformImage.get());
     } else {
         if (!m_cachedImage)
             return 0;
@@ -159,7 +160,7 @@ CGPatternRef CanvasPattern::createPattern(const CGAffineTransform& transform)
     // INT_MAX is almost correct, but there seems to be some number wrapping occuring making the fill
     // pattern is not filled correctly. 
     // So, just pick a really large number that works. 
-    float yStep = m_repeatY ? rect.size.height : (100000000.0);
+    float yStep = m_repeatY ? rect.size.height : (100000000.0f);
 
     const CGPatternCallbacks patternCallbacks = { 0, patternCallback, patternReleaseCallback };
     ref();

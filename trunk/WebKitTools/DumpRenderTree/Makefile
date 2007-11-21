@@ -1,1 +1,2 @@
-include ../Makefile.shared
+SCRIPTS_PATH = ../Scripts
+include ../../Makefile.shared

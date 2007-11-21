@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -47,11 +47,9 @@ public:
     virtual void paint(PaintInfo&, int tx, int ty);
 
     virtual void layout();
-    virtual void calcMinMaxWidth();
+    virtual void calcPrefWidths();
 
     virtual void imageChanged(CachedImage*);
-
-    virtual void calcWidth();
 
     virtual InlineBox* createInlineBox(bool, bool, bool);
 
@@ -66,8 +64,10 @@ public:
 
     virtual SelectionState selectionState() const { return m_selectionState; }
     virtual void setSelectionState(SelectionState);
-    virtual IntRect selectionRect();
+    virtual IntRect selectionRect(bool clipToVisibleContent = true);
     virtual bool canBeSelectionLeaf() const { return true; }
+
+    void updateMargins();
 
 private:
     IntRect getRelativeMarkerRect();

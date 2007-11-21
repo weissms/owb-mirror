@@ -34,6 +34,7 @@
 #include "Font.h"
 #include "BTLogHelper.h"
 #include "Cursor.h"
+#include "IntRect.h"
 
 namespace WebCore {
 class Cursor;
@@ -67,30 +68,9 @@ IntRect BTWidget::frameGeometry() const
     return IntRect(data->x, data->y, data->width, data->height);
 }
 
-bool BTWidget::hasFocus() const
-{
-    BALNotImplemented();
-    return false;
-}
-
 void BTWidget::setFocus()
 {
     BALNotImplemented();
-}
-
-void BTWidget::clearFocus()
-{
-      BALNotImplemented();
-}
-
-const Font& BTWidget::font() const
-{
-    return data->font;
-}
-
-void BTWidget::setFont(const Font& font)
-{
-    data->font = font;
 }
 
 void BTWidget::setCursor(const Cursor&)
@@ -183,37 +163,10 @@ void BTWidget::paint(GraphicsContext*, const IntRect&)
     BALNotImplemented();
 }
 
-Widget::FocusPolicy BTWidget::focusPolicy() const
-{
-    BALNotImplemented();
-    return NoFocus;
-}
-
 Cursor BTWidget::cursor()
 {
     BALNotImplemented();
     return Cursor();
-}
-
-GraphicsContext* BTWidget::lockDrawingFocus()
-{
-    BALNotImplemented();
-    return 0;
-}
-
-void BTWidget::unlockDrawingFocus(GraphicsContext*)
-{
-     BALNotImplemented();
-}
-
-void BTWidget::enableFlushDrawing()
-{
-    BALNotImplemented();
-}
-
-void BTWidget::disableFlushDrawing()
-{
-     BALNotImplemented();
 }
 
 void BTWidget::setIsSelected(bool)
@@ -238,7 +191,7 @@ void BTWidget::invalidateRect(const IntRect& r)
 
 void BTWidget::removeFromParent()
 {
-     BALNotImplemented();
+     data->m_parent->removeChild(this);
      data->m_parent = NULL;
 }
 
@@ -248,9 +201,14 @@ IntRect BTWidget::windowClipRect() const
     return IntRect();
 }
 
-void BTWidget::setParent(BTWidget* parent)
+void BTWidget::setParent(BTScrollView* parent)
 {
-    data->m_parent = parent;   
+    data->m_parent = parent;
+}
+
+BTScrollView* BTWidget::parent() const
+{
+    return data->m_parent;
 }
 
 }

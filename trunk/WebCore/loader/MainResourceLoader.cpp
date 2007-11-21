@@ -29,6 +29,7 @@
 #include "config.h"
 #include "MainResourceLoader.h"
 
+#include "DocumentLoader.h"
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "FrameLoaderClient.h"
@@ -41,7 +42,7 @@
 namespace WebCore {
 
 MainResourceLoader::MainResourceLoader(Frame* frame)
-    : ResourceLoader(frame)
+    : ResourceLoader(frame, true, true)
     , m_dataLoadTimer(this, &MainResourceLoader::handleDataLoadNow)
     , m_loadingMultipartContent(false)
     , m_waitingForContentPolicy(false)
@@ -61,16 +62,19 @@ void MainResourceLoader::receivedError(const ResourceError& error)
 {
     // Calling receivedMainResourceError will likely result in the last reference to this object to go away.
     RefPtr<MainResourceLoader> protect(this);
+    RefPtr<Frame> protectFrame(m_frame);
 
     if (!cancelled()) {
         ASSERT(!reachedTerminalState());
         frameLoader()->didFailToLoad(this, error);
     }
+    
+    if (frameLoader())
+        frameLoader()->receivedMainResourceError(error, true);
 
-    frameLoader()->receivedMainResourceError(error, true);
-
-    if (!cancelled())
+    if (!cancelled()) {
         releaseResources();
+    }
 
     ASSERT(reachedTerminalState());
 }
@@ -163,7 +167,7 @@ void MainResourceLoader::willSendRequest(ResourceRequest& newRequest, const Reso
     }
     
     // Don't set this on the first request. It is set when the main load was started.
-    frameLoader()->setRequest(newRequest);
+    m_documentLoader->setRequest(newRequest);
     
     ref(); // balanced by deref in continueAfterNavigationPolicy
     frameLoader()->checkNavigationPolicy(newRequest, callContinueAfterNavigationPolicy, this);
@@ -182,9 +186,7 @@ void MainResourceLoader::continueAfterContentPolicy(PolicyAction contentPolicy, 
     switch (contentPolicy) {
     case PolicyUse: {
         // Prevent remote web archives from loading because they can claim to be from any domain and thus avoid cross-domain security checks (4120255).
-        bool isRemote = !url.isLocalFile();
-        isRemote = isRemote && !m_substituteData.isValid();
-        bool isRemoteWebArchive = isRemote && equalIgnoringCase("application/x-webarchive", mimeType);
+        bool isRemoteWebArchive = equalIgnoringCase("application/x-webarchive", mimeType) && !m_substituteData.isValid() && !url.isLocalFile();
         if (!frameLoader()->canShowMIMEType(mimeType) || isRemoteWebArchive) {
             frameLoader()->cannotShowMIMEType(r);
             // Check reachedTerminalState since the load may have already been cancelled inside of _handleUnimplementablePolicyWithErrorCode::.
@@ -196,7 +198,7 @@ void MainResourceLoader::continueAfterContentPolicy(PolicyAction contentPolicy, 
     }
 
     case PolicyDownload:
-        frameLoader()->client()->download(m_handle.get(), request(), r);
+        frameLoader()->client()->download(m_handle.get(), request(), m_handle.get()->request(), r);
         receivedError(interruptionForPolicyChangeError());
         return;
 
@@ -247,7 +249,7 @@ void MainResourceLoader::continueAfterContentPolicy(PolicyAction policy)
 {
     ASSERT(m_waitingForContentPolicy);
     m_waitingForContentPolicy = false;
-    if (!frameLoader()->isStopping())
+    if (frameLoader() && !frameLoader()->isStopping())
         continueAfterContentPolicy(policy, m_response);
     deref(); // balances ref in didReceiveResponse
 }
@@ -268,7 +270,7 @@ void MainResourceLoader::didReceiveResponse(const ResourceResponse& r)
     // reference to this object; one example of this is 3266216.
     RefPtr<MainResourceLoader> protect(this);
 
-    frameLoader()->setResponse(r);
+    m_documentLoader->setResponse(r);
 
     m_response = r;
 
@@ -326,14 +328,22 @@ void MainResourceLoader::handleDataLoadNow(Timer<MainResourceLoader>*)
 {
     RefPtr<MainResourceLoader> protect(this);
 
-    ResourceResponse response(m_initialRequest.url(), m_substituteData.mimeType(), m_substituteData.content()->size(), m_substituteData.textEncoding(), "");
+    KURL url = m_substituteData.responseURL();
+    if (url.isEmpty())
+        url = m_initialRequest.url();
+        
+    ResourceResponse response(url, m_substituteData.mimeType(), m_substituteData.content()->size(), m_substituteData.textEncoding(), "");
     didReceiveResponse(response);
 }
 
 void MainResourceLoader::handleDataLoadSoon(ResourceRequest& r)
 {
     m_initialRequest = r;
-    m_dataLoadTimer.startOneShot(0);
+    
+    if (m_documentLoader->deferMainResourceDataLoad())
+        m_dataLoadTimer.startOneShot(0);
+    else
+        handleDataLoadNow(0);
 }
 
 bool MainResourceLoader::loadNow(ResourceRequest& r)
@@ -354,17 +364,17 @@ bool MainResourceLoader::loadNow(ResourceRequest& r)
         return false;
     
     const KURL& url = r.url();
-    bool shouldLoadEmpty = shouldLoadAsEmptyDocument(url);
+    bool shouldLoadEmpty = shouldLoadAsEmptyDocument(url) && !m_substituteData.isValid();
 
     if (shouldLoadEmptyBeforeRedirect && !shouldLoadEmpty && defersLoading())
         return true;
 
-    if (m_substituteData.isValid())
+    if (m_substituteData.isValid()) 
         handleDataLoadSoon(r);
     else if (shouldLoadEmpty || frameLoader()->representationExistsForURLScheme(url.protocol()))
         handleEmptyLoad(url, !shouldLoadEmpty);
     else
-        m_handle = ResourceHandle::create(r, this, m_frame.get(), false, true);
+        m_handle = ResourceHandle::create(r, this, m_frame.get(), false, true, true);
 
     return false;
 }
@@ -398,8 +408,18 @@ bool MainResourceLoader::load(const ResourceRequest& r, const SubstituteData&  s
 void MainResourceLoader::setDefersLoading(bool defers)
 {
     ResourceLoader::setDefersLoading(defers);
-    if (!defers) {
-        if (!m_initialRequest.isNull()) {
+    
+    if (defers) {
+        if (m_dataLoadTimer.isActive())
+            m_dataLoadTimer.stop();
+    } else {
+        if (m_initialRequest.isNull())
+            return;
+        
+        if (m_substituteData.isValid() &&
+            m_documentLoader->deferMainResourceDataLoad())
+                m_dataLoadTimer.startOneShot(0);
+        else {
             ResourceRequest r(m_initialRequest);
             m_initialRequest = ResourceRequest();
             loadNow(r);

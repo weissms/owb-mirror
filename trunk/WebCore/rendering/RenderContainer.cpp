@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
@@ -86,47 +86,24 @@ void RenderContainer::addChild(RenderObject* newChild, RenderObject* beforeChild
 {
     bool needsTable = false;
 
-    if(!newChild->isText() && !newChild->isReplaced()) {
-        switch(newChild->style()->display()) {
-        case LIST_ITEM:
-            updateListMarkerNumbers(beforeChild ? beforeChild : m_lastChild);
-            break;
-        case INLINE:
-        case BLOCK:
-        case INLINE_BLOCK:
-        case RUN_IN:
-        case COMPACT:
-        case BOX:
-        case INLINE_BOX:
-        case TABLE:
-        case INLINE_TABLE:
-        case TABLE_COLUMN:
-            break;
-        case TABLE_COLUMN_GROUP:
-        case TABLE_CAPTION:
-        case TABLE_ROW_GROUP:
-        case TABLE_HEADER_GROUP:
-        case TABLE_FOOTER_GROUP:
-            if (!isTable())
-                needsTable = true;
-            break;
-        case TABLE_ROW:
-            if (!isTableSection())
-                needsTable = true;
-            break;
-        case TABLE_CELL:
-            if (!isTableRow())
-                needsTable = true;
-            // I'm not 100% sure this is the best way to fix this, but without this
-            // change we recurse infinitely when trying to render the CSS2 test page:
-            // http://www.bath.ac.uk/%7Epy8ieh/internet/eviltests/htmlbodyheadrendering2.html.
-            // See Radar 2925291.
-            if (isTableCell() && !m_firstChild && !newChild->isTableCell())
-                needsTable = false;
-            break;
-        case NONE:
-            break;
-        }
+    if (newChild->isListItem())
+        updateListMarkerNumbers(beforeChild ? beforeChild : m_lastChild);
+    else if (newChild->isTableCol() && newChild->style()->display() == TABLE_COLUMN_GROUP)
+        needsTable = !isTable();
+    else if (newChild->isRenderBlock() && newChild->style()->display() == TABLE_CAPTION)
+        needsTable = !isTable();
+    else if (newChild->isTableSection())
+        needsTable = !isTable();
+    else if (newChild->isTableRow())
+        needsTable = !isTableSection();
+    else if (newChild->isTableCell()) {
+        needsTable = !isTableRow();
+        // I'm not 100% sure this is the best way to fix this, but without this
+        // change we recurse infinitely when trying to render the CSS2 test page:
+        // http://www.bath.ac.uk/%7Epy8ieh/internet/eviltests/htmlbodyheadrendering2.html.
+        // See Radar 2925291.
+        if (needsTable && isTableCell() && !m_firstChild && !newChild->isTableCell())
+            needsTable = false;
     }
 
     if (needsTable) {
@@ -156,42 +133,35 @@ void RenderContainer::addChild(RenderObject* newChild, RenderObject* beforeChild
     }
 }
 
-RenderObject* RenderContainer::removeChildNode(RenderObject* oldChild)
+RenderObject* RenderContainer::removeChildNode(RenderObject* oldChild, bool fullRemove)
 {
     ASSERT(oldChild->parent() == this);
 
     // So that we'll get the appropriate dirty bit set (either that a normal flow child got yanked or
     // that a positioned child got yanked).  We also repaint, so that the area exposed when the child
     // disappears gets repainted properly.
-    if (!documentBeingDestroyed()) {
-        oldChild->setNeedsLayoutAndMinMaxRecalc();
+    if (!documentBeingDestroyed() && fullRemove) {
+        oldChild->setNeedsLayoutAndPrefWidthsRecalc();
         oldChild->repaint();
     }
         
     // If we have a line box wrapper, delete it.
     oldChild->deleteLineBoxWrapper();
 
-    if (!documentBeingDestroyed()) {
+    if (!documentBeingDestroyed() && fullRemove) {
         // if we remove visible child from an invisible parent, we don't know the layer visibility any more
         RenderLayer* layer = 0;
-        if (m_style->visibility() != VISIBLE && oldChild->style()->visibility() == VISIBLE && !oldChild->layer()) {
+        if (m_style->visibility() != VISIBLE && oldChild->style()->visibility() == VISIBLE && !oldChild->hasLayer()) {
             layer = enclosingLayer();
             layer->dirtyVisibleContentStatus();
         }
 
          // Keep our layer hierarchy updated.
-        if (oldChild->firstChild() || oldChild->layer()) {
+        if (oldChild->firstChild() || oldChild->hasLayer()) {
             if (!layer) layer = enclosingLayer();            
             oldChild->removeLayers(layer);
         }
         
-        // If oldChild is the start or end of the selection, then clear the selection to
-        // avoid problems of invalid pointers.
-        // FIXME: The SelectionController should be responsible for this when it
-        // is notified of DOM mutations.
-        if (oldChild->isSelectionBorder())
-            view()->clearSelection();
-
         // renumber ordered lists
         if (oldChild->isListItem())
             updateListMarkerNumbers(oldChild->nextSibling());
@@ -200,6 +170,13 @@ RenderObject* RenderContainer::removeChildNode(RenderObject* oldChild)
             dirtyLinesFromChangedChild(oldChild);
     }
     
+    // If oldChild is the start or end of the selection, then clear the selection to
+    // avoid problems of invalid pointers.
+    // FIXME: The SelectionController should be responsible for this when it
+    // is notified of DOM mutations.
+    if (!documentBeingDestroyed() && oldChild->isSelectionBorder())
+        view()->clearSelection();
+
     // remove the child
     if (oldChild->previousSibling())
         oldChild->previousSibling()->setNextSibling(oldChild->nextSibling());
@@ -231,43 +208,56 @@ void RenderContainer::removeChild(RenderObject* oldChild)
     removeChildNode(oldChild);
 }
 
-RenderObject* RenderContainer::pseudoChild(RenderStyle::PseudoId type) const
+RenderObject* RenderContainer::beforeAfterContainer(RenderStyle::PseudoId type)
 {
     if (type == RenderStyle::BEFORE) {
-        RenderObject* first = firstChild();
-        while (first && first->isListMarker())
-            first = first->nextSibling();
+        RenderObject* first = this;
+        do {
+            // Skip list markers.
+            first = first->firstChild();
+            while (first && first->isListMarker())
+                first = first->nextSibling();
+        } while (first && first->isAnonymous() && first->style()->styleType() == RenderStyle::NOPSEUDO);
+        if (first && first->style()->styleType() != type)
+            return 0;
         return first;
     }
-    if (type == RenderStyle::AFTER)
-        return lastChild();
+    if (type == RenderStyle::AFTER) {
+        RenderObject* last = this;
+        do {
+            last = last->lastChild();
+        } while (last && last->isAnonymous() && last->style()->styleType() == RenderStyle::NOPSEUDO && !last->isListMarker());
+        if (last && last->style()->styleType() != type)
+            return 0;
+        return last;
+    }
 
     ASSERT_NOT_REACHED();
     return 0;
 }
 
-void RenderContainer::updatePseudoChild(RenderStyle::PseudoId type)
+void RenderContainer::updateBeforeAfterContent(RenderStyle::PseudoId type)
 {
-    // If this is an anonymous wrapper, then parent applies its own pseudo style to it.
+    // If this is an anonymous wrapper, then the parent applies its own pseudo-element style to it.
     if (parent() && parent()->createsAnonymousWrapper())
         return;
-    updatePseudoChildForObject(type, this);
+    updateBeforeAfterContentForContainer(type, this);
 }
 
-void RenderContainer::updatePseudoChildForObject(RenderStyle::PseudoId type, RenderObject* styledObject)
+void RenderContainer::updateBeforeAfterContentForContainer(RenderStyle::PseudoId type, RenderContainer* styledObject)
 {
     // In CSS2, before/after pseudo-content cannot nest.  Check this first.
     if (style()->styleType() == RenderStyle::BEFORE || style()->styleType() == RenderStyle::AFTER)
         return;
     
-    RenderStyle* pseudo = styledObject->getPseudoStyle(type);
-    RenderObject* child = pseudoChild(type);
+    RenderStyle* pseudoElementStyle = styledObject->getPseudoStyle(type);
+    RenderObject* child = beforeAfterContainer(type);
 
     // Whether or not we currently have generated content attached.
-    bool oldContentPresent = child && (child->style()->styleType() == type);
+    bool oldContentPresent = child;
 
     // Whether or not we now want generated content.  
-    bool newContentWanted = pseudo && pseudo->display() != NONE;
+    bool newContentWanted = pseudoElementStyle && pseudoElementStyle->display() != NONE;
 
     // For <q><p/></q>, if this object is the inline continuation of the <q>, we only want to generate
     // :after content and not :before content.
@@ -282,7 +272,7 @@ void RenderContainer::updatePseudoChildForObject(RenderStyle::PseudoId type, Ren
     // If we don't want generated content any longer, or if we have generated content, but it's no longer
     // identical to the new content data we want to build render objects for, then we nuke all
     // of the old generated content.
-    if (!newContentWanted || (oldContentPresent && !child->style()->contentDataEquivalent(pseudo))) {
+    if (!newContentWanted || (oldContentPresent && !child->style()->contentDataEquivalent(pseudoElementStyle))) {
         // Nuke the child. 
         if (child && child->style()->styleType() == type) {
             oldContentPresent = false;
@@ -291,64 +281,67 @@ void RenderContainer::updatePseudoChildForObject(RenderStyle::PseudoId type, Ren
         }
     }
 
-    // If we have no pseudo-style or if the pseudo's display type is NONE, then we
+    // If we have no pseudo-element style or if the pseudo-element style's display type is NONE, then we
     // have no generated content and can now return.
     if (!newContentWanted)
         return;
 
-    if (isInlineFlow() && !pseudo->isDisplayInlineType())
+    if (isInlineFlow() && !pseudoElementStyle->isDisplayInlineType() && pseudoElementStyle->floating() == FNONE &&
+        !(pseudoElementStyle->position() == AbsolutePosition || pseudoElementStyle->position() == FixedPosition))
         // According to the CSS2 spec (the end of section 12.1), the only allowed
         // display values for the pseudo style are NONE and INLINE for inline flows.
         // FIXME: CSS2.1 lifted this restriction, but block display types will crash.
         // For now we at least relax the restriction to allow all inline types like inline-block
         // and inline-table.
-        pseudo->setDisplay(INLINE);
+        pseudoElementStyle->setDisplay(INLINE);
 
     if (oldContentPresent) {
         if (child && child->style()->styleType() == type) {
             // We have generated content present still.  We want to walk this content and update our
-            // style information with the new pseudo style.
-            child->setStyle(pseudo);
+            // style information with the new pseudo-element style.
+            child->setStyle(pseudoElementStyle);
 
             // Note that if we ever support additional types of generated content (which should be way off
             // in the future), this code will need to be patched.
             for (RenderObject* genChild = child->firstChild(); genChild; genChild = genChild->nextSibling()) {
                 if (genChild->isText())
-                    // Generated text content is a child whose style also needs to be set to the pseudo style.
-                    genChild->setStyle(pseudo);
-                else {
+                    // Generated text content is a child whose style also needs to be set to the pseudo-element style.
+                    genChild->setStyle(pseudoElementStyle);
+                else if (genChild->isImage()) {
                     // Images get an empty style that inherits from the pseudo.
                     RenderStyle* style = new (renderArena()) RenderStyle;
-                    style->inheritFrom(pseudo);
+                    style->inheritFrom(pseudoElementStyle);
                     genChild->setStyle(style);
-                }
+                } else
+                    // Must be a first-letter container. updateFirstLetter() will take care of it.
+                    ASSERT(genChild->style()->styleType() == RenderStyle::FIRST_LETTER);
             }
         }
         return; // We've updated the generated content. That's all we needed to do.
     }
     
-    RenderObject* insertBefore = (type == RenderStyle::BEFORE) ? child : 0;
+    RenderObject* insertBefore = (type == RenderStyle::BEFORE) ? firstChild() : 0;
 
     // Generated content consists of a single container that houses multiple children (specified
-    // by the content property).  This pseudo container gets the pseudo style set on it.
-    RenderObject* pseudoContainer = 0;
+    // by the content property).  This generated content container gets the pseudo-element style set on it.
+    RenderObject* generatedContentContainer = 0;
     
     // Walk our list of generated content and create render objects for each.
-    for (const ContentData* content = pseudo->contentData(); content; content = content->m_next) {
+    for (const ContentData* content = pseudoElementStyle->contentData(); content; content = content->m_next) {
         RenderObject* renderer = 0;
         switch (content->m_type) {
             case CONTENT_NONE:
                 break;
             case CONTENT_TEXT:
                 renderer = new (renderArena()) RenderTextFragment(document() /* anonymous object */, content->m_content.m_text);
-                renderer->setStyle(pseudo);
+                renderer->setStyle(pseudoElementStyle);
                 break;
             case CONTENT_OBJECT:
                 if (CachedResource* resource = content->m_content.m_object)
                     if (resource->type() == CachedResource::ImageResource) {
                         RenderImage* image = new (renderArena()) RenderImage(document()); // anonymous object
                         RenderStyle* style = new (renderArena()) RenderStyle;
-                        style->inheritFrom(pseudo);
+                        style->inheritFrom(pseudoElementStyle);
                         image->setStyle(style);
                         image->setCachedImage(static_cast<CachedImage*>(resource));
                         image->setIsAnonymousImage(true);
@@ -357,25 +350,40 @@ void RenderContainer::updatePseudoChildForObject(RenderStyle::PseudoId type, Ren
                 break;
             case CONTENT_COUNTER:
                 renderer = new (renderArena()) RenderCounter(document(), *content->m_content.m_counter);
-                renderer->setStyle(pseudo);
+                renderer->setStyle(pseudoElementStyle);
                 break;
         }
 
         if (renderer) {
-            if (!pseudoContainer)
-                pseudoContainer = RenderFlow::createAnonymousFlow(document(), pseudo); // anonymous box
-            pseudoContainer->addChild(renderer);
+            if (!generatedContentContainer) {
+                // Make a generated box that might be any display type now that we are able to drill down into children
+                // to find the original content properly.
+                generatedContentContainer = RenderObject::createObject(document(), pseudoElementStyle);
+                generatedContentContainer->setStyle(pseudoElementStyle);
+            }
+            generatedContentContainer->addChild(renderer);
         }
     }
 
     // Add the pseudo after we've installed all our content so that addChild will be able to find the text
     // inside the inline for e.g., first-letter styling.
-    if (pseudoContainer)
-        addChild(pseudoContainer, insertBefore);
+    if (generatedContentContainer)
+        addChild(generatedContentContainer, insertBefore);
 }
 
+bool RenderContainer::isAfterContent(RenderObject* child) const
+{
+    if (!child)
+        return false;
+    if (child->style()->styleType() != RenderStyle::AFTER)
+        return false;
+    // Text nodes don't have their own styles, so ignore the style on a text node.
+    if (child->isText() && !child->isBR())
+        return false;
+    return true;
+}
 
-void RenderContainer::appendChildNode(RenderObject* newChild)
+void RenderContainer::appendChildNode(RenderObject* newChild, bool fullAppend)
 {
     ASSERT(newChild->parent() == 0);
     ASSERT(!isBlockFlow() || (!newChild->isTableSection() && !newChild->isTableRow() && !newChild->isTableCell()));
@@ -391,33 +399,37 @@ void RenderContainer::appendChildNode(RenderObject* newChild)
 
     m_lastChild = newChild;
     
-    // Keep our layer hierarchy updated.  Optimize for the common case where we don't have any children
-    // and don't have a layer attached to ourselves.
-    RenderLayer* layer = 0;
-    if (newChild->firstChild() || newChild->layer()) {
-        layer = enclosingLayer();
-        newChild->addLayers(layer, newChild);
+    if (fullAppend) {
+        // Keep our layer hierarchy updated.  Optimize for the common case where we don't have any children
+        // and don't have a layer attached to ourselves.
+        RenderLayer* layer = 0;
+        if (newChild->firstChild() || newChild->hasLayer()) {
+            layer = enclosingLayer();
+            newChild->addLayers(layer, newChild);
+        }
+
+        // if the new child is visible but this object was not, tell the layer it has some visible content
+        // that needs to be drawn and layer visibility optimization can't be used
+        if (style()->visibility() != VISIBLE && newChild->style()->visibility() == VISIBLE && !newChild->hasLayer()) {
+            if (!layer)
+                layer = enclosingLayer();
+            if (layer)
+                layer->setHasVisibleContent(true);
+        }
+        
+        if (!newChild->isFloatingOrPositioned() && childrenInline())
+            dirtyLinesFromChangedChild(newChild);
     }
 
-    // if the new child is visible but this object was not, tell the layer it has some visible content
-    // that needs to be drawn and layer visibility optimization can't be used
-    if (style()->visibility() != VISIBLE && newChild->style()->visibility() == VISIBLE && !newChild->layer()) {
-        if (!layer) layer = enclosingLayer();
-        layer->setHasVisibleContent(true);
-    }
-    
-    newChild->setNeedsLayoutAndMinMaxRecalc(); // Goes up the containing block hierarchy.
+    newChild->setNeedsLayoutAndPrefWidthsRecalc(); // Goes up the containing block hierarchy.
     if (!normalChildNeedsLayout())
         setChildNeedsLayout(true); // We may supply the static position for an absolute positioned child.
-    
-    if (!newChild->isFloatingOrPositioned() && childrenInline())
-        dirtyLinesFromChangedChild(newChild);
     
     if (AXObjectCache::accessibilityEnabled())
         document()->axObjectCache()->childrenChanged(this);
 }
 
-void RenderContainer::insertChildNode(RenderObject* child, RenderObject* beforeChild)
+void RenderContainer::insertChildNode(RenderObject* child, RenderObject* beforeChild, bool fullInsert)
 {
     if (!beforeChild) {
         appendChildNode(child);
@@ -442,27 +454,32 @@ void RenderContainer::insertChildNode(RenderObject* child, RenderObject* beforeC
 
     child->setParent(this);
     
-    // Keep our layer hierarchy updated.  Optimize for the common case where we don't have any children
-    // and don't have a layer attached to ourselves.
-    RenderLayer* layer = 0;
-    if (child->firstChild() || child->layer()) {
-        layer = enclosingLayer();
-        child->addLayers(layer, child);
+    if (fullInsert) {
+        // Keep our layer hierarchy updated.  Optimize for the common case where we don't have any children
+        // and don't have a layer attached to ourselves.
+        RenderLayer* layer = 0;
+        if (child->firstChild() || child->hasLayer()) {
+            layer = enclosingLayer();
+            child->addLayers(layer, child);
+        }
+
+        // if the new child is visible but this object was not, tell the layer it has some visible content
+        // that needs to be drawn and layer visibility optimization can't be used
+        if (style()->visibility() != VISIBLE && child->style()->visibility() == VISIBLE && !child->hasLayer()) {
+            if (!layer)
+                layer = enclosingLayer();
+            if (layer)
+                layer->setHasVisibleContent(true);
+        }
+
+        
+        if (!child->isFloating() && childrenInline())
+            dirtyLinesFromChangedChild(child);
     }
 
-    // if the new child is visible but this object was not, tell the layer it has some visible content
-    // that needs to be drawn and layer visibility optimization can't be used
-    if (style()->visibility() != VISIBLE && child->style()->visibility() == VISIBLE && !child->layer()) {
-        if (!layer) layer = enclosingLayer();
-        layer->setHasVisibleContent(true);
-    }
-
-    child->setNeedsLayoutAndMinMaxRecalc();
+    child->setNeedsLayoutAndPrefWidthsRecalc();
     if (!normalChildNeedsLayout())
         setChildNeedsLayout(true); // We may supply the static position for an absolute positioned child.
-    
-    if (!child->isFloating() && childrenInline())
-        dirtyLinesFromChangedChild(child);
     
     if (AXObjectCache::accessibilityEnabled())
         document()->axObjectCache()->childrenChanged(this);
@@ -471,7 +488,8 @@ void RenderContainer::insertChildNode(RenderObject* child, RenderObject* beforeC
 void RenderContainer::layout()
 {
     ASSERT(needsLayout());
-    ASSERT(minMaxKnown());
+
+    view()->pushLayoutState(this, IntSize(m_x, m_y));
 
     RenderObject* child = m_firstChild;
     while (child) {
@@ -479,58 +497,52 @@ void RenderContainer::layout()
         ASSERT(child->isRenderInline() || !child->needsLayout());
         child = child->nextSibling();
     }
+
+    view()->popLayoutState();
     setNeedsLayout(false);
 }
 
-void RenderContainer::removeLeftoverAnonymousBoxes()
+void RenderContainer::removeLeftoverAnonymousBlock(RenderBlock* child)
 {
-    // we have to go over all child nodes and remove anonymous boxes, that do _not_
-    // have inline children to keep the tree flat
-    RenderObject* child = m_firstChild;
-    while( child ) {
-        RenderObject* next = child->nextSibling();
-        
-        if ( child->isRenderBlock() && child->isAnonymousBlock() && !child->continuation() && !child->childrenInline() && !child->isTableCell() ) {
-            RenderObject* firstAnChild = child->firstChild();
-            RenderObject* lastAnChild = child->lastChild();
-            if ( firstAnChild ) {
-                RenderObject* o = firstAnChild;
-                while( o ) {
-                    o->setParent( this );
-                    o = o->nextSibling();
-                }
-                firstAnChild->setPreviousSibling( child->previousSibling() );
-                lastAnChild->setNextSibling( child->nextSibling() );
-                if ( child->previousSibling() )
-                    child->previousSibling()->setNextSibling( firstAnChild );
-                if ( child->nextSibling() )
-                    child->nextSibling()->setPreviousSibling( lastAnChild );
-            } else {
-                if ( child->previousSibling() )
-                    child->previousSibling()->setNextSibling( child->nextSibling() );
-                if ( child->nextSibling() )
-                    child->nextSibling()->setPreviousSibling( child->previousSibling() );
-                
-            }
-            if (child == m_firstChild)
-                m_firstChild = firstAnChild;
-            if (child == m_lastChild)
-                m_lastChild = lastAnChild;
-            child->setParent( 0 );
-            child->setPreviousSibling( 0 );
-            child->setNextSibling( 0 );
-            if ( !child->isText() ) {
-                RenderContainer *c = static_cast<RenderContainer*>(child);
-                c->m_firstChild = 0;
-                c->m_next = 0;
-            }
-            child->destroy();
+    ASSERT(child->isAnonymousBlock());
+    ASSERT(!child->childrenInline());
+    
+    if (child->continuation()) 
+        return;
+    
+    RenderObject* firstAnChild = child->firstChild();
+    RenderObject* lastAnChild = child->lastChild();
+    if (firstAnChild) {
+        RenderObject* o = firstAnChild;
+        while(o) {
+            o->setParent(this);
+            o = o->nextSibling();
         }
-        child = next;
+        firstAnChild->setPreviousSibling(child->previousSibling());
+        lastAnChild->setNextSibling(child->nextSibling());
+        if (child->previousSibling())
+            child->previousSibling()->setNextSibling(firstAnChild);
+        if (child->nextSibling())
+            child->nextSibling()->setPreviousSibling(lastAnChild);
+    } else {
+        if (child->previousSibling())
+            child->previousSibling()->setNextSibling(child->nextSibling());
+        if (child->nextSibling())
+            child->nextSibling()->setPreviousSibling(child->previousSibling());
     }
-
-    if (parent()) // && isAnonymousBlock() && !continuation() && !childrenInline() && !isTableCell())
-        parent()->removeLeftoverAnonymousBoxes();
+    if (child == m_firstChild)
+        m_firstChild = firstAnChild;
+    if (child == m_lastChild)
+        m_lastChild = lastAnChild;
+    child->setParent(0);
+    child->setPreviousSibling(0);
+    child->setNextSibling(0);
+    if (!child->isText()) {
+        RenderContainer *c = static_cast<RenderContainer*>(child);
+        c->m_firstChild = 0;
+        c->m_next = 0;
+    }
+    child->destroy();
 }
 
 VisiblePosition RenderContainer::positionForCoordinates(int x, int y)
@@ -565,9 +577,9 @@ VisiblePosition RenderContainer::positionForCoordinates(int x, int y)
             || renderer->style()->visibility() != VISIBLE)
             continue;
         
-        int top = borderTop() + paddingTop() + isTableRow() ? 0 : renderer->xPos();
+        int top = borderTop() + paddingTop() + (isTableRow() ? 0 : renderer->yPos());
         int bottom = top + renderer->contentHeight();
-        int left = borderLeft() + paddingLeft() + isTableRow() ? 0 : renderer->yPos();
+        int left = borderLeft() + paddingLeft() + (isTableRow() ? 0 : renderer->xPos());
         int right = left + renderer->contentWidth();
         
         if (x <= right && x >= left && y <= top && y >= bottom) {

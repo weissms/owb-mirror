@@ -15,41 +15,35 @@
 
     You should have received a copy of the GNU Library General Public License
     along with this library; see the file COPYING.LIB.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
+    the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 */
 
 #ifndef SVGPathSegList_h
 #define SVGPathSegList_h
 
-#ifdef SVG_SUPPORT
+#if ENABLE(SVG)
 
 #include "SVGList.h"
 #include "SVGPathSeg.h"
 
-namespace WebCore
-{
+namespace WebCore {
+
     class Path;
     class SVGElement;
  
-    class SVGPathSegList : public SVGList<RefPtr<SVGPathSeg> >
-    {
+    class SVGPathSegList : public SVGList<RefPtr<SVGPathSeg> > {
     public:
-        SVGPathSegList(const SVGElement* context);
+        SVGPathSegList();
         virtual ~SVGPathSegList();
 
-        const SVGElement* context() const;
-        
         unsigned getPathSegAtLength(double);
         Path toPathData();
-
-    private:
-        const SVGElement* m_context;
     };
 
 } // namespace WebCore
 
-#endif // SVG_SUPPORT
+#endif // ENABLE(SVG)
 #endif
 
 // vim:ts=4:noet

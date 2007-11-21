@@ -33,8 +33,10 @@
 #include "BALConfiguration.h"
 #include "BIEvent.h"
 #include "BIEventLoop.h"
+#include "BIGraphicsDevice.h"
 #include "BIKeyboardEvent.h"
 #include "BIWindow.h"
+//#include "BIWindowManager.h"
 #include "../TestManager/TestManager.h"
 
 using namespace BAL;
@@ -107,13 +109,13 @@ public:
     if( !Init() )
       return;
 
-    log("Press all keys, one by one.");
-    log("Don't forget to activate and desactivate all modes (CAPSLOCK, KEYPAD, and others if any)");
-    log("Test will display for each key the \"keyIdentifier\".");
-    log("It's the key value for letters and numbers, or a text describing the key.");
-    log("You are requested to check the correct value.");
-    log("Test will validate only that key identifier is not null.");
-    log("Press Q to quit test.");
+    DBG("Press all keys, one by one.\n");
+    DBG("Don't forget to activate and desactivate all modes (CAPSLOCK, KEYPAD, and others if any)\n");
+    DBG("Test will display for each key the \"keyIdentifier\".\n");
+    DBG("It's the key value for letters and numbers, or a text describing the key.\n");
+    DBG("You are requested to check the correct value.\n");
+    DBG("Test will validate only that key identifier is not null.\n");
+    DBG("Press Q to quit test.\n");
 
     CheckKeyIdentifier();
 
@@ -156,10 +158,10 @@ public:
     if( !Init() )
       return;
 
-    log("This test checks modifiers (ctrl, shift, alt)");
-    log("In this test, you will be asked to press for instance CTRL-a.");
-    log("It means that you press CTRL, keep it pressed, and press a");
-    log("Checking is made on key down");
+    DBG("This test checks modifiers (ctrl, shift, alt)\n");
+    DBG("In this test, you will be asked to press for instance CTRL-a.\n");
+    DBG("It means that you press CTRL, keep it pressed, and press a\n");
+    DBG("Checking is made on key down\n");
 
     Check( gModifierQuestionArray );
 
@@ -169,7 +171,7 @@ public:
 private:
   bool Init()
   {
-      log("start");
+      DBG("start\n");
 
       m_eventLoop = getBIEventLoop();
       TestManager::AssertTrue("Event loop ok", m_eventLoop != NULL);
@@ -183,8 +185,10 @@ private:
         return false;
       }
     // FIXME window creation has changed, must update test
-/*
-      m_window = createBCWindowBal(0,0,200,201,32);
+
+      getBIGraphicsDevice()->initialize(800, 600, 32);
+      //m_window = getBIWindowManager()->openWindow(0, 0, 800, 600);
+/*      m_window = createBCWindowBal(0,0,200,201,32);
       TestManager::AssertTrue("window ok", m_window != NULL);
       if( m_window == NULL ) {
         m_eventLoop = NULL;
@@ -197,21 +201,22 @@ private:
 
    void End()
    {
-      delete m_window;
+      //delete m_window;
       m_window = NULL;
 
-      log("end");
+      DBG("end\n");
    }
 
    void CheckKeyIdentifier()
    {
-      BIEvent* event;
+      BIEvent* event = NULL;
       while(1)
       {
+          event = NULL;
           bool bValid = m_eventLoop->WaitEvent(event);
+          //printf("coucou bValid = %d\n", bValid);
           if( !bValid )
             continue;
-
           BIKeyboardEvent* aKeyboardEvent = event->queryIsKeyboardEvent();
           if( aKeyboardEvent )
           {
@@ -288,8 +293,8 @@ private:
     if( !m_currentQuestionDisplayed )
     {
       char sMessage[1024];
-      sprintf(sMessage, "Press and release '%s'", aQuestions[ m_question ].msKey );
-      log(sMessage);
+      sprintf(sMessage, "Press and release '%s'\n", aQuestions[ m_question ].msKey );
+      DBG(sMessage);
       m_currentQuestionDisplayed = true;
     }
   }
@@ -301,6 +306,7 @@ private:
       m_currentQuestionDisplayed = false;
       while(AreQuestionLeft( aQuestions ))
       {
+          event=NULL;
           bool bValid = m_eventLoop->WaitEvent(event);
           if( !bValid )
             continue;

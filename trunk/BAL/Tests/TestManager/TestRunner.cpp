@@ -149,20 +149,22 @@ void ExecuteVisitor::Visit(TestRunner& aTestRunner, TestNode* aTestNode, int* bK
 		{
 			int aFailureTotal = aTestRunner.GetTestManager().GetTestResult().mTheFailureTotal;
 
-			printf("=> Executing '%s'\n", aTestNode->msName);
+    		if (getenv("VERBOSE"))
+    			printf("=> Executing '%s'\n", aTestNode->msName);
 			
 			aTestNode->mExecuteFunction();
 		
-			printf("=> '%s' done\n", aTestNode->msName);
+    		if (getenv("VERBOSE"))
+    			printf("=> '%s' done\n", aTestNode->msName);
 			
-			/* if test case has failed, and "stop at first error" mode is set, stops */
-			if( aTestRunner.GetTestManager().IsStopAtFirstErrorMode() )
+			if( aFailureTotal != aTestRunner.GetTestManager().GetTestResult().mTheFailureTotal )
 			{
-				if( aFailureTotal != aTestRunner.GetTestManager().GetTestResult().mTheFailureTotal )
-				{
-					*bKeepWalking = 0; /* stop executing more tests */
-					printf("TESTCASE '%s' has failed\n", aTestNode->msName);
-				}
+    			/* if test case has failed, and "stop at first error" mode is set, stops */
+    			if( aTestRunner.GetTestManager().IsStopAtFirstErrorMode() )
+		        {
+				    *bKeepWalking = 0; /* stop executing more tests */
+                }
+				printf("TESTCASE '%s' has failed\n", aTestNode->msName);
 			}
 		}
 	}
@@ -200,9 +202,10 @@ void TestRunner::DisplayTestTree( TestNode* aTestRoot )
 void TestRunner::ExecuteTestTree( TestNode* aTestRoot )
 {
 	int bKeepWalking = 1;
-  printf("EXECUTE TEST\n");
+	if (getenv("VERBOSE"))
+        printf("EXECUTE TEST\n");
 	
-  ExecuteVisitor aVisitor;
+    ExecuteVisitor aVisitor;
 	WalkInTree( aTestRoot ? aTestRoot : mTestRoot, aVisitor, &bKeepWalking );
 }
 
@@ -236,7 +239,7 @@ int TestRunner::FindNode( const char* aCommand, TestNode** aNode )
 	int bKeepWalking = 1;
 	*aNode = NULL;
 	
-  NodeFinderVisitor aVisitor;
+    NodeFinderVisitor aVisitor;
   
 	/* set the name to find */
 	aVisitor.sNodeNameToFind = aCommand;

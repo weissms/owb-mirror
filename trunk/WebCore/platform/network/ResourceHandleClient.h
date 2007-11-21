@@ -21,7 +21,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #ifndef ResourceHandleClient_h
@@ -40,6 +40,14 @@ namespace BAL { class BIResourceHandle; }
 #include <CFNetwork/CFURLResponsePriv.h>
 #endif
 
+#if PLATFORM(MAC)
+#ifdef __OBJC__
+@class NSCachedURLResponse;
+#else
+class NSCachedURLResponse;
+#endif
+#endif
+
 namespace WebCore {
     class AuthenticationChallenge;
     class Credential;
@@ -54,7 +62,7 @@ namespace WebCore {
         StorageAllowedInMemoryOnly,
         StorageNotAllowed,
     };
-
+    
     class ResourceHandleClient {
     public:
         virtual ~ResourceHandleClient() { }
@@ -66,6 +74,7 @@ namespace WebCore {
         virtual void didReceiveData(ResourceHandle*, const char*, int, int lengthReceived) { }
         virtual void didFinishLoading(ResourceHandle*) { }
         virtual void didFail(ResourceHandle*, const ResourceError&) { }
+        virtual void wasBlocked(ResourceHandle*) { }
 
         virtual void willCacheResponse(ResourceHandle*, CacheStoragePolicy&) { }
 
@@ -75,8 +84,9 @@ namespace WebCore {
         virtual void receivedRequestToContinueWithoutCredential(ResourceHandle*, const AuthenticationChallenge&) { }
         virtual void receivedCancellation(ResourceHandle*, const AuthenticationChallenge&) { }
 
-#if PLATFORM(MAC)
-        virtual void willStopBufferingData(ResourceHandle*, const char*, int) { }
+#if PLATFORM(MAC)        
+        virtual NSCachedURLResponse* willCacheResponse(ResourceHandle*, NSCachedURLResponse* response) { return response; }
+        virtual void willStopBufferingData(ResourceHandle*, const char*, int) { } 
 #endif
     };
 

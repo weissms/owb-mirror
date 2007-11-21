@@ -28,9 +28,10 @@
 #define DragImage_h
 
 #include "IntSize.h"
+#include "FloatSize.h"
 
 #if PLATFORM(MAC)
-#include "RetainPtr.h"
+#include <wtf/RetainPtr.h>
 #ifdef __OBJC__
 @class NSImage;
 #else
@@ -71,8 +72,8 @@ namespace WebCore {
     //These functions should be memory neutral, eg. if they return a newly allocated image, 
     //they should release the input image.  As a corollary these methods don't guarantee
     //the input image ref will still be valid after they have been called
-    DragImageRef fitDragImageToMaxSize(DragImageRef image, const IntSize& size);
-    DragImageRef scaleDragImage(DragImageRef, float);
+    DragImageRef fitDragImageToMaxSize(DragImageRef image, const IntSize& srcSize, const IntSize& size);
+    DragImageRef scaleDragImage(DragImageRef, FloatSize scale);
     DragImageRef dissolveDragImageToFraction(DragImageRef image, float delta);
     
     DragImageRef createDragImageFromImage(Image*);

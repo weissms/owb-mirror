@@ -46,16 +46,34 @@ namespace BAL {
     */
     class BIWindowEvent : public BIEvent {
         public:
-        // this is mandatory
+            // this is mandatory
+            /**
+            * BIWindowEvent destructor
+            */
             virtual ~BIWindowEvent() {};
 
+            /**
+            * BIWindowEvent clone
+            */
             virtual BIEvent* clone() const = 0;
 
-            enum ENUM_WINDOW { EXPOSE, ACTIVE, QUIT, REDRAW };
+            enum ENUM_WINDOW { EXPOSE, ACTIVE, QUIT, REDRAW, RESIZE };
 
+            /**
+            * return window type
+            */
             virtual BIWindowEvent::ENUM_WINDOW type() const = 0;
+            /**
+            * test if the window is exposed
+            */
             virtual bool gain() const = 0;
+            /**
+            * get the window rectangle
+            */
             virtual const WebCore::IntRect& getRectangle() const = 0;
+            /**
+            * get widget associated
+            */
             virtual const BTWidget* widget() const = 0;
 
             virtual BIWindowEvent* queryIsWindowEvent() { return this; };

@@ -14,13 +14,22 @@
 #
 #  You should have received a copy of the GNU Library General Public License
 #  along with this library; see the file COPYING.LIB.  If not, write to
-#  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-#  Boston, MA 02111-1307, USA.
+#  the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02110-1301, USA.
 #
 
 # Usage: make-css-file-arrays.pl <header> <output> <input> ...
 
 use strict;
+use Getopt::Long;
+
+my $preprocessor;
+
+GetOptions('preprocessor=s' => \$preprocessor);
+
+if (!$preprocessor) {
+    $preprocessor = "/usr/bin/gcc -E -P -x c++";
+}
 
 my $header = $ARGV[0];
 shift;
@@ -39,7 +48,7 @@ for my $in (@ARGV) {
     my $name = $1;
 
     # Slurp in the CSS file.
-    open IN, "-|", "/usr/bin/gcc", "-E", "-P", "-x", "c++", $in or die;
+    open IN, $preprocessor . " " . $in . "|" or die;
     my $text; { local $/; $text = <IN>; }
     close IN;
 

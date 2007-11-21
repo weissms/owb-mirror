@@ -52,6 +52,15 @@ TestManager& TestManager::GetInstance()
 }
 
 /**
+ * @brief delete singleton instance
+ */
+void TestManager::deleteInstance()
+{
+    delete gTestManager;
+    gTestManager = NULL;
+}
+
+/**
 	* @brief Constructor
 	*/
 TestManager::TestManager()
@@ -63,11 +72,12 @@ TestManager::TestManager()
 }
 
 /**
-	* @brief This methods logs a string message.
-	*/
+ * @brief This methods logs a string message.
+ */
 int TestManager::LogMessage( const char* aMessage )
 {
-  printf(aMessage);
+    if (getenv("VERBOSE"))
+        printf(aMessage);
 	return 0;
 }
 
@@ -77,7 +87,8 @@ int TestManager::LogMessage( const char* aMessage )
 	*/
 int TestManager::LogErrorMessage( const char* aMessage )
 {
-  printf("ERROR: %s\n", aMessage);
+    if (getenv("VERBOSE"))
+        printf("ERROR: %s\n", aMessage);
 	return 0;
 }
 
@@ -115,17 +126,21 @@ int TestManager::AssertTrue( const char* aMessage, int aAssert )
 {
 	if( aAssert )
 	{
-			AddOk();
-			LogMessage("OK: ");
-      LogMessage(aMessage);
-			LogMessage("\n");
+		AddOk();
+		if (getenv("VERBOSE")) {
+    		LogMessage("OK: ");
+            LogMessage(aMessage);
+    		LogMessage("\n");
+		}
 	}
 	else
 	{
-			AddFailure();
+		AddFailure();
+		if (getenv("VERBOSE")) {
 			LogMessage("ERROR. AssertTrue failed: ");
-      LogMessage(aMessage);
+            LogMessage(aMessage);
 			LogMessage("\n");
+		}
 	}
 	return 0;
 }
@@ -136,7 +151,7 @@ int TestManager::AssertTrue( const char* aMessage, int aAssert )
  */
 int TestManager::AddOk()
 {
-  GetInstance().GetTestResult().mTheOkTotal++;
+    GetInstance().GetTestResult().mTheOkTotal++;
 	return 0;
 }
 
@@ -145,7 +160,7 @@ int TestManager::AddOk()
  */
 int TestManager::AddFailure()
 {
-  GetInstance().GetTestResult().mTheFailureTotal++;
+    GetInstance().GetTestResult().mTheFailureTotal++;
 	return 0;
 }
 
@@ -165,5 +180,5 @@ int TestManager::AskQuestion( const char* aQuestionMessage )
 	{
 		AddOk();
 	}
-  return 0;
+    return 0;
 }

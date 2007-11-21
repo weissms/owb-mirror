@@ -29,6 +29,8 @@
 #include "config.h"
 #include "NetscapePlugInStreamLoader.h"
 
+#include "DocumentLoader.h"
+
 namespace WebCore {
 
 }

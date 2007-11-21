@@ -28,6 +28,7 @@
 
 #include "TextCodec.h"
 
+
 namespace WebCore {
 
     class TextCodecUTF16 : public TextCodec {

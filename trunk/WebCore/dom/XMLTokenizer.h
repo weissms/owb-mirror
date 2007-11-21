@@ -4,6 +4,7 @@
  * Copyright (C) 2000 Peter Kelly (pmk@post.com)
  * Copyright (C) 2005, 2006 Apple Computer, Inc.
  * Copyright (C) 2007 Samuel Weinig (sam@webkit.org)
+ * Copyright (C) 2007 Trolltech ASA
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,22 +18,35 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  */
 
 #ifndef XMLTokenizer_h
 #define XMLTokenizer_h
 
+#include "config.h"
+
 #include "CachedResourceClient.h"
 #include "SegmentedString.h"
 #include "StringHash.h"
 #include "Tokenizer.h"
-#include <libxml/tree.h>
-#include <libxml/xmlstring.h>
 #include <wtf/HashMap.h>
 #include <wtf/OwnPtr.h>
+
+#if PLATFORM(QT)
+#if !ENABLE(XSLT)
+#define USE_QXMLSTREAM
+#endif
+#endif
+
+#ifndef USE_QXMLSTREAM
+#include <libxml/tree.h>
+#include <libxml/xmlstring.h>
+#else
+#include <QtXml/qxmlstream.h>
+#endif
 
 namespace WebCore {
 
@@ -70,9 +84,11 @@ namespace WebCore {
         // from CachedResourceClient
         virtual void notifyFinished(CachedResource* finishedObj);
 
+#ifndef USE_QXMLSTREAM
         // callbacks from parser SAX
         void error(ErrorType, const char* message, va_list args);
-        void startElementNs(const xmlChar* xmlLocalName, const xmlChar* xmlPrefix, const xmlChar* xmlURI, int nb_namespaces, const xmlChar** namespaces, int nb_attributes, int nb_defaulted, const xmlChar** libxmlAttributes);
+        void startElementNs(const xmlChar* xmlLocalName, const xmlChar* xmlPrefix, const xmlChar* xmlURI, int nb_namespaces,
+                            const xmlChar** namespaces, int nb_attributes, int nb_defaulted, const xmlChar** libxmlAttributes);
         void endElementNs();
         void characters(const xmlChar* s, int len);
         void processingInstruction(const xmlChar* target, const xmlChar* data);
@@ -80,6 +96,19 @@ namespace WebCore {
         void comment(const xmlChar* s);
         void startDocument(const xmlChar* version, const xmlChar* encoding, int standalone);
         void internalSubset(const xmlChar* name, const xmlChar* externalID, const xmlChar* systemID);
+#else
+        void parse();
+        void startDocument();
+        void parseStartElement();
+        void parseEndElement();
+        void parseCharacters();
+        void parseProcessingInstruction();
+        void parseCdata();
+        void parseComment();
+        void endDocument();
+        void parseDtd();
+        bool hasError() const;
+#endif
 
         void handleError(ErrorType type, const char* m, int lineNumber, int columnNumber);
 
@@ -102,7 +131,12 @@ namespace WebCore {
 
         String m_originalSourceForTransform;
 
+#ifdef USE_QXMLSTREAM
+        QXmlStreamReader m_stream;
+        bool m_wroteText;
+#else
         xmlParserCtxtPtr m_context;
+#endif
         Node* m_currentNode;
         bool m_currentNodeIsReferenced;
 
@@ -129,12 +163,13 @@ namespace WebCore {
 
         typedef HashMap<String, String> PrefixForNamespaceMap;
         PrefixForNamespaceMap m_prefixToNamespaceMap;
-
+#ifndef USE_QXMLSTREAM
         OwnPtr<PendingCallbacks> m_pendingCallbacks;
+#endif
         SegmentedString m_pendingSrc;
     };
 
-#if XSLT_SUPPORT
+#if ENABLE(XSLT)
 void* xmlDocPtrForString(DocLoader*, const String& source, const DeprecatedString& URL);
 void setLoaderForLibXMLCallbacks(DocLoader*);
 #endif

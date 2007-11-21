@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2004, 2006 Apple Computer, Inc.  All rights reserved.
  * Copyright (C) 2007 Pleyo.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -27,11 +27,14 @@
 #ifndef BTScrollView_h
 #define BTScrollView_h
 
+#include "IntRect.h"
 #include "ScrollTypes.h"
 #include "Widget.h"
+#include <wtf/HashSet.h>
 
 #ifdef __OWB__
 #include "PlatformWheelEvent.h"
+#include "PlatformMouseEvent.h"
 #endif
 
 #if PLATFORM(QT)
@@ -65,6 +68,7 @@ namespace BAL {
         int visibleWidth() const;
         int visibleHeight() const;
         FloatRect visibleContentRect() const;
+        FloatRect visibleContentRectConsideringExternalScrollers() const;
 
         int contentsWidth() const;
         int contentsHeight() const;
@@ -72,7 +76,7 @@ namespace BAL {
         int contentsY() const;
         IntSize scrollOffset() const;
         void scrollBy(int dx, int dy);
-        virtual void scrollPointRecursively(int dx, int dy);
+        virtual void scrollRectIntoViewRecursively(const IntRect&);
 
         virtual void setContentsPos(int x, int y);
 
@@ -93,12 +97,23 @@ namespace BAL {
 
         virtual void resizeContents(int w, int h);
         void updateContents(const IntRect&, bool now = false);
+        void update();
 
         // Event coordinates are assumed to be in the coordinate space of a window that contains
         // the entire widget hierarchy.  It is up to the platform to decide what the precise definition
         // of containing window is.  (For example on Mac it is the containing NSWindow.)
         IntPoint windowToContents(const IntPoint&) const;
         IntPoint contentsToWindow(const IntPoint&) const;
+
+#if PLATFORM(MAC)
+        // On Mac only because of flipped NSWindow y-coordinates, we have to have a special implementation.
+        IntRect windowToContents(const IntRect&) const;
+        IntRect contentsToWindow(const IntRect&) const;
+#else
+        // Other platforms can just implement these helper methods using the corresponding point conversion methods.
+        IntRect contentsToWindow(const IntRect& rect) const { return IntRect(contentsToWindow(rect.location()), rect.size()); }
+        IntRect windowToContents(const IntRect& rect) const { return IntRect(windowToContents(rect.location()), rect.size()); }
+#endif
 
         void setStaticBackground(bool);
 
@@ -141,6 +156,11 @@ namespace BAL {
         void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
         void updateBackingStore();
 
+        void setAllowsScrolling(bool);
+        bool allowsScrolling() const;
+
+        HashSet<Widget*>* children();
+
     private:
         void updateScrollbars(const IntSize& desiredOffset);
         IntSize maximumScroll() const;
@@ -148,18 +168,29 @@ namespace BAL {
         ScrollViewPrivate* m_data;
 #endif
 
-#if PLATFORM(GDK)
+#if PLATFORM(GTK)
         ScrollView();
         ~ScrollView();
 
-        void updateView(const IntRect&, bool now = false);
-        virtual void setDrawable(GdkDrawable* drawable);
+        virtual void setGtkAdjustments(GtkAdjustment* hadj, GtkAdjustment* vadj);
+        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
+        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
+        virtual void geometryChanged() const;
+
+        virtual void paint(GraphicsContext*, const IntRect&);
         virtual void setFrameGeometry(const IntRect&);
-        void updateGeometry();
+
+        void addToDirtyRegion(const IntRect&);
+        void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
+        void updateBackingStore();
+
+    protected:
+        HashSet<Widget*>* children() const;
+
     private:
-        void updateScrollbars();
         IntSize maximumScroll() const;
-        int updateScrollInfo(short type, int current, int max, int pageSize);
+        void updateScrollbars(const IntSize& desiredOffset);
+
         class ScrollViewPrivate;
         ScrollViewPrivate* m_data;
 #endif
@@ -168,14 +199,32 @@ namespace BAL {
         ScrollView();
         ~ScrollView();
 
-        void setScrollArea(QAbstractScrollArea*);
-        void setAllowsScrolling(bool);
+        virtual void paint(GraphicsContext*, const IntRect&);
+
+        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
+        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
+
+        virtual void geometryChanged() const;
+        virtual void setFrameGeometry(const IntRect&);
+
+        IntRect windowResizerRect();
+        bool resizerOverlapsContent() const;
+        void adjustOverlappingScrollbarCount(int overlapDelta);
+
+        virtual void setParent(ScrollView*);
+
+        void addToDirtyRegion(const IntRect&);
+        void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
+        void updateBackingStore();
+
+        PlatformScrollbar *horizontalScrollBar() const;
+        PlatformScrollbar *verticalScrollBar() const;
 
     private:
-        QAbstractScrollArea* m_area;
-        bool m_allowsScrolling;
-        int  m_width;
-        int  m_height;
+        void updateScrollbars(const IntSize& desiredOffset);
+        IntSize maximumScroll() const;
+        class ScrollViewPrivate;
+        ScrollViewPrivate* m_data;
 #endif
 
 #if __OWB__
@@ -188,7 +237,8 @@ namespace BAL {
         virtual void resize(int, int);
         virtual void setFrameGeometry(const IntRect &r); // called by renderers
         virtual bool isFrameView() const { return false; }
-
+    protected:
+        HashSet<Widget*>* children() const;
     private:
         class BTScrollViewPrivate;
         BTScrollViewPrivate* m_data;

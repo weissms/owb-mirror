@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2007 Alp Toker <alp@atoker.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,10 +27,14 @@
 #include "config.h"
 #include "CanvasGradient.h"
 
-#include "cssparser.h"
+#include "CSSParser.h"
 
 #if PLATFORM(CG)
 #include <ApplicationServices/ApplicationServices.h>
+#elif PLATFORM(QT)
+#include <QGradient>
+#elif PLATFORM(CAIRO)
+#include <cairo.h>
 #endif
 
 namespace WebCore {
@@ -37,6 +42,10 @@ namespace WebCore {
 CanvasGradient::CanvasGradient(const FloatPoint& p0, const FloatPoint& p1)
     : m_radial(false), m_p0(p0), m_p1(p1), m_stopsSorted(false), m_lastStop(0)
 #if PLATFORM(CG)
+    , m_shading(0)
+#elif PLATFORM(QT)
+    , m_shading(0)
+#elif PLATFORM(CAIRO)
     , m_shading(0)
 #endif
 {
@@ -46,6 +55,10 @@ CanvasGradient::CanvasGradient(const FloatPoint& p0, float r0, const FloatPoint&
     : m_radial(true), m_p0(p0), m_p1(p1), m_r0(r0), m_r1(r1), m_stopsSorted(false), m_lastStop(0)
 #if PLATFORM(CG)
     , m_shading(0)
+#elif PLATFORM(QT)
+    , m_shading(0)
+#elif PLATFORM(CAIRO)
+    , m_shading(0)
 #endif
 {
 }
@@ -54,22 +67,33 @@ CanvasGradient::~CanvasGradient()
 {
 #if PLATFORM(CG)
     CGShadingRelease(m_shading);
+#elif PLATFORM(QT)
+    delete m_shading;
+#elif PLATFORM(CAIRO)
+    cairo_pattern_destroy(m_shading);
 #endif
 }
 
 void CanvasGradient::addColorStop(float value, const String& color)
 {
-    RGBA32 rgba = CSSParser::parseColor(color);
+    RGBA32 rgba = 0; // default is transparant black
+    CSSParser::parseColor(rgba, color);
     m_stops.append(ColorStop(value,
-        ((rgba >> 16) & 0xFF) / 255.0,
-        ((rgba >> 8) & 0xFF) / 255.0,
-        (rgba & 0xFF) / 255.0,
-        ((rgba >> 24) & 0xFF) / 255.0));
+        ((rgba >> 16) & 0xFF) / 255.0f,
+        ((rgba >> 8) & 0xFF) / 255.0f,
+        (rgba & 0xFF) / 255.0f,
+        ((rgba >> 24) & 0xFF) / 255.0f));
 
     m_stopsSorted = false;
 
 #if PLATFORM(CG)
     CGShadingRelease(m_shading);
+    m_shading = 0;
+#elif PLATFORM(QT)
+    delete m_shading;
+    m_shading = 0;
+#elif PLATFORM(CAIRO)
+    cairo_pattern_destroy(m_shading);
     m_shading = 0;
 #endif
 }
@@ -109,21 +133,81 @@ CGShadingRef CanvasGradient::platformShading()
     return m_shading;
 }
 
+#elif PLATFORM(QT)
+
+QGradient* CanvasGradient::platformShading()
+{
+    if (m_shading)
+        return m_shading;
+
+    if (m_radial)
+        m_shading = new QRadialGradient(m_p0.x(), m_p0.y(), m_r0, m_p1.x(), m_p1.y());
+    else m_shading = new QLinearGradient(m_p0.x(), m_p0.y(), m_p1.x(), m_p1.y());
+
+    QColor stopColor;
+    Vector<ColorStop>::iterator stopIterator = m_stops.begin();;
+    while (stopIterator != m_stops.end()) {
+        stopColor.setRgbF(stopIterator->red, stopIterator->green, stopIterator->blue, stopIterator->alpha);
+        m_shading->setColorAt(stopIterator->stop, stopColor);
+        ++stopIterator;
+    }
+
+    return m_shading;
+}
+
+#elif PLATFORM(CAIRO)
+
+cairo_pattern_t* CanvasGradient::platformShading()
+{
+    if (m_shading)
+        return m_shading;
+
+    if (m_radial)
+        m_shading = cairo_pattern_create_radial(m_p0.x(), m_p0.y(), m_r0, m_p1.x(), m_p1.y(), m_r1);
+    else
+        m_shading = cairo_pattern_create_linear(m_p0.x(), m_p0.y(), m_p1.x(), m_p1.y());
+
+    Vector<ColorStop>::iterator stopIterator = m_stops.begin();
+    while (stopIterator != m_stops.end()) {
+        cairo_pattern_add_color_stop_rgba(m_shading, stopIterator->stop, stopIterator->red, stopIterator->green, stopIterator->blue, stopIterator->alpha);
+        ++stopIterator;
+    }
+
+    return m_shading;
+}
+
 #endif
+
+static inline bool compareStops(const CanvasGradient::ColorStop &a, const CanvasGradient::ColorStop &b)
+{
+    return a.stop < b.stop;
+}
 
 void CanvasGradient::getColor(float value, float* r, float* g, float* b, float* a)
 {
     ASSERT(value >= 0);
     ASSERT(value <= 1);
 
-    if (value <= 0) {
+    if (m_stops.isEmpty()) {
+        *r = 0;
+        *g = 0;
+        *b = 0;
+        *a = 0;
+        return;
+    }
+    if (!m_stopsSorted) {
+        if (m_stops.size())
+            std::stable_sort(m_stops.begin(), m_stops.end(), compareStops);
+        m_stopsSorted = true;
+    }
+    if (value <= 0 || value <= m_stops.first().stop) {
         *r = m_stops.first().red;
         *g = m_stops.first().green;
         *b = m_stops.first().blue;
         *a = m_stops.first().alpha;
         return;
     }
-    if (value >= 1) {
+    if (value >= 1 || value >= m_stops.last().stop) {
         *r = m_stops.last().red;
         *g = m_stops.last().green;
         *b = m_stops.last().blue;
@@ -142,37 +226,11 @@ void CanvasGradient::getColor(float value, float* r, float* g, float* b, float* 
     *a = lastStop.alpha + (nextStop.alpha - lastStop.alpha) * stopFraction;
 }
 
-static int compareStops(const void* a, const void* b)
-{
-    float as = static_cast<const CanvasGradient::ColorStop*>(a)->stop;
-    float bs = static_cast<const CanvasGradient::ColorStop*>(b)->stop;
-
-    if (as > bs)
-        return 1;
-    if (as < bs)
-        return -1;
-    return 0;
-}
-
 int CanvasGradient::findStop(float value) const
 {
-    if (!m_stopsSorted) {
-        bool addZeroStop = true;
-        bool addOneStop = true;
-        if (m_stops.size()) {
-            qsort(m_stops.data(), m_stops.size(), sizeof(ColorStop), compareStops);
-            addZeroStop = m_stops.first().stop != 0;
-            addOneStop = m_stops.last().stop != 1;
-        }
-        if (addZeroStop)
-            m_stops.insert(0, ColorStop(0, 0, 0, 0, 1));
-        if (addOneStop)
-            m_stops.append(ColorStop(1, 0, 0, 0, 1));
-        m_stopsSorted = true;
-    }
-
     ASSERT(value >= 0);
     ASSERT(value <= 1);
+    ASSERT(m_stopsSorted);
 
     int numStops = m_stops.size();
     ASSERT(numStops >= 2);

@@ -72,7 +72,7 @@ int main( int argc, char* argv[] )
     BALFacilities::logger.addChannel(channel.get());
 #endif
 
-    printf("Origyn test runner is starting...\n");
+    printf("Origyn test runner:\n");
 
     TestNode* aTestNode=NULL;
     bool bExecute = true; // if false, just display.
@@ -81,6 +81,7 @@ int main( int argc, char* argv[] )
       if( std::string("-h") == argv[i] )
       {
         printBanner( argv );
+        TestManager::deleteInstance();
         return 1;
       }
       else if ( std::string("-l") == argv[i] )
@@ -93,7 +94,9 @@ int main( int argc, char* argv[] )
       }
       else if ( std::string("-p") == argv[i] )
       {
-        TestManager::GetInstance().setPath(argv[i+1]);
+          std::string path(argv[i+1]);
+          path.append("/");
+        TestManager::GetInstance().setPath(path);
         i++;
       }
       else if( aTestRunner.FindNode( argv[i], &aTestNode ) )
@@ -104,6 +107,7 @@ int main( int argc, char* argv[] )
       {
         printf("Unknown argument %s\n", argv[i]);
         printBanner(argv);
+        TestManager::deleteInstance();
         return 2;
       }
     }
@@ -117,22 +121,29 @@ int main( int argc, char* argv[] )
 
     } else {
         aTestRunner.DisplayTestTree(aTestNode);
+        TestManager::deleteInstance();
         return 1;
     }
 
     bool bWasSuccessfull = aTestRunner.GetTestManager().GetTestResult().mTheFailureTotal == 0;
+    TestManager::deleteInstance();
     return bWasSuccessfull ? 0 : 1;
 }
 
 extern TestNode gTestSuiteEvent;
+extern TestNode gTestSuiteEventLoop;
+extern TestNode gTestSuiteFacilities;
 extern TestNode gTestSuiteFont;
+extern TestNode gTestSuiteFontStress;
+extern TestNode gTestSuiteGraphics;
+extern TestNode gTestSuiteGraphicsStress;
 extern TestNode gTestSuiteImageDecoder;
 extern TestNode gTestSuiteLog;
 extern TestNode gTestSuiteLogInteractif;
 extern TestNode gTestSuiteScrollView;
 extern TestNode gTestSuiteWidget;
-extern TestNode gTestSuiteWindow;
 extern TestNode gTestSuiteNetwork;
+extern TestNode gTestSuiteNetworkStress;
 extern TestNode gTestSuiteTypes;
 extern TestNode gTestSuiteTimer;
 extern TestNode gTestSuitePosix;
@@ -141,16 +152,22 @@ extern TestNode gTestSuiteInternationalization;
 
 TestNode* gRootTestNodeList[] = {
   &gTestSuiteEvent,
+  &gTestSuiteEventLoop,
+  &gTestSuiteFacilities,
+  &gTestSuiteGraphics,
+  &gTestSuiteGraphicsStress,
 // FIXME disabled for now
 //  &gTestSuiteFont,
+  &gTestSuiteFontStress,
   &gTestSuiteImageDecoder,
 #ifndef NDEBUG
   &gTestSuiteLog,
   &gTestSuiteLogInteractif,
 #endif
   &gTestSuiteScrollView,
-  &gTestSuiteWindow,
+  &gTestSuiteWidget,
   &gTestSuiteNetwork,
+  &gTestSuiteNetworkStress,
   &gTestSuiteTypes,
   &gTestSuiteTimer,
   &gTestSuitePosix,

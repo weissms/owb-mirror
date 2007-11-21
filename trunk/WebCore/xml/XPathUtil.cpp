@@ -27,7 +27,7 @@
 #include "config.h"
 #include "XPathUtil.h"
 
-#ifdef XPATH_SUPPORT
+#if ENABLE(XPATH)
 
 #include "Node.h"
 
@@ -46,14 +46,16 @@ String stringValue(Node* node)
         case Node::PROCESSING_INSTRUCTION_NODE:
         case Node::COMMENT_NODE:
         case Node::TEXT_NODE:
+        case Node::CDATA_SECTION_NODE:
+        case Node::XPATH_NAMESPACE_NODE:
             return node->nodeValue();
         default:
-            if (isRootDomNode(node)
-                 || node->nodeType() == Node::ELEMENT_NODE) {
+            if (isRootDomNode(node) || node->nodeType() == Node::ELEMENT_NODE) {
                 String str;
                 
                 for (Node* n = node->firstChild(); n; n = n->traverseNextNode(node))
-                    str += stringValue(n);
+                    if (n->isTextNode())
+                        str += n->nodeValue();
 
                 return str;
             }
@@ -72,10 +74,11 @@ bool isValidContextNode(Node* node)
            node->nodeType() == Node::PROCESSING_INSTRUCTION_NODE ||
            node->nodeType() == Node::COMMENT_NODE ||
            node->nodeType() == Node::DOCUMENT_NODE ||
-           node->nodeType() == Node::XPATH_NAMESPACE_NODE);
+           node->nodeType() == Node::XPATH_NAMESPACE_NODE) &&
+           !(node->nodeType() == Node::TEXT_NODE && node->parentNode() && node->parentNode()->isAttributeNode());
 }
 
 }
 }
 
-#endif // XPATH_SUPPORT
+#endif // ENABLE(XPATH)

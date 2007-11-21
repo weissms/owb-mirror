@@ -65,7 +65,7 @@ JavaField::JavaField (JNIEnv *env, jobject aField)
     jstring fieldName = (jstring)callJNIObjectMethod (aField, "getName", "()Ljava/lang/String;");
     _name = JavaString(env, fieldName);
 
-    _field = new JavaInstance(aField);
+    _field = new JObjectWrapper(aField);
 }
 
 JSValue* JavaArray::convertJObjectToArray(ExecState* exec, jobject anObject, const char* type, PassRefPtr<RootObject> rootObject)
@@ -79,7 +79,7 @@ JSValue* JavaArray::convertJObjectToArray(ExecState* exec, jobject anObject, con
 jvalue JavaField::dispatchValueFromInstance(ExecState *exec, const JavaInstance *instance, const char *name, const char *sig, JNIType returnType) const
 {
     jobject jinstance = instance->javaInstance();
-    jobject fieldJInstance = _field->javaInstance();
+    jobject fieldJInstance = _field->_instance;
     JNIEnv *env = getJNIEnv();
     jvalue result;
 
@@ -163,7 +163,7 @@ JSValue *JavaField::valueFromInstance(ExecState *exec, const Instance *i) const
 void JavaField::dispatchSetValueToInstance(ExecState *exec, const JavaInstance *instance, jvalue javaValue, const char *name, const char *sig) const
 {
     jobject jinstance = instance->javaInstance();
-    jobject fieldJInstance = _field->javaInstance();
+    jobject fieldJInstance = _field->_instance;
     JNIEnv *env = getJNIEnv();
 
     jclass cls = env->GetObjectClass(fieldJInstance);
@@ -245,23 +245,6 @@ void JavaField::setValueToInstance(ExecState *exec, const Instance *i, JSValue *
     }
 }
 
-JavaConstructor::JavaConstructor (JNIEnv *env, jobject aConstructor)
-{
-    // Get parameters
-    jarray jparameters = (jarray)callJNIObjectMethod (aConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
-    _numParameters = env->GetArrayLength (jparameters);
-    _parameters = new JavaParameter[_numParameters];
-    
-    int i;
-    for (i = 0; i < _numParameters; i++) {
-        jobject aParameter = env->GetObjectArrayElement ((jobjectArray)jparameters, i);
-        jstring parameterName = (jstring)callJNIObjectMethod (aParameter, "getName", "()Ljava/lang/String;");
-        _parameters[i] = JavaParameter(env, parameterName);
-        env->DeleteLocalRef (aParameter);
-        env->DeleteLocalRef (parameterName);
-    }
-}
-
 JavaMethod::JavaMethod (JNIEnv *env, jobject aMethod)
 {
     // Get return type
@@ -301,10 +284,19 @@ JavaMethod::JavaMethod (JNIEnv *env, jobject aMethod)
     _isStatic = (bool)callJNIStaticBooleanMethod (modifierClass, "isStatic", "(I)Z", modifiers);
 }
 
+JavaMethod::~JavaMethod() 
+{
+    if (_signature)
+        free(_signature);
+    delete [] _parameters;
+};
+
 // JNI method signatures use '/' between components of a class name, but
 // we get '.' between components from the reflection API.
-static void appendClassName (UString *aString, const char *className)
+static void appendClassName(UString& aString, const char* className)
 {
+    ASSERT(JSLock::lockCount() > 0);
+    
     char *result, *cp = strdup(className);
     
     result = cp;
@@ -314,46 +306,47 @@ static void appendClassName (UString *aString, const char *className)
         cp++;
     }
         
-    aString->append(result);
+    aString.append(result);
 
     free (result);
 }
 
 const char *JavaMethod::signature() const 
 {
-    if (_signature == 0){
-        int i;
-        
-        _signature = new UString("(");
-        for (i = 0; i < _numParameters; i++) {
-            JavaParameter *aParameter = static_cast<JavaParameter *>(parameterAt(i));
+    if (!_signature) {
+        JSLock lock;
+
+        UString signatureBuilder("(");
+        for (int i = 0; i < _numParameters; i++) {
+            JavaParameter* aParameter = parameterAt(i);
             JNIType _JNIType = aParameter->getJNIType();
             if (_JNIType == array_type)
-                appendClassName(_signature, aParameter->type());
+                appendClassName(signatureBuilder, aParameter->type());
             else {
-                _signature->append(signatureFromPrimitiveType (_JNIType));
+                signatureBuilder.append(signatureFromPrimitiveType(_JNIType));
                 if (_JNIType == object_type) {
-                    appendClassName (_signature, aParameter->type());
-                    _signature->append(";");
+                    appendClassName(signatureBuilder, aParameter->type());
+                    signatureBuilder.append(";");
                 }
             }
         }
-        _signature->append(")");
+        signatureBuilder.append(")");
         
         const char *returnType = _returnType.UTF8String();
         if (_JNIReturnType == array_type) {
-            appendClassName (_signature, returnType);
-        }
-        else {
-            _signature->append(signatureFromPrimitiveType (_JNIReturnType));
+            appendClassName(signatureBuilder, returnType);
+        } else {
+            signatureBuilder.append(signatureFromPrimitiveType(_JNIReturnType));
             if (_JNIReturnType == object_type) {
-                appendClassName (_signature, returnType);
-                _signature->append(";");
+                appendClassName(signatureBuilder, returnType);
+                signatureBuilder.append(";");
             }
         }
+        
+        _signature = strdup(signatureBuilder.ascii());
     }
     
-    return _signature->ascii();
+    return _signature;
 }
 
 JNIType JavaMethod::JNIReturnType() const
@@ -370,7 +363,8 @@ jmethodID JavaMethod::methodID (jobject obj) const
 }
 
 
-JavaArray::JavaArray(jobject array, const char* type, PassRefPtr<RootObject> rootObject) 
+JavaArray::JavaArray(jobject array, const char* type, PassRefPtr<RootObject> rootObject)
+    : Array(rootObject)
 {
     _array = new JObjectWrapper(array);
     // Java array are fixed length, so we can cache length.

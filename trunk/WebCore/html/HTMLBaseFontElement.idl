@@ -13,15 +13,15 @@
  *
  * You should have received a copy of the GNU Library General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  */
 
 module html {
 
-    interface [LegacyParent=KJS::JSHTMLElement, GenerateConstructor] HTMLBaseFontElement : HTMLElement {
-        attribute DOMString color;
-        attribute DOMString face;
+    interface [GenerateConstructor] HTMLBaseFontElement : HTMLElement {
+        attribute [ConvertNullToNullString] DOMString color;
+        attribute [ConvertNullToNullString] DOMString face;
 #if defined(LANGUAGE_OBJECTIVE_C)
         attribute [ConvertToString] DOMString size; // this changed to a long, but our existing API is a string
 #else
