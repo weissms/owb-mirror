@@ -86,7 +86,7 @@ static BC::BCEventLoopSDL* gMainLoop = NULL;
  * Construcs and set the m_isInitialized flag
  *
  */
-BC::BCEventLoopSDL::BCEventLoopSDL() 
+BC::BCEventLoopSDL::BCEventLoopSDL()
     : m_isInitialized(false)
     , m_event(0)
 {
@@ -179,7 +179,7 @@ bool BC::BCEventLoopSDL::WaitEvent(BIEvent*& aBALEvent)
             m_event.remove(0);
             return (aBALEvent != NULL);
         } else {
-            usleep(1);
+            usleep(10000);
             return false;
         }
     }
