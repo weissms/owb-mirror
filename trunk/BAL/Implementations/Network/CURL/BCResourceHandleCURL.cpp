@@ -119,7 +119,8 @@ BCResourceHandleCURL::~BCResourceHandleCURL()
     if (m_customHeader)
         curl_slist_free_all(m_customHeader);
 
-    curl_easy_cleanup(m_handle);
+	if (m_handle)
+    	curl_easy_cleanup(m_handle);
 }
 
 void BCResourceHandleCURL::setURL(const char* url)
@@ -444,11 +445,10 @@ void  BCResourceHandleCURL::processMessage(CURLMsg* msg)
     if (msg->msg == CURLMSG_DONE) {
         // find the node which has same m_handle as completed transfer
         if (msg->data.result != CURLE_OK) {
-            char *handle_url = 0;
+            char *handle_url = NULL;
             curl_easy_getinfo(m_handle, CURLINFO_EFFECTIVE_URL, &handle_url);
             const char *error =  curl_easy_strerror(msg->data.result);
             DBGML(MODULE_NETWORK, LEVEL_WARNING, "JOB:%s ERROR=%s\n", handle_url, error);
-            free(handle_url);
             // Set error code to '1' as it is not a HTTP error.
             ResourceError jobError(url().host(), 1, url().url(), String(error));
             //FIXME: make error descriptive
@@ -456,6 +456,8 @@ void  BCResourceHandleCURL::processMessage(CURLMsg* msg)
                 client()->didFail(this, jobError); //didFail release resources.
                 return;
             }
+		    if (handle_url)
+	    	   free(handle_url);
         }
         finish();
     }
