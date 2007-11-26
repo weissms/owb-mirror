@@ -185,7 +185,6 @@ bool BC::BCEventLoopSDL::WaitEvent(BIEvent*& aBALEvent)
     }
 #else
     else {
-        WebCore::fireTimerIfNeeded();
         // setup select for console
         FD_ZERO(&m_fdSet);
         FD_SET(fileno(stdin),&m_fdSet);
@@ -199,6 +198,15 @@ bool BC::BCEventLoopSDL::WaitEvent(BIEvent*& aBALEvent)
             aBALEvent = CreateEventFromStdin(key);
             return (aBALEvent != NULL);
         }
+    }
+    WebCore::fireTimerIfNeeded();
+    if (!m_event.isEmpty()) {
+        aBALEvent = m_event.first();
+        m_event.remove(0);
+        return (aBALEvent != NULL);
+    } else {
+        usleep(10000);
+        return false;
     }
 #endif
     return false;
