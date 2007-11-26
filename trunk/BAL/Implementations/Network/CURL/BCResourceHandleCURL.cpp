@@ -160,6 +160,8 @@ void  BCResourceHandleCURL::setupPOST()
     
     //first add any data
     static CString data;
+    if (!postData())
+        return;
     data = postData()->flattenToString().latin1();
     DBGML(MODULE_NETWORK, LEVEL_WARNING, "ADD TRANSFER JOB: DATA=%s\n", data.data());
 
