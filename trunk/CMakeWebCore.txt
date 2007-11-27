@@ -386,7 +386,7 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore
 )
 
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/tokenizer.inl
-  COMMAND flex -t < ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/tokenizer.flex | ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/maketokenizer > ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/tokenizer.inl
+  COMMAND flex -t ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/tokenizer.flex | ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/maketokenizer > ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/tokenizer.inl
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/WebCore/css/tokenizer.flex
 )
 CREATE_GENERATED_CPP_HELPER (generated_sources/WebCore/tokenizer.inl)
