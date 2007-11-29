@@ -278,7 +278,7 @@ INCLUDE (BAL/CMakeConf.txt)
 ##############################
 ##############################
 
-EXEC_PROGRAM ("find" ARGS " ${CMAKE_CURRENT_SOURCE_DIR} -maxdepth 1 -name ClosedBAL -type d -print | grep -v `basename $(pwd)`" OUTPUT_VARIABLE CLOSEDBAL_DIR)
+EXEC_PROGRAM ("find" ARGS " ${CMAKE_CURRENT_SOURCE_DIR} -maxdepth 1 -name ClosedBAL -type d -print" OUTPUT_VARIABLE CLOSEDBAL_DIR)
 IF (EXISTS ${CLOSEDBAL_DIR})
     ADD_SUBDIRECTORY (${CLOSEDBAL_DIR})
     INCLUDE (ClosedBAL/CMakeConf.txt)
@@ -524,7 +524,7 @@ INCLUDE (CMakeWebCore.txt)
 
 ADD_LIBRARY (webcore-owb ${webcore_SRC})
 
-EXEC_PROGRAM ("find" ARGS " ${CMAKE_CURRENT_SOURCE_DIR} -maxdepth 1 -name AddOns -type d -print | grep -v `basename $(pwd)`" OUTPUT_VARIABLE ADDONS_DIR)
+EXEC_PROGRAM ("find" ARGS " ${CMAKE_CURRENT_SOURCE_DIR} -maxdepth 1 -name AddOns -type d -print" OUTPUT_VARIABLE ADDONS_DIR)
 IF (EXISTS ${ADDONS_DIR})
     SET(LIBRARIES_TO_INCLUDE "${LIBRARIES_TO_INCLUDE};${ADDONS_DIR}")
     INCLUDE (${ADDONS_DIR}/CMakeConf.txt)
