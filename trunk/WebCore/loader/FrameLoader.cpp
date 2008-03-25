@@ -3340,7 +3340,7 @@ void FrameLoader::loadResourceSynchronously(const ResourceRequest& request, Reso
     if (error.isNull()) {
         ASSERT(!newRequest.isNull());
         didTellBridgeAboutLoad(newRequest.url().url());
-        ResourceHandle::loadResourceSynchronously(newRequest, error, response, data);
+        ResourceHandle::loadResourceSynchronously(newRequest, error, response, data, m_frame);
     }
     
     sendRemainingDelegateMessages(identifier, response, data.size(), error);

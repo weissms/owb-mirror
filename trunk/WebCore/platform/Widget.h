@@ -74,7 +74,6 @@ using BAL::BTFont;
 using WebCore::IntSize;
 using WebCore::IntPoint;
 using WebCore::IntRect;
-using WebCore::Cursor;
 using WebCore::WidgetClient;
 using WebCore::WidgetPrivate;
 using WebCore::Event;
@@ -83,6 +82,7 @@ namespace BAL {
     class BINativeImage;
     class BTScrollView;
     class BIWindow;
+    using WebCore::Cursor;
 #endif
     class BTWidget {
     public:

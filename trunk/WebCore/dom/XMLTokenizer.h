@@ -41,12 +41,16 @@
 #endif
 #endif
 
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 #else
 #include <QtXml/qxmlstream.h>
 #endif
+#else //__OWB__
+#include "ParseXML.h"
+#endif //__OWB__
 
 namespace WebCore {
 
@@ -57,9 +61,15 @@ namespace WebCore {
     class Document;
     class Element;
     class FrameView;
+#ifndef __OWB__
     class PendingCallbacks;
+#endif
 
     class XMLTokenizer : public Tokenizer, public CachedResourceClient {
+#ifdef __OWB__
+    typedef HashMap<String, String> PrefixForNamespaceMap;
+    friend class BAL::ParseXML;
+#endif
     public:
         XMLTokenizer(Document*, FrameView* = 0);
         XMLTokenizer(DocumentFragment*, Element*);
@@ -84,6 +94,7 @@ namespace WebCore {
         // from CachedResourceClient
         virtual void notifyFinished(CachedResource* finishedObj);
 
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
         // callbacks from parser SAX
         void error(ErrorType, const char* message, va_list args);
@@ -109,6 +120,10 @@ namespace WebCore {
         void parseDtd();
         bool hasError() const;
 #endif
+#else //OWB
+        void parse(Document &m_doc, String parseString);
+        BAL::ParseXML *parseXML() {return m_parseXML;}
+#endif //OWB
 
         void handleError(ErrorType type, const char* m, int lineNumber, int columnNumber);
 
@@ -120,23 +135,25 @@ namespace WebCore {
     private:
         void initializeParserContext();
         void setCurrentNode(Node*);
-
         void insertErrorMessageBlock();
 
         bool enterText();
         void exitText();
-
         Document* m_doc;
         FrameView* m_view;
 
         String m_originalSourceForTransform;
-
+#ifndef __OWB__
 #ifdef USE_QXMLSTREAM
         QXmlStreamReader m_stream;
         bool m_wroteText;
 #else
         xmlParserCtxtPtr m_context;
 #endif
+#else //__OWB__
+        BAL::ParseXML *m_parseXML;
+        bool isInitialized;
+#endif//__OWB__
         Node* m_currentNode;
         bool m_currentNodeIsReferenced;
 
@@ -161,22 +178,29 @@ namespace WebCore {
         bool m_parsingFragment;
         String m_defaultNamespaceURI;
 
-        typedef HashMap<String, String> PrefixForNamespaceMap;
+#ifndef __OWB__
+    typedef HashMap<String, String> PrefixForNamespaceMap;
+#endif
         PrefixForNamespaceMap m_prefixToNamespaceMap;
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
         OwnPtr<PendingCallbacks> m_pendingCallbacks;
 #endif
+#endif //__OWB__
         SegmentedString m_pendingSrc;
     };
 
 #if ENABLE(XSLT)
 void* xmlDocPtrForString(DocLoader*, const String& source, const DeprecatedString& URL);
+#ifndef __OWB__
 void setLoaderForLibXMLCallbacks(DocLoader*);
+#endif
 #endif
 
 HashMap<String, String> parseAttributes(const String&, bool& attrsOK);
 bool parseXMLDocumentFragment(const String&, DocumentFragment*, Element* parent = 0);
 
 } // namespace WebCore
+
 
 #endif // XMLTokenizer_h

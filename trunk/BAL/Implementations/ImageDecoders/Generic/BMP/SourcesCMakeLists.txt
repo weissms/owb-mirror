@@ -1,0 +1,5 @@
+set(decoder_bmp_SRC
+        ${decoder_bmp_SRC}
+
+        BAL/Implementations/ImageDecoders/Generic/BMP/BMPImageDecoder.cpp
+)

@@ -27,7 +27,7 @@
  */
 
 /**
- * @file  BCGraphicsDeviceSDL.h
+ * @file  BCGraphicsDeviceSDL.cpp
  *
  * Header file for BCGraphicsDeviceSDL.
  *
@@ -50,8 +50,10 @@
 
 #define WIDTH_MAX 16384
 #define HEIGHT_MAX 65536
+#define PI 3.14159265358979323846264338327950288419716939937510
 
 using WebCore::Image;
+
 
 IMPLEMENT_GET_DELETE(BIGraphicsDevice, BCGraphicsDeviceSDL);
 
@@ -59,23 +61,26 @@ IMPLEMENT_GET_DELETE(BIGraphicsDevice, BCGraphicsDeviceSDL);
 
 namespace BAL {
 
-BCGraphicsDeviceSDL::BCGraphicsDeviceSDL() : m_screen(0)
+BCGraphicsDeviceSDL::BCGraphicsDeviceSDL()
+    : m_screen(0)
 {
+#ifndef NDEBUG
+    if (getenv("DISABLE_DISPLAY"))
+        m_layoutTests = true;
+    else
+        m_layoutTests = false;
+#endif
 }
 
 void BCGraphicsDeviceSDL::initialize(uint16_t width, uint16_t height, uint8_t depth)
 {
 #ifndef NDEBUG
-    if (getenv("DISABLE_DISPLAY")) {
-        m_layoutTests = true;
+    if (m_layoutTests)
         return;
-    }
-    else
-        m_layoutTests = false;
 #endif
     const SDL_VideoInfo* vi;
     // for now, resizable flag is the only way to enable resize event handling, so put it to default
-    int flags =  SDL_RESIZABLE;
+    int flags = SDL_RESIZABLE;
 
     if (m_screen) {
         // this is not the first time we initialize the graphics device, we're in a resize process
@@ -91,6 +96,8 @@ void BCGraphicsDeviceSDL::initialize(uint16_t width, uint16_t height, uint8_t de
         vi = SDL_GetVideoInfo();
         if(vi && vi->wm_available) /* Change title */
             SDL_WM_SetCaption("Origyn Web Browser", "Origyn Web Browser");
+        if (vi && vi->hw_available) /* Double buffering will not be set by SDL if not supported */
+            flags |= SDL_HWSURFACE | SDL_DOUBLEBUF;
     }
 
     m_screen = SDL_SetVideoMode(width, height, depth, flags);
@@ -104,6 +111,10 @@ void BCGraphicsDeviceSDL::initialize(uint16_t width, uint16_t height, uint8_t de
 
 void BCGraphicsDeviceSDL::finalize()
 {
+#ifndef NDEBUG
+    if (m_layoutTests)
+        return;
+#endif
      if (m_screen) {
 //         SDL_FreeSurface(m_screen);
          m_screen = 0;
@@ -167,6 +178,7 @@ void BCGraphicsDeviceSDL::copy(const BTWidget& widget, const BINativeImage& imag
 {
     if (!widget.backingStore())
         return;
+
     SDL_Rect sdlSrc, sdlDest;
     sdlDest.x = point.x();
     sdlDest.y = point.y();
@@ -393,8 +405,9 @@ void BCGraphicsDeviceSDL::drawRect(const BTWidget& widget, IntRect rect, const W
 void BCGraphicsDeviceSDL::stretchBlit(const BTWidget& widget, const BINativeImage& nativeImage, IntRect src, IntRect dst, const uint8_t alphaChannel)
 {
     SDL_Rect srcRect, dstRect;
-    srcRect.x = static_cast<Sint16>(src.x());
-    srcRect.y = static_cast<Sint16>(src.y());
+
+    srcRect.x = 0;
+    srcRect.y = 0;
     if (0 == src.width())
         srcRect.w = nativeImage.size().width();
     else
@@ -407,28 +420,50 @@ void BCGraphicsDeviceSDL::stretchBlit(const BTWidget& widget, const BINativeImag
     dstRect.y = static_cast<Sint16>(dst.y());
     dstRect.w = static_cast<Sint16>(dst.width());
     dstRect.h = static_cast<Sint16>(dst.height());
+
+    //compute ratio of the zoomed part:
+    double  ratioW=(((double)dst.width()/(double)srcRect.w));
+    double  ratioH=((double)dst.height()/((double)srcRect.h));
+    //optimize: only copy (thru zoomSurface) when needed, that's to say, when there is a zoom to do!
+    bool hasAlpha=(alphaChannel != 255);
+    bool mustDeleteSurface=true;
+
     SDL_Surface *surface = NULL;
-    if (alphaChannel != 255) {
-        SDL_Surface *surfaceWithAlpha = applyTransparency(nativeImage, alphaChannel);
-        surface = zoomSurface(surfaceWithAlpha,
-                            (((double)dst.width()/(double)srcRect.w)),
-                            ((double)dst.height()/((double)srcRect.h)),
-                            SMOOTHING_OFF);
-        free(surfaceWithAlpha->pixels);
-        SDL_FreeSurface(surfaceWithAlpha);
-    } else {
-        surface = zoomSurface(GET_NATIVE(&nativeImage),
-                            (((double)dst.width()/(double)srcRect.w)),
-                            ((double)dst.height()/((double)srcRect.h)),
-                             SMOOTHING_OFF);
+    if ((ratioW!=1.0)||(ratioH!=1.0))
+    {
+        if (hasAlpha) {
+            SDL_Surface *surfaceWithAlpha = applyTransparency(nativeImage, alphaChannel);
+            surface = zoomSurface(surfaceWithAlpha,
+                                ratioW,
+                                ratioH,
+                                SMOOTHING_OFF);
+            free(surfaceWithAlpha->pixels);
+            SDL_FreeSurface(surfaceWithAlpha);
+        } else {
+            surface = zoomSurface(GET_NATIVE(&nativeImage),
+                                ratioW,
+                                ratioH,
+                                SMOOTHING_OFF);
+        }
+        //adjust offset to the new referentiel (zoomed)
+        srcRect.x=(Sint16)(src.x()*ratioW);
+        srcRect.y=(Sint16)(src.y()*ratioH);
     }
+    else
+    {
+        //copy (and add transparency) only if needed. Then, we'll have to delete the surface at end.
+        //else, we mustn't delete the surface as it's the original one!
+        surface=( hasAlpha ? applyTransparency(nativeImage, alphaChannel) : GET_NATIVE(&nativeImage));
+        mustDeleteSurface=hasAlpha;
+    }
+
     srcRect.w = static_cast<Uint16>(dst.width());
     srcRect.h = static_cast<Uint16>(dst.height());
-    srcRect.x = 0;
-    srcRect.y = 0;
+
 
     SDL_BlitSurface(surface, &srcRect, GET_NATIVE(widget.backingStore()), &dstRect);
-    SDL_FreeSurface(surface);
+    if (mustDeleteSurface)
+        SDL_FreeSurface(surface);
 }
 
 void BCGraphicsDeviceSDL::fillConvexPolygon(const BTWidget& widget, size_t npoints, const WebCore::IntPoint* points, const WebCore::Color color)
@@ -536,8 +571,12 @@ void BCGraphicsDeviceSDL::update(const BTWidget& widget, const IntRect rect)
     if ((sdlDest.x<size().width())
         &&(sdlDest.y<size().height())
         &&(sdlDest.x+sdlRect.w>=0)
-        &&(sdlDest.y+sdlRect.h>=0))
-        SDL_UpdateRect(m_screen, sdlDest.x, sdlDest.y, sdlRect.w, sdlRect.h);
+        &&(sdlDest.y+sdlRect.h>=0)) {
+        if (m_screen->flags & SDL_DOUBLEBUF) /* use SDL_Flip only if double buffering is available */
+            SDL_Flip(m_screen);
+        else
+            SDL_UpdateRect(m_screen, sdlDest.x, sdlDest.y, sdlRect.w, sdlRect.h);
+    }
 }
 
 void BCGraphicsDeviceSDL::clear(const BTWidget& widget, const IntRect rect)
@@ -549,6 +588,52 @@ void BCGraphicsDeviceSDL::clear(const BTWidget& widget, const IntRect rect)
     // i.e. transparent for transparent pages
     Color white(0xff, 0xff, 0xff, 0xff);
     fillRect(widget, rect, white);
+}
+
+void BCGraphicsDeviceSDL::applyCTM(const BTWidget& widget, const BTAffineTransform& transform)
+{
+    if (!widget.backingStore() || transform.isIdentity())
+        return;
+
+    clear(widget, IntRect(widget.pos(), widget.size()));
+    update(widget, IntRect(widget.pos(), widget.size()));
+    DBGML(MODULE_GRAPHICS, LEVEL_INFO, "BCGraphicsDeviceSDL::applyCTM with matrix:\n((%f, %f)\n (%f, %f)\n (%f, %f))\n", transform.a(), transform.b(), transform.c(), transform.d(), transform.e(), transform.f());
+
+    if (/*(transform.a() == 1.) && (transform.b() == 0.)
+         && (transform.c() == 0.) && (transform.d() == 1.)
+         &&*/ ((transform.e() != 0.) || (transform.f() != 0.))) {
+        // transform is a translation
+//         printf("translation\n");
+        uint16_t x = static_cast<uint16_t> (transform.a() * widget.x() + transform.c() * widget.y() + transform.e());
+        uint16_t y = static_cast<uint16_t> (transform.b() * widget.x() + transform.d() * widget.y() + transform.f());
+        const_cast<BAL::BTWidget&> (widget).move(x, y);
+        //FIXME: ugly
+        update(widget, IntRect(0,0,800,600));
+//         return;
+    }
+    if ((transform.a() != 0.) && (transform.b() == 0.)
+         && (transform.c() == 0.) && (transform.d() != 0.)) {
+        // transform is a zoom
+        if (transform.a() == transform.d() == 1)
+            return;
+//         printf("zoom with factor %f %f\n", transform.a(), transform.d());
+        SDL_Surface *surface = zoomSurface(GET_NATIVE(widget.backingStore()), transform.a(), transform.d(), SMOOTHING_OFF);
+        const_cast<BAL::BTWidget&> (widget).setBackingStore(new BCNativeImage(surface));
+        return;
+    }
+    if ((transform.det() == 1) && (transform.b() != transform.c()) && (transform.a() != 1)) {
+        // transform is a rotation
+        double angle = 180 * acos(transform.a()) / PI;
+        if (transform.b() < 0)
+            angle = 360 - angle;
+//         printf("rotation with angle %f\n", angle);
+        SDL_Surface *surface = rotozoomSurface(GET_NATIVE(widget.backingStore()), angle, 1., SMOOTHING_OFF);
+        const_cast<BAL::BTWidget&> (widget).setBackingStore(new BCNativeImage(surface));
+        //FIXME: ugly
+        update(widget, IntRect(0,0,800,600));
+        return;
+    }
+//     printf("do nothing\n");
 }
 
 SDL_Surface* BCGraphicsDeviceSDL::applyTransparency(const BINativeImage& image, const uint8_t alphaChannel)

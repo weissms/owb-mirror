@@ -68,6 +68,97 @@
 
 #define DEBUG_COLLECTOR 0
 
+#ifdef __OWB_UCLIBC__
+extern "C" {
+#include <sys/resource.h>
+#include <errno.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdio_ext.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/param.h>
+#include <sys/resource.h>
+#include <pthread.h>
+
+extern int *__libc_stack_end;
+void* my_pthread_getattr_np(pthread_t thread, pthread_attr_t *attr);
+
+void* my_pthread_getattr_np(pthread_t thread, pthread_attr_t *attr)
+{
+    static void *stackBase = 0;
+    static size_t stackSize = 0;
+    int ret = 0;
+    /* Stack size limit.  */
+    struct rlimit rl;
+
+    /* The safest way to get the top of the stack is to read
+    /proc/self/maps and locate the line into which
+    __libc_stack_end falls.  */
+    FILE *fp = fopen("/proc/self/maps", "rc");
+    if (fp == NULL)
+        ret = errno;
+    /* We need the limit of the stack in any case.  */
+    else if (getrlimit (RLIMIT_STACK, &rl) != 0)
+        ret = errno;
+    else {
+        /* We need no locking.  */
+        __fsetlocking (fp, FSETLOCKING_BYCALLER);
+
+        /* Until we found an entry (which should always be the case)
+        mark the result as a failure.  */
+        ret = ENOENT;
+
+        char *line = NULL;
+        size_t linelen = 0;
+        uintptr_t last_to = 0;
+
+        while (! feof_unlocked (fp)) {
+            if (getdelim (&line, &linelen, '\n', fp) <= 0)
+                break;
+
+            uintptr_t from;
+            uintptr_t to;
+            if (sscanf (line, "%x-%x", &from, &to) != 2)
+                continue;
+            if (from <= (uintptr_t) __libc_stack_end
+            && (uintptr_t) __libc_stack_end < to) {
+                /* Found the entry.  Now we have the info we need.  */
+                attr->__stacksize = rl.rlim_cur;
+#ifdef _STACK_GROWS_UP
+                /* Don't check to enforce a limit on the __stacksize */
+                attr->__stackaddr = (void *) from;
+#else
+                attr->__stackaddr = (void *) to;
+
+                /* The limit might be too high.  */
+                if ((size_t) attr->__stacksize > (size_t) attr->__stackaddr - last_to)
+                    attr->__stacksize = (size_t) attr->__stackaddr - last_to;
+#endif
+
+                /* We succeed and no need to look further.  */
+                ret = 0;
+                break;
+            }
+            last_to = to;
+        }
+
+        fclose (fp);
+        free (line);
+    }
+#ifndef _STACK_GROWS_UP
+    stackBase = (char *) attr->__stackaddr - attr->__stacksize;
+#else
+    stackBase = attr->__stackaddr;
+#endif
+    stackSize = attr->__stacksize;
+    return (void*)(size_t(stackBase) + stackSize);
+}
+
+};
+#endif //__OWB_UCLIBC__
+
 using std::max;
 
 namespace KJS {
@@ -289,15 +380,22 @@ static inline void* currentThreadStackBase()
 #if HAVE(PTHREAD_NP_H)
         // e.g. on FreeBSD 5.4, neundorf@kde.org
         pthread_attr_get_np(thread, &sattr);
+#elif __OWB_UCLIBC__
+        void* stack = my_pthread_getattr_np(thread, &sattr);
+        pthread_attr_destroy(&sattr);
+        stackThread = thread;
+        return stack;
 #else
         // FIXME: this function is non-portable; other POSIX systems may have different np alternatives
         pthread_getattr_np(thread, &sattr);
 #endif
+#ifndef __OWB_UCLIBC__
         int rc = pthread_attr_getstack(&sattr, &stackBase, &stackSize);
         (void)rc; // FIXME: deal with error code somehow?  seems fatal...
         ASSERT(stackBase);
         pthread_attr_destroy(&sattr);
         stackThread = thread;
+#endif //__OWB_UCLIBC__
     }
     return (void*)(size_t(stackBase) + stackSize);
 #else

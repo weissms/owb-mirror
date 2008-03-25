@@ -73,9 +73,12 @@ String BTTextCodec::decode(const char* bytes, size_t length, bool flush)
 
 CString BTTextCodec::encode(const UChar* characters, size_t length, bool allowEntities)
 {
-    char* bytes;
-    CString string = CString::newUninitialized(length * 2, bytes);
-    return string;
+    char *bytes = (char *)malloc(length * 2);
+    for(int i=0; i<length ; i++ ) {
+        bytes[i] = characters[i];
+    }
+    bytes[length]='\0';
+    return CString(bytes);
 }
 
 

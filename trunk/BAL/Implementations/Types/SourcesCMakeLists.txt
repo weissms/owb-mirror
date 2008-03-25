@@ -29,7 +29,6 @@ set(types_SRC
 	BAL/Implementations/Types/Common/TextBoundaries.cpp
 	BAL/Implementations/Types/Common/TextBreakIteratorBal.cpp
 	BAL/Implementations/Types/Common/TextCodec.cpp
-#	BAL/Implementations/Types/Common/TextCodecICU.cpp
 	BAL/Implementations/Types/Common/TextCodecLatin1.cpp
 	BAL/Implementations/Types/Common/TextCodecUTF16.cpp
 	BAL/Implementations/Types/Common/TextDecoder.cpp
@@ -39,7 +38,7 @@ set(types_SRC
 	BAL/Implementations/Types/Common/Timer.cpp
 
 
-	BAL/Implementations/Types/Linux/BIFile.cpp	
+	BAL/Implementations/Types/Linux/BCFileLinux.cpp	
     BAL/Implementations/Types/Linux/SharedTimerLinux.cpp
 	BAL/Implementations/Types/Linux/SystemTimeLinux.cpp
 )

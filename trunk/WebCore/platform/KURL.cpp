@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007 Apple Inc.  All rights reserved.
+ * Copyright (C) 2004, 2007, 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -289,10 +289,9 @@ void KURL::init(const KURL &base, const DeprecatedString &relative, const TextEn
 
     // for compatibility with Win IE, we must treat backslashes as if they were slashes, as long as we're not dealing with the javascript: schema
     DeprecatedString substitutedRelative;
-    bool shouldSubstituteBackslashes = relative.contains('\\') && !relative.startsWith("javascript:", false);
-    if (shouldSubstituteBackslashes) {
+    bool shouldSubstituteBackslashes = relative.contains('\\') && !(relative.startsWith("javascript:", false) || relative.startsWith("data:", false));
+    if (shouldSubstituteBackslashes)
         substitutedRelative = substituteBackslashes(relative);
-    }
 
     const DeprecatedString &rel = shouldSubstituteBackslashes ? substitutedRelative : relative;
     
@@ -1470,7 +1469,7 @@ static char *encodeRelativeString(const KURL &base, const DeprecatedString &rel,
     char *strBuffer;
 
     TextEncoding pathEncoding(UTF8Encoding());
-    TextEncoding otherEncoding = encoding.isValid() ? encoding : UTF8Encoding();
+    TextEncoding otherEncoding = (encoding.isValid() && !rel.startsWith("mailto:", false)) ? encoding : UTF8Encoding();
     
     int pathEnd = -1;
     if (pathEncoding != otherEncoding) {

@@ -1,2 +1,0 @@
-#!/bin/sh
-SDL_VIDEODRIVER=dummy DISABLE_DISPLAY= LD_LIBRARY_PATH=`pwd`/WebCore/Projects/owb:/usr/lib DISPLAY=:0 `pwd`/DumpRenderTree $*

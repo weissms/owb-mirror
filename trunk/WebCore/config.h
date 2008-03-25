@@ -70,6 +70,10 @@
 #include <wtf/DisallowCType.h>
 #endif
 
+#if PLATFORM(GTK)
+#define WTF_USE_NPOBJECT 1
+#endif
+
 #if !COMPILER(MSVC) // can't get this to compile on Visual C++ yet
 #define AVOID_STATIC_CONSTRUCTORS 1
 #endif

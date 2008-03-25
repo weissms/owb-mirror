@@ -46,28 +46,23 @@
 using WebCore::String;
 
 namespace BAL {
-    
+
     class BIFile {
     public:
-        BIFile(char* path) : m_file(0), m_path(path) {};
-        ~BIFile() {};
-        
+        virtual ~BIFile() {}
+
         /*
          * Open a file to read it or write it
          * parameters are r (read) or w (write)
          */
-        int open(char openType);
-        
-        void close();
-        
-        char* read(size_t size);
-        void write(String dataToWrite);  
-        
-        int getSize();
-        
-    private:
-        int m_file;
-        const char* m_path;
+        virtual int open(char openType) = 0;
+
+        virtual void close() = 0;
+
+        virtual char* read(size_t size) = 0;
+        virtual void write(String dataToWrite) = 0;
+
+        virtual int getSize() = 0;
     };
 }
 

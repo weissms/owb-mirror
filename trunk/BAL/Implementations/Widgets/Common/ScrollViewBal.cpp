@@ -108,10 +108,8 @@ void BTScrollView::updateContents(const IntRect& updateRect, bool now)
 
     IntRect adjustedDirtyRect(updateRect);
 
-    if (updateRect.isEmpty()) {
-        adjustedDirtyRect.setWidth(contentsWidth());
-        adjustedDirtyRect.setHeight(contentsHeight());
-    }
+    if (updateRect.isEmpty())
+        return;
     m_data->m_dirtyRect.unite(adjustedDirtyRect);
 
     // screen updates are handled by WindowManager: to disable this, re-enable windowmanager timer instead

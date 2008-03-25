@@ -31,10 +31,11 @@
 
 #include <WebKit/IWebUIDelegate.h>
 #include <WebKit/IWebUIDelegatePrivate.h>
+#include <windef.h>
 
 class UIDelegate : public IWebUIDelegate, IWebUIDelegatePrivate {
 public:
-    UIDelegate() : m_refCount(1), m_frame(0) { }
+    UIDelegate();
 
     void processWork();
 
@@ -196,7 +197,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE trackCustomPopupMenu( 
         /* [in] */ IWebView *sender,
         /* [in] */ OLE_HANDLE menu,
-        /* [in] */ LPPOINT point) { return E_NOTIMPL; }
+        /* [in] */ LPPOINT point);
        
     virtual HRESULT STDMETHODCALLTYPE measureCustomMenuItem( 
         /* [in] */ IWebView *sender,
@@ -293,7 +294,7 @@ protected:
     ULONG                   m_refCount;
 
 private:
-    RECT* m_frame;
+    RECT m_frame;
 };
 
 #endif

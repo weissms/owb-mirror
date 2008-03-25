@@ -23,8 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef AffineTransform_h
-#define AffineTransform_h
+#ifndef BTAffineTransform_h
+#define BTAffineTransform_h
 
 #if PLATFORM(CG)
 #include <CoreGraphics/CGAffineTransform.h>
@@ -39,11 +39,19 @@ namespace WebCore {
 class IntPoint;
 class IntRect;
 class FloatRect;
+#ifdef __OWB__
+}
 
-class AffineTransform {
+using WebCore::IntPoint;
+using WebCore::IntRect;
+using WebCore::FloatRect;
+namespace BAL {
+#endif //__OWB__
+
+class BTAffineTransform {
 public:
-    AffineTransform();
-    AffineTransform(double a, double b, double c, double d, double e, double f);
+    BTAffineTransform();
+    BTAffineTransform(double a, double b, double c, double d, double e, double f);
 #if PLATFORM(CG)
     AffineTransform(CGAffineTransform transform);
 #elif PLATFORM(QT)
@@ -80,23 +88,23 @@ public:
 
     void reset();
 
-    AffineTransform& multiply(const AffineTransform&);
-    AffineTransform& scale(double); 
-    AffineTransform& scale(double sx, double sy); 
-    AffineTransform& scaleNonUniform(double sx, double sy);
-    AffineTransform& rotate(double d);
-    AffineTransform& rotateFromVector(double x, double y);
-    AffineTransform& translate(double tx, double ty);
-    AffineTransform& shear(double sx, double sy);
-    AffineTransform& flipX();
-    AffineTransform& flipY();
-    AffineTransform& skew(double angleX, double angleY);
-    AffineTransform& skewX(double angle);
-    AffineTransform& skewY(double angle);
+    BTAffineTransform& multiply(const BTAffineTransform&);
+    BTAffineTransform& scale(double); 
+    BTAffineTransform& scale(double sx, double sy); 
+    BTAffineTransform& scaleNonUniform(double sx, double sy);
+    BTAffineTransform& rotate(double d);
+    BTAffineTransform& rotateFromVector(double x, double y);
+    BTAffineTransform& translate(double tx, double ty);
+    BTAffineTransform& shear(double sx, double sy);
+    BTAffineTransform& flipX();
+    BTAffineTransform& flipY();
+    BTAffineTransform& skew(double angleX, double angleY);
+    BTAffineTransform& skewX(double angle);
+    BTAffineTransform& skewY(double angle);
  
     double det() const;
     bool isInvertible() const;
-    AffineTransform inverse() const;
+    BTAffineTransform inverse() const;
 
 #if PLATFORM(CG)
     operator CGAffineTransform() const;
@@ -106,10 +114,10 @@ public:
     operator cairo_matrix_t() const;
 #endif
 
-    bool operator==(const AffineTransform&) const;
-    bool operator!=(const AffineTransform& other) const { return !(*this == other); }
-    AffineTransform& operator*=(const AffineTransform&);
-    AffineTransform operator*(const AffineTransform&);
+    bool operator==(const BTAffineTransform&) const;
+    bool operator!=(const BTAffineTransform& other) const { return !(*this == other); }
+    BTAffineTransform& operator*=(const BTAffineTransform&);
+    BTAffineTransform operator*(const BTAffineTransform&);
     
 private:
 #if PLATFORM(CG)
@@ -118,9 +126,16 @@ private:
     QMatrix m_transform;
 #elif PLATFORM(CAIRO)
     cairo_matrix_t m_transform;
+#elif defined __OWB__
+    double m_m11;
+    double m_m12;
+    double m_m21;
+    double m_m22;
+    double m_dx;
+    double m_dy;
 #endif
 };
 
 } // namespace WebCore
 
-#endif // AffineTransform_h
+#endif // BTAffineTransform_h

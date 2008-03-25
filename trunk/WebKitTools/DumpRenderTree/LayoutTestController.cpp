@@ -29,9 +29,9 @@
 #include "DumpRenderTree.h"
 #include "LayoutTestController.h"
 
-#include <JavaScriptCore/Assertions.h>
 #include <JavaScriptCore/JSObjectRef.h>
 #include <JavaScriptCore/JSRetainPtr.h>
+#include <wtf/Assertions.h>
 
 LayoutTestController::LayoutTestController(bool testRepaintDefault, bool testRepaintSweepHorizontallyDefault)
     : m_dumpAsText(false)
@@ -53,6 +53,7 @@ LayoutTestController::LayoutTestController(bool testRepaintDefault, bool testRep
     , m_testRepaintSweepHorizontally(testRepaintSweepHorizontallyDefault)
     , m_waitToDump(false)
     , m_windowIsKey(true)
+    , m_globalFlag(false)
 {
 }
 
@@ -357,6 +358,18 @@ static JSValueRef setAcceptsEditingCallback(JSContextRef context, JSObjectRef fu
     return JSValueMakeUndefined(context);
 }
 
+static JSValueRef setAuthorAndUserStylesEnabledCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    // Has mac & windows implementation
+    if (argumentCount < 1)
+        return JSValueMakeUndefined(context);
+
+    LayoutTestController* controller = reinterpret_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setAuthorAndUserStylesEnabled(JSValueToBoolean(context, arguments[0]));
+
+    return JSValueMakeUndefined(context);
+}
+
 static JSValueRef setCustomPolicyDelegateCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     // Has mac implementation
@@ -377,6 +390,18 @@ static JSValueRef setMainFrameIsFirstResponderCallback(JSContextRef context, JSO
 
     LayoutTestController* controller = reinterpret_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
     controller->setMainFrameIsFirstResponder(JSValueToBoolean(context, arguments[0]));
+
+    return JSValueMakeUndefined(context);
+}
+
+static JSValueRef setPrivateBrowsingEnabledCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    // Has mac & windows implementation
+    if (argumentCount < 1)
+        return JSValueMakeUndefined(context);
+
+    LayoutTestController* controller = reinterpret_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setPrivateBrowsingEnabled(JSValueToBoolean(context, arguments[0]));
 
     return JSValueMakeUndefined(context);
 }
@@ -461,6 +486,21 @@ static JSValueRef windowCountCallback(JSContextRef context, JSObjectRef function
     return JSValueMakeNumber(context, windows);
 }
 
+// Static Values
+
+static JSValueRef getGlobalFlagCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
+{
+    LayoutTestController* controller = reinterpret_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    return JSValueMakeBoolean(context, controller->globalFlag());
+}
+
+static bool setGlobalFlagCallback(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
+{
+    LayoutTestController* controller = reinterpret_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setGlobalFlag(JSValueToBoolean(context, value));
+    return true;
+}
+
 // Object Creation
 
 void LayoutTestController::makeWindowObject(JSContextRef context, JSObjectRef windowObject, JSValueRef* exception)
@@ -472,12 +512,13 @@ void LayoutTestController::makeWindowObject(JSContextRef context, JSObjectRef wi
 
 JSClassRef LayoutTestController::getJSClass()
 {
-    static JSClassRef layoutTestControllerClass = 0;
+    static JSClassRef layoutTestControllerClass;
 
     if (!layoutTestControllerClass) {
+        JSStaticValue* staticValues = LayoutTestController::staticValues();
         JSStaticFunction* staticFunctions = LayoutTestController::staticFunctions();
         JSClassDefinition classDefinition = {
-            0, kJSClassAttributeNone, "LayoutTestController", 0, 0, staticFunctions,
+            0, kJSClassAttributeNone, "LayoutTestController", 0, staticValues, staticFunctions,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         };
 
@@ -485,6 +526,16 @@ JSClassRef LayoutTestController::getJSClass()
     }
 
     return layoutTestControllerClass;
+}
+
+JSStaticValue* LayoutTestController::staticValues()
+{
+    static JSStaticValue staticValues[] = {
+        { "globalFlag", getGlobalFlagCallback, setGlobalFlagCallback, kJSPropertyAttributeNone },
+        { 0, 0, 0, 0 }
+    };
+    return staticValues;
+
 }
 
 JSStaticFunction* LayoutTestController::staticFunctions()
@@ -516,11 +567,13 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "queueScript", queueScriptCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "repaintSweepHorizontally", repaintSweepHorizontallyCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setAcceptsEditing", setAcceptsEditingCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "setAuthorAndUserStylesEnabled", setAuthorAndUserStylesEnabledCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setCallCloseOnWebViews", setCallCloseOnWebViewsCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setCanOpenWindows", setCanOpenWindowsCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setCloseRemainingWindowsWhenComplete", setCloseRemainingWindowsWhenCompleteCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setCustomPolicyDelegate", setCustomPolicyDelegateCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setMainFrameIsFirstResponder", setMainFrameIsFirstResponderCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "setPrivateBrowsingEnabled", setPrivateBrowsingEnabledCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setTabKeyCyclesThroughElements", setTabKeyCyclesThroughElementsCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setUseDashboardCompatibilityMode", setUseDashboardCompatibilityModeCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "setUserStyleSheetEnabled", setUserStyleSheetEnabledCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -534,3 +587,5 @@ JSStaticFunction* LayoutTestController::staticFunctions()
 
     return staticFunctions;
 }
+
+

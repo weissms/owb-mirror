@@ -56,6 +56,7 @@ void BTFontData::platformInit()
 
         FT_Load_Char(face, 'x', FT_LOAD_DEFAULT);
         m_xHeight = DOUBLE_FROM_26_6(face->glyph->metrics.height);
+        FT_Load_Char(face, ' ', FT_LOAD_DEFAULT);
         m_spaceWidth = DOUBLE_FROM_26_6(face->glyph->metrics.horiAdvance);
         m_lineGap = m_lineSpacing - m_ascent + m_descent;
     }
@@ -68,6 +69,9 @@ void BTFontData::platformInit()
 
 void BTFontData::platformDestroy()
 {
+    FcPattern *pattern = static_cast<BCFontPlatformDataPrivateFreeType *> (m_font.impl())->fcPattern();
+    if (pattern && (FcPattern*)-1 != pattern)
+        FcPatternDestroy(pattern);
     if (m_smallCapsFontData)
         delete m_smallCapsFontData;
     m_smallCapsFontData = NULL;
@@ -79,7 +83,7 @@ BTFontData* BTFontData::smallCapsFontData(const FontDescription& fontDescription
         FontDescription desc = FontDescription(fontDescription);
         desc.setSpecifiedSize(0.70f*fontDescription.computedSize());
         const FontPlatformData* pdata = new FontPlatformData(desc, desc.family().family());
-        m_smallCapsFontData = new FontData(*pdata);
+        m_smallCapsFontData = new FontData(*pdata, true, false);
     }
     return m_smallCapsFontData;
 }

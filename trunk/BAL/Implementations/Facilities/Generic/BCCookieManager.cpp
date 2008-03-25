@@ -44,13 +44,13 @@
 #include "BIObserverService.h"
 #include "BTCookie.h"
 #include "BTLogHelper.h"
-#include "DeprecatedString.h"
+#include "CString.h"
 #include "KURL.h"
 #include "BIFile.h"
 
 
 static BICookieJar* __BCCookieManager = 0;
-char *filePath = "cookieCollection.txt";
+char* filePath = "cookieCollection.txt";
 
 BICookieJar* getBICookieJar()
 {
@@ -230,7 +230,7 @@ void BCCookieManager::observe(const String& topic, const String& data)
 
 void BCCookieManager::saveCookiesToFile() 
 {
-    BAL::BIFile* cookieFile = new BAL::BIFile(filePath);
+    BAL::BIFile* cookieFile = BAL::createBIFile(filePath);
     int openedFile = cookieFile->open('w');
     
     if (openedFile == -1)
@@ -246,19 +246,18 @@ void BCCookieManager::saveCookiesToFile()
             
             tmp.append(tmpCookieList);
             tmp.append("*\n");
-            
-            cookieFile->write(tmp.deprecatedString().ascii());
+            cookieFile->write(tmp);
         }
     }
     
     cookieFile->close();
-    delete cookieFile;
+    deleteBIFile(cookieFile);
 }
 
 void BCCookieManager::getCookiesFromFile()
 {
     char* buffer = NULL;
-    BAL::BIFile* cookieFile = new BAL::BIFile(filePath);
+    BAL::BIFile* cookieFile = BAL::createBIFile(filePath);
     
     if (cookieFile->open('r') == -1) {
         DBGML(MODULE_FACILITIES, LEVEL_WARNING, "Cookie file can't be opened\n");
@@ -315,7 +314,7 @@ void BCCookieManager::getCookiesFromFile()
     cookieFile->close();
 
     delete buffer;
-    delete cookieFile;
+    deleteBIFile(cookieFile);
 }
 
 unsigned short BCCookieManager::cookiesCount()

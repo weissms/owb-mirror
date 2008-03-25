@@ -1,3 +1,157 @@
+2008-02-12  Guofan Wang  <wang.guofan@gmail.com>
+
+        Reviewed by Sebastien Roret.
+
+	Add BMP support
+
+        * CMakeLists.txt:
+
+2008-01-16  Fred  <fmarmond@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+	Add libdeepsee support
+       
+        * CMakeLists.txt:
+        * CMakeLists_deepseeProject.txt: Added.
+        * deepsee_generateFakedHeader.sh: Added.
+
+2008-01-09  Mario Bensi <mbensi@sand-labs.org>
+
+        Add LibXML and LibXSLT in BALGLue/XML
+        Reviewed by Olivier Dole.
+
+        * BALGlue/SourcesCMakeLists.txt:
+        * BALGlue/XML: Added.
+        * BALGlue/XML/LIBXML: Added.
+        * BALGlue/XML/LIBXML/ParseXML.cpp: Added.
+        (BAL::PendingCallbacks::PendingCallbacks):
+        (BAL::PendingCallbacks::appendStartElementNSCallback):
+        (BAL::PendingCallbacks::appendEndElementNSCallback):
+        (BAL::PendingCallbacks::appendCharactersCallback):
+        (BAL::PendingCallbacks::appendProcessingInstructionCallback):
+        (BAL::PendingCallbacks::appendCDATABlockCallback):
+        (BAL::PendingCallbacks::appendCommentCallback):
+        (BAL::PendingCallbacks::appendInternalSubsetCallback):
+        (BAL::PendingCallbacks::appendErrorCallback):
+        (BAL::PendingCallbacks::callAndRemoveFirstCallback):
+        (BAL::PendingCallbacks::isEmpty):
+        (BAL::PendingCallbacks::PendingCallback::~PendingCallback):
+        (BAL::PendingCallbacks::PendingStartElementNSCallback::~PendingStartElementNSCallback):
+        (BAL::PendingCallbacks::PendingStartElementNSCallback::call):
+        (BAL::PendingCallbacks::PendingEndElementNSCallback::call):
+        (BAL::PendingCallbacks::PendingCharactersCallback::~PendingCharactersCallback):
+        (BAL::PendingCallbacks::PendingCharactersCallback::call):
+        (BAL::PendingCallbacks::PendingProcessingInstructionCallback::~PendingProcessingInstructionCallback):
+        (BAL::PendingCallbacks::PendingProcessingInstructionCallback::call):
+        (BAL::PendingCallbacks::PendingCDATABlockCallback::~PendingCDATABlockCallback):
+        (BAL::PendingCallbacks::PendingCDATABlockCallback::call):
+        (BAL::PendingCallbacks::PendingCommentCallback::~PendingCommentCallback):
+        (BAL::PendingCallbacks::PendingCommentCallback::call):
+        (BAL::PendingCallbacks::PendingInternalSubsetCallback::~PendingInternalSubsetCallback):
+        (BAL::PendingCallbacks::PendingInternalSubsetCallback::call):
+        (BAL::PendingCallbacks::):
+        (BAL::ParseXML::ParseXML):
+        (BAL::ParseXML::~ParseXML):
+        (BAL::matchFunc):
+        (BAL::OffsetBuffer::OffsetBuffer):
+        (BAL::OffsetBuffer::readOutBytes):
+        (BAL::shouldAllowExternalLoad):
+        (BAL::openFunc):
+        (BAL::readFunc):
+        (BAL::writeFunc):
+        (BAL::closeFunc):
+        (BAL::errorFunc):
+        (BAL::setLoaderForLibXMLCallbacks):
+        (BAL::createStringParser):
+        (BAL::ParseXML::parse):
+        (BAL::toString):
+        (BAL::handleElementNamespaces):
+        (BAL::handleElementAttributes):
+        (BAL::ParseXML::startElementNs):
+        (BAL::ParseXML::endElementNs):
+        (BAL::ParseXML::characters):
+        (BAL::ParseXML::error):
+        (BAL::ParseXML::processingInstruction):
+        (BAL::ParseXML::cdataBlock):
+        (BAL::ParseXML::comment):
+        (BAL::ParseXML::startDocument):
+        (BAL::ParseXML::internalSubset):
+        (BAL::getTokenizer):
+        (BAL::hackAroundLibXMLEntityBug):
+        (BAL::startElementNsHandler):
+        (BAL::endElementNsHandler):
+        (BAL::charactersHandler):
+        (BAL::processingInstructionHandler):
+        (BAL::cdataBlockHandler):
+        (BAL::commentHandler):
+        (BAL::warningHandler):
+        (BAL::fatalErrorHandler):
+        (BAL::normalErrorHandler):
+        (BAL::):
+        (BAL::getXHTMLEntity):
+        (BAL::getEntityHandler):
+        (BAL::startDocumentHandler):
+        (BAL::internalSubsetHandler):
+        (BAL::externalSubsetHandler):
+        (BAL::ignorableWhitespaceHandler):
+        (BAL::ParseXML::initializeParserContext):
+        (BAL::ParseXML::end):
+        (BAL::ParseXML::lineNumber):
+        (BAL::ParseXML::columnNumber):
+        (BAL::ParseXML::stopParsing):
+        (BAL::ParseXML::resumeParsing):
+        (BAL::balancedStartElementNsHandler):
+        (BAL::balancedEndElementNsHandler):
+        (BAL::balancedCharactersHandler):
+        (BAL::balancedProcessingInstructionHandler):
+        (BAL::balancedCdataBlockHandler):
+        (BAL::balancedCommentHandler):
+        (BAL::balancedWarningHandler):
+        (BAL::ParseXML::parseXMLDocumentFragment):
+        (BAL::attributesStartElementNsHandler):
+        (BAL::ParseXML::parseAttributes):
+        (BAL::ParseXML::xmlDocPtrForString):
+        * BALGlue/XML/LIBXML/ParseXML.h: Added.
+        (BAL::ParseXML::):
+        (BAL::ParseXML::tokenizer):
+        * BALGlue/XML/LIBXSLT: Added.
+        * BALGlue/XML/LIBXSLT/BTProcessor.cpp: Added.
+        (BAL::parseErrorFunc):
+        (BAL::docLoaderFunc):
+        (BAL::setXSLTLoadCallBack):
+        (BAL::writeToQString):
+        (BAL::saveResultToString):
+        (BAL::xsltParamArrayFromParameterMap):
+        (BAL::freeXsltParamArray):
+        (BAL::xsltStylesheetPointer):
+        (BAL::xmlDocPtrFromNode):
+        (BAL::resultMIMEType):
+        (BAL:::m_processor):
+        (BAL::BTProcessor::~BTProcessor):
+        (BAL::BTProcessor::transformToString):
+        * BALGlue/XML/LIBXSLT/BTProcessor.h: Added.
+        * BALGlue/XML/LIBXSLT/BTStyleSheet.cpp: Added.
+        (BAL::BTStyleSheet::BTStyleSheet):
+        (BAL::BTStyleSheet::~BTStyleSheet):
+        (BAL::BTStyleSheet::compileStyleSheet):
+        (BAL::BTStyleSheet::document):
+        (BAL::BTStyleSheet::locateStylesheetSubResource):
+        (BAL::BTStyleSheet::markAsProcessed):
+        (BAL::BTStyleSheet::clearDocuments):
+        (BAL::BTStyleSheet::parseString):
+        (BAL::BTStyleSheet::loadChildSheets):
+        * BALGlue/XML/LIBXSLT/BTStyleSheet.h: Added.
+        * CMakeLists.txt:
+        * ChangeLog:
+
+2008-01-07  Olivier Dole <odole@sand-labs.org>
+
+        Reviewed by Mario Bensi.
+		fix #136 where CMAKE_INSTALL_PREFIX was ignored
+
+        * CMakeLists.txt:
+
 2007-09-20  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Rubber stamped by Adam.

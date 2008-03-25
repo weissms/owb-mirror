@@ -1,0 +1,103 @@
+/*
+ * Copyright (C) 2007 Pleyo.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1.  Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ * 2.  Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 3.  Neither the name of Pleyo nor the names of
+ *     its contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY PLEYO AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL PLEYO OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+#include "config.h"
+#include "BCFileLinux.h"
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include "DeprecatedString.h"
+
+using WebCore::String;
+
+namespace BAL {
+
+BIFile* createBIFile(char* path)
+{
+    return new BCFileLinux(path);
+}
+
+void deleteBIFile(BIFile* file)
+{
+    delete file;
+}
+
+BCFileLinux::BCFileLinux(char* path)
+    : m_fd(0)
+    , m_filepath(path)
+{
+}
+
+BCFileLinux::~BCFileLinux()
+{
+    m_fd = 0;
+}
+
+int BCFileLinux::open(char openType)
+{
+    if (openType == 'w')
+        m_fd = ::open(m_filepath, O_WRONLY|O_CREAT|O_TRUNC, 0666);
+    else if (openType == 'r')
+        m_fd = ::open(m_filepath, O_RDONLY);
+    return m_fd;
+}
+
+void BCFileLinux::close()
+{
+    ::close(m_fd);
+}
+
+char* BCFileLinux::read(size_t size)
+{
+    char* readData = new char[size + 1];
+    ::read(m_fd, readData, size);
+    return readData;
+}
+
+void BCFileLinux::write(String dataToWrite)
+{
+    ::write(m_fd, dataToWrite.deprecatedString().ascii(), dataToWrite.length());
+}
+
+int BCFileLinux::getSize()
+{
+    int fileSize, current;
+    
+    //save the current offset
+    current = lseek(m_fd,0,SEEK_CUR);
+    
+    //save the size
+    fileSize = lseek(m_fd,0,SEEK_END);
+    
+    //go back to the previous offset
+    lseek(m_fd,current,SEEK_SET);
+    
+    return fileSize;
+}
+
+}

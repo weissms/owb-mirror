@@ -1189,7 +1189,6 @@ void Frame::clearScriptObjects()
         _NPN_DeallocateObject(d->m_windowScriptNPObject);
         d->m_windowScriptNPObject = 0;
     }
-}
 #endif
 
     clearPlatformScriptObjects();

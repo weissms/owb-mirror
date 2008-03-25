@@ -29,8 +29,9 @@
 #include "DumpRenderTree.h"
 
 #include "EditingDelegate.h"
-#include "FrameLoaderDelegate.h"
+#include "FrameLoadDelegate.h"
 #include "LayoutTestController.h"
+#include "PixelDumpSupport.h"
 #include "PolicyDelegate.h"
 #include "UIDelegate.h"
 #include "WorkQueueItem.h"
@@ -47,9 +48,12 @@
 #include <WebKit/IWebFramePrivate.h>
 #include <WebKit/IWebHistoryItem.h>
 #include <WebKit/IWebHistoryItemPrivate.h>
+#include <WebKit/IWebPreferencesPrivate.h>
 #include <WebKit/IWebURLResponse.h>
 #include <WebKit/IWebViewPrivate.h>
 #include <WebKit/WebKit.h>
+#include <fcntl.h>
+#include <io.h>
 #include <windows.h>
 #include <stdio.h>
 
@@ -61,11 +65,14 @@ const LPWSTR TestPluginDir = L"TestNetscapePlugin_Debug";
 const LPWSTR TestPluginDir = L"TestNetscapePlugin";
 #endif
 
+static LPCWSTR fontsEnvironmentVariable = L"WEBKIT_TESTFONTS";
 #define USE_MAC_FONTS
 
 const LPCWSTR kDumpRenderTreeClassName = L"DumpRenderTreeWindow";
 
 static bool dumpTree = true;
+static bool dumpPixels;
+static bool dumpAllPixels;
 static bool printSeparators;
 static bool leakChecking = false;
 static bool timedOut = false;
@@ -109,13 +116,54 @@ static LRESULT CALLBACK DumpRenderTreeWndProc(HWND hWnd, UINT msg, WPARAM wParam
     }
 }
 
+static const wstring& exePath()
+{
+    static wstring path;
+    static bool initialized;
+
+    if (initialized)
+        return path;
+    initialized = true;
+
+    TCHAR buffer[MAX_PATH];
+    GetModuleFileName(GetModuleHandle(0), buffer, ARRAYSIZE(buffer));
+    path = buffer;
+    int lastSlash = path.rfind('\\');
+    if (lastSlash != -1 && lastSlash + 1 < path.length())
+        path = path.substr(0, lastSlash + 1);
+
+    return path;
+}
+
+static const wstring& fontsPath()
+{
+    static wstring path;
+    static bool initialized;
+
+    if (initialized)
+        return path;
+    initialized = true;
+
+    DWORD size = GetEnvironmentVariable(fontsEnvironmentVariable, 0, 0);
+    Vector<TCHAR> buffer(size);
+    if (GetEnvironmentVariable(fontsEnvironmentVariable, buffer.data(), buffer.size())) {
+        path = buffer.data();
+        if (path[path.length() - 1] != '\\')
+            path.append(L"\\");
+        return path;
+    }
+
+    path = exePath() + TEXT("DumpRenderTree.resources\\");
+    return path;
+}
+
 #ifdef DEBUG_WEBKIT_HAS_SUFFIX
 #define WEBKITDLL TEXT("WebKit_debug.dll")
 #else
 #define WEBKITDLL TEXT("WebKit.dll")
 #endif
 
-static wstring initialize(HMODULE hModule)
+static void initialize(HMODULE hModule)
 {
     if (HMODULE webKitModule = LoadLibrary(WEBKITDLL))
         if (FARPROC dllRegisterServer = GetProcAddress(webKitModule, "DllRegisterServer"))
@@ -151,14 +199,7 @@ static wstring initialize(HMODULE hModule)
         TEXT("Times Roman.ttf")
     };
 
-    TCHAR buffer[MAX_PATH];
-    GetModuleFileName(hModule, buffer, ARRAYSIZE(buffer));
-    wstring exePath(buffer);
-    int lastSlash = exePath.rfind('\\');
-    if (lastSlash != -1 && lastSlash + 1< exePath.length())
-        exePath = exePath.substr(0, lastSlash + 1);
-    
-    wstring resourcesPath(exePath + TEXT("DumpRenderTree.resources\\"));
+    wstring resourcesPath = fontsPath();
 
     COMPtr<IWebTextRenderer> textRenderer;
     if (SUCCEEDED(CoCreateInstance(CLSID_WebTextRenderer, 0, CLSCTX_ALL, IID_IWebTextRenderer, (void**)&textRenderer)))
@@ -186,8 +227,6 @@ static wstring initialize(HMODULE hModule)
 
     hostWindow = CreateWindowEx(WS_EX_TOOLWINDOW, kDumpRenderTreeClassName, TEXT("DumpRenderTree"), WS_POPUP,
       -maxViewWidth, -maxViewHeight, maxViewWidth, maxViewHeight, 0, 0, hModule, 0);
-
-    return exePath;
 }
 
 void displayWebView()
@@ -530,11 +569,24 @@ void dump()
 
     if (printSeparators)
         puts("#EOF");
+
+    if (dumpPixels) {
+        if (layoutTestController->dumpAsText() || layoutTestController->dumpDOMAsWebArchive() || layoutTestController->dumpSourceAsWebArchive())
+            printf("#EOF\n");
+        else
+            dumpWebViewAsPixelsAndCompareWithExpected(currentTest, dumpAllPixels);
+    }
+
 fail:
     SysFreeString(resultString);
     // This will exit from our message loop
     PostQuitMessage(0);
     done = true;
+}
+
+static bool shouldLogFrameLoadDelegates(const char* pathOrURL)
+{
+    return strstr(pathOrURL, "loading/");
 }
 
 static void runTest(const char* pathOrURL)
@@ -569,6 +621,13 @@ static void runTest(const char* pathOrURL)
     topLoadingFrame = 0;
     timedOut = false;
 
+    if (shouldLogFrameLoadDelegates(pathOrURL))
+        layoutTestController->setDumpFrameLoadCallbacks(true);
+
+    COMPtr<IWebHistory> history(Create, CLSID_WebHistory);
+    if (history)
+        history->setOptionalSharedHistory(0);
+
     prevTestBFItem = 0;
     COMPtr<IWebView> webView;
     if (SUCCEEDED(frame->webView(&webView))) {
@@ -581,6 +640,14 @@ static void runTest(const char* pathOrURL)
         COMPtr<IWebIBActions> webIBActions;
         if (SUCCEEDED(webView->QueryInterface(IID_IWebIBActions, (void**)&webIBActions)))
             webIBActions->makeTextStandardSize(0);
+
+        COMPtr<IWebPreferences> preferences;
+        if (SUCCEEDED(webView->preferences(&preferences))) {
+            preferences->setPrivateBrowsingEnabled(FALSE);
+            COMPtr<IWebPreferencesPrivate> prefsPrivate(Query, preferences);
+            if (prefsPrivate)
+                prefsPrivate->setAuthorAndUserStylesEnabled(TRUE);
+        }
     }
 
     WorkQueue::shared()->clear();
@@ -613,6 +680,9 @@ static void runTest(const char* pathOrURL)
         if (printSeparators)
             puts("#EOF");
     }
+
+    frame->stopLoading();
+
 exit:
     SysFreeString(urlBStr);
     delete ::layoutTestController;
@@ -648,6 +718,7 @@ static void initializePreferences(IWebPreferences* preferences)
     preferences->setPlugInsEnabled(TRUE);
     preferences->setDOMPasteAllowed(TRUE);
     preferences->setEditableLinkBehavior(WebKitEditableLinkOnlyLiveWithShiftKey);
+    preferences->setFontSmoothing(FontSmoothingTypeStandard);
 
     SysFreeString(standardFamily);
     SysFreeString(fixedFamily);
@@ -765,9 +836,30 @@ int main(int argc, char* argv[])
 {
     leakChecking = false;
 
-    wstring exePath = initialize(GetModuleHandle(0));
+    _setmode(1, _O_BINARY);
 
-    // FIXME: options
+    initialize(GetModuleHandle(0));
+
+    Vector<const char*> tests;
+
+    for (int i = 1; i < argc; ++i) {
+        if (!stricmp(argv[i], "--threaded")) {
+            threaded = true;
+            continue;
+        }
+
+        if (!stricmp(argv[i], "--dump-all-pixels")) {
+            dumpAllPixels = true;
+            continue;
+        }
+
+        if (!stricmp(argv[i], "--pixel-tests")) {
+            dumpPixels = true;
+            continue;
+        }
+
+        tests.append(argv[i]);
+    }
 
     COMPtr<IWebView> webView;
     HRESULT hr = CoCreateInstance(CLSID_WebView, 0, CLSCTX_ALL, IID_IWebView, (void**)&webView);
@@ -792,9 +884,10 @@ int main(int argc, char* argv[])
         return -1;
     webView->Release();
 
+    viewPrivate->setShouldApplyMacFontAscentHack(TRUE);
 
-    BSTR pluginPath = SysAllocStringLen(0, exePath.length() + _tcslen(TestPluginDir));
-    _tcscpy(pluginPath, exePath.c_str());
+    BSTR pluginPath = SysAllocStringLen(0, exePath().length() + _tcslen(TestPluginDir));
+    _tcscpy(pluginPath, exePath().c_str());
     _tcscat(pluginPath, TestPluginDir);
     failed = FAILED(viewPrivate->addAdditionalPluginPath(pluginPath));
     SysFreeString(pluginPath);
@@ -810,6 +903,8 @@ int main(int argc, char* argv[])
     COMPtr<FrameLoadDelegate> frameLoadDelegate;
     frameLoadDelegate.adoptRef(new FrameLoadDelegate);
     if (FAILED(webView->setFrameLoadDelegate(frameLoadDelegate.get())))
+        return -1;
+    if (FAILED(viewPrivate->setFrameLoadDelegatePrivate(frameLoadDelegate.get())))
         return -1;
 
     policyDelegate = new PolicyDelegate();
@@ -845,22 +940,16 @@ int main(int argc, char* argv[])
     if (FAILED(webView->mainFrame(&frame)))
         return -1;
 
+#ifdef _DEBUG
     _CrtMemState entryToMainMemCheckpoint;
     if (leakChecking)
         _CrtMemCheckpoint(&entryToMainMemCheckpoint);
-
-    for (int i = 0; i < argc; ++i)
-        if (!stricmp(argv[i], "--threaded")) {
-            argv[i] = argv[argc - 1];
-            argc--;
-            threaded = true;
-            break;
-        }
+#endif
 
     if (threaded)
         startJavaScriptThreads();
 
-    if (argc == 2 && strcmp(argv[1], "-") == 0) {
+    if (tests.size() == 1 && !strcmp(tests[0], "-")) {
         char filenameBuffer[2048];
         printSeparators = true;
         while (fgets(filenameBuffer, sizeof(filenameBuffer), stdin)) {
@@ -875,9 +964,9 @@ int main(int argc, char* argv[])
             fflush(stdout);
         }
     } else {
-        printSeparators = argc > 2;
-        for (int i = 1; i != argc; i++)
-            runTest(argv[i]);
+        printSeparators = tests.size() > 1;
+        for (int i = 0; i < tests.size(); i++)
+            runTest(tests[i]);
     }
 
     if (threaded)
@@ -886,12 +975,14 @@ int main(int argc, char* argv[])
     delete policyDelegate;
     frame->Release();
 
+#ifdef _DEBUG
     if (leakChecking) {
         // dump leaks to stderr
         _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
         _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
         _CrtMemDumpAllObjectsSince(&entryToMainMemCheckpoint);
     }
+#endif
 
     return 0;
 }

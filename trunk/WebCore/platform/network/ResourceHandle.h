@@ -23,12 +23,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef ResourceHandle_h
-#define ResourceHandle_h
+#ifndef BTResourceHandle_h
+#define BTResourceHandle_h
 
 #include "AuthenticationChallenge.h"
 #include "HTTPHeaderMap.h"
 #include <wtf/OwnPtr.h>
+#include <wtf/RefCounted.h>
 
 
 #if PLATFORM(WIN)
@@ -84,18 +85,34 @@ class SubresourceLoaderClient;
 
 template <typename T> class Timer;
 
-class ResourceHandle : public Shared<ResourceHandle> {
+#ifdef __OWB__
+}
+
+using WebCore::Frame;
+using WebCore::ResourceError;
+using WebCore::ResourceHandleInternal;
+using WebCore::ResourceRequest;
+using WebCore::ResourceResponse;
+using WebCore::ResourceResponse;
+using WebCore::SharedBuffer;
+using WebCore::Timer;
+using WTF::RefCounted;
+
+namespace BAL {
+#endif //__OWB__
+
+class BTResourceHandle : public RefCounted<BTResourceHandle> {
 private:
-    ResourceHandle(const ResourceRequest&, ResourceHandleClient*, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle);
+    BTResourceHandle(const ResourceRequest&, ResourceHandleClient*, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle);
 
 public:
     // FIXME: should not need the Frame
-    static PassRefPtr<ResourceHandle> create(const ResourceRequest&, ResourceHandleClient*, Frame*, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle = false);
+    static PassRefPtr<BTResourceHandle> create(const ResourceRequest&, ResourceHandleClient*, Frame*, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle = false);
 
-    static void loadResourceSynchronously(const ResourceRequest&, ResourceError&, ResourceResponse&, Vector<char>& data);
+    static void loadResourceSynchronously(const ResourceRequest&, ResourceError&, ResourceResponse&, Vector<char>& data, Frame* frame);
     static bool willLoadFromCache(ResourceRequest&);
     
-    ~ResourceHandle();
+    ~BTResourceHandle();
 
 #if PLATFORM(MAC) || USE(CFNETWORK)
     void didReceiveAuthenticationChallenge(const AuthenticationChallenge&);
@@ -133,7 +150,7 @@ public:
     friend LRESULT __stdcall ResourceHandleWndProc(HWND, unsigned message, WPARAM, LPARAM);
 #endif
 
-#if PLATFORM(GTK) || PLATFORM(QT)
+#if PLATFORM(GTK) || PLATFORM(QT) || PLATFORM(WX) || __OWB__
     ResourceHandleInternal* getInternal() { return d.get(); }
 #endif
 
@@ -151,7 +168,7 @@ public:
       
     const ResourceRequest& request() const;
 
-    void fireBlockedFailure(Timer<ResourceHandle>*);
+    void fireBlockedFailure(Timer<BTResourceHandle>*);
 
 private:
     static bool portAllowed(const ResourceRequest&);
@@ -165,4 +182,4 @@ private:
 
 }
 
-#endif // ResourceHandle_h
+#endif // BTResourceHandle_h

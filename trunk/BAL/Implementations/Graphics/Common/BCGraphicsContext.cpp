@@ -724,9 +724,10 @@ IntRect BCGraphicsContext::focusRingBoundingRect()
     return result;
 }
 
-void BCGraphicsContext::concatCTM(const BAL::AffineTransform&)
+void BCGraphicsContext::concatCTM(const BAL::AffineTransform& transform)
 {
-    notImplemented();
+    getBIGraphicsDevice()->applyCTM(*m_widget, transform);
+//     notImplemented();
 }
 
 

@@ -30,8 +30,8 @@
 #ifdef __OWB__
 #include "ResourceHandle.h"
 #endif //__OWB__
-namespace BAL { class BIResourceHandle; }
-#include "Shared.h"
+namespace BAL { class BTResourceHandle; }
+#include <wtf/RefCounted.h>
 #include <wtf/Platform.h>
 #include <wtf/RefPtr.h>
 

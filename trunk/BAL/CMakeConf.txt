@@ -4,6 +4,10 @@
 # BINARY AND LIB REQUIREMENT FOR BAL
 ####################################
 
+IF (NOT BUILD_SHARED_LIBS)
+    SET (LIBRARIES_TO_LINK -Wl,-Bstatic)
+ENDIF (NOT BUILD_SHARED_LIBS)
+
 ####################################
 #Find images libraries 
 ####################################
@@ -16,7 +20,11 @@ IF(${WEBKIT_USE_IMAGEDECODER} STREQUAL "LIBRARY")
         MESSAGE ("png found with this parameter for cflags : ${PNG_INCLUDE_DIR}")
         SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};${PNG_LIBRARIES}")
         SET(LIBRARIES_TO_INCLUDE "${LIBRARIES_TO_INCLUDE};${PNG_INCLUDE_DIR}")
-        LINK_LIBRARIES(${PNG_LIBRARIES})
+        IF (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${PNG_LIBRARIES})
+        ELSE (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${PNG_LIBRARIES})
+        ENDIF (NOT BUILD_SHARED_LIBS)
     ELSE(PNG_FOUND)
         MESSAGE (FATAL_ERROR "Could not find libpng")
     ENDIF(PNG_FOUND)
@@ -28,13 +36,21 @@ IF(${WEBKIT_USE_IMAGEDECODER} STREQUAL "LIBRARY")
         MESSAGE ("jpeg found with this parameter for cflags : ${JPEG_INCLUDE_DIR}")
         SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};${JPEG_LIBRARIES}")
         SET(LIBRARIES_TO_INCLUDE "${LIBRARIES_TO_INCLUDE};${JPEG_INCLUDE_DIR}")
-        LINK_LIBRARIES(${JPEG_LIBRARIES})
+        IF (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${JPEG_LIBRARIES})
+        ELSE (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${JPEG_LIBRARIES})
+        ENDIF (NOT BUILD_SHARED_LIBS)
     ELSE(JPEG_FOUND)
         MESSAGE (FATAL_ERROR "Could not find libjpeg")
     ENDIF(JPEG_FOUND)
 
     # FIXME may be ungif instead of gif !
-    SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};gif")
+    IF (NOT BUILD_SHARED_LIBS)
+       SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic gif)
+    ELSE (NOT BUILD_SHARED_LIBS)
+       SET (LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};gif")
+    ENDIF (NOT BUILD_SHARED_LIBS)
 ENDIF(${WEBKIT_USE_IMAGEDECODER} STREQUAL "LIBRARY")
 
 
@@ -152,8 +168,12 @@ IF (${WEBKIT_USE_GRAPHICS} STREQUAL "SDL" OR ${WEBKIT_USE_EVENTS} STREQUAL "SDL"
     IF(SDL_FOUND)
         MESSAGE ("sdl found with this parameter for libs : ${SDL_LIBRARY}")
         MESSAGE ("sdl found with this parameter for cflags : ${SDL_INCLUDE_DIR}")
-        SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${SDL_LIBRARY})
         SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${SDL_INCLUDE_DIR})
+        IF (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic libSDLmain.a libSDL.a libpthread.a)
+        ELSE (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${SDL_LIBRARY})
+        ENDIF (NOT BUILD_SHARED_LIBS)
     ELSE(SDL_FOUND)
         MESSAGE (FATAL_ERROR "Could not find libSDL")
     ENDIF(SDL_FOUND)
@@ -167,8 +187,12 @@ IF (${WEBKIT_USE_GRAPHICS} STREQUAL "SDL")
     IF(SDLGFX_FOUND)
         MESSAGE ("sdl_gfx found with this parameter for libs : ${SDLGFX_LIBRARY}")
         MESSAGE ("sdl_gfx found with this parameter for cflags : ${SDLGFX_INCLUDE_DIR}")
-        SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK}  ${SDLGFX_LIBRARY})
         SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${SDLGFX_INCLUDE_DIR})
+        IF (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${SDLGFX_LIBRARY})
+        ELSE (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${SDLGFX_LIBRARY})
+        ENDIF (NOT BUILD_SHARED_LIBS)
     ELSE(SDLGFX_FOUND)
         MESSAGE (FATAL_ERROR "Could not find SDL GFX")
     ENDIF(SDLGFX_FOUND)
@@ -185,8 +209,12 @@ IF (${WEBKIT_USE_FONTS} STREQUAL "FREETYPE")
         RETURN_VALUE ERROR_CODE)
 
     IF (ERROR_CODE EQUAL 0)
-        SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBFONTCONFIG_LIBS})
         MESSAGE ("fontconfig found with this parameter for libs : "${LIBFONTCONFIG_LIBS})
+        IF (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${LIBFONTCONFIG_LIBS})
+        ELSE (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBFONTCONFIG_LIBS})
+        ENDIF (NOT BUILD_SHARED_LIBS)
     ELSE (ERROR_CODE EQUAL 0)
         MESSAGE (FATAL_ERROR "fontconfig not found, cannot create owb without it")
     ENDIF (ERROR_CODE EQUAL 0)
@@ -212,7 +240,11 @@ IF (${WEBKIT_USE_FONTS} STREQUAL "FREETYPE")
         RETURN_VALUE ERROR_CODE)
     IF (ERROR_CODE EQUAL 0)
         MESSAGE ("freetype found with this parameter for libs : ${LIBFREETYPE_LIBS}")
-        SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBFREETYPE_LIBS})
+        IF (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${LIBFREETYPE_LIBS})
+        ELSE (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBFREETYPE_LIBS})
+        ENDIF (NOT BUILD_SHARED_LIBS)
     ELSE (ERROR_CODE EQUAL 0)
         MESSAGE (FATAL_ERROR "libfreetype not found. Cannot create owb with freetype support without it. On debian you must install libfreetype6-dev package")
     ENDIF (ERROR_CODE EQUAL 0)
@@ -234,7 +266,11 @@ EXEC_PROGRAM ("${CURL_CONFIG_EXECUTABLE} --libs | sed s/-[[:upper:]][[:graph:]]*
 
 IF (ERROR_CODE EQUAL 0)
     MESSAGE ("curl found with this parameter for libs : ${LIBCURL_LIBS}")
-    SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBCURL_LIBS})
+    IF (NOT BUILD_SHARED_LIBS)
+        SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${LIBCURL_LIBS})
+    ELSE (NOT BUILD_SHARED_LIBS)
+        SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBCURL_LIBS})
+    ENDIF (NOT BUILD_SHARED_LIBS)
 ELSE (ERROR_CODE EQUAL 0)
     MESSAGE (FATAL_ERROR "libcurl not found, cannot create owb without it, on debian you must install libcurl3-gnutls-dev package")
 ENDIF (ERROR_CODE EQUAL 0)
@@ -243,7 +279,7 @@ ENDIF (ERROR_CODE EQUAL 0)
 #quick search the libxml2 is available
 #######################################
 
-IF (WEBKIT_USE_XML_SUPPORT)
+IF (${WEBKIT_USE_XML_SUPPORT} STREQUAL "LIBXML")
 
     FIND_PROGRAM (XML2_CONFIG_EXECUTABLE xml2-config)
 
@@ -257,7 +293,11 @@ IF (WEBKIT_USE_XML_SUPPORT)
 
     IF (ERROR_CODE EQUAL 0)
         MESSAGE ("xml2 found with this parameter for libs : ${LIBXML2_LIBS}")
-        SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBXML2_LIBS})
+        IF (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${LIBXML2_LIBS})
+        ELSE (NOT BUILD_SHARED_LIBS)
+            SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBXML2_LIBS})
+        ENDIF (NOT BUILD_SHARED_LIBS)
 		IF (NOT BUILD_SHARED_LIBS AND NOT WEBKIT_USE_JS)
 			SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} pthread)
 		ENDIF (NOT BUILD_SHARED_LIBS AND NOT WEBKIT_USE_JS)
@@ -276,13 +316,13 @@ IF (WEBKIT_USE_XML_SUPPORT)
         MESSAGE (FATAL_ERROR "libxml2 not found, cannot create owb without it, on debian you must install libxml2-dev package")
     ENDIF (ERROR_CODE EQUAL 0)
 
-ENDIF (WEBKIT_USE_XML_SUPPORT)
+ENDIF (${WEBKIT_USE_XML_SUPPORT} STREQUAL "LIBXML")
 
 #######################################
 #quick search the libxslt is available
 #######################################
 
-IF (WEBKIT_USE_XSLT_SUPPORT)
+IF (${WEBKIT_USE_XSLT_SUPPORT} STREQUAL "LIBXSLT")
 
 FIND_PROGRAM (XSLT_CONFIG_EXECUTABLE xslt-config)
 
@@ -296,12 +336,16 @@ EXEC_PROGRAM ("${XSLT_CONFIG_EXECUTABLE} --libs | sed s/-[[:upper:]][[:graph:]]*
 
 IF (ERROR_CODE EQUAL 0)
     MESSAGE ("xslt found with this parameter for libs : ${LIBXSLT_LIBS}")
-    SET(LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBXSLT_LIBS})
+    IF (NOT BUILD_SHARED_LIBS)
+        SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} -Wl,-Bstatic ${LIBXSLT_LIBS})
+    ELSE (NOT BUILD_SHARED_LIBS)
+        SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBXSLT_LIBS})
+    ENDIF (NOT BUILD_SHARED_LIBS)
 ELSE (ERROR_CODE EQUAL 0)
     MESSAGE (FATAL_ERROR "libxslt not found, cannot create owb without it, on debian you must install libxslt1-dev package")
 ENDIF (ERROR_CODE EQUAL 0)
 
-ENDIF (WEBKIT_USE_XSLT_SUPPORT)
+ENDIF (${WEBKIT_USE_XSLT_SUPPORT} STREQUAL "LIBXSLT")
 
 #######################################
 #Specific for N800
@@ -313,11 +357,73 @@ IF (N800_BUILD)
     SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${GTK_LIBS})
 ENDIF (N800_BUILD)
 
-######################################
-#Add -ldl for static link
-#Warning: keep it at the end of file!
-######################################
-IF (NOT BUILD_SHARED_LIBS)
-    SET(LIBRARIES_TO_LINK "${LIBRARIES_TO_LINK};dl")	
-ENDIF (NOT BUILD_SHARED_LIBS)
+
+IF (WEBKIT_USE_NPAPI)
+
+    EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --libs xt | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed s/-l//"
+        OUTPUT_VARIABLE LIBXT_LIBS
+        RETURN_VALUE ERROR_CODE)
+
+    IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("xt found with this parameter for libs : "${LIBXT_LIBS})
+    ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "libxt not found, cannot create owb without it")
+    ENDIF (ERROR_CODE EQUAL 0)
+    SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBXT_LIBS})
+
+    EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --libs gtk+-2.0 | sed s/-[[:upper:]][[:graph:]]*[[:blank:]]//g | sed s/-l//"
+        OUTPUT_VARIABLE LIBGTK_LIBS
+        RETURN_VALUE ERROR_CODE)
+
+    IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("gtk found with this parameter for libs : "${LIBGTK_LIBS})
+    ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "libgtk not found, cannot create owb without it")
+    ENDIF (ERROR_CODE EQUAL 0)
+    SET (LIBRARIES_TO_LINK ${LIBRARIES_TO_LINK} ${LIBGTK_LIBS})
+
+    EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --cflags gtk+-2.0 | sed s/-I// | sed 's/ -I/;/g'"
+        OUTPUT_VARIABLE LIBGTK_CFLAGS
+        RETURN_VALUE ERROR_CODE)
+
+    IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("gtk found with this parameter for cflags : ${LIBGTK_CFLAGS}")
+        SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${LIBGTK_CFLAGS})
+    ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "libgtk not found, cannot create owb without it")
+    ENDIF (ERROR_CODE EQUAL 0)
+
+    EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --cflags cairo | sed s/-I// | sed 's/ -I/;/g'"
+        OUTPUT_VARIABLE LIBCAIRO_CFLAGS
+        RETURN_VALUE ERROR_CODE)
+
+    IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("cairo found with this parameter for cflags : ${LIBCAIRO_CFLAGS}")
+        SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${LIBCAIRO_CFLAGS})
+    ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "cairo not found, cannot create owb without it")
+    ENDIF (ERROR_CODE EQUAL 0)
+
+    EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --cflags glib-2.0 | sed s/-I// | sed 's/ -I/;/g'"
+        OUTPUT_VARIABLE LIBGLIB_CFLAGS
+        RETURN_VALUE ERROR_CODE)
+
+    IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("glib found with this parameter for cflags : ${LIBGLIB_CFLAGS}")
+        SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${LIBGLIB_CFLAGS})
+    ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "glib not found, cannot create owb without it")
+    ENDIF (ERROR_CODE EQUAL 0)
+
+    EXEC_PROGRAM ("${PKG_CONFIG_EXECUTABLE} --cflags pango | sed s/-I// | sed 's/ -I/;/g'"
+        OUTPUT_VARIABLE LIBPANGO_CFLAGS
+        RETURN_VALUE ERROR_CODE)
+
+    IF (ERROR_CODE EQUAL 0)
+        MESSAGE ("pango found with this parameter for cflags : ${LIBPANGO_CFLAGS}")
+        SET(LIBRARIES_TO_INCLUDE ${LIBRARIES_TO_INCLUDE} ${LIBPANGO_CFLAGS})
+    ELSE (ERROR_CODE EQUAL 0)
+        MESSAGE (FATAL_ERROR "pango not found, cannot create owb without it")
+    ENDIF (ERROR_CODE EQUAL 0)
+ENDIF (WEBKIT_USE_NPAPI)
 

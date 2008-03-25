@@ -166,10 +166,6 @@ namespace KJS {
         // Constructors
         DOMException, Image, Option, XMLHttpRequest,
         XSLTProcessor_,
-
-		// Private extensions
-		TvCore_, DvbCore_, LayoutTestController,
-		layoutTestController
     };
 
   private:

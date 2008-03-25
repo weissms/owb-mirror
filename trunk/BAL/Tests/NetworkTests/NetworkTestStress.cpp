@@ -28,7 +28,7 @@
 
 #include "config.h"
 #include "BALConfiguration.h"
-#include "BIResourceHandle.h"
+#include "BTResourceHandle.h"
 #include "BIResourceHandleManager.h"
 #include "ResourceHandleClient.h"
 #include "ResourceRequest.h"
@@ -62,7 +62,7 @@ static void TestNetworkResourceHandleCreate()
 {
     ResourceHandleClient *aResourceHandleClient = new ResourceHandleClient();
     ResourceRequest aResourceRequest = ResourceRequest();
-    RefPtr<BIResourceHandle> aResourceHandle = BIResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
+    RefPtr<BTResourceHandle> aResourceHandle = BTResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
     TestManager::AssertTrue("Resource handle exists", aResourceHandle != NULL);
     aResourceHandle = NULL;
     delete aResourceHandleClient;
@@ -74,7 +74,7 @@ static void TestNetworkResourceHandleCreateMultiple1()
     ResourceHandleClient *aResourceHandleClient = new ResourceHandleClient();
     ResourceRequest aResourceRequest = ResourceRequest();
     for (uint8_t i = 0; i < 255; i++) {
-        RefPtr<BIResourceHandle> aResourceHandle = BIResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
+        RefPtr<BTResourceHandle> aResourceHandle = BTResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
         TestManager::AssertTrue("Resource handle exists", aResourceHandle != NULL);
         aResourceHandle = NULL;
     }
@@ -86,9 +86,9 @@ static void TestNetworkResourceHandleCreateMultiple2()
 {
     ResourceHandleClient *aResourceHandleClient = new ResourceHandleClient();
     ResourceRequest aResourceRequest = ResourceRequest();
-    RefPtr<BIResourceHandle> aResourceHandle[255];
+    RefPtr<BTResourceHandle> aResourceHandle[255];
     for (uint8_t i = 0; i < 255; i++) {
-        aResourceHandle[i] = BIResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
+        aResourceHandle[i] = BTResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
         TestManager::AssertTrue("Resource handle exists", aResourceHandle[i] != NULL);
     }
     for (uint8_t i = 0; i < 255; i++)
@@ -103,10 +103,8 @@ static void TestNetworkResourceHandleContains()
     TestManager::AssertTrue("Resource handle manager exists", aResourceHandleManager != NULL);
     ResourceHandleClient *aResourceHandleClient = new ResourceHandleClient();
     ResourceRequest aResourceRequest = ResourceRequest();
-    RefPtr<BIResourceHandle> aResourceHandle = BIResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
+    RefPtr<BTResourceHandle> aResourceHandle = BTResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
     TestManager::AssertTrue("Resource handle exists", aResourceHandle != NULL);
-
-    TestManager::AssertTrue("job is in the list", aResourceHandleManager->contains(aResourceHandle.get()));
 
     aResourceHandle = NULL;
     delete aResourceHandleClient;
@@ -121,15 +119,14 @@ static void TestNetworkResourceHandleContainsMultiple()
     TestManager::AssertTrue("Resource handle manager exists", aResourceHandleManager != NULL);
     ResourceHandleClient *aResourceHandleClient = new ResourceHandleClient();
     ResourceRequest aResourceRequest = ResourceRequest();
-    RefPtr<BIResourceHandle> aResourceHandle[255];
+    RefPtr<BTResourceHandle> aResourceHandle[255];
     for (uint8_t i = 0; i < 255; i++) {
-        aResourceHandle[i] = BIResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
+        aResourceHandle[i] = BTResourceHandle::create(aResourceRequest, aResourceHandleClient, 0, false, false, false);
         TestManager::AssertTrue("Resource handle exists", aResourceHandle[i] != NULL);
     }
-    for (uint8_t i = 0; i < 255; i++) {
-        TestManager::AssertTrue("job is in the list", aResourceHandleManager->contains(aResourceHandle[i].get()));
+    for (uint8_t i = 0; i < 255; i++) 
         aResourceHandle[i] = NULL;
-    }
+    
     delete aResourceHandleClient;
     aResourceHandleClient = NULL;
     deleteBIResourceHandleManager();

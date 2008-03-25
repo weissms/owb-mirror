@@ -1,24 +1,49 @@
 SET (bal_glue_SRC
+    ${bal_glue_SRC}
+    ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
+    ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h
+    BALGlue/AXObjectCacheBal.cpp
+    BALGlue/ContextMenu.cpp
+    BALGlue/ContextMenuBal.cpp
+    BALGlue/ContextMenuItemBal.cpp
+    BALGlue/CookieJar.cpp
+    BALGlue/DragImage.cpp
+    BALGlue/EditorBal.cpp
+    BALGlue/EventHandlerBal.cpp
+    BALGlue/FrameBal.cpp
+    BALGlue/FrameViewBal.cpp
+    BALGlue/HistoryBal.cpp
+    BALGlue/PageCacheBal.cpp
+    BALGlue/PasteboardBal.cpp
+    BALGlue/PlatformScreenBal.cpp
+    BALGlue/PlatformScrollBarBal.cpp
+    BALGlue/RenderThemeBal${TARGET}.cpp
+    BALGlue/SecurityOrigin.cpp
+)
+
+IF (WEBKIT_USE_NPAPI)
+SET (bal_glue_SRC
 	${bal_glue_SRC}
 
-	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
-	${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h
-	BALGlue/AXObjectCacheBal.cpp
-	BALGlue/ContextMenu.cpp
-	BALGlue/ContextMenuBal.cpp
-	BALGlue/ContextMenuItemBal.cpp
-	BALGlue/CookieJar.cpp
-	BALGlue/DragImage.cpp
-	BALGlue/EditorBal.cpp
-	BALGlue/EventHandlerBal.cpp
-	BALGlue/FrameBal.cpp
-	BALGlue/FrameViewBal.cpp
-	BALGlue/HistoryBal.cpp
-	BALGlue/PageCacheBal.cpp
-	BALGlue/PasteboardBal.cpp
-	BALGlue/PlatformScreenBal.cpp
-	BALGlue/PlatformScrollBarBal.cpp
-	BALGlue/RenderThemeBal${TARGET}.cpp
-	BALGlue/SecurityOrigin.cpp
+	BALGlue/Plugins/Gtk/gtk2xtbin.c
+    BALGlue/Plugins/Gtk/PluginDatabaseGtk.cpp
+    BALGlue/Plugins/Gtk/PluginPackageGtk.cpp
+    BALGlue/Plugins/Gtk/PluginViewGtk.cpp
 )
+ENDIF (WEBKIT_USE_NPAPI)
+
+IF (${WEBKIT_USE_XML_SUPPORT} STREQUAL "LIBXML")
+SET (bal_glue_SRC
+    ${bal_glue_SRC}
+    BALGlue/XML/LIBXML/ParseXML.cpp
+)
+ENDIF (${WEBKIT_USE_XML_SUPPORT} STREQUAL "LIBXML")
+
+IF (${WEBKIT_USE_XSLT_SUPPORT} STREQUAL "LIBXSLT")
+SET (bal_glue_SRC
+    ${bal_glue_SRC}
+    BALGlue/XML/LIBXSLT/BTStyleSheet.cpp
+    BALGlue/XML/LIBXSLT/BTProcessor.cpp
+)
+ENDIF (${WEBKIT_USE_XSLT_SUPPORT} STREQUAL "LIBXSLT")
 

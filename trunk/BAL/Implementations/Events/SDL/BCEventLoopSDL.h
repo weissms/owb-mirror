@@ -40,6 +40,9 @@
  *
  */
 
+#define DEEPSEE_CONSOLE_USE 1
+#include DEEPSEE_INCLUDE
+
 #include "BIEventLoop.h"
 #include <SDL/SDL.h>
 #include "BIEvent.h"
@@ -79,9 +82,11 @@ protected:
     fd_set          m_fdSet;
 #endif
     BAL::BIEvent* CreateEventFromSDLEvent(const SDL_Event&);
+    DS_DEFINE_CONSOLE_PTR(m_console);
 private:
     bool m_isInitialized;
     Vector<BAL::BIEvent *> m_event;
+
 };
 
 }

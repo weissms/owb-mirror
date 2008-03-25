@@ -1,0 +1,9 @@
+2008-01-16  Fred  <fmarmond@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
+	Add DeepSee library support
+
+        * OrigynLauncher/main.cpp:
+        (main):
+

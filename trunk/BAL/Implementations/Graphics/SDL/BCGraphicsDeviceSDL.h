@@ -114,6 +114,7 @@ public:
     virtual WebCore::IntSize size() const;
     virtual void update(const BTWidget&, const WebCore::IntRect);
     virtual void clear(const BTWidget&, const WebCore::IntRect);
+    virtual void applyCTM(const BTWidget&, const BTAffineTransform&);
 private:
     inline void drawArc(const BTWidget&, const WebCore::Color, int zone, int xc, int yc, float& x0, float& y0, float x1, float y1, bool doSwap = true);
     SDL_Surface* applyTransparency(const BINativeImage&, const uint8_t alphaChannel);

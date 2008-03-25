@@ -51,7 +51,7 @@ set(bal_tests_SRC
 	#I18N Directory
 	BAL/Tests/InternationalizationTests/InternationalizationTests.cpp
 )
-IF (WEBKIT_USE_XML_SUPPORT)
-	#XMLTests Directory
-	set(bal_tests_SRC ${bal_tests_SRC} BAL/Tests/XMLTests/XmlTest.cpp)
-ENDIF (WEBKIT_USE_XML_SUPPORT)
+#IF (WEBKIT_USE_XML_SUPPORT)
+#	#XMLTests Directory
+#	set(bal_tests_SRC ${bal_tests_SRC} BAL/Tests/XMLTests/XmlTest.cpp)
+#ENDIF (WEBKIT_USE_XML_SUPPORT)

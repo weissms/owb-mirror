@@ -79,7 +79,7 @@ namespace BAL
     BIImageDecoder* createBCJPEGImageDecoder();
     BIImageDecoder* createBCPNGImageDecoder();
     BIImageDecoder* createBCGIFImageDecoder();
-    inline BIImageDecoder* createBCBMPImageDecoder() { return 0; }
+    BIImageDecoder* createBCBMPImageDecoder();
     void deleteBIImageDecoder( BIImageDecoder* );
 
     // Events
@@ -97,7 +97,6 @@ namespace BAL
 
     // Window
     class BIWindowManager;
-//    BIWindow* createBCWindowBal(int x, int y, int width, int height, int depth);
     BIWindowManager* getBIWindowManager();
     void deleteBIWindowManager();
 
@@ -108,18 +107,17 @@ namespace BAL
     
     // ResourceHandleManager
     class BIResourceHandleManager;
-    class BIResourceHandle;
     BIResourceHandleManager* getBIResourceHandleManager();
     void deleteBIResourceHandleManager();
-    // BIResourceHandle* createBCResourceHandle removed because of a static create
 
+    // File
+    class BIFile;
+    BIFile* createBIFile(char* path);
+    void deleteBIFile(BIFile* file);
 
     // Fonts
-//     class BIFontCache;
-//     class BIFontData;
     class BIFontPlatformDataPrivate;
     class BIGlyphBuffer;
-//     BIFontCache* getBIFontCache();
     BIGlyphBuffer* createBIGlyphBuffer();
     void deleteBIGlyphBuffer(BIGlyphBuffer*);
     BIFontPlatformDataPrivate* createBIFontPlatformDataPrivate();
@@ -132,8 +130,6 @@ namespace BAL
     class BISurface;
     BIGraphicsContext* createRGBA32GraphicsContext(unsigned width, unsigned height);
     void deleteRGBA32GraphicsContext(BIGraphicsContext*);
-//    BINativeImage* createBCNativeImage(const RGBA32Array&, const WebCore::IntSize&);
-//    BINativeImage* createBCNativeImage(const WebCore::IntSize&);
     BIGraphicsContext* getBIGraphicsContext();
     BIGraphicsContext* createBIGraphicsContext();
     BIGraphicsContext* createFakeBIGraphicsContext();

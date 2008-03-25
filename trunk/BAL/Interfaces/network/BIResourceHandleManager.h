@@ -60,18 +60,18 @@ public:
      * When transfer is completed (normal or error case), it is
      * removed from the manager's job list.
      **/
-    virtual void add(BIResourceHandle *job) = 0;
+    virtual void add(ResourceHandle *job) = 0;
 
     /**
      * Checks to see if this transfer job is in the active list 
      **/
-    virtual bool contains(BIResourceHandle *job) = 0;
+    //virtual bool contains(ResourceHandle *job) = 0;
 
     /**
      * cancel a transfer job. It means job is stopped,
      * and removed from the manager's job list.
      **/
-    virtual void cancel(BIResourceHandle *job) = 0;
+    virtual void cancel(ResourceHandle *job) = 0;
 };
 
 }

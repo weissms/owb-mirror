@@ -44,6 +44,8 @@
 #include "FrameLoadRequest.h"
 #include "FrameView.h"
 #include "InspectorClientBal.h"
+#include <kjs/value.h>
+#include <kjs/JSLock.h>
 #include "Page.h"
 #include "RenderTreeAsText.h"
 #include "Settings.h"
@@ -97,6 +99,7 @@ const uint16_t height)
     page->settings()->setPluginsEnabled(true);
     page->settings()->setDefaultFixedFontSize(14);
     page->settings()->setDefaultFontSize(14);
+    page->settings()->setPluginsEnabled(true);
 
     editorClient->setPage(page);
     m_mainFrame = new FrameBal(page, 0, frameLoaderClient);
@@ -152,6 +155,19 @@ void WindowBal::setURL(const KURL& url)
     m_mainFrame->loader()->load(url);
 }
 
+/// assumes input does not have "JavaScript" at the begining.
+WebCore::String WindowBal::executeJavaScript(WebCore::String script)
+{
+    KJS::JSValue* scriptExecutionResult = m_mainFrame->loader()->executeScript(script, false);
+    if(!scriptExecutionResult)
+        return "error";
+    else if (scriptExecutionResult->isString()) {
+        KJS::JSLock lock;
+        return WebCore::String(scriptExecutionResult->getString());
+    }
+    return "not a string";
+}
+
 void WindowBal::stop()
 {
     m_mainFrame->loader()->stopForUserCancel();
@@ -165,6 +181,11 @@ const KURL& WindowBal::URL()
 const BTWidget* WindowBal::widget() const
 {
     return m_mainFrame->view();
+}
+
+WebCore::Frame* WindowBal::mainFrame() const
+{
+    return m_mainFrame.get();
 }
 
 void WindowBal::setFrameLoaderClient(WebCore::FrameLoaderClientBal* frameLoaderClient)

@@ -26,16 +26,17 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#import "DumpRenderTree.h"
 #import "UIDelegate.h"
 
-#import "DumpRenderTree.h"
 #import "DumpRenderTreeDraggingInfo.h"
-#import "LayoutTestController.h"
 #import "EventSendingController.h"
+#import "LayoutTestController.h"
 #import <WebKit/WebFramePrivate.h>
 #import <WebKit/WebHTMLViewPrivate.h>
 #import <WebKit/WebView.h>
-#import <JavaScriptCore/Assertions.h>
+#import <WebKit/WebSecurityOriginPrivate.h>
+#import <wtf/Assertions.h>
 
 DumpRenderTreeDraggingInfo *draggingInfo = nil;
 
@@ -106,7 +107,7 @@ DumpRenderTreeDraggingInfo *draggingInfo = nil;
     // Make sure that waitUntilDone has been called.
     ASSERT(layoutTestController->waitToDump());
 
-    WebView *webView = createWebView();
+    WebView *webView = createWebViewAndOffscreenWindow();
     
     return [webView autorelease];
 }
@@ -120,6 +121,17 @@ DumpRenderTreeDraggingInfo *draggingInfo = nil;
     
     [window close];
 }
+
+- (unsigned long long)webView:(WebView *)sender frame:(WebFrame *) quotaForSecurityOrigin:(WebSecurityOrigin *)origin toCreateDatabase:(NSString *)newDatabaseName withEstimatedSize:(unsigned long long)estimatedSize
+{
+    return estimatedSize;
+}
+
+- (unsigned long long)webView:(WebView *)sender frame:(WebFrame *) quotaForSecurityOrigin:(WebSecurityOrigin *)origin fromProposedQuota:(unsigned long long)proposedNewQuota database:(NSString *)databaseIdentifier
+{
+    return proposedNewQuota;
+}
+
 
 - (void)dealloc
 {

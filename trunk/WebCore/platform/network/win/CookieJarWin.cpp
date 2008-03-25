@@ -27,6 +27,7 @@
 #include "KURL.h"
 #include "PlatformString.h"
 #include "DeprecatedString.h"
+#include "Document.h"
 #include "ResourceHandle.h"
 #include <windows.h>
 #if USE(CFNETWORK)
@@ -46,9 +47,13 @@ namespace WebCore
 #endif
 
 
-void setCookies(const KURL& url, const KURL& policyURL, const String& value)
+void setCookies(Document* /*document*/, const KURL& url, const KURL& policyURL, const String& value)
 {
 #if USE(CFNETWORK)
+    // <rdar://problem/5632883> CFHTTPCookieStorage happily stores an empty cookie, which would be sent as "Cookie: =".
+    if (value.isEmpty())
+        return;
+
     CFHTTPCookieStorageRef defaultCookieStorage = wkGetDefaultHTTPCookieStorage();
     if (!defaultCookieStorage)
         return;
@@ -70,7 +75,7 @@ void setCookies(const KURL& url, const KURL& policyURL, const String& value)
     CFHTTPCookieStorageSetCookies(defaultCookieStorage, cookiesCF.get(), urlCF.get(), policyURLCF.get());
 #else
     // FIXME: Deal with the policy URL.
-    DeprecatedString str = url.url();
+    DeprecatedString str = url.deprecatedString();
     str.append((UChar)'\0');
     DeprecatedString val = value.deprecatedString();
     val.append((UChar)'\0');
@@ -78,7 +83,7 @@ void setCookies(const KURL& url, const KURL& policyURL, const String& value)
 #endif
 }
 
-String cookies(const KURL& url)
+String cookies(const Document* /*document*/, const KURL& url)
 {
 #if USE(CFNETWORK)
     CFHTTPCookieStorageRef defaultCookieStorage = wkGetDefaultHTTPCookieStorage();
@@ -91,11 +96,21 @@ String cookies(const KURL& url)
     bool secure = equalIgnoringCase(url.protocol(), "https");
 
     RetainPtr<CFArrayRef> cookiesCF(AdoptCF, CFHTTPCookieStorageCopyCookiesForURL(defaultCookieStorage, urlCF.get(), secure));
-    RetainPtr<CFDictionaryRef> headerCF(AdoptCF, CFHTTPCookieCopyRequestHeaderFields(kCFAllocatorDefault, cookiesCF.get()));
+
+    // <rdar://problem/5632883> CFHTTPCookieStorage happily stores an empty cookie, which would be sent as "Cookie: =".
+    // We have a workaround in setCookies() to prevent that, but we also need to avoid sending cookies that were previously stored.
+    CFIndex count = CFArrayGetCount(cookiesCF.get());
+    RetainPtr<CFMutableArrayRef> cookiesForURLFilteredCopy(AdoptCF, CFArrayCreateMutable(0, count, &kCFTypeArrayCallBacks));
+    for (CFIndex i = 0; i < count; ++i) {
+        CFHTTPCookieRef cookie = (CFHTTPCookieRef)CFArrayGetValueAtIndex(cookiesCF.get(), i);
+        if (CFStringGetLength(CFHTTPCookieGetName(cookie)) != 0)
+            CFArrayAppendValue(cookiesForURLFilteredCopy.get(), cookie);
+    }
+    RetainPtr<CFDictionaryRef> headerCF(AdoptCF, CFHTTPCookieCopyRequestHeaderFields(kCFAllocatorDefault, cookiesForURLFilteredCopy.get()));
 
     return (CFStringRef)CFDictionaryGetValue(headerCF.get(), s_cookieCF);
 #else
-    DeprecatedString str = url.url();
+    DeprecatedString str = url.deprecatedString();
     str.append((UChar)'\0');
 
     DWORD count = str.length();
@@ -111,7 +126,7 @@ String cookies(const KURL& url)
 #endif
 }
 
-bool cookiesEnabled()
+bool cookiesEnabled(const Document* /*document*/)
 {
     CFHTTPCookieStorageAcceptPolicy policy = CFHTTPCookieStorageAcceptPolicyOnlyFromMainDocumentDomain;
     if (CFHTTPCookieStorageRef defaultCookieStorage = wkGetDefaultHTTPCookieStorage())

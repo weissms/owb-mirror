@@ -64,6 +64,7 @@ BCFontPlatformDataPrivateFreeType::~BCFontPlatformDataPrivateFreeType()
     m_isInitialized--;
     DBGML(MODULE_FONTS, LEVEL_INFO, "BCFontPlatformDataPrivateFreeType::~BCFontPlatformDataPrivateFreeType(): m_isInitialized=%d\n", m_isInitialized);
     if (!m_isInitialized && m_library) {
+        FcFini();
         FT_Done_FreeType(m_library);
         m_library = 0;
     }
@@ -146,10 +147,9 @@ void BCFontPlatformDataPrivateFreeType::configureFontconfig(const FontDescriptio
     if (!m_pattern)
         goto freePattern;
 
-    FcConfigDestroy(config);
-
 freePattern:
     FcPatternDestroy(pattern);
+    FcConfigDestroy(config);
 }
 
 void BCFontPlatformDataPrivateFreeType::configureFreetype(const FontDescription& fontDescription)

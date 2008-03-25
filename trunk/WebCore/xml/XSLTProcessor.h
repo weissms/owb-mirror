@@ -28,8 +28,12 @@
 #include "StringHash.h"
 #include "XSLStyleSheet.h"
 #include <wtf/HashMap.h>
+#ifndef __OWB__
 #include <libxml/parserInternals.h>
 #include <libxslt/documents.h>
+#else
+#include "BTProcessor.h"
+#endif
 
 namespace WebCore {
 
@@ -40,6 +44,9 @@ class DocumentFragment;
 
 class XSLTProcessor : public Shared<XSLTProcessor>
 {
+#ifdef __OWB__
+friend class BAL::BTProcessor;
+#endif
 public:
     void setXSLStylesheet(XSLStyleSheet *styleSheet) { m_stylesheet = styleSheet; }
     bool transformToString(Node *source, DeprecatedString &resultMIMEType, DeprecatedString &resultString, DeprecatedString &resultEncoding);
@@ -65,7 +72,9 @@ public:
 
 private:
     // Convert a libxml doc ptr to a KHTML DOM Document
+#ifndef __OWB__
     RefPtr<Document> documentFromXMLDocPtr(xmlDocPtr resultDoc, xsltStylesheetPtr sheet, Document *ownerDocument, bool sourceIsDocument);
+#endif
 
     RefPtr<XSLStyleSheet> m_stylesheet;
     RefPtr<Node> m_stylesheetRootNode;

@@ -38,6 +38,7 @@
 
 #ifdef __OWB__
 using WebCore::StringImpl;
+using WebCore::String;
 
 namespace BAL {
 #else

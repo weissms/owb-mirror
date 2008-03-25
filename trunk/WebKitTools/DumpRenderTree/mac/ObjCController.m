@@ -28,10 +28,10 @@
 
 #import "ObjCController.h"
 
-#import <JavaScriptCore/Assertions.h>
+#import <WebKit/DOMAbstractView.h>
 #import <WebKit/WebScriptObject.h>
 #import <WebKit/WebView.h>
-#import <WebKit/DOMAbstractView.h>
+#import <wtf/Assertions.h>
 
 @implementation ObjCController
 
@@ -100,6 +100,8 @@
 
 - (BOOL)identityIsEqual:(WebScriptObject *)a :(WebScriptObject *)b
 {
+    if ([a isKindOfClass:[NSString class]] && [b isKindOfClass:[NSString class]])
+        return [(NSString *)a isEqualToString:(NSString *)b];
     return a == b;
 }
 

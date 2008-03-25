@@ -34,15 +34,23 @@
 #include "DeprecatedString.h"
 #include "ResourceHandleClient.h"
 #include "ResourceHandleInternal.h"
-#include "qwebnetworkinterface_p.h"
 #include "qwebpage_p.h"
 #include "ChromeClientQt.h"
 #include "FrameLoaderClientQt.h"
 #include "Page.h"
+#include "QNetworkReplyHandler.h"
 
 #include "NotImplemented.h"
 
 #include <QCoreApplication>
+#include <QUrl>
+#if QT_VERSION >= 0x040400
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#else
+#include "qwebnetworkinterface_p.h"
+#endif
 
 namespace WebCore {
 
@@ -121,24 +129,27 @@ bool ResourceHandle::start(Frame* frame)
     if (!page)
         return false;
 
-    // check for (probably) broken requests
-    if (d->m_request.httpMethod() != "GET" && d->m_request.httpMethod() != "POST") {
-        notImplemented();
-        return false;
-    }
-
     getInternal()->m_frame = static_cast<FrameLoaderClientQt*>(frame->loader()->client())->webFrame();
+#if QT_VERSION < 0x040400
     return QWebNetworkManager::self()->add(this, getInternal()->m_frame->page()->d->networkInterface);
+#else
+    ResourceHandleInternal *d = getInternal();
+    d->m_job = new QNetworkReplyHandler(this);
+    return true;
+#endif
 }
 
 void ResourceHandle::cancel()
 {
+#if QT_VERSION < 0x040400
     QWebNetworkManager::self()->cancel(this);
+#else
+    d->m_job->abort();
+#endif
 }
 
 bool ResourceHandle::loadsBlocked()
 {
-    notImplemented();
     return false;
 }
 
@@ -150,29 +161,32 @@ bool ResourceHandle::willLoadFromCache(ResourceRequest& request)
 
 bool ResourceHandle::supportsBufferedData()
 {
-    notImplemented();
     return false;
 }
 
 PassRefPtr<SharedBuffer> ResourceHandle::bufferedData()
 {
-    notImplemented();
+    ASSERT_NOT_REACHED();
     return 0;
 }
 
-void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, ResourceError& error, ResourceResponse& response, Vector<char>& data)
+void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, ResourceError& error, ResourceResponse& response, Vector<char>& data, Frame* frame)
 {
     WebCoreSynchronousLoader syncLoader;
     ResourceHandle handle(request, &syncLoader, true, false, true);
 
-    // check for (probably) broken requests
-    if (handle.d->m_request.httpMethod() != "GET" && handle.d->m_request.httpMethod() != "POST" && handle.d->m_request.httpMethod() != "HEAD") {
+#if QT_VERSION < 0x040400
+    if (!QWebNetworkManager::self()->add(&handle, QWebNetworkInterface::defaultInterface(), QWebNetworkManager::SynchronousJob)) {
         // FIXME Create a sane ResourceError
         error = ResourceError(String(), -1, String(), String());
         return;
     }
+#else
+    ResourceHandleInternal *d = handle.getInternal();
+    d->m_frame = static_cast<FrameLoaderClientQt*>(frame->loader()->client())->webFrame();
+    d->m_job = new QNetworkReplyHandler(&handle);
+#endif
 
-    QWebNetworkManager::self()->add(&handle, QWebNetworkInterface::defaultInterface(), QWebNetworkManager::SynchronousJob);
     syncLoader.waitForCompletion();
     error = syncLoader.resourceError();
     data = syncLoader.data();

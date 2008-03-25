@@ -63,7 +63,7 @@ bool BTFontPlatformData::operator==(const BTFontPlatformData& other) const
     if (!d && !other.d)
         return true;
     if (!d || !other.d)
-            return false;
+        return false;
     return (d->isEqual(other.d));
 }
 

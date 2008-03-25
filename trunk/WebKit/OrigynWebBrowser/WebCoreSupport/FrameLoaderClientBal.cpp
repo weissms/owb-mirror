@@ -32,6 +32,7 @@
 #include "config.h"
 #include "BALConfiguration.h"
 #include "BIEventLoop.h"
+#include "BIObserverService.h"
 #include "BIWindow.h"
 #include "BIWindowEvent.h"
 #include "Font.h"
@@ -53,6 +54,12 @@
 #include "object.h"
 #endif //__OWB_JS__
 
+#ifdef __OWB_NPAPI__
+#include "PlugInInfoStore.h"
+#include "PluginDatabase.h"
+#include "PluginView.h"
+#endif
+
 #ifdef __TVCORE__
 #include "TvCore.h"
 #endif
@@ -65,6 +72,9 @@ namespace WebCore {
 
 FrameLoaderClientBal::FrameLoaderClientBal()
     : m_frame(0)
+#ifdef __OWB_NPAPI__
+    , m_pluginView(0)
+#endif
     , m_firstData(false)
     , m_loadFailed(false)
 #ifdef __TVCORE__
@@ -96,10 +106,12 @@ String FrameLoaderClientBal::userAgent(const KURL&)
 {
 #ifdef __OWBAL_PLATFORM_MACPORT__
     //We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
-    return "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412";
+    return "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Blastoise";
+#elif PLATFORM(AMIGAOS4)
+    return "Mozilla/5.0 (AMIGA; U; AmigaOS4 ppc; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Blastoise";
 #else
    //NOTE: some pages don't render with this UA
-    return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Robespierre";
+    return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Blastoise";
 #endif
 }
 
@@ -123,9 +135,37 @@ void FrameLoaderClientBal::committedLoad(DocumentLoader* loader, const char* dat
 {
     if (!frame())
         return;
+
+    const String& textEncoding = loader->response().textEncodingName();
+
+#ifdef __OWB_NPAPI__
+    if (!m_pluginView) {
+        ASSERT(loader->frame());
+        // Setting the encoding on the frame loader is our way to get work done that is normally done
+        // when the first bit of data is received, even for the case of a document with no data (like about:blank).
+        String encoding = loader->overrideEncoding();
+        bool userChosen = !encoding.isNull();
+        if (!userChosen)
+            encoding = loader->response().textEncodingName();
+
+        FrameLoader* frameLoader = loader->frameLoader();
+        frameLoader->setEncoding(encoding, userChosen);
+        if (data)
+            frameLoader->addData(data, length);
+    }
+
+    if (m_pluginView) {
+        if (!m_hasSentResponseToPlugin) {
+             m_pluginView->didReceiveResponse(loader->response());
+             m_hasSentResponseToPlugin = true;
+        }
+        m_pluginView->didReceiveData(data, length);
+    }
+#else
     FrameLoader *fl = loader->frameLoader();
     fl->setEncoding(m_response.textEncodingName(), false);
     fl->addData(data, length);
+#endif
 }
 
 void FrameLoaderClientBal::dispatchDidReceiveAuthenticationChallenge(DocumentLoader*, unsigned long  identifier, const AuthenticationChallenge&)
@@ -176,7 +216,12 @@ void FrameLoaderClientBal::postProgressFinishedNotification()
         IntRect rect(0, 0, m_frame->view()->width(), m_frame->view()->height());
         rect.unite(*m_frame->view()->dirtyRect());
 //         m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->contentsWidth(), m_frame->view()->contentsHeight()));
+
     }
+#ifndef NDEBUG
+    if (getenv("LAYOUT_TEST"))
+            getBIObserverService()->notifyObserver("layoutTestController", "loadDone");
+#endif
 }
 
 void FrameLoaderClientBal::frameLoaderDestroyed()
@@ -218,8 +263,15 @@ void FrameLoaderClientBal::dispatchDecidePolicyForNavigationAction(FramePolicyFu
     (frame()->loader()->*policyFunction)(PolicyUse);
 }
 
-Widget* FrameLoaderClientBal::createPlugin(const IntSize&, Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool loadManually)
+Widget* FrameLoaderClientBal::createPlugin(const IntSize& pluginSize, Element* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
+#ifdef __OWB_NPAPI__
+    PluginView* pluginView = PluginDatabase::installedPlugins()->createPluginView(frame(), pluginSize, element, url, paramNames, paramValues, mimeType, loadManually);
+
+    if (pluginView->status() == PluginStatusLoadedSuccessfully)
+        return pluginView;
+#endif
+
     BALNotImplemented();
     return 0;
 }
@@ -254,7 +306,9 @@ WTF::PassRefPtr<WebCore::Frame> FrameLoaderClientBal::createFrame(const KURL& ur
 
 void FrameLoaderClientBal::redirectDataToPlugin(Widget* pluginWidget)
 {
-    BALNotImplemented();
+#ifdef __OWB_NPAPI__
+    m_pluginView = static_cast<PluginView*>(pluginWidget);
+#endif
 }
 
 Widget* FrameLoaderClientBal::createJavaAppletWidget(const IntSize&, Element*, const KURL& baseURL,
@@ -266,8 +320,25 @@ Widget* FrameLoaderClientBal::createJavaAppletWidget(const IntSize&, Element*, c
 
 ObjectContentType FrameLoaderClientBal::objectContentType(const KURL& url, const String& mimeType)
 {
-    BALNotImplemented();
-    return ObjectContentType();
+    String type = mimeType;
+    if (type.isEmpty())
+        type = MIMETypeRegistry::getMIMETypeForExtension(url.path().mid(url.path().findRev('.') + 1));
+
+    if (type.isEmpty())
+        return WebCore::ObjectContentFrame;
+
+    if (MIMETypeRegistry::isSupportedImageMIMEType(type))
+        return WebCore::ObjectContentImage;
+
+#ifdef __OWB_NPAPI__
+    if (PluginDatabase::installedPlugins()->isMIMETypeRegistered(mimeType))
+        return WebCore::ObjectContentNetscapePlugin;
+#endif
+
+    if (MIMETypeRegistry::isSupportedNonImageMIMEType(type))
+        return WebCore::ObjectContentFrame;
+
+    return WebCore::ObjectContentNone;
 }
 
 String FrameLoaderClientBal::overrideMediaType() const
@@ -349,8 +420,15 @@ void FrameLoaderClientBal::restoreViewState()
     BALNotImplemented();
 }
 
-void FrameLoaderClientBal::setMainDocumentError(DocumentLoader* loader, const ResourceError&)
+void FrameLoaderClientBal::setMainDocumentError(DocumentLoader* loader, const ResourceError& error)
 {
+#ifdef __OWB_NPAPI__
+    if (m_pluginView) {
+        m_pluginView->didFail(error);
+        m_pluginView = 0;
+        m_hasSentResponseToPlugin = false;
+    }
+#endif
     if(m_firstData) {
         loader->frameLoader()->setEncoding(m_response.textEncodingName(), false);
         m_firstData = false;
@@ -362,6 +440,15 @@ void FrameLoaderClientBal::setMainDocumentError(DocumentLoader* loader, const Re
 
 void FrameLoaderClientBal::finishedLoading(DocumentLoader* loader)
 {
+#ifdef __OWB_NPAPI__
+    if (!m_pluginView)
+         committedLoad(loader, 0, 0);
+    else {
+         m_pluginView->didFinishLoading();
+         m_pluginView = 0;
+         m_hasSentResponseToPlugin = false;
+    }
+#endif
     if (m_firstData) {
         FrameLoader* fl = loader->frameLoader();
         fl->setEncoding(m_response.textEncodingName(), false);

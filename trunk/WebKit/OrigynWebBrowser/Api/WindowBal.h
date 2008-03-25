@@ -43,7 +43,7 @@ namespace WebCore {
 
     class FrameBal;
     class FrameLoaderClientBal;
-
+    class String;
 }
 
 namespace BAL {

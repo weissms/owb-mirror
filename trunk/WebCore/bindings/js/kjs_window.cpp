@@ -47,9 +47,6 @@
 #include "JSEvent.h"
 #include "JSHTMLCollection.h"
 #include "JSHTMLOptionElementConstructor.h"
-#ifdef __OWB__
-#include "JSLayoutTestController.h"
-#endif
 #include "JSMutationEvent.h"
 #include "JSNode.h"
 #include "JSNodeFilter.h"
@@ -561,23 +558,6 @@ JSValue *Window::getValueProperty(ExecState *exec, int token) const
 #else
     case XSLTProcessor_:
       return jsUndefined();
-#endif
-
-#if (defined DEBUG_LAYOUTTEST && defined __OWB__)
-    case LayoutTestController:
-        return new JSLayoutTestControllerConstructorImp(exec, impl()->frame()->document());
-    case layoutTestController:
-    {
-        JSLayoutTestControllerConstructorImp *layoutTest =
-            new JSLayoutTestControllerConstructorImp(exec, impl()->frame()->document());
-        const_cast<Window *>(this)->putDirect("layoutTestController",
-            layoutTest->construct(exec, KJS::List()), DontDelete);
-        return layoutTest;
-        }
-#else
-    case LayoutTestController:
-    case layoutTestController:
-        return jsUndefined();
 #endif
    }
 

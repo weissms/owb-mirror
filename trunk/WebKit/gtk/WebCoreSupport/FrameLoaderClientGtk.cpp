@@ -85,9 +85,30 @@ void FrameLoaderClient::dispatchWillSubmitForm(FramePolicyFunction policyFunctio
 
 void FrameLoaderClient::committedLoad(DocumentLoader* loader, const char* data, int length)
 {
-    FrameLoader *fl = loader->frameLoader();
-    fl->setEncoding(m_response.textEncodingName(), false);
-    fl->addData(data, length);
+    const String& textEncoding = loader->response().textEncodingName();
+
+    if (!m_pluginView) {
+        ASSERT(loader->frame());
+        // Setting the encoding on the frame loader is our way to get work done that is normally done
+        // when the first bit of data is received, even for the case of a document with no data (like about:blank).
+        String encoding = loader->overrideEncoding();
+        bool userChosen = !encoding.isNull();
+        if (!userChosen)
+            encoding = loader->response().textEncodingName();
+
+        FrameLoader* frameLoader = loader->frameLoader();
+        frameLoader->setEncoding(encoding, userChosen);
+        if (data)
+            frameLoader->addData(data, length);
+    }
+
+    if (m_pluginView) {
+        if (!m_hasSentResponseToPlugin) {
+            m_pluginView->didReceiveResponse(loader->response());
+            m_hasSentResponseToPlugin = true;
+        }
+        m_pluginView->didReceiveData(data, length);
+    }
 }
 
 void FrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoader*, unsigned long  identifier, const AuthenticationChallenge&)
@@ -170,8 +191,13 @@ void FrameLoaderClient::dispatchDecidePolicyForNavigationAction(FramePolicyFunct
     (core(m_frame)->loader()->*policyFunction)(PolicyUse);
 }
 
-Widget* FrameLoaderClient::createPlugin(const IntSize&, Element*, const KURL&, const Vector<String>&, const Vector<String>&, const String&, bool)
+Widget* FrameLoaderClient::createPlugin(const IntSize& pluginSize, Element* element, const KURL& url, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
+    PluginViewGtk* pluginView = PluginDatabaseGtk::installedPlugins()->createPluginView(core(m_frame), pluginSize, element, url, paramNames, paramValues, mimeType, loadManually);
+
+    if (pluginView->status() == PluginStatusLoadedSuccessfully)
+        return pluginView;
+
     notImplemented();
     return 0;
 }
@@ -213,8 +239,7 @@ PassRefPtr<Frame> FrameLoaderClient::createFrame(const KURL& url, const String& 
 
 void FrameLoaderClient::redirectDataToPlugin(Widget* pluginWidget)
 {
-    notImplemented();
-    return;
+    m_pluginView = static_cast<PluginViewGtk*>(pluginWidget);
 }
 
 Widget* FrameLoaderClient::createJavaAppletWidget(const IntSize&, Element*, const KURL& baseURL,
@@ -409,7 +434,15 @@ void FrameLoaderClient::saveDocumentViewToCachedPage(CachedPage*) { notImplement
 bool FrameLoaderClient::canCachePage() const { notImplemented(); return false; }
 Frame* FrameLoaderClient::dispatchCreatePage() { notImplemented(); return 0; }
 void FrameLoaderClient::dispatchUnableToImplementPolicy(const ResourceError&) { notImplemented(); }
-void FrameLoaderClient::setMainDocumentError(DocumentLoader*, const ResourceError&) { notImplemented(); }
+
+void FrameLoaderClient::setMainDocumentError(DocumentLoader*, const ResourceError& error) {
+    if (m_pluginView) {
+        m_pluginView->didFail(error);
+        m_pluginView = 0;
+        m_hasSentResponseToPlugin = false;
+    }
+}
+
 void FrameLoaderClient::startDownload(const ResourceRequest&) { notImplemented(); }
 void FrameLoaderClient::updateGlobalHistoryForStandardLoad(const KURL&) { notImplemented(); }
 void FrameLoaderClient::updateGlobalHistoryForReload(const KURL&) { notImplemented(); }

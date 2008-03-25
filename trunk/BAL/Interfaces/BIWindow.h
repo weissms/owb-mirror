@@ -31,6 +31,7 @@
 namespace WebCore {
 
     class IntRect;
+    class Frame;
     class FrameLoaderClientBal;
     class KURL;
 
@@ -59,6 +60,7 @@ namespace BAL {
             * set the url
             */
             virtual void setURL(const WebCore::KURL& url) = 0;
+            virtual WebCore::String executeJavaScript(WebCore::String script) = 0;
             /**
             * stop the loading
             */
@@ -73,10 +75,14 @@ namespace BAL {
             virtual const BTWidget* widget() const = 0;
 
             /**
+            * get the main Frame
+            */
+            virtual WebCore::Frame* mainFrame() const = 0;
+
+            /**
             * set frameLoaderClient
             */
             virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*) = 0;
-
             // this is mandatory
             /**
             * BIWindow destructor
@@ -93,9 +99,11 @@ namespace BAL {
     virtual bool canGoBackOrForward(int distance); \
     virtual void goBackOrForward(int distance); \
     virtual void setURL(const KURL& url);\
+    virtual WebCore::String executeJavaScript(WebCore::String script);\
     virtual void stop();\
     virtual const WebCore::KURL& URL();\
     virtual const BTWidget* widget() const;\
+    virtual WebCore::Frame* mainFrame() const; \
     virtual void setFrameLoaderClient(WebCore::FrameLoaderClientBal*);
 
 #endif // BIWINDOW_H

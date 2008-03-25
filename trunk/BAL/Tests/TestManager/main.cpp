@@ -171,9 +171,9 @@ TestNode* gRootTestNodeList[] = {
   &gTestSuiteTypes,
   &gTestSuiteTimer,
   &gTestSuitePosix,
-#ifdef __OWB_XML_SUPPORT__
+/*#ifdef __OWB_XML_SUPPORT__
   &gTestSuiteXml,
-#endif
+#endif*/
   &gTestSuiteInternationalization,
 	NULL
 };

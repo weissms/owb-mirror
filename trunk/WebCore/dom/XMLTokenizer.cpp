@@ -48,12 +48,14 @@
 #include "ResourceHandle.h"
 #include "ResourceRequest.h"
 #include "ResourceResponse.h"
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
 #else
 #include <QDebug>
 #endif
+#endif //__OWB__
 #include <wtf/Platform.h>
 #include <wtf/StringExtras.h>
 #include <wtf/Vector.h>
@@ -77,6 +79,7 @@ using namespace HTMLNames;
 
 const int maxErrors = 25;
 
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
 class PendingCallbacks {
 public:
@@ -339,8 +342,10 @@ public:
     DeprecatedPtrList<PendingCallback> m_callbacks;
 };
 #endif
+#endif //__OWB__
 // --------------------------------
 
+#ifndef __OWB__
 static int globalDescriptor = 0;
 
 static int matchFunc(const char* uri)
@@ -368,7 +373,9 @@ private:
     Vector<char> m_buffer;
     unsigned m_currentOffset;
 };
+#endif
 
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
 static bool shouldAllowExternalLoad(const char* inURI)
 {
@@ -447,17 +454,22 @@ static xmlParserCtxtPtr createStringParser(xmlSAXHandlerPtr handlers, void* user
     return parser;
 }
 #endif
+#endif //__OWB__
 
 // --------------------------------
 
 XMLTokenizer::XMLTokenizer(Document* _doc, FrameView* _view)
     : m_doc(_doc)
     , m_view(_view)
+#ifndef __OWB__
 #ifdef USE_QXMLSTREAM
     , m_wroteText(false)
 #else
     , m_context(0)
 #endif
+#else // __OWB__
+    , m_parseXML(new BAL::ParseXML(this))
+#endif //__OWB__
     , m_currentNode(_doc)
     , m_currentNodeIsReferenced(false)
     , m_sawError(false)
@@ -473,18 +485,24 @@ XMLTokenizer::XMLTokenizer(Document* _doc, FrameView* _view)
     , m_pendingScript(0)
     , m_scriptStartLine(0)
     , m_parsingFragment(false)
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     , m_pendingCallbacks(new PendingCallbacks)
 #endif
+#endif //__OWB__
 {
 }
 
 XMLTokenizer::XMLTokenizer(DocumentFragment* fragment, Element* parentElement)
     : m_doc(fragment->document())
     , m_view(0)
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     , m_context(0)
 #endif
+#else // __OWB__
+    , m_parseXML(new BAL::ParseXML(this))
+#endif //__OWB__
     , m_currentNode(fragment)
     , m_currentNodeIsReferenced(fragment)
     , m_sawError(false)
@@ -500,9 +518,11 @@ XMLTokenizer::XMLTokenizer(DocumentFragment* fragment, Element* parentElement)
     , m_pendingScript(0)
     , m_scriptStartLine(0)
     , m_parsingFragment(true)
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     , m_pendingCallbacks(new PendingCallbacks)
 #endif
+#endif //__OWB__
 {
     if (fragment)
         fragment->ref();
@@ -538,6 +558,10 @@ XMLTokenizer::XMLTokenizer(DocumentFragment* fragment, Element* parentElement)
 
 XMLTokenizer::~XMLTokenizer()
 {
+#ifdef __OWB__
+    delete m_parseXML;
+    m_parseXML = 0;
+#endif
     setCurrentNode(0);
     if (m_parsingFragment && m_doc)
         m_doc->deref();
@@ -550,8 +574,10 @@ void XMLTokenizer::setCurrentNode(Node* n)
     bool nodeNeedsReference = n && n != m_doc;
     if (nodeNeedsReference)
         n->ref(); 
+#ifndef __OWB__
     if (m_currentNodeIsReferenced) 
-        m_currentNode->deref(); 
+        m_currentNode->deref();
+#endif
     m_currentNode = n;
     m_currentNodeIsReferenced = nodeNeedsReference;
 }
@@ -570,7 +596,8 @@ bool XMLTokenizer::write(const SegmentedString& s, bool /*appendData*/)
         m_pendingSrc.append(s);
         return false;
     }
-    
+
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     if (!m_context)
         initializeParserContext();
@@ -614,9 +641,15 @@ bool XMLTokenizer::write(const SegmentedString& s, bool /*appendData*/)
         parse();
     }
 #endif
-    
+#else //__OWB__
+    if (!isInitialized)
+        initializeParserContext();
+    m_parseXML->parse( parseString );
+#endif //__OWB__
+
     return false;
 }
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
 static inline String toString(const xmlChar* str, unsigned len)
 {
@@ -1128,6 +1161,7 @@ static void ignorableWhitespaceHandler(void* ctx, const xmlChar* ch, int len)
     // http://bugs.webkit.org/show_bug.cgi?id=5792
 }
 #endif
+#endif //__OWB__
 
 void XMLTokenizer::handleError(ErrorType type, const char* m, int lineNumber, int columnNumber)
 {
@@ -1181,6 +1215,7 @@ void XMLTokenizer::exitText()
 
 void XMLTokenizer::initializeParserContext()
 {
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     xmlSAXHandler sax;
     memset(&sax, 0, sizeof(sax));
@@ -1201,14 +1236,17 @@ void XMLTokenizer::initializeParserContext()
     sax.entityDecl = xmlSAX2EntityDecl;
     sax.initialized = XML_SAX2_MAGIC;
 #endif
+#endif //__OWB__
     m_parserStopped = false;
     m_sawError = false;
     m_sawXSLTransform = false;
     m_sawFirstElement = false;
     
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     m_context = createStringParser(&sax, this);
 #endif
+#endif //__OWB__
 }
 
 void XMLTokenizer::end()
@@ -1224,6 +1262,7 @@ void XMLTokenizer::end()
     }
 #endif
 
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     if (m_context) {
         // Tell libxml we're done.
@@ -1240,6 +1279,9 @@ void XMLTokenizer::end()
                     columnNumber());
     }
 #endif
+#else //__OWB__
+    m_parseXML->end();
+#endif //__OWB__
     
     if (m_sawError)
         insertErrorMessageBlock();
@@ -1367,6 +1409,10 @@ void* xmlDocPtrForString(DocLoader* docLoader, const String& source, const Depre
     if (source.isEmpty())
         return 0;
 
+#ifdef __OWB__
+    BAL::ParseXML *parseXML = new BAL::ParseXML(0);
+    return parseXML->xmlDocPtrForString(docLoader, source, url);
+#else
     // Parse in a single chunk into an xmlDocPtr
     // FIXME: Hook up error handlers so that a failure to parse the main document results in
     // good error messages.
@@ -1376,7 +1422,7 @@ void* xmlDocPtrForString(DocLoader* docLoader, const String& source, const Depre
     xmlGenericErrorFunc oldErrorFunc = xmlGenericError;
     void* oldErrorContext = xmlGenericErrorContext;
     
-    setLoaderForLibXMLCallbacks(docLoader);        
+    setLoaderForLibXMLCallbacks(docLoader);
     xmlSetGenericErrorFunc(0, errorFunc);
     
     xmlDocPtr sourceDoc = xmlReadMemory(reinterpret_cast<const char*>(source.characters()),
@@ -1389,33 +1435,46 @@ void* xmlDocPtrForString(DocLoader* docLoader, const String& source, const Depre
     xmlSetGenericErrorFunc(oldErrorContext, oldErrorFunc);
     
     return sourceDoc;
+#endif
 }
 #endif
 
 int XMLTokenizer::lineNumber() const
 {
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     return m_context ? m_context->input->line : 1;
 #else
     return m_stream.lineNumber();
 #endif
+#else //__OWB__
+    return m_parseXML->lineNumber();
+#endif //_OWB__
 }
 
 int XMLTokenizer::columnNumber() const
 {
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     return m_context ? m_context->input->col : 1;
 #else
     return m_stream.columnNumber();
 #endif
+#else //__OWB__
+    return m_parseXML->columnNumber();
+#endif //_OWB__
 }
 
 void XMLTokenizer::stopParsing()
 {
     Tokenizer::stopParsing();
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     xmlStopParser(m_context);
 #endif
+#else //__OWB__
+    m_parseXML->stopParsing();
+#endif //__OWB__
 }
 
 void XMLTokenizer::pauseParsing()
@@ -1433,6 +1492,7 @@ void XMLTokenizer::resumeParsing()
     m_parserPaused = false;
 
     // First, execute any pending callbacks
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
     while (!m_pendingCallbacks->isEmpty()) {
         m_pendingCallbacks->callAndRemoveFirstCallback(this);
@@ -1446,6 +1506,9 @@ void XMLTokenizer::resumeParsing()
     if (m_parserPaused)
         return;
 #endif
+#else
+    m_parseXML->resumeParsing();
+#endif //__OWB__
 
     // Then, write any pending data
     SegmentedString rest = m_pendingSrc;
@@ -1455,14 +1518,19 @@ void XMLTokenizer::resumeParsing()
     // Finally, if finish() has been called and write() didn't result
     // in any further callbacks being queued, call end()
     if (m_finishCalled
-#ifndef USE_QXMLSTREAM
+#ifndef __OWB__
+#ifndef USE_QXMLSTREAM 
         && m_pendingCallbacks->isEmpty())
 #else
         )
 #endif
+#else
+        )
+#endif //__OWB__
         end();
 }
 
+#ifndef __OWB__
 #ifndef USE_QXMLSTREAM
 static void balancedStartElementNsHandler(void* closure, const xmlChar* localname, const xmlChar* prefix,
                                           const xmlChar* uri, int nb_namespaces, const xmlChar** namespaces,
@@ -1504,10 +1572,13 @@ static void balancedWarningHandler(void* closure, const char* message, ...)
     va_end(args);
 }
 #endif
+#endif //__OWB__
 bool parseXMLDocumentFragment(const String& string, DocumentFragment* fragment, Element* parent)
 {
     XMLTokenizer tokenizer(fragment, parent);
-    
+#ifdef __OWB__
+    return tokenizer.parseXML()->parseXMLDocumentFragment(string, fragment, parent);
+#else
 #ifndef USE_QXMLSTREAM
     xmlSAXHandler sax;
     memset(&sax, 0, sizeof(sax));
@@ -1529,6 +1600,7 @@ bool parseXMLDocumentFragment(const String& string, DocumentFragment* fragment, 
     tokenizer.finish();
     return tokenizer.hasError();
 #endif
+#endif //__OWB__
 }
 
 // --------------------------------
@@ -1539,6 +1611,7 @@ struct AttributeParseState {
 };
 
 #ifndef USE_QXMLSTREAM
+#ifndef __OWB__
 static void attributesStartElementNsHandler(void* closure, const xmlChar* xmlLocalName, const xmlChar* xmlPrefix,
                                             const xmlChar* xmlURI, int nb_namespaces, const xmlChar** namespaces,
                                             int nb_attributes, int nb_defaulted, const xmlChar** libxmlAttributes)
@@ -1562,6 +1635,7 @@ static void attributesStartElementNsHandler(void* closure, const xmlChar* xmlLoc
         state->attributes.set(attrQName, attrValue);
     }
 }
+#endif //__OWB__
 #else
 static void attributesStartElementNsHandler(AttributeParseState* state, const QXmlStreamAttributes& attrs)
 {
@@ -1583,9 +1657,14 @@ static void attributesStartElementNsHandler(AttributeParseState* state, const QX
 
 HashMap<String, String> parseAttributes(const String& string, bool& attrsOK)
 {
+#ifndef __OWB__
     AttributeParseState state;
     state.gotAttributes = false;
-
+#endif
+#ifdef __OWB__
+    BAL::ParseXML *parseXML = new BAL::ParseXML(0);
+    return parseXML->parseAttributes(string, attrsOK);
+#else
 #ifndef USE_QXMLSTREAM
     xmlSAXHandler sax;
     memset(&sax, 0, sizeof(sax));
@@ -1610,6 +1689,7 @@ HashMap<String, String> parseAttributes(const String& string, bool& attrsOK)
 #endif
     attrsOK = state.gotAttributes;
     return state.attributes;
+#endif //__OWB__
 }
 
 #ifdef USE_QXMLSTREAM

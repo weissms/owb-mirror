@@ -287,5 +287,22 @@ void Widget::setSuppressInvalidation(bool suppress)
 
 void Widget::geometryChanged() const
 {
+    if (!parent())
+        return;
+
+    if (!gtkWidget())
+        return;
+
+    ASSERT(parent()->isFrameView());
+
+    FrameView* frameView = static_cast<FrameView*>(parent());
+    IntPoint loc = frameView->convertToContainingWindow(frameGeometry().location());
+
+    // Don't allow the allocation size to be negative
+    IntSize sz = frameGeometry().size();
+    sz.clampNegativeToZero();
+
+    GtkAllocation allocation = { loc.x(), loc.y(), sz.width(), sz.height() };
+    gtk_widget_size_allocate(gtkWidget(), &allocation);
 }
 }

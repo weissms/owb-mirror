@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2006, 2007 Apple, Inc.  All rights reserved.
+ * Copyright (C) 2005, 2006, 2007 Apple Inc. All rights reserved.
  *           (C) 2007 Graham Dennis (graham.dennis@gmail.com)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,24 @@
  
 #import "DumpRenderTree.h"
 
+#import "CheckedMalloc.h"
+#import "DumpRenderTreePasteboard.h"
+#import "DumpRenderTreeWindow.h"
 #import "EditingDelegate.h"
 #import "EventSendingController.h"
 #import "FrameLoadDelegate.h"
+#import "JavaScriptThreading.h"
 #import "LayoutTestController.h"
 #import "NavigationController.h"
 #import "ObjCPlugin.h"
 #import "ObjCPluginFunction.h"
+#import "PixelDumpSupport.h"
 #import "PolicyDelegate.h"
 #import "ResourceLoadDelegate.h"
 #import "UIDelegate.h"
 #import "WorkQueue.h"
 #import "WorkQueueItem.h"
-
-#import <ApplicationServices/ApplicationServices.h> // for CMSetDefaultProfileBySpace
 #import <CoreFoundation/CoreFoundation.h>
-#import <JavaScriptCore/Assertions.h>
-#import <JavaScriptCore/JavaScriptCore.h>
 #import <WebKit/DOMElementPrivate.h>
 #import <WebKit/DOMExtensions.h>
 #import <WebKit/DOMRange.h>
@@ -64,34 +65,13 @@
 #import <WebKit/WebViewPrivate.h>
 #import <getopt.h>
 #import <mach-o/getsect.h>
-#import <malloc/malloc.h>
-#import <objc/objc-runtime.h>                       // for class_poseAs
-#import <pthread.h>
-
-#define COMMON_DIGEST_FOR_OPENSSL
-#import <CommonCrypto/CommonDigest.h>               // for MD5 functions
-
-@interface DumpRenderTreeWindow : NSWindow
-@end
-
-@interface DumpRenderTreePasteboard : NSPasteboard
-- (int)declareType:(NSString *)type owner:(id)newOwner;
-@end
+#import <objc/objc-runtime.h>
+#import <wtf/Assertions.h>
 
 @interface DumpRenderTreeEvent : NSEvent
 @end
 
-@interface LocalPasteboard : NSPasteboard
-{
-    NSMutableArray *typesArray;
-    NSMutableSet *typesSet;
-    NSMutableDictionary *dataByType;
-    int changeCount;
-}
-@end
-
 static void runTest(const char *pathOrURL);
-static NSString *md5HashStringForBitmap(CGImageRef bitmap);
 
 // Deciding when it's OK to dump out the state is a bit tricky.  All these must be true:
 // - There is no load in progress
@@ -113,7 +93,6 @@ WebFrame *mainFrame = 0;
 WebFrame *topLoadingFrame = nil;     // !nil iff a load is in progress
 
 
-CFMutableArrayRef allWindowsRef = 0;
 CFMutableSetRef disallowedURLs = 0;
 CFRunLoopTimerRef waitToDumpWatchdog = 0;
 
@@ -125,117 +104,19 @@ static ResourceLoadDelegate *resourceLoadDelegate;
 PolicyDelegate *policyDelegate;
 
 static int dumpPixels;
-static int paint;
 static int dumpAllPixels;
 static int threaded;
-static BOOL readFromWindow;
 static int testRepaintDefault;
 static int repaintSweepHorizontallyDefault;
 static int dumpTree = YES;
 static BOOL printSeparators;
 static NSString *currentTest = nil;
 
-static NSMutableDictionary *localPasteboards;
 static WebHistoryItem *prevTestBFItem = nil;  // current b/f item at the end of the previous test
-static unsigned char* screenCaptureBuffer;
-static CGColorSpaceRef sharedColorSpace;
 
 const unsigned maxViewHeight = 600;
 const unsigned maxViewWidth = 800;
 
-static pthread_mutex_t javaScriptThreadsMutex = PTHREAD_MUTEX_INITIALIZER;
-static BOOL javaScriptThreadsShouldTerminate;
-
-static const int javaScriptThreadsCount = 4;
-static CFMutableDictionaryRef javaScriptThreads()
-{
-    assert(pthread_mutex_trylock(&javaScriptThreadsMutex) == EBUSY);
-    static CFMutableDictionaryRef staticJavaScriptThreads;
-    if (!staticJavaScriptThreads)
-        staticJavaScriptThreads = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, NULL, NULL);
-    return staticJavaScriptThreads;
-}
-
-// Loops forever, running a script and randomly respawning, until 
-// javaScriptThreadsShouldTerminate becomes true.
-void* runJavaScriptThread(void* arg)
-{
-    const char* const script =
-        "var array = [];"
-        "for (var i = 0; i < 10; i++) {"
-        "    array.push(String(i));"
-        "}";
-
-    while(1) {
-        JSGlobalContextRef ctx = JSGlobalContextCreate(NULL);
-        JSStringRef scriptRef = JSStringCreateWithUTF8CString(script);
-
-        JSValueRef exception = NULL;
-        JSEvaluateScript(ctx, scriptRef, NULL, NULL, 0, &exception);
-        assert(!exception);
-        
-        JSGlobalContextRelease(ctx);
-        JSStringRelease(scriptRef);
-        
-        JSGarbageCollect(ctx);
-
-        pthread_mutex_lock(&javaScriptThreadsMutex);
-
-        // Check for cancellation.
-        if (javaScriptThreadsShouldTerminate) {
-            pthread_mutex_unlock(&javaScriptThreadsMutex);
-            return 0;
-        }
-
-        // Respawn probabilistically.
-        if (random() % 5 == 0) {
-            pthread_t pthread;
-            pthread_create(&pthread, NULL, &runJavaScriptThread, NULL);
-            pthread_detach(pthread);
-
-            CFDictionaryRemoveValue(javaScriptThreads(), pthread_self());
-            CFDictionaryAddValue(javaScriptThreads(), pthread, NULL);
-
-            pthread_mutex_unlock(&javaScriptThreadsMutex);
-            return 0;
-        }
-
-        pthread_mutex_unlock(&javaScriptThreadsMutex);
-    }
-}
-
-static void startJavaScriptThreads()
-{
-    pthread_mutex_lock(&javaScriptThreadsMutex);
-
-    for (int i = 0; i < javaScriptThreadsCount; i++) {
-        pthread_t pthread;
-        pthread_create(&pthread, NULL, &runJavaScriptThread, NULL);
-        pthread_detach(pthread);
-        CFDictionaryAddValue(javaScriptThreads(), pthread, NULL);
-    }
-
-    pthread_mutex_unlock(&javaScriptThreadsMutex);
-}
-
-static void stopJavaScriptThreads()
-{
-    pthread_mutex_lock(&javaScriptThreadsMutex);
-
-    javaScriptThreadsShouldTerminate = true;
-
-    pthread_t* pthreads[javaScriptThreadsCount] = { 0 };
-    ASSERT(CFDictionaryGetCount(javaScriptThreads()) == javaScriptThreadsCount);
-    CFDictionaryGetKeysAndValues(javaScriptThreads(), (const void**)pthreads, 0);
-
-    pthread_mutex_unlock(&javaScriptThreadsMutex);
-
-    for (int i = 0; i < javaScriptThreadsCount; i++) {
-        pthread_t* pthread = pthreads[i];
-        pthread_join(*pthread, 0);
-        free(pthread);
-    }
-}
 
 static BOOL shouldIgnoreWebCoreNodeLeaks(CFStringRef URLString)
 {
@@ -252,24 +133,6 @@ static BOOL shouldIgnoreWebCoreNodeLeaks(CFStringRef URLString)
             return YES;
     }
     return NO;
-}
-
-static CMProfileRef currentColorProfile = 0;
-static void restoreColorSpace(int ignored)
-{
-    if (currentColorProfile) {
-        int error = CMSetDefaultProfileByUse(cmDisplayUse, currentColorProfile);
-        if (error)
-            fprintf(stderr, "Failed to retore previous color profile!  You may need to open System Preferences : Displays : Color and manually restore your color settings.  (Error: %i)", error);
-        currentColorProfile = 0;
-    }
-}
-
-static void crashHandler(int sig)
-{
-    fprintf(stderr, "%s\n", strsignal(sig));
-    restoreColorSpace(0);
-    exit(128 + sig);
 }
 
 static void activateAhemFont()
@@ -290,70 +153,7 @@ static void activateAhemFont()
     }
 }
 
-static void setDefaultColorProfileToRGB()
-{
-    CMProfileRef genericProfile = (CMProfileRef)[[NSColorSpace genericRGBColorSpace] colorSyncProfile];
-    CMProfileRef previousProfile;
-    int error = CMGetDefaultProfileByUse(cmDisplayUse, &previousProfile);
-    if (error) {
-        fprintf(stderr, "Failed to get current color profile.  I will not be able to restore your current profile, thus I'm not changing it.  Many pixel tests may fail as a result.  (Error: %i)\n", error);
-        return;
-    }
-    if (previousProfile == genericProfile)
-        return;
-    CFStringRef previousProfileName;
-    CFStringRef genericProfileName;
-    char previousProfileNameString[1024];
-    char genericProfileNameString[1024];
-    CMCopyProfileDescriptionString(previousProfile, &previousProfileName);
-    CMCopyProfileDescriptionString(genericProfile, &genericProfileName);
-    CFStringGetCString(previousProfileName, previousProfileNameString, sizeof(previousProfileNameString), kCFStringEncodingUTF8);
-    CFStringGetCString(genericProfileName, genericProfileNameString, sizeof(previousProfileNameString), kCFStringEncodingUTF8);
-    CFRelease(genericProfileName);
-    CFRelease(previousProfileName);
-    
-    fprintf(stderr, "\n\nWARNING: Temporarily changing your system color profile from \"%s\" to \"%s\".\n", previousProfileNameString, genericProfileNameString);
-    fprintf(stderr, "This allows the WebKit pixel-based regression tests to have consistent color values across all machines.\n");
-    fprintf(stderr, "The colors on your screen will change for the duration of the testing.\n\n");
-    
-    if ((error = CMSetDefaultProfileByUse(cmDisplayUse, genericProfile)))
-        fprintf(stderr, "Failed to set color profile to \"%s\"! Many pixel tests will fail as a result.  (Error: %i)",
-            genericProfileNameString, error);
-    else {
-        currentColorProfile = previousProfile;
-        signal(SIGINT, restoreColorSpace);
-        signal(SIGHUP, restoreColorSpace);
-        signal(SIGTERM, restoreColorSpace);
-    }
-}
-
-static void* (*savedMalloc)(malloc_zone_t*, size_t);
-static void* (*savedRealloc)(malloc_zone_t*, void*, size_t);
-
-static void* checkedMalloc(malloc_zone_t* zone, size_t size)
-{
-    if (size >= 0x10000000)
-        return 0;
-    return savedMalloc(zone, size);
-}
-
-static void* checkedRealloc(malloc_zone_t* zone, void* ptr, size_t size)
-{
-    if (size >= 0x10000000)
-        return 0;
-    return savedRealloc(zone, ptr, size);
-}
-
-static void makeLargeMallocFailSilently()
-{
-    malloc_zone_t* zone = malloc_default_zone();
-    savedMalloc = zone->malloc;
-    savedRealloc = zone->realloc;
-    zone->malloc = checkedMalloc;
-    zone->realloc = checkedRealloc;
-}
-
-WebView *createWebView()
+WebView *createWebViewAndOffscreenWindow()
 {
     NSRect rect = NSMakeRect(0, 0, maxViewWidth, maxViewHeight);
     WebView *webView = [[WebView alloc] initWithFrame:rect frameName:nil groupName:@"org.webkit.DumpRenderTree"];
@@ -429,39 +229,23 @@ void testStringByEvaluatingJavaScriptFromString()
     [pool release];
 }
 
-void dumpRenderTree(int argc, const char *argv[])
-{    
-    [NSApplication sharedApplication];
-
-    class_poseAs(objc_getClass("DumpRenderTreePasteboard"), objc_getClass("NSPasteboard"));
-    class_poseAs(objc_getClass("DumpRenderTreeEvent"), objc_getClass("NSEvent"));
-
-    struct option options[] = {
-        {"dump-all-pixels", no_argument, &dumpAllPixels, YES},
-        {"horizontal-sweep", no_argument, &repaintSweepHorizontallyDefault, YES},
-        {"notree", no_argument, &dumpTree, NO},
-        {"pixel-tests", no_argument, &dumpPixels, YES},
-        {"paint", no_argument, &paint, YES},
-        {"repaint", no_argument, &testRepaintDefault, YES},
-        {"tree", no_argument, &dumpTree, YES},
-        {"threaded", no_argument, &threaded, YES},
-        {NULL, 0, NULL, 0}
-    };
+static void setDefaultsToConsistentValuesForTesting()
+{
+    // Give some clear to undocumented defaults values
+    static const int MediumFontSmoothing = 2;
+    static const int BlueTintedAppearance = 1;
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setObject:@"DoubleMax" forKey:@"AppleScrollBarVariant"];
-    [defaults setInteger:4 forKey:@"AppleAntiAliasingThreshold"];
-    // 2 is the "Medium" font smoothing mode
-    [defaults setInteger:2 forKey:@"AppleFontSmoothing"];
-
-    [defaults setInteger:1 forKey:@"AppleAquaColorVariant"];
+    [defaults setInteger:4 forKey:@"AppleAntiAliasingThreshold"]; // smallest font size to CG should perform antialiasing on
+    [defaults setInteger:MediumFontSmoothing forKey:@"AppleFontSmoothing"];
+    [defaults setInteger:BlueTintedAppearance forKey:@"AppleAquaColorVariant"];
     [defaults setObject:@"0.709800 0.835300 1.000000" forKey:@"AppleHighlightColor"];
     [defaults setObject:@"0.500000 0.500000 0.500000" forKey:@"AppleOtherHighlightColor"];
-    
     [defaults setObject:[NSArray arrayWithObject:@"en"] forKey:@"AppleLanguages"];
-    
+
     WebPreferences *preferences = [WebPreferences standardPreferences];
-    
+
     [preferences setStandardFontFamily:@"Times"];
     [preferences setFixedFontFamily:@"Courier"];
     [preferences setSerifFontFamily:@"Times"];
@@ -476,42 +260,17 @@ void dumpRenderTree(int argc, const char *argv[])
     [preferences setEditableLinkBehavior:WebKitEditableLinkOnlyLiveWithShiftKey];
     [preferences setTabsToLinks:NO];
     [preferences setDOMPasteAllowed:YES];
-    
-    int option;
-    while ((option = getopt_long(argc, (char * const *)argv, "", options, NULL)) != -1)
-        switch (option) {
-            case '?':   // unknown or ambiguous option
-            case ':':   // missing argument
-                exit(1);
-                break;
-        }
+}
 
-    activateAhemFont();
+static void crashHandler(int sig)
+{
+    fprintf(stderr, "%s\n", strsignal(sig));
+    restoreColorSpace(0);
+    exit(128 + sig);
+}
 
-    if (dumpPixels) {
-        setDefaultColorProfileToRGB();
-        screenCaptureBuffer = (unsigned char *)malloc(maxViewHeight * maxViewWidth * 4);
-        sharedColorSpace = CGColorSpaceCreateDeviceRGB();
-    }
-    
-    localPasteboards = [[NSMutableDictionary alloc] init];
-    navigationController = [[NavigationController alloc] init];
-    frameLoadDelegate = [[FrameLoadDelegate alloc] init];
-    uiDelegate = [[UIDelegate alloc] init];
-    editingDelegate = [[EditingDelegate alloc] init];    
-    resourceLoadDelegate = [[ResourceLoadDelegate alloc] init];
-    policyDelegate = [[PolicyDelegate alloc] init];
-    
-    NSString *pwd = [[NSString stringWithUTF8String:argv[0]] stringByDeletingLastPathComponent];
-    [WebPluginDatabase setAdditionalWebPlugInPaths:[NSArray arrayWithObject:pwd]];
-    [[WebPluginDatabase sharedDatabase] refresh];
-    
-    WebView *webView = createWebView();    
-    mainFrame = [webView mainFrame];
-    NSWindow *window = [webView window];
-
-    makeLargeMallocFailSilently();
-
+static void installSignalHandlers()
+{
     signal(SIGILL, crashHandler);    /* 4:   illegal instruction (not reset when caught) */
     signal(SIGTRAP, crashHandler);   /* 5:   trace trap (not reset when caught) */
     signal(SIGEMT, crashHandler);    /* 7:   EMT instruction */
@@ -522,28 +281,126 @@ void dumpRenderTree(int argc, const char *argv[])
     signal(SIGPIPE, crashHandler);   /* 13:  write on a pipe with no reader */
     signal(SIGXCPU, crashHandler);   /* 24:  exceeded CPU time limit */
     signal(SIGXFSZ, crashHandler);   /* 25:  exceeded file size limit */
+}
+
+static void allocateGlobalControllers()
+{
+    // FIXME: We should remove these and move to the ObjC standard [Foo sharedInstance] model
+    navigationController = [[NavigationController alloc] init];
+    frameLoadDelegate = [[FrameLoadDelegate alloc] init];
+    uiDelegate = [[UIDelegate alloc] init];
+    editingDelegate = [[EditingDelegate alloc] init];
+    resourceLoadDelegate = [[ResourceLoadDelegate alloc] init];
+    policyDelegate = [[PolicyDelegate alloc] init];
+}
+
+// ObjC++ doens't seem to let me pass NSObject*& sadly.
+static inline void releaseAndZero(NSObject** object)
+{
+    [*object release];
+    *object = nil;
+}
+
+static void releaseGlobalControllers()
+{
+    releaseAndZero(&navigationController);
+    releaseAndZero(&frameLoadDelegate);
+    releaseAndZero(&editingDelegate);
+    releaseAndZero(&resourceLoadDelegate);
+    releaseAndZero(&uiDelegate);
+    releaseAndZero(&policyDelegate);
+}
+
+static void initializeGlobalsFromCommandLineOptions(int argc, const char *argv[])
+{
+    struct option options[] = {
+        {"dump-all-pixels", no_argument, &dumpAllPixels, YES},
+        {"horizontal-sweep", no_argument, &repaintSweepHorizontallyDefault, YES},
+        {"notree", no_argument, &dumpTree, NO},
+        {"pixel-tests", no_argument, &dumpPixels, YES},
+        {"repaint", no_argument, &testRepaintDefault, YES},
+        {"tree", no_argument, &dumpTree, YES},
+        {"threaded", no_argument, &threaded, YES},
+        {NULL, 0, NULL, 0}
+    };
     
+    int option;
+    while ((option = getopt_long(argc, (char * const *)argv, "", options, NULL)) != -1) {
+        switch (option) {
+            case '?':   // unknown or ambiguous option
+            case ':':   // missing argument
+                exit(1);
+                break;
+        }
+    }
+}
+
+static void addTestPluginsToPluginSearchPath(const char* executablePath)
+{
+    NSString *pwd = [[NSString stringWithUTF8String:executablePath] stringByDeletingLastPathComponent];
+    [WebPluginDatabase setAdditionalWebPlugInPaths:[NSArray arrayWithObject:pwd]];
+    [[WebPluginDatabase sharedDatabase] refresh];
+}
+
+static bool useLongRunningServerMode(int argc, const char *argv[])
+{
+    // This assumes you've already called getopt_long
+    return (argc == optind+1 && strcmp(argv[optind], "-") == 0);
+}
+
+static void runTestingServerLoop()
+{
+    // When DumpRenderTree run in server mode, we just wait around for file names
+    // to be passed to us and read each in turn, passing the results back to the client
+    char filenameBuffer[2048];
+    while (fgets(filenameBuffer, sizeof(filenameBuffer), stdin)) {
+        char *newLineCharacter = strchr(filenameBuffer, '\n');
+        if (newLineCharacter)
+            *newLineCharacter = '\0';
+
+        if (strlen(filenameBuffer) == 0)
+            continue;
+
+        runTest(filenameBuffer);
+    }
+}
+
+static void prepareConsistentTestingEnvironment()
+{
+    class_poseAs(objc_getClass("DumpRenderTreePasteboard"), objc_getClass("NSPasteboard"));
+    class_poseAs(objc_getClass("DumpRenderTreeEvent"), objc_getClass("NSEvent"));
+
+    setDefaultsToConsistentValuesForTesting();
+    activateAhemFont();
+    
+    if (dumpPixels)
+        initializeColorSpaceAndScreeBufferForPixelTests();
+    allocateGlobalControllers();
+    
+    makeLargeMallocFailSilently();
+}
+
+void dumpRenderTree(int argc, const char *argv[])
+{
+    initializeGlobalsFromCommandLineOptions(argc, argv);
+    prepareConsistentTestingEnvironment();
+    addTestPluginsToPluginSearchPath(argv[0]);
+    installSignalHandlers();
+    
+    WebView *webView = createWebViewAndOffscreenWindow();
+    mainFrame = [webView mainFrame];
+
     [[NSURLCache sharedURLCache] removeAllCachedResponses];
-    
+
     // <rdar://problem/5222911>
     testStringByEvaluatingJavaScriptFromString();
 
     if (threaded)
         startJavaScriptThreads();
-    
-    if (argc == optind+1 && strcmp(argv[optind], "-") == 0) {
-        char filenameBuffer[2048];
+
+    if (useLongRunningServerMode(argc, argv)) {
         printSeparators = YES;
-        while (fgets(filenameBuffer, sizeof(filenameBuffer), stdin)) {
-            char *newLineCharacter = strchr(filenameBuffer, '\n');
-            if (newLineCharacter)
-                *newLineCharacter = '\0';
-            
-            if (strlen(filenameBuffer) == 0)
-                continue;
-                
-            runTest(filenameBuffer);
-        }
+        runTestingServerLoop();
     } else {
         printSeparators = (optind < argc-1 || (dumpPixels && dumpTree));
         for (int i = optind; i != argc; ++i)
@@ -561,22 +418,17 @@ void dumpRenderTree(int argc, const char *argv[])
     // "perform selector" on the window, which retains the window. It's a bit
     // inelegant and perhaps dangerous to just blow them all away, but in practice
     // it probably won't cause any trouble (and this is just a test tool, after all).
+    NSWindow *window = [webView window];
     [NSObject cancelPreviousPerformRequestsWithTarget:window];
     
     [window close]; // releases when closed
     [webView release];
-    [frameLoadDelegate release];
-    [editingDelegate release];
-    [resourceLoadDelegate release];
-    [uiDelegate release];
-    [policyDelegate release];
     
-    [localPasteboards release];
-    localPasteboards = nil;
+    releaseGlobalControllers();
     
-    [navigationController release];
-    navigationController = nil;
+    [DumpRenderTreePasteboard releaseLocalPasteboards];
 
+    // FIXME: This should be moved onto LayoutTestController and made into a HashSet
     if (disallowedURLs) {
         CFRelease(disallowedURLs);
         disallowedURLs = 0;
@@ -589,6 +441,7 @@ void dumpRenderTree(int argc, const char *argv[])
 int main(int argc, const char *argv[])
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    [NSApplication sharedApplication]; // Force AppKit to init itself
     dumpRenderTree(argc, argv);
     [WebCoreStatistics garbageCollectJavaScriptObjects];
     [pool release];
@@ -644,14 +497,9 @@ static void dumpFrameScrollPosition(WebFrame *f)
 
 static NSString *dumpFramesAsText(WebFrame *frame)
 {
-    if (!frame)
-        return @"";
-
     DOMDocument *document = [frame DOMDocument];
-    if (!document)
-        return @"";
-
     DOMElement *documentElement = [document documentElement];
+
     if (!documentElement)
         return @"";
 
@@ -821,208 +669,159 @@ static void dumpBackForwardListForWebView(WebView *view)
         [itemsToPrint addObject:item];
     }
 
-    for (int i = [itemsToPrint count]-1; i >= 0; i--) {
+    for (int i = [itemsToPrint count]-1; i >= 0; i--)
         dumpHistoryItem([itemsToPrint objectAtIndex:i], 8, i == currentItemIndex);
-    }
+
     [itemsToPrint release];
     printf("===============================================\n");
 }
 
-void dump()
+static void sizeWebViewForCurrentTest()
+{
+    // W3C SVG tests expect to be 480x360
+    bool isSVGW3CTest = ([currentTest rangeOfString:@"svg/W3C-SVG-1.1"].length);
+    if (isSVGW3CTest)
+        [[mainFrame webView] setFrameSize:NSMakeSize(480, 360)];
+    else
+        [[mainFrame webView] setFrameSize:NSMakeSize(maxViewWidth, maxViewHeight)];
+}
+
+static const char *methodNameStringForFailedTest()
+{
+    const char *errorMessage;
+    if (layoutTestController->dumpAsText())
+        errorMessage = "[documentElement innerText]";
+    else if (layoutTestController->dumpDOMAsWebArchive())
+        errorMessage = "[[mainFrame DOMDocument] webArchive]";
+    else if (layoutTestController->dumpSourceAsWebArchive())
+        errorMessage = "[[mainFrame dataSource] webArchive]";
+    else
+        errorMessage = "[mainFrame renderTreeAsExternalRepresentation]";
+
+    return errorMessage;
+}
+
+static void dumpBackForwardListForAllWindows()
+{
+    CFArrayRef allWindows = (CFArrayRef)[DumpRenderTreeWindow allWindows];
+    unsigned count = CFArrayGetCount(allWindows);
+    for (unsigned i = 0; i < count; i++) {
+        NSWindow *window = (NSWindow *)CFArrayGetValueAtIndex(allWindows, i);
+        WebView *webView = [[[window contentView] subviews] objectAtIndex:0];
+        dumpBackForwardListForWebView(webView);
+    }
+}
+
+static void invalidateAnyPreviousWaitToDumpWatchdog()
 {
     if (waitToDumpWatchdog) {
         CFRunLoopTimerInvalidate(waitToDumpWatchdog);
         CFRelease(waitToDumpWatchdog);
         waitToDumpWatchdog = 0;
     }
+}
+
+void dump()
+{
+    invalidateAnyPreviousWaitToDumpWatchdog();
 
     if (dumpTree) {
-        NSString *result = nil;
-        
+        NSString *resultString = nil;
+        NSData *resultData = nil;
+
         bool dumpAsText = layoutTestController->dumpAsText();
         dumpAsText |= [[[mainFrame dataSource] _responseMIMEType] isEqualToString:@"text/plain"];
         layoutTestController->setDumpAsText(dumpAsText);
         if (layoutTestController->dumpAsText()) {
-            result = dumpFramesAsText(mainFrame);
+            resultString = dumpFramesAsText(mainFrame);
         } else if (layoutTestController->dumpDOMAsWebArchive()) {
             WebArchive *webArchive = [[mainFrame DOMDocument] webArchive];
-            result = serializeWebArchiveToXML(webArchive);
+            resultString = serializeWebArchiveToXML(webArchive);
         } else if (layoutTestController->dumpSourceAsWebArchive()) {
             WebArchive *webArchive = [[mainFrame dataSource] webArchive];
-            result = serializeWebArchiveToXML(webArchive);
+            resultString = serializeWebArchiveToXML(webArchive);
         } else {
-            bool isSVGW3CTest = ([currentTest rangeOfString:@"svg/W3C-SVG-1.1"].length);
-            if (isSVGW3CTest)
-                [[mainFrame webView] setFrameSize:NSMakeSize(480, 360)];
-            else 
-                [[mainFrame webView] setFrameSize:NSMakeSize(maxViewWidth, maxViewHeight)];
-            result = [mainFrame renderTreeAsExternalRepresentation];
+            sizeWebViewForCurrentTest();
+            resultString = [mainFrame renderTreeAsExternalRepresentation];
         }
 
-        if (!result) {
-            const char *errorMessage;
-            if (layoutTestController->dumpAsText())
-                errorMessage = "[documentElement innerText]";
-            else if (layoutTestController->dumpDOMAsWebArchive())
-                errorMessage = "[[mainFrame DOMDocument] webArchive]";
-            else if (layoutTestController->dumpSourceAsWebArchive())
-                errorMessage = "[[mainFrame dataSource] webArchive]";
-            else
-                errorMessage = "[mainFrame renderTreeAsExternalRepresentation]";
-            printf("ERROR: nil result from %s", errorMessage);
-        } else {
-            NSData *data = [result dataUsingEncoding:NSUTF8StringEncoding];
-            fwrite([data bytes], 1, [data length], stdout);
+        if (resultString && !resultData)
+            resultData = [resultString dataUsingEncoding:NSUTF8StringEncoding];
+
+        if (resultData) {
+            fwrite([resultData bytes], 1, [resultData length], stdout);
+
             if (!layoutTestController->dumpAsText() && !layoutTestController->dumpDOMAsWebArchive() && !layoutTestController->dumpSourceAsWebArchive())
                 dumpFrameScrollPosition(mainFrame);
-        }
 
-        if (layoutTestController->dumpBackForwardList()) {
-            unsigned count = CFArrayGetCount(allWindowsRef);
-            for (unsigned i = 0; i < count; i++) {
-                NSWindow *window = (NSWindow *)CFArrayGetValueAtIndex(allWindowsRef, i);
-                WebView *webView = [[[window contentView] subviews] objectAtIndex:0];
-                dumpBackForwardListForWebView(webView);
-            }
-        }
+            if (layoutTestController->dumpBackForwardList())
+                dumpBackForwardListForAllWindows();
+        } else
+            printf("ERROR: nil result from %s", methodNameStringForFailedTest());
 
         if (printSeparators)
             puts("#EOF");
     }
     
-    if (dumpPixels) {
-        if (!layoutTestController->dumpAsText() && !layoutTestController->dumpDOMAsWebArchive() && !layoutTestController->dumpSourceAsWebArchive()) {
-            // grab a bitmap from the view
-            WebView* view = [mainFrame webView];
-            NSSize webViewSize = [view frame].size;
+    if (dumpPixels)
+        dumpWebViewAsPixelsAndCompareWithExpected([currentTest UTF8String], dumpAllPixels);
 
-            CGContextRef cgContext = CGBitmapContextCreate(screenCaptureBuffer, static_cast<size_t>(webViewSize.width), static_cast<size_t>(webViewSize.height), 8, static_cast<size_t>(webViewSize.width) * 4, sharedColorSpace, kCGBitmapByteOrder32Host | kCGImageAlphaPremultipliedLast);
-
-            NSGraphicsContext* savedContext = [[[NSGraphicsContext currentContext] retain] autorelease];
-            NSGraphicsContext* nsContext = [NSGraphicsContext graphicsContextWithGraphicsPort:cgContext flipped:NO];
-            [NSGraphicsContext setCurrentContext:nsContext];
-
-            if (readFromWindow) {
-                NSBitmapImageRep *imageRep;
-                [view displayIfNeeded];
-                [view lockFocus];
-                imageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:[view frame]];
-                [view unlockFocus];
-                [imageRep draw];
-                [imageRep release];
-            } else if (!layoutTestController->testRepaint())
-                [view displayRectIgnoringOpacity:NSMakeRect(0, 0, webViewSize.width, webViewSize.height) inContext:nsContext];
-            else if (!layoutTestController->testRepaintSweepHorizontally()) {
-                NSRect line = NSMakeRect(0, 0, webViewSize.width, 1);
-                while (line.origin.y < webViewSize.height) {
-                    [view displayRectIgnoringOpacity:line inContext:nsContext];
-                    line.origin.y++;
-                }
-            } else {
-                NSRect column = NSMakeRect(0, 0, 1, webViewSize.height);
-                while (column.origin.x < webViewSize.width) {
-                    [view displayRectIgnoringOpacity:column inContext:nsContext];
-                    column.origin.x++;
-                }
-            }
-            if (layoutTestController->dumpSelectionRect()) {
-                NSView *documentView = [[mainFrame frameView] documentView];
-                if ([documentView conformsToProtocol:@protocol(WebDocumentSelection)]) {
-                    [[NSColor redColor] set];
-                    [NSBezierPath strokeRect:[documentView convertRect:[(id <WebDocumentSelection>)documentView selectionRect] fromView:nil]];
-                }
-            }
-
-            [NSGraphicsContext setCurrentContext:savedContext];
-            
-            CGImageRef bitmapImage = CGBitmapContextCreateImage(cgContext);
-            CGContextRelease(cgContext);
-
-            // compute the actual hash to compare to the expected image's hash
-            NSString *actualHash = md5HashStringForBitmap(bitmapImage);
-            printf("\nActualHash: %s\n", [actualHash UTF8String]);
-
-            BOOL dumpImage;
-            if (dumpAllPixels)
-                dumpImage = YES;
-            else {
-                // FIXME: It's unfortunate that we hardcode the file naming scheme here.
-                // At one time, the perl script had all the knowledge about file layout.
-                // Some day we should restore that setup by passing in more parameters to this tool.
-                NSString *baseTestPath = [currentTest stringByDeletingPathExtension];
-                NSString *baselineHashPath = [baseTestPath stringByAppendingString:@"-expected.checksum"];
-                NSString *baselineHash = [NSString stringWithContentsOfFile:baselineHashPath encoding:NSUTF8StringEncoding error:nil];
-                NSString *baselineImagePath = [baseTestPath stringByAppendingString:@"-expected.png"];
-
-                printf("BaselineHash: %s\n", [baselineHash UTF8String]);
-
-                /// send the image to stdout if the hash mismatches or if there's no file in the file system
-                dumpImage = ![baselineHash isEqualToString:actualHash] || access([baselineImagePath fileSystemRepresentation], F_OK) != 0;
-            }
-            
-            if (dumpImage) {
-                CFMutableDataRef imageData = CFDataCreateMutable(0, 0);
-                CGImageDestinationRef imageDest = CGImageDestinationCreateWithData(imageData, CFSTR("public.png"), 1, 0);
-                CGImageDestinationAddImage(imageDest, bitmapImage, 0);
-                CGImageDestinationFinalize(imageDest);
-                CFRelease(imageDest);
-                printf("Content-length: %lu\n", CFDataGetLength(imageData));
-                fwrite(CFDataGetBytePtr(imageData), 1, CFDataGetLength(imageData), stdout);
-                CFRelease(imageData);
-            }
-
-            CGImageRelease(bitmapImage);
-        }
-
-        printf("#EOF\n");
-    }
-    
     fflush(stdout);
 
-    if (paint)
-        displayWebView();
-    
     done = YES;
 }
 
 static bool shouldLogFrameLoadDelegates(const char *pathOrURL)
 {
     return strstr(pathOrURL, "loading/");
-}    
+}
 
-static void runTest(const char *pathOrURL)
+static CFURLRef createCFURLFromPathOrURL(CFStringRef pathOrURLString)
 {
-    CFStringRef pathOrURLString = CFStringCreateWithCString(NULL, pathOrURL, kCFStringEncodingUTF8);
-    if (!pathOrURLString) {
-        fprintf(stderr, "can't parse filename as UTF-8\n");
-        return;
-    }
-    
     CFURLRef URL;
     if (CFStringHasPrefix(pathOrURLString, CFSTR("http://")) || CFStringHasPrefix(pathOrURLString, CFSTR("https://")))
         URL = CFURLCreateWithString(NULL, pathOrURLString, NULL);
     else
         URL = CFURLCreateWithFileSystemPath(NULL, pathOrURLString, kCFURLPOSIXPathStyle, FALSE);
-    
-    if (!URL) {
-        CFRelease(pathOrURLString);
-        fprintf(stderr, "can't turn %s into a CFURL\n", pathOrURL);
+    return URL;
+}
+
+static void resetWebViewToConsistentStateBeforeTesting()
+{
+    WebView *webView = [mainFrame webView];
+    [(EditingDelegate *)[webView editingDelegate] setAcceptsEditing:YES];
+    [webView makeTextStandardSize:nil];
+    [webView setTabKeyCyclesThroughElements: YES];
+    [webView setPolicyDelegate:nil];
+    [webView _setDashboardBehavior:WebDashboardBehaviorUseBackwardCompatibilityMode to:NO];
+
+    WebPreferences *preferences = [webView preferences];
+    [preferences setPrivateBrowsingEnabled:NO];
+    [preferences setAuthorAndUserStylesEnabled:YES];
+
+    [WebView _setUsesTestModeFocusRingColor:YES];
+}
+
+static void runTest(const char *pathOrURL)
+{
+    CFStringRef pathOrURLString = CFStringCreateWithCString(NULL, pathOrURL, kCFStringEncodingUTF8);
+    if (!pathOrURLString) {
+        fprintf(stderr, "Failed to parse filename as UTF-8: %s\n", pathOrURL);
         return;
     }
 
+    CFURLRef URL = createCFURLFromPathOrURL(pathOrURLString);
+    if (!URL) {
+        CFRelease(pathOrURLString);
+        fprintf(stderr, "Can't turn %s into a CFURL\n", pathOrURL);
+        return;
+    }
+
+    resetWebViewToConsistentStateBeforeTesting();
+
     layoutTestController = new LayoutTestController(testRepaintDefault, repaintSweepHorizontallyDefault);
-
-    [(EditingDelegate *)[[mainFrame webView] editingDelegate] setAcceptsEditing:YES];
-    [[mainFrame webView] makeTextStandardSize:nil];
-    [[mainFrame webView] setTabKeyCyclesThroughElements: YES];
-    [[mainFrame webView] setPolicyDelegate:nil];
-    [[mainFrame webView] _setDashboardBehavior:WebDashboardBehaviorUseBackwardCompatibilityMode to:NO];
-    [WebView _setUsesTestModeFocusRingColor:YES];
-
     topLoadingFrame = nil;
-
     done = NO;
-    readFromWindow = NO;
 
     if (disallowedURLs)
         CFSetRemoveAllValues(disallowedURLs);
@@ -1062,7 +861,7 @@ static void runTest(const char *pathOrURL)
     WorkQueue::shared()->clear();
 
     if (layoutTestController->closeRemainingWindowsWhenComplete()) {
-        NSArray* array = [(NSArray *)allWindowsRef copy];
+        NSArray* array = [DumpRenderTreeWindow allWindows];
         
         unsigned count = [array count];
         for (unsigned i = 0; i < count; i++) {
@@ -1077,8 +876,10 @@ static void runTest(const char *pathOrURL)
             [webView close];
             [window close];
         }
-        [array release];
     }
+    
+    [mainFrame loadHTMLString:@"<html></html>" baseURL:[NSURL URLWithString:@"about:blank"]];
+    [mainFrame stopLoading];
     
     [pool release];
 
@@ -1093,36 +894,6 @@ static void runTest(const char *pathOrURL)
         [WebCoreStatistics stopIgnoringWebCoreNodeLeaks];
 }
 
-/* Hashes a bitmap and returns a text string for comparison and saving to a file */
-static NSString *md5HashStringForBitmap(CGImageRef bitmap)
-{
-    MD5_CTX md5Context;
-    unsigned char hash[16];
-    
-    unsigned bitsPerPixel = CGImageGetBitsPerPixel(bitmap);
-    assert(bitsPerPixel == 32); // ImageDiff assumes 32 bit RGBA, we must as well.
-    unsigned bytesPerPixel = bitsPerPixel / 8;
-    unsigned pixelsHigh = CGImageGetHeight(bitmap);
-    unsigned pixelsWide = CGImageGetWidth(bitmap);
-    unsigned bytesPerRow = CGImageGetBytesPerRow(bitmap);
-    assert(bytesPerRow >= (pixelsWide * bytesPerPixel));
-    
-    MD5_Init(&md5Context);
-    unsigned char *bitmapData = screenCaptureBuffer;
-    for (unsigned row = 0; row < pixelsHigh; row++) {
-        MD5_Update(&md5Context, bitmapData, pixelsWide * bytesPerPixel);
-        bitmapData += bytesPerRow;
-    }
-    MD5_Final(hash, &md5Context);
-    
-    char hex[33] = "";
-    for (int i = 0; i < 16; i++) {
-       snprintf(hex, 33, "%s%02x", hex, hash[i]);
-    }
-
-    return [NSString stringWithUTF8String:hex];
-}
-
 void displayWebView()
 {
     NSView *webView = [mainFrame webView];
@@ -1131,203 +902,7 @@ void displayWebView()
     [[[NSColor blackColor] colorWithAlphaComponent:0.66] set];
     NSRectFillUsingOperation([webView frame], NSCompositeSourceOver);
     [webView unlockFocus];
-    readFromWindow = YES;
 }
-
-@implementation DumpRenderTreePasteboard
-
-// Return a local pasteboard so we don't disturb the real pasteboards when running tests.
-+ (NSPasteboard *)_pasteboardWithName:(NSString *)name
-{
-    static int number = 0;
-    if (!name)
-        name = [NSString stringWithFormat:@"LocalPasteboard%d", ++number];
-    LocalPasteboard *pasteboard = [localPasteboards objectForKey:name];
-    if (pasteboard)
-        return pasteboard;
-    pasteboard = [[LocalPasteboard alloc] init];
-    [localPasteboards setObject:pasteboard forKey:name];
-    [pasteboard release];
-    return pasteboard;
-}
-
-// Convenience method for JS so that it doesn't have to try and create a NSArray on the objc side instead
-// of the usual WebScriptObject that is passed around
-- (int)declareType:(NSString *)type owner:(id)newOwner
-{
-    return [self declareTypes:[NSArray arrayWithObject:type] owner:newOwner];
-}
-
-@end
-
-@implementation LocalPasteboard
-
-+ (id)alloc
-{
-    return NSAllocateObject(self, 0, 0);
-}
-
-- (id)init
-{
-    typesArray = [[NSMutableArray alloc] init];
-    typesSet = [[NSMutableSet alloc] init];
-    dataByType = [[NSMutableDictionary alloc] init];
-    return self;
-}
-
-- (void)dealloc
-{
-    [typesArray release];
-    [typesSet release];
-    [dataByType release];
-    [super dealloc];
-}
-
-- (NSString *)name
-{
-    return nil;
-}
-
-- (void)releaseGlobally
-{
-}
-
-- (int)declareTypes:(NSArray *)newTypes owner:(id)newOwner
-{
-    [typesArray removeAllObjects];
-    [typesSet removeAllObjects];
-    [dataByType removeAllObjects];
-    return [self addTypes:newTypes owner:newOwner];
-}
-
-- (int)addTypes:(NSArray *)newTypes owner:(id)newOwner
-{
-    unsigned count = [newTypes count];
-    unsigned i;
-    for (i = 0; i < count; ++i) {
-        NSString *type = [newTypes objectAtIndex:i];
-        NSString *setType = [typesSet member:type];
-        if (!setType) {
-            setType = [type copy];
-            [typesArray addObject:setType];
-            [typesSet addObject:setType];
-            [setType release];
-        }
-        if (newOwner && [newOwner respondsToSelector:@selector(pasteboard:provideDataForType:)])
-            [newOwner pasteboard:self provideDataForType:setType];
-    }
-    return ++changeCount;
-}
-
-- (int)changeCount
-{
-    return changeCount;
-}
-
-- (NSArray *)types
-{
-    return typesArray;
-}
-
-- (NSString *)availableTypeFromArray:(NSArray *)types
-{
-    unsigned count = [types count];
-    unsigned i;
-    for (i = 0; i < count; ++i) {
-        NSString *type = [types objectAtIndex:i];
-        NSString *setType = [typesSet member:type];
-        if (setType)
-            return setType;
-    }
-    return nil;
-}
-
-- (BOOL)setData:(NSData *)data forType:(NSString *)dataType
-{
-    if (data == nil)
-        data = [NSData data];
-    if (![typesSet containsObject:dataType])
-        return NO;
-    [dataByType setObject:data forKey:dataType];
-    ++changeCount;
-    return YES;
-}
-
-- (NSData *)dataForType:(NSString *)dataType
-{
-    return [dataByType objectForKey:dataType];
-}
-
-- (BOOL)setPropertyList:(id)propertyList forType:(NSString *)dataType;
-{
-    CFDataRef data = NULL;
-    if (propertyList)
-        data = CFPropertyListCreateXMLData(NULL, propertyList);
-    BOOL result = [self setData:(NSData *)data forType:dataType];
-    if (data)
-        CFRelease(data);
-    return result;
-}
-
-- (BOOL)setString:(NSString *)string forType:(NSString *)dataType
-{
-    CFDataRef data = NULL;
-    if (string) {
-        if ([string length] == 0)
-            data = CFDataCreate(NULL, NULL, 0);
-        else
-            data = CFStringCreateExternalRepresentation(NULL, (CFStringRef)string, kCFStringEncodingUTF8, 0);
-    }
-    BOOL result = [self setData:(NSData *)data forType:dataType];
-    if (data)
-        CFRelease(data);
-    return result;
-}
-
-@end
-
-static CFArrayCallBacks NonRetainingArrayCallbacks = {
-    0,
-    NULL,
-    NULL,
-    CFCopyDescription,
-    CFEqual
-};
-
-@implementation DumpRenderTreeWindow
-
-- (id)initWithContentRect:(NSRect)contentRect styleMask:(unsigned int)styleMask backing:(NSBackingStoreType)bufferingType defer:(BOOL)deferCreation
-{
-    if (!allWindowsRef)
-        allWindowsRef = CFArrayCreateMutable(NULL, 0, &NonRetainingArrayCallbacks);
-
-    CFArrayAppendValue(allWindowsRef, self);
-            
-    return [super initWithContentRect:contentRect styleMask:styleMask backing:bufferingType defer:deferCreation];
-}
-
-- (void)dealloc
-{
-    CFRange arrayRange = CFRangeMake(0, CFArrayGetCount(allWindowsRef));
-    CFIndex i = CFArrayGetFirstIndexOfValue(allWindowsRef, arrayRange, self);
-    assert(i != -1);
-
-    CFArrayRemoveValueAtIndex(allWindowsRef, i);
-    [super dealloc];
-}
-
-- (BOOL)isKeyWindow
-{
-    return layoutTestController ? layoutTestController->windowIsKey() : YES;
-}
-
-- (void)keyDown:(id)sender
-{
-    // Do nothing, avoiding the beep we'd otherwise get from NSResponder,
-    // once we get to the end of the responder chain.
-}
-
-@end
 
 @implementation DumpRenderTreeEvent
 

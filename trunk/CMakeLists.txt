@@ -20,13 +20,14 @@ PROJECT (WebKit)
 #SET (CMAKE_CXX_COMPILER "distcc")
 #SET (CMAKE_C_COMPILER "distcc")
 
+
 OPTION (BUILD_SHARED_LIBS "Build OWB with shared libraries." ON)
+
+INCLUDE(CMakeLists_deepseeProject.txt)
 
 # add -static for vers before 2.4.6
 IF (NOT BUILD_SHARED_LIBS)
-    IF (CMAKE_MAJOR_VERSION EQUAL 2 AND CMAKE_MINOR_VERSION EQUAL 4 AND CMAKE_PATCH_VERSION LESS 6)
-        SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-    ENDIF (CMAKE_MAJOR_VERSION EQUAL 2 AND CMAKE_MINOR_VERSION EQUAL 4 AND CMAKE_PATCH_VERSION LESS 6)
+    SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 ENDIF (NOT BUILD_SHARED_LIBS)
 
 # Global switch for specific hooks
@@ -38,6 +39,12 @@ ELSE (N800_BUILD)
     SET (TARGET "")
 ENDIF (N800_BUILD)
 
+# Global switch for uClibc
+OPTION (WEBKIT_USE_UCLIBC "Link OWB with uClibc instead of glibc." OFF)
+IF (WEBKIT_USE_UCLIBC)
+    ADD_DEFINITIONS (-D__OWB_UCLIBC__)
+ENDIF (WEBKIT_USE_UCLIBC)
+
 # Global switch for Console input support
 OPTION (OWBAL_USE_CONSOLE_INPUT "Compile OWBAL with console input support." OFF)
 
@@ -48,7 +55,7 @@ IF (OWBAL_PLATFORM_MACPORT)
 ENDIF (OWBAL_PLATFORM_MACPORT)
 
 # Global switch for Web UIF support
-OPTION (WEBKIT_USE_WEB_UI "Compile WebKit with Web UI support." ON)
+OPTION (WEBKIT_USE_WEB_UI "Compile WebKit with Web UI support." OFF)
 IF (WEBKIT_USE_WEB_UI)
     SET (USE_WEB_UI ON)
     ADD_DEFINITIONS (-D__OWB_WEB_UI__)
@@ -64,6 +71,7 @@ ELSE (${WEBKIT_USE_IMAGEDECODER} STREQUAL "LIBRARY")
     SET (IMAGEDECODER_GIF "Generic/GIF")
     SET (IMAGEDECODER_JPEG "Generic/JPEG")
     SET (IMAGEDECODER_PNG "Generic/PNG")
+    SET (IMAGEDECODER_BMP "Generic/BMP")
 ENDIF (${WEBKIT_USE_IMAGEDECODER} STREQUAL "LIBRARY")
 
 # Selection for input support
@@ -101,14 +109,8 @@ ELSE (${WEBKIT_USE_I18N} STREQUAL "GENERIC")
 ENDIF (${WEBKIT_USE_I18N} STREQUAL "GENERIC")
 
 # Global switch for XML support, disables XMLTokenizer, XSLStyleSheet and XSLTProcessor
-#OPTION (WEBKIT_USE_XML_SUPPORT "Compile WebKit with XML support." ON)
-SET (WEBKIT_USE_XML_SUPPORT ON)
-IF (WEBKIT_USE_XML_SUPPORT)
-    ADD_DEFINITIONS (-D__OWB_XML_SUPPORT__)
-ELSE (WEBKIT_USE_XML_SUPPORT)
-    SET (WEBKIT_USE_XSLT_SUPPORT OFF)
-    SET (WEBKIT_USE_XPATH_SUPPORT OFF)
-ENDIF (WEBKIT_USE_XML_SUPPORT)
+SET (WEBKIT_USE_XML_SUPPORT "LIBXML" CACHE STRING "XML support. (LIBXML)")
+ADD_DEFINITIONS (-D__OWB_XML_SUPPORT__)
 
 # Set icon support to off
 #OPTION (WEBKIT_USE_ICON_SUPPORT "Compile WebKit with Icon support." OFF)
@@ -135,11 +137,8 @@ IF (WEBKIT_USE_XPATH_SUPPORT)
 ENDIF (WEBKIT_USE_XPATH_SUPPORT)
 
 # Global switch for XSLT support
-#OPTION (WEBKIT_USE_XSLT_SUPPORT "Compile WebKit with XSLT support." ON)
-SET (WEBKIT_USE_XSLT_SUPPORT ON)
-IF (WEBKIT_USE_XSLT_SUPPORT)
-    ADD_DEFINITIONS (-DENABLE_XSLT=1)
-ENDIF (WEBKIT_USE_XSLT_SUPPORT)
+SET (WEBKIT_USE_XSLT_SUPPORT "LIBXSLT" CACHE STRING "XSLT support. (LIBXSLT)")
+ADD_DEFINITIONS (-DENABLE_XSLT=1)
 
 # Global switch for XBL support
 #OPTION (WEBKIT_USE_XBL_SUPPORT "Compile WebKit with XBL support." OFF)
@@ -194,10 +193,9 @@ ENDIF (WEBKIT_USE_CC_NO_STACK_PROTECTOR AND WEBKIT_DEBUG)
 
 # Global switch for RTTI support
 OPTION (WEBKIT_USE_CC_RTTI "Compile WebKit with rtti support." OFF)
-IF (NOT WEBKIT_CC_USE_RTTI)
+IF (NOT WEBKIT_USE_CC_RTTI)
     SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-    #ADD_DEFINITIONS (-fno-rtti)
-ENDIF (NOT WEBKIT_CC_USE_RTTI)
+ENDIF (NOT WEBKIT_USE_CC_RTTI)
 
 # Global switch fo Verbose mode
 OPTION (VERBOSE "Compile Webkit with verbose mode." OFF)
@@ -231,6 +229,15 @@ IF (WEBKIT_USE_JS)
     ADD_DEFINITIONS (-D__OWB_JS__)
     ADD_DEFINITIONS (-DWTF_USE_JAVASCRIPTCORE_BINDINGS)
 ENDIF (WEBKIT_USE_JS)
+
+# add NPAPI support
+OPTION (WEBKIT_USE_NPAPI "Compile WebKit with NPAPI support." OFF)
+IF (WEBKIT_USE_NPAPI)
+    ADD_DEFINITIONS (-DWTF_USE_NPOBJECT)
+    ADD_DEFINITIONS (-DXP_UNIX)
+    ADD_DEFINITIONS (-D__OWB_NPAPI__)
+ENDIF (WEBKIT_USE_NPAPI)
+
 
 # Special option for BuildBot, to disable output colorization
 OPTION (COLOR "Do not colorize compilation output." ON)
@@ -305,6 +312,7 @@ INCLUDE (BAL/Implementations/ImageDecoders/SourcesCMakeLists.txt)
 SET (bal_SRC ${bal_SRC} ${decoder_jpeg_SRC})
 SET (bal_SRC ${bal_SRC} ${decoder_png_SRC})
 SET (bal_SRC ${bal_SRC} ${decoder_gif_SRC})
+SET (bal_SRC ${bal_SRC} ${decoder_bmp_SRC})
 
 INCLUDE (BAL/Implementations/Widgets/SourcesCMakeLists.txt)
 SET (bal_SRC ${bal_SRC} ${widget_SRC})
@@ -323,14 +331,9 @@ SET (bal_SRC ${bal_SRC} ${graphics_SRC})
 
 INCLUDE (BAL/Implementations/Types/SourcesCMakeLists.txt)
 SET (bal_SRC ${bal_SRC} ${types_SRC})
-    
+
 INCLUDE (BAL/Implementations/Internationalization/SourcesCMakeLists.txt)
 SET (bal_SRC ${bal_SRC} ${i18n_SRC})
-
-IF (WEBKIT_USE_XML_SUPPORT)
-    INCLUDE (BAL/Implementations/XML/SourcesCMakeLists.txt)
-    SET (bal_SRC ${bal_SRC} ${bal_xml_SRC})
-ENDIF (WEBKIT_USE_XML_SUPPORT)
 
 IF (WEBKIT_USE_BAL_MATH_POSIX)
     INCLUDE (BAL/Implementations/Posix/Linux/SourcesCMakeLists.txt)
@@ -348,7 +351,7 @@ IF(JPEG_FOUND)
 ENDIF(JPEG_FOUND)
 
 IF (WEBKIT_USE_JS)
-    TARGET_LINK_LIBRARIES (bal 
+    TARGET_LINK_LIBRARIES (bal
     jscore
     ${LIBRARIES_TO_LINK}
     )
@@ -423,6 +426,24 @@ IF (WEBKIT_USE_SVG_SUPPORT)
     )
 ENDIF (WEBKIT_USE_SVG_SUPPORT)
 
+IF (WEBKIT_USE_NPAPI)
+    INCLUDE_DIRECTORIES (
+        ${CMAKE_CURRENT_SOURCE_DIR}/BALGlue/Plugins/Gtk/
+	${CMAKE_CURRENT_SOURCE_DIR}/WebCore/plugins/
+    )
+ENDIF (WEBKIT_USE_NPAPI)
+
+IF (${WEBKIT_USE_XML_SUPPORT} STREQUAL "LIBXML")
+    INCLUDE_DIRECTORIES (
+        ${CMAKE_CURRENT_SOURCE_DIR}/BALGlue/XML/LIBXML/
+    )
+ENDIF (${WEBKIT_USE_XML_SUPPORT} STREQUAL "LIBXML")
+
+IF (${WEBKIT_USE_XSLT_SUPPORT} STREQUAL "LIBXSLT")
+    INCLUDE_DIRECTORIES (
+        ${CMAKE_CURRENT_SOURCE_DIR}/BALGlue/XML/LIBXSLT/
+    )
+ENDIF (${WEBKIT_USE_XSLT_SUPPORT} STREQUAL "LIBXSLT")
 
 ##############################
 ##############################
@@ -461,9 +482,11 @@ INCLUDE (CMakeJSCore.txt)
 
 IF (WEBKIT_USE_JS)
     ADD_LIBRARY (jscore ${jscore_SRC})
-    TARGET_LINK_LIBRARIES (jscore
-        pthread	
-    )
+    IF (BUILD_SHARED_LIBS)
+        TARGET_LINK_LIBRARIES (jscore pthread)
+    ELSE (BUILD_SHARED_LIBS)
+        TARGET_LINK_LIBRARIES (jscore -Wl,-Bstatic -lpthread)
+    ENDIF (BUILD_SHARED_LIBS)
     
     IF (OWBAL_PLATFORM_MACPORT)
         SET_TARGET_PROPERTIES(jscore
@@ -473,8 +496,9 @@ IF (WEBKIT_USE_JS)
     IF (NOT N800_BUILD)
         ADD_EXECUTABLE (testkjs JavaScriptCore/kjs/testkjs.cpp)
         TARGET_LINK_LIBRARIES (testkjs
-            jscore
             bal
+            jscore
+            ${DEEPSEE_LINK}
         )
 
         ADD_EXECUTABLE (testbalbindings
@@ -482,6 +506,7 @@ IF (WEBKIT_USE_JS)
         TARGET_LINK_LIBRARIES (testbalbindings
             jscore
             bal
+            ${DEEPSEE_LINK}
         )
     ENDIF (NOT N800_BUILD)
 
@@ -492,6 +517,7 @@ IF (WEBKIT_USE_JS)
         )
         TARGET_LINK_LIBRARIES (testkjs
             ${LIBICU_LIBS}
+            ${DEEPSEE_LINK}
         )
     ENDIF (OWBAL_PLATFORM_MACPORT)
 
@@ -510,6 +536,9 @@ IF (WEBKIT_USE_JS)
 
 ELSE (WEBKIT_USE_JS)
     ADD_LIBRARY (wtf ${jscore_SRC})
+    IF (NOT BUILD_SHARED_LIBS)
+        TARGET_LINK_LIBRARIES (wtf -Wl,-Bstatic)
+    ENDIF (NOT BUILD_SHARED_LIBS)
 ENDIF (WEBKIT_USE_JS)
 
 ##############################
@@ -560,8 +589,8 @@ TARGET_LINK_LIBRARIES (owb
     balglue
     bal
     ${ADDONS_LINK}
-    ${LIBFREETYPE_LIBS}
     ${LIBRARIES_TO_LINK}
+    ${DEEPSEE_LINK}
 )
 
 IF (WEBKIT_USE_JS)
@@ -592,6 +621,8 @@ INCLUDE (BAL/Tests/SourcesCMakeLists.txt)
 ADD_EXECUTABLE (testBAL ${bal_tests_SRC})
 TARGET_LINK_LIBRARIES (testBAL
     bal
+    ${DEEPSEE_LINK} 
+    jscore
 )
 
 IF (WEBKIT_USE_JS)
@@ -620,13 +651,25 @@ ENDIF (NOT N800_BUILD)
 ##############################
 ##############################
 
-ADD_EXECUTABLE (DumpRenderTree WebKitTools/OrigynDumpRenderTree/DumpRenderTree.cpp)
+ADD_EXECUTABLE (DumpRenderTree 
+	WebKitTools/DumpRenderTree/bal/DumpRenderTree.cpp
+	WebKitTools/DumpRenderTree/bal/LayoutTestControllerBal.cpp
+	WebKitTools/DumpRenderTree/WorkQueue.cpp
+	WebKitTools/DumpRenderTree/LayoutTestController.cpp
+        WebKitTools/DumpRenderTree/bal/WorkQueueItemBal.cpp
+)
+INCLUDE_DIRECTORIES (
+    ${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders/
+    ${CMAKE_CURRENT_SOURCE_DIR}/WebKitTools/DumpRenderTree/
+)
+
 TARGET_LINK_LIBRARIES (DumpRenderTree
     webcore-owb
-    webkit
     balglue
+    webkit
     bal
     ${ADDONS_LINK}
+    ${DEEPSEE_LINK}
 )
 
 IF (WEBKIT_USE_JS)
@@ -664,15 +707,15 @@ ENDIF (FALSE)
 #    Install Files     #
 ########################
 
-IF (DESTDIR)
-    SET (INSTALLDIR ${DESTDIR})
+IF (CMAKE_INSTALL_PREFIX)
+    SET (INSTALLDIR ${CMAKE_INSTALL_PREFIX})
     SET (BIN_INSTALLDIR "${INSTALLDIR}/bin")
     SET (LIB_INSTALLDIR "${INSTALLDIR}/lib")
-ELSE (DESTDIR)
-    SET (INSTALLDIR "/usr")
+ELSE (CMAKE_INSTALL_PREFIX)
+    SET (INSTALLDIR "/usr/local")
     SET (BIN_INSTALLDIR "${INSTALLDIR}/bin")
     SET (LIB_INSTALLDIR "${INSTALLDIR}/lib")
-ENDIF (DESTDIR)
+ENDIF (CMAKE_INSTALL_PREFIX)
 
 INSTALL (TARGETS owb DESTINATION ${BIN_INSTALLDIR})
 

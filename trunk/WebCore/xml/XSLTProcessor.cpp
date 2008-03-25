@@ -45,9 +45,11 @@
 #include "XSLTExtensions.h"
 #include "loader.h"
 #include "markup.h"
+#ifndef __OWB__
 #include <libxslt/imports.h>
 #include <libxslt/variables.h>
 #include <libxslt/xsltutils.h>
+#endif
 #include <wtf/Assertions.h>
 #include <wtf/Platform.h>
 #include <wtf/Vector.h>
@@ -68,7 +70,7 @@ SOFT_LINK(libxslt, xsltNextImport, xsltStylesheetPtr, (xsltStylesheetPtr style),
 #endif
 
 namespace WebCore {
-
+#ifndef __OWB__
 static void parseErrorFunc(void *ctxt, const char *msg, ...)
 {
     // FIXME: It would be nice to display error messages somewhere.
@@ -86,8 +88,9 @@ static void parseErrorFunc(void *ctxt, const char *msg, ...)
 #endif
 #endif
 }
-
+#endif
 // FIXME: There seems to be no way to control the ctxt pointer for loading here, thus we have globals.
+#ifndef __OWB__
 static XSLTProcessor *globalProcessor = 0;
 static DocLoader *globalDocLoader = 0;
 static xmlDocPtr docLoaderFunc(const xmlChar *uri,
@@ -158,6 +161,7 @@ static bool saveResultToString(xmlDocPtr resultDoc, xsltStylesheetPtr sheet, Dep
     
     return (retval >= 0);
 }
+#endif
 
 static inline void transformTextStringToXHTMLDocumentString(String &text)
 {
@@ -174,6 +178,7 @@ static inline void transformTextStringToXHTMLDocumentString(String &text)
         "</html>\n";
 }
 
+#ifndef __OWB__
 static const char **xsltParamArrayFromParameterMap(XSLTProcessor::ParameterMap& parameters)
 {
     if (parameters.isEmpty())
@@ -204,7 +209,7 @@ static void freeXsltParamArray(const char **params)
     }
     fastFree(params);
 }
-
+#endif
 
 RefPtr<Document> XSLTProcessor::createDocumentFromSource(const DeprecatedString& sourceString,
     const DeprecatedString& sourceEncoding, const DeprecatedString& sourceMIMEType, Node* sourceNode, Frame* frame)
@@ -266,6 +271,7 @@ static inline RefPtr<DocumentFragment> createFragmentFromSource(DeprecatedString
     return fragment;
 }
 
+#ifndef __OWB__
 static xsltStylesheetPtr xsltStylesheetPointer(RefPtr<XSLStyleSheet> &cachedStylesheet, Node *stylesheetRootNode)
 {
     if (!cachedStylesheet && stylesheetRootNode) {
@@ -312,9 +318,11 @@ static inline DeprecatedString resultMIMEType(xmlDocPtr resultDoc, xsltStyleshee
         
     return DeprecatedString("application/xml");
 }
+#endif
 
 bool XSLTProcessor::transformToString(Node *sourceNode, DeprecatedString &mimeType, DeprecatedString &resultString, DeprecatedString &resultEncoding)
 {
+#ifndef __OWB__
     RefPtr<Document> ownerDocument = sourceNode->document();
     
     setXSLTLoadCallBack(docLoaderFunc, this, ownerDocument->docLoader());
@@ -367,6 +375,10 @@ bool XSLTProcessor::transformToString(Node *sourceNode, DeprecatedString &mimeTy
     m_stylesheet = 0;
 
     return success;
+#else
+    BAL::BTProcessor *processor = new BAL::BTProcessor(this);
+    return processor->transformToString(sourceNode, mimeType, resultString, resultEncoding);
+#endif
 }
 
 RefPtr<Document> XSLTProcessor::transformToDocument(Node *sourceNode)

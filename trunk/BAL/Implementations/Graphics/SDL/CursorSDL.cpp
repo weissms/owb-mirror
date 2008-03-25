@@ -44,8 +44,10 @@ namespace WebCore {
 Cursor::Cursor(const Cursor& other)
     : m_impl(other.m_impl)
 {
-    if (m_impl)
-        SDL_SetCursor(m_impl);
+    if (m_impl) {
+        if (SDL_GetCursor() != m_impl)
+            SDL_SetCursor(m_impl);
+    }
     else
         SDL_SetCursor(NULL);
 }
@@ -111,7 +113,6 @@ Cursor& Cursor::operator=(const Cursor& other)
 const Cursor& pointerCursor()
 {
     static Cursor c(m_pointerCursor);
-    SDL_SetCursor(c.impl());
     return c;
 }
 
@@ -125,21 +126,18 @@ const Cursor& crossCursor()
 const Cursor& handCursor()
 {
     static Cursor c(m_handCursor);
-    SDL_SetCursor(c.impl());
     return c;
 }
 
 const Cursor& moveCursor()
 {
     static Cursor c(m_moveCursor);
-    SDL_SetCursor(c.impl());
     return c;
 }
 
 const Cursor& iBeamCursor()
 {
     static Cursor c(m_iBeamCursor);
-    SDL_SetCursor(c.impl());
     return c;
 }
 

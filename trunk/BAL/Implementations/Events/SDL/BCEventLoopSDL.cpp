@@ -38,6 +38,12 @@
  *
  */
 
+#define DEEPSEE_LOGGER_USE 1
+#define DEEPSEE_MEMORY_USE 1
+#define DEEPSEE_PROGARGS_USE 1
+#define DEEPSEE_CONSOLE_USE 1
+#include DEEPSEE_INCLUDE
+
 #include "config.h"
 #include "PlatformString.h"
 
@@ -113,6 +119,13 @@ BC::BCEventLoopSDL::BCEventLoopSDL()
     term.c_lflag &= ~(ICANON);
     tcsetattr(0, TCSANOW,&term);
 #endif
+
+    DS_NEW_CONSOLE(m_console);
+    DS_USE_CONSOLE(
+        DS_LOGGER_ADD_CMD_TO_CONSOLE(m_console);
+        DS_MEMORY_ADD_CMD_TO_CONSOLE(m_console);
+    )
+
 }
 
 /**
@@ -121,7 +134,7 @@ BC::BCEventLoopSDL::BCEventLoopSDL()
  */
 BC::BCEventLoopSDL::~BCEventLoopSDL()
 {
-    WebCore::stopSharedTimer();
+    DS_DELETE_CONSOLE(m_console);
     m_event.clear();
     SDL_QuitSubSystem(SDL_INIT_EVENTTHREAD);
     SDL_Quit();
@@ -179,6 +192,11 @@ bool BC::BCEventLoopSDL::WaitEvent(BIEvent*& aBALEvent)
             m_event.remove(0);
             return (aBALEvent != NULL);
         } else {
+            // give control to console, without blocking
+            DS_USE_CONSOLE(
+                 if (m_console->loop(false))
+                 quit();
+            );
             usleep(10000);
             return false;
         }
@@ -286,8 +304,8 @@ BIEvent* BC::BCEventLoopSDL::CreateEventFromSDLEvent( const SDL_Event& aSDLEvent
       aSrc[0] = aSDLEvent.key.keysym.unicode;
       aSrc[1] = 0;
 
-      DBGM(MODULE_EVENTS, "SDL KEY CODE %d\nWHICH %d MOD %d\n"
-              "SCANCODE %d UNICODE %d END\nSHIFT %d CTRL %d ALT %d META %d\n",
+      DBGM(MODULE_EVENTS, "SDLEvent sym=%d which=%d mod=%d "
+              "scancode=%d unicode=%d shift=%d ctrl=%d alt=%d meta=%d\n",
               aSDLEvent.key.keysym.sym, aSDLEvent.key.which, aSDLEvent.key.keysym.mod,
               aSDLEvent.key.keysym.scancode, aSDLEvent.key.keysym.unicode,
               bShiftKey, bCtrlKey, bAltKey, bMetaKey);
@@ -295,6 +313,9 @@ BIEvent* BC::BCEventLoopSDL::CreateEventFromSDLEvent( const SDL_Event& aSDLEvent
       WebCore::String aText(aSrc);
       WebCore::String aUnmodifiedText(aSrc);
       WebCore::String aKeyIdentifier = keyIdentifierForSDLKeyCode( aSDLEvent.key.keysym.sym );
+
+      DBGM(MODULE_EVENTS, "text='%s' identifier=%s\n", aText.ascii().data(), aKeyIdentifier.ascii().data());
+
       BCKeyboardEvent* aKeyboardEvent = new BCKeyboardEvent( aText, aUnmodifiedText, aKeyIdentifier,
         bIsKeyUp, bShiftKey, bCtrlKey, bAltKey, bMetaKey, false/*bAutoRepeat*/, aVKey );
       return aKeyboardEvent;
@@ -452,7 +473,7 @@ static WebCore::String keyIdentifierForSDLKeyCode(SDLKey keyCode)
         case SDLK_DELETE:
             return "U+00007F";
         default:
-            return WebCore::String::format("U+%06X", toupper(keyCode));
+            return WebCore::String::format("U+%06X", getBIInternationalization()->toUpper(keyCode));
     }
 }
 

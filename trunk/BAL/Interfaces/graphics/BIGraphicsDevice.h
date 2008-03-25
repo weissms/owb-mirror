@@ -204,6 +204,13 @@ public:
     virtual void clear(const BTWidget&, const WebCore::IntRect) = 0;
 
     /**
+     * Apply a CTM (Current Transformation Matrix) to the widget backingstore
+     * @param[in] BTWidget: apply transformation on this widget.
+     * @param[in] AffineTransform: the CTM.
+     */
+    virtual void applyCTM(const BTWidget&, const BTAffineTransform&) = 0;
+
+    /**
      * Destructor for the Graphics device
      */
     virtual ~BIGraphicsDevice() {}

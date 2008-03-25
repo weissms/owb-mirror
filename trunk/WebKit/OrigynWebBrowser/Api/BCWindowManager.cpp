@@ -221,6 +221,13 @@ void BCWindowManager::handleEvent(BIEvent* event)
     // mouse event handling
     } else {
         isAccepted = false;
+        // shift first with the window positionning
+        if (mainView->x() || mainView->y()) {
+            BIMouseEvent *mouseEvent = event->queryIsMouseEvent();
+            if (mouseEvent)
+                mouseEvent->shiftPos(-mainView->x(), -mainView->y());
+        }
+        // and next for the children
         shiftEventPos(event, static_cast<WebCore::FrameView*> (mainView)->frame());
     static_cast<WebCore::FrameView*> (mainView)->frame()->handleEvent(event);
     }

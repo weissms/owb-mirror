@@ -69,7 +69,7 @@ using WebCore::FontSelector;
 using WebCore::GlyphBuffer;
 using WebCore::GlyphPageTreeNode;
 using WebCore::IntPoint;
-using WebCore::String;
+//using WebCore::String;
 using WebCore::TextStyle;
 
 namespace BAL {
@@ -83,7 +83,7 @@ public:
     :m_characters(c), m_len(len)
     {}
 
-    TextRun(const String& s)
+    TextRun(const WebCore::String& s)
     :m_characters(s.characters()), m_len(s.length())
     {}
 

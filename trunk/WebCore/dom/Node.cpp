@@ -172,7 +172,6 @@ void Node::setDocument(Document* doc)
         return;
 
     willMoveToNewOwnerDocument();
-    printf("Node::setDocument\n");
 #ifdef __OWB_JS__
     {
         KJS::JSLock lock;

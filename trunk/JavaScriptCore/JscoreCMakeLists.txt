@@ -55,12 +55,12 @@ set(jscore_SRC
 	JavaScriptCore/pcre/pcre_xclass.c
 
 	#bindings directory
-	#JavaScriptCore/bindings/c/c_class.cpp
-	#JavaScriptCore/bindings/c/c_instance.cpp
-	#JavaScriptCore/bindings/c/c_runtime.cpp
-	#JavaScriptCore/bindings/c/c_utility.cpp
-	#JavaScriptCore/bindings/NP_jsobject.cpp
-	#JavaScriptCore/bindings/npruntime.cpp
+	JavaScriptCore/bindings/c/c_class.cpp
+	JavaScriptCore/bindings/c/c_instance.cpp
+	JavaScriptCore/bindings/c/c_runtime.cpp
+	JavaScriptCore/bindings/c/c_utility.cpp
+	JavaScriptCore/bindings/NP_jsobject.cpp
+	JavaScriptCore/bindings/npruntime.cpp
 	JavaScriptCore/bindings/runtime_array.cpp
 	JavaScriptCore/bindings/runtime_method.cpp
 	JavaScriptCore/bindings/runtime_object.cpp

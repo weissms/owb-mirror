@@ -2,6 +2,7 @@ SET (graphics_SRC
     ${graphics_SRC}
     ${CMAKE_CURRENT_BINARY_DIR}/generated_sources/WebCore/ColorData.c #generated sources
     BAL/Implementations/Graphics/Linux/BCAffineTransform.cpp
+    BAL/Implementations/Graphics/Common/AffineTransform.cpp
     BAL/Implementations/Graphics/Common/BitmapImage.cpp
     BAL/Implementations/Graphics/Common/BitmapImageBal.cpp
     BAL/Implementations/Graphics/Common/BCGraphicsContext.cpp

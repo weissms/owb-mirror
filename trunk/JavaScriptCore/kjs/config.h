@@ -19,6 +19,10 @@
  *
  */
 
+#ifdef __OWB__
+#include DEEPSEE_INCLUDE
+#endif
+
 #include <wtf/Platform.h>
 
 #if PLATFORM(MAC)

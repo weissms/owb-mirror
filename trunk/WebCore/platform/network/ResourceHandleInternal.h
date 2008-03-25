@@ -40,13 +40,16 @@
 #include "Timer.h"
 #endif
 
-#if USE(CURL)
+#if USE(CURL) || __OWB__
 #include <curl/curl.h>
 #endif
 
 #if PLATFORM(QT)
 class QWebFrame;
 class QWebNetworkJob;
+namespace WebCore {
+class QNetworkReplyHandler;
+}
 #endif
 
 #if PLATFORM(MAC)
@@ -90,11 +93,14 @@ namespace WebCore {
             , m_hasReceivedResponse(false)
             , m_resend(false)
 #endif
-#if USE(CURL)
+#if USE(CURL) || __OWB__
             , m_handle(0)
             , m_url(0)
-            , m_fileName(0)
             , m_customHeaders(0)
+            , m_cancelled(false)
+            , m_file(0)
+            , m_formDataElementIndex(0)
+            , m_formDataElementDataOffset(0)
 #endif
 #if PLATFORM(QT)
             , m_job(0)
@@ -142,17 +148,25 @@ namespace WebCore {
         bool m_hasReceivedResponse;
         bool m_resend;
 #endif
-#if USE(CURL)
+#if USE(CURL) || __OWB__
         CURL* m_handle;
         char* m_url;
-        char* m_fileName;
         struct curl_slist* m_customHeaders;        
-        Vector<char> m_postBytes;
         ResourceResponse m_response;
+        bool m_cancelled;
+
+        FILE* m_file;
+        size_t m_formDataElementIndex;
+        size_t m_formDataElementDataOffset;
+        Vector<char> m_postBytes;
 #endif
 #if PLATFORM(QT)
-        QWebNetworkJob *m_job;
-        QWebFrame *m_frame;
+#if QT_VERSION < 0x040400
+        QWebNetworkJob* m_job;
+#else
+        QNetworkReplyHandler* m_job;
+#endif
+        QWebFrame* m_frame;
 #endif
 #if PLATFORM(MAC)
         NSURLAuthenticationChallenge *m_currentMacChallenge;

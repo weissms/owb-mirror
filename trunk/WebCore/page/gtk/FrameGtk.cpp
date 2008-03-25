@@ -38,6 +38,11 @@ void Frame::issueTransposeCommand()
     notImplemented();
 }
 
+KJS::Bindings::Instance* Frame::createScriptInstanceForWidget(Widget*)
+{
+    notImplemented();
+}
+
 void Frame::clearPlatformScriptObjects()
 {
     notImplemented();

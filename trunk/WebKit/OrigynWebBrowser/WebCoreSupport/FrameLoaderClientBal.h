@@ -49,6 +49,7 @@ namespace KJS {
 namespace WebCore {
 
     class FrameBal;
+    class PluginView;
 
     class FrameLoaderClientBal : public FrameLoaderClient {
     public:
@@ -199,6 +200,10 @@ namespace WebCore {
         ResourceResponse m_response;
         bool m_firstData;
         bool m_loadFailed;
+#ifdef __OWB_NPAPI__
+	    WebCore::PluginView* m_pluginView;
+	    bool m_hasSentResponseToPlugin;
+#endif
 #ifdef __TVCORE__
         KJS::TvCore *m_tvCore;
 #endif

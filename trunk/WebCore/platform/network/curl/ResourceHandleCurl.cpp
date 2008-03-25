@@ -29,19 +29,31 @@
 #include "ResourceHandle.h"
 
 #include "DocLoader.h"
+#ifndef __OWB__
 #include "NotImplemented.h"
+#endif
 #include "ResourceHandleInternal.h"
+#ifdef __OWB__
+#include "BIResourceHandleManager.h"
+#else
 #include "ResourceHandleManager.h"
+#endif
 
 namespace WebCore {
 
 ResourceHandleInternal::~ResourceHandleInternal()
 {
     free(m_url);
-    free(m_fileName);
     if (m_customHeaders)
         curl_slist_free_all(m_customHeaders);
+    if (m_file)
+        fclose(m_file);
 }
+
+#ifdef __OWB__
+}
+namespace BAL {
+#endif //__OWB__
 
 ResourceHandle::~ResourceHandle()
 {
@@ -52,13 +64,21 @@ bool ResourceHandle::start(Frame* frame)
 {
     ASSERT(frame);
     ref();
+#ifdef __OWB__
+    getBIResourceHandleManager()->add(this);
+#else
     ResourceHandleManager::sharedInstance()->add(this);
+#endif
     return true;
 }
 
 void ResourceHandle::cancel()
 {
+#ifdef __OWB__
+    getBIResourceHandleManager()->cancel(this);
+#else
     ResourceHandleManager::sharedInstance()->cancel(this);
+#endif
 }
 
 PassRefPtr<SharedBuffer> ResourceHandle::bufferedData()
@@ -74,24 +94,24 @@ bool ResourceHandle::supportsBufferedData()
 void ResourceHandle::setDefersLoading(bool defers)
 {
     d->m_defersLoading = defers;
-    notImplemented();
+    //notImplemented();
 }
 
 bool ResourceHandle::willLoadFromCache(ResourceRequest&)
 {
-    notImplemented();
+    //notImplemented();
     return false;
 }
 
 bool ResourceHandle::loadsBlocked()
 {
-    notImplemented();
+    //notImplemented();
     return false;
 }
 
-void ResourceHandle::loadResourceSynchronously(const ResourceRequest&, ResourceError&, ResourceResponse&, Vector<char>&)
+void ResourceHandle::loadResourceSynchronously(const ResourceRequest&, ResourceError&, ResourceResponse&, Vector<char>&, Frame*)
 {
-    notImplemented();
+    //notImplemented();
 }
 
 } // namespace WebCore

@@ -37,6 +37,8 @@
  * - $Date: 2006/05/11 13:44:56 $
 
  */
+
+
 #include "config.h"
 #include "BALConfiguration.h"
 #include "BIEventLoop.h"
@@ -59,6 +61,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifdef __OWB_NPAPI__
+#include <gdk/gdkkeysyms.h>
+#include <gtk/gtk.h>
+#endif
+
+
+/**
+ * DeepSee lib init
+ */
+DS_INIT_DEEPSEE_FRAMEWORK();
+
 
 /**
  * Signal 11 catcher to prevent process from freezing on segfaults.
@@ -75,6 +88,10 @@ static void handle_event( BIEventLoop& aEventLoop ) {
     BIEvent* aEvent = NULL;
     bool isQuitCalled = false;
     bool isEventValid = false;
+
+#ifdef __OWB_NPAPI__
+    gtk_init(NULL, NULL);
+#endif
     while (!isQuitCalled)
     {
         if (aEvent != NULL) {
@@ -100,6 +117,9 @@ static void handle_event( BIEventLoop& aEventLoop ) {
             // In other cases, event is handled by frame
             getBIWindowManager()->handleEvent(aEvent);
         }
+#ifdef __OWB_NPAPI__	
+        gtk_main_iteration_do(false);
+#endif
     }
     if (aEvent) {
         delete aEvent;
@@ -110,6 +130,7 @@ static void handle_event( BIEventLoop& aEventLoop ) {
 int main(int argc, char *argv[])
 {
     signal(SIGSEGV, &signalCatcher);
+    DS_SIGNAL_CATCH(SIGSEGV);
 
 #ifdef BAL_LOG // logger is not defined in NDEBUG
     // Setup a nice formatter for log
@@ -205,6 +226,9 @@ int main(int argc, char *argv[])
     
     if(::WebCore::cookiesEnabled())
         deleteBICookieJar(getBICookieJar());
-    
+
+
+    DS_CLEAN_DEEPSEE_FRAMEWORK(); 
+
     return 0;
 }

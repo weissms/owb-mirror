@@ -204,7 +204,10 @@ void ChromeClientBal::addMessageToConsole(const String& message, unsigned int li
                                          const String& sourceID)
 {
     BALNotImplemented();
+/*
     printf("Javascript: line:%d source:%s msg:%s \n",lineNumber,sourceID.deprecatedString().ascii(),message.deprecatedString().ascii());
+*/
+    printf("CONSOLE MESSAGE: line %d: %s\n",lineNumber,message.deprecatedString().ascii());
 
 }
 

@@ -1,3 +1,194 @@
+2008-01-22  Olivier DOLE <odole@sand-labs.org>
+
+        Reviewed by Sebastien Roret.
+
+        Merge current network stack.
+        Do a modif in FrameLoader due to prototype modif in
+		WebCore::FrameLoader::loadResourceSynchronously() method.
+        Merge Base64.
+        Modify KURL and kept a compatibility:
+		url() method becomes string() and deprecatedString() but also keep
+		url() for compatibility.
+        Merge is not complete as I have used some old stuff in Vector (resize
+		method instead of new method like grow)
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadResourceSynchronously):
+        * platform/Base64.cpp:
+        (WebCore::base64Decode):
+        * platform/Base64.h:
+        * platform/KURL.cpp:
+        (WebCore::KURL::init):
+        (WebCore::encodeRelativeString):
+        * platform/KURL.h:
+        (WebCore::KURL::isNull):
+        (WebCore::KURL::isEmpty):
+        (WebCore::KURL::string):
+        (WebCore::KURL::deprecatedString):
+        * platform/network/FormData.cpp:
+        (WebCore::FormData::FormData):
+        * platform/network/FormData.h:
+        * platform/network/ProtectionSpace.cpp:
+        (WebCore::ProtectionSpace::ProtectionSpace):
+        * platform/network/ResourceHandle.cpp:
+        (BAL::ResourceHandle::portAllowed):
+        * platform/network/ResourceHandle.h:
+        * platform/network/ResourceHandleClient.h:
+        * platform/network/ResourceHandleInternal.h:
+        (WebCore::ResourceHandleInternal::ResourceHandleInternal):
+        * platform/network/ResourceRequestBase.cpp:
+        (WebCore::ResourceRequestBase::isNull):
+        * platform/network/ResourceResponse.cpp: Removed.
+        * platform/network/ResourceResponse.h: Removed.
+        * platform/network/ResourceResponseBase.cpp: Added.
+        (WebCore::ResourceResponseBase::asResourceResponse):
+        (WebCore::ResourceResponseBase::isHTTP):
+        (WebCore::ResourceResponseBase::url):
+        (WebCore::ResourceResponseBase::setUrl):
+        (WebCore::ResourceResponseBase::mimeType):
+        (WebCore::ResourceResponseBase::setMimeType):
+        (WebCore::ResourceResponseBase::expectedContentLength):
+        (WebCore::ResourceResponseBase::setExpectedContentLength):
+        (WebCore::ResourceResponseBase::textEncodingName):
+        (WebCore::ResourceResponseBase::setTextEncodingName):
+        (WebCore::ResourceResponseBase::suggestedFilename):
+        (WebCore::ResourceResponseBase::setSuggestedFilename):
+        (WebCore::ResourceResponseBase::httpStatusCode):
+        (WebCore::ResourceResponseBase::setHTTPStatusCode):
+        (WebCore::ResourceResponseBase::httpStatusText):
+        (WebCore::ResourceResponseBase::setHTTPStatusText):
+        (WebCore::ResourceResponseBase::httpHeaderField):
+        (WebCore::ResourceResponseBase::setHTTPHeaderField):
+        (WebCore::ResourceResponseBase::httpHeaderFields):
+        (WebCore::ResourceResponseBase::isAttachment):
+        (WebCore::ResourceResponseBase::setExpirationDate):
+        (WebCore::ResourceResponseBase::expirationDate):
+        (WebCore::ResourceResponseBase::setLastModifiedDate):
+        (WebCore::ResourceResponseBase::lastModifiedDate):
+        (WebCore::ResourceResponseBase::updateResourceResponse):
+        (WebCore::operator==):
+        * platform/network/ResourceResponseBase.h: Added.
+        (WebCore::ResourceResponseBase::isNull):
+        (WebCore::ResourceResponseBase::isMultipart):
+        (WebCore::ResourceResponseBase::ResourceResponseBase):
+        (WebCore::operator!=):
+        * platform/network/cf/ResourceErrorCF.cpp:
+        (WebCore::ResourceError::unpackPlatformError):
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        (WebCore::willSendRequest):
+        (WebCore::didReceiveResponse):
+        (WebCore::didReceiveData):
+        (WebCore::didFinishLoading):
+        (WebCore::didFail):
+        (WebCore::didReceiveChallenge):
+        (WebCore::ResourceHandleInternal::~ResourceHandleInternal):
+        (WebCore::ResourceHandle::~ResourceHandle):
+        (WebCore::makeFinalRequest):
+        (WebCore::ResourceHandle::start):
+        (WebCore::ResourceHandle::loadResourceSynchronously):
+        (WebCore::ResourceHandle::loadsBlocked):
+        (WebCore::ResourceHandle::willLoadFromCache):
+        * platform/network/cf/ResourceRequestCFNet.cpp:
+        (WebCore::ResourceRequest::doUpdatePlatformRequest):
+        * platform/network/cf/ResourceResponse.h: Added.
+        (WebCore::ResourceResponse::ResourceResponse):
+        * platform/network/curl/ResourceHandleCurl.cpp:
+        (WebCore::ResourceHandleInternal::~ResourceHandleInternal):
+        (BAL::ResourceHandle::start):
+        (BAL::ResourceHandle::cancel):
+        (BAL::ResourceHandle::setDefersLoading):
+        (BAL::ResourceHandle::willLoadFromCache):
+        (BAL::ResourceHandle::loadsBlocked):
+        (BAL::ResourceHandle::loadResourceSynchronously):
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::ResourceHandleManager::setCookieJarFileName):
+        (WebCore::writeCallback):
+        (WebCore::headerCallback):
+        (WebCore::readCallback):
+        (WebCore::ResourceHandleManager::downloadTimerCallback):
+        (WebCore::ResourceHandleManager::removeFromCurl):
+        (WebCore::ResourceHandleManager::setupPOST):
+        (WebCore::ResourceHandleManager::add):
+        (WebCore::ResourceHandleManager::removeScheduledJob):
+        (WebCore::ResourceHandleManager::startScheduledJobs):
+        (WebCore::parseDataUrl):
+        (WebCore::ResourceHandleManager::startJob):
+        (WebCore::ResourceHandleManager::cancel):
+        * platform/network/curl/ResourceHandleManager.h:
+        * platform/network/curl/ResourceResponse.h: Added.
+        (WebCore::ResourceResponse::ResourceResponse):
+        (WebCore::ResourceResponse::setResponseFired):
+        (WebCore::ResourceResponse::responseFired):
+        (WebCore::ResourceResponse::doUpdateResourceResponse):
+        * platform/network/mac/ResourceHandleMac.mm:
+        (WebCore::ResourceHandle::loadResourceSynchronously):
+        * platform/network/mac/ResourceResponse.h: Added.
+        (WebCore::ResourceResponse::ResourceResponse):
+        * platform/network/qt/QNetworkReplyHandler.cpp: Added.
+        (WebCore::QNetworkReplyHandler::QNetworkReplyHandler):
+        (WebCore::QNetworkReplyHandler::abort):
+        (WebCore::QNetworkReplyHandler::finish):
+        (WebCore::QNetworkReplyHandler::sendResponseIfNeeded):
+        (WebCore::QNetworkReplyHandler::forwardData):
+        (WebCore::QNetworkReplyHandler::start):
+        * platform/network/qt/QNetworkReplyHandler.h: Added.
+        (WebCore::QNetworkReplyHandler::reply):
+        * platform/network/qt/ResourceHandleQt.cpp:
+        (WebCore::ResourceHandle::start):
+        (WebCore::ResourceHandle::cancel):
+        (WebCore::ResourceHandle::loadsBlocked):
+        (WebCore::ResourceHandle::supportsBufferedData):
+        (WebCore::ResourceHandle::bufferedData):
+        (WebCore::ResourceHandle::loadResourceSynchronously):
+        * platform/network/qt/ResourceRequest.h:
+        * platform/network/qt/ResourceRequestQt.cpp: Added.
+        (WebCore::ResourceRequest::toNetworkRequest):
+        * platform/network/qt/ResourceResponse.h: Added.
+        (WebCore::ResourceResponse::ResourceResponse):
+        (WebCore::ResourceResponse::doUpdateResourceResponse):
+        * platform/network/win/CookieJarWin.cpp:
+        (WebCore::setCookies):
+        (WebCore::cookies):
+        (WebCore::cookiesEnabled):
+        * platform/network/win/ResourceHandleWin.cpp:
+        (WebCore::ResourceHandle::start):
+
+2008-01-09 Mario Bensi <mbensi@sand-labs.org>
+
+        Extract libxml and libxslt part in BALGlue/XML/
+
+        Reviewed by Olivier Dole.
+
+        WARNING: NO TEST CASES ADDED OR CHANGED
+
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::XMLTokenizer):
+        (WebCore::XMLTokenizer::~XMLTokenizer):
+        (WebCore::XMLTokenizer::setCurrentNode):
+        (WebCore::XMLTokenizer::write):
+        (WebCore::XMLTokenizer::initializeParserContext):
+        (WebCore::XMLTokenizer::end):
+        (WebCore::xmlDocPtrForString):
+        (WebCore::XMLTokenizer::lineNumber):
+        (WebCore::XMLTokenizer::columnNumber):
+        (WebCore::XMLTokenizer::stopParsing):
+        (WebCore::XMLTokenizer::resumeParsing):
+        (WebCore::):
+        * dom/XMLTokenizer.h:
+        (WebCore::XMLTokenizer::parseXML):
+        * xml/XSLStyleSheet.cpp:
+        (WebCore::XSLStyleSheet::XSLStyleSheet):
+        (WebCore::XSLStyleSheet::~XSLStyleSheet):
+        (WebCore::XSLStyleSheet::clearDocuments):
+        (WebCore::XSLStyleSheet::parseString):
+        (WebCore::XSLStyleSheet::loadChildSheets):
+        (WebCore::XSLStyleSheet::markAsProcessed):
+        * xml/XSLStyleSheet.h:
+        (WebCore::XSLStyleSheet::btStyleSheet):
+        * xml/XSLTProcessor.cpp:
+        (WebCore::XSLTProcessor::transformToString):
+        * xml/XSLTProcessor.h:
+
 2007-10-26  Alp Toker  <alp@atoker.com>
 
         Reviewed by Mark Rowe.

@@ -32,6 +32,10 @@
 #include <wtf/MathExtras.h>
 
 namespace WebCore {
+#ifdef __OWB__
+}
+namespace BAL {
+#endif //__OWB__
 
 bool AffineTransform::isInvertible() const
 {

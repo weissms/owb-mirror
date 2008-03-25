@@ -98,6 +98,7 @@ my $httpdSSLPort = 8443;
 my $ignoreTests = '';
 my $launchSafari = 1;
 my $platform;
+my $platformSubDir = "unknow";
 my $pixelTests = '';
 my $quiet = '';
 my $repaintSweepHorizontally = '';
@@ -124,6 +125,10 @@ my $actualTag = "actual";
 my $diffsTag = "diffs";
 my $errorTag = "stderr";
 
+my $programName = basename($0);
+my $launchSafariDefault = $launchSafari ? "launch" : "do not launch";
+my $httpDefault = $testHTTP ? "run" : "do not run";
+
 if (isTiger()) {
     $platform = "mac-tiger";
 } elsif (isLeopard()) {
@@ -136,18 +141,10 @@ if (isTiger()) {
     $platform = "gtk";
 } elsif (isCygwin()) {
     $platform = "win";
+} elsif (isOwb()) {
+    $platform = "owb";
 }
 
-if (!defined($platform)) {
-    print "WARNING: Your platform is not recognized. Any platform-specific results will be generated in platform/undefined.\n";
-    $platform = "undefined";
-}
-
-my $programName = basename($0);
-my $launchSafariDefault = $launchSafari ? "launch" : "do not launch";
-my $httpDefault = $testHTTP ? "run" : "do not run";
-
-# FIXME: "--strict" should be renamed to qt-mac-comparison, or something along those lines.
 my $usage = <<EOF;
 Usage: $programName [options] [testdir|testpath ...]
   --add-platform-exceptions       Put new results for non-platform-specific failing tests into the platform-specific results directory
@@ -213,11 +210,22 @@ my $getOptionsResult = GetOptions(
     'strip-editing-callbacks!' => \$stripEditingCallbacks,
     'root=s' => \$root,
     'add-platform-exceptions' => \$addPlatformExceptions,
+    'platformSubDir=s' => \$platformSubDir,
 );
 
 if (!$getOptionsResult || $showHelp) {
     print STDERR $usage;
     exit 1;
+}
+
+if (!defined($platform)) {
+    print "WARNING: Your platform is not recognized. Any platform-specific results will be generated in platform/undefined.\n";
+    $platform = "undefined";
+} else {
+    if (isOwb()) {
+        $platform .= "/".$platformSubDir;
+    }
+    print "\n\nAny platform-specific results will be generated in platform/".$platform." .\n\n";
 }
 
 my $ignoreSkipped = $treatSkipped eq "ignore";
@@ -234,14 +242,14 @@ $repaintTests = 1 if $repaintSweepHorizontally;
 $pixelTests = 1 if $testOnlySVGs;
 $pixelTests = 1 if $repaintTests;
 
-$verbose = 1 if $testsPerDumpTool == 1;
+#$verbose = 1 if $testsPerDumpTool == 1;
 
 if ($shouldCheckLeaks && $testsPerDumpTool > 1000) {
     print STDERR "\nWARNING: Running more than 1000 tests at a time with MallocStackLogging enabled may cause a crash.\n\n";
 }
 
-# Force --no-http for Qt/Linux, for now.
-$testHTTP = 0 if isQt();
+# Force --no-http for Qt/Linux or for Owb/Linux, for now.
+$testHTTP = 0 if isQt() || isOwb();
 
 setConfigurationProductDir(Cwd::abs_path($root)) if (defined($root));
 my $productDir = productDir();
@@ -251,7 +259,6 @@ $productDir = $ENV{"OWB_BUILD_DIR"} if (isOwb());
 chdirWebKit();
 
 if(!defined($root)){
-    my $buildResult;
 	# Push the parameters to build-dumprendertree as an array
 	my @args;
 	push(@args, "--" . $configuration);
@@ -280,6 +287,7 @@ my $testDirectory = File::Spec->rel2abs($layoutTestsName);
 my $expectedDirectory = $testDirectory;
 my $platformBaseDirectory = catdir($testDirectory, "platform");
 my $platformTestDirectory = catdir($platformBaseDirectory, $platform);
+my $createDir = system "mkdir -p ".$layoutTestsName."/platform/".$platform;
 my @platformHierarchy = buildPlatformHierarchy();
 
 $expectedDirectory = $ENV{"WebKitExpectedTestResultsDirectory"} if $ENV{"WebKitExpectedTestResultsDirectory"};
@@ -965,7 +973,7 @@ if (isQt()) {
 
 closeCygpaths() if isCygwin();
 
-exit 1;
+exit 0;
 
 sub countAndPrintLeaks($$$)
 {
@@ -1173,9 +1181,6 @@ sub openDumpTool()
     if ($useValgrind) {
       $dumpTool = "valgrind";
     }
-    $ENV{SDL_VIDEODRIVER} = "dummy";
-    $ENV{DISABLE_DISPLAY} = "";
-    $ENV{LAYOUT_TEST} = "";
     $dumpToolPID = open3(\*OUT, \*IN, \*ERROR, $dumpTool, @args) or die "Failed to start tool: $dumpTool\n";
     $isDumpToolOpen = 1;
     $dumpToolCrashed = 0;

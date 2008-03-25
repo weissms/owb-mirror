@@ -28,11 +28,11 @@
 #ifndef ResourceHandle_h
 #define ResourceHandle_h
 
-#include "BIResourceHandle.h"
-#define ResourceHandle BIResourceHandle
+#include "BTResourceHandle.h"
+#define ResourceHandle BTResourceHandle
 
 namespace WebCore {
-    using ::BAL::BIResourceHandle;
+    using ::BAL::BTResourceHandle;
 }
 
 #endif //ResourceHandle_h

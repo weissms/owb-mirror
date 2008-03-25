@@ -33,7 +33,7 @@
 #endif
 
 #if USE(NPOBJECT)
-#include <bindings/npruntime.h>
+#include <bindings/npruntime_proxy.h>
 #endif
 #endif //__OWB_JS__
 

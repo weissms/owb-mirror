@@ -31,11 +31,17 @@
 #include "XSLImportRule.h"
 #include "loader.h"
 #include "XMLTokenizer.h"
+#ifndef __OWB__
 #include <libxml/uri.h>
 #include <libxslt/xsltutils.h>
+#endif
 #if PLATFORM(MAC)
 #include "SoftLinking.h"
 #endif
+
+#ifdef __OWB__
+#include "ParseXML.h"
+#endif //__OWB__
 
 #if PLATFORM(MAC)
 SOFT_LINK_LIBRARY(libxslt)
@@ -50,27 +56,41 @@ namespace WebCore {
 XSLStyleSheet::XSLStyleSheet(XSLImportRule* parentRule, const String& href)
     : StyleSheet(parentRule, href)
     , m_ownerDocument(0)
+#ifndef __OWB__
     , m_stylesheetDoc(0)
     , m_embedded(false)
+#else
+    , m_styleSheet(new BAL::BTStyleSheet(this, false))
+#endif
     , m_processed(false) // Child sheets get marked as processed when the libxslt engine has finally seen them.
+#ifndef __OWB__
     , m_stylesheetDocTaken(false)
+#endif
 {
 }
 
 XSLStyleSheet::XSLStyleSheet(Node* parentNode, const String& href,  bool embedded)
     : StyleSheet(parentNode, href)
     , m_ownerDocument(parentNode->document())
+#ifndef __OWB__
     , m_stylesheetDoc(0)
     , m_embedded(embedded)
+#else
+    , m_styleSheet(new BAL::BTStyleSheet(this, embedded))
+#endif
     , m_processed(true) // The root sheet starts off processed.
+#ifndef __OWB__
     , m_stylesheetDocTaken(false)
+#endif
 {
 }
 
 XSLStyleSheet::~XSLStyleSheet()
 {
+#ifndef __OWB__
     if (!m_stylesheetDocTaken)
         xmlFreeDoc(m_stylesheetDoc);
+#endif
 }
 
 bool XSLStyleSheet::isLoading()
@@ -97,16 +117,22 @@ void XSLStyleSheet::checkLoaded()
         m_parentNode->sheetLoaded();
 }
 
+#ifndef __OWB__
 xmlDocPtr XSLStyleSheet::document()
 {
     if (m_embedded && ownerDocument())
         return (xmlDocPtr)ownerDocument()->transformSource();
     return m_stylesheetDoc;
 }
+#endif
 
 void XSLStyleSheet::clearDocuments()
 {
+#ifndef __OWB__
     m_stylesheetDoc = 0;
+#else
+    m_styleSheet->clearDocuments();
+#endif
     unsigned len = length();
     for (unsigned i = 0; i < len; ++i) {
         StyleBase* rule = item(i);
@@ -128,9 +154,15 @@ DocLoader* XSLStyleSheet::docLoader()
 bool XSLStyleSheet::parseString(const String& string, bool strict)
 {
     // Parse in a single chunk into an xmlDocPtr
+#ifdef __OWB__
     const UChar BOM = 0xFEFF;
     const unsigned char BOMHighByte = *reinterpret_cast<const unsigned char*>(&BOM);
+    BAL::setLoaderForLibXMLCallbacks(docLoader());
+#else
     setLoaderForLibXMLCallbacks(docLoader());
+#endif
+
+#ifndef __OWB__
     if (!m_stylesheetDocTaken)
         xmlFreeDoc(m_stylesheetDoc);
     m_stylesheetDocTaken = false;
@@ -138,13 +170,28 @@ bool XSLStyleSheet::parseString(const String& string, bool strict)
         m_ownerDocument->URL().ascii(),
         BOMHighByte == 0xFF ? "UTF-16LE" : "UTF-16BE", 
         XML_PARSE_NOENT | XML_PARSE_DTDATTR | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NOCDATA);
+#else
+    bool result = m_styleSheet->parseString(string, strict);
+#endif
+
     loadChildSheets();
+
+#ifdef __OWB__
+    BAL::setLoaderForLibXMLCallbacks(0);
+#else
     setLoaderForLibXMLCallbacks(0);
+#endif
+
+#ifndef __OWB__
     return m_stylesheetDoc;
+#else
+    return result;
+#endif
 }
 
 void XSLStyleSheet::loadChildSheets()
 {
+#ifndef __OWB__
     if (!document())
         return;
     
@@ -194,6 +241,9 @@ void XSLStyleSheet::loadChildSheets()
             curr = curr->next;
         }
     }
+#else
+    m_styleSheet->loadChildSheets();
+#endif
 }
 
 void XSLStyleSheet::loadChildSheet(const DeprecatedString& href)
@@ -203,6 +253,7 @@ void XSLStyleSheet::loadChildSheet(const DeprecatedString& href)
     childRule->loadSheet();
 }
 
+#ifndef __OWB__
 xsltStylesheetPtr XSLStyleSheet::compileStyleSheet()
 {
     // FIXME: Hook up error reporting for the stylesheet compilation process.
@@ -257,13 +308,20 @@ xmlDocPtr XSLStyleSheet::locateStylesheetSubResource(xmlDocPtr parentDoc, const 
     
     return 0;
 }
+#endif
 
 void XSLStyleSheet::markAsProcessed()
 {
     ASSERT(!m_processed);
+#ifndef __OWB__
     ASSERT(!m_stylesheetDocTaken);
+#else
+    m_styleSheet->markAsProcessed();
+#endif
     m_processed = true;
+#ifndef __OWB__
     m_stylesheetDocTaken = true;
+#endif
 }
 
 } // namespace WebCore

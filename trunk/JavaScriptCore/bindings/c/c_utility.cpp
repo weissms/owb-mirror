@@ -40,7 +40,7 @@
 #include "Platform.h"
 #if USE(ICU_UNICODE)
 #ifdef __OWB__
-//#include "BIInternationalization.h"
+#include "BIInternationalization.h"
 #else
 #include <unicode/ucnv.h>
 #endif
@@ -72,6 +72,7 @@ void convertUTF8ToUTF16(const NPUTF8 *UTF8Chars, int UTF8Length, NPUTF16 **UTF16
         
     *UTF16Chars = 0;
     UErrorCode status = U_ZERO_ERROR;
+#ifndef __BAL_I18N__
     UConverter* conv = ucnv_open("utf8", &status);
     if (U_SUCCESS(status)) { 
         *UTF16Chars = (NPUTF16 *)malloc(sizeof(NPUTF16) * (*UTF16Length));
@@ -79,7 +80,7 @@ void convertUTF8ToUTF16(const NPUTF8 *UTF8Chars, int UTF8Length, NPUTF16 **UTF16
         *UTF16Length = ucnv_toUChars(conv, (::UChar*)*UTF16Chars, *UTF16Length, UTF8Chars, UTF8Length, &status); 
         ucnv_close(conv);
     } 
-    
+#endif
     // Check to see if the conversion was successful
     // Some plugins return invalid UTF-8 in NPVariantType_String, see <http://bugs.webkit.org/show_bug.cgi?id=5163>
     // There is no "bad data" for latin1. It is unlikely that the plugin was really sending text in this encoding,

@@ -80,7 +80,7 @@ void BTFont::drawGlyphs(GraphicsContext* graphicsContext, const FontData* font, 
 
             RGBA32Array *glyphRGBABuffer = new RGBA32Array(bitmap.rows * bitmap.width);
             for (int i = 0; i < bitmap.rows; i++) {
-                for (int j = 0; j < bitmap.width /** bitmap.pitch*/; j++) {
+                for (int j = 0; j < bitmap.width; j++) {
                     (*glyphRGBABuffer)[i* bitmap.width + j] = ((penColor.alpha()/255 * *bitmap.buffer++) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
                 }
             }

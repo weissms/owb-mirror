@@ -29,7 +29,7 @@
 #include "types.h"
 #include "interpreter.h"
 
-#include "npruntime.h"
+#include "npruntime_proxy.h"
 #include "npruntime_impl.h"
 #include "npruntime_priv.h"
 

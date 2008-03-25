@@ -63,6 +63,28 @@ static bool setDragModeCallback(JSContextRef context, JSObjectRef object, JSStri
     return true;
 }
 
+static JSValueRef getConstantCallback(JSContextRef context, JSObjectRef object, JSStringRef propertyName, JSValueRef* exception)
+{
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_KEYDOWN"))
+        return JSValueMakeNumber(context, WM_KEYDOWN);
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_KEYUP"))
+        return JSValueMakeNumber(context, WM_KEYUP);
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_CHAR"))
+        return JSValueMakeNumber(context, WM_KEYDOWN);
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_DEADCHAR"))
+        return JSValueMakeNumber(context, WM_CHAR);
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_SYSKEYDOWN"))
+        return JSValueMakeNumber(context, WM_SYSKEYDOWN);
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_SYSKEYUP"))
+        return JSValueMakeNumber(context, WM_SYSKEYUP);
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_SYSCHAR"))
+        return JSValueMakeNumber(context, WM_SYSCHAR);
+    if (JSStringIsEqualToUTF8CString(propertyName, "WM_SYSDEADCHAR"))
+        return JSValueMakeNumber(context, WM_SYSDEADCHAR);
+    ASSERT_NOT_REACHED();
+    return JSValueMakeUndefined(context);
+}
+
 static JSValueRef leapForwardCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     if (argumentCount > 0) {
@@ -97,6 +119,22 @@ static LRESULT dispatchMessage(const MSG* msg)
 
     ::TranslateMessage(msg);
     return ::DispatchMessage(msg);
+}
+
+static JSValueRef contextClickCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    COMPtr<IWebFramePrivate> framePrivate;
+    if (SUCCEEDED(frame->QueryInterface(&framePrivate)))
+        framePrivate->layout();
+
+    down = true;
+    MSG msg = makeMsg(webViewWindow, WM_RBUTTONDOWN, 0, MAKELPARAM(lastMousePosition.x, lastMousePosition.y));
+    dispatchMessage(&msg);
+    down = false;
+    msg = makeMsg(webViewWindow, WM_RBUTTONUP, 0, MAKELPARAM(lastMousePosition.x, lastMousePosition.y));
+    dispatchMessage(&msg);
+    
+    return JSValueMakeUndefined(context);
 }
 
 static JSValueRef mouseDownCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
@@ -252,37 +290,46 @@ static JSValueRef keyDownCallback(JSContextRef context, JSObjectRef function, JS
     JSStringRef character = JSValueToStringCopy(context, arguments[0], exception);
     ASSERT(!*exception);
     int virtualKeyCode;
+    int charCode = 0;
+    bool needsShiftKeyModifier = false;
     if (JSStringIsEqualToUTF8CString(character, "rightArrow")) {
         virtualKeyCode = VK_RIGHT;
     } else {
-        int charCode = JSStringGetCharactersPtr(character)[0];
-        virtualKeyCode = toupper(LOBYTE(VkKeyScan(charCode)));
+        charCode = JSStringGetCharactersPtr(character)[0];
+        virtualKeyCode = LOBYTE(VkKeyScan(charCode));
+        if (isupper(charCode))
+            needsShiftKeyModifier = true;
     }
     JSStringRelease(character);
 
     BYTE keyState[256];
-    if (argumentCount > 1) {
+    if (argumentCount > 1 || needsShiftKeyModifier) {
         ::GetKeyboardState(keyState);
 
         BYTE newKeyState[256];
         memcpy(newKeyState, keyState, sizeof(keyState));
 
-        JSObjectRef modifiersArray = JSValueToObject(context, arguments[1], exception);
-        if (modifiersArray) {
-            int modifiersCount = JSValueToNumber(context, JSObjectGetProperty(context, modifiersArray, lengthProperty, 0), 0);
-            for (int i = 0; i < modifiersCount; ++i) {
-                JSValueRef value = JSObjectGetPropertyAtIndex(context, modifiersArray, i, 0);
-                JSStringRef string = JSValueToStringCopy(context, value, 0);
-                if (JSStringIsEqualToUTF8CString(string, "ctrlKey"))
-                    newKeyState[VK_CONTROL] = 0x80;
-                else if (JSStringIsEqualToUTF8CString(string, "shiftKey"))
-                    newKeyState[VK_SHIFT] = 0x80;
-                else if (JSStringIsEqualToUTF8CString(string, "altKey"))
-                    newKeyState[VK_MENU] = 0x80;
-                else if (JSStringIsEqualToUTF8CString(string, "metaKey"))
-                    newKeyState[VK_MENU] = 0x80;
+        if (needsShiftKeyModifier)
+            newKeyState[VK_SHIFT] = 0x80;
 
-                JSStringRelease(string);
+        if (argumentCount > 1) {
+            JSObjectRef modifiersArray = JSValueToObject(context, arguments[1], exception);
+            if (modifiersArray) {
+                int modifiersCount = JSValueToNumber(context, JSObjectGetProperty(context, modifiersArray, lengthProperty, 0), 0);
+                for (int i = 0; i < modifiersCount; ++i) {
+                    JSValueRef value = JSObjectGetPropertyAtIndex(context, modifiersArray, i, 0);
+                    JSStringRef string = JSValueToStringCopy(context, value, 0);
+                    if (JSStringIsEqualToUTF8CString(string, "ctrlKey"))
+                        newKeyState[VK_CONTROL] = 0x80;
+                    else if (JSStringIsEqualToUTF8CString(string, "shiftKey"))
+                        newKeyState[VK_SHIFT] = 0x80;
+                    else if (JSStringIsEqualToUTF8CString(string, "altKey"))
+                        newKeyState[VK_MENU] = 0x80;
+                    else if (JSStringIsEqualToUTF8CString(string, "metaKey"))
+                        newKeyState[VK_MENU] = 0x80;
+
+                    JSStringRelease(string);
+                }
             }
         }
 
@@ -290,10 +337,54 @@ static JSValueRef keyDownCallback(JSContextRef context, JSObjectRef function, JS
     }
 
     MSG msg = makeMsg(webViewWindow, WM_KEYDOWN, virtualKeyCode, 0);
-    dispatchMessage(&msg);
-    
-    if (argumentCount > 1)
+    if (virtualKeyCode != 255)
+        dispatchMessage(&msg);
+    else {
+        // For characters that do not exist in the active keyboard layout,
+        // ::Translate will not work, so we post an WM_CHAR event ourselves.
+        ::PostMessage(webViewWindow, WM_CHAR, charCode, 0);
+        ::DispatchMessage(&msg);
+    }
+
+    if (argumentCount > 1 || needsShiftKeyModifier)
         ::SetKeyboardState(keyState);
+
+    return JSValueMakeUndefined(context);
+}
+
+// eventSender.dispatchMessage(message, wParam, lParam, time = currentEventTime(), x = lastMousePosition.x, y = lastMousePosition.y)
+static JSValueRef dispatchMessageCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount < 3)
+        return JSValueMakeUndefined(context);
+
+    COMPtr<IWebFramePrivate> framePrivate;
+    if (SUCCEEDED(frame->QueryInterface(&framePrivate)))
+        framePrivate->layout();
+    
+    MSG msg = {};
+    msg.hwnd = webViewWindow;
+    msg.message = JSValueToNumber(context, arguments[0], exception);
+    ASSERT(!*exception);
+    msg.wParam = JSValueToNumber(context, arguments[1], exception);
+    ASSERT(!*exception);
+    msg.lParam = JSValueToNumber(context, arguments[2], exception);
+    ASSERT(!*exception);
+    if (argumentCount >= 4) {
+        msg.time = JSValueToNumber(context, arguments[3], exception);
+        ASSERT(!*exception);
+    }
+    if (!msg.time)
+        msg.time = currentEventTime();
+    if (argumentCount >= 6) {
+        msg.pt.x = JSValueToNumber(context, arguments[4], exception);
+        ASSERT(!*exception);
+        msg.pt.y = JSValueToNumber(context, arguments[5], exception);
+        ASSERT(!*exception);
+    } else
+        msg.pt = lastMousePosition;
+
+    dispatchMessage(&msg);
 
     return JSValueMakeUndefined(context);
 }
@@ -327,11 +418,13 @@ static JSValueRef textZoomOutCallback(JSContextRef context, JSObjectRef function
 }
 
 static JSStaticFunction staticFunctions[] = {
+    { "contextClick", contextClickCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { "mouseDown", mouseDownCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { "mouseUp", mouseUpCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { "mouseMoveTo", mouseMoveToCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { "leapForward", leapForwardCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { "keyDown", keyDownCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+    { "dispatchMessage", dispatchMessageCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { "textZoomIn", textZoomInCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { "textZoomOut", textZoomOutCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
     { 0, 0, 0 }
@@ -339,6 +432,14 @@ static JSStaticFunction staticFunctions[] = {
 
 static JSStaticValue staticValues[] = {
     { "dragMode", getDragModeCallback, setDragModeCallback, kJSPropertyAttributeNone },
+    { "WM_KEYDOWN", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
+    { "WM_KEYUP", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
+    { "WM_CHAR", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
+    { "WM_DEADCHAR", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
+    { "WM_SYSKEYDOWN", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
+    { "WM_SYSKEYUP", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
+    { "WM_SYSCHAR", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
+    { "WM_SYSDEADCHAR", getConstantCallback, 0, kJSPropertyAttributeReadOnly | kJSPropertyAttributeNone },
     { 0, 0, 0, 0 }
 };
 

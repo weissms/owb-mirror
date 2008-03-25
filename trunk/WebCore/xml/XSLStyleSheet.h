@@ -26,8 +26,12 @@
 #if ENABLE(XSLT)
 
 #include "StyleSheet.h"
+#ifndef __OWB__
 #include <libxml/parser.h>
 #include <libxslt/transform.h>
+#else
+#include "BTStyleSheet.h"
+#endif
 
 namespace WebCore {
 
@@ -53,28 +57,42 @@ public:
     void loadChildSheets();
     void loadChildSheet(const DeprecatedString& href);
 
+#ifndef __OWB__
     xsltStylesheetPtr compileStyleSheet();
+#endif
 
     DocLoader* docLoader();
 
     Document* ownerDocument() { return m_ownerDocument; }
     void setOwnerDocument(Document* doc) { m_ownerDocument = doc; }
 
+#ifndef __OWB__
     xmlDocPtr document();
+#else
+    BAL::BTStyleSheet *btStyleSheet() {return m_styleSheet;}
+#endif
 
     void clearDocuments();
 
+#ifndef __OWB__
     xmlDocPtr locateStylesheetSubResource(xmlDocPtr parentDoc, const xmlChar* uri);
+#endif
     
     void markAsProcessed();
     bool processed() const { return m_processed; }
 
 protected:
     Document* m_ownerDocument;
+#ifndef __OWB__
     xmlDocPtr m_stylesheetDoc;
     bool m_embedded;
+#else
+    BAL::BTStyleSheet *m_styleSheet;
+#endif
     bool m_processed;
+#ifndef __OWB__
     bool m_stylesheetDocTaken;
+#endif
 };
 
 } // namespace WebCore

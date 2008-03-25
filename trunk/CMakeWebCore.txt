@@ -506,6 +506,11 @@ SET (webcore_SRC ${webcore_SRC} ${html_SRC})
 INCLUDE (WebCore/history/SourcesCMakeLists.txt)
 SET (webcore_SRC ${webcore_SRC} ${history_SRC})
 
+IF (WEBKIT_USE_NPAPI)
+	INCLUDE (WebCore/plugins/SourcesCMakeLists.txt)
+	SET (webcore_SRC ${webcore_SRC} ${npapi_SRC})
+ENDIF (WEBKIT_USE_NPAPI)
+
 IF (WEBKIT_USE_ICON_SUPPORT)
 	INCLUDE (WebCore/loader/icon/SourcesCMakeLists.txt)
 	SET (webcore_SRC ${webcore_SRC} ${icon_SRC})

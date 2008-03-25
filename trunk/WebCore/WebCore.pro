@@ -91,6 +91,11 @@ DEPENDPATH += editing/qt history/qt loader/qt page/qt \
 }
 
 gtk-port {
+x11:plugins {
+    DEFINES += XP_UNIX
+    LIBS += -lXt
+}
+
     INCLUDEPATH += \
     $$PWD/platform/graphics/svg/cairo \
     $$PWD/platform/image-decoders/bmp \
@@ -867,6 +872,7 @@ qt-port {
 }
 
 gtk-port {
+    INCLUDEPATH += ../WebCore/plugins/gtk
     HEADERS += \
         ../WebCore/platform/gtk/ClipboardGtk.h \
         ../WebKit/gtk/Api/webkitgtkdefines.h \

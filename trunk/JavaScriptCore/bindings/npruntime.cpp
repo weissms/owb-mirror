@@ -27,7 +27,7 @@
 
 #if !PLATFORM(DARWIN) || !defined(__LP64__)
 
-#include "npruntime.h"
+#include "npruntime_proxy.h"
 #include "npruntime_impl.h"
 #include "npruntime_priv.h"
 

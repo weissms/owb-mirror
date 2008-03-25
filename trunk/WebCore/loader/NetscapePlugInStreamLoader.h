@@ -34,11 +34,14 @@
 #endif
 
 namespace WebCore {
-#if USE(CFNETWORK)
+#if USE(CFNETWORK) || __OWB__
     class NetscapePlugInStreamLoader;
 
     class NetscapePlugInStreamLoaderClient {
     public:
+#ifdef __OWB__
+        virtual ~NetscapePlugInStreamLoaderClient(){};
+#endif
         virtual void didReceiveResponse(NetscapePlugInStreamLoader*, const ResourceResponse&) = 0;
         virtual void didReceiveData(NetscapePlugInStreamLoader*, const char*, int) = 0;
         virtual void didFail(NetscapePlugInStreamLoader*, const ResourceError&) = 0;
@@ -60,7 +63,7 @@ namespace WebCore {
 
         bool isDone() const;
 
-#if PLATFORM(MAC) || USE(CFNETWORK)
+#if PLATFORM(MAC) || USE(CFNETWORK) || __OWB__
         virtual void didReceiveResponse(const ResourceResponse&);
         virtual void didReceiveData(const char *, int, long long lengthReceived, bool allAtOnce);
         virtual void didFinishLoading();
@@ -72,13 +75,13 @@ namespace WebCore {
     private:
         NetscapePlugInStreamLoader(Frame*, PlugInStreamLoaderDelegate);
 
-#if PLATFORM(MAC) || USE(CFNETWORK)
+#if PLATFORM(MAC) || USE(CFNETWORK) || __OWB__
         virtual void didCancel(const ResourceError& error);
 #endif
 
 #if PLATFORM(MAC)
         RetainPtr<PlugInStreamLoaderDelegate > m_stream;
-#elif USE(CFNETWORK)
+#elif USE(CFNETWORK) || __OWB__
         NetscapePlugInStreamLoaderClient* m_client;
 #endif
     };

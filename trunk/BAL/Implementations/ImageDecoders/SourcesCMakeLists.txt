@@ -1,4 +1,5 @@
 INCLUDE (BAL/Implementations/ImageDecoders/${IMAGEDECODER_GIF}/SourcesCMakeLists.txt)
 INCLUDE (BAL/Implementations/ImageDecoders/${IMAGEDECODER_JPEG}/SourcesCMakeLists.txt)
 INCLUDE (BAL/Implementations/ImageDecoders/${IMAGEDECODER_PNG}/SourcesCMakeLists.txt)
+INCLUDE (BAL/Implementations/ImageDecoders/${IMAGEDECODER_BMP}/SourcesCMakeLists.txt)
 

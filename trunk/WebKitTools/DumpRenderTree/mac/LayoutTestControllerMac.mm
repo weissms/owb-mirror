@@ -26,25 +26,26 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#import "DumpRenderTree.h"
 #import "LayoutTestController.h"
 
-#import "DumpRenderTree.h"
 #import "EditingDelegate.h"
 #import "WorkQueue.h"
 #import "WorkQueueItem.h"
+#import <Foundation/Foundation.h>
 #import <JavaScriptCore/JSRetainPtr.h>
 #import <JavaScriptCore/JSStringRef.h>
 #import <JavaScriptCore/JSStringRefCF.h>
-#import <JavaScriptCore/RetainPtr.h>
 #import <WebKit/WebBackForwardList.h>
 #import <WebKit/WebFrame.h>
 #import <WebKit/WebHTMLViewPrivate.h>
 #import <WebKit/WebHistory.h>
 #import <WebKit/WebNSURLExtras.h>
 #import <WebKit/WebPreferences.h>
+#import <WebKit/WebPreferencesPrivate.h>
 #import <WebKit/WebView.h>
 #import <WebKit/WebViewPrivate.h>
-#import <Foundation/Foundation.h>
+#import <wtf/RetainPtr.h>
 
 LayoutTestController::~LayoutTestController()
 {
@@ -151,6 +152,11 @@ void LayoutTestController::setAcceptsEditing(bool newAcceptsEditing)
     [(EditingDelegate *)[[mainFrame webView] editingDelegate] setAcceptsEditing:newAcceptsEditing];
 }
 
+void LayoutTestController::setAuthorAndUserStylesEnabled(bool flag)
+{
+    [[[mainFrame webView] preferences] setAuthorAndUserStylesEnabled:flag];
+}
+
 void LayoutTestController::setCustomPolicyDelegate(bool setDelegate)
 {
     if (setDelegate)
@@ -168,6 +174,11 @@ void LayoutTestController::setMainFrameIsFirstResponder(bool flag)
         
     if ([documentView isKindOfClass:[WebHTMLView class]])
         [(WebHTMLView *)documentView _updateActiveState];
+}
+
+void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
+{
+    [[[mainFrame webView] preferences] setPrivateBrowsingEnabled:privateBrowsingEnabled];
 }
 
 void LayoutTestController::setTabKeyCyclesThroughElements(bool cycles)

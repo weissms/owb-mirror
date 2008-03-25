@@ -68,12 +68,15 @@ FrameLoaderClientWebUI::~FrameLoaderClientWebUI()
 percentage of loading in parameter */
 void FrameLoaderClientWebUI::postProgressEstimateChangedNotification()
 {
-	char s[4];
-	double progress = m_frame->page()->progress()->estimatedProgress();
-	int valp = static_cast<int>(progress * 100);
-	sprintf(s, "%i", valp);
-	if ((m_frame->tree()->name()) != "_ui")
-		executeJS(m_frame.get() , "loadBar('" + String(s) + "')");
+    if(m_frame && m_frame->page())
+    {
+	    char s[4];
+	    double progress = m_frame->page()->progress()->estimatedProgress();
+	    int valp = static_cast<int>(progress * 100);
+	    sprintf(s, "%i", valp);
+	    if ((m_frame->tree()->name()) != "_ui")
+		    executeJS(m_frame.get() , "loadBar('" + String(s) + "')");
+    }
 //  	m_frame->view()->setDirtyRect(IntRect(0, 0, m_frame->view()->width(), m_frame->view()->height()));
 }
 
