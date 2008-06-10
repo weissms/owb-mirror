@@ -1,5 +1,4 @@
 # - Locate SDL_gfx library
-#
 # This module defines
 #  SDLGFX_LIBRARY, the library to link against
 #  SDLGFX_FOUND, if false, do not try to link to SDL
