@@ -33,6 +33,7 @@
 
 namespace WKAL {
 
+#if HAVE(ACCESSIBILITY)
 void AXObjectCache::detachWrapper(AccessibilityObject* obj)
 {
 }
@@ -52,5 +53,5 @@ void AXObjectCache::postNotificationToElement(RenderObject*, const String&)
 void AXObjectCache::handleFocusedUIElementChanged()
 {
 }
-
+#endif
 } // namespace WebCore
