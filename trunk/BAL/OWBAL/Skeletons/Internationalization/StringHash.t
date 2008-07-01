@@ -50,53 +50,47 @@ namespace OWBAL {
 
     struct StringHash {
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash
+     * @param[in] : key
+     * @param[out] : hash key
      */
         static unsigned hash(StringImpl* key) ;
+
     /**
-     *  equal description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * equal
+     * @param[in] : StringImpl
+     * @param[in] : StringImpl
+     * @param[out] : status
      */
         static bool equal(StringImpl* a, StringImpl* b);
 
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash 
+     * @param[in] : key
+     * @param[out] : hash key
      */
         static unsigned hash(const RefPtr<StringImpl>& key) ;
+
     /**
-     *  equal description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * equal
+     * @param[in] : RefPtr<StringImpl>
+     * @param[in] : RefPtr<StringImpl>
+     * @param[out] : status
      */
         static bool equal(const RefPtr<StringImpl>& a, const RefPtr<StringImpl>& b);
 
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash
+     * @param[in] : key
+     * @param[out] : hash key
      */
         static unsigned hash(const String& key) ;
+
     /**
-     *  equal description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * equal
+     * @param[in] : string
+     * @param[in] : string
+     * @param[out] : status
      */
         static bool equal(const String& a, const String& b);
 
@@ -111,73 +105,47 @@ namespace OWBAL {
         // Paul Hsieh's SuperFastHash
         // http://www.azillionmonkeys.com/qed/hash.html
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash
+     * @param[in] : unicode characters
+     * @param[in] : length
+     * @param[out] : hash key
      */
         static unsigned hash(const UChar* data, unsigned length);
 
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash 
+     * @param[in] : StringImpl
+     * @param[out] : hash key
      */
         static unsigned hash(StringImpl* str);
         
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash 
      */
         static unsigned hash(const char* str, unsigned length);
         
     /**
-     *  equal description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * equal
      */
         static bool equal(StringImpl* a, StringImpl* b);
 
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash 
      */
         static unsigned hash(const RefPtr<StringImpl>& key) ;
 
     /**
-     *  equal description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * equal 
      */
         static bool equal(const RefPtr<StringImpl>& a, const RefPtr<StringImpl>& b);
 
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash 
      */
         static unsigned hash(const String& key);
+
     /**
-     *  equal description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * equal
      */
         static bool equal(const String& a, const String& b);
 
@@ -189,11 +157,7 @@ namespace OWBAL {
     // current uses of it are for strings.
     struct AlreadyHashed : IntHash<unsigned> {
     /**
-     *  hash description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * hash
      */
         static unsigned hash(unsigned key) ;
 
@@ -202,11 +166,9 @@ namespace OWBAL {
         // the string hash function to never generate negative one, but this works
         // and is still relatively efficient.
     /**
-     *  avoidDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * avoidDeletedValue
+     * @param[in] : hash
+     * @param[out] : value
      */
         static unsigned avoidDeletedValue(unsigned hash);
     };
@@ -218,19 +180,15 @@ namespace WTF {
     template<> struct HashTraits<WebCore::String> : GenericHashTraits<WebCore::String> {
         static const bool emptyValueIsZero = true;
     /**
-     *  constructDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * construct deletedValue
+     * @param[in] : slot
      */
         static void constructDeletedValue(WebCore::String* slot) ;
+
     /**
-     *  isDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * is deleted value
+     * @param[in] : slot
+     * @param[out] : status
      */
         static bool isDeletedValue(const WebCore::String& slot) ;
     };

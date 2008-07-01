@@ -47,71 +47,62 @@ class SegmentedString;
 class SegmentedSubstring : public OWBALBase {
 public:
     /**
-     *  SegmentedSubstring description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * SegmentedSubstring default constructor
      */
     SegmentedSubstring();
+
     /**
-     *  SegmentedSubstring description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * SegmentedSubstring constructor
+     * @param[in] : string
      */
     SegmentedSubstring(const String& str);
 
     /**
-     *  SegmentedSubstring description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * SegmentedSubstring constructor
+     * @param[in] : unicode characters
+     * @param[out] : length
      */
     SegmentedSubstring(const UChar* str, int length);
 
     /**
-     *  clear description
-     * @param[in] : description
-     * @param[out] : description
+     * clear
      * @code
+     * s->clear();
      * @endcode
      */
     void clear() ;
     
     /**
-     *  excludeLineNumbers description
-     * @param[in] : description
-     * @param[out] : description
+     * exclude line numbers
+     * @param[out] : status
      * @code
+     * bool e = s->excludeLineNumbers();
      * @endcode
      */
     bool excludeLineNumbers() const ;
+
     /**
-     *  doNotExcludeLineNumbers description
-     * @param[in] : description
-     * @param[out] : description
+     * do not exclude line numbers
+     * @param[out] : status
      * @code
+     * bool d = s->doNotExcludeLineNumbers();
      * @endcode
      */
     bool doNotExcludeLineNumbers() const ;
 
     /**
-     *  setExcludeLineNumbers description
-     * @param[in] : description
-     * @param[out] : description
+     * set exclude line numbers
      * @code
+     * s->setExcludeLineNumbers();
      * @endcode
      */
     void setExcludeLineNumbers() ;
 
     /**
-     *  appendTo description
-     * @param[in] : description
-     * @param[out] : description
+     * append string to SegmentedSubstring
+     * @param[in] : string
      * @code
+     * s->appendTo(str);
      * @endcode
      */
     void appendTo(String& str) const;
@@ -128,235 +119,192 @@ private:
 class SegmentedString : public OWBALBase {
 public:
     /**
-     *  SegmentedString description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * SegmentedString default constructor
      */
     SegmentedString();
+
     /**
-     *  SegmentedString description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * SegmentedString constructor
+     * @param[in] : unicode characters
+     * @param[in] : length
      */
     SegmentedString(const UChar* str, int length);
+
     /**
-     *  SegmentedString description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * SegmentedString constructor
+     * @param[in] : string
      */
     SegmentedString(const String& str);
+
     /**
-     *  SegmentedString description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * SegmentedString constructor by copy
+     * @param[in] : SegmentedString
      */
     SegmentedString(const SegmentedString&);
 
     /**
-     *  operator= description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator= 
      */
     const SegmentedString& operator=(const SegmentedString&);
 
     /**
-     *  clear description
-     * @param[in] : description
-     * @param[out] : description
+     * clear
      * @code
+     * s->clear();
      * @endcode
      */
     void clear();
 
     /**
-     *  append description
-     * @param[in] : description
-     * @param[out] : description
+     * append
+     * @param[in] : SegmentedString
      * @code
+     * s->append(s1);
      * @endcode
      */
     void append(const SegmentedString&);
+
     /**
-     *  prepend description
-     * @param[in] : description
-     * @param[out] : description
+     * prepend
+     * @param[in] : SegmentedString
      * @code
+     * s->prepend(s1);
      * @endcode
      */
     void prepend(const SegmentedString&);
     
     /**
-     *  excludeLineNumbers description
-     * @param[in] : description
-     * @param[out] : description
+     * exclude line numbers
+     * @param[out] : status
      * @code
+     * bool e = s->excludeLineNumbers();
      * @endcode
      */
     bool excludeLineNumbers() const ;
+
     /**
-     *  setExcludeLineNumbers description
-     * @param[in] : description
-     * @param[out] : description
+     * set exclude line numbers
      * @code
+     * s->setExcludeLineNumbers();
      * @endcode
      */
     void setExcludeLineNumbers();
 
     /**
-     *  push description
-     * @param[in] : description
-     * @param[out] : description
+     * push
+     * @param[in] : unicode character
      * @code
+     * s->push(c);
      * @endcode
      */
     void push(UChar c);
     
     /**
-     *  isEmpty description
-     * @param[in] : description
-     * @param[out] : description
+     * test if the SegmentedString is empty
+     * @param[out] : status
      * @code
+     * s->isEmpty();
      * @endcode
      */
     bool isEmpty() const ;
+
     /**
-     *  length description
-     * @param[in] : description
-     * @param[out] : description
+     * get length
+     * @param[out] : length
      * @code
+     * unsigned l = s->length();
      * @endcode
      */
     unsigned length() const;
 
     /**
-     *  advance description
-     * @param[in] : description
-     * @param[out] : description
+     * advance
      * @code
+     * s->advance();
      * @endcode
      */
     void advance();
     
     /**
-     *  advancePastNewline description
-     * @param[in] : description
-     * @param[out] : description
+     * advance past new line
+     * @param[in] : line number
      * @code
+     * s->advancePastNewline(l);
      * @endcode
      */
     void advancePastNewline(int& lineNumber);
     
     /**
-     *  advancePastNonNewline description
-     * @param[in] : description
-     * @param[out] : description
+     * advance past non new line
      * @code
+     * s->advancePastNonNewline();
      * @endcode
      */
     void advancePastNonNewline();
     
     /**
-     *  advance description
-     * @param[in] : description
-     * @param[out] : description
+     * advance
+     * @param[in] : line number
      * @code
+     * s->advance(l);
      * @endcode
      */
     void advance(int& lineNumber);
     
     /**
-     *  escaped description
-     * @param[in] : description
-     * @param[out] : description
+     * escaped
      * @code
+     * s->escaped();
      * @endcode
      */
     bool escaped() const ;
     
     /**
-     *  toString description
-     * @param[in] : description
-     * @param[out] : description
+     * to string
      * @code
+     * String t = s->toString();
      * @endcode
      */
     String toString() const;
 
     /**
-     *  operator* description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator*
      */
     const UChar& operator*() const ;
+
     /**
-     *  operator-> description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator-> 
      */
     const UChar* operator->() const ;
     
 private:
     /**
-     *  append description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * append 
      */
     void append(const SegmentedSubstring&);
+
     /**
-     *  prepend description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * prepend
      */
     void prepend(const SegmentedSubstring&);
 
     /**
-     *  advanceSlowCase description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * advanceSlowCase
      */
     void advanceSlowCase();
+
     /**
-     *  advanceSlowCase description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * advanceSlowCase
      */
     void advanceSlowCase(int& lineNumber);
+
     /**
-     *  advanceSubstring description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * advanceSubstring 
      */
     void advanceSubstring();
+
     /**
-     *  current description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * current 
      */
     const UChar* current() const ;
 

@@ -40,4 +40,3 @@ using WTF::RefPtr;
 using WTF::Vector;
 
 #endif // WTF_Forward_h
-

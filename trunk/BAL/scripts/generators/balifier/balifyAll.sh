@@ -11,7 +11,7 @@ HEAD="head -n $nb"
 
 FILTER="BC"
 
-cat $INPUT_LIST | grep "/Concretizations/" | egrep -v "^#" | egrep -v "^$" | 
+cat $INPUT_LIST | egrep "/Concretizations/|/Base" | egrep -v "^#" | egrep -v "^$" | 
 #grep "Widget.h" |
 while read line
 do

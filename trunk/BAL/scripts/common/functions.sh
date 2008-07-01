@@ -121,7 +121,13 @@ function constructBALName()
 
 #		debug "    file=[$WK_FILE] path=[$BAL_PATH] module=[$BAL_MODULE] impl=[$BAL_IMPL]"
 
-		BC_DIR="$BAL_PATH/Concretizations/$BAL_MODULE/$BAL_IMPL"
+        if echo "$p" | grep -q "Concretizations"
+        then
+            BC_DIR="$BAL_PATH/Concretizations/$BAL_MODULE/$BAL_IMPL"
+        else
+            BC_DIR="$BAL_PATH"
+        fi
+
 		WK_FNAME=`echo $WK_FILE | sed 's/^.*\///g'`
 		#   BC_PREFIX=`echo $BC_NAMESPACE | head -c 2`
 		#   BC_PREFIX="${BC_PREFIX}BC"

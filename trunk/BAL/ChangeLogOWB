@@ -1,3 +1,13 @@
+2008-07-01  Fred  <fmarmond@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        fix balInputList.txt (add missing final directory path)
+        add support for Base/ in balifier scripts
+
+        * scripts/common/functions.sh:
+        * scripts/generators/balifier/balifyAll.sh:
+        * scripts/generators/data/balInputList.txt:
+
 2008-07-01  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

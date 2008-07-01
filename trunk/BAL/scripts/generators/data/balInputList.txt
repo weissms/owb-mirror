@@ -673,8 +673,8 @@
 
 ../../Base	../../../WebCore/platform/NotImplemented.h	NotImplemented.h
 ../../Base	../../../WebCore/platform/StaticConstructors.h	StaticConstructors.h
-../../Base	../../../JavaScriptCore/wtf/AlwaysInline.h	AlwaysInline.h
-../../Base	../../../JavaScriptCore/wtf/DisallowCType.h	DisallowCType.h
-../../Base	../../../JavaScriptCore/wtf/Forward.h	Forward.h
-../../Base	../../../JavaScriptCore/wtf/Platform.h	Platform.h
-../../Base	../../../JavaScriptCore/wtf/UnusedParam.h	UnusedParam.h
+../../Base/wtf	../../../JavaScriptCore/wtf/AlwaysInline.h	AlwaysInline.h
+../../Base/wtf	../../../JavaScriptCore/wtf/DisallowCType.h	DisallowCType.h
+../../Base/wtf	../../../JavaScriptCore/wtf/Forward.h	Forward.h
+../../Base/wtf	../../../JavaScriptCore/wtf/Platform.h	Platform.h
+../../Base/wtf	../../../JavaScriptCore/wtf/UnusedParam.h	UnusedParam.h
