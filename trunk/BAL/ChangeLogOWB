@@ -1,3 +1,13 @@
+2008-07-01  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier Dole.
+        Add doxygen comment
+
+        * OWBAL/Skeletons/Internationalization/StringImpl.t:
+        * OWBAL/Skeletons/Internationalization/TextEncoding.t:
+        * OWBAL/Skeletons/Internationalization/TextStream.t:
+        * OWBAL/Skeletons/Internationalization/UnicodeIcu.t:
+
 2008-07-01  Fred  <fmarmond@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -47,76 +47,48 @@ class String;
 class TextStream : public OWBALBase {
 public:
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<<
      */
     TextStream& operator<<(int);
+
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<<
      */
     TextStream& operator<<(unsigned);
+
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<<
      */
     TextStream& operator<<(long);
+
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<<
      */
     TextStream& operator<<(unsigned long);
+
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<<
      */
     TextStream& operator<<(float);
+
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<<
      */
     TextStream& operator<<(double);
+
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<< 
      */
     TextStream& operator<<(const char*);
+
     /**
-     *  operator<< description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator<< 
      */
     TextStream& operator<<(const String&);
 
     /**
-     *  release description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * release
+     * @param[out] : String
      */
     String release();
 

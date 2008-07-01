@@ -131,189 +131,163 @@ namespace WTF {
     };
 
     /**
-     *  foldCase description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get foldCase character
+     * @param[in] : character
+     * @param[out] : foldcase character
      */
     inline UChar32 foldCase(UChar32 c);
 
     /**
-     *  foldCase description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * foldCase
+     * @param[in] : result length
+     * @param[in] : source
+     * @param[in] : source length
+     * @param[out] : result
+     * @param[out] : error
+     * @param[out] : length
      */
     inline int foldCase(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error);
 
     /**
-     *  toLower description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * toLower 
+     * @param[in] : result length
+     * @param[in] : source
+     * @param[in] : source length
+     * @param[out] : result
+     * @param[out] : error
+     * @param[out] : length
      */
     inline int toLower(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error);
 
     /**
-     *  toLower description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * to lower 
+     * @param[in] : character
+     * @param[out] : character
      */
     inline UChar32 toLower(UChar32 c);
 
     /**
-     *  toUpper description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * to upper 
+     * @param[in] : character
+     * @param[out] : character
      */
     inline UChar32 toUpper(UChar32 c);
 
     /**
-     *  toUpper description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * to upper
+     * @param[in] : result length
+     * @param[in] : source
+     * @param[in] : source length
+     * @param[out] : result
+     * @param[out] : error
+     * @param[out] : length
      */
     inline int toUpper(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error);
 
     /**
-     *  toTitleCase description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * to title case
+     * @param[in] : character
+     * @param[out] : character
      */
     inline UChar32 toTitleCase(UChar32 c);
 
     /**
-     *  isArabicChar description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the character is an arabic character
+     * @param[in] : character
+     * @param[out] : status
      */
     inline bool isArabicChar(UChar32 c);
 
     /**
-     *  isFormatChar description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the character is a format character
+     * @param[in] : character
+     * @param[out] : status
      */
     inline bool isFormatChar(UChar32 c);
 
     /**
-     *  isSeparatorSpace description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the character is a separator space
+     * @param[in] : character
+     * @param[out] : status
      */
     inline bool isSeparatorSpace(UChar32 c);
 
     /**
-     *  isPrintableChar description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the character is a printable char 
+     * @param[in] : character
+     * @param[out] : status
      */
     inline bool isPrintableChar(UChar32 c);
     
     /**
-     *  isDigit description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the character is a digit
+     * @param[in] : character
+     * @param[out] : status
      */
     inline bool isDigit(UChar32 c);
 
     /**
-     *  isPunct description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the character is a Punctuation character
+     * @param[in] : character
+     * @param[out] : status
      */
     inline bool isPunct(UChar32 c);
 
     /**
-     *  mirroredChar description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get mirrored character
+     * @param[in] : character
+     * @param[out] : character
      */
     inline UChar32 mirroredChar(UChar32 c);
 
     /**
-     *  category description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get category 
+     * @param[in] : character
+     * @param[out] : category
      */
     inline CharCategory category(UChar32 c);
 
     /**
-     *  direction description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get direction 
+     * @param[in] : character
+     * @param[out] : direction
      */
     inline Direction direction(UChar32 c);
 
     /**
-     *  isLower description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the character is lower
+     * @param[in] : character
+     * @param[out] : status
      */
     inline bool isLower(UChar32 c);
 
     /**
-     *  digitValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get digit value 
+     * @param[in] : character
+     * @param[out] : value
      */
     inline int digitValue(UChar32 c);
 
     /**
-     *  combiningClass description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get combining class 
+     * @param[in] : character
+     * @param[out] : combining class
      */
     inline uint8_t combiningClass(UChar32 c);
 
     /**
-     *  decompositionType description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get decomposition type 
+     * @param[in] : character
+     * @param[out] : decomposition type
      */
     inline DecompositionType decompositionType(UChar32 c);
 
     /**
-     *  umemcasecmp description
-     * @param[in] : description
-     * @param[out] : description
+     * umemcasecmp
+     * @param[in] : character
+     * @param[in] : character
+     * @param[in] : length
+     * @param[out] : status
      * @code
      * @endcode
      */

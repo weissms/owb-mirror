@@ -48,101 +48,82 @@ namespace OWBAL {
     class TextEncoding : public OWBALBase {
     public:
     /**
-     *  TextEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * TextEncoding default constructor
      */
         TextEncoding();
+
     /**
-     *  TextEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * TextEncoding constructor
+     * @param[in] : string
      */
         TextEncoding(const char* name);
+
     /**
-     *  TextEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * TextEncoding constructor
+     * @param[in] : string
      */
         TextEncoding(const String& name);
 
     /**
-     *  isValid description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if the TextEncoding is valid
+     * @param[out] : status
      */
         bool isValid() const ;
+
     /**
-     *  name description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get name 
+     * @param[out] : name
      */
         const char* name() const ;
+
     /**
-     *  usesVisualOrdering description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if TextEncoding uses visual ordering
+     * @param[out] : status
      */
         bool usesVisualOrdering() const;
+
     /**
-     *  isJapanese description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * test if TextEncoding is japanese
+     * @param[out] : status
      */
         bool isJapanese() const;
+
     /**
-     *  backslashAsCurrencySymbol description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get back slash as currency symbol
+     * @param[out] : unicode character
      */
         UChar backslashAsCurrencySymbol() const;
+
     /**
-     *  closest8BitEquivalent description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get closest 8 bit equivalent
+     * @param[out] : TextEncoding
      */
         const TextEncoding& closest8BitEquivalent() const;
 
     /**
-     *  decode description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * decode
+     * @param[in] : string
+     * @param[in] : length
+     * @param[out] : string
      */
         String decode(const char* str, size_t length) const;
+
     /**
-     *  decode description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * decode 
+     * @param[in] : string
+     * @param[in] : length
+     * @param[in] : stop on error status
+     * @param[in] : saw error status
+     * @param[out] : string
      */
         String decode(const char*, size_t length, bool stopOnError, bool& sawError) const;
+
     /**
-     *  encode description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * encode
+     * @param[in] : unicode characters
+     * @param[in] : length
+     * @param[in] : unencodable handling
+     * @param[out] : CString
      */
         CString encode(const UChar*, size_t length, UnencodableHandling) const;
 
@@ -151,84 +132,52 @@ namespace OWBAL {
     };
 
     /**
-     *  operator== description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator== 
      */
     inline bool operator==(const TextEncoding& a, const TextEncoding& b) ;
+
     /**
-     *  operator!= description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * operator!= 
      */
     inline bool operator!=(const TextEncoding& a, const TextEncoding& b) ;
 
     /**
-     *  ASCIIEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * ASCIIEncoding 
      */
     const TextEncoding& ASCIIEncoding();
+
     /**
-     *  Latin1Encoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * Latin1Encoding
      */
     const TextEncoding& Latin1Encoding();
+
     /**
-     *  UTF16BigEndianEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * UTF16BigEndianEncoding 
      */
     const TextEncoding& UTF16BigEndianEncoding();
+
     /**
-     *  UTF16LittleEndianEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * UTF16LittleEndianEncoding 
      */
     const TextEncoding& UTF16LittleEndianEncoding();
+
     /**
-     *  UTF32BigEndianEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * UTF32BigEndianEncoding 
      */
     const TextEncoding& UTF32BigEndianEncoding();
+
     /**
-     *  UTF32LittleEndianEncoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * UTF32LittleEndianEncoding 
      */
     const TextEncoding& UTF32LittleEndianEncoding();
+
     /**
-     *  UTF8Encoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * UTF8Encoding 
      */
     const TextEncoding& UTF8Encoding();
+
     /**
-     *  WindowsLatin1Encoding description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * WindowsLatin1Encoding
      */
     const TextEncoding& WindowsLatin1Encoding();
 
