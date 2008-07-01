@@ -1,9 +1,0 @@
-set(history_SRC
-        ${history_SRC}
-
-        WebCore/history/BackForwardList.cpp
-        WebCore/history/CachedPage.cpp
-        WebCore/history/HistoryItem.cpp
-#        WebCore/history/HistoryItemTimer.cpp
-        WebCore/history/PageCache.cpp
-)

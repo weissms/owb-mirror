@@ -1,56 +1,0 @@
-body { border-right:     none;border-left:      none;border-top:       none;border-bottom:    none;margin: 0px;} 
-
-.title {
-height: 18px;
-background-image: url(title.gif);
-width: 100%;
-}
-
-.titleText {
-font-family:      sans-serif;
-font-size:        11px;
-margin-left:	1px;
-}
-
-.nav1{
-height: 32px;
-width: 400px;
-vertical-align: middle;
-border-spacing: 0px;
-border-collapse: collapse;
-}
-
-.nav2{
-height: 32px;
-width: 200px;
-vertical-align: middle;
-border-spacing: 0px;
-border-collapse: collapse;
-}.navBox{color:            #000000;
-width:		300px;
-background-image: url(nav_progress.gif);background-repeat: no-repeat;border-color:     #96969D;border-width:     1px;
-background-position: -300px;
-height:		18px;
-margin-left:	3px;
-font-size: 11px;
-}
-
-.navBox2{color:            #000000;
-width:		150px;border-color:     #96969D;border-width:     1px;
-height:		18px;
-margin-left:	5px;
-}
-
-.navButton{height:           28px;
-margin-left:	3px;}
-
-.home{
-text-decoration:none;
-color:            #96969d;
-font-family:      sans-serif;
-font-size:        14px;
-}
-
-
-
-

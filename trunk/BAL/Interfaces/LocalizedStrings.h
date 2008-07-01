@@ -1,1 +1,0 @@
-../../WebCore/platform/LocalizedStrings.h

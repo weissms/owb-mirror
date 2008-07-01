@@ -1,6 +1,0 @@
-set(widget_SRC
-        ${widget_SRC}
-
-	BAL/Implementations/Widgets/Common/WidgetBal.cpp
-	BAL/Implementations/Widgets/Common/ScrollViewBal.cpp
-)

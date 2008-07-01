@@ -1,7 +1,0 @@
-set(npapigtk_SRC
-        ${npapigtk_SRC}
-	BALGlue/Plugins/Gtk/gtk2xtbin.c
-	BALGlue/Plugins/Gtk/PluginDatabaseGtk.cpp
-	BALGlue/Plugins/Gtk/PluginPackageGtk.cpp
-	BALGlue/Plugins/Gtk/PluginViewGtk.cpp
-)

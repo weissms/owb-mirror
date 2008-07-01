@@ -1,7 +1,0 @@
-set(bal_xml_SRC
-        ${bal_xml_SRC}
-
-	BAL/Implementations/XML/Common/BTXML.cpp
-	BAL/Implementations/XML/LIBXML/BCXML.cpp
-	BAL/Implementations/XML/LIBXSLT/BCXSLT.cpp
-)

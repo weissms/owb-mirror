@@ -1,5 +1,0 @@
-SET (decoder_gif_SRC
-	${decoder_gif_SRC}
-	BAL/Implementations/ImageDecoders/${IMAGEDECODER_GIF}/GIFImageDecoder.cpp
-	BAL/Implementations/ImageDecoders/${IMAGEDECODER_GIF}/GIFImageDecoderPrivate.cpp
-)

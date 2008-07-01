@@ -1,6 +1,0 @@
-set(decoder_gif_SRC
-        ${decoder_gif_SRC}
-
-        BAL/Implementations/ImageDecoders/Generic/GIF/GIFImageReader.cpp
-	BAL/Implementations/ImageDecoders/Generic/GIF/GIFImageDecoder.cpp
-)

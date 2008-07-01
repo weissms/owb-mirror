@@ -1,9 +1,0 @@
-set(npapi_SRC
-        ${npapi_SRC}
-	WebCore/plugins/npapi.cpp
-	WebCore/plugins/PluginDatabase.cpp
-	WebCore/plugins/PlugInInfoStore.cpp
-	WebCore/plugins/PluginPackage.cpp
-	WebCore/plugins/PluginStream.cpp
-	WebCore/plugins/PluginView.cpp
-)

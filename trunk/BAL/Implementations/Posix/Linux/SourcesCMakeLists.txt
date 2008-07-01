@@ -1,5 +1,0 @@
-set(posix_linux_SRC
-        ${posix_linux_SRC}
-
-	BAL/Implementations/Posix/Linux/BCMath.cpp
-)

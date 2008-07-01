@@ -1,1 +1,0 @@
-../../../WebCore/platform/graphics/ImageObserver.h
