@@ -1,0 +1,4 @@
+INCLUDE (Customer/CMakeLists.txt OPTIONAL)
+
+CONFIGURE_FILE (BALBase.h.in ${CMAKE_CURRENT_SOURCE_DIR}/BALBase.h @ONLY)
+
