@@ -1,6 +1,13 @@
 2008-07-01  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier Dole.
+        fix script to remove skeletons in balifier list
+
+        * scripts/generators/balifier/balifyAll.sh:
+
+2008-07-01  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier Dole.
         Add doxygen comment
 
         * OWBAL/Skeletons/Internationalization/StringImpl.t:
