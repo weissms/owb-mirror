@@ -1,3 +1,511 @@
+2008-07-02  Simon Hausmann  <hausmann@webkit.org>
+
+        Build fix. Implemented missing functions for single-threaded build.
+
+        * kjs/JSLock.cpp:
+        (KJS::JSLock::JSLock):
+        (KJS::JSLock::lock):
+        (KJS::JSLock::unlock):
+        (KJS::JSLock::DropAllLocks::DropAllLocks):
+
+2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Another non-AllInOne build fix.
+
+        * kjs/JSGlobalObject.cpp: Include JSLock.h here, too.
+
+2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Non-AllInOne build fix.
+
+        * kjs/interpreter.cpp: Include JSLock.h.
+
+2008-06-30  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin.
+
+        Disable JSLock for per-thread contexts.
+
+        No change on SunSpider.
+
+        * kjs/JSGlobalData.h:
+        * kjs/JSGlobalData.cpp:
+        (KJS::JSGlobalData::JSGlobalData):
+        (KJS::JSGlobalData::sharedInstance):
+        Added isSharedInstance as a better way to tell whether the instance is shared (legacy).
+
+        * kjs/JSLock.cpp:
+        (KJS::createJSLockCount):
+        (KJS::JSLock::lockCount):
+        (KJS::setLockCount):
+        (KJS::JSLock::JSLock):
+        (KJS::JSLock::lock):
+        (KJS::JSLock::unlock):
+        (KJS::JSLock::currentThreadIsHoldingLock):
+        (KJS::JSLock::DropAllLocks::DropAllLocks):
+        (KJS::JSLock::DropAllLocks::~DropAllLocks):
+        * kjs/JSLock.h:
+        (KJS::JSLock::JSLock):
+        (KJS::JSLock::~JSLock):
+        Made JSLock and JSLock::DropAllLocks constructors take a parameter to decide whether to
+        actually lock a mutex, or only to increment recursion count. We cannot turn it into no-op
+        if we want to keep existing assertions working.
+        Made recursion count per-thread, now that locks may not lock.
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript): Take JSLock after casting JSContextRef to ExecState* (which doesn't need
+        locking in any case), so that a decision whether to actually lock can be made.
+        (JSCheckScriptSyntax): Ditto.
+        (JSGarbageCollect): Only lock while collecting the shared heap, not the per-thread one.
+
+        * API/JSObjectRef.cpp:
+        (JSClassCreate): Don't lock, as there is no reason to.
+        (JSClassRetain): Ditto.
+        (JSClassRelease): Ditto.
+        (JSPropertyNameArrayRetain): Ditto.
+        (JSPropertyNameArrayRelease): Only lock while deleting the array, as that may touch
+        identifier table.
+        (JSPropertyNameAccumulatorAddName): Adding a string also involves an identifier table
+        lookup, and possibly modification.
+
+        * API/JSStringRef.cpp:
+        (JSStringCreateWithCharacters):
+        (JSStringCreateWithUTF8CString):
+        (JSStringRetain):
+        (JSStringRelease):
+        (JSStringGetUTF8CString):
+        (JSStringIsEqual):
+        * API/JSStringRefCF.cpp:
+        (JSStringCreateWithCFString):
+        JSStringRef operations other than releasing do not need locking.
+
+        * VM/Machine.cpp: Don't include unused JSLock.h.
+
+        * kjs/CollectorHeapIntrospector.cpp: (KJS::CollectorHeapIntrospector::statistics):
+        Don't take the lock for real, as heap introspection pauses the process anyway. It seems that
+        the existing code could cause deadlocks.
+
+        * kjs/Shell.cpp:
+        (functionGC):
+        (main):
+        (jscmain):
+        The test tool uses a per-thread context, so no real locking is required.
+
+        * kjs/collector.h:
+        (KJS::Heap::setGCProtectNeedsLocking): Optionally protect m_protectedValues access with a
+        per-heap mutex. This is only needed for WebCore Database code, which violates the "no data
+        migration between threads" by using ProtectedPtr on a background thread.
+        (KJS::Heap::isShared): Keep a shared flag here, as well.
+
+        * kjs/protect.h:
+        (KJS::::ProtectedPtr):
+        (KJS::::~ProtectedPtr):
+        (KJS::::operator):
+        (KJS::operator==):
+        (KJS::operator!=):
+        ProtectedPtr is ony used from WebCore, so it doesn't need to take JSLock. An assertion in
+        Heap::protect/unprotect guards agains possible future unlocked uses of ProtectedPtr in JSC.
+
+        * kjs/collector.cpp:
+        (KJS::Heap::Heap): Initialize m_isShared.
+        (KJS::Heap::~Heap): No need to lock for real during destruction, but must keep assertions
+        in sweep() working.
+        (KJS::destroyRegisteredThread): Registered thread list is only accessed for shared heap,
+        so locking is always needed here.
+        (KJS::Heap::registerThread): Ditto.
+        (KJS::Heap::markStackObjectsConservatively): Use m_isShared instead of comparing to a shared
+        instance for a small speedup.
+        (KJS::Heap::setGCProtectNeedsLocking): Create m_protectedValuesMutex. There is currently no
+        way to undo this - and ideally, Database code will be fixed to lo longer require this quirk.
+        (KJS::Heap::protect): Take m_protectedValuesMutex (if it exists) while accessing
+        m_protectedValues.
+        (KJS::Heap::unprotect): Ditto.
+        (KJS::Heap::markProtectedObjects): Ditto.
+        (KJS::Heap::protectedGlobalObjectCount): Ditto.
+        (KJS::Heap::protectedObjectCount): Ditto.
+        (KJS::Heap::protectedObjectTypeCounts): Ditto.
+
+        * kjs/ustring.cpp:
+        * kjs/ustring.h:
+        Don't include JSLock.h, which is no longer used here. As a result, an explicit include had
+        to be added to many files in JavaScriptGlue, WebCore and WebKit.
+
+        * kjs/JSGlobalObject.cpp:
+        (KJS::JSGlobalObject::init):
+        * API/JSCallbackConstructor.cpp:
+        (KJS::constructJSCallback):
+        * API/JSCallbackFunction.cpp:
+        (KJS::JSCallbackFunction::call):
+        * API/JSCallbackObjectFunctions.h:
+        (KJS::::init):
+        (KJS::::getOwnPropertySlot):
+        (KJS::::put):
+        (KJS::::deleteProperty):
+        (KJS::::construct):
+        (KJS::::hasInstance):
+        (KJS::::call):
+        (KJS::::getPropertyNames):
+        (KJS::::toNumber):
+        (KJS::::toString):
+        (KJS::::staticValueGetter):
+        (KJS::::callbackGetter):
+        * API/JSContextRef.cpp:
+        (JSGlobalContextCreate):
+        (JSGlobalContextRetain):
+        (JSGlobalContextRelease):
+        * API/JSValueRef.cpp:
+        (JSValueIsEqual):
+        (JSValueIsStrictEqual):
+        (JSValueIsInstanceOfConstructor):
+        (JSValueMakeNumber):
+        (JSValueMakeString):
+        (JSValueToNumber):
+        (JSValueToStringCopy):
+        (JSValueToObject):
+        (JSValueProtect):
+        (JSValueUnprotect):
+        * JavaScriptCore.exp:
+        * kjs/PropertyNameArray.h:
+        (KJS::PropertyNameArray::globalData):
+        * kjs/interpreter.cpp:
+        (KJS::Interpreter::checkSyntax):
+        (KJS::Interpreter::evaluate):
+        Pass a parameter to JSLock/JSLock::DropAllLocks to decide whether the lock needs to be taken.
+
+2008-07-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19834
+        Failed assertion in JavaScriptCore/VM/SegmentedVector.h:82
+
+        Creating a global object with a custom prototype resets it twice (wasteful!).
+        So, addStaticGlobals() was called twice, but JSGlobalObject::reset() didn't reset
+        the register array.        
+
+        * kjs/JSGlobalObject.cpp: (KJS::JSGlobalObject::reset): Call setRegisterArray(0, 0).
+
+        * kjs/JSVariableObject.h: Changed registerArray to OwnArrayPtr. Also, added private copy
+        constructor and operator= to ensure that no one attempts to copy this object (for whatever
+        reason, I couldn't make Noncopyable work).
+
+        * kjs/JSGlobalObject.h: (KJS::JSGlobalObject::addStaticGlobals): Allocate registerArray
+        with new[].
+
+        * kjs/JSVariableObject.cpp:
+        (KJS::JSVariableObject::copyRegisterArray): Allocate registerArray with new[].
+        (KJS::JSVariableObject::setRegisterArray): Avoid hitting an assertion in OwnArrayPtr when
+        "changing" the value from 0 to 0.
+
+2008-07-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Removed and/or reordered exception checks in array-style a[n] access.
+        
+        SunSpider says 1.4% faster.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute): No need to check for exceptions before
+        calling toString, toNumber and/or get. If the call ends up being observable
+        through toString, valueOf, or a getter, we short-circuit it there, instead.
+        In the op_del_by_val case, I removed the incorrect comment without actually
+        removing the code, since I didn't want to tempt the GCC fates!
+
+        * kjs/JSObject.cpp:
+        (KJS::callDefaultValueFunction): Added exception check to prevent
+        toString and valueOf functions from observing execution after an exception
+        has been thrown. This removes some of the burden of exception checking
+        from the machine.
+
+        (KJS::JSObject::defaultValue): Removed redundant exception check here.
+
+        * kjs/PropertySlot.cpp:
+        (KJS::PropertySlot::functionGetter): Added exception check to prevent
+        getter functions from observing execution after an exception has been
+        thrown. This removes some of the burden of exception checking from the
+        machine.
+
+2008-07-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Optimized a[n] get and put for cases where n is an immediate unsigned
+        value.
+        
+        SunSpider says 3.5% faster.
+
+2008-07-01  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Darin.
+
+        Bug 19844: JavaScript Switch statement modifies "this"
+        <https://bugs.webkit.org/show_bug.cgi?id=19844>
+
+        Use a temporary when generating code for switch clauses to avoid
+        overwriting 'this' or a local variable.
+
+        * kjs/nodes.cpp:
+        (KJS::CaseBlockNode::emitCodeForBlock):
+
+2008-07-01  Christian Dywan  <christian@twotoasts.de>
+
+        Gtk+ build fix.
+
+        * kjs/list.cpp: Include "JSCell.h"
+
+2008-07-01  Kevin McCullough  <kmccullough@apple.com>
+
+        Build fix.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - Mac release build fix
+
+        * JavaScriptCore.exp:
+
+2008-07-01  Sam Weinig  <sam@webkit.org>
+
+        Try and fix mac builds.
+
+        * JavaScriptCore.exp:
+
+2008-07-01  Sam Weinig  <sam@webkit.org>
+
+        Fix non-AllInOne builds.
+
+        * kjs/DateMath.cpp:
+
+2008-07-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Split JSCell and JSNumberCell class declarations out of JSValue.h
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/JSPropertyNameIterator.h:
+        * kjs/AllInOneFile.cpp:
+        * kjs/JSCell.cpp: Copied from JavaScriptCore/kjs/JSValue.cpp.
+        * kjs/JSCell.h: Copied from JavaScriptCore/kjs/JSValue.h.
+        (KJS::JSValue::getJSNumber):
+        * kjs/JSNumberCell.cpp:
+        * kjs/JSNumberCell.h: Copied from JavaScriptCore/kjs/JSValue.h.
+        * kjs/JSObject.h:
+        * kjs/JSString.cpp:
+        (KJS::jsString):
+        (KJS::jsOwnedString):
+        * kjs/JSString.h:
+        (KJS::JSValue::toThisJSString):
+        * kjs/JSValue.cpp:
+        * kjs/JSValue.h:
+
+2008-07-01  Anders Carlsson  <andersca@apple.com>
+
+        Build fixes.
+        
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * kjs/JSGlobalObject.h:
+        (KJS::JSGlobalObject::addStaticGlobals):
+
+2008-07-01  Simon Hausmann  <hausmann@webkit.org>
+
+        Build fix, include OwnPtr.h.
+
+        * kjs/RegExpConstructor.h:
+
+2008-06-30  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fixed a global object leak caused by the switch to one register file.
+        
+        Don't unconditionally mark the register file, since that logically
+        makes all global variables GC roots, even when their global object is
+        no longer reachable.
+        
+        Instead, make the global object associated with the register file
+        responsible for marking the register file.
+
+2008-06-30  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Removed the "registerBase" abstraction. Since the register file never
+        reallocates, we can keep direct pointers into it, instead of
+        <registerBase, offset> tuples.
+        
+        SunSpider says 0.8% faster.
+        
+2008-06-30  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        Fix build by adding all (hopefully) the missing includes.
+
+        * kjs/BooleanPrototype.cpp:
+        * kjs/DateConstructor.cpp:
+        * kjs/ErrorPrototype.cpp:
+        * kjs/FunctionPrototype.cpp:
+        * kjs/NativeErrorConstructor.cpp:
+        * kjs/NumberPrototype.cpp:
+        * kjs/ObjectPrototype.cpp:
+        * kjs/RegExpConstructor.cpp:
+        * kjs/StringConstructor.cpp:
+        * kjs/StringPrototype.cpp:
+
+2008-06-30  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver.
+
+        Bug 19830: REGRESSION (r34883): Google Reader doesn't show up feed list on sidebar
+        <https://bugs.webkit.org/show_bug.cgi?id=19830>
+
+        Ensure that we do not eliminate a write to a local register when doing
+        peephole optimizations.
+
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::emitJumpIfTrue):
+        (KJS::CodeGenerator::emitJumpIfFalse):
+
+2008-06-30  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Darin Alder.
+
+        Split InternalFunction into its own header file.
+
+        * API/JSCallbackFunction.h:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/ArrayConstructor.h:
+        * kjs/BooleanConstructor.h:
+        * kjs/DateConstructor.h:
+        * kjs/ErrorConstructor.h:
+        * kjs/FunctionConstructor.h:
+        * kjs/FunctionPrototype.h:
+        * kjs/InternalFunction.h: Copied from kjs/JSFunction.h.
+        * kjs/JSFunction.h:
+        * kjs/NativeErrorConstructor.h:
+        * kjs/NumberConstructor.h:
+        * kjs/ObjectConstructor.h:
+        * kjs/RegExpConstructor.h:
+        * kjs/StringConstructor.h:
+        * profiler/Profiler.cpp:
+
+2008-06-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Kevin McCullough.
+
+        Remove empty files Instruction.cpp, LabelID.cpp, Register.cpp and RegisterID.cpp.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/Instruction.cpp: Removed.
+        * VM/LabelID.cpp: Removed.
+        * VM/Register.cpp: Removed.
+        * VM/RegisterID.cpp: Removed.
+
+2008-06-30  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped (reluctantly) by Kevin McCullough.
+
+        Rename date_object.h/cpp to DateInstance.h/cpp
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/DateConstructor.cpp:
+        * kjs/DateInstance.cpp: Copied from kjs/date_object.cpp.
+        * kjs/DateInstance.h: Copied from kjs/date_object.h.
+        * kjs/DatePrototype.cpp:
+        * kjs/DatePrototype.h:
+        * kjs/date_object.cpp: Removed.
+        * kjs/date_object.h: Removed.
+
+2008-06-30  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Remove internal.cpp and move its contents to there own .cpp files.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/GetterSetter.cpp: Copied from kjs/internal.cpp.
+        * kjs/InternalFunction.cpp: Copied from kjs/internal.cpp.
+        * kjs/JSNumberCell.cpp: Copied from kjs/internal.cpp.
+        * kjs/JSString.cpp: Copied from kjs/internal.cpp.
+        * kjs/JSString.h:
+        * kjs/LabelStack.cpp: Copied from kjs/internal.cpp.
+        * kjs/NumberConstructor.cpp:
+        * kjs/NumberObject.cpp:
+        (KJS::constructNumber):
+        (KJS::constructNumberFromImmediateNumber):
+        * kjs/internal.cpp: Removed.
+
+2008-06-30  Adam Roben  <aroben@apple.com>
+
+        Fix <rdar://5954749> Assertion failure due to HashTable's use of
+        operator&
+
+        HashTable was passing &value to constructDeletedValue, which in
+        classes like WebCore::COMPtr would cause an assertion. We now pass
+        value by reference instead of by address so that the HashTraits
+        implementations have more flexibility in constructing the deleted
+        value.
+
+        Reviewed by Ada Chan.
+
+        * VM/CodeGenerator.h: Updated for changes to HashTraits.
+        * wtf/HashTable.h:
+        (WTF::::deleteBucket): Changed to pass bucket by reference instead of
+        by address.
+        (WTF::::checkKey): Ditto.
+        * wtf/HashTraits.h:
+        (WTF::): Updated HashTraits for HashTable change.
+
+2008-07-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Make RegisterFile really unmap memory on destruction.
+
+        This fixes run-webkit-tests --threaded, which ran out of address space in a few seconds.
+
+        * VM/RegisterFile.cpp: (KJS::RegisterFile::~RegisterFile): Unmap all the memory, not just
+        1/4 of it.
+
+        * kjs/JSGlobalObject.h: Don't include RegisterFile.h, so that changes to it don't make
+        half of WebCore rebuild.
+
+        * VM/Machine.h: Don't forward declare RegisterFile, as RegisterFile.h is included already.
+
+        * VM/RegisterFile.h: (KJS::RegisterFile::RegisterFile): Assert that the allocation succeeded.
+
+2008-06-30  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Oliver.
+
+        Correct the documentation for op_put_by_index.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+
 2008-06-30  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
 
         Reviewed by Oliver.

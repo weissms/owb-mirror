@@ -95,6 +95,7 @@
 
 #include <collector.h>
 #include <JSValue.h>
+#include <JSLock.h>
 #include <wtf/HashSet.h>
 #include "InitializeThreading.h"
 
@@ -1284,7 +1285,7 @@ String WebView::stringByEvaluatingJavaScriptFromString(String script)
     if(!scriptExecutionResult)
         return String();
     else if (scriptExecutionResult->isString()) {
-        JSLock lock;
+        JSLock lock(false);
         return scriptExecutionResult->getString();
     }
     return String();

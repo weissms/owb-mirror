@@ -23,6 +23,7 @@
 
 #include "ExecState.h"
 #include "JSGlobalObject.h"
+#include "JSLock.h"
 #include "JSString.h"
 #include "JSValue.h"
 #include "list.h"
@@ -90,9 +91,9 @@ const size_t ALLOCATIONS_PER_COLLECTION = 4000;
 
 static void freeHeap(CollectorHeap*);
 
-Heap::Heap(Machine* machine)
+Heap::Heap(bool isShared)
     : m_markListSet(0)
-    , m_machine(machine)
+    , m_isShared(isShared)
 {
     memset(&primaryHeap, 0, sizeof(CollectorHeap));
     memset(&numberHeap, 0, sizeof(CollectorHeap));
@@ -100,7 +101,7 @@ Heap::Heap(Machine* machine)
 
 Heap::~Heap()
 {
-    JSLock lock;
+    JSLock lock(false);
 
     delete m_markListSet;
     sweep<PrimaryHeap>();
@@ -402,6 +403,10 @@ struct PlatformThread {
     DWORD id;
     HANDLE handle;
 };
+#elif PLATFORM(BAL)
+typedef pthread_t PlatformThread;
+static pthread_mutex_t mutex;
+static pthread_cond_t cond;
 #endif
 
 static inline PlatformThread getCurrentPlatformThread()
@@ -411,6 +416,10 @@ static inline PlatformThread getCurrentPlatformThread()
 #elif PLATFORM(WIN_OS)
     HANDLE threadHandle = pthread_getw32threadhandle_np(pthread_self());
     return PlatformThread(GetCurrentThreadId(), threadHandle);
+#elif PLATFORM(BAL)
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init (&cond, NULL);
+    return pthread_self();
 #endif
 }
 
@@ -439,7 +448,9 @@ static void destroyRegisteredThread(void* data)
 
     // Can't use JSLock convenience object here because we don't want to re-register
     // an exiting thread.
-    JSLock::lock();
+    // JSLock is only used for code simplicity here, as we only need to protect registeredThreads
+    // list manipulation, not JS data structures.
+    JSLock::lock(true);
 
     if (registeredThreads == thread) {
         registeredThreads = registeredThreads->next;
@@ -456,7 +467,7 @@ static void destroyRegisteredThread(void* data)
         ASSERT(t); // If t is NULL, we never found ourselves in the list.
     }
 
-    JSLock::unlock();
+    JSLock::unlock(true);
 
     delete thread;
 }
@@ -468,6 +479,7 @@ static void initializeRegisteredThreadKey()
 
 void Heap::registerThread()
 {
+    // Since registerThread() is only called when using a shared heap, these locks will be real.
     ASSERT(JSLock::lockCount() > 0);
     ASSERT(JSLock::currentThreadIsHoldingLock());
 
@@ -582,6 +594,10 @@ static inline void suspendThread(const PlatformThread& platformThread)
     thread_suspend(platformThread);
 #elif PLATFORM(WIN_OS)
     SuspendThread(platformThread.handle);
+#elif PLATFORM(BAL)
+    pthread_mutex_lock( &mutex );
+    pthread_cond_wait( &cond, &mutex );
+    pthread_mutex_unlock( &mutex );
 #else
 #error Need a way to suspend threads on this platform
 #endif
@@ -593,6 +609,10 @@ static inline void resumeThread(const PlatformThread& platformThread)
     thread_resume(platformThread);
 #elif PLATFORM(WIN_OS)
     ResumeThread(platformThread.handle);
+#elif PLATFORM(BAL)
+    pthread_mutex_lock(&mutex);
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mutex);
 #else
 #error Need a way to resume threads on this platform
 #endif
@@ -618,6 +638,8 @@ typedef arm_thread_state_t PlatformThreadRegisters;
 
 #elif PLATFORM(WIN_OS)&& PLATFORM(X86)
 typedef CONTEXT PlatformThreadRegisters;
+#elif PLATFORM(BAL)
+typedef pthread_attr_t PlatformThreadRegisters;
 #else
 #error Need a thread register struct for this platform
 #endif
@@ -658,6 +680,10 @@ size_t getPlatformThreadRegisters(const PlatformThread& platformThread, Platform
     regs.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL | CONTEXT_SEGMENTS;
     GetThreadContext(platformThread.handle, &regs);
     return sizeof(CONTEXT);
+#elif PLATFORM(BAL)
+    size_t size;
+    pthread_attr_init(&regs);
+    pthread_attr_getstacksize(&regs, &size);
 #else
 #error Need a way to get thread registers on this platform
 #endif
@@ -698,6 +724,8 @@ static inline void* otherThreadStackPointer(const PlatformThreadRegisters& regs)
 // end PLATFORM(DARWIN)
 #elif PLATFORM(X86) && PLATFORM(WIN_OS)
     return (void*)(uintptr_t)regs.Esp;
+#elif PLATFORM(BAL)
+    return (void*)&regs;
 #else
 #error Need a way to get the stack pointer for another thread on this platform
 #endif
@@ -729,7 +757,7 @@ void Heap::markStackObjectsConservatively()
 
 #if USE(MULTIPLE_THREADS)
 
-    if (this == JSGlobalData::sharedInstance().heap) {
+    if (m_isShared) {
 
 #ifndef NDEBUG
         // Forbid malloc during the mark phase. Marking a thread suspends it, so 
@@ -737,6 +765,8 @@ void Heap::markStackObjectsConservatively()
         // suspended while holding the malloc lock.
         fastMallocForbid();
 #endif
+        // It is safe to access the registeredThreads list, because we earlier asserted that locks are being held,
+        // and since this is a shared heap, they are real locks.
         for (Thread* thread = registeredThreads; thread != NULL; thread = thread->next) {
             if (!pthread_equal(thread->posixThread, pthread_self()))
                 markOtherThreadConservatively(thread);
@@ -748,28 +778,48 @@ void Heap::markStackObjectsConservatively()
 #endif
 }
 
+void Heap::setGCProtectNeedsLocking()
+{
+    // Most clients do not need to call this, with the notable exception of WebCore.
+    // Clients that use shared heap have JSLock protection, while others are not supposed
+    // to migrate JS objects between threads. WebCore violates this contract in Database code,
+    // which calls gcUnprotect from a secondary thread.
+    if (!m_protectedValuesMutex)
+        m_protectedValuesMutex.set(new Mutex);
+}
+
 void Heap::protect(JSValue* k)
 {
     ASSERT(k);
-    ASSERT(JSLock::lockCount() > 0);
-    ASSERT(JSLock::currentThreadIsHoldingLock());
+    ASSERT(JSLock::currentThreadIsHoldingLock() || !m_isShared);
 
     if (JSImmediate::isImmediate(k))
         return;
 
-    protectedValues.add(k->asCell());
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->lock();
+
+    m_protectedValues.add(k->asCell());
+
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->unlock();
 }
 
 void Heap::unprotect(JSValue* k)
 {
     ASSERT(k);
-    ASSERT(JSLock::lockCount() > 0);
-    ASSERT(JSLock::currentThreadIsHoldingLock());
+    ASSERT(JSLock::currentThreadIsHoldingLock() || !m_isShared);
 
     if (JSImmediate::isImmediate(k))
         return;
 
-    protectedValues.remove(k->asCell());
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->lock();
+
+    m_protectedValues.remove(k->asCell());
+
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->unlock();
 }
 
 Heap* Heap::heap(const JSValue* v)
@@ -781,12 +831,18 @@ Heap* Heap::heap(const JSValue* v)
 
 void Heap::markProtectedObjects()
 {
-    ProtectCountSet::iterator end = protectedValues.end();
-    for (ProtectCountSet::iterator it = protectedValues.begin(); it != end; ++it) {
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->lock();
+
+    ProtectCountSet::iterator end = m_protectedValues.end();
+    for (ProtectCountSet::iterator it = m_protectedValues.begin(); it != end; ++it) {
         JSCell* val = it->first;
         if (!val->marked())
             val->mark();
     }
+
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->unlock();
 }
 
 template <Heap::HeapType heapType> size_t Heap::sweep()
@@ -908,7 +964,6 @@ bool Heap::collect()
 
     markStackObjectsConservatively();
     markProtectedObjects();
-    m_machine->mark(this);
     if (m_markListSet && m_markListSet->size())
         ArgList::markLists(*m_markListSet);
 
@@ -942,21 +997,36 @@ size_t Heap::globalObjectCount()
 
 size_t Heap::protectedGlobalObjectCount()
 {
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->lock();
+
     size_t count = 0;
     if (JSGlobalObject* head = JSGlobalData::threadInstance().head) {
         JSGlobalObject* o = head;
         do {
-            if (protectedValues.contains(o))
+            if (m_protectedValues.contains(o))
                 ++count;
             o = o->next();
         } while (o != head);
     }
+
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->unlock();
+
     return count;
 }
 
 size_t Heap::protectedObjectCount()
 {
-    return protectedValues.size();
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->lock();
+
+    size_t result = m_protectedValues.size();
+
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->unlock();
+
+    return result;
 }
 
 static const char* typeName(JSCell* val)
@@ -996,9 +1066,15 @@ HashCountedSet<const char*>* Heap::protectedObjectTypeCounts()
 {
     HashCountedSet<const char*>* counts = new HashCountedSet<const char*>;
 
-    ProtectCountSet::iterator end = protectedValues.end();
-    for (ProtectCountSet::iterator it = protectedValues.begin(); it != end; ++it)
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->lock();
+
+    ProtectCountSet::iterator end = m_protectedValues.end();
+    for (ProtectCountSet::iterator it = m_protectedValues.begin(); it != end; ++it)
         counts->add(typeName(it->first));
+
+    if (m_protectedValuesMutex)
+        m_protectedValuesMutex->unlock();
 
     return counts;
 }

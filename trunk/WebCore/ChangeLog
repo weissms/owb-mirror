@@ -1,3 +1,1035 @@
+2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Inspired and reviewed by Mark Rowe.
+
+        Change non-API includes from JavaScriptCore/ to kjs/ and wtf/ to match prevalent style.
+
+        * bindings/objc/ExceptionHandlers.h:
+        * bindings/objc/WebScriptObject.mm:
+        * dom/Document.cpp:
+        * dom/Node.cpp:
+        * page/Frame.cpp:
+        * page/InspectorController.cpp:
+        * page/JavaScriptProfileNode.cpp:
+        * page/mac/FrameMac.mm:
+        * platform/mac/ThreadCheck.mm:
+        * xml/XMLHttpRequest.cpp:
+
+2008-07-02  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Gtk build.
+
+        * plugins/gtk/PluginViewGtk.cpp: Adapt to JSLock API changes.
+        (WebCore::PluginView::paint):
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::stop):
+        (WebCore::PluginView::init):
+
+2008-07-02  Simon Hausmann  <hausmann@webkit.org>
+
+        Build fixes.
+
+        * WebCore.pro: Added plugins/PluginMainThreadScheduler.cpp to the
+        build.
+        * bridge/qt/qt_instance.cpp: Adjust to JSLock API change.
+        * bridge/qt/qt_runtime.cpp: Ditto.
+        (KJS::Bindings::convertValueToQVariant):
+        (KJS::Bindings::convertQVariantToValue):
+        (KJS::Bindings::QtRuntimeMetaMethod::call):
+        (KJS::Bindings::QtRuntimeConnectionMethod::call):
+        (KJS::Bindings::QtConnectionObject::execute):
+        * page/JavaScriptProfileNode.cpp: Inlude kjs/JSValue.h instead of
+        JavaScriptCore/JSValue.h.
+        * plugins/qt/PluginViewQt.cpp: Adjust to JSLock API changes.
+        (WebCore::PluginView::setNPWindowRect): Ditto.
+        (WebCore::PluginView::stop): Ditto.
+        (WebCore::PluginView::init): Ditto.
+
+2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Build fix.
+
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::start):
+        (WebCore::getString):
+        (WebCore::PluginView::performRequest):
+        (WebCore::PluginView::bindingInstance):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::dispatchNPEvent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::stop):
+        Pass false to JSLock and JSLock::DropAllLocks constructors.
+
+2008-07-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        <rdar://problem/5974306> CanvasRenderingContext2D becomes invalid when source canvas element is collected
+
+        In order to fix this we now make the rendering context and the canvas element
+        share the same reference count, ensuring that references to the rendering
+        context will force the canvas element to remain live as well.
+
+        Test: fast/canvas/canvas-longlived-context.html
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::clearPathForDashboardBackwardCompatibilityMode):
+        (WebCore::CanvasRenderingContext2D::createImageData):
+        (WebCore::CanvasRenderingContext2D::getImageData):
+        (WebCore::CanvasRenderingContext2D::putImageData):
+        * html/CanvasRenderingContext2D.h:
+        (WebCore::CanvasRenderingContext2D::create):
+        * html/HTMLCanvasElement.cpp:
+        (WebCore::HTMLCanvasElement::getContext):
+        * html/HTMLCanvasElement.h:
+
+2008-07-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin.
+
+        Disable JSLock for per-thread contexts.
+
+        * bridge/runtime_root.cpp:
+        (KJS::Bindings::RootObject::invalidate):
+        (KJS::Bindings::RootObject::gcProtect):
+        (KJS::Bindings::RootObject::gcUnprotect):
+        Don't lock while calling gcProtect/gcUnprotect, which now has its own implicit lock.
+
+        * storage/Database.cpp: (WebCore::Database::Database): Call Heap::setGCProtectNeedsLocking
+        to indicate that protected value list can be concurrently accessed from multiple threads now.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::loadRequestSynchronously): There is no need to drop the locks here,
+        as fake locks cannot deadlock, and there is no danger that someone will try to take a real
+        JSLock on the main thread while we are waiting for response.
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously): There is no need to explicitly lock
+        around gcProtect/gcUnprotect now.
+        (WebCore::XMLHttpRequest::dropProtection): Access heap directly, rather than via
+        JSGlobalData::threadInstance().
+
+        * bindings/js/GCController.cpp:
+        (WebCore::collect):
+        (WebCore::GCController::gcTimerFired):
+        (WebCore::GCController::garbageCollectNow):
+        (WebCore::GCController::garbageCollectOnAlternateThreadForDebugging):
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        (WebCore::JSCustomSQLStatementCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        (WebCore::JSCustomSQLStatementErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomVoidCallback.cpp:
+        (WebCore::JSCustomVoidCallback::handleEvent):
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::DOMWindowTimer::~DOMWindowTimer):
+        (WebCore::JSDOMWindowBase::clear):
+        (WebCore::JSDOMWindowBase::timerFired):
+        * bindings/js/JSEventCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        (WebCore::JSLazyEventListener::parseCode):
+        * bindings/js/JSNodeFilterCondition.cpp:
+        (WebCore::JSNodeFilterCondition::acceptNode):
+        * bindings/js/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::execute):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate):
+        (WebCore::ScriptController::clear):
+        (WebCore::ScriptController::createHTMLEventHandler):
+        (WebCore::ScriptController::createSVGEventHandler):
+        (WebCore::ScriptController::initScript):
+        (WebCore::ScriptController::updateDocument):
+        * bindings/objc/WebScriptObject.mm:
+        (-[WebScriptObject callWebScriptMethod:withArguments:]):
+        (-[WebScriptObject evaluateWebScript:]):
+        (-[WebScriptObject setValue:forKey:]):
+        (-[WebScriptObject valueForKey:]):
+        (-[WebScriptObject removeWebScriptKey:]):
+        (-[WebScriptObject stringRepresentation]):
+        (-[WebScriptObject webScriptValueAtIndex:]):
+        (-[WebScriptObject setWebScriptValueAtIndex:value:]):
+        (+[WebScriptObject _convertValueToObjcValue:originRootObject:rootObject:]):
+        * bridge/NP_jsobject.cpp:
+        (_NPN_InvokeDefault):
+        (_NPN_Invoke):
+        (_NPN_Evaluate):
+        (_NPN_GetProperty):
+        (_NPN_SetProperty):
+        (_NPN_RemoveProperty):
+        (_NPN_HasProperty):
+        (_NPN_HasMethod):
+        (_NPN_SetException):
+        (_NPN_Enumerate):
+        * bridge/c/c_class.cpp:
+        (KJS::Bindings::CClass::~CClass):
+        (KJS::Bindings::CClass::methodsNamed):
+        (KJS::Bindings::CClass::fieldNamed):
+        * bridge/c/c_instance.cpp:
+        (KJS::Bindings::CInstance::invokeMethod):
+        (KJS::Bindings::CInstance::invokeDefaultMethod):
+        (KJS::Bindings::CInstance::getPropertyNames):
+        * bridge/c/c_runtime.cpp:
+        (KJS::Bindings::CField::valueFromInstance):
+        (KJS::Bindings::CField::setValueToInstance):
+        * bridge/c/c_utility.cpp:
+        (KJS::Bindings::convertValueToNPVariant):
+        (KJS::Bindings::convertNPVariantToValue):
+        * bridge/jni/jni_class.cpp:
+        (JavaClass::JavaClass):
+        (JavaClass::~JavaClass):
+        * bridge/jni/jni_instance.cpp:
+        (JavaInstance::stringValue):
+        * bridge/jni/jni_jsobject.mm:
+        (JavaJSObject::call):
+        (JavaJSObject::eval):
+        (JavaJSObject::getMember):
+        (JavaJSObject::setMember):
+        (JavaJSObject::removeMember):
+        (JavaJSObject::getSlot):
+        (JavaJSObject::setSlot):
+        (JavaJSObject::toString):
+        (JavaJSObject::convertValueToJObject):
+        (JavaJSObject::convertJObjectToValue):
+        * bridge/jni/jni_objc.mm:
+        (KJS::Bindings::dispatchJNICall):
+        * bridge/jni/jni_runtime.cpp:
+        (JavaMethod::signature):
+        * bridge/jni/jni_runtime.h:
+        (KJS::Bindings::JavaString::JavaString):
+        (KJS::Bindings::JavaString::_commonInit):
+        (KJS::Bindings::JavaString::~JavaString):
+        (KJS::Bindings::JavaString::UTF8String):
+        * bridge/jni/jni_utility.cpp:
+        (KJS::Bindings::convertArrayInstanceToJavaArray):
+        (KJS::Bindings::convertValueToJValue):
+        * bridge/npruntime.cpp:
+        (_NPN_GetStringIdentifier):
+        * bridge/objc/objc_instance.mm:
+        (ObjcInstance::moveGlobalExceptionToExecState):
+        (ObjcInstance::invokeMethod):
+        (ObjcInstance::invokeDefaultMethod):
+        (ObjcInstance::setValueOfUndefinedField):
+        (ObjcInstance::getValueOfUndefinedField):
+        * bridge/objc/objc_runtime.mm:
+        (ObjcField::valueFromInstance):
+        (ObjcField::setValueToInstance):
+        * bridge/objc/objc_utility.mm:
+        (KJS::Bindings::convertValueToObjcValue):
+        (KJS::Bindings::convertNSStringToString):
+        (KJS::Bindings::convertObjcValueToValue):
+        * bridge/runtime.cpp:
+        (KJS::Bindings::Instance::createRuntimeObject):
+        * dom/Document.cpp:
+        (WebCore::Document::~Document):
+        * dom/Node.cpp:
+        (WebCore::Node::setDocument):
+        * history/CachedPage.cpp:
+        (WebCore::CachedPage::CachedPage):
+        (WebCore::CachedPage::restore):
+        (WebCore::CachedPage::clear):
+        * html/HTMLPlugInElement.cpp:
+        (WebCore::HTMLPlugInElement::createNPObject):
+        * loader/FrameLoader.cpp:
+        (WebCore::getString):
+        * page/Frame.cpp:
+        (WebCore::Frame::bindingRootObject):
+        (WebCore::Frame::windowScriptNPObject):
+        (WebCore::Frame::clearScriptObjects):
+        * page/InspectorController.cpp:
+        (WebCore::jsStringRef):
+        (WebCore::ConsoleMessage::ConsoleMessage):
+        (WebCore::XMLHttpRequestResource::XMLHttpRequestResource):
+        (WebCore::XMLHttpRequestResource::~XMLHttpRequestResource):
+        (WebCore::getResourceDocumentNode):
+        (WebCore::search):
+        (WebCore::inspectedWindow):
+        (WebCore::wrapCallback):
+        (WebCore::currentCallFrame):
+        (WebCore::profiles):
+        (WebCore::InspectorController::focusNode):
+        (WebCore::InspectorController::addDatabaseScriptResource):
+        (WebCore::InspectorController::addScriptProfile):
+        * page/JavaScriptCallFrame.cpp:
+        (WebCore::JavaScriptCallFrame::evaluate):
+        * page/JavaScriptProfileNode.cpp:
+        (WebCore::getTotalTime):
+        (WebCore::getSelfTime):
+        (WebCore::getTotalPercent):
+        (WebCore::getSelfPercent):
+        (WebCore::getNumberOfCalls):
+        (WebCore::getChildren):
+        (WebCore::getVisible):
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::windowScriptObject):
+        Pass a parameter (always false) to JSLock and JSLock::DropAllLocks to indicate that WebCore
+        doesn't need locking. In the future, it may be possible to remove some of these if we
+        establish that this won't make JSC assertions fail (and that we don't want to add such
+        assertions either).
+        Added includes that are now needed.
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - fix a CSSParserValueList leak seen on the build bot
+
+        * css/CSSParser.cpp:
+        (WebCore::BorderImageParseContext::commitBorderImage):
+
+2008-07-01  Alex Mathews  <possessedpenguinbob@gmail.com>
+
+        Reviewed by Oliver Hunt.
+
+        Prep for more Filter class name changes. Added the first few files for
+        the new Filter architecture to come.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * svg/Filter.cpp: Added.
+        (WebCore::Filter::Filter):
+        (WebCore::Filter::create):
+        * svg/Filter.h: Added.
+        * svg/FilterBuilder.h: Added.
+        (WebCore::FilterBuilder::add):
+        (WebCore::FilterBuilder::getEffectById):
+        (WebCore::FilterBuilder::filter):
+        * svg/FilterEffect.cpp: Added.
+        (WebCore::FilterEffect::FilterEffect):
+        (WebCore::FilterEffect::~FilterEffect):
+        * svg/FilterEffect.h: Added.
+
+2008-07-01  Christian Dywan  <christian@twotoasts.de>
+
+        Gtk+ build fix.
+
+        * GNUmakefile.am: add WebCore/plugins/PluginMainThreadScheduler.cpp
+
+2008-07-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        Add PluginMainThreadScheduler.{cpp|h} to build.
+        
+        * WebCore.base.exp:
+        * WebCore.xcodeproj/project.pbxproj:
+        * plugins/PluginMainThreadScheduler.cpp:
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - move the method to set the base writing direction from Frame to Editor
+
+        * WebCore.base.exp: Updated.
+        * editing/Editor.cpp:
+        (WebCore::Editor::setBaseWritingDirection): Changed the parameter to a
+        WritingDirection enum value and added the special behavior when the
+        focused node is a text field or a text area.
+        * editing/Editor.h:
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::contextMenuItemSelected): Changed back
+        to call the Editor method.
+        * page/Frame.cpp: Removed setSelectionBaseWritingDirection().
+        * page/Frame.h:
+
+2008-07-01  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver.
+
+        - slight tweak of the setHash fix
+
+        * bindings/js/JSLocationCustom.cpp:
+        (WebCore::JSLocation::setHash): Use oldRef instead of recomputing url.ref().
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - Mac release build fix
+
+        * page/Console.cpp:
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - fix <rdar://problem/6045896> REGRESSION: Leak in WebCore::StringImpl::create
+
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cleanup):
+
+2008-07-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Jon.
+
+        Don't add the Mozilla user agent quirk for Flash 10.
+        
+        * plugins/win/PluginPackageWin.cpp:
+        (WebCore::PluginPackage::isPluginBlacklisted):
+        (WebCore::PluginPackage::determineQuirks):
+
+2008-07-01  David Kilzer  <ddkilzer@apple.com>
+
+        Move data: URL parsing code in HTMLObjectElement to KURL
+
+        Reviewed by Ada and Darin.
+
+        No test cases added since there is no change in behavior.
+
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::isImageType): Extracted data: URL
+        parsing code into WebCore::mimeTypeFromDataURL() in KURL.cpp.
+        * platform/KURL.cpp:
+        (WebCore::mimeTypeFromDataURL): Added.
+        * platform/KURL.h:
+        (WebCore::mimeTypeFromDataURL): Added.
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6045890> REGRESSION: Leak in WebCore::CSSParser::createFloatingValueList()
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::addUnresolvedProperty):
+
+2008-07-01  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Brady Eidson.
+
+        Bug 19822: REGRESSION (r30243): setting location.hash to "#" causes a reload
+        <https://bugs.webkit.org/show_bug.cgi?id=19822>
+
+        Change JSLocation::setHash() to not schedule navigation in the case
+        where the old fragment is the null String and the new fragment is an
+        empty String.
+
+        * bindings/js/JSLocationCustom.cpp:
+        (WebCore::JSLocation::setHash):
+
+2008-06-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam.
+
+        Add PluginMainThreadScheduler, a singleton which is responsible for scheduling plug-in 
+        callbacks on the main thread. Use this to implement NPN_PluginThreadAsyncCall on Windows.
+        
+        * WebCore.vcproj/WebCore.vcproj:
+        Add PluginMainThreadScheduler.{cpp|h}
+        
+        * plugins/PluginMainThreadScheduler.cpp: Added.
+        * plugins/PluginMainThreadScheduler.h: Added.
+
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::start):
+        Register with the thread scheduler.
+        
+        * plugins/npapi.cpp:
+        (NPN_PluginThreadAsyncCall):
+        Call the thread scheduler.
+        
+        * plugins/win/PluginPackageWin.cpp:
+        (WebCore::PluginPackage::load):
+        Initialize the NPN_PluginThreadAsyncCall callback.
+        
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::stop):
+        Unregister with the scheduler. This makes sure that we won't try to deliver callbacks
+        after the plug-in has been destroyed.
+
+2008-07-01  Adam Roben  <aroben@apple.com>
+
+        Roll out r34913, as it broke the Windows build due to bad casting
+
+        r34913 introduced code that assigned pointers-to-member from a derived
+        class into a base class pointer-to-member type (e.g., assigned a void
+        (SVGUseElement::*)() into a void (SVGElement::*)()). This is bad
+        because it could allow us to call SVGUseElement member functions on a
+        different SVGElement-derived class. MSVC rightly flagged this as an
+        error.
+
+        Rubberstamped by Anders Carlsson.
+
+2008-07-01  Darin Adler  <darin@apple.com>
+
+        - fix build
+
+        * bindings/scripts/CodeGeneratorJS.pm: Fix warnings that indicate this was
+        not working propertly.
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6045893> REGRESSION: Leak in WebCore::HTMLCanvasElement::createPlatformImage() const
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::createPattern):
+
+2008-07-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Split JSCell and JSNumberCell class declarations out of JSValue.h
+
+        * ForwardingHeaders/kjs/JSNumberCell.h: Added.
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/c/c_instance.cpp:
+
+2008-07-01  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        <rdar://problem/6041580> REGRESSION: AX: AXSize of radio buttons is 0,0
+
+        Test: accessibility/radio-button-checkbox-size.html
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::checkboxOrRadioRect):
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        - fix SVG pointer-events layout test failures
+
+        * css/SVGCSSParser.cpp:
+        (WebCore::CSSParser::parseSVGValue):
+
+2008-07-01  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Antti.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=19841
+        Fix two small problems in the gradient & pattern code.
+
+        Added 12 new layout tests: svg/dynamic-updates/SVGLinearGradientElement*.html
+
+        * svg/SVGLinearGradientElement.cpp:
+        (WebCore::SVGLinearGradientElement::collectGradientProperties): Compare against already computed bounding box information, instead of querying attributes.
+        * svg/SVGPatternElement.cpp:
+        (WebCore::SVGPatternElement::collectPatternProperties): Ditto.
+        * svg/SVGRadialGradientElement.cpp:
+        (WebCore::SVGRadialGradientElement::collectGradientProperties): Ditto.
+        (WebCore::SVGRadialGradientElement::svgAttributeChanged): 'fxAttr' updating wasn't handled. Copy'n'paste error.
+
+2008-07-01  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the build, include SVGTransformList.h instead of
+        SVGTransformlist.h
+
+        * svg/SVGGradientElement.h:
+
+2008-07-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Antti.
+
+        <rdar://problem/6033080> REGRESSION: Some CH characters display as garbage on webpage for
+        the first time.
+
+        Test: fast/encoding/preload-encoding.html
+
+        * html/PreloadScanner.cpp:
+        (WebCore::PreloadScanner::tokenize): Reset charset when entering a tag, not just when
+        starting a load.
+
+2008-07-01  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Antti & Eric.
+
+        Fixes: http://bugs.webkit.org/show_bug.cgi?id=17779 (SVG 1.1 Errata demands "SVG JavaScript Liveness" support)
+
+        SVG Errata states: "All SVG DOM objects that directly correspond to an
+        attribute, e.g. the SVGAnimatedLength 'ry' in an SVGRectElement, are live. This
+        means that any changes made to the attribute are immediately reflected in the
+        corresponding SVG DOM object." (see linked URL on bug report)
+
+        Until now only XML -> SVG DOM changes took affect, aka. changing the 'rx' attribute of a <rect>
+        element resuted in changes when accessing 'rx' through SVG DOM (rx.baseVal.value).
+
+        Add a new synchronization layer to handle SVG DOM -> XML changes.
+
+        Global macro change #1: ANIMATED_PROPERTY_FORWARD_DECLARATIONS contains the class name where it's defined as first parameter.
+        Global macro change #2: Add ANIMATED_PROPERTY_START_DECLARATIONS to all direct base-classes.
+        Global macro change #3: Rename ANIMATED_PROPERTY_DEFINITIONS to ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED for refcounted types (ie. SVGTransformList*).
+
+        Added test: svg/custom/svg-xml-dom-sync.html
+        Fixed test: svg/hixie/dynamic/005-broken.xml (renamed to 005.xml)
+
+        * dom/Element.cpp:
+        (WebCore::Element::Element): Initialize the two new bits.
+        (WebCore::Element::attributes): Add hooks to call into SVG attribute synchronization code, wrapped in ENABLE(SVG) blocks.
+        (WebCore::Element::getAttribute): Ditto.
+        (WebCore::Element::hasAttributes): Ditto.
+        * dom/Element.h: Add two bits: m_synchronizedSVGAttributes/m_synchronizingSVGAttribute, to track synchronization status.
+        (WebCore::Element::updateAnimatedSVGAttribute): New virtual function, handling the synronication, similar to updateStyleAttribute.
+        * dom/NamedAttrMap.h: Make addAttribute/removeAttribute protected, from use within the ANIMATED_* macros.
+        * svg/SVGAElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGAElement::contextElement): Return non-const value.
+        * svg/SVGAltGlyphElement.h:
+        (WebCore::SVGAltGlyphElement::contextElement): Ditto.
+        * svg/SVGAnimateElement.h:
+        (WebCore::SVGAnimateElement::contextElement): Ditto.
+        * svg/SVGAnimateMotionElement.h:
+        (WebCore::SVGAnimateMotionElement::contextElement): Ditto.
+        * svg/SVGAnimateTransformElement.h:
+        (WebCore::SVGAnimateTransformElement::contextElement): Ditto.
+        * svg/SVGAnimatedTemplate.h: Add toString() conversion to all SVGAnimated* classes
+        (WebCore::SVGAnimatedTemplate::toString):
+        (WebCore::SVGAnimatedTemplate::associatedAttributeName):
+        (WebCore::lookupOrCreateWrapper):
+        (WebCore::SVGAnimatedAngle::SVGAnimatedAngle): 
+        (WebCore::SVGAnimatedAngle::toString):
+        (WebCore::SVGAnimatedBoolean::SVGAnimatedBoolean):
+        (WebCore::SVGAnimatedBoolean::toString):
+        (WebCore::SVGAnimatedEnumeration::SVGAnimatedEnumeration):
+        (WebCore::SVGAnimatedEnumeration::toString):
+        (WebCore::SVGAnimatedInteger::SVGAnimatedInteger):
+        (WebCore::SVGAnimatedInteger::toString):
+        (WebCore::SVGAnimatedLength::SVGAnimatedLength):
+        (WebCore::SVGAnimatedLength::toString):
+        (WebCore::SVGAnimatedLengthList::SVGAnimatedLengthList):
+        (WebCore::SVGAnimatedLengthList::toString):
+        (WebCore::SVGAnimatedNumber::SVGAnimatedNumber):
+        (WebCore::SVGAnimatedNumber::toString):
+        (WebCore::SVGAnimatedNumberList::SVGAnimatedNumberList):
+        (WebCore::SVGAnimatedNumberList::toString):
+        (WebCore::SVGAnimatedPreserveAspectRatio::SVGAnimatedPreserveAspectRatio):
+        (WebCore::SVGAnimatedPreserveAspectRatio::toString):
+        (WebCore::SVGAnimatedRect::SVGAnimatedRect):
+        (WebCore::SVGAnimatedRect::toString):
+        (WebCore::SVGAnimatedString::SVGAnimatedString):
+        (WebCore::SVGAnimatedString::toString):
+        (WebCore::SVGAnimatedTransformList::SVGAnimatedTransformList):
+        (WebCore::SVGAnimatedTransformList::toString):
+        (WebCore::SVGAnimatedType::SVGAnimatedType):
+        * svg/SVGAnimationElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        * svg/SVGCircleElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGCircleElement::contextElement): Return non-const value.
+        * svg/SVGClipPathElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGClipPathElement::contextElement): Return non-const value.
+        * svg/SVGComponentTransferFunctionElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGComponentTransferFunctionElement.h: Add ANIMATED_PROPERTY_START_DECLARATIONS, as this class is a base class.
+        * svg/SVGCursorElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGCursorElement::SVGCursorElement):
+        * svg/SVGCursorElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS. Add ANIMATED_PROPERTY_START_DECLARATIONS.
+        (WebCore::SVGCursorElement::contextElement): Return non-const value.
+        * svg/SVGDefsElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGDefsElement::contextElement): Return non-const value.
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::updateAnimatedSVGAttribute): Override virtual function from Element, to handle SVG<->XML DOM synchronization.
+        (WebCore::SVGElement::setSynchronizedSVGAttributes):
+        * svg/SVGElement.h: Add helper class "StoredTypeWithDirtyFlag".
+        (StoredTypeWithDirtyFlag::StoredTypeWithDirtyFlag): Tracks a type and a flag indicating that SVG<->XML DOM synchronization has to be done.
+        (StoredTypeWithDirtyFlag::operator=):
+        (StoredTypeWithDirtyFlag::operator==):
+        (StoredTypeWithDirtyFlag::operator!=):
+        (StoredTypeWithDirtyFlag::operator StoredType):
+        (WebCore::SVGElement::invokeSVGPropertySynchronizer): New set of functions taking care of invoking the update handlers.
+        (WebCore::SVGElement::invokeAllSVGPropertySynchronizers): Ditto.
+        (WebCore::SVGElement::addSVGPropertySynchronizer): Ditto.
+        * svg/SVGEllipseElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGEllipseElement::SVGEllipseElement):
+        * svg/SVGEllipseElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGEllipseElement::contextElement): Return non-const value.
+        * svg/SVGExternalResourcesRequired.h: Change contextElement() to return a non-const value.
+        * svg/SVGFEBlendElement.h:
+        (WebCore::SVGFEBlendElement::contextElement): Return non-const value.
+        * svg/SVGFEColorMatrixElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGFEColorMatrixElement.h:
+        (WebCore::SVGFEColorMatrixElement::contextElement): Return non-const value.
+        * svg/SVGFEComponentTransferElement.h:
+        (WebCore::SVGFEComponentTransferElement::contextElement): Return non-const value.
+        * svg/SVGFECompositeElement.h:
+        (WebCore::SVGFECompositeElement::contextElement): Return non-const value.
+        * svg/SVGFEDiffuseLightingElement.h:
+        (WebCore::SVGFEDiffuseLightingElement::contextElement): Return non-const value.
+        * svg/SVGFEDisplacementMapElement.h:
+        (WebCore::SVGFEDisplacementMapElement::contextElement): Return non-const value.
+        * svg/SVGFEFloodElement.h:
+        (WebCore::SVGFEFloodElement::contextElement): Return non-const value.
+        * svg/SVGFEGaussianBlurElement.h:
+        (WebCore::SVGFEGaussianBlurElement::contextElement): Return non-const value.
+        * svg/SVGFEImageElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGFEImageElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGFEImageElement::contextElement): Return non-const value.
+        * svg/SVGFELightElement.h: Add ANIMATED_PROPERTY_START_DECLARATIONS, as this is a base class.
+        * svg/SVGFEMergeElement.h:
+        (WebCore::SVGFEMergeElement::contextElement): Return non-const value.
+        * svg/SVGFEMergeNodeElement.h: Add ANIMATED_PROPERTY_START_DECLARATIONS, as this is a base class.
+        (WebCore::SVGFEMergeNodeElement::contextElement): Return non-const value.
+        * svg/SVGFEOffsetElement.h:
+        (WebCore::SVGFEOffsetElement::contextElement): Return non-const value.
+        * svg/SVGFESpecularLightingElement.h:
+        (WebCore::SVGFESpecularLightingElement::contextElement): Return non-const value.
+        * svg/SVGFETileElement.h:
+        (WebCore::SVGFETileElement::contextElement): Return non-const value.
+        * svg/SVGFETurbulenceElement.h:
+        (WebCore::SVGFETurbulenceElement::contextElement): Return non-const value.
+        * svg/SVGFilterElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGFilterElement::SVGFilterElement):
+        * svg/SVGFilterElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGFilterElement::contextElement): Return non-const value.
+        * svg/SVGFilterPrimitiveStandardAttributes.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGFilterPrimitiveStandardAttributes::SVGFilterPrimitiveStandardAttributes):
+        * svg/SVGFilterPrimitiveStandardAttributes.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGFilterPrimitiveStandardAttributes::contextElement): Return non-const value.
+        * svg/SVGFitToViewBox.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGFitToViewBox.h: Change contextElement() to return a non-const value.
+        * svg/SVGFontElement.h:
+        (WebCore::SVGFontElement::contextElement): Return non-const value.
+        * svg/SVGForeignObjectElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGForeignObjectElement::SVGForeignObjectElement):
+        * svg/SVGForeignObjectElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGForeignObjectElement::contextElement): Return non-const value.
+        * svg/SVGGElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGGElement::contextElement): Return non-const value.
+        * svg/SVGGradientElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGGradientElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        * svg/SVGImageElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change. Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGImageElement::SVGImageElement):
+        * svg/SVGImageElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGImageElement::contextElement): Return non-const value.
+        * svg/SVGLengthList.cpp:
+        (WebCore::SVGLengthList::valueAsString): Add new function converting SVG values to strings.
+        * svg/SVGLengthList.h:
+        * svg/SVGLineElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGLineElement::SVGLineElement):
+        * svg/SVGLineElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGLineElement::contextElement): Return non-const value.
+        * svg/SVGLinearGradientElement.cpp:
+        (WebCore::SVGLinearGradientElement::SVGLinearGradientElement): Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGLinearGradientElement::collectGradientProperties):
+        * svg/SVGLinearGradientElement.h:
+        (WebCore::SVGLinearGradientElement::contextElement): Return non-const value.
+        * svg/SVGMPathElement.h:
+        (WebCore::SVGMPathElement::contextElement): Return non-const value.
+        * svg/SVGMarkerElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change. Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGMarkerElement::SVGMarkerElement):
+        * svg/SVGMarkerElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGMarkerElement::contextElement): Return non-const value.
+        * svg/SVGMaskElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGMaskElement::SVGMaskElement):
+        * svg/SVGMaskElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGMaskElement::contextElement): Return non-const value.
+        * svg/SVGNumberList.cpp:
+        (WebCore::SVGNumberList::valueAsString): Add new function converting SVG values to strings.
+        * svg/SVGNumberList.h:
+        * svg/SVGPathElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGPathElement::contextElement): Return non-const value.
+        * svg/SVGPatternElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change. Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGPatternElement::SVGPatternElement):
+        (WebCore::SVGPatternElement::collectPatternProperties):
+        * svg/SVGPatternElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGPatternElement::contextElement): Return non-const value.
+        * svg/SVGPolyElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGPolyElement::contextElement): Return non-const value.
+        * svg/SVGPreserveAspectRatio.cpp:
+        (WebCore::SVGPreserveAspectRatio::valueAsString): Add new function converting SVG values to strings.
+        * svg/SVGPreserveAspectRatio.h:
+        * svg/SVGRadialGradientElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGRadialGradientElement::SVGRadialGradientElement):
+        (WebCore::SVGRadialGradientElement::svgAttributeChanged):
+        (WebCore::SVGRadialGradientElement::collectGradientProperties):
+        * svg/SVGRadialGradientElement.h:
+        (WebCore::SVGRadialGradientElement::contextElement): Return non-const value.
+        * svg/SVGRectElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGRectElement::SVGRectElement):
+        * svg/SVGRectElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGRectElement::contextElement): Return non-const value.
+        * svg/SVGSVGElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGSVGElement::SVGSVGElement):
+        (WebCore::SVGSVGElement::currentView): Pass non-const SVGSVGElement* object to SVGViewSpec.
+        * svg/SVGSVGElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGSVGElement::contextElement): Return non-const value.
+        * svg/SVGScriptElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGScriptElement::contextElement): Return non-const value.
+        * svg/SVGStyledElement.h: Add ANIMATED_PROPERTY_START_DECLARATIONS, as this is a base class.
+        * svg/SVGStyledTransformableElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGStyledTransformableElement.h:
+        * svg/SVGSwitchElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGSwitchElement::contextElement): Return non-const value.
+        * svg/SVGSymbolElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGSymbolElement::contextElement): Return non-const value.
+        * svg/SVGTRefElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGTRefElement::contextElement): Return non-const value.
+        * svg/SVGTSpanElement.h:
+        (WebCore::SVGTSpanElement::contextElement): Return non-const value.
+        * svg/SVGTextContentElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGTextContentElement::SVGTextContentElement):
+        * svg/SVGTextContentElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        * svg/SVGTextElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGTextElement.h:
+        (WebCore::SVGTextElement::contextElement): Return non-const value.
+        * svg/SVGTextPathElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGTextPathElement::SVGTextPathElement):
+        * svg/SVGTextPathElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGTextPathElement::contextElement): Return non-const value.
+        * svg/SVGTextPositioningElement.cpp: Apply ANIMATED_PROPERTY_DEFINITIONS_REFCOUNTED change.
+        * svg/SVGTextPositioningElement.h:
+        * svg/SVGTransformList.cpp:
+        (SVGTransformList::valueAsString): Add new function converting SVG values to strings.
+        * svg/SVGTransformList.h:
+        * svg/SVGURIReference.h: Change contextElement() to return a non-const value.
+        * svg/SVGUseElement.cpp: Wrap SVGLength objects in SVGLength() statements.
+        (WebCore::SVGUseElement::SVGUseElement):
+        * svg/SVGUseElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGUseElement::contextElement): Return non-const value.
+        * svg/SVGViewElement.h: Apply global macro change for ANIMATED_PROPERTY_FORWARD_DECLARATIONS.
+        (WebCore::SVGViewElement::contextElement): Return non-const value.
+        * svg/SVGViewSpec.cpp:
+        (WebCore::SVGViewSpec::SVGViewSpec): Pass non-const context element in constructor.
+        (WebCore::SVGViewSpec::contextElement): Return non-const value.
+        * svg/SVGViewSpec.h:
+
+2008-07-01  Alex Mathews  <possessedpenguinbob@gmail.com>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Class name changes for SVG Light Effect files. The class names that changed :
+
+        SVGLightSource -> LightSource
+        SVGDistantLightSource -> DistantLightSource
+        SVGPointLightSource -> PointLightSource
+        SVGSpotLightSource -> SpotLightSource
+
+        Every other file that is changed is just propagating the class name changes to
+        dependent files.
+
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        (WebCore::SVGFEDiffuseLightingElement::updateLights):
+        * svg/SVGFEDistantLightElement.cpp:
+        (WebCore::SVGFEDistantLightElement::lightSource):
+        * svg/SVGFEDistantLightElement.h:
+        * svg/SVGFELightElement.h:
+        * svg/SVGFEPointLightElement.cpp:
+        (WebCore::SVGFEPointLightElement::lightSource):
+        * svg/SVGFEPointLightElement.h:
+        * svg/SVGFESpecularLightingElement.cpp:
+        (WebCore::SVGFESpecularLightingElement::updateLights):
+        * svg/SVGFESpotLightElement.cpp:
+        (WebCore::SVGFESpotLightElement::lightSource):
+        * svg/SVGFESpotLightElement.h:
+        * svg/graphics/filters/SVGDistantLightSource.h:
+        (WebCore::DistantLightSource::DistantLightSource):
+        (WebCore::DistantLightSource::azimuth):
+        (WebCore::DistantLightSource::elevation):
+        * svg/graphics/filters/SVGFEDiffuseLighting.cpp:
+        (WebCore::SVGFEDiffuseLighting::lightSource):
+        (WebCore::SVGFEDiffuseLighting::setLightSource):
+        * svg/graphics/filters/SVGFEDiffuseLighting.h:
+        * svg/graphics/filters/SVGFESpecularLighting.cpp:
+        (WebCore::SVGFESpecularLighting::lightSource):
+        (WebCore::SVGFESpecularLighting::setLightSource):
+        * svg/graphics/filters/SVGFESpecularLighting.h:
+        * svg/graphics/filters/SVGLightSource.cpp:
+        (WebCore::PointLightSource::externalRepresentation):
+        (WebCore::SpotLightSource::externalRepresentation):
+        (WebCore::DistantLightSource::externalRepresentation):
+        * svg/graphics/filters/SVGLightSource.h:
+        (WebCore::):
+        (WebCore::LightSource::LightSource):
+        (WebCore::LightSource::~LightSource):
+        (WebCore::LightSource::type):
+        * svg/graphics/filters/SVGPointLightSource.h:
+        (WebCore::PointLightSource::PointLightSource):
+        (WebCore::PointLightSource::position):
+        * svg/graphics/filters/SVGSpotLightSource.h:
+        (WebCore::SpotLightSource::SpotLightSource):
+        (WebCore::SpotLightSource::position):
+        (WebCore::SpotLightSource::direction):
+        (WebCore::SpotLightSource::specularExponent):
+        (WebCore::SpotLightSource::limitingConeAngle):
+        * svg/graphics/filters/cg/SVGFEDiffuseLightingCg.mm:
+        (WebCore::SVGFEDiffuseLighting::getCIFilter):
+        * svg/graphics/filters/cg/SVGFEHelpersCg.h:
+        * svg/graphics/filters/cg/SVGFEHelpersCg.mm:
+        (WebCore::getLightVectors):
+        * svg/graphics/filters/cg/SVGFESpecularLightingCg.mm:
+        (WebCore::SVGFESpecularLighting::getCIFilter):
+
+2008-07-01  Alp Toker  <alp@nuanti.com>
+
+        Rubber-stamped by Holger.
+
+        autotools cleanup: move some GTK+-specific sources from libwebcore to
+        libwebcoregtk.
+
+        * GNUmakefile.am:
+
+2008-07-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - fix the non-SVG build
+
+        * css/CSSValueKeywords.in: Added 'all'.
+        * css/SVGCSSValueKeywords.in: Removed 'all'.
+
+2008-07-01  Simon Hausmann  <hausmann@webkit.org>
+
+        Build fix, include DateInstance.h.
+
+        * bridge/qt/qt_runtime.cpp:
+
+2008-06-30  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Oliver.
+
+        Fix for <rdar://problem/5882050> clicking in hidden close box area of empty searchfield causes mousedown to stop firing
+
+        Test: fast/forms/search-hidden-cancel-button.html
+
+        * html/HTMLTextFieldInnerElement.cpp: (WebCore::HTMLSearchFieldCancelButtonElement::defaultEventHandler):
+          Don't start capturing mouse events if the cancel button isn't visible.  This was causing the button to start but never stop capturing mouse events.
+
+2008-06-30  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Split InternalFunction into its own header file.
+
+        * ForwardingHeaders/kjs/InternalFunction.h: Added.
+        * bridge/runtime_method.h:
+
+2008-06-30  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Anders.
+
+        Fix for <rdar://problem/5301322> REGRESSION: Select All selects the whole page when used in readonly textareas
+
+        Test: editing/selection/select-all-textarea.html
+
+        * dom/Node.cpp:
+        (WebCore::Node::shadowAncestorNode): Break out code to find the root of the shadow tree into a new helper function.
+        (WebCore::Node::shadowTreeRootNode): Added helper function.
+        * dom/Node.h:
+        * dom/Range.cpp: (WebCore::Range::shadowTreeRootNode): Added helper function.
+        * dom/Range.h:
+        * editing/Selection.cpp: (WebCore::Selection::shadowTreeRootNode): ditto.
+        * editing/Selection.h:
+        * editing/SelectionController.h: (WebCore::SelectionController::shadowTreeRootNode): ditto.
+        * editing/SelectionController.cpp: (WebCore::SelectionController::selectAll):
+        If the selection is in a shadow tree, only select the contents of that shadow tree, not the whole document.
+        * page/Frame.cpp:
+        (WebCore::Frame::findString): Use the new shadowTreeRootNode helper functions.
+        (WebCore::Frame::markAllMatchesForText): ditto.
+
+2008-06-30  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        <rdar://problem/4180780> Add attribute to get all the radio buttons in a set
+
+        * page/AccessibilityObject.cpp:
+        (WebCore::AccessibilityObject::linkedUIElements):
+        * page/AccessibilityObject.h:
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::internalLinkElement):
+        (WebCore::AccessibilityRenderObject::addRadioButtonGroupMembers):
+        (WebCore::AccessibilityRenderObject::linkedUIElements):
+        * page/AccessibilityRenderObject.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityAttributeValue:]):
+
+2008-06-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        - WebCore part of <rdar://problem/3881497> Writing direction context menu item has no effect on text typed in Safari
+
+        * WebCore.base.exp: Removed Editor::setBaseWritingDirection() and added
+        Frame::setSelectionBaseWritingDirection().
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::contextMenuItemSelected): Changed to
+        call Frame::setSelectionBaseWritingDirection().
+        * page/Frame.cpp:
+        (WebCore::Frame::setSelectionBaseWritingDirection): Added. If the
+        focused node is a text field or text area, changes its 'dir' attribute.
+        This is what IE does when the user changes the writing direction in a
+        text control. Otherwise, calls down to Editor::setBaseWritingDirection().
+        * page/Frame.h:
+
+2008-06-30  David Kilzer  <ddkilzer@apple.com>
+
+        Improve HTMLObjectElement data encapsulation
+
+        Reviewed by Dave Hyatt.
+
+        HTMLObjectElement has some public member variables that should be
+        private with accessor methods.
+
+        No test cases added since there is no change in behavior.
+
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::HTMLObjectElement): Reorder
+        initialization of member variables to match defined order in header.
+        * html/HTMLObjectElement.h:
+        (WebCore::HTMLObjectElement::classId): Added.
+        (WebCore::HTMLObjectElement::url): Added.
+        (WebCore::HTMLObjectElement::serviceType): Added.
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::updateWidget): Use new accessor methods
+        in HTMLObjectElement now that its member variables are private.
+
+2008-06-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - remove unused member variable
+
+        * page/Page.h: Removed Page::m_focusedNode.
+
+2008-06-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam.
+
+        <rdar://problem/6014209>
+        Crash when loading manifest from application cache fails
+        
+        There is no need to set any handles to 0 after calling cacheUpdateFailed(), since
+        that is done inside the function. Furthermore, after calling cacheUpdateFailed() the cache
+        group could be deleted causing us to access freed memory and then crashing.
+        
+        * loader/appcache/ApplicationCacheGroup.cpp:
+        (WebCore::ApplicationCacheGroup::didReceiveResponse):
+        (WebCore::ApplicationCacheGroup::didFail):
+        (WebCore::ApplicationCacheGroup::didFailToLoadManifest):
+
+2008-06-30  Adam Roben  <aroben@apple.com>
+
+        Fix <rdar://5954749> Assertion failure due to HashTable's use of
+        operator&
+
+        Reviewed by Ada Chan.
+
+        * bindings/js/JSSVGPODTypeWrapper.h:
+        * dom/Document.h:
+        * dom/StyledElement.cpp:
+        * platform/graphics/FontCache.cpp:
+        * platform/graphics/IntSizeHash.h:
+        (WTF::):
+        * platform/text/StringHash.h:
+        * platform/win/COMPtr.h:
+        * svg/SVGAnimatedTemplate.h:
+        Updated all custom HashTraits for HashTable changes.
+
+2008-06-30  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build.
+
+        Added missing includes and changed getItem array calls to use get()
+        instead.
+
+        * bridge/qt/qt_runtime.cpp:
+        (KJS::Bindings::convertValueToQVariant):
+
 2008-06-30  David Smith  <catfish.man@gmail.com>
 
         Rubberstamped by Sam Weinig.

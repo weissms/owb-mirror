@@ -93,7 +93,7 @@ namespace KJS {
             CallerCodeBlock = 0,
             ReturnVPC,
             CallerScopeChain,
-            CallerRegisterOffset,
+            CallerRegisters,
             ReturnValueRegister,
             ArgumentStartRegister,
             ArgumentCount,
@@ -120,9 +120,11 @@ namespace KJS {
             size_t bufferLength = (capacity + maxGlobals) * sizeof(Register);
 #if HAVE(MMAP)
             m_buffer = static_cast<Register*>(mmap(0, bufferLength, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0));
+            ASSERT(reinterpret_cast<intptr_t>(m_buffer) != -1);
 #elif HAVE(VIRTUALALLOC)
             // FIXME: Use VirtualAlloc, and commit pages as we go.
             m_buffer = static_cast<Register*>(fastMalloc(bufferLength));
+            ASSERT(m_buffer);
 #else
             #error "Don't know how to reserve virtual memory on this platform."
 #endif
@@ -131,8 +133,7 @@ namespace KJS {
 
         ~RegisterFile();
 
-        // Pointer to a value that holds the base of this register file.
-        Register** basePointer() { return &m_base; }
+        Register* base() const { return m_base; }
         
         void setGlobalObject(JSGlobalObject* globalObject) { m_globalObject = globalObject; }
         JSGlobalObject* globalObject() { return m_globalObject; }
@@ -171,9 +172,9 @@ namespace KJS {
 
     private:
         size_t m_size;
-        size_t m_capacity;
+        const size_t m_capacity;
         size_t m_numGlobals;
-        size_t m_maxGlobals;
+        const size_t m_maxGlobals;
         Register* m_base;
         Register* m_buffer;
         JSGlobalObject* m_globalObject; // The global object whose vars are currently stored in the register file.

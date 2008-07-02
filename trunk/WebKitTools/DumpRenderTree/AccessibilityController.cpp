@@ -63,6 +63,27 @@ static JSValueRef descriptionOfFocusedElementCallback(JSContextRef context, JSOb
     return JSValueMakeString(context, description.get());
 }
 
+static JSValueRef attributesOfLinkedUIElementsForFocusedElementCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    AccessibilityController* controller = reinterpret_cast<AccessibilityController*>(JSObjectGetPrivate(thisObject));
+    JSRetainPtr<JSStringRef> linkedUIDescription(Adopt, controller->attributesOfLinkedUIElementsForFocusedElement());
+    return JSValueMakeString(context, linkedUIDescription.get());
+}
+
+static JSValueRef widthOfFocusedElementCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    AccessibilityController* controller = reinterpret_cast<AccessibilityController*>(JSObjectGetPrivate(thisObject));
+    double width = controller->widthOfFocusedElement();
+    return JSValueMakeNumber(context, width);
+}
+
+static JSValueRef heightOfFocusedElementCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    AccessibilityController* controller = reinterpret_cast<AccessibilityController*>(JSObjectGetPrivate(thisObject));
+    double height = controller->heightOfFocusedElement();
+    return JSValueMakeNumber(context, height);
+}
+
 // Object Creation
 
 void AccessibilityController::makeWindowObject(JSContextRef context, JSObjectRef windowObject, JSValueRef* exception)
@@ -96,6 +117,9 @@ JSStaticFunction* AccessibilityController::staticFunctions()
         { "roleOfFocusedElement", roleOfFocusedElementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "titleOfFocusedElement", titleOfFocusedElementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "descriptionOfFocusedElement", descriptionOfFocusedElementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "attributesOfLinkedUIElementsForFocusedElement", attributesOfLinkedUIElementsForFocusedElementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "widthOfFocusedElement", widthOfFocusedElementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "heightOfFocusedElement", heightOfFocusedElementCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { 0, 0, 0 }
     };
 

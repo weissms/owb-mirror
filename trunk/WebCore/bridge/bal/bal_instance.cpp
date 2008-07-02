@@ -37,6 +37,7 @@
 #include "balValuePrivate.h"
 #include "wtf/HashMap.h"
 #include "ObjectPrototype.h"
+#include "JSLock.h"
 
 #include <cstdio>
 
@@ -75,7 +76,7 @@ void BalRuntimeObjectImp::invalidate()
 
 void BalRuntimeObjectImp::removeFromCache()
 {
-    /*JSLock lock;
+    /*JSLock lock(false);
     BalInstance* key = cachedObjects.get(this);
     if (key)
         cachedObjects.remove(key);*/
@@ -214,14 +215,14 @@ JSValue* BalInstance::valueOf(ExecState* exec) const
 
 RuntimeObjectImp* BalInstance::getRuntimeObject(ExecState* exec, PassRefPtr<BalInstance> instance)
 {
-    /*JSLock lock;
+    /*JSLock lock(false);
     JSObject* ret = cachedObjects.value(instance.get());
     if (!ret) {
         ret = new (exec) BalRuntimeObjectImp(instance);
         cachedObjects.insert(instance.get(), ret);
     }
     return ret;*/
-    JSLock lock;
+    JSLock lock(false);
     RuntimeObjectImp* ret = new (exec) BalRuntimeObjectImp(instance);
     return ret;
 }
@@ -236,7 +237,7 @@ void BalInstance::getPropertyNames(ExecState*, PropertyNameArray& nameArray)
     NPIdentifier* identifiers;
     
     {
-        JSLock::DropAllLocks dropAllLocks;
+        JSLock::DropAllLocks dropAllLocks(false);
         if (!_object->_class->enumerate(_object, &identifiers, &count))
             return;
     }

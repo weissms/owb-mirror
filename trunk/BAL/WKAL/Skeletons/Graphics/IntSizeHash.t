@@ -77,7 +77,7 @@ namespace WTF {
      * construct deleted value 
      * @param[in] : size
      */
-        static void constructDeletedValue(IntSize* slot) ;
+        static void constructDeletedValue(IntSize& slot) ;
     /**
      * test if it's a deleted value
      * @param[in] : value

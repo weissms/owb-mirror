@@ -3479,9 +3479,10 @@ struct BorderImageParseContext
                 newList.addValue(*m_borderBottom);
             if (m_borderLeft)
                 newList.addValue(*m_borderLeft);
+            CSSParserValueList* oldList = p->m_valueList;
             p->m_valueList = &newList;
             p->parseValue(CSSPropertyBorderWidth, important);
-            p->m_valueList = 0;
+            p->m_valueList = oldList;
         }
 
         // Make our new border image value now.
@@ -4487,7 +4488,6 @@ bool CSSParser::checkForVariables(CSSParserValueList* valueList)
 void CSSParser::addUnresolvedProperty(int propId, bool important)
 {
     RefPtr<CSSVariableDependentValue> val = CSSVariableDependentValue::create(CSSValueList::createFromParserValueList(m_valueList));
-    m_valueList = 0;
     addProperty(propId, val.release(), important);
 }
 

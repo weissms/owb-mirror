@@ -9,6 +9,7 @@ LIST (APPEND JSCORE_SRC
     kjs/BooleanPrototype.cpp
     kjs/CommonIdentifiers.cpp
     kjs/DateConstructor.cpp
+    kjs/DateInstance.cpp
     kjs/DateMath.cpp
     kjs/DatePrototype.cpp
     kjs/DebuggerCallFrame.cpp
@@ -18,19 +19,25 @@ LIST (APPEND JSCORE_SRC
     kjs/ExecState.cpp
     kjs/FunctionConstructor.cpp
     kjs/FunctionPrototype.cpp
+    kjs/GetterSetter.cpp
     kjs/InitializeThreading.cpp
+    kjs/InternalFunction.cpp
     kjs/JSActivation.cpp
     kjs/JSArray.cpp
+    kjs/JSCell.cpp
     kjs/JSFunction.cpp
     kjs/JSGlobalData.cpp
     kjs/JSGlobalObject.cpp
     kjs/JSImmediate.cpp
     kjs/JSLock.cpp
     kjs/JSNotAnObject.cpp
+    kjs/JSNumberCell.cpp
     kjs/JSObject.cpp
+    kjs/JSString.cpp
     kjs/JSVariableObject.cpp
     kjs/JSValue.cpp
     kjs/JSWrapperObject.cpp
+    kjs/LabelStack.cpp
     kjs/MathObject.cpp
     kjs/NativeErrorConstructor.cpp
     kjs/NativeErrorPrototype.cpp
@@ -51,11 +58,9 @@ LIST (APPEND JSCORE_SRC
     kjs/StringObject.cpp
     kjs/StringPrototype.cpp
     kjs/collector.cpp
-    kjs/date_object.cpp
     kjs/debugger.cpp
     kjs/dtoa.cpp
     kjs/identifier.cpp
-    kjs/internal.cpp
     kjs/interpreter.cpp
     kjs/lexer.cpp
     kjs/list.cpp

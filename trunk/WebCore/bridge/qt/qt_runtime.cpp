@@ -20,10 +20,15 @@
 #include "config.h"
 #include "qt_runtime.h"
 #include "qt_instance.h"
+#include "JSGlobalObject.h"
+#include "JSLock.h"
 #include "JSObject.h"
 #include "JSArray.h"
-#include "date_object.h"
+#include "DateInstance.h"
+#include "DatePrototype.h"
 #include "DateMath.h"
+#include "ObjectPrototype.h"
+#include "RegExpConstructor.h"
 #include "RegExpObject.h"
 #include <runtime.h>
 #include <runtime_object.h>
@@ -146,7 +151,7 @@ QVariant convertValueToQVariant(ExecState* exec, JSValue* value, QMetaType::Type
         return QVariant();
     }
 
-    JSLock lock;
+    JSLock lock(false);
     JSRealType type = valueRealType(exec, value);
     if (hint == QMetaType::Void) {
         switch(type) {
@@ -327,7 +332,7 @@ QVariant convertValueToQVariant(ExecState* exec, JSValue* value, QMetaType::Type
                 int objdist = 0;
                 qConvDebug() << "converting a " << len << " length Array";
                 for (int i = 0; i < len; ++i) {
-                    JSValue *val = array->getItem(i);
+                    JSValue *val = array->get(exec, i);
                     result.append(convertValueToQVariant(exec, val, QMetaType::Void, &objdist, visitedObjects));
                     if (objdist == -1) {
                         qConvDebug() << "Failed converting element at index " << i;
@@ -375,7 +380,7 @@ QVariant convertValueToQVariant(ExecState* exec, JSValue* value, QMetaType::Type
                 QStringList result;
                 int len = array->getLength();
                 for (int i = 0; i < len; ++i) {
-                    JSValue* val = array->getItem(i);
+                    JSValue* val = array->get(exec, i);
                     UString ustring = val->toString(exec);
                     QString qstring = QString::fromUtf16((const ushort*)ustring.rep()->data(),ustring.size());
 
@@ -597,7 +602,7 @@ QVariant convertValueToQVariant(ExecState* exec, JSValue* value, QMetaType::Type
                     QObjectList result;
                     int len = array->getLength();
                     for (int i = 0; i < len; ++i) {
-                        JSValue* val = array->getItem(i);
+                        JSValue* val = array->get(exec, i);
                         int itemdist = -1;
                         QVariant item = convertValueToQVariant(exec, val, QMetaType::QObjectStar, &itemdist, visitedObjects);
                         if (itemdist >= 0)
@@ -648,7 +653,7 @@ QVariant convertValueToQVariant(ExecState* exec, JSValue* value, QMetaType::Type
                     QList<int> result;
                     int len = array->getLength();
                     for (int i = 0; i < len; ++i) {
-                        JSValue* val = array->getItem(i);
+                        JSValue* val = array->get(exec, i);
                         int itemdist = -1;
                         QVariant item = convertValueToQVariant(exec, val, QMetaType::Int, &itemdist, visitedObjects);
                         if (itemdist >= 0)
@@ -713,7 +718,7 @@ JSValue* convertQVariantToValue(ExecState* exec, PassRefPtr<RootObject> root, co
         return jsNull();
     }
 
-    JSLock lock;
+    JSLock lock(false);
 
     if (type == QMetaType::Bool)
         return jsBoolean(variant.toBool());
@@ -1290,7 +1295,7 @@ JSValue* QtRuntimeMetaMethod::call(ExecState* exec, JSObject* functionObject, JS
         return jsUndefined();
 
     // We have to pick a method that matches..
-    JSLock lock;
+    JSLock lock(false);
 
     QObject *obj = d->m_instance->getObject();
     if (obj) {
@@ -1383,7 +1388,7 @@ JSValue* QtRuntimeConnectionMethod::call(ExecState* exec, JSObject* functionObje
 {
     QtRuntimeConnectionMethodData* d = static_cast<QtRuntimeConnectionMethod *>(functionObject)->d_func();
 
-    JSLock lock;
+    JSLock lock(false);
 
     QObject* sender = d->m_instance->getObject();
 
@@ -1613,7 +1618,7 @@ void QtConnectionObject::execute(void **argv)
 
         int argc = parameterTypes.count();
 
-        JSLock lock;
+        JSLock lock(false);
 
         // ### Should the Interpreter/ExecState come from somewhere else?
         RefPtr<RootObject> ro = m_instance->rootObject();

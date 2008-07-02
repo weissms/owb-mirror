@@ -41,6 +41,7 @@
 #include "ErrorPrototype.h"
 #include "FunctionConstructor.h"
 #include "FunctionPrototype.h"
+#include "JSLock.h"
 #include "Machine.h"
 #include "MathObject.h"
 #include "NativeErrorConstructor.h"
@@ -101,7 +102,7 @@ void JSGlobalObject::init(JSObject* thisValue)
 {
     ASSERT(JSLock::currentThreadIsHoldingLock());
 
-    d()->globalData = (Heap::heap(this) == JSGlobalData::sharedInstance().heap) ? &JSGlobalData::sharedInstance() : &JSGlobalData::threadInstance();
+    d()->globalData = Heap::heap(this)->isShared() ? &JSGlobalData::sharedInstance() : &JSGlobalData::threadInstance();
 
     if (JSGlobalObject*& headObject = head()) {
         d()->prev = headObject;
@@ -174,6 +175,7 @@ void JSGlobalObject::reset(JSValue* prototype)
 
     _prop.clear();
     symbolTable().clear();
+    setRegisterArray(0, 0);
 
     // Prototypes
     d()->functionPrototype = 0;
@@ -346,6 +348,10 @@ void JSGlobalObject::mark()
     for (HashSet<ProgramCodeBlock*>::const_iterator it = codeBlocks().begin(); it != end; ++it)
         (*it)->mark();
 
+    RegisterFile& registerFile = globalData()->machine->registerFile();
+    if (registerFile.globalObject() == this)
+        registerFile.mark(globalData()->heap);
+
     markIfNeeded(d()->globalExec->exception());
 
     markIfNeeded(d()->regExpConstructor);
@@ -394,11 +400,11 @@ bool JSGlobalObject::isDynamicScope() const
 void JSGlobalObject::copyGlobalsFrom(RegisterFile& registerFile)
 {
     ASSERT(!d()->registerArray);
+    ASSERT(!d()->registerArraySize);
 
     int numGlobals = registerFile.numGlobals();
     if (!numGlobals) {
-        ASSERT(!d()->registerOffset);
-        d()->registerBase = 0;
+        d()->registers = 0;
         return;
     }
     copyRegisterArray(registerFile.lastGlobal(), numGlobals);
@@ -414,12 +420,11 @@ void JSGlobalObject::copyGlobalsTo(RegisterFile& registerFile)
     registerFile.setNumGlobals(symbolTable().size());
 
     if (d()->registerArray) {
-        memcpy(*registerFile.basePointer() - d()->registerOffset, d()->registerArray, d()->registerOffset * sizeof(Register));
+        memcpy(registerFile.base() - d()->registerArraySize, d()->registerArray.get(), d()->registerArraySize * sizeof(Register));
         setRegisterArray(0, 0);
     }
 
-    d()->registerBase = registerFile.basePointer();
-    d()->registerOffset = 0;
+    d()->registers = registerFile.base();
 }
 
 void* JSGlobalObject::operator new(size_t size)

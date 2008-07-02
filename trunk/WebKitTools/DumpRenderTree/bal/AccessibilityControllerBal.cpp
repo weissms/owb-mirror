@@ -48,3 +48,18 @@ JSStringRef AccessibilityController::descriptionOfFocusedElement()
     return NULL;
 }
 
+JSStringRef AccessibilityController::attributesOfLinkedUIElementsForFocusedElement()
+{
+    return NULL;
+}
+
+double AccessibilityController::widthOfFocusedElement()
+{
+    return 0.0;
+}
+
+double AccessibilityController::heightOfFocusedElement()
+{
+    return 0.0;
+}
+

@@ -579,7 +579,6 @@ ENDMACRO (CREATE_CPP_LUT)
 
 CREATE_CPP_LUT (bindings/js/JSHTMLInputElementBase.cpp generated_sources/WebCore/JSHTMLInputElementBaseTable.inl bindings/js/JSHTMLInputElementBase.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/ArrayPrototype.cpp generated_sources/kjs/ArrayPrototype.lut.h JavaScriptCore/kjs/ArrayPrototype.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/date_object.cpp generated_sources/kjs/date_object.lut.h JavaScriptCore/kjs/date_object.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/DatePrototype.cpp generated_sources/kjs/DatePrototype.lut.h JavaScriptCore/kjs/DatePrototype.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/keywords.table generated_sources/kjs/lexer.lut.h JavaScriptCore/kjs/lexer.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/MathObject.cpp generated_sources/kjs/MathObject.lut.h JavaScriptCore/kjs/MathObject.cpp)

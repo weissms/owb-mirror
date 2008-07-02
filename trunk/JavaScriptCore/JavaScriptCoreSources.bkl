@@ -51,7 +51,7 @@ Source files for JSCore.
         kjs/BooleanPrototype.cpp
         kjs/collector.cpp
         kjs/CommonIdentifiers.cpp
-        kjs/date_object.cpp
+        kjs/DateInstance.cpp
         kjs/DateConstructor.cpp
         kjs/DateMath.cpp
         kjs/DatePrototype.cpp
@@ -62,21 +62,26 @@ Source files for JSCore.
         kjs/ErrorInstance.cpp
         kjs/ErrorPrototype.cpp
         kjs/ExecState.cpp
+        kjs/GetterSetter.cpp
         kjs/JSFunction.cpp
         kjs/FunctionConstructor.cpp
         kjs/FunctionPrototype.cpp
         kjs/identifier.cpp
         kjs/InitializeThreading.cpp
-        kjs/internal.cpp
+        kjs/InternalFunction.cpp
         kjs/interpreter.cpp
         kjs/JSActivation.cpp
+        kjs/JSCell.cpp
         kjs/JSGlobalData.cpp
         kjs/JSGlobalObject.cpp
         kjs/JSVariableObject.cpp
         kjs/JSImmediate.cpp
         kjs/JSLock.cpp
         kjs/JSNotAnObject.cpp
+        kjs/JSNumberCell.cpp
+        kjs/JSString.cpp
         kjs/JSWrapperObject.cpp
+        kjs/LabelStack.cpp
         kjs/lexer.cpp
         kjs/list.cpp
         kjs/lookup.cpp
@@ -124,15 +129,10 @@ Source files for JSCore.
         VM/CodeBlock.cpp
         VM/CodeGenerator.cpp
         VM/ExceptionHelpers.cpp
-        VM/Instruction.cpp
         VM/JSPropertyNameIterator.cpp
-        VM/LabelID.cpp
         VM/Machine.cpp
         VM/Opcode.cpp
-        VM/Register.cpp
         VM/RegisterFile.cpp
-        VM/RegisterFileStack.cpp
-        VM/RegisterID.cpp
     </set>
     <set append="1" var="JSCORE_WTF_SOURCES">
         wtf/Assertions.cpp

@@ -1,6 +1,7 @@
 LIST (APPEND PLUGINS_SRC
     plugins/PluginDatabase.cpp
     plugins/PluginInfoStore.cpp
+    plugins/PluginMainThreadScheduler.cpp
     plugins/PluginPackage.cpp
     plugins/PluginStream.cpp
 

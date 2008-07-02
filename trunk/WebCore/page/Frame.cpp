@@ -75,6 +75,7 @@
 #include "npruntime_impl.h"
 #include "runtime_root.h"
 #include "visible_units.h"
+#include <kjs/JSLock.h>
 
 #if FRAME_LOADS_USER_STYLESHEET
 #include "UserStyleSheetLoader.h"
@@ -1076,7 +1077,7 @@ KJS::Bindings::RootObject* Frame::bindingRootObject()
         return 0;
 
     if (!d->m_bindingRootObject) {
-        JSLock lock;
+        JSLock lock(false);
         d->m_bindingRootObject = KJS::Bindings::RootObject::create(0, script()->globalObject());
     }
     return d->m_bindingRootObject.get();
@@ -1101,7 +1102,7 @@ NPObject* Frame::windowScriptNPObject()
         if (script()->isEnabled()) {
             // JavaScript is enabled, so there is a JavaScript window object.  Return an NPObject bound to the window
             // object.
-            KJS::JSLock lock;
+            KJS::JSLock lock(false);
             KJS::JSObject* win = toJSDOMWindow(this);
             ASSERT(win);
             KJS::Bindings::RootObject* root = bindingRootObject();
@@ -1144,7 +1145,7 @@ void Frame::cleanupScriptObjectsForPlugin(void* nativeHandle)
     
 void Frame::clearScriptObjects()
 {
-    JSLock lock;
+    JSLock lock(false);
 
     RootObjectMap::const_iterator end = d->m_rootObjects.end();
     for (RootObjectMap::const_iterator it = d->m_rootObjects.begin(); it != end; ++it)
@@ -1591,21 +1592,13 @@ bool Frame::findString(const String& target, bool forward, bool caseFlag, bool w
     // is used depends on whether we're searching forward or backward, and whether startInSelection is set.
     RefPtr<Range> searchRange(rangeOfContents(document()));
     Selection selection = this->selection()->selection();
-    Node* selectionBaseNode = selection.base().node();
 
     if (forward)
         setStart(searchRange.get(), startInSelection ? selection.visibleStart() : selection.visibleEnd());
     else
         setEnd(searchRange.get(), startInSelection ? selection.visibleEnd() : selection.visibleStart());
 
-    bool selectionIsInMainContent = selectionBaseNode && !isInShadowTree(selectionBaseNode);
-    Node* shadowTreeRoot = 0;
-    if (!selectionIsInMainContent) {
-        shadowTreeRoot = selectionBaseNode;
-        while (shadowTreeRoot && !shadowTreeRoot->isShadowNode())
-            shadowTreeRoot = shadowTreeRoot->parentNode();
-    }
-
+    Node* shadowTreeRoot = selection.shadowTreeRootNode();
     if (shadowTreeRoot) {
         ExceptionCode ec = 0;
         if (forward)
@@ -1702,13 +1695,9 @@ unsigned Frame::markAllMatchesForText(const String& target, bool caseFlag, unsig
             break;
         
         setStart(searchRange.get(), newStart);
-        if (searchRange->collapsed(exception) && isInShadowTree(searchRange->startContainer())) {
-            Node* shadowTreeRoot = searchRange->startContainer();
-            while (shadowTreeRoot && !shadowTreeRoot->isShadowNode())
-                shadowTreeRoot = shadowTreeRoot->parentNode();
-            if (shadowTreeRoot)
-                searchRange->setEnd(shadowTreeRoot, shadowTreeRoot->childNodeCount(), exception);
-        }
+        Node* shadowTreeRoot = searchRange->shadowTreeRootNode();
+        if (searchRange->collapsed(exception) && shadowTreeRoot)
+            searchRange->setEnd(shadowTreeRoot, shadowTreeRoot->childNodeCount(), exception);
     } while (true);
     
     // Do a "fake" paint in order to execute the code that computes the rendered rect for 

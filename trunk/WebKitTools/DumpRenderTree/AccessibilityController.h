@@ -40,7 +40,10 @@ public:
     JSStringRef roleOfFocusedElement();
     JSStringRef titleOfFocusedElement();
     JSStringRef descriptionOfFocusedElement(); 
-
+    JSStringRef attributesOfLinkedUIElementsForFocusedElement();
+    double widthOfFocusedElement();
+    double heightOfFocusedElement();
+    
 private:
     static JSClassRef getJSClass();
     static JSStaticFunction* staticFunctions();

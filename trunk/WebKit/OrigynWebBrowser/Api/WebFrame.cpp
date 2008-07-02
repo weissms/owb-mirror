@@ -96,6 +96,7 @@
 #include "JSObject.h"
 #include "JSDOMWindowBase.h"
 #include "JSDOMWindow.h"
+#include "JSLock.h"
 #include "bal_object.h"
 #ifdef __BINDING_JS__ 
 #include "BindingJS.h" 
@@ -1484,7 +1485,7 @@ void WebFrame::observe(const String &topic, BalObject *obj)
 
 void WebFrame::addToJSWindowObject(const char* name, void *object)
 {
-    KJS::JSLock lock;
+    KJS::JSLock lock(false);
     JSDOMWindow *window = toJSDOMWindow(core(this));
     KJS::Bindings::RootObject *root = core(this)->bindingRootObject();
     if (!window) {

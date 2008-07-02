@@ -53,14 +53,10 @@ SOURCES += \
     VM/CodeBlock.cpp \
     VM/CodeGenerator.cpp \
     VM/ExceptionHelpers.cpp \
-    VM/Instruction.cpp \
     VM/JSPropertyNameIterator.cpp \
-    VM/LabelID.cpp \
     VM/Machine.cpp \
     VM/Opcode.cpp \
-    VM/Register.cpp \
-    VM/RegisterFile.cpp \
-    VM/RegisterID.cpp
+    VM/RegisterFile.cpp
 
 # AllInOneFile.cpp helps gcc analize and optimize code
 # Other compilers may be able to do this at link time
@@ -75,7 +71,7 @@ SOURCES += \
     kjs/BooleanPrototype.cpp \
     kjs/collector.cpp \
     kjs/CommonIdentifiers.cpp \
-    kjs/date_object.cpp \
+    kjs/DateInstance.cpp \
     kjs/DateConstructor.cpp \
     kjs/DateMath.cpp \
     kjs/DatePrototype.cpp \
@@ -87,12 +83,17 @@ SOURCES += \
     kjs/ExecState.cpp \
     kjs/FunctionConstructor.cpp \
     kjs/FunctionPrototype.cpp \
+    kjs/GetterSetter.cpp \
     kjs/identifier.cpp \
-    kjs/internal.cpp \
+    kjs/InternalFunction.cpp \
     kjs/interpreter.cpp \
+    kjs/JSCell.cpp \
     kjs/JSImmediate.cpp \
     kjs/JSLock.cpp \
+    kjs/JSNumberCell.cpp \
+    kjs/JSString.cpp \
     kjs/JSWrapperObject.cpp \
+    kjs/LabelStack.cpp \
     kjs/lexer.cpp \
     kjs/list.cpp \
     kjs/lookup.cpp \

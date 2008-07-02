@@ -76,6 +76,7 @@
 #import <WebCore/ScriptController.h>
 #import <WebCore/markup.h>
 #import <WebCore/visible_units.h>
+#import <kjs/JSLock.h>
 
 using namespace std;
 using namespace WebCore;
@@ -617,7 +618,7 @@ static inline WebDataSource *dataSource(DocumentLoader* loader)
     if (!result || !result->isBoolean() && !result->isString() && !result->isNumber())
         return @"";
 
-    JSLock lock;
+    JSLock lock(false);
     return String(result->toString(_private->coreFrame->script()->globalObject()->globalExec()));
 }
 

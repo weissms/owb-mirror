@@ -1,3 +1,34 @@
+2008-07-02  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        Support ability to get width and height of an element through accessibility
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (widthOfFocusedElementCallback):
+        (heightOfFocusedElementCallback):
+        (AccessibilityController::staticFunctions):
+        * DumpRenderTree/AccessibilityController.h:
+        * DumpRenderTree/mac/AccessibilityControllerMac.mm:
+        (AccessibilityController::widthOfFocusedElement):
+        (AccessibilityController::heightOfFocusedElement):
+
+2008-06-30  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        Support the ability to get the linked ui elements of an object
+
+        * DumpRenderTree/AccessibilityController.cpp:
+        (attributesOfLinkedUIElementsForFocusedElementCallback):
+        (AccessibilityController::staticFunctions):
+        * DumpRenderTree/AccessibilityController.h:
+        * DumpRenderTree/mac/AccessibilityControllerMac.mm:
+        (AccessibilityController::attributesOfLinkedUIElementsForFocusedElement):
+        (AccessibilityController::allAttributesOfFocusedElement):
+        (attributesOfElement):
+        (nsStringToJSStringRef):
+
 2008-06-30  Sam Weinig  <sam@webkit.org>
 
         Fix Tiger build.

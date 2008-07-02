@@ -183,7 +183,7 @@ namespace WTF {
      * construct deletedValue
      * @param[in] : slot
      */
-        static void constructDeletedValue(WebCore::String* slot) ;
+        static void constructDeletedValue(WebCore::String& slot) ;
 
     /**
      * is deleted value

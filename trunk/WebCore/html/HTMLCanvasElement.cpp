@@ -80,8 +80,6 @@ HTMLCanvasElement::HTMLCanvasElement(Document* doc)
 
 HTMLCanvasElement::~HTMLCanvasElement()
 {
-    if (m_2DContext)
-        m_2DContext->detachCanvas();
 }
 
 #if ENABLE(DASHBOARD_SUPPORT)
@@ -156,7 +154,7 @@ CanvasRenderingContext* HTMLCanvasElement::getContext(const String& type)
 {
     if (type == "2d") {
         if (!m_2DContext)
-            m_2DContext = CanvasRenderingContext2D::create(this);
+            m_2DContext.set(new CanvasRenderingContext2D(this));
         return m_2DContext.get();
     }
     return 0;

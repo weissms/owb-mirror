@@ -37,6 +37,7 @@
 #include <PlatformString.h>
 #include "CString.h"
 #include <wtf/Assertions.h>
+#include <JSLock.h>
 #include DEEPSEE_INCLUDE
 
 using namespace KJS;
@@ -124,7 +125,7 @@ String WebScriptCallFrame::functionName()
 
 String WebScriptCallFrame::stringByEvaluatingJavaScriptFromString(String script)
 {
-    JSLock lock;
+    JSLock lock(false);
 
     JSValue* scriptExecutionResult = valueByEvaluatingJavaScriptFromString(script);
     return jsValueToString(m_state, scriptExecutionResult);

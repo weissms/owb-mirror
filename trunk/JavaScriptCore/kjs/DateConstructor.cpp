@@ -24,10 +24,11 @@
 
 #include "DateMath.h"
 #include "DatePrototype.h"
+#include "JSFunction.h"
 #include "JSGlobalObject.h"
 #include "JSString.h"
 #include "ObjectPrototype.h"
-#include "date_object.h"
+#include "DateInstance.h"
 #include <math.h>
 #include <time.h>
 #include <wtf/MathExtras.h>

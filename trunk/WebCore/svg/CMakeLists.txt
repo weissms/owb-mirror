@@ -2,6 +2,8 @@ IF (WEBKIT_USE_SVG)
 
     LIST (APPEND SVG_SRC
         svg/ColorDistance.cpp
+	svg/Filter.cpp
+	svg/FilterEffect.cpp
         svg/SVGAElement.cpp
         svg/SVGAltGlyphElement.cpp
         svg/SVGAngle.cpp

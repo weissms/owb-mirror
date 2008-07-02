@@ -4357,12 +4357,12 @@ NSStrokeColorAttributeName        /* NSColor, default nil: same as foreground co
     if (!coreFrame)
         return;
 
-    const char* direction = "rtl";
+    WritingDirection direction = RightToLeftWritingDirection;
     switch (coreFrame->baseWritingDirectionForSelectionStart()) {
         case NSWritingDirectionLeftToRight:
             break;
         case NSWritingDirectionRightToLeft:
-            direction = "ltr";
+            direction = LeftToRightWritingDirection;
             break;
         // The writingDirectionForSelectionStart method will never return "natural". It
         // will always return a concrete direction. So, keep the compiler happy, and assert not reached.
@@ -4389,7 +4389,7 @@ NSStrokeColorAttributeName        /* NSColor, default nil: same as foreground co
     ASSERT(writingDirection != NSWritingDirectionNatural);
 
     if (Frame* coreFrame = core([self _frame]))
-        coreFrame->editor()->setBaseWritingDirection(writingDirection == NSWritingDirectionLeftToRight ? "ltr" : "rtl");
+        coreFrame->editor()->setBaseWritingDirection(writingDirection == NSWritingDirectionLeftToRight ? LeftToRightWritingDirection : RightToLeftWritingDirection);
 }
 
 static BOOL writingDirectionKeyBindingsEnabled()
@@ -4411,7 +4411,7 @@ static BOOL writingDirectionKeyBindingsEnabled()
     }
 
     if (Frame* coreFrame = core([self _frame]))
-        coreFrame->editor()->setBaseWritingDirection(direction == NSWritingDirectionLeftToRight ? "ltr" : "rtl");
+        coreFrame->editor()->setBaseWritingDirection(direction == NSWritingDirectionLeftToRight ? LeftToRightWritingDirection : RightToLeftWritingDirection);
 }
 
 - (void)changeBaseWritingDirectionToLTR:(id)sender

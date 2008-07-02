@@ -1,3 +1,55 @@
+2008-07-02  Simon Hausmann  <hausmann@webkit.org>
+
+        Build fix.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::triggerAction): The signature of setBaseWritingDirection
+        changed to take an enum instead of a string.
+
+2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin.
+
+        Disable JSLock for per-thread contexts.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::addToJavaScriptWindowObject):
+        Pass a parameter (false) to JSLock to indicate that WebKit doesn't need locking.
+        Include JSLock.h, as it is no longer brought in implicitly.
+
+2008-07-01  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Don't show the tooltip instantly in the QtLauncher.
+        
+        Let the QWebView handle tooltips by itself, so we get
+        the expected delay as everywhere else.
+
+        * QtLauncher/main.cpp:
+
+2008-06-30  Simon Hausmann  <hausmann@webkit.org>
+
+        Rubber-stamped by Niko.
+
+        Removed the obsolete and unmaintained WebKitPart. The integration of
+        QtWebKit into KDE is now done in the webkitkde component inside KDE.
+
+        * WebKitPart/WebKitFactory.cpp: Removed.
+        * WebKitPart/WebKitFactory.h: Removed.
+        * WebKitPart/WebKitPart.cpp: Removed.
+        * WebKitPart/WebKitPart.desktop: Removed.
+        * WebKitPart/WebKitPart.h: Removed.
+        * WebKitPart/WebKitPart.rc: Removed.
+        * WebKitPart/WebKitPartBrowser.rc: Removed.
+        * WebKitPart/WebKitPartBrowserExtension.cpp: Removed.
+        * WebKitPart/WebKitPartBrowserExtension.h: Removed.
+        * WebKitPart/WebKitPartClient.cpp: Removed.
+        * WebKitPart/WebKitPartClient.h: Removed.
+        * WebKitPart/WebKitPartInterface.cpp: Removed.
+        * WebKitPart/WebKitPartInterface.h: Removed.
+        * WebKitPart/org.kde.WebKitPart.xml: Removed.
+
 2008-06-25  Simon Hausmann  <hausmann@webkit.org>
 
         Fix the Qt build, added missing include for RuntimeObjectImp.

@@ -67,11 +67,11 @@ void JSVariableObject::mark()
 {
     JSObject::mark();
 
-    if(!d->registerArray)
+    if (!d->registerArray)
         return;
     
-    Register* end = d->registerArray + d->registerOffset;
-    for (Register* it = d->registerArray; it != end; ++it) {
+    Register* end = d->registerArray.get() + d->registerArraySize;
+    for (Register* it = d->registerArray.get(); it != end; ++it) {
         JSValue* v = (*it).u.jsValue;
         if (!v->marked())
             v->mark();
@@ -87,7 +87,7 @@ void JSVariableObject::copyRegisterArray(Register* src, size_t count)
 {
     ASSERT(!d->registerArray);
 
-    Register* registerArray = static_cast<Register*>(fastMalloc(count * sizeof(Register)));
+    Register* registerArray = new Register[count];
     memcpy(registerArray, src, count * sizeof(Register));
 
     setRegisterArray(registerArray, count);
@@ -95,10 +95,10 @@ void JSVariableObject::copyRegisterArray(Register* src, size_t count)
 
 void JSVariableObject::setRegisterArray(Register* registerArray, size_t count)
 {
-    delete d->registerArray;
-    d->registerArray = registerArray;
-    d->registerBase = &d->registerArray;
-    d->registerOffset = count;
+    if (registerArray != d->registerArray.get())
+        d->registerArray.set(registerArray);
+    d->registerArraySize = count;
+    d->registers = registerArray + count;
 }
 
 } // namespace KJS

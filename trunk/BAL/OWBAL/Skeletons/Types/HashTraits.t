@@ -234,7 +234,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(T* slot) ;
+        static void constructDeletedValue(T& slot) ;
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -276,7 +276,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(T* slot) ;
+        static void constructDeletedValue(T& slot) ;
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -300,7 +300,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(P** slot) ;
+        static void constructDeletedValue(P*& slot) ;
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -320,7 +320,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(RefPtr<P>* slot) ;
+        static void constructDeletedValue(RefPtr<P>& slot) ;
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -357,7 +357,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(TraitType* slot) ;
+        static void constructDeletedValue(TraitType& slot) ;
     /**
      *  isDeletedValue description
      * @param[in] : description
