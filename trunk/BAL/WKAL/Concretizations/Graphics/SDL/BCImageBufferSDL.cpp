@@ -43,7 +43,6 @@ namespace WKAL {
 
 auto_ptr<ImageBuffer> ImageBuffer::create(const IntSize& size, bool)
 {
-    printf("######################### ImageBuffer::create\n");
     int width, height;
     if( size.width() >= WIDTH_MAX )
         width = WIDTH_MAX - 1;

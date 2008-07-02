@@ -1,6 +1,18 @@
 2008-07-02  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier Dole.
+        remove printf
+        fix encode in generic textCodec
+
+        * OWBAL/Concretizations/Internationalization/Generic/BCTextCodecICU.cpp:
+        (OWBAL::encodeComplexUserDefined):
+        (OWBAL::TextCodecICU::encode):
+        * WKAL/Concretizations/Graphics/SDL/BCImageBufferSDL.cpp:
+        (WKAL::ImageBuffer::create):
+
+2008-07-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier Dole.
         fix ticket #248
         modify bal overview doc
 

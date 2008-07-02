@@ -1041,18 +1041,53 @@ String TextCodecICU::decode(const char* bytes, size_t length, bool flush, bool s
     return resultString;
 }
 
+static CString encodeComplexUserDefined(const UChar* characters, size_t length, UnencodableHandling handling)
+{
+    Vector<char> result(length);
+    char* bytes = result.data();
+
+    size_t resultLength = 0;
+    for (size_t i = 0; i < length; ) {
+        UChar32 c;
+        U16_NEXT(characters, i, length, c);
+        signed char signedByte = c;
+        if ((signedByte & 0xF7FF) == c)
+            bytes[resultLength++] = signedByte;
+        else {
+            // No way to encode this character with x-user-defined.
+            UnencodableReplacementArray replacement;
+            int replacementLength = TextCodec::getUnencodableReplacement(c, handling, replacement);
+            result.grow(resultLength + replacementLength + length - i);
+            bytes = result.data();
+            memcpy(bytes + resultLength, replacement, replacementLength);
+            resultLength += replacementLength;
+        }
+    }
+
+    return CString(bytes, resultLength);
+}
+
 CString TextCodecICU::encode(const UChar* characters, size_t length, UnencodableHandling handling)
 {
     if (!length)
         return CString("");
 
-    char *bytes = (char *)malloc(length);
-    for(size_t i=0; i<length ; i++ ) {
-        bytes[i] = characters[i];
-    }
-    bytes[length]='\0';
+    char* bytes;
+    CString string = CString::newUninitialized(length, bytes);
 
-    return CString(bytes);
+    // Convert the string a fast way and simultaneously do an efficient check to see if it's all ASCII.
+    UChar ored = 0;
+    for (size_t i = 0; i < length; ++i) {
+        UChar c = characters[i];
+        bytes[i] = c;
+        ored |= c;
+    }
+
+    if (!(ored & 0xFF80))
+        return string;
+
+    // If it wasn't all ASCII, call the function that handles more-complex cases.
+    return encodeComplexUserDefined(characters, length, handling);
 }
 
 
