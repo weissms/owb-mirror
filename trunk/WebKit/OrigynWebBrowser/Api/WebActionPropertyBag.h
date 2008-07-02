@@ -48,10 +48,12 @@ class WebActionPropertyBag
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create new instance of WebActionPropertyBag
+     * @param[in]: NavigationAction
+     * @param[in]: Frame
+     * @param[out]: WebActionPropertyBag
      * @code
+     * WebActionPropertyBag* w = WebActionPropertyBag::createInstance(action, f);
      * @endcode
      */
     static WebActionPropertyBag* createInstance(const WebCore::NavigationAction&, WebCore::Frame*);
@@ -59,30 +61,25 @@ public:
 protected:
 
     /**
-     *  WebActionPropertyBag description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebActionPropertyBag constructor
+     * @param[in]: NavigationAction
+     * @param[in]: Frame
      */
     WebActionPropertyBag(const WebCore::NavigationAction&, WebCore::Frame*);
 
 public:
 
     /**
-     *  ~WebActionPropertyBag description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebActionPropertyBag destructor
      */
     virtual ~WebActionPropertyBag();
 
     /**
-     *  Read description
-     * @param[in]: description
-     * @param[out]: description
+     * Read
+     * @param[in]: property name
+     * @param[out]: property value
      * @code
+     * WebCore::String s = w->Read(pName);
      * @endcode
      */
     virtual WebCore::String Read(WebCore::String pszPropName);

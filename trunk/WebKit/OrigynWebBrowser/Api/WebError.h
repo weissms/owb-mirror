@@ -116,86 +116,63 @@ class WebError {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebError
+     * @param[in]: ResourceError
+     * @param[in]: HTTPHeaderPropertyBag
+     * @param[out]: WebError
      */
     static WebError* createInstance(const WebCore::ResourceError&, HTTPHeaderPropertyBag* userInfo = 0);
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebError
+     * @param[out]: WebError
      */
     static WebError* createInstance();
 protected:
 
     /**
-     *  WebError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebError constructor
+     * @param[in]: ResourceError
+     * @param[in]: HTTPHeaderPropertyBag
      */
     WebError(const WebCore::ResourceError&, HTTPHeaderPropertyBag* userInfo);
 
 public:
 
     /**
-     *  ~WebError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebError destructor
      */
     virtual ~WebError();
 
     /**
-     *  init description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialise WebError
+     * @param[in]: domain
+     * @param[in]: code
+     * @param[in]: url
      */
     virtual void init(WebCore::String domain, int code, WebCore::String url);
 
     /**
-     *  code description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get code
+     * @param[out]: code
      */
     virtual int code();
 
     /**
-     *  domain description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get domain
+     * @param[out]: domain
      */
     virtual WebCore::String domain();
 
     /**
-     *  localizedDescription description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get localizedDescription
+     * @param[out]: localizedDescription
      */
     virtual WebCore::String localizedDescription();
 
     /**
-     *  localizedFailureReason description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get localizedFailureReason
+     * @param[out]: localizedFailureReason
      */
     virtual WebCore::String localizedFailureReason();
 

@@ -51,42 +51,36 @@ class HTTPHeaderPropertyBag {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create new instance of HTTPHeaderPropertyBag
+     * @param[out]: HTTPHeaderPropertyBag
      * @code
+     * HTTPHeaderPropertyBag *h = HTTPHeaderPropertyBag::createInstance(response);
      * @endcode
      */
     static HTTPHeaderPropertyBag* createInstance(WebURLResponse*);
 
 
     /**
-     *  Read description
-     * @param[in]: description
-     * @param[out]: description
+     * Read
+     * @param[in]: property name
+     * @param[out]: property value
      * @code
+     * WebCore::String s = h->Read(pName);
      * @endcode
      */
     virtual WebCore::String Read(WebCore::String pszPropName);
 
 
     /**
-     *  ~HTTPHeaderPropertyBag description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * HTTPHeaderPropertyBag destructor
      */
     virtual ~HTTPHeaderPropertyBag();
 
 private:
 
     /**
-     *  HTTPHeaderPropertyBag description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * HTTPHeaderPropertyBag constructor
+     * @param[in]: response
      */
     HTTPHeaderPropertyBag(WebURLResponse*);
 

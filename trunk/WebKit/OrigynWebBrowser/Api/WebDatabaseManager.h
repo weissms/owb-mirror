@@ -66,100 +66,88 @@ class WebDatabaseManager : private WebCore::DatabaseTrackerClient {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create a new instance of WebDatabaseManager
+     * @param[out]: WebDatabaseManager
      * @code
+     * WebDatabaseManager *d = WebDatabaseManager::createInstance();
      * @endcode
      */
     static WebDatabaseManager* createInstance();
 
 
     /**
-     *  ~WebDatabaseManager description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebDatabaseManager destructor
      */
     virtual ~WebDatabaseManager();
 
     /**
-     *  sharedWebDatabaseManager description
-     * @param[in]: description
-     * @param[out]: description
+     * get shared WebDatabaseManager
+     * @param[out]: WebDatabaseManager
      * @code
+     * WebDatabaseManager *d = WebDatabaseManager::sharedWebDatabaseManager();
      * @endcode
      */
     virtual WebDatabaseManager* sharedWebDatabaseManager();
 
     /**
-     *  origins description
-     * @param[in]: description
-     * @param[out]: description
+     * get origins
+     * @param[out]: security origin
      * @code
+     * WTF::Vector<RefPtr<WebCore::SecurityOrigin> > s = d->origins();
      * @endcode
      */
     virtual WTF::Vector<RefPtr<WebCore::SecurityOrigin> > origins();
 
     /**
-     *  databasesWithOrigin description
-     * @param[in]: description
-     * @param[out]: description
+     * get databases with origin
+     * @param[in]: WebSecurityOrigin
+     * @param[out]: String
      * @code
+     * WTF::Vector<WebCore::String> s = d->databasesWithOrigin(o);
      * @endcode
      */
     virtual WTF::Vector<WebCore::String> databasesWithOrigin(WebSecurityOrigin* origin);
 
     /**
-     *  detailsForDatabase description
-     * @param[in]: description
-     * @param[out]: description
+     * get details for database
+     * @param[in]: databaseName
+     * @param[in]: origin
+     * @param[out]: DatabaseDetails
      * @code
+     * WebCore::DatabaseDetails dd = d->detailsForDatabase(dn, o);
      * @endcode
      */
     virtual WebCore::DatabaseDetails detailsForDatabase(WebCore::String databaseName, WebSecurityOrigin* origin);
 
     /**
-     *  deleteAllDatabases description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * delete all databases
      */
     virtual void deleteAllDatabases();
 
     /**
-     *  deleteOrigin description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * delete web security origin
+     * @param[in]: WebSecurityOrigin
      */
     virtual void deleteOrigin(WebSecurityOrigin* origin);
 
     /**
-     *  deleteDatabase description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * delete Database 
+     * @param[in]: database name
+     * @param[in]: WebSecurityOrigin
      */
     virtual void deleteDatabase(WebCore::String databaseName, WebSecurityOrigin* origin);
 
 
     /**
-     *  dispatchDidModifyOrigin description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * dispatch did modify origin
+     * @param[in]: SecurityOrigin
      */
     virtual void dispatchDidModifyOrigin(WebCore::SecurityOrigin*);
 
     /**
-     *  dispatchDidModifyDatabase description
-     * @param[in]: description
+     * dispatch did modify database
+     * @param[in]: SecurityOrigin
+     * @param[in]: database name
      * @param[out]: description
      * @code
      * @endcode
@@ -169,22 +157,14 @@ public:
 private:
 
     /**
-     *  WebDatabaseManager description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebDatabaseManager default constructor
      */
     WebDatabaseManager();
 };
 
 
     /**
-     *  WebKitSetWebDatabasesPathIfNecessary description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  WebKit set WebDatabases path if necessary
      */
 void WebKitSetWebDatabasesPathIfNecessary();
 #endif

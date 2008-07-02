@@ -1,3 +1,13 @@
+2008-07-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier Dole.
+        fix ticket #248
+        modify bal overview doc
+
+        * Docs/BalOverview.dox:
+        * OWBAL/Concretizations/Internationalization/Generic/BCTextBreakIteratorGeneric.cpp:
+        (OWBAL::WordBreakIterator::previous):
+
 2008-07-01  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier Dole.

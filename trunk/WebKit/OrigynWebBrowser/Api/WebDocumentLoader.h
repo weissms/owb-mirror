@@ -46,59 +46,43 @@ class WebDocumentLoader : public WebCore::DocumentLoader
 public:
 
     /**
-     *  WebDocumentLoader description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebDocumentLoader constructor
+     * @param[in]: Resource Request
+     * @param[in]: Substitute Data
      */
     WebDocumentLoader(const WebCore::ResourceRequest&, const WebCore::SubstituteData&);
 
     /**
-     *  ~WebDocumentLoader description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebDocumentLoader destructor
      */
     virtual ~WebDocumentLoader();
 
 
     /**
-     *  setDataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set dataSource
+     * @param[in]: dataSource
      */
     void setDataSource(WebDataSource*);
+    
+    /**
+     * get dataSource
+     * @param[out]: dataSource
+     */
     WebDataSource* dataSource() const;
 
     /**
-     *  detachDataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * detach dataSource
      */
     void detachDataSource();
 
 
     /**
-     *  attachToFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * attach to frame
      */
     virtual void attachToFrame();
 
     /**
-     *  detachFromFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * detach from frame
      */
     virtual void detachFromFrame();
 

@@ -55,78 +55,77 @@ class WebArchive
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create a new instance of WebArchive
+     * @param[out]: WebArchive
      * @code
+     * WebArchive *a = WebArchive::createInstance();
      * @endcode
      */
     static WebArchive* createInstance();
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create a new instance of WebArchive
+     * @param[in]: Archive
+     * @param[out]: WebArchive
      * @code
+     * WebArchive *a = WebArchive::createInstance(a1);
      * @endcode
      */
     static WebArchive* createInstance(PassRefPtr<WebCore::Archive>);
 protected:
 
     /**
-     *  WebArchive description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebArchive constructor
+     * @param[in]: Archive
      */
     WebArchive(PassRefPtr<WebCore::Archive>);
 
 public:
 
     /**
-     *  ~WebArchive description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebArchive destructor
      */
     virtual ~WebArchive();
 
     /**
-     *  initWithMainResource description
-     * @param[in]: description
-     * @param[out]: description
+     * initialise the WebArchive with main resource
+     * Not Implemented
+     * @param[in]: main resource
+     * @param[in]: sub resources array
+     * @param[in]: sub resource length
+     * @param[in]: sub frame archive array
+     * @param[in]: sub frame archive length
      * @code
+     * a->initWithMainResource(mainResource, subResources, cSubResources, subFrameArchives, cSubFrameArchives);
      * @endcode
      */
     virtual void initWithMainResource(WebResource* mainResource, WebResource** subResources, int cSubResources,  WebArchive** subFrameArchives, int cSubFrameArchives);
 
 
     /**
-     *  initWithData description
-     * @param[in]: description
-     * @param[out]: description
+     * initialise WebArchive with data
+     * Not Implemented
+     * @param[in]: shared buffer
      * @code
+     * a->initWithData(s);
      * @endcode
      */
     virtual void initWithData(RefPtr<WebCore::SharedBuffer>);
 
     /**
-     *  mainResource description
-     * @param[in]: description
-     * @param[out]: description
+     * get main resource
+     * @param[out]: WebResource
      * @code
+     * WebResource *r = a->mainResource();
      * @endcode
      */
     virtual WebResource*  mainResource();
 
-
     /**
-     *  data description
-     * @param[in]: description
-     * @param[out]: description
+     * get data
+     * @param[out]: SharedBuffer
      * @code
+     * RefPtr<WebCore::SharedBuffer> s = a->data();
      * @endcode
      */
     virtual RefPtr<WebCore::SharedBuffer> data();

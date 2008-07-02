@@ -53,147 +53,162 @@ class DefaultDownloadDelegate
 public:
 
     /**
-     *  sharedInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * get shared instance
+     * @param[out]: DefaultDownloadDelegate
      * @code
+     * DefaultDownloadDelegate *d = DefaultDownloadDelegate::sharedInstance();
      * @endcode
      */
     static DefaultDownloadDelegate* sharedInstance();
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create a new instance of DefaultDownloadDelegate
+     * @param[out]: DefaultDownloadDelegate
      * @code
+     * DefaultDownloadDelegate *d = DefaultDownloadDelegate::sharedInstance();
      * @endcode
      */
     static DefaultDownloadDelegate* createInstance();
 private:
 
     /**
-     *  DefaultDownloadDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  DefaultDownloadDelegate default constructor
      */
     DefaultDownloadDelegate();
 public:
 
     /**
-     *  ~DefaultDownloadDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * DefaultDownloadDelegate destructor
      */
     virtual ~DefaultDownloadDelegate();
 
     /**
-     *  decideDestinationWithSuggestedFilename description
-     * @param[in]: description
-     * @param[out]: description
+     * set destination of download with the suggested filename
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: filename
      * @code
+     * d->decideDestinationWithSuggestedFilename(download, filename);
      * @endcode
      */
     virtual void decideDestinationWithSuggestedFilename(WebDownload *download, WebCore::String filename);
 
     /**
-     *  didCancelAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
+     * did cancel authentication challenge
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: WebURLAuthenticationChallenge
      * @code
+     * d->didCancelAuthenticationChallenge(download, challenge);
      * @endcode
      */
     virtual void didCancelAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge);
 
     /**
-     *  didCreateDestination description
-     * @param[in]: description
-     * @param[out]: description
+     * did create destination
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: destination
      * @code
+     * d->didCreateDestination(download, destination);
      * @endcode
      */
     virtual void didCreateDestination(WebDownload* download,  WebCore::String destination);
 
     /**
-     *  didFailWithError description
-     * @param[in]: description
-     * @param[out]: description
+     * did fail with error
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: Error
      * @code
+     * d->didFailWithError(download, error);
      * @endcode
      */
     virtual void didFailWithError(WebDownload* download, WebError* error);
 
     /**
-     *  didReceiveAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
+     * did receive authentication challenge
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: WebURLAuthenticationChallenge
      * @code
+     * d->didReceiveAuthenticationChallenge(download, challenge);
      * @endcode
      */
     virtual void didReceiveAuthenticationChallenge(WebDownload* download, WebURLAuthenticationChallenge* challenge);
 
     /**
-     *  didReceiveDataOfLength description
-     * @param[in]: description
-     * @param[out]: description
+     * did receive data of length
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: length
      * @code
+     * d->didReceiveDataOfLength(download, length);
      * @endcode
      */
     virtual void didReceiveDataOfLength(WebDownload* download, unsigned length);
 
     /**
-     *  didReceiveResponse description
-     * @param[in]: description
-     * @param[out]: description
+     * did receive response
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: WebMutableURLResponse
      * @code
+     * d->didReceiveResponse(download, response);
      * @endcode
      */
     virtual void didReceiveResponse(WebDownload* download, WebMutableURLResponse* response);
 
     /**
-     *  shouldDecodeSourceDataOfMIMEType description
-     * @param[in]: description
-     * @param[out]: description
+     * should decode source data of MIMEType
+     * Not Implemented
+     * @param[in]: download
+     * @param[in]: encodingType
      * @code
+     * bool s = d->shouldDecodeSourceDataOfMIMEType(download, encodingType);
      * @endcode
      */
     virtual bool shouldDecodeSourceDataOfMIMEType(WebDownload* download, WebCore::String encodingType);
 
     /**
-     *  willResumeWithResponse description
-     * @param[in]: description
-     * @param[out]: description
+     * will resume with response
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: WebMutableURLResponse
+     * @param[in]: long long
      * @code
+     * d->willResumeWithResponse(download, response, fromByte);
      * @endcode
      */
     virtual void willResumeWithResponse(WebDownload* download, WebMutableURLResponse* response, long long fromByte);
 
     /**
-     *  willSendRequest description
-     * @param[in]: description
-     * @param[out]: description
+     * will send request
+     * Not Implemented
+     * @param[in]: WebDownload
+     * @param[in]: WebMutableURLRequest
+     * @param[in]: WebMutableURLResponse
+     * @param[out]: WebMutableURLRequest
      * @code
+     * WebMutableURLRequest *w = d->willSendRequest(download, request, redirectResponse);
      * @endcode
      */
     virtual WebMutableURLRequest* willSendRequest(WebDownload* download, WebMutableURLRequest* request,  WebMutableURLResponse* redirectResponse);
 
     /**
-     *  didBegin description
-     * @param[in]: description
-     * @param[out]: description
+     * did begin
+     * @param[in]: WebDownload
      * @code
+     * d->didBegin(download);
      * @endcode
      */
     virtual void didBegin(WebDownload* download);
 
     /**
-     *  didFinish description
-     * @param[in]: description
-     * @param[out]: description
+     * did finish
+     * @param[in]: WebDownload
      * @code
+     * d->didFinish(download);
      * @endcode
      */
     virtual void didFinish(WebDownload* download);
@@ -201,19 +216,19 @@ public:
     // DefaultDownloadDelegate
 
     /**
-     *  registerDownload description
-     * @param[in]: description
-     * @param[out]: description
+     * register download
+     * @param[in]: WebDownload
      * @code
+     * d->registerDownload(download);
      * @endcode
      */
     void registerDownload(WebDownload*);
 
     /**
-     *  unregisterDownload description
-     * @param[in]: description
-     * @param[out]: description
+     * unregister download
+     * @param[in]: WebDownload
      * @code
+     * d->unregisterDownload(download);
      * @endcode
      */
     void unregisterDownload(WebDownload*);

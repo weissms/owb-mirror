@@ -54,177 +54,127 @@ class WebBackForwardList
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create new instance of WebBackForwardList
+     * @param[in]: BackForwardList
+     * @param[out]: WebBackForwardList
      * @code
+     * WebBackForwardList *wbfl = WebBackForwardList::createInstance(bfl);
      * @endcode
      */
     static WebBackForwardList* createInstance(PassRefPtr<WebCore::BackForwardList>);
 protected:
 
     /**
-     *  WebBackForwardList description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebBackForwardList constructor
+     * @param[in]: BackForwardList
      */
     WebBackForwardList(PassRefPtr<WebCore::BackForwardList>);
 
 public:
 
     /**
-     *  ~WebBackForwardList description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebBackForwardList destructor
      */
     virtual ~WebBackForwardList();
 
     /**
-     *  addItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * @param entry The entry to add.
+        @discussion The added entry is inserted immediately after the current entry.
+        If the current position in the list is not at the end of the list, elements in the
+        forward list will be dropped at this point.  In addition, entries may be dropped to keep
+        the size of the list within the maximum size addItem description
      */
     virtual void addItem(WebHistoryItem *item);
 
     /**
-     *  goBack description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Move the current pointer back to the entry before the current entry.
      */
     virtual void goBack();
 
     /**
-     *  goForward description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Move the current pointer ahead to the entry after the current entry
      */
     virtual void goForward();
 
     /**
-     *  goToItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Move the current pointer to the given entry.
+       @param item The history item to move the pointer to
      */
     virtual void goToItem(WebHistoryItem *item);
 
     /**
-     *  *backItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns the entry right before the current entry.
+       @result The entry right before the current entry, or nil if there isn't one.
      */
     virtual WebHistoryItem *backItem();
 
     /**
-     *  *currentItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns the entry right after the current entry.
+       @result The entry right after the current entry, or nil if there isn't one.
      */
     virtual WebHistoryItem *currentItem();
 
     /**
-     *  *forwardItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns a portion of the list before the current entry.
+        @param limit A cap on the size of the array returned.
+        @result An array of items before the current entry, or nil if there are none.  The entries are in the order that they were originally visited.
      */
     virtual WebHistoryItem *forwardItem();
 
     /**
-     *  backListWithLimit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns a portion of the list before the current entry.
+        @param limit A cap on the size of the array returned.
+        @result An array of items before the current entry, or nil if there are none.  The entries are in the order that they were originally visited.
      */
     virtual int backListWithLimit(int limit, WebHistoryItem **list);
 
     /**
-     *  forwardListWithLimit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns a portion of the list after the current entry.
+        @param limit A cap on the size of the array returned.
+        @result An array of items after the current entry, or nil if there are none.  The entries are in the order that they were originally visited.
      */
     virtual int forwardListWithLimit(int limit, WebHistoryItem **list);
 
     /**
-     *  capacity description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns the list's maximum size.
+        @result The list's maximum size.
      */
     virtual int capacity();
 
     /**
-     *  setCapacity description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Sets the list's maximum size.
+        @param size The new maximum size for the list.
      */
     virtual void setCapacity(int size);
 
     /**
-     *  backListCount description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns the back list's current count.
+        @result The number of items in the list.
      */
     virtual int backListCount();
 
     /**
-     *  forwardListCount description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns the forward list's current count.
+        @result The number of items in the list.
      */
     virtual int forwardListCount();
 
     /**
-     *  containsItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * item The item that will be checked for presence in the WebBackForwardList.
+        @result Returns YES if the item is in the list.
      */
     virtual bool containsItem(WebHistoryItem *item);
 
     /**
-     *  *itemAtIndex description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns an entry the given distance from the current entry.
+        @param index Index of the desired list item relative to the current item; 0 is current item, -1 is back item, 1 is forward item, etc.
+        @result The entry the given distance from the current entry. If index exceeds the limits of the list, nil is returned.
      */
     virtual WebHistoryItem *itemAtIndex(int index);
 
 
     /**
-     *  removeItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * remove the item
      */
     virtual void removeItem(WebHistoryItem* item);
 

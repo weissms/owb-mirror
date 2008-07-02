@@ -101,7 +101,7 @@ namespace OWBAL {
         }
         bool haveSpace = false;
         while (currentPos > 0) {
-            if (haveSpace && !string[currentPos] == 0x20)
+            if (haveSpace && !(string[currentPos] == 0x20) )
                 break;
             if (string[currentPos] == 0x20)
                 haveSpace = true;

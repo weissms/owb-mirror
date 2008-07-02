@@ -62,48 +62,44 @@ class DefaultPolicyDelegate {
 public:
 
     /**
-     *  sharedInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * get shared instance
+     * @param[out]: DefaultPolicyDelegate
      * @code
+     * DefaultPolicyDelegate *d = DefaultPolicyDelegate::sharedInstance();
      * @endcode
      */
     static DefaultPolicyDelegate* sharedInstance();
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
+     * create new instance of DefaultPolicyDelegate
+     * @param[out]: DefaultPolicyDelegate
      * @code
+     * DefaultPolicyDelegate *d = DefaultPolicyDelegate::createInstance();
      * @endcode
      */
     static DefaultPolicyDelegate* createInstance();
 private:
 
     /**
-     *  DefaultPolicyDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * DefaultPolicyDelegate default constructor
      */
     DefaultPolicyDelegate();
 public:
 
     /**
-     *  ~DefaultPolicyDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * DefaultPolicyDelegate destructor
      */
     virtual ~DefaultPolicyDelegate();
 
     /**
-     * decidePolicyForNavigationAction description
-     * @param[in]: description
-     * @param[out]: description
+     * decide policy for navigation action
+     * @param[in]: WebView
+     * @param[in]: WebActionPropertyBag
+     * @param[in]: WebMutableURLRequest
+     * @param[in]: WebFrame
+     * @param[in]: WebFramePolicyListener
      * @code
+     * d->decidePolicyForNavigationAction(webView, actionInformation, request, frame, listener);
      * @endcode
      */
     virtual void decidePolicyForNavigationAction( 
@@ -114,10 +110,14 @@ public:
         /* [in] */ WebFramePolicyListener *listener);
     
     /**
-     * decidePolicyForNewWindowAction description
-     * @param[in]: description
-     * @param[out]: description
+     * decide policy for new window action
+     * @param[in]: WebView
+     * @param[in]: WebActionPropertyBag
+     * @param[in]: WebMutableURLRequest
+     * @param[in]: frame name
+     * @param[in]: WebFramePolicyListener
      * @code
+     * d->decidePolicyForNewWindowAction(webView, actionInformation, request, frameName, listener);
      * @endcode
      */
     virtual void decidePolicyForNewWindowAction( 
@@ -128,10 +128,14 @@ public:
         /* [in] */ WebFramePolicyListener *listener);
     
     /**
-     * decidePolicyForMIMEType description
-     * @param[in]: description
-     * @param[out]: description
+     * decide policy for MIMEType
+     * @param[in]: WebView
+     * @param[in]: type
+     * @param[in]: WebMutableURLRequest
+     * @param[in]: WebFrame
+     * @param[in]: WebFramePolicyListener
      * @code
+     * d->decidePolicyForMIMEType(webView, type, request, frame, listener);
      * @endcode
      */
     virtual void decidePolicyForMIMEType( 
@@ -142,10 +146,12 @@ public:
         /* [in] */ WebFramePolicyListener *listener);
     
     /**
-     * unableToImplementPolicyWithError description
-     * @param[in]: description
-     * @param[out]: description
+     * unable to implement policy with error
+     * @param[in]: webView
+     * @param[in]: error
+     * @param[in]: frame
      * @code
+     * d->unableToImplementPolicyWithError(webView, error, frame);
      * @endcode
      */
     virtual void unableToImplementPolicyWithError( 

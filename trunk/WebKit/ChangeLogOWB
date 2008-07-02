@@ -1,3 +1,22 @@
+2008-07-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier Dole.
+        Add Doxygen documentation
+
+        * OrigynWebBrowser/Api/DefaultDownloadDelegate.h:
+        * OrigynWebBrowser/Api/DefaultPolicyDelegate.h:
+        * OrigynWebBrowser/Api/HTTPHeaderPropertyBag.h:
+        * OrigynWebBrowser/Api/WebActionPropertyBag.h:
+        * OrigynWebBrowser/Api/WebArchive.h:
+        * OrigynWebBrowser/Api/WebBackForwardList.h:
+        * OrigynWebBrowser/Api/WebCachedPagePlatformData.h:
+        * OrigynWebBrowser/Api/WebDataSource.h:
+        * OrigynWebBrowser/Api/WebDatabaseManager.h:
+        * OrigynWebBrowser/Api/WebDocumentLoader.h:
+        * OrigynWebBrowser/Api/WebDownload.h:
+        * OrigynWebBrowser/Api/WebElementPropertyBag.h:
+        * OrigynWebBrowser/Api/WebError.h:
+
 2008-07-01  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

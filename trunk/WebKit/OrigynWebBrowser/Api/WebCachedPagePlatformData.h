@@ -48,29 +48,19 @@ class WebCachedPagePlatformData : public WebCore::CachedPagePlatformData {
 public:
 
     /**
-     *  WebCachedPagePlatformData description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebCachedPagePlatformData constructor
+     * @param[in]: WebDataSource
      */
     WebCachedPagePlatformData(WebDataSource* webDataSource) : m_webDataSource(webDataSource) { DS_CONSTRUCT(); }
 
     /**
-     *  ~WebCachedPagePlatformData description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebCachedPagePlatformData destructor
      */
     ~WebCachedPagePlatformData() { m_webDataSource = 0; DS_DESTRUCT(); }
 
     /**
-     * webDataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get webDataSource
+     * @param[out]: WebDataSource
      */
     WebDataSource* webDataSource() { return m_webDataSource; }
 

@@ -59,194 +59,150 @@ class WebDownload
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create new instance of WebDownload
+     * @param[in]: url
+     * @param[in]: DefaultDownloadDelegate
      */
     static WebDownload* createInstance(const WebCore::KURL&, DefaultDownloadDelegate*);
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create new instance of WebDownload
+     * @param[in]: resource handle
+     * @param[in]: resource request
+     * @param[in]: resource response
+     * @param[in]: DefaultDownloadDelegate
      */
     static WebDownload* createInstance(WebCore::ResourceHandle*, const WebCore::ResourceRequest&, const WebCore::ResourceResponse&, DefaultDownloadDelegate*);
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create new instance of WebDownload
      */
     static WebDownload* createInstance();
 private:
 
     /**
-     *  WebDownload description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebDownload constructor
      */
     WebDownload();
 
     /**
-     *  init description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
-     */
+     * initialise WebDownload
+     * @param[in]: resource handle
+     * @param[in]: resource request
+     * @param[in]: resource response     */
     void init(WebCore::ResourceHandle*, const WebCore::ResourceRequest&, const WebCore::ResourceResponse&, DefaultDownloadDelegate*);
 
     /**
-     *  init description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialise WebDownload
+     * @param[in]: url
+     * @param[in]: DefaultDownloadDelegate
      */
     void init(const WebCore::KURL&, DefaultDownloadDelegate*);
 public:
 
     /**
-     *  ~WebDownload description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  WebDownload destructor
      */
     virtual ~WebDownload();
 
     /**
-     *  initWithRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialise with request
+     * Not Implemented
+     * @param[in]: WebMutableURLRequest
+     * @param[in]: DefaultDownloadDelegate
      */
     virtual void initWithRequest(WebMutableURLRequest* request, DefaultDownloadDelegate* delegate);
 
     /**
-     *  initToResumeWithBundle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  initialise to resume with bundle
+     * Not Implemented
+     * @param[in]: bundle path
+     * @param[in]: DefaultDownloadDelegate
      */
     virtual void initToResumeWithBundle(WebCore::String bundlePath, DefaultDownloadDelegate* delegate);
 
     /**
-     *  canResumeDownloadDecodedWithEncodingMIMEType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * can resume download decoded with encoding MIMEType
+     * Not Implemented
+     * @param[in]: MIMEType
+     * @param[out] : status
      */
     virtual bool canResumeDownloadDecodedWithEncodingMIMEType(WebCore::String mimeType);
 
     /**
-     *  start description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * start
+     * Not Implemented
      */
     virtual void start();
 
     /**
-     *  cancel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * cancel
+     * Not Implemented
      */
     virtual void cancel();
 
     /**
-     *  cancelForResume description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * cancel for resume
+     * Not Implemented
      */
     virtual void cancelForResume();
 
     /**
-     *  deletesFileUponFailure description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * deletes file upon failure
+     * Not Implemented
+     * @param[out]: status
      */
     virtual bool deletesFileUponFailure();
 
     /**
-     *  bundlePathForTargetPath description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get bundle path for target path
+     * Not Implemented
+     * @param[in]: target path
+     * @param[out]: bundle path
      */
     virtual WebCore::String bundlePathForTargetPath(WebCore::String target);
 
     /**
-     *  request description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get request 
+     * Not Implemented
+     * @param[out]: WebMutableURLRequest
      */
     virtual WebMutableURLRequest* request();
 
     /**
-     *  setDeletesFileUponFailure description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set deletes file upon failure
+     * Not Implemented
+     * @param[in]: status
      */
     virtual void setDeletesFileUponFailure(bool deletesFileUponFailure);
 
     /**
-     *  setDestination description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set destination
+     * Not Implemented
+     * @param[in]: path
+     * @param[in]: allow overwrite
      */
     virtual void setDestination(WebCore::String path, bool allowOverwrite);
 
-
     /**
-     *  cancelAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * cancel authentication challenge
+     * Not Implemented
+     * @param[in]: WebURLAuthenticationChallenge
      */
     virtual void cancelAuthenticationChallenge(WebURLAuthenticationChallenge* challenge);
 
     /**
-     *  continueWithoutCredentialForAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * continue without credential for authentication challenge
+     * Not Implemented
+     * @param[in]: WebURLAuthenticationChallenge
      */
     virtual void continueWithoutCredentialForAuthenticationChallenge(WebURLAuthenticationChallenge* challenge);
 
     /**
-     *  useCredential description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * use credential
+     * Not Implemented
+     * @param[in]: credential
+     * @param[in]: challenge
      */
     virtual void useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge);
 

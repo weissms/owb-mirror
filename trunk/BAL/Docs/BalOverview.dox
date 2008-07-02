@@ -40,7 +40,7 @@ BAL is splitted in two namespaces, OWBAL and WKAL. WKAL can be have dependance i
  - @ref Fonts 
  - @ref Graphics
  - @ref ImageDecoders
- - @ref Internationalization (to be completed)
+ - @ref Internationalization
  - @ref Media 
  - @ref Memory
  - @ref Network

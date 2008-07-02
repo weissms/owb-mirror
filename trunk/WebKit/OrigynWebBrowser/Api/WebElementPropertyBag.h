@@ -52,42 +52,30 @@ class WebElementPropertyBag
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebElementPropertyBag
+     * @param[in]: HitTestResult
      */
     static WebElementPropertyBag* createInstance(const WebCore::HitTestResult&);
 
 protected:
 
     /**
-     *  WebElementPropertyBag description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebElementPropertyBag constructor
+     * @param[in]: HitTestResult
      */
     WebElementPropertyBag(const WebCore::HitTestResult&);
 
 public:
 
     /**
-     *  ~WebElementPropertyBag description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebElementPropertyBag destructor
      */
     virtual ~WebElementPropertyBag();
 
     /**
-     *  Read description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Read
+     * @param[in]: property name
+     * @param[out]: property value
      */
     virtual WebCore::String Read(WebCore::String pszPropName);
 

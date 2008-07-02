@@ -60,69 +60,52 @@ class WebDataSource
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebDataSource
+     * @param[in]: WebDocumentLoader
      */
     static WebDataSource* createInstance(WebDocumentLoader*);
 protected:
 
     /**
-     *  WebDataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebDataSource constructor
+     * @param[in]: WebDocumentLoader
      */
     WebDataSource(WebDocumentLoader*);
 
 public:
 
     /**
-     *  ~WebDataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebDataSource destructor
      */
     virtual ~WebDataSource();
 
     /**
-     *  initWithRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * The designated initializer for WebDataSource.
+        @param request The request to use in creating a datasource.
+        @result Returns an initialized WebDataSource.
      */
     virtual void initWithRequest(WebMutableURLRequest *request);
 
 
     /**
-     *  data description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * The data will be incomplete until the datasource has completely loaded.
+        @result Returns the raw data associated with the datasource.  Returns nil
+        if the datasource hasn't loaded any data.
      */
     virtual WTF::PassRefPtr<WebCore::SharedBuffer> data();
 
     /**
-     *  representation description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  A representation holds a type specific representation
+        of the datasource's data.  The representation class is determined by mapping
+        a MIME type to a class.  The representation is created once the MIME type
+        of the datasource content has been determined.
+        @result Returns the representation associated with this datasource.
+        Returns nil if the datasource hasn't created it's representation.
      */
     //virtual WebHTMLRepresentation* representation();
 
     /**
-     *  webFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Return the frame that represents this data source.
      */
     virtual WebFrame* webFrame();
 
@@ -136,120 +119,87 @@ public:
     virtual WebMutableURLRequest* initialRequest();
 
     /**
-     *  request description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns a reference to the original request that created the
+        datasource.  This request will be unmodified by WebKit.
      */
     virtual WebMutableURLRequest* request();
 
     /**
-     *  response description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * returns the WebResourceResponse for the data source.
      */
     virtual WebURLResponse* response();
 
     /**
-     *  textEncodingName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns either the override encoding, as set on the WebView for this
+        dataSource or the encoding from the response.
      */
     virtual WebCore::String textEncodingName();
 
     /**
-     *  isLoading description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns true if there are any pending loads.
      */
     virtual bool isLoading();
 
     /**
-     *  pageTitle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns nil or the page title.
      */
     virtual WebCore::String pageTitle();
 
     /**
-     *  unreachableURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * This will be non-nil only for dataSources created by calls to the
+        WebFrame method loadAlternateHTMLString:baseURL:forUnreachableURL:.
+        @result returns the unreachableURL for which this dataSource is showing alternate content, or nil
      */
     virtual WebCore::String unreachableURL();
 
     /**
-     *  webArchive description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * A WebArchive representing the data source, its subresources and child frames.
+        @description This method constructs a WebArchive using the original downloaded data.
+        In the case of HTML, if the current state of the document is preferred, webArchive should be
+        called on the DOM document instead.
      */
     virtual WebArchive* webArchive();
 
     /**
-     *  mainResource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * A WebResource representing the data source.
+        @description This method constructs a WebResource using the original downloaded data.
+        This method can be used to construct a WebArchive in case the archive returned by
+        WebDataSource's webArchive isn't sufficient.
      */
     virtual WebResource* mainResource();
 
     /**
-     *  subresourceForURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns a subresource for a given URL.
+        @param URL The URL of the subresource.
+        @description Returns non-nil if the data source has fully downloaded a subresource with the given URL.
      */
     virtual WebResource* subresourceForURL(WebCore::String url);
 
     /**
-     *  addSubresource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Adds a subresource to the data source.
+        @param subresource The subresource to be added.
+        @description addSubresource: adds a subresource to the data source's list of subresources.
+        Later, if something causes the data source to load the URL of the subresource, the data source
+        will load the data from the subresource instead of from the network. For example, if one wants to add
+        an image that is already downloaded to a web page, addSubresource: can be called so that the data source
+        uses the downloaded image rather than accessing the network. NOTE: If the data source already has a
+        subresource with the same URL, addSubresource: will replace it.
      */
     virtual void addSubresource(WebResource *subresource);
     
 
     /**
-     *  overrideEncoding description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get override encoding
      */
     virtual WebCore::String overrideEncoding();
 
     /**
-     *  setOverrideEncoding description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set override encoding
      */
     virtual void setOverrideEncoding(WebCore::String encoding);
 
     /**
-     *  mainDocumentError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get main document error 
      */
     virtual WebError* mainDocumentError();
 
