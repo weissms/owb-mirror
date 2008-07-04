@@ -52,49 +52,29 @@ class WebURLAuthenticationChallenge {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebURLAuthenticationChallenge
      */
     static WebURLAuthenticationChallenge* createInstance(const WebCore::AuthenticationChallenge&);
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebURLAuthenticationChallenge
      */
     static WebURLAuthenticationChallenge* createInstance(const WebCore::AuthenticationChallenge&, WebURLAuthenticationChallengeSender*);
 private:
 
     /**
-     *  WebURLAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebURLAuthenticationChallenge constructor
      */
     WebURLAuthenticationChallenge(const WebCore::AuthenticationChallenge&, WebURLAuthenticationChallengeSender*);
 public:
 
     /**
-     *  ~WebURLAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebURLAuthenticationChallenge destructor
      */
     virtual ~WebURLAuthenticationChallenge();
 
     /**
-     *  initWithProtectionSpace description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialise WebURLAuthenticationChallenge with protection space 
      */
     virtual void initWithProtectionSpace(WebURLProtectionSpace* space, WebURLCredential* proposedCredential, int previousFailureCount, WebURLResponse* failureResponse, WebError* error, WebURLAuthenticationChallengeSender* sender);
 

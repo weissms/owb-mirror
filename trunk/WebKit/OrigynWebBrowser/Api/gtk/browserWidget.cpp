@@ -283,6 +283,26 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
     case GDK_Escape:
         gtk_main_quit();
         return true;
+    case GDK_F1:
+        webView_s->goBack();
+        view->update();
+        return true;
+    case GDK_F2:
+        webView_s->goForward();
+        view->update();
+        return true;
+    case GDK_F3:
+        if (webView_s->canZoomPageIn()) {
+            webView_s->zoomPageIn();
+            //webView_s->makeTextLarger();
+        }
+        return true;
+    case GDK_F4:
+        if (webView_s->canZoomPageOut()) {
+            webView_s->zoomPageOut();
+            //webView_s->makeTextSmaller();
+        }
+        return true;
     }
 
     /* Chain up to our parent class for binding activation */
