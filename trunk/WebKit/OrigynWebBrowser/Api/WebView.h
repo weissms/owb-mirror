@@ -63,20 +63,12 @@ class WebElementPropertyBag;
 
 
     /**
-     *  kit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get a webview from page
      */
 WebView* kit(WebCore::Page*);
 
     /**
-     *  core description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get page from a webview
      */
 WebCore::Page* core(WebView*);
 
@@ -100,1175 +92,775 @@ class WebView
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebView
      */
     static WebView* createInstance();
 
     /**
-     *  ~WebView description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebView destructor
      */
     virtual ~WebView();
 protected:
 
     /**
-     *  WebView description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebView default constructor
      */
     WebView();
 
 public:
 
     /**
-     *  canShowMIMEType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canShowMIMEType 
+     * Checks if the WebKit can show content of a certain MIME type.
+        @param MIMEType The MIME type to check.
+        @result YES if the WebKit can show content with MIMEtype.
      */
     virtual bool canShowMIMEType(WebCore::String mimeType);
 
     /**
-     *  canShowMIMETypeAsHTML description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canShowMIMETypeAsHTML 
+     * Checks if the the MIME type is a type that the WebKit will interpret as HTML.
+        @param MIMEType The MIME type to check.
+        @result true if the MIMEtype in an HTML type.
      */
     virtual bool canShowMIMETypeAsHTML(WebCore::String mimeType);
 
     /**
-     *  setMIMETypesShownAsHTML description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setMIMETypesShownAsHTML 
+     * @discussion Sets the array of NSString MIME types that WebKit will
+        attempt to render as HTML.  Typically you will retrieve the built-in
+        array using MIMETypesShownAsHTML and add additional MIME types to that
+        array.
      */
     virtual void setMIMETypesShownAsHTML(WebCore::String mimeTypes, int cMimeTypes);
 
     /**
-     *  initWithFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  initWithFrame 
+     * The designated initializer for WebView.
+        @discussion Initialize a WebView with the supplied parameters. This method will
+        create a main WebFrame with the view. Passing a top level frame name is useful if you
+        handle a targetted frame navigation that would normally open a window in some other
+        way that still ends up creating a new WebView.
+        @param frame The frame used to create the view.
+        @param frameName The name to use for the top level frame. May be nil.
+        @param groupName The name of the webView set to which this webView will be added.  May be nil.
+        @result Returns an initialized WebView.
      */
     virtual void initWithFrame(WebCore::IntRect frame, WebCore::String frameName, WebCore::String groupName);
 
     /**
-     *  setDownloadDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setDownloadDelegate 
+     * Set the WebView's WebDownloadDelegate.
+        @discussion The download delegate is retained by WebDownload when any downloads are in progress.
+        @param delegate The WebDownloadDelegate to set as the download delegate.
      */
     virtual void setDownloadDelegate(DefaultDownloadDelegate *d);
 
     /**
-     *  *downloadDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * downloadDelegate 
+     * Return the WebView's WebDownloadDelegate.
+        @result The WebView's WebDownloadDelegate.
      */
     virtual DefaultDownloadDelegate *downloadDelegate();
 
     /**
-     *  setPolicyDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setPolicyDelegate 
+     * Set the WebView's WebPolicyDelegate delegate.
+        @param delegate The WebPolicyDelegate to set as the delegate.
      */
     virtual void setPolicyDelegate(DefaultPolicyDelegate *d);
 
     /**
-     *  *policyDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * policyDelegate 
+     * Return the WebView's WebPolicyDelegate.
+        @result The WebView's WebPolicyDelegate.
      */
     virtual DefaultPolicyDelegate *policyDelegate();
 
     /**
-     *  *mainFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * mainFrame 
+     * Return the frame that has the current focus
      */
     virtual WebFrame *mainFrame();
 
     /**
-     *  *focusedFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * focusedFrame 
+     * Return the frame that has the current focus.
      */
     virtual WebFrame *focusedFrame();
 
     /**
-     *  *backForwardList description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * backForwardList 
+     * The backforward list for this webView.
      */
     virtual WebBackForwardList *backForwardList();
 
     /**
-     *  setMaintainsBackForwardList description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setMaintainsBackForwardList 
+     * Enable or disable the use of a backforward list for this webView.
+        @param flag Turns use of the back forward list on or off
      */
     virtual void setMaintainsBackForwardList(bool flag);
 
     /**
-     *  goBack description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  goBack 
+     * Go back to the previous URL in the backforward list.
+        @result true if able to go back in the backforward list, false otherwise.
      */
     virtual bool goBack();
 
     /**
-     *  goForward description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * goForward 
+     * Go forward to the next URL in the backforward list.
+        @result true if able to go forward in the backforward list, false otherwise
      */
     virtual bool goForward();
 
     /**
-     *  goToBackForwardItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  goToBackForwardItem 
+     * Go back or forward to an item in the backforward list.
+        @result true if able to go to the item, false otherwise.
      */
     virtual bool goToBackForwardItem(WebHistoryItem *item);
 
     /**
-     *  setTextSizeMultiplier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setTextSizeMultiplier 
+     * Change the size of the text rendering in views managed by this webView.
+        @param multiplier A fractional percentage value, 1.0 is 100%.
      */
     virtual void setTextSizeMultiplier(float multiplier);
 
     /**
-     *  textSizeMultiplier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  textSizeMultiplier 
+     * @result The text size multipler.
      */
     virtual float textSizeMultiplier();
 
     /**
-     *  setApplicationNameForUserAgent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setApplicationNameForUserAgent 
+     * Set the application name.
+        @discussion This name will be used in user-agent strings
+        that are chosen for best results in rendering web pages.
+        @param applicationName The application name
      */
     virtual void setApplicationNameForUserAgent(WebCore::String applicationName);
 
     /**
-     *  applicationNameForUserAgent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  applicationNameForUserAgent 
+     * The name of the application as used in the user-agent string.
      */
     virtual WebCore::String applicationNameForUserAgent();
 
     /**
-     *  setCustomUserAgent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setCustomUserAgent 
+     * Set the user agent.
+        @discussion Setting this means that the webView should use this user-agent string
+        instead of constructing a user-agent string for each URL. Setting it to nil
+        causes the webView to construct the user-agent string for each URL
+        for best results rendering web pages.
+        @param userAgentString The user agent description
      */
     virtual void setCustomUserAgent(WebCore::String userAgentString);
 
     /**
-     *  customUserAgent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  customUserAgent 
+     * @result The custom user-agent string or nil if no custom user-agent string has been set.
      */
     virtual WebCore::String customUserAgent();
 
     /**
-     *  userAgentForURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  userAgentForURL 
+     * Get the appropriate user-agent string for a particular URL.
+        @param URL The URL.
+        @result The user-agent string for the supplied URL.
      */
     virtual WebCore::String userAgentForURL(WebCore::String url);
 
     /**
-     *  supportsTextEncoding description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  supportsTextEncoding 
+     * Find out if the current web page supports text encodings.
+        @result true if the document view of the current web page can
+        support different text encodings.
      */
     virtual bool supportsTextEncoding();
 
     /**
-     *  setCustomTextEncodingName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setCustomTextEncodingName 
+     * @discussion Make the page display with a different text encoding; stops any load in progress.
+        The text encoding passed in overrides the normal text encoding smarts including
+        what's specified in a web page's header or HTTP response.
+        The text encoding automatically goes back to the default when the top level frame
+        changes to a new location.
+        Setting the text encoding name to nil makes the webView use default encoding rules.
+        @param encoding The text encoding name to use to display a page or nil.
      */
     virtual void setCustomTextEncodingName(WebCore::String encodingName);
 
     /**
-     *  customTextEncodingName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  customTextEncodingName 
+     * @result The custom text encoding name or nil if no custom text encoding name has been set.
      */
     virtual WebCore::String customTextEncodingName();
 
     /**
-     *  setMediaStyle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setMediaStyle 
+     * @discussion Set the media style for the WebView.  The mediaStyle will override the normal value
+        of the CSS media property.  Setting the value to nil will restore the normal value.
+        @param mediaStyle The value to use for the CSS media property.
      */
     virtual void setMediaStyle(WebCore::String media);
 
     /**
-     *  mediaStyle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  mediaStyle 
+     * @result mediaStyle The value to use for the CSS media property, as set by setMediaStyle:.  It
+        will be nil unless set by that method.
      */
     virtual WebCore::String mediaStyle();
 
     /**
-     *  stringByEvaluatingJavaScriptFromString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  stringByEvaluatingJavaScriptFromString 
+     * @param script The text of the JavaScript.
+        @result The result of the script, converted to a string, or nil for failure.
      */
     virtual WebCore::String stringByEvaluatingJavaScriptFromString(WebCore::String script);
 
     /**
-     *  *windowScriptObject description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * windowScriptObject 
+     * @discussion windowScriptObject return a WebScriptObject that represents the
+        window object from the script environment.
+        @result Returns the window object from the script environment.
      */
     virtual WebScriptObject *windowScriptObject();
 
     /**
-     *  setPreferences description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setPreferences 
+     * @param preferences The preferences to use for the webView.
+        @abstract Override the standard setting for the webView.
      */
     virtual void setPreferences(WebPreferences *prefs);
 
     /**
-     *  *preferences description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * preferences 
+     * @result Returns the preferences used by this webView.
+        @discussion This method will return [WebPreferences standardPreferences] if no
+        other instance of WebPreferences has been set.
      */
     virtual WebPreferences *preferences();
 
     /**
-     *  setPreferencesIdentifier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setPreferencesIdentifier 
+     * @param anIdentifier The string to use a prefix for storing values for this WebView in the user
+        defaults database.
+        @discussion If the WebPreferences for this WebView are stored in the user defaults database, the
+        string set in this method will be used a key prefix.
      */
     virtual void setPreferencesIdentifier(WebCore::String anIdentifier);
 
     /**
-     *  preferencesIdentifier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  preferencesIdentifier 
+     * @result Returns the WebPreferences key prefix.
      */
     virtual WebCore::String preferencesIdentifier();
 
     /**
-     *  setHostWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
-     */
-    //virtual void setHostWindow(BalWidget *window);
-
-    /**
-     *  *hostWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
-     */
-    //virtual BalWidget *hostWindow();
-
-    /**
-     *  searchFor description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  searchFor 
+     * @abstract Searches a document view for a string and highlights the string if it is found.
+        Starts the search from the current selection.  Will search across all frames.
+        @param string The string to search for.
+        @param forward true to search forward, false to seach backwards.
+        @param caseFlag true to for case-sensitive search, false for case-insensitive search.
+        @result true if found, false if not found.
      */
     virtual bool searchFor(WebCore::String str, bool forward, bool caseFlag, bool wrapFlag);
 
     /**
-     *  setGroupName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setGroupName 
+     * @param groupName The name of the group for this WebView.
+        @discussion JavaScript may access named frames within the same group.
      */
     virtual void setGroupName(WebCore::String);
 
     /**
-     *  groupName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  groupName 
+     * @discussion The group name for this WebView.
      */
     virtual WebCore::String groupName();
 
     /**
-     *  estimatedProgress description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  estimatedProgress 
+     * @discussion An estimate of the percent complete for a document load.  This
+        value will range from 0 to 1.0 and, once a load completes, will remain at 1.0
+        until a new load starts, at which point it will be reset to 0.  The value is an
+        estimate based on the total number of bytes expected to be received
+        for a document, including all it's possible subresources.  For more accurate progress
+        indication it is recommended that you implement a WebFrameLoadDelegate and a
+        WebResourceLoadDelegate.
      */
     virtual double estimatedProgress();
 
     /**
-     *  isLoading description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  isLoading 
+     * @discussion Returns true if there are any pending loads.
      */
     virtual bool isLoading();
 
     /**
-     *  elementAtPoint description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * elementAtPoint 
+     * @param point A point in the coordinates of the WebView
+        @result An element dictionary describing the point
      */
     virtual WebElementPropertyBag* elementAtPoint(WebCore::IntPoint point);
 
     /**
-     *  selectedText description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  selectedText 
+     * abstract Returns the selection as a string
      */
     virtual WebCore::String selectedText();
 
     /**
-     *  centerSelectionInVisibleArea description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  centerSelectionInVisibleArea 
+     * @abstract Centers the selected text in the WebView
      */
     virtual void centerSelectionInVisibleArea();
 
     /**
-     *  moveDragCaretToPoint description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  moveDragCaretToPoint 
+     * @param point A point in the coordinates of the WebView
+        @discussion This method moves the caret that shows where something being dragged will be dropped. It may cause the WebView to scroll
+        to make the new position of the drag caret visible.
      */
     virtual void moveDragCaretToPoint(WebCore::IntPoint point);
 
     /**
-     *  removeDragCaret description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  removeDragCaret 
+     * @param drawsBackround true to cause the receiver to draw a default white background, false otherwise.
+        @abstract Sets whether the receiver draws a default white background when the loaded page has no background specified.
      */
     virtual void removeDragCaret();
 
     /**
-     *  setDrawsBackground description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setDrawsBackground 
+     * @param drawsBackround YES to cause the receiver to draw a default white background, NO otherwise.
+        @abstract Sets whether the receiver draws a default white background when the loaded page has no background specified.
      */
     virtual void setDrawsBackground(bool drawsBackground);
 
     /**
-     *  drawsBackground description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  drawsBackground 
+     * @result Returns true if the receiver draws a default white background, false otherwise.
      */
     virtual bool drawsBackground();
 
     /**
-     *  setMainFrameURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setMainFrameURL 
+     * @param URLString The URL to load in the mainFrame.
      */
     virtual void setMainFrameURL(WebCore::String urlString);
 
     /**
-     *  mainFrameURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  mainFrameURL 
+     * @result Returns the main frame's current URL
      */
     virtual WebCore::String mainFrameURL();
 
     /**
-     *  mainFrameDocument description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  mainFrameDocument 
+     *  @result Returns the main frame's DOMDocument.
      */
     virtual WebCore::Document* mainFrameDocument();
 
     /**
-     *  mainFrameTitle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  mainFrameTitle 
+     * @result Returns the main frame's title if any, otherwise an empty string.
      */
     virtual WebCore::String mainFrameTitle();
 
     /**
-     *  registerURLSchemeAsLocal description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * registerURLSchemeAsLocal 
+     * @discussion Adds the scheme to the list of schemes to be treated as local.
+        @param scheme The scheme to register.
      */
     virtual void registerURLSchemeAsLocal(WebCore::String scheme);
 
 
     /**
-     *  setSmartInsertDeleteEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * setSmartInsertDeleteEnabled 
      */
     virtual void setSmartInsertDeleteEnabled(bool flag);
 
     /**
-     *  smartInsertDeleteEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  smartInsertDeleteEnabled 
      */
     virtual bool smartInsertDeleteEnabled();
 
     /**
-     *  setContinuousSpellCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setContinuousSpellCheckingEnabled 
      */
     virtual void setContinuousSpellCheckingEnabled(bool flag);
 
     /**
-     *  isContinuousSpellCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  isContinuousSpellCheckingEnabled 
      */
     virtual bool isContinuousSpellCheckingEnabled();
 
     /**
-     *  spellCheckerDocumentTag description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  spellCheckerDocumentTag 
      */
     virtual int spellCheckerDocumentTag();
 
     /**
-     *  *undoManager description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * undoManager 
      */
     //virtual WebUndoManager *undoManager();
     
 
     /**
-     *  setEditingDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * setEditingDelegate 
      */
     //virtual void setEditingDelegate(WebEditingDelegate *d);
 
     /**
-     *  editingDelegate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * editingDelegate 
      */
     //virtual WebEditingDelegate * editingDelegate();
 
 
     /**
-     *  hasSelectedRange description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  hasSelectedRange 
      */
     virtual bool hasSelectedRange();
 
     /**
-     *  cutEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cutEnabled 
      */
     virtual bool cutEnabled();
 
     /**
-     *  copyEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  copyEnabled 
      */
     virtual bool copyEnabled();
 
     /**
-     *  pasteEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  pasteEnabled 
      */
     virtual bool pasteEnabled();
 
     /**
-     *  deleteEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  deleteEnabled 
      */
     virtual bool deleteEnabled();
 
     /**
-     *  editingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  editingEnabled 
      */
     virtual bool editingEnabled();
 
     /**
-     *  isGrammarCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  isGrammarCheckingEnabled 
      */
     virtual bool isGrammarCheckingEnabled();
 
     /**
-     *  setGrammarCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setGrammarCheckingEnabled 
      */
     virtual void setGrammarCheckingEnabled(bool enabled);
 
     /**
-     *  setPageSizeMultiplier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setPageSizeMultiplier 
+     * @abstract Set a zoom factor for all views managed by this webView.
+        @param multiplier A fractional percentage value, 1.0 is 100%.
      */
     virtual void setPageSizeMultiplier(float multiplier);
 
     /**
-     *  pageSizeMultiplier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  pageSizeMultiplier 
+     * @result The page size multipler.
      */
     virtual float pageSizeMultiplier();
 
 
     /**
-     *  canZoomPageIn description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canZoomPageIn 
      */
     virtual bool canZoomPageIn();
 
     /**
-     *  zoomPageIn description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  zoomPageIn 
      */
     virtual void zoomPageIn();
 
     /**
-     *  canZoomPageOut description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canZoomPageOut 
      */
     virtual bool canZoomPageOut();
 
     /**
-     *  zoomPageOut description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  zoomPageOut 
      */
     virtual void zoomPageOut();
 
     /**
-     *  canResetPageZoom description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canResetPageZoom 
      */
     virtual bool canResetPageZoom();
 
     /**
-     *  resetPageZoom description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  resetPageZoom 
      */
     virtual void resetPageZoom();
 
 
     /**
-     *  canMakeTextLarger description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canMakeTextLarger 
      */
     virtual bool canMakeTextLarger();
 
     /**
-     *  makeTextLarger description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  makeTextLarger 
      */
     virtual void makeTextLarger();
 
     /**
-     *  canMakeTextSmaller description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canMakeTextSmaller 
      */
     virtual bool canMakeTextSmaller();
 
     /**
-     *  makeTextSmaller description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  makeTextSmaller 
      */
     virtual void makeTextSmaller();
 
     /**
-     *  canMakeTextStandardSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canMakeTextStandardSize 
      */
     virtual bool canMakeTextStandardSize();
 
     /**
-     *  makeTextStandardSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  makeTextStandardSize 
      */
     virtual void makeTextStandardSize();
 
 
     /**
-     *  replaceSelectionWithText description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  replaceSelectionWithText 
      */
     virtual void replaceSelectionWithText(WebCore::String text);
 
     /**
-     *  replaceSelectionWithMarkupString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  replaceSelectionWithMarkupString 
      */
     virtual void replaceSelectionWithMarkupString(WebCore::String markupString);
 
     /**
-     *  replaceSelectionWithArchive description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  replaceSelectionWithArchive 
      */
     virtual void replaceSelectionWithArchive(WebArchive *archive);
 
     /**
-     *  deleteSelection description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  deleteSelection 
      */
     virtual void deleteSelection();
 
     /**
-     *  clearSelection description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  clearSelection 
      */
     virtual void clearSelection();
 
 
     /**
-     *  copy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  copy 
      */
     virtual void copy();
 
     /**
-     *  cut description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cut 
      */
     virtual void cut();
 
     /**
-     *  paste description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  paste 
      */
     virtual void paste();
 
     /**
-     *  copyURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  copyURL 
      */
     virtual void copyURL(WebCore::String url);
 
     /**
-     *  copyFont description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  copyFont 
      */
     virtual void copyFont();
 
     /**
-     *  pasteFont description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  pasteFont 
      */
     virtual void pasteFont();
 
     /**
-     *  delete_ description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  delete_ 
      */
     virtual void delete_();
 
     /**
-     *  pasteAsPlainText description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  pasteAsPlainText 
      */
     virtual void pasteAsPlainText();
 
     /**
-     *  pasteAsRichText description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  pasteAsRichText 
      */
     virtual void pasteAsRichText();
 
     /**
-     *  changeFont description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  changeFont 
      */
     virtual void changeFont();
 
     /**
-     *  changeAttributes description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  changeAttributes 
      */
     virtual void changeAttributes();
 
     /**
-     *  changeDocumentBackgroundColor description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  changeDocumentBackgroundColor 
      */
     virtual void changeDocumentBackgroundColor();
 
     /**
-     *  changeColor description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  changeColor 
      */
     virtual void changeColor();
 
     /**
-     *  alignCenter description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  alignCenter 
      */
     virtual void alignCenter();
 
     /**
-     *  alignJustified description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  alignJustified 
      */
     virtual void alignJustified();
 
     /**
-     *  alignLeft description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  alignLeft 
      */
     virtual void alignLeft();
 
     /**
-     *  alignRight description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  alignRight 
      */
     virtual void alignRight();
 
     /**
-     *  checkSpelling description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  checkSpelling 
      */
     virtual void checkSpelling();
 
     /**
-     *  showGuessPanel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  showGuessPanel 
      */
     virtual void showGuessPanel();
 
     /**
-     *  performFindPanelAction description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  performFindPanelAction 
      */
     virtual void performFindPanelAction();
 
     /**
-     *  startSpeaking description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  startSpeaking 
      */
     virtual void startSpeaking();
 
     /**
-     *  stopSpeaking description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  stopSpeaking 
      */
     virtual void stopSpeaking();
 
 
     /**
-     *  observe description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  observe implementation
      */
     virtual void observe(const WebCore::String &topic, const WebCore::String &data, void *userData);
 
 
     /**
-     *  setCustomDropTarget description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setCustomDropTarget 
      */
     //virtual void setCustomDropTarget(DropTarget* dt);
 
     /**
-     *  removeCustomDropTarget description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  removeCustomDropTarget 
      */
     //virtual void removeCustomDropTarget();
 
     /**
-     *  setInViewSourceMode description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setInViewSourceMode 
      */
     virtual void setInViewSourceMode(bool flag);
 
     /**
-     *  inViewSourceMode description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  inViewSourceMode 
      */
     virtual bool inViewSourceMode();
 
     /**
-     *  viewWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  get view window 
      */
     virtual BalWidget* viewWindow();
 
     /**
-     *  setViewWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set view window 
      */
     virtual void setViewWindow(BalWidget*);
 
     /**
-     *  scrollOffset description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  scrollOffset 
      */
     virtual WebCore::IntPoint scrollOffset();
 
     /**
-     *  scrollBy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  scrollBy 
      */
     virtual void scrollBy(WebCore::IntPoint offset);
 
     /**
-     *  visibleContentRect description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  visibleContentRect 
      */
     virtual WebCore::IntRect visibleContentRect();
 
     /**
-     *  updateFocusedAndActiveState description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  updateFocusedAndActiveState 
      */
     virtual void updateFocusedAndActiveState();
 
     /**
-     *  executeCoreCommandByName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  executeCoreCommandByName 
      */
     virtual void executeCoreCommandByName(WebCore::String name, WebCore::String value);
 
     /**
-     *  markAllMatchesForText description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  markAllMatchesForText 
      */
     virtual unsigned int markAllMatchesForText(WebCore::String search, bool caseSensitive, bool highlight, unsigned int limit);
 
     /**
-     *  unmarkAllTextMatches description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  unmarkAllTextMatches 
      */
     virtual void unmarkAllTextMatches();
 
     /**
-     *  rectsForTextMatches description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  rectsForTextMatches 
      */
     virtual Vector<WebCore::IntRect> rectsForTextMatches();
 
     /**
-     *  generateSelectionImage description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  generateSelectionImage 
      */
     virtual WebCore::Image* generateSelectionImage(bool forceWhiteText);
 
     /**
-     *  selectionRect description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  selectionRect 
      */
     virtual WebCore::IntRect selectionRect();
     /*virtual  DragEnter(IDataObject* pDataObject, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect);*
@@ -1278,826 +870,470 @@ public:
 
 
     /**
-     *  canHandleRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canHandleRequest 
      */
     virtual bool canHandleRequest(WebMutableURLRequest *request);
 
     /**
-     *  clearFocusNode description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  clearFocusNode 
      */
     virtual void clearFocusNode();
 
     /**
-     *  setInitialFocus description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setInitialFocus 
      */
     virtual void setInitialFocus(bool forward);
 
     /**
-     *  setTabKeyCyclesThroughElements description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setTabKeyCyclesThroughElements 
      */
     virtual void setTabKeyCyclesThroughElements(bool cycles);
 
     /**
-     *  tabKeyCyclesThroughElements description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  tabKeyCyclesThroughElements 
      */
     virtual bool tabKeyCyclesThroughElements();
 
     /**
-     *  setAllowSiteSpecificHacks description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setAllowSiteSpecificHacks 
      */
     virtual void setAllowSiteSpecificHacks(bool allows);
 
     /**
-     *  addAdditionalPluginDirectory description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  addAdditionalPluginDirectory 
      */
     virtual void addAdditionalPluginDirectory(WebCore::String directory);
 
     /**
-     *  loadBackForwardListFromOtherView description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadBackForwardListFromOtherView 
      */
     virtual void loadBackForwardListFromOtherView(WebView *otherView);
 
     /**
-     *  inspector description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get inspector 
      */
     virtual WebInspector* inspector();
 
     /**
-     *  clearUndoRedoOperations description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  clearUndoRedoOperations 
      */
     virtual void clearUndoRedoOperations();
 
     /**
-     *  shouldClose description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  shouldClose 
+     * @abstract This function will fire the before unload handler for a page.
+        If the user cancels the closing of a webview from the alert popped up by the
+        before unload handler, then this function will return false.
      */
     virtual bool shouldClose();
 
     /**
-     *  setProhibitsMainFrameScrolling description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setProhibitsMainFrameScrolling 
      */
     virtual void setProhibitsMainFrameScrolling(bool);
 
     /**
-     *  setShouldApplyMacFontAscentHack description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setShouldApplyMacFontAscentHack 
      */
     virtual void setShouldApplyMacFontAscentHack(bool);
 
     /**
-     *  windowAncestryDidChange description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  windowAncestryDidChange 
      */
     virtual void windowAncestryDidChange();
 
     /**
-     *  paintDocumentRectToContext description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  paintDocumentRectToContext 
      */
     virtual void paintDocumentRectToContext(WebCore::IntRect rect, PlatformGraphicsContext *pgc);
 
 
     /**
-     *  page description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get page 
      */
     WebCore::Page* page();
     
 
     /**
-     *  onExpose description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on expose event to the webview
      */
     void onExpose(BalEventExpose);
 
     /**
-     *  onKeyDown description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on keyDown  event to the webview
      */
     void onKeyDown(BalEventKey);
 
     /**
-     *  onKeyUp description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on keyup  event to the webview
      */
     void onKeyUp(BalEventKey);
 
     /**
-     *  onMouseMotion description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on mouse motion  event to the webview
      */
     void onMouseMotion(BalEventMotion);
 
     /**
-     *  onMouseButtonDown description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on mouse button down  event to the webview
      */
     void onMouseButtonDown(BalEventButton);
 
     /**
-     *  onMouseButtonUp description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on mouse button up event to the webview
      */
     void onMouseButtonUp(BalEventButton);
 
     /**
-     *  onScroll description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on scroll event to the webview
      */
     void onScroll(BalEventScroll);
 
     /**
-     *  onResize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on resize event to the webview
      */
     void onResize(BalResizeEvent);
 
     /**
-     *  onQuit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on quit  event to the webview
      */
     void onQuit(BalQuitEvent);
 
     /**
-     *  onUserEvent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  give on user event to the webview
      */
     void onUserEvent(BalUserEvent);
 
 
     /**
-     *  paint description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * paint 
      */
     void paint();
 
     /**
-     *  ensureBackingStore description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  ensureBackingStore
      */
     bool ensureBackingStore();
 
     /**
-     *  addToDirtyRegion description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  addToDirtyRegion 
      */
     void addToDirtyRegion(const WebCore::IntRect&);
 
     /**
-     *  dirtyRegion description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dirtyRegion 
      */
     WebCore::IntRect dirtyRegion();
 
     /**
-     *  clearDirtyRegion description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  clearDirtyRegion 
      */
     void clearDirtyRegion();
 
     /**
-     *  scrollBackingStore description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  scrollBackingStore 
      */
     void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect);
 
     /**
-     *  updateBackingStore description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  updateBackingStore 
      */
     void updateBackingStore(WebCore::FrameView*);
 
     /**
-     *  deleteBackingStore description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  deleteBackingStore 
      */
     void deleteBackingStore();
 
     /**
-     *  frameRect description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  get frame rect 
      */
     WebCore::IntRect frameRect();
 
     /**
-     *  closeWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  closeWindow 
      */
     void closeWindow();
 
     /**
-     *  closeWindowSoon description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  closeWindowSoon 
      */
     void closeWindowSoon();
 
     /**
-     *  close description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  close the webview
      */
     void close();
 
     /**
-     * didClose description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * didClose 
      */
     bool didClose() const { return m_didClose; }
 
     /**
-     *  selectionChanged description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  selectionChanged 
      */
     void selectionChanged();
 
     /**
-     *  registerDragDrop description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  registerDragDrop 
      */
     //HRESULT registerDragDrop();
 
     /**
-     *  revokeDragDrop description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  revokeDragDrop 
      */
     //HRESULT revokeDragDrop();
 
     /**
-     * topLevelFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get the top level frame 
      */
     // Convenient to be able to violate the rules of COM here for easy movement to the frame.
     WebFrame* topLevelFrame() const { return m_mainFrame; }
 
     /**
-     *  userAgentForKURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get user agent for url
      */
     const WebCore::String& userAgentForKURL(const WebCore::KURL& url);
 
 
     /**
-     *  canHandleRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canHandleRequest
      */
     static bool canHandleRequest(const WebCore::ResourceRequest&);
 
     /**
-     * setIsBeingDestroyed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * setIsBeingDestroyed 
      */
     void setIsBeingDestroyed() { m_isBeingDestroyed = true; }
 
     /**
-     * isBeingDestroyed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * isBeingDestroyed 
      */
     bool isBeingDestroyed() const { return m_isBeingDestroyed; }
 
 
     /**
-     *  interpretKeyEvent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * interpret KeyEvent 
      */
     const char* interpretKeyEvent(const WebCore::KeyboardEvent*);
 
     /**
-     *  handleEditingKeyboardEvent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * handleEditingKeyboardEvent 
      */
     bool handleEditingKeyboardEvent(WebCore::KeyboardEvent*);
 
     /**
-     * isPainting description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * isPainting 
      */
     bool isPainting() const { return m_paintCount > 0; }
 
 
     /**
-     *  setToolTip description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setToolTip 
      */
     void setToolTip(const WebCore::String&);
 
 #if ENABLE(ICON_DATABASE)
 
     /**
-     *  registerForIconNotification description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  registerForIconNotification 
      */
     void registerForIconNotification(bool listen);
 
     /**
-     *  dispatchDidReceiveIconFromWebFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchDidReceiveIconFromWebFrame 
      */
     void dispatchDidReceiveIconFromWebFrame(WebFrame*);
 
 
     /**
-     *  notifyDidAddIcon description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  notifyDidAddIcon 
      */
     void notifyDidAddIcon();
 #endif
 
     /**
-     *  notifyPreferencesChanged description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  notifyPreferencesChanged 
      */
     void notifyPreferencesChanged(WebPreferences*);
 
 
     /**
-     *  setCacheModel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  set CacheModel 
      */
     static void setCacheModel(WebCacheModel);
 
     /**
-     *  cacheModel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get CacheModel 
      */
     static WebCacheModel cacheModel();
 
     /**
-     *  didSetCacheModel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * didSetCacheModel 
      */
     static bool didSetCacheModel();
 
     /**
-     *  maxCacheModelInAnyInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  maxCacheModelInAnyInstance 
      */
     static WebCacheModel maxCacheModelInAnyInstance();
 
     /**
-     * updateActiveStateSoon description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * updateActiveStateSoon 
      */
     void updateActiveStateSoon() const;
 
     /**
-     *  deleteBackingStoreSoon description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  deleteBackingStoreSoon 
      */
     void deleteBackingStoreSoon();
 
     /**
-     *  cancelDeleteBackingStoreSoon description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cancelDeleteBackingStoreSoon 
      */
     void cancelDeleteBackingStoreSoon();
 
     /**
-     * topLevelParent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get top level parent 
      */
     BalWidget* topLevelParent() const { return m_topLevelParent; }
 
 
     /**
-     *  updateActiveState description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * update active state 
      */
     void updateActiveState();
 
     /**
-     * parseConfigFile description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * parse owb config file 
      */
     void parseConfigFile(WebCore::String url = "");
 
-    //FIXME EventLoop
-    //bool onGetObject(WPARAM, LPARAM, LRESULT&) const;
-
     /**
-     *  AccessibleObjectFromWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  AccessibleObjectFromWindow 
      */
     //static STDMETHODIMP AccessibleObjectFromWindow(HWND, DWORD objectID, REFIID, void** ppObject);
 
 private:
 
     /**
-     *  setZoomMultiplier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setZoomMultiplier 
      */
     void setZoomMultiplier(float multiplier, bool isTextOnly);
 
     /**
-     *  zoomMultiplier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  zoomMultiplier 
      */
     float zoomMultiplier(bool isTextOnly);
 
     /**
-     *  canZoomIn description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canZoomIn 
      */
     bool canZoomIn(bool isTextOnly);
 
     /**
-     *  zoomIn description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  zoomIn 
      */
     void zoomIn(bool isTextOnly);
 
     /**
-     *  canZoomOut description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canZoomOut 
      */
     bool canZoomOut(bool isTextOnly);
 
     /**
-     *  zoomOut description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  zoomOut 
      */
     void zoomOut(bool isTextOnly);
 
     /**
-     *  canResetZoom description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canResetZoom 
      */
     bool canResetZoom(bool isTextOnly);
 
     /**
-     *  resetZoom description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  resetZoom 
      */
     void resetZoom(bool isTextOnly);
 
     /**
-     *  active description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  active 
      */
     bool active();
 
 protected:
 
     /**
-     *  getIMMContext description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  getIMMContext 
      */
     //HIMC getIMMContext();
 
     /**
-     *  releaseIMMContext description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  releaseIMMContext 
      */
     //void releaseIMMContext(HIMC);
 
     /**
-     * allowSiteSpecificHacks description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * allowSiteSpecificHacks 
      */
     static bool allowSiteSpecificHacks() { return s_allowSiteSpecificHacks; } 
 
     /**
-     *  continuousCheckingAllowed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  continuousCheckingAllowed 
      */
     bool continuousCheckingAllowed();
 
     /**
-     *  initializeToolTipWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  initializeToolTipWindow 
      */
     void initializeToolTipWindow();
 
     /**
-     *  closeWindowTimerFired description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  closeWindowTimerFired 
      */
     void closeWindowTimerFired(WebCore::Timer<WebView>*);
 
     /**
-     *  prepareCandidateWindow description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  prepareCandidateWindow 
      */
     //void prepareCandidateWindow(WebCore::Frame*, HIMC);
 
     /**
-     *  updateSelectionForIME description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  updateSelectionForIME 
      */
 //     void updateSelectionForIME();
 
     /**
-     *  onIMERequestCharPosition description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  onIMERequestCharPosition 
      */
     //bool onIMERequestCharPosition(WebCore::Frame*, IMECHARPOSITION*, LRESULT*);
 
     /**
-     *  onIMERequestReconvertString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  onIMERequestReconvertString 
      */
     //bool onIMERequestReconvertString(WebCore::Frame*, RECONVERTSTRING*, LRESULT*);
 
     /**
-     * developerExtrasEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * developerExtrasEnabled 
      */
     bool developerExtrasEnabled() const;
 
     // AllWebViewSet functions
 
     /**
-     *  addToAllWebViewsSet description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  addToAllWebViewsSet 
      */
     void addToAllWebViewsSet();
 
     /**
-     *  removeFromAllWebViewsSet description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  removeFromAllWebViewsSet 
      */
     void removeFromAllWebViewsSet();
 
 
     /**
-     *  windowReceivedMessage description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  windowReceivedMessage 
      */
     //virtual void windowReceivedMessage(HWND, UINT message, WPARAM, LPARAM);
 

@@ -2,6 +2,13 @@
 
         Reviewed by Olivier DOLE.
         add doxygen documentation
+
+        * OrigynWebBrowser/Api/WebView.h:
+
+2008-07-04  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        add doxygen documentation
         change zoomText by zoom in onKeyDown
 
         * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
