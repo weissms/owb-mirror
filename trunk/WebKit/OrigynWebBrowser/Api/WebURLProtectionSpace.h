@@ -65,139 +65,79 @@ class WebURLProtectionSpace
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebURLProtectionSpace
      */
     static WebURLProtectionSpace* createInstance();
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebURLProtectionSpace
      */
     static WebURLProtectionSpace* createInstance(const WebCore::ProtectionSpace&);
 private:
 
     /**
-     *  WebURLProtectionSpace description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  WebURLProtectionSpace constructor
      */
     WebURLProtectionSpace(const WebCore::ProtectionSpace&);
 public:
 
     /**
-     *  ~WebURLProtectionSpace description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebURLProtectionSpace destructor
      */
     virtual ~WebURLProtectionSpace();
 
     /**
-     *  authenticationMethod description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get authentication method
      */
     virtual WebCore::String authenticationMethod();
 
     /**
-     *  host description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get host
      */
     virtual WebCore::String host();
 
     /**
-     *  initWithHost description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialize WebURLProtectionSpace with host
      */
     virtual void initWithHost(WebCore::String host, int port, WebCore::String protocol, WebCore::String realm,  WebCore::String authenticationMethod);
 
     /**
-     *  initWithProxyHost description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * init with proxy host
      */
     virtual void initWithProxyHost(WebCore::String host, int port, WebCore::String proxyType, WebCore::String realm, WebCore::String authenticationMethod);
 
     /**
-     *  isProxy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the protection space is a proxy
      */
     virtual bool isProxy();
 
     /**
-     *  port description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get port
      */
     virtual int port();
 
     /**
-     *  protocol description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get protocol
      */
     virtual WebCore::String protocol();
 
     /**
-     *  proxyType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get proxy type
      */
     virtual WebCore::String proxyType();
 
     /**
-     *  realm description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get realm
      */
     virtual WebCore::String realm();
 
     /**
-     *  receivesCredentialSecurely description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if protectionSpace receives credential securely
      */
     virtual bool receivesCredentialSecurely();
 
     /**
-     * protectionSpace description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get protectionSpace
      */
     const WebCore::ProtectionSpace& protectionSpace() const;
 

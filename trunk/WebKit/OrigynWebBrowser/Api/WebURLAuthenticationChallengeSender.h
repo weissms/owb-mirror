@@ -54,67 +54,39 @@ class WebURLAuthenticationChallengeSender
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebURLAuthenticationChallengeSender
      */
     static WebURLAuthenticationChallengeSender* createInstance(PassRefPtr<WebCore::ResourceHandle>);
 private:
 
     /**
-     *  WebURLAuthenticationChallengeSender description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  WebURLAuthenticationChallengeSender constructor
      */
     WebURLAuthenticationChallengeSender(PassRefPtr<WebCore::ResourceHandle>);
 public:
 
     /**
-     *  ~WebURLAuthenticationChallengeSender description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebURLAuthenticationChallengeSender delete
      */
     virtual ~WebURLAuthenticationChallengeSender();
 
     /**
-     *  cancelAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * cancel authentication challenge
      */
     virtual void cancelAuthenticationChallenge(WebURLAuthenticationChallenge* challenge);
 
     /**
-     *  continueWithoutCredentialForAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * continue without credential for authentication challenge
      */
     virtual void continueWithoutCredentialForAuthenticationChallenge(WebURLAuthenticationChallenge* challenge);
 
     /**
-     *  useCredential description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * use credential
      */
     virtual void useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge);
 
     /**
-     * resourceHandle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get resource handle
      */
     WebCore::ResourceHandle* resourceHandle() const;
 

@@ -1,3 +1,17 @@
+2008-07-04  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        add doxygen documentation
+        change zoomText by zoom in onKeyDown
+
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown):
+        * OrigynWebBrowser/Api/WebURLAuthenticationChallenge.h:
+        * OrigynWebBrowser/Api/WebURLAuthenticationChallengeSender.h:
+        * OrigynWebBrowser/Api/WebURLCredential.h:
+        * OrigynWebBrowser/Api/WebURLProtectionSpace.h:
+        * OrigynWebBrowser/Api/WebURLResponse.h:
+
 2008-07-04  Jean-Charles Verdiï¿½  <jcverdie@pleyo.com>
 
         Reviewed by Mario Bensi

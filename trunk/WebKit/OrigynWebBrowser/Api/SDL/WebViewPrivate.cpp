@@ -123,16 +123,12 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
         view->update();
         return;
     case SDLK_F3:
-        if (m_webView->canZoomPageIn()) {
-            //m_webView->zoomPageIn();
-            m_webView->makeTextLarger();
-        }
+        if (m_webView->canZoomPageIn())
+            m_webView->zoomPageIn();
         return;
     case SDLK_F4:
-        if (m_webView->canZoomPageOut()) {
-            //m_webView->zoomPageOut();
-            m_webView->makeTextSmaller();
-        }
+        if (m_webView->canZoomPageOut())
+            m_webView->zoomPageOut();
         return;
     default:
         break;

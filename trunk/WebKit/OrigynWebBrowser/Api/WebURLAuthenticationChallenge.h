@@ -79,74 +79,42 @@ public:
     virtual void initWithProtectionSpace(WebURLProtectionSpace* space, WebURLCredential* proposedCredential, int previousFailureCount, WebURLResponse* failureResponse, WebError* error, WebURLAuthenticationChallengeSender* sender);
 
     /**
-     *  initWithAuthenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  initialise WebURLAuthenticationChallenge with authentication challenge
      */
     virtual void initWithAuthenticationChallenge(WebURLAuthenticationChallenge* challenge, WebURLAuthenticationChallengeSender* sender);
 
     /**
-     *  error description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get error
      */
     virtual WebError* error();
 
     /**
-     *  failureResponse description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get failure response
      */
     virtual WebURLResponse* failureResponse();
 
     /**
-     *  previousFailureCount description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get previous failure count
      */
     virtual unsigned previousFailureCount();
 
     /**
-     *  proposedCredential description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get proposed credential
      */
     virtual WebURLCredential* proposedCredential();
 
     /**
-     *  protectionSpace description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get protection space
      */
     virtual WebURLProtectionSpace* protectionSpace();
 
     /**
-     *  sender description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get sender
      */
     virtual WebURLAuthenticationChallengeSender* sender();
    
     /**
-     * authenticationChallenge description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get authentication challenge
      */ 
     const WebCore::AuthenticationChallenge& authenticationChallenge() const;
 

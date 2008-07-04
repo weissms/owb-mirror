@@ -53,94 +53,54 @@ class WebURLCredential
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebURLCredential
      */
     static WebURLCredential* createInstance();
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebURLCredential
      */
     static WebURLCredential* createInstance(const WebCore::Credential&);
 private:
 
     /**
-     *  WebURLCredential description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebURLCredential constructor
      */
     WebURLCredential(const WebCore::Credential&);
 public:
 
     /**
-     *  ~WebURLCredential description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebURLCredential destructor
      */
     virtual ~WebURLCredential();
 
     /**
-     *  hasPassword description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the WebURLCredential has password
      */
     virtual bool hasPassword();
 
     /**
-     *  initWithUser description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialize WebURLCredential with user
      */
     virtual void initWithUser(WebCore::String user, WebCore::String password, WebURLCredentialPersistence persistence);
 
     /**
-     *  password description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get password
      */
     virtual WebCore::String password();
 
     /**
-     *  persistence description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get url credential persistence
      */
     virtual WebURLCredentialPersistence persistence();
 
     /**
-     *  user description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get user
      */
     virtual WebCore::String user();
 
     /**
-     * credential description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get credential
      */
     const WebCore::Credential& credential() const;
 

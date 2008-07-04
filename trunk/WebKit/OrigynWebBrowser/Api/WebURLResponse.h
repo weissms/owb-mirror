@@ -53,8 +53,7 @@ class WebURLResponse
 public:
 
     /**
-     *  createInstance creates an instance
-     * @param[in]: 
+     * create a new instance of WebURLResponse
      * @param[out]: WebURLResponse*
      */
     static WebURLResponse* createInstance();
@@ -81,7 +80,6 @@ public:
 
     /**
      *  expectedContentLength returns the expected content length
-     * @param[in]: 
      * @param[out]: length
      */
     virtual long long expectedContentLength();
@@ -89,29 +87,21 @@ public:
     /**
      *  initWithURLA prepares URL response
      * @param[in]: see signature
-     * @param[out]: 
      */
     virtual void initWithURL( WebCore::String url, WebCore::String mimeType, int expectedContentLength, WebCore::String textEncodingName);
 
     /**
      *  MIMEType returns MIME Type
-     * @param[in]: 
-     * @param[out]: 
      */
     virtual WebCore::String MIMEType();
 
     /**
-     *  suggestedFilename description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  get suggested filename
      */
     virtual WebCore::String suggestedFilename();
 
     /**
      *  textEncodingName proposed file name
-     * @param[in]: 
      * @param[out]: Suggested filename
      */
     virtual WebCore::String textEncodingName();
@@ -124,8 +114,7 @@ public:
 
 
     /**
-     *  *allHeaderFields sets all HTTP headers
-     * @param[in]: 
+     * allHeaderFields sets all HTTP headers
      * @param[out]: HTTPHeaderPropertyBag
      */
     virtual HTTPHeaderPropertyBag *allHeaderFields();
@@ -139,14 +128,12 @@ public:
 
     /**
      *  statusCode returns status code
-     * @param[in]: 
      * @param[out]: status code
      */
     virtual int statusCode();
 
     /**
      *  isAttachment identifes if it's an attachment
-     * @param[in]: 
      * @param[out]: boolean
      */
     virtual bool isAttachment();
@@ -154,17 +141,12 @@ public:
 
     /**
      *  sslPeerCertificate description
-     * @param[in]: description
-     * @param[out]: description
      */
     //virtual OLE_HANDLE sslPeerCertificate();
    
     /**
      * resourceResponse returns WebCore ResourceResponse
-     * @param[in]: 
      * @param[out]: WebCore::ResourceResponse&
-     * @code
-     * @endcode
      */ 
     const WebCore::ResourceResponse& resourceResponse() const;
 
@@ -172,10 +154,8 @@ protected:
 
     /**
      *  suggestedFileExtension tries to propose a file extension
-     * @param[in]: 
      * @param[out]: file extension
-     * @code
-     * @endcode
+
      */
     WebCore::String suggestedFileExtension();
 
