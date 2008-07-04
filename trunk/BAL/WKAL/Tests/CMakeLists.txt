@@ -32,6 +32,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
     ${CMAKE_SOURCE_DIR}/WebCore/storage
     ${CMAKE_SOURCE_DIR}/WebCore/rendering/style
+    ${CMAKE_SOURCE_DIR}/WebCore/svg/graphics/filters
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/WebCoreSupport

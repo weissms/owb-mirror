@@ -25,7 +25,7 @@
 #if ENABLE(SVG) && ENABLE(SVG_FILTERS)
 
 #include "SVGElement.h"
-#include "SVGFEComponentTransfer.h"
+#include "FEComponentTransfer.h"
 
 namespace WebCore
 {
@@ -41,7 +41,7 @@ namespace WebCore
         // Derived from: 'Element'
         virtual void parseMappedAttribute(MappedAttribute* attr);
         
-        SVGComponentTransferFunction transferFunction() const;
+        ComponentTransferFunction transferFunction() const;
 
     private:
         ANIMATED_PROPERTY_DECLARATIONS(SVGComponentTransferFunctionElement, int, int, Type, type)

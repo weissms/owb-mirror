@@ -26,10 +26,11 @@
 #include "config.h"
 #include "Profile.h"
 
-#include "ProfileNode.h"
-#include "JSGlobalObject.h"
 #include "ExecState.h"
 #include "JSFunction.h"
+#include "JSGlobalObject.h"
+#include "ProfileNode.h"
+#include "TreeProfile.h"
 
 #include <stdio.h>
 
@@ -39,7 +40,7 @@ static const char* NonJSExecution = "(idle)";
 
 PassRefPtr<Profile> Profile::create(const UString& title, ExecState* originatingGlobalExec, unsigned pageGroupIdentifier, ProfilerClient* client)
 {
-    return adoptRef(new Profile(title, originatingGlobalExec, pageGroupIdentifier, client));
+    return TreeProfile::create(title, originatingGlobalExec, pageGroupIdentifier, client);
 }
 
 Profile::Profile(const UString& title, ExecState* originatingGlobalExec, unsigned pageGroupIdentifier, ProfilerClient* client)
@@ -54,6 +55,10 @@ Profile::Profile(const UString& title, ExecState* originatingGlobalExec, unsigne
     // into the profiler will need to know which thread it is executing on.
     m_head = ProfileNode::create(CallIdentifier("Thread_1", 0, 0), 0, 0);
     m_currentNode = m_head;
+}
+
+Profile::~Profile()
+{
 }
 
 void Profile::stopProfiling()
@@ -98,7 +103,7 @@ void Profile::removeProfileStart() {
     for (ProfileNode* next = m_head.get(); next; next = next->firstChild())
         currentNode = next;
 
-    if (currentNode->callIdentifier().name != "profile")
+    if (currentNode->callIdentifier().m_name != "profile")
         return;
 
     // Increment m_stoppedCallDepth to account for didExecute not being called for console.profile.
@@ -117,7 +122,7 @@ void Profile::removeProfileEnd() {
     for (ProfileNode* next = m_head.get(); next; next = next->lastChild())
         currentNode = next;
 
-    if (currentNode->callIdentifier().name != "profileEnd")
+    if (currentNode->callIdentifier().m_name != "profileEnd")
         return;
 
     // Attribute the time of the node aobut to be removed to the self time of its parent

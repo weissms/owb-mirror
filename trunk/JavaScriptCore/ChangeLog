@@ -1,3 +1,235 @@
+2008-07-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix output path of recently-added script phase to reference the correct file.
+        This prevents Xcode from running the script phase unnecessarily, which caused
+        the generated header to be recreated and lead to AllInOneFile.cpp rebuilding.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-07-03  Mark Rowe  <mrowe@apple.com>
+
+        Follow-up to the 64-bit build fix.  Use intptr_t rather than ssize_t as
+        the latter is non-standard and does not exist on Windows.
+
+        * kjs/JSLock.cpp:
+        (KJS::JSLock::lockCount):
+        (KJS::JSLock::lock):
+        (KJS::JSLock::unlock):
+        (KJS::JSLock::DropAllLocks::DropAllLocks):
+        * kjs/JSLock.h:
+
+2008-07-02  Mark Rowe  <mrowe@apple.com>
+
+        Fix the 64-bit build.  pthread_getspecific works with pointer-sized values,
+        so use ssize_t rather than int to track the lock count to avoid warnings about
+        truncating the result of pthread_getspecific.
+
+        * kjs/JSLock.cpp:
+        (KJS::JSLock::lockCount):
+        (KJS::JSLock::lock):
+        (KJS::JSLock::unlock):
+        (KJS::JSLock::DropAllLocks::DropAllLocks):
+        * kjs/JSLock.h:
+
+2008-07-03  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Removed checking for the array get/put fast case from the array code.
+        Callers who want the fast case should call getIndex and/or setIndex
+        instead. (get_by_val and put_by_val already do this.)
+        
+        SunSpider reports no change overall, but a 1.4% speedup on fannkuch and
+        a 3.6% speedup on nsieve.
+
+2008-07-03  Dan Bernstein  <mitz@apple.com>
+
+        - Windows build fix
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Added TreeProfile.{h,cpp}.
+
+2008-07-03  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - Windows build fix
+
+        * VM/Machine.cpp:
+        (KJS::Machine::Machine):
+
+2008-07-03  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fix the non-threaded build.
+
+        * kjs/JSGlobalData.cpp:
+        (KJS::JSGlobalData::threadInstanceInternal):
+
+2008-07-03  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build, added TreeProfile to the build.
+
+        * JavaScriptCore.pri:
+
+2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff.
+
+        Don't create unnecessary JSGlobalData instances.
+
+        * kjs/JSGlobalData.h:
+        * kjs/JSGlobalData.cpp:
+        (KJS::JSGlobalData::threadInstanceExists):
+        (KJS::JSGlobalData::sharedInstanceExists):
+        (KJS::JSGlobalData::threadInstance):
+        (KJS::JSGlobalData::sharedInstance):
+        (KJS::JSGlobalData::threadInstanceInternal):
+        (KJS::JSGlobalData::sharedInstanceInternal):
+        Added methods to query instance existence.
+
+        * kjs/InitializeThreading.cpp:
+        (KJS::initializeThreadingOnce):
+        Initialize thread instance static in a new way.
+
+        * API/JSBase.cpp:
+        (JSGarbageCollect):
+        * kjs/collector.cpp:
+        (KJS::Heap::collect):
+        Check for instance existence before accessing it.
+
+2008-07-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=19862
+        REGRESSION (r34907): Gmail crashes in JavaScriptCore code while editing drafts
+        
+        I was never able to reproduce this issue, but Cameron could, and he says
+        that this patch fixes it.
+        
+        The crash seems tied to a timer or event handler callback. In such a case,
+        the sole reference to the global object may be in the current call frame,
+        so we can't depend on the global object to mark the call frame area in
+        the register file.
+        
+        The new GC marking rule is: the global object is not responsible for
+        marking the whole register file -- it's just responsible for the globals
+        section it's tied to. The heap is responsible for marking the call frame area.
+
+2008-07-02  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add the ability to trace JavaScriptCore garabge collections using dtrace.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Generate the dtrace probe header
+        file when building on a new enough version of Mac OS X.
+        * JavaScriptCorePrefix.h: Add our standard Mac OS X version detection macros.
+        * kjs/Tracing.d: Declare three dtrace probes.
+        * kjs/Tracing.h: Include the generated dtrace macros if dtrace is available,
+        otherwise provide versions that do nothing.
+        * kjs/collector.cpp:
+        (KJS::Heap::collect): Fire dtrace probes when starting a collection, after the
+        mark phase has completed, and when the collection is complete.
+        * wtf/Platform.h: Define HAVE_DTRACE when building on a new enough version of Mac OS X.
+
+2008-07-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber stamped by Oliver Hunt.
+        
+        Reduced the max register file size from 8MB to 2MB.
+
+        We still allow about 20,000 levels of recursion.
+
+2008-07-02  Alp Toker  <alp@nuanti.com>
+
+        Build fix for r34960. Add TreeProfile.cpp to build.
+
+        * GNUmakefile.am:
+
+2008-07-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Optimized a[n] get for cases when a is an array or a string. When a is
+        an array, we optimize both get and put. When a is a string, we only
+        optimize get, since you can't put to a string.
+        
+        SunSpider says 3.4% faster.
+
+2008-07-02  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Darin.
+
+        -Small cleanup in preparation for implementing Bottom-up.
+
+        * profiler/CallIdentifier.h: Rename debug function to make it clear of
+        its output and intention to be debug only.
+        (KJS::CallIdentifier::operator const char* ): Implement in terms of
+        c_str.
+        (KJS::CallIdentifier::c_str):
+        * profiler/ProfileNode.cpp: Impelment findChild() which will be needed
+        by the bottom-up implementation.
+        (KJS::ProfileNode::findChild):
+        * profiler/ProfileNode.h: Added comments to make the collections of
+        functions more clear.
+        (KJS::ProfileNode::operator==):
+        (KJS::ProfileNode::c_str):
+
+2008-07-02  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Darin.
+
+        Bug 19776: Number.toExponential() is incorrect for numbers between 0.1 and 1
+        <https://bugs.webkit.org/show_bug.cgi?id=19776>
+
+        Perform the sign check for the exponent on the actual exponent value,
+        which is 1 less than the value of decimalPoint, instead of on the value
+        of decimalPoint itself.
+
+        * kjs/NumberPrototype.cpp:
+        (KJS::exponentialPartToString):
+
+2008-07-02  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Darin.
+
+        <rdar://problem/5951532> JSProfiler: Implement Bottom-Up view (19228)
+        - Subclass TreeProfile as I prepare for a HeavyProfile to be comming
+        later.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * profiler/Profile.cpp: By default we create a TreeProfile.
+        (KJS::Profile::create):
+        * profiler/Profile.h: Changes to the Profile class to make it amenable
+        to be inherited from.
+        (KJS::Profile::~Profile):
+        * profiler/TreeProfile.cpp: Added.
+        (KJS::TreeProfile::create):
+        (KJS::TreeProfile::TreeProfile):
+        (KJS::TreeProfile::heavyProfile):
+        * profiler/TreeProfile.h: Added.
+        (KJS::TreeProfile::treeProfile):
+
+2008-07-02  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Dan.
+
+        Broke CallIdentifier out into its own file. I did this because it's
+        going to grow a lot soon and I wanted this to be a separate patch.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * profiler/CallIdentifier.h: Added.
+        (KJS::CallIdentifier::CallIdentifier):
+        (KJS::CallIdentifier::operator==):
+        (KJS::CallIdentifier::operator!=):
+        (KJS::CallIdentifier::operator const char* ):
+        (KJS::CallIdentifier::toString):
+        * profiler/ProfileNode.h:
+
 2008-07-02  Simon Hausmann  <hausmann@webkit.org>
 
         Build fix. Implemented missing functions for single-threaded build.

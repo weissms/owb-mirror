@@ -407,6 +407,7 @@ for line in f:
                             nextFound = 1
                             break
                     if nextFound == 0 :
+                        print "remove " + m
                         #get name
                         u = m.find('(')
                         genName = m[m.rfind(' ', 0, u):u]
@@ -444,6 +445,7 @@ for line in f:
                             out += oldFile[p+1:-1]
                             oldFile = out
                     else :
+                        print "remove " + m
                         #get name
                         u = m.find('(')
                         genName = m[m.rfind(' ', 0, u):u]

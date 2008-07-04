@@ -1,3 +1,307 @@
+2008-07-04  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Gtk build, adapt to renamed files.
+
+        * GNUmakefile.am:
+
+2008-07-04  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build, adapt to renamed files.
+
+        * WebCore.pro:
+
+2008-07-03  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        Move filter implementations to platform directory.
+
+        * WebCore.vcproj/WebCore.vcproj
+        * WebCore.xcodeproj/project.pbxproj:
+        * svg/SVGComponentTransferFunctionElement.h:
+        * svg/SVGFEBlendElement.h:
+        * svg/SVGFEColorMatrixElement.h:
+        * svg/SVGFEComponentTransferElement.h:
+        * svg/SVGFECompositeElement.h:
+        * platform/graphics/filters/FEBlend.cpp: Renamed from WebCore/svg/graphics/filters/SVGFEBlend.cpp.
+        * platform/graphics/filters/FEBlend.h: Renamed from WebCore/svg/graphics/filters/SVGFEBlend.h.
+        * platform/graphics/filters/FEColorMatrix.cpp: Renamed from WebCore/svg/graphics/filters/SVGFEColorMatrix.cpp.
+        * platform/graphics/filters/FEColorMatrix.h: Renamed from WebCore/svg/graphics/filters/SVGFEColorMatrix.h.
+        * platform/graphics/filters/FEComponentTransfer.cpp: Renamed from WebCore/svg/graphics/filters/SVGFEComponentTransfer.cpp.
+        * platform/graphics/filters/FEComponentTransfer.h: Renamed from WebCore/svg/graphics/filters/SVGFEComponentTransfer.h.
+        * platform/graphics/filters/FEComposite.cpp: Renamed from WebCore/svg/graphics/filters/SVGFEComposite.cpp.
+        * platform/graphics/filters/FEComposite.h: Renamed from WebCore/svg/graphics/filters/SVGFEComposite.h.
+
+2008-07-03  Alex Mathews  <possessedpenguinbob@gmail.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 19835: WebKit needs cross-platform filter system
+        <https://bugs.webkit.org/show_bug.cgi?id=19835>
+
+        More class refactoring in preparation for cross-platform filter
+        implementation.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * svg/FilterEffect.h:
+        * svg/SVGComponentTransferFunctionElement.cpp:
+        (WebCore::SVGComponentTransferFunctionElement::SVGComponentTransferFunctionElement):
+        (WebCore::SVGComponentTransferFunctionElement::parseMappedAttribute):
+        (WebCore::SVGComponentTransferFunctionElement::transferFunction):
+        * svg/SVGComponentTransferFunctionElement.h:
+        * svg/SVGFEColorMatrixElement.cpp:
+        (WebCore::SVGFEColorMatrixElement::SVGFEColorMatrixElement):
+        (WebCore::SVGFEColorMatrixElement::parseMappedAttribute):
+        (WebCore::SVGFEColorMatrixElement::filterEffect):
+        (WebCore::SVGFEColorMatrixElement::build):
+        * svg/SVGFEColorMatrixElement.h:
+        * svg/SVGFEComponentTransferElement.cpp:
+        (WebCore::SVGFEComponentTransferElement::filterEffect):
+        (WebCore::SVGFEComponentTransferElement::build):
+        * svg/SVGFEComponentTransferElement.h:
+        * svg/SVGFECompositeElement.cpp:
+        (WebCore::SVGFECompositeElement::SVGFECompositeElement):
+        (WebCore::SVGFECompositeElement::parseMappedAttribute):
+        (WebCore::SVGFECompositeElement::filterEffect):
+        (WebCore::SVGFECompositeElement::build):
+        * svg/SVGFECompositeElement.h:
+        * svg/graphics/filters/SVGFEBlend.cpp:
+        * svg/graphics/filters/SVGFEBlend.h:
+        * svg/graphics/filters/SVGFEColorMatrix.cpp:
+        (WebCore::FEColorMatrix::FEColorMatrix):
+        (WebCore::FEColorMatrix::create):
+        (WebCore::FEColorMatrix::type):
+        (WebCore::FEColorMatrix::setType):
+        (WebCore::FEColorMatrix::values):
+        (WebCore::FEColorMatrix::setValues):
+        (WebCore::FEColorMatrix::apply):
+        (WebCore::FEColorMatrix::dump):
+        * svg/graphics/filters/SVGFEColorMatrix.h:
+        (WebCore::):
+        * svg/graphics/filters/SVGFEComponentTransfer.cpp:
+        (WebCore::FEComponentTransfer::FEComponentTransfer):
+        (WebCore::FEComponentTransfer::create):
+        (WebCore::FEComponentTransfer::redFunction):
+        (WebCore::FEComponentTransfer::setRedFunction):
+        (WebCore::FEComponentTransfer::greenFunction):
+        (WebCore::FEComponentTransfer::setGreenFunction):
+        (WebCore::FEComponentTransfer::blueFunction):
+        (WebCore::FEComponentTransfer::setBlueFunction):
+        (WebCore::FEComponentTransfer::alphaFunction):
+        (WebCore::FEComponentTransfer::setAlphaFunction):
+        (WebCore::FEComponentTransfer::apply):
+        (WebCore::FEComponentTransfer::dump):
+        * svg/graphics/filters/SVGFEComponentTransfer.h:
+        (WebCore::):
+        (WebCore::ComponentTransferFunction::ComponentTransferFunction):
+        * svg/graphics/filters/SVGFEComposite.cpp:
+        (WebCore::FEComposite::FEComposite):
+        (WebCore::FEComposite::create):
+        (WebCore::FEComposite::operation):
+        (WebCore::FEComposite::setOperation):
+        (WebCore::FEComposite::k1):
+        (WebCore::FEComposite::setK1):
+        (WebCore::FEComposite::k2):
+        (WebCore::FEComposite::setK2):
+        (WebCore::FEComposite::k3):
+        (WebCore::FEComposite::setK3):
+        (WebCore::FEComposite::k4):
+        (WebCore::FEComposite::setK4):
+        (WebCore::FEComposite::apply):
+        (WebCore::FEComposite::dump):
+        * svg/graphics/filters/SVGFEComposite.h:
+        (WebCore::):
+        * svg/graphics/filters/cg/SVGFEColorMatrixCg.mm: Removed.
+        * svg/graphics/filters/cg/SVGFEComponentTransferCg.mm: Removed.
+        * svg/graphics/filters/cg/SVGFECompositeCg.mm: Removed.
+
+2008-07-03  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - fix <rdar://problem/6020930> Bidi Problem When Resizing Window
+
+        Test: fast/text/international/bidi-AN-after-empty-run.html
+
+        * platform/text/BidiResolver.h:
+        (WebCore::::appendRun): Changed to reset the current direction and
+        "end of run" direction even in the empty run case.
+        * rendering/bidi.cpp:
+        (WebCore::BidiState::appendRun): Ditto.
+
+2008-07-02  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        <rdar://5983747> Safari crashes trying to load the SilverLight plugin
+
+        If a plug-in returned an error code from NPP_NewStream, we would call
+        NPP_DestroyStream while cleaning up the request. We now only call
+        NPP_DestroyStream if NPP_NewStream was successful, matching Firefox.
+
+        Reviewed by Anders.
+
+        * plugins/PluginStream.cpp:
+        (WebCore::PluginStream::startStream): If NPP_NewStream returns an error,
+        don't set m_streamState to StreamStarted, and return after calling
+        cancelAndDestroyStream.
+        (WebCore::PluginStream::destroyStream): Don't call NPP_DestroyStream if
+        the stream didn't start successfully.
+
+2008-07-03  David Hyatt  <hyatt@apple.com>
+
+        Revise Dan's fix for an assert on Windows, since layoutIfNeededRecursive doesn't exist on the
+        Mac.  Revert updateControlTints and add the layout call outside of it in the already-existing
+        !PLATFORM(MAC) ifdef in FocusController's setActive method.
+
+        Reviewed by ggaren, weinig
+
+        * page/FocusController.cpp:
+        (WebCore::FocusController::setActive):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::updateControlTints):
+
+2008-07-03  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19884
+        Locating a store at www.366.ru doesn't work
+
+        Test: fast/forms/submit-with-base.html
+
+        * html/HTMLFormElement.cpp: (WebCore::HTMLFormElement::submit): Treat empty action the same
+        as missing one - ignore base URL.
+
+2008-07-03  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - fix <rdar://problem/6048904> Assert in WebCore::Frame::paint in Windows
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::updateControlTints): Changed to update layout
+        recursively and not just for the top-level frame.
+
+2008-07-03  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Geoff.
+
+        Bug 19853: REGRESSION (r34838): Crash when visiting http://www.thewebsiteisdown.com/salesguy.html
+        https://bugs.webkit.org/show_bug.cgi?id=19853
+
+        Remove the body of _NPN_SetException(), because it was simply calling
+        throwError(), which sets an exception on an ExecState but does not
+        actually handle it. The presence of an exception on the global ExecState
+        causes assertions that there is no exception set on that ExecState to
+        fail, as well as causing Machine::execute() to mistakingly return 0 in
+        some cases, as it assumes the presence of an exception implies that it
+        has run out of memory.
+
+        * bridge/NP_jsobject.cpp:
+        (_NPN_SetException):
+
+2008-07-03  Maciej Katafiasz  <mathrick@gmail.com>
+
+        Gtk build fix with SVG filters enabled
+
+        * GNUmakefile.am: Include missing SVG filter sources
+
+2008-07-03  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build, added FilterEffect to the build.
+
+        * WebCore.pro:
+
+2008-07-02  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mitz Pettel and John Sullivan
+
+        Fix for <rdar://problem/5549871> - Crash when calling [WebView stopLoading:] or [WebFrame stopLoading] 
+        inside of the frame load delegate method -webView:didStartProvisionalLoadForFrame:.
+
+        Test: fast/loader/stop-provisional-loads.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::continueLoadAfterWillSubmitForm): Since the provisionalDocumentLoader may have been cleared
+          by the prepareForLoadStart() call, null check it again.
+
+2008-07-01  Alex Mathews  <possessedpenguinbob@gmail.com>
+
+        Reviewed by Oliver Hunt.
+
+        Renaming of class SVGFEBlend to FEBlend as well as removing
+        a little bit of antiquated code. This includes the removal of
+        SVGFEBlendCg.mm; the feBlend element will now no longer
+        render. 
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * svg/FilterBuilder.h:
+        (WebCore::FilterBuilder::add):
+        (WebCore::FilterBuilder::getEffectById):
+        * svg/SVGFEBlendElement.cpp:
+        (WebCore::SVGFEBlendElement::SVGFEBlendElement):
+        (WebCore::SVGFEBlendElement::parseMappedAttribute):
+        (WebCore::SVGFEBlendElement::filterEffect):
+        (WebCore::SVGFEBlendElement::build):
+        * svg/SVGFEBlendElement.h:
+        * svg/SVGFilterPrimitiveStandardAttributes.h:
+        * svg/graphics/filters/SVGFEBlend.cpp:
+        (WebCore::FEBlend::FEBlend):
+        (WebCore::FEBlend::create):
+        (WebCore::FEBlend::in2):
+        (WebCore::FEBlend::setIn2):
+        (WebCore::FEBlend::blendMode):
+        (WebCore::FEBlend::setBlendMode):
+        (WebCore::FEBlend::apply):
+        (WebCore::FEBlend::dump):
+        * svg/graphics/filters/SVGFEBlend.h:
+        (WebCore::):
+        * svg/graphics/filters/cg/SVGFEBlendCg.mm: Removed.
+
+2008-07-02  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Darin.
+
+        Fix for <rdar://problem/6015523> Implement ARIA ranges/sliders
+        and
+        <rdar://problem/5934355> Need to implement ARIA role="spinbutton"
+
+        * page/AccessibilityObject.h:
+        (WebCore::AccessibilityObject::isSlider):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::isSlider):
+        (WebCore::AccessibilityRenderObject::valueForRange):
+        (WebCore::AccessibilityRenderObject::maxValueForRange):
+        (WebCore::AccessibilityRenderObject::minValueForRange):
+        (WebCore::AccessibilityRenderObject::accessibilityIsIgnored): We 
+        were addressing the generic has-an-ARIA-role case too early here.
+        (WebCore::AccessibilityRenderObject::focusedUIElement): This is a 
+        bug I ran into while testing role='spinbutton', spinbutton is a 
+        role that can have an active descendant. But we were always trying 
+        to forward focus to the active descendant, even if one was not 
+        specified. 
+        (WebCore::AccessibilityRenderObject::shouldFocusActiveDescendant): 
+        'spinbutton' maps to ProgressIndicatorRole.
+        (WebCore::RoleEntry::):
+        (WebCore::AccessibilityRenderObject::canSetValueAttribute):
+        * page/AccessibilityRenderObject.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityAttributeNames]):
+        (-[AccessibilityObjectWrapper accessibilityAttributeValue:]):
+
+2008-07-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        - Windows build fix
+
+        Renamed the ERROR token in the XPath grammar to XPATH_ERROR, because
+        the ERROR macro is defined in <wingdi.h>.
+
+        * xml/XPathGrammar.y:
+        * xml/XPathParser.cpp:
+        (WebCore::XPath::Parser::lexString):
+        (WebCore::XPath::Parser::nextTokenInternal):
+
 2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
 
         Inspired and reviewed by Mark Rowe.

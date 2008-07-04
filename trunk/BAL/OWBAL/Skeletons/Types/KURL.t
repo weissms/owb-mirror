@@ -55,7 +55,11 @@ class KURL : public OWBALBase {
 public:
     // Generates a URL which contains a null string.
     /**
-     * KURL default constructor
+     *  KURL description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
      */
     KURL() ;
 
@@ -608,15 +612,6 @@ bool protocolHostAndPortAreEqual(const KURL&, const KURL&);
      * @endcode
      */
 const KURL& blankURL();
-    /**
-     *  mimeTypeFromDataURL description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-String mimeTypeFromDataURL(const String& url);
-    
 
 // Functions to do URL operations on strings.
 // These are operations that aren't faster on a parsed URL.
@@ -629,6 +624,15 @@ String mimeTypeFromDataURL(const String& url);
      * @endcode
      */
 bool protocolIs(const String& url, const char* protocol);
+
+    /**
+     *  mimeTypeFromDataURL description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+String mimeTypeFromDataURL(const String& url);
 
 // Unescapes the given string using URL escaping rules, given an optional
 // encoding (defaulting to UTF-8 otherwise). DANGER: If the URL has "%00"
@@ -718,6 +722,7 @@ inline bool operator!=(const String& a, const KURL& b);
 }
 
 #endif // KURL_h
+
 
 
 

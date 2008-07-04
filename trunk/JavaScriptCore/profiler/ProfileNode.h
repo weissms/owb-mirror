@@ -29,7 +29,8 @@
 #ifndef ProfileNode_h
 #define ProfileNode_h
 
-#include <kjs/ustring.h>
+#include "CallIdentifier.h"
+
 #include <wtf/Vector.h>
 #include <wtf/RefCounted.h>
 #include <wtf/RefPtr.h>
@@ -41,53 +42,29 @@ namespace KJS {
     typedef Vector<RefPtr<ProfileNode> >::const_iterator StackIterator;
     typedef HashCountedSet<UString::Rep*> FunctionCallHashCount;
 
-    struct CallIdentifier {
-        UString name;
-        UString url;
-        unsigned lineNumber;
-        
-        CallIdentifier(UString name, UString url, int lineNumber)
-            : name(name)
-            , url(url)
-            , lineNumber(lineNumber)
-        {
-        }
-
-        CallIdentifier(const CallIdentifier& ci)
-            : name(ci.name)
-            , url(ci.url)
-            , lineNumber(ci.lineNumber)
-        {
-        }
-
-        inline bool operator==(const CallIdentifier& ci) const { return ci.lineNumber == lineNumber && ci.name == name && ci.url == url; }
-        inline bool operator!=(const CallIdentifier& ci) const { return !(*this == ci); }
-
-#ifndef NDEBUG
-        operator const char* () const { return name.UTF8String().c_str(); }
-        const char* toString() const { return *this; }
-#endif
-    };
-
     class ProfileNode : public RefCounted<ProfileNode> {
     public:
         static PassRefPtr<ProfileNode> create(const CallIdentifier& callIdentifier, ProfileNode* headNode, ProfileNode* parentNode) {
             return adoptRef(new ProfileNode(callIdentifier, headNode, parentNode)); }
+
+        bool operator==(ProfileNode* node) { return m_callIdentifier == node->callIdentifier(); }
 
         ProfileNode* willExecute(const CallIdentifier&);
         ProfileNode* didExecute();
 
         void stopProfiling();
 
+        // CallIdentifier members
         const CallIdentifier& callIdentifier() const { return m_callIdentifier; }
         ProfileNode* parent() const { return m_parent; }
         void setParent(ProfileNode* parent) { m_parent = parent; }
         ProfileNode* nextSibling() const { return m_nextSibling; }
         void setNextSibling(ProfileNode* nextSibling) { m_nextSibling = nextSibling; }
-        UString functionName() const { return m_callIdentifier.name; }
-        UString url() const { return m_callIdentifier.url; }
-        unsigned lineNumber() const { return m_callIdentifier.lineNumber; }
+        UString functionName() const { return m_callIdentifier.m_name; }
+        UString url() const { return m_callIdentifier.m_url; }
+        unsigned lineNumber() const { return m_callIdentifier.m_lineNumber; }
 
+        // Time members
         double startTime() const { return m_startTime; }
         void setStartTime(double startTime) { m_startTime = startTime; }
         double totalTime() const { return m_visibleTotalTime; }
@@ -105,21 +82,25 @@ namespace KJS {
         unsigned numberOfCalls() const { return m_numberOfCalls; }
         void setNumberOfCalls(unsigned number) { m_numberOfCalls = number; }
 
+        // Children members
         const Vector<RefPtr<ProfileNode> >& children() const { return m_children; }
         ProfileNode* firstChild() const { return m_children.size() ? m_children.first().get() : 0; }
         ProfileNode* lastChild() const { return m_children.size() ? m_children.last().get() : 0; }
+        ProfileNode* findChild(ProfileNode*) const;
         void removeChild(unsigned index) { m_children.remove(index); resetChildrensSiblings(); }
         void addChild(PassRefPtr<ProfileNode> prpChild);
         void insertNode(PassRefPtr<ProfileNode> prpNode);
 
+        // Visiblity
         bool visible() const { return m_visible; }
         void setVisible(bool visible) { m_visible = visible; }
 
         static void setTreeVisible(ProfileNode*, bool visible);
 
+        // Sorting
         ProfileNode* traverseNextNodePostOrder() const;
         ProfileNode* traverseNextNodePreOrder(bool processChildren = true) const;
-        
+
         void sort(bool (*)(const RefPtr<ProfileNode>&, const RefPtr<ProfileNode>&));
         void sortTotalTimeDescending() { sort(totalTimeDescendingComparator); }
         void sortTotalTimeAscending() { sort(totalTimeAscendingComparator); }
@@ -130,6 +111,7 @@ namespace KJS {
         void sortFunctionNameDescending() { sort(functionNameDescendingComparator); }
         void sortFunctionNameAscending() { sort(functionNameAscendingComparator); }
 
+        // Views
         void calculateVisibleTotalTime();
         bool focus(const CallIdentifier&);
         void exclude(const CallIdentifier&);
@@ -138,10 +120,11 @@ namespace KJS {
         void endAndRecordCall();
 
 #ifndef NDEBUG
-        const char* toString() const { return m_callIdentifier; }
+        const char* c_str() const { return m_callIdentifier; }
         void debugPrintData(int indentLevel) const;
         double debugPrintDataSampleStyle(int indentLevel, FunctionCallHashCount&) const;
 #endif
+
     private:
         ProfileNode(const CallIdentifier&, ProfileNode* headNode, ProfileNode* parentNode);
         void startTimer();

@@ -56,74 +56,42 @@ class WebScriptCallFrame;
 class WebScriptDebugListener {
 public:
     /**
-     * didLoadMainResourceForDataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * did load main resource for data source
      */
     void didLoadMainResourceForDataSource(WebView* view, WebDataSource* dataSource) {};
 
     /**
-     * didParseSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * did parse source
      */
     void didParseSource(WebView* view, WebCore::String sourceCode, unsigned baseLineNumber, WebCore::String url, int sourceID, WebFrame* forWebFrame) {};
 
     /**
-     * failedToParseSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * failed to parse source
      */
     void failedToParseSource(WebView* view, WebCore::String sourceCode, unsigned baseLineNumber, WebCore::String url, WebCore::String error, WebFrame* forWebFrame) {};
 
     /**
-     * didEnterCallFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * did enter call frame
      */
     void didEnterCallFrame(WebView* view, WebScriptCallFrame* frame, int sourceID, int lineNumber, WebFrame* forWebFrame) {};
 
     /**
-     * willExecuteStatement description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * will execute statement
      */
     void willExecuteStatement(WebView* view, WebScriptCallFrame* frame, int sourceID, int lineNumber, WebFrame* forWebFrame) {};
 
     /**
-     * willLeaveCallFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * will leave call frame
      */
     void willLeaveCallFrame(WebView* view, WebScriptCallFrame* frame, int sourceID, int lineNumber, WebFrame* forWebFrame) {};
 
     /**
-     * exceptionWasRaised description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * exception was raised
      */
     void exceptionWasRaised(WebView* view, WebScriptCallFrame* frame, int sourceID, int lineNumber, WebFrame* forWebFrame) {};
 
     /**
-     * serverDidDie description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * server did die
      */
     void serverDidDie() {};
 };
@@ -132,96 +100,56 @@ class WebScriptDebugServer { //: public WebCore::JavaScriptDebugListener {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebScriptDebugServer
      */
     static WebScriptDebugServer* createInstance();
 
     /**
-     *  sharedWebScriptDebugServer description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get the shared WebScriptDebugServer
      */
     static WebScriptDebugServer* sharedWebScriptDebugServer();
 
 
     /**
-     *  ~WebScriptDebugServer description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebScriptDebugServer destructor
      */
     virtual ~WebScriptDebugServer();
 
 
     /**
-     *  addListener description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * add listener
      */
     virtual void addListener(WebScriptDebugListener*);
 
     /**
-     *  removeListener description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * remove listener
      */
     virtual void removeListener(WebScriptDebugListener*);
 
     /**
-     *  step description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * step
      */
     virtual void step();
 
     /**
-     *  pause description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * pause
      */
     virtual void pause();
 
     /**
-     *  resume description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * resume
      */
     virtual void resume();
 
     /**
-     *  isPaused description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * isPaused
      */
     virtual bool isPaused();
 
 private:
 
     /**
-     *  WebScriptDebugServer description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebScriptDebugServer constructor
      */
     WebScriptDebugServer();
 

@@ -12,6 +12,7 @@
 			buildConfigurationList = 65FB3F7709D11EBD00F49DEB /* Build configuration list for PBXAggregateTarget "Derived Sources" */;
 			buildPhases = (
 				65FB3F6509D11E9100F49DEB /* Generate Derived Sources */,
+				5D35DEE10C7C140B008648B2 /* Generate DTrace header */,
 			);
 			name = "Derived Sources";
 			productName = "Derived Sources";
@@ -65,6 +66,8 @@
 		14BD5A300A3E91F600BAF59C /* JSContextRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14BD5A290A3E91F600BAF59C /* JSContextRef.cpp */; };
 		14BD5A320A3E91F600BAF59C /* JSValueRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14BD5A2B0A3E91F600BAF59C /* JSValueRef.cpp */; };
 		14E0FF120DBAAED00007C0AB /* Machine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 149B15E70D81F986009CB8C7 /* Machine.cpp */; settings = {COMPILER_FLAGS = "-fno-tree-pre"; }; };
+		5D53726F0E1C54880021E549 /* Tracing.h in Headers */ = {isa = PBXBuildFile; fileRef = 5D53726E0E1C54880021E549 /* Tracing.h */; };
+		5D53727E0E1C55EC0021E549 /* TracingDtrace.h in Headers */ = {isa = PBXBuildFile; fileRef = 5D53727D0E1C55EC0021E549 /* TracingDtrace.h */; };
 		5D5D8AB60E0D0A7200F9C692 /* jsc in Copy Into Framework */ = {isa = PBXBuildFile; fileRef = 932F5BE10822A1C700736975 /* jsc */; };
 		5D5D8AD10E0D0EBE00F9C692 /* libedit.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5D8AD00E0D0EBE00F9C692 /* libedit.dylib */; };
 		5DE6E5B30E1728EC00180407 /* create_hash_table in Headers */ = {isa = PBXBuildFile; fileRef = F692A8540255597D01FF60F7 /* create_hash_table */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -86,6 +89,9 @@
 		95742F650DD11F5A000917FB /* Profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95742F630DD11F5A000917FB /* Profile.cpp */; };
 		95AB83420DA4322500BC83F3 /* Profiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95AB832E0DA42CAD00BC83F3 /* Profiler.cpp */; };
 		95AB83560DA43C3000BC83F3 /* ProfileNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95AB83540DA43B4400BC83F3 /* ProfileNode.cpp */; };
+		95CD41B30E1BF6560085358E /* TreeProfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95CD41B10E1BF6560085358E /* TreeProfile.cpp */; };
+		95CD41B40E1BF6560085358E /* TreeProfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 95CD41B20E1BF6560085358E /* TreeProfile.h */; };
+		95E3BC050E1AE68200B2D1C1 /* CallIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 95E3BC040E1AE68200B2D1C1 /* CallIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A72700900DAC6BBC00E548D7 /* JSNotAnObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A72700780DAC605600E548D7 /* JSNotAnObject.cpp */; };
 		A72701B60DADE94900E548D7 /* ExceptionHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A72701B40DADE94900E548D7 /* ExceptionHelpers.cpp */; };
 		A72701B90DADE94900E548D7 /* ExceptionHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = A72701B30DADE94900E548D7 /* ExceptionHelpers.h */; };
@@ -484,6 +490,9 @@
 		51F0EB6105C86C6B00E6DF1B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		51F0EC0705C86C9A00E6DF1B /* libobjc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libobjc.dylib; path = /usr/lib/libobjc.dylib; sourceTree = "<absolute>"; };
 		51F648D60BB4E2CA0033D760 /* RetainPtr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RetainPtr.h; sourceTree = "<group>"; };
+		5D53726D0E1C546B0021E549 /* Tracing.d */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.dtrace; path = Tracing.d; sourceTree = "<group>"; };
+		5D53726E0E1C54880021E549 /* Tracing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tracing.h; sourceTree = "<group>"; };
+		5D53727D0E1C55EC0021E549 /* TracingDtrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TracingDtrace.h; sourceTree = "<group>"; };
 		5D5D8AD00E0D0EBE00F9C692 /* libedit.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libedit.dylib; path = /usr/lib/libedit.dylib; sourceTree = "<absolute>"; };
 		5DA479650CFBCF56009328A0 /* TCPackedCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCPackedCache.h; sourceTree = "<group>"; };
 		5DBD18A90C54018700C15EAE /* CollectorHeapIntrospector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CollectorHeapIntrospector.cpp; sourceTree = "<group>"; };
@@ -576,6 +585,9 @@
 		95AB83540DA43B4400BC83F3 /* ProfileNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ProfileNode.cpp; path = profiler/ProfileNode.cpp; sourceTree = "<group>"; };
 		95AB83550DA43B4400BC83F3 /* ProfileNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProfileNode.h; path = profiler/ProfileNode.h; sourceTree = "<group>"; };
 		95C18D3E0C90E7EF00E72F73 /* JSRetainPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSRetainPtr.h; sourceTree = "<group>"; };
+		95CD41B10E1BF6560085358E /* TreeProfile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TreeProfile.cpp; path = profiler/TreeProfile.cpp; sourceTree = "<group>"; };
+		95CD41B20E1BF6560085358E /* TreeProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TreeProfile.h; path = profiler/TreeProfile.h; sourceTree = "<group>"; };
+		95E3BC040E1AE68200B2D1C1 /* CallIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CallIdentifier.h; path = profiler/CallIdentifier.h; sourceTree = "<group>"; };
 		A72700770DAC605600E548D7 /* JSNotAnObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSNotAnObject.h; sourceTree = "<group>"; };
 		A72700780DAC605600E548D7 /* JSNotAnObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSNotAnObject.cpp; sourceTree = "<group>"; };
 		A72701B30DADE94900E548D7 /* ExceptionHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ExceptionHelpers.h; path = VM/ExceptionHelpers.h; sourceTree = "<group>"; };
@@ -960,6 +972,7 @@
 				BCD202D50E170708002C7E82 /* RegExpConstructor.lut.h */,
 				BC18C52B0E16FCD200B34460 /* RegExpObject.lut.h */,
 				BC18C5250E16FCA700B34460 /* StringPrototype.lut.h */,
+				5D53727D0E1C55EC0021E549 /* TracingDtrace.h */,
 			);
 			name = "Derived Sources";
 			path = DerivedSources/JavaScriptCore;
@@ -1167,6 +1180,8 @@
 				BC18C3C50E16EE3300B34460 /* StringPrototype.cpp */,
 				BC18C3C60E16EE3300B34460 /* StringPrototype.h */,
 				14A396A60CD2933100B5B4FF /* SymbolTable.h */,
+				5D53726D0E1C546B0021E549 /* Tracing.d */,
+				5D53726E0E1C54880021E549 /* Tracing.h */,
 				F692A8850255597D01FF60F7 /* ustring.cpp */,
 				F692A8860255597D01FF60F7 /* ustring.h */,
 			);
@@ -1205,6 +1220,9 @@
 		95AB831A0DA42C6900BC83F3 /* profiler */ = {
 			isa = PBXGroup;
 			children = (
+				95CD41B10E1BF6560085358E /* TreeProfile.cpp */,
+				95CD41B20E1BF6560085358E /* TreeProfile.h */,
+				95E3BC040E1AE68200B2D1C1 /* CallIdentifier.h */,
 				95AB83540DA43B4400BC83F3 /* ProfileNode.cpp */,
 				95AB83550DA43B4400BC83F3 /* ProfileNode.h */,
 				95742F630DD11F5A000917FB /* Profile.cpp */,
@@ -1418,9 +1436,13 @@
 				BC02E9130E1839DB000F9297 /* NativeErrorPrototype.h in Headers */,
 				BC02E98D0E183E38000F9297 /* ErrorInstance.h in Headers */,
 				BC1166020E1997B4008066DD /* DateInstance.h in Headers */,
+				95E3BC050E1AE68200B2D1C1 /* CallIdentifier.h in Headers */,
 				BC11667B0E199C05008066DD /* InternalFunction.h in Headers */,
 				BC1167DA0E19BCC9008066DD /* JSCell.h in Headers */,
 				BC7F8FB90E19D1C3008632C0 /* JSNumberCell.h in Headers */,
+				95CD41B40E1BF6560085358E /* TreeProfile.h in Headers */,
+				5D53726F0E1C54880021E549 /* Tracing.h in Headers */,
+				5D53727E0E1C55EC0021E549 /* TracingDtrace.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1596,6 +1618,22 @@
 			shellPath = /bin/sh;
 			shellScript = "# Touch Info.plist to let Xcode know it needs to copy it into the built product\ntouch \"$SRCROOT/Info.plist\"\n";
 		};
+		5D35DEE10C7C140B008648B2 /* Generate DTrace header */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/kjs/Tracing.d",
+			);
+			name = "Generate DTrace header";
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/DerivedSources/JavaScriptCore/TracingDtrace.h",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "TRACING_D=\"$SRCROOT/kjs/Tracing.d\";\nTRACING_H=\"$BUILT_PRODUCTS_DIR/DerivedSources/JavaScriptCore/TracingDtrace.h\";\n\nif [[ \"$MACOSX_DEPLOYMENT_TARGET\" > \"10.5\" ]];\nthen\n\tdtrace -h -o \"$TRACING_H\" -s \"$TRACING_D\";\nfi;\n";
+		};
 		5D5D8ABF0E0D0B0300F9C692 /* Fix Framework Reference */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1704,6 +1742,7 @@
 				A72701B60DADE94900E548D7 /* ExceptionHelpers.cpp in Sources */,
 				149559EE0DDCDDF700648087 /* DebuggerCallFrame.cpp in Sources */,
 				E18E3A590DF9278C00D90B34 /* JSGlobalData.cpp in Sources */,
+				95CD41B30E1BF6560085358E /* TreeProfile.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

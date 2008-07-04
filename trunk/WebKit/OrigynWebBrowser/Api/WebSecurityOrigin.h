@@ -46,104 +46,60 @@ class WebSecurityOrigin {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebSecurityOrigin
      */
     static WebSecurityOrigin* createInstance(WebCore::SecurityOrigin* origin);
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  create a new instance of WebSecurityOrigin
      */
     static WebSecurityOrigin* createInstance(RefPtr<WebCore::SecurityOrigin> origin) { return createInstance(origin.get()); }
 
     /**
-     *  ~WebSecurityOrigin description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebSecurityOrigin destructor
      */
     virtual ~WebSecurityOrigin();
 
 
     /**
-     *  securityOrigin description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get SecurityOrigin 
      */
     WebCore::SecurityOrigin* securityOrigin() const { return m_securityOrigin.get(); }
 
 
     /**
-     *  protocol description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get protocol
      */
     virtual WebCore::String protocol();
 
     /**
-     *  domain description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get domain
      */
     virtual WebCore::String domain();
 
     /**
-     *  port description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get port
      */
     virtual unsigned short port();
 
     /**
-     *  usage description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get usage
      */
     virtual unsigned long long usage();
 
     /**
-     *  quota description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get database quota
      */
     virtual unsigned long long quota();
 
     /**
-     *  setQuota description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set database quota
      */
     virtual void setQuota(unsigned long long);
 private:
 
     /**
-     *  WebSecurityOrigin description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebSecurityOrigin constructor
      */
     WebSecurityOrigin(WebCore::SecurityOrigin*);
 

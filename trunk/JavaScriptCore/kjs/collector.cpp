@@ -28,6 +28,7 @@
 #include "JSValue.h"
 #include "list.h"
 #include "Machine.h"
+#include "Tracing.h"
 #include <algorithm>
 #include <setjmp.h>
 #include <stdlib.h>
@@ -91,9 +92,10 @@ const size_t ALLOCATIONS_PER_COLLECTION = 4000;
 
 static void freeHeap(CollectorHeap*);
 
-Heap::Heap(bool isShared)
+Heap::Heap(Machine* machine, bool isShared)
     : m_markListSet(0)
     , m_isShared(isShared)
+    , m_machine(machine)
 {
     memset(&primaryHeap, 0, sizeof(CollectorHeap));
     memset(&numberHeap, 0, sizeof(CollectorHeap));
@@ -947,7 +949,7 @@ template <Heap::HeapType heapType> size_t Heap::sweep()
 bool Heap::collect()
 {
 #ifndef NDEBUG
-    if (JSGlobalData::sharedInstance().heap == this) {
+    if (JSGlobalData::sharedInstanceExists() && JSGlobalData::sharedInstance().heap == this) {
         ASSERT(JSLock::lockCount() > 0);
         ASSERT(JSLock::currentThreadIsHoldingLock());
     }
@@ -956,7 +958,8 @@ bool Heap::collect()
     ASSERT((primaryHeap.operationInProgress == NoOperation) | (numberHeap.operationInProgress == NoOperation));
     if ((primaryHeap.operationInProgress != NoOperation) | (numberHeap.operationInProgress != NoOperation))
         abort();
-    
+
+    JAVASCRIPTCORE_GC_BEGIN();
     primaryHeap.operationInProgress = Collection;
     numberHeap.operationInProgress = Collection;
 
@@ -966,13 +969,17 @@ bool Heap::collect()
     markProtectedObjects();
     if (m_markListSet && m_markListSet->size())
         ArgList::markLists(*m_markListSet);
+    m_machine->registerFile().markCallFrames(this);
+
+    JAVASCRIPTCORE_GC_MARKED();
 
     size_t originalLiveObjects = primaryHeap.numLiveObjects + numberHeap.numLiveObjects;
     size_t numLiveObjects = sweep<PrimaryHeap>();
     numLiveObjects += sweep<NumberHeap>();
-  
+
     primaryHeap.operationInProgress = NoOperation;
     numberHeap.operationInProgress = NoOperation;
+    JAVASCRIPTCORE_GC_END(originalLiveObjects, numLiveObjects);
 
     return numLiveObjects < originalLiveObjects;
 }

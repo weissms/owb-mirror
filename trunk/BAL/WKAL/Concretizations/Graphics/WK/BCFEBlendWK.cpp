@@ -19,48 +19,54 @@
     Boston, MA 02110-1301, USA.
 */
 
-#ifndef SVGFEColorMatrix_h
-#define SVGFEColorMatrix_h
+#include "config.h"
 
 #if ENABLE(SVG) && ENABLE(SVG_FILTERS)
-#include "SVGFilterEffect.h"
-#include "SVGRenderTreeAsText.h"
+#include "FEBlend.h"
 
-namespace WebCore {
+namespace WKAL {
 
-enum SVGColorMatrixType {
-    SVG_FECOLORMATRIX_TYPE_UNKNOWN          = 0,
-    SVG_FECOLORMATRIX_TYPE_MATRIX           = 1,
-    SVG_FECOLORMATRIX_TYPE_SATURATE         = 2,
-    SVG_FECOLORMATRIX_TYPE_HUEROTATE        = 3,
-    SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4
-};
+FEBlend::FEBlend(FilterEffect* in, FilterEffect* in2, BlendModeType mode)
+    : FilterEffect()
+    , m_in(in)
+    , m_in2(in2)
+    , m_mode(mode)
+{
+}
 
-class SVGFEColorMatrix : public SVGFilterEffect {
-public:
-    static PassRefPtr<SVGFEColorMatrix> create(SVGResourceFilter*);
+PassRefPtr<FEBlend> FEBlend::create(FilterEffect* in, FilterEffect* in2, BlendModeType mode)
+{
+    return adoptRef(new FEBlend(in, in2, mode));
+}
 
-    SVGColorMatrixType type() const;
-    void setType(SVGColorMatrixType);
+FilterEffect* FEBlend::in2() const
+{
+    return m_in2.get();
+}
 
-    const Vector<float>& values() const;
-    void setValues(const Vector<float>&);
+void FEBlend::setIn2(FilterEffect* in2)
+{
+    m_in2 = in2;
+}
 
-    virtual TextStream& externalRepresentation(TextStream&) const;
+BlendModeType FEBlend::blendMode() const
+{
+    return m_mode;
+}
 
-#if PLATFORM(CI)
-    virtual CIFilter* getCIFilter(const FloatRect& bbox) const;
-#endif
+void FEBlend::setBlendMode(BlendModeType mode)
+{
+    m_mode = mode;
+}
 
-private:
-    SVGFEColorMatrix(SVGResourceFilter*);
+void FEBlend::apply()
+{
+}
 
-    SVGColorMatrixType m_type;
-    Vector<float> m_values;
-};
+void FEBlend::dump()
+{
+}
 
 } // namespace WebCore
 
 #endif // ENABLE(SVG) && ENABLE(SVG_FILTERS)
-
-#endif // SVGFEColorMatrix_h

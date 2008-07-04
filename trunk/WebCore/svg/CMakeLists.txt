@@ -139,5 +139,20 @@ IF (WEBKIT_USE_SVG)
         svg/animation/SMILTime.cpp
         svg/animation/SMILTimeContainer.cpp
         svg/animation/SMILTimeContainer.h
+
+        svg/graphics/filters/SVGFEConvolveMatrix.cpp
+        svg/graphics/filters/SVGFEDiffuseLighting.cpp
+        svg/graphics/filters/SVGFEDisplacementMap.cpp
+        svg/graphics/filters/SVGFEFlood.cpp
+        svg/graphics/filters/SVGFEGaussianBlur.cpp
+        svg/graphics/filters/SVGFEImage.cpp
+        svg/graphics/filters/SVGFEMerge.cpp
+        svg/graphics/filters/SVGFEMorphology.cpp
+        svg/graphics/filters/SVGFEOffset.cpp
+        svg/graphics/filters/SVGFESpecularLighting.cpp
+        svg/graphics/filters/SVGFETile.cpp
+        svg/graphics/filters/SVGFETurbulence.cpp
+        svg/graphics/filters/SVGFilterEffect.cpp
+        svg/graphics/filters/SVGLightSource.cpp
     )
 ENDIF (WEBKIT_USE_SVG)
