@@ -122,6 +122,18 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
         m_webView->goForward();
         view->update();
         return;
+    case SDLK_F3:
+        if (m_webView->canZoomPageIn()) {
+            //m_webView->zoomPageIn();
+            m_webView->makeTextLarger();
+        }
+        return;
+    case SDLK_F4:
+        if (m_webView->canZoomPageOut()) {
+            //m_webView->zoomPageOut();
+            m_webView->makeTextSmaller();
+        }
+        return;
     default:
         break;
     }
