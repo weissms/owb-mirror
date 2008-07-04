@@ -1,3 +1,11 @@
+2008-07-04  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi
+        Fix zoom on font SDL Implementation
+
+        * WKAL/Concretizations/Fonts/Freetype/BCFontPlatformDataFreetype.cpp:
+        (WKAL::FontPlatformData::FontPlatformData):
+
 2008-07-02  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier Dole.

@@ -134,7 +134,7 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
         goto freePattern;
     }
 
-    FT_Set_Pixel_Sizes(m_face, 0, static_cast<uint> (fontDescription.specifiedSize()));
+    FT_Set_Pixel_Sizes(m_face, 0, static_cast<uint> (fontDescription.computedSize()));
     //DBGML(MODULE_FONTS, LEVEL_INFO, "open font %s with size %d\n", filename, static_cast<uint> (fontDescription.specifiedSize()));
 
 freePattern:
