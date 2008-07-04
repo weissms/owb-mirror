@@ -49,86 +49,61 @@ class WebResource {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebResource
      */
     static WebResource* createInstance(PassRefPtr<WebCore::SharedBuffer> data, const WebCore::ResourceResponse& response);
 protected:
 
     /**
-     *  WebResource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebResource constructor
      */
     WebResource(PassRefPtr<WebCore::SharedBuffer> data, const WebCore::KURL& url, const WebCore::String& mimeType, const WebCore::String& textEncodingName, const WebCore::String& frameName);
 
 public:
 
     /**
-     *  ~WebResource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebResource destructor
      */
     virtual ~WebResource();
 
     /**
-     *  initWithData description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  The initializer for WebResource.
+        @param data The data of the resource.
+        @param URL The URL of the resource.
+        @param MIMEType The MIME type of the resource.
+        @param textEncodingName The text encoding name of the resource (can be nil).
+        @param frameName The frame name of the resource if the resource represents the contents of an entire HTML frame (can be nil).
+        @result An initialized WebResource.
      */
     virtual void initWithData(PassRefPtr<WebCore::SharedBuffer> data, WebCore::String url, WebCore::String mimeType, WebCore::String textEncodingName, WebCore::String frameName);
 
     /**
-     *  data description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  data 
+     * @result The data of the resource.
      */
     virtual PassRefPtr<WebCore::SharedBuffer> data();
 
     /**
-     *  URL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  URL 
+     * @result The URL of the resource
      */
     virtual WebCore::String URL();
 
     /**
-     *  MIMEType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  MIMEType 
+     * @result The MIME type of the resource.
      */
     virtual WebCore::String MIMEType();
 
     /**
-     *  textEncodingName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  textEncodingName 
+     * @result The text encoding name of the resource (can be nil).
      */
     virtual WebCore::String textEncodingName();
 
     /**
-     *  frameName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  frameName 
+     * @result The frame name of the resource if the resource represents the contents of an entire HTML frame (can be nil).
      */
     virtual WebCore::String frameName();
 

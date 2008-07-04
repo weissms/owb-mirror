@@ -32,7 +32,7 @@
 
 /**
  *  @file  WebPreferences.h
- *  WebPreferences description
+ *  WebPreferences 
  *  Repository informations :
  * - $URL$
  * - $Rev$
@@ -76,30 +76,18 @@ class WebPreferences {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create an new instance of WebPreferences
      */
     static WebPreferences* createInstance();
 
     /**
-     *  ~WebPreferences description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebPreferences destructor
      */
     virtual ~WebPreferences();
 protected:
 
     /**
-     *  WebPreferences description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  WebPreferences constructor
      */
     WebPreferences();
 
@@ -107,733 +95,409 @@ public:
     // IWebPreferences
 
     /**
-     *  standardPreferences description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get standard preferences 
      */
     virtual WebPreferences* standardPreferences();
 
     /**
-     *  initWithIdentifier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialise with an identifier 
      */
     virtual WebPreferences* initWithIdentifier(WebCore::String anIdentifier);
 
     /**
-     *  identifier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get identifier
      */
     virtual WebCore::String identifier();
 
     /**
-     *  standardFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * standardFontFamily 
      */
     virtual WebCore::String standardFontFamily();
 
     /**
-     *  setStandardFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setStandardFontFamily 
      */
     virtual void setStandardFontFamily(WebCore::String family);
 
     /**
-     *  fixedFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  fixedFontFamily 
      */
     virtual WebCore::String fixedFontFamily();
 
     /**
-     *  setFixedFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setFixedFontFamily 
      */
     virtual void setFixedFontFamily(WebCore::String family);
 
     /**
-     *  serifFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  serifFontFamily 
      */
     virtual WebCore::String serifFontFamily();
 
     /**
-     *  setSerifFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setSerifFontFamily 
      */
     virtual void setSerifFontFamily(WebCore::String family);
 
     /**
-     *  sansSerifFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  sansSerifFontFamily
      */
     virtual WebCore::String sansSerifFontFamily();
 
     /**
-     *  setSansSerifFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setSansSerifFontFamily 
      */
     virtual void setSansSerifFontFamily(WebCore::String family);
 
     /**
-     *  cursiveFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cursiveFontFamily 
      */
     virtual WebCore::String cursiveFontFamily();
 
     /**
-     *  setCursiveFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setCursiveFontFamily 
      */
     virtual void setCursiveFontFamily(WebCore::String family);
 
     /**
-     *  fantasyFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  fantasyFontFamily 
      */
     virtual WebCore::String fantasyFontFamily();
 
     /**
-     *  setFantasyFontFamily description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setFantasyFontFamily 
      */
     virtual void setFantasyFontFamily(WebCore::String family);
 
     /**
-     *  defaultFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  defaultFontSize 
      */
     virtual int defaultFontSize();
 
     /**
-     *  setDefaultFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setDefaultFontSize 
      */
     virtual void setDefaultFontSize(int fontSize);
 
     /**
-     *  defaultFixedFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  defaultFixedFontSize 
      */
     virtual int defaultFixedFontSize();
 
     /**
-     *  setDefaultFixedFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setDefaultFixedFontSize 
      */
     virtual void setDefaultFixedFontSize(int fontSize);
 
     /**
-     *  minimumFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  minimumFontSize
      */
     virtual int minimumFontSize();
 
     /**
-     *  setMinimumFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setMinimumFontSize 
      */
     virtual void setMinimumFontSize(int fontSize);
 
     /**
-     *  minimumLogicalFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  minimumLogicalFontSize 
      */
     virtual int minimumLogicalFontSize();
 
     /**
-     *  setMinimumLogicalFontSize description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setMinimumLogicalFontSize 
      */
     virtual void setMinimumLogicalFontSize(int fontSize);
 
     /**
-     *  defaultTextEncodingName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  defaultTextEncodingName 
      */
     virtual WebCore::String defaultTextEncodingName();
 
     /**
-     *  setDefaultTextEncodingName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setDefaultTextEncodingName 
      */
     virtual void setDefaultTextEncodingName(WebCore::String name);
 
     /**
-     *  userStyleSheetEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  userStyleSheetEnabled 
      */
     virtual bool userStyleSheetEnabled();
 
     /**
-     *  setUserStyleSheetEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setUserStyleSheetEnabled 
      */
     virtual void setUserStyleSheetEnabled(bool enabled);
 
     /**
-     *  userStyleSheetLocation description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  userStyleSheetLocation 
      */
     virtual WebCore::String userStyleSheetLocation();
 
     /**
-     *  setUserStyleSheetLocation description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setUserStyleSheetLocation 
      */
     virtual void setUserStyleSheetLocation(WebCore::String location);
 
     /**
-     *  isJavaEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  isJavaEnabled 
      */
     virtual bool isJavaEnabled();
 
     /**
-     *  setJavaEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setJavaEnabled 
      */
     virtual void setJavaEnabled(bool enabled);
 
     /**
-     *  isJavaScriptEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  isJavaScriptEnabled 
      */
     virtual bool isJavaScriptEnabled();
 
     /**
-     *  setJavaScriptEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setJavaScriptEnabled 
      */
     virtual void setJavaScriptEnabled(bool enabled);
 
     /**
-     *  javaScriptCanOpenWindowsAutomatically description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  javaScriptCanOpenWindowsAutomatically 
      */
     virtual bool javaScriptCanOpenWindowsAutomatically();
 
     /**
-     *  setJavaScriptCanOpenWindowsAutomatically description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setJavaScriptCanOpenWindowsAutomatically 
      */
     virtual void setJavaScriptCanOpenWindowsAutomatically(bool enabled);
 
     /**
-     *  arePlugInsEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  arePlugInsEnabled 
      */
     virtual bool arePlugInsEnabled();
 
     /**
-     *  setPlugInsEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setPlugInsEnabled 
      */
     virtual void setPlugInsEnabled(bool enabled);
 
     /**
-     *  allowsAnimatedImages description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  allowsAnimatedImages 
      */
     virtual bool allowsAnimatedImages();
 
     /**
-     *  setAllowsAnimatedImages description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setAllowsAnimatedImages 
      */
     virtual void setAllowsAnimatedImages(bool enabled);
 
     /**
-     *  allowAnimatedImageLooping description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  allowAnimatedImageLooping 
      */
     virtual bool allowAnimatedImageLooping();
 
     /**
-     *  setAllowAnimatedImageLooping description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setAllowAnimatedImageLooping 
      */
     virtual void setAllowAnimatedImageLooping(bool enabled);
 
     /**
-     *  setLoadsImagesAutomatically description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setLoadsImagesAutomatically 
      */
     virtual void setLoadsImagesAutomatically(bool enabled);
 
     /**
-     *  loadsImagesAutomatically description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadsImagesAutomatically 
      */
     virtual bool loadsImagesAutomatically();
 
     /**
-     *  setAutosaves description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setAutosaves
      */
     virtual void setAutosaves(bool enabled);
 
     /**
-     *  autosaves description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  autosaves 
      */
     virtual bool autosaves();
 
     /**
-     *  setShouldPrintBackgrounds description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setShouldPrintBackgrounds 
      */
     virtual void setShouldPrintBackgrounds(bool enabled);
 
     /**
-     *  shouldPrintBackgrounds description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  shouldPrintBackgrounds 
      */
     virtual bool shouldPrintBackgrounds();
 
     /**
-     *  setPrivateBrowsingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setPrivateBrowsingEnabled 
      */
     virtual void setPrivateBrowsingEnabled(bool enabled);
 
     /**
-     *  privateBrowsingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  privateBrowsingEnabled 
      */
     virtual bool privateBrowsingEnabled();
 
     /**
-     *  setTabsToLinks description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setTabsToLinks 
      */
     virtual void setTabsToLinks(bool enabled);
 
     /**
-     *  tabsToLinks description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  tabsToLinks 
      */
     virtual bool tabsToLinks();
 
     /**
-     *  textAreasAreResizable description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  textAreasAreResizable 
      */
     virtual bool textAreasAreResizable();
 
     /**
-     *  setTextAreasAreResizable description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setTextAreasAreResizable 
      */
     virtual void setTextAreasAreResizable(bool enabled);
 
     /**
-     *  usesPageCache description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  usesPageCache
      */
     virtual bool usesPageCache();
 
     /**
-     *  setUsesPageCache description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setUsesPageCache 
      */
     virtual void setUsesPageCache(bool usesPageCache);
 
     /**
-     *  iconDatabaseLocation description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  iconDatabaseLocation 
      */
     virtual WebCore::String iconDatabaseLocation();
 
     /**
-     *  setIconDatabaseLocation description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setIconDatabaseLocation 
      */
     virtual void setIconDatabaseLocation(WebCore::String location);
 
     /**
-     *  iconDatabaseEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  iconDatabaseEnabled 
      */
     virtual bool iconDatabaseEnabled();
 
     /**
-     *  setIconDatabaseEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setIconDatabaseEnabled 
      */
     virtual void setIconDatabaseEnabled(bool enabled);
 
     /**
-     *  fontSmoothing description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  fontSmoothing
      */
     virtual FontSmoothingType fontSmoothing();
 
     /**
-     *  setFontSmoothing description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setFontSmoothing 
      */
     virtual void setFontSmoothing(FontSmoothingType smoothingType);
 
     /**
-     *  editableLinkBehavior description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  editableLinkBehavior 
      */
     virtual WebKitEditableLinkBehavior editableLinkBehavior();
 
     /**
-     *  setEditableLinkBehavior description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setEditableLinkBehavior 
      */
     virtual void setEditableLinkBehavior(WebKitEditableLinkBehavior behavior);
 
     /**
-     *  cookieStorageAcceptPolicy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cookieStorageAcceptPolicy 
      */
     virtual WebKitCookieStorageAcceptPolicy cookieStorageAcceptPolicy();
 
     /**
-     *  setCookieStorageAcceptPolicy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setCookieStorageAcceptPolicy 
      */
     virtual void setCookieStorageAcceptPolicy(WebKitCookieStorageAcceptPolicy acceptPolicy);
 
     /**
-     *  continuousSpellCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  continuousSpellCheckingEnabled 
      */
     virtual bool continuousSpellCheckingEnabled();
 
     /**
-     *  setContinuousSpellCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setContinuousSpellCheckingEnabled 
      */
     virtual void setContinuousSpellCheckingEnabled(bool enabled);
 
     /**
-     *  grammarCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  grammarCheckingEnabled 
      */
     virtual bool grammarCheckingEnabled();
 
     /**
-     *  setGrammarCheckingEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setGrammarCheckingEnabled 
      */
     virtual void setGrammarCheckingEnabled(bool enabled);
 
     /**
-     *  allowContinuousSpellChecking description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  allowContinuousSpellChecking 
      */
     virtual bool allowContinuousSpellChecking();
 
     /**
-     *  setAllowContinuousSpellChecking description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setAllowContinuousSpellChecking 
      */
     virtual void setAllowContinuousSpellChecking(bool enabled);
 
     /**
-     *  isDOMPasteAllowed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  isDOMPasteAllowed 
      */
     virtual bool isDOMPasteAllowed();
 
     /**
-     *  setDOMPasteAllowed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setDOMPasteAllowed
      */
     virtual void setDOMPasteAllowed(bool enabled);
 
     /**
-     *  cacheModel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cacheModel 
      */
     virtual WebCacheModel cacheModel();
 
     /**
-     *  setCacheModel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setCacheModel 
      */
     virtual void setCacheModel(WebCacheModel cacheModel);
 
     // IWebPreferencesPrivate
 
     /**
-     *  setDeveloperExtrasEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setDeveloperExtrasEnabled 
      */
     virtual void setDeveloperExtrasEnabled(bool);
 
     /**
-     *  developerExtrasEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  developerExtrasEnabled 
      */
     virtual bool developerExtrasEnabled();
 
     /**
-     *  setAutomaticallyDetectsCacheModel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setAutomaticallyDetectsCacheModel 
      */
     virtual void setAutomaticallyDetectsCacheModel(bool automaticallyDetectsCacheModel);
 
     /**
-     *  automaticallyDetectsCacheModel description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  automaticallyDetectsCacheModel 
      */
     virtual bool automaticallyDetectsCacheModel();
 
     /**
-     *  setAuthorAndUserStylesEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setAuthorAndUserStylesEnabled
      */
     virtual void setAuthorAndUserStylesEnabled(bool enabled);
 
     /**
-     *  authorAndUserStylesEnabled description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  authorAndUserStylesEnabled 
      */
     virtual bool authorAndUserStylesEnabled();
 
@@ -843,28 +507,20 @@ public:
     // See <rdar://5343767> for the justification.
 
     /**
-     *  developerExtrasDisabledByOverride description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  developerExtrasDisabledByOverride 
      */
     bool developerExtrasDisabledByOverride();
 
 
     /**
-     *  webPreferencesChangedNotification description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get the topic to notify a change on webPreference
      */
     static WebCore::String webPreferencesChangedNotification();
 
     /**
-     *  webPreferencesRemovedNotification description
-     * @param[in]: description
-     * @param[out]: description
+     * get the topic to notify a remove on webPreference
+     * @param[in]: 
+     * @param[out]: 
      * @code
      * @endcode
      */
@@ -872,233 +528,139 @@ public:
 
 
     /**
-     *  setInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set an instance of WebPreference
      */
     static void setInstance(WebPreferences* instance, WebCore::String identifier);
 
     /**
-     *  removeReferenceForIdentifier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * remove a instance of WebPreference for an identifier 
      */
     static void removeReferenceForIdentifier(WebCore::String identifier);
 
     /**
-     *  sharedStandardPreferences description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get shared standard preferences 
      */
     static WebPreferences* sharedStandardPreferences();
 
     // From WebHistory.h
 
     /**
-     *  historyItemLimit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  historyItemLimit 
+     * The maximum number of items that will be stored by the WebHistory.
      */
     int historyItemLimit();
 
     /**
-     *  setHistoryItemLimit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * @discussion setHistoryAgeInDaysLimit: sets the maximum number of days to be read from
+        stored history.
+        @param limit The maximum number of days to be read from stored history.
      */
     void setHistoryItemLimit(int limit);
 
     /**
-     *  historyAgeInDaysLimit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  historyAgeInDaysLimit 
+     * The maximum number of items that will be stored by the WebHistory.
      */
     int historyAgeInDaysLimit();
 
     /**
-     *  setHistoryAgeInDaysLimit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * @discussion setHistoryAgeInDaysLimit: sets the maximum number of days to be read from
+        stored history.
+        @param limit The maximum number of days to be read from stored history.
      */
     void setHistoryAgeInDaysLimit(int limit);
 
 
     /**
-     *  willAddToWebView description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * will add to webView 
      */
     void willAddToWebView();
 
     /**
-     *  didRemoveFromWebView description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * did remove from webView 
      */
     void didRemoveFromWebView();
 
 
     /**
-     *  postPreferencesChangesNotification description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * post preferences changes notification 
      */
     void postPreferencesChangesNotification();
 
 protected:
 
     /**
-     *  setValueForKey description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setValueForKey
      */
     void setValueForKey(WebCore::String key, WebCore::String value);
 
     /**
-     *  valueForKey description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  valueForKey 
      */
     WebCore::String valueForKey(WebCore::String key);
 
     /**
-     *  stringValueForKey description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  stringValueForKey 
      */
     WebCore::String stringValueForKey(WebCore::String key);
 
     /**
-     *  integerValueForKey description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  integerValueForKey 
      */
     int integerValueForKey(WebCore::String key);
 
     /**
-     *  boolValueForKey description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  boolValueForKey 
      */
     bool boolValueForKey(WebCore::String key);
 
     /**
-     *  floatValueForKey description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  floatValueForKey
      */
     float floatValueForKey(WebCore::String key);
 
     /**
-     *  longlongValueForKey description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  longlongValueForKey 
      */
     unsigned int longlongValueForKey(WebCore::String key);
 
     /**
-     *  setStringValue description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setStringValue
      */
     void setStringValue(WebCore::String key, WebCore::String value);
 
     /**
-     *  setIntegerValue description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setIntegerValue 
      */
     void setIntegerValue(WebCore::String key, int value);
 
     /**
-     *  setBoolValue description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setBoolValue 
      */
     void setBoolValue(WebCore::String key, bool value);
 
     /**
-     *  setLongLongValue description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setLongLongValue 
      */
     void setLongLongValue(WebCore::String key, unsigned int value);
 
     /**
-     *  getInstanceForIdentifier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  getInstanceForIdentifier 
      */
     static WebPreferences* getInstanceForIdentifier(WebCore::String identifier);
 
     /**
-     *  initializeDefaultSettings description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  initializeDefaultSettings 
      */
     static void initializeDefaultSettings();
 
     /**
-     *  save description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  save 
      */
     void save();
 
     /**
-     *  load description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  load 
      */
     void load();
 

@@ -1,3 +1,17 @@
+2008-07-04  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        add doxygen comment
+
+        * OrigynWebBrowser/Api/WebError.h:
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebFramePolicyListener.h:
+        * OrigynWebBrowser/Api/WebInspector.h:
+        * OrigynWebBrowser/Api/WebMutableURLRequest.h:
+        * OrigynWebBrowser/Api/WebPreferences.h:
+        * OrigynWebBrowser/Api/WebResource.h:
+        * OrigynWebBrowser/Api/WebScriptCallFrame.h:
+
 2008-07-02  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier Dole.

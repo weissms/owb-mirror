@@ -56,107 +56,63 @@ class WebScriptCallFrame {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebScriptCallFrame
      */
     static WebScriptCallFrame* createInstance(KJS::ExecState*);
 
 private:
 
     /**
-     *  WebScriptCallFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebScriptCallFrame constructor
      */
     WebScriptCallFrame(KJS::ExecState*);
 
 public:
 
     /**
-     *  ~WebScriptCallFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebScriptCallFrame destructor
      */
     virtual ~WebScriptCallFrame();
 
     /**
-     *  caller description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  get caller 
      */
     virtual WebScriptCallFrame* caller();
 
     /**
-     *  functionName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get functionName 
      */
     virtual WebCore::String functionName();
 
     /**
-     *  stringByEvaluatingJavaScriptFromString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * string by evaluating javascript from string
      */
     virtual WebCore::String stringByEvaluatingJavaScriptFromString(WebCore::String script);
 
     /**
-     *  variableNames description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get variable names
      */
     virtual KJS::PropertyNameArray variableNames();
 
     /**
-     *  valueForVariable description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get value for variable
      */
     virtual WebCore::String valueForVariable(WebCore::String key);
 
 
     /**
-     *  valueByEvaluatingJavaScriptFromString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get value by evaluating java script from string
      */
     virtual KJS::JSValue* valueByEvaluatingJavaScriptFromString(WebCore::String script);
 
     /**
-     * state description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get state
      */
     virtual KJS::ExecState* state() const { return m_state; }
 
 
     /**
-     *  jsValueToString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * convert jsValue to string
      */
     static KJS::UString jsValueToString(KJS::ExecState*, KJS::JSValue*);
 

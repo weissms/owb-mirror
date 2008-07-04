@@ -102,20 +102,16 @@ typedef enum _WebURLRequestCachePolicy
 
 
     /**
-     *  kit description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get WebFrame from a frame
+     * @param[in]: frame
+     * @param[out]: WebFrame
      */
 WebFrame* kit(WebCore::Frame*);
 
     /**
-     *  core description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get frame from a webFrame
+     * @param[in]: WebFrame
+     * @param[out]: frame
      */
 WebCore::Frame* core(WebFrame*);
 
@@ -124,1060 +120,687 @@ class WebFrame: public WebFrameLoaderClient, public OWBAL::BCObserverAddons
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebFrame
+     * @param[out]: WebFrame
      */
     static WebFrame* createInstance();
 
     /**
-     *  ~WebFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebFrame destructor
      */
     virtual ~WebFrame();
 protected:
 
     /**
-     *  WebFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebFrame default constructor
      */
     WebFrame();
 
 public:
 
     /**
-     *  name description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * @result The frame name.
      */
     virtual WebCore::String name();
 
     /**
-     *  *webView description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * @result Returns the WebView for the document that includes this frame.
      */
     virtual WebView *webView();
 
     /**
-     *  DOMDocument description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * Returns the DOM document of the frame.
+       @description Returns nil if the frame does not contain a DOM document such as a standalone image. DOMDocument description
      */
     virtual WebCore::Document* DOMDocument();
 
     /**
-     *  loadRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadRequest 
+     * @param request The web request to load.
      */
     virtual void loadRequest(WebMutableURLRequest *request);
 
     /**
-     *  loadURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadURL
+     * @param request The url to load.
      */
     virtual void loadURL(WebCore::String url);
 
     /**
-     *  loadData description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadData 
+     * @param data The data to use for the main page of the document.
+        @param MIMEType The MIME type of the data.
+        @param encodingName The encoding of the data.
+        @param URL The base URL to apply to relative URLs within the document.
      */
     virtual void loadData(PassRefPtr<WebCore::SharedBuffer>data, WebCore::String mimeType, WebCore::String textEncodingName, WebCore::String url);
 
     /**
-     *  loadHTMLString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadHTMLString
+     * @param string The string to use for the main page of the document.
+        @param URL The base URL to apply to relative URLs within the document.
      */
     virtual void loadHTMLString(WebCore::String string, WebCore::String baseURL);
 
     /**
-     *  loadAlternateHTMLString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadAlternateHTMLString 
+     * Loads a page to display as a substitute for a URL that could not be reached.
+        @discussion This allows clients to display page-loading errors in the webview itself.
+        This is typically called while processing the WebFrameLoadDelegate method
+        -webView:didFailProvisionalLoadWithError:forFrame: or one of the the DefaultPolicyDelegate methods
+        -webView:decidePolicyForMIMEType:request:frame:decisionListener: or
+        -webView:unableToImplementPolicyWithError:frame:. If it is called from within one of those
+        three delegate methods then the back/forward list will be maintained appropriately.
+        @param string The string to use for the main page of the document.
+        @param baseURL The baseURL to apply to relative URLs within the document.
+        @param unreachableURL The URL for which this page will serve as alternate content.
      */
     virtual void loadAlternateHTMLString(WebCore::String str, WebCore::String baseURL, WebCore::String unreachableURL);
 
     /**
-     *  loadArchive description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadArchive
+     * Causes WebFrame to load a WebArchive.
+        @param archive The archive to be loaded.
      */
     virtual void loadArchive(WebArchive *archive);
 
     /**
-     *  *dataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dataSource 
+     * Returns the committed data source.  Will return nil if the
+        provisional data source hasn't yet been loaded.
+        @result The datasource for this frame.
      */
     virtual WebDataSource *dataSource();
 
     /**
-     *  *provisionalDataSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  provisionalDataSource 
+     * @discussion Will return the provisional data source.  The provisional data source will
+        be nil if no data source has been set on the frame, or the data source
+        has successfully transitioned to the committed data source.
+        @result The provisional datasource of this frame.
      */
     virtual WebDataSource *provisionalDataSource();
 
     /**
-     *  stopLoading description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  stopLoading 
+     * @discussion Stop any pending loads on the frame's data source,
+        and its children.
      */
     virtual void stopLoading();
 
     /**
-     *  reload description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  reload 
      */
     virtual void reload();
 
     /**
-     *  findFrameNamed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  findFrameNamed 
+     * @discussion This method returns a frame with the given name. findFrameNamed returns self
+        for _self and _current, the parent frame for _parent and the main frame for _top.
+        findFrameNamed returns self for _parent and _top if the receiver is the mainFrame.
+        findFrameNamed first searches from the current frame to all descending frames then the
+        rest of the frames in the WebView. If still not found, findFrameNamed searches the
+        frames of the other WebViews.
+        @param name The name of the frame to find.
+        @result The frame matching the provided name. nil if the frame is not found.
      */
     virtual WebFrame* findFrameNamed(WebCore::String name);
 
     /**
-     *  parentFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  parentFrame 
+     * @result The frame containing this frame, or nil if this is a top level frame.
      */
     virtual WebFrame* parentFrame();
 
     /**
-     *  currentForm description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get current form element
      */
     virtual WebCore::HTMLFormElement* currentForm();
 
     /**
-     *  globalContext description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  globalContext 
+     * @result The frame's global JavaScript execution context.  Use this method to
+        bridge between the WebKit and JavaScriptCore APIs.
      */
     virtual JSGlobalContextRef globalContext();
 
-
     /**
-     *  renderTreeAsExternalRepresentation description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get renderTree as external representation 
+     * @param[out]: external representation
      */
     virtual WebCore::String renderTreeAsExternalRepresentation();
 
     /**
-     *  scrollOffset description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get the scroll offset 
+     * @param[out]: scroll offset
      */
     virtual WebCore::IntSize scrollOffset();
 
     /**
-     *  layout description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * layout 
      */
     virtual void layout();
 
     /**
-     *  firstLayoutDone description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get if the first layout is done 
      */
     virtual bool firstLayoutDone();
 
     /**
-     *  loadType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get load type 
+     * @param[out]: WebFrame load type
      */
     virtual WebFrameLoadType loadType();
 
     /**
-     *  setInPrintingMode description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * setInPrintingMode 
+     * Not Implemented
      */
     //virtual void setInPrintingMode(bool value, HDC printDC);  
 
     /**
-     *  getPrintedPageCount description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * getPrintedPageCount 
+     * Not Implemented
      */
     //virtual unsigned int getPrintedPageCount(HDC printDC);
 
     /**
-     *  spoolPages description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * spoolPages 
+     * Not Implemented
      */
     //virtual void* spoolPages(HDC printDC, UINT startPage, UINT endPage);
 
 
     /**
-     *  isFrameSet description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the frame is frame set 
      */
     virtual bool isFrameSet();
 
     /**
-     *  string description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get string representation
      */
     virtual WebCore::String string();
 
     /**
-     *  size description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get size 
      */
     virtual IntSize size();
 
     /**
-     *  hasScrollBars description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the frame has scrollBars 
      */
     virtual bool hasScrollBars();
 
     /**
-     *  contentBounds description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get content bounds 
      */
     virtual WebCore::IntRect contentBounds();
 
     /**
-     *  frameBounds description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get frame bounds 
      */
     virtual WebCore::IntRect frameBounds();
 
 
     /**
-     *  isDescendantOfFrame description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the frame is descendant of frame 
      */
     virtual bool isDescendantOfFrame(WebFrame *ancestor);
 
     /**
-     *  setAllowsScrolling description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set allows scrolling 
      */
     virtual void setAllowsScrolling(bool flag);
 
     /**
-     *  allowsScrolling description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get allows scrolling 
      */
     virtual bool allowsScrolling();
 
 
     /**
-     *  supportsTextEncoding description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the frame supports text encoding 
      */
     virtual bool supportsTextEncoding();
 
     /**
-     *  selectedString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get selected string 
      */
     virtual WebCore::String selectedString();
 
     /**
-     *  selectAll description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * select all 
      */
     virtual void selectAll();
 
     /**
-     *  deselectAll description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * deselect all 
      */
     virtual void deselectAll();
     
     // FrameLoaderClient
 
     /**
-     *  frameLoaderDestroyed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * frameLoader destroyed 
      */
     virtual void frameLoaderDestroyed();
 
     /**
-     *  makeRepresentation description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * make representation 
      */
     virtual void makeRepresentation(WebCore::DocumentLoader*);
 
     /**
-     *  forceLayoutForNonHTML description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * force layout for non HTML 
      */
     virtual void forceLayoutForNonHTML();
 
     /**
-     *  setCopiesOnScroll description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set copies on scroll 
      */
     virtual void setCopiesOnScroll();
 
     /**
-     *  detachedFromParent2 description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * detached from parent2 
      */
     virtual void detachedFromParent2();
 
     /**
-     *  detachedFromParent3 description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * detached from parent3 
      */
     virtual void detachedFromParent3();
 
     /**
-     *  detachedFromParent4 description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * detached from parent4 
      */
     virtual void detachedFromParent4();
 
     /**
-     *  cancelPolicyCheck description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * cancel policy check 
      */
     virtual void cancelPolicyCheck();
 
     /**
-     *  dispatchWillSubmitForm description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchWillSubmitForm 
      */
     virtual void dispatchWillSubmitForm(WebCore::FramePolicyFunction, PassRefPtr<WebCore::FormState>);
 
     /**
-     *  revertToProvisionalState description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  revertToProvisionalState 
      */
     virtual void revertToProvisionalState(WebCore::DocumentLoader*);
 
     /**
-     *  setMainFrameDocumentReady description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setMainFrameDocumentReady
      */
     virtual void setMainFrameDocumentReady(bool);
 
     /**
-     *  willChangeTitle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  willChangeTitle 
      */
     virtual void willChangeTitle(WebCore::DocumentLoader*);
 
     /**
-     *  didChangeTitle description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  didChangeTitle 
      */
     virtual void didChangeTitle(WebCore::DocumentLoader*);
     
     /**
-     * canHandleRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * canHandleRequest
      */
     virtual bool canHandleRequest(const WebCore::ResourceRequest&) const;
     
     /**
-     * canShowMIMEType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * canShowMIMEType 
      */
     virtual bool canShowMIMEType(const WebCore::String& MIMEType) const;
     
     /**
-     * representationExistsForURLScheme description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * representationExistsForURLScheme 
      */
     virtual bool representationExistsForURLScheme(const WebCore::String& URLScheme) const;
     
     /**
-     * generatedMIMETypeForURLScheme description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * generatedMIMETypeForURLScheme 
      */
     virtual WebCore::String generatedMIMETypeForURLScheme(const WebCore::String& URLScheme) const;
 
     /**
-     *  frameLoadCompleted description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  frameLoadCompleted 
      */
     virtual void frameLoadCompleted();
 
     /**
-     *  restoreViewState description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  restoreViewState 
+     * Not Implemented
      */
     virtual void restoreViewState();
 
     /**
-     *  provisionalLoadStarted description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  provisionalLoadStarted 
+     * Not Implemented
      */
     virtual void provisionalLoadStarted();
 
     /**
-     *  shouldTreatURLAsSameAsCurrent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  shouldTreatURLAsSameAsCurrent 
+     * Not Implemented
      */
     virtual bool shouldTreatURLAsSameAsCurrent(const WebCore::KURL&) const;
 
     /**
-     *  addHistoryItemForFragmentScroll description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  addHistoryItemForFragmentScroll 
+     * Not Implemented
      */
     virtual void addHistoryItemForFragmentScroll();
 
     /**
-     *  didFinishLoad description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  didFinishLoad 
+     * Not Implemented
      */
     virtual void didFinishLoad();
 
     /**
-     *  prepareForDataSourceReplacement description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  prepareForDataSourceReplacement 
+     * Not Implemented
      */
     virtual void prepareForDataSourceReplacement();
 
     /**
-     *  userAgent description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  userAgent 
      */
     virtual WebCore::String userAgent(const WebCore::KURL&);
 
     /**
-     *  transitionToCommittedFromCachedPage description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  transitionToCommittedFromCachedPage 
+     * Not Implemented
      */
     virtual void transitionToCommittedFromCachedPage(WebCore::CachedPage*);
 
     /**
-     *  saveViewStateToItem description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  saveViewStateToItem 
+     * Not Implemented
      */
     virtual void saveViewStateToItem(WebCore::HistoryItem *);
 
     /**
-     *  cancelledError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cancelledError 
      */
     virtual WebCore::ResourceError cancelledError(const WebCore::ResourceRequest&);
 
     /**
-     *  blockedError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  blockedError 
      */
     virtual WebCore::ResourceError blockedError(const WebCore::ResourceRequest&);
 
     /**
-     *  cannotShowURLError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cannotShowURLError 
      */
     virtual WebCore::ResourceError cannotShowURLError(const WebCore::ResourceRequest&);
 
     /**
-     *  interruptForPolicyChangeError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  interruptForPolicyChangeError 
      */
     virtual WebCore::ResourceError interruptForPolicyChangeError(const WebCore::ResourceRequest&);
 
     /**
-     *  cannotShowMIMETypeError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  cannotShowMIMETypeError 
+     * Not Implemented
      */
     virtual WebCore::ResourceError cannotShowMIMETypeError(const WebCore::ResourceResponse&);
 
     /**
-     *  fileDoesNotExistError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  fileDoesNotExistError 
+     * Not Implemented
      */
     virtual WebCore::ResourceError fileDoesNotExistError(const WebCore::ResourceResponse&);
 
     /**
-     *  shouldFallBack description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  shouldFallBack 
      */
     virtual bool shouldFallBack(const WebCore::ResourceError&);
 
     /**
-     *  dispatchDecidePolicyForMIMEType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchDecidePolicyForMIMEType 
      */
     virtual void dispatchDecidePolicyForMIMEType(WebCore::FramePolicyFunction, const WebCore::String& MIMEType, const WebCore::ResourceRequest&);
 
     /**
-     *  dispatchDecidePolicyForNewWindowAction description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchDecidePolicyForNewWindowAction 
      */
     virtual void dispatchDecidePolicyForNewWindowAction(WebCore::FramePolicyFunction, const WebCore::NavigationAction&, const WebCore::ResourceRequest&, PassRefPtr<WebCore::FormState>, const WebCore::String& frameName);
 
     /**
-     *  dispatchDecidePolicyForNavigationAction description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchDecidePolicyForNavigationAction
      */
     virtual void dispatchDecidePolicyForNavigationAction(WebCore::FramePolicyFunction, const WebCore::NavigationAction&, const WebCore::ResourceRequest&, PassRefPtr<WebCore::FormState>);
 
     /**
-     *  dispatchUnableToImplementPolicy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchUnableToImplementPolicy 
      */
     virtual void dispatchUnableToImplementPolicy(const WebCore::ResourceError&);
 
     /**
-     *  download description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  download 
      */
     virtual void download(WebCore::ResourceHandle*, const WebCore::ResourceRequest&, const WebCore::ResourceRequest&, const WebCore::ResourceResponse&);
 
 
     /**
-     *  dispatchDidLoadResourceFromMemoryCache description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchDidLoadResourceFromMemoryCache 
      */
     virtual bool dispatchDidLoadResourceFromMemoryCache(WebCore::DocumentLoader*, const WebCore::ResourceRequest&, const WebCore::ResourceResponse&, int length);
 
     /**
-     *  dispatchDidFailProvisionalLoad description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchDidFailProvisionalLoad 
      */
     virtual void dispatchDidFailProvisionalLoad(const WebCore::ResourceError&);
 
     /**
-     *  dispatchDidFailLoad description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  dispatchDidFailLoad 
      */
     virtual void dispatchDidFailLoad(const WebCore::ResourceError&);
 
     /**
-     *  startDownload description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  startDownload 
      */
     virtual void startDownload(const WebCore::ResourceRequest&);
         
 
     /**
-     *  createJavaAppletWidget description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  createJavaAppletWidget 
      */
     virtual WebCore::Widget* createJavaAppletWidget(const WebCore::IntSize&, WebCore::Element*, const WebCore::KURL& baseURL, const Vector<WebCore::String>& paramNames, const Vector<WebCore::String>& paramValues);
 
 
     /**
-     *  objectContentType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  objectContentType 
      */
     virtual WebCore::ObjectContentType objectContentType(const WebCore::KURL& url, const WebCore::String& mimeType);
 
     /**
-     *  objectContentType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  overrideMediaType 
      */
     virtual WebCore::String overrideMediaType() const;
 
 
     /**
-     *  windowObjectCleared description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  windowObjectCleared 
      */
     virtual void windowObjectCleared();
 
     /**
-     *  objectContentType description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  didPerformFirstNavigation 
      */
     virtual void didPerformFirstNavigation() const;
 
 
     /**
-     *  registerForIconNotification description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  registerForIconNotification 
      */
     virtual void registerForIconNotification(bool listen);
 
     // WebFrame
 
     /**
-     *  init description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  init WebFrame
      */
     PassRefPtr<WebCore::Frame> init(WebView*, WebCore::Page*, WebCore::HTMLFrameOwnerElement*);
 
     /**
-     *  impl description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get frame
      */
     WebCore::Frame* impl();
 
     /**
-     *  invalidate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * invalidate webframe
      */
     void invalidate();
 
     /**
-     *  unmarkAllMisspellings description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * unmark all misspellings 
      */
     void unmarkAllMisspellings();
 
     /**
-     *  unmarkAllBadGrammar description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * unmark all bad grammar 
      */
     void unmarkAllBadGrammar();
 
     // WebFrame (matching WebCoreFrameBridge)
 
     /**
-     *  setTextSizeMultiplier description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setTextSizeMultiplier 
+     * Change the size of the text rendering in views managed by this webView.
+        @param multiplier A fractional percentage value, 1.0 is 100%.
      */
     void setTextSizeMultiplier(float multiplier);
 
     /**
-     *  inViewSourceMode description
-     * @param[in]: description
-     * @param[out]: description
+     *  inViewSourceMode 
+     * @param[in]: 
+     * @param[out]: 
      * @code
      * @endcode
      */
     bool inViewSourceMode();
 
     /**
-     *  setInViewSourceMode description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setInViewSourceMode 
+     * Whether or not the WebView is in source-view mode for HTML.
      */
     void setInViewSourceMode(bool flag);
 
     /**
-     *  elementWithName description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  elementWithName 
+     * Not Implemented
      */
     //HRESULT elementWithName(BSTR name, IDOMElement* form, IDOMElement** element);
 
     /**
-     *  formForElement description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  formForElement 
+     * Not Implemented
      */
     //HRESULT formForElement(IDOMElement* element, IDOMElement** form);
 
     /**
-     *  elementDoesAutoComplete description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  elementDoesAutoComplete 
+     * Not Implemented
      */
     //HRESULT elementDoesAutoComplete(IDOMElement* element, bool* result);
 
     /**
-     *  controlsInForm description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  controlsInForm 
+     * Not Implemented
      */
     //HRESULT controlsInForm(IDOMElement* form, IDOMElement** controls, int* cControls);
 
     /**
-     *  elementIsPassword description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  elementIsPassword 
+     * Not Implemented
      */
     //HRESULT elementIsPassword(IDOMElement* element, bool* result);
 
     /**
-     *  searchForLabelsBeforeElement description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  searchForLabelsBeforeElement 
+     * Not Implemented
      */
     //HRESULT searchForLabelsBeforeElement(const BSTR* labels, int cLabels, IDOMElement* beforeElement, BSTR* result);
 
     /**
-     *  matchLabelsAgainstElement description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  matchLabelsAgainstElement 
+     * Not Implemented
      */
     //HRESULT matchLabelsAgainstElement(const BSTR* labels, int cLabels, IDOMElement* againstElement, BSTR* result);
 
     /**
-     *  canProvideDocumentSource description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  canProvideDocumentSource 
+     * Not Implemented
      */
     //HRESULT canProvideDocumentSource(bool* result);
 
 
     /**
-     *  setUpPolicyListener description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set up policy listener 
      */
     WebFramePolicyListener* setUpPolicyListener(WebCore::FramePolicyFunction function);
 
     /**
-     *  receivedPolicyDecision description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * received policy decision 
      */
     void receivedPolicyDecision(WebCore::PolicyAction);
 
+    /**
+     * get url
+     */
     WebCore::KURL url() const;
 
+    /**
+     * get webview
+     */
     WebView* webView() const;
 
     /** 
-     * addToJSWindowObject 
+     * add to JSWindow object 
+     * add an balObject to extend the javascript 
      */  
     void addToJSWindowObject(const char* name, void *object); 
+    
     //BCObserverAddons 
+    /** 
+     * observe implementation
+     */
     virtual void observe(const OWBAL::String &topic, BalObject *obj);
 
 protected:
 
     /**
-     *  loadData description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadData 
      */
     void loadData(PassRefPtr<WebCore::SharedBuffer>, WebCore::String mimeType, WebCore::String textEncodingName, WebCore::String baseURL, WebCore::String failingURL);
 
     /**
-     *  loadHTMLString description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  loadHTMLString 
      */
     void loadHTMLString(WebCore::String string, WebCore::String baseURL, WebCore::String unreachableURL);
 
     /**
-     *  computePageRects description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  computePageRects 
      */
     //const Vector<WebCore::IntRect>& computePageRects(HDC printDC);
 
     /**
-     *  setPrinting description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  setPrinting 
      */
     //void setPrinting(bool printing, float minPageWidth, float maxPageWidth, bool adjustViewSize);
 
     /**
-     *  headerAndFooterHeights description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  headerAndFooterHeights 
      */
     //void headerAndFooterHeights(float*, float*);
 
     /**
-     *  printerMarginRect description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  printerMarginRect 
      */
     //WebCore::IntRect printerMarginRect(HDC);
 

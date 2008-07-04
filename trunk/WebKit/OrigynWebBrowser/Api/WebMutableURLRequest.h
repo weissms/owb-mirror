@@ -56,328 +56,196 @@ class WebMutableURLRequest
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebMutableURLRequest
      */
     static WebMutableURLRequest* createInstance();
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebMutableURLRequest
      */
     static WebMutableURLRequest* createInstance(WebMutableURLRequest* req);
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebMutableURLRequest
      */
     static WebMutableURLRequest* createInstance(const WebCore::ResourceRequest&);
 
 
     /**
-     *  createImmutableInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create an immutable instance of WebMutableURLRequest
      */
     static WebMutableURLRequest* createImmutableInstance();
 
     /**
-     *  createImmutableInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create an immutable instance of WebMutableURLRequest
      */
     static WebMutableURLRequest* createImmutableInstance(const WebCore::ResourceRequest&);
 protected:
 
     /**
-     *  WebMutableURLRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     *  WebMutableURLRequest constructor
      */
     WebMutableURLRequest(bool isMutable);
 
 public:
 
     /**
-     *  ~WebMutableURLRequest description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebMutableURLRequest destructor
      */
     virtual ~WebMutableURLRequest();
 
     /**
-     *  requestWithURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * request with URL 
      */
     virtual void requestWithURL( WebCore::String theURL, WebCore::ResourceRequestCachePolicy cachePolicy, double timeoutInterval);
 
     /**
-     *  allHTTPHeaderFields description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get all HTTP header fields 
      */
     virtual HTTPHeaderPropertyBag* allHTTPHeaderFields();
 
     /**
-     *  cachePolicy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get cachePolicy 
      */
     virtual WebCore::ResourceRequestCachePolicy cachePolicy();
 
     /**
-     *  HTTPBody description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get HTTP body
      */
     virtual WebCore::String HTTPBody();
 
     /**
-     *  HTTPBodyStream description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get HTTP body stream
      */
     virtual WebCore::String HTTPBodyStream();
 
     /**
-     *  HTTPMethod description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get HTTP method
      */
     virtual WebCore::String HTTPMethod();
 
     /**
-     *  HTTPShouldHandleCookies description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get HTTP should handle cookies
      */
     virtual bool HTTPShouldHandleCookies();
 
     /**
-     *  initWithURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * initialise WebMutableURLRequest with URL 
      */
     virtual void initWithURL(WebCore::String url, WebCore::ResourceRequestCachePolicy cachePolicy, double timeoutInterval);
 
     /**
-     *  mainDocumentURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get main document URL
      */
     virtual WebCore::String mainDocumentURL();
 
     /**
-     *  timeoutInterval description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get timeout interval
      */
     virtual double timeoutInterval();
 
     /**
-     *  URL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get URL
      */
     virtual WebCore::String URL();
 
     /**
-     *  valueForHTTPHeaderField description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get value for HTTP header field
      */
     virtual WebCore::String valueForHTTPHeaderField(WebCore::String field);
 
     /**
-     *  isEmpty description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the WebMutableURLRequest is empty
      */
     virtual bool isEmpty();
 
 
     /**
-     *  addValue description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * add value
      */
     virtual void addValue(WebCore::String value, WebCore::String field);
 
     /**
-     *  setAllHTTPHeaderFields description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set all HTTP header fields
      */
     virtual void setAllHTTPHeaderFields(HTTPHeaderPropertyBag *headerFields);
 
     /**
-     *  setCachePolicy description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set cache policy
      */
     virtual void setCachePolicy(WebCore::ResourceRequestCachePolicy policy);
 
     /**
-     *  setHTTPBody description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set HTTP body
      */
     virtual void setHTTPBody(WebCore::String data);
 
     /**
-     *  setHTTPBodyStream description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set HTTP body stream
      */
     virtual void setHTTPBodyStream(WebCore::String data);
 
     /**
-     *  setHTTPMethod description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set HTTP method
      */
     virtual void setHTTPMethod(WebCore::String method);
 
     /**
-     *  setHTTPShouldHandleCookies description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set HTTP should handle cookies
      */
     virtual void setHTTPShouldHandleCookies(bool handleCookies);
 
     /**
-     *  setMainDocumentURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set main document URL
      */
     virtual void setMainDocumentURL(WebCore::String theURL);
 
     /**
-     *  setTimeoutInterval description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set timeout interval
      */
     virtual void setTimeoutInterval(double timeoutInterval);
 
     /**
-     *  setURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set URL
      */
     virtual void setURL(WebCore::String theURL);
 
     /**
-     *  setValue description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set value
      */
     virtual void setValue(WebCore::String value, WebCore::String field);
 
     /**
-     *  setAllowsAnyHTTPSCertificate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set allows any HTTPS certificate
      */
     virtual void setAllowsAnyHTTPSCertificate();
 
 
     /**
-     *  setClientCertificate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * setClientCertificate
      */
     //virtual void setClientCertificate(OLE_HANDLE cert);
 
 
     /**
-     *  setFormData description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * set form data
      */
     void setFormData(const PassRefPtr<WebCore::FormData> data);
+    
+    /**
+     * get form data
+     */
     const PassRefPtr<WebCore::FormData> formData() const;
     
 
     /**
-     *  addHTTPHeaderFields description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * add HTTP header fields
      */
     void addHTTPHeaderFields(const WebCore::HTTPHeaderMap& headerFields);
+    
+    /**
+     * get resource request
+     */
     const WebCore::HTTPHeaderMap& httpHeaderFields() const;
 
     const WebCore::ResourceRequest& resourceRequest() const;

@@ -47,87 +47,51 @@ class WebInspector : public Noncopyable {
 public:
 
     /**
-     *  createInstance description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * create a new instance of WebInspector
      */
     static WebInspector* createInstance(WebView*);
 
     /**
-     *  ~WebInspector description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebInspector destructor
      */
     virtual ~WebInspector();
 
 
     /**
-     *  webViewClosed description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * webView closed
      */
     void webViewClosed();
 
 
     /**
-     *  show description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * show
      */
     virtual void show();
 
     /**
-     *  showConsole description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * show console
      */
     virtual void showConsole();
 
     /**
-     *  close description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * close
      */
     virtual void close();
 
     /**
-     *  attach description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * attach
      */
     virtual void attach();
 
     /**
-     *  detach description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * detach
      */
     virtual void detach();
 
 private:
 
     /**
-     *  WebInspector description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * WebInspector constructor
      */
     WebInspector(WebView*);
 

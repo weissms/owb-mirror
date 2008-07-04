@@ -171,57 +171,46 @@ public:
     virtual WebCore::String localizedDescription();
 
     /**
-     * get localizedFailureReason
-     * @param[out]: localizedFailureReason
+     * get localized failure reason
+     * @param[out]: localized failure reason
      */
     virtual WebCore::String localizedFailureReason();
 
     /**
-     *  localizedRecoverySuggestion description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get localized recovery suggestion
+     * @param[out]: localized recovery suggestion
      */
     virtual WebCore::String localizedRecoverySuggestion();
 
     /**
-     *  userInfo description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get user informations
+     * @param[out]: user informations
      */
     virtual HTTPHeaderPropertyBag* userInfo();
 
     /**
-     *  failingURL description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * get failing URL
+     * @param[out]: url
      */
     virtual WebCore::String failingURL();
 
     /**
-     *  isPolicyChangeError description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * test if the error is policy change error
+     * @param[out]: status
      */
     virtual bool isPolicyChangeError();
 
 
     /**
-     *  sslPeerCertificate description
-     * @param[in]: description
-     * @param[out]: description
-     * @code
-     * @endcode
+     * sslPeerCertificate
+     * Not Implemented
      */
     //virtual OLE_HANDLE sslPeerCertificate();
-
+    
+    /**
+     * get resource error
+     * @param[out]: resource error
+     */
     const WebCore::ResourceError& resourceError() const;
 
 private:
