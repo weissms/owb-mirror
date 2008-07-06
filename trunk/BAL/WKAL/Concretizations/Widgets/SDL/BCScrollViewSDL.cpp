@@ -42,6 +42,17 @@
 #include "Page.h"
 #include "RenderLayer.h"
 #include "SDL.h"
+#if PLATFORM(AMIGAOS4)
+#define GRAPHICS_MONITOR_H
+#include <exec/nodes.h>
+#undef __amigaos4__
+#include <graphics/gfxnodes.h>
+#include <graphics/gels.h>
+#define __amigaos4__
+#include <proto/graphics.h>
+#include <graphics/blitattr.h>
+#include <intuition/intuition.h>
+#endif
 
 #define WIDTH_MAX 16384
 #define HEIGHT_MAX 65536
@@ -51,6 +62,38 @@ using std::min;
 
 namespace WKAL {
 
+#if PLATFORM(AMIGAOS4)
+void updateView(BalWidget *widget, SDL_Rect sdlRect)
+{
+    if (!widget)
+        return;
+
+    if (sdlRect.x >= widget->surface->w || sdlRect.y >= widget->surface->h)
+        return;
+
+    sdlRect.x = max(sdlRect.x, (Sint16)0);
+    sdlRect.y = max(sdlRect.y, (Sint16)0);
+
+    sdlRect.w = min((int)sdlRect.w, widget->surface->w - sdlRect.x);
+    sdlRect.h = min((int)sdlRect.h, widget->surface->h - sdlRect.y);
+
+    if (sdlRect.w <= 0 || sdlRect.h <= 0)
+        return;
+
+    IGraphics->BltBitMapTags(BLITA_Source,         widget->surface->pixels,
+                             BLITA_SrcType,        BLITT_ARGB32,
+                             BLITA_SrcBytesPerRow, widget->surface->pitch,
+                             BLITA_SrcX,           sdlRect.x,
+                             BLITA_SrcY,           sdlRect.y,
+                             BLITA_Width,          sdlRect.w,
+                             BLITA_Height,         sdlRect.h,
+                             BLITA_Dest,           widget->window->RPort,
+                             BLITA_DestType,       BLITT_RASTPORT,
+                             BLITA_DestX,          sdlRect.x + widget->offsetx,
+                             BLITA_DestY,          sdlRect.y + widget->offsety,
+                             TAG_DONE);
+}
+#else
 void updateView(SDL_Surface *surf, SDL_Rect sdlRect)
 {
     if (!surf)
@@ -64,6 +107,7 @@ void updateView(SDL_Surface *surf, SDL_Rect sdlRect)
     else
         SDL_UpdateRect(surf, sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
 }
+#endif
 
 class ScrollViewScrollbar : public PlatformScrollbar {
 public:
@@ -316,10 +360,14 @@ void ScrollView::updateContents(const IntRect& updateRect, bool now)
     addToDirtyRegion(containingWindowRect);
 
     if (/*now && */containingWindow()) {
+#if PLATFORM(AMIGAOS4)
+        containingWindow()->expose = true;
+#else
         //updateView(containingWindow(), containingWindowRect);
         SDL_Event ev;
         ev.type = SDL_VIDEOEXPOSE;
         SDL_PushEvent(&ev);
+#endif
     }
 }
 
@@ -331,10 +379,14 @@ void ScrollView::update()
     //documentDirtyRect.move(scrollOffset().width(), scrollOffset().height());
     //printf("update documentDirtyRect x=%d y=%d w=%d h=%d\n", documentDirtyRect.x(), documentDirtyRect.y(), documentDirtyRect.width(), documentDirtyRect.height());
     addToDirtyRegion(documentDirtyRect);
+#if PLATFORM(AMIGAOS4)
+    containingWindow()->expose = true;
+#else
     //updateView(containingWindow(), frameGeometry());
     SDL_Event ev;
     ev.type = SDL_VIDEOEXPOSE;
     SDL_PushEvent(&ev);
+#endif
 }
 
 int ScrollView::visibleWidth() const

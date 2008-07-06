@@ -103,6 +103,10 @@
 #include "FileIO.h"
 #include DEEPSEE_INCLUDE
 
+#if PLATFORM(AMIGAOS4)
+#include <intuition/intuition.h>
+#endif
+
 using namespace WebCore;
 using namespace WebCore::EventNames;
 using KJS::JSLock;
@@ -801,7 +805,7 @@ const char* WebView::interpretKeyEvent(const KeyboardEvent* evt)
 
 bool WebView::handleEditingKeyboardEvent(KeyboardEvent* evt)
 {
-    Node* node = evt->target()->toNode();
+    WebCore::Node* node = evt->target()->toNode();
     ASSERT(node);
     Frame* frame = node->document()->frame();
     ASSERT(frame);
@@ -854,9 +858,10 @@ const String& WebView::userAgentForKURL(const KURL&)
     if (!m_userAgentStandard.length())
 #ifdef __OWBAL_PLATFORM_MACPORT__
         //We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
-        m_userAgentStandard =  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Blastoise";
+        m_userAgentStandard =  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Doduo";
 #elif PLATFORM(AMIGAOS4)
-        m_userAgentStandard =  "Mozilla/5.0 (AMIGA; U; AmigaOS4 ppc; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Blastoise";
+//        m_userAgentStandard =  "Mozilla/5.0 (AMIGA; U; AmigaOS4 ppc; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Doduo";
+        m_userAgentStandard = "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
 #else
         //NOTE: some pages don't render with this UA
         //m_userAgentStandard = "Mozilla/5.0 (iPod; U; CPU like Mac OS X; fr) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3";
@@ -1510,7 +1515,7 @@ Vector<IntRect> WebView::rectsForTextMatches()
     return allRects;
 }
 
-Image* WebView::generateSelectionImage(bool forceWhiteText)
+WebCore::Image* WebView::generateSelectionImage(bool forceWhiteText)
 {
     WebCore::Frame* frame = m_page->focusController()->focusedOrMainFrame();
 

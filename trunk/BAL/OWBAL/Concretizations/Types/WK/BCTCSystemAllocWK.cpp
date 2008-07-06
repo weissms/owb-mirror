@@ -43,7 +43,12 @@
 #else
 #include <errno.h>
 #include <unistd.h>
+#if PLATFORM(AMIGAOS4)
+#include <string.h>
+#include <malloc.h>
+#else
 #include <sys/mman.h>
+#endif
 #endif
 #include <fcntl.h>
 #include "Assertions.h"
@@ -340,6 +345,13 @@ void* TCMalloc_SystemAlloc(size_t size, size_t *actual_size, size_t alignment) {
   // Enforce minimum alignment
   if (alignment < sizeof(MemoryAligner)) alignment = sizeof(MemoryAligner);
 
+#if PLATFORM(AMIGAOS4)
+  void* result = memalign(alignment, size);
+  if (result) {
+      memset(result, 0, size);
+      return result;
+  }
+#else
   // Try twice, once avoiding allocators that failed before, and once
   // more trying all allocators even if they failed before.
   for (int i = 0; i < 2; i++) {
@@ -378,6 +390,7 @@ void* TCMalloc_SystemAlloc(size_t size, size_t *actual_size, size_t alignment) {
     mmap_failure = false;
     VirtualAlloc_failure = false;
   }
+#endif /* PLATFORM(AMIGAOS4) */
   return NULL;
 }
 

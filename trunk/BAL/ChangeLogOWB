@@ -1,3 +1,148 @@
+2008-07-06  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+	add AmigaOS4 SharedTimer
+	add AmigaOS4 BALType
+	add AmigaOS4 Events
+	disabled SDL Cursor on AmigaOS4
+	AmigaOS4 support in Platform.patch
+	SDL endian fixes for AmigaOS4 (required for Linux/PPC as well)
+	changes required to build it for AmigaOS4
+
+        * Base/AmigaOS4: Added.
+        * Base/AmigaOS4/BALTypeAmigaOS4.h: Added.
+        * Base/BALBase.h.in:
+        * OWBAL/Concretizations/Facilities/AmigaOS4: Added.
+        * OWBAL/Concretizations/Facilities/AmigaOS4/BCSharedTimerAmigaOS4.cpp: Added.
+        (OWBAL::asm):
+        (OWBAL::):
+        * OWBAL/Concretizations/Facilities/AmigaOS4/BCSharedTimerAmigaOS4.h: Added.
+        * OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h:
+        (TCMalloc_SlowLock):
+        * OWBAL/Concretizations/Types/WK/BCTCSystemAllocWK.cpp:
+        (TCMalloc_SystemAlloc):
+        * WKAL/Concretizations/Events/AmigaOS4: Added.
+        * WKAL/Concretizations/Events/AmigaOS4/BCEventHandlerAmigaOS4.cpp: Added.
+        (WebCore::EventHandler::tabsToAllControls):
+        (WebCore::EventHandler::focusDocumentView):
+        (WebCore::EventHandler::passWidgetMouseDownEventToWidget):
+        (WebCore::EventHandler::passMouseDownEventToWidget):
+        (WebCore::EventHandler::eventActivatedView):
+        (WebCore::EventHandler::passWheelEventToWidget):
+        (WebCore::EventHandler::createDraggingClipboard):
+        (WebCore::EventHandler::passMousePressEventToSubframe):
+        (WebCore::EventHandler::passMouseMoveEventToSubframe):
+        (WebCore::EventHandler::passMouseReleaseEventToSubframe):
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * WKAL/Concretizations/Events/AmigaOS4/BCEventLoopAmigaOS4.cpp: Added.
+        (WKAL::EventLoop::cycle):
+        * WKAL/Concretizations/Events/AmigaOS4/BCEventLoopAmigaOS4.h: Added.
+        (WKAL::EventLoop::EventLoop):
+        (WKAL::EventLoop::ended):
+        * WKAL/Concretizations/Events/AmigaOS4/BCKeyboardCodesAmigaOS4.h: Added.
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformKeyboardEventAmigaOS4.cpp: Added.
+        (WKAL::unicode_map_init):
+        (WKAL::local2unicode):
+        (WKAL::unicode_map_exit):
+        (WKAL::ConvertAmigaKeyToVirtualKey):
+        (WKAL::keyIdentifierForAmigaKeyCode):
+        (WKAL::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        (WKAL::PlatformKeyboardEvent::disambiguateKeyDownEvent):
+        (WKAL::PlatformKeyboardEvent::currentCapsLockState):
+        (WKAL::PlatformKeyboardEvent::balEventKey):
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformKeyboardEventAmigaOS4.h: Added.
+        (WKAL::PlatformKeyboardEvent::):
+        (WKAL::PlatformKeyboardEvent::type):
+        (WKAL::PlatformKeyboardEvent::text):
+        (WKAL::PlatformKeyboardEvent::unmodifiedText):
+        (WKAL::PlatformKeyboardEvent::windowsVirtualKeyCode):
+        (WKAL::PlatformKeyboardEvent::setWindowsVirtualKeyCode):
+        (WKAL::PlatformKeyboardEvent::keyIdentifier):
+        (WKAL::PlatformKeyboardEvent::isAutoRepeat):
+        (WKAL::PlatformKeyboardEvent::setIsAutoRepeat):
+        (WKAL::PlatformKeyboardEvent::isKeypad):
+        (WKAL::PlatformKeyboardEvent::shiftKey):
+        (WKAL::PlatformKeyboardEvent::ctrlKey):
+        (WKAL::PlatformKeyboardEvent::altKey):
+        (WKAL::PlatformKeyboardEvent::metaKey):
+        (WKAL::PlatformKeyboardEvent::modifiers):
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformMouseEventAmigaOS4.cpp: Added.
+        (WKAL::PlatformMouseEvent::PlatformMouseEvent):
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformMouseEventAmigaOS4.h: Added.
+        (WKAL::):
+        (WKAL::PlatformMouseEvent::PlatformMouseEvent):
+        (WKAL::PlatformMouseEvent::pos):
+        (WKAL::PlatformMouseEvent::x):
+        (WKAL::PlatformMouseEvent::y):
+        (WKAL::PlatformMouseEvent::globalX):
+        (WKAL::PlatformMouseEvent::globalY):
+        (WKAL::PlatformMouseEvent::button):
+        (WKAL::PlatformMouseEvent::eventType):
+        (WKAL::PlatformMouseEvent::clickCount):
+        (WKAL::PlatformMouseEvent::shiftKey):
+        (WKAL::PlatformMouseEvent::ctrlKey):
+        (WKAL::PlatformMouseEvent::altKey):
+        (WKAL::PlatformMouseEvent::metaKey):
+        (WKAL::PlatformMouseEvent::modifierFlags):
+        (WKAL::PlatformMouseEvent::timestamp):
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformWheelEventAmigaOS4.cpp: Added.
+        (WKAL::PlatformWheelEvent::PlatformWheelEvent):
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformWheelEventAmigaOS4.h: Added.
+        (WKAL::PlatformWheelEvent::pos):
+        (WKAL::PlatformWheelEvent::globalPos):
+        (WKAL::PlatformWheelEvent::deltaX):
+        (WKAL::PlatformWheelEvent::deltaY):
+        (WKAL::PlatformWheelEvent::isAccepted):
+        (WKAL::PlatformWheelEvent::shiftKey):
+        (WKAL::PlatformWheelEvent::ctrlKey):
+        (WKAL::PlatformWheelEvent::altKey):
+        (WKAL::PlatformWheelEvent::metaKey):
+        (WKAL::PlatformWheelEvent::x):
+        (WKAL::PlatformWheelEvent::y):
+        (WKAL::PlatformWheelEvent::globalX):
+        (WKAL::PlatformWheelEvent::globalY):
+        (WKAL::PlatformWheelEvent::accept):
+        (WKAL::PlatformWheelEvent::ignore):
+        (WKAL::PlatformWheelEvent::isContinuous):
+        (WKAL::PlatformWheelEvent::continuousDeltaX):
+        (WKAL::PlatformWheelEvent::continuousDeltaY):
+        * WKAL/Concretizations/Fonts/Freetype/BCFontFreetype.cpp:
+        (WKAL::applyTransparency):
+        (WKAL::Font::drawGlyphs):
+        * WKAL/Concretizations/Fonts/WK/BCGlyphPageTreeNodeWK.cpp:
+        (WKAL::GlyphPageTreeNode::initializePage):
+        * WKAL/Concretizations/Graphics/SDL/BCImageSDL.cpp:
+        (WKAL::applyTransparency):
+        * WKAL/Concretizations/Graphics/SDL/BCImageSourceSDL.cpp:
+        (WKAL::ImageSource::createFrameAtIndex):
+        * WKAL/Concretizations/Widgets/SDL/BCCursorSDL.cpp:
+        (WKAL::Cursor::Cursor):
+        (WKAL::crossCursor):
+        (WKAL::waitCursor):
+        (WKAL::helpCursor):
+        (WKAL::eastResizeCursor):
+        (WKAL::northResizeCursor):
+        (WKAL::northEastResizeCursor):
+        (WKAL::northWestResizeCursor):
+        (WKAL::southResizeCursor):
+        (WKAL::southEastResizeCursor):
+        (WKAL::southWestResizeCursor):
+        (WKAL::westResizeCursor):
+        (WKAL::northSouthResizeCursor):
+        (WKAL::eastWestResizeCursor):
+        (WKAL::northEastSouthWestResizeCursor):
+        (WKAL::northWestSouthEastResizeCursor):
+        (WKAL::columnResizeCursor):
+        (WKAL::rowResizeCursor):
+        * WKAL/Concretizations/Widgets/SDL/BCPlatformScreenSDL.cpp:
+        (WKAL::screenDepth):
+        (WKAL::screenRect):
+        * WKAL/Concretizations/Widgets/SDL/BCScrollViewSDL.cpp:
+        (WKAL::updateView):
+        (WKAL::ScrollView::updateContents):
+        (WKAL::ScrollView::update):
+        * scripts/patches/Platform.patch:
+
 2008-07-04  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi

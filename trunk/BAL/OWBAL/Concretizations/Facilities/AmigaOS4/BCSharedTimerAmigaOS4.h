@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2008 Joerg Strohmayer
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +27,26 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BALBase_h
-#define BALBase_h
+#ifndef SharedTimer_h
+#define SharedTimer_h
 
-#include DEEPSEE_INCLUDE
-#include "Platform.h"
+#include "wtf/Platform.h"
 
-//#undef NotImplemented()
-#define NotImplemented() DS_WAR("Not Implemented");
-#define BalNotImplemented() DS_WAR("Not Implemented");
+namespace OWBAL {
 
-#if PLATFORM(AMIGAOS4)
-#include "AmigaOS4/BALTypeAmigaOS4.h"
-#endif
+    // Single timer, shared to implement all the timers managed by the Timer class.
+    // Not intended to be used directly; use the Timer class instead.
 
-#if PLATFORM(SDL)
-#include "SDL/BALTypeSDL.h"
-#endif
+    void setSharedTimerFiredFunction(void (*)());
 
-#if PLATFORM(GTK)
-#include "Gtk/BALTypeGtk.h"
-#endif
+    // The fire time is relative to the classic POSIX epoch of January 1, 1970,
+    // as the result of currentTime() is.
 
-#if PLATFORM(@CUSTOMER@)
-#include "@PLATFORM_CUSTOMER_INCLUDE@"
-#endif
+    void setSharedTimerFireTime(double fireTime);
+    void stopSharedTimer();
 
-class BALBase {
-};
+    void fireTimerIfNeeded();
 
-class WKALBase : public BALBase {
-};
-
-class OWBALBase : public BALBase {
-};
+}
 
 #endif

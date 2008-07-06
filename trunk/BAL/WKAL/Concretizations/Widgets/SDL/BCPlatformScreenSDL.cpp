@@ -38,7 +38,12 @@ namespace WKAL {
 int screenDepth(Widget* widget)
 {
     ASSERT(widget->containingWindow());
+#if PLATFORM(AMIGAOS4)
+    SDL_Surface *surface = widget->containingWindow()->surface;
+    return surface ? surface->format->BitsPerPixel : 32;
+#else
     return widget->containingWindow()->format->BitsPerPixel;
+#endif
 }
 
 int screenDepthPerComponent(Widget*)
@@ -55,7 +60,11 @@ bool screenIsMonochrome(Widget* widget)
 FloatRect screenRect(Widget* widget)
 {
     ASSERT(widget->containingWindow());
+#if PLATFORM(AMIGAOS4)
+    SDL_Rect sdlRect = widget->containingWindow()->surface->clip_rect;
+#else
     SDL_Rect sdlRect = widget->containingWindow()->clip_rect;
+#endif
     return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
 }
 

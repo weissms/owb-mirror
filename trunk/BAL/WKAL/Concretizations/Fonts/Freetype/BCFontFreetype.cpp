@@ -42,6 +42,9 @@ namespace WKAL {
 #define IS_HIGH_SURROGATE(u)  ((UChar)(u) >= (UChar)0xd800 && (UChar)(u) <= (UChar)0xdbff)
 #define IS_LOW_SURROGATE(u)  ((UChar)(u) >= (UChar)0xdc00 && (UChar)(u) <= (UChar)0xdfff)
 
+#if PLATFORM(AMIGAOS4)
+static
+#endif
 SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel)
 {
      // blend is not very optimized for now, to say the least
@@ -49,7 +52,7 @@ SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel)
     Uint32 rmask, gmask, bmask, amask;
     /* SDL interprets each pixel as a 32-bit number, so our masks must depend
     on the endianness (byte order) of the machine */
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
     bmask = 0x0000ff00;
@@ -217,7 +220,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     Uint32 rmask, gmask, bmask, amask;
 
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
     bmask = 0x0000ff00;

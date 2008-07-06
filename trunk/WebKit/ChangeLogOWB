@@ -1,3 +1,36 @@
+2008-07-06  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+	add AmigaOS4 WebViewPrivate
+
+        * OrigynWebBrowser/Api/AmigaOS4: Added.
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp: Added.
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::onKeyDown):
+        (WebViewPrivate::onKeyUp):
+        (WebViewPrivate::onMouseMotion):
+        (WebViewPrivate::onMouseButtonDown):
+        (WebViewPrivate::onMouseButtonUp):
+        (WebViewPrivate::onScroll):
+        (WebViewPrivate::onResize):
+        (WebViewPrivate::onQuit):
+        (WebViewPrivate::onUserEvent):
+        (WebViewPrivate::popupMenuHide):
+        (WebViewPrivate::popupMenuShow):
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.h: Added.
+        (WebViewPrivate::isInitialized):
+        (WebViewPrivate::~WebViewPrivate):
+        (WebViewPrivate::show):
+        (WebViewPrivate::hide):
+        (WebViewPrivate::setFrameRect):
+        (WebViewPrivate::frameRect):
+        (WebViewPrivate::createWindow):
+        (WebViewPrivate::initWithFrameView):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::handleEditingKeyboardEvent):
+        (WebView::userAgentForKURL):
+        (WebView::generateSelectionImage):
+
 2008-07-04  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

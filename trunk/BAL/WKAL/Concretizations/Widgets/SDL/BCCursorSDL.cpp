@@ -45,11 +45,13 @@ namespace WKAL {
 Cursor::Cursor(const Cursor& other)
     : m_impl(other.m_impl)
 {
+#if !PLATFORM(AMIGAOS4)
     if (m_impl) {
         if (SDL_GetCursor() != m_impl)
             SDL_SetCursor(m_impl);
     } else
         SDL_SetCursor(NULL);
+#endif
 }
 
 Cursor::Cursor(Image*, const IntPoint&)
@@ -89,7 +91,9 @@ Cursor::Cursor(char* xpmCursor[])
         }
     }
     sscanf(xpmCursor[4+row], "%d,%d", &hot_x, &hot_y);
+#if !PLATFORM(AMIGAOS4)
     m_impl = SDL_CreateCursor(data, mask, width, height, hot_x, hot_y);
+#endif
 }
 
 
@@ -109,7 +113,9 @@ Cursor::Cursor(PlatformCursor c)
 {
     m_impl = c;
     ASSERT(c);
+#if !PLATFORM(AMIGAOS4)
     SDL_SetCursor(c);
+#endif
 }
 
 const Cursor& pointerCursor()
@@ -121,7 +127,11 @@ const Cursor& pointerCursor()
 const Cursor& crossCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
@@ -146,111 +156,175 @@ const Cursor& iBeamCursor()
 const Cursor& waitCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& helpCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& eastResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& northResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& northEastResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& northWestResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& southResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& southEastResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& southWestResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& westResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& northSouthResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& eastWestResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& northEastSouthWestResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& northWestSouthEastResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 const Cursor& columnResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 
 const Cursor& rowResizeCursor()
 {
     BalNotImplemented();
+#if PLATFORM(AMIGAOS4)
+    static Cursor c(m_pointerCursor);
+#else
     static Cursor c = static_cast<const Cursor&> (SDL_GetCursor());
+#endif
     return c;
 }
 

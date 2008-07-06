@@ -1,3 +1,15 @@
+2008-07-06  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+	add AmigaOS4 OWBLauncher
+
+        * OWBLauncher/AmigaOS4: Added.
+        * OWBLauncher/AmigaOS4/main.cpp: Added.
+        (createAmigaWindow):
+        (closeAmigaWindow):
+        (waitEvent):
+        (main):
+
 2008-06-20  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier Dole.

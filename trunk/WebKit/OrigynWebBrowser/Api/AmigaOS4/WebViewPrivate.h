@@ -25,40 +25,74 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef WebViewPrivate_H
+#define WebViewPrivate_H
 
-#ifndef BALBase_h
-#define BALBase_h
-
+#include "WebView.h"
+#include "IntRect.h"
+#include "FrameView.h"
+#include "Frame.h"
+#include "BALBase.h"
+#include "SDL.h"
 #include DEEPSEE_INCLUDE
-#include "Platform.h"
 
-//#undef NotImplemented()
-#define NotImplemented() DS_WAR("Not Implemented");
-#define BalNotImplemented() DS_WAR("Not Implemented");
+class WebViewPrivate {
+public:
+    WebViewPrivate(WebView *webView):m_webView(webView), isInitialized(false) {DS_CONSTRUCT();}
+    ~WebViewPrivate() 
+    {
+        DS_DESTRUCT();
+    }
 
-#if PLATFORM(AMIGAOS4)
-#include "AmigaOS4/BALTypeAmigaOS4.h"
-#endif
+    void show()
+    {
+    }
+    
+    void hide()
+    {
+    }
 
-#if PLATFORM(SDL)
-#include "SDL/BALTypeSDL.h"
-#endif
+    void setFrameRect(WebCore::IntRect r)
+    {
+        m_rect = r;
+    }
 
-#if PLATFORM(GTK)
-#include "Gtk/BALTypeGtk.h"
-#endif
+    WebCore::IntRect frameRect()
+    { 
+        return m_rect; 
+    }
+    
+    BalWidget *createWindow(int x, int y, int width, int height)
+    {
+        WebCore::IntRect rect(x, y, width, height);
+        if(rect != m_rect)
+            m_rect = rect;
+    
 
-#if PLATFORM(@CUSTOMER@)
-#include "@PLATFORM_CUSTOMER_INCLUDE@"
-#endif
+        return 0;
+    }
 
-class BALBase {
+    void initWithFrameView(WebCore::FrameView *frameView)
+    {
+    }
+
+    void onExpose(BalEventExpose event);
+    void onKeyDown(BalEventKey event);
+    void onKeyUp(BalEventKey event);
+    void onMouseMotion(BalEventMotion event);
+    void onMouseButtonDown(BalEventButton event);
+    void onMouseButtonUp(BalEventButton event);
+    void onScroll(BalEventScroll event);
+    void onResize(BalResizeEvent event);
+    void onQuit(BalQuitEvent);
+    void onUserEvent(BalUserEvent);
+    void popupMenuHide();
+    void popupMenuShow(void *popupInfo);
+private:
+    WebCore::IntRect m_rect;
+    WebView *m_webView;
+    bool isInitialized;
 };
 
-class WKALBase : public BALBase {
-};
-
-class OWBALBase : public BALBase {
-};
 
 #endif
