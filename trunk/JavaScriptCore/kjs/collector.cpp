@@ -71,6 +71,11 @@
 #include <pthread.h>
 #endif
 
+#elif PLATFORM(AMIGAOS4)
+
+#include <malloc.h>
+#include <proto/exec.h>
+
 #endif
 
 #define DEBUG_COLLECTOR 0
@@ -127,6 +132,10 @@ static NEVER_INLINE CollectorBlock* allocateBlock()
     void* address;
     posix_memalign(&address, BLOCK_SIZE, BLOCK_SIZE);
     memset(address, 0, BLOCK_SIZE);
+#elif PLATFORM(AMIGAOS4)
+    void* address;
+    address = memalign(BLOCK_SIZE, BLOCK_SIZE);
+    memset(address, 0, BLOCK_SIZE);
 #else
 
 #if USE(MULTIPLE_THREADS)
@@ -164,7 +173,7 @@ static void freeBlock(CollectorBlock* block)
     vm_deallocate(current_task(), reinterpret_cast<vm_address_t>(block), BLOCK_SIZE);
 #elif PLATFORM(WIN_OS)
     VirtualFree(block, BLOCK_SIZE, MEM_RELEASE);
-#elif HAVE(POSIX_MEMALIGN)
+#elif HAVE(POSIX_MEMALIGN) || PLATFORM(AMIGAOS4)
     free(block);
 #else
     munmap(reinterpret_cast<char*>(block), BLOCK_SIZE);
@@ -390,6 +399,8 @@ static inline void* currentThreadStackBase()
         stackThread = thread;
     }
     return static_cast<char*>(stackBase) + stackSize;
+#elif PLATFORM(AMIGAOS4)
+    return (void*)IExec->FindTask(NULL)->tc_SPUpper;
 #else
 #error Need a way to get the stack base on this platform
 #endif

@@ -38,6 +38,8 @@ RegisterFile::~RegisterFile()
 #elif HAVE(VIRTUALALLOC)
     // FIXME: Use VirtualFree.
     fastFree(m_buffer);
+#elif PLATFORM(AMIGAOS4)
+    fastFree(m_buffer);
 #else
     #error "Don't know how to release virtual memory on this platform."
 #endif

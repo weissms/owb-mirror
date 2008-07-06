@@ -125,6 +125,8 @@ namespace KJS {
             // FIXME: Use VirtualAlloc, and commit pages as we go.
             m_buffer = static_cast<Register*>(fastMalloc(bufferLength));
             ASSERT(m_buffer);
+#elif PLATFORM(AMIGAOS4)
+            m_buffer = static_cast<Register*>(fastMalloc(bufferLength));
 #else
             #error "Don't know how to reserve virtual memory on this platform."
 #endif

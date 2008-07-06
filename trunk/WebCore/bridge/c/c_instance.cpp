@@ -181,7 +181,11 @@ void CInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray)
     
     {
         JSLock::DropAllLocks dropAllLocks(false);
+#if PLATFORM(AMIGAOS4)
+        if (!_object->_class->enumerate(_object, &identifiers, (uint32_t *)&count))
+#else 
         if (!_object->_class->enumerate(_object, &identifiers, &count))
+#endif
             return;
     }
     
