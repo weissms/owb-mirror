@@ -153,17 +153,6 @@ class String;
     Vector<String> listDirectory(const String& path, const String& filter = String());
 
     /**
-     * test if the handle is valid description
-     * @param[in] : a reference to a handle.
-     * @param[out] : status
-     * @code
-     * @endcode
-     */
-     inline bool isHandleValid(const PlatformFileHandle& handle) ;
-    
-   
-
-    /**
      * Get the filesystem representation.
      * @param[in] : a string.
      * @param[out] : a string describing the filesystem representation.
@@ -171,6 +160,15 @@ class String;
      * @endcode
      */
     CString fileSystemRepresentation(const String&);
+
+    /**
+     * test if the handle is valid description
+     * @param[in] : a reference to a handle.
+     * @param[out] : status
+     * @code
+     * @endcode
+     */
+     inline bool isHandleValid(const PlatformFileHandle& handle) ;
 
     /**
      * close file 

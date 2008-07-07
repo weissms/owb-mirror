@@ -452,7 +452,7 @@ for line in f:
                                 text = fileString[pr:fin+1]
                                 #add the new method in oldFile
                                 #posp = oldFile.find(oldMethod[i-1])
-                                pos = oldFile.find(oldMethod[i-1])
+                                pos = oldFile.find(oldMethod[i])
                                 #if oldFile.find('public:', posp, pos) != -1 or oldFile.find('private:', posp, pos) != -1 or oldFile.find('protected:', posp, pos) != -1 :
                                     #pos = posp
                                 p = oldFile.rfind(';', 0, pos)

@@ -139,22 +139,14 @@ public:
     static FontPlatformData* getLastResortFallbackFont(const FontDescription&);
 
     /**
-     * invalidate
+     * add client
+     * @param[in] : FontSelector
      * @code
-     * FontCache::invalidate();
+     * FontCache::addClient(fs);
      * @endcode
      */
-    static void invalidate();
-    
-    /**
-     * get generation
-     * @param[out] : generation
-     * @code
-     * unsigned g = FontCache::generation();
-     * @endcode
-     */
-    static unsigned generation();
-    
+    static void addClient(FontSelector*);
+
     /**
      * remove client
      * @param[in] : FontSelector
@@ -163,16 +155,23 @@ public:
      * @endcode
      */
     static void removeClient(FontSelector*);
-    
+
     /**
-     * add client
-     * @param[in] : FontSelector
+     * get generation
+     * @param[out] : generation
      * @code
-     * FontCache::addClient(fs);
+     * unsigned g = FontCache::generation();
      * @endcode
      */
-    static void addClient(FontSelector*);
-    
+    static unsigned generation();
+
+    /**
+     * invalidate
+     * @code
+     * FontCache::invalidate();
+     * @endcode
+     */
+    static void invalidate();
 
     /**
      * get fontData count 
@@ -229,4 +228,4 @@ private:
 
 }
 
-#endi
+#endif
