@@ -94,6 +94,7 @@
 #include <TypingCommand.h>
 
 #include <collector.h>
+#include <JSCell.h>
 #include <JSValue.h>
 #include <JSLock.h>
 #include <wtf/HashSet.h>
@@ -1286,7 +1287,7 @@ String WebView::stringByEvaluatingJavaScriptFromString(String script)
     if (!coreFrame)
         return String();
 
-    KJS::JSValue* scriptExecutionResult = coreFrame->loader()->executeScript(script, false);
+    KJS::JSCell* scriptExecutionResult = static_cast<KJS::JSCell*> (coreFrame->loader()->executeScript(script, false));
     if(!scriptExecutionResult)
         return String();
     else if (scriptExecutionResult->isString()) {

@@ -73,7 +73,6 @@ ADD_EXECUTABLE (runWkalTests runWkalTests.cpp)
 TARGET_LINK_LIBRARIES (runWkalTests
     wkaltests
     generated-sources
-    webkit
     webcore-owb
     jscore
     bal-events

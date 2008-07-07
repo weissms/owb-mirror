@@ -20,7 +20,6 @@ LIST (APPEND BRIDGE_SRC
     TARGET_LINK_LIBRARIES (testbalbindings
         jscore
         generated-sources
-        webkit
         webcore-owb
         bal-events
         bal-facilities

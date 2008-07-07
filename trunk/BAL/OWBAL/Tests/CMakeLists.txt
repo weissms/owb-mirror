@@ -79,7 +79,6 @@ ADD_EXECUTABLE (runOwbalTests runOwbalTests.cpp)
 TARGET_LINK_LIBRARIES (runOwbalTests
     owbaltests
     generated-sources
-    webkit
     webcore-owb
     jscore
     bal-events

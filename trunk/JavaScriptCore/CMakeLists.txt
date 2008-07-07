@@ -76,7 +76,6 @@ IF (COMPILE_TESTS)
 
    TARGET_LINK_LIBRARIES (jsc
         generated-sources
-        webkit
         webcore-owb
         bal-events
         bal-facilities
