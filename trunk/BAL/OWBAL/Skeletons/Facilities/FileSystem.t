@@ -170,15 +170,6 @@ class String;
      */
      inline bool isHandleValid(const PlatformFileHandle& handle) ;
 
-    /**
-     * close file 
-     * @param[in] : a reference to a handle.
-     * @code
-     * @endcode
-     */
-     void closeFile(PlatformFileHandle&);
-    
-
     // Prefix is what the filename should be prefixed with, not the full path.
     /**
      * Create a temporary file.
@@ -189,6 +180,14 @@ class String;
      * @endcode
      */
     CString openTemporaryFile(const char* prefix, PlatformFileHandle&);
+
+    /**
+     * close file 
+     * @param[in] : a reference to a handle.
+     * @code
+     * @endcode
+     */
+     void closeFile(PlatformFileHandle&);
 
     /**
      * Write some data to a file.
