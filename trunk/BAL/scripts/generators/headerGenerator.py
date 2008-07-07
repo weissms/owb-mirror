@@ -401,73 +401,93 @@ for line in f:
             i = 0
             nextFound = 0
             for m in genMethod :
-                if m != oldMethod[i] :
-                    for n in oldMethod :
-                        if m == n :
-                            nextFound = 1
-                            break
-                    if nextFound == 0 :
-                        print "remove " + m
-                        #get name
-                        u = m.find('(')
-                        genName = m[m.rfind(' ', 0, u):u]
-                        u = oldMethod[i].find('(')
-                        oldName = oldMethod[i][oldMethod[i].rfind(' ', 0, u):u]
-                        if genName == oldName :
-                            #replace the method
-                            pos = fileString.find(m)
-                            p = fileString.rfind('*/', 0, pos)
-                            pr = fileString.find('\n', p)
-                            fin = fileString.find(';', pos)
-                            text = fileString[pr:fin+1].strip()
-                            oldFile = oldFile.replace(oldMethod[i].strip(), text);
-                            i += 1
-                        else :
-                            #add new method
-                            pos = fileString.find(m)
-                            p = fileString.rfind('/**', 0, pos)
-                            pr = fileString.rfind('\n', 0, p)
-                            fin = fileString.find(';', pos)
-                            text = fileString[pr:fin+1]
-                            #add the new method in oldFile
-                            #posp = oldFile.find(oldMethod[i-1])
-                            pos = oldFile.find(oldMethod[i-1])
-                            #if oldFile.find('public:', posp, pos) != -1 or oldFile.find('private:', posp, pos) != -1 or oldFile.find('protected:', posp, pos) != -1 :
-                                #pos = posp
-                            p = oldFile.rfind(';', 0, pos)
-                            test = oldFile[oldFile.rfind('\n', 0, p):p]
-                            while test.strip()[0] == '*' :
-                                p = oldFile.find(';', p+1)
-                                test = oldFile[oldFile.rfind('\n', 0, p):p]
-                            #pr = oldFile.rfind('\n', 0, p)
-                            out = oldFile[0:p+1]
-                            out += text + '\n    '
-                            out += oldFile[p+1:-1]
-                            oldFile = out
-                    else :
-                        print "remove " + m
-                        #get name
-                        u = m.find('(')
-                        genName = m[m.rfind(' ', 0, u):u]
-                        u = oldMethod[i].find('(')
-                        oldName = oldMethod[i][oldMethod[i].rfind(' ', 0, u):u]
-                        #method supprime
-                        pos = oldFile.find(oldMethod[i])
-                        p = oldFile.rfind('/**', 0, pos)
-                        pr = oldFile.rfind('\n', 0, p)
-                        fin = oldFile.find(';', pos)
-                        test = oldFile[oldFile.rfind('\n', 0, fin):fin]
-                        while test.strip()[0] == '*' :
-                            fin = oldFile.find(';', fin+1)
-                            test = oldFile[oldFile.rfind('\n', 0, fin):fin]
-                        out = oldFile[0:p-7]
-                        out += oldFile[fin+1:-1]
-                        #print out
-                        oldFile = out
-                        nextFound = 0
-                        i += 2
+                if i >= len(oldMethod) :
+                    pos = fileString.find(m)
+                    p = fileString.rfind('/**', 0, pos)
+                    pr = fileString.rfind('\n', 0, p)
+                    fin = fileString.find(';', pos)
+                    text = fileString[pr:fin+1]
+                    #add the new method in oldFile
+                    #posp = oldFile.find(oldMethod[i-1])
+                    pos = oldFile.find(oldMethod[len(oldMethod) - 1])
+                    #if oldFile.find('public:', posp, pos) != -1 or oldFile.find('private:', posp, pos) != -1 or oldFile.find('protected:', posp, pos) != -1 :
+                        #pos = posp
+                    p = oldFile.rfind(';', 0, pos)
+                    test = oldFile[oldFile.rfind('\n', 0, p):p]
+                    while test.strip()[0] == '*' :
+                        p = oldFile.find(';', p+1)
+                        test = oldFile[oldFile.rfind('\n', 0, p):p]
+                    #pr = oldFile.rfind('\n', 0, p)
+                    out = oldFile[0:p+1]
+                    out += text + '\n    '
+                    out += oldFile[p+1:-1]
+                    oldFile = out
                 else :
-                    i += 1
+                    if m.strip() != oldMethod[i].strip() :
+                        for n in oldMethod :
+                            if m.strip() == n.strip() :
+                                nextFound = 1
+                                break
+                        if nextFound == 0 :
+                            #get name
+                            u = m.find('(')
+                            genName = m[m.rfind(' ', 0, u):u]
+                            u = oldMethod[i].find('(')
+                            oldName = oldMethod[i][oldMethod[i].rfind(' ', 0, u):u]
+                            if genName == oldName :
+                                #replace the method
+                                pos = fileString.find(m)
+                                p = fileString.rfind('*/', 0, pos)
+                                pr = fileString.find('\n', p)
+                                fin = fileString.find(';', pos)
+                                text = fileString[pr:fin+1].strip()
+                                oldFile = oldFile.replace(oldMethod[i].strip(), text);
+                                i += 1
+                            else :
+                                #add new method
+                                pos = fileString.find(m)
+                                p = fileString.rfind('/**', 0, pos)
+                                pr = fileString.rfind('\n', 0, p)
+                                fin = fileString.find(';', pos)
+                                text = fileString[pr:fin+1]
+                                #add the new method in oldFile
+                                #posp = oldFile.find(oldMethod[i-1])
+                                pos = oldFile.find(oldMethod[i-1])
+                                #if oldFile.find('public:', posp, pos) != -1 or oldFile.find('private:', posp, pos) != -1 or oldFile.find('protected:', posp, pos) != -1 :
+                                    #pos = posp
+                                p = oldFile.rfind(';', 0, pos)
+                                test = oldFile[oldFile.rfind('\n', 0, p):p]
+                                while test.strip()[0] == '*' :
+                                    p = oldFile.find(';', p+1)
+                                    test = oldFile[oldFile.rfind('\n', 0, p):p]
+                                #pr = oldFile.rfind('\n', 0, p)
+                                out = oldFile[0:p+1]
+                                out += text + '\n    '
+                                out += oldFile[p+1:-1]
+                                oldFile = out
+                        else :
+                            #get name
+                            u = m.find('(')
+                            genName = m[m.rfind(' ', 0, u):u]
+                            u = oldMethod[i].find('(')
+                            oldName = oldMethod[i][oldMethod[i].rfind(' ', 0, u):u]
+                            #method supprime
+                            pos = oldFile.find(oldMethod[i])
+                            p = oldFile.rfind('/**', 0, pos)
+                            pr = oldFile.rfind('\n', 0, p)
+                            fin = oldFile.find(';', pos)
+                            test = oldFile[oldFile.rfind('\n', 0, fin):fin]
+                            while test.strip()[0] == '*' :
+                                fin = oldFile.find(';', fin+1)
+                                test = oldFile[oldFile.rfind('\n', 0, fin):fin]
+                            out = oldFile[0:p-7]
+                            out += oldFile[fin+1:-1]
+                            #print out
+                            oldFile = out
+                            nextFound = 0
+                            i += 2
+                    else :
+                        i += 1
             fileOutread.close()
             fileOut = open(interfaceList[0] + '/' + fileList[len(fileList)-1].replace('.h', '.t').replace('\n', '').replace('Gtk', 'Bal').replace('Cairo', 'Bal').replace('GStreamer', 'Bal') , 'w')
             fileOut.write(oldFile)

@@ -323,7 +323,9 @@ cairo_surface_t* HTMLCanvasElement::createPlatformImage() const
 
 BalSurface * HTMLCanvasElement::createPlatformImage() const
 {
-    return 0;
+    if (!m_imageBuffer)
+        return 0;
+    return m_imageBuffer->surface();
 }
 #endif
 

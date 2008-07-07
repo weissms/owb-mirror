@@ -117,6 +117,14 @@ class String;
     bool makeAllDirectories(const String& path);
 
     /**
+     * Retrieve the user home directory.
+     * @param[out] : a string representing the user home directory.
+     * @code
+     * @endcode
+     */
+    String homeDirectoryPath();
+
+    /**
      * Get the basename.
      * @param[in] : a reference to a String
      * @param[out] : a string representing the basename 
@@ -124,15 +132,6 @@ class String;
      * @endcode
      */
     String pathGetFileName(const String&);
-    
-
-    /**
-     * Retrieve the user home directory.
-     * @param[out] : a string representing the user home directory.
-     * @code
-     * @endcode
-     */
-    String homeDirectoryPath();
 
     /**
      * Get the dirname.
@@ -152,6 +151,16 @@ class String;
      * @endcode
      */
     Vector<String> listDirectory(const String& path, const String& filter = String());
+
+    /**
+     * test if the handle is valid description
+     * @param[in] : a reference to a handle.
+     * @param[out] : status
+     * @code
+     * @endcode
+     */
+     inline bool isHandleValid(const PlatformFileHandle& handle) ;
+    
    
 
     /**
@@ -162,6 +171,15 @@ class String;
      * @endcode
      */
     CString fileSystemRepresentation(const String&);
+
+    /**
+     * close file 
+     * @param[in] : a reference to a handle.
+     * @code
+     * @endcode
+     */
+     void closeFile(PlatformFileHandle&);
+    
 
     // Prefix is what the filename should be prefixed with, not the full path.
     /**
@@ -198,4 +216,4 @@ class String;
 
 } // namespace OWBAL
 
-#endif // F
+#endif // 

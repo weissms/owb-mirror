@@ -121,6 +121,15 @@ public:
      * @endcode
      */
     FontSelector* fontSelector() const ;
+    /**
+     * get generation
+     * @param[out] : generation
+     * @code
+     * unsigned g = fs->generation();
+     * @endcode
+     */
+    unsigned generation() const ;
+    
 
 private:
     /**
@@ -188,7 +197,6 @@ private:
 };
 
 }
-
 
 
 

@@ -65,12 +65,20 @@ public:
      * @endcode
      */
     virtual FontData* getFontData(const FontDescription&, const AtomicString& familyName) = 0;
+
+    /**
+     * fontCachei Invalidated 
+     * @code
+     * fs->fontCacheInvalidated();
+     * @endcode
+     */
+    virtual void fontCacheInvalidated() ;
+    
 };
 
 } // namespace WKAL
 
 #endif // FontSelector_h
-
 
 
 

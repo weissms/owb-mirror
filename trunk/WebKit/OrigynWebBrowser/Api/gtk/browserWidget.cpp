@@ -285,11 +285,9 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
         return true;
     case GDK_F1:
         webView_s->goBack();
-        view->update();
         return true;
     case GDK_F2:
         webView_s->goForward();
-        view->update();
         return true;
     case GDK_F3:
         if (webView_s->canZoomPageIn()) {
