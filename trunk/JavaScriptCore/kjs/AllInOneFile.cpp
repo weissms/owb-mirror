@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006 Apple Inc. All rights reserved.
+ *  Copyright (C) 2006, 2008 Apple Inc. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -27,6 +27,11 @@
 #include "config.h"
 
 #include "JSFunction.cpp"
+#include "IndexToNameMap.cpp"
+#include "Arguments.cpp"
+#include "JSGlobalObjectFunctions.cpp"
+#include "PrototypeFunction.cpp"
+#include "GlobalEvalFunction.cpp"
 #include "debugger.cpp"
 #include "JSArray.cpp"
 #include "ArrayConstructor.cpp"
@@ -61,7 +66,7 @@
 #include "JSLock.cpp"
 #include "JSWrapperObject.cpp"
 #include "lexer.cpp"
-#include "list.cpp"
+#include "ArgList.cpp"
 #include "lookup.cpp"
 #include "MathObject.cpp"
 #include "NativeErrorConstructor.cpp"
@@ -72,6 +77,7 @@
 #include "nodes.cpp"
 #include "nodes2string.cpp"
 #include "JSObject.cpp"
+#include "Error.cpp"
 #include "JSGlobalObject.cpp"
 #include "ObjectConstructor.cpp"
 #include "ObjectPrototype.cpp"

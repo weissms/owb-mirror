@@ -2,6 +2,8 @@
 LIST (APPEND JSCORE_SRC
 #    kjs/AllInOneFile.cpp
 #    kjs/CollectorHeapIntrospector.cpp
+    kjs/ArgList.cpp
+    kjs/Arguments.cpp
     kjs/ArrayConstructor.cpp
     kjs/ArrayPrototype.cpp
     kjs/BooleanConstructor.cpp
@@ -13,6 +15,7 @@ LIST (APPEND JSCORE_SRC
     kjs/DateMath.cpp
     kjs/DatePrototype.cpp
     kjs/DebuggerCallFrame.cpp
+    kjs/Error.cpp
     kjs/ErrorConstructor.cpp
     kjs/ErrorInstance.cpp
     kjs/ErrorPrototype.cpp
@@ -20,6 +23,8 @@ LIST (APPEND JSCORE_SRC
     kjs/FunctionConstructor.cpp
     kjs/FunctionPrototype.cpp
     kjs/GetterSetter.cpp
+    kjs/GlobalEvalFunction.cpp
+    kjs/IndexToNameMap.cpp
     kjs/InitializeThreading.cpp
     kjs/InternalFunction.cpp
     kjs/JSActivation.cpp
@@ -28,6 +33,7 @@ LIST (APPEND JSCORE_SRC
     kjs/JSFunction.cpp
     kjs/JSGlobalData.cpp
     kjs/JSGlobalObject.cpp
+    kjs/JSGlobalObjectFunctions.cpp
     kjs/JSImmediate.cpp
     kjs/JSLock.cpp
     kjs/JSNotAnObject.cpp
@@ -50,6 +56,7 @@ LIST (APPEND JSCORE_SRC
     kjs/PropertyMap.cpp
     kjs/PropertyNameArray.cpp
     kjs/PropertySlot.cpp
+    kjs/PrototypeFunction.cpp
     kjs/RegExpConstructor.cpp
     kjs/RegExpObject.cpp
     kjs/RegExpPrototype.cpp
@@ -63,7 +70,6 @@ LIST (APPEND JSCORE_SRC
     kjs/identifier.cpp
     kjs/interpreter.cpp
     kjs/lexer.cpp
-    kjs/list.cpp
     kjs/lookup.cpp
     kjs/nodes.cpp
     kjs/nodes2string.cpp

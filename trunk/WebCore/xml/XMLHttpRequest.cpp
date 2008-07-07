@@ -42,6 +42,7 @@
 #include "XMLHttpRequestProgressEvent.h"
 #include "markup.h"
 #include <kjs/JSLock.h>
+#include <kjs/protect.h>
 
 namespace WebCore {
 
@@ -554,7 +555,7 @@ void XMLHttpRequest::makeSimpleCrossSiteAccessRequest(ExceptionCode& ec)
  
     ResourceRequest request(url);
     request.setHTTPMethod(m_method);
-    request.setHTTPHeaderField("Access-Control-Origin", accessControlOrigin());
+    request.setHTTPHeaderField("Origin", accessControlOrigin());
 
     if (m_crossSiteRequestHeaders.size() > 0)
         request.addHTTPHeaderFields(m_crossSiteRequestHeaders);
@@ -575,7 +576,7 @@ void XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight(ExceptionCode& ec)
     m_inPreflight = true;
     ResourceRequest preflightRequest(url);
     preflightRequest.setHTTPMethod("OPTIONS");
-    preflightRequest.setHTTPHeaderField("Access-Control-Origin", origin);
+    preflightRequest.setHTTPHeaderField("Origin", origin);
 
     if (m_async) {
         loadRequestAsynchronously(preflightRequest);
@@ -588,7 +589,7 @@ void XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight(ExceptionCode& ec)
     // Send the actual request.
     ResourceRequest request(url);
     request.setHTTPMethod(m_method);
-    request.setHTTPHeaderField("Access-Control-Origin", origin);
+    request.setHTTPHeaderField("Origin", origin);
 
     if (m_crossSiteRequestHeaders.size() > 0)
         request.addHTTPHeaderFields(m_crossSiteRequestHeaders);
@@ -614,7 +615,7 @@ void XMLHttpRequest::handleAsynchronousPreflightResult()
 
     ResourceRequest request(url);
     request.setHTTPMethod(m_method);
-    request.setHTTPHeaderField("Access-Control-Origin", accessControlOrigin());
+    request.setHTTPHeaderField("Origin", accessControlOrigin());
 
     if (m_crossSiteRequestHeaders.size() > 0)
         request.addHTTPHeaderFields(m_crossSiteRequestHeaders);
@@ -675,7 +676,7 @@ void XMLHttpRequest::loadRequestAsynchronously(ResourceRequest& request)
         // and they are referenced by the JavaScript wrapper.
         ref();
 
-        gcProtectNullTolerant(ScriptInterpreter::getDOMObject(this));
+        KJS::gcProtectNullTolerant(ScriptInterpreter::getDOMObject(this));
     }
 }
 

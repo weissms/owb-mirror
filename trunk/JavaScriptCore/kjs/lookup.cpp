@@ -20,6 +20,8 @@
 #include "config.h"
 #include "lookup.h"
 
+#include "PrototypeFunction.h"
+
 namespace KJS {
 
 void HashTable::createTable(JSGlobalData* globalData) const
@@ -63,4 +65,4 @@ void setUpStaticFunctionSlot(ExecState* exec, const HashEntry* entry, JSObject* 
     slot.setValueSlot(thisObj->getDirectLocation(propertyName));
 }
 
-}
+} // namespace KJS

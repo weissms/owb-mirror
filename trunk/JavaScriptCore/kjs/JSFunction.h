@@ -32,118 +32,49 @@
 
 namespace KJS {
 
-  class FunctionBodyNode;
-  class FunctionPrototype;
-  class JSActivation;
-  class JSGlobalObject;
+    class FunctionBodyNode;
+    class FunctionPrototype;
+    class JSActivation;
+    class JSGlobalObject;
 
-  class JSFunction : public InternalFunction {
-  public:
-    JSFunction(ExecState*, const Identifier&, FunctionBodyNode*, ScopeChainNode*);
-
-    virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
-    virtual void put(ExecState*, const Identifier& propertyName, JSValue*);
-    virtual bool deleteProperty(ExecState*, const Identifier& propertyName);
-
-    JSObject* construct(ExecState*, const ArgList&);
-    JSValue* call(ExecState*, JSValue* thisValue, const ArgList&);
-
-    // Note: Returns a null identifier for any parameters that will never get set
-    // due to a later parameter with the same name.
-    const Identifier& getParameterName(int index);
-
-    static const ClassInfo info;
-
-    RefPtr<FunctionBodyNode> body;
-
-    void setScope(const ScopeChain& s) { _scope = s; }
-    ScopeChain& scope() { return _scope; }
-
-    virtual void mark();
-
-  private:
-    virtual const ClassInfo* classInfo() const { return &info; }
-    virtual ConstructType getConstructData(ConstructData&);
-    virtual CallType getCallData(CallData&);
-
-    ScopeChain _scope;
-
-    static JSValue* argumentsGetter(ExecState*, const Identifier&, const PropertySlot&);
-    static JSValue* callerGetter(ExecState*, const Identifier&, const PropertySlot&);
-    static JSValue* lengthGetter(ExecState*, const Identifier&, const PropertySlot&);
-  };
-
-  class IndexToNameMap {
-  public:
-    IndexToNameMap(JSFunction*, const ArgList&);
-    ~IndexToNameMap();
-    
-    Identifier& operator[](const Identifier& index);
-    bool isMapped(const Identifier& index) const;
-    void unMap(ExecState* exec, const Identifier& index);
-    
-  private:
-    unsigned size;
-    Identifier* _map;
-  };
-  
-  class Arguments : public JSObject {
-  public:
-    Arguments(ExecState*, JSFunction* func, const ArgList& args, JSActivation* act);
-    virtual void mark();
-    virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
-    virtual void put(ExecState*, const Identifier& propertyName, JSValue*);
-    virtual bool deleteProperty(ExecState*, const Identifier& propertyName);
-    virtual const ClassInfo* classInfo() const { return &info; }
-    static const ClassInfo info;
-  private:
-    static JSValue* mappedIndexGetter(ExecState*, const Identifier&, const PropertySlot& slot);
-
-    JSActivation* _activationObject;
-    mutable IndexToNameMap indexToNameMap;
-  };
-
-  class PrototypeFunction : public InternalFunction {
-  public:
-    PrototypeFunction(ExecState*, int len, const Identifier&, NativeFunction);
-    PrototypeFunction(ExecState*, FunctionPrototype*, int len, const Identifier&, NativeFunction);
-
-  private:
-    virtual CallType getCallData(CallData&);
-
-    const NativeFunction m_function;
-  };
-
-    class GlobalEvalFunction : public PrototypeFunction {
+    class JSFunction : public InternalFunction {
     public:
-        GlobalEvalFunction(ExecState*, FunctionPrototype*, int len, const Identifier&, NativeFunction, JSGlobalObject* expectedThisObject);
-        JSGlobalObject* cachedGlobalObject() const { return m_cachedGlobalObject; }
+        JSFunction(ExecState*, const Identifier&, FunctionBodyNode*, ScopeChainNode*);
 
-    private:
+        virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
+        virtual void put(ExecState*, const Identifier& propertyName, JSValue*);
+        virtual bool deleteProperty(ExecState*, const Identifier& propertyName);
+
+        JSObject* construct(ExecState*, const ArgList&);
+        JSValue* call(ExecState*, JSValue* thisValue, const ArgList&);
+
+        // Note: Returns a null identifier for any parameters that will never get set
+        // due to a later parameter with the same name.
+        const Identifier& getParameterName(int index);
+
+        void setScope(const ScopeChain& scopeChain) { m_scopeChain = scopeChain; }
+        ScopeChain& scope() { return m_scopeChain; }
+
         virtual void mark();
 
-        JSGlobalObject* m_cachedGlobalObject;
+        static const ClassInfo info;
+
+        // FIXME: This should be private
+        RefPtr<FunctionBodyNode> m_body;
+
+    private:
+        virtual const ClassInfo* classInfo() const { return &info; }
+
+        virtual ConstructType getConstructData(ConstructData&);
+        virtual CallType getCallData(CallData&);
+
+        static JSValue* argumentsGetter(ExecState*, const Identifier&, const PropertySlot&);
+        static JSValue* callerGetter(ExecState*, const Identifier&, const PropertySlot&);
+        static JSValue* lengthGetter(ExecState*, const Identifier&, const PropertySlot&);
+
+        ScopeChain m_scopeChain;
     };
 
-    // Global Functions
-    JSValue* globalFuncEval(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncParseInt(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncParseFloat(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncIsNaN(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncIsFinite(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncDecodeURI(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncDecodeURIComponent(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncEncodeURI(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncEncodeURIComponent(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncEscape(ExecState*, JSObject*, JSValue*, const ArgList&);
-    JSValue* globalFuncUnescape(ExecState*, JSObject*, JSValue*, const ArgList&);
-#ifndef NDEBUG
-    JSValue* globalFuncKJSPrint(ExecState*, JSObject*, JSValue*, const ArgList&);
-#endif
+} // namespace kJS
 
-    static const double mantissaOverflowLowerBound = 9007199254740992.0;
-    double parseIntOverflow(const char*, int length, int radix);
-
-} // namespace
-
-#endif
+#endif // JSFunction_h

@@ -31,7 +31,7 @@
 
 #include "bal_class.h"
 #include "bal_runtime.h"
-#include "list.h"
+#include "ArgList.h"
 
 #include "bal_object.h"
 #include "balValuePrivate.h"

@@ -1,3 +1,336 @@
+2008-07-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Rename "Access-Contol-Origin" to "Origin" to match the latest
+        Access Control for Cross-Site Request draft. (Editor's Draft 25 May 2008)
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::makeSimpleCrossSiteAccessRequest):
+        (WebCore::XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight):
+        (WebCore::XMLHttpRequest::handleAsynchronousPreflightResult):
+
+2008-07-06  Dan Bernstein  <mitz@apple.com>
+
+        - try to fix the Windows build
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-07-06  Dan Bernstein  <mitz@apple.com>
+
+        - add missing brace
+
+        * platform/graphics/qt/FontCacheQt.cpp:
+
+2008-07-06  Dan Bernstein  <mitz@apple.com>
+
+        - try to fix the Qt build
+
+        * platform/graphics/qt/FontCacheQt.cpp:
+        (WebCore::FontCache::addClient):
+        (WebCore::FontCache::removeClient):
+
+2008-07-06  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Add #include for kjs/protect.h.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously):
+
+2008-07-06  David Kilzer  <ddkilzer@apple.com>
+
+        Save a few more bits in RenderStyle
+
+        Reviewed by Darin.
+
+        No test cases added since there is no change in behavior.
+
+        This changes WebCore::StyleMarqueeData from using 6 bits to 5 bits,
+        WebCore::RenderStyle::inherited_flags from using 36 bits to 35 bits,
+        and WebCore::RenderStyle::noninherited_flags from using 49 bits to
+        47 bits.
+
+        * rendering/style/RenderStyle.h:
+        (WebCore::StyleMarqueeData::behavior): Reduce from 3 bits to 2 bits
+        since EMarqueeBehavior has 4 items.
+        (WebCore::RenderStyle::inherited_flags._text_align): Reduce from
+        4 bits to 3 bits since ETextAlign has 8 items.
+        (WebCore::RenderStyle::noninherited_flags._overflowX): Reduce from
+        4 bits to 3 bits since EOverflow has 6 items.
+        (WebCore::RenderStyle::noninherited_flags._overflowY): Ditto.
+
+2008-07-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/5735163> WebCore caching makes text look wrong after font changes; need to respond appropriately instead
+
+        * css/CSSFontSelector.cpp:
+        (WebCore::CSSFontSelector::CSSFontSelector): Added a call to
+        FontCache::addClient().
+        (WebCore::CSSFontSelector::~CSSFontSelector): Added a call to
+        FontCache::removeClient().
+        (WebCore::CSSFontSelector::fontCacheInvalidated): Added. Called by the
+        font cache when it is invalidated, and ensures that the document is
+        updated.
+
+        * css/CSSFontSelector.h:
+
+        * platform/graphics/Font.cpp:
+        (WebCore::Font::operator==): Added code to compare the font fallback
+        lists' font cache generations.
+
+        * platform/graphics/FontCache.cpp:
+        (WebCore::FontCache::addClient): Added.
+        (WebCore::FontCache::removeClient): Added.
+        (WebCore::FontCache::generation): Added.
+        (WebCore::FontCache::invalidate): Added. Deletes the platform data
+        cache, increments the generation counter, and notifies all clients.
+
+        * platform/graphics/FontCache.h:
+
+        * platform/graphics/FontFallbackList.cpp:
+        (WebCore::FontFallbackList::FontFallbackList): Added initialization of
+        m_generation.
+        (WebCore::FontFallbackList::invalidate): Added code to reset
+        m_generation.
+        (WebCore::FontFallbackList::fontDataAt): Added an assertion.
+        (WebCore::FontFallbackList::fontDataForCharacters): Ditto.
+        (WebCore::FontFallbackList::setPlatformFont): Ditto.
+
+        * platform/graphics/FontFallbackList.h:
+        (WebCore::FontFallbackList::generation): Added. Returns the font cache
+        generation used to populate the list.
+
+        * platform/graphics/FontSelector.h:
+        (WebCore::FontSelector::fontCacheInvalidated): Added.
+
+        * platform/graphics/mac/FontCacheMac.mm:
+        (WebCore::fontCacheATSNotificationCallback): Added. Calls
+        FontCache::invalidate().
+        (WebCore::FontCache::platformInit): Added code to register for ATS
+        notifications.
+
+        * svg/SVGFontFaceElement.cpp: Removed unneeded #inlcudes.
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Cameron Zwarich.
+
+        Rename list.h/cpp to ArgList.h/cpp.
+
+        * ForwardingHeaders/kjs/ArgList.h: Copied from WebCore/ForwardingHeaders/kjs/list.h.
+        * ForwardingHeaders/kjs/list.h: Removed.
+        * WebCore.vcproj/WebCore.vcproj:
+        * bridge/qt/qt_instance.cpp:
+        * page/Console.cpp:
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Cameron Zwarich.
+
+        Split Arguments, IndexToNameMap, PrototypeFunction, GlobalEvalFunction and 
+        the functions on the global object out of JSFunction.h/cpp.
+
+        * ForwardingHeaders/kjs/PrototypeFunction.h: Added.
+        * bindings/js/JSDOMBinding.cpp:
+
+2008-07-05  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        - rename BidiIterator and BidiState
+
+        Renamed BidiIterator to InlineIterator and BidiState
+        to InlineBidiResolver. Renamed variables of type InlineBidiResolver{*,&}
+        to "resolver".
+
+        * rendering/RenderBlock.h:
+        * rendering/RootInlineBox.h:
+        * rendering/bidi.cpp:
+        (WebCore::InlineIterator::InlineIterator):
+        (WebCore::operator==):
+        (WebCore::operator!=):
+        (WebCore::bidiNext):
+        (WebCore::bidiFirst):
+        (WebCore::InlineIterator::increment):
+        (WebCore::InlineBidiResolver::increment):
+        (WebCore::InlineIterator::atEnd):
+        (WebCore::InlineIterator::current):
+        (WebCore::InlineIterator::direction):
+        (WebCore::chopMidpointsAt):
+        (WebCore::checkMidpoints):
+        (WebCore::addMidpoint):
+        (WebCore::appendRunsForObject):
+        (WebCore::InlineBidiResolver::appendRun):
+        (WebCore::RenderBlock::bidiReorderLine):
+        (WebCore::buildCompactRuns):
+        (WebCore::RenderBlock::layoutInlineChildren):
+        (WebCore::RenderBlock::determineStartPosition):
+        (WebCore::RenderBlock::determineEndPosition):
+        (WebCore::RenderBlock::matchedEndLine):
+        (WebCore::skipNonBreakingSpace):
+        (WebCore::requiresLineBox):
+        (WebCore::RenderBlock::generatesLineBoxesForInlineChild):
+        (WebCore::RenderBlock::skipWhitespace):
+        (WebCore::shouldSkipWhitespaceAfterStartObject):
+        (WebCore::RenderBlock::findNextLineBreak):
+
+2008-07-05  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Rubber-stamped by Oliver Hunt
+
+        Coding style fix
+
+        * html/CanvasRenderingContext2D.cpp: Indentation fix
+
+2008-07-04  Oliver Hunt  <oliver@apple.com>
+
+        Fix windows build
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-07-04  Sam Weinig  <sam@webkit.org>
+
+        Fix Qt build.
+
+        * bridge/qt/qt_instance.cpp:
+
+2008-07-04  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Split Error and GetterSetter out of JSObject.h.
+
+        * ForwardingHeaders/kjs/Error.h: Added.
+        * bindings/js/JSCanvasRenderingContext2DCustom.cpp:
+        * bindings/js/JSClipboardCustom.cpp:
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSEventTargetBase.cpp:
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+        * bridge/jni/jni_instance.cpp:
+        * bridge/jni/jni_runtime.cpp:
+        * bridge/objc/objc_instance.mm:
+        * bridge/objc/objc_runtime.mm:
+        * bridge/objc/objc_utility.h:
+        * bridge/runtime_array.cpp:
+        * bridge/runtime_method.cpp:
+        * bridge/runtime_object.cpp:
+
+2008-07-04  David D. Kilzer  <ddkilzer@webkit.org>
+
+        Bug 15290: REGRESSION (r14184-r14216): Duplicate DOCTYPE definitions when saving files as webarchives
+
+        <https://bugs.webkit.org/show_bug.cgi?id=15290>
+        <rdar://problem/5509173>
+
+        Reviewed by Dan Bernstein.
+
+        Tests: webarchive/archive-empty-frame-dom.html
+               webarchive/doctype.html
+
+        * editing/markup.cpp:
+        (WebCore::createFullMarkup): If the Node is a Document or a
+        DocumentType, don't prepend the <!DOCTYPE> tag since that will
+        cause it to be duplicated.
+        * loader/archive/cf/LegacyWebArchive.cpp:
+        (WebCore::LegacyWebArchive::create): Ditto.
+
+2008-07-04  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix
+
+        * GNUmakefile.am:
+
+2008-07-04  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Eric Seidel.
+
+        Bring our implementation of the Netscape plugin API closer to current
+        code style guidelines.
+
+        * bridge/NP_jsobject.cpp:
+        (getListFromVariantArgs):
+        (jsAllocate):
+        (jsDeallocate):
+        (_NPN_CreateScriptObject):
+        (_NPN_CreateNoScriptObject):
+        (_NPN_InvokeDefault):
+        (_NPN_Invoke):
+        (_NPN_Evaluate):
+        (_NPN_GetProperty):
+        (_NPN_SetProperty):
+        (_NPN_RemoveProperty):
+        (_NPN_HasProperty):
+        (_NPN_HasMethod):
+        (_NPN_Enumerate):
+        * bridge/npruntime_impl.h:
+
+2008-07-04  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt/Windows build.
+
+        * WebCore.pro: Moved PluginMainThreadScheduler.cpp to the main
+        sources, so that it is always compiled.
+        * platform/qt/CursorQt.cpp: #undef CopyCursor, as it's defined by some
+        Windows header.
+        * platform/qt/KeyboardCodes.h: Don't re-define some of the keycodes
+        that are defined by Windows already.
+        * platform/qt/TemporaryLinkStubs.cpp: Removed the PluginDatabase stubs
+        that are now platform-independent in plugin/PluginDatabase.cpp.
+
+2008-07-04  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Mac build for real, don't define listDirectory() twice.
+
+        * platform/mac/FileSystemMac.mm:
+
+2008-07-04  Simon Hausmann  <hausmann@webkit.org>
+
+        Prospective Mac build fix.
+
+        * platform/mac/FileSystemMac.mm: Include NotImplemented.h.
+        * platform/posix/FileSystemPOSIX.cpp: Ditto.
+
+2008-07-04  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Move duplicated code from each PluginDatabaseXX-implementation
+        to PluginDabase.cpp -- ifdefed based on the XP_PLATFORM we are
+        compiling plugins for.
+
+        This make the code cleaner and we can share common patterns.
+        The only implementation left which is specific is the Win
+        implementation (also used by QtWebKit/Win), but we might
+        want to move that too.
+
+        * GNUmakefile.am: Removed PluginDatabaseGtk.cpp from the build.
+        * WebCore.pro: Removed PluginDatabaseQt.cpp from the build.
+        * plugins/PluginDatabase.cpp:
+        (WebCore::PluginDatabase::defaultPluginDirectories):
+        (WebCore::PluginDatabase::isPreferredPluginDirectory):
+        (WebCore::PluginDatabase::getPluginPathsInDirectories):
+        * plugins/gtk/PluginDatabaseGtk.cpp: Removed.
+        * plugins/qt/PluginDatabaseQt.cpp: Removed.
+        * plugins/wx/PluginDatabaseWx.cpp: Removed.
+        * webcore-wx.bkl: Removed PluginDatabaseWx.cpp from the build.
+
+2008-07-04  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Wx build.
+
+        * WebCoreSources.bkl: Add plugins/PluginMainThreadScheduler.cpp to the
+        build.
+        * page/FocusController.cpp:
+        (WebCore::FocusController::setActive): Extend MAC #ifdef to WX as
+        layoutIfNeededRecursive does not exist for the Wx port.
+
 2008-07-04  Simon Hausmann  <hausmann@webkit.org>
 
         Fix the Gtk build, adapt to renamed files.

@@ -29,6 +29,7 @@
 #include "config.h"
 #include "JSActivation.h"
 
+#include "Arguments.h"
 #include "CodeBlock.h"
 #include "Machine.h"
 #include "Register.h"
@@ -75,7 +76,7 @@ bool JSActivation::getOwnPropertySlot(ExecState* exec, const Identifier& propert
 
     // We don't call through to JSObject because there's no way to give an 
     // activation object getter properties or a prototype.
-    ASSERT(!_prop.hasGetterSetterProperties());
+    ASSERT(!m_propertyMap.hasGetterSetterProperties());
     ASSERT(prototype() == jsNull());
     return false;
 }
@@ -88,8 +89,8 @@ void JSActivation::put(ExecState*, const Identifier& propertyName, JSValue* valu
     // We don't call through to JSObject because __proto__ and getter/setter 
     // properties are non-standard extensions that other implementations do not
     // expose in the activation object.
-    ASSERT(!_prop.hasGetterSetterProperties());
-    _prop.put(propertyName, value, 0, true);
+    ASSERT(!m_propertyMap.hasGetterSetterProperties());
+    m_propertyMap.put(propertyName, value, 0, true);
 }
 
 // FIXME: Make this function honor ReadOnly (const) and DontEnum
@@ -101,8 +102,8 @@ void JSActivation::putWithAttributes(ExecState*, const Identifier& propertyName,
     // We don't call through to JSObject because __proto__ and getter/setter 
     // properties are non-standard extensions that other implementations do not
     // expose in the activation object.
-    ASSERT(!_prop.hasGetterSetterProperties());
-    _prop.put(propertyName, value, attributes, true);
+    ASSERT(!m_propertyMap.hasGetterSetterProperties());
+    m_propertyMap.put(propertyName, value, attributes, true);
 }
 
 bool JSActivation::deleteProperty(ExecState* exec, const Identifier& propertyName)

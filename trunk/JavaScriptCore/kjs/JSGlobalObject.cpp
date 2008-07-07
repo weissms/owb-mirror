@@ -41,6 +41,8 @@
 #include "ErrorPrototype.h"
 #include "FunctionConstructor.h"
 #include "FunctionPrototype.h"
+#include "GlobalEvalFunction.h"
+#include "JSGlobalObjectFunctions.h"
 #include "JSLock.h"
 #include "Machine.h"
 #include "MathObject.h"
@@ -50,6 +52,7 @@
 #include "NumberPrototype.h"
 #include "ObjectConstructor.h"
 #include "ObjectPrototype.h"
+#include "PrototypeFunction.h"
 #include "RegExpConstructor.h"
 #include "RegExpPrototype.h"
 #include "ScopeChainMark.h"
@@ -173,7 +176,7 @@ void JSGlobalObject::reset(JSValue* prototype)
     // which would be wasteful -- or uninitialized pointers -- which would be
     // dangerous. (The allocations below may cause a GC.)
 
-    _prop.clear();
+    m_propertyMap.clear();
     symbolTable().clear();
     setRegisterArray(0, 0);
 

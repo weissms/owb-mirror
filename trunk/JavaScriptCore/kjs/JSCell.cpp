@@ -113,7 +113,7 @@ double JSCell::getNumber() const
     return isNumber() ? static_cast<const JSNumberCell*>(this)->value() : NaN;
 }
 
-bool JSCell::getString(UString&stringValue) const
+bool JSCell::getString(UString& stringValue) const
 {
     if (!isString())
         return false;

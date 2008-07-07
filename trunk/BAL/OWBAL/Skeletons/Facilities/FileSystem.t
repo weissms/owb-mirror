@@ -117,6 +117,16 @@ class String;
     bool makeAllDirectories(const String& path);
 
     /**
+     * Get the basename.
+     * @param[in] : a reference to a String
+     * @param[out] : a string representing the basename 
+     * @code
+     * @endcode
+     */
+    String pathGetFileName(const String&);
+    
+
+    /**
      * Retrieve the user home directory.
      * @param[out] : a string representing the user home directory.
      * @code
@@ -125,22 +135,24 @@ class String;
     String homeDirectoryPath();
 
     /**
-     * Retrieve the basename from a filename.
-     * @param[in] : a reference to a filename.
-     * @param[out] : the basename.
-     * @code
-     * @endcode
-     */
-    String pathGetFileName(const String&);
-
-    /**
-     * Retrieve the directory name.
-     * @param[in] : a reference to a filename.
-     * @param[out] : the dirname.
+     * Get the dirname.
+     * @param[in] : a reference to a String.
+     * @param[out] : a string representing the dirname.
      * @code
      * @endcode
      */
     String directoryName(const String&);
+   
+    /**
+     * List directories matching a filter.
+     * @param[in] : a path.
+     * @param[in] : a filter.
+     * @param[out] : a vector containing matching directories.
+     * @code
+     * @endcode
+     */
+    Vector<String> listDirectory(const String& path, const String& filter = String());
+   
 
     /**
      * Get the filesystem representation.
@@ -150,15 +162,6 @@ class String;
      * @endcode
      */
     CString fileSystemRepresentation(const String&);
-
-    /**
-     * Check if a handle is valid.
-     * @param[in] : a handle to test.
-     * @param[out] :  true if handle is valid, false otherwise.
-     * @code
-     * @endcode
-     */
-    inline bool isHandleValid(const PlatformFileHandle& handle) ;
 
     // Prefix is what the filename should be prefixed with, not the full path.
     /**
@@ -170,14 +173,6 @@ class String;
      * @endcode
      */
     CString openTemporaryFile(const char* prefix, PlatformFileHandle&);
-
-    /**
-     * Close a file.
-     * @param[in] : a file descriptor.
-     * @code
-     * @endcode
-     */
-    void closeFile(PlatformFileHandle&);
 
     /**
      * Write some data to a file.
@@ -203,8 +198,4 @@ class String;
 
 } // namespace OWBAL
 
-#endif // FileSystem_h
-
-
-
-
+#endif // F

@@ -30,6 +30,7 @@
 #include "FileSystem.h"
 
 #include "CString.h"
+#include "NotImplemented.h"
 #include "PlatformString.h"
 
 #include <sys/stat.h>
@@ -155,6 +156,13 @@ String directoryName(const String& path)
         return String();
 
     return dirname(fsRep.mutableData());
+}
+
+Vector<String> listDirectory(const String& path, const String& filter)
+{
+    Vector<String> entries;
+    notImplemented();
+    return entries;
 }
 
 //FIXME : implement this and send a patch to WebCore

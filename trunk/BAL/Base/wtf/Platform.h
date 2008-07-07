@@ -43,12 +43,6 @@
 #define WTF_PLATFORM_DARWIN 1
 #endif
 
-#if defined(__OWBAL_PLATFORM_MACPORT__)
-#undef WTF_PLATFORM_MAC 
-#define WTF_PLATFORM_MACPORT
-/*#define WTF_USE_PTHREADS 1*/
-#endif
-
 /* PLATFORM(WIN_OS) */
 /* Operating system level dependencies for Windows that should be used */
 /* regardless of operating environment */
@@ -79,7 +73,6 @@
    || defined(__unix)      \
    || defined(__unix__)    \
    || defined (__NetBSD__) \
-   || defined (__OWBAL_PLATFORM_MACPORT__) \
    || defined(_AIX)
 #define WTF_PLATFORM_UNIX 1
 #endif
@@ -102,7 +95,7 @@
 #define WTF_PLATFORM_WX 1
 #elif defined(BUILDING_GTK__)
 #define WTF_PLATFORM_GTK 1
-#elif PLATFORM(DARWIN) && !defined(__OWBAL_PLATFORM_MACPORT__)
+#elif PLATFORM(DARWIN)
 #define WTF_PLATFORM_MAC 1
 #elif PLATFORM(WIN_OS)
 #define WTF_PLATFORM_WIN 1

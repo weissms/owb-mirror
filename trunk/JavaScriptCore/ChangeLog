@@ -1,3 +1,163 @@
+2008-07-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Second step in broad cleanup effort.
+
+        [ File list elided ]
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        First step in broad cleanup effort.
+
+        [ File list elided ]
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Cameron Zwarich.
+
+        Rename list.h/cpp to ArgList.h/cpp.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/Machine.h:
+        * kjs/AllInOneFile.cpp:
+        * kjs/ArgList.cpp: Copied from JavaScriptCore/kjs/list.cpp.
+        * kjs/ArgList.h: Copied from JavaScriptCore/kjs/list.h.
+        * kjs/IndexToNameMap.cpp:
+        * kjs/JSGlobalData.cpp:
+        * kjs/JSGlobalData.h:
+        * kjs/JSObject.h:
+        * kjs/collector.cpp:
+        * kjs/list.cpp: Removed.
+        * kjs/list.h: Removed.
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Fix non-AllInOne builds again.
+
+        * kjs/BooleanPrototype.cpp:
+        * kjs/ErrorPrototype.cpp:
+        * kjs/FunctionPrototype.cpp:
+        * kjs/NumberPrototype.cpp:
+        * kjs/ObjectPrototype.cpp:
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Fix build on case-sensitive build systems.
+
+        * kjs/IndexToNameMap.cpp:
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Fix build.
+
+        * kjs/Arguments.cpp:
+        * kjs/BooleanPrototype.cpp:
+        * kjs/DateConstructor.cpp:
+        * kjs/ErrorPrototype.cpp:
+        * kjs/FunctionPrototype.cpp:
+        * kjs/NumberPrototype.cpp:
+        * kjs/ObjectPrototype.cpp:
+        * kjs/RegExpPrototype.cpp:
+        * kjs/StringConstructor.cpp:
+        * kjs/lookup.cpp:
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Fix non-AllInOne build.
+
+        * kjs/JSGlobalObject.cpp:
+
+2008-07-05  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Cameron Zwarich.
+
+        Split Arguments, IndexToNameMap, PrototypeFunction, GlobalEvalFunction and 
+        the functions on the global object out of JSFunction.h/cpp.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/Machine.cpp:
+        * kjs/AllInOneFile.cpp:
+        * kjs/Arguments.cpp: Copied from JavaScriptCore/kjs/JSFunction.cpp.
+        * kjs/Arguments.h: Copied from JavaScriptCore/kjs/JSFunction.h.
+        * kjs/GlobalEvalFunction.cpp: Copied from JavaScriptCore/kjs/JSFunction.cpp.
+        * kjs/GlobalEvalFunction.h: Copied from JavaScriptCore/kjs/JSFunction.h.
+        * kjs/IndexToNameMap.cpp: Copied from JavaScriptCore/kjs/JSFunction.cpp.
+        * kjs/IndexToNameMap.h: Copied from JavaScriptCore/kjs/JSFunction.h.
+        * kjs/JSActivation.cpp:
+        * kjs/JSFunction.cpp:
+        * kjs/JSFunction.h:
+        * kjs/JSGlobalObject.cpp:
+        * kjs/JSGlobalObjectFunctions.cpp: Copied from JavaScriptCore/kjs/JSFunction.cpp.
+        * kjs/JSGlobalObjectFunctions.h: Copied from JavaScriptCore/kjs/JSFunction.h.
+        The functions on the global object should be in JSGlobalObject.cpp, but putting them there
+        was a 0.5% regression.
+
+        * kjs/PrototypeFunction.cpp: Copied from JavaScriptCore/kjs/JSFunction.cpp.
+        * kjs/PrototypeFunction.h: Copied from JavaScriptCore/kjs/JSFunction.h.
+        * kjs/Shell.cpp:
+        * kjs/lexer.cpp:
+        * kjs/ustring.cpp:
+
+2008-07-04  Sam Weinig  <sam@webkit.org>
+
+        Really fix the mac build.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-07-04  Sam Weinig  <sam@webkit.org>
+
+        Fix mac build.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-07-04  Sam Weinig  <sam@webkit.org>
+
+        Fix non-AllInOne builds.
+
+        * kjs/Error.cpp:
+        * kjs/GetterSetter.cpp:
+        * kjs/JSImmediate.cpp:
+        * kjs/operations.cpp:
+
+2008-07-04  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Split Error and GetterSetter out of JSObject.h.
+
+        * API/JSCallbackObjectFunctions.h:
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/ClassInfo.h: Copied from JavaScriptCore/kjs/JSObject.h.
+        * kjs/Error.cpp: Copied from JavaScriptCore/kjs/JSObject.cpp.
+        * kjs/Error.h: Copied from JavaScriptCore/kjs/JSObject.h.
+        * kjs/GetterSetter.cpp:
+        * kjs/GetterSetter.h: Copied from JavaScriptCore/kjs/JSObject.h.
+        * kjs/JSObject.cpp:
+        * kjs/JSObject.h:
+        * kjs/nodes.h:
+
+2008-07-04  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Wx build, added TreeProfile.cpp to the build.
+
+        * JavaScriptCoreSources.bkl:
+
 2008-07-04  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Oliver Hunt.
