@@ -1,3 +1,505 @@
+2008-07-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Only artificially mark JS DOM wrappers if they have custom properties.
+        
+        21X speedup on http://nerget.com/jstests/dom-mandelbrot.html.
+        
+        No, that is not a typo.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::ScriptInterpreter::markDOMNodesForDocument):
+
+2008-07-08  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        Fix to previous patch for handling mouse up events.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=18464
+
+        * platform/wx/MouseEventWx.cpp:
+        (WebCore::PlatformMouseEvent::PlatformMouseEvent):
+
+2008-07-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        - initialize the Archives log channel's state
+
+        * platform/mac/LoggingMac.mm:
+        (WebCore::InitializeLoggingChannelsIfNecessary):
+
+2008-07-08  Kevin McCullough  <kmccullough@apple.com>
+
+        Added manual test for the new heavy view.
+
+        * manual-tests/inspector/profiler-test-heavy-view.html: Added.
+
+2008-07-08  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mitz.
+
+        - fix <rdar://problem/6043731> REGRESSION (3-4): RedEnvelope.com
+          looks wrong due to OpenCube QuickMenu appVersion check
+
+        * page/Navigator.cpp:
+        (WebCore::shouldHideFourDot): Add dqm_loader.js as another filename.
+
+2008-07-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - WebCore part of <rdar://problem/6008409> Need a way to disable updates in offscreen views
+
+        Added a setting, updatesWhenOffscreen(), which controls whether an
+        offscreen web view gets marked as needing update when its contents
+        change (the existing behavior) or not (a new behavior), in which case it
+        will be marked as needing update just before it goes on screen. The
+        existing behavior (updating while offscreen) remains the default.
+
+        * WebCore.base.exp: Added Settings::setUpdatesWhenOffscreen().
+        * page/FrameView.cpp:
+        (WebCore::FrameView::shouldUpdateWhenOffscreen): Added. Returns the
+        value from settings.
+        * page/FrameView.h:
+        * page/Settings.cpp:
+        (WebCore::Settings::setUpdatesWhenOffscreen): Added.
+        * page/Settings.h:
+        (WebCore::Settings::updatesWhenOffscreen): Added.
+        * platform/ScrollView.h:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::updateContents): Added code to return early and
+        not call -setNeedsDisplayInRect: if the view is not in a visible window
+        and the setting is not to update when offscreen.
+
+2008-07-08  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the build with enabled SVG filters.
+
+        * svg/SVGFESpecularLightingElement.cpp: The last argument to
+        ANIMATED_PROPERTY_DEFINITIONS has to be full class name, including
+        the attr suffix.
+
+2008-07-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Remove extraneous null check.
+
+        * dom/Node.cpp:
+        (WebCore::Node::querySelector):
+        (WebCore::Node::querySelectorAll):
+
+2008-07-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=19928
+        Use of CSS3 Namespaces syntax in Selectors API should throw an exception
+
+        - Throw an NAMESPACE_ERR exception if a non-null or "*" namespace is
+          used in a selector passed to querySelector or querySelectorAll.
+
+        Test: fast/dom/SelectorAPI/not-supported-namespace-in-selector.html
+
+        * dom/Node.cpp:
+        (WebCore::selectorNeedsNamespaceResolution):
+        (WebCore::Node::querySelector):
+        (WebCore::Node::querySelectorAll):
+
+2008-07-07  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=19933
+        nodeIterator with filter fails on documents not in a frame
+
+        Tests: traversal/node-iterator-009.html
+               traversal/tree-walker-006.html
+
+        * bindings/js/JSNodeFilterCondition.cpp:
+        * bindings/js/JSNodeFilterCondition.h:
+        * bindings/js/JSNodeFilterCustom.cpp:
+        * bindings/js/JSNodeIteratorCustom.cpp:
+        * bindings/js/JSTreeWalkerCustom.cpp:
+        * bindings/objc/DOM.mm:
+        * dom/NodeFilter.cpp:
+        * dom/NodeFilter.h:
+        * dom/NodeFilterCondition.cpp:
+        * dom/NodeFilterCondition.h:
+        * dom/NodeIterator.cpp:
+        * dom/NodeIterator.h:
+        * dom/Traversal.cpp:
+        * dom/Traversal.h:
+        * dom/TreeWalker.cpp:
+        * dom/TreeWalker.h:
+
+2008-07-07  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=19924
+        <rdar://problem/6057160> Disabled file input element updates its displayed file info when a file is dropped from the Finder.
+
+        * page/DragController.cpp: (WebCore::DragController::concludeDrag):
+        Check that the file control is enabled before taking dropped files.
+
+2008-07-07  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Beth.
+
+        Fix for <rdar://problem/5860507> <AUDIO> playback noticeably more quiet than QuickTime
+
+        Change default volume setting to 1.0.
+
+        * html/HTMLMediaElement.cpp: (WebCore::HTMLMediaElement::HTMLMediaElement):
+        * platform/graphics/MediaPlayer.cpp: (WebCore::MediaPlayer::MediaPlayer):
+
+2008-07-07  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix <rdar://problem/6020441> REGRESSION: Layers on NWA.com render ugly
+
+        The old version of the OpenCube QuickMenu library used on this site still has code
+        that detects Netscape 4 by checking appVersion to see if it has the substring "4."
+        in it. We decided to special-case the filename of the script and tweak the appVersion
+        for files with that name.
+
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::ScriptController): Replace m_processingInlineCode with
+        m_sourceURL. Use false instead of 0 to initialize a boolean.
+        (WebCore::ScriptController::evaluate): Call argument sourceURL, not filename.
+        Store current sourceURL in m_sourceURL. This fixes a mistake in the code that
+        maintained the value of m_processingInlineCode, since the old code set it to
+        false rather than restoring it. Renamed a local variable named sourceURL to
+        exceptionSourceURL for clarity.
+        (WebCore::ScriptController::processingUserGesture): Code that formerly used
+        m_processingInlineCode to detect that it was evaluating code with no URL now
+        uses m_sourceURL to do the same check.
+
+        * bindings/js/ScriptController.h: Renamed filename argument to sourceURL; it has always
+        been a URL, not a file path. Added a public sourceURL function and m_sourceURL and
+        removed m_processingInlineCode.
+
+        * page/Navigator.cpp:
+        (WebCore::shouldHideFourDot): Added. Returns true if the currently running script has
+        a source URL ending in "/dqm_script.js" and if the settings say we should do
+        site-specific quirks (really JavaScript-library-specific in this case).
+        (WebCore::Navigator::appVersion): Replace "4." with "4_" if shouldHideFourDot is true.
+
+2008-07-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Geoff.
+
+        Bug 19907: REGRESSION(r34824-r34941): Reproducible crash trying to log in to MediaTemple.net Account Center
+        <https://bugs.webkit.org/show_bug.cgi?id=19907>
+
+        Clear exceptions set on ExecStates before returning from NPAPI
+        callbacks, in order to avoid causing problems for the next script that
+        executes.
+
+        While fixing this bug, the question was raised of whether we are
+        correctly propagating exception information back to the caller:
+
+        Bug 19936: Correctly propagate exception information from NPAPI callbacks
+        <https://bugs.webkit.org/show_bug.cgi?id=19936>
+
+        * bridge/NP_jsobject.cpp:
+        (_NPN_InvokeDefault):
+        (_NPN_Invoke):
+        (_NPN_Evaluate):
+        (_NPN_GetProperty):
+        (_NPN_SetProperty):
+        (_NPN_RemoveProperty):
+        (_NPN_HasProperty):
+        (_NPN_HasMethod):
+        (_NPN_Enumerate):
+
+2008-07-07  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6057650> REGRESSION (r35025): Crash beneath FontCache::invalidate() when activating Safari with no windows open
+
+        * css/CSSFontFaceSource.cpp:
+        (WebCore::CSSFontFaceSource::getFontData): Added a null check because
+        docLoader() can return 0 now.
+        * css/CSSFontSelector.cpp:
+        (WebCore::CSSFontSelector::docLoader): Added a null check of m_document.
+        (WebCore::CSSFontSelector::addFontFaceRule): Ditto.
+        (WebCore::CSSFontSelector::fontLoaded): Ditto.
+        (WebCore::CSSFontSelector::fontCacheInvalidated): Ditto.
+        (WebCore::fontDataForGenericFamily): Added a null check of document.
+        * css/CSSFontSelector.h:
+        (WebCore::CSSFontSelector::clearDocument): Added.
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::~CSSStyleSelector): Added a call to
+        CSSFontSelector::clearDocument(). When the style selector is destroyed,
+        there is no guarantee that the document will continue to exist.
+
+2008-07-07  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Not reviewed.
+
+        No svg build fix.
+
+        * DerivedSources.make: Add JSSVGElementWrapperFactory.cpp target.
+        * svg/animation/SMILTimeContainer.cpp: Add ENABLE(SVG) guard.
+
+2008-07-07  Michelangelo De Simone  <m.des@mac.com>
+
+        Reviewed by Adele.
+
+        Support for CSS3 :read-only and :read-write pseudoclasses for readonly text controls.
+
+        URL: http://www.w3.org/TR/web-forms-2/#relation
+
+        Tests: fast/css/readonly-pseudoclass-opera-001.html
+               fast/css/readonly-pseudoclass-opera-002.html
+               fast/css/readonly-pseudoclass-opera-003.html
+               fast/css/readonly-pseudoclass-opera-004.html
+               fast/css/readonly-pseudoclass-opera-005.html
+
+        * css/CSSSelector.cpp: (WebCore::CSSSelector::extractPseudoType):
+        Added "read-only" and "read-write" values for PseudoType extraction.
+        * css/CSSSelector.h: (WebCore::CSSSelector::):
+        Added PseudoReadOnly and PseudoReadWrite entries in PseudoType enum.
+        * css/CSSStyleSelector.cpp: (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        Checks to determine whether to match :read-only and :read-write pseudoclasses on
+        text controls.
+
+2008-07-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=19928
+        querySelectorAll should throw an exception if a NSResolver is passed in.
+
+        - Throw an NOT_SUPPORTED_ERR if a non-null or undefined parameter is passed
+          as the second argument to querySelector or querySelectorAll.
+
+        Test: fast/dom/SelectorAPI/not-supported-NSResolver.html
+
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::querySelector):
+        (WebCore::JSDocument::querySelectorAll):
+        * bindings/js/JSElementCustom.cpp:
+        (WebCore::JSElement::querySelector):
+        (WebCore::JSElement::querySelectorAll):
+        * dom/Document.idl:
+        * dom/Element.idl:
+
+2008-07-07  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mitz and Geoff
+
+        Test: fast/loader/empty-ref-versus-no-ref.html
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=18951 and <rdar://problem/5921760>
+        "all DOM operations stop working when location.hash set to '#'"
+
+        The underlying problem is that KURL didn't really know the difference between "empty ref"
+        and "no ref at all" when changing the ref.  So changing to the empty ref in JS ended up 
+        affecting removal of the ref, which ended up causing an infinite load load, also killing
+        javascript.
+
+        * platform/KURL.cpp:
+        (WebCore::KURL::setRef):  Changed "isEmpty()" to "isNull()", since NULL has the special 
+          meaning of "no ref at all" while empty means "empty ref"
+
+2008-07-07  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Darin.
+
+        Because profiler.h no longer #includes profile.h we need to explicitly
+        include it in console.cpp.
+
+        * page/Console.cpp:
+
+2008-07-07  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Not reviewed. Build fix.
+
+        Fix --svg-filters build (affects Qt build, mac/win don't have it on by default)
+
+        * svg/SVGFEColorMatrixElement.cpp:
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        * svg/SVGFEImageElement.cpp:
+        * svg/SVGFELightElement.cpp:
+        * svg/SVGFESpecularLightingElement.cpp:
+
+2008-07-07  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Antti.
+
+        Fixes: http://bugs.webkit.org/show_bug.cgi?id=17779 (SVG 1.1 Errata demands "SVG JavaScript Liveness" support)
+
+        Revised version of the patch, not using pointer-to-member function callbacks anymore - after discussion with Adam Roben.
+        Remove unneccessary parameters of all macros.
+
+        SVG Errata states: "All SVG DOM objects that directly correspond to an
+        attribute, e.g. the SVGAnimatedLength 'ry' in an SVGRectElement, are live. This
+        means that any changes made to the attribute are immediately reflected in the
+        corresponding SVG DOM object." (see linked URL on bug report)
+
+        Until now only XML -> SVG DOM changes took affect, aka. changing the 'rx' attribute of a <rect>
+        element resuted in changes when accessing 'rx' through SVG DOM (rx.baseVal.value).
+
+        Add a new synchronization layer to handle SVG DOM -> XML changes.
+
+        Added test: svg/custom/svg-xml-dom-sync.html
+        Fixed test: svg/hixie/dynamic/005-broken.xml (renamed to 005.xml)
+
+        * dom/Element.cpp:
+        (WebCore::Element::Element): Initialize the two new bits.
+        (WebCore::Element::attributes): Add hooks to call into SVG attribute synchronization code, wrapped in ENABLE(SVG) blocks.
+        (WebCore::Element::getAttribute): Ditto.
+        (WebCore::Element::hasAttributes): Ditto.
+        * dom/Element.h: Add two bits: m_areSVGAttributesValid/m_synchronizingSVGAttributes, to track synchronization status.
+        (WebCore::Element::updateAnimatedSVGAttribute): New virtual function, handling the synronication, similar to updateStyleAttribute.
+        * dom/NamedAttrMap.h: Make addAttribute/removeAttribute protected, from use within the ANIMATED_* macros.
+        * svg/SVGAElement.cpp:
+        * svg/SVGAElement.h:
+        * svg/SVGAnimatedTemplate.h:
+        (WebCore::lookupOrCreateWrapper): Take new AnimatedPropertySynchronizer callback as parameter, and associate it with the wrappers.
+        * svg/SVGCircleElement.cpp:
+        (WebCore::SVGCircleElement::SVGCircleElement):
+        * svg/SVGCircleElement.h:
+        * svg/SVGClipPathElement.cpp:
+        * svg/SVGClipPathElement.h:
+        * svg/SVGComponentTransferFunctionElement.cpp:
+        * svg/SVGComponentTransferFunctionElement.h:
+        * svg/SVGCursorElement.cpp:
+        (WebCore::SVGCursorElement::SVGCursorElement):
+        * svg/SVGCursorElement.h:
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::updateAnimatedSVGAttribute): Override virtual function from Element, to handle SVG<->XML DOM synchronization.
+        (WebCore::SVGElement::setSynchronizedSVGAttributes):
+        * svg/SVGElement.h:
+        (WebCore::SVGElement::invokeSVGPropertySynchronizer):
+        (WebCore::SVGElement::invokeAllSVGPropertySynchronizers):
+        (WebCore::SVGElement::addSVGPropertySynchronizer):
+        * svg/SVGEllipseElement.cpp:
+        * svg/SVGEllipseElement.h:
+        * svg/SVGExternalResourcesRequired.cpp:
+        * svg/SVGExternalResourcesRequired.h:
+        * svg/SVGFEBlendElement.cpp:
+        * svg/SVGFEBlendElement.h:
+        * svg/SVGFEColorMatrixElement.cpp:
+        * svg/SVGFEColorMatrixElement.h:
+        * svg/SVGFEComponentTransferElement.cpp:
+        * svg/SVGFEComponentTransferElement.h:
+        * svg/SVGFECompositeElement.cpp:
+        * svg/SVGFECompositeElement.h:
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        * svg/SVGFEDiffuseLightingElement.h:
+        * svg/SVGFEDisplacementMapElement.cpp:
+        * svg/SVGFEDisplacementMapElement.h:
+        * svg/SVGFEGaussianBlurElement.cpp:
+        * svg/SVGFEGaussianBlurElement.h:
+        * svg/SVGFEImageElement.cpp:
+        * svg/SVGFEImageElement.h:
+        * svg/SVGFELightElement.cpp:
+        * svg/SVGFELightElement.h:
+        * svg/SVGFEMergeNodeElement.cpp:
+        * svg/SVGFEMergeNodeElement.h:
+        * svg/SVGFEOffsetElement.cpp:
+        * svg/SVGFEOffsetElement.h:
+        * svg/SVGFESpecularLightingElement.cpp:
+        * svg/SVGFESpecularLightingElement.h:
+        * svg/SVGFETileElement.cpp:
+        * svg/SVGFETileElement.h:
+        * svg/SVGFETurbulenceElement.cpp:
+        * svg/SVGFETurbulenceElement.h:
+        * svg/SVGFilterElement.cpp:
+        * svg/SVGFilterElement.h:
+        * svg/SVGFilterPrimitiveStandardAttributes.cpp:
+        * svg/SVGFilterPrimitiveStandardAttributes.h:
+        * svg/SVGFitToViewBox.cpp:
+        * svg/SVGFitToViewBox.h:
+        * svg/SVGForeignObjectElement.cpp:
+        * svg/SVGForeignObjectElement.h:
+        * svg/SVGGradientElement.cpp:
+        * svg/SVGGradientElement.h:
+        * svg/SVGImageElement.cpp:
+        * svg/SVGImageElement.h:
+        * svg/SVGLineElement.cpp:
+        * svg/SVGLineElement.h:
+        * svg/SVGLinearGradientElement.cpp:
+        * svg/SVGLinearGradientElement.h:
+        * svg/SVGMarkerElement.cpp:
+        * svg/SVGMarkerElement.h:
+        * svg/SVGMaskElement.cpp:
+        * svg/SVGMaskElement.h:
+        * svg/SVGPathElement.cpp:
+        * svg/SVGPathElement.h:
+        * svg/SVGPatternElement.cpp:
+        * svg/SVGPatternElement.h:
+        * svg/SVGRadialGradientElement.cpp:
+        * svg/SVGRadialGradientElement.h:
+        * svg/SVGRectElement.cpp:
+        * svg/SVGRectElement.h:
+        * svg/SVGSVGElement.cpp:
+        * svg/SVGSVGElement.h:
+        * svg/SVGScriptElement.h:
+        * svg/SVGStopElement.cpp:
+        * svg/SVGStopElement.h:
+        * svg/SVGStyledElement.cpp:
+        * svg/SVGStyledElement.h:
+        * svg/SVGStyledTransformableElement.cpp:
+        * svg/SVGStyledTransformableElement.h:
+        * svg/SVGSymbolElement.h:
+        * svg/SVGTextContentElement.cpp:
+        * svg/SVGTextContentElement.h:
+        * svg/SVGTextElement.cpp:
+        * svg/SVGTextElement.h:
+        * svg/SVGTextPathElement.cpp:
+        * svg/SVGTextPathElement.h:
+        * svg/SVGTextPositioningElement.cpp:
+        * svg/SVGTextPositioningElement.h:
+        * svg/SVGURIReference.cpp:
+        * svg/SVGURIReference.h:
+        * svg/SVGUseElement.cpp:
+        * svg/SVGUseElement.h:
+        * svg/SVGViewElement.h:
+        * svg/SynchronizableTypeWrapper.h: Added.
+
+2008-07-07  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver.
+
+        Working on: http://bugs.webkit.org/show_bug.cgi?id=17779 (SVG 1.1 Errata demands "SVG JavaScript Liveness" support)
+
+        Splitting up large patch in small chunk: Land valueAsString() implementation on it's own.
+
+        Added valueAsString() conversion for all SVG primitive types, needed by the SVG<->XML synchronization layer.
+        Unify "null value for a SVG animated type" concept, which was implemented in SVGDocumentExtensions before,
+        in SVGAnimatedTemplate.
+
+        * svg/SVGAnimatedTemplate.h:
+        (WebCore::SVGAnimatedTemplate::associatedAttributeName):
+        (WebCore::lookupOrCreateWrapper):
+        (WebCore::SVGAnimatedTypeValue::null):
+        (WebCore::SVGAnimatedTypeValue::toString):
+        (WebCore::):
+        * svg/SVGDocumentExtensions.h:
+        (WebCore::SVGDocumentExtensions::baseValue):
+        * svg/SVGLengthList.cpp:
+        (WebCore::SVGLengthList::valueAsString):
+        * svg/SVGLengthList.h:
+        * svg/SVGNumberList.cpp:
+        (WebCore::SVGNumberList::valueAsString):
+        * svg/SVGNumberList.h:
+        * svg/SVGPreserveAspectRatio.cpp:
+        (WebCore::SVGPreserveAspectRatio::valueAsString):
+        * svg/SVGPreserveAspectRatio.h:
+        * svg/SVGTransformList.cpp:
+        (SVGTransformList::valueAsString):
+        * svg/SVGTransformList.h:
+
 2008-07-07  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Dan Bernstein.

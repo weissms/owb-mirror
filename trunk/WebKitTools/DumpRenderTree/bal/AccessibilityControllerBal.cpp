@@ -63,3 +63,17 @@ double AccessibilityController::heightOfFocusedElement()
     return 0.0;
 }
 
+float AccessibilityController::intValueOfFocusedElement()
+{
+    return 0.0;
+}
+
+float AccessibilityController::minValueOfFocusedElement()
+{
+    return 0.0;
+}
+
+float AccessibilityController::maxValueOfFocusedElement()
+{
+    return 0.0;
+}

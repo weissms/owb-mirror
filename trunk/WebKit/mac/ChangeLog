@@ -1,3 +1,59 @@
+2008-07-09  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Reviewed by Anders.
+
+        Port r34988 to Mac: don't call NPP_DestroyStream if NPP_NewStream was
+        unsuccessful.
+
+        * Plugins/WebBaseNetscapePluginStream.h: Added new member,
+        newStreamSuccessful.
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream initWithRequestURL:plugin:notifyData:sendNotification:]): Initialize new member.
+        (-[WebBaseNetscapePluginStream startStreamResponseURL:expectedContentLength:lastModifiedDate:MIMEType:headers:]): If NPP_NewStream is successful, set
+        newStreamSuccessful to YES.
+        (-[WebBaseNetscapePluginStream _destroyStream]): Only call
+        NPP_DestroyStream if newStreamSuccessful is true.
+
+2008-07-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - WebKit part of <rdar://problem/6008409> Need a way to disable updates in offscreen views
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView addWindowObservers]): Added code to observe when the
+        window goes onscreen.
+        (-[WebHTMLView removeWindowObservers]): Added.
+        (-[WebHTMLView windowWillOrderOnScreen:]): Added. If the view is set to
+        not update when offscreen, calls -setNeedsDisplay: just before it comes
+        onscreen.
+        * WebView/WebPreferenceKeysPrivate.h: Added preference key.
+        * WebView/WebPreferences.m:
+        (+[WebPreferences initialize]): Made updates when offscreen on by
+        default.
+        (-[WebPreferences updatesWhenOffscreen]): Added.
+        (-[WebPreferences setUpdatesWhenOffscreen:]): Added.
+        * WebView/WebPreferencesPrivate.h:
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]): Added code to update the
+        updatesWhenOffscreen setting in WebCore.
+
+2008-07-07  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        Speculative fix for     
+        <rdar://problem/5839800>
+        CrashTracer: [USER] 5802 crashes in Safari at com.apple.WebKit: -[WebHTMLView(WebPrivate) _updateMouseoverWithFakeEvent] + 389
+        
+        Set _private->closed to YES before calling -[WebPluginController destroyAllPlugins].
+        
+        My theory is that the plug-in destruction callbacks could end up rescheduling timers or re-adding notifications.
+        This is usually protected by _private->closed, but in this case it might still be false.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView close]):
+
 2008-07-07  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by John Sullivan.

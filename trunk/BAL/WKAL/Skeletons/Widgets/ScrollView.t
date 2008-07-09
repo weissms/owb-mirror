@@ -350,6 +350,15 @@ namespace WKAL {
      * @endcode
      */
         PlatformScrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
+    /**
+     * should update when offscreen
+     * @param[out] : status
+     * @code
+     * bool sh = s->shouldUpdateWhenOffscreen();
+     * @endcode
+     */
+        virtual bool shouldUpdateWhenOffscreen() const = 0;
+    
 
     /**
      * This method exists for scrollviews that need to handle wheel events manually.
@@ -511,7 +520,6 @@ inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
 } // namespace WKAL
 
 #endif // ScrollView_h
-
 
 
 
