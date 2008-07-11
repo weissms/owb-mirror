@@ -61,7 +61,7 @@ Cursor::Cursor(Image*, const IntPoint&)
 
 Cursor::Cursor(char* xpmCursor[])
 {
-    int width = 16, height = 24;
+    const int width = 16, height = 24;
     int i, row, col;
     Uint8 data[4 * height];
     Uint8 mask[4 * height];
