@@ -1,3 +1,164 @@
+2008-07-11  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Define WEBKIT_VERSION_MIN_REQUIRED=WEBKIT_VERSION_LATEST when building WebKit to ensure that no symbols end up with the weak_import attribute.
+
+        * Configurations/Base.xcconfig:
+
+2008-07-10  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix the Tiger build by omitting annotations from methods declared in categories when using old versions of GCC.
+
+        * API/WebKitAvailability.h:
+
+2008-07-10  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Darin.
+
+        -Minor cleanup. Renamed callTree() to head() and no longer use m_head
+        directly but instead keep it private and access via a method().
+
+        * profiler/HeavyProfile.cpp:
+        (KJS::HeavyProfile::HeavyProfile):
+        (KJS::HeavyProfile::generateHeavyStructure):
+        (KJS::HeavyProfile::addNode):
+        * profiler/Profile.h:
+        (KJS::Profile::head):
+        * profiler/ProfileGenerator.cpp:
+        (KJS::ProfileGenerator::ProfileGenerator):
+
+2008-07-10  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Eliminate CollectorHeapIntrospector.
+
+        CollectorHeapIntrospector was added primarily in the hopes to improve leaks tool output,
+        a result that it didn't deliver. Also, it helped by labeling JSC heap regions as reported by
+        vmmap tool, but at the same time, it made them mislabeled as malloc'd ones - the correct
+        way to label mapped regions is to use a VM tag.
+
+        So, it makes more sense to remove it completely than to make it work with multiple heaps.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/AllInOneFile.cpp:
+        * kjs/InitializeThreading.cpp:
+        (KJS::initializeThreading):
+        * kjs/collector.cpp:
+        * kjs/collector.h:
+        * kjs/CollectorHeapIntrospector.cpp: Removed.
+        * kjs/CollectorHeapIntrospector.h: Removed.
+
+2008-07-09  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Darin.
+
+        <rdar://problem/5951532> JSProfiler: Implement heavy (or bottom-up)
+        view (19228)
+        - Implemented the time and call count portionof heavy.  Now all that we
+        need is some UI.
+
+        * profiler/CallIdentifier.h: Removed an unused constructor.
+        * profiler/HeavyProfile.cpp: 
+        (KJS::HeavyProfile::HeavyProfile): Set the initial time of the head
+        node so that percentages work correctly.
+        (KJS::HeavyProfile::mergeProfiles): Sum the times and call count of
+        nodes being merged.
+        * profiler/ProfileNode.cpp: Set the intital values of time and call
+        count when copying ProfileNodes.
+        (KJS::ProfileNode::ProfileNode):
+
+2008-07-10  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix.
+
+        * GNUmakefile.am: Add HeavyProfile.cpp
+
+2008-07-09  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Don't warn about deprecated functions in production builds.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+
+2008-07-09  Darin Adler  <darin@apple.com>
+
+        * JavaScriptCore.pri: Fix Qt build by adding HeavyProfile.cpp.
+
+2008-07-09  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx biuld fix. Add HeavyProfile.cpp to build files.
+
+        * JavaScriptCoreSources.bkl:
+
+2008-07-09  Kevin McCullough  <kmccullough@apple.com>
+
+        - Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2008-07-09  Kevin McCullough  <kmccullough@apple.com>
+
+        - Build fix.
+
+        * profiler/HeavyProfile.cpp:
+        (KJS::HeavyProfile::mergeProfiles):
+
+2008-07-09  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff and Adam.
+
+        <rdar://problem/5951532> JSProfiler: Implement Bottom-Up view (19228)
+        - This is the plumbing for bottom-up, but does not include calculating
+        time, mostly because I'm still undclear about what the end result should
+        look like.
+        - This, obviously, does not include the UI to expose this in the
+        inspector yet.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * profiler/CallIdentifier.h:
+        (KJS::CallIdentifier::CallIdentifier):
+        (WTF::): Added HashTraits for CallIdentifiers to be used by a HashMap.
+        * profiler/HeavyProfile.cpp: Added.
+        (KJS::HeavyProfile::HeavyProfile):
+        (KJS::HeavyProfile::generateHeavyStructure):
+        (KJS::HeavyProfile::addNode):
+        (KJS::HeavyProfile::mergeProfiles):
+        (KJS::HeavyProfile::addAncestorsAsChildren):
+        * profiler/HeavyProfile.h: Added.
+        (KJS::HeavyProfile::create):
+        (KJS::HeavyProfile::heavyProfile):
+        (KJS::HeavyProfile::treeProfile):
+        * profiler/Profile.cpp: Removed old commented out includes.
+        * profiler/Profile.h: The m_head is needed by the HeavyProfile so it
+        is now protected as opposed to private.
+        * profiler/ProfileNode.cpp:
+        (KJS::ProfileNode::ProfileNode): Created a constructor to copy
+        ProfileNodes.
+        (KJS::ProfileNode::findChild): Added a null check to make HeavyProfile
+        children finding easier and avoid a potential crasher.
+        * profiler/ProfileNode.h: Mostly moved things around but also added some
+        functionality needed by HeavyProfile.
+        (KJS::ProfileNode::create):
+        (KJS::ProfileNode::functionName):
+        (KJS::ProfileNode::url):
+        (KJS::ProfileNode::lineNumber):
+        (KJS::ProfileNode::head):
+        (KJS::ProfileNode::setHead):
+        (KJS::ProfileNode::setNextSibling):
+        (KJS::ProfileNode::actualTotalTime):
+        (KJS::ProfileNode::actualSelfTime):
+        * profiler/TreeProfile.cpp: Implemented the ability to get a
+        HeavyProfile.
+        (KJS::TreeProfile::heavyProfile):
+        * profiler/TreeProfile.h:
+
 2008-07-09  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Oliver Hunt.

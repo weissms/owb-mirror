@@ -12,6 +12,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSCustomVoidCallback.cpp
     bindings/js/JSCustomXPathNSResolver.cpp
     bindings/js/JSDocumentCustom.cpp
+    bindings/js/JSDocumentFragmentCustom.cpp
 #    bindings/js/JSDOMApplicationCacheCustom.cpp
     bindings/js/JSDOMBinding.cpp
     bindings/js/JSDOMWindowBase.cpp
@@ -51,6 +52,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSNodeFilterCustom.cpp
     bindings/js/JSNodeIteratorCustom.cpp
     bindings/js/JSNodeListCustom.cpp
+    bindings/js/JSNSResolver.cpp
     bindings/js/JSQuarantinedObjectWrapper.cpp
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginArrayCustom.cpp

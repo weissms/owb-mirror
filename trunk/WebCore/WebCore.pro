@@ -247,6 +247,7 @@ IDL_BINDINGS += \
     css/Rect.idl \
     css/StyleSheet.idl \
     css/StyleSheetList.idl \
+    css/WebKitCSSTransformValue.idl \
     dom/Attr.idl \
     dom/CharacterData.idl \
     dom/Clipboard.idl \
@@ -384,6 +385,7 @@ SOURCES += \
     bindings/js/JSCustomVoidCallback.cpp \
     bindings/js/JSCustomXPathNSResolver.cpp \
     bindings/js/JSDocumentCustom.cpp \
+    bindings/js/JSDocumentFragmentCustom.cpp \
     bindings/js/JSDOMWindowBase.cpp \
     bindings/js/JSDOMWindowCustom.cpp \
     bindings/js/JSDOMWindowShell.cpp \
@@ -419,6 +421,7 @@ SOURCES += \
     bindings/js/JSNodeFilterCustom.cpp \
     bindings/js/JSNodeIteratorCustom.cpp \
     bindings/js/JSNodeListCustom.cpp \
+    bindings/js/JSNSResolver.cpp \
     bindings/js/JSQuarantinedObjectWrapper.cpp \
     bindings/js/JSRGBColor.cpp \
     bindings/js/JSStyleSheetCustom.cpp \
@@ -483,7 +486,6 @@ SOURCES += \
     css/CSSStyleSelector.cpp \
     css/CSSStyleSheet.cpp \
     css/CSSTimingFunctionValue.cpp \
-    css/CSSTransformValue.cpp \
     css/CSSUnicodeRangeValue.cpp \
     css/CSSValueList.cpp \
     css/CSSVariableDependentValue.cpp \
@@ -501,6 +503,7 @@ SOURCES += \
     css/StyleList.cpp \
     css/StyleSheet.cpp \
     css/StyleSheetList.cpp \
+    css/WebKitCSSTransformValue.cpp \
     dom/Attr.cpp \
     dom/Attribute.cpp \
     dom/BeforeTextInsertedEvent.cpp \

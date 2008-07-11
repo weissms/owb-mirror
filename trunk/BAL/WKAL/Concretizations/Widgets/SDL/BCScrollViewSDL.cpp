@@ -532,6 +532,11 @@ void ScrollView::setFrameGeometry(const IntRect& newGeometry)
     geometryChanged();
 }
 
+bool ScrollView::isScrollable()
+{
+    return true; // FIXME : return whether or not the view is scrollable
+}
+
 void ScrollView::addChild(Widget* child)
 {
     child->setContainingWindow(containingWindow());

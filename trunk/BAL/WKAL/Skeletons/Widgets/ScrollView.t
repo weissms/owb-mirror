@@ -237,6 +237,13 @@ namespace WKAL {
         ScrollbarMode hScrollbarMode() const;
 
     /**
+     * Check wether the scrollView is scrollable or not.
+     * @param[out] : a boolean which represent scrollable status for the scrollView.
+     * @code
+     * @endcode
+     */
+        bool isScrollable();
+    /**
      * add child 
      * @param[in] : widget
      * @code
@@ -269,12 +276,21 @@ namespace WKAL {
         void updateContents(const IntRect&, bool now = false);
 
     /**
+     * Update a part of the scrollView.
+     * @param[in] : The region to update.
+     * @param[in] : a boolean which forces an immediate update when sets to true.
+     * @code
+     * @endcode
+     */
+        void updateWindowRect(const IntRect&, bool now = false);
+    /**
      * update
      * @code
      * s->update();
      * @endcode
      */
         void update();
+    
 
     /**
      * Event coordinates are assumed to be in the coordinate space of a window that contains
@@ -342,15 +358,6 @@ namespace WKAL {
         bool inWindow() const;
 
     /**
-     * For platforms that need to hit test scrollbars from within the engine's event handlers (like Win32).
-     * @param[in] : mouse event
-     * @param[out] : platform scrollbar
-     * @code
-     * PlatformScrollbar *sc = s->scrollbarUnderMouse(me);
-     * @endcode
-     */
-        PlatformScrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
-    /**
      * should update when offscreen
      * @param[out] : status
      * @code
@@ -359,6 +366,15 @@ namespace WKAL {
      */
         virtual bool shouldUpdateWhenOffscreen() const = 0;
     
+    /**
+     * For platforms that need to hit test scrollbars from within the engine's event handlers (like Win32).
+     * @param[in] : mouse event
+     * @param[out] : platform scrollbar
+     * @code
+     * PlatformScrollbar *sc = s->scrollbarUnderMouse(me);
+     * @endcode
+     */
+        PlatformScrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
 
     /**
      * This method exists for scrollviews that need to handle wheel events manually.
@@ -520,6 +536,4 @@ inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
 } // namespace WKAL
 
 #endif // ScrollView_h
-
-
 

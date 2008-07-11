@@ -26,6 +26,8 @@
 #include "config.h"
 #include "TreeProfile.h"
 
+#include "HeavyProfile.h"
+
 namespace KJS {
 
 PassRefPtr<TreeProfile> TreeProfile::create(const UString& title)
@@ -40,7 +42,10 @@ TreeProfile::TreeProfile(const UString& title)
 
 Profile* TreeProfile::heavyProfile()
 {
-    return this;    // FIXME: When you've implemented heavy profiles replace this.
+    if (!m_heavyProfile)
+        m_heavyProfile = HeavyProfile::create(this);
+
+    return m_heavyProfile.get();
 }
 
 } // namespace KJS

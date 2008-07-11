@@ -41,6 +41,8 @@
 #include "XBMImageDecoder.h"
 #endif
 
+#include <cstdio>
+
 namespace WKAL {
 
 ImageDecoder* createDecoder(const Vector<char>& data)

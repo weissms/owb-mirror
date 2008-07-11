@@ -10,6 +10,8 @@
 #define IDR_ZOOM_IN_CURSOR              6
 #define IDR_ZOOM_OUT_CURSOR             7
 #define IDR_VERTICAL_TEXT_CURSOR        8
+#define IDR_PAN_SCROLL_ICON             9
+#define IDC_STATIC                      -1
 
 #define BUILD_NUMBER                    1
 
@@ -17,7 +19,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        6
+#define _APS_NEXT_RESOURCE_VALUE        12
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101

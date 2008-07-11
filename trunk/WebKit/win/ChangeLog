@@ -1,3 +1,30 @@
+2008-07-11  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix.
+
+        * WebKit.vcproj/Interfaces.vcproj:
+
+2008-07-10  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebKit.vcproj/resource.h: Revert some changes that VS made to this
+        file in r35083.
+
+2008-07-09  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Adele.
+       
+        Added the panning icon in the ressources.
+        Its name is compass.png to make a difference with moveCursor.png (from the WebCore ressources)
+
+        * ChangeLog:
+        * WebKit.vcproj/WebKit.rc:
+        * WebKit.vcproj/panIcon.png: Added.
+        * WebKit.vcproj/resource.h:
+        * WebKitDLL.cpp: Declared the new ressource with the name "panIcon"
+        (loadResourceIntoBuffer):
+
 2008-07-04  Dan Bernstein  <mitz@apple.com>
 
         - try to fix the Windows build

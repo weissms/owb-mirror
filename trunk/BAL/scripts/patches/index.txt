@@ -25,6 +25,6 @@
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURL.patch
 ../../OWBAL/Concretizations/Internationalization/WK/BCTextEncodingWK.cpp	0:TextEncoding.patch
 ../../Base/wtf/Platform.h	0:Platform.patch
-../../WKAL/Concretizations/Graphics/Cairo/BCImageSourceCairo.cpp	0:ImageSourceCairo.patch
+../../WKAL/Concretizations/Graphics/Cairo/BCImageSourceCairo.cpp	_:ImageSourceCairo.patch
 ../../WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp	0:ResourceHandleManager.patch
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURLI18N.patch

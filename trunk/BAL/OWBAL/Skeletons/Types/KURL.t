@@ -370,6 +370,15 @@ public:
      * @endcode
      */
     void setRef(const String&);
+    /**
+     *  removeRef description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void removeRef();
+    
 
     /**
      *  equalIgnoringRef description
@@ -722,7 +731,6 @@ inline bool operator!=(const String& a, const KURL& b);
 }
 
 #endif // KURL_h
-
 
 
 

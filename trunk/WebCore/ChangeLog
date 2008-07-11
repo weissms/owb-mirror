@@ -1,3 +1,771 @@
+2008-07-11  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Add support for NSResolver to resolve namespaces for querySelector 
+        and querySelectorAll.
+
+        - Namespace resolution is done after parsing by iterating over all the
+          parts of the CSSSelector.
+
+        Tests: fast/dom/SelectorAPI/NSResolver-basic.xhtml
+               fast/dom/SelectorAPI/NSResolver-exceptions.xhtml
+
+        * GNUmakefile.am: Updated with new files.
+        * WebCore.pro: Ditto.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+        * WebCoreSources.bkl: Ditto.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::execStateFromNode):
+        * bindings/js/JSDOMBinding.h:
+        Move execStateFromNode here from NodeFilter.
+
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::querySelector): Don't throw a NOT_SUPPORTED_ERR for NSResolver
+        and instead create one if the argument is not undefined or null.
+        (WebCore::JSDocument::querySelectorAll): Ditto.
+        * bindings/js/JSDocumentFragmentCustom.cpp:
+        (WebCore::JSDocumentFragment::querySelector): Ditto.
+        (WebCore::JSDocumentFragment::querySelectorAll): Ditto.
+        * bindings/js/JSElementCustom.cpp:
+        (WebCore::JSElement::querySelector): Ditto.
+        (WebCore::JSElement::querySelectorAll): Ditto.
+
+        * bindings/js/JSNSResolver.cpp: Added.
+        (WebCore::JSNSResolver::JSNSResolver):
+        (WebCore::JSNSResolver::mark):
+        (WebCore::JSNSResolver::lookupNamespaceURI): Try and get the function
+        from the passed in argument, either the value itself, or the result of
+        getting the lookupNamespaceURI property, and call it.
+        (WebCore::toNSResolver):
+        * bindings/js/JSNSResolver.h: Added.
+        (WebCore::JSNSResolver::create):
+
+        * dom/Document.idl: Update with NSResolver parameter.
+        * dom/DocumentFragment.idl: Ditto.
+        * dom/Element.idl: Ditto.
+
+        * dom/NSResolver.h: Added.
+        (WebCore::NSResolver::~NSResolver):
+        (WebCore::NSResolver::mark):
+        Abstract base class.
+
+        * dom/NSResolver.idl: Added.
+
+        * dom/Node.cpp:
+        (WebCore::forEachTagSelector):
+        (WebCore::forEachSelector):
+        Functions to iterate over all parts of the selector.
+
+        (WebCore::SelectorNeedsNamespaceResolutionFunctor::operator()):
+        Functor to be passed to forEachSelector to determine if a selector
+        needs namespace resolution, for the case when no NSResolver is passed
+        and we need to determine whether to throw a NAMESPACE_ERR.
+
+        (WebCore::ResolveNamespaceFunctor::ResolveNamespaceFunctor):
+        (WebCore::ResolveNamespaceFunctor::operator()):
+        Functor to resolve namespaces for the selector.
+
+        (WebCore::selectorNeedsNamespaceResolution):
+        (WebCore::resolveNamespacesForSelector):
+        (WebCore::Node::querySelector): Resolve namepspaces, including the defaultNamespace
+        if a NSResolver is passed in.
+        (WebCore::Node::querySelectorAll): Ditto.
+        * dom/Node.h:
+
+        * dom/NodeFilter.cpp:
+        * dom/NodeFilter.h:
+        * dom/NodeIterator.h:
+        (WebCore::NodeIterator::nextNode):
+        (WebCore::NodeIterator::previousNode):
+        * dom/TreeWalker.h:
+        (WebCore::TreeWalker::parentNode):
+        (WebCore::TreeWalker::firstChild):
+        (WebCore::TreeWalker::lastChild):
+        (WebCore::TreeWalker::previousSibling):
+        (WebCore::TreeWalker::nextSibling):
+        (WebCore::TreeWalker::previousNode):
+        (WebCore::TreeWalker::nextNode):
+        Use the version of execStateFromNode in JSDOMBinding.
+
+2008-07-10  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Define WEBKIT_VERSION_MIN_REQUIRED=WEBKIT_VERSION_LATEST when building WebKit to ensure that no symbols end up with the weak_import attribute.
+
+        * Configurations/WebCore.xcconfig:
+
+2008-07-10  Dean Jackson  <dino@apple.com>
+
+        Reviewed by hyatt.
+
+        Calculate computed style for -webkit-transform property
+        https://bugs.webkit.org/show_bug.cgi?id=19864
+
+        Test: css3/transform-computed-style-001.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::computedTransform):
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+            handles -webkit-transform property now
+        * manual-tests/computed-transform-value.html: Added.
+
+2008-07-10  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        - fix a parse error in inspector.js
+
+        * page/inspector/inspector.js: Added missing brace.
+
+2008-07-10  Adam Roben  <aroben@apple.com>
+
+        Build fix
+
+        * WebCore.vcproj/QTMovieWin.vcproj: Add
+        OSXCompatibilityHeaders[/GNUCompatibility] to the include path.
+
+2008-07-10  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        <rdar://problem/6067408> AX: internal anchors broken
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::internalLinkElement):
+        * platform/KURL.cpp:
+        (WebCore::KURL::removeRef):
+        * platform/KURL.h:
+
+2008-07-10  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * bridge/npapi.h: Remove extra comma.
+
+2008-07-10  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Remove no-op debug method.
+
+        * css/CSSSelector.cpp:
+        * css/CSSSelector.h:
+
+2008-07-10  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dave Hyatt and Darin Adler.
+
+        Add support for calling querySelector and querySelectorAll on DocumentFragments
+
+        - Fixes bug where nodes not in the document tree would not match based on ID due
+          to over optimization.
+
+        Test: fast/dom/SelectorAPI/detached-element.html
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/JSDocumentFragmentCustom.cpp: Added.
+        (WebCore::JSDocumentFragment::querySelector): Add custom code matching JSElement
+        and JSDocument that checks for a 2nd arguments and throws an exception indicating
+        we do not currently support the optional NSResolver part of the Selectors API spec.
+        (WebCore::JSDocumentFragment::querySelectorAll): Ditto.
+        * dom/DocumentFragment.idl: Add querySelector and querySelectorAll declarations.
+
+        * dom/Node.cpp:
+        (WebCore::Node::querySelector): Make the CSS parser parse the selector
+        according to the strictness of the document so that mixed case ID selectors
+        match in quirks mode.  Also, don't use the fast ID path if the root is not
+        in the DOM tree, as it won't work.
+        (WebCore::Node::querySelectorAll): Ditto.
+        * dom/SelectorNodeList.cpp:
+        (WebCore::createSelectorNodeList): Don't use the fast ID path if the root is not
+        in the DOM tree, as it won't work.
+
+2008-07-10  Anthony Ricaud  <rik24d@gmail.com>
+
+        Bug 19389: querySelectorAll exception while searching invalid CSS selector
+        <https://bugs.webkit.org/show_bug.cgi?id=19389>
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/inspector.js: Added a try/catch block.
+
+2008-07-10  Brent Fulgham  <bfulgham@gmail.com>
+
+        Correct a build regression due to an uninitialized variable.
+
+        <https://bugs.webkit.org/show_bug.cgi?id=19976>
+
+        Reviewed by Darin.
+
+        * platform/graphics/cairo/FontCairo.cpp:
+        (WebCore::Font::drawGlyphs):
+
+2008-07-10  Adam Roben  <aroben@apple.com>
+
+        Fix Bug 19580: REGRESSION (r34432): PGO-only crash in
+        HTMLCollection::resetCollectionInfo (codegen issue?)
+
+        <https://bugs.webkit.org/show_bug.cgi?id=19580>
+        <rdar://6029794>
+
+        Reviewed by Cameron Zwarich.
+
+        * WebCore.vcproj/WebCore.vcproj: Disable LTCG for HTMLFormElement.cpp,
+        which was causing some bad codegen in HTMLFormElement::elements.
+        * html/HTMLFormElement.cpp: Touched this file to force it to rebuild.
+
+2008-07-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Jon.
+
+        <rdar://problem/6067135>
+        WebKit should respond true to a query for NPNVSupportsWindowless.
+        
+        Handle NPNVSupportsWindowless and return true.
+        
+        * bridge/npapi.h:
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::getValue):
+
+2008-07-10  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Darin.
+
+        -Minor cleanup. Renamed callTree() to head() and no longer use m_head
+        directly but instead keep it private and access via a method().
+
+        * page/JavaScriptProfile.cpp:
+        (WebCore::getHeadCallback):
+
+2008-07-10  Simon Fraser  <simon.fraser@apple.com>
+
+        When a mask image changes, ensure that elements
+        that use that mask image are repainted correctly.
+        
+        <https://bugs.webkit.org/show_bug.cgi?id=19954>
+        
+        Reviewed by Dave Hyatt
+
+        * manual-tests/canvas-mask-redraw.html
+          Manual testcase
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::imageChanged):
+        (WebCore::RenderBox::repaintLayerRectsForImage):
+        * rendering/RenderBox.h:
+        Loop through background layers and mask layers, and
+        if this image is used in a layer, compute a repaint
+        rect and repaint.
+        * rendering/RenderImage.cpp:
+        (WebCore::RenderImage::imageChanged):
+        If this image has a mask, call the base class method.
+        * rendering/RenderObject.cpp:
+        Remove a bogus 'return'.
+
+2008-07-10  Simon Fraser  <simon.fraser@apple.com>
+
+        Transforms create a containing block, so
+        RenderLayer::shouldBeOverflowOnly() needs to look for transforms.
+        <https://bugs.webkit.org/show_bug.cgi?id=18886>
+        
+        Reviewed by Dave Hyatt
+
+        Test: fast/transforms/transform-overflow.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::shouldBeOverflowOnly):
+
+2008-07-09  Alex Mathews  <possessedpenguinbob@gmail.com>
+
+        Reviewed by Oliver Hunt.
+
+        bug 19835: WebKit needs cross-platform filter system
+        <https://bugs.webkit.org/show_bug.cgi?id=19835>
+
+        More class refactoring in preparation for cross-platform filter 
+        implementation.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * rendering/SVGRenderTreeAsText.h:
+        (WebCore::operator<<):
+        * svg/FilterEffect.cpp:
+        (WebCore::FilterEffect::externalRepresentation):
+        * svg/FilterEffect.h:
+        * svg/SVGFEBlendElement.cpp:
+        (WebCore::SVGFEBlendElement::build):
+        * svg/SVGFEBlendElement.h:
+        * svg/SVGFEColorMatrixElement.cpp:
+        (WebCore::SVGFEColorMatrixElement::build):
+        * svg/SVGFEColorMatrixElement.h:
+        * svg/SVGFEComponentTransferElement.cpp:
+        (WebCore::SVGFEComponentTransferElement::build):
+        * svg/SVGFEComponentTransferElement.h:
+        * svg/SVGFECompositeElement.cpp:
+        (WebCore::SVGFECompositeElement::build):
+        * svg/SVGFECompositeElement.h:
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        (WebCore::SVGFEDiffuseLightingElement::filterEffect):
+        (WebCore::SVGFEDiffuseLightingElement::build):
+        (WebCore::SVGFEDiffuseLightingElement::findLights):
+        * svg/SVGFEDiffuseLightingElement.h:
+        * svg/SVGFEDisplacementMapElement.cpp:
+        (WebCore::SVGFEDisplacementMapElement::SVGFEDisplacementMapElement):
+        (WebCore::SVGFEDisplacementMapElement::stringToChannel):
+        (WebCore::SVGFEDisplacementMapElement::filterEffect):
+        (WebCore::SVGFEDisplacementMapElement::build):
+        * svg/SVGFEDisplacementMapElement.h:
+        * svg/SVGFEFloodElement.cpp:
+        (WebCore::SVGFEFloodElement::filterEffect):
+        (WebCore::SVGFEFloodElement::build):
+        * svg/SVGFEFloodElement.h:
+        (WebCore::SVGFEFloodElement::contextElement):
+        * svg/SVGFEGaussianBlurElement.cpp:
+        (WebCore::SVGFEGaussianBlurElement::filterEffect):
+        (WebCore::SVGFEGaussianBlurElement::build):
+        * svg/SVGFEGaussianBlurElement.h:
+        * svg/SVGFEImageElement.cpp:
+        (WebCore::SVGFEImageElement::filterEffect):
+        (WebCore::SVGFEImageElement::build):
+        * svg/SVGFEImageElement.h:
+        * svg/SVGFEMergeElement.cpp:
+        (WebCore::SVGFEMergeElement::filterEffect):
+        (WebCore::SVGFEMergeElement::build):
+        * svg/SVGFEMergeElement.h:
+        (WebCore::SVGFEMergeElement::contextElement):
+        * svg/SVGFEOffsetElement.cpp:
+        (WebCore::SVGFEOffsetElement::filterEffect):
+        (WebCore::SVGFEOffsetElement::build):
+        * svg/SVGFEOffsetElement.h:
+        * svg/SVGFESpecularLightingElement.cpp:
+        (WebCore::SVGFESpecularLightingElement::filterEffect):
+        (WebCore::SVGFESpecularLightingElement::findLights):
+        (WebCore::SVGFESpecularLightingElement::build):
+        * svg/SVGFESpecularLightingElement.h:
+        * svg/SVGFETileElement.cpp:
+        (WebCore::SVGFETileElement::filterEffect):
+        (WebCore::SVGFETileElement::build):
+        * svg/SVGFETileElement.h:
+        * svg/SVGFETurbulenceElement.cpp:
+        (WebCore::SVGFETurbulenceElement::SVGFETurbulenceElement):
+        (WebCore::SVGFETurbulenceElement::parseMappedAttribute):
+        (WebCore::SVGFETurbulenceElement::filterEffect):
+        (WebCore::SVGFETurbulenceElement::build):
+        * svg/SVGFETurbulenceElement.h:
+        * svg/SVGFilterPrimitiveStandardAttributes.h:
+        * svg/graphics/filters/SVGFEConvolveMatrix.cpp:
+        (WebCore::FEConvolveMatrix::FEConvolveMatrix):
+        (WebCore::FEConvolveMatrix::create):
+        (WebCore::FEConvolveMatrix::kernelSize):
+        (WebCore::FEConvolveMatrix::setKernelSize):
+        (WebCore::FEConvolveMatrix::kernel):
+        (WebCore::FEConvolveMatrix::setKernel):
+        (WebCore::FEConvolveMatrix::divisor):
+        (WebCore::FEConvolveMatrix::setDivisor):
+        (WebCore::FEConvolveMatrix::bias):
+        (WebCore::FEConvolveMatrix::setBias):
+        (WebCore::FEConvolveMatrix::targetOffset):
+        (WebCore::FEConvolveMatrix::setTargetOffset):
+        (WebCore::FEConvolveMatrix::edgeMode):
+        (WebCore::FEConvolveMatrix::setEdgeMode):
+        (WebCore::FEConvolveMatrix::kernelUnitLength):
+        (WebCore::FEConvolveMatrix::setKernelUnitLength):
+        (WebCore::FEConvolveMatrix::preserveAlpha):
+        (WebCore::FEConvolveMatrix::setPreserveAlpha):
+        (WebCore::FEConvolveMatrix::apply):
+        (WebCore::FEConvolveMatrix::dump):
+        (WebCore::operator<<):
+        (WebCore::FEConvolveMatrix::externalRepresentation):
+        * svg/graphics/filters/SVGFEConvolveMatrix.h:
+        (WebCore::):
+        * svg/graphics/filters/SVGFEDiffuseLighting.cpp:
+        (WebCore::FEDiffuseLighting::FEDiffuseLighting):
+        (WebCore::FEDiffuseLighting::create):
+        (WebCore::FEDiffuseLighting::~FEDiffuseLighting):
+        (WebCore::FEDiffuseLighting::lightingColor):
+        (WebCore::FEDiffuseLighting::setLightingColor):
+        (WebCore::FEDiffuseLighting::surfaceScale):
+        (WebCore::FEDiffuseLighting::setSurfaceScale):
+        (WebCore::FEDiffuseLighting::diffuseConstant):
+        (WebCore::FEDiffuseLighting::setDiffuseConstant):
+        (WebCore::FEDiffuseLighting::kernelUnitLengthX):
+        (WebCore::FEDiffuseLighting::setKernelUnitLengthX):
+        (WebCore::FEDiffuseLighting::kernelUnitLengthY):
+        (WebCore::FEDiffuseLighting::setKernelUnitLengthY):
+        (WebCore::FEDiffuseLighting::lightSource):
+        (WebCore::FEDiffuseLighting::setLightSource):
+        (WebCore::FEDiffuseLighting::apply):
+        (WebCore::FEDiffuseLighting::dump):
+        (WebCore::FEDiffuseLighting::externalRepresentation):
+        * svg/graphics/filters/SVGFEDiffuseLighting.h:
+        * svg/graphics/filters/SVGFEDisplacementMap.cpp:
+        (WebCore::FEDisplacementMap::FEDisplacementMap):
+        (WebCore::FEDisplacementMap::create):
+        (WebCore::FEDisplacementMap::xChannelSelector):
+        (WebCore::FEDisplacementMap::setXChannelSelector):
+        (WebCore::FEDisplacementMap::yChannelSelector):
+        (WebCore::FEDisplacementMap::setYChannelSelector):
+        (WebCore::FEDisplacementMap::scale):
+        (WebCore::FEDisplacementMap::setScale):
+        (WebCore::FEDisplacementMap::apply):
+        (WebCore::FEDisplacementMap::dump):
+        (WebCore::operator<<):
+        (WebCore::FEDisplacementMap::externalRepresentation):
+        * svg/graphics/filters/SVGFEDisplacementMap.h:
+        (WebCore::):
+        * svg/graphics/filters/SVGFEFlood.cpp:
+        (WebCore::FEFlood::FEFlood):
+        (WebCore::FEFlood::create):
+        (WebCore::FEFlood::floodColor):
+        (WebCore::FEFlood::setFloodColor):
+        (WebCore::FEFlood::floodOpacity):
+        (WebCore::FEFlood::setFloodOpacity):
+        (WebCore::FEFlood::apply):
+        (WebCore::FEFlood::dump):
+        (WebCore::FEFlood::externalRepresentation):
+        * svg/graphics/filters/SVGFEFlood.h:
+        * svg/graphics/filters/SVGFEGaussianBlur.cpp:
+        (WebCore::FEGaussianBlur::FEGaussianBlur):
+        (WebCore::FEGaussianBlur::create):
+        (WebCore::FEGaussianBlur::stdDeviationX):
+        (WebCore::FEGaussianBlur::setStdDeviationX):
+        (WebCore::FEGaussianBlur::stdDeviationY):
+        (WebCore::FEGaussianBlur::setStdDeviationY):
+        (WebCore::FEGaussianBlur::apply):
+        (WebCore::FEGaussianBlur::dump):
+        (WebCore::FEGaussianBlur::externalRepresentation):
+        * svg/graphics/filters/SVGFEGaussianBlur.h:
+        * svg/graphics/filters/SVGFEImage.cpp:
+        (WebCore::FEImage::FEImage):
+        (WebCore::FEImage::create):
+        (WebCore::FEImage::~FEImage):
+        (WebCore::FEImage::cachedImage):
+        (WebCore::FEImage::apply):
+        (WebCore::FEImage::dump):
+        (WebCore::FEImage::externalRepresentation):
+        * svg/graphics/filters/SVGFEImage.h:
+        * svg/graphics/filters/SVGFEMerge.cpp:
+        (WebCore::FEMerge::FEMerge):
+        (WebCore::FEMerge::create):
+        (WebCore::FEMerge::mergeInputs):
+        (WebCore::FEMerge::setMergeInputs):
+        (WebCore::FEMerge::apply):
+        (WebCore::FEMerge::dump):
+        (WebCore::FEMerge::externalRepresentation):
+        * svg/graphics/filters/SVGFEMerge.h:
+        * svg/graphics/filters/SVGFEMorphology.cpp:
+        (WebCore::FEMorphology::FEMorphology):
+        (WebCore::FEMorphology::create):
+        (WebCore::FEMorphology::morphologyOperator):
+        (WebCore::FEMorphology::setMorphologyOperator):
+        (WebCore::FEMorphology::radiusX):
+        (WebCore::FEMorphology::setRadiusX):
+        (WebCore::FEMorphology::radiusY):
+        (WebCore::FEMorphology::setRadiusY):
+        (WebCore::FEMorphology::apply):
+        (WebCore::FEMorphology::dump):
+        (WebCore::operator<<):
+        (WebCore::FEMorphology::externalRepresentation):
+        * svg/graphics/filters/SVGFEMorphology.h:
+        (WebCore::):
+        * svg/graphics/filters/SVGFEOffset.cpp:
+        (WebCore::FEOffset::FEOffset):
+        (WebCore::FEOffset::create):
+        (WebCore::FEOffset::dx):
+        (WebCore::FEOffset::setDx):
+        (WebCore::FEOffset::dy):
+        (WebCore::FEOffset::setDy):
+        (WebCore::FEOffset::apply):
+        (WebCore::FEOffset::dump):
+        (WebCore::FEOffset::externalRepresentation):
+        * svg/graphics/filters/SVGFEOffset.h:
+        * svg/graphics/filters/SVGFESpecularLighting.cpp:
+        (WebCore::FESpecularLighting::FESpecularLighting):
+        (WebCore::FESpecularLighting::create):
+        (WebCore::FESpecularLighting::~FESpecularLighting):
+        (WebCore::FESpecularLighting::lightingColor):
+        (WebCore::FESpecularLighting::setLightingColor):
+        (WebCore::FESpecularLighting::surfaceScale):
+        (WebCore::FESpecularLighting::setSurfaceScale):
+        (WebCore::FESpecularLighting::specularConstant):
+        (WebCore::FESpecularLighting::setSpecularConstant):
+        (WebCore::FESpecularLighting::specularExponent):
+        (WebCore::FESpecularLighting::setSpecularExponent):
+        (WebCore::FESpecularLighting::kernelUnitLengthX):
+        (WebCore::FESpecularLighting::setKernelUnitLengthX):
+        (WebCore::FESpecularLighting::kernelUnitLengthY):
+        (WebCore::FESpecularLighting::setKernelUnitLengthY):
+        (WebCore::FESpecularLighting::lightSource):
+        (WebCore::FESpecularLighting::setLightSource):
+        (WebCore::FESpecularLighting::apply):
+        (WebCore::FESpecularLighting::dump):
+        (WebCore::FESpecularLighting::externalRepresentation):
+        * svg/graphics/filters/SVGFESpecularLighting.h:
+        * svg/graphics/filters/SVGFETile.cpp:
+        (WebCore::FETile::FETile):
+        (WebCore::FETile::create):
+        (WebCore::FETile::apply):
+        (WebCore::FETile::dump):
+        (WebCore::FETile::externalRepresentation):
+        * svg/graphics/filters/SVGFETile.h:
+        * svg/graphics/filters/SVGFETurbulence.cpp:
+        (WebCore::FETurbulence::FETurbulence):
+        (WebCore::FETurbulence::create):
+        (WebCore::FETurbulence::type):
+        (WebCore::FETurbulence::setType):
+        (WebCore::FETurbulence::baseFrequencyY):
+        (WebCore::FETurbulence::setBaseFrequencyY):
+        (WebCore::FETurbulence::baseFrequencyX):
+        (WebCore::FETurbulence::setBaseFrequencyX):
+        (WebCore::FETurbulence::seed):
+        (WebCore::FETurbulence::setSeed):
+        (WebCore::FETurbulence::numOctaves):
+        (WebCore::FETurbulence::setNumOctaves):
+        (WebCore::FETurbulence::stitchTiles):
+        (WebCore::FETurbulence::setStitchTiles):
+        (WebCore::FETurbulence::apply):
+        (WebCore::FETurbulence::dump):
+        (WebCore::operator<<):
+        (WebCore::FETurbulence::externalRepresentation):
+        * svg/graphics/filters/SVGFETurbulence.h:
+        (WebCore::):
+        * svg/graphics/filters/cg/SVGFEDiffuseLightingCg.mm:
+        * svg/graphics/filters/cg/SVGFEDisplacementMapCg.mm:
+        * svg/graphics/filters/cg/SVGFEFloodCg.mm:
+        * svg/graphics/filters/cg/SVGFEGaussianBlurCg.mm:
+        * svg/graphics/filters/cg/SVGFEHelpersCg.h:
+        * svg/graphics/filters/cg/SVGFEHelpersCg.mm:
+        (WebCore::getVectorForChannel):
+        * svg/graphics/filters/cg/SVGFEImageCg.mm:
+        * svg/graphics/filters/cg/SVGFEMergeCg.mm:
+        * svg/graphics/filters/cg/SVGFEOffsetCg.mm:
+        * svg/graphics/filters/cg/SVGFESpecularLightingCg.mm:
+        * svg/graphics/filters/cg/SVGFETileCg.mm:
+
+2008-07-09  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Don't warn about deprecated functions in production builds.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+
+2008-07-09  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin
+
+        <rdar://problem/5823684> - Crash manipulating frame tree of a new frame before the new frame
+        has been installed in a frame tree.
+
+        The root of this problem was that calling init() on a new frame could end up calling arbitrary
+        javascript that might end up removing the frame from the tree.  This opened up a small can of worms
+        such as the frame not having yet been installed in its frame tree, and other assumed behavior while
+        destroying the frame.
+
+        Test: fast/loader/frame-creation-removal.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::endIfNotLoadingMainResource):  If the frame doesn't have a page, don't close up
+          the document and parser because they don't exist, and this frame is on its way out.
+        (WebCore::FrameLoader::finishedParsing):  We can't rely on the refCount check to discover "am I being deleted?"
+          because we no longer store refCounts of 0.  The new check is "do I have a FrameView?" while will always be
+          false if the Frame is being destroyed.
+
+2008-07-09  Dean Jackson  <dino@apple.com>
+
+        Changed to use the correct license in header comment (via Darin)
+
+        * css/WebKitCSSTransformValue.idl:
+
+2008-07-09  Dean Jackson  <dino@apple.com>
+
+        Add DOM interface for WebKitCSSTransformValue.
+        https://bugs.webkit.org/show_bug.cgi?id=19863
+
+        Reviewed by Hyatt.
+
+        * bindings/objc/DOMInternal.h:
+        * css/WebKitCSSTransformValue.idl: Added.
+
+        * bindings/scripts/CodeGeneratorObjC.pm:
+            make sure new class inherits from CSSValue not Node
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+            Adding new generated files
+
+2008-07-09  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Adele.
+
+        http://bugs.webkit.org/show_bug.cgi?id=14227
+        Add the middle click panning feature to the windows release.
+        Details on almost each method below.
+        Manual test is included in the patch.
+
+        * ChangeLog:
+        * WebCore.vcproj/WebCore.vcproj:
+        * manual-tests/panScroll.html: Added.
+        * manual-tests/resources/big-page.html: Added.
+        * page/EventHandler.cpp: Added the panScroll start/stop handlers and adapted the autoscroll for both to share some functions.
+        (WebCore::EventHandler::EventHandler): Initialize the new class members for the panScroll
+        (WebCore::EventHandler::handleMouseDraggedEvent): Prevent the autoscroll to trigger if the panScroll is in progress
+        (WebCore::EventHandler::handleMouseReleaseEvent): Prevent the autoscroll to stop the panScroll on mouse release
+        (WebCore::EventHandler::handleAutoscroll): Added the specific calls for the panScroll (save mouse position, draw the panScroll icon) to the shared code
+        (WebCore::EventHandler::autoscrollTimerFired): Specify the calls to perform for each function (autoscroll and panScroll)
+        (WebCore::EventHandler::stopAutoscrollTimer): Specify the calls to perform for each function (autoscroll and panScroll)
+        (WebCore::EventHandler::handleMousePressEvent): Trigger for the panScroll. Test is the button is the middle button and try to find a renderer where the panScroll is possible. If it finds one, it calls the handleAutoscroll method.
+        * page/EventHandler.h:
+        (WebCore::EventHandler::panScrollInProgress): Getter used by the sub frames's EventHandler to notice the main frame EventHandler
+        (WebCore::EventHandler::setPanScrollInProgress): Setter used by the sub frames's EventHandler to notice the main frame EventHandler
+        * platform/ScrollView.h: Added a method used by the RenderObject to test if the view can be scrolled. Added the print/remove panScroll icon methods between the windows platform flags
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::isScrollable): Not implemented : returns true
+        * platform/mac/ScrollViewMac.mm: Implemented because it was useful for the autoscroll feature.
+        (WebCore::ScrollView::isScrollable):
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::isScrollable): Not implemented : returns true
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::ScrollViewPrivate::ScrollViewPrivate): Added a boolean and an IntPoint to draw the icon.
+        (WebCore::ScrollView::ScrollViewPrivate::scrollBackingStore): If the icon must be drawn, define the rect to invalidate to erase the previous icon and to display the new one.
+        (WebCore::ScrollView::updateContents): I split this method to be able to invalidate a rect with window coordinates instead of contents coordinates. This function now converts the contents coord in window coord and calls the new updateWindowRect() method  
+        (WebCore::ScrollView::updateWindowRect): New method which performs the work that was doing the end of the old updateContents : invalidate a rect with window coordinates
+        (WebCore::ScrollView::isScrollable): checks is the view has scrollbars
+        (WebCore::ScrollView::printPanScrollIcon): sets the boolean and the IntPoint for the icon. Invalidate his rect and ask for repaint.
+        (WebCore::ScrollView::removePanScrollIcon): sets the boolean to false. Invalidate his rect and ask for repaint.
+        (WebCore::ScrollView::paint): Modified to draw the icon if needed.
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::isScrollable): Not implemented : returns true
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::panScrollFromPoint): Receives the Middle click location and retrieves the currentMouse position from the EventHandler. With these informations it computes the direction to scroll to and the speed then calls for the final scroll.
+        * rendering/RenderLayer.h:
+        * rendering/RenderListBox.cpp: Adapt the panScroll to the ListBox object to scroll by lines instead of pixels
+        (WebCore::RenderListBox::panScroll):
+        (WebCore::RenderListBox::scrollToward):
+        (WebCore::RenderListBox::autoscroll):
+        * rendering/RenderListBox.h:
+        (WebCore::RenderListBox::shouldPanScroll):
+        * rendering/RenderObject.cpp: 
+        (WebCore::RenderObject::shouldAutoscroll): Improved the verification to avoid triggering the autoscroll/panScroll when the root object can't scroll
+        (WebCore::RenderObject::panScroll): Calls the RenderLayer's panScrollFromPoint() method
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::stopPanScroll): 
+
+2008-07-09  Dean Jackson  <dino@apple.com>
+
+        Rename CSSTransformValue to WebKitCSSTransformValue as it is non-standard for
+        the moment. Also, WebKitCSSTransformValue is a CSSValueList (comma sep)
+        https://bugs.webkit.org/show_bug.cgi?id=19861
+
+        Reviewed by Hyatt
+
+        * css/CSSParser.cpp:
+        * css/CSSStyleSelector.cpp:
+        * css/CSSTransformValue.cpp: Removed.
+        * css/CSSTransformValue.h: Removed.
+        * css/CSSValueList.h:
+        * css/WebKitCSSTransformValue.cpp: Added.
+        * css/WebKitCSSTransformValue.h: Added.
+
+        * GNUmakefile.am:
+        * WebCore.order:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+            updated for new file names
+        
+
+2008-07-09  David Hyatt  <hyatt@apple.com>
+
+        Switch transitions back to a "destination" model as far as choosing which transitions should apply on a style
+        change.  Preserve the behavior of allowing stale transitions (in the absence of property changes) to run to
+        completion.
+
+        Reviewed by Dean
+
+        * manual-tests/transitions.html:
+        * manual-tests/transitions2.html:
+        * page/AnimationController.cpp:
+        (WebCore::ImplicitAnimation::reset):
+        (WebCore::CompositeImplicitAnimation::animate):
+        (WebCore::AnimationControllerPrivate::get):
+        (WebCore::AnimationController::updateImplicitAnimations):
+
+2008-07-09  Michelangelo De Simone  <m.des@mac.com>
+
+        Reviewed by Adele.
+
+        Added the virtual function Node::isTextControl() in order to simplify text field and textarea checks.
+
+        * css/CSSStyleSelector.cpp: (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        Clean up in PseudoReadOnly and PseudoReadWrite cases removing unnecessary checks and casts in favor of the sole isTextControl() check.
+        * dom/Node.h: Added base isTextControl().
+        * html/HTMLInputElement.h: Added isTextControl() which wraps HTMLInputElement::isTextField().
+        * html/HTMLTextAreaElement.h: Added isTextControl().
+
+2008-07-09  Rob Buis  <buis@kde.org>
+
+        Reviewed by Eric.
+
+        https://bugs.webkit.org/show_bug.cgi?id=15431
+        SVGRenderStyle should store pre-modified resource URIs
+
+        Store pre-modified resource URIs to decrease string
+        operations during layout/rendering.
+
+        * css/SVGCSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applySVGProperty):
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::absoluteClippedOverflowRect):
+        (WebCore::RenderPath::drawMarkersIfNeeded):
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::selfWillPaint):
+        (WebCore::RenderSVGContainer::absoluteClippedOverflowRect):
+        * rendering/RenderSVGImage.cpp:
+        (WebCore::RenderSVGImage::calculateAbsoluteBounds):
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::paint):
+        (WebCore::RenderSVGRoot::absoluteClippedOverflowRect):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::absoluteClippedOverflowRect):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::prepareToRenderSVGContent):
+
+2008-07-09  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mitz.
+
+        Remove an unused instance variable.
+
+        * loader/DocumentLoader.h:
+
+2008-07-09  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - remove unused #includes
+
+        * dom/XMLTokenizer.cpp:
+        * html/PreloadScanner.cpp:
+        * loader/CachedCSSStyleSheet.cpp:
+        * loader/CachedScript.cpp:
+        * loader/CachedXBLDocument.cpp:
+        * loader/CachedXSLStyleSheet.cpp:
+        * page/mac/FrameMac.mm:
+        * xml/XSLTProcessor.cpp:
+
 2008-07-09  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Oliver Hunt.
