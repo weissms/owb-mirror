@@ -43,7 +43,6 @@
 
 namespace WKAL {
 
-
 class CString;
 class DocumentFragment;
 class Frame;

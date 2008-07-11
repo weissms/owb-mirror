@@ -34,6 +34,7 @@
 #include "Frame.h"
 #include "PlatformString.h"
 #include "Image.h"
+#include "Range.h"
 #include "RenderImage.h"
 #include "KURL.h"
 #include "markup.h"

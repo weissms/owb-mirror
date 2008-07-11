@@ -1,6 +1,14 @@
 2008-07-11  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.
+        Fix build for Windows (see bug #263)
+
+        * WKAL/Concretizations/Widgets/SDL/BCPasteboardSDL.cpp:
+        * WKAL/Concretizations/Widgets/SDL/BCPasteboardSDL.h:
+
+2008-07-11  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
         fix BCCursorSDL.cpp to fit C++ coding standards (bug #262)
 
         * WKAL/Concretizations/Widgets/SDL/BCCursorSDL.cpp:
