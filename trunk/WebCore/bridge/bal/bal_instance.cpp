@@ -193,7 +193,11 @@ JSValue* BalInstance::defaultValue(ExecState* exec, JSType hint) const
 JSValue* BalInstance::stringValue(ExecState* exec) const
 {
     char buf[1024];
+#if COMPILER(MSVC)
+    _snprintf(buf, sizeof(buf), "BalObject %p (%s)", m_object, m_class->name());
+#else
     snprintf(buf, sizeof(buf), "BalObject %p (%s)", m_object, m_class->name());
+#endif
     return jsString(exec, buf);
 }
 
