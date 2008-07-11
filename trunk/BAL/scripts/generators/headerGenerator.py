@@ -453,16 +453,17 @@ for line in f:
                                 #add the new method in oldFile
                                 #posp = oldFile.find(oldMethod[i-1])
                                 pos = oldFile.find(oldMethod[i])
-                                #if oldFile.find('public:', posp, pos) != -1 or oldFile.find('private:', posp, pos) != -1 or oldFile.find('protected:', posp, pos) != -1 :
-                                    #pos = posp
-                                p = oldFile.rfind(';', 0, pos)
-                                test = oldFile[oldFile.rfind('\n', 0, p):p]
-                                while test.strip()[0] == '*' :
-                                    p = oldFile.find(';', p+1)
-                                    test = oldFile[oldFile.rfind('\n', 0, p):p]
-                                #pr = oldFile.rfind('\n', 0, p)
+                                p = oldFile.rfind('/**', 0, pos)
+                                p = oldFile.rfind('\n', 0, p)
+                                
+                                #p = oldFile.rfind(';', 0, pos)
+                                #test = oldFile[oldFile.rfind('\n', 0, p):p]
+                                #while test.strip()[0] == '*' :
+                                #    p = oldFile.find(';', p+1)
+                                #    test = oldFile[oldFile.rfind('\n', 0, p):p]
+                                
                                 out = oldFile[0:p+1]
-                                out += text + '\n    '
+                                out += text + '\n\n'
                                 out += oldFile[p+1:-1]
                                 oldFile = out
                         else :
