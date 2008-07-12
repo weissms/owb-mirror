@@ -1,3 +1,10 @@
+2008-07-12  KIMURA Masaru  <hiyuh.root@gmail.com>
+
+        Reviewed by Mario Bensi.
+        Fix compilation for gcc-4.3.1.
+
+        * WKAL/Concretizations/Graphics/SDL/BCSVGResourceFilterSDL.cpp:
+
 2008-07-11  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.

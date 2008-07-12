@@ -32,6 +32,8 @@
 #include "NotImplemented.h"
 #include "SVGResourceFilter.h"
 
+#include <cstdio>
+
 namespace WKAL {
 
 SVGResourceFilterPlatformData* SVGResourceFilter::createPlatformData()
