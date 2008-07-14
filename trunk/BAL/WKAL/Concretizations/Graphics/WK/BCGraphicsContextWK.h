@@ -269,6 +269,7 @@ namespace WKAL {
 #endif
 
 #if PLATFORM(QT)
+        bool inTransparencyLayer() const;
         void setFillRule(WindRule);
         PlatformPath* currentPath();
 #endif

@@ -50,8 +50,10 @@ Source files for JSCore.
         kjs/BooleanConstructor.cpp
         kjs/BooleanObject.cpp
         kjs/BooleanPrototype.cpp
+        kjs/CallData.cpp
         kjs/collector.cpp
         kjs/CommonIdentifiers.cpp
+        kjs/ConstructData.cpp
         kjs/DateConstructor.cpp
         kjs/DateInstance.cpp
         kjs/DateMath.cpp
@@ -148,6 +150,7 @@ Source files for JSCore.
         wtf/FastMalloc.cpp
         wtf/HashTable.cpp
         wtf/MainThread.cpp
+        wtf/RefCountedLeakCounter.cpp
         wtf/TCSystemAlloc.cpp
         wtf/ThreadingNone.cpp
         wtf/wx/MainThreadWx.cpp

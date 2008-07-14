@@ -228,6 +228,26 @@ namespace WTF {
      */
         pair<iterator, bool> add(const ValueType&);
 
+
+    /**
+     *  insertBefore description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        pair<iterator, bool> insertBefore(const ValueType& beforeValue, const ValueType& newValue);
+
+
+    /**
+     *  insertBefore description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        pair<iterator, bool> insertBefore(iterator it, const ValueType&);
+
     /**
      *  remove description
      * @param[in] : description
@@ -270,6 +290,16 @@ namespace WTF {
      * @endcode
      */
         void appendNode(Node*);
+
+    /**
+     *  insertNodeBefore description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        void insertNodeBefore(Node* beforeNode, Node* newNode);
+
     /**
      *  deleteAllNodes description
      * @param[in] : description
@@ -851,6 +881,26 @@ namespace WTF {
      */
     template<typename T, typename U>     pair<typename ListHashSet<T, U>::iterator, bool> ListHashSet<T, U>::add(const ValueType &value);
 
+
+    /**
+     *  U>::insertBefore description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    template<typename T, typename U>     pair<typename ListHashSet<T, U>::iterator, bool> ListHashSet<T, U>::insertBefore(iterator it, const ValueType& newValue);
+
+
+    /**
+     *  U>::insertBefore description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    template<typename T, typename U>     pair<typename ListHashSet<T, U>::iterator, bool> ListHashSet<T, U>::insertBefore(const ValueType& beforeValue, const ValueType& newValue);
+
     /**
      *  U>::remove description
      * @param[in] : description
@@ -895,6 +945,16 @@ namespace WTF {
      * @endcode
      */
     template<typename T, typename U>     void ListHashSet<T, U>::appendNode(Node* node);
+
+
+    /**
+     *  U>::insertNodeBefore description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    template<typename T, typename U>     void ListHashSet<T, U>::insertNodeBefore(Node* beforeNode, Node* newNode);
 
     /**
      *  U>::deleteAllNodes description
@@ -945,8 +1005,4 @@ namespace WTF {
 
 using WTF::ListHashSet;
 
-#endif /* WTF_ListHashSet_h */
-
-
-
-
+#endif /* WTF_ListHashSet_h *

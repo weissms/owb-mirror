@@ -1,3 +1,61 @@
+2008-07-14  Ada Chan  <adachan@apple.com>
+
+        Windows build fix: Add wtf/RefCountedLeakCounter to the project.
+
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+
+2008-07-12  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk, Qt and Wx build fix: Add wtf/RefCountedLeakCounter in the
+        build scripts
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCoreSources.bkl:
+
+2008-07-11  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Darin Adler and Oliver Hunt.
+
+        Refactor RefCounting Leak counting code into a common class.
+
+        In order to export the symbols I needed to put the debug defines inside the function names
+        
+        Before we had a separate channel for each Logging each Leak type.  Since the leak channels were only used in one location, and only at quit for simplicity I combined them all into one leak channel.
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj: add new class
+        * kjs/nodes.cpp: remove old leak counting code
+        * wtf/RefCountedLeakCounter.cpp: Added. create a common leak counting class
+        * wtf/RefCountedLeakCounter.h: Added.
+
+2008-07-11  David Hyatt  <hyatt@apple.com>
+
+        Add an insertBefore method to ListHashSet to allow for insertions in the middle of the list (rather than just
+        at the end).
+
+        Reviewed by Anders
+
+        * wtf/ListHashSet.h:
+        (WTF::::insertBefore):
+        (WTF::::insertNodeBefore):
+
+2008-07-11  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Darin Adler.
+
+        Move call function to CallData.cpp and construct to ConstructData.cpp.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/CallData.cpp: Copied from kjs/JSValue.cpp.
+        * kjs/ConstructData.cpp: Copied from kjs/JSValue.cpp.
+        * kjs/JSValue.cpp:
+
 2008-07-11  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Sam Weinig.
@@ -3667,7 +3725,6 @@
         * API/NodeList.h:
         * API/testapi.c:
 
->>>>>>> .r34623
 2008-06-16  Alexey Proskuryakov  <ap@webkit.org>
 
         Trying to fix Windows build.

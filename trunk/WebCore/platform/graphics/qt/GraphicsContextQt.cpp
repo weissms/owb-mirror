@@ -35,7 +35,7 @@
 #include "config.h"
 
 #ifdef Q_WS_WIN
-#define <windows.>
+#include <windows.h>
 #endif
 
 #include "AffineTransform.h"
@@ -527,6 +527,11 @@ void GraphicsContext::beginPath()
 void GraphicsContext::addPath(const Path& path)
 {
     m_data->currentPath = *(path.platformPath());
+}
+
+bool GraphicsContext::inTransparencyLayer() const
+{
+    return !m_data->layers.isEmpty();
 }
 
 void GraphicsContext::setFillRule(WindRule rule)

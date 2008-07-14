@@ -1,3 +1,321 @@
+2008-07-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt and Dan Bernstein.
+
+        Fix for <rdar://problem/5888127>
+        https://bugs.webkit.org/show_bug.cgi?id=18699
+
+        - Match Firefox in restricting the size of custom cursor to images to
+          128x128 px.
+        - Restrict custom cursor hotspots to values within the bounds of the
+          cursor image.
+
+        * manual-tests/cursor-max-size.html: Added.
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::selectCursor):
+
+2008-07-13  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix.
+
+        * platform/graphics/wx/AffineTransformWx.cpp:
+        (WebCore::AffineTransform::a):
+        (WebCore::AffineTransform::b):
+        (WebCore::AffineTransform::c):
+        (WebCore::AffineTransform::d):
+        (WebCore::AffineTransform::e):
+        (WebCore::AffineTransform::f):
+
+2008-07-12  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=18088
+          <rdar://problem/6036232> white-space:nowrap; float:left; causing the misalignment issue
+
+        Test: fast/block/basic/min-pref-width-nowrap-floats.html
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::calcInlinePrefWidths): Fixed a case where a
+        float's width was added to the minimum preferred widths instead of just
+        acting as a lower bound on the minimum preferred width (since the float
+        can always be pushed down to be the only thing on the line).
+
+2008-07-12  David D. Kilzer  <ddkilzer@webkit.org>
+
+        Bug 13067: Manually adding #hash to URL reloads entire page instead of jumping to #hash location in cached page
+
+        <https://bugs.webkit.org/show_bug.cgi?id=13067>
+
+        Reviewed by Darin.
+
+        Test: WebCore/manual-tests/hash-ref.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::load(const KURL& newURL, const String& referrer,
+             FrameLoadType newLoadType, const String& frameName, Event* event,
+             PassRefPtr<FormState> formState)): Extracted logic into
+        shouldScrollToAnchor() for determining when to scroll to an anchor.
+
+        (WebCore::FrameLoader::load(DocumentLoader* loader, FrameLoadType type,
+             PassRefPtr<FormState> formState)): Added check for
+        shouldScrollToAnchor() to catch cases when the user manually added a
+        hash ref to the URL in the address bar.  This is the bug fix.
+
+        (WebCore::FrameLoader::shouldReload): Simplified early return logic.
+        We only need to check if the destinationURL has a hash ref, not the
+        currentURL, per the comment in the method.
+
+        (WebCore::FrameLoader::shouldScrollToAnchor): Added.  Logic extracted
+        from the FrameLoader::load(const KURL& newURL, ...) method.  Fixed order
+        of arguments to shouldReload() since they were backwards, although the
+        previous logic in the method made this irrelevant.
+
+        (WebCore::FrameLoader::loadItem): Removed call to shouldReload().  Since
+        we're navigating to a HistoryItem, it doesn't make sense to ask whether
+        we need to reload the page or not.  Additionally, the logic at the end
+        of shouldReload() is also checked in urlsMatchItem(), so there's no need
+        to call the method.  This fixed the fast/css/target-fragment-match.html
+        test from continuously reloading after the other changes.
+
+        * loader/FrameLoader.h:
+        (WebCore::FrameLoader::shouldScrollToAnchor): Added.
+
+        * manual-tests/hash-ref.html: Added.
+        * manual-tests/resources/hash-ref-test.html: Added.
+
+2008-07-11  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Darin Adler.
+
+        No Functionality Changed.  Change all the leak counting code to use the new WTF leak counter class.
+
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::JSCustomSQLTransactionCallback):
+        (WebCore::JSCustomSQLTransactionCallback::~JSCustomSQLTransactionCallback):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::JSEventListener):
+        (WebCore::JSEventListener::~JSEventListener):
+        * dom/Node.cpp:
+        (WebCore::Node::Node):
+        (WebCore::Node::~Node):
+        * dom/Range.cpp:
+        (WebCore::Range::Range):
+        (WebCore::Range::~Range):
+        * history/CachedPage.cpp:
+        (WebCore::CachedPage::CachedPage):
+        (WebCore::CachedPage::~CachedPage):
+        * loader/SubresourceLoader.cpp:
+        (WebCore::SubresourceLoader::SubresourceLoader):
+        (WebCore::SubresourceLoader::~SubresourceLoader):
+        * page/Frame.cpp:
+        (WebCore::Frame::Frame):
+        (WebCore::Frame::~Frame):
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+        (WebCore::Page::~Page):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::RenderObject):
+        (WebCore::RenderObject::~RenderObject):
+        * rendering/bidi.cpp:
+        (WebCore::throw):
+        (WebCore::BidiRun::operator delete):
+
+2008-07-11  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Update getSubStringLength and selectSubString methods exception throwing conditions
+        based on SVG working group errata.
+
+        Test: svg/custom/selectSubString.html
+
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::SVGTextContentElement::getSubStringLength):
+        (WebCore::SVGTextContentElement::selectSubString):
+
+2008-07-11  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        We can only use the Id fast path for querySelector and querySelectorAll
+        if the selector is purely an Id selector.
+
+        Test: fast/dom/SelectorAPI/id-fastpath.html
+
+        * dom/Node.cpp:
+        (WebCore::Node::querySelector):
+        * dom/SelectorNodeList.cpp:
+        (WebCore::createSelectorNodeList):
+
+2008-07-11  David Hyatt  <hyatt@apple.com>
+
+        Implement the DOM level 3 compareDocumentPosition method on Node.
+
+        Reviewed by Darin
+
+        * dom/Node.cpp:
+        (WebCore::Node::compareDocumentPosition):
+        * dom/Node.h:
+        * dom/Node.idl:
+
+2008-07-11  Brady Eidson  <beidson@apple.com>
+
+        Rubberstamped by Sam
+
+        Removed unneeded export
+
+        * WebCore.base.exp:
+
+2008-07-11  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff.
+
+        <rdar://problem/6067178> REGRESSION: Start profile button in profiler
+        now profiles inspector rather than actual page (19833)
+        - The JSQuarantinedObjectWrapper should use the wrapped exec state
+        so that calls to it execute in its quarantined world.
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::construct):
+        (WebCore::JSQuarantinedObjectWrapper::call):
+
+2008-07-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        StyleRareNonInheritedData needs to initialize and compare
+        m_maskBoxImage.
+        <https://bugs.webkit.org/show_bug.cgi?id=20005>
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::StyleRareNonInheritedData::StyleRareNonInheritedData):
+        (WebCore::StyleRareNonInheritedData::operator==):
+
+2008-07-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Bug 18885: RenderLayer::enclosingPositionedAncestor() should
+        look for transforms, since transforms create containing
+        blocks.
+        <https://bugs.webkit.org/show_bug.cgi?id=18885>
+
+        Test: fast/transforms/transform-positioned-ancestor.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::stackingContext):
+        (WebCore::RenderLayer::enclosingPositionedAncestor):
+        (WebCore::RenderLayer::enclosingTransformedAncestor):
+
+2008-07-11  Jacob Refstrup  <jacob.refstrup@hp.com>
+
+        Reviewed by Darin Adler
+
+        http://bugs.webkit.org/show_bug.cgi?id=19978
+        GTK port always ends up with # at the end of resource URLs (and hence can't load files)
+
+        - Optimized KURL::removeRef() and used it rather than setRef("")
+          which after r35040 does the wrong thing.
+
+        * platform/KURL.cpp:
+        (WebCore::KURL::removeRef):
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::ResourceHandleManager::initializeHandle):
+
+2008-07-11  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt/Windows build, include windows.h for HWND directly
+        instead of implicit inclusion through Timer.h.
+
+        * plugins/win/PluginMessageThrottlerWin.h:
+
+2008-07-11  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix popularity tracking for cached resources, which regressed in r23923
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::requestResource): Changed to increase the access count
+        whenever this function returns a CachedResource and the cache is
+        enabled, instead of only when creating a new CachedResources. The
+        incorrect behavior resulted in all resources in the cache having an
+        access count of exactly 1 at all times.
+        (WebCore::Cache::requestUserCSSStyleSheet): Ditto.
+
+2008-07-11  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Enable Netscape plugins for the Qt/Windows build.
+
+        This required various smaller fixes across a wider set of
+        files described below.
+
+        * WebCore.pro: Add various windows specific files to the build.
+        * page/Page.h: Extend the #ifdeffery for windows types to include the
+        Qt/Windows build.
+        * platform/graphics/GraphicsContext.h: Added inTransparencyLayer() for
+        the Qt port, as PluginViewWin.cpp uses it.
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::inTransparencyLayer): Implemented function.
+        * platform/qt/TemporaryLinkStubs.cpp: Mask out some stubs as they
+        are now implemented through *Win.cpp files.
+        * plugins/PluginDatabase.cpp: Change PLATFORM(WIN) to WIN_OS.
+        * plugins/PluginView.cpp: Change PLATFORM(WIN) to WIN_OS.
+        (WebCore::PluginView::setFrameGeometry): Ditto.
+        (WebCore::PluginView::PluginView): Ditto.
+        * plugins/PluginView.h: Introduce the PlatformPluginWidget typedef,
+        which expands to HWND directly for the Qt/Windows build and
+        PlatformWidget for the remaining platforms. That is because
+        PlatformWidget is QWidget* for the Qt build but for the plugin
+        window we need a native window, aka HWND.
+        * plugins/win/PluginPackageWin.cpp: Fix compilation, include shlwapi.h
+        after config.h.
+        * plugins/win/PluginViewWin.cpp:
+        (windowHandleForPlatformWidget): Added a little helper function to
+        determine the HWND from a PlatformWidget.
+        (WebCore::registerPluginView): For the Qt port we need to set the
+        global application instance handle here in the library, as the
+        browser doesn't do it.
+        (WebCore::PluginView::handleMouseEvent): Mask out
+        ignoreNextSetCursor/lastSetCursor for the Qt port, it's not used.
+        (WebCore::PluginView::invalidateRect): Convert from IntRect to RECT
+        manually just here to avoid compiling in IntRectWin.cpp.
+        (WebCore::PluginView::invalidateRegion): Ditto.
+        (WebCore::PluginView::forceRedraw): Call windowHandleForPlatformWidget
+        on containingWindow() to get the correct HWND for the Qt port.
+        (WebCore::PluginView::init): Determine the parent HWND for m_window
+        using windowHandleForPlatformWidget.
+
+2008-07-11  Simon Hausmann  <hausmann@webkit.org>
+
+        Rubber-stamped by Holger.
+
+        Enable Database and Icondatabase functionality for the Qt/Windows
+        build when building inside Qt, as we can use the builtin copy of
+        sqlite then.
+
+        * WebCore.pro:
+
+2008-07-11  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Adam Roben.
+
+        Fix compile with MinGW since it does not like friend static function.
+
+        * plugins/PluginView.h:
+        * plugins/win/PluginViewWin.cpp:
+
+2008-07-11  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix Qt/Win32 build.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+
 2008-07-11  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Oliver Hunt.

@@ -76,12 +76,12 @@ typedef struct _BalMatrix{} BalMatrix;
 
 
 typedef SDL_Surface PlatformGraphicsContext;
+typedef BalWidget* PlatformWidget;
 
 namespace WKAL {
     typedef void* PlatformGradient;
     typedef void* PlatformPath;
     typedef SDL_Cursor* PlatformCursor;
-    typedef BalWidget* PlatformWidget;
     typedef void* DragImageRef;
     typedef void* DragDataRef;
     typedef unsigned short GlyphBufferGlyph;

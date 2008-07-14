@@ -43,6 +43,16 @@
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefPtr.h>
 #include <wtf/Vector.h>
+#if PLATFORM(BAL)
+#include "BALBase.h"
+#endif
+
+#if PLATFORM(WIN_OS) && PLATFORM(QT)
+typedef struct HWND__* HWND;
+typedef HWND PlatformPluginWidget;
+#else
+typedef PlatformWidget PlatformPluginWidget;
+#endif
 
 namespace KJS {
     namespace Bindings {
@@ -56,7 +66,7 @@ namespace WebCore {
     class KeyboardEvent;
     class MouseEvent;
     class KURL;
-#if PLATFORM(WIN)
+#if PLATFORM(WIN_OS)
     class PluginMessageThrottlerWin;
 #endif
     class PluginPackage;
@@ -91,10 +101,6 @@ namespace WebCore {
     };
 
     class PluginView : public Widget, private PluginStreamClient {
-#if PLATFORM(WIN)
-    friend static LRESULT CALLBACK PluginViewWndProc(HWND, UINT, WPARAM, LPARAM);
-#endif
-
     public:
         static PluginView* create(Frame* parentFrame, const IntSize&, Element*, const KURL&, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually);
         virtual ~PluginView();
@@ -156,7 +162,8 @@ namespace WebCore {
 
         virtual bool isPluginView() const { return true; }
 
-#if PLATFORM(WIN)
+#if PLATFORM(WIN_OS)
+        static LRESULT CALLBACK PluginViewWndProc(HWND, UINT, WPARAM, LPARAM);
         LRESULT wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
         WNDPROC pluginWndProc() const { return m_pluginWndProc; }
 #endif
@@ -238,14 +245,14 @@ namespace WebCore {
         bool m_needsXEmbed;
 #endif
 
-#if PLATFORM(WIN)
+#if PLATFORM(WIN_OS)
         OwnPtr<PluginMessageThrottlerWin> m_messageThrottler;
         WNDPROC m_pluginWndProc;
         unsigned m_lastMessage;
         bool m_isCallingPluginWndProc;
 #endif
 
-        PlatformWidget m_window; // for windowed plug-ins
+        PlatformPluginWidget m_window; // for windowed plug-ins
         mutable IntRect m_clipRect; // The clip rect to apply to a windowed plug-in
         mutable IntRect m_windowRect; // Our window rect.
 

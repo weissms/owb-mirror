@@ -406,6 +406,7 @@
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/OwnPtr.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/PassRefPtr.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/RefCounted.h
+../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/RefCountedLeakCounter.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/RefPtr.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/RefPtrHashMap.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/RetainPtr.h
@@ -452,6 +453,8 @@
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/OwnPtr.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/PassRefPtr.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/RefCounted.h
+../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/RefCountedLeakCounter.h
+../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/RefCountedLeakCounter.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/RefPtr.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/RefPtrHashMap.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/RetainPtr.h

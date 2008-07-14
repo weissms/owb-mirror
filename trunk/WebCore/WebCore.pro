@@ -56,7 +56,7 @@ freebsd-*: DEFINES += HAVE_PTHREAD_NP_H
 
 DEFINES += BUILD_WEBKIT
 
-win32-*: DEFINES += ENABLE_ICONDATABASE=0 ENABLE_DATABASE=0
+!CONFIG(QTDIR_build):win32-*: DEFINES += ENABLE_ICONDATABASE=0 ENABLE_DATABASE=0
 
 # Pick up 3rdparty libraries from INCLUDE/LIB just like with MSVC
 win32-g++ {
@@ -83,6 +83,7 @@ win32-g++ {
 contains(QT_CONFIG, phonon):DEFINES += ENABLE_VIDEO=1
 else:DEFINES += ENABLE_VIDEO=0
 unix:!mac:!embedded: DEFINES += XP_UNIX ENABLE_NETSCAPE_PLUGIN_API=1
+win32: DEFINES += ENABLE_NETSCAPE_PLUGIN_API=1
 DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1
 
 DEFINES += WTF_CHANGES=1
@@ -1053,7 +1054,25 @@ contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
             SOURCES += \
                 plugins/qt/PluginPackageQt.cpp \
                 plugins/qt/PluginViewQt.cpp
-    }
+        }
+
+        win32-* {
+            INCLUDEPATH += $$PWD/plugins/win
+
+            SOURCES += page/win/PageWin.cpp \
+                       plugins/win/PluginDatabaseWin.cpp \
+                       plugins/win/PluginPackageWin.cpp \
+                       plugins/win/PluginMessageThrottlerWin.cpp \
+                       plugins/win/PluginViewWin.cpp
+
+            LIBS += \
+                -ladvapi32 \
+                -lgdi32 \
+                -lshell32 \
+                -lshlwapi \
+                -luser32 \
+                -lversion
+        }
 
 }
 

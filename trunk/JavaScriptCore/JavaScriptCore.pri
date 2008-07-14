@@ -32,6 +32,7 @@ SOURCES += \
     wtf/Assertions.cpp \
     wtf/HashTable.cpp \
     wtf/MainThread.cpp \
+    wtf/RefCountedLeakCounter.cpp \
     wtf/unicode/CollatorDefault.cpp \
     wtf/unicode/icu/CollatorICU.cpp \
     wtf/unicode/UTF8.cpp \
@@ -68,8 +69,10 @@ SOURCES += \
     kjs/BooleanConstructor.cpp \
     kjs/BooleanObject.cpp \
     kjs/BooleanPrototype.cpp \
+    kjs/CallData.cpp \
     kjs/collector.cpp \
     kjs/CommonIdentifiers.cpp \
+    kjs/ConstructData.cpp \
     kjs/DateConstructor.cpp \
     kjs/DateInstance.cpp \
     kjs/DateMath.cpp \
