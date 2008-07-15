@@ -104,6 +104,9 @@ SET (WEBKIT_USE_SYSTEMTIME "GTK" CACHE STRING "SystemTime support. (GTK/LINUX)")
 # Threading support
 SET (WEBKIT_USE_THREADING "GTK" CACHE STRING "Threading support. (GTK/PTHREADS/NONE)")
 
+# Global switch for uClibc
+OPTION (WEBKIT_USE_UCLIBC "Link OWB with uClibc instead of glibc." OFF)
+
 # Accessibility
 OPTION (WEBKIT_USE_ACCESSIBILITY "Compile WebKit with Accessibility support." ON)
 

@@ -1,7 +1,5 @@
-# Global switch for uClibc
-OPTION (WEBKIT_USE_UCLIBC "Link OWB with uClibc instead of glibc." OFF)
 IF (WEBKIT_USE_UCLIBC)
-    ADD_DEFINITIONS (-D__OWB_UCLIBC__)
+    ADD_DEFINITIONS (-DHAVE_UCLIBC)
 ENDIF (WEBKIT_USE_UCLIBC)
 
 INCLUDE (pcre/CMakeLists.txt)
