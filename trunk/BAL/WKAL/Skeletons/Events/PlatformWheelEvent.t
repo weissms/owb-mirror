@@ -73,7 +73,7 @@ namespace WKAL {
      * float dx  = ev->deltaX();
      * @endcode
      */
-        float deltaX() const ;
+        float deltaX(bool withScrollSensibilityFactor = true) const ;
 
     /**
      * get delta y value
@@ -82,7 +82,25 @@ namespace WKAL {
      * float dy = ev->deltaY();
      * @endcode
      */
-        float deltaY() const ;
+        float deltaY(bool withScrollSensibilityFactor = true) const ;
+
+
+    /**
+     * Check wether horizontal scroll is enabled.
+     * @param[out] : returns true if horizontal scroll is enabled.
+     * @code
+     * @endcode
+     */
+        bool isPageXScrollModeEnabled() const ;
+
+
+    /**
+     * Check wether vertical scroll is enabled.
+     * @param[out] : returns true if vertical scroll is enabled.
+     * @code
+     * @endcode
+     */
+        bool isPageYScrollModeEnabled() const ;
 
     /**
      * get if the event is accepted
@@ -235,7 +253,5 @@ namespace WKAL {
 } // namespace WKAL
 
 #endif // PlatformWheelEvent_h
-
-
 
 

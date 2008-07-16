@@ -28,52 +28,12 @@
 
 #include "AccessibilityController.h"
 
-JSStringRef AccessibilityController::allAttributesOfFocusedElement()
+AccessibilityUIElement* AccessibilityController::rootElement()
 {
     return NULL;
 }
 
-JSStringRef AccessibilityController::roleOfFocusedElement()
+AccessibilityUIElement* AccessibilityController::focusedElement()
 {
     return NULL;
-}
-
-JSStringRef AccessibilityController::titleOfFocusedElement()
-{
-    return NULL;
-}
-
-JSStringRef AccessibilityController::descriptionOfFocusedElement()
-{
-    return NULL;
-}
-
-JSStringRef AccessibilityController::attributesOfLinkedUIElementsForFocusedElement()
-{
-    return NULL;
-}
-
-double AccessibilityController::widthOfFocusedElement()
-{
-    return 0.0;
-}
-
-double AccessibilityController::heightOfFocusedElement()
-{
-    return 0.0;
-}
-
-float AccessibilityController::intValueOfFocusedElement()
-{
-    return 0.0;
-}
-
-float AccessibilityController::minValueOfFocusedElement()
-{
-    return 0.0;
-}
-
-float AccessibilityController::maxValueOfFocusedElement()
-{
-    return 0.0;
 }

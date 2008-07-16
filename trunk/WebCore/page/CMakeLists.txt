@@ -1,4 +1,5 @@
 LIST (APPEND PAGE_SRC
+    page/AccessibilityImageMapLink.cpp
     page/AccessibilityListBoxOption.cpp
     page/AccessibilityListBox.cpp
     page/AccessibilityObject.cpp

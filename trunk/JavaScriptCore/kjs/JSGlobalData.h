@@ -30,10 +30,10 @@
 #define JSGlobalData_h
 
 #include "ArgList.h"
+#include <wtf/Forward.h>
 #include <wtf/HashCountedSet.h>
 #include <wtf/HashSet.h>
-#include <wtf/Noncopyable.h>
-#include <wtf/OwnPtr.h>
+#include <wtf/RefCounted.h>
 
 namespace KJS {
 
@@ -48,14 +48,12 @@ namespace KJS {
     class UString;
     struct HashTable;
 
-    // This serves as a bottleneck for accessing per-thread data structures.
-    // Note that the effective instance may be different from the thread one in case of legacy
-    // JavaScriptCore clients, which all share a single JSGlobalData, and thus cannot run concurrently.
-    struct JSGlobalData : Noncopyable {
-        static bool threadInstanceExists();
+    struct JSGlobalData : public RefCounted<JSGlobalData> {
         static bool sharedInstanceExists();
-        static JSGlobalData& threadInstance();
         static JSGlobalData& sharedInstance();
+
+        static PassRefPtr<JSGlobalData> create();
+        ~JSGlobalData();
 
         Machine* machine;
         Heap* heap;
@@ -84,9 +82,7 @@ namespace KJS {
 
     private:
         JSGlobalData(bool isShared = false);
-        ~JSGlobalData();
 
-        static JSGlobalData*& threadInstanceInternal();
         static JSGlobalData*& sharedInstanceInternal();
 
         struct DataInstance {

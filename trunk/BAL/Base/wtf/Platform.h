@@ -36,11 +36,26 @@
 
 /* Operating systems - low-level dependencies */
 
+/* PLATFORM(AMIGAOS4) */
+/* Operating system level dependencies for AmigaOS 4.x that should */
+/* be used regardless of operating environment */
+#if defined(__AMIGAOS4__)
+#define WTF_PLATFORM_AMIGAOS4 1
+#define WTF_USE_CURL 1
+#define WTF_USE_PTHREADS 1
+#define USE_SYSTEM_MALLOC 1
+#endif
+
 /* PLATFORM(DARWIN) */
 /* Operating system level dependencies for Mac OS X / Darwin that should */
 /* be used regardless of operating environment */
 #ifdef __APPLE__
 #define WTF_PLATFORM_DARWIN 1
+#endif
+
+#if defined(__OWBAL_PLATFORM_MACPORT__)
+#undef WTF_PLATFORM_MAC
+#define WTF_PLATFORM_MACPORT
 #endif
 
 /* PLATFORM(WIN_OS) */
@@ -72,6 +87,7 @@
    || defined(unix)        \
    || defined(__unix)      \
    || defined(__unix__)    \
+   || defined (__OWBAL_PLATFORM_MACPORT__) \
    || defined (__NetBSD__) \
    || defined(_AIX)
 #define WTF_PLATFORM_UNIX 1
@@ -95,7 +111,7 @@
 #define WTF_PLATFORM_WX 1
 #elif defined(BUILDING_GTK__)
 #define WTF_PLATFORM_GTK 1
-#elif PLATFORM(DARWIN)
+#elif PLATFORM(DARWIN) && !defined(__OWBAL_PLATFORM_MACPORT__)
 #define WTF_PLATFORM_MAC 1
 #elif PLATFORM(WIN_OS)
 #define WTF_PLATFORM_WIN 1
@@ -271,6 +287,13 @@
 #define HAVE_FLOAT_H 1
 #define HAVE_SYS_TIMEB_H 1
 #define HAVE_VIRTUALALLOC 1
+
+#elif PLATFORM(AMIGAOS4)
+
+#define HAVE_ERRNO_H 1
+#define HAVE_STRINGS_H 1
+#define HAVE_SYS_PARAM_H 1
+#define HAVE_SYS_TIME_H 1
 
 #else
 

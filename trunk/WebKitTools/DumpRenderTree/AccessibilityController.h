@@ -28,6 +28,8 @@
 
 #include <JavaScriptCore/JSObjectRef.h>
 
+class AccessibilityUIElement;
+
 class AccessibilityController {
 public:
     AccessibilityController();
@@ -36,20 +38,11 @@ public:
     void makeWindowObject(JSContextRef context, JSObjectRef windowObject, JSValueRef* exception);
 
     // Controller Methods - platfrom independant implementations
-    JSStringRef allAttributesOfFocusedElement();
-    JSStringRef roleOfFocusedElement();
-    JSStringRef titleOfFocusedElement();
-    JSStringRef descriptionOfFocusedElement(); 
-    JSStringRef attributesOfLinkedUIElementsForFocusedElement();
-    double widthOfFocusedElement();
-    double heightOfFocusedElement();
-    float intValueOfFocusedElement();
-    float minValueOfFocusedElement();
-    float maxValueOfFocusedElement();
-    
+    AccessibilityUIElement* rootElement();
+    AccessibilityUIElement* focusedElement();
+
 private:
     static JSClassRef getJSClass();
-    static JSStaticFunction* staticFunctions();
 };
 
 #endif // AccessibilityController_h

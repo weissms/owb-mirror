@@ -1,3 +1,404 @@
+2008-07-16  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Eric.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17589
+        <rdar://problem/5770893>
+        Retrieve the wheel sensitivity setting from windows system settings for the horizontal and the vertical scrolling.
+        Allows the page scrolling with the wheel (if activated in windows settings) on both horizontal and vertical ways
+        For the other platforms, nothing is changed but if someone want to activate this feature 
+        he/she has to retrieve the settings and fill out the m_lineScrollSensitivity and/or m_charScrollSensitivity in his/her PlatformWheelEvent constructor.
+
+        * ChangeLog:
+        * page/EventHandler.cpp:
+        (WebCore::scrollAndAcceptEvent): static inline function to avoid copy/paste in the member functions
+        (WebCore::EventHandler::handleWheelEvent): Call to the above mentionned static inline function with the right parameters 
+        * platform/PlatformWheelEvent.h:
+        (WebCore::PlatformWheelEvent::deltaX): Now returns the delta multiplied by the user settings for the number of lines to scroll
+        (WebCore::PlatformWheelEvent::deltaY): Now returns the delta multiplied by the user settings for the number of chars to scroll
+        (WebCore::PlatformWheelEvent::isPageXScrollModeEnabled):
+        (WebCore::PlatformWheelEvent::isPageYScrollModeEnabled):
+        * platform/gtk/WheelEventGtk.cpp: Add the values to avoid build break but the factors are initialized to 1 not to change the previous behavior
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * platform/mac/WheelEventMac.mm: Add the values to avoid build break but the factors are initialized to 1 not to change the previous behavior
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * platform/qt/WheelEventQt.cpp: Add the values to avoid build break but the factors are initialized to 1 not to change the previous behavior
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * platform/win/ScrollViewWin.cpp: Added the page scroll (horiz/vertical) and reduced the number of pixels to scroll per line to keep the standard behavior with the factor
+        (WebCore::adjustDeltaForPageScrollMode): static inline function to avoid copy/paste in the member functions
+        (WebCore::ScrollView::updateScrollbars):
+        (WebCore::ScrollView::wheelEvent):
+        * platform/win/WheelEventWin.cpp: Retrieves the new values by using the win32 API.
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+        * platform/wx/MouseWheelEventWx.cpp: Add the values to avoid build break but the factors are initialized to 1 not to change the previous behavior
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+
+2008-07-15  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix - adding AccessibilityImageMapLink.cpp to the wx build.
+
+        * WebCoreSources.bkl:
+
+2008-07-15  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Dan.
+
+        <rdar://problem/5620273> REGRESSION: Apparent caching between form
+        submits twice (on Maconomy) (18401)
+
+        Frames did not set the createdByParser flag even when they were.
+
+        * html/HTMLElementFactory.cpp:
+        (WebCore::frameConstructor):
+        (WebCore::iframeConstructor):
+
+2008-07-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=19525
+          <rdar://problem/5961768> -webkit-box-reflect in hyperlink causes webkit to crash
+
+        Test: fast/reflections/inline-crash.html
+
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::setStyle): Added setHasReflection(false).
+        Inline flows never have reflections.
+
+2008-07-14  David Hyatt  <hyatt@apple.com>
+
+        Allow <style> and <link> pretty much anywhere.  They will still be moved to the <head> if
+        no <body> exists yet though.
+
+        Reviewed by Sam
+
+        Added fast/css/style-parsed-outside-of-head.html
+
+        * html/HTMLElement.cpp:
+        (WebCore::inlineTagList):
+
+2008-07-15  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff.
+
+        Rename pageGroupIdentifier to profileGroup to keep mention of a
+        pageGroup out of JavaScriptCore.
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::allowsUnwrappedAccessFrom):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::clear):
+        (WebCore::ScriptController::initScript):
+        * history/CachedPage.cpp:
+        (WebCore::CachedPage::restore):
+
+2008-07-15  Adam Roben  <aroben@apple.com>
+
+        WebCore part of adding WebKit[Set]ShouldUseFontSmoothing functions
+
+        <rdar://6059127>
+
+        Reviewed by John Sullivan.
+
+        * platform/graphics/win/FontCGWin.cpp:
+        (WebCore::Font::drawGlyphs): Pass the result of
+        WebCoreShouldUseFontSmoothing() into wkSetFontSmoothingStyle.
+        * platform/win/WebCoreTextRenderer.cpp:
+        (WebCore::WebCoreSetShouldUseFontSmoothing):
+        (WebCore::WebCoreShouldUseFontSmoothing):
+        Added.
+        * platform/win/WebCoreTextRenderer.h:
+
+2008-07-15  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebCore.vcproj/WebCore.vcproj: Add AccessibilityImageMapLink.{cpp,h}
+        to the project.
+
+2008-07-15  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix for the Gtk+ and Qt platform.
+
+        * GNUmakefile.am: Add AccessibilityImageMapLink.cpp to the build
+        * WebCore.pro: Add AccessibilityImageMapLink.cpp to the build
+
+2008-07-14  Dan Bernstein  <mitz@apple.com>
+
+        - Tiger build fix
+
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::paint):
+
+2008-07-14  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - WebCore part of fixing <rdar://problem/6071850> Subviews not drawn correctly when using -cacheDisplayInRect:toBitmapImageRep:
+
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::paint): Changed to account for the case of drawing
+        into a bitmap context that is not a window's backing store. In that
+        case, -displayRectIgnoringOpacity:inContext: is used to redirect the
+        drawing to the correct context, after setting up the right transform
+        on it. For subframes, additional code ensures that the scroll view will
+        not paint the background behind a transparent frame.
+
+2008-07-14  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        <rdar://problem/6038106> AXChildren returned for this web area is null
+        Accessibility of image maps needed to be updated
+
+        Tests: accessibility/image-map1.html
+               accessibility/image-map2.html
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * page/AXObjectCache.cpp:
+        (WebCore::AXObjectCache::get):
+        * page/AccessibilityImageMapLink.cpp: Added.
+        (WebCore::AccessibilityImageMapLink::AccessibilityImageMapLink):
+        (WebCore::AccessibilityImageMapLink::~AccessibilityImageMapLink):
+        (WebCore::AccessibilityImageMapLink::create):
+        (WebCore::AccessibilityImageMapLink::parentObject):
+        (WebCore::AccessibilityImageMapLink::anchorElement):
+        (WebCore::AccessibilityImageMapLink::accessibilityDescription):
+        (WebCore::AccessibilityImageMapLink::title):
+        (WebCore::AccessibilityImageMapLink::elementRect):
+        (WebCore::AccessibilityImageMapLink::size):
+        * page/AccessibilityImageMapLink.h: Added.
+        (WebCore::AccessibilityImageMapLink::setHTMLAreaElement):
+        (WebCore::AccessibilityImageMapLink::setHTMLMapElement):
+        (WebCore::AccessibilityImageMapLink::roleValue):
+        (WebCore::AccessibilityImageMapLink::accessibilityIsIgnored):
+        (WebCore::AccessibilityImageMapLink::isLink):
+        * page/AccessibilityListBoxOption.h:
+        * page/AccessibilityObject.cpp:
+        (WebCore::AccessibilityObject::selectedChildren):
+        (WebCore::AccessibilityObject::visibleChildren):
+        * page/AccessibilityObject.h:
+        (WebCore::):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::parentObject):
+        (WebCore::AccessibilityRenderObject::isAnchor):
+        (WebCore::AccessibilityRenderObject::anchorElement):
+        (WebCore::AccessibilityRenderObject::helpText):
+        (WebCore::AccessibilityRenderObject::intValue):
+        (WebCore::AccessibilityRenderObject::stringValue):
+        (WebCore::AccessibilityRenderObject::title):
+        (WebCore::AccessibilityRenderObject::accessibilityDescription):
+        (WebCore::AccessibilityRenderObject::elementRect):
+        (WebCore::AccessibilityRenderObject::accessibilityIsIgnored):
+        (WebCore::AccessibilityRenderObject::roleValue):
+        (WebCore::AccessibilityRenderObject::canSetFocusAttribute):
+        (WebCore::AccessibilityRenderObject::addChildren):
+        * page/AccessibilityRenderObject.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (convertToNSArray):
+        (RoleEntry::):
+
+2008-07-14  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by David Hyatt.
+
+        Remove unused ExceptionCode parameter from compareDocumentPosition.
+
+        * dom/Document.cpp:
+        (WebCore::Document::addStyleSheetCandidateNode):
+        * dom/Node.cpp:
+        (WebCore::Node::compareDocumentPosition):
+        * dom/Node.h:
+        * dom/Node.idl:
+
+2008-07-14  David Hyatt  <hyatt@apple.com>
+
+        Fix for bugzilla bug 5476, link and style elements should be allowed outside the <head>.
+
+        Reviewed by Sam
+
+        Added fast/css/style-outside-head.html
+        Added fast/css/link-outside-head.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::addStyleSheetCandidateNode):
+        (WebCore::Document::removeStyleSheetCandidateNode):
+        (WebCore::Document::recalcStyleSelector):
+        * dom/Document.h:
+        * dom/Node.cpp:
+        (WebCore::Node::compareDocumentPosition):
+        * dom/ProcessingInstruction.cpp:
+        (WebCore::ProcessingInstruction::checkStyleSheet):
+        (WebCore::ProcessingInstruction::insertedIntoDocument):
+        (WebCore::ProcessingInstruction::removedFromDocument):
+        (WebCore::ProcessingInstruction::finishParsingChildren):
+        * dom/ProcessingInstruction.h:
+        (WebCore::ProcessingInstruction::setCreatedByParser):
+        * dom/StyleElement.cpp:
+        (WebCore::StyleElement::removedFromDocument):
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::startElementNs):
+        (WebCore::XMLTokenizer::processingInstruction):
+        (WebCore::):
+        * html/HTMLElementFactory.cpp:
+        (WebCore::linkConstructor):
+        * html/HTMLLinkElement.cpp:
+        (WebCore::HTMLLinkElement::HTMLLinkElement):
+        (WebCore::HTMLLinkElement::insertedIntoDocument):
+        (WebCore::HTMLLinkElement::removedFromDocument):
+        (WebCore::HTMLLinkElement::finishParsingChildren):
+        * html/HTMLLinkElement.h:
+        (WebCore::HTMLLinkElement::setCreatedByParser):
+        * html/HTMLStyleElement.cpp:
+        (WebCore::HTMLStyleElement::insertedIntoDocument):
+        (WebCore::HTMLStyleElement::removedFromDocument):
+        * svg/SVGStyleElement.cpp:
+        (WebCore::SVGStyleElement::insertedIntoDocument):
+        (WebCore::SVGStyleElement::removedFromDocument):
+
+2008-07-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Sort interface extended attributes to appease *the* Mark Rowe.
+
+        * page/DOMWindow.idl:
+
+2008-07-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Geoff.
+
+        <rdar://problem/6073974>
+        https://bugs.webkit.org/show_bug.cgi?id=18106
+        The "onscroll" event bubbles, which is inconsistent with Firefox and IE
+
+        Don't bubble the scroll event.
+        
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::scrollToOffset):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::valueChanged):
+
+2008-07-14  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Geoff.
+
+        Fix for <rdar://problem/5784890> REGRESSION (Safari 3): Can't edit SpeedStream 4100 DSL modem settings
+
+        The web server on this particular piece of hardware doesn't handle "text/xml" in the 
+        Accept header if the headers are sent in a certain order.  Safari 2 used to send "*/*" in 
+        the Accept header.  Firefox 2 sent "text/xml" but in an acceptable order for the web 
+        server.  And Firefox 3 doesn't send "text/xml" at all in the Accept header since it 
+        is being deprecated in favor of "application/xml".  We decided that the best solution is 
+        to match Firefox 3 and stop sending "text/xml" in the Accept header.
+
+        No test.  There appears to be no way to get the raw headers in the original order in perl/php.
+
+        * loader/FrameLoader.cpp: (WebCore::FrameLoader::addExtraFieldsToRequest):
+
+2008-07-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Adele Peterson.
+
+        Fix for <rdar://problem/5769819>
+
+        Test: http/tests/security/cross-frame-access-object-prototype.html
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::getPropertyAttributes): Perform security check.
+        (WebCore::JSDOMWindow::defineGetter): Ditto.
+        (WebCore::JSDOMWindow::defineSetter): Ditto.
+        (WebCore::JSDOMWindow::lookupGetter): Ditto.
+        (WebCore::JSDOMWindow::lookupSetter): Ditto.
+        * bindings/scripts/CodeGeneratorJS.pm: Add support for custom versions
+        of all the core JSObject functionality.
+        * page/DOMWindow.idl: Override remaining core JSObject functionality,
+        to inject security checks.
+
+2008-07-14  Adam Roben  <aroben@apple.com>
+
+        Windows build fixes
+
+        * WebCore.vcproj/WebCore.vcproj: Add include/pthreads to the include
+        path.
+        * bindings/scripts/CodeGeneratorCOM.pm: Touched this to force COM
+        bindings to regenerate.
+        * loader/FTPDirectoryDocument.cpp:
+        * loader/FTPDirectoryParser.cpp:
+        Fixed some duplicate macro definitions now that we're including
+        pthread.h again.
+
+2008-07-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Kevin McCullough.
+
+        Make JSGlobalData refcounted in preparation to adding a way to create contexts that share
+        global data.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::commonJSGlobalData): Create JSGlobalData with create() method.
+
+2008-07-14  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        Make listDirectory() in the Qt port work with empty namefilters.
+        Don't include . and .. to avoid scanning the parent directory.
+
+        * platform/qt/FileSystemQt.cpp:
+        (WebCore::listDirectory):
+
+2008-07-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Eliminate per-thread JavaScript global data instance support and make arbitrary
+        global data/global object combinations possible.
+
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowBase.cpp: (WebCore::JSDOMWindowBase::commonJSGlobalData): Added.
+        WebCore uses its own instance of JSGlobalData, as JSC no longer provides a per-thread one.
+
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::JSDOMWindowShell):
+        (WebCore::JSDOMWindowShell::operator new):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::clear):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        Pass commonJSGlobalData() as an allocator.
+
+        * bridge/c/c_utility.cpp:
+        (KJS::Bindings::identifierFromNPIdentifier):
+        * bridge/jni/jni_class.cpp:
+        (JavaClass::JavaClass):
+        * history/CachedPage.cpp:
+        (WebCore::CachedPage::restore):
+        * storage/Database.cpp:
+        (WebCore::Database::Database):
+        * bindings/js/GCController.cpp:
+        (WebCore::collect):
+        (WebCore::GCController::gcTimerFired):
+        (WebCore::GCController::garbageCollectNow):
+        Use JSDOMWindow::commonJSGlobalData().
+
+        * ForwardingHeaders/wtf/ThreadSpecific.h: Added (collector.h now includes this header, so
+        it need to be accesible outside of JSC).
+
+        * WebCore.base.exp: Export JSDOMWindowBase::commonJSGlobalData().
+
+2008-07-14  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        MinGW build fixes
+
+        * plugins/win/PluginDatabaseWin.cpp:
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        * svg/SynchronizableTypeWrapper.h:
+        (WebCore::::SynchronizableTypeWrapper):
+
 2008-07-14  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Oliver Hunt and Dan Bernstein.

@@ -29,6 +29,7 @@
 #ifndef WTF_ThreadSpecific_h
 #define WTF_ThreadSpecific_h
 
+#include <wtf/Assertions.h>
 #include <wtf/Noncopyable.h>
 
 #if USE(PTHREADS) || PLATFORM(WIN)
@@ -68,7 +69,9 @@ private:
 template<typename T>
 inline ThreadSpecific<T>::ThreadSpecific()
 {
-    pthread_key_create(&m_key, destroy);
+    int error = pthread_key_create(&m_key, destroy);
+    if (error)
+        CRASH();
 }
 
 template<typename T>

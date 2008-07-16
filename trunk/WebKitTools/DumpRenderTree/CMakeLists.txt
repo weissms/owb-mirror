@@ -39,12 +39,14 @@ LIST (APPEND DUMPRENDERTREE_SRC
     GCController.cpp
     WorkQueue.cpp
     AccessibilityController.cpp
+    AccessibilityUIElement.cpp
+    bal/AccessibilityControllerBal.cpp
+    bal/AccessibilityUIElementBal.cpp
     bal/DumpRenderTree.cpp
     bal/LayoutTestControllerBal.cpp    
     bal/WorkQueueItemBal.cpp
     bal/GCControllerBal.cpp
     bal/EventSender.cpp
-    bal/AccessibilityControllerBal.cpp
 )
 
 IF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")

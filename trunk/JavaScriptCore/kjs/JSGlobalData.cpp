@@ -41,7 +41,6 @@
 
 #if USE(MULTIPLE_THREADS)
 #include <wtf/Threading.h>
-#include <wtf/ThreadSpecific.h>
 #endif
 
 using namespace WTF;
@@ -59,7 +58,7 @@ extern const HashTable stringTable;
 
 JSGlobalData::JSGlobalData(bool isShared)
     : machine(new Machine)
-    , heap(new Heap(machine, isShared))
+    , heap(new Heap(this))
 #if USE(MULTIPLE_THREADS)
     , arrayTable(new HashTable(KJS::arrayTable))
     , dateTable(new HashTable(KJS::dateTable))
@@ -90,17 +89,19 @@ JSGlobalData::JSGlobalData(bool isShared)
 
 JSGlobalData::~JSGlobalData()
 {
-#if USE(MULTIPLE_THREADS)
     delete heap;
+    heap = 0; // zeroing out to make the behavior more predictable when someone attempts to use a deleted instance.
     delete machine;
+    machine = 0;
 
-    delete[] arrayTable->table;
-    delete[] dateTable->table;
-    delete[] mathTable->table;
-    delete[] numberTable->table;
-    delete[] regExpTable->table;
-    delete[] regExpConstructorTable->table;
-    delete[] stringTable->table;
+#if USE(MULTIPLE_THREADS)
+    arrayTable->deleteTable();
+    dateTable->deleteTable();
+    mathTable->deleteTable();
+    numberTable->deleteTable();
+    regExpTable->deleteTable();
+    regExpConstructorTable->deleteTable();
+    stringTable->deleteTable();
     delete arrayTable;
     delete dateTable;
     delete mathTable;
@@ -108,6 +109,7 @@ JSGlobalData::~JSGlobalData()
     delete regExpTable;
     delete regExpConstructorTable;
     delete stringTable;
+#endif
 
     delete parser;
     delete lexer;
@@ -117,25 +119,16 @@ JSGlobalData::~JSGlobalData()
 
     delete newParserObjects;
     delete parserObjectExtraRefCounts;
-#endif
 }
 
-bool JSGlobalData::threadInstanceExists()
+PassRefPtr<JSGlobalData> JSGlobalData::create()
 {
-    return threadInstanceInternal();
+    return adoptRef(new JSGlobalData);
 }
 
 bool JSGlobalData::sharedInstanceExists()
 {
     return sharedInstanceInternal();
-}
-
-JSGlobalData& JSGlobalData::threadInstance()
-{
-    JSGlobalData*& instance = threadInstanceInternal();
-    if (!instance)
-        instance = new JSGlobalData;
-    return *instance;
 }
 
 JSGlobalData& JSGlobalData::sharedInstance()
@@ -144,17 +137,6 @@ JSGlobalData& JSGlobalData::sharedInstance()
     if (!instance)
         instance = new JSGlobalData(true);
     return *instance;
-}
-
-JSGlobalData*& JSGlobalData::threadInstanceInternal()
-{
-#if USE(MULTIPLE_THREADS)
-    static ThreadSpecific<DataInstance> threadInstance;
-    return *threadInstance;
-#else
-    static JSGlobalData* threadInstance;
-    return threadInstance;
-#endif
 }
 
 JSGlobalData*& JSGlobalData::sharedInstanceInternal()

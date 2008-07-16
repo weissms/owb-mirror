@@ -900,6 +900,12 @@ JSDOMWindowShell* JSDOMWindowBase::shell() const
     return d->m_shell;
 }
 
+JSGlobalData* JSDOMWindowBase::commonJSGlobalData()
+{
+    static JSGlobalData* globalData = JSGlobalData::create().releaseRef();
+    return globalData;
+}
+
 JSValue* windowProtoFuncAToB(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList& args)
 {
     JSDOMWindow* window = toJSDOMWindow(thisValue);

@@ -1,3 +1,236 @@
+2008-07-16  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Anders and Geoff.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20023
+        Failed assertion in PropertyNameArray.cpp
+
+        This is already tested by testapi.
+
+        * API/JSObjectRef.cpp: (JSPropertyNameAccumulatorAddName): Add the string to identifier
+        table to appease PropertyNameArray.
+
+2008-07-16  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff.
+
+        Dereference identifiers when deleting a hash table (fixes leaks with private JSGlobalData
+        objects).
+
+        * kjs/JSGlobalData.cpp: (KJS::JSGlobalData::~JSGlobalData):
+        * kjs/lookup.cpp: (KJS::HashTable::deleteTable):
+        * kjs/lookup.h:
+        * kjs/lexer.cpp: (KJS::Lexer::~Lexer)
+        HashTable cannot have a destructor, because check-for-global-initializers complains about
+        having a global constructor then.
+
+2008-07-16  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff.
+
+        Check pthread_key_create return value.
+
+        This check was helpful when debugging a crash in run-webkit-tests --threaded that happened
+        because JSGlobalData objects were not deleted, and we were running out of pthread keys soon.
+        It also looks useful for production builds.
+
+        * wtf/ThreadSpecific.h: (WTF::::ThreadSpecific):
+
+2008-07-15  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff.
+
+        Rename pageGroupIdentifier to profileGroup to keep mention of a
+        pageGroup out of JavaScriptCore.
+
+        * kjs/JSGlobalObject.cpp:
+        (KJS::JSGlobalObject::init):
+        * kjs/JSGlobalObject.h:
+        (KJS::JSGlobalObject::setProfileGroup):
+        (KJS::JSGlobalObject::profileGroup):
+        * profiler/ProfileGenerator.cpp:
+        (KJS::ProfileGenerator::create):
+        (KJS::ProfileGenerator::ProfileGenerator):
+        * profiler/ProfileGenerator.h:
+        (KJS::ProfileGenerator::profileGroup):
+        * profiler/Profiler.cpp:
+        (KJS::Profiler::startProfiling):
+        (KJS::dispatchFunctionToProfiles):
+        (KJS::Profiler::willExecute):
+        (KJS::Profiler::didExecute):
+
+2008-07-14  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20037
+        Bug 20037: GCC 4.2 build broken due to strict aliasing violation.
+
+        * kjs/ustring.cpp:
+        (KJS::UString::Rep::computeHash): Add a version of computeHash that takes a char* and explicit length.
+        * kjs/ustring.h:
+        * profiler/CallIdentifier.h:
+        (WTF::): Use new version of computeHash that takes a char* and explicit length to avoid unsafe aliasing.
+
+2008-07-14  David Hyatt  <hyatt@apple.com>
+
+        Fix a crashing bug in ListHashSet's -- operator.  Make sure that end() can be -- by special-casing the null
+        position.
+
+        Reviewed by Maciej
+
+        * wtf/ListHashSet.h:
+        (WTF::ListHashSetConstIterator::operator--):
+
+2008-07-14  David Hyatt  <hyatt@apple.com>
+
+        Buidl fix.  Make sure the second insertBefore method returns a value.
+
+        * wtf/ListHashSet.h:
+        (WTF::::insertBefore):
+
+2008-07-14  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj: Added include/pthreads to the
+        include path.
+
+2008-07-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Kevin McCullough.
+
+        Make JSGlobalData refcounted in preparation to adding a way to create contexts that share
+        global data.
+
+        * JavaScriptCore.exp:
+        * kjs/JSGlobalData.cpp:
+        (KJS::JSGlobalData::create):
+        * kjs/JSGlobalData.h:
+        Made contructor private, and added a static create() method. Made the class inherit from
+        RefCounted.
+
+        * kjs/JSGlobalObject.h:
+        (KJS::JSGlobalObject::globalData):
+        JSGlobalData is now owned by JSGlobalObject (except for the shared one, and the common
+        WebCore one, which are never deleted).
+
+        * kjs/Shell.cpp: (main): Create JSGlobalData with create() method.
+
+2008-07-14  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the single-threaded build.
+
+        * kjs/JSLock.cpp: Removed undeclared registerThread() function.
+        * kjs/collector.cpp:
+        (KJS::Heap::registerThread): Added dummy implementation.
+
+2008-07-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Eliminate per-thread JavaScript global data instance support and make arbitrary
+        global data/global object combinations possible.
+
+        * kjs/collector.cpp:
+        (KJS::Heap::Heap): Store a JSGlobalData pointer instead of multiple pointers to its members.
+        This allows for going from any JS object to its associated global data, currently used in
+        JSGlobalObject constructor to initialize its JSGlobalData pointer.
+        (KJS::Heap::registerThread): Changed thread registration data to be per-heap. Previously,
+        only the shared heap could be used from multiple threads, so it was the only one that needed
+        thread registration, but now this can happen to any heap.
+        (KJS::Heap::unregisterThread): Ditto.
+        (KJS::Heap::markStackObjectsConservatively): Adapt for the above changes.
+        (KJS::Heap::setGCProtectNeedsLocking): Ditto.
+        (KJS::Heap::protect): Ditto.
+        (KJS::Heap::unprotect): Ditto.
+        (KJS::Heap::collect): Ditto.
+        (KJS::Heap::globalObjectCount): Use global object list associated with the current heap,
+        not the late per-thread one.
+        (KJS::Heap::protectedGlobalObjectCount): Ditto.
+
+        * kjs/collector.h:
+        (KJS::Heap::ThreadRegistrar): Added a helper object that unregisters a thread when it is
+        destroyed.
+
+        * kjs/JSLock.cpp:
+        (KJS::JSLock::JSLock):
+        * kjs/JSLock.h:
+        (KJS::JSLock::JSLock):
+        Don't use JSLock to implicitly register threads. I've added registerThread() calls to most
+        places that use JSLock - we cannot guarantee absolute safety unless we always mark all
+        threads in the process, but these implicit registration calls should cover reasonable usage
+        scenarios, I hope.
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript): Explicitly register the current thread.
+        (JSCheckScriptSyntax): Explicitly register the current thread.
+        (JSGarbageCollect): Changed to use the passed in context. Unfortunately, this creates a race
+        condition for clients that pass an already released context to JSGarbageCollect - but it is
+        unlikely to create real life problems.
+        To maintain compatibility, the shared heap is collected if NULL is passed.
+
+        * API/JSContextRef.cpp:
+        (JSGlobalContextCreate): Use a new syntax for JSGlobalObject allocation.
+        (JSGlobalContextRetain): Register the thread.
+        (JSContextGetGlobalObject): Register the thread.
+
+        * API/JSObjectRef.cpp:
+        (JSObjectMake):
+        (JSObjectMakeFunctionWithCallback):
+        (JSObjectMakeConstructor):
+        (JSObjectMakeFunction):
+        (JSObjectHasProperty):
+        (JSObjectGetProperty):
+        (JSObjectSetProperty):
+        (JSObjectGetPropertyAtIndex):
+        (JSObjectSetPropertyAtIndex):
+        (JSObjectDeleteProperty):
+        (JSObjectCallAsFunction):
+        (JSObjectCallAsConstructor):
+        (JSObjectCopyPropertyNames):
+        (JSPropertyNameAccumulatorAddName):
+        * API/JSValueRef.cpp:
+        (JSValueIsEqual):
+        (JSValueIsInstanceOfConstructor):
+        (JSValueMakeNumber):
+        (JSValueMakeString):
+        (JSValueToNumber):
+        (JSValueToStringCopy):
+        (JSValueToObject):
+        (JSValueProtect):
+        (JSValueUnprotect):
+        Register the thread.
+
+        * API/JSStringRef.cpp: (JSStringRelease): Changed a comment to not mention per-thread contexts.
+
+        * API/JSStringRefCF.cpp: Removed an unnecessary include of JSLock.h.
+
+        * JavaScriptCore.exp: Export JSGlobalData constructor/destructor, now that anyone can have
+        their own instances. Adapt to other changes, too.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Made ThreadSpecific.h private, as it is now
+        included by collector.h and is thus needed in other projects.
+
+        * kjs/InitializeThreading.cpp: (KJS::initializeThreadingOnce): Don't initialize per-thread
+        global data, as it no longer exists.
+
+        * kjs/JSGlobalData.cpp:
+        (KJS::JSGlobalData::JSGlobalData):
+        (KJS::JSGlobalData::~JSGlobalData):
+        * kjs/JSGlobalData.h:
+        Removed support for per-thread instance. Made constructor and destructor public.
+
+        * kjs/JSGlobalObject.cpp: (KJS::JSGlobalObject::init): Get to now arbitrary  JSGlobalData
+        via the heap.
+        (KJS::JSGlobalObject::operator new): Changed ot take JSGlobalDatra pointer.
+        * kjs/JSGlobalObject.h:
+
+        * kjs/Shell.cpp:
+        (main):
+        (jscmain):
+        Changed to maintain a custom JSGlobalData pointer instead of a per-thread one.
+
 2008-07-14  Ada Chan  <adachan@apple.com>
 
         Windows build fix: Add wtf/RefCountedLeakCounter to the project.

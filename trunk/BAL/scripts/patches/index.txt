@@ -28,3 +28,4 @@
 ../../WKAL/Concretizations/Graphics/Cairo/BCImageSourceCairo.cpp	_:ImageSourceCairo.patch
 ../../WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp	0:ResourceHandleManager.patch
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURLI18N.patch
+../../OWBAL/Concretizations/Types/WK/BCThreadSpecificWK.h	0:ThreadSpecific.patch

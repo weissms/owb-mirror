@@ -105,7 +105,7 @@ void JSGlobalObject::init(JSObject* thisValue)
 {
     ASSERT(JSLock::currentThreadIsHoldingLock());
 
-    d()->globalData = Heap::heap(this)->isShared() ? &JSGlobalData::sharedInstance() : &JSGlobalData::threadInstance();
+    d()->globalData = Heap::heap(this)->globalData();
 
     if (JSGlobalObject*& headObject = head()) {
         d()->prev = headObject;
@@ -121,7 +121,7 @@ void JSGlobalObject::init(JSObject* thisValue)
 
     d()->globalExec.set(new ExecState(this, thisValue, d()->globalScopeChain.node()));
 
-    d()->pageGroupIdentifier = 0;
+    d()->profileGroup = 0;
 
     reset(prototype());
 }
@@ -430,21 +430,12 @@ void JSGlobalObject::copyGlobalsTo(RegisterFile& registerFile)
     d()->registers = registerFile.base();
 }
 
-void* JSGlobalObject::operator new(size_t size)
+void* JSGlobalObject::operator new(size_t size, JSGlobalData* globalData)
 {
 #ifdef JAVASCRIPTCORE_BUILDING_ALL_IN_ONE_FILE
-    return JSGlobalData::threadInstance().heap->inlineAllocate(size);
+    return globalData->heap->inlineAllocate(size);
 #else
-    return JSGlobalData::threadInstance().heap->allocate(size);
-#endif
-}
-
-void* JSGlobalObject::operator new(size_t size, SharedTag)
-{
-#ifdef JAVASCRIPTCORE_BUILDING_ALL_IN_ONE_FILE
-    return JSGlobalData::sharedInstance().heap->inlineAllocate(size);
-#else
-    return JSGlobalData::sharedInstance().heap->allocate(size);
+    return globalData->heap->allocate(size);
 #endif
 }
 

@@ -313,7 +313,10 @@ namespace WTF {
         const_iterator& operator--()
         {
             ASSERT(m_position != m_set->m_head);
-            m_position = m_position->m_prev;
+            if (!m_position)
+                m_position = m_set->m_tail;
+            else
+                m_position = m_position->m_prev;
             return *this;
         }
 
@@ -486,7 +489,7 @@ namespace WTF {
     template<typename T, typename U>
     pair<typename ListHashSet<T, U>::iterator, bool> ListHashSet<T, U>::insertBefore(const ValueType& beforeValue, const ValueType& newValue)
     {
-        insertBefore(find(beforeValue), newValue); 
+        return insertBefore(find(beforeValue), newValue); 
     }
 
     template<typename T, typename U>
