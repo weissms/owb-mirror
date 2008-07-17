@@ -1,6 +1,13 @@
 2008-07-17  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
+        fix the addToJSWindowObject crash problem.
+
+        * OrigynWebBrowser/CMakeLists.txt:
+
+2008-07-17  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
         Replace WebCore calls by DOM API calls.
 
         * OrigynWebBrowser/Api/WebDataSource.h:
