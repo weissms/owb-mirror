@@ -1,6 +1,13 @@
 2008-07-17  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Jean-Charles VERDIE.
+        Add documentation for TCSystemAlloc (see bug #271).
+
+        * OWBAL/Skeletons/Memory/TCSystemAlloc.t: Added.
+
+2008-07-17  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Jean-Charles VERDIE.
         Add TCSystemAlloc in bal-memory
 
         * OWBAL/Concretizations/Memory/CMakeLists.txt:
