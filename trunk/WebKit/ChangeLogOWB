@@ -1,3 +1,17 @@
+2008-07-17  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Replace WebCore calls by DOM API calls.
+
+        * OrigynWebBrowser/Api/WebDataSource.h:
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::domDocument):
+        (WebFrame::currentForm):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::mainFrameDocument):
+        * OrigynWebBrowser/Api/WebView.h:
+
 2008-07-08  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

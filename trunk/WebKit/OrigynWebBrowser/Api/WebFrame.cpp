@@ -30,6 +30,7 @@
 #include "WebFrame.h"
 
 #include "DefaultPolicyDelegate.h"
+#include "DOMCoreClasses.h"
 #include "FormValuesPropertyBag.h"
 #include "WebActionPropertyBag.h"
 #include "WebChromeClient.h"
@@ -47,10 +48,6 @@
 
 #include <PlatformString.h>
 #include <Cache.h>
-#include <Document.h>
-#include <DocumentLoader.h>
-#include <DOMImplementation.h>
-#include <DOMWindow.h>
 #include <Event.h>
 #include <FormState.h>
 #include <FrameLoader.h>
@@ -60,10 +57,6 @@
 #include <Frame.h>
 #include <GraphicsContext.h>
 #include <HistoryItem.h>
-#include <HTMLFormElement.h>
-#include <HTMLFormControlElement.h>
-#include <HTMLInputElement.h>
-#include <HTMLNames.h>
 #include <JSDOMWindow.h>
 #include <KeyboardEvent.h>
 #include <MIMETypeRegistry.h>
@@ -103,7 +96,6 @@
 #endif 
 
 using namespace WebCore;
-using namespace HTMLNames;
 
 #define FLASH_REDRAW 0
 
@@ -247,19 +239,19 @@ WebView* WebFrame::webView()
     return d->webView;
 }
 
-WebCore::Document* WebFrame::DOMDocument()
+DOMDocument* WebFrame::domDocument()
 {
     if (Frame* coreFrame = core(this))
-        return coreFrame->document();
-
+        if (Document* document = coreFrame->document())
+            return DOMDocument::createInstance(document);
     return 0;
 }
 
-WebCore::HTMLFormElement* WebFrame::currentForm()
+DOMElement* WebFrame::currentForm()
 {
     if (Frame* coreFrame = core(this))
-        return coreFrame->currentForm();
-
+        if (HTMLFormElement* formElement = coreFrame->currentForm())
+            return DOMElement::createInstance(formElement);
     return 0;
 }
 

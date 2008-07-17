@@ -50,17 +50,17 @@
 #include "GraphicsContext.h"
 #include "BALBase.h"
 
-class WebFrame;
-class WebBackForwardList;
-class WebInspector;
-class WebInspectorClient;
-class WebViewPrivate;
 class DefaultDownloadDelegate;
 class DefaultPolicyDelegate;
-class WebHistoryItem;
-class WebScriptObject;
+class DOMDocument;
+class WebBackForwardList;
 class WebElementPropertyBag;
-
+class WebFrame;
+class WebHistoryItem;
+class WebInspector;
+class WebInspectorClient;
+class WebScriptObject;
+class WebViewPrivate;
 
     /**
      * get a webview from page
@@ -467,7 +467,7 @@ public:
      *  mainFrameDocument 
      *  @result Returns the main frame's DOMDocument.
      */
-    virtual WebCore::Document* mainFrameDocument();
+    virtual DOMDocument* mainFrameDocument();
 
     /**
      *  mainFrameTitle 

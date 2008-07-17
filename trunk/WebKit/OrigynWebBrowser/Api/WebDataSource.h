@@ -40,7 +40,6 @@
  */
 #include "BALBase.h"
 #include <wtf/RefPtr.h>
-#include <wtf/RefPtr.h>
 
 class WebDocumentLoader;
 class WebMutableURLRequest;

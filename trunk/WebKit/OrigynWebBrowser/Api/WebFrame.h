@@ -56,10 +56,7 @@
 
 namespace WebCore {
     class AuthenticationChallenge;
-    class DocumentLoader;
-    class Element;
     class Frame;
-    class HTMLFrameOwnerElement;
     class IntRect;
     class Page;
     class ResourceError;
@@ -71,6 +68,8 @@ typedef const struct OpaqueJSContext* JSContextRef;
 typedef struct OpaqueJSValue* JSObjectRef;
 typedef struct OpaqueJSContext* JSGlobalContextRef;
 
+class DOMDocument;
+class DOMElement;
 class WebFrame;
 class WebFramePolicyListener;
 class WebHistory;
@@ -152,7 +151,7 @@ public:
      * Returns the DOM document of the frame.
        @description Returns nil if the frame does not contain a DOM document such as a standalone image. DOMDocument description
      */
-    virtual WebCore::Document* DOMDocument();
+    virtual DOMDocument* domDocument();
 
     /**
      *  loadRequest 
@@ -255,7 +254,7 @@ public:
     /**
      * get current form element
      */
-    virtual WebCore::HTMLFormElement* currentForm();
+    virtual DOMElement* currentForm();
 
     /**
      *  globalContext 

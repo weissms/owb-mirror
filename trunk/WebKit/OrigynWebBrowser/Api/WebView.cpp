@@ -31,6 +31,7 @@
 
 #include "DefaultPolicyDelegate.h"
 #include "DefaultDownloadDelegate.h"
+#include "DOMCoreClasses.h"
 #include "WebDatabaseManager.h"
 #include "WebDocumentLoader.h"
 #include "WebEditorClient.h"
@@ -57,7 +58,6 @@
 #include <ContextMenuController.h>
 #include <CString.h>
 #include <Cursor.h>
-#include <Document.h>
 #include <DragController.h>
 #include <DragData.h>
 #include <Editor.h>
@@ -1636,9 +1636,9 @@ String WebView::mainFrameURL()
     return String();
 }
 
-WebCore::Document* WebView::mainFrameDocument()
+DOMDocument* WebView::mainFrameDocument()
 {
-    return m_mainFrame->DOMDocument();
+    return m_mainFrame->domDocument();
 }
 
 String WebView::mainFrameTitle()
