@@ -382,6 +382,7 @@
 ../../OWBAL/Skeletons/Memory	../../../WebCore/platform/AutodrainedPool.h
 ../../OWBAL/Skeletons/Memory	../../../WebCore/platform/Arena.h
 ../../OWBAL/Skeletons/Memory	../../../JavaScriptCore/wtf/FastMalloc.h
+../../OWBAL/Skeletons/Memory	../../../JavaScriptCore/wtf/TCSystemAlloc.h
 
 ../../OWBAL/Concretizations/Memory/WK	../../../JavaScriptCore/wtf/MallocZoneSupport.h
 ../../OWBAL/Concretizations/Memory/WK	../../../WebCore/platform/AutodrainedPool.h
@@ -389,6 +390,8 @@
 ../../OWBAL/Concretizations/Memory/WK	../../../WebCore/platform/Arena.h
 ../../OWBAL/Concretizations/Memory/WK	../../../JavaScriptCore/wtf/FastMalloc.h
 ../../OWBAL/Concretizations/Memory/WK	../../../JavaScriptCore/wtf/FastMalloc.cpp
+../../OWBAL/Concretizations/Memory/WK	../../../JavaScriptCore/wtf/TCSystemAlloc.cpp
+../../OWBAL/Concretizations/Memory/WK	../../../JavaScriptCore/wtf/TCSystemAlloc.h
 
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/Deque.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/HashCountedSet.h
