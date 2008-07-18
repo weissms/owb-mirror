@@ -1,3 +1,11 @@
+2008-07-18  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        fix a crash in addToJSWindowObject when browsing many sites.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::addToJSWindowObject):
+
 2008-07-17  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
