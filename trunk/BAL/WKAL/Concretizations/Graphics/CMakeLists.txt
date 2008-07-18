@@ -27,6 +27,8 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/svg/graphics/filters
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
 )
 
 IF (WEBKIT_USE_I18N STREQUAL "GENERIC")

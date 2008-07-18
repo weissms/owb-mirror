@@ -535,6 +535,7 @@
 ../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/gtk/FontCustomPlatformData.h
 ../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/FontRenderingMode.h
 ../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/FontTraitsMask.h
+../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/TextRun.h
 
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontCache.h
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontCache.cpp
@@ -574,6 +575,7 @@
 ../../WKAL/Concretizations/Fonts/Pango	../../../WebCore/platform/graphics/gtk/GlyphPageTreeNodePango.cpp
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontRenderingMode.h
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontTraitsMask.h
+../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/TextRun.h
 
 
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/AuthenticationChallengeBase.h

@@ -36,6 +36,8 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/WebCoreSupport
     ${CMAKE_SOURCE_DIR}/WebKitTools/OrigynWebBrowser
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/generated_sources/WebKit
     ${GTK2_INCLUDE_DIRS}

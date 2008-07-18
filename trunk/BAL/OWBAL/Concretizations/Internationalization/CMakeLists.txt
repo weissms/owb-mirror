@@ -1,6 +1,8 @@
 INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
 )
 
 IF (WEBKIT_USE_I18N STREQUAL "GENERIC")

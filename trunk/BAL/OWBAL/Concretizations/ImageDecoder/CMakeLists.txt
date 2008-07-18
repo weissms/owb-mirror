@@ -1,6 +1,8 @@
 INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_link/WKAL
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
     ${PNG12_INCLUDE_DIRS}
     ${JPEG_INCLUDE_DIR}
 )

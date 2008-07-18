@@ -61,24 +61,7 @@ class SVGPaintServer;
 struct GlyphData;
 
 class TextRun : public WKALBase {
-public:
-    /**
-     * TextRun constructor
-     * @param[in] : text
-     * @param[in] : text length
-     * @param[in] : allow tabs
-     * @param[in] : x position
-     * @param[in] : padding value
-     * @param[in] : rigth to left value
-     * @param[in] : directional override
-     * @param[in] : apply run rounding
-     * @param[in] : apply word rounding
-     * @code
-     * TextRun tr = new TextRun(uchar, 12);
-     * @endcode
-     */
-    TextRun(const UChar* c, int len, bool allowTabs = false, int xpos = 0, int padding = 0, bool rtl = false, bool directionalOverride = false,
-              bool applyRunRounding = true, bool applyWordRounding = true);
+publi
 
     /**
      * TextRun constructor
@@ -96,17 +79,7 @@ public:
      * @endcode
      */
     TextRun(const String& s, bool allowTabs = false, int xpos = 0, int padding = 0, bool rtl = false, bool directionalOverride = false,
-              bool applyRunRounding = true, bool applyWordRounding = true);
-
-    /**
-     * operator[] 
-     * @param[in] : position value
-     * @param[out] : character value
-     * @code
-     * UChar c = textRun[2];
-     * @endcode
-     */
-    UChar operator[](int i) const ;
+              bool applyRunRounding = true, bool applyWordRounding = true)
 
     /**
      * get data
@@ -116,16 +89,7 @@ public:
      * UChar *c = textRun->data(2);
      * @endcode
      */
-    const UChar* data(int i) const ;
-
-    /**
-     * get characters
-     * @param[out] : return textRun characters
-     * @code
-     *  UChar *c = textRun->characters();
-     * @endcode
-     */
-    const UChar* characters() const ;
+    const UChar* data(int i) const 
 
     /**
      * get textRun length
@@ -134,17 +98,7 @@ public:
      * int l = textRun->length();
      * @endcode
      */
-    int length() const ;
-
-    /**
-     * set the text
-     * @param[in] : text
-     * @param[in] : text length
-     * @code
-     * textRun->setText(c, 12);
-     * @endcode
-     */
-    void setText(const UChar* c, int len) ;
+    int length() const 
 
     /**
      * test if the tabs is allowed
@@ -153,16 +107,7 @@ public:
      * bool at = textRun->allowTabs();
      * @endcode
      */
-    bool allowTabs() const ;
-
-    /**
-     * get x position
-     * @param[out] : x position
-     * @code
-     * int x = textRun->xPos();
-     * @endcode
-     */
-    int xPos() const ;
+    bool allowTabs() const 
 
     /**
      * get padding value
@@ -171,16 +116,7 @@ public:
      * int padding = textRun->padding();
      * @endcode
      */
-    int padding() const ;
-
-    /**
-     * get rigth to left value
-     * @param[out] : rigth to left value
-     * @code
-     * bool rtl = textRun->rtl();
-     * @endcode
-     */
-    bool rtl() const ;
+    int padding() const 
 
     /**
      * get left to rigth value
@@ -189,16 +125,7 @@ public:
      * bool ltr = textRun->ltr();
      * @endcode
      */
-    bool ltr() const ;
-
-    /**
-     * get directional override value
-     * @param[out] : directional override value
-     * @code
-     * bool do = textRun->directionalOverride();
-     * @endcode
-     */
-    bool directionalOverride() const ;
+    bool ltr() const 
 
     /**
      * get apply run rounding status
@@ -207,16 +134,7 @@ public:
      * bool arr = textRun->applyRunRounding();
      * @endcode
      */
-    bool applyRunRounding() const ;
-
-    /**
-     * get apply world rounding status
-     * @param[out] : apply world rounding status
-     * @code
-     * bool awr = textRun->applyWordRounding();
-     * @endcode
-     */
-    bool applyWordRounding() const ;
+    bool applyRunRounding() const 
 
     /**
      * get if the spacing is desabled
@@ -225,15 +143,7 @@ public:
      * bool sd = textRun->spacingDisabled();
      * @endcode
      */
-    bool spacingDisabled() const ;
-
-    /**
-     * disable spacing
-     * @code
-     * textRun->disableSpacing();
-     * @endcode
-     */
-    void disableSpacing() ;
+    bool spacingDisabled() const 
 
     /**
      * disable rounding hacks
@@ -241,16 +151,7 @@ public:
      * textRun->disableRoundingHacks();
      * @endcode
      */
-    void disableRoundingHacks() ;
-
-    /**
-     * set right to left value
-     * @param[in] : right to left value
-     * @code
-     * textRun->setRTL(true);
-     * @endcode
-     */
-    void setRTL(bool b) ;
+    void disableRoundingHacks() 
 
     /**
      * set direction Override
@@ -261,15 +162,7 @@ public:
      */
     void setDirectionalOverride(bool override) ;
 
-#if ENABLE(SVG_FONTS)
-    /**
-     * get the referencing RenderObject
-     * @param[out] : RenderObject
-     * @code
-     * RenderObject rObj = textRun->referencingRenderObject();
-     * @endcode
-     */
-    RenderObject* referencingRenderObject() const ;
+#if ENABLE(SVG_FONT
 
     /**
      * set referencing RenderObject
@@ -278,16 +171,7 @@ public:
      * textRun->setReferencingRenderObject(rObj);
      * @endcode
      */
-    void setReferencingRenderObject(RenderObject* object) ;
-
-    /**
-     * get the active paint server
-     * @param[out] : SVGPaintServer
-     * @code
-     * SVGPaintServer *sps = textRun->activePaintServer();
-     * @endcode
-     */
-    SVGPaintServer* activePaintServer() const ;
+    void setReferencingRenderObject(RenderObject* object) 
 
     /**
      * set active paint server
@@ -319,14 +203,7 @@ private:
 };
 
 class Font : public WKALBase {
-public:
-    /**
-     * Font default constructor
-     * @code
-     * Font *f = new Font();
-     * @endcode
-     */
-    Font();
+publi
 
     /**
      * Font constructor
@@ -337,18 +214,7 @@ public:
      * Font *f = new Font(fd, 12, 12 );
      * @endcode
      */
-    Font(const FontDescription&, short letterSpacing, short wordSpacing);
-
-    /**
-     * Font constructor
-     * This constructor is only used if the platform wants to start with a native font.
-     * @param[in] : FontPlatformData&
-     * @param[in] : printing value
-     * @code
-     * Font *f = new Font(fpd, false);
-     * @endcode
-     */
-    Font(const FontPlatformData&, bool isPrinting); // This constructor is only used if the platform wants to start with a native font.
+    Font(const FontDescription&, short letterSpacing, short wordSpacing) // This constructor is only used if the platform wants to start with a native font.
 
     /**
      * ~Font destructor
@@ -356,16 +222,7 @@ public:
      * delete font;
      * @endcode
      */
-    ~Font();
-
-    /**
-     * Font constructor by copy
-     * @param[in] : Font
-     * @code
-     * Font *f = new Font(currentFont);
-     * @endcode
-     */
-    Font(const Font&);
+    ~Font()
 
     /**
      * operator=
@@ -375,17 +232,7 @@ public:
      * Font f = currentFont;
      * @endcode
      */
-    Font& operator=(const Font&);
-
-    /**
-     * operator== 
-     * @param[in] : Font
-     * @param[out] : return false if the fonts are different
-     * @code
-     * bool eq = f == currentFont;
-     * @endcode
-     */
-    bool operator==(const Font& other) const;
+    Font& operator=(const Font&)
 
     /**
      * operator!= 
@@ -395,16 +242,7 @@ public:
      * bool d = f != currentFont;
      * @endcode
      */
-    bool operator!=(const Font& other) const ;
-
-    /**
-     * get fontDescription
-     * @param[out] : FontDescription&
-     * @code
-     * FontDescription& fd = f->fontDescription();
-     * @endcode
-     */
-    const FontDescription& fontDescription() const ;
+    bool operator!=(const Font& other) const 
 
     /**
      * get font pixel size
@@ -413,16 +251,7 @@ public:
      * int ps = f->pixelSize();
      * @endcode
      */
-    int pixelSize() const ;
-
-    /**
-     * get font size
-     * @param[out] : font size
-     * @code
-     * int s = f->size();
-     * @endcode
-     */
-    float size() const ;
+    int pixelSize() const 
 
     /**
      * update font
@@ -431,20 +260,7 @@ public:
      * f->update(fontSelector);
      * @endcode
      */
-    void update(PassRefPtr<FontSelector>) const;
-
-    /**
-     * draw text
-     * @param[in] : context graphic
-     * @param[in] : text
-     * @param[in] : start point
-     * @param[in] : start glyph range
-     * @param[in] : end glyph range
-     * @code
-     * f->drawText(cg, text, FloatPoint(0,0));
-     * @endcode
-     */
-    void drawText(GraphicsContext*, const TextRun&, const FloatPoint&, int from = 0, int to = -1) const;
+    void update(PassRefPtr<FontSelector>) const
 
     /**
      * return font width
@@ -454,17 +270,7 @@ public:
      * int w = f->width(textRun);
      * @endcode
      */
-    int width(const TextRun&) const;
-
-    /**
-     * return float width
-     * @param[in] : TextRun
-     * @param[out] : float width
-     * @code
-     * float w = f->floatWidth(textRun);
-     * @endcode
-     */
-    float floatWidth(const TextRun&) const;
+    int width(const TextRun&) const
 
     /**
      * return float width
@@ -477,19 +283,7 @@ public:
      * float w = f->floatWidth(textRun, 0, chars, name);
      * @endcode
      */
-    float floatWidth(const TextRun& run, int extraCharsAvailable, int& charsConsumed, String& glyphName) const;
-
-    /**
-     * get offset for position
-     * @param[in] : TextRun
-     * @param[in] : position
-     * @param[in] : include partial glyphs
-     * @param[out] : position
-     * @code
-     * int pos = f->offsetForPosition(textRun, 0, false);
-     * @endcode
-     */
-    int offsetForPosition(const TextRun&, int position, bool includePartialGlyphs) const;
+    float floatWidth(const TextRun& run, int extraCharsAvailable, int& charsConsumed, String& glyphName) const
 
     /**
      * get selection for text
@@ -503,16 +297,7 @@ public:
      * FloatRect f = f->selectionRectForText(textRun, IntPoint(0,0), 18);
      * @endcode
      */
-    FloatRect selectionRectForText(const TextRun&, const IntPoint&, int h, int from = 0, int to = -1) const;
-
-    /**
-     * get small caps value
-     * @param[out] : small caps value
-     * @code
-     * bool sc = f->isSmallCaps();
-     * @endcode
-     */
-    bool isSmallCaps() const ;
+    FloatRect selectionRectForText(const TextRun&, const IntPoint&, int h, int from = 0, int to = -1) const
 
     /**
      * get word spacing value
@@ -521,16 +306,7 @@ public:
      * short ws = f->wordSpacing();
      * @endcode
      */
-    short wordSpacing() const ;
-
-    /**
-     * get letter spacing value
-     * @param[out] : letter spacing value
-     * @code
-     * short ls = f->letterSpacing();
-     * @endcode
-     */
-    short letterSpacing() const ;
+    short wordSpacing() const 
 
     /**
      * set word spacing value
@@ -539,16 +315,7 @@ public:
      * f->setWordSpacing(12);
      * @endcode
      */
-    void setWordSpacing(short s) ;
-
-    /**
-     * set letter spacing value
-     * @param[in] : letter spacing value
-     * @code
-     * f->setLetterSpacing(12);
-     * @endcode
-     */
-    void setLetterSpacing(short s) ;
+    void setWordSpacing(short s) 
 
     /**
      * test if the pitch is fixed
@@ -1028,11 +795,4 @@ private:
     mutable const SimpleFontData* m_cachedPrimaryFont;
     short m_letterSpacing;
     short m_wordSpacing;
-    bool m_isPlatformFont;
-};
-
-}
-
-#endif
-
-
+    bool m_isPlatfo

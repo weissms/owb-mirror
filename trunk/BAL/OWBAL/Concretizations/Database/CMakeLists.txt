@@ -7,6 +7,8 @@ IF (WEBKIT_USE_DATABASE)
     
     INCLUDE_DIRECTORIES (
         ${CMAKE_SOURCE_DIR}/JavaScriptCore/
+	${CMAKE_SOURCE_DIR}/JavaScriptCore/VM/
+	${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs/
         ${SQLITE_INCLUDE_DIRS}
     )
     AUX_SOURCE_DIRECTORY (SQLite DATABASE_SRC)

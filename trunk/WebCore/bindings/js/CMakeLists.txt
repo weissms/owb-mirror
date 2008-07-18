@@ -82,6 +82,12 @@ IF (WEBKIT_USE_DATABASE)
     )
 ENDIF (WEBKIT_USE_DATABASE)
 
+IF (WEBKIT_USE_SVG)
+    LIST (APPEND BINDINGS_JS_SRC
+        bindings/js/JSSVGLengthCustom.cpp
+    )
+ENDIF (WEBKIT_USE_SVG)
+
 IF (WEBKIT_USE_DOM_STORAGE)
     LIST (APPEND BINDINGS_JS_SRC
         bindings/js/JSStorageCustom.cpp

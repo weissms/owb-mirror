@@ -8,6 +8,8 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/editing
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
 )
 
 IF (WEBKIT_USE_I18N STREQUAL "GENERIC")
@@ -62,6 +64,7 @@ OWBLN (WK/BCGlyphWidthMapWK.h WKAL 0 0)
 OWBLN (WK/BCSegmentedFontDataWK.h WKAL 0 0)
 OWBLN (WK/BCStringTruncatorWK.h WKAL 0 0)
 OWBLN (WK/BCFontTraitsMaskWK.h WKAL 0 0)
+OWBLN (WK/BCTextRunWK.h WKAL 0 0)
 
 AUX_SOURCE_DIRECTORY (WK FONTS_SRC)
 

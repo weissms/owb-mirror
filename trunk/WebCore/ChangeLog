@@ -1,3 +1,283 @@
+2008-07-18  Jacob Refstrup  <jacob.refstrup@hp.com>
+
+        Reviewed by rwlbuis@gmail.com
+
+        https://bugs.webkit.org/show_bug.cgi?id=19965
+
+        - Added "@"{ident} rule (below other @-rules) to use flex for longest match
+          (if an earlier rule - e.g. @media - also matches then flex chooses that one
+           however, if a longer match - e.g. @mediaall matches flex will choose that)
+        - Updated grammar to defined ATKEYWORD token and to use that instead of '@'
+          in the error recovery grammar. 
+
+        Test: css2.1/atrule_longest_match.html
+
+        * ChangeLog:
+        * css/CSSGrammar.y:
+        * css/tokenizer.flex:
+
+2008-07-17  David Hyatt  <hyatt@apple.com>
+
+        Make sure the check to see if a frame/iframe is being rendered inside a transparency layer is
+        recursive (and checks for transparency layers all the way up the ancestor document chain back to
+        the top-level frame).
+
+        Reviewed by Dan
+
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::paintBoxDecorations):
+
+2008-07-16  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        REGRESSION: Can't create windowless plug-in with Flash 9
+        https://bugs.webkit.org/show_bug.cgi?id=20070
+
+        Reviewed by Mark Rowe.
+
+        * plugins/win/PluginPackageWin.cpp:
+        (WebCore::PluginPackage::determineQuirks): Reverse argument order;
+        PlatformModuleVersion constructor takes leastSig, mostSig.
+
+2008-07-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by mitz.
+
+        Attempt to make initializeATSUStyle human-readable by
+        splitting it out into better-named static inline functions.
+
+        No functional changes, thus no tests.
+
+        * platform/graphics/mac/FontMac.mm:
+        (WebCore::fontHasMirroringInfo):
+        (WebCore::disableLigatures):
+        (WebCore::initializeATSUStyle):
+
+2008-07-16  Eric Seidel  <eric@webkit.org>
+
+        No review, build fix only.
+
+        Attempt to fix Mac build
+
+        * WebCore.xcodeproj/project.pbxproj: Make TextRun.h a private header.
+
+2008-07-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by mitz.
+
+        Make ATSULayoutParameters a real C++ class
+        (Give it a destructor to clean up after itself)
+        (Also use OwnArrayPtr instead of manual member cleanup)
+
+        * platform/graphics/mac/FontMac.mm:
+        (WebCore::ATSULayoutParameters::ATSULayoutParameters):
+        (WebCore::ATSULayoutParameters::~ATSULayoutParameters):
+        (WebCore::overrideLayoutOperation):
+        (WebCore::ATSULayoutParameters::initialize):
+        (WebCore::Font::selectionRectForComplexText):
+        (WebCore::Font::drawComplexText):
+        (WebCore::Font::floatWidthForComplexText):
+        (WebCore::Font::offsetForPositionForComplexText):
+
+2008-07-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by mitz.
+
+        Make ownership of copied UChar buffer clearer
+        (and more leak-proof) by using a OwnArrayPtr.
+
+        No functional changes, thus no tests.
+
+        * platform/graphics/mac/FontMac.mm:
+        (WebCore::copyRunForDirectionalOverrideIfNecessary):
+        (WebCore::Font::selectionRectForComplexText):
+        (WebCore::Font::drawComplexText):
+        (WebCore::Font::offsetForPositionForComplexText):
+
+2008-07-16  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam.
+
+        Split out TextRun into its own header file.
+        Re-order members to place all bools together
+        (to allow compilers to better pack the struct)
+
+        No functional changes, thus no tests.
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/Font.h: Moved TextRun into its own file.
+        * platform/graphics/TextRun.h: Split out from Font.h
+
+2008-07-16  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        AnimationController needs to adjust z-index in the blended
+        style in case opacity or transform were changed by blending.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20047
+        
+        Test: transitions/opacity-transition-zindex.html
+
+        * page/AnimationController.cpp:
+        (WebCore::AnimationController::updateImplicitAnimations):
+
+2008-07-16  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Sam.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=20052 
+        Prepare SVGAnimatedProperty introduction.
+
+        Export the tag & attribute names as string literals for SVGNames/XLinkNames and one property in HTMLNames. SVGAnimatedProperty
+        contains two string literal template parameters, and we're using these exported string literals from {SVG,HTML,XLink}Names as input paramters.
+        See https://bugs.webkit.org/show_bug.cgi?id=20051 for details.
+
+        * dom/make_names.pl: Handle new params "exportString" / "exportStrings".
+        * html/HTMLAttributeNames.in: Expose just the single "class" attribute, as string.
+        * svg/svgattrs.in: Export all SVG attributes as strings.
+        * svg/svgtags.in: Export all SVG tags as strings.
+        * svg/xlinkattrs.in: Expose all XLink attributes as strings.
+
+2008-07-16  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=10745 (SVGLength object needs some weight loss)
+        Don't store a context pointer in SVGLength, saving memory. Let the caller of the value() & convertToSpecifiedUnits() pass it.
+
+        Remove some uneeded contextElement() functions, by moving into approriate shared base classes.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSSVGLengthCustom.cpp: Added.
+        (WebCore::JSSVGLength::value):
+        (WebCore::JSSVGLength::convertToSpecifiedUnits):
+        * bindings/scripts/CodeGeneratorObjC.pm:
+        * css/CSSCursorImageValue.cpp:
+        (WebCore::CSSCursorImageValue::updateIfSVGCursorIsUsed):
+        * rendering/RenderForeignObject.cpp:
+        (WebCore::RenderForeignObject::translationForAttributes):
+        * rendering/RenderSVGImage.cpp:
+        (WebCore::RenderSVGImage::layout):
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::calcViewport):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::layout):
+        * rendering/RenderSVGViewportContainer.cpp:
+        (WebCore::RenderSVGViewportContainer::calcViewport):
+        * rendering/SVGCharacterLayoutInfo.cpp:
+        (WebCore::SVGCharacterLayoutInfo::addLayoutInformation):
+        (WebCore::SVGCharacterLayoutInfo::addStackContent):
+        * rendering/SVGCharacterLayoutInfo.h:
+        * rendering/SVGRootInlineBox.cpp:
+        (WebCore::SVGRootInlineBox::buildTextChunks):
+        * svg/SVGAnimateElement.h:
+        * svg/SVGAnimateMotionElement.h:
+        * svg/SVGAnimateTransformElement.h:
+        * svg/SVGAnimationElement.h:
+        (WebCore::SVGAnimationElement::contextElement):
+        * svg/SVGCircleElement.cpp:
+        (WebCore::SVGCircleElement::SVGCircleElement):
+        (WebCore::SVGCircleElement::parseMappedAttribute):
+        (WebCore::SVGCircleElement::toPathData):
+        * svg/SVGCursorElement.cpp:
+        (WebCore::SVGCursorElement::SVGCursorElement):
+        (WebCore::SVGCursorElement::parseMappedAttribute):
+        * svg/SVGEllipseElement.cpp:
+        (WebCore::SVGEllipseElement::SVGEllipseElement):
+        (WebCore::SVGEllipseElement::parseMappedAttribute):
+        (WebCore::SVGEllipseElement::toPathData):
+        * svg/SVGFilterElement.cpp:
+        (WebCore::SVGFilterElement::SVGFilterElement):
+        (WebCore::SVGFilterElement::parseMappedAttribute):
+        (WebCore::SVGFilterElement::canvasResource):
+        * svg/SVGFilterPrimitiveStandardAttributes.cpp:
+        (WebCore::SVGFilterPrimitiveStandardAttributes::SVGFilterPrimitiveStandardAttributes):
+        (WebCore::SVGFilterPrimitiveStandardAttributes::parseMappedAttribute):
+        (WebCore::SVGFilterPrimitiveStandardAttributes::setStandardAttributes):
+        * svg/SVGForeignObjectElement.cpp:
+        (WebCore::SVGForeignObjectElement::SVGForeignObjectElement):
+        (WebCore::SVGForeignObjectElement::parseMappedAttribute):
+        * svg/SVGImageElement.cpp:
+        (WebCore::SVGImageElement::SVGImageElement):
+        (WebCore::SVGImageElement::parseMappedAttribute):
+        * svg/SVGLength.cpp:
+        (WebCore::SVGLength::SVGLength):
+        (WebCore::SVGLength::value):
+        (WebCore::SVGLength::convertToSpecifiedUnits):
+        (WebCore::SVGLength::PercentageOfViewport):
+        * svg/SVGLength.h:
+        * svg/SVGLength.idl:
+        * svg/SVGLengthList.cpp:
+        (WebCore::SVGLengthList::parse):
+        * svg/SVGLengthList.h:
+        * svg/SVGLineElement.cpp:
+        (WebCore::SVGLineElement::SVGLineElement):
+        (WebCore::SVGLineElement::parseMappedAttribute):
+        (WebCore::SVGLineElement::toPathData):
+        * svg/SVGLinearGradientElement.cpp:
+        (WebCore::SVGLinearGradientElement::SVGLinearGradientElement):
+        (WebCore::SVGLinearGradientElement::parseMappedAttribute):
+        * svg/SVGMarkerElement.cpp:
+        (WebCore::SVGMarkerElement::SVGMarkerElement):
+        (WebCore::SVGMarkerElement::parseMappedAttribute):
+        (WebCore::SVGMarkerElement::canvasResource):
+        * svg/SVGMaskElement.cpp:
+        (WebCore::SVGMaskElement::SVGMaskElement):
+        (WebCore::SVGMaskElement::parseMappedAttribute):
+        (WebCore::SVGMaskElement::drawMaskerContent):
+        * svg/SVGPatternElement.cpp:
+        (WebCore::SVGPatternElement::SVGPatternElement):
+        (WebCore::SVGPatternElement::parseMappedAttribute):
+        (WebCore::SVGPatternElement::buildPattern):
+        * svg/SVGRadialGradientElement.cpp:
+        (WebCore::SVGRadialGradientElement::SVGRadialGradientElement):
+        (WebCore::SVGRadialGradientElement::parseMappedAttribute):
+        * svg/SVGRectElement.cpp:
+        (WebCore::SVGRectElement::SVGRectElement):
+        (WebCore::SVGRectElement::parseMappedAttribute):
+        (WebCore::SVGRectElement::toPathData):
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::SVGSVGElement):
+        (WebCore::SVGSVGElement::viewport):
+        (WebCore::SVGSVGElement::parseMappedAttribute):
+        (WebCore::SVGSVGElement::getCTM):
+        (WebCore::SVGSVGElement::getScreenCTM):
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::SVGTextContentElement::SVGTextContentElement):
+        (WebCore::SVGTextContentElement::parseMappedAttribute):
+        * svg/SVGTextPathElement.cpp:
+        (WebCore::SVGTextPathElement::SVGTextPathElement):
+        (WebCore::SVGTextPathElement::parseMappedAttribute):
+        * svg/SVGTextPositioningElement.cpp:
+        (WebCore::SVGTextPositioningElement::parseMappedAttribute):
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::SVGUseElement):
+        (WebCore::SVGUseElement::parseMappedAttribute):
+        (WebCore::SVGUseElement::buildPendingResource):
+        (WebCore::SVGUseElement::buildInstanceTree):
+        (WebCore::SVGUseElement::handleDeepUseReferencing):
+        (WebCore::SVGUseElement::alterShadowTreeForSVGTag):
+        (WebCore::SVGUseElement::expandUseElementsInShadowTree):
+        (WebCore::SVGUseElement::expandSymbolElementsInShadowTree):
+        * svg/SVGUseElement.h:
+        * svg/SynchronizableTypeWrapper.h:
+        * svg/graphics/SVGImage.cpp:
+        (WebCore::SVGImage::size):
+
+2008-07-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Support for JavaScriptCore's first step toward putting doubles in
+        registers: Treat ArgList iterators as Register*'s, not JSValue*'s.
+
+        * bindings/js/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::ScheduledAction):
+
 2008-07-16  Maxime Britto  <britto@apple.com>
 
         Reviewed by Eric.

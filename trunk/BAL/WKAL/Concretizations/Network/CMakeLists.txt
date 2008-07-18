@@ -8,6 +8,8 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/editing
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
     ${CMAKE_SOURCE_DIR}/WebCore/rendering/style
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
     ${CURL_INCLUDE_DIRS}
 )
 

@@ -445,38 +445,21 @@ void FunctionCallDotNode::streamTo(SourceStream& s) const
     s << m_args;
 }
 
-void PostIncResolveNode::streamTo(SourceStream& s) const
+void PostfixResolveNode::streamTo(SourceStream& s) const
 {
-    s << m_ident << "++";
+    s << m_ident << operatorString(m_operator);
 }
 
-void PostDecResolveNode::streamTo(SourceStream& s) const
-{
-    s << m_ident << "--";
-}
-
-void PostIncBracketNode::streamTo(SourceStream& s) const
+void PostfixBracketNode::streamTo(SourceStream& s) const
 {
     bracketNodeStreamTo(s, m_base, m_subscript);
-    s << "++";
+    s << operatorString(m_operator);
 }
 
-void PostDecBracketNode::streamTo(SourceStream& s) const
-{
-    bracketNodeStreamTo(s, m_base, m_subscript);
-    s << "--";
-}
-
-void PostIncDotNode::streamTo(SourceStream& s) const
+void PostfixDotNode::streamTo(SourceStream& s) const
 {
     dotNodeStreamTo(s, m_base, m_ident);
-    s << "++";
-}
-
-void PostDecDotNode::streamTo(SourceStream& s) const
-{
-    dotNodeStreamTo(s, m_base, m_ident);
-    s << "--";
+    s << operatorString(m_operator);
 }
 
 void PostfixErrorNode::streamTo(SourceStream& s) const
@@ -525,37 +508,20 @@ void TypeOfResolveNode::streamTo(SourceStream& s) const
     s << "typeof " << m_ident;
 }
 
-void PreIncResolveNode::streamTo(SourceStream& s) const
+void PrefixResolveNode::streamTo(SourceStream& s) const
 {
-    s << "++" << m_ident;
+    s << operatorString(m_operator) << m_ident;
 }
 
-void PreDecResolveNode::streamTo(SourceStream& s) const
+void PrefixBracketNode::streamTo(SourceStream& s) const
 {
-    s << "--" << m_ident;
-}
-
-void PreIncBracketNode::streamTo(SourceStream& s) const
-{
-    s << "++";
+    s << operatorString(m_operator);
     bracketNodeStreamTo(s, m_base, m_subscript);
 }
 
-void PreDecBracketNode::streamTo(SourceStream& s) const
+void PrefixDotNode::streamTo(SourceStream& s) const
 {
-    s << "--";
-    bracketNodeStreamTo(s, m_base, m_subscript);
-}
-
-void PreIncDotNode::streamTo(SourceStream& s) const
-{
-    s << "++";
-    dotNodeStreamTo(s, m_base, m_ident);
-}
-
-void PreDecDotNode::streamTo(SourceStream& s) const
-{
-    s << "--";
+    s << operatorString(m_operator);
     dotNodeStreamTo(s, m_base, m_ident);
 }
 
@@ -692,14 +658,9 @@ void BitOrNode::streamTo(SourceStream& s) const
     streamLeftAssociativeBinaryOperator(s, precedence(), "|", m_term1, m_term2);
 }
 
-void LogicalAndNode::streamTo(SourceStream& s) const
+void LogicalOpNode::streamTo(SourceStream& s) const
 {
-    streamLeftAssociativeBinaryOperator(s, precedence(), "&&", m_expr1, m_expr2);
-}
-
-void LogicalOrNode::streamTo(SourceStream& s) const
-{
-    streamLeftAssociativeBinaryOperator(s, precedence(), "||", m_expr1, m_expr2);
+    streamLeftAssociativeBinaryOperator(s, precedence(), (m_operator == OpLogicalAnd) ? "&&" : "||", m_expr1, m_expr2);
 }
 
 void ConditionalNode::streamTo(SourceStream& s) const

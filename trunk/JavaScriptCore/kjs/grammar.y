@@ -614,35 +614,35 @@ BitwiseORExprNoBF:
 
 LogicalANDExpr:
     BitwiseORExpr
-  | LogicalANDExpr AND BitwiseORExpr    { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalAndNode(GLOBAL_DATA, $1.m_node, $3.m_node), $1.m_featureInfo | $3.m_featureInfo); }
+  | LogicalANDExpr AND BitwiseORExpr    { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOpNode(GLOBAL_DATA, $1.m_node, $3.m_node, OpLogicalAnd), $1.m_featureInfo | $3.m_featureInfo); }
 ;
 
 LogicalANDExprNoIn:
     BitwiseORExprNoIn
   | LogicalANDExprNoIn AND BitwiseORExprNoIn
-                                        { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalAndNode(GLOBAL_DATA, $1.m_node, $3.m_node), $1.m_featureInfo | $3.m_featureInfo); }
+                                        { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOpNode(GLOBAL_DATA, $1.m_node, $3.m_node, OpLogicalAnd), $1.m_featureInfo | $3.m_featureInfo); }
 ;
 
 LogicalANDExprNoBF:
     BitwiseORExprNoBF
   | LogicalANDExprNoBF AND BitwiseORExpr
-                                        { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalAndNode(GLOBAL_DATA, $1.m_node, $3.m_node), $1.m_featureInfo | $3.m_featureInfo); }
+                                        { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOpNode(GLOBAL_DATA, $1.m_node, $3.m_node, OpLogicalAnd), $1.m_featureInfo | $3.m_featureInfo); }
 ;
 
 LogicalORExpr:
     LogicalANDExpr
-  | LogicalORExpr OR LogicalANDExpr     { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOrNode(GLOBAL_DATA, $1.m_node, $3.m_node), $1.m_featureInfo | $3.m_featureInfo); }
+  | LogicalORExpr OR LogicalANDExpr     { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOpNode(GLOBAL_DATA, $1.m_node, $3.m_node, OpLogicalOr), $1.m_featureInfo | $3.m_featureInfo); }
 ;
 
 LogicalORExprNoIn:
     LogicalANDExprNoIn
   | LogicalORExprNoIn OR LogicalANDExprNoIn
-                                        { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOrNode(GLOBAL_DATA, $1.m_node, $3.m_node), $1.m_featureInfo | $3.m_featureInfo); }
+                                        { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOpNode(GLOBAL_DATA, $1.m_node, $3.m_node, OpLogicalOr), $1.m_featureInfo | $3.m_featureInfo); }
 ;
 
 LogicalORExprNoBF:
     LogicalANDExprNoBF
-  | LogicalORExprNoBF OR LogicalANDExpr { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOrNode(GLOBAL_DATA, $1.m_node, $3.m_node), $1.m_featureInfo | $3.m_featureInfo); }
+  | LogicalORExprNoBF OR LogicalANDExpr { $$ = createNodeFeatureInfo<ExpressionNode*>(new LogicalOpNode(GLOBAL_DATA, $1.m_node, $3.m_node, OpLogicalOr), $1.m_featureInfo | $3.m_featureInfo); }
 ;
 
 ConditionalExpr:
@@ -1124,23 +1124,15 @@ static ExpressionNode* makePrefixNode(void* globalPtr, ExpressionNode* expr, Ope
     
     if (expr->isResolveNode()) {
         ResolveNode* resolve = static_cast<ResolveNode*>(expr);
-        if (op == OpPlusPlus)
-            return new PreIncResolveNode(GLOBAL_DATA, resolve->identifier());
-        else
-            return new PreDecResolveNode(GLOBAL_DATA, resolve->identifier());
+        return new PrefixResolveNode(GLOBAL_DATA, resolve->identifier(), op);
     }
     if (expr->isBracketAccessorNode()) {
         BracketAccessorNode* bracket = static_cast<BracketAccessorNode*>(expr);
-        if (op == OpPlusPlus)
-            return new PreIncBracketNode(GLOBAL_DATA, bracket->base(), bracket->subscript());
-        else
-            return new PreDecBracketNode(GLOBAL_DATA, bracket->base(), bracket->subscript());
+        return new PrefixBracketNode(GLOBAL_DATA, bracket->base(), bracket->subscript(), op);
     }
     ASSERT(expr->isDotAccessorNode());
     DotAccessorNode* dot = static_cast<DotAccessorNode*>(expr);
-    if (op == OpPlusPlus)
-        return new PreIncDotNode(GLOBAL_DATA, dot->base(), dot->identifier());
-    return new PreDecDotNode(GLOBAL_DATA, dot->base(), dot->identifier());
+    return new PrefixDotNode(GLOBAL_DATA, dot->base(), dot->identifier(), op);
 }
 
 static ExpressionNode* makePostfixNode(void* globalPtr, ExpressionNode* expr, Operator op)
@@ -1150,24 +1142,15 @@ static ExpressionNode* makePostfixNode(void* globalPtr, ExpressionNode* expr, Op
     
     if (expr->isResolveNode()) {
         ResolveNode* resolve = static_cast<ResolveNode*>(expr);
-        if (op == OpPlusPlus)
-            return new PostIncResolveNode(GLOBAL_DATA, resolve->identifier());
-        else
-            return new PostDecResolveNode(GLOBAL_DATA, resolve->identifier());
+        return new PostfixResolveNode(GLOBAL_DATA, resolve->identifier(), op);
     }
     if (expr->isBracketAccessorNode()) {
         BracketAccessorNode* bracket = static_cast<BracketAccessorNode*>(expr);
-        if (op == OpPlusPlus)
-            return new PostIncBracketNode(GLOBAL_DATA, bracket->base(), bracket->subscript());
-        else
-            return new PostDecBracketNode(GLOBAL_DATA, bracket->base(), bracket->subscript());
+        return new PostfixBracketNode(GLOBAL_DATA, bracket->base(), bracket->subscript(), op);
     }
     ASSERT(expr->isDotAccessorNode());
     DotAccessorNode* dot = static_cast<DotAccessorNode*>(expr);
-    
-    if (op == OpPlusPlus)
-        return new PostIncDotNode(GLOBAL_DATA, dot->base(), dot->identifier());
-    return new PostDecDotNode(GLOBAL_DATA, dot->base(), dot->identifier());
+    return new PostfixDotNode(GLOBAL_DATA, dot->base(), dot->identifier(), op);
 }
 
 static ExpressionNodeInfo makeFunctionCallNode(void* globalPtr, ExpressionNodeInfo func, ArgumentsNodeInfo args)

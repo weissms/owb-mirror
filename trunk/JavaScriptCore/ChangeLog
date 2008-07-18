@@ -1,3 +1,253 @@
+2008-07-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Next step toward putting doubles in registers: Store constant pool
+        entries as registers, not JSValue*s.
+        
+        SunSpider reports no change.
+
+2008-07-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by John Sullivan and Oliver Hunt.
+        
+        A tiny bit of tidying in function call register allocation.
+        
+        This patch saves one register when invoking a function expression and/or
+        a new expression that is stored in a temporary.
+        
+        Since it's just one register, I can't make a testcase for it.
+
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::emitCall): No need to ref the function we're calling
+        or its base. We'd like the call frame to overlap with them, if possible.
+        op_call will read the function and its base before writing the call frame,
+        so this is safe.
+
+        * kjs/nodes.cpp:
+        (KJS::NewExprNode::emitCode): No need to ref the function we're new-ing,
+        for the same reasons stated above.
+        
+        (KJS::FunctionCallValueNode::emitCode): ditto
+
+2008-07-17  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix.
+        
+        * kjs/InternalFunction.cpp:
+
+2008-07-17  Sam Weinig  <sam@webkit.org>
+
+        Roll out r35199 as it is causing failures on the PPC build.
+
+2008-07-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by David Kilzer.
+        
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=20067
+        Support function.name (Firefox extension)
+        
+        Pretty straight-forward.
+
+2008-07-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fixed <rdar://problem/6081636> Functions calls use more temporary
+        registers than necessary
+        
+        Holding a reference to the last statement result register caused each
+        successive statement to output its result to an even higher register.
+        
+        Happily, statements don't actually need to return a result register
+        at all. I hope to make this clearer in a future cleanup patch,
+        but this change will fix the major bug for now.
+
+        * kjs/nodes.cpp:
+        (KJS::statementListEmitCode):
+
+2008-07-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Merge pre&post dot nodes to simplify the parse tree.
+        Sunspider results show 0.6% progression (no performance change expected).
+
+        * kjs/grammar.y:
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+        * kjs/nodes2string.cpp:
+
+2008-07-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Merge pre&post resolve nodes to simplify the parse tree.
+        Sunspider results show no performance change.
+
+        * kjs/grammar.y:
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+        * kjs/nodes2string.cpp:
+
+2008-07-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Merge logical nodes to simplify the parse tree.
+        Sunspider results show 0.6% progression (no performance change expected).
+
+        * kjs/grammar.y:
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+        * kjs/nodes2string.cpp:
+
+2008-07-17  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix MinGW build (broken in r35198) and simplify getLocalTime().
+
+        * kjs/DateMath.cpp:
+        (KJS::getLocalTime):
+
+2008-07-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Merge pre&post bracket nodes to simplify the parse tree.
+        Sunspider results show no performance change.
+
+        * kjs/grammar.y:
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+        * kjs/nodes2string.cpp:
+
+2008-07-17  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix the 32-bit gcc builds, conversion from "long int" to Register is
+        ambiguous. Explicitly choose the intptr_t constructor.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::initializeCallFrame):
+        * VM/Register.h:
+        (KJS::Register::Register):
+
+2008-07-16  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        Fix JavaScript in 64-bit by using a pointer-sized integer
+        type in the Register union.  Also includes a rename of
+        the intType constant to IntType.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::initializeCallFrame):
+        * VM/Register.h:
+        (KJS::Register::):
+        (KJS::Register::Register):
+
+2008-07-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        First step toward putting doubles in registers: Turned Register into a
+        proper abstraction layer. It is no longer possible to cast a Register
+        to a JSValue*, or a Register& to a JSValue*&, or to access the union
+        inside a Register directly.
+        
+        SunSpider reports no change.
+        
+        In support of this change, I had to make the following mechanical changes
+        in a lot of places:
+        
+        1. Clients now use explicit accessors to read data out of Registers, and
+        implicit copy constructors to write data into registers.
+        
+        So, assignment that used to look like
+        
+            x.u.jsValue = y;
+        
+        now looks like
+        
+            x = y;
+            
+        And access that used to look like
+        
+            x = y.u.jsValue;
+        
+        now looks like
+        
+            x = y.jsValue();
+
+        2. I made generic flow control specific in opcodes that made their flow
+        control generic by treating a Register& as a JSValue*&. This had the
+        added benefit of removing some exception checking branches from immediate
+        number code.
+
+        3. I beefed up PropertySlot to support storing a Register* in a property
+        slot. For now, only JSVariableObject's symbolTableGet and symbolTablePut
+        use this functionality, but I expect more clients to use it in the future.
+        
+        4. I changed ArgList to be a buffer of Registers, not JSValue*'s, and I
+        changed ArgList iterator clients to iterate Registers, not JSValue*'s.
+
+2008-07-16  Ada Chan  <adachan@apple.com>
+
+        Fixed build.
+
+        * kjs/JSGlobalObject.cpp:
+
+2008-07-16  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Sam and Geoff.
+
+        <rdar://problem/5958840> Navigating to another page while profiler is
+        attached results in slow JavaScript for all time.
+
+        - The UNLIKELY keeps this from being a sunspider performance regression.
+
+        * kjs/JSGlobalObject.cpp:
+        (KJS::JSGlobalObject::~JSGlobalObject): Stop the profiler associated
+        with this exec state.
+
+2008-07-16  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Steve Falkenburg.
+
+        Replace adopting UString constructor in favor of explicit
+        static adopt method.
+
+        * API/JSStringRefCF.cpp:
+        (JSStringCreateWithCFString):
+        * kjs/StringConstructor.cpp:
+        (KJS::stringFromCharCode):
+        * kjs/StringPrototype.cpp:
+        (KJS::stringProtoFuncToLowerCase):
+        (KJS::stringProtoFuncToUpperCase):
+        (KJS::stringProtoFuncToLocaleLowerCase):
+        (KJS::stringProtoFuncToLocaleUpperCase):
+        * kjs/ustring.cpp:
+        (KJS::UString::adopt):
+        * kjs/ustring.h:
+        (KJS::UString::UString):
+        (KJS::UString::~UString):
+
+2008-07-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        http://trolltech.com/developer/task-tracker/index_html?method=entry&id=216179
+        Fix potential crash (on Qt for Windows port) when performing JavaScript date
+        conversion.
+
+        * kjs/DateMath.cpp:
+        (KJS::getLocalTime): For the Qt port, prefer to use Windows code, i.e.
+        localtime_s() instead of localtime() since the latter might crash (on Windows)
+        given a non-sensible, e.g. NaN, argument.
+
 2008-07-16  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Anders and Geoff.

@@ -52,6 +52,7 @@
 #include "NumberPrototype.h"
 #include "ObjectConstructor.h"
 #include "ObjectPrototype.h"
+#include "Profiler.h"
 #include "PrototypeFunction.h"
 #include "RegExpConstructor.h"
 #include "RegExpPrototype.h"
@@ -80,6 +81,12 @@ JSGlobalObject::~JSGlobalObject()
 
     if (d()->debugger)
         d()->debugger->detach(this);
+
+    Profiler** profiler = Profiler::enabledProfilerReference();
+    if (UNLIKELY(*profiler != 0)) {
+        (*profiler)->stopProfiling(globalExec(), UString());
+        (*profiler)->didFinishAllExecution(globalExec());
+    }
 
     d()->next->d()->prev = d()->prev;
     d()->prev->d()->next = d()->next;
