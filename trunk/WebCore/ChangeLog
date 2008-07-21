@@ -1,3 +1,476 @@
+2008-07-21  Steve Falkenburg  <sfalken@apple.com>
+
+        Touch file to force rebuild for vsprops change.
+
+        * WebCorePrefix.h:
+
+2008-07-20  Sam Weinig  <sam@webkit.org>
+
+        Remove extra space Oliver Hunt left in.
+
+        * page/Console.cpp:
+        (WebCore::Console::reportException):
+        (WebCore::Console::reportCurrentException):
+
+2008-07-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Bug 19757: Crash when an ondragstart handler hides the element
+        <https://bugs.webkit.org/show_bug.cgi?id=19757>
+
+        The solution to this is problem is just to null check the renderer
+        immediately before launching the system drag, and terminate the
+        drag if the renderer is gone.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleDrag):
+
+2008-07-20  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=12171
+
+        Remove manual SVG property <-> XML attribute synchronization in SVGPolyElement.
+        Added svg/custom/poly-points-attribute-changes.svg (testcase from Rob)
+
+        * svg/SVGPointList.cpp:
+        (WebCore::SVGPointList::valueAsString):
+        * svg/SVGPointList.h:
+        (WebCore::SVGPointList::create):
+        * svg/SVGPolyElement.cpp:
+        (WebCore::SVGPolyElement::SVGPolyElement):
+        (WebCore::SVGPolyElement::svgAttributeChanged):
+        (WebCore::SVGPolyElement::updateAnimatedSVGAttribute):
+        * svg/SVGPolyElement.h:
+
+2008-07-20  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver.
+
+        Cleanup JSSVGPODTypeWrapper code.
+
+        Rename: JSSVGPODTypeWrapperCreatorReadOnly -> JSSVGStaticPODTypeWrapper
+                JSSVGPODTypeWrapperReadWrite       -> JSSVGDynamicPODTypeWrapper
+                JSSVGPODTypeWrapperCache           -> JSSVGDynamicPODTypeWrapperCacheCache
+
+        No functional changes.
+
+        * bindings/js/JSSVGMatrixCustom.cpp:
+        (WebCore::JSSVGMatrix::multiply):
+        (WebCore::JSSVGMatrix::inverse):
+        (WebCore::JSSVGMatrix::translate):
+        (WebCore::JSSVGMatrix::scale):
+        (WebCore::JSSVGMatrix::scaleNonUniform):
+        (WebCore::JSSVGMatrix::rotate):
+        (WebCore::JSSVGMatrix::rotateFromVector):
+        (WebCore::JSSVGMatrix::flipX):
+        (WebCore::JSSVGMatrix::flipY):
+        (WebCore::JSSVGMatrix::skewX):
+        (WebCore::JSSVGMatrix::skewY):
+        * bindings/js/JSSVGPODTypeWrapper.h:
+        (WebCore::JSSVGDynamicPODTypeWrapper::create):
+        (WebCore::JSSVGDynamicPODTypeWrapper::operator PODType):
+        (WebCore::JSSVGDynamicPODTypeWrapper::JSSVGDynamicPODTypeWrapper):
+        (WebCore::JSSVGStaticPODTypeWrapper::create):
+        (WebCore::JSSVGStaticPODTypeWrapper::operator PODType):
+        (WebCore::JSSVGStaticPODTypeWrapper::JSSVGStaticPODTypeWrapper):
+        (WebCore::JSSVGPODTypeWrapperCreatorForList::create):
+        (WebCore::JSSVGPODTypeWrapperCreatorForList::operator PODType):
+        (WebCore::JSSVGPODTypeWrapperCreatorForList::JSSVGPODTypeWrapperCreatorForList):
+        (WebCore::PODTypeWrapperCacheInfo::PODTypeWrapperCacheInfo):
+        (WebCore::PODTypeWrapperCacheInfo::operator==):
+        (WebCore::PODTypeWrapperCacheInfoHash::hash):
+        (WebCore::PODTypeWrapperCacheInfoHash::equal):
+        (WebCore::PODTypeWrapperCacheInfoTraits::emptyValue):
+        (WebCore::PODTypeWrapperCacheInfoTraits::constructDeletedValue):
+        (WebCore::PODTypeWrapperCacheInfoTraits::isDeletedValue):
+        (WebCore::JSSVGDynamicPODTypeWrapperCache::dynamicWrapperHashMap):
+        (WebCore::JSSVGDynamicPODTypeWrapperCache::lookupOrCreateWrapper):
+        (WebCore::JSSVGDynamicPODTypeWrapperCache::forgetWrapper):
+        * bindings/js/JSSVGPointListCustom.cpp:
+        (WebCore::finishGetter):
+        (WebCore::finishSetter):
+        (WebCore::finishSetterReadOnlyResult):
+        (WebCore::JSSVGPointList::initialize):
+        (WebCore::JSSVGPointList::insertItemBefore):
+        (WebCore::JSSVGPointList::replaceItem):
+        (WebCore::JSSVGPointList::appendItem):
+        * bindings/js/JSSVGTransformListCustom.cpp:
+        (WebCore::finishGetter):
+        (WebCore::finishSetter):
+        (WebCore::finishSetterReadOnlyResult):
+        (WebCore::JSSVGTransformList::initialize):
+        (WebCore::JSSVGTransformList::getItem):
+        (WebCore::JSSVGTransformList::insertItemBefore):
+        (WebCore::JSSVGTransformList::replaceItem):
+        (WebCore::JSSVGTransformList::removeItem):
+        (WebCore::JSSVGTransformList::appendItem):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2008-07-19  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 15979: Console logs in a database callback lose line number information
+        <https://bugs.webkit.org/show_bug.cgi?id=15979>
+
+        The problem was that there were multiple versions of the logic to
+        log an exception to the console, many of which were incorrect.  We
+        resolve this by making one single shared reportException method,
+        which handles the exceptions correctly.
+
+        This improves fidelity of callback errors, and ensures that
+        exceptions thrown in timer callbacks correctly report line numbers,
+        etc.
+
+        Test: fast/js/exceptions-thrown-in-callbacks.html
+
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        (WebCore::JSCustomSQLStatementCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        (WebCore::JSCustomSQLStatementErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomVoidCallback.cpp:
+        (WebCore::JSCustomVoidCallback::handleEvent):
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        * bindings/js/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::execute):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate):
+        * bindings/objc/WebScriptObject.mm:
+        (WebCore::addExceptionToConsole):
+        * page/Console.cpp:
+        (WebCore::Console::reportException):
+        * page/Console.h:
+
+2008-07-20  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Rubber stamped by Oliver.
+
+        Another attempt to fix the win build.
+
+        * svg/SVGAnimatedProperty.h:
+
+2008-07-20  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        Fix high CPU usage on testmyiphone.com.
+
+        - Made the logic for determining when to stop looking for meta charset more strainghtforward.
+        Previously, this happened if a tag that's disallowed in HEAD was seen past the first 512
+        bytes. Now, the algorithm bails out at the boundary if we are lo longer in HEAD (i.e, an
+        offending tag was seen at any point before).
+
+        - The above change made one of our regression tests fail, because it had its <meta>
+        declaration past the 512 byte boundary. Fixed it by raising the boundary to 1024 bytes.
+
+        - Made the algorithm bail out quickly if a comment that's not in HEAD crosses the boundary.
+
+        - Moved a check for XML content type out of the loop.
+
+        * loader/TextResourceDecoder.cpp:
+        (WebCore::TextResourceDecoder::checkForHeadCharset): 
+
+2008-07-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        Attempt to fix windows build
+
+        * svg/SVGAnimatedProperty.h:
+
+2008-07-19  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver & parts by Eric.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=20051
+
+        Rewrite animated property concept without heavy macro usage, replace by a templatified solution.
+        Fewer virtual function calls, no more usage of the tear-off's within internal code (synchronization needed it before.)
+
+        * dom/Element.cpp:
+        (WebCore::Element::attributes):
+        (WebCore::Element::getAttribute):
+        (WebCore::Element::hasAttributes):
+        * dom/Element.h:
+        (WebCore::Element::updateAnimatedSVGAttribute): Take const String&, not StringImpl*.
+        * svg/SVGAElement.cpp:
+        (WebCore::SVGAElement::SVGAElement):
+        * svg/SVGAElement.h:
+        * svg/SVGAltGlyphElement.h:
+        * svg/SVGAnimatedProperty.h: Added.
+        * svg/SVGAnimatedTemplate.h:
+        (WebCore::lookupOrCreateWrapper):
+        * svg/SVGAnimationElement.h:
+        * svg/SVGCircleElement.cpp:
+        (WebCore::SVGCircleElement::SVGCircleElement):
+        * svg/SVGCircleElement.h:
+        * svg/SVGClipPathElement.cpp:
+        (WebCore::SVGClipPathElement::SVGClipPathElement):
+        * svg/SVGClipPathElement.h:
+        * svg/SVGComponentTransferFunctionElement.cpp:
+        (WebCore::SVGComponentTransferFunctionElement::SVGComponentTransferFunctionElement):
+        * svg/SVGComponentTransferFunctionElement.h:
+        * svg/SVGCursorElement.cpp:
+        (WebCore::SVGCursorElement::SVGCursorElement):
+        * svg/SVGCursorElement.h:
+        * svg/SVGDefsElement.h:
+        (WebCore::SVGDefsElement::contextElement):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::updateAnimatedSVGAttribute):
+        * svg/SVGElement.h:
+        (WebCore::SVGElement::supplementalTransform):
+        (WebCore::SVGElement::invokeSVGPropertySynchronizer):
+        (WebCore::SVGElement::invokeAllSVGPropertySynchronizers):
+        (WebCore::SVGElement::addSVGPropertySynchronizer):
+        * svg/SVGEllipseElement.cpp:
+        (WebCore::SVGEllipseElement::SVGEllipseElement):
+        * svg/SVGEllipseElement.h:
+        * svg/SVGExternalResourcesRequired.cpp:
+        (WebCore::SVGExternalResourcesRequired::SVGExternalResourcesRequired):
+        * svg/SVGExternalResourcesRequired.h:
+        * svg/SVGFEBlendElement.cpp:
+        (WebCore::SVGFEBlendElement::SVGFEBlendElement):
+        * svg/SVGFEBlendElement.h:
+        * svg/SVGFEColorMatrixElement.cpp:
+        (WebCore::SVGFEColorMatrixElement::SVGFEColorMatrixElement):
+        * svg/SVGFEColorMatrixElement.h:
+        * svg/SVGFEComponentTransferElement.cpp:
+        (WebCore::SVGFEComponentTransferElement::SVGFEComponentTransferElement):
+        * svg/SVGFEComponentTransferElement.h:
+        * svg/SVGFECompositeElement.cpp:
+        (WebCore::SVGFECompositeElement::SVGFECompositeElement):
+        * svg/SVGFECompositeElement.h:
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        (WebCore::SVGFEDiffuseLightingElement::SVGFEDiffuseLightingElement):
+        * svg/SVGFEDiffuseLightingElement.h:
+        * svg/SVGFEDisplacementMapElement.cpp:
+        (WebCore::SVGFEDisplacementMapElement::SVGFEDisplacementMapElement):
+        * svg/SVGFEDisplacementMapElement.h:
+        * svg/SVGFEFloodElement.h:
+        * svg/SVGFEGaussianBlurElement.cpp:
+        (WebCore::SVGFEGaussianBlurElement::SVGFEGaussianBlurElement):
+        * svg/SVGFEGaussianBlurElement.h:
+        * svg/SVGFEImageElement.cpp:
+        (WebCore::SVGFEImageElement::SVGFEImageElement):
+        * svg/SVGFEImageElement.h:
+        * svg/SVGFELightElement.cpp:
+        (WebCore::SVGFELightElement::SVGFELightElement):
+        * svg/SVGFELightElement.h:
+        (WebCore::SVGFELightElement::contextElement):
+        * svg/SVGFEMergeElement.h:
+        * svg/SVGFEMergeNodeElement.cpp:
+        (WebCore::SVGFEMergeNodeElement::SVGFEMergeNodeElement):
+        * svg/SVGFEMergeNodeElement.h:
+        * svg/SVGFEOffsetElement.cpp:
+        (WebCore::SVGFEOffsetElement::SVGFEOffsetElement):
+        * svg/SVGFEOffsetElement.h:
+        * svg/SVGFESpecularLightingElement.cpp:
+        (WebCore::SVGFESpecularLightingElement::SVGFESpecularLightingElement):
+        * svg/SVGFESpecularLightingElement.h:
+        * svg/SVGFETileElement.cpp:
+        (WebCore::SVGFETileElement::SVGFETileElement):
+        * svg/SVGFETileElement.h:
+        * svg/SVGFETurbulenceElement.cpp:
+        (WebCore::SVGFETurbulenceElement::SVGFETurbulenceElement):
+        * svg/SVGFETurbulenceElement.h:
+        * svg/SVGFilterElement.cpp:
+        (WebCore::SVGFilterElement::SVGFilterElement):
+        * svg/SVGFilterElement.h:
+        * svg/SVGFilterPrimitiveStandardAttributes.cpp:
+        (WebCore::SVGFilterPrimitiveStandardAttributes::SVGFilterPrimitiveStandardAttributes):
+        * svg/SVGFilterPrimitiveStandardAttributes.h:
+        * svg/SVGFitToViewBox.cpp:
+        (WebCore::SVGFitToViewBox::SVGFitToViewBox):
+        * svg/SVGFitToViewBox.h:
+        * svg/SVGFontElement.h:
+        (WebCore::SVGFontElement::rendererIsNeeded):
+        (WebCore::SVGFontElement::contextElement):
+        * svg/SVGForeignObjectElement.cpp:
+        (WebCore::SVGForeignObjectElement::SVGForeignObjectElement):
+        * svg/SVGForeignObjectElement.h:
+        * svg/SVGGElement.h:
+        * svg/SVGGradientElement.cpp:
+        (WebCore::SVGGradientElement::SVGGradientElement):
+        * svg/SVGGradientElement.h:
+        (WebCore::SVGGradientElement::contextElement):
+        * svg/SVGImageElement.cpp:
+        (WebCore::SVGImageElement::SVGImageElement):
+        * svg/SVGImageElement.h:
+        * svg/SVGLineElement.cpp:
+        (WebCore::SVGLineElement::SVGLineElement):
+        * svg/SVGLineElement.h:
+        * svg/SVGLinearGradientElement.cpp:
+        (WebCore::SVGLinearGradientElement::SVGLinearGradientElement):
+        * svg/SVGLinearGradientElement.h:
+        * svg/SVGMarkerElement.cpp:
+        (WebCore::SVGMarkerElement::SVGMarkerElement):
+        (WebCore::SVGMarkerElement::canvasResource):
+        * svg/SVGMarkerElement.h:
+        * svg/SVGMaskElement.cpp:
+        (WebCore::SVGMaskElement::SVGMaskElement):
+        * svg/SVGMaskElement.h:
+        * svg/SVGPathElement.cpp:
+        (WebCore::SVGPathElement::SVGPathElement):
+        (WebCore::SVGPathElement::parseMappedAttribute):
+        * svg/SVGPathElement.h:
+        * svg/SVGPatternElement.cpp:
+        (WebCore::SVGPatternElement::SVGPatternElement):
+        * svg/SVGPatternElement.h:
+        (WebCore::SVGPatternElement::contextElement):
+        * svg/SVGPolyElement.h:
+        * svg/SVGPreserveAspectRatio.cpp:
+        * svg/SVGRadialGradientElement.cpp:
+        (WebCore::SVGRadialGradientElement::SVGRadialGradientElement):
+        * svg/SVGRadialGradientElement.h:
+        * svg/SVGRectElement.cpp:
+        (WebCore::SVGRectElement::SVGRectElement):
+        * svg/SVGRectElement.h:
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::SVGSVGElement):
+        * svg/SVGSVGElement.h:
+        * svg/SVGScriptElement.cpp:
+        * svg/SVGScriptElement.h:
+        * svg/SVGStopElement.cpp:
+        (WebCore::SVGStopElement::SVGStopElement):
+        * svg/SVGStopElement.h:
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::SVGStyledElement):
+        * svg/SVGStyledElement.h:
+        * svg/SVGStyledTransformableElement.cpp:
+        (WebCore::SVGStyledTransformableElement::SVGStyledTransformableElement):
+        * svg/SVGStyledTransformableElement.h:
+        * svg/SVGSwitchElement.h:
+        * svg/SVGSymbolElement.h:
+        (WebCore::SVGSymbolElement::contextElement):
+        * svg/SVGTRefElement.h:
+        * svg/SVGTSpanElement.h:
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::SVGTextContentElement::SVGTextContentElement):
+        * svg/SVGTextContentElement.h:
+        (WebCore::SVGTextContentElement::contextElement):
+        * svg/SVGTextElement.cpp:
+        (WebCore::SVGTextElement::SVGTextElement):
+        * svg/SVGTextElement.h:
+        * svg/SVGTextPathElement.cpp:
+        (WebCore::SVGTextPathElement::SVGTextPathElement):
+        * svg/SVGTextPathElement.h:
+        * svg/SVGTextPositioningElement.cpp:
+        (WebCore::SVGTextPositioningElement::SVGTextPositioningElement):
+        * svg/SVGTextPositioningElement.h:
+        * svg/SVGTransformable.h:
+        * svg/SVGURIReference.cpp:
+        (WebCore::SVGURIReference::SVGURIReference):
+        * svg/SVGURIReference.h:
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::SVGUseElement):
+        * svg/SVGUseElement.h:
+        * svg/SVGViewElement.h:
+        * svg/SVGViewSpec.h:
+
+2008-07-18  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Adele.
+        
+        Fixed <rdar://problem/6049803>
+        Prevent the autoscroll to trigger in WebClips when starting or hovering on an editable field.
+
+        Test: fast/events/autoscroll-with-non-scrollable-parent.html
+
+        * ChangeLog:
+        * page/EventHandler.cpp: Edited
+        (WebCore::EventHandler::handleMousePressEvent): changed the name of the funtion called to canBeProgramaticallyScrolled()
+        (WebCore::EventHandler::handleMouseDraggedEvent): prevent the autoscroll to keep looking for a renderer when it's already triggered
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::scrollRectToVisible): verifies that the top layer can be programmatically scrolled before asking him to make the rect visible
+        * rendering/RenderListBox.h:
+        (WebCore::RenderListBox::canBeProgramaticallyScrolled):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::canBeProgramaticallyScrolled): Edited : For the 3rd case we want document's renderer to have scrollbar as it's the top layer   
+        (WebCore::RenderObject::hasScrollableView): Verifies that the Object has a view with scrollBars
+        * rendering/RenderObject.h: Renamed shouldAutosroll() for canBeProgramaticallyScrolled()
+        * rendering/RenderTextControl.h:
+        (WebCore::RenderTextControl::canBeProgramaticallyScrolled):
+
+2008-07-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://problem/6087283> Add support for uploading files via XMLHttpRequest
+
+        - Overload XMLHttpRequests send() method to accept File tokens.
+
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::send): 
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::send):
+        * xml/XMLHttpRequest.h:
+
+2008-07-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Three renames:
+        
+        "CallTypeNative" => "CallTypeHost"
+        "code" => "byteCode"
+        "generatedCode" => "generatedByteCode"
+
+2008-07-18  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        I recently made a change to avoid fading media controls in and out if a video element actually only contains audio,
+        which broke the code that did the same thing for audio elements that contain video (but don't actually display that video).
+        This change will now check both the media element and the player to decide whether or not to make the controls persistent.
+
+        * rendering/RenderMedia.cpp: (WebCore::RenderMedia::updateControlVisibility):
+
+2008-07-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by mitz
+
+        Remove braces around single-line conditional.
+        
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::computedTransform):
+
+2008-07-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        getComputedStyle() for -webkit-transform should return 
+        'none' for elements with no renderer, or those with no
+        transform.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20008
+
+        Testcase: LayoutTests/fast/css/computed-style-without-renderer
+                  LayoutTests/fast/css/computed-style-expected.txt
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::computedTransform):
+
+2008-07-18  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Fix assertion about creating Length values with percentage types
+        when blending transforms.
+        https://bugs.webkit.org/show_bug.cgi?id=20086
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::TranslateTransformOperation::blend):
+
 2008-07-18  Jacob Refstrup  <jacob.refstrup@hp.com>
 
         Reviewed by rwlbuis@gmail.com

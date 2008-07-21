@@ -367,7 +367,7 @@ bool EventHandler::handleMousePressEvent(const MouseEventWithHitTestResults& eve
     }
     
    m_mouseDownMayStartAutoscroll = m_mouseDownMayStartSelect || 
-        (m_mousePressNode && m_mousePressNode->renderer() && m_mousePressNode->renderer()->shouldAutoscroll());
+        (m_mousePressNode && m_mousePressNode->renderer() && m_mousePressNode->renderer()->canBeProgramaticallyScrolled());
 
    return swallowEvent;
 }
@@ -394,12 +394,14 @@ bool EventHandler::handleMouseDraggedEvent(const MouseEventWithHitTestResults& e
         // If the selection is contained in a layer that can scroll, that layer should handle the autoscroll
         // Otherwise, let the bridge handle it so the view can scroll itself.
         RenderObject* renderer = targetNode->renderer();
-        while (renderer && !renderer->shouldAutoscroll())
+        while (renderer && !renderer->canBeProgramaticallyScrolled())
             renderer = renderer->parent();
         if (renderer) {
             m_autoscrollInProgress = true;
             handleAutoscroll(renderer);
         }
+        
+        m_mouseDownMayStartAutoscroll = false;
     }
     
     updateSelectionForMouseDrag(targetNode, event.localPoint());
@@ -941,7 +943,7 @@ bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
     } else if (mouseEvent.button() == MiddleButton && !mev.isOverLink()) {
         RenderObject* renderer = mev.targetNode()->renderer();
 
-        while (renderer && !renderer->shouldAutoscroll())
+        while (renderer && !renderer->canBeProgramaticallyScrolled())
             renderer = renderer->parent();
 
         if (renderer) {
@@ -1858,9 +1860,16 @@ bool EventHandler::handleDrag(const MouseEventWithHitTestResults& event)
         // image and offset
         if (dragState().m_dragSrcIsDHTML) {
             int srcX, srcY;
-            dragState().m_dragSrc->renderer()->absolutePosition(srcX, srcY);
-            IntSize delta = m_mouseDownPos - IntPoint(srcX, srcY);
-            dragState().m_dragClipboard->setDragImageElement(dragState().m_dragSrc.get(), IntPoint() + delta);
+            if (RenderObject* renderer = dragState().m_dragSrc->renderer()) {
+                renderer->absolutePosition(srcX, srcY);
+                IntSize delta = m_mouseDownPos - IntPoint(srcX, srcY);
+                dragState().m_dragClipboard->setDragImageElement(dragState().m_dragSrc.get(), IntPoint() + delta);
+            } else {
+                // The renderer has disappeared, this can happen if the onStartDrag handler has hidden
+                // the element in some way.  In this case we just kill the drag.
+                m_mouseDownMayStartDrag = false;
+                goto cleanupDrag;
+            }
         } 
         
         m_mouseDownMayStartDrag = dispatchDragSrcEvent(dragstartEvent, m_mouseDown)
@@ -1890,7 +1899,8 @@ bool EventHandler::handleDrag(const MouseEventWithHitTestResults& event)
             m_mouseDownMayStartDrag = false;
         }
     } 
-    
+
+cleanupDrag:
     if (!m_mouseDownMayStartDrag) {
         // something failed to start the drag, cleanup
         freeClipboard();

@@ -25,8 +25,9 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
     ${CMAKE_SOURCE_DIR}/WebCore/rendering/style
     ${CMAKE_SOURCE_DIR}/WebCore/svg/graphics/filters
-    ${CMAKE_BINARY_DIR}/generated_sources/WebCore/
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
+    ${CMAKE_BINARY_DIR}/generated_sources/WebCore
+    ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
 )
@@ -145,3 +146,4 @@ INSTALL (TARGETS bal-graphics
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
+ADD_DEPENDENCIES (bal-graphics generated-sources)

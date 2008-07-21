@@ -38,6 +38,7 @@
 #include "JSActivation.h"
 #include "JSArray.h"
 #include "JSFunction.h"
+#include "JSNotAnObject.h"
 #include "JSPropertyNameIterator.h"
 #include "JSString.h"
 #include "ObjectPrototype.h"
@@ -111,6 +112,9 @@ static inline bool jsLess(ExecState* exec, JSValue* v1, JSValue* v2)
 
 static inline bool jsLessEq(ExecState* exec, JSValue* v1, JSValue* v2)
 {
+    if (JSImmediate::areBothImmediateNumbers(v1, v2))
+        return JSImmediate::getTruncatedInt32(v1) <= JSImmediate::getTruncatedInt32(v2);
+
     double n1;
     double n2;
     JSValue* p1;
@@ -218,7 +222,7 @@ static bool NEVER_INLINE resolve(ExecState* exec, Instruction* vPC, Register* r,
             return true;
         }
     } while (++iter != end);
-    exceptionValue = createUndefinedVariableError(exec, ident);
+    exceptionValue = createUndefinedVariableError(exec, ident, vPC, codeBlock);
     return false;
 }
 
@@ -248,7 +252,7 @@ static bool NEVER_INLINE resolve_skip(ExecState* exec, Instruction* vPC, Registe
             return true;
         }
     } while (++iter != end);
-    exceptionValue = createUndefinedVariableError(exec, ident);
+    exceptionValue = createUndefinedVariableError(exec, ident, vPC, codeBlock);
     return false;
 }
 
@@ -307,7 +311,7 @@ static bool NEVER_INLINE resolveBaseAndProperty(ExecState* exec, Instruction* vP
         ++iter;
     } while (iter != end);
 
-    exceptionValue = createUndefinedVariableError(exec, ident);
+    exceptionValue = createUndefinedVariableError(exec, ident, vPC, codeBlock);
     return false;
 }
 
@@ -350,7 +354,7 @@ static bool NEVER_INLINE resolveBaseAndFunc(ExecState* exec, Instruction* vPC, R
         ++iter;
     } while (iter != end);
 
-    exceptionValue = createUndefinedVariableError(exec, ident);
+    exceptionValue = createUndefinedVariableError(exec, ident, vPC, codeBlock);
     return false;
 }
 
@@ -365,7 +369,7 @@ ALWAYS_INLINE void Machine::initializeCallFrame(Register* callFrame, CodeBlock* 
     callFrame[RegisterFile::ArgumentCount] = argc; // original argument count (for the sake of the "arguments" object)
     callFrame[RegisterFile::CalledAsConstructor] = calledAsConstructor;
     callFrame[RegisterFile::Callee] = function;
-    callFrame[RegisterFile::OptionalCalleeActivation] = intptr_t(0L);
+    callFrame[RegisterFile::OptionalCalleeActivation] = static_cast<intptr_t>(0);
 }
 
 ALWAYS_INLINE Register* slideRegisterWindowForCall(ExecState* exec, CodeBlock* newCodeBlock, RegisterFile* registerFile, Register* registerBase, Register* r, int argv, int argc, JSValue*& exceptionValue)
@@ -426,11 +430,11 @@ ALWAYS_INLINE ScopeChainNode* scopeChainForCall(ExecState* exec, FunctionBodyNod
     return callDataScopeChain;
 }
 
-static NEVER_INLINE bool isNotObject(ExecState* exec, bool forInstanceOf, CodeBlock*, JSValue* value, JSValue*& exceptionData)
+static NEVER_INLINE bool isNotObject(ExecState* exec, bool forInstanceOf, CodeBlock* codeBlock, const Instruction* vPC, JSValue* value, JSValue*& exceptionData)
 {
     if (value->isObject())
         return false;
-    exceptionData = createInvalidParamError(exec, forInstanceOf ? "instanceof" : "in" , value);
+    exceptionData = createInvalidParamError(exec, forInstanceOf ? "instanceof" : "in" , value, vPC, codeBlock);
     return true;
 }
 
@@ -616,22 +620,45 @@ NEVER_INLINE bool Machine::unwindCallFrame(ExecState* exec, JSValue* exceptionVa
     return true;
 }
 
-NEVER_INLINE Instruction* Machine::throwException(ExecState* exec, JSValue* exceptionValue, const Instruction* vPC, CodeBlock*& codeBlock, Register*& k, ScopeChainNode*& scopeChain, Register*& r)
+NEVER_INLINE Instruction* Machine::throwException(ExecState* exec, JSValue*& exceptionValue, const Instruction* vPC, CodeBlock*& codeBlock, Register*& k, ScopeChainNode*& scopeChain, Register*& r, bool explicitThrow)
 {
     // Set up the exception object
 
     if (exceptionValue->isObject()) {
         JSObject* exception = static_cast<JSObject*>(exceptionValue);
-        if (!exception->hasProperty(exec, Identifier(exec, "line")) && !exception->hasProperty(exec, Identifier(exec, "sourceURL"))) {
-            exception->put(exec, Identifier(exec, "line"), jsNumber(exec, codeBlock->lineNumberForVPC(vPC)));
-            exception->put(exec, Identifier(exec, "sourceURL"), jsOwnedString(exec, codeBlock->ownerNode->sourceURL()));
-        }
-
-        if (exception->isWatchdogException()) {
-            while (unwindCallFrame(exec, exceptionValue, vPC, codeBlock, k, scopeChain, r)) {
-                 // Don't need handler checks or anything, we just want to unroll all the JS callframes possible.
+        if (exception->isNotAnObjectErrorStub()) {
+            exception = createNotAnObjectError(exec, static_cast<JSNotAnObjectErrorStub*>(exception), vPC, codeBlock);
+            exceptionValue = exception;
+        } else {
+            if (!exception->hasProperty(exec, Identifier(exec, "line")) && 
+                !exception->hasProperty(exec, Identifier(exec, "sourceId")) && 
+                !exception->hasProperty(exec, Identifier(exec, "sourceURL")) && 
+                !exception->hasProperty(exec, Identifier(exec, expressionBeginOffsetPropertyName)) && 
+                !exception->hasProperty(exec, Identifier(exec, expressionCaretOffsetPropertyName)) && 
+                !exception->hasProperty(exec, Identifier(exec, expressionEndOffsetPropertyName))) {
+                if (explicitThrow) {
+                    int startOffset = 0;
+                    int endOffset = 0;
+                    int divotPoint = 0;
+                    int line = codeBlock->expressionRangeForVPC(vPC, divotPoint, startOffset, endOffset);
+                    exception->putWithAttributes(exec, Identifier(exec, "line"), jsNumber(exec, line), ReadOnly | DontDelete);
+                    
+                    // We only hit this path for error messages and throw statements, which don't have a specific failure position
+                    // So we just give the full range of the error/throw statement.
+                    exception->putWithAttributes(exec, Identifier(exec, expressionBeginOffsetPropertyName), jsNumber(exec, divotPoint - startOffset), ReadOnly | DontDelete);
+                    exception->putWithAttributes(exec, Identifier(exec, expressionEndOffsetPropertyName), jsNumber(exec, divotPoint + endOffset), ReadOnly | DontDelete);
+                } else
+                    exception->putWithAttributes(exec, Identifier(exec, "line"), jsNumber(exec, codeBlock->lineNumberForVPC(vPC)), ReadOnly | DontDelete);
+                exception->putWithAttributes(exec, Identifier(exec, "sourceId"), jsNumber(exec, codeBlock->ownerNode->sourceId()), ReadOnly | DontDelete);
+                exception->putWithAttributes(exec, Identifier(exec, "sourceURL"), jsOwnedString(exec, codeBlock->ownerNode->sourceURL()), ReadOnly | DontDelete);
             }
-            return 0;
+            
+            if (exception->isWatchdogException()) {
+                while (unwindCallFrame(exec, exceptionValue, vPC, codeBlock, k, scopeChain, r)) {
+                    // Don't need handler checks or anything, we just want to unroll all the JS callframes possible.
+                }
+                return 0;
+            }
         }
     }
 
@@ -669,7 +696,7 @@ JSValue* Machine::execute(ProgramNode* programNode, ExecState* exec, ScopeChainN
         return 0;
     }
 
-    CodeBlock* codeBlock = &programNode->code(scopeChain);
+    CodeBlock* codeBlock = &programNode->byteCode(scopeChain);
 
     size_t oldSize = m_registerFile.size();
     size_t newSize = oldSize + RegisterFile::CallFrameHeaderSize + codeBlock->numVars + codeBlock->numTemporaries;
@@ -745,7 +772,7 @@ JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, ExecState* exec, J
     // a 0 codeBlock indicates a built-in caller
     initializeCallFrame(callFrame, 0, 0, 0, callFrame, 0, argv, argc, 0, function);
 
-    CodeBlock* newCodeBlock = &functionBodyNode->code(scopeChain);
+    CodeBlock* newCodeBlock = &functionBodyNode->byteCode(scopeChain);
     Register* r = slideRegisterWindowForCall(exec, newCodeBlock, &m_registerFile, m_registerFile.base(), callFrame, argv, argc, *exception);
     if (*exception) {
         m_registerFile.shrink(oldSize);
@@ -778,7 +805,7 @@ JSValue* Machine::execute(EvalNode* evalNode, ExecState* exec, JSObject* thisObj
         return 0;
     }
 
-    EvalCodeBlock* codeBlock = &evalNode->code(scopeChain);
+    EvalCodeBlock* codeBlock = &evalNode->byteCode(scopeChain);
 
     JSVariableObject* variableObject;
     for (ScopeChainNode* node = scopeChain; ; node = node->next) {
@@ -1573,7 +1600,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
         JSValue* baseVal = r[base].jsValue();
 
-        if (isNotObject(exec, vPC, codeBlock, baseVal, exceptionValue))
+        if (isNotObject(exec, true, codeBlock, vPC, baseVal, exceptionValue))
             goto vm_throw;
 
         JSObject* baseObj = static_cast<JSObject*>(baseVal);
@@ -1609,7 +1636,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         int base = (++vPC)->u.operand;
 
         JSValue* baseVal = r[base].jsValue();
-        if (isNotObject(exec, vPC, codeBlock, baseVal, exceptionValue))
+        if (isNotObject(exec, false, codeBlock, vPC, baseVal, exceptionValue))
             goto vm_throw;
 
         JSObject* baseObj = static_cast<JSObject*>(baseVal);
@@ -2233,7 +2260,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
             ScopeChainNode* callDataScopeChain = callData.js.scopeChain;
             FunctionBodyNode* functionBodyNode = callData.js.functionBody;
-            CodeBlock* newCodeBlock = &functionBodyNode->code(callDataScopeChain);
+            CodeBlock* newCodeBlock = &functionBodyNode->byteCode(callDataScopeChain);
 
             r[firstArg] = thisVal == missingThisObjectMarker() ? exec->globalThisValue() : r[thisVal].jsValue();
 
@@ -2257,7 +2284,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
             NEXT_OPCODE;
         }
 
-        if (callType == CallTypeNative) {
+        if (callType == CallTypeHost) {
             if (*enabledProfilerReference)
                 (*enabledProfilerReference)->willExecute(exec, static_cast<JSObject*>(v));
 
@@ -2278,7 +2305,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
         ASSERT(callType == CallTypeNone);
 
-        exceptionValue = createNotAFunctionError(exec, v, 0);
+        exceptionValue = createNotAFunctionError(exec, v, vPC, codeBlock);
         goto vm_throw;
     }
     BEGIN_OPCODE(op_ret) {
@@ -2364,7 +2391,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
             ScopeChainNode* callDataScopeChain = constructData.js.scopeChain;
             FunctionBodyNode* functionBodyNode = constructData.js.functionBody;
-            CodeBlock* newCodeBlock = &functionBodyNode->code(callDataScopeChain);
+            CodeBlock* newCodeBlock = &functionBodyNode->byteCode(callDataScopeChain);
 
             r[firstArg] = newObject; // "this" value
 
@@ -2403,7 +2430,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
         ASSERT(constructType == ConstructTypeNone);
 
-        exceptionValue = createNotAConstructorError(exec, constrVal, 0);
+        exceptionValue = createNotAConstructorError(exec, constrVal, vPC, codeBlock);
         goto vm_throw;
     }
     BEGIN_OPCODE(op_push_scope) {
@@ -2519,7 +2546,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
         int ex = (++vPC)->u.operand;
         exceptionValue = r[ex].jsValue();
-        handlerVPC = throwException(exec, exceptionValue, vPC, codeBlock, k, scopeChain, r);
+
+        handlerVPC = throwException(exec, exceptionValue, vPC, codeBlock, k, scopeChain, r, true);
         if (!handlerVPC) {
             *exception = exceptionValue;
             return jsNull();
@@ -2659,7 +2687,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
             // cannot fathom if we don't assign to the exceptionValue before branching)
             exceptionValue = createInterruptedExecutionException(exec);
         }
-        handlerVPC = throwException(exec, exceptionValue, vPC, codeBlock, k, scopeChain, r);
+        handlerVPC = throwException(exec, exceptionValue, vPC, codeBlock, k, scopeChain, r, false);
         if (!handlerVPC) {
             *exception = exceptionValue;
             return jsNull();
@@ -2681,7 +2709,7 @@ JSValue* Machine::retrieveArguments(ExecState* exec, JSFunction* function) const
 
     JSActivation* activation = static_cast<JSActivation*>(callFrame[RegisterFile::OptionalCalleeActivation].jsValue());
     if (!activation) {
-        CodeBlock* codeBlock = &function->m_body->generatedCode();
+        CodeBlock* codeBlock = &function->m_body->generatedByteCode();
         activation = new (exec) JSActivation(function->m_body, callFrame + RegisterFile::CallFrameHeaderSize + codeBlock->numLocals);
         callFrame[RegisterFile::OptionalCalleeActivation] = activation;
     }
