@@ -196,6 +196,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
         if (ftBitmapGlyph[0]->bitmap.pixel_mode == FT_PIXEL_MODE_MONO) {
             unsigned pixelColor = (penColor.alpha() << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
+            unsigned char* bitmapAddr = ftBitmapGlyph[i]->bitmap.buffer;
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
                 unsigned char *bufferAddr = ftBitmapGlyph[i]->bitmap.buffer;
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
@@ -204,17 +205,19 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                     else
                         (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = 0;
                     if (k > 0 && (k % 8) == 0)
-                        *ftBitmapGlyph[i]->bitmap.buffer++;
+                        *bitmapAddr++;
                 }
-                ftBitmapGlyph[i]->bitmap.buffer = bufferAddr + ftBitmapGlyph[i]->bitmap.pitch;
+                bitmapAddr = bufferAddr + ftBitmapGlyph[i]->bitmap.pitch;
             }
         } else {
+            unsigned char* bitmapAddr = ftBitmapGlyph[i]->bitmap.buffer;
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
-                    (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = ((penColor.alpha()/255 * *ftBitmapGlyph[i]->bitmap.buffer++) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
+                    (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = ((penColor.alpha()/255 * *bitmapAddr++) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
                 }
             }
         }
+        FT_Done_Glyph((FT_Glyph) ftBitmapGlyph[i]);
     }
     SDL_Surface* img;
     Uint32 rmask, gmask, bmask, amask;

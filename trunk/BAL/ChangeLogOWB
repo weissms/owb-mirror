@@ -1,3 +1,11 @@
+2008-07-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix huge leak in freetype font implementation.
+
+        * WKAL/Concretizations/Fonts/Freetype/BCFontFreetype.cpp:
+        (WKAL::Font::drawGlyphs):
+
 2008-07-21  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
