@@ -191,16 +191,17 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
     Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(width * height);
     glyphRGBABuffer->fill(0);
+    bool isMono = (ftBitmapGlyph[0]->bitmap.pixel_mode == FT_PIXEL_MODE_MONO); 
     for (int i = 0; i < numGlyphs; i++) {
         int yOffset = height - glyphBoxY[i].y() + yMin;
+        unsigned char* bitmapAddr = ftBitmapGlyph[i]->bitmap.buffer;
 
-        if (ftBitmapGlyph[0]->bitmap.pixel_mode == FT_PIXEL_MODE_MONO) {
+        if (isMono) {
             unsigned pixelColor = (penColor.alpha() << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
-            unsigned char* bitmapAddr = ftBitmapGlyph[i]->bitmap.buffer;
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
-                unsigned char *bufferAddr = ftBitmapGlyph[i]->bitmap.buffer;
+                unsigned char *bufferAddr = bitmapAddr;
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
-                    if ((*ftBitmapGlyph[i]->bitmap.buffer) & (1 << (7 - k % 8)))
+                    if ((*bitmapAddr) & (1 << (7 - k % 8)))
                         (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = pixelColor;
                     else
                         (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = 0;
@@ -210,7 +211,6 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                 bitmapAddr = bufferAddr + ftBitmapGlyph[i]->bitmap.pitch;
             }
         } else {
-            unsigned char* bitmapAddr = ftBitmapGlyph[i]->bitmap.buffer;
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
                     (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = ((penColor.alpha()/255 * *bitmapAddr++) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
