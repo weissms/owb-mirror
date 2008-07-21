@@ -134,6 +134,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
        SDL_UpdateRect(surface, sdlDest.x + origin().width(), sdlDest.y + origin().height(), sdlDest.w, sdlDest.h);
     }*/
     SDL_FreeSurface(img);
+    delete glyphRGBABuffer;
 }
 
 }

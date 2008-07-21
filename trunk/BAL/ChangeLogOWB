@@ -1,3 +1,13 @@
+2008-07-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix leak in font implementation.
+
+        * WKAL/Concretizations/Fonts/Embedded/BCFontEmbedded.cpp:
+        (WKAL::Font::drawGlyphs):
+        * WKAL/Concretizations/Fonts/Freetype/BCFontFreetype.cpp:
+        (WKAL::Font::drawGlyphs):
+
 2008-07-17  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Jean-Charles VERDIE.

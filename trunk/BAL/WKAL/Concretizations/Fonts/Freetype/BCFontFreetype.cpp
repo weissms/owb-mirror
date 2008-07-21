@@ -253,6 +253,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     }
 
     SDL_FreeSurface(img);
+    delete glyphRGBABuffer;
 }
 
 }
