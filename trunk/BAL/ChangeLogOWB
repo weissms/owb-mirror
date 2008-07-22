@@ -1,6 +1,13 @@
 2008-07-22  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
+        fix compilation with I18N Generic option activated
+
+        * OWBAL/Concretizations/Database/CMakeLists.txt:
+
+2008-07-22  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
         move all method inline
 
         * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.cpp: Removed.
