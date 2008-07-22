@@ -1,3 +1,29 @@
+2008-07-22  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        move all method inline
+
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.cpp: Removed.
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.h:
+        (WTF::Unicode::toLower):
+        (WTF::Unicode::foldCase):
+        (WTF::Unicode::toUpper):
+        (WTF::Unicode::toTitleCase):
+        (WTF::Unicode::isArabicChar):
+        (WTF::Unicode::category):
+        (WTF::Unicode::isFormatChar):
+        (WTF::Unicode::isSeparatorSpace):
+        (WTF::Unicode::isPrintableChar):
+        (WTF::Unicode::isDigit):
+        (WTF::Unicode::isPunct):
+        (WTF::Unicode::mirroredChar):
+        (WTF::Unicode::direction):
+        (WTF::Unicode::isLower):
+        (WTF::Unicode::digitValue):
+        (WTF::Unicode::combiningClass):
+        (WTF::Unicode::decompositionType):
+        (WTF::Unicode::umemcasecmp):
+
 2008-07-21  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

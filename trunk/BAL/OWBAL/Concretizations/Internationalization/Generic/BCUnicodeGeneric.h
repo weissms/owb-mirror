@@ -125,29 +125,7 @@ namespace WTF {
       Punctuation_FinalQuote = U_MASK(U_FINAL_PUNCTUATION)
     };
 
-    UChar32 toLower(UChar32 c);
-    int toLower(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error);
-    UChar32 toUpper(UChar32 c);
-    int toUpper(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error);
-    UChar32 foldCase(UChar32 c);
-    int foldCase(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error);
-    UChar32 toTitleCase(UChar32 c);
-    bool isFormatChar(UChar32 c);
-    bool isSeparatorSpace(UChar32 c);
-    bool isPrintableChar(UChar32 c);
-    bool isDigit(UChar32 c);
-    bool isPunct(UChar32 c);
-    UChar32 mirroredChar(UChar32 c);
-    CharCategory category(UChar32 c);
-    Direction direction(UChar32 c);
-    bool isLower(UChar32 c);
-    bool isUpper(UChar32 c);
-    int digitValue(UChar32 c);
-    uint8_t combiningClass(UChar32 c);
-    DecompositionType decompositionType(UChar32 c);
-    int umemcasecmp(const UChar* a, const UChar* b, int len);
-    bool isArabicChar(UChar32 c);
-    /*inline UChar32 toLower(UChar32 c)
+    inline UChar32 toLower(UChar32 c)
     {
         if ((c >= 0x41 && c <= 0x5A) || (c >= 0xC0 && c <= 0xDE))
             return c+0x20;
@@ -170,6 +148,7 @@ namespace WTF {
         }
         for (int i = 0; i < srcLength; ++i)
             result[i] = foldCase(src[i]);
+
         return srcLength;
     }
 
@@ -196,6 +175,7 @@ namespace WTF {
 
     inline int toUpper(UChar* result, int resultLength, const UChar* src, int srcLength, bool* error)
     {
+        //printf("toUpper\n");
         *error = false;
         if (resultLength < srcLength) {
             *error = true;
@@ -208,17 +188,20 @@ namespace WTF {
 
     inline UChar32 toTitleCase(UChar32 c)
     {
-        return c;
+        //printf("toTitleCase\n");
+        return toUpper(c);
     }
 
     inline bool isArabicChar(UChar32 c)
     {
-        BalNotImplemented();
+        //printf("isArabicChar\n");
+        //BalNotImplemented();
         return false;
     }
 
     inline CharCategory category(UChar32 c)
     {
+        //printf("category\n");
         if (c == 0x0D)
             return WTF::Unicode::Separator_Line;
         else if (c < 0x20)
@@ -252,27 +235,32 @@ namespace WTF {
 
     inline bool isFormatChar(UChar32 c)
     {
+        //printf("isFormatChar\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Other_Format;
     }
 
     inline bool isSeparatorSpace(UChar32 c)
     {
+        //printf("isSeparatorSpace\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Separator_Space;
     }
 
     inline bool isPrintableChar(UChar32 c)
     {
-        BalNotImplemented();
+        //printf("isPrintableChar c=%x\n",c);
+        //BalNotImplemented();
         return false;
     }
     
     inline bool isDigit(UChar32 c)
     {
+        //printf("isDigit\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Number_DecimalDigit;
     }
 
     inline bool isPunct(UChar32 c)
     {
+        //printf("isPunct\n");
         return (c & 0xffff0000) == 0 && (category(c) == WTF::Unicode::Punctuation_Dash
                                     || category(c) == WTF::Unicode::Punctuation_Open
                                     || category(c) == WTF::Unicode::Punctuation_Close
@@ -284,48 +272,56 @@ namespace WTF {
 
     inline UChar32 mirroredChar(UChar32 c)
     {
-        BalNotImplemented();
+        //printf("mirroredChar\n");
+        //BalNotImplemented();
         return c;
     }
 
     inline Direction direction(UChar32 c)
     {
-        BalNotImplemented();
+        //printf("direction\n");
+        //BalNotImplemented();
         return WTF::Unicode::LeftToRight;
     }
 
     inline bool isLower(UChar32 c)
     {
+        //printf("isLower\n");
         return (c & 0xffff0000) == 0 && category(c) == WTF::Unicode::Letter_Lowercase;
     }
 
     inline int digitValue(UChar32 c)
     {
+        //printf("digitValue\n");
         return c-0x30;
     }
 
     inline unsigned char combiningClass(UChar32 c)
     {
-        BalNotImplemented();
+        //printf("combiningClass\n");
+        //BalNotImplemented();
         return c;
     }
 
     inline DecompositionType decompositionType(UChar32 c)
     {
-        BalNotImplemented();
+        //printf("decompositionType\n");
+        //BalNotImplemented();
         return WTF::Unicode::DecompositionNone;
     }
 
     inline int umemcasecmp(const UChar* a, const UChar* b, int len)
     {
+        //printf("umemcasecmp len =%d\n", len);
         for (int i = 0; i < len; ++i) {
             UChar32 c1 = toLower(a[i]);
             UChar32 c2 = toLower(b[i]);
             if (c1 != c2)
-                return c1 < c2;
+                return -1;
         }
         return 0;
-    }*/
+    }
+
 
   }
 }
