@@ -61,7 +61,6 @@ void SimpleFontData::platformDestroy()
 
 SimpleFontData* SimpleFontData::smallCapsFontData(const FontDescription& fontDescription) const
 {
-    printf("SimpleFontData::smallCapsFontData\n");
     if (!m_smallCapsFontData) {
         FontDescription desc = FontDescription(fontDescription);
         desc.setSpecifiedSize(0.70f*fontDescription.computedSize());
@@ -73,7 +72,6 @@ SimpleFontData* SimpleFontData::smallCapsFontData(const FontDescription& fontDes
 
 bool SimpleFontData::containsCharacters(const UChar* characters, int length) const
 {
-    printf("SimpleFontData::containsCharacters\n");
     BalNotImplemented();
     return false;
 }

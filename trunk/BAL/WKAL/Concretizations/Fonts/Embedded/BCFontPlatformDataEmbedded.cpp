@@ -54,11 +54,13 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
     , m_syntheticOblique(false)
     , m_scaledFont(0)
 {
-    if (fontDescription.italic())
+    if (fontDescription.italic()) {
         m_pixelFont = &NormalItalicPixelFont;
-//     else if (fontDescription.bold())
-//         m_pixelFont = &NormalBoldPixelFont;
-    else 
+        m_syntheticOblique = true;
+    } else if (fontDescription.weight() >= FontWeightBold) {
+        m_pixelFont = &NormalBoldPixelFont;
+        m_syntheticBold = true;
+    } else 
         m_pixelFont = &NormalPixelFont;
     FontPlatformData::init();
 }
@@ -102,9 +104,6 @@ bool FontPlatformData::init()
 
 FontPlatformData::~FontPlatformData()
 {
-    if (m_pixelFont)
-        delete m_pixelFont;
-    m_pixelFont = NULL;
 }
 
 bool FontPlatformData::isFixedPitch()

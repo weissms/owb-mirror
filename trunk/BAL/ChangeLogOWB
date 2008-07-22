@@ -1,3 +1,18 @@
+2008-07-22  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Enable bold implementation for embedded fonts.
+        Fix font crash on acid3 (see #273).
+
+        * WKAL/Concretizations/Fonts/Embedded/BCFontPlatformDataEmbedded.cpp:
+        (WKAL::FontPlatformData::FontPlatformData):
+        (WKAL::FontPlatformData::~FontPlatformData):
+        * WKAL/Concretizations/Fonts/Embedded/BCSimpleFontDataEmbedded.cpp:
+        (WKAL::SimpleFontData::smallCapsFontData):
+        (WKAL::SimpleFontData::containsCharacters):
+        * WKAL/Concretizations/Fonts/Freetype/BCFontPlatformDataFreetype.cpp:
+        (WKAL::FontPlatformData::FontPlatformData):
+
 2008-07-22  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

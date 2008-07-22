@@ -70,7 +70,6 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
     int type = fontDescription.genericFamily();
 
     FcPattern* pattern = FcPatternCreate();
-    FcPatternReference(pattern);
     
     if (!FcPatternAddString(pattern, FC_FAMILY, reinterpret_cast<const FcChar8*>(fcfamily)))
         goto freePattern;
@@ -105,6 +104,7 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
 
     FcResult fcresult;
     m_pattern = FcFontMatch(config, pattern, &fcresult);
+    FcPatternReference(m_pattern);
     // FIXME: should we set some default font?
     if (!m_pattern)
         goto freePattern;
