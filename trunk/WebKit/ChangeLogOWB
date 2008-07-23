@@ -1,3 +1,12 @@
+2008-07-23  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix leak and weak code in WebView.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (buffer):
+        (WebView::parseConfigFile):
+
 2008-07-18  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

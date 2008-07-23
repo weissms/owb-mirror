@@ -1436,8 +1436,10 @@ String buffer(String url)
     File *configFile = new File(path);
     if (!configFile)
         return String();
-    if (configFile->open('r') == -1)
+    if (configFile->open('r') == -1) {
+        delete configFile;
         return String();
+    }
     String buffer(configFile->read(configFile->getSize()));
     configFile->close();
     delete configFile;
@@ -1447,7 +1449,7 @@ String buffer(String url)
 
 void WebView::parseConfigFile(String url)
 {
-    int width, height = 0;
+    int width = 0, height = 0;
     String fileBuffer = buffer(url);
     while (!fileBuffer.isEmpty()) {
         int eol = fileBuffer.find("\n");
