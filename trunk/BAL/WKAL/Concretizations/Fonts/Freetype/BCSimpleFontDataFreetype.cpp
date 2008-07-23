@@ -63,10 +63,10 @@ void SimpleFontData::platformInit()
 
 void SimpleFontData::platformDestroy()
 {
-    if (m_font.m_pattern && ((FcPattern*)-1 != m_font.m_pattern)) {
+    /*if (m_font.m_pattern && ((FcPattern*)-1 != m_font.m_pattern)) {
         FcPatternDestroy(m_font.m_pattern);
         m_font.m_pattern = 0;
-    }
+    }*/
     if (m_smallCapsFontData)
         delete m_smallCapsFontData;
     m_smallCapsFontData = NULL;

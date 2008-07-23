@@ -428,21 +428,23 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HT
     DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLEntityNames.gperf
 )
 
-IF (HTML_FEATURES)
-    ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.h
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
-        COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --extraDefines \"${HTML_FEATURES}\" --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
-        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
-    )
-ELSE (HTML_FEATURES)
-    ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.h
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
-        COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
-        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
-    )
-ENDIF (HTML_FEATURES)
+IF (NOT WEBKIT_USE_HTML_EXTENSION)
+    IF (HTML_FEATURES)
+        ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.h
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
+            COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --extraDefines \"${HTML_FEATURES}\" --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
+            DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
+        )
+    ELSE (HTML_FEATURES)
+        ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.h
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
+            COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
+            DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
+        )
+     ENDIF (HTML_FEATURES)
+ENDIF (NOT WEBKIT_USE_HTML_EXTENSION)
 
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.h
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

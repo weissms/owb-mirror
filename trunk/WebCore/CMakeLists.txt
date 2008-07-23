@@ -52,8 +52,9 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
-    
+
     ${XSLT_INCLUDE_DIRS}
+    ${HTML_EXT_CFLAGS}
 )
 
 IF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")

@@ -33,6 +33,7 @@ LIST (APPEND BRIDGE_SRC
         bal-types
         bal-widgets
         ${DEEPSEE_LINK}
+	${EXTRA_LDFLAGS}
     )
 
 IF (WEBKIT_USE_DATABASE)

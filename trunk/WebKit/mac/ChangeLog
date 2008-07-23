@@ -1,3 +1,48 @@
+2008-07-23  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6091287> Revamp the handling of CFBundleShortVersionString to be fixed at the major component of the version number.
+
+        * Configurations/Version.xcconfig:
+        * Info.plist:
+
+2008-07-21  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Geoff.
+
+        <rdar://problem/5820667> 
+        CrashTracer: [USER] 3759 crashes in Safari at FrameLoader::activeDocumentLoader const + 6 while canceling plug-in load
+        
+        Don't allow URLs to be loaded in response to an NPP_DestroyStream that happens when tearing down the plug-in.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView loadRequest:inTarget:withNotifyData:sendNotification:]):
+
+2008-07-21  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Adam Roben.
+
+        <rdar://problem/5624143> WebView printing doesn't work correctly in x86_64
+
+        Fix the return type of an NSView method that we override so that the correct data type is used in 64-bit.
+        This prevents a garbage value being used for the scale factor that the NSView print machinery applies.
+
+        * WebView/WebHTMLView.mm:
+
+2008-07-21  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix CallDelegateReturningFloat for x86_64.  The x86_64 Objective-C runtime
+        only uses objc_msgSend_fpret for long double return values.  For float return
+        values the standard objc_msgSend is used, as on ppc and ppc64.
+
+        * WebView/WebView.mm: Use objc_msgSend_float_return as the name of our version of
+        objc_msgSend with the correct return type.  We can no longer call it objc_msgSend_fpret
+        as that method is defined by the Objective-C runtime for x86_64.
+        (CallDelegateReturningFloat):
+
 2008-07-16  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by John Sullivan.

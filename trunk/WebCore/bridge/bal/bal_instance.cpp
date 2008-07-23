@@ -163,7 +163,7 @@ JSValue* BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList
 
     unsigned i;
     for (i = 0; i < count; i++) {
-        BalValuePrivate *priv = new BalValuePrivate(exec, args.at(i));
+        BalValuePrivate *priv = new BalValuePrivate(exec, args.at(exec, i));
         cArgs[i] = new BalValue(priv);
     }
 

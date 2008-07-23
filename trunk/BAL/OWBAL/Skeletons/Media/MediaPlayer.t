@@ -176,6 +176,14 @@ public:
      */
     void setFrameView(FrameView* frameView) ;
     
+
+    /**
+     * Tells if the Document holding the media player is a MediaDocument
+     * (created from mime-type detection related to a media)
+     * @return true if MediaPlayer element is in a MediaDocument
+     */
+    bool inMediaDocument();
+
     /**
      * get rect where the video is played
      * @param[out] : rect
@@ -478,7 +486,6 @@ private:
 
 #endif
 #endif
-
 
 
 

@@ -1,3 +1,251 @@
+2008-07-23  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt and Sam Weinig.
+
+        Next step toward putting doubles in registers: Prepare the Register class
+        and its clients for registers that don't contain JSValue*s.
+        
+2008-07-22  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/5788451> toDataURL not implemented for Windows (need mapping of MIME type to UTI)
+        Add additional support for JPEG and GIF for toDataURL encoding canvases.
+
+        * platform/MIMETypeRegistry.cpp:
+        (WebCore::initializeSupportedImageMIMETypesForEncoding):
+        * platform/graphics/cg/ImageBufferCG.cpp:
+        (WebCore::utiFromMIMEType):
+
+2008-07-22  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        <rdar://problem/6004877> internal anchors on this page are not showing up in the AXLinkedUIElements
+        Test: accessibility/internal-link-anchors2.html
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::internalLinkElement):
+
+2008-07-22  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam.
+
+        Allocate the empty StringImpl from the heap.
+        
+        * platform/text/StringImpl.cpp:
+        (WebCore::StringImpl::empty):
+
+2008-07-21  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/5951532> JSProfiler: Implement heavy (or bottom-up)
+        view (19228)
+        - Implement UI for Heavy (Bottom Up) view.
+
+        * English.lproj/localizedStrings.js:
+        * page/JavaScriptProfile.cpp: Expose the ability to get a heavy/tree
+        profile from a profile to the Web Inspector's JavaScript.
+        (WebCore::getHeavyProfileCallback):
+        (WebCore::getTreeProfileCallback):
+        (WebCore::ProfileClass):
+        * page/inspector/ProfileView.js: Implement the dropdown for changing
+        profile views.
+        * page/inspector/inspector.css:
+
+2008-07-22  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        <rdar://problem/5955602> WebKit should support charset name x-windows-949
+
+        Test: fast/encoding/char-decoding.html
+
+        * platform/text/TextCodecICU.cpp:
+        (WebCore::TextCodecICU::registerExtendedEncodingNames): Added support for this name for
+        Firefox compatibility.
+
+2008-07-22  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        New test to check that arrays fail gracefully (throw an out of memory exception)
+        when the vector grows to large.
+
+        * manual-tests/array-out-of-memory.html:         Added.
+
+2008-07-21  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20117
+        setBaseAndExtent fails to reverse the current selection
+
+        Test: editing/selection/setBaseAndExtent-revert-selection.html
+
+        * editing/Selection.h: (WebCore::operator==): Compare direction, too.
+
+2008-07-21  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Bug 19919: Add selectors' string parsing in CSSParser
+        https://bugs.webkit.org/show_bug.cgi?id=19919
+
+        No functional change.
+
+        * css/CSSGrammar.y: Added entry for parsing only a selector.
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::CSSParser):
+        (WebCore::CSSParser::parseSelector):
+        * css/CSSParser.h: Added m_floatingSelector to hold the
+        Selector parsed in parseSelector.
+
+        * css/tokenizer.flex: Added "@-webkit-selector" token.
+        * dom/Node.cpp:
+        (WebCore::Node::querySelector):
+        (WebCore::Node::querySelectorAll): Switched to parseSelector
+        method.
+
+2008-07-21  Kevin Calhoun  <kcalhoun@apple.com>
+
+        Reviewed by Adele.
+
+        Fix for <rdar://problem/6081160> REGRESSION: Hang loading many pages if QuickTime isn't installed
+
+        * platform/graphics/win/QTMovieWin.cpp:
+        (initializeSupportedTypes): Do a Quicktime version minimum version check.
+        (QTMovieWin::initializeQuickTime): Store the Quicktime version globally so in can be used in initializeSupportedTypes as well.
+
+2008-07-21  Kevin Calhoun  <kcalhoun@apple.com>
+
+        Reviewed by Adele.
+
+        Fix for <rdar://problem/5713336> <video> and <audio> elements that use a autoplay attribute fail to start playing when returning back to page
+
+        * html/HTMLMediaElement.cpp: (WebCore::HTMLMediaElement::willSaveToCache): Reset the ready state to DATA_UNAVAILABLE when saving to the cache
+        so that everything starts back up normally when the page is retrieved from the cache.
+
+2008-07-21  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Remove unused interface declaration.
+
+        * platform/network/mac/ResourceHandleMac.mm:
+
+2008-07-21  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6091287> Revamp the handling of CFBundleShortVersionString to be fixed at the major component of the version number.
+
+        * Configurations/Version.xcconfig:
+        * Info.plist:
+
+2008-07-21  Kevin Calhoun  <kcalhoun@apple.com>
+
+        Reviewed by Adele.
+
+        Fix for <rdar://problem/6031039> don't disable track-types when media is in a standalone document
+
+        * platform/graphics/MediaPlayer.cpp: (WebCore::MediaPlayer::inMediaDocument): Added.
+        * platform/graphics/MediaPlayer.h:
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm: (WebCore::MediaPlayerPrivate::updateStates):
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.cpp: (WebCore::MediaPlayerPrivate::updateStates):
+
+2008-07-21  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Jon.
+
+        Don't allow requests to be made when the document loader is stopping all loaders.
+
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::load):
+
+2008-07-20  Maxime Britto  <britto@apple.com>
+
+        Reviewed by John Sullivan.
+
+        [PFR] <rdar://problem/6080639> New middle click scrolling speed seems much slower than in FF
+        Accelerate and enhance the smoothness of the pan scrollling.
+
+        * page/EventHandler.cpp: Changed the TimerInterval from 0.1 to 0.05. The scrolling is way more fluid like this.
+        * rendering/RenderLayer.cpp: 
+        (WebCore::RenderLayer::panScrollFromPoint): Differentiate the speed within a 200 pixel side square, around the original click location to the speed for farther distances. This way we allow easyier handle when we are close to the center and very fast scrolling when we go far from the original point.
+
+2008-07-18  David Hyatt  <hyatt@apple.com>
+
+        Change the cached clip rects to not assume they should be infinite when the root layer has been
+        shifted as the result of a transformation.
+
+        Reviewed by Maciej
+
+        Added fast/transforms/overflow-with-transform.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::calculateClipRects):
+
+2008-07-21  Rob Buis  <buis@kde.org>
+
+        Reviewed by Mitz.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19966
+        CSS variables crash when using hex notation for colors
+
+        Support hex colors as values for the css variables.
+
+        Test: fast/css/variables/color-hex-test.html
+
+        * css/CSSParserValues.cpp:
+        (WebCore::CSSParserValue::createCSSValue):
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::parserValue):
+        * css/CSSVariablesRule.cpp:
+
+2008-07-21  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        Fix drawing of windowless plugins on Windows with the Qt port by
+        avoiding the reset of the translation of the HDC to 0, 0.
+
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::paint):
+
+2008-07-21  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        Fix rendering of transparent windowless netscape plugins by passing
+        the right conversion parameter to QPixmap::fromWinHBITMAP when
+        converting from HBITMAP to QPixmap.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::releaseWindowsContext):
+
+2008-07-21  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        In the implementation of getValue for NPNVnetscapeWindow treat
+        windowHandleForPlatformWidget on the return value of
+        containingWindow() to receive the correct HWND for the Qt port.
+
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::getValue):
+
+2008-07-21  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        Fix windowHandleForPlatformWidget to return 0 as HWND if we don't have
+        a QWidget. This can happen on page/view destruction for example.
+
+        * plugins/win/PluginViewWin.cpp:
+        (windowHandleForPlatformWidget):
+
 2008-07-21  Steve Falkenburg  <sfalken@apple.com>
 
         Touch file to force rebuild for vsprops change.

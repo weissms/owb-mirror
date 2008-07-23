@@ -692,9 +692,11 @@ RenderLayer::convertToLayerCoords(const RenderLayer* ancestorLayer, int& x, int&
 
 void RenderLayer::panScrollFromPoint(const IntPoint& sourcePoint) 
 {
-   const int sensitivityScale = 250;
+    // We want to reduce the speed if we're close from the original point to improve the handleability of the scroll
+    const int shortDistanceLimit = 100;  // We delimit a 200 pixels long square enclosing the original point
+    const int speedReducer = 2;          // Within this square we divide the scrolling speed by 2
+    
     const int iconRadius = 10;
-    const int speedReducer = 3;
     Frame* frame = renderer()->document()->frame();
     if (!frame)
         return;
@@ -710,19 +712,17 @@ void RenderLayer::panScrollFromPoint(const IntPoint& sourcePoint)
 
     int xDelta = currentMousePosition.x() - sourcePoint.x();
     int yDelta = currentMousePosition.y() - sourcePoint.y();
-    
-   // If the point is too far from the center we limit the speed
-    xDelta = max(min(xDelta, sensitivityScale), -sensitivityScale);
-    yDelta = max(min(yDelta, sensitivityScale), -sensitivityScale);
 
-   if(abs(xDelta) < iconRadius) // at the center we let the space for the icon
+    if (abs(xDelta) < iconRadius) // at the center we let the space for the icon
         xDelta = 0;
-    if(abs(yDelta) < iconRadius)
+    if (abs(yDelta) < iconRadius)
         yDelta = 0;
 
-    // Let's attenuate the speed
-    xDelta /= speedReducer;
-    yDelta /= speedReducer;
+    // Let's attenuate the speed for the short distances
+    if (abs(xDelta) < shortDistanceLimit)
+        xDelta /= speedReducer;
+    if (abs(yDelta) < shortDistanceLimit)
+        yDelta /= speedReducer;
 
     bool restrictedByLineClamp = false;
     if (m_object->parent())
@@ -1903,21 +1903,27 @@ void RenderLayer::calculateClipRects(const RenderLayer* rootLayer)
     if (m_clipRects)
         return; // We have the correct cached value.
 
-    if (rootLayer == this || !parent()) {
+    IntRect infiniteRect(INT_MIN/2, INT_MIN/2, INT_MAX, INT_MAX);
+    if (!parent()) {
         // The root layer's clip rect is always infinite.
-        m_clipRects = new (m_object->renderArena()) ClipRects(IntRect(INT_MIN/2, INT_MIN/2, INT_MAX, INT_MAX));
+        m_clipRects = new (m_object->renderArena()) ClipRects(infiniteRect);
         m_clipRects->ref();
         return;
     }
 
+    // For transformed layers, the root layer was shifted to be us, so there is no need to
+    // examine the parent.  We want to cache clip rects with us as the root.
+    RenderLayer* parentLayer = rootLayer != this ? parent() : 0;
+    
     // Ensure that our parent's clip has been calculated so that we can examine the values.
-    parent()->calculateClipRects(rootLayer);
+    if (parentLayer)
+        parentLayer->calculateClipRects(rootLayer);
 
     // Set up our three rects to initially match the parent rects.
-    IntRect posClipRect(parent()->clipRects()->posClipRect());
-    IntRect overflowClipRect(parent()->clipRects()->overflowClipRect());
-    IntRect fixedClipRect(parent()->clipRects()->fixedClipRect());
-    bool fixed = parent()->clipRects()->fixed();
+    IntRect posClipRect(parentLayer ? parentLayer->clipRects()->posClipRect() : infiniteRect);
+    IntRect overflowClipRect(parentLayer ? parentLayer->clipRects()->overflowClipRect() : infiniteRect);
+    IntRect fixedClipRect(parentLayer ? parentLayer->clipRects()->fixedClipRect() : infiniteRect);
+    bool fixed = parentLayer ? parentLayer->clipRects()->fixed() : false;
 
     // A fixed object is essentially the root of its containing block hierarchy, so when
     // we encounter such an object, we reset our clip rects to the fixedClipRect.

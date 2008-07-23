@@ -95,6 +95,7 @@ TARGET_LINK_LIBRARIES (runOwbalTests
     bal-types
     bal-widgets
     ${DEEPSEE_LINK}
+    ${EXTRA_LDFLAGS}
 )
 
 IF (WEBKIT_USE_DATABASE)

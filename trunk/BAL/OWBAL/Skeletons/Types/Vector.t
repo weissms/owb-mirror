@@ -759,6 +759,26 @@ namespace WTF {
      */
         const T& last() const ;
 
+
+    /**
+     *  find description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        template<typename U> iterator find(const U& value) ;
+
+
+    /**
+     *  find description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        template<typename U> const_iterator find(const U& value) const ;
+
     /**
      *  shrink description
      * @param[in] : description
@@ -1293,7 +1313,5 @@ namespace WTF {
 using WTF::Vector;
 
 #endif // WTF_Vector_h
-
-
 
 
