@@ -459,12 +459,7 @@ bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem*) const
 
 PassRefPtr<DocumentLoader> WebFrameLoaderClient::createDocumentLoader(const ResourceRequest& request, const SubstituteData& substituteData)
 {
-    RefPtr<WebDocumentLoader> loader = new WebDocumentLoader(request, substituteData);
-
-    WebDataSource* dataSource = WebDataSource::createInstance(loader.get());
-
-    loader->setDataSource(dataSource);
-    return loader.release();
+    return DocumentLoader::create(request, substituteData);
 }
 
 void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)

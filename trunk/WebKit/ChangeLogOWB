@@ -1,6 +1,14 @@
 2008-07-23  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
+        Fix a leak in WebFrameLoaderClient::createDocumentLoader.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createDocumentLoader):
+
+2008-07-23  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
         Fix leak and weak code in WebView.
 
         * OrigynWebBrowser/Api/WebView.cpp:
