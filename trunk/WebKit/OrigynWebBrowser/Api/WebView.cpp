@@ -104,10 +104,13 @@
 #include "FileIO.h"
 #include DEEPSEE_INCLUDE
 
-#include <sys/sysinfo.h>
-
-#if PLATFORM(AMIGAOS4)
+#if PLATFORM(MACPORT)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#elif PLATFORM(AMIGAOS4)
 #include <intuition/intuition.h>
+#else
+#include <sys/sysinfo.h>
 #endif
 
 using namespace WebCore;
@@ -306,7 +309,15 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     unsigned long long memSize = 256;
     unsigned long long diskFreeSize = 4096;
     
-#if !PLATFORM(AMIGAOS4)
+#if PLATFORM(MACPORT)
+    unsigned int physmem;
+    size_t len = sizeof physmem;
+    static int mib[2] = { CTL_HW, HW_PHYSMEM };
+    static size_t miblen = sizeof(mib) / sizeof(mib[0]);
+  
+    if (sysctl (mib, miblen, &physmem, &len, NULL, 0) == 0 && len == sizeof (physmem))
+       memSize=physmem / (1024*1024);
+#elif
     struct sysinfo info;
     memset(&info, 0, sizeof(info));
     if (sysinfo(&info) == 0)
@@ -871,7 +882,7 @@ const String& WebView::userAgentForKURL(const KURL&)
     m_userAgentStandard = getenv("OWB_USER_AGENT");
 
     if (!m_userAgentStandard.length())
-#ifdef __OWBAL_PLATFORM_MACPORT__
+#if PLATFORM(MACPORT)
         //We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
         m_userAgentStandard =  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Doduo";
 #elif PLATFORM(AMIGAOS4)

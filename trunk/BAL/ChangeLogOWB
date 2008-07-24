@@ -1,3 +1,10 @@
+2008-07-24  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Incorrect DEFINE of MACPORT
+
+        * Base/wtf/Platform.h:
+
 2008-07-24  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Sebastien Roret.

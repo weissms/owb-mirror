@@ -1,3 +1,14 @@
+2008-07-24  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Adapt sysinfo code for MacOS with sysctl, 
+        Change incorrect not-ifdef'd includes
+        Change improper direct reference to __OWBAL_PLATFORM_MACPORT__ in very old code
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::setCacheModel):
+        (WebView::userAgentForKURL):
+
 2008-07-24  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Sebastien Roret.

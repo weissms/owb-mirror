@@ -55,7 +55,7 @@
 
 #if defined(__OWBAL_PLATFORM_MACPORT__)
 #undef WTF_PLATFORM_MAC
-#define WTF_PLATFORM_MACPORT
+#define WTF_PLATFORM_MACPORT 1
 #endif
 
 /* PLATFORM(WIN_OS) */
