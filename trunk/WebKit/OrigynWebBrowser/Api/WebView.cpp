@@ -104,6 +104,8 @@
 #include "FileIO.h"
 #include DEEPSEE_INCLUDE
 
+#include <sys/sysinfo.h>
+
 #if PLATFORM(AMIGAOS4)
 #include <intuition/intuition.h>
 #endif
@@ -300,9 +302,16 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     if (s_didSetCacheModel && cacheModel == s_cacheModel)
         return;
 
-        //TODO : Calcul the next values
+    //TODO : Calcul the next values
     unsigned long long memSize = 256;
     unsigned long long diskFreeSize = 4096;
+    
+#if !PLATFORM(AMIGAOS4)
+    struct sysinfo info;
+    memset(&info, 0, sizeof(info));
+    if (sysinfo(&info) == 0)
+        memSize = info.totalram * info.mem_unit / (1024 * 1024);
+#endif
 
     unsigned cacheTotalCapacity = 0;
     unsigned cacheMinDeadCapacity = 0;
@@ -461,6 +470,11 @@ void WebView::close()
 
     m_didClose = true;
 
+    //Purge page cache
+    //The easiest way to do that is to disable page cache
+    if (m_preferences->usesPageCache())
+        m_page->settings()->setUsesPageCache(false);
+    
     removeFromAllWebViewsSet();
 
     Frame* frame = m_page->mainFrame();

@@ -1,3 +1,13 @@
+2008-07-24  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+        Fix cachedPage leak.
+        Compute memSize available in setCacheModel().
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::setCacheModel):
+        (WebView::close):
+
 2008-07-23  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
