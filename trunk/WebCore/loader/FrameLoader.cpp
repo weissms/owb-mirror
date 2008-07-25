@@ -1924,6 +1924,9 @@ void FrameLoader::scrollToAnchor(const KURL& url)
 {
     m_URL = url;
     updateHistoryForAnchorScroll();
+
+    // If we were in the autoscroll/panScroll mode we want to stop it before following the link to the anchor
+    m_frame->eventHandler()->stopAutoscrollTimer();
     started();
     gotoAnchor();
 
@@ -4781,9 +4784,13 @@ void FrameLoader::dispatchWindowObjectAvailable()
         return;
 
     m_client->windowObjectCleared();
-    if (Page* page = m_frame->page())
+
+    if (Page* page = m_frame->page()) {
+        if (InspectorController* inspector = page->inspectorController())
+            inspector->inspectedWindowScriptObjectCleared(m_frame);
         if (InspectorController* inspector = page->parentInspectorController())
             inspector->windowScriptObjectAvailable();
+    }
 }
 
 Widget* FrameLoader::createJavaAppletWidget(const IntSize& size, Element* element, const HashMap<String, String>& args)
@@ -4793,7 +4800,7 @@ Widget* FrameLoader::createJavaAppletWidget(const IntSize& size, Element* elemen
     Vector<String> paramValues;
     HashMap<String, String>::const_iterator end = args.end();
     for (HashMap<String, String>::const_iterator it = args.begin(); it != end; ++it) {
-        if (it->first.lower() == "baseurl")
+        if (equalIgnoringCase(it->first, "baseurl"))
             baseURLString = it->second;
         paramNames.append(it->first);
         paramValues.append(it->second);

@@ -106,3 +106,5 @@
 #define DisableWebKitDeveloperExtrasPreferenceKey "DisableWebKitDeveloperExtras"
 
 #define WebKitAuthorAndUserStylesEnabledPreferenceKey "WebKitAuthorAndUserStylesEnabled"
+
+#define WebKitPaintCustomScrollbarsPreferenceKey "WebKitPaintCustomScrollbars"

@@ -329,3 +329,17 @@ void WebChromeClient::populateVisitedLinks()
     history->addVisitedLinksToPageGroup(m_webView->page()->group());
 }
 
+bool WebChromeClient::paintCustomScrollbar(GraphicsContext* context, const FloatRect& rect, ScrollbarControlSize size,
+                                        ScrollbarControlState state, ScrollbarPart pressedPart, bool vertical,
+                                        float value, float proportion, ScrollbarControlPartMask parts)
+{
+    //FIXME: implement me!
+    return false;
+}
+
+bool WebChromeClient::paintCustomScrollCorner(GraphicsContext* context, const FloatRect& rect)
+{
+    //FIXME: implement me!
+    return false;
+}
+

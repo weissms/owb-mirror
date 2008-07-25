@@ -966,6 +966,14 @@ static JSValueRef removeBreakpoint(JSContextRef ctx, JSObjectRef /*function*/, J
     return JSValueMakeUndefined(ctx);
 }
 
+static JSValueRef isWindowVisible(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
+    if (!controller)
+        return JSValueMakeUndefined(ctx);
+    return JSValueMakeBoolean(ctx, controller->windowVisible());
+}
+
 // Profiles
 
 static JSValueRef profiles(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* exception)
@@ -1237,6 +1245,25 @@ void InspectorController::detachWindow()
     m_client->detachWindow();
 }
 
+void InspectorController::inspectedWindowScriptObjectCleared(Frame* frame)
+{
+    if (!enabled() || !m_scriptContext || !m_scriptObject)
+        return;
+
+    JSDOMWindow* win = toJSDOMWindow(frame);
+    ExecState* exec = win->globalExec();
+
+    JSValueRef arg0;
+
+    {
+        KJS::JSLock lock(false);
+        arg0 = toRef(JSInspectedObjectWrapper::wrap(exec, win));
+    }
+
+    JSValueRef exception = 0;
+    callFunction(m_scriptContext, m_scriptObject, "inspectedWindowCleared", 1, &arg0, exception);
+}
+
 void InspectorController::windowScriptObjectAvailable()
 {
     if (!m_page || !enabled())
@@ -1280,6 +1307,7 @@ void InspectorController::windowScriptObjectAvailable()
         { "stepOutOfFunctionInDebugger", WebCore::stepOutOfFunctionInDebugger, kJSPropertyAttributeNone },
         { "addBreakpoint", WebCore::addBreakpoint, kJSPropertyAttributeNone },
         { "removeBreakpoint", WebCore::removeBreakpoint, kJSPropertyAttributeNone },
+        { "isWindowVisible", WebCore::isWindowVisible, kJSPropertyAttributeNone },
         { 0, 0, 0 }
     };
 

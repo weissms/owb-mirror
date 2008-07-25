@@ -52,9 +52,9 @@ namespace WTF {
 
     // Thomas Wang's 32 Bit Mix Function: http://www.cris.com/~Ttwang/tech/inthash.htm
     /**
-     *  intHash description
-     * @param[in] : description
-     * @param[out] : description
+     * Compute a hash from a 1byte key.
+     * @param[in] : a 1 byte key.
+     * @param[out] : a hash.
      * @code
      * @endcode
      */
@@ -62,9 +62,9 @@ namespace WTF {
 
     // Thomas Wang's 32 Bit Mix Function: http://www.cris.com/~Ttwang/tech/inthash.htm
     /**
-     *  intHash description
-     * @param[in] : description
-     * @param[out] : description
+     * Compute a hash from 2 1bytes key.
+     * @param[in] : a 2 bytes key.
+     * @param[out] : a hash.
      * @code
      * @endcode
      */
@@ -72,9 +72,9 @@ namespace WTF {
 
     // Thomas Wang's 32 Bit Mix Function: http://www.cris.com/~Ttwang/tech/inthash.htm
     /**
-     *  intHash description
-     * @param[in] : description
-     * @param[out] : description
+     * Compute a hash from 4 1bytes key.
+     * @param[in] : a 4 bytes key.
+     * @param[out] : a hash.
      * @code
      * @endcode
      */
@@ -82,9 +82,9 @@ namespace WTF {
     
     // Thomas Wang's 64 bit Mix Function: http://www.cris.com/~Ttwang/tech/inthash.htm
     /**
-     *  intHash description
-     * @param[in] : description
-     * @param[out] : description
+     * Compute a hash from 8 1bytes key.
+     * @param[in] : a 8 bytes key.
+     * @param[out] : a hash.
      * @code
      * @endcode
      */
@@ -118,7 +118,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static unsigned hash(T key) ;
+        static unsigned hash(T key);
     /**
      *  equal description
      * @param[in] : description

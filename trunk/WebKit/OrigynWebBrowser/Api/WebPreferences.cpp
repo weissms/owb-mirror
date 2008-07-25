@@ -665,6 +665,16 @@ void WebPreferences::setCacheModel(WebCacheModel cacheModel)
     setIntegerValue(WebKitCacheModelPreferenceKey, cacheModel);
 }
 
+void WebPreferences::setShouldPaintCustomScrollbars(bool shouldPaint)
+{
+    setBoolValue(WebKitPaintCustomScrollbarsPreferenceKey, shouldPaint);
+}
+
+bool WebPreferences::shouldPaintCustomScrollbars()
+{
+    return boolValueForKey(WebKitPaintCustomScrollbarsPreferenceKey);
+}
+
 void WebPreferences::setDeveloperExtrasEnabled(bool enabled)
 {
     setBoolValue(WebKitDeveloperExtrasEnabledPreferenceKey, enabled);

@@ -419,45 +419,25 @@ namespace WKAL {
                             Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
                             CompositeOperator = CompositeSourceOver);
 
-    /**
-     * set use low quality image interpolation
-     * @param[in] : status
-     * @code
-     * gc->setUseLowQualityImageInterpolation();
-     * @endcode
-     */
-        void setUseLowQualityImageInterpolation(bool = true) ;
 
     /**
-     * use low quality image interpolation
-     * @param[out] : status
+     * Set the image interpolation quality.
+     * @param[in] : The quality of the interpolation.
      * @code
-     * bool q = gc->useLowQualityImageInterpolation();
      * @endcode
      */
-        bool useLowQualityImageInterpolation() const ;
+        void setImageInterpolationQuality(InterpolationQuality) ;
+
+
 
     /**
-     * clip
-     * @param[in] : rect
+     *  clip description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * gc->clip(r);
      * @endcode
      */
-        void clip(const FloatRect&);
-
-    /**
-     * add rounded rect clip
-     * @param[in] : rect
-     * @param[in] : top left size
-     * @param[in] : top right size
-     * @param[in] : bottom left size
-     * @param[in] : bottom right size
-     * @code
-     * gc->addRoundedRectClip(r, tl, tr, bk, br);
-     * @endcode
-     */
-        void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
+        void clip(const FloatRect&)
 
     /**
      * add inner rounded rect clip
@@ -985,8 +965,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // GraphicsContext_h
-
-
-
-
+#endif // GraphicsContext_

@@ -133,17 +133,13 @@ TreeOutline._insertChild = function(child, index)
     child._attach();
 }
 
-TreeOutline._removeChild = function(child)
+TreeOutline._removeChildAtIndex = function(childIndex)
 {
-    if (!child)
-        throw("child can't be undefined or null");
+    if (childIndex < 0 || childIndex >= this.children.length)
+        throw("childIndex out of range");
 
-    for (var i = 0; i < this.children.length; ++i) {
-        if (this.children[i] === child) {
-            this.children.splice(i, 1);
-            break;
-        }
-    }
+    var child = this.children[childIndex];
+    this.children.splice(childIndex, 1);
 
     child.deselect();
 
@@ -159,6 +155,18 @@ TreeOutline._removeChild = function(child)
     child.parent = null;
     child.nextSibling = null;
     child.previousSibling = null;
+}
+
+TreeOutline._removeChild = function(child)
+{
+    if (!child)
+        throw("child can't be undefined or null");
+
+    var childIndex = this.children.indexOf(child);
+    if (childIndex === -1)
+        throw("child not found in this node's children");
+
+    TreeOutline._removeChildAtIndex.call(this, childIndex);
 }
 
 TreeOutline._removeChildren = function()
@@ -237,10 +245,13 @@ TreeOutline.prototype._forgetTreeElement = function(element)
     }
 }
 
-TreeOutline.prototype.findTreeElement = function(representedObject, isAncestor, getParent)
+TreeOutline.prototype.findTreeElement = function(representedObject, isAncestor, getParent, equal)
 {
     if (!representedObject)
         return null;
+
+    if (!equal)
+        equal = function(a, b) { return a === b };
 
     if ("__treeElementIdentifier" in representedObject) {
         // If this representedObject has a tree element identifier, and it is a known TreeElement
@@ -248,7 +259,7 @@ TreeOutline.prototype.findTreeElement = function(representedObject, isAncestor, 
         var elements = this._knownTreeElements[representedObject.__treeElementIdentifier];
         if (elements) {
             for (var i = 0; i < elements.length; ++i)
-                if (elements[i].representedObject === representedObject)
+                if (equal(elements[i].representedObject, representedObject))
                     return elements[i];
         }
     }
@@ -262,7 +273,7 @@ TreeOutline.prototype.findTreeElement = function(representedObject, isAncestor, 
     var found = false;
     for (var i = 0; i < this.children.length; ++i) {
         item = this.children[i];
-        if (item.representedObject === representedObject || isAncestor(item.representedObject, representedObject)) {
+        if (equal(item.representedObject, representedObject) || isAncestor(item.representedObject, representedObject)) {
             found = true;
             break;
         }
@@ -277,7 +288,7 @@ TreeOutline.prototype.findTreeElement = function(representedObject, isAncestor, 
     var currentObject = representedObject;
     while (currentObject) {
         ancestors.unshift(currentObject);
-        if (currentObject === item.representedObject)
+        if (equal(currentObject, item.representedObject))
             break;
         currentObject = getParent(currentObject);
     }
@@ -286,16 +297,18 @@ TreeOutline.prototype.findTreeElement = function(representedObject, isAncestor, 
     for (var i = 0; i < ancestors.length; ++i) {
         // Make sure we don't call findTreeElement with the same representedObject
         // again, to prevent infinite recursion.
-        if (ancestors[i] === representedObject)
+        if (equal(ancestors[i], representedObject))
             continue;
         // FIXME: we could do something faster than findTreeElement since we will know the next
         // ancestor exists in the tree.
-        item = this.findTreeElement(ancestors[i], isAncestor, getParent);
+        item = this.findTreeElement(ancestors[i], isAncestor, getParent, equal);
         if (item && item.onpopulate)
             item.onpopulate(item);
     }
 
-    return item;
+    // Now that all the ancestors are populated, try to find the representedObject again. This time
+    // without the isAncestor and getParent functions to prevent an infinite recursion if it isn't found.
+    return this.findTreeElement(representedObject, null, null, equal);
 }
 
 TreeOutline.prototype.treeElementFromPoint = function(x, y)
@@ -393,6 +406,7 @@ TreeOutline.prototype.reveal = function()
 TreeOutline.prototype.appendChild = TreeOutline._appendChild;
 TreeOutline.prototype.insertChild = TreeOutline._insertChild;
 TreeOutline.prototype.removeChild = TreeOutline._removeChild;
+TreeOutline.prototype.removeChildAtIndex = TreeOutline._removeChildAtIndex;
 TreeOutline.prototype.removeChildren = TreeOutline._removeChildren;
 TreeOutline.prototype.removeChildrenRecursive = TreeOutline._removeChildrenRecursive;
 
@@ -452,6 +466,27 @@ TreeElement.prototype = {
             this._listItemNode.title = x ? x : "";
     },
 
+    get hasChildren() {
+        return this._hasChildren;
+    },
+
+    set hasChildren(x) {
+        if (this._hasChildren === x)
+            return;
+
+        this._hasChildren = x;
+
+        if (!this._listItemNode)
+            return;
+
+        if (x)
+            this._listItemNode.addStyleClass("parent");
+        else {
+            this._listItemNode.removeStyleClass("parent");
+            this.collapse();
+        }
+    },
+
     get hidden() {
         return this._hidden;
     },
@@ -489,6 +524,7 @@ TreeElement.prototype = {
 TreeElement.prototype.appendChild = TreeOutline._appendChild;
 TreeElement.prototype.insertChild = TreeOutline._insertChild;
 TreeElement.prototype.removeChild = TreeOutline._removeChild;
+TreeElement.prototype.removeChildAtIndex = TreeOutline._removeChildAtIndex;
 TreeElement.prototype.removeChildren = TreeOutline._removeChildren;
 TreeElement.prototype.removeChildrenRecursive = TreeOutline._removeChildrenRecursive;
 
@@ -613,7 +649,7 @@ TreeElement.prototype.expand = function()
     if (!this.hasChildren || (this.expanded && !this._shouldRefreshChildren && this._childrenListNode))
         return;
 
-    if (!this._childrenListNode || this._shouldRefreshChildren) {
+    if (this.treeOutline && (!this._childrenListNode || this._shouldRefreshChildren)) {
         if (this._childrenListNode && this._childrenListNode.parentNode)
             this._childrenListNode.parentNode.removeChild(this._childrenListNode);
 
@@ -635,7 +671,7 @@ TreeElement.prototype.expand = function()
 
     if (this._listItemNode) {
         this._listItemNode.addStyleClass("expanded");
-        if (this._childrenListNode.parentNode != this._listItemNode.parentNode)
+        if (this._childrenListNode && this._childrenListNode.parentNode != this._listItemNode.parentNode)
             this.parent._childrenListNode.insertBefore(this._childrenListNode, this._listItemNode.nextSibling);
     }
 
@@ -668,6 +704,20 @@ TreeElement.prototype.expandRecursively = function(maxDepth)
         item = item.traverseNextTreeElement(false, this, (depth >= maxDepth), info);
         depth += info.depthChange;
     }
+}
+
+TreeElement.prototype.hasAncestor = function(ancestor) {
+    if (!ancestor)
+        return false;
+
+    var currentNode = this.parent;
+    while (currentNode) {
+        if (ancestor === currentNode)
+            return true;
+        currentNode = currentNode.parent;
+    }
+
+    return false;
 }
 
 TreeElement.prototype.reveal = function()

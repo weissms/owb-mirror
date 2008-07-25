@@ -94,9 +94,9 @@ void ElementRareData::resetComputedStyle(Element* element)
     m_computedStyle = 0;
 }
 
-Element::Element(const QualifiedName& qName, Document *doc)
-    : ContainerNode(doc)
-    , m_tagName(qName)
+Element::Element(const QualifiedName& tagName, Document* doc)
+    : ContainerNode(doc, true)
+    , m_tagName(tagName)
     , m_isStyleAttributeValid(true)
     , m_synchronizingStyleAttribute(false)
 #if ENABLE(SVG)
@@ -104,6 +104,7 @@ Element::Element(const QualifiedName& qName, Document *doc)
     , m_synchronizingSVGAttributes(false)
 #endif
     , m_parsingChildrenFinished(true)
+    , m_hasRareData(false)
 {
 }
 
@@ -112,7 +113,7 @@ Element::~Element()
     if (namedAttrMap)
         namedAttrMap->detachFromElement();
 
-    if (!m_attrWasSpecifiedOrElementHasRareData)
+    if (!hasRareData())
         ASSERT(!rareDataMap().contains(this));
     else {
         ElementRareDataMap& dataMap = rareDataMap();
@@ -125,22 +126,22 @@ Element::~Element()
 
 inline ElementRareData* Element::rareData()
 {
-    return m_attrWasSpecifiedOrElementHasRareData ? rareDataFromMap(this) : 0;
+    return hasRareData() ? rareDataFromMap(this) : 0;
 }
 
 inline const ElementRareData* Element::rareData() const
 {
-    return m_attrWasSpecifiedOrElementHasRareData ? rareDataFromMap(this) : 0;
+    return hasRareData() ? rareDataFromMap(this) : 0;
 }
 
 ElementRareData* Element::createRareData()
 {
-    if (m_attrWasSpecifiedOrElementHasRareData)
+    if (hasRareData())
         return rareDataMap().get(this);
     ASSERT(!rareDataMap().contains(this));
     ElementRareData* data = new ElementRareData(this);
     rareDataMap().set(this, data);
-    m_attrWasSpecifiedOrElementHasRareData = true;
+    setHasRareData(true);
     return data;
 }
 

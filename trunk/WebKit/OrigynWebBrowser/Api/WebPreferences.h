@@ -469,6 +469,16 @@ public:
      */
     virtual void setCacheModel(WebCacheModel cacheModel);
 
+    /**
+     *  setShouldPaintCustomScrollbars
+     */
+    virtual void setShouldPaintCustomScrollbars(bool);
+
+    /**
+     * shouldPaintCustomScrollbars
+     */
+    virtual bool shouldPaintCustomScrollbars();
+
     // IWebPreferencesPrivate
 
     /**

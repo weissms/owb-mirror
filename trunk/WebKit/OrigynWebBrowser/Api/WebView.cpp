@@ -2027,6 +2027,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->isDOMPasteAllowed();
     settings->setDOMPasteAllowed(!!enabled);
 
+    enabled = preferences->shouldPaintCustomScrollbars();
+    settings->setShouldPaintCustomScrollbars(!!enabled);
+
     settings->setShowsURLsInToolTips(false);
     settings->setForceFTPDirectoryListings(true);
     settings->setDeveloperExtrasEnabled(developerExtrasEnabled());

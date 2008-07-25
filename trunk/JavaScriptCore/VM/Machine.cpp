@@ -473,7 +473,12 @@ NEVER_INLINE JSValue* Machine::callEval(ExecState* exec, JSObject* thisObj, Scop
 }
 
 Machine::Machine()
-    : m_reentryDepth(0)
+    :
+#if SAMPLING_TOOL_ENABLED
+      m_sampler(0),
+#else
+      m_reentryDepth(0)
+#endif
     , m_timeoutTime(0)
     , m_timeAtLastCheckTimeout(0)
     , m_timeExecuting(0)
@@ -730,6 +735,8 @@ JSValue* Machine::execute(ProgramNode* programNode, ExecState* exec, ScopeChainN
     JSValue* result = privateExecute(Normal, &newExec, &m_registerFile, r, scopeChain, codeBlock, exception);
     m_reentryDepth--;
 
+    MACHINE_SAMPLING_privateExecuteReturned();
+
     if (*profiler) {
         (*profiler)->didExecute(exec, programNode->sourceURL(), programNode->lineNo());
         if (!m_reentryDepth)
@@ -790,6 +797,8 @@ JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, ExecState* exec, J
     m_reentryDepth++;
     JSValue* result = privateExecute(Normal, &newExec, &m_registerFile, r, scopeChain, newCodeBlock, exception);
     m_reentryDepth--;
+
+    MACHINE_SAMPLING_privateExecuteReturned();
 
     if (*profiler && !m_reentryDepth)
         (*profiler)->didFinishAllExecution(exec);
@@ -856,6 +865,8 @@ JSValue* Machine::execute(EvalNode* evalNode, ExecState* exec, JSObject* thisObj
     m_reentryDepth++;
     JSValue* result = privateExecute(Normal, &newExec, &m_registerFile, r, scopeChain, codeBlock, exception);
     m_reentryDepth--;
+
+    MACHINE_SAMPLING_privateExecuteReturned();
 
     if (*profiler) {
         (*profiler)->didExecute(exec, evalNode->sourceURL(), evalNode->lineNo());
@@ -978,7 +989,16 @@ ALWAYS_INLINE JSValue* Machine::checkTimeout(JSGlobalObject* globalObject)
     
     return 0;
 }
-    
+
+static int32_t offsetForStringSwitch(StringJumpTable& jumpTable, JSValue* scrutinee, int32_t defaultOffset) {
+    StringJumpTable::const_iterator end = jumpTable.end();
+    UString::Rep* value = static_cast<JSString*>(scrutinee)->value().rep();
+    StringJumpTable::const_iterator loc = jumpTable.find(value);
+    if (loc == end)
+        return defaultOffset;
+    return loc->second;
+}
+
 JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFile* registerFile, Register* r, ScopeChainNode* scopeChain, CodeBlock* codeBlock, JSValue** exception)
 {
     // One-time initialization of our address tables. We have to put this code
@@ -1028,7 +1048,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
     }
     
 #if HAVE(COMPUTED_GOTO)
-    #define NEXT_OPCODE goto *vPC->u.opcode
+    #define NEXT_OPCODE MACHINE_SAMPLING_sample(codeBlock, vPC); goto *vPC->u.opcode
 #if DUMP_OPCODE_STATS
     #define BEGIN_OPCODE(opcode) opcode: OpcodeStats::recordInstruction(opcode);
 #else
@@ -1036,7 +1056,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 #endif
     NEXT_OPCODE;
 #else
-    #define NEXT_OPCODE continue
+    #define NEXT_OPCODE MACHINE_SAMPLING_sample(codeBlock, vPC); continue
 #if DUMP_OPCODE_STATS
     #define BEGIN_OPCODE(opcode) case opcode: OpcodeStats::recordInstruction(opcode);
 #else
@@ -2127,6 +2147,67 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         ++vPC;
         NEXT_OPCODE;
     }
+    BEGIN_OPCODE(op_switch_imm) {
+        /* switch_imm tableIndex(n) defaultOffset(offset) scrutinee(r)
+
+           Performs a range checked switch on the scrutinee value, using
+           the tableIndex-th immediate switch jump table.  If the scrutinee value
+           is an immediate number in the range covered by the referenced jump
+           table, and the value at jumpTable[scrutinee value] is non-zero, then
+           that value is used as the jump offset, otherwise defaultOffset is used.
+         */
+        int tableIndex = (++vPC)->u.operand;
+        int defaultOffset = (++vPC)->u.operand;
+        JSValue* scrutinee = r[(++vPC)->u.operand].jsValue(exec);
+        if (!JSImmediate::isNumber(scrutinee))
+            vPC += defaultOffset;
+        else {
+            int32_t value = JSImmediate::getTruncatedInt32(scrutinee);
+            vPC += codeBlock->immediateSwitchJumpTables[tableIndex].offsetForValue(value, defaultOffset);
+        }
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_switch_char) {
+        /* switch_char tableIndex(n) defaultOffset(offset) scrutinee(r)
+
+           Performs a range checked switch on the scrutinee value, using
+           the tableIndex-th character switch jump table.  If the scrutinee value
+           is a single character string in the range covered by the referenced jump
+           table, and the value at jumpTable[scrutinee value] is non-zero, then
+           that value is used as the jump offset, otherwise defaultOffset is used.
+         */
+        int tableIndex = (++vPC)->u.operand;
+        int defaultOffset = (++vPC)->u.operand;
+        JSValue* scrutinee = r[(++vPC)->u.operand].jsValue(exec);
+        if (scrutinee->type() != StringType)
+            vPC += defaultOffset;
+        else {
+            UString::Rep* value = static_cast<JSString*>(scrutinee)->value().rep();
+            if (value->size() != 1)
+                vPC += defaultOffset;
+            else
+                vPC += codeBlock->characterSwitchJumpTables[tableIndex].offsetForValue(value->data()[0], defaultOffset);
+        }
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_switch_string) {
+        /* switch_string tableIndex(n) defaultOffset(offset) scrutinee(r)
+
+           Performs a sparse hashmap based switch on the value in the scrutinee
+           register, using the tableIndex-th string switch jump table.  If the 
+           scrutinee value is a string that exists as a key in the referenced 
+           jump table, then the value associated with the string is used as the 
+           jump offset, otherwise defaultOffset is used.
+         */
+        int tableIndex = (++vPC)->u.operand;
+        int defaultOffset = (++vPC)->u.operand;
+        JSValue* scrutinee = r[(++vPC)->u.operand].jsValue(exec);
+        if (scrutinee->type() != StringType)
+            vPC += defaultOffset;
+        else 
+            vPC += offsetForStringSwitch(codeBlock->stringSwitchJumpTables[tableIndex], scrutinee, defaultOffset);
+        NEXT_OPCODE;
+    }
     BEGIN_OPCODE(op_new_func) {
         /* new_func dst(r) func(f)
 
@@ -2290,6 +2371,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
             JSValue* thisValue = thisVal == missingThisObjectMarker() ? exec->globalThisValue() : r[thisVal].jsValue(exec);
             ArgList args(r + firstArg + 1, argCount - 1);
+
+            MACHINE_SAMPLING_callingNativeFunction();
 
             JSValue* returnValue = callData.native.function(exec, static_cast<JSObject*>(v), thisValue, args);
             VM_CHECK_EXCEPTION();

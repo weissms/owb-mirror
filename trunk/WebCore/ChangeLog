@@ -1,3 +1,535 @@
+2008-07-25  kevino  <kevino@theolliviers.com>
+
+        wx build fix on Win for plugins coode.
+
+        * plugins/PluginDatabase.cpp:
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::PluginView):
+        * plugins/PluginView.h:
+
+2008-07-24  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Make isElementNode() non-virtual for a speedup on many benchmarks
+        including 20% on http://ejohn.org/apps/fragment/.
+
+        - Replace Node::m_attrWasSpecifiedOrElementHasRareData with bits in 
+          Element and Attr where space was available.  Use the new free bit
+          to represent if an node is an element or not.
+
+        * dom/Attr.cpp:
+        (WebCore::Attr::Attr):
+        * dom/Attr.h:
+        (WebCore::Attr::specified):
+        (WebCore::Attr::setSpecified):
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::ContainerNode):
+        * dom/ContainerNode.h:
+        * dom/Element.cpp:
+        (WebCore::Element::Element):
+        * dom/Element.h:
+        (WebCore::Element::hasRareData):
+        (WebCore::Element::setHasRareData):
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::EventTargetNode):
+        * dom/EventTargetNode.h:
+        * dom/Node.cpp:
+        (WebCore::Node::Node):
+        * dom/Node.h:
+        (WebCore::Node::isElementNode):
+
+2008-07-24  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6082111> REGRESSION (r31876): Root element with percent height does not resize when resizing the window vertically
+
+        Not testable in DumpRenderTree
+
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::layout): Ensured that all children with percentage
+        heights get laid out again if the height changes.
+
+2008-07-24  kevino  <kevino@theolliviers.com>
+
+        Windows build fix for wx. wx doesn't implement pan scrolling yet. 
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleAutoscroll):
+        (WebCore::EventHandler::autoscrollTimerFired):
+        (WebCore::EventHandler::stopAutoscrollTimer):
+        (WebCore::EventHandler::handleMousePressEvent):
+
+2008-07-24  David Hyatt  <hyatt@apple.com>
+
+        Fix for bug 18673, crash when using full page zoom on generated content.  Don't call
+        intrinsicSizeChanged when we are first setting our style.
+
+        Reviewed by olliej
+
+        * ChangeLog:
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::setStyle):
+
+2008-07-24  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric.
+
+        Bug 20053: .in files should use a custom format instead of XML
+
+        - Remove our XML parser perl module (XML::Tiny)
+
+        - Add a custom perl parser
+
+        - Move XML files to the new format
+
+        * bindings/scripts/InFilesParser.pm: Added.
+        * bindings/scripts/XMLTiny.pm: Removed.
+        * dom/make_names.pl: Switched to our new
+        parser.
+
+        * html/HTMLAttributeNames.in: Switched to
+        our custom format.
+        * html/HTMLTagNames.in: Ditto.
+        * svg/svgattrs.in: Ditto.
+        * svg/svgtags.in: Ditto.
+        * svg/xlinkattrs.in: Ditto.
+        * xml/xmlattrs.in: Ditto.
+
+2008-07-23  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric.
+
+        Bug 19588: CRASH doing open() on destroyed window
+        https://bugs.webkit.org/show_bug.cgi?id=19588
+
+        Add frame's page null check as it could have been
+        detached from the page.
+
+        Test: fast/frames/crash-removed-iframe.html
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::windowProtoFuncOpen):
+        * page/FrameTree.cpp:
+        (WebCore::FrameTree::find):
+
+2008-07-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        - fix a leak when using hex color values in CSS variables
+
+        - fix CSSOM access to hex color values in variables declarations
+
+        Test: fast/css/variables/color-hex-test.html
+
+        Added a new unit/type, CSS_PARSER_HEXCOLOR, which serves as the unit for
+        CSSParserValues coming from colors in hex notation. CSSParserValues can
+        no longer have CSS_RGBCOLOR as their unit. CSS_PARSER_HEXCOLOR is also
+        used as the type for CSSValues in CSS variables declarations where the
+        parser value was a hex color. However the type of all other color
+        CSSValues remains CSS_RGBCOLOR.
+
+        * css/CSSGrammar.y: Changed to use the new CSS_PARSER_HEXCOLOR value
+        for color values in hex notation.
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseColorFromValue): Updated for the new unit.
+        * css/CSSParserValues.cpp:
+        (WebCore::CSSParserValue::createCSSValue): Ditto.
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cleanup): Fixed the leak by deref()ing the
+        string containing the color.
+        (WebCore::CSSPrimitiveValue::cssText): Added support for
+        CSS_PARSER_HEXCOLOR for when serializing variable values.
+        (WebCore::CSSPrimitiveValue::parserValue): Updated for the new unit.
+        * css/CSSPrimitiveValue.h:
+        (WebCore::CSSPrimitiveValue::): Added a new unti, CSS_PARSER_HEXCOLOR.
+
+2008-07-23  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/5997215> display: table-row-group 
+        for :before content causes a crash
+ 
+        The actual bug fix here is to ddd the generated content container 
+        as a child before adding any of the generated content to the 
+        container. There are two correctness fixes as well that deal with 
+        style changes and correctly.
+
+        This patch also makes Node::diff() a static function.
+
+        * dom/Node.cpp:
+        (WebCore::Node::diff):
+        * dom/Node.h:
+        (WebCore::Node::):
+        (WebCore::Node::recalcStyle):
+        * rendering/RenderContainer.cpp:
+        (WebCore::findBeforeAfterParent):
+        (WebCore::RenderContainer::updateBeforeAfterContentForContainer):
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::recalcStyle):
+
+2008-07-23  Timothy Hatcher  <timothy@apple.com>
+
+        Updates the elements DOM tree when nodes are added or removed from
+        the inspected document.
+
+        https://bugs.webkit.org/show_bug.cgi?id=6590
+        <rdar://problem/5712921>
+
+        Reviewed by Adam Roben.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::dispatchWindowObjectAvailable): Added a call to
+        InspectorController::inspectedWindowScriptObjectCleared.
+        * page/InspectorController.cpp:
+        (WebCore::InspectorController::inspectedWindowScriptObjectCleared):
+        Calls the WebInspector.inspectedWindowCleared script function.
+        * page/InspectorController.h:
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel): Create the event listener callback wrappers.
+        (WebInspector.ElementsPanel.prototype.show): Call _updateModifiedNodes if
+        there are any recently modified nodes.
+        (WebInspector.ElementsPanel.prototype.reset): Remove previous mutation event listeners.
+        Adds a check for InspectorController.isWindowVisible to prevent adding
+        event listeners when the window isn't visible.
+        (WebInspector.ElementsPanel.prototype.inspectedWindowCleared): 
+        (WebInspector.ElementsPanel.prototype._addMutationEventListeners): Add DOMNodeInserted,
+        DOMNodeRemoved and DOMContentLoaded event listeners to the passed in window or window's document.
+        (WebInspector.ElementsPanel.prototype._removeMutationEventListeners): Removes the event listeners
+        added in _addMutationEventListeners.
+        (WebInspector.ElementsPanel.prototype.updateMutationEventListeners): Call _addMutationEventListeners
+        again to reinstate the listners if the document changed or window cleared them.
+        (WebInspector.ElementsPanel.prototype.registerMutationEventListeners): Append the window to
+        _mutationMonitoredWindows and call _addMutationEventListeners.
+        (WebInspector.ElementsPanel.prototype.unregisterMutationEventListeners): Remove the window from
+        _mutationMonitoredWindows and call _removeMutationEventListeners.
+        (WebInspector.ElementsPanel.prototype.unregisterAllMutationEventListeners): Call
+        _removeMutationEventListeners for all windows in _mutationMonitoredWindows and
+        clear _mutationMonitoredWindows.
+        (WebInspector.ElementsPanel.prototype._contentLoaded): Append the node and parent
+        to the recentlyModifiedNodes array. Call _updateModifiedNodesSoon if visible.
+        (WebInspector.ElementsPanel.prototype._nodeInserted): Ditto.
+        (WebInspector.ElementsPanel.prototype._nodeRemoved): Ditto.
+        (WebInspector.ElementsPanel.prototype._updateModifiedNodesSoon): Call
+        _updateModifiedNodes on a zero timeout.
+        (WebInspector.ElementsPanel.prototype._updateModifiedNodes): Iterate over
+        the recentlyModifiedNodes array and call updateChildren on all the parent
+        elements that had changes. Only calls updateChildren once per parent element.
+        (WebInspector.ElementsPanel.prototype._isAncestorIncludingParentFrames): Return
+        false if the nodes are the same. Return true if the nodes are the same while
+        looking at ancestor frame elements. THis use to return false, which was incorrect.
+        (WebInspector.DOMNodeTreeElement.prototype.onpopulate): Call updateChildren.
+        (WebInspector.DOMNodeTreeElement.prototype.updateChildren): Copied from
+        onpopulate and changed to rebuild the children elements by adding new children,
+        moving existing children and removed old children.
+        (WebInspector.DOMNodeTreeElement.prototype.onexpand): If the node has a contentDocument
+        call registerMutationEventListeners to track any mutations.
+        * page/inspector/inspector.js:
+        (WebInspector.inspectedWindowCleared): Call ElementsPanel.inspectedWindowCleared.
+        * page/inspector/treeoutline.js:
+        (TreeElement.prototype.get hasChildren): Return _hasChildren.
+        (TreeElement.prototype.set hasChildren): Set _hasChildren and update the className.
+        (TreeElement.prototype.hasAncestor): Return true if the element has the passed in ancestor.
+        (TreeElement.prototype.expand): Fix an exception that can happen if expand is
+        called before _attach.
+        * WebCore/manual-tests/inspector/dom-mutation.html: Added.
+        * WebCore/manual-tests/inspector/resources/mutate-frame-2.html: Added.
+        * WebCore/manual-tests/inspector/resources/mutate-frame.html: Added.
+
+2008-07-22  Timothy Hatcher  <timothy@apple.com>
+
+        Fix an exception that occurred when double clicking the closing tag
+        of an element in the DOM tree.
+
+        Reviewed by Anders Carlsson.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel.prototype._ondblclick): Null check
+        element.ondblclick.
+
+2008-07-22  Timothy Hatcher  <timothy@apple.com>
+
+        Fix a regression where elements in subframes would not be revealed
+        or selected when inspected from the context menu. This was caused by
+        JavaScript equality is not being true for JSInspectedObjectWrappers
+        of the same node wrapped with different global ExecStates. This change
+        adds a helper function that uses isSameNode to compare wrapped nodes.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19377
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel.prototype.set rootDOMNode): Use objectsAreSame
+        to compare nodes.
+        (WebInspector.ElementsPanel.prototype.set focusedDOMNode): Ditto.
+        (WebInspector.ElementsPanel.prototype.set hoveredDOMNode): Ditto. 
+        (WebInspector.ElementsPanel.prototype._updateModifiedNodes): Ditto.
+        (WebInspector.ElementsPanel.prototype.revealNode): Ditto.
+        (WebInspector.ElementsPanel.prototype.updateBreadcrumb): Ditto.
+        (WebInspector.DOMNodeTreeElement.prototype.updateChildren): Ditto.
+        * page/inspector/treeoutline.js:
+        (TreeOutline.prototype.findTreeElement): Add an equal argument
+        to accept a functions to compare two representedObjects. Defaults
+        to strict equal if not supplied. All current clients pass objectsAreSame.
+        * page/inspector/utilities.js:
+        (Node.prototype.enclosingNodeOrSelfWithNodeNameInArray): Use objectsAreSame
+        to compare nodes.
+        (Node.prototype.enclosingNodeOrSelfWithClass): Ditto.
+        (Element.prototype.query): Use the ownerDocument of the node, not document.
+        (objectsAreSame): Added. Compares strict equal first, then uses isSameNode if
+        it exists on both objects.
+        (isAncestorNode): Use objectsAreSame to compare nodes.
+        (firstCommonNodeAncestor): Ditto.
+        (traverseNextNode): Ditto.
+
+2008-07-21  Timothy Hatcher  <timothy@apple.com>
+
+        Added InspectorController.isWindowVisible to the JavaScript class
+        for use in an upcoming change. This will allow the Inspector to not
+        perform selective actions while the window is hidden.
+
+        Reviewed by Adam Roben.
+
+        * page/InspectorController.cpp:
+        (WebCore::isWindowVisible): Call InspectorController::windowVisible.
+        (WebCore::InspectorController::windowScriptObjectAvailable): Add
+        the isWindowVisible function to the JavaScript class.
+
+2008-07-21  Timothy Hatcher  <timothy@apple.com>
+
+        Added TreeOutline.removeChildAtIndex and TreeElement.removeChildAtIndex
+        for efficiency of callers that know the index of the child. This
+        will be used in an upcoming change.
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/treeoutline.js:
+        (TreeOutline._removeChildAtIndex): Renamed from _removeChild
+        and modified to take an index.
+        (TreeOutline._removeChild): Call _removeChildAtIndex with the
+        child index found using indexOf.
+        (TreeOutline.prototype.removeChildAtIndex): Added. Calls
+        TreeOutline._removeChildAtIndex.
+        (TreeElement.prototype.removeChildAtIndex): Ditto.
+
+2008-07-21  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a regression where TreeOutline.findTreeElement would
+        return the parent TreeElement of the representedObject instead
+        of the TreeElement for the representedObject. Regressed with the
+        fix for bug 19164.
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/treeoutline.js:
+        (TreeOutline.prototype.findTreeElement): When performing a slow search,
+        do a final search for representedObject instead of returning item, which
+        is the parent of representedObject.
+
+2008-07-23  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Adam.
+
+        WebCore part of fix for <rdar://problem/5698672>  Add drawing callback for a WebKit app to draw its own scrollbars
+
+        * WebCore.base.exp: Added symbols.
+        * page/Chrome.cpp:
+        (WebCore::ChromeClient::paintCustomScrollbar): Added. Calls up to WebKit, which will call a new delegate method.
+        (WebCore::ChromeClient::paintCustomScrollCorner): ditto.
+        * page/ChromeClient.h:
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings): Added the ability to store whether or not the application has decided to draw its own scrollbars.
+        (WebCore::Settings::setShouldPaintCustomScrollbars):
+        * page/Settings.h: (WebCore::Settings::shouldPaintCustomScrollbars):
+        * platform/ScrollBar.h: Moved ScrollbarControlSize enum to ScrollTypes.h
+        * platform/ScrollTypes.h: (WebCore::): Moved some existing types, and added new ones to be used in WebCore in WebKit.
+        * platform/win/PlatformScrollBar.h: Moved ScrollbarPart enum to ScrollTypes.h
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::ScrollbarPartToScrollBarPiece): Added helper function.
+        (WebCore::ScrollBarPieceMaskToScrollbarControlPartMask): ditto.
+        (WebCore::ScrollbarControlStateFromThemeState): ditto.
+        (WebCore::PlatformScrollbar::paint): Consolidated painting so the logic for the individual pieces is all in one place.
+         Added new code to paint the custom scrollbars if necessary.
+        * platform/win/ScrollViewWin.cpp: (WebCore::ScrollView::paint): Added code to paint the custom scroll corner if necessary.
+
+2008-07-23  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Cleanup and pack the member variables in Node.
+
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::JSNode::mark):
+        * dom/Attr.cpp:
+        (WebCore::Attr::Attr):
+        * dom/Attr.h:
+        (WebCore::Attr::specified):
+        (WebCore::Attr::setSpecified):
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::setFocus):
+        * dom/Document.cpp:
+        (WebCore::Document::adoptNode):
+        * dom/Element.cpp:
+        (WebCore::Element::~Element):
+        (WebCore::Element::rareData):
+        (WebCore::Element::createRareData):
+        * dom/Element.h:
+        (WebCore::Element::hasRareData):
+        (WebCore::Element::setHasRareData):
+        * dom/Node.h:
+        (WebCore::Node::setIsLink):
+        (WebCore::Node::inSubtreeMark):
+        (WebCore::Node::setInSubtreeMark):
+        (WebCore::Node::attrWasSpecifiedOrElementHasRareData):
+        (WebCore::Node::setAttrWasSpecifiedOrElementHasRareData):
+        * html/HTMLAnchorElement.cpp:
+        (WebCore::HTMLAnchorElement::supportsFocus):
+        (WebCore::HTMLAnchorElement::isFocusable):
+        (WebCore::HTMLAnchorElement::defaultEventHandler):
+        (WebCore::HTMLAnchorElement::parseMappedAttribute):
+        (WebCore::HTMLAnchorElement::isLiveLink):
+        * html/HTMLImageElement.cpp:
+        (WebCore::HTMLImageElement::parseMappedAttribute):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::setInputType):
+        * html/HTMLTableElement.cpp:
+        (WebCore::HTMLTableElement::attach):
+        * svg/SVGAElement.cpp:
+        (WebCore::SVGAElement::svgAttributeChanged):
+        (WebCore::SVGAElement::defaultEventHandler):
+
+2008-07-23  Kevin Calhoun  <kcalhoun@apple.com>
+
+        Reviewed by Adele.
+
+        Follow-up fix for <rdar://problem/6031039> don't disable track-types when media is in a standalone document
+
+        Associate MovieControllers with Movies to support all of the media types QuickTime is able to play in standalone media documents.
+
+        * platform/graphics/win/QTMovieWin.cpp:
+        (QTMovieWinPrivate::QTMovieWinPrivate):
+        (QTMovieWinPrivate::~QTMovieWinPrivate):
+        (QTMovieWinPrivate::task):
+        (QTMovieWinPrivate::createMovieController):
+        (QTMovieWinPrivate::createGWorld):
+        (QTMovieWinPrivate::setSize):
+        (QTMovieWinPrivate::deleteGWorld):
+        (QTMovieWin::play):
+        (QTMovieWin::pause):
+        (QTMovieWin::setRate):
+        (QTMovieWin::setCurrentTime):
+        (QTMovieWin::load):
+
+2008-07-23  Kevin Calhoun  <kcalhoun@apple.com>
+
+        Reviewed by Adele.
+
+        Added a debug mode for viewing frames per second for videos.  This is controlled by two 
+        independent compiler flags DRAW_FRAME_RATE in MediaPlayerPrivateQTKit.h and MediaPlayerPrivateQuickTimeWin.h.
+        Unless either flags is turned on there is no change to the code for video frame drawing.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h:
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate):
+        (WebCore::MediaPlayerPrivate::play):
+        (WebCore::MediaPlayerPrivate::pause):
+        (WebCore::MediaPlayerPrivate::didEnd):
+        (WebCore::MediaPlayerPrivate::repaint):
+        (WebCore::MediaPlayerPrivate::paint):
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.cpp:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate):
+        (WebCore::MediaPlayerPrivate::play):
+        (WebCore::MediaPlayerPrivate::pause):
+        (WebCore::MediaPlayerPrivate::didEnd):
+        (WebCore::MediaPlayerPrivate::paint):
+        (WebCore::MediaPlayerPrivate::movieNewImageAvailable):
+        * platform/graphics/win/MediaPlayerPrivateQuickTimeWin.h:
+
+2008-07-23  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Sam.
+
+        Fix for <rdar://problem/6080634> use lower quality CG interpolation in MediaPlayerPrivateQTKit to improve performance
+
+        * platform/graphics/GraphicsContext.cpp: (WebCore::GraphicsContext::drawImage):
+        Call setImageInterpolationQuality(InterpolationNone) instead of setUseLowQualityImageInterpolation(true).
+        * platform/graphics/GraphicsContext.h:
+        (WebCore::): Added InterpolationQuality enum.
+        (WebCore::GraphicsContext::setImageInterpolationQuality): Renamed from setUseLowQualityImageInterpolation.
+        The implementation was always setting the quality to "none", and now we want to distinguish between "none" and "low".
+        (WebCore::GraphicsContext::imageInterpolationQuality): Renamed from useLowQualityImageInterpolation.
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::setImageInterpolationQuality): Added.
+        (WebCore::GraphicsContext::imageInterpolationQuality): Added.
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm: (WebCore::MediaPlayerPrivate::paint):
+        Calls setImageInterpolationQuality(InterpolationLow) which will improve the painting performance without degrading quality too much.
+
+2008-07-23  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Remove extraneous allocations by using equalIgnoringCase rather than
+        String::lower.
+
+        * dom/StyledElement.cpp:
+        (WebCore::StyledElement::addCSSColor):
+        * html/HTMLCollection.cpp:
+        (WebCore::HTMLCollection::checkForNameMatch):
+        * html/HTMLFormCollection.cpp:
+        (WebCore::HTMLFormCollection::getNamedFormItem):
+        * html/HTMLLinkElement.cpp:
+        (WebCore::HTMLLinkElement::tokenizeRelAttribute):
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::containsJavaApplet):
+        * html/PreloadScanner.cpp:
+        (WebCore::PreloadScanner::emitCSSRule):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::createJavaAppletWidget):
+        * page/DOMSelection.cpp:
+        (WebCore::DOMSelection::modify):
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::updateWidget):
+
+2008-07-23  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Adam Roben.
+
+        <rdar://6092952> "REGRESSION: Crash beneath EventHandler::stopAutoscrollTimer() when closing Gmail"
+        Add a check for the m_page member value before asking for page()->mainFrame()
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::stopAutoscrollTimer):
+
+2008-07-23  Kevin Calhoun  <kcalhoun@apple.com>
+
+       Reviewed by Adele.
+
+       Fix for <rdar://problem/5710065> QT movies should be inactive when opened
+
+       Implemented deferral of set-up of video rendering on Mac until the ready state is Loaded and 
+       until after movie tracks of unsupported types have been disabled, to make sure they never draw.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivate::load):
+        (WebCore::MediaPlayerPrivate::updateStates):
+        (WebCore::MediaPlayerPrivate::setVisible):
+
+2008-07-22  Maxime Britto  <britto@apple.com>
+
+        Reviewed by John Sullivan.
+
+        <rdar://problem/6083116>
+        When pan-scrolling, Back then Forward causes pan-scrolling to start again
+
+        * page/Frame.cpp:
+        (WebCore::Frame::clearTimers): Ask to stop the autoscroll timer when we clear the timers from the frame
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::scrollToAnchor): When the link is an anchor we Frame::clearTimers() isn't called since we're only scrolling the page so we need to ask to stop the autoscroll timer here too.
+
 2008-07-23  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Oliver Hunt and Sam Weinig.
@@ -73,7 +605,7 @@
         New test to check that arrays fail gracefully (throw an out of memory exception)
         when the vector grows to large.
 
-        * manual-tests/array-out-of-memory.html:         Added.
+        * manual-tests/array-out-of-memory.html: Added.
 
 2008-07-21  Alexey Proskuryakov  <ap@webkit.org>
 

@@ -28,6 +28,8 @@
 
 #include <ChromeClient.h>
 #include <FocusDirection.h>
+#include <GraphicsContext.h>
+#include <ScrollTypes.h>
 #include <wtf/Forward.h>
 
 class WebView;
@@ -100,6 +102,11 @@ public:
     virtual void exceededDatabaseQuota(WebCore::Frame*, const WebCore::String&);
 
     virtual void populateVisitedLinks();
+
+    virtual bool paintCustomScrollbar(WebCore::GraphicsContext*, const WebCore::FloatRect&, WebCore::ScrollbarControlSize,
+                                        WebCore::ScrollbarControlState, WebCore::ScrollbarPart pressedPart, bool vertical,
+                                        float value, float proportion, WebCore::ScrollbarControlPartMask);
+    virtual bool paintCustomScrollCorner(WebCore::GraphicsContext*, const WebCore::FloatRect&);
 
     WebView* webView() const { return m_webView; }
 

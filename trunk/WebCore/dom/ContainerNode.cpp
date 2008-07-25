@@ -49,8 +49,10 @@ static NodeCallbackQueue* s_postAttachCallbackQueue = 0;
 
 static size_t s_attachDepth = 0;
 
-ContainerNode::ContainerNode(Document* doc)
-    : EventTargetNode(doc), m_firstChild(0), m_lastChild(0)
+ContainerNode::ContainerNode(Document* doc, bool isElement)
+    : EventTargetNode(doc, isElement)
+    , m_firstChild(0)
+    , m_lastChild(0)
 {
 }
 
@@ -848,7 +850,8 @@ IntRect ContainerNode::getRect() const
 
 void ContainerNode::setFocus(bool received)
 {
-    if (m_focused == received) return;
+    if (focused() == received)
+        return;
 
     EventTargetNode::setFocus(received);
 

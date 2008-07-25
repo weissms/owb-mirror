@@ -67,6 +67,13 @@ namespace WKAL {
         DashedStroke
     };
 
+    enum InterpolationQuality {
+        InterpolationDefault,
+        InterpolationNone,
+        InterpolationLow,
+        InterpolationHigh
+    };
+
     class GraphicsContext : Noncopyable, public WKALBase {
     public:
         GraphicsContext(PlatformGraphicsContext*);
@@ -118,8 +125,8 @@ namespace WKAL {
                             Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
                             CompositeOperator = CompositeSourceOver);
 
-        void setUseLowQualityImageInterpolation(bool = true) {}
-        bool useLowQualityImageInterpolation() const { return false; }
+        void setImageInterpolationQuality(InterpolationQuality) {}
+        InterpolationQuality imageInterpolationQuality() const { return InterpolationDefault; }
 
         void clip(const FloatRect&);
         void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
