@@ -1,3 +1,516 @@
+2008-07-28  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20176
+        querySelectorAll id optimization no longer working
+
+        Turn the querySelector/querySelectorAll id optimization back on
+        for only strict and almost strict mode.  In quirks mode, the optimiztion
+        won't work as the id match is not case sensitive.
+
+        Tests: fast/dom/SelectorAPI/caseID-almost-strict.html
+               fast/dom/SelectorAPI/caseID-strict.html
+               fast/dom/SelectorAPI/caseID.html
+
+        * dom/Node.cpp:
+        (WebCore::Node::querySelector):
+        (WebCore::Node::querySelectorAll):
+        * dom/SelectorNodeList.cpp:
+        (WebCore::createSelectorNodeList):
+        * dom/SelectorNodeList.h:
+
+2008-07-27  Anatoli Papirovski  <apapirovski@mac.com>
+
+        Reviewed by Dave Hyatt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=14346
+        Modified the css parser:
+        - not to fail when closing braces are not found for 
+          a declaration at the end of the file
+        - not to accept "!important fail" as valid
+        - to keep accepting @import when it comes after invalid @ rules
+        - not to drop the whole @media block when there's an error before the 
+          closing brace
+        + some other minor css parsing revisions.
+
+        CSSGrammar.y tweaked by David Kilzer to fix Tiger builds.
+
+        * css/CSSGrammar.y:
+
+2008-07-27  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Use --outputDir instead of --output when invoking make_names.pl
+        There's no option named "output" in make_names.pl
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * DerivedSources.make: Remove --output. Not necessary here.
+        * bindings/scripts/generate-bindings.pl: Rename --outputdir to
+          --outputDir for consistency with make_names.pl
+
+2008-07-26  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Eric Seidel.
+
+        http://bugs.webkit.org/show_bug.cgi?id=18694
+        [CAIRO] Problem with rotation in a given matrix in SVG
+
+        Changed values given to AffineTransform.
+
+        * platform/graphics/cairo/AffineTransformCairo.cpp:
+        (WebCore::AffineTransform::AffineTransform):
+        (WebCore::AffineTransform::setMatrix):
+
+2008-07-26  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Call curl_global_cleanup() to release resources acquired by curl_global_init()
+
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::ResourceHandleManager::~ResourceHandleManager):
+
+2008-07-26  Marc Ordinas i Llopis  <marc.ordinasillopis@collabora.co.uk>
+
+        Reviewed by Simon Hausmann.
+
+        Bug 18938: [GTK] Plugins not resized
+        https://bugs.webkit.org/show_bug.cgi?id=18938
+
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::setFrameGeometry): When viewing a full-page
+        plugin in unix, geometry changes have to be passed to the plugin.
+
+2008-07-26  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Reviewed by Adam Roben.
+
+        Add console.time/timeEnd.
+        https://bugs.webkit.org/show_bug.cgi?id=19159
+
+        * manual-tests/inspector/console-time.html: Added. Test cases for console.time/timeEnd.
+        * page/Console.cpp:
+        (WebCore::Console::time): Added.
+        (WebCore::Console::timeEnd): Added.
+        * page/Console.h:
+        * page/Console.idl: Added console.time/timeEnd.
+        * page/InspectorController.cpp:
+        (WebCore::InspectorController::startTiming): Added.
+        (WebCore::InspectorController::stopTiming): Added.
+        * page/InspectorController.h:
+
+2008-07-26  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Fixes rendering issues with gradients in SVG/Cairo.
+
+        * platform/graphics/cairo/PathCairo.cpp:
+        (WebCore::Path::boundingRect):
+        * svg/graphics/cairo/SVGPaintServerGradientCairo.cpp:
+        (WebCore::applyStrokeStyleToContext):
+        (WebCore::SVGPaintServerGradient::setup):
+
+2008-07-26  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Added pattern-support for SVG in Cairo.
+
+        * svg/graphics/cairo/SVGPaintServerPatternCairo.cpp:
+        (WebCore::applyStrokeStyleToContext):
+        (WebCore::SVGPaintServerPattern::setup):
+
+2008-07-26  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Reviewed by Adam Roben.
+
+        Fixed bug 18540: console.log('multiple', 'strings') quotes all strings after the first
+        <https://bugs.webkit.org/show_bug.cgi?id=18540>
+
+        * page/inspector/Console.js:
+        (WebInspector.ConsoleMessage.prototype._format): String arguments are appended without formatting.
+
+2008-07-26  Anthony Ricaud  <rik24d@gmail.com>
+
+        Reviewed by Tim Hatcher.
+
+        <https://bugs.webkit.org/show_bug.cgi?id=17589> Line highlighting should last longer
+
+        Restore the fade out effect after highlighting.
+
+        * page/inspector/SourceFrame.js: Add a class for fade-out effects and sets it at the end of highlighting time.
+
+2008-07-26  Michelangelo De Simone  <michelangelo@me.com>
+
+        Reviewed by Adele Petersen.
+
+        Added the simple willValidate attribute to form controls according to
+        WebForms 2 spec.
+
+        URL: http://www.w3.org/TR/web-forms-2/#willvalidate
+
+        Tests: fast/forms/willvalidate-000.html
+               fast/forms/willvalidate-001.html
+               fast/forms/willvalidate-002.html
+               fast/forms/willvalidate-003.html
+               fast/forms/willvalidate-004.html
+               fast/forms/willvalidate-005.html
+               fast/forms/willvalidate-006.html
+               fast/forms/willvalidate-007.html
+               fast/forms/willvalidate-008.html
+               fast/forms/willvalidate-009.html
+
+        * html/HTMLButtonElement.h: Added willValidate(), always false.
+        * html/HTMLButtonElement.idl: willValidate attribute exposed.
+        * html/HTMLFieldSetElement.h: Added willValidate(), always false.
+        * html/HTMLFieldSetElement.idl: willValidate attribute exposed.
+        * html/HTMLFormControlElement.cpp: (WebCore::HTMLFormControlElement::willValidate):
+        Added base willValidate() implementation.
+        * html/HTMLFormControlElement.h: Added willValidate().
+        * html/HTMLInputElement.cpp: (WebCore::HTMLInputElement::willValidate):
+        Added willValidate(), checks for input type.
+        * html/HTMLInputElement.h: Added willValidate()
+        * html/HTMLInputElement.idl: willValidate attribute exposed.
+        * html/HTMLSelectElement.idl: willValidate attribute exposed.
+        * html/HTMLTextAreaElement.idl: willValidate attribute exposed.
+
+2008-07-26  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::load): Use 0 rather than nil as this is a C++ file.
+
+2008-07-26  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * loader/FrameLoader.h: Use 0 rather than nil as this is a C++ header.
+
+2008-07-26  Daniel Jalkut  <jalkut@red-sweater.com>
+
+        Reviewed by Geoff Garen.
+
+        Revised the FrameLoader class to clean up a variety of load methods, and hopefully
+        move things closer to integrating into a smaller set of load methods. To this
+        end, I renamed many of the overloaded load() methods to have more meaningful and 
+        easier to search names.  I added comments to the header file to provide clues as 
+        to how many of the load methods are being used, and how they fit into the loading 
+        process. I suspect that the renamed methods and comments indicating their present 
+        usage will facilitate easier cleanup by myself and others as inspiration strikes.
+
+        Updated clients of FrameLoader where necessary to adapt to the new method names and signatures.
+
+        Combined the 3 canLoad() methods into a single canLoad which expresses the 
+        intended logic of the 3 with a single method interface.
+
+        Removed unnecessary "treatAsLocal" attribute of CachedResource. It was only called from
+        one place in FrameLoader.cpp, and it derived at initialization time by calling back to FrameLoader.
+
+        Removed unused userGesture parameter to one variant of the urlSelected method, and 
+        moved one of the urlSelected methods so that it lives nearer to its overloaded 
+        sibling.
+
+        * WebCore.base.exp:
+        * loader/Cache.cpp:
+        (WebCore::Cache::requestResource):
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::CachedResource):
+        * loader/CachedResource.h:
+        (WebCore::CachedResource::errorOccurred):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::createWindow):
+        (WebCore::FrameLoader::urlSelected):
+        (WebCore::FrameLoader::loadURLIntoChildFrame):
+        (WebCore::FrameLoader::loadPlugin):
+        (WebCore::FrameLoader::loadFrameRequestWithFormState):
+        (WebCore::FrameLoader::loadFrameRequestWithFormAndValues):
+        (WebCore::FrameLoader::loadURL):
+        (WebCore::FrameLoader::loadWithNavigationAction):
+        (WebCore::FrameLoader::load):
+        (WebCore::FrameLoader::loadWithDocumentLoader):
+        (WebCore::FrameLoader::canLoad):
+        (WebCore::FrameLoader::reloadAllowingStaleData):
+        (WebCore::FrameLoader::reload):
+        (WebCore::FrameLoader::continueLoadAfterWillSubmitForm):
+        (WebCore::FrameLoader::submitForm):
+        (WebCore::FrameLoader::loadPostRequest):
+        (WebCore::FrameLoader::continueLoadAfterNewWindowPolicy):
+        (WebCore::FrameLoader::loadItem):
+        * loader/FrameLoader.h:
+        * loader/SubresourceLoader.cpp:
+        (WebCore::SubresourceLoader::create):
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::contextMenuItemSelected):
+
+2008-07-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20122
+        <rdar://problem/6089522>
+        REGRESSION (r35075-r35110): Cannot enlarge images at Apple Store product page
+
+        Use strict parsing when in AlmostStrict mode.
+
+        Tests: fast/dom/SelectorAPI/dumpNodeList-almost-strict.html
+               fast/dom/SelectorAPI/id-fastpath-almost-strict.html
+               fast/dom/SelectorAPI/id-fastpath-strict.html
+
+        * dom/Node.cpp:
+        (WebCore::Node::querySelector):
+        (WebCore::Node::querySelectorAll):
+
+2008-07-25  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Switch off QPainter's anti aliasing when painting the widgets using QStyle
+        because otherwise the widgets will look blurry and not crisp.
+
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::StylePainter::StylePainter):
+        (WebCore::StylePainter::~StylePainter):
+        * platform/qt/RenderThemeQt.h:
+
+2008-07-25  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - fix crash due to re-entering purgeInactiveFontData() now that it is
+          called by releaseFontData()
+
+        Not testable in DumpRenderTree
+
+        * platform/graphics/FontCache.cpp:
+        (WebCore::FontCache::purgeInactiveFontData): Added a reentry guard.
+
+2008-07-25  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam
+
+        Test: security/set-form-autocomplete-attribute.html
+
+        Part of the fix for <rdar://problem/6093281> - Improper handling of autocomplete
+
+        The autocomplete attribute works on both <form> and <input> elements, but was not
+        inherited properly when someone asked an <input> if it should autocomplete.
+
+        I fixed this up based on the rules in the current WF2 spec so if the <input> element
+        has its own autocomplete attribute set, it will follow that but otherwise it will
+        inherit from its parent <form>
+
+        * WebCore.base.exp:
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::init):
+        (WebCore::HTMLInputElement::autoComplete):
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        * html/HTMLInputElement.h:
+        (WebCore::HTMLInputElement::):
+
+2008-07-25  Wouter Bolsterlee  <uws+webkit@xs4all.nl>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20078
+        [GTK] Use G_* macros instead of deprecated GTK_* macros in gtk2xtbin.h
+
+        * plugins/gtk/gtk2xtbin.h:
+
+2008-07-25  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam.
+
+        Add workaround for a Leopard bug which causes webarchive/test-xml-stylesheet.xml to fail.
+
+        * platform/network/mac/WebCoreURLResponse.mm:
+        (-[NSURLResponse _webcore_MIMEType]):
+
+2008-07-25  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        <rdar://problem/6084806> AX: REGRESSION: returned line number from TextArea is incorrect
+
+        Tests: accessibility/textarea-insertion-point-line-number.html
+               accessibility/textarea-line-for-index.html
+
+        * page/AccessibilityObject.cpp:
+        (WebCore::AccessibilityObject::lineForPosition):
+        * page/AccessibilityObject.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityAttributeValue:]):
+        (-[AccessibilityObjectWrapper accessibilityAttributeValue:forParameter:]):
+
+2008-07-25  Jacob Refstrup  <jacob.refstrup@hp.com>
+
+        Reviewed by mitz.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=17906
+        <rdar://problem/5805741> white-space: pre-wrap or -webkit-line-break: after-white-space text can overlap float at end of line
+        
+        Test: fast/block/float/editable-text-overlapping-float.html
+
+        * rendering/RenderBlock.h:
+        * rendering/bidi.cpp:
+        (WebCore::RenderBlock::skipTrailingWhitespace):
+        - renamed to reflect usage and removed call to position floats; 
+          they only get added
+        (WebCore::RenderBlock::skipLeadingWhitespace):
+        - renamed to reflect usage
+        (WebCore::RenderBlock::findNextLineBreak):
+        - use skipTrailingWhitespace at end of line (as before but with new
+          name)
+
+2008-07-25  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - Finish fixing https://bugs.webkit.org/show_bug.cgi?id=17097
+          <rdar://problem/5715471> CGFontRefs (and HFONTs on Windows) leak because FontCache grows without bound
+
+        * platform/graphics/FontCache.cpp:
+        (WebCore::FontDataCacheKeyTraits): Changed needsDestruction to true because FontPlatformData
+        instances hold references to the platform resources and release them in the destructor.
+        (WebCore::cTargetInactiveFontData): Added, replacing cInactiveFontDataPurgeRatio with the
+        number of inactive FontData instances to leave in the cache when automatically purging.
+        (WebCore::FontCache::getCachedFontData): Moved the code that checks if there are too many
+        inactive FontData instances and if so calls purgeInactiveFontData() from here...
+        (WebCore::FontCache::releaseFontData): ... to here.
+        (WebCore::FontCache::purgeInactiveFontData): Added code to also purge the platform font data
+        cache. All FontPlatformData instances that do not have entries in the font data cache are
+        removed, thus releasing the platform resources (such as HFONTs and NSFonts).
+
+2008-07-24  David Hyatt  <hyatt@apple.com>
+
+        Add support for an alternate syntax for CSS variables.  Testers on www-style will be able to try out
+        both versions of the syntax in WebKit to help us make a decision regarding which one to go with.
+
+        Reviewed by Dan
+
+        Added fast/css/variables/alternate-syntax/ (duplicated all existing CSS variables tests)
+
+        * css/CSSGrammar.y:
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::createVariablesRule):
+        (WebCore::CSSParser::checkForVariables):
+        * css/CSSParser.h:
+        * css/CSSParserValues.cpp:
+        (WebCore::CSSParserValue::isVariable):
+        (WebCore::CSSParserValueList::addValue):
+        (WebCore::CSSParserValueList::deleteValueAt):
+        (WebCore::CSSParserValue::createCSSValue):
+        * css/CSSParserValues.h:
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cleanup):
+        (WebCore::CSSPrimitiveValue::getStringValue):
+        (WebCore::CSSPrimitiveValue::cssText):
+        (WebCore::CSSPrimitiveValue::parserValue):
+        * css/CSSPrimitiveValue.h:
+        (WebCore::CSSPrimitiveValue::):
+        (WebCore::CSSPrimitiveValue::isVariable):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::addMatchedDeclaration):
+        * css/CSSVariablesRule.cpp:
+        (WebCore::CSSVariablesRule::CSSVariablesRule):
+        (WebCore::CSSVariablesRule::cssText):
+        * css/CSSVariablesRule.h:
+        (WebCore::CSSVariablesRule::create):
+        * css/maketokenizer:
+        * css/tokenizer.flex:
+
+2008-07-25  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://6102387> "REGRESSION: horizontal scroll with the mouse wheel is inverted on some subframes"
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleWheelEvent): Inverted the scroll direction relative to the delta value (positive scrolls left,negative scrolls right)
+
+2008-07-25  Adele Peterson  <adele@apple.com>
+
+        Another build fix.
+
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::PlatformScrollbar::paint):
+
+2008-07-25  Adele Peterson  <adele@apple.com>
+
+        More build fixes.
+
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::PlatformScrollbar::paint):
+
+2008-07-25  Adele Peterson  <adele@apple.com>
+
+        Build fix.
+
+        * platform/win/PlatformScrollBarSafari.cpp:
+
+2008-07-24  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon
+
+        Provide access to the underlying QKeyEvent in PlatformKeyboardEvent.
+
+        * platform/PlatformKeyboardEvent.h: add accessor and member.
+        * platform/qt/PlatformKeyboardEventQt.cpp: copy pointer in ctor.
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+
+2008-07-25  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix linking of QtWebKit against the statically built JavaScriptCore
+        library, under Windows/Mac we may need _d/_debug suffixes.
+
+        * WebCore.pro:
+
+2008-07-25  Simon Hausmann  <hausmann@webkit.org>
+
+        Rubber-stamped by Lars.
+
+        Fix the Qt build by adapting to the latest ArgList API changes and
+        replacing the inclusion of npapi.h in MainThreadScheduler with a forward
+        declaration of NPP to avoid an include conflict. npapi.h on X11 includes
+        X headers, which include wonderful defines such as "#define Status" that
+        cause conflicts.
+
+        * bridge/qt/qt_runtime.cpp:
+        (KJS::Bindings::findMethodIndex):
+        (KJS::Bindings::QtRuntimeConnectionMethod::call):
+        * plugins/PluginMainThreadScheduler.h:
+
+2008-07-25  Simon Hausmann  <hausmann@webkit.org>
+
+        Discussed with and rubber-stamped by Lars.
+
+        Fix the build system for the Qt port.
+
+        Recent JavaScriptCore changes require the addition of JavaScriptCore/API to the
+        include search path. With a build process that combines JavaScriptCore and
+        WebCore in one build process/Makefile the existance of
+        JavaScriptCore/API/Node.h and WebCore/dom/Node.h causes include conflicts.
+
+        This commit solves this by introducing a separate build of JavaScriptCore into
+        a static library.
+
+        As a result of the split-up a race-condition due to broken dependencies of
+        regular source files to header files of generated sources showed up very
+        frequently when doing parallel builds (which the buildbot does). This commit at
+        the same time tries to address the dependency problem by making the
+        addExtraCompiler() function also generate a pseudo extra compiler that
+        represents the header file output, so that qmake is aware of the creation of
+        the header file for dependency calculation.
+
+        At the same time I removed a lot of cruft from the pro files to ease maintenance.
+
+        * WebCore.pro:
+
 2008-07-25  kevino  <kevino@theolliviers.com>
 
         wx build fix on Win for plugins coode.

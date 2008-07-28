@@ -44,6 +44,7 @@ LIST (APPEND JSCORE_SRC
     kjs/JSNumberCell.cpp
     kjs/JSNotAnObject.cpp
     kjs/JSObject.cpp
+    kjs/JSStaticScopeObject.cpp
     kjs/JSString.cpp
     kjs/JSValue.cpp
     kjs/JSVariableObject.cpp

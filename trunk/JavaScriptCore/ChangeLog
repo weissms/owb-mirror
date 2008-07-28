@@ -1,3 +1,162 @@
+2008-07-28  Mark Rowe  <mrowe@apple.com>
+
+        Speculative fix for the wx build.
+
+        * JavaScriptCoreSources.bkl:  Add JSStaticScopeObject.cpp to the list of source files.
+
+2008-07-25  Oliver Hunt  <oliver@apple.com>
+
+        RS=Cameron Zwarich.
+
+        Whoops, forgot to save style correction.
+
+        * kjs/JSStaticScopeObject.h:
+
+2008-07-25  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 19718: Named anonymous functions are slow accessing global variables
+        <https://bugs.webkit.org/show_bug.cgi?id=19718>
+
+        To fix this we switch over to an activation-like scope object for
+        on which we attach the function name property, and add logic to 
+        prevent cross scope assignment to read only properties.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::findScopedProperty):
+        (KJS::CodeGenerator::emitResolve):
+        * VM/CodeGenerator.h:
+        * kjs/AllInOneFile.cpp:
+        * kjs/JSStaticScopeObject.cpp: Added.
+        (KJS::JSStaticScopeObject::putWithAttributes):
+        (KJS::JSStaticScopeObject::isDynamicScope):
+        (KJS::JSStaticScopeObject::~JSStaticScopeObject):
+        (KJS::JSStaticScopeObject::getOwnPropertySlot):
+        * kjs/JSStaticScopeObject.h: Added.
+        (KJS::JSStaticScopeObject::JSStaticScopeObjectData::JSStaticScopeObjectData):
+        (KJS::JSStaticScopeObject::JSStaticScopeObject):
+        * kjs/nodes.cpp:
+        (KJS::FunctionCallResolveNode::emitCode):
+        (KJS::PostfixResolveNode::emitCode):
+        (KJS::PrefixResolveNode::emitCode):
+        (KJS::ReadModifyResolveNode::emitCode):
+        (KJS::AssignResolveNode::emitCode):
+        (KJS::FuncExprNode::makeFunction):
+
+2008-07-25  kevino  <kevino@theolliviers.com>
+
+        wx build fix for Win.
+        
+        On wx/Win, including windows.h in Threading.h causes multiply-defined symbol errors
+        for libjpeg and wx, and also wx needs to include windows.h itself first for wx
+        includes to work right. So until we can find a better solution to this problem,
+        on wx, we work around the need to include windows.h here.
+
+        * wtf/Threading.h:
+
+2008-07-25  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * JavaScriptCore.vcproj/testapi/testapi.vcproj: Add API/ to the
+        include path.
+
+2008-07-25  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the build of jsc on Qt/Windows, make sure os-win32 is in the
+        include search path (added by WebKit.pri).
+
+        * kjs/jsc.pro:
+
+2008-07-25  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Move JavaScriptCore API tests into a subdirectory of their own to avoid header name
+        conflicts and developer confusion.
+
+        * API/JSNode.c: Removed.
+        * API/JSNode.h: Removed.
+        * API/JSNodeList.c: Removed.
+        * API/JSNodeList.h: Removed.
+        * API/Node.c: Removed.
+        * API/Node.h: Removed.
+        * API/NodeList.c: Removed.
+        * API/NodeList.h: Removed.
+        * API/minidom.c: Removed.
+        * API/minidom.html: Removed.
+        * API/minidom.js: Removed.
+        * API/testapi.c: Removed.
+        * API/testapi.js: Removed.
+        * API/tests: Added.
+        * API/tests/JSNode.c: Copied from JavaScriptCore/API/JSNode.c.
+        * API/tests/JSNode.h: Copied from JavaScriptCore/API/JSNode.h.
+        * API/tests/JSNodeList.c: Copied from JavaScriptCore/API/JSNodeList.c.
+        * API/tests/JSNodeList.h: Copied from JavaScriptCore/API/JSNodeList.h.
+        * API/tests/Node.c: Copied from JavaScriptCore/API/Node.c.
+        * API/tests/Node.h: Copied from JavaScriptCore/API/Node.h.
+        * API/tests/NodeList.c: Copied from JavaScriptCore/API/NodeList.c.
+        * API/tests/NodeList.h: Copied from JavaScriptCore/API/NodeList.h.
+        * API/tests/minidom.c: Copied from JavaScriptCore/API/minidom.c.
+        * API/tests/minidom.html: Copied from JavaScriptCore/API/minidom.html.
+        * API/tests/minidom.js: Copied from JavaScriptCore/API/minidom.js.
+        * API/tests/testapi.c: Copied from JavaScriptCore/API/testapi.c.
+        * API/tests/testapi.js: Copied from JavaScriptCore/API/testapi.js.
+        * GNUmakefile.am:
+        * JavaScriptCore.vcproj/testapi/testapi.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-07-25  Simon Hausmann  <hausmann@webkit.org>
+
+        Prospective WX build fix, add JavaScriptCore/API to the include search
+        path.
+
+        * jscore.bkl:
+
+2008-07-25  Simon Hausmann  <hausmann@webkit.org>
+
+        Rubber-stamped by Lars.
+
+        Fix the build on Windows. operator new for ArgList is implemented using fastMalloc()
+        but operator delete was not implemented. Unfortunately MSVC decides to call/reference
+        the function, so a simple implementation using fastFree() fixes the build.
+
+        * kjs/ArgList.h:
+        (KJS::ArgList::operator delete):
+
+2008-07-25  Simon Hausmann  <hausmann@webkit.org>
+
+        Discussed with and rubber-stamped by Lars.
+
+        Fix the build system for the Qt port.
+
+        Recent JavaScriptCore changes require the addition of JavaScriptCore/API to the
+        include search path. With a build process that combines JavaScriptCore and
+        WebCore in one build process/Makefile the existance of
+        JavaScriptCore/API/Node.h and WebCore/dom/Node.h causes include conflicts.
+
+        This commit solves this by introducing a separate build of JavaScriptCore into
+        a static library.
+
+        As a result of the split-up a race-condition due to broken dependencies of
+        regular source files to header files of generated sources showed up very
+        frequently when doing parallel builds (which the buildbot does). This commit at
+        the same time tries to address the dependency problem by making the
+        addExtraCompiler() function also generate a pseudo extra compiler that
+        represents the header file output, so that qmake is aware of the creation of
+        the header file for dependency calculation.
+
+        At the same time I removed a lot of cruft from the pro files to ease maintenance.
+
+        * JavaScriptCore.pri:
+        * JavaScriptCore.pro: Added.
+        * kjs/jsc.pro:
+
 2008-07-25  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Maciej Stachowiak.

@@ -83,3 +83,14 @@ double AccessibilityUIElement::maxValue()
     return 0.0;
 }
 
+int AccessibilityUIElement::insertionPointLineNumber()
+{
+    return -1;
+}
+
+// parameterized attributes
+int AccessibilityUIElement::lineForIndex(int index)
+{
+    return -1;
+}
+

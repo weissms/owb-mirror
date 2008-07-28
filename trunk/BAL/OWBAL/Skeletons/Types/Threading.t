@@ -230,14 +230,25 @@ public:
 private:
     PlatformCondition m_condition;
 };
+
     /**
-     *  atomicIncrement description
+     *  InterlockedIncrement description
      * @param[in] : description
      * @param[out] : description
      * @code
      * @endcode
      */
-inline void atomicIncrement(int volatile* addend) ;
+long InterlockedIncrement(long volatile *Addend);
+
+
+    /**
+     *  InterlockedDecrement description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+long InterlockedDecrement(long volatile *Addend)
     /**
      *  atomicDecrement description
      * @param[in] : description
@@ -251,15 +262,7 @@ inline int atomicDecrement(int volatile* addend) ;
 
 
 template<class T> class ThreadSafeShared : public OWBALBase, Noncopyable {
-public:
-    /**
-     *  ThreadSafeShared description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    ThreadSafeShared(int initialRefCount = 1);
+publi
 
     /**
      *  ref description
@@ -331,6 +334,4 @@ using WTF::isMainThread;
 using WTF::detachThread;
 using WTF::waitForThreadCompletion;
 
-#endif // Threading_h
-
-
+#endif // Threading_

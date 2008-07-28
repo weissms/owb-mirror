@@ -161,6 +161,13 @@ int LayoutTestController::windowCount()
     return 0;
 }
 
+bool LayoutTestController::elementDoesAutoCompleteForElementWithId(JSStringRef id)
+{
+    // FIXME: Implement this almost exactly like the Mac version
+
+    return false;
+}
+
 void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
 {
     // FIXME: implement

@@ -23,64 +23,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef PluginMainThreadScheduler_h
-#define PluginMainThreadScheduler_h
+#ifndef JSStaticScopeObject_h
+#define JSStaticScopeObject_h
 
-#include <wtf/Deque.h>
-#include <wtf/HashMap.h>
-#include <wtf/MainThread.h>
-#include <wtf/Threading.h>
+#include "JSVariableObject.h"
 
-typedef struct _NPP NPP_t;
-typedef NPP_t* NPP;
-
-namespace WebCore {
-
-class PluginMainThreadScheduler {
-public:
-    typedef void MainThreadFunction(void*);
-
-    static PluginMainThreadScheduler& scheduler();
-
-    void scheduleCall(NPP, MainThreadFunction*, void* userData);
-
-    void registerPlugin(NPP);
-    void unregisterPlugin(NPP);
-
-private:
-    PluginMainThreadScheduler();
-    void dispatchCalls();
-
-    class Call;
-
-    void dispatchCallsForPlugin(NPP, const Deque<Call>& calls);
-    typedef HashMap<NPP, Deque<Call> > CallQueueMap;
-
-    static void mainThreadCallback(void* context);
-
-    class Call {
+namespace KJS{
+    
+    class JSStaticScopeObject : public JSVariableObject {
+    protected:
+        using JSVariableObject::JSVariableObjectData;
+        struct JSStaticScopeObjectData : public JSVariableObjectData {
+            JSStaticScopeObjectData()
+                : JSVariableObjectData(&symbolTable, &registerStore + 1)
+            {
+                registerArraySize = 1;
+            }
+            SymbolTable symbolTable;
+            Register registerStore;
+        };
+        
     public:
-        Call(MainThreadFunction* function, void* userData)
-            : m_function(function)
-            , m_userData(userData)
+        JSStaticScopeObject(const Identifier& ident, JSValue* value, unsigned attributes)
+            : JSVariableObject(new JSStaticScopeObjectData())
         {
+            JSStaticScopeObjectData* data = static_cast<JSStaticScopeObjectData*>(d);
+            data->registerStore = value;
+            symbolTable().add(ident.ustring().rep(), SymbolTableEntry(-1, attributes));
         }
-
-        void performCall() const
-        {
-            m_function(m_userData);
-        }
-
-    private:
-        MainThreadFunction* m_function;
-        void* m_userData;
+        virtual ~JSStaticScopeObject();
+        bool isDynamicScope() const;
+        virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
+        virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&, bool& slotIsWriteable);
+        void putWithAttributes(ExecState*, const Identifier&, JSValue*, unsigned attributes);
     };
 
-    bool m_callPending;
-    CallQueueMap m_callQueueMap;
-    Mutex m_queueMutex;
-};
+}
 
-} // namespace WebCore
-
-#endif // PluginMainThreadScheduler_h
+#endif // JSStaticScopeObject_h

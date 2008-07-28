@@ -116,6 +116,7 @@ javascriptcore_sources += \
 	JavaScriptCore/kjs/JSLock.cpp \
 	JavaScriptCore/kjs/JSNumberCell.cpp \
 	JavaScriptCore/kjs/JSObject.cpp \
+	JavaScriptCore/kjs/JSStaticScopeObject.cpp \
 	JavaScriptCore/kjs/JSString.cpp \
 	JavaScriptCore/kjs/JSValue.cpp \
 	JavaScriptCore/kjs/JSVariableObject.cpp \
@@ -187,11 +188,11 @@ noinst_PROGRAMS += \
 
 # minidom
 Programs_minidom_SOURCES = \
-	JavaScriptCore/API/JSNode.c \
-	JavaScriptCore/API/JSNodeList.c \
-	JavaScriptCore/API/Node.c \
-	JavaScriptCore/API/NodeList.c \
-	JavaScriptCore/API/minidom.c
+	JavaScriptCore/API/tests/JSNode.c \
+	JavaScriptCore/API/tests/JSNodeList.c \
+	JavaScriptCore/API/tests/Node.c \
+	JavaScriptCore/API/tests/NodeList.c \
+	JavaScriptCore/API/tests/minidom.c
 
 Programs_minidom_CPPFLAGS = \
 	$(global_cppflags) \

@@ -430,6 +430,26 @@ namespace WKAL {
 
 
 
+
+    /**
+     *  imageInterpolationQuality description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        InterpolationQuality imageInterpolationQuality() const ;
+
+
+    /**
+     *  addRoundedRectClip description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
+
     /**
      *  clip description
      * @param[in] : description
@@ -437,14 +457,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-        void clip(const FloatRect&)
-
-    /**
-     * add inner rounded rect clip
-     * @param[in] : rect
-     * @param[in] : thickness
-     * @code
-     * gc->addInnerRoundedRectClip(r, t);
+        void clip(const FloatRect&);
      * @endcode
      */
         void addInnerRoundedRectClip(const IntRect&, int thickness);
@@ -965,4 +978,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // GraphicsContext_
+#endif // GraphicsContex
