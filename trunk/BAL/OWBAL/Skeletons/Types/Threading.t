@@ -41,6 +41,10 @@
 #include <wtf/Locker.h>
 #include <wtf/Noncopyable.h>
 
+// On wx/Win, including windows.h here causes multiply-defined symbol errors
+// for libjpeg and wx, and also wx needs to include windows.h itself first for wx
+// includes to work right. So until we can find a better solution to this problem,
+// on wx, we workaround including windows.h here.
 
 #include <pthread.h>
 
@@ -231,38 +235,17 @@ private:
     PlatformCondition m_condition;
 };
 
-    /**
-     *  InterlockedIncrement description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-long InterlockedIncrement(long volatile *Addend);
-
-
-    /**
-     *  InterlockedDecrement description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-long InterlockedDecrement(long volatile *Addend)
-    /**
-     *  atomicDecrement description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-inline int atomicDecrement(int volatile* addend) ;
-    
-    
-
 
 template<class T> class ThreadSafeShared : public OWBALBase, Noncopyable {
-publi
+public:
+    /**
+     *  ThreadSafeShared description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    ThreadSafeShared(int initialRefCount = 1);
 
     /**
      *  ref description
@@ -334,4 +317,8 @@ using WTF::isMainThread;
 using WTF::detachThread;
 using WTF::waitForThreadCompletion;
 
-#endif // Threading_
+#endif // Threading_h
+
+
+
+

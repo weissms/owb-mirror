@@ -140,6 +140,7 @@ for line in f:
                 elif   l.find('WX')  != -1 or  l.find('QT')  != -1 or  l.find('WIN') != -1 or  l.find('CG') != -1 or  l.find('SOUP') != -1 or  l.find('CFNETWORK') != -1 or  l.find('WININET') != -1 or  l.find('DARWIN') != -1    or  l.find('SYMBIAN') != -1 or  l.find('MAC') != -1 or  l.find('CF') != -1 :
                     #print "bad" + l 
                     remove = 2
+		    elseFound = 0
             else :
                 if l.find('if !PLATFORM') != -1 and l.find('GTK') == -1 :
                     remove = 1
@@ -154,13 +155,13 @@ for line in f:
                             isRemoved = 0
 
             if remove == 1 or remove == 2 :
-                if l.find("#if") != -1:
+                if l.find("#if") != -1:		    
                     ifFound += 1
                 if l.find("#else") != -1:
                     elseFound = 1
                 if l.find("endif") != -1:
                     ifFound -= 1
-                    elseFound = 0
+                    elseFound = 0 
                     notplat = 0
                 if ifFound == 0 :
                     remove = 0
@@ -177,7 +178,7 @@ for line in f:
                 else :
                     if remove == 2 :
                         if elseFound == 1 :
-                            if l.find("#else") == -1 and l.find("#error") == -1:
+                            if l.find("#else") == -1 and l.find("#error") == -1 :
                                 resultString += l + '\n'
             else :
                resultString += l + '\n'
