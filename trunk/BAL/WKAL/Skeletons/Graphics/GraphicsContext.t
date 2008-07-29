@@ -441,14 +441,6 @@ namespace WKAL {
         InterpolationQuality imageInterpolationQuality() const ;
 
 
-    /**
-     *  addRoundedRectClip description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
 
     /**
      *  clip description
@@ -458,8 +450,25 @@ namespace WKAL {
      * @endcode
      */
         void clip(const FloatRect&);
+
+    /**
+     *  addRoundedRectClip description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
      * @endcode
      */
+
+        void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
+
+    /**
+     * addInnerRoundedRectClip description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+
         void addInnerRoundedRectClip(const IntRect&, int thickness);
 
     /**
