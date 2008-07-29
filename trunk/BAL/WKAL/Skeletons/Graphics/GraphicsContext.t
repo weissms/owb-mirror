@@ -70,7 +70,7 @@ namespace WKAL {
     const int cTextFill = 1;
     const int cTextStroke = 2;
     const int cTextClip = 4;
-    
+
     enum StrokeStyle {
         NoStroke,
         SolidStroke,
@@ -96,7 +96,7 @@ namespace WKAL {
      * @endcode
      */
         ~GraphicsContext();
-       
+
     /**
      * get platform graphic context
      * @param[out] : platform graphic context
@@ -107,7 +107,7 @@ namespace WKAL {
         PlatformGraphicsContext* platformContext() const;
 
     /**
-     * get font 
+     * get font
      * @param[out] : font
      * @code
      * font f = gc->font();
@@ -116,14 +116,14 @@ namespace WKAL {
         const Font& font() const;
 
     /**
-     * set font 
+     * set font
      * @param[in] : font
      * @code
      * gc->setFont(f);
      * @endcode
      */
         void setFont(const Font&);
-        
+
     /**
      * get stroke thickness
      * @param[out] : stroke thickness
@@ -195,7 +195,7 @@ namespace WKAL {
      * @endcode
      */
         void setFillColor(const Color&);
-        
+
     /**
      * save context
      * @code
@@ -211,7 +211,7 @@ namespace WKAL {
      * @endcode
      */
         void restore();
-        
+
         // These draw methods will do both stroking and filling.
     /**
      * draw rect
@@ -223,7 +223,7 @@ namespace WKAL {
         void drawRect(const IntRect&);
 
     /**
-     * draw line 
+     * draw line
      * @param[in] : start point
      * @param[in] : end point
      * @code
@@ -263,7 +263,7 @@ namespace WKAL {
      * @endcode
      */
         void strokeArc(const IntRect&, int startAngle, int angleSpan);
-        
+
     /**
      * fill rect
      * @param[in] : rect
@@ -307,7 +307,7 @@ namespace WKAL {
      * @endcode
      */
         void fillRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color&);
-	
+
     /**
      * clear rect
      * @param[in] : rect
@@ -339,7 +339,7 @@ namespace WKAL {
         void drawImage(Image*, const IntPoint&, CompositeOperator = CompositeSourceOver);
 
     /**
-     * draw image 
+     * draw image
      * @param[in] : image
      * @param[in] : rect
      * @param[in] : composite operator
@@ -390,7 +390,7 @@ namespace WKAL {
                        CompositeOperator = CompositeSourceOver, bool useLowQualityScale = false);
 
     /**
-     * draw tiled image 
+     * draw tiled image
      * @param[in] : image
      * @param[in] : destination rect
      * @param[in] : source rect
@@ -415,7 +415,7 @@ namespace WKAL {
      * gc->drawTiledImage(i, dest, src, hr, vh, op);
      * @endcode
      */
-        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect, 
+        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect,
                             Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
                             CompositeOperator = CompositeSourceOver);
 
@@ -432,9 +432,8 @@ namespace WKAL {
 
 
     /**
-     *  imageInterpolationQuality description
-     * @param[in] : description
-     * @param[out] : description
+     * Get the image interpolation quality.
+     * @return InterpolationQuality the interpolation quality
      * @code
      * @endcode
      */
@@ -443,32 +442,35 @@ namespace WKAL {
 
 
     /**
-     *  clip description
-     * @param[in] : description
-     * @param[out] : description
+     * Clip context: no graphics outside the rect will be drawn.
+     * @param[in] FloatRect the rect setting the clip.
      * @code
+     * gc->clip(r);
      * @endcode
      */
         void clip(const FloatRect&);
 
     /**
-     *  addRoundedRectClip description
-     * @param[in] : description
-     * @param[out] : description
+     * add rounded rect clip
+     * @param[in] : rect
+     * @param[in] : top left size
+     * @param[in] : top right size
+     * @param[in] : bottom left size
+     * @param[in] : bottom right size
      * @code
+     * gc->addRoundedRectClip(r, tl, tr, bk, br);
      * @endcode
      */
-
         void addRoundedRectClip(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
 
     /**
-     * addInnerRoundedRectClip description
-     * @param[in] : description
-     * @param[out] : description
+     * add inner rounded rect clip
+     * @param[in] : rect
+     * @param[in] : thickness
      * @code
+     * gc->addInnerRoundedRectClip(r, t);
      * @endcode
      */
-
         void addInnerRoundedRectClip(const IntRect&, int thickness);
 
     /**
@@ -575,7 +577,7 @@ namespace WKAL {
      * @endcode
      */
         FloatRect roundToDevicePixels(const FloatRect&);
-        
+
     /**
      * draw line for text
      * @param[in] : start point
@@ -597,7 +599,7 @@ namespace WKAL {
      * @endcode
      */
         void drawLineForMisspellingOrBadGrammar(const IntPoint&, int width, bool grammar);
-        
+
     /**
      * test if the painting is disabled
      * @param[out] : true if the painting is disabled
@@ -608,14 +610,14 @@ namespace WKAL {
         bool paintingDisabled() const;
 
     /**
-     * set painting disabled 
+     * set painting disabled
      * @param[in] : status
      * @code
      * gc->setPaintingDisabled(true);
      * @endcode
      */
         void setPaintingDisabled(bool);
-        
+
     /**
      * updating control tints
      * @param[out] : status
@@ -644,7 +646,7 @@ namespace WKAL {
         void beginTransparencyLayer(float opacity);
 
     /**
-     * end transparency layer 
+     * end transparency layer
      * @code
      * gc->endTransparencyLayer();
      * @endcode
@@ -693,7 +695,7 @@ namespace WKAL {
         void initFocusRing(int width, int offset);
 
     /**
-     * add focus ring rect 
+     * add focus ring rect
      * @param[in] : rect
      * @code
      * gc->addFocusRingRect(r);
@@ -737,7 +739,7 @@ namespace WKAL {
         void setLineCap(LineCap);
 
     /**
-     * set lineJoin 
+     * set lineJoin
      * @param[in] : lineJoin
      * @code
      * gc->setLineJoin(l);
@@ -842,9 +844,9 @@ namespace WKAL {
      * @endcode
      */
         IntPoint origin();
-        
+
     /**
-     * set URL for rect 
+     * set URL for rect
      * @param[in] : url
      * @param[in] : rect
      * @code
@@ -872,7 +874,7 @@ namespace WKAL {
         AffineTransform getCTM() const;
 
     /**
-     * set use antialiasing 
+     * set use antialiasing
      * @param[in] : status
      * @code
      * gc->setUseAntialiasing();
@@ -908,7 +910,7 @@ namespace WKAL {
         BalEventExpose* balExposeEvent() const;
 
     /**
-     * translate point 
+     * translate point
      * @param[in] : point
      * @param[out] : point translated
      * @code
