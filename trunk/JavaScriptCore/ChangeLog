@@ -1,3 +1,201 @@
+2008-07-30  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        <rdar://problem/6111648> JavaScript exceptions fail if the scope chain includes the global object
+
+        In an attempt to remove the branch I just added to KJS::depth I
+        used the existence of a Variable Object at a point in the scope
+        chain as an indicator of function or global scope activation.
+        However this assumption results in incorrect behaviour if the
+        global object is injected into the scope chain with 'with'.
+
+        * VM/Machine.cpp:
+        (KJS::depth):
+
+2008-07-30  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Don't call JSGarbageCollect() on a released context.
+
+        * API/testapi.c: (main):
+
+2008-07-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Implement JSContextGroup APIs to make concurrent execution possible for
+        JavaScriptCore clients.
+
+        This changes the behavior of JSGlobalContextCreate(), so that it now uses a private context
+        group for each context, making JSlock implicit locking unnecessary.
+
+        * API/JSContextRef.h:
+        * API/JSContextRef.cpp:
+        (JSContextGroupCreate):
+        (JSContextGroupRetain):
+        (JSContextGroupRelease):
+        (JSGlobalContextCreate):
+        (JSGlobalContextCreateInGroup):
+        (JSGlobalContextRelease):
+        (JSContextGetGroup):
+        Added new methods. JSGlobalContextCreate() calls JSGlobalContextCreateInGroup() now.
+
+        * API/APICast.h: (toJS): (toRef): Added converters for JSContextGroupRef.
+        * API/JSBase.cpp: (JSGarbageCollect): JSGarbageCollect(0) is now a no-op, and the passed in
+        context is actually used.
+
+        * API/JSBase.h: Aded a typedef for JSContextGroupRef. Updated documentation for
+        JSGarbageCollect().
+
+        * JavaScriptCore.exp: Removed JSGlobalData::sharedInstance().
+
+        * kjs/JSGlobalData.cpp:
+        * kjs/JSGlobalData.h:
+        Removed support for JSGlobalData shared instance. JSGlobalData::isSharedInstance member
+        variable still remains, to be deleted in a followup patch.
+
+        * kjs/JSLock.cpp: (KJS::JSLock::JSLock): Disabled JSLock, to be deleted in a follow-up patch.
+        
+        * kjs/collector.cpp:
+        (KJS::Heap::markOtherThreadConservatively): Removed an assertion that referenced
+        JSGlobalData::sharedInstance.
+
+        * kjs/collector.h: Made Heap destructor public, so that JSContextRelease can use it.
+
+2008-07-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Fix a leak of ThreadRegistrar objects.
+
+        As the heap is usually deleted when registered threads still exist, ThreadSpecific doesn't
+        have a chance to clean up per-thread object. Switched to native pthread calls, storing a
+        plain pointer that doesn't require cleanup.
+
+        * kjs/collector.cpp:
+        (KJS::PlatformThread::PlatformThread):
+        (KJS::Heap::Thread::Thread):
+        (KJS::Heap::Heap):
+        (KJS::Heap::~Heap):
+        (KJS::Heap::registerThread):
+        (KJS::Heap::unregisterThread):
+        * kjs/collector.h:
+
+2008-07-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20169
+        Memory allocated with fastMalloc is freed with delete
+
+        * VM/JSPropertyNameIterator.cpp:
+        (KJS::JSPropertyNameIterator::invalidate): Free the array properly.
+        (KJS::JSPropertyNameIterator::~JSPropertyNameIterator): Delete the array by calling
+        invalidate().
+
+2008-07-29  Mark Rowe  <mrowe@apple.com>
+
+        Attempt to fix the Qt build.
+
+        * wtf/ThreadingQt.cpp: Add the extra argument to createThread.
+
+2008-07-29  Adam Roben  <aroben@apple.com>
+
+        Change Vector::find to return an index instead of an iterator
+
+        Indices are more natural than iterators when working with Vector.
+
+        Reviewed by John Sullivan.
+
+        * wtf/Vector.h:
+        (WTF::Vector::find): Changed to iterate the Vector manually and return
+        the index of the found item, rather than an iterator. When the item
+        could not be found, we return WTF::notFound.
+
+2008-07-29  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * wtf/ThreadingWin.cpp:
+        (WTF::setThreadName): Move a misplaced assertion to here...
+        (WTF::createThread): ...from here.
+
+2008-07-29  Adam Roben  <aroben@apple.com>
+
+        Add support for setting thread names on Windows
+
+        These thread names make it much easier to identify particular threads
+        in Visual Studio's Threads panel.
+
+        WTF::createThread now takes a const char* representing the thread's
+        name. On Windows, we throw a special exception to set this string as
+        the thread's name. Other platforms do nothing with this name for now.
+
+        Reviewed by Anders Carlsson.
+
+        * JavaScriptCore.exp: Export the new version of createThread that
+        takes 3 arguments (the old one continues to be exported for backward
+        compatibility).
+        * wtf/Threading.h: Add a threadName argument to createThread.
+
+        * wtf/ThreadingGtk.cpp:
+        (WTF::createThread):
+        * wtf/ThreadingNone.cpp:
+        (WTF::createThread):
+        Updated for function signature change.
+
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::createThread): Updated for function signature change. We keep
+        around the old 2-argument version of createThread for backward
+        compatibility.
+
+        * wtf/ThreadingWin.cpp:
+        (WTF::setThreadName): Added. This function's implementation came from
+        MSDN.
+        (WTF::initializeThreading): Set the name of the main thread.
+        (WTF::createThread): Call setThreadName. We keep around the old
+        2-argument version of createThread for backward compatibility.
+
+2008-07-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Store UString::Rep::isStatic bit in identifierTable pointer instead of reportedCost for
+        slightly nicer code and a 0.5% SunSpider improvement.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::~OpaqueJSClass):
+        (OpaqueJSClassContextData::OpaqueJSClassContextData):
+        * API/JSStringRef.cpp:
+        (JSStringRelease):
+        * kjs/PropertyNameArray.cpp:
+        (KJS::PropertyNameArray::add):
+        * kjs/identifier.cpp:
+        (KJS::IdentifierTable::~IdentifierTable):
+        (KJS::IdentifierTable::add):
+        (KJS::Identifier::addSlowCase):
+        (KJS::Identifier::remove):
+        * kjs/identifier.h:
+        (KJS::Identifier::add):
+        * kjs/ustring.cpp:
+        (KJS::):
+        (KJS::UString::Rep::create):
+        (KJS::UString::Rep::destroy):
+        * kjs/ustring.h:
+        (KJS::UString::Rep::identifierTable):
+        (KJS::UString::Rep::setIdentifierTable):
+        (KJS::UString::Rep::isStatic):
+        (KJS::UString::Rep::setStatic):
+        (KJS::UString::cost):
+
+2008-07-28  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Renamed "ConstructTypeNative" => "ConstructTypeHost".
+        
 2008-07-28  Mark Rowe  <mrowe@apple.com>
 
         Speculative fix for the wx build.

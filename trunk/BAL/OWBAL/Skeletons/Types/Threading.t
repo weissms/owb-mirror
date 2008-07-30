@@ -78,7 +78,7 @@ typedef void* (*ThreadFunction)(void* argument);
      * @code
      * @endcode
      */
-ThreadIdentifier createThread(ThreadFunction, void*);
+ThreadIdentifier createThread(ThreadFunction, void*, const char* threadName);
     /**
      *  currentThread description
      * @param[in] : description

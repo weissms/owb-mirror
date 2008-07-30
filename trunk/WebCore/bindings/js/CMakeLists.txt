@@ -64,6 +64,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSTreeWalkerCustom.cpp
     bindings/js/JSXMLHttpRequestConstructor.cpp
     bindings/js/JSXMLHttpRequestCustom.cpp
+    bindings/js/JSXMLHttpRequestUploadCustom.cpp
     bindings/js/JSXSLTProcessorConstructor.cpp
     bindings/js/JSXSLTProcessorCustom.cpp
     bindings/js/PausedTimeouts.cpp

@@ -46,11 +46,11 @@ class WebDocumentLoader : public WebCore::DocumentLoader
 public:
 
     /**
-     * WebDocumentLoader constructor
+     * Create a WebDocumentLoader.
      * @param[in]: Resource Request
      * @param[in]: Substitute Data
      */
-    WebDocumentLoader(const WebCore::ResourceRequest&, const WebCore::SubstituteData&);
+    static PassRefPtr<WebDocumentLoader> create(const WebCore::ResourceRequest&, const WebCore::SubstituteData&);
 
     /**
      * WebDocumentLoader destructor
@@ -87,6 +87,13 @@ public:
     virtual void detachFromFrame();
 
 private:
+    /**
+     * WebDocumentLoader constructor
+     * @param[in]: Resource Request
+     * @param[in]: Substitute Data
+     */
+    WebDocumentLoader(const WebCore::ResourceRequest&, const WebCore::SubstituteData&);
+
     WebDataSource* m_dataSource;
     WebDataSource* m_detachedDataSource; // not retained
 };

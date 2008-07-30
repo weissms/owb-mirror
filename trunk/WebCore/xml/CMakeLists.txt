@@ -3,8 +3,9 @@ LIST (APPEND XML_SRC
     xml/AccessItem.cpp
     xml/AccessItemRule.cpp
     xml/DOMParser.cpp
-    xml/XMLSerializer.cpp
     xml/NativeXPathNSResolver.cpp
+    xml/XMLHttpRequestUpload.cpp
+    xml/XMLSerializer.cpp
     xml/XPathEvaluator.cpp
     xml/XPathExpression.cpp
     xml/XPathExpressionNode.cpp

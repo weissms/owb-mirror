@@ -415,7 +415,7 @@ namespace WKAL {
      * gc->drawTiledImage(i, dest, src, hr, vh, op);
      * @endcode
      */
-        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect,
+        void drawTiledImage(Image*, const IntRect& destRect, const IntRect& srcRect, 
                             Image::TileRule hRule = Image::StretchTile, Image::TileRule vRule = Image::StretchTile,
                             CompositeOperator = CompositeSourceOver);
 

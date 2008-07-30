@@ -116,9 +116,20 @@ PassRefPtr<SubresourceLoader> SubresourceLoader::create(Frame* frame, Subresourc
 
 void SubresourceLoader::willSendRequest(ResourceRequest& newRequest, const ResourceResponse& redirectResponse)
 {
+    // Store the previous URL because the call to ResourceLoader::willSendRequest will modify it.
+    KURL previousURL = request().url();
+    
     ResourceLoader::willSendRequest(newRequest, redirectResponse);
-    if (!newRequest.isNull() && request().url() != newRequest.url() && m_client)
+    if (!previousURL.isNull() && !newRequest.isNull() && previousURL != newRequest.url() && m_client)
         m_client->willSendRequest(this, newRequest, redirectResponse);
+}
+
+void SubresourceLoader::didSendData(unsigned long long bytesSent, unsigned long long totalBytesToBeSent)
+{
+    RefPtr<SubresourceLoader> protect(this);
+
+    if (m_client)
+        m_client->didSendData(this, bytesSent, totalBytesToBeSent);
 }
 
 void SubresourceLoader::didReceiveResponse(const ResourceResponse& r)

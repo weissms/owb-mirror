@@ -55,6 +55,16 @@ namespace WTF {
 
     template<typename T>     struct VectorDestructor<false, T>
     {
+
+    /**
+     *  static_cast<size_t> description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    const size_t notFound = static_cast<size_t>(-1);
+
     /**
      *  destruct description
      * @param[in] : description
@@ -767,17 +777,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        template<typename U> iterator find(const U& value) ;
-
-
-    /**
-     *  find description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        template<typename U> const_iterator find(const U& value) const ;
+        template<typename U> size_t find(const U&) const;
 
     /**
      *  shrink description
@@ -1057,6 +1057,16 @@ namespace WTF {
      */
     template<typename T, size_t inlineCapacity>     template<size_t otherCapacity>      Vector<T, inlineCapacity>& Vector<T, inlineCapacity>::operator=(const Vector<T, otherCapacity>& other);
 
+
+    /**
+     *  inlineCapacity>::find description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    template<typename T, size_t inlineCapacity>     template<typename U>     size_t Vector<T, inlineCapacity>::find(const U& value) const;
+
     /**
      *  inlineCapacity>::fill description
      * @param[in] : description
@@ -1313,5 +1323,3 @@ namespace WTF {
 using WTF::Vector;
 
 #endif // WTF_Vector_h
-
-

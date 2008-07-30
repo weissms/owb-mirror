@@ -80,6 +80,17 @@ namespace WKAL {
      */
         virtual void willSendRequest(ResourceHandle*, ResourceRequest&, const ResourceResponse& redirectResponse) ;
 
+
+    /**
+     * Did send data.
+     * @param[in] : a pointer to a rasource handle.
+     * @param[in] : the bytes sent.
+     * @param[in] : the total bytes sent.
+     * @code
+     * @endcode
+     */
+        virtual void didSendData(ResourceHandle*, unsigned long long bytesSent, unsigned long long totalBytesToBeSent) ;
+
     /**
      * did receive response
      * @param[in] : Resource handle
@@ -205,7 +216,6 @@ namespace WKAL {
 }
 
 #endif
-
 
 
 

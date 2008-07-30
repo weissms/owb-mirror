@@ -252,8 +252,8 @@ int main(int argc, char **argv)
         //Global* global = new Global();
         Interpreter *interp = new Interpreter();
         //ExecState *exec = interp->globalExec();
-        JSGlobalData* sharedGlobalData = &JSGlobalData::sharedInstance();
-        JSGlobalObject* obj = new (sharedGlobalData) JSGlobalObject;
+        PassRefPtr<JSGlobalData> sharedGlobalData = JSGlobalData::create();
+        JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject;
 	//JSGlobalObject *obj = new JSGlobalObject();
 	ExecState *exec = obj->globalExec();
 		

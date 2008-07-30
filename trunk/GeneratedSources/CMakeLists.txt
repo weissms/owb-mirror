@@ -198,6 +198,7 @@ SET (IDL_BINDINGS
 	xml/XMLHttpRequest.idl
     xml/XMLHttpRequestException.idl
 	xml/XMLHttpRequestProgressEvent.idl
+    xml/XMLHttpRequestUpload.idl
     xml/XMLSerializer.idl
     xml/XPathException.idl
 	xml/XSLTProcessor.idl

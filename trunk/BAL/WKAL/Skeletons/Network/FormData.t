@@ -224,6 +224,24 @@ public:
     void removeGeneratedFilesIfNeeded();
 
 private:
+
+    /**
+     * getter for always stream information.
+     * @param[out] : a boolean.
+     * @code
+     * @endcode
+     */
+    bool alwaysStream() const ;
+
+
+    /**
+     * setter for always stream information.
+     * @param[in] : a boolean.
+     * @code
+     * @endcode
+     */
+    void setAlwaysStream(bool alwaysStream) ;
+
     /**
      * FormData constructor
      */
@@ -250,7 +268,5 @@ inline bool operator!=(const FormData& a, const FormData& b);
 } // namespace WKAL
 
 #endif
-
-
 
 

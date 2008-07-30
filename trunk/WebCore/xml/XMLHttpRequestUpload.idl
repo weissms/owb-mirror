@@ -26,38 +26,29 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ConstructData_h
-#define ConstructData_h
+module xml {
 
-namespace KJS {
+    interface [
+        GenerateConstructor,
+        CustomMarkFunction
+    ] XMLHttpRequestUpload {
+        // From XMLHttpRequestEventTarget
+        // event handler attributes
+        attribute [Custom] EventListener onabort;
+        attribute [Custom] EventListener onerror;
+        attribute [Custom] EventListener onload;
+        attribute [Custom] EventListener onloadstart;
+        attribute [Custom] EventListener onprogress;
 
-    class ArgList;
-    class ExecState;
-    class FunctionBodyNode;
-    class JSObject;
-    class JSValue;
-    class ScopeChainNode;
-
-    enum ConstructType {
-        ConstructTypeNone,
-        ConstructTypeHost,
-        ConstructTypeJS
+        // EventTarget interface
+        [Custom] void addEventListener(in DOMString type, 
+                                      in EventListener listener, 
+                                      in boolean useCapture);
+        [Custom] void removeEventListener(in DOMString type, 
+                                          in EventListener listener, 
+                                          in boolean useCapture);
+        [Custom] boolean dispatchEvent(in Event evt)
+            raises(EventException);
     };
 
-    typedef JSObject* (*NativeConstructor)(ExecState*, JSObject*, const ArgList&);
-
-    union ConstructData {
-        struct {
-            NativeConstructor function;
-        } native;
-        struct {
-            FunctionBodyNode* functionBody;
-            ScopeChainNode* scopeChain;
-        } js;
-    };
-
-    JSObject* construct(ExecState*, JSValue* constructor, ConstructType, const ConstructData&, const ArgList&);
-
-} // namespace KJS
-
-#endif // ConstructData_h
+}
