@@ -36,8 +36,6 @@ struct SDL_UserEvent;
 struct SDL_Color;
 struct SDL_Cursor;
 struct SDL_Rect;
-struct FT_FaceRec_;
-struct _FcPattern;
 struct Window;
 struct Gadget;
 
@@ -69,9 +67,8 @@ typedef struct IntuiMessage BalEventKey;
 typedef struct IntuiMessage BalEventButton;
 typedef struct IntuiMessage BalEventMotion;
 typedef struct IntuiMessage BalEventScroll;
-typedef FT_FaceRec_ BalFontFace;
+typedef struct OutlineFont BalFontFace;
 typedef void BalFont;
-typedef struct _FcPattern BalPattern;
 typedef void BalScaledFont;
 typedef void BalDrawable;
 typedef SDL_Surface BalSurface;
@@ -90,6 +87,7 @@ typedef struct _BalMatrix{} BalMatrix;
 
 
 typedef SDL_Surface PlatformGraphicsContext;
+typedef BalWidget* PlatformWidget;
 
 namespace WKAL {
     typedef void* PlatformGradient;

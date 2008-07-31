@@ -1,3 +1,88 @@
+2008-07-31  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Olivier DOLE.
+        Add AmigaOS4 fonts implementation.
+
+        * Base/AmigaOS4/BALTypeAmigaOS4.h:
+        * OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp:
+        * OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h:
+        (TCMalloc_SlowLock):
+        * OWBAL/Concretizations/Types/WK/BCTCSystemAllocWK.cpp:
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformKeyboardEventAmigaOS4.cpp:
+        (WKAL::local2unicode):
+        * WKAL/Concretizations/Fonts/AmigaOS4: Added.
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontAmigaOS4.cpp: Added.
+        (WKAL::Font::drawComplexText):
+        (WKAL::Font::floatWidthForComplexText):
+        (WKAL::Font::offsetForPositionForComplexText):
+        (WKAL::Font::selectionRectForComplexText):
+        (WKAL::Font::drawGlyphs):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontCacheAmigaOS4.cpp: Added.
+        (WKAL::FontCache::platformInit):
+        (WKAL::FontCache::getFontDataForCharacters):
+        (WKAL::FontCache::getSimilarFontPlatformData):
+        (WKAL::FontCache::getLastResortFallbackFont):
+        (WKAL::FontCache::getTraitsInFamily):
+        (WKAL::FontCache::createFontPlatformData):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontCustomPlatformDataAmigaOS4.cpp: Added.
+        (WKAL::FontCustomPlatformData::~FontCustomPlatformData):
+        (WKAL::FontCustomPlatformData::fontPlatformData):
+        (WKAL::createFontCustomPlatformData):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontCustomPlatformDataAmigaOS4.h: Added.
+        (WKAL::FontCustomPlatformData::FontCustomPlatformData):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp: Added.
+        (WKAL::):
+        (WKAL::get_font_name):
+        (WKAL::get_font_name_fallback):
+        (WKAL::FontPlatformData::FontPlatformData):
+        (WKAL::FontPlatformData::init):
+        (WKAL::FontPlatformData::~FontPlatformData):
+        (WKAL::FontPlatformData::isFixedPitch):
+        (WKAL::FontPlatformData::setFont):
+        (WKAL::FontPlatformData::operator==):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontPlatformDataAmigaOS4.h: Added.
+        (WKAL::FontPlatformData::size):
+        (WKAL::FontPlatformData::hash):
+        (WKAL::FontPlatformData::isHashTableDeletedValue):
+        (WKAL::FontPlatformData::hashTableDeletedFontValue):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCGlyphBufferAmigaOS4.h: Added.
+        (WKAL::GlyphBuffer::isEmpty):
+        (WKAL::GlyphBuffer::size):
+        (WKAL::GlyphBuffer::clear):
+        (WKAL::GlyphBuffer::glyphs):
+        (WKAL::GlyphBuffer::advances):
+        (WKAL::GlyphBuffer::fontDataAt):
+        (WKAL::GlyphBuffer::swap):
+        (WKAL::GlyphBuffer::glyphAt):
+        (WKAL::GlyphBuffer::advanceAt):
+        (WKAL::GlyphBuffer::offsetAt):
+        (WKAL::GlyphBuffer::add):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCGlyphPageTreeNodeAmigaOS4.cpp: Added.
+        (WKAL::GlyphPage::fill):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCSimpleFontDataAmigaOS4.cpp: Added.
+        (WKAL::SimpleFontData::platformInit):
+        (WKAL::SimpleFontData::platformDestroy):
+        (WKAL::SimpleFontData::smallCapsFontData):
+        (WKAL::SimpleFontData::containsCharacters):
+        (WKAL::SimpleFontData::determinePitch):
+        (WKAL::SimpleFontData::platformWidthForGlyph):
+        (WKAL::SimpleFontData::setFont):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCSimpleFontDataAmigaOS4.h: Added.
+        (WKAL::):
+        (WKAL::SimpleFontData::platformData):
+        (WKAL::SimpleFontData::ascent):
+        (WKAL::SimpleFontData::descent):
+        (WKAL::SimpleFontData::lineSpacing):
+        (WKAL::SimpleFontData::lineGap):
+        (WKAL::SimpleFontData::xHeight):
+        (WKAL::SimpleFontData::unitsPerEm):
+        (WKAL::SimpleFontData::pitch):
+        (WKAL::SimpleFontData::svgFontData):
+        (WKAL::SimpleFontData::isSVGFont):
+        (WKAL::SimpleFontData::isCustomFont):
+        (WKAL::SimpleFontData::isLoading):
+        (WKAL::SimpleFontData::missingGlyphData):
+
 2008-07-24  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Mario Bensi.

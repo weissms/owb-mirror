@@ -56,9 +56,6 @@ static __attribute__((constructor)) void unicode_map_init(void)
 
 static uint32 local2unicode(uint32 c)
 {
-    if (13 == c) // return
-        return 10; // line feed
-
     if (unicode_map && c <= 255 && unicode_map[c] <= 65535)
         return unicode_map[c];
 

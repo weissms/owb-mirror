@@ -108,6 +108,7 @@
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #elif PLATFORM(AMIGAOS4)
+#include <proto/exec.h>
 #include <intuition/intuition.h>
 #else
 #include <sys/sysinfo.h>
@@ -901,7 +902,10 @@ const String& WebView::userAgentForKURL(const KURL&)
         m_userAgentStandard =  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Doduo";
 #elif PLATFORM(AMIGAOS4)
 //        m_userAgentStandard =  "Mozilla/5.0 (AMIGA; U; AmigaOS4 ppc; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Doduo";
-        m_userAgentStandard = "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
+        if (IExec->Data.LibBase->lib_Version < 53)
+            m_userAgentStandard = "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
+        else
+            m_userAgentStandard = "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.1; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
 #else
         //NOTE: some pages don't render with this UA
         //m_userAgentStandard = "Mozilla/5.0 (iPod; U; CPU like Mac OS X; fr) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3";
