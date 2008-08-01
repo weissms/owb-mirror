@@ -29,7 +29,6 @@
 //#include "types.h"
 #include "interpreter.h"
 #include "kjs/JSGlobalObject.h"
-#include "JSLock.h"
 #include "CString.h"
 
 #include "bal_object.h"
@@ -246,8 +245,6 @@ int main(int argc, char **argv)
 
     bool ret = true;
     {
-        JSLock lock(false);
-
         // create interpreter w/ global object
         //Global* global = new Global();
         Interpreter *interp = new Interpreter();

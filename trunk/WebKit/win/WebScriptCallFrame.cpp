@@ -35,7 +35,6 @@
 #include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/JSFunction.h>
 #include <JavaScriptCore/JSGlobalObject.h>
-#include <JavaScriptCore/JSLock.h>
 #include <JavaScriptCore/JSStringRefBSTR.h>
 #include <JavaScriptCore/JSValueRef.h>
 #include <JavaScriptCore/PropertyNameArray.h>
@@ -97,11 +96,13 @@ WebScriptCallFrame::WebScriptCallFrame(ExecState* state)
     ASSERT_ARG(state, state);
     ASSERT(m_state);
     gClassCount++;
+    gClassNameCount.add("WebScriptCallFrame");
 }
 
 WebScriptCallFrame::~WebScriptCallFrame()
 {
     gClassCount--;
+    gClassNameCount.remove("WebScriptCallFrame");
 }
 
 WebScriptCallFrame* WebScriptCallFrame::createInstance(ExecState* state)
@@ -187,8 +188,6 @@ HRESULT STDMETHODCALLTYPE WebScriptCallFrame::stringByEvaluatingJavaScriptFromSt
         return E_POINTER;
 
     *result = 0;
-
-    JSLock lock(false);
 
     JSValue* scriptExecutionResult = valueByEvaluatingJavaScriptFromString(script);
     *result = WebCore::BString(jsValueToString(m_state, scriptExecutionResult)).release();

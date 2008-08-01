@@ -54,13 +54,11 @@
 #include "npruntime_impl.h"
 #include "runtime.h"
 #include "runtime_root.h"
-#include <kjs/JSLock.h>
 #include <kjs/JSValue.h>
 
 
 using KJS::ExecState;
 using KJS::Interpreter;
-using KJS::JSLock;
 using KJS::JSObject;
 using KJS::JSValue;
 using KJS::UString;

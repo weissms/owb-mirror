@@ -1,3 +1,29 @@
+2008-08-01  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Holger.
+
+        http://bugs.webkit.org/show_bug.cgi?id=19742
+        [GTK] Auto generate webkitmarshal.list
+
+        Auto generate webkitmarshal.list from source files to reduce the
+        number of conflicts when merging git branches or when applying
+        patches.
+        Also rename webkit-marshal.* to webkitmarshal.* for consistency.
+
+        * webkit/webkitwebframe.cpp: Include webkitmarshal.h instead of
+         webkit-marshal.h.
+        * webkit/webkitwebview.cpp: Ditto.
+
+2008-07-30  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Sam.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20205
+        Typo in comment for bracer ending block
+
+        * webkit/webkitprivate.cpp: Typo fix in comment for the brace
+         that ends the WebKit namespace; WebCore -> WebKit
+
 2008-07-28  Mark Rowe  <mrowe@apple.com>
 
         Build fix.  Changes to accommodate newly named/signatured loading methods in WebCore.

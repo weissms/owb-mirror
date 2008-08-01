@@ -1,3 +1,122 @@
+2008-08-01  John Sullivan  <sullivan@apple.com>
+
+        WebKit part of <rdar://problem/6116650> Text-only zoom setting should be stored in WebKit prefs
+
+        Reviewed by Hyatt
+
+        * WebView/WebPreferenceKeysPrivate.h:
+        added WebKitZoomsTextOnlyPreferenceKey
+        
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        default value of YES for WebKitZoomsTextOnlyPreferenceKey
+        (-[WebPreferences zoomsTextOnly]):
+        getter for WebKitZoomsTextOnlyPreferenceKey
+        (-[WebPreferences setZoomsTextOnly:]):
+        setter for WebKitZoomsTextOnlyPreferenceKey
+        
+        * WebView/WebPreferencesPrivate.h:
+        declare zoomsTextOnly/setZoomsTextOnly:
+        
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+        update WebCore::Settings value for zoomsTextOnly
+
+2008-07-31  David D. Kilzer  <ddkilzer@webkit.org>
+
+        Fix layout test results for webarchive/test-xml-stylesheet.xml
+
+        Reviewed by Darin.
+
+        Needed to expose -[WebHTMLRepresentation supportedNonImageMIMETypes]
+        for DumpRenderTree.
+
+        * WebView/WebHTMLRepresentationInternal.h: Added.
+
+2008-07-31  Alexey Proskuryakov  <ap@webkit.org>
+
+        Release build fix.
+
+        * Plugins/WebBaseNetscapePluginView.mm: (-[WebBaseNetscapePluginView setWindowIfNecessary]):
+        Don't define to npErr in release builds, as it is only used for logging.
+
+2008-07-31  John Sullivan  <sullivan@apple.com>
+
+        Fixed <https://bugs.webkit.org/show_bug.cgi?id=5195>
+        drawing with cacheDisplayInRect:toBitmapImageRep: doesn't trigger layout on Leopard
+
+        Reviewed by Dan
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _recursive:displayRectIgnoringOpacity:inContext:topView:]):
+        include Leopard in the #ifdef that forces a layout if needed
+
+2008-07-30  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Adam and Hyatt
+
+        Fix for <rdar://problem/6099748>
+
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]): Set the "don't enforce CSS mime type in strict mode" 
+          quirk when running under iWeb 2
+
+2008-07-31  Alexey Proskuryakov  <ap@webkit.org>
+
+        Rubber-stamped by Maciej.
+
+        Eliminate JSLock (it was already disabled, removing the stub implementaion and all
+        call sites now).
+
+        * ForwardingHeaders/kjs/JSLock.h: Removed.
+        * Misc/WebCoreStatistics.mm:
+        (+[WebCoreStatistics javaScriptObjectsCount]):
+        (+[WebCoreStatistics javaScriptGlobalObjectsCount]):
+        (+[WebCoreStatistics javaScriptProtectedObjectsCount]):
+        (+[WebCoreStatistics javaScriptProtectedGlobalObjectsCount]):
+        (+[WebCoreStatistics javaScriptProtectedObjectTypeCounts]):
+        (+[WebCoreStatistics shouldPrintExceptions]):
+        (+[WebCoreStatistics setShouldPrintExceptions:]):
+        (+[WebCoreStatistics javaScriptReferencedObjectsCount]):
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream wantsAllStreams]):
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView sendEvent:isDrawRect:]):
+        (-[WebBaseNetscapePluginView setWindowIfNecessary]):
+        (-[WebBaseNetscapePluginView start]):
+        (-[WebBaseNetscapePluginView createPluginScriptableObject]):
+        (-[WebBaseNetscapePluginView evaluateJavaScriptPluginRequest:]):
+        (-[WebBaseNetscapePluginView webFrame:didFinishLoadWithReason:]):
+        (-[WebBaseNetscapePluginView loadPluginRequest:]):
+        (-[WebBaseNetscapePluginView _printedPluginBitmap]):
+        * Plugins/WebPluginController.mm:
+        (+[WebPluginController plugInViewWithArguments:fromPluginPackage:]):
+        (-[WebPluginController startAllPlugins]):
+        (-[WebPluginController stopAllPlugins]):
+        (-[WebPluginController addPlugin:]):
+        (-[WebPluginController destroyPlugin:]):
+        (-[WebPluginController destroyAllPlugins]):
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:forceUserGesture:]):
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame evaluateWebScript:]):
+        * WebView/WebView.mm:
+        (-[WebView aeDescByEvaluatingJavaScriptFromString:]):
+
+2008-07-30  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Fixes <rdar://problem/6041390>
+
+        Adds the ability to have a frame that is "disconnected" from the 
+        main frame from the perspective of top and parent in 
+        Javascript.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _setIsDisconnectedFrame]):
+        * WebView/WebFramePrivate.h:
+
 2008-07-30  Mark Rowe  <mrowe@apple.com>
 
         Tweak to the build fix to keep Dan happy.

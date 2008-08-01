@@ -50,6 +50,7 @@ javascriptcore_sources += \
 	JavaScriptCore/VM/JSPropertyNameIterator.cpp \
 	JavaScriptCore/VM/Machine.cpp \
 	JavaScriptCore/VM/Opcode.cpp \
+	JavaScriptCore/VM/SamplingTool.cpp \
 	JavaScriptCore/pcre/pcre_compile.cpp \
 	JavaScriptCore/pcre/pcre_exec.cpp \
 	JavaScriptCore/pcre/pcre_tables.cpp \
@@ -113,7 +114,6 @@ javascriptcore_sources += \
 	JavaScriptCore/kjs/JSGlobalObject.cpp \
 	JavaScriptCore/kjs/JSGlobalObjectFunctions.cpp \
 	JavaScriptCore/kjs/JSImmediate.cpp \
-	JavaScriptCore/kjs/JSLock.cpp \
 	JavaScriptCore/kjs/JSNumberCell.cpp \
 	JavaScriptCore/kjs/JSObject.cpp \
 	JavaScriptCore/kjs/JSStaticScopeObject.cpp \

@@ -52,7 +52,8 @@ namespace KJS {
     class UString;
     struct HashTable;
 
-    struct JSGlobalData : public RefCounted<JSGlobalData> {
+    class JSGlobalData : public RefCounted<JSGlobalData> {
+    public:
         static PassRefPtr<JSGlobalData> create();
         ~JSGlobalData();
 
@@ -80,8 +81,6 @@ namespace KJS {
         Parser* parser;
 
         JSGlobalObject* head;
-
-        bool isSharedInstance;
 
     private:
         JSGlobalData();

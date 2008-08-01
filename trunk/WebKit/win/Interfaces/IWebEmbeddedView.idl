@@ -20,40 +20,22 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef AccessItemRule_h
-#define AccessItemRule_h
 
-#include "AccessItem.h"
-#include <wtf/Vector.h>
-
-namespace WebCore {
-
-    class SecurityOrigin;
-    class String;
-
-    class AccessItemRule {
-    public:
-        AccessItemRule(const String&);
-
-        bool allowListMatchesAny(const SecurityOrigin*) const;
-        bool excludeListMatchesAny(const SecurityOrigin*) const;
-
-#ifndef NDEBUG
-        void show();
+#ifndef DO_NO_IMPORTS
+import "oaidl.idl";
+import "ocidl.idl";
 #endif
 
-    private:
-        void parseAccessItemRule(const String&);
-        void parsePatternList(const UChar*& ptr, const UChar* end, Vector<AccessItem>& list);
-        void invalidate();
-
-        Vector<AccessItem> m_allowList;
-        Vector<AccessItem> m_excludeList;
-    };
-
-} // namespace WebCore
-
-#endif // AccessItemRule_h
+[
+    object,
+    oleautomation,
+    uuid(F2771780-84C2-4684-8D52-D4F923E67F71),
+    pointer_default(unique)
+]
+interface IWebEmbeddedView : IUnknown
+{
+    HRESULT createViewWindow([in] OLE_HANDLE parentWindow, [in] LPSIZE pluginSize, [out, retval] OLE_HANDLE* window);
+}

@@ -83,7 +83,6 @@ Source files for JSCore.
         kjs/JSGlobalObject.cpp
         kjs/JSGlobalObjectFunctions.cpp
         kjs/JSImmediate.cpp
-        kjs/JSLock.cpp
         kjs/JSNotAnObject.cpp
         kjs/JSNumberCell.cpp
         kjs/JSObject.cpp
@@ -144,6 +143,7 @@ Source files for JSCore.
         VM/JSPropertyNameIterator.cpp
         VM/Machine.cpp
         VM/Opcode.cpp
+        VM/SamplingTool.cpp
         VM/RegisterFile.cpp
     </set>
     <set append="1" var="JSCORE_WTF_SOURCES">

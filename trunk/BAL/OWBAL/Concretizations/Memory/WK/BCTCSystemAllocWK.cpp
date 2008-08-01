@@ -43,9 +43,7 @@
 #else
 #include <errno.h>
 #include <unistd.h>
-#if !PLATFORM(AMIGAOS4)
 #include <sys/mman.h>
-#endif
 #endif
 #include <fcntl.h>
 #include "Assertions.h"

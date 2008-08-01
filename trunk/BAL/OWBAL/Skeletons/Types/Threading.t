@@ -238,6 +238,26 @@ private:
 
 template<class T> class ThreadSafeShared : public OWBALBase, Noncopyable {
 public:
+
+    /**
+     *  atomicIncrement description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+inline void atomicIncrement(int volatile* addend) ;
+
+
+    /**
+     *  atomicDecrement description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+inline int atomicDecrement(int volatile* addend) ;
+
     /**
      *  ThreadSafeShared description
      * @param[in] : description
@@ -318,7 +338,5 @@ using WTF::detachThread;
 using WTF::waitForThreadCompletion;
 
 #endif // Threading_h
-
-
 
 

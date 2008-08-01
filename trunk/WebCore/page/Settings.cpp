@@ -78,6 +78,7 @@ Settings::Settings(Page* page)
     , m_offlineWebApplicationCacheEnabled(false)
     , m_rangeMutationDisabledForOldAppleMail(false)
     , m_shouldPaintCustomScrollbars(false)
+    , m_enforceCSSMIMETypeInStrictMode(true)
 {
     // A Frame may not have been created yet, so we initialize the AtomicString 
     // hash before trying to use it.
@@ -365,6 +366,20 @@ void Settings::setUpdatesWhenOffscreen(bool updates)
 void Settings::setShouldPaintCustomScrollbars(bool shouldPaintCustomScrollbars)
 {
     m_shouldPaintCustomScrollbars = shouldPaintCustomScrollbars;
+}
+
+void Settings::setZoomsTextOnly(bool zoomsTextOnly)
+{
+    if (zoomsTextOnly == m_zoomsTextOnly)
+        return;
+    
+    m_zoomsTextOnly = zoomsTextOnly;
+    setNeedsReapplyStylesInAllFrames(m_page);
+}
+
+void Settings::setEnforceCSSMIMETypeInStrictMode(bool enforceCSSMIMETypeInStrictMode)
+{
+    m_enforceCSSMIMETypeInStrictMode = enforceCSSMIMETypeInStrictMode;
 }
 
 } // namespace WebCore

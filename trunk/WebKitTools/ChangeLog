@@ -1,3 +1,100 @@
+2008-08-01  Adam Roben  <aroben@apple.com>
+
+        Follow-up to r35500
+
+        * WinLauncher/WinLauncher.vcproj: Set the manifest properties for the
+        Release configuration, too.
+
+2008-07-31  Stefan Landvogt <stefan.landvogt@gmail.com>
+
+        Fix Bug 20245: WinLauncher does not start in WebKit-debug right out of
+        the box
+
+        <https://bugs.webkit.org/show_bug.cgi?id=20245>
+
+        Reviewed by Adam Roben.
+
+        * WinLauncher/WinLauncher.vcproj: adding the following properties to
+        WinLauncher > Properties > Manifest Tool > Isolated COM
+        Type Library File: $(WebKitOutputDir)\lib\WebKit.tlb
+        Component File Name: WebKit$(WebKitDLLConfigSuffix)
+        Doing the change on "All Configurations"
+
+2008-07-31  Adam Roben  <aroben@apple.com>
+
+        Windows build bot fix
+
+        * DumpRenderTree/win/ImageDiff.vcproj: Don't fail if files that only
+        exist for people at Apple can't be found. Also updated the ICU version
+        to 3.8.
+
+2008-07-31  David Kilzer  <ddkilzer@apple.com>
+
+        Fix layout test results for webarchive/test-xml-stylesheet.xml
+
+        Reviewed by Darin.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (convertMIMEType): Work around the "text/xml" local file type
+        regression in Leopard using the BUILDING_ON_LEOPARD macro.  Also
+        stop mangling "application/x-javascript" into "text/javascript".
+        (convertWebResourceDataToString): When checking whether to dump a
+        resource as text, also check to see if the MIME type is in the
+        -[WebHTMLRepresentation supportedNonImageMIMETypes] array.
+        * DumpRenderTree/mac/DumpRenderTreeMac.h: Added BUILDING_ON_LEOPARD
+        macro.
+
+2008-07-31  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Alice Liu
+
+        Add AX support to get the bounds for a range of text
+        Add AX support to get the child of an element
+        Add AX support to get all the parameterized attribute names of an element
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (parameterizedAttributeNamesCallback):
+        (boundsForRangeCallback):
+        (childAtIndexCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::getChildAtIndex):
+        (AccessibilityUIElement::parameterizedAttributeNames):
+        (AccessibilityUIElement::boundsForRange):
+
+2008-07-31  Erik Bunce  <elbunce@thehive.com>
+
+        Reviewed by Simon.
+
+        Make run-launcher set DYLD_LIBRARY_PATH to make things work on Mac OS X.
+
+        * Scripts/run-launcher:
+
+2008-07-30  Jessica Kahn  <jess@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Slightly stricter checking for previous change, suggested by Adam.
+        
+        * Scripts/extract-localizable-strings:
+
+2008-07-30  Jessica Kahn  <jess@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Added support for UI_STRING and UI_STRING_KEY macros with flexible prefixes.
+        
+        * Scripts/extract-localizable-strings:
+
+2008-07-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam.
+
+        Copy icu38* files instead of icu36* files.
+        
+        * DumpRenderTree/win/DumpRenderTree.vcproj:
+
 2008-07-28  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         DRT/Gtk build fix for r35362

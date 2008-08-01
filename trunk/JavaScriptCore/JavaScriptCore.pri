@@ -58,6 +58,7 @@ SOURCES += \
     VM/JSPropertyNameIterator.cpp \
     VM/Machine.cpp \
     VM/Opcode.cpp \
+    VM/SamplingTool.cpp \
     VM/RegisterFile.cpp
 
 # AllInOneFile.cpp helps gcc analize and optimize code
@@ -99,7 +100,6 @@ SOURCES += \
     kjs/JSFunction.cpp \
     kjs/JSGlobalObjectFunctions.cpp \
     kjs/JSImmediate.cpp \
-    kjs/JSLock.cpp \
     kjs/JSNumberCell.cpp \
     kjs/JSObject.cpp \
     kjs/JSString.cpp \

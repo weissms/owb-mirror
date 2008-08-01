@@ -1,3 +1,149 @@
+2008-08-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam.
+
+        Get rid of FormValuesPropertyBag and use COMPropertyBag instead.
+        
+        * COMPropertyBag.h:
+        Implement parts of IPropertyBag2. 
+        Currently just one method (CountProperties) is implemented.
+        
+        * WebCoreSupport/FormValuesPropertyBag.cpp: Removed.
+        * WebCoreSupport/FormValuesPropertyBag.h: Removed.
+      
+        * WebFrame.cpp:
+        (WebFrame::dispatchWillSubmitForm):
+        Create a COMPropertyBag instead.
+        
+        * WebKit.vcproj/WebKit.vcproj:
+
+2008-07-31  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Jon.
+        
+        Tweak the names.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createPlugin):
+
+2008-07-31  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Jon.
+
+        <rdar://problem/5826110>
+        
+        Add a way for WebKit clients to embed custom content in web pages.
+        
+        * Interfaces/IWebEmbeddedView.idl: Added.
+        New interface which an embedded view must implement.
+        
+        * Interfaces/IWebUIDelegatePrivate.idl:
+        Add new UI delegate method for creating an embedded view.
+        
+        * Interfaces/WebKit.idl:
+        Include IWebEmbeddedView.idl.
+        
+        * WebCoreSupport/EmbeddedWidget.cpp: Added.
+        * WebCoreSupport/EmbeddedWidget.h: Added.
+        Add EmbeddedWidget, a widget subclass which can hold an IWebEmbeddedView.
+        
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createPlugin):
+        Check if the UI delegate wants to create an embedded view.
+        
+        * WebKit.vcproj/WebKit.vcproj:
+        Add EmbeddedWidget.{cpp|h}
+
+2008-07-31  Alexey Proskuryakov  <ap@webkit.org>
+
+        Rubber-stamped by Maciej.
+
+        Eliminate JSLock (it was already disabled, removing the stub implementaion and all
+        call sites now).
+
+        * WebCoreStatistics.cpp:
+        (WebCoreStatistics::javaScriptObjectsCount):
+        (WebCoreStatistics::javaScriptGlobalObjectsCount):
+        (WebCoreStatistics::javaScriptProtectedObjectsCount):
+        (WebCoreStatistics::javaScriptProtectedGlobalObjectsCount):
+        * WebJavaScriptCollector.cpp:
+        (WebJavaScriptCollector::objectCount):
+        * WebScriptCallFrame.cpp:
+        (WebScriptCallFrame::stringByEvaluatingJavaScriptFromString):
+        * WebView.cpp:
+        (WebView::stringByEvaluatingJavaScriptFromString):
+
+2008-07-31  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Windows build fix.
+
+        * WebURLResponse.cpp:
+
+2008-07-30  Mark Rowe  <mrowe@apple.com>
+
+        Windows build fix.
+
+        * WebURLResponse.cpp:  Don't include a header file that we just deleted.
+
+2008-07-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mitz.
+
+        Use a COMPropertyBag instead of the HTTPHeaderPropertyBag.
+        
+        * HTTPHeaderPropertyBag.cpp: Removed.
+        * HTTPHeaderPropertyBag.h: Removed.
+        * WebURLResponse.cpp:
+        (WebURLResponse::allHeaderFields):
+
+2008-07-30  Anders Carlsson  <andersca@apple.com>
+
+        Fix copyright years.
+        
+        * COMPropertyBag.h:
+        * COMVariantSetter.h:
+
+2008-07-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam.
+
+        More property bag work.
+        
+        * COMPropertyBag.h:
+        (COMPropertyBag::COMPropertyBag):        
+        (::adopt):
+        (::Read):
+        * COMVariantSetter.h:
+        (COMIUnknownVariantSetter::setVariant):
+
+2008-07-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam.
+
+        Add COMPropertyBag, a simple template class that implements the IPropertyBag interface. All
+        property bag values must be of the same type.
+        
+        The COMVariantSetter helpers are now in COMVariantSetter.h
+        
+        * COMEnumVariant.h:
+        * COMPropertyBag.h: Added.
+        * COMVariantSetter.h: Added.
+        * WebKit.vcproj/WebKit.vcproj:
+        
+2008-07-30  Alice Liu  <alice.liu@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Adding logging of COM class names and counts to facilitate
+        investigating memory issues.
+
+        * Interfaces/IWebKitStatistics.idl:
+        * WebKitDLL.cpp:
+        * WebKitDLL.h:
+        * WebKitStatistics.cpp:
+        (WebKitStatistics::comClassNameCounts):
+        * WebKitStatistics.h:
+
 2008-07-30  Alice Liu  <alice.liu@apple.com>
 
         Reviewed by Geoff Garen.

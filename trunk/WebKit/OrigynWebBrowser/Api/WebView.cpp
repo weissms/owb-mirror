@@ -96,7 +96,6 @@
 #include <collector.h>
 #include <JSCell.h>
 #include <JSValue.h>
-#include <JSLock.h>
 #include <wtf/HashSet.h>
 #include "InitializeThreading.h"
 
@@ -116,7 +115,6 @@
 
 using namespace WebCore;
 using namespace WebCore::EventNames;
-using KJS::JSLock;
 using std::min;
 using std::max;
 
@@ -1333,10 +1331,8 @@ String WebView::stringByEvaluatingJavaScriptFromString(String script)
     KJS::JSCell* scriptExecutionResult = static_cast<KJS::JSCell*> (coreFrame->loader()->executeScript(script, false));
     if(!scriptExecutionResult)
         return String();
-    else if (scriptExecutionResult->isString()) {
-        JSLock lock(false);
+    else if (scriptExecutionResult->isString())
         return scriptExecutionResult->getString();
-    }
     return String();
 }
 

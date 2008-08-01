@@ -37,11 +37,7 @@
 
 #include <time.h>       /* For nanosleep() */
 
-#if PLATFORM(AMIGAOS4)
-#include <unistd.h>
-#else
 #include <sched.h>      /* For sched_yield() */
-#endif
 
 #if HAVE(STDINT_H)
 #include <stdint.h>
@@ -139,9 +135,7 @@ struct TCMalloc_SpinLock {
 #define SPINLOCK_INITIALIZER { 0 }
 
 static void TCMalloc_SlowLock(volatile unsigned int* lockword) {
-#if !PLATFORM(AMIGAOS4)
   sched_yield();        // Yield immediately since fast path failed
-#endif
   while (true) {
     int r;
 #if COMPILER(GCC)
@@ -187,8 +181,6 @@ static void TCMalloc_SlowLock(volatile unsigned int* lockword) {
     // Sleep for a few milliseconds
 #if PLATFORM(WIN_OS)
     Sleep(2);
-#elif PLATFORM(AMIGAOS4)
-    usleep(200);
 #else
     struct timespec tm;
     tm.tv_sec = 0;

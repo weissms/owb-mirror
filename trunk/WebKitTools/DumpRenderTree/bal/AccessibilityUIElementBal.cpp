@@ -94,3 +94,17 @@ int AccessibilityUIElement::lineForIndex(int index)
     return -1;
 }
 
+AccessibilityUIElement* AccessibilityUIElement::getChildAtIndex(unsigned index)
+{
+    return NULL;
+}
+
+JSStringRef AccessibilityUIElement::boundsForRange(unsigned location, unsigned length)
+{
+    return JSStringRef();
+}
+
+JSStringRef AccessibilityUIElement::parameterizedAttributeNames()
+{
+    return JSStringRef();
+}

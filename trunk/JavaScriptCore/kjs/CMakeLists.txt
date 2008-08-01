@@ -40,7 +40,6 @@ LIST (APPEND JSCORE_SRC
     kjs/JSGlobalObject.cpp
     kjs/JSGlobalObjectFunctions.cpp
     kjs/JSImmediate.cpp
-    kjs/JSLock.cpp
     kjs/JSNumberCell.cpp
     kjs/JSNotAnObject.cpp
     kjs/JSObject.cpp

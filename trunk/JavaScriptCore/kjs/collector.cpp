@@ -24,7 +24,6 @@
 #include "ArgList.h"
 #include "ExecState.h"
 #include "JSGlobalObject.h"
-#include "JSLock.h"
 #include "JSString.h"
 #include "JSValue.h"
 #include "Machine.h"
@@ -184,7 +183,7 @@ const size_t ALLOCATIONS_PER_COLLECTION = 4000;
 
 static void freeHeap(CollectorHeap*);
 
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
 
 #if PLATFORM(DARWIN)
 typedef mach_port_t PlatformThread;
@@ -219,12 +218,12 @@ public:
 
 Heap::Heap(JSGlobalData* globalData)
     : m_markListSet(0)
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
     , m_registeredThreads(0)
 #endif
     , m_globalData(globalData)
 {
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
     int error = pthread_key_create(&m_currentThreadRegistrar, unregisterThread);
     if (error)
         CRASH();
@@ -236,8 +235,6 @@ Heap::Heap(JSGlobalData* globalData)
 
 Heap::~Heap()
 {
-    JSLock lock(false);
-
     delete m_markListSet;
     sweep<PrimaryHeap>();
     // No need to sweep number heap, because the JSNumber destructor doesn't do anything.
@@ -247,7 +244,7 @@ Heap::~Heap()
     freeHeap(&primaryHeap);
     freeHeap(&numberHeap);
 
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
 #ifndef NDEBUG
     int error =
 #endif
@@ -282,7 +279,7 @@ static NEVER_INLINE CollectorBlock* allocateBlock()
     memset(address, 0, BLOCK_SIZE);
 #else
 
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
 #error Need to initialize pagesize safely.
 #endif
     static size_t pagesize = getpagesize();
@@ -374,8 +371,6 @@ template <Heap::HeapType heapType> ALWAYS_INLINE void* Heap::heapAllocate(size_t
     typedef typename HeapConstants<heapType>::Cell Cell;
 
     CollectorHeap& heap = heapType == PrimaryHeap ? primaryHeap : numberHeap;
-    ASSERT(JSLock::lockCount() > 0);
-    ASSERT(JSLock::currentThreadIsHoldingLock());
     ASSERT(s <= HeapConstants<heapType>::cellSize);
     UNUSED_PARAM(s); // s is now only used for the above assert
 
@@ -562,7 +557,7 @@ static inline void* currentThreadStackBase()
 #endif
 }
 
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
 
 static inline PlatformThread getCurrentPlatformThread()
 {
@@ -623,7 +618,7 @@ void Heap::unregisterThread()
     }
 }
 
-#else // USE(MULTIPLE_THREADS)
+#else // ENABLE(JSC_MULTIPLE_THREADS)
 
 void Heap::registerThread()
 {
@@ -714,7 +709,7 @@ void Heap::markCurrentThreadConservatively()
     markCurrentThreadConservativelyInternal();
 }
 
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
 
 static inline void suspendThread(const PlatformThread& platformThread)
 {
@@ -881,7 +876,7 @@ void Heap::markStackObjectsConservatively()
 {
     markCurrentThreadConservatively();
 
-#if USE(MULTIPLE_THREADS)
+#if ENABLE(JSC_MULTIPLE_THREADS)
 
     if (m_currentThreadRegistrar) {
 
@@ -909,7 +904,7 @@ void Heap::markStackObjectsConservatively()
 void Heap::setGCProtectNeedsLocking()
 {
     // Most clients do not need to call this, with the notable exception of WebCore.
-    // Clients that use shared heap have JSLock protection, while others are supposed
+    // Clients that use context from a single context group from multiple threads are supposed
     // to do explicit locking. WebCore violates this contract in Database code,
     // which calls gcUnprotect from a secondary thread.
     if (!m_protectedValuesMutex)
@@ -919,7 +914,6 @@ void Heap::setGCProtectNeedsLocking()
 void Heap::protect(JSValue* k)
 {
     ASSERT(k);
-    ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
 
     if (JSImmediate::isImmediate(k))
         return;
@@ -936,7 +930,6 @@ void Heap::protect(JSValue* k)
 void Heap::unprotect(JSValue* k)
 {
     ASSERT(k);
-    ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
 
     if (JSImmediate::isImmediate(k))
         return;
@@ -1074,13 +1067,6 @@ template <Heap::HeapType heapType> size_t Heap::sweep()
     
 bool Heap::collect()
 {
-#ifndef NDEBUG
-    if (m_globalData->isSharedInstance) {
-        ASSERT(JSLock::lockCount() > 0);
-        ASSERT(JSLock::currentThreadIsHoldingLock());
-    }
-#endif
-
     ASSERT((primaryHeap.operationInProgress == NoOperation) | (numberHeap.operationInProgress == NoOperation));
     if ((primaryHeap.operationInProgress != NoOperation) | (numberHeap.operationInProgress != NoOperation))
         abort();

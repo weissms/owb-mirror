@@ -37,7 +37,6 @@
 #include "balValuePrivate.h"
 #include "wtf/HashMap.h"
 #include "ObjectPrototype.h"
-#include "JSLock.h"
 
 #include <cstdio>
 
@@ -219,14 +218,13 @@ JSValue* BalInstance::valueOf(ExecState* exec) const
 
 RuntimeObjectImp* BalInstance::getRuntimeObject(ExecState* exec, PassRefPtr<BalInstance> instance)
 {
-    /*JSLock lock(false);
+    /*
     JSObject* ret = cachedObjects.value(instance.get());
     if (!ret) {
         ret = new (exec) BalRuntimeObjectImp(instance);
         cachedObjects.insert(instance.get(), ret);
     }
     return ret;*/
-    JSLock lock(false);
     RuntimeObjectImp* ret = new (exec) BalRuntimeObjectImp(instance);
     return ret;
 }

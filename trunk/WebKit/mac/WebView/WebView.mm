@@ -91,7 +91,6 @@
 #import <kjs/ArrayPrototype.h>
 #import <kjs/DateInstance.h>
 #import <kjs/InitializeThreading.h>
-#import <kjs/JSLock.h>
 #import <WebCore/ApplicationCacheStorage.h>
 #import <WebCore/Cache.h>
 #import <WebCore/ColorMac.h>
@@ -1029,6 +1028,8 @@ static bool debugWidget = true;
     settings->disableRangeMutationForOldAppleMail(WKAppVersionCheckLessThan(@"com.apple.mail", -1, 4.0));
     settings->setOfflineWebApplicationCacheEnabled([preferences offlineWebApplicationCacheEnabled]);
     settings->setUpdatesWhenOffscreen([preferences updatesWhenOffscreen]);
+    settings->setZoomsTextOnly([preferences zoomsTextOnly]);
+    settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
 }
 
 static inline IMP getMethod(id o, SEL s)
@@ -3289,7 +3290,6 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue* jsVal
     JSValue* result = coreFrame->loader()->executeScript(script, true);
     if (!result) // FIXME: pass errors
         return 0;
-    JSLock lock(false);
     return aeDescFromJSValue(coreFrame->script()->globalObject()->globalExec(), result);
 }
 

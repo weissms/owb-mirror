@@ -1,7 +1,4 @@
 LIST (APPEND XML_SRC
-    xml/AccessControlList.cpp
-    xml/AccessItem.cpp
-    xml/AccessItemRule.cpp
     xml/DOMParser.cpp
     xml/NativeXPathNSResolver.cpp
     xml/XMLHttpRequestUpload.cpp

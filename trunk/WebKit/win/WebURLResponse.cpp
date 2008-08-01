@@ -24,10 +24,12 @@
  */
 
 #include "config.h"
+#include "WebURLResponse.h"
+
 #include "WebKitDLL.h"
 #include "WebKit.h"
 
-#include "HTTPHeaderPropertyBag.h"
+#include "COMPropertyBag.h"
 #include "MarshallingHelpers.h"
 #include "WebLocalizableStrings.h"
 
@@ -210,11 +212,13 @@ WebURLResponse::WebURLResponse()
     :m_refCount(0)
 {
     gClassCount++;
+    gClassNameCount.add("WebURLResponse");
 }
 
 WebURLResponse::~WebURLResponse()
 {
     gClassCount--;
+    gClassNameCount.remove("WebURLResponse");
 }
 
 WebURLResponse* WebURLResponse::createInstance()
@@ -355,7 +359,8 @@ HRESULT STDMETHODCALLTYPE WebURLResponse::allHeaderFields(
     /* [retval][out] */ IPropertyBag** headerFields)
 {
     ASSERT(m_response.isHTTP());
-    *headerFields = HTTPHeaderPropertyBag::createInstance(this);
+
+    *headerFields = COMPropertyBag<String, CaseFoldingHash>::createInstance(m_response.httpHeaderFields());
     return S_OK;
 }
 
