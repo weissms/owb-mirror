@@ -1,3 +1,259 @@
+2008-08-04  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        <rdar://problem/6118969>
+        https://bugs.webkit.org/show_bug.cgi?id=19971 
+        Modifiy the cursor interactively when on panning mode (middle click auto scroll)
+        When the panning is in progress the cursor is an arrow representing the direction of the current scroll
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::autoscrollTimerFired): Before each scroll we actualize the cursor to match the current direction
+        (WebCore::EventHandler::setPanScrollCursor): determines the direction of the upcoming scroll.
+        (WebCore::EventHandler::handleMouseMoveEvent):
+        * page/EventHandler.h: 
+        * platform/Cursor.h: Add propotypes for the new cursor functions
+        * platform/gtk/CursorGtk.cpp: to avoid build break
+        (WebCore::middlePanningCursor):
+        (WebCore::eastPanningCursor):
+        (WebCore::northPanningCursor):
+        (WebCore::northEastPanningCursor):
+        (WebCore::northWestPanningCursor):
+        (WebCore::southPanningCursor):
+        (WebCore::southEastPanningCursor):
+        (WebCore::southWestPanningCursor):
+        (WebCore::westPanningCursor):
+        * platform/mac/CursorMac.mm: to avoid build break
+        (WebCore::middlePanningCursor):
+        (WebCore::eastPanningCursor):
+        (WebCore::northPanningCursor):
+        (WebCore::northEastPanningCursor):
+        (WebCore::northWestPanningCursor):
+        (WebCore::southPanningCursor):
+        (WebCore::southEastPanningCursor):
+        (WebCore::southWestPanningCursor):
+        (WebCore::westPanningCursor):
+        * platform/qt/CursorQt.cpp: to avoid build break
+        (WebCore::middlePanningCursor):
+        (WebCore::eastPanningCursor):
+        (WebCore::northPanningCursor):
+        (WebCore::northEastPanningCursor):
+        (WebCore::northWestPanningCursor):
+        (WebCore::southPanningCursor):
+        (WebCore::southEastPanningCursor):
+        (WebCore::southWestPanningCursor):
+        (WebCore::westPanningCursor):
+        * platform/win/CursorWin.cpp: Add specific icons for the panning as windows resizing icons are both sides arrows
+        (WebCore::middlePanningCursor):
+        (WebCore::eastPanningCursor):
+        (WebCore::northPanningCursor):
+        (WebCore::northEastPanningCursor):
+        (WebCore::northWestPanningCursor):
+        (WebCore::southPanningCursor):
+        (WebCore::southEastPanningCursor):
+        (WebCore::southWestPanningCursor):
+        (WebCore::westPanningCursor):
+        * platform/wx/CursorWx.cpp: to avoid build break
+        (WebCore::middlePanningCursor):
+        (WebCore::eastPanningCursor):
+        (WebCore::northPanningCursor):
+        (WebCore::northEastPanningCursor):
+        (WebCore::northWestPanningCursor):
+        (WebCore::southPanningCursor):
+        (WebCore::southEastPanningCursor):
+        (WebCore::southWestPanningCursor):
+        (WebCore::westPanningCursor):
+
+2008-08-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Move to using constants in accordance with discussions about wx renderer commit.
+
+        * platform/wx/RenderThemeWx.cpp:
+        (WebCore::RenderThemeWx::minimumMenuListSize):
+        (WebCore::RenderThemeWx::popupInternalPaddingLeft):
+        (WebCore::RenderThemeWx::popupInternalPaddingRight):
+        (WebCore::RenderThemeWx::popupInternalPaddingTop):
+        (WebCore::RenderThemeWx::popupInternalPaddingBottom):
+
+2008-08-02  Wouter Bolsterlee  <wbolster@svn.gnome.org>
+
+        Reviewed by Eric Seidel.
+
+        * plugins/gtk/gtk2xtbin.h:
+
+        https://bugs.webkit.org/show_bug.cgi?id=20034
+        Fix malformed Vim modeline.
+
+2008-08-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - tweak a comment
+
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::BitmapImage::draw):
+
+2008-08-01  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        * ChangeLog: Fix date of previous commit (r35520)
+
+2008-08-01  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19603
+        [SOUP] segfault when closing a file using gio
+
+        Call client->didFinishLoading() only after releasing all the gio
+        resources.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::closeCallback):
+        (WebCore::readCallback):
+
+2008-08-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Jon.
+
+        <rdar://problem/6120206>
+        Crash when plug-in queries for NPPVpluginWantsAllNetworkStreams.
+        
+        Pass in a pointer to a void* to make sure that plug-ins don't overwrite the stack.
+        
+        * plugins/PluginStream.cpp:
+        (WebCore::PluginStream::wantsAllStreams):
+
+2008-08-01  Robin Dunn  <robin@alldunn.com>
+
+        Reviewed by Eric Seidel.
+
+        Native rendering implementations for form elements in the wx port.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=19069
+
+        * platform/wx/RenderThemeWx.cpp:
+        (WebCore::RenderThemeWx::adjustRepaintRect):
+        (WebCore::RenderThemeWx::paintButton):
+        (WebCore::RenderThemeWx::paintTextField):
+        (WebCore::RenderThemeWx::minimumMenuListSize):
+        (WebCore::RenderThemeWx::adjustMenuListStyle):
+        (WebCore::RenderThemeWx::paintMenuList):
+        (WebCore::RenderThemeWx::adjustMenuListButtonStyle):
+        (WebCore::RenderThemeWx::paintMenuListButton):
+        (WebCore::RenderThemeWx::popupInternalPaddingLeft):
+        (WebCore::RenderThemeWx::popupInternalPaddingRight):
+        (WebCore::RenderThemeWx::popupInternalPaddingTop):
+        (WebCore::RenderThemeWx::popupInternalPaddingBottom):
+
+2008-07-30  David Hyatt  <hyatt@apple.com>
+
+        Improvements to selection drawing.
+
+        Clip out floating and positioned objects when drawing selection so
+        that there is no "double painting" of selection when the selection spans both the space behind the positioned/floating
+        object and the positioned/floating object itself.  Improves most Web pages.
+
+        Do not paint left/right selection gaps if the object's edge is already outside the boundary (at a negative
+        position).  Significantly improves the look of selections on digg.com, since it uses giant negative text-indent.
+
+        Reviewed by Dan
+
+        Covered by existing selection pixel tests.
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::isSelectionRoot):
+        (WebCore::RenderBlock::paintSelection):
+        (WebCore::clipOutPositionedObjects):
+        (WebCore::RenderBlock::fillSelectionGaps):
+        (WebCore::RenderBlock::fillLeftSelectionGap):
+        (WebCore::RenderBlock::fillRightSelectionGap):
+
+2008-08-01  Timothy Hatcher  <timothy@apple.com>
+
+        Adds the ability to disable individual properties of a CSS rule.
+        When hovering over a rule, checkboxes show up to the right of all
+        properties and toggling a checkbox disables/enables the property.
+        Behind the scenes the property is removed from the rule when disabled,
+        but still remains in the list and in the computed style. When disabled
+        the property has a line through it, and is faded in computed style.
+
+        <rdar://problem/5712828> Support disabling individual CSS properties
+        https://bugs.webkit.org/show_bug.cgi?id=14377
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/StylesSidebarPane.js:
+        (WebInspector.StylesSidebarPane.prototype.update): Include the
+        inline style when it also has disabled properties. Call
+        deleteDisabledProperty for any property that is in the style,
+        since it might have been added back by the page. Remember all
+        disabled properties so they show up in computed style.
+        (deleteDisabledProperty): Helper function to delete all the
+        right properties that track disabled properties.
+        (WebInspector.StylePropertiesSection): Add the computed-style
+        class when  the section is Computed Style.
+        (WebInspector.StylePropertiesSection.prototype.onpopulate):
+        Include disabled properties.
+        (WebInspector.StylePropertyTreeElement): Added a disabled argument.
+        (WebInspector.StylePropertyTreeElement.prototype.get/set disabled):
+        Sets the _disabled property and calls updateState.
+        (WebInspector.StylePropertyTreeElement.prototype.get priority):
+        Return the priority of enabled or disabled properties.
+        (WebInspector.StylePropertyTreeElement.prototype.get value):
+        Return the value of enabled or disabled properties.
+        (WebInspector.StylePropertyTreeElement.prototype.updateTitle): Use the
+        priority and value getter. Append the checkbox for root elements of
+        an editable section.
+        (WebInspector.StylePropertyTreeElement.prototype.toggleEnabled):
+        Add or remove properties from the rule and remember removed ones
+        by adding three objects to the style: __disabledProperties,
+        __disabledPropertyValues and __disabledPropertyPriorities.
+        The __disabledProperties object will include all longhand
+        properties of a shorthand for use by Computed Style.
+        (WebInspector.StylePropertyTreeElement.prototype.updateState):
+        Use the value getter. Update the disabled state.
+        * page/inspector/inspector.css:
+        * page/inspector/utilities.js:
+        (Object.hasProperties): Added. Helper to test if an object
+        has any properties.
+
+2008-07-31  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        <rdar://problem/5949410>
+        Add the ability to transfer a given application cache to a new database.
+        
+        * WebCore.base.exp:
+        Export ApplicationCacheStorage::storeCopyOfCache.
+        
+        * loader/appcache/ApplicationCache.cpp:
+        (WebCore::ApplicationCache::~ApplicationCache):
+        Don't call cacheDestroyed for our special "copy" groups.
+        
+        * loader/appcache/ApplicationCacheGroup.cpp:
+        (WebCore::ApplicationCacheGroup::ApplicationCacheGroup):
+        (WebCore::ApplicationCacheGroup::~ApplicationCacheGroup):
+        Add a "copy" flag to the ApplicationCacheGroup constructor. A "copied" group is special
+        and can only be stored to disk.
+        
+        * loader/appcache/ApplicationCacheGroup.h:
+        (WebCore::ApplicationCacheGroup::isCopy):
+        New getter.
+        
+        * loader/appcache/ApplicationCacheStorage.cpp:
+        (WebCore::ApplicationCacheStorage::store):
+        Make sure to set the storageID when storing an application resource.
+        
+        (WebCore::ApplicationCacheStorage::storeNewestCache):
+        Change this to return true/false depending on whether storing the cache succeeded or not.
+        
+        (WebCore::ApplicationCacheStorage::storeCopyOfCache):
+        New method which stores a given cache in a new storage (database file).
+        
+        * loader/appcache/ApplicationCacheStorage.h:
+        Add new methods.
+
 2008-08-01  John Sullivan  <sullivan@apple.com>
 
         WebCore part of <rdar://problem/6116650> Text-only zoom setting should be stored in WebKit prefs

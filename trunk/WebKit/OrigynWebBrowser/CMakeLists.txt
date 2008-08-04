@@ -12,7 +12,7 @@ IF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
         COMMAND echo 'extern \"C\" {' > ${CMAKE_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.cpp
         COMMAND glib-genmarshal --prefix=webkit_marshal ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/gtk/webkit-marshal.list --body >> generated_sources/WebKit/webkit-marshal.cpp
         COMMAND echo '}' >> ${CMAKE_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.cpp
-        DEPENDS ${CMAKE_SOURCE_DIR}/WebKit/gtk/webkit/webkit-marshal.list
+        DEPENDS ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/gtk/webkit-marshal.list
     )
 ENDIF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
 

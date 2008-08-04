@@ -1,3 +1,46 @@
+2008-08-04  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Eric Seidel.
+      
+        These icons are copies from the resizers in WebCore/Ressources
+
+        * ChangeLog:
+        * WebKit.vcproj/WebKit.rc:
+        * WebKit.vcproj/panEastCursor.png: Added.
+        * WebKit.vcproj/panNorthCursor.png: Added.
+        * WebKit.vcproj/panNorthEastCursor.png: Added.
+        * WebKit.vcproj/panNorthWestCursor.png: Added.
+        * WebKit.vcproj/panSouthCursor.png: Added.
+        * WebKit.vcproj/panSouthEastCursor.png: Added.
+        * WebKit.vcproj/panSouthWestCursor.png: Added.
+        * WebKit.vcproj/panWestCursor.png: Added.
+        * WebKit.vcproj/resource.h:
+        * WebKitDLL.cpp:
+        (loadResourceIntoBuffer):
+
+2008-08-01  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix for <rdar://problem/6119382> Need to hook up WebFrame's 
+        disconnected frame API on Windows.
+
+        * Interfaces/IWebFrame.idl:
+        * WebFrame.cpp:
+        (WebFrame::setIsDisconnected):
+        * WebFrame.h:
+
+2008-08-01  Adam Roben  <aroben@apple.com>
+
+        Fix <rdar://6118733> REGRESSION (r35502): Crash when submitting any
+        form
+
+        Reviewed by Darin Adler.
+
+        * COMPropertyBag.h:
+        (COMPropertyBag::QueryInterface): Cast to an appropriate type before
+        assigning into ppvObject.
+
 2008-08-01  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Adam.

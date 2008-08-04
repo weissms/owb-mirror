@@ -1,3 +1,20 @@
+2008-08-04  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Eric Seidel.
+
+        Remove webkit-marshal.list, which was made obsolete in #19742
+
+        * webkit/webkit-marshal.list: Removed.
+
+2008-08-01  Wouter Bolsterlee  <uws@xs4all.nl>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20035
+        [GTK] Fix return value for webkit_web_view_go_to_back_forward_item()
+
+        * webkit/webkitwebview.cpp:
+
 2008-08-01  Marco Barisione  <marco.barisione@collabora.co.uk>
 
         Reviewed by Holger.

@@ -328,6 +328,60 @@ const Cursor& rowResizeCursor()
     return c;
 }
 
+const Cursor& middlePanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& eastPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& northPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& northEastPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& northWestPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& southPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& southEastPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& southWestPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& westPanningCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
 // FIXME: should find better GDK cursors for those than a generic GDK_LEFT_PTR
 const Cursor& verticalTextCursor()
 {

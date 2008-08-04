@@ -222,6 +222,60 @@ namespace WKAL {
      */
     const Cursor& rowResizeCursor();
 
+
+    /**
+     * middlePanningCursor
+     */
+    const Cursor& middlePanningCursor();
+
+
+    /**
+     * eastPanningCursor 
+     */
+    const Cursor& eastPanningCursor();
+
+
+    /**
+     * northPanningCursor
+     */
+    const Cursor& northPanningCursor();
+
+
+    /**
+     * northEastPanningCursor 
+     */
+    const Cursor& northEastPanningCursor();
+
+
+    /**
+     * northWestPanningCursor
+     */
+    const Cursor& northWestPanningCursor();
+
+
+    /**
+     * southPanningCursor
+     */
+    const Cursor& southPanningCursor();
+
+
+    /**
+     * southEastPanningCursor
+     */
+    const Cursor& southEastPanningCursor();
+
+
+    /**
+     * southWestPanningCursor
+     */
+    const Cursor& southWestPanningCursor();
+
+
+    /**
+     * westPanningCursor
+     */
+    const Cursor& westPanningCursor();
+
     /**
      * verticalTextCursor
      */
@@ -279,8 +333,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // Cursor_h
-
-
-
-
+#endif // Curs
