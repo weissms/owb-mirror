@@ -2,7 +2,7 @@ Index: BAL/OWBAL/Concretizations/Types/WK/BCKURLWK.cpp
 ===================================================================
 --- BAL/OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	(revision 2823)
 +++ BAL/OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	(working copy)
-@@ -1300,7 +1300,7 @@
+@@ -1317,7 +1317,7 @@
          return;
      }
  
@@ -11,7 +11,7 @@ Index: BAL/OWBAL/Concretizations/Types/WK/BCKURLWK.cpp
      UChar hostnameBuffer[hostnameBufferLength];
      UErrorCode error = U_ZERO_ERROR;
      int32_t numCharactersConverted = uidna_IDNToASCII(str, strLen, hostnameBuffer,
-@@ -1310,6 +1310,8 @@
+@@ -1327,6 +1327,8 @@
  #elif USE(QT4_UNICODE)
      QByteArray result = QUrl::toAce(String(str, strLen));
      buffer.append(result.constData(), result.length());

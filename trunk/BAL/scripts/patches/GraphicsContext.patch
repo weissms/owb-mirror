@@ -2,7 +2,7 @@ Index: BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp
 ===================================================================
 --- BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp	(revision 2800)
 +++ BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp	(working copy)
-@@ -427,7 +427,7 @@
+@@ -426,7 +426,7 @@
  }
  #endif
  
@@ -11,7 +11,7 @@ Index: BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp
  // Other platforms need to implement this.
  void GraphicsContext::clipToImageBuffer(const FloatRect&, const ImageBuffer*)
  {
-@@ -435,7 +435,7 @@
+@@ -434,7 +434,7 @@
  }
  #endif
  

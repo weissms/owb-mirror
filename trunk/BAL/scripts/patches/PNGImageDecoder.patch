@@ -8,6 +8,6 @@ Index: BAL/OWBAL/Concretizations/ImageDecoder/PNG/WK/BCPNGImageDecoderWK.cpp
  
 -#if PLATFORM(CAIRO) || PLATFORM(QT) || PLATFORM(WX)
 +#if PLATFORM(CAIRO) || PLATFORM(QT) || PLATFORM(WX) || PLATFORM(BAL)
- 
- namespace OWBAL {
- 
+
+ #if COMPILER(MSVC)
+ // Remove warnings from warning level 4.

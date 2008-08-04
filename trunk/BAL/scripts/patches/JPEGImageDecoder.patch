@@ -8,6 +8,6 @@ Index: BAL/OWBAL/Concretizations/ImageDecoder/JPEG/WK/BCJPEGImageDecoderWK.cpp
  
 -#if PLATFORM(CAIRO) || PLATFORM(QT) || PLATFORM(WX)
 +#if PLATFORM(CAIRO) || PLATFORM(QT) || PLATFORM(WX) || PLATFORM(BAL)
- 
- extern "C" {
- #include "jpeglib.h"
+
+ #if COMPILER(MSVC)
+ // Remove warnings from warning level 4.

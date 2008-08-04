@@ -2,7 +2,7 @@ Index: BAL/WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp
 ===================================================================
 --- BAL/WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp	(revision 286)
 +++ BAL/WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp	(working copy)
-@@ -466,8 +466,12 @@
+@@ -467,8 +467,12 @@
          outData = reinterpret_cast<char*>(g_base64_decode(data.utf8().data(), &outLength));
  #else
          Vector<char> out;
@@ -17,7 +17,7 @@ Index: BAL/WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp
          else
              data = String();
  #endif
-@@ -497,6 +501,9 @@
+@@ -498,6 +502,9 @@
  
  #ifdef USE_GLIB_BASE64
      g_free(outData);

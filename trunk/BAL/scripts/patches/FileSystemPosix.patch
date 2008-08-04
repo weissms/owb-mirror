@@ -2,8 +2,8 @@ Index: BAL/OWBAL/Concretizations/Facilities/Posix/BCFileSystemPosix.cpp
 ===================================================================
 --- BAL/OWBAL/Concretizations/Facilities/Posix/BCFileSystemPosix.cpp	(revision 2800)
 +++ BAL/OWBAL/Concretizations/Facilities/Posix/BCFileSystemPosix.cpp	(working copy)
-@@ -157,4 +157,34 @@
-     return dirname(fsRep.mutableData());
+@@ -165,4 +165,34 @@
+     return entries;
  }
  
 +//FIXME : implement this and send a patch to WebCore

@@ -1,3 +1,28 @@
+2008-08-01  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix AmigaOS4 implementation by adding patches for future merge.
+        Fix all patches for merge to remove hunk offsets.
+        Remove duplicated BCTCSystemAllocWK files (was present in Memory and
+		Types).
+
+        * OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp:
+        * OWBAL/Concretizations/Types/CMakeLists.txt:
+        * OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h:
+        (TCMalloc_SlowLock):
+        * OWBAL/Concretizations/Types/WK/BCTCSystemAllocWK.cpp: Removed.
+        * OWBAL/Concretizations/Types/WK/BCTCSystemAllocWK.h: Removed.
+        * scripts/patches/FileSystemPosix.patch:
+        * scripts/patches/GraphicsContext.patch:
+        * scripts/patches/JPEGImageDecoder.patch:
+        * scripts/patches/KURL.patch:
+        * scripts/patches/PNGImageDecoder.patch:
+        * scripts/patches/Platform.patch:
+        * scripts/patches/ResourceHandleManager.patch:
+        * scripts/patches/TCSpinLock.patch: Added.
+        * scripts/patches/TCSystemAlloc.patch: Added.
+        * scripts/patches/index.txt:
+
 2008-07-31  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Olivier DOLE.
