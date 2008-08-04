@@ -224,6 +224,12 @@ bool WebFrame::allowsScrolling()
     return false;
 }
 
+void WebFrame::setIsDisconnected(bool flag)
+{
+    if (Frame* frame = core(this))
+        frame->setIsDisconnected(flag);
+}
+
 String WebFrame::name()
 {
     Frame* coreFrame = core(this);

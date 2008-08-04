@@ -356,6 +356,12 @@ public:
      */
     virtual bool allowsScrolling();
 
+    /*!
+      @method setIsDisconnected
+      @abstract Set whether a frame is disconnected
+      @param flag true to mark the frame as disconnected, false keeps it a regular frame
+    */
+    virtual void setIsDisconnected(bool flag);
 
     /**
      * test if the frame supports text encoding 
