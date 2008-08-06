@@ -1,3 +1,140 @@
+2008-08-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix an assertion failure in Cache::setCapacities()
+
+        * Misc/WebKitSystemBits.h: Changed the return type of WebMemorySize()
+        to uint64_t.
+        * Misc/WebKitSystemBits.m:
+        (WebMemorySize):
+        * WebView/WebView.mm:
+        (+[WebView _setCacheModel:]):
+
+2008-08-05  Anders Carlsson  <andersca@apple.com>
+
+        Pass in the correct class here.
+        
+        * WebView/WebResource.mm:
+        (-[WebResourcePrivate dealloc]):
+
+2008-08-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        <rdar://problem/6037398>
+        ER: Deallocate WebKit objects on the main thread, even if released on secondary thread
+        
+        Add calls to WebCoreObjCScheduleDeallocateOnMainThread in dealloc methods of objects we expose.
+
+        * Carbon/CarbonWindowAdapter.m:
+        (-[CarbonWindowAdapter dealloc]):
+        * History/WebBackForwardList.mm:
+        (-[WebBackForwardList dealloc]):
+        * History/WebHistoryItem.mm:
+        (-[WebHistoryItem dealloc]):
+        * Misc/WebElementDictionary.mm:
+        (+[WebElementDictionary initialize]):
+        (-[WebElementDictionary dealloc]):
+        * WebCoreSupport/WebEditorClient.mm:
+        (-[WebEditCommand dealloc]):
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        * WebView/WebArchive.mm:
+        (-[WebArchivePrivate dealloc]):
+        * WebView/WebDataSource.mm:
+        (-[WebDataSourcePrivate dealloc]):
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLViewPrivate dealloc]):
+        (-[WebHTMLView dealloc]):
+        * WebView/WebResource.mm:
+        (-[WebResourcePrivate dealloc]):
+
+2008-08-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        Remove MainThreadObjectDeallocator.{h|mm}.
+
+        * WebView/MainThreadObjectDeallocator.h: Removed.
+        * WebView/MainThreadObjectDeallocator.mm: Removed.
+        
+        * WebView/WebView.mm:
+        (-[WebView dealloc]):
+        Call WebCoreObjCScheduleDeallocateOnMainThread instead.
+
+2008-08-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        Make the main thread object deallocator work with subclasses.
+        
+        * WebView/MainThreadObjectDeallocator.h:
+        * WebView/MainThreadObjectDeallocator.mm:
+        (deallocCallback):
+        Call the correct dealloc method.
+                
+        (scheduleDeallocateOnMainThread):
+        Store both the class and the instance, so we know which dealloc method to call.
+        
+        * WebView/WebView.mm:
+        (-[WebViewPrivate dealloc]):
+        Schedule deallocation on the main thread.
+
+2008-08-05  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe and Anders Carlsson.
+
+        - fix WebMemorySize() reporting a value capped at 2GB
+
+        * misc/WebKitSystemBits.m:
+        (WebMemorySize): Changed to return the max_mem field, which, unlike
+        memory_size, is not capped at 2GB.
+        * WebView/WebView.mm:
+        (+[WebView _setCacheModel:]): Made the cache sizes for over 2GB RAM the
+        same as for 2GB, so that behavior on machines that have more than 2GB
+        RAM is not affected by the fix to WebMemorySize().
+
+2008-08-04  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * WebView/WebHTMLView.mm:
+
+2008-08-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Adopt the formal protocols where necessary.
+        Final part of fix for <rdar://problem/5853147>.
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        * WebView/WebHTMLView.mm:
+        * WebView/WebView.mm:
+        (-[WebView _openFrameInNewWindowFromMenu:]):
+
+2008-08-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Declare empty protocols when using versions of AppKit that do not use formal protocols for delegates and data sources.
+        Part one of fix for <rdar://problem/5853147>.
+
+        * Misc/EmptyProtocolDefinitions.h:
+        * WebKitPrefix.h:
+
+2008-08-04  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mitz Pettel
+
+        Fix <rdar://problem/5820157> - Saving WebArchives of Mail attachments broken.
+
+        This broke in r31355 when we stopped returning nil WebResources when there was nil
+        resource data.
+
+        * WebView/WebResource.mm:
+        (-[WebResource _initWithCoreResource:]): Restore previous behavior of returning nil
+          when the resource data is null.
+
 2008-08-04  Matt Lilek  <webkit@mattlilek.com>
 
         Reviewed by Tim Hatcher.

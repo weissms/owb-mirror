@@ -85,6 +85,10 @@
 #include "HTMLUListElement.h"
 #include "HTMLVideoElement.h"
 
+#ifdef __HTML_EXT__
+#include "OWBHtmlElementFactory.h"
+#endif
+
 namespace WebCore {
 
 using namespace HTMLNames;
@@ -504,6 +508,12 @@ PassRefPtr<HTMLElement> HTMLElementFactory::createHTMLElement(const AtomicString
 {
     if (!doc)
         return 0; // Don't allow elements to ever be made without having a doc.
+        
+#ifdef __HTML_EXT__
+    RefPtr<HTMLElement> element = OWBHTMLElementFactory::createHTMLElement(tagName, doc, form, createdByParser);
+    if(element)
+        return element.release();
+#endif
 
     if (!gFunctionMap)
         createFunctionMap();

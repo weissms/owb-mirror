@@ -2041,7 +2041,8 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->authorAndUserStylesEnabled();
     settings->setAuthorAndUserStylesEnabled(enabled);
 
-    m_mainFrame->invalidate(); // FIXME
+    if (!m_closeWindowTimer.isActive())
+        m_mainFrame->invalidate(); // FIXME
 
     updateSharedSettingsFromPreferencesIfNeeded(preferences);
 }

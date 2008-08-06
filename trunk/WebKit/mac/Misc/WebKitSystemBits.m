@@ -56,10 +56,10 @@ static void initCapabilities(void)
     }
 }
 
-vm_size_t WebMemorySize(void)
+uint64_t WebMemorySize(void)
 {
     pthread_once(&initControl, initCapabilities);
-    return gHostBasicInfo.memory_size;
+    return gHostBasicInfo.max_mem;
 }
 
 int WebNumberOfCPUs(void)

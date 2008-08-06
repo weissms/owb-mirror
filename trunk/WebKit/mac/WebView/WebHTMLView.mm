@@ -315,6 +315,11 @@ static CachedResourceClient* promisedDataClient()
 - (NSTextInputContext *)inputContext;
 @end
 
+@interface NSObject (NSTextInputContextDetails)
+- (BOOL)wantsToHandleMouseEvents;
+- (BOOL)handleMouseEvent:(NSEvent *)event;
+@end
+
 @interface WebHTMLView (WebNSTextInputSupport) <NSTextInput>
 - (void)_updateSelectionForInputManager;
 @end
@@ -333,7 +338,7 @@ static CachedResourceClient* promisedDataClient()
 @end
 
 // Handles the complete: text command
-@interface WebTextCompleteController : NSObject {
+@interface WebTextCompleteController : NSObject <NSTableViewDelegate, NSTableViewDataSource> {
 @private
     WebHTMLView *_view;
     NSWindow *_popupWindow;
@@ -465,6 +470,9 @@ static NSCellStateValue kit(TriState state)
 
 - (void)dealloc
 {
+    if (WebCoreObjCScheduleDeallocateOnMainThread([WebHTMLViewPrivate class], self))
+        return;
+
     ASSERT(!autoscrollTimer);
     ASSERT(!autoscrollTriggerEvent);
     ASSERT(!updateFocusedAndActiveStateTimer);
@@ -2122,6 +2130,9 @@ static void _updateMouseoverTimerCallback(CFRunLoopTimerRef timer, void *info)
 
 - (void)dealloc
 {
+    if (WebCoreObjCScheduleDeallocateOnMainThread([WebHTMLView class], self))
+        return;
+
     // We can't assert that close has already been called because
     // this view can be removed from it's superview, even though
     // it could be needed later, so close if needed.

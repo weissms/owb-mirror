@@ -1,3 +1,91 @@
+2008-08-06  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Move event handling of the return-key from EditorClientQt to QWebPage.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20191
+        
+        This is a first step in refactoring the big switch block
+        in EditorClientQt::handleKeyboardEvent to using WebActions
+        instead.
+        
+        The new logic uses two new StandardKeys from QKeySequence:
+        
+        - InsertParagraphSeparator
+        - InsertLineSeparator
+        
+        Which translate to the commands InsertNewline and InsertLineBreak
+        respectivly. On Windows/X11 pressing the shift modifier will invoke
+        the latter action. For Mac this is triggered by pressing the meta
+        modifier (Ctrl).
+        
+        Initial patch by: Erik Bunce
+
+        * Api/qwebpage.cpp:
+        (editorActionForKeyEvent):
+        * Api/qwebpage.h:
+        * WebCoreSupport/EditorClientQt.cpp:
+        (WebCore::EditorClientQt::handleKeyboardEvent):
+
+2008-08-04  Erik Bunce  <elbunce@thehive.com>
+
+        Reviewed by Simon.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20221
+
+        Add updateAction() support to ToggleBold, ToggleItalic, and ToggleUnderline.
+        Add lookup table for mapping web actions to editor commands.
+
+        * Api/qwebpage.cpp:
+        (editorCommandForWebActions):
+        (QWebPagePrivate::updateAction):
+        (QWebPagePrivate::updateEditorActions):
+        (QWebPage::triggerAction):
+        (QWebPage::setEditable):
+
+2008-08-03  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        A bunch of improvements to the QtLauncher.
+
+        Among others:
+        - Unify and unclutter the toolbar, use menu for addition actions
+        - Simplify URL edit, just use QLineEdit (no fancy close button etc)
+        - Guess the URL from the command line so now we can run ./QtLauncher www.google.com
+        - Shortcut keys for most actions
+        - Simple autocomplete for the URL edit
+        - Actions for zooming, New Window and Close Window
+        - Show Format menu only when the content is set to editable
+
+        * QtLauncher/main.cpp:
+        (MainWindow::MainWindow):
+        (MainWindow::webPage):
+        (MainWindow::changeLocation):
+        (MainWindow::loadFinished):
+        (MainWindow::showLinkHover):
+        (MainWindow::newWindow):
+        (MainWindow::zoomIn):
+        (MainWindow::zoomOut):
+        (MainWindow::resetZoom):
+        (MainWindow::print):
+        (MainWindow::setEditable):
+        (MainWindow::dumpHtml):
+        (MainWindow::setupUI):
+        (main):
+
+2008-08-04  Erik Bunce  <elbunce@thehive.com>
+
+        Reviewed by Simon.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20198
+
+        Allow Copy key sequence to work in non-editable areas.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::keyPressEvent):
+
 2008-08-01  Erik Bunce  <elbunce@thehive.com>
 
         Reviewed by Simon.

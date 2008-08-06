@@ -425,6 +425,7 @@
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/DeprecatedValueList.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/DeprecatedValueListImpl.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/KURL.h
+../../OWBAL/Skeletons/Types	../../../WebCore/platform/KURLHash.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/SharedBuffer.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/TreeShared.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/graphics/Icon.h
@@ -480,6 +481,7 @@
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/DeprecatedValueListImpl.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/KURL.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/KURL.cpp
+../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/KURLHash.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/SharedBuffer.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/SharedBuffer.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/TreeShared.h

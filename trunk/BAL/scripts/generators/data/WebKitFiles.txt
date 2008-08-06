@@ -10,6 +10,7 @@ WebCore/html/CanvasRenderingContext2D.cpp
 WebCore/html/CanvasStyle.cpp
 WebCore/html/HTMLCanvasElement.cpp
 WebCore/html/HTMLCanvasElement.h
+WebCore/html/HTMLElementFactory.cpp
 WebCore/loader/CachedFont.cpp
 WebCore/page/AccessibilityObject.cpp
 WebCore/page/AccessibilityObject.h

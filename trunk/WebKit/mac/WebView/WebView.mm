@@ -30,7 +30,6 @@
 #import "WebViewInternal.h"
 
 #import "DOMRangeInternal.h"
-#import "MainThreadObjectDeallocator.h"
 #import "WebBackForwardListInternal.h"
 #import "WebBaseNetscapePluginView.h"
 #import "WebChromeClient.h"
@@ -491,10 +490,7 @@ static BOOL grammarCheckingEnabled;
 }
 
 - (void)dealloc
-{
-    if (scheduleDeallocateOnMainThread(self))
-        return;
-    
+{    
     ASSERT(applicationIsTerminating || !page);
     ASSERT(applicationIsTerminating || !preferences);
 
@@ -2072,6 +2068,9 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 
 - (void)dealloc
 {
+    if (WebCoreObjCScheduleDeallocateOnMainThread([WebView class], self))
+        return;
+
     // call close to ensure we tear-down completely
     // this maintains our old behavior for existing applications
     [self close];
@@ -3916,7 +3915,7 @@ static WebFrameView *containingFrameView(NSView *view)
 
     // As a fudge factor, use 1000 instead of 1024, in case the reported byte 
     // count doesn't align exactly to a megabyte boundary.
-    vm_size_t memSize = WebMemorySize() / 1024 / 1000;
+    uint64_t memSize = WebMemorySize() / 1024 / 1000;
     unsigned long long diskFreeSize = WebVolumeFreeSize(nsurlCacheDirectory) / 1024 / 1000;
     NSURLCache *nsurlCache = [NSURLCache sharedURLCache];
 
@@ -3935,11 +3934,7 @@ static WebFrameView *containingFrameView(NSView *view)
         pageCacheCapacity = 0;
 
         // Object cache capacities (in bytes)
-        if (memSize >= 4096)
-            cacheTotalCapacity = 256 * 1024 * 1024;
-        else if (memSize >= 3072)
-            cacheTotalCapacity = 192 * 1024 * 1024;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             cacheTotalCapacity = 128 * 1024 * 1024;
         else if (memSize >= 1536)
             cacheTotalCapacity = 86 * 1024 * 1024;
@@ -3973,11 +3968,7 @@ static WebFrameView *containingFrameView(NSView *view)
             pageCacheCapacity = 0;
 
         // Object cache capacities (in bytes)
-        if (memSize >= 4096)
-            cacheTotalCapacity = 256 * 1024 * 1024;
-        else if (memSize >= 3072)
-            cacheTotalCapacity = 192 * 1024 * 1024;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             cacheTotalCapacity = 128 * 1024 * 1024;
         else if (memSize >= 1536)
             cacheTotalCapacity = 86 * 1024 * 1024;
@@ -4016,11 +4007,7 @@ static WebFrameView *containingFrameView(NSView *view)
     case WebCacheModelPrimaryWebBrowser: {
         // Page cache capacity (in pages)
         // (Research indicates that value / page drops substantially after 3 pages.)
-        if (memSize >= 8192)
-            pageCacheCapacity = 7;
-        if (memSize >= 4096)
-            pageCacheCapacity = 6;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             pageCacheCapacity = 5;
         else if (memSize >= 1024)
             pageCacheCapacity = 4;
@@ -4035,11 +4022,7 @@ static WebFrameView *containingFrameView(NSView *view)
         // (Testing indicates that value / MB depends heavily on content and
         // browsing pattern. Even growth above 128MB can have substantial 
         // value / MB for some content / browsing patterns.)
-        if (memSize >= 4096)
-            cacheTotalCapacity = 512 * 1024 * 1024;
-        else if (memSize >= 3072)
-            cacheTotalCapacity = 384 * 1024 * 1024;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             cacheTotalCapacity = 256 * 1024 * 1024;
         else if (memSize >= 1536)
             cacheTotalCapacity = 172 * 1024 * 1024;
@@ -4235,8 +4218,9 @@ static WebFrameView *containingFrameView(NSView *view)
 
     NSDictionary *element = [sender representedObject];
     ASSERT([element isKindOfClass:[NSDictionary class]]);
-    
-    NSURLRequest *request = [[[[element objectForKey:WebElementFrameKey] dataSource] request] copy];
+
+    WebDataSource *dataSource = [[element objectForKey:WebElementFrameKey] dataSource];
+    NSURLRequest *request = [[dataSource request] copy];
     ASSERT(request);
     
     [self _openNewWindowWithRequest:request];

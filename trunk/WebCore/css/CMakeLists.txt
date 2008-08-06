@@ -54,5 +54,7 @@ LIST (APPEND CSS_SRC
     css/StyleList.cpp
     css/StyleSheet.cpp
     css/StyleSheetList.cpp
+    css/WebKitCSSKeyframeRule.cpp
+    css/WebKitCSSKeyframesRule.cpp
     css/WebKitCSSTransformValue.cpp
 )

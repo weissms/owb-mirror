@@ -23,22 +23,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include "MainThreadObjectDeallocator.h"
+#ifndef KURLHash_h
+#define KURLHash_h
 
-#include <wtf/MainThread.h>
+#include "KURL.h"
+#include "PlatformString.h"
+#include "StringHash.h"
 
-static void deallocCallback(void* context)
-{
-    id object = static_cast<id>(context);
-    
-    [object dealloc];
-}
+namespace WebCore {
 
-bool scheduleDeallocateOnMainThread(id object)
-{
-    if (pthread_main_np() != 0)
-        return false;
+    struct KURLHash {
+        static unsigned hash(const KURL& key)
+        {
+            return key.string().impl()->hash();
+        }
 
-    callOnMainThread(deallocCallback, object);
-    return true;
-}
+        static bool equal(const KURL& a, const KURL& b)
+        {
+            return StringHash::equal(a.string(), b.string());
+        }
+
+        static const bool safeToCompareToEmptyOrDeleted = false;
+    };
+
+} // namespace WebCore
+
+namespace WTF {
+
+    template<> struct HashTraits<WebCore::KURL> : GenericHashTraits<WebCore::KURL> {
+        static const bool emptyValueIsZero = true;
+        static void constructDeletedValue(WebCore::KURL& slot) { new (&slot) WebCore::KURL(WebCore::String(HashTableDeletedValue)); }
+        static bool isDeletedValue(const WebCore::KURL& slot) { return slot.string().isHashTableDeletedValue(); }
+    };
+
+} // namespace WTF
+
+#endif // KURLHash_h

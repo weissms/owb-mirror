@@ -20,15 +20,30 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MainThreadObjectDeallocator_h
-#define MainThreadObjectDeallocator_h
+#if defined(__OBJC__)
 
-#include <objc/objc.h>
+#if defined(BUILDING_ON_TIGER) || defined(BUILDING_ON_LEOPARD)
+#define DELEGATES_DECLARED_AS_FORMAL_PROTOCOLS 0
+#else
+#import <Foundation/NSPrivateDecls.h>
+#define DELEGATES_DECLARED_AS_FORMAL_PROTOCOLS defined(__COCOA_FORMAL_PROTOCOLS__)
+#endif
 
-bool scheduleDeallocateOnMainThread(id object);
+#if !DELEGATES_DECLARED_AS_FORMAL_PROTOCOLS
 
-#endif // MainThreadDeallocator_h
+#define EMPTY_PROTOCOL(NAME) \
+@protocol NAME <NSObject> \
+@end
 
+EMPTY_PROTOCOL(NSTableViewDataSource)
+EMPTY_PROTOCOL(NSTableViewDelegate)
+EMPTY_PROTOCOL(NSWindowDelegate)
+
+#undef EMPTY_PROTOCOL
+
+#endif /* !DELEGATES_DECLARED_AS_FORMAL_PROTOCOLS */
+
+#endif /* defined(__OBJC__) */

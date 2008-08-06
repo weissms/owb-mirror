@@ -1,3 +1,449 @@
+2008-08-06  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix last timer fix.
+        Add null check, clear timer using InterlockedExchange.
+        
+        Reviewed by Alice Liu.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::clearTimer):
+        (WebCore::queueTimerProc):
+        (WebCore::stopSharedTimer):
+
+2008-08-05  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix timer leak, flag.
+        
+        Timers need to be deleted explicitly, even if they fire.
+        Also added WT_EXECUTEONLYONCE flag, since this is not a repeating timer.
+        
+        Reviewed by Ada Chan.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::queueTimerProc):
+
+2008-08-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        <rdar://problem/6037398>
+        ER: Deallocate WebKit objects on the main thread, even if released on secondary thread
+        
+        Add calls to WebCoreObjCScheduleDeallocateOnMainThread in dealloc methods of objects we expose.
+        
+        * bindings/objc/DOMRGBColor.mm:
+        (-[DOMRGBColor dealloc]):
+        * bindings/objc/WebScriptObject.mm:
+        (-[WebScriptObject dealloc]):
+        * platform/mac/SharedBufferMac.mm:
+        (-[WebCoreSharedBufferData dealloc]):
+
+2008-08-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin.
+
+        Move the main thread deallocator here from WebKit.
+        
+        * WebCore.base.exp:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/mac/WebCoreObjCExtras.c:
+        (method_getImplementation):
+        (deallocCallback):
+        (WebCoreObjCScheduleDeallocateOnMainThread):
+        * platform/mac/WebCoreObjCExtras.h:
+
+2008-08-05  Dean Jackson  <dino@apple.com>
+
+        Parse CSS Animations, including the new
+        -webkit-animation properties and the @-webkit-keyframes rule.
+        Adds some new interfaces for the style rules.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20088
+
+        Reviewed by David Hyatt.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+            build config for new files
+        * css/tokenizer.flex:
+        * css/CSSGrammar.y:
+        * css/CSSParser.cpp:
+        * css/CSSParser.h:
+            new @-webkit-keyframes parsing
+        * css/CSSPropertyNames.in:
+            -webkit-animation properties
+        * css/CSSRule.h:
+        * css/CSSStyleSelector.cpp:
+        * css/CSSStyleSelector.h:
+        * css/CSSValueKeywords.in:
+        * css/StyleBase.h:
+        * css/WebKitCSSKeyframeRule.cpp: Added.
+        * css/WebKitCSSKeyframeRule.h: Added.
+        * css/WebKitCSSKeyframesRule.cpp: Added.
+        * css/WebKitCSSKeyframesRule.h: Added.
+
+2008-08-05  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        - LayoutTests fix.  Log only to the Inspector because other listeners may not want
+        XHR notifications, including DRT and the numerous tests that don't expect them.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFinishLoading):
+
+2008-08-05  Timothy Hatcher  <timothy@apple.com>
+
+        Makes DOM attribute editing start on double-click to match the styles
+        pane. Links in attributes are now triggered with a single click again.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20281
+
+        Reviewed by Adam Roben.
+
+        * English.lproj/localizedStrings.js: Removed some strings.
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.DOMNodeTreeElement.prototype.onattach): Call
+        _preventFollowingLinksOnDoubleClick.
+        (WebInspector.DOMNodeTreeElement.prototype._preventFollowingLinksOnDoubleClick):
+        Renamed from _makeURLsActivateOnModifiedClick. Simply sets the
+        preventFollowOnDoubleClick property on all links.
+        (WebInspector.DOMNodeTreeElement.prototype.onselect): Removed
+        _selectedByCurrentMouseDown.
+        (WebInspector.DOMNodeTreeElement.prototype.onmousedown): Moved
+        editing code to ondblclick.
+        (WebInspector.DOMNodeTreeElement.prototype.ondblclick): Calls
+        _startEditing. Removed URL check.
+        (WebInspector.DOMNodeTreeElement.prototype._updateTitle): Calls
+        _preventFollowingLinksOnDoubleClick.
+        * page/inspector/inspector.css:
+        (.editing): Removed the text-decoration property.
+        (.editing, .editing *): Added the text-decoration property here
+        so it removes underlines on child elements.
+        * page/inspector/inspector.js:
+        (WebInspector.documentClick): Removed the followOnAltClick code.
+        Added support for preventFollowOnDoubleClick, which sets a timeout
+        on the first click where future clicks will cancel it (double click).
+        If the timeout isn't canceled, the link is followed.
+
+2008-08-05  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6112219> Video in standalone media document flashes when navigating away
+
+        When navigating out from a page, MediaPlayer was set invisible and then immediately 
+        made visible again causing flicker in some cases.
+        
+        The document is not yet marked being in page cache when willSaveToCache() is called.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::willSaveToCache):
+        * rendering/RenderVideo.cpp:
+        (WebCore::RenderVideo::updatePlayer):
+
+2008-08-05  Dan Bernstein  <mitz@apple.com>
+
+        - fix typo
+
+        * page/mac/FrameMac.mm:
+
+2008-08-05  Dan Bernstein  <mitz@apple.com>
+
+        - try to fix the 64-bit build
+
+        * page/mac/FrameMac.mm:
+
+2008-08-05  Alp Toker  <alp@nuanti.com>
+
+        Remove leftover mark pragma from r35568 to fix compiler warning spew.
+
+        * rendering/style/RenderStyle.h:
+
+2008-08-05  Kevin McCullough  <kmccullough@apple.com>
+
+        - Added a test that checks for several edge cases (see description in
+        test.
+
+        * manual-tests/inspector/profiler-test-start-but-dont-stop-profiling.html: Added.
+
+2008-08-05  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Add support for CSS Animation properties to RenderStyle
+        https://bugs.webkit.org/show_bug.cgi?id=20068
+
+        (also fix some minor whitespace issues and remove debugging code)
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        * css/CSSStyleSelector.cpp:
+        * page/AnimationController.cpp:
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+
+2008-08-05  Kevin McCullough  <kmccullough@apple.com>
+
+        - Updated a manual test to be an accurate description of what it is
+        actually testing.
+
+        * manual-tests/inspector/profiler-test-stop-profiling-after-setTimeout.html:
+
+2008-08-05  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/5732836> XMLHttpRequest: Inspector should show network
+        activity/XHR in Console (17233)
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFinishLoading):
+
+2008-08-05  Dean Jackson  <dino@apple.com>
+
+        Fix the ChangeLog that was corrupted by r34545.
+
+2008-08-04  Timothy Hatcher  <timothy@apple.com>
+
+        Makes the selection surround just the name or value that was
+        double clicked when editing CSS properties. This regressed when
+        the Inspector started using focus/blur events, since a focus on
+        a content editable region changes the selection.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20280
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/StylesSidebarPane.js:
+        (WebInspector.StylePropertyTreeElement.prototype.startEditing):
+        Change the selection after calling WebInspector.startEditing,
+        since WebInspector.startEditing will set an initial selection
+        due to a focus event.
+
+2008-08-04  Timothy Hatcher  <timothy@apple.com>
+
+        Changes the editing behavior in the Inspector to commit changes
+        when focus is lost, instead of reverting the changes.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20279
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/inspector.js:
+        (WebInspector.startEditing): Call editingCommitted in blurEventListener
+        instead of editingCancelled.
+
+2008-08-04  Timothy Hatcher  <timothy@apple.com>
+
+        Adds the ability to increment/decrement numbers in editable style
+        properties with the arrow and page keys.
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20273
+
+        * page/inspector/StylesSidebarPane.js:
+        (WebInspector.StylePropertyTreeElement.prototype.updateAll):
+        Updates all properties in the current section, or all sections
+        depending in the argument passed.
+        (WebInspector.StylePropertyTreeElement.prototype.toggleEnabled):
+        Call updateAll instead of having duplicate code.
+        (WebInspector.StylePropertyTreeElement.prototype.startEditing):
+        Assign the list element's handleKeyEvent to editingKeyDown.
+        (WebInspector.StylePropertyTreeElement.prototype.editingKeyDown):
+        Handles the Up and Down arrows keys. Finds the word based on the
+        selection and extracts the number, prefix and suffix. Increments
+        or decrements the number based on the key and modifiers. Replaces
+        the original word with the new value and selects it. Also applies
+        the style so the page reflects the changes live.
+        (WebInspector.StylePropertyTreeElement.prototype.editingEnded):
+        Delete the handleKeyEvent and originalCSSText properties.
+        (WebInspector.StylePropertyTreeElement.prototype.editingCancelled):
+        If originalCSSText exists, set the cssText to that value and call
+        updateAll. Otherwise just call updateTitle like before.
+        (WebInspector.StylePropertyTreeElement.prototype.editingCommitted):
+        Factored out the style applying code to applyStyleText.
+        (WebInspector.StylePropertyTreeElement.prototype.applyStyleText):
+        Factored out from editingCommitted. Takes an argument that specifies
+        if the interface should be updated when the style is applied.
+        * page/inspector/inspector.js:
+        (WebInspector.startEditing): Call the original key handler, if one
+        existed before interrupting key events.
+        * page/inspector/utilities.js:
+        (getStyleTextWithShorthands): Helper to return CSS text that preserves
+        shorthand values, since the cssText property only outputs longhands.
+
+2008-08-04  Timothy Hatcher  <timothy@apple.com>
+
+        Factors out the TextPrompt.scanBackwards function into a generic
+        helper function on the Node prototype, named rangeOfWord.
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/Console.js:
+        (WebInspector.Console.prototype.completions): Use rangeOfWord.
+        * page/inspector/TextPrompt.js:
+        (WebInspector.TextPrompt.prototype.complete): Ditto.
+        (WebInspector.TextPrompt.prototype.scanBackwards): Removed.
+        * page/inspector/utilities.js:
+        (Node.prototype.rangeOfWord): Added. Copied from TextPrompt.scanBackwards,
+        and added a direction argument allowing scanning forward, backward or
+        both directions from the offset.
+
+2008-08-04  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where the property toggle button would not be hidden
+        during editing.
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/inspector.css:
+        (li.editing .swatch, li.editing .enabled-button):
+        Make the display !important, since a more specific rule for 
+        .enabledbutton overrides display.
+
+2008-08-05  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        - remove redundant #imports from FrameMac.mm
+
+        * page/mac/FrameMac.mm:
+
+2008-08-04  Bernhard Krüpl  <kruepl@dbai.tuwien.ac.at>
+
+        Reviewed by Dave Hyatt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=19094
+        Corrected offsetTop for table cells by subtracting borderTopExtra
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::offsetTop):
+
+2008-08-04  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Improve AnimationController
+        https://bugs.webkit.org/show_bug.cgi?id=19938
+
+        - Transition class is now called Animation
+        - new state-based AnimationController that can support CSS Animations
+        - add support for -webkit-transition-delay
+        - remove -webkit-transition-repeat-count (since it never existed officially)
+        - updates the -webkit-transition shorthand to reflect removing repeat count
+        - updates the Transition class so that properties can be shared with animations
+        - adds a "now" keyword for -webkit-transition-delay
+        - adds a new change type for style (changed by animation)
+        - adds new event names (although they are not dispatched yet)
+        - makes text stroke and text fill colors returned by RenderStyle const
+
+        Tests:
+        - manual-tests/transition-left.html
+        - manual-tests/transition-delay.html
+        - manual-tests/transition-timing-functions.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        * css/CSSParser.cpp:
+        * css/CSSParser.h:
+        * css/CSSPropertyNames.in:
+        * css/CSSStyleSelector.cpp:
+        * css/CSSStyleSelector.h:
+        * css/CSSTimingFunctionValue.h:
+        * css/CSSValue.h:
+        * css/CSSValueKeywords.in:
+        * css/WebKitCSSTransformValue.cpp:
+        * dom/Document.cpp:
+        * dom/Document.h:
+        * dom/Element.cpp:
+        * dom/EventNames.h:
+        * dom/Node.cpp:
+        * dom/Node.h:
+        * history/CachedPage.cpp:
+        * page/AnimationController.cpp:
+        * page/AnimationController.h:
+        * page/Frame.cpp:
+        * rendering/RenderObject.cpp:
+        * rendering/RenderWidget.cpp:
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+
+2008-08-04  Mike Belshe  <mike@belshe.com>
+
+        Reviewed by Antti.
+        
+        Currently we create two copies of script in the HTMLTokenizer.
+        One copy gets passed into the javascript engine, the other gets
+        stored in the DOM.  Modify the HTMLParser so that it does not
+        chunk the string into it's normal 64K chunks for script code,
+        and modify the HTMLTokenizer to pass that same string into the
+        JS engine.  On some sites (e.g. GMail), which have hundreds of
+        KB of inline JS, this saves more than a MB of RAM to run the page.
+        (Strings use 16bit strings, so 600KB of JS code == 1.2MB of memory)
+
+        * html\HTMLParser.cpp
+        * html\HTMLTokenizer.cpp
+
+2008-08-04  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Remove extra braces left in from JSLock removal.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::dropProtection):
+
+2008-08-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Implement the Access-control for Cross Site requests
+        preflight cache.
+
+        Tests: http/tests/xmlhttprequest/access-control-basic-allow-preflight-cache-invalidation-by-header.html
+               http/tests/xmlhttprequest/access-control-basic-allow-preflight-cache-invalidation-by-method.html
+               http/tests/xmlhttprequest/access-control-basic-allow-preflight-cache-timeout.html
+               http/tests/xmlhttprequest/access-control-basic-allow-preflight-cache.html
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/KURL.h:
+        (WTF::):
+        * platform/KURLHash.h: Added.
+        (WebCore::KURLHash::hash):
+        (WebCore::KURLHash::equal):
+        (WTF::):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::PreflightResultCacheItem::PreflightResultCacheItem):
+        (WebCore::preflightResultCache):
+        (WebCore::appendPreflightResultCacheEntry):
+        (WebCore::canSkipPrelight):
+        (WebCore::XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight):
+        (WebCore::parseAccessControlAllowList):
+        (WebCore::parseAccessControlMaxAge):
+        (WebCore::XMLHttpRequest::didReceiveResponsePreflight):
+
+2008-08-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Fix warning seen in MSVC converting ints to floats.
+
+        * rendering/Length.h:
+        (WebCore::Length::calcFloatValue):
+
+2008-08-04  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by hyatt.
+
+        Clean up Gradient constructors, make sure all members are initialized.
+
+        * platform/graphics/Gradient.cpp:
+        (WebCore::Gradient::Gradient):
+
 2008-08-04  Maxime Britto  <britto@apple.com>
 
         Reviewed by Eric Seidel.

@@ -4028,7 +4028,8 @@ HRESULT WebView::notifyPreferencesChanged(IWebNotification* notification)
         return hr;
     settings->setOfflineWebApplicationCacheEnabled(enabled);
 
-    m_mainFrame->invalidate(); // FIXME
+    if (!m_closeWindowTimer.isActive())
+        m_mainFrame->invalidate(); // FIXME
 
     hr = updateSharedSettingsFromPreferencesIfNeeded(preferences.get());
     if (FAILED(hr))

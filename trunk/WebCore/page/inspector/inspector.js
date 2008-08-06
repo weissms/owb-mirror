@@ -399,18 +399,28 @@ WebInspector.documentClick = function(event)
     if (!anchor)
         return;
 
-    if (anchor.followOnAltClick && !event.altKey) {
-        event.preventDefault();
+    // Prevent the link from navigating, since we don't do any navigation by following links normally.
+    event.preventDefault();
+
+    function followLink()
+    {
+        // FIXME: support webkit-html-external-link links here.
+        if (anchor.hasStyleClass("webkit-html-resource-link"))
+            WebInspector.showResourceForURL(anchor.href, anchor.lineNumber, anchor.preferredPanel);
+    }
+
+    if (WebInspector.followLinkTimeout)
+        clearTimeout(WebInspector.followLinkTimeout);
+
+    if (anchor.preventFollowOnDoubleClick) {
+        // Start a timeout if this is the first click, if the timeout is canceled
+        // before it fires, then a double clicked happened or another link was clicked.
+        if (event.detail === 1)
+            WebInspector.followLinkTimeout = setTimeout(followLink, 333);
         return;
     }
 
-    if (!anchor.hasStyleClass("webkit-html-resource-link"))
-        return;
-
-    if (WebInspector.showResourceForURL(anchor.href, anchor.lineNumber, anchor.preferredPanel)) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
+    followLink();
 }
 
 WebInspector.documentKeyDown = function(event)
@@ -1133,7 +1143,7 @@ WebInspector.startEditing = function(element, committedCallback, cancelledCallba
     element.__editing = true;
 
     var oldText = element.textContent;
-    var handleKeyEvent = element.handleKeyEvent;
+    var oldHandleKeyEvent = element.handleKeyEvent;
 
     element.addStyleClass("editing");
 
@@ -1142,7 +1152,7 @@ WebInspector.startEditing = function(element, committedCallback, cancelledCallba
         element.tabIndex = 0;
 
     function blurEventListener() {
-        editingCancelled.call(element);
+        editingCommitted.call(element);
     }
 
     function cleanUpAfterEditing() {
@@ -1153,7 +1163,7 @@ WebInspector.startEditing = function(element, committedCallback, cancelledCallba
         this.scrollTop = 0;
         this.scrollLeft = 0;
 
-        this.handleKeyEvent = handleKeyEvent;
+        this.handleKeyEvent = oldHandleKeyEvent;
         element.removeEventListener("blur", blurEventListener, false);
 
         if (element === WebInspector.currentFocusElement || element.isAncestor(WebInspector.currentFocusElement))
@@ -1175,6 +1185,11 @@ WebInspector.startEditing = function(element, committedCallback, cancelledCallba
     }
 
     element.handleKeyEvent = function(event) {
+        if (oldHandleKeyEvent)
+            oldHandleKeyEvent(event);
+        if (event.handled)
+            return;
+
         if (event.keyIdentifier === "Enter") {
             editingCommitted.call(element);
             event.preventDefault();

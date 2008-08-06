@@ -1,3 +1,47 @@
+2008-08-06  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron.
+
+        - add fast path for immediates to % operator, as we have for many other math ops
+        
+        This fixes handling for a 0 divisor relative to the last patch. Only an 0.2% speedup on SunSpider but
+        still a 1.4x win on Oliver's prime test.
+        
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+
+2008-08-05  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Darin.
+
+        Bug 20293: Crash in JavaScript codegen for eval("const a;")
+        <https://bugs.webkit.org/show_bug.cgi?id=20293>
+
+        Correctly handle constant declarations in eval code with no initializer.
+
+        * kjs/nodes.cpp:
+        (KJS::ConstDeclNode::emitCodeSingle):
+
+2008-08-05  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver.
+
+        Roll out r35555 because of correctness issues.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+
+2008-08-05  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Geoff.
+        
+        - add fast path for immediates to % operator, as we have for many other math ops
+        
+        0.6% speedup on SunSpider. 1.4x speedup on a prime testing torture test that Oliver whipped up.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+
 2008-08-04  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Cameron Zwarich.

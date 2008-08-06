@@ -383,6 +383,17 @@ SET (IDL_BINDINGS
     ${IDL_BINDINGS_XPATH}
 )
 
+#FIXME : pass this variable from HtmlExt
+IF (WEBKIT_USE_HTML_EXTENSION)
+    SET (IDL_BINDINGS_EXT
+        ../HtmlExt/HtmlElement/HTMLPleyoElement.idl
+    )
+    SET (IDL_BINDINGS
+        ${IDL_BINDINGS}
+	${IDL_BINDINGS_EXT}
+    )
+ENDIF (WEBKIT_USE_HTML_EXTENSION)
+
 # create these files at build time on demand, NOT everytime at cmake-time, Alex
 FOREACH (idl ${IDL_BINDINGS})
    GET_FILENAME_COMPONENT (_basename ${idl} NAME_WE)
@@ -445,6 +456,8 @@ IF (NOT WEBKIT_USE_HTML_EXTENSION)
             DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
         )
      ENDIF (HTML_FEATURES)
+ELSE (NOT WEBKIT_USE_HTML_EXTENSION)
+    INCLUDE (${CMAKE_SOURCE_DIR}/HtmlExt/Resources/CMakeLists.txt)
 ENDIF (NOT WEBKIT_USE_HTML_EXTENSION)
 
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.h
@@ -661,6 +674,13 @@ ENDIF (WEBKIT_USE_I18N STREQUAL "GENERIC")
 IF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
     INCLUDE_DIRECTORIES (${CAIRO_INCLUDE_DIRS})
 ENDIF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
+
+IF (WEBKIT_USE_HTML_EXTENSION)
+    INCLUDE_DIRECTORIES (
+        ${CMAKE_SOURCE_DIR}/HtmlExt/HtmlElement
+        ${CMAKE_SOURCE_DIR}/HtmlExt/Renderer
+    )
+ENDIF (WEBKIT_USE_HTML_EXTENSION)
 
 LIST (APPEND GENERATED_SRC
     ${CMAKE_BINARY_DIR}/generated_sources/kjs/grammar.cpp
