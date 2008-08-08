@@ -28,6 +28,18 @@
 
 #include "AccessibilityUIElement.h"
 
+AccessibilityUIElement::~AccessibilityUIElement() 
+{
+}
+
+AccessibilityUIElement::AccessibilityUIElement(AccessibilityUIElement const&)
+{
+}
+
+AccessibilityUIElement::AccessibilityUIElement(void*)
+{
+}
+
 JSStringRef AccessibilityUIElement::allAttributes()
 {
     return NULL;
@@ -94,9 +106,10 @@ int AccessibilityUIElement::lineForIndex(int index)
     return -1;
 }
 
-AccessibilityUIElement* AccessibilityUIElement::getChildAtIndex(unsigned index)
+AccessibilityUIElement AccessibilityUIElement::getChildAtIndex(unsigned index)
 {
-    return NULL;
+    AccessibilityUIElement a(NULL);
+    return a;
 }
 
 JSStringRef AccessibilityUIElement::boundsForRange(unsigned location, unsigned length)

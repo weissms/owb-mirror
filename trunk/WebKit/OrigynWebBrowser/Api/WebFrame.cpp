@@ -1485,7 +1485,7 @@ void WebFrame::addToJSWindowObject(const char* name, void *object)
     JSDOMWindow *window = toJSDOMWindow(core(this));
     if (!window)
         return;
-    KJS::Bindings::RootObject *root = core(this)->bindingRootObject();
+    KJS::Bindings::RootObject *root = core(this)->script()->bindingRootObject();
 
     KJS::ExecState* exec = window->globalExec();
     KJS::JSObject *runtimeObject = KJS::Bindings::Instance::createRuntimeObject(exec, KJS::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));

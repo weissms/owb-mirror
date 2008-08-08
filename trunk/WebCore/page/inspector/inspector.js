@@ -340,6 +340,8 @@ WebInspector.loaded = function()
     this._updateErrorAndWarningCounts();
 
     document.getElementById("search-toolbar-label").textContent = WebInspector.UIString("Search");
+    var searchField = document.getElementById("search");
+    searchField.addEventListener("keyup", this.performSearch.bind(this), false);
 
     if (platform === "mac-leopard")
         document.getElementById("toolbar").addEventListener("mousedown", this.toolbarDragStart, true);
@@ -405,8 +407,14 @@ WebInspector.documentClick = function(event)
     function followLink()
     {
         // FIXME: support webkit-html-external-link links here.
-        if (anchor.hasStyleClass("webkit-html-resource-link"))
+        if (anchor.href in WebInspector.resourceURLMap) {
+            if (anchor.hasStyleClass("webkit-html-external-link")) {
+                anchor.removeStyleClass("webkit-html-external-link");
+                anchor.addStyleClass("webkit-html-resource-link");
+            }
+
             WebInspector.showResourceForURL(anchor.href, anchor.lineNumber, anchor.preferredPanel);
+        }
     }
 
     if (WebInspector.followLinkTimeout)
@@ -909,11 +917,53 @@ WebInspector.showResourceForURL = function(url, line, preferredPanel)
     return true;
 }
 
+WebInspector.linkifyStringAsFragment = function(string)
+{
+    var container = document.createDocumentFragment();
+    var linkStringRegEx = new RegExp("(?:[a-zA-Z][a-zA-Z0-9+.-]{2,}://|www\\.)[\\w$\\-_+*'=\\|/\\\\(){}[\\]%@&#~,:;.!?]{4,}[\\w$\\-_+*=\\|/\\\\({%@&#~]");
+
+    while (string) {
+        var linkString = linkStringRegEx.exec(string);
+        if (!linkString)
+            break;
+
+        linkString = linkString[0];
+        var linkIndex = string.indexOf(linkString);
+        var nonLink = string.substring(0, linkIndex);
+        container.appendChild(document.createTextNode(nonLink));
+        var realURL = (linkString.indexOf("www.") === 0 ? "http://" + linkString : linkString);
+        container.appendChild(WebInspector.linkifyURLAsNode(realURL, linkString, null, (realURL in WebInspector.resourceURLMap)));
+        string = string.substring(linkIndex + linkString.length, string.length);
+    }
+
+    if (string)
+        container.appendChild(document.createTextNode(string));
+    
+    return container;
+}
+
+WebInspector.linkifyURLAsNode = function(url, linkText, classes, isExternal)
+{
+    if (!linkText)
+        linkText = url;
+    classes = (classes ? classes + " " : "");
+    classes += isExternal ? "webkit-html-external-link" : "webkit-html-resource-link";
+
+    var a = document.createElement("a");
+    a.href = url;
+    a.className = classes;
+    a.title = url;
+    a.target = "_blank";
+    a.textContent = linkText;
+    
+    return a;
+}
+
 WebInspector.linkifyURL = function(url, linkText, classes, isExternal)
 {
-    if (linkText === undefined)
+    if (!linkText)
         linkText = url.escapeHTML();
-    classes = (classes === undefined) ? "" : classes + " ";
+    classes = (classes ? classes + " " : "");
     classes += isExternal ? "webkit-html-external-link" : "webkit-html-resource-link";
     var link = "<a href=\"" + url + "\" class=\"" + classes + "\" title=\"" + url + "\" target=\"_blank\">" + linkText + "</a>";
     return link;
@@ -926,12 +976,22 @@ WebInspector.addMainEventListeners = function(doc)
     doc.addEventListener("click", this.documentClick.bind(this), true);
 }
 
-WebInspector.performSearch = function(query)
+WebInspector.performSearch = function(event)
 {
+    var query = event.target.value;
+
     if (!query || !query.length) {
         this.showingSearchResults = false;
         return;
     }
+
+    var forceSearch = event.keyIdentifier === "Enter";
+    if(!forceSearch && query.length < 3)
+        return;
+
+    if (!forceSearch && this.lastQuery && this.lastQuery === query)
+        return;
+    this.lastQuery = query;
 
     var resultsContainer = document.getElementById("searchResults");
     resultsContainer.removeChildren();

@@ -663,6 +663,7 @@ SOURCES += \
     html/HTMLParser.cpp \
     html/HTMLParserErrorCodes.cpp \
     html/HTMLPlugInElement.cpp \
+    html/HTMLPlugInImageElement.cpp \
     html/HTMLPreElement.cpp \
     html/HTMLQuoteElement.cpp \
     html/HTMLScriptElement.cpp \
@@ -859,6 +860,7 @@ SOURCES += \
     rendering/RenderListBox.cpp \
     rendering/RenderListItem.cpp \
     rendering/RenderListMarker.cpp \
+    rendering/RenderMarquee.cpp \
     rendering/RenderMenuList.cpp \
     rendering/RenderObject.cpp \
     rendering/RenderPart.cpp \
@@ -922,6 +924,7 @@ HEADERS += \
     $$PWD/platform/network/qt/QNetworkReplyHandler.h
 
 SOURCES += \
+    bindings/js/ScriptControllerQt.cpp \
     bridge/qt/qt_class.cpp \
     bridge/qt/qt_instance.cpp \
     bridge/qt/qt_runtime.cpp \

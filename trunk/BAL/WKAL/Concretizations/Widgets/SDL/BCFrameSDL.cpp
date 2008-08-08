@@ -31,32 +31,8 @@
 #include "Frame.h"
 
 #include "NotImplemented.h"
-#include "PluginView.h"
-#include "ScriptController.h"
-#include "runtime_root.h"
-#include "runtime.h"
-
 
 namespace WKAL {
-
-PassRefPtr<KJS::Bindings::Instance> Frame::createScriptInstanceForWidget(Widget* widget)
-{
-    // FIXME: Ideally we'd have an isPluginView() here but we can't add that to the open source tree right now.
-    if (widget->isFrameView())
-        return 0;
-
-    return static_cast<PluginView*>(widget)->bindingInstance();
-}
-
-void Frame::clearPlatformScriptObjects()
-{
-    notImplemented();
-}
-
-void Frame::disconnectPlatformScriptObjects()
-{
-    notImplemented();
-}
 
 DragImageRef Frame::dragImageForSelection()
 {

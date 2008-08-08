@@ -27,13 +27,16 @@
  */
 
 #include "AccessibilityController.h"
+#include "AccessibilityUIElement.h"
 
-AccessibilityUIElement* AccessibilityController::rootElement()
+AccessibilityUIElement AccessibilityController::rootElement()
 {
-    return NULL;
+    AccessibilityUIElement a(NULL);
+    return a;
 }
 
-AccessibilityUIElement* AccessibilityController::focusedElement()
+AccessibilityUIElement AccessibilityController::focusedElement()
 {
-    return NULL;
+    AccessibilityUIElement a(NULL);
+    return a;
 }

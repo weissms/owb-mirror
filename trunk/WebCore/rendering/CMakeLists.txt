@@ -35,6 +35,7 @@ LIST (APPEND RENDERING_SRC
     rendering/RenderListBox.cpp
     rendering/RenderListItem.cpp
     rendering/RenderListMarker.cpp
+    rendering/RenderMarquee.cpp
     rendering/RenderMedia.cpp
     rendering/RenderMenuList.cpp
     rendering/RenderObject.cpp

@@ -1,3 +1,544 @@
+2008-08-08  Anthony Ricaud  <rik24d@gmail.com>
+
+        Change highlight time from 300ms to 500ms and fade effect from 1s to 2s
+
+        https://bugs.webkit.org/show_bug.cgi?id=20055
+
+        Reviewed by Timothy Hatcher.
+
+        * page/inspector/SourceFrame.js:
+
+2008-08-07  Anthony Ricaud  <rik24d@gmail.com>
+
+        The search is only performed if the field contains more than 3
+        letters or if Enter is pressed.
+
+        Search is now performed through a keyup event.
+
+        Added a WebInspector.lastQuery to remember the last query and not
+        perform it again (eg. the user hits a modifier key).
+
+        https://bugs.webkit.org/show_bug.cgi?id=18548
+
+        Reviewed by Timothy Hatcher.
+
+        * page/inspector/inspector.html: Removed the onsearch and incremental
+        attributes
+        * page/inspector/inspector.js:
+
+2008-08-07  Steve Falkenburg  <sfalken@apple.com>
+
+        Compile derived sources through an all-in-one cpp file.
+        Fixes Windows release build on non-x64 systems by reducing the size of WebCore.lib from 1.5GB to 1GB.
+        
+        Reviewed by Mark Rowe.
+
+        * DerivedSources.cpp: Added.
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-08-07  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Adam.
+
+        <rdar://problem/5712917> Confusing console error message clear
+        behavior (16791)
+        https://bugs.webkit.org/show_bug.cgi?id=16791
+        <rdar://problem/5831899> The Web Inspector does not correctly clear the
+        console messages
+
+        * page/InspectorController.cpp: Clear the message so they don't show up
+        in the inspector after it has cleared them.
+        (WebCore::clearMessages):
+        (WebCore::InspectorController::clearConsoleMessages):
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+        * page/InspectorController.h:
+        * page/inspector/Console.js: Tell the InspectorController to clear the
+        messages it's holding onto.
+
+2008-08-07  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Sam Weinig
+
+        Rename Marquee to RenderMarquee and move to its own file.
+        https://bugs.webkit.org/show_bug.cgi?id=20319
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * html/HTMLMarqueeElement.cpp:
+        * rendering/RenderBlock.cpp:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::styleChanged):
+        * rendering/RenderLayer.h:
+        * rendering/RenderMarquee.cpp: Added.
+        (WebCore::RenderMarquee::RenderMarquee):
+        (WebCore::RenderMarquee::marqueeSpeed):
+        (WebCore::RenderMarquee::direction):
+        (WebCore::RenderMarquee::isHorizontal):
+        (WebCore::RenderMarquee::computePosition):
+        (WebCore::RenderMarquee::start):
+        (WebCore::RenderMarquee::suspend):
+        (WebCore::RenderMarquee::stop):
+        (WebCore::RenderMarquee::updateMarqueePosition):
+        (WebCore::RenderMarquee::updateMarqueeStyle):
+        (WebCore::RenderMarquee::timerFired):
+        * rendering/RenderMarquee.h: Added.
+        (WebCore::RenderMarquee::speed):
+        (WebCore::RenderMarquee::reverseDirection):
+        (WebCore::RenderMarquee::setEnd):
+
+2008-08-07  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6118816> Initial empty page or bookmarks view window has white strip where vertical scrollbar would be (which vanishes on resize)
+
+        * page/Frame.cpp:
+        (WebCore::Frame::setZoomFactor): If the view has never had a layout with
+        the old zoom factor, then there is no need to explicitly call layout()
+        here.
+
+2008-08-07  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff.
+
+        <rdar://problem/6115981> Start the profiler in Heavy view
+
+        * page/inspector/ProfileView.js:
+
+2008-08-07  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20313
+        Add null check in String::fromUTF8()
+
+        Make String::fromUTF8() consistent with other constructors by
+        returning a null String when the input is null instead of crashing.
+
+        * platform/text/String.cpp:
+        (WebCore::String::fromUTF8):
+
+2008-08-06  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix after Frame -> ScriptController moves.
+
+        * platform/wx/TemporaryLinkStubs.cpp:
+
+2008-08-06  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        - Make XHR console message clearer.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFinishLoading):
+
+2008-08-06  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        - Created a new function to create DOM links from text without
+        converting back and forth from HTML and messing with escaping special
+        characters.
+
+        * page/inspector/Console.js:
+        * page/inspector/inspector.js:
+        * page/inspector/utilities.js:
+
+2008-08-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by hyatt.
+
+        Fix a large animation leak found on the buildbot
+        (m_animations and m_transitions were never deleted)
+        Drag RenderStyle (kicking and screaming) into the 21st century
+        of memory management with a little application of OwnPtr.
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::FillLayer::cullEmptyLayers):
+        (WebCore::RenderStyle::diff):
+        (WebCore::RenderStyle::contentDataEquivalent):
+        (WebCore::RenderStyle::setContent):
+        (WebCore::BindingURI::BindingURI):
+        (WebCore::RenderStyle::setBoxShadow):
+        (WebCore::ShadowData::ShadowData):
+        (WebCore::RenderStyle::counterDirectives):
+        (WebCore::RenderStyle::accessCounterDirectives):
+        (WebCore::RenderStyle::adjustAnimations):
+        (WebCore::RenderStyle::adjustTransitions):
+        (WebCore::RenderStyle::accessAnimations):
+        (WebCore::RenderStyle::accessTransitions):
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::clearAnimations):
+        (WebCore::RenderStyle::clearTransitions):
+
+2008-08-06  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by MitzPettel
+
+        <rdar://problem/6078543> - Many LocalStorageThreads may be started
+
+        The original decision to key LocalStorage sets to PageGroups was a poor one.
+
+        It seems a much better solution is to key them to the actual path of on-disk storage,
+        which also solves all of the avenues that could lead to a boundless number of threads.
+
+        In this patch, I am not attempting to completely sever the attachment of LocalStorage
+        to PageGroups as that would require a more substantial re-working of the lifetime
+        between pages, groups, and local storage threads.
+
+        * page/PageGroup.cpp:
+        (WebCore::PageGroup::addPage):
+
+        * storage/LocalStorage.cpp:
+        (WebCore::localStorageMap):  Map paths to LocalStorage objects here.
+        (WebCore::LocalStorage::localStorage): Return the shared LocalStorage object for this path,
+          or create a new one if it doesn't yet exist.
+        (WebCore::LocalStorage::LocalStorage):
+        (WebCore::LocalStorage::~LocalStorage):  Add to remove the path->LocalStorage mapping
+        * storage/LocalStorage.h:
+
+2008-08-06  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Adele.
+
+        Fix for <rdar://problem/6130724>
+
+        Disconnected frames should not be allowed to resize the window.
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::resizeBy):
+        (WebCore::DOMWindow::resizeTo):
+
+2008-08-05  David D. Kilzer  <ddkilzer@apple.com>
+
+        Bug 20038: REGRESSION (r35151): Can't post comments on flickr.com
+
+        <https://bugs.webkit.org/show_bug.cgi?id=20038>
+        <rdar://problem/6092270>
+
+        Reviewed by Eric Seidel.
+
+        Test: fast/forms/submit-to-url-fragment.html
+
+        The problem was that isFormSubmission was not being set to true in
+        FrameLoader::loadWithDocumentLoader() when we were actually
+        submitting a form, causing the page to scroll instead of the form to
+        be submitted.
+
+        The isFormSubmission variable wasn't set to true because a FormState
+        object was not being created in
+        FrameLoader::loadFrameRequestWithFormAndValues().
+
+        The FormState object was not being created because
+        HTMLFormElement::submit(Event*, bool activateSubmitButton) would
+        only set FrameLoader::m_formAboutToBeSubmitted to the current form
+        if there was a "text field" element in the form (type = text,
+        password, search or isindex).
+
+        Thus when FrameLoader::submitForm(const FrameLoadRequest&, Event*)
+        called FrameLoader::loadFrameRequestWithFormAndValues(), a null
+        HTMLFormElement pointer would be sent and cause the above failures.
+
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::submit): Call new
+        FrameLoader::setFormAboutToBeSubmitted() method outside the for
+        loop so we always set FrameLoader::m_formAboutToBeSubmitted exactly
+        once for any form submission.  The FrameLoader::recordFormValue()
+        method is only called with the name/value pair of each text field.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::setFormAboutToBeSubmitted): Added method that
+        only sets m_formAboutToBeSubmitted.
+        (WebCore::FrameLoader::recordFormValue): Removed
+        PassRefPtr<HTMLFormElement> argument since this method only sets
+        name/value pairs on m_formValuesAboutToBeSubmitted now.
+        (WebCore::FrameLoader::loadFrameRequestWithFormAndValues): Create a
+        FormState object as long as submitForm is not null so that other
+        FrameLoader methods know when a form is being submitted.
+        * loader/FrameLoader.h:
+
+2008-08-06  David D. Kilzer  <ddkilzer@apple.com>
+
+        BUILD FIX: Add HTMLPlugInImageElement.cpp to all other build systems
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCoreSources.bkl:
+
+2008-08-06  Dan Bernstein  <mitz@apple.com>
+
+        - Windows build fix
+
+        * WebCore.vcproj/WebCore.vcproj: Added PlugInImageElement.*
+
+2008-08-06  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim and Darin.
+
+        <rdar://problem/6126160> URLs in the console should be clickable.
+        - Implemented and now use linkifyString() to parse console messages for
+        URLs.
+
+        * page/inspector/Console.js:
+        * page/inspector/inspector.js:
+        * page/inspector/utilities.js:
+
+2008-07-02  David Kilzer  <ddkilzer@apple.com>
+
+        Images using QT plugin do not display correctly
+
+        <https://bugs.webkit.org/show_bug.cgi?id=9214>
+        <rdar://problem/5683413>
+
+        Reviewed by Darin.
+
+        Tests: fast/images/embed-image.html
+               fast/images/object-image.html
+
+        Use RenderImage instead of RenderPartObject for a renderer when
+        the <embed> tag references an image.  Extract common code from
+        HTMLEmbedElement and HTMLObjectElement into HTMLPlugInImageElement.
+
+        * WebCore.xcodeproj/project.pbxproj: Added new source files.
+
+        * html/HTMLEmbedElement.cpp: Cleaned up #include statements.
+        (WebCore::HTMLEmbedElement::HTMLEmbedElement): Extend
+        HTMLPlugInImageElement which extends HTMLPlugInElement.
+        (WebCore::HTMLEmbedElement::parseMappedAttribute): Split codeAttr
+        and srcAttr cases.  Create or clear HTMLImageLoader as needed for
+        srcAttr.
+        (WebCore::HTMLEmbedElement::rendererIsNeeded): Use
+        HTMLPlugInElement::rendererIsNeeded() for images.
+        (WebCore::HTMLEmbedElement::createRenderer): Create a
+        RenderImage instead of a RenderPartObject for images.
+        (WebCore::HTMLEmbedElement::attach): Create HTMLImageLoader,
+        load image and populate RenderImage for images.
+        (WebCore::HTMLEmbedElement::updateWidget): Don't call
+        RenderPartObject::updateWidget() for images.
+        (WebCore::HTMLEmbedElement::imageSourceAttributeName): Added.
+        * html/HTMLEmbedElement.h: Removed unneeded namespace and class
+        declarations.  Extend HTMLPlugInImageElement which extends
+        HTMLPlugInElement.
+        (WebCore::HTMLEmbedElement::imageSourceAttributeName): Added.
+        (WebCore::HTMLEmbedElement::serviceType): Moved to
+        HTMLPlugInImageElement.
+        (WebCore::HTMLEmbedElement::url): Ditto.
+
+        * html/HTMLObjectElement.cpp: Cleaned up #include statements.
+        (WebCore::HTMLObjectElement::attach): Removed local variable.
+        (WebCore::HTMLObjectElement::isImageType): Moved to
+        HTMLPlugInImageElement.
+        * html/HTMLObjectElement.h: Extend HTMLPlugInImageElement which
+        extends HTMLPlugInElement.
+        (WebCore::HTMLObjectElement::isImageType): Moved to
+        HTMLPlugInImageElement.
+        (WebCore::HTMLObjectElement::serviceType): Ditto.
+        (WebCore::HTMLObjectElement::url): Ditto.
+
+        * html/HTMLPlugInImageElement.cpp: Added.
+        (WebCore::HTMLPlugInImageElement::HTMLPlugInImageElement): Added.
+        (WebCore::HTMLPlugInImageElement::~HTMLPlugInImageElement): Added.
+        (WebCore::HTMLPlugInImageElement::isImageType): Moved from
+        HTMLObjectElement.
+        * html/HTMLPlugInImageElement.h: Added.
+        (WebCore::HTMLPlugInImageElement::isImageType): Added from 
+        HTMLObjectElement.
+        (WebCore::HTMLPlugInImageElement::serviceType): Ditto.
+        (WebCore::HTMLPlugInImageElement::url): Ditto.
+
+        * rendering/HitTestResult.cpp:
+        (WebCore::HitTestResult::absoluteImageURL): Return urlString
+        for embed elements with images.
+
+2008-08-06  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Eric Seidel.
+
+        http://bugs.webkit.org/show_bug.cgi?id=20295
+        RegularExpression::match should not crash when a null string is passed
+
+        RegularExpression::match used to pass null subject strings to
+        jsRegExpExecute causing an ASSERT failure and then a crash.
+        There is no need to fix also RegularExpression:search and
+        RegularExpression::searchRev as they just call
+        RegularExpression::match.
+
+        * platform/text/RegularExpression.cpp:
+        (WebCore::RegularExpression::match): Return -1 if the string is null.
+
+2008-08-06  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix only
+
+        * bindings/js/ScriptControllerGtk.cpp:
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::~PluginView):
+
+2008-08-06  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Fix the Qt build due to recent ScriptController refactoring.
+
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::~PluginView):
+
+2008-08-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix warnings and errors seen on Qt bot.
+        Including one correctness fix for ThreadingQt.
+        According to the Qt 4.4 docs, we were always passing
+        seconds to "wait()" when we should have been passing
+        milliseconds.
+        
+        Lots of float <-> int conversion warnings.
+
+        * css/CSSCursorImageValue.cpp:
+        (WebCore::CSSCursorImageValue::updateIfSVGCursorIsUsed):
+        * dom/Element.cpp:
+        (WebCore::adjustForLocalZoom):
+        (WebCore::adjustForAbsoluteZoom):
+        (WebCore::Element::setScrollLeft):
+        (WebCore::Element::setScrollTop):
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::dispatchMouseEvent):
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::imageRect):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::innerHeight):
+        (WebCore::DOMWindow::innerWidth):
+        (WebCore::DOMWindow::scrollX):
+        (WebCore::DOMWindow::scrollY):
+        (WebCore::DOMWindow::scrollTo):
+        * page/EventHandler.cpp:
+        (WebCore::scrollAndAcceptEvent):
+        * plugins/npapi.cpp:
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::~PluginView):
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::intrinsicSizeChanged):
+
+2008-08-06  Eric Seidel  <eric@webkit.org>
+
+        Build fix only, no review.
+
+        Attempt to fix the Windows and Qt builds.
+
+        * bindings/js/ScriptControllerWin.cpp: add runtime.h include
+        * bindings/js/ScriptControllerQt.cpp: add QWidget include
+        * page/win/FrameWin.cpp: remove bogus using namespace
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::bindingInstance): use script()
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::getValue): use script()
+        (WebCore::PluginView::~PluginView): use script()
+
+  2008-08-06  Eric Seidel  <eric@webkit.org>
+
+        Build fix only, no review.
+
+        Attempt to fix the Linux and --no-svg builds.
+
+        * bindings/js/ScriptController.h: wrap RetainPtr include in PLATFORM(MAC)
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue): add missing CSSProperties to switch
+
+2008-08-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Move more methods from Frame into ScriptController
+        https://bugs.webkit.org/show_bug.cgi?id=20294
+        
+        Finally finish more of the work which Darin started long ago
+        Move a few more Frame methods into ScriptController.
+        I also took this opportunity to clean up some of the plugin
+        code as well, and moved some of that into ScriptController.
+
+        I removed Frame::clearScriptController() and ScriptController::clear() is now clearWindowShell()
+
+        No functional changes, thus no test cases.
+
+        * GNUmakefile.am:
+        * WebCore.NPAPI.exp:
+        * WebCore.base.exp:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::ScriptController):
+        (WebCore::ScriptController::~ScriptController):
+        (WebCore::ScriptController::bindingRootObject):
+        (WebCore::ScriptController::createRootObject):
+        (WebCore::ScriptController::windowScriptNPObject):
+        (WebCore::ScriptController::createScriptObjectForPluginElement): New method.
+        (WebCore::ScriptController::clearPlatformScriptObjects):
+        (WebCore::ScriptController::disconnectPlatformScriptObjects):
+        (WebCore::ScriptController::cleanupScriptObjectsForPlugin):
+        (WebCore::ScriptController::clearScriptObjects):
+        * bindings/js/ScriptController.h:
+        (WebCore::ScriptController::sourceURL):
+        (WebCore::ScriptController::clearFormerWindow):
+        * bindings/js/ScriptControllerGtk.cpp: Copied from WebCore/page/gtk/FrameGtk.cpp.
+        (WebCore::Frame::createScriptInstanceForWidget):
+        * bindings/js/ScriptControllerMac.mm: Added.
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        (WebCore::ScriptController::windowScriptObject):
+        (WebCore::ScriptController::clearPlatformScriptObjects):
+        (WebCore::ScriptController::disconnectPlatformScriptObjects):
+        (WebCore::updateRenderingForBindings):
+        (WebCore::ScriptController::initJavaJSBindings):
+        * bindings/js/ScriptControllerQt.cpp: Copied from WebCore/page/gtk/FrameGtk.cpp.
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bindings/js/ScriptControllerWin.cpp: Copied from WebCore/svg/graphics/cg/SVGResourceMaskerCg.cpp.
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bindings/objc/DOM.mm:
+        (-[DOMNode KJS::Bindings::]):
+        * bindings/objc/DOMInternal.mm:
+        (-[WebScriptObject _initializeScriptDOMNodeImp]):
+        * bridge/jni/jni_jsobject.mm:
+        (createRootObject):
+        * html/HTMLAppletElement.cpp:
+        (WebCore::HTMLAppletElement::renderWidgetForJSBindings):
+        * html/HTMLAppletElement.h:
+        * html/HTMLEmbedElement.cpp:
+        (WebCore::findWidgetRenderer):
+        (WebCore::HTMLEmbedElement::renderWidgetForJSBindings):
+        * html/HTMLEmbedElement.h:
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::~HTMLObjectElement):
+        (WebCore::HTMLObjectElement::renderWidgetForJSBindings):
+        (WebCore::HTMLObjectElement::detach):
+        * html/HTMLObjectElement.h:
+        * html/HTMLPlugInElement.cpp:
+        (WebCore::HTMLPlugInElement::~HTMLPlugInElement):
+        (WebCore::HTMLPlugInElement::detach):
+        (WebCore::HTMLPlugInElement::getInstance):
+        (WebCore::HTMLPlugInElement::parseMappedAttribute):
+        (WebCore::HTMLPlugInElement::getNPObject):
+        * html/HTMLPlugInElement.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::clear):
+        * page/Frame.cpp:
+        (WebCore::Frame::Frame):
+        (WebCore::Frame::~Frame):
+        (WebCore::Frame::pageDestroyed):
+        (WebCore::FramePrivate::FramePrivate):
+        * page/Frame.h:
+        * page/FramePrivate.h:
+        * page/gtk/FrameGtk.cpp:
+        * page/mac/FrameMac.mm:
+        * page/qt/FrameQt.cpp:
+        * page/win/FrameWin.cpp:
+        (WebCore::computePageRectsForFrame):
+
 2008-08-06  Steve Falkenburg  <sfalken@apple.com>
 
         Fix last timer fix.
@@ -313,7 +854,7 @@
 
         * page/mac/FrameMac.mm:
 
-2008-08-04  Bernhard Krüpl  <kruepl@dbai.tuwien.ac.at>
+2008-08-04  Bernhard Kruepl  <kruepl@dbai.tuwien.ac.at>
 
         Reviewed by Dave Hyatt.
 
@@ -1803,7 +2344,7 @@
 
         Reviewed by Tim Hatcher.
 
-        <https://bugs.webkit.org/show_bug.cgi?id=17589> Line highlighting should last longer
+        <https://bugs.webkit.org/show_bug.cgi?id=20055> Line highlighting should last longer
 
         Restore the fade out effect after highlighting.
 
