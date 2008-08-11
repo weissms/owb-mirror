@@ -1019,6 +1019,24 @@ static JSValueRef clearMessages(JSContextRef ctx, JSObjectRef /*function*/, JSOb
 }
 
 
+static JSValueRef startProfiling(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
+{
+    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
+    if (controller)
+        controller->startUserInitiatedProfiling();
+
+   return JSValueMakeUndefined(ctx);
+}
+
+static JSValueRef stopProfiling(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
+{
+    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
+    if (controller)
+        controller->stopUserInitiatedProfiling();
+
+    return JSValueMakeUndefined(ctx);
+}
+
 // InspectorController Class
 
 InspectorController::InspectorController(Page* page, InspectorClient* client)
@@ -1222,6 +1240,16 @@ void InspectorController::clearConsoleMessages()
     m_consoleMessages.clear();
 }
 
+void InspectorController::toggleRecordButton(bool isProfiling)
+{
+    if (!m_scriptContext)
+        return;
+
+    JSValueRef exception = 0;
+    JSValueRef isProvingValue = JSValueMakeBoolean(m_scriptContext, isProfiling);
+    callFunction(m_scriptContext, m_scriptObject, "setRecordingProfile", 1, &isProvingValue, exception);
+}
+
 void InspectorController::startGroup()
 {    
     JSValueRef exception = 0;
@@ -1329,6 +1357,8 @@ void InspectorController::windowScriptObjectAvailable()
         { "addBreakpoint", WebCore::addBreakpoint, kJSPropertyAttributeNone },
         { "removeBreakpoint", WebCore::removeBreakpoint, kJSPropertyAttributeNone },
         { "isWindowVisible", WebCore::isWindowVisible, kJSPropertyAttributeNone },
+        { "startProfiling", WebCore::startProfiling, kJSPropertyAttributeNone },
+        { "stopProfiling", WebCore::stopProfiling, kJSPropertyAttributeNone },
         { "clearMessages", clearMessages, kJSPropertyAttributeNone },
         { 0, 0, 0 }
     };
@@ -1476,6 +1506,7 @@ void InspectorController::startUserInitiatedProfiling()
 
     ExecState* exec = toJSDOMWindow(m_inspectedPage->mainFrame())->globalExec();
     Profiler::profiler()->startProfiling(exec, UserInitiatedProfileName, this);
+    toggleRecordButton(true);
 }
 
 void InspectorController::stopUserInitiatedProfiling()
@@ -1487,6 +1518,8 @@ void InspectorController::stopUserInitiatedProfiling()
 
     ExecState* exec = toJSDOMWindow(m_inspectedPage->mainFrame())->globalExec();
     Profiler::profiler()->stopProfiling(exec, UserInitiatedProfileName);
+    Profiler::profiler()->didFinishAllExecution(exec);
+    toggleRecordButton(false);
 }
 
 void InspectorController::finishedProfiling(PassRefPtr<Profile> prpProfile)

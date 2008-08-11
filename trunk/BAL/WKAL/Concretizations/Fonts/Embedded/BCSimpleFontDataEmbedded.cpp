@@ -55,7 +55,6 @@ void SimpleFontData::platformInit()
 
 void SimpleFontData::platformDestroy()
 {
-    printf("SimpleFontData::platformDestroy\n");
     BalNotImplemented();
 }
 
@@ -88,7 +87,6 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
 
 void SimpleFontData::setFont(BalFont* cr) const
 {
-    printf("SimpleFontData::setFont\n");
     ASSERT(cr);
     m_font.setFont(cr);
 }

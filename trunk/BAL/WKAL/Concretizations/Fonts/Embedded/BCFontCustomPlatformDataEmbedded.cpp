@@ -35,13 +35,10 @@ namespace WKAL {
 
 FontCustomPlatformData::~FontCustomPlatformData()
 {
-    printf("FontCustomPlatformData::~FontCustomPlatformData()\n");
-    //cairo_font_face_destroy(m_fontFace);
 }
 
 FontPlatformData FontCustomPlatformData::fontPlatformData(int size, bool bold, bool italic, FontRenderingMode)
 {
-    printf("FontCustomPlatformData::fontPlatformData\n");
     return FontPlatformData(m_fontFace, size, bold, italic);
 }
 
@@ -52,7 +49,6 @@ static void releaseData(void* data)
 
 FontCustomPlatformData* createFontCustomPlatformData(SharedBuffer* buffer)
 {
-    printf("createFontCustomPlatformData\n");
     ASSERT_ARG(buffer, buffer);
 
     NotImplemented();

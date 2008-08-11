@@ -34,6 +34,9 @@
 #include "StringImpl.h"
 #include "TextBreakIterator.h"
 
+//include for printf with gcc-4.3
+#include <stdio.h>
+
 namespace OWBAL {
 
 int findNextWordFromIndex(const UChar* chars, int len, int position, bool forward)

@@ -1,3 +1,38 @@
+2008-08-11  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - fix <rdar://problem/6130216> Exception "windowRegionBeingDrawn != nil" in NSView when caching image of a subframe
+
+        This change reintroduces <https://bugs.webkit.org/show_bug.cgi?id=5195> on Leopard.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _recursive:displayRectIgnoringOpacity:inContext:topView:]): Removed an
+        unsuccessful workaround for <rdar://problem/5668489>, because invoking
+        layout may change the view hierarchy during the drawing operation,
+        which is not supported on Leopard.
+
+2008-08-08  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Adele.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _scrollDOMRangeToVisible:]):
+
+2008-08-08  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig
+
+        Fix for <rdar://problem/5865504>
+
+        This bug was actually *largely* fixed by http://trac.webkit.org/changeset/35538.
+        But with that same patch, it became possible for a WebResource to fail to initialize.  
+        Therefore we were trying to add nil to an NSCFArray for certain situations, which is bad.
+        Lets fix that, shall we?
+
+        * WebView/WebArchive.mm:
+        (-[WebArchive subresources]): 
+
 2008-08-08  Eric Seidel  <eric@webkit.org>
 
         Reviewed by Cameron Zwarich.

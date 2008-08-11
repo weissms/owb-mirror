@@ -1,3 +1,9 @@
+2008-08-11  Alp Toker  <alp@nuanti.com>
+
+        Remove leftover qmake/GTK+ build files.
+
+        * webkit/headers.pri: Removed.
+
 2008-08-04  Christian Dywan  <christian@twotoasts.de>
 
         Reviewed by Eric Seidel.
