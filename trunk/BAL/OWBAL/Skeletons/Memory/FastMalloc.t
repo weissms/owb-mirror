@@ -43,52 +43,104 @@
 
 namespace WTF {
 
+
     /**
-     * fast malloc 
-     * @param[in] : size
-     * @param[out] : pointer allowed
+     *  fastMalloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
      */
-    void *fastMalloc(size_t n);
+    void* fastMalloc(size_t n);
+
+
+    /**
+     *  fastZeroedMalloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void* fastZeroedMalloc(size_t n);
+
+
+    /**
+     *  fastCalloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void* fastCalloc(size_t n_elements, size_t element_size);
+
+
+    /**
+     *  fastRealloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void* fastRealloc(void* p, size_t n);
+
+
+    /**
+     *  tryFastMalloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void* tryFastMalloc(size_t n);
+
+
+    /**
+     *  tryFastZeroedMalloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void* tryFastZeroedMalloc(size_t n);
+
+
+    /**
+     *  tryFastCalloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void* tryFastCalloc(size_t n_elements, size_t element_size);
+
+
+    /**
+     *  tryFastRealloc description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void* tryFastRealloc(void* p, size_t n)
 
     /**
      * fast Zeroed Malloc 
      * @param[in] : size
      * @param[out] : pointer allowed and initialized to zero
      */
-    void *fastZeroedMalloc(size_t n);
-
-    /**
-     * fast calloc
-     * @param[in] : number of element
-     * @param[in] : size of element
-     * @param[out] : pointer allowed
-     */
-    void *fastCalloc(size_t n_elements, size_t element_size);
+    void *fastZeroedMalloc(size_t n)
 
     /**
      * fast free
      * @param[in] : pointer
      */
-    void fastFree(void* p);
-
-    /**
-     * fast realloc
-     * @param[in] : pointer
-     * @param[in] : new size
-     * @param[out] : pointer reallowed
-     */
-    void *fastRealloc(void* p, size_t n);
+    void fastFree(void* p)
 
 #ifndef NDEBUG    
     /**
      * fast malloc forbid
      */
-    void fastMallocForbid();
-
-    /**
-     * fast malloc allow 
-     */
-    void fastMallocAllow();
+    void fastMallocForbid()
 #endif
 
 } // namespace WTF
@@ -132,8 +184,4 @@ void releaseFastMallocFreeMemory();
 
 #endif // _CRTDBG_MAP_ALLOC
 
-#endif /* WTF_FastMalloc_h */
-
-
-
-
+#endif /* WTF_FastMall

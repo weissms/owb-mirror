@@ -61,6 +61,8 @@ LIST (APPEND DOM_SRC
     dom/TreeWalker.cpp
     dom/UIEvent.cpp
     dom/UIEventWithKeyState.cpp
+    dom/WebKitAnimationEvent.cpp
+    dom/WebKitTransitionEvent.cpp
     dom/WheelEvent.cpp
     dom/XMLTokenizer.cpp
 )

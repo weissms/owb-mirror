@@ -54,16 +54,7 @@ namespace WTF {
     template <bool needsDestruction, typename T>     class VectorDestructor;
 
     template<typename T>     struct VectorDestructor<false, T>
-    {
-
-    /**
-     *  static_cast<size_t> description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    const size_t notFound = static_cast<size_t>(-1);
+    
 
     /**
      *  destruct description
@@ -1322,4 +1313,4 @@ namespace WTF {
 
 using WTF::Vector;
 
-#endif // WTF_Vector_h
+#endif // WTF_Vector_

@@ -1,3 +1,36 @@
+2008-08-13  Thiago Macieira  <tjmaciei@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix encoding of [ and ] in the host part of the URL
+
+        Until QUrl is fixed (making QUrl's tolerant parser more tolerant), we have to
+        add this workaround to the QUrl <> WebCore::KURL conversion operator so that it
+        doesn't encode [ and ] when they are found in the host part. That is, the
+        following URL:
+        http://[::1]/
+        is valid and should not be reencoded to:
+        http://%5b::1%5d/
+
+        This change adds the automatic test for it.
+
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2008-08-12  Urs Wolfer  <uwolfer@kde.org>
+
+        Reviewed by Simon.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20357
+
+        Fix crash in QWebPage in case contextMenuEvent has been overwritten
+        because context menu has the view as parent and thus is deleted too early.
+
+        Add testcase for this crash.
+
+        * Api/qwebpage_p.h:
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::contextMenuCrash):
+
 2008-08-08  Simon Hausmann  <hausmann@webkit.org>
 
         Rubber-stamped by Lars.

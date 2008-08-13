@@ -102,6 +102,8 @@ SET (IDL_BINDINGS
     dom/TextEvent.idl
     dom/TreeWalker.idl
     dom/UIEvent.idl
+    dom/WebKitAnimationEvent.idl
+    dom/WebKitTransitionEvent.idl
     dom/WheelEvent.idl
 
     html/CanvasGradient.idl

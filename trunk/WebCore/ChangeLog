@@ -1,3 +1,417 @@
+2008-08-13  Mark Rowe  <mrowe@apple.com>
+
+        Speculative GTK build fix.
+
+        * GNUmakefile.am:  Add dependency info for JSSVGElementWrapperFactory.cpp.
+
+2008-08-13  Thiago Macieira  <tjmaciei@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix encoding of [ and ] in the host part of the URL
+
+        Until QUrl is fixed (making QUrl's tolerant parser more tolerant), we have to
+        add this workaround to the QUrl <> WebCore::KURL conversion operator so that it
+        doesn't encode [ and ] when they are found in the host part. That is, the
+        following URL:
+        http://[::1]/
+        is valid and should not be reencoded to:
+        http://%5b::1%5d/
+
+        * platform/qt/KURLQt.cpp:
+        (WebCore::KURL::operator QUrl):
+
+2008-08-12  Mihnea Ovidenie  <mihnea@adobe.com>
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=19891
+        Broken HTML object elements cause de-reference of pointer to freed memory.
+        If we fail to load an image for an object tag and we no longer believe the object tag points at
+        an image, then clear m_imageLoader in the HTMLObjectElement so that we attempt to render the
+        fall back content.
+
+        Reviewed by Dave Hyatt and Alexey Proskuryakov.
+
+        Test: http/tests/misc/object-image-error-with-onload.html
+
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::renderFallbackContent):
+        * page/Frame.cpp:
+        (WebCore::Frame::Frame):
+
+2008-08-12  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Dave.
+    
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=19798
+        Masks are translated, and the mask images are swapped on the y-axis.
+
+        Turned out that http://trac.webkit.org/changeset/31830/trunk/WebCore/svg/graphics/cg/SVGResourceMaskerCg.mm
+        is guilty. GraphicsContext::clipToImageBuffer() does some extra transformations that SVGResourcesMaskerCg does not want.
+
+        Long term goal is to remove the SVGResource*/SVGPaintServer* classes anyway, so it's okay to duplicate
+        the "clip to image buffer" functionality, in the CG specific SVGResourceMaskerCg class - as it was before.
+
+        * svg/graphics/cg/SVGResourceMaskerCg.mm:
+        (WebCore::SVGResourceMasker::applyMask): Changed back to use CG clipping again.
+
+2008-08-12  Dan Bernstein  <mitz@apple.com>
+
+        - WebCore part of <rdar://problem/6121636>
+          Make fast*alloc() abort() on failure and add "try" variants that
+          return NULL on failure.
+
+        Reviewed by Darin Adler.
+
+        * platform/Arena.cpp:
+        (WebCore::ArenaAllocate): Removed null checking of fastMalloc()'s
+        result.
+        * platform/graphics/cg/ImageBufferCG.cpp:
+        (WebCore::ImageBuffer::create): Changed to use tryFastCalloc().
+
+2008-08-12  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=19348
+          <rdar://problem/5978447> REGRESSION (r34193): Setting the size of a frame with javascript document.body.row no longer works
+
+        Test: fast/frames/frameset-style-recalc.html
+
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::recalcStyle): Changed to call the base
+        class implementation after marking for layout.
+
+2008-08-12  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - move shouldUpdateWhenOffscreen from Settings to FrameView and rename it shouldUpdateWhileHidden
+
+        * WebCore.base.exp:
+        * page/FrameView.cpp:
+        (WebCore::FrameViewPrivate::FrameViewPrivate):
+        (WebCore::FrameView::shouldUpdateWhileHidden):
+        (WebCore::FrameView::setShouldUpdateWhileHidden):
+        * page/FrameView.h:
+        * page/Settings.cpp:
+        * page/Settings.h:
+
+2008-08-12  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * bindings/js/JSSVGPODTypeWrapper.h: Align
+        JSSVGDynamicPODTypeWrapper's and JSSVGStaticPODTypeWrapperWithParent's
+        members on 16-byte boundaries to avoid an alignment warning.
+
+2008-08-12  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver.
+
+        Add new dynamice-update layout tests covering SVGMarkerElement.
+        Fix bug: SVGMarkerElement's SVG DOM function calls don't update rendering.
+        Fix orientAngle/orientType confusion: "auto" orient should always return "0" as angle.
+
+        Tests: svg/dynamic-updates/SVGMarkerElement-dom-markerHeight-attr.html
+               svg/dynamic-updates/SVGMarkerElement-dom-markerUnits-attr.html
+               svg/dynamic-updates/SVGMarkerElement-dom-markerWidth-attr.html
+               svg/dynamic-updates/SVGMarkerElement-dom-orient-attr.html
+               svg/dynamic-updates/SVGMarkerElement-dom-refX-attr.html
+               svg/dynamic-updates/SVGMarkerElement-dom-refY-attr.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-markerHeight-prop.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-markerUnits-prop.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-markerWidth-prop.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-orientAngle-prop.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-orientType-prop.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-refX-prop.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-refY-prop.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-setOrientToAngle-call.html
+               svg/dynamic-updates/SVGMarkerElement-svgdom-setOrientToAuto-call.html
+
+        * svg/SVGMarkerElement.cpp:
+        (WebCore::SVGMarkerElement::SVGMarkerElement):
+        (WebCore::SVGMarkerElement::parseMappedAttribute):
+        (WebCore::SVGMarkerElement::svgAttributeChanged):
+        (WebCore::SVGMarkerElement::childrenChanged):
+        (WebCore::SVGMarkerElement::setOrientToAuto):
+        (WebCore::SVGMarkerElement::setOrientToAngle):
+        (WebCore::SVGMarkerElement::canvasResource):
+
+2008-08-12  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver.
+
+        Add new dynamic-update layout tests covering SVGImageElement.
+        Fix bug: SVGImageElement doesn't react on 'preserveAspectRatio' changes.
+
+        Tests: svg/dynamic-updates/SVGImageElement-dom-height-attr.html
+               svg/dynamic-updates/SVGImageElement-dom-preserveAspectRatio-attr.html
+               svg/dynamic-updates/SVGImageElement-dom-width-attr.html
+               svg/dynamic-updates/SVGImageElement-dom-x-attr.html
+               svg/dynamic-updates/SVGImageElement-dom-y-attr.html
+               svg/dynamic-updates/SVGImageElement-svgdom-height-prop.html
+               svg/dynamic-updates/SVGImageElement-svgdom-preserveAspectRatio-prop.html
+               svg/dynamic-updates/SVGImageElement-svgdom-width-prop.html
+               svg/dynamic-updates/SVGImageElement-svgdom-x-prop.html
+               svg/dynamic-updates/SVGImageElement-svgdom-y-prop.html
+
+        * svg/SVGImageElement.cpp:
+        (WebCore::SVGImageElement::svgAttributeChanged):
+
+2008-08-11  Anthony Ricaud  <rik24d@gmail.com>
+
+        Changed Option/Alt-Up or Down in CSS editing when the value is
+        near zero to jump to the next integer.
+
+        Reviewed by Tim Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20326
+
+        * page/inspector/StylesSidebarPane.js:
+
+2008-08-11  Anthony Ricaud  <rik24d@gmail.com>
+
+        Changed the line highlight transition for an easier animation.
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/SourceFrame.js:
+
+2008-08-11  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Added support for some Firebug Command Line APIs.
+
+        Reviewed by Tim Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19867
+        https://bugs.webkit.org/show_bug.cgi?id=19868
+        https://bugs.webkit.org/show_bug.cgi?id=19869
+        https://bugs.webkit.org/show_bug.cgi?id=19875
+        https://bugs.webkit.org/show_bug.cgi?id=19876
+        https://bugs.webkit.org/show_bug.cgi?id=19880
+
+        * page/inspector/Console.js:
+        (WebInspector.Console.prototype._evalInInspectedWindow):
+        Create an object on the inspected window that holds the console
+        command line API functions. This object is used in a with statement
+        around the typed expression.
+
+2008-08-11  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Antti.
+
+        Fixes: http://bugs.webkit.org/show_bug.cgi?id=17736
+
+        JS wrapper objects around SVG POD types, that contain other SVG POD types with writable properties
+        failed to update. Modification of the values were completly ignored (ie. transform.matrix.a = 50, didn't take any effect)
+
+        Added tests: svg/custom/svg-modify-currentTranslate.html
+                     svg/custom/tearoffs-with-tearoffs.html
+                     svg/custom/immutable-properties.html
+
+        Fixed tests: svg/dynamic-updates/SVGLinearGradientElement-svgdom-gradientTransform-prop.html
+
+        * bindings/js/JSSVGPODTypeWrapper.h:
+        (WebCore::JSSVGDynamicPODTypeWrapper::commitChange):
+        (WebCore::JSSVGStaticPODTypeWrapperWithPODTypeParent::create):
+        (WebCore::JSSVGStaticPODTypeWrapperWithPODTypeParent::commitChange):
+        (WebCore::JSSVGStaticPODTypeWrapperWithPODTypeParent::JSSVGStaticPODTypeWrapperWithPODTypeParent):
+        (WebCore::JSSVGStaticPODTypeWrapperWithParent::create):
+        (WebCore::JSSVGStaticPODTypeWrapperWithParent::operator PODType):
+        (WebCore::JSSVGStaticPODTypeWrapperWithParent::commitChange):
+        (WebCore::JSSVGStaticPODTypeWrapperWithParent::JSSVGStaticPODTypeWrapperWithParent):
+        * bindings/scripts/CodeGenerator.pm:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * svg/SVGSVGElement.idl: Add [Immutable] markers to SVG POD attributes, that contain POD types with writable attributes.
+        * svg/SVGZoomEvent.idl:  SVG specification explicitely demands these attributes to be readonly, even its content.
+
+2008-08-11  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by John and Anders
+
+        Fix for <rdar://problem/6141797>
+
+        When WebArchives were entirely a WebKit concept, there was a guarantee that a WebResource
+        would never have nil data.
+
+        When they were pushed down into WebCore, that guarantee was lost, subtly changing a few
+        semantics with some WebKit applications.
+
+        The guarantee was a good one and should be restored.
+
+        Note that ApplicationCacheResource doesn't need any updates to follow this rule as it already
+        creates an empty data object in the case of null data for its own purposes.
+
+        * loader/SubstituteResource.h:
+        (WebCore::SubstituteResource::SubstituteResource): ASSERT that the data is not null.  This
+          well help any future subclassers not make this mistake.
+
+        * loader/archive/ArchiveResource.cpp:
+        (WebCore::ArchiveResource::create): Return 0 if the data is null.
+
+2008-08-11  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=20328
+        Fix a problem when an 'all' transition transition with more than
+        one property changing is interrupted, and did some AnimationController
+        cleanup.
+
+        Test: transitions/interrupted-all-transition.html
+
+        * page/AnimationController.cpp:
+        (WebCore::ImplicitAnimation::ImplicitAnimation):
+        (WebCore::AnimationControllerPrivate::blendProperties):
+        (WebCore::CompositeAnimation::updateTransitions):
+        (WebCore::CompositeAnimation::cleanupFinishedAnimations):
+        (WebCore::CompositeAnimation::setTransitionStartTime):
+        (WebCore::CompositeAnimation::overrideImplicitAnimations):
+        (WebCore::CompositeAnimation::resumeOverriddenImplicitAnimations):
+        (WebCore::ImplicitAnimation::animate):
+        (WebCore::ImplicitAnimation::onAnimationEnd):
+        (WebCore::ImplicitAnimation::sendTransitionEvent):
+        (WebCore::ImplicitAnimation::affectsProperty):
+        (WebCore::KeyframeAnimation::endAnimation):
+        (WebCore::KeyframeAnimation::onAnimationEnd):
+
+2008-08-11  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        - Because console messages have group levels now, newly created messages
+        that do not specify the level lose their message since the number of
+        arguments is wrong.
+ 
+        * page/inspector/Console.js:
+        * page/inspector/Resource.js:
+
+2008-08-11  Alp Toker  <alp@nuanti.com>
+
+        Build fix. Add new files from r35666 (WebKitAnimationEvent). Also take
+        the opportunity to sort the sources lists.
+
+        * GNUmakefile.am:
+
+2008-08-11  Timothy Hatcher  <timothy@apple.com>
+
+        Speed up the the JavaScript syntax highlighter by generating
+        the finders only once per script instead of per line.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20346
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/SourceFrame.js:
+        (WebInspector.SourceFrame.prototype._syntaxHighlightJavascriptLine):
+        Removed, factored into syntaxHighlightJavascript as an inline function.
+        (WebInspector.SourceFrame.prototype.syntaxHighlightJavascript):
+        Pulled in the _syntaxHighlightJavascriptLine so it will create a closure.
+        Generate the finders before iterating the lines.
+
+2008-08-11  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebCore.vcproj/WebCore.vcproj: Added JSWebKitAnimationEvent.cpp and
+        JSWebKitTransitionEvent.cpp to the project. Let VS reformat the file,
+        too.
+
+2008-08-11  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6131096> Reproducible crash in CounterNode::isReset under guard malloc
+
+        Test: fast/css/counters/invalidate-cached-counter-node.html
+
+        * rendering/RenderContainer.cpp:
+        (WebCore::RenderContainer::invalidateCounters): Added. Invalidates all
+        RenderCounters in :before and :after content.
+        * rendering/RenderContainer.h:
+        * rendering/RenderCounter.cpp:
+        (WebCore::RenderCounter::isCounter): Renamed isRenderCounter() to this
+        to match the RenderObject method.
+        (WebCore::RenderCounter::invalidate): Added. Resets the cached
+        CounterNode and invalidates the object's layout and preferred widths.
+        (WebCore::destroyCounterNodeChildren): Added a call to
+        invalidateCounters().
+        * rendering/RenderCounter.h:
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::invalidateCounters):
+
+2008-08-11  Dean Jackson  <dino@apple.com>
+
+        Implement CSS Animation and Transition Events
+        https://bugs.webkit.org/show_bug.cgi?id=20337
+
+        Implement the events defined in the CSS Animations
+        and Transitions specifications so code can react
+        to animations and transitions.
+
+        Reviewed by Tim Hatcher and Dave Hyatt.
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+            Build configs for new files
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSEventCustom.cpp:
+        * dom/Document.h:
+        * dom/Event.cpp:
+        * dom/Event.h:
+        * dom/EventTarget.cpp:
+        * dom/EventTargetNode.cpp:
+        * dom/EventTargetNode.h:
+        * html/HTMLElement.cpp:
+        * page/AnimationController.cpp:
+            do all the new event stuff
+            
+        * html/HTMLAttributeNames.in:
+            the onwebkitanimation* and onwebkittransitionend attrs
+
+        * dom/WebKitAnimationEvent.cpp: Added.
+        * dom/WebKitAnimationEvent.h: Added.
+        * dom/WebKitAnimationEvent.idl: Added.
+        * dom/WebKitTransitionEvent.cpp: Added.
+        * dom/WebKitTransitionEvent.h: Added.
+        * dom/WebKitTransitionEvent.idl: Added.
+            New files for the events
+
+        * manual-tests/transition-events.html: Added.
+            New testfile
+
+2008-08-11  Adam Roben  <aroben@apple.com>
+
+        Add a ForwardingHeader for wtf/NotFound.h
+
+        Rubberstamped by Darin Adler.
+
+        * ForwardingHeaders/wtf/NotFound.h: Added.
+
+2008-08-11  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where error bubbles in JavaScript resources would
+        be clobbered by the syntax highlighter.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20345
+
+        Reviewed by Adam Roben.
+
+        * manual-tests/inspector/resources/script-error.js: Added.
+        * manual-tests/inspector/styled-error-bubbles-in-scripts.html: Added.
+        * page/inspector/SourceFrame.js:
+        (WebInspector.SourceFrame.prototype._addMessageToSource):
+        Check the nodeType and not the nodeName, this is less fragile.
+        (WebInspector.SourceFrame.prototype._syntaxHighlightJavascriptLine):
+        Check if the lastChild is an error bubble, if so remove it before
+        getting the line's textContent. Add the error bubble back at the end.
+
 2008-08-12  Adam Roben  <aroben@apple.com>
 
         Windows build fix

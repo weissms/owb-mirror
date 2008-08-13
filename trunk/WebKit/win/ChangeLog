@@ -1,3 +1,11 @@
+2008-08-13  Adam Roben  <aroben@apple.com>
+
+        Export WTFLog in Debug builds
+
+        Reviewed by John Sullivan.
+
+        * WebKit.vcproj/WebKit_debug.def:
+
 2008-08-08  Steve Falkenburg  <sfalken@apple.com>
 
         Delete backing stores before 5 second WM_TIMER fires if more than 2 are already queued.
