@@ -45,90 +45,51 @@ namespace WTF {
 
 
     /**
-     *  fastMalloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * fastMalloc
      */
     void* fastMalloc(size_t n);
 
 
     /**
-     *  fastZeroedMalloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * fastZeroedMalloc
      */
     void* fastZeroedMalloc(size_t n);
 
 
     /**
-     *  fastCalloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * fastCalloc
      */
     void* fastCalloc(size_t n_elements, size_t element_size);
 
 
     /**
-     *  fastRealloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * fastRealloc
      */
     void* fastRealloc(void* p, size_t n);
 
 
     /**
-     *  tryFastMalloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * tryFastMalloc
      */
     void* tryFastMalloc(size_t n);
 
 
     /**
-     *  tryFastZeroedMalloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * tryFastZeroedMalloc
      */
     void* tryFastZeroedMalloc(size_t n);
 
 
     /**
-     *  tryFastCalloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * tryFastCalloc
      */
     void* tryFastCalloc(size_t n_elements, size_t element_size);
 
 
     /**
-     *  tryFastRealloc description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * tryFastRealloc
      */
     void* tryFastRealloc(void* p, size_t n)
-
-    /**
-     * fast Zeroed Malloc 
-     * @param[in] : size
-     * @param[out] : pointer allowed and initialized to zero
-     */
-    void *fastZeroedMalloc(size_t n)
 
     /**
      * fast free
@@ -137,11 +98,21 @@ namespace WTF {
     void fastFree(void* p)
 
 #ifndef NDEBUG    
+
     /**
-     * fast malloc forbid
+     * fastMallocForbid
      */
-    void fastMallocForbid()
+    void fastMallocForbid();
+
+    /**
+     * fastMallocAllow
+     */
+    void fastMallocAllow();
 #endif
+    /**
+     * releaseFastMallocFreeMemory
+     */
+    void releaseFastMallocFreeMemory();
 
 } // namespace WTF
 
@@ -149,9 +120,13 @@ using WTF::fastMalloc;
 using WTF::fastZeroedMalloc;
 using WTF::fastCalloc;
 using WTF::fastRealloc;
+using WTF::tryFastMalloc;
+using WTF::tryFastZeroedMalloc;
+using WTF::tryFastCalloc;
+using WTF::tryFastRealloc;
 using WTF::fastFree;
 
-#ifndef NDEBUG    
+#ifndef NDEBUG
 using WTF::fastMallocForbid;
 using WTF::fastMallocAllow;
 #endif
@@ -173,15 +148,8 @@ WTF_PRIVATE_INLINE void* operator new(size_t s) { return fastMalloc(s); }
 WTF_PRIVATE_INLINE void operator delete(void* p) { fastFree(p); }
 WTF_PRIVATE_INLINE void* operator new[](size_t s) { return fastMalloc(s); }
 WTF_PRIVATE_INLINE void operator delete[](void* p) { fastFree(p); }
-
-extern "C" {
-    /**
-     * release fast malloc free memory 
-     */
-void releaseFastMallocFreeMemory();
-}
 #endif
 
 #endif // _CRTDBG_MAP_ALLOC
 
-#endif /* WTF_FastMall
+#endif /* WTF_FastMalloc_h */

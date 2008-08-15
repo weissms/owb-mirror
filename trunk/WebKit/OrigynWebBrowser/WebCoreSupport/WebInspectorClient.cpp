@@ -85,6 +85,11 @@ void WebInspectorClient::detachWindow()
     notImplemented();
 }
 
+void WebInspectorClient::setAttachedWindowHeight(unsigned height)
+{
+    notImplemented();
+}
+
 void WebInspectorClient::highlight(Node* node)
 {
     notImplemented();

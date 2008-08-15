@@ -53,14 +53,11 @@ namespace WKAL {
     
     class SVGImage : public WKALBase, public Image {
     public:
+
     /**
-     * SVGImage constructor
-     * @param[in] : image observer
-     * @code
-     * SVGImage *i = new SVGImage(io);
-     * @endcode
+     *  create SVG Image
      */
-        SVGImage(ImageObserver*);
+        static PassRefPtr<SVGImage> create(ImageObserver* observer)
 
     /**
      * SVGImage destructor
@@ -125,6 +122,18 @@ namespace WKAL {
      */
         virtual bool dataChanged(bool allDataReceived);
 
+
+    /**
+     *  destroyDecodedData
+     */
+        virtual void destroyDecodedData(bool incremental = false) ;
+
+
+    /**
+     * get decodedSize
+     */
+        virtual unsigned decodedSize() const ;
+
     /**
      * get frame at index 
      * @param[in] : index
@@ -134,12 +143,20 @@ namespace WKAL {
      * @endcode
      */
         virtual NativeImagePtr frameAtIndex(size_t) ;
-        
-private:
+
     /**
-     *  draw
+     *  draw 
      */
         virtual void draw(GraphicsContext*, const FloatRect& fromRect, const FloatRect& toRect, CompositeOperator);
+
+    /**
+     * get nativeImageForCurrentFrame
+     */
+        virtual NativeImagePtr nativeImageForCurrentFrame();
+    
+    
+        
+privat
         
     /**
      *  nativeImageForCurrentFrame
@@ -157,8 +174,4 @@ private:
 
 #endif // ENABLE(SVG)
 
-#endif
-
-
-
-
+#end

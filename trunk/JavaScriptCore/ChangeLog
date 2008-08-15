@@ -1,3 +1,69 @@
+2008-08-14  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/6115819> Notify of profile in console
+        - Profiles now have a unique ID so that they can be linked to the
+        console message that announces that a profile completed.
+
+        * profiler/HeavyProfile.cpp: 
+        (KJS::HeavyProfile::HeavyProfile):
+        * profiler/Profile.cpp:
+        (KJS::Profile::create):
+        (KJS::Profile::Profile):
+        * profiler/Profile.h:
+        (KJS::Profile::uid):
+        * profiler/ProfileGenerator.cpp:
+        (KJS::ProfileGenerator::create):
+        (KJS::ProfileGenerator::ProfileGenerator):
+        * profiler/ProfileGenerator.h:
+        * profiler/Profiler.cpp:
+        (KJS::Profiler::startProfiling):
+        * profiler/TreeProfile.cpp:
+        (KJS::TreeProfile::create):
+        (KJS::TreeProfile::TreeProfile):
+        * profiler/TreeProfile.h:
+
+2008-08-13  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Nixed a PIC branch from JSObject::getOwnPropertySlot, by forcing
+        fillGetterProperty, which references a global function pointer,
+        out-of-line.
+        
+        .2% SunSpider speedup, 4.3% access-nbody speedup, 8.7% speedup on a
+        custom property access benchmark for objects with one property.
+
+        * kjs/JSObject.cpp:
+        (KJS::JSObject::fillGetterPropertySlot):
+
+2008-08-13  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20349
+        WTF::initializeThreading() fails if threading is already initialized
+
+        Fix threading initialization logic to support cases where
+        g_thread_init() has already been called elsewhere.
+
+        Resolves database-related crashers reported in several applications.
+
+        * wtf/ThreadingGtk.cpp:
+        (WTF::initializeThreading):
+
+2008-08-13  Brad Hughes <bhughes@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix compiling of QtWebKit in release mode with the Intel C++ Compiler for Linux
+
+        The latest upgrade of the intel compiler allows us to compile all of
+        Qt with optimizations enabled (yay!).
+
+        * JavaScriptCore.pro:
+
 2008-08-13  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Geoff Garen.

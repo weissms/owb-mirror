@@ -76,7 +76,7 @@ public:
      * AffineTransform *a = new AffineTransform(balMatrix);
      * @endcode
      */
-    AffineTransform(const BalMatrix &matrix);
+    AffineTransform(const PlatformAffineTransform&);
 
     /**
      * set Matrix 
@@ -431,11 +431,11 @@ public:
      */
     AffineTransform inverse() const;
 
+
     /**
-     * platform Matrix operator
-     * @param[out] : platform matrix
+     * PlatformAffineTransform operator
      */
-    operator BalMatrix() const;
+    operator PlatformAffineTransform() const
 
     /**
      *  operator== 
@@ -484,7 +484,5 @@ private:
 } // namespace WKAL
 
 #endif // AffineTransform_h
-
-
 
 

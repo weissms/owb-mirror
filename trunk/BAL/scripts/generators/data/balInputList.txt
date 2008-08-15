@@ -115,6 +115,7 @@
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/filters/FEComponentTransfer.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/filters/FEBlend.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/filters/FEColorMatrix.h
+../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/Pattern.h
 #FMD#18
 
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/DragData.h
@@ -218,6 +219,9 @@
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/filters/FEComponentTransfer.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/filters/FEComposite.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/filters/FEComposite.h
+../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/Pattern.h
+../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/Pattern.cpp
+../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/platform/graphics/cairo/PatternCairo.cpp
 #FMD#92
 #FMD(175)
 

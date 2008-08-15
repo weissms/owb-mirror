@@ -80,11 +80,21 @@ class BitmapImage : public Image {
     friend class GeneratedImage;
     friend class GraphicsContext;
 public:
-    BitmapImage(BalSurface*, ImageObserver* = 0);
-    BitmapImage(ImageObserver* = 0);
+    static PassRefPtr<BitmapImage> create(NativeImagePtr nativeImage, ImageObserver* observer = 0)
+    {
+        return adoptRef(new BitmapImage(nativeImage, observer));
+    }
+    static PassRefPtr<BitmapImage> create(ImageObserver* observer = 0)
+    {
+        return adoptRef(new BitmapImage(observer));
+    }
+
     ~BitmapImage();
+
+    virtual bool isBitmapImage() const { return true; }
     
     virtual IntSize size() const;
+    IntSize currentFrameSize() const;
 
     virtual bool dataChanged(bool allDataReceived);
 
@@ -99,6 +109,8 @@ public:
     virtual NativeImagePtr nativeImageForCurrentFrame() { return frameAtIndex(currentFrame()); }
 
 protected:
+    BitmapImage(NativeImagePtr, ImageObserver* = 0);
+    BitmapImage(ImageObserver* = 0);
     virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator);
     size_t currentFrame() const { return m_currentFrame; }
     size_t frameCount();
@@ -152,6 +164,7 @@ protected:
     mutable bool m_haveSize; // Whether or not our |m_size| member variable has the final overall image size yet.
     bool m_sizeAvailable; // Whether or not we can obtain the size of the first image frame yet from ImageIO.
     unsigned m_decodedSize; // The current size of all decoded frames.
+    mutable bool m_hasUniformFrameSize;
 
     mutable bool m_haveFrameCount;
     size_t m_frameCount;

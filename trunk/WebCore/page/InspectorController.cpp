@@ -781,6 +781,24 @@ static JSValueRef moveByUnrestricted(JSContextRef ctx, JSObjectRef /*function*/,
     return JSValueMakeUndefined(ctx);
 }
 
+static JSValueRef setAttachedWindowHeight(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
+    if (!controller)
+        return JSValueMakeUndefined(ctx);
+
+    if (argumentCount < 1)
+        return JSValueMakeUndefined(ctx);
+
+    unsigned height = static_cast<unsigned>(JSValueToNumber(ctx, arguments[0], exception));
+    if (exception && *exception)
+        return JSValueMakeUndefined(ctx);
+
+    controller->setAttachedWindowHeight(height);
+
+    return JSValueMakeUndefined(ctx);
+}
+
 static JSValueRef wrapCallback(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
@@ -965,6 +983,17 @@ static JSValueRef isWindowVisible(JSContextRef ctx, JSObjectRef /*function*/, JS
     if (!controller)
         return JSValueMakeUndefined(ctx);
     return JSValueMakeBoolean(ctx, controller->windowVisible());
+}
+
+static JSValueRef closeWindow(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
+    if (!controller)
+        return JSValueMakeUndefined(ctx);
+
+    controller->closeWindow();
+
+    return JSValueMakeUndefined(ctx);
 }
 
 // Profiles
@@ -1183,7 +1212,7 @@ bool InspectorController::windowVisible()
     return m_windowVisible;
 }
 
-void InspectorController::setWindowVisible(bool visible)
+void InspectorController::setWindowVisible(bool visible, bool attached)
 {
     if (visible == m_windowVisible)
         return;
@@ -1194,6 +1223,7 @@ void InspectorController::setWindowVisible(bool visible)
         return;
 
     if (m_windowVisible) {
+        setAttachedWindow(attached);
         populateScriptObjects();
         if (m_nodeToFocus)
             focusNode();
@@ -1283,7 +1313,22 @@ void InspectorController::addProfile(PassRefPtr<Profile> prpProfile)
 
     if (windowVisible())
         addScriptProfile(profile.get());
+
+    addProfileMessageToConsole(profile);
 }
+
+void InspectorController::addProfileMessageToConsole(PassRefPtr<Profile> prpProfile)
+{
+    RefPtr<Profile> profile = prpProfile;
+
+    UString message = "Profile \"webkit-profile://";
+    message += encodeWithURLEscapeSequences(profile->title());
+    message += "/";
+    message += UString::from(profile->uid());
+    message += "\" finished.";
+    addMessageToConsole(JSMessageSource, LogMessageLevel, message, 0, "");
+}
+
 
 void InspectorController::attachWindow()
 {
@@ -1297,6 +1342,24 @@ void InspectorController::detachWindow()
     if (!enabled())
         return;
     m_client->detachWindow();
+}
+
+void InspectorController::setAttachedWindow(bool attached)
+{
+    if (!enabled() || !m_scriptContext || !m_scriptObject)
+        return;
+
+    JSValueRef attachedValue = JSValueMakeBoolean(m_scriptContext, attached);
+
+    JSValueRef exception = 0;
+    callFunction(m_scriptContext, m_scriptObject, "setAttachedWindow", 1, &attachedValue, exception);
+}
+
+void InspectorController::setAttachedWindowHeight(unsigned height)
+{
+    if (!enabled())
+        return;
+    m_client->setAttachedWindowHeight(height);
 }
 
 void InspectorController::inspectedWindowScriptObjectCleared(Frame* frame)
@@ -1341,6 +1404,7 @@ void InspectorController::windowScriptObjectAvailable()
         { "localizedStringsURL", localizedStrings, kJSPropertyAttributeNone },
         { "platform", platform, kJSPropertyAttributeNone },
         { "moveByUnrestricted", moveByUnrestricted, kJSPropertyAttributeNone },
+        { "setAttachedWindowHeight", WebCore::setAttachedWindowHeight, kJSPropertyAttributeNone },
         { "wrapCallback", wrapCallback, kJSPropertyAttributeNone },
         { "startDebuggingAndReloadInspectedPage", WebCore::startDebuggingAndReloadInspectedPage, kJSPropertyAttributeNone },
         { "stopDebugging", WebCore::stopDebugging, kJSPropertyAttributeNone },
@@ -1357,6 +1421,7 @@ void InspectorController::windowScriptObjectAvailable()
         { "addBreakpoint", WebCore::addBreakpoint, kJSPropertyAttributeNone },
         { "removeBreakpoint", WebCore::removeBreakpoint, kJSPropertyAttributeNone },
         { "isWindowVisible", WebCore::isWindowVisible, kJSPropertyAttributeNone },
+        { "closeWindow", WebCore::closeWindow, kJSPropertyAttributeNone },
         { "startProfiling", WebCore::startProfiling, kJSPropertyAttributeNone },
         { "stopProfiling", WebCore::stopProfiling, kJSPropertyAttributeNone },
         { "clearMessages", clearMessages, kJSPropertyAttributeNone },

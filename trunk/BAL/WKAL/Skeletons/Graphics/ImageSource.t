@@ -113,6 +113,14 @@ public:
      */
     IntSize size() const;
     
+
+    /**
+     * get frameSize at index
+     * @param[in] : index
+     * @param[out] : frameSize
+     */
+    IntSize frameSizeAtIndex(size_t) const;
+
     /**
      * get repetition count
      * @param[out] : count
@@ -178,7 +186,6 @@ private:
 }
 
 #endif
-
 
 
 

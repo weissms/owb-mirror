@@ -196,6 +196,20 @@ namespace WKAL {
      */
         void setFillColor(const Color&);
 
+
+    /**
+     * apply stroke pattern
+     * @param[in] : pattern
+     */
+        void applyStrokePattern(const Pattern&);
+
+
+    /**
+     * apply fill pattern
+     * @param[in] : pattern
+     */
+        void applyFillPattern(const Pattern&);
+
     /**
      * save context
      * @code
@@ -907,17 +921,7 @@ namespace WKAL {
      * BalExposeEvent *e = gc->balExposeEvent();
      * @endcode
      */
-        BalEventExpose* balExposeEvent() const;
-
-    /**
-     * translate point
-     * @param[in] : point
-     * @param[out] : point translated
-     * @code
-     * IntPoint p = gc->translatePoint(p1);
-     * @endcode
-     */
-        IntPoint translatePoint(const IntPoint&) const;
+        BalEventExpose* balExposeEvent() const
 
     private:
     /**
@@ -989,4 +993,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // GraphicsContex
+#endif // GraphicsCont

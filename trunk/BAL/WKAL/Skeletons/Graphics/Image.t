@@ -66,15 +66,7 @@ class ImageObserver;
 class Image : public WKALBase, Noncopyable {
     friend class GeneratedImage;
     friend class GraphicsContext;
-public:
-    /**
-     * Image construtor
-     * @param[in] : image observer
-     * @code
-     * Image *i = new Image();
-     * @endcode
-     */
-    Image(ImageObserver* = 0);
+publi
 
     /**
      * Image destructor
@@ -84,6 +76,14 @@ public:
      */
     virtual ~Image();
     
+
+    /**
+     * create an image
+     * @param[in] : imageObserver
+     * @param[out] : image
+     */
+    static PassRefPtr<Image> create(ImageObserver* = 0);
+
     /**
      * load platform resource 
      * @param[in] : name
@@ -92,7 +92,7 @@ public:
      * Image *i = Image::loadPlatformResource(n);
      * @endcode
      */
-    static Image* loadPlatformResource(const char* name);
+    static PassRefPtr<Image> loadPlatformResource(const char* name);
 
     /**
      * supports type
@@ -113,6 +113,13 @@ public:
      */
     virtual bool isBitmapImage() const ;
     
+
+    /**
+     * get a nullImage
+     * @param[out] : null image
+     */
+    static Image* nullImage();
+
     /**
      * test if the image is null
      * @param[out] : true if the image is null
@@ -225,7 +232,7 @@ public:
      * i->destroyDecodedData();
      * @endcode
      */
-    virtual void destroyDecodedData(bool incremental = false) ;
+    virtual void destroyDecodedData(bool incremental = false) = 0;
 
     /**
      * get decoded size
@@ -234,7 +241,7 @@ public:
      * unsigned s = i->decodedSize();
      * @endcode
      */
-    virtual unsigned decodedSize() const ;
+    virtual unsigned decodedSize() const = 0;
 
     /**
      * get data
@@ -287,20 +294,24 @@ public:
     
 protected:
     /**
-     * fill with solid color
-     */
+     * image constructor
+     **/
+    Image(ImageObserver* = 0);
+ 
+    /**
+     * fillWithSolidColor
+     **/
     static void fillWithSolidColor(GraphicsContext* ctxt, const FloatRect& dstRect, const Color& color, CompositeOperator op);
 
-protected:
     /**
      * draw
      */
-    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator) = 0;
-
+    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator) = 0
     /**
      *  drawTiled
      */
     void drawTiled(GraphicsContext*, const FloatRect& dstRect, const FloatPoint& srcPoint, const FloatSize& tileSize, CompositeOperator);
+
     /**
      *  drawTiled
      */
@@ -308,16 +319,17 @@ protected:
 
     // Supporting tiled drawing
     /**
-     *  mayFillWithSolidColor
+     * mayFillWithSolidColor
      */
     virtual bool mayFillWithSolidColor() const ;
+
     /**
      *  solidColor 
      */
     virtual Color solidColor() const ;
-    
+
     /**
-     *  startAnimation
+     * startAnimation
      */
     virtual void startAnimation() ;
     
@@ -333,9 +345,3 @@ protected:
 };
 
 }
-
-#endif
-
-
-
-

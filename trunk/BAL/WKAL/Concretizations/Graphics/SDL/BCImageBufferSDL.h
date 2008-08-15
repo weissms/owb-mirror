@@ -69,7 +69,7 @@ namespace WKAL {
         IntSize m_size;
 
         OwnPtr<GraphicsContext> m_context;
-        mutable OwnPtr<Image> m_image;
+	mutable RefPtr<Image> m_image;
 
         ImageBuffer(BalSurface* surface);
         mutable BalSurface* m_surface;

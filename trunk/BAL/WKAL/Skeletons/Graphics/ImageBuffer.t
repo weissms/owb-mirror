@@ -94,16 +94,7 @@ namespace WKAL {
      * GraphicsContext *gc = im->context();
      * @endcode
      */
-        GraphicsContext* context() const;
-
-    /**
-     * get surface
-     * @param[out] : surface
-     * @code
-     * BalSurface *s = im->surface();
-     * @endcode
-     */
-        BalSurface* surface() const;
+        GraphicsContext* context() const
 
     /**
      * get image
@@ -166,14 +157,13 @@ namespace WKAL {
      * ImageBuffer private constructor
      * @param[in] : surface
      */
-        ImageBuffer(BalSurface* surface);
+        ImageBuffer(BalSurface*);
         mutable BalSurface* m_surface;
     };
 
 } // namespace WKAL
 
 #endif // ImageBuffer_h
-
 
 
 

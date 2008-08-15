@@ -111,6 +111,18 @@ public:
     virtual IntSize size() const ;
 
 protected:
+
+    /**
+     *  destroyDecodedData
+     */
+    virtual void destroyDecodedData(bool incremental = false) ;
+
+
+    /**
+     * get decodedSize 
+     */
+    virtual unsigned decodedSize() const ;
+
     /**
      * draw 
      * @param[in] : graphics context
@@ -146,7 +158,5 @@ protected:
 }
 
 #endif
-
-
 
 

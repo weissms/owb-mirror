@@ -46,15 +46,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#if PLATFORM(QT)
-#include <QPainter>
-#include <QPixmap>
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-#include <cairo.h>
-#elif PLATFORM(BAL)
-#include <BALBase.h>
-#endif
-
 namespace WebCore {
 
 using namespace HTMLNames;
@@ -276,57 +267,5 @@ ImageBuffer* HTMLCanvasElement::buffer() const
         createImageBuffer();
     return m_imageBuffer.get();
 }
-
-#if PLATFORM(CG)
-
-CGImageRef HTMLCanvasElement::createPlatformImage() const
-{
-    GraphicsContext* context = drawingContext();
-    if (!context)
-        return 0;
-
-    CGContextRef contextRef = context->platformContext();
-    if (!contextRef)
-        return 0;
-
-    CGContextFlush(contextRef);
-
-    return CGBitmapContextCreateImage(contextRef);
-}
-
-#elif PLATFORM(QT)
-
-QPixmap HTMLCanvasElement::createPlatformImage() const
-{
-    if (!m_imageBuffer)
-        return QPixmap();
-    return *m_imageBuffer->pixmap();
-}
-
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-
-cairo_surface_t* HTMLCanvasElement::createPlatformImage() const
-{
-    if (!m_imageBuffer)
-        return 0;
-
-    // Note that unlike CG, our returned image is not a copy or
-    // copy-on-write, but the original. This is fine, since it is only
-    // ever used as a source.
-
-    cairo_surface_flush(m_imageBuffer->surface());
-    cairo_surface_reference(m_imageBuffer->surface());
-    return m_imageBuffer->surface();
-}
-
-#elif PLATFORM(BAL)
-
-BalSurface * HTMLCanvasElement::createPlatformImage() const
-{
-    if (!m_imageBuffer)
-        return 0;
-    return m_imageBuffer->surface();
-}
-#endif
 
 }

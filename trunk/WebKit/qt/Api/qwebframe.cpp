@@ -149,8 +149,8 @@ void QWebFramePrivate::updateBackground()
     Additionally, a frame may also specify an icon, which can be accessed
     using the icon() property. If the title or the icon changes, the
     corresponding titleChanged() and iconChanged() signals will be emitted.
-    The textSizeMultiplier() property can be used to change the overall size
-    of the text displayed in the frame.
+    The zoomFactor() property can be used to change the overall size
+    of the content displayed in the frame.
 
     QWebFrame objects are created and controlled by the web page. You
     can connect to the web page's \l{QWebPage::}{frameCreated()} signal
@@ -686,6 +686,13 @@ void QWebFrame::render(QPainter *painter)
 /*!
   \property QWebFrame::textSizeMultiplier
   \brief the scaling factor for all text in the frame
+  \obsolete
+
+  Use setZoomFactor instead, in combination with the
+  ZoomTextOnly attribute in QWebSettings.
+
+  \note Setting this property also enables the
+  ZoomTextOnly attribute in QWebSettings.
 */
 
 void QWebFrame::setTextSizeMultiplier(qreal factor)
@@ -694,6 +701,22 @@ void QWebFrame::setTextSizeMultiplier(qreal factor)
 }
 
 qreal QWebFrame::textSizeMultiplier() const
+{
+    return d->frame->zoomFactor();
+}
+
+/*!
+    \property QWebFrame::zoomFactor
+    \since 4.5
+    \brief the zoom factor for the frame
+*/
+
+void QWebFrame::setZoomFactor(qreal factor)
+{
+    d->frame->setZoomFactor(factor, d->frame->isZoomFactorTextOnly());
+}
+
+qreal QWebFrame::zoomFactor() const
 {
     return d->frame->zoomFactor();
 }
@@ -897,7 +920,8 @@ QWebFrame* QWebFramePrivate::kit(WebCore::Frame* coreFrame)
 /*!
     \fn void QWebFrame::urlChanged(const QUrl &url)
 
-    This signal is emitted when the \a url of the frame changes.
+    This signal is emitted with the URL of the frame when the frame's title is
+    received. The new URL is specified by \a url.
 
     \sa url()
 */

@@ -204,8 +204,6 @@ void EditorClientQt::respondToChangedContents()
 {
     if (dumpEditingCallbacks)
         printf("EDITING DELEGATE: webViewDidChange:WebViewDidChangeNotification\n");
-    m_page->d->modified = true;
-
     m_page->d->updateEditorActions();
 }
 
@@ -424,7 +422,7 @@ void EditorClientQt::handleKeyboardEvent(KeyboardEvent* event)
                             break;
                         default:
                             // catch combination AltGr+key or Ctrl+Alt+key
-                            if (kevent->type() != PlatformKeyboardEvent::KeyDown && !kevent->text().isEmpty()) {
+                            if (kevent->type() != PlatformKeyboardEvent::KeyDown && kevent->altKey() && !kevent->text().isEmpty()) {
                                 frame->editor()->insertText(kevent->text(), event);
                                 break;
                             }

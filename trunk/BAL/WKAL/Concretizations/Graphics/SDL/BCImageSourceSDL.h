@@ -57,6 +57,7 @@ public:
 
     bool isSizeAvailable();
     IntSize size() const;
+    IntSize frameSizeAtIndex(size_t) const;
     
     int repetitionCount();
     

@@ -1,3 +1,821 @@
+2008-08-14  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx !USE(WXGC) build fix. This is necessary until we find a way to replace GDI with
+        an alternative that performs reasonably well. (GDI+ is too slow in many cases.)
+
+        * platform/graphics/AffineTransform.h:
+
+2008-08-14  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adele.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20388
+        <video> elements on Windows never becomes visible when a page is restored from the cache
+
+        Always pass "set" calls down to MediaPlayerPrivate instead of only when the
+        value is different from the cached value. Let the implementation decide when
+        to avoid work because nothing has changed.
+
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::MediaPlayer::setVolume):
+        (WebCore::MediaPlayer::setRate):
+        (WebCore::MediaPlayer::setRect):
+        (WebCore::MediaPlayer::setVisible):
+
+2008-08-14  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Make Firebug command line API respect predefined variables.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20385
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/Console.js:
+
+2008-08-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen and Timothy Hatcher.
+
+        Allow programatically setting the HTMLTokenizers time delay and chunk size
+        which are used for determining how aggressively we yield.
+
+        * WebCore.base.exp:
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::begin):
+        (WebCore::HTMLTokenizer::continueProcessing):
+        * html/HTMLTokenizer.h:
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+        (WebCore::Page::setCustomHTMLTokenizerTimeDelay):
+        (WebCore::Page::setCustomHTMLTokenizerChunkSize):
+        * page/Page.h:
+        (WebCore::Page::hasCustomHTMLTokenizerTimeDelay):
+        (WebCore::Page::customHTMLTokenizerTimeDelay):
+        (WebCore::Page::hasCustomHTMLTokenizerChunkSize):
+        (WebCore::Page::customHTMLTokenizerChunkSize):
+
+2008-08-14  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Beth.
+
+        Move us one step closer to cross-platform svg/graphics code
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * html/CanvasStyle.cpp:
+        * platform/graphics/Color.cpp:
+        (WebCore::colorWithOverrideAlpha):
+        * platform/graphics/Color.h:
+        * svg/graphics/cg/CgSupport.cpp:
+        (WebCore::applyStrokeStyleToContext):
+        (WebCore::strokeBoundingBox):
+        * svg/graphics/cg/SVGPaintServerSolidCg.cpp:
+        (WebCore::SVGPaintServerSolid::setup):
+
+2008-08-14  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Alexey.
+
+        Remove un-need includes from HTMLCanvas and use the
+        Gradient platform abstraction in one place in CanvasStyle
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::fillRect):
+        * html/CanvasStyle.cpp:
+        * html/HTMLCanvasElement.cpp:
+
+2008-08-14  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Alexey.
+
+        Clean up GlyphBuffer.h, removing more #ifdefs
+
+        * platform/graphics/GlyphBuffer.h:
+        (WebCore::GlyphBuffer::glyphAt):
+        (WebCore::GlyphBuffer::advanceAt):
+        (WebCore::GlyphBuffer::add):
+
+2008-08-14  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam.
+
+        Clean up AffineTransform.h, removing #ifdefs
+
+        * platform/graphics/AffineTransform.h:
+        * platform/graphics/cairo/AffineTransformCairo.cpp:
+        * platform/graphics/cg/AffineTransformCG.cpp:
+        * platform/graphics/qt/AffineTransformQt.cpp:
+        * platform/graphics/wx/AffineTransformWx.cpp:
+
+2008-08-14  Dan Bernstein  <mitz@apple.com>
+
+        - fix non-CG builds by adding an ImageSource::frameSizeAtIndex() that returns size().
+
+        * platform/graphics/cairo/ImageSourceCairo.cpp:
+        (WebCore::ImageSource::frameSizeAtIndex):
+        * platform/graphics/qt/ImageSourceQt.cpp:
+        (WebCore::ImageSource::frameSizeAtIndex):
+        * platform/graphics/wx/ImageSourceWx.cpp:
+        (WebCore::ImageSource::frameSizeAtIndex):
+
+2008-08-14  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        - fix <rdar://problem/5993323> REGRESSION (r34210): Apple.com favicon appears stretched/clipped
+
+        * platform/graphics/BitmapImage.cpp: 
+        (WebCore::BitmapImage::BitmapImage): Added initialization of
+        m_hasUniformFrameSize.
+        (WebCore::BitmapImage::cacheFrame): Added code to get the size of the
+        cached frame for use in decoded size computation and for setting
+        m_hasUniformFrameSize.
+        (WebCore::BitmapImage::currentFrameSize): Added.
+        (WebCore::BitmapImage::dataChanged): Added code to reset
+        m_hasUniformFrameSize.
+        * platform/graphics/BitmapImage.h: Added currentFrameSize() and
+        m_hasUniformFrameSize.
+        * platform/graphics/ImageSource.h: Added frameSizeAtIndex().
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::BitmapImage::draw): Changed to use currentFrameSize(). This
+        fixes the bug, which resulted from assuming that the frame being drawn 
+        was the same size as the first frame.
+        * platform/graphics/cg/ImageSourceCG.cpp:
+        (WebCore::ImageSource::frameSizeAtIndex): Renamed size() to this and
+        changed to get the size of the frame at the given index.
+        (WebCore::ImageSource::size): Added. Returns frameSizeAtIndex(0).
+
+2008-08-13  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Fix @font-face inside @media rule crash.
+        https://bugs.webkit.org/show_bug.cgi?id=20367
+
+        Test: fast/css/font-face-in-media-rule.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSRuleSet::addRulesFromSheet):
+
+2008-08-14  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes after recent changes to Canvas and Image classes.
+
+        * platform/graphics/Pattern.h:
+        * platform/graphics/wx/GradientWx.cpp:
+        (WebCore::Gradient::fill):
+        * platform/graphics/wx/GraphicsContextWx.cpp:
+        (WebCore::GraphicsContext::applyFillPattern):
+        (WebCore::GraphicsContext::applyStrokePattern):
+        * platform/graphics/wx/ImageBufferWx.cpp:
+        (WebCore::ImageBuffer::image):
+        * platform/graphics/wx/ImageWx.cpp:
+        (WebCore::Image::loadPlatformResource):
+
+2008-08-14  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        rdar://6102511
+        When pan-scrolling, typing on the keyboard should either stop the pan scroll or be ignored
+        IE and FF are both preventing the keyboard event to interact with the page while scrolling.
+        Some differences exist between them concerning the kind of key which is pressed :
+        IE7 : every key leads to a stop of the panning
+        FF3 : the ESC and TAB keys leads to a stop, the other keys are inactive.
+        For WebKit this patch is adopting the FF3 behavior except for the TAB key which is inactive too.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::keyEvent): Verifies which key has been hit and decide either to stop the pan scroll or to swallow the key event.
+
+2008-08-14  Christian Dywan  <christian@twotoasts.de>
+
+        Gtk+/ Cairo build fix, patch by Dirk Schulze.
+
+        * html/CanvasStyle.cpp:
+        * platform/graphics/cairo/PatternCairo.cpp:
+        (WebCore::Pattern::createPlatformPattern):
+        * svg/graphics/cairo/SVGResourceMaskerCairo.cpp:
+
+2008-08-14  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/6115819> Notify of profile in console
+
+        * page/InspectorController.cpp:
+        (WebCore::InspectorController::addProfile):
+        (WebCore::InspectorController::addProfileMessageToConsole): Called by
+        addProfile this is the function that adds a message to the console that
+        a profile finished.
+        * page/InspectorController.h:
+        * page/JavaScriptProfile.cpp: Expose the profiler's unique ID to match
+        the console log to the profile in the web inspector.
+        (WebCore::getUniqueIdCallback):
+        (WebCore::ProfileClass):
+        * page/inspector/ProfilesPanel.js: Created a map of all the profiles by
+        Id to bring up the requested profile.  Also select and reveal the
+        profile in the profile panel.  And created displayTitleForProfileLink()
+        which formats a title taking into account if it's user initiated or if
+        there are multiples. Lasty, I put the user initiated profile in a
+        variable.
+        * page/inspector/inspector.js: Make the profile title be a clickable
+        link that will take the user to the identified profile.  Also expose
+        the count of user initiated profiles so they can be displayed in the
+        console with the correct count.
+
+2008-08-14  Timothy Hatcher  <timothy@apple.com>
+
+        Avoid formating ConsoleMessages twice unless the message will be
+        displayed in bubbles of a SourceFrame.
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/Console.js:
+        (WebInspector.ConsoleMessage): Only format the plain text message
+        if the URL and line are valid and the level is error or warning.
+        (WebInspector.ConsoleMessage.prototype.isErrorOrWarning): Added.
+        Helper to test for error or warning level.
+        * page/inspector/SourceFrame.js:
+        (WebInspector.SourceFrame.prototype.addMessage): Don't add the
+        message if there is no message or valid line or if the msg
+        isn't an error or warning.
+
+2008-08-14  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        partial Gtk build fix, not reviewed
+
+        * platform/graphics/cairo/PatternCairo.cpp:
+
+2008-08-13  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlson.
+
+        Fix style issue.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::pickMedia):
+
+2008-08-13  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Build fix for Cairo, not reviewed. (exposed by gtk build slave)
+        Continue Erics build fixes, after the Image cleanup.
+
+        * platform/graphics/cairo/ImageBufferCairo.cpp:
+        (WebCore::ImageBuffer::image):
+
+2008-08-13  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Build fix for Qt, not reviewed.
+        Don't declare eventuallyMarkAsParserCreated in a block wrapped by !USE_QXMLSTREAM.
+
+        * dom/XMLTokenizer.cpp:
+        (WebCore::eventuallyMarkAsParserCreated): Was erre
+
+2008-08-13  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Build fix, not reviewed.
+        Add ScriptElement.cpp to Gtk build.
+
+        * GNUmakefile.am:
+
+2008-08-13  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=20372
+
+        Refactor HTMLScriptElement's code into a common base class: ScriptElement.
+        SVGScriptElement will be converted to use ScriptElement in a follow-up patch.
+
+        This resolves code duplications and allows us to completly replace the old
+        SVGScriptElement (which doesn't use CachedScript, no dynamic injected scripts etc..)
+
+        As ScriptElement, doesn't actually inherit from Element, we may want to rename
+        it, though StyleElement uses the same naming convention, so I left it as is for now.
+        Eventually we'll rename both files in future.
+
+        No functional changes yet, as SVGScriptElement doesn't yet use the new base class.
+
+        * WebCore.pro: Add new ScriptElement.cpp to build.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+        * WebCoreSources.bkl: Dutto.
+        * dom/ScriptElement.cpp: Added. 1:1 based on HTMLScriptElement
+        (WebCore::ScriptElement::insertedIntoDocument):
+        (WebCore::ScriptElement::removedFromDocument):
+        (WebCore::ScriptElement::childrenChanged):
+        (WebCore::ScriptElement::finishParsingChildren):
+        (WebCore::ScriptElement::handleSourceAttribute):
+        (WebCore::isSupportedJavaScriptLanguage):
+        (WebCore::ScriptElementData::ScriptElementData):
+        (WebCore::ScriptElementData::~ScriptElementData):
+        (WebCore::ScriptElementData::requestScript):
+        (WebCore::ScriptElementData::evaluateScript):
+        (WebCore::ScriptElementData::stopLoadRequest):
+        (WebCore::ScriptElementData::notifyFinished):
+        (WebCore::ScriptElementData::ignoresLoadRequest):
+        (WebCore::ScriptElementData::shouldExecuteAsJavaScript):
+        (WebCore::ScriptElementData::scriptCharset):
+        (WebCore::ScriptElementData::scriptContent):
+        * dom/ScriptElement.h: Added.
+        (WebCore::ScriptElement::ScriptElement):
+        (WebCore::ScriptElement::~ScriptElement):
+        (WebCore::ScriptElementData::element):
+        (WebCore::ScriptElementData::createdByParser):
+        (WebCore::ScriptElementData::setCreatedByParser):
+        * dom/XMLTokenizer.cpp:
+        (WebCore::isScriptElement):
+        (WebCore::castToScriptElement):
+        (WebCore::eventuallyMarkAsParserCreated):
+        (WebCore::XMLTokenizer::startElementNs):
+        (WebCore::XMLTokenizer::endElementNs):
+        (WebCore::createXHTMLParserErrorHeader):
+        (WebCore::XMLTokenizer::insertErrorMessageBlock):
+        * html/HTMLScriptElement.cpp: Refactored code, pushed most code down to ScriptElement.
+        (WebCore::HTMLScriptElement::HTMLScriptElement):
+        (WebCore::HTMLScriptElement::~HTMLScriptElement):
+        (WebCore::HTMLScriptElement::isURLAttribute):
+        (WebCore::HTMLScriptElement::setCreatedByParser):
+        (WebCore::HTMLScriptElement::shouldExecuteAsJavaScript):
+        (WebCore::HTMLScriptElement::childrenChanged):
+        (WebCore::HTMLScriptElement::parseMappedAttribute):
+        (WebCore::HTMLScriptElement::finishParsingChildren):
+        (WebCore::HTMLScriptElement::insertedIntoDocument):
+        (WebCore::HTMLScriptElement::removedFromDocument):
+        (WebCore::HTMLScriptElement::text):
+        (WebCore::HTMLScriptElement::setText):
+        (WebCore::HTMLScriptElement::setHtmlFor):
+        (WebCore::HTMLScriptElement::setEvent):
+        (WebCore::HTMLScriptElement::charset):
+        (WebCore::HTMLScriptElement::src):
+        (WebCore::HTMLScriptElement::type):
+        (WebCore::HTMLScriptElement::scriptCharset):
+        (WebCore::HTMLScriptElement::scriptContent):
+        (WebCore::HTMLScriptElement::sourceAttributeValue):
+        (WebCore::HTMLScriptElement::charsetAttributeValue):
+        (WebCore::HTMLScriptElement::typeAttributeValue):
+        (WebCore::HTMLScriptElement::languageAttributeValue):
+        (WebCore::HTMLScriptElement::dispatchLoadEvent):
+        (WebCore::HTMLScriptElement::dispatchErrorEvent):
+        * html/HTMLScriptElement.h:
+        * svg/SVGScriptElement.cpp: Inherit from ScriptElement, don't actually use it yet.
+        * svg/SVGScriptElement.cpp:
+        (WebCore::SVGScriptElement::SVGScriptElement):
+        (WebCore::SVGScriptElement::scriptContent):
+        (WebCore::SVGScriptElement::sourceAttributeValue):
+        (WebCore::SVGScriptElement::charsetAttributeValue):
+        (WebCore::SVGScriptElement::typeAttributeValue):
+        (WebCore::SVGScriptElement::languageAttributeValue):
+        (WebCore::SVGScriptElement::dispatchLoadEvent):
+        (WebCore::SVGScriptElement::dispatchErrorEvent):
+        * svg/SVGScriptElement.h:
+        (WebCore::SVGScriptElement::setCreatedByParser):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Attempt to fix the Gtk build, no review.
+
+        I removed the bogus GraphicsContext::translatePoint() hack for Gtk in the process.
+
+        * platform/graphics/GraphicsContext.h:
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        * platform/graphics/qt/GradientQt.cpp:
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        * platform/gtk/RenderThemeGtk.cpp:
+        (WebCore::paintMozWidget):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Yet another attempt to fix the Qt build, no review.
+
+        * platform/graphics/qt/GradientQt.cpp:
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::applyStrokePattern):
+        (WebCore::GraphicsContext::applyFillPattern):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Attempt to fix the Windows build, no review.
+
+        * platform/win/CursorWin.cpp:
+        (WebCore::loadCursorByName):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::paint):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Attempt to fix the Windows build, no review.
+
+        * platform/win/CursorWin.cpp:
+        (WebCore::loadCursorByName):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::paint):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Attempt to fix the Qt build, no review.
+
+        * platform/graphics/qt/ImageBufferQt.cpp:
+        (WebCore::ImageBuffer::image):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Attempt to fix the Windows build, no review.
+
+        * platform/graphics/win/ImageWin.cpp:
+        (WebCore::Image::loadPlatformResource):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::paintMissingPluginIcon):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Another attempt to fix the Qt build, no review.
+
+        * platform/graphics/qt/ImageQt.cpp:
+        * platform/graphics/qt/StillImageQt.h:
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        No review, build fix only.
+
+        Fix mac build, due to change in new code since my patch was written.
+
+        * svg/graphics/cg/SVGResourceMaskerCg.mm:
+        (WebCore::SVGResourceMasker::applyMask):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Build fix only, no review.
+
+        Attempt to fix the Qt build.
+
+        * platform/graphics/qt/ImageBufferQt.cpp:
+        * platform/graphics/qt/StillImageQt.h:
+        (WebCore::StillImage::create):
+        (WebCore::StillImage::destroyDecodedData):
+        (WebCore::StillImage::decodedSize):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Build fix only, no review.
+
+        Attempt to fix the Qt build.
+
+        * html/CanvasStyle.cpp:
+        (WebCore::CanvasStyle::applyStrokeColor):
+        (WebCore::CanvasStyle::applyFillColor):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam.
+
+        Match HTML5 spec by throwing INVALID_STATE_ERR when
+        createPattern is called and the HTMLImageElement is not
+        yet done loading the image (!isComplete)
+        https://bugs.webkit.org/show_bug.cgi?id=20351
+
+        Test: http/misc/canvas-pattern-from-incremental-image.html
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::createPattern):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Niko.
+
+        Split out a Pattern class from CanvasPattern
+        and remove all the Pattern-related #ifdefs
+        (This will break non-mac platforms!  I will fix them.)
+        https://bugs.webkit.org/show_bug.cgi?id=20351
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * html/CanvasPattern.cpp:
+        (WebCore::CanvasPattern::parseRepetitionType):
+        (WebCore::CanvasPattern::CanvasPattern):
+        * html/CanvasPattern.h:
+        (WebCore::CanvasPattern::create):
+        (WebCore::CanvasPattern::pattern):
+        (WebCore::CanvasPattern::originClean):
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::createPattern):
+        (WebCore::CanvasRenderingContext2D::applyStrokePattern):
+        (WebCore::CanvasRenderingContext2D::applyFillPattern):
+        * html/CanvasRenderingContext2D.h:
+        * html/HTMLCanvasElement.cpp:
+        * html/HTMLCanvasElement.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::createHistoryItem):
+        * platform/graphics/GraphicsContext.h:
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::applyStrokePattern):
+        (WebCore::GraphicsContext::applyFillPattern):
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::clipToImageBuffer):
+        (WebCore::GraphicsContext::applyStrokePattern):
+        (WebCore::GraphicsContext::applyFillPattern):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Niko.
+
+        Make Images RefCounted (and clean up callers)
+        https://bugs.webkit.org/show_bug.cgi?id=20351
+
+        * editing/DeleteButtonController.cpp:
+        (WebCore::DeleteButtonController::createDeletionUI):
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::CachedImage):
+        (WebCore::brokenImage):
+        (WebCore::nullImage):
+        (WebCore::CachedImage::image):
+        (WebCore::CachedImage::notifyObservers):
+        (WebCore::CachedImage::createImage):
+        * loader/CachedImage.h:
+        * loader/icon/IconRecord.cpp:
+        (WebCore::IconRecord::setImageData):
+        (WebCore::IconRecord::loadImageFromResource):
+        * loader/icon/IconRecord.h:
+        * platform/graphics/BitmapImage.h:
+        (WebCore::BitmapImage::create):
+        * platform/graphics/GeneratedImage.h:
+        * platform/graphics/Gradient.cpp:
+        * platform/graphics/Gradient.h:
+        * platform/graphics/Image.cpp:
+        (WebCore::Image::nullImage):
+        * platform/graphics/Image.h:
+        * platform/graphics/ImageBuffer.h:
+        * platform/graphics/cairo/ImageBufferCairo.cpp:
+        (WebCore::ImageBuffer::image):
+        * platform/graphics/cg/ImageBufferCG.cpp:
+        (WebCore::ImageBuffer::image):
+        (WebCore::ImageBuffer::getImageData):
+        (WebCore::ImageBuffer::putImageData):
+        * platform/graphics/cg/PDFDocumentImage.h:
+        (WebCore::PDFDocumentImage::create):
+        (WebCore::PDFDocumentImage::destroyDecodedData):
+        (WebCore::PDFDocumentImage::decodedSize):
+        * platform/graphics/gtk/ImageGtk.cpp:
+        (WebCore::Image::loadPlatformResource):
+        * platform/graphics/mac/ImageMac.mm:
+        (WebCore::Image::loadPlatformResource):
+        * rendering/RenderImage.cpp:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::paintOverflowControls):
+        * svg/graphics/SVGImage.cpp:
+        (WebCore::SVGImage::nativeImageForCurrentFrame):
+        * svg/graphics/SVGImage.h:
+        (WebCore::SVGImage::create):
+        (WebCore::SVGImage::destroyDecodedData):
+        (WebCore::SVGImage::decodedSize):
+        (WebCore::SVGImage::frameAtIndex):
+        * svg/graphics/cairo/SVGPaintServerPatternCairo.cpp:
+        (WebCore::SVGPaintServerPattern::setup):
+        * svg/graphics/cairo/SVGResourceMaskerCairo.cpp:
+        (WebCore::SVGResourceMasker::applyMask):
+        * svg/graphics/cg/SVGPaintServerPatternCg.cpp:
+        (WebCore::patternCallback):
+        * svg/graphics/cg/SVGResourceMaskerCg.mm:
+        (WebCore::SVGResourceMasker::applyMask):
+
+2008-08-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Niko.
+
+        Remove #ifdefs from CanvasStyle by using platform/Color.h
+        https://bugs.webkit.org/show_bug.cgi?id=20351
+
+        There are some down-sides to this commit.
+        This commit limits us to 255 levels of grey for calls like:
+        context.setStrokeStyle(.37, 1.0)
+        previously CG might have used up to 32bits to store the grey level
+        Since setStrokeStyle is not part of HTML5, I don't suspect the web will notice.
+
+        Likewise, setStrokeStyle/setFillStyle calls which used float colors are now limited
+        to RGBA32 (like all the rest of colors in WebCore), thus:
+        context.setStrokStyle(.37, .24, .456, .99) will now have the same precision as:
+        context.strokeStyle = "rgba(.37, .24, .456, .99)", which is to say RGBA32
+
+        If this is a problem for Dashboard, we can either roll out this commit
+        or add a beefier Color abstraction, which can be used internally by GraphicsContext
+        when keeping state, and then GraphicsContext can grow some additional set* routines
+        for setting the a grey/float/whatever fill and stroke.
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::setFillStyle):
+        * html/CanvasStyle.cpp:
+        (WebCore::CanvasStyle::CanvasStyle):
+        (WebCore::colorWithOverrideAlpha):
+        (WebCore::CanvasStyle::applyStrokeColor):
+        (WebCore::CanvasStyle::applyFillColor):
+        * html/CanvasStyle.h:
+        * platform/graphics/Color.cpp:
+        (WebCore::colorFloatToRGBAByte):
+        (WebCore::makeRGBA32FromFloats):
+        * platform/graphics/Color.h:
+
+2008-08-13  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Fix for <rdar://problem/6137931>
+        https://bugs.webkit.org/show_bug.cgi?id=20360
+        Remove all parameters from the MIME type before checking with the MIME type registry
+
+        Tests: media/video-source-type-params.html
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::pickMedia): only pass the portion before the first ';' 
+        to isSupportedMediaMIMEType()
+
+2008-08-13  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix for <rdar://problem/6141345>
+
+        This patch refines findString and markAllMatchesForText functions' 
+        interactions with disconnected frames. They no longer rely on 
+        knowing where a range is relative to the visible region and work 
+        with disconnected frames that contain frames.
+
+        * editing/Editor.cpp:
+        (WebCore::Editor::insideVisibleArea): Now returns a bool instead of 
+        the visiblity enum.
+        (WebCore::Editor::firstVisibleRange): This now returns the very 
+        first visible range in the document. It's no longer dependent on 
+        searching forward.
+        (WebCore::Editor::lastVisibleRange): This now returns the very last 
+        visible range in the document. It's no longer dependent on 
+        searching backwards.
+        (WebCore::Editor::nextVisibleRange): This returns the next visible 
+        range in the appropriate direction from the current range.
+        * editing/Editor.h:
+        * page/Frame.cpp:
+        (WebCore::Frame::findString):
+        (WebCore::Frame::markAllMatchesForText):
+
+2008-08-13  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix for case-sensitive platforms, like Linux.
+
+        * WebCoreSources.bkl:
+
+2008-08-13  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=16881
+        [GTK] PlatformScreenGtk is unimplemented
+
+        Original patch by Christian Dywan.
+
+        * platform/gtk/PlatformScreenGtk.cpp:
+        (WebCore::screenDepth):
+        (WebCore::screenDepthPerComponent):
+        (WebCore::screenIsMonochrome):
+        (WebCore::screenRect):
+        (WebCore::screenAvailableRect):
+
+2008-08-13  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=20318
+        SharedTimerGtk should use G_PRIORITY_DEFAULT_IDLE for g_idle_add
+
+        g_idle_add is the same as g_idle_add_full with a priority of
+        G_PRIORITY_DEFAULT_IDLE, so we can safely use that.
+
+        * platform/gtk/SharedTimerGtk.cpp:
+        (WebCore::setSharedTimerFireTime):
+
+2008-08-13  Timothy Hatcher  <timothy@apple.com>
+
+        Changed the InspectorController so it can be notified when the
+        attached state of the Inspector changes in WebKit.
+
+        Reviewed by Kevin McCullough.
+
+        * WebCore.base.exp: Updated the symbol for setWindowVisible.
+        * page/InspectorController.cpp:
+        (WebCore::InspectorController::setWindowVisible): Added an attached argument,
+        that defaults to false.Call setAttachedWindow with the attached argument.
+        (WebCore::InspectorController::setAttachedWindow): Call the script version
+        of setAttachedWindow.
+        * page/InspectorController.h:
+        * page/inspector/inspector.js:
+        (WebInspector.setAttachedWindow): Set the attached property.
+
+2008-08-12  Timothy Hatcher  <timothy@apple.com>
+
+        Added a close button to the Inspector's toolbar when docked.
+
+        https://bugs.webkit.org/show_bug.cgi?id=14270
+
+        Reviewed by Kevin McCullough.
+
+        * page/InspectorController.cpp:
+        (WebCore::closeWindow): Call InspectorController::closeWindow.
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+        Added closeWindow to the script class.
+        * page/InspectorController.h:
+        * page/inspector/Images/closeButtons.png: Added.
+        * page/inspector/inspector.css: Added and changed styles.
+        * page/inspector/inspector.html: Added the close button.
+        * page/inspector/inspector.js:
+        (WebInspector.loaded): Added click event listener to the close button.
+        (WebInspector.close): Call InspectorController.closeWindow.
+
+2008-08-12  Timothy Hatcher  <timothy@apple.com>
+
+        Make the docked Web Inspector resizable. This is the cross platform
+        portion of the code. Each InspectorClient needs to implement the
+        real resize code.
+
+        https://bugs.webkit.org/show_bug.cgi?id=14282
+
+        Reviewed by Kevin McCullough.
+
+        * loader/EmptyClients.h: Added an empty setAttachedWindowHeight.
+        * page/InspectorClient.h: Added setAttachedWindowHeight.
+        * page/InspectorController.cpp:
+        (WebCore::setAttachedWindowHeight): Call setAttachedWindowHeight
+        on the InspectorController.
+        (WebCore::InspectorController::setAttachedWindowHeight): Call
+        setAttachedWindowHeight on the client.
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+        Added setAttachedWindowHeight to the script class.
+        * page/InspectorController.h:
+        * page/inspector/inspector.css: Make the cursor on the toolbar be
+        row-resize when docked.
+        * page/inspector/inspector.js:
+        (WebInspector.loaded): Always add the toolbarDragStart event listener.
+        (WebInspector.toolbarDragStart): Return early if we are not attached
+        and not on Leopard. Call WebInspector.elementDragStart.
+        (WebInspector.toolbarDragEnd): Call WebInspector.elementDragEnd.
+        (WebInspector.toolbarDrag): When attached call setAttachedWindowHeight,
+        otherwise call moveByUnrestricted.
+
+2008-08-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        Initialize m_zoomsTextOnly in the Settings constructor.
+
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings):
+
+2008-08-13  Brad Hughes <bhughes@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix compiling of QtWebKit in release mode with the Intel C++ Compiler for Linux
+
+        The latest upgrade of the intel compiler allows us to compile all of
+        Qt with optimizations enabled (yay!).
+
+        * WebCore.pro:
+
+2008-08-13  Prasanth Ullattil  <prasanth.ullattil@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix QtWebKit not displaying content on 403 HTTP responses
+
+        Just like with 404 responses also display content with 403, as
+        used by http://audiio.ejamming.proteus-tech.com/audiio/profile/original_signup/
+
+        * platform/network/qt/QNetworkReplyHandler.cpp:
+        (WebCore::QNetworkReplyHandler::finish):
+
+2008-08-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        Qt part of https://bugs.webkit.org/show_bug.cgi?id=18994
+
+        Make the formatting of String::format() locale independent through the use of QString::vsprintf.
+
+        * platform/text/String.cpp:
+        (WebCore::String::format):
+
+2008-08-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Lars.
+
+        Fix QWebFrame::setHtml() not setting the new contents immediately.
+
+        Added a setter to the DocumentLoader to toggle the deferred loading of the main
+        resource when it comes from substitute data.
+
+        Disable deferred loading of the main resource when we have valid substitute data,
+        as used by QWebFrame::setHtml.
+
+        * loader/DocumentLoader.h:
+
 2008-08-13  Mark Rowe  <mrowe@apple.com>
 
         Speculative GTK build fix.

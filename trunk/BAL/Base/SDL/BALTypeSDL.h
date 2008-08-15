@@ -77,6 +77,7 @@ typedef struct _BalMatrix{} BalMatrix;
 
 typedef SDL_Surface PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
+typedef void* PlatformPatternPtr;
 
 namespace WKAL {
     typedef void* PlatformGradient;

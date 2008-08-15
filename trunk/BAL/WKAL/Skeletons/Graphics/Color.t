@@ -75,6 +75,26 @@ RGBA32 makeRGB(int r, int g, int b);
      */
 RGBA32 makeRGBA(int r, int g, int b, int a);
 
+
+    /**
+     *  colorWithOverrideAlpha
+     * @param[in] : color
+     * @param[in] : override alpha status
+     * @param[out] : rgba quadruplet
+     */
+RGBA32 colorWithOverrideAlpha(RGBA32 color, float overrideAlpha);
+
+
+    /**
+     * makeRGBA32FromFloats
+     * @param[in] : red value
+     * @param[in] : green value
+     * @param[in] : blue value
+     * @param[in] : alpha value
+     * @param[out] : rgba quadruplet
+     */
+RGBA32 makeRGBA32FromFloats(float r, float g, float b, float a);
+
     /**
      * make RGBA quadruplet from HSLA
      * @param[in] : hue value
@@ -143,6 +163,15 @@ public:
 
     /**
      * Color constructor
+     * @param[in] : red value
+     * @param[in] : green value
+     * @param[in] : blue value
+     * @param[in] : alpha value
+     */
+    Color(float r, float g, float b, float a);
+
+    /**
+     * Color constructor
      * @param[in] : string
      * @code
      * Color *c = new Color(s);
@@ -154,11 +183,11 @@ public:
      * Color constructor
      * @param[in] : string
      * @code
-     * Color *c = new Color(char);
+     * Color *c = new Color(s);
      * @endcode
      */
     explicit Color(const char*);
-    
+
     /**
      * get name
      * @param[out] : name
@@ -169,11 +198,8 @@ public:
     String name() const;
 
     /**
-     * set named color
+     * setNamedColor
      * @param[in] : color name
-     * @code
-     * c->setNameColor(name);
-     * @endcode
      */
     void setNamedColor(const String&);
 
@@ -187,13 +213,9 @@ public:
     bool isValid() const ;
 
     /**
-     * test if color has alpha 
-     * @param[out] : true if color has alpha
-     * @code
-     * bool alpha = c->hasAlpha();
-     * @endcode
+     * test if the color has alpha
      */
-    bool hasAlpha() const ;
+    bool hasAlpha() const;
 
     /**
      * get red value
@@ -203,12 +225,12 @@ public:
      * @endcode
      */
     int red() const ;
-
+    
     /**
      * get green value
      * @param[out] : green value
      * @code
-     * int g = c->green();
+     * int r = c->green();
      * @endcode
      */
     int green() const ;
@@ -221,16 +243,16 @@ public:
      * @endcode
      */
     int blue() const ;
-
+    
     /**
      * get alpha value
      * @param[out] : alpha value
      * @code
-     * int a = c->alpha();
+     * int r = c->alpa();
      * @endcode
      */
     int alpha() const ;
-    
+
     /**
      * get rgba quadruplet
      * @param[out] : rgba quadruplet
@@ -238,17 +260,17 @@ public:
      * RGBA32 r = c->rgb();
      * @endcode
      */
-    RGBA32 rgb() const ;
+    RGBA32 rgb() const;
+
+    
     /**
-     * setRGB 
-     * @param[in] : red value
-     * @param[in] : green value
-     * @param[in] : blue value
+     * setRGB
+     * @param[in] : rgb color
      * @code
-     * c->setRGB(255, 0, 0);
+     * c->setRGB(r, g, b);
      * @endcode
      */
-    void setRGB(int r, int g, int b) ;
+    void setRGB(int r, int g, int b);
 
     /**
      * setRGB
@@ -283,14 +305,16 @@ public:
      */
     void getRGBA(double& r, double& g, double& b, double& a) const;
 
+
     /**
-     * increase the light 
+     * increase the light
      * @param[out] : result color
      * @code
-     * Color l = c->light();
+     * Color l = c->light);
      * @endcode
      */
     Color light() const;
+
     /**
      * increase the dark
      * @param[out] : result color
@@ -321,9 +345,6 @@ public:
 
     /**
      * Color platform constructor
-     * @code
-     * Color *c = new Color(balColor);
-     * @endcode
      */
     Color(const BalColor&);
 
@@ -349,7 +370,6 @@ private:
     RGBA32 m_color;
     bool m_valid;
 };
-
     /**
      *  operator==
      */
@@ -361,19 +381,15 @@ inline bool operator==(const Color& a, const Color& b);
 inline bool operator!=(const Color& a, const Color& b);
 
     /**
-     *  focusRingColor
+     * focusRingColor
      */
 Color focusRingColor();
+
     /**
-     *  setFocusRingColorChangeFunction
+     * setFocusRingColorChangeFunction
      */
 void setFocusRingColorChangeFunction(void (*)());
-
 
 } // namespace WKAL
 
 #endif // Color_h
-
-
-
-

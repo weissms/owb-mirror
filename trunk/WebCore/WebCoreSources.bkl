@@ -406,6 +406,7 @@ This file contains the list of files needed to build WebCore.
         dom/QualifiedName.cpp
         dom/Range.cpp
         dom/RegisteredEventListener.cpp
+        dom/ScriptElement.cpp
         dom/SelectorNodeList.cpp
         dom/StaticNodeList.cpp
         dom/StyleElement.cpp
@@ -417,7 +418,7 @@ This file contains the list of files needed to build WebCore.
         dom/TreeWalker.cpp
         dom/UIEvent.cpp
         dom/UIEventWithKeyState.cpp
-        dom/WebkitAnimationEvent.cpp
+        dom/WebKitAnimationEvent.cpp
         dom/WebKitTransitionEvent.cpp
         dom/WheelEvent.cpp
         dom/XMLTokenizer.cpp
@@ -709,6 +710,7 @@ This file contains the list of files needed to build WebCore.
         platform/graphics/IntRect.cpp
         platform/graphics/Path.cpp
         platform/graphics/PathTraversalState.cpp
+        platform/graphics/Pattern.cpp
         platform/graphics/Pen.cpp
         platform/network/AuthenticationChallengeBase.cpp
         platform/network/Credential.cpp

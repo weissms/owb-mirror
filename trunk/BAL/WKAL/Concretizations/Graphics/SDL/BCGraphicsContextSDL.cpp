@@ -35,6 +35,7 @@
 #include "IntRect.h"
 #include "NotImplemented.h"
 #include "Path.h"
+#include "Pattern.h"
 #include "SimpleFontData.h"
 #include <math.h>
 #include <stdio.h>
@@ -605,6 +606,15 @@ IntSize GraphicsContext::origin()
 {
     return m_common->state.origin;
 }
+
+void GraphicsContext::applyStrokePattern(const Pattern& pattern)
+{
+}
+
+void GraphicsContext::applyFillPattern(const Pattern& pattern)
+{
+}
+
 
 void GraphicsContext::setPlatformFillColor(const Color& col)
 {

@@ -93,6 +93,7 @@ namespace WKAL {
     class ImageBuffer;
     class KURL;
     class Path;
+    class Pattern;
     class TextRun;
 
     // These bits can be ORed together for a total of 8 possible text drawing modes.
@@ -134,7 +135,10 @@ namespace WKAL {
 
         Color fillColor() const;
         void setFillColor(const Color&);
-        
+
+        void applyStrokePattern(const Pattern&);
+        void applyFillPattern(const Pattern&);
+
         void save();
         void restore();
         
@@ -285,7 +289,6 @@ namespace WKAL {
         void setGdkExposeEvent(GdkEventExpose*);
         GdkDrawable* gdkDrawable() const;
         GdkEventExpose* gdkExposeEvent() const;
-        IntPoint translatePoint(const IntPoint&) const;
 #endif
 
     private:

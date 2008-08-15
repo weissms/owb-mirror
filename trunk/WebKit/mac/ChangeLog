@@ -8,6 +8,88 @@
         * WebInspector/WebInspector.mm:
         * WebInspector/WebNodeHighlightView.m:
 
+2008-08-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen and Timothy Hatcher.
+
+        Add WebView SPI to set HTMLTokenizer yielding parameters.
+
+        * WebView/WebView.mm:
+        (-[WebView _setCustomHTMLTokenizerTimeDelay:]):
+        (-[WebView _setCustomHTMLTokenizerChunkSize:]):
+        * WebView/WebViewPrivate.h:
+
+2008-08-13  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where Safari's find banner would be permanently hidden
+        when attaching or closing the Web Inspector while attached.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20376
+
+        Reviewed by Kevin McCullough.
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController close]):
+        Carefully manipulate the WebFrameView's frame when closing to
+        not assume the WebFrameView's frame fills the inspected WebView.
+        (-[WebInspectorWindowController setAttachedWindowHeight:]):
+        Carefully manipulate the WebFrameView's frame when docking to
+        not assume the WebFrameView plus the Web Inspector WebViews fills
+        the full inspected WebView.
+
+2008-08-13  Stephanie Lewis  <slewis@apple.com>
+
+        fix 64bit build
+
+        * WebCoreSupport/WebInspectorClient.mm:
+
+2008-08-13  Timothy Hatcher  <timothy@apple.com>
+
+        Remember the docked state of the Web Inspector, so it can be
+        reopened docked if it was last docked.
+
+        https://bugs.webkit.org/show_bug.cgi?id=14271
+
+        Reviewed by Kevin McCullough.
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController init]): Initialize _shouldAttach
+        to the value stored in the user defaults. If there has never
+        been a value stored, default to being attached.
+        (-[WebInspectorWindowController showWindow:]): Pass the attached
+        state to InspectorController::setWindowVisible.
+
+2008-08-12  Timothy Hatcher  <timothy@apple.com>
+
+        Remove the Inspector's WebView for the view hierarchy when closed
+        while attached. This prevents it from showing in the background
+        while the page changes.
+
+        Reviewed by Kevin McCullough.
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController close:]): Call removeFromSuperview
+        on the Inspector's WebView if it isn't attached, so it will not
+        be visible when navigating pages while closed.
+
+2008-08-12  Timothy Hatcher  <timothy@apple.com>
+
+        Make the docked Web Inspector resizable.
+
+        https://bugs.webkit.org/show_bug.cgi?id=14282
+
+        Reviewed by Kevin McCullough.
+
+        * WebCoreSupport/WebInspectorClient.h:
+        * WebCoreSupport/WebInspectorClient.mm:
+        (WebInspectorClient::setAttachedWindowHeight): Call setAttachedWindowHeight:
+        on the WebInspectorWindowController.
+        (-[WebInspectorWindowController showWindow:]): Call setAttachedWindowHeight:.
+        (-[WebInspectorWindowController setAttachedWindowHeight:]): Moved code
+        from showWindow: and generalized to allow being called multiple times.
+        Remembers the last height passed, which is used by showWindow: the next
+        time the Inspector attaches.
+
 2008-08-12  Timothy Hatcher  <timothy@apple.com>
 
         Remove the call to WKNSWindowMakeBottomCornersSquare on the

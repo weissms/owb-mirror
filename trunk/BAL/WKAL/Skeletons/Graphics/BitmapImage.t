@@ -100,33 +100,23 @@ class BitmapImage : public WKALBase, public Image {
     friend class GeneratedImage;
     friend class GraphicsContext;
 public:
-    /**
-     * BitmapImage constructor
-     * @param[in] : platform surface
-     * @param[in] : image Observer
-     * @code
-     * BitmapImage *bi = new BitmapImage(pSurf);
-     * @endcode
-     */
-    BitmapImage(BalSurface*, ImageObserver* = 0);
 
     /**
-     * BitmapImage constructor
-     * @param[in] : image Observer
-     * @code
-     *  BitmapImage *bi = new BitmapImage();
-     * @endcode
+     *  create bitmap image
      */
-    BitmapImage(ImageObserver* = 0);
+    static PassRefPtr<BitmapImage> create(NativeImagePtr nativeImage, ImageObserver* observer = 0);
+
 
     /**
-     * ~BitmapImage destructor
-     * @code
-     * delete bi;
-     * @endcode
+     *  create bitmap image
+     */
+    static PassRefPtr<BitmapImage> create(ImageObserver* observer = 0)
+
+    /**
+     * destructor
      */
     ~BitmapImage();
-    
+
     /**
      * test if it's a bitmap image
      * @param[out] : true if it's a bitmap image
@@ -144,6 +134,12 @@ public:
      * @endcode
      */
     virtual IntSize size() const;
+
+
+    /**
+     * get currentFrameSize
+     */
+    IntSize currentFrameSize() const;
 
     /**
      * test if the data is changed 
@@ -193,17 +189,19 @@ public:
     virtual NativeImagePtr nativeImageForCurrentFrame() ;
 
 protected:
+
     /**
-     * draw
-     * @param[in] : graphics context
-     * @param[in] : destination rectangle
-     * @param[in] : source rectangle
-     * @param[in] : composite operator
+     *  BitmapImage constructor
+     */
+    BitmapImage(NativeImagePtr, ImageObserver* = 0)
+    /**
+     * BitmapImage constructor
+     * @param[in] : image Observer
      * @code
-     * bi->draw(gc, dr, sr, op);
+     *  BitmapImage *bi = new BitmapImage();
      * @endcode
      */
-    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator);
+    BitmapImage(ImageObserver* = 0)
 
     /**
      * get current frame
@@ -212,14 +210,10 @@ protected:
      * size_t c = bi->currentFrame();
      * @endcode
      */
-    size_t currentFrame() const ;
+    size_t currentFrame() const 
 
     /**
      * get frame count
-     * @param[out] : frame count
-     * @code
-     * size_t c = bi->frameCount();
-     * @endcode
      */
     size_t frameCount();
 
@@ -231,15 +225,10 @@ protected:
      * NativeImagePtr i = bi->frameAtIndex(1);
      * @endcode
      */
-    NativeImagePtr frameAtIndex(size_t);
+    NativeImagePtr frameAtIndex(size_t)
 
     /**
-     * frame duration at index
-     * @param[in] : index
-     * @param[out] : duration
-     * @code
-     * float d = bi->frameDurationAtIndex(1);
-     * @endcode
+     * get frame duration at index
      */
     float frameDurationAtIndex(size_t);
 
@@ -251,16 +240,7 @@ protected:
      * bool a = bi->frameHasAlphaAtIndex(1);
      * @endcode
      */
-    bool frameHasAlphaAtIndex(size_t); 
-
-    /**
-     * Decodes and caches a frame. Never accessed except internally.
-     * @param[in] : index
-     * @code
-     * bi->cacheFrame(1);
-     * @endcode
-     */
-    void cacheFrame(size_t index);
+    bool frameHasAlphaAtIndex(size_t);
 
     /**
      * Called to invalidate all our cached data.  If an image is loading incrementally, we only  invalidate the last cached frame.
@@ -269,14 +249,11 @@ protected:
      * bi->destroyDecodedData();
      * @endcode
      */
-    virtual void destroyDecodedData(bool incremental = false);
-
+    virtual void destroyDecodedData(bool incremental = false)
+ 
+    // Whether or not size is available yet.
     /**
-     * Whether or not size is available yet.
-     * @param[out] : status
-     * @code
-     * bool s = bi->isSizeAvailable();
-     * @endcode
+     * test if the bitmap image is available
      */
     bool isSizeAvailable();
 
@@ -291,9 +268,6 @@ protected:
 
     /**
      * start animation
-     * @code
-     * bi->startAnimation();
-     * @endcode
      */
     virtual void startAnimation();
 
@@ -305,29 +279,24 @@ protected:
      * @endcode
      */
     void advanceAnimation(Timer<BitmapImage>*);
-    
+  
+    // Handle platform-specific data
     /**
-     * init platform data 
-     * @code
-     * bi->initPlatformData();
-     * @endcode
+     * init platform data
      */
     void initPlatformData();
 
     /**
      * invalidate platform data 
      * @code
-     
-* bi->invalidatePlatformData();
+     * bi->invalidatePlatformData();
      * @endcode
      */
     void invalidatePlatformData();
-    
+  
+    // Checks to see if the image is a 1x1 solid color.  We optimize these images and just do a fill rect instead.
     /**
      * Checks to see if the image is a 1x1 solid color.  We optimize these images and just do a fill rect instead.
-     * @code
-     * bi->checkForSolidColor();
-     * @endcode
      */
     void checkForSolidColor();
     
@@ -339,15 +308,10 @@ protected:
      * @endcode
      */
     virtual bool mayFillWithSolidColor() const ;
-
     /**
      * get solid color
-     * @param[out] : color
-     * @code
-     * Color c = bi->solidColor();
-     * @endcode
      */
-    virtual Color solidColor() const ;
+    virtual Color solidColor() const;
     
     ImageSource m_source;
     mutable IntSize m_size; // The size to use for the overall image (will just be the size of the first image).
@@ -379,7 +343,3 @@ protected:
 }
 
 #endif
-
-
-
-

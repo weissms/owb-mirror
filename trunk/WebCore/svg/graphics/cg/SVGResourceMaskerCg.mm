@@ -113,14 +113,14 @@ void SVGResourceMasker::applyMask(GraphicsContext* context, const FloatRect& bou
     CIContext* ciGrayscaleContext = [CIContext contextWithCGContext:grayScaleContext options:nil];
 
     // Transform colorized mask to gray scale
-    CIImage* colorMask = [CIImage imageWithCGImage:m_mask->cgImage()];
+    CIImage* colorMask = [CIImage imageWithCGImage:m_mask->image()->getCGImageRef()];
     if (!colorMask)
         return;
 
     CIImage* grayScaleMask = transformImageIntoGrayscaleMask(colorMask);
     [ciGrayscaleContext drawImage:grayScaleMask atPoint:CGPointZero fromRect:CGRectMake(0, 0, maskSize.width(), maskSize.height())];
 
-    CGContextClipToMask(context->platformContext(), m_maskRect, grayScaleImage->cgImage());
+    CGContextClipToMask(context->platformContext(), m_maskRect, grayScaleImage->image()->getCGImageRef());
     END_BLOCK_OBJC_EXCEPTIONS
 }
 

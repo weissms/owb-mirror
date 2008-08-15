@@ -63,6 +63,7 @@ IF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
         Cairo/BCImageCairo.cpp
         Cairo/BCImageSourceCairo.cpp
         Cairo/BCPathCairo.cpp
+        Cairo/BCPatternCairo.cpp
     )
     IF (WEBKIT_USE_SVG)
         LIST (APPEND GRAPHICS_SRC
@@ -93,6 +94,7 @@ ELSEIF (OWBAL_PLATFORM_GRAPHICS STREQUAL "SDL")
     OWBLN (SDL/BCSVGPaintServerPatternSDL.h WKAL 0 0)
     OWBLN (SDL/BCSVGPaintServerSolidSDL.h WKAL 0 0)
     OWBLN (SDL/BCGraphicsContextPrivateSDL.h WKAL 0 0)
+    OWBLN (SDL/BCPatternSDL.h WKAL 0 0)
 
     INCLUDE_DIRECTORIES (${SDL_INCLUDE_DIRS})
     
@@ -109,6 +111,7 @@ ELSEIF (OWBAL_PLATFORM_GRAPHICS STREQUAL "SDL")
         SDL/BCDragImageSDL.cpp
         SDL/BCIntPointSDL.cpp
         SDL/BCIntRectSDL.cpp
+        SDL/BCPatternSDL.cpp
     )
     IF (WEBKIT_USE_SVG)
         LIST (APPEND GRAPHICS_SRC

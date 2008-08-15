@@ -968,6 +968,8 @@ webcore_sources += \
 	WebCore/dom/RangeException.h \
 	WebCore/dom/RegisteredEventListener.cpp \
 	WebCore/dom/RegisteredEventListener.h \
+	WebCore/dom/ScriptElement.cpp \
+	WebCore/dom/ScriptElement.h \
 	WebCore/dom/SelectorNodeList.cpp \
 	WebCore/dom/SelectorNodeList.h \
 	WebCore/dom/StaticNodeList.cpp \
@@ -1583,6 +1585,8 @@ webcore_sources += \
 	WebCore/platform/graphics/Path.h \
 	WebCore/platform/graphics/PathTraversalState.cpp \
 	WebCore/platform/graphics/PathTraversalState.h \
+	WebCore/platform/graphics/Pattern.cpp \
+	WebCore/platform/graphics/Pattern.h \
 	WebCore/platform/graphics/Pen.cpp \
 	WebCore/platform/graphics/Pen.h \
 	WebCore/platform/graphics/SegmentedFontData.cpp \
@@ -1860,6 +1864,7 @@ webcoregtk_sources += \
 	WebCore/platform/graphics/cairo/ImageCairo.cpp \
 	WebCore/platform/graphics/cairo/ImageSourceCairo.cpp \
 	WebCore/platform/graphics/cairo/PathCairo.cpp \
+	WebCore/platform/graphics/cairo/PatternCairo.cpp \
 	WebCore/platform/graphics/gtk/ColorGtk.cpp \
 	WebCore/platform/graphics/gtk/FontCacheGtk.cpp \
 	WebCore/platform/graphics/gtk/FontCustomPlatformData.h \

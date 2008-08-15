@@ -50,6 +50,7 @@ LIST (APPEND DOM_SRC
     dom/QualifiedName.cpp
     dom/Range.cpp
     dom/RegisteredEventListener.cpp
+    dom/ScriptElement.cpp
     dom/SelectorNodeList.cpp
     dom/StaticNodeList.cpp
     dom/StyleElement.cpp

@@ -29,6 +29,7 @@
 #import "WebInspectorClient.h"
 
 #import "WebFrameInternal.h"
+#import "WebFrameView.h"
 #import "WebInspector.h"
 #import "WebLocalizableStrings.h"
 #import "WebNodeHighlight.h"
@@ -57,6 +58,7 @@ using namespace WebCore;
 - (WebView *)webView;
 - (void)attach;
 - (void)detach;
+- (void)setAttachedWindowHeight:(unsigned)height;
 - (void)highlightAndScrollToNode:(DOMNode *)node;
 - (void)highlightNode:(DOMNode *)node;
 - (void)hideHighlight;
@@ -112,6 +114,11 @@ void WebInspectorClient::detachWindow()
     [m_windowController.get() detach];
 }
 
+void WebInspectorClient::setAttachedWindowHeight(unsigned height)
+{
+    [m_windowController.get() setAttachedWindowHeight:height];
+}
+
 void WebInspectorClient::highlight(Node* node)
 {
     [m_windowController.get() highlightAndScrollToNode:kit(node)];
@@ -136,6 +143,7 @@ void WebInspectorClient::updateWindowTitle() const
 
 #pragma mark -
 
+#define WebKitInspectorAttachedKey @"WebKitInspectorAttached"
 #define WebKitInspectorAttachedViewHeightKey @"WebKitInspectorAttachedViewHeight"
 
 @implementation WebInspectorWindowController
@@ -168,6 +176,10 @@ void WebInspectorClient::updateWindowTitle() const
     [_webView setUIDelegate:self];
 
     [preferences release];
+
+    NSNumber *attached = [[NSUserDefaults standardUserDefaults] objectForKey:WebKitInspectorAttachedKey];
+    ASSERT(!attached || [attached isKindOfClass:[NSNumber class]]);
+    _shouldAttach = attached ? [attached boolValue] : YES;
 
     NSString *path = [[NSBundle bundleWithIdentifier:@"com.apple.WebCore"] pathForResource:@"inspector" ofType:@"html" inDirectory:@"inspector"];
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[NSURL fileURLWithPath:path]];
@@ -263,10 +275,15 @@ void WebInspectorClient::updateWindowTitle() const
         if ([_inspectedWebView _isClosed])
             return;
 
-        WebFrameView *frameView = [[_inspectedWebView mainFrame] frameView];
+        [_webView removeFromSuperview];
 
+        WebFrameView *frameView = [[_inspectedWebView mainFrame] frameView];
         NSRect frameViewRect = [frameView frame];
-        frameViewRect = NSMakeRect(0, 0, NSWidth(frameViewRect), NSHeight([_inspectedWebView frame]));
+
+        // Setting the height based on the previous height is done to work with
+        // Safari's find banner. This assumes the previous height is the Y origin.
+        frameViewRect.size.height += NSMinY(frameViewRect);
+        frameViewRect.origin.y = 0.0;
 
         [frameView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
         [frameView setFrame:frameViewRect];
@@ -289,21 +306,15 @@ void WebInspectorClient::updateWindowTitle() const
     if (_shouldAttach) {
         WebFrameView *frameView = [[_inspectedWebView mainFrame] frameView];
 
-        NSRect frameViewRect = [frameView frame];
-        float attachedHeight = [[NSUserDefaults standardUserDefaults] integerForKey:WebKitInspectorAttachedViewHeightKey];
-        attachedHeight = MAX(300.0, MIN(attachedHeight, (NSHeight(frameViewRect) * 0.6)));
-        frameViewRect = NSMakeRect(0, attachedHeight, NSWidth(frameViewRect), NSHeight(frameViewRect) - attachedHeight);
-
         [_webView removeFromSuperview];
-        [_inspectedWebView addSubview:_webView positioned:NSWindowBelow relativeTo:(NSView*)frameView];
+        [_inspectedWebView addSubview:_webView positioned:NSWindowBelow relativeTo:(NSView *)frameView];
 
         [_webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable | NSViewMaxYMargin)];
-        [_webView setFrame:NSMakeRect(0, 0, NSWidth(frameViewRect), attachedHeight)];
-
         [frameView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable | NSViewMinYMargin)];
-        [frameView setFrame:frameViewRect];
 
         _attachedToInspectedWebView = YES;
+
+        [self setAttachedWindowHeight:[[NSUserDefaults standardUserDefaults] integerForKey:WebKitInspectorAttachedViewHeightKey]];
     } else {
         _attachedToInspectedWebView = NO;
 
@@ -316,7 +327,7 @@ void WebInspectorClient::updateWindowTitle() const
         [super showWindow:nil];
     }
 
-    [_inspectedWebView page]->inspectorController()->setWindowVisible(true);
+    [_inspectedWebView page]->inspectorController()->setWindowVisible(true, _shouldAttach);
 }
 
 #pragma mark -
@@ -347,6 +358,28 @@ void WebInspectorClient::updateWindowTitle() const
     [self showWindow:nil];
 
     _movingWindows = NO;
+}
+
+- (void)setAttachedWindowHeight:(unsigned)height
+{
+    [[NSUserDefaults standardUserDefaults] setInteger:height forKey:WebKitInspectorAttachedViewHeightKey];
+
+    if (!_attachedToInspectedWebView)
+        return;
+
+    WebFrameView *frameView = [[_inspectedWebView mainFrame] frameView];
+    NSRect frameViewRect = [frameView frame];
+
+    CGFloat attachedHeight = round(MAX(250.0, MIN(height, (NSHeight([_inspectedWebView frame]) * 0.75))));
+
+    // Setting the height based on the difference is done to work with
+    // Safari's find banner. This assumes the previous height is the Y origin.
+    CGFloat heightDifference = (NSMinY(frameViewRect) - attachedHeight);
+    frameViewRect.size.height += heightDifference;
+    frameViewRect.origin.y = attachedHeight;
+
+    [_webView setFrame:NSMakeRect(0.0, 0.0, NSWidth(frameViewRect), attachedHeight)];
+    [frameView setFrame:frameViewRect];
 }
 
 #pragma mark -

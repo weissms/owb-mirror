@@ -383,11 +383,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
         pageCacheCapacity = 0;
 
         // Object cache capacities (in bytes)
-        if (memSize >= 4096)
-            cacheTotalCapacity = 256 * 1024 * 1024;
-        else if (memSize >= 3072)
-            cacheTotalCapacity = 192 * 1024 * 1024;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             cacheTotalCapacity = 128 * 1024 * 1024;
         else if (memSize >= 1536)
             cacheTotalCapacity = 86 * 1024 * 1024;
@@ -415,11 +411,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
             pageCacheCapacity = 0;
 
         // Object cache capacities (in bytes)
-        if (memSize >= 4096)
-            cacheTotalCapacity = 256 * 1024 * 1024;
-        else if (memSize >= 3072)
-            cacheTotalCapacity = 192 * 1024 * 1024;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             cacheTotalCapacity = 128 * 1024 * 1024;
         else if (memSize >= 1536)
             cacheTotalCapacity = 86 * 1024 * 1024;
@@ -438,11 +430,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     case WebCacheModelPrimaryWebBrowser: {
         // Page cache capacity (in pages)
         // (Research indicates that value / page drops substantially after 3 pages.)
-        if (memSize >= 8192)
-            pageCacheCapacity = 7;
-        if (memSize >= 4096)
-            pageCacheCapacity = 6;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             pageCacheCapacity = 5;
         else if (memSize >= 1024)
             pageCacheCapacity = 4;
@@ -457,11 +445,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
         // (Testing indicates that value / MB depends heavily on content and
         // browsing pattern. Even growth above 128MB can have substantial 
         // value / MB for some content / browsing patterns.)
-        if (memSize >= 4096)
-            cacheTotalCapacity = 512 * 1024 * 1024;
-        else if (memSize >= 3072)
-            cacheTotalCapacity = 384 * 1024 * 1024;
-        else if (memSize >= 2048)
+        if (memSize >= 2048)
             cacheTotalCapacity = 256 * 1024 * 1024;
         else if (memSize >= 1536)
             cacheTotalCapacity = 172 * 1024 * 1024;
@@ -4753,30 +4737,29 @@ HRESULT STDMETHODCALLTYPE WebView::paintDocumentRectToContext(
     if (!deviceContext)
         return E_POINTER;
 
-    Frame* frame = m_page->mainFrame();
-    if (!frame)
+    if (!m_mainFrame)
         return E_FAIL;
 
-    FrameView* view = frame->view();
-    if (!view)
+    return m_mainFrame->paintDocumentRectToContext(rect, deviceContext);
+}
+
+HRESULT STDMETHODCALLTYPE WebView::setCustomHTMLTokenizerTimeDelay(
+    /* [in] */ double timeDelay)
+{
+    if (!m_page)
         return E_FAIL;
 
-    // We can't paint with a layout still pending.
-    view->layoutIfNeededRecursive();
+    m_page->setCustomHTMLTokenizerTimeDelay(timeDelay);
+    return S_OK;
+}
 
-    HDC dc = (HDC)(ULONG64)deviceContext;
-    GraphicsContext gc(dc);
-    gc.save();
-    LONG width = rect.right - rect.left;
-    LONG height = rect.bottom - rect.top;
-    FloatRect dirtyRect;
-    dirtyRect.setWidth(width);
-    dirtyRect.setHeight(height);
-    gc.clip(dirtyRect);
-    gc.translate(-rect.left, -rect.top);
-    frame->paint(&gc, rect);
-    gc.restore();
+HRESULT STDMETHODCALLTYPE WebView::setCustomHTMLTokenizerChunkSize(
+    /* [in] */ int chunkSize)
+{
+    if (!m_page)
+        return E_FAIL;
 
+    m_page->setCustomHTMLTokenizerChunkSize(chunkSize);
     return S_OK;
 }
 

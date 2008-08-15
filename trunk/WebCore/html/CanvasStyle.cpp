@@ -34,15 +34,16 @@
 #include "GraphicsContext.h"
 #include <wtf/PassRefPtr.h>
 
+#if PLATFORM(CG)
+#include <CoreGraphics/CGContext.h>
+#endif
+
 #if PLATFORM(QT)
 #include <QPainter>
 #include <QBrush>
 #include <QPen>
 #include <QColor>
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-#include "NotImplemented.h"
-#include <cairo.h>
-#elif PLATFORM(BAL)
+#elif PLATFORM(CAIRO) || PLATFORM(BAL)
 #include "NotImplemented.h"
 #endif
 
@@ -62,12 +63,16 @@ CanvasStyle::CanvasStyle(float grayLevel)
 }
 
 CanvasStyle::CanvasStyle(const String& color, float alpha)
-    : m_type(ColorStringWithAlpha), m_color(color), m_alpha(alpha)
+    : m_type(ColorStringWithAlpha)
+    , m_color(color)
+    , m_alpha(alpha)
 {
 }
 
 CanvasStyle::CanvasStyle(float grayLevel, float alpha)
-    : m_type(GrayLevel), m_alpha(alpha), m_grayLevel(grayLevel)
+    : m_type(GrayLevel)
+    , m_alpha(alpha)
+    , m_grayLevel(grayLevel)
 {
 }
 
@@ -82,12 +87,14 @@ CanvasStyle::CanvasStyle(float c, float m, float y, float k, float a)
 }
 
 CanvasStyle::CanvasStyle(PassRefPtr<CanvasGradient> gradient)
-    : m_type(gradient ? Gradient : ColorString), m_gradient(gradient)
+    : m_type(gradient ? Gradient : ColorString)
+    , m_gradient(gradient)
 {
 }
 
 CanvasStyle::CanvasStyle(PassRefPtr<CanvasPattern> pattern)
-    : m_type(pattern ? ImagePattern : ColorString), m_pattern(pattern)
+    : m_type(pattern ? ImagePattern : ColorString)
+    , m_pattern(pattern)
 {
 }
 
@@ -95,117 +102,40 @@ void CanvasStyle::applyStrokeColor(GraphicsContext* context)
 {
     if (!context)
         return;
-#if PLATFORM(QT)
-    QPainter* p = static_cast<QPainter*>(context->platformContext());
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-    cairo_t* cr = context->platformContext();
-#elif PLATFORM(BAL)
-    //FIXME
-    notImplemented();
-#endif
     switch (m_type) {
         case ColorString: {
             RGBA32 color = 0; // default is transparant black
             CSSParser::parseColor(color, m_color);
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetRGBStrokeColor(context->platformContext(),
-                ((color >> 16) & 0xFF) / 255.0f,
-                ((color >> 8) & 0xFF) / 255.0f,
-                (color & 0xFF) / 255.0f,
-                ((color >> 24) & 0xFF) / 255.0f);
-#elif PLATFORM(QT)
-            QPen currentPen = p->pen();
-            currentPen.setColor((QColor(QRgb(color))));
-            p->setPen(currentPen);
-#elif PLATFORM(CAIRO)  && !PLATFORM(BAL)
-            // FIXME: fill and stroke color should be dealt with separately
-            cairo_set_source_rgba(cr,
-                ((color >> 16) & 0xFF) / 255.0f,
-                ((color >> 8) & 0xFF) / 255.0f,
-                (color & 0xFF) / 255.0f,
-                ((color >> 24) & 0xFF) / 255.0f);
-#elif PLATFORM(BAL)
-           //FIXME
-#endif
+            context->setStrokeColor(color);
             break;
         }
         case ColorStringWithAlpha: {
             RGBA32 color = 0; // default is transparant black
             CSSParser::parseColor(color, m_color);
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetRGBStrokeColor(context->platformContext(),
-                ((color >> 16) & 0xFF) / 255.0f,
-                ((color >> 8) & 0xFF) / 255.0f,
-                (color & 0xFF) / 255.0f,
-                m_alpha);
-#elif PLATFORM(QT)
-            QPen currentPen = p->pen();
-            QColor clr = QColor(QRgb(color));
-            clr.setAlphaF(m_alpha);
-            currentPen.setColor(clr);
-            p->setPen(currentPen);
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-            // FIXME: fill and stroke color should be dealt with separately
-            cairo_set_source_rgba(cr,
-                ((color >> 16) & 0xFF) / 255.0f,
-                ((color >> 8) & 0xFF) / 255.0f,
-                (color & 0xFF) / 255.0f,
-                ((color >> 24) & 0xFF) / 255.0f);
-#elif PLATFORM(BAL)
-           //FIXME
-#endif
+            context->setStrokeColor(colorWithOverrideAlpha(color, m_alpha));
             break;
         }
-        case GrayLevel: {
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetGrayStrokeColor(context->platformContext(), m_grayLevel, m_alpha);
-#elif PLATFORM(QT)
-            QColor clr;
-            QPen currentPen = p->pen();
-            clr.setRgbF(m_grayLevel, m_grayLevel, m_grayLevel, m_alpha);
-            currentPen.setColor(clr);
-            p->setPen(currentPen);
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-            cairo_set_source_rgba(cr, m_grayLevel, m_grayLevel, m_grayLevel, m_alpha);
-#elif PLATFORM(BAL)
-            //FIXME
-#endif
+        case GrayLevel:
+            // We're only supporting 255 levels of gray here.  Since this isn't
+            // even part of HTML5, I don't expect anyone will care.  If they do
+            // we'll make a fancier Color abstraction.
+            context->setStrokeColor(Color(m_grayLevel, m_grayLevel, m_grayLevel, m_alpha));
             break;
-        }
-        case RGBA: {
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetRGBStrokeColor(context->platformContext(), m_red, m_green, m_blue, m_alpha);
-#elif PLATFORM(QT)
-            QPen currentPen = p->pen();
-            QColor clr;
-            clr.setRgbF(m_red, m_green, m_blue, m_alpha);
-            currentPen.setColor(clr);
-            p->setPen(currentPen);
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-            // FIXME: fill and stroke color should be dealt with separately
-            cairo_set_source_rgba(cr, m_red, m_green, m_blue, m_alpha);
-#elif PLATFORM(BAL)
-            //FIXME
-#endif
+        case RGBA:
+            context->setStrokeColor(Color(m_red, m_green, m_blue, m_alpha));
             break;
-        }
         case CMYKA: {
             // FIXME: Do this through platform-independent GraphicsContext API.
+            // We'll need a fancier Color abstraction to support CYMKA correctly
 #if PLATFORM(CG)
             CGContextSetCMYKStrokeColor(context->platformContext(), m_cyan, m_magenta, m_yellow, m_black, m_alpha);
 #elif PLATFORM(QT)
-            QPen currentPen = p->pen();
+            QPen currentPen = context->platformContext()->pen();
             QColor clr;
             clr.setCmykF(m_cyan, m_magenta, m_yellow, m_black, m_alpha);
             currentPen.setColor(clr);
-            p->setPen(currentPen);
-#elif PLATFORM(CAIRO) && !PLATFORM(BAL)
-            notImplemented();
-#elif PLATFORM(BAL)
+            context->platformContext()->setPen(currentPen);
+#elif PLATFORM(CAIRO) || PLATFORM(BAL)
             notImplemented();
 #endif
             break;
@@ -216,92 +146,43 @@ void CanvasStyle::applyStrokeColor(GraphicsContext* context)
     }
 }
 
-// Cairo's graphics model allows us to share a single code path for
-// stroke and fill.
-#if !PLATFORM(CAIRO)
 void CanvasStyle::applyFillColor(GraphicsContext* context)
 {
     if (!context)
         return;
-#if PLATFORM(QT)
-    QPainter* p = static_cast<QPainter*>(context->platformContext());
-#endif
     switch (m_type) {
         case ColorString: {
-            RGBA32 color = 0; // default is transparant black
-            CSSParser::parseColor(color, m_color);
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetRGBFillColor(context->platformContext(),
-                ((color >> 16) & 0xFF) / 255.0f,
-                ((color >> 8) & 0xFF) / 255.0f,
-                (color & 0xFF) / 255.0f,
-                ((color >> 24) & 0xFF) / 255.0f);
-#elif PLATFORM(QT)
-            QBrush currentBrush = p->brush();
-            QColor clr;
-            clr.setRgb(QRgb(color));
-            currentBrush.setColor(clr);
-            p->setBrush(currentBrush);
-#endif
+            RGBA32 rgba = 0; // default is transparant black
+            CSSParser::parseColor(rgba, m_color);
+            context->setFillColor(rgba);
             break;
         }
         case ColorStringWithAlpha: {
             RGBA32 color = 0; // default is transparant black
             CSSParser::parseColor(color, m_color);
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetRGBFillColor(context->platformContext(),
-                ((color >> 16) & 0xFF) / 255.0f,
-                ((color >> 8) & 0xFF) / 255.0f,
-                (color & 0xFF) / 255.0f,
-                m_alpha);
-#elif PLATFORM(QT)
-            QBrush currentBrush = p->brush();
-            QColor clr;
-            clr.setRgb(QRgb(color));
-            clr.setAlphaF(m_alpha);
-            currentBrush.setColor(clr);
-            p->setBrush(currentBrush);
-#endif
+            context->setFillColor(colorWithOverrideAlpha(color, m_alpha));
             break;
         }
-        case GrayLevel: {
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetGrayFillColor(context->platformContext(), m_grayLevel, m_alpha);
-#elif PLATFORM(QT)
-            QBrush currentBrush = p->brush();
-            QColor clr;
-            clr.setRgbF(m_grayLevel, m_grayLevel, m_grayLevel, m_alpha);
-            currentBrush.setColor(clr);
-            p->setBrush(currentBrush);
-#endif
+        case GrayLevel:
+            // We're only supporting 255 levels of gray here.  Since this isn't
+            // even part of HTML5, I don't expect anyone will care.  If they do
+            // we'll make a fancier Color abstraction.
+            context->setFillColor(Color(m_grayLevel, m_grayLevel, m_grayLevel, m_alpha));
             break;
-        }
-        case RGBA: {
-            // FIXME: Do this through platform-independent GraphicsContext API.
-#if PLATFORM(CG)
-            CGContextSetRGBFillColor(context->platformContext(), m_red, m_green, m_blue, m_alpha);
-#elif PLATFORM(QT)
-            QBrush currentBrush = p->brush();
-            QColor clr;
-            clr.setRgbF(m_red, m_green, m_blue, m_alpha);
-            currentBrush.setColor(clr);
-            p->setBrush(currentBrush);
-#endif
+        case RGBA:
+            context->setFillColor(Color(m_red, m_green, m_blue, m_alpha));
             break;
-        }
         case CMYKA: {
             // FIXME: Do this through platform-independent GraphicsContext API.
+            // We'll need a fancier Color abstraction to support CYMKA correctly
 #if PLATFORM(CG)
             CGContextSetCMYKFillColor(context->platformContext(), m_cyan, m_magenta, m_yellow, m_black, m_alpha);
 #elif PLATFORM(QT)
-            QBrush currentBrush = p->brush();
+            QBrush currentBrush = context->platformContext()->brush();
             QColor clr;
             clr.setCmykF(m_cyan, m_magenta, m_yellow, m_black, m_alpha);
             currentBrush.setColor(clr);
-            p->setBrush(currentBrush);
+            context->platformContext()->setBrush(currentBrush);
 #endif
             break;
         }
@@ -310,6 +191,5 @@ void CanvasStyle::applyFillColor(GraphicsContext* context)
             break;
     }
 }
-#endif
 
 }
