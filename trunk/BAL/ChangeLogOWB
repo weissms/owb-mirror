@@ -1,3 +1,12 @@
+2008-08-16  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        tested by Joe Edwards
+        Fix crash when we use the default constructor
+
+        * OWBAL/Concretizations/Types/WK/BCbalValuePrivateWK.h:
+        (BalValuePrivate::BalValuePrivate):
+
 2008-08-01  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
