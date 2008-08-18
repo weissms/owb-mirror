@@ -89,16 +89,15 @@ namespace WTF {
     /**
      * tryFastRealloc
      */
-    void* tryFastRealloc(void* p, size_t n)
+    void* tryFastRealloc(void* p, size_t n);
 
     /**
      * fast free
      * @param[in] : pointer
      */
-    void fastFree(void* p)
+    void fastFree(void* p);
 
 #ifndef NDEBUG    
-
     /**
      * fastMallocForbid
      */

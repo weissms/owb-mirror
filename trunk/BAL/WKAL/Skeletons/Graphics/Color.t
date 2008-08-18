@@ -215,7 +215,7 @@ public:
     /**
      * test if the color has alpha
      */
-    bool hasAlpha() const;
+    bool hasAlpha() const ;
 
     /**
      * get red value
@@ -260,7 +260,7 @@ public:
      * RGBA32 r = c->rgb();
      * @endcode
      */
-    RGBA32 rgb() const;
+    RGBA32 rgb() const ;
 
     
     /**
@@ -270,7 +270,7 @@ public:
      * c->setRGB(r, g, b);
      * @endcode
      */
-    void setRGB(int r, int g, int b);
+    void setRGB(int r, int g, int b) ;
 
     /**
      * setRGB

@@ -94,7 +94,7 @@ namespace WKAL {
      * GraphicsContext *gc = im->context();
      * @endcode
      */
-        GraphicsContext* context() const
+        GraphicsContext* context() const;
 
     /**
      * get image

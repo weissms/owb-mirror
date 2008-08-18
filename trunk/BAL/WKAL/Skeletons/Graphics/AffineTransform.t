@@ -435,7 +435,7 @@ public:
     /**
      * PlatformAffineTransform operator
      */
-    operator PlatformAffineTransform() const
+    operator PlatformAffineTransform() const;
 
     /**
      *  operator== 

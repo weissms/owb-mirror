@@ -110,7 +110,7 @@ public:
     /**
      *  create bitmap image
      */
-    static PassRefPtr<BitmapImage> create(ImageObserver* observer = 0)
+    static PassRefPtr<BitmapImage> create(ImageObserver* observer = 0);
 
     /**
      * destructor
@@ -193,7 +193,7 @@ protected:
     /**
      *  BitmapImage constructor
      */
-    BitmapImage(NativeImagePtr, ImageObserver* = 0)
+    BitmapImage(NativeImagePtr, ImageObserver* = 0);
     /**
      * BitmapImage constructor
      * @param[in] : image Observer
@@ -201,7 +201,13 @@ protected:
      *  BitmapImage *bi = new BitmapImage();
      * @endcode
      */
-    BitmapImage(ImageObserver* = 0)
+    BitmapImage(ImageObserver* = 0);
+
+
+    /**
+     *  draw
+     */
+    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator);
 
     /**
      * get current frame
@@ -210,7 +216,7 @@ protected:
      * size_t c = bi->currentFrame();
      * @endcode
      */
-    size_t currentFrame() const 
+    size_t currentFrame() const ;
 
     /**
      * get frame count
@@ -225,7 +231,7 @@ protected:
      * NativeImagePtr i = bi->frameAtIndex(1);
      * @endcode
      */
-    NativeImagePtr frameAtIndex(size_t)
+    NativeImagePtr frameAtIndex(size_t);
 
     /**
      * get frame duration at index
@@ -242,6 +248,12 @@ protected:
      */
     bool frameHasAlphaAtIndex(size_t);
 
+
+    /**
+     *  cacheFrame
+     */
+    void cacheFrame(size_t index);
+
     /**
      * Called to invalidate all our cached data.  If an image is loading incrementally, we only  invalidate the last cached frame.
      * @param[in] : incremental status
@@ -249,7 +261,7 @@ protected:
      * bi->destroyDecodedData();
      * @endcode
      */
-    virtual void destroyDecodedData(bool incremental = false)
+    virtual void destroyDecodedData(bool incremental = false);
  
     // Whether or not size is available yet.
     /**
@@ -311,7 +323,7 @@ protected:
     /**
      * get solid color
      */
-    virtual Color solidColor() const;
+    virtual Color solidColor() const ;
     
     ImageSource m_source;
     mutable IntSize m_size; // The size to use for the overall image (will just be the size of the first image).
@@ -342,4 +354,4 @@ protected:
 
 }
 
-#endif
+#endi

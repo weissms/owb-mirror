@@ -1,3 +1,17 @@
+2008-08-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        Fix Documentation
+
+        * OWBAL/Skeletons/Memory/FastMalloc.t:
+        * WKAL/Skeletons/Graphics/AffineTransform.t:
+        * WKAL/Skeletons/Graphics/BitmapImage.t:
+        * WKAL/Skeletons/Graphics/Color.t:
+        * WKAL/Skeletons/Graphics/GraphicsContext.t:
+        * WKAL/Skeletons/Graphics/Image.t:
+        * WKAL/Skeletons/Graphics/ImageBuffer.t:
+        * WKAL/Skeletons/Graphics/SVGImage.t:
+
 2008-08-16  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

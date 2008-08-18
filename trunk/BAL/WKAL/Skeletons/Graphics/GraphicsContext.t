@@ -921,7 +921,7 @@ namespace WKAL {
      * BalExposeEvent *e = gc->balExposeEvent();
      * @endcode
      */
-        BalEventExpose* balExposeEvent() const
+        BalEventExpose* balExposeEvent() const;
 
     private:
     /**

@@ -306,7 +306,7 @@ protected:
     /**
      * draw
      */
-    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator) = 0
+    virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator) = 0;
     /**
      *  drawTiled
      */

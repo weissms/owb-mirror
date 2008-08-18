@@ -57,7 +57,7 @@ namespace WKAL {
     /**
      *  create SVG Image
      */
-        static PassRefPtr<SVGImage> create(ImageObserver* observer)
+        static PassRefPtr<SVGImage> create(ImageObserver* observer);
 
     /**
      * SVGImage destructor
@@ -144,6 +144,13 @@ namespace WKAL {
      */
         virtual NativeImagePtr frameAtIndex(size_t) ;
 
+private :
+
+    /**
+     * SVGImage constructor 
+     */
+        SVGImage(ImageObserver*);
+
     /**
      *  draw 
      */
@@ -151,15 +158,6 @@ namespace WKAL {
 
     /**
      * get nativeImageForCurrentFrame
-     */
-        virtual NativeImagePtr nativeImageForCurrentFrame();
-    
-    
-        
-privat
-        
-    /**
-     *  nativeImageForCurrentFrame
      */
         virtual NativeImagePtr nativeImageForCurrentFrame();
         
