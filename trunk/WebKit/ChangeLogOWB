@@ -1,3 +1,11 @@
+2008-08-18  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix a bug in parseConfigFile: delimiter was not correct for keyword.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::parseConfigFile):
+
 2008-08-04  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

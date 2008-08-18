@@ -1494,7 +1494,7 @@ void WebView::parseConfigFile(String url)
         int eol = fileBuffer.find("\n");
         int delimiter = fileBuffer.find("=");
 
-        String keyword = fileBuffer.substring(0, delimiter - 1).stripWhiteSpace();
+        String keyword = fileBuffer.substring(0, delimiter).stripWhiteSpace();
         String key = fileBuffer.substring(delimiter +  1, eol - delimiter).stripWhiteSpace();
 
         if (keyword == "width")
