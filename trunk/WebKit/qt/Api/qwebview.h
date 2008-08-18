@@ -133,8 +133,12 @@ protected:
     virtual void mousePressEvent(QMouseEvent*);
     virtual void mouseDoubleClickEvent(QMouseEvent*);
     virtual void mouseReleaseEvent(QMouseEvent*);
+#ifndef QT_NO_CONTEXTMENU
     virtual void contextMenuEvent(QContextMenuEvent*);
+#endif
+#ifndef QT_NO_WHEELEVENT
     virtual void wheelEvent(QWheelEvent*);
+#endif
     virtual void keyPressEvent(QKeyEvent*);
     virtual void keyReleaseEvent(QKeyEvent*);
     virtual void dragEnterEvent(QDragEnterEvent *);

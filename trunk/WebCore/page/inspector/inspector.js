@@ -463,6 +463,20 @@ WebInspector.documentKeyDown = function(event)
                 this.console.visible = !this.console.visible;
                 event.preventDefault();
                 break;
+            case "U+0046": // F key
+                var isMac = InspectorController.platform().indexOf("mac-") === 0;
+                var isFindKey;
+                // We want cmd-F for Mac, or ctrl-F for non-Mac
+                if (isMac)
+                    isFindKey = event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey;
+                else
+                    isFindKey = event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
+
+                if (isFindKey) {
+                    document.getElementById("search").focus();
+                    event.preventDefault();
+                }
+                break;
         }
     }
 }
@@ -836,16 +850,6 @@ WebInspector.addMessageToConsole = function(msg)
     this.console.addMessage(msg);
 }
 
-WebInspector.startGroupInConsole = function()
-{
-    this.console.startGroup();
-}
-
-WebInspector.endGroupInConsole = function()
-{
-    this.console.endGroup();
-}
-
 WebInspector.addProfile = function(profile)
 {
     this.panels.profiles.addProfile(profile);
@@ -955,7 +959,10 @@ WebInspector.linkifyStringAsFragment = function(string)
         container.appendChild(document.createTextNode(nonLink));
 
         var profileStringRegEx = new RegExp("webkit-profile://(.+)/[0-9]+");
-        var profileTitle = profileStringRegEx.exec(title)[1];
+        var profileStringMatches = profileStringRegEx.exec(title);
+        var profileTitle;
+        if (profileStringMatches)
+            profileTitle = profileStringMatches[1];
         if (profileTitle)
             title = WebInspector.panels.profiles.displayTitleForProfileLink(profileTitle);
 

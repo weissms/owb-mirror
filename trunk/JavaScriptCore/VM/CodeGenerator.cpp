@@ -462,7 +462,7 @@ PassRefPtr<LabelID> CodeGenerator::emitJump(LabelID* target)
 
 PassRefPtr<LabelID> CodeGenerator::emitJumpIfTrue(RegisterID* cond, LabelID* target)
 {
-    if (m_lastOpcodeID == op_less) {
+    if (m_lastOpcodeID == op_less && !target->isForwardLabel()) {
         int dstIndex;
         int src1Index;
         int src2Index;
@@ -471,7 +471,7 @@ PassRefPtr<LabelID> CodeGenerator::emitJumpIfTrue(RegisterID* cond, LabelID* tar
 
         if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
             rewindBinaryOp();
-            emitOpcode(target->isForwardLabel() ? op_jless : op_loop_if_less);
+            emitOpcode(op_loop_if_less);
             instructions().append(src1Index);
             instructions().append(src2Index);
             instructions().append(target->offsetFrom(instructions().size()));
@@ -657,6 +657,14 @@ RegisterID* CodeGenerator::emitUnexpectedLoad(RegisterID* dst, bool b)
     emitOpcode(op_unexpected_load);
     instructions().append(dst->index());
     instructions().append(addUnexpectedConstant(jsBoolean(b)));
+    return dst;
+}
+
+RegisterID* CodeGenerator::emitUnexpectedLoad(RegisterID* dst, double d)
+{
+    emitOpcode(op_unexpected_load);
+    instructions().append(dst->index());
+    instructions().append(addUnexpectedConstant(jsNumber(globalExec(), d)));
     return dst;
 }
 

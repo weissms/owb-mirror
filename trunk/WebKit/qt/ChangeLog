@@ -1,3 +1,123 @@
+2008-08-18  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes: compile with QT_NO_UNDOCOMMAND/STACK
+        
+
+        * Api/qwebpage.cpp:
+        (SetCursorEvent::SetCursorEvent):
+        (QWebPagePrivate::createContextMenu):
+        (QWebPage::action):
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+        * WebCoreSupport/EditCommandQt.cpp:
+        (EditCommandQt::EditCommandQt):
+        * WebCoreSupport/EditCommandQt.h:
+        * WebCoreSupport/EditorClientQt.cpp:
+        (dumpPath):
+        (WebCore::EditorClientQt::shouldInsertText):
+        (WebCore::EditorClientQt::shouldChangeSelectedRange):
+        (WebCore::EditorClientQt::isEditable):
+        (WebCore::EditorClientQt::registerCommandForUndo):
+        (WebCore::EditorClientQt::clearUndoRedoOperations):
+        (WebCore::EditorClientQt::canUndo):
+        (WebCore::EditorClientQt::canRedo):
+        (WebCore::EditorClientQt::undo):
+        (WebCore::EditorClientQt::redo):
+        (WebCore::EditorClientQt::shouldInsertNode):
+
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes: compile with QT_NO_STYLE_STYLESHEET
+        
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::postProgressFinishedNotification):
+        (WebCore::FrameLoaderClientQt::createPlugin):
+
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes: compile with QT_NO_SHORTCUT
+        
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::mouseMoveEvent):
+        (QWebPagePrivate::mouseReleaseEvent):
+        (QWebPagePrivate::dragMoveEvent):
+
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes:    compile with QT_NO_CONTEXTMENU
+        
+
+        * Api/qwebpage.cpp:
+        (editorCommandForWebActions):
+        (QWebPagePrivate::QWebPagePrivate):
+        (QWebPagePrivate::createMainFrame):
+        (QWebPagePrivate::updateEditorActions):
+        (QWebPage::setEditable):
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+        * Api/qwebview.cpp:
+        * Api/qwebview.h:
+
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes: compile with QT_NO_WHEELEVENT
+        
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::updateEditorActions):
+        (QWebPage::event):
+        * Api/qwebpage_p.h:
+        * Api/qwebview.cpp:
+        * Api/qwebview.h:
+
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes: compile with QT_NO_PRINTER
+        
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::print):
+        * Api/qwebframe.h:
+
+2008-08-15  David Boddie  <dboddie@trolltech.com>
+
+        Reviewed by Simon.
+
+        Doc: Added documentation for default property values.
+        
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::keyPressEvent):
+        (QWebPage::triggerAction):
+        (QWebPage::acceptNavigationRequest):
+        (QWebPage::action):
+        * Api/qwebview.cpp:
+
+2008-08-15  David Boddie  <dboddie@trolltech.com>
+
+        Reviewed by Simon.
+
+        Doc: Renamed snippets that appear in the code directory.
+        
+
+        * Api/qwebview.cpp:
+        (QWebView::event):
+        (QWebView::print):
+
 2008-08-14  Timothy Hatcher  <timothy@apple.com>
 
         Add a stub for InspectorClient::setAttachedWindowHeight.

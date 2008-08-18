@@ -68,6 +68,7 @@
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSRetainPtr.h>
 #include <JavaScriptCore/JSStringRef.h>
+#include <JavaScriptCore/OpaqueJSString.h>
 #include <kjs/ustring.h>
 #include <profiler/Profile.h>
 #include <profiler/Profiler.h>
@@ -102,7 +103,7 @@ static JSRetainPtr<JSStringRef> jsStringRef(const String& str)
 
 static JSRetainPtr<JSStringRef> jsStringRef(const UString& str)
 {
-    return JSRetainPtr<JSStringRef>(toRef(str.rep()));
+    return JSRetainPtr<JSStringRef>(Adopt, OpaqueJSString::create(str).releaseRef());
 }
 
 static String toString(JSContextRef context, JSValueRef value, JSValueRef* exception)
@@ -1231,8 +1232,10 @@ void InspectorController::setWindowVisible(bool visible, bool attached)
             startDebuggingAndReloadInspectedPage();
         if (m_showAfterVisible != CurrentPanel)
             showPanel(m_showAfterVisible);
-    } else
+    } else {
+        stopDebugging();
         resetScriptObjects();
+    }
 
     m_showAfterVisible = CurrentPanel;
 }
@@ -1280,27 +1283,21 @@ void InspectorController::toggleRecordButton(bool isProfiling)
     callFunction(m_scriptContext, m_scriptObject, "setRecordingProfile", 1, &isProvingValue, exception);
 }
 
-void InspectorController::startGroup()
+void InspectorController::startGroup(MessageSource source, ExecState* exec, const ArgList& arguments, unsigned lineNumber, const String& sourceURL)
 {    
-    JSValueRef exception = 0;
-
     ++m_groupLevel;
 
-    if (windowVisible())
-        callFunction(m_scriptContext, m_scriptObject, "startGroupInConsole", 0, NULL, exception);
+    addConsoleMessage(new ConsoleMessage(source, StartGroupMessageLevel, exec, arguments, lineNumber, sourceURL, m_groupLevel));
 }
 
-void InspectorController::endGroup()
+void InspectorController::endGroup(MessageSource source, unsigned lineNumber, const String& sourceURL)
 {
-    JSValueRef exception = 0;
-
     if (m_groupLevel == 0)
         return;
 
     --m_groupLevel;
 
-    if (windowVisible())
-        callFunction(m_scriptContext, m_scriptObject, "endGroupInConsole", 0, NULL, exception);
+    addConsoleMessage(new ConsoleMessage(source, EndGroupMessageLevel, String(), lineNumber, sourceURL, m_groupLevel));
 }
 
 void InspectorController::addProfile(PassRefPtr<Profile> prpProfile)
@@ -2612,7 +2609,7 @@ bool InspectorController::handleException(JSContextRef context, JSValueRef excep
 
 // JavaScriptDebugListener functions
 
-void InspectorController::didParseSource(ExecState*, const SourceProvider& source, int startingLineNumber, const UString& sourceURL, int sourceID)
+void InspectorController::didParseSource(ExecState* exec, const SourceProvider& source, int startingLineNumber, const UString& sourceURL, int sourceID)
 {
     JSValueRef sourceIDValue = JSValueMakeNumber(m_scriptContext, sourceID);
     JSValueRef sourceURLValue = JSValueMakeString(m_scriptContext, jsStringRef(sourceURL).get());
@@ -2624,7 +2621,7 @@ void InspectorController::didParseSource(ExecState*, const SourceProvider& sourc
     callFunction(m_scriptContext, m_scriptObject, "parsedScriptSource", 4, arguments, exception);
 }
 
-void InspectorController::failedToParseSource(ExecState*, const SourceProvider& source, int startingLineNumber, const UString& sourceURL, int errorLine, const UString& errorMessage)
+void InspectorController::failedToParseSource(ExecState* exec, const SourceProvider& source, int startingLineNumber, const UString& sourceURL, int errorLine, const UString& errorMessage)
 {
     JSValueRef sourceURLValue = JSValueMakeString(m_scriptContext, jsStringRef(sourceURL).get());
     JSValueRef sourceValue = JSValueMakeString(m_scriptContext, jsStringRef(source.data()).get());

@@ -1,3 +1,272 @@
+2008-08-18  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej.
+
+        Change the counting of constants so that preincrement and predecrement of
+        const local variables are considered unexpected loads.
+
+        * kjs/nodes.cpp:
+        (KJS::PrefixResolveNode::emitCode):
+        * kjs/nodes.h:
+        (KJS::ScopeNode::neededConstants):
+
+2008-08-17  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        <rdar://problem/6150322> In Gmail, a crash occurs at KJS::Machine::privateExecute() when applying list styling to text after a quote had been removed
+        <https://bugs.webkit.org/show_bug.cgi?id=20386>
+
+        This crash was caused by "depth()" incorrectly determining the scope depth 
+        of a 0 depth function without a full scope chain.  Because such a function
+        would not have an activation the depth function would return the scope depth
+        of the parent frame, thus triggering an incorrect unwind.  Any subsequent 
+        look up that walked the scope chain would result in incorrect behaviour,
+        leading to a crash or incorrect variable resolution.  This can only actually
+        happen in try...finally statements as that's the only path that can result in
+        the need to unwind the scope chain, but not force the function to need a
+        full scope chain.
+
+        The fix is simply to check for this case before attempting to walk the scope chain.
+
+        * VM/Machine.cpp:
+        (KJS::depth):
+        (KJS::Machine::throwException):
+
+2008-08-17  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej.
+
+        Bug 20419: Remove op_jless
+        <https://bugs.webkit.org/show_bug.cgi?id=20419>
+
+        Remove op_jless, which is rarely used now that we have op_loop_if_less.
+
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::emitJumpIfTrue):
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        * VM/Opcode.h:
+
+2008-08-17  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Dan Bernstein.
+
+        Fix a typo in r35807 that is also causing build failures for
+        non-AllInOne builds.
+
+        * kjs/NumberConstructor.cpp:
+
+2008-08-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Made room for a free word in JSCell.
+        
+        SunSpider says no change.
+        
+        I changed JSCallbackObjectData, Arguments, JSArray, and RegExpObject to
+        store auxiliary data in a secondary structure.
+
+        I changed InternalFunction to store the function's name in the property
+        map.
+        
+        I changed JSGlobalObjectData to use a virtual destructor, so WebCore's
+        JSDOMWindowBaseData could inherit from it safely. (It's a strange design
+        for JSDOMWindowBase to allocate an object that JSGlobalObject deletes,
+        but that's really our only option, given the size constraint.)
+        
+        I also added a bunch of compile-time ASSERTs, and removed lots of comments
+        in JSObject.h because they were often out of date, and they got in the
+        way of reading what was actually going on.
+        
+        Also renamed JSArray::getLength to JSArray::length, to match our style
+        guidelines.
+
+2008-08-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Sped up property access for array.length and string.length by adding a
+        mechanism for returning a temporary value directly instead of returning
+        a pointer to a function that retrieves the value.
+        
+        Also removed some unused cruft from PropertySlot.
+        
+        SunSpider says 0.5% - 1.2% faster.
+
+        NOTE: This optimization is not a good idea in general, because it's
+        actually a pessimization in the case of resolve for assignment,
+        and it may get in the way of other optimizations in the future.
+        
+2008-08-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Disable dead code stripping in debug builds.
+
+        * Configurations/Base.xcconfig:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6143072> FastMallocZone's enumeration code makes assumptions about handling of remote memory regions that overlap
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_Central_FreeList::enumerateFreeObjects): Don't directly compare pointers mapped into the local process with
+        a pointer that has not been mapped.  Instead, calculate a local address for the pointer and compare with that.
+        (WTF::TCMallocStats::FreeObjectFinder::findFreeObjects): Pass in the remote address of the central free list so that it can
+        be used when calculating local addresses.
+        (WTF::TCMallocStats::FastMallocZone::enumerate): Ditto.
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        <rdar://problem/6139914> Please include a _debug version of JavaScriptCore framework
+
+        * Configurations/Base.xcconfig: Factor out the debug-only settings so that they can shared
+        between the Debug configuration and debug Production variant.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Enable the debug variant.
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Fix the 64-bit build.
+
+        Add extra cast to avoid warnings about loss of precision when casting from
+        JSValue* to an integer type.
+
+        * kjs/JSImmediate.h:
+        (KJS::JSImmediate::intValue):
+        (KJS::JSImmediate::uintValue):
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Still fixing Windows build.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreGenerated.make: Added OpaqueJSString
+        to yet another place.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Trying to fix non-Apple builds.
+
+        * ForwardingHeaders/JavaScriptCore/OpaqueJSString.h: Added.
+
+2008-08-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Allow JSImmediate to hold 31 bit signed integer immediate values.  The low two bits of a
+        JSValue* are a tag, with the tag value 00 indicating the JSValue* is a pointer to a
+        JSCell.  Non-zero tag values used to indicate that the JSValue* is not a real pointer,
+        but instead holds an immediate value encoded within the pointer.  This patch changes the
+        encoding so both the tag values 01 and 11 indicate the value is a signed integer, allowing
+        a 31 bit value to be stored.  All other immediates are tagged with the value 10, and
+        distinguished by a secondary tag.
+
+        Roughly +2% on SunSpider.
+
+        * kjs/JSImmediate.h: Encoding of JSImmediates has changed - see comment at head of file for
+                             descption of new layout.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        More build fixes.
+
+        * API/OpaqueJSString.h: Add a namespace to friend declaration to appease MSVC.
+        * API/JSStringRefCF.h: (JSStringCreateWithCFString) Cast UniChar* to UChar* explicitly.
+        * JavaScriptCore.exp: Added OpaqueJSString::create(const KJS::UString&) to fix WebCore build.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Build fix.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Marked OpaqueJSString as private
+
+        * kjs/identifier.cpp:
+        (KJS::Identifier::checkSameIdentifierTable):
+        * kjs/identifier.h:
+        (KJS::Identifier::add):
+        Since checkSameIdentifierTable is exported for debug build's sake, gcc wants it to be
+        non-inline in release builds, too.
+
+        * JavaScriptCore.exp: Don't export inline OpaqueJSString destructor.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        JSStringRef is created context-free, but can get linked to one via an identifier table,
+        breaking an implicit API contract.
+
+        Made JSStringRef point to OpaqueJSString, which is a new string object separate from UString.
+
+        * API/APICast.h: Removed toRef/toJS conversions for JSStringRef, as this is no longer a
+        simple typecast.
+
+        * kjs/identifier.cpp:
+        (KJS::Identifier::checkSameIdentifierTable):
+        * kjs/identifier.h:
+        (KJS::Identifier::add):
+        (KJS::UString::checkSameIdentifierTable):
+        Added assertions to verify that an identifier is not being added to a different JSGlobalData.
+
+        * API/JSObjectRef.cpp:
+        (OpaqueJSPropertyNameArray::OpaqueJSPropertyNameArray): Changed OpaqueJSPropertyNameArray to
+        hold JSStringRefs. This is necessary to avoid having to construct (and leak) a new instance
+        in JSPropertyNameArrayGetNameAtIndex(), now that making a JSStringRef is not just a typecast.
+
+        * API/OpaqueJSString.cpp: Added.
+        (OpaqueJSString::create):
+        (OpaqueJSString::ustring):
+        (OpaqueJSString::identifier):
+        * API/OpaqueJSString.h: Added.
+        (OpaqueJSString::create):
+        (OpaqueJSString::characters):
+        (OpaqueJSString::length):
+        (OpaqueJSString::OpaqueJSString):
+        (OpaqueJSString::~OpaqueJSString):
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript):
+        (JSCheckScriptSyntax):
+        * API/JSCallbackObjectFunctions.h:
+        (KJS::::getOwnPropertySlot):
+        (KJS::::put):
+        (KJS::::deleteProperty):
+        (KJS::::staticValueGetter):
+        (KJS::::callbackGetter):
+        * API/JSStringRef.cpp:
+        (JSStringCreateWithCharacters):
+        (JSStringCreateWithUTF8CString):
+        (JSStringRetain):
+        (JSStringRelease):
+        (JSStringGetLength):
+        (JSStringGetCharactersPtr):
+        (JSStringGetMaximumUTF8CStringSize):
+        (JSStringGetUTF8CString):
+        (JSStringIsEqual):
+        * API/JSStringRefCF.cpp:
+        (JSStringCreateWithCFString):
+        (JSStringCopyCFString):
+        * API/JSValueRef.cpp:
+        (JSValueMakeString):
+        (JSValueToStringCopy):
+        Updated to use OpaqueJSString.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        Added OpaqueJSString.
+
 2008-08-14  Kevin McCullough  <kmccullough@apple.com>
 
         Reviewed by Tim.

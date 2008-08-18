@@ -1,3 +1,20 @@
+2008-08-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Updated project files to XCode 3.1.
+
+        * DrawTest/DrawTest.xcodeproj/project.pbxproj:
+        * WebKitLauncher/WebKitLauncher.xcodeproj/project.pbxproj:
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        <rdar://problem/6139914> Please include a _debug version of JavaScriptCore framework
+
+        * Scripts/check-for-global-initializers: Ignore initializers when building the debug variant.
+
 2008-08-14  Simon Hausmann  <hausmann@webkit.org>
 
         Rubber-stamped by Holger.

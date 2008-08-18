@@ -1,3 +1,283 @@
+2008-08-18  Timothy Hatcher  <timothy@apple.com>
+
+        Complete in scope variables in the Console when paused.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19115
+
+        Reviewed by Geoffrey Garen.
+
+        * page/inspector/Console.js:
+        (WebInspector.Console.prototype.completions): If the expressionString
+        is null or empty and the debugger is paused, call variablesInScopeForSelectedCallFrame
+        to get an object that declares all the in scope variables. That way
+        "top level" expressions are completed.
+        * page/inspector/ScriptsPanel.js:
+        (WebInspector.ScriptsPanel.prototype.variablesInScopeForSelectedCallFrame):
+        Return an object that has all the variables that are in scope for the
+        selected call frame. The value of each property is just true.
+        The return object is useful for quick lookups or auto completion.
+
+2008-08-17  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Not reviewed.
+
+        Speculative Qt build fix.
+
+        * bridge/qt/qt_runtime.cpp:
+        (KJS::Bindings::convertValueToQVariant):
+        (KJS::Bindings::QtRuntimeMethod::QtRuntimeMethod):
+
+2008-08-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Updated project files to XCode 3.1.
+
+        * manual-tests/NPN_Invoke/NPN_Invoke.xcodeproj/project.pbxproj:
+
+2008-08-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Made room for a free word in JSCell.
+        
+        Changed JSDOMWindowBase to store its auxiliary data in a subclass of
+        JSGlobalData, so the two could share a pointer.
+        
+        Added a bunch of ASSERTs, to help catch over-sized objects.
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Disable dead code stripping in debug builds.
+
+        * Configurations/Base.xcconfig:
+        * WebCore.xcodeproj/project.pbxproj:
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        <rdar://problem/6139914> Please include a _debug version of JavaScriptCore framework
+
+        * Configurations/Base.xcconfig: Factor out the debug-only settings so that they can shared
+        between the Debug configuration and debug Production variant.
+        * WebCore.xcodeproj/project.pbxproj: Enable the debug variant.
+
+2008-08-15  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Anders.
+
+        Don't start preloading body resources before the head is complete. This prevents
+        body preloads from slowing down initial display when there is limited amount
+        of bandwidth available.
+        
+        Works by queuing up found body preloads to DocLoader and only issuing them
+        after document has rendering.
+        
+        With bandwidth capped to 300kbit/s this speeds up cnn.com initial display by ~25% or 5s
+        without affecting complete load time.
+
+        * html/PreloadScanner.cpp:
+        (WebCore::PreloadScanner::PreloadScanner):
+        (WebCore::PreloadScanner::scanningBody):
+        (WebCore::PreloadScanner::emitTag):
+        (WebCore::PreloadScanner::emitCSSRule):
+        * html/PreloadScanner.h:
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::preload):
+        (WebCore::DocLoader::checkForPendingPreloads):
+        (WebCore::DocLoader::requestPreload):
+        * loader/DocLoader.h:
+        * loader/loader.cpp:
+        (WebCore::Loader::Host::didFinishLoading):
+        (WebCore::Loader::Host::didFail):
+
+2008-08-15  Ada Chan  <adachan@apple.com>
+
+        Use item's computed style if the render style is 0 before falling back to the <select>'s style.
+        This way style set on an <hr> within a <select> will be honored.
+
+        Reviewed by Dave Hyatt and Dan Bernstein.
+
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::itemStyle):
+
+2008-08-15  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Oliver.
+
+        Some loader performance tweaks:
+        - Make stylesheets highest priority instead of scripts. We block script execution on stylesheets.
+          Especially if a stylesheet @imports other stylesheets it is important to get them to the front of the queue 
+          to not delay rendering.
+        - Issue the first resource load for a host immediately even if the resource is low priority. TCP connection setup
+          can take long time when latency is high so it is good to get started early.
+        - When the document is fully parsed and stylesheets have been loaded there is no need to keep managing the
+          load queues. Issue remaining loads to the network layer.
+
+        * loader/loader.cpp:
+        (WebCore::Loader::determinePriority):
+        (WebCore::Loader::load):
+        (WebCore::Loader::Host::servePendingRequests):
+        * loader/loader.h:
+
+2008-08-15  Timothy Hatcher  <timothy@apple.com>
+
+        Detach the script debugger when the Web Inspector's window closes.
+        This has always been the intended design, but never fully implemented.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20402
+
+        Reviewed by Adam Roben.
+
+        * page/InspectorController.cpp:
+        (WebCore::InspectorController::setWindowVisible): Call stopDebugging()
+        if the window is no longer visible.
+
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes:    compile with QT_NO_CONTEXTMENU
+
+        * platform/qt/PlatformMouseEventQt.cpp:
+        (WebCore::PlatformMouseEvent::PlatformMouseEvent):
+        * platform/qt/PlatformScrollBarQt.cpp:
+        (WebCore::PlatformScrollbar::handleMouseMoveEvent):
+        (WebCore::PlatformScrollbar::handleContextMenuEvent):
+
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes: compile with QT_NO_WHEELEVENT
+
+        * platform/qt/WheelEventQt.cpp:
+        (WebCore::PlatformWheelEvent::PlatformWheelEvent):
+
+2008-08-15  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Fixed Bug 20210: Console groups are incorrect when closing and reopening the Inspector
+
+        https://bugs.webkit.org/show_bug.cgi?id=20210
+
+        Reviewed by Tim Hatcher.
+
+        * page/Console.cpp:
+        (WebCore::Console::group):
+        (WebCore::Console::groupEnd):
+        * page/Console.h:
+        (WebCore::): Removed GroupTitleMessageLevel. Added StartGroupMessaageLevel and EndGroupMessageLevel.
+        * page/InspectorController.cpp:
+        (WebCore::InspectorController::startGroup): Increments group level by
+        one and adds console message with StartGroupMessaageLevel.
+        (WebCore::InspectorController::endGroup): Decrements group level by one
+        and adds console message with EndGroupMessaageLevel.
+        * page/InspectorController.h:
+        * page/inspector/Console.js:
+        (WebInspector.Console.prototype.addMessage): Creates new ConsoleGroup
+        if the message is StartGroupMessaageLevel.
+        (WebInspector.ConsoleMessage.prototype.toMessageElement):
+        (WebInspector.ConsoleGroup.prototype.addMessage):
+        * page/inspector/inspector.js:
+
+2008-08-15  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Adds support for console.dir to the Inspector
+
+        https://bugs.webkit.org/show_bug.cgi?id=19155
+
+        Reviewed by Tim Hatcher.
+
+        * bindings/js/JSConsoleCustom.cpp:
+        (WebCore::JSConsole::dir):
+        * page/Console.cpp:
+        (WebCore::Console::dir):
+        * page/Console.h: Added ObjectMessageLevel.
+        * page/Console.idl: Added console.dir.
+        * page/inspector/Console.js:
+        (WebInspector.ConsoleMessage.prototypet.toMessageElement): Creates an
+        ObjectPropertiesSection if the MessageLevel is Object.
+        * page/inspector/ObjectPropertiesSection.js: "in" operator can't be
+        used on primitive data types.
+        * page/inspector/inspector.css:
+
+2008-08-15  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Adds support for clear() in the Inspector console.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19873
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/Console.js:
+
+2008-08-15  Anthony Ricaud  <rik24d@gmail.com>
+
+        Cmd-F on Mac or Ctrl-F on other platforms now focus the search field.
+
+        Platform distinction and modifier key matching adjusted
+        by Daniel Jalkut <jalkut@red-sweater.com>
+
+        Bug 16313: text search (find) keybindings should work in the Web Inspector
+        https://bugs.webkit.org/show_bug.cgi?id=16313
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/inspector.js: Added a case for the F key
+
+2008-08-15  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Fix for error when the string doesn't contain a webkit-profile link.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20399
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/inspector.js:
+
+2008-08-15  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes two bugs where JavaScript could be executed from the page
+        while the debugger is paused.
+
+        The first issue was JSLazyEventListener not checking the paused
+        state before parsing the code.
+
+        The second issue was with the PageGroup version of
+        JavaScriptDebugServer::setJavaScriptPaused always passing false
+        to the Page version of JavaScriptDebugServer::setJavaScriptPaused,
+        and not the paused argument.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20284
+
+        Reviewed by Adam Roben.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSLazyEventListener::parseCode): Check the paused
+        state of the ScriptController. Return early if paused.
+        * manual-tests/inspector/debugger-execution-while-paused.html: Added.
+        * page/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::setJavaScriptPaused):
+        Pass the paused argument to the Page version of setJavaScriptPaused.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        JSStringRef is created context-free, but can get linked to one via an identifier table,
+        breaking an implicit API contract.
+
+        * page/InspectorController.cpp:
+        (WebCore::jsStringRef):
+        (WebCore::InspectorController::didParseSource):
+        (WebCore::InspectorController::failedToParseSource):
+        * page/JavaScriptProfile.cpp:
+        (WebCore::getTitleCallback):
+        Updated for JavaScriptCore changes.
+
 2008-08-14  Kevin Ollivier  <kevino@theolliviers.com>
 
         wx !USE(WXGC) build fix. This is necessary until we find a way to replace GDI with

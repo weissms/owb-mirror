@@ -226,7 +226,9 @@ QWebPagePrivate::QWebPagePrivate(QWebPage *qq)
 
     settings = new QWebSettings(page->settings());
 
+#ifndef QT_NO_UNDOSTACK
     undoStack = 0;
+#endif
     mainFrame = 0;
 #if QT_VERSION < 0x040400
     networkInterface = 0;
@@ -238,7 +240,9 @@ QWebPagePrivate::QWebPagePrivate(QWebPage *qq)
     forwardUnsupportedContent = false;
     editable = false;
     linkPolicy = QWebPage::DontDelegateLinks;
+#ifndef QT_NO_CONTEXTMENU
     currentContextMenu = 0;
+#endif
 
     history.d = new QWebHistoryPrivate(page->backForwardList());
     memset(actions, 0, sizeof(actions));
@@ -246,8 +250,12 @@ QWebPagePrivate::QWebPagePrivate(QWebPage *qq)
 
 QWebPagePrivate::~QWebPagePrivate()
 {
+#ifndef QT_NO_CONTEXTMENU
     delete currentContextMenu;
+#endif
+#ifndef QT_NO_UNDOSTACK
     delete undoStack;
+#endif
     delete settings;
     delete page;
 }
@@ -314,6 +322,7 @@ static QWebPage::WebAction webActionForContextMenuAction(WebCore::ContextMenuAct
     return QWebPage::NoWebAction;
 }
 
+#ifndef QT_NO_CONTEXTMENU
 QMenu *QWebPagePrivate::createContextMenu(const WebCore::ContextMenu *webcoreMenu,
         const QList<WebCore::ContextMenuItem> *items, QBitArray *visitedWebActions)
 {
@@ -365,6 +374,7 @@ QMenu *QWebPagePrivate::createContextMenu(const WebCore::ContextMenu *webcoreMen
     }
     return menu;
 }
+#endif // QT_NO_CONTEXTMENU
 
 QWebFrame *QWebPagePrivate::frameAt(const QPoint &pos) const
 {
@@ -426,10 +436,12 @@ void QWebPagePrivate::updateAction(QWebPage::WebAction action)
         case QWebPage::Paste:
             enabled = editor->canPaste();
             break;
+#ifndef QT_NO_UNDOSTACK
         case QWebPage::Undo:
         case QWebPage::Redo:
             // those two are handled by QUndoStack
             break;
+#endif // QT_NO_UNDOSTACK
         case QWebPage::ToggleBold:
         case QWebPage::ToggleItalic:
         case QWebPage::ToggleUnderline:
@@ -555,6 +567,7 @@ void QWebPagePrivate::mouseReleaseEvent(QMouseEvent *ev)
 #endif
 }
 
+#ifndef QT_NO_CONTEXTMENU
 void QWebPagePrivate::contextMenuEvent(QContextMenuEvent *ev)
 {
     QMenu *menu = q->createStandardContextMenu();
@@ -563,6 +576,7 @@ void QWebPagePrivate::contextMenuEvent(QContextMenuEvent *ev)
         delete menu;
     }
 }
+#endif // QT_NO_CONTEXTMENU
 
 /*!
     \since 4.5
@@ -578,6 +592,7 @@ QMenu *QWebPage::createStandardContextMenu()
     return menu;
 }
 
+#ifndef QT_NO_WHEELEVENT
 void QWebPagePrivate::wheelEvent(QWheelEvent *ev)
 {
     WebCore::Frame* frame = QWebFramePrivate::core(mainFrame);
@@ -588,7 +603,9 @@ void QWebPagePrivate::wheelEvent(QWheelEvent *ev)
     bool accepted = frame->eventHandler()->handleWheelEvent(pev);
     ev->setAccepted(accepted);
 }
+#endif // QT_NO_WHEELEVENT
 
+#ifndef QT_NO_SHORTCUT
 static QWebPage::WebAction editorActionForKeyEvent(QKeyEvent* event)
 {
     static struct {
@@ -639,12 +656,14 @@ static QWebPage::WebAction editorActionForKeyEvent(QKeyEvent* event)
 
     return QWebPage::NoWebAction;
 }
+#endif // QT_NO_SHORTCUT
 
 void QWebPagePrivate::keyPressEvent(QKeyEvent *ev)
 {
     bool handled = false;
     WebCore::Frame* frame = page->focusController()->focusedOrMainFrame();
     WebCore::Editor* editor = frame->editor();
+#ifndef QT_NO_SHORTCUT
     if (editor->canEdit()) {
         QWebPage::WebAction action = editorActionForKeyEvent(ev);
         if (action != QWebPage::NoWebAction) {
@@ -657,6 +676,7 @@ void QWebPagePrivate::keyPressEvent(QKeyEvent *ev)
             handled = true;
         }
     }
+#endif // QT_NO_SHORTCUT
     if (!handled)
         handled = frame->eventHandler()->keyEvent(ev);
     if (!handled) {
@@ -784,6 +804,8 @@ void QWebPagePrivate::leaveEvent(QEvent *ev)
     \brief the page's palette
 
     The background brush of the palette is used to draw the background of the main frame.
+
+    By default, this property contains the application's default palette.
 */
 void QWebPage::setPalette(const QPalette &pal)
 {
@@ -861,6 +883,7 @@ bool QWebPagePrivate::handleScrolling(QKeyEvent *ev)
     ScrollDirection direction;
     ScrollGranularity granularity;
 
+#ifndef QT_NO_SHORTCUT
     if (ev == QKeySequence::MoveToNextPage
         || (ev->key() == Qt::Key_Space && !(ev->modifiers() & Qt::ShiftModifier))) {
         granularity = ScrollByPage;
@@ -869,7 +892,9 @@ bool QWebPagePrivate::handleScrolling(QKeyEvent *ev)
                || (ev->key() == Qt::Key_Space) && (ev->modifiers() & Qt::ShiftModifier)) {
         granularity = ScrollByPage;
         direction = ScrollUp;
-    } else if (ev->key() == Qt::Key_Up && ev->modifiers() & Qt::ControlModifier
+    } else
+#endif // QT_NO_SHORTCUT
+    if (ev->key() == Qt::Key_Up && ev->modifiers() & Qt::ControlModifier
                || ev->key() == Qt::Key_Home) {
         granularity = ScrollByDocument;
         direction = ScrollUp;
@@ -1406,6 +1431,9 @@ QSize QWebPage::viewportSize() const
 
     The size affects for example the visibility of scrollbars
     if the document is larger than the viewport.
+
+    By default, for a newly-created Web page, this property contains a size with
+    zero width and height.
 */
 void QWebPage::setViewportSize(const QSize &size) const
 {
@@ -1463,6 +1491,8 @@ bool QWebPage::acceptNavigationRequest(QWebFrame *frame, const QWebNetworkReques
 /*!
     \property QWebPage::selectedText
     \brief the text currently selected
+
+    By default, this property contains an empty string.
 
     \sa selectionChanged()
 */
@@ -1555,7 +1585,7 @@ QAction *QWebPage::action(WebAction action) const
         case Paste:
             text = contextMenuItemTagPaste();
             break;
-
+#ifndef QT_NO_UNDOSTACK
         case Undo: {
             QAction *a = undoStack()->createUndoAction(d->q);
             d->actions[action] = a;
@@ -1566,6 +1596,7 @@ QAction *QWebPage::action(WebAction action) const
             d->actions[action] = a;
             return a;
         }
+#endif // QT_NO_UNDOSTACK
         case MoveToNextChar:
         case MoveToPreviousChar:
         case MoveToNextWord:
@@ -1647,14 +1678,21 @@ QAction *QWebPage::action(WebAction action) const
 /*!
     \property QWebPage::modified
     \brief whether the page contains unsubmitted form data
+
+    By default, this property is false.
 */
 bool QWebPage::isModified() const
 {
+#ifdef QT_NO_UNDOSTACK
+    return false;
+#else
     if (!d->undoStack)
         return false;
     return d->undoStack->canUndo();
+#endif // QT_NO_UNDOSTACK
 }
 
+#ifndef QT_NO_UNDOSTACK
 /*!
     Returns a pointer to the undo stack used for editable content.
 */
@@ -1665,6 +1703,7 @@ QUndoStack *QWebPage::undoStack() const
 
     return d->undoStack;
 }
+#endif // QT_NO_UNDOSTACK
 
 /*! \reimp
 */
@@ -1686,12 +1725,16 @@ bool QWebPage::event(QEvent *ev)
     case QEvent::MouseButtonRelease:
         d->mouseReleaseEvent(static_cast<QMouseEvent*>(ev));
         break;
+#ifndef QT_NO_CONTEXTMENU
     case QEvent::ContextMenu:
         d->contextMenuEvent(static_cast<QContextMenuEvent*>(ev));
         break;
+#endif
+#ifndef QT_NO_WHEELEVENT
     case QEvent::Wheel:
         d->wheelEvent(static_cast<QWheelEvent*>(ev));
         break;
+#endif
     case QEvent::KeyPress:
         d->keyPressEvent(static_cast<QKeyEvent*>(ev));
         break;
@@ -1825,6 +1868,7 @@ QWebPage::LinkDelegationPolicy QWebPage::linkDelegationPolicy() const
     return d->linkPolicy;
 }
 
+#ifndef QT_NO_CONTEXTMENU
 /*!
     Filters the context menu event, \a event, through handlers for scrollbars and
     custom event handlers in the web page. Returns true if the event was handled;
@@ -1854,6 +1898,7 @@ bool QWebPage::swallowContextMenuEvent(QContextMenuEvent *event)
 
     return !menu;
 }
+#endif // QT_NO_CONTEXTMENU
 
 /*!
     Updates the page's actions depending on the position \a pos. For example if \a pos is over an image
@@ -1880,11 +1925,14 @@ void QWebPage::updatePositionDependentActions(const QPoint &pos)
     if (d->page->inspectorController()->enabled())
         menu.addInspectElementItem();
 
+    QBitArray visitedWebActions(QWebPage::WebActionCount);
+
+#ifndef QT_NO_CONTEXTMENU
     delete d->currentContextMenu;
 
     // Then we let createContextMenu() enable the actions that are put into the menu
-    QBitArray visitedWebActions(QWebPage::WebActionCount);
     d->currentContextMenu = d->createContextMenu(&menu, menu.platformDescription(), &visitedWebActions);
+#endif // QT_NO_CONTEXTMENU
 
     // Finally, we restore the original enablement for the actions that were not put into the menu.
     originallyEnabledWebActions &= ~visitedWebActions; // Mask out visited actions (they're part of the menu)

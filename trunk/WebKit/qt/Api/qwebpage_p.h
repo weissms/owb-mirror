@@ -71,7 +71,9 @@ public:
     QWebPagePrivate(QWebPage *);
     ~QWebPagePrivate();
     void createMainFrame();
+#ifndef QT_NO_CONTEXTMENU
     QMenu *createContextMenu(const WebCore::ContextMenu *webcoreMenu, const QList<WebCore::ContextMenuItem> *items, QBitArray *visitedWebActions);
+#endif
 
     QWebFrame *frameAt(const QPoint &pos) const;
 
@@ -82,14 +84,18 @@ public:
     void updateEditorActions();
 
     void timerEvent(QTimerEvent*);
-    
+
     void mouseMoveEvent(QMouseEvent*);
     void mousePressEvent(QMouseEvent*);
     void mouseDoubleClickEvent(QMouseEvent*);
     void mouseTripleClickEvent(QMouseEvent*);
     void mouseReleaseEvent(QMouseEvent*);
+#ifndef QT_NO_CONTEXTMENU
     void contextMenuEvent(QContextMenuEvent*);
+#endif
+#ifndef QT_NO_WHEELEVENT
     void wheelEvent(QWheelEvent*);
+#endif
     void keyPressEvent(QKeyEvent*);
     void keyReleaseEvent(QKeyEvent*);
     void focusInEvent(QFocusEvent*);
@@ -114,13 +120,15 @@ public:
     QPointer<QWebFrame> mainFrame;
 
     QWebPage *q;
+#ifndef QT_NO_UNDOSTACK
     QUndoStack *undoStack;
+#endif
     QWidget *view;
 
     bool insideOpenCall;
     quint64 m_totalBytes;
     quint64 m_bytesReceived;
-    
+
     QPoint tripleClick;
     QBasicTimer tripleClickTimer;
 
@@ -143,7 +151,9 @@ public:
     QSize viewportSize;
     QWebHistory history;
     QWebHitTestResult hitTestResult;
+#ifndef QT_NO_CONTEXTMENU
     QPointer<QMenu> currentContextMenu;
+#endif
     QWebSettings *settings;
     QPalette palette;
     bool editable;

@@ -82,8 +82,10 @@ static void* op_call_indirect;
 #endif
 
 // Returns the depth of the scope chain within a given call frame.
-static int depth(ScopeChain& sc)
+static int depth(CodeBlock* codeBlock, ScopeChain& sc)
 {
+    if (!codeBlock->needsFullScopeChain)
+        return 0;
     int scopeDepth = 0;
     ScopeChainIterator iter = sc.begin();
     ScopeChainIterator end = sc.end();
@@ -645,7 +647,7 @@ NEVER_INLINE bool Machine::unwindCallFrame(ExecState* exec, JSValue* exceptionVa
     Register* callFrame = r - oldCodeBlock->numLocals - RegisterFile::CallFrameHeaderSize;
 
     if (Debugger* debugger = exec->dynamicGlobalObject()->debugger()) {
-        DebuggerCallFrame debuggerCallFrame(exec->dynamicGlobalObject(), codeBlock, scopeChain, r, exceptionValue);
+        DebuggerCallFrame debuggerCallFrame(exec, exec->dynamicGlobalObject(), codeBlock, scopeChain, r, exceptionValue);
         if (callFrame[RegisterFile::Callee].jsValue(exec))
             debugger->returnEvent(debuggerCallFrame, codeBlock->ownerNode->sourceId(), codeBlock->ownerNode->lastLine());
         else
@@ -723,7 +725,7 @@ NEVER_INLINE Instruction* Machine::throwException(ExecState* exec, JSValue*& exc
     }
 
     if (Debugger* debugger = exec->dynamicGlobalObject()->debugger()) {
-        DebuggerCallFrame debuggerCallFrame(exec->dynamicGlobalObject(), codeBlock, scopeChain, r, exceptionValue);
+        DebuggerCallFrame debuggerCallFrame(exec, exec->dynamicGlobalObject(), codeBlock, scopeChain, r, exceptionValue);
         debugger->exception(debuggerCallFrame, codeBlock->ownerNode->sourceId(), codeBlock->lineNumberForVPC(vPC));
     }
 
@@ -740,7 +742,7 @@ NEVER_INLINE Instruction* Machine::throwException(ExecState* exec, JSValue*& exc
     // Now unwind the scope chain within the exception handler's call frame.
 
     ScopeChain sc(scopeChain);
-    int scopeDelta = depth(sc) - scopeDepth;
+    int scopeDelta = depth(codeBlock, sc) - scopeDepth;
     ASSERT(scopeDelta >= 0);
     while (scopeDelta--)
         sc.pop();
@@ -955,7 +957,7 @@ NEVER_INLINE void Machine::debug(ExecState* exec, const Instruction* vPC, const 
     if (!debugger)
         return;
 
-    DebuggerCallFrame debuggerCallFrame(exec->dynamicGlobalObject(), codeBlock, scopeChain, r, 0);
+    DebuggerCallFrame debuggerCallFrame(exec, exec->dynamicGlobalObject(), codeBlock, scopeChain, r, 0);
 
     switch((DebugHookID)debugHookID) {
     case DidEnterCallFrame: {
@@ -2211,29 +2213,6 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
             NEXT_OPCODE;
         }
         
-        ++vPC;
-        NEXT_OPCODE;
-    }
-    BEGIN_OPCODE(op_jless) {
-        /* jless src1(r) src2(r) target(offset)
-
-           Checks whether register src1 is less than register src2, as
-           with the ECMAScript '<' operator, and then jumps to offset
-           target from the current instruction, if and only if the 
-           result of the comparison is true.
-        */
-        JSValue* src1 = r[(++vPC)->u.operand].jsValue(exec);
-        JSValue* src2 = r[(++vPC)->u.operand].jsValue(exec);
-        int target = (++vPC)->u.operand;
-
-        bool result = jsLess(exec, src1, src2);
-        VM_CHECK_EXCEPTION();
-        
-        if (result) {
-            vPC += target;
-            NEXT_OPCODE;
-        }
-
         ++vPC;
         NEXT_OPCODE;
     }

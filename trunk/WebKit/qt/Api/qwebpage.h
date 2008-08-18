@@ -179,7 +179,9 @@ public:
     QWidget *view() const;
 
     bool isModified() const;
+#ifndef QT_NO_UNDOSTACK
     QUndoStack *undoStack() const;
+#endif
 
 #if QT_VERSION < 0x040400 && !defined(qdoc)
     void setNetworkInterface(QWebNetworkInterface *interface);
@@ -229,7 +231,9 @@ public:
     void setEditable(bool editable);
     bool isEditable() const;
 
+#ifndef QT_NO_CONTEXTMENU
     bool swallowContextMenuEvent(QContextMenuEvent *event);
+#endif
     void updatePositionDependentActions(const QPoint &pos);
 
     QMenu *createStandardContextMenu();
