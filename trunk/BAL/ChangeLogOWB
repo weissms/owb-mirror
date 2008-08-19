@@ -1,3 +1,10 @@
+2008-08-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix ticket #266
+
+        * Includes/FakedDeepsee.h:
+
 2008-08-18  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
