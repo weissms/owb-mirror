@@ -41,16 +41,27 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 #include "SharedTimer.h"
 #include "MainThread.h"
 #include <unistd.h>
+#include "signal.h"
 
 using namespace WebCore;
 static WebView *webView;
 static bool isExposed = false;
 static SDL_Surface *s_screen = NULL;
 
+void signalCatcher(int signum)
+{
+    //BEFORE YOU ABORT QUIT SDL
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    SDL_Quit();
+    abort();
+}
+
 SDL_Surface *createSDLWindow(int w, int h)
 {
     const SDL_VideoInfo* vi;
     int flags = SDL_RESIZABLE;
+
+    signal(SIGSEGV, &signalCatcher);
 
     vi = SDL_GetVideoInfo();
     if(vi && vi->wm_available) /* Change title */

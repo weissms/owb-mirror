@@ -1,3 +1,12 @@
+2008-08-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix Ticket #238
+
+        * OWBLauncher/SDL/main.cpp:
+        (signalCatcher):
+        (createSDLWindow):
+
 2008-07-06  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.
