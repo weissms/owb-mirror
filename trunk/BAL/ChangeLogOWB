@@ -1,6 +1,13 @@
 2008-08-19  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
+        fix Ticket #277
+
+        * WKAL/Concretizations/Widgets/SDL/BCPlatformScreenSDL.cpp:
+
+2008-08-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
         fix ticket #266
 
         * Includes/FakedDeepsee.h:

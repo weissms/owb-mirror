@@ -29,7 +29,7 @@
 
 #include "config.h"
 #include "PlatformScreen.h"
-
+#include "Assertions.h"
 #include "Widget.h"
 #include "SDL.h"
 
