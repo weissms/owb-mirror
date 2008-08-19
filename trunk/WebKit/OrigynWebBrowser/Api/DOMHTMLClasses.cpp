@@ -176,11 +176,17 @@ DOMHTMLCollection* DOMHTMLDocument::anchors()
     
 WebCore::String DOMHTMLDocument::cookie()
 {
-    return WebCore::String();
+    if (!m_document)
+        return String();
+    return m_document->cookie();
 }
     
-void DOMHTMLDocument::setCookie(WebCore::String /*cookie*/)
+void DOMHTMLDocument::setCookie(WebCore::String cookie)
 {
+    if (!m_document)
+        return;
+
+    m_document->setCookie(cookie);
 }
     
 void DOMHTMLDocument::open()

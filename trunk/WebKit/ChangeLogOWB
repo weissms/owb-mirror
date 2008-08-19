@@ -1,6 +1,15 @@
 2008-08-19  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
+        Implement cookie Api
+
+        * OrigynWebBrowser/Api/DOMHTMLClasses.cpp:
+        (DOMHTMLDocument::cookie):
+        (DOMHTMLDocument::setCookie):
+
+2008-08-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
         fix ticket #265
 
         * OrigynWebBrowser/Api/DefaultPolicyDelegate.cpp:
