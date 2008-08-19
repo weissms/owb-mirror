@@ -457,7 +457,45 @@ IF (NOT WEBKIT_USE_HTML_EXTENSION)
             COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
             DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
         )
-     ENDIF (HTML_FEATURES)
+    ENDIF (HTML_FEATURES)
+    
+    IF (WEBKIT_USE_SVG)
+        ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.c
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
+            COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.in
+            COMMAND perl -ne 'print lc' ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSValueKeywords.in > ${CMAKE_BINARY_DIR}/generated_sources/WebCore/SVGCSSValueKeywords.in
+            COMMAND cat ${CMAKE_BINARY_DIR}/generated_sources/WebCore/SVGCSSValueKeywords.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.in
+            COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makevalues.pl
+            DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSValueKeywords.in
+        )
+        
+        ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
+            COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
+            COMMAND cat ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSPropertyNames.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
+            COMMAND cat ${CMAKE_SOURCE_DIR}/WebCore/css/DashboardSupportCSSPropertyNames.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
+            COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makeprop.pl
+            DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in
+        )
+    
+    ELSE (WEBKIT_USE_SVG)
+    
+        ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.c
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
+            COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.in
+            COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makevalues.pl
+            DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in
+        )
+        
+        ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
+            COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
+            COMMAND cat ${CMAKE_SOURCE_DIR}/WebCore/css/DashboardSupportCSSPropertyNames.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
+            COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makeprop.pl
+            DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in
+        )
+    ENDIF (WEBKIT_USE_SVG)
+     
 ELSE (NOT WEBKIT_USE_HTML_EXTENSION)
     INCLUDE (${CMAKE_SOURCE_DIR}/HtmlExt/Resources/CMakeLists.txt)
 ENDIF (NOT WEBKIT_USE_HTML_EXTENSION)
@@ -469,43 +507,6 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml/XML
     DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/xml/xmlattrs.in
 )
 
-
-ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.c
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
-    COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.in
-    COMMAND perl -ne 'print lc' ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSValueKeywords.in > ${CMAKE_BINARY_DIR}/generated_sources/WebCore/SVGCSSValueKeywords.in
-    COMMAND cat ${CMAKE_BINARY_DIR}/generated_sources/WebCore/SVGCSSValueKeywords.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.in
-    COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makevalues.pl
-    DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSValueKeywords.in
-)
-
-IF (WEBKIT_USE_SVG)
-    ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
-        COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
-        COMMAND cat ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSPropertyNames.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
-	COMMAND cat ${CMAKE_SOURCE_DIR}/WebCore/css/DashboardSupportCSSPropertyNames.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
-        COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makeprop.pl
-        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in
-    )
-
-ELSE (WEBKIT_USE_SVG)
-    ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
-        COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
-	COMMAND cat ${CMAKE_SOURCE_DIR}/WebCore/css/DashboardSupportCSSPropertyNames.in >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.in
-        COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makeprop.pl
-        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/CSSPropertyNames.in
-    )
-    
-#    ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.c
-#        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/generated_sources/WebCore
-#        COMMAND cp ${CMAKE_SOURCE_DIR}/WebCore/css/CSSValueKeywords.in ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSValueKeywords.in
-#        COMMAND perl -ne 'print lc' ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSValueKeywords.in > ${CMAKE_BINARY_DIR}/generated_sources/WebCore/SVGCSSValueKeywords.in
-#        COMMAND perl ${CMAKE_SOURCE_DIR}/WebCore/css/makevalues.pl
-#        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/SVGCSSValueKeywords.in
-#    )
-ENDIF (WEBKIT_USE_SVG)
 
 
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/tokenizer.inl

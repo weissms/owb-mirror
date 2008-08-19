@@ -1584,7 +1584,18 @@ bool CSSParser::parseValue(int propId, bool important)
         return false;
 #if ENABLE(SVG)
     default:
+#ifdef __HTML_EXT__
+        if(!parsePleyoValue(propId, important))
+            return parseSVGValue(propId, important);
+        return true;
+#else
         return parseSVGValue(propId, important);
+#endif
+#else
+#ifdef __HTML_EXT__
+    default:
+        return parsePleyoValue(propId, important);
+#endif
 #endif
     }
 

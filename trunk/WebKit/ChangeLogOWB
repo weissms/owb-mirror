@@ -1,3 +1,10 @@
+2008-08-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix ticket #265
+
+        * OrigynWebBrowser/Api/DefaultPolicyDelegate.cpp:
+
 2008-08-18  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -4914,8 +4914,19 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         return;
 #if ENABLE(SVG)
     default:
+#ifdef __HTML_EXT__
+        if(!applyPleyoProperty(id, value))
+            // Try the SVG properties
+            applySVGProperty(id, value);
+#else
         // Try the SVG properties
         applySVGProperty(id, value);
+#endif
+#else
+#ifdef __HTML_EXT__
+    default:
+        applyPleyoProperty(id, value);
+#endif
 #endif
     }
 }

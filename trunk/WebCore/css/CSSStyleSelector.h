@@ -237,6 +237,9 @@ public:
 #if ENABLE(SVG)
         void applySVGProperty(int id, CSSValue*);
 #endif
+#ifdef __HTML_EXT__
+        bool applyPleyoProperty(int id, CSSValue*);
+#endif
 
         StyleImage* styleImage(CSSValue* value);
 

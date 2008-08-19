@@ -133,6 +133,10 @@ namespace WebCore {
         PassRefPtr<CSSValue> parseSVGStrokeDasharray();
 #endif
 
+#ifdef __HTML_EXT__
+        bool parsePleyoValue(int propId, bool important);
+#endif
+
         // CSS3 Parsing Routines (for properties specific to CSS3)
         bool parseShadow(int propId, bool important);
         bool parseBorderImage(int propId, bool important, RefPtr<CSSValue>&);
