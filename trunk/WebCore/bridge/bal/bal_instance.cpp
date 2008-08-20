@@ -37,6 +37,7 @@
 #include "balValuePrivate.h"
 #include "wtf/HashMap.h"
 #include "ObjectPrototype.h"
+#include "JSValue.h"
 
 #include <cstdio>
 
@@ -88,7 +89,7 @@ JSObject* BalRuntimeObjectImp::construct(ExecState* exec, const ArgList& args)
     CallType callType = getCallData(callData);
     JSValue* val = call(exec, this, callType, callData, this, args);
 
-    if (!val || val->type() == NullType || val->type() == UndefinedType)
+    if (!val || val->isNull() || val->isUndefined())
         return new (exec) JSObject(exec->lexicalGlobalObject()->objectPrototype()->prototype());
     else
         return val->toObject(exec);
@@ -178,14 +179,12 @@ JSValue* BalInstance::invokeDefaultMethod(ExecState* exec, const ArgList& args)
     return jsUndefined();
 }
 
-JSValue* BalInstance::defaultValue(ExecState* exec, JSType hint) const
+JSValue* BalInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint) const
 {
-    if (hint == (JSType)StringType)
+    if (hint == JSValue::PreferString)
         return stringValue(exec);
-    if (hint == (JSType)NumberType)
+    if (hint == JSValue::PreferNumber)
         return numberValue(exec);
-    if (hint == (JSType)BooleanType)
-        return booleanValue();
     return valueOf(exec);
 }
 

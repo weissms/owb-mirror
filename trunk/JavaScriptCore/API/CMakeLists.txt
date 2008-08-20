@@ -6,6 +6,7 @@ LIST (APPEND JSCORE_SRC
     API/JSClassRef.cpp
     API/JSContextRef.cpp
     API/JSObjectRef.cpp
+    API/JSProfilerPrivate.cpp
     API/OpaqueJSString.cpp
     API/JSStringRef.cpp
     API/JSValueRef.cpp

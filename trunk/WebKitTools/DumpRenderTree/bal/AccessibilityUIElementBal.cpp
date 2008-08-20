@@ -121,3 +121,57 @@ JSStringRef AccessibilityUIElement::parameterizedAttributeNames()
 {
     return JSStringRef();
 }
+
+
+JSStringRef AccessibilityUIElement::attributesOfColumnHeaders()
+{
+    return JSStringRef();
+}
+
+JSStringRef AccessibilityUIElement::attributesOfRowHeaders()
+{
+    return JSStringRef();
+}
+
+JSStringRef AccessibilityUIElement::attributesOfColumns()
+{
+    return JSStringRef();
+}
+
+JSStringRef AccessibilityUIElement::attributesOfRows()
+{
+    return JSStringRef();
+}
+
+JSStringRef AccessibilityUIElement::attributesOfVisibleCells()
+{
+    return JSStringRef();
+}
+
+JSStringRef AccessibilityUIElement::attributesOfHeader()
+{
+    return JSStringRef();
+}
+
+int AccessibilityUIElement::indexInTable()
+{
+    return 0;
+}
+
+JSStringRef AccessibilityUIElement::columnIndexRange()
+{
+    return JSStringRef();
+}
+
+JSStringRef AccessibilityUIElement::rowIndexRange() 
+{
+    return JSStringRef();
+}
+
+AccessibilityUIElement AccessibilityUIElement::cellForColumnAndRow(unsigned column, unsigned row)
+{
+    AccessibilityUIElement a(NULL);
+    return a;
+}
+
+

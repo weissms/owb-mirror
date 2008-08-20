@@ -33,6 +33,10 @@
 #include <wtf/PassRefPtr.h>
 #include <memory>
 
+#if PLATFORM(SKIA)
+class SkBitmap;
+#endif
+
 namespace WKAL {
 
     class GraphicsContext;
@@ -75,6 +79,8 @@ namespace WKAL {
 #elif PLATFORM(CAIRO)
         ImageBuffer(cairo_surface_t*);
         mutable cairo_surface_t* m_surface;
+#elif PLATFORM(SKIA)
+        ImageBuffer(const IntSize&);
 #endif
     };
 

@@ -137,7 +137,7 @@ for line in f:
                     remove = 1
                     notplat = 1
                     isRemoved = 0
-                elif   l.find('WX')  != -1 or  l.find('QT')  != -1 or  l.find('WIN') != -1 or  l.find('CG') != -1 or  l.find('SOUP') != -1 or  l.find('CFNETWORK') != -1 or  l.find('WININET') != -1 or  l.find('DARWIN') != -1    or  l.find('SYMBIAN') != -1 or  l.find('MAC') != -1 or  l.find('CF') != -1 :
+                elif   l.find('WX')  != -1 or  l.find('QT')  != -1 or  l.find('WIN') != -1 or  l.find('CG') != -1 or  l.find('SOUP') != -1 or  l.find('CFNETWORK') != -1 or  l.find('WININET') != -1 or  l.find('DARWIN') != -1    or  l.find('SYMBIAN') != -1 or  l.find('MAC') != -1 or  l.find('CF') != -1 or l.find('SKIA') != -1 :
                     #print "bad" + l 
                     remove = 2
 		    elseFound = 0

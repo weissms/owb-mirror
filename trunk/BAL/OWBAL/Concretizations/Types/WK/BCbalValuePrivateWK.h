@@ -60,9 +60,13 @@ class BalValuePrivate {
             m_exec = 0;
         }
 
-        BalType type() const;
+        bool isUndefined() const;
+        bool isNull() const;
+        bool isUndefinedOrNull() const;
+        bool isBoolean() const;
         bool isNumber() const;
         bool isString() const;
+        bool isGetterSetter() const;
         bool isObject() const;
 
         bool toBoolean() const;
@@ -90,9 +94,25 @@ public:
   virtual UString className() const { return "global"; }
 };
 
-inline BalType BalValuePrivate::type() const
+
+inline bool BalValuePrivate::isUndefined() const
 {
-    return (BalType)m_val->type();
+    return m_val->isUndefined();
+}
+
+inline bool BalValuePrivate::isNull() const
+{
+    return m_val->isNull();
+}
+
+inline bool BalValuePrivate::isUndefinedOrNull() const
+{
+    return m_val->isUndefinedOrNull();
+}
+
+inline bool BalValuePrivate::isBoolean() const
+{
+    return m_val->isBoolean();
 }
 
 inline bool BalValuePrivate::isNumber() const
@@ -103,6 +123,11 @@ inline bool BalValuePrivate::isNumber() const
 inline bool BalValuePrivate::isString() const
 {
     return m_val->isString();
+}
+
+inline bool BalValuePrivate::isGetterSetter() const
+{
+    return m_val->isGetterSetter();
 }
 
 inline bool BalValuePrivate::isObject() const

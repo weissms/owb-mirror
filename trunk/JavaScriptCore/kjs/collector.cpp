@@ -24,6 +24,7 @@
 #include "ArgList.h"
 #include "ExecState.h"
 #include "JSGlobalObject.h"
+#include "JSLock.h"
 #include "JSString.h"
 #include "JSValue.h"
 #include "Machine.h"
@@ -235,6 +236,8 @@ Heap::Heap(JSGlobalData* globalData)
 
 Heap::~Heap()
 {
+    JSLock lock(false);
+
     // The global object is not GC protected at this point, so sweeping may delete it (and thus the global data)
     // before other objects that may use the global data.
     RefPtr<JSGlobalData> protect(m_globalData);
@@ -378,6 +381,8 @@ template <Heap::HeapType heapType> ALWAYS_INLINE void* Heap::heapAllocate(size_t
     typedef typename HeapConstants<heapType>::Cell Cell;
 
     CollectorHeap& heap = heapType == PrimaryHeap ? primaryHeap : numberHeap;
+    ASSERT(JSLock::lockCount() > 0);
+    ASSERT(JSLock::currentThreadIsHoldingLock());
     ASSERT(s <= HeapConstants<heapType>::cellSize);
     UNUSED_PARAM(s); // s is now only used for the above assert
 
@@ -911,7 +916,7 @@ void Heap::markStackObjectsConservatively()
 void Heap::setGCProtectNeedsLocking()
 {
     // Most clients do not need to call this, with the notable exception of WebCore.
-    // Clients that use context from a single context group from multiple threads are supposed
+    // Clients that use shared heap have JSLock protection, while others are supposed
     // to do explicit locking. WebCore violates this contract in Database code,
     // which calls gcUnprotect from a secondary thread.
     if (!m_protectedValuesMutex)
@@ -921,6 +926,7 @@ void Heap::setGCProtectNeedsLocking()
 void Heap::protect(JSValue* k)
 {
     ASSERT(k);
+    ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
 
     if (JSImmediate::isImmediate(k))
         return;
@@ -937,6 +943,7 @@ void Heap::protect(JSValue* k)
 void Heap::unprotect(JSValue* k)
 {
     ASSERT(k);
+    ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
 
     if (JSImmediate::isImmediate(k))
         return;
@@ -1074,6 +1081,13 @@ template <Heap::HeapType heapType> size_t Heap::sweep()
     
 bool Heap::collect()
 {
+#ifndef NDEBUG
+    if (m_globalData->isSharedInstance) {
+        ASSERT(JSLock::lockCount() > 0);
+        ASSERT(JSLock::currentThreadIsHoldingLock());
+    }
+#endif
+
     ASSERT((primaryHeap.operationInProgress == NoOperation) | (numberHeap.operationInProgress == NoOperation));
     if ((primaryHeap.operationInProgress != NoOperation) | (numberHeap.operationInProgress != NoOperation))
         abort();
@@ -1157,35 +1171,15 @@ size_t Heap::protectedObjectCount()
 
 static const char* typeName(JSCell* val)
 {
-    const char* name = "???";
-    switch (val->type()) {
-        case UnspecifiedType:
-            break;
-        case UndefinedType:
-            name = "undefined";
-            break;
-        case NullType:
-            name = "null";
-            break;
-        case BooleanType:
-            name = "boolean";
-            break;
-        case StringType:
-            name = "string";
-            break;
-        case NumberType:
-            name = "number";
-            break;
-        case ObjectType: {
-            const ClassInfo* info = static_cast<JSObject*>(val)->classInfo();
-            name = info ? info->className : "Object";
-            break;
-        }
-        case GetterSetterType:
-            name = "gettersetter";
-            break;
-    }
-    return name;
+    if (val->isString())
+        return "string";
+    if (val->isNumber())
+        return "number";
+    if (val->isGetterSetter())
+        return "gettersetter";
+    ASSERT(val->isObject());
+    const ClassInfo* info = static_cast<JSObject*>(val)->classInfo();
+    return info ? info->className : "Object";
 }
 
 HashCountedSet<const char*>* Heap::protectedObjectTypeCounts()

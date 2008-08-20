@@ -35,6 +35,7 @@
 #include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/JSFunction.h>
 #include <JavaScriptCore/JSGlobalObject.h>
+#include <JavaScriptCore/JSLock.h>
 #include <JavaScriptCore/JSStringRefBSTR.h>
 #include <JavaScriptCore/JSValueRef.h>
 #include <JavaScriptCore/PropertyNameArray.h>
@@ -53,25 +54,15 @@ UString WebScriptCallFrame::jsValueToString(KJS::ExecState* state, JSValue* jsva
     if (!jsvalue)
         return "undefined";
 
-    switch (jsvalue->type()) {
-        case NullType:
-        case UndefinedType:
-        case UnspecifiedType:
-        case GetterSetterType:
-            break;
-        case StringType:
-            return jsvalue->getString();
-            break;
-        case NumberType:
-            return UString::from(jsvalue->getNumber());
-            break;
-        case BooleanType:
-            return jsvalue->getBoolean() ? "True" : "False";
-            break;
-        case ObjectType:
-            jsvalue = jsvalue->getObject()->defaultValue(state, StringType);
-            return jsvalue->getString();
-            break;
+    if (jsvalue->isString())
+        return jsvalue->getString();
+    else if (jsvalue->isNumber())
+        return UString::from(jsvalue->getNumber());
+    else if (jsvalue->isBoolean())
+        return jsvalue->getBoolean() ? "True" : "False";
+    else if (jsvalue->isObject()) {
+        jsvalue = jsvalue->getObject()->defaultValue(state, JSValue::PreferString);
+        return jsvalue->getString();
     }
 
     return "undefined";
@@ -188,6 +179,8 @@ HRESULT STDMETHODCALLTYPE WebScriptCallFrame::stringByEvaluatingJavaScriptFromSt
         return E_POINTER;
 
     *result = 0;
+
+    JSLock lock(false);
 
     JSValue* scriptExecutionResult = valueByEvaluatingJavaScriptFromString(script);
     *result = WebCore::BString(jsValueToString(m_state, scriptExecutionResult)).release();

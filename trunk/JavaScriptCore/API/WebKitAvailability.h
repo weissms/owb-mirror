@@ -45,6 +45,7 @@
 #else
 // For non-Mac platforms, require the newest version.
 #define WEBKIT_VERSION_MIN_REQUIRED WEBKIT_VERSION_LATEST
+#define DEPRECATED_ATTRIBUTE
 #endif
 
 /* The versions of GCC that shipped with Xcode prior to 3.0 (GCC build number < 5400) did not support attributes on methods

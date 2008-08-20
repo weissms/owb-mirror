@@ -1,3 +1,107 @@
+2008-08-20  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Bring back shared JSGlobalData and implicit locking, because too many clients rely on it.
+
+        * ForwardingHeaders/kjs/JSLock.h: Added.
+        * Misc/WebCoreStatistics.mm:
+        (+[WebCoreStatistics javaScriptObjectsCount]):
+        (+[WebCoreStatistics javaScriptGlobalObjectsCount]):
+        (+[WebCoreStatistics javaScriptProtectedObjectsCount]):
+        (+[WebCoreStatistics javaScriptProtectedGlobalObjectsCount]):
+        (+[WebCoreStatistics javaScriptProtectedObjectTypeCounts]):
+        (+[WebCoreStatistics shouldPrintExceptions]):
+        (+[WebCoreStatistics setShouldPrintExceptions:]):
+        (+[WebCoreStatistics javaScriptReferencedObjectsCount]):
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream wantsAllStreams]):
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView sendEvent:isDrawRect:]):
+        (-[WebBaseNetscapePluginView setWindowIfNecessary]):
+        (-[WebBaseNetscapePluginView start]):
+        (-[WebBaseNetscapePluginView createPluginScriptableObject]):
+        (-[WebBaseNetscapePluginView evaluateJavaScriptPluginRequest:]):
+        (-[WebBaseNetscapePluginView webFrame:didFinishLoadWithReason:]):
+        (-[WebBaseNetscapePluginView loadPluginRequest:]):
+        (-[WebBaseNetscapePluginView _printedPluginBitmap]):
+        * Plugins/WebPluginController.mm:
+        (+[WebPluginController plugInViewWithArguments:fromPluginPackage:]):
+        (-[WebPluginController startAllPlugins]):
+        (-[WebPluginController stopAllPlugins]):
+        (-[WebPluginController addPlugin:]):
+        (-[WebPluginController destroyPlugin:]):
+        (-[WebPluginController destroyAllPlugins]):
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:forceUserGesture:]):
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame evaluateWebScript:]):
+        * WebView/WebView.mm:
+        (-[WebView aeDescByEvaluatingJavaScriptFromString:]):
+
+2008-08-19  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes the Web Inspector flashing white while resizing after
+        highlighting a page element. Calling disableScreenUpdatesUntilFlush
+        when attaching and detaching the Inspector page highlight is bad,
+        since the browser window might not flush again for a while. So screen
+        updates could be disabled for long periods of time, causing backing store
+        flashing while resizing. There is no need to call disableScreenUpdatesUntilFlush
+        when attaching or detaching the child window.
+
+        Reviewed by John Sullivan and Kevin McCullough.
+
+        * WebInspector/WebNodeHighlight.m:
+        (-[WebNodeHighlight attach]): Remove the call to disableScreenUpdatesUntilFlush.
+        (-[WebNodeHighlight detach]): Ditto.
+
+2008-08-19  Timothy Hatcher  <timothy@apple.com>
+
+        Correctly remembers the attached state of the Web Inspector so
+        it opens in that state for the next window, or next launch.
+
+        Reviewed by Kevin McCullough.
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController attach]): Set WebKitInspectorAttachedKey
+        to YES in the user defaults.
+        (-[WebInspectorWindowController detach]): Set WebKitInspectorAttachedKey
+        to NO in the user defaults.
+
+2008-08-18  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19347
+        <rdar://problem/5977562> Input methods do not work after switching to a password field
+        and back.
+
+        Fix <rdar://problem/5522011> (The content of the password field of Safari is displayed by
+        reconversion) in a different way which doesn't conflict with context caching performed
+        by AppKit.
+
+        This original bug does not really occur in ToT or shipping Safari under Mac OS X 10.5.4,
+        because input methods are disabled in password fields. Attempting to reconvert text typed
+        with Romaji only yields a string of bullets. Still, it is probably better to match Cocoa
+        password field behavior and disable reconversion completely.
+
+        * WebView/WebHTMLView.mm:
+        (isInPasswordField): Factored out code to determine that the current selection is in
+        a password field.
+        (inputContext): Removed a hack that was breaking TSMGetActiveDocument().
+        (-[WebHTMLView attributedSubstringFromRange:]): Check for password fields.
+        (-[WebHTMLView textStorage]): Ditto.
+
+2008-08-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff.
+
+        - eliminate JSValue::type()
+
+        * WebView/WebView.mm:
+        (aeDescFromJSValue): Rewrite to use the JSValue::is functions instead
+        of a switch on JSValue::type().
+
 2008-08-18  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Cameron Zwarich.

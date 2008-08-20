@@ -72,7 +72,7 @@ public:
     virtual void end();
     
     virtual JSValue* valueOf(ExecState* exec) const;
-    virtual JSValue* defaultValue (ExecState* exec, JSType hint) const;	
+    virtual JSValue* defaultValue(ExecState*, PreferredPrimitiveType) const;
 
     virtual CallType getCallData(CallData&);
 

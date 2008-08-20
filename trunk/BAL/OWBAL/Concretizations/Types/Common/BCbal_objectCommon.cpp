@@ -53,9 +53,24 @@ BalValue::~BalValue()
     d = 0;
 }
 
-BalType BalValue::type() const
+bool BalValue::isUndefined() const
 {
-    return d->type();
+    return d->isUndefined();
+}
+
+bool BalValue::isNull() const
+{
+    return d->isNull();
+}
+
+bool BalValue::isUndefinedOrNull() const
+{
+    return d->isUndefinedOrNull();
+}
+
+bool BalValue::isBoolean() const
+{
+    return d->isBoolean();
 }
 
 bool BalValue::isNumber() const
@@ -66,6 +81,11 @@ bool BalValue::isNumber() const
 bool BalValue::isString() const
 {
     return d->isString();
+}
+
+bool BalValue::isGetterSetter() const
+{
+    return d->isGetterSetter();
 }
 
 bool BalValue::isObject() const

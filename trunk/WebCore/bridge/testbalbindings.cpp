@@ -57,7 +57,7 @@ public:
     {
         printf("invoke objet 2\n");
         if (!strcmp(name, "log") ) {
-            BalType type = args.at(0)->type();
+//            BalType type = args.at(0)->type();
             if (args.size() == 1)
             {
                 logMessage (args.at(0)->toString().utf8().data());
@@ -117,14 +117,14 @@ public:
     { 
         BalValue *val = new BalValue();
         if (!strcmp(name, "logMessage") ) {
-            BalType type = args.at(0)->type();
+//            BalType type = args.at(0)->type();
             if (args.size() == 1)
             {
                 logMessage (args.at(0)->toString().utf8().data());
             }
         }
         else if (!strcmp(name, "setIntValue") ) {
-            BalType type = args.at(0)->type();
+  //          BalType type = args.at(0)->type();
             intValue = (int)args.at(0)->toNumber();
             val->balNumber(intValue);
             return val;

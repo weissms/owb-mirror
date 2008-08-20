@@ -170,9 +170,10 @@ WebInspector.Console.prototype = {
         this.promptElement.scrollIntoView(false);
     },
 
-    clearMessages: function()
+    clearMessages: function(clearInspectorController)
     {
-        InspectorController.clearMessages();
+        if (clearInspectorController)
+            InspectorController.clearMessages();
         WebInspector.panels.resources.clearMessages();
 
         this.messages = [];
@@ -248,7 +249,7 @@ WebInspector.Console.prototype = {
 
     _clearButtonClicked: function()
     {
-        this.clearMessages();
+        this.clearMessages(true);
     },
 
     _messagesSelectStart: function(event)
@@ -328,6 +329,10 @@ WebInspector.Console.prototype = {
 
     _evalInInspectedWindow: function(expression)
     {
+        // Surround the expression in parenthesis so the result of the eval is the result
+        // of the whole expression not the last potential sub-expression.
+        expression = "(" + expression + ")";
+
         if (WebInspector.panels.scripts.paused)
             return WebInspector.panels.scripts.evaluateInSelectedCallFrame(expression);
 
@@ -356,7 +361,10 @@ WebInspector.Console.prototype = {
             inspectedWindow._inspectorCommandLineAPI.clear = InspectorController.wrapCallback(this.clearMessages.bind(this));
         }
 
+        // Surround the expression in with statemnets to inject our command line API so that
+        // the window object properties still take more precedent than our API functions.
         expression = "with (window._inspectorCommandLineAPI) { with (window) { " + expression + " } }";
+
         return inspectedWindow.eval(expression);
     },
 

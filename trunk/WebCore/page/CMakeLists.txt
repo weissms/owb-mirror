@@ -4,6 +4,11 @@ LIST (APPEND PAGE_SRC
     page/AccessibilityListBox.cpp
     page/AccessibilityObject.cpp
     page/AccessibilityRenderObject.cpp
+    page/AccessibilityTable.cpp
+    page/AccessibilityTableCell.cpp
+    page/AccessibilityTableColumn.cpp
+    page/AccessibilityTableHeaderContainer.cpp
+    page/AccessibilityTableRow.cpp
     page/AnimationController.cpp
     page/AXObjectCache.cpp
     page/BarInfo.cpp

@@ -36,26 +36,19 @@
 class BalObject;
 class BalValuePrivate;
 
-enum BalType {
-    UnspecifiedType   = 0,
-    NumberType        = 1,
-    BooleanType       = 2,
-    UndefinedType     = 3,
-    NullType          = 4,
-    StringType        = 5,
-    ObjectType        = 6,
-    GetterSetterType  = 7
-};
-
 class BalValue {
     public:
         BalValue();
         BalValue(BalValuePrivate *priv);
         ~BalValue();
 
-        BalType type() const;
+        bool isUndefined() const;
+        bool isNull() const;
+        bool isUndefinedOrNull() const;
+        bool isBoolean() const;
         bool isNumber() const;
         bool isString() const;
+        bool isGetterSetter() const;
         bool isObject() const;
 
         bool toBoolean() const;
