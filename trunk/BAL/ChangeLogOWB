@@ -1,3 +1,14 @@
+2008-08-20  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        fix ticket #272:
+        Use boxRGBA from SDL_GFX to draw rectangle in order to fix some css
+        animations with SDL version.
+
+        * WKAL/Concretizations/Graphics/SDL/BCGraphicsContextSDL.cpp:
+        (WKAL::GraphicsContext::drawRect):
+        (WKAL::GraphicsContext::fillRect):
+
 2008-08-19  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

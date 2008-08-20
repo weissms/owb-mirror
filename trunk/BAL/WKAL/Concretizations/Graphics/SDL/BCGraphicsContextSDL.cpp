@@ -121,12 +121,12 @@ void GraphicsContext::drawRect(const IntRect& rect)
     dstRect.h = rect.height();
 
     if (fillColor().alpha()) {
-        if (!m_data->layers.isEmpty())
-        {
-            Color rectFillColor(fillColor().red(), fillColor().green(), fillColor().blue(), static_cast<int> (fillColor().alpha() * m_data->layers.last()));
-            SDL_FillRect(surf, &dstRect, rectFillColor.rgb());
-        }
-        else
+        if (!m_data->layers.isEmpty()) {
+            uint8_t alpha = static_cast<uint8_t> (fillColor().alpha() * m_data->layers.last());
+            boxRGBA(surf, dstRect.x, dstRect.y,
+                dstRect.w + dstRect.x - 1, dstRect.h + dstRect.y -1,
+                fillColor().red(), fillColor().green(), fillColor().blue(), alpha);
+        } else
             SDL_FillRect(surf, &dstRect, fillColor().rgb());
     }
 
@@ -499,7 +499,6 @@ void GraphicsContext::fillRect(const IntRect& rectangle, const Color& color)
         int alpha;
         if (!m_data->layers.isEmpty()) {
             alpha = static_cast<int> (strokeColor().alpha() * m_data->layers.last());
-            WebCore::Color c(color.red(), color.green(), color.blue(), alpha);
             boxRGBA(surf,
                 static_cast<Sint16>(rect.x()), 
                 static_cast<Sint16>(rect.y()),
