@@ -83,6 +83,13 @@ PlatformMouseEvent::PlatformMouseEvent(BalEventMotion* motion)
     m_eventType = MouseEventMoved;
     m_button = NoButton;
     m_clickCount = 0;
+    
+    if( motion->state == SDL_BUTTON_LEFT )
+        m_button = LeftButton;
+    else if( motion->state == SDL_BUTTON_MIDDLE )
+        m_button = MiddleButton;
+    else if( motion->state == SDL_BUTTON_RIGHT )
+        m_button = RightButton;
 }
 
 }

@@ -379,57 +379,49 @@ bool RenderThemeBal::paintSearchField(RenderObject* o, const RenderObject::Paint
 
 Color RenderThemeBal::platformActiveSelectionBackgroundColor() const
 {
-    printf("RenderThemeBal::platformActiveSelectionBackgroundColor\n");
-    Color c;
+    Color c(0, 0, 255);
     return c;
 }
 
 Color RenderThemeBal::platformInactiveSelectionBackgroundColor() const
 {
-    printf("RenderThemeBal::platformInactiveSelectionBackgroundColor\n");
-    Color c;
+    Color c(0, 0, 255);
     return c;
 }
 
 Color RenderThemeBal::platformActiveSelectionForegroundColor() const
 {
-    printf("RenderThemeBal::platformActiveSelectionForegroundColor\n");
-    Color c;
+    Color c(255, 255, 255);
     return c;
 }
 
 Color RenderThemeBal::platformInactiveSelectionForegroundColor() const
 {
-    printf("RenderThemeBal::platformInactiveSelectionForegroundColor\n");
-    Color c;
+    Color c(255, 255, 255);
     return c;
 }
 
 Color RenderThemeBal::activeListBoxSelectionBackgroundColor() const
 {
-    printf("RenderThemeBal::activeListBoxSelectionBackgroundColor\n");
-    Color c;
+    Color c(0, 0, 255);
     return c;
 }
 
 Color RenderThemeBal::inactiveListBoxSelectionBackgroundColor() const
 {
-    printf("RenderThemeBal::inactiveListBoxSelectionBackgroundColor\n");
-    Color c;
+    Color c(0, 0, 255);
     return c;
 }
 
 Color RenderThemeBal::activeListBoxSelectionForegroundColor() const
 {
-    printf("RenderThemeBal::activeListBoxSelectionForegroundColor\n");
-    Color c;
+    Color c(255, 255, 255);
     return c;
 }
 
 Color RenderThemeBal::inactiveListBoxSelectionForegroundColor() const
 {
-    printf("RenderThemeBal::inactiveListBoxSelectionForegroundColor\n");
-    Color c;
+    Color c(255, 255, 255);
     return c;
 }
 
