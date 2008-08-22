@@ -169,15 +169,14 @@ JSValue* CInstance::valueOf(ExecState* exec) const
     return stringValue(exec);
 }
 
-void CInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray) 
+void CInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray)
 {
-    if (!NP_CLASS_STRUCT_VERSION_HAS_ENUM(_object->_class) ||
-        !_object->_class->enumerate)
+    if (!NP_CLASS_STRUCT_VERSION_HAS_ENUM(_object->_class) || !_object->_class->enumerate)
         return;
 
-    unsigned count;
+    uint32_t count;
     NPIdentifier* identifiers;
-    
+
     {
         JSLock::DropAllLocks dropAllLocks(false);
 #if PLATFORM(AMIGAOS4)
@@ -187,16 +186,16 @@ void CInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray)
 #endif
             return;
     }
-    
-    for (unsigned i = 0; i < count; i++) {
+
+    for (uint32_t i = 0; i < count; i++) {
         PrivateIdentifier* identifier = static_cast<PrivateIdentifier*>(identifiers[i]);
-        
+
         if (identifier->isString)
             nameArray.add(identifierFromNPIdentifier(identifier->value.string));
         else
             nameArray.add(Identifier::from(exec, identifier->value.number));
     }
-         
+
     // FIXME: This should really call NPN_MemFree but that's in WebKit
     free(identifiers);
 }

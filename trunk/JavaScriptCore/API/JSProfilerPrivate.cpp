@@ -29,7 +29,7 @@
 
 #include "APICast.h"
 #include "OpaqueJSString.h"
-#include <Profiler.h>
+#include <JavaScriptCore/Profiler.h>
 
 using namespace KJS;
 

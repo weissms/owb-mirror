@@ -119,6 +119,7 @@ namespace WKAL {
         InterpolationDefault,
         InterpolationNone,
         InterpolationLow,
+        InterpolationMedium,
         InterpolationHigh
     };
 

@@ -1,3 +1,398 @@
+2008-08-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Jon Honeycutt and Alexey Proskuryakov.
+
+        - fix <rdar://problem/6162701> WebKit should correct Geeza Pro's font metrics
+
+        Test: platform/mac/fast/text/international/Geeza-Pro-vertical-metrics-adjustment.html
+
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        (WebCore::SimpleFontData::platformInit): Add 8% to Geeza Pro's reported
+        ascent and 100% to its reported descent.
+
+2008-08-21  Kalle Vahlman  <kalle.vahlman@movial.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20267
+        [GTK] Crash on some pages due to a plugin
+
+        Fix handling of badly formatted and empty plugin mime descriptions
+
+        * plugins/gtk/PluginPackageGtk.cpp:
+        (WebCore::PluginPackage::fetchInfo):
+
+2008-08-21  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        Follow other ports (and IE) in ImageSourceWx.cpp never to return an
+        animated GIF frame duration of less than 50ms.
+
+        * platform/graphics/wx/ImageSourceWx.cpp:
+        (WebCore::ImageSource::frameDurationAtIndex):
+
+2008-08-21  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Kevin McCullough.
+
+        Test: fast/events/autoscroll-nonscrollable-iframe-in-scrollable-div.html
+        https://bugs.webkit.org/show_bug.cgi?id=20451
+   
+        rdar://problem/6166435 Inspector doesn't auto scroll when selecting text (20451)
+        When we climb up the rendering tree looking for a scrollable renderer, we need to be able to jump outside of an iframe.
+        This way we can see if what is embedding the iframe can be scrolled even if the iframe content can't.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMouseDraggedEvent): when we reach the document node and it can't be scrolled we set the next parent as the document's owner element if it exists.
+
+        (WebCore::EventHandler::handleMousePressEvent): ditto
+
+2008-08-21  Anthony Ricaud  <rik24d@gmail.com>
+
+        Small optimization for when the dividers in the Inspector's
+        Resources panel are updated.
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/ResourcesPanel.js:
+        (WebInsector.ResourcesPanel.prototype._updateGraphDividersIfNeeded):
+        Combind a for loop and clone the divider element.
+
+2008-08-21  Chris Marrin  <cmarrin@apple.com>
+
+        Allow 0 (without units) for Time eg. duration
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20467
+
+        Reviewed by Dave Hyatt.
+
+        Test: css1/units/zero-duration-without-units.html
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::validUnit):
+
+2008-08-21  Timothy Hatcher  <timothy@apple.com>
+
+        Make deleting all text while editing a DOM attribute in
+        the Inspector delete the attribute. This also fixes
+        an exception that would happen before.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20472
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.DOMNodeTreeElement.prototype._attributeEditingCommitted):
+        Don't check for hasAttributes on the parseElement, continuing
+        through the function will correctly remove the attribute.
+        If the parseElement is null, call _editingCancelled not
+        editingCancelled, this fixes an exception.
+
+2008-08-21  Timothy Hatcher  <timothy@apple.com>
+
+        Update the Inspector's Metrics pane when editing in
+        the Styles pane. This makes sure the metrics shown
+        always match what the Styles pane shows.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20470
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel): Add event listeners for
+        the "style edited" and "style property toggled" events,
+        so the Metrics pane is updated.
+        (WebInspector.ElementsPanel.prototype._stylesPaneEdited):
+        Update the Metrics pane.
+        * page/inspector/StylesSidebarPane.js:
+        (WebInspector.StylePropertyTreeElement.prototype.toggleEnabled):
+        Dispatch the "style property toggled" event.
+        (WebInspector.StylePropertyTreeElement.prototype.editingCancelled):
+        Dispatch the "style edited" event when the CSS text is restored.
+        (WebInspector.StylePropertyTreeElement.prototype.applyStyleText):
+        Dispatch the "style edited" event.
+
+2008-08-21  Timothy Hatcher  <timothy@apple.com>
+
+        Make the Inspector's Metrics sidebar pane editable.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17218
+        rdar://problem/5732818
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel): Add an event listener for
+        the "metrics edited" event, so the Styles pane is updated.
+        * page/inspector/MetricsSidebarPane.js:
+        (WebInspector.MetricsSidebarPane.prototype.update): Remember the node
+        so future updates work. Add a double click event listener for the
+        metric values to start editing.
+        (WebInspector.MetricsSidebarPane.prototype.startEditing):
+        Call WebInspector.startEditing with some context.
+        (WebInspector.MetricsSidebarPane.prototype.editingCancelled):
+        (WebInspector.MetricsSidebarPane.prototype.editingCommitted):
+        Set the user input on the elements inline style. Fire the
+        "metrics edited" event.
+
+2008-08-21  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix a race condition in Windows timer code.
+        Timer function could end up being called with a 0 timer, leading to a Windows exception.
+        
+        Don't post a timer message if one is already pending.
+        
+        Reviewed by Ada Chan.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::TimerWindowWndProc):
+        (WebCore::clearTimer):
+        (WebCore::queueTimerProc):
+        (WebCore::setSharedTimerFireTime):
+
+2008-08-21  Anthony Ricaud  <rik24d@gmail.com>
+
+        After trying to add the expression, try again with quotes for
+        easier edition.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20466
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/ObjectPropertiesSection.js: Added an
+        evaluateExpression function.
+
+2008-08-21  Anthony Ricaud  <rik24d@gmail.com>
+
+        Perform Inspector searches on search event to clear results when
+        clicking the cross to empty it. Delete the lastQuery when the field
+        is emptied in order to perform the search if exactly the same query
+        is entered next.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20462
+
+        Reviewed by Tim Hatcher.
+
+        * page/inspector/inspector.js:
+
+2008-08-21  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Mark Rowe.
+
+        http://bugs.webkit.org/show_bug.cgi?id=19656
+        [SOUP] The gio code should call didFail() instead of
+        didFinishLoading() in case of error
+
+        In case of error call didFail() instead of didReceiveResponse() and
+        didFinishLoading().
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::networkErrorForFile):
+        (WebCore::readCallback):
+        (WebCore::openCallback):
+        (WebCore::queryInfoCallback):
+
+2008-08-20  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        Fix build failure.
+
+        * bridge/c/c_instance.cpp:
+        (KJS::Bindings::CInstance::getPropertyNames): Declare count as uint32_t rather than unsigned
+        as that is what NPEnumerationFunctionPtr is declared as accepting.
+
+2008-08-20  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Build fix.  Handle kCGInterpolationMedium in switch statements if it is available.
+
+        * platform/graphics/GraphicsContext.h:
+        (WebCore::):
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::setImageInterpolationQuality):
+        (WebCore::GraphicsContext::imageInterpolationQuality):
+
+2008-08-20  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by John Sullivan.
+
+        - rename shouldUpdateWhileHidden to shouldUpdateWhileOffscreen and
+          rename related methods and variables accordingly.
+
+        * WebCore.base.exp:
+        * page/FrameView.cpp:
+        (WebCore::FrameViewPrivate::FrameViewPrivate):
+        (WebCore::FrameView::shouldUpdateWhileOffscreen):
+        (WebCore::FrameView::setShouldUpdateWhileOffscreen):
+        * page/FrameView.h:
+        * platform/ScrollView.h:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::updateContents):
+
+2008-08-20  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mitzpettel
+
+        <rdar://problem/6163636> - Many images broken in Mail
+
+        This can be traced back to the preload scanner.  With that change, CachedResources are created a lot 
+        sooner than before and confuse the WebArchive machinery.  
+
+        When referencing WebArchive subresources directly through the WebKit API it is appropriate to ignore 
+        such CachedResources since they are placeholders and have not been submitted to the ResourceLoadDelegate 
+        machinery and nothing is known about where the data will eventually come from.
+
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::subresource):  Ignore a CachedResource if its preloadResult is 
+          CachedResource::PreloadReferenced.
+
+2008-08-20  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed compile fix
+
+        Catch up with the JSValue::type elimination.
+
+        * bridge/qt/qt_instance.cpp:
+        (KJS::Bindings::QtRuntimeObjectImp::construct):
+        (KJS::Bindings::QtInstance::defaultValue):
+        * bridge/qt/qt_runtime.cpp:
+        (KJS::Bindings::QtRuntimeConnectionMethod::call):
+
+2008-08-20  Chris Teague  <chris.teague@gmail.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20449
+        Bug 20449: Build fails if LOW_BANDWIDTH_DISPLAY is defined
+
+        * ChangeLog:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::switchOutLowBandwidthDisplayIfReady):
+
+2008-08-20  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        getComputedStyle() for webkitTransform should return a transform
+        that does not have the transform origin baked into it.
+        https://bugs.webkit.org/show_bug.cgi?id=20464
+        
+        Test: fast/css/getComputedStyle-transform.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::computedTransform):
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::applyTransform):
+        * rendering/style/RenderStyle.h:
+
+2008-08-20  Josh Aas  <joshmoz@gmail.com>
+
+        Reviewed and landed by Anders.
+
+        <rdar://problem/6163636> 
+        rename NPCocoaEvent's "event" struct to "data" (20446)
+        
+        * bridge/npapi.h:
+        (_NPCocoaEvent::):
+
+2008-08-20  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Darin.
+
+        Fix for <rdar://problem/6145626> 
+        This patch fixes a number of remaining problems getting 
+        disconnected frames to work correctly with markAllMatchesForText() 
+        and findString(). Details inline. 
+
+        This was a static helper function in Frame, but this patch requires 
+        the same functionality in Editor, so I just added it as a function 
+        on Node.
+        * dom/Node.cpp:
+        (WebCore::Node::isInShadowTree):
+        * dom/Node.h:
+
+        * editing/Editor.cpp:
+        (WebCore::Editor::insideVisibleArea): Returns false if 
+        excludeFromTextSearch() is true.
+
+        In a normal (non-disconnected) frame, findString returns a range of 
+        the document node if the text is not found in the frame. I changed 
+        firstVisibleRange and lastVisibleRange to match that behavior when 
+        the text is not found
+        (WebCore::Editor::firstVisibleRange):
+        (WebCore::Editor::lastVisibleRange):
+
+        Here are the bulk of the changes in the patch. A lot of text was 
+        not being found in disconnected frames because I failed to account 
+        for all of the possible problems associated with shadow trees. That 
+        is fixed here.
+        (WebCore::Editor::nextVisibleRange):
+        * editing/Editor.h:
+
+        excludeFromTextSearch() is new. It allows a WebKit client to mark a 
+        frame as not-text-searchable through SPI. 
+        * WebCore.base.exp:
+        * page/Frame.cpp:
+        (WebCore::Frame::excludeFromTextSearch):
+        (WebCore::Frame::setExcludeFromTextSearch):
+        (WebCore::FramePrivate::FramePrivate):
+        * page/Frame.h:
+        * page/FramePrivate.h:
+
+        (WebCore::Frame::findString):
+        (WebCore::Frame::markAllMatchesForText):  I kept running into an 
+        assertion failure in paining code because of the forced paint on 
+        empty visible rects.
+
+2008-08-20  Timothy Hatcher  <timothy@apple.com>
+
+        Adds a positon box to the Inspector's Metrics sidebar
+        pane. When an element is not statically positioned, there
+        is now a position box that show top, right, bottom and
+        left computed values.
+
+        Reviewed by Kevin McCullough.
+
+        * English.lproj/localizedStrings.js: Updated the strings.
+        * page/inspector/MetricsSidebarPane.js:
+        (WebInspector.MetricsSidebarPane.prototype.update):
+        Renamed the boxPartValue function to createBoxPartElement
+        and made it create the entire element. Made it understand
+        how to get position style properties. Don't use the figure dash
+        when 0px is used for positions, since the 0 is meaningful there.
+        Instead use the figure dash when a position is auto.
+        * page/inspector/inspector.css: Added a new rule for position.
+
+2008-08-20  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        Qt build fix
+
+        * WebCore.pro:
+
+2008-08-20  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        - avoid using a deprecated NSScroller method on Leopard
+
+        * platform/mac/PlatformScrollBarMac.mm:
+        (WebCore::PlatformScrollbar::updateThumbPosition):
+        (WebCore::PlatformScrollbar::updateThumbProportion):
+
+2008-08-20  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Gtk build fix
+
+        * GNUmakefile.am:
+        * page/AccessibilityTable.cpp: Change nil to 0
+        (WebCore::AccessibilityTable::cellForColumnAndRow):
+
 2008-08-20  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Geoff Garen.

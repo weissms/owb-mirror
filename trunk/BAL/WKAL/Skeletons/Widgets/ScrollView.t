@@ -358,11 +358,11 @@ namespace WKAL {
         bool inWindow() const;
 
 
-    /**
-     * should update while hidden
-     */
 
-     virtual bool shouldUpdateWhileHidden() const = 0;
+    /**
+     * should Update while offscreen
+     */
+        virtual bool shouldUpdateWhileOffscreen() const = 0
 
     /**
      * For platforms that need to hit test scrollbars from within the engine's event handlers (like Win32).
@@ -533,4 +533,4 @@ inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
 
 } // namespace WKAL
 
-#endif // ScrollView_h
+#endif // ScrollView_

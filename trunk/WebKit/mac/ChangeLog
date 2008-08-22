@@ -1,3 +1,79 @@
+2008-08-22  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by John Sullivan.
+
+        - rename shouldUpdateWhileHidden to shouldUpdateWhileOffscreen,
+          rename related methods and variables accordingly, and make
+          -setShouldUpdateWhileOffscreen: and -shouldUpdateWhileOffscreen
+          WebView API.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::transitionToCommittedForNewPage):
+        * WebView/WebFrame.mm:
+        (-[WebFrame _updateBackgroundAndUpdatesWhileOffscreen]):
+        * WebView/WebFrameInternal.h:
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView windowWillOrderOnScreen:]):
+        * WebView/WebView.h:
+        * WebView/WebView.mm:
+        (-[WebViewPrivate init]):
+        (-[WebView setBackgroundColor:]):
+        (-[WebView setDrawsBackground:]):
+        (-[WebView setShouldUpdateWhileOffscreen:]):
+        (-[WebView shouldUpdateWhileOffscreen]):
+        * WebView/WebViewPrivate.h:
+
+2008-08-18  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Switch to non-deprecated NSFileManager API.
+
+        In order to minimize #if's the new NSFileManager APIs have been implemented for
+        Tiger and call sites updated to use the new methods.
+
+        * Misc/WebIconDatabase.mm:
+        (importToWebCoreFormat):
+        * Misc/WebKitNSStringExtras.m:
+        (-[NSString _webkit_fixedCarbonPOSIXPath]):
+        * Misc/WebKitSystemBits.m:
+        * Misc/WebNSFileManagerExtras.h:
+        * Misc/WebNSFileManagerExtras.m: Remove implementations of methods that are not used.
+        (-[NSFileManager _webkit_backgroundRemoveFileAtPath:]):
+        (-[NSFileManager attributesOfFileSystemForPath:error:]): Implement new API for Tiger in terms of Tiger API.
+        (-[NSFileManager contentsOfDirectoryAtPath:error:]): Ditto.
+        (-[NSFileManager moveItemAtPath:toPath:error:]): Ditto.
+        (-[NSFileManager removeItemAtPath:error:]): Ditto.
+        * Plugins/WebPluginDatabase.mm:
+        (-[WebPluginDatabase _scanForNewPlugins]):
+
+2008-08-20  Josh Aas  <joshmoz@gmail.com>
+
+        Reviewed and landed by Anders.
+
+        <rdar://problem/6163636> 
+        rename NPCocoaEvent's "event" struct to "data" (20446)
+
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+        (WebNetscapePluginEventHandlerCocoa::drawRect):
+        (WebNetscapePluginEventHandlerCocoa::sendMouseEvent):
+        (WebNetscapePluginEventHandlerCocoa::flagsChanged):
+        (WebNetscapePluginEventHandlerCocoa::sendKeyEvent):
+        (WebNetscapePluginEventHandlerCocoa::windowFocusChanged):
+        (WebNetscapePluginEventHandlerCocoa::focusChanged):
+
+2008-08-20  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Darin.
+
+        Fix for <rdar://problem/6145626>
+        Allows a WebKit client to mark a frame as not-text-searchable 
+        through SPI.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _setExcludeFromTextSearch:]):
+        * WebView/WebFramePrivate.h:
+
 2008-08-20  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Geoff Garen.

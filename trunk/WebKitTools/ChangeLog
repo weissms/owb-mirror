@@ -1,3 +1,22 @@
+2008-08-22  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Mark Rowe
+        
+        Make build-launcher-app work when run from a git repository.
+        https://bugs.webkit.org/show_bug.cgi?id=20478
+
+        * BuildSlaveSupport/build-launcher-app:
+
+2008-08-20  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Ada Chan.
+
+         rdar://5259746
+        Mouse events are sent to page while resizing window (affects Gmail)
+
+        * DumpRenderTree/win/UIDelegate.h:
+        (UIDelegate::webViewSendResizeMessage): Add the new interface method, not implemented.
+
 2008-08-20  chris fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin.
