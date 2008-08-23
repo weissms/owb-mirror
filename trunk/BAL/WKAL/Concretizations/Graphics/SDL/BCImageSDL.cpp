@@ -206,9 +206,6 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
         imageObserver()->didDraw(this);
 }
 
-
-
-
 void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, const AffineTransform& patternTransform,
                         const FloatPoint& phase, CompositeOperator op, const FloatRect& destRect)
 {
@@ -221,7 +218,6 @@ void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, con
 
     SDL_Surface* cr = context->platformContext();
     context->save();
-    
     context->setCompositeOperation(op);
 
     // Check and see if a single draw of the image can cover the entire area we are supposed to tile.
@@ -272,17 +268,18 @@ void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, con
     for (int x = static_cast<int>(phase.x()); x <= xMax; x += image->w) {
         for (int y = static_cast<int>(phase.y()); y <= yMax; y += image->h) {
             dest.setLocation(IntPoint(x, y) + context->origin());
-            
+	    //Fix artifact when the dest.y() is negative
+            if (dest.y() < -30) break;
             dstRect.x = static_cast<Sint16>(dest.x());
             dstRect.y = static_cast<Sint16>(dest.y());
             dstRect.w = static_cast<Sint16>(dest.width());
             dstRect.h = static_cast<Sint16>(dest.height());
 
             if (surface) {
-                if (context->transparencyLayer() == 1.0) {
+                if (context->transparencyLayer() == 1.0)
                     SDL_BlitSurface(surface, &srcRect, cr, &dstRect);
-                } else {
-                    SDL_Surface *surfaceWithAlpha = applyTransparency(surface, static_cast<int> (context->transparencyLayer() * 255));
+                else {
+		    SDL_Surface *surfaceWithAlpha = applyTransparency(surface, static_cast<int> (context->transparencyLayer() * 255));
                     SDL_BlitSurface(surfaceWithAlpha, &srcRect, cr, &dstRect);
                     SDL_FreeSurface(surfaceWithAlpha);
                 }
@@ -298,7 +295,6 @@ void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, con
             }
         }
     }
-
     if(surface)
         SDL_FreeSurface(surface);
 

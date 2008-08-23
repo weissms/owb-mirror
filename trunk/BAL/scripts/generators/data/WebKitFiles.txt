@@ -15,5 +15,6 @@ WebCore/page/FrameView.cpp
 WebCore/page/FrameView.h
 WebCore/page/InspectorController.cpp
 WebCore/plugins/PluginView.h
+WebCore/rendering/RenderObject.cpp
 WebCore/config.h
 WebKitTools/DumpRenderTree/DumpRenderTree.h
