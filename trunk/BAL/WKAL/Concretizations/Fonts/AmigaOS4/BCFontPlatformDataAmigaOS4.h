@@ -32,7 +32,6 @@
 #include "GlyphBuffer.h"
 #include "FontDescription.h"
 #include "BALBase.h"
-#include <proto/diskfont.h>
 
 
 namespace WKAL {

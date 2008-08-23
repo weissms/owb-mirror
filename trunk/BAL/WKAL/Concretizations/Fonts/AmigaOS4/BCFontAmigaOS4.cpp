@@ -71,16 +71,13 @@ FloatRect Font::selectionRectForComplexText(const TextRun& run, const IntPoint& 
 void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, const GlyphBuffer& glyphBuffer,
                       int from, int numGlyphs, const FloatPoint& point) const
 {
-    if (point.y() > 32700)
-       return;
-
     // Set the text color to use for drawing.
     float red, green, blue, alpha;
     Color penColor = context->fillColor();
     penColor.getRGBA(red, green, blue, alpha);
 
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
-    float offset = point.x();
+    double offset = point.x();
     struct OutlineFont *face = font->m_font.m_face;
     uint32 ysize = font->m_font.m_size;
     IntRect dstRect;
@@ -112,7 +109,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
     memset(&((*glyphRGBABuffer)[0]), 0, imagewidth * height() * 4);
 
-    float offsetinimg = 0;
+    double offsetinimg = 0;
     uint32 shiftleft = 0;
 
     for (int i = 0; i < numGlyphs; i++) {
@@ -133,7 +130,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                                    TAG_END))
             continue; //do not handle error
 
-#if 0 // causes wrong cursor offserts in text input
+#if 0 // causes wrong cursor offsets in text input
         if (i > 0)
             if (!IDiskfont->ESetInfo(&face->olf_EEngine,
                                      OT_GlyphCode, glyphs[i -1],

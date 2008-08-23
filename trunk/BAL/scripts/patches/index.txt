@@ -31,3 +31,4 @@
 ../../OWBAL/Concretizations/Types/WK/BCThreadSpecificWK.h	0:ThreadSpecific.patch
 ../../OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp	0:TCSystemAlloc.patch
 ../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock.patch
+../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock2.patch

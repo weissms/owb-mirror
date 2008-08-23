@@ -1,3 +1,20 @@
+2008-08-23  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Use native scroll bars for the main frame on AmigaOS4.
+        Add support for configuring the home and search engine URLs
+         and window size, a menu and support for multiple windows on
+         AmigaOS4.
+
+        * OWBLauncher/AmigaOS4/main.cpp:
+        (initAmigaConfig):
+        (initTimer):
+        (cleanupTimer):
+        (createAmigaWindow):
+        (closeAmigaWindow):
+        (waitEvent):
+        (main):
+
 2008-08-19  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

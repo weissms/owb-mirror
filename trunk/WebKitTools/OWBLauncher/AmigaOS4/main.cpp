@@ -45,13 +45,14 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 
 #include "WebBackForwardList.h"
 #include <FrameLoader.h>
-#define INTUITION_PREFERENCES_H
 #include <proto/dos.h>
 #include <proto/exec.h>
 #include <proto/utility.h>
+#include <proto/icon.h>
 #include <proto/intuition.h>
 #include <intuition/gui.h>
 #include <intuition/icclass.h>
+#include <libraries/keymap.h>
 #include <reaction/reaction.h>
 #include <proto/bevel.h>
 #include <images/bevel.h>
@@ -65,22 +66,158 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 #include <gadgets/layout.h>
 #include <proto/string.h>
 #include <reaction/reaction_macros.h>
+#include <proto/gadtools.h>
 #undef String
 
 using namespace WebCore;
-static WebView *webView;
-static bool isExposed = false;
 
 #include <cstdio>
 
-static BalWidget *s_owbwindow = NULL;
-static struct Hook *window_backfill_hook;
-// FIXME: make home and search URL configurable again
-static char *g_amiga_home = (char *)"http://amigans.net/"; //"about:blank";
-static char *g_amiga_search = (char *)"http://google.com/search?q=%s";
-
-BalWidget *createAmigaWindow(int w, int h)
+enum gadgetIDs
 {
+    GID_Back = 1,
+    GID_Forward,
+    GID_Stop,
+    GID_Reload,
+    GID_Home,
+    GID_URL,
+    GID_Search,
+    GID_VBar,
+    GID_HBar
+};
+
+enum menuIDs
+{
+    MID_NewWindow = 1,
+    MID_Close,
+    MID_Quit,
+    MID_ZoomIn,
+    MID_ZoomReset,
+    MID_ZoomOut
+};
+
+AmigaConfig amigaConfig;
+static MsgPort *sharedPort;
+static MsgPort *timePort;
+static TimeRequest *timeReq;
+static BalWidget *firstWindow;
+
+static NewMenu Menus[] =
+{
+    Title((STRPTR)"Project"),
+        Item((STRPTR)"New window",   (STRPTR)"N", MID_NewWindow),
+        Item((STRPTR)"Close window", (STRPTR)"C", MID_Close),
+        Item((STRPTR)"Quit",         (STRPTR)"Q", MID_Quit),
+    Title((STRPTR)"View"),
+        Item((STRPTR)"Zoom in",      (STRPTR)"+", MID_ZoomIn),
+        Item((STRPTR)"Zoom reset",   (STRPTR)"0", MID_ZoomReset),
+        Item((STRPTR)"Zoom out",     (STRPTR)"-", MID_ZoomOut),
+    EndMenu
+};
+
+static void initAmigaConfig(void)
+{
+    static bool isInitialized = false;
+    if (!isInitialized) {
+        amigaConfig.homeURL = "http://amigans.net/";
+        amigaConfig.searchURL = "http://google.com/search?q=%s";
+        amigaConfig.width = 800;
+        amigaConfig.height = 600;
+
+        isInitialized = true;
+
+        static TEXT progname[512];
+        bool gotprogname = false;
+
+        if (IDOS->Cli()) {
+            TEXT temp[8192];
+
+            if (IDOS->GetProgramName(temp, sizeof(temp))) {
+                strcpy(progname, "PROGDIR:");
+                strlcat(progname, IDOS->FilePart(temp), sizeof(progname));
+                gotprogname = true;
+            }
+        } else
+        {
+            strlcpy(progname, IExec->FindTask(NULL)->tc_Node.ln_Name, sizeof(progname));
+            gotprogname = true;
+        }
+
+        DiskObject *icon = gotprogname ? IIcon->GetDiskObject(progname) : NULL;
+        if (icon) {
+            STRPTR found;
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "HOME");
+            if (found)
+                amigaConfig.homeURL = strdup(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "SEARCH");
+            if (found)
+                amigaConfig.searchURL = strdup(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "WIDTH");
+            if (found) {
+                amigaConfig.width = atoi(found);
+                if (amigaConfig.width < 640)
+                    amigaConfig.width = 640;
+            }
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "HEIGHT");
+            if (found) {
+                amigaConfig.height = atoi(found);
+                if (amigaConfig.height < 400)
+                    amigaConfig.height = 400;
+            }
+
+            IIcon->FreeDiskObject(icon);
+        }
+    }
+}
+
+static bool initTimer(void)
+{
+    timePort = (MsgPort *)IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE);
+    if (!timePort)
+        return false;
+
+    timeReq = (TimeRequest *)IExec->AllocSysObjectTags(ASOT_MESSAGE,
+                                                       ASOMSG_Size, sizeof(TimeRequest),
+                                                       ASOMSG_ReplyPort, timePort,
+                                                       TAG_DONE);
+    if (!timeReq) {
+        IExec->FreeSysObject(ASOT_PORT, timePort);
+        return false;
+    }
+
+    if (IOERR_SUCCESS != IExec->OpenDevice(TIMERNAME, UNIT_MICROHZ, &timeReq->Request, 0)) {
+        IExec->FreeSysObject(ASOT_MESSAGE, timeReq);
+        IExec->FreeSysObject(ASOT_PORT, timePort);
+        return false;
+    }
+
+    timeReq->Request.io_Command = TR_ADDREQUEST;
+    timeReq->Time.Seconds       = 0;
+    timeReq->Time.Microseconds  = 20000;
+    IExec->SendIO(&timeReq->Request);
+    return true;
+}
+
+static void cleanupTimer(void)
+{
+    IExec->WaitIO(&timeReq->Request);
+    IExec->CloseDevice(&timeReq->Request);
+    IExec->FreeSysObject(ASOT_MESSAGE, timeReq);
+    IExec->FreeSysObject(ASOT_PORT, timePort);
+}
+
+BalWidget *createAmigaWindow(WebView *webView)
+{
+    if (!webView)
+        return 0;
+
+    int w = amigaConfig.width;
+    int h = amigaConfig.height;
+
     SDL_Surface* surface;
     Uint32 rmask, gmask, bmask, amask;
     rmask = 0x00ff0000;
@@ -100,7 +237,7 @@ BalWidget *createAmigaWindow(int w, int h)
     }
 
     owbwindow->surface = surface;
-
+    owbwindow->webView = webView;
     owbwindow->window = IIntuition->OpenWindowTags(NULL,
                                                    WA_SmartRefresh, TRUE,
                                                    WA_NoCareRefresh, TRUE,
@@ -114,15 +251,16 @@ BalWidget *createAmigaWindow(int w, int h)
                                                    WA_ScreenTitle, "Origyn Web Browser", // not supported?
                                                    WA_ReportMouse, TRUE,
                                                    WA_SizeGadget, TRUE,
-//                                                   WA_SizeBRight, TRUE,
+                                                   WA_SizeBRight, TRUE,
                                                    WA_SizeBBottom, TRUE,
                                                    WA_DragBar, TRUE,
                                                    WA_DepthGadget, TRUE,
                                                    WA_CloseGadget, TRUE,
-                                                   WA_RMBTrap, TRUE,
                                                    WA_Hidden, TRUE,
                                                    WA_PubScreenName, "OrigynWebBrowser",
                                                    WA_PubScreenFallBack, TRUE,
+                                                   WA_UserPort, sharedPort,
+                                                   WA_NewLookMenus, TRUE,
                                                    WA_IDCMP, IDCMP_MOUSEBUTTONS
                                                            | IDCMP_MOUSEMOVE
                                                            | IDCMP_CLOSEWINDOW
@@ -130,7 +268,8 @@ BalWidget *createAmigaWindow(int w, int h)
                                                            | IDCMP_VANILLAKEY
                                                            | IDCMP_EXTENDEDMOUSE
                                                            | IDCMP_IDCMPUPDATE
-                                                           | IDCMP_NEWSIZE,
+                                                           | IDCMP_NEWSIZE
+                                                           | IDCMP_MENUPICK,
                                                    TAG_DONE);
     if (!owbwindow->window) {
         SDL_FreeSurface(surface);
@@ -138,9 +277,11 @@ BalWidget *createAmigaWindow(int w, int h)
         return 0;
     }
 
+    owbwindow->window->UserData = (BYTE *)owbwindow;
+
     APTR old_proc_window = IDOS->SetProcWindow((APTR)-1);
-    struct DrawInfo *drinfo = IIntuition->GetScreenDrawInfo(owbwindow->window->WScreen);
-    window_backfill_hook = IIntuition->ObtainIBackFill(drinfo, BT_WINDOWBG, IDS_NORMAL, 0);
+    DrawInfo *drinfo = IIntuition->GetScreenDrawInfo(owbwindow->window->WScreen);
+    owbwindow->backfill_hook = IIntuition->ObtainIBackFill(drinfo, BT_WINDOWBG, IDS_NORMAL, 0);
     APTR images[4];
     images[0] = BitMapObject,
                     BITMAP_Screen, owbwindow->window->WScreen,
@@ -183,82 +324,105 @@ BalWidget *createAmigaWindow(int w, int h)
                     BITMAP_DisabledSourceFile, "TBImages:home_g",
                 BitMapEnd;
 
-    owbwindow->gad_toolbar = (struct Gadget *)VLayoutObject,
-                                                  GA_Left, owbwindow->window->BorderLeft,
-                                                  GA_Top, owbwindow->window->BorderTop,
-                                                  GA_RelWidth, -(owbwindow->window->BorderLeft + owbwindow->window->BorderRight),
-                                                  GA_NoFilterWheel, TRUE,
-                                                  ICA_TARGET, ICTARGET_IDCMP,
-                                                  LAYOUT_LayoutBackFill, window_backfill_hook,
-                                                  LAYOUT_DeferLayout, TRUE,
-                                                  LAYOUT_AddChild, HLayoutObject,
-                                                      LAYOUT_AddChild, owbwindow->gad_back = (struct Gadget *)ButtonObject,
-                                                          GA_ID,        1, 
-                                                          GA_RelVerify, TRUE,
-                                                          images[0] ? BUTTON_RenderImage : TAG_IGNORE, images[0],
-                                                          images[0] ? TAG_IGNORE : BUTTON_AutoButton, BAG_LFARROW,
-                                                          GA_Disabled, TRUE,
-                                                      ButtonEnd,
-                                                      CHILD_WeightedWidth, 0,
-                                                      LAYOUT_AddChild, owbwindow->gad_forward = (struct Gadget *)ButtonObject,
-                                                          GA_ID,        2, 
-                                                          GA_RelVerify, TRUE,
-                                                          images[1] ? BUTTON_RenderImage : TAG_IGNORE, images[1],
-                                                          images[1] ? TAG_IGNORE : BUTTON_AutoButton, BAG_RTARROW,
-                                                          GA_Disabled, TRUE,
-                                                      ButtonEnd,
-                                                      CHILD_WeightedWidth, 0,
-                                                      LAYOUT_AddChild, owbwindow->gad_stop = (struct Gadget *)ButtonObject,
-                                                          GA_ID,        3, 
-                                                          GA_RelVerify, TRUE,
-                                                          images[2] ? BUTTON_RenderImage : GA_Text, images[2] ?: "Stop",
-                                                          GA_TabCycle, NULL == images[2],
-                                                          GA_Disabled, TRUE,
-                                                      ButtonEnd,
-                                                      CHILD_WeightedWidth, 0,
+    owbwindow->gad_toolbar = (Gadget *)VLayoutObject,
+                                           GA_Left, owbwindow->window->BorderLeft,
+                                           GA_Top, owbwindow->window->BorderTop,
+                                           GA_RelWidth, -(owbwindow->window->BorderLeft + owbwindow->window->BorderRight),
+                                           GA_NoFilterWheel, TRUE,
+                                           ICA_TARGET, ICTARGET_IDCMP,
+                                           LAYOUT_LayoutBackFill, owbwindow->backfill_hook,
+                                           LAYOUT_DeferLayout, TRUE,
+                                           LAYOUT_AddChild, HLayoutObject,
+                                               LAYOUT_AddChild, owbwindow->gad_back = (Gadget *)ButtonObject,
+                                                   GA_ID, GID_Back, 
+                                                   GA_RelVerify, TRUE,
+                                                   images[0] ? BUTTON_RenderImage : TAG_IGNORE, images[0],
+                                                   images[0] ? TAG_IGNORE : BUTTON_AutoButton, BAG_LFARROW,
+                                                   GA_Disabled, TRUE,
+                                               ButtonEnd,
+                                               CHILD_WeightedWidth, 0,
+                                               LAYOUT_AddChild, owbwindow->gad_forward = (Gadget *)ButtonObject,
+                                                   GA_ID, GID_Forward, 
+                                                   GA_RelVerify, TRUE,
+                                                   images[1] ? BUTTON_RenderImage : TAG_IGNORE, images[1],
+                                                   images[1] ? TAG_IGNORE : BUTTON_AutoButton, BAG_RTARROW,
+                                                   GA_Disabled, TRUE,
+                                               ButtonEnd,
+                                               CHILD_WeightedWidth, 0,
+                                               LAYOUT_AddChild, owbwindow->gad_stop = (Gadget *)ButtonObject,
+                                                   GA_ID, GID_Stop, 
+                                                   GA_RelVerify, TRUE,
+                                                   images[2] ? BUTTON_RenderImage : GA_Text, images[2] ?: "Stop",
+                                                   GA_TabCycle, NULL == images[2],
+//                                                   GA_Disabled, TRUE,
+                                               ButtonEnd,
+                                               CHILD_WeightedWidth, 0,
 #if 0
-                                                      LAYOUT_AddChild, Button("Refresh", 4),
-                                                      CHILD_WeightedWidth, 0,
+                                               LAYOUT_AddChild, Button("Refresh", GID_Reload),
+                                               CHILD_WeightedWidth, 0,
 #endif
-                                                      LAYOUT_AddChild, ButtonObject,
-                                                          GA_ID,        5, 
-                                                          GA_RelVerify, TRUE,
-                                                          images[4] ? BUTTON_RenderImage : GA_Text, images[4] ?: "Home",
-                                                          GA_TabCycle, NULL == images[4],
-                                                      ButtonEnd,
-                                                      CHILD_WeightedWidth, 0,
-                                                      LAYOUT_AddChild, owbwindow->gad_url = (struct Gadget *)StringObject,
-                                                          STRINGA_TextVal, "",
-                                                          STRINGA_MaxChars, 2000,
-                                                          GA_ID, 6,
-                                                          GA_RelVerify, TRUE,
-                                                          GA_TabCycle, TRUE,
-                                                      StringEnd,
-                                                      CHILD_Label, LabelObject,
-                                                          LABEL_DrawInfo, drinfo,
-                                                      LabelEnd,
-                                                      LAYOUT_AddChild, StringObject,
-                                                          STRINGA_TextVal, "",
-                                                          STRINGA_MaxChars, 500,
-                                                          GA_ID, 7,
-                                                          GA_RelVerify, TRUE,
-                                                          GA_TabCycle, TRUE,
-                                                      StringEnd,
-                                                      CHILD_Label, LabelObject,
-                                                          LABEL_DrawInfo, drinfo,
-                                                          LABEL_DisposeImage, NULL != images[3],
-                                                          images[3] ? LABEL_Image : TAG_IGNORE, images[3],
-                                                          images[3] ? TAG_IGNORE : LABEL_Text, "Search",
-                                                      LabelEnd,
-                                                      CHILD_WeightedWidth, 40,
-                                                  LayoutEnd,
-                                                  CHILD_WeightedHeight, 0,
+                                               LAYOUT_AddChild, ButtonObject,
+                                                   GA_ID, GID_Home, 
+                                                   GA_RelVerify, TRUE,
+                                                   images[4] ? BUTTON_RenderImage : GA_Text, images[4] ?: "Home",
+                                                   GA_TabCycle, NULL == images[4],
+                                               ButtonEnd,
+                                               CHILD_WeightedWidth, 0,
+                                               LAYOUT_AddChild, owbwindow->gad_url = (Gadget *)StringObject,
+                                                   STRINGA_TextVal, "",
+                                                   STRINGA_MaxChars, 2000,
+                                                   GA_ID, GID_URL,
+                                                   GA_RelVerify, TRUE,
+                                                   GA_TabCycle, TRUE,
+                                               StringEnd,
+                                               CHILD_Label, LabelObject,
+                                                   LABEL_DrawInfo, drinfo,
+                                               LabelEnd,
+                                               LAYOUT_AddChild, StringObject,
+                                                   STRINGA_TextVal, "",
+                                                   STRINGA_MaxChars, 500,
+                                                   GA_ID, GID_Search,
+                                                   GA_RelVerify, TRUE,
+                                                   GA_TabCycle, TRUE,
+                                               StringEnd,
+                                               CHILD_Label, LabelObject,
+                                                   LABEL_DrawInfo, drinfo,
+                                                   LABEL_DisposeImage, NULL != images[3],
+                                                   images[3] ? LABEL_Image : TAG_IGNORE, images[3],
+                                                   images[3] ? TAG_IGNORE : LABEL_Text, "Search",
+                                               LabelEnd,
+                                               CHILD_WeightedWidth, 40,
+                                           LayoutEnd,
+                                           CHILD_WeightedHeight, 0,
 
-                                                  LAYOUT_AddImage, BevelObject,
-                                                      BEVEL_Style, BVS_SBAR_VERT,
-                                                  BevelEnd,
-                                                  CHILD_WeightedHeight, 0,
-                                              LayoutEnd;
+                                           LAYOUT_AddImage, BevelObject,
+                                               BEVEL_Style, BVS_SBAR_VERT,
+                                           BevelEnd,
+                                           CHILD_WeightedHeight, 0,
+                                       LayoutEnd;
+
+    owbwindow->gad_vbar = (Gadget *)IIntuition->NewObject(NULL, "scrollergclass",
+                                                          GA_ID, GID_VBar,
+                                                          GA_RightBorder, TRUE,
+                                                          GA_RelVerify, TRUE,
+                                                          GA_Immediate, TRUE,
+                                                          GA_FollowMouse, TRUE,
+                                                          GA_DrawInfo, drinfo,
+                                                          PGA_ArrowDelta, 20,
+                                                          ICA_TARGET, ICTARGET_IDCMP,
+                                                          TAG_END);
+
+    owbwindow->gad_hbar = (Gadget *)IIntuition->NewObject(NULL, "scrollergclass",
+                                                          GA_ID, GID_HBar,
+                                                          GA_BottomBorder, TRUE,
+                                                          GA_RelVerify, TRUE,
+                                                          GA_Immediate, TRUE,
+                                                          GA_FollowMouse, TRUE,
+                                                          GA_DrawInfo, drinfo,
+                                                          PGA_Freedom, FREEHORIZ,
+                                                          PGA_ArrowDelta, 20,
+                                                          ICA_TARGET, ICTARGET_IDCMP,
+                                                          TAG_END);
 
     IIntuition->FreeScreenDrawInfo(owbwindow->window->WScreen, drinfo);
     IDOS->SetProcWindow(old_proc_window);
@@ -269,20 +433,25 @@ BalWidget *createAmigaWindow(int w, int h)
         IIntuition->DisposeObject(images[2]);
         IIntuition->DisposeObject(images[3]);
         IIntuition->DisposeObject(images[4]);
-        IIntuition->ReleaseIBackFill(window_backfill_hook);
-        window_backfill_hook = NULL;
+        IIntuition->DisposeObject(owbwindow->gad_vbar);
+        IIntuition->DisposeObject(owbwindow->gad_hbar);
+        IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
         IIntuition->CloseWindow(owbwindow->window);
         SDL_FreeSurface(surface);
         free(owbwindow);
         return 0;
     }
 
-    struct LayoutLimits layoutlimits;
+    LayoutLimits layoutlimits;
     ILayout->LayoutLimits(owbwindow->gad_toolbar, &layoutlimits, NULL, owbwindow->window->WScreen);
     owbwindow->offsetx = owbwindow->window->BorderLeft;
     owbwindow->offsety = owbwindow->window->BorderTop + layoutlimits.MinHeight + 4;
 
     IIntuition->AddGadget(owbwindow->window, owbwindow->gad_toolbar, (uint16)~0);
+    if (owbwindow->gad_vbar)
+        IIntuition->AddGadget(owbwindow->window, owbwindow->gad_vbar, (uint16)~0);
+    if (owbwindow->gad_hbar)
+        IIntuition->AddGadget(owbwindow->window, owbwindow->gad_hbar, (uint16)~0);
     IIntuition->RefreshGList(owbwindow->gad_toolbar, owbwindow->window, NULL, -1);
 
     IIntuition->SetWindowAttrs(owbwindow->window, 
@@ -290,6 +459,33 @@ BalWidget *createAmigaWindow(int w, int h)
                                WA_Hidden, FALSE,
                                WA_Activate, TRUE,
                                TAG_DONE);
+
+    APTR vi = IGadTools->GetVisualInfoA(owbwindow->window->WScreen, NULL);
+    if (vi) {
+        Menu *menustrip = IGadTools->CreateMenusA(Menus, NULL);
+        if (menustrip) {
+            if (!IGadTools->LayoutMenus(menustrip, vi,
+                                        GTMN_NewLookMenus, TRUE,
+                                        TAG_DONE)) {
+                IGadTools->FreeMenus(menustrip);
+                menustrip = NULL;
+            }
+        }
+
+        if (menustrip)
+             IIntuition->SetMenuStrip(owbwindow->window, menustrip);
+
+        IGadTools->FreeVisualInfo(vi);
+    }
+
+    if (!firstWindow)
+        firstWindow = owbwindow;
+    else {
+        BalWidget *window = firstWindow;
+        while (window->next)
+            window = window->next;
+        window->next = owbwindow;
+    }
 
     return owbwindow;
 }
@@ -299,273 +495,426 @@ void closeAmigaWindow(BalWidget *owbwindow)
     if (!owbwindow)
         return;
 
-    IIntuition->CloseWindow(owbwindow->window);
-    IIntuition->DisposeObject(owbwindow->gad_toolbar);
-    if (window_backfill_hook) {
-       IIntuition->ReleaseIBackFill(window_backfill_hook);
-       window_backfill_hook = NULL;
+    if (owbwindow->window->MenuStrip) {
+        Menu *menustrip = owbwindow->window->MenuStrip;
+        IIntuition->ClearMenuStrip(owbwindow->window);
+        IGadTools->FreeMenus(menustrip);
     }
+    IIntuition->CloseWindow(owbwindow->window);
+    IIntuition->DisposeObject(owbwindow->gad_vbar);
+    IIntuition->DisposeObject(owbwindow->gad_hbar);
+    IIntuition->DisposeObject(owbwindow->gad_toolbar);
+    if (owbwindow->backfill_hook)
+        IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
     SDL_FreeSurface(owbwindow->surface);
+    if (firstWindow == owbwindow)
+        firstWindow = owbwindow->next;
+    else {
+        BalWidget *window = firstWindow;
+        while (window && window->next != owbwindow)
+            window = window->next;
+        if (window)
+            window->next = owbwindow->next;
+    }
+    delete owbwindow->webView;
     free(owbwindow);
 }
 
-void waitEvent()
+void waitEvent(void)
 {
-    if (!s_owbwindow)
-        return;
+    while (firstWindow) {
+        IntuiMessage *im;
 
-    bool quit = false;
-    while (!quit) {
-        struct IntuiMessage *im = (struct IntuiMessage *)IExec->GetMsg(s_owbwindow->window->UserPort);
-        if (im) {
-            switch (im->Class) {
-            case IDCMP_CLOSEWINDOW:
-                quit = true;
-            break;
+        IExec->Wait((1L << sharedPort->mp_SigBit) | (1L << timePort->mp_SigBit));
 
-            case IDCMP_MOUSEBUTTONS:
-                switch (im->Code & ~IECODE_UP_PREFIX) {
-                case IECODE_LBUTTON:
-                case IECODE_RBUTTON:
-                case IECODE_MBUTTON:
-                    if (im->Code & IECODE_UP_PREFIX) {
-                        struct IntuiMessage im2 = *im;
-                        im2.MouseX -= s_owbwindow->offsetx;
-                        im2.MouseY -= s_owbwindow->offsety;
-                        webView->onMouseButtonUp(im2);
-                    } else {
-                        struct IntuiMessage im2 = *im;
-                        im2.MouseX -= s_owbwindow->offsetx;
-                        im2.MouseY -= s_owbwindow->offsety;
-                        webView->onMouseButtonDown(im2);
+        while ((im = (IntuiMessage *)IExec->GetMsg(sharedPort))) {
+            BalWidget *owbwindow = (BalWidget *)im->IDCMPWindow->UserData;
+            WebView *webView = 0;
+
+            if (owbwindow)
+                webView = owbwindow->webView;
+
+            if (webView)
+                switch (im->Class) {
+                case IDCMP_CLOSEWINDOW:
+                    IExec->ReplyMsg(&im->ExecMessage);
+                    closeAmigaWindow(owbwindow);
+                    continue;
+                break;
+
+                case IDCMP_MOUSEBUTTONS:
+                    switch (im->Code & ~IECODE_UP_PREFIX) {
+                    case IECODE_LBUTTON:
+                    case IECODE_RBUTTON:
+                    case IECODE_MBUTTON:
+                        if (im->Code & IECODE_UP_PREFIX) {
+                            IntuiMessage im2 = *im;
+                            im2.MouseX -= owbwindow->offsetx;
+                            im2.MouseY -= owbwindow->offsety;
+                            webView->onMouseButtonUp(im2);
+                        } else {
+                            IntuiMessage im2 = *im;
+                            im2.MouseX -= owbwindow->offsetx;
+                            im2.MouseY -= owbwindow->offsety;
+                            webView->onMouseButtonDown(im2);
+                        }
+                    break;
                     }
                 break;
+
+                case IDCMP_MOUSEMOVE:
+                {
+                    IntuiMessage im2 = *im;
+                    im2.MouseX -= owbwindow->offsetx;
+                    im2.MouseY -= owbwindow->offsety;
+                    webView->onMouseMotion(im2);
                 }
-            break;
+                break;
 
-            case IDCMP_MOUSEMOVE:
-            {
-                struct IntuiMessage im2 = *im;
-                im2.MouseX -= s_owbwindow->offsetx;
-                im2.MouseY -= s_owbwindow->offsety;
-                webView->onMouseMotion(im2);
-            }
-            break;
+                case IDCMP_EXTENDEDMOUSE:
+                {
+                    IntuiMessage im2 = *im;
+                    im2.MouseX -= owbwindow->offsetx;
+                    im2.MouseY -= owbwindow->offsety;
+                    webView->onScroll(im2);
+                    im2.Class = IDCMP_MOUSEMOVE;
+                    im2.Code = 0;
+                    im2.Qualifier = 0;
+                    webView->onMouseMotion(im2);
+                }
+                break;
 
-            case IDCMP_EXTENDEDMOUSE:
-            {
-                struct IntuiMessage im2 = *im;
-                im2.MouseX -= s_owbwindow->offsetx;
-                im2.MouseY -= s_owbwindow->offsety;
-                webView->onScroll(im2);
-                im2.Class = IDCMP_MOUSEMOVE;
-                im2.Code = 0;
-                im2.Qualifier = 0;
-                webView->onMouseMotion(im2);
-            }
-            break;
+                case IDCMP_RAWKEY:
+                {
+                    IntuiMessage im2 = *im;
+                    im2.MouseX -= owbwindow->offsetx;
+                    im2.MouseY -= owbwindow->offsety;
+                    if (im->Code & IECODE_UP_PREFIX)
+                        webView->onKeyUp(im2);
+                    else
+                        webView->onKeyDown(im2);
+                }
+                break;
 
-            case IDCMP_RAWKEY:
-            {
-                struct IntuiMessage im2 = *im;
-                im2.MouseX -= s_owbwindow->offsetx;
-                im2.MouseY -= s_owbwindow->offsety;
-                if (im->Code & IECODE_UP_PREFIX)
-                    webView->onKeyUp(im2);
-                else
+                case IDCMP_VANILLAKEY:
+                {
+                    IntuiMessage im2 = *im;
+                    im2.MouseX -= owbwindow->offsetx;
+                    im2.MouseY -= owbwindow->offsety;
                     webView->onKeyDown(im2);
-            }
-            break;
+                }
+                break;
 
-            case IDCMP_VANILLAKEY:
-            {
-                struct IntuiMessage im2 = *im;
-                im2.MouseX -= s_owbwindow->offsetx;
-                im2.MouseY -= s_owbwindow->offsety;
-                webView->onKeyDown(im2);
-            }
-            break;
+                case IDCMP_NEWSIZE:
+                {
+                    uint32 width = 800, height = 600;
+                    IIntuition->GetWindowAttr(owbwindow->window, WA_InnerWidth,  &width,  sizeof(width));
+                    IIntuition->GetWindowAttr(owbwindow->window, WA_InnerHeight, &height, sizeof(height));
 
-            case IDCMP_NEWSIZE:
-            {
-                uint32 width = 800, height = 600;
-                IIntuition->GetWindowAttr(s_owbwindow->window, WA_InnerWidth,  &width,  sizeof(width));
-                IIntuition->GetWindowAttr(s_owbwindow->window, WA_InnerHeight, &height, sizeof(height));
+                    height -= owbwindow->offsety - owbwindow->window->BorderTop;
 
-                height -= s_owbwindow->offsety - s_owbwindow->window->BorderTop;
+                    SDL_FreeSurface(owbwindow->surface);
+                    Uint32 rmask, gmask, bmask, amask;
+                    rmask = 0x00ff0000;
+                    gmask = 0x0000ff00;
+                    bmask = 0x000000ff;
+                    amask = 0xff000000;
+                    owbwindow->surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
+                                                              rmask, gmask, bmask, amask);
 
-                SDL_FreeSurface(s_owbwindow->surface);
-                Uint32 rmask, gmask, bmask, amask;
-                rmask = 0x00ff0000;
-                gmask = 0x0000ff00;
-                bmask = 0x000000ff;
-                amask = 0xff000000;
-                s_owbwindow->surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
-                                                            rmask, gmask, bmask, amask);
+                    AmigaOWBResizeEvent re = {width, height};
+                    webView->onResize(re);
+                }
+                break;
 
-                struct AmigaOWBResizeEvent re = {width, height};
-                webView->onResize(re);
-            }
-            break;
+                case IDCMP_IDCMPUPDATE:
+                {
+                    TagItem *tags = (TagItem *)im->IAddress;
+                    if (IUtility->FindTagItem(LAYOUT_RequestRefresh, tags))
+                        IIntuition->RefreshWindowFrame(owbwindow->window);
+                    else if (IUtility->FindTagItem(LAYOUT_RequestLayout, tags))
+                        ILayout->RethinkLayout(owbwindow->gad_toolbar, owbwindow->window, NULL, FALSE);
+                    else if (IUtility->FindTagItem(LAYOUT_RelVerify, tags)) {
+                        gadgetIDs gid = (gadgetIDs)IUtility->GetTagData(GA_ID, 0, tags);
 
-            case IDCMP_IDCMPUPDATE:
-            {
-                struct TagItem *tags = (struct TagItem *)im->IAddress;
-                if (IUtility->FindTagItem(LAYOUT_RequestRefresh, tags))
-                    IIntuition->RefreshWindowFrame(s_owbwindow->window);
-                else if (IUtility->FindTagItem(LAYOUT_RequestLayout, tags))
-                    ILayout->RethinkLayout(s_owbwindow->gad_toolbar, s_owbwindow->window, NULL, FALSE);
-                else if (IUtility->FindTagItem(LAYOUT_RelVerify, tags)) {
-                    uint32 gid = IUtility->GetTagData(GA_ID, 0, tags);
-                    WebFrame* frame = webView->mainFrame();
+                        switch (gid) {
+                        case GID_Back:
+                            webView->goBack();
+                            owbwindow->expose = true;
+                        break;
 
-                    switch (gid) {
-                    case 1: // back
-                        webView->goBack();
-                        s_owbwindow->expose = true;
-                    break;
+                        case GID_Forward:
+                            webView->goForward();
+                            owbwindow->expose = true;
+                        break;
 
-                    case 2: // forward
-                        webView->goForward();
-                        s_owbwindow->expose = true;
-                    break;
-
-                    case 3: // stop
-                        webView->mainFrame()->impl()->loader()->stopAllLoaders();
-                    break;
+                        case GID_Stop:
+                            webView->mainFrame()->impl()->loader()->stopAllLoaders();
+                        break;
 
 #if 0
-                    case 4: // refresh
-                    break;
+                        case GID_Reload:
+                        break;
 #endif
 
-                    case 5: // Home
-                    {
-                        webView->mainFrame()->loadURL(g_amiga_home);
-                    }
-                    break;
+                        case GID_Home:
+                            webView->mainFrame()->loadURL(amigaConfig.homeURL);
+                        break;
 
-                    case 6: // URL
-                    {
-                        struct Gadget *gad = (struct Gadget *)IUtility->GetTagData(LAYOUT_RelAddress, 0, tags);
-                        uint32 tab = IUtility->GetTagData(LAYOUT_TabVerify, FALSE, tags);
-                        if (gad && !tab) {
-                            STRPTR url = NULL;
-                            IIntuition->GetAttr(STRINGA_TextVal, gad, (uint32 *)(void *)&url);
-                            if (url && *url) {
-                                char *colon = strchr(url, ':');
-                                if (!colon || colon - url > 5) {
-                                    TEXT http_url[2000 + strlen("http://")];
-                                    snprintf(http_url, sizeof(http_url), "http://%s", url);
-                                    webView->mainFrame()->loadURL(http_url);
-                                } else
+                        case GID_URL:
+                        {
+                            Gadget *gad = (Gadget *)IUtility->GetTagData(LAYOUT_RelAddress, 0, tags);
+                            uint32 tab = IUtility->GetTagData(LAYOUT_TabVerify, FALSE, tags);
+                            if (gad && !tab) {
+                                STRPTR url = NULL;
+                                IIntuition->GetAttr(STRINGA_TextVal, gad, (uint32 *)(void *)&url);
+                                if (url && *url) {
+                                    char *colon = strchr(url, ':');
+                                    if (!colon || colon - url > 5) {
+                                        TEXT http_url[2000 + strlen("http://")];
+                                        snprintf(http_url, sizeof(http_url), "http://%s", url);
+                                        webView->mainFrame()->loadURL(http_url);
+                                    } else
+                                        webView->mainFrame()->loadURL(url);
+                                }
+                            }
+                        }
+                        break;
+
+                        case GID_Search:
+                        {
+                            Gadget *gad = (Gadget *)IUtility->GetTagData(LAYOUT_RelAddress, 0, tags);
+                            uint32 tab = IUtility->GetTagData(LAYOUT_TabVerify, FALSE, tags);
+                            if (gad && !tab) {
+                                STRPTR search = NULL;
+                                IIntuition->GetAttr(STRINGA_TextVal, gad, (uint32 *)(void *)&search);
+                                if (search && *search) {
+                                    TEXT url[600];
+                                    snprintf(url, sizeof(url), amigaConfig.searchURL, search);
                                     webView->mainFrame()->loadURL(url);
+                                }
                             }
                         }
-                    }
-                    break;
+                        break;
 
-                    case 7: // Search
-                    {
-                        struct Gadget *gad = (struct Gadget *)IUtility->GetTagData(LAYOUT_RelAddress, 0, tags);
-                        uint32 tab = IUtility->GetTagData(LAYOUT_TabVerify, FALSE, tags);
-                        if (gad && !tab) {
-                            STRPTR search = NULL;
-                            IIntuition->GetAttr(STRINGA_TextVal, gad, (uint32 *)(void *)&search);
-                            if (search && *search) {
-                                TEXT url[600];
-                                snprintf(url, sizeof(url), g_amiga_search, search);
-                                webView->mainFrame()->loadURL(url);
-                            }
+                        default:
+                            fprintf(stderr, "GADGETUP, id = %d\n", gid);
+                        break;
                         }
                     }
-                    break;
-
-                    default:
-                        fprintf(stderr, "GADGETUP, id = %lu\n", gid);
-                    break;
+                    else {
+                        uint32 gid = IUtility->GetTagData(GA_ID, 0, tags);
+                        if (GID_VBar == gid) {
+                            if (owbwindow->gad_vbar) {
+                                int top = 0;
+                                IIntuition->GetAttr(PGA_Top, owbwindow->gad_vbar, (uint32 *)(void *)&top);
+                                IntPoint diff(0, top - webView->scrollOffset().y());
+                                if (diff.y())
+                                    webView->scrollBy(diff);
+                            }
+                        }
+                        else if (GID_HBar == gid) {
+                            if (owbwindow->gad_hbar) {
+                                int left = 0;
+                                IIntuition->GetAttr(PGA_Top, owbwindow->gad_hbar, (uint32 *)(void *)&left);
+                                IntPoint diff(left - webView->scrollOffset().x(), 0);
+                                if (diff.x())
+                                    webView->scrollBy(diff);
+                            }
+                        }
+                        else
+                           fprintf(stderr, "gid = %lu, code 0x%04x, qual 0x%04x not handed\n", gid, im->Code, im->Qualifier);
                     }
                 }
-            }
-            break;
+                break;
 
-            default:
-                fprintf(stderr, "%s IDCMP class 0x%08lx not handled\n", __PRETTY_FUNCTION__, im->Class);
-            break;
-            }
+                case IDCMP_MENUPICK:
+                {
+                    MenuItem *item = IIntuition->ItemAddress(owbwindow->window->MenuStrip, im->Code);
+                    if (item) {
+                        menuIDs id = (menuIDs)(uint32)GTMENUITEM_USERDATA(item);
+
+                        switch (id) {
+                        case MID_NewWindow:
+                        {
+                            WebView *newWebView = WebView::createInstance();
+                            BalWidget *newowbwindow = createAmigaWindow(newWebView);
+
+                            if (newowbwindow) {
+                                IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+                                newWebView->initWithFrame(clientRect,"", "");
+
+                                newWebView->setViewWindow(newowbwindow);
+
+                                newWebView->mainFrame()->loadURL("about:blank");
+                            }
+                            else
+                                delete newWebView;
+                        }
+                        break;
+
+                        case MID_Close:
+                            IExec->ReplyMsg(&im->ExecMessage);
+                            closeAmigaWindow(owbwindow);
+                            continue;
+                        break;
+
+                        case MID_Quit:
+                            IExec->ReplyMsg(&im->ExecMessage);
+                            while (firstWindow)
+                                closeAmigaWindow(firstWindow);
+                            return;
+                        break;
+
+                        case MID_ZoomIn:
+                            if (webView->canZoomPageIn())
+                                webView->zoomPageIn();
+                        break;
+
+                        case MID_ZoomReset:
+                            if (webView->canResetPageZoom())
+                                webView->resetPageZoom();
+                        break;
+
+                        case MID_ZoomOut:
+                            if (webView->canZoomPageOut())
+                                webView->zoomPageOut();
+                        break;
+
+//                        default:
+//                            fprintf(stderr, "%s MENU id %d not handled\n", __PRETTY_FUNCTION__, id);
+                        }
+                    }
+                }
+                break;
+
+                default:
+                    fprintf(stderr, "%s IDCMP class 0x%08lx not handled\n", __PRETTY_FUNCTION__, im->Class);
+                break;
+                }
 
             IExec->ReplyMsg(&im->ExecMessage);
-        } else if (s_owbwindow->expose) {
-            s_owbwindow->expose = false;
-            SDL_ExposeEvent ev;
-            webView->onExpose(ev);
-        } else {
+        }
+
+        if (IExec->CheckIO(&timeReq->Request)) {
+            IExec->WaitIO(&timeReq->Request);
+
             WTF::dispatchFunctionsFromMainThread();
             WebCore::fireTimerIfNeeded();
 
-            uint32 olddisabled = FALSE, newdisabled;
-            IIntuition->GetAttr(GA_Disabled, s_owbwindow->gad_back, &olddisabled);
-            newdisabled = webView->backForwardList()->backItem() ? FALSE : TRUE;
-            if (olddisabled != newdisabled)
-                IIntuition->RefreshSetGadgetAttrs(s_owbwindow->gad_back, s_owbwindow->window, NULL,
-                                                  GA_Disabled, newdisabled,
-                                                  TAG_DONE);
+            BalWidget *owbwindow = firstWindow;
+            while (owbwindow) {
+                WebView *webView = owbwindow->webView;
 
-            IIntuition->GetAttr(GA_Disabled, s_owbwindow->gad_forward, &olddisabled);
-            newdisabled = webView->backForwardList()->forwardItem() ? FALSE : TRUE;
-            if (olddisabled != newdisabled)
-                IIntuition->RefreshSetGadgetAttrs(s_owbwindow->gad_forward, s_owbwindow->window, NULL,
-                                                  GA_Disabled, newdisabled,
-                                                  TAG_DONE);
+                if (owbwindow->expose) {
+                    owbwindow->expose = false;
+                    SDL_ExposeEvent ev;
+                    webView->onExpose(ev);
+                }
+                else {
+                    uint32 olddisabled = FALSE, newdisabled;
+                    IIntuition->GetAttr(GA_Disabled, owbwindow->gad_back, &olddisabled);
+                    newdisabled = webView->backForwardList()->backItem() ? FALSE : TRUE;
+                    if (olddisabled != newdisabled)
+                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_back, owbwindow->window, NULL,
+                                                          GA_Disabled, newdisabled,
+                                                          TAG_DONE);
 
-            IIntuition->GetAttr(GA_Disabled, s_owbwindow->gad_stop, &olddisabled);
-            newdisabled = webView->isLoading() ? FALSE : TRUE;
-            if (olddisabled != newdisabled)
-                IIntuition->RefreshSetGadgetAttrs(s_owbwindow->gad_stop, s_owbwindow->window, NULL,
-                                                  GA_Disabled, newdisabled,
-                                                  TAG_DONE);
+                    IIntuition->GetAttr(GA_Disabled, owbwindow->gad_forward, &olddisabled);
+                    newdisabled = webView->backForwardList()->forwardItem() ? FALSE : TRUE;
+                    if (olddisabled != newdisabled)
+                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_forward, owbwindow->window, NULL,
+                                                          GA_Disabled, newdisabled,
+                                                          TAG_DONE);
 
-            usleep(10000);
+#if 0
+                    IIntuition->GetAttr(GA_Disabled, owbwindow->gad_stop, &olddisabled);
+                    newdisabled = webView->isLoading() ? FALSE : TRUE;
+                    if (olddisabled != newdisabled)
+                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_stop, owbwindow->window, NULL,
+                                                          GA_Disabled, newdisabled,
+                                                          TAG_DONE);
+#endif
+
+                    if (owbwindow->gad_vbar) {
+                        uint32 top, total, visible;
+                        IIntuition->GetAttrs(owbwindow->gad_vbar,
+                                             PGA_Top, &top,
+                                             PGA_Total, &total,
+                                             PGA_Visible, &visible,
+                                             TAG_DONE);
+                        uint32 newtop = core(webView->mainFrame())->view()->contentsY();
+                        uint32 newtotal = core(webView->mainFrame())->view()->contentsHeight();
+                        uint32 newvisible = core(webView->mainFrame())->view()->visibleHeight();
+                        if (top != newtop || total != newtotal || visible != newvisible)
+                            IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_vbar, owbwindow->window, NULL,
+                                                              PGA_Top, newtop,
+                                                              PGA_Total, newtotal,
+                                                              PGA_Visible, newvisible,
+                                                              TAG_DONE);
+                    }
+
+                    if (owbwindow->gad_hbar) {
+                        uint32 top, total, visible;
+                        IIntuition->GetAttrs(owbwindow->gad_hbar,
+                                             PGA_Top, &top,
+                                             PGA_Total, &total,
+                                             PGA_Visible, &visible,
+                                             TAG_DONE);
+                        uint32 newtop = core(webView->mainFrame())->view()->contentsX();
+                        uint32 newtotal = core(webView->mainFrame())->view()->contentsWidth();
+                        uint32 newvisible = core(webView->mainFrame())->view()->visibleWidth();
+                        if (top != newtop || total != newtotal || visible != newvisible)
+                            IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_hbar, owbwindow->window, NULL,
+                                                              PGA_Top, newtop,
+                                                              PGA_Total, newtotal,
+                                                              PGA_Visible, newvisible,
+                                                              TAG_DONE);
+                    }
+                }
+
+                owbwindow = owbwindow->next;
+            }
+
+            timeReq->Time.Seconds      = 0;
+            timeReq->Time.Microseconds = 20000;
+            IExec->SendIO(&timeReq->Request);
         }
     }
 }
 
 int main (int argc, char* argv[])
 {
-    webView = WebView::createInstance();
-    webView->parseConfigFile();
-    IntRect rect = webView->frameRect();
+    if (!initTimer())
+       return RETURN_ERROR;
 
-     if (rect.isEmpty()) {
-        s_owbwindow = createAmigaWindow(800, 600);
-        IntRect clientRect(0, 0, 800, 600);
-        webView->initWithFrame(clientRect,"", "");
-    } else {
-        s_owbwindow = createAmigaWindow(rect.width(), rect.height());
-        webView->initWithFrame(rect, "", "");
+    initAmigaConfig();
+
+    sharedPort = (MsgPort *)IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE);
+    if (sharedPort) {
+        WebView *webView = WebView::createInstance();
+        BalWidget *owbwindow = createAmigaWindow(webView);
+
+        if (owbwindow) {
+            IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+            webView->initWithFrame(clientRect,"", "");
+
+            webView->setViewWindow(owbwindow);
+
+            webView->mainFrame()->loadURL(argc > 1 ? argv[1] : amigaConfig.homeURL);
+
+            waitEvent();
+        }
+        else
+            delete webView;
+
+        IExec->FreeSysObject(ASOT_PORT, sharedPort);
     }
 
-    webView->setViewWindow(s_owbwindow);
+    cleanupTimer();
 
- 
-    char* uri = (char*) (argc > 1 ? argv[1] : "http://www.google.com/");
-    webView->mainFrame()->loadURL(uri);
-
-    /*if(webView->canZoomPageIn()) {
-        printf("canZoomPageIn\n");
-        webView->zoomPageIn();
-    }*/
-    /*if(webView->canMakeTextLarger()) {
-        printf("canMakeTextLarger\n");
-        webView->makeTextLarger();
-    }*/
-
-    waitEvent();
-
-    closeAmigaWindow(s_owbwindow);
-
-    delete webView;
     DS_INST_DUMP_CURRENT(IOcout);
     DS_CLEAN_DEEPSEE_FRAMEWORK();
     return 0;
 }
+

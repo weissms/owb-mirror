@@ -312,6 +312,29 @@ void WebFrameLoaderClient::dispatchDidFirstLayout()
 
 Frame* WebFrameLoaderClient::dispatchCreatePage()
 {
+#if PLATFORM(AMIGAOS4)
+    extern BalWidget *createAmigaWindow(WebView *);
+    extern void closeAmigaWindow(BalWidget *);
+
+    WebView* newWebView = WebView::createInstance();
+    if (newWebView) {
+        BalWidget *newowbwindow = createAmigaWindow(newWebView);
+        if (newowbwindow) {
+            IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+            newWebView->initWithFrame(clientRect, "", "");
+            newWebView->setViewWindow(newowbwindow);
+
+            WebFrame *mainFrame = newWebView->mainFrame();
+            if (mainFrame && mainFrame->impl())
+                return mainFrame->impl();
+
+            closeAmigaWindow(newowbwindow);
+        }
+        delete newWebView;
+    }
+
+    return 0;
+#else
     /*WebView* webView = m_webFrame->webView();
 
     COMPtr<IWebUIDelegate> ui;
@@ -329,6 +352,7 @@ Frame* WebFrameLoaderClient::dispatchCreatePage()
     COMPtr<WebFrame> mainFrameImpl(Query, mainFrame);
     return core(mainFrameImpl.get());*/
     return 0;
+#endif
 }
 
 void WebFrameLoaderClient::dispatchShow()

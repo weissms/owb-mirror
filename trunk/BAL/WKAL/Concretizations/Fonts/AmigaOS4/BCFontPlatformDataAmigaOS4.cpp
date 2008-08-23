@@ -33,6 +33,7 @@
 #include "PlatformString.h"
 #include "FontDescription.h"
 #include <proto/exec.h>
+#include <proto/diskfont.h>
 #include <diskfont/diskfonttag.h>
 #include <diskfont/oterrors.h>
 #include <proto/utility.h>

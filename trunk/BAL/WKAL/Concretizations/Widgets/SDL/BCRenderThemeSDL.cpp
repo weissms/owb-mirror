@@ -379,49 +379,81 @@ bool RenderThemeBal::paintSearchField(RenderObject* o, const RenderObject::Paint
 
 Color RenderThemeBal::platformActiveSelectionBackgroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFF618ECE);
+#else
     Color c(0, 0, 255);
+#endif
     return c;
 }
 
 Color RenderThemeBal::platformInactiveSelectionBackgroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFFCFCFCF);
+#else
     Color c(0, 0, 255);
+#endif
     return c;
 }
 
 Color RenderThemeBal::platformActiveSelectionForegroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFF000000);
+#else
     Color c(255, 255, 255);
+#endif
     return c;
 }
 
 Color RenderThemeBal::platformInactiveSelectionForegroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFF3F3F3F);
+#else
     Color c(255, 255, 255);
+#endif
     return c;
 }
 
 Color RenderThemeBal::activeListBoxSelectionBackgroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFF618ECE);
+#else
     Color c(0, 0, 255);
+#endif
     return c;
 }
 
 Color RenderThemeBal::inactiveListBoxSelectionBackgroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFFCFCFCF);
+#else
     Color c(0, 0, 255);
+#endif
     return c;
 }
 
 Color RenderThemeBal::activeListBoxSelectionForegroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFF000000);
+#else
     Color c(255, 255, 255);
+#endif
     return c;
 }
 
 Color RenderThemeBal::inactiveListBoxSelectionForegroundColor() const
 {
+#if PLATFORM(AMIGAOS4)
+    Color c(0xFF3F3F3F);
+#else
     Color c(255, 255, 255);
+#endif
     return c;
 }
 

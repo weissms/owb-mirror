@@ -51,7 +51,8 @@
 #define __amigaos4__
 #include <proto/graphics.h>
 #include <graphics/blitattr.h>
-#include <intuition/intuition.h>
+#include <proto/intuition.h>
+#include <intuition/gadgetclass.h>
 #endif
 
 #define WIDTH_MAX 16384
@@ -189,6 +190,10 @@ void ScrollViewScrollbar::geometryChanged() const
 
 void ScrollView::ScrollViewPrivate::setHasHorizontalScrollbar(bool hasBar)
 {
+#if PLATFORM(AMIGAOS4)
+    if (!view->parent())
+        hasBar = false;
+#endif
     if (Scrollbar::hasPlatformScrollbars()) {
         if (hasBar && !hBar && !horizontalAdjustment) {
             hBar = new ScrollViewScrollbar(this, HorizontalScrollbar, RegularScrollbar);
@@ -202,6 +207,10 @@ void ScrollView::ScrollViewPrivate::setHasHorizontalScrollbar(bool hasBar)
 
 void ScrollView::ScrollViewPrivate::setHasVerticalScrollbar(bool hasBar)
 {
+#if PLATFORM(AMIGAOS4)
+    if (!view->parent())
+        hasBar = false;
+#endif
     if (Scrollbar::hasPlatformScrollbars()) {
         if (hasBar && !vBar && !verticalAdjustment) {
             vBar = new ScrollViewScrollbar(this, VerticalScrollbar, RegularScrollbar);
@@ -603,6 +612,9 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
     const int cVerticalWidth = PlatformScrollbar::verticalScrollbarWidth();
     const int cHorizontalHeight = PlatformScrollbar::horizontalScrollbarHeight();
 
+#if PLATFORM(AMIGAOS4)
+    if (parent())
+#endif
     for (int pass = 0; pass < 2; pass++) {
         bool scrollsVertically;
         bool scrollsHorizontally;

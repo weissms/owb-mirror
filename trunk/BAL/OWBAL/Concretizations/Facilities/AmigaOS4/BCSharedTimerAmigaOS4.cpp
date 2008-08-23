@@ -95,7 +95,7 @@ static uint32 timerint_func(struct ExceptionContext *Context, struct ExecBase *S
 
 static struct MsgPort *mp = NULL;
 static struct TimeRequest *timereq = NULL;
-static struct Interrupt timerint = { { NULL, NULL, NT_UNKNOWN, 0, "OWB shared timer int" }, NULL, (void (*)(void)) timerint_func };
+static struct Interrupt timerint = { { NULL, NULL, NT_UNKNOWN, 0, (char *)"OWB shared timer int" }, NULL, (void (*)(void)) timerint_func };
 
 static void cleanup(void)
 {

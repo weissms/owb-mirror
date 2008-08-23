@@ -1,3 +1,32 @@
+2008-08-23  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Use native scroll bars for the main frame on AmigaOS4.
+        Use default system colours for the theme on AmigaOS4.
+
+        * Base/AmigaOS4/BALTypeAmigaOS4.h:
+        * OWBAL/Concretizations/Facilities/AmigaOS4/BCSharedTimerAmigaOS4.cpp:
+        (OWBAL::):
+        * OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h:
+        (TCMalloc_SpinLock::Unlock):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontAmigaOS4.cpp:
+        (WKAL::Font::drawGlyphs):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp:
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontPlatformDataAmigaOS4.h:
+        * WKAL/Concretizations/Widgets/SDL/BCRenderThemeSDL.cpp:
+        (WKAL::RenderThemeBal::platformActiveSelectionBackgroundColor):
+        (WKAL::RenderThemeBal::platformInactiveSelectionBackgroundColor):
+        (WKAL::RenderThemeBal::platformActiveSelectionForegroundColor):
+        (WKAL::RenderThemeBal::platformInactiveSelectionForegroundColor):
+        (WKAL::RenderThemeBal::activeListBoxSelectionBackgroundColor):
+        (WKAL::RenderThemeBal::inactiveListBoxSelectionBackgroundColor):
+        (WKAL::RenderThemeBal::activeListBoxSelectionForegroundColor):
+        (WKAL::RenderThemeBal::inactiveListBoxSelectionForegroundColor):
+        * WKAL/Concretizations/Widgets/SDL/BCScrollViewSDL.cpp:
+        (WKAL::ScrollView::ScrollViewPrivate::setHasHorizontalScrollbar):
+        (WKAL::ScrollView::ScrollViewPrivate::setHasVerticalScrollbar):
+        (WKAL::ScrollView::updateScrollbars):
+
 2008-08-22  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

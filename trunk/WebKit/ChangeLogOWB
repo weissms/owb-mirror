@@ -1,3 +1,15 @@
+2008-08-23  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Add support for multiple windows on AmigaOS4.
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::~WebView):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchCreatePage):
+
 2008-08-19  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

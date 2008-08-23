@@ -128,13 +128,29 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
             return;
 #endif
         case RAWKEY_F1:
+        {
             m_webView->goBack();
-            view->update();
+            GraphicsContext ctx(m_webView->viewWindow()->surface);
+            if (frame->contentRenderer() && frame->view()) {
+                frame->view()->layoutIfNeededRecursive();
+                IntRect dirty(0, 0, m_rect.width(), m_rect.height());
+                frame->view()->paint(&ctx, dirty);
+                m_webView->clearDirtyRegion();
+            }
             return;
+        }
         case RAWKEY_F2:
+        {
             m_webView->goForward();
-            view->update();
+            GraphicsContext ctx(m_webView->viewWindow()->surface);
+            if (frame->contentRenderer() && frame->view()) {
+                frame->view()->layoutIfNeededRecursive();
+                IntRect dirty(0, 0, m_rect.width(), m_rect.height());
+                frame->view()->paint(&ctx, dirty);
+                m_webView->clearDirtyRegion();
+            }
             return;
+        }
         case RAWKEY_F3:
             if (m_webView->canZoomPageIn())
                 m_webView->zoomPageIn();

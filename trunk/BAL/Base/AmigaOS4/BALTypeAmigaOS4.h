@@ -38,6 +38,9 @@ struct SDL_Cursor;
 struct SDL_Rect;
 struct Window;
 struct Gadget;
+struct OutlineFont;
+struct Hook;
+class WebView;
 
 namespace WKAL {
     class FloatSize;
@@ -52,12 +55,23 @@ struct AmigaOWBWindow
     struct Gadget *gad_toolbar, *gad_vbar, *gad_hbar,
                   *gad_url, *gad_fuelgauge, *gad_stop,
                   *gad_back, *gad_forward;
+    struct Hook *backfill_hook;
+    struct AmigaOWBWindow *next;
+    WebView *webView;
 };
 
 struct AmigaOWBResizeEvent
 {
     int w, h;
 };
+
+struct AmigaConfig
+{
+    const char *homeURL;
+    const char *searchURL;
+    int width, height;
+};
+extern struct AmigaConfig amigaConfig;
 
 typedef struct SDL_ExposeEvent BalEventExpose;
 typedef struct AmigaOWBResizeEvent BalResizeEvent;
@@ -69,6 +83,7 @@ typedef struct IntuiMessage BalEventMotion;
 typedef struct IntuiMessage BalEventScroll;
 typedef struct OutlineFont BalFontFace;
 typedef void BalFont;
+typedef void BalPattern;
 typedef void BalScaledFont;
 typedef void BalDrawable;
 typedef SDL_Surface BalSurface;
@@ -88,6 +103,7 @@ typedef struct _BalMatrix{} BalMatrix;
 
 typedef SDL_Surface PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
+typedef void* PlatformPatternPtr;
 
 namespace WKAL {
     typedef void* PlatformGradient;
