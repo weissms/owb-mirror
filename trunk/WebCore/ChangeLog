@@ -1,3 +1,232 @@
+2008-08-25  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Simon.
+
+        Transformed the radian to degree, to get rotate()
+        in canvas work as expected.
+
+        [Qt] Canvas.rotate() doesn't work
+        https://bugs.webkit.org/show_bug.cgi?id=20496
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::rotate):
+
+2008-08-24  Steve Falkenburg  <sfalken@apple.com>
+
+        Add a "last chance" WM_TIMER to the Windows shared timer.
+        
+        The last chance timer fires every 5 seconds to run any lost WM_TIMER based timers.
+        Failure to fire a timer is fatal to the cross-platform Timer code, since it won't re-schedule
+        timers if a timer with an earlier expiration is already pending. This results in no timers
+        firing from that point on.
+        
+        We lose WM_TIMER messages occasionally (in the neighborhood of 1 per hour) probably due to a
+        buggy window message hook.
+        
+        This timer will start when the first WM_TIMER is scheduled, and will
+        fire every 5 seconds thereafter, causing any lost timers to be fired.
+        
+        Found this via one of its symptoms: leaking WebFrames. The fix prevents timers from stalling
+        and prevents the WebFrame leak.
+        
+        Reviewed by Darin Adler, Geoff Garen.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::):
+        (WebCore::TimerWindowWndProc):
+        (WebCore::setSharedTimerFireTime):
+
+2008-08-24  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6065547> REGRESSION (r34879): "Subject" in unread emails in Yahoo mail is not shown in bold
+
+        Test: fast/css/font-property-priority.html
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue): Changed to pass the 'important' flag
+        to the font-property-parsing functions.
+        (WebCore::CSSParser::parseFontStyle): Added an 'important' argument and
+        changed to use it rather than the m_important member.
+        (WebCore::CSSParser::parseFontVariant): Ditto.
+        (WebCore::CSSParser::parseFontWeight): Ditto.
+        * css/CSSParser.h:
+
+2008-08-24  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where the Inspector's UI would not animate or
+        fully function because JavaScript timeouts, intervals and
+        CSS animation timers where not firing while paused at a
+        a breakpoint in the inspected page.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20042
+
+        Reviewed by Darin Adler.
+
+        Test: manual-tests/inspector/forzen-ui-while-paused.html
+
+        * page/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::pauseIfNeeded):
+        Add a call to TimerBase::fireTimersInNestedEventLoop before
+        spinning the EventLoop.
+
+2008-08-24  Rob Buis  <buis@kde.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20324
+        A change in SVG Glyph wont show up
+
+        Invalidate the glyph cache when the d attribute is set.
+
+        Test: svg/custom/glyph-setting-d-attribute.svg
+
+        * svg/SVGGlyphElement.cpp:
+        (WebCore::SVGGlyphElement::invalidateGlyphCache):
+        (WebCore::SVGGlyphElement::parseMappedAttribute):
+        (WebCore::SVGGlyphElement::insertedIntoDocument):
+        (WebCore::SVGGlyphElement::removedFromDocument):
+        * svg/SVGGlyphElement.h:
+
+2008-08-24  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=13864
+          <rdar://problem/5451470> REGRESSION: Uninitialized value in RenderBlock::calcInlinePrefWidths()
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::trimmedPrefWidths): Moved the assignment to
+        beginWS and endWS before the early return to ensure that they are
+        initialized in that case.
+
+2008-08-23  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Mark Rowe.
+
+        Remove modelines.
+
+        * WebCore.pro:
+        * bridge/testbindings.cpp:
+        * dom/DocPtr.h:
+        * loader/SubstituteData.h:
+        * page/Chrome.cpp:
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * page/Frame.h:
+        * page/FrameLoadRequest.h:
+        * page/FrameTree.cpp:
+        * page/FrameTree.h:
+        * page/Page.h:
+        * page/mac/ChromeMac.mm:
+        * platform/network/HTTPHeaderMap.h:
+        * platform/network/ResourceErrorBase.cpp:
+        * platform/network/ResourceErrorBase.h:
+        * platform/network/ResourceHandleInternal.h:
+        * platform/network/ResourceRequestBase.cpp:
+        * platform/network/ResourceRequestBase.h:
+        * platform/network/ResourceResponseBase.cpp:
+        * platform/network/ResourceResponseBase.h:
+        * platform/network/cf/ResourceError.h:
+        * platform/network/cf/ResourceRequest.h:
+        * platform/network/cf/ResourceRequestCFNet.h:
+        * platform/network/cf/ResourceResponse.h:
+        * platform/network/cf/ResourceResponseCFNet.h:
+        * platform/network/curl/ResourceError.h:
+        * platform/network/curl/ResourceRequest.h:
+        * platform/network/curl/ResourceResponse.h:
+        * platform/network/mac/ResourceError.h:
+        * platform/network/mac/ResourceErrorMac.mm:
+        * platform/network/mac/ResourceRequest.h:
+        * platform/network/mac/ResourceRequestMac.mm:
+        * platform/network/mac/ResourceResponse.h:
+        * platform/network/mac/ResourceResponseMac.mm:
+        * platform/network/qt/ResourceError.h:
+        * platform/network/qt/ResourceRequest.h:
+        * platform/network/qt/ResourceResponse.h:
+        * platform/network/soup/CookieJarSoup.cpp:
+        * platform/network/soup/ResourceError.h:
+        * platform/network/soup/ResourceRequest.h:
+        * platform/network/soup/ResourceResponse.h:
+
+2008-08-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix <rdar://problem/6065143> Reflowed image in first line of table doesn't affect baseline
+
+        Test: fast/table/vertical-align-baseline.html
+
+        * rendering/RenderTable.cpp:
+        (WebCore::RenderTable::getBaselineOfFirstLineBox): Added. Returns the
+        baseline of the first table row, if there is one, -1 otherwise.
+        * rendering/RenderTable.h:
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::baselinePosition): Changed to follow the
+        CSS2.1 definition of the baseline of a table cell.
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::getBaselineOfFirstLineBox): Added. Returns
+        the baseline of the first row in the section.
+        * rendering/RenderTableSection.h:
+
+2008-08-18  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Add SPI to make a Windows WebView transparent.
+
+        Reviewed by Dan Bernstein.
+
+        * platform/graphics/GraphicsContext.h: Add a parameter, hasAlpha, that
+        determines whether the created context has an alpha channel.
+        * platform/graphics/win/GraphicsContextCGWin.cpp:
+        (WebCore::CGContextWithHDC):
+
+2008-08-22  Timothy Hatcher  <timothy@apple.com>
+
+        Rolls out r35834 because it caused a regression in the Inspector's
+        Console where some expressions always threw a syntax error.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20487
+
+        * page/inspector/Console.js:
+        (Console.prototype._evalInInspectedWindow): Removes parenthesis
+        around the expression.
+
+2008-08-22  Timothy Hatcher  <timothy@apple.com>
+
+        Makes getStyleProperty return a value for the overflow property
+        when overflow-x and overflow-y are equal.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20485
+
+        Reviewed by Dan Bernstein.
+
+        Test: fast/css/overflow-property.html
+
+        * css/CSSMutableStyleDeclaration.cpp:
+        (WebCore::CSSMutableStyleDeclaration::getPropertyValue):
+
+2008-08-22  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where while editing in the Inspector the
+        sidebar scroll position would jump to the top.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20484
+
+        Reviewed by Darin Adler.
+
+        * page/inspector/treeoutline.js:
+        (TreeOutline._removeChildren): Remove the offsetTop call that
+        was forcing a layout, since layout causes scroll positions
+        to be clamped to the new scrollHeight/Width. Layout will happen
+        normally when needed.
+
+2008-08-22  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Add AccessibilityTable sources.
+
+        * WebCoreSources.bkl:
+
 2008-08-22  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Jon Honeycutt and Alexey Proskuryakov.

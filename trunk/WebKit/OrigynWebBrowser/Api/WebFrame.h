@@ -364,6 +364,11 @@ public:
     virtual void setIsDisconnected(bool flag);
 
     /**
+     * setExcludeFromTextSearch
+     */
+    virtual void setExcludeFromTextSearch(bool flag);
+
+    /**
      * test if the frame supports text encoding 
      */
     virtual bool supportsTextEncoding();
@@ -671,6 +676,8 @@ public:
      * unmark all bad grammar 
      */
     void unmarkAllBadGrammar();
+
+    void updateBackground();
 
     // WebFrame (matching WebCoreFrameBridge)
 

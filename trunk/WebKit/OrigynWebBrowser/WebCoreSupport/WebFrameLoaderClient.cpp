@@ -538,6 +538,8 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
 
     frame->setView(0);
 
+    m_webFrame->updateBackground();
+
     WebView* webView = m_webFrame->webView();
 
     FrameView* frameView;

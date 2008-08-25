@@ -285,6 +285,17 @@ HRESULT STDMETHODCALLTYPE WebFrame::setIsDisconnected(
     return E_FAIL;
 }
 
+HRESULT STDMETHODCALLTYPE WebFrame::setExcludeFromTextSearch(
+    /* [in] */ BOOL flag)
+{
+    if (Frame* frame = core(this)) {
+        frame->setExcludeFromTextSearch(flag);
+        return S_OK;
+    }
+
+    return E_FAIL;
+}
+
 HRESULT STDMETHODCALLTYPE WebFrame::paintDocumentRectToContext(
     /* [in] */ RECT rect,
     /* [in] */ OLE_HANDLE deviceContext)
@@ -2020,5 +2031,19 @@ COMPtr<IAccessible> WebFrame::accessible() const
         m_accessible = new AccessibleDocument(currentDocument);
     }
     return m_accessible.get();
+}
+
+void WebFrame::updateBackground()
+{
+    Color backgroundColor = webView()->transparent() ? Color::transparent : Color::white;
+    Frame* coreFrame = core(this);
+    for (Frame* frame = coreFrame; frame; frame = frame->tree()->traverseNext(coreFrame)) {
+        FrameView* view = frame->view();
+        if (!view)
+            continue;
+
+        view->setTransparent(webView()->transparent());
+        view->setBaseBackgroundColor(backgroundColor);
+    }
 }
 

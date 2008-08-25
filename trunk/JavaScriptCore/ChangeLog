@@ -1,3 +1,122 @@
+2008-08-25  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 20093: JSC shell does not clear exceptions after it executes toString on an expression
+        <https://bugs.webkit.org/show_bug.cgi?id=20093>
+
+        Clear exceptions after evaluating any code in the JSC shell. We do not
+        report exceptions that are caused by calling toString on the final
+        valued, but at least we avoid incorrect behaviour.
+
+        Also, print any exceptions that occurred while evaluating code at the
+        interactive prompt, not just while evaluating code from a file.
+
+        * kjs/Shell.cpp:
+        (runWithScripts):
+        (runInteractive):
+
+2008-08-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Use the correct version number for when JSGlobalContextCreate was introduced.
+
+        * API/JSContextRef.h:
+
+2008-08-23  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Mark Rowe.
+
+        Remove modelines.
+
+        * API/APICast.h:
+        * API/JSBase.cpp:
+        * API/JSCallbackConstructor.cpp:
+        * API/JSCallbackConstructor.h:
+        * API/JSCallbackFunction.cpp:
+        * API/JSCallbackFunction.h:
+        * API/JSCallbackObject.cpp:
+        * API/JSCallbackObject.h:
+        * API/JSCallbackObjectFunctions.h:
+        * API/JSClassRef.cpp:
+        * API/JSContextRef.cpp:
+        * API/JSObjectRef.cpp:
+        * API/JSProfilerPrivate.cpp:
+        * API/JSStringRef.cpp:
+        * API/JSStringRefBSTR.cpp:
+        * API/JSStringRefCF.cpp:
+        * API/JSValueRef.cpp:
+        * API/tests/JSNode.c:
+        * API/tests/JSNode.h:
+        * API/tests/JSNodeList.c:
+        * API/tests/JSNodeList.h:
+        * API/tests/Node.c:
+        * API/tests/Node.h:
+        * API/tests/NodeList.c:
+        * API/tests/NodeList.h:
+        * API/tests/minidom.c:
+        * API/tests/minidom.js:
+        * API/tests/testapi.c:
+        * API/tests/testapi.js:
+        * JavaScriptCore.pro:
+        * kjs/FunctionConstructor.h:
+        * kjs/FunctionPrototype.h:
+        * kjs/JSArray.h:
+        * kjs/JSString.h:
+        * kjs/JSWrapperObject.cpp:
+        * kjs/NumberConstructor.h:
+        * kjs/NumberObject.h:
+        * kjs/NumberPrototype.h:
+        * kjs/lexer.h:
+        * kjs/lookup.h:
+        * wtf/Assertions.cpp:
+        * wtf/Assertions.h:
+        * wtf/HashCountedSet.h:
+        * wtf/HashFunctions.h:
+        * wtf/HashIterators.h:
+        * wtf/HashMap.h:
+        * wtf/HashSet.h:
+        * wtf/HashTable.h:
+        * wtf/HashTraits.h:
+        * wtf/ListHashSet.h:
+        * wtf/ListRefPtr.h:
+        * wtf/Noncopyable.h:
+        * wtf/OwnArrayPtr.h:
+        * wtf/OwnPtr.h:
+        * wtf/PassRefPtr.h:
+        * wtf/Platform.h:
+        * wtf/RefPtr.h:
+        * wtf/RefPtrHashMap.h:
+        * wtf/RetainPtr.h:
+        * wtf/UnusedParam.h:
+        * wtf/Vector.h:
+        * wtf/VectorTraits.h:
+        * wtf/unicode/Unicode.h:
+        * wtf/unicode/icu/UnicodeIcu.h:
+
+2008-08-22  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver.
+
+        Some cleanup to match our coding style.
+
+        * VM/CodeGenerator.h:
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        * kjs/ExecState.cpp:
+        * kjs/ExecState.h:
+        * kjs/completion.h:
+        * kjs/identifier.cpp:
+        (KJS::Identifier::equal):
+        (KJS::CStringTranslator::hash):
+        (KJS::CStringTranslator::equal):
+        (KJS::CStringTranslator::translate):
+        (KJS::UCharBufferTranslator::equal):
+        (KJS::UCharBufferTranslator::translate):
+        (KJS::Identifier::remove):
+        * kjs/operations.h:
+
 2008-08-22  Alexey Proskuryakov  <ap@webkit.org>
 
         Windows build fix.

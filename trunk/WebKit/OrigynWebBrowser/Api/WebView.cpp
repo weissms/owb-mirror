@@ -226,6 +226,7 @@ WebView::WebView()
 , m_inIMEComposition(0)
 , m_toolTipHwnd(0)
 , m_deleteBackingStoreTimerActive(false)
+, m_transparent(false)
 , m_closeWindowTimer(this, &WebView::closeWindowTimerFired)
 , m_topLevelParent(0)
 , d(new WebViewPrivate(this))
@@ -2258,6 +2259,44 @@ void WebView::paintDocumentRectToContext(IntRect rect, PlatformGraphicsContext *
     gc.restore();
 }
 
+void WebView::setCustomHTMLTokenizerTimeDelay(double timeDelay)
+{
+    if (!m_page)
+        return;
+
+    m_page->setCustomHTMLTokenizerTimeDelay(timeDelay);
+}
+
+void WebView::setCustomHTMLTokenizerChunkSize(int chunkSize)
+{
+    if (!m_page)
+        return;
+
+    m_page->setCustomHTMLTokenizerChunkSize(chunkSize);
+}
+
+Image* WebView::backingStore()
+{
+    Image* hBitmap = m_backingStoreBitmap.get();
+    return hBitmap;
+}
+
+void WebView::setTransparent(bool transparent)
+{
+    if (m_transparent == !!transparent)
+        return;
+
+    m_transparent = transparent;
+    m_mainFrame->updateBackground();
+}
+
+void WebView::transparent(bool* transparent)
+{
+    if (!transparent)
+        return;
+
+    *transparent = this->transparent() ? true : false;
+}
 
 Page* core(WebView* webView)
 {

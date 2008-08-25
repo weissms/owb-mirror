@@ -230,6 +230,14 @@ void WebFrame::setIsDisconnected(bool flag)
         frame->setIsDisconnected(flag);
 }
 
+void WebFrame::setExcludeFromTextSearch(bool flag)
+{
+    if (Frame* frame = core(this)) {
+        frame->setExcludeFromTextSearch(flag);
+        return;
+    }
+}
+
 String WebFrame::name()
 {
     Frame* coreFrame = core(this);
@@ -1464,6 +1472,22 @@ void WebFrame::unmarkAllBadGrammar()
             return;
 
         doc->removeMarkers(DocumentMarker::Grammar);
+    }
+}
+
+void WebFrame::updateBackground()
+{
+    // FIXME: should use Color for a cleaner code.
+    //Color backgroundColor = webView()->transparent() ? Color::transparent : Color::white;
+    Color backgroundColor = webView()->transparent() ? 0x00000000 : 0xffffffff;
+    Frame* coreFrame = core(this);
+    for (Frame* frame = coreFrame; frame; frame = frame->tree()->traverseNext(coreFrame)) {
+        FrameView* view = frame->view();
+        if (!view)
+            continue;
+
+        view->setTransparent(webView()->transparent());
+        view->setBaseBackgroundColor(backgroundColor);
     }
 }
 

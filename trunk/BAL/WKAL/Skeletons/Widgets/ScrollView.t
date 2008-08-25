@@ -362,14 +362,7 @@ namespace WKAL {
     /**
      * should Update while offscreen
      */
-        virtual bool shouldUpdateWhileOffscreen() const = 0
-
-    /**
-     * For platforms that need to hit test scrollbars from within the engine's event handlers (like Win32).
-     * @param[in] : mouse event
-     * @param[out] : platform scrollbar
-     * @code
-     * PlatformScrollbar *sc = s->scrollbarUnderMouse(me);
+        virtual bool shouldUpdateWhileOffscreen() const = 0;
      * @endcode
      */
      PlatformScrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);

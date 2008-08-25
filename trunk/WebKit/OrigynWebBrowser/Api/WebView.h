@@ -947,6 +947,31 @@ public:
      */
     virtual void paintDocumentRectToContext(WebCore::IntRect rect, PlatformGraphicsContext *pgc);
 
+    /**
+     * setCustomHTMLTokenizerTimeDelay
+     */
+    virtual void setCustomHTMLTokenizerTimeDelay(double timeDelay);
+
+    /**
+     * setCustomHTMLTokenizerChunkSize
+     */
+    virtual void setCustomHTMLTokenizerChunkSize(int chunkSize);
+
+    /**
+     * backingStore
+     */
+    virtual WebCore::Image* backingStore();
+
+    /**
+     * setTransparent
+     */
+    virtual void setTransparent(bool transparent);
+
+    /**
+     * transparent
+     */
+    virtual void transparent(bool* transparent);
+
 
     /**
      * get page 
@@ -1069,6 +1094,11 @@ public:
      * didClose 
      */
     bool didClose() const { return m_didClose; }
+
+    /**
+     * transparent
+     */
+    bool transparent() const { return m_transparent; }
 
     /**
      *  selectionChanged 
@@ -1374,6 +1404,8 @@ protected:
     BalWidget* m_toolTipHwnd;
     WebCore::String m_toolTip;
     bool m_deleteBackingStoreTimerActive;
+
+    bool m_transparent;
 
     static bool s_allowSiteSpecificHacks;
 
