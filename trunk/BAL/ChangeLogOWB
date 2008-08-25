@@ -1,3 +1,11 @@
+2008-08-25  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        better fix for ticket #272
+
+        * WKAL/Concretizations/Graphics/SDL/BCImageSDL.cpp:
+        (WKAL::Image::drawPattern):
+
 2008-08-23  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

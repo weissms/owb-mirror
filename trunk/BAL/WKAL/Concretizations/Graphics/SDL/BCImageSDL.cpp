@@ -265,11 +265,9 @@ void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, con
         srcRect.y = static_cast<Sint16>(src.y() * ratioH);
     }
     
-    for (int x = static_cast<int>(phase.x()); x <= xMax; x += image->w) {
-        for (int y = static_cast<int>(phase.y()); y <= yMax; y += image->h) {
+    for (int x = static_cast<int>(phase.x()); x < xMax; x += image->w) {
+        for (int y = static_cast<int>(phase.y()); y < yMax; y += image->h) {
             dest.setLocation(IntPoint(x, y) + context->origin());
-	    //Fix artifact when the dest.y() is negative
-            if (dest.y() < -30) break;
             dstRect.x = static_cast<Sint16>(dest.x());
             dstRect.y = static_cast<Sint16>(dest.y());
             dstRect.w = static_cast<Sint16>(dest.width());
