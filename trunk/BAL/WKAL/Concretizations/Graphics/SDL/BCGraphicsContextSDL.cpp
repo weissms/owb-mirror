@@ -161,8 +161,8 @@ void GraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
     if (width < 1)
         width = 1;
 
-    IntPoint p1(point1 + origin());
-    IntPoint p2(point2 + origin());
+    IntPoint p1(point1);
+    IntPoint p2(point2);
     Color color = strokeColor();
 
     int alpha;
@@ -576,12 +576,18 @@ void GraphicsContext::drawLineForText(const IntPoint& startPoint, int width, boo
     if (paintingDisabled())
         return;
 
+    // This is a workaround for http://bugs.webkit.org/show_bug.cgi?id=15659
+    StrokeStyle savedStrokeStyle = strokeStyle();
+    setStrokeStyle(SolidStroke);
+
     IntPoint point(startPoint + origin());
 
     IntPoint endPoint = point + IntSize(width, 0);
 
     // NOTE we should adjust line to pixel boundaries
     drawLine(point, endPoint);
+
+    setStrokeStyle(savedStrokeStyle);
 }
 
 void GraphicsContext::drawLineForMisspellingOrBadGrammar(const IntPoint& origin, int width, bool grammar)
