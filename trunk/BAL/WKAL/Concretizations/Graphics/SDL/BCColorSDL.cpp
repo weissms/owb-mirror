@@ -24,6 +24,15 @@
 
 namespace WKAL {
 
+Color focusRingColor()
+{
+    return 0xFF0000FF;
+}
+
+void setFocusRingColorChangeFunction(void (*)())
+{
+}
+
 Color::Color(const BalColor& c)
     : m_color(makeRGB(c.r, c.g, c.b))
     , m_valid(true)

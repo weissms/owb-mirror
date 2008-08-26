@@ -26,19 +26,35 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "config.h"
+#include "owb-config.h"
 #include "BitmapImage.h"
 
 #include "AffineTransform.h"
 #include "FloatRect.h"
 #include "GraphicsContext.h"
 #include "ImageObserver.h"
+#include "PlatformString.h"
+#include "SharedBuffer.h"
+
 #include <math.h>
 #include "SDL.h"
 #include <SDL/SDL_gfxPrimitives.h>
 #include <SDL/SDL_rotozoom.h>
 
 // This function loads resources from WebKit
-Vector<char> loadResourceIntoArray(const char*);
+Vector<char> loadResourceIntoArray(const char* name)
+{
+    WebCore::String fullPath = RESOURCE_PATH;
+    WebCore::String extension = ".png";
+    fullPath += name;
+    fullPath += extension;
+    
+    static PassRefPtr<WebCore::SharedBuffer> buffer = WebCore::SharedBuffer::createWithContentsOfFile(fullPath);
+    Vector<char> array;
+    if (buffer)
+        array = buffer.get()->buffer();
+    return array;
+}
 
 namespace WKAL {
 

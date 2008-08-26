@@ -25,45 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**
- * @file  BCFileLinux.h
- *
- * Header file for BCGFileLinux.
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date$
- */
-
-#ifndef BCFILELINUX_H
-#define BCFILELINUX_H
-
+ 
 #include "config.h"
-#include "PlatformString.h"
+#include "SharedBuffer.h"
+#include "FileIO.h"
 
 namespace OWBAL {
 
+PassRefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
+{
+    if (filePath.isEmpty())
+        return 0;
+ 
+    File *fileData = new File(filePath);
+    if (fileData->open('r') < 0) {
+        LOG_ERROR("Failed to open file %s to create shared buffer", filePath.ascii().data());
+        return 0;
+    }
 
-class File {
-public:
-    File(const String path);
-    virtual ~File();
+    int fileSize = fileData->getSize();
+    if (fileSize <= 0) {
+        fileData->close();
+        delete fileData;
+        return 0;
+    }
 
-    virtual int open(char openType);
-
-    virtual void close();
-
-    virtual char* read(size_t size);
-    virtual void write(String dataToWrite);
-
-    virtual int getSize();
-private:
-    int m_fd;
-    const String m_filePath;
-};
-
+    RefPtr<SharedBuffer> result = SharedBuffer::create(fileData->read(fileSize), fileSize);
+    fileData->close();
+    if (result->m_buffer.size() != static_cast<unsigned> (fileSize)) {
+        LOG_ERROR("Failed to properly create shared buffer");
+        result->m_buffer.clear();
+        result = 0;
+    }
+    delete fileData;
+    return result.release();
+}
 }
 
-#endif //BCFILELINUX_H

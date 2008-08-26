@@ -1,3 +1,13 @@
+2008-08-26  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        - add a resources directory containing stuff like images to display
+        when the plugin is not detected.
+
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/resources: Added.
+        * OWBLauncher/resources/missing-plugin.png: Added.
+
 2008-08-23  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

@@ -38,7 +38,7 @@
 
 namespace OWBAL {
 
-File::File(String path)
+File::File(const String path)
     : m_fd(0)
     , m_filePath(path)
 {

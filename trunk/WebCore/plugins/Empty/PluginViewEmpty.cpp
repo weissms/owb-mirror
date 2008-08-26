@@ -140,6 +140,11 @@ const char* PluginView::userAgentStatic()
     return "";
 }
 
+void PluginView::invalidateRegion(NPRegion)
+{
+    notImplemented();
+}
+
 NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const char* buf)
 {
     return NPERR_NO_ERROR;

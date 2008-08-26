@@ -25,45 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**
- * @file  BCFileLinux.h
- *
- * Header file for BCGFileLinux.
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date$
- */
-
-#ifndef BCFILELINUX_H
-#define BCFILELINUX_H
-
+ 
 #include "config.h"
-#include "PlatformString.h"
+#include "KURL.h"
+
+#include "NotImplemented.h"
 
 namespace OWBAL {
 
-
-class File {
-public:
-    File(const String path);
-    virtual ~File();
-
-    virtual int open(char openType);
-
-    virtual void close();
-
-    virtual char* read(size_t size);
-    virtual void write(String dataToWrite);
-
-    virtual int getSize();
-private:
-    int m_fd;
-    const String m_filePath;
-};
+String KURL::fileSystemPath() const
+{
+    notImplemented();
+    return String();
+}
 
 }
 
-#endif //BCFILELINUX_H

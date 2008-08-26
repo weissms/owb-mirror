@@ -1,3 +1,34 @@
+2008-08-26  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        - fix in BCFileIOLinux to use const String in constructor.
+        - Remove TemporaryLinkStubs for SDL.
+        - Implement SharedBuffer::createWithContentsOfFile and
+        loadResourceIntoArray.
+
+
+        * Includes/owb-config.h.cmake:
+        * OWBAL/Concretizations/Facilities/CMakeLists.txt:
+        * OWBAL/Concretizations/Facilities/Linux/BCFileIOLinux.cpp:
+        (OWBAL::File::File):
+        * OWBAL/Concretizations/Facilities/Linux/BCFileIOLinux.h:
+        * OWBAL/Concretizations/Facilities/Linux/BCSystemTimeLinux.cpp:
+        (OWBAL::userIdleTime):
+        * OWBAL/Concretizations/Facilities/SDL/BCSSLKeyGeneratorSDL.cpp: Added.
+        (OWBAL::supportedKeySizes):
+        (OWBAL::signedPublicKeyAndChallengeString):
+        * OWBAL/Concretizations/Types/CMakeLists.txt:
+        * OWBAL/Concretizations/Types/SDL/BCKURLSDL.cpp: Added.
+        (OWBAL::KURL::fileSystemPath):
+        * OWBAL/Concretizations/Types/SDL/BCSharedBufferSDL.cpp: Added.
+        (OWBAL::SharedBuffer::createWithContentsOfFile):
+        * WKAL/Concretizations/Graphics/CMakeLists.txt:
+        * WKAL/Concretizations/Graphics/SDL/BCColorSDL.cpp:
+        (WKAL::focusRingColor):
+        (WKAL::setFocusRingColorChangeFunction):
+        * WKAL/Concretizations/Graphics/SDL/BCImageSDL.cpp:
+        (loadResourceIntoArray):
+
 2008-08-26  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Olivier DOLE.

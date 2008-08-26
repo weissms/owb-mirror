@@ -64,6 +64,7 @@ ELSEIF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "SDL")
         SDL/BCLanguageSDL.cpp
         SDL/BCLoggingSDL.cpp
         SDL/BCMIMETypeRegistrySDL.cpp
+        SDL/BCSSLKeyGeneratorSDL.cpp
     )
 
     INCLUDE_DIRECTORIES (${SDL_INCLUDE_DIRS})

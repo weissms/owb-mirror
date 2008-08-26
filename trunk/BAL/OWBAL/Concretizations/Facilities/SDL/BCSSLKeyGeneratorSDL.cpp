@@ -26,44 +26,23 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file  BCFileLinux.h
- *
- * Header file for BCGFileLinux.
- *
- * Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date$
- */
-
-#ifndef BCFILELINUX_H
-#define BCFILELINUX_H
-
 #include "config.h"
-#include "PlatformString.h"
+#include "SSLKeyGenerator.h"
+
+#include "NotImplemented.h"
 
 namespace OWBAL {
 
+Vector<String> supportedKeySizes()
+{ 
+    notImplemented();
+    return Vector<String>();
+}
 
-class File {
-public:
-    File(const String path);
-    virtual ~File();
-
-    virtual int open(char openType);
-
-    virtual void close();
-
-    virtual char* read(size_t size);
-    virtual void write(String dataToWrite);
-
-    virtual int getSize();
-private:
-    int m_fd;
-    const String m_filePath;
-};
+String signedPublicKeyAndChallengeString(unsigned keySizeIndex, const String &challengeString, const KURL &url)
+{
+    return String();
+}
 
 }
 
-#endif //BCFILELINUX_H
