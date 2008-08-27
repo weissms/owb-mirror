@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
- * Copyright (C) 2006 Michael Emmel mike.emmel@gmail.com
- * All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,28 +23,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "SystemTime.h"
-#include "NotImplemented.h"
-#include <sys/time.h>
-#include <float.h>
+#import "config.h"
+#import "AccessibilityObject.h"
 
-namespace OWBAL {
+#import "AccessibilityObjectWrapper.h"
 
-double currentTime()
+namespace WebCore {
+
+bool AccessibilityObject::accessibilityIgnoreAttachment() const
 {
-  struct timeval aTimeval;
-  struct timezone aTimezone;
-
-  gettimeofday( &aTimeval, &aTimezone );
-  return (double)aTimeval.tv_sec + (double)(aTimeval.tv_usec / 1000000.0 );
+    return [[wrapper() attachmentView] accessibilityIsIgnored];
 }
-
-// return an arbitrarily high userIdleTime so that releasing pages from the page cache isn't postponed
-float userIdleTime() 
-{ 
-    notImplemented(); 
-    return FLT_MAX; 
-} 
-
-}
+    
+} // WebCore

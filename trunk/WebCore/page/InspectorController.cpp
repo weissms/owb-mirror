@@ -1316,7 +1316,7 @@ void InspectorController::endGroup(MessageSource source, unsigned lineNumber, co
     addConsoleMessage(new ConsoleMessage(source, EndGroupMessageLevel, String(), lineNumber, sourceURL, m_groupLevel));
 }
 
-void InspectorController::addProfile(PassRefPtr<Profile> prpProfile)
+void InspectorController::addProfile(PassRefPtr<Profile> prpProfile, int lineNumber, const UString& sourceURL)
 {
     if (!enabled())
         return;
@@ -1327,10 +1327,10 @@ void InspectorController::addProfile(PassRefPtr<Profile> prpProfile)
     if (windowVisible())
         addScriptProfile(profile.get());
 
-    addProfileMessageToConsole(profile);
+    addProfileMessageToConsole(profile, lineNumber, sourceURL);
 }
 
-void InspectorController::addProfileMessageToConsole(PassRefPtr<Profile> prpProfile)
+void InspectorController::addProfileMessageToConsole(PassRefPtr<Profile> prpProfile, int lineNumber, const UString& sourceURL)
 {
     RefPtr<Profile> profile = prpProfile;
 
@@ -1339,7 +1339,7 @@ void InspectorController::addProfileMessageToConsole(PassRefPtr<Profile> prpProf
     message += "/";
     message += UString::from(profile->uid());
     message += "\" finished.";
-    addMessageToConsole(JSMessageSource, LogMessageLevel, message, 0, "");
+    addMessageToConsole(JSMessageSource, LogMessageLevel, message, lineNumber, sourceURL);
 }
 
 
@@ -1607,7 +1607,7 @@ void InspectorController::stopUserInitiatedProfiling()
 
 void InspectorController::finishedProfiling(PassRefPtr<Profile> prpProfile)
 {
-    addProfile(prpProfile);
+    addProfile(prpProfile, -1, UString());
 }
 
 static void addHeaders(JSContextRef context, JSObjectRef object, const HTTPHeaderMap& headers, JSValueRef* exception)

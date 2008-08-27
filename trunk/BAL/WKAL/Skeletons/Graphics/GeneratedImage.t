@@ -65,6 +65,12 @@ public:
      */
     virtual ~GeneratedImage() ;
 
+
+    /**
+     * has SingleSecurityOrigin
+     */
+    virtual bool hasSingleSecurityOrigin() const ;
+
     /**
      * set the container size, these are only used for SVGGeneratedImage right now
      * @param[in] : size
@@ -158,5 +164,4 @@ protected:
 }
 
 #endif
-
 

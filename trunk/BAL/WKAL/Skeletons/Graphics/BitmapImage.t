@@ -126,6 +126,12 @@ public:
      */
     virtual bool isBitmapImage() const ;
     
+
+    /**
+     * has SingleSecurityOrigin
+     */
+    virtual bool hasSingleSecurityOrigin() const ;
+
     /**
      * get bitmap size 
      * @param[out] : size

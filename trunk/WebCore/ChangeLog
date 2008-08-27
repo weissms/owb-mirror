@@ -1,3 +1,282 @@
+2008-08-27  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        <rdar://problem/6069462> REGRESSION: webkit is returning flash objects as AXUnknown
+
+        Added platform-specific accessibilityIgnoreAttachment, which allows the platform
+        to determine if an attachment is ignored through accessibility. Added equivalent
+        methods in Gtk, Win and Mac
+
+        Test: accessibility/plugin.html
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * page/AccessibilityObject.h:
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::accessibilityIsIgnored):
+        * page/gtk/AccessibilityObjectAtk.cpp: Added.
+        (WebCore::AccessibilityObject::accessibilityIgnoreAttachment):
+        * page/mac/AccessibilityObjectMac.mm: Added.
+        (WebCore::AccessibilityObject::accessibilityIgnoreAttachment):
+        * page/mac/AccessibilityObjectWrapper.h:
+        * page/win/AccessibilityObjectWin.cpp: Added.
+        (WebCore::AccessibilityObject::accessibilityIgnoreAttachment):
+
+2008-08-26  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        <rdar://problem/5817770> can't bring up contextual menu for embedded objects in WebText
+
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityPerformShowMenuAction]):
+        (-[AccessibilityObjectWrapper accessibilityShowContextMenu]):
+
+2008-08-26  chris fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6176924> CrashTracer: [USER] 4 crashes in Safari at com.apple.WebCore: WebCore::RenderTableSection::numColumns
+
+        Tests: accessibility/table-notbody.html
+
+        * page/AccessibilityTable.cpp:
+        (WebCore::AccessibilityTable::isTableExposableThroughAccessibility):
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Beth Dakin.
+
+        Fix typo.
+
+        * dom/DOMCoreException.h:
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20479
+        <rdar://problem/6167660>
+        Take image redirects into account when tainting the canvas.
+
+        Test: http/tests/security/canvas-remote-read-redirect-to-remote-image.html
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::drawImage):
+        (WebCore::CanvasRenderingContext2D::drawImageFromRect):
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Change canvas tainting logic to ask the image if it contains
+        any resources outside of its own origin. Since there is no 
+        way to determine if SVG images contain any resources outside its
+        origin, we always assume it does.
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::drawImage):
+        (WebCore::CanvasRenderingContext2D::drawImageFromRect):
+        * platform/graphics/BitmapImage.h:
+        (WebCore::BitmapImage::hasSingleSecurityOrigin):
+        * platform/graphics/GeneratedImage.h:
+        (WebCore::GeneratedImage::hasSingleSecurityOrigin):
+        * platform/graphics/Image.h:
+        (WebCore::Image::hasSingleSecurityOrigin):
+        * platform/graphics/cg/PDFDocumentImage.h:
+        (WebCore::PDFDocumentImage::hasSingleSecurityOrigin):
+        * svg/graphics/SVGImage.h:
+
+2008-08-26  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Adele.
+
+        <rdar://6159244> Pan-scrolling does not work on particular sites (starmagazine.com, nytimes.com)
+        This patch fixes the issues and modify the behavior of the panscroll by allowing it to jump to a parent layer when it reaches the end of its scrollable area.
+        This is matching the behavior of the mouse wheel when trying to scroll in a smaller layer of the page (div, textarea, ...) and when we reach the edge and keep scrolling then the whole page scrolls.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::updateAutoscrollRenderer): if we switch to the parent layer to do the scroll we want to change the renderer for the panning
+        * page/EventHandler.h:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::panScrollFromPoint): now calls the scrollByRecursively method when it has computed the xDelta and yDelta
+        (WebCore::RenderLayer::scrollByRecursively): try to scroll the current layer by the xDelta and yDelta provided, if it can't it ask its parent layer to do so.
+        * rendering/RenderLayer.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::canBeProgramaticallyScrolled): a RenderObject must have a RenderLayer to be programatically scrolled
+        (WebCore::RenderObject::autoscroll): No need to check for the layer anymore since we verify it's present in the upmentionned method
+        (WebCore::RenderObject::panScroll): No need to check for the layer anymore too.
+
+2008-08-25  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Darin.
+
+        Bug 20247: setAttributeNode() does not work when attribute name has a capital letter in it
+        https://bugs.webkit.org/show_bug.cgi?id=20247
+
+        <rdar://problem/6118218>
+
+        Add a boolean parameter to getAttributeItem to choose between case sensitive and case insensitive
+        check. This keeps the behaviour for setAttribute / hasAttribute (case sensitive) and getAttribute
+        (case insensitive for HTML elements).
+
+        Test: fast/dom/Element/getAttribute-check-case-sensitivity.html
+
+        * dom/Element.cpp:
+        (WebCore::Element::getAttribute):
+        * dom/NamedAttrMap.cpp:
+        (WebCore::NamedAttrMap::getNamedItem):
+        (WebCore::NamedAttrMap::getAttributeItem):
+        * dom/NamedAttrMap.h:
+
+2008-08-25  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20514
+        <rdar://problem/6174096>
+        Treat SVG images as dirty when drawing to a canvas.
+
+        Test: http/tests/security/canvas-remote-read-svg-image.html
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::drawImage):
+        (WebCore::CanvasRenderingContext2D::drawImageFromRect):
+        * platform/graphics/Image.h:
+        (WebCore::Image::isSVGImage):
+        * svg/graphics/SVGImage.h:
+        (WebCore::SVGImage::isSVGImage):
+
+2008-08-25  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20377
+        Leak in XMLHttpRequest.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight):
+
+2008-08-25  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Anders
+
+        Speculative fix for <rdar://problem/6173217>
+
+        Moves the "clearArchivedResources()" call to exactly where it used to be in the old version of WebArchive code.
+        Also, adds a null check for m_documentLoader since DocumentLoader::stopLoading() can end up clearing it, rendering
+        the first null check invalid.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::stopAllLoaders):
+
+
+2008-08-25  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/6157711> Heavy/Tree view selector is not grayed out if
+        there is no profile, can cause crash
+
+        * page/inspector/ProfilesPanel.js:
+
+2008-08-25  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Make sure 'inherit' is handled by transition property.
+        https://bugs.webkit.org/show_bug.cgi?id=20513
+
+        Test: transitions/inherit.html
+        Test: transitions/inherit-other-props.html
+
+        * css/CSSStyleSelector.cpp:
+          fix macro to check existence of list before getting size
+
+2008-08-25  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark.
+
+        <rdar://problem/6149787> crash @ com.apple.JavaScriptCore: WTF::callOnMainThread + 37.
+        
+        Initialize threading in the call to WebCoreObjCFinalizeOnMainThread. We currently assume 
+        (safely) that any class that needs finalization on the main thread will also need to be deallocated
+        on the main thread, and calling initializeThreading from WebCoreObjCFinalizeOnMainThread instead of
+        calling it from WebCoreObjCScheduleDeallocateOnMainThread seems safer.
+
+        * platform/mac/WebCoreObjCExtras.c:
+        (WebCoreObjCFinalizeOnMainThread):
+
+2008-08-25  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Rename CachedResource::referenced() to CachedResource::hasClients() to
+        match previous ref() -> addClient() rename.
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::pruneLiveResources):
+        (WebCore::Cache::pruneDeadResources):
+        (WebCore::Cache::remove):
+        (WebCore::Cache::getStatistics):
+        (WebCore::Cache::dumpLRULists):
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::addClient):
+        (WebCore::CachedResource::removeClient):
+        (WebCore::CachedResource::setDecodedSize):
+        (WebCore::CachedResource::setEncodedSize):
+        * loader/CachedResource.h:
+        (WebCore::CachedResource::hasClients):
+        (WebCore::CachedResource::canDelete):
+
+2008-08-25  Anthony Ricaud  <rik24d@gmail.com>
+
+        Add a missing Inspector localized string for "other".
+
+        https://bugs.webkit.org/show_bug.cgi?id=20509
+
+        Reviewed by Tim Hatcher.
+
+        * English.lproj/localizedStrings.js:
+
+2008-08-22  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff, Mark and Tim.
+
+        <rdar://problem/6150623> JSProfiler: It would be nice if the profiles
+        in the console said what file and line number they came from
+        - Lay the foundation for getting line numbers and other data from the
+        JavaScript engine.
+
+        * ForwardingHeaders/VM: Added.
+        * ForwardingHeaders/VM/Machine.h: Added.
+        * page/Console.cpp: Gather the line number and file information when 
+        profileEnd has been called, but don't use it until didFinishProfiling is
+        called.  We won't need to wait once we remove the profiler "zombie" mode
+        which this patch helps pave the foundation for.
+        (WebCore::Console::Console):
+        (WebCore::Console::profileEnd):
+        (WebCore::Console::finishedProfiling):
+        * page/Console.h:
+        * page/InspectorController.cpp: Modify calls to
+        addProfileMessageToConsole to satisfy the new arguments it takes.
+        (WebCore::InspectorController::finishedProfiling):
+        (WebCore::InspectorController::addProfile):
+        (WebCore::InspectorController::addProfileMessageToConsole):
+        (WebCore::InspectorController::finishedProfiling):
+        * page/InspectorController.h:
+
+2008-08-25  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon.
+
+        [inspector] Update the WebKit.qrc Qt resources file
+        Catchup with the changes in the directory.
+
+        * page/inspector/WebKit.qrc:
+
 2008-08-25  Dirk Schulze  <vbs85@gmx.de>
 
         Reviewed by Simon.

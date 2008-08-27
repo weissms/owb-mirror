@@ -114,6 +114,12 @@ publi
     virtual bool isBitmapImage() const ;
     
 
+
+    /**
+     * has SingleSecurityOrigin
+     */
+    virtual bool hasSingleSecurityOrigin() const ;
+
     /**
      * get a nullImage
      * @param[out] : null image

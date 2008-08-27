@@ -1020,7 +1020,10 @@ void CanvasRenderingContext2D::drawImage(HTMLImageElement* image, const FloatRec
         return;
 
     if (m_canvas->originClean())
-        checkOrigin(KURL(cachedImage->url()));
+        checkOrigin(cachedImage->response().url());
+
+    if (m_canvas->originClean() && !cachedImage->image()->hasSingleSecurityOrigin())
+        m_canvas->setOriginTainted();
 
     FloatRect sourceRect = c->roundToDevicePixels(srcRect);
     FloatRect destRect = c->roundToDevicePixels(dstRect);
@@ -1093,7 +1096,10 @@ void CanvasRenderingContext2D::drawImageFromRect(HTMLImageElement* image,
         return;
 
     if (m_canvas->originClean())
-        checkOrigin(KURL(cachedImage->url()));
+        checkOrigin(cachedImage->response().url());
+
+    if (m_canvas->originClean() && !cachedImage->image()->hasSingleSecurityOrigin())
+        m_canvas->setOriginTainted();
 
     GraphicsContext* c = drawingContext();
     if (!c)
