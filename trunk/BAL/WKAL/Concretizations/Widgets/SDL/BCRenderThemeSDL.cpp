@@ -184,6 +184,7 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
     }
     if(o->element()->isChecked()) {
         i.context->setStrokeColor(Color::black);
+        i.context->setStrokeStyle(SolidStroke);
         IntRect r2(r);
         r2.inflate(-borderWidth-2);
         i.context->drawLine(IntPoint(r2.x(),r2.y()), IntPoint(r2.x()+r2.width(),r2.y()+r2.height()));

@@ -161,8 +161,8 @@ void GraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
     if (width < 1)
         width = 1;
 
-    IntPoint p1(point1);
-    IntPoint p2(point2);
+    IntPoint p1(point1 + origin());
+    IntPoint p2(point2 + origin());
     Color color = strokeColor();
 
     int alpha;
@@ -580,7 +580,7 @@ void GraphicsContext::drawLineForText(const IntPoint& startPoint, int width, boo
     StrokeStyle savedStrokeStyle = strokeStyle();
     setStrokeStyle(SolidStroke);
 
-    IntPoint point(startPoint + origin());
+    IntPoint point(startPoint);
 
     IntPoint endPoint = point + IntSize(width, 0);
 

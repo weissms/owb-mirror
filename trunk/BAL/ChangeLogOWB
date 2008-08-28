@@ -1,3 +1,14 @@
+2008-08-28  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        fix checkbox marker.
+
+        * WKAL/Concretizations/Graphics/SDL/BCGraphicsContextSDL.cpp:
+        (WKAL::GraphicsContext::drawLine):
+        (WKAL::GraphicsContext::drawLineForText):
+        * WKAL/Concretizations/Widgets/SDL/BCRenderThemeSDL.cpp:
+        (WKAL::RenderThemeBal::paintCheckbox):
+
 2008-08-26  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
