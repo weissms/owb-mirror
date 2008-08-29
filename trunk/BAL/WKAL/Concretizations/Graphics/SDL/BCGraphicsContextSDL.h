@@ -47,6 +47,7 @@ namespace WKAL {
     class AffineTransform;
     class Font;
     class Generator;
+    class Gradient;
     class GraphicsContextPrivate;
     class GraphicsContextPlatformPrivate;
     class ImageBuffer;
@@ -72,6 +73,7 @@ namespace WKAL {
         InterpolationDefault,
         InterpolationNone,
         InterpolationLow,
+	InterpolationMedium,
         InterpolationHigh
     };
 
@@ -91,13 +93,16 @@ namespace WKAL {
         void setStrokeStyle(const StrokeStyle& style);
         Color strokeColor() const;
         void setStrokeColor(const Color&);
+	void setStrokePattern(PassRefPtr<Pattern>);
+        void setStrokeGradient(PassRefPtr<Gradient>);
 
+        WindRule fillRule() const;
+	void setFillRule(WindRule);
         Color fillColor() const;
         void setFillColor(const Color&);
+	void setFillPattern(PassRefPtr<Pattern>);
+        void setFillGradient(PassRefPtr<Gradient>);
 
-	void applyStrokePattern(const Pattern&);
-        void applyFillPattern(const Pattern&);
-        
         void save();
         void restore();
         
@@ -107,14 +112,21 @@ namespace WKAL {
         void drawEllipse(const IntRect&);
         void drawConvexPolygon(size_t numPoints, const FloatPoint*, bool shouldAntialias = false);
 
+        void drawPath();
+        void fillPath();
+        void strokePath();
+
         // Arc drawing (used by border-radius in CSS) just supports stroking at the moment.
         void strokeArc(const IntRect&, int startAngle, int angleSpan);
         
-        void fillRect(const IntRect&, const Color&);
+        void fillRect(const FloatRect&);
         void fillRect(const FloatRect&, const Color&);
         void fillRect(const FloatRect&, Generator&);
         void fillRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color&);
+
         void clearRect(const FloatRect&);
+
+        void strokeRect(const FloatRect&);
         void strokeRect(const FloatRect&, float lineWidth);
 
         void drawImage(Image*, const IntPoint&, CompositeOperator = CompositeSourceOver);
@@ -188,7 +200,7 @@ namespace WKAL {
         void scale(const FloatSize&);
         void rotate(float angleInRadians);
         void translate(float x, float y);
-        IntSize origin();
+        IntPoint origin();
         
         void setURLForRect(const KURL&, const IntRect&);
 
@@ -205,12 +217,20 @@ namespace WKAL {
     private:
         void savePlatformState();
         void restorePlatformState();
+
         void setPlatformTextDrawingMode(int);
+	void setPlatformFont(const Font& font);
+
         void setPlatformStrokeColor(const Color&);
+	void setPlatformStrokePattern(Pattern*);
+        void setPlatformStrokeGradient(Gradient*);
         void setPlatformStrokeStyle(const StrokeStyle&);
         void setPlatformStrokeThickness(float);
+
         void setPlatformFillColor(const Color&);
-        void setPlatformFont(const Font& font);
+	void setPlatformFillPattern(Pattern*);
+        void setPlatformFillGradient(Gradient*);
+
         void setPlatformShadow(const IntSize&, int blur, const Color&);
         void clearPlatformShadow();
 

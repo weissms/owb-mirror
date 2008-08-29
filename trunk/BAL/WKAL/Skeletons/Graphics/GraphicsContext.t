@@ -58,11 +58,13 @@ namespace WKAL {
     class AffineTransform;
     class Font;
     class Generator;
+    class Gradient;
     class GraphicsContextPrivate;
     class GraphicsContextPlatformPrivate;
     class ImageBuffer;
     class KURL;
     class Path;
+    class Pattern;
     class TextRun;
 
     // These bits can be ORed together for a total of 8 possible text drawing modes.
@@ -179,6 +181,27 @@ namespace WKAL {
         void setStrokeColor(const Color&);
 
     /**
+     * set stroke pattern
+     */
+        void setStrokePattern(PassRefPtr<Pattern>);
+
+    /**
+     * set stroke gradient
+     */
+        void setStrokeGradient(PassRefPtr<Gradient>);
+
+    /**
+     * fill rule
+     */
+        WindRule fillRule() const;
+
+    /**
+     * set fill rule
+     */
+        void setFillRule(WindRule);
+
+
+    /**
      * fill color
      * @param[out] : fill color
      * @code
@@ -196,19 +219,15 @@ namespace WKAL {
      */
         void setFillColor(const Color&);
 
-
     /**
-     * apply stroke pattern
-     * @param[in] : pattern
+     * set fill pattern
      */
-        void applyStrokePattern(const Pattern&);
-
-
+        void setFillPattern(PassRefPtr<Pattern>);
+    
     /**
-     * apply fill pattern
-     * @param[in] : pattern
+     * set fill gradient
      */
-        void applyFillPattern(const Pattern&);
+        void setFillGradient(PassRefPtr<Gradient>);
 
     /**
      * save context
@@ -266,6 +285,22 @@ namespace WKAL {
      */
         void drawConvexPolygon(size_t numPoints, const FloatPoint*, bool shouldAntialias = false);
 
+    /**
+     * draw path
+     */
+        void drawPath();
+
+    /**
+     * fill path
+     */
+        void fillPath();
+
+    /**
+     * stroke path
+     */
+        void strokePath();
+
+
         // Arc drawing (used by border-radius in CSS) just supports stroking at the moment.
     /**
      * stroke arc
@@ -281,12 +316,11 @@ namespace WKAL {
     /**
      * fill rect
      * @param[in] : rect
-     * @param[in] : color fill
      * @code
-     * gc->fillRect(r, c);
+     * gc->fillRect(r);
      * @endcode
      */
-        void fillRect(const IntRect&, const Color&);
+        void fillRect(const FloatRect&);
 
     /**
      * fill rect
@@ -330,6 +364,15 @@ namespace WKAL {
      * @endcode
      */
         void clearRect(const FloatRect&);
+
+    /**
+     * stroke rect
+     * @param[in] : rect
+     * @code
+     * gc->strokeRect(r);
+     * @endcode
+     */
+        void strokeRect(const FloatRect&);
 
     /**
      * stroke rect
@@ -936,10 +979,23 @@ namespace WKAL {
      * setPlatformTextDrawingMode
      */
         void setPlatformTextDrawingMode(int);
+     /**
+      * setPlatformFont
+      */
+        void setPlatformFont(const Font& font);
     /**
      * setPlatformStrokeColor
      */
         void setPlatformStrokeColor(const Color&);
+    /**
+     * setPlatformStrokePattern
+     */
+	void setPlatformStrokePattern(Pattern*);
+    /**
+     * setPlatformStrokeGradient
+     */
+	void setPlatformStrokeGradient(Gradient*);
+
     /**
      * setPlatformStrokeStyle
      */
@@ -953,9 +1009,13 @@ namespace WKAL {
      */
         void setPlatformFillColor(const Color&);
     /**
-     * setPlatformFont
+     * setPlatformFillPattern
      */
-        void setPlatformFont(const Font& font);
+        void setPlatformFillPattern(Pattern*);
+    /**
+     * setPlatformFillGradient
+     */
+        void setPlatformFillGradient(Gradient*);
     /**
      * setPlatformShadow
      */

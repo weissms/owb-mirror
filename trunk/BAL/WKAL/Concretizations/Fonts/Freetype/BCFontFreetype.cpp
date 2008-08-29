@@ -238,8 +238,8 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     img = SDL_CreateRGBSurfaceFrom((void*)glyphRGBABuffer->data(), width, height,
                                     32, width * 4, rmask, gmask, bmask, amask);
     SDL_Rect sdlSrc, sdlDest;
-    sdlDest.x = static_cast<int>(point.x()) + x_offset + context->origin().width();
-    sdlDest.y = static_cast<int>(point.y()) - yMax + context->origin().height();
+    sdlDest.x = static_cast<int>(point.x()) + x_offset + context->origin().x();
+    sdlDest.y = static_cast<int>(point.y()) - yMax + context->origin().y();
     sdlSrc.w = width;
     sdlSrc.h = height;
     sdlSrc.x = 0;

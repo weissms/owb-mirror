@@ -51,34 +51,21 @@ namespace WKAL {
 
     class Gradient : public WKALBase, public Generator {
     public:
-    /**
-     * Gradient constructor
-     * @param[in] : float point
-     * @param[in] : float point
-     * @code
-     * Gradient * g = new Gradient(p0, p1);
-     * @endcode
-     */
-        Gradient(const FloatPoint& p0, const FloatPoint& p1);
 
     /**
-     * Gradient constructor
-     * @param[in] : float point
-     * @param[in] : 
-     * @param[in] : float point
-     * @param[in] : 
-     * @code
-     * Gradient *g = new Gradient(p0, r0, p1, r1);
-     * @endcode
+     *  create
      */
-        Gradient(const FloatPoint& p0, float r0, const FloatPoint& p1, float r1);
+        static PassRefPtr<Gradient> create(const FloatPoint& p0, const FloatPoint& p1);
+
 
     /**
-     * ~Gradient destructor
-     * @code
-     * delete g;
-     * @endcode
+     *  create 
      */
+        static PassRefPtr<Gradient> create(const FloatPoint& p0, float r0, const FloatPoint& p1, float r1)
+
+     /**
+      * desctructor
+      */
         virtual ~Gradient();
 
     /**
@@ -174,12 +161,25 @@ namespace WKAL {
 
     private:
     /**
-     *  platformInit
+     * gradient constructor
+     */
+       Gradient(const FloatPoint& p0, const FloatPoint& p1);
+    /**
+     * Gradient constructor
+     * @param[in] : float point
+     * @ddparam[in] : 
+     * @param[in] : float point
+     * @param[in] : 
      * @code
-     * platformInit();
+     * Gradient *g = new Gradient(p0, r0, p1, r1);
      * @endcode
      */
-        void platformInit() ;
+        Gradient(const FloatPoint& p0, float r0, const FloatPoint& p1, float r1);
+
+    /**
+     * platformInit
+     */
+        void platformInit();
 
     /**
      * platform destroy
@@ -190,12 +190,7 @@ namespace WKAL {
         void platformDestroy();
 
     /**
-     * find stop
-     * @param[in] : stop value
-     * @param[out] : position
-     * @code
-     * int pos = findStop(v);
-     * @endcode
+     * findStop
      */
         int findStop(float value) const;
 
@@ -208,11 +203,6 @@ namespace WKAL {
 
         PlatformGradient m_gradient;
     };
-
 } //namespace
 
 #endif
-
-
-
-

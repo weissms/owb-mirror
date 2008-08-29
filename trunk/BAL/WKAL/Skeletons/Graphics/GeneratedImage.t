@@ -55,7 +55,7 @@ public:
      * GeneratedImage *gi = new GeneratedImage(g, s);
      * @endcode
      */
-    GeneratedImage(Generator* generator, const IntSize& size);
+    GeneratedImage(PassRefPtr<Generator> generator, const IntSize& size);
 
     /**
      * GeneratedImage destructor

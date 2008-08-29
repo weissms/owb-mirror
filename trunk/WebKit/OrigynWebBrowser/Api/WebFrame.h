@@ -99,6 +99,7 @@ typedef enum _WebURLRequestCachePolicy
     WebURLRequestReturnCacheDataDontLoad
 } WebURLRequestCachePolicy;
 
+#define WebKitErrorPlugInWillHandleLoad 204
 
     /**
      * get WebFrame from a frame
@@ -564,6 +565,12 @@ public:
      * Not Implemented
      */
     virtual WebCore::ResourceError fileDoesNotExistError(const WebCore::ResourceResponse&);
+
+    /**
+     * pluginWillHandleLoadError
+     * Not Implemented
+     */
+    virtual WebCore::ResourceError pluginWillHandleLoadError(const WebCore::ResourceResponse&);
 
     /**
      *  shouldFallBack 

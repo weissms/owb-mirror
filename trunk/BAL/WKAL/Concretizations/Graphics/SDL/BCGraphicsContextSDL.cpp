@@ -115,8 +115,8 @@ void GraphicsContext::drawRect(const IntRect& rect)
     SDL_Surface* surf = m_data->surface;
 
     SDL_Rect dstRect;
-    dstRect.x = rect.x() + origin().width();
-    dstRect.y = rect.y() + origin().height();
+    dstRect.x = rect.x() + origin().x();
+    dstRect.y = rect.y() + origin().y();
     dstRect.w = rect.width();
     dstRect.h = rect.height();
 
@@ -133,15 +133,15 @@ void GraphicsContext::drawRect(const IntRect& rect)
     if (strokeStyle() != NoStroke) {
         if (!m_data->layers.isEmpty())
             rectangleRGBA(surf,
-                static_cast<Sint16>(rect.x() + origin().width()), static_cast<Sint16>(rect.y() + origin().height()),
-                static_cast<Sint16>(rect.x() + origin().width() + rect.width() - 1), 
-                static_cast<Sint16>(rect.y() + origin().height() + rect.height() - 1),
+                static_cast<Sint16>(rect.x() + origin().x()), static_cast<Sint16>(rect.y() + origin().y()),
+                static_cast<Sint16>(rect.x() + origin().x() + rect.width() - 1), 
+                static_cast<Sint16>(rect.y() + origin().y() + rect.height() - 1),
                 strokeColor().red(), strokeColor().green(), strokeColor().blue(), static_cast<int> (strokeColor().alpha() * m_data->layers.last()));
         else
             rectangleRGBA(surf,
-                static_cast<Sint16>(rect.x() + origin().width()), static_cast<Sint16>(rect.y() + origin().height()),
-                static_cast<Sint16>(rect.x() + origin().width() + rect.width() - 1), 
-                static_cast<Sint16>(rect.y() + origin().height() + rect.height() - 1),
+                static_cast<Sint16>(rect.x() + origin().x()), static_cast<Sint16>(rect.y() + origin().y()),
+                static_cast<Sint16>(rect.x() + origin().x() + rect.width() - 1), 
+                static_cast<Sint16>(rect.y() + origin().y() + rect.height() - 1),
                 strokeColor().red(), strokeColor().green(), strokeColor().blue(), strokeColor().alpha());
     }
 }
@@ -161,8 +161,8 @@ void GraphicsContext::drawLine(const IntPoint& point1, const IntPoint& point2)
     if (width < 1)
         width = 1;
 
-    IntPoint p1(point1 + origin());
-    IntPoint p2(point2 + origin());
+    IntPoint p1(point1 + IntSize(origin().x(), origin().y()));
+    IntPoint p2(point2 + IntSize(origin().x(), origin().y()));
     Color color = strokeColor();
 
     int alpha;
@@ -217,8 +217,8 @@ void GraphicsContext::drawEllipse(const IntRect& rect)
     else
         alpha = strokeColor().alpha();
 
-    ellipseRGBA(m_data->surface, static_cast<Sint16>(rect.x() + origin().width() + xRadius),
-                static_cast<Sint16>(rect.y() + origin().height() + yRadius),
+    ellipseRGBA(m_data->surface, static_cast<Sint16>(rect.x() + origin().x() + xRadius),
+                static_cast<Sint16>(rect.y() + origin().y() + yRadius),
                 static_cast<Sint16>(xRadius),
                 static_cast<Sint16>(yRadius),
                 color.red(),
@@ -398,10 +398,10 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
     switch (a0) {
 
     case 0:
-        rectWork.setX(rect.x() + origin().width());
+        rectWork.setX(rect.x() + origin().x());
 
         for (int i = 0; i < (int)thick; i++) {
-            rectWork.setY(rect.y() + origin().height() + i);
+            rectWork.setY(rect.y() + origin().y() + i);
             rectWork.setWidth(rect.width() - i);
             rectWork.setHeight(rect.height() - i);
             drawArc(m_data->surface, rectWork, startAngle, angleSpan, color);
@@ -410,8 +410,8 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
 
     case 1:
         for (int i = 0; i < (int)thick; i++) {
-            rectWork.setX(rect.x() + origin().width() + i);
-            rectWork.setY(rect.y() + origin().height() + i);
+            rectWork.setX(rect.x() + origin().x() + i);
+            rectWork.setY(rect.y() + origin().y() + i);
             rectWork.setWidth(rect.width() - i*2);
             rectWork.setHeight(rect.height() - i*2);
             drawArc(m_data->surface, rectWork, startAngle, angleSpan, color);
@@ -419,10 +419,10 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
         break;
 
     case 2:
-        rectWork.setY(rect.y() + origin().height());
+        rectWork.setY(rect.y() + origin().y());
 
         for (int i = 0; i < (int)thick; i++) {
-            rectWork.setX(rect.x() + origin().width() + i);
+            rectWork.setX(rect.x() + origin().x() + i);
             rectWork.setWidth(rect.width() - i);
             rectWork.setHeight(rect.height() - i);
             drawArc(m_data->surface, rectWork, startAngle, angleSpan, color);
@@ -431,8 +431,8 @@ void GraphicsContext::strokeArc(const IntRect& rect, int startAngle, int angleSp
 
     case 3:
         for (int i = 0; i < (int)thick; i++) {
-            rectWork.setX(rect.x() + origin().width() + i);
-            rectWork.setY(rect.y() + origin().height() + i);
+            rectWork.setX(rect.x() + origin().x() + i);
+            rectWork.setY(rect.y() + origin().y() + i);
             rectWork.setWidth(rect.width() - i*2);
             rectWork.setHeight(rect.height() - i*2);
             drawArc(m_data->surface, rectWork, startAngle, angleSpan, color);
@@ -453,8 +453,8 @@ void GraphicsContext::drawConvexPolygon(size_t npoints, const FloatPoint* points
     Sint16 *vy = new Sint16[npoints];
     Sint16 x1 = 0, x2 = 0, y1 = 0, y2 = 0;
     for(size_t i=0; i < npoints; i++) {
-        vx[i] = static_cast<Sint16>(points[i].x() + origin().width());
-        vy[i] = static_cast<Sint16>(points[i].y() + origin().height());
+        vx[i] = static_cast<Sint16>(points[i].x() + origin().x());
+        vy[i] = static_cast<Sint16>(points[i].y() + origin().y());
         x1 = min(x1, vx[i]);
         y1 = min(y1, vy[i]);
         x2 = max(x2, vx[i]);
@@ -478,14 +478,13 @@ void GraphicsContext::drawConvexPolygon(size_t npoints, const FloatPoint* points
     delete[] vy;
 }
 
-void GraphicsContext::fillRect(const IntRect& rectangle, const Color& color)
+void GraphicsContext::fillRect(const FloatRect& rectangle, const Color& color)
 {
     if (paintingDisabled())
         return;
 
-    IntRect rect(rectangle);
-    
-    rect.setLocation(rectangle.location() + origin());
+    FloatRect rect(rectangle);
+    rect.setLocation(rectangle.location() + IntSize(origin().x(), origin().y()));
 
     SDL_Surface* surf = m_data->surface;
 
@@ -513,9 +512,9 @@ void GraphicsContext::fillRect(const IntRect& rectangle, const Color& color)
     }
 }
 
-void GraphicsContext::fillRect(const FloatRect& rect, const Color& color)
+void GraphicsContext::fillRect(const FloatRect& rect)
 {
-    fillRect(IntRect(rect), color);
+    fillRect(IntRect(rect), fillColor());
 }
 
 void GraphicsContext::clip(const FloatRect& rect)
@@ -526,9 +525,9 @@ void GraphicsContext::clip(const FloatRect& rect)
     if (rect.isEmpty()) {
         SDL_SetClipRect(m_data->surface, NULL);
     } else {
-        float x = rect.x() + origin().width();
+        float x = rect.x() + origin().x();
         x= x > 0 ? x : 0;
-        float y = rect.y() + origin().height();
+        float y = rect.y() + origin().y();
         y= y > 0 ? y : 0;
         SDL_Rect dstRect;
         dstRect.x = static_cast<Sint16>(x);
@@ -552,7 +551,7 @@ void GraphicsContext::drawFocusRing(const Color& color)
     IntRect finalFocusRect;
     for (unsigned i = 0; i < rectCount; i++) {
         IntRect focusRect = rects[i];
-        focusRect.setLocation(focusRect.location() + origin());
+        focusRect.setLocation(focusRect.location() + IntSize(origin().x(), origin().y()));
         focusRect.inflate(offset);
         finalFocusRect.unite(focusRect);
     }
@@ -607,17 +606,9 @@ void GraphicsContext::translate(float x, float y)
     m_common->state.origin += IntSize(static_cast<int>(x), static_cast<int>(y));
 }
 
-IntSize GraphicsContext::origin()
+IntPoint GraphicsContext::origin()
 {
     return m_common->state.origin;
-}
-
-void GraphicsContext::applyStrokePattern(const Pattern& pattern)
-{
-}
-
-void GraphicsContext::applyFillPattern(const Pattern& pattern)
-{
 }
 
 
@@ -701,7 +692,7 @@ void GraphicsContext::clearRect(const FloatRect& rect)
         return;
 
     IntRect rectangle(rect);
-    rectangle.setLocation(rectangle.location() + origin());
+    rectangle.setLocation(rectangle.location() + IntSize(origin().x(), origin().y()));
     fillRect(rectangle, Color::white);
 }
 
@@ -864,6 +855,35 @@ void GraphicsContext::setUseAntialiasing(bool enable)
     // antialiasing. This is the same strategy as used in drawConvexPolygon().
     //cairo_set_antialias(m_data->cr, enable ? CAIRO_ANTIALIAS_DEFAULT : CAIRO_ANTIALIAS_NONE);
 }
+
+void GraphicsContext::strokePath() 
+{
+}
+
+void GraphicsContext::drawPath()
+{
+}
+
+void GraphicsContext::fillPath()
+{
+}
+
+void GraphicsContext::setPlatformFillPattern(Pattern* pattern)
+{
+}
+
+void GraphicsContext::setPlatformStrokePattern(Pattern* pattern)
+{
+}
+
+void GraphicsContext::setPlatformFillGradient(Gradient* gradient)
+{
+}
+
+void GraphicsContext::setPlatformStrokeGradient(Gradient* gradient)
+{
+}
+
 
 } // namespace WebCore
 

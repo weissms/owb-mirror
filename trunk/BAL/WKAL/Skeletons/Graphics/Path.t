@@ -200,7 +200,7 @@ namespace WKAL {
      * p->addQuadCurveTo(cp, fp);
      * @endcode
      */
-        void addQuadCurveTo(const FloatPoint& controlPoint, const FloatPoint& point);
+        void addQuadCurveTo(const FloatPoint& controlPoint, const FloatPoint& endPoint);
 
     /**
      * add bezier curve to point
@@ -211,7 +211,7 @@ namespace WKAL {
      * p->addBezierCurveTo(cp1, cp2, fp);
      * @endcode
      */
-        void addBezierCurveTo(const FloatPoint& controlPoint1, const FloatPoint& controlPoint2, const FloatPoint&);
+        void addBezierCurveTo(const FloatPoint& controlPoint1, const FloatPoint& controlPoint2, const FloatPoint& endPoint);
 
     /**
      * add arc to point
@@ -273,15 +273,6 @@ namespace WKAL {
         void translate(const FloatSize&);
 
     /**
-     * set winding rule 
-     * @param[in] : rule
-     * @code
-     * p->setWindingRule(rule);
-     * @endcode
-     */
-        void setWindingRule(WindRule rule) ;
-
-    /**
      * get winding rule
      * @param[out] : rule
      * @code
@@ -289,15 +280,6 @@ namespace WKAL {
      * @endcode
      */
         WindRule windingRule() const ;
-
-    /**
-     * debug string 
-     * @param[out] : string
-     * @code
-     * String debug = p->debugString();
-     * @endcode
-     */
-        String debugString() const;
 
     /**
      * get platform path
@@ -405,7 +387,5 @@ namespace WKAL {
 }
 
 #endif
-
-
 
 

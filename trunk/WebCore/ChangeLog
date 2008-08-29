@@ -1,3 +1,563 @@
+2008-08-29  Alp Toker  <alp@nuanti.com>
+
+        GTK+ dist/build fix. List newly added header files.
+
+        * GNUmakefile.am:
+
+2008-08-28  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Various WebKitCSSTransformValue-related fixes
+        https://bugs.webkit.org/show_bug.cgi?id=20562
+
+        Test: css3/transform-value-types.html
+
+        * bindings/js/JSCSSValueCustom.cpp:
+        (WebCore::toJS):
+        * css/CSSValue.h:
+        * css/WebKitCSSTransformValue.cpp:
+        (WebCore::WebKitCSSTransformValue::cssText):
+        * css/WebKitCSSTransformValue.h:
+        (WebCore::WebKitCSSTransformValue::):
+        * css/WebKitCSSTransformValue.idl:
+
+2008-08-28  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Steve Falkenburg.
+
+        - do not let the "last chance" WM_TIMER trigger WebCore timers when they should be deferred
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::TimerWindowWndProc):
+
+2008-08-28  David Hyatt  <hyatt@apple.com>
+
+        RenderStyle cleanup.
+
+        Break out StyleImage, StyleGeneratedImage, StyleCachedImage and NinePieceImage into separate files.
+
+        Reviewed by Adam
+
+        * css/CSSImageGeneratorValue.cpp:
+        * css/CSSImageValue.cpp:
+        * css/CSSStyleSelector.cpp:
+        * rendering/RenderImageGeneratedContent.cpp:
+        * rendering/style/NinePieceImage.cpp: Added.
+        * rendering/style/NinePieceImage.h: Added.
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::FillLayer::operator==):
+        (WebCore::FillLayer::containsImage):
+        (WebCore::StyleInheritedData::operator==):
+        (WebCore::RenderStyle::contentDataEquivalent):
+        * rendering/style/RenderStyle.h:
+        * rendering/style/StyleCachedImage.cpp: Added.
+        * rendering/style/StyleCachedImage.h: Added.
+        * rendering/style/StyleGeneratedImage.cpp: Added.
+        * rendering/style/StyleGeneratedImage.h: Added.
+        * rendering/style/StyleImage.h: Added.
+
+2008-08-28  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Make all the 'isFoo()' methods on CSSValue const,
+        and fix the subclasses.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20561
+        
+        * css/CSSTimingFunctionValue.h:
+        * css/CSSValue.h:
+        (WebCore::CSSValue::isFontValue):
+        (WebCore::CSSValue::isImageGeneratorValue):
+        (WebCore::CSSValue::isImageValue):
+        (WebCore::CSSValue::isImplicitInitialValue):
+        * css/CSSValueList.h:
+        * css/FontValue.h:
+
+2008-08-28  David Hyatt  <hyatt@apple.com>
+
+        The great RenderStyle cleanup begins!
+
+        Move LengthBox and LengthSize out of RenderStyle and into Length.
+
+        Reviewed by Adam
+
+        * rendering/Length.h:
+        (WebCore::):
+        (WebCore::Length::Length):
+        (WebCore::Length::operator==):
+        (WebCore::Length::operator!=):
+        (WebCore::Length::value):
+        (WebCore::Length::rawValue):
+        (WebCore::Length::percent):
+        (WebCore::Length::type):
+        (WebCore::Length::quirk):
+        (WebCore::Length::setValue):
+        (WebCore::Length::setRawValue):
+        (WebCore::Length::calcValue):
+        (WebCore::Length::calcMinValue):
+        (WebCore::Length::calcFloatValue):
+        (WebCore::Length::isUndefined):
+        (WebCore::Length::isZero):
+        (WebCore::Length::isPositive):
+        (WebCore::Length::isNegative):
+        (WebCore::Length::isAuto):
+        (WebCore::Length::isRelative):
+        (WebCore::Length::isPercent):
+        (WebCore::Length::isFixed):
+        (WebCore::Length::isStatic):
+        (WebCore::Length::isIntrinsicOrAuto):
+        (WebCore::Length::blend):
+        (WebCore::LengthBox::LengthBox):
+        (WebCore::LengthBox::operator=):
+        (WebCore::LengthBox::operator==):
+        (WebCore::LengthBox::operator!=):
+        (WebCore::LengthBox::nonZero):
+        (WebCore::LengthSize::LengthSize):
+        * rendering/style/RenderStyle.h:
+
+2008-08-28  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Darin
+
+        https://bugs.webkit.org/show_bug.cgi?id=18091
+
+        font-size should be animatable using -webkit-transition.
+
+        * page/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::ensurePropertyMap):
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::setFontSize):
+
+2008-08-28  Brad Garcia  <bgarcia@google.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20549
+        Correctly determine when cursor is over a resizable border within
+        a nested frameset.
+
+        * rendering/RenderFrameSet.cpp:
+        (WebCore::RenderFrameSet::canResizeRow):
+        (WebCore::RenderFrameSet::canResizeColumn):
+
+2008-08-28  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Add RuleTypes to CSSRule.idl for keyframes and keyframe rules.
+        https://bugs.webkit.org/show_bug.cgi?id=20552
+
+        Test: animations/animation-css-rule-types.html
+
+        * css/CSSRule.idl:
+
+2008-08-28  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin and Darin.
+
+        <rdar://problem/6182541>
+        https://bugs.webkit.org/show_bug.cgi?id=20202
+        Missing http status line from the http headers.
+        
+        Add a status line to the header string.
+        
+        * plugins/PluginStream.cpp:
+        (WebCore::PluginStream::startStream):
+
+2008-08-28  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Rubber-stamped by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17261
+
+        Make it possible to theme the default Url icon and enable this for
+        the Qt port. To have a minimal usage of #ifdef in the code the setting
+        of the icon was moved to a new method which comes in two flavors.
+
+        * loader/icon/IconDatabase.cpp:
+        (WebCore::loadDefaultIconRecord): Load or set the default icon
+        (WebCore::IconDatabase::defaultIcon):
+
+2008-08-28  Holger Hans Peter Freyther <zecke@selfish.org>
+
+        Unreviewed compile fix
+
+        * platform/graphics/qt/GraphicsContextQt.cpp: Remove redefinitions
+
+2008-08-28  Adam Roben  <aroben@apple.com>
+
+        Windows (and others?) build fix
+
+        * page/Chrome.cpp: Added a missing #include.
+        (WebCore::PageGroupLoadDeferrer::PageGroupLoadDeferrer): Fixed typo.
+
+2008-08-27  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Qt and Cairo support from krit (and blind stab @ wx compile support)
+        https://bugs.webkit.org/show_bug.cgi?id=20373
+
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::drawPath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::setPlatformFillColor):
+        (WebCore::GraphicsContext::setPlatformStrokeColor):
+        (WebCore::GraphicsContext::setPlatformStrokeStyle):
+        (WebCore::GraphicsContext::strokeRect):
+        (WebCore::GraphicsContext::setImageInterpolationQuality):
+        (WebCore::GraphicsContext::imageInterpolationQuality):
+        (WebCore::GraphicsContext::setPlatformFillPattern):
+        (WebCore::GraphicsContext::setPlatformStrokePattern):
+        (WebCore::GraphicsContext::setPlatformFillGradient):
+        (WebCore::GraphicsContext::setPlatformStrokeGradient):
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::strokeRect):
+        (WebCore::GraphicsContext::clipToImageBuffer):
+        (WebCore::GraphicsContext::setPlatformFillPattern):
+        (WebCore::GraphicsContext::setPlatformStrokePattern):
+        (WebCore::GraphicsContext::setPlatformFillGradient):
+        (WebCore::GraphicsContext::setPlatformStrokeGradient):
+        (WebCore::GraphicsContext::setImageInterpolationQuality):
+        (WebCore::GraphicsContext::imageInterpolationQuality):
+        * platform/graphics/wx/GraphicsContextWx.cpp:
+        (WebCore::GraphicsContext::clipToImageBuffer):
+        (WebCore::GraphicsContext::setImageInterpolationQuality):
+        (WebCore::GraphicsContext::imageInterpolationQuality):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::drawPath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::setPlatformFillPattern):
+        (WebCore::GraphicsContext::setPlatformStrokePattern):
+        (WebCore::GraphicsContext::setPlatformFillGradient):
+
+2008-08-27  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Add stroke/fill Gradient and Pattern support to GraphicsContext and update <canvas> to use it.
+        https://bugs.webkit.org/show_bug.cgi?id=20373
+
+        Changed pattern() to canvasPattern() on CanvasStyle to match canvasGradient()
+        
+        Made Generator (aka Gradient) RefCounted so that GraphicsContext didn't
+        have to store large Gradient objects in the GraphicsContextState
+        
+        Made Pattern RefCounted for the same reason.
+        
+        Many updates to GraphicsContext to support easier drawing with
+        Patterns and Gradients.
+
+        * WebCore.xcodeproj/project.pbxproj: Add pre-existing GraphicsContextPrivate.h
+        * bindings/js/JSCanvasRenderingContext2DCustom.cpp:
+        (WebCore::toJS):
+        * css/CSSGradientValue.cpp:
+        (WebCore::CSSGradientValue::createGradient):
+        * css/CSSGradientValue.h:
+        * html/CanvasGradient.cpp:
+        (WebCore::CanvasGradient::CanvasGradient):
+        * html/CanvasGradient.h:
+        (WebCore::CanvasGradient::gradient):
+        (WebCore::CanvasGradient::addColorStop):
+        (WebCore::CanvasGradient::getColor):
+        * html/CanvasPattern.cpp:
+        * html/CanvasPattern.h:
+        (WebCore::CanvasPattern::pattern):
+        (WebCore::CanvasPattern::originClean):
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::State::State):
+        (WebCore::CanvasRenderingContext2D::setStrokeStyle):
+        (WebCore::CanvasRenderingContext2D::setFillStyle):
+        (WebCore::CanvasRenderingContext2D::fill):
+        (WebCore::CanvasRenderingContext2D::stroke):
+        (WebCore::CanvasRenderingContext2D::fillRect):
+        (WebCore::CanvasRenderingContext2D::strokeRect):
+        * html/CanvasRenderingContext2D.h:
+        * html/CanvasStyle.cpp:
+        (WebCore::CanvasStyle::applyStrokeColor):
+        (WebCore::CanvasStyle::applyFillColor):
+        * html/CanvasStyle.h:
+        * platform/graphics/GeneratedImage.h:
+        (WebCore::GeneratedImage::GeneratedImage):
+        * platform/graphics/Generator.h:
+        * platform/graphics/Gradient.h:
+        (WebCore::Gradient::create):
+        * platform/graphics/GraphicsContext.cpp:
+        (WebCore::GraphicsContext::fillRule):
+        (WebCore::GraphicsContext::setFillRule):
+        (WebCore::GraphicsContext::setStrokePattern):
+        (WebCore::GraphicsContext::setFillPattern):
+        (WebCore::GraphicsContext::setStrokeGradient):
+        (WebCore::GraphicsContext::setFillGradient):
+        * platform/graphics/GraphicsContext.h:
+        * platform/graphics/GraphicsContextPrivate.h:
+        (WebCore::):
+        (WebCore::GraphicsContextState::GraphicsContextState):
+        * platform/graphics/GraphicsTypes.h:
+        * platform/graphics/Path.h:
+        * platform/graphics/Pattern.h:
+        (WebCore::Pattern::create):
+        (WebCore::Pattern::tileImage):
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::drawRect):
+        (WebCore::GraphicsContext::drawEllipse):
+        (WebCore::GraphicsContext::drawConvexPolygon):
+        (WebCore::calculateDrawingMode):
+        (WebCore::GraphicsContext::drawPath):
+        (WebCore::fillPathWithFillRule):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::fillRoundedRect):
+        (WebCore::GraphicsContext::setPlatformStrokePattern):
+        (WebCore::GraphicsContext::setPlatformFillPattern):
+        (WebCore::GraphicsContext::setPlatformStrokeGradient):
+        (WebCore::GraphicsContext::setPlatformFillGradient):
+
+2008-08-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin and Alexey.
+
+        Close a leak of PausedTimeouts if the JavaScriptDebugServer was destroyed
+        with timeouts paused.
+        https://bugs.webkit.org/show_bug.cgi?id=20469
+        
+        I attempted to clean up the memory management of PausedTimeouts, I'm not
+        sure the solution I came up with is "cleaner", but it's in some ways
+        "safer", since it no longer uses raw pointers and manual new/delete.
+        
+        This also now prevents CachedPage from needlessly creating Window
+        objects when caching pages which didn't already have one. :)
+        
+        I also made Chrome.cpp no longer depend on the JavaScript bindings
+        (aka JSDOMWindowBase.h), since there was no real reason for it to.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::pauseTimeouts):
+        (WebCore::JSDOMWindowBase::resumeTimeouts):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::pauseTimeouts):
+        (WebCore::ScriptController::resumeTimeouts):
+        * bindings/js/ScriptController.h:
+        * history/CachedPage.cpp:
+        (WebCore::CachedPage::CachedPage):
+        (WebCore::CachedPage::restore):
+        * page/Chrome.cpp:
+        (WebCore::PageGroupLoadDeferrer::PageGroupLoadDeferrer):
+        (WebCore::PageGroupLoadDeferrer::~PageGroupLoadDeferrer):
+        * page/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::~JavaScriptDebugServer):
+        (WebCore::JavaScriptDebugServer::setJavaScriptPaused):
+
+2008-08-27  Holger Hans Peter Freyther <zecke@selfish.org>
+
+        Unreviewed compile fix
+
+        Add the stub for the Qt port.
+
+        * WebCore.pro:
+        * page/qt/AccessibilityObjectQt.cpp: Added.
+        (WebCore::AccessibilityObject::accessibilityIgnoreAttachment):
+
+2008-08-27  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Eric.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20551
+        [GTK] search popup crash
+
+        * platform/gtk/SearchPopupMenuGtk.cpp:
+        (WebCore::SearchPopupMenu::enabled):
+        Fix a search popup crasher by disabling the history popup since we
+        don't support this feature yet in the GTK+ port.
+
+2008-08-27  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Eric.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20551
+        [GTK] curl crashers
+
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::ResourceHandleManager::startScheduledJobs):
+        Remove the resource handle from the pending list before starting the
+        job, not afterwards. Fixes crashers in the test suite.
+
+        Test: fast/dom/clientWidthAfterDocumentIsRemoved.html
+        Test: fast/encoding/char-encoding.html
+
+2008-08-27  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by eseidel.
+
+        Fix canvas drawImage to support composite operations.
+        Composite had no effect on canvas elements like these:
+        http://philip.html5.org/tests/canvas/suite/tests/index.2d.composite.canvas.html
+
+        [CAIRO] Canvas composite don't work on canvas-elements.
+        https://bugs.webkit.org/show_bug.cgi?id=20548
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::drawImage): pass the current composite operator to the drawImage call
+
+2008-08-27  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Eric Seidel.
+        
+        Fix the data content of an image with a base64.
+
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::parseDataUrl): Remove the String and use only the data
+        Vector because the data.latin1().data() convert the data content and
+        the image test ( https://bugs.webkit.org/attachment.cgi?id=21726 ) is
+        not drawn correctly.
+
+2008-08-27  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        Crash after OK in dialog box and reloading page in secure mode
+        https://bugs.webkit.org/show_bug.cgi?id=20493
+        
+        The new run loop spawned by a modal dialog causes a timer in the loader to run 
+        synchronously inside didFinishLoading() deleting "this" object.
+        
+        Defer all WebCore timers when a modal dialog is up. They are not
+        safe to execute.
+
+        * page/Chrome.cpp:
+        (WebCore::PageGroupLoadDeferrer::PageGroupLoadDeferrer):
+        (WebCore::PageGroupLoadDeferrer::~PageGroupLoadDeferrer):
+
+2008-08-27  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Memory leaks when animating transforms
+        https://bugs.webkit.org/show_bug.cgi?id=20532
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::ScaleTransformOperation::blend):
+        (WebCore::RotateTransformOperation::blend):
+        (WebCore::SkewTransformOperation::blend):
+        (WebCore::TranslateTransformOperation::blend):
+        (WebCore::MatrixTransformOperation::blend):
+        * rendering/style/RenderStyle.h:
+
+2008-08-27  Timothy Hatcher  <timothy@apple.com>
+
+        Add support for support for -webkit-appearance: default-button on the Mac platform.
+
+        <rdar://problem/6173530>
+
+        Reviewed by Dave Hyatt.
+
+        * WebCore.base.exp: Export new symbols.
+        * platform/mac/WebCoreSystemInterface.h: Add wkAdvanceDefaultButtonPulseAnimation.
+        * platform/mac/WebCoreSystemInterface.mm: Ditto.
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::RenderButton): Remove #if PLATFORM(WIN).
+        (WebCore::RenderButton::setStyle): Ditto.
+        * rendering/RenderButton.h: Ditto.
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::adjustRepaintRect): Add a case for DefaultButtonAppearance.
+        (WebCore::RenderThemeMac::setButtonCellState): Set the key equivalent to the return
+        key if the button is default, otherwise reset the key equivalent.
+        (WebCore::RenderThemeMac::paintButton): If the button is default call setDefaultButtonCell:
+        on the window, then wkAdvanceDefaultButtonPulseAnimation before painting. Restore
+        the window's previous default button cell when finished.
+
+2008-08-26  David Hyatt  <hyatt@apple.com>
+
+        First cut at making form controls on OS X respect full page zoom.  There are lots of bugs.
+
+        Reviewed by weinig
+
+        Added fast/forms/zoomed-controls.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::addIntrinsicMargins):
+        * rendering/RenderSlider.cpp:
+        (WebCore::RenderSlider::calcPrefWidths):
+        * rendering/RenderThemeMac.h:
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::adjustRepaintRect):
+        (WebCore::RenderThemeMac::inflateRect):
+        (WebCore::RenderThemeMac::baselinePosition):
+        (WebCore::RenderThemeMac::setControlSize):
+        (WebCore::RenderThemeMac::sizeForFont):
+        (WebCore::RenderThemeMac::sizeForSystemFont):
+        (WebCore::RenderThemeMac::setFontFromControlSize):
+        (WebCore::RenderThemeMac::paintCheckbox):
+        (WebCore::RenderThemeMac::setCheckboxCellState):
+        (WebCore::RenderThemeMac::paintRadio):
+        (WebCore::RenderThemeMac::setRadioCellState):
+        (WebCore::RenderThemeMac::setButtonPaddingFromControlSize):
+        (WebCore::RenderThemeMac::adjustButtonStyle):
+        (WebCore::RenderThemeMac::setButtonCellState):
+        (WebCore::RenderThemeMac::paintButton):
+        (WebCore::RenderThemeMac::paintMenuList):
+        (WebCore::RenderThemeMac::paintMenuListButton):
+        (WebCore::RenderThemeMac::popupInternalPaddingLeft):
+        (WebCore::RenderThemeMac::popupInternalPaddingRight):
+        (WebCore::RenderThemeMac::popupInternalPaddingTop):
+        (WebCore::RenderThemeMac::popupInternalPaddingBottom):
+        (WebCore::RenderThemeMac::setPopupButtonCellState):
+        (WebCore::RenderThemeMac::paintSliderTrack):
+        (WebCore::RenderThemeMac::paintSliderThumb):
+        (WebCore::RenderThemeMac::adjustSliderThumbSize):
+        (WebCore::RenderThemeMac::paintSearchField):
+        (WebCore::RenderThemeMac::adjustSearchFieldStyle):
+        (WebCore::RenderThemeMac::paintSearchFieldCancelButton):
+        (WebCore::RenderThemeMac::paintSearchFieldResultsButton):
+
+2008-08-27  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Anders
+
+        <rdar://problem/6134133> - Crash when loading large movie as a standalone document
+
+        We hand off these loads to Quicktime which manages and spools the data itself, but we also continued
+        to load and buffer the data for the movie in WebCore.  With large media files, this results in blowing
+        away the virtual address space and a crash.
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyFrameLoaderClient::pluginWillHandleLoadError):
+        * loader/FrameLoaderClient.h:  Added client method to get platform specific error for
+          "plugin will handle load"
+
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaTokenizer::createDocumentStructure): Tell the MainResourceLoader to not buffer data,
+          and cancel the WebCore-managed load
+        (WebCore::MediaTokenizer::writeRawData):
+        (WebCore::MediaTokenizer::finish):
+
+2008-08-26  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Linear timing functions should have control points 0, 0, 1, 1.
+        https://bugs.webkit.org/show_bug.cgi?id=20535
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::mapAnimationTimingFunction):
+        * rendering/style/RenderStyle.h:
+
+2008-08-27  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebCore.vcproj/WebCore.vcproj: Fix file extension.
+
 2008-08-27  chris fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin.

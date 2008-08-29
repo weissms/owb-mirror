@@ -29,7 +29,7 @@
 #include "SystemTime.h"
 #include "NotImplemented.h"
 #include <sys/time.h>
-#include <float.h>
+#include "float.h"
 
 namespace OWBAL {
 
@@ -42,11 +42,9 @@ double currentTime()
   return (double)aTimeval.tv_sec + (double)(aTimeval.tv_usec / 1000000.0 );
 }
 
-// return an arbitrarily high userIdleTime so that releasing pages from the page cache isn't postponed
 float userIdleTime() 
 { 
     notImplemented(); 
     return FLT_MAX; 
-} 
-
+}
 }

@@ -86,5 +86,9 @@ LIST (APPEND RENDERING_SRC
     rendering/bidi.cpp
     rendering/break_lines.cpp
 
+    rendering/style/NinePieceImage.cpp
     rendering/style/RenderStyle.cpp
+    rendering/style/StyleCachedImage.cpp
+    rendering/style/StyleGeneratedImage.cpp
+
 )

@@ -47,10 +47,11 @@ namespace WKAL {
 
     class Pattern : public WKALBase, Noncopyable {
     public:
+
     /**
-     * Pattern constructor
+     *  create
      */
-        Pattern(Image*, bool repeatX, bool repeatY);
+        static PassRefPtr<Pattern> create(Image* tileImage, bool repeatX, bool repeatY);
 
     /**
      * ~Pattern destructor
@@ -69,6 +70,11 @@ namespace WKAL {
         PlatformPatternPtr createPlatformPattern(const AffineTransform& patternTransform) const;
 
     private:
+    /**
+     *  Pattern constructor
+     */
+        Pattern(Image*, bool repeatX, bool repeatY);
+
         RefPtr<Image> m_tileImage;
         bool m_repeatX;
         bool m_repeatY;
@@ -77,7 +83,4 @@ namespace WKAL {
 } //namespace
 
 #endif
-
-
-
 

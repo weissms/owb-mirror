@@ -180,8 +180,8 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
         srcRect.h = static_cast<Uint16>(sourceRect.height());
     
 
-    dstRect.x = static_cast<Sint16>(destRect.x() + context->origin().width());
-    dstRect.y = static_cast<Sint16>(destRect.y() + context->origin().height());
+    dstRect.x = static_cast<Sint16>(destRect.x() + context->origin().x());
+    dstRect.y = static_cast<Sint16>(destRect.y() + context->origin().y());
     dstRect.w = static_cast<Sint16>(destRect.width());
     dstRect.h = static_cast<Sint16>(destRect.height());
 
@@ -283,7 +283,7 @@ void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, con
     
     for (int x = static_cast<int>(phase.x()); x < xMax; x += image->w) {
         for (int y = static_cast<int>(phase.y()); y < yMax; y += image->h) {
-            dest.setLocation(IntPoint(x, y) + context->origin());
+            dest.setLocation(IntPoint(x, y) + IntSize(context->origin().x(), context->origin().y()));
             dstRect.x = static_cast<Sint16>(dest.x());
             dstRect.y = static_cast<Sint16>(dest.y());
             dstRect.w = static_cast<Sint16>(dest.width());

@@ -1,3 +1,67 @@
+2008-08-29  Adele Peterson  <adele@apple.com>
+
+        Build fix.
+
+        * WebIconDatabase.cpp: (WebIconDatabase::getOrCreateDefaultIconBitmap):
+
+2008-08-28  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Rubber-stamped by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17261
+
+        Remove the urlIcon.png from the project and the resource file. Remove
+        the usage of this icon from WebKitDLL.cpp and change WebIconDatabase
+        to get the icon from the IconDatabase code which is using a version of
+        the icon that is compiled into the code.
+
+        * WebIconDatabase.cpp:
+        (WebIconDatabase::getOrCreateDefaultIconBitmap): Use the icon from the
+        IconDatabase.cpp
+        * WebKit.vcproj/WebKit.rc: Remove urlIcon.cpp
+        * WebKit.vcproj/urlIcon.png: Removed.
+        * WebKitDLL.cpp:
+        (loadResourceIntoBuffer): Remove "urlIcon"
+
+2008-08-27  Alice Liu  <alice.liu@apple.com>
+
+        Add interface for obtaining JS object counts broken down by type
+
+        Reviewed by Steve Falkenburg.
+
+        * Interfaces/IWebCoreStatistics.idl:
+        * WebCoreStatistics.cpp:
+        (WebCoreStatistics::javaScriptProtectedObjectTypeCounts):
+        * WebCoreStatistics.h:
+
+2008-08-27  Ada Chan  <adachan@apple.com>
+
+        Fixed build.
+
+        * WebFrame.cpp:
+        (WebFrame::pluginWillHandleLoadError):
+
+2008-08-27  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Anders
+
+        <rdar://problem/6134133> - Crash when loading large movie as a standalone document
+
+        * WebFrame.cpp:
+        (WebFrame::pluginWillHandleLoadError):
+        * WebFrame.h:
+
+2008-08-26  Alice Liu  <alice.liu@apple.com>
+
+        Implement COMPropertyBag::GetPropertyInfo
+        and a variant setter for type int
+
+        Reviewed by Anders Carlsson.
+
+        * COMPropertyBag.h:
+        (::GetPropertyInfo):
+        * COMVariantSetter.h:
+
 2008-08-27  Adam Roben  <aroben@apple.com>
 
         Fix an assertion when showing the Web Inspector

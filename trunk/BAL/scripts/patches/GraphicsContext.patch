@@ -2,15 +2,6 @@ Index: BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp
 ===================================================================
 --- BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp	(revision 2800)
 +++ BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp	(working copy)
-@@ -426,7 +426,7 @@
- }
- #endif
- 
--#if !PLATFORM(CG) && !PLATFORM(CAIRO)
-+#if !PLATFORM(CG) && !PLATFORM(CAIRO) && !PLATFORM(BAL)
- // Other platforms need to implement this.
- void GraphicsContext::clipToImageBuffer(const FloatRect&, const ImageBuffer*)
- {
 @@ -434,7 +434,7 @@
  }
  #endif
