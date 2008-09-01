@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #include <float.h>
 
-namespace OWBAL {
+namespace WebCore {
 
 double currentTime()
 {

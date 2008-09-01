@@ -977,6 +977,16 @@ public:
      */
     virtual void transparent(bool* transparent);
 
+    /**
+     * set defersCallbacks
+     */
+    virtual void setDefersCallbacks(bool defersCallbacks);
+
+    /**
+     * get defersCallbacks
+     */
+    virtual bool defersCallbacks();
+
 
     /**
      * get page 

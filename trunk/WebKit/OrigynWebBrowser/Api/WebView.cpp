@@ -2298,6 +2298,22 @@ void WebView::transparent(bool* transparent)
     *transparent = this->transparent() ? true : false;
 }
 
+void WebView::setDefersCallbacks(bool defersCallbacks)
+{
+    if (!m_page)
+        return;
+
+    m_page->setDefersLoading(defersCallbacks);
+}
+
+bool WebView::defersCallbacks()
+{
+    if (!m_page)
+        return false;
+
+    return m_page->defersLoading();
+}
+
 Page* core(WebView* webView)
 {
     Page* page = 0;
