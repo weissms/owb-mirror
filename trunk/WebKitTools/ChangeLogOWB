@@ -1,3 +1,19 @@
+2008-09-01  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        refactoring of obserserService :
+        - rename all class BCObserver* by Observer*
+        - create a observerService by type of observer
+        - propagate the changes
+
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (DumpRenderTree::DumpRenderTree):
+        (DumpRenderTree::~DumpRenderTree):
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::setWaitToDump):
+
 2008-08-26  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -1,3 +1,34 @@
+2008-09-01  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        refactoring of obserserService :
+        - rename all class BCObserver* by Observer*
+        - create a observerService by type of observer
+        - propagate the changes
+
+        * OrigynWebBrowser/Api/WebDatabaseManager.cpp:
+        (WebDatabaseManager::dispatchDidModifyOrigin):
+        (WebDatabaseManager::dispatchDidModifyDatabase):
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::WebFrame):
+        (WebFrame::~WebFrame):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::postPreferencesChangesNotification):
+        (WebPreferences::didRemoveFromWebView):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView):
+        (initializeStaticObservers):
+        (WebView::close):
+        (WebView::initWithFrame):
+        (WebView::registerForIconNotification):
+        (WebView::setPreferences):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::postProgressStartedNotification):
+        (WebFrameLoaderClient::postProgressEstimateChangedNotification):
+        (WebFrameLoaderClient::postProgressFinishedNotification):
+
 2008-08-23  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

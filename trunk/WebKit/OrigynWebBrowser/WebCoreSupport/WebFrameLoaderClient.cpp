@@ -42,7 +42,7 @@
 #include "WebURLResponse.h"
 #include "WebView.h"
 
-#include "BCObserverService.h"
+#include "ObserverServiceData.h"
 
 #include <DocumentLoader.h>
 #include <FrameLoader.h>
@@ -383,19 +383,19 @@ void WebFrameLoaderClient::postProgressStartedNotification()
 #ifdef BENCH_LOAD_TIME
     gettimeofday(&m_timerStart, NULL);
 #endif
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(WebViewProgressStartedNotification, "", m_webFrame->webView());
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressStartedNotification, "", m_webFrame->webView());
 }
 
 void WebFrameLoaderClient::postProgressEstimateChangedNotification()
 {
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(WebViewProgressEstimateChangedNotification, "", m_webFrame->webView());
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressEstimateChangedNotification, "", m_webFrame->webView());
 }
 
 void WebFrameLoaderClient::postProgressFinishedNotification()
 {
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(WebViewProgressFinishedNotification, "", m_webFrame->webView());
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressFinishedNotification, "", m_webFrame->webView());
     //FIXME : remove this notification
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver("layoutTestController", "loadDone", NULL);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "loadDone", NULL);
 #ifdef BENCH_LOAD_TIME
     gettimeofday(&m_timerStop, NULL);
     if (m_timerStart.tv_sec == m_timerStop.tv_sec)

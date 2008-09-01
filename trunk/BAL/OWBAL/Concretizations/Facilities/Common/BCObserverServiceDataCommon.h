@@ -25,35 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef OBSERVERDATA_H
-#define OBSERVERDATA_H
+
+#ifndef BCOBSERVERSERVICEDATA_H
+#define BCOBSERVERSERVICEDATA_H
 
 #include "Observer.h"
+#include "StringHash.h"
+#include <wtf/HashMap.h>
+#include <wtf/Vector.h>
 #include "PlatformString.h"
 
-class BalObject;
+using WebCore::String;
 
+class BalObject;
 namespace OWBAL {
 
-    using WebCore::String;
+
+    class ObserverData;
     /**
-     * @brief the Observer
+     * @brief the ObserverService
      *
-     * The observer base class
+     * The observer service implementation
      *
      */
-    class ObserverData : public Observer {
+    class ObserverServiceData {
         public:
-            /**
-            * ObserverAddons destructor
-            */
-            virtual ~ObserverData() {};
-            /**
-            * observe handler
-            */
-            virtual void observe(const String &topic, const String &data, void*) = 0;
+            static ObserverServiceData *createObserverService();
 
+            virtual void registerObserver(const String& topic, Observer* observer);
+            virtual void notifyObserver(const String &topic, const String &data, void *subject);
+            virtual void removeObserver(const String& topic, Observer* observer);
+        private:
+            ObserverServiceData();
+            virtual ~ObserverServiceData() {};
+            HashMap<String, Vector<ObserverData*> > m_topicData;
     };
 }
 
-#endif //BCOBSERVER_H
+#endif //BCOBSERVERSERVICE_H

@@ -29,7 +29,7 @@
 
 #include "LayoutTestController.h"
 
-#include "BCObserverService.h"
+#include "ObserverServiceData.h"
 #include "WorkQueue.h"
 #include "WorkQueueItem.h"
 #include <JavaScriptCore/JSRetainPtr.h>
@@ -75,7 +75,7 @@ void LayoutTestController::notifyDone()
 {
     // FIXME: The frame might not be finished loading yet
     if (m_waitToDump && !WorkQueue::shared()->count()) {
-        OWBAL::BCObserverService::createBCObserverService()->notifyObserver("layoutTestController", "notifyDone", NULL);
+        OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "notifyDone", NULL);
     }
     m_waitToDump = false;
 }
@@ -151,7 +151,7 @@ void LayoutTestController::setWaitToDump(bool waitUntilDone)
     m_waitToDump = waitUntilDone;
     // FIXME: Should have some sort of watchdog timer here
     //if (waitUntilDone)
-        OWBAL::BCObserverService::createBCObserverService()->notifyObserver("layoutTestController", "waitUntilDone", NULL);
+        OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "waitUntilDone", NULL);
     // FIXME: Should have some sort of watchdog timer here
 }
 

@@ -35,7 +35,7 @@
 #include <Font.h>
 #include <PlatformString.h>
 #include <StringHash.h>
-#include "BCObserverService.h"
+#include "ObserverServiceData.h"
 
 #include <wtf/HashMap.h>
 #include <wtf/OwnArrayPtr.h>
@@ -79,7 +79,7 @@ WebPreferences* WebPreferences::createInstance()
 
 void WebPreferences::postPreferencesChangesNotification()
 {
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(webPreferencesChangedNotification(), "", this);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(webPreferencesChangedNotification(), "", this);
 }
 
 WebPreferences* WebPreferences::getInstanceForIdentifier(String identifier)
@@ -719,5 +719,5 @@ void WebPreferences::didRemoveFromWebView()
 {
     ASSERT(m_numWebViews);
     if (--m_numWebViews == 0)
-        OWBAL::BCObserverService::createBCObserverService()->notifyObserver(webPreferencesRemovedNotification(), "", this);
+        OWBAL::ObserverServiceData::createObserverService()->notifyObserver(webPreferencesRemovedNotification(), "", this);
 }

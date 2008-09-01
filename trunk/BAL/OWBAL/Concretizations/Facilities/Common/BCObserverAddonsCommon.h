@@ -28,7 +28,7 @@
 #ifndef BCOBSERVERADDONs_H
 #define BCOBSERVERADDONS_H
 
-#include "BCObserver.h"
+#include "Observer.h"
 #include "PlatformString.h"
 
 class BalObject;
@@ -41,12 +41,12 @@ namespace OWBAL {
      * The observer base class
      *
      */
-    class BCObserverAddons : public BCObserver {
+    class ObserverAddons : public Observer {
         public:
             /**
             * BCObserverAddons destructor
             */
-            virtual ~BCObserverAddons() {};
+            virtual ~ObserverAddons() {};
             /**
             * observe handler
             */
@@ -55,4 +55,4 @@ namespace OWBAL {
     };
 }
 
-#endif //BCOBSERVER_H
+#endif //OBSERVER_H

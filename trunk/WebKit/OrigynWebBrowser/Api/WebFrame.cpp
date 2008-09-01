@@ -79,7 +79,7 @@
 #include <API/APICast.h>
 #include <wtf/MathExtras.h>
 #include DEEPSEE_INCLUDE
-#include "BCObserverService.h"
+#include "ObserverServiceAddons.h"
 #include "bal_instance.h"
 #include "runtime.h"
 #include "runtime_root.h"
@@ -185,12 +185,12 @@ WebFrame::WebFrame()
 #ifdef __BINDING_JS__
     m_bindingJS = new BindingJS();
 #endif
-    OWBAL::BCObserverService::createBCObserverService()->registerObserver("AddonRegister", this); 
+    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", this); 
 }
 
 WebFrame::~WebFrame()
 {
-    OWBAL::BCObserverService::createBCObserverService()->removeObserver("AddonRegister", this); 
+    OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", this); 
 #ifdef __BINDING_JS__ 
     if (m_bindingJS)
         delete m_bindingJS;

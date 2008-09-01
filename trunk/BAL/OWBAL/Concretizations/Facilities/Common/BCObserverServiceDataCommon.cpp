@@ -27,34 +27,33 @@
  */
 
 /**
- * @file BCObserverService.cpp
+ * @file ObserverService.cpp
  *
  * BAL Observer Service implementation
  */
 
 #include "config.h"
-#include "BCObserverService.h"
-#include "BCObserverAddons.h"
-#include "BCObserverData.h"
+#include "ObserverServiceData.h"
+#include "ObserverData.h"
 #include "CString.h"
 
 namespace OWBAL {
 
-BCObserverService* BCObserverService::createBCObserverService()
+ObserverServiceData* ObserverServiceData::createObserverService()
 {
-    static BCObserverService observerSingleton;
+    static ObserverServiceData observerSingleton;
     return &observerSingleton;
 }
 
 
-BCObserverService::BCObserverService()
+ObserverServiceData::ObserverServiceData()
 {
 }
 
-void BCObserverService::registerObserver(const String& topic, BCObserver* observer)
+void ObserverServiceData::registerObserver(const String& topic, Observer* observer)
 {
-    Vector<BCObserver*> listObserver = m_topic.get(topic);
-    Vector<BCObserver*>::iterator it;
+    Vector<ObserverData*> listObserver = m_topicData.get(topic);
+    Vector<ObserverData*>::iterator it;
     bool isSet = false;
 
     // Check that observer does not exist in listObserver
@@ -66,54 +65,43 @@ void BCObserverService::registerObserver(const String& topic, BCObserver* observ
         }
     }
     if (!isSet)
-        listObserver.append(observer);
+        listObserver.append(static_cast<ObserverData*>(observer));
 
     // If topic does not exist, add it to the Hashmap
     // else set listObserver as a ref cannot be get on it via get() method
     if (listObserver.size() <= 1)
-        pair<HashMap<String, Vector<BCObserver*> >::iterator, bool> result  = m_topic.add(topic, listObserver);
+        pair<HashMap<String, Vector<ObserverData*> >::iterator, bool> result  = m_topicData.add(topic, listObserver);
     else
-        m_topic.set(topic, listObserver);
+        m_topicData.set(topic, listObserver);
 }
 
-void BCObserverService::notifyObserver(const String& topic, BalObject *obj)
-{
-    //DBGML(MODULE_FACILITIES, LEVEL_INFO, "notify obj %p for topic %s\n", obj, topic.utf8().data());
-
-    Vector<BCObserver*> listObserver = m_topic.get(topic);
-    Vector<BCObserver*>::iterator it;
-    for (it = listObserver.begin(); it != listObserver.end(); it++) {
-        static_cast<BCObserverAddons*>((*it))->observe(topic, obj);
-    }
-}
-
-void BCObserverService::notifyObserver(const String& topic, const String& data, void *subject)
+void ObserverServiceData::notifyObserver(const String& topic, const String& data, void *subject)
 {
 //    DBGML(MODULE_FACILITIES, LEVEL_INFO, "notify data %s for topic %s\n", data.utf8().data(), topic.utf8().data());
 
-    Vector<BCObserver*> listObserver = m_topic.get(topic);
-    Vector<BCObserver*>::iterator it;
+    Vector<ObserverData*> listObserver = m_topicData.get(topic);
+    Vector<ObserverData*>::iterator it;
     for (it = listObserver.begin(); it != listObserver.end(); it++)
-        static_cast<BCObserverData*>((*it))->observe(topic, data, subject);
+        (*it)->observe(topic, data, subject);
 }
 
 
 
-void BCObserverService::removeObserver(const String& topic, BCObserver* observer)
+void ObserverServiceData::removeObserver(const String& topic, Observer* observer)
 {
-    Vector<BCObserver*> listObserver = m_topic.get(topic);
+    Vector<ObserverData*> listObserver = m_topicData.get(topic);
 
     // If listObserver has one observer or less, topic can be safely removed from Hashmap
     // else just remove observer from list and set Hashmap with new listObserver
     if (listObserver.size() <= 1) {
-        m_topic.remove(topic);
+        m_topicData.remove(topic);
     } else {
         int i = 0;
-        Vector<BCObserver*>::iterator it;
+        Vector<ObserverData*>::iterator it;
         for (it = listObserver.begin(); it != listObserver.end(); it++, i++) {
             if (*it == observer) {
                 listObserver.remove(i);
-                m_topic.set(topic, listObserver);
+                m_topicData.set(topic, listObserver);
                 break;
             }
         }

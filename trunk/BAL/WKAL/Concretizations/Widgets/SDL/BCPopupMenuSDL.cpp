@@ -40,7 +40,7 @@
 #include "PlatformScreen.h"
 #include "PlatformString.h"
 #include "RenderStyle.h"
-#include "BCObserverService.h"
+#include "ObserverServiceData.h"
 #include "SDL.h"
 
 using std::min;
@@ -91,7 +91,7 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
     if (clientRect().isEmpty())
         return;
 
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver("PopupMenuShow", "", this);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuShow", "", this);
 }
 
 int PopupMenu::focusedIndex() const
@@ -111,7 +111,7 @@ bool PopupMenu::scrollToRevealSelection()
 
 void PopupMenu::hide()
 {
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver("PopupMenuHide", "", this);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuHide", "", this);
 }
 
 void PopupMenu::updateFromElement()

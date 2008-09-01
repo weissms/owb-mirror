@@ -25,8 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef BCOBSERVER_H
-#define BCOBSERVER_H
+#ifndef OBSERVER_H
+#define OBSERVER_H
 
 namespace OWBAL {
 
@@ -36,12 +36,12 @@ namespace OWBAL {
      * The observer base class
      *
      */
-    class BCObserver {
+    class Observer {
         public:
             /**
-            * BCObserverAddons destructor
+            * Observer destructor
             */
-            virtual ~BCObserver() {};
+            virtual ~Observer() {};
     };
 }
 

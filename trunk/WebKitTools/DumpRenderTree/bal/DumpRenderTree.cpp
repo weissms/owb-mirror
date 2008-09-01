@@ -45,8 +45,8 @@
 #include <iostream> // NOTE log define interferes with iostream
 #include <signal.h>
 #include "SystemTime.h"
-#include "BCObserverData.h"
-#include "BCObserverService.h"
+#include "ObserverData.h"
+#include "ObserverServiceData.h"
 
 #include "runtime.h"
 #include "runtime_root.h"
@@ -84,7 +84,7 @@ static WebView *webView = 0;
  *
  * @see Font, FontData
  */
-class DumpRenderTree : public BCObserverData {
+class DumpRenderTree : public ObserverData {
 public:
     DumpRenderTree();
     ~DumpRenderTree();
@@ -113,11 +113,11 @@ DumpRenderTree::DumpRenderTree()
 {
     m_layoutTestController = new LayoutTestController( false, false);
     m_gcController = new GCController();
-    OWBAL::BCObserverService::createBCObserverService()->registerObserver("layoutTestController", this);
+    OWBAL::ObserverServiceData::createObserverService()->registerObserver("layoutTestController", this);
 }
 DumpRenderTree::~DumpRenderTree()
 {
-    OWBAL::BCObserverService::createBCObserverService()->removeObserver("layoutTestController", this);
+    OWBAL::ObserverServiceData::createObserverService()->removeObserver("layoutTestController", this);
 }
 
 void DumpRenderTree::observe(const String& topic, const String& data, void*)

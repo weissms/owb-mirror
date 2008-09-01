@@ -36,7 +36,7 @@
 #include <DatabaseTracker.h>
 #include <FileSystem.h>
 #include <SecurityOrigin.h>
-#include "BCObserverService.h"
+#include "ObserverServiceData.h"
 #include DEEPSEE_INCLUDE
 using namespace WebCore;
 
@@ -149,7 +149,7 @@ void WebDatabaseManager::deleteDatabase(WebCore::String databaseName, WebSecurit
 void WebDatabaseManager::dispatchDidModifyOrigin(SecurityOrigin* origin)
 {
     WebSecurityOrigin* securityOrigin = WebSecurityOrigin::createInstance(origin);
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(WebDatabaseDidModifyOriginNotification, "", securityOrigin);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebDatabaseDidModifyOriginNotification, "", securityOrigin);
 
     delete securityOrigin;
 }
@@ -158,7 +158,7 @@ void WebDatabaseManager::dispatchDidModifyDatabase(SecurityOrigin* origin, const
 {
     WebSecurityOrigin* securityOrigin = WebSecurityOrigin::createInstance(origin);
 
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(WebDatabaseDidModifyDatabaseNotification, "", securityOrigin);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebDatabaseDidModifyDatabaseNotification, "", securityOrigin);
 
     delete securityOrigin;
 }

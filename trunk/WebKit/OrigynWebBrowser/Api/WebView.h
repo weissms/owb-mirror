@@ -47,7 +47,7 @@
 #include <KeyboardEvent.h>
 #include <IntRect.h>
 #include <Timer.h>
-#include <BCObserverData.h>
+#include <ObserverData.h>
 #include <wtf/OwnPtr.h>
 #include "GraphicsContext.h"
 #include "BALBase.h"
@@ -92,7 +92,7 @@ namespace WebCore {
 class MouseEventPrivate;
 
 class WebView 
-    : public OWBAL::BCObserverData
+    : public OWBAL::ObserverData
 {
 public:
 

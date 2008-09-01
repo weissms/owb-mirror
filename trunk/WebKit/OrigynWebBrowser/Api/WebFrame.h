@@ -53,7 +53,7 @@
 #include <wtf/RefPtr.h>
 #include <wtf/HashMap.h>
 #include <wtf/OwnPtr.h>
-#include "BCObserverAddons.h"
+#include "ObserverAddons.h"
 
 namespace WebCore {
     class AuthenticationChallenge;
@@ -116,7 +116,7 @@ WebFrame* kit(WebCore::Frame*);
      */
 WebCore::Frame* core(WebFrame*);
 
-class WebFrame: public WebFrameLoaderClient, public OWBAL::BCObserverAddons
+class WebFrame: public WebFrameLoaderClient, public OWBAL::ObserverAddons
 {
 public:
 

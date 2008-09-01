@@ -29,7 +29,7 @@
 #ifndef BCOBSERVERSERVICE_H
 #define BCOBSERVERSERVICE_H
 
-#include "BCObserver.h"
+#include "Observer.h"
 #include "StringHash.h"
 #include <wtf/HashMap.h>
 #include <wtf/Vector.h>
@@ -41,23 +41,16 @@ class BalObject;
 namespace OWBAL {
 
     /**
-     * @brief the BCObserverService
+     * @brief the ObserverService
      *
      * The observer service implementation
      *
      */
-    class BCObserverService {
+    class ObserverService {
         public:
-	    static BCObserverService *createBCObserverService();
-
-            virtual void registerObserver(const String& topic, BCObserver* observer);
-            virtual void notifyObserver(const String &topic, BalObject *obj);
-	    virtual void notifyObserver(const String &topic, const String &data, void *subject);
-	    virtual void removeObserver(const String& topic, BCObserver* observer);
-        private:
-            BCObserverService();
-            virtual ~BCObserverService() {};
-            HashMap<String, Vector<BCObserver*> > m_topic;
+            virtual ~ObserverService();
+            virtual void registerObserver(const String& topic, Observer* observer) = 0;
+            virtual void removeObserver(const String& topic, Observer* observer) = 0;
     };
 }
 

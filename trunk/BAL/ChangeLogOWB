@@ -1,3 +1,39 @@
+2008-09-01  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        refactoring of obserserService :
+        - rename all class BCObserver* by Observer*
+        - create a observerService by type of observer
+        - propagate the changes
+
+        * OWBAL/Concretizations/Facilities/Common/BCObserverAddonsCommon.h:
+        (OWBAL::ObserverAddons::~ObserverAddons):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverCommon.h:
+        (OWBAL::Observer::~Observer):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverDataCommon.h:
+        (OWBAL::ObserverData::~ObserverData):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceAddonsCommon.cpp: Added.
+        (OWBAL::ObserverServiceAddons::createObserverService):
+        (OWBAL::ObserverServiceAddons::ObserverServiceAddons):
+        (OWBAL::ObserverServiceAddons::registerObserver):
+        (OWBAL::ObserverServiceAddons::notifyObserver):
+        (OWBAL::ObserverServiceAddons::removeObserver):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceAddonsCommon.h: Added.
+        (OWBAL::ObserverServiceAddons::~ObserverServiceAddons):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceCommon.cpp: Removed.
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceCommon.h:
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceDataCommon.cpp: Added.
+        (OWBAL::ObserverServiceData::createObserverService):
+        (OWBAL::ObserverServiceData::ObserverServiceData):
+        (OWBAL::ObserverServiceData::registerObserver):
+        (OWBAL::ObserverServiceData::notifyObserver):
+        (OWBAL::ObserverServiceData::removeObserver):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceDataCommon.h: Added.
+        (OWBAL::ObserverServiceData::~ObserverServiceData):
+        * WKAL/Concretizations/Widgets/SDL/BCPopupMenuSDL.cpp:
+        (WKAL::PopupMenu::show):
+        (WKAL::PopupMenu::hide):
+
 2008-08-28  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.
