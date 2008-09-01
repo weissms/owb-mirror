@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2008 Holger Hans Peter Freyther
- *
- * All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,10 +10,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -25,35 +23,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef StillImageQt_h
-#define StillImageQt_h
+#ifndef SmallStrings_h
+#define SmallStrings_h
 
-#include "Image.h"
+#include <wtf/OwnPtr.h>
 
-namespace WebCore {
+namespace KJS {
 
-    class StillImage : public Image {
+    class ExecState;
+    class JSString;
+
+    class SmallStringsStorage;
+
+    class SmallStrings : Noncopyable {
     public:
-        static PassRefPtr<StillImage> create(const QPixmap& pixmap)
+        SmallStrings();
+        ~SmallStrings();
+
+        JSString* emptyString(ExecState* exec)
         {
-            return adoptRef(new StillImage(pixmap));
+            if (!m_emptyString)
+                createEmptyString(exec);
+            return m_emptyString;
         }
-
-        // FIXME: StillImages are underreporting decoded sizes and will be unable
-        // to prune because these functions are not implemented yet.
-        virtual void destroyDecodedData(bool incremental = false) { }
-        virtual unsigned decodedSize() const { return 0; }
-
-        virtual IntSize size() const;
-        virtual NativeImagePtr nativeImageForCurrentFrame();
-        virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator);
-
-    private:
-        StillImage(const QPixmap& pixmap);
+        JSString* singleCharacterString(ExecState* exec, unsigned char character)
+        {
+            if (!m_singleCharacterStrings[character])
+                createSingleCharacterString(exec, character);
+            return m_singleCharacterStrings[character];
+        }
         
-        QPixmap m_pixmap;
-    };
+        void mark();
+        
+    private:
+        void createEmptyString(ExecState*);
+        void createSingleCharacterString(ExecState*, unsigned char);
 
+        JSString* m_emptyString;
+        JSString* m_singleCharacterStrings[0x100];
+        OwnPtr<SmallStringsStorage> m_storage;
+    };
+    
 }
 
 #endif

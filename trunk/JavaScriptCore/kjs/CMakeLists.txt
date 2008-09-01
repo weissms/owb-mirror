@@ -73,6 +73,7 @@ LIST (APPEND JSCORE_SRC
     kjs/RegExpObject.cpp
     kjs/RegExpPrototype.cpp
     kjs/ScopeChain.cpp
+    kjs/SmallStrings.cpp
     kjs/StringConstructor.cpp
     kjs/StringObject.cpp
     kjs/StringPrototype.cpp

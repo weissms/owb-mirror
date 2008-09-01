@@ -272,14 +272,11 @@ namespace WKAL {
      */
         void translate(const FloatSize&);
 
+
     /**
-     * get winding rule
-     * @param[out] : rule
-     * @code
-     * WindRule r = p->windingRule();
-     * @endcode
+     * debug string
      */
-        WindRule windingRule() const ;
+        String debugString() const
 
     /**
      * get platform path
@@ -387,5 +384,3 @@ namespace WKAL {
 }
 
 #endif
-
-

@@ -54,6 +54,10 @@
 #include "SamplingTool.h"
 #include <stdio.h>
 
+#if PLATFORM(DARWIN)
+#include <mach/mach.h>
+#endif
+
 #if HAVE(SYS_TIME_H)
 #include <sys/time.h>
 #endif
@@ -187,10 +191,10 @@ static JSValue* jsAddSlowCase(ExecState* exec, JSValue* v1, JSValue* v2)
     JSValue* p2 = v2->toPrimitive(exec);
 
     if (p1->isString() || p2->isString()) {
-        UString value = p1->toString(exec) + p2->toString(exec);
-        if (value.isNull())
+        RefPtr<UString::Rep> value = concatenate(p1->toString(exec).rep(), p2->toString(exec).rep());
+        if (!value)
             return throwOutOfMemoryError(exec);
-        return jsString(exec, value);
+        return jsString(exec, value.release());
     }
 
     return jsNumber(exec, p1->toNumber(exec) + p2->toNumber(exec));
@@ -213,10 +217,10 @@ static inline JSValue* jsAdd(ExecState* exec, JSValue* v1, JSValue* v2)
         return jsNumber(exec, left + right);
     
     if (v1->isString() && v2->isString()) {
-        UString value = static_cast<JSString*>(v1)->value() + static_cast<JSString*>(v2)->value();
-        if (value.isNull())
+        RefPtr<UString::Rep> value = concatenate(static_cast<JSString*>(v1)->value().rep(), static_cast<JSString*>(v2)->value().rep());
+        if (!value)
             return throwOutOfMemoryError(exec);
-        return jsString(exec, value);
+        return jsString(exec, value.release());
     }
 
     // All other cases are pretty uncommon
@@ -226,23 +230,23 @@ static inline JSValue* jsAdd(ExecState* exec, JSValue* v1, JSValue* v2)
 static JSValue* jsTypeStringForValue(ExecState* exec, JSValue* v)
 {
     if (v->isUndefined())
-        return jsString(exec, "undefined");
+        return jsNontrivialString(exec, "undefined");
     if (v->isBoolean())
-        return jsString(exec, "boolean");
+        return jsNontrivialString(exec, "boolean");
     if (v->isNumber())
-        return jsString(exec, "number");
+        return jsNontrivialString(exec, "number");
     if (v->isString())
-        return jsString(exec, "string");
+        return jsNontrivialString(exec, "string");
     if (v->isObject()) {
         // Return "undefined" for objects that should be treated
         // as null when doing comparisons.
         if (static_cast<JSObject*>(v)->masqueradeAsUndefined())
-            return jsString(exec, "undefined");
+            return jsNontrivialString(exec, "undefined");
         CallData callData;
         if (static_cast<JSObject*>(v)->getCallData(callData) != CallTypeNone)
-            return jsString(exec, "function");
+            return jsNontrivialString(exec, "function");
     }
-    return jsString(exec, "object");
+    return jsNontrivialString(exec, "object");
 }
 
 static bool NEVER_INLINE resolve(ExecState* exec, Instruction* vPC, Register* r, ScopeChainNode* scopeChain, CodeBlock* codeBlock, JSValue*& exceptionValue)
@@ -989,14 +993,22 @@ void Machine::resetTimeoutCheck()
     m_timeExecuting = 0;
 }
 
-// Returns the current time in milliseconds
-// It doesn't matter what "current time" is here, just as long as
-// it's possible to measure the time difference correctly.
-// In an ideal world this would just be getCurrentUTCTimeWithMicroseconds
-// from DateMath.h, but unfortunately there's a slowdown if we use tha.
-static inline unsigned getCurrentTime()
+// Returns the time the current thread has spent executing, in milliseconds.
+static inline unsigned getCPUTime()
 {
-#if HAVE(SYS_TIME_H)
+#if PLATFORM(DARWIN)
+    mach_msg_type_number_t infoCount = THREAD_BASIC_INFO_COUNT;
+    thread_basic_info_data_t info;
+
+    // Get thread information
+    thread_info(mach_thread_self(), THREAD_BASIC_INFO, reinterpret_cast<thread_info_t>(&info), &infoCount);
+    
+    unsigned time = info.user_time.seconds * 1000 + info.user_time.microseconds / 1000;
+    time += info.system_time.seconds * 1000 + info.system_time.microseconds / 1000;
+    
+    return time;
+#elif HAVE(SYS_TIME_H)
+    // FIXME: This should probably use getrusage with the RUSAGE_THREAD flag.
     struct timeval tv;
     gettimeofday(&tv, 0);
     return tv.tv_sec * 1000 + tv.tv_usec / 1000;
@@ -1004,7 +1016,18 @@ static inline unsigned getCurrentTime()
     QDateTime t = QDateTime::currentDateTime();
     return t.toTime_t() * 1000 + t.time().msec();
 #elif PLATFORM(WIN_OS)
-    return timeGetTime();
+    union {
+        FILETIME fileTime;
+        unsigned long long fileTimeAsLong;
+    } userTime, kernelTime;
+    
+    // GetThreadTimes won't accept NULL arguments so we pass these even though
+    // they're not used.
+    FILETIME creationTime, exitTime;
+    
+    GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, &kernelTime.fileTime, &userTime.fileTime);
+    
+    return userTime.fileTimeAsLong / 10000 + kernelTime.fileTimeAsLong / 10000;
 #else
 #error Platform does not have getCurrentTime function
 #endif
@@ -1014,7 +1037,7 @@ static inline unsigned getCurrentTime()
 // we attempt to return a bool
 ALWAYS_INLINE JSValue* Machine::checkTimeout(JSGlobalObject* globalObject)
 {
-    unsigned currentTime = getCurrentTime();
+    unsigned currentTime = getCPUTime();
     
     if (!m_timeAtLastCheckTimeout) {
         // Suspicious amount of looping in a script -- start timing it

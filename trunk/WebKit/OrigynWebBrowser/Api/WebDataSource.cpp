@@ -39,6 +39,7 @@
 #include <PlatformString.h>
 #include <DocLoader.h>
 #include <Document.h>
+#include <Frame.h>
 #include <FrameLoader.h>
 #include <KURL.h>
 #include DEEPSEE_INCLUDE

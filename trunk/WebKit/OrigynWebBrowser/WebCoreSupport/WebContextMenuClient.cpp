@@ -34,6 +34,7 @@
 #include "WebView.h"
 
 #include <ContextMenu.h>
+#include <Frame.h>
 #include <FrameLoader.h>
 #include <FrameLoadRequest.h>
 #include <Page.h>

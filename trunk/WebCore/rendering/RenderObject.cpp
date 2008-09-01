@@ -1519,8 +1519,11 @@ void RenderObject::paintBorder(GraphicsContext* graphicsContext, int tx, int ty,
             y += topLeft.height();
             y2 -= bottomLeft.height();
         }
-	    if ((y + style->borderTopWidth()) <= (y2 - style->borderTopWidth()))
+        if ((y + style->borderTopWidth()) <= (y2 - style->borderTopWidth()))
             drawBorder(graphicsContext, tx, y + style->borderTopWidth(), tx + style->borderLeftWidth(), y2 - style->borderTopWidth(), 
+                       BSLeft, lc, style->color(), ls, ignore_top ? 0 : style->borderTopWidth(), ignore_bottom ? 0 : style->borderBottomWidth());
+        else
+            drawBorder(graphicsContext, tx, y, tx + style->borderLeftWidth(), y2,
                        BSLeft, lc, style->color(), ls, ignore_top ? 0 : style->borderTopWidth(), ignore_bottom ? 0 : style->borderBottomWidth());
 
         if (renderRadii && (!upperLeftBorderStylesMatch || !lowerLeftBorderStylesMatch)) {
@@ -1591,6 +1594,9 @@ void RenderObject::paintBorder(GraphicsContext* graphicsContext, int tx, int ty,
 
         if ((y + style->borderTopWidth()) <= (y2 - style->borderTopWidth()))
             drawBorder(graphicsContext, tx + w - style->borderRightWidth(), y + style->borderTopWidth(), tx + w, y2 - style->borderTopWidth(), 
+                       BSRight, rc, style->color(), rs, ignore_top ? 0 : style->borderTopWidth(), ignore_bottom ? 0 : style->borderBottomWidth());
+        else
+            drawBorder(graphicsContext, tx + w - style->borderRightWidth(), y, tx + w, y2,
                        BSRight, rc, style->color(), rs, ignore_top ? 0 : style->borderTopWidth(), ignore_bottom ? 0 : style->borderBottomWidth());
 
         if (renderRadii && (!upperRightBorderStylesMatch || !lowerRightBorderStylesMatch)) {

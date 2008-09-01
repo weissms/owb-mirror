@@ -47,15 +47,11 @@ namespace WKAL {
 
 class GeneratedImage : public WKALBase, public Image {
 public:
+
     /**
-     * GeneratedImage constructor
-     * @param[in] : generator
-     * @param[in] : size
-     * @code
-     * GeneratedImage *gi = new GeneratedImage(g, s);
-     * @endcode
+     *  create 
      */
-    GeneratedImage(PassRefPtr<Generator> generator, const IntSize& size);
+    static PassRefPtr<GeneratedImage> create(PassRefPtr<Generator> generator, const IntSize& size);
 
     /**
      * GeneratedImage destructor
@@ -116,8 +112,6 @@ public:
      */
     virtual IntSize size() const ;
 
-protected:
-
     /**
      *  destroyDecodedData
      */
@@ -129,6 +123,7 @@ protected:
      */
     virtual unsigned decodedSize() const ;
 
+protected:
     /**
      * draw 
      * @param[in] : graphics context
@@ -155,13 +150,18 @@ protected:
      */
     virtual void drawPattern(GraphicsContext*, const FloatRect& srcRect, const AffineTransform& patternTransform,
                              const FloatPoint& phase, CompositeOperator, const FloatRect& destRect);
-    
+
 protected:
+    /**
+     *  GeneratedImage constructor
+     */
+    GeneratedImage(PassRefPtr<Generator> generator, const IntSize& size);
+    
+    
     OwnPtr<Generator> m_generator;
     IntSize m_size;
 };
 
 }
 
-#endif
-
+#endi

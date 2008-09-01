@@ -19,12 +19,28 @@
     This class provides all functionality needed for tracking global history.
 */
 
+#include "config.h"
 #include "qwebhistoryinterface.h"
 
 #include <QCoreApplication>
 
+#include "PageGroup.h"
 #include "PlatformString.h"
-#include <wtf/Platform.h>
+
+// FIXME: It's not correct to just implement a WebCore function in WebKit!
+// This needs to be fixed to match other platforms.
+
+namespace WebCore {
+
+bool historyContains(const UChar* characters, unsigned length)
+{
+    if (!QWebHistoryInterface::defaultInterface())
+        return false;
+
+    return QWebHistoryInterface::defaultInterface()->historyContains(QString(reinterpret_cast<const QChar*>(characters), length));
+}
+
+} // namespace WebCore
 
 static QWebHistoryInterface *default_interface;
 
@@ -51,7 +67,10 @@ void QWebHistoryInterface::setDefaultInterface(QWebHistoryInterface *defaultInte
         return;
     if (default_interface && default_interface->parent() == 0)
         delete default_interface;
+
     default_interface = defaultInterface;
+    WebCore::PageGroup::removeAllVisitedLinks();
+
     if (!gRoutineAdded) {
         qAddPostRoutine(gCleanupInterface);
         gRoutineAdded = true;

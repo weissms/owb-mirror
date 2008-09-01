@@ -83,6 +83,7 @@ LIST (APPEND RENDERING_SRC
     rendering/SVGRenderSupport.cpp
     rendering/SVGRenderTreeAsText.cpp
     rendering/SVGRootInlineBox.cpp
+    rendering/TextControlInnerElements.cpp
     rendering/bidi.cpp
     rendering/break_lines.cpp
 

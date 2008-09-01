@@ -42,6 +42,7 @@
 #include "WebEditorClient.h"
 #include "EventHandler.h"
 #include "FocusController.h"
+#include "Frame.h"
 #include "FrameLoaderTypes.h"
 #include "HitTestRequest.h"
 #include "HitTestResult.h"

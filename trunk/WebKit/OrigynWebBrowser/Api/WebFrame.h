@@ -44,7 +44,8 @@
 
 #include "WebDataSource.h"
 
-#include <Frame.h>
+//#include <Frame.h>
+#include <IntSize.h>
 #include <KURL.h>
 #include <PlatformString.h>
 #include <ResourceHandleClient.h>
@@ -324,7 +325,7 @@ public:
     /**
      * get size 
      */
-    virtual IntSize size();
+    virtual WebCore::IntSize size();
 
     /**
      * test if the frame has scrollBars 

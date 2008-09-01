@@ -82,7 +82,6 @@ LIST (APPEND HTML_SRC
     html/HTMLTableRowsCollection.cpp
     html/HTMLTableSectionElement.cpp
     html/HTMLTextAreaElement.cpp
-    html/HTMLTextFieldInnerElement.cpp
     html/HTMLTitleElement.cpp
     html/HTMLTokenizer.cpp
     html/HTMLUListElement.cpp

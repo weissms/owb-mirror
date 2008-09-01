@@ -39,10 +39,12 @@
  * - $Date$
  */
 #include "BALBase.h"
-#include "WebFrame.h"
-#include "WebFrame.h"
 #include "WebPreferences.h"
 
+#include <Page.h>
+#include <FrameView.h>
+#include <ResourceRequest.h>
+#include <KeyboardEvent.h>
 #include <IntRect.h>
 #include <Timer.h>
 #include <BCObserverData.h>
@@ -53,14 +55,17 @@
 class DefaultDownloadDelegate;
 class DefaultPolicyDelegate;
 class DOMDocument;
+class WebArchive;
 class WebBackForwardList;
 class WebElementPropertyBag;
 class WebFrame;
 class WebHistoryItem;
 class WebInspector;
 class WebInspectorClient;
+class WebMutableURLRequest;
 class WebScriptObject;
 class WebViewPrivate;
+class WebView;
 
     /**
      * get a webview from page

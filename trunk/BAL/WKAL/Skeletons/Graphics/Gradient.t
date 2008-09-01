@@ -59,9 +59,9 @@ namespace WKAL {
 
 
     /**
-     *  create 
+     *  create
      */
-        static PassRefPtr<Gradient> create(const FloatPoint& p0, float r0, const FloatPoint& p1, float r1)
+        static PassRefPtr<Gradient> create(const FloatPoint& p0, float r0, const FloatPoint& p1, float r1);
 
      /**
       * desctructor
@@ -179,7 +179,7 @@ namespace WKAL {
     /**
      * platformInit
      */
-        void platformInit();
+        void platformInit() ;
 
     /**
      * platform destroy

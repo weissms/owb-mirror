@@ -1,0 +1,25 @@
+Index: BAL/OWBAL/Concretizations/Facilities/Linux/BCSystemTimeLinux.cpp
+===================================================================
+--- BAL/OWBAL/Concretizations/Facilities/Linux/BCSystemTimeLinux.cpp    (revision 462)
++++ BAL/OWBAL/Concretizations/Facilities/Linux/BCSystemTimeLinux.cpp    (working copy)
+@@ -27,10 +27,11 @@
+ 
+ #include "config.h"
+ #include "SystemTime.h"
+-
++#include "NotImplemented.h"
+ #include <sys/time.h>
++#include "float.h"
+ 
+ double currentTime()
+ {
+@@ -41,4 +42,9 @@
+   return (double)aTimeval.tv_sec + (double)(aTimeval.tv_usec / 1000000.0 );
+ }
+ 
++float userIdleTime() 
++{ 
++    notImplemented(); 
++    return FLT_MAX; 
++}
+ }

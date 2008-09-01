@@ -44,6 +44,8 @@
 #include "PopupMenu.h"
 #include "CString.h"
 #include "FileIO.h"
+#include "WebFrame.h"
+#include "WebView.h"
 #include DEEPSEE_INCLUDE
 
 using namespace WebCore;

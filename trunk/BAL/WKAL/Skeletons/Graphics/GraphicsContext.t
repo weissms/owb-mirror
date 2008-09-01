@@ -483,7 +483,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-        void setImageInterpolationQuality(InterpolationQuality) ;
+        void setImageInterpolationQuality(InterpolationQuality);
 
 
 
@@ -494,7 +494,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-        InterpolationQuality imageInterpolationQuality() const ;
+        InterpolationQuality imageInterpolationQuality() const;
 
 
 

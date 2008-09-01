@@ -40,6 +40,7 @@
 #include "CString.h"
 #include <ContextMenu.h>
 #include <FloatRect.h>
+#include <Frame.h>
 #include <FrameLoadRequest.h>
 #include <FrameView.h>
 #include <Page.h>

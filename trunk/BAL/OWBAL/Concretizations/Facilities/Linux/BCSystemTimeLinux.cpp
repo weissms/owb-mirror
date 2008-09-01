@@ -28,8 +28,9 @@
 #include "config.h"
 #include "SystemTime.h"
 #include "NotImplemented.h"
+
 #include <sys/time.h>
-#include "float.h"
+#include <float.h>
 
 namespace OWBAL {
 
