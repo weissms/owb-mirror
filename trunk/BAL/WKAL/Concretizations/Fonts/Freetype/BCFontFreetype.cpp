@@ -69,6 +69,7 @@ SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel)
     SDL_LockSurface(origin);
     memcpy(data, origin->pixels, sizeof(uint32_t) * height * width);
     final = SDL_CreateRGBSurfaceFrom(data, origin->w, origin->h, 32, origin->pitch, rmask, gmask, bmask, amask);
+    final->flags &= ~SDL_PREALLOC;
     SDL_UnlockSurface(origin);
     SDL_LockSurface(final);
     uint32_t alpha = 0;
