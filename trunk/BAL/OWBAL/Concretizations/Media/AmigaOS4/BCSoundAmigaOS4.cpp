@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2008 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,43 +27,18 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include "config.h"
-#include "PlatformScreen.h"
-#include "Assertions.h"
-#include "Widget.h"
-#include "SDL.h"
 
-namespace WKAL {
+#include "Sound.h"
+#include <proto/intuition.h>
 
-int screenDepth(Widget* widget)
+namespace OWBAL {
+
+void systemBeep()
 {
-    ASSERT(widget->containingWindow());
-    return widget->containingWindow()->format->BitsPerPixel;
+    IIntuition->DisplayBeep(NULL);
 }
 
-int screenDepthPerComponent(Widget*)
-{
-    NotImplemented();
-    return 8;
 }
 
-bool screenIsMonochrome(Widget* widget)
-{
-    return screenDepth(widget) < 2;
-}
-
-FloatRect screenRect(Widget* widget)
-{
-    ASSERT(widget->containingWindow());
-    SDL_Rect sdlRect = widget->containingWindow()->clip_rect;
-    return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
-}
-
-FloatRect screenAvailableRect(Widget*)
-{
-    NotImplemented();
-    return FloatRect();
-}
-
-} // namespace WebCore
+// vim: ts=4 sw=4 et

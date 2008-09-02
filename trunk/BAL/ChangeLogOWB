@@ -1,3 +1,59 @@
+2008-09-02  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Add AmigaOS4 PlatformScreen, Pasteboard and Sound implementations.
+        Add support for an unicode fallback font in the AmigaOS4 fonts.
+        Optimized scrolling on AmigaOS4.
+
+        * OWBAL/Concretizations/Media/AmigaOS4: Added.
+        * OWBAL/Concretizations/Media/AmigaOS4/BCSoundAmigaOS4.cpp: Added.
+        (OWBAL::systemBeep):
+        * OWBAL/Concretizations/Media/AmigaOS4/BCSoundAmigaOS4.h: Added.
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformMouseEventAmigaOS4.cpp:
+        (WKAL::PlatformMouseEvent::PlatformMouseEvent):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontAmigaOS4.cpp:
+        (WKAL::Font::drawGlyphs):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp:
+        (WKAL::FontPlatformData::FontPlatformData):
+        (WKAL::FontPlatformData::init):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCGlyphPageTreeNodeAmigaOS4.cpp:
+        (WKAL::GlyphPage::fill):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCSimpleFontDataAmigaOS4.cpp:
+        (WKAL::SimpleFontData::platformWidthForGlyph):
+        * WKAL/Concretizations/Widgets/AmigaOS4: Added.
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCPasteboardAmigaOS4.cpp: Added.
+        (WKAL::):
+        (WKAL::PasteboardSelectionData::PasteboardSelectionData):
+        (WKAL::PasteboardSelectionData::~PasteboardSelectionData):
+        (WKAL::PasteboardSelectionData::text):
+        (WKAL::PasteboardSelectionData::markup):
+        (WKAL::Pasteboard::generalPasteboard):
+        (WKAL::Pasteboard::Pasteboard):
+        (WKAL::Pasteboard::~Pasteboard):
+        (WKAL::Pasteboard::setHelper):
+        (WKAL::Pasteboard::writeSelection):
+        (WKAL::Pasteboard::writeURL):
+        (WKAL::Pasteboard::writeImage):
+        (WKAL::Pasteboard::clear):
+        (WKAL::Pasteboard::canSmartReplace):
+        (WKAL::Pasteboard::documentFragment):
+        (WKAL::copycollection):
+        (WKAL::Pasteboard::plainText):
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCPasteboardAmigaOS4.h: Added.
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCPlatformScreenAmigaOS4.cpp: Added.
+        (WKAL::screenDepth):
+        (WKAL::screenDepthPerComponent):
+        (WKAL::screenIsMonochrome):
+        (WKAL::screenRect):
+        (WKAL::screenAvailableRect):
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCPlatformScreenAmigaOS4.h: Added.
+        * WKAL/Concretizations/Widgets/SDL/BCPlatformScreenSDL.cpp:
+        (WKAL::screenDepth):
+        (WKAL::screenRect):
+        * WKAL/Concretizations/Widgets/SDL/BCScrollViewSDL.cpp:
+        (WKAL::ScrollView::ScrollViewPrivate::scrollBackingStore):
+        (WKAL::ScrollView::update):
+
 2008-09-01  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

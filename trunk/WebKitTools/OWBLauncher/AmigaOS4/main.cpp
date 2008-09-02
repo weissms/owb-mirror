@@ -65,13 +65,15 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 #include <proto/layout.h>
 #include <gadgets/layout.h>
 #include <proto/string.h>
+#include <proto/fuelgauge.h>
+#include <gadgets/fuelgauge.h>
 #include <reaction/reaction_macros.h>
 #include <proto/gadtools.h>
 #undef String
+#include <cstdio>
 
 using namespace WebCore;
-
-#include <cstdio>
+using std::max;
 
 enum gadgetIDs
 {
@@ -93,7 +95,11 @@ enum menuIDs
     MID_Quit,
     MID_ZoomIn,
     MID_ZoomReset,
-    MID_ZoomOut
+    MID_ZoomOut,
+    MID_TextLarger,
+    MID_TextReset,
+    MID_TextSmaller,
+    MID_Redraw
 };
 
 AmigaConfig amigaConfig;
@@ -106,14 +112,29 @@ static NewMenu Menus[] =
 {
     Title((STRPTR)"Project"),
         Item((STRPTR)"New window",   (STRPTR)"N", MID_NewWindow),
-        Item((STRPTR)"Close window", (STRPTR)"C", MID_Close),
+        Item((STRPTR)"Close window", (STRPTR)"K", MID_Close),
         Item((STRPTR)"Quit",         (STRPTR)"Q", MID_Quit),
     Title((STRPTR)"View"),
         Item((STRPTR)"Zoom in",      (STRPTR)"+", MID_ZoomIn),
         Item((STRPTR)"Zoom reset",   (STRPTR)"0", MID_ZoomReset),
         Item((STRPTR)"Zoom out",     (STRPTR)"-", MID_ZoomOut),
+        ItemBar,
+        Item((STRPTR)"Text larger",  (STRPTR)"1", MID_TextLarger),
+        Item((STRPTR)"Text reset",   (STRPTR)"2", MID_TextReset),
+        Item((STRPTR)"Text smaller", (STRPTR)"3", MID_TextSmaller),
+        ItemBar,
+        Item((STRPTR)"Redraw",       (STRPTR)"R", MID_Redraw),
     EndMenu
 };
+
+#define FULLMENUNUM_ZoomIn      FULLMENUNUM(1, 0, 0)
+#define FULLMENUNUM_ZoomReset   FULLMENUNUM(1, 1, 0)
+#define FULLMENUNUM_ZoomOut     FULLMENUNUM(1, 2, 0)
+#define FULLMENUNUM_TextLarger  FULLMENUNUM(1, 4, 0)
+#define FULLMENUNUM_TextReset   FULLMENUNUM(1, 5, 0)
+#define FULLMENUNUM_TextSmaller FULLMENUNUM(1, 6, 0)
+
+
 
 static void initAmigaConfig(void)
 {
@@ -123,6 +144,10 @@ static void initAmigaConfig(void)
         amigaConfig.searchURL = "http://google.com/search?q=%s";
         amigaConfig.width = 800;
         amigaConfig.height = 600;
+        amigaConfig.minFontSize = 9;
+        amigaConfig.fontXDPI = 80;
+        amigaConfig.fontYDPI = 72;
+        amigaConfig.unicodeFontName = "Bitstream Cyberbit";
 
         isInitialized = true;
 
@@ -156,19 +181,53 @@ static void initAmigaConfig(void)
                 amigaConfig.searchURL = strdup(found);
 
             found = IIcon->FindToolType(icon->do_ToolTypes, "WIDTH");
-            if (found) {
+            if (found)
                 amigaConfig.width = atoi(found);
-                if (amigaConfig.width < 640)
-                    amigaConfig.width = 640;
-            }
 
             found = IIcon->FindToolType(icon->do_ToolTypes, "HEIGHT");
-            if (found) {
+            if (found)
                 amigaConfig.height = atoi(found);
-                if (amigaConfig.height < 400)
-                    amigaConfig.height = 400;
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "MINFONTSIZE");
+            if (found)
+                amigaConfig.minFontSize = atoi(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "FONTXDPI");
+            if (found)
+                amigaConfig.fontXDPI = atoi(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "FONTYDPI");
+            if (found)
+                amigaConfig.fontYDPI = atoi(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "UNICODEFONT");
+            if (found)
+                amigaConfig.unicodeFontName = strdup(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "WINDOWLEFT");
+            if (found)
+                amigaConfig.windowleft = atoi(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "WINDOWTOP");
+            if (found) {
+                amigaConfig.windowtop = atoi(found);
+                if (0 == amigaConfig.windowtop)
+                    amigaConfig.windowtop = -1;
             }
 
+            found = IIcon->FindToolType(icon->do_ToolTypes, "WINDOWWIDTH");
+            if (found)
+                amigaConfig.windowwidth = atoi(found);
+
+            found = IIcon->FindToolType(icon->do_ToolTypes, "WINDOWHEIGHT");
+            if (found)
+                amigaConfig.windowheight = atoi(found);
+
+            amigaConfig.height      = max(amigaConfig.height, 400);
+            amigaConfig.width       = max(amigaConfig.width, 640);
+            amigaConfig.minFontSize = max(amigaConfig.minFontSize, 5);
+            amigaConfig.fontXDPI    = max(amigaConfig.fontXDPI,10);
+            amigaConfig.fontYDPI    = max(amigaConfig.fontYDPI,10);
             IIcon->FreeDiskObject(icon);
         }
     }
@@ -197,7 +256,7 @@ static bool initTimer(void)
 
     timeReq->Request.io_Command = TR_ADDREQUEST;
     timeReq->Time.Seconds       = 0;
-    timeReq->Time.Microseconds  = 20000;
+    timeReq->Time.Microseconds  = 1000000/50;
     IExec->SendIO(&timeReq->Request);
     return true;
 }
@@ -210,6 +269,37 @@ static void cleanupTimer(void)
     IExec->FreeSysObject(ASOT_PORT, timePort);
 }
 
+void closeAmigaWindow(BalWidget *owbwindow)
+{
+    if (!owbwindow)
+        return;
+
+    if (owbwindow->window->MenuStrip) {
+        Menu *menustrip = owbwindow->window->MenuStrip;
+        IIntuition->ClearMenuStrip(owbwindow->window);
+        IGadTools->FreeMenus(menustrip);
+    }
+    IIntuition->CloseWindow(owbwindow->window);
+    IIntuition->DisposeObject(owbwindow->gad_vbar);
+    IIntuition->DisposeObject(owbwindow->gad_hbar);
+    IIntuition->DisposeObject(owbwindow->gad_toolbar);
+    if (owbwindow->backfill_hook)
+        IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
+    if (owbwindow->surface)
+        SDL_FreeSurface(owbwindow->surface);
+    if (firstWindow == owbwindow)
+        firstWindow = owbwindow->next;
+    else {
+        BalWidget *window = firstWindow;
+        while (window && window->next != owbwindow)
+            window = window->next;
+        if (window)
+            window->next = owbwindow->next;
+    }
+    delete owbwindow->webView;
+    free(owbwindow);
+}
+
 BalWidget *createAmigaWindow(WebView *webView)
 {
     if (!webView)
@@ -217,38 +307,29 @@ BalWidget *createAmigaWindow(WebView *webView)
 
     int w = amigaConfig.width;
     int h = amigaConfig.height;
-
-    SDL_Surface* surface;
-    Uint32 rmask, gmask, bmask, amask;
-    rmask = 0x00ff0000;
-    gmask = 0x0000ff00;
-    bmask = 0x000000ff;
-    amask = 0xff000000;
-    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32,
-                                   rmask, gmask, bmask, amask);
-
-    if (!surface)
-        return 0;
+    int windowX = amigaConfig.windowleft;
+    int windowY = amigaConfig.windowtop;
+    int windowW = amigaConfig.windowwidth;
+    int windowH = amigaConfig.windowheight;
 
     BalWidget *owbwindow = (BalWidget *)calloc(sizeof (BalWidget), 1);
-    if(!owbwindow) {
-        SDL_FreeSurface(surface);
+    if(!owbwindow)
         return 0;
-    }
 
-    owbwindow->surface = surface;
     owbwindow->webView = webView;
     owbwindow->window = IIntuition->OpenWindowTags(NULL,
-                                                   WA_SmartRefresh, TRUE,
-                                                   WA_NoCareRefresh, TRUE,
-                                                   WA_InnerWidth, w,
-                                                   WA_InnerHeight, h,
+                                                   WA_Left, windowX,
+                                                   windowY ? WA_Top : TAG_IGNORE, windowY,
+                                                   windowW ? WA_Width : WA_InnerWidth , windowW ?: w,
+                                                   windowH ? WA_Height : WA_InnerHeight, windowH ?: h,
                                                    WA_MinWidth, 640,
                                                    WA_MinHeight, 480,
                                                    WA_MaxWidth, ~0UL,
                                                    WA_MaxHeight, ~0UL,
+                                                   WA_SmartRefresh, TRUE,
+                                                   WA_NoCareRefresh, TRUE,
                                                    WA_Title, "Origyn Web Browser",
-                                                   WA_ScreenTitle, "Origyn Web Browser", // not supported?
+                                                   WA_ScreenTitle, "Origyn Web Browser",
                                                    WA_ReportMouse, TRUE,
                                                    WA_SizeGadget, TRUE,
                                                    WA_SizeBRight, TRUE,
@@ -272,7 +353,6 @@ BalWidget *createAmigaWindow(WebView *webView)
                                                            | IDCMP_MENUPICK,
                                                    TAG_DONE);
     if (!owbwindow->window) {
-        SDL_FreeSurface(surface);
         free(owbwindow);
         return 0;
     }
@@ -282,7 +362,7 @@ BalWidget *createAmigaWindow(WebView *webView)
     APTR old_proc_window = IDOS->SetProcWindow((APTR)-1);
     DrawInfo *drinfo = IIntuition->GetScreenDrawInfo(owbwindow->window->WScreen);
     owbwindow->backfill_hook = IIntuition->ObtainIBackFill(drinfo, BT_WINDOWBG, IDS_NORMAL, 0);
-    APTR images[4];
+    APTR images[6];
     images[0] = BitMapObject,
                     BITMAP_Screen, owbwindow->window->WScreen,
                     BITMAP_Masking, TRUE,
@@ -323,6 +403,14 @@ BalWidget *createAmigaWindow(WebView *webView)
                     BITMAP_SelectSourceFile, "TBImages:home_s",
                     BITMAP_DisabledSourceFile, "TBImages:home_g",
                 BitMapEnd;
+    images[5] = BitMapObject,
+                    BITMAP_Screen, owbwindow->window->WScreen,
+                    BITMAP_Masking, TRUE,
+                    BITMAP_Transparent, TRUE,
+                    BITMAP_SourceFile, "TBImages:reload",
+                    BITMAP_SelectSourceFile, "TBImages:reload_s",
+                    BITMAP_DisabledSourceFile, "TBImages:reload_g",
+                BitMapEnd;
 
     owbwindow->gad_toolbar = (Gadget *)VLayoutObject,
                                            GA_Left, owbwindow->window->BorderLeft,
@@ -354,13 +442,16 @@ BalWidget *createAmigaWindow(WebView *webView)
                                                    GA_RelVerify, TRUE,
                                                    images[2] ? BUTTON_RenderImage : GA_Text, images[2] ?: "Stop",
                                                    GA_TabCycle, NULL == images[2],
-//                                                   GA_Disabled, TRUE,
+                                                   GA_Disabled, TRUE,
                                                ButtonEnd,
                                                CHILD_WeightedWidth, 0,
-#if 0
-                                               LAYOUT_AddChild, Button("Refresh", GID_Reload),
+                                               LAYOUT_AddChild, ButtonObject,
+                                                   GA_ID, GID_Reload, 
+                                                   GA_RelVerify, TRUE,
+                                                   images[5] ? BUTTON_RenderImage : GA_Text, images[5] ?: "Reload",
+                                                   GA_TabCycle, NULL == images[5],
+                                               ButtonEnd,
                                                CHILD_WeightedWidth, 0,
-#endif
                                                LAYOUT_AddChild, ButtonObject,
                                                    GA_ID, GID_Home, 
                                                    GA_RelVerify, TRUE,
@@ -393,6 +484,15 @@ BalWidget *createAmigaWindow(WebView *webView)
                                                LabelEnd,
                                                CHILD_WeightedWidth, 40,
                                            LayoutEnd,
+                                           CHILD_WeightedHeight, 0,
+
+                                           LAYOUT_AddChild, owbwindow->gad_fuelgauge = (Gadget *)FuelGaugeObject,
+                                               FUELGAUGE_Min, 0,
+                                               FUELGAUGE_Max, 1000,
+                                               FUELGAUGE_Level, 0,
+                                               FUELGAUGE_Ticks, 0,
+                                               FUELGAUGE_Percent, FALSE,
+                                           FuelGaugeEnd,
                                            CHILD_WeightedHeight, 0,
 
                                            LAYOUT_AddImage, BevelObject,
@@ -433,11 +533,11 @@ BalWidget *createAmigaWindow(WebView *webView)
         IIntuition->DisposeObject(images[2]);
         IIntuition->DisposeObject(images[3]);
         IIntuition->DisposeObject(images[4]);
+        IIntuition->DisposeObject(images[5]);
         IIntuition->DisposeObject(owbwindow->gad_vbar);
         IIntuition->DisposeObject(owbwindow->gad_hbar);
         IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
         IIntuition->CloseWindow(owbwindow->window);
-        SDL_FreeSurface(surface);
         free(owbwindow);
         return 0;
     }
@@ -445,7 +545,7 @@ BalWidget *createAmigaWindow(WebView *webView)
     LayoutLimits layoutlimits;
     ILayout->LayoutLimits(owbwindow->gad_toolbar, &layoutlimits, NULL, owbwindow->window->WScreen);
     owbwindow->offsetx = owbwindow->window->BorderLeft;
-    owbwindow->offsety = owbwindow->window->BorderTop + layoutlimits.MinHeight + 4;
+    owbwindow->offsety = owbwindow->window->BorderTop + layoutlimits.MinHeight;
 
     IIntuition->AddGadget(owbwindow->window, owbwindow->gad_toolbar, (uint16)~0);
     if (owbwindow->gad_vbar)
@@ -455,7 +555,7 @@ BalWidget *createAmigaWindow(WebView *webView)
     IIntuition->RefreshGList(owbwindow->gad_toolbar, owbwindow->window, NULL, -1);
 
     IIntuition->SetWindowAttrs(owbwindow->window, 
-                               WA_InnerHeight, h + owbwindow->offsety,
+                               windowH ? TAG_IGNORE : WA_InnerHeight, h + layoutlimits.MinHeight,
                                WA_Hidden, FALSE,
                                WA_Activate, TRUE,
                                TAG_DONE);
@@ -487,37 +587,28 @@ BalWidget *createAmigaWindow(WebView *webView)
         window->next = owbwindow;
     }
 
+    IIntuition->GetWindowAttrs(owbwindow->window,
+                               WA_InnerWidth,  &amigaConfig.width,
+                               WA_InnerHeight, &amigaConfig.height,
+                               TAG_DONE);
+    amigaConfig.height -= owbwindow->offsety - owbwindow->window->BorderTop;
+
+    SDL_Surface* surface;
+    Uint32 rmask, gmask, bmask, amask;
+    rmask = 0x00ff0000;
+    gmask = 0x0000ff00;
+    bmask = 0x000000ff;
+    amask = 0xff000000;
+    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, amigaConfig.width, amigaConfig.height, 32,
+                                   rmask, gmask, bmask, amask);
+
+    if (!surface) {
+        closeAmigaWindow(owbwindow);
+        return 0;
+    }
+
+    owbwindow->surface = surface;
     return owbwindow;
-}
-
-void closeAmigaWindow(BalWidget *owbwindow)
-{
-    if (!owbwindow)
-        return;
-
-    if (owbwindow->window->MenuStrip) {
-        Menu *menustrip = owbwindow->window->MenuStrip;
-        IIntuition->ClearMenuStrip(owbwindow->window);
-        IGadTools->FreeMenus(menustrip);
-    }
-    IIntuition->CloseWindow(owbwindow->window);
-    IIntuition->DisposeObject(owbwindow->gad_vbar);
-    IIntuition->DisposeObject(owbwindow->gad_hbar);
-    IIntuition->DisposeObject(owbwindow->gad_toolbar);
-    if (owbwindow->backfill_hook)
-        IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
-    SDL_FreeSurface(owbwindow->surface);
-    if (firstWindow == owbwindow)
-        firstWindow = owbwindow->next;
-    else {
-        BalWidget *window = firstWindow;
-        while (window && window->next != owbwindow)
-            window = window->next;
-        if (window)
-            window->next = owbwindow->next;
-    }
-    delete owbwindow->webView;
-    free(owbwindow);
 }
 
 void waitEvent(void)
@@ -547,17 +638,13 @@ void waitEvent(void)
                     case IECODE_LBUTTON:
                     case IECODE_RBUTTON:
                     case IECODE_MBUTTON:
-                        if (im->Code & IECODE_UP_PREFIX) {
-                            IntuiMessage im2 = *im;
-                            im2.MouseX -= owbwindow->offsetx;
-                            im2.MouseY -= owbwindow->offsety;
+                        IntuiMessage im2 = *im;
+                        im2.MouseX -= owbwindow->offsetx;
+                        im2.MouseY -= owbwindow->offsety;
+                        if (im->Code & IECODE_UP_PREFIX)
                             webView->onMouseButtonUp(im2);
-                        } else {
-                            IntuiMessage im2 = *im;
-                            im2.MouseX -= owbwindow->offsetx;
-                            im2.MouseY -= owbwindow->offsety;
+                        else
                             webView->onMouseButtonDown(im2);
-                        }
                     break;
                     }
                 break;
@@ -608,9 +695,10 @@ void waitEvent(void)
                 case IDCMP_NEWSIZE:
                 {
                     uint32 width = 800, height = 600;
-                    IIntuition->GetWindowAttr(owbwindow->window, WA_InnerWidth,  &width,  sizeof(width));
-                    IIntuition->GetWindowAttr(owbwindow->window, WA_InnerHeight, &height, sizeof(height));
-
+                    IIntuition->GetWindowAttrs(owbwindow->window,
+                                               WA_InnerWidth,  &width,
+                                               WA_InnerHeight, &height,
+                                               TAG_DONE);
                     height -= owbwindow->offsety - owbwindow->window->BorderTop;
 
                     SDL_FreeSurface(owbwindow->surface);
@@ -652,10 +740,9 @@ void waitEvent(void)
                             webView->mainFrame()->impl()->loader()->stopAllLoaders();
                         break;
 
-#if 0
                         case GID_Reload:
+                            webView->mainFrame()->reload();
                         break;
-#endif
 
                         case GID_Home:
                             webView->mainFrame()->loadURL(amigaConfig.homeURL);
@@ -742,7 +829,7 @@ void waitEvent(void)
 
                             if (newowbwindow) {
                                 IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
-                                newWebView->initWithFrame(clientRect,"", "");
+                                newWebView->initWithFrame(clientRect, "", "");
 
                                 newWebView->setViewWindow(newowbwindow);
 
@@ -781,8 +868,30 @@ void waitEvent(void)
                                 webView->zoomPageOut();
                         break;
 
-//                        default:
-//                            fprintf(stderr, "%s MENU id %d not handled\n", __PRETTY_FUNCTION__, id);
+                        case MID_TextLarger:
+                            if (webView->canMakeTextLarger())
+                                webView->makeTextLarger();
+                        break;
+
+                        case MID_TextReset:
+                            if (webView->canMakeTextStandardSize())
+                                webView->makeTextStandardSize();
+                        break;
+
+                        case MID_TextSmaller:
+                            if (webView->canMakeTextSmaller())
+                                webView->makeTextSmaller();
+                        break;
+
+                        case MID_Redraw:
+                        {
+                            Frame* frame = core(webView->mainFrame());
+                            if (frame->view()) {
+                                webView->addToDirtyRegion(IntRect(0, 0, frame->view()->visibleWidth(), frame->view()->visibleHeight()));
+                                owbwindow->expose = true;
+                            }
+                        }
+                        break;
                         }
                     }
                 }
@@ -811,65 +920,138 @@ void waitEvent(void)
                     SDL_ExposeEvent ev;
                     webView->onExpose(ev);
                 }
+
+                uint32 olddisabled = FALSE, newdisabled;
+                IIntuition->GetAttr(GA_Disabled, owbwindow->gad_back, &olddisabled);
+                olddisabled = !!olddisabled;
+                newdisabled = webView->backForwardList()->backItem() ? FALSE : TRUE;
+                if (olddisabled != newdisabled)
+                    IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_back, owbwindow->window, NULL,
+                                                      GA_Disabled, newdisabled,
+                                                      TAG_DONE);
+
+                IIntuition->GetAttr(GA_Disabled, owbwindow->gad_forward, &olddisabled);
+                olddisabled = !!olddisabled;
+                newdisabled = webView->backForwardList()->forwardItem() ? FALSE : TRUE;
+                if (olddisabled != newdisabled)
+                    IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_forward, owbwindow->window, NULL,
+                                                      GA_Disabled, newdisabled,
+                                                      TAG_DONE);
+
+                IIntuition->GetAttr(GA_Disabled, owbwindow->gad_stop, &olddisabled);
+                olddisabled = !!olddisabled;
+                newdisabled = webView->isLoading() ? FALSE : TRUE;
+                if (olddisabled != newdisabled)
+                    IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_stop, owbwindow->window, NULL,
+                                                      GA_Disabled, newdisabled,
+                                                      TAG_DONE);
+
+                
+                if (owbwindow->gad_fuelgauge) {
+                    uint32 oldprogress = 0;
+                    IIntuition->GetAttr(FUELGAUGE_Level, owbwindow->gad_fuelgauge, &oldprogress);
+                    uint32 newprogress = (uint32)(webView->estimatedProgress() * 1000);
+                    if (oldprogress != newprogress)
+                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_fuelgauge, owbwindow->window, NULL,
+                                                          FUELGAUGE_Level, newprogress,
+                                                          TAG_DONE);
+                }
+
+                if (owbwindow->gad_vbar) {
+                    uint32 top, total, visible;
+                    IIntuition->GetAttrs(owbwindow->gad_vbar,
+                                         PGA_Top, &top,
+                                         PGA_Total, &total,
+                                         PGA_Visible, &visible,
+                                         TAG_DONE);
+                    uint32 newtop = core(webView->mainFrame())->view()->contentsY();
+                    uint32 newtotal = core(webView->mainFrame())->view()->contentsHeight();
+                    uint32 newvisible = core(webView->mainFrame())->view()->visibleHeight();
+                    if (top != newtop || total != newtotal || visible != newvisible)
+                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_vbar, owbwindow->window, NULL,
+                                                          PGA_Top, newtop,
+                                                          PGA_Total, newtotal,
+                                                          PGA_Visible, newvisible,
+                                                          TAG_DONE);
+                }
+
+                if (owbwindow->gad_hbar) {
+                    uint32 top, total, visible;
+                    IIntuition->GetAttrs(owbwindow->gad_hbar,
+                                         PGA_Top, &top,
+                                         PGA_Total, &total,
+                                         PGA_Visible, &visible,
+                                         TAG_DONE);
+                    uint32 newtop = core(webView->mainFrame())->view()->contentsX();
+                    uint32 newtotal = core(webView->mainFrame())->view()->contentsWidth();
+                    uint32 newvisible = core(webView->mainFrame())->view()->visibleWidth();
+                    if (top != newtop || total != newtotal || visible != newvisible)
+                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_hbar, owbwindow->window, NULL,
+                                                          PGA_Top, newtop,
+                                                          PGA_Total, newtotal,
+                                                          PGA_Visible, newvisible,
+                                                          TAG_DONE);
+                }
+
+                if (webView->canResetPageZoom()) {
+                    IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_ZoomReset);
+
+                    IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextLarger);
+                    IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextSmaller);
+                    IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextReset);
+
+                    if (webView->canZoomPageIn())
+                        IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_ZoomIn);
+                    else
+                        IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomIn);
+
+                    if (webView->canZoomPageOut())
+                        IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_ZoomOut);
+                    else
+                        IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomOut);
+                }
                 else {
-                    uint32 olddisabled = FALSE, newdisabled;
-                    IIntuition->GetAttr(GA_Disabled, owbwindow->gad_back, &olddisabled);
-                    newdisabled = webView->backForwardList()->backItem() ? FALSE : TRUE;
-                    if (olddisabled != newdisabled)
-                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_back, owbwindow->window, NULL,
-                                                          GA_Disabled, newdisabled,
-                                                          TAG_DONE);
+                    IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomReset);
 
-                    IIntuition->GetAttr(GA_Disabled, owbwindow->gad_forward, &olddisabled);
-                    newdisabled = webView->backForwardList()->forwardItem() ? FALSE : TRUE;
-                    if (olddisabled != newdisabled)
-                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_forward, owbwindow->window, NULL,
-                                                          GA_Disabled, newdisabled,
-                                                          TAG_DONE);
+                    if (webView->canMakeTextStandardSize()) {
+                        IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_TextReset);
 
-#if 0
-                    IIntuition->GetAttr(GA_Disabled, owbwindow->gad_stop, &olddisabled);
-                    newdisabled = webView->isLoading() ? FALSE : TRUE;
-                    if (olddisabled != newdisabled)
-                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_stop, owbwindow->window, NULL,
-                                                          GA_Disabled, newdisabled,
-                                                          TAG_DONE);
-#endif
+                        IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomIn);
+                        IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomReset);
+                        IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomOut);
 
-                    if (owbwindow->gad_vbar) {
-                        uint32 top, total, visible;
-                        IIntuition->GetAttrs(owbwindow->gad_vbar,
-                                             PGA_Top, &top,
-                                             PGA_Total, &total,
-                                             PGA_Visible, &visible,
-                                             TAG_DONE);
-                        uint32 newtop = core(webView->mainFrame())->view()->contentsY();
-                        uint32 newtotal = core(webView->mainFrame())->view()->contentsHeight();
-                        uint32 newvisible = core(webView->mainFrame())->view()->visibleHeight();
-                        if (top != newtop || total != newtotal || visible != newvisible)
-                            IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_vbar, owbwindow->window, NULL,
-                                                              PGA_Top, newtop,
-                                                              PGA_Total, newtotal,
-                                                              PGA_Visible, newvisible,
-                                                              TAG_DONE);
+                        if (webView->canMakeTextLarger())
+                            IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_TextLarger);
+                        else
+                            IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextLarger);
+
+                        if (webView->canMakeTextSmaller())
+                            IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_TextSmaller);
+                        else
+                            IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextSmaller);
                     }
+                    else {
+                        IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextReset);
 
-                    if (owbwindow->gad_hbar) {
-                        uint32 top, total, visible;
-                        IIntuition->GetAttrs(owbwindow->gad_hbar,
-                                             PGA_Top, &top,
-                                             PGA_Total, &total,
-                                             PGA_Visible, &visible,
-                                             TAG_DONE);
-                        uint32 newtop = core(webView->mainFrame())->view()->contentsX();
-                        uint32 newtotal = core(webView->mainFrame())->view()->contentsWidth();
-                        uint32 newvisible = core(webView->mainFrame())->view()->visibleWidth();
-                        if (top != newtop || total != newtotal || visible != newvisible)
-                            IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_hbar, owbwindow->window, NULL,
-                                                              PGA_Top, newtop,
-                                                              PGA_Total, newtotal,
-                                                              PGA_Visible, newvisible,
-                                                              TAG_DONE);
+                        if (webView->canZoomPageIn())
+                            IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_ZoomIn);
+                        else
+                            IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomIn);
+
+                        if (webView->canZoomPageOut())
+                            IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_ZoomOut);
+                        else
+                            IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_ZoomOut);
+
+                        if (webView->canMakeTextLarger())
+                            IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_TextLarger);
+                        else
+                            IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextLarger);
+
+                        if (webView->canMakeTextSmaller())
+                            IIntuition->OnMenu(owbwindow->window, FULLMENUNUM_TextSmaller);
+                        else
+                            IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextSmaller);
                     }
                 }
 
@@ -877,7 +1059,7 @@ void waitEvent(void)
             }
 
             timeReq->Time.Seconds      = 0;
-            timeReq->Time.Microseconds = 20000;
+            timeReq->Time.Microseconds = 1000000/50;
             IExec->SendIO(&timeReq->Request);
         }
     }
@@ -897,7 +1079,7 @@ int main (int argc, char* argv[])
 
         if (owbwindow) {
             IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
-            webView->initWithFrame(clientRect,"", "");
+            webView->initWithFrame(clientRect, "", "");
 
             webView->setViewWindow(owbwindow);
 

@@ -201,6 +201,9 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
     if (family && strchr(family, ':'))
         family = 0;
 
+    if (m_size < amigaConfig.minFontSize)
+        m_size = amigaConfig.minFontSize;
+
     int type = fontDescription.genericFamily();
     bool bold = fontDescription.weight() >= FontWeight600;
     bool italic = fontDescription.italic();
@@ -217,8 +220,8 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
     }
     if (m_face) {
         if (IDiskfont->ESetInfo(&m_face->olf_EEngine,
-                                OT_DeviceDPI, (80 << 16) | 72,
-                                OT_PointHeight, (int)m_size << 16,
+                                OT_DeviceDPI, (amigaConfig.fontXDPI << 16) | amigaConfig.fontYDPI,
+                                OT_PointHeight, ((int)(m_size + 0.5)) << 16,
                                 TAG_END) != OTERR_Success) {
             IDiskfont->CloseOutlineFont(m_face, &font_list);
             m_face = 0;
@@ -256,6 +259,17 @@ bool FontPlatformData::init()
     static bool initialized = false;
     if (!initialized) {
         IExec->NewList(&font_list);
+        amigaConfig.unicodeFace = IDiskfont->OpenOutlineFont(amigaConfig.unicodeFontName, &font_list, OFF_OPEN);
+        if (amigaConfig.unicodeFace)
+            if (IDiskfont->ESetInfo(&amigaConfig.unicodeFace->olf_EEngine,
+                                    OT_DeviceDPI, (amigaConfig.fontXDPI << 16) | amigaConfig.fontYDPI,
+                                    TAG_END) != OTERR_Success) {
+                IDiskfont->CloseOutlineFont(amigaConfig.unicodeFace, &font_list);
+                amigaConfig.unicodeFace = 0;
+            }
+            else
+                add_to_fontlist(amigaConfig.unicodeFace);
+
         initialized = true;
     }
     return true;

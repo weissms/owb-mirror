@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2008 Joerg Strohmayer.
  * Copyright (C) 2008 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +32,40 @@
 #include "PlatformScreen.h"
 #include "Assertions.h"
 #include "Widget.h"
-#include "SDL.h"
+#include <proto/intuition.h>
+#include <proto/graphics.h>
+#include <proto/Picasso96API.h>
 
 namespace WKAL {
 
 int screenDepth(Widget* widget)
 {
     ASSERT(widget->containingWindow());
-    return widget->containingWindow()->format->BitsPerPixel;
+    Window *window = widget->containingWindow()->window;
+    int depth = 32;
+    if (window)
+        depth = IP96->p96GetBitMapAttr(window->WScreen->RastPort.BitMap, P96BMA_BITSPERPIXEL);
+
+    return depth;
 }
 
-int screenDepthPerComponent(Widget*)
+int screenDepthPerComponent(Widget* widget)
 {
-    NotImplemented();
-    return 8;
+    ASSERT(widget->containingWindow());
+
+    int depth = 8;
+    uint32 id = INVALID_ID;
+    struct DisplayInfo displayInfo;
+
+    Window *window = widget->containingWindow()->window;
+    if (window)
+        IIntuition->GetScreenAttrs(window->WScreen, SA_DisplayID, &id, TAG_DONE);
+
+    if (INVALID_ID != id
+     && IGraphics->GetDisplayInfoData(NULL, &displayInfo, sizeof(displayInfo), DTAG_DISP, id) >= 48)
+        depth = (displayInfo.RedBits + displayInfo.GreenBits + displayInfo.BlueBits) / 3;
+
+    return depth;
 }
 
 bool screenIsMonochrome(Widget* widget)
@@ -55,14 +76,24 @@ bool screenIsMonochrome(Widget* widget)
 FloatRect screenRect(Widget* widget)
 {
     ASSERT(widget->containingWindow());
-    SDL_Rect sdlRect = widget->containingWindow()->clip_rect;
-    return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
+
+    int x = 0, y = 0, width = 800, height = 600;
+
+    Window *window = widget->containingWindow()->window;
+    if (window)
+        IIntuition->GetScreenAttrs(window->WScreen,
+                                   SA_Left,   &x,
+                                   SA_Top,    &y,
+                                   SA_Width,  &width,
+                                   SA_Height, &height,
+                                   TAG_DONE);
+
+    return FloatRect(x, y, width, height);
 }
 
-FloatRect screenAvailableRect(Widget*)
+FloatRect screenAvailableRect(Widget* widget)
 {
-    NotImplemented();
-    return FloatRect();
+    return screenRect(widget);
 }
 
 } // namespace WebCore

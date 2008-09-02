@@ -79,7 +79,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
     double offset = point.x();
     struct OutlineFont *face = font->m_font.m_face;
-    uint32 ysize = font->m_font.m_size;
+    uint32 ysize = font->m_font.m_size + 0.5;
     IntRect dstRect;
     IntPoint aPoint;
     uint32 rgb = (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
@@ -125,19 +125,54 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                                 TAG_END))
             continue; //do not handle error
 
+        struct OutlineFont *curface = face;
         if (IDiskfont->EObtainInfo(&face->olf_EEngine,
                                    OT_GlyphMap8Bit, &glyph,
-                                   TAG_END))
-            continue; //do not handle error
+                                   TAG_END)) {
+            uint32 ok = FALSE;
+
+            if (amigaConfig.unicodeFace
+             && !IDiskfont->ESetInfo(&amigaConfig.unicodeFace->olf_EEngine,
+                                     OT_PointHeight, ysize << 16,
+                                     OT_GlyphCode, glyphs[i],
+                                     TAG_END)
+             && !IDiskfont->EObtainInfo(&amigaConfig.unicodeFace->olf_EEngine,
+                                        OT_GlyphMap8Bit, &glyph,
+                                        TAG_END)) {
+                curface = amigaConfig.unicodeFace;
+                ok = TRUE;
+            }
+
+            if (!ok
+             && !IDiskfont->ESetInfo(&face->olf_EEngine,
+                                     OT_GlyphCode, 0xFFFD,
+                                     TAG_END)
+             && !IDiskfont->EObtainInfo(&face->olf_EEngine,
+                                        OT_GlyphMap8Bit, &glyph,
+                                        TAG_END))
+                ok = TRUE;
+
+            if (!ok
+             && !IDiskfont->ESetInfo(&face->olf_EEngine,
+                                     OT_GlyphCode, '?',
+                                     TAG_END)
+             && !IDiskfont->EObtainInfo(&face->olf_EEngine,
+                                        OT_GlyphMap8Bit, &glyph,
+                                        TAG_END))
+                ok = TRUE;
+
+            if (!ok)
+                continue; //do not handle error
+        }
 
 #if 0 // causes wrong cursor offsets in text input
         if (i > 0)
-            if (!IDiskfont->ESetInfo(&face->olf_EEngine,
+            if (!IDiskfont->ESetInfo(&curface->olf_EEngine,
                                      OT_GlyphCode, glyphs[i -1],
                                      OT_GlyphCode2, glyphs[i],
                                      TAG_END)) {
                 FIXED kern = 0;
-                if (!IDiskfont->EObtainInfo(&face->olf_EEngine,
+                if (!IDiskfont->EObtainInfo(&curface->olf_EEngine,
                                             OT_TextKernPair, &kern,
                                             TAG_END))
                     if (kern)
@@ -195,7 +230,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
         offsetinimg += glyphBuffer.advanceAt(from + i);
 
-        IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
+        IDiskfont->EReleaseInfo(&curface->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
     }
 
     SDL_Surface* img;

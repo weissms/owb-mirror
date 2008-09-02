@@ -598,6 +598,9 @@ void WebView::clearDirtyRegion()
 
 void WebView::scrollBackingStore(FrameView* frameView, int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect)
 {
+#if PLATFORM(AMIGAOS4)
+    m_backingStoreDirtyRegion.move(dx, dy);
+#endif
     /*printf("scrollViewRect dx=%d dy=%d scrollview x=%d y=%d w=%d h=%d clip x=%d y=%d w=%d h=%d\n", dx, dy, scrollViewRect.x(), scrollViewRect.y(), scrollViewRect.width(), scrollViewRect.height(), clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
     
     IntSize offsetIntSize = m_page->mainFrame()->view()->scrollOffset();
@@ -2275,9 +2278,9 @@ void WebView::setCustomHTMLTokenizerChunkSize(int chunkSize)
     m_page->setCustomHTMLTokenizerChunkSize(chunkSize);
 }
 
-Image* WebView::backingStore()
+WebCore::Image* WebView::backingStore()
 {
-    Image* hBitmap = m_backingStoreBitmap.get();
+    WebCore::Image* hBitmap = m_backingStoreBitmap.get();
     return hBitmap;
 }
 

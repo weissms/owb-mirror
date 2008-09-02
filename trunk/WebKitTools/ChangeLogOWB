@@ -1,3 +1,17 @@
+2008-09-02  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Add text zoom and and redraw menu items, reload button and more
+        settings on AmigaOS4.
+
+        * OWBLauncher/AmigaOS4/main.cpp:
+        (initAmigaConfig):
+        (initTimer):
+        (closeAmigaWindow):
+        (createAmigaWindow):
+        (waitEvent):
+        (main):
+
 2008-09-01  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

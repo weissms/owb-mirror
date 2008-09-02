@@ -1,3 +1,14 @@
+2008-09-02  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Optimized scrolling and pasteboard support on AmigaOS4.
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::scrollBackingStore):
+        (WebView::backingStore):
+
 2008-09-01  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

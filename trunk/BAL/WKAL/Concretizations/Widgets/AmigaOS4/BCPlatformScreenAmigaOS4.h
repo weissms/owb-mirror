@@ -27,42 +27,27 @@
  */
 
 
-#include "config.h"
-#include "PlatformScreen.h"
-#include "Assertions.h"
-#include "Widget.h"
-#include "SDL.h"
+#ifndef PlatformScreen_h
+#define PlatformScreen_h
+
+#include "FloatRect.h"
+#include <wtf/Forward.h>
+#include <wtf/RefPtr.h>
+#include "BALBase.h"
 
 namespace WKAL {
 
-int screenDepth(Widget* widget)
-{
-    ASSERT(widget->containingWindow());
-    return widget->containingWindow()->format->BitsPerPixel;
-}
+    class FloatRect;
+    class Widget;
 
-int screenDepthPerComponent(Widget*)
-{
-    NotImplemented();
-    return 8;
-}
+    int screenDepth(Widget*);
+    int screenDepthPerComponent(Widget*);
+    bool screenIsMonochrome(Widget*);
 
-bool screenIsMonochrome(Widget* widget)
-{
-    return screenDepth(widget) < 2;
-}
+    FloatRect screenRect(Widget*);
+    FloatRect screenAvailableRect(Widget*);
 
-FloatRect screenRect(Widget* widget)
-{
-    ASSERT(widget->containingWindow());
-    SDL_Rect sdlRect = widget->containingWindow()->clip_rect;
-    return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
-}
-
-FloatRect screenAvailableRect(Widget*)
-{
-    NotImplemented();
-    return FloatRect();
-}
 
 } // namespace WebCore
+
+#endif // PlatformScreen_h

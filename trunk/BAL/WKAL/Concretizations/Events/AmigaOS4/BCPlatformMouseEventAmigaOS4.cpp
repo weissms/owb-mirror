@@ -44,8 +44,8 @@ PlatformMouseEvent::PlatformMouseEvent(BalEventButton *event)
 {
     //printf("PlatformMouseEvent eventbutton x=%d y=%d\n", (int)event->x, (int)event->y);
     m_timestamp = WebCore::currentTime();
-    m_position = IntPoint((int)event->MouseX /*- g_amiga_window->BorderLeft*/, (int)event->MouseY /*- g_amiga_window->BorderTop - g_amiga_toolbar_limits.MinHeight*/);
-    m_globalPosition = IntPoint((int)event->MouseX /*- g_amiga_window->BorderLeft*/, (int)event->MouseY /*- g_amiga_window->BorderTop - g_amiga_toolbar_limits.MinHeight*/);
+    m_position = IntPoint((int)event->MouseX, (int)event->MouseY);
+    m_globalPosition = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_shiftKey = event->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT);
     m_ctrlKey = event->Qualifier & IEQUALIFIER_CONTROL;
     m_altKey = event->Qualifier & (IEQUALIFIER_LALT | IEQUALIFIER_RALT);
@@ -55,21 +55,31 @@ PlatformMouseEvent::PlatformMouseEvent(BalEventButton *event)
     m_button = NoButton;
     m_clickCount = 0;
 
-    if( (event->Code & ~IECODE_UP_PREFIX) == IECODE_LBUTTON )
-        m_button = LeftButton;
-    else if( (event->Code & ~IECODE_UP_PREFIX) == IECODE_MBUTTON )
-        m_button = MiddleButton;
-    else if( (event->Code & ~IECODE_UP_PREFIX) == IECODE_RBUTTON )
-        m_button = RightButton;
+    if (IDCMP_MOUSEBUTTONS == event->Class) {
+        if ((event->Code & ~IECODE_UP_PREFIX) == IECODE_LBUTTON)
+           m_button = LeftButton;
+        else if ((event->Code & ~IECODE_UP_PREFIX) == IECODE_MBUTTON)
+            m_button = MiddleButton;
+        else if ((event->Code & ~IECODE_UP_PREFIX) == IECODE_RBUTTON)
+            m_button = RightButton;
 
-    if (NoButton != m_button) {
-        if (event->Code & IECODE_UP_PREFIX) {
-            m_eventType = MouseEventReleased;
-            m_clickCount = 0;
-        } else {
-            m_eventType = MouseEventPressed;
-            m_clickCount = 1;
+        if (NoButton != m_button) {
+            if (event->Code & IECODE_UP_PREFIX) {
+                m_eventType = MouseEventReleased;
+                m_clickCount = 0;
+            } else {
+                m_eventType = MouseEventPressed;
+                m_clickCount = 1;
+            }
         }
+    }
+    else { // IDCMP_MOUSEMOVE == event->Class
+        if (event->Qualifier & IEQUALIFIER_LEFTBUTTON)
+            m_button = LeftButton;
+        else if (event->Qualifier & IEQUALIFIER_MIDBUTTON)
+            m_button = MiddleButton;
+        else if (event->Qualifier & IEQUALIFIER_RBUTTON)
+            m_button = RightButton;
     }
 }
 

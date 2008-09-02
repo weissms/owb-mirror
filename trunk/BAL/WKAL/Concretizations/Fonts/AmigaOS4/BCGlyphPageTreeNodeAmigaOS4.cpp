@@ -64,8 +64,49 @@ bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned b
             IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
             setGlyphDataForIndex(i, buffer[i], fontData);
             haveGlyphs = true;
-        } else
-            setGlyphDataForIndex(i, 0, 0);
+        }
+        else {
+            uint32 ok = FALSE;
+            if (amigaConfig.unicodeFontFace
+             && !IDiskfont->ESetInfo(&amigaConfig.unicodeFontFace->olf_EEngine,
+                                     OT_PointHeight, ((int)(m_font.m_size + 0.5)) << 16,
+                                     OT_GlyphCode, glyphs[i],
+                                     TAG_END))
+             && !IDiskfont->EObtainInfo(&amigaConfig.unicodeFontFace->olf_EEngine,
+                                        OT_GlyphMap8Bit, &glyph,
+                                        TAG_END)) {
+                 IDiskfont->EReleaseInfo(&amigaConfig.unicodeFontFace->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
+                 ok = TRUE;
+            }
+
+            if (!ok
+             && !IDiskfont->ESetInfo(&face->olf_EEngine,
+                                     OT_GlyphCode, 0xFFFD,
+                                     TAG_END)
+             && !IDiskfont->EObtainInfo(&face->olf_EEngine,
+                                        OT_GlyphMap8Bit, &glyph,
+                                        TAG_END)) {
+                IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
+                ok = TRUE
+            }
+
+            if (!ok
+             && !IDiskfont->ESetInfo(&face->olf_EEngine,
+                                     OT_GlyphCode, '?',
+                                     TAG_END)
+             && !IDiskfont->EObtainInfo(&face->olf_EEngine,
+                                        OT_GlyphMap8Bit, &glyph,
+                                        TAG_END)) {
+                IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
+                ok = TRUE;
+            }
+
+            if (ok) {
+                setGlyphDataForIndex(i, buffer[i], fontData);
+                haveGlyphs = true;
+            }
+            else
+                setGlyphDataForIndex(i, 0, 0);
     }
 #endif
 

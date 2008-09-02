@@ -53,6 +53,7 @@
 #include <graphics/blitattr.h>
 #include <proto/intuition.h>
 #include <intuition/gadgetclass.h>
+#include <proto/layers.h>
 #endif
 
 #define WIDTH_MAX 16384
@@ -235,6 +236,75 @@ void ScrollView::ScrollViewPrivate::scrollBackingStore(const IntSize& scrollDelt
 
     //FIXME update here?
 
+#if PLATFORM(AMIGAOS4)
+    if (!hasStaticBackground) { // The main frame can just blit the WebView window
+        // FIXME: Find a way to blit subframes without blitting overlapping content
+
+        int dx, dy;
+        dx = scrollDelta.width();
+        dy = scrollDelta.height();
+
+        view->scrollBackingStore(-dx, -dy, scrollViewRect, clipRect);
+
+        int svWidth = scrollViewRect.width();
+        int svHeight = scrollViewRect.height();
+        int dirtyX = 0, dirtyY = 0, dirtyW = 0, dirtyH = 0;
+
+        if (dy == 0 && dx < 0 && -dx < svWidth) {
+            dirtyW = -dx;
+            dirtyH = svHeight;
+        }
+        else if (dy == 0 && dx > 0 && dx < svWidth) {
+            dirtyX = svWidth - dx;
+            dirtyW = dx;
+            dirtyH = svHeight;
+        }
+        else if (dx == 0 && dy < 0 && -dy < svHeight) {
+            dirtyW = svWidth;
+            dirtyH = -dy;
+        }
+        else if (dx == 0 && dy > 0 && dy < svHeight) {
+            dirtyY = svHeight - dy;
+            dirtyW = svWidth;
+            dirtyH = dy;
+        }
+
+        BalWidget *containingWindow = view->containingWindow();
+        if (containingWindow && dirtyW) {
+            RastPort *RPort = containingWindow->window->RPort;
+            Layer *Layer = RPort->Layer;
+            struct Hook *oldhook = ILayers->InstallLayerHook(Layer, LAYERS_NOBACKFILL);
+            int x = containingWindow->offsetx + scrollViewRect.x();
+            int y = containingWindow->offsety + scrollViewRect.y();
+            IGraphics->ScrollRasterBF(RPort, dx, dy, x, y, x + svWidth - 1, y + svHeight - 1);
+            ILayers->InstallLayerHook(Layer, oldhook);
+
+            view->geometryChanged();
+            view->addToDirtyRegion(IntRect(scrollViewRect.x() + dirtyX, scrollViewRect.y() + dirtyY, dirtyW, dirtyH));
+            if (dx && hBar)
+                view->addToDirtyRegion(IntRect(scrollViewRect.x() + hBar->x(), scrollViewRect.y() + hBar->y(), hBar->width(), hBar->height()));
+            if (dy && vBar)
+                view->addToDirtyRegion(IntRect(scrollViewRect.x() + vBar->x(), scrollViewRect.y() + vBar->y(), vBar->width(), vBar->height()));
+            containingWindow->expose = true;
+        }
+        else {
+            view->geometryChanged();
+            view->update();
+        }
+    }
+    else  {
+        // We need to go ahead and repaint the entire backing store.  Do it now before moving the
+        // plugins.
+        view->addToDirtyRegion(updateRect);
+        view->updateBackingStore();
+
+        view->geometryChanged();
+
+        // Now update the window (which should do nothing but a blit of the backing store's updateRect and so should
+        // be very fast).
+        view->update();
+    }
+#else
     if (!hasStaticBackground) // The main frame can just blit the WebView window
        // FIXME: Find a way to blit subframes without blitting overlapping content
        view->scrollBackingStore(-scrollDelta.width(), -scrollDelta.height(), scrollViewRect, clipRect);
@@ -250,6 +320,7 @@ void ScrollView::ScrollViewPrivate::scrollBackingStore(const IntSize& scrollDelt
     // Now update the window (which should do nothing but a blit of the backing store's updateRect and so should
     // be very fast).
     view->update();
+#endif
 }
 
 void ScrollView::ScrollViewPrivate::adjustmentChanged(BalAdjustment* adjustment, void* _that)
@@ -389,7 +460,8 @@ void ScrollView::update()
     //printf("update documentDirtyRect x=%d y=%d w=%d h=%d\n", documentDirtyRect.x(), documentDirtyRect.y(), documentDirtyRect.width(), documentDirtyRect.height());
     addToDirtyRegion(documentDirtyRect);
 #if PLATFORM(AMIGAOS4)
-    containingWindow()->expose = true;
+    if (containingWindow())
+        containingWindow()->expose = true;
 #else
     //updateView(containingWindow(), frameGeometry());
     SDL_Event ev;

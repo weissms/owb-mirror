@@ -26,43 +26,13 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef Sound_h
+#define Sound_h
 
-#include "config.h"
-#include "PlatformScreen.h"
-#include "Assertions.h"
-#include "Widget.h"
-#include "SDL.h"
+namespace OWBAL {
 
-namespace WKAL {
-
-int screenDepth(Widget* widget)
-{
-    ASSERT(widget->containingWindow());
-    return widget->containingWindow()->format->BitsPerPixel;
-}
-
-int screenDepthPerComponent(Widget*)
-{
-    NotImplemented();
-    return 8;
-}
-
-bool screenIsMonochrome(Widget* widget)
-{
-    return screenDepth(widget) < 2;
-}
-
-FloatRect screenRect(Widget* widget)
-{
-    ASSERT(widget->containingWindow());
-    SDL_Rect sdlRect = widget->containingWindow()->clip_rect;
-    return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
-}
-
-FloatRect screenAvailableRect(Widget*)
-{
-    NotImplemented();
-    return FloatRect();
-}
+    void systemBeep();
 
 } // namespace WebCore
+
+#endif // Sound_h

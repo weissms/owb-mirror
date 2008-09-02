@@ -26,43 +26,53 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef Pasteboard_h
+#define Pasteboard_h
 
-#include "config.h"
-#include "PlatformScreen.h"
-#include "Assertions.h"
-#include "Widget.h"
-#include "SDL.h"
+#include <wtf/Forward.h>
+#include <wtf/HashSet.h>
+#include <wtf/Noncopyable.h>
+
+
+#include <PasteboardHelper.h>
+
+// FIXME: This class is too high-level to be in the platform directory, since it
+// uses the DOM and makes calls to Editor. It should either be divested of its
+// knowledge of the frame and editor or moved into the editing directory.
+
 
 namespace WKAL {
 
-int screenDepth(Widget* widget)
-{
-    ASSERT(widget->containingWindow());
-    return widget->containingWindow()->format->BitsPerPixel;
-}
+class CString;
+class DocumentFragment;
+class Frame;
+class HitTestResult;
+class KURL;
+class Node;
+class Range;
+class String;
+    
+class Pasteboard : Noncopyable, public WKALBase {
+public:
+    static Pasteboard* generalPasteboard();
+    void writeSelection(Range*, bool canSmartCopyOrDelete, Frame*);
+    void writeURL(const KURL&, const String&, Frame* = 0);
+    void writeImage(Node*, const KURL&, const String& title);
 
-int screenDepthPerComponent(Widget*)
-{
-    NotImplemented();
-    return 8;
-}
+    void clear();
+    bool canSmartReplace();
+    PassRefPtr<DocumentFragment> documentFragment(Frame*, PassRefPtr<Range>, bool allowPlainText, bool& chosePlainText);
+    String plainText(Frame* = 0);
 
-bool screenIsMonochrome(Widget* widget)
-{
-    return screenDepth(widget) < 2;
-}
+    void setHelper(PasteboardHelper*);
 
-FloatRect screenRect(Widget* widget)
-{
-    ASSERT(widget->containingWindow());
-    SDL_Rect sdlRect = widget->containingWindow()->clip_rect;
-    return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
-}
+private:
+    Pasteboard();
+    ~Pasteboard();
 
-FloatRect screenAvailableRect(Widget*)
-{
-    NotImplemented();
-    return FloatRect();
-}
+    PasteboardHelper* m_helper;
+};
 
 } // namespace WebCore
+
+#endif // Pasteboard_h

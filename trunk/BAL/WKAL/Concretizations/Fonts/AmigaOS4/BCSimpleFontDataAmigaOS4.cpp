@@ -191,6 +191,56 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
             IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_WidthList, widthlist, TAG_END);
         }
 
+        if (0 == width
+         && amigaConfig.unicodeFace
+         && !IDiskfont->ESetInfo(&amigaConfig.unicodeFace->olf_EEngine,
+                                 OT_PointHeight, ((int)(m_font.m_size + 0.5)) << 16,
+                                 OT_GlyphCode, glyph,
+                                 OT_GlyphCode2, glyph,
+                                 TAG_END)
+         && !IDiskfont->EObtainInfo(&amigaConfig.unicodeFace->olf_EEngine,
+                                    OT_WidthList, (uint32)&widthlist,
+                                    TAG_END)) {
+            struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+
+            if (widthentry->gwe_Code == glyph)
+                width = widthentry->gwe_Width / 65536.0 * m_font.m_size;
+
+            IDiskfont->EReleaseInfo(&amigaConfig.unicodeFace->olf_EEngine, OT_WidthList, widthlist, TAG_END);
+        }
+
+        if (0 == width
+         && !IDiskfont->ESetInfo(&face->olf_EEngine,
+                                 OT_GlyphCode, 0xFFFD,
+                                 OT_GlyphCode2, 0xFFFD,
+                                 TAG_END)
+         && !IDiskfont->EObtainInfo(&face->olf_EEngine,
+                                    OT_WidthList, (uint32)&widthlist,
+                                    TAG_END)) {
+             struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+
+             if (0xFFFD == widthentry->gwe_Code)
+                 width = widthentry->gwe_Width / 65536.0 * m_font.m_size;
+
+             IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_WidthList, widthlist, TAG_END);
+        }
+
+        if (0 == width
+         && !IDiskfont->ESetInfo(&face->olf_EEngine,
+                                 OT_GlyphCode, '?',
+                                 OT_GlyphCode2, '?',
+                                 TAG_END)
+         && !IDiskfont->EObtainInfo(&face->olf_EEngine,
+                                    OT_WidthList, (uint32)&widthlist,
+                                    TAG_END)) {
+             struct GlyphWidthEntry *widthentry = (struct GlyphWidthEntry *)widthlist->mlh_Head;
+
+             if ('?' == widthentry->gwe_Code)
+                 width = widthentry->gwe_Width / 65536.0 * m_font.m_size;
+
+             IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_WidthList, widthlist, TAG_END);
+        }
+
         if (width > 0.1)
            return width;
     }

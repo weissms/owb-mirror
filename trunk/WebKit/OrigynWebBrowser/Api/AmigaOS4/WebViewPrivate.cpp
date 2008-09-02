@@ -161,6 +161,13 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
             return;
         }
     }
+    else if (event.Qualifier & (IEQUALIFIER_CONTROL | AMIGAKEYS))
+        switch (event.Code) {
+        case 'c':
+        case 'x':
+            frame->editor()->command("Copy").execute();
+            break;
+        }
 }
 
 void WebViewPrivate::onKeyUp(BalEventKey event)
