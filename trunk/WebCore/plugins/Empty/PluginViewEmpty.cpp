@@ -140,10 +140,12 @@ const char* PluginView::userAgentStatic()
     return "";
 }
 
+#if !PLATFORM(GTK)
 void PluginView::invalidateRegion(NPRegion)
 {
     notImplemented();
 }
+#endif
 
 NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const char* buf)
 {
