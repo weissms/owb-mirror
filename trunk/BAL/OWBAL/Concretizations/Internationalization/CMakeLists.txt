@@ -54,6 +54,8 @@ ELSEIF (WEBKIT_USE_I18N STREQUAL "GENERIC")
     OWBLN (Generic/BCTextBreakIteratorGeneric.h OWBAL 0 0)
     OWBLN (Generic/BCTextCodecICU.h OWBAL 1 0)
     OWBLN (Generic/BCUnicodeGeneric.h OWBAL/wtf/unicode 0 0)
+    OWBLN (Generic/BCUnicodeGenericTable.h OWBAL/wtf/unicode 0 0)
+
     
     AUX_SOURCE_DIRECTORY (Generic INTERNATIONALIZATION_SRC)
 ENDIF (WEBKIT_USE_I18N STREQUAL "ICU")

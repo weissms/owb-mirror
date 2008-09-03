@@ -37,9 +37,12 @@
 #include <unicode/utf16.h>
 
 
+#include "BCUnicodeGenericTable.h"
+
 
 namespace WTF {
   namespace Unicode {
+
 
     enum Direction {
       LeftToRight = U_LEFT_TO_RIGHT,
@@ -276,12 +279,13 @@ namespace WTF {
         //BalNotImplemented();
         return c;
     }
-
+    
     inline Direction direction(UChar32 c)
     {
-        //printf("direction\n");
-        //BalNotImplemented();
-        return WTF::Unicode::LeftToRight;
+        uint32_t props;
+        const generic_Props *bdp = &generic_props_singleton;
+        GENERIC_GET_PROPS(bdp, c, props);
+        return (Direction)GENERIC_GET_CLASS(props);
     }
 
     inline bool isLower(UChar32 c)
@@ -321,8 +325,6 @@ namespace WTF {
         }
         return 0;
     }
-
-
   }
 }
 

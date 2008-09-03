@@ -1,3 +1,19 @@
+2008-09-03  pascal pignon <ppignon@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Resolves ticket #233 i.e. Implementation of generic WTF::Unicode::direction(UChar32 c)
+        Support 65536 firsts unicode characters (0x0000 to 0xffff)
+	
+
+        * OWBAL/Concretizations/Internationalization/CMakeLists.txt:
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.h:
+        (WTF::Unicode::direction):
+        (WTF::Unicode::umemcasecmp):
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGenericTable.h: Added.
+        (WTF::Unicode::):
+        (WTF::Unicode::generic_defaultGetFoldingOffset):
+
 2008-09-02  Joseph Edwards <joseph.edwards@latens.co.uk>
 
         Reviewed by Mario Bensi.
