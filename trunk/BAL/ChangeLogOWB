@@ -1,5 +1,15 @@
 2008-09-03  pascal pignon <ppignon@pleyo.com>
 
+        Reviewed by Jean-Charles Verdié <jcverdie@pleyo.com>
+
+        Resolves ticket #234 i.e. Implementation of generic WTF::Unicode::isArabicChar(UChar32 c)
+        Compatible with unicode 5.5 => Arabic char belongs to [0x600;0x6ff]
+
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.h:
+        (WTF::Unicode::isArabicChar):
+
+2008-09-03  pascal pignon <ppignon@pleyo.com>
+
         Reviewed by Mario Bensi.
 
         Resolves ticket #233 i.e. Implementation of generic WTF::Unicode::direction(UChar32 c)
