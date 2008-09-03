@@ -198,7 +198,7 @@ namespace WTF {
     inline bool isArabicChar(UChar32 c)
     {
         // According to unicode 5.1 Arabic belongs range 0x600 to 0x6ff
-        return ((c >= 0x600 && c <= 0x6ff) ? true : false));
+        return ((c >= 0x600 && c <= 0x6ff) ? true : false);
     }
 
     inline CharCategory category(UChar32 c)

@@ -1,3 +1,11 @@
+2008-09-03  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Jean-Charles Verdié <jcverdie@pleyo.com>
+        Remove trailing ) in previous patch
+
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.h:
+        (WTF::Unicode::isArabicChar):
+
 2008-09-03  pascal pignon <ppignon@pleyo.com>
 
         Reviewed by Jean-Charles Verdié <jcverdie@pleyo.com>
