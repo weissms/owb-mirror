@@ -77,5 +77,6 @@ LIST (APPEND JSCORE_SRC
     kjs/StringConstructor.cpp
     kjs/StringObject.cpp
     kjs/StringPrototype.cpp
+    kjs/StructureID.cpp
     kjs/ustring.cpp
 )

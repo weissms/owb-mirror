@@ -1,3 +1,440 @@
+2008-09-03  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej.
+
+        Elminate SQLiteAuthorizer class.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCore.vcproj/WebCore.vcproj:
+        * GNUmakefile.am
+        Removed SQLiteAuthorizer.h.
+
+        * platform/sql/SQLiteAuthorizer.cpp:
+        * platform/sql/SQLiteAuthorizer.h: Removed.
+        * platform/sql/SQLiteDatabase.cpp:
+        (WebCore::SQLiteDatabase::authorizerFunction):
+        (WebCore::SQLiteDatabase::setAuthorizer):
+        * platform/sql/SQLiteDatabase.h:
+        * storage/DatabaseAuthorizer.h:
+        (WebCore::DatabaseAuthorizer::create):
+        (WebCore::DatabaseAuthorizer::createView):
+        (WebCore::DatabaseAuthorizer::createTempView):
+        (WebCore::DatabaseAuthorizer::dropView):
+        (WebCore::DatabaseAuthorizer::dropTempView):
+        (WebCore::DatabaseAuthorizer::allowSelect):
+        (WebCore::DatabaseAuthorizer::allowReindex):
+        Merge SQLiteAuthorizer and DatabaseAuthorizer, as keeping them separate serves no purpose.
+
+2008-09-03  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Mark Rowe.
+
+        WebKitGtk build fix.
+
+        * GNUmakefile.am:
+        * page/animation/AnimationController.h:
+
+2008-09-02  Robert Blaut  <webkit@blaut.biz>
+
+        Reviewed by Geoff Garen.
+
+        Fix for <https://bugs.webkit.org/show_bug.cgi?id=16913>
+        Misplaced elements should not close DL lists.
+
+        Test: fast/invalid/test-case-tr-th-td-should-not-close-dl-list.html
+
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::handleError):
+
+2008-09-02  Glenn Wilson  <wilsong@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for <https://bugs.webkit.org/show_bug.cgi?id=15360>
+        Bug 15360: color:#{predefined colorName} is treated as colorName in Safari
+
+        We would inappropriately interpret and apply an invalid CSS "color" property
+        when the value is a predefined color preceded by a '#' symbol.  For example,
+        style="color:#gray;" would apply the color gray when it should not.
+
+        In the bison template, "hexcolor" was defined as both "HEX maybe_space" OR "IDENT maybe_space".
+        This caused identifiers not fitting the appropriate hex format but preceded by a '#' to be 
+        interpreted as a valid color (CSSPrimitiveValue::CSS_PARSER_HEXCOLOR), when it was really just
+        an ignorable token.
+
+        To correct this, "IDENT maybe_space" was removed from "hexcolor" and added under "term" as
+        '#' IDENT maybe_space, which is then processed as a CSSPrimitiveValue::CSS_STRING instead of
+        CSSPrimitiveValue::CSS_PARSER_HEXCOLOR.
+
+        Test: css1/color_and_background/invalid_color.html
+
+        * css/CSSGrammar.y:
+
+2008-09-02  Mihnea Ovidenie  <mihnea@adobe.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=19964
+        Bug 19964: Divide by zero crash in RenderBox::calculateBackgroundSize with 0,0 bmp background image
+
+        Add a check to RenderBox::repaintLayerRectsForImage to make sure the current layer image can be rendered.
+
+        Test: css3/khtml-background-size-0x0-bmp.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::repaintLayerRectsForImage):
+
+2008-09-02  Glenn Wilson  <wilsong@gmail.com>
+
+        Reviewed by Eric Seidel.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20397
+        Bug 20397: Invalid webkit-border-bottom-left-radius property causes crash
+
+        The function checkForOrphanedUnits() would change the length of a list whose size was
+        was already determined before the call to checkForOrphanedUnits was made.  Later in
+        the caller, the old size was being used for boundary management.
+
+        This has been fixed by moving the call to checkForOrphanedUnits() earlier in the
+        calling function, before the size of the list is determined.
+
+        Test: fast/css/orphaned_units_crash.html
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):  Moved call to checkForOrphanedUnits() earlier in the function.
+
+2008-09-02  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Darin Adler.
+
+        Fallback on invalid fill or stroke styles in Canvas was
+        transparent black. Changed it to last valid style.
+
+        Canvas fillStyle() and strokeStyle() needs fallback
+        https://bugs.webkit.org/show_bug.cgi?id=20474
+
+        Tests: fast/canvas/canvas-invalid-fillstyle.html
+               fast/canvas/canvas-invalid-strokestyle.html
+
+        * html/CanvasStyle.cpp:
+        (WebCore::CanvasStyle::applyStrokeColor):
+        (WebCore::CanvasStyle::applyFillColor):
+
+2008-09-02  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Darin Adler.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20468
+        Updated drawImage() in canvas to match the current specification.
+
+        Test: fast/canvas/drawImage-with-negative-source-destination.html
+
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::normalizeRect):
+        (WebCore::CanvasRenderingContext2D::drawImage):
+
+2008-08-26  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/5768210> Switch back to the system version of SQLite
+
+        Use the system version of SQLite when it is new enough to provide the functionality
+        that WebCore requires.
+
+        * Configurations/Base.xcconfig:
+        * Configurations/DebugRelease.xcconfig:
+        * Configurations/WebCore.xcconfig:
+
+2008-09-02  Dan Bernstein  <mitz@apple.com>
+
+        - build fix
+
+        * page/animation/AnimationBase.h:
+
+2008-09-02  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        AnimationController.cpp should be split into separate files
+        https://bugs.webkit.org/show_bug.cgi?id=20604
+        
+        Note: All makefiles, except WebCore.xcodeproj have been changed without testing, upon
+        recommendation of Dave Hyatt.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+            Build files.
+        
+        * page/AnimationController.cpp: Removed.
+        * page/AnimationController.h: Removed.
+        * page/animation: Added.
+        * page/animation/AnimationBase.cpp: Added.
+        * page/animation/AnimationBase.h: Added.
+        * page/animation/AnimationController.cpp: Copied from WebCore/page/AnimationController.cpp.
+        * page/animation/AnimationController.h: Copied from WebCore/page/AnimationController.h.
+        * page/animation/CompositeAnimation.cpp: Added.
+        * page/animation/CompositeAnimation.h: Added.
+        * page/animation/ImplicitAnimation.cpp: Added.
+        * page/animation/ImplicitAnimation.h: Added.
+        * page/animation/KeyframeAnimation.cpp: Added.
+        * page/animation/KeyframeAnimation.h: Added.
+
+2008-09-02  Dan Bernstein  <mitz@apple.com>
+
+        - release build fix
+
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::calculateDrawingMode):
+
+2008-09-02  Timothy Hatcher  <timothy@apple.com>
+
+        Make console functions log the correct resource URL and
+        line number for where the call originated.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17234
+        <rdar://problem/5732837>
+
+        Reviewed by Kevin McCullough.
+
+        Test: manual-tests/inspector/console-call-line-numbers.html
+
+        * bindings/js/JSConsoleCustom.cpp:
+        (WebCore::JSConsole::count): Call the impl.
+        (WebCore::JSConsole::timeEnd): Ditto.
+        * manual-tests/inspector/console-call-line-numbers.html: Added.
+        * manual-tests/inspector/resources/script-console-calls.js: Added.
+        * page/Console.cpp:
+        (WebCore::retrieveLastCaller): Helper to get the URL and line.
+        (WebCore::Console::error): Call retrieveLastCaller to get the URL and
+        line number to pass to addMessageToConsole.
+        (WebCore::Console::info): Ditto.
+        (WebCore::Console::log): Ditto.
+        (WebCore::Console::assertCondition): Ditto.
+        (WebCore::Console::count): Ditto.
+        (WebCore::Console::timeEnd): Ditto.
+        (WebCore::Console::warn): Ditto.
+        * page/Console.h:
+        * page/Console.idl: Make count and timeEnd custom.
+
+2008-09-02  Timothy Hatcher  <timothy@apple.com>
+
+        Removed IDL files from WebCore's framework resources.
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2008-09-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - <rdar://problem/5681647> pages at http://www.stendmarsofa.com/ are so slow to calculate style it seems like a hang
+
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::handleResidualStyleCloseTagAcrossBlocks): Added a
+        cap on the number of consecutive identical residual style tags to
+        reopen.
+        (WebCore::HTMLParser::popBlock): Ditto.
+
+2008-09-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        A little database quota management cleanup.
+
+        * storage/OriginQuotaManager.cpp:
+        (WebCore::OriginQuotaManager::OriginQuotaManager):
+        (WebCore::OriginQuotaManager::lock):
+        (WebCore::OriginQuotaManager::unlock):
+        (WebCore::OriginQuotaManager::trackOrigin):
+        (WebCore::OriginQuotaManager::tracksOrigin):
+        (WebCore::OriginQuotaManager::addDatabase):
+        (WebCore::OriginQuotaManager::removeDatabase):
+        (WebCore::OriginQuotaManager::removeOrigin):
+        (WebCore::OriginQuotaManager::markDatabase):
+        (WebCore::OriginQuotaManager::diskUsage):
+        * storage/OriginQuotaManager.h:
+        Changed to assert that a lock is taken more directly and reliably. Removed comments about
+        main/background threads, as this is likely to stop being true with synchronous Database calls
+        being made on worker threads.
+
+        * storage/OriginUsageRecord.cpp:
+        (WebCore::OriginUsageRecord::OriginUsageRecord):
+        (WebCore::OriginUsageRecord::addDatabase):
+        (WebCore::OriginUsageRecord::removeDatabase):
+        (WebCore::OriginUsageRecord::markDatabase):
+        (WebCore::OriginUsageRecord::diskUsage):
+        * storage/OriginUsageRecord.h:
+        (WebCore::OriginUsageRecord::DatabaseEntry::DatabaseEntry):
+        Don't use a magic value for unknown. It is totally unnecessary for DatabaseEntry, and
+        can be replaced with a single boolean for OriginUsageRecord.
+        Added assertions for string parameters being unshared.
+
+
+2008-09-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19760
+
+        Make granting LoadLocalResources conditional on a policy.
+
+        * WebCore.base.exp:
+        * dom/Document.cpp:
+        (WebCore::Document::initSecurityContext):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::setLocalLoadPolicy):
+        (WebCore::FrameLoader::restrictAccessToLocal):
+        * loader/FrameLoader.h:
+        (WebCore::FrameLoader::):
+        * platform/SecurityOrigin.cpp:
+        (WebCore::SecurityOrigin::grantLoadLocalResources):
+        * platform/SecurityOrigin.h:
+
+2008-09-01  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20571
+        Make sure Window object can assign Animation/Transition event
+        listeners via attributes.
+
+        Also added a bunch of transition event tests, although
+        only transition-end-event-window is directly relevant to this patch.
+
+        (WebCore::JSDOMWindowBase::put):
+
+        Tests: transitions/transition-end-event-all-properties.html
+               transitions/transition-end-event-attributes.html
+               transitions/transition-end-event-container.html
+               transitions/transition-end-event-left.html
+               transitions/transition-end-event-multiple-01.html
+               transitions/transition-end-event-multiple-02.html
+               transitions/transition-end-event-multiple-03.html
+               transitions/transition-end-event-multiple-04.html
+               transitions/transition-end-event-nested.html
+               transitions/transition-end-event-transform.html
+               transitions/transition-end-event-window.html
+
+2008-09-01  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Sam Weinig
+
+        Code styling cleanup.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::getValueProperty):
+        (WebCore::JSDOMWindowBase::put):
+
+2008-09-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        First cut at inline caching for access to vanilla JavaScript properties.
+
+        Updated for JavaScriptCore changes. Mostly mechanical addition of StructureIDs
+        to WebCore classes, and PutPropertySlot& arguments to put functions.
+
+        (WebCore::JSCSSStyleDeclaration::customPut): Be sure to play nice with
+        inline caching for global properties, so global assignment can be optimized.
+
+        * ForwardingHeaders/kjs/StructureID.h: Added.
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::DOMObject::DOMObject):
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::put):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.h:
+        (WebCore::JSDOMWindow::customPut):
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::JSDOMWindowShell):
+        (WebCore::JSDOMWindowShell::put):
+        * bindings/js/JSDOMWindowShell.h:
+        * bindings/js/JSEventTargetBase.h:
+        (WebCore::JSEventTargetBase::put):
+        * bindings/js/JSEventTargetNode.h:
+        (WebCore::JSEventTargetNode::put):
+        * bindings/js/JSHTMLAppletElementCustom.cpp:
+        (WebCore::JSHTMLAppletElement::customPut):
+        * bindings/js/JSHTMLEmbedElementCustom.cpp:
+        (WebCore::JSHTMLEmbedElement::customPut):
+        * bindings/js/JSHTMLInputElementBase.cpp:
+        (WebCore::JSHTMLInputElementBase::put):
+        * bindings/js/JSHTMLInputElementBase.h:
+        * bindings/js/JSHTMLObjectElementCustom.cpp:
+        (WebCore::JSHTMLObjectElement::customPut):
+        * bindings/js/JSHistoryCustom.cpp:
+        (WebCore::JSHistory::customPut):
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        (WebCore::JSInspectedObjectWrapper::wrap):
+        (WebCore::JSInspectedObjectWrapper::JSInspectedObjectWrapper):
+        * bindings/js/JSInspectedObjectWrapper.h:
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        (WebCore::JSInspectorCallbackWrapper::wrap):
+        (WebCore::JSInspectorCallbackWrapper::JSInspectorCallbackWrapper):
+        * bindings/js/JSInspectorCallbackWrapper.h:
+        * bindings/js/JSLocationCustom.cpp:
+        (WebCore::JSLocation::customPut):
+        * bindings/js/JSPluginElementFunctions.cpp:
+        (WebCore::runtimeObjectCustomPut):
+        * bindings/js/JSPluginElementFunctions.h:
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::JSQuarantinedObjectWrapper):
+        (WebCore::JSQuarantinedObjectWrapper::put):
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+        * bindings/js/JSStorageCustom.cpp:
+        (WebCore::JSStorage::customPut):
+        * bindings/objc/WebScriptObject.mm:
+        (-[WebScriptObject setValue:forKey:]):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+        (_NPN_SetProperty):
+        * bridge/jni/jni_jsobject.mm:
+        (JavaJSObject::setMember):
+        * bridge/objc/objc_class.mm:
+        (KJS::Bindings::ObjcClass::fallbackObject):
+        * bridge/objc/objc_runtime.h:
+        * bridge/objc/objc_runtime.mm:
+        (ObjcFallbackObjectImp::ObjcFallbackObjectImp):
+        (ObjcFallbackObjectImp::put):
+        * bridge/runtime.cpp:
+        (KJS::Bindings::Instance::createRuntimeObject):
+        * bridge/runtime_array.cpp:
+        (RuntimeArray::put):
+        * bridge/runtime_array.h:
+        * bridge/runtime_object.cpp:
+        (RuntimeObjectImp::RuntimeObjectImp):
+        (RuntimeObjectImp::put):
+        * bridge/runtime_object.h:
+
+2008-09-01  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Eric Seidel.
+
+        Fixed border-radius for Cairo.
+
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::strokeArc):
+
+2008-09-01  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Eric Seidel.
+
+        Added canvas's globalAlpha to cairo.
+
+        * platform/graphics/GraphicsContext.h:
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::setAlpha):
+        (WebCore::GraphicsContext::getAlpha):
+        * platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h:
+        (WebCore::GraphicsContextPlatformPrivate::GraphicsContextPlatformPrivate):
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::BitmapImage::draw):
+
 2008-09-01  Simon Hausmann  <hausmann@webkit.org>
 
         Unreviewed Qt build fix.

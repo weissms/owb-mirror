@@ -47,7 +47,7 @@ namespace Bindings {
 // Derived RuntimeObject
 class BalRuntimeObjectImp : public RuntimeObjectImp {
     public:
-        BalRuntimeObjectImp(PassRefPtr<Instance>);
+        BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance>);
         ~BalRuntimeObjectImp();
         virtual void invalidate();
 
@@ -58,8 +58,8 @@ class BalRuntimeObjectImp : public RuntimeObjectImp {
         void removeFromCache();
 };
 
-BalRuntimeObjectImp::BalRuntimeObjectImp(PassRefPtr<Instance> instance)
-    : RuntimeObjectImp(instance)
+BalRuntimeObjectImp::BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance> instance)
+    : RuntimeObjectImp(exec, instance)
 {
 }
 
@@ -90,7 +90,7 @@ JSObject* BalRuntimeObjectImp::construct(ExecState* exec, const ArgList& args)
     JSValue* val = call(exec, this, callType, callData, this, args);
 
     if (!val || val->isNull() || val->isUndefined())
-        return new (exec) JSObject(exec->lexicalGlobalObject()->objectPrototype()->prototype());
+        return new (exec) JSObject(exec->lexicalGlobalObject()->objectPrototype());
     else
         return val->toObject(exec);
 }
@@ -224,7 +224,7 @@ RuntimeObjectImp* BalInstance::getRuntimeObject(ExecState* exec, PassRefPtr<BalI
         cachedObjects.insert(instance.get(), ret);
     }
     return ret;*/
-    RuntimeObjectImp* ret = new (exec) BalRuntimeObjectImp(instance);
+    RuntimeObjectImp* ret = new (exec) BalRuntimeObjectImp(exec, instance);
     return ret;
 }
 

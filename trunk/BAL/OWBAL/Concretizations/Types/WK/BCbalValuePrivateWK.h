@@ -45,7 +45,7 @@ class BalValuePrivate {
         {
             m_val = 0;
 	    PassRefPtr<JSGlobalData> sharedGlobalData = JSGlobalData::create();
-            JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject;
+            JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject(sharedGlobalData.get());
             m_exec = obj->globalExec();
         }
         BalValuePrivate(ExecState* exec, JSValue *value)

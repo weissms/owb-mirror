@@ -48,7 +48,6 @@
 #FMD#15
 #FMD:	generator ok until here (22)
 
-../../OWBAL/Skeletons/Database	../../../WebCore/platform/sql/SQLiteAuthorizer.h
 ../../OWBAL/Skeletons/Database	../../../WebCore/platform/sql/SQLiteDatabase.h
 ../../OWBAL/Skeletons/Database	../../../WebCore/platform/sql/SQLiteStatement.h
 ../../OWBAL/Skeletons/Database	../../../WebCore/platform/sql/SQLiteTransaction.h
@@ -56,7 +55,6 @@
 #FMD#5
 #FMD	(27)
 
-../../OWBAL/Concretizations/Database/SQLite	../../../WebCore/platform/sql/SQLiteAuthorizer.h
 ../../OWBAL/Concretizations/Database/SQLite	../../../WebCore/platform/sql/SQLiteAuthorizer.cpp
 ../../OWBAL/Concretizations/Database/SQLite	../../../WebCore/platform/sql/SQLiteDatabase.h
 ../../OWBAL/Concretizations/Database/SQLite	../../../WebCore/platform/sql/SQLiteDatabase.cpp

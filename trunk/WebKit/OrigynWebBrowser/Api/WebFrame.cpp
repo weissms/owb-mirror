@@ -67,6 +67,7 @@
 #include <PluginInfoStore.h>
 #include <PluginDatabase.h>
 #include <PluginView.h>
+#include <PutPropertySlot.h>
 #include <ResourceHandle.h>
 #include <ResourceHandle.h>
 #include <ResourceRequest.h>
@@ -1519,8 +1520,8 @@ void WebFrame::addToJSWindowObject(const char* name, void *object)
 
     KJS::ExecState* exec = window->globalExec();
     KJS::JSObject *runtimeObject = KJS::Bindings::Instance::createRuntimeObject(exec, KJS::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
-
-    window->put(exec, KJS::Identifier(exec, name), runtimeObject);
+    KJS::PutPropertySlot prop;
+    window->put(exec, KJS::Identifier(exec, name), runtimeObject, prop);
 }
 
 

@@ -256,7 +256,7 @@ public:
      * @code
      * @endcode
      */
-    void setAuthorizer(PassRefPtr<SQLiteAuthorizer>);
+    void setAuthorizer(PassRefPtr<DatabaseAuthorizer>);
 
     // (un)locks the database like a mutex
     /**

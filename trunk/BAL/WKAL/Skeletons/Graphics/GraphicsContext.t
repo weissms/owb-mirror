@@ -822,6 +822,13 @@ namespace WKAL {
      */
         void setAlpha(float);
 
+
+    /**
+     * get Alpha
+     * @param[out] : return alpha value
+     */
+        float getAlpha();
+
     /**
      * set composite operation
      * @param[in] : composite operator
@@ -1053,4 +1060,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // GraphicsCont
+#endif // GraphicsContext

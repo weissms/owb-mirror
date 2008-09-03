@@ -627,9 +627,9 @@ namespace WTF {
 #define GENERIC_GET16(trie, c32, result) _GENERIC_GET(trie, index, c32, result, uint16_t)
 
 #define _GENERIC_GET(trie, data, c32, result, resultType) \
-    if((uint32_t)(c32) <= 0xffff) \
+    if((uint32_t)(c32) <= 0xffff) { \
         (result) = _GENERIC_GET_FROM_BMP(trie, data, c32); \
-    else if((uint32_t)(c32) <= 0x10ffff) { \
+    } else if((uint32_t)(c32) <= 0x10ffff) { \
         uint16_t __lead16 = GENERIC_U16_LEAD(c32); \
         _GENERIC_GET_FROM_PAIR(trie, data, __lead16, c32, result, resultType); \
     } else \

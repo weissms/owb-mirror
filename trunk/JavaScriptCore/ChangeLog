@@ -1,11 +1,220 @@
+2008-09-03  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Bug 20296: OpcodeStats doesn't build on platforms which don't have mergesort().
+        <https://bugs.webkit.org/show_bug.cgi?id=20296>
+
+        * VM/Opcode.cpp:
+        (KJS::OpcodeStats::~OpcodeStats): mergesort() replaced with qsort()
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fast path for array.length and string.length.
+        
+        SunSpider says 0.5% faster.
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Anders Carlsson.
+        
+        Added optimized paths for comparing to null.
+        
+        SunSpider says 0.5% faster.
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Changed jsDriver.pl to dump the exact text you would need in order to
+        reproduce a test result. This enables a fast workflow where you copy
+        and paste a test failure in the terminal.
+
+        * tests/mozilla/jsDriver.pl:
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Implemented the rest of Darin's review comments for the 09-01 inline
+        caching patch.
+        
+        SunSpider says 0.5% faster, but that seems like noise.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Put PutPropertySlot into
+        its own file, and added BatchedTransitionOptimizer.
+
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::~CodeBlock): Use array indexing instead of a pointer
+        iterator.
+
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::CodeGenerator): Used BatchedTransitionOptimizer to
+        make batched put and remove for declared variables fast, without forever
+        pessimizing the global object. Removed the old getDirect/removeDirect hack
+        that tried to do the same in a more limited way.
+
+        * VM/CodeGenerator.h: Moved IdentifierRepHash to the KJS namespace since
+        it doesn't specialize anything in WTF.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::Machine): Nixed the DummyConstruct tag because it was
+        confusingly named.
+
+        (KJS::Machine::execute):  Used BatchedTransitionOptimizer, as above. Fixed
+        up some comments.
+
+        (KJS::cachePrototypeChain): Cast to JSObject*, since it's more specific.
+
+        (KJS::Machine::tryCachePutByID): Use isNull() instead of comparing to
+        jsNull(), since isNull() leaves more options open for the future.
+        (KJS::Machine::tryCacheGetByID): ditto
+        (KJS::Machine::privateExecute): ditto
+
+        * VM/SamplingTool.cpp:
+        (KJS::SamplingTool::dump): Use C++-style cast, to match our style
+        guidelines.
+
+        * kjs/BatchedTransitionOptimizer.h: Added. New class that allows host
+        code to add a batch of properties to an object in an efficient way.
+
+        * kjs/JSActivation.cpp: Use isNull(), as above.
+
+        * kjs/JSArray.cpp: Get rid of DummyConstruct tag, as above.
+        * kjs/JSArray.h:
+
+        * kjs/JSGlobalData.cpp: Nixed two unused StructureIDs.
+        * kjs/JSGlobalData.h:
+
+        * kjs/JSImmediate.cpp: Use isNull(), as above.
+
+        * kjs/JSObject.cpp:
+        (KJS::JSObject::mark): Moved mark tracing code elsewhere, to make this
+        function more readable.
+
+        (KJS::JSObject::put): Use isNull(), as above.
+
+        (KJS::JSObject::createInheritorID): Return a raw pointer, since the
+        object is owned by a data member, not necessarily the caller.
+        * kjs/JSObject.h:
+
+        * kjs/JSString.cpp: Use isNull(), as above.
+
+        * kjs/PropertyMap.h: Updated to use PropertySlot::invalidOffset.
+
+        * kjs/PropertySlot.h: Changed KJS_INVALID_OFFSET to WTF::notFound
+        because C macros are so 80's.
+
+        * kjs/PutPropertySlot.h: Added. Split out of PropertySlot.h. Also renamed
+        PutPropertySlot::SlotType to PutPropertySlot::Type, and slotBase to base,
+        since "slot" was redundant.
+
+        * kjs/StructureID.cpp: Added a new transition *away* from dictionary
+        status, to support BatchedTransitionOptimizer.
+
+        (KJS::StructureIDChain::StructureIDChain): No need to store m_size as
+        a data member, so keep it in a local, which might be faster.
+        * kjs/StructureID.h:
+
+        * kjs/SymbolTable.h: Moved IdentifierRepHash to KJS namespace, as above.
+        * kjs/ustring.h:
+
+2008-09-02  Adam Roben  <aroben@apple.com>
+
+        Windows build fixes
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Add
+        StructureID.{cpp,h} to the project. Also let VS reorder this file.
+        * VM/CodeBlock.cpp: Include StringExtras so that snprintf will be
+        defined on Windows.
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Fix release build.
+
+        * JavaScriptCore.exp:
+
+2008-09-01  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Gtk buildfix
+
+        * GNUmakefile.am:
+        * kjs/PropertyMap.cpp: rename Identifier.h to identifier.h
+        * kjs/StructureID.cpp: include JSObject.h
+
+2008-09-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        First cut at inline caching for access to vanilla JavaScript properties.
+        
+        SunSpider says 4% faster. Tests heavy on dictionary-like access have
+        regressed a bit -- we have a lot of room to improve in this area,
+        but this patch is over-ripe as-is.
+        
+        JSCells now have a StructureID that uniquely identifies their layout,
+        and holds their prototype.
+        
+        JSValue::put takes a PropertySlot& argument, so it can fill in details
+        about where it put a value, for the sake of caching.
+
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::CodeGenerator): Avoid calling removeDirect if we
+        can, since it disables inline caching in the global object. This can
+        probably improve in the future.
+
+        * kjs/JSGlobalObject.cpp: Nixed reset(), since it complicates caching, and
+        wasn't really necessary.
+
+        * kjs/JSObject.cpp: Tweaked getter / setter behavior not to rely on the
+        IsGetterSetter flag, since the flag was buggy. This is necessary in order
+        to avoid accidentally accessing a getter / setter as a normal property.
+        
+        Also changed getter / setter creation to honor ReadOnly, matching Mozilla.
+        
+        * kjs/PropertyMap.cpp: Nixed clear(), since it complicates caching and
+        isn't necessary.
+
+        * kjs/Shell.cpp: Moved SamplingTool dumping outside the loop. This allows
+        you to aggregate sampling of multiple files (or the same file repeatedly),
+        which helped me track down regressions.
+
+        * kjs/ustring.h: Moved IdentifierRepHash here to share it.
+
+2008-09-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Eagerly allocate the Math object's numeric constants. This avoids
+        constantly reallocating them in loops, and also ensures that the Math
+        object will not use the single property optimization, which makes
+        properties ineligible for caching.
+
+        SunSpider reports a small speedup, in combination with inline caching.
+
+        * kjs/MathObject.cpp:
+        (KJS::MathObject::MathObject):
+        (KJS::MathObject::getOwnPropertySlot):
+        * kjs/MathObject.h:
+
+2008-09-01  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix, not reviewed.
+
+        * GNUmakefile.am: Add SmallStrings.cpp in both release and debug builds
+
 2008-09-01  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
 
         Reviewed by Maciej Stachowiak.
 
-        Bug 20577: REGRESSION (r35006): Gmail is broken
+        Bug 20577: REGRESSION (r36006): Gmail is broken
         <https://bugs.webkit.org/show_bug.cgi?id=20577>
 
-        r35006 changed stringProtoFuncSubstr() so that it is uses the more
+        r36006 changed stringProtoFuncSubstr() so that it is uses the more
         efficient jsSubstring(), rather than using UString::substr() and then
         calling jsString(). However, the change did not account for the case
         where the start and the length of the substring extend beyond the length
@@ -394,6 +603,15 @@
         * kjs/Shell.cpp:
         (runWithScripts):
         (runInteractive):
+
+2008-08-24  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver.
+
+        Remove an unnecessary RefPtr to a RegisterID.
+
+        * kjs/nodes.cpp:
+        (KJS::DeleteBracketNode::emitCode):
 
 2008-08-24  Mark Rowe  <mrowe@apple.com>
 

@@ -9,6 +9,7 @@ IF (WEBKIT_USE_DATABASE)
         ${CMAKE_SOURCE_DIR}/JavaScriptCore/
 	${CMAKE_SOURCE_DIR}/JavaScriptCore/VM/
 	${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs/
+	${CMAKE_SOURCE_DIR}/WebCore/storage/
         ${SQLITE_INCLUDE_DIRS}
     )
 

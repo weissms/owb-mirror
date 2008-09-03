@@ -176,7 +176,7 @@ namespace OWBAL {
      * s->grantLoadLocalResources();
      * @endcode
      */
-        void grantLoadLocalResources() ;
+        void grantLoadLocalResources();
     
     /**
      * test if SecurityOrigin is secure transition to url

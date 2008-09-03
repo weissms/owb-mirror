@@ -235,6 +235,9 @@ namespace WKAL {
         void setMiterLimit(float);
 
         void setAlpha(float);
+#if PLATFORM(CAIRO)
+        float getAlpha();
+#endif
 
         void setCompositeOperation(CompositeOperator);
 

@@ -276,7 +276,7 @@ namespace WKAL {
     /**
      * debug string
      */
-        String debugString() const
+        String debugString() const;
 
     /**
      * get platform path

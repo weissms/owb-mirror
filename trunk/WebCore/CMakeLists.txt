@@ -35,6 +35,7 @@ INCLUDE_DIRECTORIES (
     loader/archive
     loader/appcache
     page
+    page/animation
     plugins
     rendering
     rendering/style
