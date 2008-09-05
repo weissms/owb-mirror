@@ -1,3 +1,11 @@
+2008-09-05  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Jean-Charles Verdié <jcverdie<pleyo.com> (build fix)
+
+        * OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp:
+        (WTF::initializeThreading):
+        Fix MACPORT compilation due to a dismissed definition in a PLATFORM(DARWIN) not accounting MACPORT singularity
+
 2008-09-05  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
