@@ -30,7 +30,8 @@
 
 DS_INIT_DEEPSEE_FRAMEWORK();
 
-#include "BCGraphicsContext.h"
+#include "config.h"
+#include "GraphicsContext.h"
 #include <gtk/gtk.h>
 #include "cairo.h"
 #include <Api/WebFrame.h>

@@ -47,6 +47,12 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
 )
 
+IF (WEBKIT_USE_N800_HILDON)
+    # be sure to add -DMAEMO_CHANGES
+    ADD_DEFINITIONS (${HILDON_CFLAGS_OTHER})
+    INCLUDE_DIRECTORIES (${HILDON_INCLUDE_DIRS})
+ENDIF (WEBKIT_USE_N800_HILDON)
+
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.h ${CMAKE_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.cpp
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMAND mkdir -p generated_sources/WebKit

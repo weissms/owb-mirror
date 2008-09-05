@@ -1,3 +1,11 @@
+2008-09-05  Sebastien Roret <sroret@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Added HILDON cflags use.
+
+        * OrigynWebBrowser/CMakeLists.txt:
+        * gtk/CMakeLists.txt:
+
 2008-09-05  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

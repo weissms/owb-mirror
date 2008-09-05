@@ -113,6 +113,9 @@ OPTION (WEBKIT_USE_ACCESSIBILITY "Compile WebKit with Accessibility support." ON
 #MULTITHREADING
 OPTION (WEBKIT_USE_MULTIPLE_THREADS "Compile Webkit with multiple threads support." OFF)
 
+# Use HILDON on N800
+OPTION (WEBKIT_USE_N800_HILDON "Compile Webkit with Maemo HILDON support for N8xx." OFF)
+
 INCLUDE (CMakeListsCustomer.txt OPTIONAL)
 
 #######################################
@@ -234,6 +237,12 @@ IF (WEBKIT_USE_NPAPI AND ${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
     PKG_CHECK_MODULES (XT REQUIRED xt)
 ENDIF (WEBKIT_USE_NPAPI AND ${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
 
+IF (WEBKIT_USE_N800_HILDON)
+    PKG_CHECK_MODULES (HILDON hildon-1)
+    IF (NOT HILDON_FOUND)
+        MESSAGE (SEND_ERROR "hildon-1 ${MESSAGE_NOT_FOUND}\n${MESSAGE_CHOOSE} hildon-1 library.")
+    ENDIF (NOT HILDON_FOUND)
+ENDIF (WEBKIT_USE_N800_HILDON)
 
 #######################################
 # Set global compilation flags        #

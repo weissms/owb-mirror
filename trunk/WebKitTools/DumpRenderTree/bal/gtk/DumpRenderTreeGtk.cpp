@@ -1,3 +1,4 @@
+#include "config.h"
 #include <gtk/gtk.h>
 #include "cairo.h"
 #include <Api/WebFrame.h>
