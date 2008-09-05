@@ -1,4 +1,4 @@
-
+#include "config.h"
 #include <Api/WebFrame.h>
 #include <Api/WebView.h>
 #include "Page.h"

@@ -30,13 +30,11 @@
 #ifndef PasteboardHelper_h
 #define PasteboardHelper_h
 
-
 #include "BALBase.h"
 /*
  * FIXME: this is for WebCore support and must be removed once
  * a better solution is found
  */
-
 #include "Frame.h"
 
 

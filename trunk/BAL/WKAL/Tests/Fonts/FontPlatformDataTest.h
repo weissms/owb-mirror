@@ -1,6 +1,7 @@
 #ifndef FontPlatformDataTest_h_CPPUNIT
 #define FontPlatformDataTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCFontPlatformData.h"
 class FontPlatformDataTestTest : public CppUnit::TestFixture

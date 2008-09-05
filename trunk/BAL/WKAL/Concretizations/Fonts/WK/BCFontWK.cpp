@@ -532,6 +532,11 @@ int Font::lineSpacing() const
     return primaryFont()->lineSpacing();
 }
 
+int Font::lineGap() const
+{
+    return primaryFont()->lineGap();
+}
+
 float Font::xHeight() const
 {
     return primaryFont()->xHeight();

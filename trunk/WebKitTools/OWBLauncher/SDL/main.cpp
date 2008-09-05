@@ -29,7 +29,7 @@
 #include DEEPSEE_INCLUDE
 
 DS_INIT_DEEPSEE_FRAMEWORK();
-
+#include "config.h"
 #include "BCGraphicsContext.h"
 #include <Api/WebFrame.h>
 #include <Api/WebView.h>

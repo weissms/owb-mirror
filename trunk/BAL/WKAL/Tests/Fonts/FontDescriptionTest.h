@@ -1,6 +1,7 @@
 #ifndef FontDescriptionTest_h_CPPUNIT
 #define FontDescriptionTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCFontDescription.h"
 class FontDescriptionTestTest : public CppUnit::TestFixture

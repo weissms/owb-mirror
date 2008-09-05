@@ -609,7 +609,7 @@ namespace WKAL {
      * gc->drawBidiText(t, p);
      * @endcode
      */
-        void drawBidiText(const TextRun&, const IntPoint&);
+        void drawBidiText(const TextRun&, const FloatPoint&);
 
     /**
      * draw highlight for text

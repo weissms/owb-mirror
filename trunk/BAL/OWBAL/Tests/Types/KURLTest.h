@@ -1,6 +1,7 @@
 #ifndef KURLTest_h_CPPUNIT
 #define KURLTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCKURL.h"
 class KURLTestTest : public CppUnit::TestFixture

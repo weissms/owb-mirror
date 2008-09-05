@@ -1,6 +1,7 @@
 #ifndef AtomicStringTest_h_CPPUNIT
 #define AtomicStringTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCAtomicString.h"
 class AtomicStringTestTest : public CppUnit::TestFixture

@@ -132,6 +132,17 @@ protected:
     bool shouldAnimate();
     virtual void startAnimation();
     void advanceAnimation(Timer<BitmapImage>*);
+
+    // Function that does the real work of advancing the animation.  When
+    // skippingFrames is true, we're in the middle of a loop trying to skip over
+    // a bunch of animation frames, so we should not do things like decode each
+    // one or notify our observers.
+    // Returns whether the animation was advanced.
+    bool internalAdvanceAnimation(bool skippingFrames);
+    
+    // Helper for internalAdvanceAnimation().
+    void notifyObserverAndTrimDecodedData();
+
     
     // Handle platform-specific data
     void initPlatformData();
@@ -152,6 +163,7 @@ protected:
     Timer<BitmapImage>* m_frameTimer;
     int m_repetitionCount; // How many total animation loops we should do.
     int m_repetitionsComplete;  // How many repetitions we've finished.
+    double m_desiredFrameStartTime;  // The system time at which we hope to see the next call to startAnimation().
 
     Color m_solidColor;  // If we're a 1x1 solid color, this is the color to use to fill.
     bool m_isSolidColor;  // Whether or not we are a 1x1 solid image.

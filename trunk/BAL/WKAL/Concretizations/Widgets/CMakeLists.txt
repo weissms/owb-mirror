@@ -7,6 +7,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/css
     ${CMAKE_SOURCE_DIR}/WebCore/dom
     ${CMAKE_SOURCE_DIR}/WebCore/page
+    ${CMAKE_SOURCE_DIR}/WebCore/page/animation
     ${CMAKE_SOURCE_DIR}/WebCore/html
     ${CMAKE_SOURCE_DIR}/WebCore/loader
     ${CMAKE_SOURCE_DIR}/WebCore/editing

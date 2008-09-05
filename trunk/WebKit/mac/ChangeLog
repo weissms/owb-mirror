@@ -1,3 +1,21 @@
+2008-09-05  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20639.
+        Bug 20639: ENABLE_DASHBOARD_SUPPORT does not need to be a FEATURE_DEFINE
+
+        * Configurations/WebKit.xcconfig: Remove ENABLE_DASHBOARD_SUPPORT from FEATURE_DEFINES.
+
+2008-09-03  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam.
+
+        Clean up Platform.h and add PLATFORM(CHROMIUM), PLATFORM(SKIA) and USE(V8_BINDINGS)
+
+        * Configurations/WebKit.xcconfig:
+        * WebKitPrefix.h: add rules for V8_BINDINGS
+
 2008-09-03  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Sam Weinig.

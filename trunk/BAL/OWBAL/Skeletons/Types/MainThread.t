@@ -40,47 +40,51 @@
 namespace WTF {
 
     /**
-     *  MainThreadFunction description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  MainThreadFunction 
      */
 typedef void MainThreadFunction(void*);
 
     /**
-     *  callOnMainThread description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * call On Main Thread
+     * @param[in] : mainThreadfunction
+     * @param[in] : context
      */
 void callOnMainThread(MainThreadFunction*, void* context);
+
     /**
-     *  setMainThreadCallbacksPaused description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * callOnMainThreadAndWait
+     * @param[in] : mainThreadfunction
+     * @param[in] : context
+     */
+void callOnMainThreadAndWait(MainThreadFunction*, void* context);
+
+    /**
+     * setMainThreadCallbacksPaused
+     * @param[in] : pause status
      */
 void setMainThreadCallbacksPaused(bool paused);
 
 
 // These functions are internal to the callOnMainThread implementation.
+
     /**
-     *  dispatchFunctionsFromMainThread description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * initializeMainThread
+     */
+void initializeMainThread();
+
+    /**
+     * dispatchFunctionsFromMainThread
      */
 void dispatchFunctionsFromMainThread();
+
     /**
-     *  scheduleDispatchFunctionsOnMainThread description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * mainThreadFunctionQueueMutex 
+     * @param[out] : get Mutex
+     */
+Mutex& mainThreadFunctionQueueMutex();
+    
+    /**
+     * scheduleDispatchFunctionsOnMainThread
      */
 void scheduleDispatchFunctionsOnMainThread();
 
@@ -90,7 +94,4 @@ using WTF::callOnMainThread;
 using WTF::setMainThreadCallbacksPaused;
 
 #endif // MainThread_h
-
-
-
 

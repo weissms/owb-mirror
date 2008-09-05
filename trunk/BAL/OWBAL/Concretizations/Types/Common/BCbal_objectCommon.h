@@ -30,6 +30,7 @@
 #ifndef BINDINGS_BAL_OBJECT_H_
 #define BINDINGS_BAL_OBJECT_H_
 
+#include "config.h"
 #include "Vector.h"
 #include "PlatformString.h"
 

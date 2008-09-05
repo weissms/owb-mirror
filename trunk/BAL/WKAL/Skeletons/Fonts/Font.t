@@ -356,6 +356,13 @@ public:
      */
     int lineSpacing() const;
 
+
+    /**
+     *  lineGap
+     * @param[out] : line gap value
+     */
+    int lineGap() const;
+
     /**
      * get xHeight value
      * @param[out] : xHeight value
@@ -733,7 +740,6 @@ private:
 }
 
 #endif
-
 
 
 

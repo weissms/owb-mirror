@@ -1,4 +1,4 @@
-2008-09-03  Mark Rowe  <mrowe@apple.com>
+2008-09-02  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Tim Hatcher.
 
@@ -6,7 +6,7 @@
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-08-18  Geoffrey Garen  <ggaren@apple.com>
+2008-08-17  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Cameron Zwarich.
         
@@ -22,7 +22,7 @@
 
         * WebKit.xcodeproj/project.pbxproj: Enable the debug variant.
 
-2008-08-06  Anders Carlsson  <andersca@apple.com>
+2008-08-05  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Darin.
 
@@ -39,7 +39,7 @@
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-08-01  David D. Kilzer  <ddkilzer@webkit.org>
+2008-07-31  David D. Kilzer  <ddkilzer@webkit.org>
 
         Fix layout test results for webarchive/test-xml-stylesheet.xml
 
@@ -49,7 +49,7 @@
         Changed WebHTMLRepresentationInternal.h and WebHTMLRepresentationPrivate.h
         to private so they're copied into PrivateHeaders.
 
-2008-07-14  Stephanie Lewis  <slewis@apple.com>
+2008-07-11  Stephanie Lewis  <slewis@apple.com>
 
         Reviewed by Darin Adler.
 
@@ -57,14 +57,14 @@
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-07-09  Mark Rowe  <mrowe@apple.com>
+2008-07-07  Mark Rowe  <mrowe@apple.com>
 
         Fix references to WebRenderNode.h and WebRenderNode.mm in Xcode project
         so that they don't have an unnecessary ".." in the path.
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-07-07  Mark Rowe  <mrowe@apple.com>
+2008-07-05  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by John Sullivan.
 
@@ -72,7 +72,7 @@
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-06-27  Anders Carlsson  <andersca@apple.com>
+2008-06-26  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Darin.
 
@@ -80,14 +80,14 @@
         
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-06-25  John Sullivan  <sullivan@apple.com>
+2008-06-24  John Sullivan  <sullivan@apple.com>
 
         Rubber-stamped by Sam Weinig
 
         * StringsNotToBeLocalized.txt:
         brought this file up to date
 
-2008-06-18  Mark Rowe  <mrowe@apple.com>
+2008-06-17  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Darin Adler.
 
@@ -95,7 +95,7 @@
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-06-04  Timothy Hatcher  <timothy@apple.com>
+2008-05-22  Timothy Hatcher  <timothy@apple.com>
 
         <rdar://problem/5956403> Update the Develop menu to match the new Inspector items
 
@@ -122,7 +122,7 @@
         * StringsNotToBeLocalized.txt:
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-05-15  chris fleizach  <cfleizach@apple.com>
+2008-05-13  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin
 
@@ -149,7 +149,7 @@
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-05-06  Anders Carlsson  <andersca@apple.com>
+2008-05-01  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Tim.
 
@@ -181,7 +181,7 @@
         
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-04-14  John Sullivan  <sullivan@apple.com>
+2008-04-07  John Sullivan  <sullivan@apple.com>
 
         Reviewed by Tim
         
@@ -192,7 +192,7 @@
         * English.lproj/WebJavaScriptTextInputPanel.nib/keyedobjects.nib:
         Made the panel be a NonBlockingPanel
 
-2008-04-05  Ada Chan  <adachan@apple.com>
+2008-04-04  Ada Chan  <adachan@apple.com>
 
         Updated the format string for window title for a standalone image to take integers.
 
@@ -200,7 +200,7 @@
 
         * English.lproj/Localizable.strings:
 
-2008-03-29  Brady Eidson  <beidson@apple.com>
+2008-03-28  Brady Eidson  <beidson@apple.com>
 
         Rubberstamped by Darin Adler
 
@@ -216,7 +216,7 @@
 
         * WebKit.xcodeproj/project.pbxproj:
 
-2008-03-25  Brady Eidson  <beidson@apple.com>
+2008-03-24  Brady Eidson  <beidson@apple.com>
 
         Reviewed by Darin's rubberstamp
 
@@ -254,7 +254,7 @@
         * WebKit.xcodeproj/project.pbxproj: Change WebDynamicScrollBarsView.m to be Obj-C++.
         We can rename the file later.
 
-2008-03-09  Mark Rowe  <mrowe@apple.com>
+2008-03-07  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Oliver Hunt.
 

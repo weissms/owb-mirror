@@ -16,6 +16,7 @@ LIST (APPEND LOADER_SRC
     loader/FTPDirectoryParser.cpp
     loader/FormState.cpp
     loader/FrameLoader.cpp
+    loader/loader.cpp
     loader/MainResourceLoader.cpp
     loader/NavigationAction.cpp
     loader/NetscapePlugInStreamLoader.cpp
@@ -26,7 +27,7 @@ LIST (APPEND LOADER_SRC
     loader/SubresourceLoader.cpp
     loader/TextDocument.cpp
     loader/TextResourceDecoder.cpp
-    loader/loader.cpp
+    loader/UserStyleSheetLoader.cpp
 
     loader/archive/ArchiveResourceCollection.cpp
     loader/archive/ArchiveFactory.cpp

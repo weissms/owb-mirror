@@ -1,6 +1,7 @@
 #ifndef PasteboardTest_h_CPPUNIT
 #define PasteboardTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCPasteboard.h"
 class PasteboardTestTest : public CppUnit::TestFixture

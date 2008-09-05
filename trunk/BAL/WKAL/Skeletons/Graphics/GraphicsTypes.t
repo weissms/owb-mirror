@@ -118,6 +118,39 @@ namespace WKAL {
      * @endcode
      */
     String lineJoinName(LineJoin);
+    /**
+     * get textAlign name
+     * @param[in] : textAlign
+     * @param[out] : name
+     */
+    String textAlignName(TextAlign);
+
+    /**
+     * parse TextAlign
+     * @param[in] : string
+     * @param[in] : textAlign
+     * @param[out] : status
+     */
+    bool parseTextAlign(const String&, TextAlign&);
+
+    /**
+     * textBaseline Name
+     * @param[in] : TextBaseline
+     * @param[out] : name
+     */
+    String textBaselineName(TextBaseline);
+
+    /**
+     * parseTextBaseline
+     * @param[in] : string
+     * @param[in] : TextBaseline
+     * @param[out] : status
+     */
+    bool parseTextBaseline(const String&, TextBaseline&);
+    
+    
+    
+    
 
     /**
      * parse LineJoin
@@ -132,7 +165,3 @@ namespace WKAL {
 }
 
 #endif
-
-
-
-

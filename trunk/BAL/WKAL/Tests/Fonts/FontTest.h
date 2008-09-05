@@ -1,6 +1,7 @@
 #ifndef FontTest_h_CPPUNIT
 #define FontTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCFont.h"
 class TextRunTestTest : public CppUnit::TestFixture

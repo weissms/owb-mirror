@@ -100,7 +100,7 @@ RuntimeObjectImp* Instance::createRuntimeObject(ExecState *exec, PassRefPtr<Inst
 #endif
 #if PLATFORM(BAL)
     if (instance->getBindingLanguage() == BalLanguage)
-        return BalInstance::getRuntimeObject(exec, static_cast<BalInstance*>(instance.get()));
+        return new (exec) RuntimeObjectImp(exec, static_cast<BalInstance*>(instance.get()));
 #endif
     JSLock lock(false);
 

@@ -1,6 +1,7 @@
 #ifndef FontFamilyTest_h_CPPUNIT
 #define FontFamilyTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCFontFamily.h"
 class FontFamilyTestTest : public CppUnit::TestFixture

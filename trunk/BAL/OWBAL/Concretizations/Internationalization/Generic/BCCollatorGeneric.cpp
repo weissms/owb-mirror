@@ -37,6 +37,7 @@
 namespace WTF {
 
 Collator::Collator(const char* locale)
+ : m_locale(locale ? strdup(locale) : 0)
 {
 }
 

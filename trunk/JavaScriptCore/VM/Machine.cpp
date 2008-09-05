@@ -797,11 +797,8 @@ JSValue* Machine::execute(ProgramNode* programNode, ExecState* exec, ScopeChainN
 
     MACHINE_SAMPLING_privateExecuteReturned();
 
-    if (*profiler) {
+    if (*profiler)
         (*profiler)->didExecute(exec, programNode->sourceURL(), programNode->lineNo());
-        if (!m_reentryDepth)
-            (*profiler)->didFinishAllExecution(exec);
-    }
 
     if (m_reentryDepth && lastGlobalObject && globalObject != lastGlobalObject)
         lastGlobalObject->copyGlobalsTo(m_registerFile);
@@ -859,9 +856,6 @@ JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, ExecState* exec, J
     m_reentryDepth--;
 
     MACHINE_SAMPLING_privateExecuteReturned();
-
-    if (*profiler && !m_reentryDepth)
-        (*profiler)->didFinishAllExecution(exec);
 
     m_registerFile.shrink(oldSize);
     return result;
@@ -941,11 +935,8 @@ JSValue* Machine::execute(EvalNode* evalNode, ExecState* exec, JSObject* thisObj
 
     MACHINE_SAMPLING_privateExecuteReturned();
 
-    if (*profiler) {
+    if (*profiler)
         (*profiler)->didExecute(exec, evalNode->sourceURL(), evalNode->lineNo());
-        if (!m_reentryDepth)
-            (*profiler)->didFinishAllExecution(exec);
-    }
 
     m_registerFile.shrink(oldSize);
     return result;
@@ -1204,8 +1195,7 @@ NEVER_INLINE void Machine::tryCacheGetByID(ExecState* exec, CodeBlock* codeBlock
         return;
     }
 
-    JSCell* baseCell = static_cast<JSCell*>(baseValue);
-    StructureID* structureID = baseCell->structureID();
+    StructureID* structureID = static_cast<JSCell*>(baseValue)->structureID();
 
     // FIXME: Remove this !structureID check once all JSCells have StructureIDs.
     if (!structureID) {
@@ -1234,8 +1224,7 @@ NEVER_INLINE void Machine::tryCacheGetByID(ExecState* exec, CodeBlock* codeBlock
 
     // Cache hit: Specialize instruction and ref StructureIDs.
 
-    JSValue* slotBase = slot.slotBase();
-    if (slotBase == baseCell) {
+    if (slot.slotBase() == baseValue) {
         vPC[0] = getOpcode(op_get_by_id_self);
         vPC[5] = slot.cachedOffset();
 
@@ -1243,11 +1232,21 @@ NEVER_INLINE void Machine::tryCacheGetByID(ExecState* exec, CodeBlock* codeBlock
         return;
     }
 
-    if (slotBase == structureID->prototype()) {
-        ASSERT(!JSImmediate::isImmediate(slotBase));
+    if (slot.slotBase() == structureID->prototype()) {
+        ASSERT(slot.slotBase()->isObject());
+
+        JSObject* slotBaseObject = static_cast<JSObject*>(slot.slotBase());
+
+        // Heavy access to a prototype is a good indication that it's not being
+        // used as a dictionary.
+        if (slotBaseObject->structureID()->isDictionary()) {
+            RefPtr<StructureID> transition = StructureID::fromDictionaryTransition(slotBaseObject->structureID());
+            slotBaseObject->setStructureID(transition.release());
+            static_cast<JSObject*>(baseValue)->structureID()->setCachedPrototypeChain(0);
+        }
 
         vPC[0] = getOpcode(op_get_by_id_proto);
-        vPC[5] = static_cast<JSCell*>(slotBase)->structureID();
+        vPC[5] = slotBaseObject->structureID();
         vPC[6] = slot.cachedOffset();
 
         codeBlock->refStructureIDs(vPC);
@@ -1255,14 +1254,27 @@ NEVER_INLINE void Machine::tryCacheGetByID(ExecState* exec, CodeBlock* codeBlock
     }
 
     size_t count = 0;
-    while (baseCell != slotBase) {
-        baseCell = static_cast<JSCell*>(baseCell->structureID()->prototype());
-        // If we didn't find slotBase in baseCell's prototype chain, then baseCell
+    JSObject* o = static_cast<JSObject*>(baseValue);
+    while (slot.slotBase() != o) {
+        JSValue* v = o->structureID()->prototype();
+
+        // If we didn't find slotBase in baseValue's prototype chain, then baseValue
         // must be a proxy for another object.
-        if (baseCell->isNull()) {
+        if (v->isNull()) {
             vPC[0] = getOpcode(op_get_by_id_generic);
             return;
         }
+
+        o = static_cast<JSObject*>(v);
+
+        // Heavy access to a prototype is a good indication that it's not being
+        // used as a dictionary.
+        if (o->structureID()->isDictionary()) {
+            RefPtr<StructureID> transition = StructureID::fromDictionaryTransition(o->structureID());
+            o->setStructureID(transition.release());
+            static_cast<JSObject*>(baseValue)->structureID()->setCachedPrototypeChain(0);
+        }
+
         ++count;
     }
 
@@ -1436,13 +1448,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         int dst = (++vPC)->u.operand;
         JSValue* src = r[(++vPC)->u.operand].jsValue(exec);
 
-        if (src->isNull()) {
-            r[dst] = jsBoolean(true);
-            ++vPC;
-            NEXT_OPCODE;
-        }
-        
-        if (src->isUndefined()) {
+        if (src->isUndefinedOrNull()) {
             r[dst] = jsBoolean(true);
             ++vPC;
             NEXT_OPCODE;
@@ -1482,13 +1488,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         int dst = (++vPC)->u.operand;
         JSValue* src = r[(++vPC)->u.operand].jsValue(exec);
 
-        if (src->isNull()) {
-            r[dst] = jsBoolean(false);
-            ++vPC;
-            NEXT_OPCODE;
-        }
-        
-        if (src->isUndefined()) {
+        if (src->isUndefinedOrNull()) {
             r[dst] = jsBoolean(false);
             ++vPC;
             NEXT_OPCODE;
@@ -3423,7 +3423,7 @@ JSValue* Machine::retrieveArguments(ExecState* exec, JSFunction* function) const
     return activation->get(exec, exec->propertyNames().arguments);
 }
 
-JSValue* Machine::retrieveCaller(ExecState* exec, JSFunction* function) const
+JSValue* Machine::retrieveCaller(ExecState* exec, InternalFunction* function) const
 {
     Register* callFrame = this->callFrame(exec, function);
     if (!callFrame)
@@ -3440,8 +3440,9 @@ JSValue* Machine::retrieveCaller(ExecState* exec, JSFunction* function) const
     return jsNull();
 }
 
-void Machine::retrieveLastCaller(ExecState* exec, int& lineNumber, int& sourceId, UString& sourceURL) const
+void Machine::retrieveLastCaller(ExecState* exec, int& lineNumber, int& sourceId, UString& sourceURL, JSValue*& function) const
 {
+    function = 0;
     lineNumber = -1;
     sourceURL = UString();
 
@@ -3457,9 +3458,13 @@ void Machine::retrieveLastCaller(ExecState* exec, int& lineNumber, int& sourceId
     lineNumber = callerCodeBlock->lineNumberForVPC(vPC - 1);
     sourceId = callerCodeBlock->ownerNode->sourceId();
     sourceURL = callerCodeBlock->ownerNode->sourceURL();
+
+    JSValue* callee = callFrame[RegisterFile::Callee].getJSValue();
+    if (callee->toThisObject(exec)->inherits(&InternalFunction::info))
+        function = retrieveCaller(exec, static_cast<InternalFunction*>(callee));
 }
 
-Register* Machine::callFrame(ExecState* exec, JSFunction* function) const
+Register* Machine::callFrame(ExecState* exec, InternalFunction* function) const
 {
     Register* callFrame = exec->m_callFrame;
 

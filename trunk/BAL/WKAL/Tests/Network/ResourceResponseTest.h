@@ -1,6 +1,7 @@
 #ifndef ResourceResponseTest_h_CPPUNIT
 #define ResourceResponseTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCResourceResponse.h"
 class ResourceResponseTestTest : public CppUnit::TestFixture

@@ -1,6 +1,7 @@
 #ifndef ClipboardBalTest_h_CPPUNIT
 #define ClipboardBalTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCClipboard.h"
 class ClipboardBalTestTest : public CppUnit::TestFixture

@@ -1,6 +1,7 @@
 #ifndef AuthenticationChallengeTest_h_CPPUNIT
 #define AuthenticationChallengeTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCAuthenticationChallenge.h"
 class AuthenticationChallengeTestTest : public CppUnit::TestFixture

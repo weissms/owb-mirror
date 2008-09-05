@@ -1,6 +1,7 @@
 #ifndef SimpleFontDataTest_h_CPPUNIT
 #define SimpleFontDataTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCSimpleFontData.h"
 class SimpleFontDataTestTest : public CppUnit::TestFixture

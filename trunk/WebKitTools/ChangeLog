@@ -1,4 +1,47 @@
-2008-08-27  Steve Falkenburg  <sfalken@apple.com>
+2008-09-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20639.
+        Bug 20639: ENABLE_DASHBOARD_SUPPORT does not need to be a FEATURE_DEFINE
+
+        * Scripts/build-webkit: Remove ENABLE_DASHBOARD_SUPPORT-related code.
+
+2008-09-04  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 20616: Incorporate V8 benchmarks in testing
+        <https://bugs.webkit.org/show_bug.cgi?id=20616>
+
+        Add support for the --v8 option to run-sunspider.
+
+        * Scripts/run-sunspider:
+
+2008-09-04  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx buildbot fix. More robust handling of clean when makefiles are not built or 
+        are not completely made.
+
+        * wx/build-wxwebkit:
+
+2008-09-03  Mark Rowe  <mrowe@apple.com>
+
+        More Mac build fixes.
+
+        Set ENABLE_DASHBOARD_SUPPORT when building for Mac via build-webkit.
+        Also set ENABLE_CROSS_DOCUMENT_MESSAGING in order to match the
+        default configuration specified in the .xcconfig files.
+
+        * Scripts/build-webkit:
+
+2008-09-03  Mark Rowe  <mrowe@apple.com>
+
+        Mac build fix.  Ensure that dashboard support is enabled.
+
+        * DumpRenderTree/mac/Configurations/Base.xcconfig:
+
+2008-08-25  Steve Falkenburg  <sfalken@apple.com>
 
         Build fix. Copy correct version of ICU.
 
@@ -14,7 +57,7 @@
 
         * Scripts/run-webkit-tests:
 
-2008-08-25  Jon Honeycutt  <jhoneycutt@apple.com>
+2008-08-24  Jon Honeycutt  <jhoneycutt@apple.com>
 
         Initial support for accessibility layout tests on Windows.
         https://bugs.webkit.org/show_bug.cgi?id=20497
@@ -80,7 +123,7 @@
         for the accessibility controller.
         * DumpRenderTree/win/FrameLoadDelegate.h:
 
-2008-08-22  Simon Fraser  <simon.fraser@apple.com>
+2008-08-21  Simon Fraser  <simon.fraser@apple.com>
 
         Reviewed by Mark Rowe
         
@@ -99,7 +142,7 @@
         * DumpRenderTree/win/UIDelegate.h:
         (UIDelegate::webViewSendResizeMessage): Add the new interface method, not implemented.
 
-2008-08-20  chris fleizach  <cfleizach@apple.com>
+2008-08-19  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin.
 
@@ -189,7 +232,7 @@
         (JSStringCopyUTF8CString):
         (ScriptItem::invoke):
 
-2008-08-18  Geoffrey Garen  <ggaren@apple.com>
+2008-08-17  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Cameron Zwarich.
         
@@ -206,7 +249,7 @@
 
         * Scripts/check-for-global-initializers: Ignore initializers when building the debug variant.
 
-2008-08-14  Simon Hausmann  <hausmann@webkit.org>
+2008-08-13  Simon Hausmann  <hausmann@webkit.org>
 
         Rubber-stamped by Holger.
 
@@ -219,7 +262,7 @@
 
         * Scripts/run-webkit-tests:
 
-2008-08-11  Jan Michael Alonzo  <jmalonzo@webkit.org>
+2008-08-10  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         Reviewed (and updated) by Alp Toker.
 
@@ -239,7 +282,7 @@
         * DumpRenderTree/gtk/DumpRenderTree.pro: Removed.
         * GtkLauncher/GtkLauncher.pro: Removed.
 
-2008-08-08  chris fleizach  <cfleizach@apple.com>
+2008-08-06  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin
 
@@ -305,7 +348,7 @@
 
         * Scripts/webkitdirs.pm: make determineConfigurationProductDir() always call determineConfiguration() even on cygwin
 
-2008-08-04  Kevin Ollivier  <kevino@theolliviers.com>
+2008-08-02  Kevin Ollivier  <kevino@theolliviers.com>
 
         Forgot to commit licensing correction in last commit.
 
@@ -324,7 +367,7 @@
         * wx/packaging/build-win-installer.py: Added.
         * wx/packaging/wxWebKitInstaller.iss.in: Added.
 
-2008-08-01  Adam Roben  <aroben@apple.com>
+2008-07-31  Adam Roben  <aroben@apple.com>
 
         Follow-up to r35500
 
@@ -370,7 +413,7 @@
         * DumpRenderTree/mac/DumpRenderTreeMac.h: Added BUILDING_ON_LEOPARD
         macro.
 
-2008-07-31  chris fleizach  <cfleizach@apple.com>
+2008-07-31  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Alice Liu
 
@@ -421,7 +464,7 @@
         
         * DumpRenderTree/win/DumpRenderTree.vcproj:
 
-2008-07-28  Jan Michael Alonzo  <jmalonzo@webkit.org>
+2008-07-25  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         DRT/Gtk build fix for r35362
 
@@ -445,7 +488,7 @@
         * DumpRenderTree/win/LayoutTestControllerWin.cpp:
         (LayoutTestController::elementDoesAutoCompleteForElementWithId): Stub for now until I can get on Windows
 
-2008-07-25  chris fleizach  <cfleizach@apple.com>
+2008-07-25  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin
 
@@ -468,7 +511,7 @@
         * DumpRenderTree/win/DumpRenderTree.vcproj: Don't try to copy files
         that don't exist for people outside of Apple.
 
-2008-07-21  Landry Breuil  <landry@openbsd.org>
+2008-07-18  Landry Breuil  <landry@openbsd.org>
 
         Bug 19975: [OpenBSD] Patches to enable build of WebKit
 
@@ -478,7 +521,7 @@
 
         * DumpRenderTree/DumpRenderTree.h: OpenBSD doesn't support wide characters.
 
-2008-07-18  Jon Honeycutt  <jhoneycutt@apple.com>
+2008-07-16  Jon Honeycutt  <jhoneycutt@apple.com>
 
         CygwinDownloader fails to install necessary packages
         https://bugs.webkit.org/show_bug.cgi?id=20075
@@ -497,7 +540,7 @@
 
         * CygwinDownloader/cygwin-downloader.py:
 
-2008-07-16  Sam Weinig  <sam@webkit.org>
+2008-07-15  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Anders Carlsson.
 
@@ -559,7 +602,7 @@
         (AccessibilityUIElement::minValue):
         (AccessibilityUIElement::maxValue):
 
-2008-07-14  chris fleizach  <cfleizach@apple.com>
+2008-07-14  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin
 
@@ -599,7 +642,7 @@
         In this scenario, it was causing crashes after each 10-20 tests, because there was a large
         chance for a different thread to cause GC after the context was released.
 
-2008-07-14  Stephanie Lewis  <slewis@apple.com>
+2008-07-11  Stephanie Lewis  <slewis@apple.com>
 
         Reviewed by Darin Adler.
 
@@ -612,7 +655,7 @@
         (resetWebViewToConsistentStateBeforeTesting):
         * Scripts/run-webkit-tests:
 
-2008-07-11  Steve Falkenburg  <sfalken@apple.com>
+2008-07-10  Steve Falkenburg  <sfalken@apple.com>
 
         Build fix.
 
@@ -668,7 +711,7 @@
         (dump):
         * Scripts/run-webkit-tests:
 
-2008-07-09  Jon Honeycutt  <jhoneycutt@apple.com>
+2008-07-08  Jon Honeycutt  <jhoneycutt@apple.com>
 
         Reviewed by Anders.
 
@@ -708,7 +751,7 @@
 
         * DumpRenderTree/win/ImageDiff.vcproj:
 
-2008-07-04  Jon Honeycutt  <jhoneycutt@apple.com>
+2008-07-02  Jon Honeycutt  <jhoneycutt@apple.com>
 
         Allow tests to define JavaScript to execute when NPP_DestroyStream or
         NPP_URLNotify is called.
@@ -759,7 +802,7 @@
         (LayoutTestController::stopProvisionalFrameLoads):
         (LayoutTestController::setStopProvisionalFrameLoads):
 
-2008-07-02  chris fleizach  <cfleizach@apple.com>
+2008-07-01  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin
 
@@ -774,7 +817,7 @@
         (AccessibilityController::widthOfFocusedElement):
         (AccessibilityController::heightOfFocusedElement):
 
-2008-06-30  chris fleizach  <cfleizach@apple.com>
+2008-06-30  Chris Fleizach  <cfleizach@apple.com>
 
         Reviewed by Beth Dakin
 
@@ -790,7 +833,7 @@
         (attributesOfElement):
         (nsStringToJSStringRef):
 
-2008-06-30  Sam Weinig  <sam@webkit.org>
+2008-06-29  Sam Weinig  <sam@webkit.org>
 
         Fix Tiger build.
 
@@ -839,7 +882,7 @@
         (setDefaultsToConsistentStateValuesForTesting):
         (main):
 
-2008-06-27  Darin Adler  <darin@apple.com>
+2008-06-26  Darin Adler  <darin@apple.com>
 
         * Scripts/check-for-weak-vtables: Fixed comment.
 
@@ -892,7 +935,7 @@
         (AccessibilityController::titleOfFocusedElement):
         (AccessibilityController::descriptionOfFocusedElement):
 
-2008-06-25  Dan Bernstein  <mitz@apple.com>
+2008-06-24  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Stephanie Lewis.
 
@@ -970,7 +1013,7 @@
         * DumpRenderTree/win/DumpRenderTree.cpp:
         (initialize): Added the WeightWatcher fonts.
 
-2008-06-23  Brent Fulgham  <bfulgham@gmail.com>
+2008-06-20  Brent Fulgham  <bfulgham@gmail.com>
 
         Reviewed by Darin.
 
@@ -984,7 +1027,7 @@
           Debug_Cairo/Release_Cairo.  This flag is only active when the
           isCygwin() test is true.
 
-2008-06-18  Dan Bernstein  <mitz@apple.com>
+2008-06-17  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Justin Garcia.
 
@@ -994,7 +1037,7 @@
           mac-leopard.
         * Scripts/webkitdirs.pm: Added isSnowLeopard().
 
-2008-06-16  Darin Adler  <darin@apple.com>
+2008-06-15  Darin Adler  <darin@apple.com>
 
         * Scripts/do-webcore-rename: Updated for the latest round of renaming.
 
@@ -1058,7 +1101,7 @@
 
         * Scripts/make-js-test-wrappers: Added three more exceptions.
 
-2008-06-13  Joerg Bornemann  <joerg.bornemann@trolltech.com>
+2008-06-10  Joerg Bornemann  <joerg.bornemann@trolltech.com>
 
         Reviewed by Simon.
 
@@ -1068,7 +1111,7 @@
         * Scripts/webkitdirs.pm: Added support for include() statements in
         qmake.conf.
 
-2008-06-10  Alp Toker  <alp@nuanti.com>
+2008-06-09  Alp Toker  <alp@nuanti.com>
 
         gcc3/autotools build fix. Add explicit -O2 -fno-strict-aliasing to
         each of the tools since these are no longer set globally.
@@ -1102,7 +1145,7 @@
 
         * Scripts/check-for-global-initializers:
 
-2008-06-04  Steve Falkenburg  <sfalken@apple.com>
+2008-05-30  Steve Falkenburg  <sfalken@apple.com>
 
         Generate an isolated COM manifest for registry free COM.
         
@@ -1453,7 +1496,7 @@
 
         * wx/install-unix-extras:
 
-2008-05-15  Julien Chaffraix  <jchaffraix@webkit.org>
+2008-05-14  Julien Chaffraix  <jchaffraix@webkit.org>
 
         Reviewed by Eric.
 
@@ -1619,7 +1662,7 @@
         (findTemplateFiles): Added.  Returns a list of TEMPLATE.html
         files found.
 
-2008-05-06  Steve Falkenburg  <sfalken@apple.com>
+2008-05-05  Steve Falkenburg  <sfalken@apple.com>
 
         Copy dependencies of ImageDiff, DumpRenderTree in post-build step.
 
@@ -1850,7 +1893,7 @@
 
         * DumpRenderTree/qt/DumpRenderTree.pro:
 
-2008-04-21  Mike Hommey  <glandium@debian.org>
+2008-04-19  Mike Hommey  <glandium@debian.org>
 
         Reviewed by Alp Toker.
 
@@ -2104,7 +2147,7 @@
 
         * DumpRenderTree/qt/DumpRenderTree.h:
 
-2008-04-14  Kevin Ollivier  <kevino@theolliviers.com>
+2008-04-08  Kevin Ollivier  <kevino@theolliviers.com>
 
         Reviewed by Darin Adler.
 
@@ -2137,7 +2180,7 @@
 
         * Scripts/build-webkit:
 
-2008-04-05  Holger Hans Peter Freyther  <holger.freyther@trolltech.com>
+2008-04-03  Holger Hans Peter Freyther  <holger.freyther@trolltech.com>
 
         Reviewed by Simon.
 
@@ -2225,7 +2268,7 @@
         * DumpRenderTree/win/DumpRenderTree.cpp:
         (createWebViewAndOffscreenWindow):
 
-2008-03-29  Antti Koivisto  <antti@apple.com>
+2008-03-26  Antti Koivisto  <antti@apple.com>
 
         Reviewed by Anders.
         
@@ -2241,7 +2284,7 @@
         Add $(WebKitLibrariesDir)\include to the include path so we can find
         stdint.h there.
 
-2008-03-25  Eric Seidel  <eric@webkit.org>
+2008-03-24  Eric Seidel  <eric@webkit.org>
 
         Reviewed by Mark.
 
@@ -2446,7 +2489,7 @@
         * DumpRenderTree/win/ImageDiff.vcproj:
         * DumpRenderTree/win/TestNetscapePlugin/TestNetscapePlugin.vcproj:
 
-2008-03-09  Julien Chaffraix  <julien.chaffraix@gmail.com>
+2008-03-08  Julien Chaffraix  <julien.chaffraix@gmail.com>
 
         Reviewed by Mark Rowe.
 

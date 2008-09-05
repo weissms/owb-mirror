@@ -1,6 +1,7 @@
 #ifndef SecurityOriginHashTest_h_CPPUNIT
 #define SecurityOriginHashTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCSecurityOriginHash.h"
 class SecurityOriginHashTestTest : public CppUnit::TestFixture

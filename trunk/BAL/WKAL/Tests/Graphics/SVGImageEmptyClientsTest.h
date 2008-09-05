@@ -3,6 +3,7 @@
 #ifndef SVGImageEmptyClientsTest_h_CPPUNIT
 #define SVGImageEmptyClientsTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCFloatRect.h"
 #include "BCIntRect.h"

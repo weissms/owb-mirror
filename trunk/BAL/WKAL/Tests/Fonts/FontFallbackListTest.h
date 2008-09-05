@@ -1,6 +1,7 @@
 #ifndef FontFallbackListTest_h_CPPUNIT
 #define FontFallbackListTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCFontFallbackList.h"
 class FontFallbackListTestTest : public CppUnit::TestFixture

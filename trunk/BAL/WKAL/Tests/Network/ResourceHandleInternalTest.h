@@ -1,6 +1,7 @@
 #ifndef ResourceHandleInternalTest_h_CPPUNIT
 #define ResourceHandleInternalTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCResourceHandleInternal.h"
 class ResourceHandleInternalTestTest : public CppUnit::TestFixture

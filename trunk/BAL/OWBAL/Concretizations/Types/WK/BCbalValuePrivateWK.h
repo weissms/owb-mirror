@@ -147,7 +147,7 @@ inline double BalValuePrivate::toNumber() const
 
 inline WebCore::String BalValuePrivate::toString() const
 {
-    return m_val->toString(m_exec);
+    return WebCore::String(m_val->toString(m_exec));
 }
 
 inline BalObject *BalValuePrivate::toObject() const

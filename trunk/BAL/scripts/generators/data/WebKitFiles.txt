@@ -4,7 +4,7 @@ JavaScriptCore/VM/RegisterFile.h
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/bridge/runtime.h
-WebCore/html/CanvasRenderingContext2D.cpp
+WebCore/dom/Document.h
 WebCore/html/CanvasStyle.cpp
 WebCore/html/HTMLElementFactory.cpp
 WebCore/loader/CachedFont.cpp
