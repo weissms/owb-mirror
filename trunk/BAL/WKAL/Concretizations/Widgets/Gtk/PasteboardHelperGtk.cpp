@@ -28,7 +28,7 @@
 
 using namespace WebCore;
 
-namespace WebKit{
+namespace WebKit {
 
 GtkClipboard* PasteboardHelperGtk::getClipboard(Frame* frame) const {
 /*    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));

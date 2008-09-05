@@ -1,9 +1,11 @@
---- BAL/WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp	2008-03-09 08:24:22.000000000 +0000
-+++ BAL/WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp.new	2008-04-18 14:20:08.000000000 +0000
-@@ -19,9 +19,9 @@
- #include "Frame.h"
+Index: BAL/WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp
+===================================================================
+--- BAL/WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp        (revision 474)
++++ BAL/WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp        (working copy)
+@@ -20,31 +20,33 @@
  #include "PasteboardHelperGtk.h"
  
+ #include "Frame.h"
 -#include "webkitwebframe.h"
 +/*#include "webkitwebframe.h"
  #include "webkitwebview.h"
@@ -12,8 +14,11 @@
  
  #include <gtk/gtk.h>
  
-@@ -31,19 +31,22 @@
- {
+ using namespace WebCore;
+ 
+-namespace WebKit
+-{
++namespace WebKit {
  
  GtkClipboard* PasteboardHelperGtk::getClipboard(Frame* frame) const {
 -    WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));

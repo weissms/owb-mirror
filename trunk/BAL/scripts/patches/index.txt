@@ -33,3 +33,6 @@
 ../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock.patch
 ../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock2.patch
 ../../OWBAL/Concretizations/Facilities/Linux/BCSystemTimeLinux.cpp	0:SystemTimeLinux.patch
+../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	0:ThreadingGtk.patch
+../../OWBAL/Concretizations/Types/Pthreads/BCThreadingPthreads.cpp	0:ThreadingPthreads.patch
+../../WKAL/Concretizations/Widgets/Gtk/BCFrameGtk.cpp	_:FrameGtk.patch
