@@ -35,6 +35,7 @@
 #include "bal_runtime.h"
 
 #include <bal_object.h>
+#include "JSLock.h"
 
 namespace KJS {
 namespace Bindings {
@@ -42,8 +43,13 @@ namespace Bindings {
 
 BalClass::~BalClass()
 {
+    JSLock lock(false);
+
     deleteAllValues(m_methods);
+    m_methods.clear();
+
     deleteAllValues(m_fields);
+    m_fields.clear();
 }
     
 typedef HashMap<const BalObject*, BalClass*> ClassesByBalObject;
@@ -84,8 +90,11 @@ MethodList BalClass::methodsNamed(const Identifier& identifier, Instance* instan
     BalObject* obj = inst->getObject();
     if( obj->hasMethod( ident ) )
     {
-        BalMethod *aMethod= new BalMethod(obj, 0, ident, 0);
-        m_methods.set(identifier.ustring().rep(), aMethod);
+        Method* aMethod = new BalMethod(ident); // deleted in the CClass destructor
+        {
+            JSLock lock(false);
+            m_methods.set(identifier.ustring().rep(), aMethod);
+        }
         methodList.append(aMethod);
     }
 
@@ -104,8 +113,11 @@ Field* BalClass::fieldNamed(const Identifier& identifier, Instance *instance) co
     BalObject* obj = inst->getObject();
     if( obj->hasProperty( ident ) )
     {
-        aField = new BalField(ident);
-        m_fields.set(identifier.ustring().rep(), aField);
+        aField = new BalField(ident); // deleted in the CClass destructor
+        {
+            JSLock lock(false);
+            m_fields.set(identifier.ustring().rep(), aField);
+        }
     }
     return aField;
 }

@@ -1507,7 +1507,7 @@ void WebFrame::observe(const String &topic, BalObject *obj)
 {
     ASSERT(obj);
     ASSERT(obj->getName() != "");
-    if (topic == "AddonRegister")
+    if (topic == "AddonRegister" && !m_bindingJS->isRegistered())
         addToJSWindowObject(obj->getName().utf8().data(), (void *)obj);
 }
 
@@ -1520,6 +1520,7 @@ void WebFrame::addToJSWindowObject(const char* name, void *object)
 
     KJS::ExecState* exec = window->globalExec();
     KJS::JSObject *runtimeObject = KJS::Bindings::Instance::createRuntimeObject(exec, KJS::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
+
     KJS::PutPropertySlot prop;
     window->put(exec, KJS::Identifier(exec, name), runtimeObject, prop);
 }

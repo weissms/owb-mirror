@@ -89,6 +89,8 @@ public:
     void removeMethod(const char *);
     void addProperty(const char *);
     void removeProperty(const char *);
+    size_t methodCount() {return m_balMethodList.size();}
+    size_t propertyCount() {return m_balPropertyList.size();}
 private:
     Vector<const char *> m_balMethodList;
     Vector<const char *> m_balPropertyList;

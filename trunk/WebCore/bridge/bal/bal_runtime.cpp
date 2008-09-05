@@ -32,6 +32,7 @@
 #include "bal_runtime.h"
 #include "bal_instance.h"
 #include "balValuePrivate.h"
+#include "JSLock.h"
 
 namespace KJS {
 namespace Bindings {
@@ -45,7 +46,11 @@ JSValue* BalField::valueFromInstance(ExecState* exec, const Instance* inst) cons
 {
     const BalInstance* instance = static_cast<const BalInstance*>(inst);
     BalObject* obj = instance->getObject();
-    BalValue* val = obj->getProperty(m_ident);
+    BalValue* val;
+    {
+        JSLock::DropAllLocks dropAllLocks(false);
+        val = obj->getProperty(m_ident);
+    }
     JSValue *v;
     if(val->m_obj != NULL)
         v = val->d->balObject(val->m_obj, exec);
@@ -61,7 +66,10 @@ void BalField::setValueToInstance(ExecState* exec, const Instance* inst, JSValue
     BalObject* obj = instance->getObject();
     BalValuePrivate *priv = new BalValuePrivate(exec, aValue);
     BalValue *val = new BalValue(priv);
-    obj->setProperty(m_ident, val);
+    {
+        JSLock::DropAllLocks dropAllLocks(false);
+        obj->setProperty(m_ident, val);
+    }
     delete val;
 }
 

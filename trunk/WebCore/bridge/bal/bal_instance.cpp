@@ -38,64 +38,11 @@
 #include "wtf/HashMap.h"
 #include "ObjectPrototype.h"
 #include "JSValue.h"
-
+#include "JSLock.h"
 #include <cstdio>
 
 namespace KJS {
 namespace Bindings {
-
-// Derived RuntimeObject
-class BalRuntimeObjectImp : public RuntimeObjectImp {
-    public:
-        BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance>);
-        ~BalRuntimeObjectImp();
-        virtual void invalidate();
-
-        // Additions
-        //virtual bool implementsConstruct() const {return implementsCall();}
-        virtual JSObject* construct(ExecState* exec, const ArgList& args);
-    protected:
-        void removeFromCache();
-};
-
-BalRuntimeObjectImp::BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance> instance)
-    : RuntimeObjectImp(exec, instance)
-{
-}
-
-BalRuntimeObjectImp::~BalRuntimeObjectImp()
-{
-    removeFromCache();
-}
-
-void BalRuntimeObjectImp::invalidate()
-{
-    removeFromCache();
-    RuntimeObjectImp::invalidate();
-}
-
-void BalRuntimeObjectImp::removeFromCache()
-{
-    /*JSLock lock(false);
-    BalInstance* key = cachedObjects.get(this);
-    if (key)
-        cachedObjects.remove(key);*/
-}
-
-JSObject* BalRuntimeObjectImp::construct(ExecState* exec, const ArgList& args)
-{
-    // ECMA 15.2.2.1 (?)
-    CallData callData;
-    CallType callType = getCallData(callData);
-    JSValue* val = call(exec, this, callType, callData, this, args);
-
-    if (!val || val->isNull() || val->isUndefined())
-        return new (exec) JSObject(exec->lexicalGlobalObject()->objectPrototype());
-    else
-        return val->toObject(exec);
-}
-
-
 
 BalInstance::BalInstance(BalObject* o, PassRefPtr<RootObject> rootObject)
     : Instance(rootObject),
@@ -116,17 +63,6 @@ BalInstance::~BalInstance()
 {
 }*/
 
-BalInstance& BalInstance::operator=(const BalInstance& other)
-{
-    if (this == &other)
-        return *this;
-
-    m_object = other.m_object;
-    m_class = 0;
-
-    return *this;
-}
-
 Class* BalInstance::getClass() const
 {
     if (!m_class)
@@ -134,18 +70,9 @@ Class* BalInstance::getClass() const
     return m_class;
 }
 
-void BalInstance::mark()
+bool BalInstance::supportsInvokeDefaultMethod() const
 {
-}
-
-void BalInstance::begin()
-{
-    // Do nothing.
-}
-
-void BalInstance::end()
-{
-    // Do nothing.
+    return false;//m_object->_class->invokeDefault;
 }
 
 JSValue* BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList& args)
@@ -167,7 +94,12 @@ JSValue* BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList
         cArgs[i] = new BalValue(priv);
     }
 
-    BalValue *val = m_object->invoke(ident, cArgs);
+    BalValue *val;
+    {
+        JSLock::DropAllLocks dropAllLocks(false);
+        val = m_object->invoke(ident, cArgs);
+    }
+
     cArgs.clear();
 
     return val->d->getValue();
@@ -192,9 +124,9 @@ JSValue* BalInstance::stringValue(ExecState* exec) const
 {
     char buf[1024];
 #if COMPILER(MSVC)
-    _snprintf(buf, sizeof(buf), "BalObject %p (%s)", m_object, m_class->name());
+    _snprintf(buf, sizeof(buf), "BalObject %p BalClass (%s)", m_object, m_class->name());
 #else
-    snprintf(buf, sizeof(buf), "BalObject %p (%s)", m_object, m_class->name());
+    snprintf(buf, sizeof(buf), "BalObject %p BalClass (%s)", m_object, m_class->name());
 #endif
     return jsString(exec, buf);
 }
@@ -215,77 +147,31 @@ JSValue* BalInstance::valueOf(ExecState* exec) const
     return stringValue(exec);
 }
 
-RuntimeObjectImp* BalInstance::getRuntimeObject(ExecState* exec, PassRefPtr<BalInstance> instance)
+void BalInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray)
 {
-    /*
-    JSObject* ret = cachedObjects.value(instance.get());
-    if (!ret) {
-        ret = new (exec) BalRuntimeObjectImp(instance);
-        cachedObjects.insert(instance.get(), ret);
-    }
-    return ret;*/
-    RuntimeObjectImp* ret = new (exec) BalRuntimeObjectImp(exec, instance);
-    return ret;
-}
-
-void BalInstance::getPropertyNames(ExecState*, PropertyNameArray& nameArray) 
-{
-    /*if (!NP_CLASS_STRUCT_VERSION_HAS_ENUM(_object->_class) ||
-        !_object->_class->enumerate)
-        return;
-
-    unsigned count;
-    NPIdentifier* identifiers;
-    
+    /*uint32_t count;
     {
         JSLock::DropAllLocks dropAllLocks(false);
+#if PLATFORM(AMIGAOS4)
+        if (!_object->_class->enumerate(_object, &identifiers, (uint32_t *)&count))
+#else
         if (!_object->_class->enumerate(_object, &identifiers, &count))
+#endif
             return;
     }
-    
-    for (unsigned i = 0; i < count; i++) {
+
+    for (uint32_t i = 0; i < count; i++) {
         PrivateIdentifier* identifier = static_cast<PrivateIdentifier*>(identifiers[i]);
-        
+
         if (identifier->isString)
             nameArray.add(identifierFromNPIdentifier(identifier->value.string));
         else
-            nameArray.add(Identifier::from(identifier->value.number));
+            nameArray.add(Identifier::from(exec, identifier->value.number));
     }
-         
+
     // FIXME: This should really call NPN_MemFree but that's in WebKit
     free(identifiers);*/
 }
-
-CallType BalInstance::getCallData(CallData&)
-{
-    // See if we have qscript_call
-    /*if (m_defaultMethodIndex == -2) {
-        if (m_object) {
-            const QMetaObject* meta = m_object->metaObject();
-            int count = meta->methodCount();
-            const QByteArray defsig("qscript_call");
-            for (int index = count - 1; index >= 0; --index) {
-                const QMetaMethod m = meta->method(index);
-
-                QByteArray signature = m.signature();
-                signature.truncate(signature.indexOf('('));
-
-                if (defsig == signature) {
-                    m_defaultMethodIndex = index;
-                    break;
-                }
-            }
-        }
-
-        if (m_defaultMethodIndex == -2) // Not checked
-            m_defaultMethodIndex = -1; // No qscript_call
-    }
-
-    // typeof object that implements call == function
-    return (m_defaultMethodIndex >= 0 ? CallTypeNative : CallTypeNone);*/
-    return CallTypeNone;
-}
-
 
 }
 }

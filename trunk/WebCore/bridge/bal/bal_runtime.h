@@ -74,30 +74,22 @@ private:
 class BalMethod : public Method
 {
 public:
-    BalMethod(BalObject *mo, int i, const char *ident, int numParameters)
-        : m_balObject(mo),
-          m_index(i),
-          m_nParams(numParameters)
+    BalMethod(const char *ident)
     {
-        m_identifier = (char *) malloc (strlen(ident) + 1);
+        m_identifier = (char *) fastMalloc (strlen(ident) + 1);
         strcpy( m_identifier, ident );
     }
     ~BalMethod()
     {
-    	m_balObject = 0;
         if( m_identifier != NULL )
-            free( m_identifier );
+            fastFree( m_identifier );
     }
     virtual const char* name() const { return m_identifier; }
-    virtual int numParameters() const { return m_nParams; }
-    BalObject *getObject() { return m_balObject ; }
+    virtual int numParameters() const { return 0; }
 
 private:
     friend class BalInstance;
-    BalObject *m_balObject;
-    int m_index;
     char *m_identifier;
-    int m_nParams;
 };
 
 } // namespace Bindings

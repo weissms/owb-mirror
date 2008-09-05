@@ -1,3 +1,14 @@
+2008-09-05  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        refactoring in bridge
+
+        * OWBAL/Concretizations/Types/Common/BCbal_objectCommon.cpp:
+        (BalObject::hasMethod):
+        * OWBAL/Concretizations/Types/Common/BCbal_objectCommon.h:
+        (BalObject::methodCount):
+        (BalObject::propertyCount):
+
 2008-09-03  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Jean-Charles Verdié <jcverdie@pleyo.com>
