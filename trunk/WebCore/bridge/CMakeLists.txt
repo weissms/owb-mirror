@@ -32,6 +32,8 @@ LIST (APPEND BRIDGE_SRC
         bal-network
         bal-types
         bal-widgets
+        ${XML2_LIBRARIES}
+        ${XSLT_LIBRARIES}
         ${DEEPSEE_LINK}
 	${EXTRA_LDFLAGS}
     )

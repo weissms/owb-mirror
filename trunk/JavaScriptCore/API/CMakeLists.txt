@@ -38,6 +38,8 @@ TARGET_LINK_LIBRARIES (minidom
     bal-network
     bal-types
     bal-widgets
+    ${XML2_LIBRARIES}
+    ${XSLT_LIBRARIES}
     ${DEEPSEE_LINK}
     ${EXTRA_LDFLAGS}
 )

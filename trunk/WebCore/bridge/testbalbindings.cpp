@@ -209,10 +209,10 @@ private:
 
 // --------------------------------------------------------
 
-class Global : public JSGlobalObject {
+/*class Global : public JSGlobalObject {
 public:
   virtual UString className() const { return "global"; }
-};
+};*/
 
 #define BufferSize 200000
 static char code[BufferSize];

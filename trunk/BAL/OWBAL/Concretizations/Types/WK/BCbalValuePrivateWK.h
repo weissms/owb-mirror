@@ -89,11 +89,6 @@ class BalValuePrivate {
         ExecState *m_exec;
 };
 
-class Global : public JSGlobalObject {
-public:
-  virtual UString className() const { return "global"; }
-};
-
 
 inline bool BalValuePrivate::isUndefined() const
 {

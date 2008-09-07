@@ -67,6 +67,8 @@ TARGET_LINK_LIBRARIES (owb
     bal-types
     bal-widgets
     ${DEEPSEE_LINK}
+    ${XML2_LIBRARIES}
+    ${XSLT_LIBRARIES}
 )
 
 IF (WEBKIT_USE_DATABASE)

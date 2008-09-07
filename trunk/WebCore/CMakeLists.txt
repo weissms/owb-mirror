@@ -54,6 +54,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
 
+    ${XML2_INCLUDE_DIRS}
     ${XSLT_INCLUDE_DIRS}
     ${HTML_EXT_CFLAGS}
 )
