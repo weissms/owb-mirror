@@ -320,7 +320,7 @@ namespace WTF {
             UChar32 c1 = toLower(a[i]);
             UChar32 c2 = toLower(b[i]);
             if (c1 != c2)
-                return -1;
+                return (c1 - c2);
         }
         return 0;
     }

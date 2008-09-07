@@ -1,3 +1,11 @@
+2008-09-07  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix bug #286
+
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.h:
+        (WTF::Unicode::umemcasecmp):
+
 2008-09-05  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Jean-Charles Verdié <jcverdie<pleyo.com> (build fix)
