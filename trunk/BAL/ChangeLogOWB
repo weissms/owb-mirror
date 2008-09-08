@@ -1,6 +1,6 @@
 2008-09-08  Jean-Charles Verdie  <jcverdie@pleyo.com>
 
-        Reviewed by NOBODY (OOPS!).
+        Reviewed by Mario Bensi.
         Adding patch for MACPORT compilation
 
         * OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp:
