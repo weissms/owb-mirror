@@ -67,6 +67,10 @@ namespace WKAL {
 
     enum HorizontalAlignment { AlignLeft, AlignRight, AlignHCenter };
 
+    enum TextBaseline { AlphabeticTextBaseline, TopTextBaseline, MiddleTextBaseline, BottomTextBaseline, IdeographicTextBaseline, HangingTextBaseline };
+
+    enum TextAlign { StartTextAlign, EndTextAlign, LeftTextAlign, CenterTextAlign, RightTextAlign };
+
     /**
      * get composite operator name
      * @param[in] : composite operator
@@ -118,6 +122,12 @@ namespace WKAL {
      * @endcode
      */
     String lineJoinName(LineJoin);
+
+    /**
+     * parse LineJoin
+     */
+    bool parseLineJoin(const String&, LineJoin&);
+
     /**
      * get textAlign name
      * @param[in] : textAlign
@@ -147,21 +157,6 @@ namespace WKAL {
      * @param[out] : status
      */
     bool parseTextBaseline(const String&, TextBaseline&);
-    
-    
-    
-    
-
-    /**
-     * parse LineJoin
-     * @param[in] : name
-     * @param[out] : lineJoin
-     * @param[out] : true if the name is found
-     * @code
-     * @endcode
-     */
-    bool parseLineJoin(const String&, LineJoin&);
-
 }
 
 #endif

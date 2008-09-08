@@ -78,15 +78,16 @@ void initializeMainThread();
 void dispatchFunctionsFromMainThread();
 
     /**
+     * scheduleDispatchFunctionsOnMainThread
+     */
+void scheduleDispatchFunctionsOnMainThread();
+
+    /**
      * mainThreadFunctionQueueMutex 
      * @param[out] : get Mutex
      */
 Mutex& mainThreadFunctionQueueMutex();
     
-    /**
-     * scheduleDispatchFunctionsOnMainThread
-     */
-void scheduleDispatchFunctionsOnMainThread();
 
 } // namespace WTF
 
