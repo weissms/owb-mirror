@@ -164,7 +164,7 @@ public:
      * UString u = (UString)a;
      * @endcode
      */
-    operator JSC::UString() const ;
+    operator JSC::UString() const;
 
     /**
      * get AtomicStringImpl
