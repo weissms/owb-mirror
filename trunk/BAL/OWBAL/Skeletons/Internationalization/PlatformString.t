@@ -165,7 +165,7 @@ public:
      * UString u = (Ustring)s;
      * @endcode
      */
-    operator JSC::UString() const
+    operator JSC::UString() const;
 
     /**
      * get length 

@@ -414,7 +414,7 @@ public:
      * @code
      * @endcode
      */
-    operator JSC::UString() const 
+    operator JSC::UString() const ; 
 
     /**
      *  hostStart description
