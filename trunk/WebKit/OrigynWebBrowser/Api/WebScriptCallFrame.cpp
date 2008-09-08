@@ -40,10 +40,10 @@
 #include <wtf/Assertions.h>
 #include DEEPSEE_INCLUDE
 
-using namespace KJS;
+using namespace JSC;
 using namespace WebCore;
 
-UString WebScriptCallFrame::jsValueToString(KJS::ExecState* state, JSValue* jsvalue)
+UString WebScriptCallFrame::jsValueToString(JSC::ExecState* state, JSValue* jsvalue)
 {
     if (!jsvalue)
         return "undefined";
@@ -57,7 +57,7 @@ UString WebScriptCallFrame::jsValueToString(KJS::ExecState* state, JSValue* jsva
     else if (jsvalue->isObject()) {
         jsvalue = jsvalue->getObject()->defaultValue(state, JSValue::PreferString);
         return jsvalue->getString();
-    } 
+    }
 
     return "undefined";
 }

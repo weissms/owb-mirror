@@ -1,4 +1,17 @@
-2008-09-05  Tor Arne Vestbø  <tavestbo@trolltech.com>
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20704: Replace the KJS namespace
+        <https://bugs.webkit.org/show_bug.cgi?id=20704>
+
+        Rename the KJS namespace to JSC.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::addToJavaScriptWindowObject):
+        (QWebFrame::evaluateJavaScript):
+
+2008-09-04  Tor Arne Vestbø  <tavestbo@trolltech.com>
 
         Reviewed by Simon
 
@@ -23,7 +36,7 @@
         * tests/qwebpage/tst_qwebpage.cpp:
         (tst_QWebPage::userStyleSheet):
 
-2008-09-01  Holger Hans Peter Freyther  <zecke@selfish.org>
+2008-08-29  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Reviewed by Eric Seidel.
 
@@ -69,7 +82,7 @@
         * Api/qwebhistoryinterface.cpp:
         (WebCore::historyContains):
 
-2008-08-29  Erik Bunce  <elbunce@thehive.com>
+2008-08-27  Erik Bunce  <elbunce@thehive.com>
 
         Reviewed by Eric Seidel.
 
@@ -92,7 +105,7 @@
         (WebCore::FrameLoaderClientQt::pluginWillHandleLoadError): Stubbed for now
         * WebCoreSupport/FrameLoaderClientQt.h:
 
-2008-08-27  Holger Hans Peter Freyther  <zecke@selfish.org>
+2008-08-25  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Reviewed by Simon.
 
@@ -107,7 +120,7 @@
         (WebCore::InspectorClientQt::detachWindow):
         * WebCoreSupport/InspectorClientQt.h:
 
-2008-08-20  Alexey Proskuryakov  <ap@webkit.org>
+2008-08-19  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Geoff Garen.
 
@@ -116,7 +129,7 @@
         * Api/qwebframe.cpp:
         (QWebFrame::addToJavaScriptWindowObject):
 
-2008-08-18  Håvard Wall  <hwall@trolltech.com>
+2008-08-15  Håvard Wall  <hwall@trolltech.com>
 
         Reviewed by Simon.
 
@@ -236,7 +249,7 @@
         (QWebView::event):
         (QWebView::print):
 
-2008-08-14  Timothy Hatcher  <timothy@apple.com>
+2008-08-12  Timothy Hatcher  <timothy@apple.com>
 
         Add a stub for InspectorClient::setAttachedWindowHeight.
 
@@ -377,7 +390,7 @@
         * tests/qwebpage/tst_qwebpage.cpp:
         (tst_QWebPage::contextMenuCrash):
 
-2008-08-08  Simon Hausmann  <hausmann@webkit.org>
+2008-08-07  Simon Hausmann  <hausmann@webkit.org>
 
         Rubber-stamped by Lars.
 
@@ -407,7 +420,7 @@
         * Api/qwebframe.cpp:
         (QWebFrame::addToJavaScriptWindowObject):
 
-2008-08-06  Tor Arne Vestbø  <tavestbo@trolltech.com>
+2008-08-05  Tor Arne Vestbø  <tavestbo@trolltech.com>
 
         Reviewed by Simon.
 
@@ -495,7 +508,7 @@
         * Api/qwebpage.cpp:
         (QWebPagePrivate::keyPressEvent):
 
-2008-08-01  Erik Bunce  <elbunce@thehive.com>
+2008-07-31  Erik Bunce  <elbunce@thehive.com>
 
         Reviewed by Simon.
 
@@ -525,7 +538,7 @@
         * Api/qwebframe.cpp:
         (QWebFrame::addToJavaScriptWindowObject):
 
-2008-07-28  David Kilzer  <ddkilzer@apple.com>
+2008-07-27  David Kilzer  <ddkilzer@apple.com>
 
         Fix Qt build failure.
 
@@ -572,7 +585,7 @@
         * WebCoreSupport/EditorClientQt.cpp:
         (WebCore::EditorClientQt::handleKeyboardEvent):
 
-2008-07-07  Benjamin C Meyer  <ben@meyerhome.net>
+2008-07-04  Benjamin C Meyer  <ben@meyerhome.net>
 
         Reviewed by Simon.
 
@@ -588,9 +601,9 @@
         (QWebPage::triggerAction): The signature of setBaseWritingDirection
         changed to take an enum instead of a string.
 
-2008-07-02  Alexey Proskuryakov  <ap@webkit.org>
+2008-07-01  Alexey Proskuryakov  <ap@webkit.org>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         Disable JSLock for per-thread contexts.
 
@@ -632,7 +645,7 @@
         * WebKitPart/WebKitPartInterface.h: Removed.
         * WebKitPart/org.kde.WebKitPart.xml: Removed.
 
-2008-06-25  Simon Hausmann  <hausmann@webkit.org>
+2008-06-24  Simon Hausmann  <hausmann@webkit.org>
 
         Fix the Qt build, added missing include for RuntimeObjectImp.
 
@@ -644,7 +657,7 @@
 
         Add function to retrieve the standard context menu
 
-2008-06-23  Marc Ordinas i Llopis  <marc.ordinasillopis@collabora.co.uk>
+2008-06-20  Marc Ordinas i Llopis  <marc.ordinasillopis@collabora.co.uk>
 
         Reviewed by Simon.
 
@@ -666,16 +679,23 @@
         (WebCore::FrameLoaderClientQt::canShowMIMEType): Return true if the
         MIME type is supported by a plugin.
 
-2008-06-18  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+2008-06-18  Alexey Proskuryakov  <ap@webkit.org>
 
-        Reviewed by Simon.
+        Reviewed by Darin Adler.
 
-        Fix the Qt port by adding ExecState when necessary.
+        Prepare JavaScript heap for being per-thread.
 
         * Api/qwebframe.cpp:
-        (QWebFrame::addToJavaScriptWindowObject):
+        (QWebFrame::addToJavaScriptWindowObject): Trying not to break the build.
 
-2008-06-16  Darin Adler  <darin@apple.com>
+2008-06-18  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Qt Build fix after r34627.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::createPlugin):
+
+2008-06-15  Darin Adler  <darin@apple.com>
 
         - give Frame object functions shorter names: scriptProxy() -> script(),
           selectionController() -> selection(), animationController() -> animation()
@@ -746,7 +766,7 @@
         (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForNewWindowAction):
         (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForNavigationAction):
 
-2008-06-13  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+2008-06-11  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Reviewed by Simon.
 
@@ -792,7 +812,7 @@
         * WebCoreSupport/EditorClientQt.cpp: retrieve editable property from the
         QWebPage instead of always returning false
 
-2008-06-10  Tor Arne Vestbø  <tavestbo@trolltech.com>
+2008-06-09  Tor Arne Vestbø  <tavestbo@trolltech.com>
 
         Reviewed by Simon
 
@@ -825,9 +845,9 @@
         * Api/qwebframe.cpp:
         (QWebFrame::evaluateJavaScript):
 
-2008-06-04  Jonathon Jongsma  <jonathon.jongsma@collabora.co.uk>
+2008-06-03  Jonathon Jongsma  <jonathon.jongsma@collabora.co.uk>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         * Api/qwebhistoryinterface.cpp: Remove WebCore::historyContains().  This
         function is not used anywhere internally and is only a convenience
@@ -873,7 +893,7 @@
         * WebCoreSupport/FrameLoaderClientQt.cpp:
         (WebCore::FrameLoaderClientQt::createPlugin):
 
-2008-05-15  Andy Shaw  <andy@trolltech.com>
+2008-05-13  Andy Shaw  <andy@trolltech.com>
 
         Reviewed by Simon.
 
@@ -938,7 +958,7 @@
 
         * Api/qwebframe.cpp:
 
-2008-05-06  Benjamin Meyer  <bmeyer@trolltech.com>
+2008-05-02  Benjamin Meyer  <bmeyer@trolltech.com>
 
         Reviewed by Simon.
 
@@ -2151,7 +2171,7 @@
         (MainWindow::showLinkHover):
         (MainWindow::print):
 
-2008-04-21  Simon Hausmann  <hausmann@webkit.org>
+2008-04-20  Simon Hausmann  <hausmann@webkit.org>
 
         Reviewed by Alp Toker.
 
@@ -2415,7 +2435,7 @@
         * Api/qwebsettings.h:
         * Api/qwebview.h:
 
-2008-04-14  Olivier Goffart  <ogoffart@trolltech.com>
+2008-04-05  Olivier Goffart  <ogoffart@trolltech.com>
 
         Reviewed by Holger.
 
@@ -2464,7 +2484,7 @@
         (WebCore::ChromeClientQt::scrollBackingStore):
         (WebCore::ChromeClientQt::mouseDidMoveOverElement):
 
-2008-04-05  Simon Hausmann  <hausmann@webkit.org>
+2008-04-03  Simon Hausmann  <hausmann@webkit.org>
 
         Reviewed by Mark Rowe.
 
@@ -2763,7 +2783,7 @@
         (WebCore::FrameLoaderClientQt::detachedFromParent4):
         * WebCoreSupport/FrameLoaderClientQt.h:
 
-2008-03-29  Brady Eidson  <beidson@apple.com>
+2008-03-25  Brady Eidson  <beidson@apple.com>
 
         Reviewed by Darin
 
@@ -2772,7 +2792,147 @@
         * WebCoreSupport/FrameLoaderClientQt.cpp:
         * WebCoreSupport/FrameLoaderClientQt.h:
 
-2008-03-09  Simon Hausmann  <hausmann@webkit.org>
+2008-03-22  Mark Rowe  <mrowe@apple.com>
+
+        Qt build fix.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::):
+
+2008-03-18  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Holger.
+
+        Fix the Qt build. Don't return void in non-void functions.
+
+        * Api/qwebpluginfactory.cpp:
+        (QWebPluginFactory::extension):
+
+2008-03-16  Thiago Macieira  <thiago.macieira@trolltech.com>
+
+        Reviewed by Simon.
+
+        Don't use RefPtr in classes you haven't seen the implementation of.
+        
+        Forward-declaration and declaration of RefPtr<Foo> is ok. But you
+        cannot *use* said objects until Foo is defined. This is true even for
+        initialisation with a 0.
+        
+        Seems the HP aCC compiler is more strict here than gcc.
+
+        * Api/qwebframe_p.h:
+
+2008-03-14  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::setHtml):
+        (QWebFrame::setContent):
+
+2008-03-13  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::addToJSWindowObject):
+
+2008-03-12  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix compilation against Qt 4.3
+
+        * Api/qwebpage.cpp:
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+
+2008-03-11  Rodney Dawes  <dobey@wayofthemonkey.com>
+
+        Fix the Qt build.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (FrameLoaderClientQt::CreatePlugin):
+
+2008-03-11  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build (silly typo).
+
+        * QtLauncher/main.cpp:
+        (MainWindow::MainWindow):
+
+2008-03-11  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Moved obscuring progress bar to the lower right corner.
+
+        * QtLauncher/main.cpp:
+        (MainWindow::MainWindow):
+        (MainWindow::resizeEvent):
+
+2008-03-11  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Added reload action and grouped stop and reload actions together.
+
+        * QtLauncher/main.cpp:
+        (MainWindow::MainWindow):
+
+2008-03-11  Holger Hans Peter Freyther  <holger.freyther@trolltech.com>
+
+        Reviewed by Simon.
+
+        * Set a Icon on the QAction if we have one.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::action):
+
+2008-03-11  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::addToJSWindowObject):
+
+2008-03-07  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Done with Lars.
+
+        Replaced the QWebObjectPlugin interfaces with QWebPluginFactory.
+
+        * Api/qwebnetworkinterface.cpp:
+        (QWebNetworkManager::add):
+        (QWebNetworkManager::cancel):
+        (QWebNetworkManager::started):
+        (QWebNetworkManager::data):
+        (QWebNetworkManager::finished):
+        * Api/qwebnetworkinterface_p.h:
+        (QWebNetworkJobPrivate::QWebNetworkJobPrivate):
+        * Api/qwebobjectplugin.cpp: Removed.
+        * Api/qwebobjectplugin.h: Removed.
+        * Api/qwebobjectplugin_p.h: Removed.
+        * Api/qwebobjectpluginconnector.cpp: Removed.
+        * Api/qwebobjectpluginconnector.h: Removed.
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate):
+        (QWebPage::setPluginFactory):
+        (QWebPage::pluginFactory):
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+        * Api/qwebpluginfactory.cpp: Added.
+        (QWebPluginFactory::QWebPluginFactory):
+        (QWebPluginFactory::~QWebPluginFactory):
+        (QWebPluginFactory::refreshPlugins):
+        (QWebPluginFactory::extension):
+        * Api/qwebpluginfactory.h: Added.
+        (MimeType::):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::objectContentType):
+        (WebCore::FrameLoaderClientQt::createPlugin):
+
+2008-03-07  Simon Hausmann  <hausmann@webkit.org>
 
         Fix the Qt build.
 
@@ -4113,7 +4273,7 @@
 
 2007-12-07  Alexey Proskuryakov  <ap@webkit.org>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         <rdar://problem/5535636>
         Have to press 4 times instead of 2 times to get the expected result of ^^ with german keyboard.
@@ -6688,7 +6848,7 @@
 
         Updated ChromeClientQt for ChromeClient changes.
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         * WebCoreSupport/ChromeClientQt.cpp:
         (WebCore::ChromeClientQt::print): Added a Frame* parameter.
@@ -8023,7 +8183,7 @@
 
 2007-03-07  Adele Peterson  <adele@apple.com>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         WebKitQT part of fix for:
         http://bugs.webkit.org/show_bug.cgi?id=10871
@@ -9298,7 +9458,7 @@
 
 2006-10-26  Nikolas Zimmermann  <zimmermann@kde.org>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         Fix Qt/Linux build.
 
@@ -9321,7 +9481,7 @@
 
 2006-10-24  Simon Hausmann  <hausmann@kde.org>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         * QtLauncher/CMakeLists.txt, WebKitPart/CMakeLists.txt: Added project name to
           kde4_automoc macro, as required by the latest KDE4 cmake module.
@@ -9380,7 +9540,7 @@
 
 2006-09-04  Nikolas Zimmermann  <zimmermann@kde.org>
 
-        Reviewed by Darin. Final polish by Sam.
+        Reviewed by Darin Adler. Final polish by Sam.
 
         Fixes parts of: http://bugs.webkit.org/show_bug.cgi?id=10644
         Add WebKitPart, an embeddable KPart for the KDE platform.

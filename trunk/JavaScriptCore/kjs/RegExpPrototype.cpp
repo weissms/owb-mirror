@@ -32,7 +32,7 @@
 #include "RegExpObject.h"
 #include "regexp.h"
 
-namespace KJS {
+namespace JSC {
 
 ASSERT_CLASS_FITS_IN_CELL(RegExpPrototype);
 
@@ -86,7 +86,7 @@ JSValue* regExpProtoFuncCompile(ExecState* exec, JSObject*, JSValue* thisValue, 
     } else {
         UString pattern = args.isEmpty() ? UString("") : arg0->toString(exec);
         UString flags = arg1->isUndefined() ? UString("") : arg1->toString(exec);
-        regExp = RegExp::create(pattern, flags);
+        regExp = RegExp::create(exec, pattern, flags);
     }
 
     if (!regExp->isValid())
@@ -116,4 +116,4 @@ JSValue* regExpProtoFuncToString(ExecState* exec, JSObject*, JSValue* thisValue,
     return jsNontrivialString(exec, result);
 }
 
-} // namespace KJS
+} // namespace JSC

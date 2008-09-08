@@ -24,7 +24,7 @@
 #include "JSGlobalData.h"
 #include "ustring.h"
 
-namespace KJS {
+namespace JSC {
 
     class ExecState;
 
@@ -73,7 +73,7 @@ namespace KJS {
 
         static bool equal(const UString::Rep*, const char*);
         static bool equal(const UString::Rep*, const UChar*, int length);
-        static bool equal(const UString::Rep* a, const UString::Rep* b) { return KJS::equal(a, b); }
+        static bool equal(const UString::Rep* a, const UString::Rep* b) { return JSC::equal(a, b); }
 
         static PassRefPtr<UString::Rep> add(ExecState*, const char*); // Only to be used with string literals.
         static PassRefPtr<UString::Rep> add(JSGlobalData*, const char*); // Only to be used with string literals.
@@ -92,9 +92,7 @@ namespace KJS {
         static PassRefPtr<UString::Rep> add(ExecState* exec, UString::Rep* r)
         {
             if (r->identifierTable()) {
-#ifndef NDEBUG
                 checkSameIdentifierTable(exec, r);
-#endif
                 return r;
             }
             return addSlowCase(exec, r);
@@ -102,9 +100,7 @@ namespace KJS {
         static PassRefPtr<UString::Rep> add(JSGlobalData* globalData, UString::Rep* r)
         {
             if (r->identifierTable()) {
-#ifndef NDEBUG
                 checkSameIdentifierTable(globalData, r);
-#endif
                 return r;
             }
             return addSlowCase(globalData, r);
@@ -135,6 +131,11 @@ namespace KJS {
     IdentifierTable* createIdentifierTable();
     void deleteIdentifierTable(IdentifierTable*);
 
-} // namespace KJS
+#ifdef NDEBUG
+    inline void Identifier::checkSameIdentifierTable(ExecState*, UString::Rep*) { }
+    inline void Identifier::checkSameIdentifierTable(JSGlobalData*, UString::Rep*) { }
+#endif
+
+} // namespace JSC
 
 #endif // KJS_IDENTIFIER_H

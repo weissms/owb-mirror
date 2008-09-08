@@ -191,6 +191,46 @@ namespace WTF {
      */
     inline bool isASCIIHexDigit(int c) ;
 
+
+    /**
+     *  isASCIIOctalDigit description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    inline bool isASCIIOctalDigit(char c) ;
+
+
+    /**
+     *  isASCIIOctalDigit description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    inline bool isASCIIOctalDigit(unsigned short c) ;
+
+
+    /**
+     *  isASCIIOctalDigit description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    inline bool isASCIIOctalDigit(wchar_t c) ;
+
+
+    /**
+     *  isASCIIOctalDigit description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    inline bool isASCIIOctalDigit(int c) ;
+
     /**
      *  isASCIILower description
      * @param[in] : description
@@ -410,7 +450,3 @@ namespace WTF {
 }
 
 #endif
-
-
-
-

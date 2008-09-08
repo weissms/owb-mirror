@@ -32,7 +32,7 @@
 
 using namespace WTF;
 
-namespace KJS {
+namespace JSC {
 
 ASSERT_CLASS_FITS_IN_CELL(StringPrototype);
 
@@ -73,7 +73,7 @@ static JSValue* stringProtoFuncLink(ExecState*, JSObject*, JSValue*, const ArgLi
 
 #include "StringPrototype.lut.h"
 
-namespace KJS {
+namespace JSC {
 
 const ClassInfo StringPrototype::info = { "String", &StringObject::info, 0, ExecState::stringTable };
 
@@ -409,7 +409,7 @@ JSValue* stringProtoFuncMatch(ExecState* exec, JSObject*, JSValue* thisValue, co
          *  If regexp is not an object whose [[Class]] property is "RegExp", it is
          *  replaced with the result of the expression new RegExp(regexp).
          */
-        reg = RegExp::create(a0->toString(exec));
+        reg = RegExp::create(exec, a0->toString(exec));
     }
     RegExpConstructor* regExpObj = exec->lexicalGlobalObject()->regExpConstructor();
     int pos;
@@ -459,7 +459,7 @@ JSValue* stringProtoFuncSearch(ExecState* exec, JSObject*, JSValue* thisValue, c
          *  If regexp is not an object whose [[Class]] property is "RegExp", it is
          *  replaced with the result of the expression new RegExp(regexp).
          */
-        reg = RegExp::create(a0->toString(exec));
+        reg = RegExp::create(exec, a0->toString(exec));
     }
     RegExpConstructor* regExpObj = exec->lexicalGlobalObject()->regExpConstructor();
     int pos;
@@ -790,4 +790,4 @@ JSValue* stringProtoFuncLink(ExecState* exec, JSObject*, JSValue* thisValue, con
     return jsString(exec, "<a href=\"" + a0->toString(exec) + "\">" + s + "</a>");
 }
 
-} // namespace KJS
+} // namespace JSC

@@ -40,6 +40,8 @@
 #include "CSSPrimitiveValue.h"
 #include "CSSReflectionDirection.h"
 #include "CSSValueList.h"
+#include "CachedImage.h"
+#include "CachedResourceHandle.h"
 #include "Color.h"
 #include "DataRef.h"
 #include "FloatPoint.h"
@@ -51,6 +53,7 @@
 #include "Pair.h"
 #include "TextDirection.h"
 #include <wtf/HashMap.h>
+#include <wtf/OwnPtr.h>
 #include <wtf/RefCounted.h>
 #include <wtf/Vector.h>
 
@@ -1420,7 +1423,7 @@ struct CursorData {
     bool operator!=(const CursorData& o) const { return !(*this == o); }
 
     IntPoint hotSpot; // for CSS3 support
-    CachedImage* cursorImage; // weak pointer, the CSSValueImage takes care of deleting cursorImage
+    CachedResourceHandle<CachedImage> cursorImage;
 };
 
 class CursorList : public RefCounted<CursorList> {

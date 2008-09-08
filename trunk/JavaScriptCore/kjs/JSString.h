@@ -29,7 +29,7 @@
 #include "PropertySlot.h"
 #include "identifier.h"
 
-namespace KJS {
+namespace JSC {
 
     class JSString;
 
@@ -51,6 +51,8 @@ namespace KJS {
     JSString* jsOwnedString(ExecState*, const UString&); 
 
     class JSString : public JSCell {
+        friend class CTI;
+
     public:
         JSString(const UString& value)
             : m_value(value)
@@ -172,6 +174,6 @@ namespace KJS {
         return JSImmediate::isImmediate(this) ? jsString(exec, JSImmediate::toString(this)) : asCell()->toThisJSString(exec);
     }
 
-} // namespace KJS
+} // namespace JSC
 
 #endif // JSString_h

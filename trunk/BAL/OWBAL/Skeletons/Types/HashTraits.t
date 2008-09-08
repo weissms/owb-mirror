@@ -292,15 +292,7 @@ namespace WTF {
 
     template<typename P> struct HashTraits<P*> : GenericHashTraits<P*> {
         static const bool emptyValueIsZero = true;
-        static const bool needsDestruction = false;
-    /**
-     *  constructDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static void constructDeletedValue(P*& slot) ;
+        static const bool needsDestruction = fals
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -312,15 +304,7 @@ namespace WTF {
     };
 
     template<typename P> struct HashTraits<RefPtr<P> > : GenericHashTraits<RefPtr<P> > {
-        static const bool emptyValueIsZero = true;
-    /**
-     *  constructDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static void constructDeletedValue(RefPtr<P>& slot) ;
+        static const bool emptyValueIsZero = tru
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -338,7 +322,50 @@ namespace WTF {
         typedef SecondTraitsArg SecondTraits;
         typedef pair<typename FirstTraits::TraitType, typename SecondTraits::TraitType> TraitType;
 
-        static const bool emptyValueIsZero = FirstTraits::emptyValueIsZero && SecondTraits::emptyValueIsZero;
+        static const bool emptyValueIsZero = FirstTraits::emptyValueIsZero && SecondTraits::emptyValueIsZer
+
+        static const bool needsDestruction = FirstTraits::needsDestruction || SecondTraits::needsDestruction;
+
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& slot)
+    };
+
+    template<typename First, typename Second>     struct HashTraits<pair<First, Second> > : public PairHashTraits<HashTraits<First>, HashTraits<Second> > { };
+
+} // namespace WTF
+
+using WTF::HashTraits;
+using WTF::PairHashTraits;
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(P* value) ;
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(RefPtr<P>& slot) ;
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const RefPtr<P>& value) ;
     /**
      *  emptyValue description
      * @param[in] : description
@@ -347,9 +374,6 @@ namespace WTF {
      * @endcode
      */
         static TraitType emptyValue() ;
-
-        static const bool needsDestruction = FirstTraits::needsDestruction || SecondTraits::needsDestruction;
-
     /**
      *  constructDeletedValue description
      * @param[in] : description
@@ -366,17 +390,11 @@ namespace WTF {
      * @endcode
      */
         static bool isDeletedValue(const TraitType& value) ;
-    };
+    
+    
+    
+    
+    
+    
 
-    template<typename First, typename Second>     struct HashTraits<pair<First, Second> > : public PairHashTraits<HashTraits<First>, HashTraits<Second> > { };
-
-} // namespace WTF
-
-using WTF::HashTraits;
-using WTF::PairHashTraits;
-
-#endif // WTF_HashTraits_h
-
-
-
-
+#endif // WTF_HashTra

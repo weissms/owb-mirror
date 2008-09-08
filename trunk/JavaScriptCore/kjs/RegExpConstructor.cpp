@@ -31,7 +31,7 @@
 #include "RegExpPrototype.h"
 #include "regexp.h"
 
-namespace KJS {
+namespace JSC {
 
 ASSERT_CLASS_FITS_IN_CELL(RegExpConstructor);
 
@@ -292,7 +292,7 @@ static JSObject* constructRegExp(ExecState* exec, const ArgList& args)
     UString pattern = arg0->isUndefined() ? UString("") : arg0->toString(exec);
     UString flags = arg1->isUndefined() ? UString("") : arg1->toString(exec);
 
-    RefPtr<RegExp> regExp = RegExp::create(pattern, flags);
+    RefPtr<RegExp> regExp = RegExp::create(exec, pattern, flags);
     if (!regExp->isValid())
         return throwError(exec, SyntaxError, UString("Invalid regular expression: ").append(regExp->errorMessage()));
     return new (exec) RegExpObject(exec->lexicalGlobalObject()->regExpPrototype(), regExp.release());
@@ -328,4 +328,4 @@ const UString& RegExpConstructor::input() const
     return d->input;
 }
 
-} // namespace KJS
+} // namespace JSC

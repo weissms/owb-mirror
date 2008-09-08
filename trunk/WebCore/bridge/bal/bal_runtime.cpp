@@ -34,7 +34,7 @@
 #include "balValuePrivate.h"
 #include "JSLock.h"
 
-namespace KJS {
+namespace JSC {
 namespace Bindings {
 
 const char* BalField::name() const

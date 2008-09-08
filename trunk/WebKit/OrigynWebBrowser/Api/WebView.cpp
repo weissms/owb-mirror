@@ -231,7 +231,7 @@ WebView::WebView()
 , m_topLevelParent(0)
 , d(new WebViewPrivate(this))
 {
-    KJS::initializeThreading();
+    JSC::initializeThreading();
     WebCore::InitializeLoggingChannelsIfNecessary();
 
     m_backingStoreSize.setX(0);
@@ -1335,7 +1335,7 @@ String WebView::stringByEvaluatingJavaScriptFromString(String script)
     if (!coreFrame)
         return String();
 
-    KJS::JSCell* scriptExecutionResult = static_cast<KJS::JSCell*> (coreFrame->loader()->executeScript(script, false));
+    JSC::JSCell* scriptExecutionResult = static_cast<JSC::JSCell*> (coreFrame->loader()->executeScript(script, false));
     if(!scriptExecutionResult)
         return String();
     else if (scriptExecutionResult->isString())

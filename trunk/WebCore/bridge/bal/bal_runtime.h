@@ -44,7 +44,7 @@
 #include "runtime.h"
 #include "bal_object.h"
 
-namespace KJS {
+namespace JSC {
 namespace Bindings {
 
 class BalInstance;

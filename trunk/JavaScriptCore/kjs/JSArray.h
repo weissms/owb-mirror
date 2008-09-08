@@ -23,7 +23,7 @@
 
 #include "JSObject.h"
 
-namespace KJS {
+namespace JSC {
 
     typedef HashMap<unsigned, JSValue*> SparseArrayValueMap;
 
@@ -37,6 +37,8 @@ namespace KJS {
     };
 
     class JSArray : public JSObject {
+        friend class CTI;
+
     public:
         JSArray(PassRefPtr<StructureID>);
         JSArray(JSObject* prototype, unsigned initialLength);
@@ -101,6 +103,6 @@ namespace KJS {
     JSArray* constructArray(ExecState*, JSValue* singleItemValue);
     JSArray* constructArray(ExecState*, const ArgList& values);
 
-} // namespace KJS
+} // namespace JSC
 
 #endif // JSArray_h

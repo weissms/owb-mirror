@@ -5,6 +5,7 @@ LIST (APPEND LOADER_SRC
     loader/CachedImage.cpp
     loader/CachedResource.cpp
     loader/CachedResourceClientWalker.cpp
+    loader/CachedResourceHandle.cpp
     loader/CachedScript.cpp
     loader/CachedXBLDocument.cpp
     loader/CachedXSLStyleSheet.cpp

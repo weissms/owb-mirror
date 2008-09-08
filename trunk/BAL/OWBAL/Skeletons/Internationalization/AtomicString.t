@@ -95,7 +95,7 @@ public:
      * AtomicString a(s);
      * @endcode
      */
-    AtomicString(const KJS::UString& s);
+    AtomicString(const JSC::UString& s);
 
     /**
      * AtomicString constructor
@@ -104,7 +104,7 @@ public:
      * AtomicString a(i);
      * @endcode
      */
-    AtomicString(const KJS::Identifier& s);
+    AtomicString(const JSC::Identifier& s);
 
     /**
      * AtomicString constructor
@@ -141,7 +141,7 @@ public:
      * AtomicStringImpl *ai = AtomicString::find(i);
      * @endcode
      */
-    static AtomicStringImpl* find(const KJS::Identifier&);
+    static AtomicStringImpl* find(const JSC::Identifier&);
 
     /**
      * operator const String&
@@ -157,10 +157,14 @@ public:
      */
     const String& string() const ;
 
+
     /**
-     * operator UString
+     * Convert to a UString
+     * @code
+     * UString u = (UString)a;
+     * @endcode
      */
-    operator KJS::UString() const;
+    operator JSC::UString() const
 
     /**
      * get AtomicStringImpl
@@ -376,12 +380,12 @@ private:
     /**
      * add
      */
-    static PassRefPtr<StringImpl> add(const KJS::UString&);
+    static PassRefPtr<StringImpl> add(const JSC::UString&);
 
     /**
      * add
      */
-    static PassRefPtr<StringImpl> add(const KJS::Identifier&);
+    static PassRefPtr<StringImpl> add(const JSC::Identifier&);
 };
 
     /**
@@ -471,7 +475,5 @@ inline bool equalIgnoringCase(const String& a, const AtomicString& b) ;
 } // namespace OWBAL
 
 #endif // AtomicString_h
-
-
 
 

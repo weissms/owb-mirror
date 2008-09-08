@@ -28,7 +28,7 @@
 
 #include "JSString.h"
 
-namespace KJS {
+namespace JSC {
 
 class SmallStringsStorage {
 public:
@@ -99,6 +99,13 @@ void SmallStrings::createSingleCharacterString(ExecState* exec, unsigned char ch
         m_storage.set(new SmallStringsStorage);
     ASSERT(!m_singleCharacterStrings[character]);
     m_singleCharacterStrings[character] = new (exec) JSString(m_storage->rep(character), JSString::HasOtherOwner);
+}
+
+UString::Rep* SmallStrings::singleCharacterStringRep(unsigned char character)
+{
+    if (!m_storage)
+        m_storage.set(new SmallStringsStorage);
+    return m_storage->rep(character);
 }
 
 }

@@ -177,6 +177,17 @@ public:
      * @endcode
      */
     void add(Glyph glyph, const SimpleFontData* font, float width, const FloatSize* offset = 0);
+    /**
+     * Add glyph
+     * @param[in] : glyph
+     * @param[in] : font data
+     * @param[in] : advance
+     * @code
+     * gb->add(g, fd, a);
+     * @endcode
+     */
+    void add(Glyph glyph, const SimpleFontData* font, GlyphBufferAdvance advance);
+    
     
 private:
     Vector<const SimpleFontData*, 2048> m_fontData;
@@ -186,7 +197,6 @@ private:
 
 }
 #endif
-
 
 
 

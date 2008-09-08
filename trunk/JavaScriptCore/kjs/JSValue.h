@@ -29,7 +29,11 @@
 #include "ustring.h"
 #include <stddef.h> // for size_t
 
-namespace KJS {
+// The magic number 0x4000 is not important here, it is being subtracted back out (avoiding using zero since this
+// can have unexpected effects in this type of macro, particularly where multiple-inheritance is involved).
+#define OBJECT_OFFSET(class, member) (reinterpret_cast<ptrdiff_t>(&(reinterpret_cast<class*>(0x4000)->member)) - 0x4000)
+
+namespace JSC {
 
     class ExecState;
     class Identifier;
@@ -251,6 +255,6 @@ namespace KJS {
         return toUInt32SlowCase(exec, ok);
     }
 
-} // namespace KJS
+} // namespace JSC
 
 #endif // JSValue_h

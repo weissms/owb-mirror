@@ -23,7 +23,7 @@
 
 #include <wtf/Assertions.h>
 
-namespace KJS {
+namespace JSC {
 
     class JSGlobalObject;
     class JSObject;
@@ -146,8 +146,15 @@ namespace KJS {
         return ScopeChainIterator(0); 
     }
 
+    class NoScopeChain {};
+
     class ScopeChain {
     public:
+        ScopeChain(NoScopeChain)
+            : m_node(0)
+        {
+        }
+
         ScopeChain(JSObject* o, JSObject* globalThis)
             : m_node(new ScopeChainNode(0, o, globalThis))
         {
@@ -164,8 +171,12 @@ namespace KJS {
             : m_node(node->copy())
         {
         }
-    
-        ~ScopeChain() { m_node->deref(); }
+
+        ~ScopeChain()
+        {
+            if (m_node)
+                m_node->deref();
+        }
 
         void swap(ScopeChain&);
 
@@ -208,6 +219,6 @@ namespace KJS {
         return *this;
     }
 
-} // namespace KJS
+} // namespace JSC
 
 #endif // ScopeChain_h

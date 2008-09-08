@@ -25,7 +25,7 @@
 #include "identifier.h"
 #include <wtf/NotFound.h>
 
-namespace KJS {
+namespace JSC {
 
     class JSObject;
     class JSValue;
@@ -81,6 +81,8 @@ namespace KJS {
     };
 
     class PropertyMap : Noncopyable {
+        friend class CTI;
+
     public:
         PropertyMap();
         ~PropertyMap();
@@ -152,6 +154,6 @@ namespace KJS {
     {
     }
 
-} // namespace KJS
+} // namespace JSC
 
 #endif // PropertyMap_h

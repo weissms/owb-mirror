@@ -36,8 +36,8 @@
 #include "bal_class.h"
 #include "bal_instance.h"
 
-using namespace KJS;
-using namespace KJS::Bindings;
+using namespace JSC;
+using namespace JSC::Bindings;
 
 
 class MyObject2 : public BalObject
@@ -257,7 +257,7 @@ int main(int argc, char **argv)
 
         MyObject *myObject = new MyObject();
         RefPtr<RootObject> root = RootObject::create(0, obj);
-	KJS::Bindings::Instance::createRuntimeObject(exec, KJS::Bindings::BalInstance::create(static_cast<BalObject*>(myObject), root));
+	JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(static_cast<BalObject*>(myObject), root));
 
         for (int i = 1; i < argc; i++) {
             const char *code = readJavaScriptFromFile(argv[i]);

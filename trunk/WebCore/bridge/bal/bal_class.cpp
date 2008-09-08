@@ -37,7 +37,7 @@
 #include <bal_object.h>
 #include "JSLock.h"
 
-namespace KJS {
+namespace JSC {
 namespace Bindings {
 
 

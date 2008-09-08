@@ -75,13 +75,13 @@ public:
      * String constructor
      * @param[in] : identifier
      */
-    String(const KJS::Identifier&);
+    String(const JSC::Identifier&);
 
     /**
      * String constructor
      * @param[in] : unicode string
      */
-    String(const KJS::UString&);
+    String(const JSC::UString&);
 
     /**
      * String constructor
@@ -158,10 +158,14 @@ public:
      */
     static String adopt(Vector<UChar>& vector) ;
 
+
     /**
-     * UString operator
+     * Convert to a UString
+     * @code
+     * UString u = (Ustring)s;
+     * @endcode
      */
-    operator KJS::UString() const;
+    operator JSC::UString() const
 
     /**
      * get length 
@@ -981,7 +985,5 @@ namespace WTF {
 }
 
 #endif
-
-
 
 

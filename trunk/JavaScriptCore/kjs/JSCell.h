@@ -27,7 +27,7 @@
 #include "JSValue.h"
 #include "collector.h"
 
-namespace KJS {
+namespace JSC {
 
     class JSCell : public JSValue {
         friend class Heap;
@@ -38,6 +38,7 @@ namespace KJS {
         friend class JSNumberCell;
         friend class JSString;
         friend class Machine;
+        friend class CTI;
     private:
         JSCell();
         JSCell(StructureID*);
@@ -299,6 +300,6 @@ namespace KJS {
         return JSImmediate::isNumber(this) ? this : (JSImmediate::isImmediate(this) ? 0 : asCell()->getJSNumber());
     }
 
-} // namespace KJS
+} // namespace JSC
 
 #endif // JSCell_h

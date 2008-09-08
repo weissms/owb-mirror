@@ -1,3 +1,30 @@
+2008-09-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20704: Replace the KJS namespace
+        <https://bugs.webkit.org/show_bug.cgi?id=20704>
+
+        Rename the KJS namespace to JSC.
+
+        * webkit/webkitprivate.cpp:
+        (webkit_init):
+
+2008-09-05  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Alp Toker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=18346
+        [GTK] Remove build warnings
+
+        Removed/commented code that is not (yet) used, and reordered
+        member variables initialization for FrameLoaderClient, so that the
+        compiler is happy and prints less warnings when building.
+
+        * WebCoreSupport/ContextMenuClientGtk.cpp:
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::FrameLoaderClient):
+
 2008-09-05  Alp Toker  <alp@nuanti.com>
 
         Build fix following r36073. Include config.h where necessary.
@@ -679,7 +706,7 @@
 
 2008-04-05  Jasper Bryant-Greene  <jasper@unix.geek.nz>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         Resolves http://bugs.webkit.org/show_bug.cgi?id=18010
         "WebKitNetworkRequestPrivate is defined in two places unnecessarily"
@@ -1352,7 +1379,7 @@
 
 2008-01-02  Holger Hans Peter Freyther  <zecke@selfish.org>
 
-        Rubber stamped by Darin.
+        Rubber stamped by Darin Adler.
 
         Coding Style fix. Do not use an else because we use a return in the
         if branch.
@@ -1750,7 +1777,7 @@
 
 2007-12-07  Alexey Proskuryakov  <ap@webkit.org>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         <rdar://problem/5535636>
         Have to press 4 times instead of 2 times to get the expected result of ^^ with german keyboard.

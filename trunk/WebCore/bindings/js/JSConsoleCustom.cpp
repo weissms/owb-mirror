@@ -28,7 +28,7 @@
 
 #include "Console.h"
 
-using namespace KJS;
+using namespace JSC;
 
 namespace WebCore {
 
@@ -65,6 +65,12 @@ JSValue* JSConsole::warn(ExecState* exec, const ArgList& arguments)
 JSValue* JSConsole::dir(ExecState* exec, const ArgList& arguments)
 {
     impl()->dir(exec, arguments);
+    return jsUndefined();
+}
+
+JSValue* JSConsole::dirxml(ExecState* exec, const ArgList& arguments)
+{
+    impl()->dirxml(exec, arguments);
     return jsUndefined();
 }
 

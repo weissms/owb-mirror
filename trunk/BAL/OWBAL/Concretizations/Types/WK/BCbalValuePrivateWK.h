@@ -38,7 +38,7 @@
 #include "runtime_object.h"
 #include "bal_instance.h"
 
-using namespace KJS;
+using namespace JSC;
 class BalValuePrivate {
     public:
         BalValuePrivate()

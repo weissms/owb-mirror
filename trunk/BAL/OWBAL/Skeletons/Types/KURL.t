@@ -406,14 +406,15 @@ public:
      * @endcode
      */
     operator const String&() const ;
+
     /**
-     *  KJS::UString description
+     *  JSC::UString description
      * @param[in] : description
      * @param[out] : description
      * @code
      * @endcode
      */
-    operator KJS::UString() const ;
+    operator JSC::UString() const 
 
     /**
      *  hostStart description
@@ -731,6 +732,4 @@ inline bool operator!=(const String& a, const KURL& b);
 }
 
 #endif // KURL_h
-
-
 

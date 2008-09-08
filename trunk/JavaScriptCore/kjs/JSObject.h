@@ -34,7 +34,7 @@
 #include "ScopeChain.h"
 #include "StructureID.h"
 
-namespace KJS {
+namespace JSC {
 
     class InternalFunction;
     class PropertyNameArray;
@@ -54,13 +54,17 @@ namespace KJS {
 
     class JSObject : public JSCell {
         friend class BatchedTransitionOptimizer;
+        friend class CTI;
 
     public:
         JSObject(PassRefPtr<StructureID>);
         JSObject(JSObject* prototype);
-        virtual ~JSObject();
 
         virtual void mark();
+
+        // The inline virtual destructor cannot be the first virtual function declared
+        // in the class as it results in the vtable being generated as a weak symbol
+        virtual ~JSObject();
 
         bool inherits(const ClassInfo* classInfo) const { return JSCell::isObject(classInfo); }
 
@@ -413,6 +417,6 @@ inline void JSValue::put(ExecState* exec, unsigned propertyName, JSValue* value)
     asCell()->put(exec, propertyName, value);
 }
 
-} // namespace KJS
+} // namespace JSC
 
 #endif // JSObject_h

@@ -60,11 +60,11 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-using KJS::ExecState;
-using KJS::Interpreter;
-using KJS::JSObject;
-using KJS::JSValue;
-using KJS::UString;
+using JSC::ExecState;
+using JSC::Interpreter;
+using JSC::JSObject;
+using JSC::JSValue;
+using JSC::UString;
 
 using std::min;
 

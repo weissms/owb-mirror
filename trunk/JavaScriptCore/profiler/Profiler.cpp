@@ -38,7 +38,7 @@
 #include "ProfileNode.h"
 #include <stdio.h>
 
-namespace KJS {
+namespace JSC {
 
 static const char* GlobalCodeExecution = "(program)";
 static const char* AnonymousFunction = "(anonymous function)";
@@ -58,11 +58,10 @@ Profiler* Profiler::profiler()
 
 void Profiler::startProfiling(ExecState* exec, const UString& title)
 {
-    ASSERT_ARG(exec, exec);
-
     // Check if we currently have a Profile for this global ExecState and title.
     // If so return early and don't create a new Profile.
-    ExecState* globalExec = exec->lexicalGlobalObject()->globalExec();
+    ExecState* globalExec = exec ? exec->lexicalGlobalObject()->globalExec() : 0;
+
     for (size_t i = 0; i < m_currentProfiles.size(); ++i) {
         ProfileGenerator* profileGenerator = m_currentProfiles[i].get();
         if (profileGenerator->originatingGlobalExec() == globalExec && profileGenerator->title() == title)
@@ -76,7 +75,7 @@ void Profiler::startProfiling(ExecState* exec, const UString& title)
 
 PassRefPtr<Profile> Profiler::stopProfiling(ExecState* exec, const UString& title)
 {
-    ExecState* globalExec = exec->lexicalGlobalObject()->globalExec();
+    ExecState* globalExec = exec ? exec->lexicalGlobalObject()->globalExec() : 0;
     for (ptrdiff_t i = m_currentProfiles.size() - 1; i >= 0; --i) {
         ProfileGenerator* profileGenerator = m_currentProfiles[i].get();
         if (profileGenerator->originatingGlobalExec() == globalExec && (title.isNull() || profileGenerator->title() == title)) {
@@ -97,7 +96,7 @@ PassRefPtr<Profile> Profiler::stopProfiling(ExecState* exec, const UString& titl
 static inline void dispatchFunctionToProfiles(const Vector<RefPtr<ProfileGenerator> >& profiles, ProfileGenerator::ProfileFunction function, const CallIdentifier& callIdentifier, unsigned currentProfileTargetGroup)
 {
     for (size_t i = 0; i < profiles.size(); ++i) {
-        if (profiles[i]->profileGroup() == currentProfileTargetGroup)
+        if (profiles[i]->profileGroup() == currentProfileTargetGroup || !profiles[i]->originatingGlobalExec())
             (profiles[i].get()->*function)(callIdentifier);
     }
 }
@@ -152,4 +151,4 @@ CallIdentifier createCallIdentifierFromFunctionImp(ExecState* exec, JSFunction* 
     return CallIdentifier(name.isEmpty() ? AnonymousFunction : name, function->m_body->sourceURL(), function->m_body->lineNo());
 }
 
-} // namespace KJS
+} // namespace JSC

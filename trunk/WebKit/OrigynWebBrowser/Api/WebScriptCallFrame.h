@@ -42,7 +42,7 @@
 #include "PropertyNameArray.h"
 #include "PropertyNameArray.h"
 
-namespace KJS {
+namespace JSC {
     class ExecState;
     class JSValue;
     class UString;
@@ -58,14 +58,14 @@ public:
     /**
      * create a new instance of WebScriptCallFrame
      */
-    static WebScriptCallFrame* createInstance(KJS::ExecState*);
+    static WebScriptCallFrame* createInstance(JSC::ExecState*);
 
 private:
 
     /**
      * WebScriptCallFrame constructor
      */
-    WebScriptCallFrame(KJS::ExecState*);
+    WebScriptCallFrame(JSC::ExecState*);
 
 public:
 
@@ -92,7 +92,7 @@ public:
     /**
      * get variable names
      */
-    virtual KJS::PropertyNameArray variableNames();
+    virtual JSC::PropertyNameArray variableNames();
 
     /**
      * get value for variable
@@ -103,22 +103,22 @@ public:
     /**
      * get value by evaluating java script from string
      */
-    virtual KJS::JSValue* valueByEvaluatingJavaScriptFromString(WebCore::String script);
+    virtual JSC::JSValue* valueByEvaluatingJavaScriptFromString(WebCore::String script);
 
     /**
      * get state
      */
-    virtual KJS::ExecState* state() const { return m_state; }
+    virtual JSC::ExecState* state() const { return m_state; }
 
 
     /**
      * convert jsValue to string
      */
-    static KJS::UString jsValueToString(KJS::ExecState*, KJS::JSValue*);
+    static JSC::UString jsValueToString(JSC::ExecState*, JSC::JSValue*);
 
 private:
 
-    KJS::ExecState* m_state;
+    JSC::ExecState* m_state;
 };
 
 #endif

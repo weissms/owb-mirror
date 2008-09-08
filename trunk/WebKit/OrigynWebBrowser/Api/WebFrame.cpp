@@ -1521,13 +1521,13 @@ void WebFrame::addToJSWindowObject(const char* name, void *object)
     JSDOMWindow *window = toJSDOMWindow(core(this));
     if (!window)
         return;
-    KJS::Bindings::RootObject *root = core(this)->script()->bindingRootObject();
+    JSC::Bindings::RootObject *root = core(this)->script()->bindingRootObject();
 
-    KJS::ExecState* exec = window->globalExec();
-    KJS::JSObject *runtimeObject = KJS::Bindings::Instance::createRuntimeObject(exec, KJS::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
+    JSC::ExecState* exec = window->globalExec();
+    JSC::JSObject *runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
 
-    KJS::PutPropertySlot prop;
-    window->put(exec, KJS::Identifier(exec, name), runtimeObject, prop);
+    JSC::PutPropertySlot prop;
+    window->put(exec, JSC::Identifier(exec, name), runtimeObject, prop);
 }
 
 

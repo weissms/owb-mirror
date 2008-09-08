@@ -35,8 +35,8 @@
 #include <wtf/unicode/UTF8.h>
 
 #if USE(JSC)
-using KJS::Identifier;
-using KJS::UString;
+using JSC::Identifier;
+using JSC::UString;
 #endif
 
 using namespace WTF;
@@ -623,7 +623,6 @@ String::String(const UString& str)
         return;
     m_impl = StringImpl::create(str.data(), str.size());
 }
-#endif
 
 String::operator UString() const
 {
@@ -631,6 +630,7 @@ String::operator UString() const
         return UString();
     return UString(m_impl->characters(), m_impl->length());
 }
+#endif
 
 // String Operations
 
@@ -801,7 +801,7 @@ double charactersToDouble(const UChar* data, size_t length, bool* ok)
         bytes[i] = data[i] < 0x7F ? data[i] : '?';
     bytes[length] = '\0';
     char* end;
-    double val = KJS::strtod(bytes.data(), &end);
+    double val = JSC::strtod(bytes.data(), &end);
     if (ok)
         *ok = (end == 0 || *end == '\0');
     return val;

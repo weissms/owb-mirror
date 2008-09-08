@@ -29,9 +29,11 @@
 #ifndef JSPropertyNameIterator_h
 #define JSPropertyNameIterator_h
 
-#include "JSCell.h"
+#include "JSObject.h"
+#include "JSString.h"
+#include "PropertyNameArray.h"
 
-namespace KJS {
+namespace JSC {
 
     class Identifier;
     class JSObject;
@@ -63,6 +65,37 @@ namespace KJS {
         Identifier* m_end;
     };
 
-} // namespace KJS
+inline JSPropertyNameIterator::JSPropertyNameIterator(JSObject* object, Identifier* propertyNames, size_t numProperties)
+    : m_object(object)
+    , m_propertyNames(propertyNames)
+    , m_position(propertyNames)
+    , m_end(propertyNames + numProperties)
+{
+}
+
+inline JSPropertyNameIterator* JSPropertyNameIterator::create(ExecState* exec, JSValue* v)
+{
+    if (v->isUndefinedOrNull())
+        return new (exec) JSPropertyNameIterator(0, 0, 0);
+
+    JSObject* o = v->toObject(exec);
+    PropertyNameArray propertyNames(exec);
+    o->getPropertyNames(exec, propertyNames);
+    size_t numProperties = propertyNames.size();
+    return new (exec) JSPropertyNameIterator(o, propertyNames.releaseIdentifiers(), numProperties);
+}
+
+inline JSValue* JSPropertyNameIterator::next(ExecState* exec)
+{
+    while (m_position != m_end) {
+        if (m_object->hasProperty(exec, *m_position))
+            return jsOwnedString(exec, (*m_position++).ustring());
+        m_position++;
+    }
+    invalidate();
+    return 0;
+}
+
+} // namespace JSC
 
 #endif // JSPropertyNameIterator_h

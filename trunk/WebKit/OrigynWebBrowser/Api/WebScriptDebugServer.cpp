@@ -41,7 +41,7 @@
 #include <wtf/Vector.h>
 #include DEEPSEE_INCLUDE
 
-using namespace KJS;
+using namespace JSC;
 using namespace WebCore;
 
 typedef HashSet<WebScriptDebugListener*> ListenerSet;

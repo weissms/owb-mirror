@@ -45,7 +45,7 @@
 
 class BalObject;
 
-namespace KJS {
+namespace JSC {
 namespace Bindings {
 
 class BalClass : public Class {

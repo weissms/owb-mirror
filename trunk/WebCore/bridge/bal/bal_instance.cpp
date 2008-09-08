@@ -41,7 +41,7 @@
 #include "JSLock.h"
 #include <cstdio>
 
-namespace KJS {
+namespace JSC {
 namespace Bindings {
 
 BalInstance::BalInstance(BalObject* o, PassRefPtr<RootObject> rootObject)

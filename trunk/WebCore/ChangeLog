@@ -1,3 +1,915 @@
+2008-09-08  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Don't leak the simple stylesheet.
+        Also call RenderTheme::adjustDefaultStyleSheet() in right place.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::loadFullDefaultStyle):
+        (WebCore::loadSimpleDefaultStyle):
+        (WebCore::CSSStyleSelector::styleForElement):
+
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 20711: Change KJS prefix on preprocessor macros to JSC
+        <https://bugs.webkit.org/show_bug.cgi?id=20711>
+
+        * bindings/js/JSEventTargetBase.h:
+        * bindings/js/JSHTMLInputElementBase.cpp:
+        * bindings/js/JSHTMLInputElementBase.h:
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20704: Replace the KJS namespace
+        <https://bugs.webkit.org/show_bug.cgi?id=20704>
+
+        Rename the KJS namespace to JSC. There are still some uses of KJS in the
+        names of JNI functions, and I will check if these are safe to change
+        as well.
+
+        * WebCore.base.exp:
+        * bindings/js/GCController.cpp:
+        * bindings/js/JSAttrCustom.cpp:
+        * bindings/js/JSAudioConstructor.cpp:
+        * bindings/js/JSAudioConstructor.h:
+        (WebCore::JSAudioConstructor::classInfo):
+        * bindings/js/JSCSSRuleCustom.cpp:
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        * bindings/js/JSCSSValueCustom.cpp:
+        * bindings/js/JSCanvasPixelArrayCustom.cpp:
+        * bindings/js/JSCanvasRenderingContext2DCustom.cpp:
+        * bindings/js/JSClipboardCustom.cpp:
+        * bindings/js/JSConsoleCustom.cpp:
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        (WebCore::JSCustomSQLStatementCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementCallback.h:
+        (WebCore::JSCustomSQLStatementCallback::create):
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        (WebCore::JSCustomSQLStatementErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementErrorCallback.h:
+        (WebCore::JSCustomSQLStatementErrorCallback::create):
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionCallback.h:
+        (WebCore::JSCustomSQLTransactionCallback::create):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.h:
+        (WebCore::JSCustomSQLTransactionErrorCallback::create):
+        * bindings/js/JSCustomVoidCallback.cpp:
+        (WebCore::JSCustomVoidCallback::handleEvent):
+        * bindings/js/JSCustomVoidCallback.h:
+        (WebCore::JSCustomVoidCallback::create):
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::create):
+        * bindings/js/JSCustomXPathNSResolver.h:
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::dispatchEvent):
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::jsOwnedStringOrNull):
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::DOMObject::DOMObject):
+        (WebCore::cacheDOMObject):
+        (WebCore::cacheSVGDOMObject):
+        (WebCore::DOMExceptionTranslator::DOMExceptionTranslator):
+        (WebCore::toJS):
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSDOMWindowBase.h:
+        (WebCore::JSDOMWindowBase::classInfo):
+        (WebCore::JSDOMWindowBase::d):
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::getPropertyAttributes):
+        * bindings/js/JSDOMWindowCustom.h:
+        (WebCore::asJSDOMWindow):
+        (WebCore::JSDOMWindow::customGetOwnPropertySlot):
+        (WebCore::JSDOMWindow::customPut):
+        (WebCore::JSDOMWindowBase::allowsAccessFrom):
+        (WebCore::JSDOMWindowBase::allowsAccessFromNoErrorMessage):
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::getPropertyAttributes):
+        * bindings/js/JSDOMWindowShell.h:
+        (WebCore::JSDOMWindowShell::classInfo):
+        * bindings/js/JSDatabaseCustom.cpp:
+        * bindings/js/JSDocumentCustom.cpp:
+        * bindings/js/JSDocumentFragmentCustom.cpp:
+        * bindings/js/JSElementCustom.cpp:
+        * bindings/js/JSEventCustom.cpp:
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/JSEventListener.h:
+        (WebCore::JSUnprotectedEventListener::create):
+        (WebCore::JSEventListener::create):
+        * bindings/js/JSEventTargetBase.cpp:
+        * bindings/js/JSEventTargetBase.h:
+        (WebCore::JSEventTargetBase::getValueProperty):
+        (WebCore::JSEventTargetBase::putValueProperty):
+        (WebCore::JSEventTargetBase::getOwnPropertySlot):
+        (WebCore::JSEventTargetBase::put):
+        (WebCore::JSEventTargetPrototype::JSEventTargetPrototype):
+        (WebCore::JSEventTargetPrototype::self):
+        (WebCore::JSEventTargetPrototype::getOwnPropertySlot):
+        (WebCore::JSEventTargetPrototype::classInfo):
+        * bindings/js/JSEventTargetNode.cpp:
+        * bindings/js/JSEventTargetNode.h:
+        (WebCore::JSEventTargetNode::getOwnPropertySlot):
+        (WebCore::JSEventTargetNode::getValueProperty):
+        (WebCore::JSEventTargetNode::put):
+        (WebCore::JSEventTargetNode::putValueProperty):
+        * bindings/js/JSHTMLAllCollection.h:
+        (WebCore::JSHTMLAllCollection::JSHTMLAllCollection):
+        (WebCore::JSHTMLAllCollection::toBoolean):
+        * bindings/js/JSHTMLAppletElementCustom.cpp:
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        * bindings/js/JSHTMLElementCustom.cpp:
+        * bindings/js/JSHTMLEmbedElementCustom.cpp:
+        * bindings/js/JSHTMLFormElementCustom.cpp:
+        * bindings/js/JSHTMLFrameElementCustom.cpp:
+        * bindings/js/JSHTMLFrameSetElementCustom.cpp:
+        * bindings/js/JSHTMLIFrameElementCustom.cpp:
+        * bindings/js/JSHTMLInputElementBase.cpp:
+        (WebCore::JSHTMLInputElementBase::JSHTMLInputElementBase):
+        (WebCore::JSHTMLInputElementBase::getOwnPropertySlot):
+        * bindings/js/JSHTMLInputElementBase.h:
+        (WebCore::JSHTMLInputElementBase::classInfo):
+        * bindings/js/JSHTMLObjectElementCustom.cpp:
+        * bindings/js/JSHTMLOptionElementConstructor.cpp:
+        * bindings/js/JSHTMLOptionElementConstructor.h:
+        (WebCore::JSHTMLOptionElementConstructor::classInfo):
+        * bindings/js/JSHTMLOptionsCollectionCustom.cpp:
+        * bindings/js/JSHTMLSelectElementCustom.cpp:
+        (WebCore::selectIndexSetter):
+        (WebCore::JSHTMLSelectElement::indexSetter):
+        * bindings/js/JSHTMLSelectElementCustom.h:
+        * bindings/js/JSHistoryCustom.cpp:
+        * bindings/js/JSImageConstructor.cpp:
+        * bindings/js/JSImageConstructor.h:
+        (WebCore::JSImageConstructor::classInfo):
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        * bindings/js/JSInspectedObjectWrapper.h:
+        (WebCore::JSInspectedObjectWrapper::wrapOutgoingValue):
+        (WebCore::JSInspectedObjectWrapper::classInfo):
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        * bindings/js/JSInspectorCallbackWrapper.h:
+        (WebCore::JSInspectorCallbackWrapper::classInfo):
+        (WebCore::JSInspectorCallbackWrapper::wrapOutgoingValue):
+        * bindings/js/JSJavaScriptCallFrameCustom.cpp:
+        * bindings/js/JSLocationCustom.cpp:
+        * bindings/js/JSMimeTypeArrayCustom.cpp:
+        * bindings/js/JSNSResolver.cpp:
+        * bindings/js/JSNSResolver.h:
+        (WebCore::JSNSResolver::create):
+        * bindings/js/JSNamedNodeMapCustom.cpp:
+        * bindings/js/JSNamedNodesCollection.cpp:
+        (WebCore::JSNamedNodesCollection::JSNamedNodesCollection):
+        * bindings/js/JSNamedNodesCollection.h:
+        (WebCore::JSNamedNodesCollection::classInfo):
+        * bindings/js/JSNavigatorCustom.cpp:
+        * bindings/js/JSNodeCustom.cpp:
+        * bindings/js/JSNodeFilterCondition.cpp:
+        (WebCore::JSNodeFilterCondition::acceptNode):
+        * bindings/js/JSNodeFilterCondition.h:
+        (WebCore::JSNodeFilterCondition::create):
+        * bindings/js/JSNodeFilterCustom.cpp:
+        * bindings/js/JSNodeIteratorCustom.cpp:
+        * bindings/js/JSNodeListCustom.cpp:
+        * bindings/js/JSPluginArrayCustom.cpp:
+        * bindings/js/JSPluginCustom.cpp:
+        * bindings/js/JSPluginElementFunctions.cpp:
+        (WebCore::getRuntimeObject):
+        * bindings/js/JSPluginElementFunctions.h:
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::construct):
+        (WebCore::JSQuarantinedObjectWrapper::call):
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+        (WebCore::JSQuarantinedObjectWrapper::unwrappedObject):
+        (WebCore::JSQuarantinedObjectWrapper::unwrappedGlobalObject):
+        (WebCore::JSQuarantinedObjectWrapper::className):
+        * bindings/js/JSRGBColor.cpp:
+        * bindings/js/JSRGBColor.h:
+        (WebCore::JSRGBColor::classInfo):
+        * bindings/js/JSSQLResultSetRowListCustom.cpp:
+        * bindings/js/JSSQLTransactionCustom.cpp:
+        * bindings/js/JSSVGLazyEventListener.cpp:
+        * bindings/js/JSSVGLazyEventListener.h:
+        * bindings/js/JSSVGLengthCustom.cpp:
+        * bindings/js/JSSVGMatrixCustom.cpp:
+        (WebCore::JSSVGMatrix::inverse):
+        (WebCore::JSSVGMatrix::rotateFromVector):
+        * bindings/js/JSSVGPathSegCustom.cpp:
+        * bindings/js/JSSVGPathSegListCustom.cpp:
+        (WebCore::JSSVGPathSegList::initialize):
+        (WebCore::JSSVGPathSegList::getItem):
+        (WebCore::JSSVGPathSegList::insertItemBefore):
+        (WebCore::JSSVGPathSegList::replaceItem):
+        (WebCore::JSSVGPathSegList::removeItem):
+        (WebCore::JSSVGPathSegList::appendItem):
+        * bindings/js/JSSVGPointListCustom.cpp:
+        * bindings/js/JSSVGTransformListCustom.cpp:
+        * bindings/js/JSStorageCustom.cpp:
+        * bindings/js/JSStyleSheetCustom.cpp:
+        * bindings/js/JSStyleSheetListCustom.cpp:
+        * bindings/js/JSTextCustom.cpp:
+        * bindings/js/JSTreeWalkerCustom.cpp:
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        * bindings/js/JSXMLHttpRequestConstructor.h:
+        (WebCore::JSXMLHttpRequestConstructor::classInfo):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        * bindings/js/JSXSLTProcessorConstructor.cpp:
+        * bindings/js/JSXSLTProcessorConstructor.h:
+        (WebCore::JSXSLTProcessorConstructor::classInfo):
+        * bindings/js/JSXSLTProcessorCustom.cpp:
+        * bindings/js/ScheduledAction.cpp:
+        * bindings/js/ScheduledAction.h:
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::attachDebugger):
+        (WebCore::ScriptController::windowScriptNPObject):
+        * bindings/js/ScriptController.h:
+        * bindings/js/ScriptControllerGtk.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bindings/js/ScriptControllerMac.mm:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        (WebCore::ScriptController::windowScriptObject):
+        (WebCore::ScriptController::clearPlatformScriptObjects):
+        (WebCore::updateRenderingForBindings):
+        (WebCore::ScriptController::initJavaJSBindings):
+        * bindings/js/ScriptControllerQt.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bindings/js/ScriptControllerWin.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bindings/js/ScriptControllerWx.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bindings/js/StringSourceProvider.h:
+        (WebCore::StringSourceProvider::getRange):
+        * bindings/objc/DOM.mm:
+        (-[DOMNode JSC::Bindings::]):
+        * bindings/objc/DOMInternal.h:
+        * bindings/objc/DOMInternal.mm:
+        (-[WebScriptObject _initializeScriptDOMNodeImp]):
+        * bindings/objc/DOMUtility.mm:
+        (JSC::createDOMWrapper):
+        (WebCore::createDOMWrapper):
+        * bindings/objc/WebScriptObject.mm:
+        (WebCore::createJSWrapper):
+        (-[WebScriptObject _initWithJSObject:JSC::originRootObject:JSC::Bindings::rootObject:JSC::Bindings::]):
+        * bindings/objc/WebScriptObjectPrivate.h:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+        * bridge/NP_jsobject.h:
+        * bridge/c/c_class.cpp:
+        * bridge/c/c_class.h:
+        * bridge/c/c_instance.cpp:
+        * bridge/c/c_instance.h:
+        * bridge/c/c_runtime.cpp:
+        * bridge/c/c_runtime.h:
+        * bridge/c/c_utility.cpp:
+        * bridge/c/c_utility.h:
+        * bridge/jni/jni_class.cpp:
+        * bridge/jni/jni_class.h:
+        * bridge/jni/jni_instance.cpp:
+        * bridge/jni/jni_instance.h:
+        * bridge/jni/jni_jsobject.h:
+        * bridge/jni/jni_jsobject.mm:
+        (JavaJSObject::call):
+        (JavaJSObject::convertJObjectToValue):
+        * bridge/jni/jni_objc.mm:
+        (JSC::Bindings::dispatchJNICall):
+        * bridge/jni/jni_runtime.cpp:
+        * bridge/jni/jni_runtime.h:
+        * bridge/jni/jni_utility.cpp:
+        * bridge/jni/jni_utility.h:
+        * bridge/npruntime.cpp:
+        (_NPN_GetStringIdentifier):
+        * bridge/objc/WebScriptObject.h:
+        * bridge/objc/objc_class.h:
+        * bridge/objc/objc_class.mm:
+        * bridge/objc/objc_instance.h:
+        * bridge/objc/objc_instance.mm:
+        * bridge/objc/objc_runtime.h:
+        * bridge/objc/objc_runtime.mm:
+        * bridge/objc/objc_utility.h:
+        * bridge/objc/objc_utility.mm:
+        * bridge/qt/qt_class.cpp:
+        * bridge/qt/qt_class.h:
+        * bridge/qt/qt_instance.cpp:
+        * bridge/qt/qt_instance.h:
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::convertQVariantToValue):
+        (JSC::Bindings::):
+        * bridge/qt/qt_runtime.h:
+        * bridge/runtime.cpp:
+        * bridge/runtime.h:
+        * bridge/runtime_array.cpp:
+        * bridge/runtime_array.h:
+        * bridge/runtime_method.cpp:
+        * bridge/runtime_method.h:
+        * bridge/runtime_object.cpp:
+        * bridge/runtime_object.h:
+        * bridge/runtime_root.cpp:
+        (JSC::Bindings::RootObject::invalidate):
+        (JSC::Bindings::RootObject::gcProtect):
+        (JSC::Bindings::RootObject::gcUnprotect):
+        * bridge/runtime_root.h:
+        * bridge/testbindings.cpp:
+        * bridge/testbindings.mm:
+        * bridge/testqtbindings.cpp:
+        * dom/Document.cpp:
+        (WebCore::Document::~Document):
+        * dom/NSResolver.h:
+        * dom/Node.cpp:
+        (WebCore::Node::setDocument):
+        (WebCore::ResolveNamespaceFunctor::ResolveNamespaceFunctor):
+        (WebCore::resolveNamespacesForSelector):
+        (WebCore::Node::querySelector):
+        (WebCore::Node::querySelectorAll):
+        * dom/Node.h:
+        * dom/NodeFilter.cpp:
+        * dom/NodeFilter.h:
+        * dom/NodeFilterCondition.cpp:
+        * dom/NodeFilterCondition.h:
+        * dom/NodeIterator.cpp:
+        * dom/NodeIterator.h:
+        * dom/Traversal.cpp:
+        * dom/Traversal.h:
+        * dom/TreeWalker.cpp:
+        * dom/TreeWalker.h:
+        * dom/make_names.pl:
+        * history/CachedPage.cpp:
+        * history/CachedPage.h:
+        * html/HTMLPlugInElement.cpp:
+        (WebCore::HTMLPlugInElement::getInstance):
+        * html/HTMLPlugInElement.h:
+        * loader/FrameLoader.cpp:
+        * loader/FrameLoader.h:
+        * loader/icon/IconDatabase.cpp:
+        (WebCore::iconDatabase):
+        * page/Console.cpp:
+        * page/Console.h:
+        * page/InspectorController.cpp:
+        (WebCore::XMLHttpRequestResource::XMLHttpRequestResource):
+        (WebCore::XMLHttpRequestResource::~XMLHttpRequestResource):
+        (WebCore::InspectorResource::setXMLHttpRequestProperties):
+        (WebCore::InspectorResource::sourceString):
+        (WebCore::getResourceDocumentNode):
+        (WebCore::search):
+        (WebCore::InspectorController::focusNode):
+        (WebCore::InspectorController::inspectedWindowScriptObjectCleared):
+        (WebCore::InspectorController::addDatabaseScriptResource):
+        (WebCore::InspectorController::resourceRetrievedByXMLHttpRequest):
+        * page/InspectorController.h:
+        (WebCore::InspectorController::profiles):
+        * page/JavaScriptCallFrame.cpp:
+        (WebCore::JavaScriptCallFrame::scopeChain):
+        * page/JavaScriptCallFrame.h:
+        (WebCore::JavaScriptCallFrame::create):
+        (WebCore::JavaScriptCallFrame::update):
+        * page/JavaScriptDebugListener.h:
+        * page/JavaScriptDebugServer.cpp:
+        (WebCore::dispatchDidParseSource):
+        * page/JavaScriptDebugServer.h:
+        * page/JavaScriptProfile.cpp:
+        * page/JavaScriptProfile.h:
+        * page/JavaScriptProfileNode.cpp:
+        (WebCore::getTotalTime):
+        (WebCore::getSelfTime):
+        (WebCore::getTotalPercent):
+        (WebCore::getSelfPercent):
+        (WebCore::getNumberOfCalls):
+        (WebCore::getChildren):
+        (WebCore::getVisible):
+        * page/JavaScriptProfileNode.h:
+        * page/Page.cpp:
+        (WebCore::Page::setDebuggerForAllPages):
+        (WebCore::Page::setDebugger):
+        * page/Page.h:
+        (WebCore::Page::debugger):
+        * page/mac/FrameMac.mm:
+        * platform/KURL.h:
+        (WebCore::KURL::operator JSC::UString):
+        * platform/text/AtomicString.cpp:
+        (WebCore::AtomicString::add):
+        (WebCore::AtomicString::find):
+        * platform/text/AtomicString.h:
+        (WebCore::AtomicString::AtomicString):
+        * platform/text/PlatformString.h:
+        * platform/text/String.cpp:
+        (WebCore::charactersToDouble):
+        * platform/win/BString.cpp:
+        * platform/win/BString.h:
+        * plugins/MimeTypeArray.h:
+        * plugins/Plugin.h:
+        * plugins/PluginArray.h:
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::start):
+        (WebCore::PluginView::performRequest):
+        (WebCore::PluginView::bindingInstance):
+        * plugins/PluginView.h:
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::paint):
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::stop):
+        (WebCore::PluginView::init):
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::stop):
+        (WebCore::PluginView::init):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::dispatchNPEvent):
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::stop):
+        * storage/Database.cpp:
+        (WebCore::Database::Database):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::responseText):
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously):
+        (WebCore::XMLHttpRequest::clearResponse):
+        (WebCore::XMLHttpRequest::dropProtection):
+        (WebCore::XMLHttpRequest::didFinishLoading):
+        (WebCore::XMLHttpRequest::didReceiveData):
+        * xml/XMLHttpRequest.h:
+
+2008-09-07  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Adopt opener restriction on frame navigation.
+          https://bugs.webkit.org/show_bug.cgi?id=20642
+
+        This restriction helps prevent an attacker from navigating top-level
+        windows that were created by another web site.
+
+        Tests: http/tests/security/frameNavigation/not-opener.html
+               http/tests/security/frameNavigation/opener.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::canAccessAncestor):
+        (WebCore::FrameLoader::shouldAllowNavigation):
+
+2008-09-07  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - use the correct sign for vertical offsets of combining marks
+
+        * platform/graphics/win/UniscribeController.cpp:
+        (WebCore::UniscribeController::shapeAndPlaceItem):
+
+2008-09-07  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - add the combining mark offsets in two places where I forgot them
+
+        * platform/graphics/win/FontCGWin.cpp:
+        (WebCore::Font::drawGlyphs):
+
+2008-09-07  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - correct glyph advances in complex text using web fonts rendered with
+          Core Graphics
+
+        * platform/graphics/win/FontCustomPlatformData.cpp:
+        (WebCore::FontCustomPlatformData::fontPlatformData):
+
+2008-09-07  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Adds console.dirxml support to the Web Inspector.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19156
+
+        Reviewed by Timothy Hatcher.
+
+        * WebCore.vcproj/WebCore.vcproj: Added ElementsTreeOutline.js.
+        * bindings/js/JSConsoleCustom.cpp:
+        (WebCore::JSConsole::dirxml):
+        * page/Console.cpp:
+        (WebCore::Console::dirxml): Adds a ConsoleMessage with NodeMessageLevel.
+        * page/Console.h:
+        (WebCore::): Added NodeMessageLevel.
+        * page/Console.idl: Added console.dirxml.
+        * page/inspector/Console.js: A NodeMessage creates a ElementsTreeOutline.
+        * page/inspector/ElementsPanel.js: Modified to use ElementsTreeOutline. The ElementsTreeOutline 
+        in the ElementsPanel has includeRootDOMNode and selectEnabled set to true.
+        * page/inspector/ElementsTreeOutline.js: Added.
+        (WebInspector.ElementsTreeOutline): A subclass of TreeOutline for displaying a DOM node tree.
+        (WebInspector.ElementsTreeElement): A subclass of TreeElement for ElementsTreeOutline.
+        * page/inspector/WebKit.qrc: Added ElementsTreeOutline.js.
+        * page/inspector/inspector.css:
+        * page/inspector/inspector.html: Added ElementsTreeOutline.js.
+        * page/inspector/inspector.js: Moved hover related methods to WebInspector.
+        (WebInspector.altKeyDown):
+        (WebInspector.forceHoverHighlight):
+        (WebInspector.hoveredDOMNode):
+        (WebInspector._updateHoverHighlightSoon):
+        (WebInspector._updateHoverHighlight):
+        (WebInspector.documentKeyDown): Updates WebInspector.altKeyDown
+        (WebInspector.documentKeyUp): Updates WebInspector.altKeyDown
+        * page/inspector/utilities.js: Added getDocumentForNode, parentNodeOrFrameElement,
+        isAncestorIncludingParentFrames.
+
+2008-09-06  Mark Rowe  <mrowe@apple.com>
+
+        Qt build fix.
+
+        * bridge/qt/qt_runtime.cpp:
+        (KJS::Bindings::convertQVariantToValue):
+
+=== End merge of squirrelfish-extreme ===
+
+2008-09-05  Oliver Hunt  <oliver@apple.com>
+
+        Start bringing up SFX on windows.
+
+        Reviewed by Mark Rowe and Sam Weinig
+
+        Start doing the work to bring up SFX on windows.  Initially
+        just working on WREC, as it does not make any calls so reduces
+        the amount of code that needs to be corrected.
+
+        Add forwarding headers
+
+        * ChangeLog:
+        * ForwardingHeaders/masm/MacroAssembler.h: Added.
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-08-27  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix the build of the full WebKit stack.
+
+        Add forwarding headers.
+
+        * ForwardingHeaders/masm/IA32MacroAsm.h: Added.
+        * ForwardingHeaders/wrec/WREC.h: Added.
+
+=== Start merge of squirrelfish-extreme ===
+
+2008-09-06  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        <rdar://problem/6187043> 
+        Don't parse full HTML user agent style sheet unless it is actually needed
+        <rdar://problem/6131889> 
+        WebView is significantly more expensive to create recently
+        
+        Parsing the html4.css takes significant amount of time and memory (~50kb) on application
+        startup. Some clients may never use most of the rules.
+        
+        With this patch we use simplified UA stylesheet until we hit something it can't handle. 
+        This avoids full stylesheet parsing on application startup (due to empty document construction)
+        and also makes it possible for clients with very simple demands (divs and spans only) never to load 
+        the full style.
+        
+        It also delays view source style parsing until it is used.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::elementCanUseSimpleDefaultStyle):
+        (WebCore::CSSStyleSelector::CSSStyleSelector):
+        (WebCore::loadFullDefaultStyle):
+        (WebCore::loadSimpleDefaultStyle):
+        (WebCore::loadViewSourceStyle):
+        (WebCore::CSSStyleSelector::matchUARules):
+        (WebCore::CSSStyleSelector::styleForElement):
+
+2008-09-06  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix.
+
+        * WebCoreSources.bkl:
+
+2008-09-06  Antti Koivisto  <antti@apple.com>
+
+        Reverting r35953 which was causing problems on Windows which relies on
+        WebCore timers in nested event loops. r36132 did alternative fix.
+
+        * page/Chrome.cpp:
+        (WebCore::PageGroupLoadDeferrer::PageGroupLoadDeferrer):
+        (WebCore::PageGroupLoadDeferrer::~PageGroupLoadDeferrer):
+
+2008-09-06  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix <rdar://problem/6201644>
+        https://bugs.webkit.org/show_bug.cgi?id=20493
+        Crash after OK in dialog box and reloading page in secure mode
+        
+        Limited loader only fix since the general timer fix is causing problems on Windows.
+
+        * loader/loader.cpp:
+        (WebCore::Loader::servePendingRequests):
+        (WebCore::Loader::Host::Host):
+        (WebCore::Loader::Host::didFinishLoading):
+        (WebCore::Loader::Host::didFail):
+        (WebCore::Loader::Host::didReceiveData):
+        * loader/loader.h:
+        (WebCore::Loader::Host::processingResource):
+
+2008-09-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        The initial Core Text adoption prototype was made by Daniel Fenwick.
+
+        - <rdar://problem/5158514> Add a Core Text-based complex text code path
+
+        Currently the Core Text code path is not used in any configuration.
+
+        * WebCore.xcodeproj/project.pbxproj: Added files.
+        * config.h: Defined WTF_USE_ATSUI and WTF_USE_CORE_TEXT.
+        * platform/graphics/Font.cpp:
+        (WebCore::WidthIterator::advance): Moved the spacingDisabled() test out
+        of the loop.
+        * platform/graphics/GlyphBuffer.h:
+        (WebCore::GlyphBuffer::add): Added this version that takes an advance.
+        * platform/graphics/SimpleFontData.h: Added ATSUI and CORE_TEXT #ifdefs.
+        Added getCTFont() and getCFStringAttributes() and corresponding data
+        members for Core Text.
+        * platform/graphics/mac/CoreTextController.cpp: Added.
+        (WebCore::roundCGFloat): Helper function.
+        (WebCore::ceilCGFloat): Helper function.
+        (WebCore::CoreTextController::CoreTextRun::CoreTextRun):
+        (WebCore::CoreTextController::CoreTextController):
+        (WebCore::CoreTextController::offsetForPosition):
+        (WebCore::CoreTextController::collectCoreTextRuns): Added. Segments the
+        run into subruns as necessary such that each subrun can be rendered with
+        a single font. Also separates out soft hyphens and replaces them with
+        real hyphens, because Core Text does not emit a glyph for soft hyphens.
+        Then calls collectCoreTextRunsForCharacters() on each subrun.
+        (WebCore::CoreTextController::advance):
+        (WebCore::CoreTextController::collectCoreTextRunsForCharacters): Creates
+        a CTLine from the given subrun and collects its CoreTextRuns.
+        (WebCore::CoreTextController::adjustGlyphsAndAdvances): Applies the
+        rounding hacks, letter- and word-spacing and glyph substitutions and
+        stores the resulting adjusted glyphs and advances.
+        * platform/graphics/mac/CoreTextController.h: Copied from WebCore/platform/graphics/win/UniscribeController.h.
+        (WebCore::CoreTextController::totalWidth):
+        (WebCore::CoreTextController::finalRoundingWidth):
+        (WebCore::CoreTextController::CoreTextRun::ctRun):
+        (WebCore::CoreTextController::CoreTextRun::glyphCount):
+        (WebCore::CoreTextController::CoreTextRun::fontData):
+        (WebCore::CoreTextController::CoreTextRun::characters):
+        (WebCore::CoreTextController::CoreTextRun::stringLocation):
+        (WebCore::CoreTextController::CoreTextRun::stringLength):
+        (WebCore::CoreTextController::CoreTextRun::indexAt):
+        * platform/graphics/mac/FontMac.mm: Moved the ATSUI-specific parts to
+        FontMacATSUI.mm.
+        * platform/graphics/mac/FontMacATSUI.mm: Copied from WebCore/platform/graphics/mac/FontMac.mm.
+        (WebCore::disableLigatures): Changed to call
+        FontPlatformData::allowsLigatures().
+        (WebCore::overrideLayoutOperation): Changed to call
+        FontPlatformData::roundsGlyphAdvances().
+        * platform/graphics/mac/FontMacCoreText.cpp: Copied from WebCore/platform/graphics/win/FontWin.cpp.
+        (WebCore::Font::selectionRectForComplexText): Changed to use
+        totalWidth() instead of advancing to the end and using runWidthSoFar().
+        (WebCore::Font::drawComplexText):
+        (WebCore::Font::floatWidthForComplexText): Ditto.
+        (WebCore::Font::offsetForPositionForComplexText):
+        * platform/graphics/mac/FontPlatformData.h:
+        * platform/graphics/mac/FontPlatformDataMac.mm:
+        (WebCore::FontPlatformData::setFont):
+        (WebCore::FontPlatformData::roundsGlyphAdvances): Added. Checks the
+        AppKit rendering mode.
+        (WebCore::FontPlatformData::allowsLigatures): Added. Implements the
+        heuristic that allows ligatures in fonts that do not have a glyph for
+        'a', based on the assumption that such fonts are only used in complex
+        text.
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        (WebCore::SimpleFontData::platformInit):
+        (WebCore::SimpleFontData::platformDestroy):
+        (WebCore::SimpleFontData::getCTFont): Added.
+        (WebCore::SimpleFontData::getCFStringAttributes): Added. Caches and
+        returns an attributes dictionary.
+        * platform/text/mac/ShapeArabic.c: Added ATSUI #ifdefs.
+        * platform/text/mac/ShapeArabic.h: Ditto.
+
+2008-09-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - make combining mark offsets work in CG text on Windows
+
+        * platform/graphics/win/FontCGWin.cpp:
+        (WebCore::Font::drawGlyphs): The old code tried to translate the text
+        matrix, but failed for two reasons: it did not actually change the
+        matrix, and even if it did, CGContextSetTextPosition overwrites the
+        translation values in the text matrix. Instead, just added the
+        translation to the anchor point.
+
+2008-09-05  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Alp Toker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=18346
+        [GTK] Remove build warnings
+
+        Applied some casts, and removed an unused typedef to make the
+        compiler happy, printing less warnings when building.
+
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp:
+        * platform/graphics/gtk/SimpleFontDataPango.cpp:
+        (WebCore::SimpleFontData::containsCharacters):
+        * platform/graphics/gtk/VideoSinkGStreamer.cpp:
+        (webkit_video_sink_set_caps):
+        * platform/network/soup/ResourceHandleSoup.cpp:
+
+2008-09-05  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Build fix for WebKitWin and Chromium
+
+        * platform/FileSystem.h:
+
+2008-09-05  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Try to make Chromium compile with ToT:
+        - Wrap a few places which depend on KJS:: in #if USE(JSC)
+        - Include some windows forward declarations
+
+        * dom/Node.h:
+        * page/Console.h:
+        * page/animation/CompositeAnimation.h:
+        * platform/FileSystem.h:
+        * platform/graphics/Image.h:
+        * platform/text/AtomicString.h:
+        * platform/text/String.cpp:
+        * rendering/style/RenderStyle.h:
+
+2008-09-05  Dave Hyatt  <hyatt@apple.com>
+
+        Add support for runtime switchability of the Aqua look and the native look on Windows.
+        Make RenderThemeWin compile by default even when USE(SAFARI_THEME) is set.
+
+        Reviewed by Adam Roben
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * page/Settings.cpp:
+        (WebCore::Settings::setShouldPaintNativeControls):
+        * page/Settings.h:
+        (WebCore::Settings::shouldPaintNativeControls):
+        * rendering/RenderThemeSafari.cpp:
+        (WebCore::theme):
+        * rendering/RenderThemeWin.cpp:
+
+2008-09-05  Antti Koivisto  <antti@apple.com>
+
+        Qt build fix.
+
+        * svg/SVGFEImageElement.cpp:
+        (WebCore::SVGFEImageElement::build):
+
+2008-09-05  Dirk Schulze  <vbs85@gmx.de>
+
+        Gtk build fix
+
+        * GNUmakefile.am:
+
+2008-09-05  Antti Koivisto  <antti@apple.com>
+
+        Another build fix.
+
+        * svg/SVGFEImageElement.cpp:
+        (WebCore::SVGFEImageElement::notifyFinished):
+
+2008-09-05  Antti Koivisto  <antti@apple.com>
+
+        Build fixes.
+        
+        * WebCore.xcodeproj/project.pbxproj:
+        * svg/graphics/filters/SVGFEImage.cpp:
+        (WebCore::FEImage::cachedImage):
+
+2008-09-05  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Most of the implementation for https://bugs.webkit.org/show_bug.cgi?id=17998
+        When a resource is cached locally, WebKit should follow RFC 2616 "Specific end-to-end revalidation" instead of "Unspecified end-to-end revalidation"
+
+        Implement HTTP 1.1 "Specific end-to-end revalidation" for WebCore memory cache. This patch does
+        not yet enable it for the biggest use case, reloading. However it is good for general browsing as
+        well. Doing this in WebCore level as opposed to relying on disk cache has big benefit that
+        we avoid re-decoding resources, especially images. 
+        
+        To be exact the enabled case is not actually the "Specific end-to-end revalidation" since it does not include
+        CacheControl: max-age=0 header. That would be added in reload case.
+        
+        The approach for revalidation is to kick the original resource out from the memory cache
+        and create a new CachedResource that represents the revalidation request. In case
+        we get 304 back for the request we put the original resource back to the cache, update 
+        its expiration date and switch the clients registered to revalidation resource to be
+        clients of the original resource.
+        
+        All heap allocated CachedImage pointers now use CachedResourceHandle<CachedImage> (and so on) instead.
+        This allows updating the handles to point to the original resource when the revalidation succeeds. It
+        also acts as refcounting smart pointer.
+
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * css/CSSFontFaceSource.h:
+        * css/CSSImportRule.h:
+        * dom/Clipboard.h:
+        (WebCore::Clipboard::dragImage):
+        * dom/ProcessingInstruction.h:
+        * dom/ScriptElement.h:
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::isWaitingForScripts):
+        * dom/XMLTokenizer.h:
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::setImage):
+        (WebCore::HTMLImageLoader::updateFromElement):
+        (WebCore::HTMLImageLoader::notifyFinished):
+        * html/HTMLImageLoader.h:
+        (WebCore::HTMLImageLoader::image):
+        * html/HTMLLinkElement.h:
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::reset):
+        (WebCore::HTMLTokenizer::scriptHandler):
+        (WebCore::HTMLTokenizer::notifyFinished):
+        * html/HTMLTokenizer.h:
+        * loader/Cache.cpp:
+        (WebCore::Cache::revalidateResource):
+        (WebCore::Cache::revalidationSucceeded):
+        (WebCore::Cache::revalidationFailed):
+        * loader/Cache.h:
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::CachedResource):
+        (WebCore::CachedResource::~CachedResource):
+        (WebCore::CachedResource::isExpired):
+        (WebCore::CachedResource::setResponse):
+        (WebCore::CachedResource::deleteIfPossible):
+        (WebCore::CachedResource::setResourceToRevalidate):
+        (WebCore::CachedResource::clearResourceToRevalidate):
+        (WebCore::CachedResource::switchClientsToRevalidatedResource):
+        (WebCore::CachedResource::canUseCacheValidator):
+        (WebCore::CachedResource::mustRevalidate):
+        * loader/CachedResource.h:
+        (WebCore::CachedResource::canDelete):
+        (WebCore::CachedResource::registerHandle):
+        (WebCore::CachedResource::unregisterHandle):
+        (WebCore::CachedResource::isCacheValidator):
+        (WebCore::CachedResource::resourceToRevalidate):
+        (WebCore::CachedResource::setExpirationDate):
+        * loader/CachedResourceHandle.cpp: Added.
+        (WebCore::CachedResourceHandleBase::setResource):
+        * loader/CachedResourceHandle.h: Added.
+        (WebCore::CachedResourceHandleBase::~CachedResourceHandleBase):
+        (WebCore::CachedResourceHandleBase::get):
+        (WebCore::CachedResourceHandleBase::operator!):
+        (WebCore::CachedResourceHandleBase::operator UnspecifiedBoolType):
+        (WebCore::CachedResourceHandleBase::CachedResourceHandleBase):
+        (WebCore::CachedResourceHandleBase::operator=):
+        (WebCore::CachedResourceHandle::CachedResourceHandle):
+        (WebCore::CachedResourceHandle::get):
+        (WebCore::CachedResourceHandle::operator->):
+        (WebCore::CachedResourceHandle::operator=):
+        (WebCore::CachedResourceHandle::operator==):
+        (WebCore::CachedResourceHandle::operator!=):
+        (WebCore::operator==):
+        (WebCore::operator!=):
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::checkForReload):
+        * loader/UserStyleSheetLoader.h:
+        * loader/loader.cpp:
+        (WebCore::Loader::Host::servePendingRequests):
+        (WebCore::Loader::Host::didFinishLoading):
+        (WebCore::Loader::Host::didFail):
+        (WebCore::Loader::Host::didReceiveResponse):
+        (WebCore::Loader::Host::didReceiveData):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::selectCursor):
+        * rendering/RenderImage.cpp:
+        (WebCore::RenderImage::setCachedImage):
+        (WebCore::RenderImage::imageChanged):
+        * rendering/RenderImage.h:
+        (WebCore::RenderImage::cachedImage):
+        (WebCore::RenderImage::imagePtr):
+        * rendering/style/RenderStyle.h:
+        * rendering/style/StyleCachedImage.h:
+        (WebCore::StyleCachedImage::data):
+        (WebCore::StyleCachedImage::cachedImage):
+        * svg/SVGFEImageElement.h:
+        * svg/graphics/filters/SVGFEImage.h:
+        * xml/XSLImportRule.h:
+
 <<<<<<< .mine
 2008-09-01  Mario Bensi  <mbensi@pleyo.com>
 
@@ -1894,7 +2806,7 @@
 
 2008-08-25  Julien Chaffraix  <jchaffraix@webkit.org>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         Bug 20247: setAttributeNode() does not work when attribute name has a capital letter in it
         https://bugs.webkit.org/show_bug.cgi?id=20247
@@ -2590,7 +3502,7 @@
 
 2008-08-20  Beth Dakin  <bdakin@apple.com>
 
-        Reviewed by Darin.
+        Reviewed by Darin Adler.
 
         Fix for <rdar://problem/6145626> 
         This patch fixes a number of remaining problems getting 
