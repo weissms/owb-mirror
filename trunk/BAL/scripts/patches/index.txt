@@ -36,3 +36,4 @@
 ../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	0:ThreadingGtk.patch
 ../../OWBAL/Concretizations/Types/Pthreads/BCThreadingPthreads.cpp	0:ThreadingPthreads.patch
 ../../WKAL/Concretizations/Widgets/Gtk/BCFrameGtk.cpp	_:FrameGtk.patch
+../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	_:BCThreadingGtk.patch
