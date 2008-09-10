@@ -43,13 +43,25 @@
 #if COMPILER(MSVC)
 
     /**
-     *  snprintf description
-     * @param[in] : description
-     * @param[out] : description
+     * snprintf place output followed by the null byte, ’\0’ , in consecutive bytes starting at *str; it is the user’s responsibility to ensure  that  enough  space  is available.
+     * @param[in] : a string
+     * @param[in] : size of the buffer
+     * @param[in] : variadics parameters.
+     * @param[out] : return the number of bytes that would be written to str had n been sufficiently large excluding the terminating null byte.
      * @code
      * @endcode
      */
 inline int snprintf(char *str, size_t size, const char* format, ...) ;
+    /**
+     * strcasecmp compare, while ignoring differences in case, the string pointed to by s1 to the string pointed to by s2.
+     * @param[in] : a string
+     * @param[in] : a string
+     * @param[out] :  return an integer greater than, equal to, or less than 0, if the string pointed to by s1 is, ignoring case, greater than, equal to, or less than the string pointed to by s2, respectively.
+     * @code
+     * @endcode
+     */
+inline int strcasecmp(const char* s1, const char* s2) ;
+    
 
 #if COMPILER(MSVC7)
 // MSVC8 and above define this function
@@ -57,9 +69,11 @@ inline int snprintf(char *str, size_t size, const char* format, ...) ;
 #endif
 
     /**
-     *  strncasecmp description
-     * @param[in] : description
-     * @param[out] : description
+     * strncasecmp compare, while ignoring differences in case, not more than n bytes from the string pointed to by s1 to the string pointed to by s2.
+     * @param[in] : a string
+     * @param[in] : a string
+     * @param[in] : an integer
+     * @param[out] : return an integer greater than, equal to, or less than 0, if the possibly null-terminated array pointed to by s1  is, ignoring case, greater than, equal to, or less than the possibly null-terminated array pointed to by s2, respectively.
      * @code
      * @endcode
      */
@@ -68,7 +82,6 @@ inline int strncasecmp(const char* s1, const char* s2, size_t len) ;
 #endif
 
 #endif // WTF_StringExtras_h
-
 
 
 

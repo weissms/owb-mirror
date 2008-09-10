@@ -66,7 +66,7 @@ namespace WebCore {
     class KeyboardEvent;
     class MouseEvent;
     class KURL;
-#if PLATFORM(WIN_OS) && !PLATFORM(WX)
+#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
     class PluginMessageThrottlerWin;
 #endif
     class PluginPackage;
@@ -162,7 +162,7 @@ namespace WebCore {
 
         virtual bool isPluginView() const { return true; }
 
-#if PLATFORM(WIN_OS) && !PLATFORM(WX)
+#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
         static LRESULT CALLBACK PluginViewWndProc(HWND, UINT, WPARAM, LPARAM);
         LRESULT wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
         WNDPROC pluginWndProc() const { return m_pluginWndProc; }
@@ -245,7 +245,7 @@ namespace WebCore {
         bool m_needsXEmbed;
 #endif
 
-#if PLATFORM(WIN_OS) && !PLATFORM(WX)
+#if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
         OwnPtr<PluginMessageThrottlerWin> m_messageThrottler;
         WNDPROC m_pluginWndProc;
         unsigned m_lastMessage;

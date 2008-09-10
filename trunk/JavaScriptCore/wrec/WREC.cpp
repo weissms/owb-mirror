@@ -44,62 +44,37 @@ struct CharacterClassRange {
 };
 
 struct CharacterClass {
-    const UChar* m_matches;
-    unsigned m_numMatches;
-    const CharacterClassRange* m_ranges;
-    unsigned m_numRanges;
-    const UChar* m_matchesUnicode;
-    unsigned m_numMatchesUnicode;
-    const CharacterClassRange* m_rangesUnicode;
-    unsigned m_numRangesUnicode;
+    const UChar* matches;
+    unsigned numMatches;
+
+    const CharacterClassRange* ranges;
+    unsigned numRanges;
+
+    const UChar* matchesUnicode;
+    unsigned numMatchesUnicode;
+
+    const CharacterClassRange* rangesUnicode;
+    unsigned numRangesUnicode;
 };
 
-static const UChar ascii_newlines[2] = { '\n', '\r' };
-static const UChar unicode_newlines[2] = { 0x2028, 0x2029 };
-static CharacterClass& getCharacterClass_newline() {
+static const UChar asciiNewlines[2] = { '\n', '\r' };
+static const UChar unicodeNewlines[2] = { 0x2028, 0x2029 };
+static CharacterClass& getCharacterClassNewline() {
     static CharacterClass charClass = {
-        ascii_newlines, 2,
+        asciiNewlines, 2,
         0, 0,
-        unicode_newlines, 2,
+        unicodeNewlines, 2,
         0, 0,
     };
     
     return charClass;
 }
 
-static const CharacterClassRange ascii_digits_range[1] = { { '0', '9' } };
-static CharacterClass& getCharacterClass_d() {
+static const CharacterClassRange asciiDigitsRange[1] = { { '0', '9' } };
+static CharacterClass& getCharacterClassDigits() {
     static CharacterClass charClass = {
         0, 0,
-        ascii_digits_range, 1,
-        0, 0,
-        0, 0,
-    };
-    
-    return charClass;
-}
-
-static const UChar ascii_spaces[1] = { ' ' };
-static const CharacterClassRange ascii_spaces_range[1] = { { '\t', '\r' } };
-static const UChar unicode_spaces[8] = { 0x00a0, 0x1680, 0x180e, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000 };
-static const CharacterClassRange unicode_spaces_range[1] = { { 0x2000, 0x200a } };
-static CharacterClass& getCharacterClass_s() {
-    static CharacterClass charClass = {
-        ascii_spaces, 1,
-        ascii_spaces_range, 1,
-        unicode_spaces, 8,
-        unicode_spaces_range, 1,
-    };
-    
-    return charClass;
-}
-
-static const UChar ascii_wordchar[1] = { '_' };
-static const CharacterClassRange ascii_wordchar_range[3] = { { '0', '9' }, { 'A', 'Z' }, { 'a', 'z' } };
-static CharacterClass& getCharacterClass_w() {
-    static CharacterClass charClass = {
-        ascii_wordchar, 1,
-        ascii_wordchar_range, 3,
+        asciiDigitsRange, 1,
         0, 0,
         0, 0,
     };
@@ -107,21 +82,49 @@ static CharacterClass& getCharacterClass_w() {
     return charClass;
 }
 
-static const CharacterClassRange ascii_nondigits_range[2] = { { 0, '0' - 1 }, { '9' + 1, 0x7f } };
-static const CharacterClassRange unicode_nondigits_range[1] = { { 0x0080, 0xffff } };
-static CharacterClass& getCharacterClass_D() {
+static const UChar asciiSpaces[1] = { ' ' };
+static const CharacterClassRange asciiSpacesRange[1] = { { '\t', '\r' } };
+static const UChar unicodeSpaces[8] = { 0x00a0, 0x1680, 0x180e, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000 };
+static const CharacterClassRange unicodeSpacesRange[1] = { { 0x2000, 0x200a } };
+static CharacterClass& getCharacterClassSpaces() {
     static CharacterClass charClass = {
-        0, 0,
-        ascii_nondigits_range, 2,
-        0, 0,
-        unicode_nondigits_range, 1,
+        asciiSpaces, 1,
+        asciiSpacesRange, 1,
+        unicodeSpaces, 8,
+        unicodeSpacesRange, 1,
     };
     
     return charClass;
 }
 
-static const CharacterClassRange ascii_nonspaces_range[3] = { { 0, '\t' - 1 }, { '\r' + 1, ' ' - 1 }, { ' ' + 1, 0x7f } }; 
-static const CharacterClassRange unicode_nonspaces_range[9] = {
+static const UChar asciiWordchar[1] = { '_' };
+static const CharacterClassRange asciiWordcharRange[3] = { { '0', '9' }, { 'A', 'Z' }, { 'a', 'z' } };
+static CharacterClass& getCharacterClassWordchar() {
+    static CharacterClass charClass = {
+        asciiWordchar, 1,
+        asciiWordcharRange, 3,
+        0, 0,
+        0, 0,
+    };
+    
+    return charClass;
+}
+
+static const CharacterClassRange asciiNondigitsRange[2] = { { 0, '0' - 1 }, { '9' + 1, 0x7f } };
+static const CharacterClassRange unicodeNondigitsRange[1] = { { 0x0080, 0xffff } };
+static CharacterClass& getCharacterClassNondigits() {
+    static CharacterClass charClass = {
+        0, 0,
+        asciiNondigitsRange, 2,
+        0, 0,
+        unicodeNondigitsRange, 1,
+    };
+    
+    return charClass;
+}
+
+static const CharacterClassRange asciiNonspacesRange[3] = { { 0, '\t' - 1 }, { '\r' + 1, ' ' - 1 }, { ' ' + 1, 0x7f } }; 
+static const CharacterClassRange unicodeNonspacesRange[9] = {
     { 0x0080, 0x009f },
     { 0x00a1, 0x167f },
     { 0x1681, 0x180d },
@@ -132,26 +135,26 @@ static const CharacterClassRange unicode_nonspaces_range[9] = {
     { 0x2060, 0x2fff },
     { 0x3001, 0xffff }
 }; 
-static CharacterClass& getCharacterClass_S() {
+static CharacterClass& getCharacterClassNonspaces() {
     static CharacterClass charClass = {
         0, 0,
-        ascii_nonspaces_range, 3,
+        asciiNonspacesRange, 3,
         0, 0,
-        unicode_nonspaces_range, 9,
+        unicodeNonspacesRange, 9,
     };
     
     return charClass;
 }
 
-static const UChar ascii_nonwordchar[1] = { '`' };
-static const CharacterClassRange ascii_nonwordchar_range[4] = { { 0, '0' - 1 }, { '9' + 1, 'A' - 1 }, { 'Z' + 1, '_' - 1 }, { 'z' + 1, 0x7f } };
-static const CharacterClassRange unicode_nonwordchar_range[1] = { { 0x0080, 0xffff } };
-static CharacterClass& getCharacterClass_W() {
+static const UChar asciiNonwordchar[1] = { '`' };
+static const CharacterClassRange asciiNonwordcharRange[4] = { { 0, '0' - 1 }, { '9' + 1, 'A' - 1 }, { 'Z' + 1, '_' - 1 }, { 'z' + 1, 0x7f } };
+static const CharacterClassRange unicodeNonwordcharRange[1] = { { 0x0080, 0xffff } };
+static CharacterClass& getCharacterClassNonwordchar() {
     static CharacterClass charClass = {
-        ascii_nonwordchar, 1,
-        ascii_nonwordchar_range, 4,
+        asciiNonwordchar, 1,
+        asciiNonwordcharRange, 4,
         0, 0,
-        unicode_nonwordchar_range, 1,
+        unicodeNonwordcharRange, 1,
     };
     
     return charClass;
@@ -361,21 +364,21 @@ void CharacterClassConstructor::append(CharacterClass& other)
     // Need to check the spec, really, but think this matches PCRE behaviour.
     flush();
     
-    if (other.m_numMatches) {
-        for (size_t i = 0; i < other.m_numMatches; ++i)
-            addSorted(m_matches, other.m_matches[i]);
+    if (other.numMatches) {
+        for (size_t i = 0; i < other.numMatches; ++i)
+            addSorted(m_matches, other.matches[i]);
     }
-    if (other.m_numRanges) {
-        for (size_t i = 0; i < other.m_numRanges; ++i)
-            addSortedRange(m_ranges, other.m_ranges[i].begin, other.m_ranges[i].end);
+    if (other.numRanges) {
+        for (size_t i = 0; i < other.numRanges; ++i)
+            addSortedRange(m_ranges, other.ranges[i].begin, other.ranges[i].end);
     }
-    if (other.m_numMatchesUnicode) {
-        for (size_t i = 0; i < other.m_numMatchesUnicode; ++i)
-            addSorted(m_matchesUnicode, other.m_matchesUnicode[i]);
+    if (other.numMatchesUnicode) {
+        for (size_t i = 0; i < other.numMatchesUnicode; ++i)
+            addSorted(m_matchesUnicode, other.matchesUnicode[i]);
     }
-    if (other.m_numRangesUnicode) {
-        for (size_t i = 0; i < other.m_numRangesUnicode; ++i)
-            addSortedRange(m_rangesUnicode, other.m_rangesUnicode[i].begin, other.m_rangesUnicode[i].end);
+    if (other.numRangesUnicode) {
+        for (size_t i = 0; i < other.numRangesUnicode; ++i)
+            addSortedRange(m_rangesUnicode, other.rangesUnicode[i].begin, other.rangesUnicode[i].end);
     }
 }
 
@@ -489,21 +492,21 @@ void GenerateParenthesesNonGreedyFunctor::backtrack(WRECGenerator*)
 
 void WRECGenerator::generateBacktrack1()
 {
-    m_jit.emitSubl_i8r(1, CURR_POS_REG);
+    m_jit.subl_i8r(1, currentPositionRegister);
 }
 
 void WRECGenerator::generateBacktrackBackreference(unsigned subpatternId)
 {
-    m_jit.emitSubl_mr((2 * subpatternId + 1) * sizeof(int), OUTPUT_REG, CURR_POS_REG);
-    m_jit.emitAddl_mr((2 * subpatternId) * sizeof(int), OUTPUT_REG, CURR_POS_REG);
+    m_jit.subl_mr((2 * subpatternId + 1) * sizeof(int), outputRegister, currentPositionRegister);
+    m_jit.addl_mr((2 * subpatternId) * sizeof(int), outputRegister, currentPositionRegister);
 }
 
 void WRECGenerator::generateBackreferenceQuantifier(JmpSrcVector& failures, Quantifier::Type quantifierType, unsigned subpatternId, unsigned min, unsigned max)
 {
     GenerateBackreferenceFunctor functor(subpatternId);
 
-    m_jit.emitMovl_mr((2 * subpatternId) * sizeof(int), OUTPUT_REG, CURR_VAL_REG);
-    m_jit.emitCmpl_rm(CURR_VAL_REG, ((2 * subpatternId) + 1) * sizeof(int), OUTPUT_REG);
+    m_jit.movl_mr((2 * subpatternId) * sizeof(int), outputRegister, currentValueRegister);
+    m_jit.cmpl_rm(currentValueRegister, ((2 * subpatternId) + 1) * sizeof(int), outputRegister);
     JmpSrc skipIfEmpty = m_jit.emitUnlinkedJe();
 
     ASSERT(quantifierType == Quantifier::Greedy || quantifierType == Quantifier::NonGreedy);
@@ -521,26 +524,26 @@ void WRECGenerator::generateNonGreedyQuantifier(JmpSrcVector& failures, Generate
     JmpSrcVector newFailures;
 
     // (0) Setup:
-    //     init QUANTIFIER_COUNT_REG
-    m_jit.emitPushl_r(QUANTIFIER_COUNT_REG);
-    m_jit.emitXorl_rr(QUANTIFIER_COUNT_REG, QUANTIFIER_COUNT_REG);
+    //     init quantifierCountRegister
+    m_jit.pushl_r(quantifierCountRegister);
+    m_jit.xorl_rr(quantifierCountRegister, quantifierCountRegister);
     JmpSrc gotoStart = m_jit.emitUnlinkedJmp();
 
     // (4) Failure case
 
     JmpDst quantifierFailed = m_jit.label();
-    // (4.1) Restore original value of QUANTIFIER_COUNT_REG from the stack
-    m_jit.emitPopl_r(QUANTIFIER_COUNT_REG);
+    // (4.1) Restore original value of quantifierCountRegister from the stack
+    m_jit.popl_r(quantifierCountRegister);
     failures.append(m_jit.emitUnlinkedJmp()); 
 
     // (3) We just tried an alternative, and it failed - check we can try more.
     
     JmpDst alternativeFailed = m_jit.label();
     // (3.1) remove the value pushed prior to testing the alternative
-    m_jit.emitPopl_r(CURR_POS_REG);
+    m_jit.popl_r(currentPositionRegister);
     // (3.2) if there is a limit, and we have reached it, game over. 
-    if (max != Quantifier::NoMaxSpecified) {
-        m_jit.emitCmpl_i32r(max, QUANTIFIER_COUNT_REG);
+    if (max != Quantifier::noMaxSpecified) {
+        m_jit.cmpl_i32r(max, quantifierCountRegister);
         m_jit.link(m_jit.emitUnlinkedJe(), quantifierFailed);
     }
 
@@ -553,7 +556,7 @@ void WRECGenerator::generateNonGreedyQuantifier(JmpSrcVector& failures, Generate
     // (1.1) Do a check for the atom check.
     functor.generateAtom(this, newFailures);
     // (1.2) If we get here, successful match!
-    m_jit.emitAddl_i8r(1, QUANTIFIER_COUNT_REG);
+    m_jit.addl_i8r(1, quantifierCountRegister);
     // (1.3) We needed to read the atom, and we failed - that's terminally  bad news.
     for (unsigned i = 0; i < newFailures.size(); ++i)
         m_jit.link(newFailures[i], quantifierFailed);
@@ -562,7 +565,7 @@ void WRECGenerator::generateNonGreedyQuantifier(JmpSrcVector& failures, Generate
     if (min) {
         // ... except if min was 1 no need to keep checking!
         if (min != 1) {
-            m_jit.emitCmpl_i32r(min, QUANTIFIER_COUNT_REG);
+            m_jit.cmpl_i32r(min, quantifierCountRegister);
             m_jit.link(m_jit.emitUnlinkedJl(), testQuantifiedAtom);
         }
     } else
@@ -572,10 +575,10 @@ void WRECGenerator::generateNonGreedyQuantifier(JmpSrcVector& failures, Generate
     // (2) Plant an alternative check for the remainder of the expression
     
     // (2.1) recursively call to parseAlternative, if it falls through, success!
-    m_jit.emitPushl_r(CURR_POS_REG);
+    m_jit.pushl_r(currentPositionRegister);
     m_parser.parseAlternative(newFailures);
-    m_jit.emitAddl_i8r(4, X86Assembler::esp);
-    m_jit.emitPopl_r(QUANTIFIER_COUNT_REG);
+    m_jit.addl_i8r(4, X86::esp);
+    m_jit.popl_r(quantifierCountRegister);
     // (2.2) link failure cases to jump back up to alternativeFailed.
     for (unsigned i = 0; i < newFailures.size(); ++i)
         m_jit.link(newFailures[i], alternativeFailed);
@@ -591,9 +594,9 @@ void WRECGenerator::generateGreedyQuantifier(JmpSrcVector& failures, GenerateAto
     JmpSrcVector newFailures;
 
     // (0) Setup:
-    //     init QUANTIFIER_COUNT_REG
-    m_jit.emitPushl_r(QUANTIFIER_COUNT_REG);
-    m_jit.emitXorl_rr(QUANTIFIER_COUNT_REG, QUANTIFIER_COUNT_REG);
+    //     init quantifierCountRegister
+    m_jit.pushl_r(quantifierCountRegister);
+    m_jit.xorl_rr(quantifierCountRegister, quantifierCountRegister);
 
     // (1) Greedily read as many of the atom as possible
 
@@ -602,12 +605,12 @@ void WRECGenerator::generateGreedyQuantifier(JmpSrcVector& failures, GenerateAto
     // (1.1) Do a character class check.
     functor.generateAtom(this, newFailures);
     // (1.2) If we get here, successful match!
-    m_jit.emitAddl_i8r(1, QUANTIFIER_COUNT_REG);
-    // (1.3) loop, unless we've read m_max limit.
-    if (max != Quantifier::NoMaxSpecified) {
+    m_jit.addl_i8r(1, quantifierCountRegister);
+    // (1.3) loop, unless we've read max limit.
+    if (max != Quantifier::noMaxSpecified) {
         if (max != 1) {
             // if there is a limit, only loop while less than limit, otherwise fall throught to...
-            m_jit.emitCmpl_i32r(max, QUANTIFIER_COUNT_REG);
+            m_jit.cmpl_i32r(max, quantifierCountRegister);
             m_jit.link(m_jit.emitUnlinkedJne(), readMore);
         }
         // ...if there is no min we need jump to the alternative test, if there is we can just fall through to it.
@@ -624,28 +627,28 @@ void WRECGenerator::generateGreedyQuantifier(JmpSrcVector& failures, GenerateAto
             m_jit.link(newFailures[i], minimumTest);
         newFailures.clear();
         // 
-        m_jit.emitCmpl_i32r(min, QUANTIFIER_COUNT_REG);
+        m_jit.cmpl_i32r(min, quantifierCountRegister);
         newFailures.append(m_jit.emitUnlinkedJae());
     }
 
     // (4) Failure case
 
     JmpDst quantifierFailed = m_jit.label();
-    // (4.1) Restore original value of QUANTIFIER_COUNT_REG from the stack
-    m_jit.emitPopl_r(QUANTIFIER_COUNT_REG);
+    // (4.1) Restore original value of quantifierCountRegister from the stack
+    m_jit.popl_r(quantifierCountRegister);
     failures.append(m_jit.emitUnlinkedJmp()); 
 
     // (3) Backtrack
 
     JmpDst backtrack = m_jit.label();
     // (3.1) this was preserved prior to executing the alternative
-    m_jit.emitPopl_r(CURR_POS_REG);
+    m_jit.popl_r(currentPositionRegister);
     // (3.2) check we can retry with fewer matches - backtracking fails if already at the minimum
-    m_jit.emitCmpl_i32r(min, QUANTIFIER_COUNT_REG);
+    m_jit.cmpl_i32r(min, quantifierCountRegister);
     m_jit.link(m_jit.emitUnlinkedJe(), quantifierFailed);
     // (3.3) roll off one match, and retry.
     functor.backtrack(this);
-    m_jit.emitSubl_i8r(1, QUANTIFIER_COUNT_REG);
+    m_jit.subl_i8r(1, quantifierCountRegister);
 
     // (2) Try an alternative.
 
@@ -655,10 +658,10 @@ void WRECGenerator::generateGreedyQuantifier(JmpSrcVector& failures, GenerateAto
         m_jit.link(newFailures[i], tryAlternative);
     newFailures.clear();
     // (2.2) recursively call to parseAlternative, if it falls through, success!
-    m_jit.emitPushl_r(CURR_POS_REG);
+    m_jit.pushl_r(currentPositionRegister);
     m_parser.parseAlternative(newFailures);
-    m_jit.emitAddl_i8r(4, X86Assembler::esp);
-    m_jit.emitPopl_r(QUANTIFIER_COUNT_REG);
+    m_jit.addl_i8r(4, X86::esp);
+    m_jit.popl_r(quantifierCountRegister);
     // (2.3) link failure cases to here.
     for (unsigned i = 0; i < newFailures.size(); ++i)
         m_jit.link(newFailures[i], backtrack);
@@ -668,9 +671,9 @@ void WRECGenerator::generateGreedyQuantifier(JmpSrcVector& failures, GenerateAto
 void WRECGenerator::generatePatternCharacter(JmpSrcVector& failures, int ch)
 {
     // check there is more input, read a char.
-    m_jit.emitCmpl_rr(LENGTH_REG, CURR_POS_REG);
+    m_jit.cmpl_rr(lengthRegister, currentPositionRegister);
     failures.append(m_jit.emitUnlinkedJe());
-    m_jit.emitMovzwl_mr(INPUT_REG, CURR_POS_REG, 2, CURR_VAL_REG);
+    m_jit.movzwl_mr(inputRegister, currentPositionRegister, 2, currentValueRegister);
 
     // used for unicode case insensitive
     bool hasUpper = false;
@@ -682,19 +685,19 @@ void WRECGenerator::generatePatternCharacter(JmpSrcVector& failures, int ch)
         
         // check for ascii case sensitive characters
         if (isASCIIAlpha(ch)) {
-            m_jit.emitOrl_i8r(32, CURR_VAL_REG);
+            m_jit.orl_rr(32, currentValueRegister);
             ch |= 32;
         } else if ((ch > 0x7f) && ((lower = Unicode::toLower(ch)) != (upper = Unicode::toUpper(ch)))) {
             // handle unicode case sentitive characters - branch to success on upper
-            m_jit.emitCmpl_i32r(upper, CURR_VAL_REG);
-            isUpper = m_jit.emitUnlinkedJne();
+            m_jit.cmpl_i32r(upper, currentValueRegister);
+            isUpper = m_jit.emitUnlinkedJe();
             hasUpper = true;
             ch = lower;
         }
     }
     
     // checks for ch, or lower case version of ch, if insensitive
-    m_jit.emitCmpl_i32r((unsigned short)ch, CURR_VAL_REG);
+    m_jit.cmpl_i32r((unsigned short)ch, currentValueRegister);
     failures.append(m_jit.emitUnlinkedJne());
 
     if (m_parser.m_ignoreCase && hasUpper) {
@@ -703,7 +706,7 @@ void WRECGenerator::generatePatternCharacter(JmpSrcVector& failures, int ch)
     }
     
     // on success consume the char
-    m_jit.emitAddl_i8r(1, CURR_POS_REG);
+    m_jit.addl_i8r(1, currentPositionRegister);
 }
 
 void WRECGenerator::generateCharacterClassInvertedRange(JmpSrcVector& failures, JmpSrcVector& matchDest, const CharacterClassRange* ranges, unsigned count, unsigned* matchIndex, const UChar* matches, unsigned matchCount)
@@ -714,7 +717,7 @@ void WRECGenerator::generateCharacterClassInvertedRange(JmpSrcVector& failures, 
         char lo = ranges[which].begin;
         char hi = ranges[which].end;
         
-        m_jit.emitCmpl_i32r((unsigned short)lo, CURR_VAL_REG);
+        m_jit.cmpl_i32r((unsigned short)lo, currentValueRegister);
 
         // check if there are any ranges or matches below lo.  If not, just jl to failure -
         // if there is anything else to check, check that first, if it falls through jmp to failure.
@@ -726,7 +729,7 @@ void WRECGenerator::generateCharacterClassInvertedRange(JmpSrcVector& failures, 
                 generateCharacterClassInvertedRange(failures, matchDest, ranges, which, matchIndex, matches, matchCount);
             
             do {
-                m_jit.emitCmpl_i32r((unsigned short)matches[*matchIndex], CURR_VAL_REG);
+                m_jit.cmpl_i32r((unsigned short)matches[*matchIndex], currentValueRegister);
                 matchDest.append(m_jit.emitUnlinkedJe());
                 ++*matchIndex;
             } while ((*matchIndex < matchCount) && (matches[*matchIndex] < lo));
@@ -746,7 +749,7 @@ void WRECGenerator::generateCharacterClassInvertedRange(JmpSrcVector& failures, 
         while ((*matchIndex < matchCount) && (matches[*matchIndex] <= hi))
             ++*matchIndex;
 
-        m_jit.emitCmpl_i32r((unsigned short)hi, CURR_VAL_REG);
+        m_jit.cmpl_i32r((unsigned short)hi, currentValueRegister);
         matchDest.append(m_jit.emitUnlinkedJle());
         // fall through to here, the value is above hi.
 
@@ -760,26 +763,26 @@ void WRECGenerator::generateCharacterClassInvertedRange(JmpSrcVector& failures, 
 void WRECGenerator::generateCharacterClassInverted(JmpSrcVector& matchDest, CharacterClass& charClass)
 {
     JmpSrc unicodeFail;
-    if (charClass.m_numMatchesUnicode || charClass.m_numRangesUnicode) {
-        m_jit.emitCmpl_i8r(0x7f, CURR_VAL_REG);
+    if (charClass.numMatchesUnicode || charClass.numRangesUnicode) {
+        m_jit.cmpl_i8r(0x7f, currentValueRegister);
         JmpSrc isAscii = m_jit.emitUnlinkedJle();
     
-        if (charClass.m_numMatchesUnicode) {
-            for (unsigned i = 0; i < charClass.m_numMatchesUnicode; ++i) {
-                UChar ch = charClass.m_matchesUnicode[i];
-                m_jit.emitCmpl_i32r((unsigned short)ch, CURR_VAL_REG);
+        if (charClass.numMatchesUnicode) {
+            for (unsigned i = 0; i < charClass.numMatchesUnicode; ++i) {
+                UChar ch = charClass.matchesUnicode[i];
+                m_jit.cmpl_i32r((unsigned short)ch, currentValueRegister);
                 matchDest.append(m_jit.emitUnlinkedJe());
             }
         }
         
-        if (charClass.m_numRangesUnicode) {
-            for (unsigned i = 0; i < charClass.m_numRangesUnicode; ++i) {
-                UChar lo = charClass.m_rangesUnicode[i].begin;
-                UChar hi = charClass.m_rangesUnicode[i].end;
+        if (charClass.numRangesUnicode) {
+            for (unsigned i = 0; i < charClass.numRangesUnicode; ++i) {
+                UChar lo = charClass.rangesUnicode[i].begin;
+                UChar hi = charClass.rangesUnicode[i].end;
                 
-                m_jit.emitCmpl_i32r((unsigned short)lo, CURR_VAL_REG);
+                m_jit.cmpl_i32r((unsigned short)lo, currentValueRegister);
                 JmpSrc below = m_jit.emitUnlinkedJl();
-                m_jit.emitCmpl_i32r((unsigned short)hi, CURR_VAL_REG);
+                m_jit.cmpl_i32r((unsigned short)hi, currentValueRegister);
                 matchDest.append(m_jit.emitUnlinkedJle());
                 m_jit.link(below, m_jit.label());
             }
@@ -789,12 +792,12 @@ void WRECGenerator::generateCharacterClassInverted(JmpSrcVector& matchDest, Char
         m_jit.link(isAscii, m_jit.label());
     }
 
-    if (charClass.m_numRanges) {
+    if (charClass.numRanges) {
         unsigned matchIndex = 0;
         JmpSrcVector failures; 
-        generateCharacterClassInvertedRange(failures, matchDest, charClass.m_ranges, charClass.m_numRanges, &matchIndex, charClass.m_matches, charClass.m_numMatches);
-        while (matchIndex < charClass.m_numMatches) {
-            m_jit.emitCmpl_i32r((unsigned short)charClass.m_matches[matchIndex], CURR_VAL_REG);
+        generateCharacterClassInvertedRange(failures, matchDest, charClass.ranges, charClass.numRanges, &matchIndex, charClass.matches, charClass.numMatches);
+        while (matchIndex < charClass.numMatches) {
+            m_jit.cmpl_i32r((unsigned short)charClass.matches[matchIndex], currentValueRegister);
             matchDest.append(m_jit.emitUnlinkedJe());
             ++matchIndex;
         }
@@ -802,12 +805,12 @@ void WRECGenerator::generateCharacterClassInverted(JmpSrcVector& matchDest, Char
         for (unsigned i = 0; i < failures.size(); ++i)
             m_jit.link(failures[i], noMatch);
         failures.clear();
-    } else if (charClass.m_numMatches) {
+    } else if (charClass.numMatches) {
         // optimization: gather 'a','A' etc back together, can mask & test once.
         Vector<char> matchesAZaz;
 
-        for (unsigned i = 0; i < charClass.m_numMatches; ++i) {
-            char ch = charClass.m_matches[i];
+        for (unsigned i = 0; i < charClass.numMatches; ++i) {
+            char ch = charClass.matches[i];
             if (m_parser.m_ignoreCase) {
                 if (isASCIILower(ch)) {
                     matchesAZaz.append(ch);
@@ -816,30 +819,30 @@ void WRECGenerator::generateCharacterClassInverted(JmpSrcVector& matchDest, Char
                 if (isASCIIUpper(ch))
                     continue;
             }
-            m_jit.emitCmpl_i32r((unsigned short)ch, CURR_VAL_REG);
+            m_jit.cmpl_i32r((unsigned short)ch, currentValueRegister);
             matchDest.append(m_jit.emitUnlinkedJe());
         }
 
         if (unsigned countAZaz = matchesAZaz.size()) {
-            m_jit.emitOrl_i8r(32, CURR_VAL_REG);
+            m_jit.orl_rr(32, currentValueRegister);
 
             for (unsigned i = 0; i < countAZaz; ++i) {
                 char ch = matchesAZaz[i];
-                m_jit.emitCmpl_i32r((unsigned short)ch, CURR_VAL_REG);
+                m_jit.cmpl_i32r((unsigned short)ch, currentValueRegister);
                 matchDest.append(m_jit.emitUnlinkedJe());
             }
         }
     }
 
-    if (charClass.m_numMatchesUnicode || charClass.m_numRangesUnicode)
+    if (charClass.numMatchesUnicode || charClass.numRangesUnicode)
         m_jit.link(unicodeFail, m_jit.label());
 }
 
 void WRECGenerator::generateCharacterClass(JmpSrcVector& failures, CharacterClass& charClass, bool invert)
 {
-    m_jit.emitCmpl_rr(LENGTH_REG, CURR_POS_REG);
+    m_jit.cmpl_rr(lengthRegister, currentPositionRegister);
     failures.append(m_jit.emitUnlinkedJe());
-    m_jit.emitMovzwl_mr(INPUT_REG, CURR_POS_REG, 2, CURR_VAL_REG);
+    m_jit.movzwl_mr(inputRegister, currentPositionRegister, 2, currentValueRegister);
 
     if (invert)
         generateCharacterClassInverted(failures, charClass);
@@ -852,7 +855,7 @@ void WRECGenerator::generateCharacterClass(JmpSrcVector& failures, CharacterClas
             m_jit.link(successes[i], here);
     }
     
-    m_jit.emitAddl_i8r(1, CURR_POS_REG);
+    m_jit.addl_i8r(1, currentPositionRegister);
 }
 
 WRECGenerator::JmpSrc WRECGenerator::generateParentheses(ParenthesesType type)
@@ -860,20 +863,20 @@ WRECGenerator::JmpSrc WRECGenerator::generateParentheses(ParenthesesType type)
     unsigned subpatternId = (type == capturing) ? ++m_parser.m_numSubpatterns : m_parser.m_numSubpatterns;
 
     // push pos, both to preserve for fail + reloaded in parseDisjunction
-    m_jit.emitPushl_r(CURR_POS_REG);
+    m_jit.pushl_r(currentPositionRegister);
 
     // Plant a disjunction, wrapped to invert behaviour - 
     JmpSrcVector newFailures;
     m_parser.parseDisjunction(newFailures);
     
     if (type == capturing) {
-        m_jit.emitPopl_r(CURR_VAL_REG);
-        m_jit.emitMovl_rm(CURR_VAL_REG, (2 * subpatternId) * sizeof(int), OUTPUT_REG);
-        m_jit.emitMovl_rm(CURR_POS_REG, (2 * subpatternId + 1) * sizeof(int), OUTPUT_REG);
+        m_jit.popl_r(currentValueRegister);
+        m_jit.movl_rm(currentValueRegister, (2 * subpatternId) * sizeof(int), outputRegister);
+        m_jit.movl_rm(currentPositionRegister, (2 * subpatternId + 1) * sizeof(int), outputRegister);
     } else if (type == non_capturing)
-        m_jit.emitAddl_i8r(4, X86Assembler::esp);
+        m_jit.addl_i8r(4, X86::esp);
     else
-        m_jit.emitPopl_r(CURR_POS_REG);
+        m_jit.popl_r(currentPositionRegister);
 
     // This is a little lame - jump to jump if there is a nested disjunction.
     // (suggestion to fix: make parseDisjunction populate a JmpSrcVector of
@@ -885,8 +888,8 @@ WRECGenerator::JmpSrc WRECGenerator::generateParentheses(ParenthesesType type)
     for (unsigned i = 0; i < newFailures.size(); ++i)
         m_jit.link(newFailures[i], originalFailure);
     newFailures.clear();
-    // fail: restore CURR_POS_REG
-    m_jit.emitPopl_r(CURR_POS_REG);
+    // fail: restore currentPositionRegister
+    m_jit.popl_r(currentPositionRegister);
 
     JmpSrc jumpToFail;
     // If this was an inverted assert, fail = success! - just let the failure case drop through,
@@ -919,8 +922,8 @@ WRECGenerator::JmpSrc WRECGenerator::gererateParenthesesResetTrampoline(JmpSrcVe
         m_jit.link(newFailures[i], subPatternResetTrampoline);
     newFailures.clear();
     for (unsigned i = subpatternIdBefore + 1; i <= subpatternIdAfter; ++i) {
-        m_jit.emitMovl_i32m(-1, (2 * i) * sizeof(int), OUTPUT_REG);
-        m_jit.emitMovl_i32m(-1, (2 * i + 1) * sizeof(int), OUTPUT_REG);
+        m_jit.movl_i32m(-1, (2 * i) * sizeof(int), outputRegister);
+        m_jit.movl_i32m(-1, (2 * i + 1) * sizeof(int), outputRegister);
     }
     
     JmpSrc newFailJump = m_jit.emitUnlinkedJmp();
@@ -935,12 +938,12 @@ void WRECGenerator::generateAssertionBOL(JmpSrcVector& failures)
         JmpSrcVector previousIsNewline;
 
         // begin of input == success
-        m_jit.emitCmpl_i8r(0, CURR_POS_REG);
+        m_jit.cmpl_i8r(0, currentPositionRegister);
         previousIsNewline.append(m_jit.emitUnlinkedJe());
 
         // now check prev char against newline characters.
-        m_jit.emitMovzwl_mr(-2, INPUT_REG, CURR_POS_REG, 2, CURR_VAL_REG);
-        generateCharacterClassInverted(previousIsNewline, getCharacterClass_newline());
+        m_jit.movzwl_mr(-2, inputRegister, currentPositionRegister, 2, currentValueRegister);
+        generateCharacterClassInverted(previousIsNewline, getCharacterClassNewline());
 
         failures.append(m_jit.emitUnlinkedJmp());
 
@@ -949,7 +952,7 @@ void WRECGenerator::generateAssertionBOL(JmpSrcVector& failures)
             m_jit.link(previousIsNewline[i], success);
         previousIsNewline.clear();
     } else {
-        m_jit.emitCmpl_i8r(0, CURR_POS_REG);
+        m_jit.cmpl_i8r(0, currentPositionRegister);
         failures.append(m_jit.emitUnlinkedJne());
     }
 }
@@ -960,12 +963,12 @@ void WRECGenerator::generateAssertionEOL(JmpSrcVector& failures)
         JmpSrcVector nextIsNewline;
 
         // end of input == success
-        m_jit.emitCmpl_rr(LENGTH_REG, CURR_POS_REG);
+        m_jit.cmpl_rr(lengthRegister, currentPositionRegister);
         nextIsNewline.append(m_jit.emitUnlinkedJe());
 
         // now check next char against newline characters.
-        m_jit.emitMovzwl_mr(INPUT_REG, CURR_POS_REG, 2, CURR_VAL_REG);
-        generateCharacterClassInverted(nextIsNewline, getCharacterClass_newline());
+        m_jit.movzwl_mr(inputRegister, currentPositionRegister, 2, currentValueRegister);
+        generateCharacterClassInverted(nextIsNewline, getCharacterClassNewline());
 
         failures.append(m_jit.emitUnlinkedJmp());
 
@@ -974,7 +977,7 @@ void WRECGenerator::generateAssertionEOL(JmpSrcVector& failures)
             m_jit.link(nextIsNewline[i], success);
         nextIsNewline.clear();
     } else {
-        m_jit.emitCmpl_rr(LENGTH_REG, CURR_POS_REG);
+        m_jit.cmpl_rr(lengthRegister, currentPositionRegister);
         failures.append(m_jit.emitUnlinkedJne());
     }
 }
@@ -987,23 +990,23 @@ void WRECGenerator::generateAssertionWordBoundary(JmpSrcVector& failures, bool i
     // (1) Check if the previous value was a word char
 
     // (1.1) check for begin of input
-    m_jit.emitCmpl_i8r(0, CURR_POS_REG);
+    m_jit.cmpl_i8r(0, currentPositionRegister);
     JmpSrc atBegin = m_jit.emitUnlinkedJe();
     // (1.2) load the last char, and chck if is word character
-    m_jit.emitMovzwl_mr(-2, INPUT_REG, CURR_POS_REG, 2, CURR_VAL_REG);
+    m_jit.movzwl_mr(-2, inputRegister, currentPositionRegister, 2, currentValueRegister);
     JmpSrcVector previousIsWord;
-    generateCharacterClassInverted(previousIsWord, getCharacterClass_w());
+    generateCharacterClassInverted(previousIsWord, getCharacterClassWordchar());
     // (1.3) if we get here, previous is not a word char
     m_jit.link(atBegin, m_jit.label());
 
     // (2) Handle situation where previous was NOT a \w
 
     // (2.1) check for end of input
-    m_jit.emitCmpl_rr(LENGTH_REG, CURR_POS_REG);
+    m_jit.cmpl_rr(lengthRegister, currentPositionRegister);
     notWordBoundary.append(m_jit.emitUnlinkedJe());
     // (2.2) load the next char, and chck if is word character
-    m_jit.emitMovzwl_mr(INPUT_REG, CURR_POS_REG, 2, CURR_VAL_REG);
-    generateCharacterClassInverted(wordBoundary, getCharacterClass_w());
+    m_jit.movzwl_mr(inputRegister, currentPositionRegister, 2, currentValueRegister);
+    generateCharacterClassInverted(wordBoundary, getCharacterClassWordchar());
     // (2.3) If we get here, neither chars are word chars
     notWordBoundary.append(m_jit.emitUnlinkedJmp());
 
@@ -1015,11 +1018,11 @@ void WRECGenerator::generateAssertionWordBoundary(JmpSrcVector& failures, bool i
         m_jit.link(previousIsWord[i], section3);
     previousIsWord.clear();
     // (3.1) check for end of input
-    m_jit.emitCmpl_rr(LENGTH_REG, CURR_POS_REG);
+    m_jit.cmpl_rr(lengthRegister, currentPositionRegister);
     wordBoundary.append(m_jit.emitUnlinkedJe());
     // (3.2) load the next char, and chck if is word character
-    m_jit.emitMovzwl_mr(INPUT_REG, CURR_POS_REG, 2, CURR_VAL_REG);
-    generateCharacterClassInverted(notWordBoundary, getCharacterClass_w());
+    m_jit.movzwl_mr(inputRegister, currentPositionRegister, 2, currentValueRegister);
+    generateCharacterClassInverted(notWordBoundary, getCharacterClassWordchar());
     // (3.3) If we get here, this is an end of a word, within the input.
     
     // (4) Link everything up
@@ -1048,41 +1051,41 @@ void WRECGenerator::generateAssertionWordBoundary(JmpSrcVector& failures, bool i
 
 void WRECGenerator::generateBackreference(JmpSrcVector& failures, unsigned subpatternId)
 {
-    m_jit.emitPushl_r(CURR_POS_REG);
-    m_jit.emitPushl_r(QUANTIFIER_COUNT_REG);
+    m_jit.pushl_r(currentPositionRegister);
+    m_jit.pushl_r(quantifierCountRegister);
 
-    // get the start pos of the backref into QUANTIFIER_COUNT_REG (multipurpose!)
-    m_jit.emitMovl_mr((2 * subpatternId) * sizeof(int), OUTPUT_REG, QUANTIFIER_COUNT_REG);
+    // get the start pos of the backref into quantifierCountRegister (multipurpose!)
+    m_jit.movl_mr((2 * subpatternId) * sizeof(int), outputRegister, quantifierCountRegister);
 
     JmpSrc skipIncrement = m_jit.emitUnlinkedJmp();
     JmpDst topOfLoop = m_jit.label();
-    m_jit.emitAddl_i8r(1, CURR_POS_REG);
-    m_jit.emitAddl_i8r(1, QUANTIFIER_COUNT_REG);
+    m_jit.addl_i8r(1, currentPositionRegister);
+    m_jit.addl_i8r(1, quantifierCountRegister);
     m_jit.link(skipIncrement, m_jit.label());
 
     // check if we're at the end of backref (if we are, success!)
-    m_jit.emitCmpl_rm(QUANTIFIER_COUNT_REG, ((2 * subpatternId) + 1) * sizeof(int), OUTPUT_REG);
+    m_jit.cmpl_rm(quantifierCountRegister, ((2 * subpatternId) + 1) * sizeof(int), outputRegister);
     JmpSrc endOfBackRef = m_jit.emitUnlinkedJe();
     
-    m_jit.emitMovzwl_mr(INPUT_REG, QUANTIFIER_COUNT_REG, 2, CURR_VAL_REG);
+    m_jit.movzwl_mr(inputRegister, quantifierCountRegister, 2, currentValueRegister);
     
     // check if we've run out of input (this would be a can o'fail)
-    m_jit.emitCmpl_rr(LENGTH_REG, CURR_POS_REG);
+    m_jit.cmpl_rr(lengthRegister, currentPositionRegister);
     JmpSrc endOfInput = m_jit.emitUnlinkedJe();
     
-    m_jit.emitCmpw_rm(CURR_VAL_REG, INPUT_REG, CURR_POS_REG, 2);
+    m_jit.cmpw_rm(currentValueRegister, inputRegister, currentPositionRegister, 2);
     m_jit.link(m_jit.emitUnlinkedJe(), topOfLoop);
     
     m_jit.link(endOfInput, m_jit.label());
     // Failure
-    m_jit.emitPopl_r(QUANTIFIER_COUNT_REG);
-    m_jit.emitPopl_r(CURR_POS_REG);
+    m_jit.popl_r(quantifierCountRegister);
+    m_jit.popl_r(currentPositionRegister);
     failures.append(m_jit.emitUnlinkedJmp());
     
     // Success
     m_jit.link(endOfBackRef, m_jit.label());
-    m_jit.emitPopl_r(QUANTIFIER_COUNT_REG);
-    m_jit.emitAddl_i8r(4, X86Assembler::esp);
+    m_jit.popl_r(quantifierCountRegister);
+    m_jit.addl_i8r(4, X86::esp);
 }
 
 void WRECGenerator::gernerateDisjunction(JmpSrcVector& successes, JmpSrcVector& failures)
@@ -1095,7 +1098,7 @@ void WRECGenerator::gernerateDisjunction(JmpSrcVector& successes, JmpSrcVector& 
         m_jit.link(failures[i], here);
     failures.clear();
     
-    m_jit.emitMovl_mr(X86Assembler::esp, CURR_POS_REG);
+    m_jit.movl_mr(X86::esp, currentPositionRegister);
 }
 
 void WRECGenerator::terminateDisjunction(JmpSrcVector& successes)
@@ -1187,9 +1190,9 @@ Quantifier WRECParser::parseQuantifier()
 {
     Quantifier q = parseGreedyQuantifier();
     
-    if ((q.m_type == Quantifier::Greedy) && (peek() == '?')) {
+    if ((q.type == Quantifier::Greedy) && (peek() == '?')) {
         consume();
-        q.m_type = Quantifier::NonGreedy;
+        q.type = Quantifier::NonGreedy;
     }
     
     return q;
@@ -1199,7 +1202,7 @@ bool WRECParser::parsePatternCharacterQualifier(JmpSrcVector& failures, int ch)
 {
     Quantifier q = parseQuantifier();
 
-    switch (q.m_type) {
+    switch (q.type) {
     case Quantifier::None: {
         m_generator.generatePatternCharacter(failures, ch);
         break;
@@ -1207,13 +1210,13 @@ bool WRECParser::parsePatternCharacterQualifier(JmpSrcVector& failures, int ch)
 
     case Quantifier::Greedy: {
         GeneratePatternCharacterFunctor functor(ch);
-        m_generator.generateGreedyQuantifier(failures, functor, q.m_min, q.m_max);
+        m_generator.generateGreedyQuantifier(failures, functor, q.min, q.max);
         break;
     }
 
     case Quantifier::NonGreedy: {
         GeneratePatternCharacterFunctor functor(ch);
-        m_generator.generateNonGreedyQuantifier(failures, functor, q.m_min, q.m_max);
+        m_generator.generateNonGreedyQuantifier(failures, functor, q.min, q.max);
         break;
     }
 
@@ -1228,7 +1231,7 @@ bool WRECParser::parseCharacterClassQuantifier(JmpSrcVector& failures, Character
 {
     Quantifier q = parseQuantifier();
 
-    switch (q.m_type) {
+    switch (q.type) {
     case Quantifier::None: {
         m_generator.generateCharacterClass(failures, charClass, invert);
         break;
@@ -1236,13 +1239,13 @@ bool WRECParser::parseCharacterClassQuantifier(JmpSrcVector& failures, Character
 
     case Quantifier::Greedy: {
         GenerateCharacterClassFunctor functor(&charClass, invert);
-        m_generator.generateGreedyQuantifier(failures, functor, q.m_min, q.m_max);
+        m_generator.generateGreedyQuantifier(failures, functor, q.min, q.max);
         break;
     }
 
     case Quantifier::NonGreedy: {
         GenerateCharacterClassFunctor functor(&charClass, invert);
-        m_generator.generateNonGreedyQuantifier(failures, functor, q.m_min, q.m_max);
+        m_generator.generateNonGreedyQuantifier(failures, functor, q.min, q.max);
         break;
     }
 
@@ -1257,7 +1260,7 @@ bool WRECParser::parseBackreferenceQuantifier(JmpSrcVector& failures, unsigned s
 {
     Quantifier q = parseQuantifier();
 
-    switch (q.m_type) {
+    switch (q.type) {
     case Quantifier::None: {
         m_generator.generateBackreference(failures, subpatternId);
         break;
@@ -1265,7 +1268,7 @@ bool WRECParser::parseBackreferenceQuantifier(JmpSrcVector& failures, unsigned s
 
     case Quantifier::Greedy:
     case Quantifier::NonGreedy:
-        m_generator.generateBackreferenceQuantifier(failures, q.m_type, subpatternId, q.m_min, q.m_max);
+        m_generator.generateBackreferenceQuantifier(failures, q.type, subpatternId, q.min, q.max);
         return true;
 
     case Quantifier::Error:
@@ -1383,27 +1386,27 @@ bool WRECParser::parseCharacterClass(JmpSrcVector& failures)
             // CharacterClassEscape
             case 'd':
                 consume();
-                charClassConstructor.append(getCharacterClass_d());
+                charClassConstructor.append(getCharacterClassDigits());
                 break;
             case 's':
                 consume();
-                charClassConstructor.append(getCharacterClass_s());
+                charClassConstructor.append(getCharacterClassSpaces());
                 break;
             case 'w':
                 consume();
-                charClassConstructor.append(getCharacterClass_w());
+                charClassConstructor.append(getCharacterClassWordchar());
                 break;
             case 'D':
                 consume();
-                charClassConstructor.append(getCharacterClass_D());
+                charClassConstructor.append(getCharacterClassNondigits());
                 break;
             case 'S':
                 consume();
-                charClassConstructor.append(getCharacterClass_S());
+                charClassConstructor.append(getCharacterClassNonspaces());
                 break;
             case 'W':
                 consume();
-                charClassConstructor.append(getCharacterClass_W());
+                charClassConstructor.append(getCharacterClassNonwordchar());
                 break;
 
             case '-':
@@ -1567,22 +1570,22 @@ bool WRECParser::parseEscape(JmpSrcVector& failures)
     // CharacterClassEscape
     case 'd':
         consume();
-        return parseCharacterClassQuantifier(failures, getCharacterClass_d(), false);
+        return parseCharacterClassQuantifier(failures, getCharacterClassDigits(), false);
     case 's':
         consume();
-        return parseCharacterClassQuantifier(failures, getCharacterClass_s(), false);
+        return parseCharacterClassQuantifier(failures, getCharacterClassSpaces(), false);
     case 'w':
         consume();
-        return parseCharacterClassQuantifier(failures, getCharacterClass_w(), false);
+        return parseCharacterClassQuantifier(failures, getCharacterClassWordchar(), false);
     case 'D':
         consume();
-        return parseCharacterClassQuantifier(failures, getCharacterClass_d(), true);
+        return parseCharacterClassQuantifier(failures, getCharacterClassDigits(), true);
     case 'S':
         consume();
-        return parseCharacterClassQuantifier(failures, getCharacterClass_s(), true);
+        return parseCharacterClassQuantifier(failures, getCharacterClassSpaces(), true);
     case 'W':
         consume();
-        return parseCharacterClassQuantifier(failures, getCharacterClass_w(), true);
+        return parseCharacterClassQuantifier(failures, getCharacterClassWordchar(), true);
 
     // IdentityEscape
     default: {
@@ -1629,7 +1632,7 @@ bool WRECParser::parseTerm(JmpSrcVector& failures)
 
     case '.':
         consume();
-        return parseCharacterClassQuantifier(failures, getCharacterClass_newline(), true);
+        return parseCharacterClassQuantifier(failures, getCharacterClassNewline(), true);
 
     case '[':
         // CharacterClass

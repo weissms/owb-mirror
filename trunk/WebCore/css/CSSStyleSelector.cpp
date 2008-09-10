@@ -356,7 +356,7 @@ static const char* simpleUserAgentStyleSheet = "html,body,div{display:block}body
 
 static bool elementCanUseSimpleDefaultStyle(Element* e)
 {
-    return e->hasTagName(htmlTag) || e->hasTagName(bodyTag) || e->hasTagName(divTag) || e->hasTagName(spanTag);
+    return e->hasTagName(htmlTag) || e->hasTagName(bodyTag) || e->hasTagName(divTag) || e->hasTagName(spanTag) || e->hasTagName(brTag);
 }
 
 static const MediaQueryEvaluator& screenEval()
@@ -435,7 +435,7 @@ CSSStyleSelector::CSSStyleSelector(Document* doc, const String& userStyleSheet, 
     }
 }
 
-// this is a simplified style setting function for keyframe styles
+// This is a simplified style setting function for keyframe styles
 void CSSStyleSelector::addKeyframeStyle(Document* doc, const WebKitCSSKeyframesRule* rule)
 {
     AtomicString s(rule->name());
@@ -447,7 +447,11 @@ void CSSStyleSelector::addKeyframeStyle(Document* doc, const WebKitCSSKeyframesR
         m_keyframeRuleMap.add(s.impl(), list);
     }
     list->clear();
-                    
+
+    // Make sure there is a 0% and a 100% keyframe
+    if (rule->item(0)->key() || rule->item(rule->length() - 1)->key() != 1)
+        return;
+        
     for (unsigned i = 0; i < rule->length(); ++i) {
         const WebKitCSSKeyframeRule* kf = rule->item(i);
         m_style = new (doc->renderArena()) RenderStyle();
@@ -4121,10 +4125,17 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
         } else if (primitiveValue) {
             m_style->setLineHeight(RenderStyle::initialLineHeight());
             m_lineHeightValue = 0;
+            
             FontDescription fontDescription;
             theme()->systemFont(primitiveValue->getIdent(), fontDescription);
+ 
             // Double-check and see if the theme did anything.  If not, don't bother updating the font.
             if (fontDescription.isAbsoluteSize()) {
+                // Make sure the rendering mode and printer font settings are updated.
+                Settings* settings = m_checker.m_document->settings();
+                fontDescription.setRenderingMode(settings->fontRenderingMode());
+                fontDescription.setUsePrinterFont(m_checker.m_document->printing());
+           
                 // Handle the zoom factor.
                 fontDescription.setComputedSize(getComputedSizeFromSpecifiedSize(fontDescription.isAbsoluteSize(), fontDescription.specifiedSize()));
                 if (m_style->setFontDescription(fontDescription))

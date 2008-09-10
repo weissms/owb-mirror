@@ -432,6 +432,16 @@ public:
     AffineTransform inverse() const;
 
 
+
+    /**
+     * blend 
+     * @param[in] : affineTransform
+     * @param[in] : a double
+     * @code
+     * @endcode
+     */
+    void blend(const AffineTransform& from, double progress);
+
     /**
      * PlatformAffineTransform operator
      */
@@ -484,5 +494,4 @@ private:
 } // namespace WKAL
 
 #endif // AffineTransform_h
-
 

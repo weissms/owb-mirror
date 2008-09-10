@@ -1,3 +1,26 @@
+2008-09-10  Adam Roben  <aroben@apple.com>
+
+        Respect the font smoothing preference when drawing via WebKitGraphics
+
+        Reviewed by Dave Hyatt.
+
+        * WebKitGraphics.cpp:
+        (makeFont): Check the font smoothing preference and update the
+        FontDescription's rendering mode based on it.
+
+2008-09-08  Steve Falkenburg  <sfalken@apple.com>
+
+        Another Windows nightly build fix.
+        
+        Remove non-production versions of CLSIDs since we'll use registry free COM with
+        an embedded manifest now in all cases to find COM classes.
+        
+        Reviewed by Sam Weinig.
+
+        * ForEachCoClass.cpp:
+        (setUseOpenSourceWebKit): Remove COM registration code.
+        * Interfaces/WebKit.idl: Remove non-production COM classes
+
 2008-09-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
 
         Reviewed by Maciej Stachowiak.

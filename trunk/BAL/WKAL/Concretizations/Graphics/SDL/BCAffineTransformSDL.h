@@ -90,6 +90,8 @@ public:
     bool isInvertible() const;
     AffineTransform inverse() const;
 
+    void blend(const AffineTransform& from, double progress);
+
     operator BalMatrix() const;
     bool operator==(const AffineTransform&) const;
     bool operator!=(const AffineTransform& other) const { return !(*this == other); }

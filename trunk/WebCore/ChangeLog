@@ -1,3 +1,360 @@
+2008-09-10  Dave Hyatt  <hyatt@apple.com
+
+        Resurrect PlatformScrollbarWin.
+        
+        Reviewed by Adam Roben
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/win/PlatformScrollBarWin.cpp:
+        (WebCore::isRunningOnVistaOrLater):
+        (WebCore::checkAndInitScrollbarTheme):
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        (WebCore::PlatformScrollbar::invalidateTrack):
+        (WebCore::PlatformScrollbar::invalidatePart):
+        (WebCore::PlatformScrollbar::paint):
+        (WebCore::PlatformScrollbar::hasButtons):
+        (WebCore::PlatformScrollbar::hasThumb):
+        (WebCore::PlatformScrollbar::backButtonRect):
+        (WebCore::PlatformScrollbar::forwardButtonRect):
+        (WebCore::PlatformScrollbar::trackRect):
+        (WebCore::PlatformScrollbar::gripperRect):
+        (WebCore::PlatformScrollbar::thumbLength):
+        (WebCore::PlatformScrollbar::paintButton):
+        (WebCore::PlatformScrollbar::paintTrack):
+        (WebCore::PlatformScrollbar::paintThumb):
+        (WebCore::PlatformScrollbar::paintGripper):
+        (WebCore::PlatformScrollbar::hitTest):
+        (WebCore::PlatformScrollbar::handleMouseMoveEvent):
+        (WebCore::PlatformScrollbar::handleMouseOutEvent):
+        (WebCore::PlatformScrollbar::themeChanged):
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20759: Remove MacroAssembler
+        <https://bugs.webkit.org/show_bug.cgi?id=20759>
+
+        Make the necessary changes to ForwardingHeaders to remove
+        MacroAssembler.
+
+        * ForwardingHeaders/masm/IA32MacroAsm.h: Removed.
+        * ForwardingHeaders/masm/MacroAssembler.h: Removed.
+        * ForwardingHeaders/masm/X86Assembler.h: Added.
+
+2008-09-09  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=16792
+        [GTK] Fails to render Japanese/Chinese text with simple path
+
+        https://bugs.webkit.org/show_bug.cgi?id=16942
+        [GTK] Oddities in font selection and fall back
+
+        https://bugs.webkit.org/show_bug.cgi?id=16862
+        [GTK] Custom fonts hard-coded to use grayscale antialiasing and no hinting
+
+        GTK+ font fixes and enhancements.
+
+        Implement font fallback for the simple FontConfig-based text path and
+        improve the Pango-based complex text path to make use of requested
+        font properties and available font selection.
+
+        Add text shadow support to the complex path.
+
+        * platform/graphics/gtk/FontCacheGtk.cpp:
+        (WebCore::FontCache::getFontDataForCharacters):
+        (WebCore::FontCache::getSimilarFontPlatformData):
+        * platform/graphics/gtk/FontGtk.cpp:
+        (WebCore::setPangoAttributes):
+        (WebCore::Font::drawComplexText):
+        (WebCore::getDefaultPangoLayout):
+        (WebCore::Font::floatWidthForComplexText):
+        (WebCore::Font::offsetForPositionForComplexText):
+        (WebCore::Font::selectionRectForComplexText):
+        * platform/graphics/gtk/FontPlatformData.h:
+        (WebCore::FontPlatformData::FontPlatformData):
+        (WebCore::FontPlatformData::hash):
+        * platform/graphics/gtk/FontPlatformDataGtk.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+        * platform/graphics/gtk/SimpleFontDataGtk.cpp:
+        (WebCore::SimpleFontData::platformDestroy):
+
+2008-09-09  Dave Hyatt  <hyatt@apple.com>
+
+        Make the Windows classic case work again.  Overlap in slider constants and other constants broke
+        the push state for buttons and checkboxes.  Make sure to check the RenderObject's appearance
+        value to make sure it's really a slider thumb to resolve this conflict.
+       
+        Reviewed by Adam Roben
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::drawControl):
+
+2008-09-05  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Need to handle the case when 0% or 100% keyframe is omitted
+        https://bugs.webkit.org/show_bug.cgi?id=20679
+
+        Tests: animations/keyframes-from-missing.html
+               animations/keyframes-to-missing.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::addKeyframeStyle):
+
+2008-09-09  Dave Hyatt  <hyatt@apple.com>
+
+        Resurrect Safari's original RenderThemeWin and bring it up to date with ToT.  Having a current
+        RenderThemeWin that does not have any Skia dependencies should provide a good basis for a potential
+        merge of Google Chrome's RenderThemeWin (to help us see where the Skia stuff can be cut and to see
+        what changes have been made as compared with the old RenderThemeWin).
+        
+        Fix CSS2 system fonts to properly set both the rendering mode (so that they properly pick up GDI vs. CG
+        text rendering modes) and the printer font setting (so that OS X system fonts properly pick up screen
+        vs. printer advancement rounding).
+    
+        Reviewed by Adam/Sam
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        * platform/graphics/Icon.h:
+        (WebCore::Icon::create):
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::RenderThemeWin):
+        (WebCore::RenderThemeWin::~RenderThemeWin):
+        (WebCore::RenderThemeWin::buttonTheme):
+        (WebCore::RenderThemeWin::textFieldTheme):
+        (WebCore::RenderThemeWin::menuListTheme):
+        (WebCore::RenderThemeWin::sliderTheme):
+        (WebCore::RenderThemeWin::close):
+        (WebCore::RenderThemeWin::themeChanged):
+        (WebCore::RenderThemeWin::supportsHover):
+        (WebCore::fillFontDescription):
+        (WebCore::RenderThemeWin::systemFont):
+        (WebCore::RenderThemeWin::supportsFocus):
+        (WebCore::RenderThemeWin::determineClassicState):
+        (WebCore::RenderThemeWin::determineState):
+        (WebCore::RenderThemeWin::determineSliderThumbState):
+        (WebCore::RenderThemeWin::getClassicThemeData):
+        (WebCore::RenderThemeWin::getThemeData):
+        (WebCore::drawControl):
+        (WebCore::RenderThemeWin::paintButton):
+        (WebCore::RenderThemeWin::paintTextField):
+        (WebCore::RenderThemeWin::paintMenuList):
+        (WebCore::RenderThemeWin::adjustMenuListStyle):
+        (WebCore::RenderThemeWin::adjustMenuListButtonStyle):
+        (WebCore::RenderThemeWin::paintMenuListButton):
+        (WebCore::RenderThemeWin::paintSliderTrack):
+        (WebCore::RenderThemeWin::paintSliderThumb):
+        (WebCore::RenderThemeWin::adjustSliderThumbSize):
+        (WebCore::RenderThemeWin::paintSearchField):
+        (WebCore::RenderThemeWin::adjustSearchFieldStyle):
+        (WebCore::RenderThemeWin::paintSearchFieldCancelButton):
+        (WebCore::RenderThemeWin::adjustSearchFieldCancelButtonStyle):
+        (WebCore::RenderThemeWin::adjustSearchFieldDecorationStyle):
+        (WebCore::RenderThemeWin::adjustSearchFieldResultsDecorationStyle):
+        (WebCore::RenderThemeWin::paintSearchFieldResultsDecoration):
+        (WebCore::RenderThemeWin::adjustSearchFieldResultsButtonStyle):
+        (WebCore::RenderThemeWin::paintSearchFieldResultsButton):
+        * rendering/RenderThemeWin.h:
+        (WebCore::ThemeData::ThemeData):
+        (WebCore::RenderThemeWin::paintSearchFieldDecoration):
+        (WebCore::RenderThemeWin::adjustButtonStyle):
+        (WebCore::RenderThemeWin::adjustTextFieldStyle):
+        (WebCore::RenderThemeWin::adjustTextAreaStyle):
+
+2008-09-09  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Document::createEvent missing cases for animation and
+        transition events.
+        https://bugs.webkit.org/show_bug.cgi?id=20734
+
+        Test: transitions/transition-end-event-create.html
+        Test: animations/animation-events-create.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::createEvent):
+            - add the two cases
+
+2008-09-09  Dan Bernstein  <mitz@apple.com>
+
+        - Tiger build fix
+
+        * WebCore.Tiger.exp:
+        * WebCore.base.exp:
+        * platform/mac/WebCoreSystemInterface.h:
+        * platform/mac/WebCoreSystemInterface.mm:
+
+2008-09-09  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - WebCore part of <rdar://problem/6206244> Use alternate character-to-glyph interface on Leopard
+
+        * WebCore.Tiger.exp:
+        * WebCore.base.exp:
+        * platform/graphics/SimpleFontData.h:
+        * platform/graphics/mac/GlyphPageTreeNodeMac.cpp:
+        (WebCore::GlyphPage::fill):
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        (WebCore::initFontData):
+        (WebCore::SimpleFontData::platformInit):
+        (WebCore::SimpleFontData::platformDestroy):
+        * platform/mac/WebCoreSystemInterface.h:
+        * platform/mac/WebCoreSystemInterface.mm:
+
+2008-09-09  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/6198545> REGRESSION: Inspector debugger barfs on
+        breakpoints inside eval.
+
+        * page/inspector/inspector.js:
+
+2008-09-09  Joerg Bornemann  <joerg.bornemann@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix compilation of the Qt port with disabled plugins on Windows
+
+        * WebCore.pro:
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::PluginView):
+        * plugins/PluginView.h:
+
+2008-09-09  Jungshik Shin  <jungshik.shin@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Try MIME charset names before trying IANA names 
+        ( https://bugs.webkit.org/show_bug.cgi?id=17537 )
+
+        With this change, shorter and more widely used names (preferred MIME
+        names) are returned by document.charset, document.characterSet,
+        document.inputEncoding rather than IANA names. This  helps
+        fixing bug 18085 in addition to web developers who are more familiar
+        with MIME names. For instance, EUC-JP, ISO-8859-X and US-ASCII will be
+        returned instead of Extended_UNIX_Code_Packed_Format_for_Japanese, 
+        ISO-8859-X:19xx, and ANSI_X3.4-1968. It also replaces IBM8xx with cp8xx. 
+        Note that cp/IBM 8xx are extremly rare in today's web. Even if they're
+        used, the former is still recognized as aliases to the latter so that
+        there's very little, if any, to worry about.
+
+        * platform/text/TextCodecICU.cpp:
+        (WebCore::TextCodecICU::registerExtendedEncodingNames):
+
+2008-09-08  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak and Oliver Hunt.
+
+        Add forwarding headers.
+
+        * ForwardingHeaders/wtf/HashFunctions.h: Added.
+
+2008-09-05  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Update grammar so that we can add a keyframe rule via the DOM.
+        https://bugs.webkit.org/show_bug.cgi?id=20613
+
+        * css/CSSGrammar.y:
+        * css/tokenizer.flex:
+
+2008-09-08  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Allow <br> for simple UA stylesheet. Editing code generates them. It does not
+        actually show up in any of the default stylesheets.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::elementCanUseSimpleDefaultStyle):
+
+2008-09-08  Dimitri Glazkov  <dglazkov@google.com>
+
+        Reviewed by Dan Bernstein.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=20237
+          Zero width and space characters are displayed incorrectly if not contained in a fallback font
+
+        Adds an extra check for Object Replacement Character (U+FFFC) to address
+        the issue with fast/text/zero-width-characters.html test when run
+        with Windows system default fonts.
+
+        * platform/graphics/Font.h:
+        (WebCore::Font::treatAsZeroWidthSpace):
+
+2008-09-08  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Code style issue I forgot to fix from previous commit.
+
+        * platform/graphics/AffineTransform.cpp:
+        (WebCore::AffineTransform::blend):
+
+2008-09-08  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Sam Weinig
+
+        - Animation of -webkit-transform matrix() function should not do linear interpolation
+          https://bugs.webkit.org/show_bug.cgi?id=20667
+
+        Test: animations/matrix-anim.html
+
+        * ChangeLog:
+        * platform/graphics/AffineTransform.cpp:
+        (WebCore::affineTransformDecompose):
+        (WebCore::affineTransformCompose):
+        (WebCore::AffineTransform::blend):
+        * platform/graphics/AffineTransform.h:
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::MatrixTransformOperation::blend):
+
+2008-09-08  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20668
+        multipart/form-data does not always include Content-type for submitted files
+
+        Cannot be tested with DRT or manual tests.
+
+        * platform/MIMETypeRegistry.cpp:
+        (WebCore::initializeSupportedNonImageMimeTypes): Fix spacing.
+        (WebCore::MIMETypeRegistry::getMIMETypeForPath): Default to application/octet-stream for
+        unknown extensions, not just missing ones.
+
+2008-09-08  Simon Hausmann  <hausmann@webkit.org>
+
+        Build fix for the Qt/Windows build, define USE_JSC to
+        enable the WebCore::String -> JSC::UString operator that
+        MSVC insists on seeing
+
+        * WebCore.pro:
+
+2008-09-08  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Maciej.
+
+        <rdar://problem/5850387> Showing bookmarks reloads Google Reader instead.
+        
+        In some cases, timeouts scheduled by a page in the onunload handler could fire even when the
+        page had been unloaded and replaced by a non-HTML representation based view (such as the bookmarks view).
+        
+        Fix this by clearing timeouts for pages that aren't cached when the provisional load is committed.
+        
+        * bindings/js/JSDOMWindowBase.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::commitProvisionalLoad):
+
 2008-09-08  Antti Koivisto  <antti@apple.com>
 
         Reviewed by Dave Hyatt.

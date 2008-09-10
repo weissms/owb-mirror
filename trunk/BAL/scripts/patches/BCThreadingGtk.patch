@@ -1,7 +1,7 @@
-Index: /Users/jcverdie/owb/Trunk/BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp 
-=================================================================== 
---- /Users/jcverdie/owb/Trunk/BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp    (revision 483) 
-+++ /Users/jcverdie/owb/Trunk/BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp    (working copy)
+Index: BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp
+===================================================================
+--- BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	(revision 486)
++++ BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	(working copy)
 @@ -40,7 +40,7 @@
  
  Mutex* atomicallyInitializedStaticMutex;
@@ -11,7 +11,7 @@ Index: /Users/jcverdie/owb/Trunk/BAL/OWBAL/Concretizations/Types/Gtk/BCThreading
  static ThreadIdentifier mainThreadIdentifier;
  #endif
  
-@@ -60,10 +60,12 @@
+@@ -60,7 +60,7 @@
          atomicallyInitializedStaticMutex = new Mutex;
          threadMapMutex();
          wtf_random_init();
@@ -19,9 +19,4 @@ Index: /Users/jcverdie/owb/Trunk/BAL/OWBAL/Concretizations/Types/Gtk/BCThreading
 +#if !PLATFORM(DARWIN) || PLATFORM(MACPORT)
          mainThreadIdentifier = currentThread();
  #endif
-+#if PLATFORM(WIN)
-         initializeMainThread();
-+#endif
-     }
- }
- 
+ #if PLATFORM(WIN)

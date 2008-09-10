@@ -29,12 +29,17 @@
 #if ENABLE(WREC)
 
 #include "ustring.h"
-#include <masm/MacroAssembler.h>
+#include <masm/X86Assembler.h>
 #include <wtf/ASCIICType.h>
 #include <wtf/Vector.h>
 
-namespace JSC {
+#if COMPILER(GCC)
+#define WREC_CALL __attribute__ ((regparm (3)))
+#else
+#define WREC_CALL
+#endif
 
+namespace JSC {
 
     typedef int (*WRECFunction)(const UChar* input, unsigned start, unsigned length, int* output) WREC_CALL;
 
@@ -44,56 +49,55 @@ namespace JSC {
     struct CharacterClass;
 
     struct Quantifier {
-        static const unsigned NoMaxSpecified = UINT_MAX;
-
         enum Type {
             None,
             Greedy,
             NonGreedy,
             Error,
-        } m_type;
-
-        unsigned m_min;
-        unsigned m_max;
+        };
 
         Quantifier()
-            : m_type(None)
+            : type(None)
         {
         }
 
-        Quantifier(Type type, unsigned min = 0, unsigned max = NoMaxSpecified)
-            : m_type(type)
-            , m_min(min)
-            , m_max(max)
+        Quantifier(Type type_, unsigned min_ = 0, unsigned max_ = noMaxSpecified)
+            : type(type_)
+            , min(min_)
+            , max(max_)
         {
         }
+
+        Type type;
+
+        unsigned min;
+        unsigned max;
+
+        static const unsigned noMaxSpecified = UINT_MAX;
     };
 
-
-    class WRECompiler;
     class WRECParser;
 
-    typedef Vector<MacroAssembler::JmpSrc> JmpSrcVector;
+    typedef Vector<X86Assembler::JmpSrc> JmpSrcVector;
 
     class WRECGenerator {
     public:
-        WRECGenerator(WRECParser& parser, MacroAssembler& jit)
+        WRECGenerator(WRECParser& parser, X86Assembler& jit)
             : m_parser(parser)
             , m_jit(jit)
         {
         }
 
-        typedef MacroAssembler::JmpSrc JmpSrc;
-        typedef MacroAssembler::JmpDst JmpDst;
+        typedef X86Assembler::JmpSrc JmpSrc;
+        typedef X86Assembler::JmpDst JmpDst;
 
         // these regs setup by the params
-        static const X86Assembler::RegisterID INPUT_REG = X86Assembler::eax;
-        static const X86Assembler::RegisterID CURR_POS_REG = X86Assembler::edx;
-        static const X86Assembler::RegisterID LENGTH_REG = X86Assembler::ecx;
-        // CURR_VAL_REG used as a temporary, DISJUNCTION_BEGIN_POS_REG holds the start of the current disjunction - which is the start of the whole match, for the top--level dijunction.
-        static const X86Assembler::RegisterID CURR_VAL_REG = X86Assembler::esi;
-        static const X86Assembler::RegisterID OUTPUT_REG = X86Assembler::edi;
-        static const X86Assembler::RegisterID QUANTIFIER_COUNT_REG = X86Assembler::ebx;
+        static const X86Assembler::RegisterID inputRegister = X86::eax;
+        static const X86Assembler::RegisterID currentPositionRegister = X86::edx;
+        static const X86Assembler::RegisterID lengthRegister = X86::ecx;
+        static const X86Assembler::RegisterID currentValueRegister = X86::esi;
+        static const X86Assembler::RegisterID outputRegister = X86::edi;
+        static const X86Assembler::RegisterID quantifierCountRegister = X86::ebx;
 
         friend class GenerateAtomFunctor;
         friend class GeneratePatternCharacterFunctor;
@@ -124,7 +128,7 @@ namespace JSC {
 
     private:
         WRECParser& m_parser;
-        MacroAssembler& m_jit;
+        X86Assembler& m_jit;
     };
 
     class WRECParser {
@@ -143,7 +147,7 @@ namespace JSC {
             TempError_unsupportedParentheses,
         } m_err;
 
-        WRECParser(const UString& pattern, bool ignoreCase, bool multiline, MacroAssembler& jit)
+        WRECParser(const UString& pattern, bool ignoreCase, bool multiline, X86Assembler& jit)
             : m_ignoreCase(ignoreCase)
             , m_multiline(multiline)
             , m_numSubpatterns(0)

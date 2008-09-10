@@ -1,3 +1,589 @@
+2008-09-10  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Remove unnecessary override of getOffset.
+
+        Sunspider reports this as a .6% progression.
+
+        * JavaScriptCore.exp:
+        * kjs/JSObject.h:
+        (JSC::JSObject::getDirectLocation):
+        (JSC::JSObject::getOwnPropertySlotForWrite):
+        (JSC::JSObject::putDirect):
+        * kjs/PropertyMap.cpp:
+        * kjs/PropertyMap.h:
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20759: Remove MacroAssembler
+        <https://bugs.webkit.org/show_bug.cgi?id=20759>
+
+        Remove MacroAssembler and move its functionality to X86Assembler.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp:
+        (JSC::CTI::emitGetArg):
+        (JSC::CTI::emitGetPutArg):
+        (JSC::CTI::emitPutArg):
+        (JSC::CTI::emitPutCTIParam):
+        (JSC::CTI::emitGetCTIParam):
+        (JSC::CTI::emitPutToCallFrameHeader):
+        (JSC::CTI::emitGetFromCallFrameHeader):
+        (JSC::CTI::emitPutResult):
+        (JSC::CTI::emitDebugExceptionCheck):
+        (JSC::CTI::emitJumpSlowCaseIfNotImm):
+        (JSC::CTI::emitJumpSlowCaseIfNotImms):
+        (JSC::CTI::emitFastArithDeTagImmediate):
+        (JSC::CTI::emitFastArithReTagImmediate):
+        (JSC::CTI::emitFastArithPotentiallyReTagImmediate):
+        (JSC::CTI::emitFastArithImmToInt):
+        (JSC::CTI::emitFastArithIntToImmOrSlowCase):
+        (JSC::CTI::emitFastArithIntToImmNoCheck):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::privateCompileGetByIdSelf):
+        (JSC::CTI::privateCompileGetByIdProto):
+        (JSC::CTI::privateCompileGetByIdChain):
+        (JSC::CTI::privateCompilePutByIdReplace):
+        (JSC::CTI::privateArrayLengthTrampoline):
+        (JSC::CTI::privateStringLengthTrampoline):
+        (JSC::CTI::compileRegExp):
+        * VM/CTI.h:
+        (JSC::CallRecord::CallRecord):
+        (JSC::JmpTable::JmpTable):
+        (JSC::SlowCaseEntry::SlowCaseEntry):
+        (JSC::CTI::JSRInfo::JSRInfo):
+        * masm/MacroAssembler.h: Removed.
+        * masm/MacroAssemblerWin.cpp: Removed.
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::emitConvertToFastCall):
+        (JSC::X86Assembler::emitRestoreArgumentReference):
+        * wrec/WREC.h:
+        (JSC::WRECGenerator::WRECGenerator):
+        (JSC::WRECParser::WRECParser):
+
+2008-09-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Don't waste the first item in the PropertyStorage.
+
+        - Fix typo (makingCount -> markingCount)
+        - Remove undefined method declaration.
+
+        No change on Sunspider.
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::mark):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::put):
+        (JSC::PropertyMap::remove):
+        (JSC::PropertyMap::getOffset):
+        (JSC::PropertyMap::insert):
+        (JSC::PropertyMap::rehash):
+        (JSC::PropertyMap::resizePropertyStorage):
+        (JSC::PropertyMap::checkConsistency):
+        * kjs/PropertyMap.h:
+        (JSC::PropertyMap::markingCount): Fix typo.
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Not reviewed.
+
+        Speculative Windows build fix.
+
+        * masm/MacroAssemblerWin.cpp:
+        (JSC::MacroAssembler::emitConvertToFastCall):
+        (JSC::MacroAssembler::emitRestoreArgumentReference):
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20755: Create an X86 namespace for register names and other things
+        <https://bugs.webkit.org/show_bug.cgi?id=20755>
+
+        Create an X86 namespace to put X86 register names. Perhaps I will move
+        opcode names here later as well.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitGetArg):
+        (JSC::CTI::emitGetPutArg):
+        (JSC::CTI::emitPutArg):
+        (JSC::CTI::emitPutArgConstant):
+        (JSC::CTI::emitPutCTIParam):
+        (JSC::CTI::emitGetCTIParam):
+        (JSC::CTI::emitPutToCallFrameHeader):
+        (JSC::CTI::emitGetFromCallFrameHeader):
+        (JSC::CTI::emitPutResult):
+        (JSC::CTI::emitDebugExceptionCheck):
+        (JSC::CTI::emitJumpSlowCaseIfNotImms):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::privateCompileGetByIdSelf):
+        (JSC::CTI::privateCompileGetByIdProto):
+        (JSC::CTI::privateCompileGetByIdChain):
+        (JSC::CTI::privateCompilePutByIdReplace):
+        (JSC::CTI::privateArrayLengthTrampoline):
+        (JSC::CTI::privateStringLengthTrampoline):
+        (JSC::CTI::compileRegExp):
+        * VM/CTI.h:
+        * masm/X86Assembler.h:
+        (JSC::X86::):
+        (JSC::X86Assembler::emitModRm_rm):
+        (JSC::X86Assembler::emitModRm_rm_Unchecked):
+        (JSC::X86Assembler::emitModRm_rmsib):
+        * wrec/WREC.cpp:
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generateParentheses):
+        (JSC::WRECGenerator::generateBackreference):
+        (JSC::WRECGenerator::gernerateDisjunction):
+        * wrec/WREC.h:
+
+2008-09-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Remove unnecessary friend declaration.
+
+        * kjs/PropertyMap.h:
+
+2008-09-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Replace uses of PropertyMap::get and PropertyMap::getLocation with
+        PropertyMap::getOffset.
+
+        Sunspider reports this as a .6% improvement.
+
+        * JavaScriptCore.exp:
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::put):
+        (JSC::JSObject::deleteProperty):
+        (JSC::JSObject::getPropertyAttributes):
+        * kjs/JSObject.h:
+        (JSC::JSObject::getDirect):
+        (JSC::JSObject::getDirectLocation):
+        (JSC::JSObject::locationForOffset):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::remove):
+        (JSC::PropertyMap::getOffset):
+        * kjs/PropertyMap.h:
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Sam Weinig.
+
+        Bug 20754: Remove emit prefix from assembler opcode methods
+        <https://bugs.webkit.org/show_bug.cgi?id=20754>
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitGetArg):
+        (JSC::CTI::emitGetPutArg):
+        (JSC::CTI::emitPutArg):
+        (JSC::CTI::emitPutArgConstant):
+        (JSC::CTI::emitPutCTIParam):
+        (JSC::CTI::emitGetCTIParam):
+        (JSC::CTI::emitPutToCallFrameHeader):
+        (JSC::CTI::emitGetFromCallFrameHeader):
+        (JSC::CTI::emitPutResult):
+        (JSC::CTI::emitDebugExceptionCheck):
+        (JSC::CTI::emitCall):
+        (JSC::CTI::emitJumpSlowCaseIfNotImm):
+        (JSC::CTI::emitJumpSlowCaseIfNotImms):
+        (JSC::CTI::emitFastArithDeTagImmediate):
+        (JSC::CTI::emitFastArithReTagImmediate):
+        (JSC::CTI::emitFastArithPotentiallyReTagImmediate):
+        (JSC::CTI::emitFastArithImmToInt):
+        (JSC::CTI::emitFastArithIntToImmOrSlowCase):
+        (JSC::CTI::emitFastArithIntToImmNoCheck):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::privateCompileGetByIdSelf):
+        (JSC::CTI::privateCompileGetByIdProto):
+        (JSC::CTI::privateCompileGetByIdChain):
+        (JSC::CTI::privateCompilePutByIdReplace):
+        (JSC::CTI::privateArrayLengthTrampoline):
+        (JSC::CTI::privateStringLengthTrampoline):
+        (JSC::CTI::compileRegExp):
+        * masm/MacroAssemblerWin.cpp:
+        (JSC::MacroAssembler::emitConvertToFastCall):
+        (JSC::MacroAssembler::emitRestoreArgumentReference):
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::pushl_r):
+        (JSC::X86Assembler::pushl_m):
+        (JSC::X86Assembler::popl_r):
+        (JSC::X86Assembler::popl_m):
+        (JSC::X86Assembler::movl_rr):
+        (JSC::X86Assembler::addl_rr):
+        (JSC::X86Assembler::addl_i8r):
+        (JSC::X86Assembler::addl_i32r):
+        (JSC::X86Assembler::addl_mr):
+        (JSC::X86Assembler::andl_rr):
+        (JSC::X86Assembler::andl_i32r):
+        (JSC::X86Assembler::cmpl_i8r):
+        (JSC::X86Assembler::cmpl_rr):
+        (JSC::X86Assembler::cmpl_rm):
+        (JSC::X86Assembler::cmpl_i32r):
+        (JSC::X86Assembler::cmpl_i32m):
+        (JSC::X86Assembler::cmpw_rm):
+        (JSC::X86Assembler::orl_rr):
+        (JSC::X86Assembler::subl_rr):
+        (JSC::X86Assembler::subl_i8r):
+        (JSC::X86Assembler::subl_i32r):
+        (JSC::X86Assembler::subl_mr):
+        (JSC::X86Assembler::testl_i32r):
+        (JSC::X86Assembler::testl_rr):
+        (JSC::X86Assembler::xorl_i8r):
+        (JSC::X86Assembler::xorl_rr):
+        (JSC::X86Assembler::sarl_i8r):
+        (JSC::X86Assembler::sarl_CLr):
+        (JSC::X86Assembler::shl_i8r):
+        (JSC::X86Assembler::shll_CLr):
+        (JSC::X86Assembler::mull_rr):
+        (JSC::X86Assembler::idivl_r):
+        (JSC::X86Assembler::cdq):
+        (JSC::X86Assembler::movl_mr):
+        (JSC::X86Assembler::movzwl_mr):
+        (JSC::X86Assembler::movl_rm):
+        (JSC::X86Assembler::movl_i32r):
+        (JSC::X86Assembler::movl_i32m):
+        (JSC::X86Assembler::leal_mr):
+        (JSC::X86Assembler::ret):
+        (JSC::X86Assembler::jmp_r):
+        (JSC::X86Assembler::jmp_m):
+        (JSC::X86Assembler::call_r):
+        * wrec/WREC.cpp:
+        (JSC::WRECGenerator::generateBacktrack1):
+        (JSC::WRECGenerator::generateBacktrackBackreference):
+        (JSC::WRECGenerator::generateBackreferenceQuantifier):
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generatePatternCharacter):
+        (JSC::WRECGenerator::generateCharacterClassInvertedRange):
+        (JSC::WRECGenerator::generateCharacterClassInverted):
+        (JSC::WRECGenerator::generateCharacterClass):
+        (JSC::WRECGenerator::generateParentheses):
+        (JSC::WRECGenerator::gererateParenthesesResetTrampoline):
+        (JSC::WRECGenerator::generateAssertionBOL):
+        (JSC::WRECGenerator::generateAssertionEOL):
+        (JSC::WRECGenerator::generateAssertionWordBoundary):
+        (JSC::WRECGenerator::generateBackreference):
+        (JSC::WRECGenerator::gernerateDisjunction):
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Clean up the WREC code some more.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileRegExp):
+        * wrec/WREC.cpp:
+        (JSC::getCharacterClassNewline):
+        (JSC::getCharacterClassDigits):
+        (JSC::getCharacterClassSpaces):
+        (JSC::getCharacterClassWordchar):
+        (JSC::getCharacterClassNondigits):
+        (JSC::getCharacterClassNonspaces):
+        (JSC::getCharacterClassNonwordchar):
+        (JSC::WRECGenerator::generateBacktrack1):
+        (JSC::WRECGenerator::generateBacktrackBackreference):
+        (JSC::WRECGenerator::generateBackreferenceQuantifier):
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generatePatternCharacter):
+        (JSC::WRECGenerator::generateCharacterClassInvertedRange):
+        (JSC::WRECGenerator::generateCharacterClassInverted):
+        (JSC::WRECGenerator::generateCharacterClass):
+        (JSC::WRECGenerator::generateParentheses):
+        (JSC::WRECGenerator::gererateParenthesesResetTrampoline):
+        (JSC::WRECGenerator::generateAssertionBOL):
+        (JSC::WRECGenerator::generateAssertionEOL):
+        (JSC::WRECGenerator::generateAssertionWordBoundary):
+        (JSC::WRECGenerator::generateBackreference):
+        (JSC::WRECGenerator::gernerateDisjunction):
+        (JSC::WRECParser::parseCharacterClass):
+        (JSC::WRECParser::parseEscape):
+        (JSC::WRECParser::parseTerm):
+        * wrec/WREC.h:
+
+2008-09-09  Mark Rowe  <mrowe@apple.com>
+
+        Build fix, rubber-stamped by Anders Carlsson.
+
+        Silence spurious build warnings about missing format attributes on functions in Assertions.cpp.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-09-09  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Fix builds using the "debug" variant.
+
+        This reverts r36130 and tweaks Identifier to export the same symbols for Debug
+        and Release configurations.
+
+        * Configurations/JavaScriptCore.xcconfig:
+        * DerivedSources.make:
+        * JavaScriptCore.Debug.exp: Removed.
+        * JavaScriptCore.base.exp: Removed.
+        * JavaScriptCore.exp: Added.
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/identifier.cpp:
+        (JSC::Identifier::addSlowCase): #ifdef the call to checkSameIdentifierTable so that
+        there is no overhead in Release builds.
+        (JSC::Identifier::checkSameIdentifierTable): Add empty functions for Release builds.
+        * kjs/identifier.h:
+        (JSC::Identifier::add): #ifdef the calls to checkSameIdentifierTable so that there is
+        no overhead in Release builds, and remove the inline definitions of checkSameIdentifierTable.
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Clean up WREC a bit to bring it closer to our coding style guidelines.
+
+        * wrec/WREC.cpp:
+        (JSC::):
+        (JSC::getCharacterClass_newline):
+        (JSC::getCharacterClass_d):
+        (JSC::getCharacterClass_s):
+        (JSC::getCharacterClass_w):
+        (JSC::getCharacterClass_D):
+        (JSC::getCharacterClass_S):
+        (JSC::getCharacterClass_W):
+        (JSC::CharacterClassConstructor::append):
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generateCharacterClassInverted):
+        (JSC::WRECParser::parseQuantifier):
+        (JSC::WRECParser::parsePatternCharacterQualifier):
+        (JSC::WRECParser::parseCharacterClassQuantifier):
+        (JSC::WRECParser::parseBackreferenceQuantifier):
+        * wrec/WREC.h:
+        (JSC::Quantifier::):
+        (JSC::Quantifier::Quantifier):
+
+2008-09-09  Jungshik Shin  <jungshik.shin@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Try MIME charset names before trying IANA names 
+        ( https://bugs.webkit.org/show_bug.cgi?id=17537 )
+
+        * wtf/StringExtras.h: (strcasecmp): Added.
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Mark Rowe.
+
+        Bug 20719: REGRESSION (r36135-36244): Hangs, then crashes after several seconds
+        <https://bugs.webkit.org/show_bug.cgi?id=20719>
+        <rdar://problem/6205787>
+
+        Fix a typo in the case-insensitive matching of character patterns.
+
+        * wrec/WREC.cpp:
+        (JSC::WRECGenerator::generatePatternCharacter):
+
+2008-09-09  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        - allow polymorphic inline cache to handle Math object functions and possibly other similar things
+        
+        1.012x speedup on SunSpider.
+
+        * kjs/MathObject.cpp:
+        (JSC::MathObject::getOwnPropertySlot):
+        * kjs/lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+        * kjs/lookup.h:
+        (JSC::getStaticPropertySlot):
+
+2008-09-08  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak and Oliver Hunt.
+
+        Split storage of properties out of the PropertyMap and into the JSObject
+        to allow sharing PropertyMap on the StructureID.  In order to get this
+        function correctly, the StructureID's transition mappings were changed to
+        transition based on property name and attribute pairs, instead of just
+        property name.
+
+        - Removes the single property optimization now that the PropertyMap is shared.
+          This will be replaced by in-lining some values on the JSObject.
+
+        This is a wash on Sunspider and a 6.7% win on the v8 test suite.
+
+        * JavaScriptCore.base.exp:
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileGetByIdSelf): Get the storage directly off the JSObject.
+        (JSC::CTI::privateCompileGetByIdProto): Ditto.
+        (JSC::CTI::privateCompileGetByIdChain): Ditto.
+        (JSC::CTI::privateCompilePutByIdReplace): Ditto.
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::mark): Mark the PropertyStorage.
+        (JSC::JSObject::put): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::deleteProperty): Ditto.
+        (JSC::JSObject::defineGetter): Return early if the property is already a getter/setter.
+        (JSC::JSObject::defineSetter): Ditto.
+        (JSC::JSObject::getPropertyAttributes): Update to get the propertyMap of the StructureID
+        (JSC::JSObject::getPropertyNames): Ditto.
+        (JSC::JSObject::removeDirect): Ditto.
+        * kjs/JSObject.h: Remove PropertyMap and add PropertyStorage.
+        (JSC::JSObject::propertyStorage): return the PropertyStorage.
+        (JSC::JSObject::getDirect): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::getDirectLocation): Ditto.
+        (JSC::JSObject::offsetForLocation): Compute location directly.
+        (JSC::JSObject::hasCustomProperties): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::hasGetterSetterProperties): Ditto.
+        (JSC::JSObject::getDirectOffset): Get by indexing into PropertyStorage.
+        (JSC::JSObject::putDirectOffset): Put by indexing into PropertyStorage.
+        (JSC::JSObject::getOwnPropertySlotForWrite): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::getOwnPropertySlot): Ditto.
+        (JSC::JSObject::putDirect): Move putting into the StructureID unless the property already exists.
+        * kjs/PropertyMap.cpp: Use the propertyStorage as the storage for the JSValues.
+        (JSC::PropertyMap::checkConsistency): 
+        (JSC::PropertyMap::operator=):
+        (JSC::PropertyMap::~PropertyMap):
+        (JSC::PropertyMap::get):
+        (JSC::PropertyMap::getLocation):
+        (JSC::PropertyMap::put):
+        (JSC::PropertyMap::getOffset):
+        (JSC::PropertyMap::insert):
+        (JSC::PropertyMap::expand):
+        (JSC::PropertyMap::rehash):
+        (JSC::PropertyMap::createTable):
+        (JSC::PropertyMap::resizePropertyStorage): Resize the storage to match the size of the map
+        (JSC::PropertyMap::remove):
+        (JSC::PropertyMap::getEnumerablePropertyNames):
+        * kjs/PropertyMap.h: 
+        (JSC::PropertyMapEntry::PropertyMapEntry):
+        (JSC::PropertyMap::isEmpty):
+        (JSC::PropertyMap::size):
+        (JSC::PropertyMap::makingCount):
+        (JSC::PropertyMap::PropertyMap):
+
+        * kjs/StructureID.cpp: 
+        (JSC::StructureID::addPropertyTransition): Transitions now are based off the property name
+        and attributes. 
+        (JSC::StructureID::toDictionaryTransition): Copy the map.
+        (JSC::StructureID::changePrototypeTransition): Copy the map.
+        (JSC::StructureID::getterSetterTransition): Copy the map.
+        (JSC::StructureID::~StructureID): 
+        * kjs/StructureID.h:
+        (JSC::TransitionTableHash::hash): Custom hash for transition map.
+        (JSC::TransitionTableHash::equal): Ditto.
+        (JSC::TransitionTableHashTraits::emptyValue): Custom traits for transition map
+        (JSC::TransitionTableHashTraits::constructDeletedValue): Ditto.
+        (JSC::TransitionTableHashTraits::isDeletedValue): Ditto.
+        (JSC::StructureID::propertyMap): Added.
+
+2008-09-08  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 20694: Slow Script error pops up when running Dromaeo tests
+
+        Correct error in timeout logic where execution tick count would
+        be reset to incorrect value due to incorrect offset and indirection.
+        Codegen for the slow script dialog was factored out into a separate
+        method (emitSlowScriptCheck) rather than having multiple copies of
+        the same code.  Also added calls to generate slow script checks
+        for loop_if_less and loop_if_true opcodes.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+
+2008-09-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove references to the removed WRECompiler class.
+
+        * VM/Machine.h:
+        * wrec/WREC.h:
+
+2008-09-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Mark Rowe.
+
+        Fix the build with CTI enabled but WREC disabled.
+
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+
+2008-09-08  Dan Bernstein  <mitz@apple.com>
+
+        - build fix
+
+        * kjs/nodes.h:
+        (JSC::StatementNode::):
+        (JSC::BlockNode::):
+
+2008-09-08  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff.
+
+       <rdar://problem/6134407> Breakpoints in for loops, while loops or
+       conditions without curly braces don't break. (19306)
+       -Statement Lists already emit debug hooks but conditionals without
+       brackets are not lists.
+
+        * kjs/nodes.cpp:
+        (KJS::IfNode::emitCode):
+        (KJS::IfElseNode::emitCode):
+        (KJS::DoWhileNode::emitCode):
+        (KJS::WhileNode::emitCode):
+        (KJS::ForNode::emitCode):
+        (KJS::ForInNode::emitCode):
+        * kjs/nodes.h:
+        (KJS::StatementNode::):
+        (KJS::BlockNode::):
+
+2008-09-08  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Anders Carlsson.
+        
+        - Cache the code generated for eval to speed up SunSpider and web sites
+        https://bugs.webkit.org/show_bug.cgi?id=20718
+        
+        1.052x on SunSpider
+        2.29x on date-format-tofte
+        
+        Lots of real sites seem to get many hits on this cache as well,
+        including GMail, Google Spreadsheets, Slate and Digg (the last of
+        these gets over 100 hits on initial page load).
+
+        * VM/CodeBlock.h:
+        (JSC::EvalCodeCache::get):
+        * VM/Machine.cpp:
+        (JSC::Machine::callEval):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_call_eval):
+        * VM/Machine.h:
+
 2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
 
         Reviewed by Oliver Hunt.
