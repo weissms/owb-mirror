@@ -15,7 +15,7 @@ cat $INPUT_LIST | egrep "/Concretizations/|/Base" | egrep -v "^#" | egrep -v "^$
 #grep "Widget.h" |
 while read line
 do
-	$BALIFIER_PATH/balify.sh $line
+    $BALIFIER_PATH/balify.sh $line
 done
 
 
@@ -33,5 +33,5 @@ done
 #            CMD="balifier/balify_h.sh $file $path $module $impl $fname"
 #            trace "+++ execute: $CMD"
 #            $CMD
-#	fi
+#   fi
 #done

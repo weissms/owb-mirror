@@ -1,3 +1,24 @@
+2008-09-10  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Coding style violation clean up.
+        Ticket #290.
+
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGenericTable.h: Solved some
+        coding style violation.
+
+        * OWBAL/Concretizations/Types/Common/BCbal_objectCommon.cpp:
+        (BalObject::hasMethod): Removed '\t'.
+        * WKAL/Skeletons/Network/ResourceError.t: Removed a coding style violation.
+        * scripts/generators/README: Removed '\t'.
+        * scripts/generators/balifier/balify.sh: Ditto.
+        * scripts/generators/balifier/balifyAll.sh: Ditto.
+        * scripts/generators/balifier/balify_h.sh: Ditto.
+        * scripts/generators/balifier/createNamespacer.sh: Ditto.
+        * scripts/generators/balifier/patcher.sh: Ditto.
+        * scripts/generators/prepareMerge.sh: Ditto.
+
 2008-09-08  Jean-Charles Verdie  <jcverdie@pleyo.com>
 
         Reviewed by Mario Bensi.

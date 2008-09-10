@@ -172,7 +172,6 @@ void BalObject::invalidate()
 
 bool BalObject::hasMethod(const char *name)
 {
-	printf("object name : %s\n", getName().utf8().data());
     for (unsigned i=0; i<m_balMethodList.size(); i++)
     {
         if (!strcmp(name, m_balMethodList[i]))

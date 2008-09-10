@@ -59,7 +59,7 @@ public:
      * @param[in] : failing url
      * @param[in] : localized description
      * @code
-     * ResourceError *e = new ResourceError(d, e, f, l);
+     * ResourceError* e = new ResourceError(d, e, f, l);
      * @endcode
      */
     ResourceError(const String& domain, int errorCode, const String& failingURL, const String& localizedDescription);

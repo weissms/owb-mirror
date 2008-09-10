@@ -22,7 +22,7 @@ BC_FNAME="$5"
 
 if ! checkFileRead $WK_FILE
 then
-	fatal "$WK_FILE"
+    fatal "$WK_FILE"
 fi
 
 BC_DIR="$BAL_PATHTO/Concretizations/$BAL_MODULE/$BAL_IMPL"
@@ -38,7 +38,7 @@ debug "BC_NAMESPACE=[$BC_NAMESPACE]"
 
     trace "    Process file [$WK_FILE]"
     CODE=`execP cat "$WK_FILE" | execP reformat`
-	CODE=`echo "$CODE" | execP $AWK -v BCNAMESPACE="$BC_NAMESPACE" -f $BALIFIER_PATH/changeNameSpace.awk `
-	debug "namespaced<$CODE>namespaced"
+    CODE=`echo "$CODE" | execP $AWK -v BCNAMESPACE="$BC_NAMESPACE" -f $BALIFIER_PATH/changeNameSpace.awk `
+    debug "namespaced<$CODE>namespaced"
 
 

@@ -573,9 +573,9 @@ namespace WTF {
 
 
     typedef struct generic_UTrie {
-        const uint16_t *index;
-        const uint32_t *data32; 
-        generic_GetFoldingOffset *getFoldingOffset;
+        const uint16_t* index;
+        const uint32_t* data32; 
+        generic_GetFoldingOffset* getFoldingOffset;
         int32_t indexLength, dataLength;
         uint32_t initialValue;
         int8_t /*UBool*/ isLatin1Linear;
@@ -584,9 +584,9 @@ namespace WTF {
     
     
     typedef struct generic_Props {
-        const int32_t *indexes;
-        const uint32_t *mirrors;
-        const uint8_t *jgArray;
+        const int32_t* indexes;
+        const uint32_t* mirrors;
+        const uint8_t* jgArray;
         
         generic_UTrie trie;
         uint8_t formatVersion[4];

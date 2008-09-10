@@ -61,7 +61,7 @@ OPTION (WEBKIT_USE_CC_PIC "Compile WebKit with PIC support." ON)
 # Global switch for RTTI support
 OPTION (WEBKIT_USE_CC_RTTI "Compile WebKit with rtti support." OFF)
 
-#offline web application
+# Offline web application
 CMAKE_DEPENDENT_OPTION (WEBKIT_OFFLINE_WEB_APPLICATIONS "HTML5 offline web applications support." ON
     WEBKIT_USE_DATABASE OFF
 )
@@ -72,7 +72,7 @@ OPTION (WEBKIT_USE_CROSS_DOCUMENT_MESSAGING "HTML5 cross-document messaging." ON
 # Dashboard support
 OPTION (WEBKIT_USE_DASHBOARD "Dashboard support." ON)
 
-# database for HTML5 support
+# Database for HTML5 support
 OPTION (WEBKIT_USE_DATABASE "HTML5 client-side database storage support" ON)
 
 # HTML5 client-side session and persistent storage
@@ -110,7 +110,7 @@ OPTION (WEBKIT_USE_UCLIBC "Link OWB with uClibc instead of glibc." OFF)
 # Accessibility
 OPTION (WEBKIT_USE_ACCESSIBILITY "Compile WebKit with Accessibility support." ON)
 
-#MULTITHREADING
+# MULTITHREADING
 OPTION (WEBKIT_USE_MULTIPLE_THREADS "Compile Webkit with multiple threads support." OFF)
 
 # Use HILDON on N800
@@ -126,7 +126,7 @@ INCLUDE (CheckLibraryExists)
 check_library_exists(pthread pthread_attr_get_np "" HAVE_PTHREAD_ATTR_GET_NP)
 check_library_exists(pthread pthread_getattr_np "" HAVE_PTHREAD_GETATTR_NP)
 
-# Vaious mandatory packages to build
+# Various mandatory packages to build
 FIND_PACKAGE (PkgConfig REQUIRED)
 IF (NOT PKG_CONFIG_FOUND)
     MESSAGE (FATAL_ERROR "pkg-config ${MESSAGE_NOT_FOUND}")
@@ -165,7 +165,7 @@ PKG_CHECK_MODULES (PNG12 REQUIRED libpng12)
 #)
 FIND_PACKAGE (JPEG QUIET REQUIRED)
 
-#Mandatory package for network
+# Mandatory package for network
 PKG_CHECK_MODULES (CURL REQUIRED libcurl)
 
 IF (COMPILE_TESTS)
@@ -273,10 +273,10 @@ ADD_DEFINITIONS (-DWTF_USE_CURL=1)
 ADD_DEFINITIONS (-DWTF_USE_JAVASCRIPTCORE_BINDINGS)
 ADD_DEFINITIONS (-DHAVE_MMAP=1)
 
-#FIXME
+# FIXME
 ADD_DEFINITIONS(-DENABLE_NETSCAPE_PLUGIN_API=1)
 
-#FIXME: should not add this as soon as embedded font is possible
+# FIXME: should not add this as soon as embedded font is possible
 ADD_DEFINITIONS (-DUSE_FREETYPE=1)
 
 IF (OWBAL_PLATFORM_MACPORT)
@@ -399,9 +399,9 @@ ENDIF (WEBKIT_USE_MULTIPLE_THREADS)
 #######################################
 OPTION (DEEPSEE_USE_FAKED_DEEPSEE "Use an existing faked_deepsee.h" ON)
 SET (DEEPSEE_USE_FAKED_DEEPSEE_PATH "BAL/Includes/FakedDeepsee.h" CACHE STRING "Define your faked_deepsee.h path and name" )
-#include DeepSee cmake commands if available
+# Include DeepSee cmake commands if available
 INCLUDE (CMakeLists_deepseeProject.txt)
-#if we don't use DeepSee, we can redefine few macros to have very basic warns:
+# If we don't use DeepSee, we can redefine few macros to have very basic warns:
 IF (NOT DEEPSEE_ENABLE)
     SET (DEEPSEE_USE_FAKED_DEEPSEE_PATH "BAL/Includes/FakedDeepsee.h" CACHE STRING "Define your faked_deepsee.h path and name" )
     SET (DEEPSEE_FAKED_DEEPSEE.H ${DEEPSEE_USE_FAKED_DEEPSEE_PATH})
