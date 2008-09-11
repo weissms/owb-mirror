@@ -1,3 +1,34 @@
+2008-09-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Jean-Charles VERDIE <jcverdie@pleyo.com>.
+
+        Small cleanup :
+
+        - Removed comments.
+
+        - Corrected some coding style violations.
+
+        - Simplified code in isArabicChar.
+
+        * OWBAL/Concretizations/Internationalization/Generic/BCUnicodeGeneric.h:
+        (WTF::Unicode::toLower):
+        (WTF::Unicode::toUpper):
+        (WTF::Unicode::toTitleCase):
+        (WTF::Unicode::isArabicChar):
+        (WTF::Unicode::category):
+        (WTF::Unicode::isFormatChar):
+        (WTF::Unicode::isSeparatorSpace):
+        (WTF::Unicode::isPrintableChar):
+        (WTF::Unicode::isDigit):
+        (WTF::Unicode::isPunct):
+        (WTF::Unicode::mirroredChar):
+        (WTF::Unicode::direction):
+        (WTF::Unicode::isLower):
+        (WTF::Unicode::digitValue):
+        (WTF::Unicode::combiningClass):
+        (WTF::Unicode::decompositionType):
+        (WTF::Unicode::umemcasecmp):
+
 2008-09-10  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
