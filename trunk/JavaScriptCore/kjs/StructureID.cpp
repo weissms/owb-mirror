@@ -34,8 +34,9 @@ using namespace std;
 
 namespace JSC {
 
-StructureID::StructureID(JSValue* prototype)
+    StructureID::StructureID(JSValue* prototype, JSType type)
     : m_isDictionary(false)
+    , m_type(type)
     , m_prototype(prototype)
     , m_cachedPrototypeChain(0)
     , m_previous(0)
@@ -46,25 +47,26 @@ StructureID::StructureID(JSValue* prototype)
     ASSERT(m_prototype->isObject() || m_prototype->isNull());
 }
 
-PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structureID, const Identifier& propertyName, JSValue* value, unsigned attributes, bool checkReadOnly, JSObject* slotBase, PutPropertySlot& slot, PropertyStorage& propertyStorage)
+PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structureID, const Identifier& propertyName, JSValue* value, unsigned attributes, JSObject* slotBase, PutPropertySlot& slot, PropertyStorage& propertyStorage)
 {
     ASSERT(!structureID->m_isDictionary);
+    ASSERT(structureID->m_type == ObjectType);
 
     if (StructureID* existingTransition = structureID->m_transitionTable.get(make_pair(propertyName.ustring().rep(), attributes))) {
-        if (structureID->m_propertyMap.size() != existingTransition->m_propertyMap.size())
-            existingTransition->m_propertyMap.resizePropertyStorage(propertyStorage, structureID->m_propertyMap.size());
+        if (!slotBase->usingInlineStorage() && structureID->m_propertyMap.size() != existingTransition->m_propertyMap.size())
+            slotBase->allocatePropertyStorage(structureID->m_propertyMap.size(), existingTransition->m_propertyMap.size());
 
         size_t offset = existingTransition->propertyMap().getOffset(propertyName);
         ASSERT(offset != WTF::notFound);
         propertyStorage[offset] = value;
-        slot.setExistingProperty(slotBase, offset);
+        slot.setNewProperty(slotBase, offset);
 
         return existingTransition;
     }
 
     if (structureID->m_transitionCount > s_maxTransitionLength) {
         RefPtr<StructureID> transition = toDictionaryTransition(structureID);
-        transition->m_propertyMap.put(propertyName, value, attributes, checkReadOnly, slotBase, slot, propertyStorage);
+        transition->m_propertyMap.put(propertyName, value, attributes, false, slotBase, slot, propertyStorage);
         return transition.release();
     }
 
@@ -76,7 +78,7 @@ PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structur
     transition->m_transitionCount = structureID->m_transitionCount + 1;
     transition->m_propertyMap = structureID->m_propertyMap;
 
-    transition->m_propertyMap.put(propertyName, value, attributes, checkReadOnly, slotBase, slot, propertyStorage);
+    transition->m_propertyMap.put(propertyName, value, attributes, false, slotBase, slot, propertyStorage);
 
     structureID->m_transitionTable.add(make_pair(propertyName.ustring().rep(), attributes), transition.get());
     return transition.release();
@@ -113,7 +115,7 @@ PassRefPtr<StructureID> StructureID::changePrototypeTransition(StructureID* stru
 
 PassRefPtr<StructureID> StructureID::getterSetterTransition(StructureID* structureID)
 {
-    RefPtr<StructureID> transition = create(structureID->prototype());
+    RefPtr<StructureID> transition = create(structureID->storedPrototype());
     transition->m_transitionCount = structureID->m_transitionCount + 1;
     transition->m_propertyMap = structureID->m_propertyMap;
     return transition.release();
@@ -132,9 +134,9 @@ StructureIDChain::StructureIDChain(StructureID* structureID)
     size_t size = 1;
 
     StructureID* tmp = structureID;
-    while (!tmp->prototype()->isNull()) {
+    while (!tmp->storedPrototype()->isNull()) {
         ++size;
-        tmp = static_cast<JSCell*>(tmp->prototype())->structureID();
+        tmp = static_cast<JSCell*>(tmp->storedPrototype())->structureID();
     }
     
     m_vector.set(new RefPtr<StructureID>[size]);
@@ -142,7 +144,7 @@ StructureIDChain::StructureIDChain(StructureID* structureID)
     size_t i;
     for (i = 0; i < size - 1; ++i) {
         m_vector[i] = structureID;
-        structureID = static_cast<JSObject*>(structureID->prototype())->structureID();
+        structureID = static_cast<JSObject*>(structureID->storedPrototype())->structureID();
     }
     m_vector[i] = structureID;
 }

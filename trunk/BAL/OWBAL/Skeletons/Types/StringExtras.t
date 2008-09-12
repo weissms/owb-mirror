@@ -51,16 +51,7 @@
      * @code
      * @endcode
      */
-inline int snprintf(char *str, size_t size, const char* format, ...) ;
-    /**
-     * strcasecmp compare, while ignoring differences in case, the string pointed to by s1 to the string pointed to by s2.
-     * @param[in] : a string
-     * @param[in] : a string
-     * @param[out] :  return an integer greater than, equal to, or less than 0, if the string pointed to by s1 is, ignoring case, greater than, equal to, or less than the string pointed to by s2, respectively.
-     * @code
-     * @endcode
-     */
-inline int strcasecmp(const char* s1, const char* s2) ;
+inline int snprintf(char *str, size_t size, const char* format, ...)
     
 
 #if COMPILER(MSVC7)
@@ -78,10 +69,18 @@ inline int strcasecmp(const char* s1, const char* s2) ;
      * @endcode
      */
 inline int strncasecmp(const char* s1, const char* s2, size_t len) ;
+    /**
+     * strcasecmp compare, while ignoring differences in case, the string pointed to by s1 to the string pointed to by s2.
+     * @param[in] : a string.
+     * @param[in] : a string.
+     * @param[out] : return an integer greater than, equal to, or less than 0, if the string pointed to by s1 is, ignoring case, greater than, equal to, or less than the string pointed to by s2, respectively.
+     * @code
+     * @endcode
+     */
+inline int strcasecmp(const char* s1, const char* s2) ;
+    
 
 #endif
 
 #endif // WTF_StringExtras_h
-
-
 

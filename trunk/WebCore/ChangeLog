@@ -1,3 +1,220 @@
+2008-09-12  Timothy Hatcher  <timothy@apple.com>
+
+        Add a renderedImage method to DOMNode to get an image
+        of the rendering for the node and it's descendants.
+
+        <rdar://problem/5849349> Would like API to create
+        an image for a DOM node
+
+        Reviewed by Oliver Hunt.
+
+        * bindings/objc/DOM.mm:
+        (-[DOMNode renderedImage]): Call Frame::nodeImage.
+        * bindings/objc/DOMPrivate.h:
+        * page/Frame.h:
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::nodeImage):
+
+2008-09-08  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Need to support comma separated list of key times in keyframes selectors
+        https://bugs.webkit.org/show_bug.cgi?id=20680
+
+        Test: animations/keyframes-comma-separated.html
+
+        * css/CSSGrammar.y:
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::createKeyframeRule):
+        * css/CSSParser.h:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::addKeyframeStyle):
+        * css/WebKitCSSKeyframeRule.cpp:
+        (WebCore::WebKitCSSKeyframeRule::WebKitCSSKeyframeRule):
+        (WebCore::WebKitCSSKeyframeRule::cssText):
+        (WebCore::WebKitCSSKeyframeRule::parseKeyString):
+        * css/WebKitCSSKeyframeRule.h:
+        (WebCore::WebKitCSSKeyframeRule::keyText):
+        (WebCore::WebKitCSSKeyframeRule::setKeyText):
+        (WebCore::WebKitCSSKeyframeRule::getKeys):
+        * css/WebKitCSSKeyframesRule.cpp:
+        (WebCore::WebKitCSSKeyframesRule::append):
+        (WebCore::WebKitCSSKeyframesRule::insertRule):
+        (WebCore::WebKitCSSKeyframesRule::deleteRule):
+        (WebCore::WebKitCSSKeyframesRule::findRule):
+        (WebCore::WebKitCSSKeyframesRule::findRuleIndex):
+        * css/WebKitCSSKeyframesRule.h:
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::blendProperties):
+
+2008-09-11  Kevin McCullough  <kmccullough@apple.com>
+
+        RS by Tim.
+
+        Reverting because this caused a crash.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::canBeProgramaticallyScrolled):
+        (WebCore::RenderObject::hasScrollableView):
+        * rendering/RenderObject.h:
+
+2008-09-11  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix assertion on transition property "none"
+        https://bugs.webkit.org/show_bug.cgi?id=20751
+
+        Test: transitions/transition-end-event-set-none.html
+
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateTransitions):
+
+2008-09-11  David Smith  <catfish.man@gmail.com>
+
+        Rubber-stamped by mitzpettel.
+
+        Remove an accidentally added extra file.
+
+        * WebCore: Removed.
+
+2008-09-11  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Darin
+
+        https://bugs.webkit.org/show_bug.cgi?id=20180
+        
+        This speeds up :nth-child matching as tested by querySelectorAll by around 10% by inlining the common case of Node::renderStyle(). Many thanks to mitzpettel and othermaciej for suggestions and help.
+
+        * WebCore.xcodeproj/project.pbxproj: Add NodeRenderStyle.h
+        * css/CSSStyleSelector.cpp: include NodeRenderStyle.h
+        * dom/Element.cpp: include NodeRenderStyle.h
+        * dom/Node.cpp: Remove the definition of renderStyle()
+        (WebCore::Node::nonRendererRenderStyle):
+        * dom/Node.h: Make renderStyle() nonvirtual and add nonRendererRenderStyle()
+        * dom/NodeRenderStyle.h: Added.
+        (WebCore::Node::renderStyle): Inline the common case of this, call nonRendererRenderStyle for the part that needed to be virtual
+        * html/HTMLOptGroupElement.cpp: include NodeRenderStyle.h
+        * html/HTMLOptGroupElement.h:
+        (WebCore::HTMLOptGroupElement::nonRendererRenderStyle): override to return m_style
+        * html/HTMLOptionElement.cpp: include NodeRenderStyle.h
+        * html/HTMLOptionElement.h:
+        (WebCore::HTMLOptionElement::nonRendererRenderStyle): override to return m_style
+        * rendering/RenderListBox.cpp: include NodeRenderStyle.h
+        * rendering/RenderMenuList.cpp: include NodeRenderStyle.h
+        * svg/SVGUseElement.cpp: include NodeRenderStyle.h
+
+2008-09-11  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Adele and Tim.
+
+        <rdar://problem/6100597> REGRESSION: clicking on search results in Web
+        Inspector does not scroll to the line of the results (20167)
+        - This was put in by Max to fix auto scrolling but is not correct for
+        the whole web: rdar://problem/6213098
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::canBeProgramaticallyScrolled):
+        * rendering/RenderObject.h:
+
+2008-09-11  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        <rdar://problem/6210511> AX: if a frame has a title, that should be reported as the AXWebArea's title
+
+        Test: accessibility/frame-with-title.html
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::accessibilityDescription):
+
+2008-09-11  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Simon.
+
+        Fixed stroke() and strokeRect() to support gradients
+        and patterns on Qt.
+
+        [Qt] Canvas stroke don't work for gradients and patterns
+        [https://bugs.webkit.org/show_bug.cgi?id=20749]
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::strokeRect):
+
+2008-09-11  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Simon.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20729
+
+        Fixed canvas gradients for Qt
+
+        [Qt] Canvas gradients don't work as expected
+        [https://bugs.webkit.org/show_bug.cgi?id=20729]
+
+        * platform/graphics/qt/GradientQt.cpp:
+        (WebCore::Gradient::platformGradient):
+
+2008-09-11  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Simon.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20568
+
+        Add support for patterns to Qt.
+
+        * platform/graphics/qt/PatternQt.cpp:
+        (WebCore::Pattern::createPlatformPattern):
+
+2008-09-10  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - clean up AnimationBase
+
+        * page/animation/AnimationBase.cpp:
+        * page/animation/AnimationBase.h:
+        * page/animation/CompositeAnimation.cpp:
+        * page/animation/ImplicitAnimation.cpp:
+        * page/animation/ImplicitAnimation.h:
+        * page/animation/KeyframeAnimation.cpp:
+        * page/animation/KeyframeAnimation.h:
+
+2008-09-10  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20741
+        REGRESSION: ISO-8859-8-I encoding is registered incorrectly
+
+        Turns out that there were no real behavior changes for 8859-8, as it was only a debug-only
+        check to ignore this specific registration that was failing. Yet, I decided to add a bunch of
+        tests for ISO-8859-8 encoding aliases, as we handle them in a quite complicated manner.
+
+        I also found and fixed a potential crasher for non-Mac ports.
+
+        Tests: fast/encoding/hebrew/8859-8-e.html
+               fast/encoding/hebrew/8859-8-i.html
+               fast/encoding/hebrew/8859-8.html
+               fast/encoding/hebrew/csISO88598I.html
+               fast/encoding/hebrew/hebrew.html
+               fast/encoding/hebrew/iso-ir-138.html
+               fast/encoding/hebrew/logical.html
+
+        * platform/text/TextEncodingRegistry.cpp: (WebCore::checkExistingName): Check for iso-8859-8
+        (case-insensitively, because different versions of ICU report this MIME name in different
+        case).
+
+        * platform/text/TextCodecICU.cpp:
+        (WebCore::TextCodecICU::registerExtendedEncodingNames): Updated some comments.
+        (WebCore::TextCodecICU::registerExtendedCodecs): Try both MIME and IANA names here, too.
+        There are four names in ICU that only have MIME names (x-mac-* ones), so we could end up
+        with an encoding map entry, but no codec for these. This was not an issue on the Mac, as
+        we also support these via TEC (which we should stop doing), but on Windows, this would
+        likely crash.
+
 2008-09-10  Dave Hyatt  <hyatt@apple.com
 
         Resurrect PlatformScrollbarWin.

@@ -30,6 +30,7 @@
 #define KJS_UNICODE_ICU_H
 
 
+#include "BALBase.h"
 #include <stdlib.h>
 
 #include <unicode/uchar.h>
@@ -131,7 +132,7 @@ namespace WTF {
     inline UChar32 toLower(UChar32 c)
     {
         if ((c >= 0x41 && c <= 0x5A) || (c >= 0xC0 && c <= 0xDE))
-            return c + 0x20;
+            return (c + 0x20);
         else if (c == 0xB5)
             return 0x3BC;
         return c;
@@ -170,7 +171,7 @@ namespace WTF {
     inline UChar32 toUpper(UChar32 c)
     {
         if ((c >= 0x61 && c <= 0x7A) || (c >= 0xE0 && c <= 0xFE))
-            return c - 0x20;
+            return (c - 0x20);
         else if (c == 0x3BC)
             return 0xB5;
         return c;
@@ -196,7 +197,7 @@ namespace WTF {
     inline bool isArabicChar(UChar32 c)
     {
         // According to unicode 5.1 Arabic belongs range 0x600 to 0x6ff
-        return c >= 0x600 && c <= 0x6ff;
+        return (c >= 0x600 && c <= 0x6ff);
     }
 
     inline CharCategory category(UChar32 c)

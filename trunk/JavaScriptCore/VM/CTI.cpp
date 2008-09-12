@@ -334,7 +334,7 @@ ALWAYS_INLINE void CTI::emitFastArithReTagImmediate(X86Assembler::RegisterID reg
 
 ALWAYS_INLINE void CTI::emitFastArithPotentiallyReTagImmediate(X86Assembler::RegisterID reg)
 {
-    m_jit.orl_rr(JSImmediate::TagBitTypeInteger, reg);
+    m_jit.orl_i32r(JSImmediate::TagBitTypeInteger, reg);
 }
 
 ALWAYS_INLINE void CTI::emitFastArithImmToInt(X86Assembler::RegisterID reg)
@@ -614,7 +614,43 @@ void CTI::privateCompileMainPass()
             i += 4;
             break;
         }
-        CTI_COMPILE_BINARY_OP(op_mul);
+        case op_mul: {
+            unsigned dst = instruction[i + 1].u.operand;
+            unsigned src1 = instruction[i + 2].u.operand;
+            unsigned src2 = instruction[i + 3].u.operand;
+            if (src1 < m_codeBlock->constantRegisters.size() || src2 < m_codeBlock->constantRegisters.size()) {
+                unsigned constant = src1;
+                unsigned nonconstant = src2;
+                if (!(src1 < m_codeBlock->constantRegisters.size())) {
+                    constant = src2;
+                    nonconstant = src1;
+                }
+                JSValue* value = m_codeBlock->constantRegisters[constant].jsValue(m_exec);
+                if (JSImmediate::isNumber(value)) {
+                    emitGetArg(nonconstant, X86::eax);
+                    emitJumpSlowCaseIfNotImm(X86::eax, i);
+                    emitFastArithImmToInt(X86::eax);
+                    m_jit.imull_i32r( X86::eax, getDeTaggedConstantImmediate(value), X86::eax);
+                    m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJo(), i));
+                    emitFastArithPotentiallyReTagImmediate(X86::eax);
+                    emitPutResult(dst);
+                    i += 4;
+                    break;
+                }
+            }
+
+            emitGetArg(src1, X86::eax);
+            emitGetArg(src2, X86::edx);
+            emitJumpSlowCaseIfNotImms(X86::eax, X86::edx, i);
+            emitFastArithDeTagImmediate(X86::eax);
+            emitFastArithImmToInt(X86::edx);
+            m_jit.imull_rr(X86::edx, X86::eax);
+            m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJo(), i));
+            emitFastArithPotentiallyReTagImmediate(X86::eax);
+            emitPutResult(dst);
+            i += 4;
+            break;
+        }
         case op_new_func: {
             FuncDeclNode* func = (m_codeBlock->functions[instruction[i + 2].u.operand]).get();
             emitPutArgConstant(reinterpret_cast<unsigned>(func), 0);
@@ -628,6 +664,22 @@ void CTI::privateCompileMainPass()
             i += 6;
             break;
         }
+        case op_get_global_var: {
+            JSVariableObject* globalObject = static_cast<JSVariableObject*>(instruction[i + 2].u.jsCell);
+            m_jit.movl_i32r(reinterpret_cast<unsigned>(globalObject), X86::eax);
+            emitGetVariableObjectRegister(X86::eax, instruction[i + 3].u.operand, X86::eax);
+            emitPutResult(instruction[i + 1].u.operand, X86::eax);
+            i += 4;
+            break;
+        }
+        case op_put_global_var: {
+            JSVariableObject* globalObject = static_cast<JSVariableObject*>(instruction[i + 1].u.jsCell);
+            m_jit.movl_i32r(reinterpret_cast<unsigned>(globalObject), X86::eax);
+            emitGetArg(instruction[i + 3].u.operand, X86::edx);
+            emitPutVariableObjectRegister(X86::edx, X86::eax, instruction[i + 2].u.operand);
+            i += 4;
+            break;
+        }
         case op_get_scoped_var: {
             int skip = instruction[i + 3].u.operand + m_codeBlock->needsFullScopeChain;
 
@@ -636,9 +688,7 @@ void CTI::privateCompileMainPass()
                 m_jit.movl_mr(OBJECT_OFFSET(ScopeChainNode, next), X86::eax, X86::eax);
 
             m_jit.movl_mr(OBJECT_OFFSET(ScopeChainNode, object), X86::eax, X86::eax);
-            m_jit.movl_mr(JSVariableObject::offsetOf_d(), X86::eax, X86::eax);
-            m_jit.movl_mr(JSVariableObject::offsetOf_Data_registers(), X86::eax, X86::eax);
-            m_jit.movl_mr((instruction[i + 2].u.operand) * sizeof(Register), X86::eax, X86::eax);
+            emitGetVariableObjectRegister(X86::eax, instruction[i + 2].u.operand, X86::eax);
             emitPutResult(instruction[i + 1].u.operand);
             i += 4;
             break;
@@ -652,9 +702,7 @@ void CTI::privateCompileMainPass()
                 m_jit.movl_mr(OBJECT_OFFSET(ScopeChainNode, next), X86::edx, X86::edx);
 
             m_jit.movl_mr(OBJECT_OFFSET(ScopeChainNode, object), X86::edx, X86::edx);
-            m_jit.movl_mr(JSVariableObject::offsetOf_d(), X86::edx, X86::edx);
-            m_jit.movl_mr(JSVariableObject::offsetOf_Data_registers(), X86::edx, X86::edx);
-            m_jit.movl_rm(X86::eax, (instruction[i + 1].u.operand) * sizeof(Register), X86::edx);
+            emitPutVariableObjectRegister(X86::eax, X86::edx, instruction[i + 1].u.operand);
             i += 4;
             break;
         }
@@ -1270,12 +1318,23 @@ void CTI::privateCompileLinkPass()
     m_jmpTable.clear();
 }
 
+#define CTI_COMPILE_BINARY_OP_SLOW_CASE(name) \
+    case name: { \
+        m_jit.link(iter->from, m_jit.label()); \
+        emitGetPutArg(instruction[i + 2].u.operand, 0, X86::ecx); \
+        emitGetPutArg(instruction[i + 3].u.operand, 4, X86::ecx); \
+        emitCall(i, Machine::cti_##name); \
+        emitPutResult(instruction[i + 1].u.operand); \
+        i += 4; \
+        break; \
+    }
+    
 void CTI::privateCompileSlowCases()
 {
     Instruction* instruction = m_codeBlock->instructions.begin();
     for (Vector<SlowCaseEntry>::iterator iter = m_slowCases.begin(); iter != m_slowCases.end(); ++iter) {
         int i = iter->to;
-       m_jit.emitRestoreArgumentReference();
+        m_jit.emitRestoreArgumentReference();
         switch (m_machine->getOpcodeID(instruction[i].u.opcode)) {
         case op_add: {
             unsigned dst = instruction[i + 1].u.operand;
@@ -1577,6 +1636,7 @@ void CTI::privateCompileSlowCases()
             i += 4;
             break;
         }
+        CTI_COMPILE_BINARY_OP_SLOW_CASE(op_mul);
         default:
             ASSERT_NOT_REACHED();
             break;
@@ -1672,12 +1732,12 @@ void* CTI::privateCompileGetByIdSelf(StructureID* structureID, size_t cachedOffs
     return code;
 }
 
-void* CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* prototypeStructureID, size_t cachedOffset)
+void* CTI::privateCompileGetByIdProto(ExecState* exec, StructureID* structureID, StructureID* prototypeStructureID, size_t cachedOffset)
 {
     // The prototype object definitely exists (if this stub exists the CodeBlock is referencing a StructureID that is
     // referencing the prototype object - let's speculatively load it's table nice and early!)
-    JSObject* protoObject = static_cast<JSObject*>(structureID->prototype());
-    OwnArrayPtr<JSValue*>* protoPropertyStorage = &protoObject->m_propertyStorage;
+    JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(exec));
+    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
     m_jit.movl_mr(static_cast<void*>(protoPropertyStorage), X86::edx);
 
     // check eax is an object of the right StructureID.
@@ -1708,7 +1768,7 @@ void* CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* pro
     return code;
 }
 
-void* CTI::privateCompileGetByIdChain(StructureID* structureID, StructureIDChain* chain, size_t count, size_t cachedOffset)
+void* CTI::privateCompileGetByIdChain(ExecState* exec, StructureID* structureID, StructureIDChain* chain, size_t count, size_t cachedOffset)
 {
     ASSERT(count);
     
@@ -1722,9 +1782,9 @@ void* CTI::privateCompileGetByIdChain(StructureID* structureID, StructureIDChain
 
     StructureID* currStructureID = structureID;
     RefPtr<StructureID>* chainEntries = chain->head();
-    JSCell* protoObject = 0;
+    JSObject* protoObject = 0;
     for (unsigned i = 0; i<count; ++i) {
-        protoObject = static_cast<JSCell*>(currStructureID->prototype());
+        protoObject = static_cast<JSObject*>(currStructureID->prototypeForLookup(exec));
         currStructureID = chainEntries[i].get();
 
         // Check the prototype object's StructureID had not changed.
@@ -1733,8 +1793,8 @@ void* CTI::privateCompileGetByIdChain(StructureID* structureID, StructureIDChain
         bucketsOfFail.append(m_jit.emitUnlinkedJne());
     }
     ASSERT(protoObject);
- 
-    OwnArrayPtr<JSValue*>* protoPropertyStorage = &static_cast<JSObject*>(protoObject)->m_propertyStorage;
+
+    PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
     m_jit.movl_mr(static_cast<void*>(protoPropertyStorage), X86::edx);
     m_jit.movl_mr(cachedOffset * sizeof(JSValue*), X86::edx, X86::eax);
     m_jit.ret();
@@ -1828,6 +1888,20 @@ void* CTI::privateStringLengthTrampoline()
     X86Assembler::link(code, failureCases3, reinterpret_cast<void*>(Machine::cti_op_get_by_id_fail));
 
     return code;
+}
+
+void CTI::emitGetVariableObjectRegister(X86Assembler::RegisterID variableObject, int index, X86Assembler::RegisterID dst)
+{
+    m_jit.movl_mr(JSVariableObject::offsetOf_d(), variableObject, dst);
+    m_jit.movl_mr(JSVariableObject::offsetOf_Data_registers(), dst, dst);
+    m_jit.movl_mr(index * sizeof(Register), dst, dst);
+}
+
+void CTI::emitPutVariableObjectRegister(X86Assembler::RegisterID src, X86Assembler::RegisterID variableObject, int index)
+{
+    m_jit.movl_mr(JSVariableObject::offsetOf_d(), variableObject, variableObject);
+    m_jit.movl_mr(JSVariableObject::offsetOf_Data_registers(), variableObject, variableObject);
+    m_jit.movl_rm(src, index * sizeof(Register), variableObject);
 }
 
 #if ENABLE(WREC)
