@@ -1,3 +1,10 @@
+2008-09-13  Paul  <webkit@pedriana.com>
+
+        Reviewed by Mario Bensi.
+        Removed static String objects. They were unused and were allocating memory before main.
+
+        * OrigynWebBrowser/Api/WebHistoryItem.cpp:  
+
 2008-09-05  Sebastien Roret <sroret@pleyo.com>
 
         Reviewed by Mario Bensi.

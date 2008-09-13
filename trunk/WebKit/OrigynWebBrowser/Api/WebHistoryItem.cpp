@@ -73,12 +73,6 @@ WebHistoryItem* WebHistoryItem::createInstance(PassRefPtr<HistoryItem> historyIt
     return instance;
 }
 
-static String urlKey = "";
-static String lastVisitedDateKey = "lastVisitedDate";
-static String titleKey = "title";
-static String visitCountKey = "visitCount";
-
-
 bool WebHistoryItem::hasURLString()
 {
     return m_historyItem->urlString().isEmpty() ? false : true;
