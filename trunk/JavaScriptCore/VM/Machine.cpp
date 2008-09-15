@@ -247,6 +247,34 @@ static JSValue* jsTypeStringForValue(ExecState* exec, JSValue* v)
     return jsNontrivialString(exec, "object");
 }
 
+static bool jsIsObjectType(JSValue* v)
+{
+    if (JSImmediate::isImmediate(v))
+        return v->isNull();
+
+    JSType type = static_cast<JSCell*>(v)->structureID()->type();
+    if (type == NumberType || type == StringType)
+        return false;
+    if (type == ObjectType) {
+        if (static_cast<JSObject*>(v)->masqueradeAsUndefined())
+            return false;
+        CallData callData;
+        if (static_cast<JSObject*>(v)->getCallData(callData) != CallTypeNone)
+            return false;
+    }
+    return true;
+}
+
+static bool jsIsFunctionType(JSValue* v)
+{
+    if (v->isObject()) {
+        CallData callData;
+        if (static_cast<JSObject*>(v)->getCallData(callData) != CallTypeNone)
+            return true;
+    }
+    return false;
+}
+
 static bool NEVER_INLINE resolve(ExecState* exec, Instruction* vPC, Register* r, ScopeChainNode* scopeChain, CodeBlock* codeBlock, JSValue*& exceptionValue)
 {
     int dst = (vPC + 1)->u.operand;
@@ -1107,12 +1135,15 @@ static NEVER_INLINE ScopeChainNode* createExceptionScope(ExecState* exec, CodeBl
 
 static StructureIDChain* cachePrototypeChain(ExecState* exec, StructureID* structureID)
 {
-    RefPtr<StructureIDChain> chain = StructureIDChain::create(static_cast<JSObject*>(structureID->prototypeForLookup(exec))->structureID());
+    JSValue* prototype = structureID->prototypeForLookup(exec);
+    if (JSImmediate::isImmediate(prototype))
+        return 0;
+    RefPtr<StructureIDChain> chain = StructureIDChain::create(static_cast<JSObject*>(prototype)->structureID());
     structureID->setCachedPrototypeChain(chain.release());
     return structureID->cachedPrototypeChain();
 }
 
-NEVER_INLINE void Machine::tryCachePutByID(CodeBlock* codeBlock, Instruction* vPC, JSValue* baseValue, const PutPropertySlot& slot)
+NEVER_INLINE void Machine::tryCachePutByID(ExecState* exec, CodeBlock* codeBlock, Instruction* vPC, JSValue* baseValue, const PutPropertySlot& slot)
 {
     // Recursive invocation may already have specialized this instruction.
     if (vPC[0].u.opcode != getOpcode(op_put_by_id))
@@ -1123,12 +1154,6 @@ NEVER_INLINE void Machine::tryCachePutByID(CodeBlock* codeBlock, Instruction* vP
 
     // Uncacheable: give up.
     if (!slot.isCacheable()) {
-        vPC[0] = getOpcode(op_put_by_id_generic);
-        return;
-    }
-
-    // FIXME: Cache new property transitions, too.
-    if (slot.type() == PutPropertySlot::NewProperty) {
         vPC[0] = getOpcode(op_put_by_id_generic);
         return;
     }
@@ -1162,6 +1187,27 @@ NEVER_INLINE void Machine::tryCachePutByID(CodeBlock* codeBlock, Instruction* vP
         vPC[0] = getOpcode(op_put_by_id_generic);
         return;
     }
+
+    // StructureID transition, cache transition info
+    if (slot.type() == PutPropertySlot::NewProperty) {
+        vPC[0] = getOpcode(op_put_by_id_transition);
+        vPC[4] = structureID->previousID();
+        vPC[5] = structureID;
+        StructureIDChain* chain = structureID->cachedPrototypeChain();
+        if (!chain) {
+            chain = cachePrototypeChain(exec, structureID);
+            if (!chain) {
+                // This happens if someone has manually inserted null into the prototype chain
+                vPC[0] = getOpcode(op_put_by_id_generic);
+                return;
+            }
+        }
+        vPC[6] = chain;
+        vPC[7] = slot.cachedOffset();
+        codeBlock->refStructureIDs(vPC);
+        return;
+    }
+
     vPC[0] = getOpcode(op_put_by_id_replace);
     vPC[5] = slot.cachedOffset();
     codeBlock->refStructureIDs(vPC);
@@ -1282,6 +1328,7 @@ NEVER_INLINE void Machine::tryCacheGetByID(ExecState* exec, CodeBlock* codeBlock
     StructureIDChain* chain = structureID->cachedPrototypeChain();
     if (!chain)
         chain = cachePrototypeChain(exec, structureID);
+    ASSERT(chain);
 
     vPC[0] = getOpcode(op_get_by_id_chain);
     vPC[4] = structureID;
@@ -1990,10 +2037,14 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         NEXT_OPCODE;
     }
     BEGIN_OPCODE(op_instanceof) {
-        /* instanceof dst(r) value(r) constructor(r)
+        /* instanceof dst(r) value(r) constructor(r) constructorProto(r)
 
            Tests whether register value is an instance of register
-           constructor, and puts the boolean result in register dst.
+           constructor, and puts the boolean result in register
+           dst. Register constructorProto must contain the "prototype"
+           property (not the actual prototype) of the object in
+           register constructor. This lookup is separated so that
+           polymorphic inline caching can apply.
 
            Raises an exception if register constructor is not an
            object.
@@ -2001,6 +2052,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         int dst = (++vPC)->u.operand;
         int value = (++vPC)->u.operand;
         int base = (++vPC)->u.operand;
+        int baseProto = (++vPC)->u.operand;
 
         JSValue* baseVal = r[base].jsValue(exec);
 
@@ -2008,7 +2060,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
             goto vm_throw;
 
         JSObject* baseObj = static_cast<JSObject*>(baseVal);
-        r[dst] = jsBoolean(baseObj->implementsHasInstance() ? baseObj->hasInstance(exec, r[value].jsValue(exec)) : false);
+        r[dst] = jsBoolean(baseObj->implementsHasInstance() ? baseObj->hasInstance(exec, r[value].jsValue(exec), r[baseProto].jsValue(exec)) : false);
 
         ++vPC;
         NEXT_OPCODE;
@@ -2022,6 +2074,91 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         int dst = (++vPC)->u.operand;
         int src = (++vPC)->u.operand;
         r[dst] = jsTypeStringForValue(exec, r[src].jsValue(exec));
+
+        ++vPC;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_is_undefined) {
+        /* is_undefined dst(r) src(r)
+
+           Determines whether the type string for src according to
+           the ECMAScript rules is "undefined", and puts the result
+           in register dst.
+        */
+        int dst = (++vPC)->u.operand;
+        int src = (++vPC)->u.operand;
+        JSValue* v = r[src].jsValue(exec);
+        r[dst] = jsBoolean(v->isUndefined() || (v->isObject() && static_cast<JSObject*>(v)->masqueradeAsUndefined()));
+
+        ++vPC;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_is_boolean) {
+        /* is_boolean dst(r) src(r)
+
+           Determines whether the type string for src according to
+           the ECMAScript rules is "boolean", and puts the result
+           in register dst.
+        */
+        int dst = (++vPC)->u.operand;
+        int src = (++vPC)->u.operand;
+        r[dst] = jsBoolean(r[src].jsValue(exec)->isBoolean());
+
+        ++vPC;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_is_number) {
+        /* is_number dst(r) src(r)
+
+           Determines whether the type string for src according to
+           the ECMAScript rules is "number", and puts the result
+           in register dst.
+        */
+        int dst = (++vPC)->u.operand;
+        int src = (++vPC)->u.operand;
+        r[dst] = jsBoolean(r[src].jsValue(exec)->isNumber());
+
+        ++vPC;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_is_string) {
+        /* is_string dst(r) src(r)
+
+           Determines whether the type string for src according to
+           the ECMAScript rules is "string", and puts the result
+           in register dst.
+        */
+        int dst = (++vPC)->u.operand;
+        int src = (++vPC)->u.operand;
+        r[dst] = jsBoolean(r[src].jsValue(exec)->isString());
+
+        ++vPC;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_is_object) {
+        /* is_object dst(r) src(r)
+
+           Determines whether the type string for src according to
+           the ECMAScript rules is "object", and puts the result
+           in register dst.
+        */
+        int dst = (++vPC)->u.operand;
+        int src = (++vPC)->u.operand;
+        r[dst] = jsBoolean(jsIsObjectType(r[src].jsValue(exec)));
+
+        ++vPC;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_is_function) {
+        /* is_function dst(r) src(r)
+
+           Determines whether the type string for src according to
+           the ECMAScript rules is "function", and puts the result
+           in register dst.
+        */
+        int dst = (++vPC)->u.operand;
+        int src = (++vPC)->u.operand;
+        r[dst] = jsBoolean(jsIsFunctionType(r[src].jsValue(exec)));
 
         ++vPC;
         NEXT_OPCODE;
@@ -2404,7 +2541,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         NEXT_OPCODE;
     }
     BEGIN_OPCODE(op_put_by_id) {
-        /* put_by_id base(r) property(id) value(r) nop(n) nop(n)
+        /* put_by_id base(r) property(id) value(r) nop(n) nop(n) nop(n) nop(n)
 
            Generic property access: Sets the property named by identifier
            property, belonging to register base, to register value.
@@ -2424,13 +2561,65 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         baseValue->put(exec, ident, r[value].jsValue(exec), slot);
         VM_CHECK_EXCEPTION();
 
-        tryCachePutByID(codeBlock, vPC, baseValue, slot);
+        tryCachePutByID(exec, codeBlock, vPC, baseValue, slot);
 
-        vPC += 6;
+        vPC += 8;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_put_by_id_transition) {
+        /* op_put_by_id_transition base(r) property(id) value(r) oldStructureID(sID) newStructureID(sID) structureIDChain(sIDc) offset(n)
+         
+           Cached property access: Attempts to set a new property with a cached transition
+           property named by identifier property, belonging to register base,
+           to register value. If the cache misses, op_put_by_id_transition
+           reverts to op_put_by_id_generic.
+         
+           Unlike many opcodes, this one does not write any output to
+           the register file.
+         */
+        int base = vPC[1].u.operand;
+        JSValue* baseValue = r[base].jsValue(exec);
+        
+        if (LIKELY(!JSImmediate::isImmediate(baseValue))) {
+            JSCell* baseCell = static_cast<JSCell*>(baseValue);
+            StructureID* oldStructureID = vPC[4].u.structureID;
+            StructureID* newStructureID = vPC[5].u.structureID;
+            
+            if (LIKELY(baseCell->structureID() == oldStructureID)) {
+                ASSERT(baseCell->isObject());
+                JSObject* baseObject = static_cast<JSObject*>(baseCell);
+
+                RefPtr<StructureID>* it = vPC[6].u.structureIDChain->head();
+
+                JSObject* proto = static_cast<JSObject*>(baseObject->structureID()->prototypeForLookup(exec));
+                while (!proto->isNull()) {
+                    if (UNLIKELY(proto->structureID() != (*it).get())) {
+                        uncachePutByID(codeBlock, vPC);
+                        NEXT_OPCODE;
+                    }
+                    ++it;
+                    proto = static_cast<JSObject*>(proto->structureID()->prototypeForLookup(exec));
+                }
+
+                baseObject->transitionTo(newStructureID);
+                if (oldStructureID->propertyMap().storageSize() == JSObject::inlineStorageCapacity)
+                    baseObject->allocatePropertyStorage(oldStructureID->propertyMap().storageSize(), oldStructureID->propertyMap().size());
+
+                int value = vPC[3].u.operand;
+                unsigned offset = vPC[7].u.operand;
+                ASSERT(baseObject->offsetForLocation(baseObject->getDirectLocation(codeBlock->identifiers[vPC[2].u.operand])) == offset);
+                baseObject->putDirectOffset(offset, r[value].jsValue(exec));
+
+                vPC += 8;
+                NEXT_OPCODE;
+            }
+        }
+        
+        uncachePutByID(codeBlock, vPC);
         NEXT_OPCODE;
     }
     BEGIN_OPCODE(op_put_by_id_replace) {
-        /* op_put_by_id_replace base(r) property(id) value(r) structureID(sID) offset(n)
+        /* op_put_by_id_replace base(r) property(id) value(r) structureID(sID) offset(n) nop(n) nop(n)
 
            Cached property access: Attempts to set a pre-existing, cached
            property named by identifier property, belonging to register base,
@@ -2456,7 +2645,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
                 ASSERT(baseObject->offsetForLocation(baseObject->getDirectLocation(codeBlock->identifiers[vPC[2].u.operand])) == offset);
                 baseObject->putDirectOffset(offset, r[value].jsValue(exec));
 
-                vPC += 6;
+                vPC += 8;
                 NEXT_OPCODE;
             }
         }
@@ -2465,7 +2654,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         NEXT_OPCODE;
     }
     BEGIN_OPCODE(op_put_by_id_generic) {
-        /* op_put_by_id_generic base(r) property(id) value(r) nop(n) nop(n)
+        /* op_put_by_id_generic base(r) property(id) value(r) nop(n) nop(n) nop(n) nop(n)
 
            Generic property access: Sets the property named by identifier
            property, belonging to register base, to register value.
@@ -2484,7 +2673,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         baseValue->put(exec, ident, r[value].jsValue(exec), slot);
         VM_CHECK_EXCEPTION();
 
-        vPC += 6;
+        vPC += 8;
         NEXT_OPCODE;
     }
     BEGIN_OPCODE(op_del_by_id) {
@@ -2741,6 +2930,33 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         int target = (++vPC)->u.operand;
         
         bool result = jsLess(exec, src1, src2);
+        VM_CHECK_EXCEPTION();
+        
+        if (result) {
+            vPC += target;
+            CHECK_FOR_TIMEOUT();
+            NEXT_OPCODE;
+        }
+        
+        ++vPC;
+        NEXT_OPCODE;
+    }
+    BEGIN_OPCODE(op_loop_if_lesseq) {
+        /* loop_if_lesseq src1(r) src2(r) target(offset)
+
+           Checks whether register src1 is less than or equal to register
+           src2, as with the ECMAScript '<=' operator, and then jumps to
+           offset target from the current instruction, if and only if the 
+           result of the comparison is true.
+
+           Additionally this loop instruction may terminate JS execution is
+           the JS timeout is reached.
+        */
+        JSValue* src1 = r[(++vPC)->u.operand].jsValue(exec);
+        JSValue* src2 = r[(++vPC)->u.operand].jsValue(exec);
+        int target = (++vPC)->u.operand;
+        
+        bool result = jsLessEq(exec, src1, src2);
         VM_CHECK_EXCEPTION();
         
         if (result) {
@@ -3063,7 +3279,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         NEXT_OPCODE;
     }
     BEGIN_OPCODE(op_construct) {
-        /* construct dst(r) constr(r) firstArg(r) argCount(n)
+        /* construct dst(r) constr(r) constrProto(r) firstArg(r) argCount(n)
 
            Invoke register "constr" as a constructor. For JS
            functions, the calling convention is exactly as for the
@@ -3071,10 +3287,15 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
            created Object. For native constructors, a null "this"
            value is passed. In either case, the firstArg and argCount
            registers are interpreted as for the "call" opcode.
+
+           Register constrProto must contain the prototype property of
+           register constsr. This is to enable polymorphic inline
+           caching of this lookup.
         */
 
         int dst = (++vPC)->u.operand;
         int constr = (++vPC)->u.operand;
+        int constrProto = (++vPC)->u.operand;
         int firstArg = (++vPC)->u.operand;
         int argCount = (++vPC)->u.operand;
 
@@ -3091,7 +3312,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
                 (*enabledProfilerReference)->willExecute(exec, constructor);
 
             JSObject* prototype;
-            JSValue* p = constructor->get(exec, exec->propertyNames().prototype);
+            JSValue* p = r[constrProto].jsValue(exec);
             if (p->isObject())
                 prototype = static_cast<JSObject*>(p);
             else
@@ -3556,12 +3777,6 @@ NEVER_INLINE void Machine::tryCTICachePutByID(ExecState* exec, CodeBlock* codeBl
         ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_put_by_id_generic);
         return;
     }
-
-    // FIXME: Cache new property transitions, too.
-    if (slot.type() == PutPropertySlot::NewProperty) {
-        ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_put_by_id_generic);
-        return;
-    }
     
     JSCell* baseCell = static_cast<JSCell*>(baseValue);
     StructureID* structureID = baseCell->structureID();
@@ -3584,12 +3799,39 @@ NEVER_INLINE void Machine::tryCTICachePutByID(ExecState* exec, CodeBlock* codeBl
         ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_put_by_id_generic);
         return;
     }
+
+    // StructureID transition, cache transition info
+    if (slot.type() == PutPropertySlot::NewProperty) {
+        vPC[0] = getOpcode(op_put_by_id_transition);
+        vPC[4] = structureID->previousID();
+        vPC[5] = structureID;
+        StructureIDChain* chain = structureID->cachedPrototypeChain();
+        if (!chain) {
+            chain = cachePrototypeChain(exec, structureID);
+            if (!chain) {
+                // This happens if someone has manually inserted null into the prototype chain
+                vPC[0] = getOpcode(op_put_by_id_generic);
+                return;
+            }
+        }
+        vPC[6] = chain;
+        vPC[7] = slot.cachedOffset();
+        codeBlock->refStructureIDs(vPC);
+        CTI::compilePutByIdTransition(this, exec, codeBlock, structureID->previousID(), structureID, slot.cachedOffset(), chain, returnAddress);
+        return;
+    }
+    
     vPC[0] = getOpcode(op_put_by_id_replace);
     vPC[4] = structureID;
     vPC[5] = slot.cachedOffset();
     codeBlock->refStructureIDs(vPC);
 
-    ctiRepatchCallByReturnAddress(returnAddress, CTI::compilePutByIdReplace(this, exec, codeBlock, structureID, slot.cachedOffset()));
+#if USE(CTI_REPATCH_PIC)
+    UNUSED_PARAM(exec);
+    CTI::patchPutByIdReplace(codeBlock, structureID, slot.cachedOffset(), returnAddress);
+#else
+    CTI::compilePutByIdReplace(this, exec, codeBlock, structureID, slot.cachedOffset(), returnAddress);
+#endif
 }
 
 void* Machine::getCTIArrayLengthTrampoline(ExecState* exec, CodeBlock* codeBlock)
@@ -3613,10 +3855,16 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(ExecState* exec, CodeBlock* codeBl
     // The interpreter checks for recursion here; I do not believe this can occur in CTI.
 
     if (isJSArray(baseValue) && propertyName == exec->propertyNames().length) {
+#if USE(CTI_REPATCH_PIC)
+        CTI::compilePatchGetArrayLength(this, exec, codeBlock, returnAddress);
+#else
         ctiRepatchCallByReturnAddress(returnAddress, getCTIArrayLengthTrampoline(exec, codeBlock));
+#endif
         return;
     }
     if (isJSString(baseValue) && propertyName == exec->propertyNames().length) {
+        // The tradeoff of compiling an repatched inline string length access routine does not seem
+        // to pay off, so we currently only do this for arrays.
         ctiRepatchCallByReturnAddress(returnAddress, getCTIStringLengthTrampoline(exec, codeBlock));
         return;
     }
@@ -3656,7 +3904,11 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(ExecState* exec, CodeBlock* codeBl
         vPC[5] = slot.cachedOffset();
         codeBlock->refStructureIDs(vPC);
         
-        ctiRepatchCallByReturnAddress(returnAddress, CTI::compileGetByIdSelf(this, exec, codeBlock, structureID, slot.cachedOffset()));
+#if USE(CTI_REPATCH_PIC)
+        CTI::patchGetByIdSelf(codeBlock, structureID, slot.cachedOffset(), returnAddress);
+#else
+        CTI::compileGetByIdSelf(this, exec, codeBlock, structureID, slot.cachedOffset(), returnAddress);
+#endif
         return;
     }
 
@@ -3679,7 +3931,7 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(ExecState* exec, CodeBlock* codeBl
         vPC[6] = slot.cachedOffset();
         codeBlock->refStructureIDs(vPC);
 
-        ctiRepatchCallByReturnAddress(returnAddress, CTI::compileGetByIdProto(this, exec, codeBlock, structureID, slotBaseObject->structureID(), slot.cachedOffset()));
+        CTI::compileGetByIdProto(this, exec, codeBlock, structureID, slotBaseObject->structureID(), slot.cachedOffset(), returnAddress);
         return;
     }
 
@@ -3713,6 +3965,7 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(ExecState* exec, CodeBlock* codeBl
     if (!chain)
         chain = cachePrototypeChain(exec, structureID);
 
+    ASSERT(chain);
     vPC[0] = getOpcode(op_get_by_id_chain);
     vPC[4] = structureID;
     vPC[5] = chain;
@@ -3720,7 +3973,7 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(ExecState* exec, CodeBlock* codeBl
     vPC[7] = slot.cachedOffset();
     codeBlock->refStructureIDs(vPC);
 
-    ctiRepatchCallByReturnAddress(returnAddress, CTI::compileGetByIdChain(this, exec, codeBlock, structureID, chain, count, slot.cachedOffset()));
+    CTI::compileGetByIdChain(this, exec, codeBlock, structureID, chain, count, slot.cachedOffset(), returnAddress);
 }
 
 
@@ -3803,6 +4056,17 @@ int Machine::cti_op_loop_if_less(CTI_ARGS)
     ExecState* exec = ARG_exec;
 
     bool result = jsLess(exec, src1, src2);
+    VM_CHECK_EXCEPTION_AT_END();
+    return result;
+}
+
+int Machine::cti_op_loop_if_lesseq(CTI_ARGS)
+{
+    JSValue* src1 = ARG_src1;
+    JSValue* src2 = ARG_src2;
+    ExecState* exec = ARG_exec;
+
+    bool result = jsLessEq(exec, src1, src2);
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
@@ -3937,7 +4201,8 @@ JSValue* Machine::cti_op_instanceof(CTI_ARGS)
     }
 
     JSObject* baseObj = static_cast<JSObject*>(baseVal);
-    JSValue* result = jsBoolean(baseObj->implementsHasInstance() ? baseObj->hasInstance(exec,  ARG_src1) : false);
+    JSValue* basePrototype = ARG_src3;
+    JSValue* result = jsBoolean(baseObj->implementsHasInstance() ? baseObj->hasInstance(exec,  ARG_src1, basePrototype) : false);
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
@@ -3993,19 +4258,19 @@ void* Machine::cti_op_call_JSFunction(CTI_ARGS)
     int firstArg = ARG_int3;
     int argCount = ARG_int4;
 
-    CallData callData;
+    // In the JIT code before entering this function we wil have checked the vptr,
+    // and know this is an object of type JSFunction.
 #ifndef NDEBUG
-    CallType callType =
+    CallData callData;
 #endif
-        funcVal->getCallData(callData);
-
-    ASSERT(callType == CallTypeJS);
+    ASSERT(funcVal->getCallData(callData) == CallTypeJS);
 
     if (*ARG_profilerReference)
         (*ARG_profilerReference)->willExecute(exec, static_cast<JSObject*>(funcVal));
 
-    ScopeChainNode* callDataScopeChain = callData.js.scopeChain;
-    FunctionBodyNode* functionBodyNode = callData.js.functionBody;
+    ScopeChainNode* callDataScopeChain = static_cast<JSFunction*>(funcVal)->m_scopeChain.node();
+    FunctionBodyNode* functionBodyNode = static_cast<JSFunction*>(funcVal)->m_body.get();
+
     CodeBlock* newCodeBlock = &functionBodyNode->byteCode(callDataScopeChain);
 
     r[firstArg] = thisValue;
@@ -4169,8 +4434,9 @@ void* Machine::cti_op_construct_JSConstruct(CTI_ARGS)
     Register* registerBase = registerFile->base();
     
     JSValue* constrVal = ARG_src1;
-    int firstArg = ARG_int2;
-    int argCount = ARG_int3;
+    JSValue* constrProtoVal = ARG_src2;
+    int firstArg = ARG_int3;
+    int argCount = ARG_int4;
 
     ConstructData constructData;
 #ifndef NDEBUG
@@ -4178,7 +4444,7 @@ void* Machine::cti_op_construct_JSConstruct(CTI_ARGS)
 #endif
         constrVal->getConstructData(constructData);
 
-    // Removing this line of code causes a measurable regression on squirrelfish.
+    // Removing this line of code causes a measurable regression on sunspider.
     JSObject* constructor = static_cast<JSObject*>(constrVal);
 
     ASSERT(constructType == ConstructTypeJS);
@@ -4187,7 +4453,7 @@ void* Machine::cti_op_construct_JSConstruct(CTI_ARGS)
         (*ARG_profilerReference)->willExecute(exec, constructor);
 
     JSObject* prototype;
-    JSValue* p = constructor->get(exec, exec->propertyNames().prototype);
+    JSValue* p = constrProtoVal;
     if (p->isObject())
         prototype = static_cast<JSObject*>(p);
     else
@@ -4225,8 +4491,8 @@ JSValue* Machine::cti_op_construct_NotJSConstruct(CTI_ARGS)
     Register* r = ARG_r;
 
     JSValue* constrVal = ARG_src1;
-    int firstArg = ARG_int2;
-    int argCount = ARG_int3;
+    int firstArg = ARG_int3;
+    int argCount = ARG_int4;
 
     ConstructData constructData;
     ConstructType constructType = constrVal->getConstructData(constructData);
@@ -4386,6 +4652,30 @@ void Machine::cti_op_put_by_val(CTI_ARGS)
             baseValue->put(exec, i, value);
     } else {
         Identifier property(exec, subscript->toString(exec));
+        if (!exec->hadException()) { // Don't put to an object if toString threw an exception.
+            PutPropertySlot slot;
+            baseValue->put(exec, property, value, slot);
+        }
+    }
+
+    VM_CHECK_EXCEPTION_AT_END();
+}
+
+void Machine::cti_op_put_by_val_array(CTI_ARGS)
+{
+    ExecState* exec = ARG_exec;
+
+    JSValue* baseValue = ARG_src1;
+    int i = ARG_int2;
+    JSValue* value = ARG_src3;
+
+    ASSERT(exec->machine()->isJSArray(baseValue));
+
+    if (LIKELY(i >= 0))
+        static_cast<JSArray*>(baseValue)->JSArray::put(exec, i, value);
+    else {
+        Identifier property(exec, JSImmediate::from(i)->toString(exec));
+        // FIXME: can toString throw an exception here?
         if (!exec->hadException()) { // Don't put to an object if toString threw an exception.
             PutPropertySlot slot;
             baseValue->put(exec, property, value, slot);
@@ -4857,6 +5147,37 @@ void Machine::cti_op_pop_scope(CTI_ARGS)
 JSValue* Machine::cti_op_typeof(CTI_ARGS)
 {
     return jsTypeStringForValue(ARG_exec, ARG_src1);
+}
+
+JSValue* Machine::cti_op_is_undefined(CTI_ARGS)
+{
+    JSValue* v = ARG_src1;
+    return jsBoolean(v->isUndefined() || (v->isObject() && static_cast<JSObject*>(v)->masqueradeAsUndefined()));
+}
+
+JSValue* Machine::cti_op_is_boolean(CTI_ARGS)
+{
+    return jsBoolean(ARG_src1->isBoolean());
+}
+
+JSValue* Machine::cti_op_is_number(CTI_ARGS)
+{
+    return jsBoolean(ARG_src1->isNumber());
+}
+
+JSValue* Machine::cti_op_is_string(CTI_ARGS)
+{
+    return jsBoolean(ARG_src1->isString());
+}
+
+JSValue* Machine::cti_op_is_object(CTI_ARGS)
+{
+    return jsBoolean(jsIsObjectType(ARG_src1));
+}
+
+JSValue* Machine::cti_op_is_function(CTI_ARGS)
+{
+    return jsBoolean(jsIsFunctionType(ARG_src1));
 }
 
 JSValue* Machine::cti_op_stricteq(CTI_ARGS)

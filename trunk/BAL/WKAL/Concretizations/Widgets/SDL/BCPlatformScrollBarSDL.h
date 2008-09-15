@@ -30,7 +30,6 @@
 #ifndef PlatformScrollBar_h
 #define PlatformScrollBar_h
 
-#include "Widget.h"
 #include "ScrollBar.h"
 #include "BALBase.h"
 #include "Timer.h"
@@ -38,7 +37,7 @@
 
 namespace WKAL {
 
-class PlatformScrollbar : public Widget, public Scrollbar {
+class PlatformScrollbar : public Scrollbar {
 public:
     static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
     {
@@ -46,23 +45,12 @@ public:
     }
     virtual ~PlatformScrollbar();
 
-    virtual bool isWidget() const { return true; }
-
-    virtual int width() const;
-    virtual int height() const;
-    virtual void setRect(const IntRect&);
-    virtual void setEnabled(bool);
-    virtual void paint(GraphicsContext*, const IntRect& damageRect);
-
-    static int horizontalScrollbarHeight();
-    static int verticalScrollbarWidth();
+    virtual void setFrameGeometry(const IntRect&);
 
     virtual bool handleMouseMoveEvent(const PlatformMouseEvent&);
     virtual bool handleMouseOutEvent(const PlatformMouseEvent&);
     virtual bool handleMousePressEvent(const PlatformMouseEvent&);
     virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&);
-
-    void autoscrollTimerFired(Timer<PlatformScrollbar>*);
 
 protected:
     PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
@@ -73,9 +61,6 @@ protected:
 private:
     IntRect trackRect() const;
     bool hasButtons() const;
-    void paintTrack(GraphicsContext* context, const IntRect& rect, bool start, const IntRect& damageRect) const;
-    void paintButton(GraphicsContext* context, const IntRect& rect, bool start, const IntRect& damageRect) const;
-    void paintThumb(GraphicsContext* context, const IntRect& rect, const IntRect& damageRect) const;
     IntRect forwardButtonRect() const;
     IntRect backButtonRect() const;
     bool hasThumb() const;
@@ -85,20 +70,11 @@ private:
     int trackLength() const;
     ScrollbarPart hitTest(const PlatformMouseEvent&);
     void invalidatePart(ScrollbarPart);
-    void autoscrollPressedPart(double delay);
-    ScrollDirection pressedPartScrollDirection();
-    ScrollGranularity pressedPartScrollGranularity();
     bool thumbUnderMouse();
     IntRect thumbRect() const;
-    void startTimerIfNeeded(double delay);
-    void stopTimerIfNeeded();
     static void balValueChanged(BalAdjustment*, PlatformScrollbar*);
     
     BalAdjustment* m_adjustment;
-    ScrollbarPart m_hoveredPart;
-    ScrollbarPart m_pressedPart;
-    int m_pressedPos;
-    Timer<PlatformScrollbar> m_scrollTimer;
 };
 
 }

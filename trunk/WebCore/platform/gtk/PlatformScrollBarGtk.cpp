@@ -23,6 +23,7 @@
 #include "GraphicsContext.h"
 #include "FrameView.h"
 #include "NotImplemented.h"
+#include "ScrollbarTheme.h"
 #include "gtkdrawing.h"
 
 #include <gtk/gtk.h>
@@ -56,8 +57,8 @@ PlatformScrollbar::PlatformScrollbar(ScrollbarClient* client, ScrollbarOrientati
      * assign a sane default width and height to the ScrollBar, otherwise
      * we will end up with a 0 width scrollbar.
      */
-    resize(PlatformScrollbar::horizontalScrollbarHeight(),
-           PlatformScrollbar::verticalScrollbarWidth());
+    resize(ScrollbarTheme::nativeTheme()->scrollbarThickness(),
+           ScrollbarTheme::nativeTheme()->scrollbarThickness());
 }
 
 PlatformScrollbar::~PlatformScrollbar()
@@ -68,26 +69,6 @@ PlatformScrollbar::~PlatformScrollbar()
     g_signal_handlers_disconnect_by_func(G_OBJECT(gtkWidget()), (gpointer)PlatformScrollbar::gtkValueChanged, this);
     g_signal_handlers_disconnect_by_func(G_OBJECT(gtkWidget()), (gpointer)gtkScrollEventCallback, this);
     g_object_unref(G_OBJECT(gtkWidget()));
-}
-
-int PlatformScrollbar::width() const
-{
-    return Widget::width();
-}
-
-int PlatformScrollbar::height() const
-{
-    return Widget::height();
-}
-
-void PlatformScrollbar::setEnabled(bool enabled)
-{
-    Widget::setEnabled(enabled);
-}
-
-void PlatformScrollbar::paint(GraphicsContext* graphicsContext, const IntRect& damageRect)
-{
-    Widget::paint(graphicsContext, damageRect);
 }
 
 void PlatformScrollbar::updateThumbPosition()
@@ -107,9 +88,9 @@ void PlatformScrollbar::updateThumbProportion()
     gtk_adjustment_changed(m_adjustment);
 }
 
-void PlatformScrollbar::setRect(const IntRect& rect)
+void PlatformScrollbar::setFrameGeometry(const IntRect& rect)
 {
-    setFrameGeometry(rect);
+    Widget::setFrameGeometry(rect);
     geometryChanged();
 }
 
@@ -135,26 +116,3 @@ void PlatformScrollbar::gtkValueChanged(GtkAdjustment*, PlatformScrollbar* that)
     that->setValue(static_cast<int>(gtk_adjustment_get_value(that->m_adjustment)));
 }
 
-static int scrollbarSize()
-{
-    static int size = 0;
-
-    if (size)
-        return size;
-
-    MozGtkScrollbarMetrics metrics;
-    moz_gtk_get_scrollbar_metrics(&metrics);
-    size = metrics.slider_width;
-
-    return size;
-}
-
-int PlatformScrollbar::horizontalScrollbarHeight()
-{
-    return scrollbarSize();
-}
-
-int PlatformScrollbar::verticalScrollbarWidth()
-{
-    return scrollbarSize();
-}

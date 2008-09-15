@@ -27,14 +27,13 @@
 #define PlatformScrollBar_h
 
 #include "ScrollBar.h"
-#include "Widget.h"
 #include <wtf/PassRefPtr.h>
 
 typedef struct _GtkAdjustment GtkAdjustment;
 
 namespace WebCore {
 
-class PlatformScrollbar : public Widget, public Scrollbar {
+class PlatformScrollbar : public Scrollbar {
 public:
     static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
     {
@@ -42,24 +41,15 @@ public:
     }
     virtual ~PlatformScrollbar();
 
-    virtual bool isWidget() const { return true; }
-
-    virtual int width() const;
-    virtual int height() const;
-    virtual void setRect(const IntRect&);
-    virtual void setEnabled(bool);
-    virtual void paint(GraphicsContext*, const IntRect& damageRect);
-
-    static int horizontalScrollbarHeight();
-    static int verticalScrollbarWidth();
-
+    virtual void setFrameGeometry(const IntRect&);
+    
 protected:
     PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
 
     virtual void updateThumbPosition();
     virtual void updateThumbProportion();
     virtual void geometryChanged();
-
+    
 private:
     static void gtkValueChanged(GtkAdjustment*, PlatformScrollbar*);
     GtkAdjustment* m_adjustment;

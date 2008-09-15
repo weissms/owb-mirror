@@ -144,6 +144,7 @@ namespace JSC {
         static JSValue* SFX_CALL cti_op_add(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_pre_inc(CTI_ARGS);
         static int SFX_CALL cti_op_loop_if_less(CTI_ARGS);
+        static int SFX_CALL cti_op_loop_if_lesseq(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_new_object(CTI_ARGS);
         static void SFX_CALL cti_op_put_by_id(CTI_ARGS);
         static void SFX_CALL cti_op_put_by_id_second(CTI_ARGS);
@@ -168,6 +169,7 @@ namespace JSC {
         static JSValue* SFX_CALL cti_op_resolve_func(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_sub(CTI_ARGS);
         static void SFX_CALL cti_op_put_by_val(CTI_ARGS);
+        static void SFX_CALL cti_op_put_by_val_array(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_lesseq(CTI_ARGS);
         static int SFX_CALL cti_op_loop_if_true(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_resolve_base(CTI_ARGS);
@@ -201,6 +203,12 @@ namespace JSC {
         static void SFX_CALL cti_op_push_scope(CTI_ARGS);
         static void SFX_CALL cti_op_pop_scope(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_typeof(CTI_ARGS);
+        static JSValue* SFX_CALL cti_op_is_undefined(CTI_ARGS);
+        static JSValue* SFX_CALL cti_op_is_boolean(CTI_ARGS);
+        static JSValue* SFX_CALL cti_op_is_number(CTI_ARGS);
+        static JSValue* SFX_CALL cti_op_is_string(CTI_ARGS);
+        static JSValue* SFX_CALL cti_op_is_object(CTI_ARGS);
+        static JSValue* SFX_CALL cti_op_is_function(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_stricteq(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_nstricteq(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_to_jsnumber(CTI_ARGS);
@@ -254,7 +262,7 @@ namespace JSC {
         
         void tryCacheGetByID(ExecState*, CodeBlock*, Instruction* vPC, JSValue* baseValue, const Identifier& propertyName, const PropertySlot&);
         void uncacheGetByID(CodeBlock*, Instruction* vPC);
-        void tryCachePutByID(CodeBlock*, Instruction* vPC, JSValue* baseValue, const PutPropertySlot&);
+        void tryCachePutByID(ExecState* exec, CodeBlock*, Instruction* vPC, JSValue* baseValue, const PutPropertySlot&);
         void uncachePutByID(CodeBlock*, Instruction* vPC);
 
 #if ENABLE(CTI)

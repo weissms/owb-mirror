@@ -288,28 +288,11 @@ namespace WTF {
 
     template<typename P> struct HashTraits<P*> : GenericHashTraits<P*> {
         static const bool emptyValueIsZero = true;
-        static const bool needsDestruction = fals
-    /**
-     *  isDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static bool isDeletedValue(P* value) ;
+        static const bool needsDestruction = fa
     };
 
     template<typename P> struct HashTraits<RefPtr<P> > : GenericHashTraits<RefPtr<P> > {
-        static const bool emptyValueIsZero = true 
-
-    /**
-     *  isDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static bool isDeletedValue(const RefPtr<P>& value) ;
+        static const bool emptyValueIsZero = true
     };
 
     // special traits for pairs, helpful for their use in HashMap implementation
@@ -323,25 +306,9 @@ namespace WTF {
 
         static const bool needsDestruction = FirstTraits::needsDestruction || SecondTraits::needsDestructio
 
-	static const bool needsDestruction = FirstTraits::needsDestruction || SecondTraits::needsDestruction ;
-
-    /**
-     *  constructDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static void constructDeletedValue(TraitType& slot) 
-
-    };
+	static const bool needsDestruction = FirstTraits::needsDestruction || SecondTraits::needsDestruction 
 
     template<typename First, typename Second>     struct HashTraits<pair<First, Second> > : public PairHashTraits<HashTraits<First>, HashTraits<Second> > { };
-
-} // namespace WTF
-
-using WTF::HashTraits;
-using WTF::PairHashTraits;
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -397,4 +364,135 @@ using WTF::PairHashTraits;
     
     
 
-#endif // WTF_
+} // namespace WTF
+
+using WTF::HashTrait
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(P* value)
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const RefPtr<P>& value)
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& slot)
+    
+    
+    
+    
+    
+    
+    
+using WTF::PairHashTrait
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const RefPtr<P>& value)
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& slot)
+    
+    
+    
+    
+    
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(P* va
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(P*& slot)
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(RefPtr<P>& slot)
+    /**
+     *  emptyValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static TraitType emptyValue
+    
+    
+    
+    
+    
+    
+    
+    /**
+     *  emptyValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static TraitType emptyValue()
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const TraitType& value) ;
+    
+    
+    
+    
+
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(P*& slot) 
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& s

@@ -1,3 +1,720 @@
+2008-09-15  Dave Hyatt  <hyatt@apple.com>
+
+        Refactor PlatformScrollbarWin's painting so that it is now done by ScrollbarThemeWin.  PlatformScrollbarSafari
+        is still painting itself (a subsequent patch will move its painting into ScrollbarThemeSafari).
+       
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.h:
+        (WebCore::Scrollbar::client):
+        (WebCore::Scrollbar::currentPos):
+        (WebCore::Scrollbar::totalSize):
+        * platform/ScrollbarTheme.h:
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::pageForScrollView):
+        (WebCore::ScrollbarThemeComposite::paint):
+        * platform/ScrollbarThemeComposite.h:
+        (WebCore::ScrollbarThemeComposite::trackIsSinglePiece):
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBarSafari.cpp:
+        * platform/win/PlatformScrollBarWin.cpp:
+        * platform/win/ScrollbarThemeSafari.h:
+        (WebCore::ScrollbarThemeSafari::hasButtons):
+        (WebCore::ScrollbarThemeSafari::hasThumb):
+        (WebCore::ScrollbarThemeSafari::backButtonRect):
+        (WebCore::ScrollbarThemeSafari::forwardButtonRect):
+        (WebCore::ScrollbarThemeSafari::trackRect):
+        (WebCore::ScrollbarThemeSafari::splitTrack):
+        (WebCore::ScrollbarThemeSafari::paintTrack):
+        (WebCore::ScrollbarThemeSafari::paintButton):
+        (WebCore::ScrollbarThemeSafari::paintThumb):
+        * platform/win/ScrollbarThemeWin.cpp:
+        (WebCore::isRunningOnVistaOrLater):
+        (WebCore::checkAndInitScrollbarTheme):
+        (WebCore::ScrollbarThemeWin::ScrollbarThemeWin):
+        (WebCore::ScrollbarThemeWin::themeChanged):
+        (WebCore::ScrollbarThemeWin::hasThumb):
+        (WebCore::ScrollbarThemeWin::backButtonRect):
+        (WebCore::ScrollbarThemeWin::forwardButtonRect):
+        (WebCore::ScrollbarThemeWin::trackRect):
+        (WebCore::ScrollbarThemeWin::splitTrack):
+        (WebCore::ScrollbarThemeWin::paintTrack):
+        (WebCore::ScrollbarThemeWin::paintButton):
+        (WebCore::gripperRect):
+        (WebCore::paintGripper):
+        (WebCore::ScrollbarThemeWin::paintThumb):
+        (WebCore::ScrollbarThemeWin::thumbPosition):
+        (WebCore::ScrollbarThemeWin::thumbLength):
+        (WebCore::ScrollbarThemeWin::trackLength):
+        * platform/win/ScrollbarThemeWin.h:
+        (WebCore::ScrollbarThemeWin::hasButtons):
+        (WebCore::ScrollbarThemeWin::trackIsSinglePiece):
+
+2008-09-14  Anthony Ricaud  <rik24d@gmail.com>
+
+        Moving all resource graphs under the same container for future scalable feature.
+        This is a speedup on resize but maybe a loss on changing the sorting function.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20555
+
+        Reviewed by Timothy Hatcher.
+
+        * page/inspector/ResourcesPanel.js: Added a container for all resource graphs.
+        Added WebInspector.ResourceGraph. No more _updateGraphBars on resize.
+        * page/inspector/inspector.css: Edited corresponding rules and removed unnecessaries.
+
+2008-09-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20738
+        compareBoundaryPoints gives incorrect results
+
+        Test: fast/dom/Range/compareBoundaryPoints-2.html
+
+        * dom/Range.cpp: (WebCore::Range::compareBoundaryPoints): Correct meanings of START_TO_END
+        and END_TO_START.
+        * page/DOMSelection.cpp: (WebCore::DOMSelection::addRange): Updated for this change.
+
+2008-09-14  Maciej Stachowiak  <mjs@apple.com>
+
+        Unreviewed build fix.
+
+        Trying again.
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::hasInstance):
+
+2008-09-14  Maciej Stachowiak  <mjs@apple.com>
+
+        Unreviewed build fix.
+
+        Blind attempt to fix build. Correct parameters for hasInstance.
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::hasInstance):
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+
+2008-09-14  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        - revert <http://trac.webkit.org/changeset/36382> because it exposed
+          <https://bugs.webkit.org/show_bug.cgi?id=20846> and resulted in crashes
+          on Tiger.
+
+        * platform/graphics/mac/FontCacheMac.mm:
+        (WebCore::FontCache::getFontDataForCharacters):
+        (WebCore::FontCache::getLastResortFallbackFont):
+
+2008-09-14  Dave Hyatt  <hyatt@apple.com>
+
+        Add a new ScrollbarThemeComposite base class that is shared by ScrollbarThemeSafari and
+        ScrollbarThemeWin.  Any scrollbar that wants to render by ScrollbarPart can subclass from this
+        theme.
+        
+        Reviewed by Sam Weinig
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/win/ScrollbarThemeSafari.h:
+        * platform/win/ScrollbarThemeWin.h:
+
+2008-09-14  Alp Toker  <alp@nuanti.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=20320
+        [GTK] A white rectangle is visible behind widgets with rounded corners
+
+        Sync bundled gtk2drawing.c to the latest version from Mozilla (coding
+        style exempt).
+
+        Requested by Michael Monreal.
+
+        * platform/gtk/RenderThemeGtk.cpp:
+        (WebCore::RenderThemeGtk::RenderThemeGtk):
+        * platform/gtk/gtk2drawing.c:
+        (moz_gtk_set_widget_name):
+        (ensure_window_widget):
+        (setup_widget_prototype):
+        (ensure_button_arrow_widget):
+        (moz_gtk_get_combo_box_inner_button):
+        (moz_gtk_get_combo_box_button_inner_widgets):
+        (ensure_combo_box_widgets):
+        (moz_gtk_get_combo_box_entry_inner_widgets):
+        (moz_gtk_get_combo_box_entry_arrow):
+        (ensure_combo_box_entry_widgets):
+        (ensure_toolbar_widget):
+        (ensure_tooltip_widget):
+        (ensure_menu_bar_widget):
+        (ensure_menu_bar_item_widget):
+        (ensure_menu_popup_widget):
+        (ensure_menu_item_widget):
+        (ensure_image_menu_item_widget):
+        (ensure_menu_separator_widget):
+        (ensure_check_menu_item_widget):
+        (ensure_tree_header_cell_widget):
+        (ensure_scrolled_window_widget):
+        (moz_gtk_button_paint):
+        (moz_gtk_init):
+        (moz_gtk_button_get_inner_border):
+        (moz_gtk_toggle_paint):
+        (calculate_button_inner_rect):
+        (calculate_arrow_rect):
+        (moz_gtk_scrollbar_button_paint):
+        (moz_gtk_scrollbar_thumb_paint):
+        (moz_gtk_caret_paint):
+        (moz_gtk_entry_paint):
+        (moz_gtk_treeview_paint):
+        (moz_gtk_tree_header_cell_paint):
+        (moz_gtk_combo_box_paint):
+        (moz_gtk_downarrow_paint):
+        (moz_gtk_combo_box_entry_button_paint):
+        (moz_gtk_toolbar_paint):
+        (moz_gtk_tab_scroll_arrow_paint):
+        (moz_gtk_menu_bar_paint):
+        (moz_gtk_menu_item_paint):
+        (moz_gtk_get_widget_border):
+        (moz_gtk_get_combo_box_entry_button_size):
+        (moz_gtk_get_tab_scroll_arrow_size):
+        (moz_gtk_get_downarrow_size):
+        (moz_gtk_images_in_menus):
+        (moz_gtk_widget_paint):
+        (moz_gtk_shutdown):
+        * platform/gtk/gtkdrawing.h:
+
+2008-09-14  David Hyatt  <hyatt@apple.com>
+
+        Convert Mac, Gtk, wx and Qt over to the new ScrollbarTheme for
+        painting.  Mac and Gtk themes don't do anything and just let the
+        underlying widget paint.  Qt now uses the theme to paint.  wx doesn't
+        do anything yet.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::paint):
+        * platform/ScrollBar.h:
+        (WebCore::Scrollbar::value):
+        (WebCore::Scrollbar::visibleSize):
+        (WebCore::Scrollbar::maximum):
+        (WebCore::Scrollbar::lineStep):
+        (WebCore::Scrollbar::pageStep):
+        (WebCore::Scrollbar::pixelStep):
+        (WebCore::Scrollbar::pressedPart):
+        (WebCore::Scrollbar::hoveredPart):
+        (WebCore::Scrollbar::theme):
+        * platform/ScrollbarTheme.h:
+        (WebCore::ScrollbarTheme::paint):
+        (WebCore::ScrollbarTheme::scrollbarThickness):
+        (WebCore::ScrollbarTheme::supportsControlTints):
+        (WebCore::ScrollbarTheme::themeChanged):
+        * platform/gtk/PlatformScrollBar.h:
+        * platform/gtk/PlatformScrollBarGtk.cpp:
+        * platform/mac/PlatformScrollBar.h:
+        * platform/mac/PlatformScrollBarMac.mm:
+        * platform/qt/PlatformScrollBar.h:
+        * platform/qt/PlatformScrollBarQt.cpp:
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::styleOptionSlider):
+        * platform/qt/ScrollbarThemeQt.h:
+        (WebCore::ScrollbarThemeQt::paint):
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::PlatformScrollbar::paint):
+        * platform/win/ScrollbarThemeSafari.h:
+        (WebCore::ScrollbarThemeSafari::supportsControlTints):
+        * platform/wx/PlatformScrollBar.h:
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (PlatformScrollbar::~PlatformScrollbar):
+
+2008-09-14  Sam Weinig  <sam@webkit.org>
+
+        Qt build fix.
+
+        * platform/qt/PlatformScrollBarQt.cpp:
+
+2008-09-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Remove extraneous semicolons.
+
+        * bindings/scripts/CodeGeneratorObjC.pm:
+        * html/HTMLLinkElement.cpp:
+        (WebCore::HTMLLinkElement::tokenizeRelAttribute):
+        * html/HTMLScriptElement.cpp:
+        (WebCore::HTMLScriptElement::charsetAttributeValue):
+        (WebCore::HTMLScriptElement::typeAttributeValue):
+        * platform/graphics/qt/GradientQt.cpp:
+        (WebCore::Gradient::platformGradient):
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::ScrollViewPrivate::setHasHorizontalScrollbar):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::paintEllipsisBoxes):
+        * svg/SVGPathSegList.cpp:
+        (WebCore::SVGPathSegList::toPathData):
+
+2008-09-14  Sam Weinig  <sam@webkit.org>
+
+        Qt build fix.
+
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+
+2008-09-14  Sam Weinig  <sam@webkit.org>
+
+        Qt build fix.
+
+        * platform/qt/PlatformScrollBarQt.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        (WebCore::PlatformScrollbar::paint):
+
+2008-09-13  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix, not reviewed.
+
+        * platform/gtk/PlatformScrollBarGtk.cpp:
+        (PlatformScrollbar::PlatformScrollbar):
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+
+2008-09-13  Dave Hyatt  <hyatt@apple.com>
+
+        Remove scrollbar's setRect method.  Clients can now just call setFrameGeometry (the corresponding Widget) method
+        to set the dimensions of a scrollbar.
+        
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.h:
+        * platform/gtk/PlatformScrollBar.h:
+        * platform/gtk/PlatformScrollBarGtk.cpp:
+        (PlatformScrollbar::setFrameGeometry):
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+        * platform/mac/PlatformScrollBarMac.mm:
+        * platform/qt/PlatformScrollBarQt.cpp:
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        (WebCore::PlatformScrollbar::setFrameGeometry):
+        * platform/win/PlatformScrollBarWin.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        (WebCore::PlatformScrollbar::setFrameGeometry):
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupWndProc):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+        * platform/wx/PlatformScrollBar.h:
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (PlatformScrollbar::updateThumbProportion):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::positionOverflowControls):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::paintScrollbar):
+
+2008-09-13  Dave Hyatt  <hyatt@apple.com>
+
+        Remove setEnabled() from all Scrollbar classes that were just using their Widget base class methods.
+       
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.h:
+        * platform/gtk/PlatformScrollBar.h:
+        * platform/gtk/PlatformScrollBarGtk.cpp:
+        * platform/mac/PlatformScrollBar.h:
+        * platform/mac/PlatformScrollBarMac.mm:
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBarSafari.cpp:
+        * platform/win/PlatformScrollBarWin.cpp:
+        * platform/wx/PlatformScrollBar.h:
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (PlatformScrollbar::~PlatformScrollbar):
+
+2008-09-13  Dave Hyatt  <hyatt@apple.com>
+
+        Remove width()/height() from Scrollbar now that it derives from Widget.  Remove width()/height() from
+        all PlatformScrollbar subclasses that just called the Widget base class versions of those methods.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.h:
+        * platform/gtk/PlatformScrollBar.h:
+        * platform/gtk/PlatformScrollBarGtk.cpp:
+        * platform/mac/PlatformScrollBar.h:
+        * platform/mac/PlatformScrollBarMac.mm:
+        * platform/win/PlatformScrollBarSafari.cpp:
+        * platform/win/PlatformScrollBarWin.cpp:
+        * platform/wx/PlatformScrollBar.h:
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (PlatformScrollbar::~PlatformScrollbar):
+
+2008-09-13  Dave Hyatt  <hyatt@apple.com>
+
+        Move stopTimerIfNeeded out of PlatformScrollbar destructors and into Scrollbar.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::~Scrollbar):
+        * platform/ScrollBar.h:
+        * platform/qt/PlatformScrollBarQt.cpp:
+        (WebCore::PlatformScrollbar::~PlatformScrollbar):
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::PlatformScrollbar::~PlatformScrollbar):
+        * platform/win/PlatformScrollBarWin.cpp:
+        (WebCore::PlatformScrollbar::~PlatformScrollbar):
+
+2008-09-13  David Hyatt  <hyatt@apple.com>
+
+        Move maximum() from Qt's PlatformScrollbar to be a cross-platform
+        function on Scrollbar.  Fixes Qt build bustage.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.h:
+        (WebCore::Scrollbar::orientation):
+        (WebCore::Scrollbar::value):
+        (WebCore::Scrollbar::maximum):
+        * platform/qt/PlatformScrollBar.h:
+
+2008-09-13  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - use the LastResort font for missing glyphs instead of showing the
+          primary font's missing glyph
+
+        Test: platform/mac/fast/text/last-resort-font.html
+
+        * platform/graphics/mac/FontCacheMac.mm:
+        (WebCore::FontCache::getFontDataForCharacters): Changed to return the
+        last resort font if a substitute font cannot be found.
+        (WebCore::FontCache::getLastResortFallbackFont): Removed an outdated
+        comment (the user's preferred standard font is included in the search
+        thanks to code in FontCache::getFontData()) and changed to return the
+        LastResort font.  
+
+2008-09-13  Dave Hyatt  <hyatt@apple.com>
+
+        This patch adds ScrollbarTheme to the build.  ScrollbarTheme is similar to RenderTheme (but for
+        scrollbars only).  For now ScrollbarTheme just handles returning the size of scrollbars.  Subsequent
+        patches will move rendering and hit testing functionality into this class.
+        
+        Implemented ScrollbarTheme subclasses for four ports (Mac, Win, Gtk, Qt).  The wxWidgets port does not
+        implement scrollbars yet, so I added a temporary link stub to keep things compiling on wx.
+       
+        Reviewed by Sam Weinig
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::Scrollbar):
+        * platform/ScrollBar.h:
+        * platform/ScrollbarTheme.h: Added.
+        (WebCore::ScrollbarTheme::~ScrollbarTheme):
+        (WebCore::ScrollbarTheme::scrollbarThickness):
+        (WebCore::ScrollbarTheme::themeChanged):
+        * platform/gtk/ScrollbarThemeGtk.cpp: Added.
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::ScrollbarThemeGtk::~ScrollbarThemeGtk):
+        (WebCore::ScrollbarThemeGtk::scrollbarThickness):
+        * platform/gtk/ScrollbarThemeGtk.h: Added.
+        * platform/mac/PlatformScrollBar.h:
+        * platform/mac/ScrollbarThemeMac.cpp: Added.
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::):
+        (WebCore::ScrollbarThemeMac::~ScrollbarThemeMac):
+        (WebCore::ScrollbarThemeMac::scrollbarThickness):
+        * platform/mac/ScrollbarThemeMac.h: Added.
+        * platform/qt/PlatformScrollBarQt.cpp:
+        * platform/qt/ScrollbarThemeQt.cpp: Added.
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::ScrollbarThemeQt::~ScrollbarThemeQt):
+        (WebCore::ScrollbarThemeQt::scrollbarThickness):
+        * platform/qt/ScrollbarThemeQt.h: Added.
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBarSafari.cpp:
+        * platform/win/PlatformScrollBarWin.cpp:
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::calculatePositionAndSize):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+        (WebCore::ScrollView::themeChanged):
+        * platform/win/ScrollbarThemeSafari.cpp: Added.
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::):
+        (WebCore::ScrollbarThemeSafari::~ScrollbarThemeSafari):
+        (WebCore::ScrollbarThemeSafari::scrollbarThickness):
+        * platform/win/ScrollbarThemeSafari.h: Added.
+        * platform/win/ScrollbarThemeWin.cpp: Added.
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::ScrollbarThemeWin::~ScrollbarThemeWin):
+        (WebCore::ScrollbarThemeWin::scrollbarThickness):
+        (WebCore::ScrollbarThemeWin::themeChanged):
+        * platform/win/ScrollbarThemeWin.h: Added.
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (ScrollbarTheme::nativeTheme):
+        * rendering/RenderLayer.cpp:
+        (WebCore::scrollCornerRect):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::calcHeight):
+        (WebCore::RenderTextControl::calcPrefWidths):
+
+2008-09-13  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        <rdar://problem/5060439> Web elements should have an AXTopLevelUIElement
+
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityAttributeNames]):
+
+2008-09-13  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        - fix <rdar://problem/6171280> REGRESSION (r35667): Assertion failure in WebCore::FrameView::scheduleRelayout() when releasing a page with counters from the b/f cache
+
+        No regression test because the back/forward cache is disabled in DumpRenderTree
+
+        * rendering/RenderContainer.cpp:
+        (WebCore::RenderContainer::invalidateCounters): Bail out if the document
+        is being destroyed.
+
+2008-09-13  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes for new methods recently introduced.
+
+        * platform/graphics/wx/AffineTransformWx.cpp:
+        (WebCore::AffineTransform::AffineTransform):
+        (WebCore::AffineTransform::setMatrix):
+        (WebCore::AffineTransform::setA):
+        (WebCore::AffineTransform::setB):
+        (WebCore::AffineTransform::setC):
+        (WebCore::AffineTransform::setD):
+        (WebCore::AffineTransform::setE):
+        (WebCore::AffineTransform::setF):
+        * platform/wx/LocalizedStringsWx.cpp:
+        (WebCore::AXDefinitionListTermText):
+        (WebCore::AXDefinitionListDefinitionText):
+
+2008-09-12  Dave Hyatt  <hyatt@apple.com>
+
+        Move the member variables of PlatformScrollbar up into Scrollbar.  Move autoscroll timer handling
+        up into scrollbar.  Make sure a bunch of cross-platform code now just uses "Scrollbar" instead of
+        "PlatformScrollbar."
+        
+        Reviewed by Sam Weinig
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * editing/EditorCommand.cpp:
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::selectCursor):
+        (WebCore::EventHandler::handleMousePressEvent):
+        (WebCore::EventHandler::handleMouseMoveEvent):
+        * page/EventHandler.h:
+        * page/MouseEventWithHitTestResults.cpp:
+        (WebCore::MouseEventWithHitTestResults::scrollbar):
+        * page/MouseEventWithHitTestResults.h:
+        * page/gtk/EventHandlerGtk.cpp:
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * page/qt/EventHandlerQt.cpp:
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * page/win/EventHandlerWin.cpp:
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * page/wx/EventHandlerWx.cpp:
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * platform/PopupMenu.h:
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::Scrollbar):
+        (WebCore::Scrollbar::autoscrollTimerFired):
+        (WebCore::Scrollbar::autoscrollPressedPart):
+        (WebCore::Scrollbar::startTimerIfNeeded):
+        (WebCore::Scrollbar::stopTimerIfNeeded):
+        (WebCore::Scrollbar::pressedPartScrollDirection):
+        (WebCore::Scrollbar::pressedPartScrollGranularity):
+        * platform/ScrollBar.h:
+        (WebCore::Scrollbar::handleMousePressEvent):
+        (WebCore::Scrollbar::invalidatePart):
+        (WebCore::Scrollbar::thumbUnderMouse):
+        * platform/ScrollView.h:
+        * platform/ScrollbarClient.h: Added.
+        (WebCore::ScrollbarClient::~ScrollbarClient):
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::scrollbarUnderMouse):
+        * platform/qt/PlatformScrollBar.h:
+        * platform/qt/PlatformScrollBarQt.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        (WebCore::scrollbarPart):
+        (WebCore::PlatformScrollbar::handleMouseMoveEvent):
+        (WebCore::PlatformScrollbar::handleMouseOutEvent):
+        (WebCore::PlatformScrollbar::handleMousePressEvent):
+        (WebCore::PlatformScrollbar::handleMouseReleaseEvent):
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::scrollbarUnderMouse):
+        (WebCore::ScrollView::wheelEvent):
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        * platform/win/PlatformScrollBarWin.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::scrollbarUnderMouse):
+        * rendering/HitTestResult.cpp:
+        (WebCore::HitTestResult::setScrollbar):
+        * rendering/HitTestResult.h:
+        (WebCore::HitTestResult::scrollbar):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::hitTestOverflowControls):
+        * rendering/RenderLayer.h:
+        * rendering/RenderListBox.h:
+
+2008-09-12  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix Mac build.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::getTransformOperationType):
+
+2008-09-12  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Make transform animation behavior match spec
+        https://bugs.webkit.org/show_bug.cgi?id=20770
+
+        Tests: transitions/transform-op-list-match.html
+               transitions/transform-op-list-no-match.html
+
+        * css/CSSStyleSelector.cpp:
+        * css/CSSStyleSelector.h:
+        * page/animation/AnimationBase.cpp:
+        * page/animation/AnimationBase.h:
+        * page/animation/ImplicitAnimation.cpp:
+        * page/animation/ImplicitAnimation.h:
+        * page/animation/KeyframeAnimation.cpp:
+        * page/animation/KeyframeAnimation.h:
+        * rendering/RenderLayer.cpp:
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+
+2008-09-12  Ojan Vafai  <ojan@chromium.org>
+
+        Properly escape contents of links added to the inspector.
+        For now, just build the link with the DOM and get the
+        outerHTML. Eventually, we probably just want to do
+        this entirely with the DOM.
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20684
+
+        * manual-tests/inspector/escape-links.html: Added.
+        * page/inspector/StylesSidebarPane.js:
+        * page/inspector/inspector.js:
+        * page/inspector/utilities.js:
+
+2008-09-12  Adele Peterson  <adele@apple.com>
+
+        Reviewed by John Sullivan and Kevin McCullough.
+
+        Fix for <rdar://problem/6216951> REGRESSION (r36000?): Crash due to infinite recursion into EventHandler::hitTestResultAtPoint() with disconnected frames
+
+        * page/EventHandler.cpp: (WebCore::EventHandler::hitTestResultAtPoint):
+        Hit testing again on the main frame will only work if we aren't already on the main frame.  If we are already on the main frame, that will
+        cause infinite recursion.  This change checks that we're not already on the main frame before hit testing again. 
+
+2008-09-12  Kevin McCullough  <kmccullough@apple.com>
+
+        RS by Tim .
+
+        Re-introducing the code since it was not the cause of the crash.
+        See r36343.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::canBeProgramaticallyScrolled):
+        * rendering/RenderObject.h:
+
+2008-09-12  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        When changing one animation in a list, don't reset other animations
+        https://bugs.webkit.org/show_bug.cgi?id=20675
+
+        Test: animations/change-one-anim.html
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::getNumProperties):
+        * page/animation/AnimationBase.h:
+        * page/animation/AnimationController.cpp:
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateKeyframeAnimations):
+        * page/animation/CompositeAnimation.h:
+        * page/animation/ImplicitAnimation.cpp:
+        * page/animation/KeyframeAnimation.cpp:
+        * page/animation/KeyframeAnimation.h:
+        (WebCore::KeyframeAnimation::setIndex):
+
+2008-09-12  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mitz Pettel
+
+        Fix the ASSERT and failure in webarchive/archive-empty-frame-source.html
+
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::mainResource): Further restoration of original WebArchive behavior.
+          Subresources can never be created from nil data, but there is always a MainResource, whether
+          or not there's any data.  So in the case where the main resource has no data, fake it for the
+          sake of creating the ArchiveResource.
+
+2008-09-12  Dave Hyatt  <hyatt@apple.com>
+
+        Preparation for major scrollbar rearchitecture.  Eliminate the concept of non-widget based
+        scrollbars (which we never supported anyway).  Make Scrollbar derive from Widget directly.
+        Remove all the isWidget and hasPlatformScrollbars guards.
+        
+        Reviewed by Tim Hatcher
+
+        * platform/ScrollBar.h:
+        * platform/gtk/PlatformScrollBar.h:
+        * platform/mac/PlatformScrollBar.h:
+        * platform/qt/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::ScrollViewPrivate::setHasHorizontalScrollbar):
+        (WebCore::ScrollView::ScrollViewPrivate::setHasVerticalScrollbar):
+        * platform/wx/PlatformScrollBar.h:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::horizontalScrollbarWidget):
+        (WebCore::RenderLayer::verticalScrollbarWidget):
+        (WebCore::RenderLayer::createScrollbar):
+        (WebCore::RenderLayer::destroyScrollbar):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::~RenderListBox):
+        (WebCore::RenderListBox::updateFromElement):
+        (WebCore::RenderListBox::isPointInOverflowControl):
+
+2008-09-12  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20793 clean up page/animation
+
+        * page/animation/AnimationController.cpp:
+        * page/animation/AnimationController.h:
+        * page/animation/CompositeAnimation.cpp:
+        * page/animation/CompositeAnimation.h:
+        * page/animation/ImplicitAnimation.cpp:
+        * page/animation/ImplicitAnimation.h:
+        * page/animation/KeyframeAnimation.cpp:
+        * page/animation/KeyframeAnimation.h:
+
 2008-09-12  Timothy Hatcher  <timothy@apple.com>
 
         Add a renderedImage method to DOMNode to get an image

@@ -69,6 +69,7 @@
 #include "RenderTheme.h"
 #include "RenderView.h"
 #include "SelectionController.h"
+#include "ScrollbarTheme.h"
 
 #if ENABLE(SVG)
 #include "SVGNames.h"
@@ -1059,20 +1060,6 @@ void RenderLayer::resize(const PlatformMouseEvent& evt, const IntSize& oldOffset
     // FIXME (Radar 4118564): We should also autoscroll the window as necessary to keep the point under the cursor in view.
 }
 
-PlatformScrollbar* RenderLayer::horizontalScrollbarWidget() const
-{
-    if (m_hBar && m_hBar->isWidget())
-        return static_cast<PlatformScrollbar*>(m_hBar.get());
-    return 0;
-}
-
-PlatformScrollbar* RenderLayer::verticalScrollbarWidget() const
-{
-    if (m_vBar && m_vBar->isWidget())
-        return static_cast<PlatformScrollbar*>(m_vBar.get());
-    return 0;
-}
-
 void RenderLayer::valueChanged(Scrollbar*)
 {
     // Update scroll position from scrollbars.
@@ -1115,25 +1102,17 @@ bool RenderLayer::isActive() const
 
 PassRefPtr<Scrollbar> RenderLayer::createScrollbar(ScrollbarOrientation orientation)
 {
-    if (Scrollbar::hasPlatformScrollbars()) {
-        RefPtr<PlatformScrollbar> widget = PlatformScrollbar::create(this, orientation, RegularScrollbar);
-        m_object->document()->view()->addChild(widget.get());
-        return widget.release();
-    }
-    
-    // FIXME: Create scrollbars using the engine.
-    return 0;
+    RefPtr<PlatformScrollbar> widget = PlatformScrollbar::create(this, orientation, RegularScrollbar);
+    m_object->document()->view()->addChild(widget.get());        
+    return widget.release();
 }
 
 void RenderLayer::destroyScrollbar(ScrollbarOrientation orientation)
 {
     RefPtr<Scrollbar>& scrollbar = orientation == HorizontalScrollbar ? m_hBar : m_vBar;
     if (scrollbar) {
-        if (scrollbar->isWidget())
-            static_cast<PlatformScrollbar*>(scrollbar.get())->removeFromParent();
+        static_cast<PlatformScrollbar*>(scrollbar.get())->removeFromParent();
         scrollbar->setClient(0);
-
-        // FIXME: Destroy the engine scrollbar.
         scrollbar = 0;
     }
 }
@@ -1197,10 +1176,10 @@ IntSize RenderLayer::offsetFromResizeCorner(const IntPoint& p) const
 
 static IntRect scrollCornerRect(RenderObject* renderer, const IntRect& absBounds)
 {
-    int resizerWidth = PlatformScrollbar::verticalScrollbarWidth();
-    int resizerHeight = PlatformScrollbar::horizontalScrollbarHeight();
-    return IntRect(absBounds.right() - resizerWidth - renderer->style()->borderRightWidth(), 
-                   absBounds.bottom() - resizerHeight - renderer->style()->borderBottomWidth(), resizerWidth, resizerHeight);
+    int resizerThickness = ScrollbarTheme::nativeTheme()->scrollbarThickness();
+    return IntRect(absBounds.right() - resizerThickness - renderer->style()->borderRightWidth(), 
+                   absBounds.bottom() - resizerThickness - renderer->style()->borderBottomWidth(),
+                   resizerThickness, resizerThickness);
 }
 
 void RenderLayer::positionOverflowControls()
@@ -1219,17 +1198,17 @@ void RenderLayer::positionOverflowControls()
     
     int resizeControlSize = max(resizeControlRect.height(), 0);
     if (m_vBar)
-        m_vBar->setRect(IntRect(absBounds.right() - m_object->borderRight() - m_vBar->width(),
-                                absBounds.y() + m_object->borderTop(),
-                                m_vBar->width(),
-                                absBounds.height() - (m_object->borderTop() + m_object->borderBottom()) - (m_hBar ? m_hBar->height() : resizeControlSize)));
+        m_vBar->setFrameGeometry(IntRect(absBounds.right() - m_object->borderRight() - m_vBar->width(),
+                                         absBounds.y() + m_object->borderTop(),
+                                         m_vBar->width(),
+                                         absBounds.height() - (m_object->borderTop() + m_object->borderBottom()) - (m_hBar ? m_hBar->height() : resizeControlSize)));
 
     resizeControlSize = max(resizeControlRect.width(), 0);
     if (m_hBar)
-        m_hBar->setRect(IntRect(absBounds.x() + m_object->borderLeft(),
-                                absBounds.bottom() - m_object->borderBottom() - m_hBar->height(),
-                                absBounds.width() - (m_object->borderLeft() + m_object->borderRight()) - (m_vBar ? m_vBar->width() : resizeControlSize),
-                                m_hBar->height()));
+        m_hBar->setFrameGeometry(IntRect(absBounds.x() + m_object->borderLeft(),
+                                         absBounds.bottom() - m_object->borderBottom() - m_hBar->height(),
+                                         absBounds.width() - (m_object->borderLeft() + m_object->borderRight()) - (m_vBar ? m_vBar->width() : resizeControlSize),
+                                         m_hBar->height()));
 }
 
 int RenderLayer::scrollWidth()
@@ -1500,7 +1479,7 @@ bool RenderLayer::hitTestOverflowControls(HitTestResult& result)
     if (m_vBar) {
         IntRect vBarRect(absBounds.right() - renderer()->borderRight() - m_vBar->width(), absBounds.y() + renderer()->borderTop(), m_vBar->width(), absBounds.height() - (renderer()->borderTop() + renderer()->borderBottom()) - (m_hBar ? m_hBar->height() : resizeControlSize));
         if (vBarRect.contains(result.point())) {
-            result.setScrollbar(verticalScrollbarWidget());
+            result.setScrollbar(m_vBar.get());
             return true;
         }
     }
@@ -1509,7 +1488,7 @@ bool RenderLayer::hitTestOverflowControls(HitTestResult& result)
     if (m_hBar) {
         IntRect hBarRect(absBounds.x() + renderer()->borderLeft(), absBounds.bottom() - renderer()->borderBottom() - m_hBar->height(), absBounds.width() - (renderer()->borderLeft() + renderer()->borderRight()) - (m_vBar ? m_vBar->width() : resizeControlSize), m_hBar->height());
         if (hBarRect.contains(result.point())) {
-            result.setScrollbar(horizontalScrollbarWidget());
+            result.setScrollbar(m_hBar.get());
             return true;
         }
     }
@@ -2414,24 +2393,24 @@ void RenderLayer::updateReflectionStyle()
     TransformOperations transform;
     switch (renderer()->style()->boxReflect()->direction()) {
         case ReflectionBelow:
-            transform.append(TranslateTransformOperation::create(Length(0, Fixed), Length(100., Percent)));
-            transform.append(TranslateTransformOperation::create(Length(0, Fixed), renderer()->style()->boxReflect()->offset()));
-            transform.append(ScaleTransformOperation::create(1.0, -1.0));
+            transform.append(TranslateTransformOperation::create(Length(0, Fixed), Length(100., Percent), TransformOperation::TRANSLATE));
+            transform.append(TranslateTransformOperation::create(Length(0, Fixed), renderer()->style()->boxReflect()->offset(), TransformOperation::TRANSLATE));
+            transform.append(ScaleTransformOperation::create(1.0, -1.0, ScaleTransformOperation::SCALE));
             break;
         case ReflectionAbove:
-            transform.append(ScaleTransformOperation::create(1.0, -1.0));
-            transform.append(TranslateTransformOperation::create(Length(0, Fixed), Length(100., Percent)));
-            transform.append(TranslateTransformOperation::create(Length(0, Fixed), renderer()->style()->boxReflect()->offset()));
+            transform.append(ScaleTransformOperation::create(1.0, -1.0, ScaleTransformOperation::SCALE));
+            transform.append(TranslateTransformOperation::create(Length(0, Fixed), Length(100., Percent), TransformOperation::TRANSLATE));
+            transform.append(TranslateTransformOperation::create(Length(0, Fixed), renderer()->style()->boxReflect()->offset(), TransformOperation::TRANSLATE));
             break;
         case ReflectionRight:
-            transform.append(TranslateTransformOperation::create(Length(100., Percent), Length(0, Fixed)));
-            transform.append(TranslateTransformOperation::create(renderer()->style()->boxReflect()->offset(), Length(0, Fixed)));
-            transform.append(ScaleTransformOperation::create(-1.0, 1.0));
+            transform.append(TranslateTransformOperation::create(Length(100., Percent), Length(0, Fixed), TransformOperation::TRANSLATE));
+            transform.append(TranslateTransformOperation::create(renderer()->style()->boxReflect()->offset(), Length(0, Fixed), TransformOperation::TRANSLATE));
+            transform.append(ScaleTransformOperation::create(-1.0, 1.0, ScaleTransformOperation::SCALE));
             break;
         case ReflectionLeft:
-            transform.append(ScaleTransformOperation::create(-1.0, 1.0));
-            transform.append(TranslateTransformOperation::create(Length(100., Percent), Length(0, Fixed)));
-            transform.append(TranslateTransformOperation::create(renderer()->style()->boxReflect()->offset(), Length(0, Fixed)));
+            transform.append(ScaleTransformOperation::create(-1.0, 1.0, ScaleTransformOperation::SCALE));
+            transform.append(TranslateTransformOperation::create(Length(100., Percent), Length(0, Fixed), TransformOperation::TRANSLATE));
+            transform.append(TranslateTransformOperation::create(renderer()->style()->boxReflect()->offset(), Length(0, Fixed), TransformOperation::TRANSLATE));
             break;
     }
     newStyle->setTransform(transform);

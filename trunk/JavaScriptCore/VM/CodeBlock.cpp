@@ -172,7 +172,7 @@ static void printPutByIdOp(int location, Vector<Instruction>::const_iterator& it
     int id0 = (++it)->u.operand;
     int r1 = (++it)->u.operand;
     printf("[%4d] %s\t %s, %s, %s\n", location, op, registerName(r0).c_str(), idName(id0, identifiers[id0]).c_str(), registerName(r1).c_str());
-    it += 2;
+    it += 4;
 }
 
 void CodeBlock::printStructureID(const char* name, const Instruction* vPC, int operand) const
@@ -196,6 +196,10 @@ void CodeBlock::printStructureIDs(const Instruction* vPC) const
     }
     if (vPC[0].u.opcode == machine->getOpcode(op_get_by_id_proto)) {
         printf("  [%4d] %s: %s, %s\n", instructionOffset, "get_by_id_proto", pointerToSourceString(vPC[4].u.structureID).UTF8String().c_str(), pointerToSourceString(vPC[5].u.structureID).UTF8String().c_str());
+        return;
+    }
+    if (vPC[0].u.opcode == machine->getOpcode(op_put_by_id_transition)) {
+        printf("  [%4d] %s: %s, %s, %s\n", instructionOffset, "put_by_id_new", pointerToSourceString(vPC[4].u.structureID).UTF8String().c_str(), pointerToSourceString(vPC[5].u.structureID).UTF8String().c_str(), pointerToSourceString(vPC[6].u.structureIDChain).UTF8String().c_str());
         return;
     }
     if (vPC[0].u.opcode == machine->getOpcode(op_get_by_id_chain)) {
@@ -273,7 +277,7 @@ void CodeBlock::dump(ExecState* exec) const
         printf("\nStructureIDs:\n");
         size_t i = 0;
         do {
-             printStructureIDs(&instructions[structureIDInstructions[i]]);
+             printStructureIDs(&instructions[structureIDInstructions[i].opcodeIndex]);
              ++i;
         } while (i < structureIDInstructions.size());
     }
@@ -484,11 +488,39 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
             break;
         }
         case op_instanceof: {
-            printBinaryOp(location, it, "instanceof");
+            int r0 = (++it)->u.operand;
+            int r1 = (++it)->u.operand;
+            int r2 = (++it)->u.operand;
+            int r3 = (++it)->u.operand;
+            printf("[%4d] instanceof\t\t %s, %s, %s, %s\n", location, registerName(r0).c_str(), registerName(r1).c_str(), registerName(r2).c_str(), registerName(r3).c_str());
             break;
         }
         case op_typeof: {
             printUnaryOp(location, it, "typeof");
+            break;
+        }
+        case op_is_undefined: {
+            printUnaryOp(location, it, "is_undefined");
+            break;
+        }
+        case op_is_boolean: {
+            printUnaryOp(location, it, "is_boolean");
+            break;
+        }
+        case op_is_number: {
+            printUnaryOp(location, it, "is_number");
+            break;
+        }
+        case op_is_string: {
+            printUnaryOp(location, it, "is_string");
+            break;
+        }
+        case op_is_object: {
+            printUnaryOp(location, it, "is_object");
+            break;
+        }
+        case op_is_function: {
+            printUnaryOp(location, it, "is_function");
             break;
         }
         case op_in: {
@@ -592,6 +624,10 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
             printPutByIdOp(location, it, identifiers, "put_by_id_replace");
             break;
         }
+        case op_put_by_id_transition: {
+            printPutByIdOp(location, it, identifiers, "put_by_id_transition");
+            break;
+        }
         case op_put_by_id_generic: {
             printPutByIdOp(location, it, identifiers, "put_by_id_generic");
             break;
@@ -679,6 +715,13 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
             int r1 = (++it)->u.operand;
             int offset = (++it)->u.operand;
             printf("[%4d] loop_if_less\t %s, %s, %d(->%d)\n", location, registerName(r0).c_str(), registerName(r1).c_str(), offset, jumpTarget(begin, it, offset));
+            break;
+        }
+        case op_loop_if_lesseq: {
+            int r0 = (++it)->u.operand;
+            int r1 = (++it)->u.operand;
+            int offset = (++it)->u.operand;
+            printf("[%4d] loop_if_lesseq\t %s, %s, %d(->%d)\n", location, registerName(r0).c_str(), registerName(r1).c_str(), offset, jumpTarget(begin, it, offset));
             break;
         }
         case op_switch_imm: {
@@ -832,13 +875,11 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
 CodeBlock::~CodeBlock()
 {
     size_t size = structureIDInstructions.size();
-    for (size_t i = 0; i < size; ++i)
-        derefStructureIDs(&instructions[structureIDInstructions[i]]);
-
-    size = structureIDAccessStubs.size();
-    for (size_t i = 0; i < size; ++i)
-        fastFree(structureIDAccessStubs[i]);
-
+    for (size_t i = 0; i < size; ++i) {
+        derefStructureIDs(&instructions[structureIDInstructions[i].opcodeIndex]);
+        if (structureIDInstructions[i].stubRoutine)
+            fastFree(structureIDInstructions[i].stubRoutine);
+    }
 #if ENABLE(CTI)
     if (ctiCode)
         fastFree(ctiCode);
@@ -861,6 +902,12 @@ void CodeBlock::derefStructureIDs(Instruction* vPC) const
     if (vPC[0].u.opcode == machine->getOpcode(op_get_by_id_chain)) {
         vPC[4].u.structureID->deref();
         vPC[5].u.structureIDChain->deref();
+        return;
+    }
+    if (vPC[0].u.opcode == machine->getOpcode(op_put_by_id_transition)) {
+        vPC[4].u.structureID->deref();
+        vPC[5].u.structureID->deref();
+        vPC[6].u.structureIDChain->deref();
         return;
     }
     if (vPC[0].u.opcode == machine->getOpcode(op_put_by_id_replace)) {
@@ -888,6 +935,12 @@ void CodeBlock::refStructureIDs(Instruction* vPC) const
     if (vPC[0].u.opcode == machine->getOpcode(op_get_by_id_chain)) {
         vPC[4].u.structureID->ref();
         vPC[5].u.structureIDChain->ref();
+        return;
+    }
+    if (vPC[0].u.opcode == machine->getOpcode(op_put_by_id_transition)) {
+        vPC[4].u.structureID->ref();
+        vPC[5].u.structureID->ref();
+        vPC[6].u.structureIDChain->ref();
         return;
     }
     if (vPC[0].u.opcode == machine->getOpcode(op_put_by_id_replace)) {

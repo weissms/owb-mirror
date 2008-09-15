@@ -486,6 +486,21 @@ PassRefPtr<LabelID> CodeGenerator::emitJumpIfTrue(RegisterID* cond, LabelID* tar
             instructions().append(target->offsetFrom(instructions().size()));
             return target;
         }
+    } else if (m_lastOpcodeID == op_lesseq && !target->isForwardLabel()) {
+        int dstIndex;
+        int src1Index;
+        int src2Index;
+
+        retrieveLastBinaryOp(dstIndex, src1Index, src2Index);
+
+        if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
+            rewindBinaryOp();
+            emitOpcode(op_loop_if_lesseq);
+            instructions().append(src1Index);
+            instructions().append(src2Index);
+            instructions().append(target->offsetFrom(instructions().size()));
+            return target;
+        }
     }
 
     emitOpcode(target->isForwardLabel() ? op_jtrue : op_loop_if_true);
@@ -643,6 +658,71 @@ RegisterID* CodeGenerator::emitBinaryOp(OpcodeID opcode, RegisterID* dst, Regist
     return dst;
 }
 
+RegisterID* CodeGenerator::emitEqualityOp(OpcodeID opcode, RegisterID* dst, RegisterID* src1, RegisterID* src2)
+{
+    if (m_lastOpcodeID == op_typeof) {
+        int dstIndex;
+        int srcIndex;
+
+        retrieveLastUnaryOp(dstIndex, srcIndex);
+
+        if (src1->index() == dstIndex
+            && src1->isTemporary()
+            && static_cast<unsigned>(src2->index()) < m_codeBlock->constantRegisters.size()
+            && m_codeBlock->constantRegisters[src2->index()].jsValue(globalExec())->isString()) {
+            const UString& value = static_cast<JSString*>(m_codeBlock->constantRegisters[src2->index()].jsValue(globalExec()))->value();
+            if (value == "undefined") {
+                rewindUnaryOp();
+                emitOpcode(op_is_undefined);
+                instructions().append(dst->index());
+                instructions().append(srcIndex);
+                return dst;
+            }
+            if (value == "boolean") {
+                rewindUnaryOp();
+                emitOpcode(op_is_boolean);
+                instructions().append(dst->index());
+                instructions().append(srcIndex);
+                return dst;
+            }
+            if (value == "number") {
+                rewindUnaryOp();
+                emitOpcode(op_is_number);
+                instructions().append(dst->index());
+                instructions().append(srcIndex);
+                return dst;
+            }
+            if (value == "string") {
+                rewindUnaryOp();
+                emitOpcode(op_is_string);
+                instructions().append(dst->index());
+                instructions().append(srcIndex);
+                return dst;
+            }
+            if (value == "object") {
+                rewindUnaryOp();
+                emitOpcode(op_is_object);
+                instructions().append(dst->index());
+                instructions().append(srcIndex);
+                return dst;
+            }
+            if (value == "function") {
+                rewindUnaryOp();
+                emitOpcode(op_is_function);
+                instructions().append(dst->index());
+                instructions().append(srcIndex);
+                return dst;
+            }
+        }
+    }
+
+    emitOpcode(opcode);
+    instructions().append(dst->index());
+    instructions().append(src1->index());
+    instructions().append(src2->index());
+    return dst;
+}
+
 RegisterID* CodeGenerator::emitLoad(RegisterID* dst, bool b)
 {
     return emitLoad(dst, jsBoolean(b));
@@ -723,6 +803,16 @@ bool CodeGenerator::findScopedProperty(const Identifier& property, int& index, s
     if (++iter == end)
         globalObject = scope;
     return true;
+}
+
+RegisterID* CodeGenerator::emitInstanceOf(RegisterID* dst, RegisterID* value, RegisterID* base, RegisterID* basePrototype)
+{ 
+    emitOpcode(op_instanceof);
+    instructions().append(dst->index());
+    instructions().append(value->index());
+    instructions().append(base->index());
+    instructions().append(basePrototype->index());
+    return dst;
 }
 
 RegisterID* CodeGenerator::emitResolve(RegisterID* dst, const Identifier& property)
@@ -834,6 +924,8 @@ RegisterID* CodeGenerator::emitPutById(RegisterID* base, const Identifier& prope
     instructions().append(base->index());
     instructions().append(addConstant(property));
     instructions().append(value->index());
+    instructions().append(0);
+    instructions().append(0);
     instructions().append(0);
     instructions().append(0);
     return value;
@@ -1008,6 +1100,11 @@ RegisterID* CodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, Argu
     // op_construct will read "func" before writing out the call frame, so this
     // is safe.
 
+    RefPtr<RegisterID> protectFunc = func;
+
+    // Reserve space for prototype
+    RefPtr<RegisterID> funcProto = newTemporary();
+
     // Reserve space for call frame.
     Vector<RefPtr<RegisterID>, RegisterFile::CallFrameHeaderSize> callFrame;
     for (int i = 0; i < RegisterFile::CallFrameHeaderSize; ++i)
@@ -1021,9 +1118,12 @@ RegisterID* CodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, Argu
         emitNode(argv.last().get(), n);
     }
 
+    emitGetById(funcProto.get(), func, globalExec()->propertyNames().prototype);
+
     emitOpcode(op_construct);
     instructions().append(dst->index());
     instructions().append(func->index());
+    instructions().append(funcProto->index());
     instructions().append(argv.size() ? argv[0]->index() : m_temporaries.size()); // argv
     instructions().append(argv.size()); // argc
     return dst;

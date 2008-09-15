@@ -35,6 +35,7 @@
 #include "IntRect.h"
 #include "PopupMenuClient.h"
 #include "ScrollBar.h"
+#include "ScrollbarClient.h"
 #include <wtf/PassRefPtr.h>
 #include "BALBase.h"
 

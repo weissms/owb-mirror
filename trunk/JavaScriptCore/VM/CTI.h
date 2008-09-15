@@ -28,14 +28,18 @@
 
 #if ENABLE(CTI)
 
+#define WTF_USE_CTI_REPATCH_PIC 1
+
 #include "Opcode.h"
-#include "Opcode.h"
-#include "RegisterFile.h"
 #include "RegisterFile.h"
 #include <masm/X86Assembler.h>
 #include <profiler/Profiler.h>
 #include <wtf/AlwaysInline.h>
 #include <wtf/Vector.h>
+
+#if ENABLE(SAMPLING_TOOL)
+#include "SamplingTool.h"
+#endif
 
 #if COMPILER(MSVC)
 #define CTI_ARGS void** args
@@ -110,8 +114,6 @@ namespace JSC {
     typedef void (*CTIHelper_v)(CTI_ARGS);
     typedef void* (*CTIHelper_s)(CTI_ARGS);
     typedef int (*CTIHelper_b)(CTI_ARGS);
-
-    extern OpcodeID what;
 
     struct CallRecord {
         X86Assembler::JmpSrc from;
@@ -216,6 +218,11 @@ namespace JSC {
         }
     };
 
+    struct StructureStubCompilationInfo {
+        X86Assembler::JmpSrc callReturnLocation;
+        X86Assembler::JmpDst hotPathBegin;
+    };
+
     extern "C" {
         JSValue* ctiTrampoline(void* code, ExecState* exec, RegisterFile* registerFile, Register* r, ScopeChainNode* scopeChain, CodeBlock* codeBlock, JSValue** exception, Profiler**);
         void ctiVMThrowTrampoline();
@@ -225,6 +232,20 @@ namespace JSC {
     void ctiRepatchCallByReturnAddress(void* where, void* what);
 
     class CTI {
+        static const int repatchGetByIdDefaultStructureID = -1;
+        // Magic number - initial offset cannot be representable as a signed 8bit value, or the X86Assembler
+        // will compress the displacement, and we may not be able to fit a repatched offset.
+        static const int repatchGetByIdDefaultOffset = 256;
+
+        // These architecture specific value are used to enable repatching - see comment on op_put_by_id.
+        static const int repatchOffsetPutByIdStructureID = 19;
+        static const int repatchOffsetPutByIdPropertyMapOffset = 34;
+        // These architecture specific value are used to enable repatching - see comment on op_get_by_id.
+        static const int repatchOffsetGetByIdStructureID = 19;
+        static const int repatchOffsetGetByIdBranchToSlowCase = 25;
+        static const int repatchOffsetGetByIdPropertyMapOffset = 34;
+        static const int repatchOffsetGetByIdSlowCaseCall = 17;
+
     public:
         static void compile(Machine* machine, ExecState* exec, CodeBlock* codeBlock)
         {
@@ -236,47 +257,62 @@ namespace JSC {
         static void* compileRegExp(ExecState* exec, const UString& pattern, unsigned* numSubpatterns_ptr, const char** error_ptr, bool ignoreCase = false, bool multiline = false);
 #endif
 
-        static void* compileGetByIdSelf(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, size_t cachedOffset)
+        static void compileGetByIdSelf(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, size_t cachedOffset, void* returnAddress)
         {
             CTI cti(machine, exec, codeBlock);
-            return cti.privateCompileGetByIdSelf(structureID, cachedOffset);
+            cti.privateCompileGetByIdSelf(structureID, cachedOffset, returnAddress);
         }
 
-        static void* compileGetByIdProto(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, StructureID* prototypeStructureID, size_t cachedOffset)
+        static void compileGetByIdProto(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, StructureID* prototypeStructureID, size_t cachedOffset, void* returnAddress)
         {
             CTI cti(machine, exec, codeBlock);
-            return cti.privateCompileGetByIdProto(exec, structureID, prototypeStructureID, cachedOffset);
+            cti.privateCompileGetByIdProto(structureID, prototypeStructureID, cachedOffset, returnAddress);
         }
 
-        static void* compileGetByIdChain(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, StructureIDChain* chain, size_t count, size_t cachedOffset)
+        static void compileGetByIdChain(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, StructureIDChain* chain, size_t count, size_t cachedOffset, void* returnAddress)
         {
             CTI cti(machine, exec, codeBlock);
-            return cti.privateCompileGetByIdChain(exec, structureID, chain, count, cachedOffset);
+            cti.privateCompileGetByIdChain(structureID, chain, count, cachedOffset, returnAddress);
         }
 
-        static void* compilePutByIdReplace(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, size_t cachedOffset)
+        static void compilePutByIdReplace(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* structureID, size_t cachedOffset, void* returnAddress)
         {
             CTI cti(machine, exec, codeBlock);
-            return cti.privateCompilePutByIdReplace(structureID, cachedOffset);
+            cti.privateCompilePutByIdReplace(structureID, cachedOffset, returnAddress);
+        }
+        
+        static void compilePutByIdTransition(Machine* machine, ExecState* exec, CodeBlock* codeBlock, StructureID* oldStructureID, StructureID* newStructureID, size_t cachedOffset, StructureIDChain* sIDC, void* returnAddress)
+        {
+            CTI cti(machine, exec, codeBlock);
+            cti.privateCompilePutByIdTransition(oldStructureID, newStructureID, cachedOffset, sIDC, returnAddress);
         }
 
         static void* compileArrayLengthTrampoline(Machine* machine, ExecState* exec, CodeBlock* codeBlock)
         {
             CTI cti(machine, exec, codeBlock);
-            return cti.privateArrayLengthTrampoline();
+            return cti.privateCompileArrayLengthTrampoline();
         }
 
         static void* compileStringLengthTrampoline(Machine* machine, ExecState* exec, CodeBlock* codeBlock)
         {
             CTI cti(machine, exec, codeBlock);
-            return cti.privateStringLengthTrampoline();
+            return cti.privateCompileStringLengthTrampoline();
+        }
+
+        static void patchGetByIdSelf(CodeBlock* codeBlock, StructureID* structureID, size_t cachedOffset, void* returnAddress);
+        static void patchPutByIdReplace(CodeBlock* codeBlock, StructureID* structureID, size_t cachedOffset, void* returnAddress);
+
+        static void compilePatchGetArrayLength(Machine* machine, ExecState* exec, CodeBlock* codeBlock, void* returnAddress)
+        {
+            CTI cti(machine, exec, codeBlock);
+            return cti.privateCompilePatchGetArrayLength(returnAddress);
         }
 
         inline static JSValue* execute(void* code, ExecState* exec, RegisterFile* registerFile, Register* r, ScopeChainNode* scopeChain, CodeBlock* codeBlock, JSValue** exception)
         {
             JSValue* value = ctiTrampoline(code, exec, registerFile, r, scopeChain, codeBlock, exception, Profiler::enabledProfilerReference());
 #if ENABLE(SAMPLING_TOOL)
-            what = static_cast<OpcodeID>(-1);
+            currentOpcodeID = static_cast<OpcodeID>(-1);
 #endif
             return value;
         }
@@ -287,12 +323,15 @@ namespace JSC {
         void privateCompileLinkPass();
         void privateCompileSlowCases();
         void privateCompile();
-        void* privateCompileGetByIdSelf(StructureID*, size_t cachedOffset);
-        void* privateCompileGetByIdProto(ExecState*, StructureID*, StructureID* prototypeStructureID, size_t cachedOffset);
-        void* privateCompileGetByIdChain(ExecState*, StructureID*, StructureIDChain*, size_t count, size_t cachedOffset);
-        void* privateCompilePutByIdReplace(StructureID*, size_t cachedOffset);
-        void* privateArrayLengthTrampoline();
-        void* privateStringLengthTrampoline();
+        void privateCompileGetByIdSelf(StructureID*, size_t cachedOffset, void* returnAddress);
+        void privateCompileGetByIdProto(StructureID*, StructureID* prototypeStructureID, size_t cachedOffset, void* returnAddress);
+        void privateCompileGetByIdChain(StructureID*, StructureIDChain*, size_t count, size_t cachedOffset, void* returnAddress);
+        void privateCompilePutByIdReplace(StructureID*, size_t cachedOffset, void* returnAddress);
+        void privateCompilePutByIdTransition(StructureID*, StructureID*, size_t cachedOffset, StructureIDChain*, void* returnAddress);
+
+        void* privateCompileArrayLengthTrampoline();
+        void* privateCompileStringLengthTrampoline();
+        void privateCompilePatchGetArrayLength(void* returnAddress);
 
         enum CompileOpCallType { OpCallNormal, OpCallEval, OpConstruct };
         void compileOpCall(Instruction* instruction, unsigned i, CompileOpCallType type = OpCallNormal);
@@ -312,6 +351,7 @@ namespace JSC {
         JSValue* getConstantImmediateNumericArg(unsigned src);
         unsigned getDeTaggedConstantImmediate(JSValue* imm);
 
+        void CTI::emitJumpSlowCaseIfNotJSCell(X86Assembler::RegisterID reg, unsigned opcodeIndex);
         void emitJumpSlowCaseIfNotImm(X86Assembler::RegisterID, unsigned opcodeIndex);
         void emitJumpSlowCaseIfNotImms(X86Assembler::RegisterID, X86Assembler::RegisterID, unsigned opcodeIndex);
 
@@ -324,11 +364,11 @@ namespace JSC {
 
         void emitDebugExceptionCheck();
 
-        void emitCall(unsigned opcodeIndex, CTIHelper_j);
-        void emitCall(unsigned opcodeIndex, CTIHelper_p);
-        void emitCall(unsigned opcodeIndex, CTIHelper_b);
-        void emitCall(unsigned opcodeIndex, CTIHelper_v);
-        void emitCall(unsigned opcodeIndex, CTIHelper_s);
+        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_j);
+        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_p);
+        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_b);
+        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_v);
+        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_s);
         
         void emitGetVariableObjectRegister(X86Assembler::RegisterID variableObject, int index, X86Assembler::RegisterID dst);
         void emitPutVariableObjectRegister(X86Assembler::RegisterID src, X86Assembler::RegisterID variableObject, int index);
@@ -345,6 +385,7 @@ namespace JSC {
 
         Vector<CallRecord> m_calls;
         Vector<X86Assembler::JmpDst> m_labels;
+        Vector<StructureStubCompilationInfo> m_structureStubCompilationInfo;
         Vector<JmpTable> m_jmpTable;
 
         struct JSRInfo {

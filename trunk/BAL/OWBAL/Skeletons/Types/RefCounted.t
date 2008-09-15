@@ -70,6 +70,15 @@ public:
      * @endcode
      */
     void deref();
+    /**
+     *  ~RefCounted description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    ~RefCounted() ;
+    
 
     /**
      *  hasOneRef description
@@ -78,7 +87,38 @@ public:
      * @code
      * @endcode
      */
-    bool hasOneRef() const;
+    bool hasOneRef() const
+    
+
+    /**
+     *  hasOneRef description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool hasOneRef() const
+    
+
+    /**
+     *  hasOneRef description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool hasOneRef() const
+    
+
+    /**
+     *  hasOneRef description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool hasOneRef() cons
+    
 
     /**
      *  refCount description
@@ -100,8 +140,4 @@ private:
 
 using WTF::RefCounted;
 
-#endif // RefCounted_h
-
-
-
-
+#endif // RefCo

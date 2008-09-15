@@ -389,9 +389,8 @@ bool JSObject::implementsHasInstance() const
     return false;
 }
 
-bool JSObject::hasInstance(ExecState* exec, JSValue* value)
+bool JSObject::hasInstance(ExecState* exec, JSValue* value, JSValue* proto)
 {
-    JSValue* proto = get(exec, exec->propertyNames().prototype);
     if (!proto->isObject()) {
         throwError(exec, TypeError, "instanceof called on an object with an invalid prototype property.");
         return false;
@@ -433,7 +432,7 @@ bool JSObject::getPropertyAttributes(ExecState* exec, const Identifier& property
 
 void JSObject::getPropertyNames(ExecState* exec, PropertyNameArray& propertyNames)
 {
-    m_structureID->propertyMap().getEnumerablePropertyNames(propertyNames);
+    m_structureID->getEnumerablePropertyNames(propertyNames);
 
     // Add properties from the static hashtables of properties
     for (const ClassInfo* info = classInfo(); info; info = info->parentClass) {
@@ -519,11 +518,6 @@ StructureID* JSObject::createInheritorID()
 {
     m_inheritorID = StructureID::create(this);
     return m_inheritorID.get();
-}
-
-bool JSObject::isObject() const
-{
-    return true;
 }
 
 void JSObject::allocatePropertyStorage(size_t oldSize, size_t newSize)

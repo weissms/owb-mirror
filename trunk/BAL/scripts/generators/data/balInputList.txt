@@ -646,6 +646,9 @@
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/PlatformScreen.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/PopupMenuClient.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/PopupMenu.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarClient.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarTheme.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarThemeComposite.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollView.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/SearchPopupMenu.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/WidgetClient.h
@@ -653,10 +656,14 @@
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ClipboardGtk.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/PlatformScrollBar.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/RenderThemeGtk.h
-
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ScrollbarThemeGtk.h
 
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ContextMenu.h
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ContextMenu.cpp
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ScrollbarClient.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ScrollbarTheme.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ScrollbarThemeComposite.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ScrollbarThemeComposite.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ContextMenuGtk.cpp	BCContextMenuGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/ContextMenuItem.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ContextMenuItemGtk.cpp	BCContextMenuItemGtk.cpp
@@ -668,6 +675,8 @@
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/PlatformScreenGtk.cpp	BCPlatformScreenGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/PopupMenu.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/PopupMenuGtk.cpp	BCPopupMenuGtk.cpp
+../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollbarThemeGtk.h
+../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollbarThemeGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/ScrollView.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollViewGtk.cpp	BCScrollViewGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/SearchPopupMenu.h

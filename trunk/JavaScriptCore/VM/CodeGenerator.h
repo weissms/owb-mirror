@@ -234,6 +234,7 @@ namespace JSC {
 
         RegisterID* emitUnaryOp(OpcodeID, RegisterID* dst, RegisterID* src);
         RegisterID* emitBinaryOp(OpcodeID, RegisterID* dst, RegisterID* src1, RegisterID* src2);
+        RegisterID* emitEqualityOp(OpcodeID, RegisterID* dst, RegisterID* src1, RegisterID* src2);
         RegisterID* emitUnaryNoDstOp(OpcodeID, RegisterID* src);
 
         RegisterID* emitNewObject(RegisterID* dst);
@@ -251,7 +252,7 @@ namespace JSC {
         RegisterID* emitPostInc(RegisterID* dst, RegisterID* srcDst);
         RegisterID* emitPostDec(RegisterID* dst, RegisterID* srcDst);
 
-        RegisterID* emitInstanceOf(RegisterID* dst, RegisterID* value, RegisterID* base) { return emitBinaryOp(op_instanceof, dst, value, base); }
+        RegisterID* emitInstanceOf(RegisterID* dst, RegisterID* value, RegisterID* base, RegisterID* basePrototype);
         RegisterID* emitTypeOf(RegisterID* dst, RegisterID* src) { return emitUnaryOp(op_typeof, dst, src); }
         RegisterID* emitIn(RegisterID* dst, RegisterID* property, RegisterID* base) { return emitBinaryOp(op_in, dst, property, base); }
 

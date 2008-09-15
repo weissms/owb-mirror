@@ -31,6 +31,9 @@ ENDIF (WEBKIT_USE_I18N STREQUAL "GENERIC")
 
 
 OWBLN (WK/BCScrollBarWK.h WKAL 0 0)
+OWBLN (WK/BCScrollbarClientWK.h WKAL 0 0)
+OWBLN (WK/BCScrollbarThemeWK.h WKAL 0 0)
+OWBLN (WK/BCScrollbarThemeCompositeWK.h WKAL 0 0)
 OWBLN (WK/BCFrameWK.h WKAL 0 1)
 
 IF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
@@ -51,6 +54,7 @@ IF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
     OWBLN (Gtk/BCPopupMenuGtk.h WKAL 0 0)
     OWBLN (Gtk/BCPopupMenuClientGtk.h WKAL 0 0)
     OWBLN (Gtk/BCRenderThemeGtk.h WKAL 1 0)
+    OWBLN (Gtk/BCScrollbarThemeGtk.h WKAL 1 0)
     OWBLN (Gtk/BCScrollViewGtk.h WKAL 0 0)
     OWBLN (Gtk/BCSearchPopupMenuGtk.h WKAL 0 0)
     
@@ -73,6 +77,7 @@ ELSEIF (OWBAL_PLATFORM_GRAPHICS STREQUAL "SDL")
     OWBLN (SDL/BCPopupMenuSDL.h WKAL 0 0)
     OWBLN (SDL/BCPopupMenuClientSDL.h WKAL 0 0)
     OWBLN (SDL/BCRenderThemeSDL.h WKAL 1 0)
+    OWBLN (SDL/BCScrollbarThemeSDL.h WKAL 1 0)
     OWBLN (SDL/BCScrollViewSDL.h WKAL 0 0)
     OWBLN (SDL/BCSearchPopupMenuSDL.h WKAL 0 0)
 

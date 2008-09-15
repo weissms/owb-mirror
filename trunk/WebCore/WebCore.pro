@@ -1006,6 +1006,7 @@ SOURCES += \
     platform/qt/PopupMenuQt.cpp \
     platform/qt/QWebPopup.cpp \
     platform/qt/RenderThemeQt.cpp \
+    platform/qt/ScrollbarThemeQt.cpp \
     platform/qt/ScrollViewQt.cpp \
     platform/qt/SearchPopupMenuQt.cpp \
     platform/qt/SharedTimerQt.cpp \

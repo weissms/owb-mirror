@@ -365,7 +365,7 @@ namespace WKAL {
         virtual bool shouldUpdateWhileOffscreen() const = 0;
      * @endcode
      */
-     PlatformScrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
+     Scrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
 
     /**
      * This method exists for scrollviews that need to handle wheel events manually.

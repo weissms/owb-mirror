@@ -59,6 +59,16 @@ inline int snprintf(char *str, size_t size, const char* format, ...)
 #define vsnprintf snprintf
 #endif
 
+
+    /**
+     *  snprintf description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+inline int snprintf(char *str, size_t size, const char* format, ...) ;
+
     /**
      * strncasecmp compare, while ignoring differences in case, not more than n bytes from the string pointed to by s1 to the string pointed to by s2.
      * @param[in] : a string
@@ -83,4 +93,3 @@ inline int strcasecmp(const char* s1, const char* s2) ;
 #endif
 
 #endif // WTF_StringExtras_h
-

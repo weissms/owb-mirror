@@ -66,37 +66,17 @@ using std::min;
 PlatformScrollbar::PlatformScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation,
                                      ScrollbarControlSize controlSize)
     : Scrollbar(client, orientation, controlSize)
-    , m_hoveredPart(NoPart)
-    , m_pressedPart(NoPart)
-    , m_pressedPos(0)
-    , m_scrollTimer(this, &PlatformScrollbar::autoscrollTimerFired)
 {
     vSize = Widget::height();
     hSize = Widget::width();
     if (orientation == VerticalScrollbar)
-        setFrameGeometry(IntRect(0, 0, cVerticalWidth, cVerticalHeight));
+        Widget::setFrameGeometry(IntRect(0, 0, cVerticalWidth, cVerticalHeight));
     else
-        setFrameGeometry(IntRect(0, 0, cHorizontalWidth, cHorizontalHeight));
+        Widget::setFrameGeometry(IntRect(0, 0, cHorizontalWidth, cHorizontalHeight));
 }
 
 PlatformScrollbar::~PlatformScrollbar()
 {
-    stopTimerIfNeeded();
-}
-
-int PlatformScrollbar::width() const
-{
-    return Widget::width();
-}
-
-int PlatformScrollbar::height() const
-{
-    return Widget::height();
-}
-
-void PlatformScrollbar::setEnabled(bool enabled)
-{
-    Widget::setEnabled(enabled);
 }
 
 static IntRect trackRepaintRect(const IntRect& trackRect, ScrollbarOrientation orientation, ScrollbarControlSize controlSize)
@@ -147,50 +127,6 @@ IntRect PlatformScrollbar::trackRect() const
     return IntRect(x(), y() + cVerticalButtonHeight, cVerticalWidth, height() - 2 * cVerticalButtonHeight);
 }
 
-void PlatformScrollbar::paintTrack(GraphicsContext* context, const IntRect& rect, bool start, const IntRect& damageRect) const
-{
-    IntRect paintRect = hasButtons() ? trackRepaintRect(rect, m_orientation, controlSize()) : rect;
-    
-    if (!damageRect.intersects(paintRect))
-        return;
-
-    context->save();
-    context->drawRect(rect);
-    context->fillRect(rect, Color::darkGray);
-    context->restore();
-}
-
-void PlatformScrollbar::paintButton(GraphicsContext* context, const IntRect& rect, bool start, const IntRect& damageRect) const
-{
-    IntRect paintRect = buttonRepaintRect(rect, m_orientation, controlSize(), start);
-    
-    if (!damageRect.intersects(paintRect))
-        return;
-
-    context->save();
-    context->drawRect(rect);
-    context->fillRect(rect, Color::gray);
-
-    if (start) {
-        if (m_orientation == HorizontalScrollbar) {
-            context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint(rect.x(), (rect.bottom() + rect.y())/2));
-            context->drawLine(IntPoint(rect.right(), rect.bottom()), IntPoint(rect.x(), (rect.bottom() + rect.y())/2));
-        } else {
-            context->drawLine(IntPoint(rect.x(), rect.bottom()), IntPoint((rect.x() + rect.right())/2, rect.y()));
-            context->drawLine(IntPoint(rect.right(), rect.bottom()), IntPoint((rect.x() + rect.right())/2, rect.y()));
-        }
-    } else {
-        if (m_orientation == HorizontalScrollbar) {
-            context->drawLine(IntPoint(rect.x(), rect.y()), IntPoint(rect.right(), (rect.bottom() + rect.y())/2));
-            context->drawLine(IntPoint(rect.x(), rect.bottom()), IntPoint(rect.right(), (rect.bottom() + rect.y())/2));
-        } else {
-            context->drawLine(IntPoint(rect.x(), rect.y()), IntPoint((rect.x() + rect.right())/2, rect.bottom()));
-            context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint((rect.x() + rect.right())/2, rect.bottom()));
-        }
-    }
-    context->restore();
-}
-
 IntRect PlatformScrollbar::backButtonRect() const
 {
     // Our actual rect will shrink to half the available space when
@@ -234,17 +170,6 @@ void PlatformScrollbar::splitTrack(const IntRect& trackRect, IntRect& beforeThum
     }
 }
 
-void PlatformScrollbar::paintThumb(GraphicsContext* context, const IntRect& rect, const IntRect& damageRect) const
-{
-    if (!damageRect.intersects(rect))
-        return;
-
-    context->save();
-    context->drawRect(rect);
-    context->fillRect(rect, Color::gray);
-    context->restore();
-}
-
 int PlatformScrollbar::thumbPosition() const
 {
     if (isEnabled())
@@ -272,37 +197,6 @@ int PlatformScrollbar::thumbLength() const
     return length;
 }
 
-void PlatformScrollbar::paint(GraphicsContext* context, const IntRect& damageRect)
-{
-    if (context->updatingControlTints()) {
-        invalidate();
-        return;
-    }
-
-    if (context->paintingDisabled())
-        return;
-
-    // Don't paint anything if the scrollbar doesn't intersect the damage rect.
-    if (!frameGeometry().intersects(damageRect))
-        return;
-
-    IntRect track = trackRect();
-    paintTrack(context, track, true, damageRect);
-
-    if (hasButtons()) {
-        paintButton(context, backButtonRect(), true, damageRect);
-        paintButton(context, forwardButtonRect(), false, damageRect);
-    }
-
-    if (hasThumb() && damageRect.intersects(track)) {
-        IntRect startTrackRect, thumbRect, endTrackRect;
-        splitTrack(track, startTrackRect, thumbRect, endTrackRect);
-        paintThumb(context, thumbRect, damageRect);
-    }
-
-    Widget::paint(context, damageRect);
-}
-
 void PlatformScrollbar::updateThumbPosition()
 {
 }
@@ -311,9 +205,9 @@ void PlatformScrollbar::updateThumbProportion()
 {
 }
 
-void PlatformScrollbar::setRect(const IntRect& rect)
+void PlatformScrollbar::setFrameGeometry(const IntRect& rect)
 {
-    setFrameGeometry(rect);
+    Widget::setFrameGeometry(rect);
     geometryChanged();
 }
 
@@ -337,16 +231,6 @@ void PlatformScrollbar::geometryChanged()
 void PlatformScrollbar::balValueChanged(BalAdjustment*, PlatformScrollbar* that)
 {
 //    that->setValue(static_cast<int>(gtk_adjustment_get_value(that->m_adjustment)));
-}
-
-int PlatformScrollbar::horizontalScrollbarHeight()
-{
-    return hSize;
-}
-
-int PlatformScrollbar::verticalScrollbarWidth()
-{
-    return vSize;
 }
 
 bool PlatformScrollbar::handleMouseMoveEvent(const PlatformMouseEvent& evt)
@@ -496,24 +380,6 @@ void PlatformScrollbar::invalidatePart(ScrollbarPart part)
     invalidateRect(result);
 }
 
-void PlatformScrollbar::autoscrollPressedPart(double delay)
-{
-    // Don't do anything for the thumb or if nothing was pressed.
-    if (m_pressedPart == ThumbPart || m_pressedPart == NoPart)
-        return;
-
-    // Handle the track.
-    if ((m_pressedPart == BackTrackPart || m_pressedPart == ForwardTrackPart) && thumbUnderMouse()) {
-        invalidatePart(m_pressedPart);
-        m_hoveredPart = ThumbPart;
-        return;
-    }
-
-    // Handle the arrows and track.
-    if (scroll(pressedPartScrollDirection(), pressedPartScrollGranularity()))
-        startTimerIfNeeded(delay);
-}
-
 bool PlatformScrollbar::thumbUnderMouse()
 {
     // Construct a rect.
@@ -530,65 +396,4 @@ IntRect PlatformScrollbar::thumbRect() const
     splitTrack(trackRect(), beforeThumbRect, thumbRect, afterThumbRect);
     return thumbRect;
 }
-
-ScrollDirection PlatformScrollbar::pressedPartScrollDirection()
-{
-    if (m_orientation == HorizontalScrollbar) {
-        if (m_pressedPart == BackButtonPart || m_pressedPart == BackTrackPart)
-            return ScrollLeft;
-        return ScrollRight;
-    } else {
-        if (m_pressedPart == BackButtonPart || m_pressedPart == BackTrackPart)
-            return ScrollUp;
-        return ScrollDown;
-    }
-}
-
-ScrollGranularity PlatformScrollbar::pressedPartScrollGranularity()
-{
-    if (m_pressedPart == BackButtonPart || m_pressedPart == ForwardButtonPart)
-        return ScrollByLine;
-    return ScrollByPage;
-}
-
-void PlatformScrollbar::startTimerIfNeeded(double delay)
-{
-    // Don't do anything for the thumb.
-    if (m_pressedPart == ThumbPart)
-        return;
-
-    // Handle the track.  We halt track scrolling once the thumb is level
-    // with us.
-    if ((m_pressedPart == BackTrackPart || m_pressedPart == ForwardTrackPart) && thumbUnderMouse()) {
-        invalidatePart(m_pressedPart);
-        m_hoveredPart = ThumbPart;
-        return;
-    }
-
-    // We can't scroll if we've hit the beginning or end.
-    ScrollDirection dir = pressedPartScrollDirection();
-    if (dir == ScrollUp || dir == ScrollLeft) {
-        if (m_currentPos == 0)
-            return;
-    } else {
-        if (m_currentPos == m_totalSize - m_visibleSize)
-            return;
-    }
-
-    m_scrollTimer.startOneShot(delay);
-}
-
-void PlatformScrollbar::stopTimerIfNeeded()
-{
-    if (m_scrollTimer.isActive())
-        m_scrollTimer.stop();
-}
-
-void PlatformScrollbar::autoscrollTimerFired(Timer<PlatformScrollbar>*)
-{
-    autoscrollPressedPart(cNormalTimerDelay);
-}
-
-
-
 

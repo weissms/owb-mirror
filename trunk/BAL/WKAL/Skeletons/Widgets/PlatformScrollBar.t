@@ -57,6 +57,45 @@ public:
      * RefPtr<PlatformScrollbar> p = PlatformScrollbar::create(c, o, s);
      * @endcode
      */
+    static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
+
+
+
+    /**
+     *  PlatformScrollbar description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize)
+
+protect
+
+
+    /**
+     *  PlatformScrollbar description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize)
+
+namespace WKAL {
+
+class PlatformScrollbar : public WKALBase, public Widget, public Scrollbar {
+public:
+    /**
+     * create platform scrollbar
+     * @param[in] : scrollbar client
+     * @param[in] : scrollbar orientation
+     * @param[in] : scrollbar control size
+     * @param[out] : platform scrollbar
+     * @code
+     * RefPtr<PlatformScrollbar> p = PlatformScrollbar::create(c, o, s);
+     * @endcode
+     */
     static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size);
 
     /**
@@ -66,100 +105,69 @@ public:
      * @endcode
      */
     virtual ~PlatformScrollbar();
-
     /**
-     * test if the PlatformScrollbar is a widget 
-     * @param[out] : true if the PlatformScrollbar is a widget
+     *  PlatformScrollbar description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * bool w = p->isWidget();
      * @endcode
-     */
-    virtual bool isWidget() const ;
-
-    /**
-     * get scrollbar width
-     * @param[out] : scrollbar width
-     * @code
-     * int w = p->width();
-     * @endcode
-     */
-    virtual int width() const;
-
-    /**
-     * get scrollbar height
-     * @param[out] : scrollbar height
-     * @code
-     * int h = p->height();
-     * @endcode
-     */
-    virtual int height() const;
-
-    /**
-     * set scrollbar rect 
-     * @param[in] : scrollbar rect
-     * @code
-     * p->setRect(r);
-     * @endcode
-     */
-    virtual void setRect(const IntRect&);
-
-    /**
-     * set enabled 
-     * @param[in] : status
-     * @code
-     * p->setEnabled(s);
-     * @endcode
-     */
-    virtual void setEnabled(bool);
-
-    /**
-     * paint
-     * @param[in] : graphics context
-     * @param[in] : damage rect
-     * @code
-     * p->paint(gc, dr);
-     * @endcode
-     */
-    virtual void paint(GraphicsContext*, const IntRect& damageRect);
-
-    /**
-     * get horizontal scrollbar height
-     * @param[out] : horizontal scrollbar height
-     * @code
-     * int h = p->horizontalScrollbarHeight();
-     * @endcode
-     */
-    static int horizontalScrollbarHeight();
-
-    /**
-     * get vertical scrollbar width
-     * @param[out] : vertical scrollbar width
-     * @code
-     * int v = p->verticalScrollbarWidth();
-     * @endcode
-     */
-    static int verticalScrollbarWidth();
-
-protected:
-    /**
-     * PlatformScrollbar constructor
      */
     PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
+    /**
+     *  updateThumbPosition description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void updateThumbPosition();
+    /**
+     *  updateThumbProportion description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void updateThumbProportion();
+    /**
+     *  geometryChanged description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void geometryChanged();
+    /**
+     *  balValueChanged description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    static void balValueChanged(BalAdjustment*, PlatformScrollbar*);
+    
+    
+    
+    
+    
+
+
+
+    /**
+     *  PlatformScrollbar description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize)
+
+protecte
 
     /**
      * update Thumb Position
      */
-    virtual void updateThumbPosition();
-
-    /**
-     * update Thumb Proportion
-     */
-    virtual void updateThumbProportion();
-
-    /**
-     * geometry changed 
-     */
-    virtual void geometryChanged();
+    virtual void updateThumbPosition(
 
 private:
     /**
@@ -171,8 +179,4 @@ private:
 
 }
 
-#endif // PlatformScrollBar_h
-
-
-
-
+#endif // P

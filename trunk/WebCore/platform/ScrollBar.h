@@ -28,67 +28,55 @@
 
 #include <wtf/RefCounted.h>
 #include "ScrollTypes.h"
+#include "Timer.h"
+#include "Widget.h"
 #include <wtf/MathExtras.h>
 
 namespace WebCore {
 
 class GraphicsContext;
 class IntRect;
-class Scrollbar;
+class ScrollbarClient;
+class ScrollbarTheme;
 class PlatformMouseEvent;
 
 // These match the numbers we use over in WebKit (WebFrameView.m).
 #define LINE_STEP   40
 #define PAGE_KEEP   40
 
-class ScrollbarClient {
-public:
-    virtual ~ScrollbarClient() {}
-    virtual void valueChanged(Scrollbar*) = 0;
-
-    // Used to obtain a window clip rect.
-    virtual IntRect windowClipRect() const = 0;
-
-    // FIXME: It would be nice to set this state on the scroll bar instead of
-    // having to ask for it from the client at paint time.
-    virtual bool isActive() const = 0;
-};
-
-class Scrollbar : public RefCounted<Scrollbar> {
+class Scrollbar : public Widget, public RefCounted<Scrollbar> {
 protected:
-    Scrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
+    Scrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize, ScrollbarTheme* = 0);
 
 public:
-    virtual ~Scrollbar() {}
+    virtual ~Scrollbar();
 
     void setClient(ScrollbarClient* client) { m_client = client; }
-
-    virtual bool isWidget() const = 0;
+    ScrollbarClient* client() const { return m_client; }
 
     ScrollbarOrientation orientation() const { return m_orientation; }
-    int value() const { return lroundf(m_currentPos); } 
     
+    int value() const { return lroundf(m_currentPos); }
+    float currentPos() const { return m_currentPos; }
+    int visibleSize() const { return m_visibleSize; }
+    int totalSize() const { return m_totalSize; }
+    int maximum() const { return m_totalSize - m_visibleSize; }        
     ScrollbarControlSize controlSize() const { return m_controlSize; }
 
+    int lineStep() const { return m_lineStep; }
+    int pageStep() const { return m_pageStep; }
+    float pixelStep() const { return m_pixelStep; }
     void setSteps(int lineStep, int pageStep, int pixelsPerStep = 1);
     
+    ScrollbarPart pressedPart() const { return m_pressedPart; }
+    ScrollbarPart hoveredPart() const { return m_hoveredPart; }
+
     bool setValue(int);
     void setProportion(int visibleSize, int totalSize);
 
-    bool scroll(ScrollDirection, ScrollGranularity, float multiplier = 1.0);
+    bool scroll(ScrollDirection, ScrollGranularity, float multiplier = 1.0f);
     
-    virtual int width() const = 0;
-    virtual int height() const = 0;
-    virtual void setRect(const IntRect&) = 0;
-    virtual void setEnabled(bool) = 0;
-    virtual void paint(GraphicsContext*, const IntRect& damageRect) = 0;
-
-    static bool hasPlatformScrollbars() {
-        // To use the platform's built-in scrollbars by default, return true.  We may
-        // support styled engine scrollbars someday, and some platforms may wish to not
-        // implement a platform scrollbar at all by default.  That's what this method is for.
-        return true;
-    }
+    virtual void paint(GraphicsContext*, const IntRect& damageRect);
 
     // These methods are used for platform scrollbars to give :hover feedback.  They will not get called
     // when the mouse went down in a scrollbar, since it is assumed the scrollbar will start
@@ -98,22 +86,50 @@ public:
 
     // Used by some platform scrollbars to know when they've been released from capture.
     virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&) { return false; }
-   
+
+    virtual bool handleMousePressEvent(const PlatformMouseEvent&) { return false; }
+
+#if PLATFORM(QT)
+    // For platforms that wish to handle context menu events.
+    // FIXME: This sems misplaced.  Normal hit testing could be used to populate a correct
+    // context menu.  There's no reason why the scrollbar should have to do it.
+    virtual bool handleContextMenuEvent(const PlatformMouseEvent& event) { return false; }
+#endif
+
+    ScrollbarTheme* theme() const { return m_theme; }
+
 protected:
     virtual void updateThumbPosition() = 0;
     virtual void updateThumbProportion() = 0;
+    
+    // FIXME: This two methods will not need to be virtual eventually.
+    virtual void invalidatePart(ScrollbarPart part) {}
+    virtual bool thumbUnderMouse() { return false; }
 
-    ScrollbarClient* client() const { return m_client; }
-
+    void autoscrollTimerFired(Timer<Scrollbar>*);
+    void startTimerIfNeeded(double delay);
+    void stopTimerIfNeeded();
+    void autoscrollPressedPart(double delay);
+    ScrollDirection pressedPartScrollDirection();
+    ScrollGranularity pressedPartScrollGranularity();
+    
     ScrollbarClient* m_client;
     ScrollbarOrientation m_orientation;
     ScrollbarControlSize m_controlSize;
+    ScrollbarTheme* m_theme;
+    
     int m_visibleSize;
     int m_totalSize;
     float m_currentPos;
     int m_lineStep;
     int m_pageStep;
     float m_pixelStep;
+
+    ScrollbarPart m_hoveredPart;
+    ScrollbarPart m_pressedPart;
+    int m_pressedPos;
+    Timer<Scrollbar> m_scrollTimer;
+    bool m_overlapsResizer;
 };
 
 }

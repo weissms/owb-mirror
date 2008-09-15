@@ -54,11 +54,11 @@
 #include "MouseEventWithHitTestResults.h"
 #include "Page.h"
 #include "PlatformKeyboardEvent.h"
-#include "PlatformScrollBar.h"
 #include "PlatformWheelEvent.h"
 #include "RenderFrameSet.h"
 #include "RenderWidget.h"
 #include "RenderView.h"
+#include "ScrollBar.h"
 #include "SelectionController.h"
 #include "Settings.h"
 #include "TextEvent.h"
@@ -706,7 +706,7 @@ HitTestResult EventHandler::hitTestResultAtPoint(const IntPoint& point, bool all
     // Another hit test at the main frame level should get us the correct visible result.
     Frame* resultFrame = result.innerNonSharedNode() ? result.innerNonSharedNode()->document()->frame() : 0;
     Frame* mainFrame = m_frame->page()->mainFrame();
-    if (resultFrame && resultFrame != mainFrame && !resultFrame->editor()->insideVisibleArea(result.point())) {
+    if (m_frame != mainFrame && resultFrame && resultFrame != mainFrame && !resultFrame->editor()->insideVisibleArea(result.point())) {
         IntPoint windowPoint = resultFrame->view()->contentsToWindow(result.point());
         IntPoint mainFramePoint = mainFrame->view()->windowToContents(windowPoint);
         result = mainFrame->eventHandler()->hitTestResultAtPoint(mainFramePoint, allowShadowContent);
@@ -817,7 +817,7 @@ static bool nodeIsNotBeingEdited(Node* node, Frame* frame)
     return frame->selection()->rootEditableElement() != node->rootEditableElement();
 }
 
-Cursor EventHandler::selectCursor(const MouseEventWithHitTestResults& event, PlatformScrollbar* scrollbar)
+Cursor EventHandler::selectCursor(const MouseEventWithHitTestResults& event, Scrollbar* scrollbar)
 {
     // During selection, use an I-beam no matter what we're over.
     // If you're capturing mouse events for a particular node, don't treat this as a selection.
@@ -1064,7 +1064,7 @@ bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
         if (mev.targetNode()->isShadowNode() && mev.targetNode()->shadowParentNode()->hasTagName(inputTag))
             mev = prepareMouseEvent(HitTestRequest(true, true), mouseEvent);
 
-        PlatformScrollbar* scrollbar = m_frame->view()->scrollbarUnderMouse(mouseEvent);
+        Scrollbar* scrollbar = m_frame->view()->scrollbarUnderMouse(mouseEvent);
         if (!scrollbar)
             scrollbar = mev.scrollbar();
         if (scrollbar && passMousePressEventToScrollbar(mev, scrollbar))
@@ -1166,7 +1166,7 @@ bool EventHandler::handleMouseMoveEvent(const PlatformMouseEvent& mouseEvent, Hi
     if (hoveredNode)
         *hoveredNode = mev.hitTestResult();
 
-    PlatformScrollbar* scrollbar = 0;
+    Scrollbar* scrollbar = 0;
 
     if (m_resizeLayer && m_resizeLayer->inResizeMode())
         m_resizeLayer->resize(mouseEvent, m_offsetFromResizeCorner);

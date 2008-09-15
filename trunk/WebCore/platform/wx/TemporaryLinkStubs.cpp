@@ -72,6 +72,7 @@
 #include "ResourceHandleInternal.h"
 #include "ResourceLoader.h"
 #include "Screen.h"
+#include "ScrollbarTheme.h"
 #include "SearchPopupMenu.h"
 #include "ScrollBar.h"
 #include "SharedBuffer.h"
@@ -132,13 +133,10 @@ void Image::drawPattern(GraphicsContext*, const FloatRect& srcRect, const Affine
 
 PlatformScrollbar::PlatformScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize controlSize) : Scrollbar(client, orientation, controlSize) { notImplemented(); }
 PlatformScrollbar::~PlatformScrollbar() { notImplemented(); }
-int PlatformScrollbar::width() const { notImplemented(); return 0; }
-int PlatformScrollbar::height() const { notImplemented(); return 0; }
-void PlatformScrollbar::setEnabled(bool) { notImplemented(); }
-void PlatformScrollbar::paint(GraphicsContext*, const IntRect& damageRect) { notImplemented(); }
 void PlatformScrollbar::updateThumbPosition() { notImplemented(); }
 void PlatformScrollbar::updateThumbProportion() { notImplemented(); }
-void PlatformScrollbar::setRect(const IntRect&) { notImplemented(); }
+
+ScrollbarTheme* ScrollbarTheme::nativeTheme() { notImplemented(); static ScrollbarTheme theme; return &theme; }
 
 void FileChooser::openFileChooser(Document*) { notImplemented(); }
 String FileChooser::basenameForWidth(const Font&, int width) const { notImplemented(); return String(); }

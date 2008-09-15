@@ -36,7 +36,7 @@
 
 namespace WebCore {
 
-class PlatformScrollbar : public Widget, public Scrollbar {
+class PlatformScrollbar : public Scrollbar {
 public:
     static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
     {
@@ -44,16 +44,13 @@ public:
     }
     virtual ~PlatformScrollbar();
 
-    virtual bool isWidget() const { return true; }
     virtual int width() const;
     virtual int height() const;
-    virtual void setRect(const IntRect&);
-
+  
     virtual IntRect frameGeometry() const;
     virtual void setFrameGeometry(const IntRect& r);
 
     virtual void setEnabled(bool);
-    virtual void paint(GraphicsContext*, const IntRect& damageRect);
 
     virtual bool handleMouseMoveEvent(const PlatformMouseEvent&);
     virtual bool handleMouseOutEvent(const PlatformMouseEvent&);
@@ -62,14 +59,7 @@ public:
     virtual bool handleContextMenuEvent(const PlatformMouseEvent&);
 
     bool isEnabled() const;
-
-    static int horizontalScrollbarHeight(ScrollbarControlSize size = RegularScrollbar);
-    static int verticalScrollbarWidth(ScrollbarControlSize size = RegularScrollbar);
-
-    void autoscrollTimerFired(Timer<PlatformScrollbar>*);
     void invalidate();
-
-    int maximum() const { return m_totalSize - m_visibleSize; }
 
 protected:    
     virtual void updateThumbPosition();
@@ -82,20 +72,10 @@ private:
     int thumbLength() const;
     int trackLength() const;
 
-    void startTimerIfNeeded(double delay);
-    void stopTimerIfNeeded();
-    void autoscrollPressedPart(double delay);
-    ScrollDirection pressedPartScrollDirection();
-    ScrollGranularity pressedPartScrollGranularity();
-
     bool thumbUnderMouse();
 
     int pixelPosToRangeValue(int pos) const;
 
-    int m_pressedPos;
-    QStyle::SubControl m_pressedPart;
-    QStyle::SubControl m_hoveredPart;
-    Timer<PlatformScrollbar> m_scrollTimer;
     QStyleOptionSlider m_opt;
 };
 

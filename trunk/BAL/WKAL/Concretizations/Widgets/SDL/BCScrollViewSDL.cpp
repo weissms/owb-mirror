@@ -41,6 +41,7 @@
 #include "PlatformScrollBar.h"
 #include "Page.h"
 #include "RenderLayer.h"
+#include "ScrollbarTheme.h"
 #include "SDL.h"
 #if PLATFORM(AMIGAOS4)
 #define GRAPHICS_MONITOR_H
@@ -195,14 +196,12 @@ void ScrollView::ScrollViewPrivate::setHasHorizontalScrollbar(bool hasBar)
     if (!view->parent())
         hasBar = false;
 #endif
-    if (Scrollbar::hasPlatformScrollbars()) {
-        if (hasBar && !hBar && !horizontalAdjustment) {
-            hBar = new ScrollViewScrollbar(this, HorizontalScrollbar, RegularScrollbar);
-            view->addChild(hBar.get());
-        } else if (!hasBar && hBar) {
-            view->removeChild(hBar.get());
-            hBar = 0;
-        }
+    if (hasBar && !hBar && !horizontalAdjustment) {
+        hBar = new ScrollViewScrollbar(this, HorizontalScrollbar, RegularScrollbar);
+        view->addChild(hBar.get());
+    } else if (!hasBar && hBar) {
+        view->removeChild(hBar.get());
+        hBar = 0;
     }
 }
 
@@ -212,14 +211,12 @@ void ScrollView::ScrollViewPrivate::setHasVerticalScrollbar(bool hasBar)
     if (!view->parent())
         hasBar = false;
 #endif
-    if (Scrollbar::hasPlatformScrollbars()) {
-        if (hasBar && !vBar && !verticalAdjustment) {
-            vBar = new ScrollViewScrollbar(this, VerticalScrollbar, RegularScrollbar);
-            view->addChild(vBar.get());
-        } else if (!hasBar && vBar) {
-            view->removeChild(vBar.get());
-            vBar = 0;
-        }
+    if (hasBar && !vBar && !verticalAdjustment) {
+        vBar = new ScrollViewScrollbar(this, VerticalScrollbar, RegularScrollbar);
+        view->addChild(vBar.get());
+    } else if (!hasBar && vBar) {
+        view->removeChild(vBar.get());
+        vBar = 0;
     }
 }
 
@@ -681,8 +678,7 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
     ScrollbarMode hScroll = m_data->hScrollbarMode;
     ScrollbarMode vScroll = m_data->vScrollbarMode;
 
-    const int cVerticalWidth = PlatformScrollbar::verticalScrollbarWidth();
-    const int cHorizontalHeight = PlatformScrollbar::horizontalScrollbarHeight();
+    const int scrollbarThickness = ScrollbarTheme::nativeTheme()->scrollbarThickness();
 
 #if PLATFORM(AMIGAOS4)
     if (parent())
@@ -698,11 +694,11 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
 
             scrollsVertically = (vScroll == ScrollbarAlwaysOn) || (vScroll == ScrollbarAuto && contentsHeight() > height());
             if (scrollsVertically)
-                scrollsHorizontally = (hScroll == ScrollbarAlwaysOn) || (hScroll == ScrollbarAuto && contentsWidth() + cVerticalWidth > width());
+                scrollsHorizontally = (hScroll == ScrollbarAlwaysOn) || (hScroll == ScrollbarAuto && contentsWidth() + scrollbarThickness > width());
             else {
                 scrollsHorizontally = (hScroll == ScrollbarAlwaysOn) || (hScroll == ScrollbarAuto && contentsWidth() > width());
                 if (scrollsHorizontally)
-                    scrollsVertically = (vScroll == ScrollbarAlwaysOn) || (vScroll == ScrollbarAuto && contentsHeight() + cHorizontalHeight > height());
+                    scrollsVertically = (vScroll == ScrollbarAlwaysOn) || (vScroll == ScrollbarAuto && contentsHeight() + scrollbarThickness > height());
             }
         }
         else {
@@ -748,7 +744,7 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
                                    height() - m_data->hBar->height(),
                                    width() - (m_data->vBar ? m_data->vBar->width() : 0),
                                    m_data->hBar->height());
-        m_data->hBar->setRect(hBarRect);
+        m_data->hBar->setFrameGeometry(hBarRect);
         if (!m_data->scrollbarsSuppressed && oldRect != m_data->hBar->frameGeometry())
             m_data->hBar->invalidate();
 
@@ -788,7 +784,7 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
                                    0,
                                    m_data->vBar->width(),
                                    height() - (m_data->hBar ? m_data->hBar->height() : 0));
-        m_data->vBar->setRect(vBarRect);
+        m_data->vBar->setFrameGeometry(vBarRect);
         if (!m_data->scrollbarsSuppressed && oldRect != m_data->vBar->frameGeometry())
             m_data->vBar->invalidate();
 
@@ -829,7 +825,7 @@ IntPoint ScrollView::contentsToWindow(const IntPoint& contentsPoint) const
     return convertToContainingWindow(viewPoint);
 }
 
-PlatformScrollbar* ScrollView::scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent)
+Scrollbar* ScrollView::scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent)
 {
     IntPoint viewPoint = convertFromContainingWindow(mouseEvent.pos());
     if (m_data->hBar && m_data->hBar->frameGeometry().contains(viewPoint))

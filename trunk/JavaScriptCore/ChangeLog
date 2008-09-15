@@ -1,3 +1,344 @@
+2008-09-15  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=20849
+        Cache property names for getEnumerablePropertyNames in the StructureID.
+
+        ~0.5% speedup on Sunspider overall (9.7% speedup on string-fasta).  ~1% speedup
+        on the v8 test suite.
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::getPropertyNames):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::getEnumerablePropertyNames):
+        * kjs/PropertyMap.h:
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::StructureID):
+        (JSC::StructureID::getEnumerablePropertyNames):
+        * kjs/StructureID.h:
+
+2008-09-14  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - speed up JS construction by extracting "prototype" lookup so PIC applies.
+        
+        ~0.5% speedup on SunSpider
+        Speeds up some of the V8 tests as well, most notably earley-boyer.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileOpCall): Account for extra arg for prototype.
+        (JSC::CTI::privateCompileMainPass): Account for increased size of op_construct.
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitConstruct): Emit separate lookup to get prototype property.
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute): Expect prototype arg in op_construct.
+        (JSC::Machine::cti_op_construct_JSConstruct): ditto
+        (JSC::Machine::cti_op_construct_NotJSConstruct): ditto
+
+2008-09-10  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add a protected destructor for RefCounted.
+
+        It is wrong to call its destructor directly, because (1) this should be taken care of by
+        deref(), and (2) many classes that use RefCounted have non-virtual destructors.
+
+        No change in behavior.
+
+        * wtf/RefCounted.h: (WTF::RefCounted::~RefCounted):
+
+2008-09-14  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Accelerated property accesses.
+
+        Inline more of the array access code into the JIT code for get/put_by_val.
+        Accelerate get/put_by_id by speculatively inlining a disable direct access
+        into the hot path of the code, and repatch this with the correct StructureID
+        and property map offset once these are known.  In the case of accesses to the
+        prototype and reading the array-length a trampoline is genertaed, and the
+        branch to the slow-case is relinked to jump to this.
+
+        By repatching, we mean rewriting the x86 instruction stream.  Instructions are
+        only modified in a simple fasion - altering immediate operands, memory access
+        deisplacements, and branch offsets.
+        
+        For regular get_by_id/put_by_id accesses to an object, a StructureID in an
+        instruction's immediate operant is updateded, and a memory access operation's
+        displacement is updated to access the correct field on the object.  In the case
+        of more complex accesses (array length and get_by_id_prototype) the offset on
+        the branch to slow-case is updated, to now jump to a trampoline.
+
+        +2.8% sunspider, +13% v8-tests
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitCall):
+        (JSC::CTI::emitJumpSlowCaseIfNotJSCell):
+        (JSC::CTI::CTI):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::privateCompileGetByIdSelf):
+        (JSC::CTI::privateCompileGetByIdProto):
+        (JSC::CTI::privateCompileGetByIdChain):
+        (JSC::CTI::privateCompilePutByIdReplace):
+        (JSC::CTI::privateCompilePutByIdTransition):
+        (JSC::CTI::privateCompileArrayLengthTrampoline):
+        (JSC::CTI::privateCompileStringLengthTrampoline):
+        (JSC::CTI::patchGetByIdSelf):
+        (JSC::CTI::patchPutByIdReplace):
+        (JSC::CTI::privateCompilePatchGetArrayLength):
+        (JSC::CTI::privateCompilePatchGetStringLength):
+        * VM/CTI.h:
+        (JSC::CTI::compileGetByIdSelf):
+        (JSC::CTI::compileGetByIdProto):
+        (JSC::CTI::compileGetByIdChain):
+        (JSC::CTI::compilePutByIdReplace):
+        (JSC::CTI::compilePutByIdTransition):
+        (JSC::CTI::compileArrayLengthTrampoline):
+        (JSC::CTI::compileStringLengthTrampoline):
+        (JSC::CTI::compilePatchGetArrayLength):
+        (JSC::CTI::compilePatchGetStringLength):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::~CodeBlock):
+        * VM/CodeBlock.h:
+        (JSC::StructureStubInfo::StructureStubInfo):
+        (JSC::CodeBlock::getStubInfo):
+        * VM/Machine.cpp:
+        (JSC::Machine::tryCTICachePutByID):
+        (JSC::Machine::tryCTICacheGetByID):
+        (JSC::Machine::cti_op_put_by_val_array):
+        * VM/Machine.h:
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::cmpl_i8m):
+        (JSC::X86Assembler::emitUnlinkedJa):
+        (JSC::X86Assembler::getRelocatedAddress):
+        (JSC::X86Assembler::getDifferenceBetweenLabels):
+        (JSC::X86Assembler::emitModRm_opmsib):
+
+2008-09-14  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - split the "prototype" lookup for hasInstance into opcode stream so it can be cached
+        
+        ~5% speedup on v8 earley-boyer test
+
+        * API/JSCallbackObject.h: Add a parameter for the pre-looked-up prototype.
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::hasInstance): Ditto.
+        * API/JSValueRef.cpp:
+        (JSValueIsInstanceOfConstructor): Look up and pass in prototype.
+        * JavaScriptCore.exp:
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass): Pass along prototype.
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump): Print third arg.
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitInstanceOf): Implement this, now that there
+        is a third argument.
+        * VM/CodeGenerator.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute): Pass along the prototype.
+        (JSC::Machine::cti_op_instanceof): ditto
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::hasInstance): Expect to get a pre-looked-up prototype.
+        * kjs/JSObject.h:
+        * kjs/nodes.cpp:
+        (JSC::InstanceOfNode::emitCode): Emit a get_by_id of the prototype
+        property and pass that register to instanceof.
+        * kjs/nodes.h:
+
+2008-09-14  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove unnecessary virtual function call from cti_op_call_JSFunction -
+        ~5% on richards, ~2.5% on v8-tests, ~0.5% on sunspider.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_JSFunction):
+
+2008-09-14  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20827: the 'typeof' operator is slow
+        <https://bugs.webkit.org/show_bug.cgi?id=20827>
+
+        Optimize the 'typeof' operator when its result is compared to a constant
+        string.
+
+        This is a 5.5% speedup on the V8 Earley-Boyer test.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitEqualityOp):
+        * VM/CodeGenerator.h:
+        * VM/Machine.cpp:
+        (JSC::jsIsObjectType):
+        (JSC::jsIsFunctionType):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_is_undefined):
+        (JSC::Machine::cti_op_is_boolean):
+        (JSC::Machine::cti_op_is_number):
+        (JSC::Machine::cti_op_is_string):
+        (JSC::Machine::cti_op_is_object):
+        (JSC::Machine::cti_op_is_function):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+        * kjs/nodes.cpp:
+        (JSC::BinaryOpNode::emitCode):
+        (JSC::EqualNode::emitCode):
+        (JSC::StrictEqualNode::emitCode):
+        * kjs/nodes.h:
+
+2008-09-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=20844
+        Speed up parseInt for numbers
+
+        Sunspider reports this as 1.029x as fast overall and 1.37x as fast on string-unpack-code.
+        No change on the v8 suite.
+
+        * kjs/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncParseInt): Don't convert numbers to strings just to
+        convert them back to numbers.
+
+2008-09-14  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 20816: op_lesseq should be optimized
+        <https://bugs.webkit.org/show_bug.cgi?id=20816>
+
+        Add a loop_if_lesseq opcode that is similar to the loop_if_less opcode.
+
+        This is a 9.4% speedup on the V8 Crypto benchmark.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitJumpIfTrue):
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_loop_if_lesseq):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+
+2008-09-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Cleanup Sampling code.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitCall):
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CTI.h:
+        (JSC::CTI::execute):
+        * VM/SamplingTool.cpp:
+        (JSC::):
+        (JSC::SamplingTool::run):
+        (JSC::SamplingTool::dump):
+        * VM/SamplingTool.h:
+        (JSC::SamplingTool::callingHostFunction):
+
+2008-09-13  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 20821: Cache property transitions to speed up object initialization
+        https://bugs.webkit.org/show_bug.cgi?id=20821
+
+        Implement a transition cache to improve the performance of new properties
+        being added to objects.  This is extremely beneficial in constructors and
+        shows up as a 34% improvement on access-binary-trees in SunSpider (0.8%
+        overall)
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::):
+        (JSC::transitionWillNeedStorageRealloc):
+        (JSC::CTI::privateCompilePutByIdTransition):
+        * VM/CTI.h:
+        (JSC::CTI::compilePutByIdTransition):
+        * VM/CodeBlock.cpp:
+        (JSC::printPutByIdOp):
+        (JSC::CodeBlock::printStructureIDs):
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::derefStructureIDs):
+        (JSC::CodeBlock::refStructureIDs):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitPutById):
+        * VM/Machine.cpp:
+        (JSC::cachePrototypeChain):
+        (JSC::Machine::tryCachePutByID):
+        (JSC::Machine::tryCacheGetByID):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::tryCTICachePutByID):
+        (JSC::Machine::tryCTICacheGetByID):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+        * kjs/JSObject.h:
+        (JSC::JSObject::putDirect):
+        (JSC::JSObject::transitionTo):
+        * kjs/PutPropertySlot.h:
+        (JSC::PutPropertySlot::PutPropertySlot):
+        (JSC::PutPropertySlot::wasTransition):
+        (JSC::PutPropertySlot::setWasTransition):
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::transitionTo):
+        (JSC::StructureIDChain::StructureIDChain):
+        * kjs/StructureID.h:
+        (JSC::StructureID::previousID):
+        (JSC::StructureID::setCachedPrototypeChain):
+        (JSC::StructureID::cachedPrototypeChain):
+        (JSC::StructureID::propertyMap):
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::addl_i8m):
+        (JSC::X86Assembler::subl_i8m):
+
+2008-09-12  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20819: JSValue::isObject() is slow
+        <https://bugs.webkit.org/show_bug.cgi?id=20819>
+
+        Optimize JSCell::isObject() and JSCell::isString() by making them
+        non-virtual calls that rely on the StructureID type information.
+
+        This is a 0.7% speedup on SunSpider and a 1.0% speedup on the V8
+        benchmark suite.
+
+        * JavaScriptCore.exp:
+        * kjs/JSCell.cpp:
+        * kjs/JSCell.h:
+        (JSC::JSCell::isObject):
+        (JSC::JSCell::isString):
+        * kjs/JSObject.cpp:
+        * kjs/JSObject.h:
+        * kjs/JSString.cpp:
+        * kjs/JSString.h:
+        (JSC::JSString::JSString):
+        * kjs/StructureID.h:
+        (JSC::StructureID::type):
+
 2008-09-12  Stephanie Lewis  <slewis@apple.com>
 
         Reviewed by Oliver Hunt.
