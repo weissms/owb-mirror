@@ -42,6 +42,73 @@ ScrollbarThemeBal::~ScrollbarThemeBal()
 {
 }
 
+bool ScrollbarThemeBal::paint(Scrollbar* scrollbar, GraphicsContext* graphicsContext, const IntRect& damageRect)
+{
+    // Create the ScrollbarControlPartMask based on the damageRect
+    ScrollbarControlPartMask scrollMask = NoPart;
+
+    IntRect backButtonPaintRect;
+    IntRect forwardButtonPaintRect;
+    if (hasButtons(scrollbar)) {
+        backButtonPaintRect = backButtonRect(scrollbar, true);
+        if (damageRect.intersects(backButtonPaintRect))
+            scrollMask |= BackButtonPart;
+        forwardButtonPaintRect = forwardButtonRect(scrollbar, true);
+        if (damageRect.intersects(forwardButtonPaintRect))
+            scrollMask |= ForwardButtonPart;
+    }
+
+    IntRect startTrackRect;
+    IntRect thumbRect;
+    IntRect endTrackRect;
+    IntRect trackPaintRect = trackRect(scrollbar, true);
+    bool thumbPresent = hasThumb(scrollbar);
+    if (thumbPresent) {
+        IntRect track = trackRect(scrollbar);
+        splitTrack(scrollbar, track, startTrackRect, thumbRect, endTrackRect);
+        if (damageRect.intersects(thumbRect)) {
+            scrollMask |= ThumbPart;
+            if (trackIsSinglePiece()) {
+                // The track is a single strip that paints under the thumb.
+                // Add both components of the track to the mask.
+                scrollMask |= BackTrackPart;
+                scrollMask |= ForwardTrackPart;
+            }
+        }
+        if (damageRect.intersects(startTrackRect))
+            scrollMask |= BackTrackPart;
+        if (damageRect.intersects(endTrackRect))
+            scrollMask |= ForwardTrackPart;
+    } else if (damageRect.intersects(trackPaintRect)) {
+        scrollMask |= BackTrackPart;
+        scrollMask |= ForwardTrackPart;
+    }
+
+    // Paint the track.
+    if ((scrollMask & ForwardTrackPart) || (scrollMask & BackTrackPart)) {
+        if (!thumbPresent || trackIsSinglePiece())
+            paintTrack(graphicsContext, scrollbar, trackPaintRect, ForwardTrackPart | BackTrackPart);
+        else {
+            if (scrollMask & BackTrackPart)
+                paintTrack(graphicsContext, scrollbar, startTrackRect, BackTrackPart);
+            if (scrollMask & ForwardTrackPart)
+                paintTrack(graphicsContext, scrollbar, endTrackRect, ForwardTrackPart);
+        }
+    }
+
+    // Paint the back and forward buttons.
+    if (scrollMask & BackButtonPart)
+        paintButton(graphicsContext, scrollbar, backButtonPaintRect, BackButtonPart);
+    if (scrollMask & ForwardButtonPart)
+        paintButton(graphicsContext, scrollbar, forwardButtonPaintRect, ForwardButtonPart);
+    
+    // Paint the thumb.
+    if (scrollMask & ThumbPart)
+        paintThumb(graphicsContext, scrollbar, thumbRect);
+
+    return true;
+}
+
 int ScrollbarThemeBal::scrollbarThickness(ScrollbarControlSize controlSize)
 {
     BalNotImplemented();

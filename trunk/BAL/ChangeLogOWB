@@ -1,3 +1,14 @@
+2008-09-15  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix #295 by adding a paint method for ScrollbarThemeBal.
+
+        * WKAL/Concretizations/Widgets/SDL/BCScrollbarThemeSDL.cpp:
+        (WKAL::ScrollbarThemeBal::paint): add paint method.
+        * WKAL/Concretizations/Widgets/SDL/BCScrollbarThemeSDL.h:
+        * WKAL/Concretizations/Widgets/WK/BCScrollbarThemeCompositeWK.cpp:
+        (WKAL::ScrollbarThemeComposite::paint): remove useless printf.
+
 2008-09-11  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Jean-Charles VERDIE <jcverdie@pleyo.com>.

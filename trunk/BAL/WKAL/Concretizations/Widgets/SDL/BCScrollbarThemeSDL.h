@@ -34,6 +34,7 @@ class ScrollbarThemeBal : public ScrollbarTheme {
 public:
     virtual ~ScrollbarThemeBal();
 
+    virtual bool paint(Scrollbar*, GraphicsContext* context, const IntRect& damageRect);
     virtual int scrollbarThickness(ScrollbarControlSize = RegularScrollbar);
 
 protected:

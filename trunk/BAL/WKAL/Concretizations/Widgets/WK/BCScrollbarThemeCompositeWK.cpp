@@ -51,7 +51,6 @@ static Page* pageForScrollView(ScrollView* view)
 
 bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graphicsContext, const IntRect& damageRect)
 {
-    printf("paint scrollbars\n");
     // Create the ScrollbarControlPartMask based on the damageRect
     ScrollbarControlPartMask scrollMask = NoPart;
 
@@ -97,7 +96,6 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
     // custom scrollbars should be removed once scrollbars can be styled via CSS.
     if (Page* page = pageForScrollView(scrollbar->parent())) {
         if (page->settings()->shouldPaintCustomScrollbars()) {
-            printf("shouldPaintCustomScrollbars\n");
             float proportion = static_cast<float>(scrollbar->visibleSize()) / scrollbar->totalSize();
             float value = scrollbar->currentPos() / static_cast<float>(scrollbar->maximum());
             ScrollbarControlState s = 0;
@@ -122,7 +120,6 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
 
     // Paint the track.
     if ((scrollMask & ForwardTrackPart) || (scrollMask & BackTrackPart)) {
-        printf("will paintTrack\n");
         if (!thumbPresent || trackIsSinglePiece())
             paintTrack(graphicsContext, scrollbar, trackPaintRect, ForwardTrackPart | BackTrackPart);
         else {
