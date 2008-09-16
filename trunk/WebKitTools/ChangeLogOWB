@@ -1,3 +1,10 @@
+2008-09-16  KIMURA Masaru  <hiyuh.root@gmail.com>
+
+        Reviewed by Olivier DOLE.
+        Compilation fix for gcc-4.3.1.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+
 2008-09-02  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

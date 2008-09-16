@@ -25,6 +25,8 @@
 
 #include "AccessibilityUIElement.h"
 
+#include <climits>
+
 #include <JavaScriptCore/JSRetainPtr.h>
 
 // Static Functions
