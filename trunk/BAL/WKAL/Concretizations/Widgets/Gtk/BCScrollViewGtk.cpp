@@ -40,9 +40,9 @@
 #include "NotImplemented.h"
 #include "PlatformMouseEvent.h"
 #include "PlatformWheelEvent.h"
-#include "PlatformScrollBar.h"
 #include "Page.h"
 #include "RenderLayer.h"
+#include "ScrollbarGtk.h"
 #include "ScrollbarTheme.h"
 
 #include <gtk/gtk.h>
@@ -51,7 +51,7 @@ using namespace std;
 
 namespace WKAL {
 
-class ScrollViewScrollbar : public PlatformScrollbar {
+class ScrollViewScrollbar : public ScrollbarGtk {
 public:
     static PassRefPtr<ScrollViewScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
     {
@@ -122,7 +122,7 @@ public:
 };
 
 ScrollViewScrollbar::ScrollViewScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
-    : PlatformScrollbar(client, orientation, size)
+    : ScrollbarGtk(client, orientation, size)
 {
 }
 
@@ -320,6 +320,9 @@ void ScrollView::updateContents(const IntRect& updateRect, bool now)
 void ScrollView::update()
 {
     ASSERT(containingWindow());
+
+    if (!containingWindow() || !GTK_WIDGET_REALIZED(containingWindow()))
+        return;
 
     GdkRectangle rect = frameGeometry();
     gdk_window_invalidate_rect(GTK_WIDGET(containingWindow())->window, &rect, true);

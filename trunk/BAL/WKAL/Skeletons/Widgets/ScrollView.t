@@ -499,6 +499,33 @@ namespace WKAL {
 
 
     public:
+
+    /**
+     * windowResizerRect 
+     * @param[out] : a rectangle.
+     * @code
+     * @endcode
+     */
+        IntRect windowResizerRect() ;
+
+
+    /**
+     * resizerOverlapsContent. 
+     * @param[out] : a boolean.
+     * @code
+     * @endcode
+     */
+        bool resizerOverlapsContent() const ;
+
+
+    /**
+     * adjustOverlappingScrollbarCount.
+     * @param[in] : a integer representing the overlap delta.
+     * @code
+     * @endcode
+     */
+        void adjustOverlappingScrollbarCount(int overlapDelta) ;
+
     /**
      * set balAdjustments
      * @param[in] : horizontal adjustment
@@ -526,4 +553,4 @@ inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
 
 } // namespace WKAL
 
-#endif // ScrollView_
+#endif // ScrollVie

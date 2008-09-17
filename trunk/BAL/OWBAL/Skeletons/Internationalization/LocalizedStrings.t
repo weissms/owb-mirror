@@ -304,6 +304,24 @@ namespace OWBAL {
      */
     String AXHeadingText();
 
+
+    /**
+     * AXDefinitionListTermText
+     * @param[out] : a String.
+     * @code
+     * @endcode
+     */
+    String AXDefinitionListTermText();
+
+
+    /**
+     *AXDefinitionListDefinitionText.
+     * @param[out] : a string.
+     * @code
+     * @endcode
+     */
+    String AXDefinitionListDefinitionText();
+
     /**
      *  AXButtonActionVerb 
      * @param[out] : label
@@ -350,7 +368,5 @@ namespace OWBAL {
 }
 
 #endif
-
-
 
 

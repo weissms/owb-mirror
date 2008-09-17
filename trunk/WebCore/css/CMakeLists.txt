@@ -19,6 +19,7 @@ LIST (APPEND CSS_SRC
     css/CSSFunctionValue.cpp
     css/CSSMediaRule.cpp
     css/CSSMutableStyleDeclaration.cpp
+    css/CSSNthSelector.cpp
     css/CSSPageRule.cpp
     css/CSSParser.cpp
     css/CSSParserValues.cpp

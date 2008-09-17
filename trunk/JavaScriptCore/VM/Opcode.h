@@ -88,6 +88,7 @@ namespace JSC {
         \
         macro(op_resolve) \
         macro(op_resolve_skip) \
+        macro(op_resolve_global) \
         macro(op_get_scoped_var) \
         macro(op_put_scoped_var) \
         macro(op_get_global_var) \
@@ -134,6 +135,7 @@ namespace JSC {
         macro(op_ret) \
         \
         macro(op_construct) \
+        macro(op_construct_verify) \
         \
         macro(op_get_pnames) \
         macro(op_next_pname) \

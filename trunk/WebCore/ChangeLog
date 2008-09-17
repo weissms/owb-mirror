@@ -1,3 +1,897 @@
+\2008-09-17  David Hyatt  <hyatt@apple.com>
+
+        Add a #define to control whether or not to use an NSScroller on Mac.
+        This ifdef will allow the new NSView-less NSScroller on Mac to be
+        developed side by side with the current one.
+
+        The new scroller paints a debug red if turned on (although due to
+        Widget issues you won't see anything paint yet).
+
+        Reviewed by olliej
+
+        * platform/Scrollbar.cpp:
+        * platform/Scrollbar.h:
+        * platform/mac/ScrollbarMac.h:
+        * platform/mac/ScrollbarMac.mm:
+        * platform/mac/ScrollbarThemeMac.cpp:
+        (WebCore::ScrollbarThemeMac::paint):
+        * platform/mac/ScrollbarThemeMac.h:
+
+2008-09-17  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Alp Toker.
+
+        http://bugs.webkit.org/show_bug.cgi?id=20854
+        [GTK] Windows can be not realized in ScrollView::update
+
+        Do not call gdk_window_invalidate_rect on a non-realized GtkWidget.
+
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::update):
+
+2008-09-16  Alp Toker  <alp@nuanti.com>
+
+        Suggested by Dave Hyatt.
+
+        Build fix and cleanup. Rename ScrollBar to Scrollbar.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * editing/EditorCommand.cpp:
+        * page/EventHandler.cpp:
+        * page/gtk/EventHandlerGtk.cpp:
+        * page/mac/EventHandlerMac.mm:
+        * page/mac/FrameMac.mm:
+        * page/qt/EventHandlerQt.cpp:
+        * page/wx/EventHandlerWx.cpp:
+        * platform/PopupMenu.h:
+        * platform/ScrollBar.cpp: Removed.
+        * platform/ScrollBar.h: Removed.
+        * platform/Scrollbar.cpp: Copied from WebCore/platform/ScrollBar.cpp.
+        * platform/Scrollbar.h: Copied from WebCore/platform/ScrollBar.h.
+        * platform/gtk/ScrollbarGtk.cpp:
+        (ScrollbarGtk::ScrollbarGtk):
+        * platform/gtk/ScrollbarGtk.h:
+        * platform/mac/ScrollbarMac.h:
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/qt/ScrollbarQt.cpp:
+        * platform/qt/ScrollbarThemeQt.cpp:
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PopupMenuWin.cpp:
+        * platform/win/ScrollViewWin.cpp:
+        * platform/win/ScrollbarThemeWin.cpp:
+        * platform/wx/ScrollViewWx.cpp:
+        * platform/wx/TemporaryLinkStubs.cpp:
+        * rendering/HitTestResult.cpp:
+        * rendering/RenderLayer.cpp:
+        * rendering/RenderTextControl.cpp:
+
+2008-09-16  David Hyatt  <hyatt@apple.com>
+
+        Fix Qt build bustage by making moveThumb a member of Scrollbar so that
+        it can be called from ScrollbarQt.
+
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::moveThumb):
+        (WebCore::Scrollbar::handleMouseMoveEvent):
+        (WebCore::Scrollbar::handleMousePressEvent):
+        * platform/ScrollBar.h:
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/qt/ScrollbarQt.cpp:
+        (WebCore::Scrollbar::handleContextMenuEvent):
+
+2008-09-16  David Hyatt  <hyatt@apple.com>
+
+        Eliminate PlatformScrollbar.  Mac and Gtk now have subclasses for their
+        native-widget scrollbars (ScrollbarMac and ScrollbarGtk).  Other platforms
+        now just use Scrollbar.
+
+        Reviewed by Sam Weinig
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * page/mac/FrameMac.mm:
+        * platform/PopupMenu.h:
+        (WebCore::PopupMenu::scrollbar):
+        * platform/ScrollBar.cpp:
+        (WebCore::createNativeScrollbar):
+        * platform/ScrollBar.h:
+        * platform/gtk/PlatformScrollBar.h: Removed.
+        * platform/gtk/PlatformScrollBarGtk.cpp: Removed.
+        * platform/gtk/ScrollbarGtk.cpp: Copied from platform/gtk/PlatformScrollBarGtk.cpp.
+        (gtkScrollEventCallback):
+        (ScrollbarGtk::ScrollbarGtk):
+        (ScrollbarGtk::~ScrollbarGtk):
+        (ScrollbarGtk::updateThumbPosition):
+        (ScrollbarGtk::updateThumbProportion):
+        (ScrollbarGtk::setFrameGeometry):
+        (ScrollbarGtk::geometryChanged):
+        (ScrollbarGtk::gtkValueChanged):
+        * platform/gtk/ScrollbarGtk.h: Copied from platform/gtk/PlatformScrollBar.h.
+        * platform/mac/PlatformScrollBar.h: Removed.
+        * platform/mac/PlatformScrollBarMac.mm: Removed.
+        * platform/mac/ScrollbarMac.h: Copied from platform/mac/PlatformScrollBar.h.
+        * platform/mac/ScrollbarMac.mm: Copied from platform/mac/PlatformScrollBarMac.mm.
+        (-[WebCoreScrollBar initWithScrollbarMac:]):
+        (-[WebCoreScrollBar detachScrollbarMac]):
+        (WebCore::Scrollbar::createNativeScrollbar):
+        (WebCore::ScrollbarMac::ScrollbarMac):
+        (WebCore::ScrollbarMac::~ScrollbarMac):
+        (WebCore::ScrollbarMac::updateThumbPosition):
+        (WebCore::ScrollbarMac::updateThumbProportion):
+        (WebCore::ScrollbarMac::scrollbarHit):
+        * platform/qt/PlatformScrollBar.h: Removed.
+        * platform/qt/PlatformScrollBarQt.cpp: Removed.
+        * platform/qt/ScrollbarQt.cpp: Copied from platform/qt/PlatformScrollBarQt.cpp.
+        (WebCore::Scrollbar::handleContextMenuEvent):
+        * rendering/HitTestResult.cpp:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::createScrollbar):
+        (WebCore::RenderLayer::destroyScrollbar):
+        * rendering/RenderLayer.h:
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::~RenderListBox):
+        (WebCore::RenderListBox::updateFromElement):
+        (WebCore::RenderListBox::isPointInOverflowControl):
+        * rendering/RenderObject.h:
+        * rendering/RenderTextControl.cpp:
+
+2008-09-16  David Hyatt  <hyatt@apple.com>
+
+        Make the scrollbar resizer-dodging logic cross-platform in the
+        Scrollbar class.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::setFrameGeometry):
+        (WebCore::Scrollbar::setParent):
+        (WebCore::Scrollbar::windowClipRect):
+        * platform/ScrollBar.h:
+        * platform/ScrollView.h:
+        (WebCore::ScrollView::windowResizerRect):
+        (WebCore::ScrollView::resizerOverlapsContent):
+        (WebCore::ScrollView::adjustOverlappingScrollbarCount):
+        * platform/Widget.h:
+        (WebCore::Widget::setParent):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::convertToContainingWindow):
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBarWin.cpp:
+
+2008-09-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=15129
+          <rdar://problem/4644824> adding a new line with DOM does unnecessary additional repaint
+
+        Covered by fast/repaint/4776765.html
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::layoutBlock): Avoid repainting this object if it
+        did not have layout in the beginning.
+        (WebCore::RenderBlock::layoutBlockChildren): If a child did not have
+        layout in the beginning, repaint it in its new position, to compensate
+        for the above (regardless of whether it "moved").
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::checkForRepaintDuringLayout): Added a comment
+        about generalizing this fix in the future.
+
+2008-09-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=15384
+          Div does not notice when grandparent changes height
+
+        Test: fast/block/basic/quirk-percent-height-grandchild.html
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=20714
+          Resizing Gmail inbox vertically results in whitespace at the bottom of the window
+
+        Test: fast/replaced/percent-height-in-anonymous-block.html
+
+        Added a two-way mapping between boxes with percentage heights and
+        their non-parent ancestors up to the one the height is computed relative
+        to. In quirks mode (the first bug), this can be any number of containing
+        block with auto height. In strict mode (the second bug) this can be
+        the containing block of an anonymous block containing a replaced
+        element.
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::~RenderBlock): Added code to remove the all the
+        mapping to/from this block to percentage-height descendants.
+        (WebCore::RenderBlock::layoutBlockChildren): Added code to mark
+        percentage-height descendants (and their containing block ancestry chain
+        up to this block) for layout. This ensures that those descendants whose
+        height depends on the height of this block (or an ancestor) are updated.
+        (WebCore::RenderBlock::addPercentHeightDescendant): Added. Establishes
+        a two-way mapping between this block and the given box.
+        (WebCore::RenderBlock::removePercentHeightDescendant): Added. Removes
+        all the mapping to/from this box.
+        * rendering/RenderBlock.h:
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::setStyle): Added calls to
+        removePercentHeightDescendant() when style changes and the box
+        previously had a percentage height. An exception is when the style
+        change does not require layout, in which case the box still has
+        a percentage height and the mappings are valid. In all other cases,
+        any required mappings will be (re-)established during layout.
+        (WebCore::RenderBox::destroy): Added a call to
+        removePercentHeightDescendant.
+        (WebCore::RenderBox::calcPercentageHeight): Added code that, in quirks
+        mode, if a higher-than-parent containing block is affecting the box's
+        height, creates a mapping between the box and that block.
+        (WebCore::RenderBox::calcReplacedHeightUsing): Changed to skip over
+        anonymous containing blocks, if any, and when that happens, use
+        addPercentHeightDescendant() to ensure that the non-anonymous block
+        is aware of the dependent percent-height box.
+
+2008-09-16  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Oliver Hunt and Alp Toker.
+
+        Implemented toDataURL in Cairo. Only PNG support
+        at the moment.
+
+        Qt, Cairo and wx require toDataURL implementations
+        https://bugs.webkit.org/show_bug.cgi?id=17719
+
+        * platform/MIMETypeRegistry.cpp:
+        (WebCore::initializeSupportedImageMIMETypesForEncoding):
+        * platform/graphics/cairo/ImageBufferCairo.cpp:
+        (WebCore::ImageBuffer::ImageBuffer):
+        (WebCore::writeFunction):
+        (WebCore::ImageBuffer::toDataURL):
+
+2008-09-16  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Hide unused media element controls in the QtWebKit port
+
+        * platform/qt/html4-adjustments-qt.css
+
+2008-09-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix compilation of the Qt scrollbar code.
+
+        * platform/qt/PlatformScrollBarQt.cpp:
+        (WebCore::scPart):
+        (WebCore::styleOptionSlider):
+        (WebCore::thumbLength):
+        (WebCore::pixelPosToRangeValue):
+        (WebCore::PlatformScrollbar::handleContextMenuEvent):
+
+2008-09-16  Adam Treat  <treat@kde.org>
+
+        Reviewed by Anders Carlsson.
+
+        Prevent accesses off of the end of the buffer introduced in r36450
+        and when checking for descriptions of mime. Also, coding style fix.
+
+        * plugins/qt/PluginPackageQt.cpp:
+        (WebCore::PluginPackage::fetchInfo):
+
+2008-09-15  Rob Buis  <buis@kde.org>
+
+        Reviewed by Eric.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20634
+        SVG transform attribute is ignored by <use> in <clipPath>
+
+        Transform the paths with the local transform when part
+        of a clip path.
+
+        Test: svg/custom/use-clipped-transform.svg
+
+        * svg/SVGClipPathElement.cpp:
+        (WebCore::SVGClipPathElement::canvasResource):
+        * svg/SVGStyledTransformableElement.cpp:
+        (WebCore::SVGStyledTransformableElement::toClipPath):
+        * svg/SVGStyledTransformableElement.h:
+
+2008-09-15  Dave Hyatt  <hyatt@apple.com>
+
+        Convert Qt over to its ScrollbarTheme.  Add cross-platform support for jumping the thumb location directly
+        to a pressed location on the track (this is done with the middle mouse on Qt and with Shift-Click on Windows).
+      
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.cpp:
+        (WebCore::thumbUnderMouse):
+        (WebCore::Scrollbar::autoscrollPressedPart):
+        (WebCore::Scrollbar::startTimerIfNeeded):
+        (WebCore::moveThumb):
+        (WebCore::Scrollbar::handleMouseMoveEvent):
+        (WebCore::Scrollbar::handleMousePressEvent):
+        * platform/ScrollBar.h:
+        (WebCore::Scrollbar::pressedPos):
+        (WebCore::Scrollbar::pixelStep):
+        (WebCore::Scrollbar::setPressedPos):
+        * platform/ScrollbarTheme.h:
+        (WebCore::ScrollbarTheme::thumbPosition):
+        (WebCore::ScrollbarTheme::thumbLength):
+        (WebCore::ScrollbarTheme::trackPosition):
+        (WebCore::ScrollbarTheme::trackLength):
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::trackPosition):
+        * platform/ScrollbarThemeComposite.h:
+        * platform/qt/PlatformScrollBarQt.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        (WebCore::):
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::styleOptionSlider):
+        (WebCore::ScrollbarThemeQt::hitTest):
+        (WebCore::ScrollbarThemeQt::shouldCenterOnThumb):
+        (WebCore::ScrollbarThemeQt::invalidatePart):
+        (WebCore::ScrollbarThemeQt::thumbPosition):
+        (WebCore::):
+        * platform/qt/ScrollbarThemeQt.h:
+        * platform/win/ScrollbarThemeSafari.cpp:
+        (WebCore::ScrollbarThemeSafari::shouldCenterOnThumb):
+        * platform/win/ScrollbarThemeSafari.h:
+        * platform/win/ScrollbarThemeWin.cpp:
+        (WebCore::ScrollbarThemeWin::shouldCenterOnThumb):
+        * platform/win/ScrollbarThemeWin.h:
+
+2008-09-15  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Sam Weinig.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20180
+        
+        Cache the result of parsing the an+b expression in :nth-child(an+b). Roughly a 2x speedup for :nth-child on SlickSpeed.
+
+        * GNUmakefile.am: Add CSSNthSelector
+        * WebCore.pro: Add CSSNthSelector
+        * WebCore.vcproj/WebCore.vcproj: Add CSSNthSelector
+        * WebCore.xcodeproj/project.pbxproj: Add CSSNthSelector
+        * css/CSSGrammar.y: Create CSSNthSelectors instead of CSSSelectors for :nth-*
+        * css/CSSNthSelector.cpp: Added.
+        (WebCore::CSSNthSelector::parseNth): Moved from CSSStyleSelector and modified to cache
+        (WebCore::CSSNthSelector::matchNth): Moved from CSSStyleSelector and modified to use the cache
+        * css/CSSNthSelector.h: Added.
+        (WebCore::CSSNthSelector::CSSNthSelector):
+        (WebCore::CSSNthSelector::~CSSNthSelector):
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::createFloatingNthSelector):
+        * css/CSSParser.h:
+        * css/CSSSelector.h: Use the free bit here to store a flag for CSSNthSelector
+        (WebCore::CSSSelector::CSSSelector):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector): Take advantage of knowing that all :nth-* selectors are CSSNthSelectors
+
+2008-09-15  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Tim Hatcher.
+
+        Clean up some inspector JS callbacks to remove an extra return.
+
+        * page/InspectorController.cpp:
+        (WebCore::hideDOMNodeHighlight):
+        (WebCore::loaded):
+        (WebCore::unloading):
+        (WebCore::attach):
+        (WebCore::detach):
+        (WebCore::startDebuggingAndReloadInspectedPage):
+        (WebCore::stopDebugging):
+        (WebCore::debuggerAttached):
+        (WebCore::pauseOnExceptions):
+        (WebCore::pauseInDebugger):
+        (WebCore::resumeDebugger):
+        (WebCore::stepOverStatementInDebugger):
+        (WebCore::stepIntoStatementInDebugger):
+        (WebCore::stepOutOfFunctionInDebugger):
+        (WebCore::isWindowVisible):
+        (WebCore::closeWindow):
+
+2008-09-15  Dave Hyatt  <hyatt@apple.com>
+
+        Completely switch Windows scrollbars over to ScrollbarTheme.  The Aqua windows scrollbar and native scrollbar
+        now share most of their code.
+       
+        Also removing mini size scrollbar support, since it would have crashed Windows had it ever been used, and it
+        also is never used in our code anyway.
+       
+        Reviewed by Sam Weinig
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/ScrollTypes.h:
+        (WebCore::):
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::splitTrack):
+        (WebCore::ScrollbarThemeComposite::thumbLength):
+        (WebCore::ScrollbarThemeComposite::minimumThumbLength):
+        * platform/ScrollbarThemeComposite.h:
+        * platform/mac/PlatformScrollBarMac.mm:
+        (NSControlSizeForScrollBarControlSize):
+        * platform/win/PlatformScrollBar.h:
+        * platform/win/PlatformScrollBarSafari.cpp: Removed.
+        * platform/win/PlatformScrollBarWin.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        * platform/win/ScrollbarThemeSafari.cpp:
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::):
+        (WebCore::scrollbarControlStateFromThemeState):
+        (WebCore::ScrollbarThemeSafari::hasButtons):
+        (WebCore::ScrollbarThemeSafari::hasThumb):
+        (WebCore::buttonRepaintRect):
+        (WebCore::ScrollbarThemeSafari::backButtonRect):
+        (WebCore::ScrollbarThemeSafari::forwardButtonRect):
+        (WebCore::trackRepaintRect):
+        (WebCore::ScrollbarThemeSafari::trackRect):
+        (WebCore::ScrollbarThemeSafari::minimumThumbLength):
+        (WebCore::ScrollbarThemeSafari::paintTrack):
+        (WebCore::ScrollbarThemeSafari::paintButton):
+        (WebCore::ScrollbarThemeSafari::paintThumb):
+        * platform/win/ScrollbarThemeSafari.h:
+        * platform/win/ScrollbarThemeWin.cpp:
+        * platform/win/ScrollbarThemeWin.h:
+
+2008-09-15  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler, Beth Dakin
+
+        <rdar://problem/4003789> Expose lists as AXList
+        <rdar://problem/5707399> VO: Definition lists not announced in Safari
+
+        Lists are now exposed through AX. On the mac (in SnowLeopard) they use two new subroles
+        AXContentList for <ul>, <ol> and AXDefinitionList for <dl>
+        Inside the definition list, each <dt> "term" has an accessibility description ("term"), 
+        as does each <dd> tag ("definition")
+
+        Test: accessibility/lists.html
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * page/AXObjectCache.cpp:
+        * page/AccessibilityList.cpp: Added.
+        * page/AccessibilityList.h: Added.
+        * page/AccessibilityObject.h:
+        * page/AccessibilityRenderObject.cpp:
+        * page/AccessibilityTable.cpp:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        * page/mac/WebCoreViewFactory.h:
+        * platform/LocalizedStrings.h:
+        * platform/mac/LocalizedStringsMac.mm:
+        * platform/qt/Localizations.cpp:
+
+2008-09-15  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=20865
+        Prepare HTMLScriptElement & SVGScriptElement unification, and unification of event handling.
+
+        Several renames:
+        dispatchHTMLEvent -> dispatchEventForType
+        setHTMLEventListener -> setEventListenerForType
+        getHTMLEventListener -> eventListenerForType
+        removeHTMLEventListener -> removeEventListenerForType
+        isHTMLEventListener -> isAttachedToEventTargetNode
+        ...
+
+        Similar renames for the dispatch/get/set/*Window*Event functions.
+        Kill JSSVGLazyEventListener and merge with JSLazyEventListener.
+
+        Most important change: Rename setHTMLEventListener to setEventListenerForTypeAndAttribute,
+        as there exists a generic createEventListener() method now, taking care of JSLazyEventListener creation.
+
+        setHTMLEventListener() used createHTMLEventListener() before and was HTML specific.
+        SVG is able to use the code as well now. This affects most files in html/.
+
+        No functional changes.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::~JSDOMWindowBase):
+        (WebCore::JSDOMWindowBase::setListener):
+        (WebCore::JSDOMWindowBase::getListener):
+        (WebCore::JSDOMWindowBase::findJSEventListener):
+        (WebCore::JSDOMWindowBase::findOrCreateJSEventListener):
+        (WebCore::JSDOMWindowBase::findJSUnprotectedEventListener):
+        (WebCore::JSDOMWindowBase::findOrCreateJSUnprotectedEventListener):
+        (WebCore::JSDOMWindowBase::jsEventListenersAttachedToEventTargetNodes):
+        (WebCore::JSDOMWindowBase::jsUnprotectedEventListenersAttachedToEventTargetNodes):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        (WebCore::JSAbstractEventListener::isAttachedToEventTargetNode):
+        (WebCore::JSUnprotectedEventListener::JSUnprotectedEventListener):
+        (WebCore::JSUnprotectedEventListener::~JSUnprotectedEventListener):
+        (WebCore::JSEventListener::JSEventListener):
+        (WebCore::JSEventListener::~JSEventListener):
+        (WebCore::JSLazyEventListener::JSLazyEventListener):
+        (WebCore::eventParameterName):
+        (WebCore::JSLazyEventListener::parseCode):
+        (WebCore::getNodeEventListener):
+        * bindings/js/JSEventListener.h:
+        (WebCore::JSAbstractEventListener::JSAbstractEventListener):
+        (WebCore::JSUnprotectedEventListener::create):
+        (WebCore::JSEventListener::create):
+        (WebCore::JSLazyEventListener::):
+        (WebCore::JSLazyEventListener::create):
+        * bindings/js/JSEventTargetNode.cpp:
+        (WebCore::JSEventTargetNode::setListener):
+        (WebCore::JSEventTargetNode::getListener):
+        * bindings/js/JSSVGLazyEventListener.cpp: Removed.
+        * bindings/js/JSSVGLazyEventListener.h: Removed.
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::createHTMLEventHandler):
+        (WebCore::ScriptController::createSVGEventHandler):
+        * dom/Document.cpp:
+        (WebCore::Document::setFocusedNode):
+        (WebCore::Document::handleWindowEvent):
+        (WebCore::Document::setWindowEventListenerForType):
+        (WebCore::Document::windowEventListenerForType):
+        (WebCore::Document::removeWindowEventListenerForType):
+        (WebCore::Document::addWindowEventListener):
+        (WebCore::Document::hasWindowEventListener):
+        (WebCore::Document::removePendingFrameBeforeUnloadEventCount):
+        (WebCore::Document::createEventListener):
+        (WebCore::Document::setWindowEventListenerForTypeAndAttribute):
+        * dom/Document.h:
+        * dom/EventListener.h:
+        (WebCore::EventListener::isAttachedToEventTargetNode):
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::dispatchFocusEvent):
+        (WebCore::EventTargetNode::dispatchBlurEvent):
+        (WebCore::EventTargetNode::dispatchEventForType):
+        (WebCore::EventTargetNode::removeEventListenerForType):
+        (WebCore::EventTargetNode::setEventListenerForType):
+        (WebCore::EventTargetNode::setEventListenerForTypeAndAttribute):
+        (WebCore::EventTargetNode::eventListenerForType):
+        * dom/EventTargetNode.h:
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::notifyFinished):
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplacementFragment::ReplacementFragment):
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::parseMappedAttribute):
+        * html/HTMLButtonElement.cpp:
+        (WebCore::HTMLButtonElement::parseMappedAttribute):
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::parseMappedAttribute):
+        (WebCore::HTMLElement::checkDTD):
+        * html/HTMLElement.h:
+        * html/HTMLFormControlElement.cpp:
+        (WebCore::HTMLFormControlElement::onChange):
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::prepareSubmit):
+        (WebCore::HTMLFormElement::reset):
+        (WebCore::HTMLFormElement::parseMappedAttribute):
+        * html/HTMLFrameElementBase.cpp:
+        (WebCore::HTMLFrameElementBase::parseMappedAttribute):
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::parseMappedAttribute):
+        * html/HTMLImageElement.cpp:
+        (WebCore::HTMLImageElement::parseMappedAttribute):
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::dispatchLoadEvent):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        (WebCore::HTMLInputElement::setValueFromRenderer):
+        (WebCore::HTMLInputElement::onSearch):
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::asyncEventTimerFired):
+        (WebCore::HTMLMediaElement::load):
+        (WebCore::HTMLMediaElement::mediaPlayerNetworkStateChanged):
+        (WebCore::HTMLMediaElement::setReadyState):
+        (WebCore::HTMLMediaElement::seek):
+        (WebCore::HTMLMediaElement::mediaPlayerTimeChanged):
+        (WebCore::HTMLMediaElement::willSaveToCache):
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+        * html/HTMLScriptElement.cpp:
+        (WebCore::HTMLScriptElement::parseMappedAttribute):
+        (WebCore::HTMLScriptElement::dispatchLoadEvent):
+        (WebCore::HTMLScriptElement::dispatchErrorEvent):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::parseMappedAttribute):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::parseMappedAttribute):
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::notifyFinished):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::mouseButtonListener):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::canMouseDownStartSelect):
+        (WebCore::EventHandler::canMouseDragExtendSelect):
+        * page/Frame.cpp:
+        (WebCore::Frame::sendScrollEvent):
+        * page/Page.cpp:
+        (WebCore::networkStateChanged):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::valueChanged):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::selectionChanged):
+        * svg/SVGDocumentExtensions.cpp:
+        * svg/SVGDocumentExtensions.h:
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::parseMappedAttribute):
+        (WebCore::SVGElement::finishParsingChildren):
+        * svg/SVGElement.h:
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::parseMappedAttribute):
+        * svg/SVGSVGElement.h:
+
+2008-09-15  Dave Hyatt  <hyatt@apple.com>
+
+        Convert PlatformScrollbarWin to use ScrollbarTheme for hit testing.  PlatformScrollbarQt/Gtk still
+        need to be converted.
+        
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::Scrollbar):
+        (WebCore::Scrollbar::updateThumbPosition):
+        (WebCore::Scrollbar::updateThumbProportion):
+        (WebCore::Scrollbar::autoscrollPressedPart):
+        (WebCore::Scrollbar::startTimerIfNeeded):
+        * platform/ScrollBar.h:
+        * platform/ScrollbarTheme.h:
+        (WebCore::ScrollbarTheme::invalidateParts):
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::hitTest):
+        (WebCore::ScrollbarThemeComposite::invalidatePart):
+        (WebCore::ScrollbarThemeComposite::thumbPosition):
+        (WebCore::ScrollbarThemeComposite::thumbLength):
+        (WebCore::ScrollbarThemeComposite::trackLength):
+        * platform/ScrollbarThemeComposite.h:
+        * platform/win/PlatformScrollBarSafari.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+        * platform/win/PlatformScrollBarWin.cpp:
+        (WebCore::PlatformScrollbar::PlatformScrollbar):
+
+2008-09-15  David Smith  <catfish.man@gmail.com>
+
+        "Just do it"'d by Mark Rowe
+
+        https://bugs.webkit.org/show_bug.cgi?id=20856
+        Add missing license header
+
+        * dom/NodeRenderStyle.h:
+
+2008-09-15  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Add default constructor for ShadowData
+        https://bugs.webkit.org/show_bug.cgi?id=20757
+
+        Test: transitions/shadow.html
+
+        * rendering/style/RenderStyle.h:
+
+2008-09-15  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        RenderStyle should update keyframes.
+        http://bugs.webkit.org/show_bug.cgi?id=20756
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::StyleRareNonInheritedData::updateKeyframes):
+
+2008-09-15  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Unnecessary ASSERT in ImplicitAnimation destructor.
+        https://bugs.webkit.org/show_bug.cgi?id=20817
+
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::~ImplicitAnimation):
+
+2008-09-15  Adam Treat  <treat@kde.org>
+
+        Reviewed by Simon.
+
+        Fix plugin extension info. It was returning the mimetype where the
+        extension was given.
+
+        * plugins/qt/PluginPackageQt.cpp:
+        (WebCore::PluginPackage::fetchInfo):
+
+2008-09-15  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Tim Hatcher
+
+        Coding style violation!!!! Cleanup AnimationBase.cpp
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::blendFunc):
+
+2008-09-15  David Hyatt  <hyatt@apple.com>
+
+        Move all hit testing code for scrollbars into the base class.  Refactor
+        it to accommodate all platform-specific behaviors using virtual ScrollbarTheme
+        functions.
+
+        No platform is using this code yet.  Although it has been moved and compiles
+        (even on Mac), it is not being used on any platform.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollBar.cpp:
+        (WebCore::Scrollbar::autoscrollPressedPart):
+        (WebCore::Scrollbar::startTimerIfNeeded):
+        (WebCore::Scrollbar::handleMouseMoveEvent):
+        (WebCore::Scrollbar::handleMouseOutEvent):
+        (WebCore::Scrollbar::handleMouseReleaseEvent):
+        (WebCore::Scrollbar::handleMousePressEvent):
+        * platform/ScrollBar.h:
+        (WebCore::Scrollbar::handleContextMenuEvent):
+        * platform/ScrollbarTheme.h:
+        (WebCore::ScrollbarTheme::hitTest):
+        (WebCore::ScrollbarTheme::invalidateOnMouseEnterExit):
+        (WebCore::ScrollbarTheme::invalidatePart):
+        (WebCore::ScrollbarTheme::shouldCenterOnThumb):
+        (WebCore::ScrollbarTheme::centerOnThumb):
+        (WebCore::ScrollbarTheme::thumbPosition):
+        (WebCore::ScrollbarTheme::thumbLength):
+        (WebCore::ScrollbarTheme::trackLength):
+        (WebCore::ScrollbarTheme::initialAutoscrollTimerDelay):
+        (WebCore::ScrollbarTheme::autoscrollTimerDelay):
+        * platform/Widget.h:
+        (WebCore::Widget::parent):
+        * platform/mac/PlatformScrollBar.h:
+        (WebCore::PlatformScrollbar::handleMouseMoveEvent):
+        (WebCore::PlatformScrollbar::handleMouseOutEvent):
+        (WebCore::PlatformScrollbar::handleMousePressEvent):
+        (WebCore::PlatformScrollbar::handleMouseReleaseEvent):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::convertFromContainingWindow):
+        * platform/win/ScrollbarThemeWin.cpp:
+        (WebCore::ScrollbarThemeWin::invalidateOnMouseEnterExit):
+        * platform/win/ScrollbarThemeWin.h:
+
+2008-09-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix <rdar://problem/5842247> Single long breakable word takes O(n^2) to lay out
+
+        Cache the next breakable position for text nodes in InlineIterator.
+
+        * rendering/bidi.cpp:
+        (WebCore::InlineIterator::InlineIterator):
+        (WebCore::InlineIterator::increment):
+        (WebCore::RenderBlock::findNextLineBreak):
+
+2008-09-15  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Fix assertion and integral pixel issue when creating subimages.
+        https://bugs.webkit.org/show_bug.cgi?id=20786
+
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::BitmapImage::draw):
+
+2008-09-15  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Implment seek() and clean up and improve debugging output
+
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        (debugMediaObject):
+        (WebCore::MediaPlayerPrivate::seek):
+        (WebCore::MediaPlayerPrivate::setVolume):
+        (WebCore::MediaPlayerPrivate::setMuted):
+        (WebCore::MediaPlayerPrivate::updateStates):
+        (WebCore::MediaPlayerPrivate::naturalSize):
+        (WebCore::MediaPlayerPrivate::paint):
+        (WebCore::MediaPlayerPrivate::stateChanged):
+        (WebCore::MediaPlayerPrivate::tick):
+
+2008-09-15  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon.
+
+        Remove bogus Q_ASSERTs from the MediaPlayer Phonon implementation
+
+        m_mediaObject, m_audioOutput, m_videoWidget get created in the
+        c'tor and will only be deleted in the c'tor. The Q_ASSERTs would
+        only check if we use the MediaPlayerPrivate after it has been deleted.
+
+        Acked-by: Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        (WebCore::MediaPlayerPrivate::play):
+        (WebCore::MediaPlayerPrivate::setVolume):
+        (WebCore::MediaPlayerPrivate::updateStates):
+
+2008-09-15  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Maciej.
+
+        <rdar://problem/6163988> 
+        https://bugs.webkit.org/show_bug.cgi?id=20457
+        Canvas: createPattern crashes WebKit in WTF::RefPtr<WebCore::Image>::operator!() const + 9 with a 1D pattern
+        
+        Check the width and height and throw an exception if any of them are 0.
+        
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::createPattern):
+
+2008-09-15  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Render media element controls with antialiasing enabled
+
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::paintMediaMuteButton):
+        (WebCore::RenderThemeQt::paintMediaPlayButton):
+        (WebCore::RenderThemeQt::paintMediaSliderTrack):
+        (WebCore::RenderThemeQt::paintMediaSliderThumb):
+
+2008-09-15  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Upon non fatal error, switch to the pause state (so that playback can continue)
+
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        (WebCore::MediaPlayerPrivate::updateStates):
+
+2008-09-15  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Don't set WTF_USE_JSC in WebCore.pro now that it's set in config.h
+
+        * WebCore.pro:
+
+2008-09-15  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Make QtInstance::create() private and fix caching
+
+        * bindings/js/ScriptControllerQt.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtInstance::getQtInstance):
+        (JSC::Bindings::QtInstance::getRuntimeObject):
+        * bridge/qt/qt_instance.h:
+        (JSC::Bindings::QtInstance::create):
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::convertQVariantToValue):
+        (JSC::Bindings::QtConnectionObject::execute):
+
+2008-09-15  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Dave Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20180
+        
+        >2x speedup on querySelector[All] with :nth-child by removing the collectRulesOnly argument on SelectorChecker.
+        With collectRulesOnly set to true (the default) an optimization is turned off, and no callers were intentionally leaving it true.
+        querySelector[All] assumed that the default was probably the right way to go, and so ended up being slow.
+        
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::CSSStyleSelector):
+        (WebCore::CSSStyleSelector::SelectorChecker::SelectorChecker):
+        * css/CSSStyleSelector.h:
+
 2008-09-15  Dave Hyatt  <hyatt@apple.com>
 
         Refactor PlatformScrollbarWin's painting so that it is now done by ScrollbarThemeWin.  PlatformScrollbarSafari

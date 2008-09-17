@@ -55,6 +55,67 @@ public:
     virtual bool paint(Scrollbar*, GraphicsContext* context, const IntRect& damageRect);
 
 protected:
+
+    /**
+     * hitTest.
+     * @param[in] : a pointer to the Scrollbar.
+     * @param[in] : a mouse event to test.
+     * @param[out] : a ScrollbarPart.
+     * @code
+     * @endcode
+     */
+    virtual ScrollbarPart hitTest(Scrollbar*, const PlatformMouseEvent&);
+
+
+    /**
+     * invalidatePart.
+     * @param[in] : a pointer to the Scrollbar.
+     * @param[in] : a ScrollbarPart.
+     * @code
+     * @endcode
+     */
+    virtual void invalidatePart(Scrollbar*, ScrollbarPart);
+
+
+    /**
+     * Get the thumb position.
+     * @param[in] : a pointer to the Scrollbar.
+     * @param[out] : the thumb position.
+     * @code
+     * @endcode
+     */
+    virtual int thumbPosition(Scrollbar*);
+
+
+    /**
+     * Get the thumb length.
+     * @param[in] : a pointer to the Scrollbar.
+     * @param[out] : the thumb length.
+     * @code
+     * @endcode
+     */
+    virtual int thumbLength(Scrollbar*);
+
+
+    /**
+     * Get the track position.
+     * @param[in] : a pointer to the Scrollbar.
+     * @param[out] : the track position.
+     * @code
+     * @endcode
+     */
+    virtual int trackPosition(Scrollbar*);
+
+
+    /**
+     * Get the track length.
+     * @param[in] : a pointer to the Scrollbar.
+     * @param[out] : the track length.
+     * @code
+     * @endcode
+     */
+    virtual int trackLength(Scrollbar*);
+
     /**
      * Check wether the scrollbar has buttons.
      * @param[in] : a pointer to the scrollbar.
@@ -110,7 +171,7 @@ protected:
      * @code
      * @endcode
      */
-    virtual void splitTrack(Scrollbar*, const IntRect& track, IntRect& startTrack, IntRect& thumb, IntRect& endTrack) = 0;
+    virtual void splitTrack(Scrollbar*, const IntRect& track, IntRect& startTrack, IntRect& thumb, IntRect& endTrack);
     
     // Assume the track is a single piece by default.
     /**
@@ -120,6 +181,16 @@ protected:
      * @endcode
      */
     virtual bool trackIsSinglePiece() ;
+
+
+    /**
+     * Get the minimum thumb length.
+     * @param[in] : a pointer to the Scrollbar.
+     * @param[out] : the minimum thumb length.
+     * @code
+     * @endcode
+     */
+    virtual int minimumThumbLength(Scrollbar*);
 
     /**
      * Paint the track.
@@ -153,8 +224,4 @@ protected:
 };
 
 }
-#endif
-
-
-
-
+#end

@@ -30,20 +30,20 @@
 #ifndef PlatformScrollBar_h
 #define PlatformScrollBar_h
 
-#include "ScrollBar.h"
+#include "Scrollbar.h"
 #include "BALBase.h"
 #include "Timer.h"
 #include <wtf/PassRefPtr.h>
 
 namespace WKAL {
 
-class PlatformScrollbar : public Scrollbar {
+class ScrollbarSDL : public Scrollbar {
 public:
-    static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
+    static PassRefPtr<ScrollbarSDL> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
     {
-        return adoptRef(new PlatformScrollbar(client, orientation, size));
+        return adoptRef(new ScrollbarSDL(client, orientation, size));
     }
-    virtual ~PlatformScrollbar();
+    virtual ~ScrollbarSDL();
 
     virtual void setFrameGeometry(const IntRect&);
 
@@ -53,7 +53,7 @@ public:
     virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&);
 
 protected:
-    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
+    ScrollbarSDL(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
     virtual void updateThumbPosition();
     virtual void updateThumbProportion();
     virtual void geometryChanged();
@@ -72,7 +72,7 @@ private:
     void invalidatePart(ScrollbarPart);
     bool thumbUnderMouse();
     IntRect thumbRect() const;
-    static void balValueChanged(BalAdjustment*, PlatformScrollbar*);
+    static void balValueChanged(BalAdjustment*, ScrollbarSDL*);
     
     BalAdjustment* m_adjustment;
 };

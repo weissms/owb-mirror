@@ -97,7 +97,6 @@ ENDIF (WEBKIT_USE_DOM_STORAGE)
 
 IF (WEBKIT_USE_SVG)
     LIST (APPEND BINDINGS_JS_SRC
-        bindings/js/JSSVGLazyEventListener.cpp
         bindings/js/JSSVGMatrixCustom.cpp
         bindings/js/JSSVGPathSegCustom.cpp
         bindings/js/JSSVGPathSegListCustom.cpp

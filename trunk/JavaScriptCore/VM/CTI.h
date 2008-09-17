@@ -89,6 +89,9 @@
 #define ARG_registers1 ((Register*)((ARGS)[1]))
 #define ARG_regexp1 ((RegExp*)((ARGS)[1]))
 #define ARG_pni1 ((JSPropertyNameIterator*)((ARGS)[1]))
+#define ARG_instr1 ((Instruction*)((ARGS)[1]))
+#define ARG_instr2 ((Instruction*)((ARGS)[2]))
+#define ARG_instr3 ((Instruction*)((ARGS)[3]))
 #define ARG_instr4 ((Instruction*)((ARGS)[4]))
 #define ARG_instr5 ((Instruction*)((ARGS)[5]))
 
@@ -342,6 +345,7 @@ namespace JSC {
         void emitPutArgConstant(unsigned value, unsigned offset);
         void emitPutResult(unsigned dst, X86Assembler::RegisterID from = X86::eax);
 
+        void emitPutCTIParam(void* value, unsigned name);
         void emitPutCTIParam(X86Assembler::RegisterID from, unsigned name);
         void emitGetCTIParam(unsigned name, X86Assembler::RegisterID to);
 
@@ -351,7 +355,9 @@ namespace JSC {
         JSValue* getConstantImmediateNumericArg(unsigned src);
         unsigned getDeTaggedConstantImmediate(JSValue* imm);
 
-        void CTI::emitJumpSlowCaseIfNotJSCell(X86Assembler::RegisterID reg, unsigned opcodeIndex);
+        void emitJumpSlowCaseIfIsJSCell(X86Assembler::RegisterID reg, unsigned opcodeIndex);
+        void emitJumpSlowCaseIfNotJSCell(X86Assembler::RegisterID reg, unsigned opcodeIndex);
+
         void emitJumpSlowCaseIfNotImm(X86Assembler::RegisterID, unsigned opcodeIndex);
         void emitJumpSlowCaseIfNotImms(X86Assembler::RegisterID, X86Assembler::RegisterID, unsigned opcodeIndex);
 

@@ -23,10 +23,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef PlatformScrollBar_h
-#define PlatformScrollBar_h
+#ifndef ScrollbarMac_h
+#define ScrollbarMac_h
 
-#include "ScrollBar.h"
+#include "Scrollbar.h"
+
+#if USE(NSSCROLLER)
+
 #include <wtf/PassRefPtr.h>
 
 #ifdef __OBJC__
@@ -38,18 +41,21 @@ typedef int NSScrollerPart;
 
 namespace WebCore {
 
-class PlatformScrollbar : public Scrollbar {
+class ScrollbarMac : public Scrollbar {
+    friend class Scrollbar;
+
 public:
-    static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
-    {
-        return adoptRef(new PlatformScrollbar(client, orientation, size));
-    }
-    virtual ~PlatformScrollbar();
+    virtual ~ScrollbarMac();
 
     bool scrollbarHit(NSScrollerPart);
     
+    virtual bool handleMouseMoveEvent(const PlatformMouseEvent&) { return false; }
+    virtual bool handleMouseOutEvent(const PlatformMouseEvent&) { return false; }
+    virtual bool handleMousePressEvent(const PlatformMouseEvent&) { return false; }
+    virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&) { return false; }
+
 private:    
-    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
+    ScrollbarMac(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
 
     virtual void updateThumbPosition();
     virtual void updateThumbProportion();
@@ -57,4 +63,6 @@ private:
 
 }
 
-#endif // PlatformScrollBar_h
+#endif
+
+#endif // ScrollbarMac_h

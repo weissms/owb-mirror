@@ -37,6 +37,7 @@ namespace WebCore {
     class CSSRule;
     class CSSRuleList;
     class CSSSelector;
+    class CSSNthSelector;
     class CSSStyleSheet;
     class CSSValue;
     class CSSValueList;
@@ -156,6 +157,7 @@ namespace WebCore {
         int yyparse();
 
         CSSSelector* createFloatingSelector();
+        CSSNthSelector* createFloatingNthSelector();
         CSSSelector* sinkFloatingSelector(CSSSelector*);
 
         CSSParserValueList* createFloatingValueList();

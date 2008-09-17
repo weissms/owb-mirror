@@ -26,7 +26,7 @@
 #ifndef PlatformScrollbar_h
 #define PlatformScrollbar_h
 
-#include "ScrollBar.h"
+#include "Scrollbar.h"
 #include "Timer.h"
 #include <wtf/PassRefPtr.h>
 
@@ -40,46 +40,8 @@ public:
     {
         return adoptRef(new PlatformScrollbar(client, orientation, size));
     }
-
-    virtual ~PlatformScrollbar();
-
-    virtual void setParent(ScrollView*);
-
-    virtual void setFrameGeometry(const IntRect&);
-    virtual void paint(GraphicsContext*, const IntRect& damageRect);
-
-    virtual bool handleMouseMoveEvent(const PlatformMouseEvent&);
-    virtual bool handleMouseOutEvent(const PlatformMouseEvent&);
-    virtual bool handleMousePressEvent(const PlatformMouseEvent&);
-    virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&);
-
-    virtual IntRect windowClipRect() const;
-
-protected:    
-    virtual void updateThumbPosition();
-    virtual void updateThumbProportion();
-
-private:
-    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
-
-    bool hasButtons() const;
-    bool hasThumb() const;
-    IntRect backButtonRect() const;
-    IntRect forwardButtonRect() const;
-    IntRect trackRect() const;
-    IntRect thumbRect() const;
-    void splitTrack(const IntRect& trackRect, IntRect& beforeThumbRect, IntRect& thumbRect, IntRect& afterThumbRect) const;
-
-    int thumbPosition() const;
-    int thumbLength() const;
-    int trackLength() const;
-   
-    ScrollbarPart hitTest(const PlatformMouseEvent&);
-
-    bool thumbUnderMouse();
-
-    void invalidatePart(ScrollbarPart);
-    void invalidateTrack();
+    
+    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize, ScrollbarTheme* = 0);
 };
 
 }

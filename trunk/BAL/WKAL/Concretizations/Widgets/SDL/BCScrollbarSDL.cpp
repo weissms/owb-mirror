@@ -28,7 +28,7 @@
 
 
 #include "config.h"
-#include "PlatformScrollBar.h"
+#include "ScrollbarSDL.h"
 
 #include "IntRect.h"
 #include "GraphicsContext.h"
@@ -63,7 +63,7 @@ static int hSize = 0;
 using std::max;
 using std::min;
 
-PlatformScrollbar::PlatformScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation,
+ScrollbarSDL::ScrollbarSDL(ScrollbarClient* client, ScrollbarOrientation orientation,
                                      ScrollbarControlSize controlSize)
     : Scrollbar(client, orientation, controlSize)
 {
@@ -75,7 +75,7 @@ PlatformScrollbar::PlatformScrollbar(ScrollbarClient* client, ScrollbarOrientati
         Widget::setFrameGeometry(IntRect(0, 0, cHorizontalWidth, cHorizontalHeight));
 }
 
-PlatformScrollbar::~PlatformScrollbar()
+ScrollbarSDL::~ScrollbarSDL()
 {
 }
 
@@ -108,13 +108,13 @@ static IntRect buttonRepaintRect(const IntRect& buttonRect, ScrollbarOrientation
     return paintRect;
 }
 
-bool PlatformScrollbar::hasButtons() const
+bool ScrollbarSDL::hasButtons() const
 {
     return isEnabled() && (m_orientation == HorizontalScrollbar ? width() : height()) >= 2 * (cRealButtonLength - cButtonHitInset);
 }
 
 
-IntRect PlatformScrollbar::trackRect() const
+IntRect ScrollbarSDL::trackRect() const
 {
     if (m_orientation == HorizontalScrollbar) {
         if (!hasButtons())
@@ -127,7 +127,7 @@ IntRect PlatformScrollbar::trackRect() const
     return IntRect(x(), y() + cVerticalButtonHeight, cVerticalWidth, height() - 2 * cVerticalButtonHeight);
 }
 
-IntRect PlatformScrollbar::backButtonRect() const
+IntRect ScrollbarSDL::backButtonRect() const
 {
     // Our actual rect will shrink to half the available space when
     // we have < 34 pixels left.  This allows the scrollbar
@@ -137,7 +137,7 @@ IntRect PlatformScrollbar::backButtonRect() const
     return IntRect(x(), y(), cVerticalWidth, cVerticalButtonHeight);
 }
 
-IntRect PlatformScrollbar::forwardButtonRect() const
+IntRect ScrollbarSDL::forwardButtonRect() const
 {
     // Our desired rect is essentially 17x17.
     
@@ -149,12 +149,12 @@ IntRect PlatformScrollbar::forwardButtonRect() const
     return IntRect(x(), y() + height() - cVerticalButtonHeight, cVerticalWidth, cVerticalButtonHeight);
 }
 
-bool PlatformScrollbar::hasThumb() const
+bool ScrollbarSDL::hasThumb() const
 {
     return isEnabled() && (m_orientation == HorizontalScrollbar ? width() : height()) >= 2 * cButtonInset + cThumbMinLength + 1;
 }
 
-void PlatformScrollbar::splitTrack(const IntRect& trackRect, IntRect& beforeThumbRect, IntRect& thumbRect, IntRect& afterThumbRect) const
+void ScrollbarSDL::splitTrack(const IntRect& trackRect, IntRect& beforeThumbRect, IntRect& thumbRect, IntRect& afterThumbRect) const
 {
     // This function won't even get called unless we're big enough to have some combination of these three rects where at least
     // one of them is non-empty.
@@ -170,19 +170,19 @@ void PlatformScrollbar::splitTrack(const IntRect& trackRect, IntRect& beforeThum
     }
 }
 
-int PlatformScrollbar::thumbPosition() const
+int ScrollbarSDL::thumbPosition() const
 {
     if (isEnabled())
         return static_cast<int>((float)m_currentPos * (trackLength() - thumbLength()) / (m_totalSize - m_visibleSize));
     return 0;
 }
 
-int PlatformScrollbar::trackLength() const
+int ScrollbarSDL::trackLength() const
 {
     return (m_orientation == HorizontalScrollbar) ? trackRect().width() : trackRect().height();
 }
 
-int PlatformScrollbar::thumbLength() const
+int ScrollbarSDL::thumbLength() const
 {
     if (!isEnabled())
         return 0;
@@ -197,21 +197,21 @@ int PlatformScrollbar::thumbLength() const
     return length;
 }
 
-void PlatformScrollbar::updateThumbPosition()
+void ScrollbarSDL::updateThumbPosition()
 {
 }
 
-void PlatformScrollbar::updateThumbProportion()
+void ScrollbarSDL::updateThumbProportion()
 {
 }
 
-void PlatformScrollbar::setFrameGeometry(const IntRect& rect)
+void ScrollbarSDL::setFrameGeometry(const IntRect& rect)
 {
     Widget::setFrameGeometry(rect);
     geometryChanged();
 }
 
-void PlatformScrollbar::geometryChanged()
+void ScrollbarSDL::geometryChanged()
 {
     if (!parent())
         return;
@@ -228,12 +228,12 @@ void PlatformScrollbar::geometryChanged()
 //     gtk_widget_size_allocate(gtkWidget(), &allocation);
 }
 
-void PlatformScrollbar::balValueChanged(BalAdjustment*, PlatformScrollbar* that)
+void ScrollbarSDL::balValueChanged(BalAdjustment*, ScrollbarSDL* that)
 {
 //    that->setValue(static_cast<int>(gtk_adjustment_get_value(that->m_adjustment)));
 }
 
-bool PlatformScrollbar::handleMouseMoveEvent(const PlatformMouseEvent& evt)
+bool ScrollbarSDL::handleMouseMoveEvent(const PlatformMouseEvent& evt)
 {
     if (m_pressedPart == ThumbPart) {
         // Drag the thumb.
@@ -289,7 +289,7 @@ bool PlatformScrollbar::handleMouseMoveEvent(const PlatformMouseEvent& evt)
     return true;
 }
 
-bool PlatformScrollbar::handleMouseOutEvent(const PlatformMouseEvent& evt)
+bool ScrollbarSDL::handleMouseOutEvent(const PlatformMouseEvent& evt)
 {
     invalidatePart(m_hoveredPart);
     m_hoveredPart = NoPart;
@@ -297,7 +297,7 @@ bool PlatformScrollbar::handleMouseOutEvent(const PlatformMouseEvent& evt)
     return true;
 }
 
-bool PlatformScrollbar::handleMousePressEvent(const PlatformMouseEvent& evt)
+bool ScrollbarSDL::handleMousePressEvent(const PlatformMouseEvent& evt)
 {
     m_pressedPart = hitTest(evt);
     m_pressedPos = (m_orientation == HorizontalScrollbar ? convertFromContainingWindow(evt.pos()).x() : convertFromContainingWindow(evt.pos()).y());
@@ -306,7 +306,7 @@ bool PlatformScrollbar::handleMousePressEvent(const PlatformMouseEvent& evt)
     return true;
 }
 
-bool PlatformScrollbar::handleMouseReleaseEvent(const PlatformMouseEvent& evt)
+bool ScrollbarSDL::handleMouseReleaseEvent(const PlatformMouseEvent& evt)
 {
     invalidatePart(m_pressedPart);
     m_pressedPart = NoPart;
@@ -319,7 +319,7 @@ bool PlatformScrollbar::handleMouseReleaseEvent(const PlatformMouseEvent& evt)
     return true;
 }
 
-ScrollbarPart PlatformScrollbar::hitTest(const PlatformMouseEvent& evt)
+ScrollbarPart ScrollbarSDL::hitTest(const PlatformMouseEvent& evt)
 {
     if (!isEnabled())
         return NoPart;
@@ -352,7 +352,7 @@ ScrollbarPart PlatformScrollbar::hitTest(const PlatformMouseEvent& evt)
     return NoPart;
 }
 
-void PlatformScrollbar::invalidatePart(ScrollbarPart part)
+void ScrollbarSDL::invalidatePart(ScrollbarPart part)
 {
     if (part == NoPart)
         return;
@@ -380,7 +380,7 @@ void PlatformScrollbar::invalidatePart(ScrollbarPart part)
     invalidateRect(result);
 }
 
-bool PlatformScrollbar::thumbUnderMouse()
+bool ScrollbarSDL::thumbUnderMouse()
 {
     // Construct a rect.
     IntRect thumb = thumbRect();
@@ -390,7 +390,7 @@ bool PlatformScrollbar::thumbUnderMouse()
     return (begin <= m_pressedPos && m_pressedPos < end);
 }
 
-IntRect PlatformScrollbar::thumbRect() const
+IntRect ScrollbarSDL::thumbRect() const
 {
     IntRect beforeThumbRect, thumbRect, afterThumbRect;
     splitTrack(trackRect(), beforeThumbRect, thumbRect, afterThumbRect);

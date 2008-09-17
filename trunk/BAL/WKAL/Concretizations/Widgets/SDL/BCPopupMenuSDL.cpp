@@ -36,7 +36,6 @@
 #include "FontDescription.h"
 #include "FloatRect.h"
 #include "FontSelector.h"
-#include "PlatformScrollBar.h"
 #include "PlatformScreen.h"
 #include "PlatformString.h"
 #include "RenderStyle.h"

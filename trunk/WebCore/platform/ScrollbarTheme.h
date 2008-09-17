@@ -32,6 +32,7 @@
 namespace WebCore {
 
 class GraphicsContext;
+class PlatformMouseEvent;
 class Scrollbar;
 
 class ScrollbarTheme {
@@ -39,13 +40,41 @@ public:
     virtual ~ScrollbarTheme() {};
 
     virtual bool paint(Scrollbar*, GraphicsContext* context, const IntRect& damageRect) { return false; }
-
+    virtual ScrollbarPart hitTest(Scrollbar*, const PlatformMouseEvent&) { return NoPart; }
+    
     virtual int scrollbarThickness(ScrollbarControlSize = RegularScrollbar) { return 0; }
 
     virtual bool supportsControlTints() const { return false; }
 
     virtual void themeChanged() {}
     
+    virtual bool invalidateOnMouseEnterExit() { return false; }
+
+    void invalidateParts(Scrollbar* scrollbar, ScrollbarControlPartMask mask)
+    {
+        if (mask & BackButtonPart)
+            invalidatePart(scrollbar, BackButtonPart);
+        if (mask & BackTrackPart)
+            invalidatePart(scrollbar, BackTrackPart);
+        if (mask & ThumbPart)
+            invalidatePart(scrollbar, ThumbPart);
+        if (mask & ForwardTrackPart)
+            invalidatePart(scrollbar, ForwardTrackPart);
+        if (mask & ForwardButtonPart)
+            invalidatePart(scrollbar, ForwardButtonPart);
+    }
+
+    virtual void invalidatePart(Scrollbar*, ScrollbarPart) {}
+
+    virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&) { return false; }
+    virtual int thumbPosition(Scrollbar*) { return 0; } // The position of the thumb relative to the track.
+    virtual int thumbLength(Scrollbar*) { return 0; } // The length of the thumb along the axis of the scrollbar.
+    virtual int trackPosition(Scrollbar*) { return 0; } // The position of the track relative to the scrollbar.
+    virtual int trackLength(Scrollbar*) { return 0; } // The length of the track along the axis of the scrollbar.
+    
+    virtual double initialAutoscrollTimerDelay() { return 0.25; }
+    virtual double autoscrollTimerDelay() { return 0.05; }
+
     static ScrollbarTheme* nativeTheme(); // Must be implemented to return the correct theme subclass.
 };
 

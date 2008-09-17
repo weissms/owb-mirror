@@ -54,7 +54,7 @@
 #include "InspectorController.h"
 #include "FocusController.h"
 #include "Editor.h"
-#include "PlatformScrollBar.h"
+#include "Scrollbar.h"
 #include "PlatformKeyboardEvent.h"
 #include "PlatformWheelEvent.h"
 #include "ProgressTracker.h"
@@ -75,6 +75,7 @@
 #include <QFileDialog>
 #include <QHttpRequestHeader>
 #include <QInputDialog>
+#include <QLocale>
 #include <QMessageBox>
 #include <QNetworkProxy>
 #include <QUndoStack>
@@ -82,6 +83,7 @@
 #include <QPainter>
 #include <QClipboard>
 #include <QSslSocket>
+#include <QStyle>
 #include <QSysInfo>
 #if QT_VERSION >= 0x040400
 #include <QNetworkAccessManager>

@@ -494,7 +494,7 @@ Element* AccessibilityRenderObject::mouseButtonListener() const
     
     // FIXME: Do the continuation search like anchorElement does
     for (EventTargetNode* elt = static_cast<EventTargetNode*>(node); elt; elt = static_cast<EventTargetNode*>(elt->parentNode())) {
-        if (elt->getHTMLEventListener(clickEvent) || elt->getHTMLEventListener(mousedownEvent) || elt->getHTMLEventListener(mouseupEvent))
+        if (elt->eventListenerForType(clickEvent) || elt->eventListenerForType(mousedownEvent) || elt->eventListenerForType(mouseupEvent))
             return static_cast<Element*>(elt);
     }
     
@@ -888,6 +888,11 @@ String AccessibilityRenderObject::accessibilityDescription() const
         if (owner && owner->isHTMLElement())
             return static_cast<HTMLElement*>(owner)->getAttribute(nameAttr);
     }
+    
+    if (roleValue() == DefinitionListTermRole)
+        return AXDefinitionListTermText();
+    if (roleValue() == DefinitionListDefinitionRole)
+        return AXDefinitionListDefinitionText();
     
     return String();
 }
@@ -2056,6 +2061,12 @@ AccessibilityRole AccessibilityRenderObject::roleValue() const
     if (headingLevel(m_renderer->element()) != 0)
         return HeadingRole;
     
+    if (node && node->hasTagName(ddTag))
+        return DefinitionListDefinitionRole;
+    
+    if (node && node->hasTagName(dtTag))
+        return DefinitionListTermRole;
+
     if (m_renderer->isBlockFlow() || (node && node->hasTagName(labelTag)))
         return GroupRole;
     

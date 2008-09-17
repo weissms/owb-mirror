@@ -149,6 +149,11 @@ ALWAYS_INLINE JSValue* CTI::getConstantImmediateNumericArg(unsigned src)
     return 0;
 }
 
+ALWAYS_INLINE void CTI::emitPutCTIParam(void* value, unsigned name)
+{
+    m_jit.movl_i32m(reinterpret_cast<intptr_t>(value), name * sizeof(void*), X86::esp);
+}
+
 ALWAYS_INLINE void CTI::emitPutCTIParam(X86Assembler::RegisterID from, unsigned name)
 {
     m_jit.movl_rm(from, name * sizeof(void*), X86::esp);
@@ -464,7 +469,18 @@ void CTI::compileOpCall(Instruction* instruction, unsigned i, CompileOpCallType 
     // This handles JSFunctions
     emitCall(i, ((type == OpConstruct) ? Machine::cti_op_construct_JSConstruct : Machine::cti_op_call_JSFunction));
     m_jit.call_r(X86::eax);
-    emitGetCTIParam(CTI_ARGS_r, X86::edi); // edi := r
+    
+    // In the interpreter the following actions are performed by op_ret:
+    
+    // Store the scope chain - returned by op_ret in %edx (see below) - to ExecState::m_scopeChain and CTI_ARGS_scopeChain on the stack.
+    emitGetCTIParam(CTI_ARGS_exec, X86::ecx);
+    emitPutCTIParam(X86::edx, CTI_ARGS_scopeChain);
+    m_jit.movl_rm(X86::edx, OBJECT_OFFSET(ExecState, m_scopeChain), X86::ecx);
+    // Restore ExecState::m_callFrame.
+    m_jit.leal_mr(-(m_codeBlock->numLocals + RegisterFile::CallFrameHeaderSize) * sizeof(Register), X86::edi, X86::edx);
+    m_jit.movl_rm(X86::edx, OBJECT_OFFSET(ExecState, m_callFrame), X86::ecx);
+    // Restore CTI_ARGS_codeBlock.
+    emitPutCTIParam(m_codeBlock, CTI_ARGS_codeBlock);
 
     X86Assembler::JmpDst end = m_jit.label();
     m_jit.link(wasNotJSFunction, end);
@@ -798,11 +814,44 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_ret: {
-            emitGetPutArg(instruction[i + 1].u.operand, 0, X86::ecx);
-            emitCall(i, Machine::cti_op_ret);
+            // Check for an activation - if there is one, jump to the hook below.
+            m_jit.cmpl_i32m(0, -(m_codeBlock->numLocals + RegisterFile::CallFrameHeaderSize - RegisterFile::OptionalCalleeActivation) * sizeof(Register), X86::edi);
+            X86Assembler::JmpSrc activation = m_jit.emitUnlinkedJne();
+            X86Assembler::JmpDst activated = m_jit.label();
 
-            m_jit.pushl_m(-((m_codeBlock->numLocals + RegisterFile::CallFrameHeaderSize) - RegisterFile::CTIReturnEIP) * sizeof(Register), X86::edi);
+            // Check for a profiler - if there is one, jump to the hook below.
+            emitGetCTIParam(CTI_ARGS_profilerReference, X86::eax);
+            m_jit.cmpl_i32m(0, X86::eax);
+            X86Assembler::JmpSrc profile = m_jit.emitUnlinkedJne();
+            X86Assembler::JmpDst profiled = m_jit.label();
+
+            // We could JIT generate the deref, only calling out to C when the refcount hits zero.
+            if (m_codeBlock->needsFullScopeChain)
+                emitCall(i, Machine::cti_op_ret_scopeChain);
+
+            // Return the result in %eax, and the caller scope chain in %edx (this is read from the callee call frame,
+            // but is only assigned to ExecState::m_scopeChain if returning to a JSFunction).
+            emitGetArg(instruction[i + 1].u.operand, X86::eax);
+            m_jit.movl_mr(-(m_codeBlock->numLocals + RegisterFile::CallFrameHeaderSize - RegisterFile::CallerScopeChain) * sizeof(Register), X86::edi, X86::edx);
+            // Restore the machine return addess from the callframe, roll the callframe back to the caller callframe,
+            // and preserve a copy of r on the stack at CTI_ARGS_r. 
+            m_jit.movl_mr(-(m_codeBlock->numLocals + RegisterFile::CallFrameHeaderSize - RegisterFile::CTIReturnEIP) * sizeof(Register), X86::edi, X86::ecx);
+            m_jit.movl_mr(-(m_codeBlock->numLocals + RegisterFile::CallFrameHeaderSize - RegisterFile::CallerRegisters) * sizeof(Register), X86::edi, X86::edi);
+            emitPutCTIParam(X86::edi, CTI_ARGS_r);
+
+            m_jit.pushl_r(X86::ecx);
             m_jit.ret();
+
+            // Activation hook
+            m_jit.link(activation, m_jit.label());
+            emitCall(i, Machine::cti_op_ret_activation);
+            m_jit.link(m_jit.emitUnlinkedJmp(), activated);
+
+            // Profiling hook
+            m_jit.link(profile, m_jit.label());
+            emitCall(i, Machine::cti_op_ret_profiler);
+            m_jit.link(m_jit.emitUnlinkedJmp(), profiled);
+
             i += 2;
             break;
         }
@@ -826,6 +875,13 @@ void CTI::privateCompileMainPass()
         case op_construct: {
             compileOpCall(instruction, i, OpConstruct);
             i += 6;
+            break;
+        }
+        case op_construct_verify: {
+            emitPutArgConstant(instruction[i + 1].u.operand, 0);
+            emitPutArgConstant(instruction[i + 2].u.operand, 4);
+            emitCall(i, Machine::cti_op_construct_verify);
+            i += 3;
             break;
         }
         case op_get_by_val: {
@@ -943,6 +999,39 @@ void CTI::privateCompileMainPass()
             emitCall(i, Machine::cti_op_resolve_skip);
             emitPutResult(instruction[i + 1].u.operand);
             i += 4;
+            break;
+        }
+        case op_resolve_global: {
+            // Fast case
+            unsigned globalObject = reinterpret_cast<unsigned>(instruction[i + 2].u.jsCell);
+            Identifier* ident = &(m_codeBlock->identifiers[instruction[i + 3].u.operand]);
+            void* structureIDAddr = reinterpret_cast<void*>(instruction + i + 4);
+            void* offsetAddr = reinterpret_cast<void*>(instruction + i + 5);
+
+            // Check StructureID of global object
+            m_jit.movl_i32r(globalObject, X86::eax);
+            m_jit.movl_mr(structureIDAddr, X86::edx);
+            m_jit.cmpl_rm(X86::edx, OBJECT_OFFSET(JSCell, m_structureID), X86::eax);
+            X86Assembler::JmpSrc slowCase = m_jit.emitUnlinkedJne(); // StructureIDs don't match
+            m_slowCases.append(SlowCaseEntry(slowCase, i));
+
+            // Load cached property
+            m_jit.movl_mr(OBJECT_OFFSET(JSGlobalObject, m_propertyStorage), X86::eax, X86::eax);
+            m_jit.movl_mr(offsetAddr, X86::edx);
+            m_jit.movl_mr(0, X86::eax, X86::edx, sizeof(JSValue*), X86::eax);
+            emitPutResult(instruction[i + 1].u.operand);
+            X86Assembler::JmpSrc end = m_jit.emitUnlinkedJmp();
+
+            // Slow case
+            m_jit.link(slowCase, m_jit.label());
+            emitPutArgConstant(globalObject, 0);
+            emitPutArgConstant(reinterpret_cast<unsigned>(ident), 4);
+            emitPutArgConstant(reinterpret_cast<unsigned>(instruction + i), 8);
+            emitCall(i, Machine::cti_op_resolve_global);
+            emitPutResult(instruction[i + 1].u.operand);
+            m_jit.link(end, m_jit.label());
+            i += 6;
+            ++structureIDInstructionIndex;
             break;
         }
         CTI_COMPILE_BINARY_OP(op_div)
@@ -1616,6 +1705,11 @@ void CTI::privateCompileSlowCases()
             ++structureIDInstructionIndex;
 
             i += 8;
+            break;
+        }
+        case op_resolve_global: {
+            ++structureIDInstructionIndex;
+            i += 6;
             break;
         }
         case op_loop_if_lesseq: {

@@ -81,7 +81,7 @@ unix:!mac:!embedded:!wince* {
     DEFINES += ENABLE_NETSCAPE_PLUGIN_API=0
 }
 
-DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1 WTF_USE_JSC=1
+DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1
 
 INCLUDEPATH += $$PWD/../JavaScriptCore $$PWD/../JavaScriptCore/ForwardingHeaders \
                $$PWD/../JavaScriptCore/VM \
@@ -458,6 +458,7 @@ SOURCES += \
     css/CSSInitialValue.cpp \
     css/CSSMediaRule.cpp \
     css/CSSMutableStyleDeclaration.cpp \
+    css/CSSNthSelector.cpp \
     css/CSSPageRule.cpp \
     css/CSSParser.cpp \
     css/CSSParserValues.cpp \
@@ -731,6 +732,7 @@ SOURCES += \
     loader/TextResourceDecoder.cpp \
     page/AccessibilityImageMapLink.cpp \
     page/AccessibilityObject.cpp \    
+    page/AccessibilityList.cpp \    
     page/AccessibilityListBox.cpp \    
     page/AccessibilityListBoxOption.cpp \    
     page/AccessibilityRenderObject.cpp \    
@@ -824,7 +826,7 @@ SOURCES += \
     platform/network/ResourceRequestBase.cpp \
     platform/network/ResourceResponseBase.cpp \
     platform/text/RegularExpression.cpp \
-    platform/ScrollBar.cpp \
+    platform/Scrollbar.cpp \
 #    platform/SearchPopupMenu.cpp \
     platform/SecurityOrigin.cpp \
     platform/text/SegmentedString.cpp \
@@ -1002,10 +1004,10 @@ SOURCES += \
     platform/qt/PlatformKeyboardEventQt.cpp \
     platform/qt/PlatformMouseEventQt.cpp \
     platform/qt/PlatformScreenQt.cpp \
-    platform/qt/PlatformScrollBarQt.cpp \
     platform/qt/PopupMenuQt.cpp \
     platform/qt/QWebPopup.cpp \
     platform/qt/RenderThemeQt.cpp \
+    platform/qt/ScrollbarQt.cpp \
     platform/qt/ScrollbarThemeQt.cpp \
     platform/qt/ScrollViewQt.cpp \
     platform/qt/SearchPopupMenuQt.cpp \
@@ -1427,7 +1429,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         css/SVGCSSStyleSelector.cpp \
         rendering/SVGRenderStyle.cpp \
         rendering/SVGRenderStyleDefs.cpp \
-        bindings/js/JSSVGLazyEventListener.cpp \
         svg/SVGZoomEvent.cpp \
         rendering/PointerEventsHitRules.cpp \
         svg/FilterEffect.cpp \

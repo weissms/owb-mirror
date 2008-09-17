@@ -130,8 +130,13 @@ namespace WKAL {
         void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
         void updateBackingStore();
 
+        IntRect windowResizerRect() { return IntRect(); }
+        bool resizerOverlapsContent() const { return false; }
+        void adjustOverlappingScrollbarCount(int overlapDelta) {}
+
     private:
         void updateScrollbars(const IntSize& desiredOffset);
+
     public:
         void setBalAdjustments(BalAdjustment* hadj, BalAdjustment* vadj);
 

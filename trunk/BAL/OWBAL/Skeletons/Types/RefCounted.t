@@ -117,6 +117,16 @@ public:
      * @code
      * @endcode
      */
+    bool hasOneRef() const
+    
+
+    /**
+     *  hasOneRef description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
     bool hasOneRef() cons
     
 
@@ -140,4 +150,4 @@ private:
 
 using WTF::RefCounted;
 
-#endif // RefCo
+#endif // Re

@@ -1,18 +1,18 @@
 /*
- * Copyright (C) 2005, 2006, 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  *
  * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer. 
+ *     notice, this list of conditions and the following disclaimer.
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution. 
+ *     documentation and/or other materials provided with the distribution.
  * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
  *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission. 
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -26,33 +26,31 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if ENABLE(NETSCAPE_PLUGIN_API)
-#import <WebKit/WebBaseNetscapePluginStream.h>
-#import <WebKit/npapi.h>
+#ifndef AccessibilityList_h
+#define AccessibilityList_h
+
+#include "AccessibilityRenderObject.h"
 
 namespace WebCore {
-    class FrameLoader;
-    class NetscapePlugInStreamLoader;
-}
-@class NSURLRequest;
+    
+class AccessibilityList : public AccessibilityRenderObject {
+    
+private:
+    AccessibilityList(RenderObject*);
+public:
+    static PassRefPtr<AccessibilityList> create(RenderObject*);
+    virtual ~AccessibilityList();
+    
+    virtual bool isList() const { return true; };
+    bool isUnorderedList() const;
+    bool isOrderedList() const;
+    bool isDefinitionList() const;
 
-class WebNetscapePlugInStreamLoaderClient;
+    virtual AccessibilityRole roleValue() const { return ListRole; }
+    virtual bool accessibilityIsIgnored() const;
+    
+};
+    
+} // namespace WebCore
 
-@interface WebNetscapePluginStream : WebBaseNetscapePluginStream 
-{    
-    WebCore::FrameLoader* _frameLoader;
-    WebCore::NetscapePlugInStreamLoader* _loader;
-    WebNetscapePlugInStreamLoaderClient* _client;
-    NSURLRequest *request;
-}
-
-- (id)initWithFrameLoader:(WebCore::FrameLoader *)frameLoader;
-- (id)initWithRequest:(NSURLRequest *)theRequest
-               plugin:(NPP)thePlugin
-           notifyData:(void *)theNotifyData
-     sendNotification:(BOOL)sendNotification;
-- (void)start;
-- (void)stop;
-
-@end
-#endif
+#endif // AccessibilityList_h

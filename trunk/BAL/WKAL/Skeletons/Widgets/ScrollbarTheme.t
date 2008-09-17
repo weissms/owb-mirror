@@ -65,6 +65,17 @@ public:
      */
     virtual bool paint(Scrollbar*, GraphicsContext* context, const IntRect& damageRect) ;
 
+
+    /**
+     * hitTest.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[in] : a mouse event.
+     * @param[out] : a ScrollbarPart.
+     * @code
+     * @endcode
+     */
+    virtual ScrollbarPart hitTest(Scrollbar*, const PlatformMouseEvent&) ;
+
     /**
      * Retrieve the scrollbar thickness.
      * @param[in] : a ScrollbarControlSize.
@@ -81,6 +92,84 @@ public:
      * @endcode
      */
     virtual bool supportsControlTints() const ;
+    /**
+     * invalidateOnMouseEnterExit.
+     * @param[out] : a boolean.
+     * @code
+     * @endcode
+     */
+    virtual bool invalidateOnMouseEnterExit() ;
+    /**
+     * invalidateParts.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[in] : a ScrollbarControlPartMask.
+     * @code
+     * @endcode
+     */
+    void invalidateParts(Scrollbar* scrollbar, ScrollbarControlPartMask mask);
+    /**
+     *  invalidatePart.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[in] : a ScrollbarPart.
+     * @code
+     * @endcode
+     */
+    virtual void invalidatePart(Scrollbar*, ScrollbarPart) ;
+    /**
+     * shouldCenterOnThumb.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[in] : a mouse event.
+     * @param[out] : a boolean.
+     * @code
+     * @endcode
+     */
+    virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&) ;
+    /**
+     * Get the thumb position.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[out] : the thumb position.
+     * @code
+     * @endcode
+     */
+    virtual int thumbPosition(Scrollbar*) ;
+    /**
+     * Get the thumb length.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[out] : the thumb length.
+     * @code
+     * @endcode
+     */
+    virtual int thumbLength(Scrollbar*) ;
+    /**
+     * Get the track position.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[out] : the track position.
+     * @code
+     * @endcode
+     */
+    virtual int trackPosition(Scrollbar*) ;
+    /**
+     * Get the trackLength.
+     * @param[in] : a pointer to the scrollbar.
+     * @param[out] : the track length.
+     * @code
+     * @endcode
+     */
+    virtual int trackLength(Scrollbar*) ;
+    /**
+     * Get the initial autoscroll timer delay.
+     * @param[out] : the initial auto scroll timer delay.
+     * @code
+     * @endcode
+     */
+    virtual double initialAutoscrollTimerDelay() ;
+    /**
+     * Get the autoscroll timer delay.
+     * @param[out] : the auto scroll timer delay.
+     * @code
+     * @endcode
+     */
+    virtual double autoscrollTimerDelay() ;
 
     /**
      * warn that theme changed.
@@ -93,8 +182,3 @@ public:
 };
 
 }
-#endif
-
-
-
-

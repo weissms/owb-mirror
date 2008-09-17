@@ -31,7 +31,8 @@
 #include "FrameView.h"
 #include "GraphicsContext.h"
 #include "Page.h"
-#include "ScrollBar.h"
+#include "PlatformMouseEvent.h"
+#include "Scrollbar.h"
 #include "ScrollbarClient.h"
 #include "Settings.h"
 
@@ -141,6 +142,117 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
         paintThumb(graphicsContext, scrollbar, thumbRect);
 
     return true;
+}
+
+ScrollbarPart ScrollbarThemeComposite::hitTest(Scrollbar* scrollbar, const PlatformMouseEvent& evt)
+{
+    ScrollbarPart result = NoPart;
+    if (!scrollbar->isEnabled())
+        return result;
+
+    IntPoint mousePosition = scrollbar->convertFromContainingWindow(evt.pos());
+    mousePosition.move(scrollbar->x(), scrollbar->y());
+    if (backButtonRect(scrollbar).contains(mousePosition))
+        result = BackButtonPart;
+    else if (forwardButtonRect(scrollbar).contains(mousePosition))
+        result = ForwardButtonPart;
+    else {
+        IntRect track = trackRect(scrollbar);
+        if (track.contains(mousePosition)) {
+            IntRect beforeThumbRect;
+            IntRect thumbRect;
+            IntRect afterThumbRect;
+            splitTrack(scrollbar, track, beforeThumbRect, thumbRect, afterThumbRect);
+            if (beforeThumbRect.contains(mousePosition))
+                result = BackTrackPart;
+            else if (thumbRect.contains(mousePosition))
+                result = ThumbPart;
+            else
+                result = ForwardTrackPart;
+        }
+    }
+    return result;
+}
+
+void ScrollbarThemeComposite::invalidatePart(Scrollbar* scrollbar, ScrollbarPart part)
+{
+    if (part == NoPart)
+        return;
+
+    IntRect result;    
+    switch (part) {
+        case BackButtonPart:
+            result = backButtonRect(scrollbar, true);
+            break;
+        case ForwardButtonPart:
+            result = forwardButtonRect(scrollbar, true);
+            break;
+        default: {
+            IntRect beforeThumbRect, thumbRect, afterThumbRect;
+            splitTrack(scrollbar, trackRect(scrollbar), beforeThumbRect, thumbRect, afterThumbRect);
+            if (part == BackTrackPart)
+                result = beforeThumbRect;
+            else if (part == ForwardTrackPart)
+                result = afterThumbRect;
+            else
+                result = thumbRect;
+        }
+    }
+    result.move(-scrollbar->x(), -scrollbar->y());
+    scrollbar->invalidateRect(result);
+}
+
+void ScrollbarThemeComposite::splitTrack(Scrollbar* scrollbar, const IntRect& trackRect, IntRect& beforeThumbRect, IntRect& thumbRect, IntRect& afterThumbRect)
+{
+    // This function won't even get called unless we're big enough to have some combination of these three rects where at least
+    // one of them is non-empty.
+    int thickness = scrollbarThickness();
+    int thumbPos = thumbPosition(scrollbar);
+    if (scrollbar->orientation() == HorizontalScrollbar) {
+        thumbRect = IntRect(trackRect.x() + thumbPos, trackRect.y() + (trackRect.height() - thickness) / 2, thumbLength(scrollbar), thickness);
+        beforeThumbRect = IntRect(trackRect.x(), trackRect.y(), thumbPos, trackRect.height());
+        afterThumbRect = IntRect(thumbRect.x() + thumbRect.width(), trackRect.y(), trackRect.right() - thumbRect.right(), trackRect.height());
+    } else {
+        thumbRect = IntRect(trackRect.x() + (trackRect.width() - thickness) / 2, trackRect.y() + thumbPos, thickness, thumbLength(scrollbar));
+        beforeThumbRect = IntRect(trackRect.x(), trackRect.y(), trackRect.width(), thumbPos);
+        afterThumbRect = IntRect(trackRect.x(), thumbRect.y() + thumbRect.height(), trackRect.width(), trackRect.bottom() - thumbRect.bottom());
+    }
+}
+
+int ScrollbarThemeComposite::thumbPosition(Scrollbar* scrollbar)
+{
+    if (scrollbar->isEnabled())
+        return scrollbar->currentPos() * (trackLength(scrollbar) - thumbLength(scrollbar)) / scrollbar->maximum();
+    return 0;
+}
+
+int ScrollbarThemeComposite::thumbLength(Scrollbar* scrollbar)
+{
+    if (!scrollbar->isEnabled())
+        return 0;
+
+    float proportion = (float)scrollbar->visibleSize() / scrollbar->totalSize();
+    int trackLen = trackLength(scrollbar);
+    int length = proportion * trackLen;
+    length = max(length, minimumThumbLength(scrollbar));
+    if (length > trackLen)
+        length = 0; // Once the thumb is below the track length, it just goes away (to make more room for the track).
+    return length;
+}
+
+int ScrollbarThemeComposite::minimumThumbLength(Scrollbar* scrollbar)
+{
+    return scrollbarThickness(scrollbar->controlSize());
+}
+
+int ScrollbarThemeComposite::trackPosition(Scrollbar* scrollbar)
+{
+    return (scrollbar->orientation() == HorizontalScrollbar) ? trackRect(scrollbar).x() : trackRect(scrollbar).y();
+}
+
+int ScrollbarThemeComposite::trackLength(Scrollbar* scrollbar)
+{
+    return (scrollbar->orientation() == HorizontalScrollbar) ? trackRect(scrollbar).width() : trackRect(scrollbar).height();
 }
 
 }

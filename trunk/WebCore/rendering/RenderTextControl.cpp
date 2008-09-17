@@ -38,8 +38,8 @@
 #include "LocalizedStrings.h"
 #include "MouseEvent.h"
 #include "PlatformKeyboardEvent.h"
-#include "PlatformScrollBar.h"
 #include "RenderTheme.h"
+#include "Scrollbar.h"
 #include "ScrollbarTheme.h"
 #include "SearchPopupMenu.h"
 #include "SelectionController.h"
@@ -885,7 +885,7 @@ void RenderTextControl::selectionChanged(bool userTriggered)
         static_cast<HTMLInputElement*>(element)->cacheSelection(selectionStart(), selectionEnd());
     if (Frame* frame = document()->frame())
         if (frame->selection()->isRange() && userTriggered)
-            element->dispatchHTMLEvent(selectEvent, true, false);
+            element->dispatchEventForType(selectEvent, true, false);
 }
 
 void RenderTextControl::autoscroll()

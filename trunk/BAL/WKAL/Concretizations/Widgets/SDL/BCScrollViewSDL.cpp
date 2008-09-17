@@ -38,9 +38,9 @@
 #include "IntRect.h"
 #include "PlatformMouseEvent.h"
 #include "PlatformWheelEvent.h"
-#include "PlatformScrollBar.h"
 #include "Page.h"
 #include "RenderLayer.h"
+#include "ScrollbarSDL.h"
 #include "ScrollbarTheme.h"
 #include "SDL.h"
 #if PLATFORM(AMIGAOS4)
@@ -108,7 +108,7 @@ void updateView(SDL_Surface *surf, SDL_Rect sdlRect)
 }
 #endif
 
-class ScrollViewScrollbar : public PlatformScrollbar {
+class ScrollViewScrollbar : public ScrollbarSDL {
 public:
     ScrollViewScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
 
@@ -164,7 +164,7 @@ public:
 };
 
 ScrollViewScrollbar::ScrollViewScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
-    : PlatformScrollbar(client, orientation, size)
+    : ScrollbarSDL(client, orientation, size)
 {
 }
 

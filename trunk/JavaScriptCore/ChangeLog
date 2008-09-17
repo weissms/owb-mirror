@@ -1,3 +1,312 @@
+2008-09-17  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20857: REGRESSION (r36427): ASSERTION FAILED: m_refCount >= 0 in RegisterID::deref()
+        <https://bugs.webkit.org/show_bug.cgi?id=20857>
+
+        Fix a problem stemming from the slightly unsafe behaviour of the
+        CodeGenerator::finalDestination() method by putting the "func" argument
+        of the emitConstruct() method in a RefPtr in its caller. Also, add an
+        assertion guaranteeing that this is always the case.
+
+        CodeGenerator::finalDestination() is still incorrect and can cause
+        problems with a different allocator; see bug 20340 for more details.
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitConstruct):
+        * kjs/nodes.cpp:
+        (JSC::NewExprNode::emitCode):
+
+2008-09-16  Alice Liu  <alice.liu@apple.com>
+
+        build fix.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+
+2008-09-16  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        CTI code generation for op_ret.  The majority of the work
+        (updating variables on the stack & on exec) can be performed
+        directly in generated code.
+
+        We still need to check, & to call out to C-code to handle
+        activation records, profiling, and full scope chains.
+
+        +1.5% Sunspider, +5/6% v8 tests.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitPutCTIParam):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_ret_activation):
+        (JSC::Machine::cti_op_ret_profiler):
+        (JSC::Machine::cti_op_ret_scopeChain):
+        * VM/Machine.h:
+
+2008-09-16  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Fix the Windows build.
+
+        Add some extra parentheses to stop MSVC from complaining so much.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_stricteq):
+        (JSC::Machine::cti_op_nstricteq):
+        * kjs/operations.cpp:
+        (JSC::strictEqual):
+
+2008-09-15  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - speed up the === and !== operators by choosing the fast cases better
+        
+        No effect on SunSpider but speeds up the V8 EarlyBoyer benchmark about 4%.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_stricteq):
+        (JSC::Machine::cti_op_nstricteq):
+        * kjs/JSImmediate.h:
+        (JSC::JSImmediate::areBothImmediate):
+        * kjs/operations.cpp:
+        (JSC::strictEqual):
+        (JSC::strictEqualSlowCase):
+        * kjs/operations.h:
+
+2008-09-15  Oliver Hunt  <oliver@apple.com>
+
+        RS=Sam Weinig.
+
+        Coding style cleanup.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+
+2008-09-15  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 20874: op_resolve does not do any form of caching
+        <https://bugs.webkit.org/show_bug.cgi?id=20874>
+
+        This patch adds an op_resolve_global opcode to handle (and cache)
+        property lookup we can statically determine must occur on the global
+        object (if at all).
+
+        3% progression on sunspider, 3.2x improvement to bitops-bitwise-and, and
+        10% in math-partial-sums
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::findScopedProperty):
+        (JSC::CodeGenerator::emitResolve):
+        * VM/Machine.cpp:
+        (JSC::resolveGlobal):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_resolve_global):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+
+2008-09-15  Sam Weinig  <sam@webkit.org>
+
+
+        Roll out r36462.  It broke document.all.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::Machine):
+        (JSC::Machine::cti_op_eq_null):
+        (JSC::Machine::cti_op_neq_null):
+        * VM/Machine.h:
+        (JSC::Machine::isJSString):
+        * kjs/JSCell.h:
+        * kjs/JSWrapperObject.h:
+        * kjs/StringObject.h:
+        * kjs/StringObjectThatMasqueradesAsUndefined.h:
+
+2008-09-15  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20863: ASSERTION FAILED: addressOffset < instructions.size() in CodeBlock::getHandlerForVPC
+        <https://bugs.webkit.org/show_bug.cgi?id=20863>
+
+        r36427 changed the number of arguments to op_construct without changing
+        the argument index for the vPC in the call to initializeCallFrame() in
+        the CTI case. This caused a JSC test failure. Correcting the argument
+        index fixes the test failure.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_construct_JSConstruct):
+
+2008-09-15  Mark Rowe  <mrowe@apple.com>
+
+        Fix GCC 4.2 build.
+
+        * VM/CTI.h:
+
+2008-09-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+        
+        Fixed a typo in op_get_by_id_chain that caused it to miss every time
+        in the interpreter.
+        
+        Also, a little cleanup.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute): Set up baseObject before entering the
+        loop, so we compare against the right values.
+
+2008-09-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Removed the CalledAsConstructor flag from the call frame header. Now,
+        we use an explicit opcode at the call site to fix up constructor results.
+
+        SunSpider says 0.4% faster.
+        
+        cti_op_construct_verify is an out-of-line function call for now, but we
+        can fix that once StructureID holds type information like isObject.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass): Codegen for the new opcode.
+
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+
+        * VM/CodeGenerator.cpp: Codegen for the new opcode. Also...
+        (JSC::CodeGenerator::emitCall): ... don't test for known non-zero value.
+        (JSC::CodeGenerator::emitConstruct): ... ditto.
+
+        * VM/Machine.cpp: No more CalledAsConstructor
+        (JSC::Machine::privateExecute): Implementation for the new opcode.
+        (JSC::Machine::cti_op_ret): The speedup: no need to check whether we were
+        called as a constructor.
+        (JSC::Machine::cti_op_construct_verify): Implementation for the new opcode.
+        * VM/Machine.h:
+
+        * VM/Opcode.h: Declare new opcode.
+
+        * VM/RegisterFile.h:
+        (JSC::RegisterFile::): No more CalledAsConstructor
+
+2008-09-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Inline code generation of eq_null/neq_null for CTI.  Uses vptr checking for
+        StringObjectsThatAreMasqueradingAsBeingUndefined.  In the long run, the
+        masquerading may be handled differently (through the StructureIDs - see bug
+        #20823).
+
+        >1% on v8-tests.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitJumpSlowCaseIfIsJSCell):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::Machine):
+        (JSC::Machine::cti_op_eq_null):
+        (JSC::Machine::cti_op_neq_null):
+        * VM/Machine.h:
+        (JSC::Machine::doesMasqueradesAsUndefined):
+        * kjs/JSWrapperObject.h:
+        (JSC::JSWrapperObject::):
+        (JSC::JSWrapperObject::JSWrapperObject):
+        * kjs/StringObject.h:
+        (JSC::StringObject::StringObject):
+        * kjs/StringObjectThatMasqueradesAsUndefined.h:
+        (JSC::StringObjectThatMasqueradesAsUndefined::StringObjectThatMasqueradesAsUndefined):
+
+2008-09-15  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Oliver Hunt.
+
+        r36427 broke CodeBlock::dump() by changing the number of arguments to
+        op_construct without changing the code that prints it. This patch fixes
+        it by printing the additional argument.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+
+2008-09-15  Adam Roben  <aroben@apple.com>
+
+        Build fix
+
+        * kjs/StructureID.cpp: Removed a stray semicolon.
+
+2008-09-15  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix a crash in fast/js/exception-expression-offset.html caused by not
+        updating all mentions of the length of op_construct in r36427.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+
+2008-09-15  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - fix layout test failure introduced by fix for 20849
+        
+        (The failing test was fast/js/delete-then-put.html)
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::removeDirect): Clear enumeration cache
+        in the dictionary case.
+        * kjs/JSObject.h:
+        (JSC::JSObject::putDirect): Ditto.
+        * kjs/StructureID.h:
+        (JSC::StructureID::clearEnumerationCache): Inline to handle the
+        clear.
+
+2008-09-15  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - fix JSC test failures introduced by fix for 20849
+
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::getEnumerablePropertyNames): Use the correct count.
+
+2008-09-15  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20851: REGRESSION (r36410): fast/js/kde/GlobalObject.html fails
+        <https://bugs.webkit.org/show_bug.cgi?id=20851>
+
+        r36410 introduced an optimization for parseInt() that is incorrect when
+        its argument is larger than the range of a 32-bit integer. If the
+        argument is a number that is not an immediate integer, then the correct
+        behaviour is to return the floor of its value, unless it is an infinite
+        value, in which case the correct behaviour is to return 0.
+
+        * kjs/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncParseInt):
+
 2008-09-15  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Maciej Stachowiak.

@@ -214,6 +214,10 @@ void CodeBlock::printStructureIDs(const Instruction* vPC) const
         printStructureID("put_by_id_replace", vPC, 4);
         return;
     }
+    if (vPC[0].u.opcode == machine->getOpcode(op_resolve_global)) {
+        printStructureID("resolve_global", vPC, 4);
+        return;
+    }
 
     // These instructions doesn't ref StructureIDs.
     ASSERT(vPC[0].u.opcode == machine->getOpcode(op_get_by_id_generic) || vPC[0].u.opcode == machine->getOpcode(op_put_by_id_generic));
@@ -540,6 +544,14 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
             printf("[%4d] resolve_skip\t %s, %s, %d\n", location, registerName(r0).c_str(), idName(id0, identifiers[id0]).c_str(), skipLevels);
             break;
         }
+        case op_resolve_global: {
+            int r0 = (++it)->u.operand;
+            JSValue* scope = static_cast<JSValue*>((++it)->u.jsCell);
+            int id0 = (++it)->u.operand;
+            printf("[%4d] resolve_global\t %s, %s, %s\n", location, registerName(r0).c_str(), valueToSourceString(exec, scope).ascii(), idName(id0, identifiers[id0]).c_str());
+            it += 2;
+            break;
+        }
         case op_get_scoped_var: {
             int r0 = (++it)->u.operand;
             int index = (++it)->u.operand;
@@ -783,9 +795,16 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
         case op_construct: {
             int r0 = (++it)->u.operand;
             int r1 = (++it)->u.operand;
+            int r2 = (++it)->u.operand;
             int tempCount = (++it)->u.operand;
             int argCount = (++it)->u.operand;
-            printf("[%4d] construct\t %s, %s, %d, %d\n", location, registerName(r0).c_str(), registerName(r1).c_str(), tempCount, argCount);
+            printf("[%4d] construct\t %s, %s, %s, %d, %d\n", location, registerName(r0).c_str(), registerName(r1).c_str(), registerName(r2).c_str(), tempCount, argCount);
+            break;
+        }
+        case op_construct_verify: {
+            int r0 = (++it)->u.operand;
+            int r1 = (++it)->u.operand;
+            printf("[%4d] construct_verify\t %s, %s\n", location, registerName(r0).c_str(), registerName(r1).c_str());
             break;
         }
         case op_get_pnames: {
@@ -912,6 +931,11 @@ void CodeBlock::derefStructureIDs(Instruction* vPC) const
     }
     if (vPC[0].u.opcode == machine->getOpcode(op_put_by_id_replace)) {
         vPC[4].u.structureID->deref();
+        return;
+    }
+    if (vPC[0].u.opcode == machine->getOpcode(op_resolve_global)) {
+        if(vPC[4].u.structureID)
+            vPC[4].u.structureID->deref();
         return;
     }
     

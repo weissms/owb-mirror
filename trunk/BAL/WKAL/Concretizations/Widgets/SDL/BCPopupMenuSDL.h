@@ -34,7 +34,7 @@
 
 #include "IntRect.h"
 #include "PopupMenuClient.h"
-#include "ScrollBar.h"
+#include "Scrollbar.h"
 #include "ScrollbarClient.h"
 #include <wtf/PassRefPtr.h>
 #include "BALBase.h"
@@ -44,7 +44,7 @@
 namespace WKAL {
 
 class FrameView;
-class PlatformScrollbar;
+class Scrollbar;
 
 class PopupMenu : public RefCounted<PopupMenu>, private ScrollbarClient
 {
@@ -90,7 +90,7 @@ private:
     int visibleItems() const;
     bool scrollToRevealSelection();
 
-    RefPtr<PlatformScrollbar> m_scrollBar;
+    RefPtr<Scrollbar> m_scrollBar;
     bool m_wasClicked;
     IntRect m_windowRect;
     int m_itemHeight;

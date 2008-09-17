@@ -28,7 +28,7 @@
 
 #include "BALBase.h"
 #include "GraphicsContext.h"
-#include "ScrollBar.h"
+#include "Scrollbar.h"
 
 namespace WKAL {
 

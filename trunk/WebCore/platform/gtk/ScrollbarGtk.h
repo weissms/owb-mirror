@@ -23,38 +23,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PlatformScrollBar_h
-#define PlatformScrollBar_h
+#ifndef ScrollbarGtk_h
+#define ScrollbarGtk_h
 
-#include "ScrollBar.h"
+#include "Scrollbar.h"
 #include <wtf/PassRefPtr.h>
 
 typedef struct _GtkAdjustment GtkAdjustment;
 
-namespace WKAL {
+namespace WebCore {
 
-class PlatformScrollbar : public Scrollbar {
+class ScrollbarGtk : public Scrollbar {
 public:
-    static PassRefPtr<PlatformScrollbar> create(ScrollbarClient* client, ScrollbarOrientation orientation, ScrollbarControlSize size)
-    {
-        return adoptRef(new PlatformScrollbar(client, orientation, size));
-    }
-    virtual ~PlatformScrollbar();
+    friend class Scrollbar;
+
+    virtual ~ScrollbarGtk();
 
     virtual void setFrameGeometry(const IntRect&);
     
+    virtual bool handleMouseMoveEvent(const PlatformMouseEvent&) { return false; }
+    virtual bool handleMouseOutEvent(const PlatformMouseEvent&) { return false; }
+    virtual bool handleMousePressEvent(const PlatformMouseEvent&) { return false; }
+    virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&) { return false; }
+
 protected:
-    PlatformScrollbar(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
+    ScrollbarGtk(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
 
     virtual void updateThumbPosition();
     virtual void updateThumbProportion();
     virtual void geometryChanged();
     
 private:
-    static void gtkValueChanged(GtkAdjustment*, PlatformScrollbar*);
+    static void gtkValueChanged(GtkAdjustment*, ScrollbarGtk*);
     GtkAdjustment* m_adjustment;
 };
 
 }
 
-#endif // PlatformScrollBar_h
+#endif // ScrollbarGtk_h

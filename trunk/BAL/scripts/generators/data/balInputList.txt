@@ -646,6 +646,7 @@
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/PlatformScreen.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/PopupMenuClient.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/PopupMenu.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/Scrollbar.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarClient.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarTheme.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarThemeComposite.h
@@ -654,8 +655,8 @@
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/WidgetClient.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/Widget.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ClipboardGtk.h
-../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/PlatformScrollBar.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/RenderThemeGtk.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ScrollbarGtk.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ScrollbarThemeGtk.h
 
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ContextMenu.h
@@ -685,12 +686,12 @@
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/Widget.h
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/Widget.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/WidgetGtk.cpp	BCWidgetGtk.cpp
-../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ScrollBar.h
-../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ScrollBar.cpp
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/Scrollbar.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/Scrollbar.cpp
+../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollbarGtk.h
+../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollbarGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ClipboardGtk.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ClipboardGtk.cpp	BCClipboardGtk.cpp
-../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/PlatformScrollBar.h
-../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/PlatformScrollBarGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/RenderThemeGtk.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/RenderThemeGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/PasteboardHelper.h

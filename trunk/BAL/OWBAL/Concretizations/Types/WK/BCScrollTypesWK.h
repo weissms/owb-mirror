@@ -46,7 +46,7 @@ namespace OWBAL {
 
     enum ScrollbarMode { ScrollbarAuto, ScrollbarAlwaysOff, ScrollbarAlwaysOn };
 
-    enum ScrollbarControlSize { RegularScrollbar, SmallScrollbar, MiniScrollbar };
+    enum ScrollbarControlSize { RegularScrollbar, SmallScrollbar };
 
     typedef unsigned ScrollbarControlState;
 

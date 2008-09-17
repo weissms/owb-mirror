@@ -198,7 +198,7 @@ protected:
 
 #if PLATFORM(MAC)
         Widget(NSView*);
-
+        
         NSView* getView() const;
         NSView* getOuterView() const;
         void setView(NSView*);
@@ -209,6 +209,12 @@ protected:
         void addToSuperview(NSView* superview);
         void removeFromSuperview();
         IntPoint convertToScreenCoordinate(NSView*, const IntPoint&);
+        
+        // FIXME: Will need to implement these methods once we actually start doing viewless widgets.
+        IntPoint convertFromContainingWindow(const IntPoint&) const;
+        IntRect convertToContainingWindow(const IntRect&) const;
+        ScrollView* parent() const { return 0; }
+        virtual void setParent(ScrollView*) {}
 #endif
 
 #if PLATFORM(WX)

@@ -1,3 +1,136 @@
+2008-09-17  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Move more instance variables down to the C++ class.
+
+        * Plugins/WebBaseNetscapePluginStream.h:
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream initWithRequestURL:plugin:notifyData:sendNotification:]):
+        (-[WebBaseNetscapePluginStream dealloc]):
+        (-[WebBaseNetscapePluginStream finalize]):
+        (-[WebBaseNetscapePluginStream transferMode]):
+        (-[WebBaseNetscapePluginStream plugin]):
+        (-[WebBaseNetscapePluginStream setPlugin:]):
+        (-[WebBaseNetscapePluginStream startStreamResponseURL:expectedContentLength:lastModifiedDate:MIMEType:headers:]):
+        (-[WebBaseNetscapePluginStream wantsAllStreams]):
+        (-[WebBaseNetscapePluginStream _destroyStream]):
+        (-[WebBaseNetscapePluginStream _destroyStreamWithReason:]):
+        (-[WebBaseNetscapePluginStream _deliverData]):
+        (-[WebBaseNetscapePluginStream _deliverDataToFile:]):
+        (-[WebBaseNetscapePluginStream finishedLoading]):
+        (-[WebBaseNetscapePluginStream receivedData:]):
+
+2008-09-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Move a bunch of instance variables into the C++ class.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream _pluginCancelledConnectionError]):
+        (-[WebBaseNetscapePluginStream errorForReason:]):
+        (-[WebBaseNetscapePluginStream initWithRequest:plugin:notifyData:sendNotification:]):
+        (-[WebBaseNetscapePluginStream initWithRequestURL:plugin:notifyData:sendNotification:]):
+        (-[WebBaseNetscapePluginStream dealloc]):
+        (-[WebBaseNetscapePluginStream setRequestURL:]):
+        (-[WebBaseNetscapePluginStream setResponseURL:]):
+        (-[WebBaseNetscapePluginStream setMIMEType:]):
+        (-[WebBaseNetscapePluginStream startStreamResponseURL:expectedContentLength:lastModifiedDate:MIMEType:headers:]):
+        (-[WebBaseNetscapePluginStream _destroyStream]):
+        (-[WebBaseNetscapePluginStream _destroyStreamWithReason:]):
+        (-[WebBaseNetscapePluginStream _deliverData]):
+        (-[WebBaseNetscapePluginStream receivedData:]):
+
+2008-09-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Add a new WebNetscapePluginStream C++ class. The idea is that it is supposed to replace the Obj-C 
+        WebBaseNetscapePluginStream class. The plan is to gradually move/rewrite code from the Obj-C class to the C++ class
+        until the C++ class can replace the Obj-C class.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        (WebNetscapePluginStream::create):
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream initWithFrameLoader:]):
+        (-[WebBaseNetscapePluginStream initWithRequest:plugin:notifyData:sendNotification:]):
+        (-[WebBaseNetscapePluginStream dealloc]):
+        (-[WebBaseNetscapePluginStream finalize]):
+
+2008-09-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Instead of storing a pointer to NPP method individually, just store a pointer to the NPNetscapeFuncs vtable.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream setPlugin:]):
+        (-[WebBaseNetscapePluginStream startStreamResponseURL:expectedContentLength:lastModifiedDate:MIMEType:headers:]):
+        (-[WebBaseNetscapePluginStream wantsAllStreams]):
+        (-[WebBaseNetscapePluginStream _destroyStream]):
+        (-[WebBaseNetscapePluginStream _deliverData]):
+        * Plugins/WebNetscapePluginPackage.h:
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage pluginFuncs]):
+
+2008-09-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Remove references to WebNetscapePluginStream.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebNetscapePluginEmbeddedView.h:
+
+2008-09-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=20860
+          REGRESSION: Crash in RenderLayer::hasVisibleContent() loading wavy.com
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _getVisibleRect:]): Changed to check if the RenderPart has
+        layout before accessing it, instead of checking if the frame inside it
+        has layout.
+
+2008-09-15  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler, Beth Dakin
+
+        Support strings for AXLists
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory AXDefinitionListTermText]):
+        (-[WebViewFactory AXDefinitionListDefinitionText]):
+
+2008-09-15  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mitz.
+
+        Merge WebNetscapePluginStream into WebBaseNetscapePluginStream.
+
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream initWithFrameLoader:]):
+        (-[WebBaseNetscapePluginStream initWithRequest:plugin:notifyData:sendNotification:]):
+        (-[WebBaseNetscapePluginStream dealloc]):
+        (-[WebBaseNetscapePluginStream finalize]):
+        (-[WebBaseNetscapePluginStream start]):
+        (-[WebBaseNetscapePluginStream stop]):
+        (-[WebBaseNetscapePluginStream cancelLoadWithError:]):
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView pluginView:receivedResponse:]):
+        (-[WebBaseNetscapePluginView loadRequest:inTarget:withNotifyData:sendNotification:]):
+        * Plugins/WebNetscapePluginEmbeddedView.mm:
+        * Plugins/WebNetscapePluginStream.h: Removed.
+        * Plugins/WebNetscapePluginStream.mm: Removed.
+
 2008-09-15  John Sullivan  <sullivan@apple.com>
 
         Fixed <rdar://problem/6110941> Clicking the print button in PDF content does nothing

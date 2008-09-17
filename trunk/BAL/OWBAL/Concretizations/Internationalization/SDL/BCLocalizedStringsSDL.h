@@ -93,6 +93,9 @@ namespace OWBAL {
     String AXImageMapText();
     String AXHeadingText();
 
+    String AXDefinitionListTermText();
+    String AXDefinitionListDefinitionText();
+
     String AXButtonActionVerb();
     String AXRadioButtonActionVerb();
     String AXTextFieldActionVerb();

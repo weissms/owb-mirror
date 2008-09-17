@@ -1,3 +1,131 @@
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Add flag to disable running sample on tests that timeout.
+
+        * Scripts/run-webkit-tests:
+
+2008-09-16  Adam Roben  <aroben@apple.com>
+
+        Windows build fix after r36511
+
+        Update for rename of layoutTestController to gLayoutTestController.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        * DumpRenderTree/win/EditingDelegate.cpp:
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        * DumpRenderTree/win/ResourceLoadDelegate.cpp:
+        * DumpRenderTree/win/UIDelegate.cpp:
+
+2008-09-16  Adam Roben  <aroben@apple.com>
+
+        Add a script to print out the dependency tree of a Visual Studio
+        solution file
+
+        * Scripts/print-msvc-project-dependencies: Added.
+
+2008-09-16  Mark Rowe  <mrowe@apple.com>
+
+        Fix the build.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (notifyDoneCallback): Call fprintf in a safer manner.
+
+2008-09-16  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+        
+        Protect against tests that call layoutTestController.notifyDone() 
+        more than once, which would lead to memory corruption, by nulling
+        out the LayoutTestController on the JSObjectRef on destruction. Also
+        add a finalize callback on the class so that if the LTC outlives
+        the JSObjectRef, the JSObjectRef backpointer on the LTC can be
+        nulled out.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20875
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (notifyDoneCallback):
+        (layoutTestControllerObjectFinalize):
+        (LayoutTestController::makeWindowObject):
+        (LayoutTestController::getJSClass):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::~LayoutTestController):
+
+2008-09-16  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Step 1 patch: rename global variable for clarity.
+        https://bugs.webkit.org/show_bug.cgi?id=20875
+
+        * DumpRenderTree/DumpRenderTree.h:
+        * DumpRenderTree/cg/PixelDumpSupportCG.cpp:
+        (dumpWebViewAsPixelsAndCompareWithExpected):
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dumpFramesAsText):
+        (dump):
+        (runTest):
+        (processWork):
+        (webViewLoadFinished):
+        (webViewWindowObjectCleared):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (allocateGlobalControllers):
+        (dumpFrameScrollPosition):
+        (dumpFramesAsText):
+        (methodNameStringForFailedTest):
+        (dump):
+        (runTest):
+        * DumpRenderTree/mac/DumpRenderTreeMac.h:
+        * DumpRenderTree/mac/DumpRenderTreeWindow.mm:
+        * DumpRenderTree/mac/EditingDelegate.mm:
+        (-[EditingDelegate webView:shouldBeginEditingInDOMRange:]):
+        (-[EditingDelegate webView:shouldInsertNode:replacingDOMRange:givenAction:]):
+        (-[EditingDelegate webView:shouldInsertText:replacingDOMRange:givenAction:]):
+        (-[EditingDelegate webView:shouldChangeSelectedDOMRange:toDOMRange:affinity:stillSelecting:]):
+        (-[EditingDelegate webView:shouldApplyStyle:toElementsInDOMRange:]):
+        (-[EditingDelegate webView:shouldChangeTypingStyle:toStyle:]):
+        (-[EditingDelegate webViewDidBeginEditing:]):
+        (-[EditingDelegate webViewDidChange:]):
+        (-[EditingDelegate webViewDidEndEditing:]):
+        (-[EditingDelegate webViewDidChangeTypingStyle:]):
+        * DumpRenderTree/mac/FrameLoadDelegate.mm:
+        (-[FrameLoadDelegate processWork:]):
+        (-[FrameLoadDelegate webView:locationChangeDone:forDataSource:]):
+        (-[FrameLoadDelegate webView:didStartProvisionalLoadForFrame:]):
+        (-[FrameLoadDelegate webView:didCommitLoadForFrame:]):
+        (-[FrameLoadDelegate webView:didFinishLoadForFrame:]):
+        (-[FrameLoadDelegate webView:didClearWindowObject:forFrame:]):
+        (-[FrameLoadDelegate webView:didReceiveTitle:forFrame:]):
+        * DumpRenderTree/mac/ResourceLoadDelegate.mm:
+        (-[ResourceLoadDelegate webView:identifierForInitialRequest:fromDataSource:]):
+        * DumpRenderTree/mac/UIDelegate.mm:
+        (-[UIDelegate webView:dragImage:at:offset:event:pasteboard:source:slideBack:forView:]):
+        (-[UIDelegate webViewFocus:]):
+        (-[UIDelegate webViewUnfocus:]):
+        (-[UIDelegate webView:createWebViewWithRequest:]):
+        (-[UIDelegate webViewClose:]):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (dumpFrameScrollPosition):
+        (dumpFramesAsText):
+        (dump):
+        (runTest):
+
+2008-09-15  Alice Liu  <alice.liu@apple.com>
+
+        A change needed to make PPC bots pass accessibility/table-cell-spans.html layout test
+
+        Reviewed by Stephanie Lewis.
+
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        Calling -[NSValue rangeValue] on nil object was returning bogus results on PPC, 
+        but not Intel.  Add a check for nil before calling. 
+        (AccessibilityUIElement::rowIndexRange):
+        (AccessibilityUIElement::columnIndexRange):
+
 2008-09-15  Mark Rowe  <mrowe@apple.com>
 
         Build fix.

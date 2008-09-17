@@ -370,4 +370,17 @@ IntPoint Widget::convertToScreenCoordinate(NSView *view, const IntPoint& point)
     return globalPoint(conversionPoint, [view window]);
 }
 
+IntPoint Widget::convertFromContainingWindow(const IntPoint& p) const
+{
+    // FIXME: Implement.
+    return p;
 }
+
+IntRect Widget::convertToContainingWindow(const IntRect& r) const
+{
+    // FIXME: Implement.
+    return r;
+}
+
+}
+
