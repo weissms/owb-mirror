@@ -31,7 +31,7 @@
 
 #include "GraphicsContext.h"
 #include "SimpleFontData.h"
-#include "SDL.h"
+#include "cairo.h"
 #include <proto/diskfont.h>
 #include <diskfont/diskfonttag.h>
 
@@ -40,7 +40,6 @@ namespace WKAL {
 #define IS_HIGH_SURROGATE(u)  ((UChar)(u) >= (UChar)0xd800 && (UChar)(u) <= (UChar)0xdbff)
 #define IS_LOW_SURROGATE(u)  ((UChar)(u) >= (UChar)0xdc00 && (UChar)(u) <= (UChar)0xdfff)
 
-extern SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel);
 
 
 
@@ -77,13 +76,14 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     penColor.getRGBA(red, green, blue, alpha);
 
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
-    double offset = point.x();
     struct OutlineFont *face = font->m_font.m_face;
     uint32 ysize = font->m_font.m_size + 0.5;
     IntRect dstRect;
     IntPoint aPoint;
-    uint32 rgb = (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
     uint32 penalpha = penColor.alpha();
+    uint32 penr = penColor.red();
+    uint32 peng = penColor.green();
+    uint32 penb = penColor.blue();
 
     double dimagewidth = 0;
     int32 imagewidth;
@@ -107,7 +107,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     if (!glyphRGBABuffer)
         return;
 
-    memset(&((*glyphRGBABuffer)[0]), 0, imagewidth * height() * 4);
+    glyphRGBABuffer->fill(0);
 
     double offsetinimg = 0;
     uint32 shiftleft = 0;
@@ -224,7 +224,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                && ((offsetinimg + 0.5) + imgoffsetx + x >= 0)) {
                  uint32 a = penalpha * glyph->glm_BitMap[top_mod_left + x] / 255;
                  if (a)
-                    (*glyphRGBABuffer)[(imgoffsety + y) * imagewidth + (offsetinimg + 0.5) + imgoffsetx + x] = (a << 24) | rgb;
+                    (*glyphRGBABuffer)[(imgoffsety + y) * imagewidth + (offsetinimg + 0.5) + imgoffsetx + x] = (a << 24) | ((penr * a / 255) << 16) | ((peng * a / 255) << 8) | (penb * a / 255);
               }
         }
 
@@ -233,35 +233,19 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
         IDiskfont->EReleaseInfo(&curface->olf_EEngine, OT_GlyphMap8Bit, glyph, TAG_END);
     }
 
-    SDL_Surface* img;
-    Uint32 rmask, gmask, bmask, amask;
+    cairo_surface_t *surface = cairo_image_surface_create_for_data((unsigned char *)glyphRGBABuffer->data(), CAIRO_FORMAT_ARGB32, imagewidth, height(), imagewidth * 4);
+    if (surface) {
+        cairo_t* cr = context->platformContext();
+        cairo_save(cr);
 
-    rmask = 0x00ff0000;
-    gmask = 0x0000ff00;
-    bmask = 0x000000ff;
-    amask = 0xff000000;
-        
-    img = SDL_CreateRGBSurfaceFrom((void*)glyphRGBABuffer->data(), imagewidth, height(),
-                                    32, imagewidth * 4, rmask, gmask, bmask, amask);
-    SDL_Rect sdlSrc, sdlDest;
-    sdlDest.x = static_cast<int>(offset) - shiftleft + context->origin().width();
-    sdlDest.y = static_cast<int>(point.y() - ascent()) + context->origin().height();
-    sdlSrc.w = imagewidth;
-    sdlSrc.h = height();
-    sdlSrc.x = 0;
-    sdlSrc.y = 0;
+        cairo_set_source_surface(cr, surface, point.x() - shiftleft, point.y() - ascent());
+        cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+        cairo_paint(cr);
 
-
-    SDL_Surface *surface = context->platformContext();
-    if (context->transparencyLayer() == 1.0)
-        SDL_BlitSurface(img, &sdlSrc, surface, &sdlDest);
-    else {
-        SDL_Surface *surfaceWithAlpha = applyTransparency(img, static_cast<int> (context->transparencyLayer() * 255));
-        SDL_BlitSurface(surfaceWithAlpha, &sdlSrc, surface, &sdlDest);
-        SDL_FreeSurface(surfaceWithAlpha);
+        cairo_restore(cr);
+        cairo_surface_destroy(surface);
     }
 
-    SDL_FreeSurface(img);
     delete glyphRGBABuffer;
 }
 

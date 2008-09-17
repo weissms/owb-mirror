@@ -66,34 +66,30 @@ using std::min;
 namespace WKAL {
 
 #if PLATFORM(AMIGAOS4)
-void updateView(BalWidget *widget, SDL_Rect sdlRect)
+void updateView(BalWidget *widget, IntRect rect)
 {
-    if (!widget)
+    if (!widget || !widget->window)
         return;
 
-    if (sdlRect.x >= widget->surface->w || sdlRect.y >= widget->surface->h)
+    int x = rect.x();
+    int y = rect.y();
+    int width = rect.width();
+    int height = rect.height();
+
+    if (width <= 0 || height <= 0)
         return;
 
-    sdlRect.x = max(sdlRect.x, (Sint16)0);
-    sdlRect.y = max(sdlRect.y, (Sint16)0);
-
-    sdlRect.w = min((int)sdlRect.w, widget->surface->w - sdlRect.x);
-    sdlRect.h = min((int)sdlRect.h, widget->surface->h - sdlRect.y);
-
-    if (sdlRect.w <= 0 || sdlRect.h <= 0)
-        return;
-
-    IGraphics->BltBitMapTags(BLITA_Source,         widget->surface->pixels,
+    IGraphics->BltBitMapTags(BLITA_Source,         cairo_image_surface_get_data(widget->surface),
                              BLITA_SrcType,        BLITT_ARGB32,
-                             BLITA_SrcBytesPerRow, widget->surface->pitch,
-                             BLITA_SrcX,           sdlRect.x,
-                             BLITA_SrcY,           sdlRect.y,
-                             BLITA_Width,          sdlRect.w,
-                             BLITA_Height,         sdlRect.h,
+                             BLITA_SrcBytesPerRow, cairo_image_surface_get_stride(widget->surface),
+                             BLITA_SrcX,           x,
+                             BLITA_SrcY,           y,
+                             BLITA_Width,          width,
+                             BLITA_Height,         height,
                              BLITA_Dest,           widget->window->RPort,
                              BLITA_DestType,       BLITT_RASTPORT,
-                             BLITA_DestX,          sdlRect.x + widget->offsetx,
-                             BLITA_DestY,          sdlRect.y + widget->offsety,
+                             BLITA_DestX,          x + widget->offsetx,
+                             BLITA_DestY,          y + widget->offsety,
                              TAG_DONE);
 }
 #else
@@ -853,6 +849,74 @@ IntPoint ScrollView::convertSelfToChild(const Widget* child, const IntPoint& poi
 
 void ScrollView::paint(GraphicsContext* context, const IntRect& rect)
 {
+#if PLATFORM(AMIGAOS4)
+    // FIXME: This code is here so we don't have to fork FrameView.h/.cpp.
+    // In the end, FrameView should just merge with ScrollView.
+    ASSERT(isFrameView());
+
+    if (context->paintingDisabled())
+        return;
+
+    IntRect documentDirtyRect = rect;
+    documentDirtyRect.intersect(frameGeometry());
+
+    context->save();
+
+    context->translate(x(), y());
+    documentDirtyRect.move(-x(), -y());
+
+    context->translate(-contentsX(), -contentsY());
+    documentDirtyRect.move(contentsX(), contentsY());
+
+    context->clip(enclosingIntRect(visibleContentRect()));
+    static_cast<const FrameView*>(this)->frame()->paint(context, documentDirtyRect);
+    context->restore();
+
+    // Now paint the scrollbars.
+    if (!m_data->scrollbarsSuppressed && (m_data->hBar || m_data->vBar)) {
+        context->save();
+        IntRect scrollViewDirtyRect = rect;
+        scrollViewDirtyRect.intersect(frameGeometry());
+        context->translate(x(), y());
+        scrollViewDirtyRect.move(-x(), -y());
+        if (m_data->hBar)
+            m_data->hBar->paint(context, scrollViewDirtyRect);
+        if (m_data->vBar)
+            m_data->vBar->paint(context, scrollViewDirtyRect);
+
+        /*
+         * FIXME: TODO: Check if that works with RTL
+         */
+        // Fill the scroll corner with white.
+        IntRect hCorner;
+        if (m_data->hBar && width() - m_data->hBar->width() > 0) {
+            hCorner = IntRect(m_data->hBar->width(),
+                              height() - m_data->hBar->height(),
+                              width() - m_data->hBar->width(),
+                              m_data->hBar->height());
+            if (hCorner.intersects(scrollViewDirtyRect))
+                context->fillRect(hCorner, Color::white);
+        }
+
+        if (m_data->vBar && height() - m_data->vBar->height() > 0) {
+            IntRect vCorner(width() - m_data->vBar->width(),
+                            m_data->vBar->height(),
+                            m_data->vBar->width(),
+                            height() - m_data->vBar->height());
+            if (vCorner != hCorner && vCorner.intersects(scrollViewDirtyRect))
+                context->fillRect(vCorner, Color::white);
+        }
+
+        context->restore();
+    }
+
+    if (!parent()) {
+        IntRect r(rect);
+        r.intersect(frameGeometry());
+        if(!r.isEmpty())
+            updateView(containingWindow(), r);
+    }
+#else
     //printf("paint rect %d %d %d %d\n", rect.x(), rect.y(), rect.width(), rect.height());
     ASSERT(isFrameView());
 
@@ -923,6 +987,7 @@ void ScrollView::paint(GraphicsContext* context, const IntRect& rect)
     if(!r.isEmpty())
         updateView(containingWindow(), r);
     
+#endif
 }
 
 /*

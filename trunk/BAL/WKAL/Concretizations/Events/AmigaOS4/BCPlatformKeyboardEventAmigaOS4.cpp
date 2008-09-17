@@ -33,7 +33,6 @@
 #include "KeyboardCodes.h"
 #include "BALBase.h"
 #include "TextEncoding.h"
-#include "SDL.h"
 #include "Unicode.h"
 #include "CString.h"
 #include <proto/locale.h>

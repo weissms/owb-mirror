@@ -31,15 +31,21 @@
 
 DS_INIT_DEEPSEE_FRAMEWORK();
 
+#include "config.h"
 #include "BCGraphicsContext.h"
 #include <Api/WebFrame.h>
 #include <Api/WebView.h>
+#include "CString.h"
 #include "Page.h"
+#include "Editor.h"
+#include "FocusController.h"
 #include "Frame.h"
 #include "FrameView.h"
-#include "SDL.h"
-#include "Timer.h"
+#include "cairo.h"
+#include "cairo-amigaos.h"
+#include "SelectionController.h"
 #include "SharedTimer.h"
+#include "Timer.h"
 #include "MainThread.h"
 #include <unistd.h>
 
@@ -47,9 +53,13 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 #include <FrameLoader.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
-#include <proto/utility.h>
+#include <proto/graphics.h>
 #include <proto/icon.h>
+#include <proto/iffparse.h>
 #include <proto/intuition.h>
+#include <proto/utility.h>
+#include <proto/wb.h>
+#include <datatypes/textclass.h>
 #include <intuition/gui.h>
 #include <intuition/icclass.h>
 #include <libraries/keymap.h>
@@ -72,6 +82,16 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 #undef String
 #include <cstdio>
 
+#ifndef ID_CSET
+    #define ID_CSET MAKE_ID('C','S','E','T')
+#endif
+
+struct IFFCodeSet
+{
+    uint32 CodeSet;
+    uint32 Reserved[7];
+};
+
 using namespace WebCore;
 using std::max;
 
@@ -85,7 +105,8 @@ enum gadgetIDs
     GID_URL,
     GID_Search,
     GID_VBar,
-    GID_HBar
+    GID_HBar,
+    GID_Iconify
 };
 
 enum menuIDs
@@ -99,21 +120,41 @@ enum menuIDs
     MID_TextLarger,
     MID_TextReset,
     MID_TextSmaller,
-    MID_Redraw
+    MID_Redraw,
+    MID_Iconify,
+    MID_Cut,
+    MID_Copy,
+    MID_Paste,
+    MID_SelectAll,
+    MID_CopyHTML,
+    MID_CopyLatin1
 };
 
 AmigaConfig amigaConfig;
-static MsgPort *sharedPort;
-static MsgPort *timePort;
-static TimeRequest *timeReq;
-static BalWidget *firstWindow;
+MsgPort *sharedPort, *appIconPort;
+BalWidget *firstWindow;
+DiskObject *icon;
+static bool getInnerSize = false;
+Task *mainTask;
+uint32 sharedTimerSignal;
+static int32 sharedTimerSignalBit;
 
 static NewMenu Menus[] =
 {
     Title((STRPTR)"Project"),
         Item((STRPTR)"New window",   (STRPTR)"N", MID_NewWindow),
         Item((STRPTR)"Close window", (STRPTR)"K", MID_Close),
+        ItemBar,
+        Item((STRPTR)"Iconify",      (STRPTR)"I", MID_Iconify),
+        ItemBar,
         Item((STRPTR)"Quit",         (STRPTR)"Q", MID_Quit),
+    Title((STRPTR)"Edit"),
+        Item((STRPTR)"Cut",          (STRPTR)"X", MID_Cut),
+        Item((STRPTR)"Copy",         (STRPTR)"C", MID_Copy),
+//        Item((STRPTR)"Copy as HTML",        NULL, MID_CopyHTML),
+        Item((STRPTR)"Copy as ISO-8859-1",  NULL, MID_CopyLatin1),
+        Item((STRPTR)"Paste",        (STRPTR)"V", MID_Paste),
+        Item((STRPTR)"Select all",   (STRPTR)"A", MID_SelectAll),
     Title((STRPTR)"View"),
         Item((STRPTR)"Zoom in",      (STRPTR)"+", MID_ZoomIn),
         Item((STRPTR)"Zoom reset",   (STRPTR)"0", MID_ZoomReset),
@@ -127,12 +168,12 @@ static NewMenu Menus[] =
     EndMenu
 };
 
-#define FULLMENUNUM_ZoomIn      FULLMENUNUM(1, 0, 0)
-#define FULLMENUNUM_ZoomReset   FULLMENUNUM(1, 1, 0)
-#define FULLMENUNUM_ZoomOut     FULLMENUNUM(1, 2, 0)
-#define FULLMENUNUM_TextLarger  FULLMENUNUM(1, 4, 0)
-#define FULLMENUNUM_TextReset   FULLMENUNUM(1, 5, 0)
-#define FULLMENUNUM_TextSmaller FULLMENUNUM(1, 6, 0)
+#define FULLMENUNUM_ZoomIn      FULLMENUNUM(2, 0, 0)
+#define FULLMENUNUM_ZoomReset   FULLMENUNUM(2, 1, 0)
+#define FULLMENUNUM_ZoomOut     FULLMENUNUM(2, 2, 0)
+#define FULLMENUNUM_TextLarger  FULLMENUNUM(2, 4, 0)
+#define FULLMENUNUM_TextReset   FULLMENUNUM(2, 5, 0)
+#define FULLMENUNUM_TextSmaller FULLMENUNUM(2, 6, 0)
 
 
 
@@ -168,7 +209,7 @@ static void initAmigaConfig(void)
             gotprogname = true;
         }
 
-        DiskObject *icon = gotprogname ? IIcon->GetDiskObject(progname) : NULL;
+        icon = gotprogname ? IIcon->GetDiskObject(progname) : NULL;
         if (icon) {
             STRPTR found;
 
@@ -223,50 +264,61 @@ static void initAmigaConfig(void)
             if (found)
                 amigaConfig.windowheight = atoi(found);
 
+
             amigaConfig.height      = max(amigaConfig.height, 400);
             amigaConfig.width       = max(amigaConfig.width, 640);
             amigaConfig.minFontSize = max(amigaConfig.minFontSize, 5);
             amigaConfig.fontXDPI    = max(amigaConfig.fontXDPI,10);
             amigaConfig.fontYDPI    = max(amigaConfig.fontYDPI,10);
-            IIcon->FreeDiskObject(icon);
+
+            icon->do_Type = 0;
+
+            if (!amigaConfig.windowwidth || !amigaConfig.windowheight)
+                getInnerSize = true;
         }
     }
 }
 
 static bool initTimer(void)
 {
-    timePort = (MsgPort *)IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE);
-    if (!timePort)
+    mainTask = IExec->FindTask(NULL);
+    sharedTimerSignalBit = IExec->AllocSignal(-1);
+    if (-1 == sharedTimerSignalBit)
         return false;
 
-    timeReq = (TimeRequest *)IExec->AllocSysObjectTags(ASOT_MESSAGE,
-                                                       ASOMSG_Size, sizeof(TimeRequest),
-                                                       ASOMSG_ReplyPort, timePort,
-                                                       TAG_DONE);
-    if (!timeReq) {
-        IExec->FreeSysObject(ASOT_PORT, timePort);
-        return false;
-    }
+    sharedTimerSignal = 1 << sharedTimerSignalBit;
 
-    if (IOERR_SUCCESS != IExec->OpenDevice(TIMERNAME, UNIT_MICROHZ, &timeReq->Request, 0)) {
-        IExec->FreeSysObject(ASOT_MESSAGE, timeReq);
-        IExec->FreeSysObject(ASOT_PORT, timePort);
-        return false;
-    }
-
-    timeReq->Request.io_Command = TR_ADDREQUEST;
-    timeReq->Time.Seconds       = 0;
-    timeReq->Time.Microseconds  = 1000000/50;
-    IExec->SendIO(&timeReq->Request);
     return true;
 }
 
 static void cleanupTimer(void)
 {
-    IExec->WaitIO(&timeReq->Request);
-    IExec->CloseDevice(&timeReq->Request);
-    IExec->FreeSysObject(ASOT_MESSAGE, timeReq);
-    IExec->FreeSysObject(ASOT_PORT, timePort);
+    IExec->FreeSignal(sharedTimerSignalBit);
+}
+
+static void closeAmigaWindowWithoutSurface(BalWidget *owbwindow)
+{
+    if (owbwindow->window->MenuStrip) {
+        Menu *menustrip = owbwindow->window->MenuStrip;
+        IIntuition->ClearMenuStrip(owbwindow->window);
+        IGadTools->FreeMenus(menustrip);
+    }
+    IIntuition->CloseWindow(owbwindow->window);
+    owbwindow->window = 0;
+    IIntuition->DisposeObject(owbwindow->gad_vbar);
+    owbwindow->gad_vbar = 0;
+    IIntuition->DisposeObject(owbwindow->gad_hbar);
+    owbwindow->gad_hbar = 0;
+    IIntuition->DisposeObject(owbwindow->gad_toolbar);
+    owbwindow->gad_toolbar = 0;
+    IIntuition->DisposeObject(owbwindow->img_iconify);
+    owbwindow->img_iconify = 0;
+    IIntuition->DisposeObject(owbwindow->gad_iconify);
+    owbwindow->gad_iconify = 0;
+    if (owbwindow->backfill_hook) {
+        IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
+        owbwindow->backfill_hook = 0;
+    }
 }
 
 void closeAmigaWindow(BalWidget *owbwindow)
@@ -274,19 +326,18 @@ void closeAmigaWindow(BalWidget *owbwindow)
     if (!owbwindow)
         return;
 
-    if (owbwindow->window->MenuStrip) {
-        Menu *menustrip = owbwindow->window->MenuStrip;
-        IIntuition->ClearMenuStrip(owbwindow->window);
-        IGadTools->FreeMenus(menustrip);
-    }
-    IIntuition->CloseWindow(owbwindow->window);
-    IIntuition->DisposeObject(owbwindow->gad_vbar);
-    IIntuition->DisposeObject(owbwindow->gad_hbar);
-    IIntuition->DisposeObject(owbwindow->gad_toolbar);
-    if (owbwindow->backfill_hook)
-        IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
+    if (owbwindow->window)
+        closeAmigaWindowWithoutSurface(owbwindow);
+
+    if (owbwindow->appicon)
+        IWorkbench->RemoveAppIcon(owbwindow->appicon);
+
+    if (owbwindow->cr)
+        cairo_destroy(owbwindow->cr);
+
     if (owbwindow->surface)
-        SDL_FreeSurface(owbwindow->surface);
+        cairo_surface_destroy(owbwindow->surface);
+
     if (firstWindow == owbwindow)
         firstWindow = owbwindow->next;
     else {
@@ -296,15 +347,13 @@ void closeAmigaWindow(BalWidget *owbwindow)
         if (window)
             window->next = owbwindow->next;
     }
+
     delete owbwindow->webView;
     free(owbwindow);
 }
 
-BalWidget *createAmigaWindow(WebView *webView)
+static bool openAmigaWindow(BalWidget *owbwindow)
 {
-    if (!webView)
-        return 0;
-
     int w = amigaConfig.width;
     int h = amigaConfig.height;
     int windowX = amigaConfig.windowleft;
@@ -312,11 +361,6 @@ BalWidget *createAmigaWindow(WebView *webView)
     int windowW = amigaConfig.windowwidth;
     int windowH = amigaConfig.windowheight;
 
-    BalWidget *owbwindow = (BalWidget *)calloc(sizeof (BalWidget), 1);
-    if(!owbwindow)
-        return 0;
-
-    owbwindow->webView = webView;
     owbwindow->window = IIntuition->OpenWindowTags(NULL,
                                                    WA_Left, windowX,
                                                    windowY ? WA_Top : TAG_IGNORE, windowY,
@@ -350,12 +394,11 @@ BalWidget *createAmigaWindow(WebView *webView)
                                                            | IDCMP_EXTENDEDMOUSE
                                                            | IDCMP_IDCMPUPDATE
                                                            | IDCMP_NEWSIZE
-                                                           | IDCMP_MENUPICK,
+                                                           | IDCMP_MENUPICK
+                                                           | IDCMP_GADGETUP,
                                                    TAG_DONE);
-    if (!owbwindow->window) {
-        free(owbwindow);
-        return 0;
-    }
+    if (!owbwindow->window)
+        return false;
 
     owbwindow->window->UserData = (BYTE *)owbwindow;
 
@@ -460,7 +503,7 @@ BalWidget *createAmigaWindow(WebView *webView)
                                                ButtonEnd,
                                                CHILD_WeightedWidth, 0,
                                                LAYOUT_AddChild, owbwindow->gad_url = (Gadget *)StringObject,
-                                                   STRINGA_TextVal, "",
+                                                   STRINGA_TextVal, owbwindow->url,
                                                    STRINGA_MaxChars, 2000,
                                                    GA_ID, GID_URL,
                                                    GA_RelVerify, TRUE,
@@ -469,8 +512,8 @@ BalWidget *createAmigaWindow(WebView *webView)
                                                CHILD_Label, LabelObject,
                                                    LABEL_DrawInfo, drinfo,
                                                LabelEnd,
-                                               LAYOUT_AddChild, StringObject,
-                                                   STRINGA_TextVal, "",
+                                               LAYOUT_AddChild, owbwindow->gad_search = (Gadget *)StringObject,
+                                                   STRINGA_TextVal, owbwindow->search,
                                                    STRINGA_MaxChars, 500,
                                                    GA_ID, GID_Search,
                                                    GA_RelVerify, TRUE,
@@ -524,6 +567,26 @@ BalWidget *createAmigaWindow(WebView *webView)
                                                           ICA_TARGET, ICTARGET_IDCMP,
                                                           TAG_END);
 
+    if (owbwindow->gad_toolbar && icon) {
+        uint32 img_size = (owbwindow->window->WScreen->Flags & SCREENHIRES) ? SYSISIZE_MEDRES : SYSISIZE_LOWRES;
+        uint32 img_height = owbwindow->window->WScreen->Font->ta_YSize + owbwindow->window->WScreen->WBorTop + 1;
+
+        owbwindow->img_iconify = IIntuition->NewObject(NULL, "sysiclass",
+                                                       SYSIA_Which, ICONIFYIMAGE,
+                                                       SYSIA_Size, img_size,
+                                                       SYSIA_DrawInfo, drinfo,
+                                                       IA_Height, img_height,
+                                                       TAG_DONE);
+        if (owbwindow->img_iconify)
+            owbwindow->gad_iconify = (Gadget *)IIntuition->NewObject(NULL, "buttongclass",
+                                                                     GA_Image, owbwindow->img_iconify,
+                                                                     GA_ID, GID_Iconify,
+                                                                     GA_RelVerify, TRUE,
+                                                                     GA_Titlebar, TRUE,
+                                                                     GA_RelRight, 0,
+                                                                     TAG_DONE);
+    }
+
     IIntuition->FreeScreenDrawInfo(owbwindow->window->WScreen, drinfo);
     IDOS->SetProcWindow(old_proc_window);
 
@@ -538,8 +601,7 @@ BalWidget *createAmigaWindow(WebView *webView)
         IIntuition->DisposeObject(owbwindow->gad_hbar);
         IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
         IIntuition->CloseWindow(owbwindow->window);
-        free(owbwindow);
-        return 0;
+        return false;
     }
 
     LayoutLimits layoutlimits;
@@ -552,6 +614,8 @@ BalWidget *createAmigaWindow(WebView *webView)
         IIntuition->AddGadget(owbwindow->window, owbwindow->gad_vbar, (uint16)~0);
     if (owbwindow->gad_hbar)
         IIntuition->AddGadget(owbwindow->window, owbwindow->gad_hbar, (uint16)~0);
+    if (owbwindow->gad_iconify)
+        IIntuition->AddGadget(owbwindow->window, owbwindow->gad_iconify, (uint16)~0);
     IIntuition->RefreshGList(owbwindow->gad_toolbar, owbwindow->window, NULL, -1);
 
     IIntuition->SetWindowAttrs(owbwindow->window, 
@@ -578,6 +642,34 @@ BalWidget *createAmigaWindow(WebView *webView)
         IGadTools->FreeVisualInfo(vi);
     }
 
+    if (windowW || windowH) {
+        IIntuition->GetWindowAttrs(owbwindow->window,
+                                   WA_InnerWidth,  &amigaConfig.width,
+                                   WA_InnerHeight, &amigaConfig.height,
+                                   TAG_DONE);
+        amigaConfig.height -= owbwindow->offsety - owbwindow->window->BorderTop;
+        amigaConfig.windowwidth = amigaConfig.windowheight = 0;
+    }
+
+    return true;
+}
+
+BalWidget *createAmigaWindow(WebView *webView)
+{
+    if (!webView)
+        return 0;
+
+    BalWidget *owbwindow = (BalWidget *)calloc(sizeof (BalWidget), 1);
+    if(!owbwindow)
+        return 0;
+
+    if (!openAmigaWindow(owbwindow)) {
+        free(owbwindow);
+        return 0;
+    }
+
+    owbwindow->webView = webView;
+
     if (!firstWindow)
         firstWindow = owbwindow;
     else {
@@ -587,36 +679,101 @@ BalWidget *createAmigaWindow(WebView *webView)
         window->next = owbwindow;
     }
 
-    IIntuition->GetWindowAttrs(owbwindow->window,
-                               WA_InnerWidth,  &amigaConfig.width,
-                               WA_InnerHeight, &amigaConfig.height,
-                               TAG_DONE);
-    amigaConfig.height -= owbwindow->offsety - owbwindow->window->BorderTop;
-
-    SDL_Surface* surface;
-    Uint32 rmask, gmask, bmask, amask;
-    rmask = 0x00ff0000;
-    gmask = 0x0000ff00;
-    bmask = 0x000000ff;
-    amask = 0xff000000;
-    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, amigaConfig.width, amigaConfig.height, 32,
-                                   rmask, gmask, bmask, amask);
-
-    if (!surface) {
+    owbwindow->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, amigaConfig.width, amigaConfig.height);
+    if (!owbwindow->surface) {
         closeAmigaWindow(owbwindow);
         return 0;
     }
 
-    owbwindow->surface = surface;
+    owbwindow->cr = cairo_create(owbwindow->surface);
+    if (!owbwindow->cr) {
+        closeAmigaWindow(owbwindow);
+        return 0;
+    }
+
     return owbwindow;
 }
 
-void waitEvent(void)
+static void iconifyWindow(BalWidget *owbwindow)
 {
+    if (!owbwindow->appicon) {
+        STRPTR text;
+        IIntuition->GetAttr(STRINGA_TextVal, owbwindow->gad_url, (uint32 *)(void *)&text);
+        strlcpy(owbwindow->url, text, sizeof(owbwindow->url));
+        IIntuition->GetAttr(STRINGA_TextVal, owbwindow->gad_search, (uint32 *)(void *)&text);
+        strlcpy(owbwindow->search, text, sizeof(owbwindow->search));
+
+        owbwindow->appicon = IWorkbench->AddAppIcon(0, (uint32)owbwindow,
+                                                    "OWB", appIconPort,
+                                                    0, icon, TAG_DONE);
+        if (owbwindow->appicon)
+            closeAmigaWindowWithoutSurface(owbwindow);
+    }
+}
+
+static void copyToClipboard(WebView* webView, bool html, bool latin1)
+{
+    Frame* frame = core(webView)->focusController()->focusedOrMainFrame();
+    if (!frame)
+        return;
+
+    IFFHandle *ih;
+
+    String selectedText;
+    if (html) {
+       SelectionController* controller = frame->selection();
+       if (controller)
+           selectedText = controller->toRange()->toHTML();
+    }
+    else
+       selectedText = frame->selectedText();
+
+    CString text = latin1 ? selectedText.latin1() : selectedText.utf8();
+    const char *data = text.data();
+    size_t len = text.length();
+
+    bool copied = false;
+
+    if (data && len && (ih = IIFFParse->AllocIFF())) {
+        if (ClipboardHandle *ch = IIFFParse->OpenClipboard(PRIMARY_CLIP)) {
+            ih->iff_Stream = (uint32)ch;
+            IIFFParse->InitIFFasClip(ih);
+
+            if (0 == IIFFParse->OpenIFF(ih, IFFF_WRITE)) {
+                if (0 == IIFFParse->PushChunk(ih, ID_FTXT, ID_FORM, IFFSIZE_UNKNOWN)) {
+                    const IFFCodeSet cs = { latin1 ? 4 : 106, { 0, 0, 0, 0, 0, 0, 0 } };
+
+                    if (0 == IIFFParse->PushChunk(ih, 0, ID_CSET, sizeof(cs))
+                     && IIFFParse->WriteChunkBytes(ih, &cs, sizeof(cs)) > 0
+                     && 0 == IIFFParse->PopChunk(ih)
+                     && 0 == IIFFParse->PushChunk(ih, 0, ID_CHRS, IFFSIZE_UNKNOWN)) {
+                        if (IIFFParse->WriteChunkBytes(ih, data, len) > 0)
+                            copied = true;
+                        IIFFParse->PopChunk(ih);
+                    }
+                    IIFFParse->PopChunk(ih);
+                }
+                IIFFParse->CloseIFF(ih);
+            }
+            IIFFParse->CloseClipboard(ch);
+        }
+        IIFFParse->FreeIFF(ih);
+    }
+
+    if (copied)
+        frame->selection()->setSelection(Selection(frame->selection()->end(), SEL_DEFAULT_AFFINITY), false, false, true);
+    else
+        IIntuition->DisplayBeep(NULL);
+}
+
+static void waitEvent(void)
+{
+    uint32 signalSet = (1L << sharedPort->mp_SigBit) | sharedTimerSignal | (1L << appIconPort->mp_SigBit);
+
     while (firstWindow) {
         IntuiMessage *im;
 
-        IExec->Wait((1L << sharedPort->mp_SigBit) | (1L << timePort->mp_SigBit));
+        uint32 signals = IExec->Wait(signalSet);
 
         while ((im = (IntuiMessage *)IExec->GetMsg(sharedPort))) {
             BalWidget *owbwindow = (BalWidget *)im->IDCMPWindow->UserData;
@@ -638,6 +795,7 @@ void waitEvent(void)
                     case IECODE_LBUTTON:
                     case IECODE_RBUTTON:
                     case IECODE_MBUTTON:
+                    {
                         IntuiMessage im2 = *im;
                         im2.MouseX -= owbwindow->offsetx;
                         im2.MouseY -= owbwindow->offsety;
@@ -645,6 +803,17 @@ void waitEvent(void)
                             webView->onMouseButtonUp(im2);
                         else
                             webView->onMouseButtonDown(im2);
+                    }
+                    break;
+
+                    case IECODE_4TH_BUTTON:
+                        webView->goBack();
+                        owbwindow->expose = true;
+                    break;
+
+                    case IECODE_5TH_BUTTON:
+                        webView->goForward();
+                        owbwindow->expose = true;
                     break;
                     }
                 break;
@@ -694,24 +863,47 @@ void waitEvent(void)
 
                 case IDCMP_NEWSIZE:
                 {
-                    uint32 width = 800, height = 600;
+                    int32 width = 800, height = 600;
                     IIntuition->GetWindowAttrs(owbwindow->window,
                                                WA_InnerWidth,  &width,
                                                WA_InnerHeight, &height,
                                                TAG_DONE);
                     height -= owbwindow->offsety - owbwindow->window->BorderTop;
 
-                    SDL_FreeSurface(owbwindow->surface);
-                    Uint32 rmask, gmask, bmask, amask;
-                    rmask = 0x00ff0000;
-                    gmask = 0x0000ff00;
-                    bmask = 0x000000ff;
-                    amask = 0xff000000;
-                    owbwindow->surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
-                                                              rmask, gmask, bmask, amask);
+                    if (getInnerSize) {
+                        amigaConfig.width = width;
+                        amigaConfig.height = height;
+                        getInnerSize = false;
+                    }
 
-                    AmigaOWBResizeEvent re = {width, height};
-                    webView->onResize(re);
+                    Frame* frame = core(webView->mainFrame());
+                    if (!frame || frame->view()->visibleWidth() != width || frame->view()->visibleHeight() != height) {
+                        cairo_surface_t *newsurface;
+                        cairo_t *newcr = 0;
+
+                        newsurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+                        if (newsurface) {
+                            newcr = cairo_create(newsurface);
+                            if (!newcr)
+                                cairo_surface_destroy(newsurface);
+                        }
+
+                        if (newcr) {
+                            cairo_destroy(owbwindow->cr);
+                            cairo_surface_destroy(owbwindow->surface);
+
+                            owbwindow->cr = newcr;
+                            owbwindow->surface = newsurface;
+
+                            AmigaOWBResizeEvent re = {width, height};
+                            webView->onResize(re);
+                        }
+                    }
+
+                    if (frame && frame->view() && frame->view()->visibleWidth() == width && frame->view()->visibleHeight() == height) {
+                        webView->addToDirtyRegion(IntRect(0, 0, width, height));
+                        owbwindow->expose = true;
+                    }
                 }
                 break;
 
@@ -892,9 +1084,41 @@ void waitEvent(void)
                             }
                         }
                         break;
+
+                        case MID_Iconify:
+                            IExec->ReplyMsg(&im->ExecMessage);
+                            iconifyWindow(owbwindow);
+                            continue;
+                        break;
+
+                        case MID_Cut:
+                            webView->cut();
+                        break;
+
+                        case MID_Copy:
+                        case MID_CopyHTML:
+                        case MID_CopyLatin1:
+                            copyToClipboard(webView, MID_CopyHTML == id, MID_CopyLatin1 == id);
+                        break;
+
+                        case MID_Paste:
+                            webView->paste();
+                        break;
+
+                        case MID_SelectAll:
+                            webView->executeCoreCommandByName("SelectAll", "");
+                        break;
                         }
                     }
                 }
+                break;
+
+                case IDCMP_GADGETUP:
+                    if (GID_Iconify == ((Gadget *)im->IAddress)->GadgetID) {
+                        IExec->ReplyMsg(&im->ExecMessage);
+                        iconifyWindow(owbwindow);
+                        continue;
+                    }
                 break;
 
                 default:
@@ -905,22 +1129,22 @@ void waitEvent(void)
             IExec->ReplyMsg(&im->ExecMessage);
         }
 
-        if (IExec->CheckIO(&timeReq->Request)) {
-            IExec->WaitIO(&timeReq->Request);
-
+        if (signals & sharedTimerSignal) {
             WTF::dispatchFunctionsFromMainThread();
             WebCore::fireTimerIfNeeded();
+        }
 
-            BalWidget *owbwindow = firstWindow;
-            while (owbwindow) {
-                WebView *webView = owbwindow->webView;
+        BalWidget *owbwindow = firstWindow;
+        while (owbwindow) {
+            WebView *webView = owbwindow->webView;
 
-                if (owbwindow->expose) {
-                    owbwindow->expose = false;
-                    SDL_ExposeEvent ev;
-                    webView->onExpose(ev);
-                }
-
+            if (owbwindow->expose) {
+                owbwindow->expose = false;
+                BalEventExpose ev = 0;
+                webView->onExpose(ev);
+                IExec->Signal(mainTask, 1L << sharedPort->mp_SigBit);
+            }
+            else if (owbwindow->window) {
                 uint32 olddisabled = FALSE, newdisabled;
                 IIntuition->GetAttr(GA_Disabled, owbwindow->gad_back, &olddisabled);
                 olddisabled = !!olddisabled;
@@ -1054,14 +1278,33 @@ void waitEvent(void)
                             IIntuition->OffMenu(owbwindow->window, FULLMENUNUM_TextSmaller);
                     }
                 }
-
-                owbwindow = owbwindow->next;
             }
 
-            timeReq->Time.Seconds      = 0;
-            timeReq->Time.Microseconds = 1000000/50;
-            IExec->SendIO(&timeReq->Request);
+            owbwindow = owbwindow->next;
         }
+
+        while (AppMessage* am = (AppMessage *)IExec->GetMsg(appIconPort)) {
+            if (0 == am->am_NumArgs) {
+                BalWidget *owbwindow = (BalWidget *)am->am_UserData;
+                WebView *webView = 0;
+
+                if (owbwindow)
+                    webView = owbwindow->webView;
+               
+                if (webView && owbwindow->appicon && openAmigaWindow(owbwindow)) {
+                    IWorkbench->RemoveAppIcon(owbwindow->appicon);
+                    owbwindow->appicon = NULL;
+
+                    Frame* frame = core(webView->mainFrame());
+                    if (frame->view()) {
+                        webView->addToDirtyRegion(IntRect(0, 0, frame->view()->visibleWidth(), frame->view()->visibleHeight()));
+                        owbwindow->expose = true;
+                    }
+                }
+            }
+
+            IExec->ReplyMsg((Message*)am);
+	}
     }
 }
 
@@ -1074,26 +1317,33 @@ int main (int argc, char* argv[])
 
     sharedPort = (MsgPort *)IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE);
     if (sharedPort) {
-        WebView *webView = WebView::createInstance();
-        BalWidget *owbwindow = createAmigaWindow(webView);
+        appIconPort = (MsgPort *)IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE);
+        if (appIconPort) {
+            WebView *webView = WebView::createInstance();
+            BalWidget *owbwindow = createAmigaWindow(webView);
 
-        if (owbwindow) {
-            IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
-            webView->initWithFrame(clientRect, "", "");
+            if (owbwindow) {
+                IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+                webView->initWithFrame(clientRect, "", "");
 
-            webView->setViewWindow(owbwindow);
+                webView->setViewWindow(owbwindow);
 
-            webView->mainFrame()->loadURL(argc > 1 ? argv[1] : amigaConfig.homeURL);
+                webView->mainFrame()->loadURL(argc > 1 ? argv[1] : amigaConfig.homeURL);
 
-            waitEvent();
+                waitEvent();
+            }
+            else
+                delete webView;
+
+            IExec->FreeSysObject(ASOT_PORT, appIconPort);
         }
-        else
-            delete webView;
-
         IExec->FreeSysObject(ASOT_PORT, sharedPort);
     }
 
     cleanupTimer();
+
+    if (icon)
+        IIcon->FreeDiskObject(icon);
 
     DS_INST_DUMP_CURRENT(IOcout);
     DS_CLEAN_DEEPSEE_FRAMEWORK();

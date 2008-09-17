@@ -37,10 +37,21 @@
 #include "Image.h"
 #include "Range.h"
 #include "RenderImage.h"
+#include "SelectionController.h"
 #include "KURL.h"
 #include "markup.h"
 #include "proto/iffparse.h"
-#include "datatypes/textclass.h"
+#include <proto/intuition.h>
+#include <datatypes/textclass.h>
+#ifndef ID_CSET
+    #define ID_CSET MAKE_ID('C','S','E','T')
+#endif
+
+struct IFFCodeSet
+{
+    uint32 CodeSet;
+    uint32 Reserved[7];
+};
 
 #include <cstdio>
 
@@ -99,20 +110,28 @@ void Pasteboard::setHelper(PasteboardHelper* helper)
 
 void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete, Frame* frame)
 {
-    if (IFFHandle *ih = IIFFParse->AllocIFF()) {
+    IFFHandle *ih;
+    CString utf8 = frame->selectedText().utf8(); //selectedRange->text().utf8();
+    const char *data = utf8.data();
+    size_t len = utf8.length();
+
+    bool copied = false;
+
+    if (data && len && (ih = IIFFParse->AllocIFF())) {
         if (ClipboardHandle *ch = IIFFParse->OpenClipboard(PRIMARY_CLIP)) {
             ih->iff_Stream = (uint32)ch;
             IIFFParse->InitIFFasClip(ih);
+
             if (0 == IIFFParse->OpenIFF(ih, IFFF_WRITE)) {
                 if (0 == IIFFParse->PushChunk(ih, ID_FTXT, ID_FORM, IFFSIZE_UNKNOWN)) {
-                    if (0 == IIFFParse->PushChunk(ih, 0, ID_CHRS, IFFSIZE_UNKNOWN)) {
-                        CString utf8 = selectedRange->text().utf8();
-                        const char *data = utf8.data();
-                        size_t len = utf8.length();
+                    const IFFCodeSet cs = { 106, { 0, 0, 0, 0, 0, 0, 0 } };
 
-                        if (data && len)
-                            IIFFParse->WriteChunkBytes(ih, data, len);
-
+                    if (0 == IIFFParse->PushChunk(ih, 0, ID_CSET, sizeof(cs))
+                     && IIFFParse->WriteChunkBytes(ih, &cs, sizeof(cs)) > 0
+                     && 0 == IIFFParse->PopChunk(ih)
+                     && 0 == IIFFParse->PushChunk(ih, 0, ID_CHRS, IFFSIZE_UNKNOWN)) {
+                        if (IIFFParse->WriteChunkBytes(ih, data, len) > 0)
+                            copied = true;
                         IIFFParse->PopChunk(ih);
                     }
                     IIFFParse->PopChunk(ih);
@@ -123,6 +142,9 @@ void Pasteboard::writeSelection(Range* selectedRange, bool canSmartCopyOrDelete,
         }
         IIFFParse->FreeIFF(ih);
     }
+
+    if (!copied)
+        IIntuition->DisplayBeep(NULL);
 }
 
 void Pasteboard::writeURL(const KURL& url, const String&, Frame* frame)
@@ -139,7 +161,7 @@ void Pasteboard::writeImage(Node* node, const KURL&, const String&)
 
 void Pasteboard::clear()
 {
-    printf("Pasteboard::clear\n");
+//    printf("Pasteboard::clear\n");
 }
 
 bool Pasteboard::canSmartReplace()
@@ -156,12 +178,24 @@ PassRefPtr<DocumentFragment> Pasteboard::documentFragment(Frame* frame, PassRefP
     return 0;
 }
 
-static void copycollection(String &str, CollectionItem* ci)
+static void copycollection(String &str, CollectionItem* ci, uint32 codeSet)
 {
     if (ci->ci_Next)
-        copycollection(str, ci->ci_Next);
+        copycollection(str, ci->ci_Next, codeSet);
 
-    str.append(String().fromUTF8((const char *)ci->ci_Data, ci->ci_Size));
+    if (106 == codeSet) // UTF-8
+        str.append(String().fromUTF8((const char *)ci->ci_Data, ci->ci_Size));
+    else if (0 == codeSet || 3 == codeSet || 4 == codeSet) // US-ASCII or ISO-8859-1
+        str.append(String((const char *)ci->ci_Data, ci->ci_Size));
+    else { // unsupported charset
+        STRPTR data = (STRPTR )ci->ci_Data;
+        TEXT text[ci->ci_Size];
+
+        for (int i = 0 ; i < ci->ci_Size ; i++)
+            text[i] = data[i] <= 127 ? data[i] : '?';
+
+        str.append(String(text, ci->ci_Size));
+    }
 }
 
 String Pasteboard::plainText(Frame* frame)
@@ -174,27 +208,35 @@ String Pasteboard::plainText(Frame* frame)
             IIFFParse->InitIFFasClip(ih);
 
             if (0 == IIFFParse->OpenIFF(ih, IFFF_READ)) {
-                if (0 == IIFFParse->CollectionChunk(ih, ID_FTXT, ID_CHRS)
-                 && 0 == IIFFParse->StopOnExit(ih, ID_FTXT, ID_FORM)) {
-                    while (true) {
-                        int32 err = IIFFParse->ParseIFF(ih, IFFPARSE_SCAN);
+                const int32 chunks[4] = { ID_FTXT, ID_CHRS, ID_FTXT, ID_CSET };
 
-                        if (IFFERR_EOF == err)
-                            break;
-                        else if (IFFERR_EOC == err) {
-                            if (CollectionItem *ci = IIFFParse->FindCollection(ih, ID_FTXT, ID_CHRS))
-                                copycollection(result, ci);
+                if (0 == IIFFParse->CollectionChunks(ih, chunks, 2)
+                 && 0 == IIFFParse->StopOnExit(ih, ID_FTXT, ID_FORM))
+                    while (true)
+                        if (IFFERR_EOC == IIFFParse->ParseIFF(ih, IFFPARSE_SCAN)) {
+                            IFFCodeSet cs;
+                            CollectionItem *ci;
+
+                            cs.CodeSet = 0;
+
+                            ci = IIFFParse->FindCollection(ih, ID_FTXT, ID_CSET);
+                            if (ci && sizeof(cs) == ci->ci_Size)
+                                memcpy(&cs, ci->ci_Data, sizeof(cs));
+
+                            ci = IIFFParse->FindCollection(ih, ID_FTXT, ID_CHRS);
+                            if (ci)
+                                copycollection(result, ci, cs.CodeSet);
                         }
                         else
                             break;
-                    }
-                }
+
                 IIFFParse->CloseIFF(ih);
             }
             IIFFParse->CloseClipboard(ch);
         }
         IIFFParse->FreeIFF(ih);
     }
+
     return result;
 }
 

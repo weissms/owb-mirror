@@ -37,3 +37,5 @@
 ../../OWBAL/Concretizations/Types/Pthreads/BCThreadingPthreads.cpp	0:ThreadingPthreads.patch
 ../../WKAL/Concretizations/Widgets/Gtk/BCFrameGtk.cpp	_:FrameGtk.patch
 ../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	_:BCThreadingGtk.patch
+../../WKAL/Concretizations/Graphics/Cairo/BCImageCairo.cpp	_:ImageCairo_AmigaOS.patch
+../../WKAL/Concretizations/Graphics/WK/BCDragDataWK.h	_:DragData_AmigaOS.patch

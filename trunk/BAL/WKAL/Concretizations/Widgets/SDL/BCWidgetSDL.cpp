@@ -35,7 +35,9 @@
 #include "GraphicsContext.h"
 #include "IntRect.h"
 #include "RenderObject.h"
+#if !PLATFORM(AMIGAOS4)
 #include "SDL.h"
+#endif
 
 namespace WKAL {
 
@@ -172,6 +174,7 @@ void Widget::paint(GraphicsContext* context, const IntRect &r)
     if (!balWidget())
         return;
 
+#if !PLATFORM(AMIGAOS4)
     if (!context->balExposeEvent())
         return;
     
@@ -180,6 +183,7 @@ void Widget::paint(GraphicsContext* context, const IntRect &r)
     SDL_Event ev;
     ev.type = SDL_VIDEOEXPOSE;
     SDL_PushEvent(&ev);
+#endif
 }
 
 void Widget::setIsSelected(bool)

@@ -29,7 +29,7 @@
 
 #include "config.h"
 #include "PlatformWheelEvent.h"
-#include "SDL.h"
+#include <cstdio>
 #include <intuition/intuition.h>
 
 namespace WKAL {
@@ -79,8 +79,8 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
         m_deltaY = deltay;
     }
 
-    m_position = IntPoint((int)event->MouseX /*- g_amiga_window->BorderLeft*/, (int)event->MouseY /*- g_amiga_window->BorderTop - g_amiga_toolbar_limits.MinHeight*/);
-    m_globalPosition = IntPoint((int)event->MouseX /*- g_amiga_window->BorderLeft*/, (int)event->MouseY /*- g_amiga_window->BorderTop - g_amiga_toolbar_limits.MinHeight*/);
+    m_position = IntPoint((int)event->MouseX, (int)event->MouseY);
+    m_globalPosition = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_isAccepted = false;
     m_isContinuous = false;
 }

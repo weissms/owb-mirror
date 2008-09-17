@@ -62,7 +62,6 @@ void SimpleFontData::platformInit()
             // the hard way outself.
 
             int max_ascent = 0, max_descent = 0;
-            bool found_glyph = false;
 
             for (int i = 33 ; i < 256 ; i++) {
                 if (128 == i)
@@ -76,8 +75,6 @@ void SimpleFontData::platformInit()
                     if (!IDiskfont->EObtainInfo(&face->olf_EEngine,
                                                 OT_GlyphMap8Bit, &glyph,
                                                 TAG_END)) {
-                        found_glyph = true;
-
                         int ascent = glyph->glm_Y0 - glyph->glm_BlackTop;
                         if (ascent > max_ascent)
                             max_ascent = ascent;

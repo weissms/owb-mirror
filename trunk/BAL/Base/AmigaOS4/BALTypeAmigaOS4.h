@@ -30,17 +30,22 @@
 #ifndef BALType_h
 #define BALType_h
 
-struct SDL_Surface;
-struct SDL_QuitEvent;
-struct SDL_UserEvent;
+struct _cairo;
+struct _cairo_surface;
+struct _cairo_pattern;
 struct SDL_Color;
 struct SDL_Cursor;
-struct SDL_Rect;
 struct Window;
 struct Gadget;
 struct OutlineFont;
 struct Hook;
+struct AppIcon;
+struct BitMap;
 class WebView;
+
+namespace WebCore {
+    struct CairoPath;
+}
 
 namespace WKAL {
     class FloatSize;
@@ -48,16 +53,24 @@ namespace WKAL {
 
 struct AmigaOWBWindow
 {
-    struct Window *window;
+    Window *window;
     int offsetx, offsety;
-    SDL_Surface* surface;
+    _cairo *cr;
+    _cairo_surface *surface;
     bool expose;
-    struct Gadget *gad_toolbar, *gad_vbar, *gad_hbar,
-                  *gad_url, *gad_fuelgauge, *gad_stop,
-                  *gad_back, *gad_forward;
-    struct Hook *backfill_hook;
-    struct AmigaOWBWindow *next;
+    void *img_iconify;
+    Gadget *gad_toolbar, *gad_vbar, *gad_hbar,
+           *gad_url, *gad_fuelgauge, *gad_stop,
+           *gad_back, *gad_forward, *gad_iconify,
+           *gad_search;
+    Hook *backfill_hook;
+    AmigaOWBWindow *next;
     WebView *webView;
+    char statusBarText[256];
+    char title[256];
+    char url[2000];
+    char search[500];
+    AppIcon *appicon;
 };
 
 struct AmigaOWBResizeEvent
@@ -70,13 +83,18 @@ struct AmigaConfig
     const char *homeURL;
     const char *searchURL;
     int width, height;
+    int minFontSize;
+    int fontXDPI, fontYDPI;
+    const char *unicodeFontName;
+    OutlineFont *unicodeFace;
+    int windowleft, windowtop, windowwidth, windowheight;
 };
 extern struct AmigaConfig amigaConfig;
 
-typedef struct SDL_ExposeEvent BalEventExpose;
+typedef int BalEventExpose;
 typedef struct AmigaOWBResizeEvent BalResizeEvent;
-typedef struct SDL_QuitEvent BalQuitEvent;
-typedef struct SDL_UserEvent BalUserEvent;
+typedef int BalQuitEvent;
+typedef int BalUserEvent;
 typedef struct IntuiMessage BalEventKey;
 typedef struct IntuiMessage BalEventButton;
 typedef struct IntuiMessage BalEventMotion;
@@ -86,11 +104,10 @@ typedef void BalFont;
 typedef void BalPattern;
 typedef void BalScaledFont;
 typedef void BalDrawable;
-typedef SDL_Surface BalSurface;
+typedef _cairo_surface BalSurface;
 typedef struct _BalPoint{} BalPoint;
-typedef SDL_Rect BalRectangle;
 typedef void BalMenuItem;
-typedef SDL_Surface BalMenu;
+typedef _cairo_surface BalMenu;
 typedef void BalClipboard;
 typedef void BalTargetList;
 typedef void BalAdjustment;
@@ -101,13 +118,13 @@ typedef SDL_Color BalColor;
 typedef struct _BalMatrix{} BalMatrix;
 
 
-typedef SDL_Surface PlatformGraphicsContext;
+typedef _cairo PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
-typedef void* PlatformPatternPtr;
+typedef _cairo_pattern* PlatformPatternPtr;
 
 namespace WKAL {
-    typedef void* PlatformGradient;
-    typedef void* PlatformPath;
+    typedef _cairo_pattern *PlatformGradient;
+    typedef WebCore::CairoPath PlatformPath;
     typedef SDL_Cursor* PlatformCursor;
     typedef BalWidget* PlatformWidget;
     typedef void* DragImageRef;

@@ -1,3 +1,23 @@
+2008-09-17  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Olivier DOLE.
+        Switched from SDL to Cairo graphics on AmigaOS, implemented the <select>
+        popup menu, an edit menu, opening new windows from JavaScript, setting
+        the window title, status bar and URL and JavaScript alert requesters.
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::onKeyDown):
+        (WebViewPrivate::popupMenuShow):
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.h:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::createWindow):
+        (WebChromeClient::addMessageToConsole):
+        (WebChromeClient::runJavaScriptAlert):
+        (WebChromeClient::setStatusbarText):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::setTitle):
+
 2008-09-16  KIMURA Masaru  <hiyuh.root@gmail.com>
 
         Reviewed by Olivier DOLE.

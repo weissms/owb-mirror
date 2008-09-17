@@ -33,7 +33,7 @@
 #include "FrameView.h"
 #include "Frame.h"
 #include "BALBase.h"
-#include "SDL.h"
+#include "cairo.h"
 #include DEEPSEE_INCLUDE
 
 class WebViewPrivate {

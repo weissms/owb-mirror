@@ -20,7 +20,6 @@
 #include "config.h"
 #include "EventLoop.h"
 
-#include "SDL.h"
 
 namespace WKAL {
 

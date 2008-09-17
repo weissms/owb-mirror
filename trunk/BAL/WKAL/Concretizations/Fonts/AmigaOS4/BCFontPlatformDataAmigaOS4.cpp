@@ -295,6 +295,7 @@ void FontPlatformData::setFont(BalFont* cr) const
 {
     //ASSERT(m_scaledFont);
 
+    fprintf(stderr, "%s(%p)\n", __PRETTY_FUNCTION__, cr);
     BalNotImplemented();
 }
 

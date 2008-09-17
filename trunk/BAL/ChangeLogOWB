@@ -1,3 +1,44 @@
+2008-09-17  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Olivier DOLE.
+        Switched from SDL to Cairo graphics on AmigaOS and fixed the frame bugs.
+
+        * Base/AmigaOS4/BALTypeAmigaOS4.h:
+        * OWBAL/Concretizations/Facilities/AmigaOS4/BCSharedTimerAmigaOS4.cpp:
+        (OWBAL::):
+        * WKAL/Concretizations/Events/AmigaOS4/BCEventLoopAmigaOS4.cpp:
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformKeyboardEventAmigaOS4.cpp:
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformMouseEventAmigaOS4.cpp:
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformWheelEventAmigaOS4.cpp:
+        (WKAL::PlatformWheelEvent::PlatformWheelEvent):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontAmigaOS4.cpp:
+        (WKAL::Font::drawGlyphs):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontCustomPlatformDataAmigaOS4.cpp:
+        (WKAL::FontCustomPlatformData::fontPlatformData):
+        (WKAL::createFontCustomPlatformData):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp:
+        (WKAL::FontPlatformData::setFont):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCSimpleFontDataAmigaOS4.cpp:
+        (WKAL::SimpleFontData::platformInit):
+        * WKAL/Concretizations/Graphics/Cairo/BCImageCairo.cpp:
+        (loadResourceIntoArray):
+        (WKAL::BitmapImage::initPlatformData):
+        (WKAL::BitmapImage::invalidatePlatformData):
+        (WKAL::Image::loadPlatformResource):
+        * WKAL/Concretizations/Graphics/WK/BCDragDataWK.h:
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCPasteboardAmigaOS4.cpp:
+        (WKAL::Pasteboard::writeSelection):
+        (WKAL::Pasteboard::clear):
+        (WKAL::copycollection):
+        (WKAL::Pasteboard::plainText):
+        * WKAL/Concretizations/Widgets/SDL/BCPopupMenuSDL.cpp:
+        (WKAL::PopupMenu::~PopupMenu):
+        * WKAL/Concretizations/Widgets/SDL/BCScrollViewSDL.cpp:
+        (WKAL::updateView):
+        (WKAL::ScrollView::paint):
+        * WKAL/Concretizations/Widgets/SDL/BCWidgetSDL.cpp:
+        (WKAL::Widget::paint):
+
 2008-09-15  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

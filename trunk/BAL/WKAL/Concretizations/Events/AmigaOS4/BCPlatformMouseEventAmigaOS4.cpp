@@ -32,7 +32,6 @@
 
 #include "SystemTime.h"
 #include "Assertions.h"
-#include "SDL.h"
 #include <intuition/intuition.h>
 
 namespace WKAL {

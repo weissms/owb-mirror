@@ -58,6 +58,10 @@
 #include <RenderPart.h>
 #include <ResourceHandle.h>
 #include DEEPSEE_INCLUDE
+#if PLATFORM(AMIGAOS4)
+#include <proto/intuition.h>
+#include <intuition/gadgetclass.h>
+#endif
 
 #include <cstdio>
 
@@ -492,6 +496,29 @@ PassRefPtr<DocumentLoader> WebFrameLoaderClient::createDocumentLoader(const Reso
 
 void WebFrameLoaderClient::setTitle(const String& title, const KURL& url)
 {
+#if PLATFORM(AMIGAOS4)
+    if (!m_webFrame->parentFrame()) {
+        BalWidget* viewWindow = m_webFrame->webView()->viewWindow();
+        if (viewWindow && viewWindow->window) {
+            CString titleLatin1 = title.latin1();
+            const char *titlestr = titleLatin1.data();
+            if (titlestr && titlestr[0])
+                snprintf(viewWindow->title, sizeof(viewWindow->title), "OWB: %s", titlestr);
+            else
+                strcpy(viewWindow->title, "Origyn Web Browser");
+            IIntuition->SetWindowTitles(viewWindow->window, viewWindow->title, (STRPTR)~0UL);
+
+            CString urlLatin1 = url.prettyURL().latin1();
+            const char *urlstr = urlLatin1.data();
+            if (urlstr && urlstr[0] && viewWindow->gad_url) {
+                snprintf(viewWindow->url, sizeof(viewWindow->url), "%s", urlstr);
+                IIntuition->RefreshSetGadgetAttrs(viewWindow->gad_url, viewWindow->window, NULL,
+                                                  STRINGA_TextVal, viewWindow->url,
+                                                  TAG_DONE);
+            }
+        }
+    }
+#endif
     bool privateBrowsingEnabled = false;
     WebPreferences* preferences = m_webFrame->webView()->preferences();
     if (preferences)

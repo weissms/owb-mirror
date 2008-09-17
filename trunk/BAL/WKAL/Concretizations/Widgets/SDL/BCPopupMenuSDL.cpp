@@ -41,7 +41,11 @@
 #include "PlatformString.h"
 #include "RenderStyle.h"
 #include "ObserverServiceData.h"
+#if PLATFORM(AMIGAOS4)
+#include "cairo.h"
+#else
 #include "SDL.h"
+#endif
 
 using std::min;
 
@@ -80,7 +84,11 @@ PopupMenu::PopupMenu(PopupMenuClient* client)
 PopupMenu::~PopupMenu()
 {
     if (m_popup)
+#if PLATFORM(AMIGAOS4)
+        cairo_surface_destroy(m_popup);
+#else
         SDL_FreeSurface(m_popup);
+#endif
 }
 
 void PopupMenu::show(const IntRect& r, FrameView* v, int index)

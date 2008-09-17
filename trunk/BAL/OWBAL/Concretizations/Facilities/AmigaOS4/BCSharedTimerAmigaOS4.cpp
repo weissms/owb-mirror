@@ -35,11 +35,15 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include "Platform.h"
+#include "BALBase.h"
 
 #include DEEPSEE_INCLUDE
 
 #include <proto/exec.h>
 #include <devices/timer.h>
+
+extern Task *mainTask;
+extern uint32 sharedTimerSignal;
 
 namespace OWBAL {
 
@@ -88,8 +92,10 @@ void fireTimerIfNeeded()
 
 static uint32 timerint_func(struct ExceptionContext *Context, struct ExecBase *SysBase, void *UserData)
 {
-   if (sharedTimerFiredFunction)
+   if (sharedTimerFiredFunction) {
       incrementTimerCount();
+      IExec->Signal(mainTask, sharedTimerSignal);
+   }
    return 0;
 }
 

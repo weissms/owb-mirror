@@ -36,6 +36,24 @@
 #include <cairo.h>
 #include <math.h>
 
+#if PLATFORM(AMIGAOS4)
+#include "owb-config.h"
+
+Vector<char> loadResourceIntoArray(const char* name)
+{
+    WebCore::String fullPath = RESOURCE_PATH;
+    WebCore::String extension = ".png";
+    fullPath += name;
+    fullPath += extension;
+    
+    static PassRefPtr<WebCore::SharedBuffer> buffer = WebCore::SharedBuffer::createWithContentsOfFile(fullPath);
+    Vector<char> array;
+    if (buffer)
+        array = buffer.get()->buffer();
+    return array;
+}
+#endif
+
 namespace WKAL {
 
 void FrameData::clear()
@@ -179,6 +197,25 @@ void BitmapImage::checkForSolidColor()
     // FIXME: It's easy to implement this optimization. Just need to check the RGBA32 buffer to see if it is 1x1.
     m_isSolidColor = false;
 }
+
+#if PLATFORM(AMIGAOS4)
+void BitmapImage::initPlatformData()
+{
+}
+
+void BitmapImage::invalidatePlatformData()
+{
+}
+
+PassRefPtr<Image> Image::loadPlatformResource(const char *name)
+{
+    Vector<char> arr = loadResourceIntoArray(name);
+    RefPtr<BitmapImage> img = BitmapImage::create();
+    RefPtr<SharedBuffer> buffer = SharedBuffer::create(arr.data(), arr.size());
+    img->setData(buffer, true);
+    return img.release();
+}
+#endif
 
 }
 

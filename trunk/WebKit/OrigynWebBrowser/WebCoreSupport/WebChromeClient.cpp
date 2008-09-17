@@ -46,6 +46,13 @@
 #include <Page.h>
 #include <WindowFeatures.h>
 #include DEEPSEE_INCLUDE
+#if PLATFORM(AMIGAOS4)
+#include <proto/requester.h>
+#include <classes/requester.h>
+#include <proto/intuition.h>
+#include <intuition/gadgetclass.h>
+#include <reaction/reaction_macros.h>
+#endif
 
 #include <cstdio>
 
@@ -106,6 +113,29 @@ void WebChromeClient::takeFocus(FocusDirection direction)
 
 Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadRequest, const WindowFeatures& features)
 {
+#if PLATFORM(AMIGAOS4)
+    if (features.dialog) {
+        fprintf(stderr, "%s: features.dialog not implemented on AmigaOS4.\n", __PRETTY_FUNCTION__);
+        return 0;
+    }
+
+    extern BalWidget *createAmigaWindow(WebView *);
+
+    WebView* newWebView = WebView::createInstance();
+    if (newWebView) {
+        BalWidget *newowbwindow = createAmigaWindow(newWebView);
+        if (newowbwindow) {
+            IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+            newWebView->initWithFrame(clientRect, "", "");
+            newWebView->setViewWindow(newowbwindow);
+
+            return core(newWebView);
+        }
+        delete newWebView;
+    }
+
+    return 0;
+#else
     if (features.dialog) {
         /*COMPtr<IWebUIDelegate3> delegate = uiDelegate3();
         if (!delegate)
@@ -134,6 +164,7 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
     delete request;
 
     return page;
+#endif
 }
 
 void WebChromeClient::show()
@@ -204,7 +235,11 @@ void WebChromeClient::setResizable(bool resizable)
 
 void WebChromeClient::addMessageToConsole(const String& message, unsigned line, const String& url)
 {
+#if PLATFORM(AMIGAOS4)
+    printf("JavaScript '%s' line %u: %s\n", url.latin1().data(), line, message.latin1().data());
+#else
     printf("CONSOLE MESSAGE: line %d: %s\n", line, message.utf8().data());
+#endif
 }
 
 bool WebChromeClient::canRunBeforeUnloadConfirmPanel()
@@ -240,6 +275,35 @@ void WebChromeClient::closeWindowSoon()
 
 void WebChromeClient::runJavaScriptAlert(Frame *frame, const String& message)
 {
+#if PLATFORM(AMIGAOS4)
+    CString messageLatin1 = message.latin1();
+    Object *requester = (Object *)RequesterObject,
+                                      REQ_CharSet, 4,
+                                      REQ_TitleText, "OWB Javascript Alert",
+                                      REQ_BodyText, messageLatin1.data(),
+                                      REQ_GadgetText, "Ok",
+                                  End;
+    if (requester) {
+        struct Window *window = m_webView->viewWindow()->window;
+        struct Requester dummyRequester;
+
+        if (window) {
+            IIntuition->InitRequester(&dummyRequester);
+            IIntuition->Request(&dummyRequester, window);
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, TRUE, WA_PointerDelay, TRUE, TAG_DONE);
+        }
+
+        OpenRequester(requester, window);
+
+        if (window) {
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, FALSE, TAG_DONE);
+            IIntuition->EndRequest(&dummyRequester, window);
+        }
+
+        IIntuition->DisposeObject(requester);
+    }
+    else
+#endif
     printf("Javascript Alert: %s (from frame %p)\n", message.utf8().data(), frame);
 }
 
@@ -257,6 +321,16 @@ bool WebChromeClient::runJavaScriptPrompt(Frame *frame, const String& message, c
 
 void WebChromeClient::setStatusbarText(const String& statusText)
 {
+#if PLATFORM(AMIGAOS4)
+    BalWidget *widget = m_webView->viewWindow();
+    if (widget && widget->gad_fuelgauge) {
+        CString statusLatin1 = statusText.latin1();
+        snprintf(widget->statusBarText, sizeof(widget->statusBarText), "%s", statusLatin1.data());
+        IIntuition->RefreshSetGadgetAttrs(widget->gad_fuelgauge, widget->window, NULL,
+                                          GA_Text, widget->statusBarText,
+                                          TAG_DONE);
+    }
+#endif
 }
 
 bool WebChromeClient::shouldInterruptJavaScript()

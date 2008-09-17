@@ -46,6 +46,7 @@ FontCustomPlatformData::~FontCustomPlatformData()
 
 FontPlatformData FontCustomPlatformData::fontPlatformData(int size, bool bold, bool italic, FontRenderingMode)
 {
+    fprintf(stderr, "%s\n", __PRETTY_FUNCTION__);
     return FontPlatformData(m_fontFace, size, bold, italic);
 }
 
@@ -57,7 +58,7 @@ FontPlatformData FontCustomPlatformData::fontPlatformData(int size, bool bold, b
 FontCustomPlatformData* createFontCustomPlatformData(SharedBuffer* buffer)
 {
     fprintf(stderr, "%s not implemented for AmigaOS4\n", __PRETTY_FUNCTION__);
-    return new FontCustomPlatformData(0);
+    return 0; //new FontCustomPlatformData(0);
 }
 
 }

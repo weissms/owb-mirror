@@ -31,7 +31,7 @@
 #include "IntRect.h"
 #include "FrameView.h"
 #include "Frame.h"
-#include "SDL.h"
+#include "cairo.h"
 #include "GraphicsContext.h"
 #include "Page.h"
 #include "EventHandler.h"
@@ -45,9 +45,12 @@
 #include "PopupMenu.h"
 #include "CString.h"
 #include "FileIO.h"
+#include "WebFrame.h"
+#include "WebView.h"
 #include DEEPSEE_INCLUDE
 
-#include <intuition/intuition.h>
+#include <proto/intuition.h>
+#include <proto/popupmenu.h>
 #include <libraries/keymap.h>
 
 using namespace WebCore;
@@ -60,18 +63,22 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         return;
 
     if(!isInitialized) {
-        printf("not isInitialized\n");
         isInitialized = true;
         frame->view()->resize(m_rect.width(), m_rect.height());
         frame->forceLayout();
         frame->view()->adjustViewSize();
     }
 
-    GraphicsContext ctx(m_webView->viewWindow()->surface);
-    ctx.setBalExposeEvent(&event);
-    if (frame->contentRenderer() && frame->view() && !m_webView->dirtyRegion().isEmpty()) {
+    if (!m_webView->viewWindow()->window)
+        return;
+
+    GraphicsContext ctx(m_webView->viewWindow()->cr);
+//    if (frame->contentRenderer() && frame->view() && !m_webView->dirtyRegion().isEmpty()) {
+    if (frame->contentRenderer() && frame->view()) {
         frame->view()->layoutIfNeededRecursive();
         IntRect dirty = m_webView->dirtyRegion();
+        if (dirty.isEmpty())
+            dirty = frameRect();
         frame->view()->paint(&ctx, dirty);
         m_webView->clearDirtyRegion();
     }
@@ -130,7 +137,7 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
         case RAWKEY_F1:
         {
             m_webView->goBack();
-            GraphicsContext ctx(m_webView->viewWindow()->surface);
+            GraphicsContext ctx(m_webView->viewWindow()->cr);
             if (frame->contentRenderer() && frame->view()) {
                 frame->view()->layoutIfNeededRecursive();
                 IntRect dirty(0, 0, m_rect.width(), m_rect.height());
@@ -142,7 +149,7 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
         case RAWKEY_F2:
         {
             m_webView->goForward();
-            GraphicsContext ctx(m_webView->viewWindow()->surface);
+            GraphicsContext ctx(m_webView->viewWindow()->cr);
             if (frame->contentRenderer() && frame->view()) {
                 frame->view()->layoutIfNeededRecursive();
                 IntRect dirty(0, 0, m_rect.width(), m_rect.height());
@@ -252,55 +259,48 @@ void WebViewPrivate::popupMenuShow(void *popupInfo)
     PopupMenu *pop = static_cast<PopupMenu *>(popupInfo);
     if (!pop)
         return;
-    //printf("pop %d %d %d %d\n", pop->windowRect().x(), pop->windowRect().y(), pop->windowRect().width(), pop->windowRect().height());
-    int itemCount = pop->client()->listSize();
 
-    String tabIndex = "var myTabId1 = new Array(";
-    String tabName = "var myTabName1 = new Array(";
-    for (int i = 0; i < itemCount; ++i) {
-        String text = pop->client()->itemText(i);
-        if (text.isEmpty())
-            continue;
-        if (i == 0) {
-            tabName += "\"";
-            tabIndex += "\"";
-        } else {
-            tabName += ", \"";
-            tabIndex += ", \"";
-        }
-
-        tabName += text;
-        tabName += "\"";
-        tabIndex += String::number(i+1);
-        tabIndex += "\"";
-    }
-    tabIndex += ");";
-    tabName += ");";
-    String path = BOOKMARKLET_INSTALL_PATH;
-    path +=  "popup.js";
-
-    File *f = new File(path);
-    if (!f)
+    BalWidget *widget = m_webView->viewWindow();
+    if (!widget)
         return;
-    if (f->open('r') == -1)
-        return ;
-    String buffer(f->read(f->getSize()));
-    f->close();
-    delete f;
 
-    String callCreateTab = "createTabs(myTabId1 ,myTabName1 ,";
-    callCreateTab += String::number(pop->windowRect().x());
-    callCreateTab += ", ";
-    callCreateTab += String::number(pop->windowRect().y());
-    callCreateTab += ", ";
-    callCreateTab += String::number(pop->windowRect().width());
-    callCreateTab += ");";
+    int itemCount = pop->client()->listSize();
+    if (itemCount > 25)
+        return;
 
-    buffer = buffer.replace("@TabIndexDefinition", tabIndex);
-    buffer = buffer.replace("@TabNameDefinition", tabName);
-    buffer = buffer.replace("@callCreateTab", callCreateTab);
-    
-//    printf("popup = %s \n", buffer.utf8().data());
+    Object *menu, *items[itemCount];
 
-    m_webView->stringByEvaluatingJavaScriptFromString(buffer);
+    menu = (Object *)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetClass(), NULL,
+                                           PMA_Left, pop->windowRect().x() + widget->offsetx,
+                                           PMA_Top, pop->windowRect().y() + widget->offsety,
+                                           TAG_DONE);
+    if (!menu)
+        return;
+
+    bool gotAllItems = true;
+
+    for (int i = 0; i < itemCount; ++i) {
+        CString text = pop->client()->itemText(i).latin1();
+        items[i] = (Object *)IIntuition->NewObject(IPopupMenu->POPUPMENU_GetItemClass(), NULL,
+                                                   PMIA_Title, pop->client()->itemIsSeparator(i) ? (const char *)~0 : text.data() ?: "",
+                                                   PMIA_Hidden, !pop->client()->itemIsEnabled(i),
+                                                   PMIA_FillPen, pop->client()->itemIsSelected(i),
+                                                   TAG_DONE);
+        if (!items[i])
+            gotAllItems = false;
+        else
+            IIntuition->IDoMethod(menu, OM_ADDMEMBER, items[i]);
+    }
+
+    if (gotAllItems) {
+        Object *selected = (Object *)IIntuition->IDoMethod(menu, PM_OPEN, widget->window);
+        for (int i = 0; i < itemCount; ++i)
+            if (selected == items[i]) {
+                pop->client()->setTextFromItem(i);
+                pop->client()->valueChanged(i);
+                break;
+            }
+    }
+
+    IIntuition->DisposeObject(menu);
 }
