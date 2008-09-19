@@ -1,3 +1,11 @@
+2008-09-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Jean-Charles Verdié.
+        fix loadHTMLString
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::loadHTMLString):
+
 2008-09-17  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Olivier DOLE.

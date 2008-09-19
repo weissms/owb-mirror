@@ -324,8 +324,8 @@ void WebFrame::loadData(PassRefPtr<WebCore::SharedBuffer> data, String mimeType,
 void WebFrame::loadHTMLString(String string, String baseURL, String unreachableURL)
 {
     RefPtr<SharedBuffer> sharedBuffer = SharedBuffer::create(string.utf8().data(), string.length());
-    String utf16Encoding("utf-16");
-    loadData(sharedBuffer.release(), "", utf16Encoding, baseURL, unreachableURL);
+    String utf8Encoding("utf-8");
+    loadData(sharedBuffer.release(), "", utf8Encoding, baseURL, unreachableURL);
 }
 
 void WebFrame::loadHTMLString(String string, String baseURL)
