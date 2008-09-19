@@ -97,6 +97,15 @@ public:
     virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&) ;
 
 protected:
+
+    /**
+     * Set enabled.
+     * @param[in] : a boolean.
+     * @code
+     * @endcode
+     */
+    virtual void setEnabled(bool);
+
     /**
      * contructor for ScrollbarGtk.
      * @param[in] : a pointer to a ScrollbarClient.
@@ -141,7 +150,6 @@ private:
 }
 
 #endif // ScrollbarGtk_h
-
 
 
 

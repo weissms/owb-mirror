@@ -1,4 +1,1502 @@
-\2008-09-17  David Hyatt  <hyatt@apple.com>
+2008-09-19  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        [qtwebkit] Pass test 70 of acid3. Handle text decoding errors
+        Handle text decoding errors before instructing the parser to parse. We
+        have converted the text to QString and all encoding errors are gone and
+        the parser will not be able to detect them. So handle them before parsing.
+
+        * dom/XMLTokenizerQt.cpp:
+        (WebCore::XMLTokenizer::doWrite):
+
+2008-09-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - part 1 of https://bugs.webkit.org/show_bug.cgi?id=20858
+          make each distinct C++ class get a distinct JSC::Structure
+
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclaration::customPut): Use setDOMException
+        instead of DOMExceptionTranslator.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::getCachedDOMObjectWrapper): Updated function name.
+        (WebCore::cacheDOMObjectWrapper): Ditto.
+        (WebCore::forgetDOMObject): Ditto.
+        (WebCore::getCachedDOMNodeWrapper): Ditto.
+        (WebCore::forgetDOMNode): Ditto.
+        (WebCore::cacheDOMNodeWrapper): Ditto.
+        (WebCore::forgetAllDOMNodesForDocument): Ditto.
+        (WebCore::markDOMNodesForDocument): Ditto.
+        (WebCore::updateDOMNodeDocument): Ditto.
+        (WebCore::getCachedDOMStructure): Added.
+        (WebCore::createDOMStructure): Ditto.
+
+        * bindings/js/JSDOMBinding.h: Get rid of the ScriptInterpreter
+        class and replace the static member functions with non-member
+        functions. Added many other functions for getting at structures,
+        prototypes, wrappers, and creating them. Also moved the
+        cacheGlobalObject function here from JavaScriptCore; eventually
+        I'll remove that once I get rid of the remaining callers. Also
+        removed the DOMExceptionTranslator class.
+
+        * bindings/js/JSDOMWindowBase.h: Added JSDOMStructureMap type,
+        and put one of those maps in each window.
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::markDOMObjectWrapper): Updated for function name change.
+        (WebCore::JSDOMWindow::mark): Added code to mark all the structures
+        in the structure map.
+
+        * bindings/js/JSEventTargetNode.cpp:
+        (WebCore::JSEventTargetNode::JSEventTargetNode): Changed to take
+        a structure instead of a prototype.
+        * bindings/js/JSEventTargetNode.h: Ditto.
+        * bindings/js/JSHTMLAllCollection.h:
+        (WebCore::JSHTMLAllCollection::JSHTMLAllCollection): Ditto.
+
+        * bindings/js/JSHTMLInputElementBase.cpp:
+        (WebCore::JSHTMLInputElementBase::JSHTMLInputElementBase): Removed
+        use of the JSC_IMPLEMENT_PROTOTYPE macro, and changed to take a
+        structure instead of a prototype.
+        * bindings/js/JSHTMLInputElementBase.h: Removed use of the
+        JSC_DEFINE_PROTOTYPE_WITH_PROTOTYPE macro, and changed constructor
+        to take a structure instead of a prototype. Created a dummy prototype
+        class that causes the HTMLInputElement prototype to have the
+        HTMLElement prototype.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Change constructors to take
+        structures instead of prototypes. Changed the prototype self function
+        to use the getDOMPrototype function -- later we can eliminate it and
+        have callers invoke getDOMPrototype directly instead. Updated other
+        functions that have name changes. Added code to generate the
+        createPrototype member function. Changed use of cacheGlobalObject to
+        get it from the WebCore namespace instead of the JSC namespace.
+        Changed cacheDOMObject calls to use getDOMObjectWrapper instead.
+
+        * dom/Document.cpp:
+        (WebCore::Document::~Document): Updated for name change and also
+        removed unnecessary JSLock use -- there's no need to lock around this.
+        * dom/Node.cpp:
+        (WebCore::Node::setDocument): Ditto.
+
+        * dom/make_names.pl: Changed to use CREATE_DOM_NODE_WRAPPER macro
+        instead of calling new directly.
+
+        * bindings/js/JSCSSRuleCustom.cpp:
+        (WebCore::toJS): Updated for function name changes and used the
+        CREATE_DOM_OBJECT_WRAPPER macro.
+        * bindings/js/JSCSSValueCustom.cpp:
+        (WebCore::toJS): Ditto.
+        * bindings/js/JSCanvasPixelArrayCustom.cpp:
+        (WebCore::toJS): Ditto.
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::mark): Ditto.
+        (WebCore::toJS): Ditto.
+        * bindings/js/JSElementCustom.cpp:
+        (WebCore::toJSNewlyCreated): Ditto.
+        * bindings/js/JSEventCustom.cpp:
+        (WebCore::toJS): Ditto.
+        * bindings/js/JSEventTargetBase.cpp:
+        (WebCore::jsEventTargetDispatchEvent): Use setDOMException instead
+        of DOMExceptionTranslator.
+        (WebCore::toJS): Updated for function name changes and used the
+        CREATE_DOM_OBJECT_WRAPPER macro.
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        (WebCore::toJS): Ditto.
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::JSNode::mark): Ditto.
+        (WebCore::createWrapper): Ditto.
+        (WebCore::toJS): Ditto.
+        * bindings/js/JSSVGPathSegCustom.cpp:
+        (WebCore::toJS): Ditto.
+        * bindings/js/JSStyleSheetCustom.cpp:
+        (WebCore::toJS): Ditto.
+        (WebCore::JSStyleSheet::mark): Ditto.
+        * bindings/js/JSTextCustom.cpp:
+        (WebCore::toJSNewlyCreated): Ditto.
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        (WebCore::constructXMLHttpRequest): Ditto.
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::mark): Ditto.
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::mark): Ditto.
+        * bindings/js/JSXSLTProcessorConstructor.cpp:
+        (WebCore::constructXSLTProcessor): Ditto.
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::finishedWithEvent): Ditto.
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously): Ditto.
+        (WebCore::XMLHttpRequest::dropProtection): Ditto.
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        This patch gets a viewless scrollbar working on Mac. It is turned off
+        by default.  Hit testing works.  For now the scrollbar just paints ugly
+        debug rects in the place of the buttons, track and thumb.  It does match
+        Aqua metrics though.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        (WebCore::ScrollbarThemeComposite::trackPosition):
+        * platform/ScrollbarThemeComposite.h:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::addChild):
+        * platform/mac/ScrollbarThemeMac.cpp:
+        (WebCore::):
+        (WebCore::ScrollbarThemeMac::hasButtons):
+        (WebCore::ScrollbarThemeMac::hasThumb):
+        (WebCore::buttonRepaintRect):
+        (WebCore::ScrollbarThemeMac::backButtonRect):
+        (WebCore::ScrollbarThemeMac::forwardButtonRect):
+        (WebCore::trackRepaintRect):
+        (WebCore::ScrollbarThemeMac::trackRect):
+        (WebCore::ScrollbarThemeMac::minimumThumbLength):
+        (WebCore::ScrollbarThemeMac::shouldCenterOnThumb):
+        (WebCore::ScrollbarThemeMac::paintTrack):
+        (WebCore::ScrollbarThemeMac::paintButton):
+        (WebCore::ScrollbarThemeMac::paintThumb):
+        * platform/mac/ScrollbarThemeMac.h:
+        (WebCore::ScrollbarThemeMac::supportsControlTints):
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::ScrollbarThemeQt::trackPosition):
+
+2008-09-18  Collin Jackson  <collinj@webkit.org>
+
+        Build fix; added missing header file to GNUmakefile.am
+
+        * GNUmakefile.am:
+
+2008-09-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David "the Hair" Hyatt.
+
+        Move DataRef, SVGRenderStyle and SVGRenderStyleDefs in render/style.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * rendering/DataRef.h: Removed.
+        * rendering/SVGRenderStyle.cpp: Removed.
+        * rendering/SVGRenderStyle.h: Removed.
+        * rendering/SVGRenderStyleDefs.cpp: Removed.
+        * rendering/SVGRenderStyleDefs.h: Removed.
+        * rendering/style/DataRef.h: Copied from rendering/DataRef.h.
+        * rendering/style/SVGRenderStyle.cpp: Copied from rendering/SVGRenderStyle.cpp.
+        * rendering/style/SVGRenderStyle.h: Copied from rendering/SVGRenderStyle.h.
+        * rendering/style/SVGRenderStyleDefs.cpp: Copied from rendering/SVGRenderStyleDefs.cpp.
+        * rendering/style/SVGRenderStyleDefs.h: Copied from rendering/SVGRenderStyleDefs.h.
+
+2008-09-18  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Add a means of clearing a FrameTree's name.
+
+        * WebCore.base.exp:
+        * page/FrameTree.cpp:
+        (WebCore::FrameTree::clearName):
+        * page/FrameTree.h:
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Eliminate addToSuperview from Widget, since it was only called
+        by ScrollViewMac's addChild method.  Just shift the original body
+        of addToSuperView into addChild.
+
+        Reviewed by Sam Weinig
+
+        * platform/Widget.h:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::addChild):
+        * platform/mac/WidgetMac.mm:
+
+2008-09-18  Collin Jackson  <collinj@webkit.org>
+
+        Reviewed by Antti Koivisto and Mark Rowe.
+
+        Test: http/tests/misc/dns-prefetch-control.html
+
+        https://bugs.webkit.org/show_bug.cgi?id=20690
+
+        Invoke WebCore::prefetchDNS() on host names that appear in
+        in the href of hyperlinks and <link rel="dns-prefetch">. This 
+        can be used to implement DNS prefetching.
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        (WebCore::Document::processHttpEquiv):
+        (WebCore::Document::setSecurityOrigin):
+        (WebCore::Document::initDNSPrefetch):
+        (WebCore::Document::parseDNSPrefetchControlHeader):
+        * dom/Document.h:
+        (WebCore::Document::isDNSPrefetchEnabled):
+        * html/HTMLAnchorElement.cpp:
+        (WebCore::HTMLAnchorElement::parseMappedAttribute):
+        * html/HTMLLinkElement.cpp:
+        (WebCore::HTMLLinkElement::HTMLLinkElement):
+        (WebCore::HTMLLinkElement::parseMappedAttribute):
+        (WebCore::HTMLLinkElement::tokenizeRelAttribute):
+        (WebCore::HTMLLinkElement::process):
+        * html/HTMLLinkElement.h:
+        * html/PreloadScanner.cpp:
+        (WebCore::PreloadScanner::processAttribute):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::begin):
+        * platform/gtk/TemporaryLinkStubs.cpp:
+        (WebCore::prefetchDNS):
+        * platform/network/DNS.h: Added.
+        * platform/network/cf/DNSCFNet.cpp: Added.
+        (WebCore::prefetchDNS):
+        * platform/qt/TemporaryLinkStubs.cpp:
+        (WebCore::prefetchDNS):
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (WebCore::prefetchDNS):
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Eliminate the convertToScreenCoordinate method on Widget, since
+        ScrollView has redundant methods that already do the same thing.
+
+        Reviewed by Sam Weinig
+
+        * editing/mac/SelectionControllerMac.mm:
+        (WebCore::SelectionController::notifyAccessibilityForSelectionChange):
+        * platform/Widget.h:
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::containingWindow):
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Move to only one constructor for Widgets.  Rename data to m_data and make
+        it have an #ifdef only for platforms that have platform-specific data (Mac
+        and Gtk).
+
+        Reviewed by Sam Weinig
+
+        * WebCore.base.exp:
+        * platform/Widget.cpp:
+        (WebCore::Widget::init):
+        * platform/Widget.h:
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::~Widget):
+        (WebCore::Widget::cursor):
+        (WebCore::Widget::setCursor):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::~Widget):
+        (WebCore::Widget::addToSuperview):
+        (WebCore::Widget::removeFromSuperview):
+        (WebCore::Widget::beforeMouseDown):
+        (WebCore::Widget::afterMouseDown):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::Widget::Widget):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::Widget):
+        * platform/wx/WidgetWx.cpp:
+        (WebCore::Widget::Widget):
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Move Qt's isNPAPIPlugin boolean from Widget down to PluginView, since there
+        was no reason for it to be on Widget.  This change eliminates Qt ifdefs
+        from Widget.
+
+        Reviewed by Sam Weinig
+
+        * bindings/js/ScriptControllerQt.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::WidgetPrivate::WidgetPrivate):
+        (WebCore::WidgetPrivate::~WidgetPrivate):
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::~Widget):
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::PluginView):
+        * plugins/PluginView.h:
+        (WebCore::PluginView::isNPAPIPlugin):
+        (WebCore::PluginView::setIsNPAPIPlugin):
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Make geometryChanged() cross-platform on Widget.  GTK and WIN platform
+        ifdefs are now gone from Widget!
+
+        Reviewed by Sam Weinig
+
+        * platform/Widget.h:
+        (WebCore::Widget::geometryChanged):
+        * platform/gtk/WidgetGtk.cpp:
+        * platform/qt/WidgetQt.cpp:
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Consolidate convertTo/FromContainingWindow methods so that all platforms
+        but Mac share the same code.
+
+        Move convertSelfToChild and convertChildToSelf to ScrollView, since
+        Widget should know nothing about children.  Make the methods cross-platform
+        on ScrollView.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollView.h:
+        (WebCore::ScrollView::convertChildToSelf):
+        (WebCore::ScrollView::convertSelfToChild):
+        * platform/Widget.cpp:
+        (WebCore::Widget::convertToContainingWindow):
+        (WebCore::Widget::convertFromContainingWindow):
+        * platform/Widget.h:
+        (WebCore::Widget::geometryChanged):
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::isScrollViewScrollbar):
+        * platform/gtk/WidgetGtk.cpp:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::isScrollViewScrollbar):
+        * platform/mac/WidgetMac.mm:
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::isScrollViewScrollbar):
+        * platform/qt/WidgetQt.cpp:
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::isScrollViewScrollbar):
+        * platform/win/WidgetWin.cpp:
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Make the conversion methods that go to and from some containingWindow
+        cross-platform.  Implement them on Mac.
+
+        Reviewed by Sam Weinig
+
+        * platform/Widget.h:
+        (WebCore::Widget::setContainingWindow):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::convertFromContainingWindow):
+        (WebCore::Widget::convertToContainingWindow):
+
+2008-09-18  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by David "Yeah-yeah" Hyatt.
+
+        Cleanup RenderStyle.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * rendering/style/CounterContent.h:
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+
+2008-09-18  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Sam Weinig
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=20908
+        Now TransformOperations and AnimationList no longer
+        inherit from Vector<> but rather have API to access.
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::computedTransform):
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::createTransformOperations):
+        * page/animation/AnimationBase.cpp:
+        (WebCore::blendFunc):
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateTransitions):
+        (WebCore::CompositeAnimation::updateKeyframeAnimations):
+        (WebCore::CompositeAnimation::animate):
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::validateTransformFunctionList):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::validateTransformFunctionList):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateReflectionStyle):
+        * rendering/style/AnimationList.cpp:
+        (WebCore::AnimationList::operator==):
+        * rendering/style/AnimationList.h:
+        (WebCore::AnimationList::operator!=):
+        (WebCore::AnimationList::size):
+        (WebCore::AnimationList::isEmpty):
+        (WebCore::AnimationList::resize):
+        (WebCore::AnimationList::remove):
+        (WebCore::AnimationList::append):
+        (WebCore::AnimationList::animation):
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::StyleRareNonInheritedData::updateKeyframes):
+        (WebCore::RenderStyle::applyTransform):
+        (WebCore::RenderStyle::adjustAnimations):
+        (WebCore::RenderStyle::adjustTransitions):
+        (WebCore::RenderStyle::transitionForProperty):
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::hasTransform):
+        * rendering/style/TransformOperations.cpp:
+        (WebCore::TransformOperations::TransformOperations):
+        (WebCore::TransformOperations::operator==):
+        * rendering/style/TransformOperations.h:
+        (WebCore::TransformOperations::apply):
+        (WebCore::TransformOperations::operations):
+
+2008-09-18  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix.
+
+        [qt] Build fixes after the Widget/ScrollView cleanup
+        topLevel() is now root()
+
+
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::ScrollViewPrivate::scrollBackingStore):
+        (WebCore::ScrollView::addChild):
+        (WebCore::ScrollView::removeChild):
+
+2008-09-18  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20437
+
+        XMLTokenizer.cpp used to contain two different implementations. One was using
+        libxml2 and the other was using the Qt XML StreamReader. Clean up the code by
+        separating the two implementations from each other.
+        Common code and some small bits are kept inside the XMLTokenizer.cpp, the Qt code
+        was moved to XMLTokenizerQt.cpp and the Libxml2 based code was moved to
+        XMLTokenizerLibxml2.cpp. There should be no functional changes.
+
+        Attempt to add XMLTokenizerLibxml2.cpp to every buildsystem so the build continues
+        to work.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * dom/XMLTokenizer.cpp:
+        (WebCore::isScriptElement):
+        (WebCore::castToScriptElement):
+        (WebCore::XMLTokenizer::setCurrentNode):
+        (WebCore::XMLTokenizer::write):
+        (WebCore::XMLTokenizer::eventuallyMarkAsParserCreated):
+        (WebCore::XMLTokenizer::enterText):
+        (WebCore::toString):
+        (WebCore::XMLTokenizer::exitText):
+        (WebCore::XMLTokenizer::end):
+        (WebCore::XMLTokenizer::insertErrorMessageBlock):
+        * dom/XMLTokenizer.h:
+        (WebCore::XMLTokenizer::wellFormed):
+        * dom/XMLTokenizerLibxml2.cpp: Copied from WebCore/dom/XMLTokenizer.cpp.
+        (WebCore::createMemoryParser):
+        (WebCore::XMLTokenizer::XMLTokenizer):
+        (WebCore::XMLTokenizer::~XMLTokenizer):
+        (WebCore::XMLTokenizer::doWrite):
+        (WebCore::ignorableWhitespaceHandler):
+        (WebCore::XMLTokenizer::initializeParserContext):
+        (WebCore::XMLTokenizer::doEnd):
+        (WebCore::XMLTokenizer::lineNumber):
+        (WebCore::XMLTokenizer::columnNumber):
+        (WebCore::XMLTokenizer::stopParsing):
+        (WebCore::XMLTokenizer::resumeParsing):
+        (WebCore::parseXMLDocumentFragment):
+        (WebCore::attributesStartElementNsHandler):
+        (WebCore::parseAttributes):
+        * dom/XMLTokenizerQt.cpp: Copied from WebCore/dom/XMLTokenizer.cpp.
+        (WebCore::EntityResolver::resolveUndeclaredEntity):
+        (WebCore::XMLTokenizer::XMLTokenizer):
+        (WebCore::XMLTokenizer::~XMLTokenizer):
+        (WebCore::XMLTokenizer::doWrite):
+        (WebCore::XMLTokenizer::initializeParserContext):
+        (WebCore::XMLTokenizer::doEnd):
+        (WebCore::XMLTokenizer::lineNumber):
+        (WebCore::XMLTokenizer::columnNumber):
+        (WebCore::XMLTokenizer::stopParsing):
+        (WebCore::XMLTokenizer::resumeParsing):
+        (WebCore::parseXMLDocumentFragment):
+        (WebCore::attributesStartElementNsHandler):
+        (WebCore::parseAttributes):
+        (WebCore::):
+
+2008-09-18  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Build fix for non-Mac builds.
+
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cssText):
+
+2008-09-18  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by hyatt.  Landed by eseidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20745
+        Animated GIFs do not animate properly with (at least) CG.
+
+        * WebCore\platform\graphics\BitmapImage.cpp:
+        * WebCore\platform\graphics\BitmapImage.h:
+        * WebCore\platform\graphics\cairo\ImageCairo.cpp:
+        * WebCore\platform\graphics\cg\ImageCG.cpp:
+        * WebCore\platform\graphics\qt\ImageQt.cpp:
+        * WebCore\platform\graphics\wx\ImageWx.cpp:
+
+2008-09-18  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin
+
+        <rdar://problem/6224222> AX: should not expose a <table> as an AXTable if ARIA 
+        role specifies otherwise
+
+        If a <table> isn't an AXTable, the rows and cells should default to AccessibilityRenderObject
+
+        Test: accessibility/table-with-aria-role.html
+
+        * page/AccessibilityTable.cpp:
+        (WebCore::AccessibilityTable::isTableExposableThroughAccessibility):
+        (WebCore::AccessibilityTable::addChildren):
+        (WebCore::AccessibilityTable::roleValue):
+        (WebCore::AccessibilityTable::accessibilityIsIgnored):
+        (WebCore::AccessibilityTable::title):
+        * page/AccessibilityTableCell.cpp:
+        (WebCore::AccessibilityTableCell::accessibilityIsIgnored):
+        (WebCore::AccessibilityTableCell::isTableCell):
+        (WebCore::AccessibilityTableCell::roleValue):
+        * page/AccessibilityTableCell.h:
+        * page/AccessibilityTableRow.cpp:
+        (WebCore::AccessibilityTableRow::roleValue):
+        (WebCore::AccessibilityTableRow::isTableRow):
+        (WebCore::AccessibilityTableRow::accessibilityIsIgnored):
+        * page/AccessibilityTableRow.h:
+
+2008-09-18  Steve Falkenburg  <sfalken@apple.com>
+
+        Use higher-resolution timers on all variants of Windows.
+        
+        Reviewed by Darin Adler.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::setSharedTimerFireTime):
+
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Make containingWindow() and setContainingWindow() cross-platform.
+        Add a root() function cross-platform so Qt doesn't have to
+        define its own.
+
+        Reviewed by Darin Adler
+
+        * platform/Widget.cpp:
+        (WebCore::Widget::root):
+        * platform/Widget.h:
+        (WebCore::Widget::setContainingWindow):
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::containingWindow):
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::addChild):
+        (WebCore::ScrollView::removeChild):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::containingWindow):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::Widget::invalidateRect):
+        (WebCore::Widget::containingWindow):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::~Widget):
+        (WebCore::Widget::containingWindow):
+
+2008-09-18  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20515 Crash upon 
+        parsing CSS: unicode-range: searchfield-cancel-buttonpt=-webkit-
+        dashboard-region=
+        and corresponding: <rdar://problem/6174100>
+
+        This patch makes CSSParserValue::createCSSValue handle unknown 
+        identifiers.
+
+        * css/CSSParserValues.cpp:
+        (WebCore::CSSParserValue::createCSSValue): If we have an identifier 
+        with no id (an unknown identifier) create a CSSPrimitiveValue of 
+        type CSS_PARSER_IDENTIFIER
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cssText):
+        (WebCore::CSSPrimitiveValue::parserValue):
+        * css/CSSPrimitiveValue.h:
+        (WebCore::CSSPrimitiveValue::):
+
+2008-09-18  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by David "I'd prefer not" Hyatt.
+
+        More the remaining class out of RenderStyle.h/cpp
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * rendering/style/CursorData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::CursorData::CursorData):
+        (WebCore::CursorData::operator==):
+        (WebCore::CursorData::operator!=):
+        * rendering/style/CursorList.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::CursorList::operator[]):
+        (WebCore::CursorList::CursorList):
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::deref):
+        (WebCore::RenderStyle::hasOneRef):
+        (WebCore::RenderStyle::InheritedFlags::operator!=):
+        (WebCore::RenderStyle::NonInheritedFlags::operator!=):
+        (WebCore::RenderStyle::hasBackground):
+        (WebCore::RenderStyle::outlineWidth):
+        (WebCore::RenderStyle::autoWrap):
+        (WebCore::RenderStyle::preserveNewline):
+        (WebCore::RenderStyle::collapseWhiteSpace):
+        (WebCore::RenderStyle::isCollapsibleWhiteSpace):
+        (WebCore::RenderStyle::breakOnlyAfterWhiteSpace):
+        (WebCore::RenderStyle::breakWords):
+        (WebCore::RenderStyle::outlineOffset):
+        (WebCore::RenderStyle::setLeft):
+        (WebCore::RenderStyle::setRight):
+        (WebCore::RenderStyle::setTop):
+        (WebCore::RenderStyle::setBottom):
+        (WebCore::RenderStyle::setDashboardRegion):
+        (WebCore::RenderStyle::setBackgroundColor):
+        (WebCore::RenderStyle::setBorderImage):
+        (WebCore::RenderStyle::setBorderRadius):
+        (WebCore::RenderStyle::setFontDescription):
+        (WebCore::RenderStyle::adjustBackgroundLayers):
+        (WebCore::RenderStyle::adjustMaskLayers):
+        (WebCore::RenderStyle::deleteBindingURIs):
+        (WebCore::RenderStyle::inheritBindingURIs):
+        (WebCore::RenderStyle::isDisplayReplacedType):
+        (WebCore::RenderStyle::isDisplayInlineType):
+        (WebCore::RenderStyle::isOriginalDisplayInlineType):
+        * rendering/style/StyleInheritedData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleInheritedData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleInheritedData::operator!=):
+        * rendering/style/StyleRareInheritedData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleRareInheritedData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleRareInheritedData::operator!=):
+        * rendering/style/StyleRareNonInheritedData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleRareNonInheritedData.h: Copied from rendering/style/RenderStyle.h.
+        * rendering/style/StyleReflection.h: Copied from rendering/style/RenderStyle.h.
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Move the concept of suppression invalidation on Widgets to Scrollbar
+        instead.  Since this is only used by Scrollbars, there is no need for
+        it to be on Widget.
+
+        Reviewed by Sam Weinig
+
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::Scrollbar):
+        (WebCore::Scrollbar::invalidateRect):
+        * platform/Scrollbar.h:
+        (WebCore::Scrollbar::suppressInvalidation):
+        (WebCore::Scrollbar::setSuppressInvalidation):
+        * platform/Widget.h:
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::invalidateRect):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::WidgetPrivate::WidgetPrivate):
+        (WebCore::Widget::invalidateRect):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::invalidateRect):
+
+2008-09-18  David Hyatt  <hyatt@apple.com>
+
+        Make invalidate() on Widget non-virtual and make it just call
+        invalidateRect() on the boundsGeometry() of the Widget.
+
+        Reviewed by Dan Bernstein
+
+        * platform/Widget.h:
+        (WebCore::Widget::boundsGeometry):
+        (WebCore::Widget::invalidate):
+        * platform/gtk/WidgetGtk.cpp:
+        * platform/mac/WidgetMac.mm:
+        * platform/qt/WidgetQt.cpp:
+        * platform/win/WidgetWin.cpp:
+        * platform/wx/WidgetWx.cpp:
+
+2008-09-18  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped in exile by David Hyatt.
+
+        Split Animation, AnimationList, BindingURI, ContentData, CounterContent,
+        KeyframeList, ShadowData, StyleFlexibleBoxData and TimingFunction out of
+        RenderStyle.h/cpp
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * css/CSSStyleSelector.cpp:
+        * css/CSSStyleSelector.h:
+        * page/animation/CompositeAnimation.cpp:
+        * page/animation/KeyframeAnimation.cpp:
+        * page/animation/KeyframeAnimation.h:
+        * rendering/RenderCounter.h:
+        * rendering/style/Animation.cpp: Copied from rendering/style/RenderStyle.cpp.
+        (WebCore::Animation::~Animation):
+        (WebCore::Animation::animationsMatch):
+        (WebCore::Animation::keyframeList):
+        (WebCore::Animation::setAnimationKeyframe):
+        * rendering/style/Animation.h: Copied from rendering/style/RenderStyle.h.
+        * rendering/style/AnimationList.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/AnimationList.h: Copied from rendering/style/RenderStyle.h.
+        * rendering/style/BindingURI.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/BindingURI.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::BindingURI::operator!=):
+        * rendering/style/ContentData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/ContentData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::ContentData::ContentData):
+        (WebCore::ContentData::~ContentData):
+        * rendering/style/CounterContent.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::CounterContent::CounterContent):
+        * rendering/style/CounterDirectives.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/CounterDirectives.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::CounterDirectives::CounterDirectives):
+        * rendering/style/KeyframeList.cpp: Copied from rendering/style/RenderStyle.cpp.
+        (WebCore::KeyframeList::insert):
+        * rendering/style/KeyframeList.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::KeyframeValue::KeyframeValue):
+        (WebCore::KeyframeList::create):
+        (WebCore::KeyframeList::KeyframeList):
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+        * rendering/style/ShadowData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/ShadowData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::ShadowData::ShadowData):
+        (WebCore::ShadowData::~ShadowData):
+        (WebCore::ShadowData::operator!=):
+        * rendering/style/StyleFlexibleBoxData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleFlexibleBoxData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleFlexibleBoxData::operator!=):
+        * rendering/style/TimingFunction.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::TimingFunction::TimingFunction):
+        (WebCore::TimingFunction::operator==):
+
+2008-09-18  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix RenderStyle leaks.
+
+        * rendering/RenderTextControl.cpp: (WebCore::RenderTextControl::createSubtreeIfNeeded):
+
+2008-09-18  Kevin McCullough  <kmccullough@apple.com>
+
+        Accidentally checked in code.
+
+        * html/HTMLElementFactory.cpp:
+        (WebCore::frameConstructor):
+        (WebCore::iframeConstructor):
+
+2008-09-18  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/5722310> gracefully handle too many console messages
+        (20904)
+        - Keep track of the most previous message and then compare it to the 
+        subsequent messages as they come in.  If there are multiple of the same
+        message create a count that indicates the current number.
+
+        * manual-tests/inspector/multiple-console-messages.html: Added.
+        * page/inspector/Console.js:
+        * page/inspector/inspector.css:
+
+2008-09-18  Jonathon Jongsma  <jonathon@quotidian.org>
+
+        Reviewed by Alp Toker
+
+        https://bugs.webkit.org/show_bug.cgi?id=20830
+        [GTK] Don't use deprecated pango API
+
+        Replace deprecated pango functions with non-deprecated ones for newer
+        versions of pango
+
+        * platform/graphics/gtk/FontGtk.cpp:
+        (WebCore::getDefaultPangoLayout):
+        * platform/graphics/gtk/FontPlatformDataPango.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+
+2008-09-18  Alp Toker  <alp@nuanti.com>
+
+        Build fix for r36587. Add new sources (and sort the lists).
+
+        * GNUmakefile.am:
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Fix Windows build.
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-09-17  David Hyatt  <hyatt@apple.com>
+
+        Switch back to having frameGeometry be virtual in order to keep Mac
+        the way it used to be.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.base.exp:
+        * platform/Widget.cpp:
+        (WebCore::Widget::setParent):
+        * platform/Widget.h:
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::frameGeometry):
+        (WebCore::Widget::setFrameGeometry):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::frameGeometry):
+        (WebCore::Widget::setFrameGeometry):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::Widget::frameGeometry):
+        (WebCore::Widget::setFrameGeometry):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::frameGeometry):
+        (WebCore::Widget::setFrameGeometry):
+        * platform/wx/WidgetWx.cpp:
+        (WebCore::Widget::frameGeometry):
+        (WebCore::Widget::setFrameGeometry):
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::setFrameGeometry):
+        (WebCore::PluginView::geometryChanged):
+        * plugins/PluginView.h:
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::updatePluginWidget):
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::updatePluginWidget):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::updatePluginWidget):
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix assertion in DOMWindow::adjustWindowRect where we were passing
+        in garbage values and were getting lucky that they were a not Nan.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::windowProtoFuncOpen):
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Fix gtk build.
+
+        * rendering/style/MatrixTransformOperation.cpp:
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped with love by David Hyatt.
+
+        Split IdentityTransformOperation, MatrixTransformOperation, RotateTransformOperation, 
+        ScaleTransformOperation, SkewTransformOperation, StyleTransformData, TransformOperation,
+        TransformOperations and TranslateTransformOperation out of RenderStyle.h/cpp
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * css/CSSStyleSelector.cpp:
+        * page/animation/AnimationBase.cpp:
+        (WebCore::solveEpsilon):
+        * rendering/RenderLayer.cpp:
+        * rendering/style/IdentityTransformOperation.h: Copied from rendering/style/RenderStyle.h.
+        * rendering/style/MatrixTransformOperation.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/MatrixTransformOperation.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::MatrixTransformOperation::MatrixTransformOperation):
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+        * rendering/style/RotateTransformOperation.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/RotateTransformOperation.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::RotateTransformOperation::RotateTransformOperation):
+        * rendering/style/ScaleTransformOperation.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/ScaleTransformOperation.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::ScaleTransformOperation::ScaleTransformOperation):
+        * rendering/style/SkewTransformOperation.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/SkewTransformOperation.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::SkewTransformOperation::SkewTransformOperation):
+        * rendering/style/StyleTransformData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleTransformData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleTransformData::operator!=):
+        * rendering/style/TransformOperation.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::TransformOperation::):
+        * rendering/style/TransformOperations.cpp: Copied from rendering/style/RenderStyle.cpp.
+        (WebCore::TransformOperations::TransformOperations):
+        * rendering/style/TransformOperations.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::TransformOperations::operator!=):
+        * rendering/style/TranslateTransformOperation.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/TranslateTransformOperation.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::TranslateTransformOperation::TranslateTransformOperation):
+
+2008-09-17  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * rendering/style/StyleDashboardRegion.h:  PlatformString.h rather than String.h.
+
+2008-09-17  David Hyatt  <hyatt@apple.com>
+
+        (1) Inline a bunch of methods for accessing frame geometry.
+        (2) Make sure frameGeometry() works even when you have no underlying
+        native widget.
+        (3) Cache a frame geometry rect cross-platform (even for widgets that
+        have underlying native widgets.
+        (4) PluginView's updateWindow call is now a virtual function on Widget.
+
+        Reviewed by Sam Weinig
+
+        * ChangeLog:
+        * WebCore.base.exp:
+        * platform/Widget.cpp:
+        (WebCore::Widget::setFrameGeometry):
+        * platform/Widget.h:
+        (WebCore::Widget::x):
+        (WebCore::Widget::y):
+        (WebCore::Widget::width):
+        (WebCore::Widget::height):
+        (WebCore::Widget::size):
+        (WebCore::Widget::pos):
+        (WebCore::Widget::frameGeometry):
+        (WebCore::Widget::resize):
+        (WebCore::Widget::move):
+        (WebCore::Widget::isFrameView):
+        (WebCore::Widget::windowClipRect):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::~Widget):
+        (WebCore::Widget::updatePlatformWidgetFrameGeometry):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::updatePlatformWidgetFrameGeometry):
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::setFrameGeometry):
+        (WebCore::PluginView::geometryChanged):
+        * plugins/PluginView.h:
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::updatePlatformWidgetFrameGeometry):
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::updatePlatformWidgetFrameGeometry):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::updatePlatformWidgetFrameGeometry):
+        * plugins/wx/PluginViewWx.cpp:
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David "Waterman" Hyatt.
+
+        Fix a leak of NSViews in WidgetMac.mm.
+
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::~Widget):
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by David Waterman Hyatt.
+
+        Split FillLayer, StyleBackgroundData, StyleBoxData, StyleDashboardRegion, StyleMarqueeData
+        StyleMultiColData and StyleVisualData out of RenderStyle.h/cpp
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * rendering/style/FillLayer.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/FillLayer.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::FillLayer::operator!=):
+        (WebCore::FillLayer::hasImage):
+        (WebCore::FillLayer::hasFixedImage):
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+        * rendering/style/StyleBackgroundData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        (WebCore::StyleBackgroundData::StyleBackgroundData):
+        * rendering/style/StyleBackgroundData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleBackgroundData::~StyleBackgroundData):
+        (WebCore::StyleBackgroundData::operator!=):
+        * rendering/style/StyleBoxData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleBoxData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleBoxData::operator!=):
+        * rendering/style/StyleDashboardRegion.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleDashboardRegion::operator!=):
+        * rendering/style/StyleMarqueeData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleMarqueeData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleMarqueeData::operator!=):
+        * rendering/style/StyleMultiColData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleMultiColData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleMultiColData::operator!=):
+        (WebCore::StyleMultiColData::ruleWidth):
+        * rendering/style/StyleVisualData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleVisualData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleVisualData::operator==):
+
+2008-09-17  David Hyatt  <hyatt@apple.com>
+
+        Remove WidgetClient from Widget.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/Widget.h:
+        (WebCore::Widget::setClient):
+        (WebCore::Widget::client):
+        * platform/WidgetClient.h: Removed.
+        * platform/gtk/WidgetGtk.cpp:
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::show):
+        (WebCore::Widget::hide):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::WidgetPrivate::WidgetPrivate):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::Widget):
+        * platform/wx/WidgetWx.cpp:
+        (WebCore::Widget::Widget):
+
+2008-09-17  David Hyatt  <hyatt@apple.com>
+
+        Remove isEnabled/setEnabled from Widget.  The concept of being enabled now
+        only applies to Scrollbars so the method has been moved there and made
+        cross-platform.  Scrollbar subclasses that have a corresponding native
+        widget can subclass setEnabled to change the enabled state of the native
+        widget.
+
+        Reviewed by Sam Weinig & Darin Adler
+
+        * WebCore.base.exp:
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::Scrollbar):
+        * platform/Scrollbar.h:
+        (WebCore::Scrollbar::enabled):
+        (WebCore::Scrollbar::setEnabled):
+        * platform/Widget.h:
+        * platform/gtk/ScrollbarGtk.cpp:
+        (ScrollbarGtk::setEnabled):
+        * platform/gtk/ScrollbarGtk.h:
+        * platform/gtk/WidgetGtk.cpp:
+        * platform/mac/ScrollbarMac.h:
+        * platform/mac/ScrollbarMac.mm:
+        (WebCore::ScrollbarMac::scrollbarHit):
+        (WebCore::ScrollbarMac::setEnabled):
+        * platform/mac/WidgetMac.mm:
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::WidgetPrivate::WidgetPrivate):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::Widget):
+        * platform/wx/WidgetWx.cpp:
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by David Hyatt.
+
+        Split all RenderStyle enums into their own file.
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * rendering/style/BorderValue.h:
+        * rendering/style/CollapsedBorderValue.h:
+        * rendering/style/RenderStyle.h:
+        * rendering/style/RenderStyleConstants.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::):
+        * rendering/style/StyleCachedImage.h:
+        * rendering/style/StyleGeneratedImage.h:
+        * rendering/style/StyleImage.h:
+
+2008-09-17  Steve Falkenburg  <sfalken@apple.com>
+
+        Add back isFrameView check to fix failed assertion during scroll bar teardown.
+        
+        Reviewed by Dave Hyatt.
+
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::setParent):
+
+2008-09-17  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Mac build fix
+
+        * WebCore.xcodeproj/project.pbxproj: Send appropriate headers to WebKit
+
+2008-09-17  Steve Falkenburg  <sfalken@apple.com>
+
+        Fix build.
+
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::setParentVisible):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::init):
+
+2008-09-17  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon.
+
+        [QtWebKit] Implement error handling in TextCodecQt::decode
+        Use the QTextCodec parsing state to set the sawError out variable. This
+        is needed to pass Test 70 of acid3. The test case for this bug is
+        fast/encoding/invalid-xml.html that is now partially passed. To pass
+        it completely the Qt text codecs need to be adjusted to have proper
+        error handling.
+
+        * platform/text/qt/TextCodecQt.cpp:
+        (WebCore::TextCodecQt::decode):
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Dave Hyatt.
+
+        Split BorderData, BorderValue, CollapsedBorderValue, OutlineValue and StyleSurroundData
+        out of RenderStyle.h/cpp
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * rendering/style/BorderData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::BorderData::hasBorderRadius):
+        (WebCore::BorderData::borderLeftWidth):
+        (WebCore::BorderData::borderRightWidth):
+        (WebCore::BorderData::borderTopWidth):
+        (WebCore::BorderData::borderBottomWidth):
+        (WebCore::BorderData::operator!=):
+        * rendering/style/BorderValue.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::):
+        (WebCore::BorderValue::BorderValue):
+        (WebCore::BorderValue::nonZero):
+        (WebCore::BorderValue::isTransparent):
+        (WebCore::BorderValue::isVisible):
+        * rendering/style/CollapsedBorderValue.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::):
+        (WebCore::CollapsedBorderValue::CollapsedBorderValue):
+        (WebCore::CollapsedBorderValue::operator==):
+        * rendering/style/OutlineValue.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::OutlineValue::OutlineValue):
+        * rendering/style/RenderStyle.cpp:
+        * rendering/style/RenderStyle.h:
+        * rendering/style/StyleSurroundData.cpp: Copied from rendering/style/RenderStyle.cpp.
+        * rendering/style/StyleSurroundData.h: Copied from rendering/style/RenderStyle.h.
+        (WebCore::StyleSurroundData::operator!=):
+
+2008-09-17  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        This is a better fix for: Invalid CSS code crashes Safari
+        https://bugs.webkit.org/show_bug.cgi?id=20512
+
+        The spec indicates that the only valid input for a counter is a 
+        number or an identifier. So that is exactly what we allow.
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseCounterContent):
+
+2008-09-17  Alp Toker  <alp@nuanti.com>
+
+        GTK+ build fix. Adapt to use PlatformWidget functions.
+
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollViewScrollbar::geometryChanged):
+        (WebCore::ScrollView::addChild):
+        (WebCore::ScrollView::removeChild):
+        * platform/gtk/ScrollbarGtk.cpp:
+        (ScrollbarGtk::ScrollbarGtk):
+        (ScrollbarGtk::~ScrollbarGtk):
+        (ScrollbarGtk::geometryChanged):
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Adele Peterson.
+
+        Patch for <rdar://problem/6133884> 
+        Calling window.resizeTo() on a subframe shouldn't change the window size
+
+        Test: fast/dom/Window/window-resize-and-move-sub-frame.html
+
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::moveBy):
+        (WebCore::DOMWindow::moveTo):
+        (WebCore::DOMWindow::resizeBy):
+        (WebCore::DOMWindow::resizeTo):
+
+2008-09-17  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20512 Invalid CSS 
+        code crashes Safari 
+        and corresponding: <rdar://problem/6173832>
+
+        Reading through the spec, it seems like a function is not valid 
+        input for a counter. So this patch checks for that and bails in the 
+        case of invalid input. 
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseCounterContent):
+
+2008-09-17  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        Fix <rdar://problem/6227089> 
+        Crash in WebCore::Frame::setNeedsReapplyStyles()
+        
+        View is null checked elsewhere too.
+
+        * page/Frame.cpp:
+        (WebCore::Frame::setNeedsReapplyStyles):
+
+2008-09-17  David Hyatt  <hyatt@apple.com>
+
+        Make the notion of having a native widget backing a Widget cross-platform.
+        The PlatformWidget abstraction (which already existed) is used for this.
+             Windows = HWND
+             Qt = QWidget
+             Mac = NSView
+             wx = wxWindow
+             Gtk = GtkWidget
+
+        There are new cross-platform methods that replace all of the unique
+        platform-specific methods.
+             platformWidget()
+             setPlatformWidget()
+
+        For plugins, on every platform except Qt on Windows, the plugin's native
+        widget is now stored in the Widget base class.  Since Qt on Windows uses
+        HWNDs for plugins instead of QWidget, it is the only platform to keep the
+        m_window variable in PluginView.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.base.exp:
+        * bindings/js/ScriptControllerMac.mm:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper attachmentView]):
+        (-[AccessibilityObjectWrapper accessibilityAttributeValue:]):
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::EventHandler::passMouseDownEventToWidget):
+        (WebCore::EventHandler::mouseDownViewIfStillGood):
+        (WebCore::EventHandler::passWheelEventToWidget):
+        (WebCore::EventHandler::sendFakeEventsAfterWidgetTracking):
+        * platform/Widget.cpp:
+        (WebCore::Widget::init):
+        (WebCore::Widget::setParent):
+        (WebCore::Widget::releasePlatformWidget):
+        (WebCore::Widget::retainPlatformWidget):
+        * platform/Widget.h:
+        (WebCore::Widget::platformWidget):
+        (WebCore::Widget::setPlatformWidget):
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::setFocus):
+        (WebCore::gdkDrawable):
+        (WebCore::Widget::setCursor):
+        (WebCore::Widget::show):
+        (WebCore::Widget::hide):
+        (WebCore::Widget::setEnabled):
+        (WebCore::Widget::isEnabled):
+        (WebCore::Widget::paint):
+        * platform/mac/PlatformScreenMac.mm:
+        (WebCore::screenRect):
+        (WebCore::screenAvailableRect):
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::scrollView):
+        (WebCore::ScrollView::update):
+        (WebCore::ScrollView::inWindow):
+        * platform/mac/ScrollbarMac.mm:
+        (WebCore::ScrollbarMac::ScrollbarMac):
+        (WebCore::ScrollbarMac::~ScrollbarMac):
+        (WebCore::ScrollbarMac::updateThumbPosition):
+        (WebCore::ScrollbarMac::updateThumbProportion):
+        (WebCore::ScrollbarMac::scrollbarHit):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::setEnabled):
+        (WebCore::Widget::isEnabled):
+        (WebCore::Widget::setFocus):
+        (WebCore::Widget::getOuterView):
+        (WebCore::Widget::paint):
+        (WebCore::Widget::invalidate):
+        (WebCore::Widget::invalidateRect):
+        (WebCore::Widget::setIsSelected):
+        (WebCore::Widget::releasePlatformWidget):
+        (WebCore::Widget::retainPlatformWidget):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::WidgetPrivate::WidgetPrivate):
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::setFrameGeometry):
+        (WebCore::Widget::show):
+        (WebCore::Widget::hide):
+        (WebCore::Widget::isEnabled):
+        (WebCore::Widget::setEnabled):
+        (WebCore::Widget::invalidateRect):
+        (WebCore::Widget::containingWindow):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::Widget):
+        * platform/wx/WidgetWx.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::frameGeometry):
+        (WebCore::Widget::setFocus):
+        (WebCore::Widget::setCursor):
+        (WebCore::Widget::show):
+        (WebCore::Widget::hide):
+        (WebCore::Widget::setFrameGeometry):
+        (WebCore::Widget::setEnabled):
+        (WebCore::Widget::isEnabled):
+        (WebCore::Widget::invalidate):
+        (WebCore::Widget::invalidateRect):
+        (WebCore::Widget::paint):
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::PluginView):
+        * plugins/PluginView.h:
+        (WebCore::PluginView::platformPluginWidget):
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::updateWindow):
+        (WebCore::PluginView::setFocus):
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::setParent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::setParentVisible):
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::forceRedraw):
+        (WebCore::PluginView::init):
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::updateWindow):
+        (WebCore::PluginView::setFocus):
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::setParent):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::setParentVisible):
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::~PluginView):
+        (WebCore::PluginView::init):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::updateWindow):
+        (WebCore::PluginView::setFocus):
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::paint):
+        (WebCore::PluginView::setParent):
+        (WebCore::PluginView::setParentVisible):
+        (WebCore::PluginView::setNPWindowRect):
+        (WebCore::PluginView::stop):
+        (WebCore::PluginView::invalidateRect):
+        (WebCore::PluginView::forceRedraw):
+        (WebCore::PluginView::~PluginView):
+        (WebCore::PluginView::init):
+
+2008-09-17  Sam Weinig  <sam@webkit.org>
+
+        Fix assert.
+
+        * platform/Widget.cpp:
+        (WebCore::Widget::setParent):
+
+2008-09-17  David Hyatt  <hyatt@apple.com>
+
+        Beginnings of Widget refactoring (in order to make the mixing of
+        widgets with and without corresponding native widgets more cross-platform).
+
+        This first patch makes the concept of a parent ScrollView cross-platform.
+
+        Note the similarity of the show/hide methods on the three PluginViews.  This
+        will be refactored better in a later patch so that they can all share
+        a base class Widget show/hide method.  For now the changes were made
+        simply to be able to bring WidgetWin's setParent method up into Widget.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.base.exp:
+        * platform/ScrollView.h:
+        * platform/Widget.cpp:
+        (WebCore::Widget::init):
+        (WebCore::Widget::setParent):
+        * platform/Widget.h:
+        (WebCore::Widget::isSelfVisible):
+        (WebCore::Widget::isParentVisible):
+        (WebCore::Widget::isVisible):
+        (WebCore::Widget::setParentVisible):
+        (WebCore::Widget::isPluginView):
+        (WebCore::Widget::parent):
+        (WebCore::Widget::handleEvent):
+        (WebCore::Widget::geometryChanged):
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::Widget):
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::addChild):
+        (WebCore::ScrollView::removeChild):
+        * platform/mac/ScrollbarMac.mm:
+        (WebCore::ScrollbarMac::~ScrollbarMac):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::~Widget):
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::WidgetPrivate::WidgetPrivate):
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::topLevel):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::ScrollViewPrivate::ScrollViewPrivate):
+        (WebCore::ScrollView::setAncestorVisible):
+        (WebCore::ScrollView::show):
+        (WebCore::ScrollView::hide):
+        * platform/win/WidgetWin.cpp:
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::setParent):
+        * platform/wx/WidgetWx.cpp:
+        (WebCore::Widget::Widget):
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::PluginView):
+        * plugins/PluginView.h:
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::setParentVisible):
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::setParentVisible):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::show):
+        (WebCore::PluginView::hide):
+        (WebCore::PluginView::setParentVisible):
+
+2008-09-17  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        <rdar://problem/6219577> Spew in console at launch about encoding mappings when running with ICU 4.0
+
+        * platform/text/TextCodecICU.cpp:
+        (WebCore::TextCodecICU::registerExtendedEncodingNames): Updated for new encoding names.
+
+2008-09-17  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Fix the QtWebKit/Mac build
+
+        * platform/qt/ScrollViewQt.cpp: add include
+
+2008-09-17  David Hyatt  <hyatt@apple.com>
 
         Add a #define to control whether or not to use an NSScroller on Mac.
         This ifdef will allow the new NSView-less NSScroller on Mac to be
@@ -3415,7 +4913,7 @@
         * platform/graphics/cairo/FontCairo.cpp:
         (WebCore::Font::drawGlyphs):
 
-2008-09-03  Peter Kasting  <zerodpx@gmail.com>
+2008-09-03  Peter Kasting  <pkasting@google.com>
 
         Reviewed by Dave Hyatt.
 

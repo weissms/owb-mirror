@@ -52,6 +52,8 @@ public:
     virtual bool handleMousePressEvent(const PlatformMouseEvent&);
     virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&);
 
+    virtual void setEnabled(bool);
+
 protected:
     ScrollbarSDL(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
     virtual void updateThumbPosition();

@@ -38,6 +38,7 @@
 
 namespace WKAL {
 
+#if PLATFORM(WIN)
 static Page* pageForScrollView(ScrollView* view)
 {
     if (!view)
@@ -49,7 +50,9 @@ static Page* pageForScrollView(ScrollView* view)
         return 0;
     return frameView->frame()->page();
 }
+#endif
 
+#if !USE(NSSCROLLER)
 bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graphicsContext, const IntRect& damageRect)
 {
     // Create the ScrollbarControlPartMask based on the damageRect
@@ -92,6 +95,7 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
         scrollMask |= ForwardTrackPart;
     }
 
+#if PLATFORM(WIN)
     // FIXME: This API makes the assumption that the custom scrollbar's metrics will match
     // the theme's metrics.  This is not a valid assumption.  The ability for a client to paint
     // custom scrollbars should be removed once scrollbars can be styled via CSS.
@@ -102,7 +106,7 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
             ScrollbarControlState s = 0;
             if (scrollbar->client()->isActive())
                 s |= ActiveScrollbarState;
-            if (scrollbar->isEnabled())
+            if (scrollbar->enabled())
                 s |= EnabledScrollbarState;
             if (scrollbar->pressedPart() != NoPart)
                 s |= PressedScrollbarState;
@@ -118,6 +122,7 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
                 return true;
         }
     }
+#endif
 
     // Paint the track.
     if ((scrollMask & ForwardTrackPart) || (scrollMask & BackTrackPart)) {
@@ -143,11 +148,12 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
 
     return true;
 }
+#endif
 
 ScrollbarPart ScrollbarThemeComposite::hitTest(Scrollbar* scrollbar, const PlatformMouseEvent& evt)
 {
     ScrollbarPart result = NoPart;
-    if (!scrollbar->isEnabled())
+    if (!scrollbar->enabled())
         return result;
 
     IntPoint mousePosition = scrollbar->convertFromContainingWindow(evt.pos());
@@ -221,14 +227,14 @@ void ScrollbarThemeComposite::splitTrack(Scrollbar* scrollbar, const IntRect& tr
 
 int ScrollbarThemeComposite::thumbPosition(Scrollbar* scrollbar)
 {
-    if (scrollbar->isEnabled())
+    if (scrollbar->enabled())
         return scrollbar->currentPos() * (trackLength(scrollbar) - thumbLength(scrollbar)) / scrollbar->maximum();
     return 0;
 }
 
 int ScrollbarThemeComposite::thumbLength(Scrollbar* scrollbar)
 {
-    if (!scrollbar->isEnabled())
+    if (!scrollbar->enabled())
         return 0;
 
     float proportion = (float)scrollbar->visibleSize() / scrollbar->totalSize();
@@ -247,7 +253,7 @@ int ScrollbarThemeComposite::minimumThumbLength(Scrollbar* scrollbar)
 
 int ScrollbarThemeComposite::trackPosition(Scrollbar* scrollbar)
 {
-    return (scrollbar->orientation() == HorizontalScrollbar) ? trackRect(scrollbar).x() : trackRect(scrollbar).y();
+    return (scrollbar->orientation() == HorizontalScrollbar) ? trackRect(scrollbar).x() - scrollbar->x() : trackRect(scrollbar).y() - scrollbar->y();
 }
 
 int ScrollbarThemeComposite::trackLength(Scrollbar* scrollbar)

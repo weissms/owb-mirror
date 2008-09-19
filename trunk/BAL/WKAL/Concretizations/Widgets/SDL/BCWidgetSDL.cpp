@@ -46,87 +46,25 @@ typedef SDL_Cursor BalCursor;
 //TODO : redo the WidgetPrivate on SDL
 class WidgetPrivate {
 public:
-    BalWidget* widget;
-    WidgetClient* client;
-    IntRect frameRect;
-
-    ScrollView* parent;
-    BalWidget* containingWindow;
-    bool suppressInvalidation;
-    BalCursor* cursor;
-    bool enabled;
-
-    BalDrawable* balDrawable() const
-    {
-        return  0;
-    }
+	BalCursor* cursor;
 };
 
-Widget::Widget()
-    : data(new WidgetPrivate)
+Widget::Widget(PlatformWidget widget)
+    : m_data(new WidgetPrivate)
 {
-    data->widget = 0;
-    data->parent = 0;
-    data->containingWindow = 0;
-    data->suppressInvalidation = false;
-    data->cursor = 0;
-}
-
-BalWidget* Widget::balWidget() const
-{
-    return data->widget;
-}
-
-void Widget::setBalWidget(BalWidget* widget)
-{
-    data->widget = widget;
+    init(widget);
+    m_data->cursor = 0;
 }
 
 Widget::~Widget()
 {
     ASSERT(!parent());
-    delete data;
-}
-
-void Widget::setContainingWindow(PlatformWidget containingWindow)
-{
-    data->containingWindow = containingWindow;
+    delete m_data;
 }
 
 PlatformWidget Widget::containingWindow() const
 {
-    return data->containingWindow;
-}
-
-void Widget::setClient(WidgetClient* c)
-{
-    data->client = c;
-}
-
-WidgetClient* Widget::client() const
-{
-    return data->client;
-}
-
-IntRect Widget::frameGeometry() const
-{
-//     printf("frameGeometry this = %p %d %d %d %d\n",this, data->frameRect.x(), data->frameRect.y(), data->frameRect.width(), data->frameRect.height());
-    return data->frameRect;
-}
-
-void Widget::setFrameGeometry(const IntRect& r)
-{
-    data->frameRect = r;
-}
-
-void Widget::setParent(ScrollView* v)
-{
-    data->parent = v;
-}
-
-ScrollView* Widget::parent() const
-{
-    return data->parent;
+    return m_containingWindow;
 }
 
 void Widget::setFocus()
@@ -136,7 +74,7 @@ void Widget::setFocus()
 
 Cursor Widget::cursor()
 {
-    return Cursor(data->cursor);
+    return Cursor(m_data->cursor);
 }
 
 void Widget::setCursor(const Cursor& cursor)
@@ -153,16 +91,6 @@ void Widget::hide()
     NotImplemented();
 }
 
-void Widget::setEnabled(bool shouldEnable)
-{
-    data->enabled = shouldEnable;
-}
-
-bool Widget::isEnabled() const
-{
-    return data->enabled;
-}
-
 void Widget::removeFromParent()
 {
     if (parent())
@@ -171,7 +99,7 @@ void Widget::removeFromParent()
 
 void Widget::paint(GraphicsContext* context, const IntRect &r)
 {
-    if (!balWidget())
+    if (!platformWidget())
         return;
 
 #if !PLATFORM(AMIGAOS4)
@@ -179,7 +107,7 @@ void Widget::paint(GraphicsContext* context, const IntRect &r)
         return;
     
     printf("Widget::paint(\n");
-    BalWidget* widget = balWidget();
+    BalWidget* widget = platformWidget();
     SDL_Event ev;
     ev.type = SDL_VIDEOEXPOSE;
     SDL_PushEvent(&ev);
@@ -191,17 +119,8 @@ void Widget::setIsSelected(bool)
     NotImplemented();
 }
 
-void Widget::invalidate()
-{
-    invalidateRect(IntRect(0, 0, width(), height()));
-}
-
 void Widget::invalidateRect(const IntRect& rect)
 {
-    //printf("invalidateRect x=%d y=%d w=%d h=%d\n", rect.x(), rect.y(), rect.width(), rect.height());
-    if (data->suppressInvalidation)
-        return;
-
     if (!parent()) {
         if (isFrameView())
             static_cast<FrameView*>(this)->addToDirtyRegion(rect);
@@ -219,64 +138,14 @@ void Widget::invalidateRect(const IntRect& rect)
     outermostView->addToDirtyRegion(windowRect);
 }
 
-IntPoint Widget::convertToContainingWindow(const IntPoint& point) const
+IntRect Widget::frameGeometry() const
 {
-    IntPoint windowPoint = point;
-    for (const Widget *parentWidget = parent(), *childWidget = this;
-         parentWidget;
-         childWidget = parentWidget, parentWidget = parentWidget->parent())
-        windowPoint = parentWidget->convertChildToSelf(childWidget, windowPoint);
-    return windowPoint;
+    return m_frame;
 }
 
-IntPoint Widget::convertFromContainingWindow(const IntPoint& point) const
+void Widget::setFrameGeometry(const IntRect& rect)
 {
-    IntPoint widgetPoint = point;
-    for (const Widget *parentWidget = parent(), *childWidget = this;
-         parentWidget;
-         childWidget = parentWidget, parentWidget = parentWidget->parent())
-        widgetPoint = parentWidget->convertSelfToChild(childWidget, widgetPoint);
-    return widgetPoint;
-}
-
-IntRect Widget::convertToContainingWindow(const IntRect& rect) const
-{
-    IntRect convertedRect = rect;
-    convertedRect.setLocation(convertToContainingWindow(convertedRect.location()));
-    return convertedRect;
-}
-
-IntPoint Widget::convertChildToSelf(const Widget* child, const IntPoint& point) const
-{
-    return IntPoint(point.x() + child->x(), point.y() + child->y());
-}
-
-IntPoint Widget::convertSelfToChild(const Widget* child, const IntPoint& point) const
-{
-    return IntPoint(point.x() - child->x(), point.y() - child->y());
-}
-
-bool Widget::suppressInvalidation() const
-{
-    return data->suppressInvalidation;
-}
-
-void Widget::setSuppressInvalidation(bool suppress)
-{
-    data->suppressInvalidation = suppress;
-}
-
-void Widget::geometryChanged() const
-{
-}
-
-bool Widget::isPluginView() const 
-{
-   return false; 
-}
-
-void Widget::handleEvent(Event*) 
-{
+	m_frame = rect;
 }
 
 }

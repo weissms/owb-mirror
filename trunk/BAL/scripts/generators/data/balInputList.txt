@@ -588,6 +588,7 @@
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/curl/ResourceHandleManager.h
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/curl/ResourceRequest.h
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/curl/ResourceResponse.h
+../../WKAL/Skeletons/Network	../../../WebCore/platform/network/DNS.h
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/FormData.h
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/ProtectionSpace.h
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/ResourceErrorBase.h
@@ -615,6 +616,7 @@
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/ResourceHandleSoup.cpp
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/ResourceRequest.h
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/ResourceResponse.h
+../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/DNS.h
 ../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/FormData.h
 ../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/FormData.cpp
 ../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/ProtectionSpace.h
@@ -652,7 +654,6 @@
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarThemeComposite.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollView.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/SearchPopupMenu.h
-../../WKAL/Skeletons/Widgets	../../../WebCore/platform/WidgetClient.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/Widget.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ClipboardGtk.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/RenderThemeGtk.h

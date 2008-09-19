@@ -141,7 +141,7 @@ void ScrollViewScrollbar::geometryChanged() const
     sz.clampNegativeToZero();
 
     GtkAllocation allocation = { loc.x(), loc.y(), sz.width(), sz.height() };
-    gtk_widget_size_allocate(gtkWidget(), &allocation);
+    gtk_widget_size_allocate(platformWidget(), &allocation);
 }
 
 void ScrollView::ScrollViewPrivate::setHasHorizontalScrollbar(bool hasBar)
@@ -482,8 +482,8 @@ void ScrollView::addChild(Widget* child)
     child->setParent(this);
     m_data->children.add(child);
 
-    if (child->gtkWidget() && !GTK_IS_SOCKET(child->gtkWidget()))
-        gtk_container_add(GTK_CONTAINER(containingWindow()), child->gtkWidget());
+    if (child->platformWidget() && !GTK_IS_SOCKET(child->platformWidget()))
+        gtk_container_add(GTK_CONTAINER(containingWindow()), child->platformWidget());
 }
 
 void ScrollView::removeChild(Widget* child)
@@ -491,8 +491,8 @@ void ScrollView::removeChild(Widget* child)
     child->setParent(0);
     m_data->children.remove(child);
 
-    if (child->gtkWidget() && GTK_WIDGET(containingWindow()) == GTK_WIDGET(child->gtkWidget())->parent)
-        gtk_container_remove(GTK_CONTAINER(containingWindow()), child->gtkWidget());
+    if (child->platformWidget() && GTK_WIDGET(containingWindow()) == GTK_WIDGET(child->platformWidget())->parent)
+        gtk_container_remove(GTK_CONTAINER(containingWindow()), child->platformWidget());
 }
 
 void ScrollView::scrollRectIntoViewRecursively(const IntRect& r)
@@ -694,20 +694,9 @@ Scrollbar* ScrollView::scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent)
     return 0;
 }
 
-IntPoint ScrollView::convertChildToSelf(const Widget* child, const IntPoint& point) const
+bool ScrollView::isScrollViewScrollbar(const Widget* child) const
 {
-    IntPoint newPoint = point;
-    if (child != m_data->hBar && child != m_data->vBar)
-        newPoint = point - scrollOffset();
-    return Widget::convertChildToSelf(child, newPoint);
-}
-
-IntPoint ScrollView::convertSelfToChild(const Widget* child, const IntPoint& point) const
-{
-    IntPoint newPoint = point;
-    if (child != m_data->hBar && child != m_data->vBar)
-        newPoint = point + scrollOffset();
-    return Widget::convertSelfToChild(child, newPoint);
+    return m_data->hBar == child || m_data->vBar == child;
 }
 
 void ScrollView::paint(GraphicsContext* context, const IntRect& rect)

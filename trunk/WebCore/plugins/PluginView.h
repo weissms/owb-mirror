@@ -156,9 +156,7 @@ namespace WebCore {
         virtual IntRect windowClipRect() const;
         virtual void handleEvent(Event*);
         virtual void setParent(ScrollView*);
-
-        virtual void attachToWindow();
-        virtual void detachFromWindow();
+        virtual void setParentVisible(bool);
 
         virtual bool isPluginView() const { return true; }
 
@@ -175,6 +173,11 @@ namespace WebCore {
         void didFail(const ResourceError&);
 
         static bool isCallingPlugin();
+
+#if PLATFORM(QT)
+        bool isNPAPIPlugin() const { return m_isNPAPIPlugin; }
+        void setIsNPAPIPlugin(bool b) { m_isNPAPIPlugin = b; }
+#endif
 
     private:
         PluginView(Frame* parentFrame, const IntSize&, PluginPackage*, Element*, const KURL&, const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually);
@@ -212,7 +215,7 @@ namespace WebCore {
 #ifndef NP_NO_CARBON
         bool dispatchNPEvent(NPEvent&);
 #endif
-        void updateWindow() const;
+        void updatePluginWidget() const;
         void paintMissingPluginIcon(GraphicsContext*, const IntRect&);
 
         void handleKeyboardEvent(KeyboardEvent*);
@@ -237,9 +240,11 @@ namespace WebCore {
 
         bool m_isWindowed;
         bool m_isTransparent;
-        bool m_isVisible;
-        bool m_attachedToWindow;
         bool m_haveInitialized;
+
+#if PLATFORM(QT)
+        bool m_isNPAPIPlugin;
+#endif
 
 #if PLATFORM(GTK) || defined(Q_WS_X11) || PLATFORM(BAL)
         bool m_needsXEmbed;
@@ -252,7 +257,11 @@ namespace WebCore {
         bool m_isCallingPluginWndProc;
 #endif
 
-        PlatformPluginWidget m_window; // for windowed plug-ins
+public:
+        PlatformPluginWidget platformPluginWidget() const { return platformWidget(); }
+
+private:
+
         mutable IntRect m_clipRect; // The clip rect to apply to a windowed plug-in
         mutable IntRect m_windowRect; // Our window rect.
 

@@ -43,15 +43,7 @@
 namespace WTF {
 
 template<class T> class RefCounted : public OWBALBase, Noncopyable {
-public:
-    /**
-     *  RefCounted description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    RefCounted(int initialRefCount = 1);
+publi
 
     /**
      *  ref description
@@ -62,22 +54,44 @@ public:
      */
     void ref();
 
+
     /**
-     *  deref description
+     *  hasOneRef description
      * @param[in] : description
      * @param[out] : description
      * @code
      * @endcode
      */
-    void deref();
+    bool hasOneRef() const
+
     /**
-     *  ~RefCounted description
+     *  hasOneRef description
      * @param[in] : description
      * @param[out] : description
      * @code
      * @endcode
      */
-    ~RefCounted() ;
+    bool hasOneRef() const;
+
+
+    /**
+     *  refCount description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int refCount() const
+    
+
+    /**
+     *  hasOneRef description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool hasOneRef() const
     
 
     /**
@@ -130,17 +144,35 @@ public:
     bool hasOneRef() cons
     
 
+
     /**
-     *  refCount description
+     *  RefCountedBase description
      * @param[in] : description
      * @param[out] : description
      * @code
      * @endcode
      */
-    int refCount() const;
+    RefCountedBase(int initialRefCount);
 
-private:
-    int m_refCount;
+
+    /**
+     *  ~RefCountedBase description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    ~RefCountedBase() ;
+
+
+    /**
+     *  derefBase description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool derefBase();
 #ifndef NDEBUG
     bool m_deletionHasBegun;
 #endif
@@ -150,4 +182,30 @@ private:
 
 using WTF::RefCounted;
 
-#endif // Re
+    /**
+     *  RefCounted description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    RefCounted(int initialRefCount = 1);
+
+    /**
+     *  deref description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void deref();
+    /**
+     *  ~RefCounted description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    ~RefCounted() ;
+    
+  

@@ -1835,6 +1835,11 @@ void WebView::clearSelection()
     m_page->focusController()->focusedOrMainFrame()->selection()->clear();
 }
 
+void WebView::clearMainFrameName()
+{
+    m_page->mainFrame()->tree()->clearName();
+}
+
 void WebView::copy()
 {
     m_page->focusController()->focusedOrMainFrame()->editor()->command("Copy").execute();

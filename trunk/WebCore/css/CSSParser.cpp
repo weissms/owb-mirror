@@ -2668,6 +2668,8 @@ PassRefPtr<CSSValue> CSSParser::parseCounterContent(CSSParserValueList* args, bo
         return 0;
     
     CSSParserValue* i = args->current();
+    if (!(i->unit == CSSPrimitiveValue::CSS_IDENT || i->unit == CSSPrimitiveValue::CSS_NUMBER))
+        return 0;
     RefPtr<CSSPrimitiveValue> identifier = CSSPrimitiveValue::create(i->string, CSSPrimitiveValue::CSS_STRING);
 
     RefPtr<CSSPrimitiveValue> separator;

@@ -67,8 +67,10 @@ Scrollbar::Scrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, 
     , m_hoveredPart(NoPart)
     , m_pressedPart(NoPart)
     , m_pressedPos(0)
+    , m_enabled(true)
     , m_scrollTimer(this, &Scrollbar::autoscrollTimerFired)
     , m_overlapsResizer(false)
+    , m_suppressInvalidation(false)
 {
     if (!m_theme)
         m_theme = ScrollbarTheme::nativeTheme();
@@ -273,7 +275,7 @@ void Scrollbar::moveThumb(int pos)
     else if (delta < 0)
         delta = max(-thumbPos, delta);
     if (delta) {
-        setValue(static_cast<float>(thumbPos + delta) * maximum() / (trackLen - thumbLen));
+        setValue(static_cast<int>(static_cast<float>(thumbPos + delta) * maximum() / (trackLen - thumbLen)));
         setPressedPos(pressedPos() + theme()->thumbPosition(this) - thumbPos);
     }
 }
@@ -404,11 +406,19 @@ void Scrollbar::setFrameGeometry(const IntRect& rect)
 
 void Scrollbar::setParent(ScrollView* parentView)
 {
-    if (!parentView && m_overlapsResizer && parent())
+    if (!parentView && m_overlapsResizer && parent() && parent()->isFrameView())
         parent()->adjustOverlappingScrollbarCount(-1);
     Widget::setParent(parentView);
 }
 
+void Scrollbar::setEnabled(bool e)
+{ 
+    if (m_enabled == e)
+        return;
+    m_enabled = e;
+    invalidate();
+}
+    
 IntRect Scrollbar::windowClipRect() const
 {
     IntRect clipRect(0, 0, width(), height());
@@ -418,6 +428,13 @@ IntRect Scrollbar::windowClipRect() const
         clipRect.intersect(m_client->windowClipRect());
 
     return clipRect;
+}
+
+void Scrollbar::invalidateRect(const IntRect& rect)
+{
+    if (suppressInvalidation())
+        return;
+    Widget::invalidateRect(rect);
 }
 
 }

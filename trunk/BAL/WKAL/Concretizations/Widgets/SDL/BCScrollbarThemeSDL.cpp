@@ -236,7 +236,7 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
 
 int ScrollbarThemeBal::thumbPosition(Scrollbar* scrollbar)
 {
-    if (scrollbar->isEnabled())
+    if (scrollbar->enabled())
         return static_cast<int> (scrollbar->currentPos() * (trackLength(scrollbar) - thumbLength(scrollbar)) / scrollbar->maximum());
     return 0;
 }
@@ -248,7 +248,7 @@ int ScrollbarThemeBal::trackLength(Scrollbar* scrollbar)
 
 int ScrollbarThemeBal::thumbLength(Scrollbar* scrollbar)
 {
-    if (!scrollbar->isEnabled())
+    if (!scrollbar->enabled())
         return 0;
     float proportion = (float)(scrollbar->visibleSize()) / scrollbar->totalSize();
     int trackLen = trackLength(scrollbar);

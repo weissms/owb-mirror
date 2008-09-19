@@ -25,29 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef WidgetClient_h
-#define WidgetClient_h
-/**
- *  @file  WidgetClient.t
- *  WidgetClient description
- *  Repository informations :
- * - $URL$
- * - $Rev$
- * - $Date$
- */
+
+#include "config.h"
 #include "BALBase.h"
 
-namespace WKAL {
+#include "DNS.h"
 
-    class Element;
-    class Widget;
-
-    class WidgetClient : public WKALBase { };
-
-}
-
-#endif
-
-
-
-
+void WebCore::prefetchDNS(const String& hostname) { BalNotImplemented(); }

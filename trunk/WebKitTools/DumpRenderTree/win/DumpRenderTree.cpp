@@ -665,6 +665,8 @@ static void resetWebViewToConsistentStateBeforeTesting()
     HWND viewWindow;
     if (SUCCEEDED(webViewPrivate->viewWindow(reinterpret_cast<OLE_HANDLE*>(&viewWindow))) && viewWindow)
         SetFocus(viewWindow);
+
+    webViewPrivate->clearMainFrameName();
 }
 
 static void runTest(const char* pathOrURL)
@@ -761,7 +763,8 @@ static void runTest(const char* pathOrURL)
 
 exit:
     SysFreeString(urlBStr);
-    delete ::gLayoutTestController;
+    ::gLayoutTestController->deref();
+    ::gLayoutTestController = 0;
 
     return;
 }

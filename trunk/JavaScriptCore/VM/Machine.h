@@ -74,14 +74,7 @@ namespace JSC {
         
         RegisterFile& registerFile() { return m_registerFile; }
         
-        Opcode getOpcode(OpcodeID id)
-        {
-            #if HAVE(COMPUTED_GOTO)
-                return m_opcodeTable[id];
-            #else
-                return id;
-            #endif
-        }
+        static Opcode getOpcode(OpcodeID id);
 
         OpcodeID getOpcodeID(Opcode opcode)
         {
@@ -168,7 +161,6 @@ namespace JSC {
         static JSValue* SFX_CALL cti_op_resolve_global(CTI_ARGS);
         static void* SFX_CALL cti_op_construct_JSConstruct(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_construct_NotJSConstruct(CTI_ARGS);
-        static void SFX_CALL cti_op_construct_verify(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_get_by_val(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_resolve_func(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_sub(CTI_ARGS);
@@ -232,6 +224,9 @@ namespace JSC {
         static JSValue* SFX_CALL cti_op_neq_null(CTI_ARGS);
 
         static void* SFX_CALL cti_vm_throw(CTI_ARGS);
+        static void* SFX_CALL cti_vm_compile(CTI_ARGS);
+        static void SFX_CALL cti_vm_updateScopeChain(CTI_ARGS);
+        
 #endif // ENABLE(CTI)
 
         // Default number of ticks before a timeout check should be done.
@@ -297,7 +292,7 @@ namespace JSC {
         void* m_jsFunctionVptr;
 
 #if HAVE(COMPUTED_GOTO)
-        Opcode m_opcodeTable[numOpcodeIDs]; // Maps OpcodeID => Opcode for compiling
+        static Opcode s_opcodeTable[numOpcodeIDs]; // Maps OpcodeID => Opcode for compiling
         HashMap<Opcode, OpcodeID> m_opcodeIDTable; // Maps Opcode => OpcodeID for decompiling
 #endif
     };

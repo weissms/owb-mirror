@@ -78,7 +78,7 @@ namespace WebCore {
 using namespace EventNames;
 using namespace HTMLNames;
 
-void PluginView::updateWindow() const
+void PluginView::updatePluginWidget() const
 {
     if (!parent() || !m_isWindowed)
         return;
@@ -93,37 +93,37 @@ void PluginView::updateWindow() const
     m_clipRect = windowClipRect();
     m_clipRect.move(-m_windowRect.x(), -m_windowRect.y());
 
-    if (m_window) {
-        m_window->move(m_windowRect.x(), m_windowRect.y());
-        m_window->resize(m_windowRect.width(), m_windowRect.height());
-        m_window->setMask(QRegion(m_clipRect.x(), m_clipRect.y(), m_clipRect.width(), m_clipRect.height()));
+    if (platformPluginWidget()) {
+        platformPluginWidget()->move(m_windowRect.x(), m_windowRect.y());
+        platformPluginWidget()->resize(m_windowRect.width(), m_windowRect.height());
+        platformPluginWidget()->setMask(QRegion(m_clipRect.x(), m_clipRect.y(), m_clipRect.width(), m_clipRect.height()));
     }
 }
 
 void PluginView::setFocus()
 {
-    if (m_window)
-        m_window->setFocus(Qt::OtherFocusReason);
+    if (platformPluginWidget())
+        platformPluginWidget()->setFocus(Qt::OtherFocusReason);
     else
         Widget::setFocus();
 }
 
 void PluginView::show()
 {
-    m_isVisible = true;
+    setSelfVisible(true);
 
-    if (m_attachedToWindow && m_window)
-        m_window->setVisible(true);
+    if (isParentVisible() && platformPluginWidget())
+        platformPluginWidget()->setVisible(true);
 
     Widget::show();
 }
 
 void PluginView::hide()
 {
-    m_isVisible = false;
+    setSelfVisible(false);
 
-    if (m_attachedToWindow && m_window)
-        m_window->setVisible(false);
+    if (isParentVisible() && platformPluginWidget())
+        platformPluginWidget()->setVisible(false);
 
     Widget::hide();
 }
@@ -159,7 +159,7 @@ void PluginView::setParent(ScrollView* parent)
     if (parent)
         init();
     else {
-        if (!m_window)
+        if (!platformPluginWidget())
             return;
     }
 }
@@ -196,28 +196,19 @@ void PluginView::setNPWindowRect(const IntRect& rect)
         if (!m_isWindowed)
             return;
 
-        ASSERT(m_window);
+        ASSERT(platformPluginWidget());
     }
 }
 
-void PluginView::attachToWindow()
+void PluginView::setParentVisible(bool visible)
 {
-    if (m_attachedToWindow)
+    if (isParentVisible() == visible)
         return;
 
-    m_attachedToWindow = true;
-    if (m_isVisible && m_window)
-        m_window->setVisible(true);
-}
+    Widget::setParentVisible(visible);
 
-void PluginView::detachFromWindow()
-{
-    if (!m_attachedToWindow)
-        return;
-
-    if (m_isVisible && m_window)
-        m_window->setVisible(false);
-    m_attachedToWindow = false;
+    if (isSelfVisible() && platformPluginWidget())
+        platformPluginWidget()->setVisible(visible);
 }
 
 void PluginView::stop()
@@ -333,8 +324,8 @@ NPError PluginView::getValue(NPNVariable variable, void* value)
 {
     switch (variable) {
     case NPNVxDisplay:
-        if (m_window)
-            *(void **)value = m_window->x11Info().display();
+        if (platformPluginWidget())
+            *(void **)value = platformPluginWidget()->x11Info().display();
         else
             *(void **)value = containingWindow()->x11Info().display();
         return NPERR_NO_ERROR;                
@@ -419,7 +410,7 @@ PluginView::~PluginView()
     if (m_plugin && !(m_plugin->quirks().contains(PluginQuirkDontUnloadPlugin)))
         m_plugin->unload();
 
-    delete m_window;
+    delete platformPluginWidget();
 }
 
 void PluginView::init()
@@ -454,8 +445,7 @@ void PluginView::init()
     }
 
     if (m_needsXEmbed) {
-        m_window = new QX11EmbedContainer(containingWindow());
-        setNativeWidget(m_window);
+        setPlatformWidget(new QX11EmbedContainer(containingWindow()));
         setIsNPAPIPlugin(true);
     } else {
         notImplemented();
@@ -468,14 +458,14 @@ void PluginView::init()
 
     wsi->type = 0;
 
-    wsi->display = m_window->x11Info().display();
-    wsi->visual = (Visual*)m_window->x11Info().visual();
-    wsi->depth = m_window->x11Info().depth();
-    wsi->colormap = m_window->x11Info().colormap();
+    wsi->display = platformPluginWidget()->x11Info().display();
+    wsi->visual = (Visual*)platformPluginWidget()->x11Info().visual();
+    wsi->depth = platformPluginWidget()->x11Info().depth();
+    wsi->colormap = platformPluginWidget()->x11Info().colormap();
     m_npWindow.ws_info = wsi;
 
     m_npWindow.type = NPWindowTypeWindow;
-    m_npWindow.window = (void*)m_window->winId();
+    m_npWindow.window = (void*)platformPluginWidget()->winId();
 
     if (!(m_plugin->quirks().contains(PluginQuirkDeferFirstSetWindowCall)))
         setNPWindowRect(frameGeometry());

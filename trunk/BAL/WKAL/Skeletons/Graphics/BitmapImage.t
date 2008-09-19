@@ -239,6 +239,16 @@ protected:
      */
     NativeImagePtr frameAtIndex(size_t);
 
+
+    /**
+     * check wether a frame is Complete.
+     * @param[in] : a size.
+     * @param[out] : a boolean.
+     * @code
+     * @endcode
+     */
+    bool frameIsCompleteAtIndex(size_t);
+
     /**
      * get frame duration at index
      */

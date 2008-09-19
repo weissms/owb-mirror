@@ -33,83 +33,24 @@
 #include "FrameWin.h"
 #include "IntRect.h"
 #include "FrameView.h"
-#include "WidgetClient.h"
 #include <winsock2.h>
 #include <windows.h>
 
 namespace WebCore {
 
-class WidgetPrivate
+Widget::Widget(PlatformWidget widget)
 {
-public:
-    WidgetClient* client;
-    ScrollView* parent;
-    HWND containingWindow;
-    IntRect frameRect;
-    bool enabled;
-    Widget* capturingChild;
-    bool suppressInvalidation;
-};
-
-Widget::Widget()
-    : data(new WidgetPrivate)
-{
-    data->client = 0;
-    data->parent = 0;
-    data->containingWindow = 0;
-    data->enabled = true;
-    data->capturingChild = 0;
-    data->suppressInvalidation = false;
+    init(widget);
 }
 
 Widget::~Widget() 
 {
     ASSERT(!parent());
-    delete data;
 }
 
-void Widget::setContainingWindow(HWND containingWindow)
+PlatformWindow Widget::containingWindow() const
 {
-    data->containingWindow = containingWindow;
-}
-
-HWND Widget::containingWindow() const
-{
-    return data->containingWindow;
-}
-
-void Widget::setClient(WidgetClient* c)
-{
-    data->client = c;
-}
-
-WidgetClient* Widget::client() const
-{
-    return data->client;
-}
-
-IntRect Widget::frameGeometry() const
-{
-    return data->frameRect;
-}
-
-void Widget::setFrameGeometry(const IntRect &rect)
-{
-    data->frameRect = rect;
-}
-
-void Widget::setParent(ScrollView* v)
-{
-    if (!v || !v->isAttachedToWindow())
-        detachFromWindow();
-    data->parent = v;
-    if (v && v->isAttachedToWindow())
-        attachToWindow();
-}
-
-ScrollView* Widget::parent() const
-{
-    return data->parent;
+    return m_containingWindow;
 }
 
 void Widget::removeFromParent()
@@ -144,80 +85,12 @@ void Widget::setCursor(const Cursor& cursor)
     }
 }
 
-IntPoint Widget::convertToContainingWindow(const IntPoint& point) const
-{
-    IntPoint windowPoint = point;
-    for (const Widget *parentWidget = parent(), *childWidget = this;
-         parentWidget;
-         childWidget = parentWidget, parentWidget = parentWidget->parent())
-        windowPoint = parentWidget->convertChildToSelf(childWidget, windowPoint);
-    return windowPoint;
-}
-
-IntPoint Widget::convertFromContainingWindow(const IntPoint& point) const
-{
-    IntPoint widgetPoint = point;
-    for (const Widget *parentWidget = parent(), *childWidget = this;
-         parentWidget;
-         childWidget = parentWidget, parentWidget = parentWidget->parent())
-        widgetPoint = parentWidget->convertSelfToChild(childWidget, widgetPoint);
-    return widgetPoint;
-}
-
-IntRect Widget::convertToContainingWindow(const IntRect& rect) const
-{
-    IntRect convertedRect = rect;
-    convertedRect.setLocation(convertToContainingWindow(convertedRect.location()));
-    return convertedRect;
-}
-
-IntPoint Widget::convertChildToSelf(const Widget* child, const IntPoint& point) const
-{
-    return IntPoint(point.x() + child->x(), point.y() + child->y());
-}
-
-IntPoint Widget::convertSelfToChild(const Widget* child, const IntPoint& point) const
-{
-    return IntPoint(point.x() - child->x(), point.y() - child->y());
-}
-
 void Widget::paint(GraphicsContext*, const IntRect&)
 {
 }
 
-bool Widget::isEnabled() const
-{
-    return data->enabled;
-}
-
-void Widget::setEnabled(bool e)
-{
-    if (e != data->enabled) {
-        data->enabled = e;
-        invalidate();
-    }
-}
-
-bool Widget::suppressInvalidation() const
-{
-    return data->suppressInvalidation;
-}
-
-void Widget::setSuppressInvalidation(bool suppress)
-{
-    data->suppressInvalidation = suppress;
-}
-
-void Widget::invalidate()
-{
-    invalidateRect(IntRect(0, 0, width(), height()));
-}
-
 void Widget::invalidateRect(const IntRect& r)
 {
-    if (data->suppressInvalidation)
-        return;
-
     if (!parent()) {
         RECT rect = r;
         ::InvalidateRect(containingWindow(), &rect, false);
@@ -250,6 +123,16 @@ void Widget::setFocus()
 
 void Widget::setIsSelected(bool)
 {
+}
+
+IntRect Widget::frameGeometry() const
+{
+    return m_frame;
+}
+
+void Widget::setFrameGeometry(const IntRect& rect)
+{
+    m_frame = rect;
 }
 
 } // namespace WebCore

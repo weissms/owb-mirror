@@ -390,6 +390,38 @@ namespace WKAL {
         bool scroll(ScrollDirection, ScrollGranularity);
 
 #if HAVE(ACCESSIBILITY)
+
+    /**
+     * convert child to self. 
+     * @param[in] : a pointer to a widget.
+     * @param[in] : an IntPoint.
+     * @param[out] : an IntPoint.
+     * @code
+     * @endcode
+     */
+        IntPoint convertChildToSelf(const Widget* child, const IntPoint& point) const;
+
+
+    /**
+     * convert self to child. 
+     * @param[in] : a pointer to a widget.
+     * @param[in] : an IntPoint.
+     * @param[out] : an IntPoint.
+     * @code
+     * @endcode
+     */
+        IntPoint convertSelfToChild(const Widget* child, const IntPoint& point) const;
+
+
+    /**
+     * is scrollView scrollbar.
+     * @param[in] : a pointer to a widget.
+     * @param[out] : a boolean.
+     * @code
+     * @endcode
+     */
+        bool isScrollViewScrollbar(const Widget*) const;
+
     /**
      * get contents to screen 
      * @param[in] : rect
@@ -434,20 +466,28 @@ namespace WKAL {
     /**
      * @see Widget
      */
+        virtual void paint(GraphicsContext*, const IntRect&)
+
+    /**
+     * @see Widget
+     */
+        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const
+
+
+    /**
+     * paint. 
+     * @param[in] : a pointer to the Graphics context.
+     * @param[in] : an IntRect.
+     * @code
+     * @endcode
+     */
         virtual void paint(GraphicsContext*, const IntRect&);
 
-    /**
-     * @see Widget
-     */
-        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
 
     /**
-     * @see Widget
-     */
-        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
-
-    /**
-     * @see Widget
+     * geometry changed.
+     * @code
+     * @endcode
      */
         virtual void geometryChanged() const;
 
@@ -553,4 +593,4 @@ inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
 
 } // namespace WKAL
 
-#endif // ScrollVie
+#endif // Scr

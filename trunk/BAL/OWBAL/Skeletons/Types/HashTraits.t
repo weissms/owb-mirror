@@ -294,13 +294,6 @@ namespace WTF {
     template<typename P> struct HashTraits<RefPtr<P> > : GenericHashTraits<RefPtr<P> > {
         static const bool emptyValueIsZero = true
     };
-
-    // special traits for pairs, helpful for their use in HashMap implementation
-
-    template<typename FirstTraitsArg, typename SecondTraitsArg>     struct PairHashTraits : GenericHashTraits<pair<typename FirstTraitsArg::TraitType, typename SecondTraitsArg::TraitType> > {
-        typedef FirstTraitsArg FirstTraits;
-        typedef SecondTraitsArg SecondTraits;
-        typedef pair<typename FirstTraits::TraitType, typename SecondTraits::TraitType> TraitType;
     /**
      *  constructDeletedValue description
      * @param[in] : description
@@ -341,6 +334,96 @@ namespace WTF {
      * @endcode
      */
         static bool isDeletedValue(const TraitType& value) ;
+    
+    
+    
+    
+    
+
+    // special traits for pairs, helpful for their use in HashMap implementation
+
+    template<typename FirstTraitsArg, typename SecondTraitsArg>     struct PairHashTraits : GenericHashTraits<pair<typename FirstTraitsArg::TraitType, typename SecondTraitsArg::TraitType> > {
+        typedef FirstTraitsArg FirstTrait
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(RefPtr<P>& slot)
+    /**
+     *  emptyValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static TraitType emptyValue()
+
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(P*& slot) 
+    
+    
+    
+    
+    
+    
+        typedef SecondTraitsArg SecondTrait
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(P* value)
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const RefPtr<P>& value)
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& slot)
+    
+    
+    
+    
+    
+    
+    
+        typedef pair<typename FirstTraits::TraitType, typename SecondTraits::TraitType> TraitTyp
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const RefPtr<P>& value)
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& slot)
     
     
     
@@ -517,4 +600,4 @@ using WTF::PairHashTrait
      * @code
      * @endcode
      */
-        static void constructDeletedValue(Tr
+        static

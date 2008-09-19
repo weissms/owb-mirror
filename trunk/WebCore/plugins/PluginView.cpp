@@ -120,7 +120,7 @@ void PluginView::setFrameGeometry(const IntRect& rect)
     if (rect != frameGeometry())
         Widget::setFrameGeometry(rect);
 
-    updateWindow();
+    updatePluginWidget();
 
 #if PLATFORM(WIN_OS)
     // On Windows, always call plugin to change geometry.
@@ -134,7 +134,7 @@ void PluginView::setFrameGeometry(const IntRect& rect)
 
 void PluginView::geometryChanged() const
 {
-    updateWindow();
+    updatePluginWidget();
 }
 
 void PluginView::handleEvent(Event* event)
@@ -541,18 +541,21 @@ PluginView::PluginView(Frame* parentFrame, const IntSize& size, PluginPackage* p
     , m_paramValues(0)
     , m_isWindowed(true)
     , m_isTransparent(false)
-    , m_isVisible(false)
-    , m_attachedToWindow(false)
     , m_haveInitialized(false)
 #if PLATFORM(GTK) || defined(Q_WS_X11)
     , m_needsXEmbed(false)
+#endif
+#if PLATFORM(QT)
+    , m_isNPAPIPlugin(false)
 #endif
 #if PLATFORM(WIN_OS) && !PLATFORM(WX) && ENABLE(NETSCAPE_PLUGIN_API)
     , m_pluginWndProc(0)
     , m_lastMessage(0)
     , m_isCallingPluginWndProc(false)
 #endif
+#if PLATFORM(WIN_OS) && PLATFORM(QT)
     , m_window(0)
+#endif
     , m_loadManually(loadManually)
     , m_manualStream(0)
     , m_isJavaScriptPaused(false)

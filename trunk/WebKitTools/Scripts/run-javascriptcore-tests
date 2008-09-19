@@ -56,16 +56,20 @@ $configuration = configuration();
 my @jsArgs;
 my @xcodeArgs;
 my $root;
+my $run64Bit;
 
 # pre-evaluate arguments.  jsDriver args have - preceding, xcode args do not.
 # special arguments
 #     --root=<path to webkit root> use pre-built root
 #     --gtk build gtk 
+#     --no-64-bit or --64-bit
 foreach my $arg(@ARGV) {
     print $arg."\n";
     if( $arg =~ /root=(.*)/ ){
         $root = $1;
     } elsif( $arg =~ /^--gtk$/i || $arg =~ /^--qt$/i || $arg =~ /^--wx$/i ){
+    } elsif( $arg =~ /(no-)?64-bit/ ) {
+        $run64Bit = !defined($1);
     } elsif( $arg =~ /^-/ or !($arg =~/=/)){
         push( @jsArgs, $arg );
     } else {
@@ -74,6 +78,15 @@ foreach my $arg(@ARGV) {
 }
 
 setConfigurationProductDir(Cwd::abs_path($root)) if (defined($root));
+
+if (isOSX() && !isTiger()) {
+    my $preferredArch = preferredArchitecture("JavaScriptCore");
+    setRun64Bit($run64Bit);
+    my $arch = preferredArchitecture("JavaScriptCore");
+    if ($arch ne $preferredArch) {
+        push(@jsArgs, "-a", $arch);
+    }
+}
 
 if(!defined($root)){
     chdirWebKit();
@@ -84,6 +97,9 @@ if(!defined($root)){
     push(@xcodeArgs, "--gtk")  if isGtk();
     push(@xcodeArgs, "--wx")  if isWx();
 
+    my $arch = preferredArchitecture("JavaScriptCore");
+    push(@xcodeArgs, "ARCHS=$arch") if (isOSX());
+    
     my $buildResult = system "perl", "WebKitTools/Scripts/build-jsc", @xcodeArgs;
     if ($buildResult) {
         print STDERR "Compiling jsc failed!\n";

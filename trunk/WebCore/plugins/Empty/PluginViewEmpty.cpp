@@ -72,7 +72,7 @@ namespace WebCore {
 using namespace EventNames;
 using namespace HTMLNames;
 
-void PluginView::updateWindow() const
+void PluginView::updatePluginWidget() const
 {
 }
 
@@ -108,11 +108,7 @@ void PluginView::setNPWindowRect(const IntRect& rect)
 {
 }
 
-void PluginView::attachToWindow()
-{
-}
-
-void PluginView::detachFromWindow()
+void PluginView::setParentVisible(bool)
 {
 }
 

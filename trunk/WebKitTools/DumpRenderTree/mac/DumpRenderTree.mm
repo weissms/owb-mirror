@@ -945,6 +945,7 @@ static void resetWebViewToConsistentStateBeforeTesting()
     [webView setTabKeyCyclesThroughElements:YES];
     [webView setPolicyDelegate:nil];
     [webView _setDashboardBehavior:WebDashboardBehaviorUseBackwardCompatibilityMode to:NO];
+    [webView _clearMainFrameName];
 
     WebPreferences *preferences = [webView preferences];
     [preferences setPrivateBrowsingEnabled:NO];
@@ -1048,7 +1049,7 @@ static void runTest(const char *pathOrURL)
     ASSERT(CFArrayGetCount(openWindowsRef) == 1);
     ASSERT(CFArrayGetValueAtIndex(openWindowsRef, 0) == [[mainFrame webView] window]);
 
-    delete gLayoutTestController;
+    gLayoutTestController->deref();
     gLayoutTestController = 0;
 
     if (_shouldIgnoreWebCoreNodeLeaks)

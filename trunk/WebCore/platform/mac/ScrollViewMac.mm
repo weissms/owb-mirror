@@ -34,6 +34,11 @@
 
 using namespace std;
 
+@interface NSWindow (WebWindowDetails)
+- (BOOL)_needsToResetDragMargins;
+- (void)_setNeedsToResetDragMargins:(BOOL)needs;
+@end
+
 namespace WebCore {
 
 ScrollView::ScrollView()
@@ -46,9 +51,9 @@ ScrollView::~ScrollView()
 
 inline NSScrollView<WebCoreFrameScrollView> *ScrollView::scrollView() const
 {
-    ASSERT(!getView() || [getView() isKindOfClass:[NSScrollView class]]);
-    ASSERT(!getView() || [getView() conformsToProtocol:@protocol(WebCoreFrameScrollView)]);
-    return static_cast<NSScrollView<WebCoreFrameScrollView> *>(getView());
+    ASSERT(!platformWidget() || [platformWidget() isKindOfClass:[NSScrollView class]]);
+    ASSERT(!platformWidget() || [platformWidget() conformsToProtocol:@protocol(WebCoreFrameScrollView)]);
+    return static_cast<NSScrollView<WebCoreFrameScrollView> *>(platformWidget());
 }
 
 int ScrollView::visibleWidth() const
@@ -212,18 +217,32 @@ void ScrollView::addChild(Widget* child)
 {
     ASSERT(child != this);
 
-#ifndef NDEBUG
-    NSView *subview = child->getOuterView();    
-    LOG(Frames, "Adding %p %@ with size w %d h %d\n", subview,
-        [(id)[subview class] className], (int)[subview frame].size.width, (int)[subview frame].size.height);
-#endif
+    child->setParent(this);
+    if (!child->platformWidget()) {
+        child->setContainingWindow(containingWindow());
+        return;
+    }
 
-    child->addToSuperview(documentView());
+    BEGIN_BLOCK_OBJC_EXCEPTIONS;
+    NSView *parentView = documentView();
+    NSView *childView = child->getOuterView();
+    ASSERT(![parentView isDescendantOf:childView]);
+    
+    // Suppress the resetting of drag margins since we know we can't affect them.
+    NSWindow *window = [parentView window];
+    BOOL resetDragMargins = [window _needsToResetDragMargins];
+    [window _setNeedsToResetDragMargins:NO];
+    if ([childView superview] != parentView)
+        [parentView addSubview:childView];
+    [window _setNeedsToResetDragMargins:resetDragMargins];
+    END_BLOCK_OBJC_EXCEPTIONS;
 }
 
 void ScrollView::removeChild(Widget* child)
 {
-    child->removeFromSuperview();
+    if (child->platformWidget())
+        child->removeFromSuperview();
+    child->setParent(0);
 }
 
 void ScrollView::resizeContents(int w, int h)
@@ -264,11 +283,17 @@ void ScrollView::update()
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
 
-    NSView *view = getView();
+    NSView *view = platformWidget();
     [[view window] displayIfNeeded];
     [[view window] flushWindowIfNeeded];
 
     END_BLOCK_OBJC_EXCEPTIONS;
+}
+
+bool ScrollView::isScrollViewScrollbar(const Widget* child) const
+{
+    // Mac uses native NSScrollViews, so a child will never be one of those native NSScrollers.
+    return false;
 }
 
 // "Containing Window" means the NSWindow's coord system, which is origin lower left
@@ -359,7 +384,7 @@ Scrollbar* ScrollView::scrollbarUnderMouse(const PlatformMouseEvent&)
 
 bool ScrollView::inWindow() const
 {
-    return [getView() window];
+    return [platformWidget() window];
 }
 
 void ScrollView::wheelEvent(PlatformWheelEvent&)

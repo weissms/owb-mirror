@@ -257,6 +257,24 @@ public:
     // These methods are used for platform scrollbars to give :hover feedback.  They will not get called
     // when the mouse went down in a scrollbar, since it is assumed the scrollbar will start
     // grabbing all events in that case anyway.
+
+    /**
+     * enabled.
+     * @param[out] : a boolean.
+     * @code
+     * @endcode
+     */
+    bool enabled() const ;
+
+
+    /**
+     * Set enabled.
+     * @param[in] : a boolean.
+     * @code
+     * @endcode
+     */
+    virtual void setEnabled(bool e);
+
     /**
      * Check wether it should handle mouse move event.
      * @param[in] : a mouse event.
@@ -325,6 +343,33 @@ public:
     virtual IntRect windowClipRect() const;
 
 protected:
+
+    /**
+     * invalidate a rectangle.
+     * @param[in] : the rectangle to invalidate.
+     * @code
+     * @endcode
+     */
+    virtual void invalidateRect(const IntRect&);
+
+
+    /**
+     * suppress invalidation.
+     * @param[out] : a boolean
+     * @code
+     * @endcode
+     */
+    bool suppressInvalidation() const ;
+
+
+    /**
+     * set suppress invalidation.
+     * @param[in] : a boolean.
+     * @code
+     * @endcode
+     */
+    void setSuppressInvalidation(bool s) ;
+
     /**
      * Update thumb position.
      * @code
@@ -410,7 +455,3 @@ protected:
 }
 
 #endif
-
-
-
-

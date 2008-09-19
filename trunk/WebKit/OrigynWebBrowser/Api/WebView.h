@@ -673,6 +673,11 @@ public:
 
 
     /**
+     *  clearMainFrameName
+     */
+    virtual void clearMainFrameName();
+
+    /**
      *  copy 
      */
     virtual void copy();

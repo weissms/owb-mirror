@@ -106,6 +106,26 @@ namespace WKAL {
 
         bool scroll(ScrollDirection, ScrollGranularity);
 
+        IntPoint convertChildToSelf(const Widget* child, const IntPoint& point) const
+        {
+            IntPoint newPoint = point;
+            if (!isScrollViewScrollbar(child))
+                newPoint = point - scrollOffset();
+            newPoint.move(child->x(), child->y());
+            return newPoint;
+        }
+
+        IntPoint convertSelfToChild(const Widget* child, const IntPoint& point) const
+        {
+            IntPoint newPoint = point;
+            if (!isScrollViewScrollbar(child))
+                newPoint = point + scrollOffset();
+            newPoint.move(-child->x(), -child->y());
+            return newPoint;
+        }
+
+        bool isScrollViewScrollbar(const Widget*) const;
+
 #if HAVE(ACCESSIBILITY)
         IntRect contentsToScreen(const IntRect&) const;
         IntPoint screenToContents(const IntPoint&) const;
@@ -119,9 +139,6 @@ namespace WKAL {
         ScrollViewPrivate* m_data;
     public:
         virtual void paint(GraphicsContext*, const IntRect&);
-
-        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
-        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
 
         virtual void geometryChanged() const;
         virtual void setFrameGeometry(const IntRect&);

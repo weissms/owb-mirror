@@ -253,9 +253,7 @@ RegisterID* StringNode::emitCode(CodeGenerator& generator, RegisterID* dst)
 {
     if (dst == ignoredResult())
         return 0;
-
-    // We atomize constant strings, in case they're later used in property lookup.
-    return generator.emitLoad(dst, jsOwnedString(generator.globalExec(), Identifier(generator.globalExec(), m_value).ustring()));
+    return generator.emitLoad(dst, jsOwnedString(generator.globalExec(), m_value.ustring()));
 }
 
 // ------------------------------ RegExpNode -----------------------------------
@@ -407,8 +405,7 @@ RegisterID* ArgumentListNode::emitCode(CodeGenerator& generator, RegisterID* dst
 RegisterID* NewExprNode::emitCode(CodeGenerator& generator, RegisterID* dst)
 {
     RefPtr<RegisterID> r0 = generator.emitNode(m_expr.get());
-    generator.emitExpressionInfo(m_divot, m_startOffset, m_endOffset);
-    return generator.emitConstruct(generator.finalDestination(dst, r0.get()), r0.get(), m_args.get());
+    return generator.emitConstruct(generator.finalDestination(dst, r0.get()), r0.get(), m_args.get(), m_divot, m_startOffset, m_endOffset);
 }
 
 RegisterID* EvalFunctionCallNode::emitCode(CodeGenerator& generator, RegisterID* dst)
@@ -798,7 +795,10 @@ RegisterID* InstanceOfNode::emitCode(CodeGenerator& generator, RegisterID* dst)
 {
     RefPtr<RegisterID> src1 = generator.emitNodeForLeftHandSide(m_expr1.get(), m_rightHasAssignments, m_expr2->isPure(generator));
     RefPtr<RegisterID> src2 = generator.emitNode(m_expr2.get());
+
+    generator.emitExpressionInfo(m_divot, m_startOffset, m_endOffset);
     RegisterID* src2Prototype = generator.emitGetById(generator.newTemporary(), src2.get(), generator.globalExec()->propertyNames().prototype);
+
     generator.emitExpressionInfo(m_divot, m_startOffset, m_endOffset);
     return generator.emitInstanceOf(generator.finalDestination(dst, src1.get()), src1.get(), src2.get(), src2Prototype);
 }
@@ -1492,7 +1492,7 @@ static void processClauseList(ClauseListNode* list, Vector<ExpressionNode*, 8>& 
                 typeForTable = SwitchNeither;
                 break;
             }
-            UString& value = static_cast<StringNode*>(clauseExpression)->value();
+            const UString& value = static_cast<StringNode*>(clauseExpression)->value().ustring();
             if (singleCharacterSwitch &= value.size() == 1) {
                 int32_t intVal = value.rep()->data()[0];
                 if (intVal < min_num)

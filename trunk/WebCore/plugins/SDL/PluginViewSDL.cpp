@@ -75,7 +75,7 @@ namespace WebCore {
 using namespace EventNames;
 using namespace HTMLNames;
 
-void PluginView::updateWindow() const
+void PluginView::updatePluginWidget() const
 {
     if (!parent() || !m_isWindowed)
         return;
@@ -181,7 +181,7 @@ void PluginView::setParent(ScrollView* parent)
     if (parent)
         init();
     else {
-        if (!m_window)
+        if (!platformPluginWidget())
             return;
     }
 }
@@ -217,16 +217,25 @@ void PluginView::setNPWindowRect(const IntRect& rect)
         if (!m_isWindowed)
             return;
 
-        ASSERT(m_window);
+        ASSERT(platformPluginWidget());
     }
 }
 
-void PluginView::attachToWindow()
+void PluginView::setParentVisible(bool visible)
 {
-}
+    if (isParentVisible() == visible)
+        return;
 
-void PluginView::detachFromWindow()
-{
+    Widget::setParentVisible(visible);
+
+    /*
+    if (isSelfVisible() && platformPluginWidget()) {
+        if (visible)
+            gtk_widget_show(platformPluginWidget());
+        else
+            gtk_widget_hide(platformPluginWidget());
+    }
+    */
 }
 
 void PluginView::stop()

@@ -79,19 +79,6 @@ ScrollbarSDL::~ScrollbarSDL()
 {
 }
 
-static IntRect trackRepaintRect(const IntRect& trackRect, ScrollbarOrientation orientation, ScrollbarControlSize controlSize)
-{
-    const int cButtonLength = (orientation == VerticalScrollbar) ? cVerticalButtonHeight : cHorizontalButtonWidth;
-
-    IntRect paintRect(trackRect);
-    if (orientation == HorizontalScrollbar)
-        paintRect.inflateX(cButtonLength);
-    else
-        paintRect.inflateY(cButtonLength);
-
-    return paintRect;
-}
-
 static IntRect buttonRepaintRect(const IntRect& buttonRect, ScrollbarOrientation orientation, ScrollbarControlSize controlSize, bool start)
 {
     IntRect paintRect(buttonRect);
@@ -110,7 +97,7 @@ static IntRect buttonRepaintRect(const IntRect& buttonRect, ScrollbarOrientation
 
 bool ScrollbarSDL::hasButtons() const
 {
-    return isEnabled() && (m_orientation == HorizontalScrollbar ? width() : height()) >= 2 * (cRealButtonLength - cButtonHitInset);
+    return enabled() && (m_orientation == HorizontalScrollbar ? width() : height()) >= 2 * (cRealButtonLength - cButtonHitInset);
 }
 
 
@@ -151,7 +138,7 @@ IntRect ScrollbarSDL::forwardButtonRect() const
 
 bool ScrollbarSDL::hasThumb() const
 {
-    return isEnabled() && (m_orientation == HorizontalScrollbar ? width() : height()) >= 2 * cButtonInset + cThumbMinLength + 1;
+    return enabled() && (m_orientation == HorizontalScrollbar ? width() : height()) >= 2 * cButtonInset + cThumbMinLength + 1;
 }
 
 void ScrollbarSDL::splitTrack(const IntRect& trackRect, IntRect& beforeThumbRect, IntRect& thumbRect, IntRect& afterThumbRect) const
@@ -172,7 +159,7 @@ void ScrollbarSDL::splitTrack(const IntRect& trackRect, IntRect& beforeThumbRect
 
 int ScrollbarSDL::thumbPosition() const
 {
-    if (isEnabled())
+    if (enabled())
         return static_cast<int>((float)m_currentPos * (trackLength() - thumbLength()) / (m_totalSize - m_visibleSize));
     return 0;
 }
@@ -184,7 +171,7 @@ int ScrollbarSDL::trackLength() const
 
 int ScrollbarSDL::thumbLength() const
 {
-    if (!isEnabled())
+    if (!enabled())
         return 0;
 
     float proportion = (float)(m_visibleSize) / m_totalSize;
@@ -231,6 +218,16 @@ void ScrollbarSDL::geometryChanged()
 void ScrollbarSDL::balValueChanged(BalAdjustment*, ScrollbarSDL* that)
 {
 //    that->setValue(static_cast<int>(gtk_adjustment_get_value(that->m_adjustment)));
+}
+
+void ScrollbarSDL::setEnabled(bool shouldEnable)
+{
+    if (enabled() == shouldEnable)
+        return;
+
+    Scrollbar::setEnabled(shouldEnable);
+    //if (platformWidget())
+    //    gtk_widget_set_sensitive(platformWidget(), shouldEnable);
 }
 
 bool ScrollbarSDL::handleMouseMoveEvent(const PlatformMouseEvent& evt)
@@ -321,7 +318,7 @@ bool ScrollbarSDL::handleMouseReleaseEvent(const PlatformMouseEvent& evt)
 
 ScrollbarPart ScrollbarSDL::hitTest(const PlatformMouseEvent& evt)
 {
-    if (!isEnabled())
+    if (!enabled())
         return NoPart;
 
     IntPoint mousePosition = convertFromContainingWindow(evt.pos());

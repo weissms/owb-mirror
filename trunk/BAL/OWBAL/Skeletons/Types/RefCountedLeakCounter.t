@@ -42,20 +42,59 @@
 
 namespace WTF {
 
+
     /**
-     * set log leak messages
-     * @param[in] : status
+     *  suppressMessages description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
      */
-    void setLogLeakMessages(bool _logLeakMessages);
+        static void suppressMessages(const char*);
+
+
+    /**
+     *  cancelMessageSuppression description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void cancelMessageSuppression(const char*);
+
+
+    /**
+     *  RefCountedLeakCounter description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        explicit RefCountedLeakCounter(const char* description)
     
     struct RefCountedLeakCounter {
     /**
      * RefCountedLeakCounter constructor
      */
-        RefCountedLeakCounter(const char* desc);
+        RefCountedLeakCounter(const char* desc)
+
 
     /**
-     * ~RefCountedLeakCounter destructor
+     *  RefCountedLeakCounter description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        explicit RefCountedLeakCounter(const char* description);
+
+
+    /**
+     *  ~RefCountedLeakCounter description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
      */
         ~RefCountedLeakCounter();
 
@@ -78,8 +117,4 @@ namespace WTF {
             
 }  // namespace WTF
 
-#endif
-
-
-
-
+#end

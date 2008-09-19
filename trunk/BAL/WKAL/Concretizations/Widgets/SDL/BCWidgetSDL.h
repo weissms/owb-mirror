@@ -32,15 +32,18 @@
 #include <wtf/Platform.h>
 #include "BALBase.h"
 
+typedef PlatformWidget PlatformWindow;
+
+#include "IntPoint.h"
+#include "IntRect.h"
+#include "IntSize.h"
+
 namespace WKAL {
 
     class Cursor;
     class Event;
     class Font;
     class GraphicsContext;
-    class IntPoint;
-    class IntRect;
-    class IntSize;
     class PlatformMouseEvent;
     class ScrollView;
     class WidgetClient;
@@ -48,29 +51,38 @@ namespace WKAL {
 
     class Widget : public WKALBase {
     public:
-        Widget();
+        Widget(PlatformWidget = 0);
         virtual ~Widget();
 
-        virtual void setEnabled(bool);
-        virtual bool isEnabled() const;
+        PlatformWidget platformWidget() const { return m_widget; }
+        void setPlatformWidget(PlatformWidget widget)
+        {
+            if (widget != m_widget) {
+                releasePlatformWidget();
+                m_widget = widget;
+                retainPlatformWidget();
+            }
+        }
 
-        int x() const;
-        int y() const;
-        int width() const;
-        int height() const;
-        IntSize size() const;
-        void resize(int, int);
-        void resize(const IntSize&);
-        IntPoint pos() const;
-        void move(int, int);
-        void move(const IntPoint&);
-
-        virtual void paint(GraphicsContext*, const IntRect&);
-        virtual void invalidate();
-        virtual void invalidateRect(const IntRect&);
+        int x() const { return frameGeometry().x(); }
+        int y() const { return frameGeometry().y(); }
+        int width() const { return frameGeometry().width(); }
+        int height() const { return frameGeometry().height(); }
+        IntSize size() const { return frameGeometry().size(); }
+        IntPoint pos() const { return frameGeometry().location(); }
 
         virtual void setFrameGeometry(const IntRect&);
         virtual IntRect frameGeometry() const;
+        IntRect boundsGeometry() const { return IntRect(0, 0, width(),  height()); }
+
+        void resize(int w, int h) { setFrameGeometry(IntRect(x(), y(), w, h)); }
+        void resize(const IntSize& s) { setFrameGeometry(IntRect(pos(), s)); }
+        void move(int x, int y) { setFrameGeometry(IntRect(x, y, width(), height())); }
+        void move(const IntPoint& p) { setFrameGeometry(IntRect(p, size())); }
+
+        virtual void paint(GraphicsContext*, const IntRect&);
+        virtual void invalidate() { invalidateRect(boundsGeometry()); }
+        virtual void invalidateRect(const IntRect&);
 
         virtual void setFocus();
 
@@ -79,48 +91,54 @@ namespace WKAL {
 
         virtual void show();
         virtual void hide();
+        bool isSelfVisible() const { return m_selfVisible; } // Whether or not we have been explicitly marked as visible or not.
+        bool isParentVisible() const { return m_parentVisible; } // Whether or not our parent is visible.
+        bool isVisible() const { return m_selfVisible && m_parentVisible; } // Whether or not we are actually visible.
+        virtual void setParentVisible(bool visible) { m_parentVisible = visible; }
+        void setSelfVisible(bool v) { m_selfVisible = v; }
 
         void setIsSelected(bool);
 
-        void setClient(WidgetClient*);
-        WidgetClient* client() const;
-
-        virtual bool isFrameView() const;
-        virtual bool isPluginView() const;
+        virtual bool isFrameView() const { return false; }
+        virtual bool isPluginView() const { return false; }
 
         virtual void removeFromParent();
+        virtual void setParent(ScrollView* view);
+        ScrollView* parent() const { return m_parent; }
+        ScrollView* root() const;
 
         // This method is used by plugins on all platforms to obtain a clip rect that includes clips set by WebCore,
         // e.g., in overflow:auto sections.  The clip rects coordinates are in the containing window's coordinate space.
         // This clip includes any clips that the widget itself sets up for its children.
-        virtual IntRect windowClipRect() const;
+        virtual IntRect windowClipRect() const { return IntRect(); }
 
-        virtual void handleEvent(Event*);
+        virtual void handleEvent(Event*) { }
 
-        void setContainingWindow(PlatformWidget);
-        PlatformWidget containingWindow() const;
-
-        virtual void setParent(ScrollView*);
-        ScrollView* parent() const;
-
-        virtual void geometryChanged() const;
+        // The containing window is used as the coordinate space for event handling.
+        PlatformWindow containingWindow() const;
+        void setContainingWindow(PlatformWindow window) { m_containingWindow = window; } // This method is only used by platforms that can't easily get back to their containing windo
 
         IntRect convertToContainingWindow(const IntRect&) const;
         IntPoint convertToContainingWindow(const IntPoint&) const;
         IntPoint convertFromContainingWindow(const IntPoint&) const;
 
-        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
-        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
-
-        bool suppressInvalidation() const;
-        void setSuppressInvalidation(bool);
-
-        BalWidget* balWidget() const;
-protected:
-        void setBalWidget(BalWidget*);
+        virtual void geometryChanged() const {}
 
     private:
-        WidgetPrivate* data;
+        void init(PlatformWidget); // Must be called by all Widget constructors to initialize cross-platform data.
+
+        void releasePlatformWidget();
+        void retainPlatformWidget();
+
+    private:
+        ScrollView* m_parent;
+        PlatformWidget m_widget;
+        bool m_selfVisible;
+        bool m_parentVisible;
+
+        IntRect m_frame; // Not used when a native widget exists.
+        PlatformWindow m_containingWindow; // Not used when a native widget exists.
+        WidgetPrivate* m_data;
     };
 
 } // namespace WebCore

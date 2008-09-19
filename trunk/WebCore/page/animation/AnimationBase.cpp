@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include "AnimationBase.h"
+
 #include "AnimationController.h"
 #include "CSSPropertyNames.h"
 #include "CString.h"
@@ -36,8 +37,10 @@
 #include "EventNames.h"
 #include "FloatConversion.h"
 #include "Frame.h"
+#include "IdentityTransformOperation.h"
 #include "ImplicitAnimation.h"
 #include "KeyframeAnimation.h"
+#include "MatrixTransformOperation.h"
 #include "RenderObject.h"
 #include "RenderStyle.h"
 #include "SystemTime.h"
@@ -49,7 +52,10 @@ static const double cAnimationTimerDelay = 0.025;
 
 // The epsilon value we pass to UnitBezier::solve given that the animation is going to run over |dur| seconds. The longer the
 // animation, the more precision we need in the timing function result to avoid ugly discontinuities.
-static inline double solveEpsilon(double duration) { return 1. / (200. * duration); }
+static inline double solveEpsilon(double duration)
+{
+    return 1.0 / (200.0 * duration);
+}
 
 static inline double solveCubicBezierFunction(double p1x, double p1y, double p2x, double p2y, double t, double duration)
 {
@@ -124,21 +130,21 @@ static inline TransformOperations blendFunc(const AnimationBase* anim, const Tra
 
     // If we have a transform function list, use that to do a per-function animation. Otherwise do a Matrix animation
     if (anim->isTransformFunctionListValid()) {
-        unsigned fromSize = from.size();
-        unsigned toSize = to.size();
+        unsigned fromSize = from.operations().size();
+        unsigned toSize = to.operations().size();
         unsigned size = max(fromSize, toSize);
         for (unsigned i = 0; i < size; i++) {
-            RefPtr<TransformOperation> fromOp = (i < fromSize && !from[i]->isIdentity()) ? from[i].get() : 0;
-            RefPtr<TransformOperation> toOp = (i < toSize && !to[i]->isIdentity()) ? to[i].get() : 0;
+            RefPtr<TransformOperation> fromOp = (i < fromSize && !from.operations()[i]->isIdentity()) ? from.operations()[i].get() : 0;
+            RefPtr<TransformOperation> toOp = (i < toSize && !to.operations()[i]->isIdentity()) ? to.operations()[i].get() : 0;
             RefPtr<TransformOperation> blendedOp = toOp ? toOp->blend(fromOp.get(), progress) : (fromOp ? fromOp->blend(0, progress, true) : 0);
             if (blendedOp)
-                result.append(blendedOp);
+                result.operations().append(blendedOp);
             else {
                 RefPtr<TransformOperation> identityOp = IdentityTransformOperation::create();
                 if (progress > 0.5)
-                    result.append(toOp ? toOp : identityOp);
+                    result.operations().append(toOp ? toOp : identityOp);
                 else
-                    result.append(fromOp ? fromOp : identityOp);
+                    result.operations().append(fromOp ? fromOp : identityOp);
             }
         }
     } else {
@@ -152,7 +158,7 @@ static inline TransformOperations blendFunc(const AnimationBase* anim, const Tra
         toT.blend(fromT, progress);
         
         // Append the result
-        result.append(MatrixTransformOperation::create(toT.a(), toT.b(), toT.c(), toT.d(), toT.e(), toT.f()));
+        result.operations().append(MatrixTransformOperation::create(toT.a(), toT.b(), toT.c(), toT.d(), toT.e(), toT.f()));
     }
     return result;
 }

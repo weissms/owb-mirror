@@ -1012,6 +1012,7 @@ webcore_sources += \
 	WebCore/dom/WheelEvent.cpp \
 	WebCore/dom/WheelEvent.h \
 	WebCore/dom/XMLTokenizer.cpp \
+	WebCore/dom/XMLTokenizerLibxml2.cpp \
 	WebCore/dom/XMLTokenizer.h \
 	WebCore/editing/AppendNodeCommand.cpp \
 	WebCore/editing/AppendNodeCommand.h \
@@ -1419,16 +1420,6 @@ webcore_sources += \
 	WebCore/page/AccessibilityTableHeaderContainer.h \
 	WebCore/page/AccessibilityTableRow.cpp \
 	WebCore/page/AccessibilityTableRow.h \
-	WebCore/page/animation/AnimationBase.cpp \
-	WebCore/page/animation/AnimationBase.h \
-	WebCore/page/animation/AnimationController.cpp \
-	WebCore/page/animation/AnimationController.h \
-	WebCore/page/animation/CompositeAnimation.cpp \
-	WebCore/page/animation/CompositeAnimation.h \
-	WebCore/page/animation/ImplicitAnimation.cpp \
-	WebCore/page/animation/ImplicitAnimation.h \
-	WebCore/page/animation/KeyframeAnimation.cpp \
-	WebCore/page/animation/KeyframeAnimation.h \
 	WebCore/page/BarInfo.cpp \
 	WebCore/page/BarInfo.h \
 	WebCore/page/Chrome.cpp \
@@ -1493,6 +1484,16 @@ webcore_sources += \
 	WebCore/page/Settings.h \
 	WebCore/page/WindowFeatures.cpp \
 	WebCore/page/WindowFeatures.h \
+	WebCore/page/animation/AnimationBase.cpp \
+	WebCore/page/animation/AnimationBase.h \
+	WebCore/page/animation/AnimationController.cpp \
+	WebCore/page/animation/AnimationController.h \
+	WebCore/page/animation/CompositeAnimation.cpp \
+	WebCore/page/animation/CompositeAnimation.h \
+	WebCore/page/animation/ImplicitAnimation.cpp \
+	WebCore/page/animation/ImplicitAnimation.h \
+	WebCore/page/animation/KeyframeAnimation.cpp \
+	WebCore/page/animation/KeyframeAnimation.h \
 	WebCore/platform/Arena.cpp \
 	WebCore/platform/Arena.h \
 	WebCore/platform/AutodrainedPool.h \
@@ -1536,10 +1537,10 @@ webcore_sources += \
 	WebCore/platform/PopupMenu.h \
 	WebCore/platform/PopupMenuClient.h \
 	WebCore/platform/SSLKeyGenerator.h \
-	WebCore/platform/Scrollbar.cpp \
-	WebCore/platform/Scrollbar.h \
 	WebCore/platform/ScrollTypes.h \
 	WebCore/platform/ScrollView.h \
+	WebCore/platform/Scrollbar.cpp \
+	WebCore/platform/Scrollbar.h \
 	WebCore/platform/SearchPopupMenu.h \
 	WebCore/platform/SecurityOrigin.cpp \
 	WebCore/platform/SecurityOrigin.h \
@@ -1637,6 +1638,7 @@ webcore_sources += \
 	WebCore/platform/network/AuthenticationChallengeBase.h \
 	WebCore/platform/network/Credential.cpp \
 	WebCore/platform/network/Credential.h \
+	WebCore/platform/network/DNS.h \
 	WebCore/platform/network/FormData.cpp \
 	WebCore/platform/network/FormData.h \
 	WebCore/platform/network/HTTPHeaderMap.h \
@@ -1736,7 +1738,7 @@ webcore_sources += \
 	WebCore/rendering/AutoTableLayout.h \
 	WebCore/rendering/CounterNode.cpp \
 	WebCore/rendering/CounterNode.h \
-	WebCore/rendering/DataRef.h \
+	WebCore/rendering/style/DataRef.h \
 	WebCore/rendering/EllipsisBox.cpp \
 	WebCore/rendering/EllipsisBox.h \
 	WebCore/rendering/FixedTableLayout.cpp \
@@ -1855,15 +1857,78 @@ webcore_sources += \
 	WebCore/rendering/bidi.h \
 	WebCore/rendering/break_lines.cpp \
 	WebCore/rendering/break_lines.h \
+	WebCore/rendering/style/Animation.cpp \
+	WebCore/rendering/style/Animation.h \
+	WebCore/rendering/style/AnimationList.cpp \
+	WebCore/rendering/style/AnimationList.h \
+	WebCore/rendering/style/BindingURI.cpp \
+	WebCore/rendering/style/BindingURI.h \
+	WebCore/rendering/style/BorderData.h \
+	WebCore/rendering/style/BorderValue.h \
+	WebCore/rendering/style/CollapsedBorderValue.h \
+	WebCore/rendering/style/ContentData.cpp \
+	WebCore/rendering/style/ContentData.h \
+	WebCore/rendering/style/CounterContent.h \
+	WebCore/rendering/style/CounterDirectives.cpp \
+	WebCore/rendering/style/CounterDirectives.h \
+	WebCore/rendering/style/FillLayer.cpp \
+	WebCore/rendering/style/FillLayer.h \
+	WebCore/rendering/style/IdentityTransformOperation.h \
+	WebCore/rendering/style/KeyframeList.cpp \
+	WebCore/rendering/style/KeyframeList.h \
+	WebCore/rendering/style/MatrixTransformOperation.cpp \
+	WebCore/rendering/style/MatrixTransformOperation.h \
 	WebCore/rendering/style/NinePieceImage.cpp \
 	WebCore/rendering/style/NinePieceImage.h \
+	WebCore/rendering/style/OutlineValue.h \
 	WebCore/rendering/style/RenderStyle.cpp \
 	WebCore/rendering/style/RenderStyle.h \
+	WebCore/rendering/style/RenderStyleConstants.h \
+	WebCore/rendering/style/RotateTransformOperation.cpp \
+	WebCore/rendering/style/RotateTransformOperation.h \
+	WebCore/rendering/style/ScaleTransformOperation.cpp \
+	WebCore/rendering/style/ScaleTransformOperation.h \
+	WebCore/rendering/style/ShadowData.cpp \
+	WebCore/rendering/style/ShadowData.h \
+	WebCore/rendering/style/SkewTransformOperation.cpp \
+	WebCore/rendering/style/SkewTransformOperation.h \
+	WebCore/rendering/style/StyleBackgroundData.cpp \
+	WebCore/rendering/style/StyleBackgroundData.h \
+	WebCore/rendering/style/StyleBoxData.cpp \
+	WebCore/rendering/style/StyleBoxData.h \
 	WebCore/rendering/style/StyleCachedImage.cpp \
 	WebCore/rendering/style/StyleCachedImage.h \
+	WebCore/rendering/style/StyleDashboardRegion.h \
+	WebCore/rendering/style/StyleFlexibleBoxData.cpp \
+	WebCore/rendering/style/StyleFlexibleBoxData.h \
 	WebCore/rendering/style/StyleGeneratedImage.cpp \
 	WebCore/rendering/style/StyleGeneratedImage.h \
 	WebCore/rendering/style/StyleImage.h \
+	WebCore/rendering/style/StyleMarqueeData.cpp \
+	WebCore/rendering/style/StyleMarqueeData.h \
+	WebCore/rendering/style/StyleMultiColData.cpp \
+	WebCore/rendering/style/StyleMultiColData.h \
+	WebCore/rendering/style/StyleSurroundData.cpp \
+	WebCore/rendering/style/StyleSurroundData.h \
+	WebCore/rendering/style/StyleTransformData.cpp \
+	WebCore/rendering/style/StyleTransformData.h \
+	WebCore/rendering/style/StyleVisualData.cpp \
+	WebCore/rendering/style/StyleVisualData.h \
+	WebCore/rendering/style/TimingFunction.h \
+	WebCore/rendering/style/TransformOperation.h \
+	WebCore/rendering/style/TransformOperations.cpp \
+	WebCore/rendering/style/TransformOperations.h \
+	WebCore/rendering/style/TranslateTransformOperation.cpp \
+	WebCore/rendering/style/TranslateTransformOperation.h \
+	WebCore/rendering/style/CursorData.h \
+	WebCore/rendering/style/CursorList.h \
+	WebCore/rendering/style/StyleInheritedData.cpp \
+	WebCore/rendering/style/StyleInheritedData.h \
+	WebCore/rendering/style/StyleRareInheritedData.cpp \
+	WebCore/rendering/style/StyleRareInheritedData.h \
+	WebCore/rendering/style/StyleRareNonInheritedData.cpp \
+	WebCore/rendering/style/StyleRareNonInheritedData.h \
+	WebCore/rendering/style/StyleReflection.h \
 	WebCore/xml/DOMParser.cpp \
 	WebCore/xml/DOMParser.h \
 	WebCore/xml/XMLHttpRequest.cpp \
@@ -1937,13 +2002,13 @@ webcoregtk_sources += \
 	WebCore/platform/gtk/PasteboardGtk.cpp \
 	WebCore/platform/gtk/PasteboardHelper.h \
 	WebCore/platform/gtk/PlatformScreenGtk.cpp \
-	WebCore/platform/gtk/ScrollbarGtk.h \
-	WebCore/platform/gtk/ScrollbarGtk.cpp \
 	WebCore/platform/gtk/PopupMenuGtk.cpp \
 	WebCore/platform/gtk/RenderThemeGtk.cpp \
 	WebCore/platform/gtk/RenderThemeGtk.h \
-	WebCore/platform/gtk/ScrollbarThemeGtk.cpp \
 	WebCore/platform/gtk/ScrollViewGtk.cpp \
+	WebCore/platform/gtk/ScrollbarGtk.cpp \
+	WebCore/platform/gtk/ScrollbarGtk.h \
+	WebCore/platform/gtk/ScrollbarThemeGtk.cpp \
 	WebCore/platform/gtk/SearchPopupMenuGtk.cpp \
 	WebCore/platform/gtk/SharedTimerGtk.cpp \
 	WebCore/platform/gtk/SoundGtk.cpp \
@@ -2884,14 +2949,14 @@ webcore_sources += \
 	WebCore/rendering/RenderSVGInlineText.h \
 	WebCore/rendering/RenderSVGRoot.cpp \
 	WebCore/rendering/RenderSVGRoot.h \
-	WebCore/rendering/RenderSVGTSpan.cpp \
-	WebCore/rendering/RenderSVGTSpan.h \
 	WebCore/rendering/RenderSVGText.cpp \
 	WebCore/rendering/RenderSVGText.h \
 	WebCore/rendering/RenderSVGTextPath.cpp \
 	WebCore/rendering/RenderSVGTextPath.h \
 	WebCore/rendering/RenderSVGTransformableContainer.cpp \
 	WebCore/rendering/RenderSVGTransformableContainer.h \
+	WebCore/rendering/RenderSVGTSpan.cpp \
+	WebCore/rendering/RenderSVGTSpan.h \
 	WebCore/rendering/RenderSVGViewportContainer.cpp \
 	WebCore/rendering/RenderSVGViewportContainer.h \
 	WebCore/rendering/SVGCharacterLayoutInfo.cpp \
@@ -2900,16 +2965,16 @@ webcore_sources += \
 	WebCore/rendering/SVGInlineFlowBox.h \
 	WebCore/rendering/SVGInlineTextBox.cpp \
 	WebCore/rendering/SVGInlineTextBox.h \
-	WebCore/rendering/SVGRenderStyle.cpp \
-	WebCore/rendering/SVGRenderStyle.h \
-	WebCore/rendering/SVGRenderStyleDefs.cpp \
-	WebCore/rendering/SVGRenderStyleDefs.h \
 	WebCore/rendering/SVGRenderSupport.cpp \
 	WebCore/rendering/SVGRenderSupport.h \
 	WebCore/rendering/SVGRenderTreeAsText.cpp \
 	WebCore/rendering/SVGRenderTreeAsText.h \
 	WebCore/rendering/SVGRootInlineBox.cpp \
 	WebCore/rendering/SVGRootInlineBox.h \
+	WebCore/rendering/style/SVGRenderStyle.cpp \
+	WebCore/rendering/style/SVGRenderStyle.h \
+	WebCore/rendering/style/SVGRenderStyleDefs.cpp \
+	WebCore/rendering/style/SVGRenderStyleDefs.h \
 	WebCore/svg/ColorDistance.cpp \
 	WebCore/svg/ColorDistance.h \
 	WebCore/svg/ElementTimeControl.h \

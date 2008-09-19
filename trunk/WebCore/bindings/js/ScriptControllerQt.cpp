@@ -50,13 +50,15 @@ PassRefPtr<JSC::Bindings::Instance> ScriptController::createScriptInstanceForWid
 {
     if (!widget->isPluginView())
         return 0;
-    if (widget->isNPAPIPlugin())
-        return static_cast<PluginView*>(widget)->bindingInstance();
+        
+    PluginView* pluginView = static_cast<PluginView*>(widget);
+    if (pluginView->isNPAPIPlugin())
+        return pluginView->bindingInstance();
 
-    QWidget* nativeWidget = widget->nativeWidget();
-    if (!nativeWidget)
+    QWidget* platformWidget = widget->platformWidget();
+    if (!platformWidget)
         return 0;
-    return JSC::Bindings::QtInstance::getQtInstance(nativeWidget, bindingRootObject());
+    return JSC::Bindings::QtInstance::getQtInstance(platformWidget, bindingRootObject());
 }
 
 }

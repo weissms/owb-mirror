@@ -560,6 +560,7 @@ SOURCES += \
     dom/WebKitTransitionEvent.cpp \
     dom/WheelEvent.cpp \
     dom/XMLTokenizer.cpp \
+    dom/XMLTokenizerQt.cpp \
     editing/AppendNodeCommand.cpp \
     editing/ApplyStyleCommand.cpp \
     editing/BreakBlockquoteCommand.cpp \
@@ -909,10 +910,41 @@ SOURCES += \
     rendering/RootInlineBox.cpp \
     rendering/SVGRenderTreeAsText.cpp \
     rendering/TextControlInnerElements.cpp \
-    rendering/style/RenderStyle.cpp \
-    rendering/style/StyleCachedImage.cpp \
-    rendering/style/StyleGeneratedImage.cpp \
+    rendering/style/Animation.cpp \
+    rendering/style/AnimationList.cpp \
+    rendering/style/BindingURI.cpp \
+    rendering/style/ContentData.cpp \
+    rendering/style/CounterDirectives.cpp \
+    rendering/style/CursorData.h \
+    rendering/style/CursorList.h \
+    rendering/style/FillLayer.cpp \
+    rendering/style/KeyframeList.cpp \
+    rendering/style/MatrixTransformOperation.cpp \
     rendering/style/NinePieceImage.cpp \
+    rendering/style/RenderStyle.cpp \
+    rendering/style/RotateTransformOperation.cpp \
+    rendering/style/ScaleTransformOperation.cpp \
+    rendering/style/ShadowData.cpp \
+    rendering/style/SkewTransformOperation.cpp \
+    rendering/style/StyleBackgroundData.cpp \
+    rendering/style/StyleBoxData.cpp \
+    rendering/style/StyleCachedImage.cpp \
+    rendering/style/StyleFlexibleBoxData.cpp \
+    rendering/style/StyleGeneratedImage.cpp \
+    rendering/style/StyleInheritedData.cpp \
+    rendering/style/StyleInheritedData.h \
+    rendering/style/StyleMarqueeData.cpp \
+    rendering/style/StyleMultiColData.cpp \
+    rendering/style/StyleRareInheritedData.cpp \
+    rendering/style/StyleRareInheritedData.h \
+    rendering/style/StyleRareNonInheritedData.cpp \
+    rendering/style/StyleRareNonInheritedData.h \
+    rendering/style/StyleReflection.h \
+    rendering/style/StyleSurroundData.cpp \
+    rendering/style/StyleTransformData.cpp \
+    rendering/style/StyleVisualData.cpp \
+    rendering/style/TransformOperations.cpp \
+    rendering/style/TranslateTransformOperation.cpp \
     xml/DOMParser.cpp \
     xml/NativeXPathNSResolver.cpp \
     xml/XMLHttpRequest.cpp \
@@ -1427,8 +1459,8 @@ contains(DEFINES, ENABLE_SVG=1) {
         css/SVGCSSComputedStyleDeclaration.cpp \
         css/SVGCSSParser.cpp \
         css/SVGCSSStyleSelector.cpp \
-        rendering/SVGRenderStyle.cpp \
-        rendering/SVGRenderStyleDefs.cpp \
+        rendering/style/SVGRenderStyle.cpp \
+        rendering/style/SVGRenderStyleDefs.cpp \
         svg/SVGZoomEvent.cpp \
         rendering/PointerEventsHitRules.cpp \
         svg/FilterEffect.cpp \

@@ -30,6 +30,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/loader/icon
     ${CMAKE_SOURCE_DIR}/WebCore/bindings/js
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
+    ${CMAKE_SOURCE_DIR}/WebCore/rendering/style
     ${CMAKE_SOURCE_DIR}/WebCore/storage
     ${CMAKE_SOURCE_DIR}/WebCore/rendering/style
     ${CMAKE_SOURCE_DIR}/WebCore/svg/graphics/filters

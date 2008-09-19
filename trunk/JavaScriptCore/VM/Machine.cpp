@@ -477,6 +477,19 @@ static bool NEVER_INLINE resolveBaseAndFunc(ExecState* exec, Instruction* vPC, R
     return false;
 }
 
+#if HAVE(COMPUTED_GOTO)
+Opcode Machine::s_opcodeTable[numOpcodeIDs];
+#endif
+
+Opcode Machine::getOpcode(OpcodeID id)
+{
+    #if HAVE(COMPUTED_GOTO)
+        return s_opcodeTable[id];
+    #else
+        return id;
+    #endif
+}
+
 ALWAYS_INLINE void Machine::initializeCallFrame(Register* callFrame, CodeBlock* codeBlock, Instruction* vPC, ScopeChainNode* scopeChain, Register* r, int returnValueRegister, int argv, int argc, JSValue* function)
 {
     callFrame[RegisterFile::CallerCodeBlock] = codeBlock;
@@ -928,8 +941,6 @@ JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, ExecState* exec, J
         return 0;
     }
 
-    scopeChain = scopeChainForCall(exec, functionBodyNode, newCodeBlock, scopeChain, r);
-
     ExecState newExec(exec, &m_registerFile, scopeChain, callFrame);
 
     Profiler** profiler = Profiler::enabledProfilerReference();
@@ -942,6 +953,7 @@ JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, ExecState* exec, J
         CTI::compile(this, exec, newCodeBlock);
     JSValue* result = CTI::execute(newCodeBlock->ctiCode, &newExec, &m_registerFile, r, scopeChain, newCodeBlock, exception);
 #else
+    setScopeChain(&newExec, scopeChain, scopeChainForCall(exec, functionBodyNode, newCodeBlock, scopeChain, r));
     JSValue* result = privateExecute(Normal, &newExec, &m_registerFile, r, scopeChain, newCodeBlock, exception);
 #endif
     m_reentryDepth--;
@@ -1388,7 +1400,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
     // here because our labels are only in scope inside this function.
     if (flag == InitializeAndReturn) {
         #if HAVE(COMPUTED_GOTO)
-            #define ADD_OPCODE(id) m_opcodeTable[id] = &&id;
+            #define ADD_OPCODE(id) s_opcodeTable[id] = &&id;
                 FOR_EACH_OPCODE_ID(ADD_OPCODE);
             #undef ADD_OPCODE
 
@@ -4319,10 +4331,7 @@ void* Machine::cti_op_call_JSFunction(CTI_ARGS)
     ExecState* exec = ARG_exec;
     RegisterFile* registerFile = ARG_registerFile;
     Register* r = ARG_r;
-    CodeBlock* codeBlock = ARG_codeBlock;
-    ScopeChainNode* scopeChain = ARG_scopeChain;
 
-    Machine* machine = exec->machine();
     JSValue* exceptionValue = 0;
     Register* registerBase = registerFile->base();
     
@@ -4349,22 +4358,39 @@ void* Machine::cti_op_call_JSFunction(CTI_ARGS)
     r[firstArg] = thisValue;
 
     Register* callFrame = r + firstArg - RegisterFile::CallFrameHeaderSize;
-    machine->initializeCallFrame(callFrame, codeBlock, ARG_instr5, scopeChain, r, 0/*dst*/, firstArg, argCount, funcVal);
     exec->m_callFrame = callFrame;
 
     r = slideRegisterWindowForCall(exec, newCodeBlock, registerFile, registerBase, r, firstArg, argCount, exceptionValue);
     JSVALUE_VM_CHECK_EXCEPTION_ARG(exceptionValue);
     
-    codeBlock = newCodeBlock;
-    machine->setScopeChain(exec, scopeChain, scopeChainForCall(exec, functionBodyNode, codeBlock, callDataScopeChain, r));
+    exec->m_scopeChain = callDataScopeChain;
+
+    ARG_setScopeChain(callDataScopeChain);
+    ARG_setCodeBlock(newCodeBlock);
+    ARG_setR(r);
+    return newCodeBlock->ctiCode;
+}
+
+void* Machine::cti_vm_compile(CTI_ARGS)
+{
+    ExecState* exec = ARG_exec;
+    CodeBlock* codeBlock = ARG_codeBlock;
 
     if (!codeBlock->ctiCode)
-        CTI::compile(machine, exec, codeBlock);
+        CTI::compile(exec->machine(), exec, codeBlock);
+
+    return codeBlock->ctiCode;
+}
+
+void Machine::cti_vm_updateScopeChain(CTI_ARGS)
+{
+    ExecState* exec = ARG_exec;
+    CodeBlock* codeBlock = ARG_codeBlock;
+    ScopeChainNode* scopeChain = ARG_scopeChain;
+
+    exec->machine()->setScopeChain(exec, scopeChain, scopeChainForCall(exec, static_cast<FunctionBodyNode*>(codeBlock->ownerNode), codeBlock, scopeChain, ARG_r));
 
     ARG_setScopeChain(scopeChain);
-    ARG_setCodeBlock(codeBlock);
-    ARG_setR(r);
-    return codeBlock->ctiCode;
 }
 
 JSValue* Machine::cti_op_call_NotJSFunction(CTI_ARGS)
@@ -4383,13 +4409,8 @@ JSValue* Machine::cti_op_call_NotJSFunction(CTI_ARGS)
     ASSERT(callType != CallTypeJS);
 
     if (callType == CallTypeHost) {
-        CodeBlock* codeBlock = ARG_codeBlock;
-        ScopeChainNode* scopeChain = ARG_scopeChain;
-        Machine* machine = exec->machine();
-
         Register* oldCallFrame = exec->m_callFrame;
         Register* callFrame = r + firstArg - RegisterFile::CallFrameHeaderSize;
-        machine->initializeCallFrame(callFrame, codeBlock, ARG_instr5, scopeChain, r, 0/*dst*/, firstArg, argCount, funcVal);
         exec->m_callFrame = callFrame;
 
         if (*ARG_profilerReference)
@@ -4485,10 +4506,8 @@ void* Machine::cti_op_construct_JSConstruct(CTI_ARGS)
     ExecState* exec = ARG_exec;
     RegisterFile* registerFile = ARG_registerFile;
     Register* r = ARG_r;
-    CodeBlock* codeBlock = ARG_codeBlock;
     ScopeChainNode* scopeChain = ARG_scopeChain;
 
-    Machine* machine = exec->machine();
     JSValue* exceptionValue = 0;
     Register* registerBase = registerFile->base();
     
@@ -4526,35 +4545,17 @@ void* Machine::cti_op_construct_JSConstruct(CTI_ARGS)
     r[firstArg] = newObject; // "this" value
 
     Register* callFrame = r + firstArg - RegisterFile::CallFrameHeaderSize;
-    machine->initializeCallFrame(callFrame, codeBlock, ARG_instr5, scopeChain, r, 0/*dst*/, firstArg, argCount, constructor);
     exec->m_callFrame = callFrame;
 
     r = slideRegisterWindowForCall(exec, newCodeBlock, registerFile, registerBase, r, firstArg, argCount, exceptionValue);
     JSVALUE_VM_CHECK_EXCEPTION_ARG(exceptionValue);
 
-    codeBlock = newCodeBlock;
-    machine->setScopeChain(exec, scopeChain, scopeChainForCall(exec, functionBodyNode, codeBlock, callDataScopeChain, r));
+    exec->m_scopeChain = callDataScopeChain;
 
-    if (!codeBlock->ctiCode)
-        CTI::compile(machine, exec, codeBlock);
-
-    ARG_setScopeChain(scopeChain);
-    ARG_setCodeBlock(codeBlock);
+    ARG_setScopeChain(callDataScopeChain);
+    ARG_setCodeBlock(newCodeBlock);
     ARG_setR(r);
-    return codeBlock->ctiCode;
-}
-
-void Machine::cti_op_construct_verify(CTI_ARGS)
-{
-    ExecState* exec = ARG_exec;
-    Register* r = ARG_r;
-    int dst = ARG_int1;
-
-    if (LIKELY(r[dst].jsValue(exec)->isObject()))
-        return;
-    
-    int override = ARG_int2;
-    r[dst] = r[override];
+    return newCodeBlock->ctiCode;
 }
 
 JSValue* Machine::cti_op_construct_NotJSConstruct(CTI_ARGS)
@@ -4575,13 +4576,8 @@ JSValue* Machine::cti_op_construct_NotJSConstruct(CTI_ARGS)
     ASSERT(constructType != ConstructTypeJS);
 
     if (constructType == ConstructTypeHost) {
-        CodeBlock* codeBlock = ARG_codeBlock;
-        ScopeChainNode* scopeChain = ARG_scopeChain;
-        Machine* machine = exec->machine();
-
         Register* oldCallFrame = exec->m_callFrame;
         Register* callFrame = r + firstArg - RegisterFile::CallFrameHeaderSize;
-        machine->initializeCallFrame(callFrame, codeBlock, ARG_instr5, scopeChain, r, 0/*dst*/, firstArg, argCount, constrVal);
         exec->m_callFrame = callFrame;
 
         if (*ARG_profilerReference)
