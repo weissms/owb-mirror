@@ -112,7 +112,7 @@ bool ScrollbarThemeBal::paint(Scrollbar* scrollbar, GraphicsContext* graphicsCon
 int ScrollbarThemeBal::scrollbarThickness(ScrollbarControlSize controlSize)
 {
     BalNotImplemented();
-    return 10;
+    return 11;
     /*
     static int size;
     if (!size) {

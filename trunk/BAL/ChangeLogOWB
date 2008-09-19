@@ -1,3 +1,11 @@
+2008-09-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix size of scrollBar
+
+        * WKAL/Concretizations/Widgets/SDL/BCScrollbarThemeSDL.cpp:
+        (WKAL::ScrollbarThemeBal::scrollbarThickness):
+
 2008-09-17  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Olivier DOLE.
