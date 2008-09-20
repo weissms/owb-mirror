@@ -20,7 +20,7 @@ LIST (APPEND XML_SRC
     xml/XPathVariableReference.cpp
 )
 
-# IF (WEBKIT_USE_XSLT_SUPPORT)
+IF (WEBKIT_USE_XSLT_SUPPORT)
     LIST (APPEND XML_SRC
         xml/XSLImportRule.cpp
         xml/XSLStyleSheet.cpp
@@ -28,7 +28,7 @@ LIST (APPEND XML_SRC
         xml/XSLTProcessor.cpp
         xml/XSLTUnicodeSort.cpp
     )
-# ENDIF (WEBKIT_USE_XSLT_SUPPORT)
+ENDIF (WEBKIT_USE_XSLT_SUPPORT)
 
 LIST (APPEND XML_SRC
     xml/XMLHttpRequest.cpp

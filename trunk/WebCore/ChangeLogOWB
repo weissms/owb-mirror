@@ -1,0 +1,8 @@
+2008-09-20  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Jean-Charles VERDIE.
+        Set XSLT support as optional.
+
+        * CMakeLists.txt:
+        * xml/CMakeLists.txt:
+
