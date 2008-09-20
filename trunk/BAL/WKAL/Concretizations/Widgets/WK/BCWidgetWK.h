@@ -29,6 +29,10 @@
 
 #include <wtf/Platform.h>
 
+#if PLATFORM(BAL)
+#include "BALBase.h"
+#endif
+
 #if PLATFORM(MAC)
 #ifdef __OBJC__
 @class NSView;
@@ -198,7 +202,7 @@ private:
     IntRect m_frame; // Not used when a native widget exists.
     PlatformWindow m_containingWindow; // Not used when a native widget exists.
 
-#if PLATFORM(MAC) || PLATFORM(GTK)
+#if PLATFORM(MAC) || PLATFORM(GTK) || PLATFORM(BAL)
     WidgetPrivate* m_data;
 #endif
 };

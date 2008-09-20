@@ -1,3 +1,18 @@
+2008-09-20  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+        Remove deprecated BCWidgetSDL.h which is now replaced by a generic
+		BCWidgetWK.h.
+
+        * WKAL/Concretizations/Widgets/CMakeLists.txt: fix to always use
+		BCWidgetWK.h in OWBLN macro.
+        * WKAL/Concretizations/Widgets/SDL/BCWidgetSDL.h: Removed.
+        * WKAL/Concretizations/Widgets/WK/BCWidgetWK.h: add specific code for
+		BAL platform.
+        * scripts/patches/Widget.patch: Added.
+        * scripts/patches/index.txt: sort + add a Widget.patch line for the
+		next merge.
+
 2008-09-19  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

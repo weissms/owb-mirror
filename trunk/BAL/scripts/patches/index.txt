@@ -11,8 +11,9 @@
 #Use '2' for after namespace propagation (using WebCore::Foobar;)
 #Use '_' if it must be applied AFTER all scripts
 
-../../WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp	0:PasteboardHelperGtk.patch
-../../WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp	0:GraphicsContext.patch
+../../Base/wtf/Platform.h	0:Platform.patch
+../../OWBAL/Concretizations/Facilities/Posix/BCFileSystemPosix.cpp	0:FileSystemPosix.patch
+../../OWBAL/Concretizations/Facilities/Linux/BCSystemTimeLinux.cpp	0:SystemTimeLinux.patch
 ../../OWBAL/Concretizations/ImageDecoder/BMP/WK/BCBMPImageDecoderWK.cpp	1:BMPImageDecoder.patch
 ../../OWBAL/Concretizations/ImageDecoder/GIF/WK/BCGIFImageDecoderWK.cpp	1:GIFImageDecoder.patch
 ../../OWBAL/Concretizations/ImageDecoder/GIF/WK/BCGIFImageReaderWK.cpp	0:GIFImageReader.patch
@@ -20,22 +21,22 @@
 ../../OWBAL/Concretizations/ImageDecoder/JPEG/WK/BCJPEGImageDecoderWK.cpp	0:JPEGImageDecoder.patch
 ../../OWBAL/Concretizations/ImageDecoder/PNG/WK/BCPNGImageDecoderWK.cpp	0:PNGImageDecoder.patch
 ../../OWBAL/Concretizations/ImageDecoder/XBM/WK/BCXBMImageDecoderWK.cpp	1:XBMImageDecoder.patch
-../../OWBAL/Concretizations/Facilities/Posix/BCFileSystemPosix.cpp	0:FileSystemPosix.patch
-../../WKAL/Concretizations/Fonts/WK/BCFontWK.cpp	0:Font.patch
-../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURL.patch
 ../../OWBAL/Concretizations/Internationalization/WK/BCTextEncodingWK.cpp	0:TextEncoding.patch
-../../Base/wtf/Platform.h	0:Platform.patch
-../../WKAL/Concretizations/Graphics/Cairo/BCImageSourceCairo.cpp	_:ImageSourceCairo.patch
-../../WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp	0:ResourceHandleManager.patch
+../../OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp	0:TCSystemAlloc.patch
+../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	0:ThreadingGtk.patch
+../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	_:BCThreadingGtk.patch
+../../OWBAL/Concretizations/Types/Pthreads/BCThreadingPthreads.cpp	0:ThreadingPthreads.patch
+../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURL.patch
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURLI18N.patch
 ../../OWBAL/Concretizations/Types/WK/BCThreadSpecificWK.h	0:ThreadSpecific.patch
-../../OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp	0:TCSystemAlloc.patch
 ../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock.patch
 ../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock2.patch
-../../OWBAL/Concretizations/Facilities/Linux/BCSystemTimeLinux.cpp	0:SystemTimeLinux.patch
-../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	0:ThreadingGtk.patch
-../../OWBAL/Concretizations/Types/Pthreads/BCThreadingPthreads.cpp	0:ThreadingPthreads.patch
-../../WKAL/Concretizations/Widgets/Gtk/BCFrameGtk.cpp	_:FrameGtk.patch
-../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	_:BCThreadingGtk.patch
+../../WKAL/Concretizations/Fonts/WK/BCFontWK.cpp	0:Font.patch
 ../../WKAL/Concretizations/Graphics/Cairo/BCImageCairo.cpp	_:ImageCairo_AmigaOS.patch
+../../WKAL/Concretizations/Graphics/Cairo/BCImageSourceCairo.cpp	_:ImageSourceCairo.patch
 ../../WKAL/Concretizations/Graphics/WK/BCDragDataWK.h	_:DragData_AmigaOS.patch
+../../WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp	0:GraphicsContext.patch
+../../WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp	0:ResourceHandleManager.patch
+../../WKAL/Concretizations/Widgets/Gtk/BCFrameGtk.cpp	_:FrameGtk.patch
+../../WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp	0:PasteboardHelperGtk.patch
+../../WKAL/Concretizations/Widgets/WK/BCWidgetWK.h	_:Widget.patch
