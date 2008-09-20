@@ -214,7 +214,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
         } else {
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
-                    (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = ((penColor.alpha()/255 * *bitmapAddr++) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
+                    (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = (static_cast<unsigned>((penColor.alpha() * *bitmapAddr++) / 255) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
                 }
             }
         }

@@ -1,3 +1,11 @@
+2008-09-20  Paul PEDRIANA  <ppedriana@gmail.com>
+
+        Reviewed by Olivier DOLE.
+        Cleaner code in drawGlyphs for FreeType version.
+
+        * WKAL/Concretizations/Fonts/Freetype/BCFontFreetype.cpp:
+        (WKAL::Font::drawGlyphs):
+
 2008-09-20  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.
