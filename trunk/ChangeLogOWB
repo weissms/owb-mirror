@@ -1,5 +1,12 @@
 2008-09-20  Olivier DOLE  <odole@pleyo.com>
 
+        Reviewed by Mario BENSI.
+        Remove XSLTProcessor from IDL when XSLT support is disabled.
+
+        * GeneratedSources/CMakeLists.txt:
+
+2008-09-20  Olivier DOLE  <odole@pleyo.com>
+
         Reviewed by Jean-Charles VERDIE.
         Set XSLT support as optional.
 

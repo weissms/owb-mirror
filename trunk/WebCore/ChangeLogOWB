@@ -1,5 +1,13 @@
 2008-09-20  Olivier DOLE  <odole@pleyo.com>
 
+        Reviewed by Mario BENSI.
+        Fix build when XSLT is enabled.
+
+        * CMakeLists.txt:
+        * xml/CMakeLists.txt:
+
+2008-09-20  Olivier DOLE  <odole@pleyo.com>
+
         Reviewed by Jean-Charles VERDIE.
         Set XSLT support as optional.
 

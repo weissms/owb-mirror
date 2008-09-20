@@ -206,8 +206,15 @@ SET (IDL_BINDINGS
     xml/XMLHttpRequestUpload.idl
     xml/XMLSerializer.idl
     xml/XPathException.idl
-	xml/XSLTProcessor.idl
 )
+
+IF (WEBKIT_ENABLE_XSLT)
+    SET (IDL_BINDINGS
+        ${IDL_BINDINGS}
+    	xml/XSLTProcessor.idl
+    )
+ENDIF (WEBKIT_ENABLE_XSLT)
+
 IF (WEBKIT_USE_DATABASE)
     SET (IDL_BINDINGS
         ${IDL_BINDINGS}
@@ -668,8 +675,12 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
     
     ${XML2_INCLUDE_DIRS}
-    ${XSLT_INCLUDE_DIRS}
 )
+IF (WEBKIT_ENABLE_XSLT)
+    INCLUDE_DIRECTORIES(
+        ${XSLT_INCLUDE_DIRS}
+    )
+ENDIF (WEBKIT_ENABLE_XSLT)
 
 IF (WEBKIT_USE_I18N STREQUAL "GENERIC")
     INCLUDE_DIRECTORIES (
