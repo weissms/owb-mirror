@@ -1,24 +1,30 @@
 LIST (APPEND XML_SRC
     xml/DOMParser.cpp
-    xml/NativeXPathNSResolver.cpp
+    xml/XMLHttpRequest.cpp
     xml/XMLHttpRequestUpload.cpp
     xml/XMLSerializer.cpp
-    xml/XPathEvaluator.cpp
-    xml/XPathExpression.cpp
-    xml/XPathExpressionNode.cpp
-    xml/XPathFunctions.cpp
-    xml/XPathNamespace.cpp
-    xml/XPathNodeSet.cpp
-    xml/XPathNSResolver.cpp
-    xml/XPathParser.cpp
-    xml/XPathPath.cpp
-    xml/XPathPredicate.cpp
-    xml/XPathResult.cpp
-    xml/XPathStep.cpp
-    xml/XPathUtil.cpp
-    xml/XPathValue.cpp
-    xml/XPathVariableReference.cpp
 )
+
+IF (WEBKIT_ENABLE_XPATH)
+    LIST (APPEND XML_SRC
+        xml/NativeXPathNSResolver.cpp
+        xml/XPathEvaluator.cpp
+        xml/XPathExpression.cpp
+        xml/XPathExpressionNode.cpp
+        xml/XPathFunctions.cpp
+        xml/XPathNamespace.cpp
+        xml/XPathNodeSet.cpp
+        xml/XPathNSResolver.cpp
+        xml/XPathParser.cpp
+        xml/XPathPath.cpp
+        xml/XPathPredicate.cpp
+        xml/XPathResult.cpp
+        xml/XPathStep.cpp
+        xml/XPathUtil.cpp
+        xml/XPathValue.cpp
+        xml/XPathVariableReference.cpp
+    )
+ENDIF (WEBKIT_ENABLE_XPATH)
 
 IF (WEBKIT_ENABLE_XSLT)
     LIST (APPEND XML_SRC
@@ -30,6 +36,3 @@ IF (WEBKIT_ENABLE_XSLT)
     )
 ENDIF (WEBKIT_ENABLE_XSLT)
 
-LIST (APPEND XML_SRC
-    xml/XMLHttpRequest.cpp
-)

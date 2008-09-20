@@ -1,6 +1,13 @@
 2008-09-20  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.
+        Set XPath support as optional.
+
+        * xml/CMakeLists.txt:
+
+2008-09-20  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
         Fix build when XSLT is enabled.
 
         * CMakeLists.txt:

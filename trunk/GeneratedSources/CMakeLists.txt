@@ -10,13 +10,16 @@ ADD_DEFINITIONS (-include ${CMAKE_SOURCE_DIR}/BAL/Base/config.h)
 
 SET (FEATURE_DEFINES_JAVASCRIPT LANGUAGE_JAVASCRIPT)
 
-SET (IDL_BINDINGS_XPATH
-    xml/XPathExpression.idl
-    xml/XPathNSResolver.idl
-    xml/XPathEvaluator.idl
-    xml/XPathResult.idl
-)
-SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} ENABLE_XPATH)
+IF (WEBKIT_ENABLE_XPATH)
+    SET (IDL_BINDINGS_XPATH
+        xml/XPathException.idl
+        xml/XPathExpression.idl
+        xml/XPathNSResolver.idl
+        xml/XPathEvaluator.idl
+        xml/XPathResult.idl
+    )
+    SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} ENABLE_XPATH)
+ENDIF (WEBKIT_ENABLE_XPATH)
 
 IF (WEBKIT_ENABLE_XSLT)
     SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} ENABLE_XSLT)
@@ -205,7 +208,6 @@ SET (IDL_BINDINGS
 	xml/XMLHttpRequestProgressEvent.idl
     xml/XMLHttpRequestUpload.idl
     xml/XMLSerializer.idl
-    xml/XPathException.idl
 )
 
 IF (WEBKIT_ENABLE_XSLT)
@@ -530,17 +532,19 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/UserAge
     DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/html4.css ${CMAKE_SOURCE_DIR}/WebCore/css/quirks.css ${CMAKE_SOURCE_DIR}/WebCore/css/svg.css
 )
 
-ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND ${BISON_EXECUTABLE} -d -p xpathyy ${CMAKE_SOURCE_DIR}/WebCore/xml/XPathGrammar.y -o XPathGrammar.tab.c
-    COMMAND echo '\#ifndef XPATHGRAMMAR_H' > XPathGrammar.h
-    COMMAND echo '\#define XPATHGRAMMAR_H' >> XPathGrammar.h
-    COMMAND mv XPathGrammar.tab.c ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp
-    COMMAND cat XPathGrammar.h XPathGrammar.tab.h > ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
-    COMMAND echo '\#endif' >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
-    COMMAND rm -f XPathGrammar.h
-    DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/xml/XPathGrammar.y
-)
+IF (WEBKIT_ENABLE_XPATH)
+    ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMAND ${BISON_EXECUTABLE} -d -p xpathyy ${CMAKE_SOURCE_DIR}/WebCore/xml/XPathGrammar.y -o XPathGrammar.tab.c
+        COMMAND echo '\#ifndef XPATHGRAMMAR_H' > XPathGrammar.h
+        COMMAND echo '\#define XPATHGRAMMAR_H' >> XPathGrammar.h
+        COMMAND mv XPathGrammar.tab.c ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp
+        COMMAND cat XPathGrammar.h XPathGrammar.tab.h > ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
+        COMMAND echo '\#endif' >> ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
+        COMMAND rm -f XPathGrammar.h
+        DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/xml/XPathGrammar.y
+    )
+ENDIF (WEBKIT_ENABLE_XPATH)
 
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/DocTypeStrings.cpp
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -711,9 +715,13 @@ LIST (APPEND GENERATED_SRC
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSPropertyNames.h
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/DocTypeStrings.cpp
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XLinkNames.cpp
-    ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
-    ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp
 )
+IF (WEBKIT_ENABLE_XPATH)
+    LIST (APPEND GENERATED_SRC
+        ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.h
+        ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XPathGrammar.cpp
+    )
+ENDIF (WEBKIT_ENABLE_XPATH)
 IF (WEBKIT_USE_SVG)
     LIST (APPEND GENERATED_SRC
         ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/JSSVGElementWrapperFactory.cpp
