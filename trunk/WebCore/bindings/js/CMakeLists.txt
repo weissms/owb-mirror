@@ -10,7 +10,6 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSClipboardCustom.cpp
     bindings/js/JSConsoleCustom.cpp
     bindings/js/JSCustomVoidCallback.cpp
-    bindings/js/JSCustomXPathNSResolver.cpp
     bindings/js/JSDocumentCustom.cpp
     bindings/js/JSDocumentFragmentCustom.cpp
 #    bindings/js/JSDOMApplicationCacheCustom.cpp
@@ -65,12 +64,24 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSXMLHttpRequestConstructor.cpp
     bindings/js/JSXMLHttpRequestCustom.cpp
     bindings/js/JSXMLHttpRequestUploadCustom.cpp
-    bindings/js/JSXSLTProcessorConstructor.cpp
-    bindings/js/JSXSLTProcessorCustom.cpp
     bindings/js/PausedTimeouts.cpp
     bindings/js/ScheduledAction.cpp
     bindings/js/ScriptController.cpp
 )
+
+IF (WEBKIT_ENABLE_XPATH)
+    LIST (APPEND BINDINGS_JS_SRC
+        bindings/js/JSCustomXPathNSResolver.cpp
+    )
+ENDIF (WEBKIT_ENABLE_XPATH)
+
+IF (WEBKIT_ENABLE_XSLT)
+    LIST (APPEND BINDINGS_JS_SRC
+        bindings/js/JSXSLTProcessorConstructor.cpp
+        bindings/js/JSXSLTProcessorCustom.cpp
+    )
+ENDIF (WEBKIT_ENABLE_XSLT)
+
 IF (WEBKIT_USE_DATABASE)
     LIST (APPEND BINDINGS_JS_SRC
         bindings/js/JSCustomSQLStatementCallback.cpp

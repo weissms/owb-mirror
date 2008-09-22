@@ -1,3 +1,10 @@
+2008-09-22  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Jean-Charles VERDIE.
+        Do not compile some bindings/js when XPath or XSLT is disabled.
+
+        * bindings/js/CMakeLists.txt:
+
 2008-09-20  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.
