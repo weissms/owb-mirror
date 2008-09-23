@@ -432,25 +432,7 @@ bool JSObject::getPropertyAttributes(ExecState* exec, const Identifier& property
 
 void JSObject::getPropertyNames(ExecState* exec, PropertyNameArray& propertyNames)
 {
-    m_structureID->getEnumerablePropertyNames(propertyNames);
-
-    // Add properties from the static hashtables of properties
-    for (const ClassInfo* info = classInfo(); info; info = info->parentClass) {
-        const HashTable* table = info->propHashTable(exec);
-        if (!table)
-            continue;
-        table->initializeIfNeeded(exec);
-        ASSERT(table->table);
-        int hashSizeMask = table->hashSizeMask;
-        const HashEntry* entry = table->table;
-        for (int i = 0; i <= hashSizeMask; ++i, ++entry) {
-            if (entry->key && !(entry->attributes & DontEnum))
-                propertyNames.add(entry->key);
-        }
-    }
-
-    if (prototype()->isObject())
-        static_cast<JSObject*>(prototype())->getPropertyNames(exec, propertyNames);
+    m_structureID->getEnumerablePropertyNames(exec, propertyNames, this);
 }
 
 bool JSObject::toBoolean(ExecState*) const
@@ -517,7 +499,7 @@ NEVER_INLINE void JSObject::fillGetterPropertySlot(PropertySlot& slot, JSValue**
 
 StructureID* JSObject::createInheritorID()
 {
-    m_inheritorID = StructureID::create(this);
+    m_inheritorID = JSObject::createStructureID(this);
     return m_inheritorID.get();
 }
 
@@ -530,12 +512,12 @@ void JSObject::allocatePropertyStorage(size_t oldSize, size_t newSize)
         m_propertyStorage[i] = oldPropertStorage[i];
 
     if (oldPropertStorage != m_inlineStorage)
-        delete oldPropertStorage;
+        delete [] oldPropertStorage;
 }
 
 JSObject* constructEmptyObject(ExecState* exec)
 {
-    return new (exec) JSObject(exec->lexicalGlobalObject()->objectPrototype());
+    return new (exec) JSObject(exec->lexicalGlobalObject()->emptyObjectStructure());
 }
 
 } // namespace JSC

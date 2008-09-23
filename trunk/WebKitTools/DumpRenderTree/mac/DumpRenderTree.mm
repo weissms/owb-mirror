@@ -654,6 +654,9 @@ static void convertMIMEType(NSMutableString *mimeType)
     if ([mimeType isEqualToString:@"text/xml"])
         [mimeType setString:@"application/xml"];
 #endif
+    // Workaround for <rdar://problem/6234318> with Dashcode 2.0
+    if ([mimeType isEqualToString:@"application/x-javascript"])
+        [mimeType setString:@"text/javascript"];
 }
 
 static void convertWebResourceDataToString(NSMutableDictionary *resource)

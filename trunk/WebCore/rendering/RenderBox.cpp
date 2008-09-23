@@ -809,6 +809,7 @@ void RenderBox::paintFillLayerExtended(const PaintInfo& paintInfo, const Color& 
         } else
             isTransparent = view()->frameView()->isTransparent();
 
+        // FIXME: This needs to be dynamic.  We should be able to go back to blitting if we ever stop being transparent.
         if (isTransparent)
             view()->frameView()->setUseSlowRepaints(); // The parent must show behind the child.
     }
@@ -1684,6 +1685,15 @@ int RenderBox::availableHeightUsing(const Length& h) const
 
     if (h.isPercent())
        return calcContentBoxHeight(h.calcValue(containingBlock()->availableHeight()));
+
+    if (isRenderBlock() && isPositioned() && style()->height().isAuto() && !(style()->top().isAuto() || style()->bottom().isAuto())) {
+        RenderBlock* block = const_cast<RenderBlock*>(static_cast<const RenderBlock*>(this));
+        int oldHeight = block->height();
+        block->calcHeight();
+        int newHeight = block->calcContentBoxHeight(block->contentHeight());
+        block->setHeight(oldHeight);
+        return calcContentBoxHeight(newHeight);
+    }
 
     return containingBlock()->availableHeight();
 }

@@ -22,6 +22,8 @@
 #include "Chrome.h"
 
 #include "ChromeClient.h"
+#include "DNS.h"
+#include "Document.h"
 #include "FloatRect.h"
 #include "Frame.h"
 #include "FrameTree.h"
@@ -29,6 +31,7 @@
 #include "HTMLInputElement.h"
 #include "HTMLNames.h"
 #include "HitTestResult.h"
+#include "InspectorController.h"
 #include "Page.h"
 #include "PageGroup.h"
 #include "PausedTimeouts.h"
@@ -308,7 +311,15 @@ void Chrome::updateBackingStore()
 
 void Chrome::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)
 {
+    if (result.innerNode()) {
+        Document* document = result.innerNode()->document();
+        if (document && document->isDNSPrefetchEnabled())
+            prefetchDNS(result.absoluteLinkURL().host());
+    }
     m_client->mouseDidMoveOverElement(result, modifierFlags);
+
+    if (InspectorController* inspector = m_page->inspectorController())
+        inspector->mouseDidMoveOverElement(result, modifierFlags);
 }
 
 void Chrome::setToolTip(const HitTestResult& result)

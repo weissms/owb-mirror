@@ -56,6 +56,16 @@ namespace WTF {
     template<typename T>     struct VectorDestructor<false, T>
     
 
+
+    /**
+     *  __attribute__ description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        typedef char __attribute__((__may_alias__)) AlignedBufferChar;
+
     /**
      *  destruct description
      * @param[in] : description
@@ -548,6 +558,16 @@ namespace WTF {
 
         typedef T* iterator;
         typedef const T* const_iterator;
+
+
+    /**
+     *  WTF_ALIGN_OF description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        AlignedBuffer<m_inlineBufferSize, WTF_ALIGN_OF(T)> m_inlineBuffer;
 
     /**
      *  Vector description
@@ -1313,4 +1333,4 @@ namespace WTF {
 
 using WTF::Vector;
 
-#endif // WTF_Vector_
+#endif // WTF_Vecto

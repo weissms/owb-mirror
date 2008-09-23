@@ -24,40 +24,35 @@
 #ifndef Arguments_h
 #define Arguments_h
 
-#include "IndexToNameMap.h"
 #include "JSObject.h"
 
 namespace JSC {
 
     class JSActivation;
+    class JSFunction;
+    class Register;
+
+    struct ArgumentsData;
 
     class Arguments : public JSObject {
     public:
-        Arguments(ExecState*, JSFunction*, const ArgList&, JSActivation*);
+        Arguments(ExecState*, JSFunction*, JSActivation*, int firstArgumentIndex, Register* argv, int argc);
+        virtual ~Arguments();
+
+        static const ClassInfo info;
 
         virtual void mark();
 
-        virtual bool getOwnPropertySlot(ExecState*, const Identifier&, PropertySlot&);
+    private:
+        virtual bool getOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
+        virtual bool getOwnPropertySlot(ExecState*, unsigned propertyName, PropertySlot&);
         virtual void put(ExecState*, const Identifier& propertyName, JSValue*, PutPropertySlot&);
+        virtual void put(ExecState*, unsigned propertyName, JSValue*, PutPropertySlot&);
         virtual bool deleteProperty(ExecState*, const Identifier& propertyName);
+        virtual bool deleteProperty(ExecState*, unsigned propertyName);
 
         virtual const ClassInfo* classInfo() const { return &info; }
-        static const ClassInfo info;
 
-    private:
-        static JSValue* mappedIndexGetter(ExecState*, const Identifier&, const PropertySlot& slot);
-
-        struct ArgumentsData {
-            ArgumentsData(JSActivation* activation_, JSFunction* function_, const ArgList& args_)
-                : activation(activation_)
-                , indexToNameMap(function_, args_)
-            {
-            }
-
-            JSActivation* activation;
-            mutable IndexToNameMap indexToNameMap;
-        };
-        
         OwnPtr<ArgumentsData> d;
     };
 

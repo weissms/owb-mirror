@@ -1,3 +1,1050 @@
+2008-09-23  David Hyatt  <hyatt@apple.com>
+
+        Rename FrameView's repaintRectangle method to repaintContentRectangle.  Make
+        both it and ScrollView's updateContents method be off-limits to everyone in
+        WebCore except for RenderView.
+
+        Make repaintViewRectangle the only possible method for WebCore code to do
+        an invalidation.  This ensures that all invalidates triggered by WebCore
+        cross-platform code that cross ownerElement() boundaries are transform-aware.
+
+        Make sure that iframes/frames contained inside objects that have transforms
+        or reflections are not allowed to blit (this was already true for transparency).
+
+        It is not possible to make a test for any of this, since iframe scrolling
+        still doesn't work on Mac (since the invalidates are not being done
+        through WebCore's cross-platform invalidation code but are instead going
+        through NSScrollView's setNeedsDisplay still).
+
+        Reviewed by Oliver Hunt
+
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::recomputeCaretRect):
+        (WebCore::SelectionController::invalidateCaretRect):
+        (WebCore::SelectionController::focusedOrActiveStateChanged):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::repaintContentRectangle):
+        (WebCore::FrameView::endDeferredRepaints):
+        * page/FrameView.h:
+        * platform/ScrollView.h:
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::paintFillLayerExtended):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::enclosingPositionedAncestor):
+        (WebCore::RenderLayer::requiresSlowRepaints):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::hasTransform):
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::paintBoxDecorations):
+        (WebCore::RenderView::repaintViewRectangle):
+        (WebCore::RenderView::setSelection):
+
+2008-09-21  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Darin.
+
+        - introduce a TypeInfo class, for holding per-type (in the C++ class sense) date in StructureID
+        https://bugs.webkit.org/show_bug.cgi?id=20981
+        
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::JSAudioConstructor::JSAudioConstructor):
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclaration::nameGetter):
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::createDOMStructure):
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::getDOMStructure):
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::JSDOMWindowShell):
+        (WebCore::JSDOMWindowShell::setWindow):
+        * bindings/js/JSEventTargetNode.cpp:
+        (WebCore::JSEventTargetNode::createPrototype):
+        * bindings/js/JSHTMLOptionElementConstructor.cpp:
+        (WebCore::JSHTMLOptionElementConstructor::JSHTMLOptionElementConstructor):
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::JSImageConstructor::JSImageConstructor):
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        (WebCore::JSXMLHttpRequestConstructor::JSXMLHttpRequestConstructor):
+        * bindings/js/JSXSLTProcessorConstructor.cpp:
+        (WebCore::JSXSLTProcessorConstructor::JSXSLTProcessorConstructor):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - fix problem Maciej noticed where every JSNamedNodesCollection
+          gets its own StructureID
+
+        * bindings/js/JSNamedNodesCollection.cpp:
+        (WebCore::JSNamedNodesCollection::JSNamedNodesCollection): Use
+        getDOMStructure to get the structure.
+        * bindings/js/JSNamedNodesCollection.h:
+        (WebCore::JSNamedNodesCollection::createPrototype): Return the
+        object prototype.
+
+2008-09-20  David Hyatt  <hyatt@apple.com>
+
+        Make sure transformed scrollbars in overflow sections position
+        properly.  This patch mimics the same behavior that works for
+        iframes, namely making sure that the same code that dynamically
+        adjusts iframe widget positions at paint time for fixed positioning
+        and transforms also applies to scrollbars.  (This is as simple as passing
+        in the current translation factor at paint time rather than crawling
+        up the layer tree to compute a "false" absolute position.)
+
+        An existing transform test covers this (although only a pixel result
+        reveals the correct rendering).
+
+        Reviewed by Darin Adler
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateLayerPositions):
+        (WebCore::RenderLayer::positionOverflowControls):
+        (WebCore::RenderLayer::paintOverflowControls):
+        (WebCore::RenderLayer::paintLayer):
+        * rendering/RenderLayer.h:
+
+2008-09-21  Steve Falkenburg  <sfalken@apple.com>
+
+        Removed unnecessary nested timer check.
+        
+        Rubber-stamped by Dan Bernstein.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::TimerWindowWndProc):
+
+2008-09-21  Steve Falkenburg  <sfalken@apple.com>
+
+        Improve timer resolution on WinXP.
+        https://bugs.webkit.org/show_bug.cgi?id=20979
+        
+        Removed last-chance timer. It should not be necessary.
+        Change timeEndPeriod timer to fire in 300ms instead of 20ms. Calling timeBeginPeriod/timeEndPeriod too often throws off accuracy.
+        Remove Vista checks. We now run the same code on both XP and Vista.
+        
+        Call through to JSC::getCurrentUTCTimeWithMicroseconds from WebCore::currentTime.
+        The code previously called GetSystemTimeAsFileTime, which is always low-resolution on XP, even within timeBeginPeriod(1).
+        
+        Reviewed by Maciej Stachowiak.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::):
+        (WebCore::TimerWindowWndProc):
+        (WebCore::setSharedTimerFireTime):
+        * platform/win/SystemTimeWin.cpp:
+        (WebCore::currentTime):
+
+2008-09-21  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by eseidel.  Landed by eseidel.
+
+        All platforms use the DashArray in the GraphicsContext.
+
+        * svg/graphics/SVGPaintServer.h:
+        * svg/graphics/cairo/SVGPaintServerGradientCairo.cpp:
+        (WebCore::SVGPaintServerGradient::setup):
+        * svg/graphics/cairo/SVGPaintServerPatternCairo.cpp:
+        (WebCore::SVGPaintServerPattern::setup):
+        * svg/graphics/cairo/SVGPaintServerSolidCairo.cpp:
+        (WebCore::SVGPaintServerSolid::setup):
+        * svg/graphics/qt/SVGPaintServerGradientQt.cpp:
+        (WebCore::SVGPaintServerGradient::setup):
+        * svg/graphics/qt/SVGPaintServerQt.cpp:
+        * svg/graphics/qt/SVGPaintServerSolidQt.cpp:
+        (WebCore::SVGPaintServerSolid::setup):
+
+2008-09-21  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by eseidel.  Landed by eseidel.
+
+        Moved DashArray to GraphicsContext.
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/DashArray.h: Added.
+        * platform/graphics/GraphicsContext.h:
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::setLineDash):
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::setLineDash):
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::setLineDash):
+        * svg/graphics/SVGPaintServer.cpp:
+        (WebCore::applyStrokeStyleToContext):
+        * svg/graphics/SVGPaintServer.h:
+        * svg/graphics/cg/CgSupport.cpp:
+        * svg/graphics/cg/CgSupport.h:
+
+2008-09-21  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix linker warnings
+
+        * WebCore.base.exp:
+
+2008-09-20  Darin Adler  <darin@apple.com>
+
+        - another try at fixing Qt
+
+        * bridge/qt/qt_runtime.cpp: "using namespce WebCore"
+
+2008-09-20  Darin Adler  <darin@apple.com>
+
+        - blind attempt to fix Qt build
+
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::convertQVariantToValue): Use regExpStructure instead
+        of regExpPrototype to make a RegExpObject. There should really be
+        some sort of public helper function for this. Same thing for
+        DateInstance and dateStructure. For JSObject, use constructEmptyObject.
+        (JSC::Bindings::):
+        (JSC::Bindings::QtRuntimeMethod::QtRuntimeMethod): Use getDOMStructure.
+        It is not correct to do this inside the constructor because it could
+        cause a garbage collect while the QtRuntimeMethod object is half-
+        allocated, which could lead to a crash; note that RuntimeMethod,
+        QtRuntimeObjectImp, and RuntimeObjectImp have the same bug.
+        * bridge/qt/qt_runtime.h: Add s_info and createPrototype.
+
+2008-09-20  Collin Jackson  <collinj@webkit.org>
+
+        Prefetch DNS for hyperlinks that the user mouses over.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20931
+
+        Reviewed by Sam Weinig.
+
+        * page/Chrome.cpp:
+        (WebCore::Chrome::mouseDidMoveOverElement):
+
+2008-09-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - finish https://bugs.webkit.org/show_bug.cgi?id=20858
+          make each distinct C++ class get a distinct JSC::Structure
+
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclaration::nameGetter): Pass in a structure
+        ID. Note that this makes a new structure every time -- we could
+        optimize this slightly be caching and reusing a single one.
+
+        * bridge/runtime_method.cpp:
+        (JSC::RuntimeMethod::RuntimeMethod): Create a unique structure using
+        getDOMStructure.
+        * bridge/runtime_method.h:
+        (JSC::RuntimeMethod::createPrototype): Added createPrototype so
+        getDOMStructure will work.
+
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::JSDOMWindowShell): Initialize m_window to
+        0; needed in case garbage collection happens while creating the
+        JSDOMWindow.
+
+2008-09-20  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=20950
+          <rdar://problem/6234059> Reproducible assertion failure running svg/custom/acid3-test-77.html multiple times under guard malloc
+
+        * svg/SVGTextContentElement.cpp:
+        (WebCore::SVGInlineTextBoxQueryWalker::chunkPortionCallback): Changed to
+        not include the first character in the extraCharsAvailable count.
+
+2008-09-20  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix memory leak.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20505
+
+        * platform/wx/wxcode/mac/carbon/fontprops.cpp:
+        (GetTextExtent):
+
+2008-09-20  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes. Added/removed build sources, and nativeWindow->platformWidget updates.
+
+        * WebCoreSources.bkl:
+        * platform/ScrollView.h:
+        * platform/wx/PopupMenuWx.cpp:
+        (WebCore::PopupMenu::show):
+        * platform/wx/RenderThemeWx.cpp:
+        (WebCore::RenderThemeWx::paintButton):
+        (WebCore::RenderThemeWx::paintTextField):
+        (WebCore::RenderThemeWx::paintMenuList):
+        (WebCore::RenderThemeWx::paintMenuListButton):
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::setPlatformWidget):
+        (WebCore::ScrollView::updateContents):
+        (WebCore::ScrollView::update):
+        (WebCore::ScrollView::visibleWidth):
+        (WebCore::ScrollView::visibleHeight):
+        (WebCore::ScrollView::scrollBy):
+        (WebCore::ScrollView::resizeContents):
+        (WebCore::ScrollView::contentsWidth):
+        (WebCore::ScrollView::contentsHeight):
+        (WebCore::ScrollView::isScrollViewScrollbar):
+        (WebCore::ScrollView::adjustScrollbars):
+        (WebCore::ScrollView::inWindow):
+        (WebCore::ScrollView::removeChild):
+        * platform/wx/WidgetWx.cpp:
+        * plugins/wx/PluginViewWx.cpp:
+        (WebCore::PluginView::setParentVisible):
+        (WebCore::PluginView::updatePluginWidget):
+
+2008-09-20  Timothy Hatcher  <timothy@apple.com>
+
+        Fix the new Node Search button image to not be blurry.
+
+        * page/inspector/Images/nodeSearchButtons.png:
+
+2008-09-20  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Tim Hatcher.
+
+        Cut down some of the inspector javascript -> InspectorController glue code
+        with two new macros. Also rearrange the exposed function list to be grouped
+        by implementation and to all explicitly use the WebCore namespace.
+
+        * page/InspectorController.cpp:
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+
+2008-09-20  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Tim Hatcher.
+
+        Fix regression from my previous patch where the breadcrumbs bar was not displayed.
+
+        * page/inspector/inspector.css:
+
+2008-09-20  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric.
+
+        Refactor HTMLImageLoader/SVGImageLoader code.
+        Move html/HTMLImageLoader.* to loader/ImageLoader.*
+
+        Let HTMLImageLoader & SVGImageLoader inherit from the new base class.
+        SVGImageLoader used to inherit from HTMLImageLoader which is awkward.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * dom/Document.cpp:
+        (WebCore::Document::dispatchImageLoadEventSoon):
+        (WebCore::Document::removeImage):
+        (WebCore::Document::dispatchImageLoadEventsNow):
+        * dom/Document.h:
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::HTMLImageLoader):
+        (WebCore::HTMLImageLoader::~HTMLImageLoader):
+        (WebCore::HTMLImageLoader::sourceURI):
+        (WebCore::HTMLImageLoader::notifyFinished):
+        * html/HTMLImageLoader.h:
+        * loader/DocLoader.h:
+        * loader/ImageLoader.cpp: Copied from html/HTMLImageLoader.cpp.
+        (WebCore::ImageLoader::ImageLoader):
+        (WebCore::ImageLoader::~ImageLoader):
+        (WebCore::ImageLoader::setImage):
+        (WebCore::ImageLoader::setLoadingImage):
+        (WebCore::ImageLoader::updateFromElement):
+        (WebCore::ImageLoader::notifyFinished):
+        * loader/ImageLoader.h: Copied from html/HTMLImageLoader.h.
+        * svg/SVGImageElement.cpp:
+        (WebCore::SVGImageElement::attach):
+        (WebCore::SVGImageElement::insertedIntoDocument):
+        (WebCore::SVGImageElement::imageSourceAttributeName):
+        * svg/SVGImageElement.h:
+        * svg/SVGImageLoader.cpp:
+        (WebCore::SVGImageLoader::SVGImageLoader):
+        (WebCore::SVGImageLoader::dispatchLoadEvent):
+        (WebCore::SVGImageLoader::sourceURI):
+        * svg/SVGImageLoader.h:
+
+2008-09-20  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix.
+
+        [qtwebkit] ScrollBar build fix after r36684.
+        BackButtonPart was split into Start and End Part
+        ForwardButtonPart was split into Start and End Part
+
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::scPart):
+        (WebCore::scrollbarPart):
+        (WebCore::styleOptionSlider):
+
+2008-09-20  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix.
+
+        [qtwebkit] Make qt_instance.cpp compile.
+        Revision of 36675 introduced getDOMStructure to give unique
+        structure id's to C++ classes. Catch up. RuntimeObjectImp assigns
+        the the StructureID inside the c'tor, do the same in QtRuntimeObjectImp
+
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtInstance::getRuntimeObject):
+
+2008-09-20  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        [svg] Change SVGLocatable to deal with a plain SVGElement
+        There is no requirement in the code that we have to have a
+        SVGStyledElement. Remove that artificial limitation and compile
+        with SVGElement.
+
+        * svg/SVGLocatable.cpp:
+        * svg/SVGLocatable.h:
+
+2008-09-20  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        [svg] Use OwnPtr for the SVGExtensions to avoid custom lifetime
+        management.
+
+        * dom/Document.cpp:
+        (WebCore::Document::~Document):
+        (WebCore::Document::svgExtensions):
+        (WebCore::Document::accessSVGExtensions):
+        * dom/Document.h:
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Fix for crash in updateTransitions.  Make sure to test for a style
+        being null when comparing two RenderStyles.
+
+        Reviewed by Oliver Hunt
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::PropertyWrapperGetter::equals):
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=20954
+
+        Roll out r36628 since it has caused horrible regressions with
+        animated GIF CPU usage.
+
+        * platform/graphics/BitmapImage.cpp:
+        (WebCore::BitmapImage::cacheFrame):
+        (WebCore::BitmapImage::startAnimation):
+        * platform/graphics/BitmapImage.h:
+        (WebCore::FrameData::FrameData):
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::FrameData::clear):
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::FrameData::clear):
+        * platform/graphics/qt/ImageQt.cpp:
+        (WebCore::FrameData::clear):
+        * platform/graphics/wx/ImageWx.cpp:
+        (WebCore::FrameData::clear):
+
+2008-09-20  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Timothy Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20913
+        Avoid redudant includes
+
+        Document.h is included excessively such that a modification to Document.h (or
+        any of the header it includes itself) triggers a rebuild of many files
+        including the whole of SVG and a lot of the JS bindings.
+
+        Some of these includes can be avoided by only including Document.h where
+        necessary.
+
+        * bindings/js/JSAttrCustom.cpp:
+        * bindings/js/JSElementCustom.cpp:
+        * bindings/js/JSEventTargetBase.cpp:
+        * bindings/js/JSEventTargetBase.h:
+        * bindings/js/JSEventTargetNode.cpp:
+        * bindings/js/JSHTMLFrameElementCustom.cpp:
+        * bindings/js/JSHTMLIFrameElementCustom.cpp:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * css/CSSCursorImageValue.cpp:
+        * css/SVGCSSStyleSelector.cpp:
+        * dom/make_names.pl:
+        * svg/SVGAnimateElement.h:
+        * svg/SVGAnimatedProperty.h:
+        (WebCore::::baseValue):
+        (WebCore::::setBaseValue):
+        (WebCore::::startAnimation):
+        (WebCore::::stopAnimation):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::accessDocumentSVGExtensions):
+        * svg/SVGElement.h:
+        * svg/SVGElementInstance.cpp:
+        * svg/SVGFitToViewBox.cpp:
+        * svg/SVGFontElement.cpp:
+        * svg/SVGFontFaceElement.cpp:
+        * svg/SVGLinearGradientElement.cpp:
+        * svg/SVGMPathElement.cpp:
+        * svg/SVGViewSpec.cpp:
+
+2008-09-19  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Antti & Eric.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=20372
+
+        Finish HTMLScriptElement / SVGScriptElement unification.
+        SVG <script> support is complete now, full SVGLoad event
+        respecting the influence of the externalResourcesRequired attribute
+        as well as SVGError event support. All other features shared with HTML.
+
+        Tests: fast/dom/HTMLScriptElement/script-reexecution.html
+               svg/dom/SVGScriptElement/script-change-externalResourcesRequired-while-loading.svg
+               svg/dom/SVGScriptElement/script-load-and-error-events.svg
+               svg/dom/SVGScriptElement/script-reexecution.svg
+               svg/dom/SVGScriptElement/script-set-href.svg
+
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElementData::ScriptElementData):
+        (WebCore::ScriptElementData::requestScript):
+        * dom/ScriptElement.h:
+        (WebCore::ScriptElementData::haveFiredLoadEvent):
+        (WebCore::ScriptElementData::setHaveFiredLoadEvent):
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::notifyFinished):
+        * html/HTMLScriptElement.cpp:
+        (WebCore::HTMLScriptElement::dispatchLoadEvent):
+        * svg/SVGScriptElement.cpp:
+        (WebCore::SVGScriptElement::setCreatedByParser):
+        (WebCore::SVGScriptElement::parseMappedAttribute):
+        (WebCore::SVGScriptElement::svgAttributeChanged):
+        (WebCore::SVGScriptElement::insertedIntoDocument):
+        (WebCore::SVGScriptElement::removedFromDocument):
+        (WebCore::SVGScriptElement::childrenChanged):
+        (WebCore::SVGScriptElement::isURLAttribute):
+        (WebCore::SVGScriptElement::finishParsingChildren):
+        (WebCore::SVGScriptElement::type):
+        (WebCore::SVGScriptElement::setType):
+        (WebCore::SVGScriptElement::haveLoadedRequiredResources):
+        (WebCore::SVGScriptElement::dispatchLoadEvent):
+        (WebCore::SVGScriptElement::dispatchErrorEvent):
+        * svg/SVGScriptElement.h:
+
+2008-09-19  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=20951
+          Typo in Position::getInlineBoxAndOffset()
+          and add an assertion
+
+        Without the fix, the newly-added assertion fails in platform/mac/editing/input/caret-primary-bidi.html
+
+        * dom/Position.cpp:
+        (WebCore::Position::getInlineBoxAndOffset):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::positionForOffset):
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Add support for hit testing of all five possible scrollbar button placements. 
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::):
+        (WebCore::ScrollbarThemeMac::backButtonRect):
+        (WebCore::ScrollbarThemeMac::forwardButtonRect):
+        (WebCore::ScrollbarThemeMac::trackRect):
+        (WebCore::ScrollbarThemeMac::paintButton):
+
+2008-09-19  Darin Adler  <darin@apple.com>
+
+        - try to fix Qt build
+
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtRuntimeObjectImp::QtRuntimeObjectImp): Add structure argument.
+        (JSC::Bindings::QtInstance::getRuntimeObject): Ditto.
+        * bridge/runtime_object.cpp:
+        (JSC::RuntimeObjectImp::RuntimeObjectImp): Add an overload just for Qt.
+        * bridge/runtime_object.h: Ditto.
+
+2008-09-19  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Transition starts running when it shouldn't
+        https://bugs.webkit.org/show_bug.cgi?id=20892
+
+        When there is a transition and an animation on the
+        same element, make sure the animation wins.
+
+        The fix is to save the unanimated style when an animation is started.
+        Then, when starting a transition, check to see if there is a current
+        animation on the same prop. If so, use the unanimated style as the
+        fromStyle rather than the current style.
+
+        Test: animations/transition-and-animation-1.html
+
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateTransitions):
+        (WebCore::CompositeAnimation::updateKeyframeAnimations):
+        (WebCore::CompositeAnimation::animate):
+        (WebCore::CompositeAnimation::getAnimationForProperty):
+        * page/animation/CompositeAnimation.h:
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::reset):
+        * page/animation/ImplicitAnimation.h:
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::hasAnimationForProperty):
+        * page/animation/KeyframeAnimation.h:
+        (WebCore::KeyframeAnimation::KeyframeAnimation):
+        (WebCore::KeyframeAnimation::unanimatedStyle):
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Add support for painting/hit testing of four possible scrollbar buttons.
+        The Windows themes simply ignore the two parts that they will never
+        show.  The Mac theme also ignores the other two buttons for now.
+
+        The cross-platform base for all three themes, ScrollbarThemeComposite,
+        has all the proper support though.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::hitTest):
+        (WebCore::ScrollbarThemeComposite::invalidatePart):
+        * platform/ScrollbarThemeComposite.h:
+        * platform/mac/ScrollbarThemeMac.h:
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::ScrollbarThemeMac::backButtonRect):
+        (WebCore::ScrollbarThemeMac::forwardButtonRect):
+        (WebCore::ScrollbarThemeMac::paintButton):
+        * platform/win/ScrollbarThemeSafari.cpp:
+        (WebCore::ScrollbarThemeSafari::backButtonRect):
+        (WebCore::ScrollbarThemeSafari::forwardButtonRect):
+        (WebCore::ScrollbarThemeSafari::paintButton):
+        * platform/win/ScrollbarThemeSafari.h:
+        * platform/win/ScrollbarThemeWin.cpp:
+        (WebCore::ScrollbarThemeWin::backButtonRect):
+        (WebCore::ScrollbarThemeWin::forwardButtonRect):
+        (WebCore::ScrollbarThemeWin::paintButton):
+        * platform/win/ScrollbarThemeWin.h:
+
+2008-09-19  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Tim Hatcher.
+
+        Bug 17772: Inspector should support point-and-click to select a node to inspect
+        https://bugs.webkit.org/show_bug.cgi?id=17772
+        <rdar://problem/5792395>
+
+        * English.lproj/localizedStrings.js:
+        * page/Chrome.cpp:
+        (WebCore::Chrome::mouseDidMoveOverElement):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMousePressEvent):
+        * page/InspectorController.cpp:
+        (WebCore::toggleNodeSearch):
+        (WebCore::searchingForNode):
+        (WebCore::InspectorController::InspectorController):
+        (WebCore::InspectorController::toggleSearchForNodeInPage):
+        (WebCore::InspectorController::mouseDidMoveOverElement):
+        (WebCore::InspectorController::handleMousePressOnNode):
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+        * page/InspectorController.h:
+        (WebCore::InspectorController::searchingForNodeInPage):
+        * page/inspector/ElementsPanel.js:
+        * page/inspector/Images/nodeSearchButtons.png: Added.
+        * page/inspector/inspector.css:
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Add new scrollbar parts to be able to represent back and forward buttons
+        at either end of the scrollbar.  The current scrollbar still just draws
+        a single button at either end, but the parts now exist.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollTypes.h:
+        (WebCore::):
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::autoscrollTimerFired):
+        (WebCore::Scrollbar::pressedPartScrollDirection):
+        (WebCore::Scrollbar::pressedPartScrollGranularity):
+        (WebCore::Scrollbar::handleMouseMoveEvent):
+        * platform/ScrollbarTheme.h:
+        (WebCore::ScrollbarTheme::buttonsPlacement):
+        (WebCore::ScrollbarTheme::invalidateParts):
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        (WebCore::ScrollbarThemeComposite::hitTest):
+        (WebCore::ScrollbarThemeComposite::invalidatePart):
+        * platform/ScrollbarThemeComposite.h:
+
+2008-09-19  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Fix for <rdar://problem/6231308> crash in AutoTableLayout
+
+        The code assumes later on that a TableSection's grid's row vector 
+        will never be empty. So make 1 the minimum number of columns.
+
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::ensureRows):
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Add a new ScrollbarButtonsPlacement type for specifying where
+        the button arrows are in a scrollbar.
+
+        Read in the placement settings for Mac.  Nothing is done with the
+        setting yet.
+
+        Add a new buttonsPlacement() method to ScrollbarTheme composite
+        so that the arrow settings can be obtained.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollTypes.h:
+        (WebCore::):
+        * platform/ScrollbarThemeComposite.h:
+        (WebCore::ScrollbarThemeComposite::buttonsPlacement):
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::updateArrowPlacement):
+        (WebCore::ScrollbarThemeMac::ScrollbarThemeMac):
+
+2008-09-19  Steve Falkenburg  <sfalken@apple.com>
+
+        Roll out r36626. It is causing variance in SunSpider numbers on XP.
+        
+        Rubber stamped by Mark Rowe.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::isRunningOnVistaOrLater):
+        (WebCore::setSharedTimerFireTime):
+
+2008-09-19  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20942
+        Bug 20942: Repeated messages in resources don't collapse
+        - Now repeated messages in a resource's view are collapsed and a message
+        says how many were repeated.
+
+        * English.lproj/localizedStrings.js:
+        * manual-tests/inspector/multiple-console-messages.html:
+        * page/inspector/Console.js: Send all the messages to the resource's
+        view before possibly returning early if the message is a repeat.
+        * page/inspector/SourceFrame.js: Add the text about the message being
+        repeated, if it is, and increment it when necessary.
+
+2008-09-19  Chris Fleizach  <cfleizach@apple.com>
+
+        Removed unnecessary #if
+
+        * page/mac/AccessibilityObjectWrapper.mm:
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Read in prefs for the scroll delay repeat values for buttons.  Also
+        honor the option-click pref for jumping to the thumb when clicking in
+        the track.
+
+        Reviewed by Sam Weinig
+
+        * platform/mac/ScrollbarThemeMac.h:
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::ScrollbarThemeMac::ScrollbarThemeMac):
+        (WebCore::ScrollbarThemeMac::initialAutoscrollTimerDelay):
+        (WebCore::ScrollbarThemeMac::autoscrollTimerDelay):
+        (WebCore::ScrollbarThemeMac::shouldCenterOnThumb):
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Move ScrollbarThemeMac.cpp to ScrollbarThemeMac.mm so it can use Obj-C.
+        Set the initial button repeat delay to 0.5 for Mac.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/mac/ScrollbarThemeMac.cpp: Removed.
+        * platform/mac/ScrollbarThemeMac.h:
+        (WebCore::ScrollbarThemeMac::initialAutoscrollTimerDelay):
+        * platform/mac/ScrollbarThemeMac.mm: Copied from platform/mac/ScrollbarThemeMac.cpp.
+
+2008-09-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - part 2 of https://bugs.webkit.org/show_bug.cgi?id=20858
+          make each distinct C++ class get a distinct JSC::Structure
+
+          + Fixed all cases where we were using a shared structure for multiple
+            C++ classes in WebCore. This still has to be done in JavaScriptCore.
+
+          + Got rid of cacheGlobalObject.
+
+          + Improved use of PassRefPtr in bindings code.
+
+          + Removed a couple cases where we were potentially allocating prototypes
+            inside a JSObject's construction process -- this can lead to trouble if
+            we do a garbage collection while an object is only partly constructed.
+
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::JSAudioConstructor::JSAudioConstructor): Create a structure explicitly
+        so we don't implicitly share the structure with other objects that use the object
+        prototype.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::getCachedDOMConstructor): Added. To be used for constructors so we
+        don't need cacheGlobalObject any more.
+        (WebCore::cacheDOMConstructor): Ditto.
+
+        * bindings/js/JSDOMBinding.h: Removed DOMObject constructor that takes a prototype.
+        Added functions and a function template for getting cached DOM constructors.
+        Removed cacheGlobalObject function template.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::JSDOMWindowBase): Take a PassRefPtr<DOMWindow> since
+        we're taking ownership.
+        * bindings/js/JSDOMWindowBase.h: Changed constructor to take PassRefPtr, since
+        we're taking ownership. Added constructor map.
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::mark): Mark the constructors in the map.
+
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::JSDOMWindowShell): Take a PassRefPtr<DOMWindow> since
+        we're taking ownership. Use the new setWindow function to create the JSDOMWindow;
+        this is now done in only that one place.
+        (WebCore::JSDOMWindowShell::setWindow): Added. Creates the JSDOMWindow based on
+        the passed-in DOMWindow. Code was moved here and changed to allocate unique
+        structures for both the window prototype and the window.
+        * bindings/js/JSDOMWindowShell.h: Ditto.
+
+        * bindings/js/JSEventTargetBase.h: Changed class template argument so it doesn't
+        have the same name (JSEventTarget) as an actual class. Removed unhelpful use of
+        private/friend in JSEventTargetBase. Removed comments referring to defunct
+        macros. Changed JSEventTargetBasePrototype to get the prototype with the new
+        rather than its own copy of cacheGlobalObject (I missed this during pass 1).
+        Changed JSEventTargetBasePrototype so it doesn't have so many template arguments.
+
+        * bindings/js/JSEventTargetNode.cpp: Added s_info; needed for the new scheme
+        for caching structures and prototypes.
+        (WebCore::JSEventTargetNode::JSEventTargetNode): Use PassRefPtr.
+        (WebCore::JSEventTargetNode::createPrototype): Added.
+        * bindings/js/JSEventTargetNode.h: Updated for above changes.
+
+        * bindings/js/JSHTMLAllCollection.h:
+        (WebCore::JSHTMLAllCollection::JSHTMLAllCollection): Use PassRefPtr.
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        (WebCore::getNamedItems): Pass ExecState instead of prototype.
+        * bindings/js/JSHTMLFormElementCustom.cpp:
+        (WebCore::JSHTMLFormElement::nameGetter): Ditto.
+        * bindings/js/JSHTMLInputElementBase.cpp:
+        (WebCore::JSHTMLInputElementBase::JSHTMLInputElementBase): Use PassRefPtr.
+        * bindings/js/JSHTMLInputElementBase.h: Ditto.
+        * bindings/js/JSHTMLOptionElementConstructor.cpp:
+        (WebCore::JSHTMLOptionElementConstructor::JSHTMLOptionElementConstructor):
+        Create a unique structure instead of sharing.
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::JSImageConstructor::JSImageConstructor): Ditto.
+
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        (WebCore::JSInspectedObjectWrapper::wrap): Removed overload that takes
+        a prototype rather than a structure. Made the use of inheritorID() here
+        explicit.
+        * bindings/js/JSInspectedObjectWrapper.h: Ditto.
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        (WebCore::JSInspectorCallbackWrapper::wrap): Ditto.
+        * bindings/js/JSInspectorCallbackWrapper.h: Ditto.
+
+        * bindings/js/JSNamedNodesCollection.cpp:
+        (WebCore::JSNamedNodesCollection::JSNamedNodesCollection): Changed to
+        take an ExecState argument instead of a prototype. Create a unique
+        StructureID instead of sharing.
+        * bindings/js/JSNamedNodesCollection.h: Ditto.
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp: Removed overloaded
+        constructor that takes a prototype instead of a structure.
+        * bindings/js/JSQuarantinedObjectWrapper.h: Ditto.
+
+        * bindings/js/JSRGBColor.cpp:
+        (WebCore::JSRGBColor::JSRGBColor): Take ExecState instead of a
+        prototype; create a unique structure.
+        (WebCore::getJSRGBColor): Ditto.
+        * bindings/js/JSRGBColor.h: Ditto.
+
+        * bindings/js/JSSQLResultSetRowListCustom.cpp:
+        (WebCore::JSSQLResultSetRowList::item): Use constructEmptyObject instead
+        of explicit coding the idiom for making a new object.
+
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        (WebCore::JSXMLHttpRequestConstructor::JSXMLHttpRequestConstructor):
+        Create a unique structure instead of the shared one.
+        * bindings/js/JSXSLTProcessorConstructor.cpp:
+        (WebCore::JSXSLTProcessorConstructor::JSXSLTProcessorConstructor):
+        Ditto.
+
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::clearWindowShell): Let the window shell's
+        setWindow function create the JSDOMWindow instead of doing it here.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Changed to use PassRefPtr for
+        the structure and the wrapped object when creating wrappers.
+        Simplified some of the special cases for DOMWindow so they are
+        different only in ways the need to be. Eliminated the
+        JSDOMWindow::createPrototype and JSDOMWindowPrototype::self
+        functions. Moved responsibility for creating the structure and
+        parent prototype out of the prototype constructor into the
+        createPrototype function. Removed the unused "DoNotCache" flag for
+        objects other than DOMWindow. Use getDOMConstructor instead of
+        cacheGlobalObject for constructors. Make each constructor have
+        a unique structure ID.
+
+        * bridge/objc/objc_runtime.h: Added createPrototype and changed the
+        name of the info member to s_info so we can use the standard DOM
+        binding macros to handl the prototype.
+        * bridge/objc/objc_runtime.mm: Fixed namespacing a bit.
+        (JSC::Bindings::ObjcFallbackObjectImp::ObjcFallbackObjectImp):
+        Create a unique structure using getDOMStructure.
+
+        * bridge/runtime_array.cpp: Fixed namespacing a bit.
+        (JSC::RuntimeArray::RuntimeArray): Create a unique structure using
+        getDOMStructure.
+        * bridge/runtime_array.h: Added createPrototype so getDOMStructure
+        will work.
+
+        * bridge/runtime_object.cpp:
+        (JSC::RuntimeObjectImp::RuntimeObjectImp): Create a unique structure using
+        getDOMStructure.
+        * bridge/runtime_object.h: Added createPrototype so getDOMStructure
+        will work.
+
+        * history/CachedPage.cpp:
+        (WebCore::CachedPage::restore): Let the window shell's
+        setWindow function create the JSDOMWindow instead of doing it here.
+
+        * page/DOMWindow.idl: Removed DoNotCache, which is no longer used.
+
+2008-09-19  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        This optimization was suggested by Daniel Fenwick
+
+        - speed up measuring text on the Core Text code path by not specifying a paragraph writing direction
+
+        Specifying LTR paragraph directionality when measuring runs of RTL text
+        resulted in typically two CTRuns being generated for every run instead
+        of one, due to the leading space being reordered to the left.
+
+        * platform/graphics/SimpleFontData.h: Removed the ltr parameter to
+        getCFStringAttributes() and changed m_CFStringAttributes from an array
+        to a single value.
+        * platform/graphics/mac/CoreTextController.cpp:
+        (WebCore::CoreTextController::CoreTextController): Added a
+        mayUseNaturalWritingDirection parameter.
+        (WebCore::CoreTextController::collectCoreTextRunsForCharacters): Changed
+        to force the bidi embedding level whenever 
+        m_mayUseNaturalWritingDirectrion is false. Since this is now a common
+        case, made the typesetter options dictionaries static.
+        * platform/graphics/mac/CoreTextController.h:
+        * platform/graphics/mac/FontMacCoreText.cpp:
+        (WebCore::Font::selectionRectForComplexText): Renamed a local variable.
+        (WebCore::Font::floatWidthForComplexText): Changed to allow the
+        CoreTextController to not set the writing direction.
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        (WebCore::SimpleFontData::getCFStringAttributes): Removed the ltr
+        parameter and the paragraph style attribute.
+
+2008-09-19  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Sam Weinig
+
+        https://bugs.webkit.org/show_bug.cgi?id=20941
+
+        Incorrect height calculation for replaced element inside nested
+        positioned elements (where the inner has a percentage height and
+        the outer implicitly has a fixed height because of explicit top/bottom
+        values).
+
+        Added fast/block/positioning/replaced-inside-top-bottom.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::availableHeightUsing):
+
+2008-09-19  Chris Fleizach  <cfleizach@apple.com>
+
+        Fix Tiger bustage
+
+        * page/mac/AccessibilityObjectWrapper.mm:
+
+2008-09-18  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6211041> Expose legend tag in accessibility
+
+        Exposes the legend tag as the titleUIElement of a fieldset
+
+        Test: accessibility/legend.html
+
+        * page/AccessibilityObject.h:
+        (WebCore::AccessibilityObject::isFieldset):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::isFieldset):
+        (WebCore::AccessibilityRenderObject::titleUIElement):
+        * page/AccessibilityRenderObject.h:
+        * rendering/RenderFieldset.h:
+
+2008-09-19  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6213171> WebKit should use new array-centric methods for AX performance
+
+        Implement a few AX API methods that will be called by AppKit, which will 
+        speed up access to accessibility objects
+
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityIndexOfChild:]):
+        (-[AccessibilityObjectWrapper accessibilityArrayAttributeCount:]):
+        (-[AccessibilityObjectWrapper accessibilityArrayAttributeValues:index:maxCount:]):
+
+2008-09-19  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        [qtwebkit] Set the m_should* flags to their proper value on entry
+        With plugins it was possible that we finished a job twice. This was
+        some kind of reentrancy in QNetworkReplyHandler::sendQueuedItems. By
+        setting the flag to (m_loadMode == LoadDeferred) they will always have
+        the right value and we will not send responses twice.
+
+        * platform/network/qt/QNetworkReplyHandler.cpp:
+
+2008-09-19  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Simon Hausmann.
+
+        [qtwebkit] Pass test 70 of acid3. Handle text decoding errors
+        Handle text decoding errors before instructing the parser to parse. We
+        have converted the text to QString and all encoding errors are gone and
+        the parser will not be able to detect them. So handle them before parsing.
+
+        * dom/XMLTokenizerQt.cpp:
+        (WebCore::XMLTokenizer::doWrite):
+
 2008-09-19  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Reviewed by Simon Hausmann.

@@ -28,7 +28,6 @@ LIST (APPEND JSCORE_SRC
     kjs/GetterSetter.cpp
     kjs/GlobalEvalFunction.cpp
     kjs/identifier.cpp
-    kjs/IndexToNameMap.cpp
     kjs/InitializeThreading.cpp
     kjs/InternalFunction.cpp
     kjs/interpreter.cpp

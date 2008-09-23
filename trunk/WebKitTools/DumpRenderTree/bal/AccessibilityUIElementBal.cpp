@@ -112,6 +112,12 @@ AccessibilityUIElement AccessibilityUIElement::getChildAtIndex(unsigned index)
     return a;
 }
 
+AccessibilityUIElement AccessibilityUIElement::titleUIElement()
+{
+    AccessibilityUIElement a(NULL);
+    return a;
+}
+
 JSStringRef AccessibilityUIElement::boundsForRange(unsigned location, unsigned length)
 {
     return JSStringRef();

@@ -29,15 +29,16 @@
 #include "identifier.h"
 #include "JSObject.h"
 #include "PropertyNameArray.h"
+#include "lookup.h"
 #include <wtf/RefPtr.h>
 
 using namespace std;
 
 namespace JSC {
 
-StructureID::StructureID(JSValue* prototype, JSType type)
-    : m_isDictionary(false)
-    , m_type(type)
+StructureID::StructureID(JSValue* prototype, const TypeInfo& typeInfo)
+    : m_typeInfo(typeInfo)
+    , m_isDictionary(false)
     , m_prototype(prototype)
     , m_cachedPrototypeChain(0)
     , m_previous(0)
@@ -48,18 +49,67 @@ StructureID::StructureID(JSValue* prototype, JSType type)
     ASSERT(m_prototype->isObject() || m_prototype->isNull());
 }
 
-void StructureID::getEnumerablePropertyNames(PropertyNameArray& propertyNames) const
+static bool structureIDChainsAreEqual(StructureIDChain* chainA, StructureIDChain* chainB)
 {
-    if (m_cachedPropertyNameArray.isEmpty())
-        m_propertyMap.getEnumerablePropertyNames(m_cachedPropertyNameArray);
+    if (!chainA || !chainB)
+        return false;
 
-    if (!propertyNames.size()) {
-        for (size_t i = 0; i < m_cachedPropertyNameArray.size(); ++i)
-            propertyNames.addKnownUnique(m_cachedPropertyNameArray[i]);
-    } else {
-        for (size_t i = 0; i < m_cachedPropertyNameArray.size(); ++i)
-            propertyNames.add(m_cachedPropertyNameArray[i]);
+    RefPtr<StructureID>* a = chainA->head();
+    RefPtr<StructureID>* b = chainB->head();
+    while (1) {
+        if (*a != *b)
+            return false;
+        if (!*a)
+            return true;
+        a++;
+        b++;
     }
+}
+
+void StructureID::getEnumerablePropertyNames(ExecState* exec, PropertyNameArray& propertyNames, JSObject* baseObject)
+{
+    bool shouldCache = !(propertyNames.size() || m_isDictionary);
+
+    if (shouldCache && m_cachedPropertyNameArrayData) {
+        if (structureIDChainsAreEqual(m_cachedPropertyNameArrayData->cachedPrototypeChain(), cachedPrototypeChain())) {
+            propertyNames.setData(m_cachedPropertyNameArrayData);
+            return;
+        }
+    }
+
+    m_propertyMap.getEnumerablePropertyNames(propertyNames);
+
+    // Add properties from the static hashtables of properties
+    for (const ClassInfo* info = baseObject->classInfo(); info; info = info->parentClass) {
+        const HashTable* table = info->propHashTable(exec);
+        if (!table)
+            continue;
+        table->initializeIfNeeded(exec);
+        ASSERT(table->table);
+        int hashSizeMask = table->hashSizeMask;
+        const HashEntry* entry = table->table;
+        for (int i = 0; i <= hashSizeMask; ++i, ++entry) {
+            if (entry->key && !(entry->attributes & DontEnum))
+                propertyNames.add(entry->key);
+        }
+    }
+
+    if (m_prototype->isObject())
+        static_cast<JSObject*>(m_prototype)->getPropertyNames(exec, propertyNames);
+
+    if (shouldCache) {
+        m_cachedPropertyNameArrayData = propertyNames.data();
+
+        StructureIDChain* chain = cachedPrototypeChain();
+        if (!chain)
+            chain = createCachedPrototypeChain();
+        m_cachedPropertyNameArrayData->setCachedPrototypeChain(chain);
+    }
+}
+
+void StructureID::clearEnumerationCache()
+{
+    m_cachedPropertyNameArrayData.clear();
 }
 
 void StructureID::transitionTo(StructureID* oldStructureID, StructureID* newStructureID, JSObject* slotBase)
@@ -71,7 +121,7 @@ void StructureID::transitionTo(StructureID* oldStructureID, StructureID* newStru
 PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structureID, const Identifier& propertyName, JSValue* value, unsigned attributes, JSObject* slotBase, PutPropertySlot& slot, PropertyStorage& propertyStorage)
 {
     ASSERT(!structureID->m_isDictionary);
-    ASSERT(structureID->m_type == ObjectType);
+    ASSERT(structureID->typeInfo().type() == ObjectType);
 
     if (StructureID* existingTransition = structureID->m_transitionTable.get(make_pair(propertyName.ustring().rep(), attributes))) {
         if (!slotBase->usingInlineStorage() && structureID->m_propertyMap.size() != existingTransition->m_propertyMap.size())
@@ -91,7 +141,7 @@ PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structur
         return transition.release();
     }
 
-    RefPtr<StructureID> transition = create(structureID->m_prototype);
+    RefPtr<StructureID> transition = create(structureID->m_prototype, structureID->typeInfo());
     transition->m_cachedPrototypeChain = structureID->m_cachedPrototypeChain;
     transition->m_previous = structureID;
     transition->m_nameInPrevious = propertyName.ustring().rep();
@@ -109,7 +159,7 @@ PassRefPtr<StructureID> StructureID::toDictionaryTransition(StructureID* structu
 {
     ASSERT(!structureID->m_isDictionary);
 
-    RefPtr<StructureID> transition = create(structureID->m_prototype);
+    RefPtr<StructureID> transition = create(structureID->m_prototype, structureID->typeInfo());
     transition->m_isDictionary = true;
     transition->m_propertyMap = structureID->m_propertyMap;
     return transition.release();
@@ -128,7 +178,7 @@ PassRefPtr<StructureID> StructureID::fromDictionaryTransition(StructureID* struc
 
 PassRefPtr<StructureID> StructureID::changePrototypeTransition(StructureID* structureID, JSValue* prototype)
 {
-    RefPtr<StructureID> transition = create(prototype);
+    RefPtr<StructureID> transition = create(prototype, structureID->typeInfo());
     transition->m_transitionCount = structureID->m_transitionCount + 1;
     transition->m_propertyMap = structureID->m_propertyMap;
     return transition.release();
@@ -136,7 +186,7 @@ PassRefPtr<StructureID> StructureID::changePrototypeTransition(StructureID* stru
 
 PassRefPtr<StructureID> StructureID::getterSetterTransition(StructureID* structureID)
 {
-    RefPtr<StructureID> transition = create(structureID->storedPrototype());
+    RefPtr<StructureID> transition = create(structureID->storedPrototype(), structureID->typeInfo());
     transition->m_transitionCount = structureID->m_transitionCount + 1;
     transition->m_propertyMap = structureID->m_propertyMap;
     return transition.release();
@@ -148,6 +198,20 @@ StructureID::~StructureID()
         ASSERT(m_previous->m_transitionTable.contains(make_pair(m_nameInPrevious, m_attributesInPrevious)));
         m_previous->m_transitionTable.remove(make_pair(m_nameInPrevious, m_attributesInPrevious));
     }
+}
+
+StructureIDChain* StructureID::createCachedPrototypeChain()
+{
+    ASSERT(typeInfo().type() == ObjectType);
+    ASSERT(!m_cachedPrototypeChain);
+
+    JSValue* prototype = storedPrototype();
+    if (JSImmediate::isImmediate(prototype))
+        return 0;
+
+    RefPtr<StructureIDChain> chain = StructureIDChain::create(static_cast<JSObject*>(prototype)->structureID());
+    setCachedPrototypeChain(chain.release());
+    return cachedPrototypeChain();
 }
 
 StructureIDChain::StructureIDChain(StructureID* structureID)

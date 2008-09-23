@@ -1,3 +1,23 @@
+2008-09-23  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Reviewed by Dan Bernstein.
+        
+        Fix memory leak.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20505
+
+        * WebView.cpp:
+        (wxWebView::OnPaint):
+
+2008-09-20  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes. Added/removed build sources, and nativeWindow->platformWidget updates.
+
+        * WebKitSupport/EditorClientWx.cpp:
+        (WebCore::EditorClientWx::isEditable):
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::transitionToCommittedForNewPage):
+
 2008-09-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
 
         Reviewed by Maciej Stachowiak.

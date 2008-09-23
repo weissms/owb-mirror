@@ -141,7 +141,7 @@ protected:
      * @code
      * @endcode
      */
-    virtual IntRect backButtonRect(Scrollbar*, bool painting = false) = 0;
+    virtual IntRect backButtonRect(Scrollbar*, ScrollbarPart, bool painting = false) = 0;
     /**
      * forwardButtonRect.
      * @param[in] : a pointer to the scrollbar.
@@ -150,7 +150,7 @@ protected:
      * @code
      * @endcode
      */
-    virtual IntRect forwardButtonRect(Scrollbar*, bool painting = false) = 0;
+    virtual IntRect forwardButtonRect(Scrollbar*, ScrollbarPart, bool painting = false) = 0;
     /**
      * trackRect.
      * @param[in] : a pointer to the scrollbar.
@@ -211,7 +211,7 @@ protected:
      * @code
      * @endcode
      */
-    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask) = 0;
+    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart) = 0;
     /**
      * Paint the thumb.
      * @param[in] : a pointer to the graphics context.

@@ -33,18 +33,24 @@ namespace WebCore {
 
 class ScrollbarThemeMac : public ScrollbarThemeComposite {
 public:
+    ScrollbarThemeMac();
     virtual ~ScrollbarThemeMac();
 
     virtual int scrollbarThickness(ScrollbarControlSize = RegularScrollbar);
     
     virtual bool supportsControlTints() const { return true; }
 
+    virtual double initialAutoscrollTimerDelay();
+    virtual double autoscrollTimerDelay();
+
+    virtual ScrollbarButtonsPlacement buttonsPlacement() const;
+
 protected:
     virtual bool hasButtons(Scrollbar*);
     virtual bool hasThumb(Scrollbar*);
 
-    virtual IntRect backButtonRect(Scrollbar*, bool painting = false);
-    virtual IntRect forwardButtonRect(Scrollbar*, bool painting = false);
+    virtual IntRect backButtonRect(Scrollbar*, ScrollbarPart, bool painting = false);
+    virtual IntRect forwardButtonRect(Scrollbar*, ScrollbarPart, bool painting = false);
     virtual IntRect trackRect(Scrollbar*, bool painting = false);
 
     virtual int minimumThumbLength(Scrollbar*);
@@ -52,7 +58,7 @@ protected:
     virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&);
 
     virtual void paintTrack(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask);
-    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask);
+    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart);
     virtual void paintThumb(GraphicsContext*, Scrollbar*, const IntRect&);
 };
 

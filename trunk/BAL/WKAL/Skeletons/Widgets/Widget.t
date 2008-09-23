@@ -66,7 +66,7 @@ namespace WKAL {
      * Widget w;
      * @endcode
      */
-        Widget();
+        Widget(PlatformWidget = 0);
 
     /**
      * Widget destructor
@@ -74,16 +74,87 @@ namespace WKAL {
      * delete w;
      * @endcode
      */
-        virtual ~Widget();
+        virtual ~Widget(PlatformWidget = 0);
+
 
     /**
-     * set enabled status
-     * @param[in] : status
+     *  platformWidget description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * w->setEnabled(true);
      * @endcode
      */
-        virtual void setEnabled(bool);
+    PlatformWidget platformWidget() const ;
+
+
+    /**
+     *  setPlatformWidget description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void setPlatformWidget(PlatformWidget widget);
+
+
+    /**
+     *  x description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int x() const ;
+
+
+    /**
+     *  y description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int y() const ;
+
+
+    /**
+     *  width description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int width() const ;
+
+
+    /**
+     *  height description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int height() const ;
+
+
+    /**
+     *  size description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    IntSize size() const ;
+
+
+    /**
+     *  pos description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    IntPoint pos() const 
 
     /**
      * get enabled status
@@ -92,16 +163,7 @@ namespace WKAL {
      * bool e = w->isEnabled();
      * @endcode
      */
-        virtual bool isEnabled() const;
-
-    /**
-     * get x value
-     * @param[out] : x value
-     * @code
-     * int x = w->x();
-     * @endcode
-     */
-        int x() const;
+        virtual bool isEnabled() const
 
     /**
      * get y value
@@ -112,14 +174,55 @@ namespace WKAL {
      */
         int y() const;
 
+
     /**
-     * get width value
-     * @param[out] : width value
+     *  boundsGeometry description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * int wi = w->width();
      * @endcode
      */
-        int width() const;
+    IntRect boundsGeometry() const ;
+
+
+    /**
+     *  resize description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void resize(int w, int h) ;
+
+
+    /**
+     *  resize description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void resize(const IntSize& s) ;
+
+
+    /**
+     *  move description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void move(int x, int y) ;
+
+
+    /**
+     *  move description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void move(const IntPoint& p) 
 
     /**
      * get height value
@@ -130,14 +233,15 @@ namespace WKAL {
      */
         int height() const;
 
+
     /**
-     * get size 
-     * @param[out] : size
+     *  invalidate description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * IntSize s = w->size();
      * @endcode
      */
-        IntSize size() const;
+    void invalidate() 
 
     /**
      * resize
@@ -147,16 +251,7 @@ namespace WKAL {
      * w->resize(w, h);
      * @endcode
      */
-        void resize(int, int);
-
-    /**
-     * resize
-     * @param[in] : size
-     * @code
-     * w->resize(s);
-     * @endcode
-     */
-        void resize(const IntSize&);
+        void resize(int, int)
 
     /**
      * get position
@@ -165,17 +260,7 @@ namespace WKAL {
      * IntPoint p = w->pos();
      * @endcode
      */
-        IntPoint pos() const;
-
-    /**
-     * move
-     * @param[in] : x value
-     * @param[in] : y value
-     * @code
-     * w->move(x, y);
-     * @endcode
-     */
-        void move(int, int);
+        IntPoint pos() const
 
     /**
      * move
@@ -184,17 +269,7 @@ namespace WKAL {
      * w->move(p);
      * @endcode
      */
-        void move(const IntPoint&);
-
-    /**
-     * paint
-     * @param[in] : graphics context
-     * @param[in] : rect
-     * @code
-     * w->paint(gc, r);
-     * @endcode
-     */
-        virtual void paint(GraphicsContext*, const IntRect&);
+        void move(const IntPoint&)
 
     /**
      * invalidate
@@ -202,16 +277,7 @@ namespace WKAL {
      * w->invalidate();
      * @endcode
      */
-        virtual void invalidate();
-
-    /**
-     * invalidate rect
-     * @param[in] : rect
-     * @code
-     * w->invalidateRect(r);
-     * @endcode
-     */
-        virtual void invalidateRect(const IntRect&);
+        virtual void invalidate()
 
     /**
      * set frame geometry
@@ -220,16 +286,7 @@ namespace WKAL {
      * w->setFrameGeometry(r);
      * @endcode
      */
-        virtual void setFrameGeometry(const IntRect&);
-
-    /**
-     * frame geometry
-     * @param[out] : rect
-     * @code
-     * IntRect r = w->frameGeometry();
-     * @endcode
-     */
-        virtual IntRect frameGeometry() const;
+        virtual void setFrameGeometry(const IntRect&)
 
     /**
      * set focus
@@ -239,14 +296,55 @@ namespace WKAL {
      */
         virtual void setFocus();
 
+
     /**
-     * set cursor
-     * @param[in] : cursor
+     *  isSelfVisible description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * w->setCursor(c);
      * @endcode
      */
-        void setCursor(const Cursor&);
+    bool isSelfVisible() const ;
+
+
+    /**
+     *  isParentVisible description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool isParentVisible() const ;
+
+
+    /**
+     *  isVisible description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool isVisible() const ;
+
+
+    /**
+     *  setParentVisible description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void setParentVisible(bool visible) ;
+
+
+    /**
+     *  setSelfVisible description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void setSelfVisible(bool v) 
 
     /**
      * get cursor
@@ -257,13 +355,15 @@ namespace WKAL {
      */
         Cursor cursor();
 
+
     /**
-     * show
+     *  isFrameView description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * w->show();
      * @endcode
      */
-        virtual void show();
+    virtual bool isFrameView() const 
 
     /**
      * hide
@@ -271,16 +371,7 @@ namespace WKAL {
      * w->hide();
      * @endcode
      */
-        virtual void hide();
-
-    /**
-     * set is selected
-     * @param[in] : status
-     * @code
-     * w->setIsSelected(true);
-     * @endcode
-     */
-        void setIsSelected(bool);
+        virtual void hide()
 
     /**
      * set client
@@ -291,14 +382,45 @@ namespace WKAL {
      */
         void setClient(WidgetClient*);
 
+
     /**
-     * get client
-     * @param[out] : Widget client
+     *  setParent description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * WidgetClient *wc = w->client();
      * @endcode
      */
-        WidgetClient* client() const;
+    virtual void setParent(ScrollView* view);
+
+
+    /**
+     *  parent description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    ScrollView* parent() const ;
+
+
+    /**
+     *  root description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    ScrollView* root() const;
+
+
+    /**
+     *  windowClipRect description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual IntRect windowClipRect() const 
 
     /**
      * test if the widget is a frameView
@@ -309,14 +431,25 @@ namespace WKAL {
      */
         virtual bool isFrameView() const;
 
+
     /**
-     * test if the widget is a pluginView
-     * @param[out] : true if the widget is a pluginView
+     *  containingWindow description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * bool pv = w->isPluginView();
      * @endcode
      */
-        virtual bool isPluginView() const ;
+    PlatformWindow containingWindow() const;
+
+
+    /**
+     *  setContainingWindow description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void setContainingWindow(PlatformWindow window) 
 
     /**
      * remove from parent
@@ -324,18 +457,7 @@ namespace WKAL {
      * w->removeFromParent();
      * @endcode
      */
-        virtual void removeFromParent();
-
-    /**
-     * This method is used by plugins on all platforms to obtain a clip rect that includes clips set by WebCore,
-     * e.g., in overflow:auto sections.  The clip rects coordinates are in the containing window's coordinate space.
-     * This clip includes any clips that the widget itself sets up for its children.
-     * @param[out] : rect
-     * @code
-     * IntRect r = w->windowClipRect();
-     * @endcode
-     */
-        virtual IntRect windowClipRect() const;
+        virtual void removeFromParent()
 
     /**
      * handle event
@@ -344,16 +466,7 @@ namespace WKAL {
      * w->handleEvent(e);
      * @endcode
      */
-        virtual void handleEvent(Event*) ;
-
-    /**
-     * set containing window
-     * @param[in] : platform widget
-     * @code
-     * w->setContainingWindow(pw);
-     * @endcode
-     */
-        void setContainingWindow(PlatformWidget);
+        virtual void handleEvent(Event*) 
 
     /**
      * get containing window 
@@ -363,6 +476,46 @@ namespace WKAL {
      * @endcode
      */
         PlatformWidget containingWindow() const;
+
+
+    /**
+     *  geometryChanged description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void geometryChanged() const ;
+
+
+    /**
+     *  init description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void init(PlatformWidget);
+
+
+    /**
+     *  releasePlatformWidget description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void releasePlatformWidget();
+
+
+    /**
+     *  retainPlatformWidget description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void retainPlatformWidget();
 
     /**
      * set parent
@@ -464,7 +617,7 @@ namespace WKAL {
      * get BalWidget
      * @param[out] : BalWidget
      * @code
-     * BalWidget *bw = w->balWidget();
+     * BalWidget *bw = w->balWidget(PlatformWidget = 0);
      * @endcode
      */
         BalWidget* balWidget() const;
@@ -482,11 +635,3 @@ protected:
     private:
         WidgetPrivate* data;
     };
-
-} // namespace WKAL
-
-#endif // Widget_h
-
-
-
-

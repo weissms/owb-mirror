@@ -1359,6 +1359,8 @@ webcore_sources += \
 	WebCore/loader/FrameLoaderTypes.h \
 	WebCore/loader/ImageDocument.cpp \
 	WebCore/loader/ImageDocument.h \
+	WebCore/loader/ImageLoader.cpp \
+	WebCore/loader/ImageLoader.h \
 	WebCore/loader/MainResourceLoader.cpp \
 	WebCore/loader/MainResourceLoader.h \
 	WebCore/loader/MediaDocument.cpp \
@@ -1564,6 +1566,7 @@ webcore_sources += \
 	WebCore/platform/graphics/BitmapImage.h \
 	WebCore/platform/graphics/Color.cpp \
 	WebCore/platform/graphics/Color.h \
+	WebCore/platform/graphics/DashArray.h \
 	WebCore/platform/graphics/FloatPoint.cpp \
 	WebCore/platform/graphics/FloatPoint.h \
 	WebCore/platform/graphics/FloatPoint3D.cpp \

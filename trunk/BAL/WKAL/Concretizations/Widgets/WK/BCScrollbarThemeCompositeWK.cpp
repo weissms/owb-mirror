@@ -58,15 +58,23 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
     // Create the ScrollbarControlPartMask based on the damageRect
     ScrollbarControlPartMask scrollMask = NoPart;
 
-    IntRect backButtonPaintRect;
-    IntRect forwardButtonPaintRect;
+    IntRect backButtonStartPaintRect;
+    IntRect backButtonEndPaintRect;
+    IntRect forwardButtonStartPaintRect;
+    IntRect forwardButtonEndPaintRect;
     if (hasButtons(scrollbar)) {
-        backButtonPaintRect = backButtonRect(scrollbar, true);
-        if (damageRect.intersects(backButtonPaintRect))
-            scrollMask |= BackButtonPart;
-        forwardButtonPaintRect = forwardButtonRect(scrollbar, true);
-        if (damageRect.intersects(forwardButtonPaintRect))
-            scrollMask |= ForwardButtonPart;
+        backButtonStartPaintRect = backButtonRect(scrollbar, BackButtonStartPart, true);
+        if (damageRect.intersects(backButtonStartPaintRect))
+            scrollMask |= BackButtonStartPart;
+        backButtonEndPaintRect = backButtonRect(scrollbar, BackButtonEndPart, true);
+        if (damageRect.intersects(backButtonEndPaintRect))
+            scrollMask |= BackButtonEndPart;
+        forwardButtonStartPaintRect = forwardButtonRect(scrollbar, ForwardButtonStartPart, true);
+        if (damageRect.intersects(forwardButtonStartPaintRect))
+            scrollMask |= ForwardButtonStartPart;
+        forwardButtonEndPaintRect = forwardButtonRect(scrollbar, ForwardButtonEndPart, true);
+        if (damageRect.intersects(forwardButtonEndPaintRect))
+            scrollMask |= ForwardButtonEndPart;
     }
 
     IntRect startTrackRect;
@@ -137,10 +145,14 @@ bool ScrollbarThemeComposite::paint(Scrollbar* scrollbar, GraphicsContext* graph
     }
 
     // Paint the back and forward buttons.
-    if (scrollMask & BackButtonPart)
-        paintButton(graphicsContext, scrollbar, backButtonPaintRect, BackButtonPart);
-    if (scrollMask & ForwardButtonPart)
-        paintButton(graphicsContext, scrollbar, forwardButtonPaintRect, ForwardButtonPart);
+    if (scrollMask & BackButtonStartPart)
+        paintButton(graphicsContext, scrollbar, backButtonStartPaintRect, BackButtonStartPart);
+    if (scrollMask & BackButtonEndPart)
+        paintButton(graphicsContext, scrollbar, backButtonEndPaintRect, BackButtonEndPart);
+    if (scrollMask & ForwardButtonStartPart)
+        paintButton(graphicsContext, scrollbar, forwardButtonStartPaintRect, ForwardButtonStartPart);
+    if (scrollMask & ForwardButtonEndPart)
+        paintButton(graphicsContext, scrollbar, forwardButtonEndPaintRect, ForwardButtonEndPart);
     
     // Paint the thumb.
     if (scrollMask & ThumbPart)
@@ -158,10 +170,14 @@ ScrollbarPart ScrollbarThemeComposite::hitTest(Scrollbar* scrollbar, const Platf
 
     IntPoint mousePosition = scrollbar->convertFromContainingWindow(evt.pos());
     mousePosition.move(scrollbar->x(), scrollbar->y());
-    if (backButtonRect(scrollbar).contains(mousePosition))
-        result = BackButtonPart;
-    else if (forwardButtonRect(scrollbar).contains(mousePosition))
-        result = ForwardButtonPart;
+    if (backButtonRect(scrollbar, BackButtonStartPart).contains(mousePosition))
+        result = BackButtonStartPart;
+    else if (backButtonRect(scrollbar, BackButtonEndPart).contains(mousePosition))
+        result = BackButtonEndPart;
+    else if (forwardButtonRect(scrollbar, ForwardButtonStartPart).contains(mousePosition))
+        result = ForwardButtonStartPart;
+    else if (forwardButtonRect(scrollbar, ForwardButtonEndPart).contains(mousePosition))
+        result = ForwardButtonEndPart;
     else {
         IntRect track = trackRect(scrollbar);
         if (track.contains(mousePosition)) {
@@ -187,11 +203,17 @@ void ScrollbarThemeComposite::invalidatePart(Scrollbar* scrollbar, ScrollbarPart
 
     IntRect result;    
     switch (part) {
-        case BackButtonPart:
-            result = backButtonRect(scrollbar, true);
+        case BackButtonStartPart:
+            result = backButtonRect(scrollbar, BackButtonStartPart, true);
             break;
-        case ForwardButtonPart:
-            result = forwardButtonRect(scrollbar, true);
+        case BackButtonEndPart:
+            result = backButtonRect(scrollbar, BackButtonEndPart, true);
+            break;
+        case ForwardButtonStartPart:
+            result = forwardButtonRect(scrollbar, ForwardButtonStartPart, true);
+            break;
+        case ForwardButtonEndPart:
+            result = forwardButtonRect(scrollbar, ForwardButtonEndPart, true);
             break;
         default: {
             IntRect beforeThumbRect, thumbRect, afterThumbRect;

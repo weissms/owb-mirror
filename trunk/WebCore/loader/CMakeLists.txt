@@ -18,6 +18,7 @@ LIST (APPEND LOADER_SRC
     loader/FormState.cpp
     loader/FrameLoader.cpp
     loader/loader.cpp
+    loader/ImageLoader.cpp
     loader/MainResourceLoader.cpp
     loader/NavigationAction.cpp
     loader/NetscapePlugInStreamLoader.cpp

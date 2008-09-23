@@ -150,6 +150,10 @@ static inline bool jsLess(ExecState* exec, JSValue* v1, JSValue* v2)
     if (fastIsNumber(v1, n1) && fastIsNumber(v2, n2))
         return n1 < n2;
 
+    Machine* machine = exec->machine();
+    if (machine->isJSString(v1) && machine->isJSString(v2))
+        return static_cast<const JSString*>(v1)->value() < static_cast<const JSString*>(v2)->value();
+
     JSValue* p1;
     JSValue* p2;
     bool wasNotString1 = v1->getPrimitiveNumber(exec, n1, p1);
@@ -170,6 +174,10 @@ static inline bool jsLessEq(ExecState* exec, JSValue* v1, JSValue* v2)
     double n2;
     if (fastIsNumber(v1, n1) && fastIsNumber(v2, n2))
         return n1 <= n2;
+
+    Machine* machine = exec->machine();
+    if (machine->isJSString(v1) && machine->isJSString(v2))
+        return !(static_cast<const JSString*>(v2)->value() < static_cast<const JSString*>(v1)->value());
 
     JSValue* p1;
     JSValue* p2;
@@ -252,7 +260,7 @@ static bool jsIsObjectType(JSValue* v)
     if (JSImmediate::isImmediate(v))
         return v->isNull();
 
-    JSType type = static_cast<JSCell*>(v)->structureID()->type();
+    JSType type = static_cast<JSCell*>(v)->structureID()->typeInfo().type();
     if (type == NumberType || type == StringType)
         return false;
     if (type == ObjectType) {
@@ -543,11 +551,12 @@ ALWAYS_INLINE Register* slideRegisterWindowForCall(ExecState* exec, CodeBlock* n
     }
     
     // initialize local variable slots
-    for (Register* it = r - newCodeBlock->numVars; it != r; ++it)
-        (*it) = jsUndefined();
+#if ENABLE(CTI)
+    if (!newCodeBlock->ctiCode)
+#endif
+    {
 
-    for (size_t i = 0; i < newCodeBlock->constantRegisters.size(); ++i)
-        r[i] = newCodeBlock->constantRegisters[i];
+    }
 
     return r;
 }
@@ -619,7 +628,7 @@ Machine::Machine()
     // Bizarrely, calling fastMalloc here is faster than allocating space on the stack.
     void* storage = fastMalloc(sizeof(CollectorBlock));
 
-    JSArray* jsArray = new (storage) JSArray(StructureID::create(jsNull()));
+    JSArray* jsArray = new (storage) JSArray(JSArray::createStructureID(jsNull()));
     m_jsArrayVptr = jsArray->vptr();
     static_cast<JSCell*>(jsArray)->~JSCell();
 
@@ -627,7 +636,7 @@ Machine::Machine()
     m_jsStringVptr = jsString->vptr();
     static_cast<JSCell*>(jsString)->~JSCell();
 
-    JSFunction* jsFunction = new (storage) JSFunction(StructureID::create(jsNull()));
+    JSFunction* jsFunction = new (storage) JSFunction(JSFunction::createStructureID(jsNull()));
     m_jsFunctionVptr = jsFunction->vptr();
     static_cast<JSCell*>(jsFunction)->~JSCell();
     
@@ -1503,7 +1512,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
         */
         int dst = (++vPC)->u.operand;
         int regExp = (++vPC)->u.operand;
-        r[dst] = new (exec) RegExpObject(scopeChain->globalObject()->regExpPrototype(), codeBlock->regexps[regExp]);
+        r[dst] = new (exec) RegExpObject(scopeChain->globalObject()->regExpStructure(), codeBlock->regexps[regExp]);
 
         ++vPC;
         NEXT_OPCODE;
@@ -3343,6 +3352,14 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
 
         NEXT_OPCODE;
     }
+    BEGIN_OPCODE(op_initialise_locals) {
+        for (Register* it = r - codeBlock->numVars + (codeBlock->codeType == EvalCode); it < r; ++it)
+            (*it) = jsUndefined();
+        for (size_t i = 0; i < codeBlock->constantRegisters.size(); ++i)
+            r[i] = codeBlock->constantRegisters[i];
+        ++vPC;
+        NEXT_OPCODE;
+    }
     BEGIN_OPCODE(op_construct) {
         /* construct dst(r) constr(r) constrProto(r) firstArg(r) argCount(n)
 
@@ -3376,13 +3393,13 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, ExecState* exec, RegisterFi
             if (*enabledProfilerReference)
                 (*enabledProfilerReference)->willExecute(exec, constructor);
 
-            JSObject* prototype;
-            JSValue* p = r[constrProto].jsValue(exec);
-            if (p->isObject())
-                prototype = static_cast<JSObject*>(p);
+            StructureID* structure;
+            JSValue* prototype = r[constrProto].jsValue(exec);
+            if (prototype->isObject())
+                structure = static_cast<JSObject*>(prototype)->inheritorID();
             else
-                prototype = scopeChain->globalObject()->objectPrototype();
-            JSObject* newObject = new (exec) JSObject(prototype);
+                structure = scopeChain->globalObject()->emptyObjectStructure();
+            JSObject* newObject = new (exec) JSObject(structure);
 
             ScopeChainNode* callDataScopeChain = constructData.js.scopeChain;
             FunctionBodyNode* functionBodyNode = constructData.js.functionBody;
@@ -4530,13 +4547,12 @@ void* Machine::cti_op_construct_JSConstruct(CTI_ARGS)
     if (*ARG_profilerReference)
         (*ARG_profilerReference)->willExecute(exec, constructor);
 
-    JSObject* prototype;
-    JSValue* p = constrProtoVal;
-    if (p->isObject())
-        prototype = static_cast<JSObject*>(p);
+    StructureID* structure;
+    if (constrProtoVal->isObject())
+        structure = static_cast<JSObject*>(constrProtoVal)->inheritorID();
     else
-        prototype = scopeChain->globalObject()->objectPrototype();
-    JSObject* newObject = new (exec) JSObject(prototype);
+        structure = scopeChain->globalObject()->emptyObjectStructure();
+    JSObject* newObject = new (exec) JSObject(structure);
 
     ScopeChainNode* callDataScopeChain = constructData.js.scopeChain;
     FunctionBodyNode* functionBodyNode = constructData.js.functionBody;
@@ -4934,14 +4950,12 @@ JSValue* Machine::cti_op_eq(CTI_ARGS)
     JSValue* src1 = ARG_src1;
     JSValue* src2 = ARG_src2;
 
-    if (JSImmediate::areBothImmediateNumbers(src1, src2))
-        return jsBoolean(reinterpret_cast<intptr_t>(src1) == reinterpret_cast<intptr_t>(src2));
-    else {
-        ExecState* exec = ARG_exec;
-        JSValue* result = jsBoolean(equal(exec, src1, src2));
-        VM_CHECK_EXCEPTION_AT_END();
-        return result;
-    }
+    ExecState* exec = ARG_exec;
+
+    ASSERT(!JSImmediate::areBothImmediateNumbers(src1, src2));
+    JSValue* result = jsBoolean(equal(exec, src1, src2));
+    VM_CHECK_EXCEPTION_AT_END();
+    return result;
 }
 
 JSValue* Machine::cti_op_lshift(CTI_ARGS)
@@ -5135,7 +5149,7 @@ JSValue* Machine::cti_op_bitxor(CTI_ARGS)
 
 JSValue* Machine::cti_op_new_regexp(CTI_ARGS)
 {
-    return new (ARG_exec) RegExpObject(ARG_scopeChain->globalObject()->regExpPrototype(), ARG_regexp1);
+    return new (ARG_exec) RegExpObject(ARG_scopeChain->globalObject()->regExpStructure(), ARG_regexp1);
 }
 
 JSValue* Machine::cti_op_bitor(CTI_ARGS)
@@ -5265,7 +5279,7 @@ JSValue* Machine::cti_op_is_number(CTI_ARGS)
 
 JSValue* Machine::cti_op_is_string(CTI_ARGS)
 {
-    return jsBoolean(ARG_src1->isString());
+    return jsBoolean(ARG_exec->machine()->isJSString(ARG_src1));
 }
 
 JSValue* Machine::cti_op_is_object(CTI_ARGS)
@@ -5283,15 +5297,11 @@ JSValue* Machine::cti_op_stricteq(CTI_ARGS)
     JSValue* src1 = ARG_src1;
     JSValue* src2 = ARG_src2;
 
-    if (JSImmediate::areBothImmediate(src1, src2))
-        return jsBoolean(reinterpret_cast<intptr_t>(src1) == reinterpret_cast<intptr_t>(src2));
-    if (JSImmediate::isEitherImmediate(src1, src2) & (src1 != JSImmediate::from(0)) & (src2 != JSImmediate::from(0)))
-        return jsBoolean(false);
+    // handled inline as fast cases
+    ASSERT(!JSImmediate::areBothImmediate(src1, src2));
+    ASSERT(!(JSImmediate::isEitherImmediate(src1, src2) & (src1 != JSImmediate::zeroImmediate()) & (src2 != JSImmediate::zeroImmediate())));
 
-    ExecState* exec = ARG_exec;
-    JSValue* result = jsBoolean(strictEqualSlowCase(src1, src2));
-    VM_CHECK_EXCEPTION_AT_END();
-    return result;
+    return jsBoolean(strictEqualSlowCaseInline(src1, src2));
 }
 
 JSValue* Machine::cti_op_nstricteq(CTI_ARGS)
@@ -5301,13 +5311,10 @@ JSValue* Machine::cti_op_nstricteq(CTI_ARGS)
 
     if (JSImmediate::areBothImmediate(src1, src2))
         return jsBoolean(reinterpret_cast<intptr_t>(src1) != reinterpret_cast<intptr_t>(src2));
-    if (JSImmediate::isEitherImmediate(src1, src2) & (src1 != JSImmediate::from(0)) & (src2 != JSImmediate::from(0)))
+    if (JSImmediate::isEitherImmediate(src1, src2) & (src1 != JSImmediate::zeroImmediate()) & (src2 != JSImmediate::zeroImmediate()))
         return jsBoolean(true);
     
-    ExecState* exec = ARG_exec;
-    JSValue* result = jsBoolean(!strictEqualSlowCase(src1, src2));
-    VM_CHECK_EXCEPTION_AT_END();
-    return result;
+    return jsBoolean(!strictEqualSlowCaseInline(src1, src2));
 }
 
 JSValue* Machine::cti_op_to_jsnumber(CTI_ARGS)

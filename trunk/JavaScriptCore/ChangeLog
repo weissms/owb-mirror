@@ -1,3 +1,720 @@
+2008-09-23  Darin Adler  <darin@apple.com>
+
+        - blind attempt to fix non-all-in-one builds
+
+        * kjs/JSGlobalObject.cpp: Added includes of Arguments.h and RegExpObject.h.
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        - fix debug build
+
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::addPropertyTransition): Use typeInfo().type() instead of m_type.
+        (JSC::StructureID::createCachedPrototypeChain): Ditto.
+
+2008-09-21  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Darin.
+        
+        - introduce a TypeInfo class, for holding per-type (in the C++ class sense) date in StructureID
+        https://bugs.webkit.org/show_bug.cgi?id=20981
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompilePutByIdTransition):
+        * VM/Machine.cpp:
+        (JSC::jsIsObjectType):
+        (JSC::Machine::Machine):
+        * kjs/AllInOneFile.cpp:
+        * kjs/JSCell.h:
+        (JSC::JSCell::isObject):
+        (JSC::JSCell::isString):
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset):
+        * kjs/JSGlobalObject.h:
+        (JSC::StructureID::prototypeForLookup):
+        * kjs/JSNumberCell.h:
+        (JSC::JSNumberCell::createStructureID):
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::createInheritorID):
+        * kjs/JSObject.h:
+        (JSC::JSObject::createStructureID):
+        * kjs/JSString.h:
+        (JSC::JSString::createStructureID):
+        * kjs/NativeErrorConstructor.cpp:
+        (JSC::NativeErrorConstructor::NativeErrorConstructor):
+        * kjs/RegExpConstructor.cpp:
+        * kjs/RegExpMatchesArray.h: Added.
+        (JSC::RegExpMatchesArray::getOwnPropertySlot):
+        (JSC::RegExpMatchesArray::put):
+        (JSC::RegExpMatchesArray::deleteProperty):
+        (JSC::RegExpMatchesArray::getPropertyNames):
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::StructureID):
+        (JSC::StructureID::addPropertyTransition):
+        (JSC::StructureID::toDictionaryTransition):
+        (JSC::StructureID::changePrototypeTransition):
+        (JSC::StructureID::getterSetterTransition):
+        * kjs/StructureID.h:
+        (JSC::StructureID::create):
+        (JSC::StructureID::typeInfo):
+        * kjs/TypeInfo.h: Added.
+        (JSC::TypeInfo::TypeInfo):
+        (JSC::TypeInfo::type):
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - fix crash logging into Gmail due to recent Arguments change
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::Arguments): Fix window where mark() function could
+        see d->extraArguments with uninitialized contents.
+        (JSC::Arguments::mark): Check d->extraArguments for 0 to handle two
+        cases: 1) Inside the constructor before it's initialized.
+        2) numArguments <= numParameters.
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        - fix loose end from the "duplicate constant values" patch
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitLoad): Add a special case for values the
+        hash table can't handle.
+
+2008-09-21  Mark Rowe  <mrowe@apple.com>
+
+        Fix the non-AllInOneFile build.
+
+        * kjs/Arguments.cpp: Add missing #include.
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich and Mark Rowe.
+
+        - fix test failure caused by my recent IndexToNameMap patch
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::deleteProperty): Added the accidentally-omitted
+        check of the boolean result from toArrayIndex.
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20975
+          inline immediate-number case of ==
+
+        * VM/CTI.h: Renamed emitJumpSlowCaseIfNotImm to
+        emitJumpSlowCaseIfNotImmNum, since the old name was incorrect.
+
+        * VM/CTI.cpp: Updated for new name.
+        (JSC::CTI::privateCompileMainPass): Added op_eq.
+        (JSC::CTI::privateCompileSlowCases): Added op_eq.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_eq): Removed fast case, since it's now
+        compiled.
+
+2008-09-21  Peter Gal  <galpter@inf.u-szeged.hu>
+
+        Reviewed by Tim Hatcher and Eric Seidel.
+
+        Fix the QT/Linux JavaScriptCore segmentation fault.
+        https://bugs.webkit.org/show_bug.cgi?id=20914
+
+        * wtf/ThreadingQt.cpp:
+        (WTF::initializeThreading): Use currentThread() if
+        platform is not a MAC (like in pre 36541 revisions)
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        * kjs/debugger.h: Removed some unneeded includes and declarations.
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20972
+          speed up Arguments further by eliminating the IndexToNameMap
+
+        No change on SunSpider. 1.29x as fast on V8 Raytrace.
+
+        * kjs/Arguments.cpp: Moved ArgumentsData in here. Eliminated the
+        indexToNameMap and hadDeletes data members. Changed extraArguments into
+        an OwnArrayPtr and added deletedArguments, another OwnArrayPtr.
+        Replaced numExtraArguments with numParameters, since that's what's
+        used more directly in hot code paths.
+        (JSC::Arguments::Arguments): Pass in argument count instead of ArgList.
+        Initialize ArgumentsData the new way.
+        (JSC::Arguments::mark): Updated.
+        (JSC::Arguments::getOwnPropertySlot): Overload for the integer form so
+        we don't have to convert integers to identifiers just to get an argument.
+        Integrated the deleted case with the fast case.
+        (JSC::Arguments::put): Ditto.
+        (JSC::Arguments::deleteProperty): Ditto.
+
+        * kjs/Arguments.h: Minimized includes. Made everything private. Added
+        overloads for the integral property name case. Eliminated mappedIndexSetter.
+        Moved ArgumentsData into the .cpp file.
+
+        * kjs/IndexToNameMap.cpp: Emptied out and prepared for deletion.
+        * kjs/IndexToNameMap.h: Ditto.
+
+        * kjs/JSActivation.cpp:
+        (JSC::JSActivation::createArgumentsObject): Elminated ArgList.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        Removed IndexToNameMap.
+
+2008-09-21  Darin Adler  <darin@apple.com>
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitLoad): One more tweak: Wrote this in a slightly
+        clearer style.
+
+2008-09-21  Judit Jasz  <jasy@inf.u-szeged.hu>
+
+        Reviewed and tweaked by Darin Adler.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20645
+          Elminate duplicate constant values in CodeBlocks.
+
+        Seems to be a wash on SunSpider.
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitLoad): Use m_numberMap and m_stringMap to guarantee
+        we emit the same JSValue* for identical numbers and strings.
+        * VM/CodeGenerator.h: Added overload of emitLoad for const Identifier&.
+        Add NumberMap and IdentifierStringMap types and m_numberMap and m_stringMap.
+        * kjs/nodes.cpp:
+        (JSC::StringNode::emitCode): Call the new emitLoad and let it do the
+        JSString creation.
+
+2008-09-21  Paul Pedriana  <webkit@pedriana.com>
+
+        Reviewed and tweaked by Darin Adler.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=16925
+          Fixed lack of Vector buffer alignment for both GCC and MSVC.
+          Since there's no portable way to do this, for now we don't support
+          other compilers.
+
+        * wtf/Vector.h: Added WTF_ALIGH_ON, WTF_ALIGNED, AlignedBufferChar, and AlignedBuffer.
+        Use AlignedBuffer insteadof an array of char in VectorBuffer.
+
+2008-09-21  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=19408
+          Add lightweight constant folding to the parser for *, /, + (only for numbers), <<, >>, ~ operators.
+
+        1.008x as fast on SunSpider.
+
+        * kjs/grammar.y:
+        (makeNegateNode): Fold if expression is a number > 0.
+        (makeBitwiseNotNode): Fold if expression is a number.
+        (makeMultNode): Fold if expressions are both numbers.
+        (makeDivNode): Fold if expressions are both numbers.
+        (makeAddNode): Fold if expressions are both numbers.
+        (makeLeftShiftNode): Fold if expressions are both numbers.
+        (makeRightShiftNode): Fold if expressions are both numbers.
+
+2008-09-21  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver.
+        
+        - speed up === operator by generating inline machine code for the fast paths
+        https://bugs.webkit.org/show_bug.cgi?id=20820
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitJumpSlowCaseIfNotImmediateNumber):
+        (JSC::CTI::emitJumpSlowCaseIfNotImmediateNumbers):
+        (JSC::CTI::emitJumpSlowCaseIfNotImmediates):
+        (JSC::CTI::emitTagAsBoolImmediate):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_stricteq):
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::sete_r):
+        (JSC::X86Assembler::setz_r):
+        (JSC::X86Assembler::movzbl_rr):
+        (JSC::X86Assembler::emitUnlinkedJnz):
+
+2008-09-21  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Free memory allocated for extra arguments in the destructor of the
+        Arguments object.
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::~Arguments):
+        * kjs/Arguments.h:
+
+2008-09-21  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20815: 'arguments' object creation is non-optimal
+        <https://bugs.webkit.org/show_bug.cgi?id=20815>
+
+        Fix our inefficient way of creating the arguments object by only
+        creating named properties for each of the arguments after a use of the
+        'delete' statement. This patch also speeds up access to the 'arguments'
+        object slightly, but it still does not use the array fast path for
+        indexed access that exists for many opcodes.
+
+        This is about a 20% improvement on the V8 Raytrace benchmark, and a 1.5%
+        improvement on the Earley-Boyer benchmark, which gives a 4% improvement
+        overall.
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::Arguments):
+        (JSC::Arguments::mark):
+        (JSC::Arguments::getOwnPropertySlot):
+        (JSC::Arguments::put):
+        (JSC::Arguments::deleteProperty):
+        * kjs/Arguments.h:
+        (JSC::Arguments::ArgumentsData::ArgumentsData):
+        * kjs/IndexToNameMap.h:
+        (JSC::IndexToNameMap::size):
+        * kjs/JSActivation.cpp:
+        (JSC::JSActivation::createArgumentsObject):
+        * kjs/JSActivation.h:
+        (JSC::JSActivation::uncheckedSymbolTableGet):
+        (JSC::JSActivation::uncheckedSymbolTableGetValue):
+        (JSC::JSActivation::uncheckedSymbolTablePut):
+        * kjs/JSFunction.h:
+        (JSC::JSFunction::numParameters):
+
+2008-09-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix crash seen on buildbot
+
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::mark): Add back mark of arrayPrototype,
+        deleted by accident in my recent check-in.
+
+2008-09-20  Maciej Stachowiak  <mjs@apple.com>
+
+        Not reviewed, build fix.
+        
+        - speculative fix for non-AllInOne builds
+
+        * kjs/operations.h:
+
+2008-09-20  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Darin.
+        
+        - assorted optimizations to === and !== operators
+        (work towards <https://bugs.webkit.org/show_bug.cgi?id=20820>)
+        
+        2.5% speedup on earley-boyer test
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_stricteq): Use inline version of
+        strictEqualSlowCase; remove unneeded exception check.
+        (JSC::Machine::cti_op_nstricteq): ditto
+        * kjs/operations.cpp:
+        (JSC::strictEqual): Use strictEqualSlowCaseInline
+        (JSC::strictEqualSlowCase): ditto
+        * kjs/operations.h:
+        (JSC::strictEqualSlowCaseInline): Version of strictEqualSlowCase that can be inlined,
+        since the extra function call indirection is a lose for CTI.
+
+2008-09-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - finish https://bugs.webkit.org/show_bug.cgi?id=20858
+          make each distinct C++ class get a distinct JSC::Structure
+
+        This also includes some optimizations that make the change an overall
+        small speedup. Without those it was a bit of a slowdown.
+
+        * API/JSCallbackConstructor.cpp:
+        (JSC::JSCallbackConstructor::JSCallbackConstructor): Take a structure.
+        * API/JSCallbackConstructor.h: Ditto.
+        * API/JSCallbackFunction.cpp:
+        (JSC::JSCallbackFunction::JSCallbackFunction): Pass a structure.
+        * API/JSCallbackObject.h: Take a structure.
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::JSCallbackObject::JSCallbackObject): Ditto.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::prototype): Pass in a structure. Call setPrototype
+        if there's a custom prototype involved.
+        * API/JSObjectRef.cpp:
+        (JSObjectMake): Ditto.
+        (JSObjectMakeConstructor): Pass in a structure.
+
+        * JavaScriptCore.exp: Updated.
+
+        * VM/Machine.cpp:
+        (JSC::jsLess): Added a special case for when both arguments are strings.
+        This avoids converting both strings to with UString::toDouble.
+        (JSC::jsLessEq): Ditto.
+        (JSC::Machine::privateExecute): Pass in a structure.
+        (JSC::Machine::cti_op_construct_JSConstruct): Ditto.
+        (JSC::Machine::cti_op_new_regexp): Ditto.
+        (JSC::Machine::cti_op_is_string): Ditto.
+        * VM/Machine.h: Made isJSString public so it can be used in the CTI.
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::Arguments): Pass in a structure.
+
+        * kjs/JSCell.h: Mark constructor explicit.
+
+        * kjs/JSGlobalObject.cpp:
+        (JSC::markIfNeeded): Added an overload for marking structures.
+        (JSC::JSGlobalObject::reset): Eliminate code to set data members to
+        zero. We now do that in the constructor, and we no longer use this
+        anywhere except in the constructor. Added code to create structures.
+        Pass structures rather than prototypes when creating objects.
+        (JSC::JSGlobalObject::mark): Mark the structures.
+
+        * kjs/JSGlobalObject.h: Removed unneeded class declarations.
+        Added initializers for raw pointers in JSGlobalObjectData so
+        everything starts with a 0. Added structure data and accessor
+        functions.
+
+        * kjs/JSImmediate.cpp:
+        (JSC::JSImmediate::nonInlineNaN): Added.
+        * kjs/JSImmediate.h:
+        (JSC::JSImmediate::toDouble): Rewrote to avoid PIC branches.
+
+        * kjs/JSNumberCell.cpp:
+        (JSC::jsNumberCell): Made non-inline to avoid PIC branches
+        in functions that call this one.
+        (JSC::jsNaN): Ditto.
+        * kjs/JSNumberCell.h: Ditto.
+
+        * kjs/JSObject.h: Removed constructor that takes a prototype.
+        All callers now pass structures.
+
+        * kjs/ArrayConstructor.cpp:
+        (JSC::ArrayConstructor::ArrayConstructor):
+        (JSC::constructArrayWithSizeQuirk):
+        * kjs/ArrayConstructor.h:
+        * kjs/ArrayPrototype.cpp:
+        (JSC::ArrayPrototype::ArrayPrototype):
+        * kjs/ArrayPrototype.h:
+        * kjs/BooleanConstructor.cpp:
+        (JSC::BooleanConstructor::BooleanConstructor):
+        (JSC::constructBoolean):
+        (JSC::constructBooleanFromImmediateBoolean):
+        * kjs/BooleanConstructor.h:
+        * kjs/BooleanObject.cpp:
+        (JSC::BooleanObject::BooleanObject):
+        * kjs/BooleanObject.h:
+        * kjs/BooleanPrototype.cpp:
+        (JSC::BooleanPrototype::BooleanPrototype):
+        * kjs/BooleanPrototype.h:
+        * kjs/DateConstructor.cpp:
+        (JSC::DateConstructor::DateConstructor):
+        (JSC::constructDate):
+        * kjs/DateConstructor.h:
+        * kjs/DateInstance.cpp:
+        (JSC::DateInstance::DateInstance):
+        * kjs/DateInstance.h:
+        * kjs/DatePrototype.cpp:
+        (JSC::DatePrototype::DatePrototype):
+        * kjs/DatePrototype.h:
+        * kjs/ErrorConstructor.cpp:
+        (JSC::ErrorConstructor::ErrorConstructor):
+        (JSC::constructError):
+        * kjs/ErrorConstructor.h:
+        * kjs/ErrorInstance.cpp:
+        (JSC::ErrorInstance::ErrorInstance):
+        * kjs/ErrorInstance.h:
+        * kjs/ErrorPrototype.cpp:
+        (JSC::ErrorPrototype::ErrorPrototype):
+        * kjs/ErrorPrototype.h:
+        * kjs/FunctionConstructor.cpp:
+        (JSC::FunctionConstructor::FunctionConstructor):
+        * kjs/FunctionConstructor.h:
+        * kjs/FunctionPrototype.cpp:
+        (JSC::FunctionPrototype::FunctionPrototype):
+        (JSC::FunctionPrototype::addFunctionProperties):
+        * kjs/FunctionPrototype.h:
+        * kjs/GlobalEvalFunction.cpp:
+        (JSC::GlobalEvalFunction::GlobalEvalFunction):
+        * kjs/GlobalEvalFunction.h:
+        * kjs/InternalFunction.cpp:
+        (JSC::InternalFunction::InternalFunction):
+        * kjs/InternalFunction.h:
+        (JSC::InternalFunction::InternalFunction):
+        * kjs/JSArray.cpp:
+        (JSC::JSArray::JSArray):
+        (JSC::constructEmptyArray):
+        (JSC::constructArray):
+        * kjs/JSArray.h:
+        * kjs/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction):
+        (JSC::JSFunction::construct):
+        * kjs/JSObject.cpp:
+        (JSC::constructEmptyObject):
+        * kjs/JSString.cpp:
+        (JSC::StringObject::create):
+        * kjs/JSWrapperObject.h:
+        * kjs/MathObject.cpp:
+        (JSC::MathObject::MathObject):
+        * kjs/MathObject.h:
+        * kjs/NativeErrorConstructor.cpp:
+        (JSC::NativeErrorConstructor::NativeErrorConstructor):
+        (JSC::NativeErrorConstructor::construct):
+        * kjs/NativeErrorConstructor.h:
+        * kjs/NativeErrorPrototype.cpp:
+        (JSC::NativeErrorPrototype::NativeErrorPrototype):
+        * kjs/NativeErrorPrototype.h:
+        * kjs/NumberConstructor.cpp:
+        (JSC::NumberConstructor::NumberConstructor):
+        (JSC::constructWithNumberConstructor):
+        * kjs/NumberConstructor.h:
+        * kjs/NumberObject.cpp:
+        (JSC::NumberObject::NumberObject):
+        (JSC::constructNumber):
+        (JSC::constructNumberFromImmediateNumber):
+        * kjs/NumberObject.h:
+        * kjs/NumberPrototype.cpp:
+        (JSC::NumberPrototype::NumberPrototype):
+        * kjs/NumberPrototype.h:
+        * kjs/ObjectConstructor.cpp:
+        (JSC::ObjectConstructor::ObjectConstructor):
+        (JSC::constructObject):
+        * kjs/ObjectConstructor.h:
+        * kjs/ObjectPrototype.cpp:
+        (JSC::ObjectPrototype::ObjectPrototype):
+        * kjs/ObjectPrototype.h:
+        * kjs/PrototypeFunction.cpp:
+        (JSC::PrototypeFunction::PrototypeFunction):
+        * kjs/PrototypeFunction.h:
+        * kjs/RegExpConstructor.cpp:
+        (JSC::RegExpConstructor::RegExpConstructor):
+        (JSC::RegExpMatchesArray::RegExpMatchesArray):
+        (JSC::constructRegExp):
+        * kjs/RegExpConstructor.h:
+        * kjs/RegExpObject.cpp:
+        (JSC::RegExpObject::RegExpObject):
+        * kjs/RegExpObject.h:
+        * kjs/RegExpPrototype.cpp:
+        (JSC::RegExpPrototype::RegExpPrototype):
+        * kjs/RegExpPrototype.h:
+        * kjs/Shell.cpp:
+        (GlobalObject::GlobalObject):
+        * kjs/StringConstructor.cpp:
+        (JSC::StringConstructor::StringConstructor):
+        (JSC::constructWithStringConstructor):
+        * kjs/StringConstructor.h:
+        * kjs/StringObject.cpp:
+        (JSC::StringObject::StringObject):
+        * kjs/StringObject.h:
+        * kjs/StringObjectThatMasqueradesAsUndefined.h:
+        (JSC::StringObjectThatMasqueradesAsUndefined::StringObjectThatMasqueradesAsUndefined):
+        * kjs/StringPrototype.cpp:
+        (JSC::StringPrototype::StringPrototype):
+        * kjs/StringPrototype.h:
+        Take and pass structures.
+
+2008-09-19  Alp Toker  <alp@nuanti.com>
+
+        Build fix for the 'gold' linker and recent binutils. New behaviour
+        requires that we link to used libraries explicitly.
+
+        * GNUmakefile.am:
+
+2008-09-19  Sam Weinig  <sam@webkit.org>
+
+        Roll r36694 back in.  It did not cause the crash.
+
+        * JavaScriptCore.exp:
+        * VM/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::~JSPropertyNameIterator):
+        (JSC::JSPropertyNameIterator::invalidate):
+        * VM/JSPropertyNameIterator.h:
+        (JSC::JSPropertyNameIterator::JSPropertyNameIterator):
+        (JSC::JSPropertyNameIterator::create):
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::getPropertyNames):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::getEnumerablePropertyNames):
+        * kjs/PropertyMap.h:
+        * kjs/PropertyNameArray.cpp:
+        (JSC::PropertyNameArray::add):
+        * kjs/PropertyNameArray.h:
+        (JSC::PropertyNameArrayData::create):
+        (JSC::PropertyNameArrayData::propertyNameVector):
+        (JSC::PropertyNameArrayData::setCachedPrototypeChain):
+        (JSC::PropertyNameArrayData::cachedPrototypeChain):
+        (JSC::PropertyNameArrayData::begin):
+        (JSC::PropertyNameArrayData::end):
+        (JSC::PropertyNameArrayData::PropertyNameArrayData):
+        (JSC::PropertyNameArray::PropertyNameArray):
+        (JSC::PropertyNameArray::addKnownUnique):
+        (JSC::PropertyNameArray::size):
+        (JSC::PropertyNameArray::operator[]):
+        (JSC::PropertyNameArray::begin):
+        (JSC::PropertyNameArray::end):
+        (JSC::PropertyNameArray::setData):
+        (JSC::PropertyNameArray::data):
+        (JSC::PropertyNameArray::releaseData):
+        * kjs/StructureID.cpp:
+        (JSC::structureIDChainsAreEqual):
+        (JSC::StructureID::getEnumerablePropertyNames):
+        (JSC::StructureID::clearEnumerationCache):
+        (JSC::StructureID::createCachedPrototypeChain):
+        * kjs/StructureID.h:
+
+2008-09-19  Sam Weinig  <sam@webkit.org>
+
+        Roll out r36694.
+
+        * JavaScriptCore.exp:
+        * VM/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::~JSPropertyNameIterator):
+        (JSC::JSPropertyNameIterator::invalidate):
+        * VM/JSPropertyNameIterator.h:
+        (JSC::JSPropertyNameIterator::JSPropertyNameIterator):
+        (JSC::JSPropertyNameIterator::create):
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::getPropertyNames):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::getEnumerablePropertyNames):
+        * kjs/PropertyMap.h:
+        * kjs/PropertyNameArray.cpp:
+        (JSC::PropertyNameArray::add):
+        * kjs/PropertyNameArray.h:
+        (JSC::PropertyNameArray::PropertyNameArray):
+        (JSC::PropertyNameArray::addKnownUnique):
+        (JSC::PropertyNameArray::begin):
+        (JSC::PropertyNameArray::end):
+        (JSC::PropertyNameArray::size):
+        (JSC::PropertyNameArray::operator[]):
+        (JSC::PropertyNameArray::releaseIdentifiers):
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::getEnumerablePropertyNames):
+        * kjs/StructureID.h:
+        (JSC::StructureID::clearEnumerationCache):
+
+2008-09-19  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Improve peformance of local variable initialisation.
+
+        Pull local and constant initialisation out of slideRegisterWindowForCall
+        and into its own opcode.  This allows the JIT to generate the initialisation
+        code for a function directly into the instruction stream and so avoids a few
+        branches on function entry.
+
+        Results a 1% progression in SunSpider, particularly in a number of the bitop
+        tests where the called functions are very fast. 
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitInitialiseRegister):
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator):
+        * VM/Machine.cpp:
+        (JSC::slideRegisterWindowForCall):
+        (JSC::Machine::privateExecute):
+        * VM/Opcode.h:
+
+2008-09-19  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=20928
+        Speed up JS property enumeration by caching entire PropertyNameArray
+
+        1.3% speedup on Sunspider, 30% on string-fasta.
+
+        * JavaScriptCore.exp:
+        * VM/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::~JSPropertyNameIterator):
+        (JSC::JSPropertyNameIterator::invalidate):
+        * VM/JSPropertyNameIterator.h:
+        (JSC::JSPropertyNameIterator::JSPropertyNameIterator):
+        (JSC::JSPropertyNameIterator::create):
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::getPropertyNames):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::getEnumerablePropertyNames):
+        * kjs/PropertyMap.h:
+        * kjs/PropertyNameArray.cpp:
+        (JSC::PropertyNameArray::add):
+        * kjs/PropertyNameArray.h:
+        (JSC::PropertyNameArrayData::create):
+        (JSC::PropertyNameArrayData::propertyNameVector):
+        (JSC::PropertyNameArrayData::setCachedPrototypeChain):
+        (JSC::PropertyNameArrayData::cachedPrototypeChain):
+        (JSC::PropertyNameArrayData::begin):
+        (JSC::PropertyNameArrayData::end):
+        (JSC::PropertyNameArrayData::PropertyNameArrayData):
+        (JSC::PropertyNameArray::PropertyNameArray):
+        (JSC::PropertyNameArray::addKnownUnique):
+        (JSC::PropertyNameArray::size):
+        (JSC::PropertyNameArray::operator[]):
+        (JSC::PropertyNameArray::begin):
+        (JSC::PropertyNameArray::end):
+        (JSC::PropertyNameArray::setData):
+        (JSC::PropertyNameArray::data):
+        (JSC::PropertyNameArray::releaseData):
+        * kjs/ScopeChain.cpp:
+        (JSC::ScopeChainNode::print):
+        * kjs/StructureID.cpp:
+        (JSC::structureIDChainsAreEqual):
+        (JSC::StructureID::getEnumerablePropertyNames):
+        (JSC::StructureID::clearEnumerationCache):
+        (JSC::StructureID::createCachedPrototypeChain):
+        * kjs/StructureID.h:
+
+2008-09-19  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix a mismatched new[]/delete in JSObject::allocatePropertyStorage
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::allocatePropertyStorage): Spotted by valgrind.
+
+2008-09-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - part 2 of https://bugs.webkit.org/show_bug.cgi?id=20858
+          make each distinct C++ class get a distinct JSC::Structure
+
+        * JavaScriptCore.exp: Exported constructEmptyObject for use in WebCore.
+
+        * kjs/JSGlobalObject.h: Changed the protected constructor to take a
+        structure instead of a prototype.
+
+        * kjs/JSVariableObject.h: Removed constructor that takes a prototype.
+
 2008-09-19  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Alexey Proskuryakov.

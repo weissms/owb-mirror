@@ -1,3 +1,32 @@
+2008-09-23  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by eseidel.  Landed by eseidel.
+
+        * Misc/WebTypesInternal.h:
+        * WebKitPrefix.h:
+
+2008-09-20  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Tim Hatcher.
+
+        Revert r35688. We use a textured window on Leopard, which does not have the
+        square corners of the standard Aqua window on Tiger.
+
+        * WebCoreSupport/WebInspectorClient.mm:
+        (-[WebInspectorWindowController window]): Add back the call to WKNSWindowMakeBottomCornersSquare.
+
+2008-09-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - speculative fix for https://bugs.webkit.org/show_bug.cgi?id=20943
+          Assertion failure in RefCountedLeakCounter::cancelMessageSuppression() when closing a window
+
+        * WebView/WebView.mm:
+        (-[WebView _commonInitializationWithFrameName:groupName:]): Moved call to
+        RefCountedLeakCounter::suppressMessages in here.
+        (-[WebView initWithFrame:frameName:groupName:]): Moved it out of here.
+
 2008-09-19  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Dan Bernstein.

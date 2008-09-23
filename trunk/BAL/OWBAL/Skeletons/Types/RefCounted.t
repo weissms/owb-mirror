@@ -145,6 +145,16 @@ publi
     
 
 
+
+    /**
+     *  refCount description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int refCount() const;
+
     /**
      *  RefCountedBase description
      * @param[in] : description
@@ -208,4 +218,4 @@ using WTF::RefCounted;
      */
     ~RefCounted() ;
     
-  
+ 

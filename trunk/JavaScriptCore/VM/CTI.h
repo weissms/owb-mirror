@@ -345,6 +345,8 @@ namespace JSC {
         void emitPutArgConstant(unsigned value, unsigned offset);
         void emitPutResult(unsigned dst, X86Assembler::RegisterID from = X86::eax);
 
+        void emitInitialiseRegister(unsigned dst);
+
         void emitPutCTIParam(void* value, unsigned name);
         void emitPutCTIParam(X86Assembler::RegisterID from, unsigned name);
         void emitGetCTIParam(unsigned name, X86Assembler::RegisterID to);
@@ -358,8 +360,8 @@ namespace JSC {
         void emitJumpSlowCaseIfIsJSCell(X86Assembler::RegisterID reg, unsigned opcodeIndex);
         void emitJumpSlowCaseIfNotJSCell(X86Assembler::RegisterID reg, unsigned opcodeIndex);
 
-        void emitJumpSlowCaseIfNotImm(X86Assembler::RegisterID, unsigned opcodeIndex);
-        void emitJumpSlowCaseIfNotImms(X86Assembler::RegisterID, X86Assembler::RegisterID, unsigned opcodeIndex);
+        void emitJumpSlowCaseIfNotImmNum(X86Assembler::RegisterID, unsigned opcodeIndex);
+        void emitJumpSlowCaseIfNotImmNums(X86Assembler::RegisterID, X86Assembler::RegisterID, unsigned opcodeIndex);
 
         void emitFastArithDeTagImmediate(X86Assembler::RegisterID);
         void emitFastArithReTagImmediate(X86Assembler::RegisterID);
@@ -367,6 +369,8 @@ namespace JSC {
         void emitFastArithImmToInt(X86Assembler::RegisterID);
         void emitFastArithIntToImmOrSlowCase(X86Assembler::RegisterID, unsigned opcodeIndex);
         void emitFastArithIntToImmNoCheck(X86Assembler::RegisterID);
+
+        void emitTagAsBoolImmediate(X86Assembler::RegisterID reg);
 
         void emitDebugExceptionCheck();
 

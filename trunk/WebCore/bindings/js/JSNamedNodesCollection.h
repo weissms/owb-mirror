@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2007, 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,12 +37,17 @@ namespace WebCore {
     // when multiple nodes have the same name.
     class JSNamedNodesCollection : public DOMObject {
     public:
-        JSNamedNodesCollection(JSC::JSObject* prototype, const Vector<RefPtr<Node> >&);
+        JSNamedNodesCollection(JSC::ExecState*, const Vector<RefPtr<Node> >&);
 
         virtual bool getOwnPropertySlot(JSC::ExecState*, const JSC::Identifier&, JSC::PropertySlot&);
 
         virtual const JSC::ClassInfo* classInfo() const { return &s_info; }
         static const JSC::ClassInfo s_info;
+
+        static JSC::ObjectPrototype* createPrototype(JSC::ExecState* exec)
+        {
+            return exec->lexicalGlobalObject()->objectPrototype();
+        }
 
     private:
         static JSC::JSValue* lengthGetter(JSC::ExecState*, const JSC::Identifier&, const JSC::PropertySlot&);

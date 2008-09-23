@@ -795,6 +795,16 @@ namespace WKAL {
      */
         void setLineCap(LineCap);
 
+
+    /**
+     *  setLineDash description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        void setLineDash(const DashArray&, float dashOffset);
+
     /**
      * set lineJoin
      * @param[in] : lineJoin

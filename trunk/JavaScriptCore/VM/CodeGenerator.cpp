@@ -268,6 +268,7 @@ CodeGenerator::CodeGenerator(FunctionBodyNode* functionBody, const Debugger* deb
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
     , m_lastOpcodeID(op_end)
 {
+    emitOpcode(op_initialise_locals);
     codeBlock->globalData = m_globalData;
 
     m_codeBlock->numConstants = functionBody->neededConstants();
@@ -316,6 +317,7 @@ CodeGenerator::CodeGenerator(EvalNode* evalNode, const Debugger* debugger, const
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
     , m_lastOpcodeID(op_end)
 {
+    emitOpcode(op_initialise_locals);
     codeBlock->globalData = m_globalData;
 
     m_codeBlock->numConstants = evalNode->neededConstants();
@@ -728,9 +730,24 @@ RegisterID* CodeGenerator::emitLoad(RegisterID* dst, bool b)
     return emitLoad(dst, jsBoolean(b));
 }
 
-RegisterID* CodeGenerator::emitLoad(RegisterID* dst, double d)
+RegisterID* CodeGenerator::emitLoad(RegisterID* dst, double number)
 {
-    return emitLoad(dst, jsNumber(globalExec(), d));
+    // FIXME: Our hash tables won't hold infinity, so we make a new JSNumberCell each time.
+    // Later we can do the extra work to handle that like the other cases.
+    if (number == HashTraits<double>::emptyValue() || HashTraits<double>::isDeletedValue(number))
+        return emitLoad(dst, jsNumber(globalExec(), number));
+    JSValue*& valueInMap = m_numberMap.add(number, 0).first->second;
+    if (!valueInMap)
+        valueInMap = jsNumber(globalExec(), number);
+    return emitLoad(dst, valueInMap);
+}
+
+RegisterID* CodeGenerator::emitLoad(RegisterID* dst, const Identifier& identifier)
+{
+    JSString*& valueInMap = m_stringMap.add(identifier.ustring().rep(), 0).first->second;
+    if (!valueInMap)
+        valueInMap = jsOwnedString(globalExec(), identifier.ustring());
+    return emitLoad(dst, valueInMap);
 }
 
 RegisterID* CodeGenerator::emitLoad(RegisterID* dst, JSValue* v)

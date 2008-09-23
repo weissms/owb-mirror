@@ -39,6 +39,8 @@
 		066C77310AB603FD00238CC4 /* RenderFileUploadControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 066C772F0AB603FD00238CC4 /* RenderFileUploadControl.h */; };
 		06E81ED70AB5D5E900C87837 /* LocalCurrentGraphicsContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 06E81ED60AB5D5E900C87837 /* LocalCurrentGraphicsContext.h */; };
 		06E81EEC0AB5DA9700C87837 /* LocalCurrentGraphicsContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = 06E81EEB0AB5DA9700C87837 /* LocalCurrentGraphicsContext.mm */; };
+		089582550E857A7E00F82C83 /* ImageLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 089582530E857A7E00F82C83 /* ImageLoader.cpp */; };
+		089582560E857A7E00F82C83 /* ImageLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 089582540E857A7E00F82C83 /* ImageLoader.h */; };
 		08A484770E5272C500C3FE76 /* ScriptElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08A484750E5272C500C3FE76 /* ScriptElement.cpp */; };
 		08A484780E5272C500C3FE76 /* ScriptElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 08A484760E5272C500C3FE76 /* ScriptElement.h */; };
 		08E4FE460E2BD41400F4CAE0 /* JSSVGLengthCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08E4FE450E2BD41400F4CAE0 /* JSSVGLengthCustom.cpp */; };
@@ -2342,6 +2344,7 @@
 		A8C4A80D09D563270003AC8D /* Attr.h in Headers */ = {isa = PBXBuildFile; fileRef = A8C4A7FB09D563270003AC8D /* Attr.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A8C4A80E09D563270003AC8D /* Attr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A8C4A7FC09D563270003AC8D /* Attr.cpp */; };
 		A8C4A84C09D5649D0003AC8D /* MappedAttributeEntry.h in Headers */ = {isa = PBXBuildFile; fileRef = A8C4A84B09D5649D0003AC8D /* MappedAttributeEntry.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		A8CB413E0E8633FD0032C4F0 /* DashArray.h in Headers */ = {isa = PBXBuildFile; fileRef = A8CB41020E85B8A50032C4F0 /* DashArray.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A8CFF04D0A154F09000A4234 /* FixedTableLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A8CFF0480A154F09000A4234 /* FixedTableLayout.cpp */; };
 		A8CFF04E0A154F09000A4234 /* AutoTableLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = A8CFF0490A154F09000A4234 /* AutoTableLayout.h */; };
 		A8CFF04F0A154F09000A4234 /* FixedTableLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = A8CFF04A0A154F09000A4234 /* FixedTableLayout.h */; };
@@ -3878,7 +3881,6 @@
 		BC8243E90D0CFD7500460C8F /* WindowFeatures.h in Headers */ = {isa = PBXBuildFile; fileRef = BC8243E70D0CFD7500460C8F /* WindowFeatures.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC84B1410E80A16D00841D6D /* ScrollbarMac.h in Headers */ = {isa = PBXBuildFile; fileRef = BC84B13F0E80A16D00841D6D /* ScrollbarMac.h */; };
 		BC84B1420E80A16D00841D6D /* ScrollbarMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = BC84B1400E80A16D00841D6D /* ScrollbarMac.mm */; };
-		BC8B853D0E7C7F1100AB6984 /* ScrollbarThemeMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC8B853B0E7C7F1100AB6984 /* ScrollbarThemeMac.cpp */; };
 		BC8B853E0E7C7F1100AB6984 /* ScrollbarThemeMac.h in Headers */ = {isa = PBXBuildFile; fileRef = BC8B853C0E7C7F1100AB6984 /* ScrollbarThemeMac.h */; };
 		BC8B854B0E7C7F5600AB6984 /* ScrollbarTheme.h in Headers */ = {isa = PBXBuildFile; fileRef = BC8B854A0E7C7F5600AB6984 /* ScrollbarTheme.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BC8C8FAD0DDCD31B00B592F4 /* RenderStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC8C8FAB0DDCD31B00B592F4 /* RenderStyle.cpp */; };
@@ -4063,6 +4065,7 @@
 		BCEF45E90E687767001C1287 /* TextMetrics.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEF45E80E687767001C1287 /* TextMetrics.h */; };
 		BCEF45F50E687B5C001C1287 /* JSTextMetrics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCEF45F30E687B5C001C1287 /* JSTextMetrics.cpp */; };
 		BCEF45F60E687B5C001C1287 /* JSTextMetrics.h in Headers */ = {isa = PBXBuildFile; fileRef = BCEF45F40E687B5C001C1287 /* JSTextMetrics.h */; };
+		BCEF869F0E844E9D00A85CD5 /* ScrollbarThemeMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = BCEF869E0E844E9D00A85CD5 /* ScrollbarThemeMac.mm */; };
 		BCEFAF4E0C317E6900FA81F6 /* JSEventCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCEFAF4D0C317E6900FA81F6 /* JSEventCustom.cpp */; };
 		BCEFE1E50DCA5F3300739219 /* JSXSLTProcessorCustom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCEFE1E40DCA5F3300739219 /* JSXSLTProcessorCustom.cpp */; };
 		BCEFE1EA0DCA5F6400739219 /* JSXSLTProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BCEFE1E80DCA5F6400739219 /* JSXSLTProcessor.cpp */; };
@@ -4659,6 +4662,8 @@
 		066C772F0AB603FD00238CC4 /* RenderFileUploadControl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RenderFileUploadControl.h; sourceTree = "<group>"; };
 		06E81ED60AB5D5E900C87837 /* LocalCurrentGraphicsContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocalCurrentGraphicsContext.h; sourceTree = "<group>"; };
 		06E81EEB0AB5DA9700C87837 /* LocalCurrentGraphicsContext.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = LocalCurrentGraphicsContext.mm; sourceTree = "<group>"; };
+		089582530E857A7E00F82C83 /* ImageLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImageLoader.cpp; sourceTree = "<group>"; };
+		089582540E857A7E00F82C83 /* ImageLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageLoader.h; sourceTree = "<group>"; };
 		08A484750E5272C500C3FE76 /* ScriptElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScriptElement.cpp; sourceTree = "<group>"; };
 		08A484760E5272C500C3FE76 /* ScriptElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptElement.h; sourceTree = "<group>"; };
 		08E4FE450E2BD41400F4CAE0 /* JSSVGLengthCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSSVGLengthCustom.cpp; sourceTree = "<group>"; };
@@ -6821,6 +6826,7 @@
 		A8C4A7FB09D563270003AC8D /* Attr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Attr.h; sourceTree = "<group>"; };
 		A8C4A7FC09D563270003AC8D /* Attr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Attr.cpp; sourceTree = "<group>"; };
 		A8C4A84B09D5649D0003AC8D /* MappedAttributeEntry.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MappedAttributeEntry.h; sourceTree = "<group>"; };
+		A8CB41020E85B8A50032C4F0 /* DashArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DashArray.h; sourceTree = "<group>"; };
 		A8CFF0480A154F09000A4234 /* FixedTableLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = FixedTableLayout.cpp; sourceTree = "<group>"; };
 		A8CFF0490A154F09000A4234 /* AutoTableLayout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AutoTableLayout.h; sourceTree = "<group>"; };
 		A8CFF04A0A154F09000A4234 /* FixedTableLayout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FixedTableLayout.h; sourceTree = "<group>"; };
@@ -8397,7 +8403,6 @@
 		BC8243E70D0CFD7500460C8F /* WindowFeatures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WindowFeatures.h; sourceTree = "<group>"; };
 		BC84B13F0E80A16D00841D6D /* ScrollbarMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollbarMac.h; sourceTree = "<group>"; };
 		BC84B1400E80A16D00841D6D /* ScrollbarMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollbarMac.mm; sourceTree = "<group>"; };
-		BC8B853B0E7C7F1100AB6984 /* ScrollbarThemeMac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollbarThemeMac.cpp; sourceTree = "<group>"; };
 		BC8B853C0E7C7F1100AB6984 /* ScrollbarThemeMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollbarThemeMac.h; sourceTree = "<group>"; };
 		BC8B854A0E7C7F5600AB6984 /* ScrollbarTheme.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollbarTheme.h; sourceTree = "<group>"; };
 		BC8C8FAB0DDCD31B00B592F4 /* RenderStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderStyle.cpp; path = style/RenderStyle.cpp; sourceTree = "<group>"; };
@@ -8591,6 +8596,7 @@
 		BCEF45E80E687767001C1287 /* TextMetrics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextMetrics.h; sourceTree = "<group>"; };
 		BCEF45F30E687B5C001C1287 /* JSTextMetrics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSTextMetrics.cpp; sourceTree = "<group>"; };
 		BCEF45F40E687B5C001C1287 /* JSTextMetrics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSTextMetrics.h; sourceTree = "<group>"; };
+		BCEF869E0E844E9D00A85CD5 /* ScrollbarThemeMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ScrollbarThemeMac.mm; sourceTree = "<group>"; };
 		BCEFAF4D0C317E6900FA81F6 /* JSEventCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = JSEventCustom.cpp; sourceTree = "<group>"; };
 		BCEFE1DC0DCA5CFD00739219 /* XSLTProcessor.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = XSLTProcessor.idl; sourceTree = "<group>"; };
 		BCEFE1E40DCA5F3300739219 /* JSXSLTProcessorCustom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSXSLTProcessorCustom.cpp; sourceTree = "<group>"; };
@@ -9361,6 +9367,7 @@
 		6582A14809999D6C00BEEB6D /* mac */ = {
 			isa = PBXGroup;
 			children = (
+				BCEF869E0E844E9D00A85CD5 /* ScrollbarThemeMac.mm */,
 				BC84B13F0E80A16D00841D6D /* ScrollbarMac.h */,
 				BC84B1400E80A16D00841D6D /* ScrollbarMac.mm */,
 				51E1ECAD0C91C54600DC255B /* AutodrainedPool.mm */,
@@ -9393,7 +9400,6 @@
 				0668E18E0ADD9640004128E0 /* PopupMenuMac.mm */,
 				1CE24F960D7CAF0E007E04C2 /* SchedulePairMac.mm */,
 				BCAA90C20A7EBA60008B1229 /* Scrollbar.cpp */,
-				BC8B853B0E7C7F1100AB6984 /* ScrollbarThemeMac.cpp */,
 				BC8B853C0E7C7F1100AB6984 /* ScrollbarThemeMac.h */,
 				9353676A09AED88B00D35CD6 /* ScrollViewMac.mm */,
 				AB71709F0B31193B0017123E /* SearchPopupMenuMac.mm */,
@@ -12440,6 +12446,7 @@
 				A89943260B42338700D7C802 /* BitmapImage.h */,
 				B27535380B053814002CE64F /* Color.cpp */,
 				B27535390B053814002CE64F /* Color.h */,
+				A8CB41020E85B8A50032C4F0 /* DashArray.h */,
 				B275353A0B053814002CE64F /* FloatPoint.cpp */,
 				B275353B0B053814002CE64F /* FloatPoint.h */,
 				B2E27C9D0B0F2B0900F17C7B /* FloatPoint3D.cpp */,
@@ -12979,6 +12986,8 @@
 				51C81B880C4422F70019ECE3 /* FTPDirectoryParser.h */,
 				1A820D8F0A13EBA600AF843C /* ImageDocument.cpp */,
 				1A820D900A13EBA600AF843C /* ImageDocument.h */,
+				089582530E857A7E00F82C83 /* ImageLoader.cpp */,
+				089582540E857A7E00F82C83 /* ImageLoader.h */,
 				BCB16C130979C3BD00467741 /* loader.cpp */,
 				BCB16C140979C3BD00467741 /* loader.h */,
 				93E227DC0AF589AD00D48324 /* MainResourceLoader.cpp */,
@@ -15845,6 +15854,8 @@
 				BC2274790E8366E200E7F975 /* SVGRenderStyle.h in Headers */,
 				BC22747B0E8366E200E7F975 /* SVGRenderStyleDefs.h in Headers */,
 				B2F34FE60E82F81400F627CD /* DNS.h in Headers */,
+				089582560E857A7E00F82C83 /* ImageLoader.h in Headers */,
+				A8CB413E0E8633FD0032C4F0 /* DashArray.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -17646,7 +17657,6 @@
 				E47B4BE90E71241600038854 /* CachedResourceHandle.cpp in Sources */,
 				63459C660E79CD33008ADFAF /* CSSNthSelector.cpp in Sources */,
 				29FFBB820E7C5A3D00407730 /* AccessibilityList.cpp in Sources */,
-				BC8B853D0E7C7F1100AB6984 /* ScrollbarThemeMac.cpp in Sources */,
 				54C50F7B0E801DF3009832A0 /* XMLTokenizerLibxml2.cpp in Sources */,
 				BC84B1420E80A16D00841D6D /* ScrollbarMac.mm in Sources */,
 				BC5EB5E70E81BFEF00B25965 /* StyleSurroundData.cpp in Sources */,
@@ -17678,6 +17688,8 @@
 				BC2274780E8366E200E7F975 /* SVGRenderStyle.cpp in Sources */,
 				BC22747A0E8366E200E7F975 /* SVGRenderStyleDefs.cpp in Sources */,
 				B2F34FE90E82F82700F627CD /* DNSCFNet.cpp in Sources */,
+				BCEF869F0E844E9D00A85CD5 /* ScrollbarThemeMac.mm in Sources */,
+				089582550E857A7E00F82C83 /* ImageLoader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -52,10 +52,10 @@ bool ScrollbarThemeBal::paint(Scrollbar* scrollbar, GraphicsContext* graphicsCon
     if (hasButtons(scrollbar)) {
         backButtonPaintRect = backButtonRect(scrollbar, true);
         if (damageRect.intersects(backButtonPaintRect))
-            scrollMask |= BackButtonPart;
+            scrollMask |= BackButtonStartPart;
         forwardButtonPaintRect = forwardButtonRect(scrollbar, true);
         if (damageRect.intersects(forwardButtonPaintRect))
-            scrollMask |= ForwardButtonPart;
+            scrollMask |= ForwardButtonStartPart;
     }
 
     IntRect startTrackRect;
@@ -97,10 +97,10 @@ bool ScrollbarThemeBal::paint(Scrollbar* scrollbar, GraphicsContext* graphicsCon
     }
 
     // Paint the back and forward buttons.
-    if (scrollMask & BackButtonPart)
-        paintButton(graphicsContext, scrollbar, backButtonPaintRect, BackButtonPart);
-    if (scrollMask & ForwardButtonPart)
-        paintButton(graphicsContext, scrollbar, forwardButtonPaintRect, ForwardButtonPart);
+    if (scrollMask & BackButtonStartPart)
+        paintButton(graphicsContext, scrollbar, backButtonPaintRect, BackButtonStartPart);
+    if (scrollMask & ForwardButtonStartPart)
+        paintButton(graphicsContext, scrollbar, forwardButtonPaintRect, ForwardButtonStartPart);
     
     // Paint the thumb.
     if (scrollMask & ThumbPart)
@@ -205,7 +205,7 @@ void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollb
     context->drawRect(rect);
     context->fillRect(rect, Color::gray);
 
-    bool start = mask & BackButtonPart;
+    bool start = mask & BackButtonStartPart;
     if (start) {
         if (scrollbar->orientation() == HorizontalScrollbar) {
             context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint(rect.x(), (rect.bottom() + rect.y())/2));

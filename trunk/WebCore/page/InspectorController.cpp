@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2008 Matt Lilek <webkit@mattlilek.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +45,7 @@
 #include "FrameTree.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
+#include "HitTestResult.h"
 #include "HTMLFrameOwnerElement.h"
 #include "InspectorClient.h"
 #include "JavaScriptCallFrame.h"
@@ -392,6 +394,45 @@ private:
 
 // JavaScript Callbacks
 
+#define SIMPLE_INSPECTOR_CALLBACK(jsFunction, inspectorControllerMethod) \
+static JSValueRef jsFunction(JSContextRef ctx, JSObjectRef, JSObjectRef thisObject, size_t, const JSValueRef[], JSValueRef*) \
+{ \
+    if (InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject))) \
+        controller->inspectorControllerMethod(); \
+    return JSValueMakeUndefined(ctx); \
+}
+
+SIMPLE_INSPECTOR_CALLBACK(hideDOMNodeHighlight, hideHighlight);
+SIMPLE_INSPECTOR_CALLBACK(loaded, scriptObjectReady);
+SIMPLE_INSPECTOR_CALLBACK(unloading, close);
+SIMPLE_INSPECTOR_CALLBACK(attach, attachWindow);
+SIMPLE_INSPECTOR_CALLBACK(detach, detachWindow);
+SIMPLE_INSPECTOR_CALLBACK(startDebuggingAndReloadInspectedPage, startDebuggingAndReloadInspectedPage);
+SIMPLE_INSPECTOR_CALLBACK(stopDebugging, stopDebugging);
+SIMPLE_INSPECTOR_CALLBACK(pauseInDebugger, pauseInDebugger);
+SIMPLE_INSPECTOR_CALLBACK(resumeDebugger, resumeDebugger);
+SIMPLE_INSPECTOR_CALLBACK(stepOverStatementInDebugger, stepOverStatementInDebugger);
+SIMPLE_INSPECTOR_CALLBACK(stepIntoStatementInDebugger, stepIntoStatementInDebugger);
+SIMPLE_INSPECTOR_CALLBACK(stepOutOfFunctionInDebugger, stepOutOfFunctionInDebugger);
+SIMPLE_INSPECTOR_CALLBACK(closeWindow, closeWindow);
+SIMPLE_INSPECTOR_CALLBACK(clearMessages, clearConsoleMessages);
+SIMPLE_INSPECTOR_CALLBACK(startProfiling, startUserInitiatedProfiling);
+SIMPLE_INSPECTOR_CALLBACK(stopProfiling, stopUserInitiatedProfiling);
+SIMPLE_INSPECTOR_CALLBACK(toggleNodeSearch, toggleSearchForNodeInPage);
+
+#define BOOL_INSPECTOR_CALLBACK(jsFunction, inspectorControllerMethod) \
+static JSValueRef jsFunction(JSContextRef ctx, JSObjectRef, JSObjectRef thisObject, size_t, const JSValueRef[], JSValueRef*) \
+{ \
+    if (InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject))) \
+        return JSValueMakeBoolean(ctx, controller->inspectorControllerMethod()); \
+    return JSValueMakeUndefined(ctx); \
+}
+
+BOOL_INSPECTOR_CALLBACK(debuggerAttached, debuggerAttached);
+BOOL_INSPECTOR_CALLBACK(pauseOnExceptions, pauseOnExceptions);
+BOOL_INSPECTOR_CALLBACK(isWindowVisible, windowVisible);
+BOOL_INSPECTOR_CALLBACK(searchingForNode, searchingForNodeInPage);
+
 static bool addSourceToFrame(const String& mimeType, const String& source, Node* frameNode)
 {
     ASSERT_ARG(frameNode, frameNode);
@@ -542,46 +583,6 @@ static JSValueRef highlightDOMNode(JSContextRef context, JSObjectRef /*function*
     controller->highlight(node);
 
     return undefined;
-}
-
-static JSValueRef hideDOMNodeHighlight(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments[]*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->hideHighlight();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef loaded(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments[]*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->scriptObjectReady();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef unloading(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments[]*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->close();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef attach(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments[]*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->attachWindow();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef detach(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments[]*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->detachWindow();
-    return JSValueMakeUndefined(ctx);
 }
 
 static JSValueRef search(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
@@ -807,30 +808,6 @@ static JSValueRef wrapCallback(JSContextRef ctx, JSObjectRef /*function*/, JSObj
     return toRef(JSInspectorCallbackWrapper::wrap(toJS(ctx), toJS(arguments[0])));
 }
 
-static JSValueRef startDebuggingAndReloadInspectedPage(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->startDebuggingAndReloadInspectedPage();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef stopDebugging(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->stopDebugging();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef debuggerAttached(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (!controller)
-        return JSValueMakeUndefined(ctx);
-    return JSValueMakeBoolean(ctx, controller->debuggerAttached());
-}
-
 static JSValueRef currentCallFrame(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
 {
     InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
@@ -847,14 +824,6 @@ static JSValueRef currentCallFrame(JSContextRef ctx, JSObjectRef /*function*/, J
     return toRef(JSInspectedObjectWrapper::wrap(globalExec, toJS(toJS(ctx), callFrame)));
 }
 
-static JSValueRef pauseOnExceptions(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (!controller)
-        return JSValueMakeUndefined(ctx);
-    return JSValueMakeBoolean(ctx, controller->pauseOnExceptions());
-}
-
 static JSValueRef setPauseOnExceptions(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* /*exception*/)
 {
     InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
@@ -866,46 +835,6 @@ static JSValueRef setPauseOnExceptions(JSContextRef ctx, JSObjectRef /*function*
 
     controller->setPauseOnExceptions(JSValueToBoolean(ctx, arguments[0]));
 
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef pauseInDebugger(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->pauseInDebugger();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef resumeDebugger(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->resumeDebugger();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef stepOverStatementInDebugger(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->stepOverStatementInDebugger();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef stepIntoStatementInDebugger(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->stepIntoStatementInDebugger();
-    return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef stepOutOfFunctionInDebugger(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->stepOutOfFunctionInDebugger();
     return JSValueMakeUndefined(ctx);
 }
 
@@ -953,24 +882,6 @@ static JSValueRef removeBreakpoint(JSContextRef ctx, JSObjectRef /*function*/, J
     return JSValueMakeUndefined(ctx);
 }
 
-static JSValueRef isWindowVisible(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (!controller)
-        return JSValueMakeUndefined(ctx);
-    return JSValueMakeBoolean(ctx, controller->windowVisible());
-}
-
-static JSValueRef closeWindow(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->closeWindow();
-    return JSValueMakeUndefined(ctx);
-}
-
-// Profiles
-
 static JSValueRef profiles(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* exception)
 {
     InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
@@ -1013,34 +924,6 @@ static JSValueRef profiles(JSContextRef ctx, JSObjectRef /*function*/, JSObjectR
     return result;
 }
 
-static JSValueRef clearMessages(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->clearConsoleMessages();
-
-    return JSValueMakeUndefined(ctx);
-}
-
-
-static JSValueRef startProfiling(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->startUserInitiatedProfiling();
-
-   return JSValueMakeUndefined(ctx);
-}
-
-static JSValueRef stopProfiling(JSContextRef ctx, JSObjectRef /*function*/, JSObjectRef thisObject, size_t /*argumentCount*/, const JSValueRef[] /*arguments*/, JSValueRef* /*exception*/)
-{
-    InspectorController* controller = reinterpret_cast<InspectorController*>(JSObjectGetPrivate(thisObject));
-    if (controller)
-        controller->stopUserInitiatedProfiling();
-
-    return JSValueMakeUndefined(ctx);
-}
-
 // InspectorController Class
 
 InspectorController::InspectorController(Page* page, InspectorClient* client)
@@ -1057,6 +940,7 @@ InspectorController::InspectorController(Page* page, InspectorClient* client)
     , m_showAfterVisible(ElementsPanel)
     , m_nextIdentifier(-2)
     , m_groupLevel(0)
+    , m_searchingForNode(false)
 {
     ASSERT_ARG(page, page);
     ASSERT_ARG(client, client);
@@ -1337,6 +1221,40 @@ void InspectorController::setAttachedWindowHeight(unsigned height)
     m_client->setAttachedWindowHeight(height);
 }
 
+void InspectorController::toggleSearchForNodeInPage()
+{
+    if (!enabled())
+        return;
+
+    m_searchingForNode = !m_searchingForNode;
+    if (!m_searchingForNode)
+        hideHighlight();
+}
+
+void InspectorController::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)
+{
+    if (!enabled() || !m_searchingForNode)
+        return;
+
+    Node* node = result.innerNode();
+    if (node)
+        highlight(node);
+}
+
+void InspectorController::handleMousePressOnNode(Node* node)
+{
+    if (!enabled())
+        return;
+
+    ASSERT(m_searchingForNode);
+    ASSERT(node);
+    if (!node)
+        return;
+
+    // inspect() will implicitly call ElementsPanel's focusedNodeChanged() and the hover feedback will be stopped there.
+    inspect(node);
+}
+
 void InspectorController::inspectedWindowScriptObjectCleared(Frame* frame)
 {
     if (!enabled() || !m_scriptContext || !m_scriptObject)
@@ -1367,44 +1285,51 @@ void InspectorController::windowScriptObjectAvailable()
     ASSERT(global);
 
     static JSStaticFunction staticFunctions[] = {
-        { "addResourceSourceToFrame", addResourceSourceToFrame, kJSPropertyAttributeNone },
-        { "addSourceToFrame", addSourceToFrame, kJSPropertyAttributeNone },
-        { "getResourceDocumentNode", getResourceDocumentNode, kJSPropertyAttributeNone },
-        { "highlightDOMNode", highlightDOMNode, kJSPropertyAttributeNone },
-        { "hideDOMNodeHighlight", hideDOMNodeHighlight, kJSPropertyAttributeNone },
-        { "loaded", loaded, kJSPropertyAttributeNone },
-        { "windowUnloading", unloading, kJSPropertyAttributeNone },
-        { "attach", attach, kJSPropertyAttributeNone },
-        { "detach", detach, kJSPropertyAttributeNone },
-        { "search", search, kJSPropertyAttributeNone },
-#if ENABLE(DATABASE)
-        { "databaseTableNames", databaseTableNames, kJSPropertyAttributeNone },
-#endif
-        { "inspectedWindow", inspectedWindow, kJSPropertyAttributeNone },
-        { "localizedStringsURL", localizedStrings, kJSPropertyAttributeNone },
-        { "platform", platform, kJSPropertyAttributeNone },
-        { "moveByUnrestricted", moveByUnrestricted, kJSPropertyAttributeNone },
-        { "setAttachedWindowHeight", WebCore::setAttachedWindowHeight, kJSPropertyAttributeNone },
-        { "wrapCallback", wrapCallback, kJSPropertyAttributeNone },
+        // SIMPLE_INSPECTOR_CALLBACK
+        { "hideDOMNodeHighlight", WebCore::hideDOMNodeHighlight, kJSPropertyAttributeNone },
+        { "loaded", WebCore::loaded, kJSPropertyAttributeNone },
+        { "windowUnloading", WebCore::unloading, kJSPropertyAttributeNone },
+        { "attach", WebCore::attach, kJSPropertyAttributeNone },
+        { "detach", WebCore::detach, kJSPropertyAttributeNone },
         { "startDebuggingAndReloadInspectedPage", WebCore::startDebuggingAndReloadInspectedPage, kJSPropertyAttributeNone },
         { "stopDebugging", WebCore::stopDebugging, kJSPropertyAttributeNone },
-        { "debuggerAttached", WebCore::debuggerAttached, kJSPropertyAttributeNone },
-        { "profiles", WebCore::profiles, kJSPropertyAttributeNone },
-        { "currentCallFrame", WebCore::currentCallFrame, kJSPropertyAttributeNone },
-        { "pauseOnExceptions", WebCore::pauseOnExceptions, kJSPropertyAttributeNone },
-        { "setPauseOnExceptions", WebCore::setPauseOnExceptions, kJSPropertyAttributeNone },
         { "pauseInDebugger", WebCore::pauseInDebugger, kJSPropertyAttributeNone },
         { "resumeDebugger", WebCore::resumeDebugger, kJSPropertyAttributeNone },
         { "stepOverStatementInDebugger", WebCore::stepOverStatementInDebugger, kJSPropertyAttributeNone },
         { "stepIntoStatementInDebugger", WebCore::stepIntoStatementInDebugger, kJSPropertyAttributeNone },
         { "stepOutOfFunctionInDebugger", WebCore::stepOutOfFunctionInDebugger, kJSPropertyAttributeNone },
-        { "addBreakpoint", WebCore::addBreakpoint, kJSPropertyAttributeNone },
-        { "removeBreakpoint", WebCore::removeBreakpoint, kJSPropertyAttributeNone },
-        { "isWindowVisible", WebCore::isWindowVisible, kJSPropertyAttributeNone },
         { "closeWindow", WebCore::closeWindow, kJSPropertyAttributeNone },
+        { "clearMessages", WebCore::clearMessages, kJSPropertyAttributeNone },
         { "startProfiling", WebCore::startProfiling, kJSPropertyAttributeNone },
         { "stopProfiling", WebCore::stopProfiling, kJSPropertyAttributeNone },
-        { "clearMessages", clearMessages, kJSPropertyAttributeNone },
+        { "toggleNodeSearch", WebCore::toggleNodeSearch, kJSPropertyAttributeNone },
+
+        // BOOL_INSPECTOR_CALLBACK
+        { "debuggerAttached", WebCore::debuggerAttached, kJSPropertyAttributeNone },
+        { "pauseOnExceptions", WebCore::pauseOnExceptions, kJSPropertyAttributeNone },
+        { "isWindowVisible", WebCore::isWindowVisible, kJSPropertyAttributeNone },
+        { "searchingForNode", WebCore::searchingForNode, kJSPropertyAttributeNone },
+
+        // Custom callbacks
+        { "addResourceSourceToFrame", WebCore::addResourceSourceToFrame, kJSPropertyAttributeNone },
+        { "addSourceToFrame", WebCore::addSourceToFrame, kJSPropertyAttributeNone },
+        { "getResourceDocumentNode", WebCore::getResourceDocumentNode, kJSPropertyAttributeNone },
+        { "highlightDOMNode", WebCore::highlightDOMNode, kJSPropertyAttributeNone },
+        { "search", WebCore::search, kJSPropertyAttributeNone },
+#if ENABLE(DATABASE)
+        { "databaseTableNames", WebCore::databaseTableNames, kJSPropertyAttributeNone },
+#endif
+        { "inspectedWindow", WebCore::inspectedWindow, kJSPropertyAttributeNone },
+        { "localizedStringsURL", WebCore::localizedStrings, kJSPropertyAttributeNone },
+        { "platform", WebCore::platform, kJSPropertyAttributeNone },
+        { "moveByUnrestricted", WebCore::moveByUnrestricted, kJSPropertyAttributeNone },
+        { "setAttachedWindowHeight", WebCore::setAttachedWindowHeight, kJSPropertyAttributeNone },
+        { "wrapCallback", WebCore::wrapCallback, kJSPropertyAttributeNone },
+        { "currentCallFrame", WebCore::currentCallFrame, kJSPropertyAttributeNone },
+        { "setPauseOnExceptions", WebCore::setPauseOnExceptions, kJSPropertyAttributeNone },
+        { "addBreakpoint", WebCore::addBreakpoint, kJSPropertyAttributeNone },
+        { "removeBreakpoint", WebCore::removeBreakpoint, kJSPropertyAttributeNone },
+        { "profiles", WebCore::profiles, kJSPropertyAttributeNone },
         { 0, 0, 0 }
     };
 

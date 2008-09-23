@@ -27,6 +27,7 @@
 #include "JSFunction.h"
 #include "JSString.h"
 #include "ObjectPrototype.h"
+#include "RegExpMatchesArray.h"
 #include "RegExpObject.h"
 #include "RegExpPrototype.h"
 #include "regexp.h"
@@ -78,8 +79,8 @@ struct RegExpConstructorPrivate {
     bool multiline : 1;
 };
 
-RegExpConstructor::RegExpConstructor(ExecState* exec, FunctionPrototype* functionPrototype, RegExpPrototype* regExpPrototype)
-    : InternalFunction(exec, functionPrototype, Identifier(exec, "RegExp"))
+RegExpConstructor::RegExpConstructor(ExecState* exec, PassRefPtr<StructureID> structure, RegExpPrototype* regExpPrototype)
+    : InternalFunction(exec, structure, Identifier(exec, "RegExp"))
     , d(new RegExpConstructorPrivate)
 {
     // ECMA 15.10.5.1 RegExp.prototype
@@ -114,25 +115,8 @@ void RegExpConstructor::performMatch(RegExp* r, const UString& s, int startOffse
     }
 }
 
-class RegExpMatchesArray : public JSArray {
-public:
-    RegExpMatchesArray(ExecState*, RegExpConstructorPrivate*);
-    virtual ~RegExpMatchesArray();
-
-private:
-    virtual bool getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot) { if (lazyCreationData()) fillArrayInstance(exec); return JSArray::getOwnPropertySlot(exec, propertyName, slot); }
-    virtual bool getOwnPropertySlot(ExecState* exec, unsigned propertyName, PropertySlot& slot) { if (lazyCreationData()) fillArrayInstance(exec); return JSArray::getOwnPropertySlot(exec, propertyName, slot); }
-    virtual void put(ExecState* exec, const Identifier& propertyName, JSValue* v, PutPropertySlot& slot) { if (lazyCreationData()) fillArrayInstance(exec); JSArray::put(exec, propertyName, v, slot); }
-    virtual void put(ExecState* exec, unsigned propertyName, JSValue* v) { if (lazyCreationData()) fillArrayInstance(exec); JSArray::put(exec, propertyName, v); }
-    virtual bool deleteProperty(ExecState* exec, const Identifier& propertyName) { if (lazyCreationData()) fillArrayInstance(exec); return JSArray::deleteProperty(exec, propertyName); }
-    virtual bool deleteProperty(ExecState* exec, unsigned propertyName) { if (lazyCreationData()) fillArrayInstance(exec); return JSArray::deleteProperty(exec, propertyName); }
-    virtual void getPropertyNames(ExecState* exec, PropertyNameArray& arr) { if (lazyCreationData()) fillArrayInstance(exec); JSArray::getPropertyNames(exec, arr); }
-
-    void fillArrayInstance(ExecState*);
-};
-
 RegExpMatchesArray::RegExpMatchesArray(ExecState* exec, RegExpConstructorPrivate* data)
-    : JSArray(exec->lexicalGlobalObject()->arrayPrototype(), data->lastNumSubPatterns + 1)
+    : JSArray(exec->lexicalGlobalObject()->regExpMatchesArrayStructure(), data->lastNumSubPatterns + 1)
 {
     RegExpConstructorPrivate* d = new RegExpConstructorPrivate;
     d->input = data->lastInput;
@@ -295,7 +279,7 @@ static JSObject* constructRegExp(ExecState* exec, const ArgList& args)
     RefPtr<RegExp> regExp = RegExp::create(exec, pattern, flags);
     if (!regExp->isValid())
         return throwError(exec, SyntaxError, UString("Invalid regular expression: ").append(regExp->errorMessage()));
-    return new (exec) RegExpObject(exec->lexicalGlobalObject()->regExpPrototype(), regExp.release());
+    return new (exec) RegExpObject(exec->lexicalGlobalObject()->regExpStructure(), regExp.release());
 }
 
 static JSObject* constructWithRegExpConstructor(ExecState* exec, JSObject*, const ArgList& args)

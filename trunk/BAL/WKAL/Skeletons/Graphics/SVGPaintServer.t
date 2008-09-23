@@ -200,6 +200,16 @@ namespace WKAL {
      */
     SVGPaintServer* getPaintServerById(Document*, const AtomicString&);
 
+
+    /**
+     *  applyStrokeStyleToContext description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void applyStrokeStyleToContext(GraphicsContext*, RenderStyle*, const RenderObject*);
+
     /**
      * get dashArray from rendering style
      */
@@ -209,7 +219,6 @@ namespace WKAL {
 #endif
 
 #endif // SVGPaintServer_h
-
 
 
 

@@ -326,10 +326,10 @@ ScrollbarPart ScrollbarSDL::hitTest(const PlatformMouseEvent& evt)
 
     if (hasButtons()) {
         if (backButtonRect().contains(mousePosition))
-            return BackButtonPart;
+            return BackButtonStartPart;
 
         if (forwardButtonRect().contains(mousePosition))
-            return ForwardButtonPart;
+            return ForwardButtonStartPart;
     }
 
     if (!hasThumb())
@@ -356,10 +356,10 @@ void ScrollbarSDL::invalidatePart(ScrollbarPart part)
 
     IntRect result;    
     switch (part) {
-        case BackButtonPart:
+        case BackButtonStartPart:
             result = buttonRepaintRect(backButtonRect(), m_orientation, controlSize(), true);
             break;
-        case ForwardButtonPart:
+        case ForwardButtonStartPart:
             result = buttonRepaintRect(forwardButtonRect(), m_orientation, controlSize(), false);
             break;
         default: {

@@ -712,6 +712,14 @@ void GraphicsContext::setLineCap(LineCap lineCap)
     NotImplemented();
 }
 
+void GraphicsContext::setLineDash(const DashArray&, float dashOffset)
+{
+    if (paintingDisabled())
+        return;
+
+    NotImplemented();
+}
+
 void GraphicsContext::setLineJoin(LineJoin lineJoin)
 {
     if (paintingDisabled())

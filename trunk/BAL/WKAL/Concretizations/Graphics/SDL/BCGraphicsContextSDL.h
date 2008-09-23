@@ -29,6 +29,7 @@
 #ifndef GraphicsContext_h
 #define GraphicsContext_h
 
+#include "DashArray.h"
 #include "FloatRect.h"
 #include "Image.h"
 #include "IntRect.h"
@@ -73,7 +74,7 @@ namespace WKAL {
         InterpolationDefault,
         InterpolationNone,
         InterpolationLow,
-	InterpolationMedium,
+        InterpolationMedium,
         InterpolationHigh
     };
 
@@ -93,14 +94,14 @@ namespace WKAL {
         void setStrokeStyle(const StrokeStyle& style);
         Color strokeColor() const;
         void setStrokeColor(const Color&);
-	void setStrokePattern(PassRefPtr<Pattern>);
+        void setStrokePattern(PassRefPtr<Pattern>);
         void setStrokeGradient(PassRefPtr<Gradient>);
 
         WindRule fillRule() const;
-	void setFillRule(WindRule);
+        void setFillRule(WindRule);
         Color fillColor() const;
         void setFillColor(const Color&);
-	void setFillPattern(PassRefPtr<Pattern>);
+        void setFillPattern(PassRefPtr<Pattern>);
         void setFillGradient(PassRefPtr<Gradient>);
 
         void save();
@@ -156,7 +157,7 @@ namespace WKAL {
         void setTextDrawingMode(int);
 
         void drawText(const TextRun&, const IntPoint&, int from = 0, int to = -1);
-	void drawBidiText(const TextRun&, const FloatPoint&);
+        void drawBidiText(const TextRun&, const FloatPoint&);
         void drawHighlightForText(const TextRun&, const IntPoint&, int h, const Color& backgroundColor, int from = 0, int to = -1);
 
         FloatRect roundToDevicePixels(const FloatRect&);
@@ -184,6 +185,7 @@ namespace WKAL {
         IntRect focusRingBoundingRect();
 
         void setLineCap(LineCap);
+        void setLineDash(const DashArray&, float dashOffset);
         void setLineJoin(LineJoin);
         void setMiterLimit(float);
 
@@ -219,16 +221,16 @@ namespace WKAL {
         void restorePlatformState();
 
         void setPlatformTextDrawingMode(int);
-	void setPlatformFont(const Font& font);
+        void setPlatformFont(const Font& font);
 
         void setPlatformStrokeColor(const Color&);
-	void setPlatformStrokePattern(Pattern*);
+        void setPlatformStrokePattern(Pattern*);
         void setPlatformStrokeGradient(Gradient*);
         void setPlatformStrokeStyle(const StrokeStyle&);
         void setPlatformStrokeThickness(float);
 
         void setPlatformFillColor(const Color&);
-	void setPlatformFillPattern(Pattern*);
+        void setPlatformFillPattern(Pattern*);
         void setPlatformFillGradient(Gradient*);
 
         void setPlatformShadow(const IntSize&, int blur, const Color&);

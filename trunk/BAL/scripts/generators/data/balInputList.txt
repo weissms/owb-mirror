@@ -74,6 +74,7 @@
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/AffineTransform.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/BitmapImage.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/Color.h
+../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/DashArray.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatPoint3D.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatPoint.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatRect.h
@@ -129,6 +130,7 @@
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/BitmapImage.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/Color.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/Color.cpp
+../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/DashArray.h
 ../../WKAL/Concretizations/Graphics/Gtk	../../../WebCore/platform/graphics/gtk/ColorGtk.cpp	BCColorGtk.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/FloatPoint3D.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/FloatPoint3D.cpp
