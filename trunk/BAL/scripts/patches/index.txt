@@ -40,3 +40,4 @@
 ../../WKAL/Concretizations/Widgets/Gtk/BCFrameGtk.cpp	_:FrameGtk.patch
 ../../WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp	0:PasteboardHelperGtk.patch
 ../../WKAL/Concretizations/Widgets/WK/BCWidgetWK.h	_:Widget.patch
+BAL/WKAL/Concretizations/Widgets/WK/BCContextMenuWK.cpp	_:ContextMenu.patch

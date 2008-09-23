@@ -1,3 +1,20 @@
+2008-09-23  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Set Inspector as optional.
+
+        * ChangeLogOWB:
+        * WKAL/Concretizations/Widgets/WK/BCContextMenuWK.cpp:
+        (WKAL::ContextMenu::addInspectElementItem):
+
+2008-09-22  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+        Add  #ifdef to enable/disable inspector.
+
+        * WKAL/Concretizations/Widgets/WK/BCContextMenuWK.cpp:
+        (WKAL::ContextMenu::addInspectElementItem):
+
 2008-09-20  Paul PEDRIANA  <ppedriana@gmail.com>
 
         Reviewed by Olivier DOLE.

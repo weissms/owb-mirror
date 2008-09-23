@@ -27,7 +27,6 @@ LIST (APPEND PAGE_SRC
     page/FrameTree.cpp
     page/FrameView.cpp
     page/History.cpp
-    page/InspectorController.cpp
     page/JavaScriptDebugServer.cpp
     page/Location.cpp
     page/MouseEventWithHitTestResults.cpp
@@ -46,3 +45,8 @@ LIST (APPEND PAGE_SRC
     page/animation/ImplicitAnimation.cpp
 )
 
+IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
+    LIST (APPEND PAGE_SRC
+        page/InspectorController.cpp
+    )
+ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)

@@ -36,7 +36,6 @@
 #include "FrameTree.h"
 #include "FrameView.h"
 #include "HistoryItem.h"
-#include "InspectorController.h"
 #include "JavaScriptDebugServer.h"
 #include "Logging.h"
 #include "NetworkStateNotifier.h"
@@ -55,6 +54,10 @@
 #include <kjs/JSLock.h>
 #include <wtf/HashMap.h>
 #include <wtf/RefCountedLeakCounter.h>
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
 
 #if ENABLE(DOM_STORAGE)
 #include "LocalStorage.h"
@@ -106,7 +109,9 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_dragController(new DragController(this, dragClient))
     , m_focusController(new FocusController(this))
     , m_contextMenuController(new ContextMenuController(this, contextMenuClient))
+#if ENABLE(INSPECTOR)
     , m_inspectorController(new InspectorController(this, inspectorClient))
+#endif
     , m_settings(new Settings(this))
     , m_progress(new ProgressTracker)
     , m_backForwardList(BackForwardList::create(this))
@@ -115,7 +120,9 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_tabKeyCyclesThroughElements(true)
     , m_defersLoading(false)
     , m_inLowQualityInterpolationMode(false)
+#if ENABLE(INSPECTOR)
     , m_parentInspectorController(0)
+#endif
     , m_didLoadUserStyleSheet(false)
     , m_userStyleSheetModificationTime(0)
     , m_group(0)
@@ -151,9 +158,11 @@ Page::~Page()
     for (Frame* frame = mainFrame(); frame; frame = frame->tree()->traverseNext())
         frame->pageDestroyed();
     m_editorClient->pageDestroyed();
+#if ENABLE(INSPECTOR)
     if (m_parentInspectorController)
         m_parentInspectorController->pageDestroyed();
     m_inspectorController->inspectedPageDestroyed();
+#endif
 
     m_backForwardList->close();
 

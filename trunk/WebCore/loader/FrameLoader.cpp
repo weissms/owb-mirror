@@ -62,7 +62,6 @@
 #include "HistoryItem.h"
 #include "IconDatabase.h"
 #include "IconLoader.h"
-#include "InspectorController.h"
 #include "Logging.h"
 #include "MIMETypeRegistry.h"
 #include "MainResourceLoader.h"
@@ -88,6 +87,12 @@
 #include "ScriptController.h"
 #include <kjs/JSLock.h>
 #include <kjs/JSObject.h>
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#else
+#include "Console.h"
+#endif
 
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
 #include "ApplicationCache.h"
@@ -3370,8 +3375,10 @@ void FrameLoader::detachFromParent()
     saveScrollPositionAndViewStateToItem(currentHistoryItem());
     detachChildren();
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->frameDetachedFromParent(m_frame);
+#endif
 
     m_client->detachedFromParent2();
     setDocumentLoader(0);
@@ -3916,8 +3923,10 @@ void FrameLoader::loadedResourceFromMemoryCache(const CachedResource* resource)
     SharedBuffer* data = resource->data();
     int length = data ? data->size() : 0;
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->didLoadResourceFromMemoryCache(m_documentLoader.get(), request, response, length);
+#endif
 
     if (!resource->sendResourceLoadCallbacks() || haveToldClientAboutLoad(resource->url()))
         return;
@@ -4845,12 +4854,14 @@ void FrameLoader::dispatchWindowObjectAvailable()
 
     m_client->windowObjectCleared();
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page()) {
         if (InspectorController* inspector = page->inspectorController())
             inspector->inspectedWindowScriptObjectCleared(m_frame);
         if (InspectorController* inspector = page->parentInspectorController())
             inspector->windowScriptObjectAvailable();
     }
+#endif
 }
 
 Widget* FrameLoader::createJavaAppletWidget(const IntSize& size, Element* element, const HashMap<String, String>& args)
@@ -4965,48 +4976,60 @@ void FrameLoader::dispatchDidCommitLoad()
 
     m_client->dispatchDidCommitLoad();
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->didCommitLoad(m_documentLoader.get());
+#endif
 }
 
 void FrameLoader::dispatchAssignIdentifierToInitialRequest(unsigned long identifier, DocumentLoader* loader, const ResourceRequest& request)
 {
     m_client->assignIdentifierToInitialRequest(identifier, loader, request);
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->identifierForInitialRequest(identifier, loader, request);
+#endif
 }
 
 void FrameLoader::dispatchWillSendRequest(DocumentLoader* loader, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
 {
     m_client->dispatchWillSendRequest(loader, identifier, request, redirectResponse);
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->willSendRequest(loader, identifier, request, redirectResponse);
+#endif
 }
 
 void FrameLoader::dispatchDidReceiveResponse(DocumentLoader* loader, unsigned long identifier, const ResourceResponse& r)
 {
     m_client->dispatchDidReceiveResponse(loader, identifier, r);
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->didReceiveResponse(loader, identifier, r);
+#endif
 }
 
 void FrameLoader::dispatchDidReceiveContentLength(DocumentLoader* loader, unsigned long identifier, int length)
 {
     m_client->dispatchDidReceiveContentLength(loader, identifier, length);
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->didReceiveContentLength(loader, identifier, length);
+#endif
 }
 
 void FrameLoader::dispatchDidFinishLoading(DocumentLoader* loader, unsigned long identifier)
 {
     m_client->dispatchDidFinishLoading(loader, identifier);
 
+#if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())
         page->inspectorController()->didFinishLoading(loader, identifier);
+#endif
 }
 
 #if USE(LOW_BANDWIDTH_DISPLAY)

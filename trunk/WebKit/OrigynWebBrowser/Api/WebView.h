@@ -60,8 +60,10 @@ class WebBackForwardList;
 class WebElementPropertyBag;
 class WebFrame;
 class WebHistoryItem;
+#if ENABLE(INSPECTOR)
 class WebInspector;
 class WebInspectorClient;
+#endif
 class WebMutableURLRequest;
 class WebScriptObject;
 class WebViewPrivate;
@@ -919,10 +921,12 @@ public:
      */
     virtual void loadBackForwardListFromOtherView(WebView *otherView);
 
+#if ENABLE(INSPECTOR)
     /**
      * get inspector 
      */
     virtual WebInspector* inspector();
+#endif
 
     /**
      *  clearUndoRedoOperations 
@@ -1398,7 +1402,9 @@ protected:
     DefaultPolicyDelegate* m_policyDelegate;
     DefaultDownloadDelegate* m_downloadDelegate;
     WebPreferences* m_preferences;
+#if ENABLE(INSPECTOR)
     WebInspector* m_webInspector;
+#endif
 
     bool m_userAgentOverridden;
     bool m_useBackForwardList;

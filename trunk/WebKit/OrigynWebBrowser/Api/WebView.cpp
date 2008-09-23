@@ -42,7 +42,9 @@
 #include "WebContextMenuClient.h"
 #include "WebDragClient.h"
 #include "WebIconDatabase.h"
+#if ENABLE(INSPECTOR)
 #include "WebInspector.h"
+#endif
 #include "WebInspectorClient.h"
 #include "WebMutableURLRequest.h"
 #include "WebPreferences.h"
@@ -209,7 +211,9 @@ WebView::WebView()
 , m_policyDelegate(0)
 , m_downloadDelegate(0)
 , m_preferences(0)
+#if ENABLE(INSPECTOR)
 , m_webInspector(0)
+#endif
 , m_userAgentOverridden(false)
 , m_useBackForwardList(true)
 , m_zoomMultiplier(1.0f)
@@ -263,8 +267,10 @@ WebView::~WebView()
         m_policyDelegate = 0;
     if (m_downloadDelegate)
         delete m_downloadDelegate;
+#if ENABLE(INSPECTOR)
     if (m_webInspector)
         delete m_webInspector;
+#endif
     if (d)
         delete d;
     DS_DESTRUCT();
@@ -509,8 +515,10 @@ void WebView::close()
     if (frame)
         frame->loader()->detachFromParent();
 
+#if ENABLE(INSPECTOR)
     if (m_webInspector)
         m_webInspector->webViewClosed();
+#endif
 
     delete m_page;
     m_page = 0;
@@ -2227,7 +2235,7 @@ void WebView::setShouldApplyMacFontAscentHack(bool b)
 }
 
 
-
+#if ENABLE(INSPECTOR)
 WebInspector* WebView::inspector()
 {
     if (!m_webInspector)
@@ -2235,6 +2243,7 @@ WebInspector* WebView::inspector()
 
     return m_webInspector;
 }
+#endif
 
 void WebView::windowAncestryDidChange()
 {

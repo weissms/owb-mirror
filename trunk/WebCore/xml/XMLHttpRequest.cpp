@@ -33,7 +33,6 @@
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "HTTPParsers.h"
-#include "InspectorController.h"
 #include "JSDOMBinding.h"
 #include "KURL.h"
 #include "KURLHash.h"
@@ -48,6 +47,10 @@
 #include "markup.h"
 #include <kjs/JSLock.h>
 #include <kjs/protect.h>
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
 
 namespace WebCore {
 
@@ -1070,12 +1073,14 @@ void XMLHttpRequest::didFinishLoading(SubresourceLoader* loader)
             m_responseText += m_decoder->flush();
     }
 
+#if ENABLE(INSPECTOR)
     if (Frame* frame = m_doc->frame()) {
         if (Page* page = frame->page()) {
             page->inspectorController()->resourceRetrievedByXMLHttpRequest(m_loader ? m_loader->identifier() : m_identifier, m_responseText);
             page->inspectorController()->addMessageToConsole(JSMessageSource, LogMessageLevel, "XHR finished loading \"" + m_url + "\".", 0, m_doc->url());
         }
     }
+#endif
 
     bool hadLoader = m_loader;
     m_loader = 0;

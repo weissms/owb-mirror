@@ -427,8 +427,10 @@ void ContextMenu::addInspectElementItem()
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     if (!page->inspectorController())
         return;
+#endif
 
     ContextMenuItem InspectElementItem(ActionType, ContextMenuItemTagInspectElement, contextMenuItemTagInspectElement());
     appendItem(*separatorItem());

@@ -47,7 +47,9 @@
 #include "HitTestRequest.h"
 #include "HitTestResult.h"
 #include "GraphicsContext.h"
+#if ENABLE(INSPECTOR)
 #include "WebInspectorClient.h"
+#endif
 #include "FrameLoader.h"
 #include "FrameView.h"
 #include "Editor.h"

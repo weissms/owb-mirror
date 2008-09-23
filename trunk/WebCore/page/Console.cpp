@@ -34,7 +34,6 @@
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "FrameTree.h"
-#include "InspectorController.h"
 #include "JSDOMBinding.h"
 #include "Page.h"
 #include "PageGroup.h"
@@ -46,6 +45,10 @@
 #include <profiler/Profile.h>
 #include <profiler/Profiler.h>
 #include <stdio.h>
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
 
 using namespace JSC;
 
@@ -166,7 +169,9 @@ void Console::addMessage(MessageSource source, MessageLevel level, const String&
     if (source == JSMessageSource)
         page->chrome()->client()->addMessageToConsole(message, lineNumber, sourceURL);
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(source, level, message, lineNumber, sourceURL);
+#endif
 
     printToStandardOut(source, level, message, sourceURL, lineNumber);
 }
@@ -196,7 +201,9 @@ void Console::error(ExecState* exec, const ArgList& args)
     retrieveLastCaller(exec, url, lineNumber);
 
     page->chrome()->client()->addMessageToConsole(message, lineNumber, url.prettyURL());
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(JSMessageSource, ErrorMessageLevel, exec, args, lineNumber, url.string());
+#endif
 
     printToStandardOut(ErrorMessageLevel, exec, args, url);
 }
@@ -220,7 +227,9 @@ void Console::info(ExecState* exec, const ArgList& args)
     retrieveLastCaller(exec, url, lineNumber);
 
     page->chrome()->client()->addMessageToConsole(message, lineNumber, url.prettyURL());
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(JSMessageSource, LogMessageLevel, exec, args, lineNumber, url.string());
+#endif
 
     printToStandardOut(LogMessageLevel, exec, args, url);
 }
@@ -244,7 +253,9 @@ void Console::log(ExecState* exec, const ArgList& args)
     retrieveLastCaller(exec, url, lineNumber);
 
     page->chrome()->client()->addMessageToConsole(message, lineNumber, url.prettyURL());
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(JSMessageSource, LogMessageLevel, exec, args, lineNumber, url.string());
+#endif
 
     printToStandardOut(LogMessageLevel, exec, args, url);
 }
@@ -258,7 +269,9 @@ void Console::dir(ExecState* exec, const ArgList& args)
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(JSMessageSource, ObjectMessageLevel, exec, args, 0, String());
+#endif
 }
 
 void Console::dirxml(ExecState* exec, const ArgList& args)
@@ -273,7 +286,9 @@ void Console::dirxml(ExecState* exec, const ArgList& args)
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(JSMessageSource, NodeMessageLevel, exec, args, 0, String());
+#endif
 }
 
 void Console::assertCondition(bool condition, ExecState* exec, const ArgList& args)
@@ -295,7 +310,9 @@ void Console::assertCondition(bool condition, ExecState* exec, const ArgList& ar
     // FIXME: <https://bugs.webkit.org/show_bug.cgi?id=19135> It would be nice to prefix assertion failures with a message like "Assertion failed: ".
     // FIXME: <https://bugs.webkit.org/show_bug.cgi?id=19136> We should print a message even when args.isEmpty() is true.
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(JSMessageSource, ErrorMessageLevel, exec, args, lineNumber, url.string());
+#endif
 
     printToStandardOut(ErrorMessageLevel, exec, args, url);
 }
@@ -317,7 +334,9 @@ void Console::count(ExecState* exec, const ArgList& args)
     if (args.size() >= 1)
         title = valueToStringWithUndefinedOrNullCheck(exec, args.at(exec, 0));
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->count(title, lineNumber, url.string());
+#endif
 }
 
 void Console::profile(ExecState* exec, const ArgList& args)
@@ -339,7 +358,9 @@ void Console::profileEnd(ExecState* exec, const ArgList& args)
         unsigned lineNumber;
         retrieveLastCaller(exec, url, lineNumber);
 
+#if ENABLE(INSPECTOR)
         page->inspectorController()->addProfile(profile, lineNumber, url);
+#endif
     }
 }
 
@@ -351,8 +372,9 @@ void Console::time(const UString& title)
     Page* page = this->page();
     if (!page)
         return;
-    
+#if ENABLE(INSPECTOR)    
     page->inspectorController()->startTiming(title);
+#endif
 }
 
 void Console::timeEnd(ExecState* exec, const ArgList& args)
@@ -367,6 +389,7 @@ void Console::timeEnd(ExecState* exec, const ArgList& args)
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     double elapsed;
     if (!page->inspectorController()->stopTiming(title, elapsed))
         return;
@@ -378,6 +401,7 @@ void Console::timeEnd(ExecState* exec, const ArgList& args)
     retrieveLastCaller(exec, url, lineNumber);
 
     page->inspectorController()->addMessageToConsole(JSMessageSource, LogMessageLevel, message, lineNumber, url.string());
+#endif
 }
 
 void Console::group(ExecState* exec, const ArgList& arguments)
@@ -386,7 +410,9 @@ void Console::group(ExecState* exec, const ArgList& arguments)
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->startGroup(JSMessageSource, exec, arguments, 0, String());
+#endif
 }
 
 void Console::groupEnd()
@@ -395,7 +421,9 @@ void Console::groupEnd()
     if (!page)
         return;
 
+#if ENABLE(INSPECTOR)
     page->inspectorController()->endGroup(JSMessageSource, 0, String());
+#endif
 }
 
 void Console::warn(ExecState* exec, const ArgList& args)
@@ -417,7 +445,9 @@ void Console::warn(ExecState* exec, const ArgList& args)
     retrieveLastCaller(exec, url, lineNumber);
 
     page->chrome()->client()->addMessageToConsole(message, lineNumber, url.prettyURL());
+#if ENABLE(INSPECTOR)
     page->inspectorController()->addMessageToConsole(JSMessageSource, WarningMessageLevel, exec, args, lineNumber, url.string());
+#endif
 
     printToStandardOut(WarningMessageLevel, exec, args, url);
 }

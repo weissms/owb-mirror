@@ -52,7 +52,9 @@ namespace WebCore {
     class FocusController;
     class Frame;
     class InspectorClient;
+#if ENABLE(INSPECTOR)
     class InspectorController;
+#endif
     class Node;
     class PageGroup;
     class PluginData;
@@ -108,12 +110,16 @@ namespace WebCore {
         DragController* dragController() const { return m_dragController.get(); }
         FocusController* focusController() const { return m_focusController.get(); }
         ContextMenuController* contextMenuController() const { return m_contextMenuController.get(); }
+#if ENABLE(INSPECTOR)
         InspectorController* inspectorController() const { return m_inspectorController.get(); }
+#endif
         Settings* settings() const { return m_settings.get(); }
         ProgressTracker* progress() const { return m_progress.get(); }
 
+#if ENABLE(INSPECTOR)
         void setParentInspectorController(InspectorController* controller) { m_parentInspectorController = controller; }
         InspectorController* parentInspectorController() const { return m_parentInspectorController; }
+#endif
         
         void setTabKeyCyclesThroughElements(bool b) { m_tabKeyCyclesThroughElements = b; }
         bool tabKeyCyclesThroughElements() const { return m_tabKeyCyclesThroughElements; }
@@ -184,7 +190,9 @@ namespace WebCore {
         OwnPtr<DragController> m_dragController;
         OwnPtr<FocusController> m_focusController;
         OwnPtr<ContextMenuController> m_contextMenuController;
+#if ENABLE(INSPECTOR)
         OwnPtr<InspectorController> m_inspectorController;
+#endif
         OwnPtr<Settings> m_settings;
         OwnPtr<ProgressTracker> m_progress;
         
@@ -203,7 +211,9 @@ namespace WebCore {
 
         bool m_inLowQualityInterpolationMode;
     
+#if ENABLE(INSPECTOR)
         InspectorController* m_parentInspectorController;
+#endif
 
         String m_userStyleSheetPath;
         mutable String m_userStyleSheet;

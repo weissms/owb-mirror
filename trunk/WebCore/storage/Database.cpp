@@ -39,7 +39,6 @@
 #include "ExceptionCode.h"
 #include "FileSystem.h"
 #include "Frame.h"
-#include "InspectorController.h"
 #include "JSDOMWindow.h"
 #include "Logging.h"
 #include "NotImplemented.h"
@@ -50,6 +49,10 @@
 #include "SQLResultSet.h"
 #include <kjs/InitializeThreading.h>
 #include <wtf/MainThread.h>
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
 
 namespace WebCore {
 
@@ -105,8 +108,10 @@ PassRefPtr<Database> Database::openDatabase(Document* document, const String& na
 
     document->setHasOpenDatabases();
 
+#if ENABLE(INSPECTOR)
     if (Page* page = document->frame()->page())
         page->inspectorController()->didOpenDatabase(database.get(), document->domain(), name, expectedVersion);
+#endif
 
     return database;
 }

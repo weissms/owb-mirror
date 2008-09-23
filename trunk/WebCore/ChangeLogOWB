@@ -1,3 +1,48 @@
+2008-09-23  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Set Inspector as optional.
+
+        * html/HTMLDocument.cpp:
+        (WebCore::HTMLDocument::createTokenizer):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::detachFromParent):
+        (WebCore::FrameLoader::loadedResourceFromMemoryCache):
+        (WebCore::FrameLoader::dispatchWindowObjectAvailable):
+        (WebCore::FrameLoader::dispatchDidCommitLoad):
+        (WebCore::FrameLoader::dispatchAssignIdentifierToInitialRequest):
+        (WebCore::FrameLoader::dispatchWillSendRequest):
+        (WebCore::FrameLoader::dispatchDidReceiveResponse):
+        (WebCore::FrameLoader::dispatchDidReceiveContentLength):
+        (WebCore::FrameLoader::dispatchDidFinishLoading):
+        * page/CMakeLists.txt:
+        * page/Console.cpp:
+        (WebCore::Console::addMessage):
+        (WebCore::Console::error):
+        (WebCore::Console::info):
+        (WebCore::Console::log):
+        (WebCore::Console::dir):
+        (WebCore::Console::dirxml):
+        (WebCore::Console::assertCondition):
+        (WebCore::Console::count):
+        (WebCore::Console::profileEnd):
+        (WebCore::Console::time):
+        (WebCore::Console::timeEnd):
+        (WebCore::Console::group):
+        (WebCore::Console::groupEnd):
+        (WebCore::Console::warn):
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::handleContextMenuEvent):
+        (WebCore::ContextMenuController::contextMenuItemSelected):
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+        (WebCore::Page::~Page):
+        * page/Page.h:
+        * storage/Database.cpp:
+        (WebCore::Database::openDatabase):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFinishLoading):
+
 2008-09-22  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Jean-Charles VERDIE.
