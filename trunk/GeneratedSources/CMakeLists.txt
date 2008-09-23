@@ -192,7 +192,6 @@ SET (IDL_BINDINGS
     page/DOMSelection.idl
     page/DOMWindow.idl
     page/History.idl
-	page/JavaScriptCallFrame.idl
     page/Location.idl
     page/Navigator.idl
     page/Screen.idl
@@ -209,6 +208,13 @@ SET (IDL_BINDINGS
     xml/XMLHttpRequestUpload.idl
     xml/XMLSerializer.idl
 )
+
+IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
+    SET (IDL_BINDINGS
+        ${IDL_BINDINGS}
+        page/JavaScriptCallFrame.idl
+    )
+ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
 
 IF (WEBKIT_ENABLE_XSLT)
     SET (IDL_BINDINGS

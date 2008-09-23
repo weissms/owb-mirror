@@ -1,6 +1,16 @@
 2008-09-23  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
+        Remove some useless dependencies when Inspector is disabed.
+
+        * bindings/js/CMakeLists.txt:
+        * page/CMakeLists.txt:
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+
+2008-09-23  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
         Set Inspector as optional.
 
         * html/HTMLDocument.cpp:

@@ -93,6 +93,8 @@ AUX_SOURCE_DIRECTORY (WebCoreSupport WEBKIT_SRC)
 IF (NOT WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
     LIST (REMOVE_ITEM WEBKIT_SRC
         Api/WebInspector.cpp
+        Api/WebScriptCallFrame.cpp
+        Api/WebScriptDebugServer.cpp
     )
 ENDIF (NOT WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
 

@@ -19,15 +19,11 @@ LIST (APPEND PAGE_SRC
     page/DOMWindow.cpp
     page/DragController.cpp
     page/EventHandler.cpp
-    page/JavaScriptProfile.cpp
-    page/JavaScriptProfileNode.cpp
-    page/JavaScriptCallFrame.cpp
     page/FocusController.cpp
     page/Frame.cpp
     page/FrameTree.cpp
     page/FrameView.cpp
     page/History.cpp
-    page/JavaScriptDebugServer.cpp
     page/Location.cpp
     page/MouseEventWithHitTestResults.cpp
     page/Navigator.cpp
@@ -48,5 +44,9 @@ LIST (APPEND PAGE_SRC
 IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
     LIST (APPEND PAGE_SRC
         page/InspectorController.cpp
+        page/JavaScriptDebugServer.cpp
+        page/JavaScriptProfile.cpp
+        page/JavaScriptProfileNode.cpp
+        page/JavaScriptCallFrame.cpp
     )
 ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)

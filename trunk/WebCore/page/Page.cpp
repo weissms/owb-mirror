@@ -36,7 +36,6 @@
 #include "FrameTree.h"
 #include "FrameView.h"
 #include "HistoryItem.h"
-#include "JavaScriptDebugServer.h"
 #include "Logging.h"
 #include "NetworkStateNotifier.h"
 #include "Navigator.h"
@@ -57,6 +56,7 @@
 
 #if ENABLE(INSPECTOR)
 #include "InspectorController.h"
+#include "JavaScriptDebugServer.h"
 #endif
 
 #if ENABLE(DOM_STORAGE)
@@ -142,7 +142,9 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     ASSERT(!allPages->contains(this));
     allPages->add(this);
 
+#if ENABLE(INSPECTOR)
     JavaScriptDebugServer::shared().pageCreated(this);
+#endif
 
 #ifndef NDEBUG
     pageCounter.increment();

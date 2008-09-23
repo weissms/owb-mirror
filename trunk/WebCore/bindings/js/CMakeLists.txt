@@ -38,9 +38,6 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSHTMLSelectElementCustom.cpp
     bindings/js/JSHistoryCustom.cpp
     bindings/js/JSImageConstructor.cpp
-    bindings/js/JSInspectorCallbackWrapper.cpp
-    bindings/js/JSInspectedObjectWrapper.cpp
-    bindings/js/JSJavaScriptCallFrameCustom.cpp
     bindings/js/JSLocationCustom.cpp
     bindings/js/JSMimeTypeArrayCustom.cpp
     bindings/js/JSNamedNodeMapCustom.cpp
@@ -68,6 +65,14 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/ScheduledAction.cpp
     bindings/js/ScriptController.cpp
 )
+
+IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
+    LIST (APPEND BINDINGS_JS_SRC
+        bindings/js/JSInspectorCallbackWrapper.cpp
+        bindings/js/JSInspectedObjectWrapper.cpp
+        bindings/js/JSJavaScriptCallFrameCustom.cpp
+    )
+ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
 
 IF (WEBKIT_ENABLE_XPATH)
     LIST (APPEND BINDINGS_JS_SRC

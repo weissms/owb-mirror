@@ -1,6 +1,13 @@
 2008-09-23  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
+        Remove some useless dependencies when Inspector is disabed.
+
+        * OrigynWebBrowser/CMakeLists.txt:
+
+2008-09-23  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
         Set Inspector support as optional.
 
         * ChangeLogOWB:
