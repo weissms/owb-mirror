@@ -49,8 +49,8 @@
 namespace WKAL {
 
     class FloatRect;
-    class PlatformScrollbar;
     class PlatformWheelEvent;
+    class Scrollbar;
 
     class ScrollView : public WKALBase, public Widget {
     public:
@@ -264,17 +264,7 @@ namespace WKAL {
     /**
      * @see Widget
      */
-        virtual void resizeContents(int w, int h
-
-    /**
-     * Update a part of the scrollView.
-     * @param[in] : The region to update.
-     * @param[in] : a boolean which forces an immediate update when sets to true.
-     * @code
-     * @endcode
-     */
-        void updateWindowRect(const IntRect&, bool now = false
-    
+        virtual void resizeContents(int w, int h);
 
     /**
      * Event coordinates are assumed to be in the coordinate space of a window that contains
@@ -286,7 +276,19 @@ namespace WKAL {
      * IntPoint p = s->windowToContents(p1);
      * @endcode
      */
-        IntPoint windowToContents(const IntPoint&) cons
+        IntPoint windowToContents(const IntPoint&) const;
+
+    /**
+     * Event coordinates are assumed to be in the coordinate space of a window that contains
+     * the entire widget hierarchy. It is up to the platform to decide what the precise definition
+     * of containing window is. (For example on Mac it is the containing NSWindow.)
+     * @param[in] : point
+     * @param[out] : result rect
+     * @code
+     * IntRect p = s->windowToContents(p1);
+     * @endcode
+     */
+        IntRect contentsToWindow(const IntPoint&) const;
 
     /**
      * Event coordinates are assumed to be in the coordinate space of a window that contains
@@ -336,7 +338,9 @@ namespace WKAL {
      * should Update while offscreen
      */
         virtual bool shouldUpdateWhileOffscreen() const = 0;
-     * @endcode
+
+    /**
+     * scrollbarUnderMouse 
      */
      Scrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
 
@@ -361,8 +365,6 @@ namespace WKAL {
      * @endcode
      */
         bool scroll(ScrollDirection, ScrollGranularity);
-
-#if HAVE(ACCESSIBILITY)
 
     /**
      * convert child to self. 
@@ -395,6 +397,9 @@ namespace WKAL {
      */
         bool isScrollViewScrollbar(const Widget*) const;
 
+#if HAVE(ACCESSIBILITY)
+
+
     /**
      * get contents to screen 
      * @param[in] : rect
@@ -416,14 +421,33 @@ namespace WKAL {
         IntPoint screenToContents(const IntPoint&) const;
 #endif
 
+   protected:
+       /**
+        * updateContents
+	*/
+        void updateContents(const IntRect&, bool now = false);
+       /**
+        * updateWindowRect
+	*/
+        void updateWindowRect(const IntRect&, bool now = false);
+    public:
+       /**
+        * update
+	*/
+        void update();
 
-    publi
+    public:
+       /**
+        * children
+        */
+        HashSet<Widget*>* children();
 
     private:
-    /**
-     * maximumScroll
-     */
+       /**
+        * maximumScroll
+        */
         IntSize maximumScroll() const;
+
         class ScrollViewPrivate;
         ScrollViewPrivate* m_data;
 
@@ -431,20 +455,19 @@ namespace WKAL {
     /**
      * @see Widget
      */
-        virtual void paint(GraphicsContext*, const IntRect&)
-
-    /**
-     * @see Widget
-     */
-        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const
-
+        virtual void paint(GraphicsContext*, const IntRect&);
 
     /**
      * geometry changed.
      * @code
      * @endcode
      */
-        virtual void geometryChanged() const
+        virtual void geometryChanged() const;
+
+    /**
+     * setFrameGeometry
+     */
+        virtual void setFrameGeometry(const IntRect&);
 
     /**
      * add to dirty region 
@@ -453,7 +476,12 @@ namespace WKAL {
      * s->addToDirtyRegion(r);
      * @endcode
      */
-        void addToDirtyRegion(const IntRect&)
+        void addToDirtyRegion(const IntRect&);
+
+    /**
+     * scrollBackingStore
+     */
+        void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
 
     /**
      * update backing store
@@ -463,9 +491,11 @@ namespace WKAL {
      */
         void updateBackingStore();
 
-    privat
-
-
+    private:
+     /**
+      * updateScrollbars
+      */
+        void updateScrollbars(const IntSize& desiredOffset);
 
 
     public:
@@ -478,6 +508,10 @@ namespace WKAL {
      */
         IntRect windowResizerRect() ;
 
+    /**
+     * resizerOverlapsContent
+     */
+        bool resizerOverlapsContent() const;
 
     /**
      * adjustOverlappingScrollbarCount.
@@ -485,74 +519,16 @@ namespace WKAL {
      * @code
      * @endcode
      */
-        void adjustOverlappingScrollbarCount(int overlapDelta) 
-
-
-    };
-    /**
-     *  addToDirtyRegion description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        void addToDirtyRegion(const IntRect&);
-    /**
-     *  scrollBackingStore description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
-    /**
-     *  updateBackingStore description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        void updateBackingStore();
-    /**
-     *  updateScrollbars description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        void updateScrollbars(const IntSize& desiredOffset);
-    /**
-     *  windowResizerRect description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        IntRect windowResizerRect() ;
-    /**
-     *  resizerOverlapsContent description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        bool resizerOverlapsContent() const ;
-    /**
-     *  adjustOverlappingScrollbarCount description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
         void adjustOverlappingScrollbarCount(int overlapDelta) ;
+
+    public:
     /**
-     *  setBalAdjustments description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * setGtkAdjustments
      */
         void setBalAdjustments(BalAdjustment* hadj, BalAdjustment* vadj);
+
+    };
+
     /**
      *  ScrollView::contentsToWindow description
      * @param[in] : description
@@ -571,23 +547,6 @@ inline IntRect ScrollView::contentsToWindow(const IntRect& rect) const;
 inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
     
     
-    
-    
-    
-    
-    
-    
-    
-     // class ScrollView
-
-
-// On Mac only, because of flipped NSWindow y-coordinates, we have to have a special implementation.
-// Other platforms can just implement these helper methods using the corresponding point conversion methods.
-
-    /**
-     * ScrollView::contentsToWindow
-     */
-inline IntRect ScrollView::contentsToWindow(const IntRect& rect) const
-
-
 } // namespace
+#endif // ScrollView_h
+

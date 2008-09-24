@@ -79,7 +79,9 @@ public:
     double minValue();
     double maxValue();
     int insertionPointLineNumber();
-    
+    JSStringRef selectedTextRange();
+    bool supportsPressAction();
+
     // Table-specific attributes
     JSStringRef attributesOfColumnHeaders();
     JSStringRef attributesOfRowHeaders();
@@ -94,6 +96,7 @@ public:
     // Parameterized attributes
     int lineForIndex(int);
     JSStringRef boundsForRange(unsigned location, unsigned length);
+    void setSelectedTextRange(unsigned location, unsigned length);
     
     // Table-specific
     AccessibilityUIElement cellForColumnAndRow(unsigned column, unsigned row);

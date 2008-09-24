@@ -288,16 +288,6 @@ namespace WTF {
 
     template<typename P> struct HashTraits<P*> : GenericHashTraits<P*> {
         static const bool emptyValueIsZero = true;
-        static const bool needsDestruction = fa
-    };
-    /**
-     *  constructDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static void constructDeletedValue(P*& slot) ;
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -346,6 +336,38 @@ namespace WTF {
      * @endcode
      */
         static bool isDeletedValue(const TraitType& value) ;
+    
+    
+    
+    
+    
+    
+        static const bool needsDestruction = fa
+    
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(P* value)
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const RefPtr<P>& value)
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& slot)
     
     
     
@@ -638,5 +660,4 @@ using WTF::PairHashTrait
      * @param[out] : description
      * @code
      * @endcode
-     */
-    
+  

@@ -154,7 +154,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    IntPoint pos() const 
+    IntPoint pos() const ;
 
     /**
      * get enabled status
@@ -163,7 +163,7 @@ namespace WKAL {
      * bool e = w->isEnabled();
      * @endcode
      */
-        virtual bool isEnabled() const
+        virtual bool isEnabled() const ;
 
     /**
      * get y value
@@ -222,7 +222,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    void move(const IntPoint& p) 
+    void move(const IntPoint& p) ;
 
     /**
      * get height value
@@ -241,7 +241,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    void invalidate() 
+    void invalidate() ;
 
     /**
      * resize
@@ -251,7 +251,7 @@ namespace WKAL {
      * w->resize(w, h);
      * @endcode
      */
-        void resize(int, int)
+        void resize(int, int);
 
     /**
      * get position
@@ -260,7 +260,7 @@ namespace WKAL {
      * IntPoint p = w->pos();
      * @endcode
      */
-        IntPoint pos() const
+        IntPoint pos() const;
 
     /**
      * move
@@ -269,7 +269,7 @@ namespace WKAL {
      * w->move(p);
      * @endcode
      */
-        void move(const IntPoint&)
+        void move(const IntPoint&);
 
     /**
      * invalidate
@@ -277,7 +277,7 @@ namespace WKAL {
      * w->invalidate();
      * @endcode
      */
-        virtual void invalidate()
+        virtual void invalidate();
 
     /**
      * set frame geometry
@@ -286,7 +286,7 @@ namespace WKAL {
      * w->setFrameGeometry(r);
      * @endcode
      */
-        virtual void setFrameGeometry(const IntRect&)
+        virtual void setFrameGeometry(const IntRect&);
 
     /**
      * set focus
@@ -344,7 +344,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    void setSelfVisible(bool v) 
+    void setSelfVisible(bool v) ;
 
     /**
      * get cursor
@@ -363,7 +363,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    virtual bool isFrameView() const 
+    virtual bool isFrameView() const ;
 
     /**
      * hide
@@ -371,7 +371,7 @@ namespace WKAL {
      * w->hide();
      * @endcode
      */
-        virtual void hide()
+        virtual void hide();
 
     /**
      * set client
@@ -420,7 +420,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    virtual IntRect windowClipRect() const 
+    virtual IntRect windowClipRect() const ;
 
     /**
      * test if the widget is a frameView
@@ -449,7 +449,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    void setContainingWindow(PlatformWindow window) 
+    void setContainingWindow(PlatformWindow window) ;
 
     /**
      * remove from parent
@@ -457,7 +457,7 @@ namespace WKAL {
      * w->removeFromParent();
      * @endcode
      */
-        virtual void removeFromParent()
+        virtual void removeFromParent();
 
     /**
      * handle event
@@ -466,7 +466,7 @@ namespace WKAL {
      * w->handleEvent(e);
      * @endcode
      */
-        virtual void handleEvent(Event*) 
+        virtual void handleEvent(Event*); 
 
     /**
      * get containing window 

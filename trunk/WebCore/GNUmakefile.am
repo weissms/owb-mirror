@@ -55,8 +55,7 @@ webcore_built_nosources += \
 	DerivedSources/ColorData.c \
 	WebCore/bindings/js/JSDOMWindowBase.lut.h \
 	WebCore/bindings/js/JSEventTargetBase.lut.h \
-	WebCore/bindings/js/JSRGBColor.lut.h \
-	WebCore/bindings/js/JSHTMLInputElementBaseTable.cpp
+	WebCore/bindings/js/JSRGBColor.lut.h
 
 webcore_built_sources += \
 	DerivedSources/CSSGrammar.cpp \
@@ -614,6 +613,7 @@ webcore_sources += \
 	WebCore/bindings/js/JSCSSStyleDeclarationCustom.h \
 	WebCore/bindings/js/JSCSSValueCustom.cpp \
 	WebCore/bindings/js/JSCanvasPixelArrayCustom.cpp \
+	WebCore/bindings/js/JSCanvasPixelArrayCustom.h \
 	WebCore/bindings/js/JSCanvasRenderingContext2DCustom.cpp \
 	WebCore/bindings/js/JSClipboardCustom.cpp \
 	WebCore/bindings/js/JSConsoleCustom.cpp \
@@ -638,7 +638,10 @@ webcore_sources += \
 	WebCore/bindings/js/JSEventTargetBase.cpp \
 	WebCore/bindings/js/JSEventTargetBase.h \
 	WebCore/bindings/js/JSEventTargetNode.cpp \
+	WebCore/bindings/js/JSHTMLAllCollection.cpp \
 	WebCore/bindings/js/JSEventTargetNode.h \
+	WebCore/bindings/js/JSEventTargetSVGElementInstance.cpp \
+	WebCore/bindings/js/JSEventTargetSVGElementInstance.h \
 	WebCore/bindings/js/JSHTMLAllCollection.h \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.h \
@@ -651,8 +654,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSHTMLFrameElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLFrameSetElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLIFrameElementCustom.cpp \
-	WebCore/bindings/js/JSHTMLInputElementBase.cpp \
-	WebCore/bindings/js/JSHTMLInputElementBase.h \
+	WebCore/bindings/js/JSHTMLInputElementCustom.cpp \
+	WebCore/bindings/js/JSHTMLInputElementCustom.h \
 	WebCore/bindings/js/JSHTMLObjectElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLObjectElementCustom.h \
 	WebCore/bindings/js/JSHTMLOptionElementConstructor.cpp \
@@ -1997,6 +2000,7 @@ webcoregtk_sources += \
 	WebCore/platform/gtk/FileSystemGtk.cpp \
 	WebCore/platform/gtk/KeyEventGtk.cpp \
 	WebCore/platform/gtk/KeyboardCodes.h \
+	WebCore/platform/gtk/KURLGtk.cpp \
 	WebCore/platform/gtk/Language.cpp \
 	WebCore/platform/gtk/LocalizedStringsGtk.cpp \
 	WebCore/platform/gtk/LoggingGtk.cpp \
@@ -2013,6 +2017,7 @@ webcoregtk_sources += \
 	WebCore/platform/gtk/ScrollbarGtk.h \
 	WebCore/platform/gtk/ScrollbarThemeGtk.cpp \
 	WebCore/platform/gtk/SearchPopupMenuGtk.cpp \
+	WebCore/platform/gtk/SharedBufferGtk.cpp \
 	WebCore/platform/gtk/SharedTimerGtk.cpp \
 	WebCore/platform/gtk/SoundGtk.cpp \
 	WebCore/platform/gtk/SystemTimeGtk.cpp \
@@ -2916,6 +2921,7 @@ webcore_cppflags += \
 	-I\$(top_srcdir)/WebCore/svg/graphics/filters
 
 webcore_sources += \
+	WebCore/bindings/js/JSSVGElementInstanceCustom.cpp \
 	WebCore/bindings/js/JSSVGLengthCustom.cpp \
 	WebCore/bindings/js/JSSVGMatrixCustom.cpp \
 	WebCore/bindings/js/JSSVGPODTypeWrapper.h \
@@ -2981,6 +2987,8 @@ webcore_sources += \
 	WebCore/svg/ColorDistance.cpp \
 	WebCore/svg/ColorDistance.h \
 	WebCore/svg/ElementTimeControl.h \
+	WebCore/svg/EventTargetSVGElementInstance.cpp \
+	WebCore/svg/EventTargetSVGElementInstance.h \
 	WebCore/svg/Filter.cpp \
 	WebCore/svg/Filter.h \
 	WebCore/svg/FilterBuilder.h \
@@ -3461,9 +3469,6 @@ DerivedSources/UserAgentStyleSheets.h: $(WebCore)/css/make-css-file-arrays.pl $(
 %.lut.h: %.cpp $(CREATE_HASH_TABLE)
 	$(CREATE_HASH_TABLE) $< > $@
 
-WebCore/bindings/js/%Table.cpp: $(srcdir)/WebCore/bindings/js/JSHTMLInputElementBase.cpp $(CREATE_HASH_TABLE)
-	$(CREATE_HASH_TABLE) $< > $@
-
 # HTML tag and attribute names
 DerivedSources/HTMLNames.h: DerivedSources/HTMLNames.cpp;
 
@@ -3542,7 +3547,6 @@ webcore_dist += \
 
 CLEANFILES += \
 	WebCore/bindings/js/JSEventTargetBase.lut.h \
-	WebCore/bindings/js/JSHTMLInputElementBaseTable.cpp \
 	WebCore/bindings/js/JSDOMWindowBase.lut.h \
 	WebCore/bindings/js/JSRGBColor.lut.h
 

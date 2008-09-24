@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Nikolas Zimmermann <zimmermann@kde.org>
+ * Copyright (C) 2007, 2008 Nikolas Zimmermann <zimmermann@kde.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,7 +24,7 @@
  */
 
 module svg {
-    interface [Conditional=SVG] SVGElementInstance {
+    interface [Conditional=SVG, ObjCCustomInternalImpl] SVGElementInstance {
         readonly attribute SVGElement correspondingElement;
         readonly attribute SVGUseElement correspondingUseElement;
         readonly attribute SVGElementInstance parentNode;
@@ -33,17 +33,5 @@ module svg {
         readonly attribute SVGElementInstance lastChild;
         readonly attribute SVGElementInstance previousSibling;
         readonly attribute SVGElementInstance nextSibling;
-
-#if defined(LANGUAGE_OBJECTIVE_JAVASCRIPT)
-        // A manual copy of the EventTarget interface - including it in
-        // the class inheritance above gives troubles. This works.
-        void addEventListener(in DOMString type, 
-                              in EventListener listener, 
-                              in boolean useCapture);
-        void removeEventListener(in DOMString type, 
-                                 in EventListener listener, 
-                                 in boolean useCapture);
-        boolean dispatchEvent(in Event event)  raises(EventException); 
-#endif
     };
 }

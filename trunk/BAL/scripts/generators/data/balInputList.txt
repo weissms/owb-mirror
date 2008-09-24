@@ -487,9 +487,11 @@
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/DeprecatedValueListImpl.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/KURL.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/KURL.cpp
+../../OWBAL/Concretizations/Types/Gtk	../../../WebCore/platform/gtk/KURLGtk.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/KURLHash.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/SharedBuffer.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/SharedBuffer.cpp
+../../OWBAL/Concretizations/Types/Gtk	../../../WebCore/platform/gtk/SharedBufferGtk.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/TreeShared.h
 ../../OWBAL/Concretizations/Types/Gtk	../../../WebCore/platform/graphics/Icon.h
 ../../OWBAL/Concretizations/Types/Gtk	../../../WebCore/platform/graphics/gtk/IconGtk.cpp	BCIconGtk.cpp

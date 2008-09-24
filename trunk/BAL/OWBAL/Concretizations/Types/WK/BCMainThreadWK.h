@@ -37,9 +37,7 @@ typedef void MainThreadFunction(void*);
 void callOnMainThread(MainThreadFunction*, void* context);
 void setMainThreadCallbacksPaused(bool paused);
 
-#if PLATFORM(WIN)
 void initializeMainThread();
-#endif
 
 // These functions are internal to the callOnMainThread implementation.
 void dispatchFunctionsFromMainThread();

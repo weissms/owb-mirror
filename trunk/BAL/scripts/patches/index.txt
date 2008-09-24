@@ -23,8 +23,6 @@
 ../../OWBAL/Concretizations/ImageDecoder/XBM/WK/BCXBMImageDecoderWK.cpp	1:XBMImageDecoder.patch
 ../../OWBAL/Concretizations/Internationalization/WK/BCTextEncodingWK.cpp	0:TextEncoding.patch
 ../../OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp	0:TCSystemAlloc.patch
-../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	0:ThreadingGtk.patch
-../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	_:BCThreadingGtk.patch
 ../../OWBAL/Concretizations/Types/Pthreads/BCThreadingPthreads.cpp	0:ThreadingPthreads.patch
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURL.patch
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURLI18N.patch
@@ -40,4 +38,5 @@
 ../../WKAL/Concretizations/Widgets/Gtk/BCFrameGtk.cpp	_:FrameGtk.patch
 ../../WKAL/Concretizations/Widgets/Gtk/PasteboardHelperGtk.cpp	0:PasteboardHelperGtk.patch
 ../../WKAL/Concretizations/Widgets/WK/BCWidgetWK.h	_:Widget.patch
-BAL/WKAL/Concretizations/Widgets/WK/BCContextMenuWK.cpp	_:ContextMenu.patch
+../../WKAL/Concretizations/Widgets/WK/BCContextMenuWK.cpp	_:ContextMenu.patch
+../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	_:ThreadingGtk.patch

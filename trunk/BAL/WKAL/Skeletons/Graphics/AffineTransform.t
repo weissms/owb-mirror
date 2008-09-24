@@ -486,6 +486,14 @@ public:
      * @endcode
      */
     AffineTransform operator*(const AffineTransform&);
+    /**
+     *  makeMapBetweenRects 
+     * @param[in] : rect
+     * @param[in] : rect
+     * @param[out] :  affineTransform
+     */
+AffineTransform makeMapBetweenRects(const FloatRect& source, const FloatRect& dest);
+    
     
 private:
     BalMatrix m_transform;
@@ -494,4 +502,3 @@ private:
 } // namespace WKAL
 
 #endif // AffineTransform_h
-

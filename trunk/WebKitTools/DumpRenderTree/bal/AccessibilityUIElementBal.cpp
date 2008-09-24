@@ -180,4 +180,16 @@ AccessibilityUIElement AccessibilityUIElement::cellForColumnAndRow(unsigned colu
     return a;
 }
 
+void AccessibilityUIElement::setSelectedTextRange(unsigned location, unsigned length) 
+{
+}
 
+bool AccessibilityUIElement::supportsPressAction()
+{
+    return false;
+}
+
+JSStringRef AccessibilityUIElement::selectedTextRange()
+{
+    return JSStringRef();
+}

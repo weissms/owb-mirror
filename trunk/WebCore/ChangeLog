@@ -1,3 +1,1095 @@
+2008-09-24  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Alp Toker. Landed by Jan Alonzo.
+
+        Bug 20883: [CURL] Add deferred loading
+        https://bugs.webkit.org/show_bug.cgi?id=20883
+
+        Implement deferred loading for the libcURL backend using curl_easy_pause.
+        As the method was introduced in version 7.18.0, all the code checks for libcURL
+        version.
+
+        * platform/network/curl/ResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::setDefersLoading):
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::writeCallback): Add an assertion that deferred loading is not
+        activated.
+        (WebCore::headerCallback): Ditto.
+        (WebCore::readCallback): Ditto.
+        (WebCore::ResourceHandleManager::dispatchSynchronousJob): Force
+        defersLoading to be false in order to avoid triggering an assertion.
+        (WebCore::ResourceHandleManager::initializeHandle): If deferred loading is
+        activated, pause the easy handle.
+
+2008-09-23  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Tim Hatcher.
+
+        Inspector search field style tweaks.
+
+        * page/inspector/inspector.css:
+
+2008-09-23  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=21046 (Several LayoutTests crash)
+
+        Fix missing negation in EventTargetNode::insertedIntoDocument.
+        Made handleLocalEvents() virtual again, HTMLFormElement overrides it.
+        Remove code, that wasn't supposed to go in in dispatchGenericEvent().
+
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::insertedIntoDocument):
+        (WebCore::EventTargetNode::dispatchGenericEvent):
+        * dom/EventTargetNode.h:
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Adds search support to the Profiles panel.
+
+        The Profiles panel supports a few types of queries:
+         * Standard string matching for function names and file URLs.
+         * Greater than and less than search for numeric columns.
+           So a query of ">24" will match all rows that have calls
+           greater than 24. Or "<=42" will match all 42 or less.
+         * Percent and time units. Adding a unit of "s", "ms" or "%"
+           is supported and will match only the Self and Total columns.
+           So a query of ">1.25s" will match all rows that took longer
+           than 1.25 seconds.
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/ProfileView.js:
+        (WebInspector.ProfileView.prototype.hide): Reset _currentSearchResultIndex to -1. So the next time
+        it will start at the first result.
+        (WebInspector.ProfileView.prototype.refreshShowAsPercents): Moved from the bottom of the file.
+        (WebInspector.ProfileView.prototype.searchCanceled): Clear the search properties and refresh highlighted
+        data grid nodes.
+        (WebInspector.ProfileView.prototype.performSearch): Search the profile nodes.
+        (WebInspector.ProfileView.prototype.jumpToFirstSearchResult): Does what the function says. Calls _jumpToSearchResult.
+        (WebInspector.ProfileView.prototype.jumpToLastSearchResult): Ditto.
+        (WebInspector.ProfileView.prototype.jumpToNextSearchResult): Ditto.
+        (WebInspector.ProfileView.prototype.jumpToPreviousSearchResult): Ditto.
+        (WebInspector.ProfileView.prototype.showingFirstSearchResult): Does what the function says.
+        (WebInspector.ProfileView.prototype.showingLastSearchResult): Ditto.
+        (WebInspector.ProfileView.prototype._jumpToSearchResult): Select and reveal the profile node.
+        Expand all the ancestors first so the profile node will have a DataGridNode.
+        (WebInspector.ProfileView.prototype._changeView): Perform the search again on the new tree.
+        (WebInspector.ProfileDataGridNode.prototype.createCell): Add the highlight class to cells that
+        have search matches.
+        * page/inspector/ProfilesPanel.js:
+        (WebInspector.ProfilesPanel.prototype.reset): Call searchCanceled and delete the currentQuery.
+        (WebInspector.ProfilesPanel.prototype.showProfile): Use profileViewForProfile.
+        (WebInspector.ProfilesPanel.prototype.showView): Call showProfile. Used by Panel to show a view.
+        (WebInspector.ProfilesPanel.prototype.profileViewForProfile): Create the ProfileView if needed.
+        (WebInspector.ProfilesPanel.prototype.closeVisibleView): Renamed visibleProfileView  to visibleView.
+        (WebInspector.ProfilesPanel.prototype.get searchableViews): Return all the views.
+        (WebInspector.ProfilesPanel.prototype.searchMatchFound): Update the sidebar search matches.
+        (WebInspector.ProfilesPanel.prototype.searchCanceled): Clear all the sidebar search matches.
+        (WebInspector.ProfileSidebarTreeElement.prototype.set searchMatches): Set the class and bubbleText.
+        * page/inspector/inspector.css: New style rules for the cell highlight color.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Adds search support to the Resources and Scripts panels.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21005
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/Images/searchSmallBlue.png: Added.
+        * page/inspector/Images/searchSmallBrightBlue.png: Added.
+        * page/inspector/Images/searchSmallGray.png: Added.
+        * page/inspector/Images/searchSmallWhite.png: Added.
+        * page/inspector/ResourceView.js:
+        (WebInspector.ResourceView.prototype.attach): Attempt to attach to "resource-views"
+        or "script-resource-views" since one might not be created yet.
+        * page/inspector/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel.prototype.show): Hide any views that are visible that
+        are not this panel's current visible view. This can happen when a ResourceView is
+        visible in the Scripts panel then switched to the this panel.
+        (WebInspector.ResourcesPanel.prototype.get searchableViews): Return all views, with the
+        visibleView first.
+        (WebInspector.ResourcesPanel.prototype.searchResultsSortFunction): Return a sort function
+        that uses the current graph search function. So cycling through results will be in the order
+        things appear in the sidebar.
+        (WebInspector.ResourcesPanel.prototype.searchMatchFound): Update the search matches on the
+        resource's sidebar tree element.
+        (WebInspector.ResourcesPanel.prototype.searchCanceled): Restore the error and warning bubbles
+        in the sidebar. Calls the Panel prototype's searchCanceled.
+        (WebInspector.ResourcesPanel.prototype.performSearch): Hide all the error and warning bubbles
+        in the sidebar. Calls the Panel prototype's performSearch.
+        (WebInspector.ResourcesPanel.prototype.reset): Call searchCanceled and delete the currentQuery.
+        (WebInspector.ResourcesPanel.prototype.addMessageToResource): Don't call updateErrorsAndWarnings
+        if there is a current search query.
+        (WebInspector.ResourcesPanel.prototype.clearMessages): Ditto.
+        (WebInspector.ResourcesPanel.prototype.recreateViewForResourceIfNeeded): Ditto.
+        (WebInspector.ResourcesPanel.prototype.showView): Call showResource. Used by Panel to show a view.
+        (WebInspector.ResourceSidebarTreeElement.prototype.resetBubble): Clear all the classes and content.
+        (WebInspector.ResourceSidebarTreeElement.prototype.set searchMatches): Set the bubbleText and class.
+        (WebInspector.ResourceSidebarTreeElement.prototype.updateErrorsAndWarnings): Call resetBubble.
+        * page/inspector/ScriptView.js:
+        (WebInspector.ScriptView): Set _sourceFrameSetup to flase.
+        (WebInspector.ScriptView.prototype.hide): Reset _currentSearchResultIndex to -1. So the next time
+        it will start at the first result.
+        (WebInspector.ScriptView.prototype.setupSourceFrameIfNeeded): Add an event listener for "syntax
+        highlighting complete".
+        (WebInspector.ScriptView.prototype): Share many methods with SourceView.
+        * page/inspector/ScriptsPanel.js:
+        (WebInspector.ScriptsPanel.prototype.show): Hide any views that are visible that are not this
+        This can happen when a ResourceView is visible in the Resources panel then switched to the this panel.
+        (WebInspector.ScriptsPanel.prototype.get searchableViews): Return all views, with the visibleView first.
+        (WebInspector.ScriptsPanel.prototype.reset): Call searchCanceled and delete the currentQuery.
+        (WebInspector.ScriptsPanel.prototype.showView): Call _showScriptOrResource. Used by Panel to show a view.
+        (WebInspector.ScriptsPanel.prototype._sourceViewForScriptOrResource): Added helper.
+        * page/inspector/SourceFrame.js:
+        (WebInspector.SourceFrame.prototype.syntaxHighlightJavascript): Dispatch a "syntax highlighting complete" event.
+        * page/inspector/SourceView.js:
+        (WebInspector.SourceView.prototype.hide):
+        (WebInspector.SourceView.prototype.detach):
+        (WebInspector.SourceView.prototype._resourceLoadingFinished): Moved from the bottom of the file.
+        (WebInspector.SourceView.prototype._addBreakpoint): Ditto.
+        (WebInspector.SourceView.prototype.searchCanceled): Delete search properties.
+        (WebInspector.SourceView.prototype.performSearch): Search the frame if it is loaded, otherwise
+        store the worker function as _delayedFindSearchMatches and call it later in _sourceFrameSetupFinished.
+        (WebInspector.SourceView.prototype.jumpToFirstSearchResult):
+        (WebInspector.SourceView.prototype.jumpToLastSearchResult):
+        (WebInspector.SourceView.prototype.jumpToNextSearchResult):
+        (WebInspector.SourceView.prototype.jumpToPreviousSearchResult):
+        (WebInspector.SourceView.prototype.showingFirstSearchResult):
+        (WebInspector.SourceView.prototype.showingLastSearchResult):
+        (WebInspector.SourceView.prototype._jumpToSearchResult): Selects the found Range.
+        (WebInspector.SourceView.prototype._sourceFrameSetupFinished): Calls _delayedFindSearchMatches.
+        (WebInspector.SourceView.prototype._syntaxHighlightingComplete): Call _sourceFrameSetupFinished.
+        * page/inspector/inspector.css:
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Rename some properties of ResourcesPanel and ScriptsPanel to be the same,
+        so future code can be shared.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21005
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/ResourcesPanel.js: Renamed resourceViews to viewsContainerElement.
+        And visibleResourceView to visibleView.
+        * page/inspector/ScriptsPanel.js: Renamed scriptResourceViews to viewsContainerElement.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Highlight all matched search results in the Elements panel DOM tree.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21005
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel.prototype.searchCanceled): Clear the highlight
+        on all previous search results.
+        (WebInspector.ElementsPanel.prototype.performSearch): Set the hihglight
+        on all new search results.
+        * page/inspector/ElementsTreeOutline.js:
+        (WebInspector.ElementsTreeElement): Delay setting the title until onattach.
+        (WebInspector.ElementsTreeElement.prototype.get/set highlighted): Sets or removes
+        the highlighted class on the listItemElement.
+        (WebInspector.ElementsTreeElement.prototype.onattach): Set the highlighted class
+        if needed. Calls _updateTitle.
+        (WebInspector.ElementsTreeElement.prototype._updateTitle): Adds a span with the highlight
+        class so it can be styled when the highlighted class is present.
+        * page/inspector/inspector.css: New style rules for the hihglight.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Add search support to the Elements panel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21005
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel.prototype.searchCanceled): Call updateSearchMatchesCount
+        with a 0 match count to rest. Reset the other search properties.
+        (WebInspector.ElementsPanel.prototype.performSearch): Evaluates the search as an XPath
+        query and a CSS selector on all the Documents in the page. Remembers the found nodes
+        and avoids duplicates. Focuses the first result.
+        (WebInspector.ElementsPanel.prototype.jumpToNextSearchResult): Focuses the next result.
+        (WebInspector.ElementsPanel.prototype.jumpToPreviousSearchResult): Focuses the previous result.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Add support to Panel that allows easy searching of sub-views.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21005
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/Panel.js:
+        (WebInspector.Panel.prototype.searchCanceled): Call searchCanceled on all the
+        views in the search results and delete the currentQuery property. Call
+        WebInspector.updateSearchMatchesCount wit ha 0 match count to rest. Reset the
+        other search properties.
+        (WebInspector.Panel.prototype.performSearch): Call searchCanceled since it will
+        reset everything we need before doing a new search. Get an array of searchableViews
+        from the panel, implemented by sub-classes. Iterate over the views one-by-one
+        with an interval to prevent blocking the UI for large lists of searchableViews.
+        This keeps the interface really responsive. Pass a finishedCallback function to
+        the performSearch on each view so it can notify the panel of results.
+        (WebInspector.Panel.prototype.jumpToNextSearchResult): Finds the index in the
+        searchResults of the visibleView, so we know where in the results we are.
+        This is done every time incase the user manually navigates to a new view.
+        If the view is showing the last result, jump to the next view and show it's
+        first result. Otherwise jump to the next result in the current view.
+        (WebInspector.Panel.prototype.jumpToPreviousSearchResult): Ditto, but in reverse.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Add support for asking the current panel to perform a search, find next/previous and clear.
+        A search is performed on the new new current panel when switching between panels. The search
+        label/placeholder in the toolbar now includes the panel name to make it clear that panel will
+        be searched. The search field contents are selected when Command/Control-F or Enter/Return
+        is pressed, so the user can easily type an entirely new query. The search match count shows
+        up in the toolbar next to the search field.
+
+        Also changed:
+         * Rename lastQuery to currentQuery since it better matches the truth.
+         * Set the search field "results" attribute to zero since results arn't saved for
+           how we use the search field.
+         * Make repeated presses of the Return key jump to the next search result instead
+           of doing nothing.
+         * Increased the search field width.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21005
+
+        Reviewed by Oliver Hunt.
+
+        * English.lproj/localizedStrings.js: New strings.
+        * page/inspector/inspector.css: New styles.
+        * page/inspector/inspector.html: Add the search-results-matches element. Add the
+        incremental attribute to the search field and set the results attribute to zero.
+        * page/inspector/inspector.js:
+        (WebInspector.set currentPanel): perform the search on the new panel.
+        (WebInspector.loaded): Change the event listeners and remove code that changes
+        the search label text.
+        (WebInspector.documentKeyDown): Add support for Command/Control-G and
+        Command/Control-Shift-G. To jump to the next and previous search results.
+        (WebInspector.updateSearchLabel): Added. Update the search placeholder/label.
+        This does different things depending on the attached state.
+        (WebInspector.searchKeyDown): Call preventDefault since this was the Enter key.
+        This prevents a "search" event from firing for key down. We handle the Enter key
+        on key up in searchKeyUp. This stops performSearch from being called twice in a row.
+        (WebInspector.searchKeyUp): Calls performSearch when it is the Enter key.
+        (WebInspector.performSearch): Delete the currentQuery property and call searchCanceled
+        on all the panels. Call jumpToNextSearchResult when this is the same query or a forced search.
+        Call updateSearchMatchesCount to reset the matches count in the toolbar.
+        (WebInspector.updateSearchMatchesCount): Added. Updates the matches count in the toolbar.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Remove the previous Inspector search code to make room for the new stuff.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21005
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/inspector.css:
+        * page/inspector/inspector.html:
+        * page/inspector/inspector.js:
+        (WebInspector.get/set showingSearchResults): Removed.
+        (WebInspector.searchResultsKeyDown): Removed.
+        (WebInspector.searchResultsResizerDragStart): Removed.
+        (WebInspector.searchResultsResizerDragEnd): Removed.
+        (WebInspector.searchResultsResizerDrag): Removed.
+        (WebInspector.performSearch): Removed searching parts.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Use the Array.remove helper function in more places.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21037
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/ResourceCategory.js:
+        (WebInspector.ResourceCategory.prototype.removeResource): Use Array.remove.
+        * page/inspector/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel.prototype.removeResource): Ditto.
+        * page/inspector/inspector.js:
+        (WebInspector.removeResource): Ditto.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where inspecting a node after reloading the page
+        would not reveal the node in the DOM tree. The TreeOutline
+        was not being told to forget decendants of a removed child.
+        So old TreeElements would be found that are not in the tree.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21036
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/treeoutline.js:
+        (TreeOutline._removeChildAtIndex): Call _forgetChildrenRecursive
+        in addition to _forgetTreeElement.
+        (TreeOutline._removeChildren): Call _forgetChildrenRecursive
+        in addition to _forgetTreeElement.
+        (TreeOutline._rememberTreeElement): Use Array.indexOf to quickly
+        search for known elements.
+        (TreeOutline._forgetTreeElement): Use Array.remove to remove elements.
+        (TreeOutline._forgetChildrenRecursive): Recursively traverse the
+        descendants and call _forgetTreeElement.
+        * page/inspector/utilities.js:
+        (Array.prototype.remove): Speed up this function by using Array.indexOf
+        when onlyFirst is true.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a bug where inspecting some short text nodes does
+        not reveal them in the Elements panel DOM tree.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21035
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/ElementsTreeOutline.js:
+        (WebInspector.ElementsTreeOutline.prototype.set focusedDOMNode):
+        The revealAndSelectNode() method might find a different element
+        if there is inlined text, and the select() call would change the
+        focusedDOMNode and reenter this setter. So to avoid calling
+        focusedNodeChanged() twice, first check if _focusedDOMNode is
+        the same node as the one passed in.
+        (WebInspector.ElementsTreeOutline.prototype.update): Remove use of
+        this.treeOutline, since this is the TreeOutline.
+        (WebInspector.ElementsTreeOutline.prototype.findTreeElement): Added.
+        Provides default functions for isAncestor, getParet and equal.
+        Calls the base protoype's findTreeElement. If that returns null
+        and the node is a text node, try finding it's parent.
+        (WebInspector.ElementsTreeOutline.prototype.revealNode): Removed.
+        Renamed to revealAndSelectNode.
+        (WebInspector.ElementsTreeOutline.prototype.revealAndSelectNode):
+        Selects and reveals the node passed in. Use the simple findTreeElement.
+        (WebInspector.ElementsTreeOutline.prototype._treeElementFromEvent):
+        Remove use of this.treeOutline, since this is the TreeOutline.
+
+2008-09-23  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes an exception that happened when removing a Resource
+        from the ResourcesPanel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21034
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/ResourcesPanel.js:
+        (WebInspctor.ResourcesPanel.prototype.removeResource):
+        Remove the graphElement.
+
+2008-09-23  Kevin McCullough  <kmccullough@apple.com>
+
+        Fixed "Time" to "Tim"
+
+        * ChangeLog:
+
+2008-09-23  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver.
+
+        Move mapInstanceToElement/removeInstanceMapping/instancesForElement
+        from SVGDocumentExtensions to SVGElement. It's more useful to store
+        the list of SVGElementInstances per SVGElement, instead of using
+        a document-wide hash for this purpose.
+
+        * svg/SVGAnimateMotionElement.cpp:
+        (WebCore::SVGAnimateMotionElement::applyResultsToTarget):
+        * svg/SVGAnimateTransformElement.cpp:
+        (WebCore::SVGAnimateTransformElement::applyResultsToTarget):
+        * svg/SVGAnimationElement.cpp:
+        (WebCore::SVGAnimationElement::setTargetAttributeAnimatedValue):
+        * svg/SVGDocumentExtensions.cpp:
+        (WebCore::SVGDocumentExtensions::~SVGDocumentExtensions):
+        * svg/SVGDocumentExtensions.h:
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::mapInstanceToElement):
+        (WebCore::SVGElement::removeInstanceMapping):
+        (WebCore::SVGElement::instancesForElement):
+        * svg/SVGElement.h:
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::SVGElementInstance):
+        (WebCore::SVGElementInstance::~SVGElementInstance):
+        (WebCore::SVGElementInstance::updateAllInstancesOfElement):
+        * svg/SVGElementInstance.h:
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::svgAttributeChanged):
+        (WebCore::SVGStyledElement::childrenChanged):
+        * svg/SVGStyledElement.h:
+
+2008-09-23  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix.
+
+        * WebCoreSources.bkl:
+
+2008-09-23  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Rubber stamped by Sam.
+
+        Move code from EventTarget to EventTargetNode.
+
+        I refactored most parts to live in EventTarget, a year ago,
+        though the implementation of EventTargetSVGElementInstance is
+        done in another way, that obsoletes this.
+
+        * dom/Document.cpp:
+        (WebCore::Document::addListenerTypeIfNeeded):
+        * dom/Document.h:
+        * dom/EventTarget.cpp:
+        * dom/EventTarget.h:
+        (WebCore::allowEventDispatch):
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::insertedIntoDocument):
+        (WebCore::EventTargetNode::removedFromDocument):
+        (WebCore::EventTargetNode::willMoveToNewOwnerDocument):
+        (WebCore::EventTargetNode::didMoveToNewOwnerDocument):
+        (WebCore::EventTargetNode::addEventListener):
+        (WebCore::EventTargetNode::removeEventListener):
+        (WebCore::EventTargetNode::removeAllEventListeners):
+        (WebCore::EventTargetNode::handleLocalEvents):
+        (WebCore::setCurrentEventTargetRespectingSVGTargetRules):
+        (WebCore::EventTargetNode::dispatchEvent):
+        (WebCore::EventTargetNode::dispatchGenericEvent):
+        (WebCore::EventTargetNode::dispatchWindowEvent):
+        (WebCore::EventTargetNode::removeEventListenerForType):
+        * dom/EventTargetNode.h:
+        * svg/EventTargetSVGElementInstance.cpp:
+        (WebCore::EventTargetSVGElementInstance::dispatchEvent):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::sendSVGLoadEventIfPossible):
+        * svg/SVGElement.h:
+        (WebCore::SVGElement::supplementalTransform):
+
+2008-09-23  Dave Hyatt  <hyatt@apple.com>
+
+        Fix for bug 21012.  The Aqua scrollbar was returning the wrong track rect on Windows Aqua theme.  Make
+        sure to not accidentally fall into the vertical scrollbar case for horizontal scrollbars. :)
+        
+        Reviewed by Sam Weinig
+
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::ScrollbarThemeMac::trackRect):
+        * platform/win/ScrollbarThemeSafari.cpp:
+        (WebCore::ScrollbarTheme::nativeTheme):
+        (WebCore::ScrollbarThemeSafari::trackRect):
+
+2008-09-23  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21041 "Add Contact" 
+        link at gmail does not support AXPress action
+        and corresponding: <rdar://problem/6216178>
+
+        I fixed this bug by making AccessibilityObject::anchorElement 
+        support ARIA links.
+
+        * page/AccessibilityImageMapLink.cpp:
+        (WebCore::AccessibilityImageMapLink::anchorElement):
+        * page/AccessibilityImageMapLink.h:
+        * page/AccessibilityObject.cpp:
+        (WebCore::AccessibilityObject::anchorElement):
+        * page/AccessibilityObject.h:
+        (WebCore::AccessibilityObject::isNativeAnchor):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::isNativeAnchor):
+        (WebCore::AccessibilityRenderObject::anchorElement):
+        (WebCore::AccessibilityRenderObject::internalLinkElement):
+        (WebCore::AccessibilityRenderObject::url):
+        * page/AccessibilityRenderObject.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (AXLinkElementForNode):
+
+2008-09-23  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim and Oliver.
+
+        Bug 20949: Catch repeated messages in Inspector Controller to limit
+        memory usage
+        - Store the repeat count in the Console Message object, in the 
+        Inspector Controller and JS ConsoleMessage object.
+
+        * page/InspectorController.cpp:
+        (WebCore::ConsoleMessage::ConsoleMessage):
+        (WebCore::ConsoleMessage::operator==):
+        (WebCore::InspectorController::InspectorController):
+        (WebCore::InspectorController::addConsoleMessage):
+        (WebCore::InspectorController::addScriptConsoleMessage):
+        * page/InspectorController.h:
+        * page/inspector/Console.js:
+        * page/inspector/Resource.js:
+        * page/inspector/ResourcesPanel.js:
+        * page/inspector/SourceFrame.js:
+
+2008-09-23  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Eric.
+
+        Working on proper EventTarget support for SVGElementInstance.
+
+        Add new EventTargetSVGElementInstance class, and it's corresponding JS wrapper.
+        Finally JSEventTargetBase, is actually used for another class than JSEventTargetnode.
+
+        Remove EventTarget inheritance from SVGElementInstance, and the manual "TreeShared"
+        implementation. Let it use TreeShared directly.
+
+        It's not activated so far (SVGUseElement still creating SVGElementInstance objects).
+        The transition to EventTargetSVGElementInstance will be done in a few individual patches.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSEventTargetBase.cpp:
+        (WebCore::retrieveEventTargetAndCorrespondingNode):
+        (WebCore::toJS):
+        * bindings/js/JSEventTargetBase.h:
+        * bindings/js/JSEventTargetSVGElementInstance.cpp: Added.
+        (WebCore::):
+        (WebCore::JSEventTargetSVGElementInstance::JSEventTargetSVGElementInstance):
+        (WebCore::JSEventTargetSVGElementInstance::createPrototype):
+        (WebCore::JSEventTargetSVGElementInstance::setListener):
+        (WebCore::JSEventTargetSVGElementInstance::getListener):
+        (WebCore::toEventTargetSVGElementInstance):
+        * bindings/js/JSEventTargetSVGElementInstance.h: Added.
+        (WebCore::JSEventTargetSVGElementInstance::prototypeClassName):
+        (WebCore::JSEventTargetSVGElementInstance::getOwnPropertySlot):
+        (WebCore::JSEventTargetSVGElementInstance::getValueProperty):
+        (WebCore::JSEventTargetSVGElementInstance::put):
+        (WebCore::JSEventTargetSVGElementInstance::putValueProperty):
+        * bindings/js/JSSVGElementInstanceCustom.cpp: Added.
+        (WebCore::toJS):
+        * bindings/objc/DOM.mm:
+        (+[DOMNode _wrapEventTarget:WebCore::]):
+        (-[DOMSVGElementInstance _initWithSVGElementInstance:WebCore::]):
+        (+[DOMSVGElementInstance _wrapSVGElementInstance:WebCore::]):
+        (+[DOMSVGElementInstance _wrapEventTarget:WebCore::]):
+        (-[DOMSVGElementInstance WebCore::]):
+        (-[DOMSVGElementInstance addEventListener:listener:useCapture:]):
+        (-[DOMSVGElementInstance addEventListener:::]):
+        (-[DOMSVGElementInstance removeEventListener:listener:useCapture:]):
+        (-[DOMSVGElementInstance removeEventListener:::]):
+        (-[DOMSVGElementInstance dispatchEvent:]):
+        * bindings/objc/DOMEvents.h:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bindings/scripts/CodeGeneratorObjC.pm:
+        * svg/EventTargetSVGElementInstance.cpp: Added.
+        (WebCore::EventTargetSVGElementInstance::EventTargetSVGElementInstance):
+        (WebCore::EventTargetSVGElementInstance::~EventTargetSVGElementInstance):
+        (WebCore::EventTargetSVGElementInstance::addEventListener):
+        (WebCore::EventTargetSVGElementInstance::removeEventListener):
+        (WebCore::EventTargetSVGElementInstance::dispatchEvent):
+        * svg/EventTargetSVGElementInstance.h: Added.
+        (WebCore::EventTargetSVGElementInstance::isEventTargetSVGElementInstance):
+        (WebCore::EventTargetSVGElementInstance::toNode):
+        (WebCore::EventTargetSVGElementInstance::toSVGElementInstance):
+        (WebCore::EventTargetSVGElementInstance::refEventTarget):
+        (WebCore::EventTargetSVGElementInstance::derefEventTarget):
+        (WebCore::EventTargetSVGElementInstanceCast):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::dispatchEvent):
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::SVGElementInstance):
+        (WebCore::SVGElementInstance::~SVGElementInstance):
+        * svg/SVGElementInstance.h:
+        (WebCore::SVGElementInstance::isEventTargetSVGElementInstance):
+        * svg/SVGElementInstance.idl:
+
+2008-09-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21040
+          Pass NULL instead of the identity matrix to CTFontCreateWithGraphicsFont()
+
+        * platform/graphics/mac/SimpleFontDataMac.mm:
+        (WebCore::SimpleFontData::getCTFont):
+
+2008-09-23  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21039
+
+        Teach the viewless Mac scrollbar how to avoid NSWindow's resizer.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollView.h:
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::setFrameGeometry):
+        * platform/Scrollbar.h:
+        * platform/Widget.cpp:
+        (WebCore::Widget::convertFromContainingWindow):
+        * platform/Widget.h:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::ScrollViewPrivate::ScrollViewPrivate):
+        (WebCore::ScrollView::ScrollView):
+        (WebCore::ScrollView::~ScrollView):
+        (WebCore::ScrollView::windowResizerRect):
+        (WebCore::ScrollView::resizerOverlapsContent):
+        (WebCore::ScrollView::adjustOverlappingScrollbarCount):
+        (WebCore::ScrollView::setParent):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::convertFromContainingWindow):
+
+2008-09-23  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Darin Adler. Landed by Jan Alonzo.
+
+        Added support for getImageData() and putImageData()
+        to Cairo.
+
+        [CAIRO] needs getImageData and putImageData support
+        https://bugs.webkit.org/show_bug.cgi?id=20838
+
+        * platform/graphics/cairo/ImageBufferCairo.cpp:
+        (WebCore::ImageBuffer::ImageBuffer):
+        (WebCore::ImageBuffer::getImageData):
+        (WebCore::ImageBuffer::putImageData):
+
+2008-09-23  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=18987
+        [GTK] Implement SharedBuffer::createWithContentsOfFile and
+        KURL::fileSystemPath
+
+        * GNUmakefile.am: Add KURLGtk.cpp and SharedBufferGtk.cpp.
+        * platform/gtk/KURLGtk.cpp: Added.
+        (WebCore::KURL::fileSystemPath): Implemented.
+        * platform/gtk/SharedBufferGtk.cpp: Added.
+        (WebCore::SharedBuffer::createWithContentsOfFile): Implemented.
+        * platform/gtk/TemporaryLinkStubs.cpp: Remove the old stubs.
+
+2008-09-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Oliver Hunt, okayed by Darin Adler.
+
+        <rdar://problem/5575547> REGRESSION: ATOK has no phrase boundary on Safari/Mail.app
+
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::paintCompositionUnderline): Add 2 pixel spacing between clauses.
+
+2008-09-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21023
+        Don't use TEC for encodings supported by ICU
+
+        * platform/text/mac/mac-encodings.txt: Removed x-mac-centraleurroman, x-mac-cyrillic,
+        x-mac-greek, and x-mac-turkish.
+
+        * platform/text/TextCodecICU.cpp: (WebCore::TextCodecICU::registerExtendedEncodingNames):
+        Register aliases for these encodings that are not registered automatically; updated comments.
+
+2008-09-23  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Darin.
+
+        - speed up instanceof some more
+        https://bugs.webkit.org/show_bug.cgi?id=20818
+
+        ~2% speedup on EarleyBoyer
+
+        (WebCore updates.)
+        
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+        (WebCore::JSQuarantinedObjectWrapper::createStructureID):
+
+2008-09-22  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21008
+          getting pixels by index from CanvasPixelArray is unnecessarily slow
+
+        * GNUmakefile.am: Added JSCanvasPixelArrayCustom.h.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+
+        * bindings/js/JSCanvasPixelArrayCustom.cpp: Removed indexGetter and
+          indexSetter. These are now both inlined, so in the header.
+        * bindings/js/JSCanvasPixelArrayCustom.h: Added. The getByIndex
+          function is what's used for HasCustomIndexGetter. Also moved the
+          indexSetter function here.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Changed HasCustomIndexGetter
+          to use a getByIndex member function rather than an indexGetter static
+          member function in a property slot. This lets us avoid the property
+          slot mechanism's rule where it turns numeric property names into
+          strings in the identifier table, which is good because that's slow.
+          Also added a new property CustomHeader that allows IDL files to
+          introduce headers to be included -- useful when we have functions
+          that we want to inline into the binding.
+
+        * html/CanvasPixelArray.idl: Added CustomHeader attribute.
+
+2008-09-23  Eric Seidel  <eric@webkit.org>
+
+        No review, build fix only.
+
+        Another blind stab in the dark.
+
+        * svg/graphics/cg/SVGResourceClipperCg.cpp: Add missing header.
+
+2008-09-23  Eric Seidel  <eric@webkit.org>
+
+        No review, build fix only.
+        
+        Third time's the charm, eh?  My local build is sadly still not done...
+
+        * platform/graphics/AffineTransform.cpp: remove extra &
+        * platform/graphics/AffineTransform.h: remove extra &
+
+2008-09-22  Eric Seidel  <eric@webkit.org>
+
+        No review, build fix only.
+
+        * platform/graphics/AffineTransform.cpp: remove extra ;
+
+2008-09-22  Eric Seidel  <eric@webkit.org>
+
+        No review, build fix only.
+
+        Speculative fix for the build while I wait for my compile to finish.
+
+        * platform/graphics/AffineTransform.cpp:
+
+2008-09-22  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by eseidel.  Landed by eseidel.
+
+        Moved makeMapBetweenRects from SVG/CG to AffineTransform
+        Make SVGResourceClipper::applyClip more cross-platform
+
+        * platform/graphics/AffineTransform.cpp:
+        * platform/graphics/AffineTransform.h:
+        * svg/graphics/cg/CgSupport.cpp:
+        * svg/graphics/cg/CgSupport.h:
+        * svg/graphics/cg/SVGPaintServerGradientCg.cpp:
+        (WebCore::SVGPaintServerGradient::handleBoundingBoxModeAndGradientTransformation):
+        * svg/graphics/cg/SVGResourceClipperCg.cpp:
+        (WebCore::SVGResourceClipper::applyClip):
+
+2008-09-22  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by David Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=16331
+        [Gtk] no focus when button/checkbox/radiobutton clicked, only when tabbed
+
+        Obey GTK+ focusing conventions for controls and anchor elements.
+
+        It could be interesting to push these decisions up to Settings or
+        ChromeClient some day but this gets things working.
+
+        Right and middle click events still need some work to match GTK+
+        conventions.
+
+        * html/HTMLAnchorElement.cpp:
+        (WebCore::HTMLAnchorElement::isMouseFocusable):
+        * html/HTMLFormControlElement.cpp:
+        (WebCore::HTMLFormControlElement::isMouseFocusable):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::sendContextMenuEvent):
+
+2008-09-22  Darin Adler  <darin@apple.com>
+
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::baseWritingDirectionForSelectionStart): Fix indentation.
+
+2008-09-22  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=21013
+        Match Firefox in how we hide HTMLInputElement.selectionStart, selectionEnd
+        and setSelectionRange.  This also allows us to remove the legacy JSHTMLInputElementBase
+        class!
+
+        - selectionStart, selectionEnd and setSelectionRange now are visible in iteration of
+          non-selectable input types, but return undefined when accessed.
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/JSHTMLInputElementBase.cpp: Removed.
+        * bindings/js/JSHTMLInputElementBase.h: Removed.
+        * bindings/js/JSHTMLInputElementCustom.cpp: Added.
+        (WebCore::JSHTMLInputElement::customGetOwnPropertySlot):
+        (WebCore::JSHTMLInputElement::selectionStart):
+        (WebCore::JSHTMLInputElement::selectionEnd):
+        * bindings/js/JSHTMLInputElementCustom.h: Added.
+        * html/HTMLInputElement.idl:
+
+2008-09-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix <rdar://problem/5699571> Mail: Unable to change writing direction to LTR in an empty message
+
+        Not testable in DumpRenderTree or in Safari
+
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::baseWritingDirectionForSelectionStart): Account for the
+        case that the selection start node is a block.
+
+2008-09-22  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21007
+
+        Make sure that the scrollbar gets sent a release event on platforms that call handleMouseDoubleClickEvent.
+
+        Reviewed by Sam Weinig
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMouseDoubleClickEvent):
+
+2008-09-22  Eric Seidel  <eric@webkit.org>
+
+        No review, rollback only.
+
+        Roll out Peter's change (per his request)
+        http://trac.webkit.org/changeset/36069
+        https://bugs.webkit.org/show_bug.cgi?id=19663
+        This change has been the source of numerous regressions
+        (several of which were latent bugs revealed by this change,
+        others were bugs in this change)
+
+        * platform/graphics/BitmapImage.cpp:
+        (WebCore::BitmapImage::BitmapImage):
+        (WebCore::BitmapImage::startAnimation):
+        (WebCore::BitmapImage::advanceAnimation):
+        * platform/graphics/BitmapImage.h:
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::BitmapImage::draw):
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::BitmapImage::draw):
+        * platform/graphics/qt/ImageQt.cpp:
+        (WebCore::BitmapImage::draw):
+        * platform/graphics/wx/ImageWx.cpp:
+        (WebCore::BitmapImage::draw):
+
+2008-09-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix <rdar://problem/5158514> Switch the complex text code path to Core Text
+
+        Tests: platform/mac-snowleopard/fast/text/myanmar-shaping.html
+               platform/mac-snowleopard/fast/text/thai-combining-mark-positioning.html
+
+        * config.h: Use Core Text if not building for Leopard or Tiger.
+
+2008-09-22  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21006
+
+        Add code that paints an NSView-less scroller using HIThemeDrawTrack.  This scrollbar is still not
+        switched on.  There are still a few more refinements to make to the rendering and behavior.
+
+        Reviewed by Darin Adler
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        * platform/ScrollbarThemeComposite.h:
+        (WebCore::ScrollbarThemeComposite::paintTrack):
+        (WebCore::ScrollbarThemeComposite::paintButton):
+        (WebCore::ScrollbarThemeComposite::paintThumb):
+        * platform/mac/ScrollbarThemeMac.h:
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::ScrollbarThemeMac::backButtonRect):
+        (WebCore::ScrollbarThemeMac::forwardButtonRect):
+        (WebCore::scrollbarPartToHIPressedState):
+        (WebCore::ScrollbarThemeMac::paint):
+        * platform/mac/WidgetMac.mm:
+        (WebCore::Widget::invalidateRect):
+
+2008-09-22  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Sam Weinig
+
+        transition end event when -webkit-transition-property: all puts wrong
+        propertyName in event
+        https://bugs.webkit.org/show_bug.cgi?id=20903
+        
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::sendTransitionEvent):
+
+2008-09-22  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6230234> AXTable should probably not be exposed in there's only one cell
+
+        Test: accessibility/table-one-cell.html
+
+        * page/AccessibilityTable.cpp:
+        (WebCore::AccessibilityTable::isTableExposableThroughAccessibility):
+
+2008-09-22  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6167779> Setting AXSelectedTextRange for TextAreas in a WebView behaves incorrectly
+
+        Test: accessibility/textarea-selected-text-range.html
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::setSelectedTextRange):
+
+2008-09-22  David Hyatt  <hyatt@apple.com>
+
+        Clean up some parent relationships in the back end stylesheet code.  Make sure parentStyleSheet
+        properly walks up nested rule blocks to reach the parent sheet instead of giving up at the immediate
+        parent.  Also fix the doc() method so that it is properly set when the parent of the sheet is an import
+        rule.
+
+        Reviewed by Sam Weinig
+
+        Added fast/css/nested-rule-parent-sheet.html
+
+         * css/CSSImportRule.cpp:
+        (WebCore::CSSImportRule::insertedIntoParent):
+        * css/CSSRule.cpp:
+        (WebCore::CSSRule::parentStyleSheet):
+        (WebCore::CSSRule::parentRule):
+        * css/CSSStyleSheet.cpp:
+        (WebCore::CSSStyleSheet::CSSStyleSheet):
+        * css/CSSStyleSheet.h:
+
+2008-09-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21002
+          Make the ATSUI code path respect spacingDisabled()
+
+        Fixes svg/text/text-spacing-01-b.svg in run-webkit-tests --complex-text
+
+        * platform/graphics/mac/FontMacATSUI.mm:
+        (WebCore::overrideLayoutOperation):
+
+2008-09-22  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - speed up instanceof operator by replacing implementsHasInstance method with a TypeInfo flag
+
+        Partial work towards <https://bugs.webkit.org/show_bug.cgi?id=20818>
+        
+        2.2% speedup on EarleyBoyer benchmark.
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+        (WebCore::JSQuarantinedObjectWrapper::createStructureID):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2008-09-22  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebCore.vcproj/WebCore.vcproj: Add a missing </File> tag.
+
+2008-09-22  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Based on initial work by Darin Adler.
+        
+        - replace masqueradesAsUndefined virtual method with a flag in TypeInfo
+        - use this to JIT inline code for eq_null and neq_null
+        https://bugs.webkit.org/show_bug.cgi?id=20823
+        
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCore.vcproj/WebCore.vcproj:
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclaration::nameGetter):
+        * bindings/js/JSHTMLAllCollection.cpp: Added.
+        (WebCore::):
+        * bindings/js/JSHTMLAllCollection.h:
+        (WebCore::JSHTMLAllCollection::createStructureID):
+        (WebCore::JSHTMLAllCollection::toBoolean):
+
+2008-09-22  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix the QtWebKit build
+
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtRuntimeObjectImp::construct):
+        * bridge/qt/qt_runtime.cpp:
+
+2008-09-22  Alp Toker  <alp@nuanti.com>
+
+        Suggested by David Hyatt.
+
+        Build fix: ScrollView::update() is still used by Document.cpp on !MAC
+        so make it public.
+
+        * platform/ScrollView.h:
+
+2008-09-22  David Hyatt  <hyatt@apple.com>
+
+        Fix a regression in Windows scrollbar painting.  (Also fix the same
+        bug in my new viewless Mac scrollbar painting code).  The track rect
+        was being improperly inflated when painting resulting in the scrollbar
+        being too tall and painting in the border of overflow sections.
+
+        Reviewed by Oliver Hunt
+
+        * platform/mac/ScrollbarThemeMac.mm:
+        (WebCore::ScrollbarThemeMac::trackRect):
+        * platform/win/ScrollbarThemeSafari.cpp:
+        (WebCore::ScrollbarThemeSafari::trackRect):
+
+2008-09-22  David Hyatt  <hyatt@apple.com>
+
+        Fix a hit testing bug where events are mistakenly passed to subframes
+        if the mouse is over the border or padding area of the frame.  Add
+        a boolean flag, isOverWidget(), to hit test results so that EventHandler
+        can check it to tell if the mouse is really over the content box of a
+        RenderWidget and not just in the border/padding area.
+
+        This is not testable, since the old code properly recovered when it detected
+        that the mouse was outside the bounds of the view, but this prevents
+        the extra passdown from even occurring (and is basically a nice cleanup).
+
+        Reviewed by Oliver Hunt
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMousePressEvent):
+        (WebCore::EventHandler::hitTestResultAtPoint):
+        (WebCore::subframeForHitTestResult):
+        (WebCore::EventHandler::handleMouseDoubleClickEvent):
+        (WebCore::EventHandler::handleMouseMoveEvent):
+        (WebCore::EventHandler::handleMouseReleaseEvent):
+        (WebCore::EventHandler::handleWheelEvent):
+        * page/MouseEventWithHitTestResults.h:
+        (WebCore::MouseEventWithHitTestResults::isOverWidget):
+        * rendering/HitTestResult.cpp:
+        (WebCore::HitTestResult::HitTestResult):
+        (WebCore::HitTestResult::operator=):
+        * rendering/HitTestResult.h:
+        (WebCore::HitTestResult::isOverWidget):
+        (WebCore::HitTestResult::setIsOverWidget):
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::nodeAtPoint):
+        * rendering/RenderWidget.h:
+
 2008-09-23  David Hyatt  <hyatt@apple.com>
 
         Rename FrameView's repaintRectangle method to repaintContentRectangle.  Make

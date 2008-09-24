@@ -29,50 +29,65 @@
 #include "JSFunction.h"
 #include "JSGlobalObject.h"
 
+using namespace std;
+
 namespace JSC {
 
 ASSERT_CLASS_FITS_IN_CELL(Arguments);
 
 const ClassInfo Arguments::info = { "Arguments", 0, 0, 0 };
 
-struct ArgumentsData {
-    ArgumentsData(JSActivation* activation, unsigned numParameters, unsigned firstArgumentIndex, unsigned numArguments)
+struct ArgumentsData : Noncopyable {
+    ArgumentsData(JSActivation* activation, unsigned numParameters, int firstParameterIndex, unsigned numArguments, JSFunction* callee)
         : activation(activation)
         , numParameters(numParameters)
-        , firstArgumentIndex(firstArgumentIndex)
+        , firstParameterIndex(firstParameterIndex)
         , numArguments(numArguments)
+        , extraArguments(0)
+        , callee(callee)
+        , overrodeLength(false)
+        , overrodeCallee(false)
     {
     }
 
     JSActivation* activation;
+
     unsigned numParameters;
-    unsigned firstArgumentIndex;
+    int firstParameterIndex;
     unsigned numArguments;
-    OwnArrayPtr<JSValue*> extraArguments;
+    Register* extraArguments;
     OwnArrayPtr<bool> deletedArguments;
+    Register extraArgumentsFixedBuffer[4];
+
+    JSFunction* callee;
+    bool overrodeLength : 1;
+    bool overrodeCallee : 1;
 };
 
 // ECMA 10.1.8
-Arguments::Arguments(ExecState* exec, JSFunction* function, JSActivation* activation, int firstArgumentIndex, Register* argv, int argc)
+Arguments::Arguments(ExecState* exec, JSFunction* function, JSActivation* activation, int firstParameterIndex, Register* argv, int argc)
     : JSObject(exec->lexicalGlobalObject()->argumentsStructure())
-    , d(new ArgumentsData(activation, function->numParameters(), firstArgumentIndex, argc))
+    , d(new ArgumentsData(activation, function->numParameters(), firstParameterIndex, argc, function))
 {
     ASSERT(activation);
-
-    putDirect(exec->propertyNames().callee, function, DontEnum);
-    putDirect(exec->propertyNames().length, jsNumber(exec, argc), DontEnum);
   
     if (d->numArguments > d->numParameters) {
         unsigned numExtraArguments = d->numArguments - d->numParameters;
-        JSValue** extraArguments = new JSValue*[numExtraArguments];
+        Register* extraArguments;
+        if (numExtraArguments > sizeof(d->extraArgumentsFixedBuffer) / sizeof(Register))
+            extraArguments = new Register[numExtraArguments];
+        else
+            extraArguments = d->extraArgumentsFixedBuffer;
         for (unsigned i = 0; i < numExtraArguments; ++i)
-            extraArguments[i] = argv[d->numParameters + i].getJSValue();
-        d->extraArguments.set(extraArguments);
+            extraArguments[i] = argv[d->numParameters + i];
+        d->extraArguments = extraArguments;
     }
 }
 
 Arguments::~Arguments()
 {
+    if (d->extraArguments != d->extraArgumentsFixedBuffer)
+        delete [] d->extraArguments;
 }
 
 void Arguments::mark() 
@@ -82,22 +97,63 @@ void Arguments::mark()
     if (d->extraArguments) {
         unsigned numExtraArguments = d->numArguments - d->numParameters;
         for (unsigned i = 0; i < numExtraArguments; ++i) {
-            if (!d->extraArguments[i]->marked())
-                d->extraArguments[i]->mark();
+            if (!d->extraArguments[i].marked())
+                d->extraArguments[i].mark();
         }
     }
 
+    if (!d->callee->marked())
+        d->callee->mark();
+
     if (!d->activation->marked())
         d->activation->mark();
+}
+
+void Arguments::fillArgList(ExecState* exec, ArgList& args)
+{
+    if (LIKELY(!d->deletedArguments)) {
+        if (LIKELY(!d->numParameters)) {
+            args.initialize(d->extraArguments, d->numArguments);
+            return;
+        }
+
+        if (d->numParameters == d->numArguments) {
+            args.initialize(&d->activation->registerAt(d->firstParameterIndex), d->numArguments);
+            return;
+        }
+
+        unsigned parametersLength = min(d->numParameters, d->numArguments);
+        unsigned i = 0;
+        for (; i < parametersLength; ++i)
+            args.append(d->activation->uncheckedSymbolTableGetValue(d->firstParameterIndex + i));
+        for (; i < d->numArguments; ++i)
+            args.append(d->extraArguments[i - d->numParameters].getJSValue());
+        return;
+    }
+
+    unsigned parametersLength = min(d->numParameters, d->numArguments);
+    unsigned i = 0;
+    for (; i < parametersLength; ++i) {
+        if (!d->deletedArguments[i])
+            args.append(d->activation->uncheckedSymbolTableGetValue(d->firstParameterIndex + i));
+        else
+            args.append(get(exec, i));
+    }
+    for (; i < d->numArguments; ++i) {
+        if (!d->deletedArguments[i])
+            args.append(d->extraArguments[i - d->numParameters].getJSValue());
+        else
+            args.append(get(exec, i));
+    }
 }
 
 bool Arguments::getOwnPropertySlot(ExecState* exec, unsigned i, PropertySlot& slot)
 {
     if (i < d->numArguments && (!d->deletedArguments || !d->deletedArguments[i])) {
         if (i < d->numParameters)
-            d->activation->uncheckedSymbolTableGet(d->firstArgumentIndex + i, slot);
+            d->activation->uncheckedSymbolTableGet(d->firstParameterIndex + i, slot);
         else
-            slot.setValueSlot(&d->extraArguments[i - d->numParameters]);
+            slot.setValue(d->extraArguments[i - d->numParameters].getJSValue());
         return true;
     }
 
@@ -110,9 +166,19 @@ bool Arguments::getOwnPropertySlot(ExecState* exec, const Identifier& propertyNa
     unsigned i = propertyName.toArrayIndex(&isArrayIndex);
     if (isArrayIndex && i < d->numArguments && (!d->deletedArguments || !d->deletedArguments[i])) {
         if (i < d->numParameters)
-            d->activation->uncheckedSymbolTableGet(d->firstArgumentIndex + i, slot);
+            d->activation->uncheckedSymbolTableGet(d->firstParameterIndex + i, slot);
         else
-            slot.setValueSlot(&d->extraArguments[i - d->numParameters]);
+            slot.setValue(d->extraArguments[i - d->numParameters].getJSValue());
+        return true;
+    }
+
+    if (propertyName == exec->propertyNames().length && LIKELY(!d->overrodeLength)) {
+        slot.setValue(jsNumber(exec, d->numArguments));
+        return true;
+    }
+
+    if (propertyName == exec->propertyNames().callee && LIKELY(!d->overrodeCallee)) {
+        slot.setValue(d->callee);
         return true;
     }
 
@@ -123,7 +189,7 @@ void Arguments::put(ExecState* exec, unsigned i, JSValue* value, PutPropertySlot
 {
     if (i < d->numArguments && (!d->deletedArguments || !d->deletedArguments[i])) {
         if (i < d->numParameters)
-            d->activation->uncheckedSymbolTablePut(d->firstArgumentIndex + i, value);
+            d->activation->uncheckedSymbolTablePut(d->firstParameterIndex + i, value);
         else
             d->extraArguments[i - d->numParameters] = value;
         return;
@@ -138,9 +204,21 @@ void Arguments::put(ExecState* exec, const Identifier& propertyName, JSValue* va
     unsigned i = propertyName.toArrayIndex(&isArrayIndex);
     if (isArrayIndex && i < d->numArguments && (!d->deletedArguments || !d->deletedArguments[i])) {
         if (i < d->numParameters)
-            d->activation->uncheckedSymbolTablePut(d->firstArgumentIndex + i, value);
+            d->activation->uncheckedSymbolTablePut(d->firstParameterIndex + i, value);
         else
             d->extraArguments[i - d->numParameters] = value;
+        return;
+    }
+
+    if (propertyName == exec->propertyNames().length && !d->overrodeLength) {
+        d->overrodeLength = true;
+        putDirect(propertyName, value, DontEnum);
+        return;
+    }
+
+    if (propertyName == exec->propertyNames().callee && !d->overrodeCallee) {
+        d->overrodeCallee = true;
+        putDirect(propertyName, value, DontEnum);
         return;
     }
 
@@ -176,6 +254,16 @@ bool Arguments::deleteProperty(ExecState* exec, const Identifier& propertyName)
             d->deletedArguments[i] = true;
             return true;
         }
+    }
+
+    if (propertyName == exec->propertyNames().length && !d->overrodeLength) {
+        d->overrodeLength = true;
+        return true;
+    }
+
+    if (propertyName == exec->propertyNames().callee && !d->overrodeCallee) {
+        d->overrodeCallee = true;
+        return true;
     }
 
     return JSObject::deleteProperty(exec, propertyName);

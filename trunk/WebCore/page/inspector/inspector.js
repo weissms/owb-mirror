@@ -31,7 +31,6 @@ var Preferences = {
     ignoreWhitespace: true,
     showUserAgentStyles: true,
     maxInlineTextChildLength: 80,
-    maxTextSearchResultLength: 80,
     minConsoleHeight: 75,
     minSidebarWidth: 100,
     minElementsSidebarWidth: 200,
@@ -43,7 +42,6 @@ var Preferences = {
 var WebInspector = {
     resources: [],
     resourceURLMap: {},
-    searchResultsHeight: 100,
     missingLocalizedStrings: {},
     _altKeyDown: false,
     _forceHoverHighlight: false,
@@ -100,8 +98,29 @@ var WebInspector = {
 
         this._currentPanel = x;
 
-        if (x)
+        this.updateSearchLabel();
+
+        if (x) {
             x.show();
+
+            if (this.currentQuery) {
+                if (x.performSearch) {
+                    function performPanelSearch()
+                    {
+                        this.updateSearchMatchesCount();
+
+                        x.currentQuery = this.currentQuery;
+                        x.performSearch(this.currentQuery);
+                    }
+
+                    // Perform the search on a timeout so the panel switches fast.
+                    setTimeout(performPanelSearch.bind(this), 0);
+                } else {
+                    // Update to show Not found for panels that can't be searched.
+                    this.updateSearchMatchesCount();
+                }
+            }
+        }
     },
 
     get attached()
@@ -116,6 +135,8 @@ var WebInspector = {
 
         this._attached = x;
 
+        this.updateSearchLabel();
+
         var dockToggleButton = document.getElementById("dock-status-bar-item");
         var body = document.body;
 
@@ -129,52 +150,6 @@ var WebInspector = {
             body.removeStyleClass("attached");
             body.addStyleClass("detached");
             dockToggleButton.title = WebInspector.UIString("Dock to main window.");
-        }
-    },
-
-    get showingSearchResults()
-    {
-        return this._showingSearchResults;
-    },
-
-    set showingSearchResults(x)
-    {
-        if (this._showingSearchResults === x)
-            return;
-
-        this._showingSearchResults = x;
-
-        var resultsContainer = document.getElementById("searchResults");
-        var searchResultsResizer = document.getElementById("searchResultsResizer");
-
-        if (x) {
-            resultsContainer.removeStyleClass("hidden");
-            searchResultsResizer.removeStyleClass("hidden");
-
-            var animations = [
-                {element: resultsContainer, end: {top: 0}},
-                {element: searchResultsResizer, end: {top: WebInspector.searchResultsHeight - 3}},
-                {element: document.getElementById("main-panels"), end: {top: WebInspector.searchResultsHeight}}
-            ];
-
-            WebInspector.animateStyle(animations, 250);
-        } else {
-            searchResultsResizer.addStyleClass("hidden");
-
-            var animations = [
-                {element: resultsContainer, end: {top: -WebInspector.searchResultsHeight}},
-                {element: searchResultsResizer, end: {top: 0}},
-                {element: document.getElementById("main-panels"), end: {top: 0}}
-            ];
-
-            var animationFinished = function()
-            {
-                resultsContainer.addStyleClass("hidden");
-                resultsContainer.removeChildren();
-                delete this.searchResultsTree;
-            };
-
-            WebInspector.animateStyle(animations, 250, animationFinished);
         }
     },
 
@@ -394,8 +369,6 @@ WebInspector.loaded = function()
     document.addEventListener("beforecopy", this.documentCanCopy.bind(this), true);
     document.addEventListener("copy", this.documentCopy.bind(this), true);
 
-    document.getElementById("searchResultsResizer").addEventListener("mousedown", this.searchResultsResizerDragStart, true);
-
     var mainPanelsElement = document.getElementById("main-panels");
     mainPanelsElement.handleKeyEvent = this.mainKeyDown.bind(this);
     mainPanelsElement.handleKeyUpEvent = this.mainKeyUp.bind(this);
@@ -418,9 +391,9 @@ WebInspector.loaded = function()
     errorWarningCount.addEventListener("click", this.console.show.bind(this.console), false);
     this._updateErrorAndWarningCounts();
 
-    document.getElementById("search-toolbar-label").textContent = WebInspector.UIString("Search");
     var searchField = document.getElementById("search");
-    searchField.addEventListener("keyup", this.performSearch.bind(this), false);
+    searchField.addEventListener("keydown", this.searchKeyDown.bind(this), false);
+    searchField.addEventListener("keyup", this.searchKeyUp.bind(this), false);
     searchField.addEventListener("search", this.performSearch.bind(this), false); // when the search is emptied
 
     document.getElementById("toolbar").addEventListener("mousedown", this.toolbarDragStart, true);
@@ -536,25 +509,46 @@ WebInspector.documentKeyDown = function(event)
         WebInspector[this.currentFocusElement.id + "KeyDown"](event);
 
     if (!event.handled) {
+        var isMac = InspectorController.platform().indexOf("mac-") === 0;
+
         switch (event.keyIdentifier) {
             case "U+001B": // Escape key
                 this.console.visible = !this.console.visible;
                 event.preventDefault();
                 break;
+
             case "U+0046": // F key
-                var isMac = InspectorController.platform().indexOf("mac-") === 0;
-                var isFindKey;
-                // We want cmd-F for Mac, or ctrl-F for non-Mac
                 if (isMac)
-                    isFindKey = event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey;
+                    var isFindKey = event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey;
                 else
-                    isFindKey = event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
+                    var isFindKey = event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
 
                 if (isFindKey) {
-                    document.getElementById("search").focus();
+                    var searchField = document.getElementById("search");
+                    searchField.focus();
+                    searchField.select();
                     event.preventDefault();
                 }
+
                 break;
+
+            case "U+0047": // G key
+                if (isMac)
+                    var isFindAgainKey = event.metaKey && !event.ctrlKey && !event.altKey;
+                else
+                    var isFindAgainKey = event.ctrlKey && !event.metaKey && !event.altKey;
+
+                if (isFindAgainKey) {
+                    if (event.shiftKey) {
+                        if (this.currentPanel.jumpToPreviousSearchResult)
+                            this.currentPanel.jumpToPreviousSearchResult();
+                    } else if (this.currentPanel.jumpToNextSearchResult)
+                        this.currentPanel.jumpToNextSearchResult();
+                    event.preventDefault();
+                }
+
+                break;
+
             case "Alt":
                 this.altKeyDown = true;
                 break
@@ -609,12 +603,6 @@ WebInspector.mainCopy = function(event)
 {
     if (this.currentPanel && this.currentPanel.handleCopyEvent)
         this.currentPanel.handleCopyEvent(event);
-}
-
-WebInspector.searchResultsKeyDown = function(event)
-{
-    if (this.searchResultsTree)
-        this.searchResultsTree.handleKeyEvent(event);
 }
 
 WebInspector.animateStyle = function(animations, duration, callback, complete)
@@ -691,6 +679,20 @@ WebInspector.animateStyle = function(animations, duration, callback, complete)
         callback();
 }
 
+WebInspector.updateSearchLabel = function()
+{
+    if (!this.currentPanel)
+        return;
+
+    var newLabel = WebInspector.UIString("Search %s", this.currentPanel.toolbarItemLabel);
+    if (this.attached)
+        document.getElementById("search").setAttribute("placeholder", newLabel);
+    else {
+        document.getElementById("search").removeAttribute("placeholder");
+        document.getElementById("search-toolbar-label").textContent = newLabel;
+    }
+}
+
 WebInspector.toggleAttach = function()
 {
     this.attached = !this.attached;
@@ -744,30 +746,6 @@ WebInspector.toolbarDrag = function(event)
 
     toolbar.lastScreenX = event.screenX;
     toolbar.lastScreenY = event.screenY;
-
-    event.preventDefault();
-}
-
-WebInspector.searchResultsResizerDragStart = function(event)
-{
-    WebInspector.elementDragStart(document.getElementById("searchResults"), WebInspector.searchResultsResizerDrag, WebInspector.searchResultsResizerDragEnd, event, "row-resize");
-}
-
-WebInspector.searchResultsResizerDragEnd = function(event)
-{
-    WebInspector.elementDragEnd(event);
-}
-
-WebInspector.searchResultsResizerDrag = function(event)
-{
-    var y = event.pageY - document.getElementById("main").offsetTop;
-    var newHeight = Number.constrain(y, 100, window.innerHeight - 100);
-
-    WebInspector.searchResultsHeight = newHeight;
-
-    document.getElementById("searchResults").style.height = WebInspector.searchResultsHeight + "px";
-    document.getElementById("main-panels").style.top = newHeight + "px";
-    document.getElementById("searchResultsResizer").style.top = (newHeight - 3) + "px";
 
     event.preventDefault();
 }
@@ -849,13 +827,7 @@ WebInspector.removeResource = function(resource)
     resource.category.removeResource(resource);
     delete this.resourceURLMap[resource.url];
 
-    var resourcesLength = this.resources.length;
-    for (var i = 0; i < resourcesLength; ++i) {
-        if (this.resources[i] === resource) {
-            this.resources.splice(i, 1);
-            break;
-        }
-    }
+    this.resources.remove(resource, true);
 
     this.panels.resources.removeResource(resource);
 }
@@ -1099,203 +1071,99 @@ WebInspector.addMainEventListeners = function(doc)
     doc.addEventListener("click", this.documentClick.bind(this), true);
 }
 
+WebInspector.searchKeyDown = function(event)
+{
+    if (event.keyIdentifier !== "Enter")
+        return;
+
+    // Call preventDefault since this was the Enter key. This prevents a "search" event
+    // from firing for key down. We handle the Enter key on key up in searchKeyUp. This
+    // stops performSearch from being called twice in a row.
+    event.preventDefault();
+}
+
+WebInspector.searchKeyUp = function(event)
+{
+    if (event.keyIdentifier !== "Enter")
+        return;
+
+    // Select all of the text so the user can easily type an entirely new query.
+    event.target.select();
+
+    // Only call performSearch if the Enter key was pressed. Otherwise the search
+    // performance is poor because of searching on every key. The search field has
+    // the incremental attribute set, so we still get incremental searches.
+    this.performSearch(event);
+}
+
 WebInspector.performSearch = function(event)
 {
     var query = event.target.value;
 
     if (!query || !query.length) {
-        delete this.lastQuery;
-        this.showingSearchResults = false;
+        delete this.currentQuery;
+
+        for (var panelName in this.panels) {
+            var panel = this.panels[panelName];
+            if (panel.currentQuery && panel.searchCanceled)
+                panel.searchCanceled();
+            delete panel.currentQuery;
+        }
+
+        this.updateSearchMatchesCount();
+
         return;
     }
 
     var forceSearch = event.keyIdentifier === "Enter";
-    if(!forceSearch && query.length < 3)
+    if (!forceSearch && query.length < 3)
         return;
 
-    if (!forceSearch && this.lastQuery && this.lastQuery === query)
+    if (query === this.currentPanel.currentQuery && this.currentPanel.currentQuery === this.currentQuery) {
+        // When this is the same query and a forced search, jump to the next
+        // search result for a good user experience.
+        if (forceSearch && this.currentPanel.jumpToNextSearchResult)
+            this.currentPanel.jumpToNextSearchResult();
         return;
-    this.lastQuery = query;
-
-    var resultsContainer = document.getElementById("searchResults");
-    resultsContainer.removeChildren();
-
-    var isXPath = query.indexOf("/") !== -1;
-
-    var xpathQuery;
-    if (isXPath)
-        xpathQuery = query;
-    else {
-        var escapedQuery = query.escapeCharacters("'");
-        xpathQuery = "//*[contains(name(),'" + escapedQuery + "') or contains(@*,'" + escapedQuery + "')] | //text()[contains(.,'" + escapedQuery + "')] | //comment()[contains(.,'" + escapedQuery + "')]";
     }
 
-    var resourcesToSearch = [].concat(this.resourceCategories.documents.resources, this.resourceCategories.stylesheets.resources, this.resourceCategories.scripts.resources, this.resourceCategories.other.resources);
+    this.currentQuery = query;
 
-    var files = [];
-    for (var i = 0; i < resourcesToSearch.length; ++i) {
-        var resource = resourcesToSearch[i];
+    this.updateSearchMatchesCount();
 
-        var sourceResults = [];
-        if (!isXPath) {
-            var sourceFrame = this.panels.resources.sourceFrameForResource(resource);
-            if (sourceFrame)
-                sourceResults = InspectorController.search(sourceFrame.element.contentDocument, query);
-        }
-
-        var domResults = [];
-        const searchResultsProperty = "__includedInInspectorSearchResults";
-        function addNodesToDOMResults(nodes, length, getItem)
-        {
-            for (var i = 0; i < length; ++i) {
-                var node = getItem(nodes, i);
-                if (searchResultsProperty in node)
-                    continue;
-                node[searchResultsProperty] = true;
-                domResults.push(node);
-            }
-        }
-
-        function cleanUpDOMResultsNodes()
-        {
-            for (var i = 0; i < domResults.length; ++i)
-                delete domResults[i][searchResultsProperty];
-        }
-
-        if (resource.category === this.resourceCategories.documents) {
-            var doc = resource.documentNode;
-            try {
-                var result = InspectorController.inspectedWindow().Document.prototype.evaluate.call(doc, xpathQuery, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
-                addNodesToDOMResults(result, result.snapshotLength, function(l, i) { return l.snapshotItem(i); });
-            } catch(err) {
-                // ignore any exceptions. the query might be malformed, but we allow that.
-            }
-
-            try {
-                var result = InspectorController.inspectedWindow().Document.prototype.querySelectorAll.call(doc, query);
-                addNodesToDOMResults(result, result.length, function(l, i) { return l.item(i); });
-            } catch(err) {
-                // ignore any exceptions. the query isn't necessarily a valid selector.
-            }
-
-            cleanUpDOMResultsNodes();
-        }
-
-        if ((!sourceResults || !sourceResults.length) && !domResults.length)
-            continue;
-
-        files.push({resource: resource, sourceResults: sourceResults, domResults: domResults});
-    }
-
-    if (!files.length)
+    if (!this.currentPanel.performSearch)
         return;
 
-    this.showingSearchResults = true;
+    this.currentPanel.currentQuery = query;
+    this.currentPanel.performSearch(query);
+}
 
-    var fileList = document.createElement("ol");
-    fileList.className = "outline-disclosure";
-    resultsContainer.appendChild(fileList);
+WebInspector.updateSearchMatchesCount = function(matches, panel)
+{
+    if (!panel)
+        panel = this.currentPanel;
 
-    this.searchResultsTree = new TreeOutline(fileList);
-    this.searchResultsTree.expandTreeElementsWhenArrowing = true;
+    panel.currentSearchMatches = matches;
 
-    var sourceResultSelected = function(element)
-    {
-        var selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(element.representedObject.range);
+    if (panel !== this.currentPanel)
+        return;
 
-        var oldFocusElement = this.currentFocusElement;
-        this.currentPanel = this.panels.resources;
-        this.currentFocusElement = oldFocusElement;
-
-        this.panels.resources.showResource(element.representedObject.resource);
-
-        element.representedObject.line.scrollIntoViewIfNeeded(true);
-        element.listItemElement.scrollIntoViewIfNeeded(false);
+    if (!this.currentPanel.currentQuery) {
+        document.getElementById("search-results-matches").addStyleClass("hidden");
+        return;
     }
 
-    var domResultSelected = function(element)
-    {
-        var oldFocusElement = this.currentFocusElement;
-        this.currentPanel = this.panels.elements;
-        this.currentFocusElement = oldFocusElement;
+    if (matches) {
+        if (matches === 1)
+            var matchesString = WebInspector.UIString("1 match");
+        else
+            var matchesString = WebInspector.UIString("%d matches", matches);
+    } else
+        var matchesString = WebInspector.UIString("Not Found");
 
-        this.panels.elements.focusedDOMNode = element.representedObject.node;
-        element.listItemElement.scrollIntoViewIfNeeded(false);
-    }
-
-    for (var i = 0; i < files.length; ++i) {
-        var file = files[i];
-
-        var fileItem = new TreeElement(file.resource.displayName, {}, true);
-        fileItem.expanded = true;
-        fileItem.selectable = false;
-        this.searchResultsTree.appendChild(fileItem);
-
-        if (file.sourceResults && file.sourceResults.length) {
-            for (var j = 0; j < file.sourceResults.length; ++j) {
-                var range = file.sourceResults[j];
-                var sourceDocument = range.startContainer.ownerDocument;
-
-                var line = range.startContainer;
-                while (line.parentNode && line.nodeName.toLowerCase() != "tr")
-                    line = line.parentNode;
-                var lineRange = sourceDocument.createRange();
-                lineRange.selectNodeContents(line);
-
-                // Don't include any error bubbles in the search result
-                var end = line.lastChild.lastChild;
-                if (end.nodeName.toLowerCase() == "div" && end.hasStyleClass("webkit-html-message-bubble")) {
-                    while (end && end.nodeName.toLowerCase() == "div" && end.hasStyleClass("webkit-html-message-bubble"))
-                        end = end.previousSibling;
-                    lineRange.setEndAfter(end);
-                }
-
-                var beforeRange = sourceDocument.createRange();
-                beforeRange.setStart(lineRange.startContainer, lineRange.startOffset);
-                beforeRange.setEnd(range.startContainer, range.startOffset);
-
-                var afterRange = sourceDocument.createRange();
-                afterRange.setStart(range.endContainer, range.endOffset);
-                afterRange.setEnd(lineRange.endContainer, lineRange.endOffset);
-
-                var beforeText = beforeRange.toString().trimLeadingWhitespace();
-                var text = range.toString();
-                var afterText = afterRange.toString().trimTrailingWhitespace();
-
-                var length = beforeText.length + text.length + afterText.length;
-                if (length > Preferences.maxTextSearchResultLength) {
-                    var beforeAfterLength = (Preferences.maxTextSearchResultLength - text.length) / 2;
-                    if (beforeText.length > beforeAfterLength)
-                        beforeText = "\u2026" + beforeText.substr(-beforeAfterLength);
-                    if (afterText.length > beforeAfterLength)
-                        afterText = afterText.substr(0, beforeAfterLength) + "\u2026";
-                }
-
-                var title = "<div class=\"selection selected\"></div>";
-                if (j == 0)
-                    title += "<div class=\"search-results-section\">" + WebInspector.UIString("Source") + "</div>";
-                title += beforeText.escapeHTML() + "<span class=\"search-matched-string\">" + text.escapeHTML() + "</span>" + afterText.escapeHTML();
-                var item = new TreeElement(title, {resource: file.resource, line: line, range: range}, false);
-                item.onselect = sourceResultSelected.bind(this);
-                fileItem.appendChild(item);
-            }
-        }
-
-        if (file.domResults.length) {
-            for (var j = 0; j < file.domResults.length; ++j) {
-                var node = file.domResults[j];
-                var title = "<div class=\"selection selected\"></div>";
-                if (j == 0)
-                    title += "<div class=\"search-results-section\">" + WebInspector.UIString("DOM") + "</div>";
-                title += nodeTitleInfo.call(node).title;
-                var item = new TreeElement(title, {resource: file.resource, node: node}, false);
-                item.onselect = domResultSelected.bind(this);
-                fileItem.appendChild(item);
-            }
-        }
-    }
+    var matchesToolbarElement = document.getElementById("search-results-matches");
+    matchesToolbarElement.removeStyleClass("hidden");
+    matchesToolbarElement.textContent = matchesString;
 }
 
 WebInspector.UIString = function(string)

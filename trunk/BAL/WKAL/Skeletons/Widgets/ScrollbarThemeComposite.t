@@ -201,7 +201,7 @@ protected:
      * @code
      * @endcode
      */
-    virtual void paintTrack(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask) = 0;
+    virtual void paintTrack(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask) ;
     /**
      * Paint the button.
      * @param[in] : a pointer to the graphics context.
@@ -211,7 +211,7 @@ protected:
      * @code
      * @endcode
      */
-    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart) = 0;
+    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart) ;
     /**
      * Paint the thumb.
      * @param[in] : a pointer to the graphics context.
@@ -220,7 +220,7 @@ protected:
      * @code
      * @endcode
      */
-    virtual void paintThumb(GraphicsContext*, Scrollbar*, const IntRect&) = 0;
+    virtual void paintThumb(GraphicsContext*, Scrollbar*, const IntRect&) ;
 };
 
 }

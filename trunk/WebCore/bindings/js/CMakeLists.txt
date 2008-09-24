@@ -22,6 +22,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSEventListener.cpp
     bindings/js/JSEventTargetBase.cpp
     bindings/js/JSEventTargetNode.cpp
+    bindings/js/JSHTMLAllCollection.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
     bindings/js/JSHTMLCollectionCustom.cpp
     bindings/js/JSHTMLDocumentCustom.cpp
@@ -31,7 +32,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSHTMLFrameElementCustom.cpp
     bindings/js/JSHTMLFrameSetElementCustom.cpp
     bindings/js/JSHTMLIFrameElementCustom.cpp
-    bindings/js/JSHTMLInputElementBase.cpp
+    bindings/js/JSHTMLInputElementCustom.cpp
     bindings/js/JSHTMLObjectElementCustom.cpp
     bindings/js/JSHTMLOptionElementConstructor.cpp
     bindings/js/JSHTMLOptionsCollectionCustom.cpp
@@ -113,6 +114,8 @@ ENDIF (WEBKIT_USE_DOM_STORAGE)
 
 IF (WEBKIT_USE_SVG)
     LIST (APPEND BINDINGS_JS_SRC
+        bindings/js/JSEventTargetSVGElementInstance.cpp
+        bindings/js/JSSVGElementInstanceCustom.cpp
         bindings/js/JSSVGMatrixCustom.cpp
         bindings/js/JSSVGPathSegCustom.cpp
         bindings/js/JSSVGPathSegListCustom.cpp

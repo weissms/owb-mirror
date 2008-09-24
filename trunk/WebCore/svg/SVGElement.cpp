@@ -119,6 +119,25 @@ SVGDocumentExtensions* SVGElement::accessDocumentSVGExtensions() const
     // global inclusion of Document.h in SVG code.
     return document() ? document()->accessSVGExtensions() : 0;
 }
+ 
+void SVGElement::mapInstanceToElement(SVGElementInstance* instance)
+{
+    ASSERT(instance);
+    ASSERT(!m_elementInstances.contains(instance));
+    m_elementInstances.add(instance);
+}
+ 
+void SVGElement::removeInstanceMapping(SVGElementInstance* instance)
+{
+    ASSERT(instance);
+    ASSERT(m_elementInstances.contains(instance));
+    m_elementInstances.remove(instance);
+}
+
+HashSet<SVGElementInstance*> SVGElement::instancesForElement() const
+{
+    return m_elementInstances;
+}
 
 void SVGElement::parseMappedAttribute(MappedAttribute* attr)
 {
@@ -187,7 +206,7 @@ void SVGElement::sendSVGLoadEventIfPossible(bool sendParentLoadEvents)
             RefPtr<Event> event = Event::create(loadEvent, false, false);
             event->setTarget(currentTarget);
             ExceptionCode ignored = 0;
-            dispatchGenericEvent(currentTarget.get(), event.release(), ignored, false);
+            currentTarget->dispatchGenericEvent(event.release(), ignored, false);
         }
         currentTarget = (parent && parent->isSVGElement()) ? static_pointer_cast<SVGElement>(parent) : 0;
     }
@@ -228,41 +247,6 @@ void SVGElement::insertedIntoDocument()
 
         SVGResource::invalidateClients(*clients);
     }
-}
-
-static Node* shadowTreeParentElementForShadowTreeElement(Node* node)
-{
-    for (Node* n = node; n; n = n->parentNode()) {
-        if (n->isShadowNode())
-            return n->shadowParentNode();
-    }
-
-    return 0;
-}
-
-bool SVGElement::dispatchEvent(PassRefPtr<Event> e, ExceptionCode& ec, bool tempEvent)
-{
-    // TODO: This function will be removed in a follow-up patch!
-
-    EventTarget* target = this;
-    Node* useNode = shadowTreeParentElementForShadowTreeElement(this);
-
-    // If we are a hidden shadow tree element, the target must
-    // point to our corresponding SVGElementInstance object
-    if (useNode) {
-        ASSERT(useNode->hasTagName(SVGNames::useTag));
-        SVGUseElement* use = static_cast<SVGUseElement*>(useNode);
-
-        SVGElementInstance* instance = use->instanceForShadowTreeElement(this);
-
-        if (instance)
-            target = instance;
-    }
-
-    e->setTarget(target);
-
-    RefPtr<FrameView> view = document()->view();
-    return EventTargetNode::dispatchGenericEvent(this, e, ec, tempEvent);
 }
 
 void SVGElement::attributeChanged(Attribute* attr, bool preserveDecls)

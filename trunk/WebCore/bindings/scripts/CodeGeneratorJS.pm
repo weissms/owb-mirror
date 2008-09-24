@@ -145,7 +145,7 @@ sub UsesManualToJSImplementation
 {
     my $type = shift;
 
-    return 1 if $type eq "Node" or $type eq "Document" or $type eq "HTMLCollection" or $type eq "SVGPathSeg" or $type eq "StyleSheet" or $type eq "CSSRule" or $type eq "CSSValue" or $type eq "Event" or $type eq "CanvasPixelArray" or $type eq "Element" or $type eq "Text";
+    return 1 if $type eq "Node" or $type eq "Document" or $type eq "HTMLCollection" or $type eq "SVGPathSeg" or $type eq "StyleSheet" or $type eq "CSSRule" or $type eq "CSSValue" or $type eq "Event" or $type eq "CanvasPixelArray" or $type eq "Element" or $type eq "Text" or $type eq "SVGElementInstance";
     return 0;
 }
 
@@ -278,7 +278,7 @@ sub GenerateGetOwnPropertySlotBody
         &$hasNameGetterGeneration();
     }
 
-    my $requiresManualLookup = $dataNode->extendedAttributes->{"HasIndexGetter"} || $dataNode->extendedAttributes->{"HasNameGetter"} || $dataNode->extendedAttributes->{"HasCustomIndexGetter"};
+    my $requiresManualLookup = $dataNode->extendedAttributes->{"HasIndexGetter"} || $dataNode->extendedAttributes->{"HasNameGetter"};
     if ($requiresManualLookup) {
         push(@getOwnPropertySlotImpl, "    const ${namespaceMaybe}HashEntry* entry = ${className}Table.entry(exec, propertyName);\n");
         push(@getOwnPropertySlotImpl, "    if (entry) {\n");
@@ -291,7 +291,11 @@ sub GenerateGetOwnPropertySlotBody
         push(@getOwnPropertySlotImpl, "    bool ok;\n");
         push(@getOwnPropertySlotImpl, "    unsigned index = propertyName.toUInt32(&ok, false);\n");
         push(@getOwnPropertySlotImpl, "    if (ok && index < static_cast<$implClassName*>(impl())->length()) {\n");
-        push(@getOwnPropertySlotImpl, "        slot.setCustomIndex(this, index, indexGetter);\n");
+        if ($dataNode->extendedAttributes->{"HasCustomIndexGetter"}) {
+            push(@getOwnPropertySlotImpl, "        slot.setValue(getByIndex(exec, index));\n");
+        } else {
+            push(@getOwnPropertySlotImpl, "        slot.setCustomIndex(this, index, indexGetter);\n");
+        }
         push(@getOwnPropertySlotImpl, "        return true;\n");
         push(@getOwnPropertySlotImpl, "    }\n");
     }
@@ -361,6 +365,8 @@ sub GenerateHeader
     }
     if ($interfaceName eq "Node") {
         push(@headerContentHeader, "#include \"EventTargetNode.h\"\n");
+    } elsif ($interfaceName eq "SVGElementInstance") {
+        push(@headerContentHeader, "#include \"EventTargetSVGElementInstance.h\"\n");
     }
 
     if ($dataNode->extendedAttributes->{"CustomCall"}) {
@@ -413,9 +419,7 @@ sub GenerateHeader
     # Prototype
     push(@headerContent, "    static JSC::JSObject* createPrototype(JSC::ExecState*);\n") if $interfaceName ne "DOMWindow";
 
-    $implIncludes{"${className}Custom.h"} = 1 if
-       $dataNode->extendedAttributes->{"CustomPutFunction"}
-    || $dataNode->extendedAttributes->{"CustomGetOwnPropertySlot"};
+    $implIncludes{"${className}Custom.h"} = 1 if $dataNode->extendedAttributes->{"CustomHeader"} || $dataNode->extendedAttributes->{"CustomPutFunction"};
 
     my $hasGetter = $numAttributes > 0 
                  || $dataNode->extendedAttributes->{"GenerateConstructor"} 
@@ -589,10 +593,13 @@ sub GenerateHeader
     }
 
     # Index getter
-    if ($dataNode->extendedAttributes->{"HasIndexGetter"} || $dataNode->extendedAttributes->{"HasCustomIndexGetter"}) {
+    if ($dataNode->extendedAttributes->{"HasIndexGetter"}) {
         push(@headerContent, "    static JSC::JSValue* indexGetter(JSC::ExecState*, const JSC::Identifier&, const JSC::PropertySlot&);\n");
     }
-
+    if ($dataNode->extendedAttributes->{"HasCustomIndexGetter"}) {
+        push(@headerContent, "    JSC::JSValue* getByIndex(JSC::ExecState*, unsigned index);\n");
+    }
+    
     # Index setter
     if ($dataNode->extendedAttributes->{"HasCustomIndexSetter"}) {
         push(@headerContent, "    void indexSetter(JSC::ExecState*, unsigned index, JSC::JSValue*);\n");
@@ -621,9 +628,12 @@ sub GenerateHeader
         } else {
             push(@headerContent, "JSC::JSValue* toJS(JSC::ExecState*, $implType*);\n");
         }
+
+        # Resolve ambiguity with EventTarget that otherwise exists.
         if ($interfaceName eq "Node") {
-            # Resolve ambiguity with EventTarget that otherwise exists.
             push(@headerContent, "inline JSC::JSValue* toJS(JSC::ExecState* exec, EventTargetNode* node) { return toJS(exec, static_cast<Node*>(node)); }\n");
+        } elsif ($interfaceName eq "SVGElementInstance") {
+            push(@headerContent, "inline JSC::JSValue* toJS(JSC::ExecState* exec, EventTargetSVGElementInstance* instance) { return toJS(exec, static_cast<SVGElementInstance*>(instance)); }\n");
         }
     }
     if (!$hasParent || $dataNode->extendedAttributes->{"GenerateNativeConverter"}) {
@@ -979,7 +989,11 @@ sub GenerateImplementation
             push(@implContent, "bool ${className}::getOwnPropertySlot(ExecState* exec, unsigned propertyName, PropertySlot& slot)\n");
             push(@implContent, "{\n");
             push(@implContent, "    if (propertyName < static_cast<$implClassName*>(impl())->length()) {\n");
-            push(@implContent, "        slot.setCustomIndex(this, propertyName, indexGetter);\n");
+            if ($dataNode->extendedAttributes->{"HasCustomIndexGetter"}) {
+                push(@implContent, "        slot.setValue(getByIndex(exec, propertyName));\n");
+            } else {
+                push(@implContent, "        slot.setCustomIndex(this, propertyName, indexGetter);\n");
+            }
             push(@implContent, "        return true;\n");
             push(@implContent, "    }\n");
             push(@implContent, "    return getOwnPropertySlot(exec, Identifier::from(exec, propertyName), slot);\n");
@@ -1586,6 +1600,9 @@ sub NativeToJSValue
     if ($type eq "EventTarget") {
         $implIncludes{"EventTargetNode.h"} = 1;
         $implIncludes{"JSEventTargetNode.h"} = 1;
+    } elsif ($type eq "SVGElementInstance") {
+        $implIncludes{"EventTargetSVGElementInstance.h"} = 1;
+        $implIncludes{"JSEventTargetSVGElementInstance.h"} = 1;
     } elsif ($type eq "DOMObject") {
         $implIncludes{"JSCanvasRenderingContext2D.h"} = 1;
     } elsif ($type =~ /SVGPathSeg/) {
@@ -1820,7 +1837,10 @@ public:
     virtual const ClassInfo* classInfo() const { return &s_info; }
     static const ClassInfo s_info;
 
-    virtual bool implementsHasInstance() const { return true; }
+    static PassRefPtr<StructureID> createStructureID(JSValue* proto) 
+    { 
+        return StructureID::create(proto, TypeInfo(ObjectType, ImplementsHasInstance)); 
+    }
 EOF
 
     if ($canConstruct) {

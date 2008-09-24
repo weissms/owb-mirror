@@ -57,6 +57,9 @@ namespace JSC {
         void sort(ExecState*);
         void sort(ExecState*, JSValue* compareFunction, CallType, const CallData&);
 
+        void push(ExecState*, JSValue*);
+        JSValue* pop();
+
         bool canGetIndex(unsigned i) { return i < m_fastAccessCutoff; }
         JSValue* getIndex(unsigned i)
         {
@@ -70,6 +73,8 @@ namespace JSC {
             ASSERT(canSetIndex(i));
             return m_storage->m_vector[i] = v;
         }
+
+        void fillArgList(ExecState*, ArgList&);
 
     protected:
         virtual void put(ExecState*, const Identifier& propertyName, JSValue*, PutPropertySlot&);

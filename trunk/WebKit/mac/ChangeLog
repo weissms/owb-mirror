@@ -1,3 +1,25 @@
+2008-09-24  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21039
+
+        Teach the viewless Mac scrollbar how to avoid the NSWindow resizer.
+
+        Reviewed by Sam Weinig
+
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::windowResizerRect):
+
+2008-09-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        - fix <rdar://problem/6233388> Crash beneath -[WebFrameView keyDown:]
+
+        Test: fast/events/keydown-remove-frame.html
+
+        * WebView/WebFrameView.mm:
+        (-[WebFrameView keyDown:]): Added a null check.
+
 2008-09-23  Dirk Schulze  <vbs85@gmx.de>
 
         Reviewed by eseidel.  Landed by eseidel.

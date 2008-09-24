@@ -33,9 +33,9 @@ WebInspector.ResourcesPanel = function()
 
     this.element.addStyleClass("resources");
 
-    this.resourceViews = document.createElement("div");
-    this.resourceViews.id = "resource-views";
-    this.element.appendChild(this.resourceViews);
+    this.viewsContainerElement = document.createElement("div");
+    this.viewsContainerElement.id = "resource-views";
+    this.element.appendChild(this.viewsContainerElement);
 
     this.containerElement = document.createElement("div");
     this.containerElement.id = "resources-container";
@@ -161,10 +161,22 @@ WebInspector.ResourcesPanel.prototype = {
         this._updateSidebarWidth();
         this.refreshIfNeeded();
 
-        var visibleResourceView = this.visibleResourceView;
-        if (visibleResourceView) {
-            visibleResourceView.headersVisible = true;
-            visibleResourceView.show(this.resourceViews);
+        var visibleView = this.visibleView;
+        if (visibleView) {
+            visibleView.headersVisible = true;
+            visibleView.show(this.viewsContainerElement);
+        }
+
+        // Hide any views that are visible that are not this panel's current visible view.
+        // This can happen when a ResourceView is visible in the Scripts panel then switched
+        // to the this panel.
+        var resourcesLength = this._resources.length;
+        for (var i = 0; i < resourcesLength; ++i) {
+            var resource = this._resources[i];
+            var view = resource._resourcesView;
+            if (!view || view === visibleView)
+                continue;
+            view.visible = false;
         }
     },
 
@@ -172,12 +184,72 @@ WebInspector.ResourcesPanel.prototype = {
     {
         this._updateGraphDividersIfNeeded();
 
-        var visibleResourceView = this.visibleResourceView;
-        if (visibleResourceView && "resize" in visibleResourceView)
-            visibleResourceView.resize();
+        var visibleView = this.visibleView;
+        if (visibleView && "resize" in visibleView)
+            visibleView.resize();
     },
 
-    get visibleResourceView()
+    get searchableViews()
+    {
+        var views = [];
+
+        const visibleView = this.visibleView;
+        if (visibleView && visibleView.performSearch)
+            views.push(visibleView);
+
+        var resourcesLength = this._resources.length;
+        for (var i = 0; i < resourcesLength; ++i) {
+            var resource = this._resources[i];
+            var resourceView = this.resourceViewForResource(resource);
+            if (!resourceView.performSearch || resourceView === visibleView)
+                continue;
+            views.push(resourceView);
+        }
+
+        return views;
+    },
+
+    get searchResultsSortFunction()
+    {
+        const resourceTreeElementSortFunction = this.sortingFunction;
+
+        function sortFuction(a, b)
+        {
+            return resourceTreeElementSortFunction(a.resource._resourcesTreeElement, b.resource._resourcesTreeElement);
+        }
+
+        return sortFuction;
+    },
+
+    searchMatchFound: function(view, matches)
+    {
+        view.resource._resourcesTreeElement.searchMatches = matches;
+    },
+
+    searchCanceled: function(startingNewSearch)
+    {
+        WebInspector.Panel.prototype.searchCanceled.call(this, startingNewSearch);
+
+        if (startingNewSearch || !this._resources)
+            return;
+
+        for (var i = 0; i < this._resources.length; ++i) {
+            var resource = this._resources[i];
+            resource._resourcesTreeElement.updateErrorsAndWarnings();
+        }
+    },
+
+    performSearch: function(query)
+    {
+        for (var i = 0; i < this._resources.length; ++i) {
+            var resource = this._resources[i];
+            resource._resourcesTreeElement.resetBubble();
+        }
+
+        WebInspector.Panel.prototype.performSearch.call(this, query);
+    },
+
+    get visibleView()
     {
         if (this.visibleResource)
             return this.visibleResource._resourcesView;
@@ -214,12 +286,12 @@ WebInspector.ResourcesPanel.prototype = {
     },
 
     get needsRefresh() 
-    { 
+    {
         return this._needsRefresh; 
     },
 
     set needsRefresh(x) 
-    { 
+    {
         if (this._needsRefresh === x) 
             return; 
         this._needsRefresh = x; 
@@ -228,7 +300,7 @@ WebInspector.ResourcesPanel.prototype = {
     },
 
     refreshIfNeeded: function() 
-    { 
+    {
         if (this.needsRefresh) 
             this.refresh(); 
     },
@@ -252,6 +324,9 @@ WebInspector.ResourcesPanel.prototype = {
     {
         this.closeVisibleResource();
 
+        delete this.currentQuery;
+        this.searchCanceled();
+
         if (this._calculator)
             this._calculator.reset();
 
@@ -272,7 +347,7 @@ WebInspector.ResourcesPanel.prototype = {
         this._staleResources = [];
 
         this.resourcesTreeElement.removeChildren();
-        this.resourceViews.removeChildren();
+        this.viewsContainerElement.removeChildren();
         this.resourcesGraphsElement.removeChildren();
 
         this._updateGraphDividersIfNeeded(true);
@@ -299,19 +374,13 @@ WebInspector.ResourcesPanel.prototype = {
 
     removeResource: function(resource)
     {
-        if (this.visibleResourceView === resource._resourcesView)
+        if (this.visibleView === resource._resourcesView)
             this.closeVisibleResource();
 
-        var resourcesLength = this._resources.length;
-        for (var i = 0; i < resourcesLength; ++i) {
-            if (this._resources[i] === resource) {
-                this._resources.splice(i, 1);
-                break;
-            }
-        }
+        this._resources.remove(resource, true);
 
         this.resourcesTreeElement.removeChild(resource._resourcesTreeElement);
-        this.resourcesGraphsElement.removeChild(resource._resourcesTreeElement._resourceGraph);
+        this.resourcesGraphsElement.removeChild(resource._resourcesTreeElement._resourceGraph.graphElement);
 
         resource.warnings = 0;
         resource.errors = 0;
@@ -327,14 +396,15 @@ WebInspector.ResourcesPanel.prototype = {
 
         switch (msg.level) {
         case WebInspector.ConsoleMessage.MessageLevel.Warning:
-            ++resource.warnings;
+            resource.warnings += msg.repeatDelta;
             break;
         case WebInspector.ConsoleMessage.MessageLevel.Error:
-            ++resource.errors;
+            resource.errors += msg.repeatDelta;
             break;
         }
 
-        resource._resourcesTreeElement.updateErrorsAndWarnings();
+        if (!this.currentQuery)
+            resource._resourcesTreeElement.updateErrorsAndWarnings();
 
         var view = this.resourceViewForResource(resource);
         if (view.addMessage)
@@ -349,7 +419,8 @@ WebInspector.ResourcesPanel.prototype = {
             resource.warnings = 0;
             resource.errors = 0;
 
-            resource._resourcesTreeElement.updateErrorsAndWarnings();
+            if (!this.currentQuery)
+                resource._resourcesTreeElement.updateErrorsAndWarnings();
 
             var view = resource._resourcesView;
             if (!view || !view.clearMessages)
@@ -402,7 +473,8 @@ WebInspector.ResourcesPanel.prototype = {
         resource.warnings = 0;
         resource.errors = 0;
 
-        resource._resourcesTreeElement.updateErrorsAndWarnings();
+        if (!this.currentQuery)
+            resource._resourcesTreeElement.updateErrorsAndWarnings();
 
         var oldView = resource._resourcesView;
 
@@ -429,7 +501,7 @@ WebInspector.ResourcesPanel.prototype = {
 
         var view = this.resourceViewForResource(resource);
         view.headersVisible = true;
-        view.show(this.resourceViews);
+        view.show(this.viewsContainerElement);
 
         if (line) {
             if (view.revealLine)
@@ -446,6 +518,13 @@ WebInspector.ResourcesPanel.prototype = {
         this.visibleResource = resource;
 
         this._updateSidebarWidth();
+    },
+
+    showView: function(view)
+    {
+        if (!view)
+            return;
+        this.showResource(view.resource);
     },
 
     closeVisibleResource: function()
@@ -1058,14 +1137,14 @@ WebInspector.ResourcesPanel.prototype = {
         }
 
         this.containerContentElement.style.left = width + "px";
-        this.resourceViews.style.left = width + "px";
+        this.viewsContainerElement.style.left = width + "px";
         this.sidebarResizeElement.style.left = (width - 3) + "px";
 
         this._updateGraphDividersIfNeeded();
 
-        var visibleResourceView = this.visibleResourceView;
-        if (visibleResourceView && "resize" in visibleResourceView)
-            visibleResourceView.resize();
+        var visibleView = this.visibleView;
+        if (visibleView && "resize" in visibleView)
+            visibleView.resize();
     }
 }
 
@@ -1413,22 +1492,37 @@ WebInspector.ResourceSidebarTreeElement.prototype = {
         }
     },
 
+    resetBubble: function()
+    {
+        this.bubbleText = "";
+        this.bubbleElement.removeStyleClass("search-matches");
+        this.bubbleElement.removeStyleClass("warning");
+        this.bubbleElement.removeStyleClass("error");
+    },
+
+    set searchMatches(matches)
+    {
+        this.resetBubble();
+
+        if (!matches)
+            return;
+
+        this.bubbleText = matches;
+        this.bubbleElement.addStyleClass("search-matches");
+    },
+
     updateErrorsAndWarnings: function()
     {
+        this.resetBubble();
+
         if (this.resource.warnings || this.resource.errors)
             this.bubbleText = (this.resource.warnings + this.resource.errors);
-        else
-            this.bubbleText = "";
 
         if (this.resource.warnings)
             this.bubbleElement.addStyleClass("warning");
-        else
-            this.bubbleElement.removeStyleClass("warning");
 
         if (this.resource.errors)
             this.bubbleElement.addStyleClass("error");
-        else
-            this.bubbleElement.removeStyleClass("error");
     }
 }
 

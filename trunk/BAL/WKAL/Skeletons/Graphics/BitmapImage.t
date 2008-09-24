@@ -298,25 +298,13 @@ protected:
      */
     void advanceAnimation(Timer<BitmapImage>*);
   
-    // Handle platform-specific data
-
-    /**
-     * internal advance animation
-     * @param[in] : skippingFrames status
-     * @param[out] : status
-     */
-    bool internalAdvanceAnimation(bool skippingFrames);
+    // Handle platform-specific dat
 
 
     /**
      * notify observer and trim decoded data
      */
-    void notifyObserverAndTrimDecodedData();
-
-    /**
-     * init platform data
-     */
-    void initPlatformData();
+    void notifyObserverAndTrimDecodedData()
 
     /**
      * invalidate platform data 
@@ -374,4 +362,4 @@ protected:
 
 }
 
-#end
+#e

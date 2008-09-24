@@ -161,6 +161,7 @@ struct ConsoleMessage {
         , line(li)
         , url(u)
         , groupLevel(g)
+        , repeatCount(1)
     {
     }
 
@@ -171,10 +172,22 @@ struct ConsoleMessage {
         , line(li)
         , url(u)
         , groupLevel(g)
+        , repeatCount(1)
     {
         JSLock lock(false);
         for (unsigned i = 0; i < args.size(); ++i)
             wrappedArguments[i] = JSInspectedObjectWrapper::wrap(exec, args.at(exec, i));
+    }
+    
+    bool operator==(ConsoleMessage msg) const
+    {
+        return msg.source == this->source
+            && msg.level == this->level
+            && msg.message == this->message
+            && msg.wrappedArguments == this->wrappedArguments
+            && msg.line == this->line
+            && msg.url == this->url
+            && msg.groupLevel == this->groupLevel;
     }
 
     MessageSource source;
@@ -184,6 +197,7 @@ struct ConsoleMessage {
     unsigned line;
     String url;
     unsigned groupLevel;
+    unsigned repeatCount;
 };
 
 // XMLHttpRequestResource Class
@@ -941,6 +955,7 @@ InspectorController::InspectorController(Page* page, InspectorClient* client)
     , m_nextIdentifier(-2)
     , m_groupLevel(0)
     , m_searchingForNode(false)
+    , m_previousMessage(0)
 {
     ASSERT_ARG(page, page);
     ASSERT_ARG(client, client);
@@ -1124,16 +1139,22 @@ void InspectorController::addConsoleMessage(ConsoleMessage* consoleMessage)
     ASSERT(enabled());
     ASSERT_ARG(consoleMessage, consoleMessage);
 
-    m_consoleMessages.append(consoleMessage);
+    if (m_previousMessage && *m_previousMessage == *consoleMessage) {
+        ++m_previousMessage->repeatCount;
+    } else {
+        m_previousMessage = consoleMessage;
+        m_consoleMessages.append(consoleMessage);
+    }
 
     if (windowVisible())
-        addScriptConsoleMessage(consoleMessage);
+        addScriptConsoleMessage(m_previousMessage);
 }
 
 void InspectorController::clearConsoleMessages()
 {
     deleteAllValues(m_consoleMessages);
     m_consoleMessages.clear();
+    m_previousMessage = 0;
 }
 
 void InspectorController::toggleRecordButton(bool isProfiling)
@@ -1909,6 +1930,7 @@ void InspectorController::addScriptConsoleMessage(const ConsoleMessage* message)
     JSValueRef lineValue = JSValueMakeNumber(m_scriptContext, message->line);
     JSValueRef urlValue = JSValueMakeString(m_scriptContext, jsStringRef(message->url).get());
     JSValueRef groupLevelValue = JSValueMakeNumber(m_scriptContext, message->groupLevel);
+    JSValueRef repeatCountValue = JSValueMakeNumber(m_scriptContext, message->repeatCount);
 
     static const unsigned maximumMessageArguments = 256;
     JSValueRef arguments[maximumMessageArguments];
@@ -1918,6 +1940,7 @@ void InspectorController::addScriptConsoleMessage(const ConsoleMessage* message)
     arguments[argumentCount++] = lineValue;
     arguments[argumentCount++] = urlValue;
     arguments[argumentCount++] = groupLevelValue;
+    arguments[argumentCount++] = repeatCountValue;
 
     if (!message->wrappedArguments.isEmpty()) {
         unsigned remainingSpaceInArguments = maximumMessageArguments - argumentCount;

@@ -101,7 +101,7 @@ public:
      * @code
      * @endcode
      */
-    virtual bool supportsControlTints() const
+    virtual bool supportsControlTints() const ;
     /**
      * invalidateParts.
      * @param[in] : a pointer to the scrollbar.
@@ -109,7 +109,7 @@ public:
      * @code
      * @endcode
      */
-    void invalidateParts(Scrollbar* scrollbar, ScrollbarControlPartMask mask
+    void invalidateParts(Scrollbar* scrollbar, ScrollbarControlPartMask mask);
     /**
      * shouldCenterOnThumb.
      * @param[in] : a pointer to the scrollbar.
@@ -118,7 +118,7 @@ public:
      * @code
      * @endcode
      */
-    virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&)
+    virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&);
     /**
      * Get the thumb length.
      * @param[in] : a pointer to the scrollbar.
@@ -126,7 +126,7 @@ public:
      * @code
      * @endcode
      */
-    virtual int thumbLength(Scrollbar*)
+    virtual int thumbLength(Scrollbar*);
     /**
      * Get the trackLength.
      * @param[in] : a pointer to the scrollbar.
@@ -134,14 +134,14 @@ public:
      * @code
      * @endcode
      */
-    virtual int trackLength(Scrollbar*)
+    virtual int trackLength(Scrollbar*);
     /**
      * Get the autoscroll timer delay.
      * @param[out] : the auto scroll timer delay.
      * @code
      * @endcode
      */
-    virtual double autoscrollTimerDelay() 
+    virtual double autoscrollTimerDelay() ;
     
     static ScrollbarTheme* nativeTheme();
     /**

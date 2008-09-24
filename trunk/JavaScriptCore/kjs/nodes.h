@@ -234,6 +234,7 @@ namespace JSC {
         virtual bool isEmptyStatement() const JSC_FAST_CALL { return false; }
 
         virtual bool isBlock() const JSC_FAST_CALL { return false; }
+        virtual bool isDoWhile() const JSC_FAST_CALL { return false; }
     protected:
         LabelStack m_labelStack;
 
@@ -1936,6 +1937,7 @@ namespace JSC {
         virtual RegisterID* emitCode(CodeGenerator&, RegisterID* = 0) JSC_FAST_CALL;
         virtual void streamTo(SourceStream&) const JSC_FAST_CALL;
 
+        virtual bool isDoWhile() const JSC_FAST_CALL { return true; }
     private:
         RefPtr<StatementNode> m_statement;
         RefPtr<ExpressionNode> m_expr;
@@ -2269,6 +2271,21 @@ namespace JSC {
 
         void setSource(const SourceRange& source) { m_source = source; } 
         UString toSourceString() const JSC_FAST_CALL { return UString("{") + m_source.toString() + UString("}"); }
+
+        // These objects are ref/deref'd a lot in the scope chain, so this is a faster ref/deref.
+        // If the virtual machine changes so this doesn't happen as much we can change back.
+        void ref()
+        {
+            if (++m_refCount == 1)
+                ScopeNode::ref();
+        }
+        void deref()
+        {
+            ASSERT(m_refCount);
+            if (!--m_refCount)
+                ScopeNode::deref();
+        }
+
     protected:
         FunctionBodyNode(JSGlobalData*, SourceElements*, VarStack*, FunctionStack*, bool usesEval, bool needsClosure, int numConstants) JSC_FAST_CALL;
 
@@ -2279,6 +2296,7 @@ namespace JSC {
         SymbolTable m_symbolTable;
         OwnPtr<CodeBlock> m_code;
         SourceRange m_source;
+        unsigned m_refCount;
     };
 
     class FuncExprNode : public ExpressionNode {

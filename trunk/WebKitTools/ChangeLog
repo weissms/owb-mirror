@@ -1,3 +1,50 @@
+2008-09-24  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        This patch extends DumpRenderTree's AccessibilityController to ask 
+        if the focused element supports the press action.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getSupportsPressActionCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::supportsPressAction):
+
+2008-09-22  Alice Liu  <alice.liu@apple.com>
+
+        Adding a stand-alone Windows console application to record a process's memory usage
+
+        Reviewed by Steve Falkenburg.
+
+        * record-memory-win: Added.
+        * record-memory-win/main.cpp: Added.
+        * record-memory-win/record-memory-win.vcproj: Added.
+
+2008-09-22  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Support ability to get/set selected text ranges for text controls through AX.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (setSelectedTextRangeCallback):
+        (getSelectedTextRangeCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::attributesOfRowHeaders):
+        (AccessibilityUIElement::attributesOfVisibleCells):
+        (AccessibilityUIElement::rowIndexRange):
+        (AccessibilityUIElement::columnIndexRange):
+        (AccessibilityUIElement::cellForColumnAndRow):
+        (AccessibilityUIElement::selectedTextRange):
+        (AccessibilityUIElement::setSelectedTextRange):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::selectedTextRange):
+        (AccessibilityUIElement::setSelectedTextRange):
+
 2008-09-23  Darin Adler  <darin@apple.com>
 
         * DumpRenderTree/mac/DumpRenderTree.mm:

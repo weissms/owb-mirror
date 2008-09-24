@@ -152,6 +152,27 @@ body.attached #search-toolbar-label {
     display: none;
 }
 
+#search {
+    width: 205px;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+body.attached #search {
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+#search-results-matches {
+    font-size: 11px;
+    text-shadow: rgba(255, 255, 255, 0.5) 0 1px 0;
+    margin-bottom: 22px;
+}
+
+body.attached #search-results-matches {
+    margin-bottom: 6px;
+}
+
 .toolbar-item.elements .toolbar-icon {
     content: url(Images/elementsIcon.png);
 }
@@ -192,60 +213,6 @@ body.attached #search-toolbar-label {
 
 body.detached .toolbar-item.close {
     display: none;
-}
-
-#searchResults {
-    position: absolute;
-    top: -100px;
-    left: 0;
-    right: 0;
-    height: 100px;
-    z-index: -1;
-    background-color: white;
-    border-bottom: 1px solid rgb(180, 180, 180);
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-box-sizing: border-box;
-}
-
-.search-results-section {
-    color: gray;
-    width: 28px;
-    float: left;
-    margin-left: -45px;
-    text-align: right;
-    font-size: 10px;
-    margin-top: 1px;
-    white-space: nowrap;
-}
-
-:focus .selected .search-results-section {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.selected .search-results-section {
-    color: rgba(0, 0, 0, 0.5);
-}
-
-#searchResults > ol > ol > li {
-    padding-left: 45px;
-    white-space: nowrap;
-}
-
-.search-matched-string {
-    background-color: #ff8;
-}
-
-.selected .search-matched-string {
-    background-color: transparent;
-}
-
-#searchResultsResizer {
-    position: absolute;
-    height: 5px;
-    left: 0;
-    right: 0;
-    cursor: row-resize;
 }
 
 #main {
@@ -907,6 +874,19 @@ body.console-visible #console {
 
 .crumbs .crumb.end:hover {
     -webkit-border-image: url(Images/segmentHoverEnd.png) 0 2 0 2;
+}
+
+.outline-disclosure li.highlighted .highlight {
+    background-color: rgb(255, 230, 179);
+    -webkit-border-radius: 4px;
+    padding-bottom: 2px;
+    margin-bottom: -2px;
+}
+
+.outline-disclosure li.selected.highlighted .highlight {
+    background-color: transparent;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 .outline-disclosure li .selection {
@@ -1571,6 +1551,14 @@ body.inactive .sidebar {
 .data-grid {
     position: relative;
     border: 1px solid #aaa;
+}
+
+.data-grid .highlight {
+    background-color: rgb(255, 230, 179);
+}
+
+.data-grid tr.selected .highlight {
+    background-color: transparent;
 }
 
 .data-grid table {
@@ -2618,6 +2606,25 @@ body.inactive .sidebar-tree-item.selected {
 
 .bubble.error, .console-error-level .bubble {
     background-color: rgb(216, 35, 35) !important;
+}
+
+.bubble.search-matches {
+    background-image: url(Images/searchSmallWhite.png);
+    background-repeat: no-repeat;
+    background-position: 3px 2px;
+    padding-left: 13px !important;
+}
+
+.sidebar-tree-item.selected .bubble.search-matches {
+    background-image: url(Images/searchSmallBlue.png);
+}
+
+:focus .sidebar-tree-item.selected .bubble.search-matches {
+    background-image: url(Images/searchSmallBrightBlue.png);
+}
+
+body.inactive .sidebar-tree-item.selected .bubble.search-matches {
+    background-image: url(Images/searchSmallGray.png);
 }
 
 /* Profiler Style */

@@ -90,16 +90,13 @@ namespace JSC {
         
         JSValue* execute(ProgramNode*, ExecState*, ScopeChainNode*, JSObject* thisObj, JSValue** exception);
         JSValue* execute(FunctionBodyNode*, ExecState*, JSFunction*, JSObject* thisObj, const ArgList& args, ScopeChainNode*, JSValue** exception);
-        JSValue* execute(EvalNode* evalNode, ExecState* exec, JSObject* thisObj, ScopeChainNode* scopeChain, JSValue** exception)
-        {
-            return execute(evalNode, exec, thisObj, m_registerFile.size(), scopeChain, exception);
-        }
+        JSValue* execute(EvalNode* evalNode, ExecState* exec, JSObject* thisObj, ScopeChainNode* scopeChain, JSValue** exception);
 
         JSValue* retrieveArguments(ExecState*, JSFunction*) const;
         JSValue* retrieveCaller(ExecState*, InternalFunction*) const;
         void retrieveLastCaller(ExecState* exec, int& lineNumber, int& sourceId, UString& sourceURL, JSValue*& function) const;
 
-        void getArgumentsData(Register* callFrame, JSFunction*&, Register*& argv, int& argc);
+        void getArgumentsData(Register* callFrame, JSFunction*&, int& firstParameterIndex, Register*& argv, int& argc);
         void setTimeoutTime(unsigned timeoutTime) { m_timeoutTime = timeoutTime; }
         
         void startTimeoutCheck()
@@ -112,11 +109,13 @@ namespace JSC {
         
         void stopTimeoutCheck()
         {
+            ASSERT(m_timeoutCheckCount);
             --m_timeoutCheckCount;
         }
 
         inline void initTimeout()
         {
+            ASSERT(!m_timeoutCheckCount);
             resetTimeoutCheck();
             m_timeoutTime = 0;
             m_timeoutCheckCount = 0;
@@ -220,8 +219,6 @@ namespace JSC {
         static void SFX_CALL cti_op_put_setter(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_new_error(CTI_ARGS);
         static void SFX_CALL cti_op_debug(CTI_ARGS);
-        static JSValue* SFX_CALL cti_op_eq_null(CTI_ARGS);
-        static JSValue* SFX_CALL cti_op_neq_null(CTI_ARGS);
 
         static void* SFX_CALL cti_vm_throw(CTI_ARGS);
         static void* SFX_CALL cti_vm_compile(CTI_ARGS);
@@ -241,7 +238,7 @@ namespace JSC {
         NEVER_INLINE JSValue* callEval(ExecState* exec, CodeBlock* callingCodeBlock, JSObject* thisObj, ScopeChainNode* scopeChain, RegisterFile*, Register* r, int argv, int argc, JSValue*& exceptionValue);
         JSValue* execute(EvalNode*, ExecState*, JSObject* thisObj, int registerOffset, ScopeChainNode*, JSValue** exception);
 
-        ALWAYS_INLINE void initializeCallFrame(Register* callFrame, CodeBlock*, Instruction*, ScopeChainNode*, Register* r, int returnValueRegister, int argv, int argc, JSValue* function);
+        ALWAYS_INLINE static void initializeCallFrame(Register* callFrame, CodeBlock*, Instruction*, ScopeChainNode*, Register* r, int returnValueRegister, int argc, JSValue* function);
 
         ALWAYS_INLINE void setScopeChain(ExecState* exec, ScopeChainNode*&, ScopeChainNode*);
         NEVER_INLINE void debug(ExecState*, const CodeBlock*, ScopeChainNode*, Register*, DebugHookID, int firstLine, int lastLine);

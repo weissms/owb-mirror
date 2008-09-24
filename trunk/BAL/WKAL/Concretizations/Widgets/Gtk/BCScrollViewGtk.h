@@ -139,11 +139,11 @@ namespace WKAL {
         IntPoint screenToContents(const IntPoint&) const;
 #endif
 
-        void update();
-
     protected:
         void updateContents(const IntRect&, bool now = false);
         void updateWindowRect(const IntRect&, bool now = false);
+    public:
+        void update();
 
 #if PLATFORM(MAC) && defined __OBJC__
     public:
@@ -159,9 +159,10 @@ namespace WKAL {
 
     private:
         IntSize maximumScroll() const;
+#endif
+
         class ScrollViewPrivate;
         ScrollViewPrivate* m_data;
-#endif
 
 #if !PLATFORM(MAC) && !PLATFORM(WX)
     public:
@@ -178,7 +179,7 @@ namespace WKAL {
         void updateScrollbars(const IntSize& desiredOffset);
 #endif
 
-#if PLATFORM(WIN) || PLATFORM(QT)
+#if PLATFORM(WIN) || PLATFORM(QT) || PLATFORM(MAC)
     public:
         IntRect windowResizerRect();
         bool resizerOverlapsContent() const;
