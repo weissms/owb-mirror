@@ -16,7 +16,6 @@ SET (MESSAGE_NOT_FOUND "not found. Install it to compile owb.")
 SET (MESSAGE_DISABLE "Another alternative is to disable the following option:")
 SET (MESSAGE_CHOOSE "A possibility is to choose a configuration that does not require")
 
-
 SET (OWB_DATA "$ENV{HOME}/.owb/conf/" CACHE STRING "Path to store data for owb")
 CONFIGURE_FILE (${CMAKE_CURRENT_SOURCE_DIR}/BAL/Includes/owb-config.h.cmake
     ${CMAKE_CURRENT_SOURCE_DIR}/BAL/Includes/owb-config.h
