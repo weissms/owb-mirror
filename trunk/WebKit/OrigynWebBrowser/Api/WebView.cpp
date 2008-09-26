@@ -2118,7 +2118,7 @@ IntPoint WebView::scrollOffset()
 
 void WebView::scrollBy(IntPoint offset)
 {
-    m_page->mainFrame()->view()->scrollBy(offset.x(), offset.y());
+    m_page->mainFrame()->view()->scrollBy(IntSize(offset.x(), offset.y()));
 }
 
 IntRect WebView::visibleContentRect()

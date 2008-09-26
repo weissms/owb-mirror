@@ -684,6 +684,7 @@
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollbarThemeGtk.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollbarThemeGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/ScrollView.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ScrollView.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/ScrollViewGtk.cpp	BCScrollViewGtk.cpp
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/SearchPopupMenu.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/platform/gtk/SearchPopupMenuGtk.cpp	BCSearchPopupMenuGtk.cpp

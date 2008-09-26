@@ -112,6 +112,28 @@ public:
      */
     void move(int dx, int dy) ;
 
+
+    /**
+     *  expanded To an other point
+     * @param[in] : point
+     * @param[out] : point
+     */
+    IntPoint expandedTo(const IntPoint& other) const;
+
+
+    /**
+     * shrunk to an other point
+     * @param[in] : point
+     * @param[out] : point
+     */
+    IntPoint shrunkTo(const IntPoint& other) const;
+
+
+    /**
+     * clampNegativeToZero 
+     */
+    void clampNegativeToZero();
+
     /**
      * IntPoint constructor
      * @param[in] : platform point
@@ -170,7 +192,4 @@ inline bool operator!=(const IntPoint& a, const IntPoint& b);
 } // namespace WKAL
 
 #endif // IntPoint_h
-
-
-
 

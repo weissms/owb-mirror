@@ -89,9 +89,11 @@ void CSSImportRule::insertedIntoParent()
 
     // Check for a cycle in our import chain.  If we encounter a stylesheet
     // in our parent chain with the same URL, then just bail.
+    StyleBase* root = this;
     for (StyleBase* curr = parent(); curr; curr = curr->parent()) {
         if (curr->isCSSStyleSheet() && absHref == static_cast<CSSStyleSheet*>(curr)->href())
             return;
+        root = curr;
     }
 
     m_cachedSheet = docLoader->requestCSSStyleSheet(absHref, parentSheet->charset());
@@ -99,7 +101,7 @@ void CSSImportRule::insertedIntoParent()
         // if the import rule is issued dynamically, the sheet may be
         // removed from the pending sheet count, so let the doc know
         // the sheet being imported is pending.
-        if (parentSheet && parentSheet->loadCompleted() && parentSheet->doc())
+        if (parentSheet && parentSheet->loadCompleted() && root == parentSheet)
             parentSheet->doc()->addPendingSheet();
         m_loading = true;
         m_cachedSheet->addClient(this);

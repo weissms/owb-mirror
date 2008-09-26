@@ -40,6 +40,9 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSHistoryCustom.cpp
     bindings/js/JSImageConstructor.cpp
     bindings/js/JSLocationCustom.cpp
+    bindings/js/JSMessageChannelConstructor.cpp
+    bindings/js/JSMessageChannelCustom.cpp
+    bindings/js/JSMessagePortCustom.cpp
     bindings/js/JSMimeTypeArrayCustom.cpp
     bindings/js/JSNamedNodeMapCustom.cpp
     bindings/js/JSNamedNodesCollection.cpp

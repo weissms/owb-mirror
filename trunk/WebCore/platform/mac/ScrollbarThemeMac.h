@@ -27,7 +27,6 @@
 #define ScrollbarThemeMac_h
 
 #include "ScrollbarThemeComposite.h"
-#include "Scrollbar.h"
 
 namespace WebCore {
 
@@ -47,6 +46,9 @@ public:
 
     virtual ScrollbarButtonsPlacement buttonsPlacement() const;
 
+    virtual void registerScrollbar(Scrollbar*);
+    virtual void unregisterScrollbar(Scrollbar*);
+
 protected:
     virtual bool hasButtons(Scrollbar*);
     virtual bool hasThumb(Scrollbar*);
@@ -58,6 +60,9 @@ protected:
     virtual int minimumThumbLength(Scrollbar*);
     
     virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&);
+    
+public:
+    void preferencesChanged();
 };
 
 }

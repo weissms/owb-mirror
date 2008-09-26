@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,50 +21,16 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *
  */
 
-#ifndef ScrollbarMac_h
-#define ScrollbarMac_h
+module events {
 
-#include "Scrollbar.h"
+    interface [CustomMarkFunction] MessageChannel {
 
-#if USE(NSSCROLLER)
+        readonly attribute MessagePort port1;
+        readonly attribute MessagePort port2;
 
-#include <wtf/PassRefPtr.h>
-
-#ifdef __OBJC__
-@class NSScroller;
-#else
-class NSScroller;
-typedef int NSScrollerPart;
-#endif
-
-namespace WebCore {
-
-class ScrollbarMac : public Scrollbar {
-    friend class Scrollbar;
-
-public:
-    virtual ~ScrollbarMac();
-
-    bool scrollbarHit(NSScrollerPart);
-    
-    virtual void setEnabled(bool);
-    
-    virtual bool handleMouseMoveEvent(const PlatformMouseEvent&) { return false; }
-    virtual bool handleMouseOutEvent(const PlatformMouseEvent&) { return false; }
-    virtual bool handleMousePressEvent(const PlatformMouseEvent&) { return false; }
-    virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&) { return false; }
-
-private:    
-    ScrollbarMac(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
-
-    virtual void updateThumbPosition();
-    virtual void updateThumbProportion();
-};
+    };
 
 }
-
-#endif
-
-#endif // ScrollbarMac_h

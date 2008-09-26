@@ -69,7 +69,6 @@ class ScrollView::ScrollViewPrivate : public ScrollbarClient
 public:
     ScrollViewPrivate(ScrollView* _view)
         : view(_view)
-        , hasStaticBackground(false)
         , scrollbarsSuppressed(false)
         , vScrollbarMode(ScrollbarAuto)
         , hScrollbarMode(ScrollbarAuto)
@@ -106,14 +105,11 @@ public:
     static void adjustmentChanged(GtkAdjustment*, gpointer);
 
     ScrollView* view;
-    bool hasStaticBackground;
     bool scrollbarsSuppressed;
     ScrollbarMode vScrollbarMode;
     ScrollbarMode hScrollbarMode;
     RefPtr<ScrollViewScrollbar> vBar;
     RefPtr<ScrollViewScrollbar> hBar;
-    IntSize scrollOffset;
-    IntSize contentsSize;
     IntSize viewPortSize;
     bool inUpdateScrollbars;
     HashSet<Widget*> children;
@@ -166,6 +162,16 @@ void ScrollView::ScrollViewPrivate::setHasVerticalScrollbar(bool hasBar)
     }
 }
 
+Scrollbar* ScrollView::horizontalScrollbar() const
+{
+    return m_data->hBar.get();
+}
+
+Scrollbar* ScrollView::verticalScrollbar() const
+{
+    return m_data->vBar.get();
+}
+
 void ScrollView::ScrollViewPrivate::scrollBackingStore(const IntSize& scrollDelta)
 {
     // Since scrolling is double buffered, we will be blitting the scroll view's intersection
@@ -178,7 +184,7 @@ void ScrollView::ScrollViewPrivate::scrollBackingStore(const IntSize& scrollDelt
 
     //FIXME update here?
 
-    if (!hasStaticBackground) // The main frame can just blit the WebView window
+    if (view->canBlitOnScroll()) // The main frame can just blit the WebView window
        // FIXME: Find a way to blit subframes without blitting overlapping content
        view->scrollBackingStore(-scrollDelta.width(), -scrollDelta.height(), scrollViewRect, clipRect);
     else  {
@@ -200,16 +206,16 @@ void ScrollView::ScrollViewPrivate::adjustmentChanged(GtkAdjustment* adjustment,
     ScrollViewPrivate* that = reinterpret_cast<ScrollViewPrivate*>(_that);
 
     // Figure out if we really moved.
-    IntSize newOffset = that->scrollOffset;
+    IntSize newOffset = m_view->m_scrollOffset;
     if (adjustment == that->horizontalAdjustment)
         newOffset.setWidth(static_cast<int>(gtk_adjustment_get_value(adjustment)));
     else if (adjustment == that->verticalAdjustment)
         newOffset.setHeight(static_cast<int>(gtk_adjustment_get_value(adjustment)));
 
-    IntSize scrollDelta = newOffset - that->scrollOffset;
+    IntSize scrollDelta = newOffset - m_view->m_scrollOffset;
     if (scrollDelta == IntSize())
         return;
-    that->scrollOffset = newOffset;
+    m_view->m_scrollOffset = newOffset;
 
     if (that->scrollbarsSuppressed)
         return;
@@ -221,17 +227,17 @@ void ScrollView::ScrollViewPrivate::adjustmentChanged(GtkAdjustment* adjustment,
 void ScrollView::ScrollViewPrivate::valueChanged(Scrollbar* bar)
 {
     // Figure out if we really moved.
-    IntSize newOffset = scrollOffset;
+    IntSize newOffset = m_scrollOffset;
     if (bar) {
         if (bar == hBar)
             newOffset.setWidth(bar->value());
         else if (bar == vBar)
             newOffset.setHeight(bar->value());
     }
-    IntSize scrollDelta = newOffset - scrollOffset;
+    IntSize scrollDelta = newOffset - m_scrollOffset;
     if (scrollDelta == IntSize())
         return;
-    scrollOffset = newOffset;
+    m_scrollOffset = newOffset;
 
     if (scrollbarsSuppressed)
         return;
@@ -253,7 +259,9 @@ bool ScrollView::ScrollViewPrivate::isActive() const
 
 ScrollView::ScrollView()
     : m_data(new ScrollViewPrivate(this))
-{}
+{
+    init();
+}
 
 ScrollView::~ScrollView()
 {
@@ -292,7 +300,7 @@ void ScrollView::setGtkAdjustments(GtkAdjustment* hadj, GtkAdjustment* vadj)
         g_object_ref(m_data->verticalAdjustment);
     }
 
-    updateScrollbars(m_data->scrollOffset);
+    updateScrollbars(m_scrollOffset);
 }
 
 void ScrollView::updateContents(const IntRect& updateRect, bool now)
@@ -328,87 +336,15 @@ void ScrollView::update()
     gdk_window_invalidate_rect(GTK_WIDGET(containingWindow())->window, &rect, true);
 }
 
-int ScrollView::visibleWidth() const
+void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
 {
-    return width() - (m_data->vBar ? m_data->vBar->width() : 0);
-}
+    IntPoint newScrollPosition = scrollPoint.shrunkTo(maximumScrollPosition());
+    newScrollPosition.clampNegativeToZero();
 
-int ScrollView::visibleHeight() const
-{
-    return height() - (m_data->hBar ? m_data->hBar->height() : 0);
-}
-
-// Region of the content currently visible in the viewport in the content view's coordinate system.
-FloatRect ScrollView::visibleContentRect() const
-{
-    return FloatRect(contentsX(), contentsY(), visibleWidth(), visibleHeight());
-}
-
-FloatRect ScrollView::visibleContentRectConsideringExternalScrollers() const
-{
-    // external scrollers not supported for now
-    return visibleContentRect();
-}
-
-void ScrollView::setContentsPos(int newX, int newY)
-{
-    int dx = newX - contentsX();
-    int dy = newY - contentsY();
-    scrollBy(dx, dy);
-}
-
-void ScrollView::resizeContents(int w, int h)
-{
-    IntSize newSize(w, h);
-    if (m_data->contentsSize == newSize)
+    if (newScrollPosition == scrollPosition())
         return;
 
-    m_data->contentsSize = newSize;
-    updateScrollbars(m_data->scrollOffset);
-}
-
-int ScrollView::contentsX() const
-{
-    return scrollOffset().width();
-}
-
-int ScrollView::contentsY() const
-{
-    return scrollOffset().height();
-}
-
-int ScrollView::contentsWidth() const
-{
-    return m_data->contentsSize.width();
-}
-
-int ScrollView::contentsHeight() const
-{
-    return m_data->contentsSize.height();
-}
-
-IntSize ScrollView::scrollOffset() const
-{
-    return m_data->scrollOffset;
-}
-
-IntSize ScrollView::maximumScroll() const
-{
-    IntSize delta = (m_data->contentsSize - IntSize(visibleWidth(), visibleHeight())) - scrollOffset();
-    delta.clampNegativeToZero();
-    return delta;
-}
-
-void ScrollView::scrollBy(int dx, int dy)
-{
-    IntSize scrollOffset = m_data->scrollOffset;
-    IntSize newScrollOffset = scrollOffset + IntSize(dx, dy).shrunkTo(maximumScroll());
-    newScrollOffset.clampNegativeToZero();
-
-    if (newScrollOffset == scrollOffset)
-        return;
-
-    updateScrollbars(newScrollOffset);
+    updateScrollbars(IntSize(newScrollPosition.x(), newScrollPosition.y()));
 }
 
 ScrollbarMode ScrollView::hScrollbarMode() const
@@ -430,14 +366,14 @@ void ScrollView::suppressScrollbars(bool suppressed, bool repaintOnSuppress)
 {
     m_data->scrollbarsSuppressed = suppressed;
     if (repaintOnSuppress)
-        updateScrollbars(m_data->scrollOffset);
+        updateScrollbars(m_scrollOffset);
 }
 
 void ScrollView::setHScrollbarMode(ScrollbarMode newMode)
 {
     if (m_data->hScrollbarMode != newMode) {
         m_data->hScrollbarMode = newMode;
-        updateScrollbars(m_data->scrollOffset);
+        updateScrollbars(m_scrollOffset);
     }
 }
 
@@ -445,19 +381,14 @@ void ScrollView::setVScrollbarMode(ScrollbarMode newMode)
 {
     if (m_data->vScrollbarMode != newMode) {
         m_data->vScrollbarMode = newMode;
-        updateScrollbars(m_data->scrollOffset);
+        updateScrollbars(m_scrollOffset);
     }
 }
 
 void ScrollView::setScrollbarsMode(ScrollbarMode newMode)
 {
     m_data->hScrollbarMode = m_data->vScrollbarMode = newMode;
-    updateScrollbars(m_data->scrollOffset);
-}
-
-void ScrollView::setStaticBackground(bool flag)
-{
-    m_data->hasStaticBackground = flag;
+    updateScrollbars(m_scrollOffset);
 }
 
 void ScrollView::setFrameGeometry(const IntRect& newGeometry)
@@ -469,41 +400,23 @@ void ScrollView::setFrameGeometry(const IntRect& newGeometry)
     if (newGeometry == oldGeometry)
         return;
     if (newGeometry.width() != oldGeometry.width() || newGeometry.height() != oldGeometry.height()) {
-        updateScrollbars(m_data->scrollOffset);
+        updateScrollbars(m_scrollOffset);
         static_cast<FrameView*>(this)->setNeedsLayout();
     }
 
     geometryChanged();
 }
 
-void ScrollView::addChild(Widget* child)
+void ScrollView::platformAddChild(Widget* child)
 {
-    child->setContainingWindow(containingWindow());
-    child->setParent(this);
-    m_data->children.add(child);
-
-    if (child->platformWidget() && !GTK_IS_SOCKET(child->platformWidget()))
+    if (!GTK_IS_SOCKET(child->platformWidget()))
         gtk_container_add(GTK_CONTAINER(containingWindow()), child->platformWidget());
 }
 
-void ScrollView::removeChild(Widget* child)
+void ScrollView::platformRemoveChild(Widget* child)
 {
-    child->setParent(0);
-    m_data->children.remove(child);
-
-    if (child->platformWidget() && GTK_WIDGET(containingWindow()) == GTK_WIDGET(child->platformWidget())->parent)
+    if (GTK_WIDGET(containingWindow()) == GTK_WIDGET(child->platformWidget())->parent)
         gtk_container_remove(GTK_CONTAINER(containingWindow()), child->platformWidget());
-}
-
-void ScrollView::scrollRectIntoViewRecursively(const IntRect& r)
-{
-    IntPoint p(max(0, r.x()), max(0, r.y()));
-    ScrollView* view = this;
-    while (view) {
-        view->setContentsPos(p.x(), p.y());
-        p.move(view->x() - view->scrollOffset().width(), view->y() - view->scrollOffset().height());
-        view = static_cast<ScrollView*>(view->parent());
-    }
 }
 
 bool ScrollView::inWindow() const
@@ -515,14 +428,14 @@ bool ScrollView::inWindow() const
 void ScrollView::wheelEvent(PlatformWheelEvent& e)
 {
     // Determine how much we want to scroll.  If we can move at all, we will accept the event.
-    IntSize maxScrollDelta = maximumScroll();
+    IntSize maxScrollDelta = maximumScrollPosition() - scrollPosition();
     if ((e.deltaX() < 0 && maxScrollDelta.width() > 0) ||
         (e.deltaX() > 0 && scrollOffset().width() > 0) ||
         (e.deltaY() < 0 && maxScrollDelta.height() > 0) ||
         (e.deltaY() > 0 && scrollOffset().height() > 0))
         e.accept();
 
-    scrollBy(-e.deltaX() * LINE_STEP, -e.deltaY() * LINE_STEP);
+    scrollBy(IntSize(-e.deltaX() * LINE_STEP, -e.deltaY() * LINE_STEP));
 }
 
 void ScrollView::updateScrollbars(const IntSize& desiredOffset)
@@ -594,7 +507,7 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
         m_data->horizontalAdjustment->upper = contentsWidth();
         gtk_adjustment_changed(m_data->horizontalAdjustment);
 
-        if (m_data->scrollOffset.width() != scroll.width()) {
+        if (m_scrollOffset.width() != scroll.width()) {
             m_data->horizontalAdjustment->value = scroll.width();
             gtk_adjustment_value_changed(m_data->horizontalAdjustment);
         }
@@ -629,7 +542,7 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
         m_data->verticalAdjustment->upper = contentsHeight();
         gtk_adjustment_changed(m_data->verticalAdjustment);
 
-        if (m_data->scrollOffset.height() != scroll.height()) {
+        if (m_scrollOffset.height() != scroll.height()) {
             m_data->verticalAdjustment->value = scroll.height();
             gtk_adjustment_value_changed(m_data->verticalAdjustment);
         }
@@ -663,9 +576,9 @@ void ScrollView::updateScrollbars(const IntSize& desiredOffset)
     // This can happen when editing a body with overflow:hidden and scrolling to reveal selection.
     // It can also happen when maximizing a window that has scrollbars (but the new maximized result
     // does not).
-    IntSize scrollDelta = scroll - m_data->scrollOffset;
+    IntSize scrollDelta = scroll - m_scrollOffset;
     if (scrollDelta != IntSize()) {
-       m_data->scrollOffset = scroll;
+       m_scrollOffset = scroll;
        m_data->scrollBackingStore(scrollDelta);
     }
 
@@ -716,8 +629,8 @@ void ScrollView::paint(GraphicsContext* context, const IntRect& rect)
     context->translate(x(), y());
     documentDirtyRect.move(-x(), -y());
 
-    context->translate(-contentsX(), -contentsY());
-    documentDirtyRect.move(contentsX(), contentsY());
+    context->translate(-scrollX(), -scrollY());
+    documentDirtyRect.move(scrollX(), scrollY());
 
     context->clip(enclosingIntRect(visibleContentRect()));
     static_cast<const FrameView*>(this)->frame()->paint(context, documentDirtyRect);
@@ -768,8 +681,8 @@ void ScrollView::paint(GraphicsContext* context, const IntRect& rect)
  */
 void ScrollView::geometryChanged() const
 {
-    HashSet<Widget*>::const_iterator end = m_data->children.end();
-    for (HashSet<Widget*>::const_iterator current = m_data->children.begin(); current != end; ++current)
+    HashSet<Widget*>::const_iterator end = m_children.end();
+    for (HashSet<Widget*>::const_iterator current = m_children.begin(); current != end; ++current)
         (*current)->geometryChanged();
 }
 
@@ -813,11 +726,6 @@ void ScrollView::updateBackingStore()
     if (!page)
         return;
     page->chrome()->updateBackingStore();
-}
-
-HashSet<Widget*>* ScrollView::children()
-{
-    return &m_data->children;
 }
 
 }

@@ -38,10 +38,9 @@
 #include "BALBase.h"
 
 #include <wtf/Platform.h>
-
-
-
-
+#include "IntPoint.h"
+#include "IntRect.h"
+#include "IntSize.h"
 
 
 namespace WKAL {
@@ -50,9 +49,6 @@ namespace WKAL {
     class Event;
     class Font;
     class GraphicsContext;
-    class IntPoint;
-    class IntRect;
-    class IntSize;
     class PlatformMouseEvent;
     class ScrollView;
     class WidgetClient;
@@ -108,14 +104,13 @@ namespace WKAL {
 
 
     /**
-     *  y description
-     * @param[in] : description
-     * @param[out] : description
+     * get y value
+     * @param[out] : y value
      * @code
+     * int y = w->y();
      * @endcode
      */
-    int y() const ;
-
+        int y() const;
 
     /**
      *  width description
@@ -157,23 +152,18 @@ namespace WKAL {
     IntPoint pos() const ;
 
     /**
-     * get enabled status
-     * @param[out] : status
+     * set frame geometry
+     * @param[in] : rect
      * @code
-     * bool e = w->isEnabled();
+     * w->setFrameGeometry(r);
      * @endcode
      */
-        virtual bool isEnabled() const ;
+        virtual void setFrameGeometry(const IntRect&);
 
     /**
-     * get y value
-     * @param[out] : y value
-     * @code
-     * int y = w->y();
-     * @endcode
-     */
-        int y() const;
-
+     * get frameGeometry
+     **/
+        virtual IntRect frameGeometry() const;
 
     /**
      *  boundsGeometry description
@@ -184,7 +174,6 @@ namespace WKAL {
      */
     IntRect boundsGeometry() const ;
 
-
     /**
      *  resize description
      * @param[in] : description
@@ -193,7 +182,6 @@ namespace WKAL {
      * @endcode
      */
     void resize(int w, int h) ;
-
 
     /**
      *  resize description
@@ -204,7 +192,6 @@ namespace WKAL {
      */
     void resize(const IntSize& s) ;
 
-
     /**
      *  move description
      * @param[in] : description
@@ -213,7 +200,6 @@ namespace WKAL {
      * @endcode
      */
     void move(int x, int y) ;
-
 
     /**
      *  move description
@@ -225,14 +211,9 @@ namespace WKAL {
     void move(const IntPoint& p) ;
 
     /**
-     * get height value
-     * @param[out] : height value
-     * @code
-     * int h = w->height();
-     * @endcode
+     * paint
      */
-        int height() const;
-
+    virtual void paint(GraphicsContext*, const IntRect&);
 
     /**
      *  invalidate description
@@ -244,49 +225,9 @@ namespace WKAL {
     void invalidate() ;
 
     /**
-     * resize
-     * @param[in] : width size
-     * @param[in] : height size
-     * @code
-     * w->resize(w, h);
-     * @endcode
+     * invalidateRect
      */
-        void resize(int, int);
-
-    /**
-     * get position
-     * @param[out] : position
-     * @code
-     * IntPoint p = w->pos();
-     * @endcode
-     */
-        IntPoint pos() const;
-
-    /**
-     * move
-     * @param[in] : point
-     * @code
-     * w->move(p);
-     * @endcode
-     */
-        void move(const IntPoint&);
-
-    /**
-     * invalidate
-     * @code
-     * w->invalidate();
-     * @endcode
-     */
-        virtual void invalidate();
-
-    /**
-     * set frame geometry
-     * @param[in] : rect
-     * @code
-     * w->setFrameGeometry(r);
-     * @endcode
-     */
-        virtual void setFrameGeometry(const IntRect&);
+     virtual void invalidateRect(const IntRect&);
 
     /**
      * set focus
@@ -296,55 +237,10 @@ namespace WKAL {
      */
         virtual void setFocus();
 
-
     /**
-     *  isSelfVisible description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * setCursor
      */
-    bool isSelfVisible() const ;
-
-
-    /**
-     *  isParentVisible description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    bool isParentVisible() const ;
-
-
-    /**
-     *  isVisible description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    bool isVisible() const ;
-
-
-    /**
-     *  setParentVisible description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    virtual void setParentVisible(bool visible) ;
-
-
-    /**
-     *  setSelfVisible description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    void setSelfVisible(bool v) ;
+     void setCursor(const Cursor&);
 
     /**
      * get cursor
@@ -355,6 +251,57 @@ namespace WKAL {
      */
         Cursor cursor();
 
+    /**
+     * show
+     */
+     virtual void show();
+
+    /**
+     * hide
+     */
+     virtual void hide();
+
+    /**
+     * isSelfVisible
+     */
+     bool isSelfVisible() const ;
+
+    /**
+     * isParentVisible
+     */
+     bool isParentVisible() const ;
+
+    /**
+     *  isVisible description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool isVisible() const ;
+    
+    /**
+     *  setParentVisible description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void setParentVisible(bool visible) ;
+    
+    /**
+     *  setSelfVisible description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void setSelfVisible(bool v) ;
+
+    /**
+     * setIsSelected
+     */
+     void setIsSelected(bool);
 
     /**
      *  isFrameView description
@@ -366,22 +313,17 @@ namespace WKAL {
     virtual bool isFrameView() const ;
 
     /**
-     * hide
-     * @code
-     * w->hide();
-     * @endcode
+     * isPluginView
      */
-        virtual void hide();
+     virtual bool isPluginView() const ;
 
     /**
-     * set client
-     * @param[in] : widget client
+     * remove from parent
      * @code
-     * w->setClient(wc);
+     * w->removeFromParent();
      * @endcode
      */
-        void setClient(WidgetClient*);
-
+        virtual void removeFromParent();
 
     /**
      *  setParent description
@@ -392,7 +334,6 @@ namespace WKAL {
      */
     virtual void setParent(ScrollView* view);
 
-
     /**
      *  parent description
      * @param[in] : description
@@ -402,7 +343,6 @@ namespace WKAL {
      */
     ScrollView* parent() const ;
 
-
     /**
      *  root description
      * @param[in] : description
@@ -411,7 +351,6 @@ namespace WKAL {
      * @endcode
      */
     ScrollView* root() const;
-
 
     /**
      *  windowClipRect description
@@ -423,14 +362,13 @@ namespace WKAL {
     virtual IntRect windowClipRect() const ;
 
     /**
-     * test if the widget is a frameView
-     * @param[out] : true if the widget is a frameView
+     * handle event
+     * @param[in] : event
      * @code
-     * bool fv = w->isFrameView();
+     * w->handleEvent(e);
      * @endcode
      */
-        virtual bool isFrameView() const;
-
+        virtual void handleEvent(Event*); 
 
     /**
      *  containingWindow description
@@ -441,7 +379,6 @@ namespace WKAL {
      */
     PlatformWindow containingWindow() const;
 
-
     /**
      *  setContainingWindow description
      * @param[in] : description
@@ -450,98 +387,6 @@ namespace WKAL {
      * @endcode
      */
     void setContainingWindow(PlatformWindow window) ;
-
-    /**
-     * remove from parent
-     * @code
-     * w->removeFromParent();
-     * @endcode
-     */
-        virtual void removeFromParent();
-
-    /**
-     * handle event
-     * @param[in] : event
-     * @code
-     * w->handleEvent(e);
-     * @endcode
-     */
-        virtual void handleEvent(Event*); 
-
-    /**
-     * get containing window 
-     * @param[out] : platform widget
-     * @code
-     * PlatformWidget pw = w->containingWindow();
-     * @endcode
-     */
-        PlatformWidget containingWindow() const;
-
-
-    /**
-     *  geometryChanged description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    virtual void geometryChanged() const ;
-
-
-    /**
-     *  init description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    void init(PlatformWidget);
-
-
-    /**
-     *  releasePlatformWidget description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    void releasePlatformWidget();
-
-
-    /**
-     *  retainPlatformWidget description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    void retainPlatformWidget();
-
-    /**
-     * set parent
-     * @param[in] : scrollView
-     * @code
-     * w->setParent(s);
-     * @endcode
-     */
-        virtual void setParent(ScrollView*);
-
-    /**
-     * get parent
-     * @param[out] : scroll view
-     * @code
-     * ScrollView *s = w->parent();
-     * @endcode
-     */
-        ScrollView* parent() const;
-
-    /**
-     * geometry changed
-     * @code
-     * w->geometryChanged();
-     * @endcode
-     */
-        virtual void geometryChanged() const;
 
     /**
      * convert to containing window
@@ -574,64 +419,64 @@ namespace WKAL {
         IntPoint convertFromContainingWindow(const IntPoint&) const;
 
     /**
-     * convert child to self
-     * @param[in] : widget
-     * @param[in] : point
-     * @param[out] : point
+     * convert from containing window
+     * @param[in] : rect
+     * @param[out] : rect
      * @code
-     * IntPoint p = w->convertChildToSelf(wi, p1);
+     * IntRect r = w->convertFromContainingWindow(r1);
      * @endcode
      */
-        virtual IntPoint convertChildToSelf(const Widget*, const IntPoint&) const;
+        IntRect convertFromContainingWindow(const IntRect&) const;
 
     /**
-     * convert self to child
-     * @param[in] : widget
-     * @param[in] : point
-     * @param[out] : point
+     *  geometryChanged description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * IntPoint p = w->convertSelfToChild(wi, p1);
      * @endcode
      */
-        virtual IntPoint convertSelfToChild(const Widget*, const IntPoint&) const;
+    virtual void geometryChanged() const ;
+
+private:
+   
+    /**
+     *  init description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void init(PlatformWidget);
 
     /**
-     * get suppress invalidation status
-     * @param[out] : status
+     *  releasePlatformWidget description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * bool s = w->suppressInvalidation();
      * @endcode
      */
-        bool suppressInvalidation() const;
+    void releasePlatformWidget();
 
     /**
-     * set suppress invalidation status
-     * @param[in] : status
+     *  retainPlatformWidget description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * w->setSuppressInvalidation(s);
      * @endcode
      */
-        void setSuppressInvalidation(bool);
+    void retainPlatformWidget();
 
-    /**
-     * get BalWidget
-     * @param[out] : BalWidget
-     * @code
-     * BalWidget *bw = w->balWidget(PlatformWidget = 0);
-     * @endcode
-     */
-        BalWidget* balWidget() const;
-protected:
-    /**
-     * set BalWidget 
-     * @param[in] : BalWidget
-     * @code
-     * w->setBalWidget(bw);
-     * @endcode
-     */
-        void setBalWidget(BalWidget*);
+private:
+    ScrollView* m_parent;
+    PlatformWidget m_widget;
+    bool m_selfVisible;
+    bool m_parentVisible;
 
+    IntRect m_frame; // Not used when a native widget exists.
+    PlatformWindow m_containingWindow; // Not used when a native widget exists.
+    WidgetPrivate* data;
+};
+} // namespace WebCore
 
-    private:
-        WidgetPrivate* data;
-    };
+#endif // Widget_h
+

@@ -551,17 +551,7 @@ body.console-visible #console {
 .console-message-url {
     color: rgb(33%, 33%, 33%) !important;
     cursor: pointer;
-}
-
-.console-message-url::after {
-    display: inline-block;
-    content: url(Images/goArrow.png);
-    margin-left: 3px;
-    width: 12px;
-    height: 12px;
-    vertical-align: top;
-    opacity: 0.75;
-    -webkit-user-select: none;
+    float: right;
 }
 
 .console-message-url:hover {

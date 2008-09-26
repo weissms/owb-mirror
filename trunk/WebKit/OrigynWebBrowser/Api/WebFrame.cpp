@@ -1447,7 +1447,7 @@ IntRect WebFrame::frameBounds()
     if (!view)
         return IntRect();
 
-    FloatRect bounds = view->visibleContentRectConsideringExternalScrollers();
+    FloatRect bounds = view->visibleContentRect();
     return IntRect(0, 0, (int)bounds.width(), (int)bounds.height());
 }
 

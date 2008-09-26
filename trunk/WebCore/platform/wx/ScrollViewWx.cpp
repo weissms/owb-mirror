@@ -50,7 +50,6 @@ public:
     ScrollViewPrivate(ScrollView* scrollView)
         : wxEvtHandler()
         , m_scrollView(scrollView)
-        , hasStaticBackground(false)
         , suppressScrollbars(false)
         , vScrollbarMode(ScrollbarAuto)
         , hScrollbarMode(ScrollbarAuto)
@@ -111,14 +110,12 @@ public:
         else
             return e.Skip();
 
-        m_scrollView->setContentsPos(pos.x, pos.y);
+        m_scrollView->setScrollPosition(IntPoint(pos.x, pos.y));
         m_scrollView->update();
     }
 
     ScrollView* m_scrollView;
 
-    HashSet<Widget*> m_children;
-    bool hasStaticBackground;
     bool suppressScrollbars;
     ScrollbarMode vScrollbarMode;
     ScrollbarMode hScrollbarMode;
@@ -128,6 +125,7 @@ public:
 ScrollView::ScrollView()
 {
     m_data = new ScrollViewPrivate(this);
+    init();
 }
 
 void ScrollView::setPlatformWidget(wxWindow* win)
@@ -145,7 +143,7 @@ void ScrollView::updateContents(const IntRect& updateRect, bool now)
 {
     // we need to convert coordinates to scrolled position
     wxRect contentsRect = updateRect;
-    contentsRect.Offset(-contentsX(), -contentsY());
+    contentsRect.Offset(-scrollX(), -scrollY());
     wxWindow* win = platformWidget();
     if (win) {
         win->RefreshRect(contentsRect, true);
@@ -161,41 +159,29 @@ void ScrollView::update()
         win->Update();
 }
 
-int ScrollView::visibleWidth() const
+
+IntRect ScrollView::platformVisibleContentRect(bool includeScrollbars) const
+{
+    // FIXME: Need to support includeScrollbars option.
+    int width;
+    platformWidget()->GetClientSize(NULL, &width);
+    int height;
+    platformWidget()->GetClientSize(NULL, &height);
+    ASSERT(width >= 0 && height >= 0);
+    return IntRect(m_data->viewStart.x, m_data->viewStart.y, width, height);
+}
+
+IntSize ScrollView::platformContentsSize() const
 {
     int width = 0;
-    wxWindow* win = platformWidget();
-    if (win)
-        win->GetClientSize(&width, NULL);
-    
-    ASSERT(width >= 0);
-    return width;
-}
-
-int ScrollView::visibleHeight() const
-{
     int height = 0;
-    wxWindow* win = platformWidget();
-    if (win)
-        win->GetClientSize(NULL, &height);
-    
-    ASSERT(height >= 0);
-    return height;
+    platformWidget()->GetVirtualSize(&width, NULL);
+    platformWidget()->GetVirtualSize(&height, NULL);
+    ASSERT(width >= 0 && height >= 0);
+    return IntSize(width, height);
 }
 
-FloatRect ScrollView::visibleContentRect() const
-{
-    return FloatRect(contentsX(),contentsY(),visibleWidth(),visibleHeight());
-}
-
-void ScrollView::setContentsPos(int newX, int newY)
-{
-    int dx = newX - contentsX();
-    int dy = newY - contentsY();
-    scrollBy(dx, dy);
-}
-
-void ScrollView::scrollBy(int dx, int dy)
+void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
 {
     wxWindow* win = platformWidget();
     if (!win)
@@ -203,7 +189,7 @@ void ScrollView::scrollBy(int dx, int dy)
 
     wxPoint scrollOffset = m_data->viewStart;
     wxPoint orig(scrollOffset);
-    wxPoint newScrollOffset = scrollOffset + wxPoint(dx, dy);
+    wxPoint newScrollOffset(scrollPoint);
 
     wxRect vRect(win->GetVirtualSize());
     wxRect cRect(win->GetClientSize());
@@ -226,60 +212,28 @@ void ScrollView::scrollBy(int dx, int dy)
 
     wxPoint delta(orig - newScrollOffset);
 
-    if (m_data->hasStaticBackground)
-        win->Refresh();
-    else
+    if (canBlitOnScroll())
         win->ScrollWindow(delta.x, delta.y);
+    else
+        win->Refresh();
 
     adjustScrollbars();
 }
 
-void ScrollView::resizeContents(int w,int h)
+void ScrollView::platformSetContentsSize(const IntSize& newSize)
 {
-    wxWindow* win = platformWidget();
-    if (win) {
-        win->SetVirtualSize(w, h);
-        adjustScrollbars();
-    }
+    win->SetVirtualSize(newSize.width(), newSize.height());
+    adjustScrollbars();
 }
 
-int ScrollView::contentsX() const
+Scrollbar* ScrollView::horizontalScrollbar() const
 {
-    ASSERT(m_data->viewStart.x >= 0);
-    return m_data->viewStart.x;
+    return 0;
 }
 
-int ScrollView::contentsY() const
+Scrollbar* ScrollView::verticalScrollbar() const
 {
-    ASSERT(m_data->viewStart.y >= 0);
-    return m_data->viewStart.y;
-}
-
-int ScrollView::contentsWidth() const
-{
-    int width = 0;
-    wxWindow* win = platformWidget();
-    if (win)
-        win->GetVirtualSize(&width, NULL);
-    ASSERT(width >= 0);
-    return width;
-}
-
-int ScrollView::contentsHeight() const
-{
-    int height = 0;
-    wxWindow* win = platformWidget();
-    if (win)
-        win->GetVirtualSize(NULL, &height);
-    ASSERT(height >= 0);
-    return height;
-}
-
-FloatRect ScrollView::visibleContentRectConsideringExternalScrollers() const
-{
-    // FIXME: clip this rect if parent scroll views cut off the visible
-    // area.
-    return visibleContentRect();
+    return 0;
 }
 
 bool ScrollView::isScrollViewScrollbar(const Widget* child) const
@@ -288,11 +242,6 @@ bool ScrollView::isScrollViewScrollbar(const Widget* child) const
     if (!win)
         return false;
     return win->IsKindOf(CLASSINFO(wxScrollBar));
-}
-
-IntSize ScrollView::scrollOffset() const
-{
-    return IntSize(contentsX(), contentsY());
 }
 
 void ScrollView::adjustScrollbars(int x, int y, bool refresh)
@@ -398,11 +347,6 @@ void ScrollView::setVScrollbarMode(ScrollbarMode newMode)
     }
 }
 
-void ScrollView::setStaticBackground(bool flag)
-{
-    m_data->hasStaticBackground = flag;
-}
-
 void ScrollView::suppressScrollbars(bool suppressed, bool repaintOnSuppress)
 {
     if ( m_data->suppressScrollbars != suppressed )
@@ -441,37 +385,23 @@ void ScrollView::wheelEvent(PlatformWheelEvent& e)
 }
 
 // used for subframes support
-void ScrollView::addChild(Widget* widget)
+void ScrollView::platformAddChild(Widget* widget)
 {
-    m_data->m_children.add(widget);
-
     // NB: In all cases I'm aware of,
     // by the time this is called the ScrollView is already a child
     // of its parent Widget by wx port APIs, so I don't think
     // we need to do anything here.
 }
 
-void ScrollView::removeChild(Widget* widget)
+void ScrollView::platformRemoveChild(Widget* widget)
 {
-    m_data->m_children.remove(widget);
-
-    if (platformWidget() && widget->platformWidget()) {
+    if (platformWidget()) {
         platformWidget()->RemoveChild(widget->platformWidget());
         // FIXME: Is this the right place to do deletion? I see
         // detachFromParent2/3/4, initiated by FrameLoader::detachFromParent,
         // but I'm not sure if it's better to handle there or not.
         widget->platformWidget()->Destroy();
     }
-}
-
-HashSet<Widget*>* ScrollView::children()
-{
-    return &(m_data->m_children);
-}
-
-void ScrollView::scrollRectIntoViewRecursively(const IntRect& rect)
-{
-    setContentsPos(rect.x(), rect.y());
 }
 
 Scrollbar* ScrollView::scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent)

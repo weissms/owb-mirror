@@ -94,16 +94,16 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
 
     switch (event.keysym.sym) {
     case SDLK_DOWN:
-        view->scrollBy(0, LINE_STEP);
+        view->scrollBy(IntSize(0, LINE_STEP));
         return;
     case SDLK_UP:
-        view->scrollBy(0, -LINE_STEP);
+        view->scrollBy(IntSize(0, -LINE_STEP));
         return;
     case SDLK_RIGHT:
-        view->scrollBy(LINE_STEP, 0);
+        view->scrollBy(IntSize(LINE_STEP, 0));
         return;
     case SDLK_LEFT:
-        view->scrollBy(-LINE_STEP, 0);
+        view->scrollBy(IntSize(-LINE_STEP, 0));
         return;
     case SDLK_HOME:
         frame->selection()->modify(alteration, SelectionController::BACKWARD, DocumentBoundary, true);

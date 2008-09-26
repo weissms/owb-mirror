@@ -48,6 +48,7 @@ freebsd-*: DEFINES += HAVE_PTHREAD_NP_H
 DEFINES += BUILD_WEBKIT
 
 !CONFIG(QTDIR_build):win32-*: DEFINES += ENABLE_ICONDATABASE=0 ENABLE_DATABASE=0
+win32-*: DEFINES += _HAS_TR1=0
 
 # Pick up 3rdparty libraries from INCLUDE/LIB just like with MSVC
 win32-g++ {
@@ -58,7 +59,6 @@ win32-g++ {
 }
 
 # Optional components (look for defs in config.h and included files!)
-!contains(DEFINES, ENABLE_CROSS_DOCUMENT_MESSAGING=.): DEFINES += ENABLE_CROSS_DOCUMENT_MESSAGING=1
 !contains(DEFINES, ENABLE_DASHBOARD_SUPPORT=.): DEFINES += ENABLE_DASHBOARD_SUPPORT=0
 !contains(DEFINES, ENABLE_DATABASE=.): DEFINES += ENABLE_DATABASE=1
 !contains(DEFINES, ENABLE_ICONDATABASE=.): DEFINES += ENABLE_ICONDATABASE=1
@@ -246,6 +246,9 @@ IDL_BINDINGS += \
 #    dom/EventTarget.idl \
     dom/KeyboardEvent.idl \
     dom/MouseEvent.idl \
+    dom/MessageChannel.idl \
+    dom/MessageEvent.idl \
+    dom/MessagePort.idl \
     dom/MutationEvent.idl \
     dom/NamedNodeMap.idl \
     dom/Node.idl \
@@ -419,6 +422,9 @@ SOURCES += \
     bindings/js/JSXSLTProcessorCustom.cpp \
     bindings/js/JSPluginCustom.cpp \
     bindings/js/JSPluginArrayCustom.cpp \
+    bindings/js/JSMessageChannelConstructor.cpp \
+    bindings/js/JSMessageChannelCustom.cpp \
+    bindings/js/JSMessagePortCustom.cpp \
     bindings/js/JSMimeTypeArrayCustom.cpp \
     bindings/js/JSDOMBinding.cpp \
     bindings/js/JSEventListener.cpp \
@@ -524,6 +530,9 @@ SOURCES += \
     dom/ExceptionCode.cpp \
     dom/KeyboardEvent.cpp \
     dom/MappedAttribute.cpp \
+    dom/MessageChannel.cpp \
+    dom/MessageEvent.cpp \
+    dom/MessagePort.cpp \
     dom/MouseEvent.cpp \
     dom/MouseRelatedEvent.cpp \
     dom/MutationEvent.cpp \
@@ -828,6 +837,7 @@ SOURCES += \
     platform/network/ResourceResponseBase.cpp \
     platform/text/RegularExpression.cpp \
     platform/Scrollbar.cpp \
+    platform/ScrollView.cpp \
 #    platform/SearchPopupMenu.cpp \
     platform/SecurityOrigin.cpp \
     platform/text/SegmentedString.cpp \
@@ -1024,6 +1034,7 @@ SOURCES += \
     platform/qt/EventLoopQt.cpp \
     platform/qt/FileChooserQt.cpp \
     platform/qt/FileSystemQt.cpp \
+    platform/qt/SharedBufferQt.cpp \
     platform/graphics/qt/FontCacheQt.cpp \
     platform/graphics/qt/FontCustomPlatformData.cpp \
     platform/graphics/qt/FontQt.cpp \
@@ -1119,16 +1130,6 @@ contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
                 -lversion
         }
 
-}
-
-contains(DEFINES, ENABLE_CROSS_DOCUMENT_MESSAGING=1) {
-    FEATURE_DEFINES_JAVASCRIPT += ENABLE_CROSS_DOCUMENT_MESSAGING=1
-
-    SOURCES += \
-        dom/MessageEvent.cpp
-
-    IDL_BINDINGS += \
-        dom/MessageEvent.idl
 }
 
 contains(DEFINES, ENABLE_DASHBOARD_SUPPORT=0) {

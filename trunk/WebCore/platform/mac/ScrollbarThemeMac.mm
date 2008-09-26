@@ -27,6 +27,7 @@
 #include "ScrollbarThemeMac.h"
 
 #include "GraphicsContext.h"
+#include "ImageBuffer.h"
 #include "IntRect.h"
 #include "Page.h"
 #include "PlatformMouseEvent.h"
@@ -39,6 +40,43 @@
 // FIXME: There are repainting problems due to Aqua scroll bar buttons' visual overflow.
 
 using namespace std;
+using namespace WebCore;
+
+static HashSet<Scrollbar*>* gScrollbars;
+
+@interface ScrollbarPrefsObserver : NSObject
+{
+
+}
+
++ (void)registerAsObserver;
++ (void)appearancePrefsChanged:(NSNotification*)theNotification;
++ (void)behaviorPrefsChanged:(NSNotification*)theNotification;
+
+@end
+
+@implementation ScrollbarPrefsObserver
+
++ (void)appearancePrefsChanged:(NSNotification*)theNotification
+{
+    static_cast<ScrollbarThemeMac*>(ScrollbarTheme::nativeTheme())->preferencesChanged();
+    HashSet<Scrollbar*>::iterator end = gScrollbars->end();
+    for (HashSet<Scrollbar*>::iterator it = gScrollbars->begin(); it != end; ++it)
+        (*it)->invalidate();
+}
+
++ (void)behaviorPrefsChanged:(NSNotification*)theNotification
+{
+    static_cast<ScrollbarThemeMac*>(ScrollbarTheme::nativeTheme())->preferencesChanged();
+}
+
++ (void)registerAsObserver
+{
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(appearancePrefsChanged:) name:@"AppleAquaScrollBarVariantChanged" object:nil suspensionBehavior:NSNotificationSuspensionBehaviorDeliverImmediately];
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(behaviorPrefsChanged:) name:@"AppleNoRedisplayAppearancePreferenceChanged" object:nil suspensionBehavior:NSNotificationSuspensionBehaviorCoalesce];
+}
+
+@end
 
 namespace WebCore {
 
@@ -78,21 +116,44 @@ static void updateArrowPlacement()
         gButtonPlacement = ScrollbarButtonsDoubleEnd; // The default is ScrollbarButtonsDoubleEnd.
 }
 
+void ScrollbarThemeMac::registerScrollbar(Scrollbar* scrollbar)
+{
+    if (!gScrollbars)
+        gScrollbars = new HashSet<Scrollbar*>;
+    gScrollbars->add(scrollbar);
+}
+
+void ScrollbarThemeMac::unregisterScrollbar(Scrollbar* scrollbar)
+{
+    gScrollbars->remove(scrollbar);
+    if (gScrollbars->isEmpty()) {
+        delete gScrollbars;
+        gScrollbars = 0;
+    }
+}
+
 ScrollbarThemeMac::ScrollbarThemeMac()
 {
     static bool initialized;
     if (!initialized) {
         initialized = true;
-        updateArrowPlacement();
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        gInitialButtonDelay = [defaults floatForKey:@"NSScrollerButtonDelay"];
-        gAutoscrollButtonDelay = [defaults floatForKey:@"NSScrollerButtonPeriod"];
-        gJumpOnTrackClick = [defaults boolForKey:@"AppleScrollerPagingBehavior"];
+        [ScrollbarPrefsObserver registerAsObserver];
+        preferencesChanged();
     }
 }
 
 ScrollbarThemeMac::~ScrollbarThemeMac()
 {
+}
+
+void ScrollbarThemeMac::preferencesChanged()
+{
+    updateArrowPlacement();
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults synchronize];
+    gInitialButtonDelay = [defaults floatForKey:@"NSScrollerButtonDelay"];
+    gAutoscrollButtonDelay = [defaults floatForKey:@"NSScrollerButtonPeriod"];
+    gJumpOnTrackClick = [defaults boolForKey:@"AppleScrollerPagingBehavior"];
 }
 
 int ScrollbarThemeMac::scrollbarThickness(ScrollbarControlSize controlSize)
@@ -270,7 +331,6 @@ bool ScrollbarThemeMac::shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent
     return evt.altKey();
 }
 
-#if !USE(NSSCROLLER)
 static int scrollbarPartToHIPressedState(ScrollbarPart part)
 {
     switch (part) {
@@ -288,11 +348,9 @@ static int scrollbarPartToHIPressedState(ScrollbarPart part)
             return 0;
     }
 }
-#endif
 
 bool ScrollbarThemeMac::paint(Scrollbar* scrollbar, GraphicsContext* context, const IntRect& damageRect)
 {
-#if !USE(NSSCROLLER)
     HIThemeTrackDrawInfo trackInfo;
     trackInfo.version = 0;
     trackInfo.kind = scrollbar->controlSize() == RegularScrollbar ? kThemeMediumScrollBar : kThemeSmallScrollBar;
@@ -313,11 +371,28 @@ bool ScrollbarThemeMac::paint(Scrollbar* scrollbar, GraphicsContext* context, co
         trackInfo.enableState = kThemeTrackNothingToScroll;
     trackInfo.trackInfo.scrollbar.pressState = scrollbarPartToHIPressedState(scrollbar->pressedPart());
     
-    HIThemeDrawTrack(&trackInfo, 0, context->platformContext(), kHIThemeOrientationNormal);
+    CGAffineTransform currentCTM = CGContextGetCTM(context->platformContext());
+    
+    // The Aqua scrollbar is buggy when rotated and scaled.  We will just draw into a bitmap if we detect a scale or rotation.
+    bool canDrawDirectly = currentCTM.a == 1.0f && currentCTM.b == 0.0f && currentCTM.c == 0.0f && (currentCTM.d == 1.0f || currentCTM.d == -1.0f);
+    if (canDrawDirectly)
+        HIThemeDrawTrack(&trackInfo, 0, context->platformContext(), kHIThemeOrientationNormal);
+    else {
+        trackInfo.bounds = IntRect(IntPoint(), scrollbar->frameGeometry().size());
+        
+        IntRect bufferRect(scrollbar->frameGeometry());
+        bufferRect.intersect(damageRect);
+        bufferRect.move(-scrollbar->frameGeometry().x(), -scrollbar->frameGeometry().y());
+        
+        auto_ptr<ImageBuffer> imageBuffer = ImageBuffer::create(bufferRect.size(), false);
+        if (!imageBuffer.get())
+            return true;
+        
+        HIThemeDrawTrack(&trackInfo, 0, imageBuffer->context()->platformContext(), kHIThemeOrientationNormal);
+        context->drawImage(imageBuffer->image(), scrollbar->frameGeometry().location());
+    }
+
     return true;
-#else
-    return false;
-#endif
 }
 
 }

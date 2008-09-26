@@ -301,18 +301,11 @@ protected:
     // Handle platform-specific dat
 
 
-    /**
-     * notify observer and trim decoded data
-     */
-    void notifyObserverAndTrimDecodedData()
 
     /**
-     * invalidate platform data 
-     * @code
-     * bi->invalidatePlatformData();
-     * @endcode
+     *  initPlatformData
      */
-    void invalidatePlatformData();
+    void initPlatformData();
   
     // Checks to see if the image is a 1x1 solid color.  We optimize these images and just do a fill rect instead.
     /**
@@ -362,4 +355,3 @@ protected:
 
 }
 
-#e

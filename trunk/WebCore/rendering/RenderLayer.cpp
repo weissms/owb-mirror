@@ -278,10 +278,8 @@ void RenderLayer::setHasVisibleContent(bool b)
     if (m_hasVisibleContent) {
         m_repaintRect = renderer()->absoluteClippedOverflowRect();
         m_outlineBox = renderer()->absoluteOutlineBox();
-        if (!isOverflowOnly()) {
-            if (RenderLayer* sc = stackingContext())
-                sc->dirtyZOrderLists();
-        }
+        if (!isOverflowOnly())
+            dirtyStackingContextZOrderLists();
     }
     if (parent())
         parent()->childVisibilityChanged(m_hasVisibleContent);
@@ -582,9 +580,7 @@ void RenderLayer::addChild(RenderLayer* child, RenderLayer* beforeChild)
         // Dirty the z-order list in which we are contained.  The stackingContext() can be null in the
         // case where we're building up generated content layers.  This is ok, since the lists will start
         // off dirty in that case anyway.
-        RenderLayer* stackingContext = child->stackingContext();
-        if (stackingContext)
-            stackingContext->dirtyZOrderLists();
+        child->dirtyStackingContextZOrderLists();
     }
 
     child->updateVisibilityStatus();
@@ -611,9 +607,7 @@ RenderLayer* RenderLayer::removeChild(RenderLayer* oldChild)
         // Dirty the z-order list in which we are contained.  When called via the
         // reattachment process in removeOnlyThisLayer, the layer may already be disconnected
         // from the main layer tree, so we need to null-check the |stackingContext| value.
-        RenderLayer* stackingContext = oldChild->stackingContext();
-        if (stackingContext)
-            stackingContext->dirtyZOrderLists();
+        oldChild->dirtyStackingContextZOrderLists();
     }
 
     oldChild->setPreviousSibling(0);
@@ -763,7 +757,7 @@ void RenderLayer::scrollByRecursively(int xDelta, int yDelta)
                 frame->eventHandler()->updateAutoscrollRenderer();
         }
     } else if (m_object->view()->frameView())
-        m_object->view()->frameView()->scrollBy(xDelta, yDelta);
+        m_object->view()->frameView()->scrollBy(IntSize(xDelta, yDelta));
 }
 
 
@@ -888,7 +882,7 @@ void RenderLayer::scrollRectToVisible(const IntRect &rect, bool scrollToAnchor, 
     } else if (!parentLayer && renderer()->canBeProgramaticallyScrolled(scrollToAnchor)) {
         if (frameView) {
             if (m_object->document() && m_object->document()->ownerElement() && m_object->document()->ownerElement()->renderer()) {
-                IntRect viewRect = enclosingIntRect(frameView->visibleContentRect());
+                IntRect viewRect = frameView->visibleContentRect();
                 IntRect r = getRectToExpose(viewRect, rect, alignX, alignY);
                 
                 xOffset = r.x();
@@ -897,12 +891,12 @@ void RenderLayer::scrollRectToVisible(const IntRect &rect, bool scrollToAnchor, 
                 xOffset = max(0, min(frameView->contentsWidth(), xOffset));
                 yOffset = max(0, min(frameView->contentsHeight(), yOffset));
 
-                frameView->setContentsPos(xOffset, yOffset);
+                frameView->setScrollPosition(IntPoint(xOffset, yOffset));
                 parentLayer = m_object->document()->ownerElement()->renderer()->enclosingLayer();
-                newRect.setX(rect.x() - frameView->contentsX() + frameView->x());
-                newRect.setY(rect.y() - frameView->contentsY() + frameView->y());
+                newRect.setX(rect.x() - frameView->scrollX() + frameView->x());
+                newRect.setY(rect.y() - frameView->scrollY() + frameView->y());
             } else {
-                IntRect viewRect = enclosingIntRect(frameView->visibleContentRectConsideringExternalScrollers());
+                IntRect viewRect = frameView->visibleContentRect(true);
                 IntRect r = getRectToExpose(viewRect, rect, alignX, alignY);
                 
                 // If this is the outermost view that RenderLayer needs to scroll, then we should scroll the view recursively
@@ -1740,7 +1734,7 @@ static inline IntRect frameVisibleRect(RenderObject* renderer)
     if (!frameView)
         return IntRect();
 
-    return enclosingIntRect(frameView->visibleContentRect());
+    return frameView->visibleContentRect();
 }
 
 bool RenderLayer::hitTest(const HitTestRequest& request, HitTestResult& result)
@@ -1952,8 +1946,8 @@ void RenderLayer::calculateClipRects(const RenderLayer* rootLayer)
         RenderView* view = renderer()->view();
         ASSERT(view);
         if (view && fixed && rootLayer->renderer() == view) {
-            x -= view->frameView()->contentsX();
-            y -= view->frameView()->contentsY();
+            x -= view->frameView()->scrollX();
+            y -= view->frameView()->scrollY();
         }
         
         if (m_object->hasOverflowClip()) {
@@ -1995,7 +1989,7 @@ void RenderLayer::calculateRects(const RenderLayer* rootLayer, const IntRect& pa
         RenderView* view = renderer()->view();
         ASSERT(view);
         if (view && parent()->clipRects()->fixed() && rootLayer->renderer() == view)
-            backgroundRect.move(view->frameView()->contentsX(), view->frameView()->contentsY());
+            backgroundRect.move(view->frameView()->scrollX(), view->frameView()->scrollY());
 
         backgroundRect.intersect(paintDirtyRect);
     } else
@@ -2264,6 +2258,13 @@ void RenderLayer::dirtyZOrderLists()
     m_zOrderListsDirty = true;
 }
 
+void RenderLayer::dirtyStackingContextZOrderLists()
+{
+    RenderLayer* sc = stackingContext();
+    if (sc)
+        sc->dirtyZOrderLists();
+}
+
 void RenderLayer::dirtyOverflowList()
 {
     if (m_overflowList)
@@ -2356,11 +2357,9 @@ void RenderLayer::styleChanged(RenderStyle* oldStyle)
     if (isOverflowOnly != m_isOverflowOnly) {
         m_isOverflowOnly = isOverflowOnly;
         RenderLayer* p = parent();
-        RenderLayer* sc = stackingContext();
         if (p)
             p->dirtyOverflowList();
-        if (sc)
-            sc->dirtyZOrderLists();
+        dirtyStackingContextZOrderLists();
     }
 
     if (m_object->style()->overflowX() == OMARQUEE && m_object->style()->marqueeBehavior() != MNONE) {

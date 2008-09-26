@@ -70,6 +70,73 @@ namespace WKAL {
      */
         ~ScrollView();
 
+
+    /**
+     *  children description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    const HashSet<Widget*>* children() const ;
+
+    /**
+     * addChild
+     */
+     void addChild(Widget*);
+
+     /**
+      * removeChild
+      */
+     void removeChild(Widget*);
+
+    /**
+     *  horizontalScrollbar description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    Scrollbar* horizontalScrollbar() const;
+
+
+    /**
+     *  verticalScrollbar description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    Scrollbar* verticalScrollbar() const;
+
+    /**
+     *  setCanBlitOnScroll description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void setCanBlitOnScroll(bool);
+
+    /**
+     *  canBlitOnScroll description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool canBlitOnScroll() const ;
+
+
+    /**
+     *  visibleContentRect description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    IntRect visibleContentRect(bool includeScrollbars = false) const;
+
     /**
      * get visible width
      * @param[out] : width
@@ -89,100 +156,105 @@ namespace WKAL {
         int visibleHeight() const;
 
     /**
-     * get visible content rect 
-     * @param[out] : rect
+     *  contentsSize description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * FloatRect fp = s->visibleContentRect();
      * @endcode
      */
-        FloatRect visibleContentRect() const;
+    IntSize contentsSize() const;
 
     /**
-     * get visible content rect considering external scrollers
-     * @param[out] : rect
+     *  setContentsSize description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * FloatRect fp = s->visibleContentRectConsideringExternalScrollers();
      * @endcode
      */
-        FloatRect visibleContentRectConsideringExternalScrollers() const;
+    void setContentsSize(const IntSize&);
 
     /**
-     * get contents width
-     * @param[out] : width
+     *  scrollPosition description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * int w = s->contentsWidth();
      * @endcode
      */
-        int contentsWidth() const;
+    IntPoint scrollPosition() const ;
+
 
     /**
-     * get contents height
-     * @param[out] : height
+     *  scrollOffset description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * int h = s->contentsHeight();
      * @endcode
      */
-        int contentsHeight() const;
+    IntSize scrollOffset() const ;
+
 
     /**
-     * get contents x
-     * @param[out] : x value
+     *  maximumScrollPosition description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * int x = s->contentsX();
      * @endcode
      */
-        int contentsX() const;
+    IntPoint maximumScrollPosition() const;
+
 
     /**
-     * get contents y
-     * @param[out] : y value
+     *  scrollX description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * int y = s->contentsY();
      * @endcode
      */
-        int contentsY() const;
+    int scrollX() const ;
+
 
     /**
-     * get scroll offset 
-     * @param[out] : offset
+     *  scrollY description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * IntSize is = s->scrollOffset();
      * @endcode
      */
-        IntSize scrollOffset() const;
+    int scrollY() const ;
+
 
     /**
-     * scroll By 
-     * @param[in] : delta x
-     * @param[in] : delta y
+     *  setScrollPosition description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * s->scrollBy(dx, dy);
      * @endcode
      */
-        void scrollBy(int dx, int dy);
+    void setScrollPosition(const IntPoint&);
+
 
     /**
-     * scroll rect into view recursively
-     * @param[in] : rect
+     *  scrollBy description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * s->scrollRectIntoViewRecursively(r);
      * @endcode
      */
-        virtual void scrollRectIntoViewRecursively(const IntRect&);
+    void scrollBy(const IntSize& s) ;
+
 
     /**
-     * set contents pos
-     * @param[in] : x value
-     * @param[in] : y value
+     *  scrollRectIntoViewRecursively description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * s->setContentsPos(x, y);
      * @endcode
      */
-        virtual void setContentsPos(int x, int y);
+    void scrollRectIntoViewRecursively(const IntRect&);
 
     /**
-     * set Vertical scrollbar mode
-     * @param[in] : scrollbal mode
+     * set vertical scrollbar mode
+     * @param[in] : scrollbar mode
      * @code
      * s->setVScrollbarMode(m);
      * @endcode
@@ -198,15 +270,15 @@ namespace WKAL {
      */
         virtual void setHScrollbarMode(ScrollbarMode);
 
-        // Set the mode for both scrollbars at once.
+        // Set the mode for both scrollbars at onc
     /**
-     * Set the mode for both scrollbars at once.
+     * set scrollbar mode
      * @param[in] : scrollbar mode
      * @code
-     * s->setScrollbarsMode(m);
+     * s->setScrollbarMode(m);
      * @endcode
      */
-        virtual void setScrollbarsMode(ScrollbarMode);
+        virtual void setScrollbarMode(ScrollbarMode);
 
     /**
      * This gives us a means of blocking painting on our scrollbars until the first layout has occurred.
@@ -216,7 +288,7 @@ namespace WKAL {
      * s->suppressScrollbars(su, r);
      * @endcode
      */
-        void suppressScrollbars(bool suppressed, bool repaintOnUnsuppress = false);
+        void suppressScrollbars(bool suppressed, bool repaintOnUnsuppress = false)
 
     /**
      * get vertical scrollbar mode
@@ -242,29 +314,8 @@ namespace WKAL {
      * @code
      * @endcode
      */
-        bool isScrollable();
-    /**
-     * add child 
-     * @param[in] : widget
-     * @code
-     * s->addChild(w);
-     * @endcode
-     */
-        void addChild(Widget*);
+        bool isScrollable(
 
-    /**
-     * remove child
-     * @param[in] : widget
-     * @code
-     * s->removeChild(w);
-     * @endcode
-     */
-        void removeChild(Widget*);
-
-    /**
-     * @see Widget
-     */
-        virtual void resizeContents(int w, int h);
 
     /**
      * Event coordinates are assumed to be in the coordinate space of a window that contains
@@ -279,16 +330,13 @@ namespace WKAL {
         IntPoint windowToContents(const IntPoint&) const;
 
     /**
-     * Event coordinates are assumed to be in the coordinate space of a window that contains
-     * the entire widget hierarchy. It is up to the platform to decide what the precise definition
-     * of containing window is. (For example on Mac it is the containing NSWindow.)
-     * @param[in] : point
-     * @param[out] : result rect
+     *  contentsToWindow description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * IntRect p = s->windowToContents(p1);
      * @endcode
      */
-        IntRect contentsToWindow(const IntPoint&) const;
+    IntPoint contentsToWindow(const IntPoint&) const;
 
     /**
      * Event coordinates are assumed to be in the coordinate space of a window that contains
@@ -303,36 +351,18 @@ namespace WKAL {
         IntRect windowToContents(const IntRect&) const;
 
     /**
-     * Event coordinates are assumed to be in the coordinate space of a window that contains
-     * the entire widget hierarchy. It is up to the platform to decide what the precise definition
-     * of containing window is. (For example on Mac it is the containing NSWindow.)
-     * @param[in] : rect
-     * @param[out] : result rect
+     *  contentsToWindow description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * IntRect p = s->windowToContents(p1);
      * @endcode
      */
-        IntRect contentsToWindow(const IntRect&) const;
+    IntPoint contentsToWindow(const IntRect&) const;
 
     /**
-     * set static background
-     * @param[in] : status
-     * @code
-     * s->setStaticBackground(true);
-     * @endcode
+     * inWindow
      */
-        void setStaticBackground(bool);
-
-    /**
-     * in window
-     * @param[out] : status
-     * @code
-     * bool w = s->inWindow();
-     * @endcode
-     */
-        bool inWindow() const;
-
-
+    bool inWindow() const;
 
     /**
      * should Update while offscreen
@@ -436,11 +466,82 @@ namespace WKAL {
 	*/
         void update();
 
-    public:
-       /**
-        * children
-        */
-        HashSet<Widget*>* children();
+public:
+    HashSet<Widget*> m_children;
+    bool m_canBlitOnScroll;
+    IntSize m_scrollOffset; // FIXME: Would rather store this as a position, but we will wait to make this change until more code is shared.
+    IntSize m_contentsSize;
+
+    /**
+     *  init description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void init();
+
+
+    /**
+     *  platformAddChild description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void platformAddChild(Widget*);
+
+
+    /**
+     *  platformRemoveChild description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void platformRemoveChild(Widget*);
+
+
+    /**
+     *  platformSetCanBlitOnScroll description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void platformSetCanBlitOnScroll();
+
+
+    /**
+     *  platformVisibleContentRect description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    IntRect platformVisibleContentRect(bool includeScrollbars) const;
+
+
+    /**
+     *  platformContentsSize description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    IntSize platformContentsSize() const;
+
+
+    /**
+     *  platformSetContentsSize description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void platformSetContentsSize();
+
+
 
     private:
        /**
@@ -450,6 +551,8 @@ namespace WKAL {
 
         class ScrollViewPrivate;
         ScrollViewPrivate* m_data;
+
+        friend class ScrollViewPrivate; // FIXME: Temporary.
 
     public:
     /**
@@ -511,7 +614,7 @@ namespace WKAL {
     /**
      * resizerOverlapsContent
      */
-        bool resizerOverlapsContent() const;
+        bool resizerOverlapsContent() const ;
 
     /**
      * adjustOverlappingScrollbarCount.
@@ -546,7 +649,9 @@ inline IntRect ScrollView::contentsToWindow(const IntRect& rect) const;
      */
 inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
     
-    
-} // namespace
-#endif // ScrollView_h
+   
+#endif
 
+} // namespace WebCore
+
+#endif // ScrollView_h 

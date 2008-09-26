@@ -30,7 +30,9 @@ LIST (APPEND DOM_SRC
     dom/ExceptionCode.cpp
     dom/KeyboardEvent.cpp
     dom/MappedAttribute.cpp
+    dom/MessageChannel.cpp
     dom/MessageEvent.cpp
+    dom/MessagePort.cpp
     dom/MouseEvent.cpp
     dom/MouseRelatedEvent.cpp
     dom/MutationEvent.cpp

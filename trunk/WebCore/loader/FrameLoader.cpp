@@ -974,7 +974,7 @@ void FrameLoader::begin(const KURL& url, bool dispatch, SecurityOrigin* origin)
     document->implicitOpen();
 
     if (m_frame->view())
-        m_frame->view()->resizeContents(0, 0);
+        m_frame->view()->setContentsSize(IntSize());
 
 #if USE(LOW_BANDWIDTH_DISPLAY)
     // Low bandwidth display is a first pass display without external resources
@@ -4142,7 +4142,7 @@ void FrameLoader::saveScrollPositionAndViewStateToItem(HistoryItem* item)
     if (!item || !m_frame->view())
         return;
         
-    item->setScrollPoint(IntPoint(m_frame->view()->contentsX(), m_frame->view()->contentsY()));
+    item->setScrollPoint(m_frame->view()->scrollPosition());
     // FIXME: It would be great to work out a way to put this code in WebCore instead of calling through to the client.
     m_client->saveViewStateToItem(item);
 }
@@ -4178,10 +4178,8 @@ void FrameLoader::restoreScrollPositionAndViewState()
     m_client->restoreViewState();
     
     if (FrameView* view = m_frame->view())
-        if (!view->wasScrolledByUser()) {
-            const IntPoint& scrollPoint = m_currentHistoryItem->scrollPoint();
-            view->setContentsPos(scrollPoint.x(), scrollPoint.y());
-        }
+        if (!view->wasScrolledByUser())
+            view->setScrollPosition(m_currentHistoryItem->scrollPoint());
 }
 
 void FrameLoader::invalidateCurrentItemCachedPage()

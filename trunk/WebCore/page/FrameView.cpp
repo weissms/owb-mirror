@@ -224,7 +224,7 @@ void FrameView::init()
 
 void FrameView::clear()
 {
-    setStaticBackground(false);
+    setCanBlitOnScroll(true);
     
     d->reset();
 
@@ -266,7 +266,7 @@ void FrameView::adjustViewSize()
     RenderView* root = m_frame->contentRenderer();
     if (!root)
         return;
-    resizeContents(root->overflowWidth(), root->overflowHeight());
+    setContentsSize(IntSize(root->overflowWidth(), root->overflowHeight()));
 }
 
 void FrameView::applyOverflowToViewport(RenderObject* o, ScrollbarMode& hMode, ScrollbarMode& vMode)
@@ -515,7 +515,7 @@ void FrameView::layout(bool allowSubtree)
 
     ASSERT(!root->needsLayout());
 
-    setStaticBackground(useSlowRepaints());
+    setCanBlitOnScroll(!useSlowRepaints());
 
     if (document->hasListenerType(Document::OVERFLOWCHANGED_LISTENER))
         updateOverflowStatus(visibleWidth() < contentsWidth(),
@@ -557,76 +557,6 @@ void FrameView::removeWidgetToUpdate(RenderPartObject* object)
     m_widgetUpdateSet->remove(object);
 }
 
-//
-// Event Handling
-//
-/////////////////
-
-bool FrameView::scrollTo(const IntRect& bounds)
-{
-    int x, y, xe, ye;
-    x = bounds.x();
-    y = bounds.y();
-    xe = bounds.right() - 1;
-    ye = bounds.bottom() - 1;
-    
-    int deltax;
-    int deltay;
-
-    int curHeight = visibleHeight();
-    int curWidth = visibleWidth();
-
-    if (ye - y>curHeight-d->m_borderY)
-        ye = y + curHeight - d->m_borderY;
-
-    if (xe - x>curWidth-d->m_borderX)
-        xe = x + curWidth - d->m_borderX;
-
-    // is xpos of target left of the view's border?
-    if (x < contentsX() + d->m_borderX)
-        deltax = x - contentsX() - d->m_borderX;
-    // is xpos of target right of the view's right border?
-    else if (xe + d->m_borderX > contentsX() + curWidth)
-        deltax = xe + d->m_borderX - (contentsX() + curWidth);
-    else
-        deltax = 0;
-
-    // is ypos of target above upper border?
-    if (y < contentsY() + d->m_borderY)
-        deltay = y - contentsY() - d->m_borderY;
-    // is ypos of target below lower border?
-    else if (ye + d->m_borderY > contentsY() + curHeight)
-        deltay = ye + d->m_borderY - (contentsY() + curHeight);
-    else
-        deltay = 0;
-
-    int maxx = curWidth - d->m_borderX;
-    int maxy = curHeight - d->m_borderY;
-
-    int scrollX = deltax > 0 ? (deltax > maxx ? maxx : deltax) : deltax == 0 ? 0 : (deltax > -maxx ? deltax : -maxx);
-    int scrollY = deltay > 0 ? (deltay > maxy ? maxy : deltay) : deltay == 0 ? 0 : (deltay > -maxy ? deltay : -maxy);
-
-    if (contentsX() + scrollX < 0)
-        scrollX = -contentsX();
-    else if (contentsWidth() - visibleWidth() - contentsX() < scrollX)
-        scrollX = contentsWidth() - visibleWidth() - contentsX();
-
-    if (contentsY() + scrollY < 0)
-        scrollY = -contentsY();
-    else if (contentsHeight() - visibleHeight() - contentsY() < scrollY)
-        scrollY = contentsHeight() - visibleHeight() - contentsY();
-
-    scrollBy(scrollX, scrollY);
-
-    // generate abs(scroll.)
-    if (scrollX < 0)
-        scrollX = -scrollX;
-    if (scrollY < 0)
-        scrollY = -scrollY;
-
-    return scrollX != maxx && scrollY != maxy;
-}
-
 void FrameView::setMediaType(const String& mediaType)
 {
     d->m_mediaType = mediaType;
@@ -649,13 +579,13 @@ bool FrameView::useSlowRepaints() const
 void FrameView::setUseSlowRepaints()
 {
     d->m_useSlowRepaints = true;
-    setStaticBackground(true);
+    setCanBlitOnScroll(false);
 }
 
 void FrameView::addSlowRepaintObject()
 {
     if (!d->m_slowRepaintObjectCount)
-        setStaticBackground(true);
+        setCanBlitOnScroll(false);
     d->m_slowRepaintObjectCount++;
 }
 
@@ -664,7 +594,7 @@ void FrameView::removeSlowRepaintObject()
     ASSERT(d->m_slowRepaintObjectCount > 0);
     d->m_slowRepaintObjectCount--;
     if (!d->m_slowRepaintObjectCount)
-        setStaticBackground(d->m_useSlowRepaints);
+        setCanBlitOnScroll(!d->m_useSlowRepaints);
 }
 
 void FrameView::setScrollbarsMode(ScrollbarMode mode)
@@ -702,13 +632,13 @@ void FrameView::scrollRectIntoViewRecursively(const IntRect& r)
     d->m_inProgrammaticScroll = wasInProgrammaticScroll;
 }
 
-void FrameView::setContentsPos(int x, int y)
+void FrameView::setScrollPosition(const IntPoint& scrollPoint)
 {
     if (frame()->prohibitsScrolling())
         return;
     bool wasInProgrammaticScroll = d->m_inProgrammaticScroll;
     d->m_inProgrammaticScroll = true;
-    ScrollView::setContentsPos(x, y);
+    ScrollView::setScrollPosition(scrollPoint);
     d->m_inProgrammaticScroll = wasInProgrammaticScroll;
 }
 
@@ -719,7 +649,7 @@ void FrameView::repaintContentRectangle(const IntRect& r, bool immediate)
     ASSERT(!m_frame->document()->ownerElement());
 
     if (d->m_deferringRepaints && !immediate) {
-        IntRect visibleContent = enclosingIntRect(visibleContentRect());
+        IntRect visibleContent = visibleContentRect();
         visibleContent.intersect(r);
         if (!visibleContent.isEmpty()) {
             d->m_repaintCount++;
@@ -1054,13 +984,7 @@ IntRect FrameView::windowClipRect(bool clipToContents) const
     ASSERT(m_frame->view() == this);
 
     // Set our clip rect to be our contents.
-    IntRect clipRect;
-    if (clipToContents)
-        clipRect = enclosingIntRect(visibleContentRect());
-    else
-        clipRect = IntRect(contentsX(), contentsY(), width(), height());
-    clipRect = contentsToWindow(clipRect);
-
+    IntRect clipRect = contentsToWindow(visibleContentRect(!clipToContents));
     if (!m_frame || !m_frame->document() || !m_frame->document()->ownerElement())
         return clipRect;
 
@@ -1129,7 +1053,7 @@ void FrameView::updateControlTints()
 #if !PLATFORM(MAC)
         ScrollView::paint(&context, frameGeometry());
 #else
-        m_frame->paint(&context, enclosingIntRect(visibleContentRect()));
+        m_frame->paint(&context, visibleContentRect());
 #endif
     }
 }
@@ -1161,9 +1085,9 @@ void FrameView::layoutIfNeededRecursive()
     if (needsLayout())
         layout();
 
-    HashSet<Widget*>* viewChildren = children();
-    HashSet<Widget*>::iterator end = viewChildren->end();
-    for (HashSet<Widget*>::iterator current = viewChildren->begin(); current != end; ++current)
+    const HashSet<Widget*>* viewChildren = children();
+    HashSet<Widget*>::const_iterator end = viewChildren->end();
+    for (HashSet<Widget*>::const_iterator current = viewChildren->begin(); current != end; ++current)
         if ((*current)->isFrameView())
             static_cast<FrameView*>(*current)->layoutIfNeededRecursive();
 }

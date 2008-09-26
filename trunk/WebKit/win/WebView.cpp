@@ -2814,7 +2814,7 @@ HRESULT STDMETHODCALLTYPE WebView::rectsForTextMatches(
     WebCore::Frame* frame = m_page->mainFrame();
     do {
         if (Document* document = frame->document()) {
-            IntRect visibleRect = enclosingIntRect(frame->view()->visibleContentRect());
+            IntRect visibleRect = frame->view()->visibleContentRect();
             Vector<IntRect> frameRects = document->renderedRectsForMarkers(DocumentMarker::TextMatch);
             IntPoint frameOffset(-frame->view()->scrollOffset().width(), -frame->view()->scrollOffset().height());
             frameOffset = frame->view()->convertToContainingWindow(frameOffset);
@@ -4177,7 +4177,7 @@ HRESULT STDMETHODCALLTYPE WebView::scrollBy(
 {
     if (!offset)
         return E_POINTER;
-    m_page->mainFrame()->view()->scrollBy(offset->x, offset->y);
+    m_page->mainFrame()->view()->scrollBy(IntSize(offset->x, offset->y));
     return S_OK;
 }
 

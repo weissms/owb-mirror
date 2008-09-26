@@ -179,15 +179,22 @@ struct ConsoleMessage {
             wrappedArguments[i] = JSInspectedObjectWrapper::wrap(exec, args.at(exec, i));
     }
     
-    bool operator==(ConsoleMessage msg) const
+    bool isEqual(ExecState* exec, ConsoleMessage* msg) const
     {
-        return msg.source == this->source
-            && msg.level == this->level
-            && msg.message == this->message
-            && msg.wrappedArguments == this->wrappedArguments
-            && msg.line == this->line
-            && msg.url == this->url
-            && msg.groupLevel == this->groupLevel;
+        if (msg->wrappedArguments.size() != this->wrappedArguments.size() ||
+           (!exec && msg->wrappedArguments.size()))
+            return false;
+        
+        for (size_t i = 0; i < msg->wrappedArguments.size(); ++i)
+            if (!JSValueIsEqual(toRef(exec), toRef(msg->wrappedArguments[i].get()), toRef(this->wrappedArguments[i].get()), 0))
+                return false;
+    
+        return msg->source == this->source
+            && msg->level == this->level
+            && msg->message == this->message
+            && msg->line == this->line
+            && msg->url == this->url
+            && msg->groupLevel == this->groupLevel;
     }
 
     MessageSource source;
@@ -1123,7 +1130,7 @@ void InspectorController::addMessageToConsole(MessageSource source, MessageLevel
     if (!enabled())
         return;
 
-    addConsoleMessage(new ConsoleMessage(source, level, exec, arguments, lineNumber, sourceURL, m_groupLevel));
+    addConsoleMessage(exec, new ConsoleMessage(source, level, exec, arguments, lineNumber, sourceURL, m_groupLevel));
 }
 
 void InspectorController::addMessageToConsole(MessageSource source, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceID)
@@ -1131,16 +1138,17 @@ void InspectorController::addMessageToConsole(MessageSource source, MessageLevel
     if (!enabled())
         return;
 
-    addConsoleMessage(new ConsoleMessage(source, level, message, lineNumber, sourceID, m_groupLevel));
+    addConsoleMessage(0, new ConsoleMessage(source, level, message, lineNumber, sourceID, m_groupLevel));
 }
 
-void InspectorController::addConsoleMessage(ConsoleMessage* consoleMessage)
+void InspectorController::addConsoleMessage(ExecState* exec, ConsoleMessage* consoleMessage)
 {
     ASSERT(enabled());
     ASSERT_ARG(consoleMessage, consoleMessage);
 
-    if (m_previousMessage && *m_previousMessage == *consoleMessage) {
+    if (m_previousMessage && m_previousMessage->isEqual(exec, consoleMessage)) {
         ++m_previousMessage->repeatCount;
+        delete consoleMessage;
     } else {
         m_previousMessage = consoleMessage;
         m_consoleMessages.append(consoleMessage);
@@ -1171,7 +1179,7 @@ void InspectorController::startGroup(MessageSource source, ExecState* exec, cons
 {    
     ++m_groupLevel;
 
-    addConsoleMessage(new ConsoleMessage(source, StartGroupMessageLevel, exec, arguments, lineNumber, sourceURL, m_groupLevel));
+    addConsoleMessage(exec, new ConsoleMessage(source, StartGroupMessageLevel, exec, arguments, lineNumber, sourceURL, m_groupLevel));
 }
 
 void InspectorController::endGroup(MessageSource source, unsigned lineNumber, const String& sourceURL)
@@ -1181,7 +1189,7 @@ void InspectorController::endGroup(MessageSource source, unsigned lineNumber, co
 
     --m_groupLevel;
 
-    addConsoleMessage(new ConsoleMessage(source, EndGroupMessageLevel, String(), lineNumber, sourceURL, m_groupLevel));
+    addConsoleMessage(0, new ConsoleMessage(source, EndGroupMessageLevel, String(), lineNumber, sourceURL, m_groupLevel));
 }
 
 void InspectorController::addProfile(PassRefPtr<Profile> prpProfile, unsigned lineNumber, const UString& sourceURL)

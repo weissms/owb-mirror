@@ -133,8 +133,8 @@ void RenderView::layout()
 bool RenderView::absolutePosition(int& xPos, int& yPos, bool fixed) const
 {
     if (fixed && m_frameView) {
-        xPos = m_frameView->contentsX();
-        yPos = m_frameView->contentsY();
+        xPos = m_frameView->scrollX();
+        yPos = m_frameView->scrollY();
     } else
         xPos = yPos = 0;
     return true;
@@ -223,7 +223,7 @@ void RenderView::computeAbsoluteRepaintRect(IntRect& rect, bool fixed)
         return;
 
     if (fixed && m_frameView)
-        rect.move(m_frameView->contentsX(), m_frameView->contentsY());
+        rect.move(m_frameView->scrollX(), m_frameView->scrollY());
         
     // Apply our transform if we have one (because of full page zooming).
     if (m_layer && m_layer->transform())
@@ -478,7 +478,7 @@ IntRect RenderView::viewRect() const
     if (printing())
         return IntRect(0, 0, m_width, m_height);
     if (m_frameView)
-        return enclosingIntRect(m_frameView->visibleContentRect());
+        return m_frameView->visibleContentRect();
     return IntRect();
 }
 

@@ -73,6 +73,11 @@ SVGElementInstance* EventTarget::toSVGElementInstance()
 }
 #endif
 
+MessagePort* EventTarget::toMessagePort()
+{
+    return 0;
+}
+
 #ifndef NDEBUG
 void forbidEventDispatch()
 {

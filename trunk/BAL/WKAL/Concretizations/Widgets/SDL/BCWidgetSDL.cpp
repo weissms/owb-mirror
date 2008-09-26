@@ -91,12 +91,6 @@ void Widget::hide()
     NotImplemented();
 }
 
-void Widget::removeFromParent()
-{
-    if (parent())
-        parent()->removeChild(this);
-}
-
 void Widget::paint(GraphicsContext* context, const IntRect &r)
 {
     if (!platformWidget())

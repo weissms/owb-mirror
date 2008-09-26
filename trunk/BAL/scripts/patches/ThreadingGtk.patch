@@ -1,5 +1,5 @@
 --- BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	2008-09-24 11:55:25.000000000 +0000
-+++ JavaScriptCore/wtf/ThreadingGtk.cpp	2008-09-24 09:01:30.000000000 +0000
++++ BAL/OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	2008-09-24 09:01:30.000000000 +0000
 @@ -59,9 +59,7 @@
          threadMapMutex();
          wtf_random_init();

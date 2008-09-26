@@ -46,6 +46,23 @@ public:
     void setY(int y) { m_y = y; }
 
     void move(int dx, int dy) { m_x += dx; m_y += dy; }
+
+    IntPoint expandedTo(const IntPoint& other) const
+    {
+        return IntPoint(m_x > other.m_x ? m_x : other.m_x,
+            m_y > other.m_y ? m_y : other.m_y);
+    }
+
+    IntPoint shrunkTo(const IntPoint& other) const
+    {
+        return IntPoint(m_x < other.m_x ? m_x : other.m_x,
+            m_y < other.m_y ? m_y : other.m_y);
+    }
+
+    void clampNegativeToZero()
+    {
+        *this = expandedTo(IntPoint());
+    }
     
     IntPoint(const BalPoint&);
     operator BalPoint() const;

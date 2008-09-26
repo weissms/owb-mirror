@@ -1,3 +1,168 @@
+2008-09-26  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+        
+        Move most of the return code back into the callee, now that the callee
+        doesn't have to calculate anything dynamically.
+        
+        11.5% speedup on empty function call benchmark.
+        
+        SunSpider says 0.3% faster. SunSpider --v8 says no change.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+
+2008-09-24  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove staticFunctionGetter.  There is only one remaining user of
+        staticFunctionGetter and it can be converted to use setUpStaticFunctionSlot.
+
+        * JavaScriptCore.exp:
+        * kjs/lookup.cpp:
+        * kjs/lookup.h:
+
+2008-09-24  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        - inline JIT fast case of op_neq
+        - remove extra level of function call indirection from slow cases of eq and neq
+        
+        1% speedup on Richards
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_eq):
+        (JSC::Machine::cti_op_neq):
+        * kjs/operations.cpp:
+        (JSC::equal):
+        (JSC::equalSlowCase):
+        * kjs/operations.h:
+        (JSC::equalSlowCaseInline):
+
+2008-09-24  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21080
+        <rdar://problem/6243534>
+        Crash below Function.apply when using a runtime array as the argument list
+
+        Test: plugins/bindings-array-apply-crash.html
+
+        * kjs/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncApply): Revert to the slow case if the object inherits from 
+        JSArray (via ClassInfo) but is not a JSArray.
+
+2008-09-24  Kevin McCullough  <kmccullough@apple.com>
+
+        Style change.
+
+        * kjs/nodes.cpp:
+        (JSC::statementListEmitCode):
+
+2008-09-24  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff.
+
+        Bug 21031: Breakpoints in the condition of loops only breaks the first
+        time
+        - Now when setting breakpoints in the condition of a loop (for, while,
+        for in, and do while) will successfully break each time throught the
+        loop.
+        - For 'for' loops we need a little more complicated behavior that cannot
+        be accomplished without some more significant changes:
+        https://bugs.webkit.org/show_bug.cgi?id=21073
+
+        * kjs/nodes.cpp:
+        (JSC::statementListEmitCode): We don't want to blindly emit a debug hook
+        at the first line of loops, instead let the loop emit the debug hooks.
+        (JSC::DoWhileNode::emitCode):
+        (JSC::WhileNode::emitCode):
+        (JSC::ForNode::emitCode):
+        (JSC::ForInNode::emitCode):
+        * kjs/nodes.h:
+        (JSC::StatementNode::):
+        (JSC::DoWhileNode::):
+        (JSC::WhileNode::):
+        (JSC::ForInNode::):
+
+2008-09-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Fixed <rdar://problem/5605532> Need a SPI for telling JS the size of
+        the objects it retains
+
+        * API/tests/testapi.c: Test the new SPI a little.
+
+        * API/JSSPI.cpp: Add the new SPI.
+        * API/JSSPI.h: Add the new SPI.
+        * JavaScriptCore.exp: Add the new SPI.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Add the new SPI.
+
+2008-09-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        * API/JSBase.h: Filled in some missing function names.
+
+2008-09-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=21057
+        Crash in RegisterID::deref() running fast/canvas/canvas-putImageData.html
+
+        * VM/CodeGenerator.h: Changed declaration order to ensure the
+        m_lastConstant, which is a RefPtr that points into m_calleeRegisters,
+        has its destructor called before the destructor for m_calleeRegisters.
+
+2008-09-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21047
+          speed up ret_activation with inlining
+
+        About 1% on v8-raytrace.
+
+        * JavaScriptCore.exp: Removed JSVariableObject::setRegisters.
+
+        * kjs/JSActivation.cpp: Moved copyRegisters to the header to make it inline.
+        * kjs/JSActivation.h:
+        (JSC::JSActivation::copyRegisters): Moved here. Also removed the registerArraySize
+        argument to setRegisters, since the object doesn't need to store the number of
+        registers.
+
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset): Removed unnecessary clearing left over from when we
+        used this on objects that weren't brand new. These days, this function is really
+        just part of the constructor.
+
+        * kjs/JSGlobalObject.h: Added registerArraySize to JSGlobalObjectData, since
+        JSVariableObjectData no longer needs it. Added a setRegisters override here
+        that handles storing the size.
+
+        * kjs/JSStaticScopeObject.h: Removed code to set registerArraySize, since it
+        no longer exists.
+
+        * kjs/JSVariableObject.cpp: Moved copyRegisterArray and setRegisters to the
+        header to make them inline.
+        * kjs/JSVariableObject.h: Removed registerArraySize from JSVariableObjectData,
+        since it was only used for the global object.
+        (JSC::JSVariableObject::copyRegisterArray): Moved here ot make it inline.
+        (JSC::JSVariableObject::setRegisters): Moved here to make it inline. Also
+        removed the code to set registerArraySize and changed an if statement into
+        an assert to save an unnnecessary branch.
+
 2008-09-24  Maciej Stachowiak  <mjs@apple.com>
 
         Reviewed by Oliver Hunt.

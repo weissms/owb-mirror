@@ -89,7 +89,9 @@ SET (IDL_BINDINGS
 #   dom/EventListener.idl
 #   dom/EventTarget.idl
     dom/KeyboardEvent.idl
+    dom/MessageChannel.idl
     dom/MessageEvent.idl
+    dom/MessagePort.idl
     dom/MouseEvent.idl
     dom/MutationEvent.idl
     dom/NamedNodeMap.idl

@@ -112,13 +112,12 @@ RenderWidget::~RenderWidget()
     deleteWidget();
 }
 
-void RenderWidget::resizeWidget(Widget* widget, int w, int h)
+void RenderWidget::setWidgetGeometry(const IntRect& frame)
 {
-    if (element() && (widget->width() != w || widget->height() != h)) {
+    if (element() && m_widget->frameGeometry() != frame) {
         RenderArena* arena = ref();
-        element()->ref();
-        widget->resize(w, h);
-        element()->deref();
+        RefPtr<Node> protectedElement(element());
+        m_widget->setFrameGeometry(frame);
         deref(arena);
     }
 }
@@ -127,7 +126,6 @@ void RenderWidget::setWidget(Widget* widget)
 {
     if (widget != m_widget) {
         if (m_widget) {
-            // removeFromParent is a no-op on Mac.
             m_widget->removeFromParent();
             widgetRendererMap().remove(m_widget);
             deleteWidget();
@@ -138,11 +136,9 @@ void RenderWidget::setWidget(Widget* widget)
             // if we've already received a layout, apply the calculated space to the
             // widget immediately, but we have to have really been full constructed (with a non-null
             // style pointer).
-            if (!needsLayout() && style())
-                resizeWidget(m_widget,
-                    m_width - borderLeft() - borderRight() - paddingLeft() - paddingRight(),
-                    m_height - borderTop() - borderBottom() - paddingTop() - paddingBottom());
             if (style()) {
+                if (!needsLayout())
+                    setWidgetGeometry(absoluteContentBox());
                 if (style()->visibility() != VISIBLE)
                     m_widget->hide();
                 else
