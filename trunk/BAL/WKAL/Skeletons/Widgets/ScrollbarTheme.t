@@ -106,12 +106,12 @@ public:
     /**
      * themeChanged
      */
-    virtual void themeChanged();
+    virtual void themeChanged() ;
 
     /**
      * invalidateOnMouseEnterExit
      */
-     virtual bool invalidateOnMouseEnterExit();
+     virtual bool invalidateOnMouseEnterExit() ;
 
     /**
      * invalidateParts.
@@ -122,29 +122,36 @@ public:
      */
     void invalidateParts(Scrollbar* scrollbar, ScrollbarControlPartMask mask);
 
+
     /**
-     * invalidateParts.
-     * @param[in] : a pointer to the scrollbar.
-     * @param[in] : a ScrollbarPart
+     *  invalidatePart description
+     * @param[in] : description
+     * @param[out] : description
      * @code
      * @endcode
      */
-    void invalidateParts(Scrollbar* scrollbar, ScrollbarPart);
+    virtual void invalidatePart(Scrollbar*, ScrollbarPart) ;
+
 
     /**
-     * shouldCenterOnThumb.
-     * @param[in] : a pointer to the scrollbar.
-     * @param[in] : a mouse event.
-     * @param[out] : a boolean.
+     *  shouldCenterOnThumb description
+     * @param[in] : description
+     * @param[out] : description
      * @code
      * @endcode
      */
-    virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&);
+    virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&) ;
+
 
     /**
-     * get thumbPosition
+     *  thumbPosition description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
      */
-    virtual int thumbPosition(Scrollbar*);
+    virtual int thumbPosition(Scrollbar*) ;
+
 
     /**
      * Get the thumb length.
@@ -153,12 +160,18 @@ public:
      * @code
      * @endcode
      */
-    virtual int thumbLength(Scrollbar*);
+    virtual int thumbLength(Scrollbar*) ;
+
 
     /**
-     * trackPosition
+     *  trackPosition description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
      */
-     virtual int trackPosition(Scrollbar*);
+    virtual int trackPosition(Scrollbar*) ;
+
 
     /**
      * Get the trackLength.
@@ -167,12 +180,18 @@ public:
      * @code
      * @endcode
      */
-    virtual int trackLength(Scrollbar*);
+    virtual int trackLength(Scrollbar*) ;
+
 
     /**
-     * initialAutoscrollTimerDelay
+     *  initialAutoscrollTimerDelay description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
      */
-     virtual double initialAutoscrollTimerDelay()
+    virtual double initialAutoscrollTimerDelay() ;
+
 
     /**
      * Get the autoscroll timer delay.
@@ -197,7 +216,4 @@ public:
      */ 
     static ScrollbarTheme* nativeTheme(); // Must be implemented to return the correct theme subclass.
 };
-
 }
-#endif
-

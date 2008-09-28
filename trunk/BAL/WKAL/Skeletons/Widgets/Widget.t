@@ -70,7 +70,7 @@ namespace WKAL {
      * delete w;
      * @endcode
      */
-        virtual ~Widget(PlatformWidget = 0);
+        virtual ~Widget();
 
 
     /**
@@ -110,7 +110,7 @@ namespace WKAL {
      * int y = w->y();
      * @endcode
      */
-        int y() const;
+        int y() const ;
 
     /**
      *  width description
@@ -323,7 +323,7 @@ namespace WKAL {
      * w->removeFromParent();
      * @endcode
      */
-        virtual void removeFromParent();
+        void removeFromParent();
 
     /**
      *  setParent description
@@ -368,7 +368,7 @@ namespace WKAL {
      * w->handleEvent(e);
      * @endcode
      */
-        virtual void handleEvent(Event*); 
+        virtual void handleEvent(Event*) ; 
 
     /**
      *  containingWindow description

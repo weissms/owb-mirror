@@ -144,7 +144,7 @@ namespace WKAL {
      * int w = s->visibleWidth();
      * @endcode
      */
-        int visibleWidth() const;
+    int visibleWidth() const ;
 
     /**
      * get visible height
@@ -153,7 +153,7 @@ namespace WKAL {
      * int h = s->visibleHeight();
      * @endcode
      */
-        int visibleHeight() const;
+    int visibleHeight() const ;
 
     /**
      *  contentsSize description
@@ -163,6 +163,26 @@ namespace WKAL {
      * @endcode
      */
     IntSize contentsSize() const;
+
+
+    /**
+     *  contentsWidth description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int contentsWidth() const ;
+
+
+    /**
+     *  contentsHeight description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    int contentsHeight() const ;
 
     /**
      *  setContentsSize description
@@ -271,14 +291,15 @@ namespace WKAL {
         virtual void setHScrollbarMode(ScrollbarMode);
 
         // Set the mode for both scrollbars at onc
+
     /**
-     * set scrollbar mode
-     * @param[in] : scrollbar mode
+     *  setScrollbarsMode description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * s->setScrollbarMode(m);
      * @endcode
      */
-        virtual void setScrollbarMode(ScrollbarMode);
+    virtual void setScrollbarsMode(ScrollbarMode);
 
     /**
      * This gives us a means of blocking painting on our scrollbars until the first layout has occurred.
@@ -288,7 +309,7 @@ namespace WKAL {
      * s->suppressScrollbars(su, r);
      * @endcode
      */
-        void suppressScrollbars(bool suppressed, bool repaintOnUnsuppress = false)
+        void suppressScrollbars(bool suppressed, bool repaintOnUnsuppress = false);
 
     /**
      * get vertical scrollbar mode
@@ -314,7 +335,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-        bool isScrollable(
+        bool isScrollable();
 
 
     /**
@@ -357,7 +378,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    IntPoint contentsToWindow(const IntRect&) const;
+    IntRect contentsToWindow(const IntRect&) const;
 
     /**
      * inWindow
@@ -654,4 +675,4 @@ inline IntRect ScrollView::windowToContents(const IntRect& rect) const;
 
 } // namespace WebCore
 
-#endif // ScrollView_h 
+#endif // ScrollView_h
