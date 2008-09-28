@@ -1,3 +1,13 @@
+2008-09-28  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix acid tests
+
+        * WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp:
+        (WKAL::parseDataUrl):
+        * scripts/patches/ResourceHandleManagerCurl.patch: Added.
+        * scripts/patches/index.txt:
+
 2008-09-23  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

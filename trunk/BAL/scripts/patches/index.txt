@@ -40,3 +40,4 @@
 ../../WKAL/Concretizations/Widgets/WK/BCWidgetWK.h	_:Widget.patch
 ../../WKAL/Concretizations/Widgets/WK/BCContextMenuWK.cpp	_:ContextMenu.patch
 ../../OWBAL/Concretizations/Types/Gtk/BCThreadingGtk.cpp	_:ThreadingGtk.patch
+../../WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp	_:ResourceHandleManagerCurl.cpp
