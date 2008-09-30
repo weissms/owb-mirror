@@ -112,7 +112,7 @@ void Widget::hide()
 /*
  * Strategy to painting a Widget:
  *  1.) do not paint if there is no GtkWidget set
- *  2.) We assume that GTK_NO_WINDOW is set and that geometryChanged positioned
+ *  2.) We assume that GTK_NO_WINDOW is set and that frameRectsChanged positioned
  *      the widget correctly. ATM we do not honor the GraphicsContext translation.
  */
 void Widget::paint(GraphicsContext* context, const IntRect&)
@@ -174,12 +174,12 @@ void Widget::invalidateRect(const IntRect& rect)
     outermostView->addToDirtyRegion(windowRect);
 }
 
-IntRect Widget::frameGeometry() const
+IntRect Widget::frameRect() const
 {
     return m_frame;
 }
 
-void Widget::setFrameGeometry(const IntRect& rect)
+void Widget::setFrameRect(const IntRect& rect)
 {
     m_frame = rect;
 }

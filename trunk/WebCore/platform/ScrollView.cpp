@@ -26,6 +26,8 @@
 #include "config.h"
 #include "ScrollView.h"
 
+#include "PlatformMouseEvent.h"
+#include "PlatformWheelEvent.h"
 #include "Scrollbar.h"
 
 using std::max;
@@ -35,8 +37,11 @@ namespace WebCore {
 void ScrollView::init()
 {
     m_canBlitOnScroll = true;
+    m_horizontalScrollbarMode = m_verticalScrollbarMode = ScrollbarAuto;
     if (platformWidget())
         platformSetCanBlitOnScroll();
+    m_scrollbarsAvoidingResizer = 0;
+    m_scrollbarsSuppressed = false;
 }
 
 void ScrollView::addChild(Widget* child) 
@@ -58,6 +63,46 @@ void ScrollView::removeChild(Widget* child)
     m_children.remove(child);
     if (child->platformWidget())
         platformRemoveChild(child);
+}
+
+void ScrollView::setScrollbarModes(ScrollbarMode horizontalMode, ScrollbarMode verticalMode)
+{
+    m_horizontalScrollbarMode = horizontalMode;
+    m_verticalScrollbarMode = verticalMode;
+    if (platformWidget())
+        platformSetScrollbarModes();
+    else
+        updateScrollbars(scrollOffset());
+}
+
+void ScrollView::scrollbarModes(ScrollbarMode& horizontalMode, ScrollbarMode& verticalMode) const
+{
+    if (platformWidget()) {
+        platformScrollbarModes(horizontalMode, verticalMode);
+        return;
+    }
+    horizontalMode = m_horizontalScrollbarMode;
+    verticalMode = m_verticalScrollbarMode;
+}
+
+void ScrollView::setAllowsScrolling(bool canScroll)
+{
+    ScrollbarMode newHorizontalMode;
+    ScrollbarMode newVerticalMode;
+    
+    scrollbarModes(newHorizontalMode, newVerticalMode);
+    
+    if (canScroll && newVerticalMode == ScrollbarAlwaysOff)
+        newVerticalMode = ScrollbarAuto;
+    else if (!canScroll)
+        newVerticalMode = ScrollbarAlwaysOff;
+    
+    if (canScroll && newHorizontalMode == ScrollbarAlwaysOff)
+        newHorizontalMode = ScrollbarAuto;
+    else if (!canScroll)
+        newHorizontalMode = ScrollbarAlwaysOff;
+    
+    setScrollbarModes(newHorizontalMode, newVerticalMode);
 }
 
 void ScrollView::setCanBlitOnScroll(bool b)
@@ -114,13 +159,118 @@ void ScrollView::scrollRectIntoViewRecursively(const IntRect& r)
     }
 }
 
+IntPoint ScrollView::windowToContents(const IntPoint& windowPoint) const
+{
+    IntPoint viewPoint = convertFromContainingWindow(windowPoint);
+    return viewPoint + scrollOffset();
+}
+
+IntPoint ScrollView::contentsToWindow(const IntPoint& contentsPoint) const
+{
+    IntPoint viewPoint = contentsPoint - scrollOffset();
+    return convertToContainingWindow(viewPoint);  
+}
+
+bool ScrollView::containsScrollbarsAvoidingResizer() const
+{
+    return !m_scrollbarsAvoidingResizer;
+}
+
+void ScrollView::adjustScrollbarsAvoidingResizerCount(int overlapDelta)
+{
+    int oldCount = m_scrollbarsAvoidingResizer;
+    m_scrollbarsAvoidingResizer += overlapDelta;
+    if (parent())
+        parent()->adjustScrollbarsAvoidingResizerCount(overlapDelta);
+    else if (!scrollbarsSuppressed()) {
+        // If we went from n to 0 or from 0 to n and we're the outermost view,
+        // we need to invalidate the windowResizerRect(), since it will now need to paint
+        // differently.
+        if (oldCount > 0 && m_scrollbarsAvoidingResizer == 0 ||
+            oldCount == 0 && m_scrollbarsAvoidingResizer > 0)
+            invalidateRect(windowResizerRect());
+    }
+}
+
+void ScrollView::setParent(ScrollView* parentView)
+{
+    if (parentView == parent())
+        return;
+
+    if (m_scrollbarsAvoidingResizer && parent())
+        parent()->adjustScrollbarsAvoidingResizerCount(-m_scrollbarsAvoidingResizer);
+
+    Widget::setParent(parentView);
+    
+    if (m_scrollbarsAvoidingResizer && parent())
+        parent()->adjustScrollbarsAvoidingResizerCount(m_scrollbarsAvoidingResizer);
+}
+
+void ScrollView::setScrollbarsSuppressed(bool suppressed, bool repaintOnUnsuppress)
+{
+    if (suppressed == m_scrollbarsSuppressed)
+        return;
+
+    m_scrollbarsSuppressed = suppressed;
+
+    if (platformWidget())
+        platformSetScrollbarsSuppressed(repaintOnUnsuppress);
+    else if (repaintOnUnsuppress && !suppressed) {
+        if (m_horizontalScrollbar)
+            m_horizontalScrollbar->invalidate();
+        if (m_verticalScrollbar)
+            m_verticalScrollbar->invalidate();
+
+        // Invalidate the scroll corner too on unsuppress.
+        IntRect hCorner;
+        if (m_horizontalScrollbar && width() - m_horizontalScrollbar->width() > 0) {
+            hCorner = IntRect(m_horizontalScrollbar->width(),
+                              height() - m_horizontalScrollbar->height(),
+                              width() - m_horizontalScrollbar->width(),
+                              m_horizontalScrollbar->height());
+            invalidateRect(hCorner);
+        }
+
+        if (m_verticalScrollbar && height() - m_verticalScrollbar->height() > 0) {
+            IntRect vCorner(width() - m_verticalScrollbar->width(),
+                            m_verticalScrollbar->height(),
+                            m_verticalScrollbar->width(),
+                            height() - m_verticalScrollbar->height());
+            if (vCorner != hCorner)
+                invalidateRect(vCorner);
+        }
+    }
+}
+
+void ScrollView::frameRectsChanged() const
+{
+    if (platformWidget())
+        return;
+
+    HashSet<Widget*>::const_iterator end = m_children.end();
+    for (HashSet<Widget*>::const_iterator current = m_children.begin(); current != end; ++current)
+        (*current)->frameRectsChanged();
+}
+
 #if !PLATFORM(MAC)
 void ScrollView::platformSetCanBlitOnScroll()
+{
+}
+
+void ScrollView::platformSetScrollbarsSuppressed(bool repaintOnUnsuppress)
 {
 }
 #endif
 
 #if !PLATFORM(MAC) && !PLATFORM(WX)
+void ScrollView::platformSetScrollbarModes()
+{
+}
+
+void ScrollView::platformScrollbarModes(ScrollbarMode& horizontal, ScrollbarMode& vertical) const
+{
+}
+
 IntRect ScrollView::platformVisibleContentRect(bool) const
 {
     return IntRect();

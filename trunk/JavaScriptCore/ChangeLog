@@ -1,3 +1,382 @@
+2008-09-30  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21200: Allow direct access to 'arguments' without using op_resolve
+        <https://bugs.webkit.org/show_bug.cgi?id=21200>
+
+        Allow fast access to the 'arguments' object by adding an extra slot to
+        the callframe to store it.
+
+        * JavaScriptCore.exp:
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator):
+        (JSC::CodeGenerator::registerFor):
+        * VM/CodeGenerator.h:
+        (JSC::CodeGenerator::registerFor):
+        * VM/Machine.cpp:
+        (JSC::Machine::initializeCallFrame):
+        (JSC::Machine::dumpRegisters):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::retrieveArguments):
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_op_create_arguments):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+        * VM/RegisterFile.h:
+        (JSC::RegisterFile::):
+        * kjs/JSActivation.cpp:
+        (JSC::JSActivation::mark):
+        (JSC::JSActivation::argumentsGetter):
+        * kjs/JSActivation.h:
+        (JSC::JSActivation::JSActivationData::JSActivationData):
+        * kjs/NodeInfo.h:
+        * kjs/Parser.cpp:
+        (JSC::Parser::didFinishParsing):
+        * kjs/Parser.h:
+        (JSC::Parser::parse):
+        * kjs/grammar.y:
+        * kjs/nodes.cpp:
+        (JSC::ScopeNode::ScopeNode):
+        (JSC::ProgramNode::ProgramNode):
+        (JSC::ProgramNode::create):
+        (JSC::EvalNode::EvalNode):
+        (JSC::EvalNode::create):
+        (JSC::FunctionBodyNode::FunctionBodyNode):
+        (JSC::FunctionBodyNode::create):
+        * kjs/nodes.h:
+        (JSC::ScopeNode::usesArguments):
+
+2008-09-28  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add an ASCII fast-path to toLowerCase and toUpperCase.
+
+        The fast path speeds up the common case of an ASCII-only string by up to 60% while adding a less than 5% penalty
+        to the less common non-ASCII case.
+
+        This also removes stringProtoFuncToLocaleLowerCase and stringProtoFuncToLocaleUpperCase, which were identical
+        to the non-locale variants of the functions.  toLocaleLowerCase and toLocaleUpperCase now use the non-locale
+        variants of the functions directly.
+
+        * kjs/StringPrototype.cpp:
+        (JSC::stringProtoFuncToLowerCase):
+        (JSC::stringProtoFuncToUpperCase):
+
+2008-09-28  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Speed up parseInt and parseFloat.
+
+        Repeatedly indexing into a UString is slow, so retrieve a pointer into the underlying buffer once up front
+        and use that instead.  This is a 7% win on a parseInt/parseFloat micro-benchmark.
+
+        * kjs/JSGlobalObjectFunctions.cpp:
+        (JSC::parseInt):
+        (JSC::parseFloat):
+
+2008-09-28  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        In Qt's initializeThreading re-use an existing thread identifier for the main
+        thread if it exists.
+
+        currentThread() implicitly creates new identifiers and it could be that
+        it is called before initializeThreading().
+
+        * wtf/ThreadingQt.cpp:
+        (WTF::initializeThreading):
+
+2008-09-27  Keishi Hattori  <casey.hattori@gmail.com>
+
+        Added Machine::retrieveCaller to the export list.
+
+        Reviewed by Kevin McCullough and Tim Hatcher.
+
+        * JavaScriptCore.exp: Added Machine::retrieveCaller.
+
+2008-09-27  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+
+        * VM/CTI.cpp:
+        (JSC::):
+
+2008-09-27  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=21175
+
+        Store the callee CodeBlock, not the caller CodeBlock, in the call frame
+        header. Nix the "codeBlock" local variable, and access the callee
+        CodeBlock through the call frame header instead.
+        
+        Profit: call + return are simpler, because they don't have to update the
+        "codeBlock" local variable.
+        
+        Because CTI keeps "r" in a register, reading the callee CodeBlock relative
+        to "r" can be very fast, in any cases we care to optimize. Presently,
+        no such cases seem important.
+        
+        Also, stop writing "dst" to the call frame header. CTI doesn't use it.
+        
+        21.6% speedup on empty function call benchmark.
+        3.8% speedup on SunSpider --v8.
+        2.1% speedup on v8 benchmark.
+        0.7% speedup on SunSpider (6% speedup on controlflow-recursive).
+        
+        Small regression in bytecode, because currently every op_ret reads the
+        callee CodeBlock to check needsFullScopeChain, and bytecode does not
+        keep "r" in a register. On-balance, this is probably OK, since CTI is
+        our high-performance execution model. Also, this should go away once
+        we make needsFullScopeChain statically determinable at parse time.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileOpCall): The speedup!
+        (JSC::CTI::privateCompileSlowCases): ditto
+
+        * VM/CTI.h:
+        (JSC::): Fixed up magic trampoline constants to account for the nixed
+        "codeBlock" argument.
+        (JSC::CTI::execute): Changed trampoline function not to take a "codeBlock"
+        argument, since codeBlock is now stored in the call frame header.
+        
+        * VM/Machine.cpp: Read the callee CodeBlock from the register file. Use
+        a NULL CallerRegisters in the call frame header to signal a built-in
+        caller, since CodeBlock is now never NULL.
+
+        * VM/Machine.h: Made some stand-alone functions Machine member functions
+        so they could call the private codeBlock() accessor in the Register
+        class, of which Machine is a friend. Renamed "CallerCodeBlock" to
+        "CodeBlock", since it's no longer the caller's CodeBlock.
+
+        * VM/RegisterFile.h: Marked some methods const to accommodate a 
+        const RegisterFile* being passed around in Machine.cpp.
+
+2008-09-26  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix. Not reviewed.
+
+        Narrow-down the target of the JavaScriptCore .lut.h generator so
+        it won't try to create the WebCore .lut.hs.
+
+        * GNUmakefile.am:
+
+2008-09-26  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Tim Hatcher.
+
+        Update FEATURE_DEFINES after ENABLE_CROSS_DOCUMENT_MESSAGING was removed.
+
+        * Configurations/JavaScriptCore.xcconfig:
+
+2008-09-26  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Anders Carlson.
+
+        Change the name 'sc' to 'scopeChainNode' in a few places.
+
+        * kjs/nodes.cpp:
+        (JSC::EvalNode::generateCode):
+        (JSC::FunctionBodyNode::generateCode):
+        (JSC::ProgramNode::generateCode):
+
+2008-09-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=21152
+        Speedup static property get/put
+
+        Convert getting/setting static property values to use static functions
+        instead of storing an integer and switching in getValueProperty/putValueProperty.
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::deleteProperty):
+        (JSC::JSObject::getPropertyAttributes):
+        * kjs/MathObject.cpp:
+        (JSC::MathObject::getOwnPropertySlot):
+        * kjs/NumberConstructor.cpp:
+        (JSC::numberConstructorNaNValue):
+        (JSC::numberConstructorNegInfinity):
+        (JSC::numberConstructorPosInfinity):
+        (JSC::numberConstructorMaxValue):
+        (JSC::numberConstructorMinValue):
+        * kjs/PropertySlot.h:
+        (JSC::PropertySlot::):
+        * kjs/RegExpConstructor.cpp:
+        (JSC::regExpConstructorDollar1):
+        (JSC::regExpConstructorDollar2):
+        (JSC::regExpConstructorDollar3):
+        (JSC::regExpConstructorDollar4):
+        (JSC::regExpConstructorDollar5):
+        (JSC::regExpConstructorDollar6):
+        (JSC::regExpConstructorDollar7):
+        (JSC::regExpConstructorDollar8):
+        (JSC::regExpConstructorDollar9):
+        (JSC::regExpConstructorInput):
+        (JSC::regExpConstructorMultiline):
+        (JSC::regExpConstructorLastMatch):
+        (JSC::regExpConstructorLastParen):
+        (JSC::regExpConstructorLeftContext):
+        (JSC::regExpConstructorRightContext):
+        (JSC::setRegExpConstructorInput):
+        (JSC::setRegExpConstructorMultiline):
+        (JSC::RegExpConstructor::setInput):
+        (JSC::RegExpConstructor::setMultiline):
+        (JSC::RegExpConstructor::multiline):
+        * kjs/RegExpConstructor.h:
+        * kjs/RegExpObject.cpp:
+        (JSC::regExpObjectGlobal):
+        (JSC::regExpObjectIgnoreCase):
+        (JSC::regExpObjectMultiline):
+        (JSC::regExpObjectSource):
+        (JSC::regExpObjectLastIndex):
+        (JSC::setRegExpObjectLastIndex):
+        * kjs/RegExpObject.h:
+        (JSC::RegExpObject::setLastIndex):
+        (JSC::RegExpObject::lastIndex):
+        (JSC::RegExpObject::RegExpObjectData::RegExpObjectData):
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::getEnumerablePropertyNames):
+        * kjs/create_hash_table:
+        * kjs/lexer.cpp:
+        (JSC::Lexer::lex):
+        * kjs/lookup.cpp:
+        (JSC::HashTable::createTable):
+        (JSC::HashTable::deleteTable):
+        (JSC::setUpStaticFunctionSlot):
+        * kjs/lookup.h:
+        (JSC::HashEntry::initialize):
+        (JSC::HashEntry::setKey):
+        (JSC::HashEntry::key):
+        (JSC::HashEntry::attributes):
+        (JSC::HashEntry::function):
+        (JSC::HashEntry::functionLength):
+        (JSC::HashEntry::propertyGetter):
+        (JSC::HashEntry::propertyPutter):
+        (JSC::HashEntry::lexerValue):
+        (JSC::HashEntry::):
+        (JSC::HashTable::entry):
+        (JSC::getStaticPropertySlot):
+        (JSC::getStaticValueSlot):
+        (JSC::lookupPut):
+
+2008-09-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Maciej Stachowiak & Oliver Hunt.
+
+        Add support for reusing temporary JSNumberCells.  This change is based on the observation
+        that if the result of certain operations is a JSNumberCell and is consumed by a subsequent
+        operation that would produce a JSNumberCell, we can reuse the object rather than allocating
+        a fresh one.  E.g. given the expression ((a * b) * c), we can statically determine that
+        (a * b) will have a numeric result (or else it will have thrown an exception), so the result
+        will either be a JSNumberCell or a JSImmediate.
+
+        This patch changes three areas of JSC:
+            * The AST now tracks type information about the result of each node.
+            * This information is consumed in bytecode compilation, and certain bytecode operations
+              now carry the statically determined type information about their operands.
+            * CTI uses the information in a number of fashions:
+                * Where an operand to certain arithmetic operations is reusable, it will plant code
+                  to try to perform the operation in JIT code & reuse the cell, where appropriate.
+                * Where it can be statically determined that an operand can only be numeric (typically
+                  the result of another arithmetic operation) the code will not redundantly check that
+                  the JSCell is a JSNumberCell.
+                * Where either of the operands to an add are non-numeric do not plant an optimized
+                  arithmetic code path, just call straight out to the C function.
+
+        +6% Sunspider (10% progression on 3D, 16% progression on math, 60% progression on access-nbody),
+        +1% v8-tests (improvements in raytrace & crypto)
+
+        * VM/CTI.cpp: Add optimized code generation with reuse of temporary JSNumberCells.
+        * VM/CTI.h:
+        * kjs/JSNumberCell.h:
+        * masm/X86Assembler.h:
+
+        * VM/CodeBlock.cpp: Add type information to specific bytecodes.
+        * VM/CodeGenerator.cpp:
+        * VM/CodeGenerator.h:
+        * VM/Machine.cpp:
+
+        * kjs/nodes.cpp: Track static type information for nodes.
+        * kjs/nodes.h:
+        * kjs/ResultDescriptor.h: (Added)
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-09-26  Yichao Yin  <yichao.yin@torchmobile.com.cn>
+
+        Reviewed by George Staikos, Maciej Stachowiak.
+
+        Add utility functions needed for upcoming WML code.
+
+        * wtf/ASCIICType.h:
+        (WTF::isASCIIPrintable):
+
+2008-09-26  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Reverted the part of r36614 that used static data because static data
+        is not thread-safe.
+
+2008-09-26  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+        
+        Removed dynamic check for whether the callee needs an activation object.
+        Replaced with callee code to create the activation object.
+
+        0.5% speedup on SunSpider.
+        No change on v8 benchmark. (Might be a speedup, but it's in range of the
+        variance.)
+
+        0.7% speedup on v8 benchmark in bytecode.
+        1.3% speedup on empty call benchmark in bytecode.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass): Added support for op_init_activation,
+        the new opcode that specifies that the callee's initialization should
+        create an activation object.
+        (JSC::CTI::privateCompile): Removed previous code that did a similar
+        thing in an ad-hoc way.
+
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump): Added a case for dumping op_init_activation.
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::generate): Added fixup code to change op_init to
+        op_init_activation if necessary. (With a better parser, we would know
+        which to use from the beginning.)
+
+        * VM/Instruction.h:
+        (JSC::Instruction::Instruction):
+        (WTF::): Faster traits for the instruction vector. An earlier version
+        of this patch relied on inserting at the beginning of the vector, and
+        depended on this change for speed.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::execute): Removed clients of setScopeChain, the old
+        abstraction for dynamically checking for whether an activation object
+        needed to be created.
+        (JSC::Machine::privateExecute): ditto
+
+        (JSC::Machine::cti_op_push_activation): Renamed this function from
+        cti_vm_updateScopeChain, and made it faster by removing the call to 
+        setScopeChain.
+        * VM/Machine.h:
+
+        * VM/Opcode.h: Declared op_init_activation.
+
 2008-09-26  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Maciej Stachowiak.

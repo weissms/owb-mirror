@@ -203,7 +203,7 @@ void PopupMenu::invalidateItem(int index)
     damageRect.setY(m_itemHeight * (index - m_scrollOffset));
     damageRect.setHeight(m_itemHeight);
     if (m_scrollBar)
-        damageRect.setWidth(damageRect.width() - m_scrollBar->frameGeometry().width());
+        damageRect.setWidth(damageRect.width() - m_scrollBar->frameRect().width());
 
     IntRect r = damageRect;
     //::InvalidateRect(m_popup, &r, TRUE);

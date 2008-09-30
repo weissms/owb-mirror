@@ -37,6 +37,7 @@ public:
     virtual bool paint(Scrollbar*, GraphicsContext* context, const IntRect& damageRect);
     virtual int scrollbarThickness(ScrollbarControlSize = RegularScrollbar);
 
+    virtual ScrollbarPart hitTest(Scrollbar*, const PlatformMouseEvent&);
 protected:
     virtual bool hasButtons(Scrollbar*) { return true; }
     virtual bool hasThumb(Scrollbar*);

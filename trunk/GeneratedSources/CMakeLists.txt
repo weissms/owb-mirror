@@ -591,7 +591,7 @@ MACRO (CREATE_LUT _srcs_LIST _in_FILE _out_FILE _dep_FILE)
     GET_FILENAME_COMPONENT (_baseName ${_out_FILE} PATH)
     ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/${_out_FILE}
         COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${_baseName}
-        COMMAND ${PERL_EXECUTABLE} ${CREATE_HASH_TABLE} ${CMAKE_SOURCE_DIR}/${_in_FILE} -i > ${CMAKE_BINARY_DIR}/${_out_FILE}
+        COMMAND ${PERL_EXECUTABLE} ${CREATE_HASH_TABLE} ${CMAKE_SOURCE_DIR}/${_in_FILE} -i -n WebCore > ${CMAKE_BINARY_DIR}/${_out_FILE}
         DEPENDS ${CMAKE_SOURCE_DIR}/${_in_FILE} ${CMAKE_SOURCE_DIR}/${_dep_FILE}
     )
     SET (${_srcs_LIST}
@@ -629,6 +629,7 @@ CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/StringObject.cpp generated_sources/
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/StringPrototype.cpp generated_sources/kjs/StringPrototype.lut.h JavaScriptCore/kjs/StringPrototype.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventTargetBase.cpp generated_sources/WebCore/JSEventTargetBase.lut.h WebCore/bindings/js/JSEventTargetBase.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventTargetNode.cpp generated_sources/WebCore/JSEventTargetNode.lut.h WebCore/bindings/js/JSEventTargetNode.cpp)
+CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventTargetSVGElementInstance.cpp generated_sources/WebCore/JSEventTargetSVGElementInstance.lut.h WebCore/bindings/js/JSEventTargetSVGElementInstance.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventListener.cpp generated_sources/WebCore/JSEventListener.lut.h WebCore/bindings/js/JSEventListener.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSDOMBinding.cpp generated_sources/WebCore/JSDOMBinding.lut.h WebCore/bindings/js/JSDOMBinding.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSPluginElementFunctions.cpp generated_sources/WebCore/JSPluginElementFunctions.lut.h WebCore/bindings/js/JSPluginElementFunctions.cpp)

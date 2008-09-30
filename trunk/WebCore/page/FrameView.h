@@ -73,9 +73,7 @@ public:
     void setMarginWidth(int);
     void setMarginHeight(int);
 
-    virtual void setVScrollbarMode(ScrollbarMode);
-    virtual void setHScrollbarMode(ScrollbarMode);
-    virtual void setScrollbarsMode(ScrollbarMode);
+    virtual void setAllowsScrolling(bool);
 
     void layout(bool allowSubtree = true);
     bool didFirstLayout() const;
@@ -104,7 +102,7 @@ public:
     Color baseBackgroundColor() const;
     void setBaseBackgroundColor(Color);
 
-    virtual bool shouldUpdateWhileOffscreen() const;
+    bool shouldUpdateWhileOffscreen() const;
     void setShouldUpdateWhileOffscreen(bool);
 
     void adjustViewSize();
@@ -113,6 +111,8 @@ public:
     virtual IntRect windowClipRect() const;
     IntRect windowClipRect(bool clipToContents) const;
     IntRect windowClipRectForLayer(const RenderLayer*, bool clipToLayerContents) const;
+
+    virtual IntRect windowResizerRect() const;
 
     virtual void scrollRectIntoViewRecursively(const IntRect&);
     virtual void setScrollPosition(const IntPoint&);

@@ -1203,14 +1203,14 @@ void RenderLayer::positionOverflowControls(int tx, int ty)
     
     int resizeControlSize = max(resizeControlRect.height(), 0);
     if (m_vBar)
-        m_vBar->setFrameGeometry(IntRect(absBounds.right() - m_object->borderRight() - m_vBar->width(),
+        m_vBar->setFrameRect(IntRect(absBounds.right() - m_object->borderRight() - m_vBar->width(),
                                          absBounds.y() + m_object->borderTop(),
                                          m_vBar->width(),
                                          absBounds.height() - (m_object->borderTop() + m_object->borderBottom()) - (m_hBar ? m_hBar->height() : resizeControlSize)));
 
     resizeControlSize = max(resizeControlRect.width(), 0);
     if (m_hBar)
-        m_hBar->setFrameGeometry(IntRect(absBounds.x() + m_object->borderLeft(),
+        m_hBar->setFrameRect(IntRect(absBounds.x() + m_object->borderLeft(),
                                          absBounds.bottom() - m_object->borderBottom() - m_hBar->height(),
                                          absBounds.width() - (m_object->borderLeft() + m_object->borderRight()) - (m_vBar ? m_vBar->width() : resizeControlSize),
                                          m_hBar->height()));
@@ -1364,17 +1364,17 @@ RenderLayer::updateScrollInfoAfterLayout()
     // Set up the range (and page step/line step).
     if (m_hBar) {
         int clientWidth = m_object->clientWidth();
-        int pageStep = (clientWidth-PAGE_KEEP);
+        int pageStep = (clientWidth - cAmountToKeepWhenPaging);
         if (pageStep < 0) pageStep = clientWidth;
-        m_hBar->setSteps(LINE_STEP, pageStep);
+        m_hBar->setSteps(cScrollbarPixelsPerLineStep, pageStep);
         m_hBar->setProportion(clientWidth, m_scrollWidth);
         m_hBar->setValue(scrollXOffset());
     }
     if (m_vBar) {
         int clientHeight = m_object->clientHeight();
-        int pageStep = (clientHeight-PAGE_KEEP);
+        int pageStep = (clientHeight - cAmountToKeepWhenPaging);
         if (pageStep < 0) pageStep = clientHeight;
-        m_vBar->setSteps(LINE_STEP, pageStep);
+        m_vBar->setSteps(cScrollbarPixelsPerLineStep, pageStep);
         m_vBar->setProportion(clientHeight, m_scrollHeight);
     }
  

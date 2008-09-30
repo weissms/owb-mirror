@@ -55,6 +55,8 @@ webcore_built_nosources += \
 	DerivedSources/ColorData.c \
 	WebCore/bindings/js/JSDOMWindowBase.lut.h \
 	WebCore/bindings/js/JSEventTargetBase.lut.h \
+	WebCore/bindings/js/JSEventTargetNode.lut.h \
+	WebCore/bindings/js/JSEventTargetSVGElementInstance.lut.h \
 	WebCore/bindings/js/JSRGBColor.lut.h
 
 webcore_built_sources += \
@@ -3482,7 +3484,7 @@ DerivedSources/UserAgentStyleSheets.h: $(WebCore)/css/make-css-file-arrays.pl $(
 
 # lookup tables for old-style JavaScript bindings
 %.lut.h: %.cpp $(CREATE_HASH_TABLE)
-	$(CREATE_HASH_TABLE) $< > $@
+	$(CREATE_HASH_TABLE) $< -n WebCore > $@
 
 # HTML tag and attribute names
 DerivedSources/HTMLNames.h: DerivedSources/HTMLNames.cpp;
@@ -3562,6 +3564,8 @@ webcore_dist += \
 
 CLEANFILES += \
 	WebCore/bindings/js/JSEventTargetBase.lut.h \
+	WebCore/bindings/js/JSEventTargetNode.lut.h \
+	WebCore/bindings/js/JSEventTargetSVGElementInstance.lut.h \
 	WebCore/bindings/js/JSDOMWindowBase.lut.h \
 	WebCore/bindings/js/JSRGBColor.lut.h
 

@@ -136,6 +136,11 @@ void CodeGenerator::generate()
 
     m_scopeNode->emitCode(*this);
 
+    if (m_codeType == FunctionCode && m_codeBlock->needsFullScopeChain) {
+        ASSERT(globalData()->machine->getOpcodeID(m_codeBlock->instructions[0].u.opcode) == op_init);
+        m_codeBlock->instructions[0] = globalData()->machine->getOpcode(op_init_activation);
+    }
+
 #ifndef NDEBUG
     if (s_dumpsGeneratedCode) {
         JSGlobalObject* globalObject = m_scopeChain->globalObject();
@@ -287,11 +292,14 @@ CodeGenerator::CodeGenerator(FunctionBodyNode* functionBody, const Debugger* deb
     emitOpcode(op_init);
     codeBlock->globalData = m_globalData;
 
+    bool usesArguments = functionBody->usesArguments();
+
     const Node::FunctionStack& functionStack = functionBody->functionStack();
     for (size_t i = 0; i < functionStack.size(); ++i) {
         FuncDeclNode* funcDecl = functionStack[i].get();
         const Identifier& ident = funcDecl->m_ident;
-
+        if (ident == propertyNames().arguments)
+            usesArguments = true;
         m_functions.add(ident.ustring().rep());
         emitNewFunction(addVar(ident, false), funcDecl);
     }
@@ -299,9 +307,18 @@ CodeGenerator::CodeGenerator(FunctionBodyNode* functionBody, const Debugger* deb
     const Node::VarStack& varStack = functionBody->varStack();
     for (size_t i = 0; i < varStack.size(); ++i) {
         const Identifier& ident = varStack[i].first;
-        if (ident == propertyNames().arguments)
+        if (ident == propertyNames().arguments) {
+            usesArguments = true;
             continue;
+        }
         addVar(ident, varStack[i].second & DeclarationStacks::IsConstant);
+    }
+
+    if (usesArguments) {
+        emitOpcode(op_init_arguments);
+        m_codeBlock->needsFullScopeChain = true;
+        m_argumentsRegister.setIndex(RegisterFile::OptionalCalleeArguments);
+        symbolTable->add(propertyNames().arguments.ustring().rep(), SymbolTableEntry(RegisterFile::OptionalCalleeArguments));
     }
 
     Vector<Identifier>& parameters = functionBody->parameters();
@@ -361,9 +378,6 @@ RegisterID* CodeGenerator::addParameter(const Identifier& ident)
 
 RegisterID* CodeGenerator::registerFor(const Identifier& ident)
 {
-    if (m_codeType == FunctionCode && ident == propertyNames().arguments)
-        m_codeBlock->needsFullScopeChain = true;
-
     if (ident == propertyNames().thisIdentifier)
         return &m_thisRegister;
 
@@ -671,12 +685,18 @@ RegisterID* CodeGenerator::emitPostDec(RegisterID* dst, RegisterID* srcDst)
     return dst;
 }
 
-RegisterID* CodeGenerator::emitBinaryOp(OpcodeID opcode, RegisterID* dst, RegisterID* src1, RegisterID* src2)
+RegisterID* CodeGenerator::emitBinaryOp(OpcodeID opcode, RegisterID* dst, RegisterID* src1, RegisterID* src2, OperandTypes types)
 {
     emitOpcode(opcode);
     instructions().append(dst->index());
     instructions().append(src1->index());
     instructions().append(src2->index());
+
+    if (opcode == op_bitor || opcode == op_bitand || opcode == op_bitxor ||
+        opcode == op_add || opcode == op_mul || opcode == op_sub) {
+        instructions().append(types.toInt());
+    }
+
     return dst;
 }
 

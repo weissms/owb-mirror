@@ -59,9 +59,7 @@ void initializeThreading()
         threadMapMutex();
         wtf_random_init();
         mainThreadIdentifier = currentThread();
-#if PLATFORM(WIN)
         initializeMainThread();
-#endif
     }
 }
 

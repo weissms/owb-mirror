@@ -13,6 +13,8 @@ class PlatformWheelEventTestTest : public CppUnit::TestFixture
     CPPUNIT_TEST(deltaX);
     CPPUNIT_TEST(deltaY);
 
+    CPPUNIT_TEST(granularity);
+
     CPPUNIT_TEST(isAccepted);
     CPPUNIT_TEST(shiftKey);
     CPPUNIT_TEST(ctrlKey);
@@ -27,10 +29,6 @@ class PlatformWheelEventTestTest : public CppUnit::TestFixture
     CPPUNIT_TEST(accept);
     CPPUNIT_TEST(ignore);
         
-    CPPUNIT_TEST(isContinuous);
-    CPPUNIT_TEST(continuousDeltaX);
-    CPPUNIT_TEST(continuousDeltaY);
-
     CPPUNIT_TEST(PlatformWheelEvent);
  
     CPPUNIT_TEST_SUITE_END();
@@ -41,6 +39,8 @@ class PlatformWheelEventTestTest : public CppUnit::TestFixture
 
     void deltaX() CPPU_NOT_IMPLEMENTED
     void deltaY() CPPU_NOT_IMPLEMENTED
+
+    void granularity() CPPU_NOT_IMPLEMENTED
 
     void isAccepted() CPPU_NOT_IMPLEMENTED
     void shiftKey() CPPU_NOT_IMPLEMENTED
@@ -56,10 +56,6 @@ class PlatformWheelEventTestTest : public CppUnit::TestFixture
     void accept() CPPU_NOT_IMPLEMENTED
     void ignore() CPPU_NOT_IMPLEMENTED
         
-    void isContinuous() CPPU_NOT_IMPLEMENTED
-    void continuousDeltaX() CPPU_NOT_IMPLEMENTED
-    void continuousDeltaY() CPPU_NOT_IMPLEMENTED
-
     void PlatformWheelEvent() CPPU_NOT_IMPLEMENTED
     };
 

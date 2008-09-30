@@ -291,6 +291,30 @@ void Console::dirxml(ExecState* exec, const ArgList& args)
 #endif
 }
 
+void Console::trace(ExecState* exec)
+{
+    Page* page = this->page();
+    if (!page)
+        return;
+
+    int signedLineNumber;
+    int sourceIdentifer;
+    UString urlString;
+    JSValue* func;
+
+    exec->machine()->retrieveLastCaller(exec, signedLineNumber, sourceIdentifer, urlString, func);
+
+    ArgList args;
+    while (!func->isNull()) {
+        args.append(func);
+        func = exec->machine()->retrieveCaller(exec, static_cast<InternalFunction*>(func));
+    }
+    
+#if ENABLE(INSPECTOR)
+    page->inspectorController()->addMessageToConsole(JSMessageSource, TraceMessageLevel, exec, args, 0, String());
+#endif
+}
+
 void Console::assertCondition(bool condition, ExecState* exec, const ArgList& args)
 {
     if (condition)

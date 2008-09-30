@@ -49,18 +49,30 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
     //FIXME
     // Docs say an upwards scroll (away from the user) has a positive delta
     switch (event->button) {
-        case SDL_BUTTON_WHEELUP:
+        case SDL_BUTTON_WHEELUP: {
             //if(!m_ctrlKey)
                 m_deltaY = delta;
+    int verticalMultiplier = verticalLineMultiplier();
+    // A multiplier of -1 is used to mean that vertical wheel scrolling should be done by page.
+    m_granularity = (verticalMultiplier == -1) ? ScrollByPageWheelEvent : ScrollByLineWheelEvent;
+    if (m_granularity == ScrollByLineWheelEvent)
+        m_deltaY *= verticalMultiplier;
             /*else
                 m_deltaX = delta;*/
             break;
-        case SDL_BUTTON_WHEELDOWN:
+        }
+        case SDL_BUTTON_WHEELDOWN: {
             //if(m_ctrlKey)
                 m_deltaY = -delta;
+    int verticalMultiplier = verticalLineMultiplier();
+    // A multiplier of -1 is used to mean that vertical wheel scrolling should be done by page.
+    m_granularity = (verticalMultiplier == -1) ? ScrollByPageWheelEvent : ScrollByLineWheelEvent;
+    if (m_granularity == ScrollByLineWheelEvent)
+        m_deltaY *= verticalMultiplier;
             /*else
                 m_deltaX = -delta;*/
             break;
+    }
         default:
             break;
     }
@@ -70,13 +82,7 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
     m_position = IntPoint((int)event->x, (int)event->y);
     m_globalPosition = IntPoint((int)event->x, (int)event->y);
     m_isAccepted = false;
-    m_isContinuous = false;
 
-    // FIXME: retrieve the user setting for the number of lines to scroll on each wheel event
-    m_charsToScrollPerDelta = 1;
-    m_linesToScrollPerDelta = 1;
-    m_pageXScrollMode = false;
-    m_pageYScrollMode = false;
 }
 
 }

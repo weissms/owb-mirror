@@ -283,7 +283,6 @@ public:
     virtual NodeType nodeType() const;
 
     // Other methods (not part of DOM)
-    virtual bool isDocumentNode() const { return true; }
     virtual bool isHTMLDocument() const { return false; }
     virtual bool isImageDocument() const { return false; }
 #if ENABLE(SVG)
@@ -933,12 +932,12 @@ public:
     bool inPageCache();
     void setInPageCache(bool flag);
     
-    // Elements can register themselves for the "willSaveToCache()" and  
-    // "didRestoreFromCache()" callbacks
-    void registerForCacheCallbacks(Element*);
-    void unregisterForCacheCallbacks(Element*);
-    void willSaveToCache();
-    void didRestoreFromCache();
+    // Elements can register themselves for the "documentWillBecomeInactive()" and  
+    // "documentDidBecomeActive()" callbacks
+    void registerForDocumentActivationCallbacks(Element*);
+    void unregisterForDocumentActivationCallbacks(Element*);
+    void documentWillBecomeInactive();
+    void documentDidBecomeActive();
 
     void setShouldCreateRenderers(bool);
     bool shouldCreateRenderers();
@@ -1043,7 +1042,7 @@ private:
     bool m_inPageCache;
     String m_iconURL;
     
-    HashSet<Element*> m_pageCacheCallbackElements;
+    HashSet<Element*> m_documentActivationCallbackElements;
 
     bool m_useSecureKeyboardEntryWhenActive;
 
@@ -1074,6 +1073,11 @@ inline bool Document::hasElementWithId(AtomicStringImpl* id) const
 {
     ASSERT(id);
     return m_elementsById.contains(id) || m_duplicateIds.contains(id);
+}
+    
+inline bool Node::isDocumentNode() const
+{
+    return this == m_document.get();
 }
 
 } // namespace WebCore

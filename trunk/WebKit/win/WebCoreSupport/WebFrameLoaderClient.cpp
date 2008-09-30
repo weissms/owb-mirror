@@ -522,7 +522,7 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
         frame->ownerRenderer()->setWidget(frameView);
 
     if (HTMLFrameOwnerElement* owner = frame->ownerElement())
-        frame->view()->setScrollbarsMode(owner->scrollingMode());
+        frame->view()->setScrollbarModes(owner->scrollingMode(), owner->scrollingMode());
 }
 
 bool WebFrameLoaderClient::canCachePage() const
@@ -541,7 +541,7 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& url, const Strin
     if (ownerElement->hasTagName(frameTag) || ownerElement->hasTagName(iframeTag)) {
         HTMLFrameElement* frameElt = static_cast<HTMLFrameElement*>(ownerElement);
         if (frameElt->scrollingMode() == ScrollbarAlwaysOff)
-            result->view()->setScrollbarsMode(ScrollbarAlwaysOff);
+            result->view()->setAllowsScrolling(false);
         int marginWidth = frameElt->getMarginWidth();
         int marginHeight = frameElt->getMarginHeight();
         if (marginWidth != -1)

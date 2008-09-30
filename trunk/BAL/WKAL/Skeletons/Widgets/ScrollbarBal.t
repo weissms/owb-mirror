@@ -55,13 +55,14 @@ public:
      */
     virtual ~ScrollbarGtk();
 
+
     /**
-     * Set the frame geometry.
-     * @param[in] : a rectangle.
+     * setFrameRect see Widget.t
+     * @param[out] : const IntRect&
      * @code
      * @endcode
      */
-    virtual void setFrameGeometry(const IntRect&);
+    virtual void setFrameRect(const IntRect&);
     
     /**
      * Check wether it should handle mouse move event.
@@ -128,12 +129,13 @@ protected:
      * @endcode
      */
     virtual void updateThumbProportion();
+
     /**
-     * geometryChanged.
+     * frameRectsChanged description
      * @code
      * @endcode
      */
-    virtual void geometryChanged();
+    virtual void frameRectsChanged()
     
 private:
     /**
@@ -150,6 +152,3 @@ private:
 }
 
 #endif // ScrollbarGtk_h
-
-
-

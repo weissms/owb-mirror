@@ -233,7 +233,7 @@ namespace JSC {
         RegisterID* emitUnexpectedLoad(RegisterID* dst, double);
 
         RegisterID* emitUnaryOp(OpcodeID, RegisterID* dst, RegisterID* src);
-        RegisterID* emitBinaryOp(OpcodeID, RegisterID* dst, RegisterID* src1, RegisterID* src2);
+        RegisterID* emitBinaryOp(OpcodeID, RegisterID* dst, RegisterID* src1, RegisterID* src2, OperandTypes);
         RegisterID* emitEqualityOp(OpcodeID, RegisterID* dst, RegisterID* src1, RegisterID* src2);
         RegisterID* emitUnaryNoDstOp(OpcodeID, RegisterID* src);
 
@@ -254,7 +254,7 @@ namespace JSC {
 
         RegisterID* emitInstanceOf(RegisterID* dst, RegisterID* value, RegisterID* base, RegisterID* basePrototype);
         RegisterID* emitTypeOf(RegisterID* dst, RegisterID* src) { return emitUnaryOp(op_typeof, dst, src); }
-        RegisterID* emitIn(RegisterID* dst, RegisterID* property, RegisterID* base) { return emitBinaryOp(op_in, dst, property, base); }
+        RegisterID* emitIn(RegisterID* dst, RegisterID* property, RegisterID* base) { return emitBinaryOp(op_in, dst, property, base, OperandTypes()); }
 
         RegisterID* emitResolve(RegisterID* dst, const Identifier& property);
         RegisterID* emitGetScopedVar(RegisterID* dst, size_t skip, int index, JSValue* globalObject);
@@ -383,6 +383,9 @@ namespace JSC {
             if (index >= 0)
                 return m_calleeRegisters[index];
 
+            if (index == RegisterFile::OptionalCalleeArguments)
+                return m_argumentsRegister;
+
             if (m_parameters.size()) {
                 ASSERT(!m_globals.size());
                 return m_parameters[index + m_parameters.size() + RegisterFile::CallFrameHeaderSize];
@@ -416,6 +419,7 @@ namespace JSC {
 
         HashSet<RefPtr<UString::Rep>, IdentifierRepHash> m_functions;
         RegisterID m_thisRegister;
+        RegisterID m_argumentsRegister;
         SegmentedVector<RegisterID, 512> m_calleeRegisters;
         SegmentedVector<RegisterID, 512> m_parameters;
         SegmentedVector<RegisterID, 512> m_globals;

@@ -2805,7 +2805,7 @@ void FrameLoader::transitionToCommitted(PassRefPtr<CachedPage> cachedPage)
             // This code was originally added for a Leopard performance imporvement. We decided to 
             // ifdef it to fix correctness issues on Tiger documented in <rdar://problem/5441823>.
             if (m_frame->view())
-                m_frame->view()->suppressScrollbars(true);
+                m_frame->view()->setScrollbarsSuppressed(true);
 #endif
             m_client->transitionToCommittedForNewPage();
             break;
@@ -3669,7 +3669,7 @@ void FrameLoader::opened()
         updateHistoryForClientRedirect();
 
     if (m_documentLoader->isLoadingFromCachedPage()) {
-        m_frame->document()->didRestoreFromCache();
+        m_frame->document()->documentDidBecomeActive();
         
         // Force a layout to update view size and thereby update scrollbars.
         m_client->forceLayout();

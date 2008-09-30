@@ -40,6 +40,7 @@
 #include "PlatformWheelEvent.h"
 #include "ProgressEvent.h"
 #include "RegisteredEventListener.h"
+#include "Scrollbar.h"
 #include "ScriptController.h"
 #include "TextEvent.h"
 #include "WebKitAnimationEvent.h"
@@ -540,6 +541,17 @@ void EventTargetNode::dispatchWheelEvent(PlatformWheelEvent& e)
     
     IntPoint pos = view->windowToContents(e.pos());
     
+    // Convert the deltas from pixels to lines if we have a pixel scroll event.
+    float deltaX = e.deltaX();
+    float deltaY = e.deltaY();
+    
+    // FIXME: Should we do anything with a ScrollByPageWheelEvent here?
+    // It will be treated like a line scroll of 1 right now.
+    if (e.granularity() == ScrollByPixelWheelEvent) {
+        deltaX /= cMouseWheelPixelsPerLineStep;
+        deltaY /= cMouseWheelPixelsPerLineStep;
+    }
+
     RefPtr<WheelEvent> we = WheelEvent::create(e.deltaX(), e.deltaY(),
         document()->defaultView(), e.globalX(), e.globalY(), pos.x(), pos.y(),
         e.ctrlKey(), e.altKey(), e.shiftKey(), e.metaKey());

@@ -70,9 +70,9 @@ ScrollbarSDL::ScrollbarSDL(ScrollbarClient* client, ScrollbarOrientation orienta
     vSize = Widget::height();
     hSize = Widget::width();
     if (orientation == VerticalScrollbar)
-        Widget::setFrameGeometry(IntRect(0, 0, cVerticalWidth, cVerticalHeight));
+        Widget::setFrameRect(IntRect(0, 0, cVerticalWidth, cVerticalHeight));
     else
-        Widget::setFrameGeometry(IntRect(0, 0, cHorizontalWidth, cHorizontalHeight));
+        Widget::setFrameRect(IntRect(0, 0, cHorizontalWidth, cHorizontalHeight));
 }
 
 ScrollbarSDL::~ScrollbarSDL()
@@ -192,13 +192,13 @@ void ScrollbarSDL::updateThumbProportion()
 {
 }
 
-void ScrollbarSDL::setFrameGeometry(const IntRect& rect)
+void ScrollbarSDL::setFrameRect(const IntRect& rect)
 {
-    Widget::setFrameGeometry(rect);
-    geometryChanged();
+    Widget::setFrameRect(rect);
+    frameRectsChanged();
 }
 
-void ScrollbarSDL::geometryChanged()
+void ScrollbarSDL::frameRectsChanged()
 {
     if (!parent())
         return;
@@ -206,9 +206,9 @@ void ScrollbarSDL::geometryChanged()
     ASSERT(parent()->isFrameView());
 
     FrameView* frameView = static_cast<FrameView*>(parent());
-    IntRect windowRect = IntRect(frameView->contentsToWindow(frameGeometry().location()), frameGeometry().size());
+    IntRect windowRect = IntRect(frameView->contentsToWindow(frameRect().location()), frameRect().size());
 
-    IntSize sz = frameGeometry().size();
+    IntSize sz = frameRect().size();
     sz.clampNegativeToZero();
 
 //     GtkAllocation allocation = { windowRect.x(), windowRect.y(), sz.width(), sz.height() };

@@ -151,28 +151,37 @@ namespace WKAL {
      */
     IntPoint pos() const ;
 
+
     /**
-     * set frame geometry
-     * @param[in] : rect
+     * setFrameRect set the Frame rectangle
+     * @param[in] : new Frame rectangle
      * @code
-     * w->setFrameGeometry(r);
      * @endcode
      */
-        virtual void setFrameGeometry(const IntRect&);
+    virtual void setFrameRect(const IntRect&);
+
+
+    /**
+     * frameRect get the Frame rectangle
+     * @param[out] : the Frame rectangle
+     * @code
+     * @endcode
+     */
+    virtual IntRect frameRect() const;
+
+
+    /**
+     * boundsRect get the bound rectangle.
+     * @param[out] : the bound rectangle
+     * @code
+     * @endcode
+     */
+    IntRect boundsRect() const 
 
     /**
      * get frameGeometry
      **/
-        virtual IntRect frameGeometry() const;
-
-    /**
-     *  boundsGeometry description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    IntRect boundsGeometry() const ;
+        virtual IntRect frameGeometry() const
 
     /**
      *  resize description
@@ -182,15 +191,6 @@ namespace WKAL {
      * @endcode
      */
     void resize(int w, int h) ;
-
-    /**
-     *  resize description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    void resize(const IntSize& s) ;
 
     /**
      *  move description
@@ -428,14 +428,13 @@ namespace WKAL {
      */
         IntRect convertFromContainingWindow(const IntRect&) const;
 
+
     /**
-     *  geometryChanged description
-     * @param[in] : description
-     * @param[out] : description
+     * frameRectsChanged description
      * @code
      * @endcode
      */
-    virtual void geometryChanged() const ;
+    virtual void frameRectsChanged() const ;
 
 private:
    
@@ -478,5 +477,4 @@ private:
 };
 } // namespace WebCore
 
-#endif // Widget_h
-
+#endif // Wi

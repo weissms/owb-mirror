@@ -147,8 +147,8 @@ namespace WebCore {
         void streamDidFinishLoading(PluginStream* stream) { disconnectStream(stream); }
 
         // Widget functions
-        virtual void setFrameGeometry(const IntRect&);
-        virtual void geometryChanged() const;
+        virtual void setFrameRect(const IntRect&);
+        virtual void frameRectsChanged() const;
         virtual void setFocus();
         virtual void show();
         virtual void hide();

@@ -327,13 +327,14 @@ public:
      * @endcode
      */
     virtual void setParent(ScrollView*);
+
     /**
-     * Set frame geometry.
-     * @param[in] : a rectangle.
+     * setFrameRect set the Frame rectangle.
+     * @param[in] : new Frame rectangle
      * @code
      * @endcode
      */
-    virtual void setFrameGeometry(const IntRect&);
+    virtual void setFrameRect(const IntRect&);
     /**
      * windowClipRect. 
      * @param[out] : a rectangle.
@@ -454,4 +455,4 @@ protected:
 
 }
 
-#endif
+#endi

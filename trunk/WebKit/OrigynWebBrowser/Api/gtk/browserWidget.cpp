@@ -267,16 +267,16 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
     // approach more like the Win and Mac ports for key handling.
     switch (event->keyval) {
     case GDK_Down:
-        view->scrollBy(IntSize(0, LINE_STEP));
+        view->scrollBy(IntSize(0, cMouseWheelPixelsPerLineStep));
         return TRUE;
     case GDK_Up:
-        view->scrollBy(IntSize(0, -LINE_STEP));
+        view->scrollBy(IntSize(0, -cMouseWheelPixelsPerLineStep));
         return TRUE;
     case GDK_Right:
-        view->scrollBy(IntSize(LINE_STEP, 0));
+        view->scrollBy(IntSize(cMouseWheelPixelsPerLineStep, 0));
         return TRUE;
     case GDK_Left:
-        view->scrollBy(IntSize(-LINE_STEP, 0));
+        view->scrollBy(IntSize(-cMouseWheelPixelsPerLineStep, 0));
         return TRUE;
     case GDK_Home:
         frame->selection()->modify(alteration, SelectionController::BACKWARD, DocumentBoundary, true);

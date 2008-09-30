@@ -185,9 +185,11 @@ struct ConsoleMessage {
            (!exec && msg->wrappedArguments.size()))
             return false;
         
-        for (size_t i = 0; i < msg->wrappedArguments.size(); ++i)
+        for (size_t i = 0; i < msg->wrappedArguments.size(); ++i) {
+            ASSERT_ARG(exec, exec);
             if (!JSValueIsEqual(toRef(exec), toRef(msg->wrappedArguments[i].get()), toRef(this->wrappedArguments[i].get()), 0))
                 return false;
+        }
     
         return msg->source == this->source
             && msg->level == this->level
@@ -1163,6 +1165,7 @@ void InspectorController::clearConsoleMessages()
     deleteAllValues(m_consoleMessages);
     m_consoleMessages.clear();
     m_previousMessage = 0;
+    m_groupLevel = 0;
 }
 
 void InspectorController::toggleRecordButton(bool isProfiling)
@@ -2026,9 +2029,7 @@ void InspectorController::didCommitLoad(DocumentLoader* loader)
     if (loader->frame() == m_inspectedPage->mainFrame()) {
         m_client->inspectedURLChanged(loader->url().string());
 
-        deleteAllValues(m_consoleMessages);
-        m_consoleMessages.clear();
-        m_groupLevel = 0;
+        clearConsoleMessages();
 
         m_times.clear();
         m_counts.clear();
@@ -2500,7 +2501,6 @@ void InspectorController::drawNodeHighlight(GraphicsContext& context) const
             element = static_cast<Element*>(m_highlightedNode.get());
         else
             element = static_cast<Element*>(m_highlightedNode->parent());
-        element->scrollIntoViewIfNeeded();
         overlayRect = view->visibleContentRect();
     }
 

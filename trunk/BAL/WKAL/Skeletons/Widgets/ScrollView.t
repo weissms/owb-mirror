@@ -97,7 +97,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    Scrollbar* horizontalScrollbar() const;
+    Scrollbar* horizontalScrollbar() const ;
 
 
     /**
@@ -107,7 +107,89 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    Scrollbar* verticalScrollbar() const;
+    Scrollbar* verticalScrollbar() const ;
+
+
+    /**
+     * isScrollViewScrollbar return whether the Widget is a ScrollViewScrollbar
+     * @param[in] : Widget
+     * @param[out] : bool
+     * @code
+     * @endcode
+     */
+    bool isScrollViewScrollbar(const Widget* child) const ;
+
+
+    /**
+     * setScrollbarModes set both the horizontal and vertical scrollbar modes.
+     * @param[in] : new horizontal and vertical scrollbar modes.
+     * @code
+     * @endcode
+     */
+    void setScrollbarModes(ScrollbarMode horizontalMode, ScrollbarMode verticalMode);
+
+
+    /**
+     * setHorizontalScrollbarMode set the horizontal scrollbar mode.
+     * @param[in] : new horizontal mode.
+     * @code
+     * @endcode
+     */
+    void setHorizontalScrollbarMode(ScrollbarMode mode) ;
+
+
+    /**
+     * setVerticalScrollbarMode set the vertical scrollbar mode.
+     * @param[in] : new vertical scrollbar mode.
+     * @code
+     * @endcode
+     */
+    void setVerticalScrollbarMode(ScrollbarMode mode) ;
+
+
+    /**
+     * scrollbarModes get both the horizontal and vertical scrollbar modes.
+     * @param[in] : 2 ScrollbarMode that will be set to the horizontal and the vertical scrollbar modes (in this order).
+     * @code
+     * @endcode
+     */
+    void scrollbarModes(ScrollbarMode& horizontalMode, ScrollbarMode& verticalMode) const;
+
+
+    /**
+     * horizontalScrollbarMode get the horizontal scrollbar mode.
+     * @param[out] : the horizontal scrollbar mode.
+     * @code
+     * @endcode
+     */
+    ScrollbarMode horizontalScrollbarMode() const ;
+
+
+    /**
+     *  verticalScrollbarMode get the vertical scrollbar mode.
+     * @param[out] : the vertical scrollbar mode.
+     * @code
+     * @endcode
+     */
+    ScrollbarMode verticalScrollbarMode() const ;
+
+
+    /**
+     * setAllowsScrolling set whether the scrolling is allowed.
+     * @param[in] : bool (the new scrolling flag)
+     * @code
+     * @endcode
+     */
+    virtual void setAllowsScrolling(bool flag);
+
+
+    /**
+     * allowsScrolling get whether the scrolling is enabled.
+     * @param[out] : bool (whether the scrolling is authorized).
+     * @code
+     * @endcode
+     */
+    bool allowsScrolling() const ;
 
     /**
      *  setCanBlitOnScroll description
@@ -272,14 +354,23 @@ namespace WKAL {
      */
     void scrollRectIntoViewRecursively(const IntRect&);
 
+
     /**
-     * set vertical scrollbar mode
-     * @param[in] : scrollbar mode
+     * setScrollbarsSuppressed set whether the scrollbar are suppressed.
+     * @param[in] : bool (whether the scrollbar should be suppressed), bool (whether there should be a repaint (default: false))
      * @code
-     * s->setVScrollbarMode(m);
      * @endcode
      */
-        virtual void setVScrollbarMode(ScrollbarMode);
+    void setScrollbarsSuppressed(bool suppressed, bool repaintOnUnsuppress = false);
+
+
+    /**
+     * scrollbarsSuppressed get whether the scrollbars are suppressed.
+     * @param[out] : bool
+     * @code
+     * @endcode
+     */
+    bool scrollbarsSuppressed() const 
 
     /**
      * set horizontal scrollbar mode
@@ -290,16 +381,7 @@ namespace WKAL {
      */
         virtual void setHScrollbarMode(ScrollbarMode);
 
-        // Set the mode for both scrollbars at onc
-
-    /**
-     *  setScrollbarsMode description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    virtual void setScrollbarsMode(ScrollbarMode);
+        // Set the mode for both scrollbars at once
 
     /**
      * This gives us a means of blocking painting on our scrollbars until the first layout has occurred.
@@ -312,15 +394,6 @@ namespace WKAL {
         void suppressScrollbars(bool suppressed, bool repaintOnUnsuppress = false);
 
     /**
-     * get vertical scrollbar mode
-     * @param[out] : scrollbar mode
-     * @code
-     * ScrollbarMode m = s->vScrollbarMode();
-     * @endcode
-     */
-        ScrollbarMode vScrollbarMode() const;
-
-    /**
      * get horizontal scrollbar mode
      * @param[out] : scrollbar mode
      * @code
@@ -328,14 +401,6 @@ namespace WKAL {
      * @endcode
      */
         ScrollbarMode hScrollbarMode() const;
-
-    /**
-     * Check wether the scrollView is scrollable or not.
-     * @param[out] : a boolean which represent scrollable status for the scrollView.
-     * @code
-     * @endcode
-     */
-        bool isScrollable();
 
 
     /**
@@ -350,14 +415,61 @@ namespace WKAL {
      */
         IntPoint windowToContents(const IntPoint&) const;
 
+
     /**
-     *  contentsToWindow description
+     * isOffscreen return whether the ScrollView is offscreen
+     * @param[out] : bool
+     * @code
+     * @endcode
+     */
+    bool isOffscreen() const;
+
+
+    /**
+     * windowResizerRect description
      * @param[in] : description
      * @param[out] : description
      * @code
      * @endcode
      */
-    IntPoint contentsToWindow(const IntPoint&) const;
+    virtual IntRect windowResizerRect() const ;
+
+
+    /**
+     * containsScrollbarsAvoidingResizer description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool containsScrollbarsAvoidingResizer() const;
+
+
+    /**
+     * adjustScrollbarsAvoidingResizerCount description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void adjustScrollbarsAvoidingResizerCount(int overlapDelta);
+
+
+    /**
+     * setParent set the parent ScrollView
+     * @param[in] : the parent ScrollView
+     * @code
+     * @endcode
+     */
+    virtual void setParent(ScrollView*);
+
+
+    /**
+     * frameRectsChanged description
+     * @code
+     * @endcode
+     */
+    virtual void frameRectsChanged() const;
 
     /**
      * Event coordinates are assumed to be in the coordinate space of a window that contains
@@ -369,42 +481,17 @@ namespace WKAL {
      * IntRect p = s->windowToContents(p1);
      * @endcode
      */
-        IntRect windowToContents(const IntRect&) const;
-
-    /**
-     *  contentsToWindow description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    IntRect contentsToWindow(const IntRect&) const;
+        IntRect windowToContents(const IntRect&) const ;
 
     /**
      * inWindow
      */
-    bool inWindow() const;
-
-    /**
-     * should Update while offscreen
-     */
-        virtual bool shouldUpdateWhileOffscreen() const = 0;
+    bool inWindow() const ;
 
     /**
      * scrollbarUnderMouse 
      */
-     Scrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
-
-    /**
-     * This method exists for scrollviews that need to handle wheel events manually.
-     * On Mac the underlying NSScrollView just does the scrolling, but on other platforms
-     * (like Windows), we need this method in order to do the scroll ourselves.
-     * @param[in] : platform wheel event
-     * @code
-     * s->wheelEvent(w);
-     * @endcode
-     */
-        void wheelEvent(PlatformWheelEvent&);
+     Scrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent) ;
 
     /**
      * scroll
@@ -415,17 +502,7 @@ namespace WKAL {
      * bool sc = s->scroll(d, g);
      * @endcode
      */
-        bool scroll(ScrollDirection, ScrollGranularity);
-
-    /**
-     * convert child to self. 
-     * @param[in] : a pointer to a widget.
-     * @param[in] : an IntPoint.
-     * @param[out] : an IntPoint.
-     * @code
-     * @endcode
-     */
-        IntPoint convertChildToSelf(const Widget* child, const IntPoint& point) const;
+        bool scroll(ScrollDirection, ScrollGranularity) ;
 
 
     /**
@@ -437,16 +514,6 @@ namespace WKAL {
      * @endcode
      */
         IntPoint convertSelfToChild(const Widget* child, const IntPoint& point) const;
-
-
-    /**
-     * is scrollView scrollbar.
-     * @param[in] : a pointer to a widget.
-     * @param[out] : a boolean.
-     * @code
-     * @endcode
-     */
-        bool isScrollViewScrollbar(const Widget*) const;
 
 #if HAVE(ACCESSIBILITY)
 
@@ -504,7 +571,7 @@ public:
 
 
     /**
-     *  platformAddChild description
+     * platformAddChild description
      * @param[in] : description
      * @param[out] : description
      * @code
@@ -514,7 +581,7 @@ public:
 
 
     /**
-     *  platformRemoveChild description
+     * platformRemoveChild description
      * @param[in] : description
      * @param[out] : description
      * @code
@@ -523,8 +590,28 @@ public:
     void platformRemoveChild(Widget*);
 
 
+
     /**
-     *  platformSetCanBlitOnScroll description
+     * platformSetScrollbarModes description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void platformSetScrollbarModes();
+
+
+    /**
+     * platformScrollbarModes description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void platformScrollbarModes(ScrollbarMode& horizontal, ScrollbarMode& vertical) const;
+
+    /**
+     * platformSetCanBlitOnScroll description
      * @param[in] : description
      * @param[out] : description
      * @code
@@ -534,7 +621,7 @@ public:
 
 
     /**
-     *  platformVisibleContentRect description
+     * platformVisibleContentRect description
      * @param[in] : description
      * @param[out] : description
      * @code
@@ -544,7 +631,7 @@ public:
 
 
     /**
-     *  platformContentsSize description
+     * platformContentsSize description
      * @param[in] : description
      * @param[out] : description
      * @code
@@ -554,7 +641,7 @@ public:
 
 
     /**
-     *  platformSetContentsSize description
+     * platformSetContentsSize description
      * @param[in] : description
      * @param[out] : description
      * @code
@@ -565,10 +652,17 @@ public:
 
 
     private:
-       /**
-        * maximumScroll
-        */
-        IntSize maximumScroll() const;
+
+    /**
+     * platformSetScrollbarsSuppressed description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void platformSetScrollbarsSuppressed(bool repaintOnUnsuppress);
+
+
 
         class ScrollViewPrivate;
         ScrollViewPrivate* m_data;
@@ -581,26 +675,19 @@ public:
      */
         virtual void paint(GraphicsContext*, const IntRect&);
 
+
     /**
-     * geometry changed.
+     * setFrameRect set Widget.t
+     * @param[in] : const intRect&
      * @code
      * @endcode
      */
-        virtual void geometryChanged() const;
+    virtual void setFrameRect(const IntRect&)
 
     /**
      * setFrameGeometry
      */
-        virtual void setFrameGeometry(const IntRect&);
-
-    /**
-     * add to dirty region 
-     * @param[in] : dirty region
-     * @code
-     * s->addToDirtyRegion(r);
-     * @endcode
-     */
-        void addToDirtyRegion(const IntRect&);
+        virtual void setFrameGeometry(const IntRect&)
 
     /**
      * scrollBackingStore
@@ -623,14 +710,6 @@ public:
 
 
     public:
-
-    /**
-     * windowResizerRect 
-     * @param[out] : a rectangle.
-     * @code
-     * @endcode
-     */
-        IntRect windowResizerRect() ;
 
     /**
      * resizerOverlapsContent

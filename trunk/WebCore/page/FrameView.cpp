@@ -166,7 +166,7 @@ FrameView::FrameView(Frame* frame, const IntSize& initialSize)
     , d(new FrameViewPrivate(this))
 {
     init();
-    Widget::setFrameGeometry(IntRect(x(), y(), initialSize.width(), initialSize.height()));
+    Widget::setFrameRect(IntRect(x(), y(), initialSize.width(), initialSize.height()));
     show();
 }
 #endif
@@ -210,10 +210,9 @@ void FrameView::resetScrollbars()
 {
     // Reset the document's scrollbars back to our defaults before we yield the floor.
     d->m_firstLayout = true;
-    suppressScrollbars(true);
-    ScrollView::setVScrollbarMode(d->m_vmode);
-    ScrollView::setHScrollbarMode(d->m_hmode);
-    suppressScrollbars(false);
+    setScrollbarsSuppressed(true);
+    setScrollbarModes(d->m_hmode, d->m_vmode);
+    setScrollbarsSuppressed(false);
 }
 
 void FrameView::init()
@@ -232,7 +231,7 @@ void FrameView::clear()
         if (RenderPart* renderer = m_frame->ownerRenderer())
             renderer->viewCleared();
 
-    suppressScrollbars(true);
+    setScrollbarsSuppressed(true);
 }
 
 bool FrameView::didFirstLayout() const
@@ -245,7 +244,9 @@ void FrameView::initScrollbars()
     if (!d->m_needToInitScrollbars)
         return;
     d->m_needToInitScrollbars = false;
-    setScrollbarsMode(hScrollbarMode());
+    d->m_hmode = horizontalScrollbarMode();
+    d->m_vmode = verticalScrollbarMode();
+    setScrollbarModes(d->m_hmode, d->m_vmode);
 }
 
 void FrameView::setMarginWidth(int w)
@@ -258,6 +259,12 @@ void FrameView::setMarginHeight(int h)
 {
     // make it update the rendering area when set
     m_margins.setHeight(h);
+}
+
+void FrameView::setAllowsScrolling(bool canScroll)
+{
+    ScrollView::setAllowsScrolling(canScroll);
+    scrollbarModes(d->m_hmode, d->m_vmode);
 }
 
 void FrameView::adjustViewSize()
@@ -437,11 +444,11 @@ void FrameView::layout(bool allowSubtree)
 
     if (!subtree) {
         // Now set our scrollbar state for the layout.
-        ScrollbarMode currentHMode = hScrollbarMode();
-        ScrollbarMode currentVMode = vScrollbarMode();
+        ScrollbarMode currentHMode = horizontalScrollbarMode();
+        ScrollbarMode currentVMode = verticalScrollbarMode();
 
         if (d->m_firstLayout || (hMode != currentHMode || vMode != currentVMode)) {
-            suppressScrollbars(true);
+            setScrollbarsSuppressed(true);
             if (d->m_firstLayout) {
                 d->m_firstLayout = false;
                 d->m_firstLayoutCallbackPending = true;
@@ -450,20 +457,13 @@ void FrameView::layout(bool allowSubtree)
 
                 // Set the initial vMode to AlwaysOn if we're auto.
                 if (vMode == ScrollbarAuto)
-                    ScrollView::setVScrollbarMode(ScrollbarAlwaysOn); // This causes a vertical scrollbar to appear.
+                    setVerticalScrollbarMode(ScrollbarAlwaysOn); // This causes a vertical scrollbar to appear.
                 // Set the initial hMode to AlwaysOff if we're auto.
                 if (hMode == ScrollbarAuto)
-                    ScrollView::setHScrollbarMode(ScrollbarAlwaysOff); // This causes a horizontal scrollbar to disappear.
+                    setHorizontalScrollbarMode(ScrollbarAlwaysOff); // This causes a horizontal scrollbar to disappear.
             }
-            
-            if (hMode == vMode)
-                ScrollView::setScrollbarsMode(hMode);
-            else {
-                ScrollView::setHScrollbarMode(hMode);
-                ScrollView::setVScrollbarMode(vMode);
-            }
-
-            suppressScrollbars(false, true);
+            setScrollbarModes(hMode, vMode);
+            setScrollbarsSuppressed(false, true);
         }
 
         IntSize oldSize = m_size;
@@ -597,29 +597,9 @@ void FrameView::removeSlowRepaintObject()
         setCanBlitOnScroll(!d->m_useSlowRepaints);
 }
 
-void FrameView::setScrollbarsMode(ScrollbarMode mode)
-{
-    d->m_vmode = mode;
-    d->m_hmode = mode;
-    
-    ScrollView::setScrollbarsMode(mode);
-}
-
-void FrameView::setVScrollbarMode(ScrollbarMode mode)
-{
-    d->m_vmode = mode;
-    ScrollView::setVScrollbarMode(mode);
-}
-
-void FrameView::setHScrollbarMode(ScrollbarMode mode)
-{
-    d->m_hmode = mode;
-    ScrollView::setHScrollbarMode(mode);
-}
-
 void FrameView::restoreScrollbar()
 {
-    suppressScrollbars(false);
+    setScrollbarsSuppressed(false);
 }
 
 void FrameView::scrollRectIntoViewRecursively(const IntRect& r)
@@ -662,6 +642,9 @@ void FrameView::repaintContentRectangle(const IntRect& r, bool immediate)
         return;
     }
     
+    if (!immediate && isOffscreen() && !shouldUpdateWhileOffscreen())
+        return;
+
     updateContents(r, immediate);
 }
 
@@ -1015,6 +998,14 @@ IntRect FrameView::windowClipRectForLayer(const RenderLayer* layer, bool clipToL
     return intersection(clipRect, windowClipRect());
 }
 
+IntRect FrameView::windowResizerRect() const
+{
+    Page* page = frame() ? frame()->page() : 0;
+    if (!page)
+        return IntRect();
+    return page->chrome()->windowResizerRect();
+}
+
 #if ENABLE(DASHBOARD_SUPPORT)
 void FrameView::updateDashboardRegions()
 {
@@ -1051,7 +1042,7 @@ void FrameView::updateControlTints()
         GraphicsContext context(noContext);
         context.setUpdatingControlTints(true);
 #if !PLATFORM(MAC)
-        ScrollView::paint(&context, frameGeometry());
+        ScrollView::paint(&context, frameRect());
 #else
         m_frame->paint(&context, visibleContentRect());
 #endif

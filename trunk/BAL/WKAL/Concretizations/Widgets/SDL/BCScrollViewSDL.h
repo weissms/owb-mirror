@@ -28,6 +28,7 @@
 
 #include "IntRect.h"
 #include "ScrollTypes.h"
+#include "Scrollbar.h"
 #include "Widget.h"
 
 #include <wtf/HashSet.h>
@@ -50,8 +51,23 @@ public:
 
     // If the scroll view does not use a native widget, then it will have cross-platform Scrollbars.  These methods
     // can be used to obtain those scrollbars.
-    Scrollbar* horizontalScrollbar() const;
-    Scrollbar* verticalScrollbar() const;
+    Scrollbar* horizontalScrollbar() const { return m_horizontalScrollbar.get(); }
+    Scrollbar* verticalScrollbar() const { return m_verticalScrollbar.get(); }
+    bool isScrollViewScrollbar(const Widget* child) const { return horizontalScrollbar() == child || verticalScrollbar() == child; }
+
+    // Methods for setting and retrieving the scrolling mode in each axis (horizontal/vertical).  The mode has values of
+    // AlwaysOff, AlwaysOn, and Auto.  AlwaysOff means never show a scrollbar, AlwaysOn means always show a scrollbar.
+    // Auto means show a scrollbar only when one is needed.
+    // Note that for platforms with native widgets, these modes are considered advisory.  In other words the underlying native
+    // widget may choose not to honor the requested modes.
+    void setScrollbarModes(ScrollbarMode horizontalMode, ScrollbarMode verticalMode);
+    void setHorizontalScrollbarMode(ScrollbarMode mode) { setScrollbarModes(mode, verticalScrollbarMode()); }
+    void setVerticalScrollbarMode(ScrollbarMode mode) { setScrollbarModes(horizontalScrollbarMode(), mode); }
+    void scrollbarModes(ScrollbarMode& horizontalMode, ScrollbarMode& verticalMode) const;
+    ScrollbarMode horizontalScrollbarMode() const { ScrollbarMode horizontal, vertical; scrollbarModes(horizontal, vertical); return horizontal; }
+    ScrollbarMode verticalScrollbarMode() const { ScrollbarMode horizontal, vertical; scrollbarModes(horizontal, vertical); return vertical; }
+    virtual void setAllowsScrolling(bool flag);
+    bool allowsScrolling() const { return horizontalScrollbarMode() != ScrollbarAlwaysOff || verticalScrollbarMode() != ScrollbarAlwaysOff; }
 
     // Whether or not a scroll view will blit visible contents when it is scrolled.  Blitting is disabled in situations
     // where it would cause rendering glitches (such as with fixed backgrounds or when the view is partially transparent).
@@ -85,20 +101,10 @@ public:
     void scrollBy(const IntSize& s) { return setScrollPosition(scrollPosition() + s); }
     void scrollRectIntoViewRecursively(const IntRect&);
 
-    virtual void setVScrollbarMode(ScrollbarMode);
-    virtual void setHScrollbarMode(ScrollbarMode);
-
-    // Set the mode for both scrollbars at once.
-    virtual void setScrollbarsMode(ScrollbarMode);
-
     // This gives us a means of blocking painting on our scrollbars until the first layout has occurred.
-    void suppressScrollbars(bool suppressed, bool repaintOnUnsuppress = false);
+    void setScrollbarsSuppressed(bool suppressed, bool repaintOnUnsuppress = false);
+    bool scrollbarsSuppressed() const { return m_scrollbarsSuppressed; }
 
-    ScrollbarMode vScrollbarMode() const;
-    ScrollbarMode hScrollbarMode() const;
-
-    bool isScrollable();
-     
     // Event coordinates are assumed to be in the coordinate space of a window that contains
     // the entire widget hierarchy. It is up to the platform to decide what the precise definition
     // of containing window is. (For example on Mac it is the containing NSWindow.)
@@ -107,9 +113,20 @@ public:
     IntRect windowToContents(const IntRect&) const;
     IntRect contentsToWindow(const IntRect&) const;
 
-    bool inWindow() const;
-    virtual bool shouldUpdateWhileOffscreen() const = 0;
+    // The purpose of this method is to answer whether or not the scroll view is currently visible.  Animations and painting updates can be suspended if
+    // we know that we are either not in a window right now or if that window is not visible.
+    bool isOffscreen() const;
+    
+    // These methods are used to enable scrollbars to avoid window resizer controls that overlap the scroll view.  This happens on Mac
+    // for example.
+    virtual IntRect windowResizerRect() const { return IntRect(); }
+    bool containsScrollbarsAvoidingResizer() const;
+    void adjustScrollbarsAvoidingResizerCount(int overlapDelta);
+    virtual void setParent(ScrollView*); // Overridden to update the overlapping scrollbar count.
 
+    // Called when our frame rect changes (or the rect/scroll position of an ancestor changes).
+    virtual void frameRectsChanged() const;
+    
     // For platforms that need to hit test scrollbars from within the engine's event handlers (like Win32).
     Scrollbar* scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent);
 
@@ -138,8 +155,6 @@ public:
         return newPoint;
     }
     
-    bool isScrollViewScrollbar(const Widget*) const;
-
 #if HAVE(ACCESSIBILITY)
     IntRect contentsToScreen(const IntRect&) const;
     IntPoint screenToContents(const IntPoint&) const;
@@ -152,19 +167,30 @@ public:
     void update();
 
 private:
+    RefPtr<Scrollbar> m_horizontalScrollbar;
+    RefPtr<Scrollbar> m_verticalScrollbar;
+    ScrollbarMode m_horizontalScrollbarMode;
+    ScrollbarMode m_verticalScrollbarMode;
+
     HashSet<Widget*> m_children;
     bool m_canBlitOnScroll;
     IntSize m_scrollOffset; // FIXME: Would rather store this as a position, but we will wait to make this change until more code is shared.
     IntSize m_contentsSize;
 
+    int m_scrollbarsAvoidingResizer;
+    bool m_scrollbarsSuppressed;
+    
     void init();
     
     void platformAddChild(Widget*);
     void platformRemoveChild(Widget*);
+    void platformSetScrollbarModes();
+    void platformScrollbarModes(ScrollbarMode& horizontal, ScrollbarMode& vertical) const;
     void platformSetCanBlitOnScroll();
     IntRect platformVisibleContentRect(bool includeScrollbars) const;
     IntSize platformContentsSize() const;
     void platformSetContentsSize();
+    void platformSetScrollbarsSuppressed(bool repaintOnUnsuppress);
 
 private:
     IntSize maximumScroll() const;
@@ -177,8 +203,7 @@ private:
 public:
     virtual void paint(GraphicsContext*, const IntRect&);
 
-    virtual void geometryChanged() const;
-    virtual void setFrameGeometry(const IntRect&);
+    virtual void setFrameRect(const IntRect&);
 
     void addToDirtyRegion(const IntRect&);
     void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
@@ -188,27 +213,9 @@ private:
     void updateScrollbars(const IntSize& desiredOffset);
 
 public:
-    IntRect windowResizerRect() { return IntRect(); }
-    bool resizerOverlapsContent() const { return false; }
-    void adjustOverlappingScrollbarCount(int overlapDelta) {}
-
-public:
     void setBalAdjustments(BalAdjustment* hadj, BalAdjustment* vadj);
 
 }; // class ScrollView
-
-// On Mac only, because of flipped NSWindow y-coordinates, we have to have a special implementation.
-// Other platforms can just implement these helper methods using the corresponding point conversion methods.
-
-inline IntRect ScrollView::contentsToWindow(const IntRect& rect) const
-{
-    return IntRect(contentsToWindow(rect.location()), rect.size());
-}
-
-inline IntRect ScrollView::windowToContents(const IntRect& rect) const
-{
-    return IntRect(windowToContents(rect.location()), rect.size());
-}
 
 } // namespace WebCore
 

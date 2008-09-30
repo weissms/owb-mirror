@@ -507,11 +507,8 @@ static void parseDataUrl(ResourceHandle* handle)
 
     if (outData)
         client->didReceiveData(handle, outData, outLength, 0);
-    else 
-        if (out.size() > 0)
-            client->didReceiveData(handle, out.data(), out.size(), 0);
-        else
-            client->didReceiveData(handle, data.latin1().data(), data.length(), 0);
+    else
+        client->didReceiveData(handle, out.data(), out.size(), 0);
 
 #ifdef USE_GLIB_BASE64
     g_free(outData);

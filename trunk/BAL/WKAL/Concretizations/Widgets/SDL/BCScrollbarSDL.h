@@ -45,7 +45,7 @@ public:
     }
     virtual ~ScrollbarSDL();
 
-    virtual void setFrameGeometry(const IntRect&);
+    virtual void setFrameRect(const IntRect&);
 
     virtual bool handleMouseMoveEvent(const PlatformMouseEvent&);
     virtual bool handleMouseOutEvent(const PlatformMouseEvent&);
@@ -54,11 +54,13 @@ public:
 
     virtual void setEnabled(bool);
 
+    // Required by ScrollbarThemeSDL.
+    ScrollbarPart hitTest(const PlatformMouseEvent&);
 protected:
     ScrollbarSDL(ScrollbarClient*, ScrollbarOrientation, ScrollbarControlSize);
     virtual void updateThumbPosition();
     virtual void updateThumbProportion();
-    virtual void geometryChanged();
+    virtual void frameRectsChanged();
 
 private:
     IntRect trackRect() const;
@@ -70,7 +72,6 @@ private:
     int thumbLength() const;
     int thumbPosition() const;
     int trackLength() const;
-    ScrollbarPart hitTest(const PlatformMouseEvent&);
     void invalidatePart(ScrollbarPart);
     bool thumbUnderMouse();
     IntRect thumbRect() const;

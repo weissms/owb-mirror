@@ -73,25 +73,26 @@ namespace WKAL {
      * float dx  = ev->deltaX();
      * @endcode
      */
-        float deltaX(bool withScrollSensibilityFactor = true) const ;
+        float deltaX() const ;
 
     /**
      * get delta y value
-     * @param[out] :  delta y value
+     * @param[out] : delta y value
      * @code
      * float dy = ev->deltaY();
      * @endcode
      */
-        float deltaY(bool withScrollSensibilityFactor = true) const ;
+        float deltaY() const ;
+
 
 
     /**
-     * Check wether horizontal scroll is enabled.
-     * @param[out] : returns true if horizontal scroll is enabled.
+     * granularity get event granualarity
+     * @param[out] : event granularity
      * @code
      * @endcode
      */
-        bool isPageXScrollModeEnabled() const ;
+        PlatformWheelEventGranularity granularity() const ;
 
 
     /**
@@ -101,15 +102,6 @@ namespace WKAL {
      * @endcode
      */
         bool isPageYScrollModeEnabled() const ;
-
-    /**
-     * get if the event is accepted
-     * @param[out] : accepted value
-     * @code
-     * bool ia = ev->isAccepted();
-     * @endcode
-     */
-        bool isAccepted() const ;
 
     /**
      * get shitf modifier
@@ -198,15 +190,7 @@ namespace WKAL {
      * @endcode
      */
         void ignore() ;
-        
-    /**
-     * test if the wheel is continuous
-     * @param[out] : continuous value
-     * @code
-     * bool cv = ev->isContinuous();
-     * @endcode
-     */
-        bool isContinuous() const ;
+      
 
     /**
      * get the continuous delta x value
@@ -216,6 +200,24 @@ namespace WKAL {
      * @endcode
      */
         float continuousDeltaX() const ;
+
+
+    /**
+     * horizontalLineMultiplier get the horizontal line multiplier
+     * @param[out] : horizontal line multiplier
+     * @code
+     * @endcode
+     */
+        int horizontalLineMultiplier() const ;
+
+
+    /**
+     * verticalLineMultiplier get the vertical line multiplier
+     * @param[out] : vertical line multiplier
+     * @code
+     * @endcode
+     */
+        int verticalLineMultiplier() const ;
 
     /**
      * get the continuous delta y value
@@ -252,6 +254,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // PlatformWheelEvent_h
-
-
+#endif // PlatformWheelEven

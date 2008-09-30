@@ -86,7 +86,7 @@ void PluginView::updatePluginWidget() const
     IntRect oldWindowRect = m_windowRect;
     IntRect oldClipRect = m_clipRect;
 
-    m_windowRect = IntRect(frameView->contentsToWindow(frameGeometry().location()), frameGeometry().size());
+    m_windowRect = IntRect(frameView->contentsToWindow(frameRect().location()), frameRect().size());
     m_clipRect = windowClipRect();
     m_clipRect.move(-m_windowRect.x(), -m_windowRect.y());
 }
@@ -111,9 +111,9 @@ void PluginView::paintMissingPluginIcon(GraphicsContext* context, const IntRect&
         if (!image)
             image = Image::loadPlatformResource("missing-plugin");
         
-        IntRect imageRect(frameGeometry().x(), frameGeometry().y(), image->width(), image->height());
-        int xOffset = (frameGeometry().width() - imageRect.width()) / 2;
-        int yOffset = (frameGeometry().height() - imageRect.height()) / 2;
+        IntRect imageRect(x(), y(), image->width(), image->height());
+        int xOffset = (width() - imageRect.width()) / 2;
+        int yOffset = (height() - imageRect.height()) / 2;
         imageRect.move(xOffset, yOffset);
         
         context->save();
@@ -125,10 +125,10 @@ void PluginView::paintMissingPluginIcon(GraphicsContext* context, const IntRect&
         if (!nullPluginImage)
             nullPluginImage = Image::loadPlatformResource("nullPlugin");
 
-        IntRect imageRect(frameGeometry().x(), frameGeometry().y(), nullPluginImage->width(), nullPluginImage->height());
+        IntRect imageRect(x(), y(), nullPluginImage->width(), nullPluginImage->height());
 
-        int xOffset = (frameGeometry().width() - imageRect.width()) / 2;
-        int yOffset = (frameGeometry().height() - imageRect.height()) / 2;
+        int xOffset = (width() - imageRect.width()) / 2;
+        int yOffset = (height() - imageRect.height()) / 2;
 
         imageRect.move(xOffset, yOffset);
 
@@ -389,7 +389,7 @@ void PluginView::init()
     }
 
     if (!(m_plugin->quirks().contains(PluginQuirkDeferFirstSetWindowCall)))
-        setNPWindowRect(frameGeometry());
+        setNPWindowRect(frameRect());
 
     m_status = PluginStatusLoadedSuccessfully;
 }

@@ -29,6 +29,7 @@
 #include "BALBase.h"
 #include "GraphicsContext.h"
 #include "Scrollbar.h"
+#include "ScrollbarSDL.h"
 
 namespace WKAL {
 
@@ -40,6 +41,11 @@ ScrollbarTheme* ScrollbarTheme::nativeTheme()
 
 ScrollbarThemeBal::~ScrollbarThemeBal()
 {
+}
+
+ScrollbarPart ScrollbarThemeBal::hitTest(Scrollbar* scrollbar, const PlatformMouseEvent& event)
+{
+    return static_cast<ScrollbarSDL*>(scrollbar)->hitTest(event);
 }
 
 bool ScrollbarThemeBal::paint(Scrollbar* scrollbar, GraphicsContext* graphicsContext, const IntRect& damageRect)

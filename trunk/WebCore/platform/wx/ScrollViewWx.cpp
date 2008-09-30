@@ -50,7 +50,6 @@ public:
     ScrollViewPrivate(ScrollView* scrollView)
         : wxEvtHandler()
         , m_scrollView(scrollView)
-        , suppressScrollbars(false)
         , vScrollbarMode(ScrollbarAuto)
         , hScrollbarMode(ScrollbarAuto)
         , viewStart(0, 0)
@@ -85,27 +84,27 @@ public:
         }
         else if (scrollType == wxEVT_SCROLLWIN_LINEDOWN) {
             if (horiz) 
-                pos.x += LINE_STEP;
+                pos.x += cScrollbarPixelsPerLineStep;
             else       
-                pos.y += LINE_STEP;
+                pos.y += cScrollbarPixelsPerLineStep;
         }
         else if (scrollType == wxEVT_SCROLLWIN_LINEUP) {
             if (horiz) 
-                pos.x -= LINE_STEP;
+                pos.x -= cScrollbarPixelsPerLineStep;
             else       
-                pos.y -= LINE_STEP;
+                pos.y -= cScrollbarPixelsPerLineStep;
         }
         else if (scrollType == wxEVT_SCROLLWIN_PAGEUP) {
             if (horiz) 
-                pos.x -= m_scrollView->visibleWidth() - PAGE_KEEP;
+                pos.x -= m_scrollView->visibleWidth() - cAmountToKeepWhenPaging;
             else       
-                pos.y -= m_scrollView->visibleHeight() - PAGE_KEEP;
+                pos.y -= m_scrollView->visibleHeight() - cAmountToKeepWhenPaging;
         }
         else if (scrollType == wxEVT_SCROLLWIN_PAGEDOWN) {
             if (horiz) 
-                pos.x += m_scrollView->visibleWidth() - PAGE_KEEP;
+                pos.x += m_scrollView->visibleWidth() - cAmountToKeepWhenPaging;
             else       
-                pos.y += m_scrollView->visibleHeight() - PAGE_KEEP;
+                pos.y += m_scrollView->visibleHeight() - cAmountToKeepWhenPaging;
         }
         else
             return e.Skip();
@@ -116,7 +115,6 @@ public:
 
     ScrollView* m_scrollView;
 
-    bool suppressScrollbars;
     ScrollbarMode vScrollbarMode;
     ScrollbarMode hScrollbarMode;
     wxPoint viewStart;
@@ -220,28 +218,14 @@ void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
     adjustScrollbars();
 }
 
-void ScrollView::platformSetContentsSize(const IntSize& newSize)
+void ScrollView::platformSetContentsSize()
 {
-    win->SetVirtualSize(newSize.width(), newSize.height());
-    adjustScrollbars();
-}
-
-Scrollbar* ScrollView::horizontalScrollbar() const
-{
-    return 0;
-}
-
-Scrollbar* ScrollView::verticalScrollbar() const
-{
-    return 0;
-}
-
-bool ScrollView::isScrollViewScrollbar(const Widget* child) const
-{
-    wxWindow* win = child->platformWidget();
+    wxWindow* win = platformWidget();
     if (!win)
-        return false;
-    return win->IsKindOf(CLASSINFO(wxScrollBar));
+        return;
+
+    win->SetVirtualSize(contentsWidth(), contentsHeight());
+    adjustScrollbars();
 }
 
 void ScrollView::adjustScrollbars(int x, int y, bool refresh)
@@ -297,33 +281,17 @@ void ScrollView::adjustScrollbars(int x, int y, bool refresh)
     }
 }
 
-WebCore::ScrollbarMode ScrollView::hScrollbarMode() const
-{
-    return m_data->hScrollbarMode;
-}
-
-WebCore::ScrollbarMode ScrollView::vScrollbarMode() const
-{
-    return m_data->vScrollbarMode;
-}
-
-bool ScrollView::isScrollable() 
-{ 
-    return true; // FIXME : return wether or not the view is scrollable
-}
-
-void ScrollView::setScrollbarsMode(ScrollbarMode newMode)
+void ScrollView::platformSetScrollbarModes()
 {
     bool needsAdjust = false;
 
-    if (m_data->hScrollbarMode != newMode) {
-        m_data->hScrollbarMode = newMode;
+    if (m_data->hScrollbarMode != horizontalScrollbarMode() ) {
+        m_data->hScrollbarMode = horizontalScrollbarMode();
         needsAdjust = true;
     }
 
-    if (m_data->vScrollbarMode != newMode) {
-        m_data->vScrollbarMode = newMode;
-        adjustScrollbars();
+    if (m_data->vScrollbarMode != horizontalScrollbarMode() ) {
+        m_data->vScrollbarMode = horizontalScrollbarMode();
         needsAdjust = true;
     }
 
@@ -331,57 +299,18 @@ void ScrollView::setScrollbarsMode(ScrollbarMode newMode)
         adjustScrollbars();
 }
 
-void ScrollView::setHScrollbarMode(ScrollbarMode newMode)
+void ScrollView::platformScrollbarModes(ScrollbarMode& horizontal, ScrollbarMode& vertical) const
 {
-    if (m_data->hScrollbarMode != newMode) {
-        m_data->hScrollbarMode = newMode;
-        adjustScrollbars();
-    }
+    horizontal = m_data->hScrollbarMode;
+    vertical = m_data->vScrollbarMode;
 }
 
-void ScrollView::setVScrollbarMode(ScrollbarMode newMode)
-{
-    if (m_data->vScrollbarMode != newMode) {
-        m_data->vScrollbarMode = newMode;
-        adjustScrollbars();
-    }
-}
-
-void ScrollView::suppressScrollbars(bool suppressed, bool repaintOnSuppress)
-{
-    if ( m_data->suppressScrollbars != suppressed )
-        m_data->suppressScrollbars = suppressed;
-}
-
-IntPoint ScrollView::contentsToWindow(const IntPoint& point) const
-{
-    return point - scrollOffset();
-}
-
-IntPoint ScrollView::windowToContents(const IntPoint& point) const
-{
-    return point + scrollOffset();
-}
-
-bool ScrollView::inWindow() const
+bool ScrollView::isOffscreen() const
 {
     // NB: This is called from RenderObject::willRenderImage
     // and really seems to be more of a "is the window in a valid state" test,
     // despite the API name.
-    return platformWidget() != NULL;
-}
-
-void ScrollView::wheelEvent(PlatformWheelEvent& e)
-{
-    // Determine how much we want to scroll.  If we can move at all, we will accept the event.
-    IntSize maxScrollDelta = maximumScroll();
-    if ((e.deltaX() < 0 && maxScrollDelta.width() > 0) ||
-        (e.deltaX() > 0 && scrollOffset().width() > 0) ||
-        (e.deltaY() < 0 && maxScrollDelta.height() > 0) ||
-        (e.deltaY() > 0 && scrollOffset().height() > 0)) {
-        e.accept();
-        scrollBy(-e.deltaX() * LINE_STEP, -e.deltaY() * LINE_STEP);
-    }
+    return platformWidget() == NULL;
 }
 
 // used for subframes support
@@ -402,20 +331,6 @@ void ScrollView::platformRemoveChild(Widget* widget)
         // but I'm not sure if it's better to handle there or not.
         widget->platformWidget()->Destroy();
     }
-}
-
-Scrollbar* ScrollView::scrollbarUnderMouse(const PlatformMouseEvent& mouseEvent)
-{
-    // AFAICT this is only used for platforms that provide
-    // feedback when mouse is hovered over.
-    return 0;
-}
-
-IntSize ScrollView::maximumScroll() const
-{
-    IntSize delta = (IntSize(contentsWidth(), contentsHeight()) - IntSize(visibleWidth(), visibleHeight())) - scrollOffset();
-    delta.clampNegativeToZero();
-    return delta;
 }
 
 }

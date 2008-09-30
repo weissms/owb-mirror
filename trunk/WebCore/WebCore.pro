@@ -11,6 +11,7 @@ contains(QT_CONFIG, embedded):CONFIG += embedded
 CONFIG(QTDIR_build) {
     GENERATED_SOURCES_DIR = $$PWD/generated
     include($$QT_SOURCE_TREE/src/qbase.pri)
+    CONFIG -= create_prl
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
 }
@@ -74,7 +75,7 @@ win32-g++ {
 contains(QT_CONFIG, phonon):DEFINES += ENABLE_VIDEO=1
 else:DEFINES += ENABLE_VIDEO=0
 
-unix:!mac:!embedded:!wince* {
+unix|win32-*:!mac:!embedded:!wince* {
     DEFINES += ENABLE_NETSCAPE_PLUGIN_API=1
     unix: DEFINES += XP_UNIX
 } else {
@@ -83,7 +84,7 @@ unix:!mac:!embedded:!wince* {
 
 DEFINES += WTF_USE_JAVASCRIPTCORE_BINDINGS=1 WTF_CHANGES=1
 
-INCLUDEPATH += $$PWD/../JavaScriptCore $$PWD/../JavaScriptCore/ForwardingHeaders \
+INCLUDEPATH += $$PWD $$PWD/../JavaScriptCore $$PWD/../JavaScriptCore/ForwardingHeaders \
                $$PWD/../JavaScriptCore/VM \
                $$PWD/../JavaScriptCore/kjs \
                $$PWD/../JavaScriptCore/bindings \
@@ -201,6 +202,8 @@ STYLESHEETS_EMBED = $$PWD/css/html4.css
 LUT_FILES += \
     bindings/js/JSDOMWindowBase.cpp \
     bindings/js/JSEventTargetBase.cpp \
+    bindings/js/JSEventTargetNode.cpp \
+    bindings/js/JSEventTargetSVGElementInstance.cpp \
     bindings/js/JSRGBColor.cpp
 
 IDL_BINDINGS += \
@@ -1086,6 +1089,7 @@ SOURCES += \
     win32-* {
         LIBS += -lgdi32
         LIBS += -luser32
+        LIBS += -lwinmm
     }
 
     # Files belonging to the Qt 4.3 build
@@ -1746,7 +1750,7 @@ addExtraCompilerWithHeader(idl)
 
 # GENERATOR 2-A: LUT creator
 lut.output = $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}.lut.h
-lut.commands = perl $$PWD/../JavaScriptCore/kjs/create_hash_table ${QMAKE_FILE_NAME} -i > ${QMAKE_FILE_OUT}
+lut.commands = perl $$PWD/../JavaScriptCore/kjs/create_hash_table ${QMAKE_FILE_NAME} -n WebCore > ${QMAKE_FILE_OUT}
 lut.depend = ${QMAKE_FILE_NAME}
 lut.input = LUT_FILES
 lut.CONFIG += no_link
@@ -1754,7 +1758,7 @@ addExtraCompiler(lut)
 
 # GENERATOR 2-B: like JavaScriptCore/LUT Generator, but rename output
 luttable.output = $$GENERATED_SOURCES_DIR/${QMAKE_FILE_BASE}Table.cpp
-luttable.commands = perl $$PWD/../JavaScriptCore/kjs/create_hash_table ${QMAKE_FILE_NAME} -i > ${QMAKE_FILE_OUT}
+luttable.commands = perl $$PWD/../JavaScriptCore/kjs/create_hash_table ${QMAKE_FILE_NAME} -n WebCore > ${QMAKE_FILE_OUT}
 luttable.depend = ${QMAKE_FILE_NAME}
 luttable.input = LUT_TABLE_FILES
 luttable.CONFIG += no_link

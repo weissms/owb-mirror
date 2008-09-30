@@ -42,68 +42,19 @@
 
 using namespace JSC;
 
-namespace WebCore {
-
 static JSValue* jsEventTargetAddEventListener(ExecState*, JSObject*, JSValue*, const ArgList&);
 static JSValue* jsEventTargetRemoveEventListener(ExecState*, JSObject*, JSValue*, const ArgList&);
 static JSValue* jsEventTargetDispatchEvent(ExecState*, JSObject*, JSValue*, const ArgList&);
-
-}
 
 #include "JSEventTargetBase.lut.h"
 
 namespace WebCore {
 
-/* Source for JSEventTargetPropertiesTable
-@begin JSEventTargetPropertiesTable
-onabort       WebCore::JSEventTargetProperties::OnAbort                DontDelete
-onblur        WebCore::JSEventTargetProperties::OnBlur                 DontDelete
-onchange      WebCore::JSEventTargetProperties::OnChange               DontDelete
-onclick       WebCore::JSEventTargetProperties::OnClick                DontDelete
-oncontextmenu WebCore::JSEventTargetProperties::OnContextMenu          DontDelete
-ondblclick    WebCore::JSEventTargetProperties::OnDblClick             DontDelete
-onbeforecut   WebCore::JSEventTargetProperties::OnBeforeCut            DontDelete
-oncut         WebCore::JSEventTargetProperties::OnCut                  DontDelete
-onbeforecopy  WebCore::JSEventTargetProperties::OnBeforeCopy           DontDelete
-oncopy        WebCore::JSEventTargetProperties::OnCopy                 DontDelete
-onbeforepaste WebCore::JSEventTargetProperties::OnBeforePaste          DontDelete
-onpaste       WebCore::JSEventTargetProperties::OnPaste                DontDelete
-ondrag        WebCore::JSEventTargetProperties::OnDrag                 DontDelete
-ondragend     WebCore::JSEventTargetProperties::OnDragEnd              DontDelete
-ondragenter   WebCore::JSEventTargetProperties::OnDragEnter            DontDelete
-ondragleave   WebCore::JSEventTargetProperties::OnDragLeave            DontDelete
-ondragover    WebCore::JSEventTargetProperties::OnDragOver             DontDelete
-ondragstart   WebCore::JSEventTargetProperties::OnDragStart            DontDelete
-ondrop        WebCore::JSEventTargetProperties::OnDrop                 DontDelete
-onerror       WebCore::JSEventTargetProperties::OnError                DontDelete
-onfocus       WebCore::JSEventTargetProperties::OnFocus                DontDelete
-oninput       WebCore::JSEventTargetProperties::OnInput                DontDelete
-onkeydown     WebCore::JSEventTargetProperties::OnKeyDown              DontDelete
-onkeypress    WebCore::JSEventTargetProperties::OnKeyPress             DontDelete
-onkeyup       WebCore::JSEventTargetProperties::OnKeyUp                DontDelete
-onload        WebCore::JSEventTargetProperties::OnLoad                 DontDelete
-onmousedown   WebCore::JSEventTargetProperties::OnMouseDown            DontDelete
-onmousemove   WebCore::JSEventTargetProperties::OnMouseMove            DontDelete
-onmouseout    WebCore::JSEventTargetProperties::OnMouseOut             DontDelete
-onmouseover   WebCore::JSEventTargetProperties::OnMouseOver            DontDelete
-onmouseup     WebCore::JSEventTargetProperties::OnMouseUp              DontDelete
-onmousewheel  WebCore::JSEventTargetProperties::OnMouseWheel           DontDelete
-onreset       WebCore::JSEventTargetProperties::OnReset                DontDelete
-onresize      WebCore::JSEventTargetProperties::OnResize               DontDelete
-onscroll      WebCore::JSEventTargetProperties::OnScroll               DontDelete
-onsearch      WebCore::JSEventTargetProperties::OnSearch               DontDelete
-onselect      WebCore::JSEventTargetProperties::OnSelect               DontDelete
-onselectstart WebCore::JSEventTargetProperties::OnSelectStart          DontDelete
-onsubmit      WebCore::JSEventTargetProperties::OnSubmit               DontDelete
-onunload      WebCore::JSEventTargetProperties::OnUnload               DontDelete
-@end
-*/
-
 /*
 @begin JSEventTargetPrototypeTable
-addEventListener        WebCore::jsEventTargetAddEventListener    DontDelete|Function 3
-removeEventListener     WebCore::jsEventTargetRemoveEventListener DontDelete|Function 3
-dispatchEvent           WebCore::jsEventTargetDispatchEvent       DontDelete|Function 1
+addEventListener    jsEventTargetAddEventListener       DontDelete|Function 3
+removeEventListener jsEventTargetRemoveEventListener    DontDelete|Function 3
+dispatchEvent       jsEventTargetDispatchEvent          DontDelete|Function 1
 @end
 */
 
@@ -134,9 +85,13 @@ static inline bool retrieveEventTargetAndCorrespondingNode(ExecState*, JSValue* 
     return false;
 }
 
+} // namespace WebCore
+
+using namespace WebCore;
+
 JSValue* jsEventTargetAddEventListener(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList& args)
 {
-    Node* eventNode = 0;
+    WebCore::Node* eventNode = 0;
     EventTarget* eventTarget = 0;
     if (!retrieveEventTargetAndCorrespondingNode(exec, thisValue, eventNode, eventTarget))
         return throwError(exec, TypeError);
@@ -153,7 +108,7 @@ JSValue* jsEventTargetAddEventListener(ExecState* exec, JSObject*, JSValue* this
 
 JSValue* jsEventTargetRemoveEventListener(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList& args)
 {
-    Node* eventNode = 0;
+    WebCore::Node* eventNode = 0;
     EventTarget* eventTarget = 0;
     if (!retrieveEventTargetAndCorrespondingNode(exec, thisValue, eventNode, eventTarget))
         return throwError(exec, TypeError);
@@ -170,7 +125,7 @@ JSValue* jsEventTargetRemoveEventListener(ExecState* exec, JSObject*, JSValue* t
 
 JSValue* jsEventTargetDispatchEvent(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList& args)
 {
-    Node* eventNode = 0;
+    WebCore::Node* eventNode = 0;
     EventTarget* eventTarget = 0;
     if (!retrieveEventTargetAndCorrespondingNode(exec, thisValue, eventNode, eventTarget))
         return throwError(exec, TypeError);
@@ -181,93 +136,7 @@ JSValue* jsEventTargetDispatchEvent(ExecState* exec, JSObject*, JSValue* thisVal
     return result;
 }
 
-const AtomicString& eventNameForPropertyToken(int token)
-{    
-    switch (token) {
-    case JSEventTargetProperties::OnAbort:
-        return abortEvent;
-    case JSEventTargetProperties::OnBlur:
-        return blurEvent;
-    case JSEventTargetProperties::OnChange:
-        return changeEvent;
-    case JSEventTargetProperties::OnClick:
-        return clickEvent;
-    case JSEventTargetProperties::OnContextMenu:
-        return contextmenuEvent;
-    case JSEventTargetProperties::OnDblClick:
-        return dblclickEvent;
-    case JSEventTargetProperties::OnError:
-        return errorEvent;
-    case JSEventTargetProperties::OnFocus:
-        return focusEvent;
-    case JSEventTargetProperties::OnInput:
-        return inputEvent;
-    case JSEventTargetProperties::OnKeyDown:
-        return keydownEvent;
-    case JSEventTargetProperties::OnKeyPress:
-        return keypressEvent;
-    case JSEventTargetProperties::OnKeyUp:
-        return keyupEvent;
-    case JSEventTargetProperties::OnLoad:
-        return loadEvent;
-    case JSEventTargetProperties::OnMouseDown:
-        return mousedownEvent;
-    case JSEventTargetProperties::OnMouseMove:
-        return mousemoveEvent;
-    case JSEventTargetProperties::OnMouseOut:
-        return mouseoutEvent;
-    case JSEventTargetProperties::OnMouseOver:
-        return mouseoverEvent;
-    case JSEventTargetProperties::OnMouseUp:
-        return mouseupEvent;      
-    case JSEventTargetProperties::OnMouseWheel:
-        return mousewheelEvent;      
-    case JSEventTargetProperties::OnBeforeCut:
-        return beforecutEvent;
-    case JSEventTargetProperties::OnCut:
-        return cutEvent;
-    case JSEventTargetProperties::OnBeforeCopy:
-        return beforecopyEvent;
-    case JSEventTargetProperties::OnCopy:
-        return copyEvent;
-    case JSEventTargetProperties::OnBeforePaste:
-        return beforepasteEvent;
-    case JSEventTargetProperties::OnPaste:
-        return pasteEvent;
-    case JSEventTargetProperties::OnDragEnter:
-        return dragenterEvent;
-    case JSEventTargetProperties::OnDragOver:
-        return dragoverEvent;
-    case JSEventTargetProperties::OnDragLeave:
-        return dragleaveEvent;
-    case JSEventTargetProperties::OnDrop:
-        return dropEvent;
-    case JSEventTargetProperties::OnDragStart:
-        return dragstartEvent;
-    case JSEventTargetProperties::OnDrag:
-        return dragEvent;
-    case JSEventTargetProperties::OnDragEnd:
-        return dragendEvent;
-    case JSEventTargetProperties::OnReset:
-        return resetEvent;
-    case JSEventTargetProperties::OnResize:
-        return resizeEvent;
-    case JSEventTargetProperties::OnScroll:
-        return scrollEvent;
-    case JSEventTargetProperties::OnSearch:
-        return searchEvent;
-    case JSEventTargetProperties::OnSelect:
-        return selectEvent;
-    case JSEventTargetProperties::OnSelectStart:
-        return selectstartEvent;
-    case JSEventTargetProperties::OnSubmit:
-        return submitEvent;
-    case JSEventTargetProperties::OnUnload:
-        return unloadEvent;
-    }
-
-    return nullAtom;
-}
+namespace WebCore {
 
 JSValue* toJS(ExecState* exec, EventTarget* target)
 {

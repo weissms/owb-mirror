@@ -74,7 +74,14 @@ namespace JSC {
         
         RegisterFile& registerFile() { return m_registerFile; }
         
-        static Opcode getOpcode(OpcodeID id);
+        Opcode getOpcode(OpcodeID id)
+        {
+            #if HAVE(COMPUTED_GOTO)
+                return m_opcodeTable[id];
+            #else
+                return id;
+            #endif
+        }
 
         OpcodeID getOpcodeID(Opcode opcode)
         {
@@ -152,6 +159,7 @@ namespace JSC {
         static JSValue* SFX_CALL cti_op_new_func(CTI_ARGS);
         static void* SFX_CALL cti_op_call_JSFunction(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_call_NotJSFunction(CTI_ARGS);
+        static void SFX_CALL cti_op_init_arguments(CTI_ARGS);
         static void SFX_CALL cti_op_ret_activation(CTI_ARGS);
         static void SFX_CALL cti_op_ret_profiler(CTI_ARGS);
         static void SFX_CALL cti_op_ret_scopeChain(CTI_ARGS);
@@ -222,7 +230,7 @@ namespace JSC {
 
         static void* SFX_CALL cti_vm_throw(CTI_ARGS);
         static void* SFX_CALL cti_vm_compile(CTI_ARGS);
-        static void SFX_CALL cti_vm_updateScopeChain(CTI_ARGS);
+        static void SFX_CALL cti_op_push_activation(CTI_ARGS);
         
 #endif // ENABLE(CTI)
 
@@ -235,23 +243,31 @@ namespace JSC {
     private:
         enum ExecutionFlag { Normal, InitializeAndReturn };
 
-        NEVER_INLINE JSValue* callEval(ExecState* exec, CodeBlock* callingCodeBlock, JSObject* thisObj, ScopeChainNode* scopeChain, RegisterFile*, Register* r, int argv, int argc, JSValue*& exceptionValue);
+        NEVER_INLINE JSValue* callEval(ExecState* exec, JSObject* thisObj, ScopeChainNode* scopeChain, RegisterFile*, Register* r, int argv, int argc, JSValue*& exceptionValue);
         JSValue* execute(EvalNode*, ExecState*, JSObject* thisObj, int registerOffset, ScopeChainNode*, JSValue** exception);
 
         ALWAYS_INLINE static void initializeCallFrame(Register* callFrame, CodeBlock*, Instruction*, ScopeChainNode*, Register* r, int returnValueRegister, int argc, JSValue* function);
 
-        ALWAYS_INLINE void setScopeChain(ExecState* exec, ScopeChainNode*&, ScopeChainNode*);
-        NEVER_INLINE void debug(ExecState*, const CodeBlock*, ScopeChainNode*, Register*, DebugHookID, int firstLine, int lastLine);
+        ALWAYS_INLINE static void setScopeChain(ExecState* exec, ScopeChainNode*&, ScopeChainNode*);
+        NEVER_INLINE void debug(ExecState*, ScopeChainNode*, Register*, DebugHookID, int firstLine, int lastLine);
+
+        NEVER_INLINE bool resolve(ExecState* exec, Instruction* vPC, Register* r, ScopeChainNode* scopeChain, JSValue*& exceptionValue);
+        NEVER_INLINE bool resolveSkip(ExecState* exec, Instruction* vPC, Register* r, ScopeChainNode* scopeChain, JSValue*& exceptionValue);
+        NEVER_INLINE bool resolveGlobal(ExecState* exec, Instruction* vPC, Register* r, JSValue*& exceptionValue);
+        NEVER_INLINE void resolveBase(ExecState* exec, Instruction* vPC, Register* r, ScopeChainNode* scopeChain);
+        NEVER_INLINE bool resolveBaseAndProperty(ExecState* exec, Instruction* vPC, Register* r, ScopeChainNode* scopeChain, JSValue*& exceptionValue);
+        NEVER_INLINE ScopeChainNode* createExceptionScope(ExecState* exec, const Instruction* vPC, Register* r, ScopeChainNode* scopeChain);
 
         NEVER_INLINE bool unwindCallFrame(ExecState*, JSValue*, const Instruction*&, CodeBlock*&, ScopeChainNode*&, Register*&);
-        NEVER_INLINE Instruction* throwException(ExecState*, JSValue*&, const Instruction*, CodeBlock*&, ScopeChainNode*&, Register*&, bool);
+        NEVER_INLINE Instruction* throwException(ExecState*, JSValue*&, const Instruction*, ScopeChainNode*&, Register*&, bool);
+        NEVER_INLINE bool resolveBaseAndFunc(ExecState* exec, Instruction* vPC, Register* r, ScopeChainNode* scopeChain, JSValue*& exceptionValue);
 
         Register* callFrame(ExecState*, InternalFunction*) const;
 
-        JSValue* privateExecute(ExecutionFlag, ExecState* = 0, RegisterFile* = 0, Register* = 0, ScopeChainNode* = 0, CodeBlock* = 0, JSValue** exception = 0);
+        JSValue* privateExecute(ExecutionFlag, ExecState* = 0, RegisterFile* = 0, Register* = 0, ScopeChainNode* = 0, JSValue** exception = 0);
 
-        void dumpCallFrame(const CodeBlock*, ScopeChainNode*, RegisterFile*, const Register*);
-        void dumpRegisters(const CodeBlock*, RegisterFile*, const Register*);
+        void dumpCallFrame(ScopeChainNode*, const RegisterFile*, const Register*);
+        void dumpRegisters(const RegisterFile*, const Register*);
 
         JSValue* checkTimeout(JSGlobalObject*);
         void resetTimeoutCheck();
@@ -289,7 +305,7 @@ namespace JSC {
         void* m_jsFunctionVptr;
 
 #if HAVE(COMPUTED_GOTO)
-        static Opcode s_opcodeTable[numOpcodeIDs]; // Maps OpcodeID => Opcode for compiling
+        Opcode m_opcodeTable[numOpcodeIDs]; // Maps OpcodeID => Opcode for compiling
         HashMap<Opcode, OpcodeID> m_opcodeIDTable; // Maps Opcode => OpcodeID for decompiling
 #endif
     };

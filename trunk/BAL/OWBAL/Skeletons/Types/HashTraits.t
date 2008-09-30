@@ -285,17 +285,6 @@ namespace WTF {
 
     template<> struct HashTraits<float> : FloatHashTraits<float> { };
     template<> struct HashTraits<double> : FloatHashTraits<double> { };
-
-    template<typename P> struct HashTraits<P*> : GenericHashTraits<P*> {
-        static const bool emptyValueIsZero = true;
-    /**
-     *  isDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static bool isDeletedValue(P* value) ;
     /**
      *  constructDeletedValue description
      * @param[in] : description
@@ -336,6 +325,39 @@ namespace WTF {
      * @endcode
      */
         static bool isDeletedValue(const TraitType& value) ;
+    
+    
+    
+    
+    
+
+    template<typename P> struct HashTraits<P*> : GenericHashTraits<P*> {
+        static const bool emptyValueIsZero = tru
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(RefPtr<P>& slot)
+    /**
+     *  emptyValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static TraitType emptyValue()
+
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(P*& slot) 
     
     
     
@@ -386,7 +408,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static bool isDeletedValue(const RefPtr<P>& value)
+        static bool isDeletedValue(const RefPtr<P>& value) ;
     /**
      *  constructDeletedValue description
      * @param[in] : description
@@ -394,7 +416,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(TraitType& slot)
+        static void constructDeletedValue(TraitType& slot) ;
     
     
     
@@ -659,5 +681,4 @@ using WTF::PairHashTrait
      * @param[in] : description
      * @param[out] : description
      * @code
-     * @endcode
-  
+     * @

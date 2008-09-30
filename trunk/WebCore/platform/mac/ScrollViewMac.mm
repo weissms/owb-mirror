@@ -28,11 +28,8 @@
 
 #import "BlockExceptions.h"
 #import "FloatRect.h"
-#import "Frame.h"
-#import "FrameView.h"
 #import "IntRect.h"
 #import "Logging.h"
-#import "Page.h"
 #import "WebCoreFrameView.h"
 
 using namespace std;
@@ -44,25 +41,13 @@ using namespace std;
 
 namespace WebCore {
 
-class ScrollView::ScrollViewPrivate {
-public:
-    ScrollViewPrivate()
-        : m_scrollbarsAvoidingResizer(0)
-    {
-    }
-
-    int m_scrollbarsAvoidingResizer;
-};
-
 ScrollView::ScrollView()
-    : m_data(new ScrollViewPrivate)
 {
     init();
 }
 
 ScrollView::~ScrollView()
 {
-    delete m_data;
 }
 
 inline NSScrollView<WebCoreFrameScrollView> *ScrollView::scrollView() const
@@ -70,16 +55,6 @@ inline NSScrollView<WebCoreFrameScrollView> *ScrollView::scrollView() const
     ASSERT(!platformWidget() || [platformWidget() isKindOfClass:[NSScrollView class]]);
     ASSERT(!platformWidget() || [platformWidget() conformsToProtocol:@protocol(WebCoreFrameScrollView)]);
     return static_cast<NSScrollView<WebCoreFrameScrollView> *>(platformWidget());
-}
-
-Scrollbar* ScrollView::horizontalScrollbar() const
-{
-    return 0;
-}
-
-Scrollbar* ScrollView::verticalScrollbar() const
-{
-    return 0;
 }
 
 void ScrollView::platformAddChild(Widget* child)
@@ -104,6 +79,20 @@ void ScrollView::platformRemoveChild(Widget* child)
     child->removeFromSuperview();
 }
 
+void ScrollView::platformSetScrollbarModes()
+{
+    BEGIN_BLOCK_OBJC_EXCEPTIONS;
+    [scrollView() setScrollingModes:m_horizontalScrollbarMode vertical:m_verticalScrollbarMode andLock:NO];
+    END_BLOCK_OBJC_EXCEPTIONS;
+}
+
+void ScrollView::platformScrollbarModes(ScrollbarMode& horizontal, ScrollbarMode& vertical) const
+{
+    BEGIN_BLOCK_OBJC_EXCEPTIONS;
+    [scrollView() scrollingModes:&horizontal vertical:&vertical];
+    END_BLOCK_OBJC_EXCEPTIONS;
+}
+    
 void ScrollView::platformSetCanBlitOnScroll()
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
@@ -143,12 +132,12 @@ void ScrollView::platformSetContentsSize()
     END_BLOCK_OBJC_EXCEPTIONS;
 }
 
-bool ScrollView::isScrollable() 
-{ 
+void ScrollView::platformSetScrollbarsSuppressed(bool repaintOnUnsuppress)
+{
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    return [scrollView() hasHorizontalScroller] || [scrollView() hasVerticalScroller];
+    [scrollView() setScrollBarsSuppressed:m_scrollbarsSuppressed
+                      repaintOnUnsuppress:repaintOnUnsuppress];
     END_BLOCK_OBJC_EXCEPTIONS;
-    return true;
 }
 
 void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
@@ -159,59 +148,11 @@ void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
     END_BLOCK_OBJC_EXCEPTIONS;
 }
 
-void ScrollView::setVScrollbarMode(ScrollbarMode vMode)
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    [scrollView() setVerticalScrollingMode:vMode];
-    END_BLOCK_OBJC_EXCEPTIONS;
-}
-
-void ScrollView::setHScrollbarMode(ScrollbarMode hMode)
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    [scrollView() setHorizontalScrollingMode:hMode];
-    END_BLOCK_OBJC_EXCEPTIONS;
-}
-
-void ScrollView::setScrollbarsMode(ScrollbarMode mode)
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    [scrollView() setScrollingMode:mode];
-    END_BLOCK_OBJC_EXCEPTIONS;
-}
-
-ScrollbarMode ScrollView::vScrollbarMode() const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    return [scrollView() verticalScrollingMode];
-    END_BLOCK_OBJC_EXCEPTIONS;
-    return ScrollbarAuto;
-}
-
-ScrollbarMode ScrollView::hScrollbarMode() const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    return [scrollView() horizontalScrollingMode];
-    END_BLOCK_OBJC_EXCEPTIONS;
-    return ScrollbarAuto;
-}
-
-void ScrollView::suppressScrollbars(bool suppressed, bool repaintOnUnsuppress)
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    [scrollView() setScrollBarsSuppressed:suppressed
-                      repaintOnUnsuppress:repaintOnUnsuppress];
-    END_BLOCK_OBJC_EXCEPTIONS;
-}
-
 void ScrollView::updateContents(const IntRect& rect, bool now)
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
 
     NSView *view = documentView();
-    if (!now && ![[view window] isVisible] && !shouldUpdateWhileOffscreen())
-        return;
-
     NSRect visibleRect = visibleContentRect();
 
     // Checking for rect visibility is an important optimization for the case of
@@ -240,53 +181,7 @@ void ScrollView::update()
     END_BLOCK_OBJC_EXCEPTIONS;
 }
 
-bool ScrollView::isScrollViewScrollbar(const Widget* child) const
-{
-    // Mac uses native NSScrollViews, so a child will never be one of those native NSScrollers.
-    return false;
-}
-
 // "Containing Window" means the NSWindow's coord system, which is origin lower left
-
-IntPoint ScrollView::contentsToWindow(const IntPoint& contentsPoint) const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    if (NSView* documentView = this->documentView()) {
-        NSPoint tempPoint = { contentsPoint.x(), contentsPoint.y() }; // Don't use NSMakePoint to work around 4213314.
-        return IntPoint([documentView convertPoint:tempPoint toView:nil]);
-    }
-    END_BLOCK_OBJC_EXCEPTIONS;
-    return IntPoint();
-}
-
-IntPoint ScrollView::windowToContents(const IntPoint& point) const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    if (NSView* documentView = this->documentView()) {
-        NSPoint tempPoint = { point.x(), point.y() }; // Don't use NSMakePoint to work around 4213314.
-        return IntPoint([documentView convertPoint:tempPoint fromView:nil]);
-    }
-    END_BLOCK_OBJC_EXCEPTIONS;
-    return IntPoint();
-}
-
-IntRect ScrollView::contentsToWindow(const IntRect& contentsRect) const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    if (NSView* documentView = this->documentView())
-        return IntRect([documentView convertRect:contentsRect toView:nil]);
-    END_BLOCK_OBJC_EXCEPTIONS;
-    return IntRect();
-}
-
-IntRect ScrollView::windowToContents(const IntRect& rect) const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    if (NSView* documentView = this->documentView())
-        return IntRect([documentView convertRect:rect fromView:nil]);
-    END_BLOCK_OBJC_EXCEPTIONS;
-    return IntRect();
-}
 
 IntRect ScrollView::contentsToScreen(const IntRect& rect) const
 {
@@ -320,48 +215,9 @@ NSView *ScrollView::documentView() const
     return nil;
 }
 
-Scrollbar* ScrollView::scrollbarUnderMouse(const PlatformMouseEvent&)
+bool ScrollView::isOffscreen() const
 {
-    return 0;
-}
-
-bool ScrollView::inWindow() const
-{
-    return [platformWidget() window];
-}
-
-void ScrollView::wheelEvent(PlatformWheelEvent&)
-{
-    // Do nothing. NSScrollView handles doing the scroll for us.
-}
-
-IntRect ScrollView::windowResizerRect()
-{
-    ASSERT(isFrameView());
-    const FrameView* frameView = static_cast<const FrameView*>(this);
-    Page* page = frameView->frame() ? frameView->frame()->page() : 0;
-    if (!page)
-        return IntRect();
-    return page->chrome()->windowResizerRect();
-}
-
-bool ScrollView::resizerOverlapsContent() const
-{
-    return !m_data->m_scrollbarsAvoidingResizer;
-}
-
-void ScrollView::adjustOverlappingScrollbarCount(int overlapDelta)
-{
-    m_data->m_scrollbarsAvoidingResizer += overlapDelta;
-    if (parent() && parent()->isFrameView())
-        static_cast<FrameView*>(parent())->adjustOverlappingScrollbarCount(overlapDelta);
-}
-
-void ScrollView::setParent(ScrollView* parentView)
-{
-    if (!parentView && m_data->m_scrollbarsAvoidingResizer && parent() && parent()->isFrameView())
-        static_cast<FrameView*>(parent())->adjustOverlappingScrollbarCount(false);
-    Widget::setParent(parentView);
+    return ![platformWidget() window] || ![[platformWidget() window] isVisible];
 }
 
 }
