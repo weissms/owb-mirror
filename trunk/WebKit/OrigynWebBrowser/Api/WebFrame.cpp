@@ -81,6 +81,7 @@
 #include <wtf/MathExtras.h>
 #include DEEPSEE_INCLUDE
 #include "ObserverServiceAddons.h"
+#include "ObserverServiceBookmarklet.h"
 #include "bal_instance.h"
 #include "runtime.h"
 #include "runtime_root.h"
@@ -186,12 +187,14 @@ WebFrame::WebFrame()
 #ifdef __BINDING_JS__
     m_bindingJS = new BindingJS();
 #endif
-    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", this); 
+    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(this)); 
+    OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this)); 
 }
 
 WebFrame::~WebFrame()
 {
-    OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", this); 
+    OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", static_cast<ObserverAddons*>(this));
+    OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this));  
 #ifdef __BINDING_JS__ 
     if (m_bindingJS)
         delete m_bindingJS;
@@ -1500,6 +1503,13 @@ void WebFrame::updateBackground()
 WebView* WebFrame::webView() const
 {
     return d->webView;
+}
+
+void WebFrame::observe(const String &topic, Bookmarklet *bookmarklet)
+{
+    ASSERT(bookmarklet);
+    if (topic == "ExecuteBookmarklet")
+        d->webView->stringByEvaluatingJavaScriptFromString(bookmarklet->data());
 }
 
 void WebFrame::observe(const String &topic, BalObject *obj)

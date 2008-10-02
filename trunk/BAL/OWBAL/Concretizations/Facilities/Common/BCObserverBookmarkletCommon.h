@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2007 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,41 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
-#include "config.h"
-#include "SharedBuffer.h"
-#include "FileIO.h"
-#include "CString.h"
+#ifndef OBSERVERBOOKMARKLET_H
+#define OBSERVERBOOKMARKLET_H
+
+#include "Observer.h"
+#include "PlatformString.h"
+
+class BalObject;
 
 namespace OWBAL {
 
-PassRefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
-{
-    if (filePath.isEmpty())
-        return 0;
+    using WebCore::String;
+    class Bookmarklet;
+    /**
+     * @brief the Observer
+     *
+     * The observer base class
+     *
+     */
+    class ObserverBookmarklet : public Observer {
+        public:
+            /**
+            * ObserverAddons destructor
+            */
+            virtual ~ObserverBookmarklet() {};
+            /**
+            * observe handler
+            */
+            virtual void observe(const String &topic, Bookmarklet *bookmarklet) = 0;
 
-    File *fileData = new File(filePath);
-    if (fileData->open('r') < 0) {
-        LOG_ERROR("Failed to open file %s to create shared buffer", filePath.ascii().data());
-        return 0;
-    }
-
-    int fileSize = fileData->getSize();
-    if (fileSize <= 0) {
-        fileData->close();
-        delete fileData;
-        return 0;
-    }
-
-    RefPtr<SharedBuffer> result = SharedBuffer::create(fileData->read(fileSize), fileSize);
-    fileData->close();
-    if (result->m_buffer.size() != static_cast<unsigned> (fileSize)) {
-        LOG_ERROR("Failed to properly create shared buffer");
-        result->m_buffer.clear();
-        result = 0;
-    }
-    delete fileData;
-    return result.release();
-}
+    };
 }
 
+#endif //BCOBSERVER_H

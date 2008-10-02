@@ -1,3 +1,19 @@
+2008-09-30  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Jean-Charles Verdie.
+        add modification for OrigynSuite
+        add observe bookmarklet
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::WebFrame):
+        (WebFrame::~WebFrame):
+        (WebFrame::observe):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchWillSendRequest):
+        (WebFrameLoaderClient::postProgressStartedNotification):
+        (WebFrameLoaderClient::postProgressFinishedNotification):
+
 2008-09-23  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -43,6 +43,9 @@
 #include "WebView.h"
 
 #include "ObserverServiceData.h"
+#ifdef __ORIGYNSUITE__
+#include "OrigynServer.h"
+#endif
 
 #include <DocumentLoader.h>
 #include <FrameLoader.h>
@@ -147,6 +150,9 @@ void WebFrameLoaderClient::dispatchDidCancelAuthenticationChallenge(DocumentLoad
 
 void WebFrameLoaderClient::dispatchWillSendRequest(DocumentLoader* loader, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
 {
+#ifdef __ORIGYNSUITE__
+    OrigynServer::get()->redirectRequest(request);
+#else
     /*WebView* webView = m_webFrame->webView();
     COMPtr<IWebResourceLoadDelegate> resourceLoadDelegate;
     if (FAILED(webView->resourceLoadDelegate(&resourceLoadDelegate)))
@@ -167,6 +173,7 @@ void WebFrameLoaderClient::dispatchWillSendRequest(DocumentLoader* loader, unsig
         return;
 
     request = newWebURLRequestImpl->resourceRequest();*/
+#endif
 }
 
 void WebFrameLoaderClient::dispatchDidReceiveResponse(DocumentLoader* loader, unsigned long identifier, const ResourceResponse& response)
@@ -387,6 +394,17 @@ void WebFrameLoaderClient::postProgressStartedNotification()
 #ifdef BENCH_LOAD_TIME
     gettimeofday(&m_timerStart, NULL);
 #endif
+
+#ifdef __ORIGYNSUITE__
+    ResourceRequest request = core(m_webFrame)->loader()->originalRequest();
+    // before each clic or new page, check if we have new infos from servers
+    OrigynServer::get()->redirectRequest(request);
+    // TODO give new request to loader
+    if (request.url() != core(m_webFrame)->loader()->originalRequest().url())
+        core(m_webFrame)->loader()->load(request);
+#endif
+
+
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressStartedNotification, "", m_webFrame->webView());
 }
 
@@ -398,6 +416,12 @@ void WebFrameLoaderClient::postProgressEstimateChangedNotification()
 void WebFrameLoaderClient::postProgressFinishedNotification()
 {
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressFinishedNotification, "", m_webFrame->webView());
+    
+#ifdef __ORIGYNSUITE__
+    if (OrigynServer::get()->syncNeeded())
+        OrigynServer::get()->synchronize(core(m_webFrame)); // sync if they are some
+#endif
+
     //FIXME : remove this notification
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "loadDone", NULL);
 #ifdef BENCH_LOAD_TIME

@@ -25,41 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
+/**
+ * @file  BCBookmarklet.h
+ *
+ * Header file for BCBookmarklet.
+ *
+ * Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date$
+ */
+
+#ifndef BOOKMARKLET_H
+#define BOOKMARKLET_H
+
 #include "config.h"
-#include "SharedBuffer.h"
-#include "FileIO.h"
-#include "CString.h"
+#include "BALBase.h"
+#include "PlatformString.h"
 
 namespace OWBAL {
 
-PassRefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
-{
-    if (filePath.isEmpty())
-        return 0;
+/**
+ * The BIBookmarklet implementation for Linux
+ */
 
-    File *fileData = new File(filePath);
-    if (fileData->open('r') < 0) {
-        LOG_ERROR("Failed to open file %s to create shared buffer", filePath.ascii().data());
-        return 0;
-    }
+    class Bookmarklet {
+        public:
+            Bookmarklet(String);
+            virtual ~Bookmarklet();
 
-    int fileSize = fileData->getSize();
-    if (fileSize <= 0) {
-        fileData->close();
-        delete fileData;
-        return 0;
-    }
+            virtual void replacePattern(String, String);
+            virtual String data() { return m_bookmarkletData; }
+            virtual void run();
+        private:
+            String m_bookmarkletData;
+    };
 
-    RefPtr<SharedBuffer> result = SharedBuffer::create(fileData->read(fileSize), fileSize);
-    fileData->close();
-    if (result->m_buffer.size() != static_cast<unsigned> (fileSize)) {
-        LOG_ERROR("Failed to properly create shared buffer");
-        result->m_buffer.clear();
-        result = 0;
-    }
-    delete fileData;
-    return result.release();
-}
 }
 
+#endif //BOOKMARKLET_H

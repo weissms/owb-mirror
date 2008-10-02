@@ -29,6 +29,9 @@
 
 #include "Logging.h"
 #include "ResourceHandleClient.h"
+#if __ORIGYNSUITE__
+#include "OrigynResourceHandleClient.h"
+#endif
 #include "Timer.h"
 #include <algorithm>
 
@@ -45,7 +48,12 @@ ResourceHandle::ResourceHandle(const ResourceRequest& request, ResourceHandleCli
 PassRefPtr<ResourceHandle> ResourceHandle::create(const ResourceRequest& request, ResourceHandleClient* client,
     Frame* frame, bool defersLoading, bool shouldContentSniff, bool mightDownloadFromHandle)
 {
+#if __ORIGYNSUITE__
+    ResourceHandleClient* forwardclient = new WebCore::OrigynResourceHandleClient(client);
+    RefPtr<ResourceHandle> newHandle(adoptRef(new ResourceHandle(request, forwardclient, defersLoading, shouldContentSniff, mightDownloadFromHandle)));
+#else
     RefPtr<ResourceHandle> newHandle(adoptRef(new ResourceHandle(request, client, defersLoading, shouldContentSniff, mightDownloadFromHandle)));
+#endif
 
     if (!request.url().isValid()) {
         newHandle->scheduleFailure(InvalidURLFailure);

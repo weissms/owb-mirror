@@ -105,7 +105,6 @@ void PluginView::hide()
 
 void PluginView::paintMissingPluginIcon(GraphicsContext* context, const IntRect& rect)
 {
-    
     if (m_status !=  PluginStatusLoadedSuccessfully) {
         static PassRefPtr<WebCore::Image> image;
         if (!image)
