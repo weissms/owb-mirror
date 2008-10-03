@@ -54,6 +54,8 @@
 #include <wtf/HashMap.h>
 #include <wtf/OwnPtr.h>
 #include "ObserverAddons.h"
+#include "ObserverBookmarklet.h"
+#include "Bookmarklet.h"
 
 namespace WebCore {
     class AuthenticationChallenge;
@@ -116,7 +118,7 @@ WebFrame* kit(WebCore::Frame*);
      */
 WebCore::Frame* core(WebFrame*);
 
-class WebFrame: public WebFrameLoaderClient, public OWBAL::ObserverAddons
+class WebFrame: public WebFrameLoaderClient, public OWBAL::ObserverAddons, public OWBAL::ObserverBookmarklet
 {
 public:
 
@@ -790,7 +792,8 @@ public:
     /** 
      * observe implementation
      */
-    virtual void observe(const OWBAL::String &topic, BalObject *obj);
+    virtual void observe(const OWBAL::String &topic, BalObject* obj);
+    virtual void observe(const OWBAL::String &topic, OWBAL::Bookmarklet* bookmarklet);
 
 protected:
 

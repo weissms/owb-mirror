@@ -1,3 +1,34 @@
+2008-10-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Jean-Charles Verdie.
+        add bookmarklet
+        add bookmarklet Observer
+        add Origynsuite
+
+        * OWBAL/Concretizations/Facilities/Common/BCBookmarkletCommon.cpp: Added.
+        (OWBAL::Bookmarklet::Bookmarklet):
+        (OWBAL::Bookmarklet::~Bookmarklet):
+        (OWBAL::Bookmarklet::replacePattern):
+        (OWBAL::Bookmarklet::run):
+        * OWBAL/Concretizations/Facilities/Common/BCBookmarkletCommon.h: Added.
+        (OWBAL::Bookmarklet::data):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverBookmarkletCommon.h: Added.
+        (OWBAL::ObserverBookmarklet::~ObserverBookmarklet):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceBookmarkletCommon.cpp: Added.
+        (OWBAL::ObserverServiceBookmarklet::createObserverService):
+        (OWBAL::ObserverServiceBookmarklet::ObserverServiceBookmarklet):
+        (OWBAL::ObserverServiceBookmarklet::registerObserver):
+        (OWBAL::ObserverServiceBookmarklet::notifyObserver):
+        (OWBAL::ObserverServiceBookmarklet::removeObserver):
+        * OWBAL/Concretizations/Facilities/Common/BCObserverServiceBookmarkletCommon.h: Added.
+        (OWBAL::ObserverServiceBookmarklet::~ObserverServiceBookmarklet):
+        * OWBAL/Concretizations/Types/SDL/BCSharedBufferSDL.cpp:
+        (OWBAL::SharedBuffer::createWithContentsOfFile):
+        * WKAL/Concretizations/Network/Curl/BCResourceHandleCurl.cpp:
+        (WKAL::ResourceHandle::~ResourceHandle):
+        * WKAL/Concretizations/Network/WK/BCResourceHandleWK.cpp:
+        (WKAL::ResourceHandle::create):
+
 2008-09-11  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Jean-Charles VERDIE <jcverdie@pleyo.com>.

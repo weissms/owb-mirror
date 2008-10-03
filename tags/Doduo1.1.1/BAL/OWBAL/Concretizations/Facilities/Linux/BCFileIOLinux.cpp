@@ -40,12 +40,16 @@ namespace OWBAL {
 
 File::File(const String path)
     : m_fd(0)
+    , m_fileDescriptor(0)
     , m_filePath(path)
+    , m_lineNumber(0)
 {
 }
 
 File::~File()
 {
+    if (m_fileDescriptor)
+        fclose(m_fileDescriptor);
     close();
 }
 
@@ -75,6 +79,53 @@ char* File::read(size_t size)
     ::read(m_fd, readData, size);
     readData[size] = '\0';
     return readData;
+}
+
+bool File::readLine(String &line, bool longLine)
+{
+    if (m_lineNumber == 0) {
+        m_fileDescriptor = fdopen(m_fd, "r");
+        if (!m_fileDescriptor)
+            return false;
+    }
+    if (longLine)
+        return readLongLine(line);
+    else
+        return readShortLine(line);
+}
+
+bool File::readLongLine(String &line)
+{
+    int character[1] = {0};
+    line = String();
+    while ((character[0] = fgetc(m_fileDescriptor)) != (int) '\n') {
+        if (character[0] == EOF) {
+            fclose(m_fileDescriptor);
+            m_fileDescriptor = 0;
+            m_lineNumber = 0;
+            return false;
+        }
+        line += (char*) character;
+    }
+    m_lineNumber++;
+    return true;
+}
+
+bool File::readShortLine(String &line)
+{
+    const uint8_t maxLength = 80;
+    char *lineBuffer = (char *) malloc(maxLength);
+    if (fgets(lineBuffer, maxLength, m_fileDescriptor) != NULL) {
+        m_lineNumber++;
+        line = lineBuffer;
+        free(lineBuffer);
+        line.remove(line.reverseFind('\n'));
+        return true;
+    }
+    fclose(m_fileDescriptor);
+    m_fileDescriptor = 0;
+    m_lineNumber = 0;
+    return false;
 }
 
 void File::write(String dataToWrite)

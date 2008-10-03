@@ -25,41 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
 #include "config.h"
-#include "SharedBuffer.h"
+#include "Bookmarklet.h"
+
 #include "FileIO.h"
+#include "PlatformString.h"
 #include "CString.h"
+#include "ObserverServiceBookmarklet.h"
+
 
 namespace OWBAL {
 
-PassRefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
+Bookmarklet::Bookmarklet(String filename)
 {
-    if (filePath.isEmpty())
-        return 0;
-
-    File *fileData = new File(filePath);
-    if (fileData->open('r') < 0) {
-        LOG_ERROR("Failed to open file %s to create shared buffer", filePath.ascii().data());
-        return 0;
-    }
-
-    int fileSize = fileData->getSize();
-    if (fileSize <= 0) {
-        fileData->close();
-        delete fileData;
-        return 0;
-    }
-
-    RefPtr<SharedBuffer> result = SharedBuffer::create(fileData->read(fileSize), fileSize);
-    fileData->close();
-    if (result->m_buffer.size() != static_cast<unsigned> (fileSize)) {
-        LOG_ERROR("Failed to properly create shared buffer");
-        result->m_buffer.clear();
-        result = 0;
-    }
-    delete fileData;
-    return result.release();
-}
+    File* file = new File(filename);
+    file->open('r');
+    m_bookmarkletData = file->read(file->getSize());
+    file->close();
+    delete file;
 }
 
+Bookmarklet::~Bookmarklet()
+{
+}
+
+void Bookmarklet::replacePattern(String remove, String replace)
+{
+    m_bookmarkletData.replace(remove, replace);
+}
+
+void Bookmarklet::run()
+{
+    OWBAL::ObserverServiceBookmarklet::createObserverService()->notifyObserver("ExecuteBookmarklet", this);
+}
+
+}

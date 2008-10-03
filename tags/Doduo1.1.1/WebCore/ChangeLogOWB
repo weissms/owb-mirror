@@ -1,0 +1,8 @@
+2008-10-02  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Jean-Charles Verdie.
+        remove a space
+
+        * plugins/SDL/PluginViewSDL.cpp:
+        (WebCore::PluginView::paintMissingPluginIcon):
+

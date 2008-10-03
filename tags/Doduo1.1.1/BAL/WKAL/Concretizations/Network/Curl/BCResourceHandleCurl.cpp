@@ -99,6 +99,10 @@ ResourceHandleInternal::~ResourceHandleInternal()
 ResourceHandle::~ResourceHandle()
 {
     cancel();
+#if __ORIGYNSUITE__
+    // delete our OrigynResourceHandleClient
+    delete d->client();
+#endif
 }
 
 bool ResourceHandle::start(Frame* frame)

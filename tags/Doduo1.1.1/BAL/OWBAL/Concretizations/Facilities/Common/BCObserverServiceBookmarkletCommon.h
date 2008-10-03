@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2007 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,41 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
-#include "config.h"
-#include "SharedBuffer.h"
-#include "FileIO.h"
-#include "CString.h"
+
+#ifndef OBSERVERSERVICEBOOKMARKLET_H
+#define OBSERVERSERVICEBOOKMARKLET_H
+
+#include "Observer.h"
+#include "StringHash.h"
+#include <wtf/HashMap.h>
+#include <wtf/Vector.h>
+#include "PlatformString.h"
+
+using WebCore::String;
 
 namespace OWBAL {
 
-PassRefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
-{
-    if (filePath.isEmpty())
-        return 0;
 
-    File *fileData = new File(filePath);
-    if (fileData->open('r') < 0) {
-        LOG_ERROR("Failed to open file %s to create shared buffer", filePath.ascii().data());
-        return 0;
-    }
+    class ObserverBookmarklet;
+    class Bookmarklet;
+    /**
+     * @brief the ObserverService
+     *
+     * The observer service implementation
+     *
+     */
+    class ObserverServiceBookmarklet {
+        public:
+            static ObserverServiceBookmarklet *createObserverService();
 
-    int fileSize = fileData->getSize();
-    if (fileSize <= 0) {
-        fileData->close();
-        delete fileData;
-        return 0;
-    }
-
-    RefPtr<SharedBuffer> result = SharedBuffer::create(fileData->read(fileSize), fileSize);
-    fileData->close();
-    if (result->m_buffer.size() != static_cast<unsigned> (fileSize)) {
-        LOG_ERROR("Failed to properly create shared buffer");
-        result->m_buffer.clear();
-        result = 0;
-    }
-    delete fileData;
-    return result.release();
-}
+            virtual void registerObserver(const String& topic, Observer* observer);
+            virtual void notifyObserver(const String &topic, Bookmarklet *);
+            virtual void removeObserver(const String& topic, Observer* observer);
+        private:
+            ObserverServiceBookmarklet();
+            virtual ~ObserverServiceBookmarklet() {};
+            HashMap<String, Vector<ObserverBookmarklet*> > m_topicData;
+    };
 }
 
+#endif //BCOBSERVERSERVICE_H
