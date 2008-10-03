@@ -48,6 +48,9 @@
     #endif
 #endif
 
+#include "TimeCounter.h"
+static WTF::TimeCounter networkCounter("network", false);
+
 namespace WKAL {
 
 const int selectTimeoutMS = 5;
@@ -93,10 +96,14 @@ ResourceHandleManager* ResourceHandleManager::sharedInstance()
 // called with data after all headers have been processed via headerCallback
 static size_t writeCallback(void* ptr, size_t size, size_t nmemb, void* data)
 {
+    networkCounter.stopCounting();
     ResourceHandle* job = static_cast<ResourceHandle*>(data);
     ResourceHandleInternal* d = job->getInternal();
-    if (d->m_cancelled)
+    if (d->m_cancelled) {
+        networkCounter.startCounting();
         return 0;
+    }
+
     size_t totalSize = size * nmemb;
 
     // this shouldn't be necessary but apparently is. CURL writes the data
@@ -105,8 +112,10 @@ static size_t writeCallback(void* ptr, size_t size, size_t nmemb, void* data)
     CURL* h = d->m_handle;
     long httpCode = 0;
     CURLcode err = curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE, &httpCode);
-    if (CURLE_OK == err && httpCode >= 300 && httpCode < 400)
+    if (CURLE_OK == err && httpCode >= 300 && httpCode < 400) {
+        networkCounter.startCounting();
         return totalSize;
+    }
 
     // since the code in headerCallback will not have run for local files
     // the code to set the URL and fire didReceiveResponse is never run,
@@ -124,6 +133,7 @@ static size_t writeCallback(void* ptr, size_t size, size_t nmemb, void* data)
 
     if (d->client())
         d->client()->didReceiveData(job, static_cast<char*>(ptr), totalSize, 0);
+    networkCounter.startCounting();
     return totalSize;
 }
 
@@ -138,6 +148,7 @@ static size_t writeCallback(void* ptr, size_t size, size_t nmemb, void* data)
  */
 static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
 {
+    networkCounter.stopCounting();
     ResourceHandle* job = static_cast<ResourceHandle*>(data);
     ResourceHandleInternal* d = job->getInternal();
     if (d->m_cancelled)
@@ -187,6 +198,8 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
 
                 d->m_request.setURL(newURL);
 
+                networkCounter.startCounting();
+
                 return totalSize;
             }
         }
@@ -201,6 +214,7 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
             d->m_response.setHTTPHeaderField(header.left(splitPos), header.substring(splitPos+1).stripWhiteSpace());
     }
 
+    networkCounter.startCounting();
     return totalSize;
 }
 
@@ -243,6 +257,7 @@ void ResourceHandleManager::downloadTimerCallback(Timer<ResourceHandleManager>* 
     // Temporarily disable timers since signals may interrupt select(), raising EINTR errors on some platforms
     setDeferringTimers(true);
     int rc = 0;
+    networkCounter.startCounting();
     do {
         FD_ZERO(&fdread);
         FD_ZERO(&fdwrite);
@@ -266,6 +281,7 @@ void ResourceHandleManager::downloadTimerCallback(Timer<ResourceHandleManager>* 
     int runningHandles = 0;
     while (curl_multi_perform(m_curlMultiHandle, &runningHandles) == CURLM_CALL_MULTI_PERFORM) { }
 
+    networkCounter.stopCounting();
     // check the curl messages indicating completed transfers
     // and free their resources
     while (true) {

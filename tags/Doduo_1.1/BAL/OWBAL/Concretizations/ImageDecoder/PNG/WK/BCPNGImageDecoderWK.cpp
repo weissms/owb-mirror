@@ -47,6 +47,9 @@
 #pragma warning(disable : 4611) // warning C4611: interaction between '_setjmp' and C++ object destruction is non-portable
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter pngDecodeCounter("PNG decoding", true);
+
 namespace OWBAL {
 
 // Gamma constants.
@@ -99,11 +102,13 @@ public:
 
     void decode(const Vector<char>& data, bool sizeOnly)
     {
+        pngDecodeCounter.startCounting();
         m_decodingSizeOnly = sizeOnly;
 
         // We need to do the setjmp here. Otherwise bad things will happen
         if (setjmp(m_png->jmpbuf)) {
             close();
+            pngDecodeCounter.stopCounting();
             return;
         }
 
@@ -114,6 +119,7 @@ public:
         unsigned remaining = data.size() - m_readOffset;
         m_readOffset = data.size();
         png_process_data(m_png, m_info, (png_bytep)(data.data()) + offset, remaining);
+        pngDecodeCounter.stopCounting();
     }
 
     bool decodingSizeOnly() const { return m_decodingSizeOnly; }

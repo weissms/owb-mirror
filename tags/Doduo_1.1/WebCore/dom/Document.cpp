@@ -138,6 +138,9 @@
 #include "SVGStyleElement.h"
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter recalcStyleCounter("recalcStyle", true);
+
 using namespace std;
 using namespace WTF;
 using namespace Unicode;
@@ -1088,6 +1091,7 @@ void Document::recalcStyle(StyleChange change)
     if (m_inStyleRecalc)
         return; // Guard against re-entrancy. -dwh
         
+    recalcStyleCounter.startCounting();
     m_inStyleRecalc = true;
     suspendPostAttachCallbacks();
     
@@ -1160,6 +1164,8 @@ bail_out:
         m_closeAfterStyleRecalc = false;
         implicitClose();
     }
+
+    recalcStyleCounter.stopCounting();
 }
 
 void Document::updateRendering()

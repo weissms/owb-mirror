@@ -47,6 +47,9 @@
 #pragma warning(disable : 4611) // warning C4611: interaction between '_setjmp' and C++ object destruction is non-portable
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter jpegDecodeCounter("JPEG decoding", true);
+
 extern "C" {
 #include "jpeglib.h"
 }
@@ -153,6 +156,7 @@ public:
     }
 
     bool decode(const Vector<char>& data, bool sizeOnly) {
+        jpegDecodeCounter.startCounting();
         m_decodingSizeOnly = sizeOnly;
         
         unsigned newByteCount = data.size() - m_bufferLength;
@@ -171,6 +175,7 @@ public:
         if (setjmp(m_err.setjmp_buffer)) {
             m_state = JPEG_SINK_NON_JPEG_TRAILER;
             close();
+            jpegDecodeCounter.stopCounting();
             return false;
         }
 
@@ -178,8 +183,10 @@ public:
             case JPEG_HEADER:
             {
                 /* Read file parameters with jpeg_read_header() */
-                if (jpeg_read_header(&m_info, true) == JPEG_SUSPENDED)
+                if (jpeg_read_header(&m_info, true) == JPEG_SUSPENDED) {
+                    jpegDecodeCounter.stopCounting();
                     return true; /* I/O suspension */
+                }
 
                 /* let libjpeg take care of gray->RGB and YCbCr->RGB conversions */
                 switch (m_info.jpeg_color_space) {
@@ -192,6 +199,7 @@ public:
                     case JCS_YCCK:
                     default:
                         m_state = JPEG_ERROR;
+                        jpegDecodeCounter.stopCounting();
                         return false;
                 }
 
@@ -228,6 +236,7 @@ public:
                     // Reduce our buffer length and available data.
                     m_bufferLength -= m_info.src->bytes_in_buffer;
                     m_info.src->bytes_in_buffer = 0;
+                    jpegDecodeCounter.stopCounting();
                     return true;
                 }
             }
@@ -245,8 +254,10 @@ public:
                 m_info.do_block_smoothing = true;
 
                 /* Start decompressor */
-                if (!jpeg_start_decompress(&m_info))
+                if (!jpeg_start_decompress(&m_info)) {
+                    jpegDecodeCounter.stopCounting();
                     return true; /* I/O suspension */
+                }
 
                 /* If this is a progressive JPEG ... */
                 m_state = (m_info.buffered_image) ? JPEG_DECOMPRESS_PROGRESSIVE : JPEG_DECOMPRESS_SEQUENTIAL;
@@ -256,9 +267,11 @@ public:
             {
                 if (m_state == JPEG_DECOMPRESS_SEQUENTIAL) {
       
-                    if (!m_decoder->outputScanlines())
+                    if (!m_decoder->outputScanlines()) {
+                        jpegDecodeCounter.stopCounting();
                         return true; /* I/O suspension */
-      
+                    }
+
                     /* If we've completed image output ... */
                     assert(m_info.output_scanline == m_info.output_height);
                     m_state = JPEG_DONE;
@@ -286,8 +299,10 @@ public:
                                 (status != JPEG_REACHED_EOI))
                                 scan--;
 
-                            if (!jpeg_start_output(&m_info, scan))
+                            if (!jpeg_start_output(&m_info, scan)) {
+                                jpegDecodeCounter.stopCounting();
                                 return true; /* I/O suspension */
+                            }
                         }
 
                         if (m_info.output_scanline == 0xffffff)
@@ -298,12 +313,15 @@ public:
                                 /* didn't manage to read any lines - flag so we don't call
                                 jpeg_start_output() multiple times for the same scan */
                                 m_info.output_scanline = 0xffffff;
+                            jpegDecodeCounter.stopCounting();
                             return true; /* I/O suspension */
                         }
 
                         if (m_info.output_scanline == m_info.output_height) {
-                            if (!jpeg_finish_output(&m_info))
+                            if (!jpeg_finish_output(&m_info)) {
+                                jpegDecodeCounter.stopCounting();
                                 return true; /* I/O suspension */
+                            }
 
                             if (jpeg_input_complete(&m_info) &&
                                 (m_info.input_scan_number == m_info.output_scan_number))
@@ -320,8 +338,10 @@ public:
             case JPEG_DONE:
             {
                 /* Finish decompression */
-                if (!jpeg_finish_decompress(&m_info))
+                if (!jpeg_finish_decompress(&m_info)) {
+                    jpegDecodeCounter.stopCounting();
                     return true; /* I/O suspension */
+                }
 
                 m_state = JPEG_SINK_NON_JPEG_TRAILER;
 
@@ -336,6 +356,7 @@ public:
                 break;
         }
 
+        jpegDecodeCounter.stopCounting();
         return true;
     }
 

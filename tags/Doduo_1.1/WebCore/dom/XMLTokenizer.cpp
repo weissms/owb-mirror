@@ -69,6 +69,9 @@
 #include "XLinkNames.h"
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter parserCounter("XML parsing", false);
+
 using namespace std;
 
 namespace WebCore {
@@ -700,7 +703,9 @@ bool XMLTokenizer::write(const SegmentedString& s, bool /*appendData*/)
 #ifndef USE_QXMLSTREAM
     if (!m_context)
         initializeParserContext();
-    
+
+    parserCounter.startCounting();
+
     // libXML throws an error if you try to switch the encoding for an empty string.
     if (parseString.length()) {
         // Hack around libxml2's lack of encoding overide support by manually
@@ -743,6 +748,8 @@ bool XMLTokenizer::write(const SegmentedString& s, bool /*appendData*/)
     }
 #endif
     
+    parserCounter.stopCounting();
+
     if (m_doc->decoder() && m_doc->decoder()->sawError()) {
         // If the decoder saw an error, report it as fatal (stops parsing)
         handleError(fatal, "Encoding error", lineNumber(), columnNumber());
@@ -1122,7 +1129,9 @@ static void startElementNsHandler(void* closure, const xmlChar* localname, const
     if (hackAroundLibXMLEntityBug(closure))
         return;
 
+    parserCounter.stopCounting();
     getTokenizer(closure)->startElementNs(localname, prefix, uri, nb_namespaces, namespaces, nb_attributes, nb_defaulted, libxmlAttributes);
+    parserCounter.startCounting();
 }
 
 static void endElementNsHandler(void* closure, const xmlChar* localname, const xmlChar* prefix, const xmlChar* uri)
@@ -1130,7 +1139,9 @@ static void endElementNsHandler(void* closure, const xmlChar* localname, const x
     if (hackAroundLibXMLEntityBug(closure))
         return;
     
+    parserCounter.stopCounting();
     getTokenizer(closure)->endElementNs();
+    parserCounter.startCounting();
 }
 
 static void charactersHandler(void* closure, const xmlChar* s, int len)
@@ -1138,7 +1149,9 @@ static void charactersHandler(void* closure, const xmlChar* s, int len)
     if (hackAroundLibXMLEntityBug(closure))
         return;
     
+    parserCounter.stopCounting();
     getTokenizer(closure)->characters(s, len);
+    parserCounter.startCounting();
 }
 
 static void processingInstructionHandler(void* closure, const xmlChar* target, const xmlChar* data)
@@ -1146,7 +1159,9 @@ static void processingInstructionHandler(void* closure, const xmlChar* target, c
     if (hackAroundLibXMLEntityBug(closure))
         return;
     
+    parserCounter.stopCounting();
     getTokenizer(closure)->processingInstruction(target, data);
+    parserCounter.startCounting();
 }
 
 static void cdataBlockHandler(void* closure, const xmlChar* s, int len)
@@ -1154,7 +1169,9 @@ static void cdataBlockHandler(void* closure, const xmlChar* s, int len)
     if (hackAroundLibXMLEntityBug(closure))
         return;
     
+    parserCounter.stopCounting();
     getTokenizer(closure)->cdataBlock(s, len);
+    parserCounter.startCounting();
 }
 
 static void commentHandler(void* closure, const xmlChar* comment)
@@ -1162,34 +1179,42 @@ static void commentHandler(void* closure, const xmlChar* comment)
     if (hackAroundLibXMLEntityBug(closure))
         return;
     
+    parserCounter.stopCounting();
     getTokenizer(closure)->comment(comment);
+    parserCounter.startCounting();
 }
 
 WTF_ATTRIBUTE_PRINTF(2, 3)
 static void warningHandler(void* closure, const char* message, ...)
 {
+    parserCounter.stopCounting();
     va_list args;
     va_start(args, message);
     getTokenizer(closure)->error(XMLTokenizer::warning, message, args);
     va_end(args);
+    parserCounter.startCounting();
 }
 
 WTF_ATTRIBUTE_PRINTF(2, 3)
 static void fatalErrorHandler(void* closure, const char* message, ...)
 {
+    parserCounter.stopCounting();
     va_list args;
     va_start(args, message);
     getTokenizer(closure)->error(XMLTokenizer::fatal, message, args);
     va_end(args);
+    parserCounter.startCounting();
 }
 
 WTF_ATTRIBUTE_PRINTF(2, 3)
 static void normalErrorHandler(void* closure, const char* message, ...)
 {
+    parserCounter.stopCounting();
     va_list args;
     va_start(args, message);
     getTokenizer(closure)->error(XMLTokenizer::nonFatal, message, args);
     va_end(args);
+    parserCounter.startCounting();
 }
 
 // Using a global variable entity and marking it XML_INTERNAL_PREDEFINED_ENTITY is
@@ -1392,6 +1417,7 @@ void XMLTokenizer::end()
 #endif
 
 #ifndef USE_QXMLSTREAM
+    parserCounter.startCounting();
     if (m_context) {
         // Tell libxml we're done.
         xmlParseChunk(m_context, 0, 0, 1);
@@ -1641,6 +1667,8 @@ bool parseXMLDocumentFragment(const String& chunk, DocumentFragment* fragment, E
     XMLTokenizer tokenizer(fragment, parent);
     
 #ifndef USE_QXMLSTREAM
+    parserCounter.startCounting();
+
     tokenizer.initializeParserContext(chunk.utf8().data());
 
     xmlParseContent(tokenizer.m_context);
@@ -1649,8 +1677,12 @@ bool parseXMLDocumentFragment(const String& chunk, DocumentFragment* fragment, E
 
     // Check if all the chunk has been processed.
     long bytesProcessed = xmlByteConsumed(tokenizer.m_context);
-    if (bytesProcessed == -1 || ((unsigned long)bytesProcessed) == sizeof(UChar) * chunk.length())
+    if (bytesProcessed == -1 || ((unsigned long)bytesProcessed) == sizeof(UChar) * chunk.length()) {
+        parserCounter.stopCounting();
         return false;
+    }
+
+    parserCounter.stopCounting();
 
     // No error if the chunk is well formed or it is not but we have no error.
     return tokenizer.m_context->wellFormed || xmlCtxtGetLastError(tokenizer.m_context) == 0;
@@ -1693,6 +1725,7 @@ static void attributesStartElementNsHandler(void* closure, const xmlChar* xmlLoc
         
         state->attributes.set(attrQName, attrValue);
     }
+    parserCounter.stopCounting();
 }
 #else
 static void attributesStartElementNsHandler(AttributeParseState* state, const QXmlStreamAttributes& attrs)
@@ -1715,6 +1748,7 @@ static void attributesStartElementNsHandler(AttributeParseState* state, const QX
 
 HashMap<String, String> parseAttributes(const String& string, bool& attrsOK)
 {
+    parserCounter.startCounting();    
     AttributeParseState state;
     state.gotAttributes = false;
 
@@ -1741,6 +1775,7 @@ HashMap<String, String> parseAttributes(const String& string, bool& attrsOK)
     }
 #endif
     attrsOK = state.gotAttributes;
+    parserCounter.stopCounting();    
     return state.attributes;
 }
 

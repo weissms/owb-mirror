@@ -35,6 +35,9 @@
 #include <pthread.h>
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter garbageCollectorCounter("garbage collector", true);
+
 using namespace KJS;
 
 namespace WebCore {
@@ -43,8 +46,10 @@ namespace WebCore {
 
 static void* collect(void*)
 {
+    garbageCollectorCounter.startCounting();
     JSLock lock(false);
     JSDOMWindow::commonJSGlobalData()->heap->collect();
+    garbageCollectorCounter.stopCounting();
     return 0;
 }
 
@@ -69,14 +74,18 @@ void GCController::garbageCollectSoon()
 
 void GCController::gcTimerFired(Timer<GCController>*)
 {
+    garbageCollectorCounter.startCounting();
     JSLock lock(false);
     JSDOMWindow::commonJSGlobalData()->heap->collect();
+    garbageCollectorCounter.stopCounting();
 }
 
 void GCController::garbageCollectNow()
 {
+    garbageCollectorCounter.startCounting();
     JSLock lock(false);
     JSDOMWindow::commonJSGlobalData()->heap->collect();
+    garbageCollectorCounter.stopCounting();
 }
 
 void GCController::garbageCollectOnAlternateThreadForDebugging(bool waitUntilDone)

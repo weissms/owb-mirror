@@ -32,6 +32,9 @@
 #include "Font.h"
 #include "NotImplemented.h"
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter drawImageCounter("draw image", true);
+
 using namespace std;
 
 namespace WKAL {
@@ -336,6 +339,8 @@ void GraphicsContext::drawImage(Image* image, const FloatRect& dest, const Float
     if (paintingDisabled() || !image)
         return;
 
+    drawImageCounter.startCounting();
+
     float tsw = src.width();
     float tsh = src.height();
     float tw = dest.width();
@@ -358,6 +363,8 @@ void GraphicsContext::drawImage(Image* image, const FloatRect& dest, const Float
     image->draw(this, FloatRect(dest.location(), FloatSize(tw, th)), FloatRect(src.location(), FloatSize(tsw, tsh)), op);
     if (useLowQualityScale)
         restore();
+
+    drawImageCounter.stopCounting();
 }
 
 void GraphicsContext::drawTiledImage(Image* image, const IntRect& rect, const IntPoint& srcPoint, const IntSize& tileSize, CompositeOperator op)

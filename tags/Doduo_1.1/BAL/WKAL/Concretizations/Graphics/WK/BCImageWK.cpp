@@ -38,6 +38,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter drawPatternCounter("draw pattern", true);
+
 namespace WKAL {
 
 Image::Image(ImageObserver* observer)
@@ -150,7 +153,9 @@ void Image::drawTiled(GraphicsContext* ctxt, const FloatRect& destRect, const Fl
     }
 
     FloatRect tileRect(FloatPoint(), intrinsicTileSize);    
+    drawPatternCounter.startCounting();
     drawPattern(ctxt, tileRect, patternTransform, oneTileRect.location(), op, destRect);
+    drawPatternCounter.stopCounting();
     
     startAnimation();
 }
@@ -182,7 +187,9 @@ void Image::drawTiled(GraphicsContext* ctxt, const FloatRect& dstRect, const Flo
         vPhase -= fmodf(dstRect.height(), scale.height() * srcRect.height()) / 2.0f;
     FloatPoint patternPhase(dstRect.x() - hPhase, dstRect.y() - vPhase);
     
+    drawPatternCounter.startCounting();
     drawPattern(ctxt, srcRect, patternTransform, patternPhase, op, dstRect);
+    drawPatternCounter.stopCounting();
 
     startAnimation();
 }

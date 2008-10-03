@@ -39,6 +39,10 @@
 #include <unicode/unorm.h>
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter drawGlyphCounter("draw glyph", true);
+static WTF::TimeCounter drawComplexTextCounter("draw complex text (may overlap with draw glyph)", true);
+
 using namespace WTF;
 using namespace Unicode;
 
@@ -666,7 +670,9 @@ void Font::drawGlyphBuffer(GraphicsContext* context, const GlyphBuffer& glyphBuf
         const SimpleFontData* nextFontData = glyphBuffer.fontDataAt(nextGlyph);
         FloatSize nextOffset = glyphBuffer.offsetAt(nextGlyph);
         if (nextFontData != fontData || nextOffset != offset) {
+            drawGlyphCounter.startCounting();
             drawGlyphs(context, fontData, glyphBuffer, lastFrom, nextGlyph - lastFrom, startPoint);
+            drawGlyphCounter.stopCounting();
 
             lastFrom = nextGlyph;
             fontData = nextFontData;
@@ -677,7 +683,9 @@ void Font::drawGlyphBuffer(GraphicsContext* context, const GlyphBuffer& glyphBuf
         nextGlyph++;
     }
 
+    drawGlyphCounter.startCounting();
     drawGlyphs(context, fontData, glyphBuffer, lastFrom, nextGlyph - lastFrom, startPoint);
+    drawGlyphCounter.stopCounting();
 }
 
 void Font::drawText(GraphicsContext* context, const TextRun& run, const FloatPoint& point, int from, int to) const
@@ -697,8 +705,11 @@ void Font::drawText(GraphicsContext* context, const TextRun& run, const FloatPoi
 
     if (canUseGlyphCache(run))
         drawSimpleText(context, run, point, from, to);
-    else
+    else {
+        drawComplexTextCounter.startCounting();
         drawComplexText(context, run, point, from, to);
+        drawComplexTextCounter.stopCounting();
+    }
 }
 
 float Font::floatWidth(const TextRun& run) const

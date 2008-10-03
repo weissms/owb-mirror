@@ -1,3 +1,45 @@
+2008-10-03  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #300: Add some probes to evaluate the OWB spends in each engine parts
+
+        * OWBAL/Concretizations/ImageDecoder/GIF/WK/BCGIFImageReaderWK.cpp:
+        (GIFImageReader::read):
+        * OWBAL/Concretizations/ImageDecoder/JPEG/WK/BCJPEGImageDecoderWK.cpp:
+        (OWBAL::JPEGImageReader::decode):
+        * OWBAL/Concretizations/ImageDecoder/PNG/WK/BCPNGImageDecoderWK.cpp:
+        (OWBAL::PNGImageReader::decode):
+        Add 3 timers to probe image decoding.
+
+        * OWBAL/Concretizations/Types/CMakeLists.txt: Add the BCTimeCounterWK.* files.
+
+        * OWBAL/Concretizations/Types/WK/BCTimeCounterWK.cpp: Added.
+        (WTF::TimeCounter::TimeCounter):
+        (WTF::TimeCounter::~TimeCounter):
+        (WTF::TimeCounter::startCounting):
+        (WTF::TimeCounter::stopCounting):
+        * OWBAL/Concretizations/Types/WK/BCTimeCounterWK.h: Added.
+
+        * WKAL/Concretizations/Fonts/WK/BCFontWK.cpp:
+        (WKAL::Font::drawGlyphBuffer):
+        (WKAL::Font::drawText):
+        Add a timer for the drawGlyph and the drawText methods.
+
+        * WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp:
+        (WKAL::GraphicsContext::drawImage):
+        Add a timer for drawImage.
+
+        * WKAL/Concretizations/Graphics/WK/BCImageWK.cpp:
+        (WKAL::Image::drawTiled):
+        Add a timer for drawPattern.
+
+        * WKAL/Concretizations/Network/Curl/BCResourceHandleManagerCurl.cpp:
+        (WKAL::writeCallback):
+        (WKAL::headerCallback):
+        (WKAL::ResourceHandleManager::downloadTimerCallback):
+        Add a timer for the network code (measure the time spend in libcURL).
+
 2008-07-24  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Mario Bensi.

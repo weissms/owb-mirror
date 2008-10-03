@@ -44,6 +44,9 @@
 #include "JSSVGLazyEventListener.h"
 #endif
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter scriptCounter("scripts", true);
+ 
 using namespace KJS;
 using namespace WebCore::EventNames;
 
@@ -70,6 +73,7 @@ ScriptController::~ScriptController()
 
 JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const String& str) 
 {
+    scriptCounter.startCounting();
     // evaluate code. Returns the JS return value or 0
     // if there was none, an error occured or the type couldn't be converted.
 
@@ -94,6 +98,7 @@ JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const
 
     if (comp.complType() == Normal || comp.complType() == ReturnValue) {
         m_sourceURL = savedSourceURL;
+        scriptCounter.stopCounting();
         return comp.value();
     }
 
@@ -101,6 +106,7 @@ JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const
         m_frame->domWindow()->console()->reportException(exec, comp.value());
 
     m_sourceURL = savedSourceURL;
+    scriptCounter.stopCounting();
     return 0;
 }
 
