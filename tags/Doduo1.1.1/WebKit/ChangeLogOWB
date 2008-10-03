@@ -1,3 +1,11 @@
+2008-10-03  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #300: Add some probes to evaluate the OWB spends in each engine parts
+
+        * OrigynWebBrowser/CMakeLists.txt: Moved the BENCH_LOAD_TIME option to the root CMakeLists.txt.
+
 2008-10-02  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Jean-Charles Verdie.

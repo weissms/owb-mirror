@@ -49,6 +49,9 @@
 
 #include "HTMLEntityNames.c"
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter parserCounter("HTML parsing", false);
+
 #define PRELOAD_SCANNER_ENABLED 1
 // #define INSTRUMENT_LAYOUT_SCHEDULING 1
 
@@ -1611,12 +1614,15 @@ bool HTMLTokenizer::write(const SegmentedString& str, bool appendData)
 #ifdef TOKEN_DEBUG
     kdDebug( 6036 ) << this << " Tokenizer::write(\"" << str.toString() << "\"," << appendData << ")" << endl;
 #endif
+    parserCounter.startCounting();
 
     if (!buffer)
         return false;
     
-    if (m_parserStopped)
+    if (m_parserStopped) {
+        parserCounter.stopCounting();
         return false;
+    }
 
     SegmentedString source(str);
     if (m_executingScript)
@@ -1633,6 +1639,7 @@ bool HTMLTokenizer::write(const SegmentedString& str, bool appendData)
                 m_preloadScanner->write(source);
 #endif
         }
+        parserCounter.stopCounting();
         return false;
     }
     
@@ -1647,8 +1654,10 @@ bool HTMLTokenizer::write(const SegmentedString& str, bool appendData)
         setSrc(source);
 
     // Once a timer is set, it has control of when the tokenizer continues.
-    if (m_timer.isActive())
+    if (m_timer.isActive()) {
+        parserCounter.stopCounting();
         return false;
+    }
 
     bool wasInWrite = inWrite;
     inWrite = true;
@@ -1786,6 +1795,8 @@ bool HTMLTokenizer::write(const SegmentedString& str, bool appendData)
 
     m_state = state;
 
+    parserCounter.stopCounting();
+
     if (noMoreData && !inWrite && !state.loadingExtScript() && !m_executingScript && !m_timer.isActive()) {
         end(); // this actually causes us to be deleted
         return true;
@@ -1832,6 +1843,8 @@ void HTMLTokenizer::end()
     ASSERT(!m_timer.isActive());
     m_timer.stop(); // Only helps if assertion above fires, but do it anyway.
 
+    parserCounter.startCounting();
+
     if (buffer) {
         // parseTag is using the buffer for different matters
         if (!m_state.hasTagState())
@@ -1844,6 +1857,8 @@ void HTMLTokenizer::end()
         fastFree(buffer);
         buffer = 0;
     }
+
+    parserCounter.stopCounting();
 
     if (!inViewSourceMode())
         parser->finished();
@@ -1891,6 +1906,7 @@ void HTMLTokenizer::finish()
 
 PassRefPtr<Node> HTMLTokenizer::processToken()
 {
+    parserCounter.stopCounting();
     ScriptController* jsProxy = (!m_fragment && m_doc->frame()) ? m_doc->frame()->script() : 0;
     if (jsProxy && m_doc->frame()->script()->isEnabled())
         jsProxy->setEventHandlerLineno(tagStartLineno + 1); // Script line numbers are 1 based.
@@ -1902,6 +1918,7 @@ PassRefPtr<Node> HTMLTokenizer::processToken()
         currToken.reset();
         if (jsProxy)
             jsProxy->setEventHandlerLineno(m_lineNumber + 1); // Script line numbers are 1 based.
+        parserCounter.startCounting();
         return 0;
     }
 
@@ -1922,6 +1939,7 @@ PassRefPtr<Node> HTMLTokenizer::processToken()
     if (jsProxy)
         jsProxy->setEventHandlerLineno(0);
 
+    parserCounter.startCounting();
     return n.release();
 }
 

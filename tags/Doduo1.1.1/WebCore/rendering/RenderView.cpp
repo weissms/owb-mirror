@@ -30,6 +30,10 @@
 #include "GraphicsContext.h"
 #include "RenderLayer.h"
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter renderingCounter("rendering", true);
+static WTF::TimeCounter layoutCounter("layout", true);
+
 namespace WebCore {
 
 RenderView::RenderView(Node* node, FrameView* view)
@@ -95,6 +99,7 @@ void RenderView::calcPrefWidths()
 
 void RenderView::layout()
 {
+    layoutCounter.startCounting();
     if (printing())
         m_minPrefWidth = m_maxPrefWidth = m_width;
 
@@ -128,6 +133,7 @@ void RenderView::layout()
     ASSERT(m_layoutState == &state);
     m_layoutState = 0;
     setNeedsLayout(false);
+    layoutCounter.stopCounting();
 }
 
 bool RenderView::absolutePosition(int& xPos, int& yPos, bool fixed) const
@@ -145,12 +151,16 @@ void RenderView::paint(PaintInfo& paintInfo, int tx, int ty)
     // If we ever require layout but receive a paint anyway, something has gone horribly wrong.
     ASSERT(!needsLayout());
 
+    renderingCounter.startCounting();
+
     // Cache the print rect because the dirty rect could get changed during painting.
     if (printing())
         setPrintRect(paintInfo.rect);
     else
         setPrintRect(IntRect());
     paintObject(paintInfo, tx, ty);
+
+    renderingCounter.stopCounting();
 }
 
 void RenderView::paintBoxDecorations(PaintInfo& paintInfo, int tx, int ty)
@@ -194,6 +204,8 @@ void RenderView::repaintViewRectangle(const IntRect& ur, bool immediate)
     if (!m_frameView)
         return;
 
+    renderingCounter.startCounting();
+
     // We always just invalidate the root view, since we could be an iframe that is clipped out
     // or even invisible.
     Element* elt = document()->ownerElement();
@@ -212,6 +224,9 @@ void RenderView::repaintViewRectangle(const IntRect& ur, bool immediate)
                obj->borderTop() + obj->paddingTop());
         obj->repaintRectangle(r, immediate);
     }
+
+    renderingCounter.stopCounting();
+
 }
 
 void RenderView::computeAbsoluteRepaintRect(IntRect& rect, bool fixed)

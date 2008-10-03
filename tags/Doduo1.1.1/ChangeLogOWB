@@ -1,18 +1,8 @@
-2008-10-02  Mario Bensi  <mbensi@pleyo.com>
+2008-10-01  Julien Chaffraix  <jchaffraix@pleyo.com>
 
-        Reviewed by Jean-Charles Verdie.
-        Add OrigynSuite 
+        Reviewed by Mario Bensi.
 
-        * CMakeLists.txt:
+        Ticket #300: Add some probes to evaluate the OWB spends in each engine parts
 
-2008-09-11  Julien Chaffraix  <jchaffraix@pleyo.com>
-
-        Reviewed by Mario Bensi <mbensi@pleyo.com>
-
-        Missing library names are not reported in ccmake
-        Ticket #291
-
-        * CMakeLists.txt: Removed ADD_LIBRARY that caused
-        a warning to be displayed (jscore is defined in both
-        IF's branches).
+        * CMakeLists.txt: Moved the BENCH_LOAD_TIME option here so that all OWB can use the probes.
 

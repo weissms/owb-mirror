@@ -82,6 +82,9 @@ extern int cssyydebug;
 
 extern int cssyyparse(void* parser);
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter CSSParserCounter("CSS parsing", false);
+
 using namespace std;
 using namespace WTF;
 
@@ -217,19 +220,23 @@ void CSSParser::setupParser(const char* prefix, const String& string, const char
 
 void CSSParser::parseSheet(CSSStyleSheet* sheet, const String& string)
 {
+    CSSParserCounter.startCounting();
     m_styleSheet = sheet;
     m_defaultNamespace = starAtom; // Reset the default namespace.
     
     setupParser("", string, "");
     cssyyparse(this);
     m_rule = 0;
+    CSSParserCounter.stopCounting();
 }
 
 PassRefPtr<CSSRule> CSSParser::parseRule(CSSStyleSheet* sheet, const String& string)
 {
+    CSSParserCounter.startCounting();
     m_styleSheet = sheet;
     setupParser("@-webkit-rule{", string, "} ");
     cssyyparse(this);
+    CSSParserCounter.stopCounting();
     return m_rule.release();
 }
 
@@ -243,6 +250,7 @@ PassRefPtr<CSSRule> CSSParser::parseKeyframeRule(CSSStyleSheet *sheet, const Str
 
 bool CSSParser::parseValue(CSSMutableStyleDeclaration* declaration, int id, const String& string, bool important)
 {
+    CSSParserCounter.startCounting();
     ASSERT(!declaration->stylesheet() || declaration->stylesheet()->isCSSStyleSheet());
     m_styleSheet = static_cast<CSSStyleSheet*>(declaration->stylesheet());
 
@@ -264,6 +272,7 @@ bool CSSParser::parseValue(CSSMutableStyleDeclaration* declaration, int id, cons
         clearProperties();
     }
 
+    CSSParserCounter.stopCounting();
     return ok;
 }
 
@@ -271,6 +280,7 @@ bool CSSParser::parseValue(CSSMutableStyleDeclaration* declaration, int id, cons
 // possible to set up a default color.
 bool CSSParser::parseColor(RGBA32& color, const String& string, bool strict)
 {
+    CSSParserCounter.startCounting();
     color = 0;
     CSSParser parser(true);
 
@@ -285,8 +295,10 @@ bool CSSParser::parseColor(RGBA32& color, const String& string, bool strict)
                 CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(value);
                 color = primitiveValue->getRGBColorValue();
             }
-        } else
+        } else {
+            CSSParserCounter.stopCounting();
             return false;
+        }
     }
 
     return true;
@@ -294,6 +306,7 @@ bool CSSParser::parseColor(RGBA32& color, const String& string, bool strict)
 
 bool CSSParser::parseColor(CSSMutableStyleDeclaration* declaration, const String& string)
 {
+    CSSParserCounter.startCounting();
     ASSERT(!declaration->stylesheet() || declaration->stylesheet()->isCSSStyleSheet());
     m_styleSheet = static_cast<CSSStyleSheet*>(declaration->stylesheet());
 
@@ -301,11 +314,13 @@ bool CSSParser::parseColor(CSSMutableStyleDeclaration* declaration, const String
     cssyyparse(this);
     m_rule = 0;
 
+    CSSParserCounter.stopCounting();
     return (m_numParsedProperties && m_parsedProperties[0]->m_id == CSSPropertyColor);
 }
 
 std::auto_ptr<CSSSelector> CSSParser::parseSelector(const String& string)
 {
+    CSSParserCounter.startCounting();
     RefPtr<CSSStyleSheet> dummyStyleSheet = CSSStyleSheet::create();
 
     m_styleSheet = dummyStyleSheet.get();
@@ -314,11 +329,13 @@ std::auto_ptr<CSSSelector> CSSParser::parseSelector(const String& string)
 
     cssyyparse(this);
 
+    CSSParserCounter.stopCounting();
     return std::auto_ptr<CSSSelector>(m_floatingSelector);
 }
 
 bool CSSParser::parseDeclaration(CSSMutableStyleDeclaration* declaration, const String& string)
 {
+    CSSParserCounter.startCounting();
     ASSERT(!declaration->stylesheet() || declaration->stylesheet()->isCSSStyleSheet());
     m_styleSheet = static_cast<CSSStyleSheet*>(declaration->stylesheet());
 
@@ -335,11 +352,13 @@ bool CSSParser::parseDeclaration(CSSMutableStyleDeclaration* declaration, const 
         clearProperties();
     }
 
+    CSSParserCounter.stopCounting();
     return ok;
 }
 
 bool CSSParser::parseMediaQuery(MediaList* queries, const String& string)
 {
+    CSSParserCounter.startCounting();
     if (string.isEmpty())
         return true;
 
@@ -356,6 +375,7 @@ bool CSSParser::parseMediaQuery(MediaList* queries, const String& string)
         m_mediaQuery = 0;
     }
 
+    CSSParserCounter.stopCounting();
     return ok;
 }
 

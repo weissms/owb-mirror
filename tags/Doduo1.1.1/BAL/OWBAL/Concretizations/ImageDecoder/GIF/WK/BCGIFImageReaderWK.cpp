@@ -80,6 +80,9 @@ mailing address.
 
 #if PLATFORM(CAIRO) || PLATFORM(QT) || PLATFORM(WX) || PLATFORM(BAL)
 
+#include <wtf/TimeCounter.h>
+static WTF::TimeCounter gifDecodeCounter("GIF decoding", true);
+
 using WebCore::GIFImageDecoder;
 
 // Define the Mozilla macro setup so that we can leave the macros alone.
@@ -379,8 +382,10 @@ int GIFImageReader::do_lzw(const unsigned char *q)
 bool GIFImageReader::read(const unsigned char *buf, unsigned len, 
                      GIFImageDecoder::GIFQuery query, unsigned haltAtFrame)
 {
+  gifDecodeCounter.startCounting();
   if (!len) {
     // No new data has come in since the last call, just ignore this call.
+    gifDecodeCounter.stopCounting();
     return true;
   }
 
@@ -411,6 +416,7 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
       bytes_to_consume -= l;
       if (clientptr)
         clientptr->decodingHalted(0);
+      gifDecodeCounter.stopCounting();
       return true;
     }
     // Reset hold buffer count
@@ -757,6 +763,7 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
         if (clientptr)
             clientptr->decodingHalted(len + 9);
         GETN(9, gif_image_header);
+        gifDecodeCounter.stopCounting();
         return true;
       }
       
@@ -902,15 +909,18 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
       // When the GIF is done, we can stop.
       if (clientptr)
         clientptr->gifComplete();
+      gifDecodeCounter.stopCounting();
       return true;
 
     // Handle out of memory errors
     case gif_oom:
+      gifDecodeCounter.stopCounting();
       return false;
 
     // Handle general errors
     case gif_error:
       // nsGIFDecoder2::EndGIF(gs->clientptr, gs->loop_count);
+      gifDecodeCounter.stopCounting();
       return false;
 
     // We shouldn't ever get here.
@@ -937,6 +947,8 @@ bool GIFImageReader::read(const unsigned char *buf, unsigned len,
 
   if (clientptr)
     clientptr->decodingHalted(0);
+
+  gifDecodeCounter.stopCounting();
   return true;
 }
 

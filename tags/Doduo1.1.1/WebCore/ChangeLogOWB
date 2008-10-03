@@ -1,8 +1,64 @@
-2008-10-02  Mario Bensi  <mbensi@pleyo.com>
+2008-10-01  Julien Chaffraix  <jchaffraix@pleyo.com>
 
-        Reviewed by Jean-Charles Verdie.
-        remove a space
+        Reviewed by Mario Bensi.
 
-        * plugins/SDL/PluginViewSDL.cpp:
-        (WebCore::PluginView::paintMissingPluginIcon):
+        Ticket #300: Add some probes to evaluate the OWB spends in each engine parts
 
+        Add the TimeCounter class that implements two methods startCounting and stopCounting.
+        It can handle recursive call for simplicity of use.
+
+        The timing can be enabled with the BENCH_LOAD_TIME option. 
+
+        **** Bear in mind that the results may overlap between the different parts and that
+         there may be some overhead while timing. The best use is to use them as qualitative
+         information on how the time is spend in the engine. ****
+        
+        * bindings/js/GCController.cpp:
+        (WebCore::collect):
+        (WebCore::GCController::gcTimerFired):
+        (WebCore::GCController::garbageCollectNow):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate):
+        Add a timer for the garbage collector.
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseSheet):
+        (WebCore::CSSParser::parseRule):
+        (WebCore::CSSParser::parseValue):
+        (WebCore::CSSParser::parseColor):
+        (WebCore::CSSParser::parseSelector):
+        (WebCore::CSSParser::parseDeclaration):
+        (WebCore::CSSParser::parseMediaQuery):
+        Add a timer for css parsing (all kind of parsing).
+
+        * dom/Document.cpp:
+        (WebCore::Document::recalcStyle):
+        Add a timer for recalcStyle as it is a heavy operation.
+
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::write):
+        (WebCore::startElementNsHandler):
+        (WebCore::endElementNsHandler):
+        (WebCore::charactersHandler):
+        (WebCore::processingInstructionHandler):
+        (WebCore::cdataBlockHandler):
+        (WebCore::commentHandler):
+        (WebCore::warningHandler):
+        (WebCore::fatalErrorHandler):
+        (WebCore::normalErrorHandler):
+        (WebCore::XMLTokenizer::end):
+        (WebCore::):
+        Add a timer for XML parsing.
+
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::write):
+        (WebCore::HTMLTokenizer::end):
+        (WebCore::HTMLTokenizer::processToken):
+        Add a timer for HTML parsing.
+
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::layout):
+        (WebCore::RenderView::paint):
+        (WebCore::RenderView::repaintViewRectangle):
+        Add a timer for painting the whole hierarchy starting from the RenderView (we will miss
+        some local painting but it is here for a rought estimate).
