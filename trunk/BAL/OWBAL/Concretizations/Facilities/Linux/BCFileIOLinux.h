@@ -56,12 +56,17 @@ public:
     virtual void close();
 
     virtual char* read(size_t size);
+    virtual bool readLine(String &line, bool longLine = false);
     virtual void write(String dataToWrite);
 
     virtual int getSize();
 private:
+    bool readLongLine(String &line);
+    bool readShortLine(String &line);
     int m_fd;
+    FILE *m_fileDescriptor;
     const String m_filePath;
+    uint32_t m_lineNumber;
 };
 
 }
