@@ -76,6 +76,7 @@ TARGET_LINK_LIBRARIES (runWkalTests
     wkaltests
     generated-sources
     webcore-owb
+    webkit
     jscore
     bal-events
     bal-facilities

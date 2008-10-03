@@ -21,6 +21,7 @@ LIST (APPEND BRIDGE_SRC
         jscore
         generated-sources
         webcore-owb
+	webkit
         bal-events
         bal-facilities
         bal-fonts
