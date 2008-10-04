@@ -1087,12 +1087,17 @@ public:
     /**
      *  updateBackingStore 
      */
-    void updateBackingStore(WebCore::FrameView*);
+    void updateBackingStore(WebCore::FrameView*, bool backingStoreCompletelyDirty = false);
 
     /**
      *  deleteBackingStore 
      */
     void deleteBackingStore();
+
+    /**
+     * repaint
+     */
+    void repaint(const WebCore::IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false);
 
     /**
      *  get frame rect 

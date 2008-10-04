@@ -107,6 +107,12 @@ protected:
      */
     virtual void setEnabled(bool);
 
+
+    /**
+     *  frameRectsChanged 
+     */
+    virtual void frameRectsChanged() const;
+
     /**
      * contructor for ScrollbarGtk.
      * @param[in] : a pointer to a ScrollbarClient.
@@ -131,13 +137,12 @@ protected:
     virtual void updateThumbProportion();
 
     /**
-     * frameRectsChanged description
-     * @code
-     * @endcode
+     * frameRectsChanged 
      */
-    virtual void frameRectsChanged()
+    virtual void frameRectsChanged();
     
 private:
+
     /**
      * balValueChanged.
      * @param[in] : a pointer to a BalAdjustment.
@@ -151,4 +156,4 @@ private:
 
 }
 
-#endif // ScrollbarGtk_h
+#endif // ScrollbarGtk

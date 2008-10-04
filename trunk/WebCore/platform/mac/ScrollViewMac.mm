@@ -30,6 +30,7 @@
 #import "FloatRect.h"
 #import "IntRect.h"
 #import "Logging.h"
+#import "NotImplemented.h"
 #import "WebCoreFrameView.h"
 
 using namespace std;
@@ -48,6 +49,7 @@ ScrollView::ScrollView()
 
 ScrollView::~ScrollView()
 {
+    destroy();
 }
 
 inline NSScrollView<WebCoreFrameScrollView> *ScrollView::scrollView() const
@@ -55,6 +57,14 @@ inline NSScrollView<WebCoreFrameScrollView> *ScrollView::scrollView() const
     ASSERT(!platformWidget() || [platformWidget() isKindOfClass:[NSScrollView class]]);
     ASSERT(!platformWidget() || [platformWidget() conformsToProtocol:@protocol(WebCoreFrameScrollView)]);
     return static_cast<NSScrollView<WebCoreFrameScrollView> *>(platformWidget());
+}
+
+NSView *ScrollView::documentView() const
+{
+    BEGIN_BLOCK_OBJC_EXCEPTIONS;
+    return [scrollView() documentView];
+    END_BLOCK_OBJC_EXCEPTIONS;
+    return nil;
 }
 
 void ScrollView::platformAddChild(Widget* child)
@@ -140,7 +150,7 @@ void ScrollView::platformSetScrollbarsSuppressed(bool repaintOnUnsuppress)
     END_BLOCK_OBJC_EXCEPTIONS;
 }
 
-void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
+void ScrollView::platformSetScrollPosition(const IntPoint& scrollPoint)
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
     NSPoint tempPoint = { max(0, scrollPoint.x()), max(0, scrollPoint.y()) }; // Don't use NSMakePoint to work around 4213314.
@@ -148,13 +158,24 @@ void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
     END_BLOCK_OBJC_EXCEPTIONS;
 }
 
-void ScrollView::updateContents(const IntRect& rect, bool now)
+bool ScrollView::platformScroll(ScrollDirection, ScrollGranularity)
+{
+    // FIXME: It would be nice to implement this so that all of the code in WebFrameView could go away.
+    notImplemented();
+    return true;
+}
+
+void ScrollView::platformRepaintContentRectangle(const IntRect& rect, bool now)
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
 
     NSView *view = documentView();
     NSRect visibleRect = visibleContentRect();
 
+    // FIXME: I don't think this intersection is necessary any more now that
+    // selection doesn't call this method directly (but has to go through FrameView's
+    // repaintContentRectangle, which does the intersection test also).  Leaving it in
+    // for now until I'm sure.
     // Checking for rect visibility is an important optimization for the case of
     // Select All of a large document. AppKit does not do this check, and so ends
     // up building a large complicated NSRegion if we don't perform the check.
@@ -170,20 +191,9 @@ void ScrollView::updateContents(const IntRect& rect, bool now)
     END_BLOCK_OBJC_EXCEPTIONS;
 }
 
-void ScrollView::update()
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-
-    NSView *view = platformWidget();
-    [[view window] displayIfNeeded];
-    [[view window] flushWindowIfNeeded];
-
-    END_BLOCK_OBJC_EXCEPTIONS;
-}
-
 // "Containing Window" means the NSWindow's coord system, which is origin lower left
 
-IntRect ScrollView::contentsToScreen(const IntRect& rect) const
+IntRect ScrollView::platformContentsToScreen(const IntRect& rect) const
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
     if (NSView* documentView = this->documentView()) {
@@ -196,7 +206,7 @@ IntRect ScrollView::contentsToScreen(const IntRect& rect) const
     return IntRect();
 }
 
-IntPoint ScrollView::screenToContents(const IntPoint& point) const
+IntPoint ScrollView::platformScreenToContents(const IntPoint& point) const
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS;
     if (NSView* documentView = this->documentView()) {
@@ -207,15 +217,7 @@ IntPoint ScrollView::screenToContents(const IntPoint& point) const
     return IntPoint();
 }
 
-NSView *ScrollView::documentView() const
-{
-    BEGIN_BLOCK_OBJC_EXCEPTIONS;
-    return [scrollView() documentView];
-    END_BLOCK_OBJC_EXCEPTIONS;
-    return nil;
-}
-
-bool ScrollView::isOffscreen() const
+bool ScrollView::platformIsOffscreen() const
 {
     return ![platformWidget() window] || ![[platformWidget() window] isVisible];
 }

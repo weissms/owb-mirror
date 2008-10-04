@@ -97,7 +97,7 @@ PassRefPtr<Database> Database::openDatabase(Document* document, const String& na
         return 0;
     }
     
-    RefPtr<Database> database = new Database(document, name, expectedVersion);
+    RefPtr<Database> database = adoptRef(new Database(document, name, expectedVersion));
 
     if (!database->openAndVerifyVersion(e)) {
        LOG(StorageAPI, "Failed to open and verify version (expected %s) of database %s", expectedVersion.ascii().data(), database->databaseDebugName().ascii().data());
@@ -133,7 +133,7 @@ Database::Database(Document* document, const String& name, const String& expecte
 
     JSC::initializeThreading();
     // Database code violates the normal JSCore contract by calling jsUnprotect from a secondary thread, and thus needs additional locking.
-    JSDOMWindow::commonJSGlobalData()->heap->setGCProtectNeedsLocking();
+    JSDOMWindow::commonJSGlobalData()->heap.setGCProtectNeedsLocking();
 
     m_guid = guidForOriginAndName(m_securityOrigin->toString(), name);
 

@@ -42,25 +42,34 @@ using namespace std;
 namespace JSC {
 
 #if PLATFORM(MAC)
-bool isSSE3Present()
+bool isSSE2Present()
 {
-    struct SSE3Check {
-        SSE3Check()
+    return true; // All X86 Macs are guaranteed to support at least SSE2
+}
+#else COMPILER(MSVC)
+bool isSSE2Present()
+{
+    static const int SSE2FeatureBit = 1 << 26;
+    struct SSE2Check {
+        SSE2Check()
         {
-            int hasSSE3 = 0;
-            size_t length = sizeof(hasSSE3);
-            int error = sysctlbyname("hw.optional.sse3", &hasSSE3, &length, NULL, 0);
-            present = hasSSE3 && !error;
+            int flags;
+#if COMPILER(MSVC)
+            _asm {
+                mov eax, 1 // cpuid function 1 gives us the standard feature set
+                cpuid;
+                mov flags, edx;
+            }
+#else
+            flags = 0;
+            // FIXME: Add GCC code to do above asm
+#endif
+            present = (flags & SSE2FeatureBit) != 0;
         }
         bool present;
     };
-    static SSE3Check check;
+    static SSE2Check check;
     return check.present;
-}
-#else
-bool isSSE3Present()
-{
-    return false;
 }
 #endif
 
@@ -100,7 +109,7 @@ asm(
 extern "C"
 {
     
-    __declspec(naked) JSValue* ctiTrampoline(void* code, ExecState* exec, RegisterFile* registerFile, Register* r, ScopeChainNode* scopeChain, JSValue** exception, Profiler**)
+    __declspec(naked) JSValue* ctiTrampoline(void* code, ExecState* exec, RegisterFile* registerFile, Register* r, JSValue** exception, Profiler**)
     {
         __asm {
             push esi;
@@ -144,7 +153,7 @@ ALWAYS_INLINE JSValue* CTI::getConstant(ExecState* exec, int src)
 }
 
 // get arg puts an arg from the SF register array into a h/w register
-ALWAYS_INLINE void CTI::emitGetArg(unsigned src, X86Assembler::RegisterID dst)
+ALWAYS_INLINE void CTI::emitGetArg(int src, X86Assembler::RegisterID dst)
 {
     // TODO: we want to reuse values that are already in registers if we can - add a register allocator!
     if (isConstant(src)) {
@@ -292,6 +301,7 @@ void CTI::printOpcodeOperandTypes(unsigned src1, unsigned src2)
 
 ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitCall(unsigned opcodeIndex, X86::RegisterID r)
 {
+    m_jit.emitRestoreArgumentReference();
     X86Assembler::JmpSrc call = m_jit.emitCall(r);
     m_calls.append(CallRecord(call, opcodeIndex));
     emitDebugExceptionCheck();
@@ -304,6 +314,7 @@ ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitCall(unsigned opcodeIndex, CTIHelper
 #if ENABLE(SAMPLING_TOOL)
     m_jit.movl_i32m(1, &inCalledCode);
 #endif
+    m_jit.emitRestoreArgumentReference();
     X86Assembler::JmpSrc call = m_jit.emitCall();
     m_calls.append(CallRecord(call, helper, opcodeIndex));
     emitDebugExceptionCheck();
@@ -319,6 +330,7 @@ ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitCall(unsigned opcodeIndex, CTIHelper
 #if ENABLE(SAMPLING_TOOL)
     m_jit.movl_i32m(1, &inCalledCode);
 #endif
+    m_jit.emitRestoreArgumentReference();
     X86Assembler::JmpSrc call = m_jit.emitCall();
     m_calls.append(CallRecord(call, helper, opcodeIndex));
     emitDebugExceptionCheck();
@@ -334,6 +346,7 @@ ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitCall(unsigned opcodeIndex, CTIHelper
 #if ENABLE(SAMPLING_TOOL)
     m_jit.movl_i32m(1, &inCalledCode);
 #endif
+    m_jit.emitRestoreArgumentReference();
     X86Assembler::JmpSrc call = m_jit.emitCall();
     m_calls.append(CallRecord(call, helper, opcodeIndex));
     emitDebugExceptionCheck();
@@ -349,6 +362,7 @@ ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitCall(unsigned opcodeIndex, CTIHelper
 #if ENABLE(SAMPLING_TOOL)
     m_jit.movl_i32m(1, &inCalledCode);
 #endif
+    m_jit.emitRestoreArgumentReference();
     X86Assembler::JmpSrc call = m_jit.emitCall();
     m_calls.append(CallRecord(call, helper, opcodeIndex));
     emitDebugExceptionCheck();
@@ -364,6 +378,7 @@ ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitCall(unsigned opcodeIndex, CTIHelper
 #if ENABLE(SAMPLING_TOOL)
     m_jit.movl_i32m(1, &inCalledCode);
 #endif
+    m_jit.emitRestoreArgumentReference();
     X86Assembler::JmpSrc call = m_jit.emitCall();
     m_calls.append(CallRecord(call, helper, opcodeIndex));
     emitDebugExceptionCheck();
@@ -507,7 +522,6 @@ void CTI::compileOpCall(Instruction* instruction, unsigned i, CompileOpCallType 
     if (type == OpCallEval) {
         emitGetPutArg(instruction[i + 2].u.operand, 0, X86::ecx);
         emitCall(i, Machine::cti_op_call_eval);
-        m_jit.emitRestoreArgumentReference();
 
         emitGetCTIParam(CTI_ARGS_r, X86::edi); // edi := r
 
@@ -666,7 +680,7 @@ void CTI::compileBinaryArithOp(OpcodeID opcodeID, unsigned dst, unsigned src1, u
     emitGetArg(src1, X86::eax);
     emitGetArg(src2, X86::edx);
 
-    if (types.second().isReusable() && isSSE3Present()) {
+    if (types.second().isReusable() && isSSE2Present()) {
         ASSERT(types.second().mightBeNumber());
 
         // Check op2 is a number
@@ -713,7 +727,7 @@ void CTI::compileBinaryArithOp(OpcodeID opcodeID, unsigned dst, unsigned src1, u
         //     Two slow cases - either src1 isn't an immediate, or the subtract overflows.
         m_jit.link(op2imm, m_jit.label());
         emitJumpSlowCaseIfNotImmNum(X86::eax, i);
-    } else if (types.first().isReusable() && isSSE3Present()) {
+    } else if (types.first().isReusable() && isSSE2Present()) {
         ASSERT(types.first().mightBeNumber());
 
         // Check op1 is a number
@@ -784,11 +798,11 @@ void CTI::compileBinaryArithOp(OpcodeID opcodeID, unsigned dst, unsigned src1, u
     }
     emitPutResult(dst);
 
-    if (types.second().isReusable() && isSSE3Present()) {
+    if (types.second().isReusable() && isSSE2Present()) {
         m_jit.link(wasJSNumberCell2, m_jit.label());
         m_jit.link(wasJSNumberCell2b, m_jit.label());
     }
-    else if (types.first().isReusable() && isSSE3Present()) {
+    else if (types.first().isReusable() && isSSE2Present()) {
         m_jit.link(wasJSNumberCell1, m_jit.label());
         m_jit.link(wasJSNumberCell1b, m_jit.label());
     }
@@ -798,7 +812,7 @@ void CTI::compileBinaryArithOpSlowCase(OpcodeID opcodeID, Vector<SlowCaseEntry>:
 {
     X86Assembler::JmpDst here = m_jit.label();
     m_jit.link(iter->from, here);
-    if (types.second().isReusable() && isSSE3Present()) {
+    if (types.second().isReusable() && isSSE2Present()) {
         if (!types.first().definitelyIsNumber()) {
             m_jit.link((++iter)->from, here);
             m_jit.link((++iter)->from, here);
@@ -808,7 +822,7 @@ void CTI::compileBinaryArithOpSlowCase(OpcodeID opcodeID, Vector<SlowCaseEntry>:
             m_jit.link((++iter)->from, here);
         }
         m_jit.link((++iter)->from, here);
-    } else if (types.first().isReusable() && isSSE3Present()) {
+    } else if (types.first().isReusable() && isSSE2Present()) {
         if (!types.first().definitelyIsNumber()) {
             m_jit.link((++iter)->from, here);
             m_jit.link((++iter)->from, here);
@@ -849,7 +863,6 @@ void CTI::privateCompileMainPass()
 #endif
 
         ASSERT_WITH_MESSAGE(m_machine->isOpcode(instruction[i].u.opcode), "privateCompileMainPass gone bad @ %d", i);
-        m_jit.emitRestoreArgumentReference();
         switch (m_machine->getOpcodeID(instruction[i].u.opcode)) {
         case op_mov: {
             unsigned src = instruction[i + 2].u.operand;
@@ -1162,7 +1175,7 @@ void CTI::privateCompileMainPass()
         case op_get_scoped_var: {
             int skip = instruction[i + 3].u.operand + m_codeBlock->needsFullScopeChain;
 
-            emitGetCTIParam(CTI_ARGS_scopeChain, X86::eax);
+            emitGetArg(RegisterFile::ScopeChain, X86::eax);
             while (skip--)
                 m_jit.movl_mr(OBJECT_OFFSET(ScopeChainNode, next), X86::eax, X86::eax);
 
@@ -1175,7 +1188,7 @@ void CTI::privateCompileMainPass()
         case op_put_scoped_var: {
             int skip = instruction[i + 2].u.operand + m_codeBlock->needsFullScopeChain;
 
-            emitGetCTIParam(CTI_ARGS_scopeChain, X86::edx);
+            emitGetArg(RegisterFile::ScopeChain, X86::edx);
             emitGetArg(instruction[i + 3].u.operand, X86::eax);
             while (skip--)
                 m_jit.movl_mr(OBJECT_OFFSET(ScopeChainNode, next), X86::edx, X86::edx);
@@ -1186,8 +1199,11 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_ret: {
-            // Check for an activation - if there is one, jump to the hook below.
-            m_jit.cmpl_i32m(0, RegisterFile::OptionalCalleeActivation * static_cast<int>(sizeof(Register)), X86::edi);
+            // If there is an activation or an 'arguments' object, we tear it
+            // off by jumping to the hook below.
+            m_jit.movl_mr(RegisterFile::OptionalCalleeActivation * static_cast<int>(sizeof(Register)), X86::edi, X86::eax);
+            m_jit.orl_mr(RegisterFile::OptionalCalleeArguments * static_cast<int>(sizeof(Register)), X86::edi, X86::eax);
+            m_jit.cmpl_i32r(0, X86::eax);
             X86Assembler::JmpSrc activation = m_jit.emitUnlinkedJne();
             X86Assembler::JmpDst activated = m_jit.label();
 
@@ -1204,29 +1220,22 @@ void CTI::privateCompileMainPass()
             // Return the result in %eax.
             emitGetArg(instruction[i + 1].u.operand, X86::eax);
 
-            // Restore the scope chain.
-            m_jit.movl_mr(RegisterFile::CallerScopeChain * static_cast<int>(sizeof(Register)), X86::edi, X86::edx);
-            emitGetCTIParam(CTI_ARGS_exec, X86::ecx);
-            emitPutCTIParam(X86::edx, CTI_ARGS_scopeChain);
-            m_jit.movl_rm(X86::edx, OBJECT_OFFSET(ExecState, m_scopeChain), X86::ecx);
+            // Grab the return address.
+            emitGetArg(RegisterFile::ReturnPC, X86::edx);
 
-            // Restore ExecState::m_callFrame.
+            // Restore our caller's "r".
+            emitGetCTIParam(CTI_ARGS_exec, X86::ecx);
+            emitGetArg(RegisterFile::CallerRegisters, X86::edi);
+            emitPutCTIParam(X86::edi, CTI_ARGS_r);
             m_jit.movl_rm(X86::edi, OBJECT_OFFSET(ExecState, m_callFrame), X86::ecx);
 
-            // Grab the return address.
-            m_jit.movl_mr(RegisterFile::ReturnPC * static_cast<int>(sizeof(Register)), X86::edi, X86::ecx);
-
-            // Restore the machine return addess from the callframe, roll the callframe back to the caller callframe,
-            // and preserve a copy of r on the stack at CTI_ARGS_r. 
-            m_jit.movl_mr(RegisterFile::CallerRegisters * static_cast<int>(sizeof(Register)), X86::edi, X86::edi);
-            emitPutCTIParam(X86::edi, CTI_ARGS_r);
-
-            m_jit.pushl_r(X86::ecx);
+            // Return.
+            m_jit.pushl_r(X86::edx);
             m_jit.ret();
 
-            // Activation hook
+            // Activation and 'arguments' hook
             m_jit.link(activation, m_jit.label());
-            emitCall(i, Machine::cti_op_ret_activation);
+            emitCall(i, Machine::cti_op_ret_activation_arguments);
             m_jit.link(m_jit.emitUnlinkedJmp(), activated);
 
             // Profiling hook
@@ -2028,7 +2037,6 @@ void CTI::privateCompileSlowCases()
     Instruction* instruction = m_codeBlock->instructions.begin();
     for (Vector<SlowCaseEntry>::iterator iter = m_slowCases.begin(); iter != m_slowCases.end(); ++iter) {
         unsigned i = iter->to;
-        m_jit.emitRestoreArgumentReference();
         switch (m_machine->getOpcodeID(instruction[i].u.opcode)) {
         case op_add: {
             unsigned dst = instruction[i + 1].u.operand;
@@ -2477,7 +2485,6 @@ void CTI::privateCompileSlowCases()
         case op_call_eval:
         case op_construct: {
             m_jit.link(iter->from, m_jit.label());
-            m_jit.emitRestoreArgumentReference();
 
             // We jump to this slow case if the ctiCode for the codeBlock has not yet been generated; compile it now.
             emitCall(i, Machine::cti_vm_compile);

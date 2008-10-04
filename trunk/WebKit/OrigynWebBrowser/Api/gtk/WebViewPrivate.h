@@ -95,6 +95,13 @@ public:
     void onUserEvent(BalUserEvent){}
     void popupMenuHide() {}
     void popupMenuShow(void *popupInfo) {}
+    
+    void sendExposeEvent(WebCore::IntRect r) { 
+        GdkRectangle rect = r;
+        GdkWindow* window = GTK_WIDGET(m_webView->viewWindow())->window;
+        gdk_window_invalidate_rect(window, &rect, true);
+        //gdk_window_process_updates(window, true);
+    }
 private:
     WebCore::IntRect m_rect;
     GtkWidget *m_view;

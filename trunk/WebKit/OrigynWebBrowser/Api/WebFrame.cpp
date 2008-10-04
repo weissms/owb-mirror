@@ -185,7 +185,7 @@ WebFrame::WebFrame()
 {
     DS_CONSTRUCT();
 #ifdef __BINDING_JS__
-    m_bindingJS = new BindingJS();
+    m_bindingJS = new BindingJS(this);
 #endif
     OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(this)); 
     OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this)); 
@@ -215,7 +215,7 @@ void WebFrame::setAllowsScrolling(bool flag)
 {
     /*if (Frame* frame = core(this))
         if (FrameView* view = frame->view())
-            view->setAllowsScrolling(!!flag);*/
+            view->setCanHaveScrollbars(!!flag);*/
 }
 
 bool WebFrame::allowsScrolling()
@@ -223,7 +223,7 @@ bool WebFrame::allowsScrolling()
     /*if (flag)
         if (Frame* frame = core(this))
             if (FrameView* view = frame->view())
-                return view->allowsScrolling();*/
+                return view->canHaveScrollbars();*/
 
     return false;
 }
@@ -1355,7 +1355,7 @@ void* WebFrame::spoolPages(HDC printDC, UINT startPage, UINT endPage)
         CGContextTranslateCTM(pctx, CGFloat(-pageRect.x()), CGFloat(-pageRect.y()+headerHeight));   // reserves space for header
         CGContextSetBaseCTM(pctx, ctm);
 
-        coreFrame->paint(&spoolCtx, pageRect);
+	coreFrame->view()->paintContents(&spoolCtx, pageRect);
 
         if (ui2) {
             CGContextTranslateCTM(pctx, CGFloat(pageRect.x()), CGFloat(pageRect.y())-headerHeight);
@@ -1517,7 +1517,7 @@ void WebFrame::observe(const String &topic, BalObject *obj)
     ASSERT(obj);
     ASSERT(obj->getName() != "");
 #ifdef __BINDING_JS__    
-    if (topic == "AddonRegister" && !m_bindingJS->isRegistered())
+    if (topic == "AddonRegister" /*&& !m_bindingJS->isRegistered()*/)
 #else
     if (topic == "AddonRegister")
 #endif

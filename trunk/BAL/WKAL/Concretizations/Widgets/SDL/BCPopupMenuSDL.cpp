@@ -30,15 +30,20 @@
 #include "config.h"
 #include "PopupMenu.h"
 
-#include "CString.h"
-#include "FrameView.h"
-#include "Font.h"
-#include "FontDescription.h"
+#include "Document.h"
 #include "FloatRect.h"
 #include "FontSelector.h"
+#include "FrameView.h"
+#include "GraphicsContext.h"
+#include "HTMLNames.h"
+#include "Page.h"
+#include "PlatformMouseEvent.h"
 #include "PlatformScreen.h"
-#include "PlatformString.h"
-#include "RenderStyle.h"
+#include "RenderTheme.h"
+#include "RenderView.h"
+#include "Scrollbar.h"
+#include "ScrollbarTheme.h"
+#include "SimpleFontData.h"
 #include "ObserverServiceData.h"
 #if PLATFORM(AMIGAOS4)
 #include "cairo.h"
@@ -49,6 +54,8 @@
 using std::min;
 
 namespace WKAL {
+
+using namespace HTMLNames;
 
 // Default Window animation duration in milliseconds
 static const int defaultAnimationDuration = 200;
@@ -67,10 +74,9 @@ static inline bool isASCIIPrintable(unsigned c)
 }
 
 PopupMenu::PopupMenu(PopupMenuClient* client)
-    : RefCounted<PopupMenu>(0)
-    , m_popupClient(client)
+    : m_popupClient(client)
+    , m_scrollbar(0)
     , m_popup(0)
-    , m_scrollBar(0)
     , m_wasClicked(false)
     , m_itemHeight(0)
     , m_scrollOffset(0)
@@ -101,63 +107,9 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuShow", "", this);
 }
 
-int PopupMenu::focusedIndex() const
-{
-    return m_focusedIndex;
-}
-
-bool PopupMenu::setFocusedIndex(int i, bool hotTracking)
-{
-    return true;
-}
-
-bool PopupMenu::scrollToRevealSelection()
-{
-    return true;
-}
-
 void PopupMenu::hide()
 {
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver("PopupMenuHide", "", this);
-}
-
-void PopupMenu::updateFromElement()
-{
-}
-
-bool PopupMenu::itemWritingDirectionIsNatural()
-{
-    return false;
-}
-
-void PopupMenu::menuItemActivated(BalMenuItem* item, PopupMenu* that)
-{
-    ASSERT(that->client());
-
-}
-
-void PopupMenu::menuUnmapped(BalWidget*, PopupMenu* that)
-{
-    ASSERT(that->client());
-    that->client()->hidePopup();
-}
-
-void PopupMenu::menuPositionFunction(BalMenu*, int* x, int* y, bool* pushIn, PopupMenu* that)
-{
-    *x = that->m_menuPosition.x();
-    *y = that->m_menuPosition.y();
-    *pushIn = true;
-}
-
-void PopupMenu::menuRemoveItem(BalWidget* widget, PopupMenu* that)
-{
-    ASSERT(that->m_popup);
-
-}
-
-IntRect PopupMenu::windowRect()
-{
-    return m_windowRect;
 }
 
 const int endOfLinePadding = 2;
@@ -194,6 +146,92 @@ void PopupMenu::calculatePositionAndSize(const IntRect& r, FrameView* v)
     m_windowRect = rScreenCoords;
 }
 
+bool PopupMenu::setFocusedIndex(int i, bool hotTracking)
+{
+    return true;
+}
+
+int PopupMenu::visibleItems() const
+{
+    return clientRect().height() / m_itemHeight;
+}
+
+int PopupMenu::listIndexAtPoint(const IntPoint& point) const
+{
+    return m_scrollOffset + point.y() / m_itemHeight;
+}
+
+int PopupMenu::focusedIndex() const
+{
+    return m_focusedIndex;
+}
+
+void PopupMenu::focusFirst()
+{
+    if (!client())
+        return;
+
+    int size = client()->listSize();
+
+    for (int i = 0; i < size; ++i)
+        if (client()->itemIsEnabled(i)) {
+            setFocusedIndex(i);
+            break;
+        }
+}
+
+void PopupMenu::focusLast()
+{
+    if (!client())
+        return;
+
+    int size = client()->listSize();
+
+    for (int i = size - 1; i > 0; --i)
+        if (client()->itemIsEnabled(i)) {
+            setFocusedIndex(i);
+            break;
+        }
+}
+
+bool PopupMenu::down(unsigned lines)
+{
+    if (!client())
+        return false;
+
+    int size = client()->listSize();
+
+    int lastSelectableIndex, selectedListIndex;
+    lastSelectableIndex = selectedListIndex = focusedIndex();
+    for (int i = selectedListIndex + 1; i >= 0 && i < size; ++i)
+        if (client()->itemIsEnabled(i)) {
+            lastSelectableIndex = i;
+            if (i >= selectedListIndex + (int)lines)
+                break;
+        }
+
+    return setFocusedIndex(lastSelectableIndex);
+}
+
+bool PopupMenu::up(unsigned lines)
+{
+    if (!client())
+        return false;
+
+    int size = client()->listSize();
+
+    int lastSelectableIndex, selectedListIndex;
+    lastSelectableIndex = selectedListIndex = focusedIndex();
+    for (int i = selectedListIndex - 1; i >= 0 && i < size; --i)
+        if (client()->itemIsEnabled(i)) {
+            lastSelectableIndex = i;
+            if (i <= selectedListIndex - (int)lines)
+                break;
+        }
+
+    return setFocusedIndex(lastSelectableIndex);
+}
+
 void PopupMenu::invalidateItem(int index)
 {
     if (!m_popup)
@@ -202,8 +240,8 @@ void PopupMenu::invalidateItem(int index)
     IntRect damageRect(clientRect());
     damageRect.setY(m_itemHeight * (index - m_scrollOffset));
     damageRect.setHeight(m_itemHeight);
-    if (m_scrollBar)
-        damageRect.setWidth(damageRect.width() - m_scrollBar->frameRect().width());
+    if (m_scrollbar)
+        damageRect.setWidth(damageRect.width() - m_scrollbar->frameRect().width());
 
     IntRect r = damageRect;
     //::InvalidateRect(m_popup, &r, TRUE);
@@ -217,18 +255,70 @@ IntRect PopupMenu::clientRect() const
     return clientRect;
 }
 
-int PopupMenu::visibleItems() const
+void PopupMenu::incrementWheelDelta(int delta)
 {
-    return clientRect().height() / m_itemHeight;
+    m_wheelDelta += delta;
 }
 
-IntRect PopupMenu::windowClipRect() const
+void PopupMenu::reduceWheelDelta(int delta)
 {
-    return m_windowRect;
+    ASSERT(delta >= 0);
+    ASSERT(delta <= abs(m_wheelDelta));
+
+    if (m_wheelDelta > 0)
+        m_wheelDelta -= delta;
+    else if (m_wheelDelta < 0)
+        m_wheelDelta += delta;
+    else
+        return;
+}
+
+bool PopupMenu::scrollToRevealSelection()
+{
+    if (!m_scrollbar)
+        return false;
+
+    int index = focusedIndex();
+
+    if (index < m_scrollOffset) {
+        m_scrollbar->setValue(index);
+        return true;
+    }
+
+    if (index >= m_scrollOffset + visibleItems()) {
+        m_scrollbar->setValue(index - visibleItems() + 1);
+        return true;
+    }
+
+    return false;
+}
+
+
+void PopupMenu::updateFromElement()
+{
+}
+
+bool PopupMenu::itemWritingDirectionIsNatural()
+{
+    return false;
+}
+
+const int separatorPadding = 4;
+const int separatorHeight = 1;
+void PopupMenu::paint(const IntRect& damageRect)
+{
 }
 
 void PopupMenu::valueChanged(Scrollbar* scrollBar)
 {
+}
+
+void PopupMenu::invalidateScrollbarRect(Scrollbar* scrollbar, const IntRect& rect)
+{
+    IntRect scrollRect = rect;
+    scrollRect.move(scrollbar->x(), scrollbar->y());
+    //RECT r = scrollRect;
+//    ::InvalidateRect(m_popup, &r, false);
 }
 
 }

@@ -293,44 +293,36 @@ CodeGenerator::CodeGenerator(FunctionBodyNode* functionBody, const Debugger* deb
     codeBlock->globalData = m_globalData;
 
     bool usesArguments = functionBody->usesArguments();
+    codeBlock->usesArguments = usesArguments;
+    if (usesArguments) {
+        emitOpcode(op_init_arguments);
+        m_argumentsRegister.setIndex(RegisterFile::OptionalCalleeArguments);
+        addVar(propertyNames().arguments, false);
+    }
 
     const Node::FunctionStack& functionStack = functionBody->functionStack();
     for (size_t i = 0; i < functionStack.size(); ++i) {
         FuncDeclNode* funcDecl = functionStack[i].get();
         const Identifier& ident = funcDecl->m_ident;
-        if (ident == propertyNames().arguments)
-            usesArguments = true;
         m_functions.add(ident.ustring().rep());
         emitNewFunction(addVar(ident, false), funcDecl);
     }
 
     const Node::VarStack& varStack = functionBody->varStack();
-    for (size_t i = 0; i < varStack.size(); ++i) {
-        const Identifier& ident = varStack[i].first;
-        if (ident == propertyNames().arguments) {
-            usesArguments = true;
-            continue;
-        }
-        addVar(ident, varStack[i].second & DeclarationStacks::IsConstant);
-    }
+    for (size_t i = 0; i < varStack.size(); ++i)
+        addVar(varStack[i].first, varStack[i].second & DeclarationStacks::IsConstant);
 
-    if (usesArguments) {
-        emitOpcode(op_init_arguments);
-        m_codeBlock->needsFullScopeChain = true;
-        m_argumentsRegister.setIndex(RegisterFile::OptionalCalleeArguments);
-        symbolTable->add(propertyNames().arguments.ustring().rep(), SymbolTableEntry(RegisterFile::OptionalCalleeArguments));
-    }
-
-    Vector<Identifier>& parameters = functionBody->parameters();
-    m_nextParameter = -RegisterFile::CallFrameHeaderSize - parameters.size() - 1;
-    m_parameters.resize(1 + parameters.size()); // reserve space for "this"
+    const Identifier* parameters = functionBody->parameters();
+    size_t parameterCount = functionBody->parameterCount();
+    m_nextParameter = -RegisterFile::CallFrameHeaderSize - parameterCount - 1;
+    m_parameters.resize(1 + parameterCount); // reserve space for "this"
 
     // Add "this" as a parameter
     m_thisRegister.setIndex(m_nextParameter);
     ++m_nextParameter;
     ++m_codeBlock->numParameters;
     
-    for (size_t i = 0; i < parameters.size(); ++i)
+    for (size_t i = 0; i < parameterCount; ++i)
         addParameter(parameters[i]);
 
     allocateConstants(functionBody->neededConstants());

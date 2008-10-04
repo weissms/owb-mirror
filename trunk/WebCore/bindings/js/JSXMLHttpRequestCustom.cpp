@@ -54,27 +54,27 @@ void JSXMLHttpRequest::mark()
     Base::mark();
 
     if (XMLHttpRequestUpload* upload = m_impl->optionalUpload()) {
-        DOMObject* wrapper = getCachedDOMObjectWrapper(upload);
+        DOMObject* wrapper = getCachedDOMObjectWrapper(*Heap::heap(this)->globalData(), upload);
         if (wrapper && !wrapper->marked())
             wrapper->mark();
     }
 
-    if (JSUnprotectedEventListener* onReadyStateChangeListener = static_cast<JSUnprotectedEventListener*>(m_impl->onReadyStateChangeListener()))
+    if (JSUnprotectedEventListener* onReadyStateChangeListener = static_cast<JSUnprotectedEventListener*>(m_impl->onreadystatechange()))
         onReadyStateChangeListener->mark();
 
-    if (JSUnprotectedEventListener* onAbortListener = static_cast<JSUnprotectedEventListener*>(m_impl->onAbortListener()))
+    if (JSUnprotectedEventListener* onAbortListener = static_cast<JSUnprotectedEventListener*>(m_impl->onabort()))
         onAbortListener->mark();
 
-    if (JSUnprotectedEventListener* onErrorListener = static_cast<JSUnprotectedEventListener*>(m_impl->onErrorListener()))
+    if (JSUnprotectedEventListener* onErrorListener = static_cast<JSUnprotectedEventListener*>(m_impl->onerror()))
         onErrorListener->mark();
 
-    if (JSUnprotectedEventListener* onLoadListener = static_cast<JSUnprotectedEventListener*>(m_impl->onLoadListener()))
+    if (JSUnprotectedEventListener* onLoadListener = static_cast<JSUnprotectedEventListener*>(m_impl->onload()))
         onLoadListener->mark();
 
-    if (JSUnprotectedEventListener* onLoadStartListener = static_cast<JSUnprotectedEventListener*>(m_impl->onLoadStartListener()))
+    if (JSUnprotectedEventListener* onLoadStartListener = static_cast<JSUnprotectedEventListener*>(m_impl->onloadstart()))
         onLoadStartListener->mark();
     
-    if (JSUnprotectedEventListener* onProgressListener = static_cast<JSUnprotectedEventListener*>(m_impl->onProgressListener()))
+    if (JSUnprotectedEventListener* onProgressListener = static_cast<JSUnprotectedEventListener*>(m_impl->onprogress()))
         onProgressListener->mark();
     
     typedef XMLHttpRequest::EventListenersMap EventListenersMap;
@@ -85,109 +85,6 @@ void JSXMLHttpRequest::mark()
             JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(vecIter->get());
             listener->mark();
         }
-    }
-}
-
-JSValue* JSXMLHttpRequest::onreadystatechange(ExecState*) const
-{
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(impl()->onReadyStateChangeListener())) {
-        if (JSObject* listenerObj = listener->listenerObj())
-            return listenerObj;
-    }
-    return jsNull();
-}
-
-void JSXMLHttpRequest::setOnreadystatechange(ExecState* exec, JSValue* value)
-{
-    if (Document* document = impl()->document()) {
-        if (Frame* frame = document->frame())
-            impl()->setOnReadyStateChangeListener(toJSDOMWindow(frame)->findOrCreateJSUnprotectedEventListener(exec, value, true));
-    }   
-}
-
-
-JSValue* JSXMLHttpRequest::onabort(ExecState*) const
-{
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(impl()->onAbortListener())) {
-        if (JSObject* listenerObj = listener->listenerObj())
-            return listenerObj;
-    }
-    return jsNull();
-}
-
-void JSXMLHttpRequest::setOnabort(ExecState* exec, JSValue* value)
-{
-    if (Document* document = impl()->document()) {
-        if (Frame* frame = document->frame())
-            impl()->setOnAbortListener(toJSDOMWindow(frame)->findOrCreateJSUnprotectedEventListener(exec, value, true));
-    }
-}
-
-JSValue* JSXMLHttpRequest::onerror(ExecState*) const
-{
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(impl()->onErrorListener())) {
-        if (JSObject* listenerObj = listener->listenerObj())
-            return listenerObj;
-    }
-    return jsNull();
-}
-
-void JSXMLHttpRequest::setOnerror(ExecState* exec, JSValue* value)
-{
-    if (Document* document = impl()->document()) {
-        if (Frame* frame = document->frame())
-            impl()->setOnErrorListener(toJSDOMWindow(frame)->findOrCreateJSUnprotectedEventListener(exec, value, true));
-    }
-}
-
-JSValue* JSXMLHttpRequest::onload(ExecState*) const
-{
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(impl()->onLoadListener())) {
-        if (JSObject* listenerObj = listener->listenerObj())
-            return listenerObj;
-    }
-    return jsNull();
-}
-
-void JSXMLHttpRequest::setOnload(ExecState* exec, JSValue* value)
-{
-    if (Document* document = impl()->document()) {
-        if (Frame* frame = document->frame())
-            impl()->setOnLoadListener(toJSDOMWindow(frame)->findOrCreateJSUnprotectedEventListener(exec, value, true));
-    }
-}
-
-JSValue* JSXMLHttpRequest::onloadstart(ExecState*) const
-{
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(impl()->onLoadStartListener())) {
-        if (JSObject* listenerObj = listener->listenerObj())
-            return listenerObj;
-    }
-    return jsNull();
-}
-
-void JSXMLHttpRequest::setOnloadstart(ExecState* exec, JSValue* value)
-{
-    if (Document* document = impl()->document()) {
-        if (Frame* frame = document->frame())
-            impl()->setOnLoadStartListener(toJSDOMWindow(frame)->findOrCreateJSUnprotectedEventListener(exec, value, true));
-    }
-}
-
-JSValue* JSXMLHttpRequest::onprogress(ExecState*) const
-{
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(impl()->onProgressListener())) {
-        if (JSObject* listenerObj = listener->listenerObj())
-            return listenerObj;
-    }
-    return jsNull();
-}
-
-void JSXMLHttpRequest::setOnprogress(ExecState* exec, JSValue* value)
-{
-    if (Document* document = impl()->document()) {
-        if (Frame* frame = document->frame())
-            impl()->setOnProgressListener(toJSDOMWindow(frame)->findOrCreateJSUnprotectedEventListener(exec, value, true));
     }
 }
 
@@ -253,7 +150,7 @@ JSValue* JSXMLHttpRequest::send(ExecState* exec, const ArgList& args)
     }
 
     int signedLineNumber;
-    int sourceID;
+    intptr_t sourceID;
     UString sourceURL;
     JSValue* function;
     exec->machine()->retrieveLastCaller(exec, signedLineNumber, sourceID, sourceURL, function);
@@ -286,10 +183,7 @@ JSValue* JSXMLHttpRequest::overrideMimeType(ExecState* exec, const ArgList& args
 
 JSValue* JSXMLHttpRequest::addEventListener(ExecState* exec, const ArgList& args)
 {
-    Document* document = impl()->document();
-    if (!document)
-        return jsUndefined();
-    Frame* frame = document->frame();
+    Frame* frame = impl()->associatedFrame();
     if (!frame)
         return jsUndefined();
     RefPtr<JSUnprotectedEventListener> listener = toJSDOMWindow(frame)->findOrCreateJSUnprotectedEventListener(exec, args.at(exec, 1), true);
@@ -301,10 +195,7 @@ JSValue* JSXMLHttpRequest::addEventListener(ExecState* exec, const ArgList& args
 
 JSValue* JSXMLHttpRequest::removeEventListener(ExecState* exec, const ArgList& args)
 {
-    Document* document = impl()->document();
-    if (!document)
-        return jsUndefined();
-    Frame* frame = document->frame();
+    Frame* frame = impl()->associatedFrame();
     if (!frame)
         return jsUndefined();
     JSUnprotectedEventListener* listener = toJSDOMWindow(frame)->findJSUnprotectedEventListener(exec, args.at(exec, 1), true);
@@ -312,14 +203,6 @@ JSValue* JSXMLHttpRequest::removeEventListener(ExecState* exec, const ArgList& a
         return jsUndefined();
     impl()->removeEventListener(args.at(exec, 0)->toString(exec), listener, args.at(exec, 2)->toBoolean(exec));
     return jsUndefined();
-}
-
-JSValue* JSXMLHttpRequest::dispatchEvent(ExecState* exec, const ArgList& args)
-{
-    ExceptionCode ec = 0;
-    bool result = impl()->dispatchEvent(toEvent(args.at(exec, 0)), ec);
-    setDOMException(exec, ec);
-    return jsBoolean(result);    
 }
 
 } // namespace WebCore

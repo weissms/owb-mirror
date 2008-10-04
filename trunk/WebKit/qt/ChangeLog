@@ -1,3 +1,98 @@
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Remove addToDirtyRegion.
+        
+        Reviewed by Oliver Hunt
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+
+2008-10-02  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21314
+        
+        Make scrollBackingStore cross-platform.
+
+        Reviewed by Sam Weinig
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::repaint):
+        (WebCore::ChromeClientQt::scroll):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+        
+        https://bugs.webkit.org/show_bug.cgi?id=21282
+        
+        Make contentsToScreen/screenToContents cross-platform.  Only implemented by Mac/Win right now.
+        
+        Reviewed by Adam Roben
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::windowToScreen):
+        (WebCore::ChromeClientQt::screenToWindow):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2008-09-30  Dave Hyatt  <hyatt@apple.com>
+
+        http://bugs.webkit.org/show_bug.cgi?id=21250
+        
+        Rename updateContents to repaintContentRectangle and make it cross-platform by always sending
+        repaints up through the ChromeClient.
+
+        Reviewed by Darin Adler
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::repaint):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2008-09-29  Gunnar Sletta  <gunnar@trolltech.com>
+
+        Reviewed by Simon
+
+        Compile on windows using MSVC 2005
+
+        For the PCH We need to define _WIN32_WINNT and include windows.h early on,
+        otherwise we'll miss several functions.
+
+        * WebKit_pch.h:
+
+2008-09-29  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon.
+
+        Changed copyright from Trolltech ASA to Nokia.
+        
+        Nokia acquired Trolltech ASA, assets were transferred on September 26th 2008.
+        
+
+        * Api/qwebframe.cpp:
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        * Api/qwebhistory.cpp:
+        * Api/qwebhistory.h:
+        * Api/qwebhistory_p.h:
+        * Api/qwebkitglobal.h:
+        * Api/qwebnetworkinterface.cpp:
+        * Api/qwebnetworkinterface.h:
+        * Api/qwebnetworkinterface_p.h:
+        * Api/qwebpage.cpp:
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+        * Api/qwebpluginfactory.cpp:
+        * Api/qwebpluginfactory.h:
+        * Api/qwebsettings.cpp:
+        * Api/qwebsettings.h:
+        * Api/qwebview.cpp:
+        * Api/qwebview.h:
+        * Plugins/ICOHandler.cpp:
+        * QtLauncher/main.cpp:
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        * WebCoreSupport/FrameLoaderClientQt.h:
+        * WebCoreSupport/InspectorClientQt.cpp:
+        * WebCoreSupport/InspectorClientQt.h:
+        * tests/qwebframe/tst_qwebframe.cpp:
+        * tests/qwebpage/tst_qwebpage.cpp:
+
 2008-09-30  Simon Hausmann  <hausmann@webkit.org>
 
         Reviewed by David Hyatt.

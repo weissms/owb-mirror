@@ -444,54 +444,10 @@ CSSStyleSelector::CSSStyleSelector(Document* doc, const String& userStyleSheet, 
 }
 
 // This is a simplified style setting function for keyframe styles
-void CSSStyleSelector::addKeyframeStyle(Document* doc, const WebKitCSSKeyframesRule* rule)
+void CSSStyleSelector::addKeyframeStyle(PassRefPtr<WebKitCSSKeyframesRule> rule)
 {
-    // Create the keyframe list
     AtomicString s(rule->name());
-    RefPtr<KeyframeList> list;
-    if (m_keyframeRuleMap.contains(s.impl()))
-        list = m_keyframeRuleMap.get(s.impl()).get();
-    else {
-        list = KeyframeList::create(s);
-        m_keyframeRuleMap.add(s.impl(), list);
-    }
-    list->clear();
-
-    // Add all the keyframes
-    for (unsigned i = 0; i < rule->length(); ++i) {
-        const WebKitCSSKeyframeRule* kf = rule->item(i);
-        m_style = new (doc->renderArena()) RenderStyle();
-        m_style->ref();
-        CSSMutableStyleDeclaration* decl = kf->style();
-        DeprecatedValueListConstIterator<CSSProperty> end;
-
-        // Record all the properties in this keyframe
-        for (DeprecatedValueListConstIterator<CSSProperty> it = decl->valuesIterator(); it != end; ++it) {
-            const CSSProperty& current = *it;
-            applyProperty(current.id(), current.value());
-            list->addProperty(current.id());
-        }
-
-        // Add this keyframe to all the indicated key times
-        Vector<float> keys;
-        kf->getKeys(keys);
-
-        for (size_t keyIndex = 0; keyIndex < keys.size(); ++keyIndex) {
-            float key = keys[keyIndex];
-            list->insert(key, *m_style);
-        }
-
-        m_style->deref(doc->renderArena());
-        m_style = 0;
-    }
-
-    // Make sure there is a 0% and a 100% keyframe
-    float first = list->beginKeyframes()->key;
-    float last = (list->endKeyframes()-1)->key;
-    if (first != 0 || last != 1) {
-        list->clear();
-        return;
-    }
+    m_keyframesRuleMap.add(s.impl(), rule);
 }
 
 void CSSStyleSelector::init()
@@ -511,7 +467,7 @@ CSSStyleSelector::~CSSStyleSelector()
     delete m_authorStyle;
     delete m_userStyle;
     deleteAllValues(m_viewportDependentMediaQueryResults);
-    m_keyframeRuleMap.clear();
+    m_keyframesRuleMap.clear();
 }
 
 static CSSStyleSheet* parseUASheet(const char* characters, unsigned size)
@@ -1222,6 +1178,79 @@ RenderStyle* CSSStyleSelector::styleForElement(Element* e, RenderStyle* defaultP
     return m_style;
 }
 
+void CSSStyleSelector::keyframeStylesForAnimation(Element* e, const RenderStyle* elementStyle, KeyframeList& list)
+{
+    list.clear();
+    
+    // Get the keyframesRule for this name
+    if (!e || list.animationName().isEmpty())
+        return;
+            
+    if (!m_keyframesRuleMap.contains(list.animationName().impl()))
+        return;
+        
+    const WebKitCSSKeyframesRule* rule = m_keyframesRuleMap.find(list.animationName().impl()).get()->second.get();
+    
+    // Construct and populate the style for each keyframe
+    for (unsigned i = 0; i < rule->length(); ++i) {
+        // Apply the declaration to the style. This is a simplified version of the logic in styleForElement
+        initElementAndPseudoState(e);
+        initForStyleResolve(e);
+        
+        const WebKitCSSKeyframeRule* kf = rule->item(i);
+        addMatchedDeclaration(kf->style());
+
+        ASSERT(!m_style);
+
+        // Create the style
+        m_style = new (e->document()->renderArena()) RenderStyle(*elementStyle);
+        m_style->ref();
+        
+        m_lineHeightValue = 0;
+        
+        // We don't need to bother with !important. Since there is only ever one
+        // decl, there's nothing to override. So just add the first properties.
+        applyDeclarations(true, false, 0, m_matchedDecls.size() - 1);
+        
+        // If our font got dirtied, go ahead and update it now.
+        if (m_fontDirty)
+            updateFont();
+
+        // Line-height is set when we are sure we decided on the font-size
+        if (m_lineHeightValue)
+            applyProperty(CSSPropertyLineHeight, m_lineHeightValue);
+        
+        // Now do rest of the properties.
+        applyDeclarations(false, false, 0, m_matchedDecls.size() - 1);
+        
+        // If our font got dirtied by one of the non-essential font props, 
+        // go ahead and update it a second time.
+        if (m_fontDirty)
+            updateFont();
+
+        // Add all the animating properties to the list
+        DeprecatedValueListConstIterator<CSSProperty> end;
+        for (DeprecatedValueListConstIterator<CSSProperty> it = kf->style()->valuesIterator(); it != end; ++it)
+            list.addProperty((*it).id());
+        
+        // Add this keyframe style to all the indicated key times
+        Vector<float> keys;
+        kf->getKeys(keys);
+        for (size_t keyIndex = 0; keyIndex < keys.size(); ++keyIndex) {
+            float key = keys[keyIndex];
+            list.insert(key, m_style);
+        }
+        m_style->deref(e->document()->renderArena());
+        m_style = 0;
+    }
+    
+    // Make sure there is a 0% and a 100% keyframe
+    float first = list.beginKeyframes()->key;
+    float last = (list.endKeyframes()-1)->key;
+    if (first != 0 || last != 1)
+        list.clear();
+}
+
 RenderStyle* CSSStyleSelector::pseudoStyleForElement(RenderStyle::PseudoId pseudo, Element* e, RenderStyle* parentStyle)
 {
     if (!e)
@@ -1331,6 +1360,18 @@ void CSSStyleSelector::adjustRenderStyle(RenderStyle* style, Element *e)
                 style->setDisplay(style->isDisplayInlineType() ? INLINE_TABLE : TABLE);
         }
 
+        if (e && (e->hasTagName(tdTag) || e->hasTagName(thTag))) {
+            if (style->whiteSpace() == KHTML_NOWRAP) {
+                // Figure out if we are really nowrapping or if we should just
+                // use normal instead.  If the width of the cell is fixed, then
+                // we don't actually use NOWRAP.
+                if (style->width().isFixed())
+                    style->setWhiteSpace(NORMAL);
+                else
+                    style->setWhiteSpace(NOWRAP);
+            }
+        }
+
         // Tables never support the -webkit-* values for text-align and will reset back to the default.
         if (e && e->hasTagName(tableTag) && (style->textAlign() == WEBKIT_LEFT || style->textAlign() == WEBKIT_CENTER || style->textAlign() == WEBKIT_RIGHT))
             style->setTextAlign(TAAUTO);
@@ -1421,6 +1462,12 @@ void CSSStyleSelector::adjustRenderStyle(RenderStyle* style, Element *e)
             style->setOverflowX(OVISIBLE);
         if (style->overflowY() != OVISIBLE && style->overflowY() != OHIDDEN) 
             style->setOverflowY(OVISIBLE);
+    }
+
+    // Menulists should have visible overflow
+    if (style->appearance() == MenulistAppearance) {
+        style->setOverflowX(OVISIBLE);
+        style->setOverflowY(OVISIBLE);
     }
 
     // Cull out any useless layers and also repeat patterns into additional layers.
@@ -2250,6 +2297,9 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
             case CSSSelector::PseudoFileUploadButton:
                 dynamicPseudo = RenderStyle::FILE_UPLOAD_BUTTON;
                 return true;
+            case CSSSelector::PseudoInputPlaceholder:
+                dynamicPseudo = RenderStyle::INPUT_PLACEHOLDER;
+                return true;
             case CSSSelector::PseudoSliderThumb:
                 dynamicPseudo = RenderStyle::SLIDER_THUMB;
                 return true; 
@@ -2415,8 +2465,7 @@ void CSSRuleSet::addRulesFromSheet(CSSStyleSheet* sheet, const MediaQueryEvaluat
                         styleSelector->fontSelector()->addFontFaceRule(fontFaceRule);
                     } else if (childItem->isKeyframesRule() && styleSelector) {
                         // Add this keyframe rule to our set.
-                        const WebKitCSSKeyframesRule* keyframesRule = static_cast<WebKitCSSKeyframesRule*>(childItem);
-                        styleSelector->addKeyframeStyle(sheet->doc(), keyframesRule);
+                        styleSelector->addKeyframeStyle(static_cast<WebKitCSSKeyframesRule*>(childItem));
                     }
                 }   // for rules
             }   // if rules
@@ -2429,10 +2478,8 @@ void CSSRuleSet::addRulesFromSheet(CSSStyleSheet* sheet, const MediaQueryEvaluat
             CSSVariablesRule* variables = static_cast<CSSVariablesRule*>(item);
             if (!variables->media() || medium.eval(variables->media(), styleSelector))
                 styleSelector->addVariables(variables);
-        } else if (item->isKeyframesRule()) {
-            WebKitCSSKeyframesRule* r = static_cast<WebKitCSSKeyframesRule*>(item);
-            styleSelector->addKeyframeStyle(sheet->doc(), r);
-        }
+        } else if (item->isKeyframesRule())
+            styleSelector->addKeyframeStyle(static_cast<WebKitCSSKeyframesRule*>(item));
     }
 }
 
@@ -5122,15 +5169,10 @@ void CSSStyleSelector::mapAnimationName(Animation* layer, CSSValue* value)
 
     CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(value);
     
-    if (primitiveValue->getIdent() == CSSValueNone) {
+    if (primitiveValue->getIdent() == CSSValueNone)
         layer->setIsNoneAnimation(true);
-    } else {
+    else
         layer->setName(primitiveValue->getStringValue());
-    
-        // resolve to the keyframes
-        RefPtr<KeyframeList> keyframe = findKeyframeRule(primitiveValue->getStringValue());
-        layer->setAnimationKeyframe(keyframe);
-    }
 }
 
 void CSSStyleSelector::mapAnimationPlayState(Animation* layer, CSSValue* value)

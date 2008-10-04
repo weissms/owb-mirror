@@ -95,13 +95,15 @@ namespace WKAL {
         PlatformWheelEventGranularity granularity() const ;
 
 
+
     /**
-     * Check wether vertical scroll is enabled.
-     * @param[out] : returns true if vertical scroll is enabled.
+     *  isAccepted description
+     * @param[in] : description
+     * @param[out] : description
      * @code
      * @endcode
      */
-        bool isPageYScrollModeEnabled() const ;
+        bool isAccepted() const 
 
     /**
      * get shitf modifier
@@ -190,16 +192,7 @@ namespace WKAL {
      * @endcode
      */
         void ignore() ;
-      
-
-    /**
-     * get the continuous delta x value
-     * @param[out] : continuous delta x value
-     * @code
-     * float x = ev->continuousDeltaX();
-     * @endcode
-     */
-        float continuousDeltaX() const ;
+     
 
 
     /**
@@ -210,15 +203,6 @@ namespace WKAL {
      */
         int horizontalLineMultiplier() const ;
 
-
-    /**
-     * verticalLineMultiplier get the vertical line multiplier
-     * @param[out] : vertical line multiplier
-     * @code
-     * @endcode
-     */
-        int verticalLineMultiplier() const ;
-
     /**
      * get the continuous delta y value
      * @param[out] : continuous delta y value
@@ -226,16 +210,7 @@ namespace WKAL {
      * float y = ev->continuousDeltaY();
      * @endcode
      */
-        float continuousDeltaY() const ;
-
-    /**
-     *  PlatformWheelEvent constructor
-     * @param[in] : platform scroll event
-     * @code
-     * PlatformWheelEvent ev = new PlatformWheelEvent(platformScrollEvent);
-     * @endcode
-     */
-        PlatformWheelEvent(BalEventScroll*);
+        float continuousDeltaY() const 
 
     private:
         IntPoint m_position;
@@ -254,4 +229,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // PlatformWheelEven
+#endif // PlatformWhee

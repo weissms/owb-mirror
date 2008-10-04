@@ -58,7 +58,6 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         return;
 
     if(!isInitialized) {
-        printf("not isInitialized\n");
         isInitialized = true;
         frame->view()->resize(m_rect.width(), m_rect.height());
         frame->forceLayout();
@@ -71,6 +70,7 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         frame->view()->layoutIfNeededRecursive();
         IntRect dirty = m_webView->dirtyRegion();
         frame->view()->paint(&ctx, dirty);
+	updateView(ctx.platformContext(), dirty);
         m_webView->clearDirtyRegion();
     }
 }
@@ -119,24 +119,22 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
     case SDLK_F1:
     {
         m_webView->goBack();
-	GraphicsContext ctx(m_webView->viewWindow());
+        GraphicsContext ctx(m_webView->viewWindow());
         if (frame->contentRenderer() && frame->view()) {
             frame->view()->layoutIfNeededRecursive();
             IntRect dirty(0, 0, m_rect.width(), m_rect.height());
             frame->view()->paint(&ctx, dirty);
-            m_webView->clearDirtyRegion();
 	}
         return;
     }
     case SDLK_F2:
     {
         m_webView->goForward();
-	GraphicsContext ctx(m_webView->viewWindow());
+        GraphicsContext ctx(m_webView->viewWindow());
         if (frame->contentRenderer() && frame->view()) {
             frame->view()->layoutIfNeededRecursive();
             IntRect dirty(0, 0, m_rect.width(), m_rect.height());
             frame->view()->paint(&ctx, dirty);
-            m_webView->clearDirtyRegion();
 	}
         return;
     }
@@ -287,3 +285,27 @@ void WebViewPrivate::popupMenuShow(void *popupInfo)
 
     m_webView->stringByEvaluatingJavaScriptFromString(buffer);
 }
+
+void WebViewPrivate::updateView(BalWidget *surf, IntRect rect)
+{
+    if (!surf || rect.isEmpty())
+        return;
+    rect.intersect(m_rect);
+    /* use SDL_Flip only if double buffering is available */
+    SDL_Rect sdlRect = {rect.x(), rect.y(), rect.width(), rect.height()};
+    //printf("updateView x=%d y=%d w=%d h=%d\n", sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
+    sdlRect.x = max(sdlRect.x, (Sint16)0);
+    sdlRect.y = max(sdlRect.y, (Sint16)0);
+    if (surf->flags & SDL_DOUBLEBUF)
+        SDL_Flip(surf);
+    else
+        SDL_UpdateRect(surf, sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
+}
+
+void WebViewPrivate::sendExposeEvent(IntRect)
+{
+    SDL_Event ev;
+    ev.type = SDL_VIDEOEXPOSE;
+    SDL_PushEvent(&ev);
+}
+

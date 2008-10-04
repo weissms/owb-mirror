@@ -98,6 +98,10 @@ public:
     virtual void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect);
     virtual void updateBackingStore();
     
+    virtual void repaint(const IntRect&, bool contentChanged, bool immediate = false);
+    virtual IntPoint screenToWindow(const IntPoint&) const;
+    virtual IntRect windowToScreen(const IntRect&) const;
+
     virtual void mouseDidMoveOverElement(const HitTestResult&, unsigned modifierFlags);
 
     virtual void setToolTip(const String&);

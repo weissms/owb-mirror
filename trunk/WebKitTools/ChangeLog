@@ -1,3 +1,54 @@
+2008-10-03  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Add a leak counter for CachedResources since we've had two recent leaks involving them.
+
+        * Scripts/check-for-global-initializers:
+
+2008-09-30  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Dan Bernstein.
+
+        Fix many leaks seen on fast/backgrounds/svg-as-background-1.html.
+
+        JavaScript wrappers were keeping DOM objects alive, which was leading to the SVG background image
+        being kept alive in the memory cache past our last attempt to empty the cache prior to quitting.
+        We need to empty the memory cache after forcing a JavaScript garbage collection to ensure that
+        any live JavaScript wrappers are collected and their corresponding DOM objects have a chance to be
+        torn down before we exit.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (dumpRenderTree):
+        (main):
+
+2008-09-30  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Don't run pixel comparison for text-only tests.
+        https://bugs.webkit.org/show_bug.cgi?id=21124
+        
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (dump):
+        * Scripts/run-webkit-tests:
+
+2008-09-29  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon.
+
+        Changed copyright from Trolltech ASA to Nokia.
+        
+        Nokia acquired Trolltech ASA, assets were transferred on September 26th 2008.
+        
+
+        * DumpRenderTree/qt/DumpRenderTree.cpp:
+        * DumpRenderTree/qt/jsobjects.cpp:
+        * DumpRenderTree/qt/jsobjects.h:
+        * DumpRenderTree/qt/main.cpp:
+        * DumpRenderTree/qt/testplugin.cpp:
+        * DumpRenderTree/qt/testplugin.h:
+
 2008-09-30  David Kilzer  <ddkilzer@apple.com>
 
         Bug 21185: resolve-ChangeLogs should be able to fix poorly merged ChangeLog entries after a git svn rebase

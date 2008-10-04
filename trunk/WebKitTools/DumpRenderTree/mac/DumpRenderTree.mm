@@ -502,7 +502,6 @@ void dumpRenderTree(int argc, const char *argv[])
     if (threaded)
         stopJavaScriptThreads();
 
-    [WebCoreStatistics emptyCache]; // Otherwise SVGImages trigger false positives for Frame/Node counts    
     [webView close];
     mainFrame = nil;
 
@@ -536,6 +535,7 @@ int main(int argc, const char *argv[])
     [NSApplication sharedApplication]; // Force AppKit to init itself
     dumpRenderTree(argc, argv);
     [WebCoreStatistics garbageCollectJavaScriptObjects];
+    [WebCoreStatistics emptyCache]; // Otherwise SVGImages trigger false positives for Frame/Node counts    
     [pool release];
     return 0;
 }
@@ -867,12 +867,12 @@ void dump()
 {
     invalidateAnyPreviousWaitToDumpWatchdog();
 
+    bool dumpAsText = gLayoutTestController->dumpAsText();
     if (dumpTree) {
         NSString *resultString = nil;
         NSData *resultData = nil;
         NSString *resultMimeType = @"text/plain";
 
-        bool dumpAsText = gLayoutTestController->dumpAsText();
         dumpAsText |= [[[mainFrame dataSource] _responseMIMEType] isEqualToString:@"text/plain"];
         gLayoutTestController->setDumpAsText(dumpAsText);
         if (gLayoutTestController->dumpAsText()) {
@@ -915,7 +915,7 @@ void dump()
         }            
     }
     
-    if (dumpPixels)
+    if (dumpAllPixels || (dumpPixels && !dumpAsText))
         dumpWebViewAsPixelsAndCompareWithExpected([currentTest UTF8String], dumpAllPixels);
 
     fflush(stdout);

@@ -21,6 +21,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/
+    ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
 )
 
 IF (WEBKIT_USE_I18N STREQUAL "GENERIC")
@@ -36,6 +37,7 @@ OWBLN (WK/BCScrollbarThemeWK.h WKAL 0 0)
 OWBLN (WK/BCScrollbarThemeCompositeWK.h WKAL 0 0)
 OWBLN (WK/BCFrameWK.h WKAL 0 1)
 OWBLN (WK/BCWidgetWK.h WKAL 0 0)
+OWBLN (WK/BCHostWindowWK.h WKAL 0 0)
 
 IF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
     OWBLN (WK/BCContextMenuWK.h WKAL 0 0)

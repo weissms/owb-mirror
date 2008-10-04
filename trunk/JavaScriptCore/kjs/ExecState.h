@@ -24,25 +24,14 @@
 #define ExecState_h
 
 #include "JSGlobalData.h"
+#include "Machine.h"
 #include "ScopeChain.h"
 
 namespace JSC  {
 
-    class EvalNode;
-    class FunctionBodyNode;
     class JSValue;
-    class GlobalFuncImp;
-    class Interpreter;
-    class JSGlobalObject;
-    class JSVariableObject;
-    class Machine;
-    class ProgramNode;
     class Register;
-    class RegisterFile;
-    class ScopeNode;
 
-    struct Instruction;
-    
     // Represents the current state of script execution.
     // Passed as the first argument to most functions.
     class ExecState : Noncopyable {
@@ -52,7 +41,7 @@ namespace JSC  {
         friend class Machine;
         friend class DebuggerCallFrame;
     public:
-        ExecState(JSGlobalObject*, JSObject* globalThisValue, ScopeChainNode* globalScopeChain);
+        ExecState(JSGlobalObject*, Register* callFrame);
 
         // Global object in which execution began.
         JSGlobalObject* dynamicGlobalObject() const { return m_globalObject; }
@@ -61,10 +50,10 @@ namespace JSC  {
         // from dynamicGlobalObject() during function calls across frames.)
         JSGlobalObject* lexicalGlobalObject() const
         {
-            return m_scopeChain->globalObject();
+            return Machine::scopeChain(m_callFrame)->globalObject();
         }
         
-        JSObject* globalThisValue() const { return m_scopeChain->globalThisObject(); }
+        JSObject* globalThisValue() const { return Machine::scopeChain(m_callFrame)->globalThisObject(); }
                 
         // Exception propogation.
         void setException(JSValue* exception) { m_exception = exception; }
@@ -93,18 +82,17 @@ namespace JSC  {
         static const HashTable* regExpConstructorTable(ExecState* exec) { return exec->m_globalData->regExpConstructorTable; }
         static const HashTable* stringTable(ExecState* exec) { return exec->m_globalData->stringTable; }
 
-        Heap* heap() const { return m_globalData->heap; }
+        Heap* heap() const { return &m_globalData->heap; }
 
     private:
         // Default constructor required for gcc 3.
         ExecState() { }
 
-        ExecState(ExecState*, RegisterFile*, ScopeChainNode*, Register* callFrame);
+        ExecState(ExecState*, Register* callFrame);
 
         bool isGlobalObject(JSObject*) const;
 
         JSGlobalObject* m_globalObject;
-        JSObject* m_globalThisValue;
 
         JSValue* m_exception;
 #if ENABLE(CTI)
@@ -112,10 +100,6 @@ namespace JSC  {
 #endif
         JSGlobalData* m_globalData;
 
-        // These values are controlled by the machine.
-        ExecState* m_prev;
-        RegisterFile* m_registerFile;
-        ScopeChainNode* m_scopeChain;
         Register* m_callFrame; // The most recent call frame.
     };
 

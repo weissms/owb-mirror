@@ -43,9 +43,6 @@ var WebInspector = {
     resources: [],
     resourceURLMap: {},
     missingLocalizedStrings: {},
-    _altKeyDown: false,
-    _forceHoverHighlight: false,
-    _hoveredDOMNode: null,
 
     get previousFocusElement()
     {
@@ -59,10 +56,8 @@ var WebInspector = {
 
     set currentFocusElement(x)
     {
-        if (!x || this._currentFocusElement === x)
-            return;
-
-        this._previousFocusElement = this._currentFocusElement;
+        if (this._currentFocusElement !== x)
+            this._previousFocusElement = this._currentFocusElement;
         this._currentFocusElement = x;
 
         if (this._currentFocusElement) {
@@ -235,42 +230,6 @@ var WebInspector = {
             errorWarningElement.title = null;
     },
 
-    get altKeyDown()
-    {
-        return this._altKeyDown;
-    },
-
-    set altKeyDown(x)
-    {
-        if (this._altKeyDown === x)
-            return;
-
-        this._altKeyDown = x;
-
-        if (this._altKeyDown)
-            this._updateHoverHighlightSoon();
-        else
-            this._updateHoverHighlight();
-    },
-
-    get forceHoverHighlight()
-    {
-        return this._forceHoverHighlight;
-    },
-
-    set forceHoverHighlight(x)
-    {
-        if (this._forceHoverHighlight === x)
-            return;
-
-        this._forceHoverHighlight = x;
-
-        if (this._forceHoverHighlight)
-            this._updateHoverHighlightSoon();
-        else
-            this._updateHoverHighlight();
-    },
-
     get hoveredDOMNode()
     {
         return this._hoveredDOMNode;
@@ -284,16 +243,16 @@ var WebInspector = {
         this._hoveredDOMNode = x;
 
         if (this._hoveredDOMNode)
-            this._updateHoverHighlightSoon();
+            this._updateHoverHighlightSoon(this.showingDOMNodeHighlight ? 50 : 500);
         else
             this._updateHoverHighlight();
     },
 
-    _updateHoverHighlightSoon: function()
+    _updateHoverHighlightSoon: function(delay)
     {
         if ("_updateHoverHighlightTimeout" in this)
-            return;
-        this._updateHoverHighlightTimeout = setTimeout(this._updateHoverHighlight.bind(this), 0);
+            clearTimeout(this._updateHoverHighlightTimeout);
+        this._updateHoverHighlightTimeout = setTimeout(this._updateHoverHighlight.bind(this), delay);
     },
 
     _updateHoverHighlight: function()
@@ -303,10 +262,13 @@ var WebInspector = {
             delete this._updateHoverHighlightTimeout;
         }
 
-        if (this._hoveredDOMNode && (this._altKeyDown || this.forceHoverHighlight))
+        if (this._hoveredDOMNode) {
             InspectorController.highlightDOMNode(this._hoveredDOMNode);
-        else
+            this.showingDOMNodeHighlight = true;
+        } else {
             InspectorController.hideDOMNodeHighlight();
+            this.showingDOMNodeHighlight = false;
+        }
     }
 }
 
@@ -478,6 +440,7 @@ WebInspector.documentClick = function(event)
 
             WebInspector.showResourceForURL(anchor.href, anchor.lineNumber, anchor.preferredPanel);
         } else {
+console.log("followLink");
             var profileStringRegEx = new RegExp("webkit-profile://.+/([0-9]+)");
             var profileString = profileStringRegEx.exec(anchor.href);
             if (profileString)
@@ -548,19 +511,12 @@ WebInspector.documentKeyDown = function(event)
                 }
 
                 break;
-
-            case "Alt":
-                this.altKeyDown = true;
-                break
         }
     }
 }
 
 WebInspector.documentKeyUp = function(event)
 {
-    if (!event.handled && event.keyIdentifier === "Alt")
-        this.altKeyDown = false;
-
     if (!this.currentFocusElement || !this.currentFocusElement.handleKeyUpEvent)
         return;
     this.currentFocusElement.handleKeyUpEvent(event);
@@ -884,6 +840,7 @@ WebInspector.reset = function()
 
     this.resources = [];
     this.resourceURLMap = {};
+    this.hoveredDOMNode = null;
 
     delete this.mainResource;
 
@@ -1003,7 +960,7 @@ WebInspector.showResourceForURL = function(url, line, preferredPanel)
 WebInspector.linkifyStringAsFragment = function(string)
 {
     var container = document.createDocumentFragment();
-    var linkStringRegEx = new RegExp("(?:[a-zA-Z][a-zA-Z0-9+.-]{2,}://|www\\.)[\\w$\\-_+*'=\\|/\\\\(){}[\\]%@&#~,:;.!?]{4,}[\\w$\\-_+*=\\|/\\\\({%@&#~]");
+    var linkStringRegEx = new RegExp("(?:[a-zA-Z][a-zA-Z0-9+.-]{2,}://|www\\.)[\\w$\\-_+*'=\\|/\\\\(){}[\\]%@&#~,:;.!?]{2,}[\\w$\\-_+*=\\|/\\\\({%@&#~]");
 
     while (string) {
         var linkString = linkStringRegEx.exec(string);

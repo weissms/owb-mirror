@@ -88,6 +88,7 @@ SET (IDL_BINDINGS
     dom/EventException.idl
 #   dom/EventListener.idl
 #   dom/EventTarget.idl
+    dom/EventTargetNode.idl
     dom/KeyboardEvent.idl
     dom/MessageChannel.idl
     dom/MessageEvent.idl
@@ -627,8 +628,6 @@ CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/RegExpObject.cpp generated_sources/
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/RegExpConstructor.cpp generated_sources/kjs/RegExpConstructor.lut.h JavaScriptCore/kjs/RegExpConstructor.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/StringObject.cpp generated_sources/kjs/StringObject.lut.h JavaScriptCore/kjs/StringObject.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/StringPrototype.cpp generated_sources/kjs/StringPrototype.lut.h JavaScriptCore/kjs/StringPrototype.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventTargetBase.cpp generated_sources/WebCore/JSEventTargetBase.lut.h WebCore/bindings/js/JSEventTargetBase.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventTargetNode.cpp generated_sources/WebCore/JSEventTargetNode.lut.h WebCore/bindings/js/JSEventTargetNode.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventTargetSVGElementInstance.cpp generated_sources/WebCore/JSEventTargetSVGElementInstance.lut.h WebCore/bindings/js/JSEventTargetSVGElementInstance.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventListener.cpp generated_sources/WebCore/JSEventListener.lut.h WebCore/bindings/js/JSEventListener.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSDOMBinding.cpp generated_sources/WebCore/JSDOMBinding.lut.h WebCore/bindings/js/JSDOMBinding.cpp)

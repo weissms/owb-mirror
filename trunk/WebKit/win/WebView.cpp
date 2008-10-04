@@ -88,8 +88,10 @@
 #include <WebCore/PluginInfoStore.h>
 #include <WebCore/PluginView.h>
 #include <WebCore/ProgressTracker.h>
+#include <WebCore/RenderTheme.h>
 #include <WebCore/ResourceHandle.h>
 #include <WebCore/ResourceHandleClient.h>
+#include <WebCore/ScrollbarTheme.h>
 #include <WebCore/SelectionController.h>
 #include <WebCore/Settings.h>
 #include <WebCore/SimpleFontData.h>
@@ -559,6 +561,22 @@ void WebView::close()
     preferences->didRemoveFromWebView();
 
     deleteBackingStore();
+}
+
+void WebView::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
+{
+    if (!repaintContentOnly) {
+        RECT rect = windowRect;
+        ::InvalidateRect(m_viewWindow, &rect, false);
+    }
+    if (contentChanged)
+        addToDirtyRegion(windowRect);
+    if (immediate) {
+        if (repaintContentOnly)
+            updateBackingStore(core(topLevelFrame())->view());
+        else
+            ::UpdateWindow(m_viewWindow);
+    }
 }
 
 void WebView::deleteBackingStore()
@@ -1734,7 +1752,11 @@ static LRESULT CALLBACK WebViewWndProc(HWND hWnd, UINT message, WPARAM wParam, L
         case WM_XP_THEMECHANGED:
             if (Frame* coreFrame = core(mainFrameImpl)) {
                 webView->deleteBackingStore();
-                coreFrame->view()->themeChanged();
+                theme()->themeChanged();
+                ScrollbarTheme::nativeTheme()->themeChanged();
+                RECT windowRect;
+                ::GetClientRect(hWnd, &windowRect);
+                ::InvalidateRect(hWnd, &windowRect, false);
             }
             break;
         case WM_MOUSEACTIVATE:
@@ -4428,7 +4450,7 @@ HRESULT WebView::setProhibitsMainFrameScrolling(BOOL b)
     if (!m_page)
         return E_FAIL;
 
-    m_page->mainFrame()->setProhibitsScrolling(b);
+    m_page->mainFrame()->view()->setProhibitsScrolling(b);
     return S_OK;
 }
 

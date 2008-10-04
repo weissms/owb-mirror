@@ -103,6 +103,7 @@ public:
     void stopSearchEventTimer();
     
     bool placeholderIsVisible() const { return m_placeholderVisible; }
+    void updatePlaceholderVisibility();
 
     virtual void capsLockStateMayHaveChanged();
 
@@ -134,7 +135,6 @@ private:
     RenderStyle* createCancelButtonStyle(RenderStyle* startStyle);
     RenderStyle* createResultsButtonStyle(RenderStyle* startStyle);
 
-    void updatePlaceholder();
     void createSubtreeIfNeeded();
     void updateCancelButtonVisibility(RenderStyle*);
     const AtomicString& autosaveName() const;

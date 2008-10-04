@@ -1,3 +1,206 @@
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Remove addToDirtyRegion.
+        
+        Reviewed by Oliver Hunt
+        
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+
+2008-10-02  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21328
+        
+        Make widget invalidation more cross-platform.
+        
+        (1) Make invalidateRect a pure virtual function on Widget.  All leaf widgets must now implement this function.
+        
+        (2) Scrollbars now send invalidations through the ScrollbarClient.  windowClipRect on ScrollbarClient has been removed and replaced with this invalidation call.
+        This allows all scrollbar invalidations to go through the render tree so that transforms and reflections will be respected.
+        
+        (3) Plugins now have the native window invalidation code for windowed plugins.  Windowless plugins do a repaintRectangle on the plugin's renderer.
+        
+        (4) FrameViews now do a repaintRectangle on their owner element's renderer.
+
+        Reviewed by Sam Weinig
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (PluginWidget::PluginWidget):
+        (PluginWidget::invalidateRect):
+        (NetscapePluginWidget::NetscapePluginWidget):
+        (WebFrameLoaderClient::createPlugin):
+
+2008-10-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21321
+          Bug 21321: speed up JavaScriptCore by inlining Heap in JSGlobalData
+
+        * Misc/WebCoreStatistics.mm:
+        (+[WebCoreStatistics javaScriptObjectsCount]): Use heap. instead of heap-> to
+        work with the heap.
+        (+[WebCoreStatistics javaScriptGlobalObjectsCount]): Ditto.
+        (+[WebCoreStatistics javaScriptProtectedObjectsCount]): Ditto.
+        (+[WebCoreStatistics javaScriptProtectedGlobalObjectsCount]): Ditto.
+        (+[WebCoreStatistics javaScriptProtectedObjectTypeCounts]): Ditto.
+        (+[WebCoreStatistics javaScriptReferencedObjectsCount]): Ditto.
+
+2008-10-02  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21314
+        
+        Make scrollBackingStore cross-platform.
+
+        Reviewed by Sam Weinig
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::repaint):
+        (WebChromeClient::scroll):
+
+2008-10-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler and Cameron Zwarich.
+
+        Updated for JavaScriptCore API changes: use a SourceCode instead of
+        broken out parameters; treat sourceId as intptr_t.
+        
+        We still treat sourceId as int in some cases because of DashCode. See
+        <rdar://problem/6263293> WebScriptDebugDelegate should use intptr_t for
+        sourceId, not int.
+
+        * WebView/WebScriptDebugger.h:
+        * WebView/WebScriptDebugger.mm:
+        (toNSString):
+        (WebScriptDebugger::sourceParsed):
+        (WebScriptDebugger::callEvent):
+        (WebScriptDebugger::atStatement):
+        (WebScriptDebugger::returnEvent):
+        (WebScriptDebugger::exception):
+        (WebScriptDebugger::willExecuteProgram):
+        (WebScriptDebugger::didExecuteProgram):
+        (WebScriptDebugger::didReachBreakpoint):
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        Move prohibitsScrolling from the Frame to the ScrollView.
+
+        Reviewed by Sam Weinig
+
+        * WebView/WebView.mm:
+        (-[WebView setProhibitsMainFrameScrolling:]):
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21282
+        
+        Make contentsToScreen/screenToContents cross-platform.  Only implemented by Mac/Win right now.
+        
+        Reviewed by Adam Roben
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::repaint):
+        (WebChromeClient::screenToWindow):
+        (WebChromeClient::windowToScreen):
+
+2008-09-30   Dave Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21269
+  
+        This patch makes the ScrollView::paint method cross-platform.  The paint method calls the base class
+        Widget paint on platforms with native widgets (Mac and wx).  Otherwise it calls a virtual function,
+        paintContents, to paint the ScrollView's contents, and then it paints each of the two scrollbars and
+        the scrollbar corner.
+        
+        The scrollbar themes are now responsible for painting scrollbar corners.  At the moment ScrollbarThemeWin still
+        paints white (which is incorrect), so a future patch will actually implement proper native scroll corner painting
+        for Windows.
+        
+        paintContents is implemented by FrameView, and replaces Frame::paint.  All of the FramePrivate member
+        variables used by Frame::paint have moved to FrameViewPrivate instead.  All callers of Frame::paint have
+        been patched to use FrameView::paintContents instead.
+       
+        Reviewed by Darin Adler
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _drawRect:]):
+
+2008-09-30  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Remove the NPDrawingModelOpenGL entirely. To my knowledge no shipping plug-in ever used it, and no other browser engine
+        ever supported it.
+                              
+        * Plugins/WebBaseNetscapePluginView.h: Removed AGL.h import and OpenGL related ivars.
+        * Plugins/WebBaseNetscapePluginView.mm: Removed soft linking for OpenGL and AGL frameworks. 
+        Also removed many methods AGL/CGL support methods that are no longer necessary.
+        (-[WebBaseNetscapePluginView saveAndSetNewPortStateForUpdate:]): Removed NPDrawingModelOpenGL related code.
+        (-[WebBaseNetscapePluginView restorePortState:]): Ditto.
+        (-[WebBaseNetscapePluginView sendEvent:isDrawRect:]): Ditto.
+        (-[WebBaseNetscapePluginView isNewWindowEqualToOldWindow]): Ditto.
+        (-[WebBaseNetscapePluginView setWindowIfNecessary]): Ditto.
+        (-[WebBaseNetscapePluginView stop]): Ditto.
+        (-[WebBaseNetscapePluginView dealloc]): Ditto.
+        (-[WebBaseNetscapePluginView drawRect:]): 
+        (-[WebBaseNetscapePluginView viewWillMoveToWindow:]): Ditto.
+        (-[WebBaseNetscapePluginView invalidateRegion:]): Ditto.
+        (-[WebBaseNetscapePluginView getVariable:value:]): Tell plug-ins WebKit does not support NPDrawingModelOpenGL.
+        (-[WebBaseNetscapePluginView setVariable:value:]): Removed NPDrawingModelOpenGL related code. 
+        (-[WebBaseNetscapePluginView _viewHasMoved]): Ditto.
+
+2008-09-30  Dave Hyatt  <hyatt@apple.com>
+
+        http://bugs.webkit.org/show_bug.cgi?id=21250
+        
+        Rename updateContents to repaintContentRectangle and make it cross-platform by always sending
+        repaints up through the ChromeClient.
+        
+        Reviewed by Darin Adler
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::repaint):
+
+2008-09-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark Rowe and Adam Roben.
+
+        No need to use pointers to store C++ objects as pointers in WebViewPrivate, we can just
+        store them directly.
+        
+        * Configurations/Base.xcconfig:
+        Set GCC_OBJC_CALL_CXX_CDTORS to YES.
+        
+        * WebView/WebView.mm:
+        (-[WebViewPrivate init]):
+        (-[WebViewPrivate dealloc]):
+        (-[WebViewPrivate finalize]):
+        (-[WebView _preferencesChangedNotification:]):
+        (-[WebView setApplicationNameForUserAgent:]):
+        (-[WebView setCustomUserAgent:]):
+        (-[WebView customUserAgent]):
+        (-[WebView WebCore::_userAgentForURL:WebCore::]):
+        (-[WebView _addObject:forIdentifier:]):
+        (-[WebView _objectForIdentifier:]):
+        (-[WebView _removeObjectForIdentifier:]):
+
+2008-09-29  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon.
+
+        Changed copyright from Trolltech ASA to Nokia.
+        
+        Nokia acquired Trolltech ASA, assets were transferred on September 26th 2008.
+        
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        * WebCoreSupport/WebEditorClient.h:
+        * WebCoreSupport/WebEditorClient.mm:
+
 2008-09-30  Timothy Hatcher  <timothy@apple.com>
 
         Improves the Web Inspector node highlight so it does not scroll

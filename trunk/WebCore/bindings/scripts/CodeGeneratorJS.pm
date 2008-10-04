@@ -145,7 +145,7 @@ sub UsesManualToJSImplementation
 {
     my $type = shift;
 
-    return 1 if $type eq "Node" or $type eq "Document" or $type eq "HTMLCollection" or $type eq "SVGPathSeg" or $type eq "StyleSheet" or $type eq "CSSRule" or $type eq "CSSValue" or $type eq "Event" or $type eq "CanvasPixelArray" or $type eq "Element" or $type eq "Text" or $type eq "SVGElementInstance";
+    return 1 if $type eq "Node" or $type eq "Document" or $type eq "HTMLCollection" or $type eq "SVGPathSeg" or $type eq "StyleSheet" or $type eq "CSSRule" or $type eq "CSSValue" or $type eq "Event" or $type eq "ImageData" or $type eq "Element" or $type eq "Text" or $type eq "SVGElementInstance";
     return 0;
 }
 
@@ -852,7 +852,7 @@ sub GenerateImplementation
     if ($interfaceName eq "DOMWindow") {
         push(@implContent, "void* ${className}Prototype::operator new(size_t size)\n");
         push(@implContent, "{\n");
-        push(@implContent, "    return JSDOMWindow::commonJSGlobalData()->heap->allocate(size);\n");
+        push(@implContent, "    return JSDOMWindow::commonJSGlobalData()->heap.allocate(size);\n");
         push(@implContent, "}\n\n");
     }
     if ($numConstants > 0 || $numFunctions > 0) {
@@ -926,7 +926,7 @@ sub GenerateImplementation
                     push(@implContent, "    JSSVGDynamicPODTypeWrapperCache<$podType, $animatedType>::forgetWrapper(m_impl.get());\n");
                 }
             }
-            push(@implContent, "    forgetDOMObject(m_impl.get());\n");
+            push(@implContent, "    forgetDOMObject(*Heap::heap(this)->globalData(), m_impl.get());\n");
         }
 
         push(@implContent, "\n}\n\n");
@@ -936,7 +936,7 @@ sub GenerateImplementation
     # its own special handling rather than relying on the caching that Node normally does.
     if ($interfaceName eq "Document") {
         push(@implContent, "${className}::~$className()\n");
-        push(@implContent, "{\n    forgetDOMObject(static_cast<${implClassName}*>(impl()));\n}\n\n");
+        push(@implContent, "{\n    forgetDOMObject(*Heap::heap(this)->globalData(), static_cast<${implClassName}*>(impl()));\n}\n\n");
     }
 
     if ($interfaceName ne "DOMWindow") {
@@ -985,8 +985,10 @@ sub GenerateImplementation
         
         if ($numAttributes > 0) {
             foreach my $attribute (@{$dataNode->attributes}) {
+                my $name = $attribute->signature->name;
+                my $type = $codeGenerator->StripModule($attribute->signature->type);
                 my $getFunctionName = "js" . $interfaceName .  $codeGenerator->WK_ucfirst($attribute->signature->name) . ($attribute->signature->type =~ /Constructor$/ ? "Constructor" : "");
-                my $implGetterFunctionName = $codeGenerator->WK_lcfirst($attribute->signature->name);
+                my $implGetterFunctionName = $codeGenerator->WK_lcfirst($name);
 
                 push(@implContent, "JSValue* ${getFunctionName}(ExecState* exec, const Identifier&, const PropertySlot& slot)\n");
                 push(@implContent, "{\n");
@@ -1014,6 +1016,21 @@ sub GenerateImplementation
                     $implIncludes{"JSDOMBinding.h"} = 1;
                     push(@implContent, "    $implClassName* imp = static_cast<$implClassName*>(static_cast<$className*>(slot.slotBase())->impl());\n");
                     push(@implContent, "    return checkNodeSecurity(exec, imp->contentDocument()) ? " . NativeToJSValue($attribute->signature,  0, $implClassName, $implClassNameForValueConversion, "imp->$implGetterFunctionName()", "static_cast<$className*>(slot.slotBase())") . " : jsUndefined();\n");
+                } elsif ($type eq "EventListener") {
+                    $implIncludes{"JSEventListener.h"} = 1;
+                    $implIncludes{"EventListener.h"} = 1;
+                    my $listenerType;
+                    if ($attribute->signature->extendedAttributes->{"ProtectedListener"}) {
+                        $listenerType = "JSEventListener";
+                    } else {
+                        $listenerType = "JSUnprotectedEventListener";
+                    }
+                    push(@implContent, "    $implClassName* imp = static_cast<$implClassName*>(static_cast<$className*>(slot.slotBase())->impl());\n");
+                    push(@implContent, "    if (${listenerType}* listener = static_cast<${listenerType}*>(imp->$implGetterFunctionName())) {\n");
+                    push(@implContent, "        if (JSObject* listenerObj = listener->listenerObj())\n");
+                    push(@implContent, "            return listenerObj;\n");
+                    push(@implContent, "    }\n");
+                    push(@implContent, "    return jsNull();\n");
                 } elsif ($attribute->signature->type =~ /Constructor$/) {
                     my $constructorType = $codeGenerator->StripModule($attribute->signature->type);
                     $constructorType =~ s/Constructor$//;
@@ -1028,7 +1045,6 @@ sub GenerateImplementation
                         }
                     } else {
                         push(@implContent, "    $implClassName* imp = static_cast<$implClassName*>(static_cast<$className*>(slot.slotBase())->impl());\n");
-                        my $type = $codeGenerator->StripModule($attribute->signature->type);
                         my $jsType = NativeToJSValue($attribute->signature, 0, $implClassName, $implClassNameForValueConversion, "imp->$implGetterFunctionName()", "static_cast<$className*>(slot.slotBase())");
                         if ($codeGenerator->IsSVGAnimatedType($type)) {
                             push(@implContent, "    RefPtr<$type> obj = $jsType;\n");
@@ -1110,6 +1126,7 @@ sub GenerateImplementation
                 foreach my $attribute (@{$dataNode->attributes}) {
                     if ($attribute->type !~ /^readonly/) {
                         my $name = $attribute->signature->name;
+                        my $type = $codeGenerator->StripModule($attribute->signature->type);
                         my $putFunctionName = "setJS" . $interfaceName .  $codeGenerator->WK_ucfirst($name) . ($attribute->signature->type =~ /Constructor$/ ? "Constructor" : "");
                         my $implSetterFunctionName = $codeGenerator->WK_ucfirst($name);
 
@@ -1126,8 +1143,27 @@ sub GenerateImplementation
                         }
 
                         if ($attribute->signature->extendedAttributes->{"Custom"} || $attribute->signature->extendedAttributes->{"CustomSetter"}) {
-                            # FIXME: Custom function can 
                             push(@implContent, "    static_cast<$className*>(thisObject)->set$implSetterFunctionName(exec, value);\n");
+                        } elsif ($type eq "EventListener") {
+                            $implIncludes{"JSEventListener.h"} = 1;
+                            push(@implContent, "    $implClassName* imp = static_cast<$implClassName*>(static_cast<$className*>(thisObject)->impl());\n");
+                            my $listenerType;
+                            if ($attribute->signature->extendedAttributes->{"ProtectedListener"}) {
+                                $listenerType = "JSEventListener";
+                            } else {
+                                $listenerType = "JSUnprotectedEventListener";
+                            }
+                            if ($interfaceName eq "DOMWindow") {
+                                push(@implContent, "    JSDOMWindow* window = static_cast<JSDOMWindow*>(thisObject);\n");
+                            } else {
+                                $implIncludes{"Frame.h"} = 1;
+                                $implIncludes{"JSDOMWindow.h"} = 1;
+                                push(@implContent, "    Frame* frame = imp->associatedFrame();\n");
+                                push(@implContent, "    if (!frame)\n");
+                                push(@implContent, "        return;\n");
+                                push(@implContent, "    JSDOMWindow* window = toJSDOMWindow(frame);\n");
+                            }
+                            push(@implContent, "    imp->set$implSetterFunctionName(window->findOrCreate${listenerType}(exec, value, true));\n");
                         } elsif ($attribute->signature->type =~ /Constructor$/) {
                             my $constructorType = $attribute->signature->type;
                             $constructorType =~ s/Constructor$//;
@@ -1487,6 +1523,7 @@ sub JSValueToNative
     $implIncludes{"FloatRect.h"} = 1 if $type eq "SVGRect";
     $implIncludes{"HTMLOptionElement.h"} = 1 if $type eq "HTMLOptionElement";
     $implIncludes{"JSCustomVoidCallback.h"} = 1 if $type eq "VoidCallback";
+    $implIncludes{"Event.h"} = 1 if $type eq "Event";
 
     # Default, assume autogenerated type conversion routines
     $implIncludes{"JS$type.h"} = 1;
@@ -1585,10 +1622,7 @@ sub NativeToJSValue
         $implIncludes{"NameNodeList.h"} = 1;
     }
 
-    if ($type eq "EventTarget") {
-        $implIncludes{"EventTargetNode.h"} = 1;
-        $implIncludes{"JSEventTargetNode.h"} = 1;
-    } elsif ($type eq "SVGElementInstance") {
+    if ($type eq "SVGElementInstance") {
         $implIncludes{"EventTargetSVGElementInstance.h"} = 1;
         $implIncludes{"JSEventTargetSVGElementInstance.h"} = 1;
     } elsif ($type eq "DOMObject") {

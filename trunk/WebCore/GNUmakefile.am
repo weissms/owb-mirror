@@ -54,8 +54,6 @@ webcore_built_nosources += \
 	DerivedSources/tokenizer.cpp \
 	DerivedSources/ColorData.c \
 	WebCore/bindings/js/JSDOMWindowBase.lut.h \
-	WebCore/bindings/js/JSEventTargetBase.lut.h \
-	WebCore/bindings/js/JSEventTargetNode.lut.h \
 	WebCore/bindings/js/JSEventTargetSVGElementInstance.lut.h \
 	WebCore/bindings/js/JSRGBColor.lut.h
 
@@ -147,6 +145,8 @@ webcore_built_sources += \
 	DerivedSources/JSEvent.h \
 	DerivedSources/JSEventException.cpp \
 	DerivedSources/JSEventException.h \
+	DerivedSources/JSEventTargetNode.cpp \
+	DerivedSources/JSEventTargetNode.h \
 	DerivedSources/JSFile.cpp \
 	DerivedSources/JSFile.h \
 	DerivedSources/JSFileList.cpp \
@@ -620,7 +620,6 @@ webcore_sources += \
 	WebCore/bindings/js/JSCSSStyleDeclarationCustom.cpp \
 	WebCore/bindings/js/JSCSSStyleDeclarationCustom.h \
 	WebCore/bindings/js/JSCSSValueCustom.cpp \
-	WebCore/bindings/js/JSCanvasPixelArrayCustom.cpp \
 	WebCore/bindings/js/JSCanvasPixelArrayCustom.h \
 	WebCore/bindings/js/JSCanvasRenderingContext2DCustom.cpp \
 	WebCore/bindings/js/JSClipboardCustom.cpp \
@@ -643,13 +642,13 @@ webcore_sources += \
 	WebCore/bindings/js/JSEventCustom.cpp \
 	WebCore/bindings/js/JSEventListener.cpp \
 	WebCore/bindings/js/JSEventListener.h \
-	WebCore/bindings/js/JSEventTargetBase.cpp \
+	WebCore/bindings/js/JSEventTarget.cpp \
+	WebCore/bindings/js/JSEventTarget.h \
 	WebCore/bindings/js/JSEventTargetBase.h \
-	WebCore/bindings/js/JSEventTargetNode.cpp \
-	WebCore/bindings/js/JSHTMLAllCollection.cpp \
-	WebCore/bindings/js/JSEventTargetNode.h \
+	WebCore/bindings/js/JSEventTargetNodeCustom.cpp \
 	WebCore/bindings/js/JSEventTargetSVGElementInstance.cpp \
 	WebCore/bindings/js/JSEventTargetSVGElementInstance.h \
+	WebCore/bindings/js/JSHTMLAllCollection.cpp \
 	WebCore/bindings/js/JSHTMLAllCollection.h \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.h \
@@ -675,6 +674,7 @@ webcore_sources += \
 	WebCore/bindings/js/JSHistoryCustom.h \
 	WebCore/bindings/js/JSImageConstructor.cpp \
 	WebCore/bindings/js/JSImageConstructor.h \
+	WebCore/bindings/js/JSImageDataCustom.cpp \
 	WebCore/bindings/js/JSInspectedObjectWrapper.cpp \
 	WebCore/bindings/js/JSInspectedObjectWrapper.h \
 	WebCore/bindings/js/JSInspectorCallbackWrapper.cpp \
@@ -3401,10 +3401,10 @@ DerivedSources/JSSVGElementWrapperFactory.cpp: DerivedSources/SVGElementFactory.
 
 if SVG_FLAGS
 DerivedSources/SVGElementFactory.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/svg/svgtags.in $(WebCore)/svg/svgattrs.in
-	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/svg/svgtags.in --attrs $(WebCore)/svg/svgattrs.in --extraDefines "$(SVG_FEATURES)" --outputDir "$(GENSOURCES)"
+	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/svg/svgtags.in --attrs $(WebCore)/svg/svgattrs.in --extraDefines "$(SVG_FEATURES)" --factory --wrapperFactory --outputDir "$(GENSOURCES)"
 else
 DerivedSources/SVGElementFactory.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/svg/svgtags.in $(WebCore)/svg/svgattrs.in
-	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/svg/svgtags.in --attrs $(WebCore)/svg/svgattrs.in --outputDir "$(GENSOURCES)"
+	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/svg/svgtags.in --attrs $(WebCore)/svg/svgattrs.in --factory --wrapperFactory --outputDir "$(GENSOURCES)"
 
 endif # SVG_FLAGS
 
@@ -3491,10 +3491,10 @@ DerivedSources/HTMLNames.h: DerivedSources/HTMLNames.cpp;
 
 if HTML_FLAGS
 DerivedSources/HTMLNames.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/html/HTMLTagNames.in $(WebCore)/html/HTMLAttributeNames.in
-	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --extraDefines "$(HTML_FEATURES)" --outputDir "$(GENSOURCES)"
+	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --extraDefines "$(HTML_FEATURES)" --wrapperFactory --outputDir "$(GENSOURCES)"
 else
 DerivedSources/HTMLNames.cpp: $(WebCore)/dom/make_names.pl $(WebCore)/html/HTMLTagNames.in $(WebCore)/html/HTMLAttributeNames.in
-	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --outputDir "$(GENSOURCES)"
+	$(PERL) -I$(WebCore)/bindings/scripts $< --tags $(WebCore)/html/HTMLTagNames.in --attrs $(WebCore)/html/HTMLAttributeNames.in --wrapperFactory --outputDir "$(GENSOURCES)"
 endif # HTML_FLAGS
 
 DerivedSources/XMLNames.h: DerivedSources/XMLNames.cpp;
@@ -3563,8 +3563,6 @@ webcore_dist += \
 # Clean rules for WebCore
 
 CLEANFILES += \
-	WebCore/bindings/js/JSEventTargetBase.lut.h \
-	WebCore/bindings/js/JSEventTargetNode.lut.h \
 	WebCore/bindings/js/JSEventTargetSVGElementInstance.lut.h \
 	WebCore/bindings/js/JSDOMWindowBase.lut.h \
 	WebCore/bindings/js/JSRGBColor.lut.h

@@ -63,7 +63,7 @@ public:
      * @code
      * @endcode
      */
-    virtual bool paint(Scrollbar*, GraphicsContext* context, const IntRect& damageRect) ;
+    virtual bool paint(Scrollbar*, GraphicsContext*, const IntRect& damageRect) ;
 
 
     /**
@@ -87,11 +87,7 @@ public:
 
 
     /**
-     *  buttonsPlacement description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  buttonsPlacement
      */
     virtual ScrollbarButtonsPlacement buttonsPlacement() const ;
 
@@ -124,31 +120,25 @@ public:
 
 
     /**
-     *  invalidatePart description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  invalidatePart 
      */
     virtual void invalidatePart(Scrollbar*, ScrollbarPart) ;
 
 
+
     /**
-     *  shouldCenterOnThumb description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  paintScrollCorner 
+     */
+    virtual void paintScrollCorner(ScrollView*, GraphicsContext* context, const IntRect& cornerRect) ;
+
+    /**
+     *  shouldCenterOnThumb 
      */
     virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&) ;
 
 
     /**
-     *  thumbPosition description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  thumbPosition 
      */
     virtual int thumbPosition(Scrollbar*) ;
 
@@ -164,11 +154,7 @@ public:
 
 
     /**
-     *  trackPosition description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  trackPosition 
      */
     virtual int trackPosition(Scrollbar*) ;
 
@@ -184,11 +170,7 @@ public:
 
 
     /**
-     *  initialAutoscrollTimerDelay description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  initialAutoscrollTimerDelay
      */
     virtual double initialAutoscrollTimerDelay() ;
 

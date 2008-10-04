@@ -60,13 +60,11 @@ public:
     virtual void valueChanged(Scrollbar*) = 0;
 
     // Used to obtain a window clip rect.
+
     /**
-     * Used to obtain a window clip rect.
-     * @param[out] : the clip rectangle.
-     * @code
-     * @endcode
+     *  invalidateScrollbarRect
      */
-    virtual IntRect windowClipRect() const = 0;
+    virtual void invalidateScrollbarRect(Scrollbar*, const IntRect&) = 0;
 
     /**
      * To check wether a scrollBarClient  is active or not.
@@ -79,7 +77,5 @@ public:
 
 }
 #endif
-
-
 
 

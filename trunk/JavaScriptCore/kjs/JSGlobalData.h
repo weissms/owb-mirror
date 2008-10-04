@@ -30,10 +30,9 @@
 #define JSGlobalData_h
 
 #include <wtf/Forward.h>
-#include <wtf/HashCountedSet.h>
 #include <wtf/HashMap.h>
-#include <wtf/HashSet.h>
 #include <wtf/RefCounted.h>
+#include "collector.h"
 #include "SmallStrings.h"
 
 struct OpaqueJSClass;
@@ -46,6 +45,7 @@ namespace JSC {
     class Heap;
     class IdentifierTable;
     class JSGlobalObject;
+    class JSObject;
     class Lexer;
     class Machine;
     class Parser;
@@ -63,7 +63,6 @@ namespace JSC {
         ~JSGlobalData();
 
         Machine* machine;
-        Heap* heap;
 
         const HashTable* arrayTable;
         const HashTable* dateTable;
@@ -83,7 +82,7 @@ namespace JSC {
 
         SmallStrings smallStrings;
         
-        HashMap<OpaqueJSClass*, OpaqueJSClassContextData*>* opaqueJSClassData;
+        HashMap<OpaqueJSClass*, OpaqueJSClassContextData*> opaqueJSClassData;
 
         HashSet<ParserRefCounted*>* newParserObjects;
         HashCountedSet<ParserRefCounted*>* parserObjectExtraRefCounts;
@@ -94,6 +93,16 @@ namespace JSC {
         JSGlobalObject* head;
 
         bool isSharedInstance;
+
+        struct ClientData {
+            virtual ~ClientData() = 0;
+        };
+
+        ClientData* clientData;
+
+        HashSet<JSObject*> arrayVisitedElements;
+
+        Heap heap;
 
     private:
         JSGlobalData(bool isShared = false);

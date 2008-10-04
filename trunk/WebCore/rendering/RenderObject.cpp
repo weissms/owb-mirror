@@ -2565,6 +2565,11 @@ void RenderObject::arenaDelete(RenderArena* arena, void* base)
                 backgroundImage->removeClient(this);
         }
 
+        for (const FillLayer* maskLayer = m_style->maskLayers(); maskLayer; maskLayer = maskLayer->next()) {
+            if (StyleImage* maskImage = maskLayer->image())
+                maskImage->removeClient(this);
+        }
+
         if (StyleImage* borderImage = m_style->borderImage().image())
             borderImage->removeClient(this);
 

@@ -76,6 +76,7 @@ namespace JSC {
                 , datePrototype(0)
                 , regExpPrototype(0)
             {
+                Machine::initializeCallFrame(globalCallFrame + RegisterFile::CallFrameHeaderSize, 0, 0, globalScopeChain.node(), makeHostCallFramePointer(0), 0, 0, 0);
             }
             
             virtual ~JSGlobalObjectData()
@@ -90,6 +91,7 @@ namespace JSC {
             Debugger* debugger;
             
             ScopeChain globalScopeChain;
+            Register globalCallFrame[RegisterFile::CallFrameHeaderSize];
             OwnPtr<ExecState> globalExec;
 
             int recursion;
@@ -136,8 +138,6 @@ namespace JSC {
             RefPtr<JSGlobalData> globalData;
 
             HashSet<ProgramCodeBlock*> codeBlocks;
-
-            OwnPtr<HashSet<JSObject*> > arrayVisitedElements; // Global data shared by array prototype functions.
         };
 
     public:
@@ -146,14 +146,14 @@ namespace JSC {
         JSGlobalObject(JSGlobalData* globalData)
             : JSVariableObject(globalData->nullProtoStructureID, new JSGlobalObjectData(this, this))
         {
-            init(this);
+            init();
         }
 
     protected:
-        JSGlobalObject(PassRefPtr<StructureID> structure, JSGlobalObjectData* data, JSObject* globalThisValue)
+        JSGlobalObject(PassRefPtr<StructureID> structure, JSGlobalObjectData* data)
             : JSVariableObject(structure, data)
         {
-            init(globalThisValue);
+            init();
         }
 
     public:
@@ -240,8 +240,6 @@ namespace JSC {
 
         virtual bool isDynamicScope() const;
 
-        HashSet<JSObject*>& arrayVisitedElements() { if (!d()->arrayVisitedElements) d()->arrayVisitedElements.set(new HashSet<JSObject*>); return *d()->arrayVisitedElements; }
-
         HashSet<ProgramCodeBlock*>& codeBlocks() { return d()->codeBlocks; }
 
         void copyGlobalsFrom(RegisterFile&);
@@ -268,8 +266,8 @@ namespace JSC {
         void addStaticGlobals(GlobalPropertyInfo*, int count);
 
     private:
-        // FIXME: Fold these functions into the constructor.
-        void init(JSObject* thisValue);
+        // FIXME: Fold reset into init.
+        void init();
         void reset(JSValue* prototype);
 
         void setRegisters(Register* registers, Register* registerArray, size_t count);

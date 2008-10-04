@@ -296,25 +296,43 @@ IntRect ChromeClientQt::windowResizerRect() const
     return IntRect();
 }
 
-void ChromeClientQt::addToDirtyRegion(const IntRect& r)
+void ChromeClientQt::repaint(const IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
 {
-    QWidget* view = m_webPage->view();
-    if (view) {
-        QRect rect(r);
-        rect = rect.intersected(QRect(QPoint(0, 0), m_webPage->viewportSize()));
-        if (!r.isEmpty())
-            view->update(r);
-    } else
-        emit m_webPage->repaintRequested(r);
+    // No double buffer, so only update the QWidget if content changed.
+    if (contentChanged) {
+        QWidget* view = m_webPage->view();
+        if (view) {
+            QRect rect(windowRect);
+            rect = rect.intersected(QRect(QPoint(0, 0), m_webPage->viewportSize()));
+            if (!windowRect.isEmpty())
+                view->update(windowRect);
+        } else
+            emit m_webPage->repaintRequested(windowRect);
+    }
+
+    // FIXME: There is no "immediate" support for window painting.  This should be done always whenever the flag
+    // is set.
 }
 
-void ChromeClientQt::scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect)
+void ChromeClientQt::scroll(const IntSize& delta, const IntRect& scrollViewRect, const IntRect& clipRect)
 {
     QWidget* view = m_webPage->view();
     if (view)
-        view->scroll(dx, dy, scrollViewRect);
+        view->scroll(delta.x(), delta.y(), scrollViewRect);
     else
-        emit m_webPage->scrollRequested(dx, dy, scrollViewRect);
+        emit m_webPage->scrollRequested(delta.x(), delta.y(), scrollViewRect);
+}
+
+IntRect ChromeClientQt::windowToScreen(const IntRect& rect) const
+{
+    notImplemented();
+    return rect;
+}
+
+IntPoint ChromeClientQt::screenToWindow(const IntPoint& point) const
+{
+    notImplemented();
+    return point;
 }
 
 void ChromeClientQt::updateBackingStore()

@@ -140,6 +140,7 @@ namespace WebCore {
             PseudoEnabled,
             PseudoFullPageMedia,
             PseudoDisabled,
+            PseudoInputPlaceholder,
             PseudoReadOnly,
             PseudoReadWrite,
             PseudoIndeterminate,

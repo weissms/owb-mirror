@@ -417,23 +417,46 @@ IntRect WebChromeClient::windowResizerRect() const
     return intRect;
 }
 
-void WebChromeClient::addToDirtyRegion(const IntRect& dirtyRect)
+void WebChromeClient::repaint(const IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
 {
-    m_webView->addToDirtyRegion(dirtyRect);
+    ASSERT(core(m_webView->topLevelFrame()));
+    m_webView->repaint(windowRect, contentChanged, immediate, repaintContentOnly);
 }
 
-void WebChromeClient::scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect)
+void WebChromeClient::scroll(const IntSize& delta, const IntRect& scrollViewRect, const IntRect& clipRect)
 {
     ASSERT(core(m_webView->topLevelFrame()));
 
-    m_webView->scrollBackingStore(core(m_webView->topLevelFrame())->view(), dx, dy, scrollViewRect, clipRect);
+    m_webView->scrollBackingStore(core(m_webView->topLevelFrame())->view(), delta.width(), delta.height(), scrollViewRect, clipRect);
 }
 
-void WebChromeClient::updateBackingStore()
+IntRect WebChromeClient::windowToScreen(const IntRect& rect) const
 {
-    ASSERT(core(m_webView->topLevelFrame()));
+    HWND viewWindow;
+    if (FAILED(m_webView->viewWindow(reinterpret_cast<OLE_HANDLE*>(&viewWindow))))
+        return rect;
 
-    m_webView->updateBackingStore(core(m_webView->topLevelFrame())->view(), 0, false);
+    // Find the top left corner of the Widget's containing window in screen coords,
+    // and adjust the result rect's position by this amount.
+    POINT topLeft = {0, 0};
+    IntRect result = rect;
+    ::ClientToScreen(viewWindow, &topLeft);
+    result.move(topLeft.x, topLeft.y);
+
+    return result;
+}
+
+IntPoint WebChromeClient::screenToWindow(const IntPoint& point) const
+{
+    POINT result = point;
+
+    HWND viewWindow;
+    if (FAILED(m_webView->viewWindow(reinterpret_cast<OLE_HANDLE*>(&viewWindow))))
+        return point;
+
+    ::ScreenToClient(viewWindow, &result);
+
+    return result;
 }
 
 void WebChromeClient::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)

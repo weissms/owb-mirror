@@ -116,6 +116,16 @@ protected:
      */
     virtual int trackLength(Scrollbar*);
 
+
+    /**
+     *  paintScrollCorner description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void paintScrollCorner(ScrollView*, GraphicsContext*, const IntRect& cornerRect);
+
     /**
      * Check wether the scrollbar has buttons.
      * @param[in] : a pointer to the scrollbar.

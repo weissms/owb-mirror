@@ -35,6 +35,8 @@ use IO::File;
 use InFilesParser;
 use Switch;
 
+my $printFactory = 0; 
+my $printWrapperFactory = 0;
 my $tagsFile = "";
 my $attrsFile = "";
 my $outputDir = ".";
@@ -48,9 +50,11 @@ my %htmlCustomMappings = ();
 
 GetOptions('tags=s' => \$tagsFile, 
     'attrs=s' => \$attrsFile,
+    'factory' => \$printFactory,
     'outputDir=s' => \$outputDir,
     'extraDefines=s' => \$extraDefines,
-    'preprocessor=s' => \$preprocessor);
+    'preprocessor=s' => \$preprocessor,
+    'wrapperFactory' => \$printWrapperFactory);
 
 die "You must specify at least one of --tags <file> or --attrs <file>" unless (length($tagsFile) || length($attrsFile));
 
@@ -59,7 +63,6 @@ readNames($attrsFile, "attrs") if length($attrsFile);
 
 die "You must specify a namespace (e.g. SVG) for <namespace>Names.h" unless $parameters{'namespace'};
 die "You must specify a namespaceURI (e.g. http://www.w3.org/2000/svg)" unless $parameters{'namespaceURI'};
-die "You must specify a cppNamespace (e.g. DOM) used for <cppNamespace>::<namespace>Names::fooTag" unless $parameters{'cppNamespace'};
 
 $parameters{'namespacePrefix'} = $parameters{'namespace'} unless $parameters{'namespacePrefix'};
 
@@ -71,12 +74,12 @@ my $wrapperFactoryBasePath = "$outputDir/JS$parameters{'namespace'}ElementWrappe
 printNamesHeaderFile("$namesBasePath.h");
 printNamesCppFile("$namesBasePath.cpp");
 
-if ($parameters{'generateFactory'}) {
+if ($printFactory) {
     printFactoryCppFile("$factoryBasePath.cpp");
     printFactoryHeaderFile("$factoryBasePath.h");
 }
 
-if ($parameters{'generateWrapperFactory'}) {
+if ($printWrapperFactory) {
     printWrapperFactoryCppFile("$wrapperFactoryBasePath.cpp");
     printWrapperFactoryHeaderFile("$wrapperFactoryBasePath.h");
 }
@@ -85,15 +88,14 @@ if ($parameters{'generateWrapperFactory'}) {
 
 sub initializeTagPropertyHash
 {
-    return ('upperCase' => upperCaseName($_[0]),
+    return ('interfaceName' => upperCaseName($_[0])."Element",
             'applyAudioHack' => 0,
             'exportString' => 0);
 }
 
 sub initializeAttrPropertyHash
 {
-    return ('upperCase' => upperCaseName($_[0]),
-            'exportString' => 0);
+    return ('exportString' => 0);
 }
 
 sub initializeParametersHash
@@ -101,10 +103,7 @@ sub initializeParametersHash
     return ('namespace' => '',
             'namespacePrefix' => '',
             'namespaceURI' => '',
-            'cppNamespace' => '',
-            'generateFactory' => 0,
             'guardFactoryWith' => '',
-            'generateWrapperFactory' => 0,
             'tagsNullNamespace' => 0,
             'attrsNullNamespace' => 0,
             'exportStrings' => 0);
@@ -211,11 +210,11 @@ sub printConstructors
 
     print F "#if $parameters{'guardFactoryWith'}\n" if $parameters{'guardFactoryWith'};
     for my $name (sort keys %names) {
-        my $ucName = $names{$name}{"upperCase"};
+        my $ucName = $names{$name}{"interfaceName"};
 
         print F "$parameters{'namespace'}Element* ${name}Constructor(Document* doc, bool createdByParser)\n";
         print F "{\n";
-        print F "    return new $parameters{'namespace'}${ucName}Element($parameters{'namespace'}Names::${name}Tag, doc);\n";
+        print F "    return new $parameters{'namespace'}${ucName}($parameters{'namespace'}Names::${name}Tag, doc);\n";
         print F "}\n\n";
     }
     print F "#endif\n" if $parameters{'guardFactoryWith'};
@@ -299,7 +298,7 @@ sub printNamesHeaderFile
     print F "#define DOM_$parameters{'namespace'}NAMES_H\n\n";
     print F "#include \"QualifiedName.h\"\n\n";
     
-    print F "namespace $parameters{'cppNamespace'} { namespace $parameters{'namespace'}Names {\n\n";
+    print F "namespace WebCore {\n\n namespace $parameters{'namespace'}Names {\n\n";
     
     my $lowerNamespace = lc($parameters{'namespacePrefix'});
     print F "#ifndef DOM_$parameters{'namespace'}NAMES_HIDE_GLOBALS\n";
@@ -347,7 +346,7 @@ print F "#endif\n\n";
 print F "#include \"$parameters{'namespace'}Names.h\"\n\n";
 print F "#include \"StaticConstructors.h\"\n";
 
-print F "namespace $parameters{'cppNamespace'} { namespace $parameters{'namespace'}Names {
+print F "namespace WebCore {\n\n namespace $parameters{'namespace'}Names {
 
 using namespace WebCore;
 
@@ -431,8 +430,8 @@ sub printJSElementIncludes
     for my $name (sort keys %names) {
         next if (hasCustomMapping($name));
 
-        my $ucName = $names{$name}{"upperCase"};
-        print F "#include \"JS$parameters{'namespace'}${ucName}Element.h\"\n";
+        my $ucName = $names{$name}{"interfaceName"};
+        print F "#include \"JS$parameters{'namespace'}${ucName}.h\"\n";
     }
 }
 
@@ -443,8 +442,8 @@ sub printElementIncludes
     for my $name (sort keys %names) {
         next if ($shouldSkipCustomMappings && hasCustomMapping($name));
 
-        my $ucName = $names{$name}{"upperCase"};
-        print F "#include \"$parameters{'namespace'}${ucName}Element.h\"\n";
+        my $ucName = $names{$name}{"interfaceName"};
+        print F "#include \"$parameters{'namespace'}${ucName}.h\"\n";
     }
 }
 
@@ -483,8 +482,10 @@ sub printDefinitions
 
         my $realName = $name;
         $realName =~ s/_/-/g;
-        print F "    const char *$name","${shortCamelType}String = \"$realName\";\n\n";
+        print F "    const char *$name","${shortCamelType}String = \"$realName\";\n";
     }
+
+    print "\n";
 
     for my $name (sort keys %$namesRef) {
         print F "    new ((void*)&$name","${shortCamelType}) QualifiedName(nullAtom, $name","${shortCamelType}String, $namespaceURI);\n";
@@ -526,7 +527,7 @@ typedef WTF::HashMap<AtomicStringImpl*, ConstructorFunc> FunctionMap;
 
 static FunctionMap* gFunctionMap = 0;
 
-namespace $parameters{'cppNamespace'} {
+namespace WebCore {
 
 END
 ;
@@ -621,8 +622,8 @@ namespace WebCore {
     class AtomicString;
 }
 
-namespace $parameters{'cppNamespace'}
-{
+namespace WebCore {
+
     class $parameters{'namespace'}Element;
 
     // The idea behind this class is that there will eventually be a mapping from namespace URIs to ElementFactories that can dispense
@@ -721,7 +722,7 @@ sub printWrapperFunctions
         # Custom mapping do not need a JS wrapper
         next if (hasCustomMapping($name));
 
-        my $ucName = $names{$name}{"upperCase"};
+        my $ucName = $names{$name}{"interfaceName"};
         # Hack for the media tags
         if ($names{$name}{"applyAudioHack"}) {
             print F <<END
@@ -729,7 +730,7 @@ static JSNode* create${ucName}Wrapper(ExecState* exec, PassRefPtr<$parameters{'n
 {
     if (!MediaPlayer::isAvailable())
         return CREATE_DOM_NODE_WRAPPER(exec, $parameters{'namespace'}Element, element.get());
-    return CREATE_DOM_NODE_WRAPPER(exec, $parameters{'namespace'}${ucName}Element, element.get());
+    return CREATE_DOM_NODE_WRAPPER(exec, $parameters{'namespace'}${ucName}, element.get());
 }
 
 END
@@ -737,8 +738,8 @@ END
         } else {
             print F <<END
 static JSNode* create${ucName}Wrapper(ExecState* exec, PassRefPtr<$parameters{'namespace'}Element> element)
-{   
-    return CREATE_DOM_NODE_WRAPPER(exec, $parameters{'namespace'}${ucName}Element, element.get());
+{
+    return CREATE_DOM_NODE_WRAPPER(exec, $parameters{'namespace'}${ucName}, element.get());
 }
 
 END
@@ -792,7 +793,7 @@ END
     for my $tag (sort keys %tags) {
         next if (hasCustomMapping($tag));
 
-        my $ucTag = $tags{$tag}{"upperCase"};
+        my $ucTag = $tags{$tag}{"interfaceName"};
         print F "       map.set(${tag}Tag.localName().impl(), create${ucTag}Wrapper);\n";
     }
 
@@ -800,7 +801,7 @@ END
         for my $tag (sort keys %htmlCustomMappings) {
             next if !$htmlCustomMappings{$tag};
 
-            my $ucCustomTag = $tags{$htmlCustomMappings{$tag}}{"upperCase"};
+            my $ucCustomTag = $tags{$htmlCustomMappings{$tag}}{"interfaceName"};
             print F "       map.set(${tag}Tag.localName().impl(), create${ucCustomTag}Wrapper);\n";
         }
     }

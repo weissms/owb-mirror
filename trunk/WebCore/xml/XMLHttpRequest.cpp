@@ -34,6 +34,7 @@
 #include "FrameLoader.h"
 #include "HTTPParsers.h"
 #include "JSDOMBinding.h"
+#include "JSDOMWindow.h"
 #include "KURL.h"
 #include "KURLHash.h"
 #include "Page.h"
@@ -46,7 +47,6 @@
 #include "XMLHttpRequestUpload.h"
 #include "markup.h"
 #include <kjs/JSLock.h>
-#include <kjs/protect.h>
 
 #if ENABLE(INSPECTOR)
 #include "InspectorController.h"
@@ -89,44 +89,6 @@ static void appendPreflightResultCacheEntry(String origin, KURL url, unsigned ex
 
     PreflightResultCacheItem* item = new PreflightResultCacheItem(expiryDelta, credentials, methods, headers);
     preflightResultCache().set(std::make_pair(origin, url), item);
-}
-
-typedef HashSet<XMLHttpRequest*> RequestsSet;
-
-static HashMap<Document*, RequestsSet*>& requestsByDocument()
-{
-    static HashMap<Document*, RequestsSet*> map;
-    return map;
-}
-
-static void addToRequestsByDocument(Document* doc, XMLHttpRequest* req)
-{
-    ASSERT(doc);
-    ASSERT(req);
-
-    RequestsSet* requests = requestsByDocument().get(doc);
-    if (!requests) {
-        requests = new RequestsSet;
-        requestsByDocument().set(doc, requests);
-    }
-
-    ASSERT(!requests->contains(req));
-    requests->add(req);
-}
-
-static void removeFromRequestsByDocument(Document* doc, XMLHttpRequest* req)
-{
-    ASSERT(doc);
-    ASSERT(req);
-
-    RequestsSet* requests = requestsByDocument().get(doc);
-    ASSERT(requests);
-    ASSERT(requests->contains(req));
-    requests->remove(req);
-    if (requests->isEmpty()) {
-        requestsByDocument().remove(doc);
-        delete requests;
-    }
 }
 
 static bool isSafeRequestHeader(const String& name)
@@ -218,20 +180,28 @@ XMLHttpRequest::XMLHttpRequest(Document* doc)
     , m_uploadComplete(false)
     , m_sameOriginRequest(true)
     , m_inPreflight(false)
+    , m_pendingActivity(0)
     , m_receivedLength(0)
     , m_lastSendLineNumber(0)
 {
     ASSERT(m_doc);
-    addToRequestsByDocument(m_doc, this);
+    m_doc->createdXMLHttpRequest(this);
 }
 
 XMLHttpRequest::~XMLHttpRequest()
 {
     if (m_doc)
-        removeFromRequestsByDocument(m_doc, this);
+        m_doc->destroyedXMLHttpRequest(this);
 
     if (m_upload)
         m_upload->disconnectXMLHttpRequest();
+}
+
+Frame* XMLHttpRequest::associatedFrame() const
+{
+    if (!m_doc)
+        return 0;
+    return m_doc->frame();
 }
 
 XMLHttpRequest::State XMLHttpRequest::readyState() const
@@ -767,9 +737,7 @@ void XMLHttpRequest::loadRequestAsynchronously(ResourceRequest& request)
         // Neither this object nor the JavaScript wrapper should be deleted while
         // a request is in progress because we need to keep the listeners alive,
         // and they are referenced by the JavaScript wrapper.
-        ref();
-
-        JSC::gcProtectNullTolerant(getCachedDOMObjectWrapper(this));
+        setPendingActivity();
     }
 }
 
@@ -876,13 +844,12 @@ void XMLHttpRequest::dropProtection()
     // can't be recouped until the load is done, so only
     // report the extra cost at that point.
 
-    JSC::JSValue* wrapper = getCachedDOMObjectWrapper(this);
-    if (wrapper) {
-        JSC::gcUnprotect(wrapper);
+    JSDOMWindow* window = toJSDOMWindow(m_doc->frame());
+    JSC::JSValue* wrapper = getCachedDOMObjectWrapper(*window->globalData(), this);
+    if (wrapper)
         JSC::Heap::heap(wrapper)->reportExtraMemoryCost(m_responseText.size() * 2);
-    }
 
-    deref();
+    unsetPendingActivity();
 }
 
 void XMLHttpRequest::overrideMimeType(const String& override)
@@ -1101,6 +1068,10 @@ void XMLHttpRequest::didFinishLoadingPreflight(SubresourceLoader* loader)
     // FIXME: this can probably be moved to didReceiveResponsePreflight.
     if (m_async)
         handleAsynchronousPreflightResult();
+
+    if (m_loader) {
+        unsetPendingActivity();
+    }
 }
 
 void XMLHttpRequest::willSendRequest(SubresourceLoader*, ResourceRequest& request, const ResourceResponse& redirectResponse)
@@ -1351,27 +1322,36 @@ void XMLHttpRequest::dispatchProgressEvent(long long expectedLength)
 
 void XMLHttpRequest::cancelRequests(Document* m_doc)
 {
-    RequestsSet* requests = requestsByDocument().get(m_doc);
-    if (!requests)
-        return;
-    RequestsSet copy = *requests;
-    RequestsSet::const_iterator end = copy.end();
-    for (RequestsSet::const_iterator it = copy.begin(); it != end; ++it)
-        (*it)->internalAbort();
+    const HashSet<XMLHttpRequest*>& requests = m_doc->xmlHttpRequests();
+    Vector<XMLHttpRequest*> copy;
+    copyToVector(requests, copy);
+
+    unsigned numRequests = copy.size();
+    for (unsigned i = 0; i != numRequests; ++i)
+        copy[i]->internalAbort();
 }
 
 void XMLHttpRequest::detachRequests(Document* m_doc)
 {
-    RequestsSet* requests = requestsByDocument().get(m_doc);
-    if (!requests)
-        return;
-    requestsByDocument().remove(m_doc);
-    RequestsSet::const_iterator end = requests->end();
-    for (RequestsSet::const_iterator it = requests->begin(); it != end; ++it) {
+    const HashSet<XMLHttpRequest*>& requests = m_doc->xmlHttpRequests();
+    HashSet<XMLHttpRequest*>::const_iterator end = requests.end();
+    for (HashSet<XMLHttpRequest*>::const_iterator it = requests.begin(); it != end; ++it) {
         (*it)->m_doc = 0;
         (*it)->internalAbort();
     }
-    delete requests;
+}
+
+void XMLHttpRequest::setPendingActivity()
+{
+    ref();
+    ++m_pendingActivity;
+}
+
+void XMLHttpRequest::unsetPendingActivity()
+{
+    ASSERT(m_pendingActivity > 0);
+    --m_pendingActivity;
+    deref();
 }
 
 } // namespace WebCore 

@@ -74,31 +74,19 @@ namespace WKAL {
 
 
     /**
-     *  platformWidget description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  platformWidget
      */
     PlatformWidget platformWidget() const ;
 
 
     /**
-     *  setPlatformWidget description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  setPlatformWidget
      */
     void setPlatformWidget(PlatformWidget widget);
 
 
     /**
      *  x description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
      */
     int x() const ;
 
@@ -176,12 +164,22 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    IntRect boundsRect() const 
+    IntRect boundsRect() const ;
 
     /**
      * get frameGeometry
      **/
-        virtual IntRect frameGeometry() const
+        virtual IntRect frameGeometry() const;
+
+
+    /**
+     *  boundsRect description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    IntRect boundsRect() const ;
 
     /**
      *  resize description
@@ -191,6 +189,16 @@ namespace WKAL {
      * @endcode
      */
     void resize(int w, int h) ;
+
+
+    /**
+     *  resize description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    void resize(const IntSize& s) ;
 
     /**
      *  move description
@@ -227,7 +235,7 @@ namespace WKAL {
     /**
      * invalidateRect
      */
-     virtual void invalidateRect(const IntRect&);
+     virtual void invalidateRect(const IntRect&) = 0;
 
     /**
      * set focus
@@ -353,15 +361,6 @@ namespace WKAL {
     ScrollView* root() const;
 
     /**
-     *  windowClipRect description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    virtual IntRect windowClipRect() const ;
-
-    /**
      * handle event
      * @param[in] : event
      * @code
@@ -477,4 +476,4 @@ private:
 };
 } // namespace WebCore
 
-#endif // Wi
+#endif //

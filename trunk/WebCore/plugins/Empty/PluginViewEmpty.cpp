@@ -162,6 +162,16 @@ void PluginView::invalidateRect(NPRect* rect)
 {
 }
 
+void PluginView::invalidateRect(const IntRect& rect)
+{
+    /*if (m_isWindowed) {
+        gtk_widget_queue_draw_area(GTK_WIDGET(platformPluginWidget()), rect.x(), rect.y(), rect.width(), rect.height());
+        return;
+    }*/
+
+    invalidateWindowlessPluginRect(rect);
+}
+
 void PluginView::forceRedraw()
 {
 }

@@ -5,7 +5,6 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSCSSRuleCustom.cpp
     bindings/js/JSCSSStyleDeclarationCustom.cpp
     bindings/js/JSCSSValueCustom.cpp
-    bindings/js/JSCanvasPixelArrayCustom.cpp
     bindings/js/JSCanvasRenderingContext2DCustom.cpp
     bindings/js/JSClipboardCustom.cpp
     bindings/js/JSConsoleCustom.cpp
@@ -20,8 +19,8 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSElementCustom.cpp
     bindings/js/JSEventCustom.cpp
     bindings/js/JSEventListener.cpp
-    bindings/js/JSEventTargetBase.cpp
-    bindings/js/JSEventTargetNode.cpp
+    bindings/js/JSEventTarget.cpp
+    bindings/js/JSEventTargetNodeCustom.cpp
     bindings/js/JSHTMLAllCollection.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
     bindings/js/JSHTMLCollectionCustom.cpp
@@ -39,6 +38,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSHTMLSelectElementCustom.cpp
     bindings/js/JSHistoryCustom.cpp
     bindings/js/JSImageConstructor.cpp
+    bindings/js/JSImageDataCustom.cpp
     bindings/js/JSLocationCustom.cpp
     bindings/js/JSMessageChannelConstructor.cpp
     bindings/js/JSMessageChannelCustom.cpp

@@ -45,6 +45,7 @@ class KeyframeAnimation;
 class Node;
 class RenderObject;
 class RenderStyle;
+class TimingFunction;
 
 class AnimationTimerBase {
 public:
@@ -209,11 +210,10 @@ public:
     void setAnimating(bool inAnimating = true) { m_animating = inAnimating; }
     bool animating() const { return m_animating; }
 
-    double progress(double scale, double offset) const;
+    double progress(double scale, double offset, const TimingFunction*) const;
 
     virtual void animate(CompositeAnimation*, RenderObject*, const RenderStyle* currentStyle, 
                          const RenderStyle* targetStyle, RenderStyle*& animatedStyle) { }
-    virtual void reset(RenderObject*, const RenderStyle* from = 0, const RenderStyle* to = 0) { }
 
     virtual bool shouldFireEvents() const { return false; }
 

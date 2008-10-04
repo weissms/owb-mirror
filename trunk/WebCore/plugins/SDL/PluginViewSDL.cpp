@@ -320,6 +320,16 @@ NPError PluginView::getValueStatic(NPNVariable variable, void* value)
     return NPERR_GENERIC_ERROR;
 }
 
+void PluginView::invalidateRect(const IntRect& rect)
+{
+    /*if (m_isWindowed) {
+        gtk_widget_queue_draw_area(GTK_WIDGET(platformPluginWidget()), rect.x(), rect.y(), rect.width(), rect.height());
+        return;
+    }*/
+
+    invalidateWindowlessPluginRect(rect);
+}
+
 void PluginView::invalidateRect(NPRect* rect)
 {
     if (!rect) {

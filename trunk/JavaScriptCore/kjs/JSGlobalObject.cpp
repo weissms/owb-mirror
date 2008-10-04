@@ -122,7 +122,7 @@ JSGlobalObject::~JSGlobalObject()
     delete d();
 }
 
-void JSGlobalObject::init(JSObject* thisValue)
+void JSGlobalObject::init()
 {
     ASSERT(JSLock::currentThreadIsHoldingLock());
 
@@ -139,7 +139,7 @@ void JSGlobalObject::init(JSObject* thisValue)
     d()->recursion = 0;
     d()->debugger = 0;
 
-    d()->globalExec.set(new ExecState(this, thisValue, d()->globalScopeChain.node()));
+    d()->globalExec.set(new ExecState(this, d()->globalCallFrame + RegisterFile::CallFrameHeaderSize));
 
     d()->profileGroup = 0;
 
@@ -359,7 +359,7 @@ void JSGlobalObject::mark()
 
     RegisterFile& registerFile = globalData()->machine->registerFile();
     if (registerFile.globalObject() == this)
-        registerFile.markGlobals(globalData()->heap);
+        registerFile.markGlobals(&globalData()->heap);
 
     markIfNeeded(d()->globalExec->exception());
 
@@ -440,17 +440,17 @@ void JSGlobalObject::copyGlobalsTo(RegisterFile& registerFile)
     registerFile.setNumGlobals(symbolTable().size());
 
     if (d()->registerArray) {
-        memcpy(registerFile.base() - d()->registerArraySize, d()->registerArray.get(), d()->registerArraySize * sizeof(Register));
-        setRegisters(registerFile.base(), 0, 0);
+        memcpy(registerFile.start() - d()->registerArraySize, d()->registerArray.get(), d()->registerArraySize * sizeof(Register));
+        setRegisters(registerFile.start(), 0, 0);
     }
 }
 
 void* JSGlobalObject::operator new(size_t size, JSGlobalData* globalData)
 {
 #ifdef JAVASCRIPTCORE_BUILDING_ALL_IN_ONE_FILE
-    return globalData->heap->inlineAllocate(size);
+    return globalData->heap.inlineAllocate(size);
 #else
-    return globalData->heap->allocate(size);
+    return globalData->heap.allocate(size);
 #endif
 }
 

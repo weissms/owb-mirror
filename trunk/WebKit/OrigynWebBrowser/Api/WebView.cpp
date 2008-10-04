@@ -88,8 +88,10 @@
 #include <PluginInfoStore.h>
 #include <PluginView.h>
 #include <ProgressTracker.h>
+#include <RenderTheme.h>
 #include <ResourceHandle.h>
 #include <ResourceHandleClient.h>
+#include <ScrollbarTheme.h>
 #include <SelectionController.h>
 #include <Settings.h>
 #include <SimpleFontData.h>
@@ -539,6 +541,22 @@ void WebView::close()
     deleteBackingStore();
 }
 
+void WebView::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
+{
+    if (!repaintContentOnly) {
+        addToDirtyRegion(windowRect);
+        d->sendExposeEvent(windowRect);
+    }
+    if (contentChanged)
+        addToDirtyRegion(windowRect);
+    if (immediate) {
+        if (repaintContentOnly)
+            updateBackingStore(core(topLevelFrame())->view());
+        else
+            d->sendExposeEvent(windowRect);
+    }
+}
+
 void WebView::deleteBackingStore()
 {
     if (m_deleteBackingStoreTimerActive) {
@@ -609,14 +627,30 @@ void WebView::scrollBackingStore(FrameView* frameView, int dx, int dy, const Int
 #if PLATFORM(AMIGAOS4)
     m_backingStoreDirtyRegion.move(dx, dy);
 #endif
-    /*printf("scrollViewRect dx=%d dy=%d scrollview x=%d y=%d w=%d h=%d clip x=%d y=%d w=%d h=%d\n", dx, dy, scrollViewRect.x(), scrollViewRect.y(), scrollViewRect.width(), scrollViewRect.height(), clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
     
-    IntSize offsetIntSize = m_page->mainFrame()->view()->scrollOffset();
-    printf("offsetIntSize w=%d h=%d\n", offsetIntSize.width(), offsetIntSize.height());*/
-    //frameView->scrollBackingStore(dx, dy, scrollViewRect, clipRect);
+    //IntSize offsetIntSize = m_page->mainFrame()->view()->scrollOffset();
+    //printf("scrollViewRect %d %d %d %d\n", scrollViewRect.x(), scrollViewRect.y(), scrollViewRect.width(), scrollViewRect.height());
+    //printf("clipRect %d %d %d %d\n", clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
+    //printf("dx = %d dy = %d\n", dx, dy);
+    
+    //FIXME : find a better solution for the scroll and the scrollbar paint...
+    
+    d->sendExposeEvent(scrollViewRect);
+    
+    IntRect s;
+    if (dy != 0) {
+        s = IntRect(0, scrollViewRect.height(), d->frameRect().width(), d->frameRect().height() - scrollViewRect.height());
+        addToDirtyRegion(s);
+    } else
+        if (dx != 0) {
+            s = IntRect(scrollViewRect.width(), 0, d->frameRect().width() - scrollViewRect.width(), d->frameRect().height());
+            addToDirtyRegion(s);
+        }
+    
+    d->sendExposeEvent(s);
 }
 
-void WebView::updateBackingStore(FrameView* frameView)
+void WebView::updateBackingStore(FrameView* frameView, bool backingStoreCompletelyDirty)
 {
     //frameView->updateBackingStore();
 }
@@ -2226,7 +2260,7 @@ void WebView::setProhibitsMainFrameScrolling(bool b)
     if (!m_page)
         return ;
 
-    m_page->mainFrame()->setProhibitsScrolling(b);
+    m_page->mainFrame()->view()->setProhibitsScrolling(b);
 }
 
 void WebView::setShouldApplyMacFontAscentHack(bool b)
@@ -2272,7 +2306,7 @@ void WebView::paintDocumentRectToContext(IntRect rect, PlatformGraphicsContext *
     dirtyRect.setHeight(height);
     gc.clip(dirtyRect);
     gc.translate(-rect.x(), -rect.y());
-    frame->paint(&gc, rect);
+    view->paint(&gc, rect);
     gc.restore();
 }
 

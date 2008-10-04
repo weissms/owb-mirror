@@ -1,3 +1,2117 @@
+2008-10-03  Alp Toker  <alp@nuanti.com>
+
+        Remove some left-over GTK+ includes. No change in functionality.
+
+        * platform/Cursor.h:
+        * platform/graphics/Icon.h:
+        * platform/gtk/RenderThemeGtk.h:
+
+2008-10-03  Alp Toker  <alp@nuanti.com>
+
+        Build fix for trailing comment after #endif
+
+        * dom/ElementRareData.h:
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Remove addToDirtyRegion.
+        
+        Reviewed by Oliver Hunt
+
+        * page/Chrome.cpp:
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/win/ScrollViewWin.cpp:
+
+2008-10-03  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - fix a CachedResource leak introduced in r37176 
+
+        Undo r37176 and instead allow pruneDeadResources() to be re-entered, but
+        afterwards bail out of the outer pruneDeadResources().
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::Cache):
+        (WebCore::Cache::pruneDeadResources):
+        (WebCore::Cache::remove):
+        * loader/Cache.h:
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21330
+
+        Fix Gtk adjustments so that they are properly checked again before creating horizontal/vertical
+        scrollbars.
+        
+        Reviewed by Oliver Hunt
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setHasHorizontalScrollbar):
+        (WebCore::ScrollView::setHasVerticalScrollbar):
+        (WebCore::ScrollView::platformHasHorizontalAdjustment):
+        (WebCore::ScrollView::platformHasVerticalAdjustment):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::adjustmentChanged):
+        (WebCore::ScrollView::ScrollView):
+        (WebCore::ScrollView::~ScrollView):
+        (WebCore::ScrollView::setGtkAdjustments):
+        (WebCore::ScrollView::platformHandleHorizontalAdjustment):
+        (WebCore::ScrollView::platformHandleVerticalAdjustment):
+
+2008-10-03  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21106: .in format discussed changes
+        https://bugs.webkit.org/show_bug.cgi?id=21106
+
+        Change "upperCase" to "interfaceName" per-tag parameter as
+        discussed on the mailing list. Removed the per-attribute version
+        as it was not used.
+
+        Also add the "Element" suffix to all interfaceName parameter to match
+        the class name (and thus remove it from make_names.pl).
+
+        * dom/make_names.pl:
+        * html/HTMLTagNames.in:
+        * svg/svgtags.in:
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Preserve Qt's disabling of blitting when any native widgets are present anywhere on the page (ick).
+        Hopefully this is a temporary hack that could eventually be removed.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::scrollContents):
+        * platform/ScrollView.h:
+        (WebCore::ScrollView::rootPreventsBlitting):
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::ScrollView):
+        (WebCore::ScrollView::~ScrollView):
+        (WebCore::ScrollView::platformAddChild):
+        (WebCore::ScrollView::platformRemoveChild):
+
+2008-10-02  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21328
+        
+        Make widget invalidation more cross-platform.
+        
+        (1) Make invalidateRect a pure virtual function on Widget.  All leaf widgets must now implement this function.
+        
+        (2) Scrollbars now send invalidations through the ScrollbarClient.  windowClipRect on ScrollbarClient has been removed and replaced with this invalidation call.
+        This allows all scrollbar invalidations to go through the render tree so that transforms and reflections will be respected.
+        
+        (3) Plugins now have the native window invalidation code for windowed plugins.  Windowless plugins do a repaintRectangle on the plugin's renderer.
+        
+        (4) FrameViews now do a repaintRectangle on their owner element's renderer.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.base.exp:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::invalidateRect):
+        (WebCore::FrameView::invalidateScrollbarRect):
+        * page/FrameView.h:
+        * platform/PopupMenu.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::scrollContents):
+        * platform/ScrollView.h:
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::setEnabled):
+        (WebCore::Scrollbar::invalidateRect):
+        * platform/Scrollbar.h:
+        * platform/ScrollbarClient.h:
+        * platform/Widget.h:
+        * platform/gtk/WidgetGtk.cpp:
+        * platform/mac/WidgetMac.mm:
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::invalidateScrollbarRect):
+        * platform/win/WidgetWin.cpp:
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::invalidateTimerFired):
+        (WebCore::PluginView::invalidateWindowlessPluginRect):
+        * plugins/PluginView.h:
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::invalidateRect):
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::invalidateRect):
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::invalidateRect):
+        (WebCore::PluginView::invalidateRegion):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::invalidateScrollbarRect):
+        * rendering/RenderLayer.h:
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::paintObject):
+        (WebCore::RenderListBox::paintScrollbar):
+        (WebCore::RenderListBox::invalidateScrollbarRect):
+        * rendering/RenderListBox.h:
+
+2008-10-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Geoffrey Garen and Sam Weinig.
+
+        - fix SVGFontFaceElement leaks seen in Acid3
+        - make font-face elements take effect only when they are in the document tree
+
+        Test: svg/custom/font-face-not-in-document.svg
+
+        * svg/SVGFontData.h: Changed the m_svgFontFaceElement member from a
+        RefPtr to a plain pointer to break a ref cycle.
+        (WebCore::SVGFontData::svgFontFaceElement):
+
+        * svg/SVGFontFaceElement.cpp: Changed to insert and remove the
+        @font-face rule from the document's mapped element sheet when the
+        element is inserted and removed from the document, and to update it
+        only when the element is in the document.
+        (WebCore::SVGFontFaceElement::SVGFontFaceElement):
+        (WebCore::SVGFontFaceElement::parseMappedAttribute):
+        (WebCore::SVGFontFaceElement::rebuildFontFace):
+        (WebCore::SVGFontFaceElement::insertedIntoDocument):
+        (WebCore::SVGFontFaceElement::removedFromDocument):
+        (WebCore::SVGFontFaceElement::childrenChanged):
+        (WebCore::SVGFontFaceElement::removeFromMappedElementSheet):
+        * svg/SVGFontFaceElement.h:
+
+2008-10-01  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Fix RenderFileUploadControl::setStyle() and 
+        RenderMenuList::setStyle() to not touch the style; replace
+        with html4.css and CSSStyleSelector changes.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21287
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::adjustRenderStyle):
+        * css/html4.css:
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::setStyle):
+        * rendering/RenderFileUploadControl.cpp:
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::setStyle):
+
+2008-10-01  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Clean up code that changes the RenderStyle passed in to
+        table renderer setStyle() methods.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=21287
+        
+        Tests: fast/table/floating-th.html
+               fast/table/table-display-types-strict.html
+               fast/table/table-display-types.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::adjustRenderStyle):
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::setStyle):
+        * rendering/RenderTableRow.cpp:
+        (WebCore::RenderTableRow::setStyle):
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::setStyle):
+
+2008-10-02  Darin Adler  <darin@apple.com>
+
+        - fix build
+
+        * bindings/scripts/CodeGeneratorJS.pm: Need to replace the -> with a . here too.
+        Not just locally in my generated file!
+
+2008-10-02  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21299
+        REGRESSION: <input> color specified in inline style applies to placeholder
+
+        I recently added a pseudo-class for the placeholder, but that can be overridden by inline style changes.  A pseudo-element
+        is more appropriate.  This change adds "-webkit-input-placeholder".
+
+        * css/CSSSelector.cpp: (WebCore::CSSSelector::extractPseudoType):
+        Added definition for "-webkit-input-placeholder" pseudo element.
+        * css/CSSSelector.h: (WebCore::CSSSelector::): Added PseudoInputPlaceholder.
+        * css/CSSStyleSelector.cpp: (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        Added case for PseudoInputPlaceholder.
+        * css/html4.css: Added rule for -webkit-input-placeholder pseudo-element.
+        * rendering/style/RenderStyle.h: (WebCore::RenderStyle::): Added INPUT_PLACEHOLDER.
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::setValue): Check that its a text field before calling updatePlaceholderVisibility.
+        (WebCore::HTMLInputElement::setValueFromRenderer): ditto.
+        (WebCore::HTMLInputElement::updatePlaceholderVisibility): Instead of calling setChanged(), call updatePlaceholderVisibility on the renderer.
+        setChanged wouldn't actually trigger setStyle since the style for the input element won't actually change.
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::createInnerTextStyle): Get the pseudoStyle when the placeholder is visible.
+        (WebCore::RenderTextControl::updatePlaceholderVisibility): Sets the style on the inner text block, and calls updateFromElement so
+        the text will be updated correctly.
+        * rendering/RenderTextControl.h:
+
+2008-10-02  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21280
+        <rdar://problem/6227690> There are a bunch of tables on this page that don't seem to be real tables
+
+        Updated AXTable detection to be more robust to false-positives. Specifically, added checks
+        to ensure that there is more than one valid table cell, and that at least half of the cells
+        have borders or have specific background colors. Modified the table detection layout test
+        to test for the tables mentioned in the bug
+
+        * page/AccessibilityTable.cpp:
+        (WebCore::AccessibilityTable::isTableExposableThroughAccessibility):
+
+2008-10-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21321
+          Bug 21321: speed up JavaScriptCore by inlining Heap in JSGlobalData
+
+        * bindings/js/GCController.cpp:
+        (WebCore::collect): Use heap. instead of heap-> to work with the heap.
+        (WebCore::GCController::gcTimerFired): Ditto.
+        (WebCore::GCController::garbageCollectNow): Ditto.
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::operator new): Ditto.
+        * storage/Database.cpp:
+        (WebCore::Database::Database): Ditto.
+
+2008-10-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        - fix a Database leak that resulted in Document leaks
+
+        * storage/Database.cpp:
+        (WebCore::Database::openDatabase): Account for the fact that RefCounted 
+        objects start out with a ref count of 1.
+
+2008-10-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mr. Geoffrey Garen.
+
+        Always mark your parent before marking members.
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::mark):
+
+2008-10-02  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21314
+        
+        Make scrollBackingStore cross-platform.
+
+        Reviewed by Sam Weinig
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::repaint):
+        (WebCore::EmptyChromeClient::scroll):
+        * page/Chrome.cpp:
+        (WebCore::Chrome::repaint):
+        (WebCore::Chrome::scroll):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleAutoscroll):
+        * platform/HostWindow.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::scrollContents):
+        (WebCore::ScrollView::addPanScrollIcon):
+        (WebCore::ScrollView::removePanScrollIcon):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::ScrollViewPrivate::ScrollViewPrivate):
+        (WebCore::ScrollView::~ScrollView):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::ScrollView):
+        (WebCore::ScrollView::~ScrollView):
+
+2008-10-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes after Frame/ScrollView changes.
+
+        * WebCoreSources.bkl:
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::platformContentsToScreen):
+        (WebCore::ScrollView::platformScreenToContents):
+        (WebCore::ScrollView::platformIsOffscreen):
+
+2008-10-02  Brett Wilson  <brettw@chromium.org>
+
+        Reviewed by Sam Weinig
+
+        https://bugs.webkit.org/show_bug.cgi?id=21292
+
+        Revert the changes to enclosingIntRect made in r12530 since the new code
+        doesn't round correctly.
+
+        * ChangeLog:
+        * platform/graphics/FloatRect.cpp:
+        (WebCore::enclosingIntRect):
+
+2008-10-02  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Anders Carlsson and Eric Seidel.
+
+        - fix HTMLCanvaseElement leak from -webkit-canvas() values
+
+        Changed the m_element member of CSSCanvasValue from a RefPtr to a plain
+        pointer, as the document owns the canvas elements. Added code to release
+        those elements in Document::removedLastRef() because they reference
+        the document.
+
+        * css/CSSCanvasValue.cpp:
+        (WebCore::CSSCanvasValue::element):
+        * css/CSSCanvasValue.h:
+        (WebCore::CSSCanvasValue::CSSCanvasValue):
+        * dom/Document.cpp:
+        (WebCore::Document::removedLastRef):
+
+2008-10-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Build fix for platforms that don't implement WTF::ThreadSpecific.
+
+        * bindings/js/JSDOMBinding.cpp: (WebCore::wrapperSet):
+        Guard ThreadSpecific use with #if ENABLE(WORKERS). No platform defines this yet, but this
+        code is only needed for JS bindings in worker threads.
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21298
+        
+        Make updateScrollbars cross-platform.  For now a stubbed out scrollContents function is invoked to do the scrolling of the backing store.  Next patch
+        will make that cross-platform.  
+        
+        The ScrollView now implements ScrollbarClient, which means that there was a clash of windowClipRect methods from the
+        multiple inheritance.  For now I solved this by adding a Scrollbar* to the ScrollbarClient version of the method, but longer term
+        windowClipRect is going to be removed from ScrollbarClient (when Widget invalidation gets rewritten).
+        
+        Reviewed by Sam Weinig
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::windowClipRect):
+        (WebCore::FrameView::isActive):
+        * page/FrameView.h:
+        (WebCore::FrameView::visibleContentsResized):
+        * platform/PopupMenu.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::init):
+        (WebCore::ScrollView::destroy):
+        (WebCore::ScrollView::setHasHorizontalScrollbar):
+        (WebCore::ScrollView::setHasVerticalScrollbar):
+        (WebCore::ScrollView::valueChanged):
+        (WebCore::ScrollView::updateScrollbars):
+        (WebCore::ScrollView::scrollContents):
+        (WebCore::ScrollView::platformHandleHorizontalAdjustment):
+        (WebCore::ScrollView::platformHandleVerticalAdjustment):
+        * platform/ScrollView.h:
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::windowClipRect):
+        * platform/ScrollbarClient.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::platformHandleHorizontalAdjustment):
+        (WebCore::ScrollView::platformHandleVerticalAdjustment):
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::scrollContents):
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::windowClipRect):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::scrollContents):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::windowClipRect):
+        * rendering/RenderLayer.h:
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::panScroll):
+        (WebCore::RenderListBox::windowClipRect):
+        * rendering/RenderListBox.h:
+
+2008-10-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21304
+        Stop using a static wrapper map for WebCore JS bindings
+
+        The static domObjects map was not thread safe.
+
+        * dom/Document.h:
+        (WebCore::Document::messagePorts): Added an accessor for JSDocument to iterate over message
+        ports.
+        (WebCore::Document::xmlHttpRequests): Ditto for XMLHttpRequests.
+
+        * dom/Document.cpp:
+        (WebCore::Document::createdXMLHttpRequest):
+        (WebCore::Document::destroyedXMLHttpRequest):
+        Moved XMLHttpRequest tracking from a global map to Document.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * webcore-base.bkl:
+        * bindings/DOMProtect.cpp: Removed.
+        * bindings/DOMProtect.h: Removed.
+        Removed gcProtect(Unprotect)DOMObject - its callers do not have a JSGlobalData reference,
+        so they can no longer protect bindings objects.
+
+        * dom/MessagePort.cpp:
+        (WebCore::CloseMessagePortTimer::CloseMessagePortTimer):
+        (WebCore::CloseMessagePortTimer::fired):
+        (WebCore::MessagePort::MessagePort):
+        (WebCore::MessagePort::queueCloseEvent):
+        (WebCore::MessagePort::setPendingActivity):
+        (WebCore::MessagePort::unsetPendingActivity):
+        * dom/MessagePort.h:
+        (WebCore::MessagePort::hasPendingActivity):
+        MessagePort now counts outstanding async events, so JSDocument::mark can decide whether
+        to protect it.
+
+        * xml/XMLHttpRequest.h:
+        (WebCore::XMLHttpRequest::hasPendingActivity):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::XMLHttpRequest):
+        (WebCore::XMLHttpRequest::~XMLHttpRequest):
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously):
+        (WebCore::XMLHttpRequest::dropProtection):
+        (WebCore::XMLHttpRequest::didFinishLoadingPreflight):
+        (WebCore::XMLHttpRequest::cancelRequests):
+        (WebCore::XMLHttpRequest::detachRequests):
+        (WebCore::XMLHttpRequest::setPendingActivity):
+        (WebCore::XMLHttpRequest::unsetPendingActivity):
+        Moved XMLHttpRequest tracking from a global map to Document. 
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::wrapperSet):
+        (WebCore::DOMObjectWrapperMap::mapFor):
+        (WebCore::DOMObjectWrapperMap::get):
+        (WebCore::DOMObjectWrapperMap::set):
+        (WebCore::DOMObjectWrapperMap::remove):
+        (WebCore::getCachedDOMObjectWrapper):
+        (WebCore::cacheDOMObjectWrapper):
+        (WebCore::forgetDOMObject):
+        (WebCore::getCachedDOMNodeWrapper):
+        (WebCore::forgetDOMNode):
+        (WebCore::cacheDOMNodeWrapper):
+        (WebCore::markActiveObjectsForDocument):
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::createDOMObjectWrapper):
+        (WebCore::getDOMObjectWrapper):
+        Wrapper map is now kept as JSGlobalData::clientData. Also changed debug-only wrapperSet
+        to be per-thread (this is slower than going to JSGlobalData, but fast enough for debug).
+        WebCore objects can never migrate between threads.
+
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::mark):
+        Call markActiveObjectsForDocument() from JSDOMBinding.
+
+        * bindings/js/JSCSSRuleCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSCSSValueCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::markDOMObjectWrapper):
+        (WebCore::JSDOMWindow::mark):
+        * bindings/js/JSEventCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSEventTarget.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSImageDataCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSMessageChannelCustom.cpp:
+        (WebCore::JSMessageChannel::mark):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::mark):
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::JSNode::mark):
+        * bindings/js/JSSVGPathSegCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSStyleSheetCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::mark):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::mark):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::finishedWithEvent):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        Pass a JSGlobalData reference to functions that track JS wrapper objects.
+
+2008-10-02  Dan Bernstein  <mitz@apple.com>
+
+        - build fix
+
+        * page/JavaScriptCallFrame.idl:
+
+2008-10-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Add new file to project files
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-10-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+
+        Try to fix some more builds.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+
+2008-10-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Try to fix Windows build.
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-10-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler and Cameron Zwarich.
+
+        Updated for JavaScriptCore API changes: use a SourceCode instead of
+        broken out parameters; treat sourceId as intptr_t.
+
+        * ForwardingHeaders/kjs/SourceRange.h: Copied from ForwardingHeaders/kjs/SourceProvider.h.
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::send):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate):
+        * bindings/js/StringSourceProvider.h:
+        (WebCore::StringSourceProvider::create):
+        (WebCore::StringSourceProvider::StringSourceProvider):
+
+        (WebCore::makeSource): Added a makeSource function for convenience.
+
+        * bindings/objc/WebScriptObject.mm:
+        (-[WebScriptObject evaluateWebScript:]):
+        * bridge/NP_jsobject.cpp:
+        (_NPN_Evaluate):
+        * bridge/jni/jni_jsobject.mm:
+        (JavaJSObject::call):
+        (JavaJSObject::eval):
+        (JavaJSObject::getMember):
+        (JavaJSObject::setMember):
+        (JavaJSObject::removeMember):
+
+        * bridge/jni/jni_runtime.h:
+        (JSC::Bindings::JavaString::operator UString): Replaced the explicit
+        ustring() function with an implicit operator because this class already
+        holds a UString::rep.
+
+        * page/Console.cpp:
+        (WebCore::retrieveLastCaller):
+        (WebCore::Console::trace):
+        * page/InspectorController.cpp:
+        (WebCore::jsStringRef):
+        (WebCore::InspectorController::addBreakpoint):
+        (WebCore::InspectorController::removeBreakpoint):
+        (WebCore::InspectorController::didParseSource):
+        (WebCore::InspectorController::failedToParseSource):
+        * page/InspectorController.h:
+        * page/JavaScriptCallFrame.cpp:
+        (WebCore::JavaScriptCallFrame::JavaScriptCallFrame):
+        * page/JavaScriptCallFrame.h:
+        (WebCore::JavaScriptCallFrame::create):
+        (WebCore::JavaScriptCallFrame::sourceIdentifier):
+        (WebCore::JavaScriptCallFrame::update):
+        * page/JavaScriptDebugListener.h:
+        * page/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::addBreakpoint):
+        (WebCore::JavaScriptDebugServer::removeBreakpoint):
+        (WebCore::JavaScriptDebugServer::hasBreakpoint):
+        (WebCore::dispatchDidParseSource):
+        (WebCore::dispatchFailedToParseSource):
+        (WebCore::JavaScriptDebugServer::sourceParsed):
+        (WebCore::JavaScriptDebugServer::callEvent):
+        (WebCore::JavaScriptDebugServer::atStatement):
+        (WebCore::JavaScriptDebugServer::returnEvent):
+        (WebCore::JavaScriptDebugServer::exception):
+        (WebCore::JavaScriptDebugServer::willExecuteProgram):
+        (WebCore::JavaScriptDebugServer::didExecuteProgram):
+        (WebCore::JavaScriptDebugServer::didReachBreakpoint):
+        * page/JavaScriptDebugServer.h:
+        * page/inspector/ScriptsPanel.js: Renamed internal uses of sourceId and 
+        sourceIdentifier to sourceID.
+
+2008-10-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        - fix SVGFontFaceElement leak seen on svg/custom/acid3-test-77.html
+
+        Broke a ref cycle by changing the m_svgFontFaceElement members of
+        CSSFontFaceSource and CSSFontFaceSrcValue from RefPtrs to plain
+        pointers. Also made sure that the @font-face rule added by
+        SVGFontFaceElement to the document's mapped element sheet is removed
+        when the font-face element is deleted or moved to another document.
+
+        * css/CSSFontFaceSource.cpp:
+        (WebCore::CSSFontFaceSource::CSSFontFaceSource):
+        (WebCore::CSSFontFaceSource::getFontData):
+        * css/CSSFontFaceSource.h:
+        (WebCore::CSSFontFaceSource::svgFontFaceElement):
+        * css/CSSFontFaceSrcValue.h:
+        (WebCore::CSSFontFaceSrcValue::svgFontFaceElement):
+        (WebCore::CSSFontFaceSrcValue::CSSFontFaceSrcValue):
+        * svg/SVGFontFaceElement.cpp:
+        (WebCore::SVGFontFaceElement::~SVGFontFaceElement):
+        (WebCore::SVGFontFaceElement::willMoveToNewOwnerDocument):
+        (WebCore::SVGFontFaceElement::didMoveToNewOwnerDocument):
+        (WebCore::SVGFontFaceElement::removeFromMappedElementSheet):
+        * svg/SVGFontFaceElement.h:
+
+2008-10-01  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20315: Memory leak with Canvas getImageData
+        <https://bugs.webkit.org/show_bug.cgi?id=20315>
+
+        This wasn't a leak, the issue was that we were reporting the cost
+        of the CanvasPixelArray when creating the JSCanvasPixelArray wrapper
+        and we should have been reporting the cost when we create the
+        JSImageData wrapper.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSCanvasPixelArrayCustom.cpp: Removed.
+          This was only needed to report the extra memory cost
+          of the CPA.
+        * bindings/js/JSImageDataCustom.cpp:
+        (WebCore::toJS):
+          We need a custom toJS function now so that we can report
+          the extra memory cost.
+        * bindings/scripts/CodeGeneratorJS.pm:
+          Need to replace the reference to CanvasPixelArray with ImageData
+          to be able to create the custom toJS implementation.
+        * html/CanvasPixelArray.idl:
+        * html/ImageData.idl:
+
+2008-10-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21293
+          REGRESSION: Crash beneath RenderSVGViewportContainer::viewportTransform() during SVGSVGElement destruction
+
+        * svg/SVGMarkerElement.cpp:
+        (WebCore::SVGMarkerElement::~SVGMarkerElement): Call detach() here so
+        that renderer destruction happens before the SVGMarkerElement is
+        destroyed.
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::~SVGSVGElement): Ditto for SVGSVGElement.
+
+2008-10-01  Evan Martin  <evan@chromium.org>
+
+        Reviewed by Eric Seidel.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20669
+
+        * css/makeprop.pl:
+        Die if gperf fails.
+
+2008-10-01  Evan Martin  <evan@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        * loader/icon/IconDatabase.h:
+        IconDatabase uses HashMap, so it needs to #include the header.
+
+2008-10-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix an assertion failure in http/tests/security/canvas-remote-read-svg-image.html due to re-entry into Cache::pruneDeadResources()
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::remove): Disable pruning temporarily during 
+        CachedResource deletion.
+
+2008-10-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix SVGFontElement leaks seen on buildbot by breaking a ref cycle
+
+        * svg/SVGFontFaceElement.cpp:
+        (WebCore::SVGFontFaceElement::rebuildFontFace):
+        * svg/SVGFontFaceElement.h:
+        (WebCore::SVGFontFaceElement::associatedFontElement):
+
+2008-10-01  Brett Wilson  <brettw@chromium.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Document the rounding behavior of the mapRect(IntRect) function in
+        AffineTransform.h.
+
+        * platform/graphics/AffineTransform.h:
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        Move prohibitsScrolling from the Frame to the ScrollView.
+
+        Reviewed by Sam Weinig
+
+        * WebCore.base.exp:
+        * page/Frame.cpp:
+        (WebCore::FramePrivate::FramePrivate):
+        * page/Frame.h:
+        * page/FramePrivate.h:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::scrollRectIntoViewRecursively):
+        (WebCore::FrameView::setScrollPosition):
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::init):
+        (WebCore::ScrollView::scrollRectIntoViewRecursively):
+        (WebCore::ScrollView::setScrollPosition):
+        * platform/ScrollView.h:
+        (WebCore::ScrollView::setProhibitsScrolling):
+        (WebCore::ScrollView::prohibitsScrolling):
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+        * platform/win/ScrollViewWin.cpp:
+        (WebCore::ScrollView::updateScrollbars):
+
+2008-10-01  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Fix leaks seen during http/tests/xmlhttprequest/access-control-basic-non-simple-allow.html.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::didFinishLoadingPreflight): Balance the ref and GC protect
+        that we do during the loadRequestAsynchronously of the preflight request with a deref and
+        GC unprotect.
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        Rename allowsScrolling/setAllowsScrolling to canHaveScrollbars/setCanHaveScrollbars to make it more
+        clear that the boolean doesn't actually stop all scrolling.  It just gets rid of scrollbars.
+
+        Reviewed by Tim Hatcher
+
+        * WebCore.base.exp:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::setCanHaveScrollbars):
+        * page/FrameView.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setCanHaveScrollbars):
+        (WebCore::ScrollView::wheelEvent):
+        * platform/ScrollView.h:
+        (WebCore::ScrollView::canHaveScrollbars):
+
+2008-10-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix some CachedResource leaks seen on buildbot
+
+        The issue here was that emptying the cache was a no-op when it only
+        contained resources with no data. Changed to go after those
+        resources when the desired cache capacity is zero.
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::pruneLiveResources):
+        (WebCore::Cache::pruneDeadResources):
+        * loader/Cache.h:
+        (WebCore::Cache::prune):
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        Make isOffscreen cross-platform.  Only Mac implements this method, so hold off on adding API to the
+        HostWindow object until other platforms decide they want this method.  (We need it for Win though at some point.)
+
+        Reviewed by Adam Roben
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::isOffscreen):
+        (WebCore::ScrollView::platformIsOffscreen):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::platformIsOffscreen):
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/wx/ScrollViewWx.cpp:
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        Make show/hide/setParentVisible cross-platform on ScrollView.
+
+        Reviewed by Adam Roben
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setParentVisible):
+        (WebCore::ScrollView::show):
+        (WebCore::ScrollView::hide):
+        * platform/ScrollView.h:
+        * platform/win/ScrollViewWin.cpp:
+
+2008-10-01  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21284
+        Bug 21284: Max height affects max width
+        - Looks like a cut and paste bug
+        - Added layout test fast/css/max-height-and-max-width.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21282
+        
+        Make contentsToScreen/screenToContents cross-platform.  Only implemented by Mac/Win right now.
+        
+        Reviewed by Adam Roben
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::screenToWindow):
+        (WebCore::EmptyChromeClient::windowToScreen):
+        * page/Chrome.cpp:
+        (WebCore::Chrome::screenToWindow):
+        (WebCore::Chrome::windowToScreen):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * platform/HostWindow.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::contentsToScreen):
+        (WebCore::ScrollView::screenToContents):
+        (WebCore::ScrollView::platformContentsToScreen):
+        (WebCore::ScrollView::platformScreenToContents):
+        * platform/ScrollView.h:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::platformContentsToScreen):
+        (WebCore::ScrollView::platformScreenToContents):
+        * platform/win/ScrollViewWin.cpp:
+
+2008-10-01  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fix <rdar://problem/6255862> domfuzz: null deref in WebCore::HTMLParser::handleResidualStyleCloseTagAcrossBlocks(WebCore::HTMLStackElem*)
+
+        Test: fast/parser/residual-style-close-across-removed-block.html
+
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::handleResidualStyleCloseTagAcrossBlocks): Removed
+        an assertion that turned out to be wrong in this case, and changed to
+        terminate the algorithm at the first empty block.
+
+2008-10-01  David Hyatt  <hyatt@apple.com>
+
+        Make setFrameRect on ScrollView cross-platform.
+
+        Reviewed by Sam Weinig
+
+        * page/FrameView.h:
+        (WebCore::FrameView::contentsResized):
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setFrameRect):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/win/ScrollViewWin.cpp:
+
+2008-10-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Adele Peterson.
+
+        Move setTimeout, clearTimeout, setInterval, clearInterval, atob and btoa
+        to JSDOMWindow from JSDOMWindowBase.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::removeTimeout):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::setTimeoutOrInterval):
+        (WebCore::JSDOMWindow::setTimeout):
+        (WebCore::JSDOMWindow::clearTimeout):
+        (WebCore::JSDOMWindow::setInterval):
+        (WebCore::JSDOMWindow::clearInterval):
+        (WebCore::JSDOMWindow::atob):
+        (WebCore::JSDOMWindow::btoa):
+        * page/DOMWindow.idl:
+
+2008-10-01  Dan Bernstein  <mitz@apple.com>
+
+        - Mac build fix
+
+        * WebCore.base.exp:
+
+2008-10-01  Timothy Hatcher  <timothy@apple.com>
+
+        Prevent stealing focus from the search field when focusing a DOM node.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21275
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel.treeOutline.focusedNodeChanged):
+        Don't steal focus if the current focus element is the search field.
+
+2008-09-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Nikolas Zimmermann and Alexey Proskuryakov.
+
+        Final patch for https://bugs.webkit.org/show_bug.cgi?id=21122
+        Autogenerate JS event listeners
+
+        - Generate getting/setting of EventListeners.
+
+        - Adding a new named EventListener now has the same process as adding any other DOM
+          attribute. (Add a method with the same name in the c++ file).
+
+        (The EventListeners for MessagePort have been intentionally left custom so that we
+        can continue to experiment with making those EventListeners work in a frame-less world.)
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp: Remove custom methods.
+        * bindings/js/JSDOMWindowCustom.cpp: ditto.
+        * bindings/js/JSEventTargetNodeCustom.cpp: ditto.
+        * bindings/js/JSXMLHttpRequestCustom.cpp: ditto.
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp: ditto.
+        * bindings/scripts/CodeGeneratorJS.pm: Add code to generate EventListener
+        getter/setters
+        * dom/EventTargetNode.cpp: Add getter/setters for named EventListener.
+        * dom/EventTargetNode.h: ditto.
+        * dom/EventTargetNode.idl: Mark EventListeners as Protected so that the codegenerator
+        will use JSEventListerner instead of JSUnprotectedEventListener.
+        * loader/appcache/DOMApplicationCache.idl: Remove custom attributes..
+        * page/DOMWindow.cpp: Add getter/setters for named EventListener
+        * page/DOMWindow.h: ditto.
+        * page/DOMWindow.idl: Mark EventListeners as Protected so that the codegenerator
+        will use JSEventListerner instead of JSUnprotectedEventListener.
+        * xml/XMLHttpRequest.idl: Remove custom attributes.
+        * xml/XMLHttpRequestUpload.idl: ditto.
+
+2008-09-30  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Add a leak counter for CachedResources since we've had two recent leaks involving them.
+
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::CachedResource):
+        (WebCore::CachedResource::~CachedResource):
+
+2008-09-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21127
+          <rdar://problem/6259134> REGRESSION: CFF format fonts fail to load
+
+        If TTLoadEmbeddedFont fails, use AddFontMemResourceEx after changing
+        the font name in memory.
+
+        * WebCore.vcproj/WebCore.vcproj: Renamed GetEOTHeader.* to
+        OpenTypeUtilities.*.
+
+        * platform/graphics/win/FontCustomPlatformData.cpp:
+        (WebCore::FontCustomPlatformData::~FontCustomPlatformData): Added a call
+        to RemoveFontMemResourceEx to match AddFontMemResourceEx when it is
+        used.
+        (WebCore::FontCustomPlatformData::fontPlatformData): Added a code path
+        for fonts loaded using AddFontMemResourceEx.
+        (WebCore::createFontCustomPlatformData): Added a call to
+        renameAndActivateFont() if TTLoadEmbeddedFont fails. If
+        TTLoadEmbeddedFont succeeds, set the font name to the null string, as
+        fontPlatformData() will retrieve the name from the font reference.
+
+        * platform/graphics/win/FontCustomPlatformData.h:
+        (WebCore::FontCustomPlatformData::FontCustomPlatformData): Added a
+        font name member.
+
+        * platform/graphics/win/GetEOTHeader.cpp: Renamed.
+        * platform/graphics/win/GetEOTHeader.h: Renamed.
+
+        * platform/graphics/win/OpenTypeUtilities.cpp: Copied from platform/graphics/win/GetEOTHeader.cpp.
+        (WebCore::BigEndianUShort::BigEndianUShort): Added a constructor.
+        (WebCore::BigEndianULong::BigEndianULong): Ditto.
+        (WebCore::renameAndActivateFont): Added. Creates an in-memory copy of
+        the font data and modifies it to have the given name, then activates
+        it using AddFontMemResourceEx.
+
+        * platform/graphics/win/OpenTypeUtilities.h: Copied from platform/graphics/win/GetEOTHeader.h.
+
+2008-09-30  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix many leaks seen on fast/backgrounds/svg-as-mask.html.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::arenaDelete): Balance the calls to addClient on maskLayer's images
+        with calls to removeClient when we're being destroyed.
+
+2008-09-30  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21243
+
+        Fix loopstart and loopend default values.
+
+        Tests: media/loopend-limits.html
+               media/loopstart-limits.html
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::loopStart): the spec says start() is the default value
+        (WebCore::HTMLMediaElement::loopEnd): the spec says end() is the default value
+
+2008-09-30  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes. Add file to build and remove call to (now gone) ScrollView::update.
+
+        * WebCoreSources.bkl:
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::ScrollViewPrivate::OnScrollWinEvents):
+
+2008-09-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix HTMLViewSourceDocument leaks by breaking a ref cycle which
+          was fixed in r17249 and re-introduced in r31435. 
+
+        * html/HTMLViewSourceDocument.cpp:
+        (WebCore::HTMLViewSourceDocument::HTMLViewSourceDocument):
+        (WebCore::HTMLViewSourceDocument::addSpanWithClassName):
+        (WebCore::HTMLViewSourceDocument::addLine):
+        (WebCore::HTMLViewSourceDocument::addLink):
+        * html/HTMLViewSourceDocument.h:
+
+2008-09-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        More for https://bugs.webkit.org/show_bug.cgi?id=21122
+        Autogenerate JS event listeners
+
+        - Make EventListener getter/setters names in c++ files match those in 
+          JS (ie. onLoadListener -> onload).
+        - Add standard way to access the frame associated with the EventTarget
+          for EventListener lookup.
+        - Autogenerate dispatchEvent, it wasn't doing anything custom.
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::mark):
+        (WebCore::JSDOMApplicationCache::addEventListener):
+        (WebCore::JSDOMApplicationCache::removeEventListener):
+        (WebCore::JSDOMApplicationCache::setOnchecking):
+        (WebCore::JSDOMApplicationCache::onchecking):
+        (WebCore::JSDOMApplicationCache::setOnerror):
+        (WebCore::JSDOMApplicationCache::onerror):
+        (WebCore::JSDOMApplicationCache::setOnnoupdate):
+        (WebCore::JSDOMApplicationCache::onnoupdate):
+        (WebCore::JSDOMApplicationCache::setOndownloading):
+        (WebCore::JSDOMApplicationCache::ondownloading):
+        (WebCore::JSDOMApplicationCache::setOnprogress):
+        (WebCore::JSDOMApplicationCache::onprogress):
+        (WebCore::JSDOMApplicationCache::setOnupdateready):
+        (WebCore::JSDOMApplicationCache::onupdateready):
+        (WebCore::JSDOMApplicationCache::setOncached):
+        (WebCore::JSDOMApplicationCache::oncached):
+        * bindings/js/JSEventTargetNodeCustom.cpp:
+        (WebCore::JSEventTargetNode::addEventListener):
+        (WebCore::JSEventTargetNode::removeEventListener):
+        (WebCore::JSEventTargetNode::getListener):
+        (WebCore::JSEventTargetNode::setListener):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::mark):
+        (WebCore::JSMessagePort::addEventListener):
+        (WebCore::JSMessagePort::removeEventListener):
+        (WebCore::JSMessagePort::setOnmessage):
+        (WebCore::JSMessagePort::onmessage):
+        (WebCore::JSMessagePort::setOnclose):
+        (WebCore::JSMessagePort::onclose):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::mark):
+        (WebCore::JSXMLHttpRequest::onreadystatechange):
+        (WebCore::JSXMLHttpRequest::setOnreadystatechange):
+        (WebCore::JSXMLHttpRequest::onabort):
+        (WebCore::JSXMLHttpRequest::setOnabort):
+        (WebCore::JSXMLHttpRequest::onerror):
+        (WebCore::JSXMLHttpRequest::setOnerror):
+        (WebCore::JSXMLHttpRequest::onload):
+        (WebCore::JSXMLHttpRequest::setOnload):
+        (WebCore::JSXMLHttpRequest::onloadstart):
+        (WebCore::JSXMLHttpRequest::setOnloadstart):
+        (WebCore::JSXMLHttpRequest::onprogress):
+        (WebCore::JSXMLHttpRequest::setOnprogress):
+        (WebCore::JSXMLHttpRequest::addEventListener):
+        (WebCore::JSXMLHttpRequest::removeEventListener):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::mark):
+        (WebCore::JSXMLHttpRequestUpload::onabort):
+        (WebCore::JSXMLHttpRequestUpload::setOnabort):
+        (WebCore::JSXMLHttpRequestUpload::onerror):
+        (WebCore::JSXMLHttpRequestUpload::setOnerror):
+        (WebCore::JSXMLHttpRequestUpload::onload):
+        (WebCore::JSXMLHttpRequestUpload::setOnload):
+        (WebCore::JSXMLHttpRequestUpload::onloadstart):
+        (WebCore::JSXMLHttpRequestUpload::setOnloadstart):
+        (WebCore::JSXMLHttpRequestUpload::onprogress):
+        (WebCore::JSXMLHttpRequestUpload::setOnprogress):
+        (WebCore::JSXMLHttpRequestUpload::addEventListener):
+        (WebCore::JSXMLHttpRequestUpload::removeEventListener):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * dom/EventTarget.h:
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::associatedFrame):
+        * dom/EventTargetNode.h:
+        * dom/EventTargetNode.idl:
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::associatedFrame):
+        * dom/MessagePort.h:
+        (WebCore::MessagePort::setOnmessage):
+        (WebCore::MessagePort::onmessage):
+        (WebCore::MessagePort::setOnclose):
+        (WebCore::MessagePort::onclose):
+        * dom/MessagePort.idl:
+        * loader/appcache/DOMApplicationCache.h:
+        (WebCore::DOMApplicationCache::setOnchecking):
+        (WebCore::DOMApplicationCache::onchecking):
+        (WebCore::DOMApplicationCache::setOnerror):
+        (WebCore::DOMApplicationCache::onerror):
+        (WebCore::DOMApplicationCache::setOnnoupdate):
+        (WebCore::DOMApplicationCache::onnoupdate):
+        (WebCore::DOMApplicationCache::setOndownloading):
+        (WebCore::DOMApplicationCache::ondownloading):
+        (WebCore::DOMApplicationCache::setOnprogress):
+        (WebCore::DOMApplicationCache::onprogress):
+        (WebCore::DOMApplicationCache::setOnupdateready):
+        (WebCore::DOMApplicationCache::onupdateready):
+        (WebCore::DOMApplicationCache::setOncached):
+        (WebCore::DOMApplicationCache::oncached):
+        (WebCore::DOMApplicationCache::associatedFrame):
+        * loader/appcache/DOMApplicationCache.idl:
+        * svg/EventTargetSVGElementInstance.cpp:
+        (WebCore::EventTargetSVGElementInstance::associatedFrame):
+        (WebCore::EventTargetSVGElementInstance::addEventListener):
+        (WebCore::EventTargetSVGElementInstance::removeEventListener):
+        (WebCore::EventTargetSVGElementInstance::dispatchEvent):
+        * svg/EventTargetSVGElementInstance.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::associatedFrame):
+        * xml/XMLHttpRequest.h:
+        (WebCore::XMLHttpRequest::setOnreadystatechange):
+        (WebCore::XMLHttpRequest::onreadystatechange):
+        (WebCore::XMLHttpRequest::setOnabort):
+        (WebCore::XMLHttpRequest::onabort):
+        (WebCore::XMLHttpRequest::setOnerror):
+        (WebCore::XMLHttpRequest::onerror):
+        (WebCore::XMLHttpRequest::setOnload):
+        (WebCore::XMLHttpRequest::onload):
+        (WebCore::XMLHttpRequest::setOnloadstart):
+        (WebCore::XMLHttpRequest::onloadstart):
+        (WebCore::XMLHttpRequest::setOnprogress):
+        (WebCore::XMLHttpRequest::onprogress):
+        * xml/XMLHttpRequest.idl:
+        * xml/XMLHttpRequestUpload.cpp:
+        (WebCore::XMLHttpRequestUpload::associatedFrame):
+        * xml/XMLHttpRequestUpload.h:
+        (WebCore::XMLHttpRequestUpload::setOnabort):
+        (WebCore::XMLHttpRequestUpload::onabort):
+        (WebCore::XMLHttpRequestUpload::setOnerror):
+        (WebCore::XMLHttpRequestUpload::onerror):
+        (WebCore::XMLHttpRequestUpload::setOnload):
+        (WebCore::XMLHttpRequestUpload::onload):
+        (WebCore::XMLHttpRequestUpload::setOnloadstart):
+        (WebCore::XMLHttpRequestUpload::onloadstart):
+        (WebCore::XMLHttpRequestUpload::setOnprogress):
+        (WebCore::XMLHttpRequestUpload::onprogress):
+        * xml/XMLHttpRequestUpload.idl:
+
+2008-09-30  Darin Adler  <darin@apple.com>
+
+        - roll out assertion breaking regression tests
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::repaintContentRectangle): Temporarily remove assertion
+        that fires in regression tests. Hyatt can add it back later. The assertion
+        fires in the regression test because of layout that triggers repaint occuring
+        during the process of removing a frame.
+
+2008-09-30  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21227
+        <rdar://problem/6222134> add a way to set color for input placeholder text
+
+        Test: fast/forms/placeholder-pseudo-style.html
+
+        This change adds "-webkit-input-placeholder-mode" as a pseudo class that can be used to style
+        input elements when they are displaying the placeholder text.
+
+        * css/CSSSelector.cpp: (WebCore::CSSSelector::extractPseudoType): Add case for inputPlaceholderMode.
+        * css/CSSSelector.h: (WebCore::CSSSelector::): Add PseudoInputPlaceholderMode.
+        * css/CSSStyleSelector.cpp: (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        Add check for PseudoInputPlaceholderMode that asks the node if placeholderShouldBeVisible is true.
+        * css/html4.css: Add rule to make placeholder text default to darkGray.
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::init): Initialize m_placeholderShouldBeVisible.
+        (WebCore::HTMLInputElement::dispatchFocusEvent): Call updatePlaceholderVisibility.
+        (WebCore::HTMLInputElement::dispatchBlurEvent): ditto.
+        (WebCore::HTMLInputElement::parseMappedAttribute): ditto.
+        (WebCore::HTMLInputElement::setValue): ditto.
+        (WebCore::HTMLInputElement::setValueFromRenderer): ditto.
+        (WebCore::HTMLInputElement::updatePlaceholderVisibility): Sets m_placeholderShouldBeVisible based on the current value and the focus state.
+         This calculation used to be done in the renderer, but since the node knows everything about the state, it can make that decision, and the
+         renderer will just ask the node if it should draw the placeholder.
+        * html/HTMLInputElement.h: (WebCore::HTMLInputElement::placeholderShouldBeVisible):
+
+        * rendering/RenderTextControl.cpp:
+        (WebCore::disabledTextColor): Moved to the top of the file.  If there's not very much contrast between the disabled color and the background color,
+        just leave the text color alone.  We don't want to change a good contrast color scheme so that it has really bad contrast.
+        If the the contrast was already poor, then it doesn't do any good to change it to a different poor contrast color scheme.
+        (WebCore::RenderTextControl::createInnerTextStyle): If the node says the placeholder should be visible, prepare by overriding the text security to be "none".
+        This can only happen as a result of either a setStyle call (which will be followed by a call to updateFromElement) or from createSubtreeIfNeeded, which
+        is called directly from updateFromElement.  updateFromElement will immediately update the text displayed.
+        (WebCore::RenderTextControl::updateFromElement): If the placeholder visibility has changed, update the text that is displayed.
+        (WebCore::RenderTextControl::forwardEvent): Remove calls to update the placeholder state.  This is now done in HTMLInputElement.
+        * rendering/RenderTextControl.h:
+
+2008-09-30  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=20396 Abort caused 
+        by failed allocation due to invalid counter/attr
+        and corresponding: <rdar://problem/6152371>
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseCounterContent): The spec indicates that 
+        only identifiers should be accepted here.
+
+2008-09-30  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 21255: console.profileEnd() without a console.profile() crashes the
+        web inspector
+
+        * page/Console.cpp:
+        (WebCore::Console::profileEnd):
+
+2008-09-30  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Bug 21252: calling console.profile() with a title that is 2 chars or
+        shorter does not linkify it
+
+        - Previously we tried to not linkify very short URLs but since profile
+        titles can be any length this is not always true.
+
+        * page/inspector/inspector.js:
+
+2008-09-30  Dave Hyatt  <hyatt@apple.com>
+
+        Remove the update() method on ScrollView.  This method was only called in one place, and its purpose
+        was to cause a display/flush to happen.  Here is a breakdown of the method use on each platform:
+        (1) Not used on Mac
+        (2) Used on Windows
+        (3) Used on Qt, but implemented incorrectly to cause a full repaint for no reason.
+        (4) Used on Gtk, but implemented incorrectly to cause a full repaint for no reason.
+        (5) Used on wx, but probably not needed (since wx has platform widgets like Mac).
+        
+        There is now a paint method on HostWindow that does an immediate mode repaint of an empty rect to
+        cause the display/flush to happen if needed (thus saving an extra method on ChromeClient).
+        With the changes to this method, the new behavior is as follows:
+        (1) Not used on Mac
+        (2) Used on Windows
+        (3) Nothing happens on Qt, but only because they have not implemented immediate mode updating.
+        (4) Gtk now behaves like Windows and will process updates but not do any incorrect additional invalidation.
+        (5) Not used on wx
+        
+        This method was originally added for Windows. It's not clear the display/flush is really even necessary on the other
+        platforms.  At the very least stopping unnecessary full invalidations on Qt/Gtk is a good thing. :)
+        
+        Reviewed by Sam Weinig
+
+        * ChangeLog:
+        * dom/Document.cpp:
+        (WebCore::Document::implicitClose):
+        * platform/HostWindow.h:
+        (WebCore::HostWindow::paint):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        * platform/mac/ScrollViewMac.mm:
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/win/ScrollViewWin.cpp:
+        * platform/wx/ScrollViewWx.cpp:
+
+2008-09-30  Timothy Hatcher  <timothy@apple.com>
+
+        Focus the DOM tree in the Web Inspector when a node is inspected.
+        So when the search field has focus, the focus moves to the tree,
+        allowing the arrow keys work. This can happen when using the new
+        find in page feature.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21251
+
+        Reviewed by Geoff Garen.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel): Set currentFocusElement to
+        the main-panels element if the panel is visible.
+        (WebInspector.ElementsPanel.prototype.updateBreadcrumb):
+        Remove a set of currentFocusElement since this moved.
+        * page/inspector/inspector.js:
+        (WebInspector.set currentFocusElement): Always focus the element.
+        This ensures that when focus changes in the page and we don't
+        catch it, we will still focus the elements even if we think it
+        was already focused.
+
+2008-09-30  Timothy Hatcher  <timothy@apple.com>
+
+        Make the Web Inspector's toolbar icons darker when the mouse is
+        pressed on them. This matches the standard NSToolbar look.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21249
+        rdar://problem/6033752
+
+        Reviewed by Adam Roben.
+
+        * page/inspector/Images/databasesIcon.png:
+        * page/inspector/Images/elementsIcon.png:
+        * page/inspector/Images/profilesIcon.png:
+        * page/inspector/Images/resourcesIcon.png:
+        * page/inspector/Images/scriptsIcon.png:
+        * page/inspector/Panel.js:
+        * page/inspector/inspector.css:
+
+2008-09-30  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Bug 21139: Profiler log message is wrong
+        - Correctly fix =(
+        Don't call _format twice.
+
+        * page/Page.h:
+        * page/inspector/Console.js:
+        * page/inspector/ProfilesPanel.js:
+        * page/inspector/inspector.js:
+
+2008-09-30  Dave Hyatt  <hyatt@apple.com>
+
+        http://bugs.webkit.org/show_bug.cgi?id=21250
+        
+        Rename updateContents to repaintContentRectangle and make it cross-platform by always sending
+        repaints up through the ChromeClient.
+
+        Reviewed by Darin Adler
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::repaint):
+        * page/Chrome.cpp:
+        (WebCore::Chrome::repaint):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::hostWindow):
+        (WebCore::FrameView::repaintContentRectangle):
+        * page/FrameView.h:
+        * platform/HostWindow.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::repaintContentRectangle):
+        (WebCore::ScrollView::platformRepaintContentRectangle):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::platformRepaintContentRectangle):
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/win/ScrollViewWin.cpp:
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::platformRepaintContentRectangle):
+
+2008-09-30  Alexey Proskuryakov  <ap@webkit.org>
+
+        Non-Mac build fixes.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCoreSources.bkl:
+        * webcore-base.bkl:
+        Added DOMProtect.{cpp,h}.
+
+2008-09-39  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by John Sullivan.
+
+        * bridge/npapi.h: Added skeleton for a new plug-in drawing model, the NPCoreAnimationDrawingModel. This model will eventually pave the way
+        for hardware accelerated drawing in plug-ins and out of process plug-in rendering.
+
+2008-09-29  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21106: .in format discussed changes
+        https://bugs.webkit.org/show_bug.cgi?id=21106
+
+        - Removed "cppNamespace" global parameter and hard-coded "WebCore" as it
+        is the only namespace used.
+
+        - Removed "generateFactory" and "generateWrapperFactory" parameters and
+        re-introduced the command line options.
+
+        - Cleaned up the output of make_names.pl (removed unneeded new line).
+
+        * DerivedSources.make: Added factories command line options.
+        * GNUmakefile.am: Ditto.
+        * WebCore.pro: Ditto and removed some arguments that were migrated to
+        the .in files.
+
+        * dom/make_names.pl: Clean up (see above).
+
+        * html/HTMLAttributeNames.in: Removed "cppNamespace", "generateFactory"
+        and "generateWrapperFactory" occurences.
+        * html/HTMLTagNames.in: Ditto.
+        * svg/svgattrs.in: Ditto.
+        * svg/svgtags.in: Ditto.
+        * svg/xlinkattrs.in: Ditto.
+        * xml/xmlattrs.in: Ditto.
+
+2008-09-29  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by John Sullivan.
+
+        <rdar://problem/6255456> AX: <file> input button shouldn't have children exposed
+        Make sure that certain types of elements do not return children and, moreover, do not waste their
+        energy trying to return children
+
+        Test: accessibility/nochildren-elements.html
+
+        * page/AccessibilityObject.h:
+        (WebCore::AccessibilityObject::canHaveChildren):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::canHaveChildren):
+        (WebCore::AccessibilityRenderObject::addChildren):
+        * page/AccessibilityRenderObject.h:
+
+2008-09-30  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21213
+        MessagePort crash when GC collects an object with a pending close event
+
+        Test: fast/events/message-channel-gc-2.html
+              fast/events/message-channel-listener-circular-ownership.html
+
+        * bindings/DOMProtect.cpp: Added.
+        (WebCore::gcProtectDOMObject):
+        (WebCore::gcUnprotectDOMObject):
+        * bindings/DOMProtect.h: Added.
+        Added an abstraction for GC protection to avoid the need to call JS bindings code from
+        DOM objects directly.
+
+        * dom/MessagePort.cpp:
+        (WebCore::CloseMessagePortTimer::fired):
+        (WebCore::MessagePort::queueCloseEvent):
+        GC protect MessagePort wrapper while there is a pending close event.
+        This may be necessary for message events, too, but that case is not a crasher, and actually
+        behaves to the letter of the current HTML5 text, so I'll consider it later.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously):
+        (WebCore::XMLHttpRequest::dropProtection):
+        Use gcProtectDOMObject here, too. Unfortunately, XMLHttpRequest has more dependencies on JSC.
+
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::addEventListener):
+        (WebCore::JSMessagePort::removeEventListener):
+        (WebCore::JSMessagePort::setOnmessage):
+        (WebCore::JSMessagePort::setOnclose):
+        Don't tell DOMWindowBase that MessagePort is a NodeEventTarget, this is not true. I do not
+        know if this was causing any real issues, but we shouldn't lie to DOMWindowBase.
+
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::mark):
+        While at it, changed to use a typedef for event listeners from XMLHttpRequestUpload, not
+        from XMLHttpRequest.
+
+2008-09-30  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * DerivedSources.cpp: Add JSEventTargetNode.cpp.
+
+2008-09-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Tim Hatcher.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=21122
+        Autogenerate JS event listeners
+
+        - Generate EventTargetNode.
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/JSEventTarget.cpp: Added.
+        (WebCore::toJS):
+        * bindings/js/JSEventTarget.h: Added.
+        * bindings/js/JSEventTargetBase.cpp: Removed.
+        * bindings/js/JSEventTargetBase.h:
+        * bindings/js/JSEventTargetNode.cpp: Removed.
+        * bindings/js/JSEventTargetNode.h: Removed.
+        * bindings/js/JSEventTargetNodeCustom.cpp: Added.
+        (WebCore::JSEventTargetNode::addEventListener):
+        (WebCore::JSEventTargetNode::removeEventListener):
+        (WebCore::JSEventTargetNode::dispatchEvent):
+        (WebCore::JSEventTargetNode::getListener):
+        (WebCore::JSEventTargetNode::setListener):
+        (WebCore::JSEventTargetNode::pushEventHandlerScope):
+        * bindings/js/JSEventTargetSVGElementInstance.cpp:
+        (WebCore::):
+        (WebCore::JSEventTargetSVGElementInstancePrototype::self):
+        (WebCore::JSEventTargetSVGElementInstancePrototype::getOwnPropertySlot):
+        (jsEventTargetAddEventListener):
+        (jsEventTargetRemoveEventListener):
+        (jsEventTargetDispatchEvent):
+        * bindings/js/JSEventTargetSVGElementInstance.h:
+        (WebCore::JSEventTargetSVGElementInstancePrototype::JSEventTargetSVGElementInstancePrototype):
+        (WebCore::JSEventTargetSVGElementInstancePrototype::classInfo):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * dom/EventTargetNode.idl: Added.
+
+2008-09-29  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21214
+          work on getting rid of ExecState
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::JSDOMWindowBase): Removed globalThisValue argument
+        for base class constructor.
+
+2008-09-29  David Hyatt  <hyatt@apple.com>
+
+        Add the new HostWindow base class.  A HostWindow hosts a hierarchy of Widgets.  The Chrome object on Page
+        now subclasses from HostWindow.  The new class will allow objects in platform/ like Widgets, Scrollbars
+        and ScrollViews to talk to the HostWindow object in order to do backing store operations and invalidations.
+        (Right now the platform layering is simply being violated by ScrollViews going directly to the ChromeClient.)
+
+        Reviewed by Sam Weinig
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * page/Chrome.h:
+        * platform/HostWindow.h: Added.
+        (WebCore::HostWindow::HostWindow):
+        (WebCore::HostWindow::~HostWindow):
+
+2008-09-29  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        * bridge/npapi.h: Tweaked NPNVariable enum. NPNVsupportsCocoaBool,  NPNVsupportsCarbonBool are now in the 3000 range instead of 
+        2000. 
+
+2008-09-29  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        - WebCore part of fixing <rdar://problem/6247906> REGRESSION (r19500): Crash on quit beneath CloseThemeData
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::setWebKitIsBeingUnloaded): Added.
+        (WebCore::RenderThemeWin::~RenderThemeWin): Check if WebKit is being
+        unloaded, to avoid calling uxtheme.dll functions after that library has
+        been unloaded.
+        * rendering/RenderThemeWin.h:
+
+2008-09-29  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by John Sullivan
+
+        <rdar://problem/6240743> AXLoadComplete is sent for non-top level web areas and bogus web areas
+
+        Sends AXLoadComplete only when the top level web area is finished loading
+
+        * dom/Document.cpp:
+        (WebCore::Document::implicitClose):
+
+2008-09-29  Timothy Hatcher  <timothy@apple.com>
+
+        Makes the node highlight always show up when hovering a node in
+        the Web Inspector now that the highlight does not scroll to reveal
+        the node. Also adds a hover effect in the inspector when hovering
+        causes a highlight in the page. This ties the user hovering action
+        to the highlight so it is clear what causes the highlight to appear.
+
+        Also the highlight now temporarily shows up for 2 seconds after
+        selecting a node in the DOM tree. So arrowing around in the tree
+        will show the node on the page, providing feedback to the user.
+
+        Plus fixes an issue where quickly moving away from hovering
+        a node would keep showing the page highlight. This was happening
+        in breadcrumbs and the DOM tree.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21220
+
+        Reviewed by Kevin McCullough.
+
+        * page/inspector/Console.js:
+        (WebInspector.Console.prototype._mouseOverNode): Added. Used for
+        hovering DOM nodes in the console.
+        (WebInspector.Console.prototype._mouseOutOfNode): Ditto.
+        (WebInspector.Console.prototype._formatnode): Use the new event
+        listeners and add a class name to the anchor element.
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel): Add new event listeners to the
+        crumbs element to do the node hovering highlight.
+        (WebInspector.ElementsPanel.prototype.hide):
+        (WebInspector.ElementsPanel.prototype.reset):
+        (WebInspector.ElementsPanel.prototype._mouseMovedInCrumbs):
+        (WebInspector.ElementsPanel.prototype._mouseMovedOutOfCrumbs):
+        (WebInspector.ElementsPanel.prototype.updateBreadcrumb):
+        * page/inspector/ElementsTreeOutline.js:
+        (WebInspector.ElementsTreeOutline.prototype.set focusedDOMNode):
+        Show the node hishlight for 2 seconds then restore the highlight
+        to the current hovered node.
+        (WebInspector.ElementsTreeOutline.prototype._onmousemove): Set the
+        hovered node and set the hovered state on the tree element.
+        (WebInspector.ElementsTreeOutline.prototype._onmouseout): Set the
+        hovered node to null and removed the hovered state from the previous
+        hovered tree element.
+        (WebInspector.ElementsTreeElement.prototype.set/get hovered): Adds
+        the hovered class to the list item.
+        (WebInspector.ElementsTreeElement.prototype.onattach): Ditto.
+        * page/inspector/inspector.css:
+        * page/inspector/inspector.js:
+        (WebInspector.set hoveredDOMNode): Pass a delay to _updateHoverHighlightSoon
+        based on the showingDOMNodeHighlight property of 50ms or 500ms. This
+        causes the highlight to change sooner if there is one already showing
+        and appear later if there isn't one showing. This is like tooltips,
+        hovering a node for 500ms will cause highlight then mousing between nodes
+        will keep the highlight and change to the new node.
+        (WebInspector._updateHoverHighlightSoon): Take a delay being passed in and
+        always reset the timeout so continuous mousing does not keep flasshing
+        the highlight on the screen.
+        (WebInspector._updateHoverHighlight): Removed the alt key check and added
+        the showingDOMNodeHighlight property.
+        (WebInspector.documentKeyDown): Removed the alt key check.
+        (WebInspector.documentKeyUp): Ditto.
+        (WebInspector.reset): Clear the hoveredDOMNode.
+
+2008-09-29  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Anders Carlsson
+
+        Fix RenderStyle leak in animation code, and assert that 
+        keyframe resolution in CSSStyleSelector is not going to clobber
+        m_style.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::keyframeStylesForAnimation):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::~KeyframeAnimation):
+
+2008-09-29  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=20995
+        Rewrite keyframe resolution to be like styleForElement()
+        
+        Test: animations/lineheight-animation.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::addKeyframeStyle):
+        (WebCore::CSSStyleSelector::~CSSStyleSelector):
+        (WebCore::CSSStyleSelector::keyframeStylesForAnimation):
+        (WebCore::CSSRuleSet::addRulesFromSheet):
+        (WebCore::CSSStyleSelector::mapAnimationName):
+        * css/CSSStyleSelector.h:
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateKeyframeAnimations):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::KeyframeAnimation):
+        (WebCore::KeyframeAnimation::animate):
+        (WebCore::KeyframeAnimation::hasAnimationForProperty):
+        (WebCore::KeyframeAnimation::sendAnimationEvent):
+        (WebCore::KeyframeAnimation::overrideAnimations):
+        (WebCore::KeyframeAnimation::resumeOverriddenAnimations):
+        (WebCore::KeyframeAnimation::affectsProperty):
+        (WebCore::KeyframeAnimation::validateTransformFunctionList):
+        * page/animation/KeyframeAnimation.h:
+        * rendering/style/Animation.cpp:
+        (WebCore::Animation::animationsMatch):
+        * rendering/style/Animation.h:
+        * rendering/style/KeyframeList.cpp:
+        (WebCore::KeyframeList::~KeyframeList):
+        (WebCore::KeyframeList::clear):
+        (WebCore::KeyframeList::insert):
+        * rendering/style/KeyframeList.h:
+        (WebCore::KeyframeValue::KeyframeValue):
+        (WebCore::KeyframeList::KeyframeList):
+        (WebCore::KeyframeList::operator!=):
+        (WebCore::KeyframeList::animationName):
+        (WebCore::KeyframeList::addProperty):
+        (WebCore::KeyframeList::containsProperty):
+        (WebCore::KeyframeList::beginProperties):
+        (WebCore::KeyframeList::endProperties):
+        (WebCore::KeyframeList::isEmpty):
+        (WebCore::KeyframeList::size):
+        (WebCore::KeyframeList::beginKeyframes):
+        (WebCore::KeyframeList::endKeyframes):
+        * rendering/style/RenderStyle.h:
+        * rendering/style/StyleRareNonInheritedData.cpp:
+        * rendering/style/StyleRareNonInheritedData.h:
+
+2008-09-29  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Eric Seidel
+
+        Clean up fix in PropertyWrapperGetter::equals
+        https://bugs.webkit.org/show_bug.cgi?id=21011
+        
+        Test: transitions/override-transition-crash.html
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::PropertyWrapperGetter::equals):
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateTransitions):
+
+2008-09-29  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Eric Seidel
+
+        https://bugs.webkit.org/show_bug.cgi?id=21001
+        Starting transition after animation, when animation
+        is finished, transition is wrong.
+
+        Test: animations/transition-and-animation-2.html
+
+        * page/animation/AnimationBase.h:
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateTransitions):
+        (WebCore::CompositeAnimation::updateKeyframeAnimations):
+        (WebCore::CompositeAnimation::resetTransitions):
+        (WebCore::CompositeAnimation::cleanupFinishedAnimations):
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::ImplicitAnimation):
+        (WebCore::ImplicitAnimation::~ImplicitAnimation):
+        (WebCore::ImplicitAnimation::animate):
+        (WebCore::ImplicitAnimation::reset):
+        * page/animation/ImplicitAnimation.h:
+
+2008-09-29  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Sam Weinig
+
+        https://bugs.webkit.org/show_bug.cgi?id=20921
+        -webkit-animation-timing-function: inside of keyframes is ignored
+
+        Test: animations/keyframe-timing-functions.html
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::progress):
+        * page/animation/AnimationBase.h:
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::animate):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::animate):
+
+2008-09-29  Dan Bernstein  <mitz@apple.com>
+
+        - Windows build fix
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::platformScroll):
+
+2008-09-29  Dan Bernstein  <mitz@apple.com>
+
+        - another attempt at a Windows build fix
+
+        * platform/ScrollView.cpp:
+        (WebCore::platformScroll):
+
+2008-09-29  Dan Bernstein  <mitz@apple.com>
+
+        - Windows build fix
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::platformSetScrollPosition):
+
+2008-09-29  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21218
+
+        Accidentally removed a check to see if the scrollbar modes were equal.  This caused a crash on Windows.
+        It's silly that the code was this fragile, but for now just put the check back in.
+
+        Reviewed by Dan Bernstein
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setScrollbarModes):
+
+2008-09-29  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21216
+
+        Make setScrollPosition and scroll() cross-platform.
+
+        Reviewed by Anders
+
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setScrollPosition):
+        (WebCore::ScrollView::scroll):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        * platform/mac/ScrollViewMac.mm:
+        (WebCore::ScrollView::platformSetScrollPosition):
+        (WebCore::ScrollView::platformScroll):
+        * platform/qt/ScrollViewQt.cpp:
+        * platform/win/ScrollViewWin.cpp:
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::platformSetScrollPosition):
+        (WebCore::ScrollView::platformScroll):
+
+2008-09-29  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Oliver.
+
+        Bug 21139: Profiler log message is wrong
+        - Because _format was called twice the number in the log was incremented
+        too many times, but we were passing it around in the link the whole time
+
+        * page/inspector/ProfilesPanel.js:
+        * page/inspector/inspector.js:
+
+2008-09-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Autogenerate EventListeners, addEventListener and removeEventListener
+        for JSDOMWindow.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::onwebkitanimationstart):
+        (WebCore::JSDOMWindow::setOnwebkitanimationstart):
+        (WebCore::JSDOMWindow::onwebkitanimationiteration):
+        (WebCore::JSDOMWindow::setOnwebkitanimationiteration):
+        (WebCore::JSDOMWindow::onwebkitanimationend):
+        (WebCore::JSDOMWindow::setOnwebkitanimationend):
+        (WebCore::JSDOMWindow::onwebkittransitionend):
+        (WebCore::JSDOMWindow::setOnwebkittransitionend):
+        (WebCore::JSDOMWindow::addEventListener):
+        (WebCore::JSDOMWindow::removeEventListener):
+        (WebCore::JSDOMWindow::setListener):
+        (WebCore::JSDOMWindow::getListener):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * page/DOMWindow.idl:
+
+2008-09-29  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon.
+
+        Changed copyright from Trolltech ASA to Nokia.
+
+        Nokia acquired Trolltech ASA, assets were transferred on September 26th 2008.
+
+        * bindings/js/JSMimeTypeArrayCustom.cpp:
+        * bindings/js/JSNavigatorCustom.cpp:
+        * bindings/js/JSPluginArrayCustom.cpp:
+        * bindings/js/JSPluginCustom.cpp:
+        * bindings/js/ScriptControllerMac.mm:
+        * bindings/js/ScriptControllerQt.cpp:
+        * bridge/qt/qt_class.cpp:
+        * bridge/qt/qt_class.h:
+        * bridge/qt/qt_instance.cpp:
+        * bridge/qt/qt_instance.h:
+        * bridge/qt/qt_runtime.cpp:
+        * bridge/qt/qt_runtime.h:
+        * bridge/testqtbindings.cpp:
+        * css/makegrammar.pl:
+        * css/makeprop.pl:
+        * css/makevalues.pl:
+        * dom/Node.cpp:
+        * dom/TagNodeList.cpp:
+        * dom/TagNodeList.h:
+        * dom/XMLTokenizer.cpp:
+        * dom/XMLTokenizer.h:
+        * dom/XMLTokenizerLibxml2.cpp:
+        * dom/XMLTokenizerQt.cpp:
+        * editing/Editor.cpp:
+        * editing/EditorCommand.cpp:
+        * html/CanvasRenderingContext2D.cpp:
+        * html/CanvasStyle.cpp:
+        * html/HTMLAppletElement.cpp:
+        * html/HTMLEmbedElement.cpp:
+        * html/HTMLObjectElement.cpp:
+        * loader/FrameLoader.cpp:
+        * page/Chrome.cpp:
+        * page/EditorClient.h:
+        * page/Frame.cpp:
+        * page/Frame.h:
+        * page/FramePrivate.h:
+        * page/Navigator.cpp:
+        * page/Navigator.h:
+        * page/Navigator.idl:
+        * page/mac/FrameMac.mm:
+        * page/qt/EventHandlerQt.cpp:
+        * platform/graphics/qt/FontCacheQt.cpp:
+        * platform/graphics/qt/FontCustomPlatformData.cpp:
+        * platform/graphics/qt/FontCustomPlatformData.h:
+        * platform/graphics/qt/FontPlatformData.h:
+        * platform/graphics/qt/FontQt.cpp:
+        * platform/graphics/qt/GlyphPageTreeNodeQt.cpp:
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        * platform/graphics/qt/ImageDecoderQt.cpp:
+        * platform/graphics/qt/ImageDecoderQt.h:
+        * platform/graphics/qt/ImageSourceQt.cpp:
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.h:
+        * platform/graphics/qt/SimpleFontDataQt.cpp:
+        * platform/gtk/MIMETypeRegistryGtk.cpp:
+        * platform/mac/MIMETypeRegistryMac.mm:
+        * platform/network/qt/QNetworkReplyHandler.cpp:
+        * platform/network/qt/QNetworkReplyHandler.h:
+        * platform/network/qt/ResourceHandleQt.cpp:
+        * platform/network/qt/ResourceRequestQt.cpp:
+        * platform/qt/ClipboardQt.cpp:
+        * platform/qt/EventLoopQt.cpp:
+        * platform/qt/KURLQt.cpp:
+        * platform/qt/LoggingQt.cpp:
+        * platform/qt/MIMETypeRegistryQt.cpp:
+        * platform/qt/PasteboardQt.cpp:
+        * platform/qt/PlatformScreenQt.cpp:
+        * platform/qt/PopupMenuQt.cpp:
+        * platform/qt/QWebPopup.cpp:
+        * platform/qt/QWebPopup.h:
+        * platform/qt/RenderThemeQt.cpp:
+        * platform/qt/ScrollbarQt.cpp:
+        * platform/qt/ScrollbarThemeQt.cpp:
+        * platform/qt/WheelEventQt.cpp:
+        * platform/qt/html4-adjustments-qt.css:
+        * platform/wx/MimeTypeRegistryWx.cpp:
+        * plugins/MimeType.cpp:
+        * plugins/MimeType.h:
+        * plugins/MimeType.idl:
+        * plugins/MimeTypeArray.cpp:
+        * plugins/MimeTypeArray.h:
+        * plugins/MimeTypeArray.idl:
+        * plugins/Plugin.cpp:
+        * plugins/Plugin.h:
+        * plugins/Plugin.idl:
+        * plugins/PluginArray.cpp:
+        * plugins/PluginArray.h:
+        * plugins/PluginArray.idl:
+        * plugins/PluginData.cpp:
+        * plugins/PluginData.h:
+        * plugins/gtk/PluginDataGtk.cpp:
+        * plugins/mac/PluginDataMac.mm:
+        * plugins/qt/PluginDataQt.cpp:
+        * plugins/win/PluginDataWin.cpp:
+        * rendering/RenderTableCol.cpp:
+        * rendering/RenderTableCol.h:
+
+2008-09-29  Thiago Macieira  <thiago.macieira@trolltech.com>
+
+        Reviewed by Simon
+
+        Fix compilation with gcc 4.3
+
+         gcc 4.3 is stricter and ctype.h isn't getting included
+        automatically here by dependencies. So do it directly.
+
+        * platform/qt/PlatformKeyboardEventQt.cpp:
+
+2008-09-29  Morten Sørvig  <msorvig@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix compilation with Qt/Mac without plugins.
+
+        * platform/qt/TemporaryLinkStubs.cpp:
+
+2008-09-29  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Apply the ASCII fast path optimization from StringImpl::lower to StringImpl::upper.
+        In the few places that we call .upper() in WebCore the strings represent things like
+        tag and attribute names, which are nearly always going to be ASCII.
+
+        * platform/text/StringImpl.cpp:
+        (WebCore::StringImpl::lower): If we have to resize the buffer, be sure to pass the new length
+        in to Unicode::toLower the second time.
+        (WebCore::StringImpl::upper):
+
+2008-09-28  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Speed up getPropertyValue('clip') by 25% by using a Vector<UChar> for building a string,
+        rather than String::operator+=.
+
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cssText):
+
+2008-09-28  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Speed up computedStyle.getPropertyValue('color') by 4.5x.
+
+        Using a Vector<UChar> while building up the property's cssText is substantially cheaper than using String::operator+=
+        as it avoids many memory reallocations.
+
+        This also speeds up the jQuery .offset() benchmark at <http://dev.jquery.com/~john/speed/1.2.6/offset-1.2.6.html>
+        by 20% due to jQuery's strange need to call getPropertyValue('color') when retrieving the computed styles for
+        unrelated properties on an element.
+
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::cssText): Build the result for the color types into a Vector<UChar>
+        and use appendNumber rather than the String::number in order to cut down on memory allocations.
+        * platform/text/PlatformString.h:
+        (WebCore::appendNumber): A helper function for formatting an unsigned character as a number
+        into a Vector<UChar>.
+
 2008-09-30  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Anders Carlsson.

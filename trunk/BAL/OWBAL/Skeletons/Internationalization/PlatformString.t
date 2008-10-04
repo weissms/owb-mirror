@@ -948,11 +948,6 @@ int find(const UChar*, size_t, UChar, int startPosition = 0);
 int reverseFind(const UChar*, size_t, UChar, int startPosition = -1);
 
     /**
-     *  append 
-     */
-void append(Vector<UChar>&, const String&);
-
-    /**
      *  find
      */
 inline int find(const UChar* characters, size_t length, UChar character, int startPosition);
@@ -966,6 +961,12 @@ inline int reverseFind(const UChar* characters, size_t length, UChar character, 
      *  append 
      */
 inline void append(Vector<UChar>& vector, const String& string);
+
+
+    /**
+     * appendNumber
+     */
+inline void appendNumber(Vector<UChar>& vector, unsigned char number);
 
     /**
      *  utf8Buffer 
@@ -985,5 +986,3 @@ namespace WTF {
 }
 
 #endif
-
-

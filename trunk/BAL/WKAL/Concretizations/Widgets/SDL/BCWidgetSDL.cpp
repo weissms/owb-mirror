@@ -115,7 +115,7 @@ void Widget::setIsSelected(bool)
 
 void Widget::invalidateRect(const IntRect& rect)
 {
-    if (!parent()) {
+/*    if (!parent()) {
         if (isFrameView())
             static_cast<FrameView*>(this)->addToDirtyRegion(rect);
         return;
@@ -129,7 +129,7 @@ void Widget::invalidateRect(const IntRect& rect)
         return;
 
     IntRect windowRect = convertToContainingWindow(rect);
-    outermostView->addToDirtyRegion(windowRect);
+    outermostView->addToDirtyRegion(windowRect);*/
 }
 
 IntRect Widget::frameRect() const

@@ -203,8 +203,11 @@ public:
 
     virtual bool equals(const RenderStyle* a, const RenderStyle* b) const
     {
-        // If one style is null and the other is non-null return false.
-        if ((!a || !b) && b != a)
+       // If the style pointers are the same, don't bother doing the test.
+       // If either is null, return false. If both are null, return true.
+       if (!a && !b || a == b)
+           return true;
+       if (!a || !b)
             return false;
         return (a->*m_getter)() == (b->*m_getter)();
     }
@@ -774,7 +777,7 @@ void AnimationBase::updatePlayState(bool run)
         updateStateMachine(run ? AnimationStateInputPlayStateRunnning : AnimationStateInputPlayStatePaused, -1);
 }
 
-double AnimationBase::progress(double scale, double offset) const
+double AnimationBase::progress(double scale, double offset, const TimingFunction* tf) const
 {
     if (preActive())
         return 0;
@@ -802,15 +805,18 @@ double AnimationBase::progress(double scale, double offset) const
 
     if (scale != 1 || offset)
         fractionalTime = (fractionalTime - offset) * scale;
+        
+    if (!tf)
+        tf = &m_animation->timingFunction();
 
-    if (m_animation->timingFunction().type() == LinearTimingFunction)
+    if (tf->type() == LinearTimingFunction)
         return fractionalTime;
 
     // Cubic bezier.
-    double result = solveCubicBezierFunction(m_animation->timingFunction().x1(),
-                                            m_animation->timingFunction().y1(),
-                                            m_animation->timingFunction().x2(),
-                                            m_animation->timingFunction().y2(),
+    double result = solveCubicBezierFunction(tf->x1(),
+                                            tf->y1(),
+                                            tf->x2(),
+                                            tf->y2(),
                                             fractionalTime, m_animation->duration());
     return result;
 }

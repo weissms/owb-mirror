@@ -100,6 +100,7 @@
 #import <WebCore/ExceptionHandlers.h>
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
+#import <WebCore/FrameView.h>
 #import <WebCore/FrameTree.h>
 #import <WebCore/GCController.h>
 #import <WebCore/HTMLNames.h>
@@ -337,7 +338,7 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     BOOL zoomMultiplierIsTextOnly;
 
     NSString *applicationNameForUserAgent;
-    String* userAgent;
+    String userAgent;
     BOOL userAgentOverridden;
     
     WebPreferences *preferences;
@@ -383,7 +384,7 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     // WebKit has both a global plug-in database and a separate, per WebView plug-in database. Dashboard uses the per WebView database.
     WebPluginDatabase *pluginDatabase;
     
-    HashMap<unsigned long, RetainPtr<id> >* identifierMap;
+    HashMap<unsigned long, RetainPtr<id> > identifierMap;
 
     BOOL _keyboardUIModeAccessed;
     KeyboardUIMode _keyboardUIMode;
@@ -489,11 +490,9 @@ static BOOL grammarCheckingEnabled;
 #ifndef BUILDING_ON_TIGER
     grammarCheckingEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:WebGrammarCheckingEnabled];
 #endif
-    userAgent = new String;
     
     usesPageCache = YES;
     
-    identifierMap = new HashMap<unsigned long, RetainPtr<id> >();
     pluginDatabaseClientCount++;
 
     shouldUpdateWhileOffscreen = YES;
@@ -505,9 +504,6 @@ static BOOL grammarCheckingEnabled;
 {    
     ASSERT(applicationIsTerminating || !page);
     ASSERT(applicationIsTerminating || !preferences);
-
-    delete userAgent;
-    delete identifierMap;
     
     [applicationNameForUserAgent release];
     [backgroundColor release];
@@ -531,9 +527,6 @@ static BOOL grammarCheckingEnabled;
 - (void)finalize
 {
     ASSERT_MAIN_THREAD();
-
-    delete userAgent;
-    delete identifierMap;
 
     [super finalize];
 }
@@ -996,7 +989,7 @@ static bool debugWidget = true;
     ASSERT(preferences == [self preferences]);
     
     if (!_private->userAgentOverridden)
-        *_private->userAgent = String();
+        _private->userAgent = String();
 
     // Cache this value so we don't have to read NSUserDefaults on each page load
     _private->useSiteSpecificSpoofing = [preferences _useSiteSpecificSpoofing];
@@ -1567,7 +1560,7 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
 {
     Frame* mainFrame = core([self mainFrame]);
     if (mainFrame)
-        mainFrame->setProhibitsScrolling(prohibits);
+        mainFrame->view()->setProhibitsScrolling(prohibits);
 }
 
 - (BOOL)alwaysShowHorizontalScroller
@@ -2484,7 +2477,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     [_private->applicationNameForUserAgent release];
     _private->applicationNameForUserAgent = name;
     if (!_private->userAgentOverridden)
-        *_private->userAgent = String();
+        _private->userAgent = String();
 }
 
 - (NSString *)applicationNameForUserAgent
@@ -2494,7 +2487,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 
 - (void)setCustomUserAgent:(NSString *)userAgentString
 {
-    *_private->userAgent = userAgentString;
+    _private->userAgent = userAgentString;
     _private->userAgentOverridden = userAgentString != nil;
 }
 
@@ -2502,7 +2495,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 {
     if (!_private->userAgentOverridden)
         return nil;
-    return *_private->userAgent;
+    return _private->userAgent;
 }
 
 - (void)setMediaStyle:(NSString *)mediaStyle
@@ -4441,41 +4434,41 @@ static NSString *createMacOSXVersionString()
         // No current site-specific spoofs.
     }
     
-    if (_private->userAgent->isNull()) {
+    if (_private->userAgent.isNull()) {
         NSString *sourceVersion = [[NSBundle bundleForClass:[WebView class]] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
         sourceVersion = [self _userVisibleBundleVersionFromFullVersion:sourceVersion];
-        *_private->userAgent = [self _userAgentWithApplicationName:_private->applicationNameForUserAgent andWebKitVersion:sourceVersion];
+        _private->userAgent = [self _userAgentWithApplicationName:_private->applicationNameForUserAgent andWebKitVersion:sourceVersion];
     }
 
-    return *_private->userAgent;
+    return _private->userAgent;
 }
 
 - (void)_addObject:(id)object forIdentifier:(unsigned long)identifier
 {
-    ASSERT(!_private->identifierMap->contains(identifier));
+    ASSERT(!_private->identifierMap.contains(identifier));
 
     // If the identifier map is initially empty it means we're starting a load
     // of something. The semantic is that the web view should be around as long 
     // as something is loading. Because of that we retain the web view.
-    if (_private->identifierMap->isEmpty())
+    if (_private->identifierMap.isEmpty())
         CFRetain(self);
     
-    _private->identifierMap->set(identifier, object);
+    _private->identifierMap.set(identifier, object);
 }
 
 - (id)_objectForIdentifier:(unsigned long)identifier
 {
-    return _private->identifierMap->get(identifier).get();
+    return _private->identifierMap.get(identifier).get();
 }
 
 - (void)_removeObjectForIdentifier:(unsigned long)identifier
 {
-    ASSERT(_private->identifierMap->contains(identifier));
-    _private->identifierMap->remove(identifier);
+    ASSERT(_private->identifierMap.contains(identifier));
+    _private->identifierMap.remove(identifier);
     
     // If the identifier map is now empty it means we're no longer loading anything
     // and we should release the web view.
-    if (_private->identifierMap->isEmpty())
+    if (_private->identifierMap.isEmpty())
         CFRelease(self);
 }
 

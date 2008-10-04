@@ -42,6 +42,7 @@ namespace WebCore {
     class AtomicStringImpl;
     class Document;
     class Event;
+    class Frame;
     class String;
 
     class MessagePort : public RefCounted<MessagePort>, public EventTarget {
@@ -66,11 +67,13 @@ namespace WebCore {
 
         void contextDestroyed() { m_document = 0; } 
         Document* document() { return m_document; }
+
         virtual MessagePort* toMessagePort() { return this; }
 
-        void dispatchMessages();
+        virtual Frame* associatedFrame() const;
+
         void queueCloseEvent();
-        void dispatchCloseEvent();
+        void dispatchMessages();
 
         virtual void addEventListener(const AtomicString& eventType, PassRefPtr<EventListener>, bool useCapture);
         virtual void removeEventListener(const AtomicString& eventType, EventListener*, bool useCapture);
@@ -83,17 +86,26 @@ namespace WebCore {
         using RefCounted<MessagePort>::ref;
         using RefCounted<MessagePort>::deref;
 
-        void setOnMessageListener(PassRefPtr<EventListener> eventListener) { m_onMessageListener = eventListener; }
-        EventListener* onMessageListener() const { return m_onMessageListener.get(); }
+        bool hasPendingActivity() { return m_pendingActivity; }
 
-        void setOnCloseListener(PassRefPtr<EventListener> eventListener) { m_onCloseListener = eventListener; }
-        EventListener* onCloseListener() const { return m_onCloseListener.get(); }
+        void setOnmessage(PassRefPtr<EventListener> eventListener) { m_onMessageListener = eventListener; }
+        EventListener* onmessage() const { return m_onMessageListener.get(); }
+
+        void setOnclose(PassRefPtr<EventListener> eventListener) { m_onCloseListener = eventListener; }
+        EventListener* onclose() const { return m_onCloseListener.get(); }
 
     private:
+        friend class CloseMessagePortTimer;
+
         MessagePort(Document*);
 
         virtual void refEventTarget() { ref(); }
         virtual void derefEventTarget() { deref(); }
+
+        void dispatchCloseEvent();
+
+        void setPendingActivity();
+        void unsetPendingActivity();
 
         MessagePort* m_entangledPort;
         MessageQueue<RefPtr<Event> > m_messageQueue;
@@ -105,6 +117,8 @@ namespace WebCore {
         RefPtr<EventListener> m_onCloseListener;
 
         EventListenersMap m_eventListeners;
+
+        unsigned m_pendingActivity;
     };
 
 } // namespace WebCore

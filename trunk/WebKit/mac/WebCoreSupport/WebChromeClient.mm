@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
- * Copyright (C) 2007 Trolltech ASA
+ * Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -403,17 +403,25 @@ IntRect WebChromeClient::windowResizerRect() const
     return enclosingIntRect([[m_webView window] _growBoxRect]);
 }
 
-void WebChromeClient::addToDirtyRegion(const IntRect&)
+// Host window methods are really only needed once we have a viewless Mac Webkit.
+void WebChromeClient::repaint(const IntRect&, bool, bool, bool)
 {
 }
 
-void WebChromeClient::scrollBackingStore(int, int, const IntRect&, const IntRect&)
+void WebChromeClient::scroll(const IntSize&, const IntRect&, const IntRect&)
 {
 }
 
-void WebChromeClient::updateBackingStore()
+IntPoint WebChromeClient::screenToWindow(const IntPoint& p) const
 {
+    return p;
 }
+
+IntRect WebChromeClient::windowToScreen(const IntRect& r) const
+{
+    return r;
+}
+// End host window methods.
 
 void WebChromeClient::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)
 {

@@ -404,6 +404,8 @@ void Document::removedLastRef()
         delete m_tokenizer;
         m_tokenizer = 0;
 
+        m_cssCanvasElements.clear();
+
 #ifndef NDEBUG
         m_inRemovedLastRefFunction = false;
 #endif
@@ -1108,8 +1110,8 @@ void Document::setDocumentChanged(bool b)
 void Document::recalcStyle(StyleChange change)
 {
     // we should not enter style recalc while painting
-    if (frame() && frame()->isPainting()) {
-        ASSERT(!frame()->isPainting());
+    if (frame() && frame()->view() && frame()->view()->isPainting()) {
+        ASSERT(!frame()->view()->isPainting());
         return;
     }
     
@@ -1623,17 +1625,17 @@ void Document::implicitClose()
             
         // Paint immediately after the document is ready.  We do this to ensure that any timers set by the
         // onload don't have a chance to fire before we would have painted.  To avoid over-flushing we only
-        // worry about this for the top-level document.
-#if !PLATFORM(MAC)
-        // FIXME: This causes a timing issue with the dispatchDidFinishLoad delegate callback.
+        // worry about this for the top-level document.  For platforms that use native widgets for ScrollViews, this
+        // call does nothing (Mac, wx).
+        // FIXME: This causes a timing issue with the dispatchDidFinishLoad delegate callback on Mac, so think
+        // before enabling it, even if Mac becomes viewless later.
         // See <rdar://problem/5092361>
         if (view() && !ownerElement())
-            view()->update();
-#endif
+            view()->hostWindow()->paint();
     }
 
 #if PLATFORM(MAC)
-    if (renderer() && AXObjectCache::accessibilityEnabled())
+    if (f && renderer() && this == topDocument() && AXObjectCache::accessibilityEnabled())
         axObjectCache()->postNotificationToElement(renderer(), "AXLoadComplete");
 #endif
 
@@ -4410,6 +4412,18 @@ void Document::destroyedMessagePort(MessagePort* port)
 {
     ASSERT(port);
     m_messagePorts.remove(port);
+}
+
+void Document::createdXMLHttpRequest(XMLHttpRequest* request)
+{
+    ASSERT(request);
+    m_xmlHttpRequests.add(request);
+}
+
+void Document::destroyedXMLHttpRequest(XMLHttpRequest* request)
+{
+    ASSERT(request);
+    m_xmlHttpRequests.remove(request);
 }
 
 void Document::initDNSPrefetch()

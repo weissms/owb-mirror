@@ -58,7 +58,6 @@ extern const HashTable stringTable;
 
 JSGlobalData::JSGlobalData(bool isShared)
     : machine(new Machine)
-    , heap(new Heap(this))
 #if ENABLE(JSC_MULTIPLE_THREADS)
     , arrayTable(new HashTable(JSC::arrayTable))
     , dateTable(new HashTable(JSC::dateTable))
@@ -82,23 +81,23 @@ JSGlobalData::JSGlobalData(bool isShared)
     , identifierTable(createIdentifierTable())
     , propertyNames(new CommonIdentifiers(this))
     , emptyList(new ArgList)
-    , opaqueJSClassData(new HashMap<OpaqueJSClass*, OpaqueJSClassContextData*>)
     , newParserObjects(0)
     , parserObjectExtraRefCounts(0)
     , lexer(new Lexer(this))
     , parser(new Parser)
     , head(0)
     , isSharedInstance(isShared)
+    , clientData(0)
+    , heap(this)
 {
 }
 
 JSGlobalData::~JSGlobalData()
 {
-    delete heap;
+    heap.destroy();
     delete machine;
 #ifndef NDEBUG
     // Zeroing out to make the behavior more predictable when someone attempts to use a deleted instance.
-    heap = 0;
     machine = 0;
 #endif
 
@@ -122,8 +121,7 @@ JSGlobalData::~JSGlobalData()
     delete parser;
     delete lexer;
 
-    deleteAllValues(*opaqueJSClassData);
-    delete opaqueJSClassData;
+    deleteAllValues(opaqueJSClassData);
 
     delete emptyList;
 
@@ -132,6 +130,8 @@ JSGlobalData::~JSGlobalData()
 
     delete newParserObjects;
     delete parserObjectExtraRefCounts;
+    
+    delete clientData;
 }
 
 PassRefPtr<JSGlobalData> JSGlobalData::create()
@@ -157,6 +157,10 @@ JSGlobalData*& JSGlobalData::sharedInstanceInternal()
     ASSERT(JSLock::currentThreadIsHoldingLock());
     static JSGlobalData* sharedInstance;
     return sharedInstance;
+}
+
+JSGlobalData::ClientData::~ClientData()
+{
 }
 
 }

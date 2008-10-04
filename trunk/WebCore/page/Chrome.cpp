@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006, 2007 Apple Inc. All rights reserved.
- * Copyright (C) 2007 Trolltech ASA
+ * Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -74,6 +74,26 @@ Chrome::Chrome(Page* page, ChromeClient* client)
 Chrome::~Chrome()
 {
     m_client->chromeDestroyed();
+}
+
+void Chrome::repaint(const IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
+{
+    m_client->repaint(windowRect, contentChanged, immediate, repaintContentOnly);
+}
+
+void Chrome::scroll(const IntSize& scrollDelta, const IntRect& rectToScroll, const IntRect& clipRect)
+{
+    m_client->scroll(scrollDelta, rectToScroll, clipRect);
+}
+
+IntPoint Chrome::screenToWindow(const IntPoint& point) const
+{
+    return m_client->screenToWindow(point);
+}
+
+IntRect Chrome::windowToScreen(const IntRect& rect) const
+{
+    return m_client->windowToScreen(rect);
 }
 
 void Chrome::setWindowRect(const FloatRect& rect) const
@@ -292,21 +312,6 @@ bool Chrome::shouldInterruptJavaScript()
 IntRect Chrome::windowResizerRect() const
 {
     return m_client->windowResizerRect();
-}
-
-void Chrome::addToDirtyRegion(const IntRect& rect)
-{
-    m_client->addToDirtyRegion(rect);
-}
-
-void Chrome::scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect)
-{
-    m_client->scrollBackingStore(dx, dy, scrollViewRect, clipRect);
-}
-
-void Chrome::updateBackingStore()
-{
-    m_client->updateBackingStore();
 }
 
 void Chrome::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)

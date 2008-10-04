@@ -224,6 +224,8 @@ Heap::Heap(JSGlobalData* globalData)
 #endif
     , m_globalData(globalData)
 {
+    ASSERT(globalData);
+
 #if ENABLE(JSC_MULTIPLE_THREADS)
     int error = pthread_key_create(&m_currentThreadRegistrar, unregisterThread);
     if (error)
@@ -236,10 +238,19 @@ Heap::Heap(JSGlobalData* globalData)
 
 Heap::~Heap()
 {
+    // The destroy function must already have been called, so assert this.
+    ASSERT(!m_globalData);
+}
+
+void Heap::destroy()
+{
     JSLock lock(false);
 
-    // The global object is not GC protected at this point, so sweeping may delete it (and thus the global data)
-    // before other objects that may use the global data.
+    if (!m_globalData)
+        return;
+
+    // The global object is not GC protected at this point, so sweeping may delete it
+    // (and thus the global data) before other objects that may use the global data.
     RefPtr<JSGlobalData> protect(m_globalData);
 
     delete m_markListSet;
@@ -267,6 +278,8 @@ Heap::~Heap()
         t = next;
     }
 #endif
+
+    m_globalData = 0;
 }
 
 template <Heap::HeapType heapType>

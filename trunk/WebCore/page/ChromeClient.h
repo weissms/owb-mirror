@@ -108,9 +108,13 @@ namespace WebCore {
         virtual bool tabsToLinks() const = 0;
 
         virtual IntRect windowResizerRect() const = 0;
-        virtual void addToDirtyRegion(const IntRect&) = 0;
-        virtual void scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect) = 0;
-        virtual void updateBackingStore() = 0;
+
+        // Methods used by HostWindow.
+        virtual void repaint(const IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false) = 0;
+        virtual void scroll(const IntSize& scrollDelta, const IntRect& rectToScroll, const IntRect& clipRect) = 0;
+        virtual IntPoint screenToWindow(const IntPoint&) const = 0;
+        virtual IntRect windowToScreen(const IntRect&) const = 0;
+        // End methods used by HostWindow.
 
         virtual void mouseDidMoveOverElement(const HitTestResult&, unsigned modifierFlags) = 0;
 

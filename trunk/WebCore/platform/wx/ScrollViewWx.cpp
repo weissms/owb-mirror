@@ -110,7 +110,6 @@ public:
             return e.Skip();
 
         m_scrollView->setScrollPosition(IntPoint(pos.x, pos.y));
-        m_scrollView->update();
     }
 
     ScrollView* m_scrollView;
@@ -134,10 +133,11 @@ void ScrollView::setPlatformWidget(wxWindow* win)
 
 ScrollView::~ScrollView()
 {
+    destroy();
     delete m_data;
 }
 
-void ScrollView::updateContents(const IntRect& updateRect, bool now)
+void ScrollView::platformRepaintContentRectangle(const IntRect& updateRect, bool now)
 {
     // we need to convert coordinates to scrolled position
     wxRect contentsRect = updateRect;
@@ -149,14 +149,6 @@ void ScrollView::updateContents(const IntRect& updateRect, bool now)
             win->Update();
     }
 }
-
-void ScrollView::update()
-{
-    wxWindow* win = platformWidget();
-    if (win)
-        win->Update();
-}
-
 
 IntRect ScrollView::platformVisibleContentRect(bool includeScrollbars) const
 {
@@ -179,11 +171,9 @@ IntSize ScrollView::platformContentsSize() const
     return IntSize(width, height);
 }
 
-void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
+void ScrollView::platformSetScrollPosition(const IntPoint& scrollPoint)
 {
     wxWindow* win = platformWidget();
-    if (!win)
-        return;
 
     wxPoint scrollOffset = m_data->viewStart;
     wxPoint orig(scrollOffset);
@@ -216,6 +206,12 @@ void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
         win->Refresh();
 
     adjustScrollbars();
+}
+
+bool ScrollView::platformScroll(ScrollDirection, ScrollGranularity)
+{
+    notImplemented();
+    return true;
 }
 
 void ScrollView::platformSetContentsSize()
@@ -305,14 +301,6 @@ void ScrollView::platformScrollbarModes(ScrollbarMode& horizontal, ScrollbarMode
     vertical = m_data->vScrollbarMode;
 }
 
-bool ScrollView::isOffscreen() const
-{
-    // NB: This is called from RenderObject::willRenderImage
-    // and really seems to be more of a "is the window in a valid state" test,
-    // despite the API name.
-    return platformWidget() == NULL;
-}
-
 // used for subframes support
 void ScrollView::platformAddChild(Widget* widget)
 {
@@ -332,5 +320,29 @@ void ScrollView::platformRemoveChild(Widget* widget)
         widget->platformWidget()->Destroy();
     }
 }
+
+IntRect ScrollView::platformContentsToScreen(const IntRect& rect) const
+{
+    if (platformWidget()) {
+        wxRect wxrect = rect;
+        platformWidget()->ClientToScreen(&wxrect.x, &wxrect.y);
+        return wxrect;
+    }
+    return IntRect();
+}
+
+IntPoint ScrollView::platformScreenToContents(const IntPoint& point) const
+{
+    if (platformWidget()) {
+        return platformWidget()->ScreenToClient(point);
+    }
+    return IntPoint();
+}
+
+bool ScrollView::platformIsOffscreen() const
+{
+    return !platformWidget() || !platformWidget()->IsShownOnScreen();
+}
+
 
 }

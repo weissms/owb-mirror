@@ -335,13 +335,6 @@ public:
      * @endcode
      */
     virtual void setFrameRect(const IntRect&);
-    /**
-     * windowClipRect. 
-     * @param[out] : a rectangle.
-     * @code
-     * @endcode
-     */
-    virtual IntRect windowClipRect() const;
 
 protected:
 
@@ -455,4 +448,4 @@ protected:
 
 }
 
-#endi
+#endif

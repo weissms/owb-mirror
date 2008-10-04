@@ -75,6 +75,7 @@ IF (COMPILE_TESTS)
    TARGET_LINK_LIBRARIES (jsc
         generated-sources
         webcore-owb
+	webkit
         bal-events
         bal-facilities
         bal-fonts

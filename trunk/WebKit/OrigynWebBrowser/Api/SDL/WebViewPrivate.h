@@ -88,7 +88,10 @@ public:
     void onUserEvent(BalUserEvent);
     void popupMenuHide();
     void popupMenuShow(void *popupInfo);
+
+    void sendExposeEvent(WebCore::IntRect);
 private:
+    void updateView(BalWidget *widget, WebCore::IntRect rect);
     WebCore::IntRect m_rect;
     WebView *m_webView;
     bool isInitialized;

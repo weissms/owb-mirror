@@ -32,13 +32,18 @@ namespace JSC {
     const FeatureInfo ClosureFeature = 1 << 1;
     const FeatureInfo AssignFeature = 1 << 2;
     const FeatureInfo ArgumentsFeature = 1 << 3;
+    const FeatureInfo WithFeature = 1 << 4;
+    const FeatureInfo CatchFeature = 1 << 5;
+    const FeatureInfo ThisFeature = 1 << 6;
+    const FeatureInfo AllFeatures = EvalFeature | ClosureFeature | AssignFeature | ArgumentsFeature | WithFeature | CatchFeature | ThisFeature;
 
     template <typename T> struct NodeFeatureInfo {
         T m_node;
         FeatureInfo m_featureInfo;
         int m_numConstants;
     };
-    
+
+    typedef NodeFeatureInfo<FuncDeclNode*> FuncDeclNodeInfo;    
     typedef NodeFeatureInfo<FuncExprNode*> FuncExprNodeInfo;
     typedef NodeFeatureInfo<ExpressionNode*> ExpressionNodeInfo;
     typedef NodeFeatureInfo<ArgumentsNode*> ArgumentsNodeInfo;
@@ -63,6 +68,7 @@ namespace JSC {
     typedef NodeDeclarationInfo<ClauseList> ClauseListInfo;
     typedef NodeDeclarationInfo<ExpressionNode*> VarDeclListInfo;
     typedef NodeDeclarationInfo<ConstDeclList> ConstDeclListInfo;
+    typedef NodeDeclarationInfo<ParameterList> ParameterListInfo;
 
 } // namespace JSC
 

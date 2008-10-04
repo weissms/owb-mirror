@@ -1,3 +1,787 @@
+2008-10-03  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Replace SSE3 check with an SSE2 check, and implement SSE2 check on windows.
+
+        5.6% win on SunSpider on windows.
+
+        * VM/CTI.cpp:
+        (JSC::isSSE2Present):
+        (JSC::CTI::compileBinaryArithOp):
+        (JSC::CTI::compileBinaryArithOpSlowCase):
+
+2008-10-03  Maciej Stachowiak  <mjs@apple.com>
+
+        Rubber stamped by Cameron Zwarich.
+        
+        - fix mistaken change of | to || which caused a big perf regression on EarleyBoyer
+
+        * kjs/grammar.y:
+
+2008-10-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21321
+          Bug 21321: speed up JavaScriptCore by inlining Heap in JSGlobalData
+
+        1.019x as fast on SunSpider.
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript): Use heap. instead of heap-> to work with the heap.
+        (JSCheckScriptSyntax): Ditto.
+        (JSGarbageCollect): Ditto.
+        (JSReportExtraMemoryCost): Ditto.
+        * API/JSContextRef.cpp:
+        (JSGlobalContextRetain): Ditto.
+        (JSGlobalContextRelease): Destroy the heap with the destroy function instead
+        of the delete operator.
+        (JSContextGetGlobalObject): Use heap. instead of heap-> to work with the heap.
+        * API/JSObjectRef.cpp:
+        (JSObjectMake): Use heap. instead of heap-> to work with the heap.
+        (JSObjectMakeFunctionWithCallback): Ditto.
+        (JSObjectMakeConstructor): Ditto.
+        (JSObjectMakeFunction): Ditto.
+        (JSObjectMakeArray): Ditto.
+        (JSObjectMakeDate): Ditto.
+        (JSObjectMakeError): Ditto.
+        (JSObjectMakeRegExp): Ditto.
+        (JSObjectHasProperty): Ditto.
+        (JSObjectGetProperty): Ditto.
+        (JSObjectSetProperty): Ditto.
+        (JSObjectGetPropertyAtIndex): Ditto.
+        (JSObjectSetPropertyAtIndex): Ditto.
+        (JSObjectDeleteProperty): Ditto.
+        (JSObjectCallAsFunction): Ditto.
+        (JSObjectCallAsConstructor): Ditto.
+        (JSObjectCopyPropertyNames): Ditto.
+        (JSPropertyNameAccumulatorAddName): Ditto.
+        * API/JSValueRef.cpp:
+        (JSValueIsEqual): Ditto.
+        (JSValueIsInstanceOfConstructor): Ditto.
+        (JSValueMakeNumber): Ditto.
+        (JSValueMakeString): Ditto.
+        (JSValueToNumber): Ditto.
+        (JSValueToStringCopy): Ditto.
+        (JSValueToObject): Ditto.
+        (JSValueProtect): Ditto.
+        (JSValueUnprotect): Ditto.
+
+        * kjs/ExecState.h:
+        (JSC::ExecState::heap): Update to use the & operator.
+
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData): Update to initialize a heap member
+        instead of calling new to make a heap.
+        (JSC::JSGlobalData::~JSGlobalData): Destroy the heap with the destroy
+        function instead of the delete operator.
+        * kjs/JSGlobalData.h: Change from Heap* to a Heap.
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::mark): Use the & operator here.
+        (JSC::JSGlobalObject::operator new): Use heap. instead of heap-> to work
+        with the heap.
+
+2008-10-02  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 21317: Replace RegisterFile size and capacity information with Register pointers
+        <https://bugs.webkit.org/show_bug.cgi?id=21317>
+
+        This is a 2.3% speedup on the V8 DeltaBlue benchmark, a 3.3% speedup on
+        the V8 Raytrace benchmark, and a 1.0% speedup on SunSpider.
+
+        * VM/Machine.cpp:
+        (JSC::slideRegisterWindowForCall):
+        (JSC::Machine::callEval):
+        (JSC::Machine::execute):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        * VM/RegisterFile.cpp:
+        (JSC::RegisterFile::~RegisterFile):
+        * VM/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+        (JSC::RegisterFile::start):
+        (JSC::RegisterFile::end):
+        (JSC::RegisterFile::size):
+        (JSC::RegisterFile::shrink):
+        (JSC::RegisterFile::grow):
+        (JSC::RegisterFile::lastGlobal):
+        (JSC::RegisterFile::markGlobals):
+        (JSC::RegisterFile::markCallFrames):
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::copyGlobalsTo):
+
+2008-10-02  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Darin Adler.
+
+        Change bitwise operations introduced in r37166 to boolean operations. We
+        only use bitwise operations over boolean operations for increasing
+        performance in extremely hot code, but that does not apply to anything
+        in the parser.
+
+        * kjs/grammar.y:
+
+2008-10-02  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for bug #21232 - should reset m_isPendingDash on flush,
+        and should allow '\-' as beginning or end of a range (though
+        not to specifiy a range itself).
+
+        * ChangeLog:
+        * wrec/CharacterClassConstructor.cpp:
+        (JSC::CharacterClassConstructor::put):
+        (JSC::CharacterClassConstructor::flush):
+        * wrec/CharacterClassConstructor.h:
+        (JSC::CharacterClassConstructor::flushBeforeEscapedHyphen):
+        * wrec/WREC.cpp:
+        (JSC::WRECGenerator::generateDisjunction):
+        (JSC::WRECParser::parseCharacterClass):
+        (JSC::WRECParser::parseDisjunction):
+        * wrec/WREC.h:
+
+2008-10-02  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - remove the "static" from declarations in a header file, since we
+          don't want them to have internal linkage
+
+        * VM/Machine.h: Remove the static keyword from the constant and the
+        three inline functions that Geoff just moved here.
+
+2008-10-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=21283.
+        Profiler Crashes When Started
+
+        * VM/Machine.cpp:
+        * VM/Machine.h:
+        (JSC::makeHostCallFramePointer):
+        (JSC::isHostCallFrame):
+        (JSC::stripHostCallFrameBit): Moved some things to the header so
+        JSGlobalObject could use them.
+
+        * kjs/JSGlobalObject.h:
+        (JSC::JSGlobalObject::JSGlobalObjectData::JSGlobalObjectData): Call the
+        new makeHostCallFramePointer API, since 0 no longer indicates a host
+        call frame.
+
+2008-10-02  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21304
+        Stop using a static wrapper map for WebCore JS bindings
+
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        (JSC::JSGlobalData::~JSGlobalData):
+        (JSC::JSGlobalData::ClientData::~ClientData):
+        * kjs/JSGlobalData.h:
+        Added a client data member to JSGlobalData. WebCore will use it to store bindings-related
+        global data.
+
+        * JavaScriptCore.exp: Export virtual ClientData destructor.
+
+2008-10-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Try to fix Qt build.
+
+        * kjs/Error.h:
+
+2008-10-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler and Cameron Zwarich.
+
+        Preliminary step toward dynamic recompilation: Standardized and
+        simplified the parsing interface.
+        
+        The main goal in this patch is to make it easy to ask for a duplicate
+        compilation, and get back a duplicate result -- same source URL, same
+        debugger / profiler ID, same toString behavior, etc.
+        
+        The basic unit of compilation and evaluation is now SourceCode, which
+        encompasses a SourceProvider, a range in that provider, and a starting
+        line number.
+
+        A SourceProvider now encompasses a source URL, and *is* a source ID,
+        since a pointer is a unique identifier.
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript):
+        (JSCheckScriptSyntax): Provide a SourceCode to the Interpreter, since
+        other APIs are no longer supported.
+        
+        * VM/CodeBlock.h:
+        (JSC::EvalCodeCache::get): Provide a SourceCode to the Interpreter, since
+        other APIs are no longer supported.
+        (JSC::CodeBlock::CodeBlock): ASSERT something that used to be ASSERTed
+        by our caller -- this is a better bottleneck.
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator): Updated for the fact that
+        FunctionBodyNode's parameters are no longer a WTF::Vector.
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::Arguments): ditto
+
+        * kjs/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::evaluate): Provide a SourceCode to the Parser,
+        since other APIs are no longer supported.
+
+        * kjs/FunctionConstructor.cpp:
+        (JSC::constructFunction): Provide a SourceCode to the Parser, since
+        other APIs are no longer supported. Adopt FunctionBodyNode's new
+        "finishParsing" API.
+
+        * kjs/JSFunction.cpp:
+        (JSC::JSFunction::lengthGetter):
+        (JSC::JSFunction::getParameterName): Updated for the fact that
+        FunctionBodyNode's parameters are no longer a wtf::Vector.
+
+        * kjs/JSFunction.h: Nixed some cruft.
+
+        * kjs/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncEval): Provide a SourceCode to the Parser, since
+        other APIs are no longer supported. 
+
+        * kjs/Parser.cpp:
+        (JSC::Parser::parse): Require a SourceCode argument, instead of a bunch
+        of broken out parameters. Stop tracking sourceId as an integer, since we
+        use the SourceProvider pointer for this now. Don't clamp the
+        startingLineNumber, since SourceCode does that now.
+
+        * kjs/Parser.h:
+        (JSC::Parser::parse): Standardized the parsing interface to require a
+        SourceCode.
+
+        * kjs/Shell.cpp:
+        (functionRun):
+        (functionLoad):
+        (prettyPrintScript):
+        (runWithScripts):
+        (runInteractive): Provide a SourceCode to the Interpreter, since
+        other APIs are no longer supported.
+
+        * kjs/SourceProvider.h:
+        (JSC::SourceProvider::SourceProvider):
+        (JSC::SourceProvider::url):
+        (JSC::SourceProvider::asId):
+        (JSC::UStringSourceProvider::create):
+        (JSC::UStringSourceProvider::UStringSourceProvider): Added new
+        responsibilities described above.
+
+        * kjs/SourceRange.h:
+        (JSC::SourceCode::SourceCode):
+        (JSC::SourceCode::toString):
+        (JSC::SourceCode::provider):
+        (JSC::SourceCode::firstLine):
+        (JSC::SourceCode::data):
+        (JSC::SourceCode::length): Added new responsibilities described above.
+        Renamed SourceRange to SourceCode, based on review feedback. Added
+        a makeSource function for convenience.
+
+        * kjs/debugger.h: Provide a SourceCode to the client, since other APIs
+        are no longer supported.
+
+        * kjs/grammar.y: Provide startingLineNumber when creating a SourceCode.
+
+        * kjs/debugger.h: Treat sourceId as intptr_t to avoid loss of precision
+        on 64bit platforms.
+
+        * kjs/interpreter.cpp:
+        (JSC::Interpreter::checkSyntax):
+        (JSC::Interpreter::evaluate):
+        * kjs/interpreter.h: Require a SourceCode instead of broken out arguments.
+
+        * kjs/lexer.cpp:
+        (JSC::Lexer::setCode):
+        * kjs/lexer.h:
+        (JSC::Lexer::sourceRange): Fold together the SourceProvider and line number
+        into a SourceCode. Fixed a bug where the Lexer would accidentally keep
+        alive the last SourceProvider forever.
+
+        * kjs/nodes.cpp:
+        (JSC::ScopeNode::ScopeNode):
+        (JSC::ProgramNode::ProgramNode):
+        (JSC::ProgramNode::create):
+        (JSC::EvalNode::EvalNode):
+        (JSC::EvalNode::generateCode):
+        (JSC::EvalNode::create):
+        (JSC::FunctionBodyNode::FunctionBodyNode):
+        (JSC::FunctionBodyNode::finishParsing):
+        (JSC::FunctionBodyNode::create):
+        (JSC::FunctionBodyNode::generateCode):
+        (JSC::ProgramNode::generateCode):
+        (JSC::FunctionBodyNode::paramString):
+        * kjs/nodes.h:
+        (JSC::ScopeNode::):
+        (JSC::ScopeNode::sourceId):
+        (JSC::FunctionBodyNode::):
+        (JSC::FunctionBodyNode::parameterCount):
+        (JSC::FuncExprNode::):
+        (JSC::FuncDeclNode::): Store a SourceCode in all ScopeNodes, since
+        SourceCode is now responsible for tracking URL, ID, etc. Streamlined
+        some ad hoc FunctionBodyNode fixups into a "finishParsing" function, to
+        help make clear what you need to do in order to finish parsing a
+        FunctionBodyNode.
+
+        * wtf/Vector.h:
+        (WTF::::releaseBuffer): Don't ASSERT that releaseBuffer() is only called
+        when buffer is not 0, since FunctionBodyNode is more than happy
+        to get back a 0 buffer, and other functions like RefPtr::release() allow
+        for 0, too.
+
+2008-10-01  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21289: REGRESSION (r37160): Inspector crashes on load
+        <https://bugs.webkit.org/show_bug.cgi?id=21289>
+
+        The code in Arguments::mark() in r37160 was wrong. It marks indices in
+        d->registers, but that makes no sense (they are local variables, not
+        arguments). It should mark those indices in d->registerArray instead.
+
+        This patch also changes Arguments::copyRegisters() to use d->numParameters
+        instead of recomputing it.
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::mark):
+        * kjs/Arguments.h:
+        (JSC::Arguments::copyRegisters):
+
+2008-09-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21214
+          work on getting rid of ExecState
+
+        Eliminate some unneeded uses of dynamicGlobalObject.
+
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::contextData): Changed to use a map in the global data instead
+        of on the global object. Also fixed to use only a single hash table lookup.
+
+        * API/JSObjectRef.cpp:
+        (JSObjectMakeConstructor): Use lexicalGlobalObject rather than dynamicGlobalObject
+        to get the object prototype.
+
+        * kjs/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString): Use arrayVisitedElements set in global data rather
+        than in the global object.
+        (JSC::arrayProtoFuncToLocaleString): Ditto.
+        (JSC::arrayProtoFuncJoin): Ditto.
+
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData): Don't initialize opaqueJSClassData, since
+        it's no longer a pointer.
+        (JSC::JSGlobalData::~JSGlobalData): We still need to delete all the values, but
+        we don't need to delete the map since it's no longer a pointer.
+
+        * kjs/JSGlobalData.h: Made opaqueJSClassData a map instead of a pointer to a map.
+        Also added arrayVisitedElements.
+
+        * kjs/JSGlobalObject.h: Removed arrayVisitedElements.
+
+        * kjs/Shell.cpp:
+        (functionRun): Use lexicalGlobalObject instead of dynamicGlobalObject.
+        (functionLoad): Ditto.
+
+2008-10-01  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Speculative Windows build fix.
+
+        * kjs/grammar.y:
+
+2008-10-01  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 21123: using "arguments" in a function should not force creation of an activation object
+        <https://bugs.webkit.org/show_bug.cgi?id=21123>
+
+        Make the 'arguments' object not require a JSActivation. We store the
+        'arguments' object in the OptionalCalleeArguments call frame slot. We
+        need to be able to get the original 'arguments' object to tear it off
+        when returning from a function, but 'arguments' may be assigned to in a
+        number of ways.
+
+        Therefore, we use the OptionalCalleeArguments slot when we want to get
+        the original activation or we know that 'arguments' was not assigned a
+        different value. When 'arguments' may have been assigned a new value,
+        we use a new local variable that is initialized with 'arguments'. Since
+        a function parameter named 'arguments' may overwrite the value of
+        'arguments', we also need to be careful to look up 'arguments' in the
+        symbol table, so we get the parameter named 'arguments' instead of the
+        local variable that we have added for holding the 'arguments' object.
+
+        This is a 19.1% win on the V8 Raytrace benchmark using the SunSpider
+        harness, and a 20.7% win using the V8 harness. This amounts to a 6.5%
+        total speedup on the V8 benchmark suite using the V8 harness.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CodeBlock.h:
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator):
+        * VM/Machine.cpp:
+        (JSC::Machine::unwindCallFrame):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::retrieveArguments):
+        (JSC::Machine::cti_op_init_arguments):
+        (JSC::Machine::cti_op_ret_activation_arguments):
+        * VM/Machine.h:
+        * VM/RegisterFile.h:
+        (JSC::RegisterFile::):
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::mark):
+        (JSC::Arguments::fillArgList):
+        (JSC::Arguments::getOwnPropertySlot):
+        (JSC::Arguments::put):
+        * kjs/Arguments.h:
+        (JSC::Arguments::setRegisters):
+        (JSC::Arguments::init):
+        (JSC::Arguments::Arguments):
+        (JSC::Arguments::copyRegisters):
+        (JSC::JSActivation::copyRegisters):
+        * kjs/JSActivation.cpp:
+        (JSC::JSActivation::argumentsGetter):
+        * kjs/JSActivation.h:
+        (JSC::JSActivation::JSActivationData::JSActivationData):
+        * kjs/grammar.y:
+        * kjs/nodes.h:
+        (JSC::ScopeNode::setUsesArguments):
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::orl_mr):
+
+2008-10-01  Kevin McCullough  <kmccullough@apple.com>
+
+        Rubberstamped by Geoff Garen.
+
+        Remove BreakpointCheckStatement because it's not used anymore.
+        No effect on sunspider or the jsc tests.
+
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+
+2008-09-30  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Improve performance of CTI on windows.
+
+        Currently on platforms where the compiler doesn't allow us to safely
+        index relative to the address of a parameter we need to actually
+        provide a pointer to CTI runtime call arguments.  This patch improves
+        performance in this case by making the CTI logic for restoring this
+        parameter much less conservative by only resetting it before we actually
+        make a call, rather than between each and every SF bytecode we generate
+        code for.
+
+        This results in a 3.6% progression on the v8 benchmark when compiled with MSVC.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitCall):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompilePutByIdTransition):
+        * VM/CTI.h:
+        * masm/X86Assembler.h:
+        * wtf/Platform.h:
+
+2008-09-30  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - track uses of "this", "with" and "catch" in the parser
+        
+        Knowing this up front will be useful for future optimizations.
+        
+        Perf and correctness remain the same.
+        
+        * kjs/NodeInfo.h:
+        * kjs/grammar.y:
+
+2008-09-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Add WebKitAvailability macros for JSObjectMakeArray, JSObjectMakeDate, JSObjectMakeError,
+        and JSObjectMakeRegExp
+
+        * API/JSObjectRef.h:
+
+2008-09-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21214
+          work on getting rid of ExecState
+
+        Replaced the m_prev field of ExecState with a bit in the
+        call frame pointer to indicate "host" call frames.
+
+        * VM/Machine.cpp:
+        (JSC::makeHostCallFramePointer): Added. Sets low bit.
+        (JSC::isHostCallFrame): Added. Checks low bit.
+        (JSC::stripHostCallFrameBit): Added. Clears low bit.
+        (JSC::Machine::unwindCallFrame): Replaced null check that was
+        formerly used to detect host call frames with an isHostCallFrame check.
+        (JSC::Machine::execute): Pass in a host call frame pointer rather than
+        always passing 0 when starting execution from the host. This allows us
+        to follow the entire call frame pointer chain when desired, or to stop
+        at the host calls when that's desired.
+        (JSC::Machine::privateExecute): Replaced null check that was
+        formerly used to detect host call frames with an isHostCallFrame check.
+        (JSC::Machine::retrieveCaller): Ditto.
+        (JSC::Machine::retrieveLastCaller): Ditto.
+        (JSC::Machine::callFrame): Removed the code to walk up m_prev pointers
+        and replaced it with code that uses the caller pointer and uses the
+        stripHostCallFrameBit function.
+
+        * kjs/ExecState.cpp: Removed m_prev.
+        * kjs/ExecState.h: Ditto.
+
+2008-09-30  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Move all detection of 'arguments' in a lexical scope to the parser, in
+        preparation for fixing
+
+        Bug 21123: using "arguments" in a function should not force creation of an activation object
+        <https://bugs.webkit.org/show_bug.cgi?id=21123>
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator):
+        * kjs/NodeInfo.h:
+        * kjs/grammar.y:
+
+2008-09-30  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+
+        * kjs/Shell.cpp:
+        (runWithScripts): Fixed indentation.
+
+2008-09-30  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Build fix.  Move InternalFunction::classInfo implementation into the .cpp
+        file to prevent the vtable for InternalFunction being generated as a weak symbol.
+        Has no effect on SunSpider.
+
+        * kjs/InternalFunction.cpp:
+        (JSC::InternalFunction::classInfo):
+        * kjs/InternalFunction.h:
+
+2008-09-29  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        - optimize appending a number to a string
+        https://bugs.webkit.org/show_bug.cgi?id=21203
+        
+        It's pretty common in real-world code (and on some of the v8
+        benchmarks) to append a number to a string, so I made this one of
+        the fast cases, and also added support to UString to do it
+        directly without allocating a temporary UString.
+        
+        ~1% speedup on v8 benchmark.
+
+        * VM/Machine.cpp:
+        (JSC::jsAddSlowCase): Make this NEVER_INLINE because somehow otherwise
+        the change is a regression.
+        (JSC::jsAdd): Handle number + string special case.
+        (JSC::Machine::cti_op_add): Integrate much of the logic of jsAdd to
+        avoid exception check in the str + str, num + num and str + num cases.
+        * kjs/ustring.cpp:
+        (JSC::expandedSize): Make this a non-member function, since it needs to be 
+        called in non-member functions but not outside this file.
+        (JSC::expandCapacity): Ditto.
+        (JSC::UString::expandCapacity): Call the non-member version. 
+        (JSC::createRep): Helper to make a rep from a char*.
+        (JSC::UString::UString): Use above helper.
+        (JSC::concatenate): Guts of concatenating constructor for cases where first
+        item is a UString::Rep, and second is a UChar* and length, or a char*.
+        (JSC::UString::append): Implement for cases where first item is a UString::Rep,
+        and second is an int or double. Sadly duplicates logic of UString::from(int)
+        and UString::from(double).
+        * kjs/ustring.h:
+
+2008-09-29  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21214
+          work on getting rid of ExecState
+
+        * JavaScriptCore.exp: Updated since JSGlobalObject::init
+        no longer takes a parameter.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::execute): Removed m_registerFile argument
+        for ExecState constructors.
+
+        * kjs/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::evaluate): Removed globalThisValue
+        argument for ExecState constructor.
+
+        * kjs/ExecState.cpp:
+        (JSC::ExecState::ExecState): Removed globalThisValue and
+        registerFile arguments to constructors.
+
+        * kjs/ExecState.h: Removed m_globalThisValue and
+        m_registerFile data members.
+
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::init): Removed globalThisValue
+        argument for ExecState constructor.
+
+        * kjs/JSGlobalObject.h:
+        (JSC::JSGlobalObject::JSGlobalObject): Got rid of parameter
+        for the init function.
+
+2008-09-29  Geoffrey Garen  <ggaren@apple.com>
+
+        Rubber-stamped by Cameron Zwarich.
+        
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=21225
+        Machine::retrieveLastCaller should check for a NULL codeBlock
+        
+        In order to crash, you would need to call retrieveCaller in a situation
+        where you had two host call frames in a row in the register file. I
+        don't know how to make that happen, or if it's even possible, so I don't
+        have a test case -- but better safe than sorry!
+
+        * VM/Machine.cpp:
+        (JSC::Machine::retrieveLastCaller):
+
+2008-09-29  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Store the callee ScopeChain, not the caller ScopeChain, in the call frame
+        header. Nix the "scopeChain" local variable and ExecState::m_scopeChain, and
+        access the callee ScopeChain through the call frame header instead.
+
+        Profit: call + return are simpler, because they don't have to update the
+        "scopeChain" local variable, or ExecState::m_scopeChain.
+        
+        Because CTI keeps "r" in a register, reading the callee ScopeChain relative
+        to "r" can be very fast, in any cases we care to optimize.
+
+        0% speedup on empty function call benchmark. (5.5% speedup in bytecode.)
+        0% speedup on SunSpider. (7.5% speedup on controlflow-recursive.)
+        2% speedup on SunSpider --v8.
+        2% speedup on v8 benchmark.
+
+        * VM/CTI.cpp: Changed scope chain access to read the scope chain from
+        the call frame header. Sped up op_ret by changing it not to fuss with
+        the "scopeChain" local variable or ExecState::m_scopeChain.
+
+        * VM/CTI.h: Updated CTI trampolines not to take a ScopeChainNode*
+        argument, since that's stored in the call frame header now.
+
+        * VM/Machine.cpp: Access "scopeChain" and "codeBlock" through new helper
+        functions that read from the call frame header. Updated functions operating
+        on ExecState::m_callFrame to account for / take advantage of the fact that
+        Exec:m_callFrame is now never NULL.
+        
+        Fixed a bug in op_construct, where it would use the caller's default
+        object prototype, rather than the callee's, when constructing a new object.
+
+        * VM/Machine.h: Made some helper functions available. Removed
+        ScopeChainNode* arguments to a lot of functions, since the ScopeChainNode*
+        is now stored in the call frame header.
+
+        * VM/RegisterFile.h: Renamed "CallerScopeChain" to "ScopeChain", since
+        that's what it is now.
+
+        * kjs/DebuggerCallFrame.cpp: Updated for change to ExecState signature.
+
+        * kjs/ExecState.cpp:
+        * kjs/ExecState.h: Nixed ExecState::m_callFrame, along with the unused
+        isGlobalObject function.
+
+        * kjs/JSGlobalObject.cpp:
+        * kjs/JSGlobalObject.h: Gave the global object a fake call frame in
+        which to store the global scope chain, since our code now assumes that
+        it can always read the scope chain out of the ExecState's call frame.
+
+2008-09-29  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Sam Weinig.
+
+        Remove the isActivationObject() virtual method on JSObject and use
+        StructureID information instead. This should be slightly faster, but
+        isActivationObject() is only used in assertions and unwinding the stack
+        for exceptions.
+
+        * VM/Machine.cpp:
+        (JSC::depth):
+        (JSC::Machine::unwindCallFrame):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_ret_activation):
+        * kjs/JSActivation.cpp:
+        * kjs/JSActivation.h:
+        * kjs/JSObject.h:
+
+2008-09-29  Peter Gal  <galpeter@inf.u-szeged.hu>
+
+        Reviewed and tweaked by Darin Adler.
+
+        Fix build for non-all-in-one platforms.
+
+        * kjs/StringPrototype.cpp: Added missing ASCIICType.h include.
+
+2008-09-29  Bradley T. Hughes  <bradley.hughes@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix compilation with icpc
+
+        * wtf/HashSet.h:
+        (WTF::::find):
+        (WTF::::contains):
+
+2008-09-29  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Changed copyright from Trolltech ASA to Nokia.
+        
+        Nokia acquired Trolltech ASA, assets were transferred on September 26th 2008.
+        
+
+        * wtf/qt/MainThreadQt.cpp:
+
+2008-09-29  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Lars Knoll.
+
+        Don't accidentially install libJavaScriptCore.a for the build inside
+        Qt.
+
+        * JavaScriptCore.pro:
+
 2008-09-30  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
 
         Reviewed by Maciej Stachowiak.
@@ -7,6 +791,8 @@
 
         Allow fast access to the 'arguments' object by adding an extra slot to
         the callframe to store it.
+
+        This is a 3.0% speedup on the V8 Raytrace benchmark.
 
         * JavaScriptCore.exp:
         * VM/CTI.cpp:

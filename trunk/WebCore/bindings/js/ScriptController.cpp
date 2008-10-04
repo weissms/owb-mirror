@@ -109,7 +109,7 @@ JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const
     m_frame->keepAlive();
 
     m_windowShell->window()->startTimeoutCheck();
-    Completion comp = Interpreter::evaluate(exec, exec->dynamicGlobalObject()->globalScopeChain(), sourceURL, baseLine, StringSourceProvider::create(str), m_windowShell);
+    Completion comp = Interpreter::evaluate(exec, exec->dynamicGlobalObject()->globalScopeChain(), makeSource(str, sourceURL, baseLine), m_windowShell);
     m_windowShell->window()->stopTimeoutCheck();
 
     if (comp.complType() == Normal || comp.complType() == ReturnValue) {
@@ -164,7 +164,7 @@ void ScriptController::finishedWithEvent(Event* event)
     // is the case in sitations where an event has been created just for temporary usage,
     // e.g. an image load or mouse move. Once the event has been dispatched, it is forgotten
     // by the DOM implementation and so does not need to be cached still by the interpreter
-    forgetDOMObject(event);
+    forgetDOMObject(*globalObject()->globalData(), event);
 }
 
 void ScriptController::initScript()

@@ -348,23 +348,22 @@ IntRect WebChromeClient::windowResizerRect() const
     return intRect;
 }
 
-void WebChromeClient::addToDirtyRegion(const IntRect& dirtyRect)
+void WebChromeClient::repaint(const IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
 {
-    m_webView->addToDirtyRegion(dirtyRect);
+    ASSERT(core(m_webView->topLevelFrame()));
+    m_webView->repaint(windowRect, contentChanged, immediate, repaintContentOnly);
 }
 
-void WebChromeClient::scrollBackingStore(int dx, int dy, const IntRect& scrollViewRect, const IntRect& clipRect)
+void WebChromeClient::scroll(const IntSize& delta, const IntRect& scrollViewRect, const IntRect& clipRect)
 {
     ASSERT(core(m_webView->topLevelFrame()));
 
-    m_webView->scrollBackingStore(core(m_webView->topLevelFrame())->view(), dx, dy, scrollViewRect, clipRect);
+    m_webView->scrollBackingStore(core(m_webView->topLevelFrame())->view(), delta.width(), delta.height(), scrollViewRect, clipRect);
 }
 
-void WebChromeClient::updateBackingStore()
+IntRect WebChromeClient::windowToScreen(const IntRect& rect) const
 {
-    ASSERT(core(m_webView->topLevelFrame()));
-
-    m_webView->updateBackingStore(core(m_webView->topLevelFrame())->view());
+    return rect;
 }
 
 void WebChromeClient::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)
@@ -411,5 +410,14 @@ bool WebChromeClient::paintCustomScrollCorner(GraphicsContext* context, const Fl
 {
     //FIXME: implement me!
     return false;
+}
+
+IntPoint WebChromeClient::screenToWindow(const WebCore::IntPoint& p) const 
+{
+    return p;
+}
+
+void WebChromeClient::addToDirtyRegion(const IntRect&)
+{
 }
 

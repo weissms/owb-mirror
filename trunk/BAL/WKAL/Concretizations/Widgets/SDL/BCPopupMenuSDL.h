@@ -30,14 +30,15 @@
 #ifndef PopupMenu_h
 #define PopupMenu_h
 
-#include <wtf/RefCounted.h>
-
 #include "IntRect.h"
 #include "PopupMenuClient.h"
+#include <wtf/PassRefPtr.h>
+#include <wtf/RefCounted.h>
+#include "BALBase.h"
+
 #include "Scrollbar.h"
 #include "ScrollbarClient.h"
-#include <wtf/PassRefPtr.h>
-#include "BALBase.h"
+#include <wtf/RefPtr.h>
 
 #include <wtf/HashMap.h>
 
@@ -63,34 +64,58 @@ public:
 
     static bool itemWritingDirectionIsNatural();
     
-    IntRect windowRect();
+    Scrollbar* scrollbar() const { return m_scrollbar.get(); }
+
+    bool up(unsigned lines = 1);
+    bool down(unsigned lines = 1);
+
+    int itemHeight() const { return m_itemHeight; }
+    const IntRect& windowRect() const { return m_windowRect; }
+    IntRect clientRect() const;
+
+    int visibleItems() const;
+
+    int listIndexAtPoint(const IntPoint&) const;
+
+    bool setFocusedIndex(int index, bool hotTracking = false);
+    int focusedIndex() const;
+    void focusFirst();
+    void focusLast();
+
+    void paint(const IntRect& damageRect);
+
+//    HWND popupHandle() const { return m_popup; }
+
+    void setWasClicked(bool b = true) { m_wasClicked = b; }
+    bool wasClicked() const { return m_wasClicked; }
+
+    void setScrollOffset(int offset) { m_scrollOffset = offset; }
+    int scrollOffset() const { return m_scrollOffset; }
+
+    bool scrollToRevealSelection();
+
+    void incrementWheelDelta(int delta);
+    void reduceWheelDelta(int delta);
+    int wheelDelta() const { return m_wheelDelta; }
+
+    bool scrollbarCapturingMouse() const { return m_scrollbarCapturingMouse; }
+    void setScrollbarCapturingMouse(bool b) { m_scrollbarCapturingMouse = b; }
 
 protected:
-    PopupMenu(PopupMenuClient* client);
+    PopupMenu(PopupMenuClient*);
+
+private:
+    PopupMenuClient* m_popupClient;
 
     //ScrollBarClient
     virtual void valueChanged(Scrollbar*);
-    virtual IntRect windowClipRect() const;
+    virtual void invalidateScrollbarRect(Scrollbar*, const IntRect&);
     virtual bool isActive() const { return true; }
-private:
-    PopupMenuClient* m_popupClient;
-    
-    IntPoint m_menuPosition;
-    BalMenu* m_popup;
-    HashMap<BalWidget*, int> m_indexMap;
-    static void menuItemActivated(BalMenuItem* item, PopupMenu*);
-    static void menuUnmapped(BalWidget*, PopupMenu*);
-    static void menuPositionFunction(BalMenu*, int*, int*, bool*, PopupMenu*);
-    static void menuRemoveItem(BalWidget*, PopupMenu*);
     void calculatePositionAndSize(const IntRect&, FrameView*);
     void invalidateItem(int index);
-    bool setFocusedIndex(int i, bool hotTracking = false);
-    int focusedIndex() const;
-    IntRect clientRect() const;
-    int visibleItems() const;
-    bool scrollToRevealSelection();
 
-    RefPtr<Scrollbar> m_scrollBar;
+    RefPtr<Scrollbar> m_scrollbar;
+    BalMenu* m_popup;
     bool m_wasClicked;
     IntRect m_windowRect;
     int m_itemHeight;

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2007, 2008 Apple Inc. All Rights Reserved.
  * Copyright (C) 2007 Staikos Computing Services Inc. <info@staikos.net>
- * Copyright (C) 2007 Trolltech ASA
+ * Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -208,6 +208,18 @@ int ScrollbarThemeQt::trackLength(Scrollbar* scrollbar)
     QStyleOptionSlider* opt = styleOptionSlider(scrollbar);
     IntRect track = QApplication::style()->subControlRect(QStyle::CC_ScrollBar, opt, QStyle::SC_ScrollBarGroove, 0);
     return scrollbar->orientation() == HorizontalScrollbar ? track.width() : track.height();
+}
+
+void ScrollbarThemeQt::paintScrollCorner(ScrollView*, GraphicsContext* context, const IntRect& rect)
+{
+#if QT_VERSION < 0x040500
+    context->fillRect(rect, QApplication::palette().color(QPalette::Normal, QPalette::Window));
+#else
+    QStyleOption option;
+    option.rect = rect;
+    QApplication::style()->drawPrimitive(QStyle::PE_PanelScrollAreaCorner,
+            &option, context->platformContext(), 0);
+#endif
 }
 
 }

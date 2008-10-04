@@ -436,7 +436,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-    inline int toASCIIHexValue(wchar_t c) ;
+    inline int toASCIIHexValue(wchar_t c)
     /**
      *  isASCIIPrintable description
      * @param[in] : description
@@ -444,7 +444,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-    inline bool isASCIIPrintable(char c) ;
+    inline bool isASCIIPrintable(unsigned short c)
     /**
      *  isASCIIPrintable description
      * @param[in] : description
@@ -452,7 +452,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-    inline bool isASCIIPrintable(unsigned short c) ;
+    inline bool isASCIIPrintable(int c) ;
     /**
      *  isASCIIPrintable description
      * @param[in] : description
@@ -473,16 +473,8 @@ namespace WTF {
     
     
     
-#endif
-    /**
-     *  toASCIIHexValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    inline int toASCIIHexValue(int c) ;
+    
+    
+#end
 
 }
-
-#en
