@@ -1,3 +1,32 @@
+2008-10-04  David Hyatt  <hyatt@apple.com>
+
+        Fix scroll method on Qt.  The delta was supposed to use .width()/.height() and not .x()/.y().
+
+        Fix the QtPluginWidget to do an invalidate properly.
+
+        Reviewed by ggaren
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::scroll):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::):
+
+2008-10-03  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Build fix. Remove addToDirtyRegion from the header file.
+
+        * WebCoreSupport/ChromeClientQt.h:
+
+2008-10-03  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Build fix.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::scroll):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::):
+        (WebCore::FrameLoaderClientQt::createPlugin):
+
 2008-10-03  David Hyatt  <hyatt@apple.com>
 
         Remove addToDirtyRegion.

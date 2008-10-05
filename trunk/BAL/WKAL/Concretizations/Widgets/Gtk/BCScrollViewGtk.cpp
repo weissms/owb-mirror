@@ -69,16 +69,14 @@ static void adjustmentChanged(GtkAdjustment* adjustment, gpointer _that)
     that->scrollContents(scrollDelta);
 }
 
-ScrollView::ScrollView()
+void ScrollView::platformInit()
 {
-    init();
     m_horizontalAdjustment = 0;
     m_verticalAdjustment = 0;
 }
 
-ScrollView::~ScrollView()
+void ScrollView::platformDestroy()
 {
-    destroy();
     if (m_horizontalAdjustment) {
         g_signal_handlers_disconnect_by_func(G_OBJECT(m_horizontalAdjustment), (gpointer)adjustmentChanged, this);
         g_object_unref(m_horizontalAdjustment);
@@ -128,13 +126,13 @@ void ScrollView::setGtkAdjustments(GtkAdjustment* hadj, GtkAdjustment* vadj)
 void ScrollView::platformAddChild(Widget* child)
 {
     if (!GTK_IS_SOCKET(child->platformWidget()))
-        gtk_container_add(GTK_CONTAINER(containingWindow()), child->platformWidget());
+        gtk_container_add(GTK_CONTAINER(hostWindow()->platformWindow()), child->platformWidget());
 }
 
 void ScrollView::platformRemoveChild(Widget* child)
 {
-    if (GTK_WIDGET(containingWindow()) == GTK_WIDGET(child->platformWidget())->parent)
-        gtk_container_remove(GTK_CONTAINER(containingWindow()), child->platformWidget());
+    if (GTK_WIDGET(hostWindow()->platformWindow()) == GTK_WIDGET(child->platformWidget())->parent)
+        gtk_container_remove(GTK_CONTAINER(hostWindow()->platformWindow()), child->platformWidget());
 }
 
 bool ScrollView::platformHandleHorizontalAdjustment(const IntSize& scroll)

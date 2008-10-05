@@ -1006,7 +1006,6 @@ void WebView::initWithFrame(IntRect frame, String frameName, String groupName)
     setGroupName(groupName);
 
     WebCore::FrameView * frameView = core(webFrame)->view();
-    frameView->setContainingWindow(m_viewWindow);
     d->initWithFrameView(frameView);
 
 #if ENABLE(DATABASE)

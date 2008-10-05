@@ -31,6 +31,7 @@ LIST (APPEND PAGE_SRC
     page/PageGroup.cpp
     page/PrintContext.cpp
     page/Screen.cpp
+    page/SecurityOrigin.cpp
     page/Settings.cpp
     page/WindowFeatures.cpp
 
@@ -40,13 +41,3 @@ LIST (APPEND PAGE_SRC
     page/animation/KeyframeAnimation.cpp
     page/animation/ImplicitAnimation.cpp
 )
-
-IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
-    LIST (APPEND PAGE_SRC
-        page/InspectorController.cpp
-        page/JavaScriptDebugServer.cpp
-        page/JavaScriptProfile.cpp
-        page/JavaScriptProfileNode.cpp
-        page/JavaScriptCallFrame.cpp
-    )
-ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)

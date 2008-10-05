@@ -103,10 +103,11 @@ namespace JSC {
         JSValue* retrieveCaller(ExecState*, InternalFunction*) const;
         void retrieveLastCaller(ExecState* exec, int& lineNumber, intptr_t& sourceID, UString& sourceURL, JSValue*& function) const;
         
+        static const Register* firstCallFrame(const Register* callFrame);
         static ScopeChainNode* scopeChain(const Register* r) { return r[RegisterFile::ScopeChain].scopeChain(); }
         static CodeBlock* codeBlock(const Register* r) { return r[RegisterFile::CodeBlock].codeBlock(); }
 
-        void getArgumentsData(Register* callFrame, JSFunction*&, int& firstParameterIndex, Register*& argv, int& argc);
+        void getArgumentsData(Register* callFrame, JSFunction*&, ptrdiff_t& firstParameterIndex, Register*& argv, int& argc);
         void setTimeoutTime(unsigned timeoutTime) { m_timeoutTime = timeoutTime; }
         
         void startTimeoutCheck()
@@ -142,6 +143,7 @@ namespace JSC {
 
         static void SFX_CALL cti_timeout_check(CTI_ARGS);
 
+        static JSValue* SFX_CALL cti_op_convert_this(CTI_ARGS);
         static void SFX_CALL cti_op_end(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_add(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_pre_inc(CTI_ARGS);
@@ -162,7 +164,7 @@ namespace JSC {
         static JSValue* SFX_CALL cti_op_new_func(CTI_ARGS);
         static void* SFX_CALL cti_op_call_JSFunction(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_call_NotJSFunction(CTI_ARGS);
-        static void SFX_CALL cti_op_init_arguments(CTI_ARGS);
+        static void SFX_CALL cti_op_create_arguments(CTI_ARGS);
         static void SFX_CALL cti_op_ret_activation_arguments(CTI_ARGS);
         static void SFX_CALL cti_op_ret_profiler(CTI_ARGS);
         static void SFX_CALL cti_op_ret_scopeChain(CTI_ARGS);

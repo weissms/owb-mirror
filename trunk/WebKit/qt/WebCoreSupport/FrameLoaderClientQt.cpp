@@ -1027,6 +1027,17 @@ static const CSSPropertyID qstyleSheetProperties[] = {
 
 const unsigned numqStyleSheetProperties = sizeof(qstyleSheetProperties) / sizeof(qstyleSheetProperties[0]);
 
+class QtPluginWidget: public Widget
+{
+public:
+    QtPluginWidget(QWidget* w = 0): Widget(w) {}
+    virtual void invalidateRect(const IntRect& r)
+    { 
+        if (platformWidget())
+            platformWidget()->update(r);
+    }
+};
+
 Widget* FrameLoaderClientQt::createPlugin(const IntSize& pluginSize, Element* element, const KURL& url, const Vector<String>& paramNames,
                                           const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
@@ -1090,7 +1101,7 @@ Widget* FrameLoaderClientQt::createPlugin(const IntSize& pluginSize, Element* el
             QWidget *view = m_webFrame->page()->view();
             if (widget && view) {
                 widget->setParent(view);
-                Widget* w= new Widget();
+                QtPluginWidget* w= new QtPluginWidget();
                 w->setPlatformWidget(widget);
                 return w;
             }

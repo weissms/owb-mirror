@@ -41,6 +41,7 @@ using namespace WebCore;
 
 WebScrollBar::WebScrollBar()
     : m_refCount(0)
+    , m_containingWindow(0)
 {
     gClassCount++;
     gClassNameCount.add("WebScrollBar");
@@ -104,7 +105,7 @@ HRESULT STDMETHODCALLTYPE WebScrollBar::init(
     m_scrollBar = Scrollbar::createNativeScrollbar(this, webCoreOrientation, webCoreControlSize);
     if (!m_scrollBar)
         return E_FAIL;
-    m_scrollBar->setContainingWindow((HWND)(ULONG64)containingWindow);
+    m_containingWindow = (HWND)(ULONG64)containingWindow;
     return S_OK;
 }
 
@@ -226,13 +227,13 @@ HRESULT STDMETHODCALLTYPE WebScrollBar::handleMouseEvent(
     PlatformMouseEvent mouseEvent((HWND)(ULONG64)window, msg, wParam, lParam);
     switch (msg) {
         case WM_LBUTTONDOWN:
-            m_scrollBar->handleMousePressEvent(mouseEvent);
+            m_scrollBar->mouseDown(mouseEvent);
             break;
         case WM_LBUTTONUP:
-            m_scrollBar->handleMouseReleaseEvent(mouseEvent);
+            m_scrollBar->mouseUp();
             break;
         case WM_MOUSEMOVE:
-            m_scrollBar->handleMouseMoveEvent(mouseEvent);
+            m_scrollBar->mouseMoved(mouseEvent);
             break;
     }
 
@@ -262,7 +263,6 @@ void WebScrollBar::valueChanged(Scrollbar* scrollBar)
 
 void WebScrollBar::invalidateScrollbarRect(Scrollbar*, const IntRect& rect)
 {
-    HWND sbContainingWindow = m_scrollBar->containingWindow();
     RECT r = rect;
-    ::InvalidateRect(sbContainingWindow, &r, false);
+    ::InvalidateRect(m_containingWindow, &r, false);
 }

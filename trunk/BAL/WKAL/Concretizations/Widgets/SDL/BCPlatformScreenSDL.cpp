@@ -30,6 +30,8 @@
 #include "config.h"
 #include "PlatformScreen.h"
 #include "Assertions.h"
+#include "HostWindow.h"
+#include "ScrollView.h"
 #include "Widget.h"
 #include "SDL.h"
 
@@ -37,8 +39,8 @@ namespace WKAL {
 
 int screenDepth(Widget* widget)
 {
-    ASSERT(widget->containingWindow());
-    return widget->containingWindow()->format->BitsPerPixel;
+    ASSERT(widget->root()->hostWindow()->platformWindow());
+    return widget->root()->hostWindow()->platformWindow()->format->BitsPerPixel;
 }
 
 int screenDepthPerComponent(Widget*)
@@ -54,8 +56,8 @@ bool screenIsMonochrome(Widget* widget)
 
 FloatRect screenRect(Widget* widget)
 {
-    ASSERT(widget->containingWindow());
-    SDL_Rect sdlRect = widget->containingWindow()->clip_rect;
+    ASSERT(widget->root()->hostWindow()->platformWindow());
+    SDL_Rect sdlRect = widget->root()->hostWindow()->platformWindow()->clip_rect;
     return FloatRect(sdlRect.x, sdlRect.y, sdlRect.w, sdlRect.h);
 }
 

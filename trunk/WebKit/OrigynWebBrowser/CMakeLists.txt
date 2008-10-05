@@ -44,6 +44,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/editing
     ${CMAKE_SOURCE_DIR}/WebCore/history
     ${CMAKE_SOURCE_DIR}/WebCore/html
+    ${CMAKE_SOURCE_DIR}/WebCore/inspector
     ${CMAKE_SOURCE_DIR}/WebCore/loader
     ${CMAKE_SOURCE_DIR}/WebCore/loader/archive
     ${CMAKE_SOURCE_DIR}/WebCore/page

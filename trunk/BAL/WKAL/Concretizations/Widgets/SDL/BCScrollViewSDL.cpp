@@ -59,30 +59,9 @@ using std::min;
 
 namespace WKAL {
 
-ScrollView::ScrollView()
-{
-    init();
-}
-
-ScrollView::~ScrollView()
-{
-    destroy();
-}
-
 void ScrollView::setBalAdjustments(BalAdjustment* hadj, BalAdjustment* vadj)
 {
     updateScrollbars(m_scrollOffset);
-}
-
-void ScrollView::platformAddChild(Widget* child)
-{
-    if (parent())
-        parent()->platformAddChild(child);
-}
-
-void ScrollView::platformRemoveChild(Widget* child)
-{
-    child->hide();
 }
 
 }

@@ -106,7 +106,7 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
         m_popup = ::CreateWindowEx(exStyle, kPopupWindowClassName, _T("PopupMenu"),
             WS_POPUP | WS_BORDER,
             0, 0, 0, 0,
-            v->containingWindow(), 0, 0, 0);
+            v->hostWindow()->platformWindow(), 0, 0, 0);
 
         if (!m_popup)
             return;
@@ -119,7 +119,6 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
         if (visibleItems() < client()->listSize()) {
             // We need a scroll bar
             m_scrollbar = Scrollbar::createNativeScrollbar(this, VerticalScrollbar, SmallScrollbar);
-            m_scrollbar->setContainingWindow(m_popup);
         }
 
     ::SetWindowPos(m_popup, HWND_TOP, m_windowRect.x(), m_windowRect.y(), m_windowRect.width(), m_windowRect.height(), 0);
@@ -133,7 +132,7 @@ void PopupMenu::show(const IntRect& r, FrameView* v, int index)
 
     if (shouldAnimate) {
         RECT viewRect = {0};
-        ::GetWindowRect(v->containingWindow(), &viewRect);
+        ::GetWindowRect(v->hostWindow()->platformWindow(), &viewRect);
 
         if (!::IsRectEmpty(&viewRect)) {
             // Popups should slide into view away from the <select> box
@@ -168,7 +167,7 @@ void PopupMenu::calculatePositionAndSize(const IntRect& r, FrameView* v)
 
     // Then, translate to screen coordinates
     POINT location(rScreenCoords.location());
-    if (!::ClientToScreen(v->containingWindow(), &location))
+    if (!::ClientToScreen(v->hostWindow()->platformWindow(), &location))
         return;
 
     rScreenCoords.setLocation(location);
@@ -687,13 +686,13 @@ static LRESULT CALLBACK PopupWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         }
                         break;
                     case VK_TAB:
-                        ::SendMessage(popup->client()->clientDocument()->view()->containingWindow(), message, wParam, lParam);
+                        ::SendMessage(popup->client()->clientDocument()->view()->hostWindow()->platformWindow(), message, wParam, lParam);
                         popup->client()->hidePopup();
                         break;
                     default:
                         if (isASCIIPrintable(wParam))
                             // Send the keydown to the WebView so it can be used for type-to-select.
-                            ::PostMessage(popup->client()->clientDocument()->view()->containingWindow(), message, wParam, lParam);
+                            ::PostMessage(popup->client()->clientDocument()->view()->hostWindow()->platformWindow(), message, wParam, lParam);
                         else
                             lResult = 1;
                         break;
@@ -732,7 +731,7 @@ static LRESULT CALLBACK PopupWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         // Put the point into coordinates relative to the scroll bar
                         mousePoint.move(-scrollBarRect.x(), -scrollBarRect.y());
                         PlatformMouseEvent event(hWnd, message, wParam, MAKELPARAM(mousePoint.x(), mousePoint.y()));
-                        popup->scrollbar()->handleMouseMoveEvent(event);
+                        popup->scrollbar()->mouseMoved(event);
                         break;
                     }
                 }
@@ -763,7 +762,7 @@ static LRESULT CALLBACK PopupWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         // Put the point into coordinates relative to the scroll bar
                         mousePoint.move(-scrollBarRect.x(), -scrollBarRect.y());
                         PlatformMouseEvent event(hWnd, message, wParam, MAKELPARAM(mousePoint.x(), mousePoint.y()));
-                        popup->scrollbar()->handleMousePressEvent(event);
+                        popup->scrollbar()->mouseDown(event);
                         popup->setScrollbarCapturingMouse(true);
                         break;
                     }
@@ -783,7 +782,7 @@ static LRESULT CALLBACK PopupWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         // Put the point into coordinates relative to the scroll bar
                         mousePoint.move(-scrollBarRect.x(), -scrollBarRect.y());
                         PlatformMouseEvent event(hWnd, message, wParam, MAKELPARAM(mousePoint.x(), mousePoint.y()));
-                        popup->scrollbar()->handleMouseReleaseEvent(event);
+                        popup->scrollbar()->mouseUp();
                         // FIXME: This is a hack to work around Scrollbar not invalidating correctly when it doesn't have a parent widget
                         RECT r = scrollBarRect;
                         ::InvalidateRect(popup->popupHandle(), &r, TRUE);

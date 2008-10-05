@@ -205,9 +205,9 @@ SET (IDL_BINDINGS
     plugins/MimeTypeArray.idl
 
     xml/DOMParser.idl
-	xml/XMLHttpRequest.idl
+    xml/XMLHttpRequest.idl
     xml/XMLHttpRequestException.idl
-	xml/XMLHttpRequestProgressEvent.idl
+    xml/XMLHttpRequestProgressEvent.idl
     xml/XMLHttpRequestUpload.idl
     xml/XMLSerializer.idl
 )
@@ -215,7 +215,7 @@ SET (IDL_BINDINGS
 IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
     SET (IDL_BINDINGS
         ${IDL_BINDINGS}
-        page/JavaScriptCallFrame.idl
+        inspector/JavaScriptCallFrame.idl
     )
 ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
 
@@ -656,6 +656,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/dom
     ${CMAKE_SOURCE_DIR}/WebCore/page
     ${CMAKE_SOURCE_DIR}/WebCore/html
+    ${CMAKE_SOURCE_DIR}/WebCore/inspector
     ${CMAKE_SOURCE_DIR}/WebCore/loader
     ${CMAKE_SOURCE_DIR}/WebCore/loader/archive
     ${CMAKE_SOURCE_DIR}/WebCore/loader/icon

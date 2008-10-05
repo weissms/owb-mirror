@@ -62,11 +62,6 @@ Widget::~Widget()
     delete m_data;
 }
 
-PlatformWidget Widget::containingWindow() const
-{
-    return m_containingWindow;
-}
-
 void Widget::setFocus()
 {
     NotImplemented();

@@ -1,3 +1,573 @@
+2008-10-04  Matt Lilek  <webkit@mattlilek.com>
+
+        Build fix - restore Private role to headers that had it before the move.
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2008-10-04  Darin Adler  <darin@apple.com>
+
+        - try to fix build
+
+        * DerivedSources.make: Add new inspector directory to VPATH.
+        * GNUmakefile.am: Add new inspector directory to includes.
+        Re-sort the IDL_BINDINGS list. Add new inspector directory
+        to VPATH.
+
+2008-10-04  Matt Lilek  <webkit@mattlilek.com>
+
+        Not reviewed, attempt to fix Gtk build.
+
+        * GNUmakefile.am:
+
+2008-10-03  Timothy Hatcher  <timothy@apple.com>
+
+        Move the Web Inspector files into a top-level "inspector" folder.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21359
+
+        Reviewed by Dave Hyatt.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * inspector/InspectorClient.h: Renamed from WebCore/page/InspectorClient.h.
+        * inspector/InspectorController.cpp: Renamed from WebCore/page/InspectorController.cpp.
+        * inspector/InspectorController.h: Renamed from WebCore/page/InspectorController.h.
+        * inspector/JavaScriptCallFrame.cpp: Renamed from WebCore/page/JavaScriptCallFrame.cpp.
+        * inspector/JavaScriptCallFrame.h: Renamed from WebCore/page/JavaScriptCallFrame.h.
+        * inspector/JavaScriptCallFrame.idl: Renamed from WebCore/page/JavaScriptCallFrame.idl.
+        * inspector/JavaScriptDebugListener.h: Renamed from WebCore/page/JavaScriptDebugListener.h.
+        * inspector/JavaScriptDebugServer.cpp: Renamed from WebCore/page/JavaScriptDebugServer.cpp.
+        * inspector/JavaScriptDebugServer.h: Renamed from WebCore/page/JavaScriptDebugServer.h.
+        * inspector/JavaScriptProfile.cpp: Renamed from WebCore/page/JavaScriptProfile.cpp.
+        * inspector/JavaScriptProfile.h: Renamed from WebCore/page/JavaScriptProfile.h.
+        * inspector/JavaScriptProfileNode.cpp: Renamed from WebCore/page/JavaScriptProfileNode.cpp.
+        * inspector/JavaScriptProfileNode.h: Renamed from WebCore/page/JavaScriptProfileNode.h.
+        * inspector/front-end/Breakpoint.js: Renamed from WebCore/page/inspector/Breakpoint.js.
+        * inspector/front-end/BreakpointsSidebarPane.js: Renamed from WebCore/page/inspector/BreakpointsSidebarPane.js.
+        * inspector/front-end/CallStackSidebarPane.js: Renamed from WebCore/page/inspector/CallStackSidebarPane.js.
+        * inspector/front-end/Console.js: Renamed from WebCore/page/inspector/Console.js.
+        * inspector/front-end/DataGrid.js: Renamed from WebCore/page/inspector/DataGrid.js.
+        * inspector/front-end/Database.js: Renamed from WebCore/page/inspector/Database.js.
+        * inspector/front-end/DatabaseQueryView.js: Renamed from WebCore/page/inspector/DatabaseQueryView.js.
+        * inspector/front-end/DatabaseTableView.js: Renamed from WebCore/page/inspector/DatabaseTableView.js.
+        * inspector/front-end/DatabasesPanel.js: Renamed from WebCore/page/inspector/DatabasesPanel.js.
+        * inspector/front-end/ElementsPanel.js: Renamed from WebCore/page/inspector/ElementsPanel.js.
+        * inspector/front-end/ElementsTreeOutline.js: Renamed from WebCore/page/inspector/ElementsTreeOutline.js.
+        * inspector/front-end/FontView.js: Renamed from WebCore/page/inspector/FontView.js.
+        * inspector/front-end/ImageView.js: Renamed from WebCore/page/inspector/ImageView.js.
+        * inspector/front-end/Images/back.png: Renamed from WebCore/page/inspector/Images/back.png.
+        * inspector/front-end/Images/checker.png: Renamed from WebCore/page/inspector/Images/checker.png.
+        * inspector/front-end/Images/clearConsoleButtons.png: Renamed from WebCore/page/inspector/Images/clearConsoleButtons.png.
+        * inspector/front-end/Images/closeButtons.png: Renamed from WebCore/page/inspector/Images/closeButtons.png.
+        * inspector/front-end/Images/consoleButtons.png: Renamed from WebCore/page/inspector/Images/consoleButtons.png.
+        * inspector/front-end/Images/database.png: Renamed from WebCore/page/inspector/Images/database.png.
+        * inspector/front-end/Images/databaseTable.png: Renamed from WebCore/page/inspector/Images/databaseTable.png.
+        * inspector/front-end/Images/databasesIcon.png: Renamed from WebCore/page/inspector/Images/databasesIcon.png.
+        * inspector/front-end/Images/debuggerContinue.png: Renamed from WebCore/page/inspector/Images/debuggerContinue.png.
+        * inspector/front-end/Images/debuggerPause.png: Renamed from WebCore/page/inspector/Images/debuggerPause.png.
+        * inspector/front-end/Images/debuggerStepInto.png: Renamed from WebCore/page/inspector/Images/debuggerStepInto.png.
+        * inspector/front-end/Images/debuggerStepOut.png: Renamed from WebCore/page/inspector/Images/debuggerStepOut.png.
+        * inspector/front-end/Images/debuggerStepOver.png: Renamed from WebCore/page/inspector/Images/debuggerStepOver.png.
+        * inspector/front-end/Images/debuggingButtons.png: Renamed from WebCore/page/inspector/Images/debuggingButtons.png.
+        * inspector/front-end/Images/disclosureTriangleSmallDown.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallDown.png.
+        * inspector/front-end/Images/disclosureTriangleSmallDownBlack.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallDownBlack.png.
+        * inspector/front-end/Images/disclosureTriangleSmallDownWhite.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallDownWhite.png.
+        * inspector/front-end/Images/disclosureTriangleSmallRight.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallRight.png.
+        * inspector/front-end/Images/disclosureTriangleSmallRightBlack.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallRightBlack.png.
+        * inspector/front-end/Images/disclosureTriangleSmallRightDown.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallRightDown.png.
+        * inspector/front-end/Images/disclosureTriangleSmallRightDownBlack.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallRightDownBlack.png.
+        * inspector/front-end/Images/disclosureTriangleSmallRightDownWhite.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallRightDownWhite.png.
+        * inspector/front-end/Images/disclosureTriangleSmallRightWhite.png: Renamed from WebCore/page/inspector/Images/disclosureTriangleSmallRightWhite.png.
+        * inspector/front-end/Images/dockButtons.png: Renamed from WebCore/page/inspector/Images/dockButtons.png.
+        * inspector/front-end/Images/elementsIcon.png: Renamed from WebCore/page/inspector/Images/elementsIcon.png.
+        * inspector/front-end/Images/errorIcon.png: Renamed from WebCore/page/inspector/Images/errorIcon.png.
+        * inspector/front-end/Images/errorMediumIcon.png: Renamed from WebCore/page/inspector/Images/errorMediumIcon.png.
+        * inspector/front-end/Images/excludeButtons.png: Renamed from WebCore/page/inspector/Images/excludeButtons.png.
+        * inspector/front-end/Images/focusButtons.png: Renamed from WebCore/page/inspector/Images/focusButtons.png.
+        * inspector/front-end/Images/forward.png: Renamed from WebCore/page/inspector/Images/forward.png.
+        * inspector/front-end/Images/glossyHeader.png: Renamed from WebCore/page/inspector/Images/glossyHeader.png.
+        * inspector/front-end/Images/glossyHeaderPressed.png: Renamed from WebCore/page/inspector/Images/glossyHeaderPressed.png.
+        * inspector/front-end/Images/glossyHeaderSelected.png: Renamed from WebCore/page/inspector/Images/glossyHeaderSelected.png.
+        * inspector/front-end/Images/glossyHeaderSelectedPressed.png: Renamed from WebCore/page/inspector/Images/glossyHeaderSelectedPressed.png.
+        * inspector/front-end/Images/goArrow.png: Renamed from WebCore/page/inspector/Images/goArrow.png.
+        * inspector/front-end/Images/largerResourcesButtons.png: Renamed from WebCore/page/inspector/Images/largerResourcesButtons.png.
+        * inspector/front-end/Images/nodeSearchButtons.png: Renamed from WebCore/page/inspector/Images/nodeSearchButtons.png.
+        * inspector/front-end/Images/paneBottomGrow.png: Renamed from WebCore/page/inspector/Images/paneBottomGrow.png.
+        * inspector/front-end/Images/paneBottomGrowActive.png: Renamed from WebCore/page/inspector/Images/paneBottomGrowActive.png.
+        * inspector/front-end/Images/paneGrowHandleLine.png: Renamed from WebCore/page/inspector/Images/paneGrowHandleLine.png.
+        * inspector/front-end/Images/pauseOnExceptionButtons.png: Renamed from WebCore/page/inspector/Images/pauseOnExceptionButtons.png.
+        * inspector/front-end/Images/percentButtons.png: Renamed from WebCore/page/inspector/Images/percentButtons.png.
+        * inspector/front-end/Images/profileGroupIcon.png: Renamed from WebCore/page/inspector/Images/profileGroupIcon.png.
+        * inspector/front-end/Images/profileIcon.png: Renamed from WebCore/page/inspector/Images/profileIcon.png.
+        * inspector/front-end/Images/profileSmallIcon.png: Renamed from WebCore/page/inspector/Images/profileSmallIcon.png.
+        * inspector/front-end/Images/profilesIcon.png: Renamed from WebCore/page/inspector/Images/profilesIcon.png.
+        * inspector/front-end/Images/recordButtons.png: Renamed from WebCore/page/inspector/Images/recordButtons.png.
+        * inspector/front-end/Images/reloadButtons.png: Renamed from WebCore/page/inspector/Images/reloadButtons.png.
+        * inspector/front-end/Images/resourceCSSIcon.png: Renamed from WebCore/page/inspector/Images/resourceCSSIcon.png.
+        * inspector/front-end/Images/resourceDocumentIcon.png: Renamed from WebCore/page/inspector/Images/resourceDocumentIcon.png.
+        * inspector/front-end/Images/resourceDocumentIconSmall.png: Renamed from WebCore/page/inspector/Images/resourceDocumentIconSmall.png.
+        * inspector/front-end/Images/resourceJSIcon.png: Renamed from WebCore/page/inspector/Images/resourceJSIcon.png.
+        * inspector/front-end/Images/resourcePlainIcon.png: Renamed from WebCore/page/inspector/Images/resourcePlainIcon.png.
+        * inspector/front-end/Images/resourcePlainIconSmall.png: Renamed from WebCore/page/inspector/Images/resourcePlainIconSmall.png.
+        * inspector/front-end/Images/resourcesIcon.png: Renamed from WebCore/page/inspector/Images/resourcesIcon.png.
+        * inspector/front-end/Images/resourcesSizeGraphIcon.png: Renamed from WebCore/page/inspector/Images/resourcesSizeGraphIcon.png.
+        * inspector/front-end/Images/resourcesTimeGraphIcon.png: Renamed from WebCore/page/inspector/Images/resourcesTimeGraphIcon.png.
+        * inspector/front-end/Images/scriptsIcon.png: Renamed from WebCore/page/inspector/Images/scriptsIcon.png.
+        * inspector/front-end/Images/searchSmallBlue.png: Renamed from WebCore/page/inspector/Images/searchSmallBlue.png.
+        * inspector/front-end/Images/searchSmallBrightBlue.png: Renamed from WebCore/page/inspector/Images/searchSmallBrightBlue.png.
+        * inspector/front-end/Images/searchSmallGray.png: Renamed from WebCore/page/inspector/Images/searchSmallGray.png.
+        * inspector/front-end/Images/searchSmallWhite.png: Renamed from WebCore/page/inspector/Images/searchSmallWhite.png.
+        * inspector/front-end/Images/segment.png: Renamed from WebCore/page/inspector/Images/segment.png.
+        * inspector/front-end/Images/segmentEnd.png: Renamed from WebCore/page/inspector/Images/segmentEnd.png.
+        * inspector/front-end/Images/segmentHover.png: Renamed from WebCore/page/inspector/Images/segmentHover.png.
+        * inspector/front-end/Images/segmentHoverEnd.png: Renamed from WebCore/page/inspector/Images/segmentHoverEnd.png.
+        * inspector/front-end/Images/segmentSelected.png: Renamed from WebCore/page/inspector/Images/segmentSelected.png.
+        * inspector/front-end/Images/segmentSelectedEnd.png: Renamed from WebCore/page/inspector/Images/segmentSelectedEnd.png.
+        * inspector/front-end/Images/splitviewDimple.png: Renamed from WebCore/page/inspector/Images/splitviewDimple.png.
+        * inspector/front-end/Images/splitviewDividerBackground.png: Renamed from WebCore/page/inspector/Images/splitviewDividerBackground.png.
+        * inspector/front-end/Images/statusbarBackground.png: Renamed from WebCore/page/inspector/Images/statusbarBackground.png.
+        * inspector/front-end/Images/statusbarBottomBackground.png: Renamed from WebCore/page/inspector/Images/statusbarBottomBackground.png.
+        * inspector/front-end/Images/statusbarButtons.png: Renamed from WebCore/page/inspector/Images/statusbarButtons.png.
+        * inspector/front-end/Images/statusbarMenuButton.png: Renamed from WebCore/page/inspector/Images/statusbarMenuButton.png.
+        * inspector/front-end/Images/statusbarMenuButtonSelected.png: Renamed from WebCore/page/inspector/Images/statusbarMenuButtonSelected.png.
+        * inspector/front-end/Images/statusbarResizerHorizontal.png: Renamed from WebCore/page/inspector/Images/statusbarResizerHorizontal.png.
+        * inspector/front-end/Images/statusbarResizerVertical.png: Renamed from WebCore/page/inspector/Images/statusbarResizerVertical.png.
+        * inspector/front-end/Images/timelinePillBlue.png: Renamed from WebCore/page/inspector/Images/timelinePillBlue.png.
+        * inspector/front-end/Images/timelinePillGray.png: Renamed from WebCore/page/inspector/Images/timelinePillGray.png.
+        * inspector/front-end/Images/timelinePillGreen.png: Renamed from WebCore/page/inspector/Images/timelinePillGreen.png.
+        * inspector/front-end/Images/timelinePillOrange.png: Renamed from WebCore/page/inspector/Images/timelinePillOrange.png.
+        * inspector/front-end/Images/timelinePillPurple.png: Renamed from WebCore/page/inspector/Images/timelinePillPurple.png.
+        * inspector/front-end/Images/timelinePillRed.png: Renamed from WebCore/page/inspector/Images/timelinePillRed.png.
+        * inspector/front-end/Images/timelinePillYellow.png: Renamed from WebCore/page/inspector/Images/timelinePillYellow.png.
+        * inspector/front-end/Images/tipBalloon.png: Renamed from WebCore/page/inspector/Images/tipBalloon.png.
+        * inspector/front-end/Images/tipBalloonBottom.png: Renamed from WebCore/page/inspector/Images/tipBalloonBottom.png.
+        * inspector/front-end/Images/tipIcon.png: Renamed from WebCore/page/inspector/Images/tipIcon.png.
+        * inspector/front-end/Images/tipIconPressed.png: Renamed from WebCore/page/inspector/Images/tipIconPressed.png.
+        * inspector/front-end/Images/toolbarItemSelected.png: Renamed from WebCore/page/inspector/Images/toolbarItemSelected.png.
+        * inspector/front-end/Images/treeDownTriangleBlack.png: Renamed from WebCore/page/inspector/Images/treeDownTriangleBlack.png.
+        * inspector/front-end/Images/treeDownTriangleWhite.png: Renamed from WebCore/page/inspector/Images/treeDownTriangleWhite.png.
+        * inspector/front-end/Images/treeRightTriangleBlack.png: Renamed from WebCore/page/inspector/Images/treeRightTriangleBlack.png.
+        * inspector/front-end/Images/treeRightTriangleWhite.png: Renamed from WebCore/page/inspector/Images/treeRightTriangleWhite.png.
+        * inspector/front-end/Images/treeUpTriangleBlack.png: Renamed from WebCore/page/inspector/Images/treeUpTriangleBlack.png.
+        * inspector/front-end/Images/treeUpTriangleWhite.png: Renamed from WebCore/page/inspector/Images/treeUpTriangleWhite.png.
+        * inspector/front-end/Images/userInputIcon.png: Renamed from WebCore/page/inspector/Images/userInputIcon.png.
+        * inspector/front-end/Images/userInputPreviousIcon.png: Renamed from WebCore/page/inspector/Images/userInputPreviousIcon.png.
+        * inspector/front-end/Images/warningIcon.png: Renamed from WebCore/page/inspector/Images/warningIcon.png.
+        * inspector/front-end/Images/warningMediumIcon.png: Renamed from WebCore/page/inspector/Images/warningMediumIcon.png.
+        * inspector/front-end/Images/warningsErrors.png: Renamed from WebCore/page/inspector/Images/warningsErrors.png.
+        * inspector/front-end/MetricsSidebarPane.js: Renamed from WebCore/page/inspector/MetricsSidebarPane.js.
+        * inspector/front-end/Object.js: Renamed from WebCore/page/inspector/Object.js.
+        * inspector/front-end/ObjectPropertiesSection.js: Renamed from WebCore/page/inspector/ObjectPropertiesSection.js.
+        * inspector/front-end/Panel.js: Renamed from WebCore/page/inspector/Panel.js.
+        * inspector/front-end/Placard.js: Renamed from WebCore/page/inspector/Placard.js.
+        * inspector/front-end/ProfileView.js: Renamed from WebCore/page/inspector/ProfileView.js.
+        * inspector/front-end/ProfilesPanel.js: Renamed from WebCore/page/inspector/ProfilesPanel.js.
+        * inspector/front-end/PropertiesSection.js: Renamed from WebCore/page/inspector/PropertiesSection.js.
+        * inspector/front-end/PropertiesSidebarPane.js: Renamed from WebCore/page/inspector/PropertiesSidebarPane.js.
+        * inspector/front-end/Resource.js: Renamed from WebCore/page/inspector/Resource.js.
+        * inspector/front-end/ResourceCategory.js: Renamed from WebCore/page/inspector/ResourceCategory.js.
+        * inspector/front-end/ResourceView.js: Renamed from WebCore/page/inspector/ResourceView.js.
+        * inspector/front-end/ResourcesPanel.js: Renamed from WebCore/page/inspector/ResourcesPanel.js.
+        * inspector/front-end/ScopeChainSidebarPane.js: Renamed from WebCore/page/inspector/ScopeChainSidebarPane.js.
+        * inspector/front-end/Script.js: Renamed from WebCore/page/inspector/Script.js.
+        * inspector/front-end/ScriptView.js: Renamed from WebCore/page/inspector/ScriptView.js.
+        * inspector/front-end/ScriptsPanel.js: Renamed from WebCore/page/inspector/ScriptsPanel.js.
+        * inspector/front-end/SidebarPane.js: Renamed from WebCore/page/inspector/SidebarPane.js.
+        * inspector/front-end/SidebarTreeElement.js: Renamed from WebCore/page/inspector/SidebarTreeElement.js.
+        * inspector/front-end/SourceFrame.js: Renamed from WebCore/page/inspector/SourceFrame.js.
+        * inspector/front-end/SourceView.js: Renamed from WebCore/page/inspector/SourceView.js.
+        * inspector/front-end/StylesSidebarPane.js: Renamed from WebCore/page/inspector/StylesSidebarPane.js.
+        * inspector/front-end/TextPrompt.js: Renamed from WebCore/page/inspector/TextPrompt.js.
+        * inspector/front-end/View.js: Renamed from WebCore/page/inspector/View.js.
+        * inspector/front-end/WebKit.qrc: Renamed from WebCore/page/inspector/WebKit.qrc.
+        * inspector/front-end/inspector.css: Renamed from WebCore/page/inspector/inspector.css.
+        * inspector/front-end/inspector.html: Renamed from WebCore/page/inspector/inspector.html.
+        * inspector/front-end/inspector.js: Renamed from WebCore/page/inspector/inspector.js.
+        * inspector/front-end/treeoutline.js: Renamed from WebCore/page/inspector/treeoutline.js.
+        * inspector/front-end/utilities.js: Renamed from WebCore/page/inspector/utilities.js.
+
+2008-10-03  Timothy Hatcher  <timothy@apple.com>
+
+        Adds support to the Web Inspector's Elements panel for fast tag name,
+        class name, id and attribute name searching. The panel first tries
+        using getElementById, getElementsByClassName and getElementsByTagName
+        with the search query. Then does a slower search using XPath for partial
+        matches, text and comment matches.
+
+        Adds support for search queries like "<div>", "<h" and "frame>".
+        These forms limit the search to tag names, text and comment matches.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21353
+
+        Reviewed by Maciej Stachowiak.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel.prototype.performSearch): Add tag syntax
+        support. Add new search functions that try exact matches first.
+
+2008-10-03  Timothy Hatcher  <timothy@apple.com>
+
+        Changes how searching works in the Web Inspector's Elements
+        panel. The search tasks are divided into chunks that are small
+        units of work that are performed at a time interval. This
+        change also prevents queries that will select all elements,
+        since that isn't useful.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21285
+
+        Reviewed by Oliver Hunt.
+
+        * page/inspector/ElementsPanel.js:
+        (WebInspector.ElementsPanel.prototype.searchCancled):
+        Remove the searchResultsProperty form results since there might
+        be an unfinished search.
+        (WebInspector.ElementsPanel.prototype.performSearch): Divide the
+        documents and search functions into chunks that are performed on
+        a interval of 25ms. Prevent searches for "//*" and "*".
+
+2008-10-03  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - "this" object in methods called on primitives should be wrapper object
+        https://bugs.webkit.org/show_bug.cgi?id=21362
+
+        Updated so toThis conversion for the split window is handled properly.
+
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2008-10-03  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David "The Motivator" Hyatt.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=21355
+        Move SecurityOrigin out of platform/ to page/.
+
+        It was a layering violation for SecurityOrigin to be in platform
+        as it depended on FrameLoader.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * page/SecurityOrigin.cpp: Copied from platform/SecurityOrigin.cpp.
+        * page/SecurityOrigin.h: Copied from platform/SecurityOrigin.h.
+        * page/SecurityOriginHash.h: Copied from platform/SecurityOriginHash.h.
+        * platform/SecurityOrigin.cpp: Removed.
+        * platform/SecurityOrigin.h: Removed.
+        * platform/SecurityOriginHash.h: Removed.
+
+2008-10-03  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Alp Toker.
+
+        http://bugs.webkit.org/show_bug.cgi?id=18832
+        [curl] file upload does not work
+
+        The curl_off_t integer type has a different size depending if large
+        file support is enabled or not. There is no different public API for
+        the two cases, so the same function accepts a different type based on
+        a compilation option the could be different in WebKit and libcurl.
+        To fix the bug we query libcurl at runtime for large file support and
+        pass the right type based on that.
+
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::ResourceHandleManager::setupPOST):
+
+2008-10-03  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Gtk build fixes.
+
+        * platform/gtk/FileChooserGtk.cpp:
+        (WebCore::FileChooser::openFileChooser):
+        * platform/gtk/PlatformScreenGtk.cpp:
+        (WebCore::screenDepth):
+        (WebCore::screenDepthPerComponent):
+        (WebCore::screenAvailableRect):
+        * platform/gtk/PopupMenuGtk.cpp:
+        (WebCore::PopupMenu::show):
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::platformAddChild):
+        (WebCore::ScrollView::platformRemoveChild):
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::setCursor):
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::forceRedraw):
+        (WebCore::PluginView::init):
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Fix Qt bustage from missing include.
+
+        * platform/qt/PlatformScreenQt.cpp:
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Fix Windows scrollbar bustage in popup menus.
+
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupWndProc):
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Fix Windows bustage.
+
+        * platform/win/FileChooserWin.cpp:
+        (WebCore::FileChooser::openFileChooser):
+        * platform/win/PlatformScreenWin.cpp:
+        (WebCore::monitorInfoForWidget):
+        * platform/win/WidgetWin.cpp:
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::forceRedraw):
+        (WebCore::PluginView::init):
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        * bindings/js/JSInspectedObjectWrapper.cpp: Try to fix a build failure
+        seen on some machines but not others by adding an include.
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        - Qt build fix
+
+        * bridge/qt/qt_runtime.cpp: Remove long-obsolete codeType and
+        execute functions. Declarations for these relied on the CodeType
+        enumeration, which used to be in ExecState.h; but the functions
+        aren't needed at all.
+        * bridge/qt/qt_runtime.h: Ditto.
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21295
+          Turn ExecState into a call frame pointer.
+
+        Remove m_globalObject and m_globalData from ExecState.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::JSDOMWindowBaseData::JSDOMWindowBaseData):
+        Removed an argument now that JSGlobalObject doesn't need it any more.
+        (WebCore::JSDOMWindowBase::JSDOMWindowBase): Removed the argument from
+        the JSDOMWindowBaseData constructor, and added the this argument to the
+        JSGlobalObject constructor. This is because a couple key bits of
+        initialization moved from the data constructor to the JSGlobalObject
+        constructor.
+        * bindings/js/JSDOMWindowBase.h: Ditto.
+
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::QtRuntimeMethod::QtRuntimeMethod):
+        * bridge/runtime_method.cpp:
+        (JSC::RuntimeMethod::RuntimeMethod):
+        Pass JSGlobalData* instead of ExecState* to the InternalFunction
+        constructor.
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Fix Windows/Qt build bustage.
+
+        Reviewed by ggaren
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::platformWindow):
+        * page/Chrome.cpp:
+        (WebCore::Chrome::platformWindow):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * platform/HostWindow.h:
+        * platform/qt/PlatformScreenQt.cpp:
+        (WebCore::screenDepth):
+        (WebCore::screenDepthPerComponent):
+        (WebCore::screenIsMonochrome):
+        (WebCore::screenRect):
+        (WebCore::screenAvailableRect):
+        * platform/qt/PopupMenuQt.cpp:
+        (WebCore::PopupMenu::show):
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::show):
+        (WebCore::PopupMenu::calculatePositionAndSize):
+        (WebCore::PopupWndProc):
+
+2008-10-03  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Make setStyle() take a const RenderStyle, to ensure that an
+        earlier RenderStyle::diff() remains valid.
+
+        * rendering/RenderBR.cpp:
+        * rendering/RenderBR.h:
+        * rendering/RenderBlock.cpp:
+        * rendering/RenderBlock.h:
+        * rendering/RenderBox.cpp:
+        * rendering/RenderBox.h:
+        * rendering/RenderButton.cpp:
+        * rendering/RenderButton.h:
+        * rendering/RenderFieldset.cpp:
+        * rendering/RenderFieldset.h:
+        * rendering/RenderFileUploadControl.cpp:
+        * rendering/RenderFileUploadControl.h:
+        * rendering/RenderInline.cpp:
+        * rendering/RenderInline.h:
+        * rendering/RenderListBox.cpp:
+        * rendering/RenderListBox.h:
+        * rendering/RenderListItem.cpp:
+        * rendering/RenderListItem.h:
+        * rendering/RenderListMarker.cpp:
+        * rendering/RenderListMarker.h:
+        * rendering/RenderMenuList.cpp:
+        * rendering/RenderMenuList.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::setStyle):
+        * rendering/RenderObject.h:
+        * rendering/RenderReplaced.cpp:
+        * rendering/RenderReplaced.h:
+        * rendering/RenderSVGBlock.cpp:
+        (WebCore::RenderSVGBlock::setStyle):
+        * rendering/RenderSVGBlock.h:
+        * rendering/RenderSVGGradientStop.cpp:
+        * rendering/RenderSVGGradientStop.h:
+        * rendering/RenderSlider.cpp:
+        * rendering/RenderSlider.h:
+        * rendering/RenderTable.cpp:
+        * rendering/RenderTable.h:
+        * rendering/RenderTableCell.cpp:
+        * rendering/RenderTableCell.h:
+        * rendering/RenderTableRow.cpp:
+        * rendering/RenderTableRow.h:
+        * rendering/RenderText.cpp:
+        * rendering/RenderText.h:
+        * rendering/RenderTextControl.cpp:
+        * rendering/RenderTextControl.h:
+        * rendering/RenderWidget.cpp:
+        * rendering/RenderWidget.h:
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::isDisplayReplacedType):
+        (WebCore::RenderStyle::isDisplayInlineType):
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Preparation for enabling scrollbars to hit test properly inside transforms.  Clean up the scrollbar
+        event handlers to no longer be virtual.  Don't pass a mouse event where none is needed.  Add a new
+        method on Scrollbars called transformEvent that will apply all of the transforms to make a new event
+        that will work properly for hit testing.  This patch just stubs out that method to return the same
+        event untransformed.
+
+        Reviewed by Darin Adler
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMouseDoubleClickEvent):
+        (WebCore::EventHandler::handleMouseMoveEvent):
+        (WebCore::EventHandler::handleMouseReleaseEvent):
+        (WebCore::EventHandler::passMousePressEventToScrollbar):
+        * page/gtk/EventHandlerGtk.cpp:
+        * page/mac/EventHandlerMac.mm:
+        * page/qt/EventHandlerQt.cpp:
+        * page/win/EventHandlerWin.cpp:
+        * page/wx/EventHandlerWx.cpp:
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::mouseMoved):
+        (WebCore::Scrollbar::mouseExited):
+        (WebCore::Scrollbar::mouseUp):
+        (WebCore::Scrollbar::mouseDown):
+        (WebCore::Scrollbar::transformEvent):
+        * platform/Scrollbar.h:
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21340
+        
+        Remove "containingWindow()/setContainingWindow()" from Widget.  HostWindow covers this now.
+    
+        Reviewed by Dan Bernstein & Darin Adler
+        
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::addChild):
+        * platform/Widget.cpp:
+        (WebCore::Widget::init):
+        * platform/Widget.h:
+        * platform/mac/WidgetMac.mm:
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::show):
+
+2008-10-03  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        * css/CSSFontSelector.cpp: (WebCore::fontDataForGenericFamily):
+        Return early if settings is nil.
+
+2008-10-03  Rob Buis  <buis@kde.org>
+
+        Reviewed by Darin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20134
+        REGRESSION (2.0.4-3.0.4): No default value set for <input type=range> with an even difference of (max - min)
+
+        Make sure the input element gets the right default value when no value is set.
+
+        Test: fast/forms/range-default-value.html
+
+        * rendering/RenderSlider.cpp:
+        (WebCore::RenderSlider::setPositionFromValue):
+
+2008-10-03  David Hyatt  <hyatt@apple.com>
+
+        Instead of a cross-platform init/destroy that forces every ScrollView platform to have a constructor/
+        destructor that calls them, switch to having a cross-platform constructor/destructor that calls
+        platform-specific init/destroy methods.
+
+        With this change, ScrollViewWin.cpp can be removed from the build (yay!).
+
+        Reviewed by Darin Adler
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::ScrollView):
+        (WebCore::ScrollView::~ScrollView):
+        (WebCore::ScrollView::platformInit):
+        (WebCore::ScrollView::platformDestroy):
+        (WebCore::ScrollView::platformAddChild):
+        (WebCore::ScrollView::platformRemoveChild):
+        * platform/ScrollView.h:
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::platformInit):
+        (WebCore::ScrollView::platformDestroy):
+        * platform/mac/ScrollViewMac.mm:
+        * platform/qt/ScrollViewQt.cpp:
+        (WebCore::ScrollView::platformInit):
+        (WebCore::ScrollView::platformDestroy):
+        * platform/win/ScrollViewWin.cpp: Removed.
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::platformInit):
+        (WebCore::ScrollView::platformDestroy):
+        (WebCore::ScrollView::setPlatformWidget):
+
+2008-10-03  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for <rdar://problem/6012018> 
+        https://bugs.webkit.org/show_bug.cgi?id=21335
+        CrashTracer: [USER] 4959 crashes in Safari at com.apple.WebCore: WebCore::Frame::settings const + 8
+
+        * css/CSSFontSelector.cpp: (WebCore::fontDataForGenericFamily): Return early if the frame is nil.
+
+2008-10-03  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Build fix.
+
+        * platform/qt/WidgetQt.cpp:
+        (WebCore::Widget::invalidateRect):
+
 2008-10-03  Alp Toker  <alp@nuanti.com>
 
         Remove some left-over GTK+ includes. No change in functionality.

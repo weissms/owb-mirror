@@ -111,7 +111,7 @@ static StreamMap& streams()
 {
     [super init];
     
-    _impl = WebNetscapePluginStream::create().releaseRef();
+    _impl = WebNetscapePluginStream::create(self);
     _impl->m_frameLoader = frameLoader;
     
     return self;
@@ -157,7 +157,7 @@ static StreamMap& streams()
 {
     [super init];
  
-    _impl = WebNetscapePluginStream::create().releaseRef();
+    _impl = WebNetscapePluginStream::create(self);
 
     // Temporarily set isTerminated to true to avoid assertion failure in dealloc in case we are released in this method.
     _impl->m_isTerminated = true;
@@ -168,7 +168,7 @@ static StreamMap& streams()
     }
     
     [self setRequestURL:theRequestURL];
-    [self setPlugin:thePlugin];
+    _impl->setPlugin(thePlugin);
     _impl->m_notifyData = theNotifyData;
     _impl->m_sendNotification = flag;
     _impl->m_fileDescriptor = -1;
@@ -202,7 +202,6 @@ static StreamMap& streams()
     streams().remove(&_impl->m_stream);
 
     ASSERT(_impl);
-    _impl->deref();
     
     [super dealloc];
 }
@@ -227,14 +226,8 @@ static StreamMap& streams()
     streams().remove(&_impl->m_stream);
 
     ASSERT(_impl);
-    _impl->deref();
         
     [super finalize];
-}
-
-- (uint16)transferMode
-{
-    return _impl->m_transferMode;
 }
 
 - (NPP)plugin
@@ -247,33 +240,28 @@ static StreamMap& streams()
     _impl->m_requestURL = theRequestURL;
 }
 
-- (void)setResponseURL:(NSURL *)theResponseURL
-{
-    _impl->m_responseURL = theResponseURL;
-}
-
 - (void)setPlugin:(NPP)thePlugin
 {
-    if (thePlugin) {
-        _impl->m_plugin = thePlugin;
-        _impl->m_pluginView = (WebBaseNetscapePluginView *)_impl->m_plugin->ndata;
-        WebNetscapePluginPackage *pluginPackage = [_impl->m_pluginView.get() pluginPackage];
-        
-        _impl->m_pluginFuncs = [pluginPackage pluginFuncs];
-    } else {
-        WebBaseNetscapePluginView *view = _impl->m_pluginView.get();
-
-        _impl->m_plugin = 0;
-        _impl->m_pluginFuncs = 0;
-
-        [view disconnectStream:self];
-        _impl->m_pluginView = 0;
-    }
+    _impl->setPlugin(thePlugin);
 }
 
-- (void)setMIMEType:(NSString *)theMIMEType
+void WebNetscapePluginStream::setPlugin(NPP plugin)
 {
-    _impl->m_mimeType = theMIMEType;
+    if (plugin) {
+        m_plugin = plugin;
+        m_pluginView = static_cast<WebBaseNetscapePluginView *>(m_plugin->ndata);
+
+        WebNetscapePluginPackage *pluginPackage = [m_pluginView.get() pluginPackage];
+        
+        m_pluginFuncs = [pluginPackage pluginFuncs];
+    } else {
+        WebBaseNetscapePluginView *view = m_pluginView.get();
+        m_plugin = 0;
+        m_pluginFuncs = 0;
+        
+        [view disconnectStream:m_pluginStream];
+        m_pluginView = 0;
+    }        
 }
 
 - (void)startStreamResponseURL:(NSURL *)URL
@@ -284,8 +272,8 @@ static StreamMap& streams()
 {
     ASSERT(!_impl->m_isTerminated);
     
-    [self setResponseURL:URL];
-    [self setMIMEType:theMIMEType];
+    _impl->m_responseURL = URL;
+    _impl->m_mimeType = theMIMEType;
     
     free((void *)_impl->m_stream.url);
     _impl->m_stream.url = strdup([_impl->m_responseURL.get() _web_URLCString]);
@@ -440,83 +428,79 @@ static StreamMap& streams()
     return value != 0;
 }
 
-- (void)_destroyStream
+void WebNetscapePluginStream::destroyStream()
 {
-    if (_impl->m_isTerminated)
+    if (m_isTerminated)
         return;
 
-    [self retain];
+    RetainPtr<WebBaseNetscapePluginStream> protect(m_pluginStream);
 
-    ASSERT(_impl->m_reason != WEB_REASON_NONE);
-    ASSERT([_impl->m_deliveryData.get() length] == 0);
+    ASSERT(m_reason != WEB_REASON_NONE);
+    ASSERT([m_deliveryData.get() length] == 0);
     
-    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(_deliverData) object:nil];
+    m_deliverDataTimer.stop();
 
-    if (_impl->m_stream.ndata != nil) {
-        if (_impl->m_reason == NPRES_DONE && (_impl->m_transferMode == NP_ASFILE || _impl->m_transferMode == NP_ASFILEONLY)) {
-            ASSERT(_impl->m_fileDescriptor == -1);
-            ASSERT(_impl->m_path);
-            NSString *carbonPath = CarbonPathFromPOSIXPath(_impl->m_path.get());
+    if (m_stream.ndata != nil) {
+        if (m_reason == NPRES_DONE && (m_transferMode == NP_ASFILE || m_transferMode == NP_ASFILEONLY)) {
+            ASSERT(m_fileDescriptor == -1);
+            ASSERT(m_path);
+            NSString *carbonPath = CarbonPathFromPOSIXPath(m_path.get());
             ASSERT(carbonPath != NULL);
-            WebBaseNetscapePluginView *pv = _impl->m_pluginView.get();
-            [pv willCallPlugInFunction];
-            _impl->m_pluginFuncs->asfile(_impl->m_plugin, &_impl->m_stream, [carbonPath fileSystemRepresentation]);
-            [pv didCallPlugInFunction];
-            LOG(Plugins, "NPP_StreamAsFile responseURL=%@ path=%s", _impl->m_responseURL.get(), carbonPath);
+            [m_pluginView.get() willCallPlugInFunction];
+            m_pluginFuncs->asfile(m_plugin, &m_stream, [carbonPath fileSystemRepresentation]);
+            [m_pluginView.get() didCallPlugInFunction];
+            LOG(Plugins, "NPP_StreamAsFile responseURL=%@ path=%s", m_responseURL.get(), carbonPath);
         }
 
-        if (_impl->m_path) {
+        if (m_path) {
             // Delete the file after calling NPP_StreamAsFile(), instead of in -dealloc/-finalize.  It should be OK
             // to delete the file here -- NPP_StreamAsFile() is always called immediately before NPP_DestroyStream()
             // (the stream destruction function), so there can be no expectation that a plugin will read the stream
             // file asynchronously after NPP_StreamAsFile() is called.
-            unlink([_impl->m_path.get() fileSystemRepresentation]);
-            _impl->m_path = 0;
+            unlink([m_path.get() fileSystemRepresentation]);
+            m_path = 0;
 
-            if (_impl->m_isTerminated)
-                goto exit;
+            if (m_isTerminated)
+                return;
         }
 
-        if (_impl->m_fileDescriptor != -1) {
+        if (m_fileDescriptor != -1) {
             // The file may still be open if we are destroying the stream before it completed loading.
-            close(_impl->m_fileDescriptor);
-            _impl->m_fileDescriptor = -1;
+            close(m_fileDescriptor);
+            m_fileDescriptor = -1;
         }
 
-        if (_impl->m_newStreamSuccessful) {
-            NPError npErr;
-            WebBaseNetscapePluginView *pv = _impl->m_pluginView.get();
-            [pv willCallPlugInFunction];
-            npErr = _impl->m_pluginFuncs->destroystream(_impl->m_plugin, &_impl->m_stream, _impl->m_reason);
-            [pv didCallPlugInFunction];
-            LOG(Plugins, "NPP_DestroyStream responseURL=%@ error=%d", _impl->m_responseURL.get(), npErr);
+        if (m_newStreamSuccessful) {
+            [m_pluginView.get() willCallPlugInFunction];
+#if !LOG_DISABLED
+            NPError npErr = 
+#endif
+            m_pluginFuncs->destroystream(m_plugin, &m_stream, m_reason);
+            [m_pluginView.get() didCallPlugInFunction];
+            LOG(Plugins, "NPP_DestroyStream responseURL=%@ error=%d", m_responseURL.get(), npErr);
         }
 
-        free(_impl->m_headers);
-        _impl->m_headers = NULL;
-        _impl->m_stream.headers = NULL;
+        free(m_headers);
+        m_headers = NULL;
+        m_stream.headers = NULL;
 
-        _impl->m_stream.ndata = nil;
+        m_stream.ndata = nil;
 
-        if (_impl->m_isTerminated)
-            goto exit;
+        if (m_isTerminated)
+            return;
     }
 
-    if (_impl->m_sendNotification) {
+    if (m_sendNotification) {
         // NPP_URLNotify expects the request URL, not the response URL.
-        WebBaseNetscapePluginView *pv = _impl->m_pluginView.get();
-        [pv willCallPlugInFunction];
-        _impl->m_pluginFuncs->urlnotify(_impl->m_plugin, [_impl->m_requestURL.get() _web_URLCString], _impl->m_reason, _impl->m_notifyData);
-        [pv didCallPlugInFunction];
-        LOG(Plugins, "NPP_URLNotify requestURL=%@ reason=%d", _impl->m_requestURL.get(), _impl->m_reason);
+        [m_pluginView.get() willCallPlugInFunction];
+        m_pluginFuncs->urlnotify(m_plugin, [m_requestURL.get() _web_URLCString], m_reason, m_notifyData);
+        [m_pluginView.get() didCallPlugInFunction];
+        LOG(Plugins, "NPP_URLNotify requestURL=%@ reason=%d", m_requestURL.get(), m_reason);
     }
 
-    _impl->m_isTerminated = true;
+    m_isTerminated = true;
 
-    [self setPlugin:NULL];
-
-exit:
-    [self release];
+    setPlugin(0);
 }
 
 - (void)_destroyStreamWithReason:(NPReason)theReason
@@ -529,7 +513,7 @@ exit:
         // There is more data to be streamed, don't destroy the stream now.
         return;
     }
-    [self _destroyStream];
+    _impl->destroyStream();
     ASSERT(_impl->m_stream.ndata == nil);
 }
 
@@ -560,7 +544,7 @@ exit:
     [self retain];
     [self cancelLoadWithError:error];
     [self destroyStreamWithError:error];
-    [self setPlugin:NULL];
+    _impl->setPlugin(0);
     [self release];
 }
 
@@ -586,7 +570,8 @@ exit:
 
         if (deliveryBytes <= 0) {
             // Plug-in can't receive anymore data right now. Send it later.
-            [self performSelector:@selector(_deliverData) withObject:nil afterDelay:0];
+            if (!_impl->m_deliverDataTimer.isActive())
+                _impl->m_deliverDataTimer.startOneShot(0);
             break;
         } else {
             deliveryBytes = MIN(deliveryBytes, totalBytes - totalBytesDelivered);
@@ -616,14 +601,18 @@ exit:
             [newDeliveryData release];
         } else {
             [_impl->m_deliveryData.get() setLength:0];
-            if (_impl->m_reason != WEB_REASON_NONE) {
-                [self _destroyStream];
-            }
+            if (_impl->m_reason != WEB_REASON_NONE) 
+                _impl->destroyStream();
         }
     }
 
 exit:
     [self release];
+}
+
+void WebNetscapePluginStream::deliverDataTimerFired(WebCore::Timer<WebNetscapePluginStream>* timer)
+{
+    [m_pluginStream _deliverData];
 }
 
 - (void)_deliverDataToFile:(NSData *)data

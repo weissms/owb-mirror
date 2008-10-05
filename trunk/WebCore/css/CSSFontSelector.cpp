@@ -375,10 +375,13 @@ void CSSFontSelector::fontCacheInvalidated()
 
 static FontData* fontDataForGenericFamily(Document* document, const FontDescription& fontDescription, const AtomicString& familyName)
 {
-    if (!document)
+    if (!document || !document->frame())
         return 0;
 
     const Settings* settings = document->frame()->settings();
+    if (!settings)
+        return 0;
+    
     AtomicString genericFamily;
     if (familyName == "-webkit-serif")
         genericFamily = settings->serifFontFamily();

@@ -108,40 +108,6 @@ void Widget::setIsSelected(bool)
     notImplemented();
 }
 
-void Widget::invalidateRect(const IntRect& r)
-{
-    if (platformWidget()) { //plugins
-        platformWidget()->update(r);
-        return;
-    }
-
-    if (!parent()) {
-        if (isFrameView())
-            static_cast<FrameView*>(this)->addToDirtyRegion(r);
-        return;
-    }
-
-    // Get the root widget.
-    ScrollView* outermostView = root();
-    if (!outermostView)
-        return;
-
-    IntRect windowRect = convertToContainingWindow(r);
-
-    // Get our clip rect and intersect with it to ensure we don't invalidate too much.
-    IntRect clipRect = windowClipRect();
-    windowRect.intersect(clipRect);
-
-    outermostView->addToDirtyRegion(windowRect);
-}
-
-QWidget* Widget::containingWindow() const
-{
-    QWebFrame* frame = QWebFramePrivate::kit(static_cast<FrameView*>(root())->frame());
-    QWidget* view = frame->page()->view();
-    return view ? view : platformWidget();
-}
-
 }
 
 // vim: ts=4 sw=4 et

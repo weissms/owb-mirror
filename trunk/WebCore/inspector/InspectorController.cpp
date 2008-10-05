@@ -767,8 +767,6 @@ static JSValueRef platform(JSContextRef ctx, JSObjectRef /*function*/, JSObjectR
     static const String platform = "gtk";
 #elif PLATFORM(WX)
     static const String platform = "wx";
-#elif PLATFORM(BAL)
-    static const String platform = "bal";
 #else
     static const String platform = "unknown";
 #endif

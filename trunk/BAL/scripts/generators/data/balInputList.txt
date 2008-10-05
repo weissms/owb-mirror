@@ -325,8 +325,6 @@
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/FileSystem.h
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/Language.h
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/MIMETypeRegistry.h
-../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/SecurityOrigin.h
-../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/SecurityOriginHash.h
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/SharedTimer.h
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/SystemTime.h
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/Timer.h
@@ -347,9 +345,6 @@
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/MIMETypeRegistry.h
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/MIMETypeRegistry.cpp
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/gtk/MIMETypeRegistryGtk.cpp	BCMIMETypeRegistryGtk.cpp
-../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/SecurityOrigin.h
-../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/SecurityOrigin.cpp
-../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/SecurityOriginHash.h
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/SharedTimer.h
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/gtk/SharedTimerGtk.cpp	BCSharedTimerGtk.cpp
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/SystemTime.h

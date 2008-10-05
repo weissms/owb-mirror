@@ -133,7 +133,7 @@ bool EventHandler::passMousePressEventToScrollbar(MouseEventWithHitTestResults& 
 {
     if (!scrollbar || !scrollbar->enabled())
         return false;
-    return scrollbar->handleMousePressEvent(mev.event());
+    return scrollbar->mouseDown(mev.event());
 }
 
 }

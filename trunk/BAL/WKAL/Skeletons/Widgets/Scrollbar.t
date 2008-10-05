@@ -275,14 +275,55 @@ public:
      */
     virtual void setEnabled(bool e);
 
+
     /**
-     * Check wether it should handle mouse move event.
-     * @param[in] : a mouse event.
-     * @param[out] : a boolean.
+     *  mouseMoved description
+     * @param[in] : description
+     * @param[out] : description
      * @code
      * @endcode
      */
-    virtual bool handleMouseMoveEvent(const PlatformMouseEvent&);
+    bool mouseMoved(const PlatformMouseEvent&);
+
+
+    /**
+     *  mouseExited description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool mouseExited();
+
+
+    /**
+     *  mouseUp description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool mouseUp();
+
+
+    /**
+     *  mouseDown description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    bool mouseDown(const PlatformMouseEvent&);
+
+
+    /**
+     *  transformEvent description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    PlatformMouseEvent transformEvent(const PlatformMouseEvent&)
     /**
      * Check wether it should handle mouse out event.
      * @param[in] : a mouse event.
@@ -292,15 +333,7 @@ public:
      */
     virtual bool handleMouseOutEvent(const PlatformMouseEvent&);
     
-    // Used by some platform scrollbars to know when they've been released from capture.
-    /**
-     * Check wether it should handle mouse release event.
-     * @param[in] : a mouse event.
-     * @param[out] : a boolean.
-     * @code
-     * @endcode
-     */
-    virtual bool handleMouseReleaseEvent(const PlatformMouseEvent&);
+    // Used by some platform scrollbars to know when they've been released from captur
 
     /**
      * Check wether it should handle mouse press event.
@@ -311,30 +344,13 @@ public:
      */
     virtual bool handleMousePressEvent(const PlatformMouseEvent&);
 
-
-    /**
-     * Get the theme for the scrollbar.
-     * @param[out] : a pointer to the ScrollbarTheme.
-     * @code
-     * @endcode
-     */
-    ScrollbarTheme* theme() const ;
-
     /**
      * Set parent.
      * @param[in] : a pointer to the scrollView.
      * @code
      * @endcode
      */
-    virtual void setParent(ScrollView*);
-
-    /**
-     * setFrameRect set the Frame rectangle.
-     * @param[in] : new Frame rectangle
-     * @code
-     * @endcode
-     */
-    virtual void setFrameRect(const IntRect&);
+    virtual void setParent(ScrollView*)
 
 protected:
 
@@ -447,5 +463,3 @@ protected:
 };
 
 }
-
-#endif

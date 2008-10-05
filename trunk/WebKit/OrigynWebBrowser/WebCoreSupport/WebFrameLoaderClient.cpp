@@ -603,9 +603,9 @@ void WebFrameLoaderClient::transitionToCommittedForNewPage()
     frame->setView(frameView);
     frameView->deref(); // FrameViews are created with a ref count of 1. Release this ref since we've assigned it to frame.
 
-    BalWidget* viewWindow = webView->viewWindow();
+    /*BalWidget* viewWindow = webView->viewWindow();
     if (viewWindow)
-        frameView->setContainingWindow(viewWindow);
+        frameView->setContainingWindow(viewWindow);*/
 
     /*if (isMainFrame)
         frameView->setParentVisible(true);*/

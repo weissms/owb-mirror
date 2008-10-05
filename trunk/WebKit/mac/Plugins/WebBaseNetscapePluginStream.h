@@ -31,8 +31,10 @@
 
 #import <WebKit/npfunctions.h>
 #import <WebKit/WebPlugInStreamLoaderDelegate.h>
-#import <wtf/RefCounted.h>
+#import <WebCore/Timer.h>
 #import <wtf/PassRefPtr.h>
+#import <wtf/RefCounted.h>
+#import <wtf/RefPtr.h>
 #import <wtf/RetainPtr.h>
 
 namespace WebCore {
@@ -44,17 +46,22 @@ class WebNetscapePlugInStreamLoaderClient;
 
 @class WebBaseNetscapePluginView;
 @class NSURLResponse;
+@class WebBaseNetscapePluginStream;
 
 class WebNetscapePluginStream : public RefCounted<WebNetscapePluginStream>
 {
 public:
-    static PassRefPtr<WebNetscapePluginStream> create()
+    static PassRefPtr<WebNetscapePluginStream> create(WebBaseNetscapePluginStream *stream)
     {
-        return adoptRef(new WebNetscapePluginStream);
+        return adoptRef(new WebNetscapePluginStream(stream));
     }
+    
+    void setPlugin(NPP);
     
     // FIXME: These should all be private once WebBaseNetscapePluginStream is history...
 public:
+    void destroyStream();
+    
     RetainPtr<NSMutableData> m_deliveryData;
     RetainPtr<NSURL> m_requestURL;
     RetainPtr<NSURL> m_responseURL;
@@ -80,8 +87,14 @@ public:
     NSURLRequest *m_request;
     NPPluginFuncs *m_pluginFuncs;
 
+    void deliverDataTimerFired(WebCore::Timer<WebNetscapePluginStream>* timer);
+    WebCore::Timer<WebNetscapePluginStream> m_deliverDataTimer;
+    
+    // FIXME: Remove this once it's not needed anymore.
+    WebBaseNetscapePluginStream *m_pluginStream;
+    
 private:
-    WebNetscapePluginStream()
+    WebNetscapePluginStream(WebBaseNetscapePluginStream *stream)
         : m_plugin(0)
         , m_transferMode(0)
         , m_offset(0)
@@ -97,6 +110,8 @@ private:
         , m_client(0)
         , m_request(0)
         , m_pluginFuncs(0)
+        , m_deliverDataTimer(this, &WebNetscapePluginStream::deliverDataTimerFired)
+        , m_pluginStream(stream)
     {
         memset(&m_stream, 0, sizeof(NPStream));
     }
@@ -104,7 +119,7 @@ private:
 
 @interface WebBaseNetscapePluginStream : NSObject<WebPlugInStreamLoaderDelegate>
 {     
-    WebNetscapePluginStream *_impl;
+    RefPtr<WebNetscapePluginStream> _impl;
 }
 
 + (NPP)ownerForStream:(NPStream *)stream;
@@ -125,10 +140,9 @@ private:
         sendNotification:(BOOL)flag;
 
 - (void)setRequestURL:(NSURL *)theRequestURL;
-- (void)setResponseURL:(NSURL *)theResponseURL;
+
 - (void)setPlugin:(NPP)thePlugin;
 
-- (uint16)transferMode;
 - (NPP)plugin;
 
 - (void)startStreamResponseURL:(NSURL *)theResponseURL

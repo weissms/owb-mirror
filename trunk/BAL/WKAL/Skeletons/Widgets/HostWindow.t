@@ -81,6 +81,15 @@ public:
      *  screenToWindow 
      */
     virtual IntPoint screenToWindow(const IntPoint&) const = 0;
+    /**
+     *  platformWindow description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual PlatformWidget platformWindow() const = 0;
+    
 
     /**
      *  windowToScreen 
@@ -91,7 +100,6 @@ public:
 } // namespace WKAL
 
 #endif // HostWindow_h
-
 
 
 

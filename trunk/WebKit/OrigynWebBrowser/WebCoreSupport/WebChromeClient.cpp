@@ -366,6 +366,11 @@ IntRect WebChromeClient::windowToScreen(const IntRect& rect) const
     return rect;
 }
 
+PlatformWidget WebChromeClient::platformWindow() const                                                             
+{                                                                                                                  
+    return m_webView->viewWindow();
+} 
+
 void WebChromeClient::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)
 {
 
@@ -415,9 +420,5 @@ bool WebChromeClient::paintCustomScrollCorner(GraphicsContext* context, const Fl
 IntPoint WebChromeClient::screenToWindow(const WebCore::IntPoint& p) const 
 {
     return p;
-}
-
-void WebChromeClient::addToDirtyRegion(const IntRect&)
-{
 }
 

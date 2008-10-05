@@ -48,11 +48,6 @@ Widget::~Widget()
     ASSERT(!parent());
 }
 
-PlatformWindow Widget::containingWindow() const
-{
-    return m_containingWindow;
-}
-
 void Widget::show()
 {
 }
@@ -82,36 +77,6 @@ void Widget::setCursor(const Cursor& cursor)
 void Widget::paint(GraphicsContext*, const IntRect&)
 {
 }
-
-/*
-void Widget::invalidateRect(const IntRect& r)
-{
-    if (!parent()) {
-        RECT rect = r;
-        ::InvalidateRect(containingWindow(), &rect, false);
-        if (isFrameView())
-            static_cast<FrameView*>(this)->addToDirtyRegion(r);
-        return;
-    }
-
-    // Get the root widget.
-    ScrollView* outermostView = parent();
-    while (outermostView && outermostView->parent())
-        outermostView = outermostView->parent();
-    if (!outermostView)
-        return;
-
-    IntRect windowRect = convertToContainingWindow(r);
-
-    // Get our clip rect and intersect with it to ensure we don't invalidate too much.
-    IntRect clipRect = windowClipRect();
-    windowRect.intersect(clipRect);
-
-    RECT rect = windowRect;
-    ::InvalidateRect(containingWindow(), &rect, false);
-    outermostView->addToDirtyRegion(windowRect);
-}
-*/
 
 void Widget::setFocus()
 {

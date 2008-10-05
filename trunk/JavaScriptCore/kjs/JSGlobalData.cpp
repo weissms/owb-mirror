@@ -31,8 +31,10 @@
 
 #include "ArgList.h"
 #include "CommonIdentifiers.h"
+#include "JSActivation.h"
 #include "JSClassRef.h"
 #include "JSLock.h"
+#include "JSStaticScopeObject.h"
 #include "Machine.h"
 #include "Parser.h"
 #include "collector.h"
@@ -76,6 +78,8 @@ JSGlobalData::JSGlobalData(bool isShared)
     , stringTable(&JSC::stringTable)
 #endif
     , nullProtoStructureID(JSObject::createStructureID(jsNull()))
+    , activationStructureID(JSActivation::createStructureID(jsNull()))
+    , staticScopeStructureID(JSStaticScopeObject::createStructureID(jsNull()))
     , stringStructureID(JSString::createStructureID(jsNull()))
     , numberStructureID(JSNumberCell::createStructureID(jsNull()))
     , identifierTable(createIdentifierTable())
@@ -94,7 +98,8 @@ JSGlobalData::JSGlobalData(bool isShared)
 
 JSGlobalData::~JSGlobalData()
 {
-    heap.destroy();
+    // By the time this is destroyed, heap.destroy() must already have been called.
+
     delete machine;
 #ifndef NDEBUG
     // Zeroing out to make the behavior more predictable when someone attempts to use a deleted instance.

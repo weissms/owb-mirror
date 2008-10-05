@@ -103,13 +103,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-        bool isAccepted() const 
-
-    /**
-     * get shitf modifier
-     * @param[out] : shift value
-     * @code
-     * bool sm = ev->shiftKey();
+        bool isAccepted() const ;
      * @endcode
      */
         bool shiftKey() const ;
@@ -195,6 +189,16 @@ namespace WKAL {
      
 
 
+
+    /**
+     *  PlatformWheelEvent description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        PlatformWheelEvent(BalEventScroll*);
+
     /**
      * horizontalLineMultiplier get the horizontal line multiplier
      * @param[out] : horizontal line multiplier
@@ -202,6 +206,16 @@ namespace WKAL {
      * @endcode
      */
         int horizontalLineMultiplier() const ;
+
+
+    /**
+     *  verticalLineMultiplier description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        int verticalLineMultiplier() const ;
 
     /**
      * get the continuous delta y value
@@ -229,4 +243,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // PlatformWhee
+#endif // PlatformWh

@@ -43,6 +43,8 @@ namespace JSC {
 
     class ExecState;
 
+    enum CodeType { GlobalCode, EvalCode, FunctionCode };
+
     static ALWAYS_INLINE int missingThisObjectMarker() { return std::numeric_limits<int>::max(); }
 
     struct HandlerInfo {
@@ -190,7 +192,7 @@ namespace JSC {
             , numConstants(0)
             , numVars(0)
             , numParameters(0)
-            , needsFullScopeChain(ownerNode_->usesEval() || ownerNode_->needsClosure())
+            , needsFullScopeChain(ownerNode_->usesEval() || ownerNode_->containsClosures())
             , usesEval(ownerNode_->usesEval())
             , codeType(codeType_)
             , source(source_)

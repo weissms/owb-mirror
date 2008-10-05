@@ -284,15 +284,7 @@ namespace WTF {
     };
 
     template<> struct HashTraits<float> : FloatHashTraits<float> { };
-    template<> struct HashTraits<double> : FloatHashTraits<double> { };
-    /**
-     *  constructDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static void constructDeletedValue(RefPtr<P>& slot) ;
+    template<> struct HashTraits<double> : FloatHashTraits<double> { 
     /**
      *  isDeletedValue description
      * @param[in] : description
@@ -300,15 +292,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static bool isDeletedValue(const RefPtr<P>& value) ;
-    /**
-     *  emptyValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static TraitType emptyValue() ;
+        static bool isDeletedValue(const RefPtr<P>& value)
     /**
      *  constructDeletedValue description
      * @param[in] : description
@@ -316,15 +300,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(TraitType& slot) ;
-    /**
-     *  isDeletedValue description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-        static bool isDeletedValue(const TraitType& value) ;
+        static void constructDeletedValue(TraitType& slot)
     
     
     
@@ -416,7 +392,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        static void constructDeletedValue(TraitType& slot) ;
+        static void constructDeletedValue(P*& slot) ;
     
     
     
@@ -662,7 +638,52 @@ using WTF::PairHashTrait
      * @code
      * @endcode
      */
+        static bool isDeletedValue(P* value) ;
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(RefPtr<P>& slot) ;
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static bool isDeletedValue(const RefPtr<P>& value) ;
+    /**
+     *  emptyValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static TraitType emptyValue() ;
+    /**
+     *  constructDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+        static void constructDeletedValue(TraitType& slot) ;
+    /**
+     *  isDeletedValue description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
         static bool isDeletedValue(const TraitType& value) ;
+    
+    
+    
+    
+    
     
     
     
@@ -681,4 +702,3 @@ using WTF::PairHashTrait
      * @param[in] : description
      * @param[out] : description
      * @code
-     * @

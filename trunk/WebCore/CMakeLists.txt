@@ -30,6 +30,7 @@ INCLUDE_DIRECTORIES (
     editing
     history
     html
+    inspector
     loader
     loader/icon
     loader/archive
@@ -98,6 +99,9 @@ INCLUDE (rendering/CMakeLists.txt)
 INCLUDE (storage/CMakeLists.txt)
 INCLUDE (svg/CMakeLists.txt)
 INCLUDE (xml/CMakeLists.txt)
+IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
+    INCLUDE (inspector/CMakeLists.txt)
+ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
 LIST (APPEND WEBCORE_SRC
     ${BRIDGE_SRC}
     ${CSS_SRC}
@@ -125,6 +129,12 @@ INCLUDE (bindings/js/CMakeLists.txt)
 LIST (APPEND WEBCORE_SRC 
     ${BINDINGS_JS_SRC}
 )
+
+IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
+LIST (APPEND WEBCORE_SRC 
+    ${INSPECTOR_SRC}
+)
+ENDIF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
 
 IF (BUILD_SHARED_LIBS)
     ADD_LIBRARY (webcore-owb ${WEBCORE_SRC})

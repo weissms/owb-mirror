@@ -232,6 +232,8 @@ private:
     void setHasHorizontalScrollbar(bool);
     void setHasVerticalScrollbar(bool);
     
+    void platformInit();
+    void platformDestroy();
     void platformAddChild(Widget*);
     void platformRemoveChild(Widget*);
     void platformSetScrollbarModes();

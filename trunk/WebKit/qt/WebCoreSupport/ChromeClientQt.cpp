@@ -314,13 +314,13 @@ void ChromeClientQt::repaint(const IntRect& windowRect, bool contentChanged, boo
     // is set.
 }
 
-void ChromeClientQt::scroll(const IntSize& delta, const IntRect& scrollViewRect, const IntRect& clipRect)
+void ChromeClientQt::scroll(const IntSize& delta, const IntRect& scrollViewRect, const IntRect&)
 {
     QWidget* view = m_webPage->view();
     if (view)
-        view->scroll(delta.x(), delta.y(), scrollViewRect);
+        view->scroll(delta.width(), delta.height(), scrollViewRect);
     else
-        emit m_webPage->scrollRequested(delta.x(), delta.y(), scrollViewRect);
+        emit m_webPage->scrollRequested(delta.width(), delta.height(), scrollViewRect);
 }
 
 IntRect ChromeClientQt::windowToScreen(const IntRect& rect) const
@@ -335,8 +335,9 @@ IntPoint ChromeClientQt::screenToWindow(const IntPoint& point) const
     return point;
 }
 
-void ChromeClientQt::updateBackingStore()
+PlatformWidget ChromeClientQt::platformWindow() const
 {
+    return m_webPage->view();
 }
 
 void ChromeClientQt::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)

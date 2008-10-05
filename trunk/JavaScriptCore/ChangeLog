@@ -1,3 +1,393 @@
+2008-10-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 21369: Add opcode documentation for all undocumented opcodes
+        <https://bugs.webkit.org/show_bug.cgi?id=21369>
+
+        This patch adds opcode documentation for all undocumented opcodes, and
+        it also renames op_init_arguments to op_create_arguments.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator):
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_create_arguments):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+
+2008-10-03  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - "this" object in methods called on primitives should be wrapper object
+        https://bugs.webkit.org/show_bug.cgi?id=21362
+
+        I changed things so that functions which use "this" do a fast
+        version of toThisObject conversion if needed. Currently we miss
+        the conversion entirely, at least for primitive types. Using
+        TypeInfo and the primitive check, I made the fast case bail out
+        pretty fast.
+        
+        This is inexplicably an 1.007x SunSpider speedup (and a wash on V8 benchmarks).
+     
+        Also renamed some opcodes for clarity:
+        
+        init ==> enter
+        init_activation ==> enter_with_activation
+        
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::generate):
+        (JSC::CodeGenerator::CodeGenerator):
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_convert_this):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+        * kjs/JSActivation.cpp:
+        (JSC::JSActivation::JSActivation):
+        * kjs/JSActivation.h:
+        (JSC::JSActivation::createStructureID):
+        * kjs/JSCell.h:
+        (JSC::JSValue::needsThisConversion):
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        * kjs/JSGlobalData.h:
+        * kjs/JSNumberCell.h:
+        (JSC::JSNumberCell::createStructureID):
+        * kjs/JSStaticScopeObject.h:
+        (JSC::JSStaticScopeObject::JSStaticScopeObject):
+        (JSC::JSStaticScopeObject::createStructureID):
+        * kjs/JSString.h:
+        (JSC::JSString::createStructureID):
+        * kjs/JSValue.h:
+        * kjs/TypeInfo.h:
+        (JSC::TypeInfo::needsThisConversion):
+        * kjs/nodes.h:
+        (JSC::ScopeNode::usesThis):
+
+2008-10-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21356: The size of the RegisterFile differs depending on 32-bit / 64-bit and Debug / Release
+        <https://bugs.webkit.org/show_bug.cgi?id=21356>
+
+        The RegisterFile decreases in size (measured in terms of numbers of
+        Registers) as the size of a Register increases. This causes
+
+            js1_5/Regress/regress-159334.js
+
+        to fail in 64-bit debug builds. This fix makes the RegisterFile on all
+        platforms the same size that it is in 32-bit Release builds.
+
+        * VM/RegisterFile.h:
+        (JSC::RegisterFile::RegisterFile):
+
+2008-10-03  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - Some code cleanup to how we handle code features.
+        
+        1) Rename FeatureInfo typedef to CodeFeatures.
+        2) Rename NodeFeatureInfo template to NodeInfo.
+        3) Keep CodeFeature bitmask in ScopeNode instead of trying to break it out into individual bools.
+        4) Rename misleadingly named "needsClosure" method to "containsClosures", which better describes the meaning
+        of ClosureFeature.
+        5) Make setUsersArguments() not take an argument since it only goes one way.
+
+        * JavaScriptCore.exp:
+        * VM/CodeBlock.h:
+        (JSC::CodeBlock::CodeBlock):
+        * kjs/NodeInfo.h:
+        * kjs/Parser.cpp:
+        (JSC::Parser::didFinishParsing):
+        * kjs/Parser.h:
+        (JSC::Parser::parse):
+        * kjs/grammar.y:
+        * kjs/nodes.cpp:
+        (JSC::ScopeNode::ScopeNode):
+        (JSC::ProgramNode::ProgramNode):
+        (JSC::ProgramNode::create):
+        (JSC::EvalNode::EvalNode):
+        (JSC::EvalNode::create):
+        (JSC::FunctionBodyNode::FunctionBodyNode):
+        (JSC::FunctionBodyNode::create):
+        * kjs/nodes.h:
+        (JSC::ScopeNode::usesEval):
+        (JSC::ScopeNode::containsClosures):
+        (JSC::ScopeNode::usesArguments):
+        (JSC::ScopeNode::setUsesArguments):
+
+2008-10-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21343: REGRESSSION (r37160): ecma_3/ExecutionContexts/10.1.3-1.js and js1_4/Functions/function-001.js fail on 64-bit
+        <https://bugs.webkit.org/show_bug.cgi?id=21343>
+
+        A fix was landed for this issue in r37253, and the ChangeLog assumes
+        that it is a compiler bug, but it turns out that it is a subtle issue
+        with mixing signed and unsigned 32-bit values in a 64-bit environment.
+        In order to properly fix this bug, we should convert our signed offsets
+        into the register file to use ptrdiff_t.
+
+        This may not be the only instance of this issue, but I will land this
+        fix first and look for more later.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::getArgumentsData):
+        * VM/Machine.h:
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::getOwnPropertySlot):
+        * kjs/Arguments.h:
+        (JSC::Arguments::init):
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        * VM/CTI.cpp: Another Windows build fix. Change the args of ctiTrampoline.
+
+        * kjs/JSNumberCell.h: A build fix for newer versions of gcc. Added
+        declarations of JSGlobalData overloads of jsNumberCell.
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        - try to fix Windows build
+
+        * kjs/ScopeChain.h: Add forward declaration of JSGlobalData.
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21295
+          Turn ExecState into a call frame pointer.
+
+        Remove m_globalObject and m_globalData from ExecState.
+
+        SunSpider says this is a wash (slightly faster but not statistically
+        significant); which is good enough since it's a preparation step and
+        not supposed to be a spedup.
+
+        * API/JSCallbackFunction.cpp:
+        (JSC::JSCallbackFunction::JSCallbackFunction):
+        * kjs/ArrayConstructor.cpp:
+        (JSC::ArrayConstructor::ArrayConstructor):
+        * kjs/BooleanConstructor.cpp:
+        (JSC::BooleanConstructor::BooleanConstructor):
+        * kjs/DateConstructor.cpp:
+        (JSC::DateConstructor::DateConstructor):
+        * kjs/ErrorConstructor.cpp:
+        (JSC::ErrorConstructor::ErrorConstructor):
+        * kjs/FunctionPrototype.cpp:
+        (JSC::FunctionPrototype::FunctionPrototype):
+        * kjs/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction):
+        * kjs/NativeErrorConstructor.cpp:
+        (JSC::NativeErrorConstructor::NativeErrorConstructor):
+        * kjs/NumberConstructor.cpp:
+        (JSC::NumberConstructor::NumberConstructor):
+        * kjs/ObjectConstructor.cpp:
+        (JSC::ObjectConstructor::ObjectConstructor):
+        * kjs/PrototypeFunction.cpp:
+        (JSC::PrototypeFunction::PrototypeFunction):
+        * kjs/RegExpConstructor.cpp:
+        (JSC::RegExpConstructor::RegExpConstructor):
+        * kjs/StringConstructor.cpp:
+        (JSC::StringConstructor::StringConstructor):
+        Pass JSGlobalData* instead of ExecState* to the InternalFunction
+        constructor.
+
+        * API/OpaqueJSString.cpp: Added now-needed include.
+
+        * JavaScriptCore.exp: Updated.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitSlowScriptCheck): Changed to use ARGS_globalData
+        instead of ARGS_exec.
+
+        * VM/CTI.h: Added a new argument to the CTI, the global data pointer.
+        While it's possible to get to the global data pointer using the
+        ExecState pointer, it's slow enough that it's better to just keep
+        it around in the CTI arguments.
+
+        * VM/CodeBlock.h: Moved the CodeType enum here from ExecState.h.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::execute): Pass fewer arguments when constructing
+        ExecState, and pass the global data pointer when invoking CTI.
+        (JSC::Machine::firstCallFrame): Added. Used to get the dynamic global
+        object, which is in the scope chain of the first call frame.
+        (JSC::Machine::cti_op_add): Use globalData instead of exec when
+        possible, to keep fast cases fast, since it's now more expensive to
+        get to it through the exec pointer.
+        (JSC::Machine::cti_timeout_check): Ditto.
+        (JSC::Machine::cti_op_put_by_id_second): Ditto.
+        (JSC::Machine::cti_op_get_by_id_second): Ditto.
+        (JSC::Machine::cti_op_mul): Ditto.
+        (JSC::Machine::cti_vm_compile): Ditto.
+        (JSC::Machine::cti_op_get_by_val): Ditto.
+        (JSC::Machine::cti_op_sub): Ditto.
+        (JSC::Machine::cti_op_put_by_val): Ditto.
+        (JSC::Machine::cti_op_put_by_val_array): Ditto.
+        (JSC::Machine::cti_op_negate): Ditto.
+        (JSC::Machine::cti_op_div): Ditto.
+        (JSC::Machine::cti_op_pre_dec): Ditto.
+        (JSC::Machine::cti_op_post_inc): Ditto.
+        (JSC::Machine::cti_op_lshift): Ditto.
+        (JSC::Machine::cti_op_bitand): Ditto.
+        (JSC::Machine::cti_op_rshift): Ditto.
+        (JSC::Machine::cti_op_bitnot): Ditto.
+        (JSC::Machine::cti_op_mod): Ditto.
+        (JSC::Machine::cti_op_post_dec): Ditto.
+        (JSC::Machine::cti_op_urshift): Ditto.
+        (JSC::Machine::cti_op_bitxor): Ditto.
+        (JSC::Machine::cti_op_bitor): Ditto.
+        (JSC::Machine::cti_op_call_eval): Ditto.
+        (JSC::Machine::cti_op_throw): Ditto.
+        (JSC::Machine::cti_op_is_string): Ditto.
+        (JSC::Machine::cti_op_debug): Ditto.
+        (JSC::Machine::cti_vm_throw): Ditto.
+
+        * VM/Machine.h: Added firstCallFrame.
+
+        * kjs/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::evaluate): Pass fewer arguments when
+        constructing ExecState.
+
+        * kjs/ExecState.cpp: Deleted contents. Later we'll remove the
+        file altogether.
+
+        * kjs/ExecState.h: Removed m_globalObject and m_globalData.
+        Moved CodeType into another header.
+        (JSC::ExecState::ExecState): Take only a single argument, a
+        call frame pointer.
+        (JSC::ExecState::dynamicGlobalObject): Get the object from
+        the first call frame since it's no longer stored.
+        (JSC::ExecState::globalData): Get the global data from the
+        scope chain, since we no longer store a pointer to it here.
+        (JSC::ExecState::identifierTable): Ditto.
+        (JSC::ExecState::propertyNames): Ditto.
+        (JSC::ExecState::emptyList): Ditto.
+        (JSC::ExecState::lexer): Ditto.
+        (JSC::ExecState::parser): Ditto.
+        (JSC::ExecState::machine): Ditto.
+        (JSC::ExecState::arrayTable): Ditto.
+        (JSC::ExecState::dateTable): Ditto.
+        (JSC::ExecState::mathTable): Ditto.
+        (JSC::ExecState::numberTable): Ditto.
+        (JSC::ExecState::regExpTable): Ditto.
+        (JSC::ExecState::regExpConstructorTable): Ditto.
+        (JSC::ExecState::stringTable): Ditto.
+        (JSC::ExecState::heap): Ditto.
+
+        * kjs/FunctionConstructor.cpp:
+        (JSC::FunctionConstructor::FunctionConstructor): Pass
+        JSGlobalData* instead of ExecState* to the InternalFunction
+        constructor.
+        (JSC::constructFunction): Pass the global data pointer when
+        constructing a new scope chain.
+
+        * kjs/InternalFunction.cpp:
+        (JSC::InternalFunction::InternalFunction): Take a JSGlobalData*
+        instead of an ExecState*. Later we can change more places to
+        work this way -- it's more efficient to take the type you need
+        since the caller might already have it.
+        * kjs/InternalFunction.h: Ditto.
+
+        * kjs/JSCell.h:
+        (JSC::JSCell::operator new): Added an overload that takes a
+        JSGlobalData* so you can construct without an ExecState*.
+
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::init): Moved creation of the global scope
+        chain in here, since it now requires a pointer to the global data.
+        Moved the initialization of the call frame in here since it requires
+        the global scope chain node. Removed the extra argument to ExecState
+        when creating the global ExecState*.
+        * kjs/JSGlobalObject.h: Removed initialization of globalScopeChain
+        and the call frame from the JSGlobalObjectData constructor. Added
+        a thisValue argument to the init function.
+
+        * kjs/JSNumberCell.cpp: Added versions of jsNumberCell that take
+        JSGlobalData* rather than ExecState*.
+        * kjs/JSNumberCell.h:
+        (JSC::JSNumberCell::operator new): Added a version that takes
+        JSGlobalData*.
+        (JSC::JSNumberCell::JSNumberCell): Ditto.
+        (JSC::jsNumber): Ditto.
+        * kjs/JSString.cpp:
+        (JSC::jsString): Ditto.
+        (JSC::jsSubstring): Ditto.
+        (JSC::jsOwnedString): Ditto.
+        * kjs/JSString.h:
+        (JSC::JSString::JSString): Changed to take JSGlobalData*.
+        (JSC::jsEmptyString): Added a version that takes JSGlobalData*.
+        (JSC::jsSingleCharacterString): Ditto.
+        (JSC::jsSingleCharacterSubstring): Ditto.
+        (JSC::jsNontrivialString): Ditto.
+        (JSC::JSString::getIndex): Ditto.
+        (JSC::jsString): Ditto.
+        (JSC::jsSubstring): Ditto.
+        (JSC::jsOwnedString): Ditto.
+
+        * kjs/ScopeChain.h: Added a globalData pointer to each node.
+        (JSC::ScopeChainNode::ScopeChainNode): Initialize the globalData
+        pointer.
+        (JSC::ScopeChainNode::push): Set the global data pointer in the
+        new node.
+        (JSC::ScopeChain::ScopeChain): Take a globalData argument.
+
+        * kjs/SmallStrings.cpp:
+        (JSC::SmallStrings::createEmptyString): Take JSGlobalData* instead of
+        ExecState*.
+        (JSC::SmallStrings::createSingleCharacterString): Ditto.
+        * kjs/SmallStrings.h:
+        (JSC::SmallStrings::emptyString): Ditto.
+        (JSC::SmallStrings::singleCharacterString): Ditto.
+
+2008-10-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 21343: REGRESSSION (r37160): ecma_3/ExecutionContexts/10.1.3-1.js and js1_4/Functions/function-001.js fail on 64-bit
+        <https://bugs.webkit.org/show_bug.cgi?id=21343>
+
+        Add a workaround for a bug in GCC, which affects GCC 4.0, GCC 4.2, and
+        llvm-gcc 4.2. I put it in an #ifdef because it was a slight regression
+        on SunSpider in 32-bit, although that might be entirely random.
+
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::getOwnPropertySlot):
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        Rubber stamped by Alexey Proskuryakov.
+
+        * kjs/Shell.cpp: (main): Don't delete JSGlobalData. Later, we need to change
+        this tool to use public JavaScriptCore API instead.
+
+2008-10-03  Darin Adler  <darin@apple.com>
+
+        Suggested by Alexey Proskuryakov.
+
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::~JSGlobalData): Remove call to heap.destroy() because
+        it's too late to ref the JSGlobalData object once it's already being
+        destroyed. In practice this is not a problem because WebCore's JSGlobalData
+        is never destroyed and JSGlobalContextRelease takes care of calling
+        heap.destroy() in advance.
+
 2008-10-03  Oliver Hunt  <oliver@apple.com>
 
         Reviewed by Maciej Stachowiak.

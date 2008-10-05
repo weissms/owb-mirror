@@ -164,12 +164,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    IntRect boundsRect() const ;
-
-    /**
-     * get frameGeometry
-     **/
-        virtual IntRect frameGeometry() const;
+    IntRect boundsRect() const 
 
 
     /**
@@ -179,16 +174,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    IntRect boundsRect() const ;
-
-    /**
-     *  resize description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    void resize(int w, int h) ;
+    IntRect boundsRect() const 
 
 
     /**
@@ -367,16 +353,7 @@ namespace WKAL {
      * w->handleEvent(e);
      * @endcode
      */
-        virtual void handleEvent(Event*) ; 
-
-    /**
-     *  containingWindow description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
-     */
-    PlatformWindow containingWindow() const;
+        virtual void handleEvent(Event*) ;
 
     /**
      *  setContainingWindow description
@@ -385,17 +362,7 @@ namespace WKAL {
      * @code
      * @endcode
      */
-    void setContainingWindow(PlatformWindow window) ;
-
-    /**
-     * convert to containing window
-     * @param[in] : rect
-     * @param[out] : rect
-     * @code
-     * IntRect r = w->convertToContainingWindow(r1);
-     * @endcode
-     */
-        IntRect convertToContainingWindow(const IntRect&) const;
+    void setContainingWindow(PlatformWindow window) 
 
     /**
      * convert to containing window
@@ -476,4 +443,4 @@ private:
 };
 } // namespace WebCore
 
-#endif //
+#endif
