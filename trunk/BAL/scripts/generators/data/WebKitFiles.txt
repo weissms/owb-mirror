@@ -18,7 +18,6 @@ WebCore/page/ContextMenuController.cpp
 WebCore/page/EventHandler.cpp
 WebCore/page/FrameView.cpp
 WebCore/page/FrameView.h
-WebCore/page/InspectorController.cpp
 WebCore/page/Page.cpp
 WebCore/page/Page.h
 WebCore/plugins/PluginView.h
