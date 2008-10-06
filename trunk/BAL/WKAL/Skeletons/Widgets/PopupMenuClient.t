@@ -85,15 +85,25 @@ public:
      */
     virtual bool itemIsEnabled(unsigned listIndex) const = 0;
 
+
     /**
-     * get item background color
-     * @param[in] : index
-     * @param[out] : color
+     *  itemStyle description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * Color c = pm->itemBackgroundColor(i);
      * @endcode
      */
-    virtual Color itemBackgroundColor(unsigned listIndex) const = 0;
+    virtual PopupMenuStyle itemStyle(unsigned listIndex) const = 0;
+
+
+    /**
+     *  menuStyle description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual PopupMenuStyle menuStyle() const = 0
 
     /**
      * get item style
@@ -103,16 +113,7 @@ public:
      * RenderStyle *r = pm->itemStyle(i);
      * @endcode
      */
-    virtual RenderStyle* itemStyle(unsigned listIndex) const = 0;
-
-    /**
-     * get client style
-     * @param[out] : render style
-     * @code
-     * RenderStyle *r = pm->clientStyle();
-     * @endcode
-     */
-    virtual RenderStyle* clientStyle() const = 0;
+    virtual RenderStyle* itemStyle(unsigned listIndex) const = 0
 
     /**
      * get client document
@@ -121,16 +122,7 @@ public:
      * Document *d = pm->clientDocument();
      * @endcode
      */
-    virtual Document* clientDocument() const = 0;
-
-    /**
-     * get client inset left
-     * @param[out] : client inset left
-     * @code
-     * int l = pm->clientInsetLeft();
-     * @endcode
-     */
-    virtual int clientInsetLeft() const = 0;
+    virtual Document* clientDocument() const = 0
 
     /**
      * get client inset right
@@ -139,16 +131,7 @@ public:
      * int r = pm->clientInsetRight();
      * @endcode
      */
-    virtual int clientInsetRight() const = 0;
-
-    /**
-     * get client padding left
-     * @param[out] : client padding left
-     * @code
-     * int l = pm->clientPaddingLeft();
-     * @endcode
-     */
-    virtual int clientPaddingLeft() const = 0;
+    virtual int clientInsetRight() const = 0
 
     /**
      * get client padding right
@@ -250,12 +233,17 @@ public:
      * @endcode
      */
     virtual FontSelector* fontSelector() const = 0;
+    /**
+     *  hostWindow description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual HostWindow* hostWindow() const = 0;
+    
 };
 
 }
 
-#endif
-
-
-
-
+#end

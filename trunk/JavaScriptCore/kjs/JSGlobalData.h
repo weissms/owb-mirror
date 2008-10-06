@@ -64,6 +64,11 @@ namespace JSC {
 
         Machine* machine;
 
+        JSValue* exception;
+#if ENABLE(CTI)
+        void* throwReturnAddress;
+#endif
+
         const HashTable* arrayTable;
         const HashTable* dateTable;
         const HashTable* mathTable;
@@ -93,6 +98,7 @@ namespace JSC {
         Parser* parser;
 
         JSGlobalObject* head;
+        JSGlobalObject* dynamicGlobalObject;
 
         bool isSharedInstance;
 

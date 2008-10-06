@@ -324,14 +324,45 @@ public:
      * @endcode
      */
     PlatformMouseEvent transformEvent(const PlatformMouseEvent&)
+
     /**
-     * Check wether it should handle mouse out event.
-     * @param[in] : a mouse event.
-     * @param[out] : a boolean.
+     *  transformEvent description
+     * @param[in] : description
+     * @param[out] : description
      * @code
      * @endcode
      */
-    virtual bool handleMouseOutEvent(const PlatformMouseEvent&);
+    PlatformMouseEvent transformEvent(const PlatformMouseEvent&);
+
+
+    /**
+     *  theme description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    ScrollbarTheme* theme() const ;
+
+
+    /**
+     *  setParent description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void setParent(ScrollView*);
+
+
+    /**
+     *  setFrameRect description
+     * @param[in] : description
+     * @param[out] : description
+     * @code
+     * @endcode
+     */
+    virtual void setFrameRect(const IntRect&)
     
     // Used by some platform scrollbars to know when they've been released from captur
 
@@ -352,15 +383,7 @@ public:
      */
     virtual void setParent(ScrollView*)
 
-protected:
-
-    /**
-     * invalidate a rectangle.
-     * @param[in] : the rectangle to invalidate.
-     * @code
-     * @endcode
-     */
-    virtual void invalidateRect(const IntRect&);
+protected
 
 
     /**
@@ -460,6 +483,3 @@ protected:
     int m_pressedPos;
     Timer<Scrollbar> m_scrollTimer;
     bool m_overlapsResizer;
-};
-
-}

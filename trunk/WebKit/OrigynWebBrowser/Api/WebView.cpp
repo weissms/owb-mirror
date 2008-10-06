@@ -543,18 +543,7 @@ void WebView::close()
 
 void WebView::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
 {
-    if (!repaintContentOnly) {
-        addToDirtyRegion(windowRect);
-        d->sendExposeEvent(windowRect);
-    }
-    if (contentChanged)
-        addToDirtyRegion(windowRect);
-    if (immediate) {
-        if (repaintContentOnly)
-            updateBackingStore(core(topLevelFrame())->view());
-        else
-            d->sendExposeEvent(windowRect);
-    }
+    d->repaint(windowRect, contentChanged, immediate, repaintContentOnly);
 }
 
 void WebView::deleteBackingStore()
@@ -626,28 +615,10 @@ void WebView::scrollBackingStore(FrameView* frameView, int dx, int dy, const Int
 {
 #if PLATFORM(AMIGAOS4)
     m_backingStoreDirtyRegion.move(dx, dy);
+#else
+    d->scrollBackingStore(frameView, dx, dy, scrollViewRect, clipRect);
 #endif
     
-    //IntSize offsetIntSize = m_page->mainFrame()->view()->scrollOffset();
-    //printf("scrollViewRect %d %d %d %d\n", scrollViewRect.x(), scrollViewRect.y(), scrollViewRect.width(), scrollViewRect.height());
-    //printf("clipRect %d %d %d %d\n", clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height());
-    //printf("dx = %d dy = %d\n", dx, dy);
-    
-    //FIXME : find a better solution for the scroll and the scrollbar paint...
-    
-    d->sendExposeEvent(scrollViewRect);
-    
-    IntRect s;
-    if (dy != 0) {
-        s = IntRect(0, scrollViewRect.height(), d->frameRect().width(), d->frameRect().height() - scrollViewRect.height());
-        addToDirtyRegion(s);
-    } else
-        if (dx != 0) {
-            s = IntRect(scrollViewRect.width(), 0, d->frameRect().width() - scrollViewRect.width(), d->frameRect().height());
-            addToDirtyRegion(s);
-        }
-    
-    d->sendExposeEvent(s);
 }
 
 void WebView::updateBackingStore(FrameView* frameView, bool backingStoreCompletelyDirty)

@@ -44,6 +44,7 @@ StructureID::StructureID(JSValue* prototype, const TypeInfo& typeInfo)
     , m_previous(0)
     , m_nameInPrevious(0)
     , m_transitionCount(0)
+    , m_cachedTransistionOffset(WTF::notFound)
 {
     ASSERT(m_prototype);
     ASSERT(m_prototype->isObject() || m_prototype->isNull());
@@ -81,6 +82,9 @@ void StructureID::getEnumerablePropertyNames(ExecState* exec, PropertyNameArray&
         static_cast<JSObject*>(m_prototype)->getPropertyNames(exec, propertyNames);
 
     if (shouldCache) {
+        if (m_cachedPropertyNameArrayData)
+            m_cachedPropertyNameArrayData->setCachedStructureID(0);
+
         m_cachedPropertyNameArrayData = propertyNames.data();
 
         StructureIDChain* chain = cachedPrototypeChain();
@@ -93,6 +97,8 @@ void StructureID::getEnumerablePropertyNames(ExecState* exec, PropertyNameArray&
 
 void StructureID::clearEnumerationCache()
 {
+    if (m_cachedPropertyNameArrayData)
+        m_cachedPropertyNameArrayData->setCachedStructureID(0);
     m_cachedPropertyNameArrayData.clear();
 }
 
@@ -111,7 +117,7 @@ PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structur
         if (!slotBase->usingInlineStorage() && structureID->m_propertyMap.size() != existingTransition->m_propertyMap.size())
             slotBase->allocatePropertyStorage(structureID->m_propertyMap.size(), existingTransition->m_propertyMap.size());
 
-        size_t offset = existingTransition->propertyMap().getOffset(propertyName);
+        size_t offset = existingTransition->cachedTransistionOffset();
         ASSERT(offset != WTF::notFound);
         propertyStorage[offset] = value;
         slot.setNewProperty(slotBase, offset);
@@ -133,7 +139,8 @@ PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structur
     transition->m_transitionCount = structureID->m_transitionCount + 1;
     transition->m_propertyMap = structureID->m_propertyMap;
 
-    transition->m_propertyMap.put(propertyName, value, attributes, false, slotBase, slot, propertyStorage);
+    size_t offset = transition->m_propertyMap.put(propertyName, value, attributes, false, slotBase, slot, propertyStorage);
+    transition->setCachedTransistionOffset(offset);
 
     structureID->m_transitionTable.add(make_pair(propertyName.ustring().rep(), attributes), transition.get());
     return transition.release();
@@ -182,6 +189,9 @@ StructureID::~StructureID()
         ASSERT(m_previous->m_transitionTable.contains(make_pair(m_nameInPrevious, m_attributesInPrevious)));
         m_previous->m_transitionTable.remove(make_pair(m_nameInPrevious, m_attributesInPrevious));
     }
+
+    if (m_cachedPropertyNameArrayData)
+        m_cachedPropertyNameArrayData->setCachedStructureID(0);
 }
 
 StructureIDChain* StructureID::createCachedPrototypeChain()

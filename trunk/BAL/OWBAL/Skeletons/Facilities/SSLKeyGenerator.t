@@ -44,14 +44,15 @@ namespace OWBAL {
 
     class KURL;
 
+
     /**
-     * get supported key sizes
-     * @param[out] : supported key sizes
+     *  getSupportedKeySizes description
+     * @param[in] : description
+     * @param[out] : description
      * @code
-     * Vector<String> s = supportedKeySizes();
      * @endcode
      */
-    Vector<String> supportedKeySizes();
+    void getSupportedKeySizes(Vector<String>&)
 
     /**
      * get signed public key and challenge string
@@ -68,7 +69,5 @@ namespace OWBAL {
 }
 
 #endif
-
-
 
 

@@ -30,6 +30,7 @@
 
 #include "browserWidget.h"
 #include "WebView.h"
+#include "Frame.h"
 #include "IntRect.h"
 #include "gtk/gtk.h"
 #include "FrameView.h"
@@ -101,6 +102,38 @@ public:
         GdkWindow* window = GTK_WIDGET(m_webView->viewWindow())->window;
         gdk_window_invalidate_rect(window, &rect, true);
         //gdk_window_process_updates(window, true);
+    }
+    
+    
+    void repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate = false, bool repaintContentOnly = false)
+    {
+        if (!repaintContentOnly) {
+            m_webView->addToDirtyRegion(windowRect);
+            sendExposeEvent(windowRect);
+        }
+        if (contentChanged)
+            m_webView->addToDirtyRegion(windowRect);
+        if (immediate) {
+            if (repaintContentOnly)
+                m_webView->updateBackingStore(core(m_webView->topLevelFrame())->view());
+            else
+                sendExposeEvent(windowRect);
+        }
+    }
+    
+    void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect) 
+    { 
+        sendExposeEvent(scrollViewRect);
+    
+        WebCore::IntRect s;
+        if (dy != 0) {
+            s = WebCore::IntRect(0, scrollViewRect.height(), frameRect().width(), frameRect().height() - scrollViewRect.height());
+        } else
+            if (dx != 0) {
+                s = WebCore::IntRect(scrollViewRect.width(), 0, frameRect().width() - scrollViewRect.width(), frameRect().height());
+            }
+        m_webView->addToDirtyRegion(s);
+        sendExposeEvent(s);
     }
 private:
     WebCore::IntRect m_rect;

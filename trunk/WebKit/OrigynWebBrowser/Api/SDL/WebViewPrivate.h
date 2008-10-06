@@ -90,6 +90,11 @@ public:
     void popupMenuShow(void *popupInfo);
 
     void sendExposeEvent(WebCore::IntRect);
+    
+    void repaint(const WebCore::IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false);
+    
+    void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect);
+    
 private:
     void updateView(BalWidget *widget, WebCore::IntRect rect);
     WebCore::IntRect m_rect;

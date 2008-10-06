@@ -178,8 +178,8 @@ protected:
 
     mutable bool m_haveSize; // Whether or not our |m_size| member variable has the final overall image size yet.
     bool m_sizeAvailable; // Whether or not we can obtain the size of the first image frame yet from ImageIO.
-    unsigned m_decodedSize; // The current size of all decoded frames.
     mutable bool m_hasUniformFrameSize;
+    unsigned m_decodedSize; // The current size of all decoded frames.
 
     mutable bool m_haveFrameCount;
     size_t m_frameCount;

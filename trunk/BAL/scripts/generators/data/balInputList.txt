@@ -661,6 +661,7 @@
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ScrollbarGtk.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ScrollbarThemeGtk.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/HostWindow.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/PopupMenuStyle.h
 
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ContextMenu.h
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ContextMenu.cpp
@@ -709,6 +710,8 @@
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/page/gtk/AccessibilityObjectWrapperAtk.h AccessibilityObjectWrapperAtk.h
 ../../WKAL/Concretizations/Widgets/Gtk	../../../WebCore/page/gtk/AccessibilityObjectAtk.cpp
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/HostWindow.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/PopupMenuStyle.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/PopupMenuClient.h
 
 ../../Base	../../../WebCore/platform/NotImplemented.h	NotImplemented.h
 ../../Base	../../../WebCore/platform/StaticConstructors.h	StaticConstructors.h

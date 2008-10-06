@@ -44,5 +44,10 @@ String signedPublicKeyAndChallengeString(unsigned keySizeIndex, const String &ch
     return String();
 }
 
+void getSupportedKeySizes(Vector<String>&)
+{
+    notImplemented();
+}
+
 }
 

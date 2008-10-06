@@ -129,7 +129,7 @@ void PopupMenu::calculatePositionAndSize(const IntRect& r, FrameView* v)
         if (text.isEmpty())
             continue;
 
-        Font itemFont = client()->clientStyle()->font();
+        Font itemFont = client()->menuStyle().font();
         if (client()->itemIsLabel(i)) {
             FontDescription d = itemFont.fontDescription();
             d.setWeight(d.bolderWeight());

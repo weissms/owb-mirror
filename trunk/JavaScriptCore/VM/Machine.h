@@ -103,7 +103,6 @@ namespace JSC {
         JSValue* retrieveCaller(ExecState*, InternalFunction*) const;
         void retrieveLastCaller(ExecState* exec, int& lineNumber, intptr_t& sourceID, UString& sourceURL, JSValue*& function) const;
         
-        static const Register* firstCallFrame(const Register* callFrame);
         static ScopeChainNode* scopeChain(const Register* r) { return r[RegisterFile::ScopeChain].scopeChain(); }
         static CodeBlock* codeBlock(const Register* r) { return r[RegisterFile::CodeBlock].codeBlock(); }
 
@@ -165,7 +164,8 @@ namespace JSC {
         static void* SFX_CALL cti_op_call_JSFunction(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_call_NotJSFunction(CTI_ARGS);
         static void SFX_CALL cti_op_create_arguments(CTI_ARGS);
-        static void SFX_CALL cti_op_ret_activation_arguments(CTI_ARGS);
+        static void SFX_CALL cti_op_tear_off_activation(CTI_ARGS);
+        static void SFX_CALL cti_op_tear_off_arguments(CTI_ARGS);
         static void SFX_CALL cti_op_ret_profiler(CTI_ARGS);
         static void SFX_CALL cti_op_ret_scopeChain(CTI_ARGS);
         static JSValue* SFX_CALL cti_op_new_array(CTI_ARGS);
@@ -262,13 +262,13 @@ namespace JSC {
         NEVER_INLINE bool resolveBaseAndProperty(ExecState* exec, Instruction* vPC, Register* r, JSValue*& exceptionValue);
         NEVER_INLINE ScopeChainNode* createExceptionScope(ExecState* exec, const Instruction* vPC, Register* r);
 
-        NEVER_INLINE bool unwindCallFrame(ExecState*, JSValue*, const Instruction*&, CodeBlock*&, Register*&);
+        NEVER_INLINE bool unwindCallFrame(ExecState*&, JSValue*, const Instruction*&, CodeBlock*&, Register*&);
         NEVER_INLINE Instruction* throwException(ExecState*, JSValue*&, const Instruction*, Register*&, bool);
         NEVER_INLINE bool resolveBaseAndFunc(ExecState* exec, Instruction* vPC, Register* r, JSValue*& exceptionValue);
 
         Register* callFrame(ExecState*, InternalFunction*) const;
 
-        JSValue* privateExecute(ExecutionFlag, ExecState* = 0, RegisterFile* = 0, Register* = 0, JSValue** exception = 0);
+        JSValue* privateExecute(ExecutionFlag, RegisterFile*, Register*, JSValue** exception);
 
         void dumpCallFrame(const RegisterFile*, const Register*);
         void dumpRegisters(const RegisterFile*, const Register*);

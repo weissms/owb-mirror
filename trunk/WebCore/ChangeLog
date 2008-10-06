@@ -1,3 +1,270 @@
+2008-10-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        SVG should support ascent and descent properties <font-face> instead of <font>!
+        https://bugs.webkit.org/show_bug.cgi?id=21365
+        
+        Tested by many many existing SVG tests.
+
+        * svg/SVGFontFaceElement.cpp:
+        (WebCore::SVGFontFaceElement::ascent):
+        (WebCore::SVGFontFaceElement::descent):
+
+2008-10-05  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        REGRESSION: crash in ScriptElement::notifyFinished
+        Fixes https://bugs.webkit.org/show_bug.cgi?id=21329
+
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElementData::notifyFinished): Revert part of r35744 to
+        ensure that the ScriptElementData object is not destroyed prematurely.
+
+2008-10-05  Chris Lord  <chris@openedhand.com>
+
+        Reviewed by Alp Toker. Landed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20624
+        WebKit-gtk uses deprecated GtkType/GtkObject
+
+        * plugins/gtk/gtk2xtbin.c:
+        (gtk_xtbin_get_type):
+        * plugins/gtk/gtk2xtbin.h:
+
+2008-10-05  Luke Kenneth Casson Leighton  <lkcl@lkcl.net>
+
+        Reviewed by David Hyatt.
+
+        GTK_WINDOW_HWND not GTK_WINDOWING_HWND
+        https://bugs.webkit.org/show_bug.cgi?id=20725
+
+        Updated to ToT by Jan Alonzo.
+
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::getValue):
+
+2008-10-05  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Invalid cast from GdkWindow to GtkWidget
+        https://bugs.webkit.org/show_bug.cgi?id=21391
+
+        Fix a misplaced closing parenthesis to actually cast the widget, not the window
+
+        * platform/gtk/PlatformScreenGtk.cpp:
+        (WebCore::screenDepth):
+
+2008-10-05  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Alder.
+
+        Attach the Origin header to POST requests to help defend against
+        cross-site request forgery.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20792
+
+        Collin Jackson <collinj@webkit.org> also contributed to this patch.
+
+        Tests: http/tests/security/originHeader/origin-header-for-data.html
+               http/tests/security/originHeader/origin-header-for-empty.html
+               http/tests/security/originHeader/origin-header-for-get.html
+               http/tests/security/originHeader/origin-header-for-https.html
+               http/tests/security/originHeader/origin-header-for-post.html
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::createWindow):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::createWindow):
+        (WebCore::FrameLoader::urlSelected):
+        (WebCore::FrameLoader::submitForm):
+        (WebCore::FrameLoader::outgoingOrigin):
+        (WebCore::FrameLoader::loadURL):
+        (WebCore::FrameLoader::addExtraFieldsToRequest):
+        (WebCore::FrameLoader::loadPostRequest):
+        (WebCore::FrameLoader::loadResourceSynchronously):
+        (WebCore::FrameLoader::loadItem):
+        * loader/FrameLoader.h:
+        * loader/SubresourceLoader.cpp:
+        (WebCore::SubresourceLoader::create):
+        * loader/loader.cpp:
+        (WebCore::Loader::Host::servePendingRequests):
+        * platform/SecurityOrigin.cpp:
+        (WebCore::SecurityOrigin::toHTTPOrigin):
+        * platform/SecurityOrigin.h:
+        * platform/network/ResourceRequestBase.h:
+        (WebCore::ResourceRequestBase::httpOrigin):
+        (WebCore::ResourceRequestBase::setHTTPOrigin):
+        (WebCore::ResourceRequestBase::clearHTTPOrigin):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::makeSimpleCrossSiteAccessRequest):
+        (WebCore::XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight):
+        (WebCore::XMLHttpRequest::handleAsynchronousPreflightResult):
+        (WebCore::XMLHttpRequest::didReceiveResponsePreflight):
+
+2008-10-04  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Bug 21381: Incremental parsing of html causes bogus line numbers in some cases
+        <https://bugs.webkit.org/show_bug.cgi?id=21381>
+
+        If we hit a parsing boundary (end of a packet, etc) in the middle of a
+        <script> element when we are doing an incremental parse, we exit the
+        parser, and reenter later when more data is available.  During this
+        reentry we incorrectly reset the scriptStartLineno to the current line
+        in the parser, which is now part way through the script element.
+
+        The solution is to track whether we are entering or reentering the parsing
+        of a script element.  We do this simply by 0 checking scriptStartLineno,
+        and resetting it after we complete parsing of each script element. 
+
+        Test: http/tests/incremental/pause-in-script-element.pl
+
+        * ChangeLog:
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::parseSpecial):
+        (WebCore::HTMLTokenizer::scriptHandler):
+
+2008-10-04  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by David Hyatt. Landed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20924
+        [Gtk] Linux/Gtk: Recent tree revisions fail Acid2 and Acid3
+
+        https://bugs.webkit.org/show_bug.cgi?id=19578
+        [CURL] problem in parseDataUrl
+
+        De-obfuscate parseDataUrl() and fix regressions introduced in r35954.
+        This patch also fixes encoding support in escaped (non-Base64) data
+        URLs. All manual data URL tests now pass in both GLib and non-GLib
+        code paths.
+
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::parseDataUrl):
+
+2008-10-04  Timothy Hatcher  <timothy@apple.com>
+
+        Makes breakpoints and debugging code during page load work in the
+        Web Inspector's debugger. Specifically, this makes the source
+        code for loading resources show up in the Scripts panel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19053
+        rdar://problem/5933408
+
+        Reviewed by Mark Rowe.
+
+        * WebCore.xcodeproj/project.pbxproj: Mark the inspector group as
+        not using tabs and a tab width of 8.
+        * inspector/InspectorController.cpp:
+        (WebCore::addResourceSourceToFrame): Return a bool to report if the
+        source was added successfully or not.
+        (WebCore::addSourceToFrame): Ditto.
+        * inspector/front-end/ScriptView.js:
+        (WebInspector.ScriptView.prototype.setupSourceFrameIfNeeded):
+        Return early if the InspectorController.addSourceToFrame fails.
+        Moved the delete of the _frameNeedsSetup property after that call so
+        if the source wasn't added it will be attempted again.
+        * inspector/front-end/SourceView.js:
+        (WebInspector.SourceView.prototype.detach): Move a comment.
+        (WebInspector.SourceView.prototype.setupSourceFrameIfNeeded):
+        Don't check if the resource is finished or failed, just attempt
+        to add the source to the frame. WebCore has the source, but the
+        finished property hasn't been set yet. Return early if the
+        InspectorController.addSourceToFrame fails. Moved the delete
+        of the _frameNeedsSetup property after that call so if the source
+        wasn't added it will be attempted again.
+        (WebInspector.SourceView.prototype._resourceLoadingFinished):
+        Clear the _frameNeedsSetup and _sourceFrameSetup properties so
+        the source frame will we populated again now that the resource
+        load has finished.
+        * manual-tests/inspector/debugger-pause-during-load.html: Added.
+
+2008-10-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Add a 'Check For Weak VTables' build phase to catch weak vtables as early as possible.
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2008-10-04  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21373
+
+        Tear down scrollbars in FrameView rather than ScrollView so that the connection to the hostWindow()
+        is still present.
+
+        Reviewed by Mark Rowe
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::~FrameView):
+
+2008-10-04  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Avoid copying a Vector when using getSupportedKeySizes.
+
+        * html/HTMLKeygenElement.cpp:
+        (WebCore::HTMLKeygenElement::HTMLKeygenElement):
+        * platform/SSLKeyGenerator.h:
+        * platform/gtk/TemporaryLinkStubs.cpp:
+        (WebCore::getSupportedKeySizes):
+        * platform/mac/SSLKeyGeneratorMac.mm:
+        (WebCore::getSupportedKeySizes):
+        * platform/qt/TemporaryLinkStubs.cpp:
+        (WebCore::getSupportedKeySizes):
+        * platform/win/TemporaryLinkStubs.cpp:
+        (WebCore::getSupportedKeySizes):
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (WebCore::getSupportedKeySizes):
+
+2008-10-04  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - prepare for https://bugs.webkit.org/show_bug.cgi?id=21295
+          Bug 21295: Replace ExecState with a call frame Register pointer
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::allowsUnwrappedAccessFrom):
+        Remove bogus "const".
+        * bindings/js/JSQuarantinedObjectWrapper.h: Ditto.
+
+2008-10-04  David Hyatt  <hyatt@apple.com>
+
+        Make PopupMenuClient obey the platform abstraction.  Remove any connection to Document and RenderStyle.
+
+        Reviewed by Darin Adler
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/PopupMenuClient.h:
+        * platform/gtk/PopupMenuGtk.cpp:
+        (WebCore::PopupMenu::show):
+        * platform/mac/PopupMenuMac.mm:
+        (WebCore::PopupMenu::populate):
+        (WebCore::PopupMenu::show):
+        * platform/qt/PopupMenuQt.cpp:
+        (WebCore::PopupMenu::populate):
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::calculatePositionAndSize):
+        (WebCore::PopupMenu::paint):
+        (WebCore::PopupWndProc):
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::itemStyle):
+        (WebCore::RenderMenuList::menuStyle):
+        (WebCore::RenderMenuList::hostWindow):
+        * rendering/RenderMenuList.h:
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::itemStyle):
+        (WebCore::RenderTextControl::menuStyle):
+        (WebCore::RenderTextControl::hostWindow):
+        * rendering/RenderTextControl.h:
+
 2008-10-04  Matt Lilek  <webkit@mattlilek.com>
 
         Build fix - restore Private role to headers that had it before the move.

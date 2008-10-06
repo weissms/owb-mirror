@@ -37,10 +37,6 @@
 #include <wtf/AlwaysInline.h>
 #include <wtf/Vector.h>
 
-#if ENABLE(SAMPLING_TOOL)
-#include "SamplingTool.h"
-#endif
-
 #if COMPILER(MSVC)
 #define CTI_ARGS void** args
 #define ARGS (args)
@@ -52,21 +48,21 @@
 #define CTI_ARGS_2ndResult 0x08
 
 #define CTI_ARGS_code 0x0C
-#define CTI_ARGS_exec 0x0D
-#define CTI_ARGS_registerFile 0x0E
-#define CTI_ARGS_r 0x0F
-#define CTI_ARGS_exception 0x10
-#define CTI_ARGS_profilerReference 0x11
-#define CTI_ARGS_globalData 0x12
-#define ARG_exec ((ExecState*)(ARGS)[CTI_ARGS_exec])
+#define CTI_ARGS_registerFile 0x0D
+#define CTI_ARGS_r 0x0E
+#define CTI_ARGS_exception 0x0F
+#define CTI_ARGS_profilerReference 0x10
+#define CTI_ARGS_globalData 0x11
 #define ARG_registerFile ((RegisterFile*)(ARGS)[CTI_ARGS_registerFile])
 #define ARG_r ((Register*)(ARGS)[CTI_ARGS_r])
 #define ARG_exception ((JSValue**)(ARGS)[CTI_ARGS_exception])
 #define ARG_profilerReference ((Profiler**)(ARGS)[CTI_ARGS_profilerReference])
 #define ARG_globalData ((JSGlobalData*)(ARGS)[CTI_ARGS_globalData])
 
-#define ARG_setR(newR) (*(volatile Register**)&(ARGS)[CTI_ARGS_r] = newR)
-#define ARG_set2ndResult(new2ndResult) (*(volatile JSValue**)&(ARGS)[CTI_ARGS_2ndResult] = new2ndResult)
+#define ARG_exec CallFrame::create(ARG_r)
+
+#define ARG_setR(newR) (*(Register**)&(ARGS)[CTI_ARGS_r] = newR)
+#define ARG_set2ndResult(new2ndResult) (*(JSValue**)&(ARGS)[CTI_ARGS_2ndResult] = new2ndResult)
 
 #define ARG_src1 ((JSValue*)((ARGS)[1]))
 #define ARG_src2 ((JSValue*)((ARGS)[2]))
@@ -234,7 +230,7 @@ namespace JSC {
     };
 
     extern "C" {
-        JSValue* ctiTrampoline(void* code, ExecState*, RegisterFile*, Register* callFrame, JSValue** exception, Profiler**, JSGlobalData*);
+        JSValue* ctiTrampoline(void* code, RegisterFile*, Register* callFrame, JSValue** exception, Profiler**, JSGlobalData*);
         void ctiVMThrowTrampoline();
     };
 
@@ -259,7 +255,11 @@ namespace JSC {
         static const int repatchOffsetGetByIdStructureID = 19;
         static const int repatchOffsetGetByIdBranchToSlowCase = 25;
         static const int repatchOffsetGetByIdPropertyMapOffset = 34;
+#if ENABLE(SAMPLING_TOOL)
+        static const int repatchOffsetGetByIdSlowCaseCall = 27 + ctiArgumentInitSize;
+#else
         static const int repatchOffsetGetByIdSlowCaseCall = 17 + ctiArgumentInitSize;
+#endif
 
     public:
         static void compile(Machine* machine, ExecState* exec, CodeBlock* codeBlock)
@@ -323,13 +323,9 @@ namespace JSC {
             return cti.privateCompilePatchGetArrayLength(returnAddress);
         }
 
-        inline static JSValue* execute(void* code, ExecState* exec, RegisterFile* registerFile, Register* r, JSGlobalData* globalData, JSValue** exception)
+        inline static JSValue* execute(void* code, RegisterFile* registerFile, Register* r, JSGlobalData* globalData, JSValue** exception)
         {
-            JSValue* value = ctiTrampoline(code, exec, registerFile, r, exception, Profiler::enabledProfilerReference(), globalData);
-#if ENABLE(SAMPLING_TOOL)
-            currentOpcodeID = static_cast<OpcodeID>(-1);
-#endif
-            return value;
+            return ctiTrampoline(code, registerFile, r, exception, Profiler::enabledProfilerReference(), globalData);
         }
 
     private:
@@ -392,8 +388,6 @@ namespace JSC {
         void emitFastArithIntToImmNoCheck(X86Assembler::RegisterID);
 
         void emitTagAsBoolImmediate(X86Assembler::RegisterID reg);
-
-        void emitDebugExceptionCheck();
 
         X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, X86::RegisterID);
         X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_j);

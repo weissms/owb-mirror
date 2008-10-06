@@ -1,3 +1,339 @@
+2008-10-06  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Remove ScopeNode::containsClosures() now that it is unused.
+
+        * kjs/nodes.h:
+        (JSC::ScopeNode::containsClosures):
+
+2008-10-05  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - fix releas-only test failures caused by the fix to bug 21375
+
+        * VM/Machine.cpp:
+        (JSC::Machine::unwindCallFrame): Update ExecState while unwinding call frames;
+        it now matters more to have a still-valid ExecState, since dynamicGlobalObject
+        will make use of the ExecState's scope chain.
+        * VM/Machine.h:
+
+2008-10-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 21364: Remove the branch in op_ret for OptionalCalleeActivation and OptionalCalleeArguments
+        <https://bugs.webkit.org/show_bug.cgi?id=21364>
+
+        Use information from the parser to detect whether an activation is
+        needed or 'arguments' is used, and emit explicit instructions to tear
+        them off before op_ret. This allows a branch to be removed from op_ret
+        and simplifies some other code. This does cause a small change in the
+        behaviour of 'f.arguments'; it is no longer live when 'arguments' is not
+        mentioned in the lexical scope of the function.
+
+        It should now be easy to remove the OptionaCalleeActivation slot in the
+        call frame, but this will be done in a later patch.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitReturn):
+        * VM/CodeGenerator.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::unwindCallFrame):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::retrieveArguments):
+        (JSC::Machine::cti_op_create_arguments):
+        (JSC::Machine::cti_op_tear_off_activation):
+        (JSC::Machine::cti_op_tear_off_arguments):
+        * VM/Machine.h:
+        * VM/Opcode.h:
+        * kjs/Arguments.cpp:
+        (JSC::Arguments::mark):
+        * kjs/Arguments.h:
+        (JSC::Arguments::isTornOff):
+        (JSC::Arguments::Arguments):
+        (JSC::Arguments::copyRegisters):
+        (JSC::JSActivation::copyRegisters):
+        * kjs/JSActivation.cpp:
+        (JSC::JSActivation::argumentsGetter):
+        * kjs/JSActivation.h:
+
+2008-10-05  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        - fixed "REGRESSION (r37297): fast/js/deep-recursion-test takes too long and times out"
+        https://bugs.webkit.org/show_bug.cgi?id=21375
+        
+        The problem is that dynamicGlobalObject had become O(N) in number
+        of call frames, but unwinding the stack for an exception called it
+        for every call frame, resulting in O(N^2) behavior for an
+        exception thrown from inside deep recursion.
+
+        Instead of doing it that way, stash the dynamic global object in JSGlobalData.
+        
+        * JavaScriptCore.exp:
+        * VM/Machine.cpp:
+        (JSC::DynamicGlobalObjectScope::DynamicGlobalObjectScope): Helper class to temporarily
+        store and later restore a dynamicGlobalObject in JSGlobalData.
+        (JSC::DynamicGlobalObjectScope::~DynamicGlobalObjectScope):
+        (JSC::Machine::execute): In each version, establish a DynamicGlobalObjectScope.
+        For ProgramNode, always establish set new dynamicGlobalObject, for FunctionBody and Eval,
+        only if none is currently set.
+        * VM/Machine.h:
+        * kjs/ExecState.h:
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData): Ininitalize new dynamicGlobalObject field to 0.
+        * kjs/JSGlobalData.h:
+        * kjs/JSGlobalObject.h:
+        (JSC::ExecState::dynamicGlobalObject): Moved here from ExecState for benefit of inlining.
+        Return lexical global object if this is a globalExec(), otherwise look in JSGlobalData
+        for the one stashed there.
+
+2008-10-05  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Avoid an extra lookup when transitioning to an existing StructureID
+        by caching the offset of property that caused the transition.
+
+        1% win on V8 suite.  Wash on SunSpider.
+
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::put):
+        * kjs/PropertyMap.h:
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::StructureID):
+        (JSC::StructureID::addPropertyTransition):
+        * kjs/StructureID.h:
+        (JSC::StructureID::setCachedTransistionOffset):
+        (JSC::StructureID::cachedTransistionOffset):
+
+2008-10-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21364: Remove the branch in op_ret for OptionalCalleeActivation and OptionalCalleeArguments
+        <https://bugs.webkit.org/show_bug.cgi?id=21364>
+
+        This patch does not yet remove the branch, but it does a bit of refactoring
+        so that a CodeGenerator now knows whether the associated CodeBlock will need
+        a full scope before doing any code generation. This makes it possible to emit
+        explicit tear-off instructions before every op_ret.
+
+        * VM/CodeBlock.h:
+        (JSC::CodeBlock::CodeBlock):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::generate):
+        (JSC::CodeGenerator::CodeGenerator):
+        (JSC::CodeGenerator::emitPushScope):
+        (JSC::CodeGenerator::emitPushNewScope):
+        * kjs/nodes.h:
+        (JSC::ScopeNode::needsActivation):
+
+2008-10-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix for bug #21387 - using SamplingTool with CTI.
+
+        (1) A repatch offset offset changes due to an additional instruction to update SamplingTool state.
+        (2) Fix an incusion order problem due to ExecState changes.
+        (3) Change to a MACHINE_SAMPLING macro, use of exec should now be accessing global data.
+
+        * VM/CTI.h:
+        (JSC::CTI::execute):
+        * VM/SamplingTool.h:
+        (JSC::SamplingTool::privateExecuteReturned):
+        * kjs/Shell.cpp:
+
+2008-10-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Add a 'Check For Weak VTables' build phase to catch weak vtables as early as possible.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-10-04  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=21320
+        leaks of PropertyNameArrayData seen on buildbot
+
+        - Fix RefPtr cycle by making PropertyNameArrayData's pointer back
+          to the StructureID a weak pointer.
+
+        * kjs/PropertyNameArray.h:
+        (JSC::PropertyNameArrayData::setCachedStructureID):
+        (JSC::PropertyNameArrayData::cachedStructureID):
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::getEnumerablePropertyNames):
+        (JSC::StructureID::clearEnumerationCache):
+        (JSC::StructureID::~StructureID):
+
+2008-10-04  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21295
+          Bug 21295: Replace ExecState with a call frame Register pointer
+
+        10% faster on Richards; other v8 benchmarks faster too.
+        A wash on SunSpider.
+
+        This does the minimum necessary to get the speedup. Next step in
+        cleaning this up is to replace ExecState with a CallFrame class,
+        and be more judicious about when to pass a call frame and when
+        to pass a global data pointer, global object pointer, or perhaps
+        something else entirely.
+
+        * VM/CTI.cpp: Remove the debug-only check of the exception in
+        ctiVMThrowTrampoline -- already checked in the code the trampoline
+        jumps to, so not all that useful. Removed the exec argument from
+        ctiTrampoline. Removed emitDebugExceptionCheck -- no longer needed.
+        (JSC::CTI::emitCall): Removed code to set ExecState::m_callFrame.
+        (JSC::CTI::privateCompileMainPass): Removed code in catch to extract
+        the exception from ExecState::m_exception; instead, the code that
+        jumps into catch will make sure the exception is already in eax.
+        * VM/CTI.h: Removed exec from the ctiTrampoline. Also removed the
+        non-helpful "volatile". Temporarily left ARG_exec in as a synonym
+        for ARG_r; I'll change that on a future cleanup pass when introducing
+        more use of the CallFrame type.
+        (JSC::CTI::execute): Removed the ExecState* argument.
+
+        * VM/ExceptionHelpers.cpp:
+        (JSC::InterruptedExecutionError::InterruptedExecutionError): Take
+        JSGlobalData* instead of ExecState*.
+        (JSC::createInterruptedExecutionException): Ditto.
+        * VM/ExceptionHelpers.h: Ditto. Also removed an unneeded include.
+
+        * VM/Machine.cpp:
+        (JSC::slideRegisterWindowForCall): Removed the exec and
+        exceptionValue arguments. Changed to return 0 when there's a stack
+        overflow rather than using a separate exception argument to cut
+        down on memory accesses in the calling convention.
+        (JSC::Machine::unwindCallFrame): Removed the exec argument when
+        constructing a DebuggerCallFrame. Also removed code to set
+        ExecState::m_callFrame.
+        (JSC::Machine::throwException): Removed the exec argument when
+        construction a DebuggerCallFrame.
+        (JSC::Machine::execute): Updated to use the register instead of
+        ExecState and also removed various uses of ExecState.
+        (JSC::Machine::debug):
+        (JSC::Machine::privateExecute): Put globalData into a local
+        variable so it can be used throughout the interpreter. Changed
+        the VM_CHECK_EXCEPTION to get the exception in globalData instead
+        of through ExecState.
+        (JSC::Machine::retrieveLastCaller): Turn exec into a registers
+        pointer by calling registers() instead of by getting m_callFrame.
+        (JSC::Machine::callFrame): Ditto.
+        Tweaked exception macros. Made new versions for when you know
+        you have an exception. Get at global exception with ARG_globalData.
+        Got rid of the need to pass in the return value type.
+        (JSC::Machine::cti_op_add): Update to use new version of exception
+        macros.
+        (JSC::Machine::cti_op_pre_inc): Ditto.
+        (JSC::Machine::cti_timeout_check): Ditto.
+        (JSC::Machine::cti_op_instanceof): Ditto.
+        (JSC::Machine::cti_op_new_func): Ditto.
+        (JSC::Machine::cti_op_call_JSFunction): Optimized by using the
+        ARG values directly instead of through local variables -- this gets
+        rid of code that just shuffles things around in the stack frame.
+        Also get rid of ExecState and update for the new way exceptions are
+        handled in slideRegisterWindowForCall.
+        (JSC::Machine::cti_vm_compile): Update to make exec out of r since
+        they are both the same thing now.
+        (JSC::Machine::cti_op_call_NotJSFunction): Ditto.
+        (JSC::Machine::cti_op_init_arguments): Ditto.
+        (JSC::Machine::cti_op_resolve): Ditto.
+        (JSC::Machine::cti_op_construct_JSConstruct): Ditto.
+        (JSC::Machine::cti_op_construct_NotJSConstruct): Ditto.
+        (JSC::Machine::cti_op_resolve_func): Ditto.
+        (JSC::Machine::cti_op_put_by_val): Ditto.
+        (JSC::Machine::cti_op_put_by_val_array): Ditto.
+        (JSC::Machine::cti_op_resolve_skip): Ditto.
+        (JSC::Machine::cti_op_resolve_global): Ditto.
+        (JSC::Machine::cti_op_post_inc): Ditto.
+        (JSC::Machine::cti_op_resolve_with_base): Ditto.
+        (JSC::Machine::cti_op_post_dec): Ditto.
+        (JSC::Machine::cti_op_call_eval): Ditto.
+        (JSC::Machine::cti_op_throw): Ditto. Also rearranged to return
+        the exception value as the return value so it can be used by
+        op_catch.
+        (JSC::Machine::cti_op_push_scope): Ditto.
+        (JSC::Machine::cti_op_in): Ditto.
+        (JSC::Machine::cti_op_del_by_val): Ditto.
+        (JSC::Machine::cti_vm_throw): Ditto. Also rearranged to return
+        the exception value as the return value so it can be used by
+        op_catch.
+
+        * kjs/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::functionName): Pass globalData.
+        (JSC::DebuggerCallFrame::evaluate): Eliminated code to make a
+        new ExecState.
+        * kjs/DebuggerCallFrame.h: Removed ExecState argument from
+        constructor.
+
+        * kjs/ExecState.h: Eliminated all data members and made ExecState
+        inherit privately from Register instead. Also added a typedef to
+        the future name for this class, which is CallFrame. It's just a
+        Register* that knows it's a pointer at a call frame. The new class
+        can't be constructed or copied. Changed all functions to use
+        the this pointer instead of m_callFrame. Changed exception-related
+        functions to access an exception in JSGlobalData. Removed functions
+        used by CTI to pass the return address to the throw machinery --
+        this is now done directly with a global in the global data.
+
+        * kjs/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString): Pass globalData instead of exec.
+
+        * kjs/InternalFunction.cpp:
+        (JSC::InternalFunction::name): Take globalData instead of exec.
+        * kjs/InternalFunction.h: Ditto.
+
+        * kjs/JSGlobalData.cpp: Initialize the new exception global to 0.
+        * kjs/JSGlobalData.h: Declare two new globals. One for the current
+        exception and another for the return address used by CTI to
+        implement the throw operation.
+
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::init): Removed code to set up globalExec,
+        which is now the same thing as globalCallFrame.
+        (JSC::JSGlobalObject::reset): Get globalExec from our globalExec
+        function so we don't have to repeat the logic twice.
+        (JSC::JSGlobalObject::mark): Removed code to mark the exception;
+        the exception is now stored in JSGlobalData and marked there.
+        (JSC::JSGlobalObject::globalExec): Return a pointer to the end
+        of the global call frame.
+        * kjs/JSGlobalObject.h: Removed the globalExec data member.
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::putDirectFunction): Pass globalData instead of exec.
+
+        * kjs/collector.cpp:
+        (JSC::Heap::collect): Mark the global exception.
+
+        * profiler/ProfileGenerator.cpp:
+        (JSC::ProfileGenerator::addParentForConsoleStart): Pass globalData
+        instead of exec to createCallIdentifier.
+
+        * profiler/Profiler.cpp:
+        (JSC::Profiler::willExecute): Pass globalData instead of exec to
+        createCallIdentifier.
+        (JSC::Profiler::didExecute): Ditto.
+        (JSC::Profiler::createCallIdentifier): Take globalData instead of
+        exec.
+        (JSC::createCallIdentifierFromFunctionImp): Ditto.
+        * profiler/Profiler.h: Change interface to take a JSGlobalData
+        instead of an ExecState.
+
 2008-10-04  Cameron Zwarich  <zwarich@apple.com>
 
         Reviewed by Darin Adler.

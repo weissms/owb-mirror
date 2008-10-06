@@ -309,3 +309,34 @@ void WebViewPrivate::sendExposeEvent(IntRect)
     SDL_PushEvent(&ev);
 }
 
+void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
+{
+    if (!repaintContentOnly) {
+        m_webView->addToDirtyRegion(windowRect);
+        sendExposeEvent(windowRect);
+    }
+    if (contentChanged)
+        m_webView->addToDirtyRegion(windowRect);
+    if (immediate) {
+        if (repaintContentOnly)
+            m_webView->updateBackingStore(core(m_webView->topLevelFrame())->view());
+        else
+            sendExposeEvent(windowRect);
+    }
+}
+
+void WebViewPrivate::scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect)
+{
+    sendExposeEvent(scrollViewRect);
+    
+    IntRect s;
+    if (dy != 0) {
+        s = IntRect(0, scrollViewRect.height(), frameRect().width(), frameRect().height() - scrollViewRect.height());
+    } else
+        if (dx != 0) {
+            s = IntRect(scrollViewRect.width(), 0, frameRect().width() - scrollViewRect.width(), frameRect().height());
+        }
+    m_webView->addToDirtyRegion(s);
+    sendExposeEvent(s);
+}
+

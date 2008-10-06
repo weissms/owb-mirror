@@ -25,48 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
-#ifndef PopupMenuClient_h
-#define PopupMenuClient_h
-
+#ifndef PopupMenuStyle_h
+#define PopupMenuStyle_h
+/**
+ *  @file  PopupMenuStyle.t
+ *  PopupMenuStyle description
+ *  Repository informations :
+ * - $URL$
+ * - $Rev$
+ * - $Date$
+ */
 #include "BALBase.h"
 
-namespace WebCore {
+#include "Color.h"
+#include "Font.h"
 
-class Color;
-class Document;
-class FontSelector;
-class String;
-class RenderStyle;
+namespace WKAL {
 
-class PopupMenuClient : public WKALBase {
+class PopupMenuStyle : public WKALBase {
 public:
-    virtual ~PopupMenuClient() {}
-    virtual void valueChanged(unsigned listIndex, bool fireEvents = true) = 0;
+    /**
+     * PopupMenuStyle constructor
+     */
+    PopupMenuStyle(const Color& foreground, const Color& background, const Font& font, bool visible);
+    
+    /**
+     * get foreground color
+     */
+    const Color& foregroundColor() const ;
 
-    virtual String itemText(unsigned listIndex) const = 0;
-    virtual bool itemIsEnabled(unsigned listIndex) const = 0;
-    virtual Color itemBackgroundColor(unsigned listIndex) const = 0;
-    virtual RenderStyle* itemStyle(unsigned listIndex) const = 0;
-    virtual RenderStyle* clientStyle() const = 0;
-    virtual Document* clientDocument() const = 0;
-    virtual int clientInsetLeft() const = 0;
-    virtual int clientInsetRight() const = 0;
-    virtual int clientPaddingLeft() const = 0;
-    virtual int clientPaddingRight() const = 0;
-    virtual int listSize() const = 0;
-    virtual int selectedIndex() const = 0;
-    virtual void hidePopup() = 0;
-    virtual bool itemIsSeparator(unsigned listIndex) const = 0;
-    virtual bool itemIsLabel(unsigned listIndex) const = 0;
-    virtual bool itemIsSelected(unsigned listIndex) const = 0;
-    virtual bool shouldPopOver() const = 0;
-    virtual bool valueShouldChangeOnHotTrack() const = 0;
-    virtual void setTextFromItem(unsigned listIndex) = 0;
-    virtual FontSelector* fontSelector() const = 0;
+    /**
+     * get background color 
+     */
+    const Color& backgroundColor() const ;
+
+    /**
+     * get font
+     */
+    const Font& font() const ;
+
+    /**
+     * get if the popup is visible
+     */
+    bool isVisible() const ;
+
+private:
+    Color m_foregroundColor;
+    Color m_backgroundColor;
+    Font m_font;
+    bool m_visible;
 };
 
-}
+} // namespace WKAL
 
-#endif
+#endif // PopupMenuStyle_h
+
+
+
+

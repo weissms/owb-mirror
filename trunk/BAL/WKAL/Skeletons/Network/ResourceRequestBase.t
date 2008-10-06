@@ -255,6 +255,24 @@ namespace WKAL {
      */
         void clearHTTPReferrer() ;
         
+
+    /**
+     * get http origin
+     */
+        String httpOrigin() const ;
+
+
+    /**
+     * set HTTP origin
+     */
+        void setHTTPOrigin(const String& httpOrigin) ;
+
+
+    /**
+     * clear HTTP origin
+     */
+        void clearHTTPOrigin() ;
+
     /**
      * get http user agent 
      * @param[out] : user agent
@@ -396,7 +414,4 @@ namespace WKAL {
 } // namespace WKAL
 
 #endif // ResourceRequestBase_h
-
-
-
 
