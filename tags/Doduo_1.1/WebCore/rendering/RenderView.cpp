@@ -115,8 +115,14 @@ void RenderView::layout()
 
     ASSERT(!m_layoutState);
     LayoutState state;
-    // FIXME: May be better to push a clip and avoid issuing offscreen repaints.
-    state.m_clipped = false;
+    IntRect viewRectangle = viewRect();
+    // An empty rect is not valid viewRect.
+    state.m_clipped = !viewRectangle.isEmpty();
+
+    if (state.m_clipped) {
+        state.m_clipRect = IntRect(IntPoint(0, 0), viewRectangle.size());
+        state.m_offset = IntSize(viewRectangle.x(), viewRectangle.y());
+    }
     m_layoutState = &state;
 
     if (needsLayout())

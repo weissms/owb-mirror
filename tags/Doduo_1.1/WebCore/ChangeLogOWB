@@ -1,3 +1,15 @@
+2008-10-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Bug 21402: Add a clip in RenderView::layout to avoid doing offscreen paint
+
+        We now add a clip to the viewPort size and offset. In our testing,
+        this can be a good win on embedded devices.
+
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::layout):
+
 2008-10-01  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
