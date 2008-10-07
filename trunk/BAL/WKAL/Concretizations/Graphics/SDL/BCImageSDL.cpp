@@ -193,19 +193,25 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
         srcRect.h = dstRect.h;
     }
 
+
     if (sourceRect != destRect) {
         if (context->transparencyLayer() == 1.0) {
-            SDL_Surface *surface;
-            surface = zoomSurface(image, scaleX, scaleY, SMOOTHING_OFF);
-            SDL_BlitSurface(surface, &srcRect, cr, &dstRect);
-            SDL_FreeSurface(surface);
+            if ((scaleX != 1.0) || (scaleY != 1.0)) {
+               SDL_Surface *surface = zoomSurface(image, scaleX, scaleY, SMOOTHING_OFF);
+               SDL_BlitSurface(surface, &srcRect, cr, &dstRect);
+               SDL_FreeSurface(surface);
+            } else
+               SDL_BlitSurface(image, &srcRect, cr, &dstRect);
         }
         else {
             SDL_Surface *surfaceWithAlpha = applyTransparency(image, static_cast<int> (context->transparencyLayer() * 255));
-            SDL_Surface *surface;
-            surface = zoomSurface(surfaceWithAlpha, scaleX, scaleY, SMOOTHING_OFF);
-            SDL_BlitSurface(surface, &srcRect, cr, &dstRect);
-            SDL_FreeSurface(surface);
+            if ((scaleX != 1.0) || (scaleY != 1.0)) {
+                SDL_Surface *surface = zoomSurface(surfaceWithAlpha, scaleX, scaleY, SMOOTHING_OFF);
+                SDL_BlitSurface(surface, &srcRect, cr, &dstRect);
+                SDL_FreeSurface(surface);
+            } else
+              SDL_BlitSurface(surfaceWithAlpha, &srcRect, cr, &dstRect);
+
             SDL_FreeSurface(surfaceWithAlpha);
         }
     } else

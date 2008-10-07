@@ -1,3 +1,11 @@
+2008-10-07  Joe Edwards  <j@dna.ie>
+
+        Reviewed by Mario Bensi.
+        Removed SDL_gfx zoomSurface call for images which do not need to be resized.
+
+        * WKAL/Concretizations/Graphics/SDL/BCImageSDL.cpp:
+        (WKAL::BitmapImage::draw):
+
 2008-10-03  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Jean-Charles Verdie.
