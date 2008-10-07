@@ -1,0 +1,4734 @@
+2008-09-10  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Remove unnecessary override of getOffset.
+
+        Sunspider reports this as a .6% progression.
+
+        * JavaScriptCore.exp:
+        * kjs/JSObject.h:
+        (JSC::JSObject::getDirectLocation):
+        (JSC::JSObject::getOwnPropertySlotForWrite):
+        (JSC::JSObject::putDirect):
+        * kjs/PropertyMap.cpp:
+        * kjs/PropertyMap.h:
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20759: Remove MacroAssembler
+        <https://bugs.webkit.org/show_bug.cgi?id=20759>
+
+        Remove MacroAssembler and move its functionality to X86Assembler.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp:
+        (JSC::CTI::emitGetArg):
+        (JSC::CTI::emitGetPutArg):
+        (JSC::CTI::emitPutArg):
+        (JSC::CTI::emitPutCTIParam):
+        (JSC::CTI::emitGetCTIParam):
+        (JSC::CTI::emitPutToCallFrameHeader):
+        (JSC::CTI::emitGetFromCallFrameHeader):
+        (JSC::CTI::emitPutResult):
+        (JSC::CTI::emitDebugExceptionCheck):
+        (JSC::CTI::emitJumpSlowCaseIfNotImm):
+        (JSC::CTI::emitJumpSlowCaseIfNotImms):
+        (JSC::CTI::emitFastArithDeTagImmediate):
+        (JSC::CTI::emitFastArithReTagImmediate):
+        (JSC::CTI::emitFastArithPotentiallyReTagImmediate):
+        (JSC::CTI::emitFastArithImmToInt):
+        (JSC::CTI::emitFastArithIntToImmOrSlowCase):
+        (JSC::CTI::emitFastArithIntToImmNoCheck):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::privateCompileGetByIdSelf):
+        (JSC::CTI::privateCompileGetByIdProto):
+        (JSC::CTI::privateCompileGetByIdChain):
+        (JSC::CTI::privateCompilePutByIdReplace):
+        (JSC::CTI::privateArrayLengthTrampoline):
+        (JSC::CTI::privateStringLengthTrampoline):
+        (JSC::CTI::compileRegExp):
+        * VM/CTI.h:
+        (JSC::CallRecord::CallRecord):
+        (JSC::JmpTable::JmpTable):
+        (JSC::SlowCaseEntry::SlowCaseEntry):
+        (JSC::CTI::JSRInfo::JSRInfo):
+        * masm/MacroAssembler.h: Removed.
+        * masm/MacroAssemblerWin.cpp: Removed.
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::emitConvertToFastCall):
+        (JSC::X86Assembler::emitRestoreArgumentReference):
+        * wrec/WREC.h:
+        (JSC::WRECGenerator::WRECGenerator):
+        (JSC::WRECParser::WRECParser):
+
+2008-09-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Don't waste the first item in the PropertyStorage.
+
+        - Fix typo (makingCount -> markingCount)
+        - Remove undefined method declaration.
+
+        No change on Sunspider.
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::mark):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::put):
+        (JSC::PropertyMap::remove):
+        (JSC::PropertyMap::getOffset):
+        (JSC::PropertyMap::insert):
+        (JSC::PropertyMap::rehash):
+        (JSC::PropertyMap::resizePropertyStorage):
+        (JSC::PropertyMap::checkConsistency):
+        * kjs/PropertyMap.h:
+        (JSC::PropertyMap::markingCount): Fix typo.
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Not reviewed.
+
+        Speculative Windows build fix.
+
+        * masm/MacroAssemblerWin.cpp:
+        (JSC::MacroAssembler::emitConvertToFastCall):
+        (JSC::MacroAssembler::emitRestoreArgumentReference):
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20755: Create an X86 namespace for register names and other things
+        <https://bugs.webkit.org/show_bug.cgi?id=20755>
+
+        Create an X86 namespace to put X86 register names. Perhaps I will move
+        opcode names here later as well.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitGetArg):
+        (JSC::CTI::emitGetPutArg):
+        (JSC::CTI::emitPutArg):
+        (JSC::CTI::emitPutArgConstant):
+        (JSC::CTI::emitPutCTIParam):
+        (JSC::CTI::emitGetCTIParam):
+        (JSC::CTI::emitPutToCallFrameHeader):
+        (JSC::CTI::emitGetFromCallFrameHeader):
+        (JSC::CTI::emitPutResult):
+        (JSC::CTI::emitDebugExceptionCheck):
+        (JSC::CTI::emitJumpSlowCaseIfNotImms):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::privateCompileGetByIdSelf):
+        (JSC::CTI::privateCompileGetByIdProto):
+        (JSC::CTI::privateCompileGetByIdChain):
+        (JSC::CTI::privateCompilePutByIdReplace):
+        (JSC::CTI::privateArrayLengthTrampoline):
+        (JSC::CTI::privateStringLengthTrampoline):
+        (JSC::CTI::compileRegExp):
+        * VM/CTI.h:
+        * masm/X86Assembler.h:
+        (JSC::X86::):
+        (JSC::X86Assembler::emitModRm_rm):
+        (JSC::X86Assembler::emitModRm_rm_Unchecked):
+        (JSC::X86Assembler::emitModRm_rmsib):
+        * wrec/WREC.cpp:
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generateParentheses):
+        (JSC::WRECGenerator::generateBackreference):
+        (JSC::WRECGenerator::gernerateDisjunction):
+        * wrec/WREC.h:
+
+2008-09-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Remove unnecessary friend declaration.
+
+        * kjs/PropertyMap.h:
+
+2008-09-09  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Replace uses of PropertyMap::get and PropertyMap::getLocation with
+        PropertyMap::getOffset.
+
+        Sunspider reports this as a .6% improvement.
+
+        * JavaScriptCore.exp:
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::put):
+        (JSC::JSObject::deleteProperty):
+        (JSC::JSObject::getPropertyAttributes):
+        * kjs/JSObject.h:
+        (JSC::JSObject::getDirect):
+        (JSC::JSObject::getDirectLocation):
+        (JSC::JSObject::locationForOffset):
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMap::remove):
+        (JSC::PropertyMap::getOffset):
+        * kjs/PropertyMap.h:
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Sam Weinig.
+
+        Bug 20754: Remove emit prefix from assembler opcode methods
+        <https://bugs.webkit.org/show_bug.cgi?id=20754>
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitGetArg):
+        (JSC::CTI::emitGetPutArg):
+        (JSC::CTI::emitPutArg):
+        (JSC::CTI::emitPutArgConstant):
+        (JSC::CTI::emitPutCTIParam):
+        (JSC::CTI::emitGetCTIParam):
+        (JSC::CTI::emitPutToCallFrameHeader):
+        (JSC::CTI::emitGetFromCallFrameHeader):
+        (JSC::CTI::emitPutResult):
+        (JSC::CTI::emitDebugExceptionCheck):
+        (JSC::CTI::emitCall):
+        (JSC::CTI::emitJumpSlowCaseIfNotImm):
+        (JSC::CTI::emitJumpSlowCaseIfNotImms):
+        (JSC::CTI::emitFastArithDeTagImmediate):
+        (JSC::CTI::emitFastArithReTagImmediate):
+        (JSC::CTI::emitFastArithPotentiallyReTagImmediate):
+        (JSC::CTI::emitFastArithImmToInt):
+        (JSC::CTI::emitFastArithIntToImmOrSlowCase):
+        (JSC::CTI::emitFastArithIntToImmNoCheck):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::privateCompileGetByIdSelf):
+        (JSC::CTI::privateCompileGetByIdProto):
+        (JSC::CTI::privateCompileGetByIdChain):
+        (JSC::CTI::privateCompilePutByIdReplace):
+        (JSC::CTI::privateArrayLengthTrampoline):
+        (JSC::CTI::privateStringLengthTrampoline):
+        (JSC::CTI::compileRegExp):
+        * masm/MacroAssemblerWin.cpp:
+        (JSC::MacroAssembler::emitConvertToFastCall):
+        (JSC::MacroAssembler::emitRestoreArgumentReference):
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::pushl_r):
+        (JSC::X86Assembler::pushl_m):
+        (JSC::X86Assembler::popl_r):
+        (JSC::X86Assembler::popl_m):
+        (JSC::X86Assembler::movl_rr):
+        (JSC::X86Assembler::addl_rr):
+        (JSC::X86Assembler::addl_i8r):
+        (JSC::X86Assembler::addl_i32r):
+        (JSC::X86Assembler::addl_mr):
+        (JSC::X86Assembler::andl_rr):
+        (JSC::X86Assembler::andl_i32r):
+        (JSC::X86Assembler::cmpl_i8r):
+        (JSC::X86Assembler::cmpl_rr):
+        (JSC::X86Assembler::cmpl_rm):
+        (JSC::X86Assembler::cmpl_i32r):
+        (JSC::X86Assembler::cmpl_i32m):
+        (JSC::X86Assembler::cmpw_rm):
+        (JSC::X86Assembler::orl_rr):
+        (JSC::X86Assembler::subl_rr):
+        (JSC::X86Assembler::subl_i8r):
+        (JSC::X86Assembler::subl_i32r):
+        (JSC::X86Assembler::subl_mr):
+        (JSC::X86Assembler::testl_i32r):
+        (JSC::X86Assembler::testl_rr):
+        (JSC::X86Assembler::xorl_i8r):
+        (JSC::X86Assembler::xorl_rr):
+        (JSC::X86Assembler::sarl_i8r):
+        (JSC::X86Assembler::sarl_CLr):
+        (JSC::X86Assembler::shl_i8r):
+        (JSC::X86Assembler::shll_CLr):
+        (JSC::X86Assembler::mull_rr):
+        (JSC::X86Assembler::idivl_r):
+        (JSC::X86Assembler::cdq):
+        (JSC::X86Assembler::movl_mr):
+        (JSC::X86Assembler::movzwl_mr):
+        (JSC::X86Assembler::movl_rm):
+        (JSC::X86Assembler::movl_i32r):
+        (JSC::X86Assembler::movl_i32m):
+        (JSC::X86Assembler::leal_mr):
+        (JSC::X86Assembler::ret):
+        (JSC::X86Assembler::jmp_r):
+        (JSC::X86Assembler::jmp_m):
+        (JSC::X86Assembler::call_r):
+        * wrec/WREC.cpp:
+        (JSC::WRECGenerator::generateBacktrack1):
+        (JSC::WRECGenerator::generateBacktrackBackreference):
+        (JSC::WRECGenerator::generateBackreferenceQuantifier):
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generatePatternCharacter):
+        (JSC::WRECGenerator::generateCharacterClassInvertedRange):
+        (JSC::WRECGenerator::generateCharacterClassInverted):
+        (JSC::WRECGenerator::generateCharacterClass):
+        (JSC::WRECGenerator::generateParentheses):
+        (JSC::WRECGenerator::gererateParenthesesResetTrampoline):
+        (JSC::WRECGenerator::generateAssertionBOL):
+        (JSC::WRECGenerator::generateAssertionEOL):
+        (JSC::WRECGenerator::generateAssertionWordBoundary):
+        (JSC::WRECGenerator::generateBackreference):
+        (JSC::WRECGenerator::gernerateDisjunction):
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Clean up the WREC code some more.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileRegExp):
+        * wrec/WREC.cpp:
+        (JSC::getCharacterClassNewline):
+        (JSC::getCharacterClassDigits):
+        (JSC::getCharacterClassSpaces):
+        (JSC::getCharacterClassWordchar):
+        (JSC::getCharacterClassNondigits):
+        (JSC::getCharacterClassNonspaces):
+        (JSC::getCharacterClassNonwordchar):
+        (JSC::WRECGenerator::generateBacktrack1):
+        (JSC::WRECGenerator::generateBacktrackBackreference):
+        (JSC::WRECGenerator::generateBackreferenceQuantifier):
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generatePatternCharacter):
+        (JSC::WRECGenerator::generateCharacterClassInvertedRange):
+        (JSC::WRECGenerator::generateCharacterClassInverted):
+        (JSC::WRECGenerator::generateCharacterClass):
+        (JSC::WRECGenerator::generateParentheses):
+        (JSC::WRECGenerator::gererateParenthesesResetTrampoline):
+        (JSC::WRECGenerator::generateAssertionBOL):
+        (JSC::WRECGenerator::generateAssertionEOL):
+        (JSC::WRECGenerator::generateAssertionWordBoundary):
+        (JSC::WRECGenerator::generateBackreference):
+        (JSC::WRECGenerator::gernerateDisjunction):
+        (JSC::WRECParser::parseCharacterClass):
+        (JSC::WRECParser::parseEscape):
+        (JSC::WRECParser::parseTerm):
+        * wrec/WREC.h:
+
+2008-09-09  Mark Rowe  <mrowe@apple.com>
+
+        Build fix, rubber-stamped by Anders Carlsson.
+
+        Silence spurious build warnings about missing format attributes on functions in Assertions.cpp.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-09-09  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Fix builds using the "debug" variant.
+
+        This reverts r36130 and tweaks Identifier to export the same symbols for Debug
+        and Release configurations.
+
+        * Configurations/JavaScriptCore.xcconfig:
+        * DerivedSources.make:
+        * JavaScriptCore.Debug.exp: Removed.
+        * JavaScriptCore.base.exp: Removed.
+        * JavaScriptCore.exp: Added.
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/identifier.cpp:
+        (JSC::Identifier::addSlowCase): #ifdef the call to checkSameIdentifierTable so that
+        there is no overhead in Release builds.
+        (JSC::Identifier::checkSameIdentifierTable): Add empty functions for Release builds.
+        * kjs/identifier.h:
+        (JSC::Identifier::add): #ifdef the calls to checkSameIdentifierTable so that there is
+        no overhead in Release builds, and remove the inline definitions of checkSameIdentifierTable.
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Clean up WREC a bit to bring it closer to our coding style guidelines.
+
+        * wrec/WREC.cpp:
+        (JSC::):
+        (JSC::getCharacterClass_newline):
+        (JSC::getCharacterClass_d):
+        (JSC::getCharacterClass_s):
+        (JSC::getCharacterClass_w):
+        (JSC::getCharacterClass_D):
+        (JSC::getCharacterClass_S):
+        (JSC::getCharacterClass_W):
+        (JSC::CharacterClassConstructor::append):
+        (JSC::WRECGenerator::generateNonGreedyQuantifier):
+        (JSC::WRECGenerator::generateGreedyQuantifier):
+        (JSC::WRECGenerator::generateCharacterClassInverted):
+        (JSC::WRECParser::parseQuantifier):
+        (JSC::WRECParser::parsePatternCharacterQualifier):
+        (JSC::WRECParser::parseCharacterClassQuantifier):
+        (JSC::WRECParser::parseBackreferenceQuantifier):
+        * wrec/WREC.h:
+        (JSC::Quantifier::):
+        (JSC::Quantifier::Quantifier):
+
+2008-09-09  Jungshik Shin  <jungshik.shin@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Try MIME charset names before trying IANA names 
+        ( https://bugs.webkit.org/show_bug.cgi?id=17537 )
+
+        * wtf/StringExtras.h: (strcasecmp): Added.
+
+2008-09-09  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Mark Rowe.
+
+        Bug 20719: REGRESSION (r36135-36244): Hangs, then crashes after several seconds
+        <https://bugs.webkit.org/show_bug.cgi?id=20719>
+        <rdar://problem/6205787>
+
+        Fix a typo in the case-insensitive matching of character patterns.
+
+        * wrec/WREC.cpp:
+        (JSC::WRECGenerator::generatePatternCharacter):
+
+2008-09-09  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        - allow polymorphic inline cache to handle Math object functions and possibly other similar things
+        
+        1.012x speedup on SunSpider.
+
+        * kjs/MathObject.cpp:
+        (JSC::MathObject::getOwnPropertySlot):
+        * kjs/lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+        * kjs/lookup.h:
+        (JSC::getStaticPropertySlot):
+
+2008-09-08  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak and Oliver Hunt.
+
+        Split storage of properties out of the PropertyMap and into the JSObject
+        to allow sharing PropertyMap on the StructureID.  In order to get this
+        function correctly, the StructureID's transition mappings were changed to
+        transition based on property name and attribute pairs, instead of just
+        property name.
+
+        - Removes the single property optimization now that the PropertyMap is shared.
+          This will be replaced by in-lining some values on the JSObject.
+
+        This is a wash on Sunspider and a 6.7% win on the v8 test suite.
+
+        * JavaScriptCore.base.exp:
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileGetByIdSelf): Get the storage directly off the JSObject.
+        (JSC::CTI::privateCompileGetByIdProto): Ditto.
+        (JSC::CTI::privateCompileGetByIdChain): Ditto.
+        (JSC::CTI::privateCompilePutByIdReplace): Ditto.
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::mark): Mark the PropertyStorage.
+        (JSC::JSObject::put): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::deleteProperty): Ditto.
+        (JSC::JSObject::defineGetter): Return early if the property is already a getter/setter.
+        (JSC::JSObject::defineSetter): Ditto.
+        (JSC::JSObject::getPropertyAttributes): Update to get the propertyMap of the StructureID
+        (JSC::JSObject::getPropertyNames): Ditto.
+        (JSC::JSObject::removeDirect): Ditto.
+        * kjs/JSObject.h: Remove PropertyMap and add PropertyStorage.
+        (JSC::JSObject::propertyStorage): return the PropertyStorage.
+        (JSC::JSObject::getDirect): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::getDirectLocation): Ditto.
+        (JSC::JSObject::offsetForLocation): Compute location directly.
+        (JSC::JSObject::hasCustomProperties): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::hasGetterSetterProperties): Ditto.
+        (JSC::JSObject::getDirectOffset): Get by indexing into PropertyStorage.
+        (JSC::JSObject::putDirectOffset): Put by indexing into PropertyStorage.
+        (JSC::JSObject::getOwnPropertySlotForWrite): Update to get the propertyMap of the StructureID.
+        (JSC::JSObject::getOwnPropertySlot): Ditto.
+        (JSC::JSObject::putDirect): Move putting into the StructureID unless the property already exists.
+        * kjs/PropertyMap.cpp: Use the propertyStorage as the storage for the JSValues.
+        (JSC::PropertyMap::checkConsistency): 
+        (JSC::PropertyMap::operator=):
+        (JSC::PropertyMap::~PropertyMap):
+        (JSC::PropertyMap::get):
+        (JSC::PropertyMap::getLocation):
+        (JSC::PropertyMap::put):
+        (JSC::PropertyMap::getOffset):
+        (JSC::PropertyMap::insert):
+        (JSC::PropertyMap::expand):
+        (JSC::PropertyMap::rehash):
+        (JSC::PropertyMap::createTable):
+        (JSC::PropertyMap::resizePropertyStorage): Resize the storage to match the size of the map
+        (JSC::PropertyMap::remove):
+        (JSC::PropertyMap::getEnumerablePropertyNames):
+        * kjs/PropertyMap.h: 
+        (JSC::PropertyMapEntry::PropertyMapEntry):
+        (JSC::PropertyMap::isEmpty):
+        (JSC::PropertyMap::size):
+        (JSC::PropertyMap::makingCount):
+        (JSC::PropertyMap::PropertyMap):
+
+        * kjs/StructureID.cpp: 
+        (JSC::StructureID::addPropertyTransition): Transitions now are based off the property name
+        and attributes. 
+        (JSC::StructureID::toDictionaryTransition): Copy the map.
+        (JSC::StructureID::changePrototypeTransition): Copy the map.
+        (JSC::StructureID::getterSetterTransition): Copy the map.
+        (JSC::StructureID::~StructureID): 
+        * kjs/StructureID.h:
+        (JSC::TransitionTableHash::hash): Custom hash for transition map.
+        (JSC::TransitionTableHash::equal): Ditto.
+        (JSC::TransitionTableHashTraits::emptyValue): Custom traits for transition map
+        (JSC::TransitionTableHashTraits::constructDeletedValue): Ditto.
+        (JSC::TransitionTableHashTraits::isDeletedValue): Ditto.
+        (JSC::StructureID::propertyMap): Added.
+
+2008-09-08  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Bug 20694: Slow Script error pops up when running Dromaeo tests
+
+        Correct error in timeout logic where execution tick count would
+        be reset to incorrect value due to incorrect offset and indirection.
+        Codegen for the slow script dialog was factored out into a separate
+        method (emitSlowScriptCheck) rather than having multiple copies of
+        the same code.  Also added calls to generate slow script checks
+        for loop_if_less and loop_if_true opcodes.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+
+2008-09-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove references to the removed WRECompiler class.
+
+        * VM/Machine.h:
+        * wrec/WREC.h:
+
+2008-09-08  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Mark Rowe.
+
+        Fix the build with CTI enabled but WREC disabled.
+
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+
+2008-09-08  Dan Bernstein  <mitz@apple.com>
+
+        - build fix
+
+        * kjs/nodes.h:
+        (JSC::StatementNode::):
+        (JSC::BlockNode::):
+
+2008-09-08  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff.
+
+       <rdar://problem/6134407> Breakpoints in for loops, while loops or
+       conditions without curly braces don't break. (19306)
+       -Statement Lists already emit debug hooks but conditionals without
+       brackets are not lists.
+
+        * kjs/nodes.cpp:
+        (KJS::IfNode::emitCode):
+        (KJS::IfElseNode::emitCode):
+        (KJS::DoWhileNode::emitCode):
+        (KJS::WhileNode::emitCode):
+        (KJS::ForNode::emitCode):
+        (KJS::ForInNode::emitCode):
+        * kjs/nodes.h:
+        (KJS::StatementNode::):
+        (KJS::BlockNode::):
+
+2008-09-08  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Anders Carlsson.
+        
+        - Cache the code generated for eval to speed up SunSpider and web sites
+        https://bugs.webkit.org/show_bug.cgi?id=20718
+        
+        1.052x on SunSpider
+        2.29x on date-format-tofte
+        
+        Lots of real sites seem to get many hits on this cache as well,
+        including GMail, Google Spreadsheets, Slate and Digg (the last of
+        these gets over 100 hits on initial page load).
+
+        * VM/CodeBlock.h:
+        (JSC::EvalCodeCache::get):
+        * VM/Machine.cpp:
+        (JSC::Machine::callEval):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_call_eval):
+        * VM/Machine.h:
+
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 20711: Change KJS prefix on preprocessor macros to JSC
+        <https://bugs.webkit.org/show_bug.cgi?id=20711>
+
+        * kjs/CommonIdentifiers.cpp:
+        (JSC::CommonIdentifiers::CommonIdentifiers):
+        * kjs/CommonIdentifiers.h:
+        * kjs/PropertySlot.h:
+        (JSC::PropertySlot::getValue):
+        (JSC::PropertySlot::putValue):
+        (JSC::PropertySlot::setValueSlot):
+        (JSC::PropertySlot::setValue):
+        (JSC::PropertySlot::setRegisterSlot):
+        * kjs/lookup.h:
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+        (JSC::Node::):
+        (JSC::ExpressionNode::):
+        (JSC::StatementNode::):
+        (JSC::NullNode::):
+        (JSC::BooleanNode::):
+        (JSC::NumberNode::):
+        (JSC::ImmediateNumberNode::):
+        (JSC::StringNode::):
+        (JSC::RegExpNode::):
+        (JSC::ThisNode::):
+        (JSC::ResolveNode::):
+        (JSC::ElementNode::):
+        (JSC::ArrayNode::):
+        (JSC::PropertyNode::):
+        (JSC::PropertyListNode::):
+        (JSC::ObjectLiteralNode::):
+        (JSC::BracketAccessorNode::):
+        (JSC::DotAccessorNode::):
+        (JSC::ArgumentListNode::):
+        (JSC::ArgumentsNode::):
+        (JSC::NewExprNode::):
+        (JSC::EvalFunctionCallNode::):
+        (JSC::FunctionCallValueNode::):
+        (JSC::FunctionCallResolveNode::):
+        (JSC::FunctionCallBracketNode::):
+        (JSC::FunctionCallDotNode::):
+        (JSC::PrePostResolveNode::):
+        (JSC::PostfixResolveNode::):
+        (JSC::PostfixBracketNode::):
+        (JSC::PostfixDotNode::):
+        (JSC::PostfixErrorNode::):
+        (JSC::DeleteResolveNode::):
+        (JSC::DeleteBracketNode::):
+        (JSC::DeleteDotNode::):
+        (JSC::DeleteValueNode::):
+        (JSC::VoidNode::):
+        (JSC::TypeOfResolveNode::):
+        (JSC::TypeOfValueNode::):
+        (JSC::PrefixResolveNode::):
+        (JSC::PrefixBracketNode::):
+        (JSC::PrefixDotNode::):
+        (JSC::PrefixErrorNode::):
+        (JSC::UnaryPlusNode::):
+        (JSC::NegateNode::):
+        (JSC::BitwiseNotNode::):
+        (JSC::LogicalNotNode::):
+        (JSC::MultNode::):
+        (JSC::DivNode::):
+        (JSC::ModNode::):
+        (JSC::AddNode::):
+        (JSC::SubNode::):
+        (JSC::LeftShiftNode::):
+        (JSC::RightShiftNode::):
+        (JSC::UnsignedRightShiftNode::):
+        (JSC::LessNode::):
+        (JSC::GreaterNode::):
+        (JSC::LessEqNode::):
+        (JSC::GreaterEqNode::):
+        (JSC::ThrowableBinaryOpNode::):
+        (JSC::InstanceOfNode::):
+        (JSC::InNode::):
+        (JSC::EqualNode::):
+        (JSC::NotEqualNode::):
+        (JSC::StrictEqualNode::):
+        (JSC::NotStrictEqualNode::):
+        (JSC::BitAndNode::):
+        (JSC::BitOrNode::):
+        (JSC::BitXOrNode::):
+        (JSC::LogicalOpNode::):
+        (JSC::ConditionalNode::):
+        (JSC::ReadModifyResolveNode::):
+        (JSC::AssignResolveNode::):
+        (JSC::ReadModifyBracketNode::):
+        (JSC::AssignBracketNode::):
+        (JSC::AssignDotNode::):
+        (JSC::ReadModifyDotNode::):
+        (JSC::AssignErrorNode::):
+        (JSC::CommaNode::):
+        (JSC::VarDeclCommaNode::):
+        (JSC::ConstDeclNode::):
+        (JSC::ConstStatementNode::):
+        (JSC::EmptyStatementNode::):
+        (JSC::DebuggerStatementNode::):
+        (JSC::ExprStatementNode::):
+        (JSC::VarStatementNode::):
+        (JSC::IfNode::):
+        (JSC::IfElseNode::):
+        (JSC::DoWhileNode::):
+        (JSC::WhileNode::):
+        (JSC::ForNode::):
+        (JSC::ContinueNode::):
+        (JSC::BreakNode::):
+        (JSC::ReturnNode::):
+        (JSC::WithNode::):
+        (JSC::LabelNode::):
+        (JSC::ThrowNode::):
+        (JSC::TryNode::):
+        (JSC::ParameterNode::):
+        (JSC::ScopeNode::):
+        (JSC::ProgramNode::):
+        (JSC::EvalNode::):
+        (JSC::FunctionBodyNode::):
+        (JSC::FuncExprNode::):
+        (JSC::FuncDeclNode::):
+        (JSC::CaseClauseNode::):
+        (JSC::ClauseListNode::):
+        (JSC::CaseBlockNode::):
+        (JSC::SwitchNode::):
+
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20704: Replace the KJS namespace
+        <https://bugs.webkit.org/show_bug.cgi?id=20704>
+
+        Rename the KJS namespace to JSC. There are still some uses of KJS in
+        preprocessor macros and comments, but these will also be changed some
+        time in the near future.
+
+        * API/APICast.h:
+        (toJS):
+        (toRef):
+        (toGlobalRef):
+        * API/JSBase.cpp:
+        * API/JSCallbackConstructor.cpp:
+        * API/JSCallbackConstructor.h:
+        * API/JSCallbackFunction.cpp:
+        * API/JSCallbackFunction.h:
+        * API/JSCallbackObject.cpp:
+        * API/JSCallbackObject.h:
+        * API/JSCallbackObjectFunctions.h:
+        * API/JSClassRef.cpp:
+        (OpaqueJSClass::staticValues):
+        (OpaqueJSClass::staticFunctions):
+        * API/JSClassRef.h:
+        * API/JSContextRef.cpp:
+        * API/JSObjectRef.cpp:
+        * API/JSProfilerPrivate.cpp:
+        * API/JSStringRef.cpp:
+        * API/JSValueRef.cpp:
+        (JSValueGetType):
+        * API/OpaqueJSString.cpp:
+        * API/OpaqueJSString.h:
+        * JavaScriptCore.Debug.exp:
+        * JavaScriptCore.base.exp:
+        * VM/CTI.cpp:
+        (JSC::):
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        * VM/CodeBlock.h:
+        * VM/CodeGenerator.cpp:
+        * VM/CodeGenerator.h:
+        * VM/ExceptionHelpers.cpp:
+        * VM/ExceptionHelpers.h:
+        * VM/Instruction.h:
+        * VM/JSPropertyNameIterator.cpp:
+        * VM/JSPropertyNameIterator.h:
+        * VM/LabelID.h:
+        * VM/Machine.cpp:
+        * VM/Machine.h:
+        * VM/Opcode.cpp:
+        * VM/Opcode.h:
+        * VM/Register.h:
+        (WTF::):
+        * VM/RegisterFile.cpp:
+        * VM/RegisterFile.h:
+        * VM/RegisterID.h:
+        (WTF::):
+        * VM/SamplingTool.cpp:
+        * VM/SamplingTool.h:
+        * VM/SegmentedVector.h:
+        * kjs/ArgList.cpp:
+        * kjs/ArgList.h:
+        * kjs/Arguments.cpp:
+        * kjs/Arguments.h:
+        * kjs/ArrayConstructor.cpp:
+        * kjs/ArrayConstructor.h:
+        * kjs/ArrayPrototype.cpp:
+        * kjs/ArrayPrototype.h:
+        * kjs/BatchedTransitionOptimizer.h:
+        * kjs/BooleanConstructor.cpp:
+        * kjs/BooleanConstructor.h:
+        * kjs/BooleanObject.cpp:
+        * kjs/BooleanObject.h:
+        * kjs/BooleanPrototype.cpp:
+        * kjs/BooleanPrototype.h:
+        * kjs/CallData.cpp:
+        * kjs/CallData.h:
+        * kjs/ClassInfo.h:
+        * kjs/CommonIdentifiers.cpp:
+        * kjs/CommonIdentifiers.h:
+        * kjs/ConstructData.cpp:
+        * kjs/ConstructData.h:
+        * kjs/DateConstructor.cpp:
+        * kjs/DateConstructor.h:
+        * kjs/DateInstance.cpp:
+        (JSC::DateInstance::msToGregorianDateTime):
+        * kjs/DateInstance.h:
+        * kjs/DateMath.cpp:
+        * kjs/DateMath.h:
+        * kjs/DatePrototype.cpp:
+        * kjs/DatePrototype.h:
+        * kjs/DebuggerCallFrame.cpp:
+        * kjs/DebuggerCallFrame.h:
+        * kjs/Error.cpp:
+        * kjs/Error.h:
+        * kjs/ErrorConstructor.cpp:
+        * kjs/ErrorConstructor.h:
+        * kjs/ErrorInstance.cpp:
+        * kjs/ErrorInstance.h:
+        * kjs/ErrorPrototype.cpp:
+        * kjs/ErrorPrototype.h:
+        * kjs/ExecState.cpp:
+        * kjs/ExecState.h:
+        * kjs/FunctionConstructor.cpp:
+        * kjs/FunctionConstructor.h:
+        * kjs/FunctionPrototype.cpp:
+        * kjs/FunctionPrototype.h:
+        * kjs/GetterSetter.cpp:
+        * kjs/GetterSetter.h:
+        * kjs/GlobalEvalFunction.cpp:
+        * kjs/GlobalEvalFunction.h:
+        * kjs/IndexToNameMap.cpp:
+        * kjs/IndexToNameMap.h:
+        * kjs/InitializeThreading.cpp:
+        * kjs/InitializeThreading.h:
+        * kjs/InternalFunction.cpp:
+        * kjs/InternalFunction.h:
+        (JSC::InternalFunction::InternalFunction):
+        * kjs/JSActivation.cpp:
+        * kjs/JSActivation.h:
+        * kjs/JSArray.cpp:
+        * kjs/JSArray.h:
+        * kjs/JSCell.cpp:
+        * kjs/JSCell.h:
+        * kjs/JSFunction.cpp:
+        * kjs/JSFunction.h:
+        (JSC::JSFunction::JSFunction):
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        * kjs/JSGlobalData.h:
+        * kjs/JSGlobalObject.cpp:
+        * kjs/JSGlobalObject.h:
+        * kjs/JSGlobalObjectFunctions.cpp:
+        * kjs/JSGlobalObjectFunctions.h:
+        * kjs/JSImmediate.cpp:
+        * kjs/JSImmediate.h:
+        * kjs/JSLock.cpp:
+        * kjs/JSLock.h:
+        * kjs/JSNotAnObject.cpp:
+        * kjs/JSNotAnObject.h:
+        * kjs/JSNumberCell.cpp:
+        * kjs/JSNumberCell.h:
+        * kjs/JSObject.cpp:
+        * kjs/JSObject.h:
+        * kjs/JSStaticScopeObject.cpp:
+        * kjs/JSStaticScopeObject.h:
+        * kjs/JSString.cpp:
+        * kjs/JSString.h:
+        * kjs/JSType.h:
+        * kjs/JSValue.cpp:
+        * kjs/JSValue.h:
+        * kjs/JSVariableObject.cpp:
+        * kjs/JSVariableObject.h:
+        * kjs/JSWrapperObject.cpp:
+        * kjs/JSWrapperObject.h:
+        * kjs/LabelStack.cpp:
+        * kjs/LabelStack.h:
+        * kjs/MathObject.cpp:
+        * kjs/MathObject.h:
+        * kjs/NativeErrorConstructor.cpp:
+        * kjs/NativeErrorConstructor.h:
+        * kjs/NativeErrorPrototype.cpp:
+        * kjs/NativeErrorPrototype.h:
+        * kjs/NodeInfo.h:
+        * kjs/NumberConstructor.cpp:
+        * kjs/NumberConstructor.h:
+        * kjs/NumberObject.cpp:
+        * kjs/NumberObject.h:
+        * kjs/NumberPrototype.cpp:
+        * kjs/NumberPrototype.h:
+        * kjs/ObjectConstructor.cpp:
+        * kjs/ObjectConstructor.h:
+        * kjs/ObjectPrototype.cpp:
+        * kjs/ObjectPrototype.h:
+        * kjs/Parser.cpp:
+        * kjs/Parser.h:
+        * kjs/PropertyMap.cpp:
+        (JSC::PropertyMapStatisticsExitLogger::~PropertyMapStatisticsExitLogger):
+        * kjs/PropertyMap.h:
+        * kjs/PropertyNameArray.cpp:
+        * kjs/PropertyNameArray.h:
+        * kjs/PropertySlot.cpp:
+        * kjs/PropertySlot.h:
+        * kjs/PrototypeFunction.cpp:
+        * kjs/PrototypeFunction.h:
+        * kjs/PutPropertySlot.h:
+        * kjs/RegExpConstructor.cpp:
+        * kjs/RegExpConstructor.h:
+        * kjs/RegExpObject.cpp:
+        * kjs/RegExpObject.h:
+        * kjs/RegExpPrototype.cpp:
+        * kjs/RegExpPrototype.h:
+        * kjs/ScopeChain.cpp:
+        * kjs/ScopeChain.h:
+        * kjs/ScopeChainMark.h:
+        * kjs/Shell.cpp:
+        (jscmain):
+        * kjs/SmallStrings.cpp:
+        * kjs/SmallStrings.h:
+        * kjs/SourceProvider.h:
+        * kjs/SourceRange.h:
+        * kjs/StringConstructor.cpp:
+        * kjs/StringConstructor.h:
+        * kjs/StringObject.cpp:
+        * kjs/StringObject.h:
+        * kjs/StringObjectThatMasqueradesAsUndefined.h:
+        * kjs/StringPrototype.cpp:
+        * kjs/StringPrototype.h:
+        * kjs/StructureID.cpp:
+        * kjs/StructureID.h:
+        * kjs/SymbolTable.h:
+        * kjs/collector.cpp:
+        * kjs/collector.h:
+        * kjs/completion.h:
+        * kjs/create_hash_table:
+        * kjs/debugger.cpp:
+        * kjs/debugger.h:
+        * kjs/dtoa.cpp:
+        * kjs/dtoa.h:
+        * kjs/grammar.y:
+        * kjs/identifier.cpp:
+        * kjs/identifier.h:
+        (JSC::Identifier::equal):
+        * kjs/interpreter.cpp:
+        * kjs/interpreter.h:
+        * kjs/lexer.cpp:
+        (JSC::Lexer::Lexer):
+        (JSC::Lexer::clear):
+        (JSC::Lexer::makeIdentifier):
+        * kjs/lexer.h:
+        * kjs/lookup.cpp:
+        * kjs/lookup.h:
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+        * kjs/nodes2string.cpp:
+        * kjs/operations.cpp:
+        * kjs/operations.h:
+        * kjs/protect.h:
+        * kjs/regexp.cpp:
+        * kjs/regexp.h:
+        * kjs/ustring.cpp:
+        * kjs/ustring.h:
+        (JSC::operator!=):
+        (JSC::IdentifierRepHash::hash):
+        (WTF::):
+        * masm/MacroAssembler.h:
+        * masm/MacroAssemblerWin.cpp:
+        * masm/X86Assembler.h:
+        * pcre/pcre_exec.cpp:
+        * profiler/CallIdentifier.h:
+        (WTF::):
+        * profiler/HeavyProfile.cpp:
+        * profiler/HeavyProfile.h:
+        * profiler/Profile.cpp:
+        * profiler/Profile.h:
+        * profiler/ProfileGenerator.cpp:
+        * profiler/ProfileGenerator.h:
+        * profiler/ProfileNode.cpp:
+        * profiler/ProfileNode.h:
+        * profiler/Profiler.cpp:
+        * profiler/Profiler.h:
+        * profiler/TreeProfile.cpp:
+        * profiler/TreeProfile.h:
+        * wrec/WREC.cpp:
+        * wrec/WREC.h:
+        * wtf/AVLTree.h:
+
+2008-09-07  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        - rename IA32MacroAssembler class to X86Assembler
+        
+        We otherwise call the platform X86, and also, I don't see any macros.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * masm/IA32MacroAsm.h: Removed.
+        * masm/MacroAssembler.h:
+        (KJS::MacroAssembler::MacroAssembler):
+        * masm/MacroAssemblerWin.cpp:
+        (KJS::MacroAssembler::emitRestoreArgumentReference):
+        * masm/X86Assembler.h: Copied from masm/IA32MacroAsm.h.
+        (KJS::X86Assembler::X86Assembler):
+        * wrec/WREC.cpp:
+        (KJS::WRECGenerator::generateNonGreedyQuantifier):
+        (KJS::WRECGenerator::generateGreedyQuantifier):
+        (KJS::WRECGenerator::generateParentheses):
+        (KJS::WRECGenerator::generateBackreference):
+        (KJS::WRECGenerator::gernerateDisjunction):
+        * wrec/WREC.h:
+
+2008-09-07  Cameron Zwarich  <cwzwarich@webkit.org>
+
+        Not reviewed.
+
+        Visual C++ seems to have some odd casting rules, so just convert the
+        offending cast back to a C-style cast for now.
+
+        * kjs/collector.cpp:
+        (KJS::otherThreadStackPointer):
+
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Mark Rowe.
+
+        Attempt to fix the Windows build by using a const_cast to cast regs.Esp
+        to a uintptr_t instead of a reinterpret_cast.
+
+        * kjs/collector.cpp:
+        (KJS::otherThreadStackPointer):
+
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Sam Weinig.
+
+        Remove C-style casts from kjs/collector.cpp.
+
+        * kjs/collector.cpp:
+        (KJS::Heap::heapAllocate):
+        (KJS::currentThreadStackBase):
+        (KJS::Heap::markConservatively):
+        (KJS::otherThreadStackPointer):
+        (KJS::Heap::markOtherThreadConservatively):
+        (KJS::Heap::sweep):
+
+2008-09-07  Mark Rowe  <mrowe@apple.com>
+
+        Build fix for the debug variant.
+
+        * DerivedSources.make: Also use the .Debug.exp exports file when building the debug variant.
+
+2008-09-07  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Timothy Hatcher.
+
+        Remove C-style casts from the CTI code.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitGetArg):
+        (KJS::CTI::emitGetPutArg):
+        (KJS::ctiRepatchCallByReturnAddress):
+        (KJS::CTI::compileOpCall):
+        (KJS::CTI::privateCompileMainPass):
+        (KJS::CTI::privateCompileGetByIdSelf):
+        (KJS::CTI::privateCompileGetByIdProto):
+        (KJS::CTI::privateCompileGetByIdChain):
+        (KJS::CTI::privateCompilePutByIdReplace):
+        (KJS::CTI::privateArrayLengthTrampoline):
+        (KJS::CTI::privateStringLengthTrampoline):
+
+=== End merge of squirrelfish-extreme ===
+
+2008-09-06  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig. Adapted somewhat by Maciej Stachowiak.
+        
+        - refactor WREC to share more of the JIT infrastructure with CTI
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitGetArg):
+        (KJS::CTI::emitGetPutArg):
+        (KJS::CTI::emitPutArg):
+        (KJS::CTI::emitPutArgConstant):
+        (KJS::CTI::emitPutCTIParam):
+        (KJS::CTI::emitGetCTIParam):
+        (KJS::CTI::emitPutToCallFrameHeader):
+        (KJS::CTI::emitGetFromCallFrameHeader):
+        (KJS::CTI::emitPutResult):
+        (KJS::CTI::emitDebugExceptionCheck):
+        (KJS::CTI::emitJumpSlowCaseIfNotImm):
+        (KJS::CTI::emitJumpSlowCaseIfNotImms):
+        (KJS::CTI::emitFastArithDeTagImmediate):
+        (KJS::CTI::emitFastArithReTagImmediate):
+        (KJS::CTI::emitFastArithPotentiallyReTagImmediate):
+        (KJS::CTI::emitFastArithImmToInt):
+        (KJS::CTI::emitFastArithIntToImmOrSlowCase):
+        (KJS::CTI::emitFastArithIntToImmNoCheck):
+        (KJS::CTI::CTI):
+        (KJS::CTI::compileOpCall):
+        (KJS::CTI::privateCompileMainPass):
+        (KJS::CTI::privateCompileSlowCases):
+        (KJS::CTI::privateCompile):
+        (KJS::CTI::privateCompileGetByIdSelf):
+        (KJS::CTI::privateCompileGetByIdProto):
+        (KJS::CTI::privateCompileGetByIdChain):
+        (KJS::CTI::privateCompilePutByIdReplace):
+        (KJS::CTI::privateArrayLengthTrampoline):
+        (KJS::CTI::privateStringLengthTrampoline):
+        (KJS::CTI::compileRegExp):
+        * VM/CTI.h:
+        (KJS::CallRecord::CallRecord):
+        (KJS::JmpTable::JmpTable):
+        (KJS::SlowCaseEntry::SlowCaseEntry):
+        (KJS::CTI::JSRInfo::JSRInfo):
+        * kjs/regexp.cpp:
+        (KJS::RegExp::RegExp):
+        * wrec/WREC.cpp:
+        (KJS::GenerateParenthesesNonGreedyFunctor::GenerateParenthesesNonGreedyFunctor):
+        (KJS::GeneratePatternCharacterFunctor::generateAtom):
+        (KJS::GeneratePatternCharacterFunctor::backtrack):
+        (KJS::GenerateCharacterClassFunctor::generateAtom):
+        (KJS::GenerateCharacterClassFunctor::backtrack):
+        (KJS::GenerateBackreferenceFunctor::generateAtom):
+        (KJS::GenerateBackreferenceFunctor::backtrack):
+        (KJS::GenerateParenthesesNonGreedyFunctor::generateAtom):
+        (KJS::GenerateParenthesesNonGreedyFunctor::backtrack):
+        (KJS::WRECGenerate::generateBacktrack1):
+        (KJS::WRECGenerate::generateBacktrackBackreference):
+        (KJS::WRECGenerate::generateBackreferenceQuantifier):
+        (KJS::WRECGenerate::generateNonGreedyQuantifier):
+        (KJS::WRECGenerate::generateGreedyQuantifier):
+        (KJS::WRECGenerate::generatePatternCharacter):
+        (KJS::WRECGenerate::generateCharacterClassInvertedRange):
+        (KJS::WRECGenerate::generateCharacterClassInverted):
+        (KJS::WRECGenerate::generateCharacterClass):
+        (KJS::WRECGenerate::generateParentheses):
+        (KJS::WRECGenerate::generateParenthesesNonGreedy):
+        (KJS::WRECGenerate::gererateParenthesesResetTrampoline):
+        (KJS::WRECGenerate::generateAssertionBOL):
+        (KJS::WRECGenerate::generateAssertionEOL):
+        (KJS::WRECGenerate::generateAssertionWordBoundary):
+        (KJS::WRECGenerate::generateBackreference):
+        (KJS::WRECGenerate::gernerateDisjunction):
+        (KJS::WRECGenerate::terminateDisjunction):
+        (KJS::WRECParser::parseGreedyQuantifier):
+        (KJS::WRECParser::parseQuantifier):
+        (KJS::WRECParser::parsePatternCharacterQualifier):
+        (KJS::WRECParser::parseCharacterClassQuantifier):
+        (KJS::WRECParser::parseBackreferenceQuantifier):
+        (KJS::WRECParser::parseParentheses):
+        (KJS::WRECParser::parseCharacterClass):
+        (KJS::WRECParser::parseOctalEscape):
+        (KJS::WRECParser::parseEscape):
+        (KJS::WRECParser::parseTerm):
+        (KJS::WRECParser::parseDisjunction):
+        * wrec/WREC.h:
+        (KJS::WRECGenerate::WRECGenerate):
+        (KJS::WRECParser::):
+        (KJS::WRECParser::WRECParser):
+        (KJS::WRECParser::parseAlternative):
+        (KJS::WRECParser::isEndOfPattern):
+
+2008-09-06  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Fix the sampler build.
+
+        * VM/SamplingTool.h:
+
+2008-09-06  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Jump through the necessary hoops required to make MSVC cooperate with SFX
+
+        We now explicitly declare the calling convention on all cti_op_* cfunctions,
+        and return int instead of bool where appropriate (despite the cdecl calling
+        convention seems to state MSVC generates code that returns the result value
+        through ecx).  SFX behaves slightly differently under MSVC, specifically it
+        stores the base argument address for the cti_op_* functions in the first
+        argument, and then does the required stack manipulation through that pointer.
+        This is necessary as MSVC's optimisations assume they have complete control
+        of the stack, and periodically elide our stack manipulations, or move
+        values in unexpected ways.  MSVC also frequently produces tail calls which may
+        clobber the first argument, so the MSVC path is slightly less efficient due
+        to the need to restore it.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp:
+        (KJS::):
+        (KJS::CTI::compileOpCall):
+        (KJS::CTI::privateCompileMainPass):
+        (KJS::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        * VM/Machine.h:
+        * masm/MacroAssembler.h:
+        (KJS::MacroAssembler::emitConvertToFastCall):
+        * masm/MacroAssemblerIA32GCC.cpp: Removed.
+           For performance reasons we need these no-op functions to be inlined.
+
+        * masm/MacroAssemblerWin.cpp:
+        (KJS::MacroAssembler::emitRestoreArgumentReference):
+        * wtf/Platform.h:
+
+2008-09-05  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Maciej Stachowiak, or maybe the other way around.
+        
+        Added the ability to coalesce JITCode buffer grow operations by first
+        growing the buffer and then executing unchecked puts to it.
+        
+        About a 2% speedup on date-format-tofte.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::compileOpCall):
+        * masm/IA32MacroAsm.h:
+        (KJS::JITCodeBuffer::ensureSpace):
+        (KJS::JITCodeBuffer::putByteUnchecked):
+        (KJS::JITCodeBuffer::putByte):
+        (KJS::JITCodeBuffer::putShortUnchecked):
+        (KJS::JITCodeBuffer::putShort):
+        (KJS::JITCodeBuffer::putIntUnchecked):
+        (KJS::JITCodeBuffer::putInt):
+        (KJS::IA32MacroAssembler::emitTestl_i32r):
+        (KJS::IA32MacroAssembler::emitMovl_mr):
+        (KJS::IA32MacroAssembler::emitMovl_rm):
+        (KJS::IA32MacroAssembler::emitMovl_i32m):
+        (KJS::IA32MacroAssembler::emitUnlinkedJe):
+        (KJS::IA32MacroAssembler::emitModRm_rr):
+        (KJS::IA32MacroAssembler::emitModRm_rr_Unchecked):
+        (KJS::IA32MacroAssembler::emitModRm_rm_Unchecked):
+        (KJS::IA32MacroAssembler::emitModRm_rm):
+        (KJS::IA32MacroAssembler::emitModRm_opr):
+        (KJS::IA32MacroAssembler::emitModRm_opr_Unchecked):
+        (KJS::IA32MacroAssembler::emitModRm_opm_Unchecked):
+
+2008-09-05  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Disable WREC and CTI on platforms that we have not yet had a chance to test with.
+
+        * wtf/Platform.h:
+
+2008-09-05  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Use jo instead of a mask compare when fetching array.length and
+        string.length. 4% speedup on array.length / string.length torture
+        test.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateArrayLengthTrampoline):
+        (KJS::CTI::privateStringLengthTrampoline):
+
+2008-09-05  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Removed a CTI compilation pass by recording labels during bytecode
+        generation. This is more to reduce complexity than it is to improve
+        performance.
+
+        SunSpider reports no change.
+
+        CodeBlock now keeps a "labels" set, which holds the offsets of all the
+        instructions that can be jumped to.
+
+        * VM/CTI.cpp: Nixed a pass.
+
+        * VM/CodeBlock.h: Added a "labels" set.
+
+        * VM/LabelID.h: No need for a special LableID for holding jump
+        destinations, since the CodeBlock now knows all jump destinations.
+
+        * wtf/HashTraits.h: New hash traits to accomodate putting offset 0 in
+        the set.
+
+        * kjs/nodes.cpp:
+        (KJS::TryNode::emitCode): Emit a dummy label to record sret targets.
+
+2008-09-05  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt and Gavin Barraclough.
+
+        Move the JITCodeBuffer onto Machine and remove the static variables.
+
+        * VM/CTI.cpp: Initialize m_jit with the Machine's code buffer.
+        * VM/Machine.cpp:
+        (KJS::Machine::Machine): Allocate a JITCodeBuffer.
+        * VM/Machine.h:
+        * kjs/RegExpConstructor.cpp:
+        (KJS::constructRegExp): Pass the ExecState through.
+        * kjs/RegExpPrototype.cpp:
+        (KJS::regExpProtoFuncCompile): Ditto.
+        * kjs/StringPrototype.cpp:
+        (KJS::stringProtoFuncMatch): Ditto.
+        (KJS::stringProtoFuncSearch): Ditto.
+        * kjs/nodes.cpp:
+        (KJS::RegExpNode::emitCode): Compile the pattern at code generation time
+        so that we have access to an ExecState.
+        * kjs/nodes.h:
+        (KJS::RegExpNode::):
+        * kjs/nodes2string.cpp:
+        * kjs/regexp.cpp:
+        (KJS::RegExp::RegExp): Pass the ExecState through.
+        (KJS::RegExp::create): Ditto.
+        * kjs/regexp.h:
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::IA32MacroAssembler): Reset the JITCodeBuffer when we are
+        constructed.
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::compile): Retrieve the JITCodeBuffer from the Machine.
+        * wrec/WREC.h:
+
+2008-09-05  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt and Gavin Barraclough.
+
+        Fix the build when CTI is disabled.
+
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::~CodeBlock):
+        * VM/CodeGenerator.cpp:
+        (KJS::prepareJumpTableForStringSwitch):
+        * VM/Machine.cpp:
+        (KJS::Machine::Machine):
+        (KJS::Machine::~Machine):
+
+2008-09-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix some windows abi issues.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompileMainPass):
+        (KJS::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+        (KJS::CallRecord::CallRecord):
+        (KJS::):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_resolve_func):
+        (KJS::Machine::cti_op_post_inc):
+        (KJS::Machine::cti_op_resolve_with_base):
+        (KJS::Machine::cti_op_post_dec):
+        * VM/Machine.h:
+
+2008-09-05  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix ecma/FunctionObjects/15.3.5.3.js after I broke it in r93.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_call_NotJSFunction): Restore m_callFrame to the correct value after making the native call.
+        (KJS::Machine::cti_op_construct_NotJSConstruct): Ditto.
+
+2008-09-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix fast/dom/Window/console-functions.html.
+
+        The call frame on the ExecState was not being updated on calls into native functions.  This meant that functions
+        such as console.log would use the line number of the last JS function on the call stack.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_call_NotJSFunction): Update the ExecState's call frame before making a native function call,
+        and restore it when the function is done.
+        (KJS::Machine::cti_op_construct_NotJSConstruct): Ditto.
+
+2008-09-05  Oliver Hunt  <oliver@apple.com>
+
+        Start bringing up SFX on windows.
+
+        Reviewed by Mark Rowe and Sam Weinig
+
+        Start doing the work to bring up SFX on windows.  Initially
+        just working on WREC, as it does not make any calls so reduces
+        the amount of code that needs to be corrected.
+        
+        Start abstracting the CTI JIT codegen engine.
+
+        * ChangeLog:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp:
+        * masm/IA32MacroAsm.h:
+        * masm/MacroAssembler.h: Added.
+        (KJS::MacroAssembler::MacroAssembler):
+        * masm/MacroAssemblerIA32GCC.cpp: Added.
+        (KJS::MacroAssembler::emitConvertToFastCall):
+        * masm/MacroAssemblerWin.cpp: Added.
+        (KJS::MacroAssembler::emitConvertToFastCall):
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::parseGreedyQuantifier):
+        (KJS::WRECompiler::parseCharacterClass):
+        (KJS::WRECompiler::parseEscape):
+        (KJS::WRECompiler::compilePattern):
+        * wrec/WREC.h:
+
+2008-09-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Support for slow scripts (timeout checking).
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompileMainPass):
+        (KJS::CTI::privateCompile):
+        * VM/Machine.cpp:
+        (KJS::slideRegisterWindowForCall):
+        (KJS::Machine::cti_timeout_check):
+        (KJS::Machine::cti_vm_throw):
+
+2008-09-04  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Third round of style cleanup.
+
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * VM/CodeBlock.h:
+        * VM/Machine.cpp:
+        * VM/Machine.h:
+        * kjs/ExecState.h:
+
+2008-09-04  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Jon Honeycutt.
+
+        Second round of style cleanup.
+
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * wrec/WREC.h:
+
+2008-09-04  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        First round of style cleanup.
+
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * masm/IA32MacroAsm.h:
+        * wrec/WREC.cpp:
+        * wrec/WREC.h:
+
+2008-09-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+        
+        Merged http://trac.webkit.org/changeset/36081 to work with CTI.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::tryCtiCacheGetByID):
+
+2008-09-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Enable profiling in CTI.
+
+        * VM/CTI.h:
+        (KJS::):
+        (KJS::CTI::execute):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_call_JSFunction):
+        (KJS::Machine::cti_op_call_NotJSFunction):
+        (KJS::Machine::cti_op_ret):
+        (KJS::Machine::cti_op_construct_JSConstruct):
+        (KJS::Machine::cti_op_construct_NotJSConstruct):
+
+2008-09-04  Victor Hernandez  <vhernandez@apple.com>
+
+        Reviewed by Geoffrey Garen.
+        
+        Fixed an #if to support using WREC without CTI.
+
+        * kjs/regexp.cpp:
+        (KJS::RegExp::match):
+
+2008-09-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        The array/string length trampolines are owned by the Machine, not the codeblock that compiled them.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateArrayLengthTrampoline):
+        (KJS::CTI::privateStringLengthTrampoline):
+        * VM/Machine.cpp:
+        (KJS::Machine::~Machine):
+        * VM/Machine.h:
+
+2008-09-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Gavin Barraclough and Sam Weinig.
+
+        Fix a crash on launch of jsc when GuardMalloc is enabled.
+
+        * kjs/ScopeChain.h:
+        (KJS::ScopeChain::ScopeChain): Initialize m_node to 0 when we have no valid scope chain.
+        (KJS::ScopeChain::~ScopeChain): Null-check m_node before calling deref.
+
+2008-09-03  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Fix inspector and fast array access so that it bounds
+        checks correctly.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass2_Main):
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::):
+        (KJS::IA32MacroAssembler::emitUnlinkedJb):
+        (KJS::IA32MacroAssembler::emitUnlinkedJbe):
+
+2008-09-03  Mark Rowe  <mrowe@apple.com>
+
+        Move the assertion after the InitializeAndReturn block, as
+        that is used even when CTI is enabled.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+
+2008-09-03  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Replace calls to exit with ASSERT_WITH_MESSAGE or ASSERT_NOT_REACHED.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        (KJS::Machine::cti_vm_throw):
+
+2008-09-03  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Tweak JavaScriptCore to compile on non-x86 platforms.  This is achieved
+        by wrapping more code with ENABLE(CTI), ENABLE(WREC), and PLATFORM(X86)
+        #if's.
+
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::printStructureIDs): Use %td as the format specifier for
+        printing a ptrdiff_t.
+        * VM/Machine.cpp:
+        * VM/Machine.h:
+        * kjs/regexp.cpp:
+        (KJS::RegExp::RegExp):
+        (KJS::RegExp::~RegExp):
+        (KJS::RegExp::match):
+        * kjs/regexp.h:
+        * masm/IA32MacroAsm.h:
+        * wrec/WREC.cpp:
+        * wrec/WREC.h:
+        * wtf/Platform.h: Only enable CTI and WREC on x86.  Add an extra define to
+        track whether any MASM-using features are enabled.
+
+2008-09-03  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Copy Geoff's array/string length optimization for CTI.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateArrayLengthTrampoline):
+        (KJS::CTI::privateStringLengthTrampoline):
+        * VM/CTI.h:
+        (KJS::CTI::compileArrayLengthTrampoline):
+        (KJS::CTI::compileStringLengthTrampoline):
+        * VM/Machine.cpp:
+        (KJS::Machine::Machine):
+        (KJS::Machine::getCtiArrayLengthTrampoline):
+        (KJS::Machine::getCtiStringLengthTrampoline):
+        (KJS::Machine::tryCtiCacheGetByID):
+        (KJS::Machine::cti_op_get_by_id_second):
+        * VM/Machine.h:
+        * kjs/JSString.h:
+        * kjs/ustring.h:
+
+2008-09-03  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Implement fast array accesses in CTI - 2-3% progression on sunspider.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitFastArithIntToImmNoCheck):
+        (KJS::CTI::compileOpCall):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        * VM/CTI.h:
+        * kjs/JSArray.h:
+
+2008-09-02  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Enable fast property access support in CTI.
+
+        * VM/CTI.cpp:
+        (KJS::ctiSetReturnAddress):
+        (KJS::ctiRepatchCallByReturnAddress):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile):
+        (KJS::CTI::privateCompileGetByIdSelf):
+        (KJS::CTI::privateCompileGetByIdProto):
+        (KJS::CTI::privateCompileGetByIdChain):
+        (KJS::CTI::privateCompilePutByIdReplace):
+        * VM/CTI.h:
+        (KJS::CTI::compileGetByIdSelf):
+        (KJS::CTI::compileGetByIdProto):
+        (KJS::CTI::compileGetByIdChain):
+        (KJS::CTI::compilePutByIdReplace):
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::~CodeBlock):
+        * VM/CodeBlock.h:
+        * VM/Machine.cpp:
+        (KJS::doSetReturnAddressVmThrowTrampoline):
+        (KJS::Machine::tryCtiCachePutByID):
+        (KJS::Machine::tryCtiCacheGetByID):
+        (KJS::Machine::cti_op_put_by_id):
+        (KJS::Machine::cti_op_put_by_id_second):
+        (KJS::Machine::cti_op_put_by_id_generic):
+        (KJS::Machine::cti_op_put_by_id_fail):
+        (KJS::Machine::cti_op_get_by_id):
+        (KJS::Machine::cti_op_get_by_id_second):
+        (KJS::Machine::cti_op_get_by_id_generic):
+        (KJS::Machine::cti_op_get_by_id_fail):
+        (KJS::Machine::cti_op_throw):
+        (KJS::Machine::cti_vm_throw):
+        * VM/Machine.h:
+        * kjs/JSCell.h:
+        * kjs/JSObject.h:
+        * kjs/PropertyMap.h:
+        * kjs/StructureID.cpp:
+        (KJS::StructureIDChain::StructureIDChain):
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::emitCmpl_i32m):
+        (KJS::IA32MacroAssembler::emitMovl_mr):
+        (KJS::IA32MacroAssembler::emitMovl_rm):
+
+2008-09-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Mark Rowe.
+
+        A backslash (\) at the of a RegEx should produce an error.
+        Fixes fast/regex/test1.html.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::parseEscape):
+
+2008-09-02  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Link jumps for the slow case of op_loop_if_less.  Fixes acid3.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Switch WREC on by default.
+
+        * wtf/Platform.h:
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix two failures in fast/regex/test1.html
+          - \- in a character class should be treated as a literal -
+          - A missing max quantifier needs to be treated differently than
+            a null max quantifier.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::generateNonGreedyQuantifier):
+        (KJS::WRECompiler::generateGreedyQuantifier):
+        (KJS::WRECompiler::parseCharacterClass):
+        * wrec/WREC.h:
+        (KJS::Quantifier::Quantifier):
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix crash in fast/js/kde/evil-n.html
+
+        * kjs/regexp.cpp: Always pass a non-null offset vector to the wrec function.
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Mark Rowe.
+
+        Add pattern length limit fixing one test in fast/js.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::compile):
+        * wrec/WREC.h:
+        (KJS::WRECompiler::):
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Mark Rowe.
+
+        Make octal escape parsing/back-reference parsing more closely match 
+        prior behavior fixing one test in fast/js.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::parseCharacterClass): 8 and 9 should be IdentityEscaped
+        (KJS::WRECompiler::parseEscape):
+        * wrec/WREC.h:
+        (KJS::WRECompiler::peekDigit):
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Mark Rowe.
+
+        Fix one mozilla test.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::generateCharacterClassInverted): Fix incorrect not
+        ascii upper check.
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Mark Rowe.
+
+        Parse octal escapes in character classes fixing one mozilla test.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::parseCharacterClass):
+        (KJS::WRECompiler::parseOctalEscape):
+        * wrec/WREC.h:
+        (KJS::WRECompiler::consumeOctal):
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fixes two mozilla tests with WREC enabled.
+
+        * wrec/WREC.cpp:
+        (KJS::CharacterClassConstructor::append): Keep the character class sorted
+        when appending another character class.
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Mark Rowe.
+
+        Fixes two mozilla tests with WREC enabled.
+
+        * wrec/WREC.cpp:
+        (KJS::CharacterClassConstructor::addSortedRange): Insert the range at the correct position
+        instead of appending it to the end.
+
+2008-09-01  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Move cross-compilation unit call into NEVER_INLINE function.
+
+        * VM/Machine.cpp:
+        (KJS::doSetReturnAddressVmThrowTrampoline):
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Fix one test in fast/js.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_construct_NotJSConstruct): Throw a createNotAConstructorError,
+        instead of a createNotAFunctionError.
+
+2008-08-31  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+        
+        Zero-cost exception handling.  This patch takes the exception checking
+        back of the hot path.  When an exception occurs in a Machine::cti*
+        method, the return address to JIT code is recorded, and is then
+        overwritten with a pointer to a trampoline routine.  When the method
+        returns the trampoline will cause the cti_vm_throw method to be invoked.
+
+        cti_vm_throw uses the return address preserved above, to discover the
+        vPC of the bytecode that raised the exception (using a map build during
+        translation).  From the VPC of the faulting bytecode the vPC of a catch
+        routine may be discovered (unwinding the stack where necesary), and then
+        a bytecode address for the catch routine is looked up.  Final cti_vm_throw
+        overwrites its return address to JIT code again, to trampoline directly
+        to the catch routine.
+        
+        cti_op_throw is handled in a similar fashion.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitPutCTIParam):
+        (KJS::CTI::emitPutToCallFrameHeader):
+        (KJS::CTI::emitGetFromCallFrameHeader):
+        (KJS::ctiSetReturnAddressForArgs):
+        (KJS::CTI::emitDebugExceptionCheck):
+        (KJS::CTI::printOpcodeOperandTypes):
+        (KJS::CTI::emitCall):
+        (KJS::CTI::compileOpCall):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        (KJS::CallRecord::CallRecord):
+        (KJS::):
+        (KJS::CTI::execute):
+        * VM/CodeBlock.h:
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        (KJS::Machine::cti_op_instanceof):
+        (KJS::Machine::cti_op_call_NotJSFunction):
+        (KJS::Machine::cti_op_resolve):
+        (KJS::Machine::cti_op_resolve_func):
+        (KJS::Machine::cti_op_resolve_skip):
+        (KJS::Machine::cti_op_resolve_with_base):
+        (KJS::Machine::cti_op_throw):
+        (KJS::Machine::cti_op_in):
+        (KJS::Machine::cti_vm_throw):
+        * VM/RegisterFile.h:
+        (KJS::RegisterFile::):
+        * kjs/ExecState.h:
+        (KJS::ExecState::setCtiReturnAddress):
+        (KJS::ExecState::ctiReturnAddress):
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::):
+        (KJS::IA32MacroAssembler::emitPushl_m):
+        (KJS::IA32MacroAssembler::emitPopl_m):
+        (KJS::IA32MacroAssembler::getRelocatedAddress):
+
+2008-08-31  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fall back to PCRE for any regexp containing parentheses until we correctly backtrack within them.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::parseParentheses):
+        * wrec/WREC.h:
+        (KJS::WRECompiler::):
+
+2008-08-31  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix several issues within ecma_3/RegExp/perlstress-001.js with WREC enabled.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::generateNonGreedyQuantifier): Compare with the maximum quantifier count rather than the minimum.
+        (KJS::WRECompiler::generateAssertionEOL): Do a register-to-register comparison rather than immediate-to-register.
+        (KJS::WRECompiler::parseCharacterClass): Pass through the correct inversion flag.
+
+2008-08-30  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Re-fix the six remaining failures in the Mozilla JavaScript tests in a manner that does not kill performance.
+        This shows up as a 0.6% progression on SunSpider on my machine.
+
+        Grow the JITCodeBuffer's underlying buffer when we run out of space rather than just bailing out.
+
+        * VM/CodeBlock.h:
+        (KJS::CodeBlock::~CodeBlock): Switch to using fastFree now that JITCodeBuffer::copy uses fastMalloc.
+        * kjs/regexp.cpp: Ditto.
+        * masm/IA32MacroAsm.h:
+        (KJS::JITCodeBuffer::growBuffer):
+        (KJS::JITCodeBuffer::JITCodeBuffer):
+        (KJS::JITCodeBuffer::~JITCodeBuffer):
+        (KJS::JITCodeBuffer::putByte):
+        (KJS::JITCodeBuffer::putShort):
+        (KJS::JITCodeBuffer::putInt):
+        (KJS::JITCodeBuffer::reset):
+        (KJS::JITCodeBuffer::copy):
+
+2008-08-29  Oliver Hunt  <oliver@apple.com>
+
+        RS=Maciej
+
+        Roll out previous patch as it causes a 5% performance regression
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp:
+        (KJS::getJCB):
+        (KJS::CTI::privateCompile):
+        * VM/CodeBlock.h:
+        (KJS::CodeBlock::~CodeBlock):
+        * masm/IA32MacroAsm.h:
+        (KJS::JITCodeBuffer::JITCodeBuffer):
+        (KJS::JITCodeBuffer::putByte):
+        (KJS::JITCodeBuffer::putShort):
+        (KJS::JITCodeBuffer::putInt):
+        (KJS::JITCodeBuffer::getEIP):
+        (KJS::JITCodeBuffer::start):
+        (KJS::JITCodeBuffer::getOffset):
+        (KJS::JITCodeBuffer::reset):
+        (KJS::JITCodeBuffer::copy):
+        (KJS::IA32MacroAssembler::emitModRm_rr):
+        (KJS::IA32MacroAssembler::emitModRm_rm):
+        (KJS::IA32MacroAssembler::emitModRm_rmsib):
+        (KJS::IA32MacroAssembler::IA32MacroAssembler):
+        (KJS::IA32MacroAssembler::emitInt3):
+        (KJS::IA32MacroAssembler::emitPushl_r):
+        (KJS::IA32MacroAssembler::emitPopl_r):
+        (KJS::IA32MacroAssembler::emitMovl_rr):
+        (KJS::IA32MacroAssembler::emitAddl_rr):
+        (KJS::IA32MacroAssembler::emitAddl_i8r):
+        (KJS::IA32MacroAssembler::emitAddl_i32r):
+        (KJS::IA32MacroAssembler::emitAddl_mr):
+        (KJS::IA32MacroAssembler::emitAndl_rr):
+        (KJS::IA32MacroAssembler::emitAndl_i32r):
+        (KJS::IA32MacroAssembler::emitCmpl_i8r):
+        (KJS::IA32MacroAssembler::emitCmpl_rr):
+        (KJS::IA32MacroAssembler::emitCmpl_rm):
+        (KJS::IA32MacroAssembler::emitCmpl_i32r):
+        (KJS::IA32MacroAssembler::emitCmpl_i32m):
+        (KJS::IA32MacroAssembler::emitCmpw_rm):
+        (KJS::IA32MacroAssembler::emitOrl_rr):
+        (KJS::IA32MacroAssembler::emitOrl_i8r):
+        (KJS::IA32MacroAssembler::emitSubl_rr):
+        (KJS::IA32MacroAssembler::emitSubl_i8r):
+        (KJS::IA32MacroAssembler::emitSubl_i32r):
+        (KJS::IA32MacroAssembler::emitSubl_mr):
+        (KJS::IA32MacroAssembler::emitTestl_i32r):
+        (KJS::IA32MacroAssembler::emitTestl_rr):
+        (KJS::IA32MacroAssembler::emitXorl_i8r):
+        (KJS::IA32MacroAssembler::emitXorl_rr):
+        (KJS::IA32MacroAssembler::emitSarl_i8r):
+        (KJS::IA32MacroAssembler::emitSarl_CLr):
+        (KJS::IA32MacroAssembler::emitShl_i8r):
+        (KJS::IA32MacroAssembler::emitShll_CLr):
+        (KJS::IA32MacroAssembler::emitMull_rr):
+        (KJS::IA32MacroAssembler::emitIdivl_r):
+        (KJS::IA32MacroAssembler::emitCdq):
+        (KJS::IA32MacroAssembler::emitMovl_mr):
+        (KJS::IA32MacroAssembler::emitMovzwl_mr):
+        (KJS::IA32MacroAssembler::emitMovl_rm):
+        (KJS::IA32MacroAssembler::emitMovl_i32r):
+        (KJS::IA32MacroAssembler::emitMovl_i32m):
+        (KJS::IA32MacroAssembler::emitLeal_mr):
+        (KJS::IA32MacroAssembler::emitRet):
+        (KJS::IA32MacroAssembler::emitJmpN_r):
+        (KJS::IA32MacroAssembler::emitJmpN_m):
+        (KJS::IA32MacroAssembler::emitCall):
+        (KJS::IA32MacroAssembler::label):
+        (KJS::IA32MacroAssembler::emitUnlinkedJmp):
+        (KJS::IA32MacroAssembler::emitUnlinkedJne):
+        (KJS::IA32MacroAssembler::emitUnlinkedJe):
+        (KJS::IA32MacroAssembler::emitUnlinkedJl):
+        (KJS::IA32MacroAssembler::emitUnlinkedJle):
+        (KJS::IA32MacroAssembler::emitUnlinkedJge):
+        (KJS::IA32MacroAssembler::emitUnlinkedJae):
+        (KJS::IA32MacroAssembler::emitUnlinkedJo):
+        (KJS::IA32MacroAssembler::link):
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::compilePattern):
+        (KJS::WRECompiler::compile):
+        * wrec/WREC.h:
+
+2008-08-29  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Have JITCodeBuffer manage a Vector containing the generated code so that it can grow
+        as needed when generating code for a large function.  This fixes all six remaining failures
+        in Mozilla tests in both debug and release builds.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile):
+        * VM/CodeBlock.h:
+        (KJS::CodeBlock::~CodeBlock):
+        * masm/IA32MacroAsm.h:
+        (KJS::JITCodeBuffer::putByte):
+        (KJS::JITCodeBuffer::putShort):
+        (KJS::JITCodeBuffer::putInt):
+        (KJS::JITCodeBuffer::getEIP):
+        (KJS::JITCodeBuffer::start):
+        (KJS::JITCodeBuffer::getOffset):
+        (KJS::JITCodeBuffer::getCode):
+        (KJS::IA32MacroAssembler::emitModRm_rr):
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::compilePattern):
+        * wrec/WREC.h:
+
+2008-08-29  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Implement parsing of octal escapes in regular expressions.  This fixes three Mozilla tests.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::parseOctalEscape):
+        (KJS::WRECompiler::parseEscape): Parse the escape sequence as an octal escape if it has a leading zero.
+        Add a FIXME about treating invalid backreferences as octal escapes in the future.
+        * wrec/WREC.h:
+        (KJS::WRECompiler::consumeNumber): Multiply by 10 rather than 0 so that we handle numbers with more than
+        one digit.
+        * wtf/ASCIICType.h:
+        (WTF::isASCIIOctalDigit):
+
+2008-08-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Pass vPC to instanceof method.  Fixes 2 mozilla tests in debug.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_instanceof):
+
+2008-08-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Pass vPCs to resolve methods for correct exception creation.  Fixes
+        17 mozilla tests in debug.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_resolve):
+        (KJS::Machine::cti_op_resolve_func):
+        (KJS::Machine::cti_op_resolve_skip):
+        (KJS::Machine::cti_op_resolve_with_base):
+
+2008-08-29  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Remembering to actually throw the exception passed to op throw helps.
+        Regressions 19 -> 6.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_throw):
+        (KJS::Machine::cti_vm_throw):
+
+2008-08-29  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Support for exception unwinding the stack.
+        
+        Once upon a time, Sam asked me for a bettr ChangeLog entry.  The return address
+        is now preserved on entry to a JIT code function (if we preserve lazily we need
+        restore the native return address during exception stack unwind).  This takes
+        the number of regressions down from ~150 to 19.
+
+        * VM/CTI.cpp:
+        (KJS::getJCB):
+        (KJS::CTI::emitExceptionCheck):
+        (KJS::CTI::compileOpCall):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        (KJS::):
+        * VM/Machine.cpp:
+        (KJS::Machine::throwException):
+        (KJS::Machine::cti_op_call_JSFunction):
+        (KJS::Machine::cti_op_call_NotJSFunction):
+        (KJS::Machine::cti_op_construct_JSConstruct):
+        (KJS::Machine::cti_op_construct_NotJSConstruct):
+        (KJS::Machine::cti_op_throw):
+        (KJS::Machine::cti_vm_throw):
+
+2008-08-29  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix js1_2/regexp/word_boundary.js and four other Mozilla tests with WREC enabled.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::generateCharacterClassInvertedRange): If none of the exact matches
+        succeeded, jump to failure.
+        (KJS::WRECompiler::compilePattern): Restore and increment the current position stored
+        on the stack to ensure that it will be reset to the correct position after a failed
+        match has consumed input.
+
+2008-08-29  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix a hang in ecma_3/RegExp/15.10.2-1.js with WREC enabled.
+        A backreference with a quantifier would get stuck in an infinite
+        loop if the captured range was empty.
+
+        * wrec/WREC.cpp:
+        (KJS::WRECompiler::generateBackreferenceQuantifier): If the captured range
+        was empty, do not attempt to match the backreference.
+        (KJS::WRECompiler::parseBackreferenceQuantifier):
+        * wrec/WREC.h:
+        (KJS::Quantifier::):
+
+2008-08-28  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Implement op_debug.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::debug):
+        (KJS::Machine::privateExecute):
+        (KJS::Machine::cti_op_debug):
+        * VM/Machine.h:
+
+2008-08-28  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Implement op_switch_string fixing 1 mozilla test and one test in fast/js.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        (KJS::SwitchRecord::):
+        (KJS::SwitchRecord::SwitchRecord):
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::dump):
+        * VM/CodeBlock.h:
+        (KJS::ExpressionRangeInfo::):
+        (KJS::StringJumpTable::offsetForValue):
+        (KJS::StringJumpTable::ctiForValue):
+        (KJS::SimpleJumpTable::add):
+        (KJS::SimpleJumpTable::ctiForValue):
+        * VM/CodeGenerator.cpp:
+        (KJS::prepareJumpTableForStringSwitch):
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        (KJS::Machine::cti_op_switch_string):
+        * VM/Machine.h:
+
+2008-08-28  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Do not recurse on the machine stack when executing op_call.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitGetPutArg):
+        (KJS::CTI::emitPutArg):
+        (KJS::CTI::emitPutArgConstant):
+        (KJS::CTI::compileOpCall):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        (KJS::):
+        (KJS::CTI::compile):
+        (KJS::CTI::execute):
+        (KJS::CTI::):
+        * VM/Machine.cpp:
+        (KJS::Machine::Machine):
+        (KJS::Machine::execute):
+        (KJS::Machine::cti_op_call_JSFunction):
+        (KJS::Machine::cti_op_call_NotJSFunction):
+        (KJS::Machine::cti_op_ret):
+        (KJS::Machine::cti_op_construct_JSConstruct):
+        (KJS::Machine::cti_op_construct_NotJSConstruct):
+        (KJS::Machine::cti_op_call_eval):
+        * VM/Machine.h:
+        * VM/Register.h:
+        (KJS::Register::Register):
+        * VM/RegisterFile.h:
+        (KJS::RegisterFile::):
+        * kjs/InternalFunction.h:
+        (KJS::InternalFunction::InternalFunction):
+        * kjs/JSFunction.h:
+        (KJS::JSFunction::JSFunction):
+        * kjs/ScopeChain.h:
+        (KJS::ScopeChain::ScopeChain):
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::):
+        (KJS::IA32MacroAssembler::emitModRm_opm):
+        (KJS::IA32MacroAssembler::emitCmpl_i32m):
+        (KJS::IA32MacroAssembler::emitCallN_r):
+
+2008-08-28  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Exit instead of crashing in ctiUnsupported and ctiTimedOut.
+
+        * VM/Machine.cpp:
+        (KJS::ctiUnsupported):
+        (KJS::ctiTimedOut):
+
+2008-08-28  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Implement codegen for op_jsr and op_sret.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        (KJS::CTI::JSRInfo::JSRInfo):
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::emitJmpN_m):
+        (KJS::IA32MacroAssembler::linkAbsoluteAddress):
+
+2008-08-28  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Initial support for exceptions (throw / catch must occur in same CodeBlock).
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitExceptionCheck):
+        (KJS::CTI::emitCall):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::nativeExceptionCodeForHandlerVPC):
+        * VM/CodeBlock.h:
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::emitCatch):
+        * VM/Machine.cpp:
+        (KJS::Machine::throwException):
+        (KJS::Machine::privateExecute):
+        (KJS::ctiUnsupported):
+        (KJS::ctiTimedOut):
+        (KJS::Machine::cti_op_add):
+        (KJS::Machine::cti_op_pre_inc):
+        (KJS::Machine::cti_timeout_check):
+        (KJS::Machine::cti_op_loop_if_less):
+        (KJS::Machine::cti_op_put_by_id):
+        (KJS::Machine::cti_op_get_by_id):
+        (KJS::Machine::cti_op_instanceof):
+        (KJS::Machine::cti_op_del_by_id):
+        (KJS::Machine::cti_op_mul):
+        (KJS::Machine::cti_op_call):
+        (KJS::Machine::cti_op_resolve):
+        (KJS::Machine::cti_op_construct):
+        (KJS::Machine::cti_op_get_by_val):
+        (KJS::Machine::cti_op_resolve_func):
+        (KJS::Machine::cti_op_sub):
+        (KJS::Machine::cti_op_put_by_val):
+        (KJS::Machine::cti_op_lesseq):
+        (KJS::Machine::cti_op_loop_if_true):
+        (KJS::Machine::cti_op_negate):
+        (KJS::Machine::cti_op_resolve_skip):
+        (KJS::Machine::cti_op_div):
+        (KJS::Machine::cti_op_pre_dec):
+        (KJS::Machine::cti_op_jless):
+        (KJS::Machine::cti_op_not):
+        (KJS::Machine::cti_op_jtrue):
+        (KJS::Machine::cti_op_post_inc):
+        (KJS::Machine::cti_op_eq):
+        (KJS::Machine::cti_op_lshift):
+        (KJS::Machine::cti_op_bitand):
+        (KJS::Machine::cti_op_rshift):
+        (KJS::Machine::cti_op_bitnot):
+        (KJS::Machine::cti_op_resolve_with_base):
+        (KJS::Machine::cti_op_mod):
+        (KJS::Machine::cti_op_less):
+        (KJS::Machine::cti_op_neq):
+        (KJS::Machine::cti_op_post_dec):
+        (KJS::Machine::cti_op_urshift):
+        (KJS::Machine::cti_op_bitxor):
+        (KJS::Machine::cti_op_bitor):
+        (KJS::Machine::cti_op_call_eval):
+        (KJS::Machine::cti_op_throw):
+        (KJS::Machine::cti_op_push_scope):
+        (KJS::Machine::cti_op_stricteq):
+        (KJS::Machine::cti_op_nstricteq):
+        (KJS::Machine::cti_op_to_jsnumber):
+        (KJS::Machine::cti_op_in):
+        (KJS::Machine::cti_op_del_by_val):
+        (KJS::Machine::cti_vm_throw):
+        * VM/Machine.h:
+        * kjs/ExecState.h:
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::emitCmpl_i32m):
+
+2008-08-28  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Print debugging info to stderr so that run-webkit-tests can capture it.
+        This makes it easy to check whether test failures are due to unimplemented
+        op codes, missing support for exceptions, etc.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::printOpcodeOperandTypes):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        (KJS::CTI::privateCompile):
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        (KJS::ctiException):
+        (KJS::ctiUnsupported):
+        (KJS::Machine::cti_op_call):
+        (KJS::Machine::cti_op_resolve):
+        (KJS::Machine::cti_op_construct):
+        (KJS::Machine::cti_op_get_by_val):
+        (KJS::Machine::cti_op_resolve_func):
+        (KJS::Machine::cti_op_resolve_skip):
+        (KJS::Machine::cti_op_resolve_with_base):
+        (KJS::Machine::cti_op_call_eval):
+
+2008-08-27  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Gavin Barraclough and Maciej Stachowiak.
+
+        Fix fast/js/bitwise-and-on-undefined.html.
+
+        A temporary value in the slow path of op_bitand was being stored in edx, but was
+        being clobbered by emitGetPutArg before we used it.  To fix this, emitGetPutArg
+        now takes a third argument that specifies the scratch register to use when loading
+        from memory.  This allows us to avoid clobbering the temporary in op_bitand.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitGetPutArg):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        * VM/CTI.h:
+
+2008-08-27  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Switch CTI on by default.
+
+        * wtf/Platform.h:
+
+2008-08-27  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix the build of the full WebKit stack.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Mark two new headers as private so they can be pulled in from WebCore.
+        * VM/CTI.h: Fix build issues that show up when compiled with GCC 4.2 as part of WebCore.
+        * wrec/WREC.h: Ditto.
+
+2008-08-27  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Implement op_new_error.  Does not fix any tests as it is always followed by the unimplemented op_throw.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_new_error):
+        * VM/Machine.h:
+
+2008-08-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Implement op_put_getter and op_put_setter.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_put_getter):
+        (KJS::Machine::cti_op_put_setter):
+        * VM/Machine.h:
+
+2008-08-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Implement op_del_by_val fixing 3 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_del_by_val):
+        * VM/Machine.h:
+
+2008-08-27  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Quick & dirty fix to get SamplingTool sampling op_call.
+
+        * VM/SamplingTool.h:
+        (KJS::SamplingTool::callingHostFunction):
+
+2008-08-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Fix op_put_by_index.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass2_Main): Use emitPutArgConstant instead of emitGetPutArg
+        for the property value.
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_put_by_index): Get the property value from the correct argument.
+
+2008-08-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Implement op_switch_imm in the CTI fixing 13 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_switch_imm):
+        * VM/Machine.h:
+
+2008-08-27  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Implement op_switch_char in CTI.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitCall):
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        (KJS::CallRecord::CallRecord):
+        (KJS::SwitchRecord::SwitchRecord):
+        * VM/CodeBlock.h:
+        (KJS::SimpleJumpTable::SimpleJumpTable::ctiForValue):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_switch_char):
+        * VM/Machine.h:
+        * masm/IA32MacroAsm.h:
+        (KJS::IA32MacroAssembler::):
+        (KJS::IA32MacroAssembler::emitJmpN_r):
+        (KJS::IA32MacroAssembler::getRelocatedAddress):
+        * wtf/Platform.h:
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Implement op_put_by_index to fix 1 mozilla test.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_put_by_index):
+        * VM/Machine.h:
+
+2008-08-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        More fixes from Geoff's review.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::emitGetArg):
+        (KJS::CTI::emitGetPutArg):
+        (KJS::CTI::emitPutArg):
+        (KJS::CTI::emitPutArgConstant):
+        (KJS::CTI::getConstantImmediateNumericArg):
+        (KJS::CTI::emitGetCTIParam):
+        (KJS::CTI::emitPutResult):
+        (KJS::CTI::emitCall):
+        (KJS::CTI::emitJumpSlowCaseIfNotImm):
+        (KJS::CTI::emitJumpSlowCaseIfNotImms):
+        (KJS::CTI::getDeTaggedConstantImmediate):
+        (KJS::CTI::emitFastArithDeTagImmediate):
+        (KJS::CTI::emitFastArithReTagImmediate):
+        (KJS::CTI::emitFastArithPotentiallyReTagImmediate):
+        (KJS::CTI::emitFastArithImmToInt):
+        (KJS::CTI::emitFastArithIntToImmOrSlowCase):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+
+2008-08-26  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Implement op_jmp_scopes to fix 2 Mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_push_new_scope): Update ExecState::m_scopeChain after calling ARG_setScopeChain.
+        (KJS::Machine::cti_op_jmp_scopes):
+        * VM/Machine.h:
+
+2008-08-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        WebKit Regular Expression Compiler. (set ENABLE_WREC = 1 in Platform.h).
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/regexp.cpp:
+        * kjs/regexp.h:
+        * wrec: Added.
+        * wrec/WREC.cpp: Added.
+        * wrec/WREC.h: Added.
+        * wtf/Platform.h:
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Remove bogus assertion.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_del_by_id):
+
+2008-08-26  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Implement op_push_new_scope and stub out op_catch.  This fixes 11 Mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_push_new_scope):
+        (KJS::Machine::cti_op_catch):
+        * VM/Machine.h:
+
+2008-08-26  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Clean up op_resolve_base so that it shares its implementation with the bytecode interpreter.
+
+        * VM/Machine.cpp:
+        (KJS::inlineResolveBase):
+        (KJS::resolveBase):
+
+2008-08-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add codegen support for op_instanceof, fixing 15 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_instanceof):
+        (KJS::Machine::cti_op_del_by_id):
+        * VM/Machine.h:
+        * wtf/Platform.h:
+
+2008-08-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Fixes for initial review comments.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::ctiCompileGetArg):
+        (KJS::CTI::ctiCompileGetPutArg):
+        (KJS::CTI::ctiCompilePutResult):
+        (KJS::CTI::ctiCompileCall):
+        (KJS::CTI::CTI):
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::printOpcodeOperandTypes):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h:
+        * VM/Register.h:
+        * kjs/JSValue.h:
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Fix up exception checking code.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_call):
+        (KJS::Machine::cti_op_resolve):
+        (KJS::Machine::cti_op_construct):
+        (KJS::Machine::cti_op_resolve_func):
+        (KJS::Machine::cti_op_resolve_skip):
+        (KJS::Machine::cti_op_resolve_with_base):
+        (KJS::Machine::cti_op_call_eval):
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix slowcase for op_post_inc and op_post_dec fixing 2 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+
+2008-08-26  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Implement op_in, fixing 8 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_in):
+        * VM/Machine.h:
+
+2008-08-26  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Don't hardcode the size of a Register for op_new_array.  Fixes a crash
+        seen during the Mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass2_Main):
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Add support for op_push_scope and op_pop_scope, fixing 20 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_push_scope):
+        (KJS::Machine::cti_op_pop_scope):
+        * VM/Machine.h:
+
+2008-08-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Add codegen support for op_del_by_id, fixing 49 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+        * VM/Machine.cpp:
+        (KJS::Machine::cti_op_del_by_id):
+        * VM/Machine.h:
+
+2008-08-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough and Geoff Garen.
+
+        Don't hardcode the size of a Register for op_get_scoped_var and op_put_scoped_var 
+        fixing 513 mozilla tests in debug build.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass2_Main):
+
+2008-08-26  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+        
+        Added code generator support for op_loop, fixing around 60 mozilla tests.
+
+        * VM/CTI.cpp:
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::privateCompile_pass2_Main):
+
+2008-08-26  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Set -fomit-frame-pointer in the correct location.
+
+        * Configurations/JavaScriptCore.xcconfig:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-08-26  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+        
+        Inital cut of CTI, Geoff's review fixes to follow.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp: Added.
+        (KJS::getJCB):
+        (KJS::CTI::ctiCompileGetArg):
+        (KJS::CTI::ctiCompileGetPutArg):
+        (KJS::CTI::ctiCompilePutArg):
+        (KJS::CTI::ctiCompilePutArgImm):
+        (KJS::CTI::ctiImmediateNumericArg):
+        (KJS::CTI::ctiCompileGetCTIParam):
+        (KJS::CTI::ctiCompilePutResult):
+        (KJS::CTI::ctiCompileCall):
+        (KJS::CTI::slowCaseIfNotImm):
+        (KJS::CTI::slowCaseIfNotImms):
+        (KJS::CTI::ctiFastArithDeTagConstImmediate):
+        (KJS::CTI::ctiFastArithDeTagImmediate):
+        (KJS::CTI::ctiFastArithReTagImmediate):
+        (KJS::CTI::ctiFastArithPotentiallyReTagImmediate):
+        (KJS::CTI::ctiFastArithImmToInt):
+        (KJS::CTI::ctiFastArithIntToImmOrSlowCase):
+        (KJS::CTI::CTI):
+        (KJS::CTI::privateCompile_pass1_Scan):
+        (KJS::CTI::ctiCompileAdd):
+        (KJS::CTI::ctiCompileAddImm):
+        (KJS::CTI::ctiCompileAddImmNotInt):
+        (KJS::CTI::TEMP_HACK_PRINT_TYPES):
+        (KJS::CTI::privateCompile_pass2_Main):
+        (KJS::CTI::privateCompile_pass3_Link):
+        (KJS::CTI::privateCompile_pass4_SlowCases):
+        (KJS::CTI::privateCompile):
+        * VM/CTI.h: Added.
+        (KJS::CTI2Result::CTI2Result):
+        (KJS::CallRecord::CallRecord):
+        (KJS::JmpTable::JmpTable):
+        (KJS::SlowCaseEntry::SlowCaseEntry):
+        (KJS::CTI::compile):
+        (KJS::CTI::LabelInfo::LabelInfo):
+        * VM/CodeBlock.h:
+        (KJS::CodeBlock::CodeBlock):
+        (KJS::CodeBlock::~CodeBlock):
+        * VM/Machine.cpp:
+        (KJS::Machine::execute):
+        (KJS::Machine::privateExecute):
+        (KJS::ctiException):
+        (KJS::ctiUnsupported):
+        (KJS::ctiTimedOut):
+        (KJS::Machine::cti_op_end):
+        (KJS::Machine::cti_op_add):
+        (KJS::Machine::cti_op_pre_inc):
+        (KJS::Machine::cti_timeout_check):
+        (KJS::Machine::cti_op_loop_if_less):
+        (KJS::Machine::cti_op_new_object):
+        (KJS::Machine::cti_op_put_by_id):
+        (KJS::Machine::cti_op_get_by_id):
+        (KJS::Machine::cti_op_mul):
+        (KJS::Machine::cti_op_new_func):
+        (KJS::Machine::cti_op_call):
+        (KJS::Machine::cti_op_ret):
+        (KJS::Machine::cti_op_new_array):
+        (KJS::Machine::cti_op_resolve):
+        (KJS::Machine::cti_op_construct):
+        (KJS::Machine::cti_op_get_by_val):
+        (KJS::Machine::cti_op_resolve_func):
+        (KJS::Machine::cti_op_sub):
+        (KJS::Machine::cti_op_put_by_val):
+        (KJS::Machine::cti_op_lesseq):
+        (KJS::Machine::cti_op_loop_if_true):
+        (KJS::Machine::cti_op_negate):
+        (KJS::Machine::cti_op_resolve_base):
+        (KJS::Machine::cti_op_resolve_skip):
+        (KJS::Machine::cti_op_div):
+        (KJS::Machine::cti_op_pre_dec):
+        (KJS::Machine::cti_op_jless):
+        (KJS::Machine::cti_op_not):
+        (KJS::Machine::cti_op_jtrue):
+        (KJS::Machine::cti_op_post_inc):
+        (KJS::Machine::cti_op_eq):
+        (KJS::Machine::cti_op_lshift):
+        (KJS::Machine::cti_op_bitand):
+        (KJS::Machine::cti_op_rshift):
+        (KJS::Machine::cti_op_bitnot):
+        (KJS::Machine::cti_op_resolve_with_base):
+        (KJS::Machine::cti_op_new_func_exp):
+        (KJS::Machine::cti_op_mod):
+        (KJS::Machine::cti_op_less):
+        (KJS::Machine::cti_op_neq):
+        (KJS::Machine::cti_op_post_dec):
+        (KJS::Machine::cti_op_urshift):
+        (KJS::Machine::cti_op_bitxor):
+        (KJS::Machine::cti_op_new_regexp):
+        (KJS::Machine::cti_op_bitor):
+        (KJS::Machine::cti_op_call_eval):
+        (KJS::Machine::cti_op_throw):
+        (KJS::Machine::cti_op_get_pnames):
+        (KJS::Machine::cti_op_next_pname):
+        (KJS::Machine::cti_op_typeof):
+        (KJS::Machine::cti_op_stricteq):
+        (KJS::Machine::cti_op_nstricteq):
+        (KJS::Machine::cti_op_to_jsnumber):
+        * VM/Machine.h:
+        * VM/Register.h:
+        (KJS::Register::jsValue):
+        (KJS::Register::getJSValue):
+        (KJS::Register::codeBlock):
+        (KJS::Register::scopeChain):
+        (KJS::Register::i):
+        (KJS::Register::r):
+        (KJS::Register::vPC):
+        (KJS::Register::jsPropertyNameIterator):
+        * VM/SamplingTool.cpp:
+        (KJS::):
+        (KJS::SamplingTool::run):
+        (KJS::SamplingTool::dump):
+        * VM/SamplingTool.h:
+        * kjs/JSImmediate.h:
+        (KJS::JSImmediate::zeroImmediate):
+        (KJS::JSImmediate::oneImmediate):
+        * kjs/JSValue.h:
+        * kjs/JSVariableObject.h:
+        (KJS::JSVariableObject::JSVariableObjectData::offsetOf_registers):
+        (KJS::JSVariableObject::offsetOf_d):
+        (KJS::JSVariableObject::offsetOf_Data_registers):
+        * masm: Added.
+        * masm/IA32MacroAsm.h: Added.
+        (KJS::JITCodeBuffer::JITCodeBuffer):
+        (KJS::JITCodeBuffer::putByte):
+        (KJS::JITCodeBuffer::putShort):
+        (KJS::JITCodeBuffer::putInt):
+        (KJS::JITCodeBuffer::getEIP):
+        (KJS::JITCodeBuffer::start):
+        (KJS::JITCodeBuffer::getOffset):
+        (KJS::JITCodeBuffer::reset):
+        (KJS::JITCodeBuffer::copy):
+        (KJS::IA32MacroAssembler::):
+        (KJS::IA32MacroAssembler::emitModRm_rr):
+        (KJS::IA32MacroAssembler::emitModRm_rm):
+        (KJS::IA32MacroAssembler::emitModRm_rmsib):
+        (KJS::IA32MacroAssembler::emitModRm_opr):
+        (KJS::IA32MacroAssembler::emitModRm_opm):
+        (KJS::IA32MacroAssembler::IA32MacroAssembler):
+        (KJS::IA32MacroAssembler::emitInt3):
+        (KJS::IA32MacroAssembler::emitPushl_r):
+        (KJS::IA32MacroAssembler::emitPopl_r):
+        (KJS::IA32MacroAssembler::emitMovl_rr):
+        (KJS::IA32MacroAssembler::emitAddl_rr):
+        (KJS::IA32MacroAssembler::emitAddl_i8r):
+        (KJS::IA32MacroAssembler::emitAddl_i32r):
+        (KJS::IA32MacroAssembler::emitAddl_mr):
+        (KJS::IA32MacroAssembler::emitAndl_rr):
+        (KJS::IA32MacroAssembler::emitAndl_i32r):
+        (KJS::IA32MacroAssembler::emitCmpl_i8r):
+        (KJS::IA32MacroAssembler::emitCmpl_rr):
+        (KJS::IA32MacroAssembler::emitCmpl_rm):
+        (KJS::IA32MacroAssembler::emitCmpl_i32r):
+        (KJS::IA32MacroAssembler::emitCmpw_rm):
+        (KJS::IA32MacroAssembler::emitOrl_rr):
+        (KJS::IA32MacroAssembler::emitOrl_i8r):
+        (KJS::IA32MacroAssembler::emitSubl_rr):
+        (KJS::IA32MacroAssembler::emitSubl_i8r):
+        (KJS::IA32MacroAssembler::emitSubl_i32r):
+        (KJS::IA32MacroAssembler::emitSubl_mr):
+        (KJS::IA32MacroAssembler::emitTestl_i32r):
+        (KJS::IA32MacroAssembler::emitTestl_rr):
+        (KJS::IA32MacroAssembler::emitXorl_i8r):
+        (KJS::IA32MacroAssembler::emitXorl_rr):
+        (KJS::IA32MacroAssembler::emitSarl_i8r):
+        (KJS::IA32MacroAssembler::emitSarl_CLr):
+        (KJS::IA32MacroAssembler::emitShl_i8r):
+        (KJS::IA32MacroAssembler::emitShll_CLr):
+        (KJS::IA32MacroAssembler::emitMull_rr):
+        (KJS::IA32MacroAssembler::emitIdivl_r):
+        (KJS::IA32MacroAssembler::emitCdq):
+        (KJS::IA32MacroAssembler::emitMovl_mr):
+        (KJS::IA32MacroAssembler::emitMovzwl_mr):
+        (KJS::IA32MacroAssembler::emitMovl_rm):
+        (KJS::IA32MacroAssembler::emitMovl_i32r):
+        (KJS::IA32MacroAssembler::emitMovl_i32m):
+        (KJS::IA32MacroAssembler::emitLeal_mr):
+        (KJS::IA32MacroAssembler::emitRet):
+        (KJS::IA32MacroAssembler::JmpSrc::JmpSrc):
+        (KJS::IA32MacroAssembler::JmpDst::JmpDst):
+        (KJS::IA32MacroAssembler::emitCall):
+        (KJS::IA32MacroAssembler::label):
+        (KJS::IA32MacroAssembler::emitUnlinkedJmp):
+        (KJS::IA32MacroAssembler::emitUnlinkedJne):
+        (KJS::IA32MacroAssembler::emitUnlinkedJe):
+        (KJS::IA32MacroAssembler::emitUnlinkedJl):
+        (KJS::IA32MacroAssembler::emitUnlinkedJle):
+        (KJS::IA32MacroAssembler::emitUnlinkedJge):
+        (KJS::IA32MacroAssembler::emitUnlinkedJae):
+        (KJS::IA32MacroAssembler::emitUnlinkedJo):
+        (KJS::IA32MacroAssembler::emitPredictionNotTaken):
+        (KJS::IA32MacroAssembler::link):
+        (KJS::IA32MacroAssembler::copy):
+        * wtf/Platform.h:
+
+2008-08-26  Oliver Hunt  <oliver@apple.com>
+
+        RS=Maciej.
+
+        Enabled -fomit-frame-pointer on Release and Production builds, add additional Profiling build config for shark, etc.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+=== Start merge of squirrelfish-extreme ===
+
+2008-09-06  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix the Mac Debug build by adding symbols that are exported only in a
+        Debug configuration.
+
+        * Configurations/JavaScriptCore.xcconfig:
+        * DerivedSources.make:
+        * JavaScriptCore.Debug.exp: Added.
+        * JavaScriptCore.base.exp: Copied from JavaScriptCore.exp.
+        * JavaScriptCore.exp: Removed.
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-09-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20681
+          JSPropertyNameIterator functions need to be inlined
+
+        1.007x as fast on SunSpider overall
+        1.081x as fast on SunSpider math-cordic
+
+        * VM/JSPropertyNameIterator.cpp: Moved functions out of here.
+        * VM/JSPropertyNameIterator.h:
+        (KJS::JSPropertyNameIterator::JSPropertyNameIterator): Moved
+        this into the header and marked it inline.
+        (KJS::JSPropertyNameIterator::create): Ditto.
+        (KJS::JSPropertyNameIterator::next): Ditto.
+
+2008-09-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=20673
+          single-character strings are churning in the Identifier table
+
+        1.007x as fast on SunSpider overall
+        1.167x as fast on SunSpider string-fasta
+
+        * JavaScriptCore.exp: Updated.
+        * kjs/SmallStrings.cpp:
+        (KJS::SmallStrings::singleCharacterStringRep): Added.
+        * kjs/SmallStrings.h: Added singleCharacterStringRep for clients that
+        need just a UString, not a JSString.
+        * kjs/identifier.cpp:
+        (KJS::Identifier::add): Added special cases for single character strings
+        so that the UString::Rep that ends up in the identifier table is the one
+        from the single-character string optimization; otherwise we end up having
+        to look it up in the identifier table over and over again.
+        (KJS::Identifier::addSlowCase): Ditto.
+        (KJS::Identifier::checkSameIdentifierTable): Made this function an empty
+        inline in release builds so that callers don't have to put #ifndef NDEBUG
+        at each call site.
+        * kjs/identifier.h:
+        (KJS::Identifier::add): Removed #ifndef NDEBUG around the calls to
+        checkSameIdentifierTable.
+        (KJS::Identifier::checkSameIdentifierTable): Added. Empty inline version
+        for NDEBUG builds.
+
+2008-09-05  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * kjs/JSObject.h: Move the inline virtual destructor after a non-inline
+        virtual function so that the symbol for the vtable is not marked as a
+        weakly exported symbol.
+
+2008-09-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=20671
+          JavaScriptCore string manipulation spends too much time in memcpy
+
+        1.011x as fast on SunSpider overall
+        1.028x as fast on SunSpider string tests
+
+        For small strings, use a loop rather than calling memcpy. The loop can
+        be faster because there's no function call overhead, and because it can
+        assume the pointers are aligned instead of checking that. Currently the
+        threshold is set at 20 characters, based on some testing on one particular
+        computer. Later we can tune this for various platforms by setting
+        USTRING_COPY_CHARS_INLINE_CUTOFF appropriately, but it does no great harm
+        if not perfectly tuned.
+
+        * kjs/ustring.cpp:
+        (KJS::overflowIndicator): Removed bogus const.
+        (KJS::maxUChars): Ditto.
+        (KJS::copyChars): Added.
+        (KJS::UString::Rep::createCopying): Call copyChars instead of memcpy.
+        Also eliminated need for const_cast.
+        (KJS::UString::expandPreCapacity): Ditto.
+        (KJS::concatenate): Ditto.
+        (KJS::UString::spliceSubstringsWithSeparators): Ditto.
+        (KJS::UString::append): Ditto.
+
+2008-09-05  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Sam and Alexey.
+
+        Make the profiler work with a null exec state.  This will allow other
+        applications start the profiler to get DTrace probes going without
+        needing a WebView.
+
+        * ChangeLog:
+        * profiler/ProfileGenerator.cpp:
+        (KJS::ProfileGenerator::ProfileGenerator):
+        (KJS::ProfileGenerator::willExecute):
+        (KJS::ProfileGenerator::didExecute):
+        * profiler/Profiler.cpp:
+        (KJS::Profiler::startProfiling):
+        (KJS::Profiler::stopProfiling):
+        (KJS::dispatchFunctionToProfiles):
+
+2008-09-04  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoffrey Garen.
+        
+        Fixed an off-by-one error that would cause the StructureIDChain to
+        be one object too short.
+        
+        Can't construct a test case because other factors make this not crash
+        (yet!).
+
+        * kjs/StructureID.cpp:
+        (KJS::StructureIDChain::StructureIDChain):
+
+2008-09-04  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes.
+
+        * JavaScriptCoreSources.bkl:
+
+2008-09-04  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=20639.
+        Bug 20639: ENABLE_DASHBOARD_SUPPORT does not need to be a FEATURE_DEFINE
+
+        * Configurations/JavaScriptCore.xcconfig: Remove ENABLE_DASHBOARD_SUPPORT from FEATURE_DEFINES.
+        * wtf/Platform.h: Set ENABLE_DASHBOARD_SUPPORT for PLATFORM(MAC).
+
+2008-09-04  Adele Peterson  <adele@apple.com>
+
+        Build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj:
+
+2008-09-04  Mark Rowe  <mrowe@apple.com>
+
+        Mac build fix.
+
+        * kjs/config.h: Only check the value of HAVE_CONFIG_H if it is defined.
+
+2008-09-04  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Eric Seidel.
+
+        http://bugs.webkit.org/show_bug.cgi?id=20380
+        [GTK][AUTOTOOLS] Include autotoolsconfig.h from config.h
+
+        * kjs/config.h: Include the configuration header generated by
+        autotools if available.
+
+2008-09-04  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix the QtWebKit build to match changes in r36016
+
+        * JavaScriptCore.pri:
+
+2008-09-04  Mark Rowe  <mrowe@apple.com>
+
+        Fix the 64-bit build.
+
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::printStructureID): Store the instruction offset into an unsigned local
+        to avoid a warning related to format specifiers.
+        (KJS::CodeBlock::printStructureIDs): Ditto.
+
+2008-09-04  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Oliver Hunt.
+
+        Correct the spelling of 'entryIndices'.
+
+        * kjs/PropertyMap.cpp:
+        (KJS::PropertyMap::get):
+        (KJS::PropertyMap::getLocation):
+        (KJS::PropertyMap::put):
+        (KJS::PropertyMap::insert):
+        (KJS::PropertyMap::remove):
+        (KJS::PropertyMap::checkConsistency):
+        * kjs/PropertyMap.h:
+        (KJS::PropertyMapHashTable::entries):
+        (KJS::PropertyMap::getOffset):
+        (KJS::PropertyMap::putOffset):
+        (KJS::PropertyMap::offsetForTableLocation):
+
+2008-09-03  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        Fixed <rdar://problem/6193925> REGRESSION: Crash occurs at
+        KJS::Machine::privateExecute() when attempting to load my Mobile Gallery
+        (http://www.me.com/gallery/#home)
+        
+        also
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20633 Crash in privateExecute
+        @ cs.byu.edu
+        
+        The underlying problem was that we would cache prototype properties
+        even if the prototype was a dictionary.
+        
+        The fix is to transition a prototype back from dictionary to normal
+        status when an opcode caches access to it. (This is better than just
+        refusing to cache, since a heavily accessed prototype is almost
+        certainly not a true dictionary.)
+
+        * VM/Machine.cpp:
+        (KJS::Machine::tryCacheGetByID):
+        * kjs/JSObject.h:
+
+2008-09-03  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam.
+
+        Clean up Platform.h and add PLATFORM(CHROMIUM), PLATFORM(SKIA) and USE(V8_BINDINGS)
+
+        * Configurations/JavaScriptCore.xcconfig: add missing ENABLE_*
+        * wtf/ASCIICType.h: include <wtf/Assertions.h> since it depends on it.
+        * wtf/Platform.h:
+
+2008-09-03  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        Remove the rest of the "zombie" code from the profiler.
+        - There is no longer a need for the ProfilerClient callback mechanism.
+
+        * API/JSProfilerPrivate.cpp:
+        (JSStartProfiling):
+        * JavaScriptCore.exp:
+        * profiler/HeavyProfile.h:
+        * profiler/ProfileGenerator.cpp:
+        (KJS::ProfileGenerator::create):
+        (KJS::ProfileGenerator::ProfileGenerator):
+        * profiler/ProfileGenerator.h:
+        (KJS::ProfileGenerator::profileGroup):
+        * profiler/Profiler.cpp:
+        (KJS::Profiler::startProfiling):
+        (KJS::Profiler::stopProfiling): Immediately return the profile when
+        stopped instead of using a callback.
+        * profiler/Profiler.h:
+        * profiler/TreeProfile.h:
+
+2008-09-03  Adele Peterson  <adele@apple.com>
+
+        Build fix.
+
+        * wtf/win/MainThreadWin.cpp:
+
+2008-09-02  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Darin and Tim.
+
+        Remove most of the "zombie" mode from the profiler.  Next we will need
+        to remove the client callback mechanism in profiles.
+
+        - This simplifies the code, leverages the recent changes I've made in
+        getting line numbers from SquirrelFish, and is a slight speed
+        improvement on SunSpider.
+        - Also the "zombie" mode was a constant source of odd edge cases and
+        obscure bugs so it's good to remove since all of its issues may not have
+        been found.
+
+        * API/JSProfilerPrivate.cpp: No need to call didFinishAllExecution() any
+        more.
+        (JSEndProfiling):
+        * JavaScriptCore.exp: Export the new signature of retrieveLastCaller()
+        * VM/Machine.cpp:
+        (KJS::Machine::execute): No need to call didFinishAllExecution() any
+        more.
+        (KJS::Machine::retrieveCaller): Now operates on InternalFunctions now
+        since the RegisterFile is no longer guaranteeded to store only
+        JSFunctions
+        (KJS::Machine::retrieveLastCaller): Now also retrieve the function's
+        name
+        (KJS::Machine::callFrame): A result of changing retrieveCaller()
+        * VM/Machine.h:
+        * VM/Register.h: 
+        * kjs/JSGlobalObject.cpp:
+        (KJS::JSGlobalObject::~JSGlobalObject):
+        * kjs/nodes.h:
+        * profiler/ProfileGenerator.cpp:
+        (KJS::ProfileGenerator::create): Now pass the original exec and get the
+        global exec and client when necessary.  We need the original exec so we
+        can have the stack frame where profiling started.
+        (KJS::ProfileGenerator::ProfileGenerator): ditto.
+        (KJS::ProfileGenerator::addParentForConsoleStart): This is where the 
+        parent to star of the profile is added, if there is one.
+        (KJS::ProfileGenerator::willExecute): Remove uglyness!
+        (KJS::ProfileGenerator::didExecute): Ditto!
+        (KJS::ProfileGenerator::stopProfiling):
+        (KJS::ProfileGenerator::removeProfileStart): Use a better way to find
+        and remove the function we are looking for.
+        (KJS::ProfileGenerator::removeProfileEnd): Ditto.
+        * profiler/ProfileGenerator.h:
+        (KJS::ProfileGenerator::client):
+        * profiler/ProfileNode.cpp:
+        (KJS::ProfileNode::removeChild): Add a better way to remove a child from
+        a ProfileNode.
+        (KJS::ProfileNode::stopProfiling):
+        (KJS::ProfileNode::debugPrintData): Modified a debug-only diagnostic
+        function to be sane.
+        * profiler/ProfileNode.h:
+        * profiler/Profiler.cpp: Change to pass the original exec state.
+        (KJS::Profiler::startProfiling):
+        (KJS::Profiler::stopProfiling):
+        (KJS::Profiler::willExecute):
+        (KJS::Profiler::didExecute):
+        (KJS::Profiler::createCallIdentifier):
+        * profiler/Profiler.h:
+
+2008-09-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Implement callOnMainThreadAndWait().
+
+        This will be useful when a background thread needs to perform UI calls synchronously
+        (e.g. an openDatabase() call cannot return until the user answers to a confirmation dialog).
+
+        * wtf/MainThread.cpp:
+        (WTF::FunctionWithContext::FunctionWithContext): Added a ThreadCondition member. When
+        non-zero, the condition is signalled after the function is called.
+        (WTF::mainThreadFunctionQueueMutex): Renamed from functionQueueMutex, sinc this is no longer
+        static. Changed to be initialized from initializeThreading() to avoid lock contention.
+        (WTF::initializeMainThread): On non-Windows platforms, just call mainThreadFunctionQueueMutex.
+        (WTF::dispatchFunctionsFromMainThread): Signal synchronous calls when done.
+        (WTF::callOnMainThread): Updated for functionQueueMutex rename.
+        (WTF::callOnMainThreadAndWait):  Added.
+
+        * wtf/MainThread.h: Added callOnMainThreadAndWait(); initializeMainThread() now exists on
+        all platforms.
+
+        * wtf/win/MainThreadWin.cpp: (WTF::initializeMainThread): Added a callOnMainThreadAndWait()
+        call to initialize function queue mutex.
+
+        * wtf/ThreadingGtk.cpp: (WTF::initializeThreading):
+        * wtf/ThreadingPthreads.cpp: (WTF::initializeThreading):
+        * wtf/ThreadingQt.cpp: (WTF::initializeThreading):
+        Only initialize mainThreadIdentifier on non-Darwin platforms. It was not guaranteed to be
+        accurate on Darwin.
+
+2008-09-03  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Use isUndefinedOrNull() instead of separate checks for each in op_eq_null
+        and op_neq_null.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+
+2008-09-02  Csaba Osztrogonac  <oszi@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        Bug 20296: OpcodeStats doesn't build on platforms which don't have mergesort().
+        <https://bugs.webkit.org/show_bug.cgi?id=20296>
+
+        * VM/Opcode.cpp:
+        (KJS::OpcodeStats::~OpcodeStats): mergesort() replaced with qsort()
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fast path for array.length and string.length.
+        
+        SunSpider says 0.5% faster.
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Anders Carlsson.
+        
+        Added optimized paths for comparing to null.
+        
+        SunSpider says 0.5% faster.
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Changed jsDriver.pl to dump the exact text you would need in order to
+        reproduce a test result. This enables a fast workflow where you copy
+        and paste a test failure in the terminal.
+
+        * tests/mozilla/jsDriver.pl:
+
+2008-09-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Implemented the rest of Darin's review comments for the 09-01 inline
+        caching patch.
+        
+        SunSpider says 0.5% faster, but that seems like noise.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Put PutPropertySlot into
+        its own file, and added BatchedTransitionOptimizer.
+
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::~CodeBlock): Use array indexing instead of a pointer
+        iterator.
+
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::CodeGenerator): Used BatchedTransitionOptimizer to
+        make batched put and remove for declared variables fast, without forever
+        pessimizing the global object. Removed the old getDirect/removeDirect hack
+        that tried to do the same in a more limited way.
+
+        * VM/CodeGenerator.h: Moved IdentifierRepHash to the KJS namespace since
+        it doesn't specialize anything in WTF.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::Machine): Nixed the DummyConstruct tag because it was
+        confusingly named.
+
+        (KJS::Machine::execute):  Used BatchedTransitionOptimizer, as above. Fixed
+        up some comments.
+
+        (KJS::cachePrototypeChain): Cast to JSObject*, since it's more specific.
+
+        (KJS::Machine::tryCachePutByID): Use isNull() instead of comparing to
+        jsNull(), since isNull() leaves more options open for the future.
+        (KJS::Machine::tryCacheGetByID): ditto
+        (KJS::Machine::privateExecute): ditto
+
+        * VM/SamplingTool.cpp:
+        (KJS::SamplingTool::dump): Use C++-style cast, to match our style
+        guidelines.
+
+        * kjs/BatchedTransitionOptimizer.h: Added. New class that allows host
+        code to add a batch of properties to an object in an efficient way.
+
+        * kjs/JSActivation.cpp: Use isNull(), as above.
+
+        * kjs/JSArray.cpp: Get rid of DummyConstruct tag, as above.
+        * kjs/JSArray.h:
+
+        * kjs/JSGlobalData.cpp: Nixed two unused StructureIDs.
+        * kjs/JSGlobalData.h:
+
+        * kjs/JSImmediate.cpp: Use isNull(), as above.
+
+        * kjs/JSObject.cpp:
+        (KJS::JSObject::mark): Moved mark tracing code elsewhere, to make this
+        function more readable.
+
+        (KJS::JSObject::put): Use isNull(), as above.
+
+        (KJS::JSObject::createInheritorID): Return a raw pointer, since the
+        object is owned by a data member, not necessarily the caller.
+        * kjs/JSObject.h:
+
+        * kjs/JSString.cpp: Use isNull(), as above.
+
+        * kjs/PropertyMap.h: Updated to use PropertySlot::invalidOffset.
+
+        * kjs/PropertySlot.h: Changed KJS_INVALID_OFFSET to WTF::notFound
+        because C macros are so 80's.
+
+        * kjs/PutPropertySlot.h: Added. Split out of PropertySlot.h. Also renamed
+        PutPropertySlot::SlotType to PutPropertySlot::Type, and slotBase to base,
+        since "slot" was redundant.
+
+        * kjs/StructureID.cpp: Added a new transition *away* from dictionary
+        status, to support BatchedTransitionOptimizer.
+
+        (KJS::StructureIDChain::StructureIDChain): No need to store m_size as
+        a data member, so keep it in a local, which might be faster.
+        * kjs/StructureID.h:
+
+        * kjs/SymbolTable.h: Moved IdentifierRepHash to KJS namespace, as above.
+        * kjs/ustring.h:
+
+2008-09-02  Adam Roben  <aroben@apple.com>
+
+        Windows build fixes
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Add
+        StructureID.{cpp,h} to the project. Also let VS reorder this file.
+        * VM/CodeBlock.cpp: Include StringExtras so that snprintf will be
+        defined on Windows.
+
+2008-09-01  Sam Weinig  <sam@webkit.org>
+
+        Fix release build.
+
+        * JavaScriptCore.exp:
+
+2008-09-01  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Gtk buildfix
+
+        * GNUmakefile.am:
+        * kjs/PropertyMap.cpp: rename Identifier.h to identifier.h
+        * kjs/StructureID.cpp: include JSObject.h
+
+2008-09-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        First cut at inline caching for access to vanilla JavaScript properties.
+        
+        SunSpider says 4% faster. Tests heavy on dictionary-like access have
+        regressed a bit -- we have a lot of room to improve in this area,
+        but this patch is over-ripe as-is.
+        
+        JSCells now have a StructureID that uniquely identifies their layout,
+        and holds their prototype.
+        
+        JSValue::put takes a PropertySlot& argument, so it can fill in details
+        about where it put a value, for the sake of caching.
+
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::CodeGenerator): Avoid calling removeDirect if we
+        can, since it disables inline caching in the global object. This can
+        probably improve in the future.
+
+        * kjs/JSGlobalObject.cpp: Nixed reset(), since it complicates caching, and
+        wasn't really necessary.
+
+        * kjs/JSObject.cpp: Tweaked getter / setter behavior not to rely on the
+        IsGetterSetter flag, since the flag was buggy. This is necessary in order
+        to avoid accidentally accessing a getter / setter as a normal property.
+        
+        Also changed getter / setter creation to honor ReadOnly, matching Mozilla.
+        
+        * kjs/PropertyMap.cpp: Nixed clear(), since it complicates caching and
+        isn't necessary.
+
+        * kjs/Shell.cpp: Moved SamplingTool dumping outside the loop. This allows
+        you to aggregate sampling of multiple files (or the same file repeatedly),
+        which helped me track down regressions.
+
+        * kjs/ustring.h: Moved IdentifierRepHash here to share it.
+
+2008-09-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Eagerly allocate the Math object's numeric constants. This avoids
+        constantly reallocating them in loops, and also ensures that the Math
+        object will not use the single property optimization, which makes
+        properties ineligible for caching.
+
+        SunSpider reports a small speedup, in combination with inline caching.
+
+        * kjs/MathObject.cpp:
+        (KJS::MathObject::MathObject):
+        (KJS::MathObject::getOwnPropertySlot):
+        * kjs/MathObject.h:
+
+2008-09-01  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix, not reviewed.
+
+        * GNUmakefile.am: Add SmallStrings.cpp in both release and debug builds
+
+2008-08-31  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 20577: REGRESSION (r36006): Gmail is broken
+        <https://bugs.webkit.org/show_bug.cgi?id=20577>
+
+        r36006 changed stringProtoFuncSubstr() so that it is uses the more
+        efficient jsSubstring(), rather than using UString::substr() and then
+        calling jsString(). However, the change did not account for the case
+        where the start and the length of the substring extend beyond the length
+        of the original string. This patch corrects that.
+
+        * kjs/StringPrototype.cpp:
+        (KJS::stringProtoFuncSubstr):
+
+2008-08-31  Simon Hausmann  <hausmann@wekit.org>
+
+        Unreviewed build fix (with gcc 4.3)
+
+        * kjs/ustring.h: Properly forward declare operator== for UString and
+        the the concatenate functions inside the KJS namespace.
+
+2008-08-30  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20333
+          improve JavaScript speed when handling single-character strings
+
+        1.035x as fast on SunSpider overall.
+        1.127x as fast on SunSpider string tests.
+        1.910x as fast on SunSpider string-base64 test.
+
+        * API/JSObjectRef.cpp:
+        (JSObjectMakeFunction): Removed unneeded explicit construction of UString.
+
+        * GNUmakefile.am: Added SmallStrings.h and SmallStrings.cpp.
+        * JavaScriptCore.pri: Ditto.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        Ditto.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Ditto.
+        * JavaScriptCoreSources.bkl: Ditto.
+
+        * JavaScriptCore.exp: Updated.
+
+        * VM/Machine.cpp:
+        (KJS::jsAddSlowCase): Changed to use a code path that doesn't involve
+        a UString constructor. This avoids an extra jump caused by the "in charge"
+        vs. "not in charge" constructors.
+        (KJS::jsAdd): Ditto.
+        (KJS::jsTypeStringForValue): Adopted jsNontrivialString.
+
+        * kjs/ArrayPrototype.cpp:
+        (KJS::arrayProtoFuncToString): Adopted jsEmptyString.
+        (KJS::arrayProtoFuncToLocaleString): Ditto.
+        (KJS::arrayProtoFuncJoin): Ditto.
+        * kjs/BooleanPrototype.cpp:
+        (KJS::booleanProtoFuncToString): Adopted jsNontrivialString.
+        * kjs/DateConstructor.cpp:
+        (KJS::callDate): Ditto.
+        * kjs/DatePrototype.cpp:
+        (KJS::formatLocaleDate): Adopted jsEmptyString and jsNontrivialString.
+        (KJS::dateProtoFuncToString): Ditto.
+        (KJS::dateProtoFuncToUTCString): Ditto.
+        (KJS::dateProtoFuncToDateString): Ditto.
+        (KJS::dateProtoFuncToTimeString): Ditto.
+        (KJS::dateProtoFuncToLocaleString): Ditto.
+        (KJS::dateProtoFuncToLocaleDateString): Ditto.
+        (KJS::dateProtoFuncToLocaleTimeString): Ditto.
+        (KJS::dateProtoFuncToGMTString): Ditto.
+
+        * kjs/ErrorPrototype.cpp:
+        (KJS::ErrorPrototype::ErrorPrototype): Ditto.
+        (KJS::errorProtoFuncToString): Ditto.
+
+        * kjs/JSGlobalData.h: Added SmallStrings.
+
+        * kjs/JSString.cpp:
+        (KJS::jsString): Eliminated the overload that takes a const char*.
+        Added code to use SmallStrings to get strings of small sizes rather
+        than creating a new JSString every time.
+        (KJS::jsSubstring): Added. Used when creating a string from a substring
+        to avoid creating a JSString in cases where the substring will end up
+        empty or as one character.
+        (KJS::jsOwnedString): Added the same code as in jsString.
+
+        * kjs/JSString.h: Added new functions jsEmptyString, jsSingleCharacterString,
+        jsSingleCharacterSubstring, jsSubstring, and jsNontrivialString for various
+        cases where we want to create JSString, and want special handling for small
+        strings.
+        (KJS::JSString::JSString): Added an overload that takes a PassRefPtr of
+        a UString::Rep so you don't have to construct a UString; PassRefPtr can be
+        more efficient.
+        (KJS::jsEmptyString): Added.
+        (KJS::jsSingleCharacterString): Added.
+        (KJS::jsSingleCharacterSubstring): Added.
+        (KJS::jsNontrivialString): Added.
+        (KJS::JSString::getIndex): Adopted jsSingleCharacterSubstring.
+        (KJS::JSString::getStringPropertySlot): Ditto.
+
+        * kjs/NumberPrototype.cpp:
+        (KJS::numberProtoFuncToFixed): Adopted jsNontrivialString.
+        (KJS::numberProtoFuncToExponential): Ditto.
+        (KJS::numberProtoFuncToPrecision): Ditto.
+
+        * kjs/ObjectPrototype.cpp:
+        (KJS::objectProtoFuncToLocaleString): Adopted toThisJSString.
+        (KJS::objectProtoFuncToString): Adopted jsNontrivialString.
+
+        * kjs/RegExpConstructor.cpp: Separated the lastInput value that's used
+        with the lastOvector to return matches from the input value that can be
+        changed via JavaScript. They will be equal in many cases, but not all.
+        (KJS::RegExpConstructor::performMatch): Set input.
+        (KJS::RegExpMatchesArray::RegExpMatchesArray): Ditto.
+        (KJS::RegExpMatchesArray::fillArrayInstance): Adopted jsSubstring. Also,
+        use input rather than lastInput in the appropriate place.
+        (KJS::RegExpConstructor::getBackref): Adopted jsSubstring and jsEmptyString.
+        Added code to handle the case where there is no backref -- before this
+        depended on range checking in UString::substr which is not present in
+        jsSubstring.
+        (KJS::RegExpConstructor::getLastParen): Ditto.
+        (KJS::RegExpConstructor::getLeftContext): Ditto.
+        (KJS::RegExpConstructor::getRightContext): Ditto.
+        (KJS::RegExpConstructor::getValueProperty): Use input rather than lastInput.
+        Also adopt jsEmptyString.
+        (KJS::RegExpConstructor::putValueProperty): Ditto.
+        (KJS::RegExpConstructor::input): Ditto.
+
+        * kjs/RegExpPrototype.cpp:
+        (KJS::regExpProtoFuncToString): Adopt jsNonTrivialString. Also changed to
+        use UString::append to append single characters rather than using += and
+        a C-style string.
+
+        * kjs/SmallStrings.cpp: Added.
+        (KJS::SmallStringsStorage::SmallStringsStorage): Construct the
+        buffer and UString::Rep for all 256 single-character strings for
+        the U+0000 through U+00FF. This covers all the values used in
+        the base64 test as well as most values seen elsewhere on the web
+        as well. It's possible that later we might fix this to only work
+        for U+0000 through U+007F but the others are used quite a bit in
+        the current version of the base64 test.
+        (KJS::SmallStringsStorage::~SmallStringsStorage): Free memory.
+        (KJS::SmallStrings::SmallStrings): Create a set of small strings,
+        initially not created; created later when they are used.
+        (KJS::SmallStrings::~SmallStrings): Deallocate. Not left compiler
+        generated because the SmallStringsStorage class's destructor needs
+        to be visible.
+        (KJS::SmallStrings::mark): Mark all the strings.
+        (KJS::SmallStrings::createEmptyString): Create a cell for the
+        empty string. Called only the first time.
+        (KJS::SmallStrings::createSingleCharacterString): Create a cell
+        for one of the single-character strings. Called only the first time.
+        * kjs/SmallStrings.h: Added.
+
+        * kjs/StringConstructor.cpp:
+        (KJS::stringFromCharCodeSlowCase): Factored out of strinFromCharCode.
+        Only used for cases where the caller does not pass exactly one argument.
+        (KJS::stringFromCharCode): Adopted jsSingleCharacterString.
+        (KJS::callStringConstructor): Adopted jsEmptyString.
+
+        * kjs/StringObject.cpp:
+        (KJS::StringObject::StringObject): Adopted jsEmptyString.
+
+        * kjs/StringPrototype.cpp:
+        (KJS::stringProtoFuncReplace): Adopted jsSubstring.
+        (KJS::stringProtoFuncCharAt): Adopted jsEmptyString and
+        jsSingleCharacterSubstring and also added a special case when the
+        index is an immediate number to avoid conversion to and from floating
+        point, since that's the common case.
+        (KJS::stringProtoFuncCharCodeAt): Ditto.
+        (KJS::stringProtoFuncMatch): Adopted jsSubstring and jsEmptyString.
+        (KJS::stringProtoFuncSlice): Adopted jsSubstring and
+        jsSingleCharacterSubstring. Also got rid of some unneeded locals and
+        removed unneeded code to set the length property of the array, since it
+        is automatically updated as values are added to the array.
+        (KJS::stringProtoFuncSplit): Adopted jsEmptyString.
+        (KJS::stringProtoFuncSubstr): Adopted jsSubstring.
+        (KJS::stringProtoFuncSubstring): Ditto.
+
+        * kjs/collector.cpp:
+        (KJS::Heap::collect): Added a call to mark SmallStrings.
+
+        * kjs/ustring.cpp:
+        (KJS::UString::expandedSize): Made this a static member function since
+        it doesn't need to look at any data members.
+        (KJS::UString::expandCapacity): Use a non-inline function, makeNull, to
+        set the rep to null in failure cases. This avoids adding a PIC branch for
+        the normal case when there is no failure.
+        (KJS::UString::expandPreCapacity): Ditto.
+        (KJS::UString::UString): Ditto.
+        (KJS::concatenate): Refactored the concatenation constructor into this
+        separate function. Calling the concatenation constructor was leading to
+        an extra branch because of the in-charge vs. not-in-charge versions not
+        both being inlined, and this was showing up as nearly 1% on Shark. Also
+        added a special case for when the second string is a single character,
+        since it's a common idiom to build up a string that way and we can do
+        things much more quickly, without involving memcpy for example. Also
+        adopted the non-inline function, nullRep, for the same reason given for
+        makeNull above.
+        (KJS::UString::append): Adopted makeNull for failure cases.
+        (KJS::UString::operator=): Ditto.
+        (KJS::UString::toDouble): Added a special case for converting single
+        character strings to numbers. We're doing this a ton of times while
+        running the base64 test.
+        (KJS::operator==): Added special cases so we can compare single-character
+        strings without calling memcmp. Later we might want to special case other
+        short lengths similarly.
+        (KJS::UString::makeNull): Added.
+        (KJS::UString::nullRep): Added.
+        * kjs/ustring.h: Added declarations for the nullRep and makeNull. Changed
+        expandedSize to be a static member function. Added a declaration of the
+        concatenate function. Removed the concatenation constructor. Rewrote
+        operator+ to use the concatenate function.
+
+2008-08-29  Anders Carlsson  <andersca@apple.com>
+
+        Build fix.
+
+        * VM/Machine.cpp:
+        (KJS::getCPUTime):
+
+2008-08-29  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6174667> 
+        When a machine is under heavy load, the Slow Script dialog often comes up many times and just gets in the way
+        
+        Instead of using clock time, use the CPU time spent executing the current thread when
+        determining if the script has been running for too long.
+        
+        * VM/Machine.cpp:
+        (KJS::getCPUTime):
+        (KJS::Machine::checkTimeout):
+
+2008-08-28  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Sam Weinig.
+
+        Change 'term' to 'expr' in variable names to standardize terminology.
+
+        * kjs/nodes.cpp:
+        (KJS::BinaryOpNode::emitCode):
+        (KJS::ReverseBinaryOpNode::emitCode):
+        (KJS::ThrowableBinaryOpNode::emitCode):
+        * kjs/nodes.h:
+        (KJS::BinaryOpNode::BinaryOpNode):
+        (KJS::ReverseBinaryOpNode::ReverseBinaryOpNode):
+        (KJS::MultNode::):
+        (KJS::DivNode::):
+        (KJS::ModNode::):
+        (KJS::AddNode::):
+        (KJS::SubNode::):
+        (KJS::LeftShiftNode::):
+        (KJS::RightShiftNode::):
+        (KJS::UnsignedRightShiftNode::):
+        (KJS::LessNode::):
+        (KJS::GreaterNode::):
+        (KJS::LessEqNode::):
+        (KJS::GreaterEqNode::):
+        (KJS::ThrowableBinaryOpNode::):
+        (KJS::InstanceOfNode::):
+        (KJS::InNode::):
+        (KJS::EqualNode::):
+        (KJS::NotEqualNode::):
+        (KJS::StrictEqualNode::):
+        (KJS::NotStrictEqualNode::):
+        (KJS::BitAndNode::):
+        (KJS::BitOrNode::):
+        (KJS::BitXOrNode::):
+        * kjs/nodes2string.cpp:
+        (KJS::MultNode::streamTo):
+        (KJS::DivNode::streamTo):
+        (KJS::ModNode::streamTo):
+        (KJS::AddNode::streamTo):
+        (KJS::SubNode::streamTo):
+        (KJS::LeftShiftNode::streamTo):
+        (KJS::RightShiftNode::streamTo):
+        (KJS::UnsignedRightShiftNode::streamTo):
+        (KJS::LessNode::streamTo):
+        (KJS::GreaterNode::streamTo):
+        (KJS::LessEqNode::streamTo):
+        (KJS::GreaterEqNode::streamTo):
+        (KJS::InstanceOfNode::streamTo):
+        (KJS::InNode::streamTo):
+        (KJS::EqualNode::streamTo):
+        (KJS::NotEqualNode::streamTo):
+        (KJS::StrictEqualNode::streamTo):
+        (KJS::NotStrictEqualNode::streamTo):
+        (KJS::BitAndNode::streamTo):
+        (KJS::BitXOrNode::streamTo):
+        (KJS::BitOrNode::streamTo):
+
+2008-08-28  Alp Toker  <alp@nuanti.com>
+
+        GTK+ dist/build fix. List newly added header files.
+
+        * GNUmakefile.am:
+
+2008-08-28  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Change to throw a ReferenceError at runtime instead of a ParseError
+        at parse time, when the left hand side expression of a for-in statement
+        is not an lvalue.
+
+        * kjs/grammar.y:
+        * kjs/nodes.cpp:
+        (KJS::ForInNode::emitCode):
+
+2008-08-28  Alexey Proskuryakov  <ap@webkit.org>
+
+        Not reviewed, build fix (at least for OpenBSD, posssibly more).
+
+        https://bugs.webkit.org/show_bug.cgi?id=20545
+        missing #include <unistd.h> in JavaScriptCore/VM/SamplingTool.cpp
+
+        * VM/SamplingTool.cpp: add the missing include.
+
+2008-08-26  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff and Cameron.
+
+        <rdar://problem/6174603> Hitting assertion in Register::codeBlock when
+        loading facebook (20516).
+
+        - This was a result of my line numbers change.  After a host function is
+        called the stack does not get reset correctly.
+        - Oddly this also appears to be a slight speedup on SunSpider.
+
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+
+2008-08-26  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff and Tim.
+
+        Export new API methods.
+
+        * JavaScriptCore.exp:
+
+2008-08-25  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Geoff, Tim and Mark.
+
+        <rdar://problem/6150623> JSProfiler: It would be nice if the profiles
+        in the console said what file and line number they came from
+        - Lay the foundation for getting line numbers and other data from the
+        JavaScript engine.  With the cleanup in kjs/ExecState this is actually
+        a slight performance improvement.
+
+        * JavaScriptCore.exp: Export retrieveLastCaller() for WebCore.
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/Machine.cpp: Now Host and JS functions set a call frame on the
+        exec state, so this and the profiler code were pulled out of the
+        branches.
+        (KJS::Machine::privateExecute):
+        (KJS::Machine::retrieveLastCaller): This get's the lineNumber, sourceID
+        and sourceURL for the previously called function.
+        * VM/Machine.h:
+        * kjs/ExecState.cpp: Remove references to JSFunction since it's not used
+        anywhere.
+        * kjs/ExecState.h:
+
+2008-08-25  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Ensure that JSGlobalContextRelease() performs garbage collection, even if there are other
+        contexts in the current context's group.
+
+        This is only really necessary when the last reference is released, but there is no way to
+        determine that, and no harm in collecting slightly more often.
+
+        * API/JSContextRef.cpp: (JSGlobalContextRelease): Explicitly collect the heap if it is not
+        being destroyed.
+
+2008-08-24  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 20093: JSC shell does not clear exceptions after it executes toString on an expression
+        <https://bugs.webkit.org/show_bug.cgi?id=20093>
+
+        Clear exceptions after evaluating any code in the JSC shell. We do not
+        report exceptions that are caused by calling toString on the final
+        valued, but at least we avoid incorrect behaviour.
+
+        Also, print any exceptions that occurred while evaluating code at the
+        interactive prompt, not just while evaluating code from a file.
+
+        * kjs/Shell.cpp:
+        (runWithScripts):
+        (runInteractive):
+
+2008-08-24  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver.
+
+        Remove an unnecessary RefPtr to a RegisterID.
+
+        * kjs/nodes.cpp:
+        (KJS::DeleteBracketNode::emitCode):
+
+2008-08-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Use the correct version number for when JSGlobalContextCreate was introduced.
+
+        * API/JSContextRef.h:
+
+2008-08-23  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Mark Rowe.
+
+        Remove modelines.
+
+        * API/APICast.h:
+        * API/JSBase.cpp:
+        * API/JSCallbackConstructor.cpp:
+        * API/JSCallbackConstructor.h:
+        * API/JSCallbackFunction.cpp:
+        * API/JSCallbackFunction.h:
+        * API/JSCallbackObject.cpp:
+        * API/JSCallbackObject.h:
+        * API/JSCallbackObjectFunctions.h:
+        * API/JSClassRef.cpp:
+        * API/JSContextRef.cpp:
+        * API/JSObjectRef.cpp:
+        * API/JSProfilerPrivate.cpp:
+        * API/JSStringRef.cpp:
+        * API/JSStringRefBSTR.cpp:
+        * API/JSStringRefCF.cpp:
+        * API/JSValueRef.cpp:
+        * API/tests/JSNode.c:
+        * API/tests/JSNode.h:
+        * API/tests/JSNodeList.c:
+        * API/tests/JSNodeList.h:
+        * API/tests/Node.c:
+        * API/tests/Node.h:
+        * API/tests/NodeList.c:
+        * API/tests/NodeList.h:
+        * API/tests/minidom.c:
+        * API/tests/minidom.js:
+        * API/tests/testapi.c:
+        * API/tests/testapi.js:
+        * JavaScriptCore.pro:
+        * kjs/FunctionConstructor.h:
+        * kjs/FunctionPrototype.h:
+        * kjs/JSArray.h:
+        * kjs/JSString.h:
+        * kjs/JSWrapperObject.cpp:
+        * kjs/NumberConstructor.h:
+        * kjs/NumberObject.h:
+        * kjs/NumberPrototype.h:
+        * kjs/lexer.h:
+        * kjs/lookup.h:
+        * wtf/Assertions.cpp:
+        * wtf/Assertions.h:
+        * wtf/HashCountedSet.h:
+        * wtf/HashFunctions.h:
+        * wtf/HashIterators.h:
+        * wtf/HashMap.h:
+        * wtf/HashSet.h:
+        * wtf/HashTable.h:
+        * wtf/HashTraits.h:
+        * wtf/ListHashSet.h:
+        * wtf/ListRefPtr.h:
+        * wtf/Noncopyable.h:
+        * wtf/OwnArrayPtr.h:
+        * wtf/OwnPtr.h:
+        * wtf/PassRefPtr.h:
+        * wtf/Platform.h:
+        * wtf/RefPtr.h:
+        * wtf/RefPtrHashMap.h:
+        * wtf/RetainPtr.h:
+        * wtf/UnusedParam.h:
+        * wtf/Vector.h:
+        * wtf/VectorTraits.h:
+        * wtf/unicode/Unicode.h:
+        * wtf/unicode/icu/UnicodeIcu.h:
+
+2008-08-22  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver.
+
+        Some cleanup to match our coding style.
+
+        * VM/CodeGenerator.h:
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        * kjs/ExecState.cpp:
+        * kjs/ExecState.h:
+        * kjs/completion.h:
+        * kjs/identifier.cpp:
+        (KJS::Identifier::equal):
+        (KJS::CStringTranslator::hash):
+        (KJS::CStringTranslator::equal):
+        (KJS::CStringTranslator::translate):
+        (KJS::UCharBufferTranslator::equal):
+        (KJS::UCharBufferTranslator::translate):
+        (KJS::Identifier::remove):
+        * kjs/operations.h:
+
+2008-08-20  Alexey Proskuryakov  <ap@webkit.org>
+
+        Windows build fix.
+
+        * API/WebKitAvailability.h: Define DEPRECATED_ATTRIBUTE.
+
+2008-08-19  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        Bring back shared JSGlobalData and implicit locking, because too many clients rely on it.
+
+        * kjs/JSGlobalData.cpp:
+        (KJS::JSGlobalData::~JSGlobalData):
+        (KJS::JSGlobalData::JSGlobalData): Re-add shared instance.
+        (KJS::JSGlobalData::sharedInstanceExists): Ditto.
+        (KJS::JSGlobalData::sharedInstance): Ditto.
+        (KJS::JSGlobalData::sharedInstanceInternal): Ditto.
+
+        * API/JSContextRef.h: Deprecated JSGlobalContextCreate(). Added a very conservative
+        description of its threading model (nothing is allowed).
+
+        * API/JSContextRef.cpp:
+        (JSGlobalContextCreate): Use shared JSGlobalData.
+        (JSGlobalContextCreateInGroup): Support passing NULL group to request a unique one.
+        (JSGlobalContextRetain): Added back locking.
+        (JSGlobalContextRelease): Ditto.
+        (JSContextGetGlobalObject): Ditto.
+
+        * API/tests/minidom.c: (main):
+        * API/tests/testapi.c: (main):
+        Switched to JSGlobalContextCreateInGroup() to avoid deprecation warnings.
+
+        * JavaScriptCore.exp: Re-added JSLock methods. Added JSGlobalContextCreateInGroup (d'oh!).
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript):
+        (JSCheckScriptSyntax):
+        (JSGarbageCollect):
+        * API/JSCallbackConstructor.cpp:
+        (KJS::constructJSCallback):
+        * API/JSCallbackFunction.cpp:
+        (KJS::JSCallbackFunction::call):
+        * API/JSCallbackObjectFunctions.h:
+        (KJS::::init):
+        (KJS::::getOwnPropertySlot):
+        (KJS::::put):
+        (KJS::::deleteProperty):
+        (KJS::::construct):
+        (KJS::::hasInstance):
+        (KJS::::call):
+        (KJS::::getPropertyNames):
+        (KJS::::toNumber):
+        (KJS::::toString):
+        (KJS::::staticValueGetter):
+        (KJS::::callbackGetter):
+        * API/JSObjectRef.cpp:
+        (JSObjectMake):
+        (JSObjectMakeFunctionWithCallback):
+        (JSObjectMakeConstructor):
+        (JSObjectMakeFunction):
+        (JSObjectHasProperty):
+        (JSObjectGetProperty):
+        (JSObjectSetProperty):
+        (JSObjectGetPropertyAtIndex):
+        (JSObjectSetPropertyAtIndex):
+        (JSObjectDeleteProperty):
+        (JSObjectCallAsFunction):
+        (JSObjectCallAsConstructor):
+        (JSObjectCopyPropertyNames):
+        (JSPropertyNameArrayRelease):
+        (JSPropertyNameAccumulatorAddName):
+        * API/JSValueRef.cpp:
+        (JSValueIsEqual):
+        (JSValueIsInstanceOfConstructor):
+        (JSValueMakeNumber):
+        (JSValueMakeString):
+        (JSValueToNumber):
+        (JSValueToStringCopy):
+        (JSValueToObject):
+        (JSValueProtect):
+        (JSValueUnprotect):
+        * ForwardingHeaders/JavaScriptCore/JSLock.h: Added.
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/JSGlobalData.h:
+        * kjs/JSGlobalObject.cpp:
+        (KJS::JSGlobalObject::~JSGlobalObject):
+        (KJS::JSGlobalObject::init):
+        * kjs/JSLock.cpp: Added.
+        (KJS::createJSLockCount):
+        (KJS::JSLock::lockCount):
+        (KJS::setLockCount):
+        (KJS::JSLock::JSLock):
+        (KJS::JSLock::lock):
+        (KJS::JSLock::unlock):
+        (KJS::JSLock::currentThreadIsHoldingLock):
+        (KJS::JSLock::DropAllLocks::DropAllLocks):
+        (KJS::JSLock::DropAllLocks::~DropAllLocks):
+        * kjs/JSLock.h: Added.
+        (KJS::JSLock::JSLock):
+        (KJS::JSLock::~JSLock):
+        * kjs/Shell.cpp:
+        (functionGC):
+        (jscmain):
+        * kjs/collector.cpp:
+        (KJS::Heap::~Heap):
+        (KJS::Heap::heapAllocate):
+        (KJS::Heap::setGCProtectNeedsLocking):
+        (KJS::Heap::protect):
+        (KJS::Heap::unprotect):
+        (KJS::Heap::collect):
+        * kjs/identifier.cpp:
+        * kjs/interpreter.cpp:
+        (KJS::Interpreter::checkSyntax):
+        (KJS::Interpreter::evaluate):
+        Re-added implicit locking.
+
+2008-08-19  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim and Mark.
+
+        Implement DTrace hooks for dashcode and instruments.
+
+        * API/JSProfilerPrivate.cpp: Added. Expose SPI so that profiling can be
+        turned on from a client.  The DTrace probes were added within the
+        profiler mechanism for performance reasons so the profiler must be
+        started to enable tracing.
+        (JSStartProfiling):
+        (JSEndProfiling):
+        * API/JSProfilerPrivate.h: Added. Ditto.
+        * JavaScriptCore.exp: Exposing the start/stop methods to clients.
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/Tracing.d: Define the DTrace probes.
+        * kjs/Tracing.h: Ditto.
+        * profiler/ProfileGenerator.cpp: Implement the DTrace probes in the
+        profiler.
+        (KJS::ProfileGenerator::willExecute):
+        (KJS::ProfileGenerator::didExecute):
+
+2008-08-19  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix.
+        
+        * kjs/operations.cpp:
+        (KJS::equal):
+
+2008-08-18  Timothy Hatcher  <timothy@apple.com>
+
+        Fix an assertion when generating a heavy profile because the
+        empty value and deleted value of CallIdentifier where equal.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20439
+
+        Reviewed by Dan Bernstein.
+
+        * profiler/CallIdentifier.h: Make the emptyValue for CallIdentifier
+        use empty strings for URL and function name.
+
+2008-08-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff.
+
+        - eliminate JSValue::type()
+
+        This will make it slightly easier to change the JSImmediate design without
+        having to touch so many call sites.
+
+        SunSpider says this change is a wash (looked like a slight speedup, but not
+        statistically significant).
+
+        * API/JSStringRef.cpp: Removed include of JSType.h.
+        * API/JSValueRef.cpp: Removed include of JSType.h.
+        (JSValueGetType): Replaced use of JSValue::type() with
+        JSValue::is functions.
+
+        * JavaScriptCore.exp: Updated.
+
+        * VM/JSPropertyNameIterator.cpp: Removed type() implementation.
+        (KJS::JSPropertyNameIterator::toPrimitive): Changed to take
+        PreferredPrimitiveType argument instead of JSType.
+        * VM/JSPropertyNameIterator.h: Ditto.
+
+        * VM/Machine.cpp:
+        (KJS::fastIsNumber): Updated for name change.
+        (KJS::fastToInt32): Ditto.
+        (KJS::fastToUInt32): Ditto.
+        (KJS::jsAddSlowCase): Updated toPrimitive caller for change from
+        JSType to PreferredPrimitiveType.
+        (KJS::jsAdd): Replaced calls to JSValue::type() with calls to
+        JSValue::isString().
+        (KJS::jsTypeStringForValue): Replaced calls to JSValue::type()
+        with multiple calls to JSValue::is -- we could make this a
+        virtual function instead if we want to have faster performance.
+        (KJS::Machine::privateExecute): Renamed JSImmediate::toTruncatedUInt32
+        to JSImmediate::getTruncatedUInt32 for consistency with other functions.
+        Changed two calls of JSValue::type() to JSValue::isString().
+
+        * kjs/GetterSetter.cpp:
+        (KJS::GetterSetter::toPrimitive): Changed to take
+        PreferredPrimitiveType argument instead of JSType.
+        (KJS::GetterSetter::isGetterSetter): Added.
+        * kjs/GetterSetter.h:
+
+        * kjs/JSCell.cpp:
+        (KJS::JSCell::isString): Added.
+        (KJS::JSCell::isGetterSetter): Added.
+        (KJS::JSCell::isObject): Added.
+
+        * kjs/JSCell.h: Eliminated type function. Added isGetterSetter.
+        Made isString and isObject virtual. Changed toPrimitive to take
+        PreferredPrimitiveType argument instead of JSType.
+        (KJS::JSCell::isNumber): Use Heap::isNumber for faster performance.
+        (KJS::JSValue::isGetterSetter): Added.
+        (KJS::JSValue::toPrimitive): Changed to take
+        PreferredPrimitiveType argument instead of JSType.
+
+        * kjs/JSImmediate.h: Removed JSValue::type() and replaced
+        JSValue::toTruncatedUInt32 with JSValue::getTruncatedUInt32.
+        (KJS::JSImmediate::isEitherImmediate): Added.
+
+        * kjs/JSNotAnObject.cpp:
+        (KJS::JSNotAnObject::toPrimitive): Changed to take
+        PreferredPrimitiveType argument instead of JSType.
+        * kjs/JSNotAnObject.h: Ditto.
+        * kjs/JSNumberCell.cpp:
+        (KJS::JSNumberCell::toPrimitive): Ditto.
+        * kjs/JSNumberCell.h:
+        (KJS::JSNumberCell::toInt32): Renamed from fastToInt32. There's no
+        other "slow" version of this once you have a JSNumberCell, so there's
+        no need for "fast" in the name. It's a feature that this hides the
+        base class toInt32, which does the same job less efficiently (and has
+        an additional ExecState argument).
+        (KJS::JSNumberCell::toUInt32): Ditto.
+
+        * kjs/JSObject.cpp:
+        (KJS::callDefaultValueFunction): Use isGetterSetter instead of type.
+        (KJS::JSObject::getPrimitiveNumber): Use PreferredPrimitiveType.
+        (KJS::JSObject::defaultValue): Ditto.
+        (KJS::JSObject::defineGetter): Use isGetterSetter.
+        (KJS::JSObject::defineSetter): Ditto.
+        (KJS::JSObject::lookupGetter): Ditto.
+        (KJS::JSObject::lookupSetter): Ditto.
+        (KJS::JSObject::toNumber): Use PreferredPrimitiveType.
+        (KJS::JSObject::toString): Ditto.
+        (KJS::JSObject::isObject): Added.
+
+        * kjs/JSObject.h:
+        (KJS::JSObject::inherits): Call the isObject from JSCell; it's now
+        hidden by our override of isObject.
+        (KJS::JSObject::getOwnPropertySlotForWrite): Use isGetterSetter
+        instead of type.
+        (KJS::JSObject::getOwnPropertySlot): Ditto.
+        (KJS::JSObject::toPrimitive): Use PreferredPrimitiveType.
+
+        * kjs/JSString.cpp:
+        (KJS::JSString::toPrimitive): Use PreferredPrimitiveType.
+        (KJS::JSString::isString): Added.
+        * kjs/JSString.h: Ditto.
+
+        * kjs/JSValue.h: Removed type(), added isGetterSetter(). Added
+        PreferredPrimitiveType enum and used it as the argument for the
+        toPrimitive function.
+        (KJS::JSValue::getBoolean): Simplified a bit an removed a branch.
+
+        * kjs/collector.cpp:
+        (KJS::typeName): Changed to use JSCell::is functions instead of
+        calling JSCell::type.
+
+        * kjs/collector.h:
+        (KJS::Heap::isNumber): Renamed from fastIsNumber.
+
+        * kjs/nodes.h: Added now-needed include of JSType, since the type
+        is used here to record types of values in the tree.
+
+        * kjs/operations.cpp:
+        (KJS::equal): Rewrote to no longer depend on type().
+        (KJS::strictEqual): Ditto.
+
+2008-08-18  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        If there are no nodes in a profile all the time should be attributed to
+        (idle)
+
+        * profiler/Profile.cpp: If ther are no nodes make sure we still process
+        the head.
+        (KJS::Profile::forEach):
+        * profiler/ProfileGenerator.cpp: Remove some useless code.
+        (KJS::ProfileGenerator::stopProfiling):
+
+2008-08-18  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej.
+
+        Make JSGlobalContextRetain/Release actually work.
+
+        * API/JSContextRef.cpp:
+        (JSGlobalContextRetain):
+        (JSGlobalContextRelease):
+        Ref/deref global data to give checking for globalData.refCount() some sense.
+
+        * API/tests/testapi.c: (main): Added a test for this bug.
+
+        * kjs/JSGlobalData.cpp:
+        (KJS::JSGlobalData::~JSGlobalData):
+        While checking for memory leaks, found that JSGlobalData::emptyList has changed to
+        a pointer, but it was not destructed, causing a huge leak in run-webkit-tests --threaded.
+
+2008-08-17  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej.
+
+        Change the counting of constants so that preincrement and predecrement of
+        const local variables are considered unexpected loads.
+
+        * kjs/nodes.cpp:
+        (KJS::PrefixResolveNode::emitCode):
+        * kjs/nodes.h:
+        (KJS::ScopeNode::neededConstants):
+
+2008-08-17  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        <rdar://problem/6150322> In Gmail, a crash occurs at KJS::Machine::privateExecute() when applying list styling to text after a quote had been removed
+        <https://bugs.webkit.org/show_bug.cgi?id=20386>
+
+        This crash was caused by "depth()" incorrectly determining the scope depth 
+        of a 0 depth function without a full scope chain.  Because such a function
+        would not have an activation the depth function would return the scope depth
+        of the parent frame, thus triggering an incorrect unwind.  Any subsequent 
+        look up that walked the scope chain would result in incorrect behaviour,
+        leading to a crash or incorrect variable resolution.  This can only actually
+        happen in try...finally statements as that's the only path that can result in
+        the need to unwind the scope chain, but not force the function to need a
+        full scope chain.
+
+        The fix is simply to check for this case before attempting to walk the scope chain.
+
+        * VM/Machine.cpp:
+        (KJS::depth):
+        (KJS::Machine::throwException):
+
+2008-08-17  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Maciej.
+
+        Bug 20419: Remove op_jless
+        <https://bugs.webkit.org/show_bug.cgi?id=20419>
+
+        Remove op_jless, which is rarely used now that we have op_loop_if_less.
+
+        * VM/CodeBlock.cpp:
+        (KJS::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::emitJumpIfTrue):
+        * VM/Machine.cpp:
+        (KJS::Machine::privateExecute):
+        * VM/Opcode.h:
+
+2008-08-17  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Dan Bernstein.
+
+        Fix a typo in r35807 that is also causing build failures for
+        non-AllInOne builds.
+
+        * kjs/NumberConstructor.cpp:
+
+2008-08-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Made room for a free word in JSCell.
+        
+        SunSpider says no change.
+        
+        I changed JSCallbackObjectData, Arguments, JSArray, and RegExpObject to
+        store auxiliary data in a secondary structure.
+
+        I changed InternalFunction to store the function's name in the property
+        map.
+        
+        I changed JSGlobalObjectData to use a virtual destructor, so WebCore's
+        JSDOMWindowBaseData could inherit from it safely. (It's a strange design
+        for JSDOMWindowBase to allocate an object that JSGlobalObject deletes,
+        but that's really our only option, given the size constraint.)
+        
+        I also added a bunch of compile-time ASSERTs, and removed lots of comments
+        in JSObject.h because they were often out of date, and they got in the
+        way of reading what was actually going on.
+        
+        Also renamed JSArray::getLength to JSArray::length, to match our style
+        guidelines.
+
+2008-08-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Sped up property access for array.length and string.length by adding a
+        mechanism for returning a temporary value directly instead of returning
+        a pointer to a function that retrieves the value.
+        
+        Also removed some unused cruft from PropertySlot.
+        
+        SunSpider says 0.5% - 1.2% faster.
+
+        NOTE: This optimization is not a good idea in general, because it's
+        actually a pessimization in the case of resolve for assignment,
+        and it may get in the way of other optimizations in the future.
+        
+2008-08-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Disable dead code stripping in debug builds.
+
+        * Configurations/Base.xcconfig:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6143072> FastMallocZone's enumeration code makes assumptions about handling of remote memory regions that overlap
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_Central_FreeList::enumerateFreeObjects): Don't directly compare pointers mapped into the local process with
+        a pointer that has not been mapped.  Instead, calculate a local address for the pointer and compare with that.
+        (WTF::TCMallocStats::FreeObjectFinder::findFreeObjects): Pass in the remote address of the central free list so that it can
+        be used when calculating local addresses.
+        (WTF::TCMallocStats::FastMallocZone::enumerate): Ditto.
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        <rdar://problem/6139914> Please include a _debug version of JavaScriptCore framework
+
+        * Configurations/Base.xcconfig: Factor out the debug-only settings so that they can shared
+        between the Debug configuration and debug Production variant.
+        * JavaScriptCore.xcodeproj/project.pbxproj: Enable the debug variant.
+
+2008-08-15  Mark Rowe  <mrowe@apple.com>
+
+        Fix the 64-bit build.
+
+        Add extra cast to avoid warnings about loss of precision when casting from
+        JSValue* to an integer type.
+
+        * kjs/JSImmediate.h:
+        (KJS::JSImmediate::intValue):
+        (KJS::JSImmediate::uintValue):
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Still fixing Windows build.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreGenerated.make: Added OpaqueJSString
+        to yet another place.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Trying to fix non-Apple builds.
+
+        * ForwardingHeaders/JavaScriptCore/OpaqueJSString.h: Added.
+
+2008-08-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Allow JSImmediate to hold 31 bit signed integer immediate values.  The low two bits of a
+        JSValue* are a tag, with the tag value 00 indicating the JSValue* is a pointer to a
+        JSCell.  Non-zero tag values used to indicate that the JSValue* is not a real pointer,
+        but instead holds an immediate value encoded within the pointer.  This patch changes the
+        encoding so both the tag values 01 and 11 indicate the value is a signed integer, allowing
+        a 31 bit value to be stored.  All other immediates are tagged with the value 10, and
+        distinguished by a secondary tag.
+
+        Roughly +2% on SunSpider.
+
+        * kjs/JSImmediate.h: Encoding of JSImmediates has changed - see comment at head of file for
+                             descption of new layout.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        More build fixes.
+
+        * API/OpaqueJSString.h: Add a namespace to friend declaration to appease MSVC.
+        * API/JSStringRefCF.h: (JSStringCreateWithCFString) Cast UniChar* to UChar* explicitly.
+        * JavaScriptCore.exp: Added OpaqueJSString::create(const KJS::UString&) to fix WebCore build.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Build fix.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Marked OpaqueJSString as private
+
+        * kjs/identifier.cpp:
+        (KJS::Identifier::checkSameIdentifierTable):
+        * kjs/identifier.h:
+        (KJS::Identifier::add):
+        Since checkSameIdentifierTable is exported for debug build's sake, gcc wants it to be
+        non-inline in release builds, too.
+
+        * JavaScriptCore.exp: Don't export inline OpaqueJSString destructor.
+
+2008-08-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Geoff Garen.
+
+        JSStringRef is created context-free, but can get linked to one via an identifier table,
+        breaking an implicit API contract.
+
+        Made JSStringRef point to OpaqueJSString, which is a new string object separate from UString.
+
+        * API/APICast.h: Removed toRef/toJS conversions for JSStringRef, as this is no longer a
+        simple typecast.
+
+        * kjs/identifier.cpp:
+        (KJS::Identifier::checkSameIdentifierTable):
+        * kjs/identifier.h:
+        (KJS::Identifier::add):
+        (KJS::UString::checkSameIdentifierTable):
+        Added assertions to verify that an identifier is not being added to a different JSGlobalData.
+
+        * API/JSObjectRef.cpp:
+        (OpaqueJSPropertyNameArray::OpaqueJSPropertyNameArray): Changed OpaqueJSPropertyNameArray to
+        hold JSStringRefs. This is necessary to avoid having to construct (and leak) a new instance
+        in JSPropertyNameArrayGetNameAtIndex(), now that making a JSStringRef is not just a typecast.
+
+        * API/OpaqueJSString.cpp: Added.
+        (OpaqueJSString::create):
+        (OpaqueJSString::ustring):
+        (OpaqueJSString::identifier):
+        * API/OpaqueJSString.h: Added.
+        (OpaqueJSString::create):
+        (OpaqueJSString::characters):
+        (OpaqueJSString::length):
+        (OpaqueJSString::OpaqueJSString):
+        (OpaqueJSString::~OpaqueJSString):
+
+        * API/JSBase.cpp:
+        (JSEvaluateScript):
+        (JSCheckScriptSyntax):
+        * API/JSCallbackObjectFunctions.h:
+        (KJS::::getOwnPropertySlot):
+        (KJS::::put):
+        (KJS::::deleteProperty):
+        (KJS::::staticValueGetter):
+        (KJS::::callbackGetter):
+        * API/JSStringRef.cpp:
+        (JSStringCreateWithCharacters):
+        (JSStringCreateWithUTF8CString):
+        (JSStringRetain):
+        (JSStringRelease):
+        (JSStringGetLength):
+        (JSStringGetCharactersPtr):
+        (JSStringGetMaximumUTF8CStringSize):
+        (JSStringGetUTF8CString):
+        (JSStringIsEqual):
+        * API/JSStringRefCF.cpp:
+        (JSStringCreateWithCFString):
+        (JSStringCopyCFString):
+        * API/JSValueRef.cpp:
+        (JSValueMakeString):
+        (JSValueToStringCopy):
+        Updated to use OpaqueJSString.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        Added OpaqueJSString.
+
+2008-08-14  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim.
+
+        <rdar://problem/6115819> Notify of profile in console
+        - Profiles now have a unique ID so that they can be linked to the
+        console message that announces that a profile completed.
+
+        * profiler/HeavyProfile.cpp: 
+        (KJS::HeavyProfile::HeavyProfile):
+        * profiler/Profile.cpp:
+        (KJS::Profile::create):
+        (KJS::Profile::Profile):
+        * profiler/Profile.h:
+        (KJS::Profile::uid):
+        * profiler/ProfileGenerator.cpp:
+        (KJS::ProfileGenerator::create):
+        (KJS::ProfileGenerator::ProfileGenerator):
+        * profiler/ProfileGenerator.h:
+        * profiler/Profiler.cpp:
+        (KJS::Profiler::startProfiling):
+        * profiler/TreeProfile.cpp:
+        (KJS::TreeProfile::create):
+        (KJS::TreeProfile::TreeProfile):
+        * profiler/TreeProfile.h:
+
+2008-08-13  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Nixed a PIC branch from JSObject::getOwnPropertySlot, by forcing
+        fillGetterProperty, which references a global function pointer,
+        out-of-line.
+        
+        .2% SunSpider speedup, 4.3% access-nbody speedup, 8.7% speedup on a
+        custom property access benchmark for objects with one property.
+
+        * kjs/JSObject.cpp:
+        (KJS::JSObject::fillGetterPropertySlot):
+
+2008-08-13  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20349
+        WTF::initializeThreading() fails if threading is already initialized
+
+        Fix threading initialization logic to support cases where
+        g_thread_init() has already been called elsewhere.
+
+        Resolves database-related crashers reported in several applications.
+
+        * wtf/ThreadingGtk.cpp:
+        (WTF::initializeThreading):
+
+2008-08-13  Brad Hughes <bhughes@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix compiling of QtWebKit in release mode with the Intel C++ Compiler for Linux
+
+        The latest upgrade of the intel compiler allows us to compile all of
+        Qt with optimizations enabled (yay!).
+
+        * JavaScriptCore.pro:
+
+2008-08-12  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Add peephole optimisation to 'op_not... jfalse...' (eg. if(!...) )
+
+        This is a very slight win in sunspider, and a fairly substantial win
+        in hot code that does if(!...), etc.
+
+        * VM/CodeGenerator.cpp:
+        (KJS::CodeGenerator::retrieveLastUnaryOp):
+        (KJS::CodeGenerator::rewindBinaryOp):
+        (KJS::CodeGenerator::rewindUnaryOp):
+        (KJS::CodeGenerator::emitJumpIfFalse):
+        * VM/CodeGenerator.h:
+
+2008-08-12  Dan Bernstein  <mitz@apple.com>
+
+        - JavaScriptCore part of <rdar://problem/6121636>
+          Make fast*alloc() abort() on failure and add "try" variants that
+          return NULL on failure.
+
+        Reviewed by Darin Adler.
+
+        * JavaScriptCore.exp: Exported tryFastCalloc().
+        * VM/RegisterFile.h:
+        (KJS::RegisterFile::RegisterFile): Removed an ASSERT().
+        * kjs/JSArray.cpp:
+        (KJS::JSArray::putSlowCase): Changed to use tryFastRealloc().
+        (KJS::JSArray::increaseVectorLength): Ditto.
+        * kjs/ustring.cpp:
+        (KJS::allocChars): Changed to use tryFastMalloc().
+        (KJS::reallocChars): Changed to use tryFastRealloc().
+        * wtf/FastMalloc.cpp:
+        (WTF::fastZeroedMalloc): Removed null checking of fastMalloc()'s result
+        and removed extra call to InvokeNewHook().
+        (WTF::tryFastZeroedMalloc): Added. Uses tryFastMalloc().
+        (WTF::tryFastMalloc): Renamed fastMalloc() to this.
+        (WTF::fastMalloc): Added. This version abort()s if allocation fails.
+        (WTF::tryFastCalloc): Renamed fastCalloc() to this.
+        (WTF::fastCalloc): Added. This version abort()s if allocation fails.
+        (WTF::tryFastRealloc): Renamed fastRealloc() to this.
+        (WTF::fastRealloc): Added. This version abort()s if allocation fails.
+        (WTF::do_malloc): Made this a function template. When the abortOnFailure
+        template parameter is set, the function abort()s on failure to allocate.
+        Otherwise, it sets errno to ENOMEM and returns zero.
+        (WTF::TCMallocStats::fastMalloc): Defined to abort() on failure.
+        (WTF::TCMallocStats::tryFastMalloc): Added. Does not abort() on
+        failure.
+        (WTF::TCMallocStats::fastCalloc): Defined to abort() on failure.
+        (WTF::TCMallocStats::tryFastCalloc): Added. Does not abort() on
+        failure.
+        (WTF::TCMallocStats::fastRealloc): Defined to abort() on failure.
+        (WTF::TCMallocStats::tryFastRealloc): Added. Does not abort() on
+        failure.
+        * wtf/FastMalloc.h: Declared the "try" variants.
+
+2008-08-11  Adam Roben  <aroben@apple.com>
+
+        Move WTF::notFound into its own header so that it can be used
+        independently of Vector
+
+        Rubberstamped by Darin Adler.
+
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        Added NotFound.h to the project.
+        * wtf/NotFound.h: Added. Moved the notFound constant here...
+        * wtf/Vector.h: ...from here.
+
+2008-08-11  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/6130393> REGRESSION: PhotoBooth hangs after launching under TOT Webkit
+
+        * API/JSContextRef.cpp: (JSGlobalContextRelease): Corrected a comment.
+
+        * kjs/collector.cpp: (KJS::Heap::~Heap): Ensure that JSGlobalData is not deleted while
+        sweeping the heap.
+
+== Rolled over to ChangeLog-2008-08-10 ==
