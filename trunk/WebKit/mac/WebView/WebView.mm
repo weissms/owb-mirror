@@ -390,6 +390,9 @@ static const char webViewIsOpen[] = "At least one WebView is still open.";
     KeyboardUIMode _keyboardUIMode;
 
     BOOL shouldUpdateWhileOffscreen;
+    
+    // When this flag is set, we will not make any subviews underneath this WebView.  This means no WebFrameViews and no WebHTMLViews.
+    BOOL useDocumentViews;
 }
 @end
 
@@ -572,29 +575,100 @@ static CFMutableSetRef allWebViewsSet;
 
 @implementation WebView (WebPrivate)
 
-#ifdef DEBUG_WIDGET_DRAWING
-static bool debugWidget = true;
+- (BOOL)isFlipped 
+{
+    return !_private->useDocumentViews;
+}
+
+#ifndef BUILDING_ON_TIGER
+
+- (void)viewWillDraw
+{
+    if (!_private->useDocumentViews) {
+        Frame* frame = core([self mainFrame]);
+        if (frame && frame->view())
+            frame->view()->layoutIfNeededRecursive();
+    }
+    [super viewWillDraw];
+}
+
+#endif
+
+- (void)_boundsChanged
+{
+    Frame* frame = core([self mainFrame]);
+    IntSize oldSize = frame->view()->frameRect().size();
+    frame->view()->resize([self bounds].size.width, [self bounds].size.height);
+    if (oldSize != frame->view()->frameRect().size())
+        [self setNeedsDisplay: YES];
+}
+
+- (BOOL)_mustDrawUnionedRect:(NSRect)rect singleRects:(const NSRect *)rects count:(NSInteger)count
+{
+    // If count == 0 here, use the rect passed in for drawing. This is a workaround for:
+    // <rdar://problem/3908282> REGRESSION (Mail): No drag image dragging selected text in Blot and Mail
+    // The reason for the workaround is that this method is called explicitly from the code
+    // to generate a drag image, and at that time, getRectsBeingDrawn:count: will return a zero count.
+    const int cRectThreshold = 10;
+    const float cWastedSpaceThreshold = 0.75f;
+    BOOL useUnionedRect = (count <= 1) || (count > cRectThreshold);
+    if (!useUnionedRect) {
+        // Attempt to guess whether or not we should use the unioned rect or the individual rects.
+        // We do this by computing the percentage of "wasted space" in the union.  If that wasted space
+        // is too large, then we will do individual rect painting instead.
+        float unionPixels = (rect.size.width * rect.size.height);
+        float singlePixels = 0;
+        for (int i = 0; i < count; ++i)
+            singlePixels += rects[i].size.width * rects[i].size.height;
+        float wastedSpace = 1 - (singlePixels / unionPixels);
+        if (wastedSpace <= cWastedSpaceThreshold)
+            useUnionedRect = YES;
+    }
+    return useUnionedRect;
+}
+
+- (void)drawSingleRect:(NSRect)rect
+{
+    ASSERT(!_private->useDocumentViews);
+    
+    [NSGraphicsContext saveGraphicsState];
+    NSRectClip(rect);
+
+    @try {
+        [[self mainFrame] _drawRect:rect contentsOnly:NO];
+
+        WebView *webView = [self _webView];
+        [[webView _UIDelegateForwarder] webView:webView didDrawRect:rect];
+
+        if (WebNodeHighlight *currentHighlight = [webView currentNodeHighlight])
+            [currentHighlight setNeedsUpdateInTargetViewRect:rect];
+
+        [NSGraphicsContext restoreGraphicsState];
+    } @catch (NSException *localException) {
+        [NSGraphicsContext restoreGraphicsState];
+        LOG_ERROR("Exception caught while drawing: %@", localException);
+        [localException raise];
+    }
+}
+
 - (void)drawRect:(NSRect)rect
 {
-    [[NSColor blueColor] set];
-    NSRectFill (rect);
+    if (_private->useDocumentViews)
+        return [super drawRect:rect];
     
-    NSRect htmlViewRect = [[[[self mainFrame] frameView] documentView] frame];
+    ASSERT_MAIN_THREAD();
 
-    if (debugWidget) {
-        while (debugWidget) {
-            sleep (1);
-        }
-    }
+    const NSRect *rects;
+    NSInteger count;
+    [self getRectsBeingDrawn:&rects count:&count];
 
-    NSLog (@"%s:   rect:  (%0.f,%0.f) %0.f %0.f, htmlViewRect:  (%0.f,%0.f) %0.f %0.f\n", 
-        __PRETTY_FUNCTION__, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height,
-        htmlViewRect.origin.x, htmlViewRect.origin.y, htmlViewRect.size.width, htmlViewRect.size.height
-    );
-
-    [super drawRect:rect];
+    
+    if ([self _mustDrawUnionedRect:rect singleRects:rects count:count])
+        [self drawSingleRect:rect];
+    else
+        for (int i = 0; i < count; ++i)
+            [self drawSingleRect:rects[i]];
 }
-#endif
 
 + (NSArray *)_supportedMIMETypes
 {
@@ -1917,13 +1991,13 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     
     ASSERT(appName);
 
-    NSString* cacheDir = [NSString _webkit_applicationCacheDirectoryWithBundleIdentifier:appName];
+    NSString* cacheDir = [NSString _webkit_localCacheDirectoryWithBundleIdentifier:appName];
 
     cacheStorage().setCacheDirectory(cacheDir);
     initialized = YES;
 }
 
-- (void)_commonInitializationWithFrameName:(NSString *)frameName groupName:(NSString *)groupName
+- (void)_commonInitializationWithFrameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
 {
 #ifndef NDEBUG
     WTF::RefCountedLeakCounter::suppressMessages(webViewIsOpen);
@@ -1938,12 +2012,16 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     _private->drawsBackground = YES;
     _private->smartInsertDeleteEnabled = YES;
     _private->backgroundColor = [[NSColor whiteColor] retain];
+    _private->useDocumentViews = usesDocumentViews;
 
-    NSRect f = [self frame];
-    WebFrameView *frameView = [[WebFrameView alloc] initWithFrame: NSMakeRect(0,0,f.size.width,f.size.height)];
-    [frameView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-    [self addSubview:frameView];
-    [frameView release];
+    WebFrameView *frameView = nil;
+    if (_private->useDocumentViews) {
+        NSRect f = [self frame];
+        frameView = [[WebFrameView alloc] initWithFrame: NSMakeRect(0,0,f.size.width,f.size.height)];
+        [frameView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+        [self addSubview:frameView];
+        [frameView release];
+    }
 
     WebKitInitializeLoggingChannelsIfNecessary();
     WebCore::InitializeLoggingChannelsIfNecessary();
@@ -2002,7 +2080,12 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     return [self initWithFrame:f frameName:nil groupName:nil];
 }
 
-- (id)initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName;
+- (id)initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName
+{
+    return [self _initWithFrame:f frameName:frameName groupName:groupName usesDocumentViews:YES];
+}
+
+- (id)_initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
 {
     self = [super initWithFrame:f];
     if (!self)
@@ -2021,7 +2104,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 #endif
 
     _private = [[WebViewPrivate alloc] init];
-    [self _commonInitializationWithFrameName:frameName groupName:groupName];
+    [self _commonInitializationWithFrameName:frameName groupName:groupName usesDocumentViews:usesDocumentViews];
     [self setMaintainsBackForwardList: YES];
     return self;
 }
@@ -2073,7 +2156,7 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
             preferences = nil;
 
         LOG(Encoding, "FrameName = %@, GroupName = %@, useBackForwardList = %d\n", frameName, groupName, (int)useBackForwardList);
-        [result _commonInitializationWithFrameName:frameName groupName:groupName];
+        [result _commonInitializationWithFrameName:frameName groupName:groupName usesDocumentViews:YES];
         [result page]->backForwardList()->setEnabled(useBackForwardList);
         result->_private->allowsUndo = allowsUndo;
         if (preferences)
@@ -2161,6 +2244,27 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     return _private->shouldCloseWithWindow;
 }
 
+- (void)removeSizeObservers
+{
+    if (!_private->useDocumentViews && [self window]) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+            name:NSViewFrameDidChangeNotification object:self];
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+            name:NSViewBoundsDidChangeNotification object:self];
+    }
+}
+
+- (void)addSizeObservers
+{
+    if (!_private->useDocumentViews && [self window]) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_boundsChanged) 
+            name:NSViewFrameDidChangeNotification object:self];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_boundsChanged) 
+            name:NSViewBoundsDidChangeNotification object:self];
+        [self _boundsChanged];
+    }
+}
+
 - (void)viewWillMoveToWindow:(NSWindow *)window
 {
     // Don't do anything if the WebView isn't initialized.
@@ -2183,7 +2287,22 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
         // and over, so do them when we move into a window.
         [window setAcceptsMouseMovedEvents:YES];
         WKSetNSWindowShouldPostEventNotifications(window, YES);
+        
+        [self removeSizeObservers];
     }
+}
+
+- (void)viewDidMoveToWindow
+{
+    // Don't do anything if we aren't initialized.  This happens
+    // when decoding a WebView.  When WebViews are decoded their subviews
+    // are created by initWithCoder: and so won't be normally
+    // initialized.  The stub views are discarded by WebView.
+    if (!_private || _private->closed)
+        return;
+        
+    if ([self window])
+        [self addSizeObservers];
 }
 
 - (void)_windowWillClose:(NSNotification *)notification
@@ -2469,6 +2588,22 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     }
     if ([self _zoomMultiplier:isTextOnly] != 1.0f)
         [self _setZoomMultiplier:1.0f isTextOnly:isTextOnly];
+}
+
+- (void)viewWillMoveToSuperview:(NSView *)newSuperview
+{
+    [self removeSizeObservers];
+}
+
+- (void)viewDidMoveToSuperview
+{
+    if ([self superview] != nil)
+        [self addSizeObservers];
+}
+
+- (BOOL)_usesDocumentViews
+{
+    return _private->useDocumentViews;
 }
 
 - (void)setApplicationNameForUserAgent:(NSString *)applicationName

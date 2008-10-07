@@ -132,6 +132,18 @@ namespace WKAL {
      */
         void setWindowsVirtualKeyCode(int code) ;
 
+
+    /**
+     * get native Virtual KeyCode 
+     */
+        int nativeVirtualKeyCode() const ;
+
+
+    /**
+     * set Native Virtual KeyCode
+     */
+        void setNativeVirtualKeyCode(int code) ;
+
     /**
      * return the key identifier
      * @param[out] : key identifier
@@ -265,7 +277,5 @@ namespace WKAL {
 } // namespace WKAL
 
 #endif // PlatformKeyboardEvent_h
-
-
 
 

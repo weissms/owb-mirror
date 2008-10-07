@@ -37,26 +37,24 @@
  */
 #include "BALBase.h"
 
+#include "PopupMenuStyle.h"
+
 namespace WKAL {
 
 class Color;
-class Document;
 class FontSelector;
+class HostWindow;
 class String;
-class RenderStyle;
 
 class PopupMenuClient : public WKALBase {
 public:
     /**
-     * PopupMenuClient destructor
-     * @code
-     * delete pc;
-     * @endcode
+     *  ~PopupMenuClient destructor
      */
     virtual ~PopupMenuClient() ;
 
     /**
-     * value changed 
+     * value changed
      * @param[in] : list index
      * @param[in] : it's a fire events
      * @code
@@ -85,44 +83,24 @@ public:
      */
     virtual bool itemIsEnabled(unsigned listIndex) const = 0;
 
-
     /**
-     *  itemStyle description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get itemStyle
      */
     virtual PopupMenuStyle itemStyle(unsigned listIndex) const = 0;
 
+    /**
+     * get menu style
+     */
+    virtual PopupMenuStyle menuStyle() const = 0;
 
     /**
-     *  menuStyle description
-     * @param[in] : description
-     * @param[out] : description
+     * get client inset left
+     * @param[out] : client inset left
      * @code
+     * int r = pm->clientInsetLeft();
      * @endcode
      */
-    virtual PopupMenuStyle menuStyle() const = 0
-
-    /**
-     * get item style
-     * @param[in] : index
-     * @param[out] : render style
-     * @code
-     * RenderStyle *r = pm->itemStyle(i);
-     * @endcode
-     */
-    virtual RenderStyle* itemStyle(unsigned listIndex) const = 0
-
-    /**
-     * get client document
-     * @param[out] : document
-     * @code
-     * Document *d = pm->clientDocument();
-     * @endcode
-     */
-    virtual Document* clientDocument() const = 0
+    virtual int clientInsetLeft() const = 0;
 
     /**
      * get client inset right
@@ -131,7 +109,16 @@ public:
      * int r = pm->clientInsetRight();
      * @endcode
      */
-    virtual int clientInsetRight() const = 0
+    virtual int clientInsetRight() const = 0;
+
+    /**
+     * get client padding left
+     * @param[out] : client padding left
+     * @code
+     * int r = pm->clientPaddingLeft();
+     * @endcode
+     */
+    virtual int clientPaddingLeft() const = 0;
 
     /**
      * get client padding right
@@ -152,7 +139,7 @@ public:
     virtual int listSize() const = 0;
 
     /**
-     * get selected index 
+     * get selected index
      * @param[out] : selected index
      * @code
      * int s = pm->selectedIndex();
@@ -199,7 +186,7 @@ public:
     virtual bool itemIsSelected(unsigned listIndex) const = 0;
 
     /**
-     * should pop over 
+     * should pop over
      * @param[out] : status
      * @code
      * bool s = pm->shouldPopOver();
@@ -208,7 +195,7 @@ public:
     virtual bool shouldPopOver() const = 0;
 
     /**
-     * get value should change on hot track 
+     * get value should change on hot track
      * @param[out] : value
      * @code
      * bool v = pm->valueShouldChangeOnHotTrack();
@@ -224,7 +211,7 @@ public:
      * @endcode
      */
     virtual void setTextFromItem(unsigned listIndex) = 0;
-
+    
     /**
      * get font selector
      * @param[out] : font selector
@@ -233,17 +220,17 @@ public:
      * @endcode
      */
     virtual FontSelector* fontSelector() const = 0;
+
     /**
-     *  hostWindow description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     * get host window
      */
     virtual HostWindow* hostWindow() const = 0;
-    
 };
 
 }
 
-#end
+#endif
+
+
+
+

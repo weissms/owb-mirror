@@ -1,3 +1,213 @@
+2008-10-07  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        [qt] Build fix after Scrollbar.h and Widget.h changes.
+
+        * plugins/qt/PluginViewQt.cpp:
+        (WebCore::PluginView::getValue):
+        (WebCore::PluginView::init):
+
+2008-10-06  David Hyatt  <hyatt@apple.com>
+
+        Enable viewless Mac WebKit to (kinda sorta) paint basic pages (with no frames on them).
+
+        Reviewed by Sam Weinig
+
+        * WebCore.base.exp:
+        * WebCore.xcodeproj/project.pbxproj:
+        * loader/EmptyClients.h:
+        (WebCore::EmptyFrameLoaderClient::hasWebView):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadWithDocumentLoader):
+        (WebCore::FrameLoader::transitionToCommitted):
+        * loader/FrameLoaderClient.h:
+        * page/FocusController.cpp:
+        (WebCore::FocusController::setActive):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::FrameView):
+        (WebCore::FrameView::init):
+        (WebCore::FrameView::layoutIfNeededRecursive):
+        * page/FrameView.h:
+
+2008-10-06  Dan Bernstein  <mitz@apple.com>
+
+        - build fix
+
+        * bindings/objc/DOMEvents.h:
+
+2008-10-06  Mark Mentovai  <mark@moxienet.com>
+
+        Reviewed by Tim Hatcher.
+
+        Use #if ENABLE(feature) where possible, and #if ENABLE_feature where
+        Platform.h is not available, in preference to #ifdef ENABLE_feature.
+        #ifdef is wrong now that features are disabled by #defining
+        ENABLE_feature to 0.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21338
+
+        * bindings/objc/DOMEvents.h:
+        * bindings/objc/PublicDOMInterfaces.h:
+        * dom/Document.idl:
+        * page/DOMWindow.idl:
+        * svg/svgtags.in:
+
+2008-10-06  Mark Mentovai  <mark@moxienet.com>
+
+        Reviewed by Sam Weinig.
+
+        * platform/network/mac/FormDataStreamMac.mm: #import <wtf/Threading.h>
+        to get the declaration for isMainThread().
+
+2008-10-06  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Tim Hatcher.
+
+        WebCoreObjCExtras.c is actually an obj-c++ file, so change its name
+        to reflect that.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/mac/WebCoreObjCExtras.c: Removed.
+        * platform/mac/WebCoreObjCExtras.mm: Copied from WebCore/platform/mac/WebCoreObjCExtras.c.
+
+2008-10-06  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Dan Bernstein.
+        
+        Added C++ forward declaration for the NSURLAuthenticationChallenge class
+        so that the m_currentMacChallenge variable doesn't cause a
+        compilation error when ResourceHandleInternal.h is included from a C++ file.
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=21411
+
+        * platform/network/ResourceHandleInternal.h:
+
+2008-10-06  Steve Falkenburg  <sfalken@apple.com>
+
+        Windows build fix.
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-10-06  Steve Falkenburg  <sfalken@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21416
+        Add missing null checks identified by Application Verifier.
+        
+        Reviewed by Darin Adler.
+
+        * platform/win/SharedTimerWin.cpp:
+        (WebCore::clearTimer):
+
+2008-10-06  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        Removed accidentally left in debugging statement.
+
+        * inspector/front-end/inspector.js:
+
+2008-10-06  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim Hatcher and Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21412
+        Bug 21412: Refactor user initiated profile count to be more stable
+
+        * inspector/InspectorController.cpp: Keep track of the user-initiated
+        profiles here now.
+        (WebCore::InspectorController::InspectorController):
+        (WebCore::InspectorController::startUserInitiatedProfiling):
+        (WebCore::InspectorController::stopUserInitiatedProfiling):
+        * inspector/InspectorController.h:
+        The front end will now need to check for the existence of the user-
+        initiated profile title and use its count instead of keeping its own.
+        * inspector/front-end/ProfilesPanel.js:
+
+2008-10-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - separate GDI text drawing into its own function
+
+        * platform/graphics/win/FontCGWin.cpp:
+        (WebCore::drawGDIGlyphs):
+        (WebCore::Font::drawGlyphs):
+
+2008-10-03  Steve Falkenburg  <sfalken@apple.com>
+
+        <rdar://problem/6249833> Fix default button appearance
+        
+        Reviewed by Adele Peterson.
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::supportsFocus):
+        (WebCore::RenderThemeWin::determineClassicState):
+        (WebCore::RenderThemeWin::determineButtonState):
+        (WebCore::RenderThemeWin::getClassicThemeData):
+        (WebCore::RenderThemeWin::getThemeData):
+        (WebCore::drawControl):
+        * rendering/RenderThemeWin.h:
+
+2008-10-06  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Add native virtual keycode to PlatformKeyboardEvent
+
+        * platform/PlatformKeyboardEvent.h:
+        * platform/gtk/KeyEventGtk.cpp:
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        * platform/mac/KeyEventMac.mm:
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        * platform/qt/PlatformKeyboardEventQt.cpp:
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        * platform/win/KeyEventWin.cpp:
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+        * platform/wx/KeyboardEventWx.cpp:
+        (WebCore::PlatformKeyboardEvent::PlatformKeyboardEvent):
+
+2008-10-06  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Enable WebCore::String <> CFStringRef conversion functions for QtWebKit/Mac
+
+        * platform/text/PlatformString.h:
+        * platform/text/StringImpl.h:
+        * platform/text/cf/StringCF.cpp:
+        * platform/text/cf/StringImplCF.cpp:
+
+2008-10-06  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Use bundles on QtWebKit/Mac for platform modules
+
+        * platform/FileSystem.h:
+        * platform/qt/FileSystemQt.cpp:
+        (WebCore::unloadModule):
+
+2008-10-06  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Build fix for MinGW.
+
+        * platform/win/SystemTimeWin.cpp:
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::invalidateRect):
+
+2008-10-06  Adam Roben  <aroben@apple.com>
+
+        Mimic the inspector/ directory structure in WebCore.vcproj
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-10-06  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * WebCore.vcproj/WebCore.vcproj: Update the Include path for all
+        configurations to include WebCore/inspector.
+
 2008-10-06  Eric Seidel  <eric@webkit.org>
 
         Reviewed by Darin Adler.

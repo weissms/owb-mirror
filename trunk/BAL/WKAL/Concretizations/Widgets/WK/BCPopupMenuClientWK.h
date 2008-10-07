@@ -23,7 +23,7 @@
 
 #include "PopupMenuStyle.h"
 
-namespace WebCore {
+namespace WKAL {
 
 class Color;
 class FontSelector;

@@ -2018,15 +2018,19 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     } else if ([result length] > 0) {
         // Don't call NPP_NewStream and other stream methods if there is no JS result to deliver. This is what Mozilla does.
         NSData *JSData = [result dataUsingEncoding:NSUTF8StringEncoding];
-        WebBaseNetscapePluginStream *stream = [[WebBaseNetscapePluginStream alloc] initWithRequestURL:URL
-                                                                                               plugin:plugin
-                                                                                           notifyData:[JSPluginRequest notifyData]
-                                                                                     sendNotification:[JSPluginRequest sendNotification]];
-        [stream startStreamResponseURL:URL
-                 expectedContentLength:[JSData length]
-                      lastModifiedDate:nil
-                              MIMEType:@"text/plain"
-                               headers:nil];
+        WebBaseNetscapePluginStream *stream = [[WebBaseNetscapePluginStream alloc] initWithRequest:[NSURLRequest requestWithURL:URL]
+                                                                                            plugin:plugin
+                                                                                        notifyData:[JSPluginRequest notifyData]
+                                                                                  sendNotification:[JSPluginRequest sendNotification]];
+        
+        NSURLResponse *response = [[NSURLResponse alloc] initWithURL:URL 
+                                                            MIMEType:@"text/plain" 
+                                               expectedContentLength:[JSData length]
+                                                    textEncodingName:nil];
+        
+        [stream startStreamWithResponse:response];
+        [response release];
+        
         [stream receivedData:JSData];
         [stream finishedLoading];
         [stream release];
@@ -2055,9 +2059,8 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 - (void)webFrame:(WebFrame *)webFrame didFinishLoadWithError:(NSError *)error
 {
     NPReason reason = NPRES_DONE;
-    if (error != nil) {
-        reason = [WebBaseNetscapePluginStream reasonForError:error];
-    }    
+    if (error != nil)
+        reason = WebNetscapePluginStream::reasonForError(error);
     [self webFrame:webFrame didFinishLoadWithReason:reason];
 }
 
@@ -2342,7 +2345,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     // This function does a sanity check to ensure that the NPStream provided actually
     // belongs to the plug-in that provided it, which fixes a crash in the DivX 
     // plug-in: <rdar://problem/5093862> | http://bugs.webkit.org/show_bug.cgi?id=13203
-    if (!stream || [WebBaseNetscapePluginStream ownerForStream:stream] != plugin) {
+    if (!stream || WebNetscapePluginStream::ownerForStream(stream) != plugin) {
         LOG(Plugins, "Invalid NPStream passed to NPN_DestroyStream: %p", stream);
         return NPERR_INVALID_INSTANCE_ERROR;
     }

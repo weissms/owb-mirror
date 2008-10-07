@@ -16,8 +16,6 @@ WebCore/page/Chrome.cpp
 WebCore/page/Console.cpp
 WebCore/page/ContextMenuController.cpp
 WebCore/page/EventHandler.cpp
-WebCore/page/FrameView.cpp
-WebCore/page/FrameView.h
 WebCore/page/Page.cpp
 WebCore/page/Page.h
 WebCore/plugins/PluginView.h

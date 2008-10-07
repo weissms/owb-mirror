@@ -52,16 +52,7 @@ namespace OWBAL {
      * @code
      * @endcode
      */
-    void getSupportedKeySizes(Vector<String>&)
-
-    /**
-     * get signed public key and challenge string
-     * @param[in] : key size index
-     * @param[in] : challenge string
-     * @param[in] : url
-     * @param[out] : signed public key
-     * @code
-     * String s = signedPublicKeyAndChallengeString(k, c, url);
+    void getSupportedKeySizes(Vector<String>&);
      * @endcode
      */
     String signedPublicKeyAndChallengeString(unsigned keySizeIndex, const String& challengeString, const KURL&);
