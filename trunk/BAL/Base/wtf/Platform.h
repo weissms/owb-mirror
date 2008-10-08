@@ -391,4 +391,8 @@
 #define WTF_USE_CTI_ARGUMENT 1
 #endif
 
+#if COMPILER(MSVC)
+#define WTF_USE_FAST_CALL_CTI_ARGUMENT 1
+#endif
+
 #endif /* WTF_Platform_h */

@@ -98,6 +98,7 @@
 #import <WebCore/Editor.h>
 #import <WebCore/EventHandler.h>
 #import <WebCore/ExceptionHandlers.h>
+#import <WebCore/FocusController.h>
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
 #import <WebCore/FrameView.h>
@@ -575,24 +576,140 @@ static CFMutableSetRef allWebViewsSet;
 
 @implementation WebView (WebPrivate)
 
-- (BOOL)isFlipped 
+static void WebKitInitializeApplicationCachePathIfNecessary()
 {
-    return !_private->useDocumentViews;
+    static BOOL initialized = NO;
+    if (initialized)
+        return;
+
+    NSString *appName = [[NSBundle mainBundle] bundleIdentifier];
+    if (!appName)
+        appName = [[NSProcessInfo processInfo] processName];
+    
+    ASSERT(appName);
+
+    NSString* cacheDir = [NSString _webkit_localCacheDirectoryWithBundleIdentifier:appName];
+
+    cacheStorage().setCacheDirectory(cacheDir);
+    initialized = YES;
 }
+
+- (void)_registerDraggedTypes
+{
+    NSArray *editableTypes = [WebHTMLView _insertablePasteboardTypes];
+    NSArray *URLTypes = [NSPasteboard _web_dragTypesForURL];
+    NSMutableSet *types = [[NSMutableSet alloc] initWithArray:editableTypes];
+    [types addObjectsFromArray:URLTypes];
+    [self registerForDraggedTypes:[types allObjects]];
+    [types release];
+}
+
+- (BOOL)_usesDocumentViews
+{
+    return _private->useDocumentViews;
+}
+
+- (void)_commonInitializationWithFrameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
+{
+#ifndef NDEBUG
+    WTF::RefCountedLeakCounter::suppressMessages(webViewIsOpen);
+#endif
+    
+    WebPreferences *standardPreferences = [WebPreferences standardPreferences];
+    [standardPreferences willAddToWebView];
+
+    _private->preferences = [standardPreferences retain];
+    _private->catchesDelegateExceptions = YES;
+    _private->mainFrameDocumentReady = NO;
+    _private->drawsBackground = YES;
+    _private->smartInsertDeleteEnabled = YES;
+    _private->backgroundColor = [[NSColor whiteColor] retain];
+    _private->useDocumentViews = usesDocumentViews;
+
+    WebFrameView *frameView = nil;
+    if (_private->useDocumentViews) {
+        NSRect f = [self frame];
+        frameView = [[WebFrameView alloc] initWithFrame: NSMakeRect(0,0,f.size.width,f.size.height)];
+        [frameView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+        [self addSubview:frameView];
+        [frameView release];
+    }
+
+    WebKitInitializeLoggingChannelsIfNecessary();
+    WebCore::InitializeLoggingChannelsIfNecessary();
+    [WebHistoryItem initWindowWatcherIfNecessary];
+    WebKitInitializeDatabasesIfNecessary();
+    WebKitInitializeApplicationCachePathIfNecessary();
+    
+    _private->page = new Page(new WebChromeClient(self), new WebContextMenuClient(self), new WebEditorClient(self), new WebDragClient(self), new WebInspectorClient(self));
+
+    _private->page->settings()->setLocalStorageDatabasePath([[self preferences] _localStorageDatabasePath]);
+
+    [WebFrame _createMainFrameWithPage:_private->page frameName:frameName frameView:frameView];
 
 #ifndef BUILDING_ON_TIGER
+    if (WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_LOADING_DURING_COMMON_RUNLOOP_MODES))
+        [self scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    else
+        [self scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+#endif
 
-- (void)viewWillDraw
-{
-    if (!_private->useDocumentViews) {
-        Frame* frame = core([self mainFrame]);
-        if (frame && frame->view())
-            frame->view()->layoutIfNeededRecursive();
+    [self _addToAllWebViewsSet];
+    [self setGroupName:groupName];
+    
+    // If there's already a next key view (e.g., from a nib), wire it up to our
+    // contained frame view. In any case, wire our next key view up to the our
+    // contained frame view. This works together with our becomeFirstResponder 
+    // and setNextKeyView overrides.
+    NSView *nextKeyView = [self nextKeyView];
+    if (nextKeyView && nextKeyView != frameView)
+        [frameView setNextKeyView:nextKeyView];
+    [super setNextKeyView:frameView];
+
+    ++WebViewCount;
+
+    [self _registerDraggedTypes];
+
+    WebPreferences *prefs = [self preferences];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_preferencesChangedNotification:)
+                                                 name:WebPreferencesChangedNotification object:prefs];
+
+    // Post a notification so the WebCore settings update.
+    [[self preferences] _postPreferencesChangesNotification];
+
+    if (!WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_LOCAL_RESOURCE_SECURITY_RESTRICTION)) {
+        // Originally, we allowed all local loads.
+        FrameLoader::setLocalLoadPolicy(FrameLoader::AllowLocalLoadsForAll);
+    } else if (!WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_MORE_STRICT_LOCAL_RESOURCE_SECURITY_RESTRICTION)) {
+        // Later, we allowed local loads for local URLs and documents loaded
+        // with substitute data.
+        FrameLoader::setLocalLoadPolicy(FrameLoader::AllowLocalLoadsForLocalAndSubstituteData);
     }
-    [super viewWillDraw];
 }
 
+- (id)_initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
+{
+    self = [super initWithFrame:f];
+    if (!self)
+        return nil;
+
+#ifdef ENABLE_WEBKIT_UNSET_DYLD_FRAMEWORK_PATH
+    // DYLD_FRAMEWORK_PATH is used so Safari will load the development version of WebKit, which
+    // may not work with other WebKit applications.  Unsetting DYLD_FRAMEWORK_PATH removes the
+    // need for Safari to unset it to prevent it from being passed to applications it launches.
+    // Unsetting it when a WebView is first created is as good a place as any.
+    // See <http://bugs.webkit.org/show_bug.cgi?id=4286> for more details.
+    if (getenv("WEBKIT_UNSET_DYLD_FRAMEWORK_PATH")) {
+        unsetenv("DYLD_FRAMEWORK_PATH");
+        unsetenv("WEBKIT_UNSET_DYLD_FRAMEWORK_PATH");
+    }
 #endif
+
+    _private = [[WebViewPrivate alloc] init];
+    [self _commonInitializationWithFrameName:frameName groupName:groupName usesDocumentViews:usesDocumentViews];
+    [self setMaintainsBackForwardList: YES];
+    return self;
+}
 
 - (void)_boundsChanged
 {
@@ -650,6 +767,26 @@ static CFMutableSetRef allWebViewsSet;
         [localException raise];
     }
 }
+
+- (BOOL)isFlipped 
+{
+    return _private && !_private->useDocumentViews;
+}
+
+#ifndef BUILDING_ON_TIGER
+
+- (void)viewWillDraw
+{
+    if (!_private->useDocumentViews) {
+        Frame* frame = core([self mainFrame]);
+        if (frame && frame->view())
+            frame->view()->layoutIfNeededRecursive();
+    }
+    [super viewWillDraw];
+}
+
+#endif
+
 
 - (void)drawRect:(NSRect)rect
 {
@@ -1969,112 +2106,6 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
     FrameLoader::registerURLSchemeAsLocal(protocol);
 }
 
-- (void)_registerDraggedTypes
-{
-    NSArray *editableTypes = [WebHTMLView _insertablePasteboardTypes];
-    NSArray *URLTypes = [NSPasteboard _web_dragTypesForURL];
-    NSMutableSet *types = [[NSMutableSet alloc] initWithArray:editableTypes];
-    [types addObjectsFromArray:URLTypes];
-    [self registerForDraggedTypes:[types allObjects]];
-    [types release];
-}
-
-static void WebKitInitializeApplicationCachePathIfNecessary()
-{
-    static BOOL initialized = NO;
-    if (initialized)
-        return;
-
-    NSString *appName = [[NSBundle mainBundle] bundleIdentifier];
-    if (!appName)
-        appName = [[NSProcessInfo processInfo] processName];
-    
-    ASSERT(appName);
-
-    NSString* cacheDir = [NSString _webkit_localCacheDirectoryWithBundleIdentifier:appName];
-
-    cacheStorage().setCacheDirectory(cacheDir);
-    initialized = YES;
-}
-
-- (void)_commonInitializationWithFrameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
-{
-#ifndef NDEBUG
-    WTF::RefCountedLeakCounter::suppressMessages(webViewIsOpen);
-#endif
-    
-    WebPreferences *standardPreferences = [WebPreferences standardPreferences];
-    [standardPreferences willAddToWebView];
-
-    _private->preferences = [standardPreferences retain];
-    _private->catchesDelegateExceptions = YES;
-    _private->mainFrameDocumentReady = NO;
-    _private->drawsBackground = YES;
-    _private->smartInsertDeleteEnabled = YES;
-    _private->backgroundColor = [[NSColor whiteColor] retain];
-    _private->useDocumentViews = usesDocumentViews;
-
-    WebFrameView *frameView = nil;
-    if (_private->useDocumentViews) {
-        NSRect f = [self frame];
-        frameView = [[WebFrameView alloc] initWithFrame: NSMakeRect(0,0,f.size.width,f.size.height)];
-        [frameView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-        [self addSubview:frameView];
-        [frameView release];
-    }
-
-    WebKitInitializeLoggingChannelsIfNecessary();
-    WebCore::InitializeLoggingChannelsIfNecessary();
-    [WebHistoryItem initWindowWatcherIfNecessary];
-    WebKitInitializeDatabasesIfNecessary();
-    WebKitInitializeApplicationCachePathIfNecessary();
-    
-    _private->page = new Page(new WebChromeClient(self), new WebContextMenuClient(self), new WebEditorClient(self), new WebDragClient(self), new WebInspectorClient(self));
-
-    _private->page->settings()->setLocalStorageDatabasePath([[self preferences] _localStorageDatabasePath]);
-
-    [WebFrame _createMainFrameWithPage:_private->page frameName:frameName frameView:frameView];
-
-#ifndef BUILDING_ON_TIGER
-    if (WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_LOADING_DURING_COMMON_RUNLOOP_MODES))
-        [self scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-    else
-        [self scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
-#endif
-
-    [self _addToAllWebViewsSet];
-    [self setGroupName:groupName];
-    
-    // If there's already a next key view (e.g., from a nib), wire it up to our
-    // contained frame view. In any case, wire our next key view up to the our
-    // contained frame view. This works together with our becomeFirstResponder 
-    // and setNextKeyView overrides.
-    NSView *nextKeyView = [self nextKeyView];
-    if (nextKeyView && nextKeyView != frameView)
-        [frameView setNextKeyView:nextKeyView];
-    [super setNextKeyView:frameView];
-
-    ++WebViewCount;
-
-    [self _registerDraggedTypes];
-
-    WebPreferences *prefs = [self preferences];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_preferencesChangedNotification:)
-                                                 name:WebPreferencesChangedNotification object:prefs];
-
-    // Post a notification so the WebCore settings update.
-    [[self preferences] _postPreferencesChangesNotification];
-
-    if (!WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_LOCAL_RESOURCE_SECURITY_RESTRICTION)) {
-        // Originally, we allowed all local loads.
-        FrameLoader::setLocalLoadPolicy(FrameLoader::AllowLocalLoadsForAll);
-    } else if (!WebKitLinkedOnOrAfter(WEBKIT_FIRST_VERSION_WITH_MORE_STRICT_LOCAL_RESOURCE_SECURITY_RESTRICTION)) {
-        // Later, we allowed local loads for local URLs and documents loaded
-        // with substitute data.
-        FrameLoader::setLocalLoadPolicy(FrameLoader::AllowLocalLoadsForLocalAndSubstituteData);
-    }
-}
-
 - (id)initWithFrame:(NSRect)f
 {
     return [self initWithFrame:f frameName:nil groupName:nil];
@@ -2083,30 +2114,6 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 - (id)initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName
 {
     return [self _initWithFrame:f frameName:frameName groupName:groupName usesDocumentViews:YES];
-}
-
-- (id)_initWithFrame:(NSRect)f frameName:(NSString *)frameName groupName:(NSString *)groupName usesDocumentViews:(BOOL)usesDocumentViews
-{
-    self = [super initWithFrame:f];
-    if (!self)
-        return nil;
-
-#ifdef ENABLE_WEBKIT_UNSET_DYLD_FRAMEWORK_PATH
-    // DYLD_FRAMEWORK_PATH is used so Safari will load the development version of WebKit, which
-    // may not work with other WebKit applications.  Unsetting DYLD_FRAMEWORK_PATH removes the
-    // need for Safari to unset it to prevent it from being passed to applications it launches.
-    // Unsetting it when a WebView is first created is as good a place as any.
-    // See <http://bugs.webkit.org/show_bug.cgi?id=4286> for more details.
-    if (getenv("WEBKIT_UNSET_DYLD_FRAMEWORK_PATH")) {
-        unsetenv("DYLD_FRAMEWORK_PATH");
-        unsetenv("WEBKIT_UNSET_DYLD_FRAMEWORK_PATH");
-    }
-#endif
-
-    _private = [[WebViewPrivate alloc] init];
-    [self _commonInitializationWithFrameName:frameName groupName:groupName usesDocumentViews:usesDocumentViews];
-    [self setMaintainsBackForwardList: YES];
-    return self;
 }
 
 - (id)initWithCoder:(NSCoder *)decoder
@@ -2265,6 +2272,32 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     }
 }
 
+- (void)addWindowObservers
+{
+    NSWindow *window = [self window];
+    if (!_private->useDocumentViews && window) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowDidBecomeKey:)
+            name:NSWindowDidBecomeKeyNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowDidResignKey:)
+            name:NSWindowDidResignKeyNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowWillOrderOnScreen:)
+            name:WKWindowWillOrderOnScreenNotification() object:window];
+    }
+}
+
+- (void)removeWindowObservers
+{
+    NSWindow *window = [self window];
+    if (!_private->useDocumentViews && window) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+            name:NSWindowDidBecomeKeyNotification object:nil];
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+            name:NSWindowDidResignKeyNotification object:nil];
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+            name:WKWindowWillOrderOnScreenNotification() object:window];
+    }
+}
+
 - (void)viewWillMoveToWindow:(NSWindow *)window
 {
     // Don't do anything if the WebView isn't initialized.
@@ -2281,13 +2314,14 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 
     if (window) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowWillClose:) name:NSWindowWillCloseNotification object:window];
-
+         
         // Ensure that we will receive the events that WebHTMLView (at least) needs.
         // The following are expensive enough that we don't want to call them over
         // and over, so do them when we move into a window.
         [window setAcceptsMouseMovedEvents:YES];
         WKSetNSWindowShouldPostEventNotifications(window, YES);
         
+        [self removeWindowObservers];
         [self removeSizeObservers];
     }
 }
@@ -2301,8 +2335,59 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
     if (!_private || _private->closed)
         return;
         
-    if ([self window])
+    if ([self window]) {
+        [self addWindowObservers];
         [self addSizeObservers];
+    }
+}
+
+- (void)_updateFocusedAndActiveState
+{
+    ASSERT(!_private->useDocumentViews);
+    [self _updateFocusedAndActiveStateForFrame:[self mainFrame]];
+}
+
+- (void)_updateFocusedAndActiveStateForFrame:(WebFrame *)webFrame
+{
+    Frame* frame = core(webFrame);
+    if (!frame)
+        return;
+    
+    Page* page = frame->page();
+    if (!page)
+        return;
+
+    NSWindow *window = [self window];
+    BOOL windowIsKey = [window isKeyWindow];
+    BOOL windowOrSheetIsKey = windowIsKey || [[window attachedSheet] isKeyWindow];
+
+    page->focusController()->setActive(windowIsKey);
+
+    Frame* focusedFrame = page->focusController()->focusedOrMainFrame();
+    frame->selection()->setFocused(frame == focusedFrame && windowOrSheetIsKey);
+}
+
+- (void)_windowDidBecomeKey:(NSNotification *)notification
+{
+    ASSERT(!_private->useDocumentViews);
+    NSWindow *keyWindow = [notification object];
+    if (keyWindow == [self window] || keyWindow == [[self window] attachedSheet])
+        [self _updateFocusedAndActiveState];
+}
+
+- (void)_windowDidResignKey:(NSNotification *)notification
+{
+    ASSERT(!_private->useDocumentViews);
+    NSWindow *formerKeyWindow = [notification object];
+    if (formerKeyWindow == [self window] || formerKeyWindow == [[self window] attachedSheet])
+        [self _updateFocusedAndActiveState];
+}
+
+- (void)_windowWillOrderOnScreen:(NSNotification *)notification
+{
+    ASSERT(!_private->useDocumentViews);
+    if (![self shouldUpdateWhileOffscreen])
+        [self setNeedsDisplay:YES];
 }
 
 - (void)_windowWillClose:(NSNotification *)notification
@@ -2599,11 +2684,6 @@ static void WebKitInitializeApplicationCachePathIfNecessary()
 {
     if ([self superview] != nil)
         [self addSizeObservers];
-}
-
-- (BOOL)_usesDocumentViews
-{
-    return _private->useDocumentViews;
 }
 
 - (void)setApplicationNameForUserAgent:(NSString *)applicationName

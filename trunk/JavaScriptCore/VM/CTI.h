@@ -45,8 +45,6 @@
 #define ARGS (&args)
 #endif
 
-#define CTI_ARGS_2ndResult 0x08
-
 #define CTI_ARGS_code 0x0C
 #define CTI_ARGS_registerFile 0x0D
 #define CTI_ARGS_r 0x0E
@@ -62,7 +60,6 @@
 #define ARG_exec CallFrame::create(ARG_r)
 
 #define ARG_setR(newR) (*(Register**)&(ARGS)[CTI_ARGS_r] = newR)
-#define ARG_set2ndResult(new2ndResult) (*(JSValue**)&(ARGS)[CTI_ARGS_2ndResult] = new2ndResult)
 
 #define ARG_src1 ((JSValue*)((ARGS)[1]))
 #define ARG_src2 ((JSValue*)((ARGS)[2]))
@@ -108,11 +105,26 @@ namespace JSC {
     struct Instruction;
     struct OperandTypes;
 
-    typedef JSValue* (*CTIHelper_j)(CTI_ARGS);
-    typedef JSPropertyNameIterator* (*CTIHelper_p)(CTI_ARGS);
-    typedef void (*CTIHelper_v)(CTI_ARGS);
-    typedef void* (*CTIHelper_s)(CTI_ARGS);
-    typedef int (*CTIHelper_b)(CTI_ARGS);
+    struct VoidPtrPair { void* first; void* second; };
+
+#if COMPILER(MSVC)
+
+#if USE(FAST_CALL_CTI_ARGUMENT)
+#define SFX_CALL __fastcall
+#else
+#define SFX_CALL __cdecl
+#endif
+
+#else
+#define SFX_CALL
+#endif
+
+    typedef JSValue* (SFX_CALL *CTIHelper_j)(CTI_ARGS);
+    typedef JSPropertyNameIterator* (SFX_CALL *CTIHelper_p)(CTI_ARGS);
+    typedef void (SFX_CALL *CTIHelper_v)(CTI_ARGS);
+    typedef void* (SFX_CALL *CTIHelper_s)(CTI_ARGS);
+    typedef int (SFX_CALL *CTIHelper_b)(CTI_ARGS);
+    typedef VoidPtrPair (SFX_CALL *CTIHelper_2)(CTI_ARGS);
 
     struct CallRecord {
         X86Assembler::JmpSrc from;
@@ -152,6 +164,13 @@ namespace JSC {
         }
         
         CallRecord(X86Assembler::JmpSrc f, CTIHelper_b t, unsigned i)
+            : from(f)
+            , to((void*)t)
+            , opcodeIndex(i)
+        {
+        }
+
+        CallRecord(X86Assembler::JmpSrc f, CTIHelper_2 t, unsigned i)
             : from(f)
             , to((void*)t)
             , opcodeIndex(i)
@@ -243,7 +262,9 @@ namespace JSC {
         // will compress the displacement, and we may not be able to fit a repatched offset.
         static const int repatchGetByIdDefaultOffset = 256;
 
-#if USE(CTI_ARGUMENT)
+#if USE(FAST_CALL_CTI_ARGUMENT)
+        static const int ctiArgumentInitSize = 2;
+#elif USE(CTI_ARGUMENT)
         static const int ctiArgumentInitSize = 4;
 #else
         static const int ctiArgumentInitSize = 0;
@@ -350,6 +371,7 @@ namespace JSC {
 
         enum CompileOpCallType { OpCallNormal, OpCallEval, OpConstruct };
         void compileOpCall(Instruction* instruction, unsigned i, CompileOpCallType type = OpCallNormal);
+        void compileOpCallInitializeCallFrame(unsigned callee, unsigned argCount);
         enum CompileOpStrictEqType { OpStrictEq, OpNStrictEq };
         void compileOpStrictEq(Instruction* instruction, unsigned i, CompileOpStrictEqType type);
         void putDoubleResultToJSNumberCellOrJSImmediate(X86::XMMRegisterID xmmSource, X86::RegisterID jsNumberCell, unsigned dst, X86Assembler::JmpSrc* wroteJSNumberCell,  X86::XMMRegisterID tempXmm, X86::RegisterID tempReg1, X86::RegisterID tempReg2);
@@ -392,10 +414,11 @@ namespace JSC {
         X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, X86::RegisterID);
         X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_j);
         X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_p);
-        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_b);
         X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_v);
         X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_s);
-        
+        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_b);
+        X86Assembler::JmpSrc emitCall(unsigned opcodeIndex, CTIHelper_2);
+
         void emitGetVariableObjectRegister(X86Assembler::RegisterID variableObject, int index, X86Assembler::RegisterID dst);
         void emitPutVariableObjectRegister(X86Assembler::RegisterID src, X86Assembler::RegisterID variableObject, int index);
         

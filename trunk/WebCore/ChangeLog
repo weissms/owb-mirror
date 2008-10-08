@@ -1,3 +1,184 @@
+2008-10-08  Alp Toker  <alp@nuanti.com>
+
+        GTK+ build fix for older automake versions (1.7). Discussed in bug
+        #21392.
+
+        * GNUmakefile.am:
+
+2008-10-07  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        <rdar://problem/6273887> Crash in ApplicationCacheGroup
+        
+        Make sure to stop loading even before a cache update is in progress so that the
+        manifest load will be stopped.
+
+        * loader/appcache/ApplicationCacheGroup.cpp:
+        (WebCore::ApplicationCacheGroup::~ApplicationCacheGroup):
+        (WebCore::ApplicationCacheGroup::stopLoading):
+        (WebCore::ApplicationCacheGroup::cacheUpdateFailed):
+
+2008-10-07  Timothy Hatcher  <timothy@apple.com>
+
+        Auto-generate DOMDocument's createNodeIterator: and createTreeWalker: methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21433
+
+        Reviewed by Sam Weinig.
+
+        * WebCore.xcodeproj/project.pbxproj: Add ObjCNodeFilterCondition.{mm,h}.
+        * bindings/objc/DOM.mm: Remove previous category implementations
+        on DOMDocument for createNodeIterator: and createTreeWalker:. Also
+        moves ObjCNodeFilterCondition to its own file.
+        * bindings/objc/DOMTraversal.h: Remove the category methods that added
+        createNodeIterator: and createTreeWalker: to DOMDocument. This is fine
+        to do since DOmDocument.h is included still, and has these methods.
+        * bindings/objc/DOMUtility.mm:
+        (JSC::createDOMWrapper): Remove special case for JSNodeIterator and
+        JSTreeWalker now that the ObjC binding conforms to the standard wrap.
+        * bindings/objc/ObjCNodeFilterCondition.h: Split out from DOM.mm.
+        (WebCore::ObjCNodeFilterCondition::create): Moved from DOM.mm.
+        (WebCore::ObjCNodeFilterCondition::ObjCNodeFilterCondition): Ditto.
+        * bindings/objc/ObjCNodeFilterCondition.mm: Split out from DOM.mm.
+        (WebCore::ObjCNodeFilterCondition::acceptNode): Moved from DOM.mm.
+        * bindings/objc/PublicDOMInterfaces.h: Add the createNodeIterator: and
+        createTreeWalker: methods to DOMDocument.
+        * bindings/scripts/CodeGeneratorObjC.pm:
+        (GetObjCTypeGetter): Add a case for NodeFilter.
+        (AddIncludesForType): Include ObjCNodeFilterCondition.h for NodeFilter.
+        (GenerateImplementation): Remove existing NodeFilter special case that
+        used the m_filter member variable. Add a new special getter for protocol
+        types that aren't EventTarget, so the right class is used for NodeFilter.
+        Add a special case for NodeFilter where it creates an ObjCNodeFilterCondition.
+        * dom/Document.idl: Remove the #ifdef LANGUAGE_OBJECTIVE_C. Add the
+        OldStyleObjC extended attribute to createNodeIterator and createTreeWalker.
+        Rename the entityReferenceExpansion parameter to expandEntityReferences to
+        match the previous ObjC API.
+        * dom/NodeIterator.idl: Remove ObjCIvar from the filter attribute. The
+        m_filter member variable was never used in practice, it was always nil!
+        We can remove it and not pad the object because this can't be subclassed.
+        * dom/TreeWalker.idl: Ditto.
+
+2008-10-07  Timothy Hatcher  <timothy@apple.com>
+
+        Auto-generate the DOMEventTarget protocol implementation for
+        DOMNode and DOMSVGElementInstance.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21432
+
+        Reviewed by Darin Adler.
+
+        * WebCore.xcodeproj/project.pbxproj: Add ObjCEventListener.{mm,h}.
+        * bindings/objc/DOM.mm: Remove many unneeded header includes. Move
+        ObjCEventListener to it's own file. Remove the manual impelmentations
+        of the DOMEventTarget protocol for DOMNode and DOMSVGElementInstance.
+        * bindings/objc/DOMEvents.h: Remove the categories that defined
+        DOMEventTarget for DOMNode and DOMSVGElementInstance.
+        * bindings/objc/ObjCEventListener.h: Split out from DOM.mm.
+        * bindings/objc/ObjCEventListener.mm: Split out from DOM.mm.
+        (WebCore::ObjCEventListener::find): Moved from DOM.mm.
+        (WebCore::ObjCEventListener::wrap): Use PassRefPtr to prevent the
+        callers from doing a manual deref.
+        (WebCore::ObjCEventListener::ObjCEventListener): Moved from DOM.mm.
+        (WebCore::ObjCEventListener::~ObjCEventListener): Ditto.
+        * bindings/scripts/CodeGeneratorObjC.pm:
+        (GetObjCTypeGetter): Add a case for EventListener and use WTF::getPtr.
+        (AddIncludesForType): Include ObjCEventListener.h for EventListener.
+        And include EventTargetSVGElementInstance.h for SVGElementInstance.
+        (GenerateHeader): Remove the check for multiple parents.
+        (GenerateImplementation): Remove the check for multiple parents. Remove
+        the @deprecatedFunctions array since deprecated methods get generated
+        into the main @interface now to work with protocols. Add support
+        for the EventTargetNodeCast extended attribute. Add support for
+        EventListener parameters.
+        * dom/Node.idl: Define superclasses for ObjC so the implementation
+        and interface implement the DOMEventTarget protocol. Explicitly
+        specify Object as a superclass to use DOMEventTarget. Object will turn
+        into DOMObject. This is needed to take the code generator down the right
+        path of multiple super-classes as protocols. It is ObjC only for legacy
+        reasons. The event target methods are normally on NodeEventTarget, a
+        subclass of Node. But the ObjC API has never has this subclass and
+        they are on DOMNode.
+        * svg/SVGElementInstance.idl: Ditto.
+
+2008-10-07  David Hyatt  <hyatt@apple.com>
+
+        Add new pseudo-elements and pseudo-classes that will enable scrollbars to be styled by CSS.
+
+        The new pseudo-elements are:
+            scrollbar
+            scrollbar-button
+            scrollbar-corner
+            scrollbar-thumb
+            scrollbar-track
+        
+        These elements will work with all the usual pseudo-classes (:hover, :active, :enabled, :disabled, etc.) and with
+        the following new pseudo-classes:
+            scrollbar-active
+            scrollbar-back
+            scrollbar-forward
+            scrollbar-horizontal
+            scrollbar-vertical
+        
+        Reviewed by Adele
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+
+2008-10-06  Timothy Hatcher  <timothy@apple.com>
+
+        Add support to the Resources panel for queries like "#123", "foo #123",
+        "line: 123" and "foo line: 123". These will match the query limiting
+        the search only to the line specified. If only a line is specified,
+        the whole line is matched.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21422
+
+        Reviewed by Darin Adler.
+
+        * inspector/front-end/SourceFrame.js:
+        (WebInspector.SourceFrame.prototype.sourceRow): Don't return the last
+        row if the index is greater than the rows collection. Let it return
+        undefined by indexing out-of-bounds.
+        * inspector/front-end/SourceView.js:
+        (WebInspector.SourceView.prototype.performSearch): Add support for
+        queries like "#123", "foo #123", "line: 123" and "foo line: 123".
+        Also match the whole query to the whole document in case there are
+        colors like "#333".
+
+2008-10-07  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21392
+        [GTK] Auto-generate JS DOM binding sources list
+
+        Remove the huge lists of generated DOM binding sources and headers in
+        the build system. These are difficult to maintain and can be derived
+        automatically.
+
+        The new strategy is to re-use the existing lists of IDL sources (which
+        are needed for dist support anyway). This will also ease the addition
+        of new language bindings.
+
+        * GNUmakefile.am:
+
+2008-10-07  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Don't attempt to paint when updating control tints
+
+        We don't have a valid PlatformGraphicsContext so schedule
+        the dirty scrollbar/scrollview area for repaint instead.
+
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::ScrollbarThemeQt::paint):
+        (WebCore::ScrollbarThemeQt::paintScrollCorner):
+
 2008-10-07  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         [qt] Build fix after Scrollbar.h and Widget.h changes.

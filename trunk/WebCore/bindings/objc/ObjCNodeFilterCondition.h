@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2007, 2008 Nikolas Zimmermann <zimmermann@kde.org>
- * Copyright (C) 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2006, 2008 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,22 +21,40 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module svg {
-    interface [Conditional=SVG, ObjCCustomInternalImpl] SVGElementInstance
-#if defined(LANGUAGE_OBJECTIVE_C)
-        : Object, EventTarget
-#endif /* defined(LANGUAGE_OBJECTIVE_C) */
-    {
-        readonly attribute SVGElement correspondingElement;
-        readonly attribute SVGUseElement correspondingUseElement;
-        readonly attribute SVGElementInstance parentNode;
-        readonly attribute SVGElementInstanceList childNodes;
-        readonly attribute SVGElementInstance firstChild;
-        readonly attribute SVGElementInstance lastChild;
-        readonly attribute SVGElementInstance previousSibling;
-        readonly attribute SVGElementInstance nextSibling;
+#ifndef ObjCNodeFilterCondition_h
+#define ObjCNodeFilterCondition_h
+
+#include "NodeFilterCondition.h"
+
+#include <wtf/PassRefPtr.h>
+#include <wtf/RetainPtr.h>
+
+@protocol DOMNodeFilter;
+
+namespace WebCore {
+    class Node;
+
+    class ObjCNodeFilterCondition : public NodeFilterCondition {
+    public:
+        static PassRefPtr<ObjCNodeFilterCondition> create(id <DOMNodeFilter> filter)
+        {
+            return adoptRef(new ObjCNodeFilterCondition(filter));
+        }
+
+        virtual short acceptNode(JSC::ExecState*, Node*) const;
+
+    private:
+        ObjCNodeFilterCondition(id <DOMNodeFilter> filter)
+            : m_filter(filter)
+        {
+        }
+
+        RetainPtr<id <DOMNodeFilter> > m_filter;
     };
-}
+
+} // namespace WebCore
+
+#endif

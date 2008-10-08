@@ -1,3 +1,158 @@
+2008-10-08  Sam Weinig  <sam@webkit.org>
+
+        Roll out r37405.
+
+2008-10-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Switch CTI runtime calls to the fastcall calling convention
+
+        Basically this means that we get to store the argument for CTI
+        calls in the ECX register, which saves a register->memory write
+        and subsequent memory->register read.
+        
+        This is a 1.7% progression in SunSpider and 2.4% on commandline
+        v8 tests on Windows
+
+        * VM/CTI.cpp:
+        (JSC::):
+        (JSC::CTI::privateCompilePutByIdTransition):
+        (JSC::CTI::privateCompilePatchGetArrayLength):
+        * VM/CTI.h:
+        * VM/Machine.h:
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::emitRestoreArgumentReference):
+        (JSC::X86Assembler::emitRestoreArgumentReferenceForTrampoline):
+          We need this to correctly reload ecx from inside certain property access
+          trampolines.
+        * wtf/Platform.h:
+
+2008-10-07  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Mark Rowe.
+        
+        - optimize away multiplication by constant 1.0
+        
+        2.3% speedup on v8 RayTrace benchmark
+
+        Apparently it's not uncommon for JavaScript code to multiply by
+        constant 1.0 in the mistaken belief that this converts integer to
+        floating point and that there is any operational difference.
+        
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass): Optimize to_jsnumber for
+        case where parameter is already number.
+        (JSC::CTI::privateCompileSlowCases): ditto
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute): ditto
+        * kjs/grammar.y:
+        (makeMultNode): Transform as follows:
+        +FOO * BAR ==> FOO * BAR
+        FOO * +BAR ==> FOO * BAR
+        FOO * 1 ==> +FOO
+        1 * FOO ==> +FOO
+        (makeDivNode): Transform as follows:
+        +FOO / BAR ==> FOO / BAR
+        FOO / +BAR ==> FOO / BAR
+        (makeSubNode): Transform as follows:
+        +FOO - BAR ==> FOO - BAR
+        FOO - +BAR ==> FOO - BAR
+        * kjs/nodes.h:
+        (JSC::ExpressionNode::stripUnaryPlus): Helper for above
+        grammar.y changes
+        (JSC::UnaryPlusNode::stripUnaryPlus): ditto
+
+2008-10-07  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        - make constant folding code more consistent
+        
+        Added a makeSubNode to match add, mult and div; use the makeFooNode functions always,
+        instead of allocating nodes directly in other places in the grammar.
+
+        * kjs/grammar.y:
+
+2008-10-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Move hasGetterSetterProperties flag from PropertyMap to StructureID.
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::put):
+        (JSC::JSObject::defineGetter):
+        (JSC::JSObject::defineSetter):
+        * kjs/JSObject.h:
+        (JSC::JSObject::hasGetterSetterProperties):
+        (JSC::JSObject::getOwnPropertySlotForWrite):
+        (JSC::JSObject::getOwnPropertySlot):
+        * kjs/PropertyMap.h:
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::StructureID):
+        (JSC::StructureID::addPropertyTransition):
+        (JSC::StructureID::toDictionaryTransition):
+        (JSC::StructureID::changePrototypeTransition):
+        (JSC::StructureID::getterSetterTransition):
+        * kjs/StructureID.h:
+        (JSC::StructureID::hasGetterSetterProperties):
+        (JSC::StructureID::setHasGetterSetterProperties):
+
+2008-10-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Roll r37370 back in with bug fixes.
+
+        - PropertyMap::storageSize() should reflect the number of keys + deletedOffsets
+          and has nothing to do with the internal deletedSentinel count anymore.
+
+2008-10-07  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Move callframe initialization into JIT code, again.
+        
+        As a part of the restructuring the second result from functions is now
+        returned in edx, allowing the new value of 'r' to be returned via a
+        register, and stored to the stack from JIT code, too.
+
+        4.5% progression on v8-tests. (3% in their harness)
+
+        * VM/CTI.cpp:
+        (JSC::):
+        (JSC::CTI::emitCall):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        * VM/CTI.h:
+        (JSC::CallRecord::CallRecord):
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        (JSC::Machine::cti_op_resolve_func):
+        (JSC::Machine::cti_op_post_inc):
+        (JSC::Machine::cti_op_resolve_with_base):
+        (JSC::Machine::cti_op_post_dec):
+        * VM/Machine.h:
+        * kjs/JSFunction.h:
+        * kjs/ScopeChain.h:
+
+2008-10-07  Mark Rowe  <mrowe@apple.com>
+
+        Fix typo in method name.
+
+        * wrec/WREC.cpp:
+        * wrec/WREC.h:
+
+2008-10-07  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        Roll out r37370.
+
 2008-10-07  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Cameron Zwarich.

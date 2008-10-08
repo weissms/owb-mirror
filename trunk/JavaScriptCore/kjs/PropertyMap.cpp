@@ -192,7 +192,7 @@ size_t PropertyMap::put(const Identifier& propertyName, unsigned attributes)
         newOffset = m_deletedOffsets.last();
         m_deletedOffsets.removeLast();
     } else
-        newOffset = m_table->keyCount + m_table->deletedSentinelCount;
+        newOffset = m_table->keyCount;
     m_table->entries()[entryIndex - 1].offset = newOffset;
 
     ++m_table->keyCount;
@@ -214,7 +214,6 @@ size_t PropertyMap::remove(const Identifier& propertyName)
 
     if (!m_table)
         return WTF::notFound;
-
 
 #if DUMP_PROPERTYMAP_STATS
     ++numProbes;

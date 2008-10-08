@@ -94,8 +94,6 @@ namespace JSC {
 
         PropertyMap& operator=(const PropertyMap&);
 
-        bool isEmpty() { return !m_table; }
-
         size_t get(const Identifier& propertyName);
         size_t get(const Identifier& propertyName, unsigned& attributes);
         size_t put(const Identifier& propertyName, unsigned attributes);
@@ -103,11 +101,8 @@ namespace JSC {
 
         void getEnumerablePropertyNames(PropertyNameArray&) const;
 
-        bool hasGetterSetterProperties() const { return m_getterSetterFlag; }
-        void setHasGetterSetterProperties(bool f) { m_getterSetterFlag = f; }
-
-        unsigned size() const { return m_table ? m_table->size : 0; }
-        unsigned storageSize() const { return m_table ? m_table->keyCount + m_table->deletedSentinelCount : 0; }
+        bool isEmpty() { return !m_table; }
+        unsigned storageSize() const { return m_table ? m_table->keyCount + m_deletedOffsets.size() : 0; }
 
         static const unsigned emptyEntryIndex = 0;
 
