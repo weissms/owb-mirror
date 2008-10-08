@@ -1725,7 +1725,6 @@ static void attributesStartElementNsHandler(void* closure, const xmlChar* xmlLoc
         
         state->attributes.set(attrQName, attrValue);
     }
-    parserCounter.stopCounting();
 }
 #else
 static void attributesStartElementNsHandler(AttributeParseState* state, const QXmlStreamAttributes& attrs)
