@@ -1,7 +1,7 @@
 2008-10-03  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Jean-Charles Verdie.
-        Add OrigynSuite 
+        Add OrigynSuite.
 
         * CMakeLists.txt:
 
