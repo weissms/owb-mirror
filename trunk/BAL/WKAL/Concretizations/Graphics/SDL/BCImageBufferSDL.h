@@ -53,8 +53,6 @@ namespace WKAL {
         IntSize size() const { return m_size; }
         GraphicsContext* context() const;
 
-        BalSurface* surface() const;
-
         Image* image() const;
 
         void clearImage() { m_image.clear(); }
@@ -69,7 +67,7 @@ namespace WKAL {
         IntSize m_size;
 
         OwnPtr<GraphicsContext> m_context;
-	mutable RefPtr<Image> m_image;
+        mutable RefPtr<Image> m_image;
 
         ImageBuffer(BalSurface* surface);
         mutable BalSurface* m_surface;

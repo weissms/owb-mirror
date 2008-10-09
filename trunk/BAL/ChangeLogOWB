@@ -1,3 +1,16 @@
+2008-10-09  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Julien Chaffraix.
+        fix ticket #251
+
+        * WKAL/Concretizations/Graphics/SDL/BCImageSDL.cpp:
+        (WKAL::BitmapImage::BitmapImage): add a reference on surface when an
+        BitmapImage is created
+        * WKAL/Concretizations/Graphics/SDL/BCImageBufferSDL.cpp:
+        (WKAL::ImageBuffer::image): remove a getter on surface ( unused )
+        * WKAL/Concretizations/Graphics/SDL/BCImageBufferSDL.h: remove a
+        getter on surface ( unused )
+
 2008-10-07  Joe Edwards  <j@dna.ie>
 
         Reviewed by Mario Bensi.

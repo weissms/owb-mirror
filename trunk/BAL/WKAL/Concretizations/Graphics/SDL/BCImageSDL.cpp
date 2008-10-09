@@ -89,6 +89,7 @@ BitmapImage::BitmapImage(BalSurface* surface, ImageObserver* observer)
 
     // TODO: check to be sure this is an image surface
 
+    surface->refcount++;
     int width = surface->w;
     int height = surface->h;
     m_decodedSize = width * height * 4;

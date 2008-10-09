@@ -83,11 +83,6 @@ GraphicsContext* ImageBuffer::context() const
     return m_context.get();
 }
 
-BalSurface* ImageBuffer::surface() const
-{
-    return m_surface;
-}
-
 Image* ImageBuffer::image() const
 {
     if (!m_image) {
@@ -95,7 +90,7 @@ Image* ImageBuffer::image() const
         // GraphicsContext must be done.
         ASSERT(context());
         // BitmapImage will release the passed in surface on destruction
-	m_image = BitmapImage::create(m_surface);
+        m_image = BitmapImage::create(m_surface);
     }
     return m_image.get();
 }

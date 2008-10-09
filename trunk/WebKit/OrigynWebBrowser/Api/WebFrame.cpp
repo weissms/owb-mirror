@@ -1522,7 +1522,6 @@ void WebFrame::observe(const String &topic, BalObject *obj)
     if (topic == "AddonRegister")
 #endif
         addToJSWindowObject(obj->getName().utf8().data(), (void *)obj);
-
 }
 
 void WebFrame::addToJSWindowObject(const char* name, void *object)
