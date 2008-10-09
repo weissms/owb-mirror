@@ -1,3 +1,18 @@
+2008-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Removed m_isCounting as the recursion count could be used
+        instead.
+
+        * OWBAL/Concretizations/Types/WK/BCTimeCounterWK.cpp:
+        (WTF::TimeCounter::TimeCounter):
+        (WTF::TimeCounter::~TimeCounter):
+        (WTF::TimeCounter::startCounting):
+        (WTF::TimeCounter::stopCounting):
+        * OWBAL/Concretizations/Types/WK/BCTimeCounterWK.h: Updated
+        comment as it was ambiguous.
+
 2008-10-03  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

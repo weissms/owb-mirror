@@ -45,8 +45,8 @@ namespace WTF {
         volatile int m_callCount;
         volatile int m_recursionCount;
         volatile long long m_totalTime;
-        bool m_isCounting;
-        // This is not really accurate on Windows (see DateMath.cpp)
+
+        // This could be more accurate on Windows (see DateMath.cpp)
         struct timeval m_startTime;
 #endif // BENCH_LOAD_TIME
     };

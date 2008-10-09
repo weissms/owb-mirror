@@ -47,13 +47,12 @@ TimeCounter::TimeCounter(const char* description, bool shouldPrintCount)
     , m_callCount(0)
     , m_recursionCount(0)
     , m_totalTime(0)
-    , m_isCounting(false)
 {
 }
 
 TimeCounter::~TimeCounter()
 {
-    bool inaccurateResult = m_recursionCount || m_isCounting;
+    bool inaccurateResult = m_recursionCount;
         
     long long seconds = m_totalTime / SEC_IN_USEC;
     long long useconds = m_totalTime % SEC_IN_USEC;
@@ -72,28 +71,23 @@ void TimeCounter::startCounting()
     ++m_callCount;
     ++m_recursionCount;
 
-    if (m_isCounting)
+    if (m_recursionCount != 1)
         return;
 
-    m_isCounting = true;
-    if (gettimeofday(&m_startTime, 0) < 0) {
-        if (!--m_recursionCount)
-            m_isCounting = false;
-    }
+    if (gettimeofday(&m_startTime, 0) < 0)
+        printf("Gettimeofday failed, results will be inacurate.\n");
 }
 
 void TimeCounter::stopCounting()
 {
-    ASSERT(m_isCounting);
-    if (!m_isCounting)
+    ASSERT(m_recursionCount);
+    if (!m_recursionCount)
         return;
 
     // If m_recursion is not null, we are not in
     // the original caller.
     if (--m_recursionCount)
         return;
-
-    m_isCounting = false;
 
     struct timeval endTime;
     if (gettimeofday(&endTime, 0) < 0)
