@@ -32,6 +32,10 @@
 #include "SimpleFontData.h"
 #include <wtf/Assertions.h>
 #include "CString.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+#include <fontconfig/fontconfig.h>
 
 namespace WKAL {
 
@@ -43,7 +47,46 @@ void FontCache::platformInit()
 
 const SimpleFontData* FontCache::getFontDataForCharacters(const Font& font, const UChar* characters, int length)
 {
-    return new SimpleFontData(FontPlatformData(font.fontDescription(), font.family().family()));
+    FcResult fresult;
+    // Avoid copying FontPlatformData.
+    FontPlatformData* prim = const_cast<FontPlatformData*>(&font.primaryFont()->m_font);
+
+    if (!prim->m_fallbacks)
+        prim->m_fallbacks = FcFontSort(NULL, prim->m_pattern, FcTrue, NULL, &fresult);
+
+    FcFontSet* fs = prim->m_fallbacks;
+    
+    FT_Library library = FontPlatformData::m_library;
+
+    FcChar8* fc_filename;
+    char* filename;
+    int id;
+    FT_Face face;
+    for (int i = 0; i < fs->nfont; i++) {
+        FcPattern* fin = FcFontRenderPrepare(0, prim->m_pattern, fs->fonts[i]);
+
+        if (FcPatternGetString(fin, FC_FILE, 0, &fc_filename) != FcResultMatch)
+            continue;
+
+        filename = (char *) fc_filename; // Use C cast as FcChar is a fontconfig type.
+
+        if (FcPatternGetInteger(fin, FC_INDEX, 0, &id) != FcResultMatch)
+            continue;
+
+        if (FT_Error error = FT_New_Face(library, filename, id, &face))
+            continue;
+
+        // FIXME: is it really necessary ?
+        FT_Set_Pixel_Sizes(face, 0, static_cast<uint> (font.fontDescription().computedSize()));
+
+        FontPlatformData alternateFont(face, font.fontDescription().computedPixelSize(), false, false);
+        // FIXME: FT_Done_Face(face); we should clean the face correctly the FT_Face but we can't do that here...
+        alternateFont.m_pattern = fin;
+        SimpleFontData* sfd = getCachedFontData(&alternateFont);
+        if (sfd->containsCharacters(characters, length))
+            return sfd;
+    }
+    return 0;
 }
 
 FontPlatformData* FontCache::getSimilarFontPlatformData(const Font& font)

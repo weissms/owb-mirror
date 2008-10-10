@@ -34,6 +34,7 @@
 
 typedef struct FT_FaceRec_*  FT_Face;
 typedef struct FT_LibraryRec_  *FT_Library;
+typedef struct _FcFontSet FcFontSet;
 
 namespace WKAL {
 
@@ -41,11 +42,13 @@ class FontPlatformData : public WKALBase {
 public:
     FontPlatformData(WTF::HashTableDeletedValueType)
         : m_pattern(hashTableDeletedFontValue())
+        , m_fallbacks(0)
         , m_scaledFont(0)
         { }
 
     FontPlatformData()
         : m_pattern(0)
+        , m_fallbacks(0)
         , m_scaledFont(0)
         { }
 
@@ -75,13 +78,14 @@ public:
     };
 
     BalPattern* m_pattern;
-    float m_size;
     bool m_syntheticBold;
     bool m_syntheticOblique;
+    FcFontSet* m_fallbacks;
+    float m_size;
     BalScaledFont* m_scaledFont;
     FT_Face m_face;
-private:
     static FT_Library  m_library;
+private:
     static BalPattern *hashTableDeletedFontValue() { return reinterpret_cast<BalPattern*>(-1); }
 };
 

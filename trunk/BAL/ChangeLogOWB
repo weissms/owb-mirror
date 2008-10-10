@@ -1,3 +1,18 @@
+2008-10-10  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        Reviewed by Julien Chaffraix.
+        fix ticket #219 : Non-english fonts are available
+
+        * WKAL/Concretizations/Fonts/Freetype/BCFontCacheFreetype.cpp:
+        (WKAL::FontCache::getFontDataForCharacters):
+        * WKAL/Concretizations/Fonts/Freetype/BCFontPlatformDataFreetype.cpp:
+        (WKAL::FontPlatformData::FontPlatformData):
+        * WKAL/Concretizations/Fonts/Freetype/BCFontPlatformDataFreetype.h:
+        (WKAL::FontPlatformData::FontPlatformData):
+        * WKAL/Concretizations/Fonts/Freetype/BCSimpleFontDataFreetype.cpp:
+        (WKAL::SimpleFontData::platformDestroy):
+
 2008-10-10  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Build fix for gcc 4.3.

@@ -43,6 +43,7 @@ FT_Library FontPlatformData::m_library = 0;
 
 FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const AtomicString& familyName)
     : m_pattern(0)
+    , m_fallbacks(0)
     , m_size(fontDescription.computedSize())
     , m_syntheticBold(false)
     , m_syntheticOblique(false)
@@ -144,6 +145,7 @@ freePattern:
 
 FontPlatformData::FontPlatformData(float size, bool bold, bool italic)
     : m_pattern(0)
+    , m_fallbacks(0)
     , m_size(size)
     , m_syntheticBold(bold)
     , m_syntheticOblique(italic)
@@ -153,6 +155,7 @@ FontPlatformData::FontPlatformData(float size, bool bold, bool italic)
 
 FontPlatformData::FontPlatformData(BalFontFace* fontFace, int size, bool bold, bool italic)
     : m_pattern(0)
+    , m_fallbacks(0)
     , m_size(size)
     , m_syntheticBold(bold)
     , m_syntheticOblique(italic)

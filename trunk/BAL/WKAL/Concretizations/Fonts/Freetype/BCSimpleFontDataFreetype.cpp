@@ -67,6 +67,12 @@ void SimpleFontData::platformDestroy()
         FcPatternDestroy(m_font.m_pattern);
         m_font.m_pattern = 0;
     }
+    
+    if (m_font.m_fallbacks) {
+        FcFontSetDestroy(m_font.m_fallbacks);
+        m_font.m_fallbacks = 0;
+    }
+    
     if (m_smallCapsFontData)
         delete m_smallCapsFontData;
     m_smallCapsFontData = NULL;
