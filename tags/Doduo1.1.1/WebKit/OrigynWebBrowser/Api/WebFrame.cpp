@@ -82,12 +82,14 @@
 #include DEEPSEE_INCLUDE
 #include "ObserverServiceAddons.h"
 #include "ObserverServiceBookmarklet.h"
+#include "ObserverServiceData.h"
 #include "bal_instance.h"
 #include "runtime.h"
 #include "runtime_root.h"
 #include "runtime_object.h"
 #include "ExecState.h"
 #include "JSGlobalObject.h"
+#include "JSLock.h"
 #include "JSObject.h"
 #include "JSDOMWindowBase.h"
 #include "JSDOMWindow.h"
@@ -179,9 +181,9 @@ WebFrame::WebFrame()
     , m_quickRedirectComing(false)
     , m_inPrintingMode(false)
     , m_pageHeight(0)
-// #ifdef __BINDING_JS__
-//     , m_bindingJS(new BindingJS())
-// #endif
+#ifdef __BINDING_JS__
+    , isReg(false)
+#endif
 {
     DS_CONSTRUCT();
 #ifdef __BINDING_JS__
@@ -189,12 +191,14 @@ WebFrame::WebFrame()
 #endif
     OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(this)); 
     OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this)); 
+    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebViewProgressFinishedNotification, static_cast<ObserverData*>(this)); 
 }
 
 WebFrame::~WebFrame()
 {
     OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", static_cast<ObserverAddons*>(this));
     OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this));  
+    OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebViewProgressFinishedNotification, static_cast<ObserverData*>(this)); 
 #ifdef __BINDING_JS__ 
     if (m_bindingJS)
         delete m_bindingJS;
@@ -1123,8 +1127,10 @@ void WebFrame::windowObjectCleared()
 //             frameLoadDelegate->windowScriptObjectAvailable(d->webView, context, windowObject);
 //     }
 #ifdef __BINDING_JS__
-    if (m_bindingJS)
+    if (m_bindingJS) {
         m_bindingJS->registerBinding();
+	isReg = true;
+    }
 #endif
 }
 
@@ -1523,11 +1529,22 @@ void WebFrame::observe(const String &topic, BalObject *obj)
     if (topic == "AddonRegister")
 #endif
         addToJSWindowObject(obj->getName().utf8().data(), (void *)obj);
+}
 
+void WebFrame::observe(const String &topic, const String &data, void*) 
+{
+    if (topic == WebViewProgressFinishedNotification) {
+#ifdef __BINDING_JS__
+        if (m_bindingJS && !isReg)
+            m_bindingJS->registerBinding();
+	isReg = false;
+#endif
+    }
 }
 
 void WebFrame::addToJSWindowObject(const char* name, void *object)
 {
+    JSC::JSLock lock(false);
     JSDOMWindow *window = toJSDOMWindow(core(this));
     if (!window)
         return;

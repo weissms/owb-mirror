@@ -55,6 +55,7 @@
 #include <wtf/OwnPtr.h>
 #include "ObserverAddons.h"
 #include "ObserverBookmarklet.h"
+#include "ObserverData.h"
 #include "Bookmarklet.h"
 
 namespace WebCore {
@@ -118,7 +119,7 @@ WebFrame* kit(WebCore::Frame*);
      */
 WebCore::Frame* core(WebFrame*);
 
-class WebFrame: public WebFrameLoaderClient, public OWBAL::ObserverAddons, public OWBAL::ObserverBookmarklet
+class WebFrame: public WebFrameLoaderClient, public OWBAL::ObserverAddons, public OWBAL::ObserverBookmarklet, public OWBAL::ObserverData
 {
 public:
 
@@ -794,6 +795,7 @@ public:
      */
     virtual void observe(const OWBAL::String &topic, BalObject* obj);
     virtual void observe(const OWBAL::String &topic, OWBAL::Bookmarklet* bookmarklet);
+    virtual void observe(const OWBAL::String &topic, const OWBAL::String &data, void*);
 
 protected:
 
@@ -836,7 +838,8 @@ protected:
     Vector<WebCore::IntRect> m_pageRects;
     int m_pageHeight;   // height of the page adjusted by margins
 #ifdef __BINDING_JS__ 
-    BindingJS *m_bindingJS; 
+    BindingJS *m_bindingJS;
+    bool isReg;
 #endif
 };
 

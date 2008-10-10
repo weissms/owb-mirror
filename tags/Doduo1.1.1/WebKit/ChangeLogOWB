@@ -1,3 +1,16 @@
+2008-10-10  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+        fix addons register 
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::WebFrame):
+        (WebFrame::~WebFrame):
+        (WebFrame::windowObjectCleared):
+        (WebFrame::observe):
+        (WebFrame::addToJSWindowObject):
+        * OrigynWebBrowser/Api/WebFrame.h:
+
 2008-10-03  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
