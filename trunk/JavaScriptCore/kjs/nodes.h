@@ -116,25 +116,12 @@ namespace JSC {
         PrecExpression
     };
 
-    struct DeclarationStacks {
+    namespace DeclarationStacks {
         typedef Vector<Node*, 16> NodeStack;
-        enum { IsConstant = 1, HasInitializer = 2 } VarAttrs;
+        enum VarAttrs { IsConstant = 1, HasInitializer = 2 };
         typedef Vector<std::pair<Identifier, unsigned>, 16> VarStack;
         typedef Vector<RefPtr<FuncDeclNode>, 16> FunctionStack;
-
-        DeclarationStacks(ExecState* e, NodeStack& n, VarStack& v, FunctionStack& f)
-            : exec(e)
-            , nodeStack(n)
-            , varStack(v)
-            , functionStack(f)
-        {
-        }
-
-        ExecState* exec;
-        NodeStack& nodeStack;
-        VarStack& varStack;
-        FunctionStack& functionStack;
-    };
+    }
 
     struct SwitchInfo {
         enum SwitchType { SwitchNone, SwitchImmediate, SwitchCharacter, SwitchString };
@@ -225,6 +212,8 @@ namespace JSC {
         virtual bool isResolveNode() const JSC_FAST_CALL { return false; }
         virtual bool isBracketAccessorNode() const JSC_FAST_CALL { return false; }
         virtual bool isDotAccessorNode() const JSC_FAST_CALL { return false; }
+
+        virtual ExpressionNode* stripUnaryPlus() { return this; }
 
         ResultType resultDescriptor() const JSC_FAST_CALL { return m_resultDesc; }
 
@@ -1178,6 +1167,8 @@ namespace JSC {
             : UnaryOpNode(globalData, ResultType::constNumber(), expr)
         {
         }
+
+        virtual ExpressionNode* stripUnaryPlus() { return m_expr.get(); }
 
         virtual OpcodeID opcode() const JSC_FAST_CALL { return op_to_jsnumber; }
         virtual void streamTo(SourceStream&) const JSC_FAST_CALL;

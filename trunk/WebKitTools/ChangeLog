@@ -1,3 +1,56 @@
+2008-10-10  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21498
+
+        * Scripts/make-js-test-wrappers: ignore resources/shadow-offset.js
+
+2008-10-09  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Add StructureID.o to the exclusion list in the global initializers
+        script to fix the Debug build.
+
+        * Scripts/check-for-global-initializers:
+
+2008-10-08  Mark Rowe  <mrowe@apple.com>
+
+        Fix the Windows build after r37434.
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (dump): Update code to approximate valid C++ syntax.
+
+2008-10-08  Timothy Hatcher  <timothy@apple.com>
+
+        Add SVGElementInstance to the list of exceptions that have
+        global initializers in debug builds.
+
+        Rubber-stamped by Mark Rowe.
+
+        * Scripts/check-for-global-initializers: Add SVGElementInstance.o.
+
+2008-10-08  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Avoid disconnect between DRT and run-webkit-tests
+        about whether to expect PNG dumps by having DRT always
+        print two blocks terminated by #EOF, the second of which
+        may be empty.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=21483
+        
+        * DumpRenderTree/cg/PixelDumpSupportCG.cpp:
+        (printPNG):
+        (dumpWebViewAsPixelsAndCompareWithExpected):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (dump):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (dump):
+        * Scripts/run-webkit-tests:
+
 2008-10-08  Adam Roben  <aroben@apple.com>
 
         Make sure short functions get included in ChangeLog output for git

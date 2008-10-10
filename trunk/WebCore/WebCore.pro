@@ -11,7 +11,7 @@ contains(QT_CONFIG, embedded):CONFIG += embedded
 CONFIG(QTDIR_build) {
     GENERATED_SOURCES_DIR = $$PWD/generated
     include($$QT_SOURCE_TREE/src/qbase.pri)
-    CONFIG -= create_prl
+    !win32-msvc*: CONFIG -= create_prl
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
 }
@@ -102,7 +102,7 @@ contains(CONFIG, debug_and_release_target) {
 
 unset(JSCORE_LINKAGE)
 CONFIG(QTDIR_build) {
-    CONFIG(debug, debug|release) {
+    if(!debug_and_release|build_pass):CONFIG(debug, debug|release) {
         win32:JSCORE_LINKAGE = -lJavaScriptCored
         mac:JSCORE_LINKAGE = -lJavaScriptCore_debug
     }
@@ -202,7 +202,6 @@ STYLESHEETS_EMBED = $$PWD/css/html4.css
 
 LUT_FILES += \
     bindings/js/JSDOMWindowBase.cpp \
-    bindings/js/JSEventTargetSVGElementInstance.cpp \
     bindings/js/JSRGBColor.cpp
 
 IDL_BINDINGS += \
@@ -381,7 +380,6 @@ SOURCES += \
     bindings/js/JSEventCustom.cpp \
     bindings/js/JSEventTarget.cpp \
     bindings/js/JSEventTargetNodeCustom.cpp \
-    bindings/js/JSEventTargetSVGElementInstance.cpp \
     bindings/js/JSHTMLAllCollection.cpp \
     bindings/js/JSHistoryCustom.cpp \
     bindings/js/JSJavaScriptCallFrameCustom.cpp \
@@ -841,6 +839,7 @@ SOURCES += \
     platform/network/ResourceResponseBase.cpp \
     platform/text/RegularExpression.cpp \
     platform/Scrollbar.cpp \
+    platform/ScrollbarThemeComposite.cpp \
     platform/ScrollView.cpp \
 #    platform/SearchPopupMenu.cpp \
     platform/text/SegmentedString.cpp \
@@ -906,6 +905,9 @@ SOURCES += \
     rendering/RenderPartObject.cpp \
     rendering/RenderReplaced.cpp \
     rendering/RenderReplica.cpp \
+    rendering/RenderScrollbar.cpp \
+    rendering/RenderScrollbarPart.cpp \
+    rendering/RenderScrollbarTheme.cpp \
     rendering/RenderSlider.cpp \
     rendering/RenderTableCell.cpp \
     rendering/RenderTableCol.cpp \
@@ -1469,7 +1471,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/style/SVGRenderStyleDefs.cpp \
         svg/SVGZoomEvent.cpp \
         rendering/PointerEventsHitRules.cpp \
-        svg/EventTargetSVGElementInstance.cpp \
         svg/FilterEffect.cpp \
         svg/SVGDocumentExtensions.cpp \
         svg/SVGImageLoader.cpp \

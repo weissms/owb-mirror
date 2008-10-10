@@ -1005,18 +1005,9 @@ namespace WKAL {
      */
         void setPlatformStrokeColor(const Color&);
     /**
-     * setPlatformStrokePattern
-     */
-	void setPlatformStrokePattern(Pattern*);
-    /**
      * setPlatformStrokeGradient
      */
 	void setPlatformStrokeGradient(Gradient*);
-
-    /**
-     * setPlatformStrokeStyle
-     */
-        void setPlatformStrokeStyle(const StrokeStyle&);
     /**
      * setPlatformStrokeThickness
      */
@@ -1026,17 +1017,9 @@ namespace WKAL {
      */
         void setPlatformFillColor(const Color&);
     /**
-     * setPlatformFillPattern
-     */
-        void setPlatformFillPattern(Pattern*);
-    /**
      * setPlatformFillGradient
      */
         void setPlatformFillGradient(Gradient*);
-    /**
-     * setPlatformShadow
-     */
-        void setPlatformShadow(const IntSize&, int blur, const Color&);
     /**
      * clearPlatformShadow
      */
@@ -1070,4 +1053,4 @@ namespace WKAL {
 
 } // namespace WKAL
 
-#endif // GraphicsContext
+#endif // GraphicsCon

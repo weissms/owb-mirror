@@ -117,7 +117,6 @@ ENDIF (WEBKIT_USE_DOM_STORAGE)
 
 IF (WEBKIT_USE_SVG)
     LIST (APPEND BINDINGS_JS_SRC
-        bindings/js/JSEventTargetSVGElementInstance.cpp
         bindings/js/JSSVGElementInstanceCustom.cpp
         bindings/js/JSSVGMatrixCustom.cpp
         bindings/js/JSSVGPathSegCustom.cpp

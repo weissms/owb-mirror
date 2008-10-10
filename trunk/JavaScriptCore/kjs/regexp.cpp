@@ -27,14 +27,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wrec/WREC.h>
 #include <wtf/Assertions.h>
 #include <wtf/OwnArrayPtr.h>
 
 namespace JSC {
 
-
-
-inline RegExp::RegExp(ExecState* exec, const UString& pattern)
+inline RegExp::RegExp(JSGlobalData* globalData, const UString& pattern)
     : m_pattern(pattern)
     , m_flagBits(0)
     , m_regExp(0)
@@ -42,22 +41,23 @@ inline RegExp::RegExp(ExecState* exec, const UString& pattern)
     , m_numSubpatterns(0)
 {
 #if ENABLE(WREC)
-    if (!(m_wrecFunction = (WRECFunction)CTI::compileRegExp(exec, pattern, &m_numSubpatterns, &m_constructionError)))
+    m_wrecFunction = CTI::compileRegExp(globalData->machine, pattern, &m_numSubpatterns, &m_constructionError);
+    if (m_wrecFunction)
+        return;
+    // Fall through to non-WREC case.
 #else
-    UNUSED_PARAM(exec);
+    UNUSED_PARAM(globalData);
 #endif
-    {
-        m_regExp = jsRegExpCompile(reinterpret_cast<const UChar*>(pattern.data()), pattern.size(),
-            JSRegExpDoNotIgnoreCase, JSRegExpSingleLine, &m_numSubpatterns, &m_constructionError);
-    }
+    m_regExp = jsRegExpCompile(reinterpret_cast<const UChar*>(pattern.data()), pattern.size(),
+        JSRegExpDoNotIgnoreCase, JSRegExpSingleLine, &m_numSubpatterns, &m_constructionError);
 }
 
-PassRefPtr<RegExp> RegExp::create(ExecState* exec, const UString& pattern)
+PassRefPtr<RegExp> RegExp::create(JSGlobalData* globalData, const UString& pattern)
 {
-    return adoptRef(new RegExp(exec, pattern));
+    return adoptRef(new RegExp(globalData, pattern));
 }
 
-inline RegExp::RegExp(ExecState* exec, const UString& pattern, const UString& flags)
+inline RegExp::RegExp(JSGlobalData* globalData, const UString& pattern, const UString& flags)
     : m_pattern(pattern)
     , m_flags(flags)
     , m_flagBits(0)
@@ -84,19 +84,20 @@ inline RegExp::RegExp(ExecState* exec, const UString& pattern, const UString& fl
     }
 
 #if ENABLE(WREC)
-    if (!(m_wrecFunction = (WRECFunction)CTI::compileRegExp(exec, pattern, &m_numSubpatterns, &m_constructionError, (m_flagBits & IgnoreCase), (m_flagBits & Multiline))))
+    m_wrecFunction = CTI::compileRegExp(globalData->machine, pattern, &m_numSubpatterns, &m_constructionError, (m_flagBits & IgnoreCase), (m_flagBits & Multiline));
+    if (m_wrecFunction)
+        return;
+    // Fall through to non-WREC case.
 #else
-    UNUSED_PARAM(exec);
+    UNUSED_PARAM(globalData);
 #endif
-    {
-        m_regExp = jsRegExpCompile(reinterpret_cast<const UChar*>(pattern.data()), pattern.size(),
-            ignoreCaseOption, multilineOption, &m_numSubpatterns, &m_constructionError);
-    }
+    m_regExp = jsRegExpCompile(reinterpret_cast<const UChar*>(pattern.data()), pattern.size(),
+        ignoreCaseOption, multilineOption, &m_numSubpatterns, &m_constructionError);
 }
 
-PassRefPtr<RegExp> RegExp::create(ExecState* exec, const UString& pattern, const UString& flags)
+PassRefPtr<RegExp> RegExp::create(JSGlobalData* globalData, const UString& pattern, const UString& flags)
 {
-    return adoptRef(new RegExp(exec, pattern, flags));
+    return adoptRef(new RegExp(globalData, pattern, flags));
 }
 
 RegExp::~RegExp()
@@ -104,7 +105,7 @@ RegExp::~RegExp()
     jsRegExpFree(m_regExp);
 #if ENABLE(WREC)
     if (m_wrecFunction)
-        fastFree(reinterpret_cast<void*>(m_wrecFunction));
+        fastFree(m_wrecFunction);
 #endif
 }
 
@@ -131,7 +132,7 @@ int RegExp::match(const UString& s, int i, OwnArrayPtr<int>* ovector)
         else
             ovector->set(offsetVector);
 
-        int result = m_wrecFunction(s.data(), i, s.size(), offsetVector);
+        int result = reinterpret_cast<WRECFunction>(m_wrecFunction)(s.data(), i, s.size(), offsetVector);
 
         if (result < 0) {
 #ifndef NDEBUG

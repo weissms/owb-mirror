@@ -74,12 +74,7 @@ public:
     /**
      *  paint 
      */
-    void paint() ;
-
-    /**
-     *  platformWindow
-     */
-    virtual PlatformWidget platformWindow() const = 0;
+    void paint();
     
     
     // Methods for doing coordinate conversions to and from screen coordinates.
@@ -87,6 +82,11 @@ public:
      *  screenToWindow 
      */
     virtual IntPoint screenToWindow(const IntPoint&) const = 0;
+    /**
+     *  platformWindow
+     */
+    virtual PlatformWidget platformWindow() const = 0;
+    
     
 
     /**
@@ -98,4 +98,3 @@ public:
 } // namespace WKAL
 
 #endif // HostWindow_h
-

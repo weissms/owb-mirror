@@ -1,3 +1,39 @@
+2008-10-10  Timothy Hatcher  <timothy@apple.com>
+
+        Don't convert JavaScriptCore header include paths to WebKit paths. This was needed
+        back when NPAPI and WebScriptObject migrated from JavaScriptCore. Also remove
+        JavaScriptCore from the VPATH.
+
+        Reviewed by Sam Weinig.
+
+        * MigrateHeaders.make:
+
+2008-10-08  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21403
+          Bug 21403: use new CallFrame class rather than Register* for call frame manipulation
+
+        * WebView/WebScriptDebugger.mm:
+        (WebScriptDebugger::WebScriptDebugger): Update since DebuggerCallFrame is simpler now.
+
+2008-10-08  Timothy Hatcher  <timothy@apple.com>
+
+        Roll out r37427 because it causes an infinite recursion loading about:blank.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21476
+
+2008-10-08  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21403
+          Bug 21403: use new CallFrame class rather than Register* for call frame manipulation
+
+        * WebView/WebScriptDebugger.mm:
+        (WebScriptDebugger::WebScriptDebugger): Update since DebuggerCallFrame is simpler now.
+
 2008-10-08  David Hyatt  <hyatt@apple.com>
 
         Move viewless WebKit methods that Safari needs from WebViewInternal to WebViewPrivate.

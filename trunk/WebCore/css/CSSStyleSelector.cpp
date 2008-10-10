@@ -50,6 +50,7 @@
 #include "CachedImage.h"
 #include "Counter.h"
 #include "CounterContent.h"
+#include "FocusController.h"
 #include "FontFamilyValue.h"
 #include "FontValue.h"
 #include "Frame.h"
@@ -67,6 +68,7 @@
 #include "PageGroup.h"
 #include "Pair.h"
 #include "Rect.h"
+#include "RenderScrollbar.h"
 #include "RenderTheme.h"
 #include "RotateTransformOperation.h"
 #include "ScaleTransformOperation.h"
@@ -1670,7 +1672,9 @@ CSSStyleSelector::SelectorMatch CSSStyleSelector::SelectorChecker::checkSelector
             break;
         case CSSSelector::SubSelector:
             // a selector is invalid if something follows a pseudo-element
-            if (elementStyle && dynamicPseudo != RenderStyle::NOPSEUDO)
+            // We make an exception for scrollbar pseudo elements and allow a set of pseudo classes (but nothing else)
+            // to follow the pseudo elements.
+            if (elementStyle && dynamicPseudo != RenderStyle::NOPSEUDO && !(RenderScrollbar::scrollbarForStyleResolve() && sel->m_match == CSSSelector::PseudoClass))
                 return SelectorFailsCompletely;
             return checkSelector(sel, e, selectorAttrs, dynamicPseudo, isAncestor, true, elementStyle, elementParentStyle);
     }
@@ -1834,6 +1838,13 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
         }
     }
     if (sel->m_match == CSSSelector::PseudoClass) {
+        
+        // CSS scrollbars match a specific subset of pseudo classes, and they have specialized rules for each
+        // (since there are no elements involved).
+        if (RenderScrollbar::scrollbarForStyleResolve() && dynamicPseudo != RenderStyle::NOPSEUDO)
+            return checkScrollbarPseudoClass(sel, dynamicPseudo);
+        
+        // Normal element pseudo class checking.
         switch (sel->pseudoType()) {
             // Pseudo classes:
             case CSSSelector::PseudoEmpty: {
@@ -2339,6 +2350,24 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
             case CSSSelector::PseudoMediaControlsFullscreenButton:
                 dynamicPseudo = RenderStyle::MEDIA_CONTROLS_FULLSCREEN_BUTTON;
                 return true;
+            case CSSSelector::PseudoScrollbar:
+                dynamicPseudo = RenderStyle::SCROLLBAR;
+                return true;
+            case CSSSelector::PseudoScrollbarButton:
+                dynamicPseudo = RenderStyle::SCROLLBAR_BUTTON;
+                return true;
+            case CSSSelector::PseudoScrollbarCorner:
+                dynamicPseudo = RenderStyle::SCROLLBAR_CORNER;
+                return true;
+            case CSSSelector::PseudoScrollbarThumb:
+                dynamicPseudo = RenderStyle::SCROLLBAR_THUMB;
+                return true;
+            case CSSSelector::PseudoScrollbarTrack:
+                dynamicPseudo = RenderStyle::SCROLLBAR_TRACK;
+                return true;
+            case CSSSelector::PseudoScrollbarTrackPiece:
+                dynamicPseudo = RenderStyle::SCROLLBAR_TRACK_PIECE;
+                return true;
             case CSSSelector::PseudoUnknown:
             case CSSSelector::PseudoNotParsed:
             default:
@@ -2349,6 +2378,27 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
     }
     // ### add the rest of the checks...
     return true;
+}
+
+bool CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass(CSSSelector* sel, RenderStyle::PseudoId& dynamicPseudo) const
+{
+    RenderScrollbar* scrollbar = RenderScrollbar::scrollbarForStyleResolve();
+    
+    ASSERT(sel->m_match == CSSSelector::PseudoClass && scrollbar);
+    switch (sel->pseudoType()) {
+        case CSSSelector::PseudoEnabled:
+            return scrollbar->enabled();
+        case CSSSelector::PseudoDisabled:
+            return !scrollbar->enabled();
+        case CSSSelector::PseudoScrollbarHorizontal:
+            return scrollbar->orientation() == HorizontalScrollbar;
+        case CSSSelector::PseudoScrollbarVertical:
+            return scrollbar->orientation() == VerticalScrollbar;
+        case CSSSelector::PseudoWindowInactive:
+            return !scrollbar->isWindowActive();
+        default:
+            return false;
+    }
 }
 
 void CSSStyleSelector::addVariables(CSSVariablesRule* variables)

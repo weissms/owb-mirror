@@ -118,11 +118,7 @@ protected:
 
 
     /**
-     *  paintScrollCorner description
-     * @param[in] : description
-     * @param[out] : description
-     * @code
-     * @endcode
+     *  paintScrollCorner 
      */
     virtual void paintScrollCorner(ScrollView*, GraphicsContext*, const IntRect& cornerRect);
 
@@ -183,14 +179,7 @@ protected:
      */
     virtual void splitTrack(Scrollbar*, const IntRect& track, IntRect& startTrack, IntRect& thumb, IntRect& endTrack);
     
-    // Assume the track is a single piece by default.
-    /**
-     * Assume the track is a single piece by default.
-     * @param[out] : a boolean set to true if the track is a single piece.
-     * @code
-     * @endcode
-     */
-    virtual bool trackIsSinglePiece() ;
+    // Assume the track is a single piece by defaul
 
 
     /**
@@ -202,16 +191,24 @@ protected:
      */
     virtual int minimumThumbLength(Scrollbar*);
 
+
     /**
-     * Paint the track.
-     * @param[in] : a pointer to the graphics context.
-     * @param[in] : a pointer to a scrollbar.
-     * @param[in] : a rectangle.
-     * @param[in] : a ScrollbarControlPartMask.
-     * @code
-     * @endcode
+     *  paintScrollbarBackground
      */
-    virtual void paintTrack(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask) ;
+    virtual void paintScrollbarBackground(GraphicsContext*, Scrollbar*) ;
+
+
+    /**
+     *  paintTrackBackground 
+     */
+    virtual void paintTrackBackground(GraphicsContext*, Scrollbar*, const IntRect&) ;
+
+
+    /**
+     *  paintTrackPiece 
+     */
+    virtual void paintTrackPiece(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart) ;
+
     /**
      * Paint the button.
      * @param[in] : a pointer to the graphics context.
@@ -234,4 +231,3 @@ protected:
 };
 
 }
-#end

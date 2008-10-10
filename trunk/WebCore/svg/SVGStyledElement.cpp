@@ -159,17 +159,25 @@ bool SVGStyledElement::mapToEntry(const QualifiedName& attrName, MappedAttribute
 
 void SVGStyledElement::parseMappedAttribute(MappedAttribute* attr)
 {
+    const QualifiedName& attrName = attr->name();
     // NOTE: Any subclass which overrides parseMappedAttribute for a property handled by
     // cssPropertyIdForSVGAttributeName will also have to override mapToEntry to disable the default eSVG mapping
-    int propId = SVGStyledElement::cssPropertyIdForSVGAttributeName(attr->name());
+    int propId = SVGStyledElement::cssPropertyIdForSVGAttributeName(attrName);
     if (propId > 0) {
         addCSSProperty(attr, propId, attr->value());
         setChanged();
         return;
     }
     
-    // id and class are handled by StyledElement
-    SVGElement::parseMappedAttribute(attr);
+    // SVG animation has currently requires special storage of values so we set
+    // the className here.  svgAttributeChanged actually causes the resulting
+    // style updates (instead of StyledElement::parseMappedAttribute). We don't
+    // tell StyledElement about the change to avoid parsing the class list twice
+    if (attrName.matches(HTMLNames::classAttr))
+        setClassName(attr->value());
+    else
+        // id is handled by StyledElement which SVGElement inherits from
+        SVGElement::parseMappedAttribute(attr);
 }
 
 bool SVGStyledElement::isKnownAttribute(const QualifiedName& attrName)
@@ -186,15 +194,14 @@ void SVGStyledElement::svgAttributeChanged(const QualifiedName& attrName)
 {
     SVGElement::svgAttributeChanged(attrName);
 
+    if (attrName.matches(HTMLNames::classAttr))
+        classAttributeChanged(className());
+
     // If we're the child of a resource element, be sure to invalidate it.
     invalidateResourcesInAncestorChain();
 
-    // TODO: Fix bug http://bugs.webkit.org/show_bug.cgi?id=15430 (SVGElementInstances should rebuild themselves lazily)
-
-    // In case we're referenced by a <use> element, we have element instances registered
-    // to us in the SVGDocument. If svgAttributeChanged() is called, we need
-    // to recursively update all children including ourselves.
-    SVGElementInstance::updateAllInstancesOfElement(this);
+    // Invalidate all SVGElementInstances associated with us
+    SVGElementInstance::invalidateAllInstancesOfElement(this);
 }
 
 void SVGStyledElement::invalidateResourcesInAncestorChain() const
@@ -220,12 +227,8 @@ void SVGStyledElement::childrenChanged(bool changedByParser, Node* beforeChange,
     if (document()->parsing())
         return;
 
-    // TODO: Fix bug http://bugs.webkit.org/show_bug.cgi?id=15430 (SVGElementInstances should rebuild themselves lazily)
-
-    // In case we're referenced by a <use> element, we have element instances registered
-    // to us in the SVGDocument. If childrenChanged() is called, we need
-    // to recursively update all children including ourselves.
-    SVGElementInstance::updateAllInstancesOfElement(this);
+    // Invalidate all SVGElementInstances associated with us
+    SVGElementInstance::invalidateAllInstancesOfElement(this);
 }
 
 RenderStyle* SVGStyledElement::resolveStyle(RenderStyle* parentStyle)

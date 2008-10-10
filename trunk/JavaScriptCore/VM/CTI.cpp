@@ -34,6 +34,7 @@
 #include "Machine.h"
 #include "wrec/WREC.h"
 #include "ResultType.h"
+
 #if PLATFORM(MAC)
 #include <sys/sysctl.h>
 #endif
@@ -43,12 +44,15 @@ using namespace std;
 namespace JSC {
 
 #if PLATFORM(MAC)
-bool isSSE2Present()
+
+static inline bool isSSE2Present()
 {
     return true; // All X86 Macs are guaranteed to support at least SSE2
 }
-#else COMPILER(MSVC)
-bool isSSE2Present()
+
+#else
+
+static bool isSSE2Present()
 {
     static const int SSE2FeatureBit = 1 << 26;
     struct SSE2Check {
@@ -72,19 +76,29 @@ bool isSSE2Present()
     static SSE2Check check;
     return check.present;
 }
+
 #endif
+
+COMPILE_ASSERT(CTI_ARGS_code == 0xC, CTI_ARGS_code_is_C);
+COMPILE_ASSERT(CTI_ARGS_callFrame == 0xE, CTI_ARGS_callFrame_is_E);
 
 #if COMPILER(GCC) && PLATFORM(X86)
 
+#if PLATFORM(DARWIN)
+#define SYMBOL_STRING(name) "_" #name
+#else
+#define SYMBOL_STRING(name) #name
+#endif
+
 asm(
-".globl _ctiTrampoline" "\n"
-"_ctiTrampoline:" "\n"
+".globl " SYMBOL_STRING(ctiTrampoline) "\n"
+SYMBOL_STRING(ctiTrampoline) ":" "\n"
     "pushl %esi" "\n"
     "pushl %edi" "\n"
     "subl $0x24, %esp" "\n"
     "movl $512, %esi" "\n"
-    "movl 0x38(%esp), %edi" "\n" // Ox38 = 0x0E * 4, 0x0E = CTI_ARGS_r
-    "call *0x30(%esp)" "\n" // Ox30 = 0x0C * 4, 0x0C = CTI_ARGS_code
+    "movl 0x38(%esp), %edi" "\n" // Ox38 = 0x0E * 4, 0x0E = CTI_ARGS_callFrame (see assertion above)
+    "call *0x30(%esp)" "\n" // Ox30 = 0x0C * 4, 0x0C = CTI_ARGS_code (see assertion above)
     "addl $0x24, %esp" "\n"
     "popl %edi" "\n"
     "popl %esi" "\n"
@@ -92,9 +106,13 @@ asm(
 );
 
 asm(
-".globl _ctiVMThrowTrampoline" "\n"
-"_ctiVMThrowTrampoline:" "\n"
-    "call __ZN3JSC7Machine12cti_vm_throwEPv" "\n"
+".globl " SYMBOL_STRING(ctiVMThrowTrampoline) "\n"
+SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
+#if USE(CTI_ARGUMENT)
+    "call " SYMBOL_STRING(_ZN3JSC7Machine12cti_vm_throwEPPv) "\n"
+#else
+    "call " SYMBOL_STRING(_ZN3JSC7Machine12cti_vm_throwEPv) "\n"
+#endif
     "addl $0x24, %esp" "\n"
     "popl %edi" "\n"
     "popl %esi" "\n"
@@ -105,7 +123,7 @@ asm(
 
 extern "C" {
     
-    __declspec(naked) JSValue* ctiTrampoline(void* code, RegisterFile*, Register*, JSValue** exception, Profiler**, JSGlobalData*)
+    __declspec(naked) JSValue* ctiTrampoline(void* code, RegisterFile*, CallFrame*, JSValue** exception, Profiler**, JSGlobalData*)
     {
         __asm {
             push esi;
@@ -114,7 +132,7 @@ extern "C" {
             mov esi, 512;
             mov ecx, esp;
             mov edi, [esp + 0x38];
-            call [esp + 0x30];
+            call [esp + 0x30]; // Ox30 = 0x0C * 4, 0x0C = CTI_ARGS_code (see assertion above)
             add esp, 0x24;
             pop edi;
             pop esi;
@@ -138,15 +156,14 @@ extern "C" {
 
 #endif
 
-
 ALWAYS_INLINE bool CTI::isConstant(int src)
 {
     return src >= m_codeBlock->numVars && src < m_codeBlock->numVars + m_codeBlock->numConstants;
 }
 
-ALWAYS_INLINE JSValue* CTI::getConstant(ExecState* exec, int src)
+ALWAYS_INLINE JSValue* CTI::getConstant(CallFrame* callFrame, int src)
 {
-    return m_codeBlock->constantRegisters[src - m_codeBlock->numVars].jsValue(exec);
+    return m_codeBlock->constantRegisters[src - m_codeBlock->numVars].jsValue(callFrame);
 }
 
 // get arg puts an arg from the SF register array into a h/w register
@@ -154,7 +171,7 @@ ALWAYS_INLINE void CTI::emitGetArg(int src, X86Assembler::RegisterID dst)
 {
     // TODO: we want to reuse values that are already in registers if we can - add a register allocator!
     if (isConstant(src)) {
-        JSValue* js = getConstant(m_exec, src);
+        JSValue* js = getConstant(m_callFrame, src);
         m_jit.movl_i32r(reinterpret_cast<unsigned>(js), dst);
     } else
         m_jit.movl_mr(src * sizeof(Register), X86::edi, dst);
@@ -164,7 +181,7 @@ ALWAYS_INLINE void CTI::emitGetArg(int src, X86Assembler::RegisterID dst)
 ALWAYS_INLINE void CTI::emitGetPutArg(unsigned src, unsigned offset, X86Assembler::RegisterID scratch)
 {
     if (isConstant(src)) {
-        JSValue* js = getConstant(m_exec, src);
+        JSValue* js = getConstant(m_callFrame, src);
         m_jit.movl_i32m(reinterpret_cast<unsigned>(js), offset + sizeof(void*), X86::esp);
     } else {
         m_jit.movl_mr(src * sizeof(Register), X86::edi, scratch);
@@ -186,7 +203,7 @@ ALWAYS_INLINE void CTI::emitPutArgConstant(unsigned value, unsigned offset)
 ALWAYS_INLINE JSValue* CTI::getConstantImmediateNumericArg(unsigned src)
 {
     if (isConstant(src)) {
-        JSValue* js = getConstant(m_exec, src);
+        JSValue* js = getConstant(m_callFrame, src);
         return JSImmediate::isNumber(js) ? js : 0;
     }
     return 0;
@@ -249,7 +266,7 @@ void CTI::printOpcodeOperandTypes(unsigned src1, unsigned src2)
 {
     char which1 = '*';
     if (isConstant(src1)) {
-        JSValue* js = getConstant(m_exec, src1);
+        JSValue* js = getConstant(m_callFrame, src1);
         which1 = 
             JSImmediate::isImmediate(js) ?
                 (JSImmediate::isNumber(js) ? 'i' :
@@ -263,7 +280,7 @@ void CTI::printOpcodeOperandTypes(unsigned src1, unsigned src2)
     }
     char which2 = '*';
     if (isConstant(src2)) {
-        JSValue* js = getConstant(m_exec, src2);
+        JSValue* js = getConstant(m_callFrame, src2);
         which2 = 
             JSImmediate::isImmediate(js) ?
                 (JSImmediate::isNumber(js) ? 'i' :
@@ -407,8 +424,13 @@ ALWAYS_INLINE unsigned CTI::getDeTaggedConstantImmediate(JSValue* imm)
 
 ALWAYS_INLINE void CTI::emitFastArithDeTagImmediate(X86Assembler::RegisterID reg)
 {
-    // op_mod relies on this being a sub - setting zf if result is 0.
     m_jit.subl_i8r(JSImmediate::TagBitTypeInteger, reg);
+}
+
+ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitFastArithDeTagImmediateJumpIfZero(X86Assembler::RegisterID reg)
+{
+    m_jit.subl_i8r(JSImmediate::TagBitTypeInteger, reg);
+    return m_jit.emitUnlinkedJe();
 }
 
 ALWAYS_INLINE void CTI::emitFastArithReTagImmediate(X86Assembler::RegisterID reg)
@@ -445,10 +467,10 @@ ALWAYS_INLINE void CTI::emitTagAsBoolImmediate(X86Assembler::RegisterID reg)
     m_jit.orl_i32r(JSImmediate::FullTagTypeBool, reg);
 }
 
-CTI::CTI(Machine* machine, ExecState* exec, CodeBlock* codeBlock)
+CTI::CTI(Machine* machine, CallFrame* callFrame, CodeBlock* codeBlock)
     : m_jit(machine->jitCodeBuffer())
     , m_machine(machine)
-    , m_exec(exec)
+    , m_callFrame(callFrame)
     , m_codeBlock(codeBlock)
     , m_labels(codeBlock ? codeBlock->instructions.size() : 0)
     , m_structureStubCompilationInfo(codeBlock ? codeBlock->structureIDInstructions.size() : 0)
@@ -487,7 +509,7 @@ void CTI::compileOpCallInitializeCallFrame(unsigned callee, unsigned argCount)
 
     m_jit.movl_mr(OBJECT_OFFSET(JSFunction, m_scopeChain) + OBJECT_OFFSET(ScopeChain, m_node), X86::ecx, X86::ecx); // newScopeChain
     m_jit.movl_i32m(argCount, RegisterFile::ArgumentCount * static_cast<int>(sizeof(Register)), X86::edx);
-    m_jit.movl_rm(X86::edi, RegisterFile::CallerRegisters * static_cast<int>(sizeof(Register)), X86::edx);
+    m_jit.movl_rm(X86::edi, RegisterFile::CallerFrame * static_cast<int>(sizeof(Register)), X86::edx);
     m_jit.movl_rm(X86::ecx, RegisterFile::ScopeChain * static_cast<int>(sizeof(Register)), X86::edx);
 }
 
@@ -515,8 +537,8 @@ void CTI::compileOpCall(Instruction* instruction, unsigned i, CompileOpCallType 
 
         int thisVal = instruction[i + 3].u.operand;
         if (thisVal == missingThisObjectMarker()) {
-            // FIXME: should this be loaded dynamically off m_exec?
-            m_jit.movl_i32m(reinterpret_cast<unsigned>(m_exec->globalThisValue()), firstArg * sizeof(Register), X86::edi);
+            // FIXME: should this be loaded dynamically off m_callFrame?
+            m_jit.movl_i32m(reinterpret_cast<unsigned>(m_callFrame->globalThisValue()), firstArg * sizeof(Register), X86::edi);
         } else {
             emitGetArg(thisVal, X86::ecx);
             emitPutResult(firstArg, X86::ecx);
@@ -559,8 +581,8 @@ void CTI::compileOpCall(Instruction* instruction, unsigned i, CompileOpCallType 
     // load ctiCode from the new codeBlock.
     m_jit.movl_mr(OBJECT_OFFSET(CodeBlock, ctiCode), X86::eax, X86::eax);
 
-    // Setup the new value of 'r' in edi, and on the stack, too.
-    emitPutCTIParam(X86::edx, CTI_ARGS_r);
+    // Put the new value of 'callFrame' into edi and onto the stack, too.
+    emitPutCTIParam(X86::edx, CTI_ARGS_callFrame);
     m_jit.movl_rr(X86::edx, X86::edi);
 
     // Check the ctiCode has been generated - if not, this is handled in a slow case.
@@ -685,7 +707,7 @@ void CTI::putDoubleResultToJSNumberCellOrJSImmediate(X86::XMMRegisterID xmmSourc
 
 void CTI::compileBinaryArithOp(OpcodeID opcodeID, unsigned dst, unsigned src1, unsigned src2, OperandTypes types, unsigned i)
 {
-    StructureID* numberStructureID = m_exec->globalData().numberStructureID.get();
+    StructureID* numberStructureID = m_callFrame->globalData().numberStructureID.get();
     X86Assembler::JmpSrc wasJSNumberCell1, wasJSNumberCell1b, wasJSNumberCell2, wasJSNumberCell2b;
 
     emitGetArg(src1, X86::eax);
@@ -801,8 +823,19 @@ void CTI::compileBinaryArithOp(OpcodeID opcodeID, unsigned dst, unsigned src1, u
         emitFastArithReTagImmediate(X86::eax);
     } else {
         ASSERT(opcodeID == op_mul);
-        emitFastArithDeTagImmediate(X86::eax);
+        // convert eax & edx from JSImmediates to ints, and check if either are zero
         emitFastArithImmToInt(X86::edx);
+        X86Assembler::JmpSrc op1Zero = emitFastArithDeTagImmediateJumpIfZero(X86::eax);
+        m_jit.testl_rr(X86::edx, X86::edx);
+        X86Assembler::JmpSrc op2NonZero = m_jit.emitUnlinkedJne();
+        m_jit.link(op1Zero, m_jit.label());
+        // if either input is zero, add the two together, and check if the result is < 0.
+        // If it is, we have a problem (N < 0), (N * 0) == -0, not representatble as a JSImmediate. 
+        m_jit.movl_rr(X86::eax, X86::ecx);
+        m_jit.addl_rr(X86::edx, X86::ecx);
+        m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJs(), i));
+        // Skip the above check if neither input is zero
+        m_jit.link(op2NonZero, m_jit.label());
         m_jit.imull_rr(X86::edx, X86::eax);
         m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJo(), i));
         emitFastArithReTagImmediate(X86::eax);
@@ -846,6 +879,10 @@ void CTI::compileBinaryArithOpSlowCase(OpcodeID opcodeID, Vector<SlowCaseEntry>:
     } else
         m_jit.link((++iter)->from, here);
 
+    // additional entry point to handle -0 cases.
+    if (opcodeID == op_mul)
+        m_jit.link((++iter)->from, here);
+
     emitGetPutArg(src1, 0, X86::ecx);
     emitGetPutArg(src2, 4, X86::ecx);
     if (opcodeID == op_add)
@@ -878,7 +915,7 @@ void CTI::privateCompileMainPass()
         case op_mov: {
             unsigned src = instruction[i + 2].u.operand;
             if (isConstant(src))
-                m_jit.movl_i32r(reinterpret_cast<unsigned>(getConstant(m_exec, src)), X86::edx);
+                m_jit.movl_i32r(reinterpret_cast<unsigned>(getConstant(m_callFrame, src)), X86::edx);
             else
                 emitGetArg(src, X86::edx);
             emitPutResult(instruction[i + 1].u.operand, X86::edx);
@@ -1132,19 +1169,23 @@ void CTI::privateCompileMainPass()
             unsigned src1 = instruction[i + 2].u.operand;
             unsigned src2 = instruction[i + 3].u.operand;
 
-            if (JSValue* src1Value = getConstantImmediateNumericArg(src1)) {
+            // For now, only plant a fast int case if the constant operand is greater than zero.
+            JSValue* src1Value = getConstantImmediateNumericArg(src1);
+            JSValue* src2Value = getConstantImmediateNumericArg(src2);
+            int32_t value;
+            if (src1Value && ((value = JSImmediate::intValue(src1Value)) > 0)) {
                 emitGetArg(src2, X86::eax);
                 emitJumpSlowCaseIfNotImmNum(X86::eax, i);
-                emitFastArithImmToInt(X86::eax);
-                m_jit.imull_i32r(X86::eax, getDeTaggedConstantImmediate(src1Value), X86::eax);
+                emitFastArithDeTagImmediate(X86::eax);
+                m_jit.imull_i32r(X86::eax, value, X86::eax);
                 m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJo(), i));
                 emitFastArithReTagImmediate(X86::eax);
                 emitPutResult(dst);
-            } else if (JSValue* src2Value = getConstantImmediateNumericArg(src2)) {
+            } else if (src2Value && ((value = JSImmediate::intValue(src2Value)) > 0)) {
                 emitGetArg(src1, X86::eax);
                 emitJumpSlowCaseIfNotImmNum(X86::eax, i);
-                emitFastArithImmToInt(X86::eax);
-                m_jit.imull_i32r(X86::eax, getDeTaggedConstantImmediate(src2Value), X86::eax);
+                emitFastArithDeTagImmediate(X86::eax);
+                m_jit.imull_i32r(X86::eax, value, X86::eax);
                 m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJo(), i));
                 emitFastArithReTagImmediate(X86::eax);
                 emitPutResult(dst);
@@ -1238,8 +1279,8 @@ void CTI::privateCompileMainPass()
             emitGetArg(RegisterFile::ReturnPC, X86::edx);
 
             // Restore our caller's "r".
-            emitGetArg(RegisterFile::CallerRegisters, X86::edi);
-            emitPutCTIParam(X86::edi, CTI_ARGS_r);
+            emitGetArg(RegisterFile::CallerFrame, X86::edi);
+            emitPutCTIParam(X86::edi, CTI_ARGS_callFrame);
 
             // Return.
             m_jit.pushl_r(X86::edx);
@@ -1620,8 +1661,7 @@ void CTI::privateCompileMainPass()
             emitJumpSlowCaseIfNotImmNum(X86::eax, i);
             emitJumpSlowCaseIfNotImmNum(X86::ecx, i);
             emitFastArithDeTagImmediate(X86::eax);
-            emitFastArithDeTagImmediate(X86::ecx);
-            m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJe(), i)); // This is checking if the last detag resulted in a value 0.
+            m_slowCases.append(SlowCaseEntry(emitFastArithDeTagImmediateJumpIfZero(X86::ecx), i));
             m_jit.cdq();
             m_jit.idivl_r(X86::ecx);
             emitFastArithReTagImmediate(X86::edx);
@@ -1767,8 +1807,20 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_to_jsnumber: {
-            emitGetPutArg(instruction[i + 2].u.operand, 0, X86::ecx);
-            emitCall(i, Machine::cti_op_to_jsnumber);
+            emitGetArg(instruction[i + 2].u.operand, X86::eax);
+            
+            m_jit.testl_i32r(JSImmediate::TagBitTypeInteger, X86::eax);
+            X86Assembler::JmpSrc wasImmediate = m_jit.emitUnlinkedJnz();
+
+            emitJumpSlowCaseIfNotJSCell(X86::eax, i);
+
+            m_jit.movl_mr(OBJECT_OFFSET(JSCell, m_structureID), X86::eax, X86::ecx);
+            m_jit.cmpl_i32m(NumberType, OBJECT_OFFSET(StructureID, m_typeInfo.m_type), X86::ecx);
+            
+            m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJne(), i));
+            
+            m_jit.link(wasImmediate, m_jit.label());
+
             emitPutResult(instruction[i + 1].u.operand);
             i += 3;
             break;
@@ -1791,7 +1843,7 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_catch: {
-            emitGetCTIParam(CTI_ARGS_r, X86::edi); // edi := r
+            emitGetCTIParam(CTI_ARGS_callFrame, X86::edi); // edi := r
             emitPutResult(instruction[i + 1].u.operand);
             i += 2;
             break;
@@ -2490,8 +2542,19 @@ void CTI::privateCompileSlowCases()
             int dst = instruction[i + 1].u.operand;
             int src1 = instruction[i + 2].u.operand;
             int src2 = instruction[i + 3].u.operand;
-            if (getConstantImmediateNumericArg(src1) || getConstantImmediateNumericArg(src2)) {
+            JSValue* src1Value = getConstantImmediateNumericArg(src1);
+            JSValue* src2Value = getConstantImmediateNumericArg(src2);
+            int32_t value;
+            if (src1Value && ((value = JSImmediate::intValue(src1Value)) > 0)) {
                 m_jit.link(iter->from, m_jit.label());
+                // There is an extra slow case for (op1 * -N) or (-N * op2), to check for 0 since this should produce a result of -0.
+                emitGetPutArg(src1, 0, X86::ecx);
+                emitGetPutArg(src2, 4, X86::ecx);
+                emitCall(i, Machine::cti_op_mul);
+                emitPutResult(dst);
+            } else if (src2Value && ((value = JSImmediate::intValue(src2Value)) > 0)) {
+                m_jit.link(iter->from, m_jit.label());
+                // There is an extra slow case for (op1 * -N) or (-N * op2), to check for 0 since this should produce a result of -0.
                 emitGetPutArg(src1, 0, X86::ecx);
                 emitGetPutArg(src2, 4, X86::ecx);
                 emitCall(i, Machine::cti_op_mul);
@@ -2516,6 +2579,17 @@ void CTI::privateCompileSlowCases()
             // Put the return value in dst. In the interpreter, op_ret does this.
             emitPutResult(instruction[i + 1].u.operand);
             i += 7;
+            break;
+        }
+        case op_to_jsnumber: {
+            m_jit.link(iter->from, m_jit.label());
+            m_jit.link(iter->from, m_jit.label());
+
+            emitPutArg(X86::eax, 0);
+            emitCall(i, Machine::cti_op_to_jsnumber);
+
+            emitPutResult(instruction[i + 1].u.operand);
+            i += 3;
             break;
         }
 
@@ -2629,7 +2703,7 @@ void CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* prot
 
     // The prototype object definitely exists (if this stub exists the CodeBlock is referencing a StructureID that is
     // referencing the prototype object - let's speculatively load it's table nice and early!)
-    JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(m_exec));
+    JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(m_callFrame));
     PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
     m_jit.movl_mr(static_cast<void*>(protoPropertyStorage), X86::edx);
 
@@ -2672,7 +2746,7 @@ void CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* prot
 #else
     // The prototype object definitely exists (if this stub exists the CodeBlock is referencing a StructureID that is
     // referencing the prototype object - let's speculatively load it's table nice and early!)
-    JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(m_exec));
+    JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(m_callFrame));
     PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
     m_jit.movl_mr(static_cast<void*>(protoPropertyStorage), X86::edx);
 
@@ -2721,7 +2795,7 @@ void CTI::privateCompileGetByIdChain(StructureID* structureID, StructureIDChain*
     RefPtr<StructureID>* chainEntries = chain->head();
     JSObject* protoObject = 0;
     for (unsigned i = 0; i<count; ++i) {
-        protoObject = static_cast<JSObject*>(currStructureID->prototypeForLookup(m_exec));
+        protoObject = static_cast<JSObject*>(currStructureID->prototypeForLookup(m_callFrame));
         currStructureID = chainEntries[i].get();
 
         // Check the prototype object's StructureID had not changed.
@@ -3021,7 +3095,7 @@ void CTI::emitPutVariableObjectRegister(X86Assembler::RegisterID src, X86Assembl
 
 #if ENABLE(WREC)
 
-void* CTI::compileRegExp(ExecState* exec, const UString& pattern, unsigned* numSubpatterns_ptr, const char** error_ptr, bool ignoreCase, bool multiline)
+void* CTI::compileRegExp(Machine* machine, const UString& pattern, unsigned* numSubpatterns_ptr, const char** error_ptr, bool ignoreCase, bool multiline)
 {
     // TODO: better error messages
     if (pattern.size() > MaxPatternSize) {
@@ -3029,7 +3103,7 @@ void* CTI::compileRegExp(ExecState* exec, const UString& pattern, unsigned* numS
         return 0;
     }
 
-    X86Assembler jit(exec->machine()->jitCodeBuffer());
+    X86Assembler jit(machine->jitCodeBuffer());
     WRECParser parser(pattern, ignoreCase, multiline, jit);
     
     jit.emitConvertToFastCall();

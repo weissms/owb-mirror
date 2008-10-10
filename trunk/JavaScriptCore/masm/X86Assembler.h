@@ -235,6 +235,7 @@ public:
         OP2_JNE_rel32       = 0x85,
         OP2_JBE_rel32       = 0x86,
         OP2_JA_rel32        = 0x87,
+        OP2_JS_rel32        = 0x88,
         OP2_JP_rel32        = 0x8A,
         OP2_JL_rel32        = 0x8C,
         OP2_JGE_rel32       = 0x8D,
@@ -977,6 +978,14 @@ public:
         return JmpSrc(m_buffer->getOffset());
     }
     
+    JmpSrc emitUnlinkedJs()
+    {
+        m_buffer->putByte(OP_2BYTE_ESCAPE);
+        m_buffer->putByte(OP2_JS_rel32);
+        m_buffer->putInt(0);
+        return JmpSrc(m_buffer->getOffset());
+    }
+    
     void emitPredictionNotTaken()
     {
         m_buffer->putByte(PRE_PREDICT_BRANCH_NOT_TAKEN);
@@ -1045,14 +1054,18 @@ public:
         return m_buffer->copy();
     }
 
-#if USE(CTI_ARGUMENT)
+#if COMPILER(MSVC)
     void emitConvertToFastCall()
     {
         movl_mr(4, X86::esp, X86::eax);
         movl_mr(8, X86::esp, X86::edx);
         movl_mr(12, X86::esp, X86::ecx);
     }
+#else
+    void emitConvertToFastCall() {}
+#endif
 
+#if USE(CTI_ARGUMENT)
     void emitRestoreArgumentReference()
     {
 #if USE(FAST_CALL_CTI_ARGUMENT)
@@ -1067,13 +1080,11 @@ public:
 #if USE(FAST_CALL_CTI_ARGUMENT)
         movl_rr(X86::esp, X86::ecx);
         addl_i32r(4, X86::ecx);
-#else
 #endif
     }
 #else
-    void emitConvertToFastCall() {};
-    void emitRestoreArgumentReference() {};
-    void emitRestoreArgumentReferenceForTrampoline() {};
+    void emitRestoreArgumentReference() {}
+    void emitRestoreArgumentReferenceForTrampoline() {}
 #endif
 
 private:

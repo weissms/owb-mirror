@@ -32,6 +32,8 @@
 namespace JSC {
 
     struct ArgumentsData : Noncopyable {
+        JSActivation* activation;
+
         unsigned numParameters;
         ptrdiff_t firstParameterIndex;
         unsigned numArguments;
@@ -51,7 +53,7 @@ namespace JSC {
 
     class Arguments : public JSObject {
     public:
-        Arguments(ExecState*, Register* callFrame);
+        Arguments(CallFrame*);
         virtual ~Arguments();
 
         static const ClassInfo info;
@@ -62,7 +64,11 @@ namespace JSC {
 
         void copyRegisters();
         bool isTornOff() const { return d->registerArray; }
-        void setRegisters(Register* registers) { d->registers = registers; }
+        void setActivation(JSActivation* activation)
+        {
+            d->activation = activation;
+            d->registers = &activation->registerAt(0);
+        }
 
     private:
         virtual bool getOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
@@ -74,26 +80,27 @@ namespace JSC {
 
         virtual const ClassInfo* classInfo() const { return &info; }
 
-        void init(ExecState*, Register* callFrame);
+        void init(CallFrame*);
 
         OwnPtr<ArgumentsData> d;
     };
 
-    inline Arguments::Arguments(ExecState* exec, Register* callFrame)
-        : JSObject(exec->lexicalGlobalObject()->argumentsStructure())
+    inline Arguments::Arguments(CallFrame* callFrame)
+        : JSObject(callFrame->lexicalGlobalObject()->argumentsStructure())
         , d(new ArgumentsData)
     {
         JSFunction* callee;
         ptrdiff_t firstParameterIndex;
         Register* argv;
         int numArguments;
-        exec->machine()->getArgumentsData(callFrame, callee, firstParameterIndex, argv, numArguments);
+        callFrame->machine()->getArgumentsData(callFrame, callee, firstParameterIndex, argv, numArguments);
 
         d->numParameters = callee->m_body->parameterCount();
         d->firstParameterIndex = firstParameterIndex;
         d->numArguments = numArguments;
 
-        d->registers = callFrame;
+        d->activation = 0;
+        d->registers = callFrame->registers();
 
         Register* extraArguments;
         if (d->numArguments <= d->numParameters)
@@ -149,7 +156,7 @@ namespace JSC {
         Register* registerArray = copyRegisterArray(d()->registers - registerOffset, registerArraySize);
         setRegisters(registerArray + registerOffset, registerArray);
         if (arguments && !arguments->isTornOff())
-            static_cast<Arguments*>(arguments)->setRegisters(registerArray + registerOffset);
+            static_cast<Arguments*>(arguments)->setActivation(this);
     }
 
 } // namespace JSC

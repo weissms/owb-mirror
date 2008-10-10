@@ -41,6 +41,9 @@ LIST (APPEND RENDERING_SRC
     rendering/RenderPartObject.cpp
     rendering/RenderReplaced.cpp
     rendering/RenderReplica.cpp
+    rendering/RenderScrollbar.cpp
+    rendering/RenderScrollbarPart.cpp
+    rendering/RenderScrollbarTheme.cpp
     rendering/RenderSlider.cpp
     rendering/RenderTable.cpp
     rendering/RenderTableCell.cpp

@@ -1,3 +1,738 @@
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Switch window-active to window-inactive, since that will work better as far as degrading in other
+        browsers.
+
+        Reviewed by Tim Hatcher
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+
+2008-10-09  David Hyatt  <hyatt@apple.com>
+
+        Add support for scrollbar orientation as a pseudoclass.  Add support for whether or not the scrollbar
+        is active as well.
+
+        Reviewed by Tim Hatcher
+
+        Added scrollbars/scrollbar-orientation.html
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::isWindowActive):
+        * platform/Scrollbar.h:
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::paint):
+        (WebCore::RenderScrollbar::partForStyleResolve):
+        * rendering/RenderScrollbar.h:
+
+2008-10-09  David Hyatt  <hyatt@apple.com>
+
+        Add support for pseudo classes on scrollbar pseudo elements.  As an initial proof of concept only
+        :enabled/:disabled are supported.  More pseudo classes will follow quickly now that this works.
+
+        Reviewed by Tim Hatcher
+
+        Added scrollbars/disabled-scrollbar.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkSelector):
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+        * css/CSSStyleSelector.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::getPseudoStyle):
+        * rendering/RenderObject.h:
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::setEnabled):
+        (WebCore::RenderScrollbar::scrollbarForStyleResolve):
+        (WebCore::RenderScrollbar::getScrollbarPseudoStyle):
+        (WebCore::RenderScrollbar::paintPart):
+        * rendering/RenderScrollbar.h:
+
+2008-10-09  Eric Carlson  <eric.carlson@apple.com>
+
+        Media controls should not show when element is not visible
+
+        https://bugs.webkit.org/show_bug.cgi?id=21155
+        
+        Reviewed by Adele Peterson.
+
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::recalcStyle): New, call renderer()->updateFromElement to stay
+        in sync with visibility changes
+        * html/HTMLMediaElement.h:
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::RenderMedia): initialize m_previousVisible
+        (WebCore::RenderMedia::updateControlVisibility): consider style()->visibility() when determining
+        if element is visible or not. Don't animate controller visibility when change triggered by
+        showing or hiding media element.
+        * rendering/RenderMedia.h: declare m_previousVisible
+
+2008-10-09  Timothy Hatcher  <timothy@apple.com>
+
+        Annotate the Objective-C DOM APIs with the JavaScriptCore/WebKitAvailability.h
+        availability macros and version macros.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21496
+        rdar://problem/6259225
+
+        Reviewed by Sam Weinig.
+
+        * bindings/objc/DOMCSS.h: Add a version #if around catgory interface.
+        * bindings/objc/DOMEventException.h: Include JavaScriptCore/WebKitAvailability.h
+        and add an #if around the enum.
+        * bindings/objc/DOMException.h: Ditto. Give the enum a name and remove the
+        comment to match the other headers.
+        * bindings/objc/DOMExtensions.h: Annotate the methods with version 3.0 or later.
+        * bindings/objc/DOMObject.h: Add a version #if around class interface.
+        * bindings/objc/DOMRangeException.h: Include JavaScriptCore/WebKitAvailability.h
+        and add a version #if around the enum.
+        * bindings/objc/DOMSVGException.h: Ditto. Use the latest version since SVG is new.
+        * bindings/objc/DOMXPathException.h: Ditto. Use the 3.0 version.
+        * bindings/objc/PublicDOMInterfaces.h: Annotate classes and protocols for
+        when they where added to WebKit. Also annotate individual methods that are
+        deprecated or where added after the class was added to WebKit.
+        * bindings/objc/WebScriptObject.h: Include JavaScriptCore/WebKitAvailability.h
+        since this header is included by most DOM headers. Annotate the JSObject method.
+
+        * bindings/scripts/CodeGeneratorObjC.pm:
+        (ReadPublicInterfaces): Parse out the availability macro for each function/property.
+        And parse out the availability version for the class/protocol. Default to
+        WEBKIT_VERSION_LATEST if the class is new.
+        (GenerateHeader): Include JavaScriptCore/WebKitAvailability.h if needed. Add the
+        interface availability version check if the class has a required version. Create
+        a public interface key (used to lookup in $publicInterfaces) and make a declaration
+        suffix that includes the availability macro (if needed). Use the "available in 1.3
+        and later but deprecated in 3.0" macro instead of "deprecated in 10.5 and later" as
+        the default availability macro for old style methods. Tweak line breaks in the generated
+        headers to look good and not have too many extra lines.
+
+2008-10-09  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=20947
+
+        Refactor setStyle() methods into styleWillChange()
+        and styleDidChange(), so most of the setStyle() overrides can
+        be removed.
+
+        * rendering/RenderBR.cpp:
+        (WebCore::RenderBR::styleDidChange):
+        * rendering/RenderBR.h:
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::styleWillChange):
+        (WebCore::RenderBlock::styleDidChange):
+        * rendering/RenderBlock.h:
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::~RenderBox):
+        (WebCore::RenderBox::destroy):
+        (WebCore::RenderBox::styleWillChange):
+        (WebCore::RenderBox::styleDidChange):
+        * rendering/RenderBox.h:
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::styleWillChange):
+        (WebCore::RenderButton::styleDidChange):
+        * rendering/RenderButton.h:
+        * rendering/RenderFieldset.cpp:
+        (WebCore::RenderFieldset::styleDidChange):
+        * rendering/RenderFieldset.h:
+        * rendering/RenderFileUploadControl.cpp:
+        (WebCore::RenderFileUploadControl::styleDidChange):
+        * rendering/RenderFileUploadControl.h:
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::styleDidChange):
+        * rendering/RenderInline.h:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::styleChanged):
+        * rendering/RenderLayer.h:
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::styleDidChange):
+        * rendering/RenderListBox.h:
+        * rendering/RenderListItem.cpp:
+        (WebCore::RenderListItem::styleDidChange):
+        * rendering/RenderListItem.h:
+        * rendering/RenderListMarker.cpp:
+        (WebCore::RenderListMarker::styleWillChange):
+        (WebCore::RenderListMarker::styleDidChange):
+        * rendering/RenderListMarker.h:
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::styleDidChange):
+        * rendering/RenderMenuList.h:
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::setStyle):
+        (WebCore::RenderObject::setStyleInternal):
+        (WebCore::RenderObject::styleWillChange):
+        (WebCore::RenderObject::styleDidChange):
+        * rendering/RenderObject.h:
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::styleDidChange):
+        * rendering/RenderReplaced.h:
+        * rendering/RenderSVGGradientStop.cpp:
+        (WebCore::RenderSVGGradientStop::styleDidChange):
+        * rendering/RenderSVGGradientStop.h:
+        * rendering/RenderScrollbarPart.cpp:
+        (WebCore::RenderScrollbarPart::styleDidChange):
+        * rendering/RenderScrollbarPart.h:
+        * rendering/RenderSlider.cpp:
+        (WebCore::RenderSlider::styleDidChange):
+        * rendering/RenderSlider.h:
+        * rendering/RenderTable.cpp:
+        (WebCore::RenderTable::styleDidChange):
+        * rendering/RenderTable.h:
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::styleWillChange):
+        (WebCore::RenderTableCell::styleDidChange):
+        * rendering/RenderTableCell.h:
+        * rendering/RenderTableRow.cpp:
+        (WebCore::RenderTableRow::styleWillChange):
+        * rendering/RenderTableRow.h:
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::styleDidChange):
+        * rendering/RenderText.h:
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::styleDidChange):
+        * rendering/RenderTextControl.h:
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::styleDidChange):
+        * rendering/RenderWidget.h:
+
+2008-10-09  David Hyatt  <hyatt@apple.com>
+
+        Make sure to destroy a custom scrollbar's RenderObjects before the arena goes away.  When our widget
+        parent is nulled out is a good time.
+
+        Reviewed by Oliver Hunt
+
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::~RenderScrollbar):
+        (WebCore::RenderScrollbar::setParent):
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        * rendering/RenderScrollbar.h:
+
+2008-10-09  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21446
+
+        This patch gets CSS scrollbars up and limping.  There's no way to distinguish between states or between
+        orientation and back vs. forward on the buttons, but it's a start.
+
+        Reviewed by Oliver Hunt
+
+        Added scrollbars/basic-scrollbar.html
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        * platform/ScrollTypes.h:
+        (WebCore::):
+        * platform/Scrollbar.h:
+        (WebCore::Scrollbar::styleChanged):
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        (WebCore::ScrollbarThemeComposite::splitTrack):
+        * platform/ScrollbarThemeComposite.h:
+        (WebCore::ScrollbarThemeComposite::paintScrollbarBackground):
+        (WebCore::ScrollbarThemeComposite::paintTrackBackground):
+        (WebCore::ScrollbarThemeComposite::paintTrackPiece):
+        * platform/win/ScrollbarThemeSafari.cpp:
+        (WebCore::ScrollbarThemeSafari::paintTrackBackground):
+        * platform/win/ScrollbarThemeSafari.h:
+        * platform/win/ScrollbarThemeWin.cpp:
+        (WebCore::ScrollbarThemeWin::paintTrack):
+        * platform/win/ScrollbarThemeWin.h:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::createScrollbar):
+        (WebCore::RenderLayer::styleChanged):
+        * rendering/RenderScrollbar.cpp: Added.
+        (WebCore::RenderScrollbar::createCustomScrollbar):
+        (WebCore::RenderScrollbar::RenderScrollbar):
+        (WebCore::RenderScrollbar::~RenderScrollbar):
+        (WebCore::RenderScrollbar::getScrollbarPseudoStyle):
+        (WebCore::RenderScrollbar::updateScrollbarParts):
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        (WebCore::RenderScrollbar::paintPart):
+        (WebCore::RenderScrollbar::buttonRect):
+        (WebCore::RenderScrollbar::minimumThumbLength):
+        * rendering/RenderScrollbar.h: Added.
+        (WebCore::RenderScrollbar::styleChanged):
+        (WebCore::RenderScrollbar::owningRenderer):
+        * rendering/RenderScrollbarPart.cpp: Added.
+        (WebCore::RenderScrollbarPart::RenderScrollbarPart):
+        (WebCore::RenderScrollbarPart::~RenderScrollbarPart):
+        (WebCore::RenderScrollbarPart::layout):
+        (WebCore::RenderScrollbarPart::layoutHorizontalPart):
+        (WebCore::RenderScrollbarPart::layoutVerticalPart):
+        (WebCore::calcScrollbarThicknessUsing):
+        (WebCore::RenderScrollbarPart::computeScrollbarWidth):
+        (WebCore::RenderScrollbarPart::computeScrollbarHeight):
+        (WebCore::RenderScrollbarPart::calcPrefWidths):
+        (WebCore::RenderScrollbarPart::setStyle):
+        * rendering/RenderScrollbarPart.h: Added.
+        (WebCore::RenderScrollbarPart::renderName):
+        (WebCore::RenderScrollbarPart::requiresLayer):
+        * rendering/RenderScrollbarTheme.cpp: Added.
+        (WebCore::RenderScrollbarTheme::renderScrollbarTheme):
+        (WebCore::RenderScrollbarTheme::buttonSizesAlongTrackAxis):
+        (WebCore::RenderScrollbarTheme::hasButtons):
+        (WebCore::RenderScrollbarTheme::hasThumb):
+        (WebCore::RenderScrollbarTheme::minimumThumbLength):
+        (WebCore::RenderScrollbarTheme::backButtonRect):
+        (WebCore::RenderScrollbarTheme::forwardButtonRect):
+        (WebCore::RenderScrollbarTheme::trackRect):
+        (WebCore::RenderScrollbarTheme::paintScrollCorner):
+        (WebCore::RenderScrollbarTheme::paintScrollbarBackground):
+        (WebCore::RenderScrollbarTheme::paintTrackBackground):
+        (WebCore::RenderScrollbarTheme::paintTrackPiece):
+        (WebCore::RenderScrollbarTheme::paintButton):
+        (WebCore::RenderScrollbarTheme::paintThumb):
+        * rendering/RenderScrollbarTheme.h: Added.
+        (WebCore::RenderScrollbarTheme::~RenderScrollbarTheme):
+        (WebCore::RenderScrollbarTheme::scrollbarThickness):
+        (WebCore::RenderScrollbarTheme::buttonsPlacement):
+        (WebCore::RenderScrollbarTheme::supportsControlTints):
+        (WebCore::RenderScrollbarTheme::shouldCenterOnThumb):
+        (WebCore::RenderScrollbarTheme::initialAutoscrollTimerDelay):
+        (WebCore::RenderScrollbarTheme::autoscrollTimerDelay):
+        (WebCore::RenderScrollbarTheme::registerScrollbar):
+        (WebCore::RenderScrollbarTheme::unregisterScrollbar):
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::):
+
+2008-10-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix Canvex DOOM Game
+        Gradient clips were not getting cleared after filling the
+        gradient, this was causing nothing to draw in Canvex
+        https://bugs.webkit.org/show_bug.cgi?id=21498
+        
+        Tests forthcoming.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+
+2008-10-09  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+        
+        Fix transformed patterns
+        https://bugs.webkit.org/show_bug.cgi?id=21498
+        
+        Test: fast/canvas/patternfill-repeat.html
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/GraphicsContext.cpp:
+        (WebCore::GraphicsContext::setStrokePattern):
+        (WebCore::GraphicsContext::setFillPattern):
+        (WebCore::GraphicsContext::setStrokeGradient):
+        (WebCore::GraphicsContext::setFillGradient):
+        * platform/graphics/GraphicsContext.h:
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::applyStrokePattern):
+        (WebCore::applyFillPattern):
+        (WebCore::GraphicsContext::drawPath):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        * platform/graphics/wx/GraphicsContextWx.cpp:
+
+2008-10-09  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes.
+
+        * platform/wx/WidgetWx.cpp:
+        * plugins/wx/PluginViewWx.cpp:
+        (WebCore::PluginView::invalidateRect):
+        * webcore-base.bkl:
+
+2008-10-09  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21217
+        Animations assert when navigating from page
+
+        Changed assertions to test the right flag for the paused state
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::updateStateMachine):
+
+2008-10-09  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fixed > 180 degree rotation bug
+        Ensure that validateTransformFunctionList() is called after updating keyframe styles
+
+        https://bugs.webkit.org/show_bug.cgi?id=21420
+
+        Test: animations/big-rotation.html
+
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::KeyframeAnimation):
+
+2008-10-09  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Anders
+
+        <rdar://problem/6250856> - Calling [WebView close] from within a redirection callback can cause bad things
+
+        The API usage to reveal this crash was so particular that a layout test is not possible with our current infrastructure.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::changeLocation): Protect the Frame from deletion
+        (WebCore::FrameLoader::continueLoadAfterNavigationPolicy): stopAllLoaders() might clear the Frame's page,
+          so perform a second null check on the page.  Bail if it has been cleared.
+
+2008-10-09  Alp Toker  <alp@nuanti.com>
+
+        Build fix for recent DOM generation Makefile changes when custom
+        CFLAGS/CXXFLAGS are passed in.
+
+        * GNUmakefile.am:
+
+2008-10-09  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Alp Toker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21390
+        [Gtk] Linux/Gtk: GtkLauncher crashes on Acid3 (but after test 80 this time)
+
+        * platform/gtk/ScrollViewGtk.cpp:
+        (WebCore::ScrollView::platformRemoveChild):
+
+2008-10-09  Darin Adler  <darin@apple.com>
+
+       - try to fix Qt build
+
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::convertQVariantToValue): Pass JSGlobalData instead of ExecState to RegExp constructor.
+
+2008-10-08  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver Hunt & Sam Weinig.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=15413 (SVGElementInstance does not implement EventTarget)
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=15430 (SVGElementInstances should rebuild themselves lazily)
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=20550 (SVGUseElement.setAttribute crashes Safari)
+
+        Rebuild SVG use element shadow tree lazily. Mark SVGElementInstance with the "needsUpdate" flag.
+        Next time SVGUseElement::recalcStyle is invoked (ie. via Document::updateDocumentsRendering()) the
+        use tree is rebuild.
+
+        Make SVGElementInstance a real EventTarget, as the SVG specification demands.
+        When dispatching events to a shadow tree element of a use element, the associated SVGElementInstance
+        is used as event target. The SVGElementInstance, the shadow tree element and the corresponding element
+        share an event listener list. Every event listener change on the SVGElementInstance object is forwared
+        to the corresponding element. Each change marks the SVGElementInstance tree dirty, and causes a reclone.
+        Each event listener defined via attributes (onclick/onkeydown/...) is copied from the correspondingElement
+        to the shadow tree element - through the cloneNode calls - if the use element's shadow tree gets rebuild.
+        Each listener, dynamically created using addEventListener, gets copied to the corersponding element as well.
+
+        Now that the target/currentTarget properties of the Events are correct, event bubbling works as expected,
+        see resources/use-instanceRoot-event-bubbling.js for details.
+
+        Tests: svg/custom/use-elementInstance-event-target.svg (reenabled)
+               svg/custom/use-elementInstance-methods.svg (reenabled)
+               svg/custom/use-setAttribute-crash.svg (covers bug 20550)
+               svg/custom/use-instanceRoot-as-event-target.xhtml (covers bug 15413)
+               svg/custom/use-instanceRoot-event-bubbling.xhtml (covers bug 15413)
+               svg/custom/use-instanceRoot-event-listeners.xhtml (covers bug 15413 & 15430)
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSEventListener.h:
+        (WebCore::JSLazyEventListener::wasCreatedFromMarkup):
+        * bindings/js/JSEventTarget.cpp:
+        * bindings/js/JSEventTargetSVGElementInstance.cpp: Removed.
+        * bindings/js/JSEventTargetSVGElementInstance.h: Removed.
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::addEventListener):
+        (WebCore::JSSVGElementInstance::removeEventListener):
+        (WebCore::JSSVGElementInstance::pushEventHandlerScope):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bindings/scripts/CodeGeneratorObjC.pm:
+        * dom/EventListener.h:
+        (WebCore::EventListener::wasCreatedFromMarkup):
+        * dom/EventTargetNode.cpp:
+        (WebCore::updateSVGElementInstancesAfterEventListenerChange):
+        (WebCore::EventTargetNode::addEventListener):
+        (WebCore::EventTargetNode::removeEventListener):
+        (WebCore::eventTargetAsSVGElementInstance):
+        (WebCore::eventTargetRespectingSVGTargetRules):
+        (WebCore::EventTargetNode::dispatchEvent):
+        (WebCore::EventTargetNode::dispatchGenericEvent):
+        (WebCore::EventTargetNode::removeEventListenerForType):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::clear):
+        (WebCore::instanceAssociatedWithShadowTreeElement):
+        (WebCore::EventHandler::updateMouseEventTargetNode):
+        * page/EventHandler.h:
+        * svg/EventTargetSVGElementInstance.cpp: Removed.
+        * svg/EventTargetSVGElementInstance.h: Removed.
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::SVGElementInstance):
+        (WebCore::SVGElementInstance::~SVGElementInstance):
+        (WebCore::SVGElementInstance::childNodes):
+        (WebCore::SVGElementInstance::setShadowTreeElement):
+        (WebCore::SVGElementInstance::forgetWrapper):
+        (WebCore::SVGElementInstance::appendChild):
+        (WebCore::SVGElementInstance::invalidateAllInstancesOfElement):
+        (WebCore::SVGElementInstance::setNeedsUpdate):
+        (WebCore::SVGElementInstance::associatedFrame):
+        (WebCore::SVGElementInstance::addEventListener):
+        (WebCore::SVGElementInstance::removeEventListener):
+        (WebCore::SVGElementInstance::dispatchEvent):
+        (WebCore::SVGElementInstance::onabort):
+        (WebCore::SVGElementInstance::setOnabort):
+        (WebCore::SVGElementInstance::onblur):
+        (WebCore::SVGElementInstance::setOnblur):
+        (WebCore::SVGElementInstance::onchange):
+        (WebCore::SVGElementInstance::setOnchange):
+        (WebCore::SVGElementInstance::onclick):
+        (WebCore::SVGElementInstance::setOnclick):
+        (WebCore::SVGElementInstance::oncontextmenu):
+        (WebCore::SVGElementInstance::setOncontextmenu):
+        (WebCore::SVGElementInstance::ondblclick):
+        (WebCore::SVGElementInstance::setOndblclick):
+        (WebCore::SVGElementInstance::onerror):
+        (WebCore::SVGElementInstance::setOnerror):
+        (WebCore::SVGElementInstance::onfocus):
+        (WebCore::SVGElementInstance::setOnfocus):
+        (WebCore::SVGElementInstance::oninput):
+        (WebCore::SVGElementInstance::setOninput):
+        (WebCore::SVGElementInstance::onkeydown):
+        (WebCore::SVGElementInstance::setOnkeydown):
+        (WebCore::SVGElementInstance::onkeypress):
+        (WebCore::SVGElementInstance::setOnkeypress):
+        (WebCore::SVGElementInstance::onkeyup):
+        (WebCore::SVGElementInstance::setOnkeyup):
+        (WebCore::SVGElementInstance::onload):
+        (WebCore::SVGElementInstance::setOnload):
+        (WebCore::SVGElementInstance::onmousedown):
+        (WebCore::SVGElementInstance::setOnmousedown):
+        (WebCore::SVGElementInstance::onmousemove):
+        (WebCore::SVGElementInstance::setOnmousemove):
+        (WebCore::SVGElementInstance::onmouseout):
+        (WebCore::SVGElementInstance::setOnmouseout):
+        (WebCore::SVGElementInstance::onmouseover):
+        (WebCore::SVGElementInstance::setOnmouseover):
+        (WebCore::SVGElementInstance::onmouseup):
+        (WebCore::SVGElementInstance::setOnmouseup):
+        (WebCore::SVGElementInstance::onmousewheel):
+        (WebCore::SVGElementInstance::setOnmousewheel):
+        (WebCore::SVGElementInstance::onbeforecut):
+        (WebCore::SVGElementInstance::setOnbeforecut):
+        (WebCore::SVGElementInstance::oncut):
+        (WebCore::SVGElementInstance::setOncut):
+        (WebCore::SVGElementInstance::onbeforecopy):
+        (WebCore::SVGElementInstance::setOnbeforecopy):
+        (WebCore::SVGElementInstance::oncopy):
+        (WebCore::SVGElementInstance::setOncopy):
+        (WebCore::SVGElementInstance::onbeforepaste):
+        (WebCore::SVGElementInstance::setOnbeforepaste):
+        (WebCore::SVGElementInstance::onpaste):
+        (WebCore::SVGElementInstance::setOnpaste):
+        (WebCore::SVGElementInstance::ondragenter):
+        (WebCore::SVGElementInstance::setOndragenter):
+        (WebCore::SVGElementInstance::ondragover):
+        (WebCore::SVGElementInstance::setOndragover):
+        (WebCore::SVGElementInstance::ondragleave):
+        (WebCore::SVGElementInstance::setOndragleave):
+        (WebCore::SVGElementInstance::ondrop):
+        (WebCore::SVGElementInstance::setOndrop):
+        (WebCore::SVGElementInstance::ondragstart):
+        (WebCore::SVGElementInstance::setOndragstart):
+        (WebCore::SVGElementInstance::ondrag):
+        (WebCore::SVGElementInstance::setOndrag):
+        (WebCore::SVGElementInstance::ondragend):
+        (WebCore::SVGElementInstance::setOndragend):
+        (WebCore::SVGElementInstance::onreset):
+        (WebCore::SVGElementInstance::setOnreset):
+        (WebCore::SVGElementInstance::onresize):
+        (WebCore::SVGElementInstance::setOnresize):
+        (WebCore::SVGElementInstance::onscroll):
+        (WebCore::SVGElementInstance::setOnscroll):
+        (WebCore::SVGElementInstance::onsearch):
+        (WebCore::SVGElementInstance::setOnsearch):
+        (WebCore::SVGElementInstance::onselect):
+        (WebCore::SVGElementInstance::setOnselect):
+        (WebCore::SVGElementInstance::onselectstart):
+        (WebCore::SVGElementInstance::setOnselectstart):
+        (WebCore::SVGElementInstance::onsubmit):
+        (WebCore::SVGElementInstance::setOnsubmit):
+        (WebCore::SVGElementInstance::onunload):
+        (WebCore::SVGElementInstance::setOnunload):
+        * svg/SVGElementInstance.h:
+        (WebCore::SVGElementInstance::needsUpdate):
+        (WebCore::SVGElementInstance::toNode):
+        (WebCore::SVGElementInstance::toSVGElementInstance):
+        (WebCore::SVGElementInstance::correspondingElement):
+        (WebCore::SVGElementInstance::correspondingUseElement):
+        (WebCore::SVGElementInstance::shadowTreeElement):
+        (WebCore::SVGElementInstance::parentNode):
+        (WebCore::SVGElementInstance::previousSibling):
+        (WebCore::SVGElementInstance::nextSibling):
+        (WebCore::SVGElementInstance::firstChild):
+        (WebCore::SVGElementInstance::lastChild):
+        (WebCore::SVGElementInstance::ownerDocument):
+        (WebCore::SVGElementInstance::hasChildNodes):
+        (WebCore::SVGElementInstance::setFirstChild):
+        (WebCore::SVGElementInstance::setLastChild):
+        (WebCore::SVGElementInstance::setNextSibling):
+        (WebCore::SVGElementInstance::setPreviousSibling):
+        (WebCore::SVGElementInstance::refEventTarget):
+        (WebCore::SVGElementInstance::derefEventTarget):
+        * svg/SVGElementInstance.idl:
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::svgAttributeChanged):
+        (WebCore::SVGStyledElement::childrenChanged):
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::svgAttributeChanged):
+        (WebCore::shadowTreeContainsChangedNodes):
+        (WebCore::SVGUseElement::recalcStyle):
+        (WebCore::dumpInstanceTree):
+        (WebCore::SVGUseElement::buildPendingResource):
+        (WebCore::SVGUseElement::buildInstanceTree):
+        (WebCore::SVGUseElement::transferEventListenersToShadowTree):
+        * svg/SVGUseElement.h:
+
+2008-10-08  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21241
+        REGRESSION (r36977): getRGBColorValue().red returning incorrect value
+
+        Update JSRGBColor to use the new static function per getter approach.
+
+        Test: fast/dom/css-RGBValue.html
+
+        * bindings/js/JSRGBColor.cpp:
+        (WebCore::):
+        (jsRGBColorRed):
+        (jsRGBColorGreen):
+        (jsRGBColorBlue):
+        * bindings/js/JSRGBColor.h:
+
+2008-10-08  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler, Nikolas Zimmermann and Dave Hyatt.
+
+        svgElement.className.baseValue = "foo" does not work
+        https://bugs.webkit.org/show_bug.cgi?id=20651
+
+        * dom/StyledElement.cpp:
+        (WebCore::StyledElement::classAttributeChanged):
+        (WebCore::StyledElement::parseMappedAttribute):
+        * dom/StyledElement.h:
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::svgAttributeChanged):
+
+2008-10-08  Anthony Ricaud  <rik24d@gmail.com>
+
+        Make the toolbar label text-shadow not disappear when clicking on the
+        search result count or around the search field.
+
+        Reviewed by Timothy Hatcher.
+
+        * inspector/front-end/inspector.css:
+        (.toolbar-item:active .toolbar-label): Make this rule also require the
+        toggleable class with the toolbar-item class.
+
+2008-10-08  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Updated the qrc file for the Web Inspector to contain the current set
+        of images.
+
+        * inspector/front-end/WebKit.qrc:
+
+2008-10-08  Prasanth Ullattil  <pullatti@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix the linking of applications against WebKit on Qt/Windows.
+
+        The prl files that qmake creates are buggy on Unix, but we they're
+        fine on Windows and we have to have them there in order to get the
+        dependencies correct.
+
+        * WebCore.pro:
+
+2008-10-08  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon.
+
+        Speed up rectangle filling by not re-creating a QBrush all the time.
+
+        This triggers faster path in QPainter where the brush is reused.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContextPlatformPrivate::GraphicsContextPlatformPrivate):
+        (WebCore::GraphicsContext::fillRect):
+
+2008-10-08  Thiago Macieira  <thiago.macieira@nokia.com>
+
+        Reviewed by Simon.
+
+        Fixes: Encoding of Qt URLs
+
+        This encoding was added by Simon and I because QUrl's
+        tolerant parser wasn't tolerant enough. Now it is, so we don't need
+        this anymore.
+
+        * platform/qt/KURLQt.cpp:
+        (WebCore::KURL::operator QUrl):
+
+2008-10-08  Marius Storm-Olsen  <marius@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fixes dependencies in qmake generated visual studio projects.
+
+        Only add debug lib name if we're in the debug build_pass, else the release version.
+        The MSVC solution generator would pick up the debug javascriptcore lib as a dependency.
+
+        * WebCore.pro:
+
+2008-10-08  Prasanth Ullattil  <pullatti@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix compilation errors on VS2008 64Bit
+
+        * platform/text/TextStream.cpp:
+        (WebCore::TextStream::operator<<):
+        * platform/text/TextStream.h:
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::init):
+
 2008-10-08  Alp Toker  <alp@nuanti.com>
 
         GTK+ build fix for older automake versions (1.7). Discussed in bug
