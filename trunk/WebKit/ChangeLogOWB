@@ -1,3 +1,15 @@
+2008-10-10  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by M. Olivier Dole.
+
+        Move the "postProgressFinishedNotification" output before the load time
+        and flush stdout when BENCH_LOAD_TIME is set so that script can catch this
+        event (some scripting language seems to bufferize stdout strangely so it is
+        required for them) and kill OWB to print the statistics.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::postProgressFinishedNotification):
+
 2008-10-09  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Julien Chaffraix.

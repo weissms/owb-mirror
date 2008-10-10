@@ -419,6 +419,8 @@ void WebFrameLoaderClient::postProgressFinishedNotification()
 
     //FIXME : remove this notification
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver("layoutTestController", "loadDone", NULL);
+
+    printf("postProgressFinishedNotification\n");
 #ifdef BENCH_LOAD_TIME
     gettimeofday(&m_timerStop, NULL);
     if (m_timerStart.tv_sec == m_timerStop.tv_sec)
@@ -432,8 +434,10 @@ void WebFrameLoaderClient::postProgressFinishedNotification()
         }
         printf("load time: %d s %06d us\n", seconds, microseconds);
     }
+    // This is meant to help script watching OWB activity so that they can kill it and
+    // dump the statistics.
+    fflush(stdout);
 #endif
-    printf("postProgressFinishedNotification\n");
 }
 
 void WebFrameLoaderClient::committedLoad(DocumentLoader* loader, const char* data, int length)
