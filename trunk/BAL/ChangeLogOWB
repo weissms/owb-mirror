@@ -1,3 +1,13 @@
+2008-10-10  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Build fix for gcc 4.3.
+
+        Not reviewed.
+
+        * OWBAL/Concretizations/Facilities/Linux/BCFileIOLinux.cpp:
+        * OWBAL/Concretizations/Facilities/Linux/BCFileIOLinux.h: Include <stdio.h>
+        in the header to define FILE.
+
 2008-10-09  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Julien Chaffraix.

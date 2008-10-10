@@ -42,6 +42,7 @@
 
 #include "config.h"
 #include "PlatformString.h"
+#include <stdio.h>
 
 namespace OWBAL {
 
