@@ -1,3 +1,18 @@
+2008-10-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        Implement correctly the scrollBackingStore
+        TODO : give the good view to scrollBackingStore and repaint to show
+        correctly the scrollbar.
+
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::WebViewPrivate):
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::onKeyDown):
+        (WebViewPrivate::repaint):
+        (WebViewPrivate::scrollBackingStore):
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.h:
+
 2008-10-10  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by M. Olivier Dole.

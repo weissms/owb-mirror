@@ -38,7 +38,7 @@
 
 class WebViewPrivate {
 public:
-    WebViewPrivate(WebView *webView):m_webView(webView), isInitialized(false) {DS_CONSTRUCT();}
+    WebViewPrivate(WebView *webView);
     ~WebViewPrivate() 
     {
         DS_DESTRUCT();
@@ -96,10 +96,16 @@ public:
     void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect);
     
 private:
-    void updateView(BalWidget *widget, WebCore::IntRect rect);
+    void updateView(BalWidget* widget, WebCore::IntRect rect);
     WebCore::IntRect m_rect;
-    WebView *m_webView;
+    WebView* m_webView;
     bool isInitialized;
+    SDL_Surface* m_scrollSurface;
+    SDL_Rect m_dstRect;
+    SDL_Rect m_srcRect;
+    WebCore::IntRect m_scrollUpdateRect;
+    WebCore::IntRect m_hUpdateRect;
+    WebCore::IntRect m_vUpdateRect;
 };
 
 

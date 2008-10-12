@@ -35,6 +35,8 @@
 #include "Page.h"
 #include "EventHandler.h"
 #include "FocusController.h"
+#include "HitTestResult.h"
+#include "HitTestRequest.h"
 #include <PlatformKeyboardEvent.h>
 #include <PlatformMouseEvent.h>
 #include <PlatformWheelEvent.h>
@@ -50,9 +52,16 @@
 
 using namespace WebCore;
 
+WebViewPrivate::WebViewPrivate(WebView *webView)
+    : m_webView(webView)
+    , isInitialized(false)
+    , m_scrollSurface(0)
+{
+    DS_CONSTRUCT();
+}
+
 void WebViewPrivate::onExpose(BalEventExpose event)
 {
-    //printf("WebViewPrivate::onExpose\n");
     Frame* frame = core(m_webView->mainFrame());
     if (!frame)
         return;
@@ -69,8 +78,38 @@ void WebViewPrivate::onExpose(BalEventExpose event)
     if (frame->contentRenderer() && frame->view() && !m_webView->dirtyRegion().isEmpty()) {
         frame->view()->layoutIfNeededRecursive();
         IntRect dirty = m_webView->dirtyRegion();
-        frame->view()->paint(&ctx, dirty);
-	updateView(ctx.platformContext(), dirty);
+        IntRect d = m_webView->dirtyRegion();
+        if (!m_hUpdateRect.isEmpty()) {
+            frame->view()->paint(&ctx, m_hUpdateRect);
+            dirty.unite(m_hUpdateRect);
+            m_hUpdateRect = IntRect();
+        }
+        if (!m_vUpdateRect.isEmpty()) {
+            frame->view()->paint(&ctx, m_vUpdateRect);
+            dirty.unite(m_vUpdateRect);
+            m_vUpdateRect = IntRect();
+        }
+
+        frame->view()->paint(&ctx, d);
+
+        if (m_scrollSurface) {
+            SDL_Rect src = {0, 0, m_dstRect.w, m_dstRect.h};
+            SDL_BlitSurface(m_scrollSurface, &src, m_webView->viewWindow(), &m_dstRect);
+            dirty.unite(IntRect(m_dstRect.x, m_dstRect.y, m_dstRect.w, m_dstRect.h));
+            SDL_FreeSurface(m_scrollSurface);
+            m_scrollSurface = 0;
+            m_dstRect.x = 0;
+            m_dstRect.y = 0;
+            m_dstRect.w = 0;
+            m_dstRect.h = 0;
+            m_srcRect.x = 0;
+            m_srcRect.y = 0;
+            m_srcRect.w = 0;
+            m_srcRect.h = 0;
+            m_scrollUpdateRect = IntRect();
+        }
+
+        updateView(ctx.platformContext(), dirty);
         m_webView->clearDirtyRegion();
     }
 }
@@ -94,16 +133,22 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
 
     switch (event.keysym.sym) {
     case SDLK_DOWN:
-        view->scrollBy(IntSize(0, cMouseWheelPixelsPerLineStep));
+        view->scrollBy(IntSize(0, (int)cMouseWheelPixelsPerLineStep));
         return;
     case SDLK_UP:
-        view->scrollBy(IntSize(0, -cMouseWheelPixelsPerLineStep));
+        view->scrollBy(IntSize(0, (int)-cMouseWheelPixelsPerLineStep));
         return;
     case SDLK_RIGHT:
-        view->scrollBy(IntSize(cMouseWheelPixelsPerLineStep, 0));
+        view->scrollBy(IntSize((int)cMouseWheelPixelsPerLineStep, 0));
         return;
     case SDLK_LEFT:
-        view->scrollBy(IntSize(-cMouseWheelPixelsPerLineStep, 0));
+        view->scrollBy(IntSize((int)-cMouseWheelPixelsPerLineStep, 0));
+        return;
+    case SDLK_PAGEDOWN:
+        view->scrollBy(IntSize(0, m_rect.height()));
+        return;
+    case SDLK_PAGEUP:
+        view->scrollBy(IntSize(0, -m_rect.height()));
         return;
     case SDLK_HOME:
         frame->selection()->modify(alteration, SelectionController::BACKWARD, DocumentBoundary, true);
@@ -311,32 +356,147 @@ void WebViewPrivate::sendExposeEvent(IntRect)
 
 void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
 {
-    if (!repaintContentOnly) {
-        m_webView->addToDirtyRegion(windowRect);
-        sendExposeEvent(windowRect);
+    if (windowRect.isEmpty())
+        return;
+    IntRect rect = windowRect;
+    rect.intersect(m_rect);
+    
+    if (rect.isEmpty())
+        return;
+
+    if (contentChanged) {
+        m_webView->addToDirtyRegion(rect);
+        /*Frame* focusedFrame = m_webView->page()->focusController()->focusedFrame();
+        if (focusedFrame) {
+            Scrollbar* hBar = focusedFrame->view()->horizontalScrollbar();
+            Scrollbar* vBar = focusedFrame->view()->verticalScrollbar();
+            
+            // TODO : caculate the scroll delta and test this.
+            //if (dx && hBar)
+            if (hBar)
+                m_webView->addToDirtyRegion(IntRect(focusedFrame->view()->windowClipRect().x() + hBar->x(), focusedFrame->view()->windowClipRect().y() + hBar->y(), hBar->width(), hBar->height()));
+            //if (dy && vBar)
+            if (vBar)
+                m_webView->addToDirtyRegion(IntRect(focusedFrame->view()->windowClipRect().x() + vBar->x(), focusedFrame->view()->windowClipRect().y() + vBar->y(), vBar->width(), vBar->height()));
+        }*/
     }
-    if (contentChanged)
-        m_webView->addToDirtyRegion(windowRect);
+    if (!repaintContentOnly)
+        sendExposeEvent(rect);
     if (immediate) {
         if (repaintContentOnly)
             m_webView->updateBackingStore(core(m_webView->topLevelFrame())->view());
         else
-            sendExposeEvent(windowRect);
+            sendExposeEvent(rect);
     }
 }
 
-void WebViewPrivate::scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect)
+void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect)
 {
-    sendExposeEvent(scrollViewRect);
+    IntRect updateRect = clipRect;
+    updateRect.intersect(scrollViewRect);
     
-    IntRect s;
-    if (dy != 0) {
-        s = IntRect(0, scrollViewRect.height(), frameRect().width(), frameRect().height() - scrollViewRect.height());
-    } else
-        if (dx != 0) {
-            s = IntRect(scrollViewRect.width(), 0, frameRect().width() - scrollViewRect.width(), frameRect().height());
+    dy = -dy;
+    dx = -dx;
+    
+    int svWidth = scrollViewRect.width();
+    int svHeight = scrollViewRect.height();
+    int dirtyX = 0, dirtyY = 0, dirtyW = 0, dirtyH = 0;
+
+    if (dy == 0 && dx < 0 && -dx < svWidth) {
+        dirtyW = -dx;
+        dirtyH = svHeight;
+    }
+    else if (dy == 0 && dx > 0 && dx < svWidth) {
+        dirtyX = svWidth - dx;
+        dirtyW = dx;
+        dirtyH = svHeight;
+    }
+    else if (dx == 0 && dy < 0 && -dy < svHeight) {
+        dirtyW = svWidth;
+        dirtyH = -dy;
+    }
+    else if (dx == 0 && dy > 0 && dy < svHeight) {
+        dirtyY = svHeight - dy;
+        dirtyW = svWidth;
+        dirtyH = dy;
+    }
+
+    if (m_webView->viewWindow() && dirtyW) {
+        m_srcRect.x = dx > 0 ? dx + scrollViewRect.x() : scrollViewRect.x();
+        m_srcRect.y = dy > 0 ? dy + scrollViewRect.y() : scrollViewRect.y();
+        m_srcRect.w = dx > 0 ? scrollViewRect.width() - dx : scrollViewRect.width() + dx;
+        m_srcRect.h = dy > 0 ? scrollViewRect.height() - dy : scrollViewRect.height() + dy;
+
+        m_dstRect.x = dx > 0 ? scrollViewRect.x() : -dx + scrollViewRect.x();
+        m_dstRect.y = dy > 0 ? scrollViewRect.y() : -dy + scrollViewRect.y();
+        m_dstRect.w = dx > 0 ? scrollViewRect.width() - dx : scrollViewRect.width() + dx;
+        m_dstRect.h = dy > 0 ? scrollViewRect.height() -dy : scrollViewRect.height() + dy;
+
+        int x, y, w, h = 0;
+        if (dx > 0) {
+            m_srcRect.x += m_scrollUpdateRect.width();
+            m_srcRect.w -= m_scrollUpdateRect.width();
+            x = scrollViewRect.x() + dirtyX - m_scrollUpdateRect.width();
+            w = dirtyW + m_scrollUpdateRect.width();
+        } else if (dx < 0) {
+            m_dstRect.x += m_scrollUpdateRect.width();
+            m_srcRect.w -= m_scrollUpdateRect.width();
+            x = scrollViewRect.x() + dirtyX + m_scrollUpdateRect.width();
+            w = dirtyW + m_scrollUpdateRect.width();
+        } else {
+            x = scrollViewRect.x() + dirtyX;
+            w = dirtyW;
         }
-    m_webView->addToDirtyRegion(s);
-    sendExposeEvent(s);
+
+        if (dy > 0) {
+            m_srcRect.y += m_scrollUpdateRect.height();
+            m_srcRect.h -= m_scrollUpdateRect.height();
+            y = scrollViewRect.y() + dirtyY - m_scrollUpdateRect.height();
+            h = dirtyH + m_scrollUpdateRect.height();
+        } else if (dy < 0) {
+            m_dstRect.y += m_scrollUpdateRect.height();
+            m_srcRect.h -= m_scrollUpdateRect.height();
+            y = scrollViewRect.y() + dirtyY + m_scrollUpdateRect.height();
+            h = dirtyH + m_scrollUpdateRect.height();
+        } else {
+            y = scrollViewRect.y() + dirtyY;
+            h = dirtyH;
+        }
+
+        Uint32 rmask, gmask, bmask, amask;
+#if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
+        rmask = 0xff000000;
+        gmask = 0x00ff0000;
+        bmask = 0x0000ff00;
+        amask = 0x000000ff;
+#else
+        rmask = 0x00ff0000;
+        gmask = 0x0000ff00;
+        bmask = 0x000000ff;
+        amask = 0xff000000;
+#endif
+
+        if (m_scrollSurface)
+            SDL_FreeSurface(m_scrollSurface);
+        m_scrollSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, m_dstRect.w, m_dstRect.h , 32, rmask, gmask, bmask, amask);
+
+        SDL_Rect dRect = {0, 0, m_dstRect.w, m_dstRect.h};
+        SDL_BlitSurface(m_webView->viewWindow(), &m_srcRect, m_scrollSurface, &dRect);
+
+        m_scrollUpdateRect = IntRect(x, y, w, h);
+        m_scrollUpdateRect.intersect(scrollViewRect);
+
+        Scrollbar* hBar = view->horizontalScrollbar();
+        Scrollbar* vBar = view->verticalScrollbar();
+        if (dx && hBar)
+            m_hUpdateRect = IntRect(scrollViewRect.x() + hBar->x(), scrollViewRect.y() + hBar->y(), hBar->width(), hBar->height());
+        if (dy && vBar)
+            m_vUpdateRect = IntRect(scrollViewRect.x() + vBar->x(), scrollViewRect.y() + vBar->y(), vBar->width(), vBar->height());
+
+        m_webView->addToDirtyRegion(m_scrollUpdateRect);
+        sendExposeEvent(m_scrollUpdateRect);
+    }
+    /*m_webView->addToDirtyRegion(scrollViewRect);
+    sendExposeEvent(scrollViewRect);*/
 }
 
