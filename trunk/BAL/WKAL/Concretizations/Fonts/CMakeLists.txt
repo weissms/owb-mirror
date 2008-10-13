@@ -66,6 +66,7 @@ OWBLN (WK/BCSegmentedFontDataWK.h WKAL 0 0)
 OWBLN (WK/BCStringTruncatorWK.h WKAL 0 0)
 OWBLN (WK/BCFontTraitsMaskWK.h WKAL 0 0)
 OWBLN (WK/BCTextRunWK.h WKAL 0 0)
+OWBLN (WK/BCWidthIteratorWK.h WKAL 0 0)
 
 AUX_SOURCE_DIRECTORY (WK FONTS_SRC)
 

@@ -69,6 +69,7 @@
 #include "Pair.h"
 #include "Rect.h"
 #include "RenderScrollbar.h"
+#include "RenderScrollbarTheme.h"
 #include "RenderTheme.h"
 #include "RotateTransformOperation.h"
 #include "ScaleTransformOperation.h"
@@ -1837,16 +1838,30 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
             break;
         }
     }
+    
     if (sel->m_match == CSSSelector::PseudoClass) {
-        
-        // CSS scrollbars match a specific subset of pseudo classes, and they have specialized rules for each
-        // (since there are no elements involved).
-        if (RenderScrollbar::scrollbarForStyleResolve() && dynamicPseudo != RenderStyle::NOPSEUDO)
+        // Handle :not up front.
+        if (sel->pseudoType() == CSSSelector::PseudoNot) {
+            // check the simple selector
+            for (CSSSelector* subSel = sel->m_simpleSelector; subSel; subSel = subSel->m_tagHistory) {
+                // :not cannot nest. I don't really know why this is a
+                // restriction in CSS3, but it is, so let's honor it.
+                if (subSel->m_simpleSelector)
+                    break;
+                if (!checkOneSelector(subSel, e, selectorAttrs, dynamicPseudo, isAncestor, true, elementStyle, elementParentStyle))
+                    return true;
+            }
+        } else if (RenderScrollbar::scrollbarForStyleResolve() && dynamicPseudo != RenderStyle::NOPSEUDO) {
+            // CSS scrollbars match a specific subset of pseudo classes, and they have specialized rules for each
+            // (since there are no elements involved).
             return checkScrollbarPseudoClass(sel, dynamicPseudo);
+        }
         
         // Normal element pseudo class checking.
         switch (sel->pseudoType()) {
             // Pseudo classes:
+            case CSSSelector::PseudoNot:
+                break; // Already handled up above.
             case CSSSelector::PseudoEmpty: {
                 bool result = true;
                 for (Node* n = e->firstChild(); n; n = n->nextSibling()) {
@@ -2262,18 +2277,6 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
                     break;
                 return true;
             }
-            case CSSSelector::PseudoNot: {
-                // check the simple selector
-                for (CSSSelector* subSel = sel->m_simpleSelector; subSel; subSel = subSel->m_tagHistory) {
-                    // :not cannot nest. I don't really know why this is a
-                    // restriction in CSS3, but it is, so let's honour it.
-                    if (subSel->m_simpleSelector)
-                        break;
-                    if (!checkOneSelector(subSel, e, selectorAttrs, dynamicPseudo, isAncestor, true, elementStyle, elementParentStyle))
-                        return true;
-                }
-                break;
-            }
             case CSSSelector::PseudoUnknown:
             case CSSSelector::PseudoNotParsed:
             default:
@@ -2368,6 +2371,9 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
             case CSSSelector::PseudoScrollbarTrackPiece:
                 dynamicPseudo = RenderStyle::SCROLLBAR_TRACK_PIECE;
                 return true;
+            case CSSSelector::PseudoResizer:
+                dynamicPseudo = RenderStyle::RESIZER;
+                return true;
             case CSSSelector::PseudoUnknown:
             case CSSSelector::PseudoNotParsed:
             default:
@@ -2383,17 +2389,64 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
 bool CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass(CSSSelector* sel, RenderStyle::PseudoId& dynamicPseudo) const
 {
     RenderScrollbar* scrollbar = RenderScrollbar::scrollbarForStyleResolve();
-    
+    ScrollbarPart part = RenderScrollbar::partForStyleResolve();
+
     ASSERT(sel->m_match == CSSSelector::PseudoClass && scrollbar);
     switch (sel->pseudoType()) {
         case CSSSelector::PseudoEnabled:
             return scrollbar->enabled();
         case CSSSelector::PseudoDisabled:
             return !scrollbar->enabled();
-        case CSSSelector::PseudoScrollbarHorizontal:
+        case CSSSelector::PseudoHover: {
+            ScrollbarPart hoveredPart = scrollbar->hoveredPart();
+            if (part == ScrollbarBGPart)
+                return hoveredPart != NoPart;
+            if (part == TrackBGPart)
+                return hoveredPart == BackTrackPart || hoveredPart == ForwardTrackPart || hoveredPart == ThumbPart;
+            return part == hoveredPart;
+        }
+        case CSSSelector::PseudoActive: {
+            ScrollbarPart pressedPart = scrollbar->pressedPart();
+            if (part == ScrollbarBGPart)
+                return pressedPart != NoPart;
+            if (part == TrackBGPart)
+                return pressedPart == BackTrackPart || pressedPart == ForwardTrackPart || pressedPart == ThumbPart;
+            return part == pressedPart;
+        }
+        case CSSSelector::PseudoHorizontal:
             return scrollbar->orientation() == HorizontalScrollbar;
-        case CSSSelector::PseudoScrollbarVertical:
+        case CSSSelector::PseudoVertical:
             return scrollbar->orientation() == VerticalScrollbar;
+        case CSSSelector::PseudoDecrement:
+            return part == BackButtonStartPart || part == BackButtonEndPart || part == BackTrackPart;
+        case CSSSelector::PseudoIncrement:
+            return part == ForwardButtonStartPart || part == ForwardButtonEndPart || part == ForwardTrackPart;
+        case CSSSelector::PseudoStart:
+            return part == BackButtonStartPart || part == ForwardButtonStartPart || part == BackTrackPart;
+        case CSSSelector::PseudoEnd:
+            return part == BackButtonEndPart || part == ForwardButtonEndPart || part == ForwardTrackPart;
+        case CSSSelector::PseudoDoubleButton: {
+            ScrollbarButtonsPlacement buttonsPlacement = scrollbar->theme()->buttonsPlacement();
+            if (part == BackButtonStartPart || part == ForwardButtonStartPart || part == BackTrackPart)
+                return buttonsPlacement == ScrollbarButtonsDoubleStart || buttonsPlacement == ScrollbarButtonsDoubleBoth;
+            if (part == BackButtonEndPart || part == ForwardButtonEndPart || part == ForwardTrackPart)
+                return buttonsPlacement == ScrollbarButtonsDoubleEnd || buttonsPlacement == ScrollbarButtonsDoubleBoth;
+            return false;
+        } 
+        case CSSSelector::PseudoSingleButton: {
+            ScrollbarButtonsPlacement buttonsPlacement = scrollbar->theme()->buttonsPlacement();
+            if (part == BackButtonStartPart || part == ForwardButtonEndPart || part == BackTrackPart || part == ForwardTrackPart)
+                return buttonsPlacement == ScrollbarButtonsSingle;
+            return false;
+        }
+        case CSSSelector::PseudoNoButton: {
+            ScrollbarButtonsPlacement buttonsPlacement = scrollbar->theme()->buttonsPlacement();
+            if (part == BackTrackPart)
+                return buttonsPlacement == ScrollbarButtonsNone || buttonsPlacement == ScrollbarButtonsDoubleEnd;
+            if (part == ForwardTrackPart)
+                return buttonsPlacement == ScrollbarButtonsNone || buttonsPlacement == ScrollbarButtonsDoubleStart;
+            return false;
+        }
         case CSSSelector::PseudoWindowInactive:
             return !scrollbar->isWindowActive();
         default:

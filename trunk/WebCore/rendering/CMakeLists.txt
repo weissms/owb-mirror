@@ -8,6 +8,7 @@ LIST (APPEND RENDERING_SRC
     rendering/InlineFlowBox.cpp
     rendering/InlineTextBox.cpp
     rendering/LayoutState.cpp
+    rendering/Length.cpp
     rendering/ListMarkerBox.cpp
     rendering/MediaControlElements.cpp
     rendering/RenderApplet.cpp

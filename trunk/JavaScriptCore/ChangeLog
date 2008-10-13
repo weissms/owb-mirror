@@ -1,3 +1,119 @@
+2008-10-13  Gabriella Toth  <gtoth@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        - part of https://bugs.webkit.org/show_bug.cgi?id=21055
+          Bug 21055: not invoked functions
+
+        * kjs/nodes.cpp: Deleted a function that is not invoked:
+        statementListInitializeVariableAccessStack.
+
+2008-10-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        * wtf/unicode/icu/UnicodeIcu.h: Fixed indentation to match WebKit coding style.
+        * wtf/unicode/qt4/UnicodeQt4.h: Ditto.
+
+2008-10-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21556
+          Bug 21556: non-ASCII digits are allowed in places where only ASCII should be
+
+        * wtf/unicode/icu/UnicodeIcu.h: Removed isDigit, digitValue, and isFormatChar.
+        * wtf/unicode/qt4/UnicodeQt4.h: Ditto.
+
+2008-10-12  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Make the append method that takes a Vector more strict - it now requires the elements 
+        of the vector to be appended same type as the elements of the Vector they're being appended to.
+        
+        This would cause problems when dealing with Vectors containing other Vectors.
+        
+        * wtf/Vector.h:
+        (WTF::::append):
+
+2008-10-11  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Clean up RegExpMatchesArray.h to match our coding style.
+
+        * kjs/RegExpMatchesArray.h:
+        (JSC::RegExpMatchesArray::getOwnPropertySlot):
+        (JSC::RegExpMatchesArray::put):
+        (JSC::RegExpMatchesArray::deleteProperty):
+        (JSC::RegExpMatchesArray::getPropertyNames):
+
+2008-10-11  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 21525: 55 StructureID leaks on Wikitravel's main page
+        <https://bugs.webkit.org/show_bug.cgi?id=21525>
+
+        Bug 21533: Simple JavaScript code leaks StructureIDs
+        <https://bugs.webkit.org/show_bug.cgi?id=21533>
+
+        StructureID::getEnumerablePropertyNames() ends up calling back to itself
+        via JSObject::getPropertyNames(), which causes the PropertyNameArray to
+        be cached twice. This leads to a memory leak in almost every use of
+        JSObject::getPropertyNames() on an object. The fix here is based on a
+        suggestion of Sam Weinig.
+
+        This patch also fixes every StructureID leaks that occurs while running
+        the Mozilla MemBuster test.
+
+        * kjs/PropertyNameArray.h:
+        (JSC::PropertyNameArray::PropertyNameArray):
+        (JSC::PropertyNameArray::setCacheable):
+        (JSC::PropertyNameArray::cacheable):
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::getEnumerablePropertyNames):
+
+2008-10-10  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Use fastcall calling convention on GCC > 4.0
+
+        Results in a 2-3% improvement in GCC 4.2 performance, so
+        that it is no longer a regression vs. GCC 4.0
+
+        * VM/CTI.cpp:
+        * VM/Machine.h:
+        * wtf/Platform.h:
+
+2008-10-10  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        - Add a workaround for a bug in ceil in Darwin libc.
+        - Remove old workarounds for JS math functions that are not needed
+          anymore.
+
+        The math functions are heavily tested by fast/js/math.html.
+
+        * kjs/MathObject.cpp:
+        (JSC::mathProtoFuncAbs): Remove workaround.
+        (JSC::mathProtoFuncCeil): Ditto.
+        (JSC::mathProtoFuncFloor): Ditto.
+        * wtf/MathExtras.h:
+        (wtf_ceil): Add ceil workaround for darwin.
+
+2008-10-10  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler
+
+        Add Assertions to JSObject constructor.
+
+        * kjs/JSObject.h:
+        (JSC::JSObject::JSObject):
+
 2008-10-10  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Cameron Zwarich.

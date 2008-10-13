@@ -38,11 +38,11 @@ class RenderStyle;
 
 class RenderScrollbar : public Scrollbar {
 protected:
-    RenderScrollbar(ScrollbarClient*, ScrollbarOrientation, RenderStyle*, RenderObject*);
+    RenderScrollbar(ScrollbarClient*, ScrollbarOrientation, RenderObject*);
 
 public:
     friend class Scrollbar;
-    static PassRefPtr<Scrollbar> createCustomScrollbar(ScrollbarClient*, ScrollbarOrientation, RenderStyle*, RenderObject*);
+    static PassRefPtr<Scrollbar> createCustomScrollbar(ScrollbarClient*, ScrollbarOrientation, RenderObject*);
     virtual ~RenderScrollbar();
 
     virtual void setParent(ScrollView*);
@@ -50,24 +50,29 @@ public:
 
     virtual void paint(GraphicsContext*, const IntRect& damageRect);
 
-    void updateScrollbarParts(RenderStyle* = 0, bool destroy = false);
+    virtual void setHoveredPart(ScrollbarPart);
+    virtual void setPressedPart(ScrollbarPart);
+
+    void updateScrollbarParts(bool destroy = false);
 
     static ScrollbarPart partForStyleResolve();
     static RenderScrollbar* scrollbarForStyleResolve();
 
-    virtual void styleChanged() { updateScrollbarParts(); }
+    virtual void styleChanged();
 
     RenderObject* owningRenderer() const { return m_owner; }
 
     void paintPart(GraphicsContext*, ScrollbarPart, const IntRect&);
 
     IntRect buttonRect(ScrollbarPart);
-    
+    IntRect trackRect(int startLength, int endLength);
+    IntRect trackPieceRectWithMargins(ScrollbarPart, const IntRect&);
+
     int minimumThumbLength();
 
 private:
     RenderStyle* getScrollbarPseudoStyle(ScrollbarPart, RenderStyle::PseudoId);
-    void updateScrollbarPart(ScrollbarPart, RenderStyle::PseudoId, RenderStyle*, bool destroy);
+    void updateScrollbarPart(ScrollbarPart, bool destroy = false);
 
     RenderObject* m_owner;
     HashMap<unsigned, RenderScrollbarPart*> m_parts;

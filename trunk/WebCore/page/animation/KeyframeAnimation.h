@@ -40,9 +40,11 @@ namespace WebCore {
 // for a single RenderObject.
 class KeyframeAnimation : public AnimationBase {
 public:
-    KeyframeAnimation(const Animation* animation, RenderObject* renderer, int index, CompositeAnimation* compAnim, const RenderStyle* unanimatedStyle);
-    virtual ~KeyframeAnimation();
-
+    static PassRefPtr<KeyframeAnimation> create(const Animation* animation, RenderObject* renderer, int index, CompositeAnimation* compositeAnimation, const RenderStyle* unanimatedStyle)
+    {
+        return adoptRef(new KeyframeAnimation(animation, renderer, index, compositeAnimation, unanimatedStyle));
+    };
+    
     virtual void animate(CompositeAnimation*, RenderObject*, const RenderStyle* currentStyle, const RenderStyle* targetStyle, RenderStyle*& animatedStyle);
 
     const AtomicString& name() const { return m_keyframes.animationName(); }
@@ -72,6 +74,9 @@ protected:
     void validateTransformFunctionList();
 
 private:
+    KeyframeAnimation(const Animation* animation, RenderObject*, int index, CompositeAnimation*, const RenderStyle* unanimatedStyle);
+    virtual ~KeyframeAnimation();
+    
     // The keyframes that we are blending.
     KeyframeList m_keyframes;
 

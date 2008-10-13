@@ -693,7 +693,7 @@ void HTMLInputElement::parseMappedAttribute(MappedAttribute *attr)
         }
         setChanged();
     } else if (attr->name() == placeholderAttr)
-        updatePlaceholderVisibility();
+        updatePlaceholderVisibility(true);
     else if (attr->name() == autosaveAttr ||
                attr->name() == incrementalAttr ||
                attr->name() == minAttr ||
@@ -1560,24 +1560,28 @@ void HTMLInputElement::unregisterForActivationCallbackIfNeeded()
         document()->unregisterForDocumentActivationCallbacks(this);
 }
 
-void HTMLInputElement::updatePlaceholderVisibility()
+void HTMLInputElement::updatePlaceholderVisibility(bool placeholderValueChanged)
 {
     ASSERT(isTextField());
 
     bool oldPlaceholderShouldBeVisible = m_placeholderShouldBeVisible;
-    
+
     m_placeholderShouldBeVisible = value().isEmpty() 
         && document()->focusedNode() != this
         && !getAttribute(placeholderAttr).isEmpty();
 
-    if (oldPlaceholderShouldBeVisible != m_placeholderShouldBeVisible && renderer())
+    if ((oldPlaceholderShouldBeVisible != m_placeholderShouldBeVisible || placeholderValueChanged) && renderer())
         static_cast<RenderTextControl*>(renderer())->updatePlaceholderVisibility();
 }
 
 String HTMLInputElement::constrainValue(const String& proposedValue, int maxLen) const
 {
+    String string = proposedValue;
     if (isTextField()) {
-        StringImpl* s = proposedValue.impl();
+        string.replace("\r\n", " ");
+        string.replace('\r', ' ');
+        string.replace('\n', ' ');
+        StringImpl* s = string.impl();
         int newLen = numCharactersInGraphemeClusters(s, maxLen);
         for (int i = 0; i < newLen; ++i) {
             const UChar current = (*s)[i];
@@ -1586,10 +1590,10 @@ String HTMLInputElement::constrainValue(const String& proposedValue, int maxLen)
                 break;
             }
         }
-        if (newLen < static_cast<int>(proposedValue.length()))
-            return proposedValue.substring(0, newLen);
+        if (newLen < static_cast<int>(string.length()))
+            return string.substring(0, newLen);
     }
-    return proposedValue;
+    return string;
 }
 
 void HTMLInputElement::addSearchResult()

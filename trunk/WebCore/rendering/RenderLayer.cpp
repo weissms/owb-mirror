@@ -66,6 +66,7 @@
 #include "RenderMarquee.h"
 #include "RenderReplica.h"
 #include "RenderScrollbar.h"
+#include "RenderScrollbarPart.h"
 #include "RenderTheme.h"
 #include "RenderView.h"
 #include "ScaleTransformOperation.h"
@@ -157,6 +158,8 @@ RenderLayer::RenderLayer(RenderObject* object)
     , m_staticY(0)
     , m_transform(0)
     , m_reflection(0)
+    , m_scrollCorner(0)
+    , m_resizer(0)
 {
     if (!object->firstChild() && object->style()) {
         m_visibleContentStatusDirty = false;
@@ -191,6 +194,11 @@ RenderLayer::~RenderLayer()
         m_reflection->setParent(0);
         m_reflection->destroy();
     }
+    
+    if (m_scrollCorner)
+        m_scrollCorner->destroy();
+    if (m_resizer)
+        m_resizer->destroy();
 }
 
 void RenderLayer::updateLayerPositions(bool doFullRepaint, bool checkForRepaint)
@@ -1105,16 +1113,16 @@ void RenderLayer::invalidateScrollbarRect(Scrollbar* scrollbar, const IntRect& r
     if (scrollbar == m_vBar.get())
         scrollRect.move(renderer()->width() - renderer()->borderRight() - scrollbar->width(), renderer()->borderTop());
     else
-        scrollRect.move(renderer()->height() - renderer()->borderBottom() - scrollbar->height(), renderer()->borderLeft());
+        scrollRect.move(renderer()->borderLeft(), renderer()->height() - renderer()->borderBottom() - scrollbar->height());
     renderer()->repaintRectangle(scrollRect);
 }
 
 PassRefPtr<Scrollbar> RenderLayer::createScrollbar(ScrollbarOrientation orientation)
 {
     RefPtr<Scrollbar> widget;
-    RenderStyle* style = renderer()->getPseudoStyle(RenderStyle::SCROLLBAR);
-    if (style)
-        widget = RenderScrollbar::createCustomScrollbar(this, orientation, style, renderer());
+    bool hasCustomScrollbarStyle = m_object->node()->shadowAncestorNode()->renderer()->style()->hasPseudoStyle(RenderStyle::SCROLLBAR);
+    if (hasCustomScrollbarStyle)
+        widget = RenderScrollbar::createCustomScrollbar(this, orientation, m_object->node()->shadowAncestorNode()->renderer());
     else
         widget = Scrollbar::createNativeScrollbar(this, orientation, RegularScrollbar);
     m_object->document()->view()->addChild(widget.get());        
@@ -1188,12 +1196,28 @@ IntSize RenderLayer::offsetFromResizeCorner(const IntPoint& p) const
     return p - IntPoint(x, y);
 }
 
-static IntRect scrollCornerRect(RenderObject* renderer, const IntRect& absBounds)
+static IntRect scrollCornerRect(RenderLayer* layer, const IntRect& absBounds)
 {
-    int resizerThickness = ScrollbarTheme::nativeTheme()->scrollbarThickness();
-    return IntRect(absBounds.right() - resizerThickness - renderer->style()->borderRightWidth(), 
-                   absBounds.bottom() - resizerThickness - renderer->style()->borderBottomWidth(),
-                   resizerThickness, resizerThickness);
+    int nativeThickness = ScrollbarTheme::nativeTheme()->scrollbarThickness();
+    int horizontalThickness;
+    int verticalThickness;
+    if (!layer->verticalScrollbar() && !layer->horizontalScrollbar()) {
+        horizontalThickness = nativeThickness;
+        verticalThickness = nativeThickness;
+    } else if (layer->verticalScrollbar() && !layer->horizontalScrollbar()) {
+        horizontalThickness = layer->verticalScrollbar()->width();
+        verticalThickness = horizontalThickness;
+    } else if (layer->horizontalScrollbar() && !layer->verticalScrollbar()) {
+        verticalThickness = layer->horizontalScrollbar()->height();
+        horizontalThickness = verticalThickness;
+    } else {
+        horizontalThickness = layer->verticalScrollbar()->width();
+        verticalThickness = layer->horizontalScrollbar()->height();
+    }
+    
+    return IntRect(absBounds.right() - horizontalThickness - layer->renderer()->style()->borderRightWidth(), 
+                   absBounds.bottom() - verticalThickness - layer->renderer()->style()->borderBottomWidth(),
+                   horizontalThickness, verticalThickness);
 }
 
 void RenderLayer::positionOverflowControls(int tx, int ty)
@@ -1205,7 +1229,7 @@ void RenderLayer::positionOverflowControls(int tx, int ty)
     
     IntRect resizeControlRect;
     if (m_object->style()->resize() != RESIZE_NONE)
-        resizeControlRect = scrollCornerRect(m_object, absBounds);
+        resizeControlRect = scrollCornerRect(this, absBounds);
     
     int resizeControlSize = max(resizeControlRect.height(), 0);
     if (m_vBar)
@@ -1388,7 +1412,7 @@ RenderLayer::updateScrollInfoAfterLayout()
         updateOverflowStatus(horizontalOverflow, verticalOverflow);
 }
 
-void RenderLayer::paintOverflowControls(GraphicsContext* p, int tx, int ty, const IntRect& damageRect)
+void RenderLayer::paintOverflowControls(GraphicsContext* context, int tx, int ty, const IntRect& damageRect)
 {
     // Don't do anything if we have no overflow.
     if (!m_object->hasOverflowClip())
@@ -1401,9 +1425,9 @@ void RenderLayer::paintOverflowControls(GraphicsContext* p, int tx, int ty, cons
 
     // Now that we're sure the scrollbars are in the right place, paint them.
     if (m_hBar)
-        m_hBar->paint(p, damageRect);
+        m_hBar->paint(context, damageRect);
     if (m_vBar)
-        m_vBar->paint(p, damageRect);
+        m_vBar->paint(context, damageRect);
     
     // We fill our scroll corner with white if we have a scrollbar that doesn't run all the way up to the
     // edge of the box.
@@ -1418,7 +1442,7 @@ void RenderLayer::paintOverflowControls(GraphicsContext* p, int tx, int ty, cons
                           paddingBox.width() - m_hBar->width(),
                           m_hBar->height());
         if (hCorner.intersects(damageRect))
-            p->fillRect(hCorner, Color::white);
+            paintScrollCorner(context, hCorner);
     }
     if (m_vBar && paddingBox.height() - m_vBar->height() > 0) {
         IntRect vCorner(paddingBox.x() + paddingBox.width() - m_vBar->width(),
@@ -1426,33 +1450,52 @@ void RenderLayer::paintOverflowControls(GraphicsContext* p, int tx, int ty, cons
                         m_vBar->width(),
                         paddingBox.height() - m_vBar->height());
         if (vCorner != hCorner && vCorner.intersects(damageRect))
-            p->fillRect(vCorner, Color::white);
+            paintScrollCorner(context, vCorner);
     }
 
     if (m_object->style()->resize() != RESIZE_NONE)  {
         IntRect absBounds(tx, ty, m_object->width(), m_object->height());
-        IntRect scrollCorner = scrollCornerRect(m_object, absBounds);
+        IntRect scrollCorner = scrollCornerRect(this, absBounds);
         if (!scrollCorner.intersects(damageRect))
             return;
+        paintResizer(context, scrollCorner);
+    }
+}
 
-        // Paint the resizer control.
-        static RefPtr<Image> resizeCornerImage;
-        if (!resizeCornerImage)
-            resizeCornerImage = Image::loadPlatformResource("textAreaResizeCorner");
-        IntPoint imagePoint(scrollCorner.right() - resizeCornerImage->width(), scrollCorner.bottom() - resizeCornerImage->height());
-        p->drawImage(resizeCornerImage.get(), imagePoint);
+void RenderLayer::paintScrollCorner(GraphicsContext* context, const IntRect& rect)
+{
+    if (m_scrollCorner) {
+        m_scrollCorner->paintIntoRect(context, rect.x(), rect.y(), rect);
+        return;
+    }
+    context->fillRect(rect, Color::white);
+}
 
-        // Draw a frame around the resizer (1px grey line) if there are any scrollbars present.
-        // Clipping will exclude the right and bottom edges of this frame.
-        if (m_hBar || m_vBar) {
-            p->save();
-            scrollCorner.setSize(IntSize(scrollCorner.width() + 1, scrollCorner.height() + 1));
-            p->setStrokeColor(Color(makeRGB(217, 217, 217)));
-            p->setStrokeThickness(1.0f);
-            p->setFillColor(Color::transparent);
-            p->drawRect(scrollCorner);
-            p->restore();
-        }
+void RenderLayer::paintResizer(GraphicsContext* context, const IntRect& scrollCorner)
+{
+    if (m_resizer) {
+        m_resizer->paintIntoRect(context, scrollCorner.x(), scrollCorner.y(), scrollCorner);
+        return;
+    }
+
+    // Paint the resizer control.
+    static RefPtr<Image> resizeCornerImage;
+    if (!resizeCornerImage)
+        resizeCornerImage = Image::loadPlatformResource("textAreaResizeCorner");
+    IntPoint imagePoint(scrollCorner.right() - resizeCornerImage->width(), scrollCorner.bottom() - resizeCornerImage->height());
+    context->drawImage(resizeCornerImage.get(), imagePoint);
+
+    // Draw a frame around the resizer (1px grey line) if there are any scrollbars present.
+    // Clipping will exclude the right and bottom edges of this frame.
+    if (m_hBar || m_vBar) {
+        context->save();
+        IntRect largerCorner = scrollCorner;
+        largerCorner.setSize(IntSize(largerCorner.width() + 1, largerCorner.height() + 1));
+        context->setStrokeColor(Color(makeRGB(217, 217, 217)));
+        context->setStrokeThickness(1.0f);
+        context->setFillColor(Color::transparent);
+        context->drawRect(largerCorner);
+        context->restore();
     }
 }
 
@@ -1465,7 +1508,7 @@ bool RenderLayer::isPointInResizeControl(const IntPoint& point)
     int y = 0;
     convertToLayerCoords(root(), x, y);
     IntRect absBounds(x, y, m_object->width(), m_object->height());
-    return scrollCornerRect(m_object, absBounds).contains(point);
+    return scrollCornerRect(this, absBounds).contains(point);
 }
     
 bool RenderLayer::hitTestOverflowControls(HitTestResult& result)
@@ -1480,7 +1523,7 @@ bool RenderLayer::hitTestOverflowControls(HitTestResult& result)
     
     IntRect resizeControlRect;
     if (renderer()->style()->resize() != RESIZE_NONE) {
-        resizeControlRect = scrollCornerRect(renderer(), absBounds);
+        resizeControlRect = scrollCornerRect(this, absBounds);
         if (resizeControlRect.contains(result.point()))
             return true;
     }
@@ -2392,6 +2435,29 @@ void RenderLayer::styleChanged(RenderStyle::Diff, const RenderStyle* oldStyle)
         m_hBar->styleChanged();
     if (m_vBar)
         m_vBar->styleChanged();
+       
+    // Update our scroll corner style.
+    RenderObject* actualRenderer = m_object->node()->shadowAncestorNode()->renderer();
+    RenderStyle* corner = m_object->hasOverflowClip() ? actualRenderer->getPseudoStyle(RenderStyle::SCROLLBAR_CORNER, actualRenderer->style()) : 0;
+    if (corner) {
+        if (!m_scrollCorner)
+            m_scrollCorner = new (m_object->renderArena()) RenderScrollbarPart(m_object->document());
+        m_scrollCorner->setStyle(corner);
+    } else if (m_scrollCorner) {
+        m_scrollCorner->destroy();
+        m_scrollCorner = 0;
+    }
+        
+    // Update our scroll corner resizer style.
+    RenderStyle* resizer = m_object->hasOverflowClip() ? actualRenderer->getPseudoStyle(RenderStyle::RESIZER, actualRenderer->style()) : 0;
+    if (resizer) {
+        if (!m_resizer)
+            m_resizer = new (m_object->renderArena()) RenderScrollbarPart(m_object->document());
+        m_resizer->setStyle(resizer);
+    } else if (m_resizer) {
+        m_resizer->destroy();
+        m_resizer = 0;
+    }
 }
 
 RenderLayer* RenderLayer::reflectionLayer() const

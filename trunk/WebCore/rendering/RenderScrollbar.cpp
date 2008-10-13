@@ -30,16 +30,16 @@
 
 namespace WebCore {
 
-PassRefPtr<Scrollbar> RenderScrollbar::createCustomScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, RenderStyle* style, RenderObject* renderer)
+PassRefPtr<Scrollbar> RenderScrollbar::createCustomScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, RenderObject* renderer)
 {
-    return adoptRef(new RenderScrollbar(client, orientation, style, renderer));
+    return adoptRef(new RenderScrollbar(client, orientation, renderer));
 }
 
-RenderScrollbar::RenderScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, RenderStyle* style, RenderObject* renderer)
+RenderScrollbar::RenderScrollbar(ScrollbarClient* client, ScrollbarOrientation orientation, RenderObject* renderer)
     : Scrollbar(client, orientation, RegularScrollbar, RenderScrollbarTheme::renderScrollbarTheme())
     , m_owner(renderer)
 {
-    updateScrollbarParts(style);
+    updateScrollbarParts();
 }
 
 RenderScrollbar::~RenderScrollbar()
@@ -52,7 +52,7 @@ void RenderScrollbar::setParent(ScrollView* parent)
     Scrollbar::setParent(parent);
     if (!parent) {
         // Destroy all of the scrollbar's RenderObjects.
-        updateScrollbarParts(0, true);
+        updateScrollbarParts(true);
     }
 }
 
@@ -64,11 +64,44 @@ void RenderScrollbar::setEnabled(bool e)
         updateScrollbarParts();
 }
 
+void RenderScrollbar::styleChanged()
+{
+    updateScrollbarParts();
+    Scrollbar::styleChanged();
+}
+
 void RenderScrollbar::paint(GraphicsContext* context, const IntRect& damageRect)
 {
     if (context->updatingControlTints())
         updateScrollbarParts();
     Scrollbar::paint(context, damageRect);
+}
+
+void RenderScrollbar::setHoveredPart(ScrollbarPart part)
+{
+    if (part == m_hoveredPart)
+        return;
+
+    ScrollbarPart oldPart = m_hoveredPart;
+    m_hoveredPart = part;
+
+    updateScrollbarPart(oldPart);
+    updateScrollbarPart(m_hoveredPart);
+
+    updateScrollbarPart(ScrollbarBGPart);
+    updateScrollbarPart(TrackBGPart);
+}
+
+void RenderScrollbar::setPressedPart(ScrollbarPart part)
+{
+    ScrollbarPart oldPart = m_pressedPart;
+    Scrollbar::setPressedPart(part);
+    
+    updateScrollbarPart(oldPart);
+    updateScrollbarPart(part);
+    
+    updateScrollbarPart(ScrollbarBGPart);
+    updateScrollbarPart(TrackBGPart);
 }
 
 static ScrollbarPart s_styleResolvePart;
@@ -94,17 +127,17 @@ RenderStyle* RenderScrollbar::getScrollbarPseudoStyle(ScrollbarPart partType, Re
     return result;
 }
 
-void RenderScrollbar::updateScrollbarParts(RenderStyle* scrollbarStyle, bool destroy)
+void RenderScrollbar::updateScrollbarParts(bool destroy)
 {
-    updateScrollbarPart(ScrollbarBGPart, RenderStyle::SCROLLBAR, scrollbarStyle, destroy);
-    updateScrollbarPart(BackButtonStartPart, RenderStyle::SCROLLBAR_BUTTON, 0, destroy);
-    updateScrollbarPart(ForwardButtonStartPart, RenderStyle::SCROLLBAR_BUTTON, 0, destroy);
-    updateScrollbarPart(BackTrackPart, RenderStyle::SCROLLBAR_TRACK_PIECE, 0, destroy);
-    updateScrollbarPart(ThumbPart, RenderStyle::SCROLLBAR_THUMB, 0, destroy);
-    updateScrollbarPart(ForwardTrackPart, RenderStyle::SCROLLBAR_TRACK_PIECE, 0, destroy);
-    updateScrollbarPart(BackButtonEndPart, RenderStyle::SCROLLBAR_BUTTON, 0, destroy);
-    updateScrollbarPart(ForwardButtonEndPart, RenderStyle::SCROLLBAR_BUTTON, 0, destroy);
-    updateScrollbarPart(TrackBGPart, RenderStyle::SCROLLBAR_TRACK, 0, destroy);
+    updateScrollbarPart(ScrollbarBGPart, destroy);
+    updateScrollbarPart(BackButtonStartPart, destroy);
+    updateScrollbarPart(ForwardButtonStartPart, destroy);
+    updateScrollbarPart(BackTrackPart, destroy);
+    updateScrollbarPart(ThumbPart, destroy);
+    updateScrollbarPart(ForwardTrackPart, destroy);
+    updateScrollbarPart(BackButtonEndPart, destroy);
+    updateScrollbarPart(ForwardButtonEndPart, destroy);
+    updateScrollbarPart(TrackBGPart, destroy);
     
     if (destroy)
         return;
@@ -125,16 +158,61 @@ void RenderScrollbar::updateScrollbarParts(RenderStyle* scrollbarStyle, bool des
     }
 }
 
-void RenderScrollbar::updateScrollbarPart(ScrollbarPart partType, RenderStyle::PseudoId pseudoId, RenderStyle* partStyle, bool destroy)
+static RenderStyle::PseudoId pseudoForScrollbarPart(ScrollbarPart part)
 {
-    if (!partStyle && !destroy)
-        partStyle = getScrollbarPseudoStyle(partType, pseudoId);
+    switch (part) {
+        case BackButtonStartPart:
+        case ForwardButtonStartPart:
+        case BackButtonEndPart:
+        case ForwardButtonEndPart:
+            return RenderStyle::SCROLLBAR_BUTTON;
+        case BackTrackPart:
+        case ForwardTrackPart:
+            return RenderStyle::SCROLLBAR_TRACK_PIECE;
+        case ThumbPart:
+            return RenderStyle::SCROLLBAR_THUMB;
+        case TrackBGPart:
+            return RenderStyle::SCROLLBAR_TRACK;
+        default:
+            return RenderStyle::SCROLLBAR;
+    }
+}
+
+void RenderScrollbar::updateScrollbarPart(ScrollbarPart partType, bool destroy)
+{
+    if (partType == NoPart)
+        return;
+
+    RenderStyle* partStyle = !destroy ? getScrollbarPseudoStyle(partType,  pseudoForScrollbarPart(partType)) : 0;
     
     bool needRenderer = !destroy && partStyle && partStyle->display() != NONE && partStyle->visibility() == VISIBLE;
     
+    if (needRenderer && partStyle->display() != BLOCK) {
+        // See if we are a button that should not be visible according to OS settings.
+        ScrollbarButtonsPlacement buttonsPlacement = theme()->buttonsPlacement();
+        switch (partType) {
+            case BackButtonStartPart:
+                needRenderer = (buttonsPlacement == ScrollbarButtonsSingle || buttonsPlacement == ScrollbarButtonsDoubleStart ||
+                                buttonsPlacement == ScrollbarButtonsDoubleBoth);
+                break;
+            case ForwardButtonStartPart:
+                needRenderer = (buttonsPlacement == ScrollbarButtonsDoubleStart || buttonsPlacement == ScrollbarButtonsDoubleBoth);
+                break;
+            case BackButtonEndPart:
+                needRenderer = (buttonsPlacement == ScrollbarButtonsDoubleEnd || buttonsPlacement == ScrollbarButtonsDoubleBoth);
+                break;
+            case ForwardButtonEndPart:
+                needRenderer = (buttonsPlacement == ScrollbarButtonsSingle || buttonsPlacement == ScrollbarButtonsDoubleEnd ||
+                                buttonsPlacement == ScrollbarButtonsDoubleBoth);
+                break;
+            default:
+                break;
+        }
+    }
+    
     RenderScrollbarPart* partRenderer = m_parts.get(partType);
     if (!partRenderer && needRenderer) {
-        partRenderer = new (m_owner->renderArena()) RenderScrollbarPart(this, partType, m_owner->document());
+        partRenderer = new (m_owner->renderArena()) RenderScrollbarPart(m_owner->document(), this, partType);
         m_parts.set(partType, partRenderer);
     } else if (partRenderer && !needRenderer) {
         m_parts.remove(partType);
@@ -151,25 +229,7 @@ void RenderScrollbar::paintPart(GraphicsContext* graphicsContext, ScrollbarPart 
     RenderScrollbarPart* partRenderer = m_parts.get(partType);
     if (!partRenderer)
         return;
-
-    // Make sure our dimensions match the rect.
-    partRenderer->setPos(rect.x() - x(), rect.y() - y());
-    partRenderer->setWidth(rect.width());
-    partRenderer->setHeight(rect.height());
-    partRenderer->setOverflowWidth(max(rect.width(), partRenderer->overflowWidth()));
-    partRenderer->setOverflowHeight(max(rect.height(), partRenderer->overflowHeight()));
-
-    // Now do the paint.
-    RenderObject::PaintInfo paintInfo(graphicsContext, rect, PaintPhaseBlockBackground, false, 0, 0);
-    partRenderer->paint(paintInfo, x(), y());
-    paintInfo.phase = PaintPhaseChildBlockBackgrounds;
-    partRenderer->paint(paintInfo, x(), y());
-    paintInfo.phase = PaintPhaseFloat;
-    partRenderer->paint(paintInfo, x(), y());
-    paintInfo.phase = PaintPhaseForeground;
-    partRenderer->paint(paintInfo, x(), y());
-    paintInfo.phase = PaintPhaseOutline;
-    partRenderer->paint(paintInfo, x(), y());
+    partRenderer->paintIntoRect(graphicsContext, x(), y(), rect);
 }
 
 IntRect RenderScrollbar::buttonRect(ScrollbarPart partType)
@@ -203,6 +263,49 @@ IntRect RenderScrollbar::buttonRect(ScrollbarPart partType)
                    isHorizontal ? y() : y() + height() - followingButton.height() - partRenderer->height(),
                    isHorizontal ? partRenderer->width() : width(),
                    isHorizontal ? height() : partRenderer->height());
+}
+
+IntRect RenderScrollbar::trackRect(int startLength, int endLength)
+{
+    RenderScrollbarPart* part = m_parts.get(TrackBGPart);
+    if (part)
+        part->layout();
+
+    if (orientation() == HorizontalScrollbar) {
+        int marginLeft = part ? part->marginLeft() : 0;
+        int marginRight = part ? part->marginRight() : 0;
+        startLength += marginLeft;
+        endLength += marginRight;
+        int totalLength = startLength + endLength;
+        return IntRect(x() + startLength, y(), width() - totalLength, height());
+    }
+    
+    int marginTop = part ? part->marginTop() : 0;
+    int marginBottom = part ? part->marginBottom() : 0;
+    startLength += marginTop;
+    endLength += marginBottom;
+    int totalLength = startLength + endLength;
+
+    return IntRect(x(), y() + startLength, width(), height() - totalLength);
+}
+
+IntRect RenderScrollbar::trackPieceRectWithMargins(ScrollbarPart partType, const IntRect& oldRect)
+{
+    RenderScrollbarPart* partRenderer = m_parts.get(partType);
+    if (!partRenderer)
+        return oldRect;
+    
+    partRenderer->layout();
+    
+    IntRect rect = oldRect;
+    if (orientation() == HorizontalScrollbar) {
+        rect.setX(rect.x() + partRenderer->marginLeft());
+        rect.setWidth(rect.width() - (partRenderer->marginLeft() + partRenderer->marginRight()));
+    } else {
+        rect.setY(rect.y() + partRenderer->marginTop());
+        rect.setHeight(rect.height() - (partRenderer->marginTop() + partRenderer->marginBottom()));
+    }
+    return rect;
 }
 
 int RenderScrollbar::minimumThumbLength()

@@ -540,6 +540,7 @@
 ../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/FontRenderingMode.h
 ../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/FontTraitsMask.h
 ../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/TextRun.h
+../../WKAL/Skeletons/Fonts	../../../WebCore/platform/graphics/WidthIterator.h
 
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontCache.h
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontCache.cpp
@@ -580,6 +581,8 @@
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontRenderingMode.h
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/FontTraitsMask.h
 ../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/TextRun.h
+../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/WidthIterator.h
+../../WKAL/Concretizations/Fonts/WK	../../../WebCore/platform/graphics/WidthIterator.cpp
 
 
 ../../WKAL/Skeletons/Network	../../../WebCore/platform/network/AuthenticationChallengeBase.h

@@ -1353,6 +1353,8 @@ webcore_sources += \
 	WebCore/platform/graphics/StringTruncator.h \
 	WebCore/platform/graphics/TextRun.h \
 	WebCore/platform/graphics/UnitBezier.h \
+	WebCore/platform/graphics/WidthIterator.cpp \
+	WebCore/platform/graphics/WidthIterator.h \
 	WebCore/platform/graphics/filters/FEBlend.h \
 	WebCore/platform/graphics/filters/FEColorMatrix.h \
 	WebCore/platform/graphics/filters/FEComponentTransfer.h \
@@ -1478,6 +1480,7 @@ webcore_sources += \
 	WebCore/rendering/InlineTextBox.h \
 	WebCore/rendering/LayoutState.cpp \
 	WebCore/rendering/LayoutState.h \
+	WebCore/rendering/Length.cpp \
 	WebCore/rendering/Length.h \
 	WebCore/rendering/ListMarkerBox.cpp \
 	WebCore/rendering/ListMarkerBox.h \
@@ -3000,6 +3003,7 @@ webcore_dist += \
 # Clean rules for WebCore
 
 CLEANFILES += \
+	libWebCoreJS.la \
 	WebCore/bindings/js/JSDOMWindowBase.lut.h \
 	WebCore/bindings/js/JSRGBColor.lut.h
 

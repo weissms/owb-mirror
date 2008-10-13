@@ -40,7 +40,7 @@ public:
     
     virtual int scrollbarThickness(ScrollbarControlSize controlSize) { return ScrollbarTheme::nativeTheme()->scrollbarThickness(controlSize); }
 
-    virtual ScrollbarButtonsPlacement buttonsPlacement() const { return ScrollbarButtonsDoubleBoth; }
+    virtual ScrollbarButtonsPlacement buttonsPlacement() const { return ScrollbarTheme::nativeTheme()->buttonsPlacement(); }
 
     virtual bool supportsControlTints() const { return true; }
 
@@ -74,6 +74,7 @@ protected:
     virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart);
     virtual void paintThumb(GraphicsContext*, Scrollbar*, const IntRect&);
 
+    virtual IntRect constrainTrackRectToTrackPieces(Scrollbar*, const IntRect&);
 };
 
 } // namespace WebCore

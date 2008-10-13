@@ -75,6 +75,8 @@ public:
     
     ScrollbarPart pressedPart() const { return m_pressedPart; }
     ScrollbarPart hoveredPart() const { return m_hoveredPart; }
+    virtual void setHoveredPart(ScrollbarPart);
+    virtual void setPressedPart(ScrollbarPart);
 
     void setSteps(int lineStep, int pageStep, int pixelsPerStep = 1);
     bool setValue(int);
@@ -122,7 +124,7 @@ public:
     bool suppressInvalidation() const { return m_suppressInvalidation; }
     void setSuppressInvalidation(bool s) { m_suppressInvalidation = s; }
 
-    virtual void styleChanged() { }
+    virtual void styleChanged() { invalidate(); }
 
 protected:
     virtual void updateThumbPosition();

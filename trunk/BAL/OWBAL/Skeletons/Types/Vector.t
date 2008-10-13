@@ -871,7 +871,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-        template<typename U, size_t c> void append(const Vector<U, c>&);
+        template<size_t otherCapacity> void append(const Vector<T, otherCapacity>&);
 
     /**
      *  insert description
@@ -1209,7 +1209,7 @@ namespace WTF {
      * @code
      * @endcode
      */
-    template<typename T, size_t inlineCapacity> template<typename U, size_t c>     inline void Vector<T, inlineCapacity>::append(const Vector<U, c>& val);
+    template<typename T, size_t inlineCapacity> template<size_t otherCapacity>     inline void Vector<T, inlineCapacity>::append(const Vector<T, otherCapacity>& val);
 
     /**
      *  inlineCapacity>::insert description

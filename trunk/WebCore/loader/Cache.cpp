@@ -196,13 +196,13 @@ void Cache::revalidateResource(CachedResource* resource, DocLoader* docLoader)
     if (resource->resourceToRevalidate())
         return;
     if (!resource->canUseCacheValidator()) {
-        remove(resource);
+        evict(resource);
         return;
     }
     const String& url = resource->url();
     CachedResource* newResource = createResource(resource->type(), KURL(url), resource->encoding());
     newResource->setResourceToRevalidate(resource);
-    remove(resource);
+    evict(resource);
     m_resources.set(url, newResource);
     newResource->setInCache(true);
     resourceAccessed(newResource);
@@ -216,7 +216,7 @@ void Cache::revalidationSucceeded(CachedResource* revalidatingResource, const Re
     ASSERT(!resource->inCache());
     ASSERT(resource->isLoaded());
     
-    remove(revalidatingResource);
+    evict(revalidatingResource);
 
     ASSERT(!m_resources.get(resource->url()));
     m_resources.set(resource->url(), resource);
@@ -337,8 +337,8 @@ void Cache::pruneDeadResources()
         while (current) {
             CachedResource* prev = current->m_prevInAllResourcesList;
             if (!current->hasClients() && !current->isPreloaded()) {
-                remove(current);
-                // If remove() caused pruneDeadResources() to be re-entered, bail out. This can happen when removing an
+                evict(current);
+                // If evict() caused pruneDeadResources() to be re-entered, bail out. This can happen when removing an
                 // SVG CachedImage that has subresources.
                 if (!m_inPruneDeadResources)
                     return;
@@ -371,7 +371,7 @@ void Cache::setCapacities(unsigned minDeadBytes, unsigned maxDeadBytes, unsigned
     prune();
 }
 
-void Cache::remove(CachedResource* resource)
+void Cache::evict(CachedResource* resource)
 {
     // The resource may have already been removed by someone other than our caller,
     // who needed a fresh copy for a reload. See <http://bugs.webkit.org/show_bug.cgi?id=12479#c6>.
@@ -692,7 +692,7 @@ void Cache::setDisabled(bool disabled)
         CachedResourceMap::iterator i = m_resources.begin();
         if (i == m_resources.end())
             break;
-        remove(i->second);
+        evict(i->second);
     }
 }
 

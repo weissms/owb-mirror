@@ -35,7 +35,7 @@ class RenderScrollbar;
 
 class RenderScrollbarPart : public RenderBlock {
 public:
-    RenderScrollbarPart(RenderScrollbar*, ScrollbarPart, Node*);
+    RenderScrollbarPart(Node*, RenderScrollbar* = 0, ScrollbarPart = NoPart);
     virtual ~RenderScrollbarPart();
 
     virtual const char* renderName() const { return "RenderScrollbarPart"; }
@@ -45,8 +45,11 @@ public:
     virtual void layout();
     virtual void calcPrefWidths();
     
+    void paintIntoRect(GraphicsContext*, int tx, int ty, const IntRect&);
+    
 protected:
     virtual void styleDidChange(RenderStyle::Diff, const RenderStyle* oldStyle);
+    virtual void imageChanged(WrappedImagePtr);
 
 private:
     void layoutHorizontalPart();

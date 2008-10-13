@@ -29,7 +29,6 @@
 ../../OWBAL/Concretizations/Types/WK/BCThreadSpecificWK.h	0:ThreadSpecific.patch
 ../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock.patch
 ../../OWBAL/Concretizations/Types/WK/BCTCSpinLockWK.h	0:TCSpinLock2.patch
-../../WKAL/Concretizations/Fonts/WK/BCFontWK.cpp	0:Font.patch
 ../../WKAL/Concretizations/Graphics/Cairo/BCImageCairo.cpp	_:ImageCairo_AmigaOS.patch
 ../../WKAL/Concretizations/Graphics/Cairo/BCImageSourceCairo.cpp	_:ImageSourceCairo.patch
 ../../WKAL/Concretizations/Graphics/WK/BCDragDataWK.h	_:DragData_AmigaOS.patch

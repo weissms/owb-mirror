@@ -32,7 +32,7 @@ using namespace std;
 
 namespace WebCore {
 
-RenderScrollbarPart::RenderScrollbarPart(RenderScrollbar* scrollbar, ScrollbarPart part, Node* node)
+RenderScrollbarPart::RenderScrollbarPart(Node* node, RenderScrollbar* scrollbar, ScrollbarPart part)
     : RenderBlock(node)
     , m_scrollbar(scrollbar)
     , m_part(part)
@@ -93,6 +93,10 @@ void RenderScrollbarPart::computeScrollbarWidth()
     int minWidth = calcScrollbarThicknessUsing(style()->minWidth(), visibleSize);
     int maxWidth = style()->maxWidth().isUndefined() ? width : calcScrollbarThicknessUsing(style()->maxWidth(), visibleSize);
     m_width = max(minWidth, min(maxWidth, width));
+    
+    // Buttons and track pieces can all have margins along the axis of the scrollbar. 
+    m_marginLeft = style()->marginLeft().calcMinValue(visibleSize);
+    m_marginRight = style()->marginRight().calcMinValue(visibleSize);
 }
 
 void RenderScrollbarPart::computeScrollbarHeight()
@@ -103,6 +107,9 @@ void RenderScrollbarPart::computeScrollbarHeight()
     int maxHeight = style()->maxHeight().isUndefined() ? height : calcScrollbarThicknessUsing(style()->maxHeight(), visibleSize);
     m_height = max(minHeight, min(maxHeight, height));
 
+    // Buttons and track pieces can all have margins along the axis of the scrollbar. 
+    m_marginTop = style()->marginTop().calcMinValue(visibleSize);
+    m_marginBottom = style()->marginBottom().calcMinValue(visibleSize);
 }
 
 void RenderScrollbarPart::calcPrefWidths()
@@ -122,6 +129,36 @@ void RenderScrollbarPart::styleDidChange(RenderStyle::Diff diff, const RenderSty
     setPositioned(false);
     setFloating(false);
     setHasOverflowClip(false);
+    if (oldStyle && m_scrollbar && m_part != NoPart)
+        m_scrollbar->theme()->invalidatePart(m_scrollbar, m_part);
+}
+
+void RenderScrollbarPart::imageChanged(WrappedImagePtr)
+{
+    if (m_scrollbar && m_part != NoPart)
+        m_scrollbar->theme()->invalidatePart(m_scrollbar, m_part);
+}
+
+void RenderScrollbarPart::paintIntoRect(GraphicsContext* graphicsContext, int tx, int ty, const IntRect& rect)
+{
+    // Make sure our dimensions match the rect.
+    setPos(rect.x() - tx, rect.y() - ty);
+    setWidth(rect.width());
+    setHeight(rect.height());
+    setOverflowWidth(max(rect.width(), overflowWidth()));
+    setOverflowHeight(max(rect.height(), overflowHeight()));
+
+    // Now do the paint.
+    RenderObject::PaintInfo paintInfo(graphicsContext, rect, PaintPhaseBlockBackground, false, 0, 0);
+    paint(paintInfo, tx, ty);
+    paintInfo.phase = PaintPhaseChildBlockBackgrounds;
+    paint(paintInfo, tx, ty);
+    paintInfo.phase = PaintPhaseFloat;
+    paint(paintInfo, tx, ty);
+    paintInfo.phase = PaintPhaseForeground;
+    paint(paintInfo, tx, ty);
+    paintInfo.phase = PaintPhaseOutline;
+    paint(paintInfo, tx, ty);
 }
 
 }

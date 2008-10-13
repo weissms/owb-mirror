@@ -1,3 +1,735 @@
+2008-10-13  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Windows build fix.
+
+        * loader/TextResourceDecoder.cpp:
+
+2008-10-12  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21229
+          Bug 21229: NetworkStateNotifier.h lacks a #include <windows.h> for PLATFORM(WIN)
+
+        * platform/network/NetworkStateNotifier.h: Add the #include.
+
+2008-10-12  Darin Adler  <darin@apple.com>
+
+        Based on work by Holger Freyther.
+
+        - part of https://bugs.webkit.org/show_bug.cgi?id=20953
+          Split WidthIterator into its own source file.
+
+        * GNUmakefile.am: Added new source files.
+        * WebCore.vcproj/WebCore.vcproj: Ditto.
+        * WebCore.xcodeproj/project.pbxproj: Ditto.
+        * WebCoreSources.bkl: Ditto.
+
+        * platform/graphics/Font.cpp: Use WidthIterator from its new place.
+        * platform/graphics/WidthIterator.cpp: Added.
+        * platform/graphics/WidthIterator.h: Added.
+
+2008-10-12  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21480
+          Remove duplicate definitions of MimeClassInfo and PluginInfo.
+
+        * plugins/PluginInfoStore.cpp: Added an include.
+        * plugins/PluginInfoStore.h: Removed struct declarations.
+
+2008-10-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21563
+          Bug 21563: platform Gradient class should not use the CSS parser
+
+        * platform/graphics/Gradient.cpp: Removed the overload of addColorStop
+        that accepts a CSS color string. That's handled in the DOM now, not here.
+        (WebCore::Gradient::addColorStop): Use getRGBA instead of having our own
+        copy of it here.
+        * platform/graphics/Gradient.h: More of the same. Tweak formatting a bit.
+
+2008-10-12  Glenn Wilson  <gwilson@google.com>
+
+        Reviewed by Darin Adler.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20461
+
+        Added feature to allow multi-line inputs into text fields.
+        HTMLInputElement would cut the set text at the first 'system' character,
+        so it would truncate at the first carriage return or newline.
+        This fix modifies that behavior to truncate at any non-space system character
+        but changes \r, \n, and \r\n to a single space.
+
+        Tests: editing/pasteboard/paste-multiline-text-input.html
+               
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::constrainValue):
+
+2008-10-12  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Eric Seidel.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20435
+
+        Added exception codes to canvas gradients to match current specification.
+
+        Tests: fast/canvas/gradient-addColorStop-with-invalid-color.html
+               fast/canvas/linearGradient-infinite-values.html
+               fast/canvas/radialGradient-infinite-values.html
+
+        * html/CanvasGradient.cpp:
+        (WebCore::CanvasGradient::addColorStop):
+        * html/CanvasGradient.h:
+        * html/CanvasGradient.idl:
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::createLinearGradient):
+        (WebCore::CanvasRenderingContext2D::createRadialGradient):
+        * html/CanvasRenderingContext2D.h:
+        * html/CanvasRenderingContext2D.idl:
+
+2008-10-12  Eric Roman  <eroman@chromium.org>
+
+        - https://bugs.webkit.org/show_bug.cgi?id=20246
+          Implement RenderThemeWin::systemColor() to match Windows colors.
+
+        Reviewed by David Hyatt.
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::cssValueIdToSysColorIndex):
+        (WebCore::RenderThemeWin::systemColor):
+        * rendering/RenderThemeWin.h:
+
+2008-10-12  Aaron Bockover  <abockover@novell.com>
+
+        Reviewed by Alp Toker.
+
+        Add version parsing for Flash, and the PluginQuirkDontSetNullWindowHandleOnDestroy 
+        plugin quirk if Flash 10 or newer since at least in b218, setting a NULL window 
+        handler on destroy crashes WebKit <https://bugs.webkit.org/show_bug.cgi?id=19859>
+
+        * plugins/gtk/PluginPackageGtk.cpp:
+
+2008-10-12  Jonathon Jongsma  <jonathon.jongsma@collabora.co.uk>
+
+        Reviewed by Oliver Hunt.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=19331
+          <rdar://problem/5984433>: Drag and drop of links in edit mode violates assert in MoveSelectionCommand::doApply()
+
+        * page/DragController.cpp:
+        (WebCore::DragController::startDrag): When a link is dragged without any
+        text selected (note: for this to work, the EditableLinkBehavior setting must be
+        set to 'live' or 'default') and then dropped into an editable html document it
+        will eventually violate an ASSERT in MoveSelectionCommand that requires that there
+        is a selection.  To prevent this, expand the selection to the enclosing anchor tag
+        when the drag begins.
+
+2008-10-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21557
+          Bug 21557: REGRESSION: generated-layer-scrollbar-crash.html is crashing
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::getPseudoStyle): Keep walking up the parent chain
+        until we hit an Element. Nowadays, Node::isElementNode() is just as efficient
+        as RenderObject::isText(), and this guarantees that the node can be cast to
+        Element*, which is done just below. The reason this is hit is that RenderLayer
+        can call getPseudoStyle on a RenderView, which has the document as its
+        element() -- and a document is neither a Text node nor an Element. A loose
+        end is that this seems to mean you can't style the scrollbar corner or the
+        resizer on a RenderView. Hyatt may want to look into that later.
+
+2008-10-12  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21556
+          Bug 21556: non-ASCII digits are allowed in places where only ASCII should be
+
+        Tests: fast/dom/HTMLFontElement/size-attribute.html
+               fast/dom/HTMLInputElement/size-attribute.html
+               fast/dom/HTMLTableElement/cellpadding-attribute.html
+
+        * html/HTMLFontElement.cpp:
+        (WebCore::parseFontSizeNumber): Use isASCIIDigit instead of
+        Unicode::isDigit, since non-ASCII digits are not valid here.
+        * html/HTMLFontElement.h: Tweaked formatting a bit and removed
+        the unneeded destructor declaration.
+        * platform/text/String.cpp:
+        (WebCore::lengthOfCharactersAsInteger): Use isASCIIDigit instead
+        of Unicode::isDigit, since non-ASCII digits are not valid.
+
+2008-10-12  Jungshik Shin  <jshin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Treat x-user-defined as windows-1252 for html files with meta charset
+        declaration to be compatible with Indian web sites.
+        ( https://bugs.webkit.org/show_bug.cgi?id=18270 )
+
+        Test: fast/encoding/charset-xuser-defined.html
+
+        * loader/TextResourceDecoder.cpp:
+        (WebCore::TextResourceDecoder::setEncoding):
+
+2008-10-12  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Remove unneeded forward declaration.
+
+        * platform/graphics/ImageBuffer.h:
+
+2008-10-12  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21560
+        Layering violation: String should not be responsible for creating Lengths
+
+        It was a layering violation for String to know haw to parse
+        into Lengths, LengthArrays, and CoordsArrays.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * html/HTMLAreaElement.cpp:
+        (WebCore::HTMLAreaElement::parseMappedAttribute):
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::parseMappedAttribute):
+        * platform/text/AtomicString.h:
+        (WebCore::AtomicString::percentage):
+        * platform/text/PlatformString.h:
+        * platform/text/String.cpp:
+        * platform/text/StringImpl.cpp:
+        * platform/text/StringImpl.h:
+        * rendering/Length.cpp: Added.
+        (WebCore::parseLength):
+        (WebCore::countCharacter):
+        (WebCore::newCoordsArray):
+        (WebCore::newLengthArray):
+        * rendering/Length.h:
+        (WebCore::LengthSize::LengthSize):
+
+2008-10-12  Brad Garcia  <bgarcia@google.com>
+
+        Reviewed by Darin Adler.
+
+        Interpret fractional percentage values for %MultiLength values.
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=3591
+        Test: fast/frames/frame-length-fractional-percentage.html
+
+        * platform/text/StringImpl.cpp:
+        (WebCore::parseLength):
+
+2008-10-12  Timothy Hatcher  <timothy@apple.com>
+
+        Remember the expanded state of the rules in the Styles pane. So
+        collapsing a rule will persist across all the elements that have
+        that same rule. The same applies to Computed Style, so the Computed
+        Style rule is now collapsed by default. This should help lessen the
+        confusion on why Computed Style can't be edited (a common confusion.)
+
+        https://bugs.webkit.org/show_bug.cgi?id=21553
+
+        Reviewed by Darin Adler.
+
+        * inspector/front-end/PropertiesSection.js:
+        (WebInspector.PropertiesSection): Set the _expanded property directly,
+        instead of using the setter. Expanded is the default, so no work is needed.
+        This prevents calling StylesSidebarPane.collapse before object initialization
+        is complete.
+        * inspector/front-end/StylesSidebarPane.js:
+        (WebInspector.StylesSidebarPane.prototype.update): Check the Preferences object
+        for the expanded state of the StylePropertiesSection. Collapse computed style
+        by default and expand everything else.
+        (WebInspector.StylePropertiesSection): Make a semi unique identifier to be used
+        when remembering expanded state.
+        (WebInspector.StylePropertiesSection.prototype.expand): Set the expanded state
+        to true for this identifier in Preferences.styleRulesExpandedState. Don't remember
+        the state if the dontRememberState property is true.
+        (WebInspector.StylePropertiesSection.prototype.collapse): Set the expanded state
+        to false for this identifier in Preferences.styleRulesExpandedState.
+        * inspector/front-end/inspector.js:
+        (Preferences.styleRulesExpandedState): Initialize to an empty object.
+
+2008-10-12  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Alp Toker.
+
+        [Gtk] Remove libWebCoreJS.la when doing make clean
+        https://bugs.webkit.org/show_bug.cgi?id=21544
+
+        Remove libWebCoreJS.la when doing a clean target
+
+        * GNUmakefile.am: add libWebCoreJS.la to CLEANFILES
+
+2008-10-11  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20592
+        The focus ring is not shown while navigating on some pages
+
+        Fix drawFocusRing() so it doesn't depend on the current graphics
+        state, thus matching other platforms which already work this way.
+
+        This patch provides two code paths: one using straight Cairo and
+        one specialised for the GTK+ port with a more conventional appearance.
+
+        Also change focusRingColor() to return a null color, allowing the
+        focus ring to pick up the style's current color if it isn't overridden
+        with CSS.
+
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::drawFocusRing):
+        * platform/gtk/TemporaryLinkStubs.cpp:
+        (WebCore::focusRingColor):
+
+2008-10-11  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        - change all internal callers to use Cache::evict() instead of remove()
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::revalidateResource):
+        (WebCore::Cache::revalidationSucceeded):
+        (WebCore::Cache::pruneDeadResources):
+        (WebCore::Cache::setDisabled):
+
+2008-10-11  David Hyatt  <hyatt@apple.com>
+
+        Make sure invalidatePart knows how to invalidate the track and scrollbar backgrounds.
+
+        Reviewed by Tim Hatcher
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::invalidatePart):
+
+2008-10-11  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21549 (regression in before/after track pieces).
+
+        Also fixed resizer positioning problems.
+
+        Reviewed by Tim Hatcher
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::splitTrack):
+        (WebCore::ScrollbarThemeComposite::trackPosition):
+        (WebCore::ScrollbarThemeComposite::trackLength):
+        * platform/ScrollbarThemeComposite.h:
+        (WebCore::ScrollbarThemeComposite::constrainTrackRectToTrackPieces):
+        * rendering/RenderLayer.cpp:
+        (WebCore::scrollCornerRect):
+        (WebCore::RenderLayer::positionOverflowControls):
+        (WebCore::RenderLayer::paintOverflowControls):
+        (WebCore::RenderLayer::isPointInResizeControl):
+        (WebCore::RenderLayer::hitTestOverflowControls):
+        * rendering/RenderScrollbarTheme.cpp:
+        (WebCore::RenderScrollbarTheme::constrainTrackRectToTrackPieces):
+        * rendering/RenderScrollbarTheme.h:
+
+2008-10-11  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by David Hyatt.
+
+        Implement release/retain for Widget GTK+.
+
+        * platform/Widget.cpp:
+        * platform/gtk/WidgetGtk.cpp:
+        (WebCore::Widget::~Widget):
+        (WebCore::Widget::releasePlatformWidget):
+        (WebCore::Widget::retainPlatformWidget):
+
+2008-10-11  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - rename WebCoreSetAlwaysUseATSU to WebCoreSetAlwaysUsesComplexTextCodePath
+          and add a corresponding getter; add the same functions on Windows
+
+        * WebCore.base.exp:
+        * platform/graphics/Font.cpp:
+        (WebCore::Font::setCodePath):
+        (WebCore::codePath):
+        (WebCore::Font::canUseGlyphCache):
+        * platform/graphics/Font.h:
+        * platform/mac/WebCoreTextRenderer.h:
+        * platform/mac/WebCoreTextRenderer.mm:
+        (WebCoreSetAlwaysUsesComplexTextCodePath):
+        (WebCoreAlwaysUsesComplexTextCodePath):
+        * platform/win/WebCoreTextRenderer.cpp:
+        (WebCore::WebCoreSetAlwaysUsesComplexTextCodePath):
+        (WebCore::WebCoreAlwaysUsesComplexTextCodePath):
+        * platform/win/WebCoreTextRenderer.h:
+
+2008-10-11  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Stop leaking the event parameter names.  The protected strings were showing up
+        in the caches window after one use.  No measurable performance loss.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::eventParameterName):
+
+2008-10-11  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Remove unused function getNodeEventListener.
+
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/JSEventListener.h:
+
+2008-10-11  David Hyatt  <hyatt@apple.com>
+
+        Add support for both positive and negative margins to tracks and track pieces.
+
+        Reviewed by Tim Hatcher
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        (WebCore::ScrollbarThemeComposite::hitTest):
+        (WebCore::ScrollbarThemeComposite::splitTrack):
+        (WebCore::ScrollbarThemeComposite::trackPieceRects):
+        (WebCore::ScrollbarThemeComposite::trackPosition):
+        (WebCore::ScrollbarThemeComposite::trackLength):
+        * platform/ScrollbarThemeComposite.h:
+        (WebCore::ScrollbarThemeComposite::adjustTrackPieceRect):
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::trackRect):
+        (WebCore::RenderScrollbar::trackPieceRectWithMargins):
+        * rendering/RenderScrollbar.h:
+        * rendering/RenderScrollbarPart.cpp:
+        (WebCore::RenderScrollbarPart::computeScrollbarWidth):
+        (WebCore::RenderScrollbarPart::computeScrollbarHeight):
+        * rendering/RenderScrollbarTheme.cpp:
+        (WebCore::RenderScrollbarTheme::adjustTrackPieceRect):
+        * rendering/RenderScrollbarTheme.h:
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Drop -webkit-scrollbar- from all the scrollbar pseudo-classes, since they are scoped to
+        the scrollbar pseudo-elements anyway.
+
+        Reviewed by Tim Hatcher
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+
+2008-10-10  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - separate Cache::remove() into a private method and a public interface,
+          then make Cache::pruneDeadResources() use the private method.
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::pruneDeadResources):
+        (WebCore::Cache::evict):
+        * loader/Cache.h:
+        (WebCore::Cache::remove):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Fix a math error when splitting a vertical track.  Clean up more of ScrollbarThemeComposite
+        now that the track pieces meet under the thumb.
+
+        Reviewed by Tim Hatcher
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        (WebCore::ScrollbarThemeComposite::splitTrack):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Make the track pieces of a scrollbar extend under the thumb (each gets half the thumb).
+
+        Reviewed by Tim Hatcher
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::hitTest):
+        (WebCore::ScrollbarThemeComposite::splitTrack):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Make sure specialized ::scrollbar rules are still triggering custom scrollbar creation.
+
+        Reviewed by Tim Hatcher
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::createScrollbar):
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::createCustomScrollbar):
+        (WebCore::RenderScrollbar::RenderScrollbar):
+        (WebCore::RenderScrollbar::setParent):
+        (WebCore::RenderScrollbar::updateScrollbarParts):
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        * rendering/RenderScrollbar.h:
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Make sure scrollbar background images cause proper part invalidation to occur.
+
+        Reviewed by Tim Hatcher
+
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::setHoveredPart):
+        (WebCore::RenderScrollbar::setPressedPart):
+        * rendering/RenderScrollbarPart.cpp:
+        (WebCore::RenderScrollbarPart::styleDidChange):
+        (WebCore::RenderScrollbarPart::imageChanged):
+        * rendering/RenderScrollbarPart.h:
+
+2008-10-10  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=21538
+        
+        The blendFunc() for TransformOperations should never mess with the
+        operation lists by replacing some ops with identity, otherwise the lists
+        no longer match and transitions break.
+
+        Test: transitions/matched-transform-functions.html
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::blendFunc):
+
+2008-10-10  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=21537
+
+        Fix re-targetting a running transition; if the target property
+        changes, we do need to make a new ImplicitAnimation.
+        
+        Test: transitions/retargetted-transition.html
+
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::updateTransitions):
+
+2008-10-10  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Part of <rdar://problem/6278147> Cannot stop a slow script -- Fix assertion.
+
+        When JS is terminated by the user choosing to stop a slow script
+        the exception toString method throws, yet the console logger does
+        not perform exception checks after logging.  This leaves an
+        exception on the Machine, which in turn results in an assertion
+        failure next time we attempt to enter JS.  The solution is just to
+        clear the exception state after attempting to record the exception.
+
+        * page/Console.cpp:
+        (WebCore::Console::reportException):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Make textareas work with custom CSS scrollbars and resizers.  Need to access the correct renderer
+        when looking for pseudo styles.
+
+        Reviewed by Tim Hatcher
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::createScrollbar):
+        (WebCore::RenderLayer::styleChanged):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Add the ability to style the scroll corner and the resizer from CSS.
+
+        Reviewed by Tim Hatcher
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::RenderLayer):
+        (WebCore::RenderLayer::~RenderLayer):
+        (WebCore::RenderLayer::paintOverflowControls):
+        (WebCore::RenderLayer::paintScrollCorner):
+        (WebCore::RenderLayer::paintResizer):
+        (WebCore::RenderLayer::styleChanged):
+        * rendering/RenderLayer.h:
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        (WebCore::RenderScrollbar::paintPart):
+        * rendering/RenderScrollbarPart.cpp:
+        (WebCore::RenderScrollbarPart::RenderScrollbarPart):
+        (WebCore::RenderScrollbarPart::paintIntoRect):
+        * rendering/RenderScrollbarPart.h:
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Make CSS scrollbars respect the OS setting regarding where buttons should be placed.
+
+        Reviewed by Sam Weinig
+
+        No test case possible, since the OS setting can vary.
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+        * platform/Scrollbar.h:
+        (WebCore::Scrollbar::styleChanged):
+        * platform/mac/ScrollbarThemeMac.mm:
+        (+[ScrollbarPrefsObserver appearancePrefsChanged:]):
+        (WebCore::ScrollbarThemeMac::preferencesChanged):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::invalidateScrollbarRect):
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::styleChanged):
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        * rendering/RenderScrollbar.h:
+        * rendering/RenderScrollbarTheme.h:
+        (WebCore::RenderScrollbarTheme::buttonsPlacement):
+
+2008-10-10  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a regression with input search fields, where the placeholder text
+        would not be updated when the value of the placeholder attribute changed.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21521
+
+        Reviewed by Adele Peterson.
+
+        Test: fast/forms/search-placeholder-value-changed.html
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute): Pass true for the
+        placeholderValueChanged parameter of updatePlaceholderVisibility.
+        (WebCore::HTMLInputElement::updatePlaceholderVisibility): Add parameter
+        for placeholderValueChanged that informs the method that the value changed.
+        * html/HTMLInputElement.h: Add the placeholderValueChanged to the
+        updatePlaceholderVisibility method. Made it default to false.
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Allow the track part to have negative margins so that it can slightly overlap buttons.  This
+        is necessary to emulate the Aqua look in CSS.
+
+        Reviewed by Sam Weinig
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        (WebCore::ScrollbarThemeComposite::hitTest):
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::setHoveredPart):
+        (WebCore::RenderScrollbar::trackRect):
+        * rendering/RenderScrollbar.h:
+        * rendering/RenderScrollbarPart.cpp:
+        (WebCore::RenderScrollbarPart::computeScrollbarWidth):
+        (WebCore::RenderScrollbarPart::computeScrollbarHeight):
+        * rendering/RenderScrollbarTheme.cpp:
+        (WebCore::RenderScrollbarTheme::backButtonRect):
+        (WebCore::RenderScrollbarTheme::forwardButtonRect):
+        (WebCore::RenderScrollbarTheme::trackRect):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21527
+
+        Make CSS scrollbars support :not, :hover and :active.
+
+        Reviewed by Adam Roben
+
+        Added WebCore/manual-tests/scrollbar-hover-active.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+        * platform/Scrollbar.cpp:
+        (WebCore::Scrollbar::autoscrollPressedPart):
+        (WebCore::Scrollbar::startTimerIfNeeded):
+        (WebCore::Scrollbar::setHoveredPart):
+        (WebCore::Scrollbar::setPressedPart):
+        (WebCore::Scrollbar::mouseMoved):
+        (WebCore::Scrollbar::mouseExited):
+        (WebCore::Scrollbar::mouseUp):
+        (WebCore::Scrollbar::mouseDown):
+        * platform/Scrollbar.h:
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::setHoveredPart):
+        (WebCore::RenderScrollbar::setPressedPart):
+        (WebCore::RenderScrollbar::updateScrollbarParts):
+        (WebCore::pseudoForScrollbarPart):
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        * rendering/RenderScrollbar.h:
+
+2008-10-10  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21025
+        CSS transition with duration=0 and delay=0 doesn't override ongoing transition
+
+        Test: transitions/interrupt-zero-duration.html
+
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimation::updateTransitions):
+
+2008-10-10  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. Add new scrollbar-related sources.
+
+        * WebCoreSources.bkl:
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21522
+
+        Support increment/decrement/start/end on scrollbars.  Allows a fully functional scrollbar to be
+        created.  (Just :hover/:active left to finish it up.)
+
+        Reviewed by Adam Roben
+
+        Added scrollbars/scrollbar-buttons.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+
+2008-10-10  David Hyatt  <hyatt@apple.com>
+
+        Rename some pseudoclasses.  Removing "-scrollbar-" from a bunch of the pseudoclasses.  Renaming
+        back/forward to decrement/increment.  Adding start/end pseudoclasses.
+
+        Reviewed by Eric Seidel
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+
 2008-10-10  David Hyatt  <hyatt@apple.com>
 
         Switch window-active to window-inactive, since that will work better as far as degrading in other
@@ -11,6 +743,78 @@
         (WebCore::CSSSelector::):
         * css/CSSStyleSelector.cpp:
         (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+
+2008-10-09  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21310
+
+        Redesigned how animation events are sent in order to get rid of
+        AnimationEventDispatcher. ImplicitAnimation and KeyframeAnimation
+        are now ref counted. While calling the event handler, I keep a 
+        reference to this class to avoid it getting destroyed out from under me.
+
+        I also moved most of the functionality of CompositeAnimation to
+        and internal class (CompositeAnimationPrivate) to reduce the exposure
+        of the internals of the various animation classes.
+
+        We have several transition and animation LayoutTests which verify that
+        this fix works as expected and continues to avoid crashes.
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::AnimationBase):
+        * page/animation/AnimationBase.h:
+        (WebCore::AnimationBase::cancelTimers):
+        (WebCore::AnimationBase::waitingForStyleAvailable):
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::CompositeAnimationPrivate):
+        (WebCore::CompositeAnimationPrivate::suspended):
+        (WebCore::CompositeAnimationPrivate::~CompositeAnimationPrivate):
+        (WebCore::CompositeAnimationPrivate::updateTransitions):
+        (WebCore::CompositeAnimationPrivate::updateKeyframeAnimations):
+        (WebCore::CompositeAnimationPrivate::animate):
+        (WebCore::CompositeAnimationPrivate::setAnimating):
+        (WebCore::CompositeAnimationPrivate::animating):
+        (WebCore::CompositeAnimationPrivate::getAnimationForProperty):
+        (WebCore::CompositeAnimationPrivate::resetTransitions):
+        (WebCore::CompositeAnimationPrivate::resetAnimations):
+        (WebCore::CompositeAnimationPrivate::cleanupFinishedAnimations):
+        (WebCore::CompositeAnimationPrivate::setAnimationStartTime):
+        (WebCore::CompositeAnimationPrivate::setTransitionStartTime):
+        (WebCore::CompositeAnimationPrivate::suspendAnimations):
+        (WebCore::CompositeAnimationPrivate::resumeAnimations):
+        (WebCore::CompositeAnimationPrivate::overrideImplicitAnimations):
+        (WebCore::CompositeAnimationPrivate::resumeOverriddenImplicitAnimations):
+        (WebCore::compareAnimationIndices):
+        (WebCore::CompositeAnimationPrivate::styleAvailable):
+        (WebCore::CompositeAnimationPrivate::isAnimatingProperty):
+        (WebCore::CompositeAnimationPrivate::setWaitingForStyleAvailable):
+        (WebCore::CompositeAnimation::CompositeAnimation):
+        (WebCore::CompositeAnimation::~CompositeAnimation):
+        (WebCore::CompositeAnimation::animate):
+        (WebCore::CompositeAnimation::animating):
+        (WebCore::CompositeAnimation::setWaitingForStyleAvailable):
+        (WebCore::CompositeAnimation::resetTransitions):
+        (WebCore::CompositeAnimation::suspendAnimations):
+        (WebCore::CompositeAnimation::resumeAnimations):
+        (WebCore::CompositeAnimation::suspended):
+        (WebCore::CompositeAnimation::styleAvailable):
+        (WebCore::CompositeAnimation::setAnimating):
+        (WebCore::CompositeAnimation::isAnimatingProperty):
+        (WebCore::CompositeAnimation::setAnimationStartTime):
+        (WebCore::CompositeAnimation::setTransitionStartTime):
+        (WebCore::CompositeAnimation::overrideImplicitAnimations):
+        (WebCore::CompositeAnimation::resumeOverriddenImplicitAnimations):
+        * page/animation/CompositeAnimation.h:
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::sendTransitionEvent):
+        * page/animation/ImplicitAnimation.h:
+        (WebCore::ImplicitAnimation::create):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::sendAnimationEvent):
+        * page/animation/KeyframeAnimation.h:
+        (WebCore::KeyframeAnimation::create):
 
 2008-10-09  David Hyatt  <hyatt@apple.com>
 

@@ -68,27 +68,41 @@ int RenderScrollbarTheme::minimumThumbLength(Scrollbar* scrollbar)
     return static_cast<RenderScrollbar*>(scrollbar)->minimumThumbLength();
 }
 
-IntRect RenderScrollbarTheme::backButtonRect(Scrollbar* scrollbar, ScrollbarPart partType, bool painting)
+IntRect RenderScrollbarTheme::backButtonRect(Scrollbar* scrollbar, ScrollbarPart partType, bool)
 {
     return static_cast<RenderScrollbar*>(scrollbar)->buttonRect(partType);
 }
 
-IntRect RenderScrollbarTheme::forwardButtonRect(Scrollbar* scrollbar, ScrollbarPart partType, bool painting)
+IntRect RenderScrollbarTheme::forwardButtonRect(Scrollbar* scrollbar, ScrollbarPart partType, bool)
 {
     return static_cast<RenderScrollbar*>(scrollbar)->buttonRect(partType);
 }
 
-IntRect RenderScrollbarTheme::trackRect(Scrollbar* scrollbar, bool painting)
+IntRect RenderScrollbarTheme::trackRect(Scrollbar* scrollbar, bool)
 {
     if (!hasButtons(scrollbar))
         return scrollbar->frameRect();
+    
     int startLength;
     int endLength;
     buttonSizesAlongTrackAxis(scrollbar, startLength, endLength);
-    int totalLength = startLength + endLength;
-    if (scrollbar->orientation() == HorizontalScrollbar)
-        return IntRect(scrollbar->x() + startLength, scrollbar->y(), scrollbar->width() - totalLength, scrollbar->height());
-    return IntRect(scrollbar->x(), scrollbar->y() + startLength, scrollbar->width(), scrollbar->height() - totalLength);
+    
+    return static_cast<RenderScrollbar*>(scrollbar)->trackRect(startLength, endLength);
+}
+
+IntRect RenderScrollbarTheme::constrainTrackRectToTrackPieces(Scrollbar* scrollbar, const IntRect& rect)
+{ 
+    IntRect backRect = static_cast<RenderScrollbar*>(scrollbar)->trackPieceRectWithMargins(BackTrackPart, rect);
+    IntRect forwardRect = static_cast<RenderScrollbar*>(scrollbar)->trackPieceRectWithMargins(ForwardTrackPart, rect);
+    IntRect result = rect;
+    if (scrollbar->orientation() == HorizontalScrollbar) {
+        result.setX(backRect.x());
+        result.setWidth(forwardRect.right() - backRect.x());
+    } else {
+        result.setY(backRect.y());
+        result.setHeight(forwardRect.bottom() - backRect.y());
+    }
+    return result;
 }
 
 void RenderScrollbarTheme::paintScrollCorner(ScrollView*, GraphicsContext* context, const IntRect& cornerRect)
