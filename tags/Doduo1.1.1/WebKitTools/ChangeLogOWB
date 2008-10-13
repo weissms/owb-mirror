@@ -1,3 +1,22 @@
+2008-10-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        ticket #305: OWBLauncher should quit when receiving some kernel signals
+
+        Catch SIGINT and SIGKILL and quit the main event loop (properly closing the
+        browser at the same time).
+
+        * OWBLauncher/SDL/main.cpp:
+        (signalCatcher): Removed some style violations.
+        (signalQuitCatcher): Added to catch signals that should close the browser
+        (fatal one should use signalCatcher).
+        (createSDLWindow): Moved signal handling registration in the main where it fits more,
+        removed some style violations.
+        (eventFilter): Removed some style violations.
+        (waitEvent): Ditto.
+        (main):
+
 2008-09-02  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

@@ -47,24 +47,29 @@ using namespace WebCore;
 static WebView *webView;
 static bool isExposed = false;
 static SDL_Surface *s_screen = NULL;
+static bool quit = false;
 
 void signalCatcher(int signum)
 {
-    //BEFORE YOU ABORT QUIT SDL
+    // BEFORE YOU ABORT QUIT SDL.
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
     SDL_Quit();
     abort();
 }
 
-SDL_Surface *createSDLWindow(int w, int h)
+// Used for quitting OWB when receiving a signal.
+void signalQuitCatcher(int /*signum*/)
+{
+    quit = true;
+}
+
+SDL_Surface* createSDLWindow(int w, int h)
 {
     const SDL_VideoInfo* vi;
     int flags = SDL_RESIZABLE;
 
-    signal(SIGSEGV, &signalCatcher);
-
     vi = SDL_GetVideoInfo();
-    if(vi && vi->wm_available) /* Change title */
+    if (vi && vi->wm_available) /* Change title */
         SDL_WM_SetCaption("Origyn Web Browser", "Origyn Web Browser");
     if (vi && vi->hw_available) /* Double buffering will not be set by SDL if not supported */
         flags |= SDL_HWSURFACE | SDL_DOUBLEBUF;
@@ -94,7 +99,7 @@ SDL_Surface *createSDLWindow(int w, int h)
     return screen;
 }
 
-int eventFilter(const SDL_Event *event)
+int eventFilter(const SDL_Event* event)
 {
     //printf("eventFilter\n");
     switch (event->type) {
@@ -114,10 +119,9 @@ int eventFilter(const SDL_Event *event)
 void waitEvent()
 {
     SDL_Event event;
-    bool quit = false;
 
     SDL_GetEventFilter();
-    SDL_Surface *scr;
+    SDL_Surface* scr;
     while (!quit) {
         //printf("waitEvent \n");
         if (SDL_PollEvent(&event) != 0)
@@ -199,6 +203,12 @@ int main (int argc, char* argv[])
         DS_ERR("Unable to init SDL: " << SDL_GetError());
         exit(1);
     }
+
+    signal(SIGSEGV, &signalCatcher);
+
+    // Signals that should shutdown OWB properly.
+    signal(SIGKILL, &signalQuitCatcher);
+    signal(SIGINT, &signalQuitCatcher);
 
 //    SDL_EventState(SDL_VIDEOEXPOSE, SDL_ENABLE);
 
