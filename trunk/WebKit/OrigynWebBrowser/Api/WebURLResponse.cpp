@@ -41,112 +41,112 @@ using namespace WebCore;
 static String HTTPMessageCopyLocalizedShortDescriptionForStatusCode(int statusCode)
 {
     if (statusCode < 100 || statusCode >= 600)
-        return "server error";
+        return "Server Error";
     else if (statusCode >= 100 && statusCode <= 199) {
         switch (statusCode) {
             case 100:
-                return "continue";
+                return "Continue";
             case 101:
-                return "switching protocols";
+                return "Switching Protocols";
             default:
-                return "informational";
+                return "Informational";
         }
     } else if (statusCode >= 200 && statusCode <= 299) {
         switch (statusCode) {
             case 200:
-                return "no error";
+                return "OK";
             case 201:
-                return "created";
+                return "Created";
             case 202:
-                return "accepted";
+                return "Accepted";
             case 203:
-                return "non-authoritative information";
+                return "Non-Authoritative Information";
             case 204:
-                return "no content";
+                return "No Content";
             case 205:
-                return "reset content";
+                return "Reset Content";
             case 206:
-                return "partial content";
+                return "Partial Content";
             default:
-                return "success";
+                return "Success";
         } 
     } else if (statusCode >= 300 && statusCode <= 399) {
         switch (statusCode) {
             case 300:
-                return "multiple choices";
+                return "Multiple Choices";
             case 301:
-                return "moved permanently";
+                return "Moved Permanently";
             case 302:
-                return "found";
+                return "Found";
             case 303:
-                return "see other";
+                return "See Other";
             case 304:
-                return "not modified";
+                return "Not Modified";
             case 305:
-                return "needs proxy";
+                return "Use Proxy";
             case 307:
-                return "temporarily redirected";
+                return "Temporarily Redirected";
             case 306:   // 306 status code unused in HTTP
             default:
-                return "redirected";
+                return "Redirected";
         }
     } else if (statusCode >= 400 && statusCode <= 499) {
         switch (statusCode) {
             case 400:
-                return "bad request";
+                return "Bad Request";
             case 401:
-                return "unauthorized";
+                return "Unauthorized";
             case 402:
-                return "payment required";
+                return "Payment Required";
             case 403:
-                return "forbidden";
+                return "Forbidden";
             case 404:
-                return "not found";
+                return "Not Found";
             case 405:
-                return "method not allowed";
+                return "Method Not Allowed";
             case 406:
-                return "unacceptable";
+                return "Not Acceptable";
             case 407:
-                return "proxy authentication required";
+                return "Proxy Authentication Required";
             case 408:
-                return "request timed out";
+                return "Request Timed Out";
             case 409:
-                return "conflict";
+                return "Conflict";
             case 410:
-                return "no longer exists";
+                return "Gone";
             case 411:
-                return "length required";
+                return "Length Required";
             case 412:
-                return "precondition failed";
+                return "Precondition Failed";
             case 413:
-                return "request too large";
+                return "Request Entity Too Large";
             case 414:
-                return "requested URL too long";
+                return "Requested-URI Too Long";
             case 415:
-                return "unsupported media type";
+                return "Unsupported Media Type";
             case 416:
-                return "requested range not satisfiable";
+                return "Requested range not satisfiable";
             case 417:
-                return "expectation failed";
+                return "Expectation Failed";
             default:
-                return "client error";
+                return "Client Error";
         }
     } else if (statusCode >= 500 && statusCode <= 599) {
         switch (statusCode) {
             case 500:
-                return "internal server error";
+                return "Internal Server Error";
             case 501:
-                return "unimplemented";
+                return "Not Implemented";
             case 502:
-                return "bad gateway";
+                return "Bad Gateway";
             case 503:
-                return "service unavailable";
+                return "Service Unavailable";
             case 504:
-                return "gateway timed out";
+                return "Gateway Time-out";
             case 505:
-                return "unsupported version";
+                return "HTTP Version not supported";
             default:
-                return "server error";
+                return "Server Error";
         }
     }
     return "";

@@ -1,3 +1,13 @@
+2008-10-14  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier Dole.
+
+        Make HTTPMessageCopyLocalizedShortDescriptionForStatusCode match
+        the RFC2616 (HTTP 1.1) reason phrases.
+
+        * OrigynWebBrowser/Api/WebURLResponse.cpp:
+        (HTTPMessageCopyLocalizedShortDescriptionForStatusCode):
+
 2008-10-12  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.
