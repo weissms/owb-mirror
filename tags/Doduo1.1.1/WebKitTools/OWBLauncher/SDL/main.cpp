@@ -44,9 +44,9 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 #include "signal.h"
 
 using namespace WebCore;
-static WebView *webView;
+static WebView* webView;
 static bool isExposed = false;
-static SDL_Surface *s_screen = NULL;
+static SDL_Surface* s_screen = NULL;
 static bool quit = false;
 
 void signalCatcher(int signum)
@@ -196,6 +196,10 @@ void waitEvent()
     }
 }
 
+void usage()
+{
+    printf("owb [-c tokenizerChunkSize -d tokenizerDelay -f configFile] [url_to_load]\n");
+}
 
 int main (int argc, char* argv[])
 {
@@ -215,9 +219,38 @@ int main (int argc, char* argv[])
     //SDL_SetEventFilter(eventFilter);
 
     webView = WebView::createInstance();
-    webView->parseConfigFile();
-    IntRect rect = webView->frameRect();
 
+    int optionFirstCharacter;
+    bool hasParsedConfigFile = false;
+    while ((optionFirstCharacter = getopt(argc, argv, "c:f:d:")) != -1) {
+        switch(optionFirstCharacter) {
+        case 'c': {
+            int chunkSize = (int)strtol(optarg, (char **)NULL, 10);
+            if (chunkSize)
+                webView->setCustomHTMLTokenizerChunkSize(chunkSize);
+            break;
+        }
+        case 'd': {
+            int delay = (int)strtol(optarg, (char **)NULL, 10);
+            if (delay)
+                webView->setCustomHTMLTokenizerTimeDelay(delay);
+            break;
+        }
+        case 'f':
+            hasParsedConfigFile = true;
+            webView->parseConfigFile(optarg);
+            break;
+        default:
+            usage();
+        }
+    }
+    argc -= optind;
+    argv += optind;
+
+    if (!hasParsedConfigFile)
+        webView->parseConfigFile();
+
+    IntRect rect = webView->frameRect();
     if (rect.isEmpty()) {
         s_screen = createSDLWindow(800, 600);
         IntRect clientRect(0, 0, 800, 600);
@@ -230,7 +263,7 @@ int main (int argc, char* argv[])
     webView->setViewWindow(s_screen);
 
  
-    char* uri = (char*) (argc > 1 ? argv[1] : "http://www.google.com/");
+    char* uri = (char*) (argc > 0 ? argv[0] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
 
     /*if(webView->canZoomPageIn()) {

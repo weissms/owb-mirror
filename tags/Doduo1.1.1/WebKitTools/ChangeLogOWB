@@ -1,3 +1,17 @@
+2008-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        - Add 2 options to OWBLauncher to set the HTMLTokenier chunk size and
+        delay.
+
+        - Moved WebView::parseConfig call in its own option preserving the original behaviour 
+        if the option is not provided.
+
+        * OWBLauncher/SDL/main.cpp:
+        (usage): Added.
+        (main): Add a getopt loop to iterate over the options.
+
 2008-10-07  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Olivier DOLE.
