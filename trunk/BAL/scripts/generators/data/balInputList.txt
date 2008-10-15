@@ -503,6 +503,8 @@
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/Assertions.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/StringExtras.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/MathExtras.h
+../../OWBAL/Concretizations/Types/Gtk 	../../../JavaScriptCore/wtf/GOwnPtr.h
+../../OWBAL/Concretizations/Types/Gtk	../../../JavaScriptCore/wtf/GOwnPtr.cpp
 
 
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformKeyboardEvent.h

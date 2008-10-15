@@ -39,7 +39,6 @@ RenderScrollbar::RenderScrollbar(ScrollbarClient* client, ScrollbarOrientation o
     : Scrollbar(client, orientation, RegularScrollbar, RenderScrollbarTheme::renderScrollbarTheme())
     , m_owner(renderer)
 {
-    updateScrollbarParts();
 }
 
 RenderScrollbar::~RenderScrollbar()
@@ -67,13 +66,14 @@ void RenderScrollbar::setEnabled(bool e)
 void RenderScrollbar::styleChanged()
 {
     updateScrollbarParts();
-    Scrollbar::styleChanged();
 }
 
 void RenderScrollbar::paint(GraphicsContext* context, const IntRect& damageRect)
 {
-    if (context->updatingControlTints())
+    if (context->updatingControlTints()) {
         updateScrollbarParts();
+        return;
+    }
     Scrollbar::paint(context, damageRect);
 }
 

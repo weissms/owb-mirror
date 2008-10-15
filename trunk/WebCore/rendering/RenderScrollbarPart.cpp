@@ -129,14 +129,16 @@ void RenderScrollbarPart::styleDidChange(RenderStyle::Diff diff, const RenderSty
     setPositioned(false);
     setFloating(false);
     setHasOverflowClip(false);
-    if (oldStyle && m_scrollbar && m_part != NoPart)
+    if (oldStyle && m_scrollbar && m_part != NoPart && diff >= RenderStyle::Repaint)
         m_scrollbar->theme()->invalidatePart(m_scrollbar, m_part);
 }
 
-void RenderScrollbarPart::imageChanged(WrappedImagePtr)
+void RenderScrollbarPart::imageChanged(WrappedImagePtr image)
 {
     if (m_scrollbar && m_part != NoPart)
         m_scrollbar->theme()->invalidatePart(m_scrollbar, m_part);
+    else
+        RenderBlock::imageChanged(image);
 }
 
 void RenderScrollbarPart::paintIntoRect(GraphicsContext* graphicsContext, int tx, int ty, const IntRect& rect)
@@ -147,6 +149,9 @@ void RenderScrollbarPart::paintIntoRect(GraphicsContext* graphicsContext, int tx
     setHeight(rect.height());
     setOverflowWidth(max(rect.width(), overflowWidth()));
     setOverflowHeight(max(rect.height(), overflowHeight()));
+
+    if (graphicsContext->paintingDisabled())
+        return;
 
     // Now do the paint.
     RenderObject::PaintInfo paintInfo(graphicsContext, rect, PaintPhaseBlockBackground, false, 0, 0);

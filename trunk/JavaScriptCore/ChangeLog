@@ -1,3 +1,382 @@
+2008-10-15  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Sam Weinig.
+
+        Make pan scrolling a platform configurable option.
+        https://bugs.webkit.org/show_bug.cgi?id=21515
+
+        * wtf/Platform.h: Add ENABLE_PAN_SCROLLING
+
+2008-10-14  Maciej Stachowiak  <mjs@apple.com>
+
+        Rubber stamped by Sam Weinig.
+        
+        - revert r37572 and r37581 for now
+        
+        Turns out GCC 4.2 is still a (small) regression, we'll have to do
+        more work to turn it on.
+
+        * Configurations/DebugRelease.xcconfig:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_convert_this):
+        (JSC::Machine::cti_op_end):
+        (JSC::Machine::cti_op_add):
+        (JSC::Machine::cti_op_pre_inc):
+        (JSC::Machine::cti_timeout_check):
+        (JSC::Machine::cti_register_file_check):
+        (JSC::Machine::cti_op_loop_if_less):
+        (JSC::Machine::cti_op_loop_if_lesseq):
+        (JSC::Machine::cti_op_new_object):
+        (JSC::Machine::cti_op_put_by_id):
+        (JSC::Machine::cti_op_put_by_id_second):
+        (JSC::Machine::cti_op_put_by_id_generic):
+        (JSC::Machine::cti_op_put_by_id_fail):
+        (JSC::Machine::cti_op_get_by_id):
+        (JSC::Machine::cti_op_get_by_id_second):
+        (JSC::Machine::cti_op_get_by_id_generic):
+        (JSC::Machine::cti_op_get_by_id_fail):
+        (JSC::Machine::cti_op_instanceof):
+        (JSC::Machine::cti_op_del_by_id):
+        (JSC::Machine::cti_op_mul):
+        (JSC::Machine::cti_op_new_func):
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_vm_compile):
+        (JSC::Machine::cti_op_push_activation):
+        (JSC::Machine::cti_op_call_NotJSFunction):
+        (JSC::Machine::cti_op_create_arguments):
+        (JSC::Machine::cti_op_tear_off_activation):
+        (JSC::Machine::cti_op_tear_off_arguments):
+        (JSC::Machine::cti_op_ret_profiler):
+        (JSC::Machine::cti_op_ret_scopeChain):
+        (JSC::Machine::cti_op_new_array):
+        (JSC::Machine::cti_op_resolve):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+        (JSC::Machine::cti_op_get_by_val):
+        (JSC::Machine::cti_op_resolve_func):
+        (JSC::Machine::cti_op_sub):
+        (JSC::Machine::cti_op_put_by_val):
+        (JSC::Machine::cti_op_put_by_val_array):
+        (JSC::Machine::cti_op_lesseq):
+        (JSC::Machine::cti_op_loop_if_true):
+        (JSC::Machine::cti_op_negate):
+        (JSC::Machine::cti_op_resolve_base):
+        (JSC::Machine::cti_op_resolve_skip):
+        (JSC::Machine::cti_op_resolve_global):
+        (JSC::Machine::cti_op_div):
+        (JSC::Machine::cti_op_pre_dec):
+        (JSC::Machine::cti_op_jless):
+        (JSC::Machine::cti_op_not):
+        (JSC::Machine::cti_op_jtrue):
+        (JSC::Machine::cti_op_post_inc):
+        (JSC::Machine::cti_op_eq):
+        (JSC::Machine::cti_op_lshift):
+        (JSC::Machine::cti_op_bitand):
+        (JSC::Machine::cti_op_rshift):
+        (JSC::Machine::cti_op_bitnot):
+        (JSC::Machine::cti_op_resolve_with_base):
+        (JSC::Machine::cti_op_new_func_exp):
+        (JSC::Machine::cti_op_mod):
+        (JSC::Machine::cti_op_less):
+        (JSC::Machine::cti_op_neq):
+        (JSC::Machine::cti_op_post_dec):
+        (JSC::Machine::cti_op_urshift):
+        (JSC::Machine::cti_op_bitxor):
+        (JSC::Machine::cti_op_new_regexp):
+        (JSC::Machine::cti_op_bitor):
+        (JSC::Machine::cti_op_call_eval):
+        (JSC::Machine::cti_op_throw):
+        (JSC::Machine::cti_op_get_pnames):
+        (JSC::Machine::cti_op_next_pname):
+        (JSC::Machine::cti_op_push_scope):
+        (JSC::Machine::cti_op_pop_scope):
+        (JSC::Machine::cti_op_typeof):
+        (JSC::Machine::cti_op_is_undefined):
+        (JSC::Machine::cti_op_is_boolean):
+        (JSC::Machine::cti_op_is_number):
+        (JSC::Machine::cti_op_is_string):
+        (JSC::Machine::cti_op_is_object):
+        (JSC::Machine::cti_op_is_function):
+        (JSC::Machine::cti_op_stricteq):
+        (JSC::Machine::cti_op_nstricteq):
+        (JSC::Machine::cti_op_to_jsnumber):
+        (JSC::Machine::cti_op_in):
+        (JSC::Machine::cti_op_push_new_scope):
+        (JSC::Machine::cti_op_jmp_scopes):
+        (JSC::Machine::cti_op_put_by_index):
+        (JSC::Machine::cti_op_switch_imm):
+        (JSC::Machine::cti_op_switch_char):
+        (JSC::Machine::cti_op_switch_string):
+        (JSC::Machine::cti_op_del_by_val):
+        (JSC::Machine::cti_op_put_getter):
+        (JSC::Machine::cti_op_put_setter):
+        (JSC::Machine::cti_op_new_error):
+        (JSC::Machine::cti_op_debug):
+        (JSC::Machine::cti_vm_throw):
+        * VM/Machine.h:
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::emitRestoreArgumentReference):
+        (JSC::X86Assembler::emitRestoreArgumentReferenceForTrampoline):
+        * wtf/Platform.h:
+
+2008-10-14  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20256
+        Array.push and other standard methods disappear
+
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        (JSC::JSGlobalData::~JSGlobalData):
+        Don't use static hash tables even on platforms that don't enable JSC_MULTIPLE_THREADS -
+        these tables reference IdentifierTable, which is always per-GlobalData.
+
+2008-10-14  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - always use CTI_ARGUMENTS and CTI_ARGUMENTS_FASTCALL
+        
+        This is a small regression for GCC 4.0, but simplifies the code
+        for future improvements and lets us focus on GCC 4.2+ and MSVC.
+
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_convert_this):
+        (JSC::Machine::cti_op_end):
+        (JSC::Machine::cti_op_add):
+        (JSC::Machine::cti_op_pre_inc):
+        (JSC::Machine::cti_timeout_check):
+        (JSC::Machine::cti_register_file_check):
+        (JSC::Machine::cti_op_loop_if_less):
+        (JSC::Machine::cti_op_loop_if_lesseq):
+        (JSC::Machine::cti_op_new_object):
+        (JSC::Machine::cti_op_put_by_id):
+        (JSC::Machine::cti_op_put_by_id_second):
+        (JSC::Machine::cti_op_put_by_id_generic):
+        (JSC::Machine::cti_op_put_by_id_fail):
+        (JSC::Machine::cti_op_get_by_id):
+        (JSC::Machine::cti_op_get_by_id_second):
+        (JSC::Machine::cti_op_get_by_id_generic):
+        (JSC::Machine::cti_op_get_by_id_fail):
+        (JSC::Machine::cti_op_instanceof):
+        (JSC::Machine::cti_op_del_by_id):
+        (JSC::Machine::cti_op_mul):
+        (JSC::Machine::cti_op_new_func):
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_vm_compile):
+        (JSC::Machine::cti_op_push_activation):
+        (JSC::Machine::cti_op_call_NotJSFunction):
+        (JSC::Machine::cti_op_create_arguments):
+        (JSC::Machine::cti_op_tear_off_activation):
+        (JSC::Machine::cti_op_tear_off_arguments):
+        (JSC::Machine::cti_op_ret_profiler):
+        (JSC::Machine::cti_op_ret_scopeChain):
+        (JSC::Machine::cti_op_new_array):
+        (JSC::Machine::cti_op_resolve):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+        (JSC::Machine::cti_op_get_by_val):
+        (JSC::Machine::cti_op_resolve_func):
+        (JSC::Machine::cti_op_sub):
+        (JSC::Machine::cti_op_put_by_val):
+        (JSC::Machine::cti_op_put_by_val_array):
+        (JSC::Machine::cti_op_lesseq):
+        (JSC::Machine::cti_op_loop_if_true):
+        (JSC::Machine::cti_op_negate):
+        (JSC::Machine::cti_op_resolve_base):
+        (JSC::Machine::cti_op_resolve_skip):
+        (JSC::Machine::cti_op_resolve_global):
+        (JSC::Machine::cti_op_div):
+        (JSC::Machine::cti_op_pre_dec):
+        (JSC::Machine::cti_op_jless):
+        (JSC::Machine::cti_op_not):
+        (JSC::Machine::cti_op_jtrue):
+        (JSC::Machine::cti_op_post_inc):
+        (JSC::Machine::cti_op_eq):
+        (JSC::Machine::cti_op_lshift):
+        (JSC::Machine::cti_op_bitand):
+        (JSC::Machine::cti_op_rshift):
+        (JSC::Machine::cti_op_bitnot):
+        (JSC::Machine::cti_op_resolve_with_base):
+        (JSC::Machine::cti_op_new_func_exp):
+        (JSC::Machine::cti_op_mod):
+        (JSC::Machine::cti_op_less):
+        (JSC::Machine::cti_op_neq):
+        (JSC::Machine::cti_op_post_dec):
+        (JSC::Machine::cti_op_urshift):
+        (JSC::Machine::cti_op_bitxor):
+        (JSC::Machine::cti_op_new_regexp):
+        (JSC::Machine::cti_op_bitor):
+        (JSC::Machine::cti_op_call_eval):
+        (JSC::Machine::cti_op_throw):
+        (JSC::Machine::cti_op_get_pnames):
+        (JSC::Machine::cti_op_next_pname):
+        (JSC::Machine::cti_op_push_scope):
+        (JSC::Machine::cti_op_pop_scope):
+        (JSC::Machine::cti_op_typeof):
+        (JSC::Machine::cti_op_is_undefined):
+        (JSC::Machine::cti_op_is_boolean):
+        (JSC::Machine::cti_op_is_number):
+        (JSC::Machine::cti_op_is_string):
+        (JSC::Machine::cti_op_is_object):
+        (JSC::Machine::cti_op_is_function):
+        (JSC::Machine::cti_op_stricteq):
+        (JSC::Machine::cti_op_nstricteq):
+        (JSC::Machine::cti_op_to_jsnumber):
+        (JSC::Machine::cti_op_in):
+        (JSC::Machine::cti_op_push_new_scope):
+        (JSC::Machine::cti_op_jmp_scopes):
+        (JSC::Machine::cti_op_put_by_index):
+        (JSC::Machine::cti_op_switch_imm):
+        (JSC::Machine::cti_op_switch_char):
+        (JSC::Machine::cti_op_switch_string):
+        (JSC::Machine::cti_op_del_by_val):
+        (JSC::Machine::cti_op_put_getter):
+        (JSC::Machine::cti_op_put_setter):
+        (JSC::Machine::cti_op_new_error):
+        (JSC::Machine::cti_op_debug):
+        (JSC::Machine::cti_vm_throw):
+        * VM/Machine.h:
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::emitRestoreArgumentReference):
+        (JSC::X86Assembler::emitRestoreArgumentReferenceForTrampoline):
+        * wtf/Platform.h:
+
+2008-10-13  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - make Machine::getArgumentsData an Arguments method and inline it
+        
+        ~2% on v8 raytrace
+
+        * VM/Machine.cpp:
+        * kjs/Arguments.h:
+        (JSC::Machine::getArgumentsData):
+
+2008-10-13  Alp Toker  <alp@nuanti.com>
+
+        Fix autotools dist build target by listing recently added header
+        files only. Not reviewed.
+
+        * GNUmakefile.am:
+
+2008-10-13  Maciej Stachowiak  <mjs@apple.com>
+
+        Rubber stamped by Mark Rowe.
+        
+        - fixed <rdar://problem/5806316> JavaScriptCore should not force building with gcc 4.0
+        - use gcc 4.2 when building with Xcode 3.1 or newer on Leopard, even though this is not the default
+
+        * Configurations/DebugRelease.xcconfig:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-10-13  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 21541: Move RegisterFile growth check to callee
+        <https://bugs.webkit.org/show_bug.cgi?id=21541>
+
+        Move the RegisterFile growth check to the callee in the common case,
+        where some of the information is known statically at JIT time. There is
+        still a check in the caller in the case where the caller provides too
+        few arguments.
+
+        This is a 2.1% speedup on the V8 benchmark, including a 5.1% speedup on
+        the Richards benchmark, a 4.1% speedup on the DeltaBlue benchmark, and a
+        1.4% speedup on the Earley-Boyer benchmark. It is also a 0.5% speedup on
+        SunSpider.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompile):
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_register_file_check):
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        * VM/Machine.h:
+        * VM/RegisterFile.h:
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::cmpl_mr):
+        (JSC::X86Assembler::emitUnlinkedJg):
+
+2008-10-13  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21577
+        5 false positive StructureID leaks
+
+        - Add leak ignore set to StructureID to selectively ignore leaking some StructureIDs.
+        - Add create method to JSGlolalData to be used when the data will be intentionally
+          leaked and ignore all leaks caused the StructureIDs stored in it.
+
+        * JavaScriptCore.exp:
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::createLeaked):
+        * kjs/JSGlobalData.h:
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::StructureID):
+        (JSC::StructureID::~StructureID):
+        (JSC::StructureID::startIgnoringLeaks):
+        (JSC::StructureID::stopIgnoringLeaks):
+        * kjs/StructureID.h:
+
+2008-10-13  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Darin Adler. Landed by Jan Alonzo.
+
+        WebKit GTK Port needs a smartpointer to handle g_free (GFreePtr?)
+        http://bugs.webkit.org/show_bug.cgi?id=20483
+
+        Add a GOwnPtr smart pointer (similar to OwnPtr) to handle memory
+        allocated by GLib and start the conversion to use it.
+
+        * GNUmakefile.am:
+        * wtf/GOwnPtr.cpp: Added.
+        (WTF::GError):
+        (WTF::GList):
+        (WTF::GCond):
+        (WTF::GMutex):
+        (WTF::GPatternSpec):
+        (WTF::GDir):
+        * wtf/GOwnPtr.h: Added.
+        (WTF::freeOwnedPtr):
+        (WTF::GOwnPtr::GOwnPtr):
+        (WTF::GOwnPtr::~GOwnPtr):
+        (WTF::GOwnPtr::get):
+        (WTF::GOwnPtr::release):
+        (WTF::GOwnPtr::rawPtr):
+        (WTF::GOwnPtr::set):
+        (WTF::GOwnPtr::clear):
+        (WTF::GOwnPtr::operator*):
+        (WTF::GOwnPtr::operator->):
+        (WTF::GOwnPtr::operator!):
+        (WTF::GOwnPtr::operator UnspecifiedBoolType):
+        (WTF::GOwnPtr::swap):
+        (WTF::swap):
+        (WTF::operator==):
+        (WTF::operator!=):
+        (WTF::getPtr):
+        * wtf/Threading.h:
+        * wtf/ThreadingGtk.cpp:
+        (WTF::Mutex::~Mutex):
+        (WTF::Mutex::lock):
+        (WTF::Mutex::tryLock):
+        (WTF::Mutex::unlock):
+        (WTF::ThreadCondition::~ThreadCondition):
+        (WTF::ThreadCondition::wait):
+        (WTF::ThreadCondition::timedWait):
+        (WTF::ThreadCondition::signal):
+        (WTF::ThreadCondition::broadcast):
+
 2008-10-13  Gabriella Toth  <gtoth@inf.u-szeged.hu>
 
         Reviewed by Darin Adler.

@@ -52,7 +52,6 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSNodeFilterCustom.cpp
     bindings/js/JSNodeIteratorCustom.cpp
     bindings/js/JSNodeListCustom.cpp
-    bindings/js/JSNSResolver.cpp
     bindings/js/JSQuarantinedObjectWrapper.cpp
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginArrayCustom.cpp

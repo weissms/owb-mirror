@@ -23,7 +23,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#include "config.h"
 #include "AccessibilityUIElement.h"
+
 #include <JavaScriptCore/JSStringRef.h>
 #include <tchar.h>
 #include <string>
@@ -45,6 +47,10 @@ AccessibilityUIElement::~AccessibilityUIElement()
 }
 
 void AccessibilityUIElement::getLinkedUIElements(Vector<AccessibilityUIElement>&)
+{
+}
+
+void AccessibilityUIElement::getDocumentLinks(Vector<AccessibilityUIElement>&)
 {
 }
 
@@ -80,6 +86,10 @@ JSStringRef AccessibilityUIElement::attributesOfLinkedUIElements()
     return JSStringCreateWithCharacters(0, 0);
 }
 
+JSStringRef AccessibilityUIElement::attributesOfDocumentLinks()
+{
+    return JSStringCreateWithCharacters(0, 0);
+}
 AccessibilityUIElement AccessibilityUIElement::titleUIElement()
 {
     return 0;

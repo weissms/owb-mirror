@@ -42,10 +42,6 @@
 typedef struct _GtkAdjustment GtkAdjustment;
 #endif
 
-#if PLATFORM(WIN)
-typedef struct HRGN__* HRGN;
-#endif
-
 #if PLATFORM(WX)
 class wxScrollWinEvent;
 #endif
@@ -211,6 +207,8 @@ public:
     // Pan scrolling methods.
     void addPanScrollIcon(const IntPoint&);
     void removePanScrollIcon();
+
+    virtual bool scrollbarCornerPresent() const;
 
 protected:
     virtual void repaintContentRectangle(const IntRect&, bool now = false);

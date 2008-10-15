@@ -30,6 +30,7 @@
 
 #include "GraphicsContext.h"
 #include "PlatformMouseEvent.h"
+#include "RenderThemeQt.h"
 #include "Scrollbar.h"
 #include "ScrollView.h"
 
@@ -103,6 +104,8 @@ static QStyleOptionSlider* styleOptionSlider(Scrollbar* scrollbar)
     if (scrollbar->controlSize() != RegularScrollbar)
         opt.state |= QStyle::State_Mini;
     opt.orientation = (scrollbar->orientation() == VerticalScrollbar) ? Qt::Vertical : Qt::Horizontal;
+    if (scrollbar->orientation() == HorizontalScrollbar)
+        opt.state |= QStyle::State_Horizontal;
     opt.sliderValue = scrollbar->value();
     opt.sliderPosition = opt.sliderValue;
     opt.pageStep = scrollbar->visibleSize();
@@ -131,28 +134,29 @@ bool ScrollbarThemeQt::paint(Scrollbar* scrollbar, GraphicsContext* graphicsCont
        return false;
     }
 
-    QStyleOptionSlider* opt = styleOptionSlider(scrollbar);
-    QRect clip = opt->rect.intersected(damageRect);
+    StylePainter p(graphicsContext);
+    if (!p.isValid())
+      return true;
 
-    QPainter* p = graphicsContext->platformContext();
-    p->save();
-    p->setClipRect(clip);
-    
-    const QPoint topLeft = opt->rect.topLeft();
+    p.painter->save();
+    QStyleOptionSlider* opt = styleOptionSlider(scrollbar);
+    p.painter->setClipRect(opt->rect.intersected(damageRect));
+
 #ifdef Q_WS_MAC
-    QApplication::style()->drawComplexControl(QStyle::CC_ScrollBar, opt, p, 0);
+    p.drawComplexControl(QStyle::CC_ScrollBar, *opt);
 #else
-    p->translate(topLeft);
+    const QPoint topLeft = opt->rect.topLeft();
+    p.painter->translate(topLeft);
     opt->rect.moveTo(QPoint(0, 0));
 
     // The QStyle expects the background to be already filled
-    p->fillRect(opt->rect, opt->palette.background());
+    p.painter->fillRect(opt->rect, opt->palette.background());
 
-    QApplication::style()->drawComplexControl(QStyle::CC_ScrollBar, opt, p, 0);
+    p.drawComplexControl(QStyle::CC_ScrollBar, *opt);
     opt->rect.moveTo(topLeft);
 #endif
-    p->restore();
-    
+    p.painter->restore();
+
     return true;
 }
 
@@ -226,10 +230,13 @@ void ScrollbarThemeQt::paintScrollCorner(ScrollView* scrollView, GraphicsContext
 #if QT_VERSION < 0x040500
     context->fillRect(rect, QApplication::palette().color(QPalette::Normal, QPalette::Window));
 #else
+    StylePainter p(context);
+    if (!p.isValid())
+        return;
+
     QStyleOption option;
     option.rect = rect;
-    QApplication::style()->drawPrimitive(QStyle::PE_PanelScrollAreaCorner,
-            &option, context->platformContext(), 0);
+    p.drawPrimitive(QStyle::PE_PanelScrollAreaCorner, option);
 #endif
 }
 

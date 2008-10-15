@@ -42,6 +42,8 @@ typedef id <NSDraggingInfo> DragDataRef;
 #else
 typedef void* DragDataRef;
 #endif
+#elif PLATFORM(AMIGAOS4)
+typedef void* DragDataRef;
 #elif PLATFORM(QT)
 QT_BEGIN_NAMESPACE
 class QMimeData;
@@ -54,8 +56,8 @@ typedef class wxDataObject* DragDataRef;
 #elif PLATFORM(GTK)
 // FIXME: this should probably be something gdk-specific
 typedef void* DragDataRef;
-#elif PLATFORM(AMIGAOS4)
-typedef void* DragDataRef;
+#elif PLATFORM(CHROMIUM)
+#include "DragDataRef.h"
 #endif
 
 

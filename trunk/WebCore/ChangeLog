@@ -1,3 +1,428 @@
+2008-10-15  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Sam Weinig.
+
+        Make pan scrolling a platform configurable option
+        https://bugs.webkit.org/show_bug.cgi?id=21515
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleAutoscroll):
+        (WebCore::EventHandler::autoscrollTimerFired):
+        (WebCore::EventHandler::stopAutoscrollTimer):
+        (WebCore::EventHandler::handleMousePressEvent):
+        (WebCore::EventHandler::keyEvent):
+
+2008-10-10  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Add some PLATFORM(CHROMIUM) ifdefs to WebCore
+        https://bugs.webkit.org/show_bug.cgi?id=21511
+
+        * loader/FTPDirectoryDocument.cpp:
+        * loader/FTPDirectoryParser.cpp:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::finishedLoadingDocument):
+        * platform/ContextMenuItem.h:
+        * platform/Cursor.h:
+        * platform/DragData.h:
+        * platform/DragImage.h:
+        * platform/Pasteboard.h:
+        * platform/PlatformKeyboardEvent.h:
+        (WebCore::PlatformKeyboardEvent::isSystemKey):
+        * platform/PlatformMenuDescription.h:
+        * platform/PlatformMouseEvent.h:
+        * platform/PlatformWheelEvent.h:
+        * platform/PopupMenu.h:
+        * platform/ScrollView.h:
+        * platform/Widget.h:
+        * platform/network/NetworkStateNotifier.h:
+
+2008-10-14  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=21490
+        Optimize keyframe style sheet changes by avoiding styleSheetChanged()
+
+        Test: css3/change-keyframes.html
+
+        * css/WebKitCSSKeyframesRule.cpp:
+        (WebCore::WebKitCSSKeyframesRule::append):
+        (WebCore::WebKitCSSKeyframesRule::deleteRule):
+
+2008-10-14  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21595
+
+        Clean up background and overflow propagation from the body to the viewport.  Make it match the
+        latest CSS2.1 spec thinking.
+
+        Reviewed by Adam Roben
+
+        Added many tests at fast/body-propagation/.  These are Simon Pieters' tests of propagation handling
+        (available at http://simon.html5.org/test/css/magic-body/).
+
+        * dom/Document.cpp:
+        (WebCore::Document::body):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::layout):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::styleDidChange):
+        (WebCore::RenderBox::paintRootBoxDecorations):
+        (WebCore::RenderBox::paintBoxDecorations):
+        (WebCore::RenderBox::repaintLayerRectsForImage):
+
+2008-10-14  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed and landed by Sam Weinig.
+
+        Due to change in spec (http://dev.w3.org/2006/webapi/selectors-api/#namespace),
+        remove NSResolver code, leaving only checking for selectors that need
+        NS resolution and throwing a coresponding error.
+
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/JSDocumentCustom.cpp:
+        * bindings/js/JSDocumentFragmentCustom.cpp:
+        * bindings/js/JSElementCustom.cpp:
+        * bindings/js/JSNSResolver.cpp: Removed.
+        * bindings/js/JSNSResolver.h: Removed.
+        * dom/Document.idl:
+        * dom/DocumentFragment.idl:
+        * dom/Element.idl:
+        * dom/NSResolver.h: Removed.
+        * dom/NSResolver.idl: Removed.
+        * dom/Node.h:
+        * dom/Node.cpp:
+        (WebCore::forEachTagSelector):
+        (WebCore::SelectorNeedsNamespaceResolutionFunctor::operator()):
+        (WebCore::selectorNeedsNamespaceResolution):
+        (WebCore::Node::querySelector):
+        (WebCore::Node::querySelectorAll):
+
+2008-10-14  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig (all but the FormDataListItem rename).
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21593
+          Bug 21593: add multiple-file support to HTMLFormElement
+
+        * html/FormDataList.cpp: Removed appendFile since it's now inline.
+        Also took incorrect old copyrights off of this file that are left
+        over from when it was split.
+        * html/FormDataList.h: Ditto. Renamed FormDataListItem to Item and
+        made it a member of FormDataList. Changed it to hold a File object
+        instead of a path. And made its data members private. Changed
+        FormDataList::appendFile accordingly.
+
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::formData): Updated for above changes.
+        Removed the code that special-cases HTMLInputElement, because now
+        the FormDataListItem has everything we need. And if there are
+        multiple files, we'll get multiple list items for them.
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::appendFormData): Changed the code for
+        <input type=file> to use File objects instead of path strings and
+        also to append multiple files if the file list has them.
+
+2008-10-14  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+        
+        Fix QtWebKit scrollbar painting errors
+
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::ScrollbarThemeQt::paint):
+        (WebCore::ScrollbarThemeQt::paintScrollCorner):
+
+2008-10-14  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Fix scrollbar arrows for horizontal scrollbars
+
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::styleOptionSlider):
+
+2008-10-14  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Reviewed by Simon.
+
+        Use style-painter to draw scrollbars in ScrollbarThemeQt
+        
+        This has the benefit of setting up the painter properly without
+        antialiasing and saving and restoring the brush. It also ensures
+        that we use the style of the QWebView over the QApplication style
+        if possible.
+
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::StylePainter::StylePainter):
+        (WebCore::StylePainter::init):
+        * platform/qt/RenderThemeQt.h:
+        * platform/qt/ScrollbarThemeQt.cpp:
+        (WebCore::ScrollbarThemeQt::paint):
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        Add support for CSS transitions on some SVG properties.  This patch is intended to be a guideline
+        for how to add support for the rest.
+
+        Reviewed by Oliver Hunt
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::ensurePropertyMap):
+        * rendering/style/RenderStyle.h:
+        (WebCore::RenderStyle::fillOpacity):
+        (WebCore::RenderStyle::setFillOpacity):
+        (WebCore::RenderStyle::strokeOpacity):
+        (WebCore::RenderStyle::setStrokeOpacity):
+        (WebCore::RenderStyle::floodOpacity):
+        (WebCore::RenderStyle::setFloodOpacity):
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        <rdar://problem/6289712> REGRESSION(r37432-37490): Scroll bar is not drawn in Bookmark View, Preferences sheets.
+
+        Fix for disabled scrollbars not painting in Windows Safari.  Make sure that the Windows theme
+        implements paintTrackBackground so that when the thumb is not present the track still paints.
+
+        Reviewed by Oliver Hunt
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        * platform/win/ScrollbarThemeWin.cpp:
+        (WebCore::ScrollbarThemeWin::paintTrackBackground):
+        * platform/win/ScrollbarThemeWin.h:
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        Fix over-invalidation of native scrollbars.
+
+        Reviewed by Oliver Hunt
+
+        * platform/Scrollbar.h:
+        (WebCore::Scrollbar::styleChanged):
+        * platform/mac/ScrollbarThemeMac.mm:
+        (+[ScrollbarPrefsObserver appearancePrefsChanged:]):
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::styleChanged):
+
+2008-10-13  Alp Toker  <alp@nuanti.com>
+
+        Fix autotools dist build target by listing recently added header
+        files only. Not reviewed.
+
+        * GNUmakefile.am:
+
+2008-10-13  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        Don't run a SQLite query on every iteration of the sync thread when the query
+        will touch a large portion of the icon database while performing no useful work.
+
+        * loader/icon/IconDatabase.cpp:
+        (WebCore::IconDatabase::writeToDatabase): Don't call checkForDanglingPageURLs unless
+        we modified the database.
+        (WebCore::IconDatabase::checkForDanglingPageURLs): Don't do any work in a release build
+        unless we've been asked to prune any dangling pageURLs that we find.
+
+2008-10-13  Maciej Stachowiak  <mjs@apple.com>
+
+        Rubber stamped by Mark Rowe.
+        
+        - use gcc 4.2 when building with Xcode 3.1 or newer on Leopard, even though this is not the default
+
+        * Configurations/DebugRelease.xcconfig:
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        Make dropdown lists on Windows work with CSS custom scrollbars.
+
+        Reviewed by Adele
+
+        * platform/PopupMenu.h:
+        (WebCore::PopupMenu::scrollbarCornerPresent):
+        * platform/PopupMenuClient.h:
+        * platform/win/PopupMenuWin.cpp:
+        (WebCore::PopupMenu::show):
+        * rendering/RenderMenuList.cpp:
+        (WebCore::RenderMenuList::createScrollbar):
+        * rendering/RenderMenuList.h:
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::createScrollbar):
+        * rendering/RenderTextControl.h:
+
+2008-10-13  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        <rdar://problem/6271864> Links from image maps not being included in AXLinkUIElements
+
+        Links from image maps were not being included in the web area's AXLinkUIElements attribute.
+        The position of image map links was being reported incorrectly and the parent-chain
+        hierarchy for image map links was incorrect because image map links did not have a reference
+        to their parent image. 
+
+        Test: accessibility/document-links.html
+
+        * page/AccessibilityImageMapLink.cpp:
+        (WebCore::AccessibilityImageMapLink::parentObject):
+        (WebCore::AccessibilityImageMapLink::actionElement):
+        (WebCore::AccessibilityImageMapLink::elementRect):
+        * page/AccessibilityImageMapLink.h:
+        (WebCore::AccessibilityImageMapLink::setHTMLMapElement):
+        (WebCore::AccessibilityImageMapLink::setParent):
+        * page/AccessibilityObject.cpp:
+        * page/AccessibilityObject.h:
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::accessibilityParentForImageMap):
+        (WebCore::AccessibilityRenderObject::getDocumentLinks):
+        (WebCore::AccessibilityRenderObject::addChildren):
+        * page/AccessibilityRenderObject.h:
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (-[AccessibilityObjectWrapper accessibilityAttributeValue:]):
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        Make RenderListBox work with CSS scrollbars.  Refactoring this code to support creation/destruction in
+        the same way RenderLayer does also fixes a bug where the PLT would assert on the next-to-last page (no
+        idea how to make a test case for that, though, since I couldn't repro without running the whole PLT).
+
+        Reviewed by Tim Hatcher
+
+        Added scrollbars/listbox-scrollbar-combinations.html
+
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::~RenderListBox):
+        (WebCore::RenderListBox::updateFromElement):
+        (WebCore::RenderListBox::createScrollbar):
+        (WebCore::RenderListBox::destroyScrollbar):
+        (WebCore::RenderListBox::setHasVerticalScrollbar):
+        * rendering/RenderListBox.h:
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        In order to always match the :corner-present pseudo-class properly, delay initial updating of
+        scrollbar styles until the layer has the scrollbars in its member variables.
+
+        Reviewed by Tim Hatcher
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::setHasHorizontalScrollbar):
+        (WebCore::RenderLayer::setHasVerticalScrollbar):
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::RenderScrollbar):
+
+2008-10-13  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21577
+        5 false positive StructureID leaks
+
+        In WebCore, we intentionally leak the common JSGlobalData which in turn
+        leaks 5 StructureIDs.  Use the new JSGlobalData::createLeaked in order to
+        ignore the StructureIDs leaked within.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::commonJSGlobalData):
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        Add support for the :corner-present pseudoclass, which enables scrollbar pieces to change their
+        artwork based on whether there is a scrollbar corner present.
+
+        Reviewed by Tim Hatcher
+
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::extractPseudoType):
+        * css/CSSSelector.h:
+        (WebCore::CSSSelector::):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::scrollbarCornerPresent):
+        * platform/ScrollView.h:
+        * platform/ScrollbarClient.h:
+        * rendering/RenderLayer.cpp:
+        (WebCore::cornerRect):
+        (WebCore::scrollCornerRect):
+        (WebCore::resizerCornerRect):
+        (WebCore::RenderLayer::scrollbarCornerPresent):
+        (WebCore::RenderLayer::setHasHorizontalScrollbar):
+        (WebCore::RenderLayer::setHasVerticalScrollbar):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::horizontalScrollbar):
+        (WebCore::RenderLayer::verticalScrollbar):
+        * rendering/RenderListBox.h:
+        (WebCore::RenderListBox::scrollbarCornerPresent):
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        Make resizers and scrollbar corners respect :window-inactive (one more bug fix and then Tim's master
+        test case for all this can land).
+
+        Reviewed by Tim Hatcher
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkSelector):
+        (WebCore::CSSStyleSelector::SelectorChecker::checkOneSelector):
+        (WebCore::CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::paintOverflowControls):
+        (WebCore::RenderLayer::paintScrollCorner):
+        (WebCore::RenderLayer::paintResizer):
+        (WebCore::RenderLayer::styleChanged):
+        (WebCore::RenderLayer::updateScrollCornerStyle):
+        (WebCore::RenderLayer::updateResizerStyle):
+        * rendering/RenderLayer.h:
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::paint):
+        * rendering/RenderScrollbarPart.cpp:
+        (WebCore::RenderScrollbarPart::paintIntoRect):
+
+2008-10-13  David Hyatt  <hyatt@apple.com>
+
+        Rework resizer and scroll corner painting so that custom resizers and scroll corners will paint
+        and invalidate properly as images load, etc.
+
+        Reviewed by Tim Hatcher
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::cornerRect):
+        (WebCore::scrollCornerRect):
+        (WebCore::resizerCornerRect):
+        (WebCore::RenderLayer::positionOverflowControls):
+        (WebCore::RenderLayer::paintOverflowControls):
+        (WebCore::RenderLayer::paintScrollCorner):
+        (WebCore::RenderLayer::paintResizer):
+        (WebCore::RenderLayer::isPointInResizeControl):
+        (WebCore::RenderLayer::hitTestOverflowControls):
+        (WebCore::RenderLayer::styleChanged):
+        * rendering/RenderLayer.h:
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::setRect):
+        * rendering/RenderScrollbarPart.cpp:
+        (WebCore::RenderScrollbarPart::styleDidChange):
+        (WebCore::RenderScrollbarPart::imageChanged):
+
+2008-10-13  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Darin Adler. Landed by Jan Alonzo.
+
+        WebKit GTK Port needs a smartpointer to handle g_free (GFreePtr?)
+        http://bugs.webkit.org/show_bug.cgi?id=20483
+
+        Start the conversion to use GOwnPtr and fix a memory leak.
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::mediaPlayerPrivateErrorCallback):
+
 2008-10-13  Jon Honeycutt  <jhoneycutt@apple.com>
 
         Windows build fix.

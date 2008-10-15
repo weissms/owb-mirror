@@ -6,8 +6,8 @@ Index: BAL/WKAL/Concretizations/Graphics/WK/BCDragDataWK.h
  #elif PLATFORM(GTK)
  // FIXME: this should probably be something gdk-specific
  typedef void* DragDataRef;
+ #endif
 +#elif PLATFORM(AMIGAOS4)
 +typedef void* DragDataRef;
- #endif
  
  

@@ -38,6 +38,8 @@ typedef HICON HCURSOR;
 typedef struct _GdkCursor GdkCursor;
 #elif PLATFORM(QT)
 #include <QCursor>
+#elif PLATFORM(CHROMIUM)
+#include "PlatformCursor.h"
 #endif
 
 #if PLATFORM(MAC)
@@ -76,6 +78,8 @@ namespace WKAL {
     typedef QCursor PlatformCursor;
 #elif PLATFORM(WX)
     typedef wxCursor* PlatformCursor;
+#elif PLATFORM(CHROMIUM)
+    // See PlatformCursor.h
 #else
     typedef void* PlatformCursor;
 #endif

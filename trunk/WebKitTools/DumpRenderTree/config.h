@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2008 Nuanti Ltd.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -15,21 +15,33 @@
  * along with this library; see the file COPYING.LIB.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
+ *
  */
 
-module core {
+#define Config_H
 
-    interface [
-        GenerateConstructor,
-        InterfaceUUID=F5C8DAF0-D728-4b2b-9D9C-630621B07D35,
-        ImplementationUUID=E57BF71F-3FAA-495c-A307-E288F8E5B2EC
-    ] DocumentFragment : EventTargetNode {
-        // NodeSelector - Selector API
-        // FIXME: add support for NSResolver in languages other than JS
-        Element querySelector(in [ConvertUndefinedOrNullToNullString] DOMString selectors)
-            raises(DOMException);
-        NodeList querySelectorAll(in [ConvertUndefinedOrNullToNullString] DOMString selectors)
-            raises(DOMException);
-    };
+#if defined(HAVE_CONFIG_H) && HAVE_CONFIG_H
+#include "autotoolsconfig.h"
+#endif
 
-}
+#include <wtf/Platform.h>
+
+#if PLATFORM(WIN)
+#define WTF_PLATFORM_CF 1 
+
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0500
+
+#undef WINVER
+#define WINVER 0x0500
+
+// If we don't define these, they get defined in windef.h. 
+// We want to use std::min and std::max
+#undef max
+#define max max
+#undef min
+#define min min
+
+#undef _WINSOCKAPI_
+#define _WINSOCKAPI_ // Prevent inclusion of winsock.h in windows.h
+#endif  // PLATFORM(WIN)

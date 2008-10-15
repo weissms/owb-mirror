@@ -55,6 +55,8 @@ namespace WKAL {
     typedef GtkMenu* PlatformMenuDescription;
 #elif PLATFORM(WX)
     typedef wxMenu* PlatformMenuDescription;
+#else
+    typedef void* PlatformMenuDescription;
 #endif
 
 } // namespace

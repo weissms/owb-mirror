@@ -193,3 +193,8 @@ JSStringRef AccessibilityUIElement::selectedTextRange()
 {
     return JSStringRef();
 }
+
+JSStringRef AccessibilityUIElement::attributesOfDocumentLinks()
+{
+    return JSStringRef();
+}

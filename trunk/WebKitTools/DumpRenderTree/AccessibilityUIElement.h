@@ -28,7 +28,6 @@
 
 #include <JavaScriptCore/JSObjectRef.h>
 #include <wtf/Vector.h>
-#include <wtf/Platform.h>
 
 #if PLATFORM(MAC)
 #ifdef __OBJC__
@@ -59,6 +58,7 @@ public:
     static JSObjectRef makeJSAccessibilityUIElement(JSContextRef, const AccessibilityUIElement&);
 
     void getLinkedUIElements(Vector<AccessibilityUIElement>&);
+    void getDocumentLinks(Vector<AccessibilityUIElement>&);
     void getChildren(Vector<AccessibilityUIElement>&);
     AccessibilityUIElement getChildAtIndex(unsigned);
     AccessibilityUIElement titleUIElement();
@@ -66,6 +66,7 @@ public:
     // Methods - platform-independent implementations
     JSStringRef allAttributes();
     JSStringRef attributesOfLinkedUIElements();
+    JSStringRef attributesOfDocumentLinks();
     JSStringRef attributesOfChildren();
     JSStringRef parameterizedAttributeNames();
     

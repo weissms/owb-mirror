@@ -132,7 +132,6 @@ namespace WKAL {
 
 #if PLATFORM(WIN)
         PlatformKeyboardEvent(HWND, WPARAM, LPARAM, Type, bool);
-        bool isSystemKey() const { return m_isSystemKey; }
 #endif
 
 #if PLATFORM(GTK)
@@ -149,7 +148,11 @@ namespace WKAL {
         PlatformKeyboardEvent(wxKeyEvent&);
 #endif
 
-    private:
+#if PLATFORM(WIN) || PLATFORM(CHROMIUM)
+        bool isSystemKey() const { return m_isSystemKey; }
+#endif
+
+    protected:
         Type m_type;
         String m_text;
         String m_unmodifiedText;
@@ -166,7 +169,7 @@ namespace WKAL {
 #if PLATFORM(MAC)
         RetainPtr<NSEvent> m_macEvent;
 #endif
-#if PLATFORM(WIN)
+#if PLATFORM(WIN) || PLATFORM(CHROMIUM)
         bool m_isSystemKey;
 #endif
 #if PLATFORM(GTK)
