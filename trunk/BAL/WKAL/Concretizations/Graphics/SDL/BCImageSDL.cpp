@@ -63,8 +63,6 @@ void FrameData::clear()
     if (m_frame) {
         SDL_FreeSurface(m_frame);
         m_frame = 0;
-        m_duration = 0.;
-        m_hasAlpha = true;
     }
 }
 
@@ -73,10 +71,10 @@ BitmapImage::BitmapImage(BalSurface* surface, ImageObserver* observer)
     , m_currentFrame(0)
     , m_frames(0)
     , m_frameTimer(0)
-    , m_repetitionCount(0)
+    , m_repetitionCount(cAnimationNone)
+    , m_repetitionCountStatus(Unknown)
     , m_repetitionsComplete(0)
     , m_isSolidColor(false)
-    , m_animatingImageType(false)
     , m_animationFinished(true)
     , m_allDataReceived(true)
     , m_haveSize(true)
@@ -144,12 +142,12 @@ SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel)
 
 void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const FloatRect& src, CompositeOperator op)
 {
-    FloatRect sourceRect(src);
-    FloatRect destRect(dst);
-
     SDL_Surface* image = frameAtIndex(m_currentFrame);
     if (!image) // If it's too early we won't have an image yet.
         return;
+
+    FloatRect sourceRect(src);
+    FloatRect destRect(dst);
 
     if (mayFillWithSolidColor()) {
         fillWithSolidColor(context, destRect, solidColor(), op);

@@ -55,6 +55,7 @@ template <typename T> class Timer;
 struct FrameData : Noncopyable {
     FrameData()
         : m_frame(0)
+        , m_haveMetadata(false)
         , m_isComplete(false)
         , m_duration(0)
         , m_hasAlpha(true) 
@@ -69,6 +70,7 @@ struct FrameData : Noncopyable {
     void clear();
 
     NativeImagePtr m_frame;
+    bool m_haveMetadata;
     bool m_isComplete;
     float m_duration;
     bool m_hasAlpha;
@@ -111,6 +113,12 @@ public:
     virtual NativeImagePtr nativeImageForCurrentFrame() { return frameAtIndex(currentFrame()); }
 
 protected:
+    enum RepetitionCountStatus {
+      Unknown,    // We haven't checked the source's repetition count.
+      Uncertain,  // We have a repetition count, but it might be wrong (some GIFs have a count after the image data, and will report "loop once" until all data has been decoded).
+      Certain,    // The repetition count is known to be correct.
+    };
+
     BitmapImage(NativeImagePtr, ImageObserver* = 0);
     BitmapImage(ImageObserver* = 0);
     virtual void draw(GraphicsContext*, const FloatRect& dstRect, const FloatRect& srcRect, CompositeOperator);
@@ -124,16 +132,26 @@ protected:
     // Decodes and caches a frame. Never accessed except internally.
     void cacheFrame(size_t index);
 
-    // Called to invalidate all our cached data.  If an image is loading incrementally, we only
-    // invalidate the last cached frame.
-    virtual void destroyDecodedData(bool incremental = false);
+    // Called to invalidate all our cached data.  If an image is loading
+    // incrementally, we only invalidate the last cached frame.  For large
+    // animated images, where we throw away the decoded data after every frame,
+    // |preserveNearbyFrames| can be set to preserve the current frame's data
+    // and eliminate some unnecessary duplicated decoding work.  This also
+    // preserves the next frame's data, if available.  In most cases this has no
+    // effect; either that frame isn't decoded yet, or it's already been
+    // destroyed by a previous call.  But when we fall behind on the very first
+    // animation loop and startAnimation() needs to "catch up" one or more
+    // frames, this briefly preserves some of that decoding work, to ease CPU
+    // load and make it less likely that we'll keep falling behind.
+    virtual void destroyDecodedData(bool incremental = false, bool preserveNearbyFrames = false);
 
     // Whether or not size is available yet.    
     bool isSizeAvailable();
 
     // Animation.
+    int repetitionCount(bool imageKnownToBeComplete);  // |imageKnownToBeComplete| should be set if the caller knows the entire image has been decoded.
     bool shouldAnimate();
-    virtual void startAnimation();
+    virtual void startAnimation(bool catchUpIfNecessary = true);
     void advanceAnimation(Timer<BitmapImage>*);
 
     // Function that does the real work of advancing the animation.  When
@@ -164,14 +182,14 @@ protected:
     Vector<FrameData> m_frames; // An array of the cached frames of the animation. We have to ref frames to pin them in the cache.
     
     Timer<BitmapImage>* m_frameTimer;
-    int m_repetitionCount; // How many total animation loops we should do.
+    int m_repetitionCount; // How many total animation loops we should do. This will be cAnimationNone if this image type is incapable of animation.
+    RepetitionCountStatus m_repetitionCountStatus;
     int m_repetitionsComplete;  // How many repetitions we've finished.
     double m_desiredFrameStartTime;  // The system time at which we hope to see the next call to startAnimation().
 
     Color m_solidColor;  // If we're a 1x1 solid color, this is the color to use to fill.
     bool m_isSolidColor;  // Whether or not we are a 1x1 solid image.
 
-    bool m_animatingImageType;  // Whether or not we're an image type that is capable of animating (GIF).
     bool m_animationFinished;  // Whether or not we've completed the entire animation.
 
     bool m_allDataReceived;  // Whether or not we've received all our data.

@@ -1,4 +1,5 @@
 LIST (APPEND DOM_SRC
+    dom/ActiveDOMObject.cpp
     dom/Attr.cpp
     dom/Attribute.cpp
     dom/BeforeTextInsertedEvent.cpp

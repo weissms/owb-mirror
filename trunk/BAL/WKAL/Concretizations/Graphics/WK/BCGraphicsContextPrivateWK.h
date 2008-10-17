@@ -71,6 +71,7 @@ namespace WKAL {
         RefPtr<Pattern> strokePattern;
         
         WindRule fillRule;
+        GradientSpreadMethod spreadMethod;
         ColorSpace fillColorSpace;
         Color fillColor;
         RefPtr<Gradient> fillGradient;

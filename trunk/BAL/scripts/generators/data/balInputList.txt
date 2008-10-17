@@ -338,6 +338,8 @@
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/gtk/FileChooserGtk.cpp	BCFileChooserGtk.cpp
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/FileSystem.h
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/gtk/FileSystemGtk.cpp	BCFileSystemGtk.cpp
+../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/guriescape.h
+../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/guriescape.c
 ../../OWBAL/Concretizations/Facilities/Posix	../../../WebCore/platform/FileSystem.h
 ../../OWBAL/Concretizations/Facilities/Posix	../../../WebCore/platform/posix/FileSystemPOSIX.cpp BCFileSystemPosix.cpp
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/Language.h

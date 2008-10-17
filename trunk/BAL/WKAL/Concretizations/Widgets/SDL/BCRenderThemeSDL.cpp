@@ -140,25 +140,25 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
     i.context->save();
     i.context->setStrokeStyle(SolidStroke);
     i.context->setStrokeColor(Color::black);
-    RenderStyle style;
-    addIntrinsicMargins(&style);
+    PassRefPtr<RenderStyle> style = RenderStyle::create();
+    addIntrinsicMargins(style.get());
 
     EBorderStyle v = INSET;
-    style.setBorderTopStyle(v);
-    style.setBorderLeftStyle(v);
-    style.setBorderBottomStyle(v);
-    style.setBorderRightStyle(v);
+    style->setBorderTopStyle(v);
+    style->setBorderLeftStyle(v);
+    style->setBorderBottomStyle(v);
+    style->setBorderRightStyle(v);
     int borderWidth = 1;
-    style.setBorderTopWidth(borderWidth);
-    style.setBorderLeftWidth(borderWidth);
-    style.setBorderBottomWidth(borderWidth);
-    style.setBorderRightWidth(borderWidth);
+    style->setBorderTopWidth(borderWidth);
+    style->setBorderLeftWidth(borderWidth);
+    style->setBorderBottomWidth(borderWidth);
+    style->setBorderRightWidth(borderWidth);
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
-        &style, true, true);
+        style.get(), true, true);
 
     if( o->element()->active() ) {
         IntRect r2(r);
@@ -166,21 +166,21 @@ bool RenderThemeBal::paintCheckbox(RenderObject* o, const RenderObject::PaintInf
         i.context->setFillColor(WebCore::Color(0xc0,0xc0,0xc0));
         i.context->drawRect(r2);
         v = GROOVE;
-        style.setBorderTopStyle(v);
-        style.setBorderLeftStyle(v);
-        style.setBorderBottomStyle(v);
-        style.setBorderRightStyle(v);
+        style->setBorderTopStyle(v);
+        style->setBorderLeftStyle(v);
+        style->setBorderBottomStyle(v);
+        style->setBorderRightStyle(v);
         int borderWidth = 1;
-        style.setBorderTopWidth(borderWidth);
-        style.setBorderLeftWidth(borderWidth);
-        style.setBorderBottomWidth(borderWidth);
-        style.setBorderRightWidth(borderWidth);
+        style->setBorderTopWidth(borderWidth);
+        style->setBorderLeftWidth(borderWidth);
+        style->setBorderBottomWidth(borderWidth);
+        style->setBorderRightWidth(borderWidth);
         o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
         o->paintBorder(i.context,
             r.x(), r.y(), r.width(), r.height(),
-            &style, true, true);
+            style.get(), true, true);
     }
     if(o->element()->isChecked()) {
         i.context->setStrokeColor(Color::black);
@@ -204,24 +204,24 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
 {
     i.context->save();
     i.context->setStrokeStyle(SolidStroke);
-    RenderStyle style;
+    PassRefPtr<RenderStyle> style = RenderStyle::create();
     EBorderStyle v = RIDGE;
-    style.setBorderTopStyle(v);
-    style.setBorderLeftStyle(v);
-    style.setBorderBottomStyle(v);
-    style.setBorderRightStyle(v);
+    style->setBorderTopStyle(v);
+    style->setBorderLeftStyle(v);
+    style->setBorderBottomStyle(v);
+    style->setBorderRightStyle(v);
     int borderWidth = 1;
-    style.setBorderTopWidth(borderWidth);
-    style.setBorderLeftWidth(borderWidth);
-    style.setBorderBottomWidth(borderWidth);
-    style.setBorderRightWidth(borderWidth);
+    style->setBorderTopWidth(borderWidth);
+    style->setBorderLeftWidth(borderWidth);
+    style->setBorderBottomWidth(borderWidth);
+    style->setBorderRightWidth(borderWidth);
 
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
-        &style, true, true);
+        style.get(), true, true);
     if(o->element()->isChecked()) {
         IntRect r2(r);
         r2.inflate(-borderWidth - 2);
@@ -257,24 +257,24 @@ void RenderThemeBal::adjustMenuListStyle(CSSStyleSelector* selector, RenderStyle
 
 bool RenderThemeBal::paintMenuList(RenderObject* o, const RenderObject::PaintInfo& i, const IntRect& r)
 {
-    RenderStyle style;
-    style.setMarginLeft(Length(10, Fixed));
-    style.setMarginTop(Length(10, Fixed));
+    PassRefPtr<RenderStyle> style = RenderStyle::create();
+    style->setMarginLeft(Length(10, Fixed));
+    style->setMarginTop(Length(10, Fixed));
     EBorderStyle v = INSET;
-    style.setBorderTopStyle(v);
-    style.setBorderLeftStyle(v);
-    style.setBorderBottomStyle(v);
-    style.setBorderRightStyle(v);
-    style.setBorderTopWidth(1);
-    style.setBorderLeftWidth(1);
-    style.setBorderBottomWidth(1);
-    style.setBorderRightWidth(1);
+    style->setBorderTopStyle(v);
+    style->setBorderLeftStyle(v);
+    style->setBorderBottomStyle(v);
+    style->setBorderRightStyle(v);
+    style->setBorderTopWidth(1);
+    style->setBorderLeftWidth(1);
+    style->setBorderBottomWidth(1);
+    style->setBorderRightWidth(1);
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
-        &style, true, true);
+        style.get(), true, true);
     return false;
     
 }
@@ -292,25 +292,25 @@ bool RenderThemeBal::paintTextField(RenderObject* o, const RenderObject::PaintIn
     i.context->save();
     i.context->setStrokeStyle(SolidStroke);
     i.context->setStrokeColor(Color::black);
-    RenderStyle style;
-    addIntrinsicMargins(&style);
+    PassRefPtr<RenderStyle> style = RenderStyle::create();
+    addIntrinsicMargins(style.get());
 
     EBorderStyle v = INSET;
-    style.setBorderTopStyle(v);
-    style.setBorderLeftStyle(v);
-    style.setBorderBottomStyle(v);
-    style.setBorderRightStyle(v);
+    style->setBorderTopStyle(v);
+    style->setBorderLeftStyle(v);
+    style->setBorderBottomStyle(v);
+    style->setBorderRightStyle(v);
     int borderWidth = 1;
-    style.setBorderTopWidth(borderWidth);
-    style.setBorderLeftWidth(borderWidth);
-    style.setBorderBottomWidth(borderWidth);
-    style.setBorderRightWidth(borderWidth);
+    style->setBorderTopWidth(borderWidth);
+    style->setBorderLeftWidth(borderWidth);
+    style->setBorderBottomWidth(borderWidth);
+    style->setBorderRightWidth(borderWidth);
     o->paintFillLayerExtended(i,
         o->style()->backgroundColor(), o->style()->backgroundLayers(),
         r.y(), o->height(), r.x(), r.y(), o->width(), o->height());
     o->paintBorder(i.context,
         r.x(), r.y(), r.width(), r.height(),
-        &style, true, true);
+        style.get(), true, true);
 
     i.context->restore();
     return false;

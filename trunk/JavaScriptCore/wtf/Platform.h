@@ -349,7 +349,7 @@
 #endif
 
 // WREC only supports x86 at the moment, and has only been tested on Mac and Windows.
-#if !defined(ENABLE_WREC) && PLATFORM(X86) && (PLATFORM(MAC) || PLATFORM(WIN))
+#if !defined(ENABLE_WREC) && ENABLE(CTI) && PLATFORM(X86) && (PLATFORM(MAC) || PLATFORM(WIN))
 #define ENABLE_WREC 1
 #endif
 
@@ -368,12 +368,9 @@
 #endif
 #endif
 
-// Use "fastcall" calling convention on MSVC and GCC > 4.0
-#if COMPILER(MSVC) || (COMPILER(GCC) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)))
+// Use "fastcall" calling convention on MSVC
+#if COMPILER(MSVC)
 #define WTF_USE_FAST_CALL_CTI_ARGUMENT 1
-#endif
-
-#if COMPILER(MSVC) || USE(FAST_CALL_CTI_ARGUMENT)
 #define WTF_USE_CTI_ARGUMENT 1
 #endif
 

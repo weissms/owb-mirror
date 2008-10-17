@@ -68,6 +68,7 @@ MessagePort::MessagePort(Document* document)
     , m_queueIsOpen(false)
     , m_document(document)
     , m_pendingActivity(0)
+    , m_jsWrapperIsInaccessible(false)
 {
     document->createdMessagePort(this);
 }
@@ -192,6 +193,17 @@ void MessagePort::unentangle()
 
     m_entangledPort->m_entangledPort = 0;
     m_entangledPort = 0;
+}
+
+void MessagePort::contextDestroyed()
+{
+    if (m_entangledPort) {
+        RefPtr<MessagePort> survivingPort = m_entangledPort;
+        unentangle();
+        if (survivingPort->document() != document()) // Otherwise, survivingPort won't really survive.
+            survivingPort->queueCloseEvent();
+    }
+    m_document = 0;
 }
 
 void MessagePort::dispatchMessages()

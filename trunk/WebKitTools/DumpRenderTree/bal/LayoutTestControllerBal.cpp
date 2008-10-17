@@ -121,6 +121,11 @@ void LayoutTestController::setMainFrameIsFirstResponder(bool flag)
     // FIXME: implement
 }
 
+void LayoutTestController::setSmartInsertDeleteEnabled(bool flag)
+{
+    // FIXME: implement
+}
+
 void LayoutTestController::setTabKeyCyclesThroughElements(bool cycles)
 {
     // FIXME: implement

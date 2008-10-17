@@ -59,7 +59,7 @@ typedef void* DragDataRef;
 #endif
 
 
-namespace WebCore {
+namespace WKAL {
     
     class Clipboard;
     class Document;

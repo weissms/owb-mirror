@@ -1,3 +1,618 @@
+2008-10-17  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21642
+        Abstract out active object tracking
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::markActiveObjectsForDocument):
+        * dom/ActiveDOMObject.cpp: Added.
+        (WebCore::ActiveDOMObject::ActiveDOMObject):
+        (WebCore::ActiveDOMObject::~ActiveDOMObject):
+        (WebCore::ActiveDOMObject::contextDestroyed):
+        (WebCore::ActiveDOMObject::stop):
+        * dom/ActiveDOMObject.h: Added.
+        (WebCore::ActiveDOMObject::document):
+        (WebCore::ActiveDOMObject::hasPendingActivity):
+        (WebCore::ActiveDOMObject::setPendingActivity):
+        (WebCore::ActiveDOMObject::unsetPendingActivity):
+        * dom/Document.cpp:
+        (WebCore::Document::~Document):
+        (WebCore::Document::stopActiveDOMObjects):
+        (WebCore::Document::createdActiveDOMObject):
+        (WebCore::Document::destroyedActiveDOMObject):
+        * dom/Document.h:
+        (WebCore::Document::activeDOMObjects):
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::contextDestroyed):
+        * dom/MessagePort.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::stopLoading):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::XMLHttpRequest):
+        (WebCore::XMLHttpRequest::~XMLHttpRequest):
+        (WebCore::XMLHttpRequest::associatedFrame):
+        (WebCore::XMLHttpRequest::responseXML):
+        (WebCore::XMLHttpRequest::callReadyStateChangeListener):
+        (WebCore::XMLHttpRequest::initSend):
+        (WebCore::XMLHttpRequest::send):
+        (WebCore::XMLHttpRequest::createRequest):
+        (WebCore::XMLHttpRequest::makeSimpleCrossSiteAccessRequest):
+        (WebCore::XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight):
+        (WebCore::XMLHttpRequest::handleAsynchronousPreflightResult):
+        (WebCore::XMLHttpRequest::loadRequestSynchronously):
+        (WebCore::XMLHttpRequest::loadRequestAsynchronously):
+        (WebCore::XMLHttpRequest::dropProtection):
+        (WebCore::XMLHttpRequest::setRequestHeader):
+        (WebCore::XMLHttpRequest::processSyncLoadResults):
+        (WebCore::XMLHttpRequest::didFinishLoading):
+        (WebCore::XMLHttpRequest::didFinishLoadingPreflight):
+        (WebCore::XMLHttpRequest::willSendRequest):
+        (WebCore::XMLHttpRequest::accessControlCheck):
+        (WebCore::XMLHttpRequest::didReceiveResponsePreflight):
+        (WebCore::XMLHttpRequest::stop):
+        (WebCore::XMLHttpRequest::contextDestroyed):
+        * xml/XMLHttpRequest.h:
+        Move activity tracking to a new ActiveDOMObject class.
+
+2008-10-16  David Hyatt  <hyatt@apple.com>
+
+        Simplify styleForRenderer to avoid confusion.  Callers in the SVG filter code thought "forRenderer" meant
+        they would be given a style that corresponded to the RenderObject* passed in.  This is not what the code
+        did though.  This patch removes the renderer argument and the Element subclass shadow implementation
+        so that confusion like this can't occur again.
+
+        Reviewed by Oliver Hunt
+
+        * dom/Element.cpp:
+        * dom/Element.h:
+        * dom/Node.cpp:
+        (WebCore::Node::createRendererIfNeeded):
+        (WebCore::Node::styleForRenderer):
+        * dom/Node.h:
+        * html/HTMLOptGroupElement.cpp:
+        (WebCore::HTMLOptGroupElement::attach):
+        * html/HTMLOptionElement.cpp:
+        (WebCore::HTMLOptionElement::attach):
+        * svg/SVGClipPathElement.cpp:
+        (WebCore::SVGClipPathElement::canvasResource):
+        * svg/SVGFEDiffuseLightingElement.cpp:
+        (WebCore::SVGFEDiffuseLightingElement::build):
+        * svg/SVGFEFloodElement.cpp:
+        (WebCore::SVGFEFloodElement::build):
+        * svg/SVGFESpecularLightingElement.cpp:
+        (WebCore::SVGFESpecularLightingElement::build):
+        * svg/SVGGradientElement.cpp:
+        (WebCore::SVGGradientElement::buildStops):
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::attachShadowTree):
+
+2008-10-16  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/attachment.cgi?bugid=21647
+
+        Make RenderStyle inherit from RefCounted so that it works with RefPtr.  RenderStyle was being malloced
+        out of the RenderArena.  Years and years ago (before TCMalloc), the plan was to make RenderStyles and
+        all their associated sub-structs use the arena.  However only the RenderStyle itself was ever changed
+        to use the arena.
+
+        At a later point style sharing was implemented, which made using the arena for styles pretty pointless,
+        as the bulk of the styles on a given page are actually shared.  Not ever making the sub-structs use the
+        arena also limited the usefulness.
+
+        Now that we have RefPtr/PassRefPtr to eliminate manual ref/deref and now that we use TCMalloc for fast
+        mallocs, there is no reason to keep RenderStyles in the arena.  The benefits of being able to eliminate
+        manual ref/deref far outweigh keeping them in the arena.
+
+        Reviewed by Adam Roben
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::CSSStyleSelector):
+        (WebCore::CSSStyleSelector::~CSSStyleSelector):
+        (WebCore::CSSStyleSelector::styleForElement):
+        (WebCore::CSSStyleSelector::keyframeStylesForAnimation):
+        (WebCore::CSSStyleSelector::pseudoStyleForElement):
+        These methods now return a PassRefPtr.  They will null out the m_style variable as they hand it back
+        so that it isn't left pointing to the previous style resolve RenderStyle (which is what the old code did).
+
+        (WebCore::CSSStyleSelector::updateFont):
+        (WebCore::CSSStyleSelector::checkSelector):
+        (WebCore::CSSStyleSelector::applyProperty):
+        (WebCore::CSSStyleSelector::mapFillSize):
+        (WebCore::CSSStyleSelector::mapFillXPosition):
+        (WebCore::CSSStyleSelector::mapFillYPosition):
+        * css/CSSStyleSelector.h:
+        (WebCore::CSSStyleSelector::style):
+        * dom/Document.cpp:
+        (WebCore::Document::recalcStyle):
+        * dom/Element.cpp:
+        (WebCore::Element::styleForRenderer):
+        (WebCore::Element::recalcStyle):
+        (WebCore::Element::computedStyle):
+        * dom/Element.h:
+        * dom/ElementRareData.h:
+        (WebCore::ElementRareData::ElementRareData):
+        (WebCore::ElementRareData::resetComputedStyle):
+        * dom/Node.cpp:
+        (WebCore::Node::diff):
+        (WebCore::Node::createRendererIfNeeded):
+        (WebCore::Node::styleForRenderer):
+        (WebCore::Node::setRenderStyle):
+        * dom/Node.h:
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::setFont):
+        * html/HTMLOptGroupElement.cpp:
+        (WebCore::HTMLOptGroupElement::attach):
+        (WebCore::HTMLOptGroupElement::detach):
+        (WebCore::HTMLOptGroupElement::setRenderStyle):
+        (WebCore::HTMLOptGroupElement::nonRendererRenderStyle):
+        * html/HTMLOptGroupElement.h:
+        * html/HTMLOptionElement.cpp:
+        (WebCore::HTMLOptionElement::attach):
+        (WebCore::HTMLOptionElement::detach):
+        (WebCore::HTMLOptionElement::setRenderStyle):
+        (WebCore::HTMLOptionElement::nonRendererRenderStyle):
+        * html/HTMLOptionElement.h:
+        * page/animation/AnimationBase.h:
+        (WebCore::AnimationBase::animate):
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationController::updateAnimations):
+        * page/animation/AnimationController.h:
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::updateTransitions):
+        (WebCore::CompositeAnimationPrivate::updateKeyframeAnimations):
+        (WebCore::CompositeAnimationPrivate::animate):
+        (WebCore::CompositeAnimation::animate):
+        * page/animation/CompositeAnimation.h:
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::ImplicitAnimation):
+        (WebCore::ImplicitAnimation::~ImplicitAnimation):
+        (WebCore::ImplicitAnimation::animate):
+        (WebCore::ImplicitAnimation::reset):
+        (WebCore::ImplicitAnimation::isTargetPropertyEqual):
+        (WebCore::ImplicitAnimation::blendPropertyValueInStyle):
+        * page/animation/ImplicitAnimation.h:
+        (WebCore::ImplicitAnimation::create):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::KeyframeAnimation):
+        (WebCore::KeyframeAnimation::~KeyframeAnimation):
+        (WebCore::KeyframeAnimation::animate):
+        (WebCore::KeyframeAnimation::validateTransformFunctionList):
+        * page/animation/KeyframeAnimation.h:
+        (WebCore::KeyframeAnimation::create):
+        (WebCore::KeyframeAnimation::unanimatedStyle):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::paint):
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlShadowRootElement::MediaControlShadowRootElement):
+        (WebCore::MediaControlInputElement::MediaControlInputElement):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::styleDidChange):
+        (WebCore::RenderBlock::updateFirstLetter):
+        * rendering/RenderContainer.cpp:
+        (WebCore::RenderContainer::addChild):
+        (WebCore::RenderContainer::updateBeforeAfterContentForContainer):
+        * rendering/RenderFileUploadControl.cpp:
+        (WebCore::RenderFileUploadControl::updateFromElement):
+        (WebCore::RenderFileUploadControl::createButtonStyle):
+        * rendering/RenderFileUploadControl.h:
+        * rendering/RenderFlow.cpp:
+        (WebCore::RenderFlow::createAnonymousFlow):
+        * rendering/RenderFlow.h:
+        * rendering/RenderInline.cpp:
+        (WebCore::RenderInline::addChildToFlow):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateScrollCornerStyle):
+        (WebCore::RenderLayer::updateResizerStyle):
+        (WebCore::RenderLayer::updateReflectionStyle):
+        * rendering/RenderListItem.cpp:
+        (WebCore::RenderListItem::styleDidChange):
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::createPanel):
+        (WebCore::RenderMedia::createTimeDisplay):
+        (WebCore::RenderMedia::changeOpacity):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::selectionBackgroundColor):
+        (WebCore::RenderObject::selectionForegroundColor):
+        (WebCore::RenderObject::createAnonymousBlock):
+        (WebCore::RenderObject::setAnimatableStyle):
+        (WebCore::RenderObject::setStyle):
+        (WebCore::RenderObject::setStyleInternal):
+        (WebCore::RenderObject::arenaDelete):
+        (WebCore::RenderObject::firstLineStyle):
+        (WebCore::RenderObject::getPseudoStyle):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::style):
+        * rendering/RenderSVGBlock.cpp:
+        (WebCore::RenderSVGBlock::setStyle):
+        * rendering/RenderSVGBlock.h:
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::getScrollbarPseudoStyle):
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        * rendering/RenderScrollbar.h:
+        * rendering/RenderSlider.cpp:
+        (WebCore::RenderSlider::styleDidChange):
+        (WebCore::RenderSlider::createThumbStyle):
+        (WebCore::RenderSlider::updateFromElement):
+        * rendering/RenderSlider.h:
+        * rendering/RenderTable.cpp:
+        (WebCore::RenderTable::addChild):
+        * rendering/RenderTableRow.cpp:
+        (WebCore::RenderTableRow::addChild):
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::addChild):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::styleDidChange):
+        (WebCore::RenderTextControl::createInnerBlockStyle):
+        (WebCore::RenderTextControl::createInnerTextStyle):
+        (WebCore::RenderTextControl::createResultsButtonStyle):
+        (WebCore::RenderTextControl::createCancelButtonStyle):
+        (WebCore::RenderTextControl::createSubtreeIfNeeded):
+        (WebCore::RenderTextControl::updatePlaceholderVisibility):
+        * rendering/RenderTextControl.h:
+        * rendering/TextControlInnerElements.cpp:
+        (WebCore::TextControlInnerElement::attachInnerElement):
+        * rendering/TextControlInnerElements.h:
+        * rendering/style/KeyframeList.cpp:
+        (WebCore::KeyframeList::clear):
+        (WebCore::KeyframeList::operator==):
+        (WebCore::KeyframeList::insert):
+        * rendering/style/KeyframeList.h:
+        (WebCore::KeyframeValue::KeyframeValue):
+        (WebCore::KeyframeValue::~KeyframeValue):
+        (WebCore::KeyframeValue::key):
+        (WebCore::KeyframeValue::style):
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::defaultStyle):
+        (WebCore::RenderStyle::create):
+        (WebCore::RenderStyle::createDefaultStyle):
+        (WebCore::RenderStyle::clone):
+        (WebCore::RenderStyle::RenderStyle):
+        (WebCore::RenderStyle::getCachedPseudoStyle):
+        (WebCore::RenderStyle::addCachedPseudoStyle):
+        * rendering/style/RenderStyle.h:
+        (WebCore::):
+        (WebCore::InheritedFlags::operator!=):
+        * svg/SVGClipPathElement.cpp:
+        (WebCore::SVGClipPathElement::canvasResource):
+        * svg/SVGGradientElement.cpp:
+        (WebCore::SVGGradientElement::buildStops):
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::resolveStyle):
+        * svg/SVGStyledElement.h:
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::recalcStyle):
+        (WebCore::SVGUseElement::attachShadowTree):
+
+2008-10-16  Kenneth Russell  <kenneth.russell@sun.com>
+
+        Reviewed and landed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21587
+        NPN_PluginThreadAsyncCall does not work properly
+        
+        * plugins/PluginMainThreadScheduler.cpp:
+        (WebCore::PluginMainThreadScheduler::dispatchCalls):
+        Make sure to set m_callPending to false once the queue has been cleared.
+
+2008-10-15  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21609
+        Make MessagePorts protect their peers across heaps
+
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::MessagePort):
+        * dom/MessagePort.h:
+        (WebCore::MessagePort::setJSWrapperIsKnownToBeInaccessible):
+        (WebCore::MessagePort::jsWrapperIsKnownToBeInaccessible):
+        Track objects whose JS wrappers are no longer reachable in MessagePort. Unfortunately, this
+        means that the implementation object knows about JS bindings - but it is not possible to
+        access JS wrappers from another heap/thread.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::markCrossHeapDependentObjectsForDocument):
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::markCrossHeapDependentObjects):
+        * bindings/js/JSDOMWindowBase.h:
+        Implement cross-heap dependency tracking for entangled MessagePorts. If a wrapper object
+        hasn't been marked normally, it is marked as inaccessible. It is then marked manually,
+        as long as its entangled port is accessible itself.
+
+2008-10-15  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Remove unneeded check of whether a Page defers loading before running it
+        in a modal dialog.
+
+        No test possible.
+
+        Reviewed by Tim Hatcher.
+
+        * page/Chrome.cpp:
+
+2008-10-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=21345
+        Start the debugger without reloading the inspected page
+
+        * WebCore.base.exp: New symbols.
+
+        * ForwardingHeaders/kjs/CollectorHeapIterator.h: Copied from ForwardingHeaders/kjs/ustring.h.
+        * ForwardingHeaders/kjs/Parser.h: Copied from ForwardingHeaders/kjs/ustring.h.
+        * WebCore.xcodeproj/project.pbxproj: New forwarding headers.
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::setWindowVisible):
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+        (WebCore::InspectorController::startDebugging):
+        * inspector/InspectorController.h: Renamed startDebuggingAndReloadInspectedPage
+        to startDebugging, and changed its behavior to match.
+
+        * inspector/JavaScriptDebugListener.h:
+        * inspector/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::JavaScriptDebugServer):
+        (WebCore::JavaScriptDebugServer::addListener):
+        (WebCore::JavaScriptDebugServer::removeListener):
+        (WebCore::JavaScriptDebugServer::recompileAllJSFunctions):
+        (WebCore::JavaScriptDebugServer::willAddFirstListener):
+        (WebCore::JavaScriptDebugServer::didRemoveLastListener):
+        * inspector/JavaScriptDebugServer.h: Refactored the
+        JavaScriptDebugServer to centralize handling of adding the first listener
+        and removing the last. Then, added a feature to recompile all JS functions
+        in these cases. This allows us to dynamically add and remove hooks like
+        the debugger hooks without reloading the page.
+
+        * inspector/front-end/ScriptsPanel.js:
+        * English.lproj/localizedStrings.js: Updated for startDebuggingAndReloadInspectedPage =>
+        startDebugging rename. Removed all UI that claimed that starting the
+        debugger would reload the page.
+
+2008-10-15  Adele Peterson  <adele@apple.com>
+
+        Attempt to fix the Tiger build.
+
+        * platform/network/mac/ResourceHandleMac.mm:
+
+2008-10-15  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix attempt.
+
+        Try to fix static/non-static declaration of g_string_append_uri_escape
+        by renaming that string. Another look needs to be taken.
+
+        * platform/gtk/guriescape.c:
+        (_webcore_g_string_append_uri_escaped):
+        (_webcore_g_uri_escape_string):
+
+2008-10-15  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix.
+
+        m_animatingImageType is gone.
+
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::BitmapImage::BitmapImage):
+
+2008-10-15  Jeff Cook <cookiecaper@gmail.com>
+
+        Reviewed by Holger Freyther.
+
+        Stop SIGSEGV when leaving a page with a Flash object by reordering
+        window destruction and plugin stop.
+
+        See https://bugs.webkit.org/show_bug.cgi?id=20779
+
+        * plugins/gtk/PluginViewGtk.cpp:
+        (WebCore::PluginView::stop):
+
+2008-10-15  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Implement didSendBodyData delegate method, and use older code path when that delegate doesn't exist. 
+
+        * platform/network/ResourceHandle.h:
+        * platform/network/mac/FormDataStreamMac.mm: (WebCore::formRead):
+        * platform/network/mac/ResourceHandleMac.mm:
+        (WebCore::ResourceHandle::didSendBodyDataDelegateExists):
+        (WebCore::ResourceHandle::start):
+        (WebCore::ResourceHandle::cancel):
+        (-[WebCoreResourceHandleAsDelegate connection:willSendRequest:redirectResponse:]):
+        (-[WebCoreResourceHandleAsDelegate connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite:]):
+        (-[WebCoreResourceHandleAsDelegate connectionDidFinishLoading:]):
+        (-[WebCoreResourceHandleAsDelegate connection:didFailWithError:]):
+
+2008-10-15  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Hyatt.
+
+        Qt build bustage fix.
+
+        * platform/graphics/qt/StillImageQt.h:
+        (WebCore::StillImage::destroyDecodedData):
+
+2008-10-15  David Hyatt  <hyatt@apple.com>
+
+        Make sure scrollbar styles get deleted if they aren't assigned to a renderer.
+
+        Reviewed by Mark Rowe
+
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::getScrollbarPseudoStyle):
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+
+2008-10-15  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19663 (Second attempt)
+        Account for paint and timer lag when animating images.  Also pretend
+        that images whose animations were paused (by becoming invisible)
+        continued to animate, by "catching up" to the correct frame when they're
+        shown again.
+
+        * platform/graphics/BitmapImage.cpp:
+        (WebCore::BitmapImage::BitmapImage):
+        (WebCore::BitmapImage::destroyDecodedData):
+        (WebCore::BitmapImage::cacheFrame):
+        (WebCore::BitmapImage::frameIsCompleteAtIndex):
+        (WebCore::BitmapImage::frameDurationAtIndex):
+        (WebCore::BitmapImage::frameHasAlphaAtIndex):
+        (WebCore::BitmapImage::repetitionCount):
+        (WebCore::BitmapImage::shouldAnimate):
+        (WebCore::BitmapImage::startAnimation):
+        (WebCore::BitmapImage::resetAnimation):
+        (WebCore::BitmapImage::advanceAnimation):
+        (WebCore::BitmapImage::internalAdvanceAnimation):
+        (WebCore::BitmapImage::notifyObserverAndTrimDecodedData):
+        * platform/graphics/BitmapImage.h:
+        (WebCore::FrameData::FrameData):
+        (WebCore::BitmapImage::):
+        * platform/graphics/GeneratedImage.h:
+        (WebCore::GeneratedImage::destroyDecodedData):
+        * platform/graphics/Image.h:
+        * platform/graphics/cairo/ImageCairo.cpp:
+        (WebCore::FrameData::clear):
+        (WebCore::BitmapImage::BitmapImage):
+        (WebCore::BitmapImage::draw):
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::FrameData::clear):
+        (WebCore::BitmapImage::BitmapImage):
+        (WebCore::BitmapImage::draw):
+        * platform/graphics/cg/PDFDocumentImage.h:
+        (WebCore::PDFDocumentImage::destroyDecodedData):
+        * platform/graphics/qt/ImageQt.cpp:
+        (WebCore::FrameData::clear):
+        (WebCore::BitmapImage::draw):
+        * platform/graphics/wx/ImageWx.cpp:
+        (WebCore::FrameData::clear):
+        (WebCore::BitmapImage::draw):
+        * svg/graphics/SVGImage.h:
+        (WebCore::SVGImage::destroyDecodedData):
+
+2008-10-14  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Darin Adler, tweaked and landed by Beth.
+
+        * WebCore.base.exp: Exposes two functions to be able to create a 
+        selection from a point on the screen. Also exposes the new 
+        TextIterator::currentNode function.
+        * WebCore/editing/TextIterator.cpp:
+        (TextIterator::currentNode) : New function that returns the current 
+        text node or NULL if there is no text node.
+
+2008-10-15  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=21211
+        [CURL] Upload doesn't work because cancel is called
+
+        FormDataStream::read returns 0 when retrieving data from the form
+        fails, but also when there is no more data to send. This means that
+        ResourceHandleManager::cancel is always called even when the data was
+        successfully sent.
+
+        Check if there are more elements in the form before calling
+        FormDataStream::read.
+
+        * platform/network/curl/FormDataStreamCurl.cpp:
+        (WebCore::FormDataStream::hasMoreElements):
+        * platform/network/curl/FormDataStreamCurl.h:
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::readCallback):
+
+2008-10-15  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=20664
+        [GTK] File names are not always encodable in UTF-8
+
+        On Linux file names are just raw data and cannot always be directly
+        encoded in UTF-8 or in any other encodings, so we escape them before
+        storing the file name in a String and unescape them before passing
+        them to native functions handling files.
+
+        * GNUmakefile.am:
+        * platform/FileSystem.h:
+        * platform/gtk/FileChooserGtk.cpp:
+        (WebCore::stringByAdoptingFileSystemRepresentation):
+        (WebCore::FileChooser::basenameForWidth):
+        * platform/gtk/FileSystemGtk.cpp:
+        (WebCore::filenameToString):
+        (WebCore::filenameFromString):
+        (WebCore::filenameForDisplay):
+        (WebCore::fileExists):
+        (WebCore::deleteFile):
+        (WebCore::deleteEmptyDirectory):
+        (WebCore::getFileSize):
+        (WebCore::getFileModificationTime):
+        (WebCore::makeAllDirectories):
+        (WebCore::homeDirectoryPath):
+        (WebCore::pathGetFileName):
+        (WebCore::listDirectory):
+        * platform/gtk/KURLGtk.cpp:
+        (WebCore::KURL::fileSystemPath):
+        * platform/gtk/SharedBufferGtk.cpp:
+        (WebCore::SharedBuffer::createWithContentsOfFile):
+        * platform/gtk/guriescape.c: Added.
+        (is_valid):
+        (gunichar_ok):
+        (g_string_append_uri_escaped):
+        (_webcore_g_uri_escape_string):
+        * platform/gtk/guriescape.h: Added.
+
+2008-10-15  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Eric Seidel.
+
+        - part of https://bugs.webkit.org/show_bug.cgi?id=20543
+          Moved gradient spread method out of SVG into the GraphicsContext.
+
+        * platform/graphics/GraphicsContext.cpp:
+        (WebCore::GraphicsContext::spreadMethod):
+        (WebCore::GraphicsContext::setSpreadMethod):
+        * platform/graphics/GraphicsContext.h:
+        (WebCore::):
+        * platform/graphics/GraphicsContextPrivate.h:
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::applySpreadMethod):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::applySpreadMethod):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        * svg/GradientAttributes.h:
+        (WebCore::GradientAttributes::GradientAttributes):
+        (WebCore::GradientAttributes::spreadMethod):
+        (WebCore::GradientAttributes::setSpreadMethod):
+        * svg/SVGGradientElement.cpp:
+        (WebCore::SVGGradientElement::parseMappedAttribute):
+        * svg/SVGGradientElement.h:
+        * svg/SVGLinearGradientElement.cpp:
+        (WebCore::SVGLinearGradientElement::collectGradientProperties):
+        * svg/SVGRadialGradientElement.cpp:
+        (WebCore::SVGRadialGradientElement::collectGradientProperties):
+        * svg/graphics/SVGPaintServerGradient.cpp:
+        (WebCore::operator<<):
+        (WebCore::SVGPaintServerGradient::SVGPaintServerGradient):
+        (WebCore::SVGPaintServerGradient::spreadMethod):
+        (WebCore::SVGPaintServerGradient::setGradientSpreadMethod):
+        (WebCore::SVGPaintServerGradient::externalRepresentation):
+        * svg/graphics/SVGPaintServerGradient.h:
+        * svg/graphics/cairo/SVGPaintServerGradientCairo.cpp:
+        (WebCore::SVGPaintServerGradient::setup):
+        * svg/graphics/qt/SVGPaintServerGradientQt.cpp:
+        (WebCore::SVGPaintServerGradient::setup):
+
 2008-10-15  Darin Fisher  <darin@chromium.org>
 
         Reviewed by Sam Weinig.

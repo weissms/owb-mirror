@@ -72,9 +72,11 @@ ENDIF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
 
 IF (${WEBKIT_USE_FILESYSTEM} STREQUAL "GTK")
     OWBLN (Gtk/BCFileSystemGtk.h OWBAL 0 0)
-    
+    OWBLN (Gtk/BCguriescapeGtk.h OWBAL 0 0)
+
     LIST (APPEND FACILITIES_SRC
         Gtk/BCFileSystemGtk.cpp
+        Gtk/BCguriescapeGtk.c
     )
 ELSEIF (${WEBKIT_USE_FILESYSTEM} STREQUAL "POSIX")
     OWBLN (Posix/BCFileSystemPosix.h OWBAL 0 0)

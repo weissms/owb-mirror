@@ -33,15 +33,42 @@
 #include <wtf/RefCountedLeakCounter.h>
 #include <wtf/RefPtr.h>
 
+#if ENABLE(JSC_MULTIPLE_THREADS)
+#include <wtf/Threading.h>
+#endif
+
 using namespace std;
 
 namespace JSC {
 
-#ifndef NDEBUG    
+#ifndef NDEBUG
 static WTF::RefCountedLeakCounter structureIDCounter("StructureID");
+
+#if ENABLE(JSC_MULTIPLE_THREADS)
+static Mutex ignoreSetMutex;
+#endif
 
 static bool shouldIgnoreLeaks;
 static HashSet<StructureID*> ignoreSet;
+#endif
+
+#if DUMP_STRUCTURE_ID_STATISTICS
+static HashSet<StructureID*> liveStructureIDSet;
+
+void StructureID::dumpStatistics()
+{
+    unsigned numberUsingSingleSlot = 0;
+
+    HashSet<StructureID*>::const_iterator end = liveStructureIDSet.end();
+    for (HashSet<StructureID*>::const_iterator it = liveStructureIDSet.begin(); it != end; ++it) {
+        StructureID* structureID = *it;
+        if (structureID->m_usingSingleTransitionSlot)
+            ++numberUsingSingleSlot;
+    }
+
+    printf("Number of live StructureIDs: %d\n", liveStructureIDSet.size());
+    printf("Number of StructureIDs using the single item optimization for transition map: %d\n", numberUsingSingleSlot);
+}
 #endif
 
 StructureID::StructureID(JSValue* prototype, const TypeInfo& typeInfo)
@@ -53,36 +80,60 @@ StructureID::StructureID(JSValue* prototype, const TypeInfo& typeInfo)
     , m_previous(0)
     , m_nameInPrevious(0)
     , m_transitionCount(0)
+    , m_usingSingleTransitionSlot(true)
     , m_propertyStorageCapacity(JSObject::inlineStorageCapacity)
     , m_cachedTransistionOffset(WTF::notFound)
 {
     ASSERT(m_prototype);
     ASSERT(m_prototype->isObject() || m_prototype->isNull());
 
+    m_transitions.singleTransition = 0;
+
 #ifndef NDEBUG
+#if ENABLE(JSC_MULTIPLE_THREADS)
+    MutexLocker protect(ignoreSetMutex);
+#endif
     if (shouldIgnoreLeaks)
         ignoreSet.add(this);
     else
         structureIDCounter.increment();
+#endif
+
+#if DUMP_STRUCTURE_ID_STATISTICS
+    liveStructureIDSet.add(this);
 #endif
 }
 
 StructureID::~StructureID()
 {
     if (m_previous) {
-        ASSERT(m_previous->m_transitionTable.contains(make_pair(m_nameInPrevious, m_attributesInPrevious)));
-        m_previous->m_transitionTable.remove(make_pair(m_nameInPrevious, m_attributesInPrevious));
+        if (m_previous->m_usingSingleTransitionSlot) {
+            m_previous->m_transitions.singleTransition = 0;
+        } else {
+            ASSERT(m_previous->m_transitions.table->contains(make_pair(m_nameInPrevious, m_attributesInPrevious)));
+            m_previous->m_transitions.table->remove(make_pair(m_nameInPrevious, m_attributesInPrevious));
+        }
     }
 
     if (m_cachedPropertyNameArrayData)
         m_cachedPropertyNameArrayData->setCachedStructureID(0);
 
+    if (!m_usingSingleTransitionSlot)
+        delete m_transitions.table;
+
 #ifndef NDEBUG
+#if ENABLE(JSC_MULTIPLE_THREADS)
+    MutexLocker protect(ignoreSetMutex);
+#endif
     HashSet<StructureID*>::iterator it = ignoreSet.find(this);
     if (it != ignoreSet.end())
         ignoreSet.remove(it);
     else
         structureIDCounter.decrement();
+#endif
+
+#if DUMP_STRUCTURE_ID_STATISTICS
+    liveStructureIDSet.remove(this);
 #endif
 }
 
@@ -168,10 +219,19 @@ PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structur
     ASSERT(!structureID->m_isDictionary);
     ASSERT(structureID->typeInfo().type() == ObjectType);
 
-    if (StructureID* existingTransition = structureID->m_transitionTable.get(make_pair(propertyName.ustring().rep(), attributes))) {
-        offset = existingTransition->cachedTransistionOffset();
-        ASSERT(offset != WTF::notFound);
-        return existingTransition;
+    if (structureID->m_usingSingleTransitionSlot) {
+        StructureID* existingTransition = structureID->m_transitions.singleTransition;
+        if (existingTransition && existingTransition->m_nameInPrevious == propertyName.ustring().rep() && existingTransition->m_attributesInPrevious == attributes) {
+            offset = structureID->m_transitions.singleTransition->cachedTransistionOffset();
+            ASSERT(offset != WTF::notFound);
+            return existingTransition;
+        }
+    } else {
+        if (StructureID* existingTransition = structureID->m_transitions.table->get(make_pair(propertyName.ustring().rep(), attributes))) {
+            offset = existingTransition->cachedTransistionOffset();
+            ASSERT(offset != WTF::notFound);
+            return existingTransition;
+        }        
     }
 
     if (structureID->m_transitionCount > s_maxTransitionLength) {
@@ -198,7 +258,19 @@ PassRefPtr<StructureID> StructureID::addPropertyTransition(StructureID* structur
 
     transition->setCachedTransistionOffset(offset);
 
-    structureID->m_transitionTable.add(make_pair(propertyName.ustring().rep(), attributes), transition.get());
+    if (structureID->m_usingSingleTransitionSlot) {
+        if (!structureID->m_transitions.singleTransition) {
+            structureID->m_transitions.singleTransition = transition.get();
+            return transition.release();
+        }
+
+        StructureID* existingTransition = structureID->m_transitions.singleTransition;
+        structureID->m_usingSingleTransitionSlot = false;
+        TransitionTable* transitionTable = new TransitionTable;
+        structureID->m_transitions.table = transitionTable;
+        transitionTable->add(make_pair(existingTransition->m_nameInPrevious, existingTransition->m_attributesInPrevious), existingTransition);
+    }
+    structureID->m_transitions.table->add(make_pair(propertyName.ustring().rep(), attributes), transition.get());
     return transition.release();
 }
 
@@ -243,6 +315,14 @@ PassRefPtr<StructureID> StructureID::getterSetterTransition(StructureID* structu
     transition->m_propertyStorageCapacity = structureID->m_propertyStorageCapacity;
     transition->m_hasGetterSetterProperties = transition->m_hasGetterSetterProperties;
     return transition.release();
+}
+
+size_t StructureID::addPropertyWithoutTransition(const Identifier& propertyName, unsigned attributes)
+{
+    size_t offset = m_propertyMap.put(propertyName, attributes);
+    if (m_propertyMap.storageSize() > propertyStorageCapacity())
+        growPropertyStorageCapacity();
+    return offset;
 }
 
 StructureIDChain* StructureID::createCachedPrototypeChain()

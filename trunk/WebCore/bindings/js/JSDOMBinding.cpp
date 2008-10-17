@@ -26,6 +26,7 @@
 #include "config.h"
 #include "JSDOMBinding.h"
 
+#include "ActiveDOMObject.h"
 #include "DOMCoreException.h"
 #include "Document.h"
 #include "EventException.h"
@@ -43,7 +44,6 @@
 #include "MessagePort.h"
 #include "RangeException.h"
 #include "ScriptController.h"
-#include "XMLHttpRequest.h"
 #include "XMLHttpRequestException.h"
 #include <kjs/PrototypeFunction.h>
 
@@ -245,11 +245,11 @@ void markActiveObjectsForDocument(JSGlobalData& globalData, Document* doc)
     // If an element has pending activity that may result in listeners being called
     // (e.g. an XMLHttpRequest), we need to keep all JS wrappers alive.
 
-    const HashSet<XMLHttpRequest*>& xmlHttpRequests = doc->xmlHttpRequests();
-    HashSet<XMLHttpRequest*>::const_iterator requestsEnd = xmlHttpRequests.end();
-    for (HashSet<XMLHttpRequest*>::const_iterator iter = xmlHttpRequests.begin(); iter != requestsEnd; ++iter) {
-        if ((*iter)->hasPendingActivity()) {
-            DOMObject* wrapper = getCachedDOMObjectWrapper(globalData, *iter);
+    const HashMap<ActiveDOMObject*, void*>& activeObjects = doc->activeDOMObjects();
+    HashMap<ActiveDOMObject*, void*>::const_iterator activeObjectsEnd = activeObjects.end();
+    for (HashMap<ActiveDOMObject*, void*>::const_iterator iter = activeObjects.begin(); iter != activeObjectsEnd; ++iter) {
+        if (iter->first->hasPendingActivity()) {
+            DOMObject* wrapper = getCachedDOMObjectWrapper(globalData, iter->second);
             // An object with pending activity must have a wrapper to mark its listeners, so no null check.
             if (!wrapper->marked())
                 wrapper->mark();
@@ -263,6 +263,33 @@ void markActiveObjectsForDocument(JSGlobalData& globalData, Document* doc)
             DOMObject* wrapper = getCachedDOMObjectWrapper(globalData, *iter);
             // An object with pending activity must have a wrapper to mark its listeners, so no null check.
             if (!wrapper->marked())
+                wrapper->mark();
+        }
+    }
+}
+
+void markCrossHeapDependentObjectsForDocument(JSGlobalData& globalData, Document* document)
+{
+    const HashSet<MessagePort*>& messagePorts = document->messagePorts();
+    HashSet<MessagePort*>::const_iterator portsEnd = messagePorts.end();
+    for (HashSet<MessagePort*>::const_iterator iter = messagePorts.begin(); iter != portsEnd; ++iter) {
+        MessagePort* port = *iter;
+        RefPtr<MessagePort> entangledPort = port->entangledPort();
+        if (entangledPort) {
+            // No wrapper, or wrapper is already marked - no need to examine cross-heap dependencies.
+            DOMObject* wrapper = getCachedDOMObjectWrapper(globalData, port);
+            if (!wrapper || wrapper->marked())
+                continue;
+
+            // If the wrapper hasn't been marked during the mark phase of GC, then the port shouldn't protect its entangled one.
+            // It's important not to call this when there is no wrapper. E.g., if GC is triggered after a MessageChannel is created, but before its ports are used from JS,
+            // irreversibly telling the object that its (not yet existing) wrapper is inaccessible would be wrong. Similarly, ports posted via postMessage() may not
+            // have wrappers until delivered.
+            port->setJSWrapperIsInaccessible();
+
+            // If the port is protected by its entangled one, mark it.
+            // This is an atomic read of a boolean value, no synchronization between threads is required (at least on platforms that guarantee cache coherency).
+            if (!entangledPort->jsWrapperIsInaccessible())
                 wrapper->mark();
         }
     }

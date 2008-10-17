@@ -84,6 +84,7 @@
 #import "WebPolicyDelegate.h"
 #import "WebPreferenceKeysPrivate.h"
 #import "WebPreferencesPrivate.h"
+#import "WebTextIterator.h"
 #import "WebUIDelegate.h"
 #import "WebUIDelegatePrivate.h"
 #import <CoreFoundation/CFSet.h>
@@ -613,17 +614,20 @@ static NSString *createUserVisibleWebKitVersionString()
     return [fullVersion copy];
 }
 
-+ (NSString *)_standardUserAgentWithApplicationName:(NSString *)applicationName andWebKitVersion:(NSString *)version
++ (NSString *)_standardUserAgentWithApplicationName:(NSString *)applicationName
 {
-    // Note: Do *not* move the initialization of osVersion into the declaration.
+    // Note: Do *not* move the initialization of osVersion nor webKitVersion into the declaration.
     // Garbage collection won't correctly mark the global variable in that case <rdar://problem/5733674>.
     static NSString *osVersion;
+    static NSString *webKitVersion;
     if (!osVersion)
         osVersion = createMacOSXVersionString();
+    if (!webKitVersion)
+        webKitVersion = createUserVisibleWebKitVersionString();
     NSString *language = [NSUserDefaults _webkit_preferredLanguageCode];
     if ([applicationName length])
-        return [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; " PROCESSOR " Mac OS X %@; %@) AppleWebKit/%@ (KHTML, like Gecko) %@", osVersion, language, version, applicationName];
-    return [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; " PROCESSOR " Mac OS X %@; %@) AppleWebKit/%@ (KHTML, like Gecko)", osVersion, language, version];
+        return [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; " PROCESSOR " Mac OS X %@; %@) AppleWebKit/%@ (KHTML, like Gecko) %@", osVersion, language, webKitVersion, applicationName];
+    return [NSString stringWithFormat:@"Mozilla/5.0 (Macintosh; U; " PROCESSOR " Mac OS X %@; %@) AppleWebKit/%@ (KHTML, like Gecko)", osVersion, language, webKitVersion];
 }
 
 static void WebKitInitializeApplicationCachePathIfNecessary()
@@ -1929,6 +1933,20 @@ WebFrameLoadDelegateImplementationCache* WebViewGetFrameLoadDelegateImplementati
 
     // Post a notification so the WebCore settings update.
     [[self preferences] _postPreferencesChangesNotification];
+}
+
+- (WebTextIterator *)textIteratorForRect:(NSRect)rect
+{
+    IntPoint rectStart(rect.origin.x, rect.origin.y);
+    IntPoint rectEnd(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
+    
+    Frame* coreFrame = core([self mainFrame]);
+    if (!coreFrame)
+        return nil;
+    
+    Selection selectionInsideRect(coreFrame->visiblePositionForPoint(rectStart), coreFrame->visiblePositionForPoint(rectEnd));
+    
+    return [[[WebTextIterator alloc] initWithRange:[DOMRange _wrapRange:selectionInsideRect.toRange().get()]] autorelease];
 }
 
 - (void)handleAuthenticationForResource:(id)identifier challenge:(NSURLAuthenticationChallenge *)challenge fromDataSource:(WebDataSource *)dataSource 
@@ -4653,14 +4671,8 @@ static WebFrameView *containingFrameView(NSView *view)
         // No current site-specific spoofs.
     }
 
-    if (_private->userAgent.isNull()) {
-        // Note: Do *not* move the initialization of webKitVersion into the declaration.
-        // Garbage collection won't correctly mark the global variable in that case <rdar://problem/5733674>.
-        static NSString *webKitVersion;
-        if (!webKitVersion)
-            webKitVersion = createUserVisibleWebKitVersionString();
-        _private->userAgent = [[self class] _standardUserAgentWithApplicationName:_private->applicationNameForUserAgent andWebKitVersion:webKitVersion];
-    }
+    if (_private->userAgent.isNull())
+        _private->userAgent = [[self class] _standardUserAgentWithApplicationName:_private->applicationNameForUserAgent];
 
     return _private->userAgent;
 }

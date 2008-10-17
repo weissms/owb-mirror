@@ -69,6 +69,7 @@
 		14BD5A300A3E91F600BAF59C /* JSContextRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14BD5A290A3E91F600BAF59C /* JSContextRef.cpp */; };
 		14BD5A320A3E91F600BAF59C /* JSValueRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14BD5A2B0A3E91F600BAF59C /* JSValueRef.cpp */; };
 		14E0FF120DBAAED00007C0AB /* Machine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 149B15E70D81F986009CB8C7 /* Machine.cpp */; settings = {COMPILER_FLAGS = "-fno-tree-pre"; }; };
+		14F3488F0E95EF8A003648BC /* CollectorHeapIterator.h in Headers */ = {isa = PBXBuildFile; fileRef = 14F3488E0E95EF8A003648BC /* CollectorHeapIterator.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5D53726F0E1C54880021E549 /* Tracing.h in Headers */ = {isa = PBXBuildFile; fileRef = 5D53726E0E1C54880021E549 /* Tracing.h */; };
 		5D5D8AB60E0D0A7200F9C692 /* jsc in Copy Into Framework */ = {isa = PBXBuildFile; fileRef = 932F5BE10822A1C700736975 /* jsc */; };
 		5D5D8AD10E0D0EBE00F9C692 /* libedit.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D5D8AD00E0D0EBE00F9C692 /* libedit.dylib */; };
@@ -301,73 +302,6 @@
 		E1EF79AA0CE97BA60088D500 /* UTF8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1EF79A80CE97BA60088D500 /* UTF8.cpp */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXBuildRule section */
-		1CFE4BEC0B0BA1EB00CC444D /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		1CFE4BF10B0BA22200CC444D /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.cpp;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		5DAD97A80B39B88E0014FEFF /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		5DAD97A80B39B88E0014FFFF /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.cpp;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		5DAD97A80B39B88F0014FEFF /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		5DAD97A80B39B88F0014FFFF /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.cpp;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		5DAD97A80B39B89F0014FEFF /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		5DAD97A80B39B89F0014FFFF /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.cpp;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-/* End PBXBuildRule section */
-
 /* Begin PBXContainerItemProxy section */
 		141211350A48796100480255 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -515,6 +449,7 @@
 		14DA818F0D99FD2000B0A4FB /* JSActivation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSActivation.cpp; sourceTree = "<group>"; };
 		14DE0D680D02431400AACCA2 /* JSGlobalObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSGlobalObject.cpp; sourceTree = "<group>"; };
 		14F252560D08DD8D004ECFFF /* JSVariableObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSVariableObject.h; sourceTree = "<group>"; };
+		14F3488E0E95EF8A003648BC /* CollectorHeapIterator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollectorHeapIterator.h; sourceTree = "<group>"; };
 		1C9051420BA9E8A70081E9D0 /* Version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		1C9051430BA9E8A70081E9D0 /* JavaScriptCore.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = JavaScriptCore.xcconfig; sourceTree = "<group>"; };
 		1C9051440BA9E8A70081E9D0 /* DebugRelease.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = DebugRelease.xcconfig; sourceTree = "<group>"; };
@@ -1296,6 +1231,7 @@
 				F692A8860255597D01FF60F7 /* ustring.h */,
 				147B83AA0E6DB8C9004775A4 /* BatchedTransitionOptimizer.h */,
 				147B84620E6DE6B1004775A4 /* PutPropertySlot.h */,
+				14F3488E0E95EF8A003648BC /* CollectorHeapIterator.h */,
 			);
 			path = kjs;
 			sourceTree = "<group>";
@@ -1600,6 +1536,7 @@
 				7E2ADD8E0E79AAD500D50C51 /* CharacterClassConstructor.h in Headers */,
 				140D17D70E8AD4A9000CD17D /* JSBasePrivate.h in Headers */,
 				869EBCB70E8C6D4A008722CC /* ResultType.h in Headers */,
+				14F3488F0E95EF8A003648BC /* CollectorHeapIterator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1616,8 +1553,6 @@
 				144005C70A5338C60005F061 /* Headers */,
 			);
 			buildRules = (
-				5DAD97A80B39B88E0014FEFF /* PBXBuildRule */,
-				5DAD97A80B39B88E0014FFFF /* PBXBuildRule */,
 			);
 			dependencies = (
 				141211360A48796100480255 /* PBXTargetDependency */,
@@ -1636,8 +1571,6 @@
 				14BD59BD0A3E8F9000BAF59C /* Frameworks */,
 			);
 			buildRules = (
-				5DAD97A80B39B88F0014FEFF /* PBXBuildRule */,
-				5DAD97A80B39B88F0014FFFF /* PBXBuildRule */,
 			);
 			dependencies = (
 				14270B080A451DA10080EEEA /* PBXTargetDependency */,
@@ -1660,8 +1593,6 @@
 				1C395CBC0C6BCC16000D1E52 /* Generate 64-bit Export File */,
 			);
 			buildRules = (
-				1CFE4BF10B0BA22200CC444D /* PBXBuildRule */,
-				1CFE4BEC0B0BA1EB00CC444D /* PBXBuildRule */,
 			);
 			dependencies = (
 				65FB3F7E09D11EF300F49DEB /* PBXTargetDependency */,
@@ -1682,8 +1613,6 @@
 				5D5D8ABF0E0D0B0300F9C692 /* Fix Framework Reference */,
 			);
 			buildRules = (
-				5DAD97A80B39B89F0014FEFF /* PBXBuildRule */,
-				5DAD97A80B39B89F0014FFFF /* PBXBuildRule */,
 			);
 			dependencies = (
 				14270B0C0A451DA40080EEEA /* PBXTargetDependency */,
@@ -2094,7 +2023,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1C9051440BA9E8A70081E9D0 /* DebugRelease.xcconfig */;
 			buildSettings = {
-				GCC_VERSION = 4.0;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;

@@ -2138,7 +2138,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     NSString *target = nil;
     if (cTarget) {
         // Find the frame given the target string.
-        target = (NSString *)CFStringCreateWithCString(kCFAllocatorDefault, cTarget, kCFStringEncodingWindowsLatin1);
+        target = [NSString stringWithCString:cTarget encoding:NSISOLatin1StringEncoding];
     }
     WebFrame *frame = [self webFrame];
 
@@ -2146,8 +2146,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     // displayed unless the loads are in the same frame as the plugin.
     if ([[self dataSource] _documentLoader] != core([self webFrame])->loader()->activeDocumentLoader() &&
         (!cTarget || [frame findFrameNamed:target] != frame)) {
-        if (target)
-            CFRelease(target);
         return NPERR_GENERIC_ERROR; 
     }
     
@@ -2170,9 +2168,8 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
         // Make when targetting a frame or evaluating a JS string, perform the request after a delay because we don't
         // want to potentially kill the plug-in inside of its URL request.
         
-        if (JSString != nil && target != nil && [frame findFrameNamed:target] != frame) {
+        if (JSString && target && [frame findFrameNamed:target] != frame) {
             // For security reasons, only allow JS requests to be made on the frame that contains the plug-in.
-            CFRelease(target);
             return NPERR_INVALID_PARAM;
         }
         
@@ -2187,8 +2184,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
                                                             didStartFromUserGesture:currentEventIsUserGesture];
         [self performSelector:@selector(loadPluginRequest:) withObject:pluginRequest afterDelay:0];
         [pluginRequest release];
-        if (target)
-            CFRelease(target);
     } else {
         WebBaseNetscapePluginStream *stream = [[WebBaseNetscapePluginStream alloc] initWithRequest:request 
                                                                                             plugin:plugin 
@@ -2407,7 +2402,12 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
         break;
 #endif /* NP_NO_QUICKDRAW */
         
-        case NPDrawingModelCoreGraphics:    
+        case NPDrawingModelCoreGraphics:
+        {
+            CGRect cgRect = CGPathGetBoundingBox((NPCGRegion)invalidRegion);
+            invalidRect = *(NSRect*)&cgRect;
+            break;
+        }
         default:
             ASSERT_NOT_REACHED();
         break;
@@ -2563,7 +2563,11 @@ static NPBrowserTextInputFuncs *browserTextInputFuncs()
                 // Supported drawing models:
 #ifndef NP_NO_QUICKDRAW
                 case NPDrawingModelQuickDraw:
-#endif                
+#endif
+                case NPDrawingModelCoreGraphics:
+                    drawingModel = newDrawingModel;
+                    return NPERR_NO_ERROR;
+
                 // Unsupported (or unknown) drawing models:
                 default:
                     LOG(Plugins, "Plugin %@ uses unsupported drawing model: %d", pluginPackage, drawingModel);

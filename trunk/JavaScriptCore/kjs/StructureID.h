@@ -38,6 +38,8 @@
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
 
+#define DUMP_STRUCTURE_ID_STATISTICS 0
+
 namespace JSC {
 
     class JSValue;
@@ -85,6 +87,10 @@ namespace JSC {
         static void startIgnoringLeaks();
         static void stopIgnoringLeaks();
 
+#if DUMP_STRUCTURE_ID_STATISTICS
+        static void dumpStatistics();
+#endif
+
         static PassRefPtr<StructureID> changePrototypeTransition(StructureID*, JSValue* prototype);
         static PassRefPtr<StructureID> addPropertyTransition(StructureID*, const Identifier& propertyName, unsigned attributes, size_t& offset);
         static PassRefPtr<StructureID> getterSetterTransition(StructureID*);
@@ -98,6 +104,8 @@ namespace JSC {
             if (!m_prototype->marked())
                 m_prototype->mark();
         }
+
+        size_t addPropertyWithoutTransition(const Identifier& propertyName, unsigned attributes);
 
         bool isDictionary() const { return m_isDictionary; }
 
@@ -152,7 +160,11 @@ namespace JSC {
         unsigned m_attributesInPrevious;
 
         size_t m_transitionCount;
-        TransitionTable m_transitionTable;
+        bool m_usingSingleTransitionSlot;
+        union {
+            StructureID* singleTransition;
+            TransitionTable* table;
+        } m_transitions;
 
         RefPtr<PropertyNameArrayData> m_cachedPropertyNameArrayData;
 

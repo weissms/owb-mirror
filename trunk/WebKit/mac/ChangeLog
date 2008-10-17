@@ -1,3 +1,83 @@
+2008-10-17  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        Fix a leak of a CFStringRef reported by the build bot.
+
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView loadRequest:inTarget:withNotifyData:sendNotification:]): Use a autoreleased
+        NSString rather than manually releasing a CFStringRef when we're done with it.
+
+2008-10-15  Kenneth Russell  <kenneth.russell@sun.com>
+
+        Reviewed and landed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21572
+        
+        Initialize pluginFunc.size to the correct size before calling NP_GetEntryPoints.
+        
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage load]):
+
+2008-10-15  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6272508> Crash occurs after loading flash content at http://www.macrumors.com/
+
+        Restore some code related to the CoreGraphics drawing model that was misplaced in r37131.
+
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView invalidateRegion:]):
+        (-[WebBaseNetscapePluginView setVariable:value:]):
+
+2008-10-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=21345
+        Start the debugger without reloading the inspected page
+
+        * WebInspector/WebInspector.mm:
+        (-[WebInspector startDebuggingJavaScript:]): Updated for rename.
+
+2008-10-14  Maxime Britto  <britto@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Added SPI to use WebCore's TextIterator with WebKit.
+
+        * WebView/WebTextIterator.h: Added.
+        * WebView/WebTextIterator.mm: Added.
+        (-[WebTextIteratorPrivate dealloc]):
+        (-[WebTextIterator dealloc]):
+        (-[WebTextIterator initWithRange:]): Creates a TextIterator 
+        instance
+        (-[WebTextIterator advance]): Asks the iterator to advance() .
+        (-[WebTextIterator currentNode]): Returns the current DOMNode from 
+        the iterator
+        (-[WebTextIterator currentText]): Returns the current text from the 
+        iterator
+        (-[WebTextIterator atEnd]): Indicated whether the iterator has 
+        reached the end of the range.
+        * WebView/WebView.h:
+        * WebView/WebView.mm:
+        (-[WebView textIteratorForRect:]): Returns a WebTextIterator with 
+        the DOMRange contained in the rectangle given as a parameter.
+
+2008-10-15  Timothy Hatcher  <timothy@apple.com>
+
+        Clean up user agent generation to simplify the _standardUserAgentWithApplicationName:
+        class method to not require a WebKit version.
+
+        Reviewed by Darin Adler.
+
+        * WebView/WebView.mm:
+        (+[WebView _standardUserAgentWithApplicationName:]): Create the WebKit version.
+        (-[WebView WebCore::_userAgentForURL:]): Use the simplified _standardUserAgentWithApplicationName:.
+        Remove code that created the WebKit version.
+        * WebView/WebViewPrivate.h: Change the method name of _standardUserAgentWithApplicationName:.
+
 2008-10-15  Timothy Hatcher  <timothy@apple.com>
 
         Make the user agent generation method a class method and cache the WebKit
