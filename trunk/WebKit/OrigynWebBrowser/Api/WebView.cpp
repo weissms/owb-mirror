@@ -112,7 +112,8 @@
 #include <sys/sysctl.h>
 #elif PLATFORM(AMIGAOS4)
 #include <proto/exec.h>
-#include <intuition/intuition.h>
+#include <proto/intuition.h>
+#include <intuition/gadgetclass.h>
 #else
 #include <sys/sysinfo.h>
 #endif
@@ -328,7 +329,9 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
   
     if (sysctl (mib, miblen, &physmem, &len, NULL, 0) == 0 && len == sizeof (physmem))
        memSize=physmem / (1024*1024);
-#elif !PLATFORM(AMIGAOS4)
+#elif PLATFORM(AMIGAOS4)
+    memSize = IExec->AvailMem(MEMF_TOTAL) / (1024 * 1024);
+#else
     struct sysinfo info;
     memset(&info, 0, sizeof(info));
     if (sysinfo(&info) == 0)
@@ -615,9 +618,8 @@ void WebView::scrollBackingStore(FrameView* frameView, int dx, int dy, const Int
 {
 #if PLATFORM(AMIGAOS4)
     m_backingStoreDirtyRegion.move(dx, dy);
-#else
-    d->scrollBackingStore(frameView, dx, dy, scrollViewRect, clipRect);
 #endif
+    d->scrollBackingStore(frameView, dx, dy, scrollViewRect, clipRect);
     
 }
 
@@ -738,6 +740,9 @@ Page* WebView::page()
 static const unsigned CtrlKey = 1 << 0;
 static const unsigned AltKey = 1 << 1;
 static const unsigned ShiftKey = 1 << 2;
+#if PLATFORM(AMIGAOS4)
+static const unsigned AmigaKey = 1 << 4;
+#endif
 
 
 struct KeyDownEntry {
@@ -803,6 +808,12 @@ static const KeyDownEntry keyDownEntries[] = {
     { 'V',       CtrlKey,            "Paste"                                       },
     { 'X',       CtrlKey,            "Cut"                                         },
     { 'A',       CtrlKey,            "SelectAll"                                   },
+#if PLATFORM(AMIGAOS4)
+    { 'C',       AmigaKey,           "Copy"                                        },
+    { 'V',       AmigaKey,           "Paste"                                       },
+    { 'X',       AmigaKey,           "Cut"                                         },
+    { 'A',       AmigaKey,           "SelectAll"                                   },
+#endif
     { VK_INSERT, CtrlKey,            "Copy"                                        },
     { VK_DELETE, ShiftKey,           "Cut"                                         },
     { VK_INSERT, ShiftKey,           "Paste"                                       },
@@ -852,6 +863,10 @@ const char* WebView::interpretKeyEvent(const KeyboardEvent* evt)
         modifiers |= AltKey;
     if (evt->ctrlKey())
         modifiers |= CtrlKey;
+#if PLATFORM (AMIGAOS4)
+    if (evt->metaKey())
+        modifiers |= AmigaKey;
+#endif
 
     if (evt->type() == keydownEvent) {
         int mapKey = modifiers << 16 | evt->keyCode();
@@ -1033,6 +1048,25 @@ void WebView::initializeToolTipWindow()
 
 void WebView::setToolTip(const String& toolTip)
 {
+#if PLATFORM(AMIGAOS4)
+    if (toolTip == m_toolTip)
+        return;
+
+    m_toolTip = toolTip;
+
+    BalWidget *widget = m_viewWindow;
+    if (widget && widget->gad_status) {
+        CString toolTipLatin1 = m_toolTip.latin1();
+        snprintf(widget->toolTipText, sizeof(widget->toolTipText), "%s", toolTipLatin1.data());
+        if (widget->statusBarText[0] && widget->toolTipText[0])
+            snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s | %s", widget->statusBarText, widget->toolTipText);
+        else
+            snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s", widget->statusBarText[0] ? widget->statusBarText : widget->toolTipText);
+        IIntuition->RefreshSetGadgetAttrs(widget->gad_status, widget->window, NULL,
+                                          GA_Text, widget->statusToolTipText,
+                                          TAG_DONE);
+    }
+#endif
     /*if (!m_toolTipHwnd)
         return;
 
@@ -2054,7 +2088,11 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->shouldPaintCustomScrollbars();
     settings->setShouldPaintCustomScrollbars(!!enabled);
 
+#if PLATFORM(AMIGAOS4)
+    settings->setShowsURLsInToolTips(true);
+#else
     settings->setShowsURLsInToolTips(false);
+#endif
     settings->setForceFTPDirectoryListings(true);
     settings->setDeveloperExtrasEnabled(developerExtrasEnabled());
     settings->setNeedsSiteSpecificQuirks(s_allowSiteSpecificHacks);

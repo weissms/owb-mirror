@@ -210,7 +210,11 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
     style->setBorderLeftStyle(v);
     style->setBorderBottomStyle(v);
     style->setBorderRightStyle(v);
+#if PLATFORM(AMIGAOS4)
+    int borderWidth = 2;
+#else
     int borderWidth = 1;
+#endif
     style->setBorderTopWidth(borderWidth);
     style->setBorderLeftWidth(borderWidth);
     style->setBorderBottomWidth(borderWidth);
@@ -224,7 +228,12 @@ bool RenderThemeBal::paintRadio(RenderObject* o, const RenderObject::PaintInfo& 
         style.get(), true, true);
     if(o->element()->isChecked()) {
         IntRect r2(r);
+#if PLATFORM(AMIGAOS4)
+        r2.inflate(-borderWidth - 1);
+        i.context->setFillColor(Color(0xFF618ECE));
+#else
         r2.inflate(-borderWidth - 2);
+#endif
         i.context->drawRect(r2);
     }
     i.context->restore();

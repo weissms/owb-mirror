@@ -1,3 +1,23 @@
+2008-10-18  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        add ARexx support on AmigaOS4
+        add tooltip support on AmigaOS4
+        changed AmigaOS4 GUI layout
+
+        * OWBLauncher/AmigaOS4/main.cpp:
+        (initAmigaConfig):
+        (rxFunc):
+        (initARexx):
+        (cleanupARexx):
+        (closeAmigaWindowWithoutSurface):
+        (openAmigaWindow):
+        (createAmigaWindow):
+        (iconifyWindow):
+        (copycollection):
+        (waitEvent):
+        (main):
+
 2008-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Olivier DOLE.

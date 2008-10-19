@@ -1,3 +1,27 @@
+2008-10-18  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        updated AmigaOS4 parts to work with recent changes
+        add tooltip support on AmigaOS4
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::onKeyDown):
+        (WebViewPrivate::updateView):
+        (WebViewPrivate::sendExposeEvent):
+        (WebViewPrivate::repaint):
+        (WebViewPrivate::scrollBackingStore):
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::setCacheModel):
+        (WebView::scrollBackingStore):
+        (WebView::interpretKeyEvent):
+        (WebView::setToolTip):
+        (WebView::notifyPreferencesChanged):
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::createWindow):
+        (WebChromeClient::setStatusbarText):
+
 2008-10-14  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Olivier Dole.

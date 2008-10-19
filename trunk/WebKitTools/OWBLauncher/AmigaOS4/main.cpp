@@ -37,50 +37,41 @@ DS_INIT_DEEPSEE_FRAMEWORK();
 #include <Api/WebView.h>
 #include "CString.h"
 #include "Page.h"
+#include "DOMImplementation.h"
 #include "Editor.h"
 #include "FocusController.h"
 #include "Frame.h"
 #include "FrameView.h"
 #include "cairo.h"
-#include "cairo-amigaos.h"
+#include "ProgressTracker.h"
 #include "SelectionController.h"
 #include "SharedTimer.h"
 #include "Timer.h"
 #include "MainThread.h"
-#include <unistd.h>
-
 #include "WebBackForwardList.h"
 #include <FrameLoader.h>
+#include <unistd.h>
+#include <cstdio>
+
 #include <proto/dos.h>
 #include <proto/exec.h>
+#include <proto/gadtools.h>
 #include <proto/graphics.h>
 #include <proto/icon.h>
 #include <proto/iffparse.h>
 #include <proto/intuition.h>
+#include <proto/timer.h>
 #include <proto/utility.h>
 #include <proto/wb.h>
 #include <datatypes/textclass.h>
 #include <intuition/gui.h>
 #include <intuition/icclass.h>
 #include <libraries/keymap.h>
+
+#define ALL_REACTION_CLASSES
+#define ALL_REACTION_MACROS
 #include <reaction/reaction.h>
-#include <proto/bevel.h>
-#include <images/bevel.h>
-#include <proto/bitmap.h>
-#include <images/bitmap.h>
-#include <proto/button.h>
-#include <gadgets/button.h>
-#include <proto/label.h>
-#include <images/label.h>
-#include <proto/layout.h>
-#include <gadgets/layout.h>
-#include <proto/string.h>
-#include <proto/fuelgauge.h>
-#include <gadgets/fuelgauge.h>
-#include <reaction/reaction_macros.h>
-#include <proto/gadtools.h>
 #undef String
-#include <cstdio>
 
 #ifndef ID_CSET
     #define ID_CSET MAKE_ID('C','S','E','T')
@@ -130,14 +121,26 @@ enum menuIDs
     MID_CopyLatin1
 };
 
+enum arexxIDs
+{
+    RXID_OPENURL = 1,
+    RXID_STOP,
+    RXID_BACK,
+    RXID_FORWARD,
+    RXID_RELOAD,
+    RXID_HOME,
+    RXID_SCREENTOFRONT
+};
+
 AmigaConfig amigaConfig;
 MsgPort *sharedPort, *appIconPort;
 BalWidget *firstWindow;
 DiskObject *icon;
-static bool getInnerSize = false;
 Task *mainTask;
 uint32 sharedTimerSignal;
 static int32 sharedTimerSignalBit;
+static Object* rxObject;
+static uint32 arexxSignal;
 
 static NewMenu Menus[] =
 {
@@ -175,6 +178,21 @@ static NewMenu Menus[] =
 #define FULLMENUNUM_TextReset   FULLMENUNUM(2, 5, 0)
 #define FULLMENUNUM_TextSmaller FULLMENUNUM(2, 6, 0)
 
+extern "C" {
+static void rxFunc(ARexxCmd *, RexxMsg *);
+static const ARexxCmd rxCommands[] = 
+{
+    { (char *)"OPENURL",       RXID_OPENURL,       (void(*)(void))rxFunc, (char *)"URL/A", 0, NULL, 0, 0, NULL},
+    { (char *)"STOP",          RXID_STOP,          (void(*)(void))rxFunc, NULL,            0, NULL, 0, 0, NULL},
+    { (char *)"GOBACK",        RXID_BACK,          (void(*)(void))rxFunc, NULL,            0, NULL, 0, 0, NULL},
+    { (char *)"GOFORWARD",     RXID_FORWARD,       (void(*)(void))rxFunc, NULL,            0, NULL, 0, 0, NULL},
+    { (char *)"RELOAD",        RXID_RELOAD,        (void(*)(void))rxFunc, NULL,            0, NULL, 0, 0, NULL},
+    { (char *)"GOHOME",        RXID_HOME,          (void(*)(void))rxFunc, NULL,            0, NULL, 0, 0, NULL},
+    { (char *)"SCREENTOFRONT", RXID_SCREENTOFRONT, (void(*)(void))rxFunc, NULL,            0, NULL, 0, 0, NULL},
+    { NULL,                    0,                  NULL,                  NULL,            0, NULL, 0, 0, NULL}
+};
+}
+
 
 
 static void initAmigaConfig(void)
@@ -183,12 +201,14 @@ static void initAmigaConfig(void)
     if (!isInitialized) {
         amigaConfig.homeURL = "http://amigans.net/";
         amigaConfig.searchURL = "http://google.com/search?q=%s";
-        amigaConfig.width = 800;
-        amigaConfig.height = 600;
         amigaConfig.minFontSize = 9;
         amigaConfig.fontXDPI = 80;
         amigaConfig.fontYDPI = 72;
         amigaConfig.unicodeFontName = "Bitstream Cyberbit";
+        amigaConfig.windowleft = 0;
+        amigaConfig.windowtop = 0;
+        amigaConfig.windowwidth = 1024;
+        amigaConfig.windowheight = 768;
 
         isInitialized = true;
 
@@ -220,14 +240,6 @@ static void initAmigaConfig(void)
             found = IIcon->FindToolType(icon->do_ToolTypes, "SEARCH");
             if (found)
                 amigaConfig.searchURL = strdup(found);
-
-            found = IIcon->FindToolType(icon->do_ToolTypes, "WIDTH");
-            if (found)
-                amigaConfig.width = atoi(found);
-
-            found = IIcon->FindToolType(icon->do_ToolTypes, "HEIGHT");
-            if (found)
-                amigaConfig.height = atoi(found);
 
             found = IIcon->FindToolType(icon->do_ToolTypes, "MINFONTSIZE");
             if (found)
@@ -264,20 +276,38 @@ static void initAmigaConfig(void)
             if (found)
                 amigaConfig.windowheight = atoi(found);
 
+            found = IIcon->FindToolType(icon->do_ToolTypes, "CONFIRMQUIT");
+            if (found)
+                amigaConfig.confirmQuit = true;
 
-            amigaConfig.height      = max(amigaConfig.height, 400);
-            amigaConfig.width       = max(amigaConfig.width, 640);
             amigaConfig.minFontSize = max(amigaConfig.minFontSize, 5);
             amigaConfig.fontXDPI    = max(amigaConfig.fontXDPI,10);
             amigaConfig.fontYDPI    = max(amigaConfig.fontYDPI,10);
 
             icon->do_Type = 0;
+        }
 
-            if (!amigaConfig.windowwidth || !amigaConfig.windowheight)
-                getInnerSize = true;
+
+        // AmiUpdate support
+        BPTR lock = IDOS->GetProgramDir();
+        if (lock) {
+            TEXT progpath[16*1024];
+
+            if (IDOS->DevNameFromLock(lock, progpath, sizeof(progpath), DN_FULLPATH)) {
+                TEXT old_progpath[16*1024];
+                APTR oldwin = IDOS->SetProcWindow((APTR)-1);
+        
+                if (-1 == IDOS->GetVar("AppPaths/OWB", old_progpath, sizeof(progpath), LV_VAR | GVF_GLOBAL_ONLY)
+                 || strcmp(old_progpath, progpath))
+                    IDOS->SetVar("AppPaths/OWB", progpath, -1, LV_VAR | GVF_GLOBAL_ONLY | GVF_SAVE_VAR);
+
+                IDOS->SetProcWindow(oldwin);
+            }
         }
     }
 }
+
+
 
 static bool initTimer(void)
 {
@@ -295,6 +325,70 @@ static void cleanupTimer(void)
 {
     IExec->FreeSignal(sharedTimerSignalBit);
 }
+
+
+
+static void rxFunc(ARexxCmd *cmd, RexxMsg *)
+{
+    char *str = 0;
+    if (cmd->ac_ArgList)
+        str = (char*)cmd->ac_ArgList[0];
+
+    cmd->ac_RC = cmd->ac_ID;
+    cmd->ac_RC2 = 0;
+
+    switch (cmd->ac_ID)  {
+    case RXID_OPENURL:
+        firstWindow->webView->mainFrame()->loadURL(str);
+    break;
+
+    case RXID_STOP:
+        firstWindow->webView->mainFrame()->impl()->loader()->stopAllLoaders();
+    break;
+
+    case RXID_BACK:
+        firstWindow->webView->goBack();
+        firstWindow->expose = true;
+    break;
+
+    case RXID_FORWARD:
+        firstWindow->webView->goForward();
+        firstWindow->expose = true;
+    break;
+
+    case RXID_RELOAD:
+        firstWindow->webView->mainFrame()->reload();
+    break;
+
+    case RXID_HOME:
+        firstWindow->webView->mainFrame()->loadURL(amigaConfig.homeURL);
+    break;
+
+    case RXID_SCREENTOFRONT:
+        if (firstWindow->window)
+            IIntuition->ScreenToFront(firstWindow->window->WScreen);
+    break;
+    }
+}
+
+void initARexx(void)
+{
+    rxObject = (Object *)ARexxObject, 
+                             AREXX_HostName, "OWB",
+                             AREXX_Commands, rxCommands,
+                         End;
+
+    if (rxObject)
+        IIntuition->GetAttr(AREXX_SigMask, rxObject, &arexxSignal);
+}
+
+void cleanupARexx(void)
+{
+    if (rxObject)
+        IIntuition->DisposeObject(rxObject);
+}
+
+
 
 static void closeAmigaWindowWithoutSurface(BalWidget *owbwindow)
 {
@@ -319,6 +413,16 @@ static void closeAmigaWindowWithoutSurface(BalWidget *owbwindow)
         IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
         owbwindow->backfill_hook = 0;
     }
+    IIntuition->DisposeObject(owbwindow->img_back);
+    owbwindow->img_back = 0;
+    IIntuition->DisposeObject(owbwindow->img_forward);
+    owbwindow->img_forward = 0;
+    IIntuition->DisposeObject(owbwindow->img_stop);
+    owbwindow->img_stop = 0;
+    IIntuition->DisposeObject(owbwindow->img_home);
+    owbwindow->img_home = 0;
+    IIntuition->DisposeObject(owbwindow->img_reload);
+    owbwindow->img_reload = 0;
 }
 
 void closeAmigaWindow(BalWidget *owbwindow)
@@ -354,18 +458,28 @@ void closeAmigaWindow(BalWidget *owbwindow)
 
 static bool openAmigaWindow(BalWidget *owbwindow)
 {
-    int w = amigaConfig.width;
-    int h = amigaConfig.height;
+    static TEXT fallbackTextFontName[256];
+    static TagItem fallbackTags[] = { { TA_CharSet, 4 }, { TAG_DONE, 0 } };
+    static TTextAttr fallbackTextAttr = { fallbackTextFontName, 0, 0, FSF_TAGGED, fallbackTags };
     int windowX = amigaConfig.windowleft;
     int windowY = amigaConfig.windowtop;
     int windowW = amigaConfig.windowwidth;
     int windowH = amigaConfig.windowheight;
 
+    if (owbwindow->width) {
+        windowX = owbwindow->left;
+        windowY = owbwindow->top;
+        if (0 == windowY)
+            windowY = -1;
+        windowW = owbwindow->width;
+        windowH = owbwindow->height;
+    }
+
     owbwindow->window = IIntuition->OpenWindowTags(NULL,
                                                    WA_Left, windowX,
                                                    windowY ? WA_Top : TAG_IGNORE, windowY,
-                                                   windowW ? WA_Width : WA_InnerWidth , windowW ?: w,
-                                                   windowH ? WA_Height : WA_InnerHeight, windowH ?: h,
+                                                   WA_Width, windowW,
+                                                   WA_Height, windowH,
                                                    WA_MinWidth, 640,
                                                    WA_MinHeight, 480,
                                                    WA_MaxWidth, ~0UL,
@@ -405,60 +519,71 @@ static bool openAmigaWindow(BalWidget *owbwindow)
     APTR old_proc_window = IDOS->SetProcWindow((APTR)-1);
     DrawInfo *drinfo = IIntuition->GetScreenDrawInfo(owbwindow->window->WScreen);
     owbwindow->backfill_hook = IIntuition->ObtainIBackFill(drinfo, BT_WINDOWBG, IDS_NORMAL, 0);
-    APTR images[6];
-    images[0] = BitMapObject,
-                    BITMAP_Screen, owbwindow->window->WScreen,
-                    BITMAP_Masking, TRUE,
-                    BITMAP_Transparent, TRUE,
-                    BITMAP_SourceFile, "TBImages:nav_west",
-                    BITMAP_SelectSourceFile, "TBImages:nav_west_s",
-                    BITMAP_DisabledSourceFile, "TBImages:nav_west_g",
-                BitMapEnd;
-    images[1] = BitMapObject,
-                    BITMAP_Screen, owbwindow->window->WScreen,
-                    BITMAP_Masking, TRUE,
-                    BITMAP_Transparent, TRUE,
-                    BITMAP_SourceFile, "TBImages:nav_east",
-                    BITMAP_SelectSourceFile, "TBImages:nav_east_s",
-                    BITMAP_DisabledSourceFile, "TBImages:nav_east_g",
-                 BitMapEnd;
-    images[2] = BitMapObject,
-                    BITMAP_Screen, owbwindow->window->WScreen,
-                    BITMAP_Masking, TRUE,
-                    BITMAP_Transparent, TRUE,
-                    BITMAP_SourceFile, "TBImages:stop",
-                    BITMAP_SelectSourceFile, "TBImages:stop_s",
-                    BITMAP_DisabledSourceFile, "TBImages:stop_g",
-                BitMapEnd;
-    images[3] = BitMapObject,
-                    BITMAP_Screen, owbwindow->window->WScreen,
-                    BITMAP_Masking, TRUE,
-                    BITMAP_Transparent, TRUE,
-                    BITMAP_SourceFile, "TBImages:searchweb",
-                    BITMAP_SelectSourceFile, "TBImages:searchweb_s",
-                    BITMAP_DisabledSourceFile, "TBImages:searchweb_g",
-                BitMapEnd;
-    images[4] = BitMapObject,
-                    BITMAP_Screen, owbwindow->window->WScreen,
-                    BITMAP_Masking, TRUE,
-                    BITMAP_Transparent, TRUE,
-                    BITMAP_SourceFile, "TBImages:home",
-                    BITMAP_SelectSourceFile, "TBImages:home_s",
-                    BITMAP_DisabledSourceFile, "TBImages:home_g",
-                BitMapEnd;
-    images[5] = BitMapObject,
-                    BITMAP_Screen, owbwindow->window->WScreen,
-                    BITMAP_Masking, TRUE,
-                    BITMAP_Transparent, TRUE,
-                    BITMAP_SourceFile, "TBImages:reload",
-                    BITMAP_SelectSourceFile, "TBImages:reload_s",
-                    BITMAP_DisabledSourceFile, "TBImages:reload_g",
-                BitMapEnd;
+    owbwindow->img_back = BitMapObject,
+                              BITMAP_Screen, owbwindow->window->WScreen,
+                              BITMAP_Masking, TRUE,
+                              BITMAP_Transparent, TRUE,
+                              BITMAP_SourceFile, "TBImages:nav_west",
+                              BITMAP_SelectSourceFile, "TBImages:nav_west_s",
+                              BITMAP_DisabledSourceFile, "TBImages:nav_west_g",
+                          BitMapEnd;
+    owbwindow->img_forward = BitMapObject,
+                                 BITMAP_Screen, owbwindow->window->WScreen,
+                                 BITMAP_Masking, TRUE,
+                                 BITMAP_Transparent, TRUE,
+                                 BITMAP_SourceFile, "TBImages:nav_east",
+                                 BITMAP_SelectSourceFile, "TBImages:nav_east_s",
+                                 BITMAP_DisabledSourceFile, "TBImages:nav_east_g",
+                             BitMapEnd;
+    owbwindow->img_stop = BitMapObject,
+                              BITMAP_Screen, owbwindow->window->WScreen,
+                              BITMAP_Masking, TRUE,
+                              BITMAP_Transparent, TRUE,
+                              BITMAP_SourceFile, "TBImages:stop",
+                              BITMAP_SelectSourceFile, "TBImages:stop_s",
+                              BITMAP_DisabledSourceFile, "TBImages:stop_g",
+                          BitMapEnd;
+    owbwindow->img_search = BitMapObject,
+                                BITMAP_Screen, owbwindow->window->WScreen,
+                                BITMAP_Masking, TRUE,
+                                BITMAP_Transparent, TRUE,
+                                BITMAP_SourceFile, "TBImages:searchweb",
+                                BITMAP_SelectSourceFile, "TBImages:searchweb_s",
+                                BITMAP_DisabledSourceFile, "TBImages:searchweb_g",
+                            BitMapEnd;
+    owbwindow->img_home = BitMapObject,
+                              BITMAP_Screen, owbwindow->window->WScreen,
+                              BITMAP_Masking, TRUE,
+                              BITMAP_Transparent, TRUE,
+                              BITMAP_SourceFile, "TBImages:home",
+                              BITMAP_SelectSourceFile, "TBImages:home_s",
+                              BITMAP_DisabledSourceFile, "TBImages:home_g",
+                          BitMapEnd;
+    owbwindow->img_reload = BitMapObject,
+                                BITMAP_Screen, owbwindow->window->WScreen,
+                                BITMAP_Masking, TRUE,
+                                BITMAP_Transparent, TRUE,
+                                BITMAP_SourceFile, "TBImages:reload",
+                                BITMAP_SelectSourceFile, "TBImages:reload_s",
+                                BITMAP_DisabledSourceFile, "TBImages:reload_g",
+                            BitMapEnd;
+
+    if (!fallbackTextFontName[0]) {
+        strcpy(fallbackTextFontName, "RAfallback.font");
+        fallbackTextAttr.tta_YSize = 8;
+        TextAttr* ta = 0;
+        IIntuition->GetGUIAttrs(NULL, drinfo, GUIA_FallbackTextAttr, &ta, TAG_DONE);
+        if (ta) {
+            strlcpy(fallbackTextAttr.tta_Name, ta->ta_Name, sizeof(fallbackTextFontName));
+            fallbackTextAttr.tta_YSize = ta->ta_YSize;
+        }
+    }
 
     owbwindow->gad_toolbar = (Gadget *)VLayoutObject,
                                            GA_Left, owbwindow->window->BorderLeft,
                                            GA_Top, owbwindow->window->BorderTop,
                                            GA_RelWidth, -(owbwindow->window->BorderLeft + owbwindow->window->BorderRight),
+                                           GA_RelHeight, -(owbwindow->window->BorderTop + owbwindow->window->BorderBottom),
                                            GA_NoFilterWheel, TRUE,
                                            ICA_TARGET, ICTARGET_IDCMP,
                                            LAYOUT_LayoutBackFill, owbwindow->backfill_hook,
@@ -467,39 +592,39 @@ static bool openAmigaWindow(BalWidget *owbwindow)
                                                LAYOUT_AddChild, owbwindow->gad_back = (Gadget *)ButtonObject,
                                                    GA_ID, GID_Back, 
                                                    GA_RelVerify, TRUE,
-                                                   images[0] ? BUTTON_RenderImage : TAG_IGNORE, images[0],
-                                                   images[0] ? TAG_IGNORE : BUTTON_AutoButton, BAG_LFARROW,
+                                                   owbwindow->img_back ? BUTTON_RenderImage : TAG_IGNORE, owbwindow->img_back,
+                                                   owbwindow->img_back ? TAG_IGNORE : BUTTON_AutoButton, BAG_LFARROW,
                                                    GA_Disabled, TRUE,
                                                ButtonEnd,
                                                CHILD_WeightedWidth, 0,
                                                LAYOUT_AddChild, owbwindow->gad_forward = (Gadget *)ButtonObject,
                                                    GA_ID, GID_Forward, 
                                                    GA_RelVerify, TRUE,
-                                                   images[1] ? BUTTON_RenderImage : TAG_IGNORE, images[1],
-                                                   images[1] ? TAG_IGNORE : BUTTON_AutoButton, BAG_RTARROW,
+                                                   owbwindow->img_forward ? BUTTON_RenderImage : TAG_IGNORE, owbwindow->img_forward,
+                                                   owbwindow->img_forward ? TAG_IGNORE : BUTTON_AutoButton, BAG_RTARROW,
                                                    GA_Disabled, TRUE,
                                                ButtonEnd,
                                                CHILD_WeightedWidth, 0,
                                                LAYOUT_AddChild, owbwindow->gad_stop = (Gadget *)ButtonObject,
                                                    GA_ID, GID_Stop, 
                                                    GA_RelVerify, TRUE,
-                                                   images[2] ? BUTTON_RenderImage : GA_Text, images[2] ?: "Stop",
-                                                   GA_TabCycle, NULL == images[2],
+                                                   owbwindow->img_stop ? BUTTON_RenderImage : GA_Text, owbwindow->img_stop ?: "Stop",
+                                                   GA_TabCycle, NULL == owbwindow->img_stop,
                                                    GA_Disabled, TRUE,
                                                ButtonEnd,
                                                CHILD_WeightedWidth, 0,
                                                LAYOUT_AddChild, ButtonObject,
                                                    GA_ID, GID_Reload, 
                                                    GA_RelVerify, TRUE,
-                                                   images[5] ? BUTTON_RenderImage : GA_Text, images[5] ?: "Reload",
-                                                   GA_TabCycle, NULL == images[5],
+                                                   owbwindow->img_reload ? BUTTON_RenderImage : GA_Text, owbwindow->img_reload ?: "Reload",
+                                                   GA_TabCycle, NULL == owbwindow->img_reload,
                                                ButtonEnd,
                                                CHILD_WeightedWidth, 0,
                                                LAYOUT_AddChild, ButtonObject,
                                                    GA_ID, GID_Home, 
                                                    GA_RelVerify, TRUE,
-                                                   images[4] ? BUTTON_RenderImage : GA_Text, images[4] ?: "Home",
-                                                   GA_TabCycle, NULL == images[4],
+                                                   owbwindow->img_home ? BUTTON_RenderImage : GA_Text, owbwindow->img_home ?: "Home",
+                                                   GA_TabCycle, NULL == owbwindow->img_home,
                                                ButtonEnd,
                                                CHILD_WeightedWidth, 0,
                                                LAYOUT_AddChild, owbwindow->gad_url = (Gadget *)StringObject,
@@ -521,26 +646,49 @@ static bool openAmigaWindow(BalWidget *owbwindow)
                                                StringEnd,
                                                CHILD_Label, LabelObject,
                                                    LABEL_DrawInfo, drinfo,
-                                                   LABEL_DisposeImage, NULL != images[3],
-                                                   images[3] ? LABEL_Image : TAG_IGNORE, images[3],
-                                                   images[3] ? TAG_IGNORE : LABEL_Text, "Search",
+                                                   LABEL_DisposeImage, NULL != owbwindow->img_search,
+                                                   owbwindow->img_search ? LABEL_Image : TAG_IGNORE, owbwindow->img_search,
+                                                   owbwindow->img_search ? TAG_IGNORE : LABEL_Text, "Search",
                                                LabelEnd,
                                                CHILD_WeightedWidth, 40,
                                            LayoutEnd,
                                            CHILD_WeightedHeight, 0,
 
-                                           LAYOUT_AddChild, owbwindow->gad_fuelgauge = (Gadget *)FuelGaugeObject,
-                                               FUELGAUGE_Min, 0,
-                                               FUELGAUGE_Max, 1000,
-                                               FUELGAUGE_Level, 0,
-                                               FUELGAUGE_Ticks, 0,
-                                               FUELGAUGE_Percent, FALSE,
-                                           FuelGaugeEnd,
+                                           LAYOUT_AddImage, BevelObject,
+                                               BEVEL_Style, BVS_NONE, //BVS_SBAR_VERT,
+                                           BevelEnd,
                                            CHILD_WeightedHeight, 0,
 
-                                           LAYOUT_AddImage, BevelObject,
-                                               BEVEL_Style, BVS_SBAR_VERT,
-                                           BevelEnd,
+                                           LAYOUT_AddChild, owbwindow->gad_webview = (Gadget *)SpaceObject,
+                                               GA_ReadOnly, TRUE,
+                                               SPACE_Transparent, TRUE,
+                                           SpaceEnd,
+
+                                           LAYOUT_AddChild, owbwindow->gad_hlayout = (Gadget *)HLayoutObject,
+                                               LAYOUT_AddChild, owbwindow->gad_status = (Gadget *)ButtonObject,
+                                                   GA_Underscore, 0,
+                                                   GA_TextAttr, &fallbackTextAttr,
+                                                   GA_ReadOnly, TRUE,
+                                                   BUTTON_BevelStyle, BVS_NONE,
+                                                   BUTTON_Transparent, TRUE,
+                                                   BUTTON_Justification, BCJ_LEFT,
+                                               ButtonEnd,
+                                               CHILD_WeightedWidth, 80,
+                                               LAYOUT_AddChild, owbwindow->gad_page = (Gadget *)PageObject,
+                                                   PAGE_Add, VLayoutObject,
+                                                   LayoutEnd,
+                                                   PAGE_Add, owbwindow->gad_fuelgauge = (Gadget *)FuelGaugeObject,
+                                                       FUELGAUGE_Min, 0,
+                                                       FUELGAUGE_Max, 1000,
+                                                       FUELGAUGE_Level, 0,
+                                                       FUELGAUGE_Ticks, 0,
+                                                       FUELGAUGE_Percent, FALSE,
+                                                       FUELGAUGE_Justification, FGJ_CENTER,
+                                                       GA_TextAttr, &fallbackTextAttr,
+                                                   FuelGaugeEnd,
+                                               PageEnd,
+                                               CHILD_WeightedWidth, 20,
+                                           LayoutEnd,
                                            CHILD_WeightedHeight, 0,
                                        LayoutEnd;
 
@@ -591,14 +739,16 @@ static bool openAmigaWindow(BalWidget *owbwindow)
     IDOS->SetProcWindow(old_proc_window);
 
     if (!owbwindow->gad_toolbar) {
-        IIntuition->DisposeObject(images[0]);
-        IIntuition->DisposeObject(images[1]);
-        IIntuition->DisposeObject(images[2]);
-        IIntuition->DisposeObject(images[3]);
-        IIntuition->DisposeObject(images[4]);
-        IIntuition->DisposeObject(images[5]);
+        IIntuition->DisposeObject(owbwindow->gad_iconify);
+        IIntuition->DisposeObject(owbwindow->img_iconify);
         IIntuition->DisposeObject(owbwindow->gad_vbar);
         IIntuition->DisposeObject(owbwindow->gad_hbar);
+        IIntuition->DisposeObject(owbwindow->img_back);
+        IIntuition->DisposeObject(owbwindow->img_forward);
+        IIntuition->DisposeObject(owbwindow->img_stop);
+        IIntuition->DisposeObject(owbwindow->img_search);
+        IIntuition->DisposeObject(owbwindow->img_home);
+        IIntuition->DisposeObject(owbwindow->img_reload);
         IIntuition->ReleaseIBackFill(owbwindow->backfill_hook);
         IIntuition->CloseWindow(owbwindow->window);
         return false;
@@ -606,8 +756,6 @@ static bool openAmigaWindow(BalWidget *owbwindow)
 
     LayoutLimits layoutlimits;
     ILayout->LayoutLimits(owbwindow->gad_toolbar, &layoutlimits, NULL, owbwindow->window->WScreen);
-    owbwindow->offsetx = owbwindow->window->BorderLeft;
-    owbwindow->offsety = owbwindow->window->BorderTop + layoutlimits.MinHeight;
 
     IIntuition->AddGadget(owbwindow->window, owbwindow->gad_toolbar, (uint16)~0);
     if (owbwindow->gad_vbar)
@@ -619,10 +767,16 @@ static bool openAmigaWindow(BalWidget *owbwindow)
     IIntuition->RefreshGList(owbwindow->gad_toolbar, owbwindow->window, NULL, -1);
 
     IIntuition->SetWindowAttrs(owbwindow->window, 
-                               windowH ? TAG_IGNORE : WA_InnerHeight, h + layoutlimits.MinHeight,
                                WA_Hidden, FALSE,
                                WA_Activate, TRUE,
                                TAG_DONE);
+
+    IBox* ibox;
+    IIntuition->GetAttr(SPACE_AreaBox, owbwindow->gad_webview, (uint32*)(void*)&ibox);
+    owbwindow->offsetx = ibox->Left;
+    owbwindow->offsety = ibox->Top;
+    owbwindow->webViewWidth = ibox->Width;
+    owbwindow->webViewHeight = ibox->Height;
 
     APTR vi = IGadTools->GetVisualInfoA(owbwindow->window->WScreen, NULL);
     if (vi) {
@@ -640,15 +794,6 @@ static bool openAmigaWindow(BalWidget *owbwindow)
              IIntuition->SetMenuStrip(owbwindow->window, menustrip);
 
         IGadTools->FreeVisualInfo(vi);
-    }
-
-    if (windowW || windowH) {
-        IIntuition->GetWindowAttrs(owbwindow->window,
-                                   WA_InnerWidth,  &amigaConfig.width,
-                                   WA_InnerHeight, &amigaConfig.height,
-                                   TAG_DONE);
-        amigaConfig.height -= owbwindow->offsety - owbwindow->window->BorderTop;
-        amigaConfig.windowwidth = amigaConfig.windowheight = 0;
     }
 
     return true;
@@ -679,7 +824,7 @@ BalWidget *createAmigaWindow(WebView *webView)
         window->next = owbwindow;
     }
 
-    owbwindow->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, amigaConfig.width, amigaConfig.height);
+    owbwindow->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, owbwindow->webViewWidth, owbwindow->webViewHeight);
     if (!owbwindow->surface) {
         closeAmigaWindow(owbwindow);
         return 0;
@@ -702,6 +847,12 @@ static void iconifyWindow(BalWidget *owbwindow)
         strlcpy(owbwindow->url, text, sizeof(owbwindow->url));
         IIntuition->GetAttr(STRINGA_TextVal, owbwindow->gad_search, (uint32 *)(void *)&text);
         strlcpy(owbwindow->search, text, sizeof(owbwindow->search));
+        IIntuition->GetWindowAttrs(owbwindow->window,
+                                   WA_Left, &owbwindow->left,
+                                   WA_Top, &owbwindow->top,
+                                   WA_Width, &owbwindow->width,
+                                   WA_Height, &owbwindow->height,
+                                   TAG_DONE);
 
         owbwindow->appicon = IWorkbench->AddAppIcon(0, (uint32)owbwindow,
                                                     "OWB", appIconPort,
@@ -766,14 +917,37 @@ static void copyToClipboard(WebView* webView, bool html, bool latin1)
         IIntuition->DisplayBeep(NULL);
 }
 
+static void copycollection(String &str, CollectionItem* ci, uint32 codeSet)
+{
+    if (ci->ci_Next)
+        copycollection(str, ci->ci_Next, codeSet);
+
+    if (106 == codeSet) // UTF-8
+        str.append(String().fromUTF8((const char *)ci->ci_Data, ci->ci_Size));
+    else if (0 == codeSet || 3 == codeSet || 4 == codeSet) // US-ASCII or ISO-8859-1
+        str.append(String((const char *)ci->ci_Data, ci->ci_Size));
+    else { // unsupported charset
+        STRPTR data = (STRPTR )ci->ci_Data;
+        TEXT text[ci->ci_Size];
+
+        for (int i = 0 ; i < ci->ci_Size ; i++)
+            text[i] = data[i] <= 127 ? data[i] : '?';
+
+        str += String(text, ci->ci_Size);
+    }
+}
+
 static void waitEvent(void)
 {
-    uint32 signalSet = (1L << sharedPort->mp_SigBit) | sharedTimerSignal | (1L << appIconPort->mp_SigBit);
+    uint32 signalSet = (1L << sharedPort->mp_SigBit) | sharedTimerSignal | (1L << appIconPort->mp_SigBit) | arexxSignal;
 
     while (firstWindow) {
         IntuiMessage *im;
 
         uint32 signals = IExec->Wait(signalSet);
+
+        if (signals & arexxSignal)
+            RA_HandleRexx(rxObject);
 
         while ((im = (IntuiMessage *)IExec->GetMsg(sharedPort))) {
             BalWidget *owbwindow = (BalWidget *)im->IDCMPWindow->UserData;
@@ -785,9 +959,42 @@ static void waitEvent(void)
             if (webView)
                 switch (im->Class) {
                 case IDCMP_CLOSEWINDOW:
+                {
+                    bool close = true;
                     IExec->ReplyMsg(&im->ExecMessage);
-                    closeAmigaWindow(owbwindow);
+
+                    if (firstWindow == owbwindow && !owbwindow->next && amigaConfig.confirmQuit) {
+                        Object* requester = (Object*)RequesterObject,
+                                                         REQ_CharSet, 4,
+                                                         REQ_TitleText, "OWB",
+                                                         REQ_BodyText, "Quit OWB?",
+                                                     End;
+                        if (requester) {
+                            struct Requester dummyRequester;
+
+                            if (owbwindow->window) {
+                                IIntuition->InitRequester(&dummyRequester);
+                                IIntuition->Request(&dummyRequester, owbwindow->window);
+                                IIntuition->SetWindowPointer(owbwindow->window, WA_BusyPointer, TRUE, WA_PointerDelay, TRUE, TAG_DONE);
+                            }
+
+                            if (0 == OpenRequester(requester, owbwindow->window))
+                                close = false;
+
+                            if (owbwindow->window) {
+                                IIntuition->SetWindowPointer(owbwindow->window, WA_BusyPointer, FALSE, TAG_DONE);
+                                IIntuition->EndRequest(&dummyRequester, owbwindow->window);
+                            }
+
+                            IIntuition->DisposeObject(requester);
+                        }
+                    }
+
+                    if (close)
+                        closeAmigaWindow(owbwindow);
+
                     continue;
+                }
                 break;
 
                 case IDCMP_MOUSEBUTTONS:
@@ -796,13 +1003,18 @@ static void waitEvent(void)
                     case IECODE_RBUTTON:
                     case IECODE_MBUTTON:
                     {
-                        IntuiMessage im2 = *im;
-                        im2.MouseX -= owbwindow->offsetx;
-                        im2.MouseY -= owbwindow->offsety;
-                        if (im->Code & IECODE_UP_PREFIX)
-                            webView->onMouseButtonUp(im2);
-                        else
-                            webView->onMouseButtonDown(im2);
+                        if (im->MouseX >= owbwindow->offsetx
+                         && im->MouseX <  owbwindow->offsetx + owbwindow->webViewWidth
+                         && im->MouseY >= owbwindow->offsety
+                         && im->MouseY <  owbwindow->offsety + owbwindow->webViewHeight) {
+                            IntuiMessage im2 = *im;
+                            im2.MouseX -= owbwindow->offsetx;
+                            im2.MouseY -= owbwindow->offsety;
+                            if (im->Code & IECODE_UP_PREFIX)
+                                webView->onMouseButtonUp(im2);
+                            else
+                                webView->onMouseButtonDown(im2);
+                        }
                     }
                     break;
 
@@ -863,18 +1075,12 @@ static void waitEvent(void)
 
                 case IDCMP_NEWSIZE:
                 {
-                    int32 width = 800, height = 600;
-                    IIntuition->GetWindowAttrs(owbwindow->window,
-                                               WA_InnerWidth,  &width,
-                                               WA_InnerHeight, &height,
-                                               TAG_DONE);
-                    height -= owbwindow->offsety - owbwindow->window->BorderTop;
-
-                    if (getInnerSize) {
-                        amigaConfig.width = width;
-                        amigaConfig.height = height;
-                        getInnerSize = false;
-                    }
+                    IIntuition->RefreshGList(owbwindow->gad_toolbar, owbwindow->window, NULL, -1);
+                    int width, height;
+                    IBox* ibox;
+                    IIntuition->GetAttr(SPACE_AreaBox, owbwindow->gad_webview, (uint32*)(void*)&ibox);
+                    width = owbwindow->webViewWidth = ibox->Width;
+                    height = owbwindow->webViewHeight = ibox->Height;
 
                     Frame* frame = core(webView->mainFrame());
                     if (!frame || frame->view()->visibleWidth() != width || frame->view()->visibleHeight() != height) {
@@ -1020,7 +1226,7 @@ static void waitEvent(void)
                             BalWidget *newowbwindow = createAmigaWindow(newWebView);
 
                             if (newowbwindow) {
-                                IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+                                IntRect clientRect(0, 0, newowbwindow->webViewWidth, newowbwindow->webViewHeight);
                                 newWebView->initWithFrame(clientRect, "", "");
 
                                 newWebView->setViewWindow(newowbwindow);
@@ -1137,6 +1343,7 @@ static void waitEvent(void)
         BalWidget *owbwindow = firstWindow;
         while (owbwindow) {
             WebView *webView = owbwindow->webView;
+            bool expose = false;
 
             if (owbwindow->expose) {
                 owbwindow->expose = false;
@@ -1170,15 +1377,34 @@ static void waitEvent(void)
                                                       GA_Disabled, newdisabled,
                                                       TAG_DONE);
 
-                
                 if (owbwindow->gad_fuelgauge) {
                     uint32 oldprogress = 0;
                     IIntuition->GetAttr(FUELGAUGE_Level, owbwindow->gad_fuelgauge, &oldprogress);
                     uint32 newprogress = (uint32)(webView->estimatedProgress() * 1000);
-                    if (oldprogress != newprogress)
-                        IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_fuelgauge, owbwindow->window, NULL,
-                                                          FUELGAUGE_Level, newprogress,
-                                                          TAG_DONE);
+                    if (oldprogress != newprogress) {
+                        if (0 == oldprogress || 0 == newprogress) {
+                            IIntuition->SetAttrs(owbwindow->gad_page, PAGE_Current, newprogress ? 1 : 0, TAG_DONE);
+//                            IIntuition->SetAttrs(owbwindow->gad_fuelgauge, GA_Text, "", TAG_DONE);
+                            IIntuition->SetGadgetAttrs(owbwindow->gad_hlayout, owbwindow->window, NULL,
+                                                       LAYOUT_ModifyChild, owbwindow->gad_page,
+                                                       CHILD_WeightedWidth, newprogress ? 20 : 0,
+                                                       TAG_DONE);
+                            ILayout->RethinkLayout(owbwindow->gad_hlayout, owbwindow->window, NULL, TRUE);
+                        }
+                        if (newprogress) {
+//                            owbwindow->fuelGaugeArgs[0] = (uint32)(webView->page()->progress()->totalBytesReceived() / 1024);
+//                            owbwindow->fuelGaugeArgs[1] = (uint32)(webView->page()->progress()->totalPageAndResourceBytesToLoad() / 1024);
+                            IIntuition->RefreshSetGadgetAttrs(owbwindow->gad_fuelgauge, owbwindow->window, NULL,
+                                                              FUELGAUGE_Level, newprogress,
+//                                                              GA_Text, "%lU / %lU KB",
+//                                                              FUELGAUGE_VarArgs, owbwindow->fuelGaugeArgs,
+                                                              TAG_DONE);
+                        }
+                        else
+                            IIntuition->SetAttrs(owbwindow->gad_fuelgauge,
+                                                 FUELGAUGE_Level, newprogress,
+                                                 TAG_DONE);
+                    }
                 }
 
                 if (owbwindow->gad_vbar) {
@@ -1188,7 +1414,7 @@ static void waitEvent(void)
                                          PGA_Total, &total,
                                          PGA_Visible, &visible,
                                          TAG_DONE);
-                    uint32 newtop = core(webView->mainFrame())->view()->contentsY();
+                    uint32 newtop = core(webView->mainFrame())->view()->visibleContentRect().y();
                     uint32 newtotal = core(webView->mainFrame())->view()->contentsHeight();
                     uint32 newvisible = core(webView->mainFrame())->view()->visibleHeight();
                     if (top != newtop || total != newtotal || visible != newvisible)
@@ -1206,7 +1432,7 @@ static void waitEvent(void)
                                          PGA_Total, &total,
                                          PGA_Visible, &visible,
                                          TAG_DONE);
-                    uint32 newtop = core(webView->mainFrame())->view()->contentsX();
+                    uint32 newtop = core(webView->mainFrame())->view()->visibleContentRect().x();
                     uint32 newtotal = core(webView->mainFrame())->view()->contentsWidth();
                     uint32 newvisible = core(webView->mainFrame())->view()->visibleWidth();
                     if (top != newtop || total != newtotal || visible != newvisible)
@@ -1290,7 +1516,7 @@ static void waitEvent(void)
 
                 if (owbwindow)
                     webView = owbwindow->webView;
-               
+
                 if (webView && owbwindow->appicon && openAmigaWindow(owbwindow)) {
                     IWorkbench->RemoveAppIcon(owbwindow->appicon);
                     owbwindow->appicon = NULL;
@@ -1304,7 +1530,7 @@ static void waitEvent(void)
             }
 
             IExec->ReplyMsg((Message*)am);
-	}
+	    }
     }
 }
 
@@ -1314,6 +1540,7 @@ int main (int argc, char* argv[])
        return RETURN_ERROR;
 
     initAmigaConfig();
+    initARexx();
 
     sharedPort = (MsgPort *)IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE);
     if (sharedPort) {
@@ -1323,7 +1550,7 @@ int main (int argc, char* argv[])
             BalWidget *owbwindow = createAmigaWindow(webView);
 
             if (owbwindow) {
-                IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+                IntRect clientRect(0, 0, owbwindow->webViewWidth, owbwindow->webViewHeight);
                 webView->initWithFrame(clientRect, "", "");
 
                 webView->setViewWindow(owbwindow);
@@ -1340,6 +1567,7 @@ int main (int argc, char* argv[])
         IExec->FreeSysObject(ASOT_PORT, sharedPort);
     }
 
+    cleanupARexx();
     cleanupTimer();
 
     if (icon)

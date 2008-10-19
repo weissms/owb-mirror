@@ -37,14 +37,17 @@ namespace WKAL {
 // Keep this in sync with the other platform event constructors
 PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
 {
+    static const float delta = 1;
+
     m_deltaX = 0;
     m_deltaY = 0;
 
     struct IntuiWheelData *wd = (struct IntuiWheelData *)event->IAddress;
 
-    bool bShift = event->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT);
-    bool bCtrl  = event->Qualifier & IEQUALIFIER_CONTROL;
-    bool bAlt   = event->Qualifier & (IEQUALIFIER_LALT | IEQUALIFIER_RALT);
+    m_shiftKey = event->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT);
+    m_ctrlKey  = event->Qualifier & IEQUALIFIER_CONTROL;
+    m_altKey   = event->Qualifier & (IEQUALIFIER_LALT | IEQUALIFIER_RALT);
+    m_metaKey  = event->Qualifier & (IEQUALIFIER_LCOMMAND | IEQUALIFIER_RCOMMAND);
 
     if (IMSGCODE_INTUIWHEELDATA != event->Code)
         fprintf(stderr, "%s class IDCMP_EXTENDEDMOUSE code 0x%04x not handled\n", __PRETTY_FUNCTION__, event->Code);
@@ -57,18 +60,21 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
     else {
         double deltax, deltay;
 
-        if (bCtrl) {
+        if (m_ctrlKey) {
+            m_granularity = ScrollByLineWheelEvent;
             deltax = wd->WheelX * -10000;
             deltay = wd->WheelY * -10000;
-        } else if (bShift) {
+        } else if (m_shiftKey) {
+            m_granularity = ScrollByPageWheelEvent;
             deltax = (int)wd->WheelX * event->IDCMPWindow->Width / -50;
             deltay = (int)wd->WheelY * event->IDCMPWindow->Height / -50;
         } else {
-            deltax = wd->WheelX * -1;
-            deltay = wd->WheelY * -1;
+            m_granularity = ScrollByLineWheelEvent;
+            deltax = wd->WheelX * -3;
+            deltay = wd->WheelY * -3;
         }
 
-        if (bAlt) {
+        if (m_altKey) {
             double temp;
             temp   = deltax;
             deltax = deltay;
@@ -82,7 +88,7 @@ PlatformWheelEvent::PlatformWheelEvent(BalEventScroll* event)
     m_position = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_globalPosition = IntPoint((int)event->MouseX, (int)event->MouseY);
     m_isAccepted = false;
-    m_isContinuous = false;
+
 }
 
 }

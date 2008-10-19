@@ -35,13 +35,19 @@
 #include "GraphicsContext.h"
 #include "IntRect.h"
 #include "RenderObject.h"
-#if !PLATFORM(AMIGAOS4)
+#if PLATFORM(AMIGAOS4)
+#include <proto/intuition.h>
+#else
 #include "SDL.h"
 #endif
 
 namespace WKAL {
 
+#if PLATFORM(AMIGAOS4)
+typedef void BalCursor;
+#else
 typedef SDL_Cursor BalCursor;
+#endif
 
 //TODO : redo the WidgetPrivate on SDL
 class WidgetPrivate {
@@ -74,6 +80,19 @@ Cursor Widget::cursor()
 
 void Widget::setCursor(const Cursor& cursor)
 {
+#if PLATFORM(AMIGAOS4)
+    static const Cursor *waitCursorPtr = &waitCursor();
+    BalWidget *widget = platformWidget();
+    Window *window = widget ? widget->window : 0;
+
+    if (window)
+        if (waitCursorPtr == &cursor && !cursor.impl())
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, TRUE, TAG_DONE);
+        else if (widget->curentCursor != cursor.impl()) {
+            IIntuition->SetWindowPointer(window, WA_Pointer, cursor.impl(), TAG_DONE);
+            widget->curentCursor = cursor.impl();
+        }
+#endif
 }
 
 void Widget::show()

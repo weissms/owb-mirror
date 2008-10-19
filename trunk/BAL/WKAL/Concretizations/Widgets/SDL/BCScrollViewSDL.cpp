@@ -40,19 +40,6 @@
 #include "ScrollbarSDL.h"
 #include "ScrollbarTheme.h"
 #include "SDL.h"
-#if PLATFORM(AMIGAOS4)
-#define GRAPHICS_MONITOR_H
-#include <exec/nodes.h>
-#undef __amigaos4__
-#include <graphics/gfxnodes.h>
-#include <graphics/gels.h>
-#define __amigaos4__
-#include <proto/graphics.h>
-#include <graphics/blitattr.h>
-#include <proto/intuition.h>
-#include <intuition/gadgetclass.h>
-#include <proto/layers.h>
-#endif
 
 using std::max;
 using std::min;

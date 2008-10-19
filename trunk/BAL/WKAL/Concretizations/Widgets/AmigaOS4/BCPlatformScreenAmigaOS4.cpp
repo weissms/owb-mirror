@@ -40,30 +40,31 @@ namespace WKAL {
 
 int screenDepth(Widget* widget)
 {
-    ASSERT(widget->containingWindow());
-    Window *window = widget->containingWindow()->window;
     int depth = 32;
-    if (window)
-        depth = IP96->p96GetBitMapAttr(window->WScreen->RastPort.BitMap, P96BMA_BITSPERPIXEL);
+    if (widget->platformWidget()) {
+        Window *window = widget->platformWidget()->window;
+        if (window)
+            depth = IP96->p96GetBitMapAttr(window->WScreen->RastPort.BitMap, P96BMA_BITSPERPIXEL);
+    }
 
     return depth;
 }
 
 int screenDepthPerComponent(Widget* widget)
 {
-    ASSERT(widget->containingWindow());
-
     int depth = 8;
-    uint32 id = INVALID_ID;
-    struct DisplayInfo displayInfo;
+    if (widget->platformWidget()) {
+        uint32 id = INVALID_ID;
+        struct DisplayInfo displayInfo;
 
-    Window *window = widget->containingWindow()->window;
-    if (window)
-        IIntuition->GetScreenAttrs(window->WScreen, SA_DisplayID, &id, TAG_DONE);
+        Window *window = widget->platformWidget()->window;
+        if (window)
+            IIntuition->GetScreenAttrs(window->WScreen, SA_DisplayID, &id, TAG_DONE);
 
-    if (INVALID_ID != id
-     && IGraphics->GetDisplayInfoData(NULL, &displayInfo, sizeof(displayInfo), DTAG_DISP, id) >= 48)
-        depth = (displayInfo.RedBits + displayInfo.GreenBits + displayInfo.BlueBits) / 3;
+        if (INVALID_ID != id
+         && IGraphics->GetDisplayInfoData(NULL, &displayInfo, sizeof(displayInfo), DTAG_DISP, id) >= 48)
+            depth = (displayInfo.RedBits + displayInfo.GreenBits + displayInfo.BlueBits) / 3;
+    }
 
     return depth;
 }
@@ -75,18 +76,18 @@ bool screenIsMonochrome(Widget* widget)
 
 FloatRect screenRect(Widget* widget)
 {
-    ASSERT(widget->containingWindow());
-
     int x = 0, y = 0, width = 800, height = 600;
 
-    Window *window = widget->containingWindow()->window;
-    if (window)
-        IIntuition->GetScreenAttrs(window->WScreen,
-                                   SA_Left,   &x,
-                                   SA_Top,    &y,
-                                   SA_Width,  &width,
-                                   SA_Height, &height,
-                                   TAG_DONE);
+    if (widget->platformWidget()) {
+        Window *window = widget->platformWidget()->window;
+        if (window)
+            IIntuition->GetScreenAttrs(window->WScreen,
+                                       SA_Left,   &x,
+                                       SA_Top,    &y,
+                                       SA_Width,  &width,
+                                       SA_Height, &height,
+                                       TAG_DONE);
+    }
 
     return FloatRect(x, y, width, height);
 }

@@ -34,7 +34,6 @@ struct _cairo;
 struct _cairo_surface;
 struct _cairo_pattern;
 struct SDL_Color;
-struct SDL_Cursor;
 struct Window;
 struct Gadget;
 struct OutlineFont;
@@ -53,24 +52,33 @@ namespace WKAL {
 
 struct AmigaOWBWindow
 {
-    Window *window;
+    AmigaOWBWindow* next;
+    Window* window;
+    WebView* webView;
     int offsetx, offsety;
-    _cairo *cr;
-    _cairo_surface *surface;
-    bool expose;
-    void *img_iconify;
+    int left, top, width, height;
+    int webViewWidth, webViewHeight;
+    _cairo* cr;
+    _cairo_surface* surface;
+    void *img_back, *img_forward, *img_stop,
+         *img_search, *img_home, *img_reload,
+         *img_iconify;
     Gadget *gad_toolbar, *gad_vbar, *gad_hbar,
            *gad_url, *gad_fuelgauge, *gad_stop,
            *gad_back, *gad_forward, *gad_iconify,
-           *gad_search;
-    Hook *backfill_hook;
-    AmigaOWBWindow *next;
-    WebView *webView;
-    char statusBarText[256];
+           *gad_search,  *gad_status, *gad_webview,
+           *gad_page, *gad_hlayout;
+    Hook* backfill_hook;
     char title[256];
     char url[2000];
     char search[500];
-    AppIcon *appicon;
+    char statusBarText[256];
+    char toolTipText[256];
+    char statusToolTipText[512];
+    AppIcon* appicon;
+    void* curentCursor;
+    unsigned int fuelGaugeArgs[2];
+    bool expose;
 };
 
 struct AmigaOWBResizeEvent
@@ -82,12 +90,12 @@ struct AmigaConfig
 {
     const char *homeURL;
     const char *searchURL;
-    int width, height;
     int minFontSize;
     int fontXDPI, fontYDPI;
     const char *unicodeFontName;
     OutlineFont *unicodeFace;
     int windowleft, windowtop, windowwidth, windowheight;
+    bool confirmQuit;
 };
 extern struct AmigaConfig amigaConfig;
 
@@ -125,8 +133,7 @@ typedef _cairo_pattern* PlatformPatternPtr;
 namespace WKAL {
     typedef _cairo_pattern *PlatformGradient;
     typedef WebCore::CairoPath PlatformPath;
-    typedef SDL_Cursor* PlatformCursor;
-    typedef BalWidget* PlatformWidget;
+    typedef void* PlatformCursor;
     typedef void* DragImageRef;
     typedef void* DragDataRef;
     typedef unsigned short GlyphBufferGlyph;

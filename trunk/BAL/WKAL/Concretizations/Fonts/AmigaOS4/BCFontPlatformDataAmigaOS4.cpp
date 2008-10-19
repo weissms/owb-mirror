@@ -145,7 +145,7 @@ static char *get_font_name(const char *family, const int type, const bool bold, 
     return fontname;
 }
 
-static char *get_font_name_fallback(const char *family, const int type, const bool bold, const bool italic, struct List *list)
+static char *get_font_name_fallback(const int type, const bool bold, const bool italic, struct List *list)
 {
     char *fontname = NULL;
     const char *boldstr = bold ? " Bold" : "";
@@ -214,7 +214,7 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
             free(fontname);
     }
     if (!m_face) {
-        fontname = get_font_name_fallback(family, type, bold, italic, &font_list);
+        fontname = get_font_name_fallback(type, bold, italic, &font_list);
         if (fontname)
             m_face = IDiskfont->OpenOutlineFont(fontname, &font_list, OFF_OPEN);
     }
@@ -241,7 +241,8 @@ FontPlatformData::FontPlatformData(float size, bool bold, bool italic)
     , m_syntheticOblique(italic)
     , m_fontname(0)
 {
-    fprintf(stderr, "%s: m_size = %f %s%s\n", __PRETTY_FUNCTION__, size, bold ? "b" : "", italic ? "i" : "");
+//    fprintf(stderr, "%s: m_size = %f %s%s\n", __PRETTY_FUNCTION__, size, bold ? "b" : "", italic ? "i" : "");
+    m_face = 0;
 }
 
 FontPlatformData::FontPlatformData(BalFontFace* fontFace, int size, bool bold, bool italic)

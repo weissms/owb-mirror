@@ -1,3 +1,111 @@
+2008-10-18  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        updated AmigaOS4 parts to work with recent changes
+        add AmigaOS4 cursor
+
+        * Base/AmigaOS4/BALTypeAmigaOS4.h:
+        * OWBAL/Concretizations/Facilities/Posix/BCFileSystemPosix.cpp:
+        (OWBAL::pathByAppendingComponent):
+        * WKAL/Concretizations/Events/AmigaOS4/BCEventHandlerAmigaOS4.cpp:
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformWheelEventAmigaOS4.cpp:
+        (WKAL::PlatformWheelEvent::PlatformWheelEvent):
+        * WKAL/Concretizations/Events/AmigaOS4/BCPlatformWheelEventAmigaOS4.h:
+        (WKAL::):
+        (WKAL::PlatformWheelEvent::pos):
+        (WKAL::PlatformWheelEvent::globalPos):
+        (WKAL::PlatformWheelEvent::granularity):
+        (WKAL::PlatformWheelEvent::x):
+        (WKAL::PlatformWheelEvent::globalX):
+        (WKAL::PlatformWheelEvent::horizontalLineMultiplier):
+        (WKAL::PlatformWheelEvent::verticalLineMultiplier):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontAmigaOS4.cpp:
+        (WKAL::Font::drawGlyphs):
+        * WKAL/Concretizations/Fonts/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp:
+        (WKAL::get_font_name_fallback):
+        (WKAL::FontPlatformData::FontPlatformData):
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCCursorAmigaOS4.cpp: Added.
+        (WKAL::Cursor::Cursor):
+        (WKAL::Cursor::~Cursor):
+        (WKAL::Cursor::operator=):
+        (WKAL::pointerCursor):
+        (WKAL::crossCursor):
+        (WKAL::handCursor):
+        (WKAL::moveCursor):
+        (WKAL::iBeamCursor):
+        (WKAL::waitCursor):
+        (WKAL::helpCursor):
+        (WKAL::eastResizeCursor):
+        (WKAL::northResizeCursor):
+        (WKAL::northEastResizeCursor):
+        (WKAL::northWestResizeCursor):
+        (WKAL::southResizeCursor):
+        (WKAL::southEastResizeCursor):
+        (WKAL::southWestResizeCursor):
+        (WKAL::westResizeCursor):
+        (WKAL::northSouthResizeCursor):
+        (WKAL::eastWestResizeCursor):
+        (WKAL::northEastSouthWestResizeCursor):
+        (WKAL::northWestSouthEastResizeCursor):
+        (WKAL::columnResizeCursor):
+        (WKAL::rowResizeCursor):
+        (WKAL::middlePanningCursor):
+        (WKAL::eastPanningCursor):
+        (WKAL::northPanningCursor):
+        (WKAL::northEastPanningCursor):
+        (WKAL::northWestPanningCursor):
+        (WKAL::southPanningCursor):
+        (WKAL::southEastPanningCursor):
+        (WKAL::southWestPanningCursor):
+        (WKAL::westPanningCursor):
+        (WKAL::verticalTextCursor):
+        (WKAL::cellCursor):
+        (WKAL::contextMenuCursor):
+        (WKAL::noDropCursor):
+        (WKAL::copyCursor):
+        (WKAL::progressCursor):
+        (WKAL::aliasCursor):
+        (WKAL::noneCursor):
+        (WKAL::notAllowedCursor):
+        (WKAL::zoomInCursor):
+        (WKAL::zoomOutCursor):
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCCursorAmigaOS4.h: Added.
+        (WKAL::Cursor::Cursor):
+        (WKAL::Cursor::impl):
+        * WKAL/Concretizations/Widgets/AmigaOS4/BCPlatformScreenAmigaOS4.cpp:
+        (WKAL::screenDepth):
+        (WKAL::screenDepthPerComponent):
+        (WKAL::screenRect):
+        * WKAL/Concretizations/Widgets/SDL/BCCursorSDL.cpp:
+        (WKAL::Cursor::Cursor):
+        (WKAL::crossCursor):
+        (WKAL::waitCursor):
+        (WKAL::helpCursor):
+        (WKAL::eastResizeCursor):
+        (WKAL::northResizeCursor):
+        (WKAL::northEastResizeCursor):
+        (WKAL::northWestResizeCursor):
+        (WKAL::southResizeCursor):
+        (WKAL::southEastResizeCursor):
+        (WKAL::southWestResizeCursor):
+        (WKAL::westResizeCursor):
+        (WKAL::northSouthResizeCursor):
+        (WKAL::eastWestResizeCursor):
+        (WKAL::northEastSouthWestResizeCursor):
+        (WKAL::northWestSouthEastResizeCursor):
+        (WKAL::columnResizeCursor):
+        (WKAL::rowResizeCursor):
+        * WKAL/Concretizations/Widgets/SDL/BCRenderThemeSDL.cpp:
+        (WKAL::RenderThemeBal::paintRadio):
+        * WKAL/Concretizations/Widgets/SDL/BCScrollViewSDL.cpp:
+        * WKAL/Concretizations/Widgets/SDL/BCWidgetSDL.cpp:
+        (WKAL::Widget::setCursor):
+        * WKAL/Concretizations/Widgets/WK/BCScrollViewWK.cpp:
+        (WKAL::ScrollView::setHasHorizontalScrollbar):
+        (WKAL::ScrollView::setHasVerticalScrollbar):
+        * scripts/patches/ScrollView_AmigaOS.patch:
+        * scripts/patches/index.txt:
+
 2008-10-10  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

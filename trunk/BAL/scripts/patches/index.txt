@@ -39,3 +39,4 @@
 ../../WKAL/Concretizations/Widgets/WK/BCWidgetWK.h	_:Widget.patch
 ../../WKAL/Concretizations/Widgets/WK/BCContextMenuWK.cpp	_:ContextMenu.patch
 ../../WKAL/Concretizations/Fonts/WK/BCWidthIteratorWK.cpp	0:WidthIterator.patch
+../../WKAL/Concretizations/Widgets/WK/BCScrollViewWK.cpp	_:ScrollView_AmigaOS.patch

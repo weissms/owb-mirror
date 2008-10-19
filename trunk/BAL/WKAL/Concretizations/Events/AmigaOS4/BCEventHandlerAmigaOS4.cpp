@@ -41,9 +41,9 @@
 #include "BALBase.h"
 #include "Page.h"
 #include "PlatformKeyboardEvent.h"
-#include "PlatformScrollBar.h"
 #include "PlatformWheelEvent.h"
 #include "RenderWidget.h"
+#include "Scrollbar.h"
 
 namespace WebCore {
 
@@ -127,13 +127,6 @@ bool EventHandler::passMouseReleaseEventToSubframe(MouseEventWithHitTestResults&
 {
     subframe->eventHandler()->handleMouseReleaseEvent(mev.event());
     return true;
-}
-
-bool EventHandler::passMousePressEventToScrollbar(MouseEventWithHitTestResults& mev, PlatformScrollbar* scrollbar)
-{
-    if (!scrollbar || !scrollbar->isEnabled())
-        return false;
-    return scrollbar->handleMousePressEvent(mev.event());
 }
 
 }

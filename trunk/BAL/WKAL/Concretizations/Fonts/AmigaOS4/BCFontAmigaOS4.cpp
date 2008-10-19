@@ -71,19 +71,15 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                       int from, int numGlyphs, const FloatPoint& point) const
 {
     // Set the text color to use for drawing.
-    float red, green, blue, alpha;
     Color penColor = context->fillColor();
-    penColor.getRGBA(red, green, blue, alpha);
-
-    GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
-    struct OutlineFont *face = font->m_font.m_face;
-    uint32 ysize = font->m_font.m_size + 0.5;
-    IntRect dstRect;
-    IntPoint aPoint;
     uint32 penalpha = penColor.alpha();
     uint32 penr = penColor.red();
     uint32 peng = penColor.green();
     uint32 penb = penColor.blue();
+
+    GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
+    struct OutlineFont *face = font->m_font.m_face;
+    uint32 ysize = font->m_font.m_size + 0.5;
 
     double dimagewidth = 0;
     int32 imagewidth;
@@ -218,14 +214,14 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
             gheight = height() - imgoffsety;
 
         for (int32 y = 0; y < gheight ; y++) {
-           uint32 top_mod_left = (y + top) * modulo + left;
-           for (uint32 x = 0; x < width; x++)
-              if (((offsetinimg + 0.5) + imgoffsetx + x < imagewidth)
-               && ((offsetinimg + 0.5) + imgoffsetx + x >= 0)) {
-                 uint32 a = penalpha * glyph->glm_BitMap[top_mod_left + x] / 255;
-                 if (a)
-                    (*glyphRGBABuffer)[(imgoffsety + y) * imagewidth + (offsetinimg + 0.5) + imgoffsetx + x] = (a << 24) | ((penr * a / 255) << 16) | ((peng * a / 255) << 8) | (penb * a / 255);
-              }
+            uint32 top_mod_left = (y + top) * modulo + left;
+            for (uint32 x = 0; x < width; x++)
+                if (((offsetinimg + 0.5) + imgoffsetx + x < imagewidth)
+                 && ((offsetinimg + 0.5) + imgoffsetx + x >= 0)) {
+                    uint32 a = penalpha * glyph->glm_BitMap[top_mod_left + x] / 255;
+                    if (a)
+                       (*glyphRGBABuffer)[(imgoffsety + y) * imagewidth + (offsetinimg + 0.5) + imgoffsetx + x] = (a << 24) | ((penr * a / 255) << 16) | ((peng * a / 255) << 8) | (penb * a / 255);
+                }
         }
 
         offsetinimg += glyphBuffer.advanceAt(from + i);
@@ -236,13 +232,10 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     cairo_surface_t *surface = cairo_image_surface_create_for_data((unsigned char *)glyphRGBABuffer->data(), CAIRO_FORMAT_ARGB32, imagewidth, height(), imagewidth * 4);
     if (surface) {
         cairo_t* cr = context->platformContext();
-        cairo_save(cr);
 
         cairo_set_source_surface(cr, surface, point.x() - shiftleft, point.y() - ascent());
-        cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
         cairo_paint(cr);
 
-        cairo_restore(cr);
         cairo_surface_destroy(surface);
     }
 

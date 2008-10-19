@@ -49,8 +49,11 @@
 #include "WebView.h"
 #include DEEPSEE_INCLUDE
 
+#include <proto/graphics.h>
 #include <proto/intuition.h>
+#include <proto/layers.h>
 #include <proto/popupmenu.h>
+#include <graphics/blitattr.h>
 #include <libraries/keymap.h>
 
 using namespace WebCore;
@@ -69,18 +72,17 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         frame->view()->adjustViewSize();
     }
 
-    if (!m_webView->viewWindow()->window)
+    BalWidget* widget = m_webView->viewWindow();
+    if (!widget->window)
         return;
 
-    GraphicsContext ctx(m_webView->viewWindow()->cr);
-//    if (frame->contentRenderer() && frame->view() && !m_webView->dirtyRegion().isEmpty()) {
-    if (frame->contentRenderer() && frame->view()) {
+    GraphicsContext ctx(widget->cr);
+    if (frame->contentRenderer() && frame->view() && !m_webView->dirtyRegion().isEmpty()) {
         frame->view()->layoutIfNeededRecursive();
         IntRect dirty = m_webView->dirtyRegion();
-        if (dirty.isEmpty())
-            dirty = frameRect();
-        frame->view()->paint(&ctx, dirty);
         m_webView->clearDirtyRegion();
+        frame->view()->paint(&ctx, dirty);
+        updateView(widget, dirty);
     }
 }
 
@@ -104,22 +106,22 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
 
         switch (event.Code) {
         case RAWKEY_CRSRDOWN:
-            view->scrollBy(0, LINE_STEP);
+            view->scrollBy(IntSize(0, cMouseWheelPixelsPerLineStep));
             return;
         case RAWKEY_CRSRUP:
-            view->scrollBy(0, -LINE_STEP);
+            view->scrollBy(IntSize(0, -cMouseWheelPixelsPerLineStep));
             return;
         case RAWKEY_CRSRRIGHT:
-            view->scrollBy(LINE_STEP, 0);
+            view->scrollBy(IntSize(cMouseWheelPixelsPerLineStep, 0));
             return;
         case RAWKEY_CRSRLEFT:
-            view->scrollBy(-LINE_STEP, 0);
+            view->scrollBy(IntSize(-cMouseWheelPixelsPerLineStep, 0));
             return;
         case RAWKEY_PAGEDOWN:
-            view->scrollBy(0, view->visibleHeight() * 0.8);
+            view->scrollBy(IntSize(0, view->visibleHeight() * 0.8));
             return;
         case RAWKEY_PAGEUP:
-            view->scrollBy(0, view->visibleHeight() * -0.8);
+            view->scrollBy(IntSize(0, view->visibleHeight() * -0.8));
             return;
         case RAWKEY_HOME:
             frame->selection()->modify(alteration, SelectionController::BACKWARD, DocumentBoundary, true);
@@ -304,3 +306,112 @@ void WebViewPrivate::popupMenuShow(void *popupInfo)
 
     IIntuition->DisposeObject(menu);
 }
+
+void WebViewPrivate::updateView(BalWidget *widget, IntRect rect)
+{
+    if (!widget || !widget->window)
+        return;
+
+    int x = rect.x();
+    int y = rect.y();
+    int width = rect.width();
+    int height = rect.height();
+
+    if (width > widget->webViewWidth - x)
+        width = widget->webViewWidth - x;
+    if (height > widget->webViewHeight - y)
+        height = widget->webViewHeight - y;
+
+    if (width <= 0 || height <= 0)
+        return;
+
+    IGraphics->BltBitMapTags(BLITA_Source,         cairo_image_surface_get_data(widget->surface),
+                             BLITA_SrcType,        BLITT_ARGB32,
+                             BLITA_SrcBytesPerRow, cairo_image_surface_get_stride(widget->surface),
+                             BLITA_SrcX,           x,
+                             BLITA_SrcY,           y,
+                             BLITA_Width,          width,
+                             BLITA_Height,         height,
+                             BLITA_Dest,           widget->window->RPort,
+                             BLITA_DestType,       BLITT_RASTPORT,
+                             BLITA_DestX,          x + widget->offsetx,
+                             BLITA_DestY,          y + widget->offsety,
+                             TAG_DONE);
+}
+
+void WebViewPrivate::sendExposeEvent(IntRect)
+{
+    if (m_webView->viewWindow())
+        m_webView->viewWindow()->expose = true;
+}
+
+void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentChanged, bool immediate, bool repaintContentOnly)
+{
+    if (contentChanged)
+        m_webView->addToDirtyRegion(windowRect);
+    sendExposeEvent(windowRect);
+}
+
+void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect)
+{
+    BalWidget* widget = m_webView->viewWindow();
+    if (!widget || !widget->window)
+        return;
+
+    int x = scrollViewRect.x();
+    int y = scrollViewRect.y();
+    int width = scrollViewRect.width();
+    int height = scrollViewRect.height();
+    int dirtyX = 0, dirtyY = 0, dirtyW = 0, dirtyH = 0;
+
+    dx = -dx;
+    dy = -dy;
+
+    if (dy == 0 && dx < 0 && -dx < width) {
+        dirtyX = x;
+        dirtyY = y;
+        dirtyW = -dx;
+        dirtyH = height;
+    }
+    else if (dy == 0 && dx > 0 && dx < width) {
+        dirtyX = x + width - dx;
+        dirtyY = y;
+        dirtyW = dx;
+        dirtyH = height;
+    }
+    else if (dx == 0 && dy < 0 && -dy < height) {
+        dirtyX = x;
+        dirtyY = y;
+        dirtyW = width;
+        dirtyH = -dy;
+    }
+    else if (dx == 0 && dy > 0 && dy < height) {
+        dirtyX = x;
+        dirtyY = y + height - dy;
+        dirtyW = width;
+        dirtyH = dy;
+    }
+
+    if (dirtyX || dirtyY || dirtyW || dirtyH) {
+        RastPort *RPort = widget->window->RPort;
+        Layer *Layer = RPort->Layer;
+        struct Hook *oldhook = ILayers->InstallLayerHook(Layer, LAYERS_NOBACKFILL);
+        x += widget->offsetx;
+        y += widget->offsety;
+        IGraphics->ScrollRasterBF(RPort, dx, dy, x, y, x + width - 1, y + height - 1);
+        ILayers->InstallLayerHook(Layer, oldhook);
+
+        m_webView->addToDirtyRegion(IntRect(dirtyX, dirtyY, dirtyW, dirtyH));
+#if 0
+        if (dx && hBar)
+            m_webView->addToDirtyRegion(IntRect(hBar->x(), hBar->y(), hBar->width(), hBar->height()));
+        if (dy && vBar)
+            m_webView->addToDirtyRegion(IntRect(vBar->x(), vBar->y(), vBar->width(), vBar->height()));
+#endif
+    }
+    else
+        m_webView->addToDirtyRegion(frameRect());
+
+    sendExposeEvent(IntRect());
+}
+

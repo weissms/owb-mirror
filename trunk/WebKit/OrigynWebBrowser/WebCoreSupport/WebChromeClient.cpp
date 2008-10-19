@@ -125,7 +125,7 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
     if (newWebView) {
         BalWidget *newowbwindow = createAmigaWindow(newWebView);
         if (newowbwindow) {
-            IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+            IntRect clientRect(0, 0, newowbwindow->webViewWidth, newowbwindow->webViewHeight);
             newWebView->initWithFrame(clientRect, "", "");
             newWebView->setViewWindow(newowbwindow);
 
@@ -318,11 +318,15 @@ void WebChromeClient::setStatusbarText(const String& statusText)
 {
 #if PLATFORM(AMIGAOS4)
     BalWidget *widget = m_webView->viewWindow();
-    if (widget && widget->gad_fuelgauge) {
+    if (widget && widget->gad_status) {
         CString statusLatin1 = statusText.latin1();
         snprintf(widget->statusBarText, sizeof(widget->statusBarText), "%s", statusLatin1.data());
-        IIntuition->RefreshSetGadgetAttrs(widget->gad_fuelgauge, widget->window, NULL,
-                                          GA_Text, widget->statusBarText,
+        if (widget->statusBarText[0] && widget->toolTipText[0])
+            snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s | %s", widget->statusBarText, widget->toolTipText);
+        else
+            snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s", widget->statusBarText[0] ? widget->statusBarText : widget->toolTipText);
+        IIntuition->RefreshSetGadgetAttrs(widget->gad_status, widget->window, NULL,
+                                          GA_Text, widget->statusToolTipText,
                                           TAG_DONE);
     }
 #endif
