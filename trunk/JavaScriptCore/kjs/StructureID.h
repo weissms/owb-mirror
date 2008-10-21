@@ -42,7 +42,6 @@
 
 namespace JSC {
 
-    class JSValue;
     class PropertyNameArray;
     class PropertyNameArrayData;
     class StructureIDChain;
@@ -79,7 +78,7 @@ namespace JSC {
     class StructureID : public RefCounted<StructureID> {
     public:
         friend class CTI;
-        static PassRefPtr<StructureID> create(JSValue* prototype, const TypeInfo& typeInfo)
+        static PassRefPtr<StructureID> create(JSValuePtr prototype, const TypeInfo& typeInfo)
         {
             return adoptRef(new StructureID(prototype, typeInfo));
         }
@@ -91,7 +90,7 @@ namespace JSC {
         static void dumpStatistics();
 #endif
 
-        static PassRefPtr<StructureID> changePrototypeTransition(StructureID*, JSValue* prototype);
+        static PassRefPtr<StructureID> changePrototypeTransition(StructureID*, JSValuePtr prototype);
         static PassRefPtr<StructureID> addPropertyTransition(StructureID*, const Identifier& propertyName, unsigned attributes, size_t& offset);
         static PassRefPtr<StructureID> getterSetterTransition(StructureID*);
         static PassRefPtr<StructureID> toDictionaryTransition(StructureID*);
@@ -114,8 +113,8 @@ namespace JSC {
         // For use when first creating a new structure.
         TypeInfo& mutableTypeInfo() { return m_typeInfo; }
 
-        JSValue* storedPrototype() const { return m_prototype; }
-        JSValue* prototypeForLookup(ExecState*); 
+        JSValuePtr storedPrototype() const { return m_prototype; }
+        JSValuePtr prototypeForLookup(ExecState*); 
 
         StructureID* previousID() const { return m_previous.get(); }
 
@@ -142,7 +141,7 @@ namespace JSC {
         typedef std::pair<RefPtr<UString::Rep>, unsigned> TransitionTableKey;
         typedef HashMap<TransitionTableKey, StructureID*, TransitionTableHash, TransitionTableHashTraits> TransitionTable;
 
-        StructureID(JSValue* prototype, const TypeInfo&);
+        StructureID(JSValuePtr prototype, const TypeInfo&);
         
         static const size_t s_maxTransitionLength = 64;
 
@@ -152,7 +151,7 @@ namespace JSC {
 
         bool m_hasGetterSetterProperties;
 
-        JSValue* m_prototype;
+        JSValuePtr m_prototype;
         RefPtr<StructureIDChain> m_cachedPrototypeChain;
 
         RefPtr<StructureID> m_previous;

@@ -30,13 +30,13 @@
 
 namespace JSC {
 
-JSValue* call(ExecState* exec, JSValue* functionObject, CallType callType, const CallData& callData, JSValue* thisValue, const ArgList& args)
+JSValuePtr call(ExecState* exec, JSValuePtr functionObject, CallType callType, const CallData& callData, JSValuePtr thisValue, const ArgList& args)
 {
     if (callType == CallTypeHost)
-        return callData.native.function(exec, static_cast<JSObject*>(functionObject), thisValue, args);
+        return callData.native.function(exec, asObject(functionObject), thisValue, args);
     ASSERT(callType == CallTypeJS);
     // FIXME: Can this be done more efficiently using the callData?
-    return static_cast<JSFunction*>(functionObject)->call(exec, thisValue, args);
+    return asFunction(functionObject)->call(exec, thisValue, args);
 }
 
 } // namespace JSC

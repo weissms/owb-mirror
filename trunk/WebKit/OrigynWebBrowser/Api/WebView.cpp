@@ -341,6 +341,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     unsigned cacheTotalCapacity = 0;
     unsigned cacheMinDeadCapacity = 0;
     unsigned cacheMaxDeadCapacity = 0;
+    double deadDecodedDataDeletionInterval = 0;
 
     unsigned pageCacheCapacity = 0;
 
@@ -367,6 +368,8 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
 
         cacheMinDeadCapacity = 0;
         cacheMaxDeadCapacity = 0;
+
+        deadDecodedDataDeletionInterval = 60;
 
         break;
     }
@@ -453,6 +456,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     };
 
     cache()->setCapacities(cacheMinDeadCapacity, cacheMaxDeadCapacity, cacheTotalCapacity);
+    cache()->setDeadDecodedDataDeletionInterval(deadDecodedDataDeletionInterval);
     pageCache()->setCapacity(pageCacheCapacity);
 
     s_didSetCacheModel = true;
@@ -732,6 +736,25 @@ bool WebView::canHandleRequest(const WebCore::ResourceRequest& request)
     return true;
 }
 
+String WebView::standardUserAgentWithApplicationName(const String& applicationName)
+{
+#if PLATFORM(MACPORT)
+    // We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
+    return  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Doduo";
+#elif PLATFORM(AMIGAOS4)
+//    m_userAgentStandard =  "Mozilla/5.0 (AMIGA; U; AmigaOS4 ppc; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Doduo";
+    if (IExec->Data.LibBase->lib_Version < 53)
+        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
+    else
+        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.1; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
+#else
+    // NOTE: some pages don't render with this UA.
+    // m_userAgentStandard = "Mozilla/5.0 (iPod; U; CPU like Mac OS X; fr) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3";
+    return "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
+    /*m_userAgentStandard = String::format("Mozilla/5.0 (Windows; U; %s; %s) AppleWebKit/%s (KHTML, like Gecko)%s%s", osVersion().latin1().data(), defaultLanguage().latin1().data(), webKitVersion().latin1().data(), (m_applicationName.length() ? " " : ""), m_applicationName.latin1().data());*/
+#endif
+}
+
 Page* WebView::page()
 {
     return m_page;
@@ -930,21 +953,7 @@ const String& WebView::userAgentForKURL(const KURL&)
     m_userAgentStandard = getenv("OWB_USER_AGENT");
 
     if (!m_userAgentStandard.length())
-#if PLATFORM(MACPORT)
-        //We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
-        m_userAgentStandard =  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Doduo";
-#elif PLATFORM(AMIGAOS4)
-//        m_userAgentStandard =  "Mozilla/5.0 (AMIGA; U; AmigaOS4 ppc; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Doduo";
-        if (IExec->Data.LibBase->lib_Version < 53)
-            m_userAgentStandard = "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
-        else
-            m_userAgentStandard = "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.1; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
-#else
-        //NOTE: some pages don't render with this UA
-        //m_userAgentStandard = "Mozilla/5.0 (iPod; U; CPU like Mac OS X; fr) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3";
-        m_userAgentStandard = "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
-        /*m_userAgentStandard = String::format("Mozilla/5.0 (Windows; U; %s; %s) AppleWebKit/%s (KHTML, like Gecko)%s%s", osVersion().latin1().data(), defaultLanguage().latin1().data(), webKitVersion().latin1().data(), (m_applicationName.length() ? " " : ""), m_applicationName.latin1().data());*/
-#endif
+        m_userAgentStandard = WebView::standardUserAgentWithApplicationName(m_applicationName);
 
     return m_userAgentStandard;
 }
@@ -1308,6 +1317,7 @@ void WebView::makeTextStandardSize()
 void WebView::setApplicationNameForUserAgent(String applicationName)
 {
     m_applicationName = applicationName;
+    m_userAgentStandard = String();
 }
 
 String WebView::applicationNameForUserAgent()
@@ -1328,7 +1338,9 @@ String WebView::customUserAgent()
 
 String WebView::userAgentForURL(String url)
 {
-    return this->userAgentForKURL(KURL(url));
+    String ua = this->userAgentForKURL(KURL(url));
+    printf("UA: %s", ua.latin1().data());
+    return ua;
 }
 
 bool WebView::supportsTextEncoding()
@@ -1381,7 +1393,7 @@ String WebView::stringByEvaluatingJavaScriptFromString(String script)
     if (!coreFrame)
         return String();
 
-    JSC::JSCell* scriptExecutionResult = static_cast<JSC::JSCell*> (coreFrame->loader()->executeScript(script, false));
+    JSC::JSValuePtr scriptExecutionResult = coreFrame->loader()->executeScript(script, false);
     if(!scriptExecutionResult)
         return String();
     else if (scriptExecutionResult->isString())

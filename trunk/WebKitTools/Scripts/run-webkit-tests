@@ -118,7 +118,7 @@ my $report10Slowest = 0;
 my $resetResults = 0;
 my $shouldCheckLeaks = 0;
 my $showHelp = 0;
-my $testsPerDumpTool = 1000;
+my $testsPerDumpTool;
 my $testHTTP = 1;
 my $testMedia = 1;
 my $testResultsDirectory = "/tmp/layout-test-results";
@@ -271,6 +271,8 @@ $repaintTests = 1 if $repaintSweepHorizontally;
 
 $pixelTests = 1 if $repaintTests;
 $pixelTests = 1 if $threshold > 0;
+
+$testsPerDumpTool = 1000 if !$testsPerDumpTool;
 
 $verbose = 1 if $testsPerDumpTool == 1;
 
@@ -473,6 +475,7 @@ if ($pixelTests) {
     local %ENV;
     $ENV{MallocStackLogging} = 1 if $shouldCheckLeaks;
     $imageDiffToolPID = open2(\*DIFFIN, \*DIFFOUT, $imageDiffTool, @diffToolArgs) or die "unable to open $imageDiffTool\n";
+    $ENV{MallocStackLogging} = 0 if $shouldCheckLeaks;
 }
 
 my $dumpToolPID;
@@ -521,7 +524,11 @@ for my $test (@tests) {
                 print "running epilogue or prologue $logue\n";
             }
             print OUT "$logue\n";
-            # Discard the output.
+            # Throw away output from DumpRenderTree.
+            # Once for the test output and once for pixel results (empty)
+            while (<IN>) {
+                last if /#EOF/;
+            }
             while (<IN>) {
                 last if /#EOF/;
             }
@@ -1184,7 +1191,6 @@ sub openDumpTool()
     }
     $ENV{DYLD_FRAMEWORK_PATH} = $productDir;
     $ENV{XML_CATALOG_FILES} = ""; # work around missing /etc/catalog <rdar://problem/4292995>
-    $ENV{MallocStackLogging} = 1 if $shouldCheckLeaks;
     $ENV{DYLD_INSERT_LIBRARIES} = "/usr/lib/libgmalloc.dylib" if $guardMalloc;
     
     if (isCygwin()) {
@@ -1207,7 +1213,9 @@ sub openDumpTool()
         unshift @args, "valgrind";
     } 
     
+    $ENV{MallocStackLogging} = 1 if $shouldCheckLeaks;
     $dumpToolPID = open3(\*OUT, \*IN, \*ERROR, @args) or die "Failed to start tool: $dumpTool\n";
+    $ENV{MallocStackLogging} = 0 if $shouldCheckLeaks;
     $isDumpToolOpen = 1;
     $dumpToolCrashed = 0;
 }

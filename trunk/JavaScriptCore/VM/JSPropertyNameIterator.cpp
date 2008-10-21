@@ -37,13 +37,13 @@ JSPropertyNameIterator::~JSPropertyNameIterator()
 {
 }
 
-JSValue* JSPropertyNameIterator::toPrimitive(ExecState*, PreferredPrimitiveType) const
+JSValuePtr JSPropertyNameIterator::toPrimitive(ExecState*, PreferredPrimitiveType) const
 {
     ASSERT_NOT_REACHED();
-    return 0;
+    return noValue();
 }
 
-bool JSPropertyNameIterator::getPrimitiveNumber(ExecState*, double&, JSValue*&)
+bool JSPropertyNameIterator::getPrimitiveNumber(ExecState*, double&, JSValuePtr&)
 {
     ASSERT_NOT_REACHED();
     return false;

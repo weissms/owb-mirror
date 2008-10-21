@@ -44,12 +44,12 @@ static WrapperMap& wrappers()
 
 const ClassInfo JSInspectorCallbackWrapper::s_info = { "JSInspectorCallbackWrapper", &JSQuarantinedObjectWrapper::s_info, 0, 0 };
 
-JSValue* JSInspectorCallbackWrapper::wrap(ExecState* unwrappedExec, JSValue* unwrappedValue)
+JSValuePtr JSInspectorCallbackWrapper::wrap(ExecState* unwrappedExec, JSValuePtr unwrappedValue)
 {
     if (!unwrappedValue->isObject())
         return unwrappedValue;
 
-    JSObject* unwrappedObject = static_cast<JSObject*>(unwrappedValue);
+    JSObject* unwrappedObject = asObject(unwrappedValue);
 
     if (unwrappedObject->inherits(&JSInspectorCallbackWrapper::s_info))
         return unwrappedObject;
@@ -57,12 +57,12 @@ JSValue* JSInspectorCallbackWrapper::wrap(ExecState* unwrappedExec, JSValue* unw
     if (JSInspectorCallbackWrapper* wrapper = wrappers().get(unwrappedObject))
         return wrapper;
 
-    JSValue* prototype = unwrappedObject->prototype();
+    JSValuePtr prototype = unwrappedObject->prototype();
     ASSERT(prototype->isNull() || prototype->isObject());
 
     if (prototype->isNull())
         return new (unwrappedExec) JSInspectorCallbackWrapper(unwrappedExec, unwrappedObject, unwrappedExec->globalData().nullProtoStructureID);
-    return new (unwrappedExec) JSInspectorCallbackWrapper(unwrappedExec, unwrappedObject, static_cast<JSObject*>(wrap(unwrappedExec, prototype))->inheritorID());
+    return new (unwrappedExec) JSInspectorCallbackWrapper(unwrappedExec, unwrappedObject, asObject(wrap(unwrappedExec, prototype))->inheritorID());
 }
 
 JSInspectorCallbackWrapper::JSInspectorCallbackWrapper(ExecState* unwrappedExec, JSObject* unwrappedObject, PassRefPtr<StructureID> structureID)
@@ -77,7 +77,7 @@ JSInspectorCallbackWrapper::~JSInspectorCallbackWrapper()
     wrappers().remove(unwrappedObject());
 }
 
-JSValue* JSInspectorCallbackWrapper::prepareIncomingValue(ExecState* unwrappedExec, JSValue* unwrappedValue) const
+JSValuePtr JSInspectorCallbackWrapper::prepareIncomingValue(ExecState* unwrappedExec, JSValuePtr unwrappedValue) const
 {
     if (JSQuarantinedObjectWrapper* wrapper = asWrapper(unwrappedValue)) {
         // The only time a wrapper should be passed into a JSInspectorCallbackWrapper is when a client-side storage callback

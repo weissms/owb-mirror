@@ -73,9 +73,9 @@ typedef enum {
 
 class RootObject;
 
-ObjcValue convertValueToObjcValue(ExecState *exec, JSValue *value, ObjcValueType type);
-JSValue* convertNSStringToString(ExecState* exec, NSString *nsstring);
-JSValue *convertObjcValueToValue(ExecState *exec, void *buffer, ObjcValueType type, RootObject*);
+ObjcValue convertValueToObjcValue(ExecState*, JSValuePtr, ObjcValueType);
+JSValuePtr convertNSStringToString(ExecState* exec, NSString *nsstring);
+JSValuePtr convertObjcValueToValue(ExecState*, void* buffer, ObjcValueType, RootObject*);
 ObjcValueType objcValueTypeForType(const char *type);
 
 bool convertJSMethodNameToObjc(const char *JSName, char *buffer, size_t bufferSize);

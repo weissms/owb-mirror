@@ -263,13 +263,13 @@ WebInspector.ResourcesPanel.prototype = {
 
     set calculator(x)
     {
-        if (this._calculator === x)
+        if (!x || this._calculator === x)
             return;
 
         this._calculator = x;
-        if (this._calculator)
-            this._calculator.reset();
-        this._refreshAllResources(false, true, true);
+        this._calculator.reset();
+
+        this._refreshAllResources(false, true);
         this._updateGraphDividersIfNeeded(true);
         this._updateSummaryGraph();
     },
@@ -310,8 +310,12 @@ WebInspector.ResourcesPanel.prototype = {
         this.needsRefresh = false;
 
         var staleResourcesLength = this._staleResources.length;
+
         for (var i = 0; i < staleResourcesLength; ++i)
-            this.refreshResource(this._staleResources[i], false, true, true);
+            this.calculator.updateBoundaries(this._staleResources[i]);
+
+        for (var i = 0; i < staleResourcesLength; ++i)
+            this.refreshResource(this._staleResources[i], true, true, true);
 
         this._staleResources = [];
 
@@ -323,6 +327,8 @@ WebInspector.ResourcesPanel.prototype = {
     reset: function()
     {
         this.closeVisibleResource();
+
+        this.containerElement.scrollTop = 0;
 
         delete this.currentQuery;
         this.searchCanceled();
@@ -387,6 +393,8 @@ WebInspector.ResourcesPanel.prototype = {
 
         delete resource._resourcesTreeElement;
         delete resource._resourcesView;
+
+        this._adjustScrollPosition();
     },
 
     addMessageToResource: function(resource, msg)
@@ -438,8 +446,8 @@ WebInspector.ResourcesPanel.prototype = {
         }
 
         if (!skipBoundaryUpdate) {
-            if (this._updateGraphBoundriesIfNeeded(resource, immediate))
-                return; // _updateGraphBoundriesIfNeeded refreshes all resources if it returns true, so just return.
+            if (this._updateGraphBoundariesIfNeeded(resource, immediate))
+                return; // _updateGraphBoundariesIfNeeded refreshes all resources if it returns true, so just return.
         }
 
         if (!skipSort) {
@@ -455,10 +463,7 @@ WebInspector.ResourcesPanel.prototype = {
             return;
 
         resource._resourcesTreeElement.refresh();
-
-        var percentages = this.calculator.computeBarGraphPercentages(resource);
-
-        resource._resourcesTreeElement._resourceGraph.refresh(percentages);
+        resource._resourcesTreeElement._resourceGraph.refresh(this.calculator);
     },
 
     recreateViewForResourceIfNeeded: function(resource)
@@ -642,16 +647,16 @@ WebInspector.ResourcesPanel.prototype = {
         }
     },
 
-    _updateGraphBoundriesIfNeeded: function(resource, immediate)
+    _updateGraphBoundariesIfNeeded: function(resource, immediate)
     {
-        var didChange = this.calculator.updateBoundries(resource);
+        var didChange = this.calculator.updateBoundaries(resource);
 
         if (didChange) {
             if (immediate) {
-                this._refreshAllResources(true, true, immediate);
+                this._refreshAllResources(true, immediate);
                 this._updateGraphDividersIfNeeded();
             } else {
-                this._refreshAllResourcesSoon(true, true, immediate);
+                this._refreshAllResourcesSoon(true, immediate);
                 this._updateGraphDividersSoonIfNeeded();
             }
         }
@@ -713,14 +718,14 @@ WebInspector.ResourcesPanel.prototype = {
         }
     },
 
-    _refreshAllResourcesSoon: function(skipBoundaryUpdate, skipSort, immediate)
+    _refreshAllResourcesSoon: function(skipBoundaryUpdate, immediate)
     {
         if ("_refreshAllResourcesTimeout" in this)
             return;
-        this._refreshAllResourcesTimeout = setTimeout(this._refreshAllResources.bind(this), 500, skipBoundaryUpdate, skipSort, immediate);
+        this._refreshAllResourcesTimeout = setTimeout(this._refreshAllResources.bind(this), 500, skipBoundaryUpdate, immediate);
     },
 
-    _refreshAllResources: function(skipBoundaryUpdate, skipSort, immediate)
+    _refreshAllResources: function(skipBoundaryUpdate, immediate)
     {
         if ("_refreshAllResourcesTimeout" in this) {
             clearTimeout(this._refreshAllResourcesTimeout);
@@ -728,8 +733,14 @@ WebInspector.ResourcesPanel.prototype = {
         }
 
         var resourcesLength = this._resources.length;
+
+        if (!skipBoundaryUpdate) {
+            for (var i = 0; i < resourcesLength; ++i)
+                this.calculator.updateBoundaries(this._resources[i]);
+        }
+
         for (var i = 0; i < resourcesLength; ++i)
-            this.refreshResource(this._resources[i], skipBoundaryUpdate, skipSort, immediate);
+            this.refreshResource(this._resources[i], true, true, immediate);
     },
 
     _fadeOutRect: function(ctx, x, y, w, h, a1, a2)
@@ -1062,11 +1073,19 @@ WebInspector.ResourcesPanel.prototype = {
             this.resourcesGraphsElement.addStyleClass("small");
             this.largerResourcesButton.title = WebInspector.UIString("Use large resource rows.");
             this.largerResourcesButton.removeStyleClass("toggled-on");
+            this._adjustScrollPosition();
         } else {
             this.resourcesGraphsElement.removeStyleClass("small");
             this.largerResourcesButton.title = WebInspector.UIString("Use small resource rows.");
             this.largerResourcesButton.addStyleClass("toggled-on");
         }
+    },
+
+    _adjustScrollPosition: function()
+    {
+        // Prevent the container from being scrolled off the end.
+        if ((this.containerElement.scrollTop + this.containerElement.offsetHeight) > this.sidebarElement.offsetHeight)
+            this.containerElement.scrollTop = (this.sidebarElement.offsetHeight - this.containerElement.offsetHeight);
     },
 
     _changeSortingFunction: function()
@@ -1180,12 +1199,21 @@ WebInspector.ResourceCalculator.prototype = {
         return {start: 0, middle: 0, end: (this._value(resource) / this.boundarySpan) * 100};
     },
 
+    computeBarGraphLabels: function(resource)
+    {
+        const label = this.formatValue(this._value(resource));
+        var tooltip = label;
+        if (resource.cached)
+            tooltip = WebInspector.UIString("%s (from cache)", tooltip);
+        return {left: label, right: label, tooltip: tooltip};
+    },
+
     get boundarySpan()
     {
         return this.maximumBoundary - this.minimumBoundary;
     },
 
-    updateBoundries: function(resource)
+    updateBoundaries: function(resource)
     {
         this.minimumBoundary = 0;
 
@@ -1303,7 +1331,31 @@ WebInspector.ResourceTimeCalculator.prototype = {
         return {start: start, middle: middle, end: end};
     },
 
-    updateBoundries: function(resource)
+    computeBarGraphLabels: function(resource)
+    {
+        var leftLabel = "";
+        if (resource.latency > 0)
+            leftLabel = this.formatValue(resource.latency);
+
+        var rightLabel = "";
+        if (resource.responseReceivedTime !== -1 && resource.endTime !== -1)
+            rightLabel = this.formatValue(resource.endTime - resource.responseReceivedTime);
+
+        if (leftLabel && rightLabel) {
+            var total = this.formatValue(resource.duration);
+            var tooltip = WebInspector.UIString("%s latency, %s download (%s total)", leftLabel, rightLabel, total);
+        } else if (leftLabel)
+            var tooltip = WebInspector.UIString("%s latency", leftLabel);
+        else if (rightLabel)
+            var tooltip = WebInspector.UIString("%s download", rightLabel);
+
+        if (resource.cached)
+            tooltip = WebInspector.UIString("%s (from cache)", tooltip);
+
+        return {left: leftLabel, right: rightLabel, tooltip: tooltip};
+    },
+
+    updateBoundaries: function(resource)
     {
         var didChange = false;
 
@@ -1570,6 +1622,10 @@ WebInspector.ResourceGraph = function(resource)
 
     this._graphElement = document.createElement("div");
     this._graphElement.className = "resources-graph-side";
+    this._graphElement.addEventListener("mouseover", this.refreshLabelPositions.bind(this), false);
+
+    if (resource.cached)
+        this._graphElement.addStyleClass("resource-cached");
 
     this._barAreaElement = document.createElement("div");
     this._barAreaElement.className = "resources-graph-bar-area";
@@ -1583,6 +1639,14 @@ WebInspector.ResourceGraph = function(resource)
     this._barRightElement.className = "resources-graph-bar";
     this._barAreaElement.appendChild(this._barRightElement);
 
+    this._labelLeftElement = document.createElement("div");
+    this._labelLeftElement.className = "resources-graph-label waiting";
+    this._barAreaElement.appendChild(this._labelLeftElement);
+
+    this._labelRightElement = document.createElement("div");
+    this._labelRightElement.className = "resources-graph-label";
+    this._barAreaElement.appendChild(this._labelRightElement);
+
     this._graphElement.addStyleClass("resources-category-" + resource.category.name);
 }
 
@@ -1592,8 +1656,53 @@ WebInspector.ResourceGraph.prototype = {
         return this._graphElement;
     },
 
-    refresh: function(percentages)
+    refreshLabelPositions: function()
     {
+        this._labelLeftElement.style.removeProperty("left");
+        this._labelLeftElement.style.removeProperty("right");
+        this._labelLeftElement.removeStyleClass("before");
+        this._labelLeftElement.removeStyleClass("hidden");
+
+        this._labelRightElement.style.removeProperty("left");
+        this._labelRightElement.style.removeProperty("right");
+        this._labelRightElement.removeStyleClass("after");
+        this._labelRightElement.removeStyleClass("hidden");
+
+        const labelPadding = 10;
+        const rightBarWidth = (this._barRightElement.offsetWidth - labelPadding);
+        const leftBarWidth = ((this._barLeftElement.offsetWidth - this._barRightElement.offsetWidth) - labelPadding);
+
+        var labelBefore = (this._labelLeftElement.offsetWidth > leftBarWidth);
+        var labelAfter = (this._labelRightElement.offsetWidth > rightBarWidth);
+
+        if (labelBefore) {
+            if ((this._graphElement.offsetWidth * (this._percentages.start / 100)) < (this._labelLeftElement.offsetWidth + 10))
+                this._labelLeftElement.addStyleClass("hidden");
+            this._labelLeftElement.style.setProperty("right", (100 - this._percentages.start) + "%");
+            this._labelLeftElement.addStyleClass("before");
+        } else {
+            this._labelLeftElement.style.setProperty("left", this._percentages.start + "%");
+            this._labelLeftElement.style.setProperty("right", (100 - this._percentages.middle) + "%");
+        }
+
+        if (labelAfter) {
+            if ((this._graphElement.offsetWidth * ((100 - this._percentages.end) / 100)) < (this._labelRightElement.offsetWidth + 10))
+                this._labelRightElement.addStyleClass("hidden");
+            this._labelRightElement.style.setProperty("left", this._percentages.end + "%");
+            this._labelRightElement.addStyleClass("after");
+        } else {
+            this._labelRightElement.style.setProperty("left", this._percentages.middle + "%");
+            this._labelRightElement.style.setProperty("right", (100 - this._percentages.end) + "%");
+        }
+    },
+
+    refresh: function(calculator)
+    {
+        var percentages = calculator.computeBarGraphPercentages(this.resource);
+        var labels = calculator.computeBarGraphLabels(this.resource);
+
+        this._percentages = percentages;
+
         if (!this._graphElement.hasStyleClass("resources-category-" + this.resource.category.name)) {
             this._graphElement.removeMatchingStyleClasses("resources-category-\\w+");
             this._graphElement.addStyleClass("resources-category-" + this.resource.category.name);
@@ -1604,5 +1713,14 @@ WebInspector.ResourceGraph.prototype = {
 
         this._barRightElement.style.setProperty("left", percentages.middle + "%");
         this._barRightElement.style.setProperty("right", (100 - percentages.end) + "%");
+
+        this._labelLeftElement.textContent = labels.left;
+        this._labelRightElement.textContent = labels.right;
+
+        var tooltip = (labels.tooltip || "");
+        this._barLeftElement.title = tooltip;
+        this._labelLeftElement.title = tooltip;
+        this._labelRightElement.title = tooltip;
+        this._barRightElement.title = tooltip;
     }
 }

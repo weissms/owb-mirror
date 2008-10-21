@@ -38,7 +38,7 @@ namespace JSC {
 
         const UString& name(JSGlobalData*);
 
-        static PassRefPtr<StructureID> createStructureID(JSValue* proto) 
+        static PassRefPtr<StructureID> createStructureID(JSValuePtr proto) 
         { 
             return StructureID::create(proto, TypeInfo(ObjectType, ImplementsHasInstance)); 
         }
@@ -51,6 +51,14 @@ namespace JSC {
     private:
         virtual CallType getCallData(CallData&) = 0;
     };
+
+    InternalFunction* asInternalFunction(JSValuePtr);
+
+    inline InternalFunction* asInternalFunction(JSValuePtr value)
+    {
+        ASSERT(asObject(value)->inherits(&InternalFunction::info));
+        return static_cast<InternalFunction*>(asObject(value));
+    }
 
 } // namespace JSC
 

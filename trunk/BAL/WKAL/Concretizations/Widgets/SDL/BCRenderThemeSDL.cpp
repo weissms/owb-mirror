@@ -111,8 +111,8 @@ bool RenderThemeBal::controlSupportsTints(const RenderObject* o) const
 int RenderThemeBal::baselinePosition(const RenderObject* o) const
 {
     // FIXME: This strategy is possibly incorrect for the GTK+ port.
-    if (o->style()->appearance() == CheckboxAppearance ||
-        o->style()->appearance() == RadioAppearance)
+    if (o->style()->appearance() == CheckboxPart ||
+        o->style()->appearance() == RadioPart)
         return o->marginTop() + o->height() - 2;
     return RenderTheme::baselinePosition(o);
 }

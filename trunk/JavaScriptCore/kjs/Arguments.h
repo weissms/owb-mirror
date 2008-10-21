@@ -53,7 +53,12 @@ namespace JSC {
 
     class Arguments : public JSObject {
     public:
+        enum ArgumentsParameters {
+            ArgumentsNoParameters
+        };
+
         Arguments(CallFrame*);
+        Arguments(CallFrame*, enum ArgumentsParameters);
         virtual ~Arguments();
 
         static const ClassInfo info;
@@ -74,8 +79,8 @@ namespace JSC {
         void getArgumentsData(CallFrame*, JSFunction*&, ptrdiff_t& firstParameterIndex, Register*& argv, int& argc);
         virtual bool getOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
         virtual bool getOwnPropertySlot(ExecState*, unsigned propertyName, PropertySlot&);
-        virtual void put(ExecState*, const Identifier& propertyName, JSValue*, PutPropertySlot&);
-        virtual void put(ExecState*, unsigned propertyName, JSValue*, PutPropertySlot&);
+        virtual void put(ExecState*, const Identifier& propertyName, JSValuePtr, PutPropertySlot&);
+        virtual void put(ExecState*, unsigned propertyName, JSValuePtr, PutPropertySlot&);
         virtual bool deleteProperty(ExecState*, const Identifier& propertyName);
         virtual bool deleteProperty(ExecState*, unsigned propertyName);
 
@@ -85,6 +90,14 @@ namespace JSC {
 
         OwnPtr<ArgumentsData> d;
     };
+
+    Arguments* asArguments(JSValuePtr);
+
+    inline Arguments* asArguments(JSValuePtr value)
+    {
+        ASSERT(asObject(value)->inherits(&Arguments::info));
+        return static_cast<Arguments*>(asObject(value));
+    }
 
     ALWAYS_INLINE void Arguments::getArgumentsData(CallFrame* callFrame, JSFunction*& function, ptrdiff_t& firstParameterIndex, Register*& argv, int& argc)
     {
@@ -136,6 +149,33 @@ namespace JSC {
         d->extraArguments = extraArguments;
 
         d->callee = callee;
+        d->overrodeLength = false;
+        d->overrodeCallee = false;
+    }
+
+    inline Arguments::Arguments(CallFrame* callFrame, enum ArgumentsParameters)
+        : JSObject(callFrame->lexicalGlobalObject()->argumentsStructure())
+        , d(new ArgumentsData)
+    {
+        unsigned numArguments = callFrame->argumentCount() - 1;
+
+        d->numParameters = 0;
+        d->numArguments = numArguments;
+        d->activation = 0;
+
+        Register* extraArguments;
+        if (numArguments > sizeof(d->extraArgumentsFixedBuffer) / sizeof(Register))
+            extraArguments = new Register[numArguments];
+        else
+            extraArguments = d->extraArgumentsFixedBuffer;
+
+        Register* argv = callFrame->registers() - RegisterFile::CallFrameHeaderSize - numArguments - 1;
+        for (unsigned i = 0; i < numArguments; ++i)
+            extraArguments[i] = argv[i];
+
+        d->extraArguments = extraArguments;
+
+        d->callee = callFrame->callee();
         d->overrodeLength = false;
         d->overrodeCallee = false;
     }

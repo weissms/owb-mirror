@@ -113,10 +113,6 @@ String pathByAppendingComponent(const String& path, const String& component)
 {
     if (path.endsWith("/"))
         return path + component;
-#if PLATFORM(AMIGAOS4)
-    else if (path.endsWith(":"))
-        return path + component;
-#endif
     else
         return path + "/" + component;
 }

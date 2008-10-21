@@ -40,7 +40,6 @@ struct NPObject;
 
 namespace JSC {
     class JSGlobalObject;
-    class JSValue;
 
     namespace Bindings {
         class Instance;
@@ -78,7 +77,7 @@ public:
         return m_windowShell->window();
     }
 
-    JSC::JSValue* evaluate(const String& sourceURL, int baseLine, const String& code);
+    JSC::JSValuePtr evaluate(const String& sourceURL, int baseLine, const String& code);
 
     PassRefPtr<EventListener> createHTMLEventHandler(const String& functionName, const String& code, Node*);
 #if ENABLE(SVG)

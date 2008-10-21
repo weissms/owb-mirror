@@ -35,10 +35,10 @@ namespace JSC {
 
 ASSERT_CLASS_FITS_IN_CELL(RegExpPrototype);
 
-static JSValue* regExpProtoFuncTest(ExecState*, JSObject*, JSValue*, const ArgList&);
-static JSValue* regExpProtoFuncExec(ExecState*, JSObject*, JSValue*, const ArgList&);
-static JSValue* regExpProtoFuncCompile(ExecState*, JSObject*, JSValue*, const ArgList&);
-static JSValue* regExpProtoFuncToString(ExecState*, JSObject*, JSValue*, const ArgList&);
+static JSValuePtr regExpProtoFuncTest(ExecState*, JSObject*, JSValuePtr, const ArgList&);
+static JSValuePtr regExpProtoFuncExec(ExecState*, JSObject*, JSValuePtr, const ArgList&);
+static JSValuePtr regExpProtoFuncCompile(ExecState*, JSObject*, JSValuePtr, const ArgList&);
+static JSValuePtr regExpProtoFuncToString(ExecState*, JSObject*, JSValuePtr, const ArgList&);
 
 // ECMA 15.10.5
 
@@ -55,33 +55,33 @@ RegExpPrototype::RegExpPrototype(ExecState* exec, PassRefPtr<StructureID> struct
 
 // ------------------------------ Functions ---------------------------
     
-JSValue* regExpProtoFuncTest(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList& args)
+JSValuePtr regExpProtoFuncTest(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList& args)
 {
     if (!thisValue->isObject(&RegExpObject::info))
         return throwError(exec, TypeError);
-    return static_cast<RegExpObject*>(thisValue)->test(exec, args);
+    return asRegExpObject(thisValue)->test(exec, args);
 }
 
-JSValue* regExpProtoFuncExec(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList& args)
+JSValuePtr regExpProtoFuncExec(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList& args)
 {
     if (!thisValue->isObject(&RegExpObject::info))
         return throwError(exec, TypeError);
-    return static_cast<RegExpObject*>(thisValue)->exec(exec, args);
+    return asRegExpObject(thisValue)->exec(exec, args);
 }
 
-JSValue* regExpProtoFuncCompile(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList& args)
+JSValuePtr regExpProtoFuncCompile(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList& args)
 {
     if (!thisValue->isObject(&RegExpObject::info))
         return throwError(exec, TypeError);
 
     RefPtr<RegExp> regExp;
-    JSValue* arg0 = args.at(exec, 0);
-    JSValue* arg1 = args.at(exec, 1);
+    JSValuePtr arg0 = args.at(exec, 0);
+    JSValuePtr arg1 = args.at(exec, 1);
     
     if (arg0->isObject(&RegExpObject::info)) {
         if (!arg1->isUndefined())
             return throwError(exec, TypeError, "Cannot supply flags when constructing one RegExp from another.");
-        regExp = static_cast<RegExpObject*>(arg0)->regExp();
+        regExp = asRegExpObject(arg0)->regExp();
     } else {
         UString pattern = args.isEmpty() ? UString("") : arg0->toString(exec);
         UString flags = arg1->isUndefined() ? UString("") : arg1->toString(exec);
@@ -91,12 +91,12 @@ JSValue* regExpProtoFuncCompile(ExecState* exec, JSObject*, JSValue* thisValue, 
     if (!regExp->isValid())
         return throwError(exec, SyntaxError, UString("Invalid regular expression: ").append(regExp->errorMessage()));
 
-    static_cast<RegExpObject*>(thisValue)->setRegExp(regExp.release());
-    static_cast<RegExpObject*>(thisValue)->setLastIndex(0);
+    asRegExpObject(thisValue)->setRegExp(regExp.release());
+    asRegExpObject(thisValue)->setLastIndex(0);
     return jsUndefined();
 }
 
-JSValue* regExpProtoFuncToString(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList&)
+JSValuePtr regExpProtoFuncToString(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList&)
 {
     if (!thisValue->isObject(&RegExpObject::info)) {
         if (thisValue->isObject(&RegExpPrototype::info))
@@ -104,13 +104,13 @@ JSValue* regExpProtoFuncToString(ExecState* exec, JSObject*, JSValue* thisValue,
         return throwError(exec, TypeError);
     }
 
-    UString result = "/" + static_cast<RegExpObject*>(thisValue)->get(exec, exec->propertyNames().source)->toString(exec);
+    UString result = "/" + asRegExpObject(thisValue)->get(exec, exec->propertyNames().source)->toString(exec);
     result.append('/');
-    if (static_cast<RegExpObject*>(thisValue)->get(exec, exec->propertyNames().global)->toBoolean(exec))
+    if (asRegExpObject(thisValue)->get(exec, exec->propertyNames().global)->toBoolean(exec))
         result.append('g');
-    if (static_cast<RegExpObject*>(thisValue)->get(exec, exec->propertyNames().ignoreCase)->toBoolean(exec))
+    if (asRegExpObject(thisValue)->get(exec, exec->propertyNames().ignoreCase)->toBoolean(exec))
         result.append('i');
-    if (static_cast<RegExpObject*>(thisValue)->get(exec, exec->propertyNames().multiline)->toBoolean(exec))
+    if (asRegExpObject(thisValue)->get(exec, exec->propertyNames().multiline)->toBoolean(exec))
         result.append('m');
     return jsNontrivialString(exec, result);
 }

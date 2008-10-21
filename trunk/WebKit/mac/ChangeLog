@@ -1,3 +1,48 @@
+2008-10-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Remove most uses of JSValue, which will be removed in a future patch.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:forceUserGesture:]):
+        Use JSValuePtr instead of JSValue.
+        * WebView/WebScriptDebugger.h: Removed declaration of JSValue.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Tweak a little more to get closer to where we can make JSValuePtr a class.
+
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame _convertValueToObjcValue:]): Use JSValuePtr.
+        (-[WebScriptCallFrame exception]): Ditto.
+        (-[WebScriptCallFrame evaluateWebScript:]): Ditto. And noValue.
+        * WebView/WebScriptDebugger.mm:
+        (WebScriptDebugger::WebScriptDebugger): Use new DebuggerCallFrame
+        constructor that doesn't require explicitly passing an exception.
+        * WebView/WebView.mm:
+        (aeDescFromJSValue): Use JSValuePtr.
+        (-[WebView aeDescByEvaluatingJavaScriptFromString:]): Ditto.
+
+2008-10-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - WebKit/mac part of https://bugs.webkit.org/show_bug.cgi?id=21736
+          Long-dead decoded image data make up for most of the object cache's memory use over time
+
+        * WebView/WebView.mm:
+        (+[WebView _setCacheModel:]): In the primary web browser model, set the
+        cache's dead decoded data deletion interval to 60 seconds.
+
 2008-10-17  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Jon Honeycutt.

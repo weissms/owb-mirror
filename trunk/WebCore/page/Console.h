@@ -37,7 +37,6 @@ namespace JSC {
     class ExecState;
     class ArgList;
     class Profile;
-    class JSValue;
 }
 
 namespace WebCore {
@@ -92,7 +91,7 @@ namespace WebCore {
         void group(JSC::ExecState*, const JSC::ArgList&);
         void groupEnd();
 
-        void reportException(JSC::ExecState*, JSC::JSValue*);
+        void reportException(JSC::ExecState*, JSC::JSValuePtr);
         void reportCurrentException(JSC::ExecState*);
 #endif
     private:

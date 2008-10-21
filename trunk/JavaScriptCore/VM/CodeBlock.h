@@ -78,12 +78,17 @@ namespace JSC {
 #endif
     };
 
+    struct CallLinkInfo;
+
     struct StructureStubInfo {
         StructureStubInfo(unsigned opcodeIndex)
             : opcodeIndex(opcodeIndex)
             , stubRoutine(0)
             , callReturnLocation(0)
             , hotPathBegin(0)
+            , hotPathOther(0)
+            , coldPathOther(0)
+            , linkInfoPtr(0)
         {
         }
     
@@ -91,6 +96,21 @@ namespace JSC {
         void* stubRoutine;
         void* callReturnLocation;
         void* hotPathBegin;
+        void* hotPathOther;
+        void* coldPathOther;
+        CallLinkInfo* linkInfoPtr;
+    };
+
+    struct CallLinkInfo {
+        CodeBlock* callee;
+        StructureStubInfo* callerStructureStubInfo;
+        unsigned position;
+
+        CallLinkInfo(CodeBlock* c, StructureStubInfo* css)
+        {
+            callee = c;
+            callerStructureStubInfo = css;
+        }
     };
 
     struct StringJumpTable {
@@ -149,7 +169,7 @@ namespace JSC {
 
     class EvalCodeCache {
     public:
-        PassRefPtr<EvalNode> get(ExecState* exec, const UString& evalSource, ScopeChainNode* scopeChain, JSValue*& exceptionValue)
+        PassRefPtr<EvalNode> get(ExecState* exec, const UString& evalSource, ScopeChainNode* scopeChain, JSValuePtr& exceptionValue)
         {
             RefPtr<EvalNode> evalNode;
 
@@ -203,6 +223,30 @@ namespace JSC {
 
         ~CodeBlock();
 
+#if ENABLE(CTI) 
+        void unlinkCallers();
+#endif
+
+        void addCaller(StructureStubInfo* caller)
+        {
+            CallLinkInfo* callLinkInfo = new CallLinkInfo(this, caller);
+            caller->linkInfoPtr = callLinkInfo;
+            callLinkInfo->position = linkedCallerList.size();
+            linkedCallerList.append(callLinkInfo);
+        }
+
+        void removeCaller(CallLinkInfo* caller)
+        {
+            unsigned pos = caller->position;
+            unsigned lastPos = linkedCallerList.size() - 1;
+
+            if (pos != lastPos) {
+                linkedCallerList[pos] = linkedCallerList[lastPos];
+                linkedCallerList[pos]->position = pos;
+            }
+            linkedCallerList.shrink(lastPos);
+        }
+
 #if !defined(NDEBUG) || ENABLE_SAMPLING_TOOL
         void dump(ExecState*) const;
         void printStructureIDs(const Instruction*) const;
@@ -221,6 +265,7 @@ namespace JSC {
         {
             // FIXME: would a binary chop be faster here?
             for (unsigned i = 0; ; ++i) {
+                ASSERT(i < structureIDInstructions.size());
                 if (structureIDInstructions[i].callReturnLocation == returnAddress)
                     return structureIDInstructions[i];
             }
@@ -251,13 +296,14 @@ namespace JSC {
 
         Vector<Instruction> instructions;
         Vector<StructureStubInfo> structureIDInstructions;
+        Vector<CallLinkInfo*> linkedCallerList;
 
         // Constant pool
         Vector<Identifier> identifiers;
         Vector<RefPtr<FuncDeclNode> > functions;
         Vector<RefPtr<FuncExprNode> > functionExpressions;
         Vector<Register> constantRegisters;
-        Vector<JSValue*> unexpectedConstants;
+        Vector<JSValuePtr> unexpectedConstants;
         Vector<RefPtr<RegExp> > regexps;
         Vector<HandlerInfo> exceptionHandlers;
         Vector<ExpressionRangeInfo> expressionInfo;

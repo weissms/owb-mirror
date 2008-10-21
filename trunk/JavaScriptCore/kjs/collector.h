@@ -22,6 +22,7 @@
 #ifndef KJSCOLLECTOR_H_
 #define KJSCOLLECTOR_H_
 
+#include "JSImmediate.h"
 #include <string.h>
 #include <wtf/HashCountedSet.h>
 #include <wtf/HashSet.h>
@@ -42,7 +43,6 @@ namespace JSC {
     class CollectorBlock;
     class JSCell;
     class JSGlobalData;
-    class JSValue;
 
     enum OperationInProgress { NoOperation, Allocation, Collection };
     enum HeapType { PrimaryHeap, NumberHeap };
@@ -90,10 +90,10 @@ namespace JSC {
         size_t size();
 
         void setGCProtectNeedsLocking();
-        void protect(JSValue*);
-        void unprotect(JSValue*);
+        void protect(JSValuePtr);
+        void unprotect(JSValuePtr);
 
-        static Heap* heap(const JSValue*); // 0 for immediate values
+        static Heap* heap(JSValuePtr); // 0 for immediate values
 
         size_t globalObjectCount();
         size_t protectedObjectCount();
@@ -119,8 +119,7 @@ namespace JSC {
     private:
         template <HeapType heapType> void* heapAllocate(size_t);
         template <HeapType heapType> size_t sweep();
-        static const CollectorBlock* cellBlock(const JSCell*);
-        static CollectorBlock* cellBlock(JSCell*);
+        static CollectorBlock* cellBlock(const JSCell*);
         static size_t cellOffset(const JSCell*);
 
         friend class JSGlobalData;
@@ -244,20 +243,14 @@ namespace JSC {
         typedef SmallCellCollectorBlock Block;
     };
 
+    inline CollectorBlock* Heap::cellBlock(const JSCell* cell)
+    {
+        return reinterpret_cast<CollectorBlock*>(reinterpret_cast<uintptr_t>(cell) & BLOCK_MASK);
+    }
+
     inline bool Heap::isNumber(JSCell* cell)
     {
-        CollectorBlock* block = Heap::cellBlock(cell);
-        return block && block->type == NumberHeap;
-    }
-
-    inline const CollectorBlock* Heap::cellBlock(const JSCell* cell)
-    {
-        return reinterpret_cast<const CollectorBlock*>(reinterpret_cast<uintptr_t>(cell) & BLOCK_MASK);
-    }
-
-    inline CollectorBlock* Heap::cellBlock(JSCell* cell)
-    {
-        return const_cast<CollectorBlock*>(cellBlock(const_cast<const JSCell*>(cell)));
+        return Heap::cellBlock(cell)->type == NumberHeap;
     }
 
     inline size_t Heap::cellOffset(const JSCell* cell)

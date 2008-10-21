@@ -127,9 +127,9 @@ bool JSCSSStyleDeclaration::canGetItemsForName(ExecState*, CSSStyleDeclaration*,
 
 // FIXME: You can get these properties, and set them (see customPut below),
 // but you should also be able to enumerate them.
-JSValue* JSCSSStyleDeclaration::nameGetter(ExecState* exec, const Identifier& propertyName, const PropertySlot& slot)
+JSValuePtr JSCSSStyleDeclaration::nameGetter(ExecState* exec, const Identifier& propertyName, const PropertySlot& slot)
 {
-    JSCSSStyleDeclaration* thisObj = static_cast<JSCSSStyleDeclaration*>(slot.slotBase());
+    JSCSSStyleDeclaration* thisObj = static_cast<JSCSSStyleDeclaration*>(asObject(slot.slotBase()));
 
     // Set up pixelOrPos boolean to handle the fact that
     // pixelTop returns "CSS Top" as number value in unit pixels
@@ -156,7 +156,7 @@ JSValue* JSCSSStyleDeclaration::nameGetter(ExecState* exec, const Identifier& pr
 }
 
 
-bool JSCSSStyleDeclaration::customPut(ExecState* exec, const Identifier& propertyName, JSValue* value, PutPropertySlot&)
+bool JSCSSStyleDeclaration::customPut(ExecState* exec, const Identifier& propertyName, JSValuePtr value, PutPropertySlot&)
 {
     if (!isCSSPropertyName(propertyName))
         return false;

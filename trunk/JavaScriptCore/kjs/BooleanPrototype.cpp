@@ -31,8 +31,8 @@ namespace JSC {
 ASSERT_CLASS_FITS_IN_CELL(BooleanPrototype);
 
 // Functions
-static JSValue* booleanProtoFuncToString(ExecState*, JSObject*, JSValue*, const ArgList&);
-static JSValue* booleanProtoFuncValueOf(ExecState*, JSObject*, JSValue*, const ArgList&);
+static JSValuePtr booleanProtoFuncToString(ExecState*, JSObject*, JSValuePtr, const ArgList&);
+static JSValuePtr booleanProtoFuncValueOf(ExecState*, JSObject*, JSValuePtr, const ArgList&);
 
 // ECMA 15.6.4
 
@@ -50,7 +50,7 @@ BooleanPrototype::BooleanPrototype(ExecState* exec, PassRefPtr<StructureID> stru
 
 // ECMA 15.6.4.2 + 15.6.4.3
 
-JSValue* booleanProtoFuncToString(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList&)
+JSValuePtr booleanProtoFuncToString(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList&)
 {
     if (thisValue == jsBoolean(false))
         return jsNontrivialString(exec, "false");
@@ -61,14 +61,14 @@ JSValue* booleanProtoFuncToString(ExecState* exec, JSObject*, JSValue* thisValue
     if (!thisValue->isObject(&BooleanObject::info))
         return throwError(exec, TypeError);
 
-    if (static_cast<BooleanObject*>(thisValue)->internalValue() == jsBoolean(false))
+    if (asBooleanObject(thisValue)->internalValue() == jsBoolean(false))
         return jsNontrivialString(exec, "false");
 
-    ASSERT(static_cast<BooleanObject*>(thisValue)->internalValue() == jsBoolean(true));
+    ASSERT(asBooleanObject(thisValue)->internalValue() == jsBoolean(true));
     return jsNontrivialString(exec, "true");
 }
 
-JSValue* booleanProtoFuncValueOf(ExecState* exec, JSObject*, JSValue* thisValue, const ArgList&)
+JSValuePtr booleanProtoFuncValueOf(ExecState* exec, JSObject*, JSValuePtr thisValue, const ArgList&)
 {
     if (JSImmediate::isBoolean(thisValue))
         return thisValue;
@@ -76,7 +76,7 @@ JSValue* booleanProtoFuncValueOf(ExecState* exec, JSObject*, JSValue* thisValue,
     if (!thisValue->isObject(&BooleanObject::info))
         return throwError(exec, TypeError);
 
-    return static_cast<BooleanObject*>(thisValue)->internalValue();
+    return asBooleanObject(thisValue)->internalValue();
 }
 
 } // namespace JSC

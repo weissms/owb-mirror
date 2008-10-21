@@ -43,12 +43,11 @@ class BalValuePrivate {
     public:
         BalValuePrivate()
         {
-            m_val = 0;
-	    PassRefPtr<JSGlobalData> sharedGlobalData = JSGlobalData::create();
+            PassRefPtr<JSGlobalData> sharedGlobalData = JSGlobalData::create();
             JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject(sharedGlobalData.get());
             m_exec = obj->globalExec();
         }
-        BalValuePrivate(ExecState* exec, JSValue *value)
+        BalValuePrivate(ExecState* exec, JSValuePtr value)
         {
             m_val = value;
             m_exec = exec;
@@ -56,7 +55,6 @@ class BalValuePrivate {
 
         ~BalValuePrivate()
         {
-            m_val = 0;
             m_exec = 0;
         }
 
@@ -80,12 +78,12 @@ class BalValuePrivate {
         void balBoolean(bool b);
         void balNumber(double d);
         void balString(WebCore::String s);
-        JSValue *balObject(BalObject *obj, ExecState *exec);
+        JSObject* balObject(BalObject *obj, ExecState *exec);
 
-        JSValue *getValue() { return m_val; }
+        JSValuePtr getValue() { return m_val; }
 
     private:
-        JSValue *m_val;
+        JSValuePtr m_val;
         ExecState *m_exec;
 };
 
@@ -149,7 +147,7 @@ inline BalObject *BalValuePrivate::toObject() const
 {
     JSObject* object = m_val->toObject(m_exec);
     if (object->classInfo() == &RuntimeObjectImp::s_info) {
-        RuntimeObjectImp* imp = static_cast<RuntimeObjectImp *>(m_val);
+        RuntimeObjectImp* imp = static_cast<RuntimeObjectImp *>(object);
         Bindings::BalInstance* instance = static_cast<Bindings::BalInstance*>(imp->getInternalInstance());
         if (instance) {
             BalObject* obj = instance->getObject();
@@ -189,7 +187,7 @@ inline void BalValuePrivate::balString(WebCore::String s)
     m_val = jsString(m_exec, s);
 }
 
-inline JSValue *BalValuePrivate::balObject(BalObject *obj, ExecState *exec)
+inline JSObject* BalValuePrivate::balObject(BalObject *obj, ExecState *exec)
 {
     return Bindings::Instance::createRuntimeObject(exec, Bindings::BalInstance::create(obj, Bindings::findRootObject(exec->dynamicGlobalObject())));
     //return Bindings::Instance::createRuntimeObject(Bindings::Instance::BalLanguage, obj, Bindings::findRootObject(exec->dynamicGlobalObject()));

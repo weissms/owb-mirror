@@ -3559,7 +3559,7 @@ static WebFrame *incrementFrame(WebFrame *curr, BOOL forward, BOOL wrapFlag)
     return coreFrame->shouldClose();
 }
 
-static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue* jsValue)
+static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValuePtr jsValue)
 {
     NSAppleEventDescriptor* aeDesc = 0;
     if (jsValue->isBoolean())
@@ -3601,7 +3601,7 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue* jsVal
                 return aeDesc;
             }
         }
-        JSValue* primitive = object->toPrimitive(exec);
+        JSValuePtr primitive = object->toPrimitive(exec);
         if (exec->hadException()) {
             exec->clearException();
             return [NSAppleEventDescriptor nullDescriptor];
@@ -3621,7 +3621,7 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue* jsVal
         return nil;
     if (!coreFrame->document())
         return nil;
-    JSValue* result = coreFrame->loader()->executeScript(script, true);
+    JSValuePtr result = coreFrame->loader()->executeScript(script, true);
     if (!result) // FIXME: pass errors
         return 0;
     JSLock lock(false);
@@ -4271,6 +4271,7 @@ static WebFrameView *containingFrameView(NSView *view)
     unsigned cacheTotalCapacity = 0;
     unsigned cacheMinDeadCapacity = 0;
     unsigned cacheMaxDeadCapacity = 0;
+    double deadDecodedDataDeletionInterval = 0;
 
     unsigned pageCacheCapacity = 0;
 
@@ -4389,6 +4390,8 @@ static WebFrameView *containingFrameView(NSView *view)
         // can prove that the overall system gain would justify the regression.
         cacheMaxDeadCapacity = max(24u, cacheMaxDeadCapacity);
 
+        deadDecodedDataDeletionInterval = 60;
+
         // Foundation memory cache capacity (in bytes)
         // (These values are small because WebCore does most caching itself.)
         if (memSize >= 1024)
@@ -4430,6 +4433,7 @@ static WebFrameView *containingFrameView(NSView *view)
     nsurlCacheDiskCapacity = max(nsurlCacheDiskCapacity, [nsurlCache diskCapacity]);
 
     cache()->setCapacities(cacheMinDeadCapacity, cacheMaxDeadCapacity, cacheTotalCapacity);
+    cache()->setDeadDecodedDataDeletionInterval(deadDecodedDataDeletionInterval);
     pageCache()->setCapacity(pageCacheCapacity);
     [nsurlCache setMemoryCapacity:nsurlCacheMemoryCapacity];
     [nsurlCache setDiskCapacity:nsurlCacheDiskCapacity];

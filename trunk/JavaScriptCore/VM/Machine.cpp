@@ -90,7 +90,7 @@ static void* op_call_indirect;
 
 #if ENABLE(CTI)
 
-ALWAYS_INLINE static Instruction* vPCForPC(CodeBlock* codeBlock, void* pc)
+static ALWAYS_INLINE Instruction* vPCForPC(CodeBlock* codeBlock, void* pc)
 {
     if (pc >= codeBlock->instructions.begin() && pc < codeBlock->instructions.end())
         return static_cast<Instruction*>(pc);
@@ -100,14 +100,14 @@ ALWAYS_INLINE static Instruction* vPCForPC(CodeBlock* codeBlock, void* pc)
     return codeBlock->instructions.begin() + vPCIndex;
 }
 
-#else // #ENABLE(CTI)
+#else // ENABLE(CTI)
 
-ALWAYS_INLINE static Instruction* vPCForPC(CodeBlock*, void* pc)
+static ALWAYS_INLINE Instruction* vPCForPC(CodeBlock*, void* pc)
 {
     return static_cast<Instruction*>(pc);
 }
 
-#endif // #ENABLE(CTI)
+#endif // ENABLE(CTI)
 
 // Returns the depth of the scope chain within a given call frame.
 static int depth(CodeBlock* codeBlock, ScopeChain& sc)
@@ -128,45 +128,45 @@ static int depth(CodeBlock* codeBlock, ScopeChain& sc)
 
 // FIXME: This operation should be called "getNumber", not "isNumber" (as it is in JSValue.h).
 // FIXME: There's no need to have a "slow" version of this. All versions should be fast.
-static ALWAYS_INLINE bool fastIsNumber(JSValue* value, double& arg)
+static ALWAYS_INLINE bool fastIsNumber(JSValuePtr value, double& arg)
 {
     if (JSImmediate::isNumber(value))
         arg = JSImmediate::getTruncatedInt32(value);
-    else if (Heap::isNumber(static_cast<JSCell*>(value)))
-        arg = static_cast<JSNumberCell*>(value)->value();
+    else if (LIKELY(!JSImmediate::isImmediate(value)) && LIKELY(Heap::isNumber(asCell(value))))
+        arg = asNumberCell(value)->value();
     else
         return false;
     return true;
 }
 
-// FIXME: Why doesn't JSValue::toInt32 have the Heap::isNumber optimization?
-static bool fastToInt32(JSValue* value, int32_t& arg)
+// FIXME: Why doesn't JSValuePtr::toInt32 have the Heap::isNumber optimization?
+static bool fastToInt32(JSValuePtr value, int32_t& arg)
 {
     if (JSImmediate::isNumber(value))
         arg = JSImmediate::getTruncatedInt32(value);
-    else if (Heap::isNumber(static_cast<JSCell*>(value)))
-        arg = static_cast<JSNumberCell*>(value)->toInt32();
+    else if (LIKELY(!JSImmediate::isImmediate(value)) && LIKELY(Heap::isNumber(asCell(value))))
+        arg = asNumberCell(value)->toInt32();
     else
         return false;
     return true;
 }
 
-static ALWAYS_INLINE bool fastToUInt32(JSValue* value, uint32_t& arg)
+static ALWAYS_INLINE bool fastToUInt32(JSValuePtr value, uint32_t& arg)
 {
     if (JSImmediate::isNumber(value)) {
         if (JSImmediate::getTruncatedUInt32(value, arg))
             return true;
         bool scratch;
-        arg = JSValue::toUInt32SlowCase(JSImmediate::getTruncatedInt32(value), scratch);
+        arg = toUInt32SlowCase(JSImmediate::getTruncatedInt32(value), scratch);
         return true;
-    } else if (Heap::isNumber(static_cast<JSCell*>(value)))
-        arg = static_cast<JSNumberCell*>(value)->toUInt32();
+    } else if (!JSImmediate::isImmediate(value) && Heap::isNumber(asCell(value)))
+        arg = asNumberCell(value)->toUInt32();
     else
         return false;
     return true;
 }
 
-static inline bool jsLess(CallFrame* callFrame, JSValue* v1, JSValue* v2)
+static inline bool jsLess(CallFrame* callFrame, JSValuePtr v1, JSValuePtr v2)
 {
     if (JSImmediate::areBothImmediateNumbers(v1, v2))
         return JSImmediate::getTruncatedInt32(v1) < JSImmediate::getTruncatedInt32(v2);
@@ -178,20 +178,20 @@ static inline bool jsLess(CallFrame* callFrame, JSValue* v1, JSValue* v2)
 
     Machine* machine = callFrame->machine();
     if (machine->isJSString(v1) && machine->isJSString(v2))
-        return static_cast<const JSString*>(v1)->value() < static_cast<const JSString*>(v2)->value();
+        return asString(v1)->value() < asString(v2)->value();
 
-    JSValue* p1;
-    JSValue* p2;
+    JSValuePtr p1;
+    JSValuePtr p2;
     bool wasNotString1 = v1->getPrimitiveNumber(callFrame, n1, p1);
     bool wasNotString2 = v2->getPrimitiveNumber(callFrame, n2, p2);
 
     if (wasNotString1 | wasNotString2)
         return n1 < n2;
 
-    return static_cast<const JSString*>(p1)->value() < static_cast<const JSString*>(p2)->value();
+    return asString(p1)->value() < asString(p2)->value();
 }
 
-static inline bool jsLessEq(CallFrame* callFrame, JSValue* v1, JSValue* v2)
+static inline bool jsLessEq(CallFrame* callFrame, JSValuePtr v1, JSValuePtr v2)
 {
     if (JSImmediate::areBothImmediateNumbers(v1, v2))
         return JSImmediate::getTruncatedInt32(v1) <= JSImmediate::getTruncatedInt32(v2);
@@ -203,24 +203,24 @@ static inline bool jsLessEq(CallFrame* callFrame, JSValue* v1, JSValue* v2)
 
     Machine* machine = callFrame->machine();
     if (machine->isJSString(v1) && machine->isJSString(v2))
-        return !(static_cast<const JSString*>(v2)->value() < static_cast<const JSString*>(v1)->value());
+        return !(asString(v2)->value() < asString(v1)->value());
 
-    JSValue* p1;
-    JSValue* p2;
+    JSValuePtr p1;
+    JSValuePtr p2;
     bool wasNotString1 = v1->getPrimitiveNumber(callFrame, n1, p1);
     bool wasNotString2 = v2->getPrimitiveNumber(callFrame, n2, p2);
 
     if (wasNotString1 | wasNotString2)
         return n1 <= n2;
 
-    return !(static_cast<const JSString*>(p2)->value() < static_cast<const JSString*>(p1)->value());
+    return !(asString(p2)->value() < asString(p1)->value());
 }
 
-static NEVER_INLINE JSValue* jsAddSlowCase(CallFrame* callFrame, JSValue* v1, JSValue* v2)
+static NEVER_INLINE JSValuePtr jsAddSlowCase(CallFrame* callFrame, JSValuePtr v1, JSValuePtr v2)
 {
     // exception for the Date exception in defaultValue()
-    JSValue* p1 = v1->toPrimitive(callFrame);
-    JSValue* p2 = v2->toPrimitive(callFrame);
+    JSValuePtr p1 = v1->toPrimitive(callFrame);
+    JSValuePtr p2 = v2->toPrimitive(callFrame);
 
     if (p1->isString() || p2->isString()) {
         RefPtr<UString::Rep> value = concatenate(p1->toString(callFrame).rep(), p2->toString(callFrame).rep());
@@ -241,7 +241,7 @@ static NEVER_INLINE JSValue* jsAddSlowCase(CallFrame* callFrame, JSValue* v1, JS
 //    13962   Add case: 5 3
 //    4000    Add case: 3 5
 
-static ALWAYS_INLINE JSValue* jsAdd(CallFrame* callFrame, JSValue* v1, JSValue* v2)
+static ALWAYS_INLINE JSValuePtr jsAdd(CallFrame* callFrame, JSValuePtr v1, JSValuePtr v2)
 {
     double left;
     double right = 0.0;
@@ -252,7 +252,7 @@ static ALWAYS_INLINE JSValue* jsAdd(CallFrame* callFrame, JSValue* v1, JSValue* 
     
     bool leftIsString = v1->isString();
     if (leftIsString && v2->isString()) {
-        RefPtr<UString::Rep> value = concatenate(static_cast<JSString*>(v1)->value().rep(), static_cast<JSString*>(v2)->value().rep());
+        RefPtr<UString::Rep> value = concatenate(asString(v1)->value().rep(), asString(v2)->value().rep());
         if (!value)
             return throwOutOfMemoryError(callFrame);
         return jsString(callFrame, value.release());
@@ -260,8 +260,8 @@ static ALWAYS_INLINE JSValue* jsAdd(CallFrame* callFrame, JSValue* v1, JSValue* 
 
     if (rightIsNumber & leftIsString) {
         RefPtr<UString::Rep> value = JSImmediate::isImmediate(v2) ?
-            concatenate(static_cast<JSString*>(v1)->value().rep(), JSImmediate::getTruncatedInt32(v2)) :
-            concatenate(static_cast<JSString*>(v1)->value().rep(), right);
+            concatenate(asString(v1)->value().rep(), JSImmediate::getTruncatedInt32(v2)) :
+            concatenate(asString(v1)->value().rep(), right);
 
         if (!value)
             return throwOutOfMemoryError(callFrame);
@@ -272,7 +272,7 @@ static ALWAYS_INLINE JSValue* jsAdd(CallFrame* callFrame, JSValue* v1, JSValue* 
     return jsAddSlowCase(callFrame, v1, v2);
 }
 
-static JSValue* jsTypeStringForValue(CallFrame* callFrame, JSValue* v)
+static JSValuePtr jsTypeStringForValue(CallFrame* callFrame, JSValuePtr v)
 {
     if (v->isUndefined())
         return jsNontrivialString(callFrame, "undefined");
@@ -285,44 +285,44 @@ static JSValue* jsTypeStringForValue(CallFrame* callFrame, JSValue* v)
     if (v->isObject()) {
         // Return "undefined" for objects that should be treated
         // as null when doing comparisons.
-        if (static_cast<JSObject*>(v)->structureID()->typeInfo().masqueradesAsUndefined())
+        if (asObject(v)->structureID()->typeInfo().masqueradesAsUndefined())
             return jsNontrivialString(callFrame, "undefined");
         CallData callData;
-        if (static_cast<JSObject*>(v)->getCallData(callData) != CallTypeNone)
+        if (asObject(v)->getCallData(callData) != CallTypeNone)
             return jsNontrivialString(callFrame, "function");
     }
     return jsNontrivialString(callFrame, "object");
 }
 
-static bool jsIsObjectType(JSValue* v)
+static bool jsIsObjectType(JSValuePtr v)
 {
     if (JSImmediate::isImmediate(v))
         return v->isNull();
 
-    JSType type = static_cast<JSCell*>(v)->structureID()->typeInfo().type();
+    JSType type = asCell(v)->structureID()->typeInfo().type();
     if (type == NumberType || type == StringType)
         return false;
     if (type == ObjectType) {
-        if (static_cast<JSObject*>(v)->structureID()->typeInfo().masqueradesAsUndefined())
+        if (asObject(v)->structureID()->typeInfo().masqueradesAsUndefined())
             return false;
         CallData callData;
-        if (static_cast<JSObject*>(v)->getCallData(callData) != CallTypeNone)
+        if (asObject(v)->getCallData(callData) != CallTypeNone)
             return false;
     }
     return true;
 }
 
-static bool jsIsFunctionType(JSValue* v)
+static bool jsIsFunctionType(JSValuePtr v)
 {
     if (v->isObject()) {
         CallData callData;
-        if (static_cast<JSObject*>(v)->getCallData(callData) != CallTypeNone)
+        if (asObject(v)->getCallData(callData) != CallTypeNone)
             return true;
     }
     return false;
 }
 
-NEVER_INLINE bool Machine::resolve(CallFrame* callFrame, Instruction* vPC, JSValue*& exceptionValue)
+NEVER_INLINE bool Machine::resolve(CallFrame* callFrame, Instruction* vPC, JSValuePtr& exceptionValue)
 {
     int dst = (vPC + 1)->u.operand;
     int property = (vPC + 2)->u.operand;
@@ -338,7 +338,7 @@ NEVER_INLINE bool Machine::resolve(CallFrame* callFrame, Instruction* vPC, JSVal
         JSObject* o = *iter;
         PropertySlot slot(o);
         if (o->getPropertySlot(callFrame, ident, slot)) {
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             exceptionValue = callFrame->globalData().exception;
             if (exceptionValue)
                 return false;
@@ -350,7 +350,7 @@ NEVER_INLINE bool Machine::resolve(CallFrame* callFrame, Instruction* vPC, JSVal
     return false;
 }
 
-NEVER_INLINE bool Machine::resolveSkip(CallFrame* callFrame, Instruction* vPC, JSValue*& exceptionValue)
+NEVER_INLINE bool Machine::resolveSkip(CallFrame* callFrame, Instruction* vPC, JSValuePtr& exceptionValue)
 {
     CodeBlock* codeBlock = callFrame->codeBlock();
 
@@ -371,7 +371,7 @@ NEVER_INLINE bool Machine::resolveSkip(CallFrame* callFrame, Instruction* vPC, J
         JSObject* o = *iter;
         PropertySlot slot(o);
         if (o->getPropertySlot(callFrame, ident, slot)) {
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             exceptionValue = callFrame->globalData().exception;
             if (exceptionValue)
                 return false;
@@ -383,7 +383,7 @@ NEVER_INLINE bool Machine::resolveSkip(CallFrame* callFrame, Instruction* vPC, J
     return false;
 }
 
-NEVER_INLINE bool Machine::resolveGlobal(CallFrame* callFrame, Instruction* vPC, JSValue*& exceptionValue)
+NEVER_INLINE bool Machine::resolveGlobal(CallFrame* callFrame, Instruction* vPC, JSValuePtr& exceptionValue)
 {
     int dst = (vPC + 1)->u.operand;
     JSGlobalObject* globalObject = static_cast<JSGlobalObject*>((vPC + 2)->u.jsCell);
@@ -401,7 +401,7 @@ NEVER_INLINE bool Machine::resolveGlobal(CallFrame* callFrame, Instruction* vPC,
     Identifier& ident = codeBlock->identifiers[property];
     PropertySlot slot(globalObject);
     if (globalObject->getPropertySlot(callFrame, ident, slot)) {
-        JSValue* result = slot.getValue(callFrame, ident);
+        JSValuePtr result = slot.getValue(callFrame, ident);
         if (slot.isCacheable()) {
             if (vPC[4].u.structureID)
                 vPC[4].u.structureID->deref();
@@ -423,7 +423,7 @@ NEVER_INLINE bool Machine::resolveGlobal(CallFrame* callFrame, Instruction* vPC,
     return false;
 }
 
-ALWAYS_INLINE static JSValue* inlineResolveBase(CallFrame* callFrame, Identifier& property, ScopeChainNode* scopeChain)
+static ALWAYS_INLINE JSValuePtr inlineResolveBase(CallFrame* callFrame, Identifier& property, ScopeChainNode* scopeChain)
 {
     ScopeChainIterator iter = scopeChain->begin();
     ScopeChainIterator next = iter;
@@ -443,7 +443,7 @@ ALWAYS_INLINE static JSValue* inlineResolveBase(CallFrame* callFrame, Identifier
     }
 
     ASSERT_NOT_REACHED();
-    return 0;
+    return noValue();
 }
 
 NEVER_INLINE void Machine::resolveBase(CallFrame* callFrame, Instruction* vPC)
@@ -453,7 +453,7 @@ NEVER_INLINE void Machine::resolveBase(CallFrame* callFrame, Instruction* vPC)
     callFrame[dst] = inlineResolveBase(callFrame, callFrame->codeBlock()->identifiers[property], callFrame->scopeChain());
 }
 
-NEVER_INLINE bool Machine::resolveBaseAndProperty(CallFrame* callFrame, Instruction* vPC, JSValue*& exceptionValue)
+NEVER_INLINE bool Machine::resolveBaseAndProperty(CallFrame* callFrame, Instruction* vPC, JSValuePtr& exceptionValue)
 {
     int baseDst = (vPC + 1)->u.operand;
     int propDst = (vPC + 2)->u.operand;
@@ -474,7 +474,7 @@ NEVER_INLINE bool Machine::resolveBaseAndProperty(CallFrame* callFrame, Instruct
         base = *iter;
         PropertySlot slot(base);
         if (base->getPropertySlot(callFrame, ident, slot)) {
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             exceptionValue = callFrame->globalData().exception;
             if (exceptionValue)
                 return false;
@@ -489,7 +489,7 @@ NEVER_INLINE bool Machine::resolveBaseAndProperty(CallFrame* callFrame, Instruct
     return false;
 }
 
-NEVER_INLINE bool Machine::resolveBaseAndFunc(CallFrame* callFrame, Instruction* vPC, JSValue*& exceptionValue)
+NEVER_INLINE bool Machine::resolveBaseAndFunc(CallFrame* callFrame, Instruction* vPC, JSValuePtr& exceptionValue)
 {
     int baseDst = (vPC + 1)->u.operand;
     int funcDst = (vPC + 2)->u.operand;
@@ -518,7 +518,7 @@ NEVER_INLINE bool Machine::resolveBaseAndFunc(CallFrame* callFrame, Instruction*
             // that in host objects you always get a valid object for this.
             // We also handle wrapper substitution for the global object at the same time.
             JSObject* thisObj = base->toThisObject(callFrame);
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             exceptionValue = callFrame->globalData().exception;
             if (exceptionValue)
                 return false;
@@ -571,7 +571,7 @@ ALWAYS_INLINE CallFrame* Machine::slideRegisterWindowForCall(CodeBlock* newCodeB
     return CallFrame::create(r);
 }
 
-static NEVER_INLINE bool isNotObject(CallFrame* callFrame, bool forInstanceOf, CodeBlock* codeBlock, const Instruction* vPC, JSValue* value, JSValue*& exceptionData)
+static NEVER_INLINE bool isNotObject(CallFrame* callFrame, bool forInstanceOf, CodeBlock* codeBlock, const Instruction* vPC, JSValuePtr value, JSValuePtr& exceptionData)
 {
     if (value->isObject())
         return false;
@@ -579,12 +579,12 @@ static NEVER_INLINE bool isNotObject(CallFrame* callFrame, bool forInstanceOf, C
     return true;
 }
 
-NEVER_INLINE JSValue* Machine::callEval(CallFrame* callFrame, JSObject* thisObj, ScopeChainNode* scopeChain, RegisterFile* registerFile, int argv, int argc, JSValue*& exceptionValue)
+NEVER_INLINE JSValuePtr Machine::callEval(CallFrame* callFrame, JSObject* thisObj, ScopeChainNode* scopeChain, RegisterFile* registerFile, int argv, int argc, JSValuePtr& exceptionValue)
 {
     if (argc < 2)
         return jsUndefined();
 
-    JSValue* program = callFrame[argv + 1].jsValue(callFrame);
+    JSValuePtr program = callFrame[argv + 1].jsValue(callFrame);
 
     if (!program->isString())
         return program;
@@ -593,12 +593,12 @@ NEVER_INLINE JSValue* Machine::callEval(CallFrame* callFrame, JSObject* thisObj,
     if (*profiler)
         (*profiler)->willExecute(callFrame, scopeChain->globalObject()->evalFunction());
 
-    UString programSource = static_cast<JSString*>(program)->value();
+    UString programSource = asString(program)->value();
 
     CodeBlock* codeBlock = callFrame->codeBlock();
     RefPtr<EvalNode> evalNode = codeBlock->evalCodeCache.get(callFrame, programSource, scopeChain, exceptionValue);
 
-    JSValue* result = 0;
+    JSValuePtr result = jsUndefined();
     if (evalNode)
         result = callFrame->globalData().machine->execute(evalNode.get(), callFrame, thisObj, callFrame->registers() - registerFile->start() + argv + 1 + RegisterFile::CallFrameHeaderSize, scopeChain, &exceptionValue);
 
@@ -628,17 +628,17 @@ Machine::Machine()
     // Bizarrely, calling fastMalloc here is faster than allocating space on the stack.
     void* storage = fastMalloc(sizeof(CollectorBlock));
 
-    JSArray* jsArray = new (storage) JSArray(JSArray::createStructureID(jsNull()));
+    JSCell* jsArray = new (storage) JSArray(JSArray::createStructureID(jsNull()));
     m_jsArrayVptr = jsArray->vptr();
-    static_cast<JSCell*>(jsArray)->~JSCell();
+    jsArray->~JSCell();
 
-    JSString* jsString = new (storage) JSString(JSString::VPtrStealingHack);
+    JSCell* jsString = new (storage) JSString(JSString::VPtrStealingHack);
     m_jsStringVptr = jsString->vptr();
-    static_cast<JSCell*>(jsString)->~JSCell();
+    jsString->~JSCell();
 
-    JSFunction* jsFunction = new (storage) JSFunction(JSFunction::createStructureID(jsNull()));
+    JSCell* jsFunction = new (storage) JSFunction(JSFunction::createStructureID(jsNull()));
     m_jsFunctionVptr = jsFunction->vptr();
-    static_cast<JSCell*>(jsFunction)->~JSCell();
+    jsFunction->~JSCell();
     
     fastFree(storage);
 }
@@ -753,7 +753,7 @@ bool Machine::isOpcode(Opcode opcode)
 #endif
 }
 
-NEVER_INLINE bool Machine::unwindCallFrame(CallFrame*& callFrame, JSValue* exceptionValue, const Instruction*& vPC, CodeBlock*& codeBlock)
+NEVER_INLINE bool Machine::unwindCallFrame(CallFrame*& callFrame, JSValuePtr exceptionValue, const Instruction*& vPC, CodeBlock*& codeBlock)
 {
     CodeBlock* oldCodeBlock = codeBlock;
     ScopeChainNode* scopeChain = callFrame->scopeChain();
@@ -796,13 +796,13 @@ NEVER_INLINE bool Machine::unwindCallFrame(CallFrame*& callFrame, JSValue* excep
     return true;
 }
 
-NEVER_INLINE Instruction* Machine::throwException(CallFrame*& callFrame, JSValue*& exceptionValue, const Instruction* vPC, bool explicitThrow)
+NEVER_INLINE Instruction* Machine::throwException(CallFrame*& callFrame, JSValuePtr& exceptionValue, const Instruction* vPC, bool explicitThrow)
 {
     // Set up the exception object
     
     CodeBlock* codeBlock = callFrame->codeBlock();
     if (exceptionValue->isObject()) {
-        JSObject* exception = static_cast<JSObject*>(exceptionValue);
+        JSObject* exception = asObject(exceptionValue);
         if (exception->isNotAnObjectErrorStub()) {
             exception = createNotAnObjectError(callFrame, static_cast<JSNotAnObjectErrorStub*>(exception), vPC, codeBlock);
             exceptionValue = exception;
@@ -885,7 +885,7 @@ private:
     JSGlobalObject* m_savedDynamicGlobalObject;
 };
 
-JSValue* Machine::execute(ProgramNode* programNode, CallFrame* callFrame, ScopeChainNode* scopeChain, JSObject* thisObj, JSValue** exception)
+JSValuePtr Machine::execute(ProgramNode* programNode, CallFrame* callFrame, ScopeChainNode* scopeChain, JSObject* thisObj, JSValuePtr* exception)
 {
     ASSERT(!scopeChain->globalData->exception);
 
@@ -924,9 +924,9 @@ JSValue* Machine::execute(ProgramNode* programNode, CallFrame* callFrame, ScopeC
 #if ENABLE(CTI)
     if (!codeBlock->ctiCode)
         CTI::compile(this, newCallFrame, codeBlock);
-    JSValue* result = CTI::execute(codeBlock->ctiCode, &m_registerFile, newCallFrame, scopeChain->globalData, exception);
+    JSValuePtr result = CTI::execute(codeBlock->ctiCode, &m_registerFile, newCallFrame, scopeChain->globalData, exception);
 #else
-    JSValue* result = privateExecute(Normal, &m_registerFile, newCallFrame, exception);
+    JSValuePtr result = privateExecute(Normal, &m_registerFile, newCallFrame, exception);
 #endif
     m_reentryDepth--;
 
@@ -943,7 +943,7 @@ JSValue* Machine::execute(ProgramNode* programNode, CallFrame* callFrame, ScopeC
     return result;
 }
 
-JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, CallFrame* callFrame, JSFunction* function, JSObject* thisObj, const ArgList& args, ScopeChainNode* scopeChain, JSValue** exception)
+JSValuePtr Machine::execute(FunctionBodyNode* functionBodyNode, CallFrame* callFrame, JSFunction* function, JSObject* thisObj, const ArgList& args, ScopeChainNode* scopeChain, JSValuePtr* exception)
 {
     ASSERT(!scopeChain->globalData->exception);
 
@@ -987,9 +987,9 @@ JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, CallFrame* callFra
 #if ENABLE(CTI)
     if (!codeBlock->ctiCode)
         CTI::compile(this, newCallFrame, codeBlock);
-    JSValue* result = CTI::execute(codeBlock->ctiCode, &m_registerFile, newCallFrame, scopeChain->globalData, exception);
+    JSValuePtr result = CTI::execute(codeBlock->ctiCode, &m_registerFile, newCallFrame, scopeChain->globalData, exception);
 #else
-    JSValue* result = privateExecute(Normal, &m_registerFile, newCallFrame, exception);
+    JSValuePtr result = privateExecute(Normal, &m_registerFile, newCallFrame, exception);
 #endif
     m_reentryDepth--;
 
@@ -999,12 +999,12 @@ JSValue* Machine::execute(FunctionBodyNode* functionBodyNode, CallFrame* callFra
     return result;
 }
 
-JSValue* Machine::execute(EvalNode* evalNode, CallFrame* callFrame, JSObject* thisObj, ScopeChainNode* scopeChain, JSValue** exception)
+JSValuePtr Machine::execute(EvalNode* evalNode, CallFrame* callFrame, JSObject* thisObj, ScopeChainNode* scopeChain, JSValuePtr* exception)
 {
     return execute(evalNode, callFrame, thisObj, m_registerFile.size() + evalNode->byteCode(scopeChain).numParameters + RegisterFile::CallFrameHeaderSize, scopeChain, exception);
 }
 
-JSValue* Machine::execute(EvalNode* evalNode, CallFrame* callFrame, JSObject* thisObj, int registerOffset, ScopeChainNode* scopeChain, JSValue** exception)
+JSValuePtr Machine::execute(EvalNode* evalNode, CallFrame* callFrame, JSObject* thisObj, int registerOffset, ScopeChainNode* scopeChain, JSValuePtr* exception)
 {
     ASSERT(!scopeChain->globalData->exception);
 
@@ -1073,9 +1073,9 @@ JSValue* Machine::execute(EvalNode* evalNode, CallFrame* callFrame, JSObject* th
 #if ENABLE(CTI)
     if (!codeBlock->ctiCode)
         CTI::compile(this, newCallFrame, codeBlock);
-    JSValue* result = CTI::execute(codeBlock->ctiCode, &m_registerFile, newCallFrame, scopeChain->globalData, exception);
+    JSValuePtr result = CTI::execute(codeBlock->ctiCode, &m_registerFile, newCallFrame, scopeChain->globalData, exception);
 #else
-    JSValue* result = privateExecute(Normal, &m_registerFile, newCallFrame, exception);
+    JSValuePtr result = privateExecute(Normal, &m_registerFile, newCallFrame, exception);
 #endif
     m_reentryDepth--;
 
@@ -1096,22 +1096,22 @@ NEVER_INLINE void Machine::debug(CallFrame* callFrame, DebugHookID debugHookID, 
 
     switch (debugHookID) {
         case DidEnterCallFrame:
-            debugger->callEvent(DebuggerCallFrame(callFrame, 0), callFrame->codeBlock()->ownerNode->sourceID(), firstLine);
+            debugger->callEvent(callFrame, callFrame->codeBlock()->ownerNode->sourceID(), firstLine);
             return;
         case WillLeaveCallFrame:
-            debugger->returnEvent(DebuggerCallFrame(callFrame, 0), callFrame->codeBlock()->ownerNode->sourceID(), lastLine);
+            debugger->returnEvent(callFrame, callFrame->codeBlock()->ownerNode->sourceID(), lastLine);
             return;
         case WillExecuteStatement:
-            debugger->atStatement(DebuggerCallFrame(callFrame, 0), callFrame->codeBlock()->ownerNode->sourceID(), firstLine);
+            debugger->atStatement(callFrame, callFrame->codeBlock()->ownerNode->sourceID(), firstLine);
             return;
         case WillExecuteProgram:
-            debugger->willExecuteProgram(DebuggerCallFrame(callFrame, 0), callFrame->codeBlock()->ownerNode->sourceID(), firstLine);
+            debugger->willExecuteProgram(callFrame, callFrame->codeBlock()->ownerNode->sourceID(), firstLine);
             return;
         case DidExecuteProgram:
-            debugger->didExecuteProgram(DebuggerCallFrame(callFrame, 0), callFrame->codeBlock()->ownerNode->sourceID(), lastLine);
+            debugger->didExecuteProgram(callFrame, callFrame->codeBlock()->ownerNode->sourceID(), lastLine);
             return;
         case DidReachBreakpoint:
-            debugger->didReachBreakpoint(DebuggerCallFrame(callFrame, 0), callFrame->codeBlock()->ownerNode->sourceID(), lastLine);
+            debugger->didReachBreakpoint(callFrame, callFrame->codeBlock()->ownerNode->sourceID(), lastLine);
             return;
     }
 }
@@ -1165,14 +1165,14 @@ static inline unsigned getCPUTime()
 
 // We have to return a JSValue here, gcc seems to produce worse code if 
 // we attempt to return a bool
-ALWAYS_INLINE JSValue* Machine::checkTimeout(JSGlobalObject* globalObject)
+ALWAYS_INLINE JSValuePtr Machine::checkTimeout(JSGlobalObject* globalObject)
 {
     unsigned currentTime = getCPUTime();
     
     if (!m_timeAtLastCheckTimeout) {
         // Suspicious amount of looping in a script -- start timing it
         m_timeAtLastCheckTimeout = currentTime;
-        return 0;
+        return noValue();
     }
     
     unsigned timeDiff = currentTime - m_timeAtLastCheckTimeout;
@@ -1198,7 +1198,7 @@ ALWAYS_INLINE JSValue* Machine::checkTimeout(JSGlobalObject* globalObject)
         resetTimeoutCheck();
     }
     
-    return 0;
+    return noValue();
 }
 
 NEVER_INLINE ScopeChainNode* Machine::createExceptionScope(CallFrame* callFrame, const Instruction* vPC)
@@ -1206,7 +1206,7 @@ NEVER_INLINE ScopeChainNode* Machine::createExceptionScope(CallFrame* callFrame,
     int dst = (++vPC)->u.operand;
     CodeBlock* codeBlock = callFrame->codeBlock();
     Identifier& property = codeBlock->identifiers[(++vPC)->u.operand];
-    JSValue* value = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+    JSValuePtr value = callFrame[(++vPC)->u.operand].jsValue(callFrame);
     JSObject* scope = new (callFrame) JSStaticScopeObject(callFrame, property, value, DontDelete);
     callFrame[dst] = scope;
 
@@ -1215,15 +1215,15 @@ NEVER_INLINE ScopeChainNode* Machine::createExceptionScope(CallFrame* callFrame,
 
 static StructureIDChain* cachePrototypeChain(CallFrame* callFrame, StructureID* structureID)
 {
-    JSValue* prototype = structureID->prototypeForLookup(callFrame);
+    JSValuePtr prototype = structureID->prototypeForLookup(callFrame);
     if (JSImmediate::isImmediate(prototype))
         return 0;
-    RefPtr<StructureIDChain> chain = StructureIDChain::create(static_cast<JSObject*>(prototype)->structureID());
+    RefPtr<StructureIDChain> chain = StructureIDChain::create(asObject(prototype)->structureID());
     structureID->setCachedPrototypeChain(chain.release());
     return structureID->cachedPrototypeChain();
 }
 
-NEVER_INLINE void Machine::tryCachePutByID(CallFrame* callFrame, CodeBlock* codeBlock, Instruction* vPC, JSValue* baseValue, const PutPropertySlot& slot)
+NEVER_INLINE void Machine::tryCachePutByID(CallFrame* callFrame, CodeBlock* codeBlock, Instruction* vPC, JSValuePtr baseValue, const PutPropertySlot& slot)
 {
     // Recursive invocation may already have specialized this instruction.
     if (vPC[0].u.opcode != getOpcode(op_put_by_id))
@@ -1238,7 +1238,7 @@ NEVER_INLINE void Machine::tryCachePutByID(CallFrame* callFrame, CodeBlock* code
         return;
     }
     
-    JSCell* baseCell = static_cast<JSCell*>(baseValue);
+    JSCell* baseCell = asCell(baseValue);
     StructureID* structureID = baseCell->structureID();
 
     if (structureID->isDictionary()) {
@@ -1300,7 +1300,7 @@ NEVER_INLINE void Machine::uncachePutByID(CodeBlock* codeBlock, Instruction* vPC
     vPC[4] = 0;
 }
 
-NEVER_INLINE void Machine::tryCacheGetByID(CallFrame* callFrame, CodeBlock* codeBlock, Instruction* vPC, JSValue* baseValue, const Identifier& propertyName, const PropertySlot& slot)
+NEVER_INLINE void Machine::tryCacheGetByID(CallFrame* callFrame, CodeBlock* codeBlock, Instruction* vPC, JSValuePtr baseValue, const Identifier& propertyName, const PropertySlot& slot)
 {
     // Recursive invocation may already have specialized this instruction.
     if (vPC[0].u.opcode != getOpcode(op_get_by_id))
@@ -1328,7 +1328,7 @@ NEVER_INLINE void Machine::tryCacheGetByID(CallFrame* callFrame, CodeBlock* code
         return;
     }
 
-    StructureID* structureID = static_cast<JSCell*>(baseValue)->structureID();
+    StructureID* structureID = asCell(baseValue)->structureID();
 
     if (structureID->isDictionary()) {
         vPC[0] = getOpcode(op_get_by_id_generic);
@@ -1362,14 +1362,14 @@ NEVER_INLINE void Machine::tryCacheGetByID(CallFrame* callFrame, CodeBlock* code
     if (slot.slotBase() == structureID->prototypeForLookup(callFrame)) {
         ASSERT(slot.slotBase()->isObject());
 
-        JSObject* baseObject = static_cast<JSObject*>(slot.slotBase());
+        JSObject* baseObject = asObject(slot.slotBase());
 
         // Heavy access to a prototype is a good indication that it's not being
         // used as a dictionary.
         if (baseObject->structureID()->isDictionary()) {
             RefPtr<StructureID> transition = StructureID::fromDictionaryTransition(baseObject->structureID());
             baseObject->setStructureID(transition.release());
-            static_cast<JSObject*>(baseValue)->structureID()->setCachedPrototypeChain(0);
+            asObject(baseValue)->structureID()->setCachedPrototypeChain(0);
         }
 
         vPC[0] = getOpcode(op_get_by_id_proto);
@@ -1381,9 +1381,9 @@ NEVER_INLINE void Machine::tryCacheGetByID(CallFrame* callFrame, CodeBlock* code
     }
 
     size_t count = 0;
-    JSObject* o = static_cast<JSObject*>(baseValue);
+    JSObject* o = asObject(baseValue);
     while (slot.slotBase() != o) {
-        JSValue* v = o->structureID()->prototypeForLookup(callFrame);
+        JSValuePtr v = o->structureID()->prototypeForLookup(callFrame);
 
         // If we didn't find base in baseValue's prototype chain, then baseValue
         // must be a proxy for another object.
@@ -1392,14 +1392,14 @@ NEVER_INLINE void Machine::tryCacheGetByID(CallFrame* callFrame, CodeBlock* code
             return;
         }
 
-        o = static_cast<JSObject*>(v);
+        o = asObject(v);
 
         // Heavy access to a prototype is a good indication that it's not being
         // used as a dictionary.
         if (o->structureID()->isDictionary()) {
             RefPtr<StructureID> transition = StructureID::fromDictionaryTransition(o->structureID());
             o->setStructureID(transition.release());
-            static_cast<JSObject*>(baseValue)->structureID()->setCachedPrototypeChain(0);
+            asObject(baseValue)->structureID()->setCachedPrototypeChain(0);
         }
 
         ++count;
@@ -1425,7 +1425,7 @@ NEVER_INLINE void Machine::uncacheGetByID(CodeBlock* codeBlock, Instruction* vPC
     vPC[4] = 0;
 }
 
-JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile, CallFrame* callFrame, JSValue** exception)
+JSValuePtr Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile, CallFrame* callFrame, JSValuePtr* exception)
 {
     // One-time initialization of our address tables. We have to put this code
     // here because our labels are only in scope inside this function.
@@ -1442,7 +1442,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
             op_throw_end_indirect = &&op_throw_end;
             op_call_indirect = &&op_call;
         #endif // HAVE(COMPUTED_GOTO)
-        return 0;
+        return noValue();
     }
 
 #if ENABLE(CTI)
@@ -1451,7 +1451,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
 #endif
 
     JSGlobalData* globalData = &callFrame->globalData();
-    JSValue* exceptionValue = 0;
+    JSValuePtr exceptionValue = noValue();
     Instruction* handlerVPC = 0;
 
     Instruction* vPC = callFrame->codeBlock()->instructions.begin();
@@ -1460,7 +1460,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
 
 #define VM_CHECK_EXCEPTION() \
     do { \
-        if (UNLIKELY(globalData->exception != 0)) { \
+        if (UNLIKELY(globalData->exception != noValue())) { \
             exceptionValue = globalData->exception; \
             goto vm_throw; \
         } \
@@ -1560,12 +1560,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            as a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (JSImmediate::areBothImmediateNumbers(src1, src2))
-            callFrame[dst] = jsBoolean(reinterpret_cast<intptr_t>(src1) == reinterpret_cast<intptr_t>(src2));
+            callFrame[dst] = jsBoolean(src1 == src2);
         else {
-            JSValue* result = jsBoolean(equalSlowCase(callFrame, src1, src2));
+            JSValuePtr result = jsBoolean(equalSlowCase(callFrame, src1, src2));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1580,7 +1580,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            operator, and puts the result as a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
 
         if (src->isUndefinedOrNull()) {
             callFrame[dst] = jsBoolean(true);
@@ -1600,12 +1600,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            result as a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (JSImmediate::areBothImmediateNumbers(src1, src2))
             callFrame[dst] = jsBoolean(src1 != src2);
         else {
-            JSValue* result = jsBoolean(!equalSlowCase(callFrame, src1, src2));
+            JSValuePtr result = jsBoolean(!equalSlowCase(callFrame, src1, src2));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1620,7 +1620,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            operator, and puts the result as a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
 
         if (src->isUndefinedOrNull()) {
             callFrame[dst] = jsBoolean(false);
@@ -1628,7 +1628,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
             NEXT_OPCODE;
         }
         
-        callFrame[dst] = jsBoolean(JSImmediate::isImmediate(src) || !static_cast<JSCell*>(src)->asCell()->structureID()->typeInfo().masqueradesAsUndefined());
+        callFrame[dst] = jsBoolean(JSImmediate::isImmediate(src) || !asCell(src)->structureID()->typeInfo().masqueradesAsUndefined());
         ++vPC;
         NEXT_OPCODE;
     }
@@ -1640,10 +1640,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            result as a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (JSImmediate::areBothImmediate(src1, src2))
-            callFrame[dst] = jsBoolean(reinterpret_cast<intptr_t>(src1) == reinterpret_cast<intptr_t>(src2));
+            callFrame[dst] = jsBoolean(src1 == src2);
         else if (JSImmediate::isEitherImmediate(src1, src2) & (src1 != JSImmediate::zeroImmediate()) & (src2 != JSImmediate::zeroImmediate()))
             callFrame[dst] = jsBoolean(false);
         else
@@ -1660,11 +1660,11 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            puts the result as a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
 
         if (JSImmediate::areBothImmediate(src1, src2))
-            callFrame[dst] = jsBoolean(reinterpret_cast<intptr_t>(src1) != reinterpret_cast<intptr_t>(src2));
+            callFrame[dst] = jsBoolean(src1 != src2);
         else if (JSImmediate::isEitherImmediate(src1, src2) & (src1 != JSImmediate::zeroImmediate()) & (src2 != JSImmediate::zeroImmediate()))
             callFrame[dst] = jsBoolean(true);
         else
@@ -1681,9 +1681,9 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* result = jsBoolean(jsLess(callFrame, src1, src2));
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr result = jsBoolean(jsLess(callFrame, src1, src2));
         VM_CHECK_EXCEPTION();
         callFrame[dst] = result;
 
@@ -1698,9 +1698,9 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            puts the result as a boolean in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* result = jsBoolean(jsLessEq(callFrame, src1, src2));
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr result = jsBoolean(jsLessEq(callFrame, src1, src2));
         VM_CHECK_EXCEPTION();
         callFrame[dst] = result;
 
@@ -1714,11 +1714,11 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            back in register srcDst.
         */
         int srcDst = (++vPC)->u.operand;
-        JSValue* v = callFrame[srcDst].jsValue(callFrame);
+        JSValuePtr v = callFrame[srcDst].jsValue(callFrame);
         if (JSImmediate::canDoFastAdditiveOperations(v))
             callFrame[srcDst] = JSImmediate::incImmediateNumber(v);
         else {
-            JSValue* result = jsNumber(callFrame, v->toNumber(callFrame) + 1);
+            JSValuePtr result = jsNumber(callFrame, v->toNumber(callFrame) + 1);
             VM_CHECK_EXCEPTION();
             callFrame[srcDst] = result;
         }
@@ -1733,11 +1733,11 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            back in register srcDst.
         */
         int srcDst = (++vPC)->u.operand;
-        JSValue* v = callFrame[srcDst].jsValue(callFrame);
+        JSValuePtr v = callFrame[srcDst].jsValue(callFrame);
         if (JSImmediate::canDoFastAdditiveOperations(v))
             callFrame[srcDst] = JSImmediate::decImmediateNumber(v);
         else {
-            JSValue* result = jsNumber(callFrame, v->toNumber(callFrame) - 1);
+            JSValuePtr result = jsNumber(callFrame, v->toNumber(callFrame) - 1);
             VM_CHECK_EXCEPTION();
             callFrame[srcDst] = result;
         }
@@ -1754,12 +1754,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         */
         int dst = (++vPC)->u.operand;
         int srcDst = (++vPC)->u.operand;
-        JSValue* v = callFrame[srcDst].jsValue(callFrame);
+        JSValuePtr v = callFrame[srcDst].jsValue(callFrame);
         if (JSImmediate::canDoFastAdditiveOperations(v)) {
             callFrame[dst] = v;
             callFrame[srcDst] = JSImmediate::incImmediateNumber(v);
         } else {
-            JSValue* number = callFrame[srcDst].jsValue(callFrame)->toJSNumber(callFrame);
+            JSValuePtr number = callFrame[srcDst].jsValue(callFrame)->toJSNumber(callFrame);
             VM_CHECK_EXCEPTION();
             callFrame[dst] = number;
             callFrame[srcDst] = jsNumber(callFrame, number->uncheckedGetNumber() + 1);
@@ -1777,12 +1777,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         */
         int dst = (++vPC)->u.operand;
         int srcDst = (++vPC)->u.operand;
-        JSValue* v = callFrame[srcDst].jsValue(callFrame);
+        JSValuePtr v = callFrame[srcDst].jsValue(callFrame);
         if (JSImmediate::canDoFastAdditiveOperations(v)) {
             callFrame[dst] = v;
             callFrame[srcDst] = JSImmediate::decImmediateNumber(v);
         } else {
-            JSValue* number = callFrame[srcDst].jsValue(callFrame)->toJSNumber(callFrame);
+            JSValuePtr number = callFrame[srcDst].jsValue(callFrame)->toJSNumber(callFrame);
             VM_CHECK_EXCEPTION();
             callFrame[dst] = number;
             callFrame[srcDst] = jsNumber(callFrame, number->uncheckedGetNumber() - 1);
@@ -1800,12 +1800,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int dst = (++vPC)->u.operand;
         int src = (++vPC)->u.operand;
 
-        JSValue* srcVal = callFrame[src].jsValue(callFrame);
+        JSValuePtr srcVal = callFrame[src].jsValue(callFrame);
 
         if (LIKELY(srcVal->isNumber()))
             callFrame[dst] = callFrame[src];
         else {
-            JSValue* result = srcVal->toJSNumber(callFrame);
+            JSValuePtr result = srcVal->toJSNumber(callFrame);
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1820,12 +1820,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            result in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         double v;
         if (fastIsNumber(src, v))
             callFrame[dst] = jsNumber(callFrame, -v);
         else {
-            JSValue* result = jsNumber(callFrame, -src->toNumber(callFrame));
+            JSValuePtr result = jsNumber(callFrame, -src->toNumber(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1841,12 +1841,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            numeric add, depending on the types of the operands.)
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (JSImmediate::canDoFastAdditiveOperations(src1) && JSImmediate::canDoFastAdditiveOperations(src2))
             callFrame[dst] = JSImmediate::addImmediateNumbers(src1, src2);
         else {
-            JSValue* result = jsAdd(callFrame, src1, src2);
+            JSValuePtr result = jsAdd(callFrame, src1, src2);
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1860,8 +1860,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            numbers), and puts the product in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         double left;
         double right;
         if (JSImmediate::areBothImmediateNumbers(src1, src2)) {
@@ -1874,7 +1874,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         } else if (fastIsNumber(src1, left) && fastIsNumber(src2, right))
             callFrame[dst] = jsNumber(callFrame, left * right);
         else {
-            JSValue* result = jsNumber(callFrame, src1->toNumber(callFrame) * src2->toNumber(callFrame));
+            JSValuePtr result = jsNumber(callFrame, src1->toNumber(callFrame) * src2->toNumber(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1890,14 +1890,14 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            quotient in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* dividend = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* divisor = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr dividend = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr divisor = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         double left;
         double right;
         if (fastIsNumber(dividend, left) && fastIsNumber(divisor, right))
             callFrame[dst] = jsNumber(callFrame, left / right);
         else {
-            JSValue* result = jsNumber(callFrame, dividend->toNumber(callFrame) / divisor->toNumber(callFrame));
+            JSValuePtr result = jsNumber(callFrame, dividend->toNumber(callFrame) / divisor->toNumber(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1915,8 +1915,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int dividend = (++vPC)->u.operand;
         int divisor = (++vPC)->u.operand;
 
-        JSValue* dividendValue = callFrame[dividend].jsValue(callFrame);
-        JSValue* divisorValue = callFrame[divisor].jsValue(callFrame);
+        JSValuePtr dividendValue = callFrame[dividend].jsValue(callFrame);
+        JSValuePtr divisorValue = callFrame[divisor].jsValue(callFrame);
 
         if (JSImmediate::areBothImmediateNumbers(dividendValue, divisorValue) && divisorValue != JSImmediate::from(0)) {
             callFrame[dst] = JSImmediate::from(JSImmediate::getTruncatedInt32(dividendValue) % JSImmediate::getTruncatedInt32(divisorValue));
@@ -1925,7 +1925,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         }
 
         double d = dividendValue->toNumber(callFrame);
-        JSValue* result = jsNumber(callFrame, fmod(d, divisorValue->toNumber(callFrame)));
+        JSValuePtr result = jsNumber(callFrame, fmod(d, divisorValue->toNumber(callFrame)));
         VM_CHECK_EXCEPTION();
         callFrame[dst] = result;
         ++vPC;
@@ -1939,8 +1939,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         double left;
         double right;
         if (JSImmediate::canDoFastAdditiveOperations(src1) && JSImmediate::canDoFastAdditiveOperations(src2))
@@ -1948,7 +1948,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         else if (fastIsNumber(src1, left) && fastIsNumber(src2, right))
             callFrame[dst] = jsNumber(callFrame, left - right);
         else {
-            JSValue* result = jsNumber(callFrame, src1->toNumber(callFrame) - src2->toNumber(callFrame));
+            JSValuePtr result = jsNumber(callFrame, src1->toNumber(callFrame) - src2->toNumber(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1963,8 +1963,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* val = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* shift = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr val = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr shift = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int32_t left;
         uint32_t right;
         if (JSImmediate::areBothImmediateNumbers(val, shift))
@@ -1972,7 +1972,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         else if (fastToInt32(val, left) && fastToUInt32(shift, right))
             callFrame[dst] = jsNumber(callFrame, left << (right & 0x1f));
         else {
-            JSValue* result = jsNumber(callFrame, (val->toInt32(callFrame)) << (shift->toUInt32(callFrame) & 0x1f));
+            JSValuePtr result = jsNumber(callFrame, (val->toInt32(callFrame)) << (shift->toUInt32(callFrame) & 0x1f));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -1988,8 +1988,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            uint32), and puts the result in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* val = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* shift = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr val = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr shift = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int32_t left;
         uint32_t right;
         if (JSImmediate::areBothImmediateNumbers(val, shift))
@@ -1997,7 +1997,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         else if (fastToInt32(val, left) && fastToUInt32(shift, right))
             callFrame[dst] = jsNumber(callFrame, left >> (right & 0x1f));
         else {
-            JSValue* result = jsNumber(callFrame, (val->toInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
+            JSValuePtr result = jsNumber(callFrame, (val->toInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -2013,12 +2013,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            uint32), and puts the result in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* val = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* shift = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr val = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr shift = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (JSImmediate::areBothImmediateNumbers(val, shift) && !JSImmediate::isNegative(val))
             callFrame[dst] = JSImmediate::rightShiftImmediateNumbers(val, shift);
         else {
-            JSValue* result = jsNumber(callFrame, (val->toUInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
+            JSValuePtr result = jsNumber(callFrame, (val->toUInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -2034,8 +2034,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int32_t left;
         int32_t right;
         if (JSImmediate::areBothImmediateNumbers(src1, src2))
@@ -2043,7 +2043,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         else if (fastToInt32(src1, left) && fastToInt32(src2, right))
             callFrame[dst] = jsNumber(callFrame, left & right);
         else {
-            JSValue* result = jsNumber(callFrame, src1->toInt32(callFrame) & src2->toInt32(callFrame));
+            JSValuePtr result = jsNumber(callFrame, src1->toInt32(callFrame) & src2->toInt32(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -2059,8 +2059,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int32_t left;
         int32_t right;
         if (JSImmediate::areBothImmediateNumbers(src1, src2))
@@ -2068,7 +2068,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         else if (fastToInt32(src1, left) && fastToInt32(src2, right))
             callFrame[dst] = jsNumber(callFrame, left ^ right);
         else {
-            JSValue* result = jsNumber(callFrame, src1->toInt32(callFrame) ^ src2->toInt32(callFrame));
+            JSValuePtr result = jsNumber(callFrame, src1->toInt32(callFrame) ^ src2->toInt32(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -2084,8 +2084,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            result in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int32_t left;
         int32_t right;
         if (JSImmediate::areBothImmediateNumbers(src1, src2))
@@ -2093,7 +2093,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         else if (fastToInt32(src1, left) && fastToInt32(src2, right))
             callFrame[dst] = jsNumber(callFrame, left | right);
         else {
-            JSValue* result = jsNumber(callFrame, src1->toInt32(callFrame) | src2->toInt32(callFrame));
+            JSValuePtr result = jsNumber(callFrame, src1->toInt32(callFrame) | src2->toInt32(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -2108,12 +2108,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            and puts the result in register dst.
         */
         int dst = (++vPC)->u.operand;
-        JSValue* src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int32_t value;
         if (fastToInt32(src, value))
             callFrame[dst] = jsNumber(callFrame, ~value);
         else {
-            JSValue* result = jsNumber(callFrame, ~src->toInt32(callFrame));
+            JSValuePtr result = jsNumber(callFrame, ~src->toInt32(callFrame));
             VM_CHECK_EXCEPTION();
             callFrame[dst] = result;
         }
@@ -2128,7 +2128,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         */
         int dst = (++vPC)->u.operand;
         int src = (++vPC)->u.operand;
-        JSValue* result = jsBoolean(!callFrame[src].jsValue(callFrame)->toBoolean(callFrame));
+        JSValuePtr result = jsBoolean(!callFrame[src].jsValue(callFrame)->toBoolean(callFrame));
         VM_CHECK_EXCEPTION();
         callFrame[dst] = result;
 
@@ -2153,12 +2153,12 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int base = (++vPC)->u.operand;
         int baseProto = (++vPC)->u.operand;
 
-        JSValue* baseVal = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseVal = callFrame[base].jsValue(callFrame);
 
         if (isNotObject(callFrame, true, callFrame->codeBlock(), vPC, baseVal, exceptionValue))
             goto vm_throw;
 
-        JSObject* baseObj = static_cast<JSObject*>(baseVal);
+        JSObject* baseObj = asObject(baseVal);
         callFrame[dst] = jsBoolean(baseObj->structureID()->typeInfo().implementsHasInstance() ? baseObj->hasInstance(callFrame, callFrame[value].jsValue(callFrame), callFrame[baseProto].jsValue(callFrame)) : false);
 
         ++vPC;
@@ -2186,7 +2186,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         */
         int dst = (++vPC)->u.operand;
         int src = (++vPC)->u.operand;
-        JSValue* v = callFrame[src].jsValue(callFrame);
+        JSValuePtr v = callFrame[src].jsValue(callFrame);
         callFrame[dst] = jsBoolean(JSImmediate::isImmediate(v) ? v->isUndefined() : v->asCell()->structureID()->typeInfo().masqueradesAsUndefined());
 
         ++vPC;
@@ -2275,13 +2275,13 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int property = (++vPC)->u.operand;
         int base = (++vPC)->u.operand;
 
-        JSValue* baseVal = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseVal = callFrame[base].jsValue(callFrame);
         if (isNotObject(callFrame, false, callFrame->codeBlock(), vPC, baseVal, exceptionValue))
             goto vm_throw;
 
-        JSObject* baseObj = static_cast<JSObject*>(baseVal);
+        JSObject* baseObj = asObject(baseVal);
 
-        JSValue* propName = callFrame[property].jsValue(callFrame);
+        JSValuePtr propName = callFrame[property].jsValue(callFrame);
 
         uint32_t i;
         if (propName->getUInt32(i))
@@ -2477,9 +2477,9 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
 
         CodeBlock* codeBlock = callFrame->codeBlock();
         Identifier& ident = codeBlock->identifiers[property];
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
         PropertySlot slot(baseValue);
-        JSValue* result = baseValue->get(callFrame, ident, slot);
+        JSValuePtr result = baseValue->get(callFrame, ident, slot);
         VM_CHECK_EXCEPTION();
 
         tryCacheGetByID(callFrame, codeBlock, vPC, baseValue, ident, slot);
@@ -2496,15 +2496,15 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            op_get_by_id.
         */
         int base = vPC[2].u.operand;
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
 
         if (LIKELY(!JSImmediate::isImmediate(baseValue))) {
-            JSCell* baseCell = static_cast<JSCell*>(baseValue);
+            JSCell* baseCell = asCell(baseValue);
             StructureID* structureID = vPC[4].u.structureID;
 
             if (LIKELY(baseCell->structureID() == structureID)) {
                 ASSERT(baseCell->isObject());
-                JSObject* baseObject = static_cast<JSObject*>(baseCell);
+                JSObject* baseObject = asObject(baseCell);
                 int dst = vPC[1].u.operand;
                 int offset = vPC[5].u.operand;
 
@@ -2527,15 +2527,15 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            reverts to op_get_by_id.
         */
         int base = vPC[2].u.operand;
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
 
         if (LIKELY(!JSImmediate::isImmediate(baseValue))) {
-            JSCell* baseCell = static_cast<JSCell*>(baseValue);
+            JSCell* baseCell = asCell(baseValue);
             StructureID* structureID = vPC[4].u.structureID;
 
             if (LIKELY(baseCell->structureID() == structureID)) {
                 ASSERT(structureID->prototypeForLookup(callFrame)->isObject());
-                JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(callFrame));
+                JSObject* protoObject = asObject(structureID->prototypeForLookup(callFrame));
                 StructureID* protoStructureID = vPC[5].u.structureID;
 
                 if (LIKELY(protoObject->structureID() == protoStructureID)) {
@@ -2562,10 +2562,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            reverts to op_get_by_id.
         */
         int base = vPC[2].u.operand;
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
 
         if (LIKELY(!JSImmediate::isImmediate(baseValue))) {
-            JSCell* baseCell = static_cast<JSCell*>(baseValue);
+            JSCell* baseCell = asCell(baseValue);
             StructureID* structureID = vPC[4].u.structureID;
 
             if (LIKELY(baseCell->structureID() == structureID)) {
@@ -2573,9 +2573,9 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
                 size_t count = vPC[6].u.operand;
                 RefPtr<StructureID>* end = it + count;
 
-                JSObject* baseObject = static_cast<JSObject*>(baseCell);
+                JSObject* baseObject = asObject(baseCell);
                 while (1) {
-                    baseObject = static_cast<JSObject*>(baseObject->structureID()->prototypeForLookup(callFrame));
+                    baseObject = asObject(baseObject->structureID()->prototypeForLookup(callFrame));
                     if (UNLIKELY(baseObject->structureID() != (*it).get()))
                         break;
 
@@ -2607,9 +2607,9 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int property = vPC[3].u.operand;
 
         Identifier& ident = callFrame->codeBlock()->identifiers[property];
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
         PropertySlot slot(baseValue);
-        JSValue* result = baseValue->get(callFrame, ident, slot);
+        JSValuePtr result = baseValue->get(callFrame, ident, slot);
         VM_CHECK_EXCEPTION();
 
         callFrame[dst] = result;
@@ -2625,10 +2625,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         */
 
         int base = vPC[2].u.operand;
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
         if (LIKELY(isJSArray(baseValue))) {
             int dst = vPC[1].u.operand;
-            callFrame[dst] = jsNumber(callFrame, static_cast<JSArray*>(baseValue)->length());
+            callFrame[dst] = jsNumber(callFrame, asArray(baseValue)->length());
             vPC += 8;
             NEXT_OPCODE;
         }
@@ -2645,10 +2645,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         */
 
         int base = vPC[2].u.operand;
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
         if (LIKELY(isJSString(baseValue))) {
             int dst = vPC[1].u.operand;
-            callFrame[dst] = jsNumber(callFrame, static_cast<JSString*>(baseValue)->value().size());
+            callFrame[dst] = jsNumber(callFrame, asString(baseValue)->value().size());
             vPC += 8;
             NEXT_OPCODE;
         }
@@ -2671,7 +2671,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int value = vPC[3].u.operand;
 
         CodeBlock* codeBlock = callFrame->codeBlock();
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
         Identifier& ident = codeBlock->identifiers[property];
         PutPropertySlot slot;
         baseValue->put(callFrame, ident, callFrame[value].jsValue(callFrame), slot);
@@ -2694,27 +2694,27 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            the register file.
          */
         int base = vPC[1].u.operand;
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
         
         if (LIKELY(!JSImmediate::isImmediate(baseValue))) {
-            JSCell* baseCell = static_cast<JSCell*>(baseValue);
+            JSCell* baseCell = asCell(baseValue);
             StructureID* oldStructureID = vPC[4].u.structureID;
             StructureID* newStructureID = vPC[5].u.structureID;
             
             if (LIKELY(baseCell->structureID() == oldStructureID)) {
                 ASSERT(baseCell->isObject());
-                JSObject* baseObject = static_cast<JSObject*>(baseCell);
+                JSObject* baseObject = asObject(baseCell);
 
                 RefPtr<StructureID>* it = vPC[6].u.structureIDChain->head();
 
-                JSObject* proto = static_cast<JSObject*>(baseObject->structureID()->prototypeForLookup(callFrame));
+                JSValuePtr proto = baseObject->structureID()->prototypeForLookup(callFrame);
                 while (!proto->isNull()) {
-                    if (UNLIKELY(proto->structureID() != (*it).get())) {
+                    if (UNLIKELY(asObject(proto)->structureID() != (*it).get())) {
                         uncachePutByID(callFrame->codeBlock(), vPC);
                         NEXT_OPCODE;
                     }
                     ++it;
-                    proto = static_cast<JSObject*>(proto->structureID()->prototypeForLookup(callFrame));
+                    proto = asObject(asObject(proto)->structureID()->prototypeForLookup(callFrame));
                 }
 
                 baseObject->transitionTo(newStructureID);
@@ -2744,15 +2744,15 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            the register file.
         */
         int base = vPC[1].u.operand;
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
 
         if (LIKELY(!JSImmediate::isImmediate(baseValue))) {
-            JSCell* baseCell = static_cast<JSCell*>(baseValue);
+            JSCell* baseCell = asCell(baseValue);
             StructureID* structureID = vPC[4].u.structureID;
 
             if (LIKELY(baseCell->structureID() == structureID)) {
                 ASSERT(baseCell->isObject());
-                JSObject* baseObject = static_cast<JSObject*>(baseCell);
+                JSObject* baseObject = asObject(baseCell);
                 int value = vPC[3].u.operand;
                 unsigned offset = vPC[5].u.operand;
                 
@@ -2780,7 +2780,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int property = vPC[2].u.operand;
         int value = vPC[3].u.operand;
 
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
         Identifier& ident = callFrame->codeBlock()->identifiers[property];
         PutPropertySlot slot;
         baseValue->put(callFrame, ident, callFrame[value].jsValue(callFrame), slot);
@@ -2803,7 +2803,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
 
         JSObject* baseObj = callFrame[base].jsValue(callFrame)->toObject(callFrame);
         Identifier& ident = callFrame->codeBlock()->identifiers[property];
-        JSValue* result = jsBoolean(baseObj->deleteProperty(callFrame, ident));
+        JSValuePtr result = jsBoolean(baseObj->deleteProperty(callFrame, ident));
         VM_CHECK_EXCEPTION();
         callFrame[dst] = result;
         ++vPC;
@@ -2821,22 +2821,22 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int base = (++vPC)->u.operand;
         int property = (++vPC)->u.operand;
         
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
-        JSValue* subscript = callFrame[property].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr subscript = callFrame[property].jsValue(callFrame);
 
-        JSValue* result;
+        JSValuePtr result;
         unsigned i;
 
         bool isUInt32 = JSImmediate::getUInt32(subscript, i);
         if (LIKELY(isUInt32)) {
             if (isJSArray(baseValue)) {
-                JSArray* jsArray = static_cast<JSArray*>(baseValue);
+                JSArray* jsArray = asArray(baseValue);
                 if (jsArray->canGetIndex(i))
                     result = jsArray->getIndex(i);
                 else
                     result = jsArray->JSArray::get(callFrame, i);
-            } else if (isJSString(baseValue) && static_cast<JSString*>(baseValue)->canGetIndex(i))
-                result = static_cast<JSString*>(baseValue)->getIndex(&callFrame->globalData(), i);
+            } else if (isJSString(baseValue) && asString(baseValue)->canGetIndex(i))
+                result = asString(baseValue)->getIndex(&callFrame->globalData(), i);
             else
                 result = baseValue->get(callFrame, i);
         } else {
@@ -2864,15 +2864,15 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int property = (++vPC)->u.operand;
         int value = (++vPC)->u.operand;
 
-        JSValue* baseValue = callFrame[base].jsValue(callFrame);
-        JSValue* subscript = callFrame[property].jsValue(callFrame);
+        JSValuePtr baseValue = callFrame[base].jsValue(callFrame);
+        JSValuePtr subscript = callFrame[property].jsValue(callFrame);
 
         unsigned i;
 
         bool isUInt32 = JSImmediate::getUInt32(subscript, i);
         if (LIKELY(isUInt32)) {
             if (isJSArray(baseValue)) {
-                JSArray* jsArray = static_cast<JSArray*>(baseValue);
+                JSArray* jsArray = asArray(baseValue);
                 if (jsArray->canSetIndex(i))
                     jsArray->setIndex(i, callFrame[value].jsValue(callFrame));
                 else
@@ -2905,8 +2905,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
 
         JSObject* baseObj = callFrame[base].jsValue(callFrame)->toObject(callFrame); // may throw
 
-        JSValue* subscript = callFrame[property].jsValue(callFrame);
-        JSValue* result;
+        JSValuePtr subscript = callFrame[property].jsValue(callFrame);
+        JSValuePtr result;
         uint32_t i;
         if (subscript->getUInt32(i))
             result = jsBoolean(baseObj->deleteProperty(callFrame, i));
@@ -3037,8 +3037,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            Additionally this loop instruction may terminate JS execution is
            the JS timeout is reached.
          */
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int target = (++vPC)->u.operand;
         
         bool result = jsLess(callFrame, src1, src2);
@@ -3064,8 +3064,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            Additionally this loop instruction may terminate JS execution is
            the JS timeout is reached.
         */
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int target = (++vPC)->u.operand;
         
         bool result = jsLessEq(callFrame, src1, src2);
@@ -3088,8 +3088,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            target from the current instruction, if and only if the 
            result of the comparison is false.
         */
-        JSValue* src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
-        JSValue* src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src1 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr src2 = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         int target = (++vPC)->u.operand;
 
         bool result = jsLess(callFrame, src1, src2);
@@ -3114,7 +3114,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
          */
         int tableIndex = (++vPC)->u.operand;
         int defaultOffset = (++vPC)->u.operand;
-        JSValue* scrutinee = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr scrutinee = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (!JSImmediate::isNumber(scrutinee))
             vPC += defaultOffset;
         else {
@@ -3134,11 +3134,11 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
          */
         int tableIndex = (++vPC)->u.operand;
         int defaultOffset = (++vPC)->u.operand;
-        JSValue* scrutinee = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr scrutinee = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (!scrutinee->isString())
             vPC += defaultOffset;
         else {
-            UString::Rep* value = static_cast<JSString*>(scrutinee)->value().rep();
+            UString::Rep* value = asString(scrutinee)->value().rep();
             if (value->size() != 1)
                 vPC += defaultOffset;
             else
@@ -3157,11 +3157,11 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
          */
         int tableIndex = (++vPC)->u.operand;
         int defaultOffset = (++vPC)->u.operand;
-        JSValue* scrutinee = callFrame[(++vPC)->u.operand].jsValue(callFrame);
+        JSValuePtr scrutinee = callFrame[(++vPC)->u.operand].jsValue(callFrame);
         if (!scrutinee->isString())
             vPC += defaultOffset;
         else 
-            vPC += callFrame->codeBlock()->stringSwitchJumpTables[tableIndex].offsetForValue(static_cast<JSString*>(scrutinee)->value().rep(), defaultOffset);
+            vPC += callFrame->codeBlock()->stringSwitchJumpTables[tableIndex].offsetForValue(asString(scrutinee)->value().rep(), defaultOffset);
         NEXT_OPCODE;
     }
     BEGIN_OPCODE(op_new_func) {
@@ -3215,13 +3215,13 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int argCount = (++vPC)->u.operand;
         ++vPC; // registerOffset
 
-        JSValue* funcVal = callFrame[func].jsValue(callFrame);
-        JSValue* baseVal = callFrame[thisVal].jsValue(callFrame);
+        JSValuePtr funcVal = callFrame[func].jsValue(callFrame);
+        JSValuePtr baseVal = callFrame[thisVal].jsValue(callFrame);
 
         ScopeChainNode* scopeChain = callFrame->scopeChain();
         if (baseVal == scopeChain->globalObject() && funcVal == scopeChain->globalObject()->evalFunction()) {
-            JSObject* thisObject = static_cast<JSObject*>(callFrame[callFrame->codeBlock()->thisRegister].jsValue(callFrame));
-            JSValue* result = callEval(callFrame, thisObject, scopeChain, registerFile, firstArg, argCount, exceptionValue);
+            JSObject* thisObject = asObject(callFrame[callFrame->codeBlock()->thisRegister].jsValue(callFrame));
+            JSValuePtr result = callEval(callFrame, thisObject, scopeChain, registerFile, firstArg, argCount, exceptionValue);
             if (exceptionValue)
                 goto vm_throw;
 
@@ -3289,7 +3289,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int argCount = (++vPC)->u.operand;
         int registerOffset = (++vPC)->u.operand;
 
-        JSValue* v = callFrame[func].jsValue(callFrame);
+        JSValuePtr v = callFrame[func].jsValue(callFrame);
 
         CallData callData;
         CallType callType = v->getCallData(callData);
@@ -3310,10 +3310,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
                 goto vm_throw;
             }
 
-            callFrame->init(newCodeBlock, vPC + 1, callDataScopeChain, previousCallFrame, dst, argCount, static_cast<JSFunction*>(v));
+            callFrame->init(newCodeBlock, vPC + 1, callDataScopeChain, previousCallFrame, dst, argCount, asFunction(v));
     
             if (*enabledProfilerReference)
-                (*enabledProfilerReference)->willExecute(callFrame, static_cast<JSObject*>(v));
+                (*enabledProfilerReference)->willExecute(callFrame, asObject(v));
 
             vPC = newCodeBlock->instructions.begin();
 
@@ -3325,25 +3325,25 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         }
 
         if (callType == CallTypeHost) {
-            JSValue* thisValue = thisVal == missingThisObjectMarker() ? callFrame->globalThisValue() : callFrame[thisVal].jsValue(callFrame);
+            JSValuePtr thisValue = thisVal == missingThisObjectMarker() ? callFrame->globalThisValue() : callFrame[thisVal].jsValue(callFrame);
             ArgList args(callFrame->registers() + firstArg + 1, argCount - 1);
 
             ScopeChainNode* scopeChain = callFrame->scopeChain();
             CallFrame* newCallFrame = CallFrame::create(callFrame->registers() + registerOffset);
-            newCallFrame->init(0, vPC + 1, scopeChain, callFrame, dst, argCount, static_cast<JSFunction*>(v));
+            newCallFrame->init(0, vPC + 1, scopeChain, callFrame, dst, argCount, 0);
 
             if (*enabledProfilerReference)
-                (*enabledProfilerReference)->willExecute(newCallFrame, static_cast<JSFunction*>(v));
+                (*enabledProfilerReference)->willExecute(newCallFrame, asObject(v));
 
             MACHINE_SAMPLING_callingHostFunction();
 
-            JSValue* returnValue = callData.native.function(newCallFrame, static_cast<JSFunction*>(v), thisValue, args);
+            JSValuePtr returnValue = callData.native.function(newCallFrame, asObject(v), thisValue, args);
             VM_CHECK_EXCEPTION();
 
             callFrame[dst] = returnValue;
 
             if (*enabledProfilerReference)
-                (*enabledProfilerReference)->didExecute(callFrame, static_cast<JSFunction*>(v));
+                (*enabledProfilerReference)->didExecute(callFrame, asObject(v));
 
             ++vPC;
             NEXT_OPCODE;
@@ -3357,10 +3357,8 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
     BEGIN_OPCODE(op_tear_off_activation) {
         int src = (++vPC)->u.operand;
         ASSERT(callFrame->codeBlock()->needsFullScopeChain);
-        JSActivation* activation = static_cast<JSActivation*>(callFrame[src].getJSValue());
-        ASSERT(activation->isObject(&JSActivation::info));
 
-        activation->copyRegisters(callFrame->optionalCalleeArguments());
+        asActivation(callFrame[src].getJSValue())->copyRegisters(callFrame->optionalCalleeArguments());
 
         ++vPC;
         NEXT_OPCODE;
@@ -3391,7 +3389,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         if (callFrame->codeBlock()->needsFullScopeChain)
             callFrame->scopeChain()->deref();
 
-        JSValue* returnValue = callFrame[result].jsValue(callFrame);
+        JSValuePtr returnValue = callFrame[result].jsValue(callFrame);
 
         vPC = callFrame->returnPC();
         int dst = callFrame->returnValueRegister();
@@ -3459,7 +3457,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
     }
     BEGIN_OPCODE(op_convert_this) {
         int thisRegister = (++vPC)->u.operand;
-        JSValue* thisVal = callFrame[thisRegister].getJSValue();
+        JSValuePtr thisVal = callFrame[thisRegister].getJSValue();
         if (thisVal->needsThisConversion())
             callFrame[thisRegister] = thisVal->toThisObject(callFrame);
 
@@ -3506,23 +3504,23 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int argCount = (++vPC)->u.operand;
         int registerOffset = (++vPC)->u.operand;
 
-        JSValue* v = callFrame[constr].jsValue(callFrame);
+        JSValuePtr v = callFrame[constr].jsValue(callFrame);
 
         ConstructData constructData;
         ConstructType constructType = v->getConstructData(constructData);
 
         if (constructType == ConstructTypeJS) {
             if (*enabledProfilerReference)
-                (*enabledProfilerReference)->willExecute(callFrame, static_cast<JSObject*>(v));
+                (*enabledProfilerReference)->willExecute(callFrame, asObject(v));
 
             ScopeChainNode* callDataScopeChain = constructData.js.scopeChain;
             FunctionBodyNode* functionBodyNode = constructData.js.functionBody;
             CodeBlock* newCodeBlock = &functionBodyNode->byteCode(callDataScopeChain);
 
             StructureID* structure;
-            JSValue* prototype = callFrame[constrProto].jsValue(callFrame);
+            JSValuePtr prototype = callFrame[constrProto].jsValue(callFrame);
             if (prototype->isObject())
-                structure = static_cast<JSObject*>(prototype)->inheritorID();
+                structure = asObject(prototype)->inheritorID();
             else
                 structure = callDataScopeChain->globalObject()->emptyObjectStructure();
             JSObject* newObject = new (globalData) JSObject(structure);
@@ -3538,10 +3536,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
                 goto vm_throw;
             }
 
-            callFrame->init(newCodeBlock, vPC + 1, callDataScopeChain, previousCallFrame, dst, argCount, static_cast<JSFunction*>(v));
+            callFrame->init(newCodeBlock, vPC + 1, callDataScopeChain, previousCallFrame, dst, argCount, asFunction(v));
     
             if (*enabledProfilerReference)
-                (*enabledProfilerReference)->didExecute(callFrame, static_cast<JSObject*>(v));
+                (*enabledProfilerReference)->didExecute(callFrame, asObject(v));
 
             vPC = newCodeBlock->instructions.begin();
 
@@ -3556,22 +3554,22 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
             ArgList args(callFrame->registers() + firstArg + 1, argCount - 1);
 
             ScopeChainNode* scopeChain = callFrame->scopeChain();
-            CallFrame::create(callFrame->registers() + registerOffset)->init(0, vPC + 1, scopeChain, callFrame, dst, argCount, static_cast<JSFunction*>(v));
+            CallFrame::create(callFrame->registers() + registerOffset)->init(0, vPC + 1, scopeChain, callFrame, dst, argCount, 0);
             callFrame = CallFrame::create(callFrame->registers() + registerOffset);
 
             if (*enabledProfilerReference)
-                (*enabledProfilerReference)->willExecute(callFrame, static_cast<JSObject*>(v));
+                (*enabledProfilerReference)->willExecute(callFrame, asObject(v));
 
             MACHINE_SAMPLING_callingHostFunction();
 
-            JSValue* returnValue = constructData.native.function(callFrame, static_cast<JSObject*>(v), args);
+            JSValuePtr returnValue = constructData.native.function(callFrame, asObject(v), args);
             callFrame = CallFrame::create(callFrame->registers() - registerOffset);
 
             VM_CHECK_EXCEPTION();
             callFrame[dst] = returnValue;
 
             if (*enabledProfilerReference)
-                (*enabledProfilerReference)->didExecute(callFrame, static_cast<JSObject*>(v));
+                (*enabledProfilerReference)->didExecute(callFrame, asObject(v));
 
             ++vPC;
             NEXT_OPCODE;
@@ -3608,7 +3606,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
            of the current scope chain.
         */
         int scope = (++vPC)->u.operand;
-        JSValue* v = callFrame[scope].jsValue(callFrame);
+        JSValuePtr v = callFrame[scope].jsValue(callFrame);
         JSObject* o = v->toObject(callFrame);
         VM_CHECK_EXCEPTION();
 
@@ -3656,7 +3654,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int target = (++vPC)->u.operand;
 
         JSPropertyNameIterator* it = callFrame[iter].propertyNameIterator();
-        if (JSValue* temp = it->next(callFrame)) {
+        if (JSValuePtr temp = it->next(callFrame)) {
             CHECK_FOR_TIMEOUT();
             callFrame[dst] = temp;
             vPC += target;
@@ -3715,7 +3713,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         ASSERT(!globalData->exception);
         int ex = (++vPC)->u.operand;
         callFrame[ex] = exceptionValue;
-        exceptionValue = 0;
+        exceptionValue = noValue();
 
         ++vPC;
         NEXT_OPCODE;
@@ -3813,10 +3811,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int function = (++vPC)->u.operand;
 
         ASSERT(callFrame[base].jsValue(callFrame)->isObject());
-        JSObject* baseObj = static_cast<JSObject*>(callFrame[base].jsValue(callFrame));
+        JSObject* baseObj = asObject(callFrame[base].jsValue(callFrame));
         Identifier& ident = callFrame->codeBlock()->identifiers[property];
         ASSERT(callFrame[function].jsValue(callFrame)->isObject());
-        baseObj->defineGetter(callFrame, ident, static_cast<JSObject*>(callFrame[function].jsValue(callFrame)));
+        baseObj->defineGetter(callFrame, ident, asObject(callFrame[function].jsValue(callFrame)));
 
         ++vPC;
         NEXT_OPCODE;
@@ -3837,10 +3835,10 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         int function = (++vPC)->u.operand;
 
         ASSERT(callFrame[base].jsValue(callFrame)->isObject());
-        JSObject* baseObj = static_cast<JSObject*>(callFrame[base].jsValue(callFrame));
+        JSObject* baseObj = asObject(callFrame[base].jsValue(callFrame));
         Identifier& ident = callFrame->codeBlock()->identifiers[property];
         ASSERT(callFrame[function].jsValue(callFrame)->isObject());
-        baseObj->defineSetter(callFrame, ident, static_cast<JSObject*>(callFrame[function].jsValue(callFrame)));
+        baseObj->defineSetter(callFrame, ident, asObject(callFrame[function].jsValue(callFrame)));
 
         ++vPC;
         NEXT_OPCODE;
@@ -3885,7 +3883,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
         NEXT_OPCODE;
     }
     vm_throw: {
-        globalData->exception = 0;
+        globalData->exception = noValue();
         if (!tickCount) {
             // The exceptionValue is a lie! (GCC produces bad code for reasons I 
             // cannot fathom if we don't assign to the exceptionValue before branching)
@@ -3909,7 +3907,7 @@ JSValue* Machine::privateExecute(ExecutionFlag flag, RegisterFile* registerFile,
     #undef CHECK_FOR_TIMEOUT
 }
 
-JSValue* Machine::retrieveArguments(CallFrame* callFrame, JSFunction* function) const
+JSValuePtr Machine::retrieveArguments(CallFrame* callFrame, JSFunction* function) const
 {
     CallFrame* functionCallFrame = findFunctionCallFrame(callFrame, function);
     if (!functionCallFrame)
@@ -3933,7 +3931,7 @@ JSValue* Machine::retrieveArguments(CallFrame* callFrame, JSFunction* function) 
     return arguments;
 }
 
-JSValue* Machine::retrieveCaller(CallFrame* callFrame, InternalFunction* function) const
+JSValuePtr Machine::retrieveCaller(CallFrame* callFrame, InternalFunction* function) const
 {
     CallFrame* functionCallFrame = findFunctionCallFrame(callFrame, function);
     if (!functionCallFrame)
@@ -3943,16 +3941,16 @@ JSValue* Machine::retrieveCaller(CallFrame* callFrame, InternalFunction* functio
     if (callerFrame->hasHostCallFrameFlag())
         return jsNull();
 
-    JSValue* caller = callerFrame->callee();
+    JSValuePtr caller = callerFrame->callee();
     if (!caller)
         return jsNull();
 
     return caller;
 }
 
-void Machine::retrieveLastCaller(CallFrame* callFrame, int& lineNumber, intptr_t& sourceID, UString& sourceURL, JSValue*& function) const
+void Machine::retrieveLastCaller(CallFrame* callFrame, int& lineNumber, intptr_t& sourceID, UString& sourceURL, JSValuePtr& function) const
 {
-    function = 0;
+    function = noValue();
     lineNumber = -1;
     sourceURL = UString();
 
@@ -3982,12 +3980,7 @@ CallFrame* Machine::findFunctionCallFrame(CallFrame* callFrame, InternalFunction
 
 #if ENABLE(CTI)
 
-NEVER_INLINE static void doSetReturnAddressVMThrowTrampoline(void** returnAddress)
-{
-    ctiSetReturnAddress(returnAddress, reinterpret_cast<void*>(ctiVMThrowTrampoline));
-}
-
-NEVER_INLINE void Machine::tryCTICachePutByID(CallFrame* callFrame, CodeBlock* codeBlock, void* returnAddress, JSValue* baseValue, const PutPropertySlot& slot)
+NEVER_INLINE void Machine::tryCTICachePutByID(CallFrame* callFrame, CodeBlock* codeBlock, void* returnAddress, JSValuePtr baseValue, const PutPropertySlot& slot)
 {
     // The interpreter checks for recursion here; I do not believe this can occur in CTI.
 
@@ -3996,15 +3989,15 @@ NEVER_INLINE void Machine::tryCTICachePutByID(CallFrame* callFrame, CodeBlock* c
 
     // Uncacheable: give up.
     if (!slot.isCacheable()) {
-        ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_put_by_id_generic);
+        ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(cti_op_put_by_id_generic));
         return;
     }
     
-    JSCell* baseCell = static_cast<JSCell*>(baseValue);
+    JSCell* baseCell = asCell(baseValue);
     StructureID* structureID = baseCell->structureID();
 
     if (structureID->isDictionary()) {
-        ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_put_by_id_generic);
+        ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(cti_op_put_by_id_generic));
         return;
     }
 
@@ -4018,7 +4011,7 @@ NEVER_INLINE void Machine::tryCTICachePutByID(CallFrame* callFrame, CodeBlock* c
 
     // If baseCell != base, then baseCell must be a proxy for another object.
     if (baseCell != slot.base()) {
-        ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_put_by_id_generic);
+        ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(cti_op_put_by_id_generic));
         return;
     }
 
@@ -4072,14 +4065,14 @@ void* Machine::getCTIStringLengthTrampoline(CallFrame* callFrame, CodeBlock* cod
     return m_ctiStringLengthTrampoline;
 }
 
-NEVER_INLINE void Machine::tryCTICacheGetByID(CallFrame* callFrame, CodeBlock* codeBlock, void* returnAddress, JSValue* baseValue, const Identifier& propertyName, const PropertySlot& slot)
+NEVER_INLINE void Machine::tryCTICacheGetByID(CallFrame* callFrame, CodeBlock* codeBlock, void* returnAddress, JSValuePtr baseValue, const Identifier& propertyName, const PropertySlot& slot)
 {
     // FIXME: Write a test that proves we need to check for recursion here just
     // like the interpreter does, then add a check for recursion.
 
     // FIXME: Cache property access for immediates.
     if (JSImmediate::isImmediate(baseValue)) {
-        ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_get_by_id_generic);
+        ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(cti_op_get_by_id_generic));
         return;
     }
 
@@ -4100,15 +4093,15 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(CallFrame* callFrame, CodeBlock* c
 
     // Uncacheable: give up.
     if (!slot.isCacheable()) {
-        ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_get_by_id_generic);
+        ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(cti_op_get_by_id_generic));
         return;
     }
 
-    JSCell* baseCell = static_cast<JSCell*>(baseValue);
+    JSCell* baseCell = asCell(baseValue);
     StructureID* structureID = baseCell->structureID();
 
     if (structureID->isDictionary()) {
-        ctiRepatchCallByReturnAddress(returnAddress, (void*)cti_op_get_by_id_generic);
+        ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(cti_op_get_by_id_generic));
         return;
     }
 
@@ -4138,14 +4131,14 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(CallFrame* callFrame, CodeBlock* c
     if (slot.slotBase() == structureID->prototypeForLookup(callFrame)) {
         ASSERT(slot.slotBase()->isObject());
 
-        JSObject* slotBaseObject = static_cast<JSObject*>(slot.slotBase());
+        JSObject* slotBaseObject = asObject(slot.slotBase());
 
         // Heavy access to a prototype is a good indication that it's not being
         // used as a dictionary.
         if (slotBaseObject->structureID()->isDictionary()) {
             RefPtr<StructureID> transition = StructureID::fromDictionaryTransition(slotBaseObject->structureID());
             slotBaseObject->setStructureID(transition.release());
-            static_cast<JSObject*>(baseValue)->structureID()->setCachedPrototypeChain(0);
+            asObject(baseValue)->structureID()->setCachedPrototypeChain(0);
         }
 
         vPC[0] = getOpcode(op_get_by_id_proto);
@@ -4159,9 +4152,9 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(CallFrame* callFrame, CodeBlock* c
     }
 
     size_t count = 0;
-    JSObject* o = static_cast<JSObject*>(baseValue);
+    JSObject* o = asObject(baseValue);
     while (slot.slotBase() != o) {
-        JSValue* v = o->structureID()->prototypeForLookup(callFrame);
+        JSValuePtr v = o->structureID()->prototypeForLookup(callFrame);
 
         // If we didn't find slotBase in baseValue's prototype chain, then baseValue
         // must be a proxy for another object.
@@ -4171,14 +4164,14 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(CallFrame* callFrame, CodeBlock* c
             return;
         }
 
-        o = static_cast<JSObject*>(v);
+        o = asObject(v);
 
         // Heavy access to a prototype is a good indication that it's not being
         // used as a dictionary.
         if (o->structureID()->isDictionary()) {
             RefPtr<StructureID> transition = StructureID::fromDictionaryTransition(o->structureID());
             o->setStructureID(transition.release());
-            static_cast<JSObject*>(baseValue)->structureID()->setCachedPrototypeChain(0);
+            asObject(baseValue)->structureID()->setCachedPrototypeChain(0);
         }
 
         ++count;
@@ -4199,58 +4192,95 @@ NEVER_INLINE void Machine::tryCTICacheGetByID(CallFrame* callFrame, CodeBlock* c
     CTI::compileGetByIdChain(this, callFrame, codeBlock, structureID, chain, count, slot.cachedOffset(), returnAddress);
 }
 
+#ifndef NDEBUG
+
+extern "C" {
+
+static void jscGeneratedNativeCode() 
+{
+    // When executing a CTI function (which might do an allocation), we hack the return address
+    // to pretend to be executing this function, to keep stack logging tools from blowing out
+    // memory.
+}
+
+}
+
+struct StackHack {
+    ALWAYS_INLINE StackHack(void** location) 
+    { 
+        returnAddressLocation = location;
+        savedReturnAddress = *returnAddressLocation;
+        ctiSetReturnAddress(returnAddressLocation, reinterpret_cast<void*>(jscGeneratedNativeCode));
+    }
+    ALWAYS_INLINE ~StackHack() 
+    { 
+        ctiSetReturnAddress(returnAddressLocation, savedReturnAddress);
+    }
+
+    void** returnAddressLocation;
+    void* savedReturnAddress;
+};
+
+#define CTI_STACK_HACK() StackHack stackHack(&CTI_RETURN_ADDRESS_SLOT)
+#define CTI_SET_RETURN_ADDRESS(address) stackHack.savedReturnAddress = address
+#define CTI_RETURN_ADDRESS stackHack.savedReturnAddress
+
+#else
+
+#define CTI_STACK_HACK() (void)0
+#define CTI_SET_RETURN_ADDRESS(address) ctiSetReturnAddress(&CTI_RETURN_ADDRESS_SLOT, address);
+#define CTI_RETURN_ADDRESS CTI_RETURN_ADDRESS_SLOT
+
+#endif
+
+// The reason this is not inlined is to avoid having to do a PIC branch
+// to get the address of the ctiVMThrowTrampoline function. It's also
+// good to keep the code size down by leaving as much of the exception
+// handling code out of line as possible.
+static NEVER_INLINE void setUpThrowTrampolineReturnAddress(JSGlobalData* globalData, void*& returnAddress)
+{
+    ASSERT(globalData->exception);
+    globalData->throwReturnAddress = returnAddress;
+    ctiSetReturnAddress(&returnAddress, reinterpret_cast<void*>(ctiVMThrowTrampoline));
+}
+
 #define VM_THROW_EXCEPTION() \
     do { \
         VM_THROW_EXCEPTION_AT_END(); \
-        return 0; \
+        return noValue(); \
     } while (0)
 #define VM_THROW_EXCEPTION_2() \
     do { \
         VM_THROW_EXCEPTION_AT_END(); \
-        VoidPtrPair pair = { (void*)0, (void*)0, }; \
+        VoidPtrPair pair = { 0, 0 }; \
         return pair; \
     } while (0)
 #define VM_THROW_EXCEPTION_AT_END() \
-    do { \
-        ASSERT(ARG_globalData->exception); \
-        ARG_globalData->throwReturnAddress = CTI_RETURN_ADDRESS; \
-        doSetReturnAddressVMThrowTrampoline(&CTI_RETURN_ADDRESS); \
-    } while (0)
+    setUpThrowTrampolineReturnAddress(ARG_globalData, CTI_RETURN_ADDRESS)
 
 #define VM_CHECK_EXCEPTION() \
     do { \
-        if (UNLIKELY(ARG_globalData->exception != 0)) \
+        if (UNLIKELY(ARG_globalData->exception != noValue())) \
             VM_THROW_EXCEPTION(); \
-    } while (0)
-#define VM_CHECK_EXCEPTION_ARG(exceptionValue) \
-    do { \
-        if (UNLIKELY((exceptionValue) != 0)) { \
-            ARG_globalData->exception = (exceptionValue); \
-            VM_THROW_EXCEPTION(); \
-        } \
     } while (0)
 #define VM_CHECK_EXCEPTION_AT_END() \
     do { \
-        if (UNLIKELY(ARG_globalData->exception != 0)) \
+        if (UNLIKELY(ARG_globalData->exception != noValue())) \
             VM_THROW_EXCEPTION_AT_END(); \
     } while (0)
 #define VM_CHECK_EXCEPTION_VOID() \
     do { \
-        if (UNLIKELY(ARG_globalData->exception != 0)) { \
+        if (UNLIKELY(ARG_globalData->exception != noValue())) { \
             VM_THROW_EXCEPTION_AT_END(); \
             return; \
         } \
     } while (0)
-#define VM_CHECK_EXCEPTION_2() \
-    do { \
-        if (UNLIKELY(ARG_globalData->exception != 0)) { \
-            VM_THROW_EXCEPTION_2(); \
-        } \
-    } while (0)
 
-JSValue* Machine::cti_op_convert_this(CTI_ARGS)
+JSValuePtr Machine::cti_op_convert_this(CTI_ARGS)
 {
-    JSValue* v1 = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr v1 = ARG_src1;
     CallFrame* callFrame = ARG_callFrame;
 
     JSObject* result = v1->toThisObject(callFrame);
@@ -4260,15 +4290,19 @@ JSValue* Machine::cti_op_convert_this(CTI_ARGS)
 
 void Machine::cti_op_end(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     ScopeChainNode* scopeChain = ARG_callFrame->scopeChain();
     ASSERT(scopeChain->refCount > 1);
     scopeChain->deref();
 }
 
-JSValue* Machine::cti_op_add(CTI_ARGS)
+JSValuePtr Machine::cti_op_add(CTI_ARGS)
 {
-    JSValue* v1 = ARG_src1;
-    JSValue* v2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr v1 = ARG_src1;
+    JSValuePtr v2 = ARG_src2;
 
     double left;
     double right = 0.0;
@@ -4281,7 +4315,7 @@ JSValue* Machine::cti_op_add(CTI_ARGS)
 
     bool leftIsString = v1->isString();
     if (leftIsString && v2->isString()) {
-        RefPtr<UString::Rep> value = concatenate(static_cast<JSString*>(v1)->value().rep(), static_cast<JSString*>(v2)->value().rep());
+        RefPtr<UString::Rep> value = concatenate(asString(v1)->value().rep(), asString(v2)->value().rep());
         if (UNLIKELY(!value)) {
             throwOutOfMemoryError(callFrame);
             VM_THROW_EXCEPTION();
@@ -4292,8 +4326,8 @@ JSValue* Machine::cti_op_add(CTI_ARGS)
 
     if (rightIsNumber & leftIsString) {
         RefPtr<UString::Rep> value = JSImmediate::isImmediate(v2) ?
-            concatenate(static_cast<JSString*>(v1)->value().rep(), JSImmediate::getTruncatedInt32(v2)) :
-            concatenate(static_cast<JSString*>(v1)->value().rep(), right);
+            concatenate(asString(v1)->value().rep(), JSImmediate::getTruncatedInt32(v2)) :
+            concatenate(asString(v1)->value().rep(), right);
 
         if (UNLIKELY(!value)) {
             throwOutOfMemoryError(callFrame);
@@ -4303,49 +4337,57 @@ JSValue* Machine::cti_op_add(CTI_ARGS)
     }
 
     // All other cases are pretty uncommon
-    JSValue* result = jsAddSlowCase(callFrame, v1, v2);
+    JSValuePtr result = jsAddSlowCase(callFrame, v1, v2);
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_pre_inc(CTI_ARGS)
+JSValuePtr Machine::cti_op_pre_inc(CTI_ARGS)
 {
-    JSValue* v = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr v = ARG_src1;
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, v->toNumber(callFrame) + 1);
+    JSValuePtr result = jsNumber(ARG_globalData, v->toNumber(callFrame) + 1);
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
 void Machine::cti_timeout_check(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     if (ARG_globalData->machine->checkTimeout(ARG_callFrame->dynamicGlobalObject())) {
         ARG_globalData->exception = createInterruptedExecutionException(ARG_globalData);
         VM_THROW_EXCEPTION_AT_END();
     }
 }
 
+NEVER_INLINE void Machine::throwStackOverflowPreviousFrame(CallFrame* callFrame, JSGlobalData* globalData, void*& returnAddress)
+{
+    globalData->exception = createStackOverflowError(callFrame->callerFrame());
+    globalData->throwReturnAddress = callFrame->returnPC();
+    ctiSetReturnAddress(&returnAddress, reinterpret_cast<void*>(ctiVMThrowTrampoline));
+}
+
 void Machine::cti_register_file_check(CTI_ARGS)
 {
-    CallFrame* callFrame = ARG_callFrame;
-    CodeBlock* codeBlock = callFrame->codeBlock();
-    RegisterFile* registerFile = ARG_registerFile;
+    CTI_STACK_HACK();
 
-    if (!registerFile->grow(callFrame + codeBlock->numCalleeRegisters)) {
-        CallFrame* callerFrame = callFrame->callerFrame();
-        ARG_setCallFrame(callerFrame);
-        ARG_globalData->exception = createStackOverflowError(callerFrame);
-        ASSERT(ARG_globalData->exception);
-        ARG_globalData->throwReturnAddress = callFrame->returnPC();
-        doSetReturnAddressVMThrowTrampoline(&CTI_RETURN_ADDRESS);
-    }
+    if (LIKELY(ARG_registerFile->grow(ARG_callFrame + ARG_callFrame->codeBlock()->numCalleeRegisters)))
+        return;
+
+    ARG_setCallFrame(ARG_callFrame->callerFrame());
+    throwStackOverflowPreviousFrame(ARG_callFrame, ARG_globalData, CTI_RETURN_ADDRESS);
 }
 
 int Machine::cti_op_loop_if_less(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
     CallFrame* callFrame = ARG_callFrame;
 
     bool result = jsLess(callFrame, src1, src2);
@@ -4355,8 +4397,10 @@ int Machine::cti_op_loop_if_less(CTI_ARGS)
 
 int Machine::cti_op_loop_if_lesseq(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
     CallFrame* callFrame = ARG_callFrame;
 
     bool result = jsLessEq(callFrame, src1, src2);
@@ -4364,26 +4408,32 @@ int Machine::cti_op_loop_if_lesseq(CTI_ARGS)
     return result;
 }
 
-JSValue* Machine::cti_op_new_object(CTI_ARGS)
+JSValuePtr Machine::cti_op_new_object(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return constructEmptyObject(ARG_callFrame);;
 }
 
 void Machine::cti_op_put_by_id(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Identifier& ident = *ARG_id2;
 
     PutPropertySlot slot;
     ARG_src1->put(callFrame, ident, ARG_src3, slot);
 
-    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, (void*)cti_op_put_by_id_second);
+    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, reinterpret_cast<void*>(cti_op_put_by_id_second));
 
     VM_CHECK_EXCEPTION_AT_END();
 }
 
 void Machine::cti_op_put_by_id_second(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     PutPropertySlot slot;
     ARG_src1->put(ARG_callFrame, *ARG_id2, ARG_src3, slot);
     ARG_globalData->machine->tryCTICachePutByID(ARG_callFrame, ARG_callFrame->codeBlock(), CTI_RETURN_ADDRESS, ARG_src1, slot);
@@ -4392,6 +4442,8 @@ void Machine::cti_op_put_by_id_second(CTI_ARGS)
 
 void Machine::cti_op_put_by_id_generic(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     PutPropertySlot slot;
     ARG_src1->put(ARG_callFrame, *ARG_id2, ARG_src3, slot);
     VM_CHECK_EXCEPTION_AT_END();
@@ -4399,6 +4451,8 @@ void Machine::cti_op_put_by_id_generic(CTI_ARGS)
 
 void Machine::cti_op_put_by_id_fail(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Identifier& ident = *ARG_id2;
 
@@ -4406,34 +4460,38 @@ void Machine::cti_op_put_by_id_fail(CTI_ARGS)
     ARG_src1->put(callFrame, ident, ARG_src3, slot);
 
     // should probably uncachePutByID() ... this would mean doing a vPC lookup - might be worth just bleeding this until the end.
-    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, (void*)cti_op_put_by_id_generic);
+    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, reinterpret_cast<void*>(cti_op_put_by_id_generic));
 
     VM_CHECK_EXCEPTION_AT_END();
 }
 
-JSValue* Machine::cti_op_get_by_id(CTI_ARGS)
+JSValuePtr Machine::cti_op_get_by_id(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Identifier& ident = *ARG_id2;
 
-    JSValue* baseValue = ARG_src1;
+    JSValuePtr baseValue = ARG_src1;
     PropertySlot slot(baseValue);
-    JSValue* result = baseValue->get(callFrame, ident, slot);
+    JSValuePtr result = baseValue->get(callFrame, ident, slot);
 
-    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, (void*)cti_op_get_by_id_second);
+    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, reinterpret_cast<void*>(cti_op_get_by_id_second));
 
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_get_by_id_second(CTI_ARGS)
+JSValuePtr Machine::cti_op_get_by_id_second(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Identifier& ident = *ARG_id2;
 
-    JSValue* baseValue = ARG_src1;
+    JSValuePtr baseValue = ARG_src1;
     PropertySlot slot(baseValue);
-    JSValue* result = baseValue->get(callFrame, ident, slot);
+    JSValuePtr result = baseValue->get(callFrame, ident, slot);
 
     ARG_globalData->machine->tryCTICacheGetByID(callFrame, callFrame->codeBlock(), CTI_RETURN_ADDRESS, baseValue, ident, slot);
 
@@ -4441,49 +4499,52 @@ JSValue* Machine::cti_op_get_by_id_second(CTI_ARGS)
     return result;
 }
 
-JSValue* Machine::cti_op_get_by_id_generic(CTI_ARGS)
+JSValuePtr Machine::cti_op_get_by_id_generic(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Identifier& ident = *ARG_id2;
 
-    JSValue* baseValue = ARG_src1;
+    JSValuePtr baseValue = ARG_src1;
     PropertySlot slot(baseValue);
-    JSValue* result = baseValue->get(callFrame, ident, slot);
+    JSValuePtr result = baseValue->get(callFrame, ident, slot);
 
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_get_by_id_fail(CTI_ARGS)
+JSValuePtr Machine::cti_op_get_by_id_fail(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Identifier& ident = *ARG_id2;
 
-    JSValue* baseValue = ARG_src1;
+    JSValuePtr baseValue = ARG_src1;
     PropertySlot slot(baseValue);
-    JSValue* result = baseValue->get(callFrame, ident, slot);
+    JSValuePtr result = baseValue->get(callFrame, ident, slot);
 
     // should probably uncacheGetByID() ... this would mean doing a vPC lookup - might be worth just bleeding this until the end.
-    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, (void*)cti_op_get_by_id_generic);
+    ctiRepatchCallByReturnAddress(CTI_RETURN_ADDRESS, reinterpret_cast<void*>(cti_op_get_by_id_generic));
 
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_instanceof(CTI_ARGS)
+JSValuePtr Machine::cti_op_instanceof(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* value = ARG_src1;
-    JSValue* baseVal = ARG_src2;
-    JSValue* proto = ARG_src3;
-    JSCell* valueCell = static_cast<JSCell*>(value);
-    JSCell* baseCell = static_cast<JSCell*>(baseVal);
-    JSCell* protoCell = static_cast<JSCell*>(proto);
+    JSValuePtr value = ARG_src1;
+    JSValuePtr baseVal = ARG_src2;
+    JSValuePtr proto = ARG_src3;
 
     // at least one of these checks must have failed to get to the slow case
-    ASSERT(JSImmediate::isAnyImmediate(valueCell, baseCell, protoCell) 
-           || !valueCell->isObject() || !baseCell->isObject() || !protoCell->isObject() 
-           || (baseCell->structureID()->typeInfo().flags() & (ImplementsHasInstance | OverridesHasInstance)) != ImplementsHasInstance);
+    ASSERT(JSImmediate::isAnyImmediate(value, baseVal, proto) 
+           || !value->isObject() || !baseVal->isObject() || !proto->isObject() 
+           || (asObject(baseVal)->structureID()->typeInfo().flags() & (ImplementsHasInstance | OverridesHasInstance)) != ImplementsHasInstance);
 
     if (!baseVal->isObject()) {
         CallFrame* callFrame = ARG_callFrame;
@@ -4494,7 +4555,7 @@ JSValue* Machine::cti_op_instanceof(CTI_ARGS)
         VM_THROW_EXCEPTION();
     }
 
-    if (!baseCell->structureID()->typeInfo().implementsHasInstance())
+    if (!asObject(baseVal)->structureID()->typeInfo().implementsHasInstance())
         return jsBoolean(false);
 
     if (!proto->isObject()) {
@@ -4505,28 +4566,32 @@ JSValue* Machine::cti_op_instanceof(CTI_ARGS)
     if (!value->isObject())
         return jsBoolean(false);
 
-    JSValue* result = jsBoolean(static_cast<JSObject*>(baseCell)->hasInstance(callFrame, valueCell, protoCell));
+    JSValuePtr result = jsBoolean(asObject(baseVal)->hasInstance(callFrame, value, proto));
     VM_CHECK_EXCEPTION_AT_END();
 
     return result;
 }
 
-JSValue* Machine::cti_op_del_by_id(CTI_ARGS)
+JSValuePtr Machine::cti_op_del_by_id(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Identifier& ident = *ARG_id2;
     
     JSObject* baseObj = ARG_src1->toObject(callFrame);
 
-    JSValue* result = jsBoolean(baseObj->deleteProperty(callFrame, ident));
+    JSValuePtr result = jsBoolean(baseObj->deleteProperty(callFrame, ident));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_mul(CTI_ARGS)
+JSValuePtr Machine::cti_op_mul(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     double left;
     double right;
@@ -4534,28 +4599,37 @@ JSValue* Machine::cti_op_mul(CTI_ARGS)
         return jsNumber(ARG_globalData, left * right);
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, src1->toNumber(callFrame) * src2->toNumber(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, src1->toNumber(callFrame) * src2->toNumber(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_new_func(CTI_ARGS)
+JSValuePtr Machine::cti_op_new_func(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return ARG_func1->makeFunction(ARG_callFrame, ARG_callFrame->scopeChain());
+}
+
+void Machine::cti_op_call_profiler(CTI_ARGS)
+{
+    CTI_STACK_HACK();
+
+    ASSERT(*ARG_profilerReference);
+    (*ARG_profilerReference)->willExecute(ARG_callFrame, asFunction(ARG_src1));
 }
 
 VoidPtrPair Machine::cti_op_call_JSFunction(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
 #ifndef NDEBUG
     CallData callData;
     ASSERT(ARG_src1->getCallData(callData) == CallTypeJS);
 #endif
 
-    if (UNLIKELY(*ARG_profilerReference != 0))
-        (*ARG_profilerReference)->willExecute(ARG_callFrame, static_cast<JSFunction*>(ARG_src1));
-
-    ScopeChainNode* callDataScopeChain = static_cast<JSFunction*>(ARG_src1)->m_scopeChain.node();
-    CodeBlock* newCodeBlock = &static_cast<JSFunction*>(ARG_src1)->m_body->byteCode(callDataScopeChain);
+    ScopeChainNode* callDataScopeChain = asFunction(ARG_src1)->m_scopeChain.node();
+    CodeBlock* newCodeBlock = &asFunction(ARG_src1)->m_body->byteCode(callDataScopeChain);
     CallFrame* callFrame = ARG_callFrame;
     size_t registerOffset = ARG_int2;
     int argCount = ARG_int3;
@@ -4593,24 +4667,50 @@ VoidPtrPair Machine::cti_op_call_JSFunction(CTI_ARGS)
     return pair;
 }
 
+void* Machine::cti_vm_lazyLinkCall(CTI_ARGS)
+{
+    CTI_STACK_HACK();
+
+    Machine* machine = ARG_globalData->machine;
+    CallFrame* callFrame = CallFrame::create(ARG_callFrame);
+    CallFrame* callerCallFrame = callFrame->callerFrame();
+    CodeBlock* callerCodeBlock = callerCallFrame->codeBlock();
+
+    JSFunction* callee = asFunction(ARG_src1);
+    CodeBlock* codeBlock = &callee->m_body->byteCode(callee->m_scopeChain.node());
+    if (!codeBlock->ctiCode)
+        CTI::compile(machine, callFrame, codeBlock);
+
+    int argCount = ARG_int3;
+    CTI::linkCall(callerCodeBlock, callee, codeBlock, codeBlock->ctiCode, CTI_RETURN_ADDRESS, argCount);
+
+    return codeBlock->ctiCode;
+}
+
 void* Machine::cti_vm_compile(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CodeBlock* codeBlock = ARG_callFrame->codeBlock();
     if (!codeBlock->ctiCode)
         CTI::compile(ARG_globalData->machine, ARG_callFrame, codeBlock);
     return codeBlock->ctiCode;
 }
 
-JSValue* Machine::cti_op_push_activation(CTI_ARGS)
+JSValuePtr Machine::cti_op_push_activation(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     JSActivation* activation = new (ARG_globalData) JSActivation(ARG_callFrame, static_cast<FunctionBodyNode*>(ARG_callFrame->codeBlock()->ownerNode));
     ARG_callFrame->setScopeChain(ARG_callFrame->scopeChain()->copy()->push(activation));
     return activation;
 }
 
-JSValue* Machine::cti_op_call_NotJSFunction(CTI_ARGS)
+JSValuePtr Machine::cti_op_call_NotJSFunction(CTI_ARGS)
 {
-    JSValue* funcVal = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr funcVal = ARG_src1;
 
     CallData callData;
     CallType callType = funcVal->getCallData(callData);
@@ -4623,23 +4723,23 @@ JSValue* Machine::cti_op_call_NotJSFunction(CTI_ARGS)
         CallFrame* previousCallFrame = ARG_callFrame;
         CallFrame* callFrame = CallFrame::create(previousCallFrame->registers() + registerOffset);
 
-        callFrame->init(0, ARG_instr4 + 1, previousCallFrame->scopeChain(), previousCallFrame, 0, argCount, static_cast<JSFunction*>(funcVal));
+        callFrame->init(0, ARG_instr4 + 1, previousCallFrame->scopeChain(), previousCallFrame, 0, argCount, 0);
         ARG_setCallFrame(callFrame);
 
         if (*ARG_profilerReference)
-            (*ARG_profilerReference)->willExecute(callFrame, static_cast<JSFunction*>(funcVal));
+            (*ARG_profilerReference)->willExecute(callFrame, asObject(funcVal));
 
         Register* argv = ARG_callFrame->registers() - RegisterFile::CallFrameHeaderSize - argCount;
         ArgList argList(argv + 1, argCount - 1);
 
         CTI_MACHINE_SAMPLING_callingHostFunction();
 
-        JSValue* returnValue = callData.native.function(callFrame, static_cast<JSFunction*>(funcVal), argv[0].jsValue(callFrame), argList);
+        JSValuePtr returnValue = callData.native.function(callFrame, asObject(funcVal), argv[0].jsValue(callFrame), argList);
         ARG_setCallFrame(previousCallFrame);
         VM_CHECK_EXCEPTION();
 
         if (*ARG_profilerReference)
-            (*ARG_profilerReference)->didExecute(previousCallFrame, static_cast<JSFunction*>(funcVal));
+            (*ARG_profilerReference)->didExecute(previousCallFrame, asObject(funcVal));
 
         return returnValue;
     }
@@ -4652,44 +4752,64 @@ JSValue* Machine::cti_op_call_NotJSFunction(CTI_ARGS)
 
 void Machine::cti_op_create_arguments(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     Arguments* arguments = new (ARG_globalData) Arguments(ARG_callFrame);
+    ARG_callFrame->setCalleeArguments(arguments);
+    ARG_callFrame[RegisterFile::ArgumentsRegister] = arguments;
+}
+
+void Machine::cti_op_create_arguments_no_params(CTI_ARGS)
+{
+    Arguments* arguments = new (ARG_globalData) Arguments(ARG_callFrame, Arguments::ArgumentsNoParameters);
     ARG_callFrame->setCalleeArguments(arguments);
     ARG_callFrame[RegisterFile::ArgumentsRegister] = arguments;
 }
 
 void Machine::cti_op_tear_off_activation(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     ASSERT(ARG_callFrame->codeBlock()->needsFullScopeChain);
-    ASSERT(ARG_src1->isObject(&JSActivation::info));
-    static_cast<JSActivation*>(ARG_src1)->copyRegisters(ARG_callFrame->optionalCalleeArguments());
+    asActivation(ARG_src1)->copyRegisters(ARG_callFrame->optionalCalleeArguments());
 }
 
 void Machine::cti_op_tear_off_arguments(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     ASSERT(ARG_callFrame->codeBlock()->usesArguments && !ARG_callFrame->codeBlock()->needsFullScopeChain);
     ARG_callFrame->optionalCalleeArguments()->copyRegisters();
 }
 
 void Machine::cti_op_ret_profiler(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     ASSERT(*ARG_profilerReference);
     (*ARG_profilerReference)->didExecute(ARG_callFrame, ARG_callFrame->callee());
 }
 
 void Machine::cti_op_ret_scopeChain(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     ASSERT(ARG_callFrame->codeBlock()->needsFullScopeChain);
     ARG_callFrame->scopeChain()->deref();
 }
 
-JSValue* Machine::cti_op_new_array(CTI_ARGS)
+JSValuePtr Machine::cti_op_new_array(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     ArgList argList(ARG_registers1, ARG_int2);
     return constructArray(ARG_callFrame, argList);
 }
 
-JSValue* Machine::cti_op_resolve(CTI_ARGS)
+JSValuePtr Machine::cti_op_resolve(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     ScopeChainNode* scopeChain = callFrame->scopeChain();
 
@@ -4702,7 +4822,7 @@ JSValue* Machine::cti_op_resolve(CTI_ARGS)
         JSObject* o = *iter;
         PropertySlot slot(o);
         if (o->getPropertySlot(callFrame, ident, slot)) {
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             VM_CHECK_EXCEPTION_AT_END();
             return result;
         }
@@ -4715,23 +4835,39 @@ JSValue* Machine::cti_op_resolve(CTI_ARGS)
     VM_THROW_EXCEPTION();
 }
 
-VoidPtrPair Machine::cti_op_construct_JSConstruct(CTI_ARGS)
+JSValuePtr Machine::cti_op_construct_JSConstructFast(CTI_ARGS)
 {
-    CallFrame* callFrame = ARG_callFrame;
-
-    JSFunction* constructor = static_cast<JSFunction*>(ARG_src1);
-    JSValue* constrProtoVal = ARG_src2;
-    int firstArg = ARG_int3;
-    int registerOffset = ARG_int4;
-    int argCount = ARG_int5;
+    CTI_STACK_HACK();
 
 #ifndef NDEBUG
     ConstructData constructData;
-    ASSERT(ARG_src1->getConstructData(constructData) == ConstructTypeJS);
+    ASSERT(asFunction(ARG_src1)->getConstructData(constructData) == ConstructTypeJS);
 #endif
 
-    if (*ARG_profilerReference)
-        (*ARG_profilerReference)->willExecute(callFrame, constructor);
+    StructureID* structure;
+    if (ARG_src2->isObject())
+        structure = asObject(ARG_src2)->inheritorID();
+    else
+        structure = asFunction(ARG_src1)->m_scopeChain.node()->globalObject()->emptyObjectStructure();
+    return new (ARG_globalData) JSObject(structure);
+}
+
+VoidPtrPair Machine::cti_op_construct_JSConstruct(CTI_ARGS)
+{
+    CTI_STACK_HACK();
+
+    CallFrame* callFrame = ARG_callFrame;
+
+    JSFunction* constructor = asFunction(ARG_src1);
+    int registerOffset = ARG_int2;
+    int argCount = ARG_int3;
+    JSValuePtr constrProtoVal = ARG_src5;
+    int firstArg = ARG_int6;
+
+#ifndef NDEBUG
+    ConstructData constructData;
+    ASSERT(constructor->getConstructData(constructData) == ConstructTypeJS);
+#endif
 
     ScopeChainNode* callDataScopeChain = constructor->m_scopeChain.node();
     FunctionBodyNode* functionBodyNode = constructor->m_body.get();
@@ -4739,7 +4875,7 @@ VoidPtrPair Machine::cti_op_construct_JSConstruct(CTI_ARGS)
 
     StructureID* structure;
     if (constrProtoVal->isObject())
-        structure = static_cast<JSObject*>(constrProtoVal)->inheritorID();
+        structure = asObject(constrProtoVal)->inheritorID();
     else
         structure = callDataScopeChain->globalObject()->emptyObjectStructure();
     JSObject* newObject = new (ARG_globalData) JSObject(structure);
@@ -4778,20 +4914,22 @@ VoidPtrPair Machine::cti_op_construct_JSConstruct(CTI_ARGS)
     return pair;
 }
 
-JSValue* Machine::cti_op_construct_NotJSConstruct(CTI_ARGS)
+JSValuePtr Machine::cti_op_construct_NotJSConstruct(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* constrVal = ARG_src1;
-    int firstArg = ARG_int3;
-    int argCount = ARG_int5;
+    JSValuePtr constrVal = ARG_src1;
+    int argCount = ARG_int3;
+    int firstArg = ARG_int6;
 
     ConstructData constructData;
     ConstructType constructType = constrVal->getConstructData(constructData);
 
-    JSObject* constructor = static_cast<JSObject*>(constrVal);
-
     if (constructType == ConstructTypeHost) {
+        JSObject* constructor = asObject(constrVal);
+
         if (*ARG_profilerReference)
             (*ARG_profilerReference)->willExecute(callFrame, constructor);
 
@@ -4799,7 +4937,7 @@ JSValue* Machine::cti_op_construct_NotJSConstruct(CTI_ARGS)
 
         CTI_MACHINE_SAMPLING_callingHostFunction();
 
-        JSValue* returnValue = constructData.native.function(callFrame, constructor, argList);
+        JSValuePtr returnValue = constructData.native.function(callFrame, constructor, argList);
         VM_CHECK_EXCEPTION();
 
         if (*ARG_profilerReference)
@@ -4810,31 +4948,33 @@ JSValue* Machine::cti_op_construct_NotJSConstruct(CTI_ARGS)
 
     ASSERT(constructType == ConstructTypeNone);
 
-    ARG_globalData->exception = createNotAConstructorError(callFrame, constrVal, ARG_instr6, callFrame->codeBlock());
+    ARG_globalData->exception = createNotAConstructorError(callFrame, constrVal, ARG_instr4, callFrame->codeBlock());
     VM_THROW_EXCEPTION();
 }
 
-JSValue* Machine::cti_op_get_by_val(CTI_ARGS)
+JSValuePtr Machine::cti_op_get_by_val(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Machine* machine = ARG_globalData->machine;
 
-    JSValue* baseValue = ARG_src1;
-    JSValue* subscript = ARG_src2;
+    JSValuePtr baseValue = ARG_src1;
+    JSValuePtr subscript = ARG_src2;
 
-    JSValue* result;
+    JSValuePtr result;
     unsigned i;
 
     bool isUInt32 = JSImmediate::getUInt32(subscript, i);
     if (LIKELY(isUInt32)) {
         if (machine->isJSArray(baseValue)) {
-            JSArray* jsArray = static_cast<JSArray*>(baseValue);
+            JSArray* jsArray = asArray(baseValue);
             if (jsArray->canGetIndex(i))
                 result = jsArray->getIndex(i);
             else
                 result = jsArray->JSArray::get(callFrame, i);
-        } else if (machine->isJSString(baseValue) && static_cast<JSString*>(baseValue)->canGetIndex(i))
-            result = static_cast<JSString*>(baseValue)->getIndex(ARG_globalData, i);
+        } else if (machine->isJSString(baseValue) && asString(baseValue)->canGetIndex(i))
+            result = asString(baseValue)->getIndex(ARG_globalData, i);
         else
             result = baseValue->get(callFrame, i);
     } else {
@@ -4848,6 +4988,8 @@ JSValue* Machine::cti_op_get_by_val(CTI_ARGS)
 
 VoidPtrPair Machine::cti_op_resolve_func(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     ScopeChainNode* scopeChain = callFrame->scopeChain();
 
@@ -4872,10 +5014,10 @@ VoidPtrPair Machine::cti_op_resolve_func(CTI_ARGS)
             // that in host objects you always get a valid object for this.
             // We also handle wrapper substitution for the global object at the same time.
             JSObject* thisObj = base->toThisObject(callFrame);
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             VM_CHECK_EXCEPTION_AT_END();
 
-            VoidPtrPair pair = { thisObj, result };
+            VoidPtrPair pair = { thisObj, asPointer(result) };
             return pair;
         }
         ++iter;
@@ -4888,10 +5030,12 @@ VoidPtrPair Machine::cti_op_resolve_func(CTI_ARGS)
     VM_THROW_EXCEPTION_2();
 }
 
-JSValue* Machine::cti_op_sub(CTI_ARGS)
+JSValuePtr Machine::cti_op_sub(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     double left;
     double right;
@@ -4899,26 +5043,28 @@ JSValue* Machine::cti_op_sub(CTI_ARGS)
         return jsNumber(ARG_globalData, left - right);
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, src1->toNumber(callFrame) - src2->toNumber(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, src1->toNumber(callFrame) - src2->toNumber(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
 void Machine::cti_op_put_by_val(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     Machine* machine = ARG_globalData->machine;
 
-    JSValue* baseValue = ARG_src1;
-    JSValue* subscript = ARG_src2;
-    JSValue* value = ARG_src3;
+    JSValuePtr baseValue = ARG_src1;
+    JSValuePtr subscript = ARG_src2;
+    JSValuePtr value = ARG_src3;
 
     unsigned i;
 
     bool isUInt32 = JSImmediate::getUInt32(subscript, i);
     if (LIKELY(isUInt32)) {
         if (machine->isJSArray(baseValue)) {
-            JSArray* jsArray = static_cast<JSArray*>(baseValue);
+            JSArray* jsArray = asArray(baseValue);
             if (jsArray->canSetIndex(i))
                 jsArray->setIndex(i, value);
             else
@@ -4938,16 +5084,18 @@ void Machine::cti_op_put_by_val(CTI_ARGS)
 
 void Machine::cti_op_put_by_val_array(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* baseValue = ARG_src1;
+    JSValuePtr baseValue = ARG_src1;
     int i = ARG_int2;
-    JSValue* value = ARG_src3;
+    JSValuePtr value = ARG_src3;
 
     ASSERT(ARG_globalData->machine->isJSArray(baseValue));
 
     if (LIKELY(i >= 0))
-        static_cast<JSArray*>(baseValue)->JSArray::put(callFrame, i, value);
+        asArray(baseValue)->JSArray::put(callFrame, i, value);
     else {
         Identifier property(callFrame, JSImmediate::from(i)->toString(callFrame));
         // FIXME: can toString throw an exception here?
@@ -4960,17 +5108,21 @@ void Machine::cti_op_put_by_val_array(CTI_ARGS)
     VM_CHECK_EXCEPTION_AT_END();
 }
 
-JSValue* Machine::cti_op_lesseq(CTI_ARGS)
+JSValuePtr Machine::cti_op_lesseq(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsBoolean(jsLessEq(callFrame, ARG_src1, ARG_src2));
+    JSValuePtr result = jsBoolean(jsLessEq(callFrame, ARG_src1, ARG_src2));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
 int Machine::cti_op_loop_if_true(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
 
     CallFrame* callFrame = ARG_callFrame;
 
@@ -4979,27 +5131,33 @@ int Machine::cti_op_loop_if_true(CTI_ARGS)
     return result;
 }
 
-JSValue* Machine::cti_op_negate(CTI_ARGS)
+JSValuePtr Machine::cti_op_negate(CTI_ARGS)
 {
-    JSValue* src = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr src = ARG_src1;
 
     double v;
     if (fastIsNumber(src, v))
         return jsNumber(ARG_globalData, -v);
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, -src->toNumber(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, -src->toNumber(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_resolve_base(CTI_ARGS)
+JSValuePtr Machine::cti_op_resolve_base(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return inlineResolveBase(ARG_callFrame, *ARG_id1, ARG_callFrame->scopeChain());
 }
 
-JSValue* Machine::cti_op_resolve_skip(CTI_ARGS)
+JSValuePtr Machine::cti_op_resolve_skip(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     ScopeChainNode* scopeChain = callFrame->scopeChain();
 
@@ -5017,7 +5175,7 @@ JSValue* Machine::cti_op_resolve_skip(CTI_ARGS)
         JSObject* o = *iter;
         PropertySlot slot(o);
         if (o->getPropertySlot(callFrame, ident, slot)) {
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             VM_CHECK_EXCEPTION_AT_END();
             return result;
         }
@@ -5030,17 +5188,19 @@ JSValue* Machine::cti_op_resolve_skip(CTI_ARGS)
     VM_THROW_EXCEPTION();
 }
 
-JSValue* Machine::cti_op_resolve_global(CTI_ARGS)
+JSValuePtr Machine::cti_op_resolve_global(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
-    JSGlobalObject* globalObject = static_cast<JSGlobalObject*>(ARG_src1);
+    JSGlobalObject* globalObject = asGlobalObject(ARG_src1);
     Identifier& ident = *ARG_id2;
     Instruction* vPC = ARG_instr3;
     ASSERT(globalObject->isGlobalObject());
 
     PropertySlot slot(globalObject);
     if (globalObject->getPropertySlot(callFrame, ident, slot)) {
-        JSValue* result = slot.getValue(callFrame, ident);
+        JSValuePtr result = slot.getValue(callFrame, ident);
         if (slot.isCacheable()) {
             if (vPC[4].u.structureID)
                 vPC[4].u.structureID->deref();
@@ -5058,10 +5218,12 @@ JSValue* Machine::cti_op_resolve_global(CTI_ARGS)
     VM_THROW_EXCEPTION();
 }
 
-JSValue* Machine::cti_op_div(CTI_ARGS)
+JSValuePtr Machine::cti_op_div(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     double left;
     double right;
@@ -5069,25 +5231,29 @@ JSValue* Machine::cti_op_div(CTI_ARGS)
         return jsNumber(ARG_globalData, left / right);
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, src1->toNumber(callFrame) / src2->toNumber(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, src1->toNumber(callFrame) / src2->toNumber(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_pre_dec(CTI_ARGS)
+JSValuePtr Machine::cti_op_pre_dec(CTI_ARGS)
 {
-    JSValue* v = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr v = ARG_src1;
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, v->toNumber(callFrame) - 1);
+    JSValuePtr result = jsNumber(ARG_globalData, v->toNumber(callFrame) - 1);
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
 int Machine::cti_op_jless(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
     CallFrame* callFrame = ARG_callFrame;
 
     bool result = jsLess(callFrame, src1, src2);
@@ -5095,20 +5261,24 @@ int Machine::cti_op_jless(CTI_ARGS)
     return result;
 }
 
-JSValue* Machine::cti_op_not(CTI_ARGS)
+JSValuePtr Machine::cti_op_not(CTI_ARGS)
 {
-    JSValue* src = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr src = ARG_src1;
 
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* result = jsBoolean(!src->toBoolean(callFrame));
+    JSValuePtr result = jsBoolean(!src->toBoolean(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
 int SFX_CALL Machine::cti_op_jtrue(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
 
     CallFrame* callFrame = ARG_callFrame;
 
@@ -5119,34 +5289,40 @@ int SFX_CALL Machine::cti_op_jtrue(CTI_ARGS)
 
 VoidPtrPair Machine::cti_op_post_inc(CTI_ARGS)
 {
-    JSValue* v = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr v = ARG_src1;
 
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* number = v->toJSNumber(callFrame);
-    VM_CHECK_EXCEPTION_2();
+    JSValuePtr number = v->toJSNumber(callFrame);
+    VM_CHECK_EXCEPTION_AT_END();
 
-    VoidPtrPair pair = { number, jsNumber(ARG_globalData, number->uncheckedGetNumber() + 1) };
+    VoidPtrPair pair = { asPointer(number), asPointer(jsNumber(ARG_globalData, number->uncheckedGetNumber() + 1)) };
     return pair;
 }
 
-JSValue* Machine::cti_op_eq(CTI_ARGS)
+JSValuePtr Machine::cti_op_eq(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     CallFrame* callFrame = ARG_callFrame;
 
     ASSERT(!JSImmediate::areBothImmediateNumbers(src1, src2));
-    JSValue* result = jsBoolean(equalSlowCaseInline(callFrame, src1, src2));
+    JSValuePtr result = jsBoolean(equalSlowCaseInline(callFrame, src1, src2));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_lshift(CTI_ARGS)
+JSValuePtr Machine::cti_op_lshift(CTI_ARGS)
 {
-    JSValue* val = ARG_src1;
-    JSValue* shift = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr val = ARG_src1;
+    JSValuePtr shift = ARG_src2;
 
     int32_t left;
     uint32_t right;
@@ -5156,15 +5332,17 @@ JSValue* Machine::cti_op_lshift(CTI_ARGS)
         return jsNumber(ARG_globalData, left << (right & 0x1f));
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, (val->toInt32(callFrame)) << (shift->toUInt32(callFrame) & 0x1f));
+    JSValuePtr result = jsNumber(ARG_globalData, (val->toInt32(callFrame)) << (shift->toUInt32(callFrame) & 0x1f));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_bitand(CTI_ARGS)
+JSValuePtr Machine::cti_op_bitand(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     int32_t left;
     int32_t right;
@@ -5172,15 +5350,17 @@ JSValue* Machine::cti_op_bitand(CTI_ARGS)
         return jsNumber(ARG_globalData, left & right);
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, src1->toInt32(callFrame) & src2->toInt32(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, src1->toInt32(callFrame) & src2->toInt32(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_rshift(CTI_ARGS)
+JSValuePtr Machine::cti_op_rshift(CTI_ARGS)
 {
-    JSValue* val = ARG_src1;
-    JSValue* shift = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr val = ARG_src1;
+    JSValuePtr shift = ARG_src2;
 
     int32_t left;
     uint32_t right;
@@ -5190,27 +5370,31 @@ JSValue* Machine::cti_op_rshift(CTI_ARGS)
         return jsNumber(ARG_globalData, left >> (right & 0x1f));
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, (val->toInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
+    JSValuePtr result = jsNumber(ARG_globalData, (val->toInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_bitnot(CTI_ARGS)
+JSValuePtr Machine::cti_op_bitnot(CTI_ARGS)
 {
-    JSValue* src = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr src = ARG_src1;
 
     int value;
     if (fastToInt32(src, value))
         return jsNumber(ARG_globalData, ~value);
             
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsNumber(ARG_globalData, ~src->toInt32(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, ~src->toInt32(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
 VoidPtrPair Machine::cti_op_resolve_with_base(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     ScopeChainNode* scopeChain = callFrame->scopeChain();
 
@@ -5227,10 +5411,10 @@ VoidPtrPair Machine::cti_op_resolve_with_base(CTI_ARGS)
         base = *iter;
         PropertySlot slot(base);
         if (base->getPropertySlot(callFrame, ident, slot)) {
-            JSValue* result = slot.getValue(callFrame, ident);
+            JSValuePtr result = slot.getValue(callFrame, ident);
             VM_CHECK_EXCEPTION_AT_END();
 
-            VoidPtrPair pair = { base, result };
+            VoidPtrPair pair = { base, asPointer(result) };
             return pair;
         }
         ++iter;
@@ -5243,104 +5427,124 @@ VoidPtrPair Machine::cti_op_resolve_with_base(CTI_ARGS)
     VM_THROW_EXCEPTION_2();
 }
 
-JSValue* Machine::cti_op_new_func_exp(CTI_ARGS)
+JSValuePtr Machine::cti_op_new_func_exp(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return ARG_funcexp1->makeFunction(ARG_callFrame, ARG_callFrame->scopeChain());
 }
 
-JSValue* Machine::cti_op_mod(CTI_ARGS)
+JSValuePtr Machine::cti_op_mod(CTI_ARGS)
 {
-    JSValue* dividendValue = ARG_src1;
-    JSValue* divisorValue = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr dividendValue = ARG_src1;
+    JSValuePtr divisorValue = ARG_src2;
 
     CallFrame* callFrame = ARG_callFrame;
     double d = dividendValue->toNumber(callFrame);
-    JSValue* result = jsNumber(ARG_globalData, fmod(d, divisorValue->toNumber(callFrame)));
+    JSValuePtr result = jsNumber(ARG_globalData, fmod(d, divisorValue->toNumber(callFrame)));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_less(CTI_ARGS)
+JSValuePtr Machine::cti_op_less(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsBoolean(jsLess(callFrame, ARG_src1, ARG_src2));
+    JSValuePtr result = jsBoolean(jsLess(callFrame, ARG_src1, ARG_src2));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_neq(CTI_ARGS)
+JSValuePtr Machine::cti_op_neq(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     ASSERT(!JSImmediate::areBothImmediateNumbers(src1, src2));
 
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* result = jsBoolean(!equalSlowCaseInline(callFrame, src1, src2));
+    JSValuePtr result = jsBoolean(!equalSlowCaseInline(callFrame, src1, src2));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
 VoidPtrPair Machine::cti_op_post_dec(CTI_ARGS)
 {
-    JSValue* v = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr v = ARG_src1;
 
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* number = v->toJSNumber(callFrame);
-    VM_CHECK_EXCEPTION_2();
+    JSValuePtr number = v->toJSNumber(callFrame);
+    VM_CHECK_EXCEPTION_AT_END();
 
-    VoidPtrPair pair = { number, jsNumber(ARG_globalData, number->uncheckedGetNumber() - 1) };
+    VoidPtrPair pair = { asPointer(number), asPointer(jsNumber(ARG_globalData, number->uncheckedGetNumber() - 1)) };
     return pair;
 }
 
-JSValue* Machine::cti_op_urshift(CTI_ARGS)
+JSValuePtr Machine::cti_op_urshift(CTI_ARGS)
 {
-    JSValue* val = ARG_src1;
-    JSValue* shift = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr val = ARG_src1;
+    JSValuePtr shift = ARG_src2;
 
     CallFrame* callFrame = ARG_callFrame;
 
     if (JSImmediate::areBothImmediateNumbers(val, shift) && !JSImmediate::isNegative(val))
         return JSImmediate::rightShiftImmediateNumbers(val, shift);
     else {
-        JSValue* result = jsNumber(ARG_globalData, (val->toUInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
+        JSValuePtr result = jsNumber(ARG_globalData, (val->toUInt32(callFrame)) >> (shift->toUInt32(callFrame) & 0x1f));
         VM_CHECK_EXCEPTION_AT_END();
         return result;
     }
 }
 
-JSValue* Machine::cti_op_bitxor(CTI_ARGS)
+JSValuePtr Machine::cti_op_bitxor(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* result = jsNumber(ARG_globalData, src1->toInt32(callFrame) ^ src2->toInt32(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, src1->toInt32(callFrame) ^ src2->toInt32(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_new_regexp(CTI_ARGS)
+JSValuePtr Machine::cti_op_new_regexp(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return new (ARG_globalData) RegExpObject(ARG_callFrame->lexicalGlobalObject()->regExpStructure(), ARG_regexp1);
 }
 
-JSValue* Machine::cti_op_bitor(CTI_ARGS)
+JSValuePtr Machine::cti_op_bitor(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* result = jsNumber(ARG_globalData, src1->toInt32(callFrame) | src2->toInt32(callFrame));
+    JSValuePtr result = jsNumber(ARG_globalData, src1->toInt32(callFrame) | src2->toInt32(callFrame));
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_call_eval(CTI_ARGS)
+JSValuePtr Machine::cti_op_call_eval(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     RegisterFile* registerFile = ARG_registerFile;
     CodeBlock* codeBlock = callFrame->codeBlock();
@@ -5348,31 +5552,36 @@ JSValue* Machine::cti_op_call_eval(CTI_ARGS)
 
     Machine* machine = ARG_globalData->machine;
     
-    JSValue* funcVal = ARG_src1;
+    JSValuePtr funcVal = ARG_src1;
     int registerOffset = ARG_int2;
     int argCount = ARG_int3;
-    JSValue* baseVal = ARG_src5;
+    JSValuePtr baseVal = ARG_src5;
 
     if (baseVal == scopeChain->globalObject() && funcVal == scopeChain->globalObject()->evalFunction()) {
-        JSObject* thisObject = static_cast<JSObject*>(callFrame[codeBlock->thisRegister].jsValue(callFrame));
-        JSValue* exceptionValue = 0;
-        JSValue* result = machine->callEval(callFrame, thisObject, scopeChain, registerFile, registerOffset - RegisterFile::CallFrameHeaderSize - argCount, argCount, exceptionValue);
-        VM_CHECK_EXCEPTION_ARG(exceptionValue);
+        JSObject* thisObject = asObject(callFrame[codeBlock->thisRegister].jsValue(callFrame));
+        JSValuePtr exceptionValue = noValue();
+        JSValuePtr result = machine->callEval(callFrame, thisObject, scopeChain, registerFile, registerOffset - RegisterFile::CallFrameHeaderSize - argCount, argCount, exceptionValue);
+        if (UNLIKELY(exceptionValue != noValue())) {
+            ARG_globalData->exception = exceptionValue;
+            VM_THROW_EXCEPTION_AT_END();
+        }
         return result;
     }
 
     return JSImmediate::impossibleValue();
 }
 
-void* Machine::cti_op_throw(CTI_ARGS)
+JSValuePtr Machine::cti_op_throw(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
 
     ASSERT(codeBlock->ctiReturnAddressVPCMap.contains(CTI_RETURN_ADDRESS));
     unsigned vPCIndex = codeBlock->ctiReturnAddressVPCMap.get(CTI_RETURN_ADDRESS);
 
-    JSValue* exceptionValue = ARG_src1;
+    JSValuePtr exceptionValue = ARG_src1;
     ASSERT(exceptionValue);
 
     Instruction* handlerVPC = ARG_globalData->machine->throwException(callFrame, exceptionValue, codeBlock->instructions.begin() + vPCIndex, true);
@@ -5385,19 +5594,23 @@ void* Machine::cti_op_throw(CTI_ARGS)
     ARG_setCallFrame(callFrame);
     void* catchRoutine = callFrame->codeBlock()->nativeExceptionCodeForHandlerVPC(handlerVPC);
     ASSERT(catchRoutine);
-    ctiSetReturnAddress(&CTI_RETURN_ADDRESS, catchRoutine);
+    CTI_SET_RETURN_ADDRESS(catchRoutine);
     return exceptionValue;
 }
 
 JSPropertyNameIterator* Machine::cti_op_get_pnames(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return JSPropertyNameIterator::create(ARG_callFrame, ARG_src1);
 }
 
-JSValue* Machine::cti_op_next_pname(CTI_ARGS)
+JSValuePtr Machine::cti_op_next_pname(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     JSPropertyNameIterator* it = ARG_pni1;
-    JSValue* temp = it->next(ARG_callFrame);
+    JSValuePtr temp = it->next(ARG_callFrame);
     if (!temp)
         it->invalidate();
     return temp;
@@ -5405,6 +5618,8 @@ JSValue* Machine::cti_op_next_pname(CTI_ARGS)
 
 void Machine::cti_op_push_scope(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     JSObject* o = ARG_src1->toObject(ARG_callFrame);
     VM_CHECK_EXCEPTION_VOID();
     ARG_callFrame->setScopeChain(ARG_callFrame->scopeChain()->push(o));
@@ -5412,49 +5627,67 @@ void Machine::cti_op_push_scope(CTI_ARGS)
 
 void Machine::cti_op_pop_scope(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     ARG_callFrame->setScopeChain(ARG_callFrame->scopeChain()->pop());
 }
 
-JSValue* Machine::cti_op_typeof(CTI_ARGS)
+JSValuePtr Machine::cti_op_typeof(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return jsTypeStringForValue(ARG_callFrame, ARG_src1);
 }
 
-JSValue* Machine::cti_op_is_undefined(CTI_ARGS)
+JSValuePtr Machine::cti_op_is_undefined(CTI_ARGS)
 {
-    JSValue* v = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr v = ARG_src1;
     return jsBoolean(JSImmediate::isImmediate(v) ? v->isUndefined() : v->asCell()->structureID()->typeInfo().masqueradesAsUndefined());
 }
 
-JSValue* Machine::cti_op_is_boolean(CTI_ARGS)
+JSValuePtr Machine::cti_op_is_boolean(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return jsBoolean(ARG_src1->isBoolean());
 }
 
-JSValue* Machine::cti_op_is_number(CTI_ARGS)
+JSValuePtr Machine::cti_op_is_number(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return jsBoolean(ARG_src1->isNumber());
 }
 
-JSValue* Machine::cti_op_is_string(CTI_ARGS)
+JSValuePtr Machine::cti_op_is_string(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return jsBoolean(ARG_globalData->machine->isJSString(ARG_src1));
 }
 
-JSValue* Machine::cti_op_is_object(CTI_ARGS)
+JSValuePtr Machine::cti_op_is_object(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return jsBoolean(jsIsObjectType(ARG_src1));
 }
 
-JSValue* Machine::cti_op_is_function(CTI_ARGS)
+JSValuePtr Machine::cti_op_is_function(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     return jsBoolean(jsIsFunctionType(ARG_src1));
 }
 
-JSValue* Machine::cti_op_stricteq(CTI_ARGS)
+JSValuePtr Machine::cti_op_stricteq(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     // handled inline as fast cases
     ASSERT(!JSImmediate::areBothImmediate(src1, src2));
@@ -5463,10 +5696,12 @@ JSValue* Machine::cti_op_stricteq(CTI_ARGS)
     return jsBoolean(strictEqualSlowCaseInline(src1, src2));
 }
 
-JSValue* Machine::cti_op_nstricteq(CTI_ARGS)
+JSValuePtr Machine::cti_op_nstricteq(CTI_ARGS)
 {
-    JSValue* src1 = ARG_src1;
-    JSValue* src2 = ARG_src2;
+    CTI_STACK_HACK();
+
+    JSValuePtr src1 = ARG_src1;
+    JSValuePtr src2 = ARG_src2;
 
     // handled inline as fast cases
     ASSERT(!JSImmediate::areBothImmediate(src1, src2));
@@ -5475,20 +5710,24 @@ JSValue* Machine::cti_op_nstricteq(CTI_ARGS)
     return jsBoolean(!strictEqualSlowCaseInline(src1, src2));
 }
 
-JSValue* Machine::cti_op_to_jsnumber(CTI_ARGS)
+JSValuePtr Machine::cti_op_to_jsnumber(CTI_ARGS)
 {
-    JSValue* src = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr src = ARG_src1;
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* result = src->toJSNumber(callFrame);
+    JSValuePtr result = src->toJSNumber(callFrame);
     VM_CHECK_EXCEPTION_AT_END();
     return result;
 }
 
-JSValue* Machine::cti_op_in(CTI_ARGS)
+JSValuePtr Machine::cti_op_in(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
-    JSValue* baseVal = ARG_src2;
+    JSValuePtr baseVal = ARG_src2;
 
     if (!baseVal->isObject()) {
         CallFrame* callFrame = ARG_callFrame;
@@ -5499,8 +5738,8 @@ JSValue* Machine::cti_op_in(CTI_ARGS)
         VM_THROW_EXCEPTION();
     }
 
-    JSValue* propName = ARG_src1;
-    JSObject* baseObj = static_cast<JSObject*>(baseVal);
+    JSValuePtr propName = ARG_src1;
+    JSObject* baseObj = asObject(baseVal);
 
     uint32_t i;
     if (propName->getUInt32(i))
@@ -5511,8 +5750,10 @@ JSValue* Machine::cti_op_in(CTI_ARGS)
     return jsBoolean(baseObj->hasProperty(callFrame, property));
 }
 
-JSValue* Machine::cti_op_push_new_scope(CTI_ARGS)
+JSValuePtr Machine::cti_op_push_new_scope(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     JSObject* scope = new (ARG_globalData) JSStaticScopeObject(ARG_callFrame, *ARG_id1, ARG_src2, DontDelete);
 
     CallFrame* callFrame = ARG_callFrame;
@@ -5522,6 +5763,8 @@ JSValue* Machine::cti_op_push_new_scope(CTI_ARGS)
 
 void Machine::cti_op_jmp_scopes(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     unsigned count = ARG_int1;
     CallFrame* callFrame = ARG_callFrame;
 
@@ -5533,6 +5776,8 @@ void Machine::cti_op_jmp_scopes(CTI_ARGS)
 
 void Machine::cti_op_put_by_index(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     unsigned property = ARG_int2;
 
@@ -5541,7 +5786,9 @@ void Machine::cti_op_put_by_index(CTI_ARGS)
 
 void* Machine::cti_op_switch_imm(CTI_ARGS)
 {
-    JSValue* scrutinee = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr scrutinee = ARG_src1;
     unsigned tableIndex = ARG_int2;
     CallFrame* callFrame = ARG_callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
@@ -5556,7 +5803,9 @@ void* Machine::cti_op_switch_imm(CTI_ARGS)
 
 void* Machine::cti_op_switch_char(CTI_ARGS)
 {
-    JSValue* scrutinee = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr scrutinee = ARG_src1;
     unsigned tableIndex = ARG_int2;
     CallFrame* callFrame = ARG_callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
@@ -5564,7 +5813,7 @@ void* Machine::cti_op_switch_char(CTI_ARGS)
     void* result = codeBlock->characterSwitchJumpTables[tableIndex].ctiDefault;
 
     if (scrutinee->isString()) {
-        UString::Rep* value = static_cast<JSString*>(scrutinee)->value().rep();
+        UString::Rep* value = asString(scrutinee)->value().rep();
         if (value->size() == 1)
             result = codeBlock->characterSwitchJumpTables[tableIndex].ctiForValue(value->data()[0]);
     }
@@ -5574,7 +5823,9 @@ void* Machine::cti_op_switch_char(CTI_ARGS)
 
 void* Machine::cti_op_switch_string(CTI_ARGS)
 {
-    JSValue* scrutinee = ARG_src1;
+    CTI_STACK_HACK();
+
+    JSValuePtr scrutinee = ARG_src1;
     unsigned tableIndex = ARG_int2;
     CallFrame* callFrame = ARG_callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
@@ -5582,22 +5833,24 @@ void* Machine::cti_op_switch_string(CTI_ARGS)
     void* result = codeBlock->stringSwitchJumpTables[tableIndex].ctiDefault;
 
     if (scrutinee->isString()) {
-        UString::Rep* value = static_cast<JSString*>(scrutinee)->value().rep();
+        UString::Rep* value = asString(scrutinee)->value().rep();
         result = codeBlock->stringSwitchJumpTables[tableIndex].ctiForValue(value);
     }
 
     return result;
 }
 
-JSValue* Machine::cti_op_del_by_val(CTI_ARGS)
+JSValuePtr Machine::cti_op_del_by_val(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
 
-    JSValue* baseValue = ARG_src1;
+    JSValuePtr baseValue = ARG_src1;
     JSObject* baseObj = baseValue->toObject(callFrame); // may throw
 
-    JSValue* subscript = ARG_src2;
-    JSValue* result;
+    JSValuePtr subscript = ARG_src2;
+    JSValuePtr result;
     uint32_t i;
     if (subscript->getUInt32(i))
         result = jsBoolean(baseObj->deleteProperty(callFrame, i));
@@ -5614,32 +5867,38 @@ JSValue* Machine::cti_op_del_by_val(CTI_ARGS)
 
 void Machine::cti_op_put_getter(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
 
     ASSERT(ARG_src1->isObject());
-    JSObject* baseObj = static_cast<JSObject*>(ARG_src1);
+    JSObject* baseObj = asObject(ARG_src1);
     Identifier& ident = *ARG_id2;
     ASSERT(ARG_src3->isObject());
-    baseObj->defineGetter(callFrame, ident, static_cast<JSObject*>(ARG_src3));
+    baseObj->defineGetter(callFrame, ident, asObject(ARG_src3));
 }
 
 void Machine::cti_op_put_setter(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
 
     ASSERT(ARG_src1->isObject());
-    JSObject* baseObj = static_cast<JSObject*>(ARG_src1);
+    JSObject* baseObj = asObject(ARG_src1);
     Identifier& ident = *ARG_id2;
     ASSERT(ARG_src3->isObject());
-    baseObj->defineSetter(callFrame, ident, static_cast<JSObject*>(ARG_src3));
+    baseObj->defineSetter(callFrame, ident, asObject(ARG_src3));
 }
 
-JSValue* Machine::cti_op_new_error(CTI_ARGS)
+JSValuePtr Machine::cti_op_new_error(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
     unsigned type = ARG_int1;
-    JSValue* message = ARG_src2;
+    JSValuePtr message = ARG_src2;
     unsigned lineNumber = ARG_int3;
 
     return Error::create(callFrame, static_cast<ErrorType>(type), message->toString(callFrame), lineNumber, codeBlock->ownerNode->sourceID(), codeBlock->ownerNode->sourceURL());
@@ -5647,6 +5906,8 @@ JSValue* Machine::cti_op_new_error(CTI_ARGS)
 
 void Machine::cti_op_debug(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
 
     int debugHookID = ARG_int1;
@@ -5656,17 +5917,19 @@ void Machine::cti_op_debug(CTI_ARGS)
     ARG_globalData->machine->debug(callFrame, static_cast<DebugHookID>(debugHookID), firstLine, lastLine);
 }
 
-void* Machine::cti_vm_throw(CTI_ARGS)
+JSValuePtr Machine::cti_vm_throw(CTI_ARGS)
 {
+    CTI_STACK_HACK();
+
     CallFrame* callFrame = ARG_callFrame;
     CodeBlock* codeBlock = callFrame->codeBlock();
 
     ASSERT(codeBlock->ctiReturnAddressVPCMap.contains(ARG_globalData->throwReturnAddress));
     unsigned vPCIndex = codeBlock->ctiReturnAddressVPCMap.get(ARG_globalData->throwReturnAddress);
 
-    JSValue* exceptionValue = ARG_globalData->exception;
+    JSValuePtr exceptionValue = ARG_globalData->exception;
     ASSERT(exceptionValue);
-    ARG_globalData->exception = 0;
+    ARG_globalData->exception = noValue();
 
     Instruction* handlerVPC = ARG_globalData->machine->throwException(callFrame, exceptionValue, codeBlock->instructions.begin() + vPCIndex, false);
 
@@ -5678,14 +5941,19 @@ void* Machine::cti_vm_throw(CTI_ARGS)
     ARG_setCallFrame(callFrame);
     void* catchRoutine = callFrame->codeBlock()->nativeExceptionCodeForHandlerVPC(handlerVPC);
     ASSERT(catchRoutine);
-    ctiSetReturnAddress(&CTI_RETURN_ADDRESS, catchRoutine);
+    CTI_SET_RETURN_ADDRESS(catchRoutine);
     return exceptionValue;
 }
 
+#undef CTI_RETURN_ADDRESS
+#undef CTI_SET_RETURN_ADDRESS
+#undef CTI_STACK_HACK
 #undef VM_CHECK_EXCEPTION
-#undef VM_CHECK_EXCEPTION_ARG
 #undef VM_CHECK_EXCEPTION_AT_END
 #undef VM_CHECK_EXCEPTION_VOID
+#undef VM_THROW_EXCEPTION
+#undef VM_THROW_EXCEPTION_2
+#undef VM_THROW_EXCEPTION_AT_END
 
 #endif // ENABLE(CTI)
 

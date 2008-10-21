@@ -124,9 +124,9 @@ bool ObjcInstance::supportsInvokeDefaultMethod() const
     return [_instance.get() respondsToSelector:@selector(invokeDefaultMethodWithArguments:)];
 }
 
-JSValue* ObjcInstance::invokeMethod(ExecState* exec, const MethodList &methodList, const ArgList &args)
+JSValuePtr ObjcInstance::invokeMethod(ExecState* exec, const MethodList &methodList, const ArgList &args)
 {
-    JSValue* result = jsUndefined();
+    JSValuePtr result = jsUndefined();
     
     JSLock::DropAllLocks dropAllLocks(false); // Can't put this inside the @try scope because it unwinds incorrectly.
 
@@ -246,9 +246,9 @@ JSValue* ObjcInstance::invokeMethod(ExecState* exec, const MethodList &methodLis
     return result;
 }
 
-JSValue* ObjcInstance::invokeDefaultMethod(ExecState* exec, const ArgList &args)
+JSValuePtr ObjcInstance::invokeDefaultMethod(ExecState* exec, const ArgList &args)
 {
-    JSValue* result = jsUndefined();
+    JSValuePtr result = jsUndefined();
 
     JSLock::DropAllLocks dropAllLocks(false); // Can't put this inside the @try scope because it unwinds incorrectly.
     setGlobalException(nil);
@@ -302,7 +302,7 @@ bool ObjcInstance::supportsSetValueOfUndefinedField()
     return false;
 }
 
-void ObjcInstance::setValueOfUndefinedField(ExecState* exec, const Identifier &property, JSValue* aValue)
+void ObjcInstance::setValueOfUndefinedField(ExecState* exec, const Identifier &property, JSValuePtr aValue)
 {
     id targetObject = getObject();
 
@@ -326,9 +326,9 @@ void ObjcInstance::setValueOfUndefinedField(ExecState* exec, const Identifier &p
     }
 }
 
-JSValue* ObjcInstance::getValueOfUndefinedField(ExecState* exec, const Identifier& property) const
+JSValuePtr ObjcInstance::getValueOfUndefinedField(ExecState* exec, const Identifier& property) const
 {
-    JSValue* result = jsUndefined();
+    JSValuePtr result = jsUndefined();
     
     id targetObject = getObject();
 
@@ -353,11 +353,11 @@ JSValue* ObjcInstance::getValueOfUndefinedField(ExecState* exec, const Identifie
     return result;
 }
 
-JSValue* ObjcInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint) const
+JSValuePtr ObjcInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint) const
 {
-    if (hint == JSValue::PreferString)
+    if (hint == PreferString)
         return stringValue(exec);
-    if (hint == JSValue::PreferNumber)
+    if (hint == PreferNumber)
         return numberValue(exec);
     if ([_instance.get() isKindOfClass:[NSString class]])
         return stringValue(exec);
@@ -366,24 +366,24 @@ JSValue* ObjcInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint
     return valueOf(exec);
 }
 
-JSValue* ObjcInstance::stringValue(ExecState* exec) const
+JSValuePtr ObjcInstance::stringValue(ExecState* exec) const
 {
     return convertNSStringToString(exec, [getObject() description]);
 }
 
-JSValue* ObjcInstance::numberValue(ExecState* exec) const
+JSValuePtr ObjcInstance::numberValue(ExecState* exec) const
 {
     // FIXME:  Implement something sensible
     return jsNumber(exec, 0);
 }
 
-JSValue* ObjcInstance::booleanValue() const
+JSValuePtr ObjcInstance::booleanValue() const
 {
     // FIXME:  Implement something sensible
     return jsBoolean(false);
 }
 
-JSValue* ObjcInstance::valueOf(ExecState* exec) const 
+JSValuePtr ObjcInstance::valueOf(ExecState* exec) const 
 {
     return stringValue(exec);
 }

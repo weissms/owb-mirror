@@ -29,13 +29,6 @@
 #include "ustring.h"
 #include "ExecState.h"
 
-namespace JSC {
-    class ExecState;
-    class JSValue;
-    class JSObject;
-    class PropertyNameArray;
-}
-
 typedef const struct OpaqueJSContextGroup* JSContextGroupRef;
 typedef const struct OpaqueJSContext* JSContextRef;
 typedef struct OpaqueJSContext* JSGlobalContextRef;
@@ -55,7 +48,7 @@ inline JSC::ExecState* toJS(JSGlobalContextRef c)
     return reinterpret_cast<JSC::ExecState*>(c);
 }
 
-inline JSC::JSValue* toJS(JSValueRef v)
+inline JSC::JSValuePtr toJS(JSValueRef v)
 {
     return reinterpret_cast<JSC::JSValue*>(const_cast<OpaqueJSValue*>(v));
 }
@@ -75,14 +68,14 @@ inline JSC::JSGlobalData* toJS(JSContextGroupRef g)
     return reinterpret_cast<JSC::JSGlobalData*>(const_cast<OpaqueJSContextGroup*>(g));
 }
 
-inline JSValueRef toRef(JSC::JSValue* v)
+inline JSValueRef toRef(JSC::JSValuePtr v)
 {
-    return reinterpret_cast<JSValueRef>(v);
+    return reinterpret_cast<JSValueRef>(v.payload());
 }
 
-inline JSValueRef* toRef(JSC::JSValue** v)
+inline JSValueRef* toRef(JSC::JSValuePtr* v)
 {
-    return reinterpret_cast<JSValueRef*>(const_cast<const JSC::JSValue**>(v));
+    return reinterpret_cast<JSValueRef*>(const_cast<const JSC::JSValue**>(v->payloadPtr()));
 }
 
 inline JSObjectRef toRef(JSC::JSObject* o)

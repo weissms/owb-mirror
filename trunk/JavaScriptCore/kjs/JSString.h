@@ -90,7 +90,7 @@ namespace JSC {
         bool canGetIndex(unsigned i) { return i < static_cast<unsigned>(m_value.size()); }
         JSString* getIndex(JSGlobalData*, unsigned);
 
-        static PassRefPtr<StructureID> createStructureID(JSValue* proto) { return StructureID::create(proto, TypeInfo(StringType, NeedsThisConversion)); }
+        static PassRefPtr<StructureID> createStructureID(JSValuePtr proto) { return StructureID::create(proto, TypeInfo(StringType, NeedsThisConversion)); }
 
     private:
         enum VPtrStealingHackType { VPtrStealingHack };
@@ -99,8 +99,8 @@ namespace JSC {
         {
         }
 
-        virtual JSValue* toPrimitive(ExecState*, PreferredPrimitiveType) const;
-        virtual bool getPrimitiveNumber(ExecState*, double& number, JSValue*& value);
+        virtual JSValuePtr toPrimitive(ExecState*, PreferredPrimitiveType) const;
+        virtual bool getPrimitiveNumber(ExecState*, double& number, JSValuePtr& value);
         virtual bool toBoolean(ExecState*) const;
         virtual double toNumber(ExecState*) const;
         virtual JSObject* toObject(ExecState*) const;
@@ -116,6 +116,14 @@ namespace JSC {
 
         UString m_value;
     };
+
+    JSString* asString(JSValuePtr);
+
+    inline JSString* asString(JSValuePtr value)
+    {
+        ASSERT(asCell(value)->isString());
+        return static_cast<JSString*>(asCell(value));
+    }
 
     inline JSString* jsEmptyString(JSGlobalData* globalData)
     {
@@ -198,7 +206,7 @@ namespace JSC {
 
     inline JSString* JSValue::toThisJSString(ExecState* exec)
     {
-        return JSImmediate::isImmediate(this) ? jsString(exec, JSImmediate::toString(this)) : asCell()->toThisJSString(exec);
+        return JSImmediate::isImmediate(asValue()) ? jsString(exec, JSImmediate::toString(asValue())) : asCell()->toThisJSString(exec);
     }
 
 } // namespace JSC

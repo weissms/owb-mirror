@@ -67,11 +67,11 @@ void JSAbstractEventListener::handleEvent(Event* event, bool isWindowEvent)
 
     ExecState* exec = window->globalExec();
 
-    JSValue* handleEventFunction = listener->get(exec, Identifier(exec, "handleEvent"));
+    JSValuePtr handleEventFunction = listener->get(exec, Identifier(exec, "handleEvent"));
     CallData callData;
     CallType callType = handleEventFunction->getCallData(callData);
     if (callType == CallTypeNone) {
-        handleEventFunction = 0;
+        handleEventFunction = noValue();
         callType = listener->getCallData(callData);
     }
 
@@ -84,12 +84,12 @@ void JSAbstractEventListener::handleEvent(Event* event, bool isWindowEvent)
         Event* savedEvent = window->currentEvent();
         window->setCurrentEvent(event);
 
-        JSValue* retval;
+        JSValuePtr retval;
         if (handleEventFunction) {
             window->startTimeoutCheck();
             retval = call(exec, handleEventFunction, callType, callData, listener, args);
         } else {
-            JSValue* thisValue;
+            JSValuePtr thisValue;
             if (isWindowEvent)
                 thisValue = window->shell();
             else
@@ -245,7 +245,7 @@ JSObject* JSLazyEventListener::listenerObj() const
 }
 
 // Helper function
-inline JSValue* eventParameterName(JSLazyEventListener::LazyEventListenerType type, ExecState* exec)
+inline JSValuePtr eventParameterName(JSLazyEventListener::LazyEventListenerType type, ExecState* exec)
 {
     switch (type) {
     case JSLazyEventListener::HTMLLazyEventListener:
@@ -297,9 +297,9 @@ void JSLazyEventListener::parseCode() const
         // (and the document, and the form - see JSHTMLElement::eventHandlerScope)
         ScopeChain scope = listenerAsFunction->scope();
 
-        JSValue* thisObj = toJS(exec, m_originalNode);
+        JSValuePtr thisObj = toJS(exec, m_originalNode);
         if (thisObj->isObject()) {
-            static_cast<JSEventTargetNode*>(thisObj)->pushEventHandlerScope(exec, scope);
+            static_cast<JSEventTargetNode*>(asObject(thisObj))->pushEventHandlerScope(exec, scope);
             listenerAsFunction->setScope(scope);
         }
     }

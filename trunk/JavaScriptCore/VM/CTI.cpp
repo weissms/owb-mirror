@@ -95,11 +95,13 @@ asm(
 SYMBOL_STRING(ctiTrampoline) ":" "\n"
     "pushl %esi" "\n"
     "pushl %edi" "\n"
-    "subl $0x24, %esp" "\n"
+    "pushl %ebx" "\n"
+    "subl $0x20, %esp" "\n"
     "movl $512, %esi" "\n"
     "movl 0x38(%esp), %edi" "\n" // Ox38 = 0x0E * 4, 0x0E = CTI_ARGS_callFrame (see assertion above)
     "call *0x30(%esp)" "\n" // Ox30 = 0x0C * 4, 0x0C = CTI_ARGS_code (see assertion above)
-    "addl $0x24, %esp" "\n"
+    "addl $0x20, %esp" "\n"
+    "popl %ebx" "\n"
     "popl %edi" "\n"
     "popl %esi" "\n"
     "ret" "\n"
@@ -118,7 +120,8 @@ SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
 #else
     "call " SYMBOL_STRING(_ZN3JSC7Machine12cti_vm_throwEPvz) "\n"
 #endif
-    "addl $0x24, %esp" "\n"
+    "addl $0x20, %esp" "\n"
+    "popl %ebx" "\n"
     "popl %edi" "\n"
     "popl %esi" "\n"
     "ret" "\n"
@@ -128,17 +131,19 @@ SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
 
 extern "C" {
     
-    __declspec(naked) JSValue* ctiTrampoline(void* code, RegisterFile*, CallFrame*, JSValue** exception, Profiler**, JSGlobalData*)
+    __declspec(naked) JSValuePtr ctiTrampoline(void* code, RegisterFile*, CallFrame*, JSValuePtr* exception, Profiler**, JSGlobalData*)
     {
         __asm {
             push esi;
             push edi;
-            sub esp, 0x24;
+            push ebx;
+            sub esp, 0x20;
             mov esi, 512;
             mov ecx, esp;
             mov edi, [esp + 0x38];
             call [esp + 0x30]; // Ox30 = 0x0C * 4, 0x0C = CTI_ARGS_code (see assertion above)
-            add esp, 0x24;
+            add esp, 0x20;
+            pop ebx;
             pop edi;
             pop esi;
             ret;
@@ -150,7 +155,8 @@ extern "C" {
         __asm {
             mov ecx, esp;
             call JSC::Machine::cti_vm_throw;
-            add esp, 0x24;
+            add esp, 0x20;
+            pop ebx;
             pop edi;
             pop esi;
             ret;
@@ -166,9 +172,14 @@ ALWAYS_INLINE bool CTI::isConstant(int src)
     return src >= m_codeBlock->numVars && src < m_codeBlock->numVars + m_codeBlock->numConstants;
 }
 
-ALWAYS_INLINE JSValue* CTI::getConstant(CallFrame* callFrame, int src)
+ALWAYS_INLINE JSValuePtr CTI::getConstant(CallFrame* callFrame, int src)
 {
     return m_codeBlock->constantRegisters[src - m_codeBlock->numVars].jsValue(callFrame);
+}
+
+inline uintptr_t CTI::asInteger(JSValuePtr value)
+{
+    return reinterpret_cast<uintptr_t>(value.payload());
 }
 
 // get arg puts an arg from the SF register array into a h/w register
@@ -176,8 +187,8 @@ ALWAYS_INLINE void CTI::emitGetArg(int src, X86Assembler::RegisterID dst)
 {
     // TODO: we want to reuse values that are already in registers if we can - add a register allocator!
     if (isConstant(src)) {
-        JSValue* js = getConstant(m_callFrame, src);
-        m_jit.movl_i32r(reinterpret_cast<unsigned>(js), dst);
+        JSValuePtr js = getConstant(m_callFrame, src);
+        m_jit.movl_i32r(asInteger(js), dst);
     } else
         m_jit.movl_mr(src * sizeof(Register), X86::edi, dst);
 }
@@ -186,8 +197,8 @@ ALWAYS_INLINE void CTI::emitGetArg(int src, X86Assembler::RegisterID dst)
 ALWAYS_INLINE void CTI::emitGetPutArg(unsigned src, unsigned offset, X86Assembler::RegisterID scratch)
 {
     if (isConstant(src)) {
-        JSValue* js = getConstant(m_callFrame, src);
-        m_jit.movl_i32m(reinterpret_cast<unsigned>(js), offset + sizeof(void*), X86::esp);
+        JSValuePtr js = getConstant(m_callFrame, src);
+        m_jit.movl_i32m(asInteger(js), offset + sizeof(void*), X86::esp);
     } else {
         m_jit.movl_mr(src * sizeof(Register), X86::edi, scratch);
         m_jit.movl_rm(scratch, offset + sizeof(void*), X86::esp);
@@ -205,13 +216,13 @@ ALWAYS_INLINE void CTI::emitPutArgConstant(unsigned value, unsigned offset)
     m_jit.movl_i32m(value, offset + sizeof(void*), X86::esp);
 }
 
-ALWAYS_INLINE JSValue* CTI::getConstantImmediateNumericArg(unsigned src)
+ALWAYS_INLINE JSValuePtr CTI::getConstantImmediateNumericArg(unsigned src)
 {
     if (isConstant(src)) {
-        JSValue* js = getConstant(m_callFrame, src);
-        return JSImmediate::isNumber(js) ? js : 0;
+        JSValuePtr js = getConstant(m_callFrame, src);
+        return JSImmediate::isNumber(js) ? js : noValue();
     }
-    return 0;
+    return noValue();
 }
 
 ALWAYS_INLINE void CTI::emitPutCTIParam(void* value, unsigned name)
@@ -247,7 +258,7 @@ ALWAYS_INLINE void CTI::emitPutResult(unsigned dst, X86Assembler::RegisterID fro
 
 ALWAYS_INLINE void CTI::emitInitRegister(unsigned dst)
 {
-    m_jit.movl_i32m(reinterpret_cast<unsigned>(jsUndefined()), dst * sizeof(Register), X86::edi);
+    m_jit.movl_i32m(asInteger(jsUndefined()), dst * sizeof(Register), X86::edi);
     // FIXME: #ifndef NDEBUG, Write the correct m_type to the register.
 }
 
@@ -271,7 +282,7 @@ void CTI::printOpcodeOperandTypes(unsigned src1, unsigned src2)
 {
     char which1 = '*';
     if (isConstant(src1)) {
-        JSValue* js = getConstant(m_callFrame, src1);
+        JSValuePtr js = getConstant(m_callFrame, src1);
         which1 = 
             JSImmediate::isImmediate(js) ?
                 (JSImmediate::isNumber(js) ? 'i' :
@@ -285,7 +296,7 @@ void CTI::printOpcodeOperandTypes(unsigned src1, unsigned src2)
     }
     char which2 = '*';
     if (isConstant(src2)) {
-        JSValue* js = getConstant(m_callFrame, src2);
+        JSValuePtr js = getConstant(m_callFrame, src2);
         which2 = 
             JSImmediate::isImmediate(js) ?
                 (JSImmediate::isNumber(js) ? 'i' :
@@ -303,12 +314,18 @@ void CTI::printOpcodeOperandTypes(unsigned src1, unsigned src2)
 
 #endif
 
-ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitCall(unsigned opcodeIndex, X86::RegisterID r)
+ALWAYS_INLINE X86Assembler::JmpSrc CTI::emitNakedCall(unsigned opcodeIndex, X86::RegisterID r)
 {
-    m_jit.emitRestoreArgumentReference();
     X86Assembler::JmpSrc call = m_jit.emitCall(r);
     m_calls.append(CallRecord(call, opcodeIndex));
 
+    return call;
+}
+
+ALWAYS_INLINE  X86Assembler::JmpSrc CTI::emitNakedCall(unsigned opcodeIndex, void(*function)())
+{
+    X86Assembler::JmpSrc call = m_jit.emitCall();
+    m_calls.append(CallRecord(call, reinterpret_cast<CTIHelper_v>(function), opcodeIndex));
     return call;
 }
 
@@ -427,10 +444,10 @@ ALWAYS_INLINE void CTI::emitJumpSlowCaseIfNotImmNums(X86Assembler::RegisterID re
     emitJumpSlowCaseIfNotImmNum(X86::ecx, opcodeIndex);
 }
 
-ALWAYS_INLINE unsigned CTI::getDeTaggedConstantImmediate(JSValue* imm)
+ALWAYS_INLINE unsigned CTI::getDeTaggedConstantImmediate(JSValuePtr imm)
 {
     ASSERT(JSImmediate::isNumber(imm));
-    return reinterpret_cast<unsigned>(imm) & ~JSImmediate::TagBitTypeInteger;
+    return asInteger(imm) & ~JSImmediate::TagBitTypeInteger;
 }
 
 ALWAYS_INLINE void CTI::emitFastArithDeTagImmediate(X86Assembler::RegisterID reg)
@@ -511,99 +528,116 @@ CTI::CTI(Machine* machine, CallFrame* callFrame, CodeBlock* codeBlock)
 OpcodeID currentOpcodeID = static_cast<OpcodeID>(-1);
 #endif
 
+static void unreachable()
+{
+    ASSERT_NOT_REACHED();
+    exit(1);
+}
+
 void CTI::compileOpCallInitializeCallFrame(unsigned callee, unsigned argCount)
 {
     emitGetArg(callee, X86::ecx); // Load callee JSFunction into ecx
     m_jit.movl_rm(X86::eax, RegisterFile::CodeBlock * static_cast<int>(sizeof(Register)), X86::edx); // callee CodeBlock was returned in eax
-    m_jit.movl_i32m(reinterpret_cast<unsigned>(nullJSValue), RegisterFile::OptionalCalleeArguments * static_cast<int>(sizeof(Register)), X86::edx);
+    m_jit.movl_i32m(asInteger(noValue()), RegisterFile::OptionalCalleeArguments * static_cast<int>(sizeof(Register)), X86::edx);
     m_jit.movl_rm(X86::ecx, RegisterFile::Callee * static_cast<int>(sizeof(Register)), X86::edx);
 
-    m_jit.movl_mr(OBJECT_OFFSET(JSFunction, m_scopeChain) + OBJECT_OFFSET(ScopeChain, m_node), X86::ecx, X86::ecx); // newScopeChain
+    m_jit.movl_mr(OBJECT_OFFSET(JSFunction, m_scopeChain) + OBJECT_OFFSET(ScopeChain, m_node), X86::ecx, X86::ebx); // newScopeChain
     m_jit.movl_i32m(argCount, RegisterFile::ArgumentCount * static_cast<int>(sizeof(Register)), X86::edx);
     m_jit.movl_rm(X86::edi, RegisterFile::CallerFrame * static_cast<int>(sizeof(Register)), X86::edx);
-    m_jit.movl_rm(X86::ecx, RegisterFile::ScopeChain * static_cast<int>(sizeof(Register)), X86::edx);
+    m_jit.movl_rm(X86::ebx, RegisterFile::ScopeChain * static_cast<int>(sizeof(Register)), X86::edx);
 }
 
-void CTI::compileOpCall(Instruction* instruction, unsigned i, CompileOpCallType type)
+void CTI::compileOpCallSetupArgs(Instruction* instruction, bool isConstruct, bool isEval)
 {
-    int dst = instruction[i + 1].u.operand;
-    int callee = instruction[i + 2].u.operand;
-    int firstArg = instruction[i + 4].u.operand;
-    int argCount = instruction[i + 5].u.operand;
-    int registerOffset = instruction[i + 6].u.operand;
+    int firstArg = instruction[4].u.operand;
+    int argCount = instruction[5].u.operand;
+    int registerOffset = instruction[6].u.operand;
 
-    if (type == OpCallEval)
-        emitGetPutArg(instruction[i + 3].u.operand, 16, X86::ecx);
+    emitPutArg(X86::ecx, 0);
+    emitPutArgConstant(registerOffset, 4);
+    emitPutArgConstant(argCount, 8);
+    emitPutArgConstant(reinterpret_cast<unsigned>(instruction), 12);
+    if (isConstruct) {
+        emitGetPutArg(instruction[3].u.operand, 16, X86::eax);
+        emitPutArgConstant(firstArg, 20);
+    } else if (isEval)
+        emitGetPutArg(instruction[3].u.operand, 16, X86::eax);
+}
 
-    if (type == OpConstruct) {
-        emitPutArgConstant(reinterpret_cast<unsigned>(instruction + i), 20);
-        emitPutArgConstant(argCount, 16);
-        emitPutArgConstant(registerOffset, 12);
-        emitPutArgConstant(firstArg, 8);
-        emitGetPutArg(instruction[i + 3].u.operand, 4, X86::ecx);
-    } else {
-        emitPutArgConstant(reinterpret_cast<unsigned>(instruction + i), 12);
-        emitPutArgConstant(argCount, 8);
-        emitPutArgConstant(registerOffset, 4);
+void CTI::compileOpCall(Instruction* instruction, unsigned i, unsigned structureIDInstructionIndex, CompileOpCallType type)
+{
+    int dst = instruction[1].u.operand;
+    int callee = instruction[2].u.operand;
+    int firstArg = instruction[4].u.operand;
+    int argCount = instruction[5].u.operand;
+    int registerOffset = instruction[6].u.operand;
 
-        int thisVal = instruction[i + 3].u.operand;
+    // Setup this value as the first argument (does not apply to constructors)
+    if (type != OpConstruct) {
+        int thisVal = instruction[3].u.operand;
         if (thisVal == missingThisObjectMarker()) {
             // FIXME: should this be loaded dynamically off m_callFrame?
-            m_jit.movl_i32m(reinterpret_cast<unsigned>(m_callFrame->globalThisValue()), firstArg * sizeof(Register), X86::edi);
+            m_jit.movl_i32m(asInteger(m_callFrame->globalThisValue()), firstArg * sizeof(Register), X86::edi);
         } else {
-            emitGetArg(thisVal, X86::ecx);
-            emitPutResult(firstArg, X86::ecx);
+            emitGetArg(thisVal, X86::eax);
+            emitPutResult(firstArg);
         }
     }
 
+    // Handle eval
     X86Assembler::JmpSrc wasEval;
     if (type == OpCallEval) {
-        emitGetPutArg(callee, 0, X86::ecx);
-        emitCTICall(i, Machine::cti_op_call_eval);
-
-        m_jit.cmpl_i32r(reinterpret_cast<unsigned>(JSImmediate::impossibleValue()), X86::eax);
-        wasEval = m_jit.emitUnlinkedJne();
-
-        // this sets up the first arg to op_cti_call (func), and explicitly leaves the value in ecx (checked just below).
         emitGetArg(callee, X86::ecx);
-    } else {
-        // this sets up the first arg to op_cti_call (func), and explicitly leaves the value in ecx (checked just below).
-        emitGetPutArg(callee, 0, X86::ecx);
+        compileOpCallSetupArgs(instruction, false, true);
+
+        emitCTICall(i, Machine::cti_op_call_eval);
+        m_jit.cmpl_i32r(asInteger(JSImmediate::impossibleValue()), X86::eax);
+        wasEval = m_jit.emitUnlinkedJne();
     }
 
-    // Fast check for JS function.
-    m_jit.testl_i32r(JSImmediate::TagMask, X86::ecx);
-    X86Assembler::JmpSrc isNotObject = m_jit.emitUnlinkedJne();
-    m_jit.cmpl_i32m(reinterpret_cast<unsigned>(m_machine->m_jsFunctionVptr), X86::ecx);
-    X86Assembler::JmpSrc isJSFunction = m_jit.emitUnlinkedJe();
-    m_jit.link(isNotObject, m_jit.label());
+    // This plants a check for a cached JSFunction value, so we can plant a fast link to the callee.
+    // This deliberately leaves the callee in ecx, used when setting up the stack frame below
+    emitGetArg(callee, X86::ecx);
+    m_jit.cmpl_i32r(asInteger(JSImmediate::impossibleValue()), X86::ecx);
+    X86Assembler::JmpDst addressOfLinkedFunctionCheck = m_jit.label();
+    m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJne(), i));
+    ASSERT(X86Assembler::getDifferenceBetweenLabels(addressOfLinkedFunctionCheck, m_jit.label()) == repatchOffsetOpCallCall);
+    m_structureStubCompilationInfo[structureIDInstructionIndex].hotPathBegin = addressOfLinkedFunctionCheck;
 
-    // This handles host functions
-    emitCTICall(i, ((type == OpConstruct) ? Machine::cti_op_construct_NotJSConstruct : Machine::cti_op_call_NotJSFunction));
+    // The following is the fast case, only used whan a callee can be linked.
 
-    X86Assembler::JmpSrc wasNotJSFunction = m_jit.emitUnlinkedJmp();
-    m_jit.link(isJSFunction, m_jit.label());
+    emitGetCTIParam(CTI_ARGS_profilerReference, X86::eax);
+    m_jit.cmpl_i32m(0, X86::eax);
+    X86Assembler::JmpSrc noProfile = m_jit.emitUnlinkedJe();
+    emitPutArg(X86::ecx, 0);
+    emitCTICall(i, Machine::cti_op_call_profiler);
+    emitGetArg(callee, X86::ecx);
+    m_jit.link(noProfile, m_jit.label());
 
-    // This handles JSFunctions
-    emitCTICall(i, (type == OpConstruct) ? Machine::cti_op_construct_JSConstruct : Machine::cti_op_call_JSFunction);
+    // In the case of OpConstruct, call oout to a cti_ function to create the new object.
+    if (type == OpConstruct) {
+        emitPutArg(X86::ecx, 0);
+        emitGetPutArg(instruction[3].u.operand, 4, X86::eax);
+        emitCTICall(i, Machine::cti_op_construct_JSConstructFast);
+        emitPutResult(instruction[4].u.operand);
+        emitGetArg(callee, X86::ecx);
+    }
 
-    compileOpCallInitializeCallFrame(callee, argCount);
+    // Fast version of stack frame initialization, directly relative to edi.
+    // Note that this omits to set up RegisterFile::CodeBlock, which is set in the callee
+    m_jit.movl_i32m(asInteger(noValue()), (registerOffset + RegisterFile::OptionalCalleeArguments) * static_cast<int>(sizeof(Register)), X86::edi);
+    m_jit.movl_rm(X86::ecx, (registerOffset + RegisterFile::Callee) * static_cast<int>(sizeof(Register)), X86::edi);
+    m_jit.movl_mr(OBJECT_OFFSET(JSFunction, m_scopeChain) + OBJECT_OFFSET(ScopeChain, m_node), X86::ecx, X86::edx); // newScopeChain
+    m_jit.movl_i32m(argCount, (registerOffset + RegisterFile::ArgumentCount) * static_cast<int>(sizeof(Register)), X86::edi);
+    m_jit.movl_rm(X86::edi, (registerOffset + RegisterFile::CallerFrame) * static_cast<int>(sizeof(Register)), X86::edi);
+    m_jit.movl_rm(X86::edx, (registerOffset + RegisterFile::ScopeChain) * static_cast<int>(sizeof(Register)), X86::edi);
+    m_jit.addl_i32r(registerOffset * sizeof(Register), X86::edi);
 
-    // load ctiCode from the new codeBlock.
-    m_jit.movl_mr(OBJECT_OFFSET(CodeBlock, ctiCode), X86::eax, X86::eax);
-
-    // Put the new value of 'callFrame' into edi and onto the stack, too.
-    m_jit.movl_rr(X86::edx, X86::edi);
-
-    // Check the ctiCode has been generated - if not, this is handled in a slow case.
-    m_jit.testl_rr(X86::eax, X86::eax);
-    m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJe(), i));
-    emitCall(i, X86::eax);
+    // Call to the callee
+    m_structureStubCompilationInfo[structureIDInstructionIndex].hotPathOther = emitNakedCall(i, unreachable);
     
-    X86Assembler::JmpDst end = m_jit.label();
-    m_jit.link(wasNotJSFunction, end);
     if (type == OpCallEval)
-        m_jit.link(wasEval, end);
+        m_jit.link(wasEval, m_jit.label());
 
     // Put the return value in dst. In the interpreter, op_ret does this.
     emitPutResult(dst);
@@ -641,23 +675,23 @@ void CTI::compileOpStrictEq(Instruction* instruction, unsigned i, CompileOpStric
     m_jit.testl_i32r(JSImmediate::TagMask, X86::edx);
     m_jit.setz_r(X86::ecx);
     m_jit.movzbl_rr(X86::ecx, X86::ecx); // ecx is now 1 if edx was nonimmediate
-    m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::zeroImmediate()), X86::edx);
+    m_jit.cmpl_i32r(asInteger(JSImmediate::zeroImmediate()), X86::edx);
     m_jit.sete_r(X86::edx);
     m_jit.movzbl_rr(X86::edx, X86::edx); // edx is now 1 if edx was the 0 immediate
     m_jit.orl_rr(X86::ecx, X86::edx);
 
     m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJnz(), i));
 
-    m_jit.movl_i32r(reinterpret_cast<uint32_t>(jsBoolean(negated)), X86::eax);
+    m_jit.movl_i32r(asInteger(jsBoolean(negated)), X86::eax);
 
     X86Assembler::JmpSrc firstWasNotImmediate = m_jit.emitUnlinkedJmp();
 
     m_jit.link(secondNotImmediate, m_jit.label());
     // check that eax is not the zero immediate (we know it must be immediate)
-    m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::zeroImmediate()), X86::eax);
+    m_jit.cmpl_i32r(asInteger(JSImmediate::zeroImmediate()), X86::eax);
     m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJe(), i));
 
-    m_jit.movl_i32r(reinterpret_cast<uint32_t>(jsBoolean(negated)), X86::eax);
+    m_jit.movl_i32r(asInteger(jsBoolean(negated)), X86::eax);
 
     m_jit.link(bothWereImmediates, m_jit.label());
     m_jit.link(firstWasNotImmediate, m_jit.label());
@@ -925,7 +959,7 @@ void CTI::privateCompileMainPass()
         case op_mov: {
             unsigned src = instruction[i + 2].u.operand;
             if (isConstant(src))
-                m_jit.movl_i32r(reinterpret_cast<unsigned>(getConstant(m_callFrame, src)), X86::edx);
+                m_jit.movl_i32r(asInteger(getConstant(m_callFrame, src)), X86::edx);
             else
                 emitGetArg(src, X86::edx);
             emitPutResult(instruction[i + 1].u.operand, X86::edx);
@@ -937,13 +971,13 @@ void CTI::privateCompileMainPass()
             unsigned src1 = instruction[i + 2].u.operand;
             unsigned src2 = instruction[i + 3].u.operand;
 
-            if (JSValue* value = getConstantImmediateNumericArg(src1)) {
+            if (JSValuePtr value = getConstantImmediateNumericArg(src1)) {
                 emitGetArg(src2, X86::edx);
                 emitJumpSlowCaseIfNotImmNum(X86::edx, i);
                 m_jit.addl_i32r(getDeTaggedConstantImmediate(value), X86::edx);
                 m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJo(), i));
                 emitPutResult(dst, X86::edx);
-            } else if (JSValue* value = getConstantImmediateNumericArg(src2)) {
+            } else if (JSValuePtr value = getConstantImmediateNumericArg(src2)) {
                 emitGetArg(src1, X86::eax);
                 emitJumpSlowCaseIfNotImmNum(X86::eax, i);
                 m_jit.addl_i32r(getDeTaggedConstantImmediate(value), X86::eax);
@@ -1004,11 +1038,11 @@ void CTI::privateCompileMainPass()
             emitSlowScriptCheck(i);
 
             unsigned target = instruction[i + 3].u.operand;
-            JSValue* src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
+            JSValuePtr src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
             if (src2imm) {
                 emitGetArg(instruction[i + 1].u.operand, X86::edx);
                 emitJumpSlowCaseIfNotImmNum(X86::edx, i);
-                m_jit.cmpl_i32r(reinterpret_cast<unsigned>(src2imm), X86::edx);
+                m_jit.cmpl_i32r(asInteger(src2imm), X86::edx);
                 m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJl(), i + 3 + target));
             } else {
                 emitGetArg(instruction[i + 1].u.operand, X86::eax);
@@ -1025,11 +1059,11 @@ void CTI::privateCompileMainPass()
             emitSlowScriptCheck(i);
 
             unsigned target = instruction[i + 3].u.operand;
-            JSValue* src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
+            JSValuePtr src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
             if (src2imm) {
                 emitGetArg(instruction[i + 1].u.operand, X86::edx);
                 emitJumpSlowCaseIfNotImmNum(X86::edx, i);
-                m_jit.cmpl_i32r(reinterpret_cast<unsigned>(src2imm), X86::edx);
+                m_jit.cmpl_i32r(asInteger(src2imm), X86::edx);
                 m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJle(), i + 3 + target));
             } else {
                 emitGetArg(instruction[i + 1].u.operand, X86::eax);
@@ -1141,7 +1175,7 @@ void CTI::privateCompileMainPass()
             emitGetArg(instruction[i + 4].u.operand, X86::edx); // reload proto
 
             // optimistically load true result
-            m_jit.movl_i32r(reinterpret_cast<int32_t>(jsBoolean(true)), X86::eax);
+            m_jit.movl_i32r(asInteger(jsBoolean(true)), X86::eax);
 
             X86Assembler::JmpDst loop = m_jit.label();
 
@@ -1152,11 +1186,11 @@ void CTI::privateCompileMainPass()
             m_jit.cmpl_rr(X86::ecx, X86::edx);
             X86Assembler::JmpSrc exit = m_jit.emitUnlinkedJe();
 
-            m_jit.cmpl_i32r(reinterpret_cast<int32_t>(jsNull()), X86::ecx);
+            m_jit.cmpl_i32r(asInteger(jsNull()), X86::ecx);
             X86Assembler::JmpSrc goToLoop = m_jit.emitUnlinkedJne();
             m_jit.link(goToLoop, loop);
 
-            m_jit.movl_i32r(reinterpret_cast<int32_t>(jsBoolean(false)), X86::eax);
+            m_jit.movl_i32r(asInteger(jsBoolean(false)), X86::eax);
 
             m_jit.link(exit, m_jit.label());
 
@@ -1180,8 +1214,8 @@ void CTI::privateCompileMainPass()
             unsigned src2 = instruction[i + 3].u.operand;
 
             // For now, only plant a fast int case if the constant operand is greater than zero.
-            JSValue* src1Value = getConstantImmediateNumericArg(src1);
-            JSValue* src2Value = getConstantImmediateNumericArg(src2);
+            JSValuePtr src1Value = getConstantImmediateNumericArg(src1);
+            JSValuePtr src2Value = getConstantImmediateNumericArg(src2);
             int32_t value;
             if (src1Value && ((value = JSImmediate::intValue(src1Value)) > 0)) {
                 emitGetArg(src2, X86::eax);
@@ -1214,13 +1248,13 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_call: {
-            compileOpCall(instruction, i);
+            compileOpCall(instruction + i, i, structureIDInstructionIndex++);
             i += 7;
             break;
         }
         case op_get_global_var: {
             JSVariableObject* globalObject = static_cast<JSVariableObject*>(instruction[i + 2].u.jsCell);
-            m_jit.movl_i32r(reinterpret_cast<unsigned>(globalObject), X86::eax);
+            m_jit.movl_i32r(asInteger(globalObject), X86::eax);
             emitGetVariableObjectRegister(X86::eax, instruction[i + 3].u.operand, X86::eax);
             emitPutResult(instruction[i + 1].u.operand, X86::eax);
             i += 4;
@@ -1228,7 +1262,7 @@ void CTI::privateCompileMainPass()
         }
         case op_put_global_var: {
             JSVariableObject* globalObject = static_cast<JSVariableObject*>(instruction[i + 1].u.jsCell);
-            m_jit.movl_i32r(reinterpret_cast<unsigned>(globalObject), X86::eax);
+            m_jit.movl_i32r(asInteger(globalObject), X86::eax);
             emitGetArg(instruction[i + 3].u.operand, X86::edx);
             emitPutVariableObjectRegister(X86::edx, X86::eax, instruction[i + 2].u.operand);
             i += 4;
@@ -1321,7 +1355,7 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_construct: {
-            compileOpCall(instruction, i, OpConstruct);
+            compileOpCall(instruction + i, i, structureIDInstructionIndex++, OpConstruct);
             i += 7;
             break;
         }
@@ -1358,7 +1392,7 @@ void CTI::privateCompileMainPass()
             m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJbe(), i));
 
             // Get the value from the vector
-            m_jit.movl_mr(OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValue*), X86::eax);
+            m_jit.movl_mr(OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValuePtr), X86::eax);
             emitPutResult(instruction[i + 1].u.operand);
             i += 4;
             break;
@@ -1397,13 +1431,13 @@ void CTI::privateCompileMainPass()
 
             // This is a write to the slow part of the vector; first, we have to check if this would be the first write to this location.
             // FIXME: should be able to handle initial write to array; increment the the number of items in the array, and potentially update fast access cutoff. 
-            m_jit.cmpl_i8m(0, OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValue*));
+            m_jit.cmpl_i8m(0, OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValuePtr));
             m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJe(), i));
 
             // All good - put the value into the array.
             m_jit.link(inFastVector, m_jit.label());
             emitGetArg(instruction[i + 3].u.operand, X86::eax);
-            m_jit.movl_rm(X86::eax, OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValue*));
+            m_jit.movl_rm(X86::eax, OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValuePtr));
             i += 4;
             break;
         }
@@ -1414,14 +1448,14 @@ void CTI::privateCompileMainPass()
             unsigned target = instruction[i + 2].u.operand;
             emitGetArg(instruction[i + 1].u.operand, X86::eax);
 
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::zeroImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::zeroImmediate()), X86::eax);
             X86Assembler::JmpSrc isZero = m_jit.emitUnlinkedJe();
             m_jit.testl_i32r(JSImmediate::TagBitTypeInteger, X86::eax);
             m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJne(), i + 2 + target));
 
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::trueImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::trueImmediate()), X86::eax);
             m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJe(), i + 2 + target));
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::falseImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::falseImmediate()), X86::eax);
             m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJne(), i));
 
             m_jit.link(isZero, m_jit.label());
@@ -1454,7 +1488,7 @@ void CTI::privateCompileMainPass()
         }
         case op_resolve_global: {
             // Fast case
-            unsigned globalObject = reinterpret_cast<unsigned>(instruction[i + 2].u.jsCell);
+            unsigned globalObject = asInteger(instruction[i + 2].u.jsCell);
             Identifier* ident = &(m_codeBlock->identifiers[instruction[i + 3].u.operand]);
             void* structureIDAddr = reinterpret_cast<void*>(instruction + i + 4);
             void* offsetAddr = reinterpret_cast<void*>(instruction + i + 5);
@@ -1469,7 +1503,7 @@ void CTI::privateCompileMainPass()
             // Load cached property
             m_jit.movl_mr(OBJECT_OFFSET(JSGlobalObject, m_propertyStorage), X86::eax, X86::eax);
             m_jit.movl_mr(offsetAddr, X86::edx);
-            m_jit.movl_mr(0, X86::eax, X86::edx, sizeof(JSValue*), X86::eax);
+            m_jit.movl_mr(0, X86::eax, X86::edx, sizeof(JSValuePtr), X86::eax);
             emitPutResult(instruction[i + 1].u.operand);
             X86Assembler::JmpSrc end = m_jit.emitUnlinkedJmp();
 
@@ -1498,11 +1532,11 @@ void CTI::privateCompileMainPass()
         }
         case op_jnless: {
             unsigned target = instruction[i + 3].u.operand;
-            JSValue* src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
+            JSValuePtr src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
             if (src2imm) {
                 emitGetArg(instruction[i + 1].u.operand, X86::edx);
                 emitJumpSlowCaseIfNotImmNum(X86::edx, i);
-                m_jit.cmpl_i32r(reinterpret_cast<unsigned>(src2imm), X86::edx);
+                m_jit.cmpl_i32r(asInteger(src2imm), X86::edx);
                 m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJge(), i + 3 + target));
             } else {
                 emitGetArg(instruction[i + 1].u.operand, X86::eax);
@@ -1529,14 +1563,14 @@ void CTI::privateCompileMainPass()
             unsigned target = instruction[i + 2].u.operand;
             emitGetArg(instruction[i + 1].u.operand, X86::eax);
 
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::zeroImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::zeroImmediate()), X86::eax);
             m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJe(), i + 2 + target));
             m_jit.testl_i32r(JSImmediate::TagBitTypeInteger, X86::eax);
             X86Assembler::JmpSrc isNonZero = m_jit.emitUnlinkedJne();
 
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::falseImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::falseImmediate()), X86::eax);
             m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJe(), i + 2 + target));
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::trueImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::trueImmediate()), X86::eax);
             m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJne(), i));
 
             m_jit.link(isNonZero, m_jit.label());
@@ -1556,8 +1590,8 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_unexpected_load: {
-            JSValue* v = m_codeBlock->unexpectedConstants[instruction[i + 2].u.operand];
-            m_jit.movl_i32r(reinterpret_cast<unsigned>(v), X86::eax);
+            JSValuePtr v = m_codeBlock->unexpectedConstants[instruction[i + 2].u.operand];
+            m_jit.movl_i32r(asInteger(v), X86::eax);
             emitPutResult(instruction[i + 1].u.operand);
             i += 3;
             break;
@@ -1607,15 +1641,15 @@ void CTI::privateCompileMainPass()
             unsigned src1 = instruction[i + 2].u.operand;
             unsigned src2 = instruction[i + 3].u.operand;
             unsigned dst = instruction[i + 1].u.operand;
-            if (JSValue* value = getConstantImmediateNumericArg(src1)) {
+            if (JSValuePtr value = getConstantImmediateNumericArg(src1)) {
                 emitGetArg(src2, X86::eax);
                 emitJumpSlowCaseIfNotImmNum(X86::eax, i);
-                m_jit.andl_i32r(reinterpret_cast<unsigned>(value), X86::eax); // FIXME: make it more obvious this is relying on the format of JSImmediate
+                m_jit.andl_i32r(asInteger(value), X86::eax); // FIXME: make it more obvious this is relying on the format of JSImmediate
                 emitPutResult(dst);
-            } else if (JSValue* value = getConstantImmediateNumericArg(src2)) {
+            } else if (JSValuePtr value = getConstantImmediateNumericArg(src2)) {
                 emitGetArg(src1, X86::eax);
                 emitJumpSlowCaseIfNotImmNum(X86::eax, i);
-                m_jit.andl_i32r(reinterpret_cast<unsigned>(value), X86::eax);
+                m_jit.andl_i32r(asInteger(value), X86::eax);
                 emitPutResult(dst);
             } else {
                 emitGetArg(src1, X86::eax);
@@ -1683,14 +1717,14 @@ void CTI::privateCompileMainPass()
             unsigned target = instruction[i + 2].u.operand;
             emitGetArg(instruction[i + 1].u.operand, X86::eax);
 
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::zeroImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::zeroImmediate()), X86::eax);
             X86Assembler::JmpSrc isZero = m_jit.emitUnlinkedJe();
             m_jit.testl_i32r(JSImmediate::TagBitTypeInteger, X86::eax);
             m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJne(), i + 2 + target));
 
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::trueImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::trueImmediate()), X86::eax);
             m_jmpTable.append(JmpTable(m_jit.emitUnlinkedJe(), i + 2 + target));
-            m_jit.cmpl_i32r(reinterpret_cast<uint32_t>(JSImmediate::falseImmediate()), X86::eax);
+            m_jit.cmpl_i32r(asInteger(JSImmediate::falseImmediate()), X86::eax);
             m_slowCases.append(SlowCaseEntry(m_jit.emitUnlinkedJne(), i));
 
             m_jit.link(isZero, m_jit.label());
@@ -1754,14 +1788,15 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_call_eval: {
-            compileOpCall(instruction, i, OpCallEval);
+            compileOpCall(instruction + i, i, structureIDInstructionIndex++, OpCallEval);
             i += 7;
             break;
         }
         case op_throw: {
             emitGetPutArg(instruction[i + 1].u.operand, 0, X86::ecx);
             emitCTICall(i, Machine::cti_op_throw);
-            m_jit.addl_i8r(0x24, X86::esp);
+            m_jit.addl_i8r(0x20, X86::esp);
+            m_jit.popl_r(X86::ebx);
             m_jit.popl_r(X86::edi);
             m_jit.popl_r(X86::esi);
             m_jit.ret();
@@ -1951,9 +1986,9 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_new_error: {
-            JSValue* message = m_codeBlock->unexpectedConstants[instruction[i + 3].u.operand];
+            JSValuePtr message = m_codeBlock->unexpectedConstants[instruction[i + 3].u.operand];
             emitPutArgConstant(instruction[i + 2].u.operand, 0);
-            emitPutArgConstant(reinterpret_cast<unsigned>(message), 4);
+            emitPutArgConstant(asInteger(message), 4);
             emitPutArgConstant(m_codeBlock->lineNumberForVPC(&instruction[i]), 8);
             emitCTICall(i, Machine::cti_op_new_error);
             emitPutResult(instruction[i + 1].u.operand);
@@ -2054,7 +2089,7 @@ void CTI::privateCompileMainPass()
             break;
         }
         case op_create_arguments: {
-            emitCTICall(i, Machine::cti_op_create_arguments);
+            emitCTICall(i, (m_codeBlock->numParameters == 1) ? Machine::cti_op_create_arguments_no_params : Machine::cti_op_create_arguments);
             i += 1;
             break;
         }
@@ -2112,7 +2147,7 @@ void CTI::privateCompileSlowCases()
     Instruction* instruction = m_codeBlock->instructions.begin();
     for (Vector<SlowCaseEntry>::iterator iter = m_slowCases.begin(); iter != m_slowCases.end(); ++iter) {
         unsigned i = iter->to;
-        switch (m_machine->getOpcodeID(instruction[i].u.opcode)) {
+        switch (OpcodeID opcodeID = m_machine->getOpcodeID(instruction[i].u.opcode)) {
         case op_convert_this: {
             m_jit.link(iter->from, m_jit.label());
             m_jit.link((++iter)->from, m_jit.label());
@@ -2126,7 +2161,7 @@ void CTI::privateCompileSlowCases()
             unsigned dst = instruction[i + 1].u.operand;
             unsigned src1 = instruction[i + 2].u.operand;
             unsigned src2 = instruction[i + 3].u.operand;
-            if (JSValue* value = getConstantImmediateNumericArg(src1)) {
+            if (JSValuePtr value = getConstantImmediateNumericArg(src1)) {
                 X86Assembler::JmpSrc notImm = iter->from;
                 m_jit.link((++iter)->from, m_jit.label());
                 m_jit.subl_i32r(getDeTaggedConstantImmediate(value), X86::edx);
@@ -2135,7 +2170,7 @@ void CTI::privateCompileSlowCases()
                 emitPutArg(X86::edx, 4);
                 emitCTICall(i, Machine::cti_op_add);
                 emitPutResult(dst);
-            } else if (JSValue* value = getConstantImmediateNumericArg(src2)) {
+            } else if (JSValuePtr value = getConstantImmediateNumericArg(src2)) {
                 X86Assembler::JmpSrc notImm = iter->from;
                 m_jit.link((++iter)->from, m_jit.label());
                 m_jit.subl_i32r(getDeTaggedConstantImmediate(value), X86::eax);
@@ -2177,7 +2212,7 @@ void CTI::privateCompileSlowCases()
             m_jit.link(m_jit.emitUnlinkedJbe(), beginGetByValSlow);
 
             // okay, missed the fast region, but it is still in the vector.  Get the value.
-            m_jit.movl_mr(OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValue*), X86::ecx);
+            m_jit.movl_mr(OBJECT_OFFSET(ArrayStorage, m_vector[0]), X86::ecx, X86::edx, sizeof(JSValuePtr), X86::ecx);
             // Check whether the value loaded is zero; if so we need to return undefined.
             m_jit.testl_rr(X86::ecx, X86::ecx);
             m_jit.link(m_jit.emitUnlinkedJe(), beginGetByValSlow);
@@ -2220,7 +2255,7 @@ void CTI::privateCompileSlowCases()
             emitSlowScriptCheck(i);
 
             unsigned target = instruction[i + 3].u.operand;
-            JSValue* src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
+            JSValuePtr src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
             if (src2imm) {
                 m_jit.link(iter->from, m_jit.label());
                 emitPutArg(X86::edx, 0);
@@ -2295,7 +2330,7 @@ void CTI::privateCompileSlowCases()
             emitSlowScriptCheck(i);
 
             unsigned target = instruction[i + 3].u.operand;
-            JSValue* src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
+            JSValuePtr src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
             if (src2imm) {
                 m_jit.link(iter->from, m_jit.label());
                 emitPutArg(X86::edx, 0);
@@ -2379,7 +2414,7 @@ void CTI::privateCompileSlowCases()
         }
         case op_jnless: {
             unsigned target = instruction[i + 3].u.operand;
-            JSValue* src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
+            JSValuePtr src2imm = getConstantImmediateNumericArg(instruction[i + 2].u.operand);
             if (src2imm) {
                 m_jit.link(iter->from, m_jit.label());
                 emitPutArg(X86::edx, 0);
@@ -2551,8 +2586,8 @@ void CTI::privateCompileSlowCases()
             int dst = instruction[i + 1].u.operand;
             int src1 = instruction[i + 2].u.operand;
             int src2 = instruction[i + 3].u.operand;
-            JSValue* src1Value = getConstantImmediateNumericArg(src1);
-            JSValue* src2Value = getConstantImmediateNumericArg(src2);
+            JSValuePtr src1Value = getConstantImmediateNumericArg(src1);
+            JSValuePtr src2Value = getConstantImmediateNumericArg(src2);
             int32_t value;
             if (src1Value && ((value = JSImmediate::intValue(src1Value)) > 0)) {
                 m_jit.link(iter->from, m_jit.label());
@@ -2577,16 +2612,97 @@ void CTI::privateCompileSlowCases()
         case op_call:
         case op_call_eval:
         case op_construct: {
+            int dst = instruction[i + 1].u.operand;
+            int callee = instruction[i + 2].u.operand;
+            int argCount = instruction[i + 5].u.operand;
+
             m_jit.link(iter->from, m_jit.label());
 
-            // We jump to this slow case if the ctiCode for the codeBlock has not yet been generated; compile it now.
-            emitCTICall(i, Machine::cti_vm_compile);
-            emitCall(i, X86::eax);
+            // The arguments have been set up on the hot path for op_call_eval
+            if (opcodeID != op_call_eval)
+                compileOpCallSetupArgs(instruction + i, (opcodeID == op_construct), false);
 
-            // Instead of checking for 0 we could initialize the CodeBlock::ctiCode to point to a trampoline that would trigger the translation.
+            // Fast check for JS function.
+            m_jit.testl_i32r(JSImmediate::TagMask, X86::ecx);
+            X86Assembler::JmpSrc callLinkFailNotObject = m_jit.emitUnlinkedJne();
+            m_jit.cmpl_i32m(reinterpret_cast<unsigned>(m_machine->m_jsFunctionVptr), X86::ecx);
+            X86Assembler::JmpSrc callLinkFailNotJSFunction = m_jit.emitUnlinkedJne();
+
+            // This handles JSFunctions
+            emitGetCTIParam(CTI_ARGS_profilerReference, X86::eax);
+            m_jit.cmpl_i32m(0, X86::eax);
+            X86Assembler::JmpSrc noProfile1 = m_jit.emitUnlinkedJe();
+            emitCTICall(i, Machine::cti_op_call_profiler);
+            m_jit.link(noProfile1, m_jit.label());
+
+            emitCTICall(i, (opcodeID == op_construct) ? Machine::cti_op_construct_JSConstruct : Machine::cti_op_call_JSFunction);
+            // initialize the new call frame (pointed to by edx, after the last call), then set edi to point to it.
+            compileOpCallInitializeCallFrame(callee, argCount);
+            m_jit.movl_rr(X86::edx, X86::edi);
+
+            // Try to link & repatch this call.
+            m_structureStubCompilationInfo[structureIDInstructionIndex].callReturnLocation =
+                emitCTICall(i, Machine::cti_vm_lazyLinkCall);
+            emitNakedCall(i, X86::eax);
+            X86Assembler::JmpSrc storeResultForFirstRun = m_jit.emitUnlinkedJmp();
+
+            // This is the address for the cold path *after* the first run (which tries to link the call).
+            m_structureStubCompilationInfo[structureIDInstructionIndex].coldPathOther = m_jit.label();
+
+            // The arguments have been set up on the hot path for op_call_eval
+            if (opcodeID != op_call_eval)
+                compileOpCallSetupArgs(instruction + i, (opcodeID == op_construct), false);
+
+            // Check for JSFunctions.
+            m_jit.testl_i32r(JSImmediate::TagMask, X86::ecx);
+            X86Assembler::JmpSrc isNotObject = m_jit.emitUnlinkedJne();
+            m_jit.cmpl_i32m(reinterpret_cast<unsigned>(m_machine->m_jsFunctionVptr), X86::ecx);
+            X86Assembler::JmpSrc isJSFunction = m_jit.emitUnlinkedJe();
+
+            // This handles host functions
+            X86Assembler::JmpDst notJSFunctionlabel = m_jit.label();
+            m_jit.link(isNotObject, notJSFunctionlabel);
+            m_jit.link(callLinkFailNotObject, notJSFunctionlabel);
+            m_jit.link(callLinkFailNotJSFunction, notJSFunctionlabel);
+            emitCTICall(i, ((opcodeID == op_construct) ? Machine::cti_op_construct_NotJSConstruct : Machine::cti_op_call_NotJSFunction));
+            X86Assembler::JmpSrc wasNotJSFunction = m_jit.emitUnlinkedJmp();
+
+            // Next, handle JSFunctions...
+            m_jit.link(isJSFunction, m_jit.label());
+
+            // Profiler check
+            emitGetCTIParam(CTI_ARGS_profilerReference, X86::eax);
+            m_jit.cmpl_i32m(0, X86::eax);
+            X86Assembler::JmpSrc noProfile = m_jit.emitUnlinkedJe();
+            emitCTICall(i, Machine::cti_op_call_profiler);
+            m_jit.link(noProfile, m_jit.label());
+
+            emitCTICall(i, (opcodeID == op_construct) ? Machine::cti_op_construct_JSConstruct : Machine::cti_op_call_JSFunction);
+            // initialize the new call frame (pointed to by edx, after the last call).
+            compileOpCallInitializeCallFrame(callee, argCount);
+            m_jit.movl_rr(X86::edx, X86::edi);
+
+            // load ctiCode from the new codeBlock.
+            m_jit.movl_mr(OBJECT_OFFSET(CodeBlock, ctiCode), X86::eax, X86::eax);
+
+            // Move the new callframe into edi.
+            m_jit.movl_rr(X86::edx, X86::edi);
+
+            // Check the ctiCode has been generated (if not compile it now), and make the call.
+            m_jit.testl_rr(X86::eax, X86::eax);
+            X86Assembler::JmpSrc hasCode = m_jit.emitUnlinkedJne();
+            emitCTICall(i, Machine::cti_vm_compile);
+            m_jit.link(hasCode, m_jit.label());
+
+            emitNakedCall(i, X86::eax);
 
             // Put the return value in dst. In the interpreter, op_ret does this.
-            emitPutResult(instruction[i + 1].u.operand);
+            X86Assembler::JmpDst storeResult = m_jit.label();
+            m_jit.link(wasNotJSFunction, storeResult);
+            m_jit.link(storeResultForFirstRun, storeResult);
+            emitPutResult(dst);
+
+            ++structureIDInstructionIndex;
             i += 7;
             break;
         }
@@ -2622,6 +2738,9 @@ void CTI::privateCompile()
     X86Assembler::JmpSrc slowRegisterFileCheck;
     X86Assembler::JmpDst afterRegisterFileCheck;
     if (m_codeBlock->codeType == FunctionCode) {
+        // In the case of a fast linked call, we do not set this up in the caller.
+        m_jit.movl_i32m(reinterpret_cast<unsigned>(m_codeBlock), RegisterFile::CodeBlock * static_cast<int>(sizeof(Register)), X86::edi);
+
         emitGetCTIParam(CTI_ARGS_registerFile, X86::eax);
         m_jit.leal_mr(m_codeBlock->numCalleeRegisters * sizeof(Register), X86::edi, X86::edx);
         m_jit.cmpl_mr(OBJECT_OFFSET(RegisterFile, m_end), X86::eax, X86::edx);
@@ -2690,6 +2809,8 @@ void CTI::privateCompile()
         StructureStubInfo& info = m_codeBlock->structureIDInstructions[i];
         info.callReturnLocation = X86Assembler::getRelocatedAddress(code, m_structureStubCompilationInfo[i].callReturnLocation);
         info.hotPathBegin = X86Assembler::getRelocatedAddress(code, m_structureStubCompilationInfo[i].hotPathBegin);
+        info.hotPathOther = X86Assembler::getRelocatedAddress(code, m_structureStubCompilationInfo[i].hotPathOther);
+        info.coldPathOther = X86Assembler::getRelocatedAddress(code, m_structureStubCompilationInfo[i].coldPathOther);
     }
 
     m_codeBlock->ctiCode = code;
@@ -2705,7 +2826,7 @@ void CTI::privateCompileGetByIdSelf(StructureID* structureID, size_t cachedOffse
 
     // Checks out okay! - getDirectOffset
     m_jit.movl_mr(OBJECT_OFFSET(JSObject, m_propertyStorage), X86::eax, X86::eax);
-    m_jit.movl_mr(cachedOffset * sizeof(JSValue*), X86::eax, X86::eax);
+    m_jit.movl_mr(cachedOffset * sizeof(JSValuePtr), X86::eax, X86::eax);
     m_jit.ret();
 
     void* code = m_jit.copy();
@@ -2729,7 +2850,7 @@ void CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* prot
 
     // The prototype object definitely exists (if this stub exists the CodeBlock is referencing a StructureID that is
     // referencing the prototype object - let's speculatively load it's table nice and early!)
-    JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(m_callFrame));
+    JSObject* protoObject = asObject(structureID->prototypeForLookup(m_callFrame));
     PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
     m_jit.movl_mr(static_cast<void*>(protoPropertyStorage), X86::edx);
 
@@ -2745,7 +2866,7 @@ void CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* prot
     X86Assembler::JmpSrc failureCases3 = m_jit.emitUnlinkedJne();
 
     // Checks out okay! - getDirectOffset
-    m_jit.movl_mr(cachedOffset * sizeof(JSValue*), X86::edx, X86::ecx);
+    m_jit.movl_mr(cachedOffset * sizeof(JSValuePtr), X86::edx, X86::ecx);
 
     X86Assembler::JmpSrc success = m_jit.emitUnlinkedJmp();
 
@@ -2772,7 +2893,7 @@ void CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* prot
 #else
     // The prototype object definitely exists (if this stub exists the CodeBlock is referencing a StructureID that is
     // referencing the prototype object - let's speculatively load it's table nice and early!)
-    JSObject* protoObject = static_cast<JSObject*>(structureID->prototypeForLookup(m_callFrame));
+    JSObject* protoObject = asObject(structureID->prototypeForLookup(m_callFrame));
     PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
     m_jit.movl_mr(static_cast<void*>(protoPropertyStorage), X86::edx);
 
@@ -2788,7 +2909,7 @@ void CTI::privateCompileGetByIdProto(StructureID* structureID, StructureID* prot
     X86Assembler::JmpSrc failureCases3 = m_jit.emitUnlinkedJne();
 
     // Checks out okay! - getDirectOffset
-    m_jit.movl_mr(cachedOffset * sizeof(JSValue*), X86::edx, X86::eax);
+    m_jit.movl_mr(cachedOffset * sizeof(JSValuePtr), X86::edx, X86::eax);
 
     m_jit.ret();
 
@@ -2821,7 +2942,7 @@ void CTI::privateCompileGetByIdChain(StructureID* structureID, StructureIDChain*
     RefPtr<StructureID>* chainEntries = chain->head();
     JSObject* protoObject = 0;
     for (unsigned i = 0; i<count; ++i) {
-        protoObject = static_cast<JSObject*>(currStructureID->prototypeForLookup(m_callFrame));
+        protoObject = asObject(currStructureID->prototypeForLookup(m_callFrame));
         currStructureID = chainEntries[i].get();
 
         // Check the prototype object's StructureID had not changed.
@@ -2833,7 +2954,7 @@ void CTI::privateCompileGetByIdChain(StructureID* structureID, StructureIDChain*
 
     PropertyStorage* protoPropertyStorage = &protoObject->m_propertyStorage;
     m_jit.movl_mr(static_cast<void*>(protoPropertyStorage), X86::edx);
-    m_jit.movl_mr(cachedOffset * sizeof(JSValue*), X86::edx, X86::eax);
+    m_jit.movl_mr(cachedOffset * sizeof(JSValuePtr), X86::edx, X86::eax);
     m_jit.ret();
 
     bucketsOfFail.append(m_jit.emitUnlinkedJmp());
@@ -2859,7 +2980,7 @@ void CTI::privateCompilePutByIdReplace(StructureID* structureID, size_t cachedOf
 
     // checks out okay! - putDirectOffset
     m_jit.movl_mr(OBJECT_OFFSET(JSObject, m_propertyStorage), X86::eax, X86::eax);
-    m_jit.movl_rm(X86::edx, cachedOffset * sizeof(JSValue*), X86::eax);
+    m_jit.movl_rm(X86::edx, cachedOffset * sizeof(JSValuePtr), X86::eax);
     m_jit.ret();
 
     void* code = m_jit.copy();
@@ -2875,12 +2996,11 @@ void CTI::privateCompilePutByIdReplace(StructureID* structureID, size_t cachedOf
 
 extern "C" {
 
-static JSValue* transitionObject(StructureID* newStructureID, size_t cachedOffset, JSObject* baseObject, JSValue* value)
-{
-    baseObject->transitionTo(newStructureID);
-    baseObject->putDirectOffset(cachedOffset, value);
-    return baseObject;
-}
+    static JSValuePtr resizePropertyStorage(JSObject* baseObject, size_t oldSize, size_t newSize)
+    {
+        baseObject->allocatePropertyStorageInline(oldSize, newSize);
+        return baseObject;
+    }
 
 }
 
@@ -2909,7 +3029,7 @@ void CTI::privateCompilePutByIdTransition(StructureID* oldStructureID, Structure
     // ecx = baseObject->m_structureID
     for (RefPtr<StructureID>* it = sIDC->head(); *it; ++it) {
         // null check the prototype
-        m_jit.cmpl_i32r(reinterpret_cast<intptr_t> (jsNull()), X86::ecx);
+        m_jit.cmpl_i32r(asInteger(jsNull()), X86::ecx);
         successCases.append(m_jit.emitUnlinkedJe());
 
         // Check the structure id
@@ -2927,29 +3047,28 @@ void CTI::privateCompilePutByIdTransition(StructureID* oldStructureID, Structure
         m_jit.link(successCases[i], m_jit.label());
 
     X86Assembler::JmpSrc callTarget;
-    // Fast case, don't need to do any heavy lifting, so don't bother making a call.
-    if (!transitionWillNeedStorageRealloc(oldStructureID, newStructureID)) {
-        // Assumes m_refCount can be decremented easily, refcount decrement is safe as 
-        // codeblock should ensure oldStructureID->m_refCount > 0
-        m_jit.subl_i8m(1, reinterpret_cast<void*>(oldStructureID));
-        m_jit.addl_i8m(1, reinterpret_cast<void*>(newStructureID));
-        m_jit.movl_i32m(reinterpret_cast<uint32_t>(newStructureID), OBJECT_OFFSET(JSCell, m_structureID), X86::eax);
 
-        // write the value
-        m_jit.movl_mr(OBJECT_OFFSET(JSObject, m_propertyStorage), X86::eax, X86::eax);
-        m_jit.movl_rm(X86::edx, cachedOffset * sizeof(JSValue*), X86::eax);
-    } else {
-        // Slow case transition -- we're going to need to quite a bit of work,
-        // so just make a call
+    // emit a call only if storage realloc is needed
+    if (transitionWillNeedStorageRealloc(oldStructureID, newStructureID)) {
         m_jit.pushl_r(X86::edx);
-        m_jit.pushl_r(X86::eax);
-        m_jit.movl_i32r(cachedOffset, X86::eax);
-        m_jit.pushl_r(X86::eax);
-        m_jit.movl_i32r(reinterpret_cast<uint32_t>(newStructureID), X86::eax);
+        m_jit.pushl_i32(newStructureID->propertyStorageCapacity());
+        m_jit.pushl_i32(oldStructureID->propertyStorageCapacity());
         m_jit.pushl_r(X86::eax);
         callTarget = m_jit.emitCall();
-        m_jit.addl_i32r(4 * sizeof(void*), X86::esp);
+        m_jit.addl_i32r(3 * sizeof(void*), X86::esp);
+        m_jit.popl_r(X86::edx);
     }
+
+    // Assumes m_refCount can be decremented easily, refcount decrement is safe as 
+    // codeblock should ensure oldStructureID->m_refCount > 0
+    m_jit.subl_i8m(1, reinterpret_cast<void*>(oldStructureID));
+    m_jit.addl_i8m(1, reinterpret_cast<void*>(newStructureID));
+    m_jit.movl_i32m(reinterpret_cast<uint32_t>(newStructureID), OBJECT_OFFSET(JSCell, m_structureID), X86::eax);
+
+    // write the value
+    m_jit.movl_mr(OBJECT_OFFSET(JSObject, m_propertyStorage), X86::eax, X86::eax);
+    m_jit.movl_rm(X86::edx, cachedOffset * sizeof(JSValuePtr), X86::eax);
+
     m_jit.ret();
     
     X86Assembler::JmpSrc failureJump;
@@ -2967,11 +3086,38 @@ void CTI::privateCompilePutByIdTransition(StructureID* oldStructureID, Structure
         X86Assembler::link(code, failureJump, reinterpret_cast<void*>(Machine::cti_op_put_by_id_fail));
 
     if (transitionWillNeedStorageRealloc(oldStructureID, newStructureID))
-        X86Assembler::link(code, callTarget, reinterpret_cast<void*>(transitionObject));
+        X86Assembler::link(code, callTarget, reinterpret_cast<void*>(resizePropertyStorage));
     
     m_codeBlock->getStubInfo(returnAddress).stubRoutine = code;
     
     ctiRepatchCallByReturnAddress(returnAddress, code);
+}
+
+void CTI::unlinkCall(StructureStubInfo* structureStubInfo)
+{
+    // When the JSFunction is deleted the pointer embedded in the instruction stream will no longer be valid
+    // (and, if a new JSFunction happened to be constructed at the same location, we could get a false positive
+    // match).  Reset the check so it no longer matches.
+    reinterpret_cast<void**>(structureStubInfo->hotPathBegin)[-1] = asPointer(JSImmediate::impossibleValue());
+}
+
+void CTI::linkCall(CodeBlock* callerCodeBlock, JSFunction* callee, CodeBlock* calleeCodeBlock, void* ctiCode, void* returnAddress, int callerArgCount)
+{
+    StructureStubInfo& stubInfo = callerCodeBlock->getStubInfo(returnAddress);
+
+    // Currently we only link calls with the exact number of arguments.
+    if (callerArgCount == calleeCodeBlock->numParameters) {
+        ASSERT(!stubInfo.linkInfoPtr);
+    
+        calleeCodeBlock->addCaller(&stubInfo);
+    
+        reinterpret_cast<void**>(stubInfo.hotPathBegin)[-1] = callee;
+        ctiRepatchCallByReturnAddress(stubInfo.hotPathOther, ctiCode);
+    }
+
+    // repatch the instruction that jumps out to the cold path, so that we only try to link once.
+    void* repatchCheck = reinterpret_cast<void*>(reinterpret_cast<ptrdiff_t>(stubInfo.hotPathBegin) + repatchOffsetOpCallCall);
+    ctiRepatchCallByReturnAddress(repatchCheck, stubInfo.coldPathOther);
 }
 
 void* CTI::privateCompileArrayLengthTrampoline()
@@ -3036,10 +3182,10 @@ void CTI::patchGetByIdSelf(CodeBlock* codeBlock, StructureID* structureID, size_
 
     // We don't want to repatch more than once - in future go to cti_op_get_by_id_generic.
     // Should probably go to Machine::cti_op_get_by_id_fail, but that doesn't do anything interesting right now.
-    ctiRepatchCallByReturnAddress(returnAddress, (void*)(Machine::cti_op_get_by_id_generic));
+    ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(Machine::cti_op_get_by_id_generic));
 
     // Repatch the offset into the propoerty map to load from, then repatch the StructureID to look for.
-    X86Assembler::repatchDisplacement(reinterpret_cast<intptr_t>(info.hotPathBegin) + repatchOffsetGetByIdPropertyMapOffset, cachedOffset * sizeof(JSValue*));
+    X86Assembler::repatchDisplacement(reinterpret_cast<intptr_t>(info.hotPathBegin) + repatchOffsetGetByIdPropertyMapOffset, cachedOffset * sizeof(JSValuePtr));
     X86Assembler::repatchImmediate(reinterpret_cast<intptr_t>(info.hotPathBegin) + repatchOffsetGetByIdStructureID, reinterpret_cast<uint32_t>(structureID));
 }
 
@@ -3049,10 +3195,10 @@ void CTI::patchPutByIdReplace(CodeBlock* codeBlock, StructureID* structureID, si
     
     // We don't want to repatch more than once - in future go to cti_op_put_by_id_generic.
     // Should probably go to Machine::cti_op_put_by_id_fail, but that doesn't do anything interesting right now.
-    ctiRepatchCallByReturnAddress(returnAddress, (void*)(Machine::cti_op_put_by_id_generic));
+    ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(Machine::cti_op_put_by_id_generic));
 
     // Repatch the offset into the propoerty map to load from, then repatch the StructureID to look for.
-    X86Assembler::repatchDisplacement(reinterpret_cast<intptr_t>(info.hotPathBegin) + repatchOffsetPutByIdPropertyMapOffset, cachedOffset * sizeof(JSValue*));
+    X86Assembler::repatchDisplacement(reinterpret_cast<intptr_t>(info.hotPathBegin) + repatchOffsetPutByIdPropertyMapOffset, cachedOffset * sizeof(JSValuePtr));
     X86Assembler::repatchImmediate(reinterpret_cast<intptr_t>(info.hotPathBegin) + repatchOffsetPutByIdStructureID, reinterpret_cast<uint32_t>(structureID));
 }
 

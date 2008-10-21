@@ -122,6 +122,9 @@ using std::max;
 static HMODULE accessibilityLib;
 static HashSet<WebView*> pendingDeleteBackingStoreSet;
 
+static String osVersion();
+static String webKitVersion();
+
 WebView* kit(Page* page)
 {
     return page ? static_cast<WebChromeClient*>(page->chrome()->client())->webView() : 0;
@@ -380,6 +383,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     unsigned cacheTotalCapacity = 0;
     unsigned cacheMinDeadCapacity = 0;
     unsigned cacheMaxDeadCapacity = 0;
+    double deadDecodedDataDeletionInterval = 0;
 
     unsigned pageCacheCapacity = 0;
 
@@ -469,6 +473,8 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
         // can prove that the overall system gain would justify the regression.
         cacheMaxDeadCapacity = max(24u, cacheMaxDeadCapacity);
 
+        deadDecodedDataDeletionInterval = 60;
+
         break;
     }
     default:
@@ -476,6 +482,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     };
 
     cache()->setCapacities(cacheMinDeadCapacity, cacheMaxDeadCapacity, cacheTotalCapacity);
+    cache()->setDeadDecodedDataDeletionInterval(deadDecodedDataDeletionInterval);
     pageCache()->setCapacity(pageCacheCapacity);
 
     s_didSetCacheModel = true;
@@ -947,6 +954,11 @@ bool WebView::canHandleRequest(const WebCore::ResourceRequest& request)
 #else
     return true;
 #endif
+}
+
+String WebView::standardUserAgentWithApplicationName(const String& applicationName)
+{
+    return String::format("Mozilla/5.0 (Windows; U; %s; %s) AppleWebKit/%s (KHTML, like Gecko)%s%s", osVersion().latin1().data(), defaultLanguage().latin1().data(), webKitVersion().latin1().data(), (applicationName.length() ? " " : ""), applicationName.latin1().data());
 }
 
 Page* WebView::page()
@@ -1921,7 +1933,7 @@ const String& WebView::userAgentForKURL(const KURL&)
         return m_userAgentCustom;
 
     if (!m_userAgentStandard.length())
-        m_userAgentStandard = String::format("Mozilla/5.0 (Windows; U; %s; %s) AppleWebKit/%s (KHTML, like Gecko)%s%s", osVersion().latin1().data(), defaultLanguage().latin1().data(), webKitVersion().latin1().data(), (m_applicationName.length() ? " " : ""), m_applicationName.latin1().data());
+        m_userAgentStandard = WebView::standardUserAgentWithApplicationName(m_applicationName);
     return m_userAgentStandard;
 }
 
@@ -2588,7 +2600,7 @@ HRESULT STDMETHODCALLTYPE WebView::stringByEvaluatingJavaScriptFromString(
     if (!coreFrame)
         return E_FAIL;
 
-    JSC::JSValue* scriptExecutionResult = coreFrame->loader()->executeScript(WebCore::String(script), true);
+    JSC::JSValuePtr scriptExecutionResult = coreFrame->loader()->executeScript(WebCore::String(script), true);
     if(!scriptExecutionResult)
         return E_FAIL;
     else if (scriptExecutionResult->isString()) {
@@ -4318,6 +4330,27 @@ HRESULT STDMETHODCALLTYPE WebView::canHandleRequest(
         return hr;
 
     *result = !!canHandleRequest(requestImpl->resourceRequest());
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebView::standardUserAgentWithApplicationName( 
+    BSTR applicationName,
+    BSTR* groupName)
+{
+    if (!groupName) {
+        ASSERT_NOT_REACHED();
+        return E_POINTER;
+    }
+
+    *groupName;
+
+    if (!applicationName) {
+        ASSERT_NOT_REACHED();
+        return E_POINTER;
+    }
+
+    BString applicationNameBString(applicationName);
+    *groupName = BString(standardUserAgentWithApplicationName(String(applicationNameBString, SysStringLen(applicationNameBString)))).release();
     return S_OK;
 }
 

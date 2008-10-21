@@ -1,3 +1,1071 @@
+2008-10-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - finish https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_profiler): Use asFunction.
+        (JSC::Machine::cti_vm_lazyLinkCall): Ditto.
+        (JSC::Machine::cti_op_construct_JSConstructFast): Use asObject.
+
+        * kjs/JSCell.h: Re-sort friend classes. Eliminate inheritance from
+        JSValue. Changed cast in asCell from static_cast to reinterpret_cast.
+        Removed JSValue::getNumber(double&) and one of JSValue::getObject
+        overloads.
+
+        * kjs/JSValue.h: Made the private constructor and destructor both
+        non-virtual and also remove the definitions. This class can never
+        be instantiated or derived.
+
+2008-10-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Change JSValuePtr from a typedef into a class. This allows us to support
+        conversion from JSCell* to JSValuePtr even if JSCell isn't derived from
+        JSValue.
+
+        * JavaScriptCore.exp: Updated symbols that involve JSValuePtr, since
+        it's now a distinct type.
+
+        * API/APICast.h:
+        (toRef): Extract the JSValuePtr payload explicitly since we can't just
+        cast any more.
+        * VM/CTI.cpp:
+        (JSC::CTI::asInteger): Ditto.
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::addConstant): Get at the payload directly.
+        (JSC::CodeGenerator::emitLoad): Added an overload of JSCell* because
+        otherwise classes derived from JSValue end up calling the bool
+        overload instead of JSValuePtr.
+        * VM/CodeGenerator.h: Ditto. Also update traits to use JSValue*
+        and the payload functions.
+
+        * VM/Register.h: Added a JSCell* overload and use of payload functions.
+
+        * kjs/JSCell.h:
+        (JSC::asCell): Use payload function.
+        (JSC::JSValue::asCell): Use JSValue* instead of JSValuePtr.
+        (JSC::JSValuePtr::JSValuePtr): Added. Constructor that takes JSCell*
+        and creates a JSValuePtr.
+
+        * kjs/JSImmediate.h: Added JSValuePtr class. Also updated makeValue
+        and makeInt to work with JSValue* and the payload function.
+
+        * kjs/JSValue.h: Added == and != operators for JSValuePtr. Put them
+        here because eventually all the JSValue functions should go here
+        except what's needed by JSImmediate. Also fix asValue to use
+        JSValue* instead of JSValuePtr.
+
+        * kjs/PropertySlot.h: Change constructor to take JSValuePtr.
+
+        * kjs/protect.h: Update gcProtect functions to work with JSCell*
+        as well as JSValuePtr. Also updated the ProtectedPtr<JSValuePtr>
+        specialization to work more directly. Also changed all the call
+        sites to use gcProtectNullTolerant.
+
+2008-10-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Remove most uses of JSValue, which will be removed in a future patch.
+
+        * VM/Machine.cpp:
+        (JSC::fastToUInt32): Call toUInt32SlowCase function; no longer a member
+        of JSValue.
+        * kjs/JSNumberCell.h:
+        (JSC::JSNumberCell::toInt32): Ditto.
+        (JSC::JSNumberCell::toUInt32): Ditto.
+
+        * kjs/JSValue.cpp:
+        (JSC::toInt32SlowCase): Made a non-member function.
+        (JSC::JSValue::toInt32SlowCase): Changed to call non-member function.
+        (JSC::toUInt32SlowCase): More of the same.
+        (JSC::JSValue::toUInt32SlowCase): Ditto.
+
+        * kjs/JSValue.h: Moved static member function so they are no longer
+        member functions at all.
+
+        * VM/CTI.h: Removed forward declaration of JSValue.
+        * VM/ExceptionHelpers.h: Ditto.
+        * kjs/CallData.h: Ditto.
+        * kjs/ConstructData.h: Ditto.
+        * kjs/JSGlobalObjectFunctions.h: Ditto.
+        * kjs/PropertyMap.h: Ditto.
+        * kjs/StructureID.h: Ditto.
+        * kjs/collector.h: Ditto.
+        * kjs/completion.h: Ditto.
+
+        * kjs/grammar.y:
+        (JSC::makeBitwiseNotNode): Call new non-member toInt32 function.
+        (JSC::makeLeftShiftNode): More of the same.
+        (JSC::makeRightShiftNode): Ditto.
+
+        * kjs/protect.h: Added a specialization for ProtectedPtr<JSValuePtr>
+        so this can be used with JSValuePtr.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Tweak a little more to get closer to where we can make JSValuePtr a class.
+
+        * API/APICast.h:
+        (toJS): Change back to JSValue* here, since we're converting the
+        pointer type.
+        * VM/CTI.cpp:
+        (JSC::CTI::unlinkCall): Call asPointer.
+        * VM/CTI.h: Cast to JSValue* here, since it's a pointer cast.
+        * kjs/DebuggerCallFrame.h:
+        (JSC::DebuggerCallFrame::DebuggerCallFrame): Call noValue.
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData): Call noValue.
+        * kjs/JSImmediate.cpp:
+        (JSC::JSImmediate::toObject): Remove unneeded const_cast.
+        * kjs/JSWrapperObject.h:
+        (JSC::JSWrapperObject::JSWrapperObject): Call noValue.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        - fix non-all-in-one build
+
+        * kjs/completion.h:
+        (JSC::Completion::Completion): Add include of JSValue.h.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - fix assertions I introduced with my casting changes
+
+        These were showing up as failures in the JavaScriptCore tests.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_instanceof): Remove the bogus asCell casting that
+        was at the top of the function, and instead cast at the point of use.
+        (JSC::Machine::cti_op_construct_NotJSConstruct): Moved the cast to
+        object after checking the construct type.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        - fix non-all-in-one build
+
+        * kjs/JSGlobalObjectFunctions.h: Add include of JSImmedate.h (for now).
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        - fix build
+
+        * kjs/interpreter.h: Include JSValue.h instead of JSImmediate.h.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        * kjs/interpreter.h: Fix include of JSImmediate.h.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        - fix non-all-in-one build
+
+        * kjs/interpreter.h: Add include of JSImmediate.h.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        - fix non-all-in-one build
+
+        * kjs/ConstructData.h: Add include of JSImmedate.h (for now).
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        - try to fix Windows build
+
+        * VM/Machine.cpp:
+        (JSC::Machine::Machine): Use JSCell* type since MSVC seems to only allow
+        calling ~JSCell directly if it's a JSCell*.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - next step on https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Use JSValuePtr everywhere instead of JSValue*. In the future, we'll be
+        changing JSValuePtr to be a class, and then eventually renaming it
+        to JSValue once that's done.
+
+        * JavaScriptCore.exp: Update entry points, since some now take JSValue*
+        instead of const JSValue*.
+
+        * API/APICast.h:
+        * API/JSCallbackConstructor.h:
+        * API/JSCallbackFunction.cpp:
+        * API/JSCallbackFunction.h:
+        * API/JSCallbackObject.h:
+        * API/JSCallbackObjectFunctions.h:
+        * API/JSContextRef.cpp:
+        * API/JSObjectRef.cpp:
+        * API/JSValueRef.cpp:
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        * VM/CodeBlock.h:
+        * VM/CodeGenerator.cpp:
+        * VM/CodeGenerator.h:
+        * VM/ExceptionHelpers.cpp:
+        * VM/ExceptionHelpers.h:
+        * VM/JSPropertyNameIterator.cpp:
+        * VM/JSPropertyNameIterator.h:
+        * VM/Machine.cpp:
+        * VM/Machine.h:
+        * VM/Register.h:
+        * kjs/ArgList.cpp:
+        * kjs/ArgList.h:
+        * kjs/Arguments.cpp:
+        * kjs/Arguments.h:
+        * kjs/ArrayConstructor.cpp:
+        * kjs/ArrayPrototype.cpp:
+        * kjs/BooleanConstructor.cpp:
+        * kjs/BooleanConstructor.h:
+        * kjs/BooleanObject.h:
+        * kjs/BooleanPrototype.cpp:
+        * kjs/CallData.cpp:
+        * kjs/CallData.h:
+        * kjs/ConstructData.cpp:
+        * kjs/ConstructData.h:
+        * kjs/DateConstructor.cpp:
+        * kjs/DateInstance.h:
+        * kjs/DatePrototype.cpp:
+        * kjs/DebuggerCallFrame.cpp:
+        * kjs/DebuggerCallFrame.h:
+        * kjs/ErrorConstructor.cpp:
+        * kjs/ErrorPrototype.cpp:
+        * kjs/ExecState.cpp:
+        * kjs/ExecState.h:
+        * kjs/FunctionConstructor.cpp:
+        * kjs/FunctionPrototype.cpp:
+        * kjs/GetterSetter.cpp:
+        * kjs/GetterSetter.h:
+        * kjs/InternalFunction.h:
+        * kjs/JSActivation.cpp:
+        * kjs/JSActivation.h:
+        * kjs/JSArray.cpp:
+        * kjs/JSArray.h:
+        * kjs/JSCell.cpp:
+        * kjs/JSCell.h:
+        * kjs/JSFunction.cpp:
+        * kjs/JSFunction.h:
+        * kjs/JSGlobalData.h:
+        * kjs/JSGlobalObject.cpp:
+        * kjs/JSGlobalObject.h:
+        * kjs/JSGlobalObjectFunctions.cpp:
+        * kjs/JSGlobalObjectFunctions.h:
+        * kjs/JSImmediate.cpp:
+        * kjs/JSImmediate.h:
+        * kjs/JSNotAnObject.cpp:
+        * kjs/JSNotAnObject.h:
+        * kjs/JSNumberCell.cpp:
+        * kjs/JSNumberCell.h:
+        * kjs/JSObject.cpp:
+        * kjs/JSObject.h:
+        * kjs/JSStaticScopeObject.cpp:
+        * kjs/JSStaticScopeObject.h:
+        * kjs/JSString.cpp:
+        * kjs/JSString.h:
+        * kjs/JSValue.h:
+        * kjs/JSVariableObject.h:
+        * kjs/JSWrapperObject.h:
+        * kjs/MathObject.cpp:
+        * kjs/NativeErrorConstructor.cpp:
+        * kjs/NumberConstructor.cpp:
+        * kjs/NumberConstructor.h:
+        * kjs/NumberObject.cpp:
+        * kjs/NumberObject.h:
+        * kjs/NumberPrototype.cpp:
+        * kjs/ObjectConstructor.cpp:
+        * kjs/ObjectPrototype.cpp:
+        * kjs/ObjectPrototype.h:
+        * kjs/PropertyMap.h:
+        * kjs/PropertySlot.cpp:
+        * kjs/PropertySlot.h:
+        * kjs/RegExpConstructor.cpp:
+        * kjs/RegExpConstructor.h:
+        * kjs/RegExpMatchesArray.h:
+        * kjs/RegExpObject.cpp:
+        * kjs/RegExpObject.h:
+        * kjs/RegExpPrototype.cpp:
+        * kjs/Shell.cpp:
+        * kjs/StringConstructor.cpp:
+        * kjs/StringObject.cpp:
+        * kjs/StringObject.h:
+        * kjs/StringObjectThatMasqueradesAsUndefined.h:
+        * kjs/StringPrototype.cpp:
+        * kjs/StructureID.cpp:
+        * kjs/StructureID.h:
+        * kjs/collector.cpp:
+        * kjs/collector.h:
+        * kjs/completion.h:
+        * kjs/grammar.y:
+        * kjs/interpreter.cpp:
+        * kjs/interpreter.h:
+        * kjs/lookup.cpp:
+        * kjs/lookup.h:
+        * kjs/nodes.h:
+        * kjs/operations.cpp:
+        * kjs/operations.h:
+        * kjs/protect.h:
+        * profiler/ProfileGenerator.cpp:
+        Replace JSValue* with JSValuePtr.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_eval): Removed stray parentheses from my
+        last check-in.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - first step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Remove casts from JSValue* to derived classes, replacing them with
+        calls to inline casting functions. These functions are also a bit
+        better than aidrect cast because they also do a runtime assertion.
+
+        Removed use of 0 as for JSValue*, changing call sites to use a
+        noValue() function instead.
+
+        Move things needed by classes derived from JSValue out of the class,
+        since the classes won't be deriving from JSValue any more soon.
+
+        I did most of these changes by changing JSValue to not be JSValue* any
+        more, then fixing a lot of the compilation problems, then rolling out
+        the JSValue change.
+
+        1.011x as fast on SunSpider (presumably due to some of the Machine.cpp changes)
+
+        * API/APICast.h: Removed unneeded forward declarations.
+
+        * API/JSCallbackObject.h: Added an asCallbackObject function for casting.
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::JSCallbackObject::asCallbackObject): Added.
+        (JSC::JSCallbackObject::getOwnPropertySlot): Use asObject.
+        (JSC::JSCallbackObject::call): Use noValue.
+        (JSC::JSCallbackObject::staticValueGetter): Use asCallbackObject.
+        (JSC::JSCallbackObject::staticFunctionGetter): Ditto.
+        (JSC::JSCallbackObject::callbackGetter): Ditto.
+
+        * JavaScriptCore.exp: Updated.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Added RegExpMatchesArray.h.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::asInteger): Added. For use casting a JSValue to an integer.
+        (JSC::CTI::emitGetArg): Use asInteger.
+        (JSC::CTI::emitGetPutArg): Ditto.
+        (JSC::CTI::getConstantImmediateNumericArg): Ditto. Also use noValue.
+        (JSC::CTI::emitInitRegister): Use asInteger.
+        (JSC::CTI::getDeTaggedConstantImmediate): Ditto.
+        (JSC::CTI::compileOpCallInitializeCallFrame): Ditto.
+        (JSC::CTI::compileOpCall): Ditto.
+        (JSC::CTI::compileOpStrictEq): Ditto.
+        (JSC::CTI::privateCompileMainPass): Ditto.
+        (JSC::CTI::privateCompileGetByIdProto): Ditto.
+        (JSC::CTI::privateCompileGetByIdChain): Ditto.
+        (JSC::CTI::privateCompilePutByIdTransition): Ditto.
+        * VM/CTI.h: Rewrite the ARG-related macros to use C++ casts instead of
+        C casts and get rid of some extra parentheses. Addd declaration of
+        asInteger.
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitEqualityOp): Use asString.
+        (JSC::CodeGenerator::emitLoad): Use noValue.
+        (JSC::CodeGenerator::findScopedProperty): Change globalObject argument
+        to JSObject* instead of JSValue*.
+        (JSC::CodeGenerator::emitResolve): Remove unneeded cast.
+        (JSC::CodeGenerator::emitGetScopedVar): Use asCell.
+        (JSC::CodeGenerator::emitPutScopedVar): Ditto.
+        * VM/CodeGenerator.h: Changed out argument of findScopedProperty.
+        Also change the JSValueMap to use PtrHash explicitly instead of
+        getting it from DefaultHash.
+
+        * VM/JSPropertyNameIterator.cpp:
+        (JSC::JSPropertyNameIterator::toPrimitive): Use noValue.
+        * VM/JSPropertyNameIterator.h:
+        (JSC::JSPropertyNameIterator::next): Ditto.
+
+        * VM/Machine.cpp:
+        (JSC::fastIsNumber): Moved isImmediate check here instead of
+        checking for 0 inside Heap::isNumber. Use asCell and asNumberCell.
+        (JSC::fastToInt32): Ditto.
+        (JSC::fastToUInt32): Ditto.
+        (JSC::jsLess): Use asString.
+        (JSC::jsLessEq): Ditto.
+        (JSC::jsAdd): Ditto.
+        (JSC::jsTypeStringForValue): Use asObject.
+        (JSC::jsIsObjectType): Ditto.
+        (JSC::jsIsFunctionType): Ditto.
+        (JSC::inlineResolveBase): Use noValue.
+        (JSC::Machine::callEval): Use asString. Initialize result to
+        undefined, not 0.
+        (JSC::Machine::Machine): Remove unneeded casts to JSCell*.
+        (JSC::Machine::throwException): Use asObject.
+        (JSC::Machine::debug): Remove explicit calls to the DebuggerCallFrame
+        constructor.
+        (JSC::Machine::checkTimeout): Use noValue.
+        (JSC::cachePrototypeChain): Use asObject.
+        (JSC::Machine::tryCachePutByID): Use asCell.
+        (JSC::Machine::tryCacheGetByID): Use aCell and asObject.
+        (JSC::Machine::privateExecute): Use noValue, asCell, asObject, asString,
+        asArray, asActivation, asFunction. Changed code that creates call frames
+        for host functions to pass 0 for the function pointer -- the call frame
+        needs a JSFunction* and a host function object is not one. This was
+        caught by the assertions in the casting functions. Also remove some
+        unneeded casts in cases where two values are compared.
+        (JSC::Machine::retrieveLastCaller): Use noValue.
+        (JSC::Machine::tryCTICachePutByID): Use asCell.
+        (JSC::Machine::tryCTICacheGetByID): Use aCell and asObject.
+        (JSC::setUpThrowTrampolineReturnAddress): Added this function to restore
+        the PIC-branch-avoidance that was recently lost.
+        (JSC::Machine::cti_op_add): Use asString.
+        (JSC::Machine::cti_op_instanceof): Use asCell and asObject.
+        (JSC::Machine::cti_op_call_JSFunction): Use asFunction.
+        (JSC::Machine::cti_op_call_NotJSFunction): Changed code to pass 0 for
+        the function pointer, since we don't have a JSFunction. Use asObject.
+        (JSC::Machine::cti_op_tear_off_activation): Use asActivation.
+        (JSC::Machine::cti_op_construct_JSConstruct): Use asFunction and asObject.
+        (JSC::Machine::cti_op_construct_NotJSConstruct): use asObject.
+        (JSC::Machine::cti_op_get_by_val): Use asArray and asString.
+        (JSC::Machine::cti_op_resolve_func): Use asPointer; this helps prepare
+        us for a situation where JSValue is not a pointer.
+        (JSC::Machine::cti_op_put_by_val): Use asArray.
+        (JSC::Machine::cti_op_put_by_val_array): Ditto.
+        (JSC::Machine::cti_op_resolve_global): Use asGlobalObject.
+        (JSC::Machine::cti_op_post_inc): Change VM_CHECK_EXCEPTION_2 to
+        VM_CHECK_EXCEPTION_AT_END, since there's no observable work done after
+        that point. Also use asPointer.
+        (JSC::Machine::cti_op_resolve_with_base): Use asPointer.
+        (JSC::Machine::cti_op_post_dec): Change VM_CHECK_EXCEPTION_2 to
+        VM_CHECK_EXCEPTION_AT_END, since there's no observable work done after
+        that point. Also use asPointer.
+        (JSC::Machine::cti_op_call_eval): Use asObject, noValue, and change
+        VM_CHECK_EXCEPTION_ARG to VM_THROW_EXCEPTION_AT_END.
+        (JSC::Machine::cti_op_throw): Change return value to a JSValue*.
+        (JSC::Machine::cti_op_in): Use asObject.
+        (JSC::Machine::cti_op_switch_char): Use asString.
+        (JSC::Machine::cti_op_switch_string): Ditto.
+        (JSC::Machine::cti_op_put_getter): Use asObject.
+        (JSC::Machine::cti_op_put_setter): Ditto.
+        (JSC::Machine::cti_vm_throw): Change return value to a JSValue*.
+        Use noValue.
+        * VM/Machine.h: Change return values of both cti_op_throw and
+        cti_vm_throw to JSValue*.
+
+        * VM/Register.h: Remove nullJSValue, which is the same thing
+        as noValue(). Also removed unneeded definition of JSValue.
+
+        * kjs/ArgList.h: Removed unneeded definition of JSValue.
+
+        * kjs/Arguments.h:
+        (JSC::asArguments): Added.
+
+        * kjs/ArrayPrototype.cpp:
+        (JSC::getProperty): Use noValue.
+        (JSC::arrayProtoFuncToString): Use asArray.
+        (JSC::arrayProtoFuncToLocaleString): Ditto.
+        (JSC::arrayProtoFuncConcat): Ditto.
+        (JSC::arrayProtoFuncPop): Ditto. Also removed unneeded initialization
+        of the result, which is set in both sides of the branch.
+        (JSC::arrayProtoFuncPush): Ditto.
+        (JSC::arrayProtoFuncShift): Removed unneeded initialization
+        of the result, which is set in both sides of the branch.
+        (JSC::arrayProtoFuncSort): Use asArray.
+
+        * kjs/BooleanObject.h:
+        (JSC::asBooleanObject): Added.
+
+        * kjs/BooleanPrototype.cpp:
+        (JSC::booleanProtoFuncToString): Use asBooleanObject.
+        (JSC::booleanProtoFuncValueOf): Ditto.
+
+        * kjs/CallData.cpp:
+        (JSC::call): Use asObject and asFunction.
+        * kjs/ConstructData.cpp:
+        (JSC::construct): Ditto.
+
+        * kjs/DateConstructor.cpp:
+        (JSC::constructDate): Use asDateInstance.
+
+        * kjs/DateInstance.h:
+        (JSC::asDateInstance): Added.
+
+        * kjs/DatePrototype.cpp:
+        (JSC::dateProtoFuncToString): Use asDateInstance.
+        (JSC::dateProtoFuncToUTCString): Ditto.
+        (JSC::dateProtoFuncToDateString): Ditto.
+        (JSC::dateProtoFuncToTimeString): Ditto.
+        (JSC::dateProtoFuncToLocaleString): Ditto.
+        (JSC::dateProtoFuncToLocaleDateString): Ditto.
+        (JSC::dateProtoFuncToLocaleTimeString): Ditto.
+        (JSC::dateProtoFuncValueOf): Ditto.
+        (JSC::dateProtoFuncGetTime): Ditto.
+        (JSC::dateProtoFuncGetFullYear): Ditto.
+        (JSC::dateProtoFuncGetUTCFullYear): Ditto.
+        (JSC::dateProtoFuncToGMTString): Ditto.
+        (JSC::dateProtoFuncGetMonth): Ditto.
+        (JSC::dateProtoFuncGetUTCMonth): Ditto.
+        (JSC::dateProtoFuncGetDate): Ditto.
+        (JSC::dateProtoFuncGetUTCDate): Ditto.
+        (JSC::dateProtoFuncGetDay): Ditto.
+        (JSC::dateProtoFuncGetUTCDay): Ditto.
+        (JSC::dateProtoFuncGetHours): Ditto.
+        (JSC::dateProtoFuncGetUTCHours): Ditto.
+        (JSC::dateProtoFuncGetMinutes): Ditto.
+        (JSC::dateProtoFuncGetUTCMinutes): Ditto.
+        (JSC::dateProtoFuncGetSeconds): Ditto.
+        (JSC::dateProtoFuncGetUTCSeconds): Ditto.
+        (JSC::dateProtoFuncGetMilliSeconds): Ditto.
+        (JSC::dateProtoFuncGetUTCMilliseconds): Ditto.
+        (JSC::dateProtoFuncGetTimezoneOffset): Ditto.
+        (JSC::dateProtoFuncSetTime): Ditto.
+        (JSC::setNewValueFromTimeArgs): Ditto.
+        (JSC::setNewValueFromDateArgs): Ditto.
+        (JSC::dateProtoFuncSetYear): Ditto.
+        (JSC::dateProtoFuncGetYear): Ditto.
+
+        * kjs/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::thisObject): Use asObject.
+        (JSC::DebuggerCallFrame::evaluate): Use noValue.
+        * kjs/DebuggerCallFrame.h: Added a constructor that
+        takes only a callFrame.
+
+        * kjs/ExecState.h:
+        (JSC::ExecState::clearException): Use noValue.
+
+        * kjs/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString): Use asFunction.
+        (JSC::functionProtoFuncApply): Use asArguments and asArray.
+
+        * kjs/GetterSetter.cpp:
+        (JSC::GetterSetter::getPrimitiveNumber): Use noValue.
+
+        * kjs/GetterSetter.h:
+        (JSC::asGetterSetter): Added.
+
+        * kjs/InternalFunction.cpp:
+        (JSC::InternalFunction::name): Use asString.
+
+        * kjs/InternalFunction.h:
+        (JSC::asInternalFunction): Added.
+
+        * kjs/JSActivation.cpp:
+        (JSC::JSActivation::argumentsGetter): Use asActivation.
+
+        * kjs/JSActivation.h:
+        (JSC::asActivation): Added.
+
+        * kjs/JSArray.cpp:
+        (JSC::JSArray::putSlowCase): Use noValue.
+        (JSC::JSArray::deleteProperty): Ditto.
+        (JSC::JSArray::increaseVectorLength): Ditto.
+        (JSC::JSArray::setLength): Ditto.
+        (JSC::JSArray::pop): Ditto.
+        (JSC::JSArray::sort): Ditto.
+        (JSC::JSArray::compactForSorting): Ditto.
+        * kjs/JSArray.h:
+        (JSC::asArray): Added.
+
+        * kjs/JSCell.cpp:
+        (JSC::JSCell::getJSNumber): Use noValue.
+
+        * kjs/JSCell.h:
+        (JSC::asCell): Added.
+        (JSC::JSValue::asCell): Changed to not preserve const.
+        Given the wide use of JSValue* and JSCell*, it's not
+        really useful to use const.
+        (JSC::JSValue::isNumber): Use asValue.
+        (JSC::JSValue::isString): Ditto.
+        (JSC::JSValue::isGetterSetter): Ditto.
+        (JSC::JSValue::isObject): Ditto.
+        (JSC::JSValue::getNumber): Ditto.
+        (JSC::JSValue::getString): Ditto.
+        (JSC::JSValue::getObject): Ditto.
+        (JSC::JSValue::getCallData): Ditto.
+        (JSC::JSValue::getConstructData): Ditto.
+        (JSC::JSValue::getUInt32): Ditto.
+        (JSC::JSValue::getTruncatedInt32): Ditto.
+        (JSC::JSValue::getTruncatedUInt32): Ditto.
+        (JSC::JSValue::mark): Ditto.
+        (JSC::JSValue::marked): Ditto.
+        (JSC::JSValue::toPrimitive): Ditto.
+        (JSC::JSValue::getPrimitiveNumber): Ditto.
+        (JSC::JSValue::toBoolean): Ditto.
+        (JSC::JSValue::toNumber): Ditto.
+        (JSC::JSValue::toString): Ditto.
+        (JSC::JSValue::toObject): Ditto.
+        (JSC::JSValue::toThisObject): Ditto.
+        (JSC::JSValue::needsThisConversion): Ditto.
+        (JSC::JSValue::toThisString): Ditto.
+        (JSC::JSValue::getJSNumber): Ditto.
+
+        * kjs/JSFunction.cpp:
+        (JSC::JSFunction::argumentsGetter): Use asFunction.
+        (JSC::JSFunction::callerGetter): Ditto.
+        (JSC::JSFunction::lengthGetter): Ditto.
+        (JSC::JSFunction::construct): Use asObject.
+
+        * kjs/JSFunction.h:
+        (JSC::asFunction): Added.
+
+        * kjs/JSGlobalObject.cpp:
+        (JSC::lastInPrototypeChain): Use asObject.
+
+        * kjs/JSGlobalObject.h:
+        (JSC::asGlobalObject): Added.
+        (JSC::ScopeChainNode::globalObject): Use asGlobalObject.
+
+        * kjs/JSImmediate.h: Added noValue, asPointer, and makeValue
+        functions. Use rawValue, makeValue, and noValue consistently
+        instead of doing reinterpret_cast in various functions.
+
+        * kjs/JSNumberCell.h:
+        (JSC::asNumberCell): Added.
+        (JSC::JSValue::uncheckedGetNumber): Use asValue and asNumberCell.
+        (JSC::JSValue::toJSNumber): Use asValue.
+
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::put): Use asObject and asGetterSetter.
+        (JSC::callDefaultValueFunction): Use noValue.
+        (JSC::JSObject::defineGetter): Use asGetterSetter.
+        (JSC::JSObject::defineSetter): Ditto.
+        (JSC::JSObject::lookupGetter): Ditto. Also use asObject.
+        (JSC::JSObject::lookupSetter): Ditto.
+        (JSC::JSObject::hasInstance): Use asObject.
+        (JSC::JSObject::fillGetterPropertySlot): Use asGetterSetter.
+
+        * kjs/JSObject.h:
+        (JSC::JSObject::getDirect): Use noValue.
+        (JSC::asObject): Added.
+        (JSC::JSValue::isObject): Use asValue.
+        (JSC::JSObject::get): Removed unneeded const_cast.
+        (JSC::JSObject::getPropertySlot): Use asObject.
+        (JSC::JSValue::get): Removed unneeded const_cast.
+        Use asValue, asCell, and asObject.
+        (JSC::JSValue::put): Ditto.
+        (JSC::JSObject::allocatePropertyStorageInline): Fixed spelling
+        of "oldPropertStorage".
+
+        * kjs/JSString.cpp:
+        (JSC::JSString::getOwnPropertySlot): Use asObject.
+
+        * kjs/JSString.h:
+        (JSC::asString): Added.
+        (JSC::JSValue::toThisJSString): Use asValue.
+
+        * kjs/JSValue.h: Make PreferredPrimitiveType a top level enum
+        instead of a member of JSValue. Added an asValue function that
+        returns this. Removed overload of asCell for const. Use asValue
+        instead of getting right at this.
+
+        * kjs/ObjectPrototype.cpp:
+        (JSC::objectProtoFuncIsPrototypeOf): Use asObject.
+        (JSC::objectProtoFuncDefineGetter): Ditto.
+        (JSC::objectProtoFuncDefineSetter): Ditto.
+
+        * kjs/PropertySlot.h:
+        (JSC::PropertySlot::PropertySlot): Take a const JSValue* so the
+        callers don't have to worry about const.
+        (JSC::PropertySlot::clearBase): Use noValue.
+        (JSC::PropertySlot::clearValue): Ditto.
+
+        * kjs/RegExpConstructor.cpp:
+        (JSC::regExpConstructorDollar1): Use asRegExpConstructor.
+        (JSC::regExpConstructorDollar2): Ditto.
+        (JSC::regExpConstructorDollar3): Ditto.
+        (JSC::regExpConstructorDollar4): Ditto.
+        (JSC::regExpConstructorDollar5): Ditto.
+        (JSC::regExpConstructorDollar6): Ditto.
+        (JSC::regExpConstructorDollar7): Ditto.
+        (JSC::regExpConstructorDollar8): Ditto.
+        (JSC::regExpConstructorDollar9): Ditto.
+        (JSC::regExpConstructorInput): Ditto.
+        (JSC::regExpConstructorMultiline): Ditto.
+        (JSC::regExpConstructorLastMatch): Ditto.
+        (JSC::regExpConstructorLastParen): Ditto.
+        (JSC::regExpConstructorLeftContext): Ditto.
+        (JSC::regExpConstructorRightContext): Ditto.
+        (JSC::setRegExpConstructorInput): Ditto.
+        (JSC::setRegExpConstructorMultiline): Ditto.
+        (JSC::constructRegExp): Use asObject.
+
+        * kjs/RegExpConstructor.h:
+        (JSC::asRegExpConstructor): Added.
+
+        * kjs/RegExpObject.cpp:
+        (JSC::regExpObjectGlobal): Use asRegExpObject.
+        (JSC::regExpObjectIgnoreCase): Ditto.
+        (JSC::regExpObjectMultiline): Ditto.
+        (JSC::regExpObjectSource): Ditto.
+        (JSC::regExpObjectLastIndex): Ditto.
+        (JSC::setRegExpObjectLastIndex): Ditto.
+        (JSC::callRegExpObject): Ditto.
+
+        * kjs/RegExpObject.h:
+        (JSC::asRegExpObject): Added.
+
+        * kjs/RegExpPrototype.cpp:
+        (JSC::regExpProtoFuncTest): Use asRegExpObject.
+        (JSC::regExpProtoFuncExec): Ditto.
+        (JSC::regExpProtoFuncCompile): Ditto.
+        (JSC::regExpProtoFuncToString): Ditto.
+
+        * kjs/StringObject.h:
+        (JSC::StringObject::internalValue): Use asString.
+        (JSC::asStringObject): Added.
+
+        * kjs/StringPrototype.cpp:
+        (JSC::stringProtoFuncReplace): Use asRegExpObject.
+        (JSC::stringProtoFuncToString): Ue asStringObject.
+        (JSC::stringProtoFuncMatch): Use asRegExpObject.
+        (JSC::stringProtoFuncSearch): Ditto.
+        (JSC::stringProtoFuncSplit): Ditto.
+
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::getEnumerablePropertyNames): Use asObject.
+        (JSC::StructureID::createCachedPrototypeChain): Ditto.
+        (JSC::StructureIDChain::StructureIDChain): Use asCell and asObject.
+
+        * kjs/collector.h:
+        (JSC::Heap::isNumber): Removed null handling. This can only be called
+        on valid cells.
+        (JSC::Heap::cellBlock): Removed overload for const and non-const.
+        Whether the JSCell* is const or not really should have no effect on
+        whether you can modify the collector block it's in.
+
+        * kjs/interpreter.cpp:
+        (JSC::Interpreter::evaluate): Use noValue and noObject.
+
+        * kjs/nodes.cpp:
+        (JSC::FunctionCallResolveNode::emitCode): Use JSObject for the global
+        object rather than JSValue.
+        (JSC::PostfixResolveNode::emitCode): Ditto.
+        (JSC::PrefixResolveNode::emitCode): Ditto.
+        (JSC::ReadModifyResolveNode::emitCode): Ditto.
+        (JSC::AssignResolveNode::emitCode): Ditto.
+
+        * kjs/operations.h:
+        (JSC::equalSlowCaseInline): Use asString, asCell, asNumberCell, 
+        (JSC::strictEqualSlowCaseInline): Ditto.
+
+2008-10-18  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 21702: Special op_create_activation for the case where there are no named parameters
+        <https://bugs.webkit.org/show_bug.cgi?id=21702>
+
+        This is a 2.5% speedup on the V8 Raytrace benchmark and a 1.1% speedup
+        on the V8 Earley-Boyer benchmark.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_create_arguments_no_params):
+        * VM/Machine.h:
+        * kjs/Arguments.h:
+        (JSC::Arguments::):
+        (JSC::Arguments::Arguments):
+
+2008-10-17  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - in debug builds, alter the stack to avoid blowing out MallocStackLogging
+        
+        (In essence, while executing a CTI function we alter the return
+        address to jscGeneratedNativeCode so that a single consistent
+        function is on the stack instead of many random functions without
+        symbols.)
+
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::doSetReturnAddress):
+        (JSC::):
+        (JSC::StackHack::StackHack):
+        (JSC::StackHack::~StackHack):
+        (JSC::Machine::cti_op_convert_this):
+        (JSC::Machine::cti_op_end):
+        (JSC::Machine::cti_op_add):
+        (JSC::Machine::cti_op_pre_inc):
+        (JSC::Machine::cti_timeout_check):
+        (JSC::Machine::cti_register_file_check):
+        (JSC::Machine::cti_op_loop_if_less):
+        (JSC::Machine::cti_op_loop_if_lesseq):
+        (JSC::Machine::cti_op_new_object):
+        (JSC::Machine::cti_op_put_by_id):
+        (JSC::Machine::cti_op_put_by_id_second):
+        (JSC::Machine::cti_op_put_by_id_generic):
+        (JSC::Machine::cti_op_put_by_id_fail):
+        (JSC::Machine::cti_op_get_by_id):
+        (JSC::Machine::cti_op_get_by_id_second):
+        (JSC::Machine::cti_op_get_by_id_generic):
+        (JSC::Machine::cti_op_get_by_id_fail):
+        (JSC::Machine::cti_op_instanceof):
+        (JSC::Machine::cti_op_del_by_id):
+        (JSC::Machine::cti_op_mul):
+        (JSC::Machine::cti_op_new_func):
+        (JSC::Machine::cti_op_call_profiler):
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_vm_lazyLinkCall):
+        (JSC::Machine::cti_vm_compile):
+        (JSC::Machine::cti_op_push_activation):
+        (JSC::Machine::cti_op_call_NotJSFunction):
+        (JSC::Machine::cti_op_create_arguments):
+        (JSC::Machine::cti_op_tear_off_activation):
+        (JSC::Machine::cti_op_tear_off_arguments):
+        (JSC::Machine::cti_op_ret_profiler):
+        (JSC::Machine::cti_op_ret_scopeChain):
+        (JSC::Machine::cti_op_new_array):
+        (JSC::Machine::cti_op_resolve):
+        (JSC::Machine::cti_op_construct_JSConstructFast):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+        (JSC::Machine::cti_op_get_by_val):
+        (JSC::Machine::cti_op_resolve_func):
+        (JSC::Machine::cti_op_sub):
+        (JSC::Machine::cti_op_put_by_val):
+        (JSC::Machine::cti_op_put_by_val_array):
+        (JSC::Machine::cti_op_lesseq):
+        (JSC::Machine::cti_op_loop_if_true):
+        (JSC::Machine::cti_op_negate):
+        (JSC::Machine::cti_op_resolve_base):
+        (JSC::Machine::cti_op_resolve_skip):
+        (JSC::Machine::cti_op_resolve_global):
+        (JSC::Machine::cti_op_div):
+        (JSC::Machine::cti_op_pre_dec):
+        (JSC::Machine::cti_op_jless):
+        (JSC::Machine::cti_op_not):
+        (JSC::Machine::cti_op_jtrue):
+        (JSC::Machine::cti_op_post_inc):
+        (JSC::Machine::cti_op_eq):
+        (JSC::Machine::cti_op_lshift):
+        (JSC::Machine::cti_op_bitand):
+        (JSC::Machine::cti_op_rshift):
+        (JSC::Machine::cti_op_bitnot):
+        (JSC::Machine::cti_op_resolve_with_base):
+        (JSC::Machine::cti_op_new_func_exp):
+        (JSC::Machine::cti_op_mod):
+        (JSC::Machine::cti_op_less):
+        (JSC::Machine::cti_op_neq):
+        (JSC::Machine::cti_op_post_dec):
+        (JSC::Machine::cti_op_urshift):
+        (JSC::Machine::cti_op_bitxor):
+        (JSC::Machine::cti_op_new_regexp):
+        (JSC::Machine::cti_op_bitor):
+        (JSC::Machine::cti_op_call_eval):
+        (JSC::Machine::cti_op_throw):
+        (JSC::Machine::cti_op_get_pnames):
+        (JSC::Machine::cti_op_next_pname):
+        (JSC::Machine::cti_op_push_scope):
+        (JSC::Machine::cti_op_pop_scope):
+        (JSC::Machine::cti_op_typeof):
+        (JSC::Machine::cti_op_is_undefined):
+        (JSC::Machine::cti_op_is_boolean):
+        (JSC::Machine::cti_op_is_number):
+        (JSC::Machine::cti_op_is_string):
+        (JSC::Machine::cti_op_is_object):
+        (JSC::Machine::cti_op_is_function):
+        (JSC::Machine::cti_op_stricteq):
+        (JSC::Machine::cti_op_nstricteq):
+        (JSC::Machine::cti_op_to_jsnumber):
+        (JSC::Machine::cti_op_in):
+        (JSC::Machine::cti_op_push_new_scope):
+        (JSC::Machine::cti_op_jmp_scopes):
+        (JSC::Machine::cti_op_put_by_index):
+        (JSC::Machine::cti_op_switch_imm):
+        (JSC::Machine::cti_op_switch_char):
+        (JSC::Machine::cti_op_switch_string):
+        (JSC::Machine::cti_op_del_by_val):
+        (JSC::Machine::cti_op_put_getter):
+        (JSC::Machine::cti_op_put_setter):
+        (JSC::Machine::cti_op_new_error):
+        (JSC::Machine::cti_op_debug):
+        (JSC::Machine::cti_vm_throw):
+
+2008-10-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Optimize op_call by allowing call sites to be directly linked to callees.
+
+        For the hot path of op_call, CTI now generates a check (initially for an impossible
+        value), and the first time the call is executed we attempt to link the call directly
+        to the callee.  We can currently only do so if the arity of the caller and callee
+        match.  The (optimized) setup for the call on the hot path is linked directly to
+        the ctiCode for the callee, without indirection.
+        
+        Two forms of the slow case of the call are generated, the first will be executed the
+        first time the call is reached.  As well as this path attempting to link the call to
+        a callee, it also relinks the slow case to a second slow case, which will not continue
+        to attempt relinking the call.  (This policy could be changed in future, but for not
+        this is intended to prevent thrashing).
+
+        If a callee that the caller has been linked to is garbage collected, then the link
+        in the caller's JIt code will be reset back to a value that cannot match - to prevent
+        any false positive matches.
+
+        ~20% progression on deltablue & richards, >12% overall reduction in v8-tests
+        runtime, one or two percent progression on sunspider.
+
+        Reviewed by Oliver Hunt.
+
+        * VM/CTI.cpp:
+        (JSC::):
+        (JSC::CTI::emitNakedCall):
+        (JSC::unreachable):
+        (JSC::CTI::compileOpCallInitializeCallFrame):
+        (JSC::CTI::compileOpCallSetupArgs):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::unlinkCall):
+        (JSC::CTI::linkCall):
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::~CodeBlock):
+        (JSC::CodeBlock::unlinkCallers):
+        (JSC::CodeBlock::derefStructureIDs):
+        * VM/CodeBlock.h:
+        (JSC::StructureStubInfo::StructureStubInfo):
+        (JSC::CallLinkInfo::CallLinkInfo):
+        (JSC::CodeBlock::addCaller):
+        (JSC::CodeBlock::removeCaller):
+        (JSC::CodeBlock::getStubInfo):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitCall):
+        (JSC::CodeGenerator::emitConstruct):
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_profiler):
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_vm_lazyLinkCall):
+        (JSC::Machine::cti_op_construct_JSConstructFast):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+        * VM/Machine.h:
+        * kjs/JSFunction.cpp:
+        (JSC::JSFunction::~JSFunction):
+        * kjs/JSFunction.h:
+        * kjs/nodes.h:
+        (JSC::FunctionBodyNode::):
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::getDifferenceBetweenLabels):
+
+2008-10-17  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Geoff Garen.
+        
+        - remove ASSERT that makes the leaks buildbot cry
+
+        * kjs/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction):
+
+2008-10-17  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich
+        
+        - don't bother to do arguments tearoff when it will have no effect
+
+        ~1% on v8 raytrace
+        
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitReturn):
+
+2008-10-17  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Sam Weinig. Landed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21603
+        [GTK] Minor fixes to GOwnPtr
+
+        * wtf/GOwnPtr.cpp:
+        (WTF::GError):
+        (WTF::GList):
+        (WTF::GCond):
+        (WTF::GMutex):
+        (WTF::GPatternSpec):
+        (WTF::GDir):
+        * wtf/GOwnPtr.h:
+        (WTF::freeOwnedGPtr):
+        (WTF::GOwnPtr::~GOwnPtr):
+        (WTF::GOwnPtr::outPtr):
+        (WTF::GOwnPtr::set):
+        (WTF::GOwnPtr::clear):
+        * wtf/Threading.h:
+
+2008-10-17  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Cameron Zwarich.
+        
+        - speed up transitions that resize the property storage a fair bit
+        
+        ~3% speedup on v8 RayTrace benchmark, ~1% on DeltaBlue
+
+        * VM/CTI.cpp:
+        (JSC::resizePropertyStorage): renamed from transitionObject, and reduced to just resize
+        the object's property storage with one inline call.
+        (JSC::CTI::privateCompilePutByIdTransition): Use a separate function for property storage
+        resize, but still do all the rest of the work in assembly in that case, and pass the known
+        compile-time constants of old and new size rather than structureIDs, saving a bunch of
+        redundant memory access.
+        * kjs/JSObject.cpp:
+        (JSC::JSObject::allocatePropertyStorage): Just call the inline version.
+        * kjs/JSObject.h:
+        (JSC::JSObject::allocatePropertyStorageInline): Inline version of allocatePropertyStorage
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::pushl_i32): Add code to assmeble push of a constant; code originally by Cameron Zwarich.
+
+2008-10-17  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove some C style casts.
+
+        * masm/X86Assembler.h:
+        (JSC::JITCodeBuffer::putIntUnchecked):
+        (JSC::X86Assembler::link):
+        (JSC::X86Assembler::linkAbsoluteAddress):
+        (JSC::X86Assembler::getRelocatedAddress):
+
+2008-10-17  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Remove some C style casts.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::patchGetByIdSelf):
+        (JSC::CTI::patchPutByIdReplace):
+        * VM/Machine.cpp:
+        (JSC::Machine::tryCTICachePutByID):
+        (JSC::Machine::tryCTICacheGetByID):
+        (JSC::Machine::cti_op_put_by_id):
+        (JSC::Machine::cti_op_put_by_id_fail):
+        (JSC::Machine::cti_op_get_by_id):
+        (JSC::Machine::cti_op_get_by_id_fail):
+
 2008-10-17  Maciej Stachowiak  <mjs@apple.com>
 
         Reviewed by Cameron Zwarich.

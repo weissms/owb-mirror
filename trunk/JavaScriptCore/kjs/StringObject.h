@@ -36,14 +36,14 @@ namespace JSC {
         virtual bool getOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
         virtual bool getOwnPropertySlot(ExecState*, unsigned propertyName, PropertySlot&);
 
-        virtual void put(ExecState* exec, const Identifier& propertyName, JSValue*, PutPropertySlot&);
+        virtual void put(ExecState* exec, const Identifier& propertyName, JSValuePtr, PutPropertySlot&);
         virtual bool deleteProperty(ExecState*, const Identifier& propertyName);
         virtual void getPropertyNames(ExecState*, PropertyNameArray&);
 
         virtual const ClassInfo* classInfo() const { return &info; }
         static const ClassInfo info;
 
-        JSString* internalValue() const { return static_cast<JSString*>(JSWrapperObject::internalValue());}
+        JSString* internalValue() const { return asString(JSWrapperObject::internalValue());}
 
     protected:
         StringObject(PassRefPtr<StructureID>, JSString*);
@@ -53,6 +53,14 @@ namespace JSC {
         virtual UString toThisString(ExecState*) const;
         virtual JSString* toThisJSString(ExecState*);
   };
+
+    StringObject* asStringObject(JSValuePtr);
+
+    inline StringObject* asStringObject(JSValuePtr value)
+    {
+        ASSERT(asObject(value)->inherits(&StringObject::info));
+        return static_cast<StringObject*>(asObject(value));
+    }
 
 } // namespace JSC
 

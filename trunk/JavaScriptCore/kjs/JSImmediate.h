@@ -34,13 +34,38 @@
 namespace JSC {
 
     class ExecState;
+    class JSCell;
     class JSObject;
     class JSValue;
     class UString;
 
+    class JSValuePtr {
+    public:
+        JSValuePtr() { } // uninitialized (not zero)
+        JSValuePtr(const JSValue* payload) : m_payload(const_cast<JSValue*>(payload)) { }
+        JSValuePtr(const JSCell*);
+
+        JSValue* payload() const { return m_payload; }
+        JSValue** payloadPtr() { return &m_payload; }
+
+        bool operator!() const { return !payload(); }
+    
+        // This conversion operator allows implicit conversion to bool but not to other integer types.
+        typedef JSValue* JSValuePtr::*UnspecifiedBoolType;
+        operator UnspecifiedBoolType() const { return payload() ? &JSValuePtr::m_payload : 0; }
+
+        JSValue* operator->() const { return payload(); }
+
+    private:
+        JSValue* m_payload;
+    };
+
+    inline JSValuePtr noValue() { return static_cast<JSValue*>(0); }
+    inline void* asPointer(JSValuePtr value) { return value.payload(); }
+
     /*
-     * A JSValue* is either a pointer to a cell (a heap-allocated object) or an immediate (a type-tagged 
-     * value masquerading as a pointer). The low two bits in a JSValue* are available for type tagging
+     * A JSValuePtr is either a pointer to a cell (a heap-allocated object) or an immediate (a type-tagged 
+     * value masquerading as a pointer). The low two bits in a JSValuePtr are available for type tagging
      * because allocator alignment guarantees they will be 00 in cell pointers.
      *
      * For example, on a 32 bit system:
@@ -103,211 +128,216 @@ namespace JSC {
         static const uintptr_t ExtendedPayloadBitBoolValue = 1 << ExtendedPayloadShift;
  
     public:
-        static ALWAYS_INLINE bool isImmediate(const JSValue* v)
+        static ALWAYS_INLINE bool isImmediate(JSValuePtr v)
         {
-            return reinterpret_cast<uintptr_t>(v) & TagMask;
+            return rawValue(v) & TagMask;
         }
         
-        static ALWAYS_INLINE bool isNumber(const JSValue* v)
+        static ALWAYS_INLINE bool isNumber(JSValuePtr v)
         {
-            return reinterpret_cast<uintptr_t>(v) & TagBitTypeInteger;
+            return rawValue(v) & TagBitTypeInteger;
         }
 
-        static ALWAYS_INLINE bool isPositiveNumber(const JSValue* v)
+        static ALWAYS_INLINE bool isPositiveNumber(JSValuePtr v)
         {
             // A single mask to check for the sign bit and the number tag all at once.
-            return (reinterpret_cast<uintptr_t>(v) & (0x80000000 | TagBitTypeInteger)) == TagBitTypeInteger;
+            return (rawValue(v) & (0x80000000 | TagBitTypeInteger)) == TagBitTypeInteger;
         }
         
-        static ALWAYS_INLINE bool isBoolean(const JSValue* v)
+        static ALWAYS_INLINE bool isBoolean(JSValuePtr v)
         {
-            return (reinterpret_cast<uintptr_t>(v) & FullTagTypeMask) == FullTagTypeBool;
+            return (rawValue(v) & FullTagTypeMask) == FullTagTypeBool;
         }
         
-        static ALWAYS_INLINE bool isUndefinedOrNull(const JSValue* v)
+        static ALWAYS_INLINE bool isUndefinedOrNull(JSValuePtr v)
         {
             // Undefined and null share the same value, bar the 'undefined' bit in the extended tag.
-            return (reinterpret_cast<uintptr_t>(v) & ~ExtendedTagBitUndefined) == FullTagTypeNull;
+            return (rawValue(v) & ~ExtendedTagBitUndefined) == FullTagTypeNull;
         }
 
-        static bool isNegative(const JSValue* v)
+        static bool isNegative(JSValuePtr v)
         {
             ASSERT(isNumber(v));
-            return reinterpret_cast<uintptr_t>(v) & 0x80000000;
+            return rawValue(v) & 0x80000000;
         }
 
-        static JSValue* from(char);
-        static JSValue* from(signed char);
-        static JSValue* from(unsigned char);
-        static JSValue* from(short);
-        static JSValue* from(unsigned short);
-        static JSValue* from(int);
-        static JSValue* from(unsigned);
-        static JSValue* from(long);
-        static JSValue* from(unsigned long);
-        static JSValue* from(long long);
-        static JSValue* from(unsigned long long);
-        static JSValue* from(double);
+        static JSValuePtr from(char);
+        static JSValuePtr from(signed char);
+        static JSValuePtr from(unsigned char);
+        static JSValuePtr from(short);
+        static JSValuePtr from(unsigned short);
+        static JSValuePtr from(int);
+        static JSValuePtr from(unsigned);
+        static JSValuePtr from(long);
+        static JSValuePtr from(unsigned long);
+        static JSValuePtr from(long long);
+        static JSValuePtr from(unsigned long long);
+        static JSValuePtr from(double);
 
-        static ALWAYS_INLINE bool isEitherImmediate(const JSValue* v1, const JSValue* v2)
+        static ALWAYS_INLINE bool isEitherImmediate(JSValuePtr v1, JSValuePtr v2)
         {
-            return (reinterpret_cast<uintptr_t>(v1) | reinterpret_cast<uintptr_t>(v2)) & TagMask;
+            return (rawValue(v1) | rawValue(v2)) & TagMask;
         }
 
-        static ALWAYS_INLINE bool isAnyImmediate(const JSValue* v1, const JSValue* v2, JSValue* v3)
+        static ALWAYS_INLINE bool isAnyImmediate(JSValuePtr v1, JSValuePtr v2, JSValuePtr v3)
         {
-            return (reinterpret_cast<uintptr_t>(v1) | reinterpret_cast<uintptr_t>(v2) | reinterpret_cast<uintptr_t>(v3)) & TagMask;
+            return (rawValue(v1) | rawValue(v2) | rawValue(v3)) & TagMask;
         }
 
-        static ALWAYS_INLINE bool areBothImmediate(const JSValue* v1, const JSValue* v2)
+        static ALWAYS_INLINE bool areBothImmediate(JSValuePtr v1, JSValuePtr v2)
         {
             return isImmediate(v1) & isImmediate(v2);
         }
 
-        static ALWAYS_INLINE bool areBothImmediateNumbers(const JSValue* v1, const JSValue* v2)
+        static ALWAYS_INLINE bool areBothImmediateNumbers(JSValuePtr v1, JSValuePtr v2)
         {
-            return reinterpret_cast<uintptr_t>(v1) & reinterpret_cast<uintptr_t>(v2) & TagBitTypeInteger;
+            return rawValue(v1) & rawValue(v2) & TagBitTypeInteger;
         }
 
-        static ALWAYS_INLINE JSValue* andImmediateNumbers(const JSValue* v1, const JSValue* v2)
-        {
-            ASSERT(areBothImmediateNumbers(v1, v2));
-            return reinterpret_cast<JSValue*>(reinterpret_cast<uintptr_t>(v1) & reinterpret_cast<uintptr_t>(v2));
-        }
-
-        static ALWAYS_INLINE JSValue* xorImmediateNumbers(const JSValue* v1, const JSValue* v2)
+        static ALWAYS_INLINE JSValuePtr andImmediateNumbers(JSValuePtr v1, JSValuePtr v2)
         {
             ASSERT(areBothImmediateNumbers(v1, v2));
-            return reinterpret_cast<JSValue*>((reinterpret_cast<uintptr_t>(v1) ^ reinterpret_cast<uintptr_t>(v2)) | TagBitTypeInteger);
+            return makeValue(rawValue(v1) & rawValue(v2));
         }
 
-        static ALWAYS_INLINE JSValue* orImmediateNumbers(const JSValue* v1, const JSValue* v2)
+        static ALWAYS_INLINE JSValuePtr xorImmediateNumbers(JSValuePtr v1, JSValuePtr v2)
         {
             ASSERT(areBothImmediateNumbers(v1, v2));
-            return reinterpret_cast<JSValue*>(reinterpret_cast<uintptr_t>(v1) | reinterpret_cast<uintptr_t>(v2));
+            return makeValue((rawValue(v1) ^ rawValue(v2)) | TagBitTypeInteger);
         }
 
-        static ALWAYS_INLINE JSValue* rightShiftImmediateNumbers(const JSValue* val, const JSValue* shift)
+        static ALWAYS_INLINE JSValuePtr orImmediateNumbers(JSValuePtr v1, JSValuePtr v2)
+        {
+            ASSERT(areBothImmediateNumbers(v1, v2));
+            return makeValue(rawValue(v1) | rawValue(v2));
+        }
+
+        static ALWAYS_INLINE JSValuePtr rightShiftImmediateNumbers(JSValuePtr val, JSValuePtr shift)
         {
             ASSERT(areBothImmediateNumbers(val, shift));
-            return reinterpret_cast<JSValue*>((reinterpret_cast<intptr_t>(val) >> ((reinterpret_cast<uintptr_t>(shift) >> IntegerPayloadShift) & 0x1f)) | TagBitTypeInteger);
+            return makeValue((static_cast<intptr_t>(rawValue(val)) >> ((rawValue(shift) >> IntegerPayloadShift) & 0x1f)) | TagBitTypeInteger);
         }
 
-        static ALWAYS_INLINE bool canDoFastAdditiveOperations(const JSValue* v)
+        static ALWAYS_INLINE bool canDoFastAdditiveOperations(JSValuePtr v)
         {
             // Number is non-negative and an operation involving two of these can't overflow.
             // Checking for allowed negative numbers takes more time than it's worth on SunSpider.
-            return (reinterpret_cast<uintptr_t>(v) & (TagBitTypeInteger + (3u << 30))) == TagBitTypeInteger;
+            return (rawValue(v) & (TagBitTypeInteger + (3u << 30))) == TagBitTypeInteger;
         }
 
-        static ALWAYS_INLINE JSValue* addImmediateNumbers(const JSValue* v1, const JSValue* v2)
+        static ALWAYS_INLINE JSValuePtr addImmediateNumbers(JSValuePtr v1, JSValuePtr v2)
         {
             ASSERT(canDoFastAdditiveOperations(v1));
             ASSERT(canDoFastAdditiveOperations(v2));
-            return reinterpret_cast<JSValue*>(reinterpret_cast<uintptr_t>(v1) + reinterpret_cast<uintptr_t>(v2) - TagBitTypeInteger);
+            return makeValue(rawValue(v1) + rawValue(v2) - TagBitTypeInteger);
         }
 
-        static ALWAYS_INLINE JSValue* subImmediateNumbers(const JSValue* v1, const JSValue* v2)
+        static ALWAYS_INLINE JSValuePtr subImmediateNumbers(JSValuePtr v1, JSValuePtr v2)
         {
             ASSERT(canDoFastAdditiveOperations(v1));
             ASSERT(canDoFastAdditiveOperations(v2));
-            return reinterpret_cast<JSValue*>(reinterpret_cast<uintptr_t>(v1) - reinterpret_cast<uintptr_t>(v2) + TagBitTypeInteger);
+            return makeValue(rawValue(v1) - rawValue(v2) + TagBitTypeInteger);
         }
 
-        static ALWAYS_INLINE JSValue* incImmediateNumber(const JSValue* v)
+        static ALWAYS_INLINE JSValuePtr incImmediateNumber(JSValuePtr v)
         {
             ASSERT(canDoFastAdditiveOperations(v));
-            return reinterpret_cast<JSValue*>(reinterpret_cast<uintptr_t>(v) + (1 << IntegerPayloadShift));
+            return makeValue(rawValue(v) + (1 << IntegerPayloadShift));
         }
 
-        static ALWAYS_INLINE JSValue* decImmediateNumber(const JSValue* v)
+        static ALWAYS_INLINE JSValuePtr decImmediateNumber(JSValuePtr v)
         {
             ASSERT(canDoFastAdditiveOperations(v));
-            return reinterpret_cast<JSValue*>(reinterpret_cast<uintptr_t>(v) - (1 << IntegerPayloadShift));
+            return makeValue(rawValue(v) - (1 << IntegerPayloadShift));
         }
 
-        static double toDouble(const JSValue*);
-        static bool toBoolean(const JSValue*);
-        static JSObject* toObject(const JSValue*, ExecState*);
-        static UString toString(const JSValue*);
+        static double toDouble(JSValuePtr);
+        static bool toBoolean(JSValuePtr);
+        static JSObject* toObject(JSValuePtr, ExecState*);
+        static UString toString(JSValuePtr);
 
-        static bool getUInt32(const JSValue*, uint32_t&);
-        static bool getTruncatedInt32(const JSValue*, int32_t&);
-        static bool getTruncatedUInt32(const JSValue*, uint32_t&);
+        static bool getUInt32(JSValuePtr, uint32_t&);
+        static bool getTruncatedInt32(JSValuePtr, int32_t&);
+        static bool getTruncatedUInt32(JSValuePtr, uint32_t&);
 
-        static int32_t getTruncatedInt32(const JSValue*);
-        static uint32_t getTruncatedUInt32(const JSValue*);
+        static int32_t getTruncatedInt32(JSValuePtr);
+        static uint32_t getTruncatedUInt32(JSValuePtr);
 
-        static JSValue* trueImmediate();
-        static JSValue* falseImmediate();
-        static JSValue* undefinedImmediate();
-        static JSValue* nullImmediate();
-        static JSValue* zeroImmediate();
-        static JSValue* oneImmediate();
+        static JSValuePtr trueImmediate();
+        static JSValuePtr falseImmediate();
+        static JSValuePtr undefinedImmediate();
+        static JSValuePtr nullImmediate();
+        static JSValuePtr zeroImmediate();
+        static JSValuePtr oneImmediate();
 
-        static JSValue* impossibleValue();
+        static JSValuePtr impossibleValue();
         
-        static JSObject* prototype(const JSValue*, ExecState*);
+        static JSObject* prototype(JSValuePtr, ExecState*);
 
     private:
         static const int minImmediateInt = ((-INT_MAX) - 1) >> IntegerPayloadShift;
         static const int maxImmediateInt = INT_MAX >> IntegerPayloadShift;
         static const unsigned maxImmediateUInt = maxImmediateInt;
-        
-        static ALWAYS_INLINE JSValue* makeInt(int32_t value)
+
+        static ALWAYS_INLINE JSValuePtr makeValue(uintptr_t integer)
         {
-            return reinterpret_cast<JSValue*>((value << IntegerPayloadShift) | TagBitTypeInteger);
+            return reinterpret_cast<JSValue*>(integer);
+        }
+
+        static ALWAYS_INLINE JSValuePtr makeInt(int32_t value)
+        {
+            return makeValue((value << IntegerPayloadShift) | TagBitTypeInteger);
         }
         
-        static ALWAYS_INLINE JSValue* makeBool(bool b)
+        static ALWAYS_INLINE JSValuePtr makeBool(bool b)
         {
-            return reinterpret_cast<JSValue*>((static_cast<uintptr_t>(b) << ExtendedPayloadShift) | FullTagTypeBool);
+            return makeValue((static_cast<uintptr_t>(b) << ExtendedPayloadShift) | FullTagTypeBool);
         }
         
-        static ALWAYS_INLINE JSValue* makeUndefined()
+        static ALWAYS_INLINE JSValuePtr makeUndefined()
         {
-            return reinterpret_cast<JSValue*>(FullTagTypeUndefined);
+            return makeValue(FullTagTypeUndefined);
         }
         
-        static ALWAYS_INLINE JSValue* makeNull()
+        static ALWAYS_INLINE JSValuePtr makeNull()
         {
-            return reinterpret_cast<JSValue*>(FullTagTypeNull);
+            return makeValue(FullTagTypeNull);
         }
         
-        static ALWAYS_INLINE int32_t intValue(const JSValue* v)
+        static ALWAYS_INLINE int32_t intValue(JSValuePtr v)
         {
-            return static_cast<int32_t>(reinterpret_cast<intptr_t>(v) >> IntegerPayloadShift);
+            return static_cast<int32_t>(static_cast<intptr_t>(rawValue(v)) >> IntegerPayloadShift);
         }
         
-        static ALWAYS_INLINE uint32_t uintValue(const JSValue* v)
+        static ALWAYS_INLINE uint32_t uintValue(JSValuePtr v)
         {
             return static_cast<uint32_t>(rawValue(v) >> IntegerPayloadShift);
         }
         
-        static ALWAYS_INLINE bool boolValue(const JSValue* v)
+        static ALWAYS_INLINE bool boolValue(JSValuePtr v)
         {
             return rawValue(v) & ExtendedPayloadBitBoolValue;
         }
         
-        static ALWAYS_INLINE uintptr_t rawValue(const JSValue* v)
+        static ALWAYS_INLINE uintptr_t rawValue(JSValuePtr v)
         {
-            return reinterpret_cast<uintptr_t>(v);
+            return reinterpret_cast<uintptr_t>(v.payload());
         }
 
         static double nonInlineNaN();
     };
 
-    ALWAYS_INLINE JSValue* JSImmediate::trueImmediate() { return makeBool(true); }
-    ALWAYS_INLINE JSValue* JSImmediate::falseImmediate() { return makeBool(false); }
-    ALWAYS_INLINE JSValue* JSImmediate::undefinedImmediate() { return makeUndefined(); }
-    ALWAYS_INLINE JSValue* JSImmediate::nullImmediate() { return makeNull(); }
-    ALWAYS_INLINE JSValue* JSImmediate::zeroImmediate() { return makeInt(0); }
-    ALWAYS_INLINE JSValue* JSImmediate::oneImmediate() { return makeInt(1); }
+    ALWAYS_INLINE JSValuePtr JSImmediate::trueImmediate() { return makeBool(true); }
+    ALWAYS_INLINE JSValuePtr JSImmediate::falseImmediate() { return makeBool(false); }
+    ALWAYS_INLINE JSValuePtr JSImmediate::undefinedImmediate() { return makeUndefined(); }
+    ALWAYS_INLINE JSValuePtr JSImmediate::nullImmediate() { return makeNull(); }
+    ALWAYS_INLINE JSValuePtr JSImmediate::zeroImmediate() { return makeInt(0); }
+    ALWAYS_INLINE JSValuePtr JSImmediate::oneImmediate() { return makeInt(1); }
 
     // This value is impossible because 0x4 is not a valid pointer but a tag of 0 would indicate non-immediate
-    ALWAYS_INLINE JSValue* JSImmediate::impossibleValue() { return reinterpret_cast<JSValue*>(0x4); }
+    ALWAYS_INLINE JSValuePtr JSImmediate::impossibleValue() { return makeValue(0x4); }
 
-    ALWAYS_INLINE bool JSImmediate::toBoolean(const JSValue* v)
+    ALWAYS_INLINE bool JSImmediate::toBoolean(JSValuePtr v)
     {
         ASSERT(isImmediate(v));
         uintptr_t bits = rawValue(v);
@@ -316,100 +346,100 @@ namespace JSC {
             : bits == (FullTagTypeBool | ExtendedPayloadBitBoolValue); // bool true
     }
 
-    ALWAYS_INLINE uint32_t JSImmediate::getTruncatedUInt32(const JSValue* v)
+    ALWAYS_INLINE uint32_t JSImmediate::getTruncatedUInt32(JSValuePtr v)
     {
         ASSERT(isNumber(v));
         return intValue(v);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(char i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(char i)
     {
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(signed char i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(signed char i)
     {
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(unsigned char i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(unsigned char i)
     {
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(short i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(short i)
     {
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(unsigned short i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(unsigned short i)
     {
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(int i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(int i)
     {
         if ((i < minImmediateInt) | (i > maxImmediateInt))
-            return 0;
+            return noValue();
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(unsigned i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(unsigned i)
     {
         if (i > maxImmediateUInt)
-            return 0;
+            return noValue();
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(long i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(long i)
     {
         if ((i < minImmediateInt) | (i > maxImmediateInt))
-            return 0;
+            return noValue();
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(unsigned long i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(unsigned long i)
     {
         if (i > maxImmediateUInt)
-            return 0;
+            return noValue();
         return makeInt(i);
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(long long i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(long long i)
     {
         if ((i < minImmediateInt) | (i > maxImmediateInt))
-            return 0;
+            return noValue();
         return makeInt(static_cast<uintptr_t>(i));
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(unsigned long long i)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(unsigned long long i)
     {
         if (i > maxImmediateUInt)
-            return 0;
+            return noValue();
         return makeInt(static_cast<uintptr_t>(i));
     }
 
-    ALWAYS_INLINE JSValue* JSImmediate::from(double d)
+    ALWAYS_INLINE JSValuePtr JSImmediate::from(double d)
     {
         const int intVal = static_cast<int>(d);
 
         if ((intVal < minImmediateInt) | (intVal > maxImmediateInt))
-            return 0;
+            return noValue();
 
         // Check for data loss from conversion to int.
         if (intVal != d || (!intVal && signbit(d)))
-            return 0;
+            return noValue();
 
         return makeInt(intVal);
     }
 
-    ALWAYS_INLINE int32_t JSImmediate::getTruncatedInt32(const JSValue* v)
+    ALWAYS_INLINE int32_t JSImmediate::getTruncatedInt32(JSValuePtr v)
     {
         ASSERT(isNumber(v));
         return intValue(v);
     }
 
-    ALWAYS_INLINE double JSImmediate::toDouble(const JSValue* v)
+    ALWAYS_INLINE double JSImmediate::toDouble(JSValuePtr v)
     {
         ASSERT(isImmediate(v));
         int i;
@@ -422,34 +452,34 @@ namespace JSC {
         return i;
     }
 
-    ALWAYS_INLINE bool JSImmediate::getUInt32(const JSValue* v, uint32_t& i)
+    ALWAYS_INLINE bool JSImmediate::getUInt32(JSValuePtr v, uint32_t& i)
     {
         i = uintValue(v);
         return isPositiveNumber(v);
     }
 
-    ALWAYS_INLINE bool JSImmediate::getTruncatedInt32(const JSValue* v, int32_t& i)
+    ALWAYS_INLINE bool JSImmediate::getTruncatedInt32(JSValuePtr v, int32_t& i)
     {
         i = intValue(v);
         return isNumber(v);
     }
 
-    ALWAYS_INLINE bool JSImmediate::getTruncatedUInt32(const JSValue* v, uint32_t& i)
+    ALWAYS_INLINE bool JSImmediate::getTruncatedUInt32(JSValuePtr v, uint32_t& i)
     {
         return getUInt32(v, i);
     }
 
-    ALWAYS_INLINE JSValue* jsUndefined()
+    ALWAYS_INLINE JSValuePtr jsUndefined()
     {
         return JSImmediate::undefinedImmediate();
     }
 
-    inline JSValue* jsNull()
+    inline JSValuePtr jsNull()
     {
         return JSImmediate::nullImmediate();
     }
 
-    inline JSValue* jsBoolean(bool b)
+    inline JSValuePtr jsBoolean(bool b)
     {
         return b ? JSImmediate::trueImmediate() : JSImmediate::falseImmediate();
     }

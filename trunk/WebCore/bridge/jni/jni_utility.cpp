@@ -347,14 +347,12 @@ jvalue getJNIField( jobject obj, JNIType type, const char *name, const char *sig
     return result;
 }
 
-static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, const char *javaClassName)
+static jobject convertArrayInstanceToJavaArray(ExecState* exec, JSArray* jsArray, const char* javaClassName)
 {
-
     JNIEnv *env = getJNIEnv();
     // As JS Arrays can contain a mixture of objects, assume we can convert to
     // the requested Java Array type requested, unless the array type is some object array
     // other than a string.
-    JSArray *jsArray = static_cast<JSArray *>(value);
     unsigned length = jsArray->length();
     jobjectArray jarray = 0;
     
@@ -367,7 +365,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
                 env->FindClass("java/lang/String"),
                 env->NewStringUTF(""));
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 UString stringValue = item->toString(exec);
                 env->SetObjectArrayElement(jarray,i,
                     env->functions->NewString(env, (const jchar *)stringValue.data(), stringValue.size()));
@@ -379,7 +377,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case boolean_type: {
             jarray = (jobjectArray)env->NewBooleanArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 jboolean value = (jboolean)item->toNumber(exec);
                 env->SetBooleanArrayRegion((jbooleanArray)jarray, (jsize)i, (jsize)1, &value);
             }
@@ -389,7 +387,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case byte_type: {
             jarray = (jobjectArray)env->NewByteArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 jbyte value = (jbyte)item->toNumber(exec);
                 env->SetByteArrayRegion((jbyteArray)jarray, (jsize)i, (jsize)1, &value);
             }
@@ -399,7 +397,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case char_type: {
             jarray = (jobjectArray)env->NewCharArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 UString stringValue = item->toString(exec);
                 jchar value = 0;
                 if (stringValue.size() > 0)
@@ -412,7 +410,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case short_type: {
             jarray = (jobjectArray)env->NewShortArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 jshort value = (jshort)item->toNumber(exec);
                 env->SetShortArrayRegion((jshortArray)jarray, (jsize)i, (jsize)1, &value);
             }
@@ -422,7 +420,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case int_type: {
             jarray = (jobjectArray)env->NewIntArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 jint value = (jint)item->toNumber(exec);
                 env->SetIntArrayRegion((jintArray)jarray, (jsize)i, (jsize)1, &value);
             }
@@ -432,7 +430,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case long_type: {
             jarray = (jobjectArray)env->NewLongArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 jlong value = (jlong)item->toNumber(exec);
                 env->SetLongArrayRegion((jlongArray)jarray, (jsize)i, (jsize)1, &value);
             }
@@ -442,7 +440,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case float_type: {
             jarray = (jobjectArray)env->NewFloatArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 jfloat value = (jfloat)item->toNumber(exec);
                 env->SetFloatArrayRegion((jfloatArray)jarray, (jsize)i, (jsize)1, &value);
             }
@@ -452,7 +450,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
         case double_type: {
             jarray = (jobjectArray)env->NewDoubleArray(length);
             for(unsigned i = 0; i < length; i++) {
-                JSValue* item = jsArray->get(exec, i);
+                JSValuePtr item = jsArray->get(exec, i);
                 jdouble value = (jdouble)item->toNumber(exec);
                 env->SetDoubleArrayRegion((jdoubleArray)jarray, (jsize)i, (jsize)1, &value);
             }
@@ -470,7 +468,7 @@ static jobject convertArrayInstanceToJavaArray(ExecState *exec, JSValue *value, 
 }
 
 
-jvalue convertValueToJValue (ExecState *exec, JSValue *value, JNIType _JNIType, const char *javaClassName)
+jvalue convertValueToJValue(ExecState* exec, JSValuePtr value, JNIType _JNIType, const char* javaClassName)
 {
     JSLock lock(false);
     
@@ -483,22 +481,22 @@ jvalue convertValueToJValue (ExecState *exec, JSValue *value, JNIType _JNIType, 
             
             // First see if we have a Java instance.
             if (value->isObject()){
-                JSObject *objectImp = static_cast<JSObject*>(value);
+                JSObject* objectImp = asObject(value);
                 if (objectImp->classInfo() == &RuntimeObjectImp::s_info) {
-                    RuntimeObjectImp *imp = static_cast<RuntimeObjectImp *>(value);
+                    RuntimeObjectImp* imp = static_cast<RuntimeObjectImp*>(objectImp);
                     JavaInstance *instance = static_cast<JavaInstance*>(imp->getInternalInstance());
                     if (instance)
                         result.l = instance->javaInstance();
                 }
                 else if (objectImp->classInfo() == &RuntimeArray::s_info) {
                 // Input is a JavaScript Array that was originally created from a Java Array
-                    RuntimeArray *imp = static_cast<RuntimeArray *>(value);
+                    RuntimeArray* imp = static_cast<RuntimeArray*>(objectImp);
                     JavaArray *array = static_cast<JavaArray*>(imp->getConcreteArray());
                     result.l = array->javaArray();
                 } 
                 else if (objectImp->classInfo() == &JSArray::info) {
                     // Input is a Javascript Array. We need to create it to a Java Array.
-                    result.l = convertArrayInstanceToJavaArray(exec, value, javaClassName);
+                    result.l = convertArrayInstanceToJavaArray(exec, asArray(value), javaClassName);
                 }
             }
             

@@ -1,3 +1,950 @@
+2008-10-20  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21705
+        Implement Web Workers client-side API
+
+        The implementation is experimental, and disabled by default. It doesn't quite match the
+        published draft, being influenced by further WHATWG discussions.
+
+        This only implements the client-side API, and does not actually create any threads or
+        global contexts yet.
+
+        * DerivedSources.make: Added DedicatedWorker. SharedWorker is not implemented yet, as I'm
+        still not sure if having separate classes for these helps at all.
+
+        * WebCore.xcodeproj/project.pbxproj: Added new files.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (jsDOMWindowBaseWorker):
+        (WebCore::JSDOMWindowBase::put):
+        (setJSDOMWindowBaseWorker):
+        Added window.Worker constructor. Moved JSXSLTProcessorConstructor.h include out of ifdef
+        to match prevailing style.
+
+        * bindings/js/JSDedicatedWorkerConstructor.cpp: Added.
+        * bindings/js/JSDedicatedWorkerConstructor.h: Added.
+        * bindings/js/JSDedicatedWorkerCustom.cpp: Added.
+        The implementation of event listeners are left custom intentionally, for easier implementation
+        of listeners that are not tied to any Document in the future.
+
+        * dom/DedicatedWorker.cpp: Added.
+        * dom/DedicatedWorker.h: Added.
+        * dom/DedicatedWorker.idl: Added.
+        Added an implementation that can only load requested scripts for now.
+
+2008-10-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - fix assertion seen when opening inspector
+
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::getOwnPropertySlot):
+        Removed unneeded asObject cast.
+
+2008-10-19  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by Timothy Hatcher.
+
+        - remove empty directories and correct the MIME type of inspector images
+
+        * page/inspector: Removed.
+        * page/inspector/Images: Removed.
+
+2008-10-19  Timothy Hatcher  <timothy@apple.com>
+
+        Make the Web Inspector Resources panel open quicker and change graphs
+        faster. There was some accidental n^2 logic at fault when updating the
+        graph boundaries.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21742
+
+        Reviewed by Darin Adler.
+
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel.prototype.set calculator): Return early for
+        a null calculator. Remove the second argument passed to _refreshAllResources.
+        (WebInspector.ResourcesPanel.prototype.refresh): Call updateBoundaries on
+        the calculator for all the stale resources before calling refreshResource.
+        Pass true for the first argument of refreshResource to skip the boundary update.
+        (WebInspector.ResourcesPanel.prototype._updateGraphBoundariesIfNeeded): Remove
+        the second argument passed to _refreshAllResources.
+        (WebInspector.ResourcesPanel.prototype._refreshAllResourcesSoon): Remove the
+        skipSort argument since every passed true, and it would be bad to pass false.
+        (WebInspector.ResourcesPanel.prototype._refreshAllResources): Ditto. And if
+        skipBoundaryUpdate is false, call updateBoundaries on the calculator for all
+        the resources before calling refreshResource. Pass true for the first argument
+        of refreshResource to skip the boundary update.
+
+2008-10-19  Timothy Hatcher  <timothy@apple.com>
+
+        Visually distinguish resources that loaded from the memory cache.
+
+        https://bugs.webkit.org/show_bug.cgi?id=14279
+
+        Reviewed by Dan Bernstein.
+
+        * English.lproj/localizedStrings.js: New string.
+        * inspector/front-end/Images/timelineHollowPillBlue.png: Added.
+        * inspector/front-end/Images/timelineHollowPillGray.png: Added.
+        * inspector/front-end/Images/timelineHollowPillGreen.png: Added.
+        * inspector/front-end/Images/timelineHollowPillOrange.png: Added.
+        * inspector/front-end/Images/timelineHollowPillPurple.png: Added.
+        * inspector/front-end/Images/timelineHollowPillRed.png: Added.
+        * inspector/front-end/Images/timelineHollowPillYellow.png: Added.
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.ResourceCalculator.prototype.computeBarGraphLabels):
+        Add the "(from cache)" suffix to the tooltip.
+        (WebInspector.ResourceTimeCalculator.prototype.computeBarGraphLabels):
+        Add the "(from cache)" suffix to the tooltip.
+        (WebInspector.ResourceGraph): Add the "resource-cached" class.
+        * inspector/front-end/inspector.css: New styles to make the timeline
+        bars use the hollow pill images.
+
+2008-10-19  Timothy Hatcher  <timothy@apple.com>
+
+        Update the scroll position in the Resources panel when loading
+        a new page or toggling on small resource rows.
+
+        https://bugs.webkit.org/show_bug.cgi?id=20114
+
+        Reviewed by Darin Adler.
+
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel.prototype.reset): Scroll to the top,
+        since all the resource are being removed.
+        (WebInspector.ResourcesPanel.prototype.removeResource): Call
+        _adjustScrollPosition in case the view is shorter and needs scrolled.
+        (WebInspector.ResourcesPanel.prototype._toggleLargerResources): Ditto.
+        (WebInspector.ResourcesPanel.prototype._adjustScrollPosition): Check
+        the height of the sidebar against the scrollTop and height of the
+        resourcesContainerElement. If the sidebar is shorter, scroll up
+        so the last resource is at the bottom again.
+
+2008-10-19  Timothy Hatcher  <timothy@apple.com>
+
+        Show per resource times and sizes when hovering over the bar graph for a resource.
+
+        https://bugs.webkit.org/show_bug.cgi?id=14300
+        rdar://problem/5712802
+
+        Reviewed by Cameron Zwarich.
+
+        * English.lproj/localizedStrings.js: Add new strings.
+        * inspector/front-end/Images/graphLabelCalloutLeft.png: Added.
+        * inspector/front-end/Images/graphLabelCalloutRight.png: Added.
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel.prototype.refreshResource): Pass the calculator to the
+        ResourceGraph.refresh function.
+        (WebInspector.ResourceCalculator.prototype.computeBarGraphLabels): Default implementation
+        returns the formatted value.
+        (WebInspector.ResourceTimeCalculator.prototype.computeBarGraphLabels): Return discrete values
+        for the latency and download times. Also generate a custom tooltip.
+        (WebInspector.ResourceGraph): Add a mouseover event listener that calls refreshLabelPositions.
+        (WebInspector.ResourceGraph.prototype.refreshLabelPositions): Added. Updates the label positions
+        in case the bar has changed size.
+        (WebInspector.ResourceGraph.prototype.refresh): Set the label text and tooltips.
+        * inspector/front-end/inspector.css: New styles for the labels.
+
+2008-10-19  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Remove most uses of JSValue, which will be removed in a future patch.
+
+        * bindings/js/JSCustomXPathNSResolver.h: Removed declaration of JSValue
+        and used JSValuePtr instead.
+        * bindings/js/JSEventTarget.h: Ditto.
+        * bindings/js/JSNodeFilterCondition.h: Ditto.
+        * bindings/js/ScheduledAction.h: Ditto.
+        * bindings/js/ScriptController.h: Ditto.
+        * bindings/objc/WebScriptObjectPrivate.h: Ditto.
+        * bridge/c/c_utility.h: Ditto.
+        * bridge/jni/jni_jsobject.h: Ditto.
+        * bridge/jni/jni_utility.h: Ditto.
+        * bridge/objc/WebScriptObject.h: Ditto.
+        * dom/Traversal.h: Ditto.
+        * inspector/InspectorController.cpp: Ditto.
+        * inspector/JavaScriptProfile.h: Ditto.
+        * inspector/JavaScriptProfileNode.h: Ditto.
+        * loader/FrameLoader.h: Ditto.
+        * page/Console.h: Ditto.
+        * plugins/MimeTypeArray.h: Ditto.
+        * plugins/Plugin.h: Ditto.
+        * plugins/PluginArray.h: Ditto.
+        * plugins/PluginView.cpp:
+        (WebCore::getString): Ditto.
+        (WebCore::PluginView::performRequest): Ditto.
+        * plugins/gtk/PluginViewGtk.cpp: Ditto.
+        * plugins/qt/PluginViewQt.cpp: Ditto.
+        * plugins/win/PluginViewWin.cpp: Ditto.
+
+        * bridge/qt/qt_class.cpp:
+        (JSC::Bindings::QtClass::fallbackObject): Use JSValuePtr and JSObject*
+        instead of JSValue*.
+        * bridge/qt/qt_class.h: Ditto.
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtInstance::mark): Ditto.
+        (JSC::Bindings::QtInstance::invokeMethod): Ditto.
+        (JSC::Bindings::QtInstance::defaultValue): Ditto.
+        (JSC::Bindings::QtInstance::stringValue): Ditto.
+        (JSC::Bindings::QtInstance::numberValue): Ditto.
+        (JSC::Bindings::QtInstance::booleanValue): Ditto.
+        (JSC::Bindings::QtInstance::valueOf): Ditto.
+        (JSC::Bindings::QtField::valueFromInstance): Ditto.
+        (JSC::Bindings::QtField::setValueToInstance): Ditto.
+        * bridge/qt/qt_instance.h: Ditto.
+        * bridge/qt/qt_runtime.cpp: Ditto.
+        (JSC::Bindings::valueRealType): Ditto.
+        (JSC::Bindings::convertValueToQVariant): Ditto.
+        (JSC::Bindings::convertQVariantToValue): Ditto.
+        (JSC::Bindings::findMethodIndex): Ditto.
+        (JSC::Bindings::QtRuntimeMetaMethod::call): Ditto.
+        (JSC::Bindings::QtRuntimeMetaMethod::lengthGetter): Ditto.
+        (JSC::Bindings::QtRuntimeMetaMethod::connectGetter): Ditto.
+        (JSC::Bindings::QtRuntimeMetaMethod::disconnectGetter): Ditto.
+        (JSC::Bindings::QtRuntimeConnectionMethod::call): Ditto.
+        (JSC::Bindings::QtRuntimeConnectionMethod::lengthGetter): Ditto.
+        (JSC::Bindings::QtArray::setValueAt): Ditto.
+        (JSC::Bindings::QtArray::valueAt): Ditto.
+        * bridge/qt/qt_runtime.h: Ditto.
+
+        * bridge/testqtbindings.cpp:
+        (main): Use JSValuePtr.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Tweak a little more to get closer to where we can make JSValuePtr a class.
+
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::JSAudioConstructor::JSAudioConstructor): Use asObject.
+        (WebCore::constructAudio): Ditto.
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclaration::nameGetter): Ditto.
+
+        * bindings/js/JSCanvasRenderingContext2DCustom.cpp:
+        (WebCore::toHTMLCanvasStyle): Use asString and asObject.
+        (WebCore::JSCanvasRenderingContext2D::setFillColor): Ditto.
+        (WebCore::JSCanvasRenderingContext2D::setStrokeColor): Ditto.
+        (WebCore::JSCanvasRenderingContext2D::drawImage): Ditto.
+        (WebCore::JSCanvasRenderingContext2D::drawImageFromRect): Ditto.
+        (WebCore::JSCanvasRenderingContext2D::setShadow): Ditto.
+        (WebCore::JSCanvasRenderingContext2D::createPattern): Ditto.
+
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent): Use JSValuePtr.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::setDOMException): Use noValue.
+
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::getDOMPrototype): Use asObject.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::showModalDialog): Use noValue.
+        (jsDOMWindowBaseEvent): Use asObject.
+        (jsDOMWindowBaseImage): Ditto.
+        (jsDOMWindowBaseMessageChannel): Ditto.
+        (jsDOMWindowBaseOption): Ditto.
+        (jsDOMWindowBaseXMLHttpRequest): Ditto.
+        (jsDOMWindowBaseAudio): Ditto.
+        (jsDOMWindowBaseXSLTProcessor): Ditto.
+        (WebCore::JSDOMWindowBase::childFrameGetter): Ditto.
+        (WebCore::JSDOMWindowBase::indexGetter): Ditto.
+        (WebCore::JSDOMWindowBase::namedItemGetter): Ditto.
+        (WebCore::JSDOMWindowBase::getOwnPropertySlot): Ditto.
+        (WebCore::JSDOMWindowBase::findJSEventListener): Ditto.
+        (WebCore::JSDOMWindowBase::findOrCreateJSEventListener): Ditto.
+        (WebCore::JSDOMWindowBase::findJSUnprotectedEventListener): Ditto.
+        (WebCore::JSDOMWindowBase::findOrCreateJSUnprotectedEventListener): Ditto.
+        (windowProtoFuncOpen): Use noValue.
+        (WebCore::toJSDOMWindow): Use asObject.
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::setTimeoutOrInterval): Use asString.
+        (WebCore::toDOMWindow): Use asObject.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent): Use noValue.
+        (WebCore::JSLazyEventListener::parseCode): Use asObject.
+
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        (WebCore::JSHTMLCollection::nameGetter): Use asObject.
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        (WebCore::JSHTMLDocument::nameGetter): Ditto.
+        * bindings/js/JSHTMLElementCustom.cpp:
+        (WebCore::JSHTMLElement::pushEventHandlerScope): Ditto.
+        * bindings/js/JSHTMLFormElementCustom.cpp:
+        (WebCore::JSHTMLFormElement::nameGetter): Ditto.
+        * bindings/js/JSHTMLFrameSetElementCustom.cpp:
+        (WebCore::JSHTMLFrameSetElement::nameGetter): Ditto.
+        * bindings/js/JSHTMLOptionElementConstructor.cpp:
+        (WebCore::JSHTMLOptionElementConstructor::JSHTMLOptionElementConstructor): Ditto.
+        (WebCore::constructHTMLOptionElement): Ditto.
+        * bindings/js/JSHTMLOptionsCollectionCustom.cpp:
+        (WebCore::JSHTMLOptionsCollection::remove): Ditto.
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::JSImageConstructor::JSImageConstructor): Ditto.
+        (WebCore::constructImage): Ditto.
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        (WebCore::JSInspectedObjectWrapper::wrap): Ditto.
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        (WebCore::JSInspectorCallbackWrapper::wrap): Ditto.
+
+        * bindings/js/JSJavaScriptCallFrameCustom.cpp:
+        (WebCore::JSJavaScriptCallFrame::evaluate): Use noValue.
+
+        * bindings/js/JSMessageChannelConstructor.cpp:
+        (WebCore::JSMessageChannelConstructor::JSMessageChannelConstructor): Use asObject.
+        (WebCore::JSMessageChannelConstructor::construct): Ditto.
+        * bindings/js/JSMimeTypeArrayCustom.cpp:
+        (WebCore::JSMimeTypeArray::nameGetter): Ditto.
+        * bindings/js/JSNamedNodeMapCustom.cpp:
+        (WebCore::JSNamedNodeMap::nameGetter): Ditto.
+        * bindings/js/JSNamedNodesCollection.cpp:
+        (WebCore::JSNamedNodesCollection::lengthGetter): Ditto.
+        (WebCore::JSNamedNodesCollection::indexGetter): Ditto.
+        * bindings/js/JSNodeFilterCustom.cpp:
+        (WebCore::toNodeFilter): Ditto.
+        * bindings/js/JSNodeListCustom.cpp:
+        (WebCore::JSNodeList::nameGetter): Ditto.
+        * bindings/js/JSPluginArrayCustom.cpp:
+        (WebCore::JSPluginArray::nameGetter): Ditto.
+        * bindings/js/JSPluginCustom.cpp:
+        (WebCore::JSPlugin::nameGetter): Ditto.
+        * bindings/js/JSPluginElementFunctions.cpp:
+        (WebCore::runtimeObjectGetter): Ditto.
+        (WebCore::runtimeObjectPropertyGetter): Ditto.
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::asWrapper): Ditto.
+        (WebCore::JSQuarantinedObjectWrapper::getOwnPropertySlot): Ditto.
+        (WebCore::JSQuarantinedObjectWrapper::construct): Ditto.
+        * bindings/js/JSRGBColor.cpp:
+        (jsRGBColorRed): Ditto.
+        (jsRGBColorGreen): Ditto.
+        (jsRGBColorBlue): Ditto.
+
+        * bindings/js/JSSQLResultSetRowListCustom.cpp:
+        (WebCore::JSSQLResultSetRowList::item): Use noValue.
+
+        * bindings/js/JSStorageCustom.cpp:
+        (WebCore::JSStorage::nameGetter): Use asObject.
+        (WebCore::JSStorage::deleteProperty): Ditto.
+        (WebCore::JSStorage::customPut): Ditto.
+        * bindings/js/JSStyleSheetListCustom.cpp:
+        (WebCore::JSStyleSheetList::nameGetter): Ditto.
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        (WebCore::JSXMLHttpRequestConstructor::JSXMLHttpRequestConstructor): Ditto.
+        * bindings/js/JSXSLTProcessorCustom.cpp:
+        (WebCore::JSXSLTProcessor::importStylesheet): Ditto.
+        (WebCore::JSXSLTProcessor::transformToFragment): Ditto.
+        (WebCore::JSXSLTProcessor::transformToDocument): Ditto.
+
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate): Use noValue.
+        * bindings/objc/DOMInternal.mm:
+        (-[WebScriptObject _initializeScriptDOMNodeImp]): Ditto.
+
+        * bindings/objc/WebScriptObject.mm:
+        (-[WebScriptObject evaluateWebScript:]): Use JSValuePtr.
+        (-[WebScriptObject valueForKey:]): Ditto.
+        (-[WebScriptObject webScriptValueAtIndex:]): Ditto.
+        (+[WebScriptObject _convertValueToObjcValue:originRootObject:rootObject:]):
+        Use asObject and asString.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Use asObject.
+
+        * bridge/c/c_instance.h: Use JSValuePtr.
+        * bridge/c/c_runtime.cpp:
+        (JSC::Bindings::CField::setValueToInstance): Ditto.
+
+        * bridge/c/c_utility.cpp:
+        (JSC::Bindings::convertValueToNPVariant): Use asObject.
+
+        * bridge/jni/jni_instance.cpp:
+        (JavaInstance::booleanValue): Use JSValuePtr.
+        (JavaInstance::invokeMethod): Ditto. And noValue.
+        * bridge/jni/jni_jsobject.mm:
+        (JavaJSObject::getSlot): Ditto.
+        (JavaJSObject::convertValueToJObject): Ditto.
+        * bridge/jni/jni_runtime.cpp:
+        (JavaField::dispatchValueFromInstance): Ditto.
+        (JavaField::valueFromInstance): Ditto.
+        (JavaField::dispatchSetValueToInstance): Ditto.
+        (JavaField::setValueToInstance): Ditto.
+        (JavaArray::setValueAt): Ditto.
+        (JavaArray::valueAt): Ditto.
+        * bridge/jni/jni_runtime.h: Ditto.
+
+        * bridge/jni/jni_utility.cpp:
+        (JSC::Bindings::convertArrayInstanceToJavaArray): Take a JSArray*
+        instead of a JSValue*.
+        (JSC::Bindings::convertValueToJValue): Use asObject and asArray.
+
+        * bridge/objc/objc_class.h: Use JSValuePtr.
+        * bridge/objc/objc_instance.h: Ditto.
+        * bridge/objc/objc_runtime.h: Ditto.
+
+        * bridge/objc/objc_runtime.mm:
+        (JSC::Bindings::callObjCFallbackObject): Use asObject.
+
+        * bridge/objc/objc_utility.h: Use JSValuePtr.
+        * bridge/objc/objc_utility.mm:
+        (JSC::Bindings::convertValueToObjcValue): Use JSValuePtr and asObject.
+        (JSC::Bindings::convertObjcValueToValue): Use jsUndefined() instead of 0.
+
+        * bridge/runtime.cpp:
+        (JSC::Bindings::Instance::getValueOfField): Use JSValuePtr.
+        (JSC::Bindings::Instance::setValueOfField): Ditto.
+
+        * bridge/runtime_array.cpp:
+        (JSC::RuntimeArray::lengthGetter): Use JSValuePtr and asObject.
+        (JSC::RuntimeArray::indexGetter): Ditto.
+        * bridge/runtime_array.h: Ditto.
+        * bridge/runtime_method.cpp:
+        (JSC::RuntimeMethod::lengthGetter): Ditto.
+        (JSC::callRuntimeMethod): Ditto.
+        * bridge/runtime_object.cpp:
+        (JSC::RuntimeObjectImp::fallbackObjectGetter): Ditto.
+        (JSC::RuntimeObjectImp::fieldGetter): Ditto.
+        (JSC::RuntimeObjectImp::methodGetter): Ditto.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::executeScript): Use noValue.
+
+        * page/Console.cpp:
+        (WebCore::Console::trace): Use asInternalFunction.
+
+2008-10-19  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        - lower the default button repaint frequency
+
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::styleDidChange): Changed the timer interval from
+        0.01 to 0.03.
+
+2008-10-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        - Windows build fix
+
+        * rendering/RenderThemeSafari.cpp:
+        (WebCore::RenderThemeSafari::paintMediaFullscreenButton):
+        (WebCore::RenderThemeSafari::paintMediaMuteButton):
+        (WebCore::RenderThemeSafari::paintMediaPlayButton):
+        (WebCore::RenderThemeSafari::paintMediaSeekBackButton):
+        (WebCore::RenderThemeSafari::paintMediaSeekForwardButton):
+        (WebCore::RenderThemeSafari::paintMediaSliderThumb):
+
+2008-10-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - WebCore part of https://bugs.webkit.org/show_bug.cgi?id=21736
+          Long-dead decoded image data make up for most of the object cache's memory use over time
+
+        Add a cache setting for how long decoded image data should be allowed to
+        persist in memory after the image has died. By default, this is set to
+        0, which means "forever".
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::Cache): Initialize m_deadDecodedDataDeletionInterval.
+        * loader/Cache.h:
+        (WebCore::Cache::setDeadDecodedDataDeletionInterval): Added a setter.
+        (WebCore::Cache::deadDecodedDataDeletionInterval): Added a getter.
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::CachedImage): Initialize the decoded data
+        deletion timer.
+        (WebCore::CachedImage::decodedDataDeletionTimerFired): Added. Destroys
+        the decoded image data.
+        (WebCore::CachedImage::addClient): Stop the timer if it is active.
+        (WebCore::CachedImage::allClientsRemoved): Start the decoded data
+        deletion timer.
+        * loader/CachedImage.h:
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21645
+          REGRESSION (r37469-r37605): File Input not Uploaded in Multipart/Form-data Form
+
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::formData):
+        Fix loop that goes through the FormDataList to go two at a time in a clearer
+        way. My last patch screwed up the way it got form content from the items.
+        This "two at a time" approach is a confusing way to do things, which explains
+        why I got it wrong last time through, but I decided to just fix it locally for
+        now rather than changing the design of FormDataList.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        - next step on https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Use JSValuePtr everywhere instead of JSValue*. In the future, we'll be
+        changing JSValuePtr to be a class, and then eventually renaming it
+        to JSValue once that's done.
+
+        * bindings/js/JSAttrCustom.cpp:
+        * bindings/js/JSCSSRuleCustom.cpp:
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        * bindings/js/JSCSSValueCustom.cpp:
+        * bindings/js/JSCanvasPixelArrayCustom.h:
+        * bindings/js/JSCanvasRenderingContext2DCustom.cpp:
+        * bindings/js/JSClipboardCustom.cpp:
+        * bindings/js/JSConsoleCustom.cpp:
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        * bindings/js/JSCustomVoidCallback.cpp:
+        * bindings/js/JSCustomVoidCallback.h:
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        * bindings/js/JSDOMBinding.cpp:
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        * bindings/js/JSDOMWindowCustom.h:
+        * bindings/js/JSDOMWindowShell.cpp:
+        * bindings/js/JSDOMWindowShell.h:
+        * bindings/js/JSDatabaseCustom.cpp:
+        * bindings/js/JSDocumentCustom.cpp:
+        * bindings/js/JSElementCustom.cpp:
+        * bindings/js/JSEventCustom.cpp:
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/JSEventTarget.cpp:
+        * bindings/js/JSEventTargetBase.h:
+        * bindings/js/JSEventTargetNodeCustom.cpp:
+        * bindings/js/JSHTMLAllCollection.h:
+        * bindings/js/JSHTMLAppletElementCustom.cpp:
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        * bindings/js/JSHTMLEmbedElementCustom.cpp:
+        * bindings/js/JSHTMLFormElementCustom.cpp:
+        * bindings/js/JSHTMLFrameElementCustom.cpp:
+        * bindings/js/JSHTMLFrameSetElementCustom.cpp:
+        * bindings/js/JSHTMLIFrameElementCustom.cpp:
+        * bindings/js/JSHTMLInputElementCustom.cpp:
+        * bindings/js/JSHTMLObjectElementCustom.cpp:
+        * bindings/js/JSHTMLOptionsCollectionCustom.cpp:
+        * bindings/js/JSHTMLSelectElementCustom.cpp:
+        * bindings/js/JSHTMLSelectElementCustom.h:
+        * bindings/js/JSHistoryCustom.cpp:
+        * bindings/js/JSImageDataCustom.cpp:
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        * bindings/js/JSInspectedObjectWrapper.h:
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        * bindings/js/JSInspectorCallbackWrapper.h:
+        * bindings/js/JSJavaScriptCallFrameCustom.cpp:
+        * bindings/js/JSLocationCustom.cpp:
+        * bindings/js/JSMessagePortCustom.cpp:
+        * bindings/js/JSMimeTypeArrayCustom.cpp:
+        * bindings/js/JSNamedNodeMapCustom.cpp:
+        * bindings/js/JSNamedNodesCollection.cpp:
+        * bindings/js/JSNamedNodesCollection.h:
+        * bindings/js/JSNavigatorCustom.cpp:
+        * bindings/js/JSNodeCustom.cpp:
+        * bindings/js/JSNodeFilterCondition.cpp:
+        * bindings/js/JSNodeFilterCustom.cpp:
+        * bindings/js/JSNodeIteratorCustom.cpp:
+        * bindings/js/JSNodeListCustom.cpp:
+        * bindings/js/JSPluginArrayCustom.cpp:
+        * bindings/js/JSPluginCustom.cpp:
+        * bindings/js/JSPluginElementFunctions.cpp:
+        * bindings/js/JSPluginElementFunctions.h:
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+        * bindings/js/JSRGBColor.cpp:
+        * bindings/js/JSRGBColor.h:
+        * bindings/js/JSSQLResultSetRowListCustom.cpp:
+        * bindings/js/JSSQLTransactionCustom.cpp:
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        * bindings/js/JSSVGLengthCustom.cpp:
+        * bindings/js/JSSVGMatrixCustom.cpp:
+        * bindings/js/JSSVGPathSegCustom.cpp:
+        * bindings/js/JSSVGPathSegListCustom.cpp:
+        * bindings/js/JSSVGPointListCustom.cpp:
+        * bindings/js/JSSVGTransformListCustom.cpp:
+        * bindings/js/JSStorageCustom.cpp:
+        * bindings/js/JSStyleSheetCustom.cpp:
+        * bindings/js/JSStyleSheetListCustom.cpp:
+        * bindings/js/JSTextCustom.cpp:
+        * bindings/js/JSTreeWalkerCustom.cpp:
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        * bindings/js/JSXSLTProcessorCustom.cpp:
+        * bindings/js/ScheduledAction.cpp:
+        * bindings/js/ScheduledAction.h:
+        * bindings/js/ScriptController.cpp:
+        * bindings/js/ScriptController.h:
+        * bindings/objc/WebScriptObject.mm:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+        * bridge/c/c_instance.cpp:
+        * bridge/c/c_instance.h:
+        * bridge/c/c_runtime.cpp:
+        * bridge/c/c_runtime.h:
+        * bridge/c/c_utility.cpp:
+        * bridge/jni/jni_instance.cpp:
+        * bridge/jni/jni_instance.h:
+        * bridge/jni/jni_jsobject.mm:
+        * bridge/jni/jni_objc.mm:
+        * bridge/jni/jni_runtime.cpp:
+        * bridge/jni/jni_runtime.h:
+        * bridge/jni/jni_utility.cpp:
+        * bridge/objc/objc_class.mm:
+        * bridge/objc/objc_instance.h:
+        * bridge/objc/objc_instance.mm:
+        * bridge/objc/objc_runtime.h:
+        * bridge/objc/objc_runtime.mm:
+        * bridge/objc/objc_utility.h:
+        * bridge/objc/objc_utility.mm:
+        * bridge/runtime.h:
+        * bridge/runtime_array.cpp:
+        * bridge/runtime_array.h:
+        * bridge/runtime_method.cpp:
+        * bridge/runtime_method.h:
+        * bridge/runtime_object.cpp:
+        * bridge/runtime_object.h:
+        * inspector/JavaScriptCallFrame.cpp:
+        * inspector/JavaScriptCallFrame.h:
+        * inspector/JavaScriptProfile.cpp:
+        * inspector/JavaScriptProfileNode.cpp:
+        * loader/FrameLoader.cpp:
+        * loader/FrameLoader.h:
+        * page/Console.cpp:
+        * page/Console.h:
+        * plugins/MimeTypeArray.h:
+        * plugins/Plugin.h:
+        * plugins/PluginArray.h:
+        * xml/XMLHttpRequest.cpp:
+        Replace JSValue* with JSValuePtr.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - first step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Update for change to make PreferredPrimitiveType no longer
+        a member of JSValue.
+
+        * bridge/c/c_instance.cpp:
+        (JSC::Bindings::CInstance::defaultValue): Removed JSValue:: prefix.
+        * bridge/jni/jni_instance.cpp:
+        (JavaInstance::defaultValue): Ditto.
+        * bridge/objc/objc_instance.mm:
+        (ObjcInstance::defaultValue): Ditto.
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtInstance::defaultValue): Ditto.
+        * bridge/runtime.h: Ditto. Also removed typedef.
+
+2008-10-18  Darin Adler  <darin@apple.com>
+
+        - try to fix Windows build
+
+        * rendering/RenderThemeSafari.cpp:
+        (WebCore::RenderThemeSafari::paintCheckbox): Explicitly qualify part name with
+        SafariTheme namespace, since there is now an identically named constant in
+        the ControlPart enum.
+        (WebCore::RenderThemeSafari::paintButton): Ditto.
+        (WebCore::RenderThemeSafari::paintTextField): Ditto.
+        (WebCore::RenderThemeSafari::paintTextArea): Ditto.
+        (WebCore::RenderThemeSafari::paintSearchField): Ditto.
+        (WebCore::RenderThemeSafari::paintSearchFieldCancelButton): Ditto.
+        (WebCore::RenderThemeSafari::paintSearchFieldResultsDecoration): Ditto.
+        (WebCore::RenderThemeSafari::paintSearchFieldResultsButton): Ditto.
+
+2008-10-18  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Alp Toker.
+
+        [GTK] crash after selecting a file on an <input type=file>
+        https://bugs.webkit.org/show_bug.cgi?id=21385
+
+        Follow Mac and Win's behaviors for Icon::paint
+
+        * platform/graphics/gtk/IconGtk.cpp:
+        (WebCore::Icon::paint): check if painting is enabled before
+        painting the icon
+
+2008-10-18  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Oliver Hunt.
+
+        Qt port build fix.
+
+        * platform/qt/RenderThemeQt.h:
+
+2008-10-17  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier
+        
+        Fix wx port's scrollbar and drawing handling after recent changes.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=21720
+
+        * platform/ScrollView.h:
+        * platform/wx/ScrollViewWx.cpp:
+        (WebCore::ScrollView::platformVisibleContentRect):
+        (WebCore::ScrollView::platformContentsSize):
+        (WebCore::ScrollView::platformSetContentsSize):
+        * platform/wx/WidgetWx.cpp:
+        (WebCore::Widget::paint):
+
+2008-10-17  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix. EAppearance -> ControlPart.
+
+        * platform/wx/RenderThemeWx.cpp:
+        (WebCore::RenderThemeWx::isControlStyled):
+        (WebCore::RenderThemeWx::adjustRepaintRect):
+        (WebCore::RenderThemeWx::controlSupportsTints):
+        (WebCore::RenderThemeWx::supportsFocus):
+        (WebCore::RenderThemeWx::paintButton):
+
+2008-10-17  David Hyatt  <hyatt@apple.com>
+
+        Eliminate the EAppearance enum in favor of the new ControlPart enum.  Cut out the scrollbar
+        values from the enum since they are handled by ScrollbarTheme instead.
+
+        Reviewed by Tim Hatcher
+
+        * css/CSSPrimitiveValueMappings.h:
+        (WebCore::CSSPrimitiveValue::CSSPrimitiveValue):
+        (WebCore::CSSPrimitiveValue::operator ControlPart):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::adjustRenderStyle):
+        * css/CSSValueKeywords.in:
+        * platform/gtk/RenderThemeGtk.cpp:
+        (WebCore::supportsFocus):
+        (WebCore::RenderThemeGtk::baselinePosition):
+        (WebCore::setToggleSize):
+        (WebCore::RenderThemeGtk::setCheckboxSize):
+        (WebCore::RenderThemeGtk::setRadioSize):
+        (WebCore::RenderThemeGtk::adjustButtonStyle):
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::baselinePosition):
+        (WebCore::RenderThemeQt::controlSupportsTints):
+        (WebCore::RenderThemeQt::adjustRepaintRect):
+        (WebCore::RenderThemeQt::isControlStyled):
+        (WebCore::computeSizeBasedOnStyle):
+        (WebCore::RenderThemeQt::paintButton):
+        (WebCore::RenderThemeQt::paintTextField):
+        (WebCore::RenderThemeQt::paintMenuList):
+        (WebCore::RenderThemeQt::supportsFocus):
+        (WebCore::RenderThemeQt::applyTheme):
+        (WebCore::RenderThemeQt::adjustSliderThumbSize):
+        * platform/qt/RenderThemeQt.h:
+        * rendering/RenderSlider.cpp:
+        (WebCore::RenderSlider::createThumbStyle):
+        (WebCore::RenderSlider::layout):
+        (WebCore::RenderSlider::setValueForPosition):
+        (WebCore::RenderSlider::setPositionFromValue):
+        (WebCore::RenderSlider::positionForOffset):
+        (WebCore::RenderSlider::currentPosition):
+        (WebCore::RenderSlider::setCurrentPosition):
+        (WebCore::RenderSlider::trackSize):
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::adjustStyle):
+        (WebCore::RenderTheme::paint):
+        (WebCore::RenderTheme::paintBorderOnly):
+        (WebCore::RenderTheme::paintDecorations):
+        (WebCore::RenderTheme::isControlContainer):
+        (WebCore::RenderTheme::isControlStyled):
+        (WebCore::RenderTheme::supportsFocusRing):
+        (WebCore::RenderTheme::isDefault):
+        * rendering/RenderTheme.h:
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::isControlStyled):
+        (WebCore::RenderThemeMac::adjustRepaintRect):
+        (WebCore::RenderThemeMac::baselinePosition):
+        (WebCore::RenderThemeMac::controlSupportsTints):
+        (WebCore::RenderThemeMac::adjustButtonStyle):
+        (WebCore::RenderThemeMac::setButtonCellState):
+        (WebCore::RenderThemeMac::popupInternalPaddingLeft):
+        (WebCore::RenderThemeMac::popupInternalPaddingRight):
+        (WebCore::RenderThemeMac::popupInternalPaddingTop):
+        (WebCore::RenderThemeMac::popupInternalPaddingBottom):
+        (WebCore::RenderThemeMac::paintSliderTrack):
+        (WebCore::RenderThemeMac::paintSliderThumb):
+        (WebCore::RenderThemeMac::adjustSliderThumbSize):
+        * rendering/RenderThemeSafari.cpp:
+        (WebCore::RenderThemeSafari::isControlStyled):
+        (WebCore::RenderThemeSafari::adjustRepaintRect):
+        (WebCore::RenderThemeSafari::baselinePosition):
+        (WebCore::RenderThemeSafari::controlSupportsTints):
+        (WebCore::RenderThemeSafari::adjustButtonStyle):
+        (WebCore::RenderThemeSafari::popupInternalPaddingLeft):
+        (WebCore::RenderThemeSafari::popupInternalPaddingRight):
+        (WebCore::RenderThemeSafari::popupInternalPaddingTop):
+        (WebCore::RenderThemeSafari::popupInternalPaddingBottom):
+        (WebCore::RenderThemeSafari::paintSliderTrack):
+        (WebCore::RenderThemeSafari::adjustSliderThumbSize):
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::supportsFocus):
+        (WebCore::RenderThemeWin::determineClassicState):
+        (WebCore::RenderThemeWin::getClassicThemeData):
+        (WebCore::RenderThemeWin::getThemeData):
+        (WebCore::drawControl):
+        (WebCore::RenderThemeWin::paintSliderTrack):
+        (WebCore::RenderThemeWin::adjustSliderThumbSize):
+        * rendering/RenderThemeWin.h:
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::hasAppearance):
+        (WebCore::InheritedFlags::appearance):
+        (WebCore::InheritedFlags::setAppearance):
+        (WebCore::InheritedFlags::initialAppearance):
+        * rendering/style/RenderStyleConstants.h:
+
+2008-10-17  David Hyatt  <hyatt@apple.com>
+
+        Beginning of the RenderTheme re-architecture (to share more code).  Add the new Theme API header
+        file.  Add new USE(NEW_THEME) switch that is enabled on Mac.  The Mac theme will be converted first.
+
+        Reviewed by Tim Hatcher
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * config.h:
+        * platform/Theme.h: Added.
+        (WebCore::Theme::Theme):
+        (WebCore::Theme::~Theme):
+        (WebCore::Theme::baselinePositionAdjustment):
+        (WebCore::Theme::controlHasInactiveAppearance):
+        (WebCore::Theme::controlsCanHaveInactiveAppearance):
+        (WebCore::Theme::controlsCanHaveHoveredAppearance):
+        (WebCore::Theme::controlDrawsBorder):
+        (WebCore::Theme::controlDrawsBackground):
+        (WebCore::Theme::controlDrawsFocusOutline):
+        (WebCore::Theme::selectionColor):
+        (WebCore::Theme::textSearchHighlightColor):
+        (WebCore::Theme::systemColor):
+        (WebCore::Theme::systemFont):
+        (WebCore::Theme::caretBlinkFrequency):
+        (WebCore::Theme::themeChanged):
+        (WebCore::Theme::controlSize):
+        (WebCore::Theme::controlFont):
+        (WebCore::Theme::controlPadding):
+        (WebCore::Theme::controlInternalPadding):
+        (WebCore::Theme::controlBorder):
+        (WebCore::Theme::controlBorderRadius):
+        (WebCore::Theme::paint):
+        (WebCore::Theme::inflateControlPaintRect):
+        * platform/ThemeTypes.h: Added.
+        (WebCore::):
+        (WebCore::ControlBox::ControlBox):
+        (WebCore::ControlBox::top):
+        (WebCore::ControlBox::right):
+        (WebCore::ControlBox::bottom):
+        (WebCore::ControlBox::left):
+        * platform/mac/ThemeMac.h: Added.
+        (WebCore::ThemeMac::ThemeMac):
+        (WebCore::ThemeMac::~ThemeMac):
+        * platform/mac/ThemeMac.mm: Added.
+        (WebCore::platformTheme):
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::RenderTheme):
+        * rendering/RenderTheme.h:
+
+2008-10-17  Marco Barisione  <marco.barisione@collabora.co.uk>
+
+        Reviewed by Sam Weinig. Landed by Jan Alonzo.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21603
+        [GTK] Minor fixes to GOwnPtr
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::mediaPlayerPrivateErrorCallback):
+
+2008-10-17  Timothy Hatcher  <timothy@apple.com>
+
+        Recompile the JavaScript functions when removing any listener, so functions that are
+        not being debugged can resume normal speed again.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21715
+
+        Reviewed by Geoffrey Garen.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::globalExec): Changed an assert into an if check. This assert
+        was firing when closing the window and having the recompile fire after. This was an
+        overzelious assert now.
+        * inspector/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::didRemoveListener): Start the recompile timer.
+        (WebCore::JavaScriptDebugServer::didRemoveLastListener): Removed the recompile timer start.
+
+2008-10-17  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes a regression where starting a debugging session in
+        another Web Inspector window would not show any scripts.
+        Also only attach the debugger to only the required Pages.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21708
+
+        Reviewed by Darin Adler.
+
+        * inspector/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::addListener): Add an assert and
+        remove the call to willAddFirstListener(). Add a call to
+        didAddListener().
+        (WebCore::JavaScriptDebugServer::removeListener): Add an assert
+        and call to didRemoveListener().
+        (WebCore::JavaScriptDebugServer::pageCreated): Attach the debugger
+        if there is a listener interested in the new Page.
+        (WebCore::JavaScriptDebugServer::hasListenersInterestedInPage):
+        Use hasGlobalListeners() instead of isEmpty().
+        (WebCore::JavaScriptDebugServer::sourceParsed): Ditto.
+        (WebCore::JavaScriptDebugServer::didAddListener): Added. Attach the
+        debugger to the page if non-null, or all pages if page is null.
+        (WebCore::JavaScriptDebugServer::didRemoveListener): Added. Detach
+        the debugger only if there are no interested listeners.
+        (WebCore::JavaScriptDebugServer::didRemoveLastListener): Remove the
+        call to Page::setDebuggerForAllPages().
+        * inspector/JavaScriptDebugServer.h:
+        (WebCore::JavaScriptDebugServer::hasGlobalListeners): Added.
+
+2008-10-15  Brett Wilson  <brettw@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Have ImageDocument generate its own filename for the title of images
+        without relying on the suggested filename from the network layer, which
+        may be nonexistant or not relevant.
+        https://bugs.webkit.org/show_bug.cgi?id=21565
+
+        * loader/ImageDocument.cpp:
+        (WebCore::ImageTokenizer::finish):
+
+2008-10-17  Alexey Proskuryakov  <ap@webkit.org>
+
+        Non-Mac build fix.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCoreSources.bkl:
+        Added ActiveDOMObject to the build.
+
 2008-10-17  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Sam Weinig.

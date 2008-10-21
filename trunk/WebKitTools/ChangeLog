@@ -1,3 +1,42 @@
+2008-10-20  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Mark Rowe.
+        
+        - default to 1000 tests per dump tool instance again, now that CTI no longer causes
+        excess different stack logs.
+        
+        (Also fix a small bug in my last change.)
+
+        * Scripts/run-webkit-tests:
+
+2008-10-17  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix layout tests that use prologues and epilogues.
+
+        * Scripts/run-webkit-tests:
+
+2008-10-17  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Mark Rowe.
+        
+        - make sure MallocStackLogging is only on for tools we want to
+        leak check, not other random stuff as well.
+
+        * Scripts/run-webkit-tests:
+
+2008-10-17  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Stephanie Lewis.
+        
+        - make run-webkit-tests --leaks default to 100 tests per run instead of 1000
+        
+        This should reduce or eliminate crashes on the buildbot due to
+        running out of memory while stack logging.
+
+        * Scripts/run-webkit-tests:
+
 2008-10-17  Jan Michael Alonzo  <jmalonzo@webkit.org>
 
         Gtk build fix. Not reviewed.

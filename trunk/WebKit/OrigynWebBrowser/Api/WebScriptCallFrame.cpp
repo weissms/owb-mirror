@@ -43,7 +43,7 @@
 using namespace JSC;
 using namespace WebCore;
 
-UString WebScriptCallFrame::jsValueToString(JSC::ExecState* state, JSValue* jsvalue)
+UString WebScriptCallFrame::jsValueToString(JSC::ExecState* state, JSValuePtr jsvalue)
 {
     if (!jsvalue)
         return "undefined";
@@ -55,7 +55,7 @@ UString WebScriptCallFrame::jsValueToString(JSC::ExecState* state, JSValue* jsva
     else if (jsvalue->isBoolean())
         return jsvalue->getBoolean() ? "True" : "False";
     else if (jsvalue->isObject()) {
-        jsvalue = jsvalue->getObject()->defaultValue(state, JSValue::PreferString);
+        jsvalue = jsvalue->getObject()->defaultValue(state, PreferString);
         return jsvalue->getString();
     }
 
@@ -116,7 +116,7 @@ String WebScriptCallFrame::functionName()
 String WebScriptCallFrame::stringByEvaluatingJavaScriptFromString(String script)
 {
     JSLock lock(false);
-    JSValue* scriptExecutionResult = valueByEvaluatingJavaScriptFromString(script);
+    JSValuePtr scriptExecutionResult = valueByEvaluatingJavaScriptFromString(script);
     return jsValueToString(m_state, scriptExecutionResult);
 }
 
@@ -133,7 +133,7 @@ String WebScriptCallFrame::valueForVariable(String key)
 {
     Identifier identKey(m_state, key.utf8().data());
 
-    JSValue* jsvalue = 0;
+    JSValuePtr jsvalue = noValue();
     /*ScopeChain scopeChain = m_state->scopeChain();
     for (ScopeChainIterator it = scopeChain.begin(); it != scopeChain.end() && !jsvalue; ++it)
         jsvalue = (*it)->get(m_state, identKey);*/
@@ -141,7 +141,7 @@ String WebScriptCallFrame::valueForVariable(String key)
     return jsValueToString(m_state, jsvalue);
 }
 
-JSValue* WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String script)
+JSValuePtr WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String script)
 {
 #if 0
     ExecState* state = m_state;
@@ -150,21 +150,21 @@ JSValue* WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String script
     // find "eval"
     JSObject* eval = 0;
     if (state->scopeNode()) {  // "eval" won't work without context (i.e. at global scope)
-        JSValue* v = globObj->get(state, "eval");
-        if (v->isObject() && static_cast<JSObject*>(v)->implementsCall())
-            eval = static_cast<JSObject*>(v);
+        JSValuePtr v = globObj->get(state, "eval");
+        if (v->isObject() && asObject(v)->implementsCall())
+            eval = asObject(v);
         else
             // no "eval" - fallback operates on global exec state
             state = globObj->globalExec();
     }
 
-    JSValue* savedException = state->exception();
+    JSValuePtr savedException = state->exception();
     state->clearException();
 
     UString code(script.utf8().data());
 
     // evaluate
-    JSValue* scriptExecutionResult;
+    JSValuePtr scriptExecutionResult;
     if (eval) {
         List args;
         args.append(jsString(code));

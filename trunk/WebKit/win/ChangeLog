@@ -1,3 +1,61 @@
+2008-10-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        - next step of https://bugs.webkit.org/show_bug.cgi?id=21732
+          improve performance by eliminating JSValue as a base class for JSCell
+
+        Remove most uses of JSValue, which will be removed in a future patch.
+
+        * WebScriptCallFrame.cpp:
+        (WebScriptCallFrame::jsValueToString): Use JSValuePtr.
+        (WebScriptCallFrame::stringByEvaluatingJavaScriptFromString): Ditto.
+        (WebScriptCallFrame::valueForVariable): Put more code inside and ifdef.
+        (WebScriptCallFrame::valueByEvaluatingJavaScriptFromString): Ditto.
+        * WebScriptCallFrame.h: Use JSValuePtr.
+
+        * WebView.cpp:
+        (WebView::stringByEvaluatingJavaScriptFromString): Use JSValuePtr.
+
+2008-10-18  Dan Bernstein  <mitz@apple.com>
+
+        - build fix
+
+        * WebScriptCallFrame.cpp:
+        (WebScriptCallFrame::jsValueToString):
+
+2008-10-18  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - WebKit/win part of https://bugs.webkit.org/show_bug.cgi?id=21736
+          Long-dead decoded image data make up for most of the object cache's memory use over time
+
+        * WebView.cpp:
+        (WebView::setCacheModel): In the primary web browser model,
+        set the cache's dead decoded data deletion interval to 60 seconds.
+
+2008-10-16  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Steve Falkenburg.
+
+        <rdar://problem/6292718>
+        Implement a standard way to get the UA given an application name.
+
+        * Interfaces/IWebViewPrivate.idl:
+        * WebView.cpp:
+        (WebView::standardUserAgentWithApplicationName):
+        * WebView.h:
+
+2008-10-17  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - export WTF::initializeOnMainThread()
+
+        * WebKit.vcproj/WebKit.def:
+        * WebKit.vcproj/WebKit_debug.def:
+
 2008-10-17  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Cameron Zwarich.

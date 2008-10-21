@@ -38,17 +38,17 @@ void GetterSetter::mark()
         m_setter->mark();
 }
 
-JSValue* GetterSetter::toPrimitive(ExecState*, PreferredPrimitiveType) const
+JSValuePtr GetterSetter::toPrimitive(ExecState*, PreferredPrimitiveType) const
 {
     ASSERT_NOT_REACHED();
     return jsNull();
 }
 
-bool GetterSetter::getPrimitiveNumber(ExecState*, double& number, JSValue*& value)
+bool GetterSetter::getPrimitiveNumber(ExecState*, double& number, JSValuePtr& value)
 {
     ASSERT_NOT_REACHED();
     number = 0;
-    value = 0;
+    value = noValue();
     return true;
 }
 

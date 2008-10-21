@@ -29,13 +29,14 @@
 #ifndef CallData_h
 #define CallData_h
 
+#include "JSImmediate.h"
+
 namespace JSC {
 
     class ArgList;
     class ExecState;
     class FunctionBodyNode;
     class JSObject;
-    class JSValue;
     class ScopeChainNode;
 
     enum CallType {
@@ -44,7 +45,7 @@ namespace JSC {
         CallTypeJS
     };
 
-    typedef JSValue* (*NativeFunction)(ExecState*, JSObject*, JSValue* thisValue, const ArgList&);
+    typedef JSValuePtr (*NativeFunction)(ExecState*, JSObject*, JSValuePtr thisValue, const ArgList&);
 
     union CallData {
         struct {
@@ -56,7 +57,7 @@ namespace JSC {
         } js;
     };
 
-    JSValue* call(ExecState*, JSValue* functionObject, CallType, const CallData&, JSValue* thisValue, const ArgList&);
+    JSValuePtr call(ExecState*, JSValuePtr functionObject, CallType, const CallData&, JSValuePtr thisValue, const ArgList&);
 
 } // namespace JSC
 

@@ -1390,6 +1390,10 @@ protected:
      */
     void removeFromAllWebViewsSet();
 
+    /**
+     * Internal method to get the User-Agent string from the application name.
+     */
+    static WebCore::String standardUserAgentWithApplicationName(const WebCore::String&);
 
     /**
      *  windowReceivedMessage 

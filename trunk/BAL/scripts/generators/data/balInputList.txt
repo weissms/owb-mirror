@@ -662,6 +662,8 @@
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollbarThemeComposite.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ScrollView.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/SearchPopupMenu.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/Theme.h
+../../WKAL/Skeletons/Widgets	../../../WebCore/platform/ThemeTypes.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/Widget.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/ClipboardGtk.h
 ../../WKAL/Skeletons/Widgets	../../../WebCore/platform/gtk/RenderThemeGtk.h
@@ -719,6 +721,8 @@
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/HostWindow.h
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/PopupMenuStyle.h
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/PopupMenuClient.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/Theme.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ThemeTypes.h
 
 ../../Base	../../../WebCore/platform/NotImplemented.h	NotImplemented.h
 ../../Base	../../../WebCore/platform/StaticConstructors.h	StaticConstructors.h

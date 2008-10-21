@@ -33,6 +33,14 @@ namespace JSC {
         static const ClassInfo info;
     };
 
+    BooleanObject* asBooleanObject(JSValuePtr);
+
+    inline BooleanObject* asBooleanObject(JSValuePtr value)
+    {
+        ASSERT(asObject(value)->inherits(&BooleanObject::info));
+        return static_cast<BooleanObject*>(asObject(value));
+    }
+
 } // namespace JSC
 
 #endif // BooleanObject_h

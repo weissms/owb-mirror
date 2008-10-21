@@ -41,10 +41,10 @@
 #include "BALBase.h"
 #include "PropertyNameArray.h"
 #include "PropertyNameArray.h"
+#include <kjs/JSValue.h>
 
 namespace JSC {
     class ExecState;
-    class JSValue;
     class UString;
 }
 
@@ -103,7 +103,7 @@ public:
     /**
      * get value by evaluating java script from string
      */
-    virtual JSC::JSValue* valueByEvaluatingJavaScriptFromString(WebCore::String script);
+    virtual JSC::JSValuePtr valueByEvaluatingJavaScriptFromString(WebCore::String script);
 
     /**
      * get state
@@ -114,7 +114,7 @@ public:
     /**
      * convert jsValue to string
      */
-    static JSC::UString jsValueToString(JSC::ExecState*, JSC::JSValue*);
+    static JSC::UString jsValueToString(JSC::ExecState*, JSC::JSValuePtr);
 
 private:
 

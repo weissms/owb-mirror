@@ -40,22 +40,20 @@ namespace JSC {
     class JSActivation;
     class JSFunction;
     class JSPropertyNameIterator;
-    class JSValue;
     class ScopeChainNode;
 
     struct Instruction;
 
     typedef ExecState CallFrame;
 
-    static JSValue* const nullJSValue = 0;
-
     class Register {
     public:
         Register();
-        Register(JSValue*);
+        Register(JSValuePtr);
+        Register(JSCell*);
 
-        JSValue* jsValue(CallFrame*) const;
-        JSValue* getJSValue() const;
+        JSValuePtr jsValue(CallFrame*) const;
+        JSValuePtr getJSValue() const;
 
         bool marked() const;
         void mark();
@@ -138,26 +136,32 @@ namespace JSC {
     {
 #ifndef NDEBUG
         SET_TYPE(EmptyType);
-        *this = nullJSValue;
+        *this = noValue();
 #endif
     }
 
-    ALWAYS_INLINE Register::Register(JSValue* v)
+    ALWAYS_INLINE Register::Register(JSValuePtr v)
     {
         SET_TYPE(ValueType);
-        u.value = v;
+        u.value = v.payload();
     }
-    
-    // This function is scaffolding for legacy clients. It will eventually go away.
-    ALWAYS_INLINE JSValue* Register::jsValue(CallFrame*) const
+
+    ALWAYS_INLINE Register::Register(JSCell* v)
     {
-        // Once registers hold doubles, this function will allocate a JSValue*
+        SET_TYPE(ValueType);
+        u.value = JSValuePtr(v).payload();
+    }
+
+    // This function is scaffolding for legacy clients. It will eventually go away.
+    ALWAYS_INLINE JSValuePtr Register::jsValue(CallFrame*) const
+    {
+        // Once registers hold doubles, this function will allocate a JSValuePtr
         // if the register doesn't hold one already. 
         ASSERT_TYPE(ValueType);
         return u.value;
     }
     
-    ALWAYS_INLINE JSValue* Register::getJSValue() const
+    ALWAYS_INLINE JSValuePtr Register::getJSValue() const
     {
         ASSERT_TYPE(JSValueType);
         return u.value;

@@ -66,7 +66,7 @@ static String convertUTF8ToUTF16WithLatin1Fallback(const NPUTF8* UTF8Chars, int 
 }
 
 // Variant value must be released with NPReleaseVariantValue()
-void convertValueToNPVariant(ExecState* exec, JSValue* value, NPVariant* result)
+void convertValueToNPVariant(ExecState* exec, JSValuePtr value, NPVariant* result)
 {
     JSLock lock(false);
 
@@ -84,9 +84,9 @@ void convertValueToNPVariant(ExecState* exec, JSValue* value, NPVariant* result)
     } else if (value->isNull()) {
         NULL_TO_NPVARIANT(*result);
     } else if (value->isObject()) {
-        JSObject* object = static_cast<JSObject*>(value);
+        JSObject* object = asObject(value);
         if (object->classInfo() == &RuntimeObjectImp::s_info) {
-            RuntimeObjectImp* imp = static_cast<RuntimeObjectImp*>(value);
+            RuntimeObjectImp* imp = static_cast<RuntimeObjectImp*>(object);
             CInstance* instance = static_cast<CInstance*>(imp->getInternalInstance());
             if (instance) {
                 NPObject* obj = instance->getObject();
@@ -105,7 +105,7 @@ void convertValueToNPVariant(ExecState* exec, JSValue* value, NPVariant* result)
     }
 }
 
-JSValue* convertNPVariantToValue(ExecState* exec, const NPVariant* variant, RootObject* rootObject)
+JSValuePtr convertNPVariantToValue(ExecState* exec, const NPVariant* variant, RootObject* rootObject)
 {
     JSLock lock(false);
     

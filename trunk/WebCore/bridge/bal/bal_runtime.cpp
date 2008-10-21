@@ -42,7 +42,7 @@ const char* BalField::name() const
     return "";
 }
 
-JSValue* BalField::valueFromInstance(ExecState* exec, const Instance* inst) const
+JSValuePtr BalField::valueFromInstance(ExecState* exec, const Instance* inst) const
 {
     const BalInstance* instance = static_cast<const BalInstance*>(inst);
     BalObject* obj = instance->getObject();
@@ -51,7 +51,7 @@ JSValue* BalField::valueFromInstance(ExecState* exec, const Instance* inst) cons
         JSLock::DropAllLocks dropAllLocks(false);
         val = obj->getProperty(m_ident);
     }
-    JSValue *v;
+    JSValuePtr v;
     if(val->m_obj != NULL)
         v = val->d->balObject(val->m_obj, exec);
     else
@@ -60,7 +60,7 @@ JSValue* BalField::valueFromInstance(ExecState* exec, const Instance* inst) cons
     return v;
 }
 
-void BalField::setValueToInstance(ExecState* exec, const Instance* inst, JSValue* aValue) const
+void BalField::setValueToInstance(ExecState* exec, const Instance* inst, JSValuePtr aValue) const
 {
     const BalInstance* instance = static_cast<const BalInstance*>(inst);
     BalObject* obj = instance->getObject();

@@ -152,7 +152,7 @@ static inline void retrieveLastCaller(ExecState* exec, KURL& url, unsigned& line
     int signedLineNumber;
     intptr_t sourceID;
     UString urlString;
-    JSValue* function;
+    JSValuePtr function;
 
     exec->machine()->retrieveLastCaller(exec, signedLineNumber, sourceID, urlString, function);
 
@@ -300,14 +300,14 @@ void Console::trace(ExecState* exec)
     int signedLineNumber;
     intptr_t sourceID;
     UString urlString;
-    JSValue* func;
+    JSValuePtr func;
 
     exec->machine()->retrieveLastCaller(exec, signedLineNumber, sourceID, urlString, func);
 
     ArgList args;
     while (!func->isNull()) {
         args.append(func);
-        func = exec->machine()->retrieveCaller(exec, static_cast<InternalFunction*>(func));
+        func = exec->machine()->retrieveCaller(exec, asInternalFunction(func));
     }
     
 #if ENABLE(INSPECTOR)
@@ -478,7 +478,7 @@ void Console::warn(ExecState* exec, const ArgList& args)
     printToStandardOut(WarningMessageLevel, exec, args, url);
 }
 
-void Console::reportException(ExecState* exec, JSValue* exception)
+void Console::reportException(ExecState* exec, JSValuePtr exception)
 {
     UString errorMessage = exception->toString(exec);
     JSObject* exceptionObject = exception->toObject(exec);
@@ -491,7 +491,7 @@ void Console::reportException(ExecState* exec, JSValue* exception)
 
 void Console::reportCurrentException(ExecState* exec)
 {
-    JSValue* exception = exec->exception();
+    JSValuePtr exception = exec->exception();
     exec->clearException();
     reportException(exec, exception);
 }
