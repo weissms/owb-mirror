@@ -37,6 +37,8 @@
 #include <bal_object.h>
 #include "JSLock.h"
 
+#include "CString.h"
+
 namespace JSC {
 namespace Bindings {
 
@@ -57,6 +59,7 @@ static ClassesByBalObject* classesByBalObject = 0;
 
 BalClass* BalClass::classForObject(BalObject* o)
 {
+    printf("classForObject o = %p name = %s\n", o, o->getName().utf8().data());
     if (!classesByBalObject)
         classesByBalObject = new ClassesByBalObject;
 
@@ -77,6 +80,7 @@ const char* BalClass::name() const
 
 MethodList BalClass::methodsNamed(const Identifier& identifier, Instance* instance) const
 {
+    //printf("BalClass::methodsNamed\n");
     MethodList methodList;
 
     Method* method = m_methods.get(identifier.ustring().rep());
@@ -104,6 +108,7 @@ MethodList BalClass::methodsNamed(const Identifier& identifier, Instance* instan
 
 Field* BalClass::fieldNamed(const Identifier& identifier, Instance *instance) const
 {
+    //printf("BalClass::fieldNamed\n");
     Field* aField = m_fields.get(identifier.ustring().rep());
     if (aField)
         return aField;

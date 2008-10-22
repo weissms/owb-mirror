@@ -58,7 +58,6 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         return;
 
     if(!isInitialized) {
-        printf("not isInitialized\n");
         isInitialized = true;
         frame->view()->resize(m_rect.width(), m_rect.height());
         frame->forceLayout();
@@ -69,7 +68,7 @@ void WebViewPrivate::onExpose(BalEventExpose event)
     ctx.setBalExposeEvent(&event);
     if (frame->contentRenderer() && frame->view() && !m_webView->dirtyRegion().isEmpty()) {
         frame->view()->layoutIfNeededRecursive();
-        IntRect dirty = m_webView->dirtyRegion();
+        WebCore::IntRect dirty = m_webView->dirtyRegion();
         frame->view()->paint(&ctx, dirty);
         m_webView->clearDirtyRegion();
     }

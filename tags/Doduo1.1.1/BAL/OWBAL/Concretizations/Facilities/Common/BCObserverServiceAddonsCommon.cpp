@@ -35,7 +35,6 @@
 #include "config.h"
 #include "ObserverServiceAddons.h"
 #include "ObserverAddons.h"
-#include "CString.h"
 
 namespace OWBAL {
 

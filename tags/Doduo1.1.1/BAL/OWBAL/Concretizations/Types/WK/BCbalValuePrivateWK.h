@@ -191,7 +191,8 @@ inline void BalValuePrivate::balString(WebCore::String s)
 
 inline JSValue *BalValuePrivate::balObject(BalObject *obj, ExecState *exec)
 {
-    return Bindings::Instance::createRuntimeObject(exec, Bindings::BalInstance::create(obj, Bindings::findRootObject(exec->dynamicGlobalObject())));
+//    return Bindings::Instance::createRuntimeObject(exec, Bindings::BalInstance::create(obj, Bindings::findRootObject(exec->dynamicGlobalObject())));
+    return Bindings::Instance::createRuntimeObject(exec, Bindings::BalInstance::getBalInstance(obj, Bindings::findRootObject(exec->dynamicGlobalObject())));
     //return Bindings::Instance::createRuntimeObject(Bindings::Instance::BalLanguage, obj, Bindings::findRootObject(exec->dynamicGlobalObject()));
 }
 

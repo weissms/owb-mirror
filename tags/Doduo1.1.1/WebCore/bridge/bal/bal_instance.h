@@ -55,18 +55,13 @@ class BalClass;
 class BalInstance : public Instance
 {
 public:
-    static PassRefPtr<BalInstance> create(BalObject* object, PassRefPtr<RootObject> rootObject)
-    {
-        return adoptRef(new BalInstance(object, rootObject));
-    }
-
     ~BalInstance ();
     
     virtual Class* getClass() const;
 
     virtual JSValue* valueOf(ExecState*) const;
     virtual JSValue* defaultValue(ExecState*, PreferredPrimitiveType) const;
-    
+
     virtual JSValue *invokeMethod (ExecState *exec, const MethodList &method, const ArgList &args);
     virtual bool supportsInvokeDefaultMethod() const;
     virtual JSValue *invokeDefaultMethod (ExecState *exec, const ArgList &args);
@@ -79,7 +74,11 @@ public:
     BalObject *getObject() const { return m_object; }
 
     virtual BindingLanguage getBindingLanguage() const { return BalLanguage; }
+    static RuntimeObjectImp* getRuntimeObject(ExecState* exec, PassRefPtr<BalInstance>);
+    static PassRefPtr<BalInstance> getBalInstance(BalObject* o, PassRefPtr<RootObject> rootObject);
+
 private:
+    static PassRefPtr<BalInstance> create(BalObject* object, PassRefPtr<RootObject> rootObject);
     BalInstance(BalObject*, PassRefPtr<RootObject>);
 
     mutable BalClass* m_class;

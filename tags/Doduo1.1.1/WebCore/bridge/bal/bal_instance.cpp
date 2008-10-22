@@ -37,12 +37,70 @@
 #include "balValuePrivate.h"
 #include "wtf/HashMap.h"
 #include "ObjectPrototype.h"
+#include "JSDOMBinding.h"
 #include "JSValue.h"
 #include "JSLock.h"
 #include <cstdio>
+#include <map>
+
+using namespace std;
 
 namespace JSC {
 namespace Bindings {
+
+typedef HashMap<BalObject*, BalInstance*> BalObjectInstanceMap;
+static BalObjectInstanceMap cachedInstances;
+
+typedef HashMap<BalInstance*, JSObject*> InstanceJSObjectMap;
+static InstanceJSObjectMap cachedObjects;
+
+class BalRuntimeObjectImp : public RuntimeObjectImp {
+    public:
+        BalRuntimeObjectImp(ExecState*, PassRefPtr<Instance>);
+        ~BalRuntimeObjectImp();
+        virtual void invalidate();
+
+        virtual void mark() {
+            /*BalInstance* instance = static_cast<BalInstance*>(getInternalInstance());
+            if (instance)
+                instance->mark();*/
+            RuntimeObjectImp::mark();
+        }
+
+    protected:
+        void removeFromCache();
+};
+
+BalRuntimeObjectImp::BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance> instance)
+    : RuntimeObjectImp(exec, instance)
+{
+}
+
+BalRuntimeObjectImp::~BalRuntimeObjectImp()
+{
+    removeFromCache();
+}
+
+void BalRuntimeObjectImp::invalidate()
+{
+    removeFromCache();
+    RuntimeObjectImp::invalidate();
+}
+
+void BalRuntimeObjectImp::removeFromCache()
+{
+    /*JSLock lock(false);
+    BalInstance* key = cachedObjects.get(this);
+    if (key)
+        cachedObjects.remove(key);*/
+}
+
+
+
+PassRefPtr<BalInstance> BalInstance::create(BalObject* object, PassRefPtr<RootObject> rootObject)
+{
+    return adoptRef(new BalInstance(object, rootObject));
+}
 
 BalInstance::BalInstance(BalObject* o, PassRefPtr<RootObject> rootObject)
     : Instance(rootObject),
@@ -55,7 +113,8 @@ BalInstance::~BalInstance()
 {
     m_object = 0;
     m_class = 0;
-    //cachedObjects.remove(this);
+    cachedObjects.remove(this);
+    //cachedInstances.remove(m_hashkey);
 }
 
 /*BalInstance::BalInstance(const BalInstance& other)
@@ -172,6 +231,35 @@ void BalInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray
     // FIXME: This should really call NPN_MemFree but that's in WebKit
     free(identifiers);*/
 }
+
+PassRefPtr<BalInstance> BalInstance::getBalInstance(BalObject* o, PassRefPtr<RootObject> rootObject)
+{
+    JSLock lock(false);
+
+    /*BalInstance *instance = cachedInstances.get(o);
+    if (instance->rootObject() == rootObject)
+        return instance;*/
+
+    RefPtr<BalInstance> ret = BalInstance::create(o, rootObject);
+    //cachedInstances.add(o, ret.get());
+
+    return ret.release();
+}
+
+RuntimeObjectImp* BalInstance::getRuntimeObject(ExecState* exec, PassRefPtr<BalInstance> instance)
+{
+    JSLock lock(false);
+    BalInstance* balInstance = instance.get();
+    RuntimeObjectImp* ret = static_cast<RuntimeObjectImp*>(cachedObjects.get(balInstance));
+    if (!ret) {
+        ret = new (exec) BalRuntimeObjectImp(exec, instance);
+        cachedObjects.add(balInstance, ret);
+        ret = static_cast<RuntimeObjectImp*>(cachedObjects.get(balInstance));
+    }
+    return ret;
+}
+
+
 
 }
 }

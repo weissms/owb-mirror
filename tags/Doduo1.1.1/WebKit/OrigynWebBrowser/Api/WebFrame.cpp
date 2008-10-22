@@ -1524,11 +1524,9 @@ void WebFrame::observe(const String &topic, BalObject *obj)
     ASSERT(obj);
     ASSERT(obj->getName() != "");
 #ifdef __BINDING_JS__    
-    if (topic == "AddonRegister" /*&& !m_bindingJS->isRegistered()*/)
-#else
     if (topic == "AddonRegister")
-#endif
         addToJSWindowObject(obj->getName().utf8().data(), (void *)obj);
+#endif
 }
 
 void WebFrame::observe(const String &topic, const String &data, void*) 
@@ -1548,13 +1546,18 @@ void WebFrame::addToJSWindowObject(const char* name, void *object)
     JSDOMWindow *window = toJSDOMWindow(core(this));
     if (!window)
         return;
+    
     JSC::Bindings::RootObject *root = core(this)->script()->bindingRootObject();
-
     JSC::ExecState* exec = window->globalExec();
-    JSC::JSObject *runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
+    JSC::PropertySlot pr;
 
-    JSC::PutPropertySlot prop;
-    window->put(exec, JSC::Identifier(exec, name), runtimeObject, prop);
+    if (!window->getOwnPropertySlot(exec, JSC::Identifier(exec, name), pr)) {
+        //printf("addToJSWindowObject %p name =%s ok \n", core(this), name);
+        //JSC::JSObject *runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
+        JSC::JSObject *runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::getBalInstance(static_cast<BalObject*>(object), root));
+        JSC::PutPropertySlot prop;
+        window->put(exec, JSC::Identifier(exec, name), runtimeObject, prop);
+    }
 }
 
 
