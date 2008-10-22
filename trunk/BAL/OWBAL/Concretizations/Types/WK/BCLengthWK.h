@@ -1,8 +1,6 @@
 /*
-    This file is part of the KDE libraries
-
     Copyright (C) 1999 Lars Knoll (knoll@kde.org)
-    Copyright (C) 2006 Apple Computer, Inc.
+    Copyright (C) 2006, 2008 Apple Inc. All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -26,7 +24,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/MathExtras.h>
 
-namespace WebCore {
+namespace OWBAL {
 
 class String;
 
@@ -186,56 +184,9 @@ struct Length {
         int toValue = isZero() ? 0 : value();
         return Length(int(fromValue + (toValue - fromValue) * progress), resultType);
     }
-    
+
 private:
     int m_value;
-};
-
-struct LengthBox {
-    LengthBox() { }
-    LengthBox(LengthType t)
-        : left(t), right(t), top(t), bottom(t) { }
-
-    Length left;
-    Length right;
-    Length top;
-    Length bottom;
-
-    LengthBox& operator=(const Length& len)
-    {
-        left = len;
-        right = len;
-        top = len;
-        bottom = len;
-        return *this;
-    }
-
-    bool operator==(const LengthBox& o) const
-    {
-        return left == o.left && right == o.right && top == o.top && bottom == o.bottom;
-    }
-
-    bool operator!=(const LengthBox& o) const
-    {
-        return !(*this == o);
-    }
-
-    bool nonZero() const { return !(left.isZero() && right.isZero() && top.isZero() && bottom.isZero()); }
-};
-
-struct LengthSize {
-    Length width;
-    Length height;
-
-    LengthSize()
-    {
-    }
-    
-    LengthSize(const Length& w, const Length& h)
-        : width(w)
-        , height(h)
-    {
-    }
 };
 
 Length* newCoordsArray(const String&, int& len);

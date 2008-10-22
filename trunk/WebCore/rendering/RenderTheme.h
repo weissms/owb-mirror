@@ -84,7 +84,7 @@ public:
 
     // Some controls may spill out of their containers (e.g., the check on an OS X checkbox).  When these controls repaint,
     // the theme needs to communicate this inflated rect to the engine so that it can invalidate the whole control.
-    virtual void adjustRepaintRect(const RenderObject*, IntRect&) { }
+    virtual void adjustRepaintRect(const RenderObject*, IntRect&);
 
     // This method is called whenever a relevant state changes on a particular themed object, e.g., the mouse becomes pressed
     // or a control becomes disabled.
@@ -130,17 +130,6 @@ public:
 
     virtual void adjustSliderThumbSize(RenderObject*) const;
 
-    // Methods for state querying
-    bool isActive(const RenderObject*) const;
-    bool isChecked(const RenderObject*) const;
-    bool isIndeterminate(const RenderObject*) const;
-    bool isEnabled(const RenderObject*) const;
-    bool isFocused(const RenderObject*) const;
-    bool isPressed(const RenderObject*) const;
-    bool isHovered(const RenderObject*) const;
-    bool isReadOnlyControl(const RenderObject*) const;
-    bool isDefault(const RenderObject*) const;
-
     virtual int popupInternalPaddingLeft(RenderStyle*) const { return 0; }
     virtual int popupInternalPaddingRight(RenderStyle*) const { return 0; }
     virtual int popupInternalPaddingTop(RenderStyle*) const { return 0; }
@@ -150,6 +139,7 @@ public:
     virtual bool paintCapsLockIndicator(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return 0; };
 
 protected:
+#if !USE(NEW_THEME)
     // Methods for each appearance value.
     virtual void adjustCheckboxStyle(CSSStyleSelector*, RenderStyle*, Element*) const;
     virtual bool paintCheckbox(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return true; }
@@ -158,6 +148,7 @@ protected:
     virtual void adjustRadioStyle(CSSStyleSelector*, RenderStyle*, Element*) const;
     virtual bool paintRadio(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return true; }
     virtual void setRadioSize(RenderStyle*) const { }
+#endif
 
     virtual void adjustButtonStyle(CSSStyleSelector*, RenderStyle*, Element*) const;
     virtual bool paintButton(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return true; }
@@ -203,6 +194,19 @@ protected:
     virtual bool paintMediaSeekForwardButton(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return true; }
     virtual bool paintMediaSliderTrack(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return true; }
     virtual bool paintMediaSliderThumb(RenderObject*, const RenderObject::PaintInfo&, const IntRect&) { return true; }
+
+public:
+    // Methods for state querying
+    ControlStates controlStatesForRenderer(const RenderObject* o) const;
+    bool isActive(const RenderObject*) const;
+    bool isChecked(const RenderObject*) const;
+    bool isIndeterminate(const RenderObject*) const;
+    bool isEnabled(const RenderObject*) const;
+    bool isFocused(const RenderObject*) const;
+    bool isPressed(const RenderObject*) const;
+    bool isHovered(const RenderObject*) const;
+    bool isReadOnlyControl(const RenderObject*) const;
+    bool isDefault(const RenderObject*) const;
 
 private:
     mutable Color m_activeSelectionColor;

@@ -34,6 +34,13 @@ class ThemeMac : public Theme {
 public:
     ThemeMac() { }
     virtual ~ThemeMac() { }
+    
+    virtual int baselinePositionAdjustment(ControlPart) const;
+
+    virtual LengthSize controlSize(ControlPart, const Font&, const LengthSize&, float zoomFactor) const;
+    
+    virtual void paint(ControlPart, ControlStates, GraphicsContext*, const IntRect&, float zoomFactor, ScrollView*) const;
+    virtual void inflateControlPaintRect(ControlPart, ControlStates, IntRect&, float zoomFactor) const;
 };
 
 } // namespace WebCore

@@ -440,6 +440,9 @@
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/Assertions.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/StringExtras.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/MathExtras.h
+../../OWBAL/Skeletons/Types	../../../WebCore/platform/Length.h
+../../OWBAL/Skeletons/Types	../../../WebCore/platform/LengthSize.h
+../../OWBAL/Skeletons/Types	../../../WebCore/platform/LengthBox.h
 
 
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/Deque.h
@@ -507,6 +510,10 @@
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/MathExtras.h
 ../../OWBAL/Concretizations/Types/Gtk 	../../../JavaScriptCore/wtf/GOwnPtr.h
 ../../OWBAL/Concretizations/Types/Gtk	../../../JavaScriptCore/wtf/GOwnPtr.cpp
+../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/Length.h
+../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/Length.cpp
+../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/LengthSize.h
+../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/LengthBox.h
 
 
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformKeyboardEvent.h
@@ -722,6 +729,7 @@
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/PopupMenuStyle.h
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/PopupMenuClient.h
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/Theme.h
+../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/Theme.cpp
 ../../WKAL/Concretizations/Widgets/WK	../../../WebCore/platform/ThemeTypes.h
 
 ../../Base	../../../WebCore/platform/NotImplemented.h	NotImplemented.h

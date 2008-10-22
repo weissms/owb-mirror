@@ -117,6 +117,7 @@ javascriptcore_sources += \
 	JavaScriptCore/kjs/BooleanPrototype.h \
 	JavaScriptCore/kjs/CallData.h \
 	JavaScriptCore/kjs/ClassInfo.h \
+	JavaScriptCore/kjs/CollectorHeapIterator.h \
 	JavaScriptCore/kjs/CommonIdentifiers.h \
 	JavaScriptCore/kjs/ConstructData.h \
 	JavaScriptCore/kjs/DateConstructor.h \
@@ -284,6 +285,7 @@ javascriptcore_sources += \
 	JavaScriptCore/wtf/ThreadSpecific.h \
 	JavaScriptCore/wtf/Threading.h \
 	JavaScriptCore/wtf/ThreadingGtk.cpp \
+	JavaScriptCore/wtf/ThreadingPthreads.cpp \
 	JavaScriptCore/wtf/UnusedParam.h \
 	JavaScriptCore/wtf/Vector.h \
 	JavaScriptCore/wtf/VectorTraits.h \

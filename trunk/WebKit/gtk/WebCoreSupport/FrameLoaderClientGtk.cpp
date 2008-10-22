@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2007 Alp Toker <alp@atoker.com>
+ *  Copyright (C) 2007, 2008 Alp Toker <alp@atoker.com>
  *  Copyright (C) 2007, 2008 Holger Hans Peter Freyther
  *  Copyright (C) 2007 Christian Dywan <christian@twotoasts.de>
  *  Copyright (C) 2008 Collabora Ltd.  All rights reserved.
@@ -436,7 +436,7 @@ void FrameLoaderClient::makeRepresentation(DocumentLoader*)
 
 void FrameLoaderClient::forceLayout()
 {
-    notImplemented();
+    core(m_frame)->forceLayout(true);
 }
 
 void FrameLoaderClient::forceLayoutForNonHTML()
@@ -449,11 +449,6 @@ void FrameLoaderClient::setCopiesOnScroll()
     notImplemented();
 }
 
-void FrameLoaderClient::detachedFromParent1()
-{
-    notImplemented();
-}
-
 void FrameLoaderClient::detachedFromParent2()
 {
     notImplemented();
@@ -462,10 +457,6 @@ void FrameLoaderClient::detachedFromParent2()
 void FrameLoaderClient::detachedFromParent3()
 {
     notImplemented();
-}
-
-void FrameLoaderClient::detachedFromParent4()
-{
 }
 
 void FrameLoaderClient::loadedFromCachedPage()

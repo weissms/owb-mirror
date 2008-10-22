@@ -1,3 +1,395 @@
+2008-10-22  Oliver Hunt <oliver@apple.com>
+
+        RS=Maciej Stachowiak.
+
+        Force FastMalloc to make all allocated pages executable in
+        a vague hope this will allow the Win2k3 bot to be able to
+        run tests.
+
+        Filed Bug 21783: Need more granular control over allocation of executable memory
+        to cover a more granular version of this patch.
+
+        * wtf/TCSystemAlloc.cpp:
+        (TryVirtualAlloc):
+
+2008-10-21  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21769
+        MessagePort should be GC protected if there are messages to be delivered
+
+        * wtf/MessageQueue.h:
+        (WTF::::isEmpty): Added. Also added a warning for methods that return a snapshot of queue
+        state, thus likely to cause race conditions.
+
+2008-10-21  Darin Adler  <darin@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        - convert post-increment to pre-increment in a couple more places for speed
+
+        Speeds up V8 benchmarks a little on most computers. (But, strangely, slows
+        them down a little on my computer.)
+
+        * kjs/nodes.cpp:
+        (JSC::statementListEmitCode): Removed default argument, since we always want
+        to specify this explicitly.
+        (JSC::ForNode::emitCode): Tolerate ignoredResult() as the dst -- means the
+        same thing as 0.
+        (JSC::ReturnNode::emitCode): Ditto.
+        (JSC::ThrowNode::emitCode): Ditto.
+        (JSC::FunctionBodyNode::emitCode): Pass ignoredResult() so that we know we
+        don't have to compute the result of function statements.
+
+2008-10-21  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix an include of a non-public header to use "" instead of <>.
+
+        * API/JSProfilerPrivate.cpp:
+
+2008-10-20  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21766
+        REGRESSION: 12 JSC tests fail
+
+        The JSGlobalObject was mutating the shared nullProtoStructureID when
+        used in jsc.  Instead of using nullProtoStructureID, use a new StructureID.
+
+        * API/JSCallbackObject.h:
+        * API/JSCallbackObjectFunctions.h:
+        (JSC::::JSCallbackObject):
+        * API/JSContextRef.cpp:
+        (JSGlobalContextCreateInGroup):
+        * kjs/JSGlobalObject.h:
+        (JSC::JSGlobalObject::JSGlobalObject):
+        * kjs/Shell.cpp:
+        (GlobalObject::GlobalObject):
+        (jscmain):
+
+2008-10-20  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove an untaken branch in CodeGenerator::emitJumpIfFalse(). This
+        function is never called with a backwards target LabelID, and there is
+        even an assertion to this effect at the top of the function body.
+
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitJumpIfFalse):
+
+2008-10-20  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Add opcode documentation for undocumented opcodes.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+
+2008-10-16  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21683
+        Don't create intermediate StructureIDs for builtin objects
+
+        Second stage in reduce number of StructureIDs created when initializing the
+        JSGlobalObject.
+
+        - Use putDirectWithoutTransition for the remaining singleton objects to reduce
+          the number of StructureIDs create for about:blank from 132 to 73.
+
+        * kjs/ArrayConstructor.cpp:
+        (JSC::ArrayConstructor::ArrayConstructor):
+        * kjs/BooleanConstructor.cpp:
+        (JSC::BooleanConstructor::BooleanConstructor):
+        * kjs/BooleanPrototype.cpp:
+        (JSC::BooleanPrototype::BooleanPrototype):
+        * kjs/DateConstructor.cpp:
+        (JSC::DateConstructor::DateConstructor):
+        * kjs/ErrorConstructor.cpp:
+        (JSC::ErrorConstructor::ErrorConstructor):
+        * kjs/ErrorPrototype.cpp:
+        (JSC::ErrorPrototype::ErrorPrototype):
+        * kjs/FunctionConstructor.cpp:
+        (JSC::FunctionConstructor::FunctionConstructor):
+        * kjs/FunctionPrototype.cpp:
+        (JSC::FunctionPrototype::FunctionPrototype):
+        (JSC::FunctionPrototype::addFunctionProperties):
+        * kjs/FunctionPrototype.h:
+        (JSC::FunctionPrototype::createStructureID):
+        * kjs/InternalFunction.cpp:
+        * kjs/InternalFunction.h:
+        (JSC::InternalFunction::InternalFunction):
+        * kjs/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset):
+        * kjs/JSObject.h:
+        * kjs/MathObject.cpp:
+        (JSC::MathObject::MathObject):
+        * kjs/NumberConstructor.cpp:
+        (JSC::NumberConstructor::NumberConstructor):
+        * kjs/NumberPrototype.cpp:
+        (JSC::NumberPrototype::NumberPrototype):
+        * kjs/ObjectConstructor.cpp:
+        (JSC::ObjectConstructor::ObjectConstructor):
+        * kjs/RegExpConstructor.cpp:
+        (JSC::RegExpConstructor::RegExpConstructor):
+        * kjs/RegExpPrototype.cpp:
+        (JSC::RegExpPrototype::RegExpPrototype):
+        * kjs/StringConstructor.cpp:
+        (JSC::StringConstructor::StringConstructor):
+        * kjs/StringPrototype.cpp:
+        (JSC::StringPrototype::StringPrototype):
+        * kjs/StructureID.cpp:
+        (JSC::StructureID::dumpStatistics):
+        * kjs/StructureID.h:
+        (JSC::StructureID::setPrototypeWithoutTransition):
+
+2008-10-20  Alp Toker  <alp@nuanti.com>
+
+        Fix autotools dist build target by listing recently added header
+        files only. Not reviewed.
+
+        * GNUmakefile.am:
+
+2008-10-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::tryCacheGetByID): Removed a redundant and sometimes
+        incorrect cast, which started ASSERTing after Darin's last checkin.
+
+2008-10-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Re-enable CTI, which I accidentally disabled while checking in fixes
+        to bytecode.
+
+        * wtf/Platform.h:
+
+2008-10-20  Alp Toker  <alp@nuanti.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        Typo fix in function name: mimimum -> minimum.
+
+        * kjs/DateMath.cpp:
+        (JSC::minimumYearForDST):
+        (JSC::equivalentYearForDST):
+
+2008-10-20  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Mark Rowe.
+
+        Use pthread instead of GThread where possible in the GTK+ port. This
+        fixes issues with global initialisation, particularly on GTK+/Win32
+        where a late g_thread_init() will cause hangs.
+
+        * GNUmakefile.am:
+        * wtf/Platform.h:
+        * wtf/Threading.h:
+        * wtf/ThreadingGtk.cpp:
+        * wtf/ThreadingPthreads.cpp:
+
+2008-10-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=21735
+        Emit profiling instrumentation only if the Web Inspector's profiling
+        feature is enabled
+
+        22.2% speedup on empty function call benchmark.
+        2.9% speedup on v8 benchmark.
+        0.7% speedup on SunSpider.
+        
+        Lesser but similar speedups in bytecode.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases): Nixed JITed profiler hooks. Profiler
+        hooks now have their own opcodes. Added support for compiling profiler
+        hook opcodes.
+        
+        (JSC::CodeBlock::dump): Dump support for the new profiling opcodes.
+
+        * VM/CodeGenerator.h:
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator):
+        (JSC::CodeGenerator::emitCall):
+        (JSC::CodeGenerator::emitConstruct): Conditionally emit profiling hooks
+        around call and construct, at the call site. (It's easier to get things
+        right this way, if you have profiled code calling non-profiled code.
+        Also, you get a slightly more accurate profile, since you charge the full
+        cost of the call / construct operation to the callee.)
+        
+        Also, fixed a bug where construct would fetch the ".prototype" property
+        from the constructor before evaluating the arguments to the constructor,
+        incorrectly allowing an "invalid constructor" exception to short-circuit
+        argument evaluation. I encountered this bug when trying to make
+        constructor exceptions work with profiling.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::callEval): Removed obsolete profiler hooks.
+
+        (JSC::Machine::throwException): Added a check for an exception thrown
+        within a call instruction. We didn't need this before because the call
+        instruction would check for a valid call before involing the profiler.
+        (JSC::Machine::execute): Added a didExecute hook at the end of top-level
+        function invocation, since op_ret no longer does this for us.
+
+        (JSC::Machine::privateExecute): Removed obsolete profiler hooks. Added
+        profiler opcodes. Changed some ++vPC to vPC[x] notation, since the
+        latter is better for performance, and it makes reasoning about the
+        current opcode in exception handling much simpler.
+
+        (JSC::Machine::cti_op_call_NotJSFunction): Removed obsolete profiler
+        hooks.
+
+        (JSC::Machine::cti_op_create_arguments_no_params): Added missing
+        CTI_STACK_HACK that I noticed when adding CTI_STACK_HACK to the new
+        profiler opcode functions.
+
+        (JSC::Machine::cti_op_profile_will_call):
+        (JSC::Machine::cti_op_profile_did_call): The new profiler opcode
+        functions.
+
+        (JSC::Machine::cti_op_construct_NotJSConstruct): Removed obsolete profiler
+        hooks.
+
+        * VM/Machine.h:
+        (JSC::Machine::isCallOpcode): Helper for exception handling.
+
+        * VM/Opcode.h: Declare new opcodes.
+
+        * kjs/JSGlobalObject.h:
+        (JSC::JSGlobalObject::supportsProfiling): Added virtual interface that
+        allows WebCore to specify whether the target global object has the Web
+        Inspector's profiling feature enabled.
+
+        * profiler/Profiler.cpp:
+        (JSC::Profiler::willExecute):
+        (JSC::Profiler::didExecute):
+        (JSC::Profiler::createCallIdentifier):
+        * profiler/Profiler.h: Added support for invoking the profiler with
+        an arbitrary JSValue*, and not a known object. We didn't need this
+        before because the call instruction would check for a valid call before
+        involing the profiler.
+
+2008-10-20  Darin Adler  <darin@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        - get CTI working on Windows again
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitCTICall): Add an overload for functions that
+        return JSObject*.
+        * VM/CTI.h: Use JSValue* and JSObject* as return types for
+        cti_op functions. Apparently, MSVC doesn't handle returning
+        the JSValuePtr struct in a register. We'll have to look into
+        this more.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_convert_this):
+        (JSC::Machine::cti_op_add):
+        (JSC::Machine::cti_op_pre_inc):
+        (JSC::Machine::cti_op_new_object):
+        (JSC::Machine::cti_op_get_by_id):
+        (JSC::Machine::cti_op_get_by_id_second):
+        (JSC::Machine::cti_op_get_by_id_generic):
+        (JSC::Machine::cti_op_get_by_id_fail):
+        (JSC::Machine::cti_op_instanceof):
+        (JSC::Machine::cti_op_del_by_id):
+        (JSC::Machine::cti_op_mul):
+        (JSC::Machine::cti_op_new_func):
+        (JSC::Machine::cti_op_push_activation):
+        (JSC::Machine::cti_op_call_NotJSFunction):
+        (JSC::Machine::cti_op_new_array):
+        (JSC::Machine::cti_op_resolve):
+        (JSC::Machine::cti_op_construct_JSConstructFast):
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+        (JSC::Machine::cti_op_get_by_val):
+        (JSC::Machine::cti_op_sub):
+        (JSC::Machine::cti_op_lesseq):
+        (JSC::Machine::cti_op_negate):
+        (JSC::Machine::cti_op_resolve_base):
+        (JSC::Machine::cti_op_resolve_skip):
+        (JSC::Machine::cti_op_resolve_global):
+        (JSC::Machine::cti_op_div):
+        (JSC::Machine::cti_op_pre_dec):
+        (JSC::Machine::cti_op_not):
+        (JSC::Machine::cti_op_eq):
+        (JSC::Machine::cti_op_lshift):
+        (JSC::Machine::cti_op_bitand):
+        (JSC::Machine::cti_op_rshift):
+        (JSC::Machine::cti_op_bitnot):
+        (JSC::Machine::cti_op_new_func_exp):
+        (JSC::Machine::cti_op_mod):
+        (JSC::Machine::cti_op_less):
+        (JSC::Machine::cti_op_neq):
+        (JSC::Machine::cti_op_urshift):
+        (JSC::Machine::cti_op_bitxor):
+        (JSC::Machine::cti_op_new_regexp):
+        (JSC::Machine::cti_op_bitor):
+        (JSC::Machine::cti_op_call_eval):
+        (JSC::Machine::cti_op_throw):
+        (JSC::Machine::cti_op_next_pname):
+        (JSC::Machine::cti_op_typeof):
+        (JSC::Machine::cti_op_is_undefined):
+        (JSC::Machine::cti_op_is_boolean):
+        (JSC::Machine::cti_op_is_number):
+        (JSC::Machine::cti_op_is_string):
+        (JSC::Machine::cti_op_is_object):
+        (JSC::Machine::cti_op_is_function):
+        (JSC::Machine::cti_op_stricteq):
+        (JSC::Machine::cti_op_nstricteq):
+        (JSC::Machine::cti_op_to_jsnumber):
+        (JSC::Machine::cti_op_in):
+        (JSC::Machine::cti_op_push_new_scope):
+        (JSC::Machine::cti_op_del_by_val):
+        (JSC::Machine::cti_op_new_error):
+        (JSC::Machine::cti_vm_throw):
+        Change these functions to return pointer types, and never
+        JSValuePtr.
+        * VM/Machine.h: Ditto.
+
+2008-10-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Fixed some recent break-age in bytecode mode.
+
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::printStructureIDs): Fixed up an ASSERT caused by
+        Gavin's last checkin. This is a temporary fix so I can keep on moving.
+        I'll send email about what I think is an underlying problem soon.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute): Removed a redundant and sometimes
+        incorrect cast, which started ASSERTing after Darin's last checkin.
+
+2008-10-20  Darin Adler  <darin@apple.com>
+
+        - another similar Windows build fix
+
+        * VM/CTI.cpp: Changed return type to JSObject* instead of JSValuePtr.
+
+2008-10-20  Darin Adler  <darin@apple.com>
+
+        - try to fix Windows build
+
+        * VM/CTI.cpp: Use JSValue* instead of JSValuePtr for ctiTrampoline.
+        * VM/CTI.h: Ditto.
+
 2008-10-20  Darin Adler  <darin@apple.com>
 
         Reviewed by Cameron Zwarich.

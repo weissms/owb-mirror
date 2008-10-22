@@ -1,3 +1,22 @@
+2008-10-22  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Remove FrameLoaderClient::detachedFromParent4.  It is no longer used by any port.
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+
+2008-10-20  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6277777> REGRESSION (r36954): XMLHttpRequest not working when
+        certain WebView delegate actions are taken
+
+        * WebView/WebFrame.mm: (-[WebFrame _attachScriptDebugger]): Don't accidentally create
+        a window shell if there is none yet.
+
 2008-10-20  Darin Adler  <darin@apple.com>
 
         Reviewed by Oliver Hunt.

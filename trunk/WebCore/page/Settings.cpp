@@ -28,9 +28,12 @@
 
 #include "Frame.h"
 #include "FrameTree.h"
+#include "HistoryItem.h"
+#if ENABLE(INSPECTOR)
+#include "JavaScriptDebugServer.h"
+#endif
 #include "Page.h"
 #include "PageCache.h"
-#include "HistoryItem.h"
 
 #if ENABLE(DATABASE)
 #include "DatabaseTracker.h"
@@ -74,6 +77,7 @@ Settings::Settings(Page* page)
     , m_showsURLsInToolTips(false)
     , m_forceFTPDirectoryListings(false)
     , m_developerExtrasEnabled(false)
+    , m_didInitializeDeveloperExtrasEnabled(false)
     , m_authorAndUserStylesEnabled(true)
     , m_needsSiteSpecificQuirks(false)
     , m_fontRenderingMode(0)
@@ -308,7 +312,20 @@ void Settings::setForceFTPDirectoryListings(bool force)
 
 void Settings::setDeveloperExtrasEnabled(bool developerExtrasEnabled)
 {
+    if (m_developerExtrasEnabled == developerExtrasEnabled)
+        return;
+
     m_developerExtrasEnabled = developerExtrasEnabled;
+
+    // Avoid recompiling when initializing a page.
+    if (!m_didInitializeDeveloperExtrasEnabled) {
+        m_didInitializeDeveloperExtrasEnabled = true;
+        return;
+    }
+
+#if ENABLE(INSPECTOR)
+    JavaScriptDebugServer::shared().recompileAllJSFunctionsSoon();
+#endif
 }
 
 void Settings::setAuthorAndUserStylesEnabled(bool authorAndUserStylesEnabled)

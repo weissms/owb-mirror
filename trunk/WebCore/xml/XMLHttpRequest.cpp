@@ -275,7 +275,7 @@ void XMLHttpRequest::removeEventListener(const AtomicString& eventType, EventLis
         }
 }
 
-bool XMLHttpRequest::dispatchEvent(PassRefPtr<Event> evt, ExceptionCode& ec, bool /*tempEvent*/)
+bool XMLHttpRequest::dispatchEvent(PassRefPtr<Event> evt, ExceptionCode& ec)
 {
     // FIXME: check for other error conditions enumerated in the spec.
     if (evt->type().isEmpty()) {
@@ -1262,7 +1262,7 @@ void XMLHttpRequest::dispatchReadyStateChangeEvent()
     }
 
     ExceptionCode ec = 0;
-    dispatchEvent(evt.release(), ec, false);
+    dispatchEvent(evt.release(), ec);
     ASSERT(!ec);
 }
 
@@ -1276,7 +1276,7 @@ void XMLHttpRequest::dispatchXMLHttpRequestProgressEvent(EventListener* listener
     }
 
     ExceptionCode ec = 0;
-    dispatchEvent(evt.release(), ec, false);
+    dispatchEvent(evt.release(), ec);
     ASSERT(!ec);
 }
 
