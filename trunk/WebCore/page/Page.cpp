@@ -54,15 +54,18 @@
 #include <wtf/HashMap.h>
 #include <wtf/RefCountedLeakCounter.h>
 
-#if ENABLE(INSPECTOR)
-#include "InspectorController.h"
-#include "JavaScriptDebugServer.h"
-#endif
-
 #if ENABLE(DOM_STORAGE)
 #include "LocalStorage.h"
 #include "SessionStorage.h"
 #include "StorageArea.h"
+#endif
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
+
+#if ENABLE(JAVASCRIPT_DEBUGGER)
+#include "JavaScriptDebugServer.h"
 #endif
 
 namespace WebCore {
@@ -142,7 +145,7 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     ASSERT(!allPages->contains(this));
     allPages->add(this);
 
-#if ENABLE(INSPECTOR)
+#if ENABLE(JAVASCRIPT_DEBUGGER)
     JavaScriptDebugServer::shared().pageCreated(this);
 #endif
 

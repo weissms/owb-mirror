@@ -248,6 +248,28 @@ sub HashValueForClassAndName
     return "${class}::$name";
 }
 
+sub hashTableAccessor
+{
+    my $noStaticTables = shift;
+    my $className = shift;
+    if ($noStaticTables) {
+        return "get${className}Table(exec)";
+    } else {
+        return "&${className}Table";
+    }
+}
+
+sub prototypeHashTableAccessor
+{
+    my $noStaticTables = shift;
+    my $className = shift;
+    if ($noStaticTables) {
+        return "get${className}PrototypeTable(exec)";
+    } else {
+        return "&${className}PrototypeTable";
+    }
+}
+
 sub GenerateGetOwnPropertySlotBody
 {
     my ($dataNode, $interfaceName, $className, $implClassName, $hasAttributes, $inlined) = @_;
@@ -311,9 +333,10 @@ sub GenerateGetOwnPropertySlotBody
 
     if ($hasAttributes) {
         if ($inlined) {
+            die "Cannot inline if NoStaticTables is set." if ($dataNode->extendedAttributes->{"NoStaticTables"});
             push(@getOwnPropertySlotImpl, "    return ${namespaceMaybe}getStaticValueSlot<$className, Base>(exec, s_info.staticPropHashTable, this, propertyName, slot);\n");
         } else {
-           push(@getOwnPropertySlotImpl, "    return ${namespaceMaybe}getStaticValueSlot<$className, Base>(exec, &${className}Table, this, propertyName, slot);\n");
+            push(@getOwnPropertySlotImpl, "    return ${namespaceMaybe}getStaticValueSlot<$className, Base>(exec, " . hashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, propertyName, slot);\n");
         }
     } else {
         push(@getOwnPropertySlotImpl, "    return Base::getOwnPropertySlot(exec, propertyName, slot);\n");
@@ -459,11 +482,19 @@ sub GenerateHeader
 
     # Structure ID
     if ($interfaceName eq "DOMWindow") {
-        push(@headerContent, "    static PassRefPtr<JSC::StructureID> createStructureID(JSC::JSValuePtr proto)\n" .
-             "    {\n" .
-             "        return JSC::StructureID::create(proto, JSC::TypeInfo(JSC::ObjectType, JSC::ImplementsHasInstance | JSC::NeedsThisConversion));\n" .
-             "    }\n\n");
+        push(@headerContent,
+            "    static PassRefPtr<JSC::StructureID> createStructureID(JSC::JSValuePtr prototype)\n" .
+            "    {\n" .
+            "        return JSC::StructureID::create(prototype, JSC::TypeInfo(JSC::ObjectType, JSC::ImplementsHasInstance | JSC::NeedsThisConversion));\n" .
+            "    }\n\n");
+    } elsif ($hasGetter) {
+        push(@headerContent,
+            "    static PassRefPtr<JSC::StructureID> createStructureID(JSC::JSValuePtr prototype)\n" .
+            "    {\n" .
+            "        return JSC::StructureID::create(prototype, JSC::TypeInfo(JSC::ObjectType));\n" .
+            "    }\n\n");
     }
+
     # Custom mark function
     push(@headerContent, "    virtual void mark();\n\n") if $dataNode->extendedAttributes->{"CustomMarkFunction"};
 
@@ -637,6 +668,11 @@ sub GenerateHeader
     push(@headerContent, "    static const JSC::ClassInfo s_info;\n");
     if ($numFunctions > 0 || $numConstants > 0) {
         push(@headerContent, "    virtual bool getOwnPropertySlot(JSC::ExecState*, const JSC::Identifier&, JSC::PropertySlot&);\n");
+        push(@headerContent,
+            "    static PassRefPtr<JSC::StructureID> createStructureID(JSC::JSValuePtr prototype)\n" .
+            "    {\n" .
+            "        return JSC::StructureID::create(prototype, JSC::TypeInfo(JSC::ObjectType));\n" .
+            "    }\n");
     }
     push(@headerContent, "    ${className}Prototype(PassRefPtr<JSC::StructureID> structure) : JSC::JSObject(structure) { }\n");
 
@@ -651,7 +687,7 @@ sub GenerateHeader
     }
 
     if ($numAttributes > 0 || $dataNode->extendedAttributes->{"GenerateConstructor"}) {
-        push(@headerContent,"// Attibutes\n\n");
+        push(@headerContent,"// Attributes\n\n");
         foreach my $attribute (@{$dataNode->attributes}) {
             my $getter = "js" . $interfaceName . $codeGenerator->WK_ucfirst($attribute->signature->name) . ($attribute->signature->type =~ /Constructor$/ ? "Constructor" : "");
             push(@headerContent, "JSC::JSValuePtr ${getter}(JSC::ExecState*, const JSC::Identifier&, const JSC::PropertySlot&);\n");
@@ -845,7 +881,15 @@ sub GenerateImplementation
                                \@hashKeys, \@hashSpecials,
                                \@hashValue1, \@hashValue2);
 
-    push(@implContent, "const ClassInfo ${className}Prototype::s_info = { \"${visibleClassName}Prototype\", 0, &${className}PrototypeTable, 0 };\n\n");
+    if ($dataNode->extendedAttributes->{"NoStaticTables"}) {
+        push(@implContent, "static const HashTable* get${className}PrototypeTable(ExecState* exec)\n");
+        push(@implContent, "{\n");
+        push(@implContent, "    return getHashTableForGlobalData(exec->globalData(), &${className}PrototypeTable);\n");
+        push(@implContent, "}\n");
+        push(@implContent, "const ClassInfo ${className}Prototype::s_info = { \"${visibleClassName}Prototype\", 0, 0, get${className}PrototypeTable };\n\n");
+    } else {
+        push(@implContent, "const ClassInfo ${className}Prototype::s_info = { \"${visibleClassName}Prototype\", 0, &${className}PrototypeTable, 0 };\n\n");
+    }
     if ($interfaceName ne "DOMWindow") {
         push(@implContent, "JSObject* ${className}Prototype::self(ExecState* exec)\n");
         push(@implContent, "{\n");
@@ -862,16 +906,22 @@ sub GenerateImplementation
         push(@implContent, "bool ${className}Prototype::getOwnPropertySlot(ExecState* exec, const Identifier& propertyName, PropertySlot& slot)\n");
         push(@implContent, "{\n");
         if ($numConstants eq 0) {
-            push(@implContent, "    return getStaticFunctionSlot<JSObject>(exec, &${className}PrototypeTable, this, propertyName, slot);\n");
+            push(@implContent, "    return getStaticFunctionSlot<JSObject>(exec, " . prototypeHashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, propertyName, slot);\n");
         } elsif ($numFunctions eq 0) {
-            push(@implContent, "    return getStaticValueSlot<${className}Prototype, JSObject>(exec, &${className}PrototypeTable, this, propertyName, slot);\n");
+            push(@implContent, "    return getStaticValueSlot<${className}Prototype, JSObject>(exec, " . prototypeHashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, propertyName, slot);\n");
         } else {
-            push(@implContent, "    return getStaticPropertySlot<${className}Prototype, JSObject>(exec, &${className}PrototypeTable, this, propertyName, slot);\n");
+            push(@implContent, "    return getStaticPropertySlot<${className}Prototype, JSObject>(exec, " . prototypeHashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, propertyName, slot);\n");
         }
         push(@implContent, "}\n\n");
     }
 
     # - Initialize static ClassInfo object
+    if ($numAttributes > 0 && $dataNode->extendedAttributes->{"NoStaticTables"}) {
+        push(@implContent, "static const HashTable* get${className}Table(ExecState* exec)\n");
+        push(@implContent, "{\n");
+        push(@implContent, "    return getHashTableForGlobalData(exec->globalData(), &${className}Table);\n");
+        push(@implContent, "}\n");
+    }
     push(@implContent, "const ClassInfo $className" . "::s_info = { \"${visibleClassName}\", ");
     if ($hasParent) {
         push(@implContent, "&" . $parentClassName . "::s_info, ");
@@ -879,12 +929,16 @@ sub GenerateImplementation
         push(@implContent, "0, ");
     }
 
-    if ($numAttributes > 0) {
-        push(@implContent, "&${className}Table ");
+    if ($numAttributes > 0 && !$dataNode->extendedAttributes->{"NoStaticTables"}) {
+        push(@implContent, "&${className}Table");
     } else {
-        push(@implContent, "0 ");
+        push(@implContent, "0");
     }
-    push(@implContent, ", 0 ");
+    if ($numAttributes > 0 && $dataNode->extendedAttributes->{"NoStaticTables"}) {
+        push(@implContent, ", get${className}Table ");
+    } else {
+        push(@implContent, ", 0 ");
+    }
     push(@implContent, "};\n\n");
 
     # Get correct pass/store types respecting PODType flag
@@ -1111,7 +1165,7 @@ sub GenerateImplementation
             }
 
             if ($hasReadWriteProperties) {
-                push(@implContent, "    lookupPut<$className, Base>(exec, propertyName, value, &${className}Table, this, slot);\n");
+                push(@implContent, "    lookupPut<$className, Base>(exec, propertyName, value, " . hashTableAccessor($dataNode->extendedAttributes->{"NoStaticTables"}, $className) . ", this, slot);\n");
             } else {
                 push(@implContent, "    Base::put(exec, propertyName, value, slot);\n");
             }

@@ -42,7 +42,6 @@
 #include <kjs/interpreter.h>
 #include <kjs/JSObject.h>
 #include <VM/Machine.h>
-#include <profiler/Profile.h>
 #include <profiler/Profiler.h>
 #include <stdio.h>
 
@@ -378,6 +377,8 @@ void Console::profileEnd(ExecState* exec, const ArgList& args)
     RefPtr<Profile> profile = Profiler::profiler()->stopProfiling(exec, title);
     if (!profile)
         return;
+
+    m_profiles.append(profile);
 
     if (Page* page = this->page()) {
         KURL url;

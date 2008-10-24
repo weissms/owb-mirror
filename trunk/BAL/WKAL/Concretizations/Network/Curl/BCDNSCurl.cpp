@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ * Copyright (C) 2008 Apple Computer, Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,10 +10,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -24,35 +24,15 @@
  */
 
 #include "config.h"
-#include "Theme.h"
+#include "DNS.h"
 
-namespace WebCore {
+#include "NotImplemented.h"
 
-LengthBox Theme::controlBorder(ControlPart part, const Font&, const LengthBox& zoomedBox, float zoomFactor) const
+namespace WKAL {
+
+void prefetchDNS(const String& hostname)
 {
-    switch (part) {
-        case PushButtonPart:
-        case MenulistPart:
-        case SearchFieldPart:
-        case CheckboxPart:
-        case RadioPart:
-            return LengthBox(0);
-        default:
-            return zoomedBox;
-    }
-}
-
-LengthBox Theme::controlPadding(ControlPart part, const Font&, const LengthBox& zoomedBox, float zoomFactor) const
-{
-    switch (part) {
-        case MenulistPart:
-        case MenulistButtonPart:
-        case CheckboxPart:
-        case RadioPart:
-            return LengthBox(0);
-        default:
-            return zoomedBox;
-    }
+    notImplemented();
 }
 
 }

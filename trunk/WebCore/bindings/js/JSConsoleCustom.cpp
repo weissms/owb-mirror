@@ -25,12 +25,32 @@
 
 #include "config.h"
 #include "JSConsole.h"
+#if ENABLE(JAVASCRIPT_DEBUGGER)
+#include "JavaScriptProfile.h"
+#endif
+#include <kjs/JSArray.h>
 
 #include "Console.h"
 
 using namespace JSC;
 
 namespace WebCore {
+
+typedef Vector<RefPtr<JSC::Profile> > ProfilesArray;
+
+JSValuePtr JSConsole::profiles(ExecState* exec) const
+{
+    const ProfilesArray& profiles = impl()->profiles();
+    ArgList list;
+
+#if ENABLE(JAVASCRIPT_DEBUGGER)
+    ProfilesArray::const_iterator end = profiles.end();
+    for (ProfilesArray::const_iterator iter = profiles.begin(); iter != end; ++iter)
+        list.append(toJS(exec, iter->get()));
+#endif
+
+    return constructArray(exec, list);
+}
 
 JSValuePtr JSConsole::debug(ExecState* exec, const ArgList& arguments)
 {

@@ -546,6 +546,32 @@ PassRefPtr<LabelID> CodeGenerator::emitJumpIfTrue(RegisterID* cond, LabelID* tar
             instructions().append(target->offsetFrom(instructions().size()));
             return target;
         }
+    } else if (m_lastOpcodeID == op_eq_null && target->isForwardLabel()) {
+        int dstIndex;
+        int srcIndex;
+
+        retrieveLastUnaryOp(dstIndex, srcIndex);
+
+        if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
+            rewindUnaryOp();
+            emitOpcode(op_jeq_null);
+            instructions().append(srcIndex);
+            instructions().append(target->offsetFrom(instructions().size()));
+            return target;
+        }
+    } else if (m_lastOpcodeID == op_neq_null && target->isForwardLabel()) {
+        int dstIndex;
+        int srcIndex;
+
+        retrieveLastUnaryOp(dstIndex, srcIndex);
+
+        if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
+            rewindUnaryOp();
+            emitOpcode(op_jneq_null);
+            instructions().append(srcIndex);
+            instructions().append(target->offsetFrom(instructions().size()));
+            return target;
+        }
     }
 
     emitOpcode(target->isForwardLabel() ? op_jtrue : op_loop_if_true);
@@ -585,7 +611,33 @@ PassRefPtr<LabelID> CodeGenerator::emitJumpIfFalse(RegisterID* cond, LabelID* ta
             instructions().append(srcIndex);
             instructions().append(target->offsetFrom(instructions().size()));
             return target;
-        }        
+        }
+    } else if (m_lastOpcodeID == op_eq_null) {
+        int dstIndex;
+        int srcIndex;
+
+        retrieveLastUnaryOp(dstIndex, srcIndex);
+
+        if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
+            rewindUnaryOp();
+            emitOpcode(op_jneq_null);
+            instructions().append(srcIndex);
+            instructions().append(target->offsetFrom(instructions().size()));
+            return target;
+        }
+    } else if (m_lastOpcodeID == op_neq_null) {
+        int dstIndex;
+        int srcIndex;
+
+        retrieveLastUnaryOp(dstIndex, srcIndex);
+
+        if (cond->index() == dstIndex && cond->isTemporary() && !cond->refCount()) {
+            rewindUnaryOp();
+            emitOpcode(op_jeq_null);
+            instructions().append(srcIndex);
+            instructions().append(target->offsetFrom(instructions().size()));
+            return target;
+        }
     }
 
     emitOpcode(op_jfalse);
@@ -622,7 +674,7 @@ unsigned CodeGenerator::addConstant(const Identifier& ident)
 
 RegisterID* CodeGenerator::addConstant(JSValuePtr v)
 {
-    pair<JSValueMap::iterator, bool> result = m_jsValueMap.add(v.payload(), m_nextConstant);
+    pair<JSValueMap::iterator, bool> result = m_jsValueMap.add(v, m_nextConstant);
     if (result.second) {
         RegisterID& constant = m_calleeRegisters[m_nextConstant];
         
@@ -913,7 +965,7 @@ RegisterID* CodeGenerator::emitResolve(RegisterID* dst, const Identifier& proper
     }
 
     if (globalObject) {
-        m_codeBlock->structureIDInstructions.append(instructions().size());
+        m_codeBlock->globalResolveInstructions.append(instructions().size());
         emitOpcode(op_resolve_global);
         instructions().append(dst->index());
         instructions().append(globalObject);
@@ -993,7 +1045,7 @@ RegisterID* CodeGenerator::emitResolveFunction(RegisterID* baseDst, RegisterID* 
 
 RegisterID* CodeGenerator::emitGetById(RegisterID* dst, RegisterID* base, const Identifier& property)
 {
-    m_codeBlock->structureIDInstructions.append(instructions().size());
+    m_codeBlock->propertyAccessInstructions.append(instructions().size());
 
     emitOpcode(op_get_by_id);
     instructions().append(dst->index());
@@ -1008,7 +1060,7 @@ RegisterID* CodeGenerator::emitGetById(RegisterID* dst, RegisterID* base, const 
 
 RegisterID* CodeGenerator::emitPutById(RegisterID* base, const Identifier& property, RegisterID* value)
 {
-    m_codeBlock->structureIDInstructions.append(instructions().size());
+    m_codeBlock->propertyAccessInstructions.append(instructions().size());
 
     emitOpcode(op_put_by_id);
     instructions().append(base->index());
@@ -1167,7 +1219,7 @@ RegisterID* CodeGenerator::emitCall(OpcodeID opcodeID, RegisterID* dst, Register
     }
 
     emitExpressionInfo(divot, startOffset, endOffset);
-    m_codeBlock->structureIDInstructions.append(instructions().size());
+    m_codeBlock->callLinkInfos.append(CallLinkInfo());
     emitOpcode(opcodeID);
     instructions().append(dst->index());
     instructions().append(func->index());
@@ -1231,7 +1283,7 @@ RegisterID* CodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, Argu
         callFrame.append(newTemporary());
 
     emitExpressionInfo(divot, startOffset, endOffset);
-    m_codeBlock->structureIDInstructions.append(instructions().size());
+    m_codeBlock->callLinkInfos.append(CallLinkInfo());
     emitOpcode(op_construct);
     instructions().append(dst->index());
     instructions().append(func->index());

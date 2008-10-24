@@ -331,6 +331,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSCustomXPathNSResolver.h \
 	WebCore/bindings/js/JSDOMBinding.cpp \
 	WebCore/bindings/js/JSDOMBinding.h \
+	WebCore/bindings/js/JSDOMGlobalObject.cpp \
+	WebCore/bindings/js/JSDOMGlobalObject.h \
 	WebCore/bindings/js/JSDOMWindowBase.cpp \
 	WebCore/bindings/js/JSDOMWindowBase.h \
 	WebCore/bindings/js/JSDOMWindowCustom.cpp \
@@ -1806,6 +1808,7 @@ webcore_cppflags += \
 webcore_sources += \
 	WebCore/platform/network/curl/AuthenticationChallenge.h \
 	WebCore/platform/network/curl/CookieJarCurl.cpp \
+	WebCore/platform/network/curl/DNSCurl.cpp \
 	WebCore/platform/network/curl/FormDataStreamCurl.cpp \
 	WebCore/platform/network/curl/FormDataStreamCurl.h \
 	WebCore/platform/network/curl/ResourceError.h \
@@ -1825,6 +1828,7 @@ webcore_cppflags += \
 webcore_sources += \
 	WebCore/platform/network/soup/AuthenticationChallenge.h \
 	WebCore/platform/network/soup/CookieJarSoup.cpp \
+	WebCore/platform/network/soup/DNSSoup.cpp \
 	WebCore/platform/network/soup/ResourceError.h \
 	WebCore/platform/network/soup/ResourceHandleSoup.cpp \
 	WebCore/platform/network/soup/ResourceRequest.h \

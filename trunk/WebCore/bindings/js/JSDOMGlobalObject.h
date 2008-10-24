@@ -10,10 +10,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -21,38 +21,38 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *
  */
 
-#include "config.h"
-#include "Theme.h"
+#ifndef JSDOMGlobalObject_h
+#define JSDOMGlobalObject_h
+
+#include <kjs/JSGlobalObject.h>
 
 namespace WebCore {
 
-LengthBox Theme::controlBorder(ControlPart part, const Font&, const LengthBox& zoomedBox, float zoomFactor) const
-{
-    switch (part) {
-        case PushButtonPart:
-        case MenulistPart:
-        case SearchFieldPart:
-        case CheckboxPart:
-        case RadioPart:
-            return LengthBox(0);
-        default:
-            return zoomedBox;
-    }
-}
+    typedef HashMap<const JSC::ClassInfo*, RefPtr<JSC::StructureID> > JSDOMStructureMap;
+    typedef HashMap<const JSC::ClassInfo*, JSC::JSObject*> JSDOMConstructorMap;
 
-LengthBox Theme::controlPadding(ControlPart part, const Font&, const LengthBox& zoomedBox, float zoomFactor) const
-{
-    switch (part) {
-        case MenulistPart:
-        case MenulistButtonPart:
-        case CheckboxPart:
-        case RadioPart:
-            return LengthBox(0);
-        default:
-            return zoomedBox;
-    }
-}
+    class JSDOMGlobalObject : public JSC::JSGlobalObject {
+        typedef JSC::JSGlobalObject Base;
+    protected:
+        struct JSDOMGlobalObjectData : public JSC::JSGlobalObject::JSGlobalObjectData {
+            JSDOMStructureMap structures;
+            JSDOMConstructorMap constructors;
+        };
 
-}
+        JSDOMGlobalObject(PassRefPtr<JSC::StructureID>, JSDOMGlobalObjectData*, JSC::JSObject* thisValue);
+
+    public:
+        JSDOMGlobalObjectData* d() const { return static_cast<JSDOMGlobalObjectData*>(JSC::JSVariableObject::d); }
+
+        JSDOMStructureMap& structures() { return d()->structures; }
+        JSDOMConstructorMap& constructors() const { return d()->constructors; }
+
+        virtual void mark();
+    };
+
+} // namespace WebCore
+
+#endif // JSDOMGlobalObject_h

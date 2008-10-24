@@ -1,3 +1,741 @@
+2008-10-24  David Kilzer  <ddkilzer@apple.com>
+
+        Rolled out r37840 and r37841.
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/JSCustomPositionCallback.cpp: Removed.
+        * bindings/js/JSCustomPositionCallback.h: Removed.
+        * bindings/js/JSCustomPositionErrorCallback.cpp: Removed.
+        * bindings/js/JSCustomPositionErrorCallback.h: Removed.
+        * bindings/js/JSDOMBinding.cpp:
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::markDOMObjectWrapper):
+        * bindings/js/JSGeolocationCustom.cpp: Removed.
+        * bindings/js/JSNavigatorCustom.cpp:
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        * dom/Document.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::canCachePage):
+        * page/Geolocation.cpp: Removed.
+        * page/Geolocation.h: Removed.
+        * page/Geolocation.idl: Removed.
+        * page/Geoposition.cpp: Removed.
+        * page/Geoposition.h: Removed.
+        * page/Geoposition.idl: Removed.
+        * page/Navigator.cpp:
+        (WebCore::Navigator::disconnectFrame):
+        * page/Navigator.h:
+        * page/Navigator.idl:
+        * page/PositionCallback.h: Removed.
+        * page/PositionCallback.idl: Removed.
+        * page/PositionError.h: Removed.
+        * page/PositionError.idl: Removed.
+        * page/PositionErrorCallback.h: Removed.
+        * page/PositionErrorCallback.idl: Removed.
+        * page/PositionOptions.h: Removed.
+        * page/PositionOptions.idl: Removed.
+        * platform/GeolocationService.cpp: Removed.
+        * platform/GeolocationService.h: Removed.
+
+2008-10-23  David Kilzer  <ddkilzer@apple.com>
+
+        Attempt to fix GTK build.
+
+        * GNUmakefile.am: Added new *.idl files that were missing.
+
+2008-10-23  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21475
+        
+        Provide support for the Geolocation API
+        
+        http://dev.w3.org/geo/api/spec-source.html
+
+        Test: geolocation/geolocation-not-implemented.html
+
+        * DerivedSources.make:
+        * GNUmakefile.am: Added Geolocation support
+        * WebCore.pro: Added Geolocation support
+        * WebCore.vcproj/WebCore.vcproj: Added Geolocation support
+        * WebCore.xcodeproj/project.pbxproj: Added Geolocation support
+        * WebCoreSources.bkl: Added Geolocation support
+        * bindings/js/JSCustomPositionCallback.cpp: Added.
+        (WebCore::JSCustomPositionCallback::JSCustomPositionCallback):
+        (WebCore::JSCustomPositionCallback::handleEvent):
+        * bindings/js/JSCustomPositionCallback.h: Added.
+        (WebCore::JSCustomPositionCallback::create):
+        * bindings/js/JSCustomPositionErrorCallback.cpp: Added.
+        (WebCore::JSCustomPositionErrorCallback::JSCustomPositionErrorCallback):
+        (WebCore::JSCustomPositionErrorCallback::handleEvent):
+        * bindings/js/JSCustomPositionErrorCallback.h: Added.
+        (WebCore::JSCustomPositionErrorCallback::create):
+        * bindings/js/JSDOMBinding.cpp: move markDOMObjectWrapper here from JSDOMWindowCustom
+        (WebCore::markDOMObjectWrapper):
+        * bindings/js/JSDOMBinding.h: move markDOMObjectWrapper here from JSDOMWindowCustom
+        * bindings/js/JSDOMWindowCustom.cpp: move markDOMObjectWrapper to JSDOMBinding
+        * bindings/js/JSGeolocationCustom.cpp: Added.
+        (WebCore::JSGeolocation::getCurrentPosition):
+        (WebCore::JSGeolocation::watchPosition):
+        * bindings/js/JSNavigatorCustom.cpp: handle marking Geolocation
+        (WebCore::JSNavigator::mark):
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        * dom/Document.h:
+        (WebCore::Document::setUsingGeolocation):
+        (WebCore::Document::usingGeolocation):
+        * loader/FrameLoader.cpp: don't add to back forward cache if using Geolocation
+        (WebCore::FrameLoader::canCachePage):
+        * page/Geolocation.cpp: Added.
+        (WebCore::Geolocation::GeoNotifier::GeoNotifier):
+        (WebCore::Geolocation::GeoNotifier::timerFired):
+        (WebCore::Geolocation::Geolocation):
+        (WebCore::Geolocation::disconnectFrame):
+        (WebCore::Geolocation::getCurrentPosition):
+        (WebCore::Geolocation::watchPosition):
+        (WebCore::Geolocation::clearWatch):
+        (WebCore::Geolocation::stopUpdatingIfEmpty):
+        (WebCore::Geolocation::sendErrorToOneShots):
+        (WebCore::Geolocation::sendErrorToWatchers):
+        (WebCore::Geolocation::sendPositionToOneShots):
+        (WebCore::Geolocation::sendPositionToWatchers):
+        (WebCore::Geolocation::handleError):
+        (WebCore::Geolocation::geolocationServicePositionChanged):
+        (WebCore::Geolocation::geolocationServiceErrorOccurred):
+        * page/Geolocation.h: Added.
+        (WebCore::Geolocation::create):
+        (WebCore::Geolocation::~Geolocation):
+        (WebCore::Geolocation::lastPosition):
+        (WebCore::Geolocation::GeoNotifier::create):
+        * page/Geolocation.idl: Added.
+        * page/Geoposition.cpp: Added.
+        (WebCore::Geoposition::toString):
+        * page/Geoposition.h: Added.
+        (WebCore::Geoposition::create):
+        (WebCore::Geoposition::latitude):
+        (WebCore::Geoposition::longitude):
+        (WebCore::Geoposition::altitude):
+        (WebCore::Geoposition::accuracy):
+        (WebCore::Geoposition::altitudeAccuracy):
+        (WebCore::Geoposition::heading):
+        (WebCore::Geoposition::velocity):
+        (WebCore::Geoposition::timestamp):
+        (WebCore::Geoposition::Geoposition):
+        * page/Geoposition.idl: Added.
+        * page/Navigator.cpp:
+        (WebCore::Navigator::disconnectFrame): disconnect Geolocation
+        (WebCore::Navigator::geolocation): accessor for Geolocation
+        * page/Navigator.h:
+        (WebCore::Navigator::optionalGeolocation): accessor for Geolocation
+        * page/Navigator.idl: accessor for Geolocation
+        * page/PositionCallback.h: Added.
+        (WebCore::PositionCallback::~PositionCallback):
+        * page/PositionCallback.idl: Added.
+        * page/PositionError.h: Added.
+        (WebCore::PositionError::):
+        (WebCore::PositionError::create):
+        (WebCore::PositionError::code):
+        (WebCore::PositionError::message):
+        (WebCore::PositionError::PositionError):
+        * page/PositionError.idl: Added.
+        * page/PositionErrorCallback.h: Added.
+        (WebCore::PositionErrorCallback::~PositionErrorCallback):
+        * page/PositionErrorCallback.idl: Added.
+        * page/PositionOptions.h: Added.
+        (WebCore::PositionOptions::create):
+        (WebCore::PositionOptions::enableHighAccuracy):
+        (WebCore::PositionOptions::setEnableHighAccuracy):
+        (WebCore::PositionOptions::timeout):
+        (WebCore::PositionOptions::setTimeout):
+        (WebCore::PositionOptions::PositionOptions):
+        * page/PositionOptions.idl: Added.
+        * platform/GeolocationService.cpp: Added.
+        (WebCore::GeolocationService::GeolocationService):
+        (WebCore::GeolocationService::positionChanged):
+        (WebCore::GeolocationService::errorOccurred):
+        * platform/GeolocationService.h: Added.
+        (WebCore::GeolocationServiceClient::~GeolocationServiceClient):
+        (WebCore::GeolocationServiceClient::geolocationServicePositionChanged):
+        (WebCore::GeolocationServiceClient::geolocationServiceErrorOccurred):
+        (WebCore::GeolocationService::~GeolocationService):
+
+2008-10-23  Alp Toker  <alp@nuanti.com>
+
+        Fix typo in comment in previous commit. GTK -> GLIB
+
+        * platform/gtk/guriescape.c:
+
+2008-10-23  Kalle Vahlman  <kalle.vahlman@movial.com>
+
+        Reviewed by Alp Toker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21824
+        [GTK] FileSystem abstraction uses features from Glib 2.16
+
+        Wrap g_uri_unescape_string() to fix building with pre-2.16 Glib
+
+        * platform/gtk/guriescape.c:
+        (unescape_character):
+        (_webcore_g_uri_unescape_segment):
+        (_webcore_g_uri_unescape_string):
+        * platform/gtk/guriescape.h:
+
+2008-10-23  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Fix Gtk build typo introduced in http://trac.webkit.org/changeset/37826.
+
+        * GNUmakefile.am:
+
+2008-10-23  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        m_frame null checked but then dereferenced
+        https://bugs.webkit.org/show_bug.cgi?id=21845
+
+        This error was found using a static analysis tool, and so I do not know
+        how to produce a null m_frame on entry to this method.  Hence, I have
+        not included a regression test.
+
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::allowDHTMLDrag): Add an early return.
+
+2008-10-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig with no hesitation.
+
+        - fix the HTML/CSS case of https://bugs.webkit.org/show_bug.cgi?id=19839
+          <rdar://problem/6304805> A PDF,RLE sequence that should be a no-op affects bidi reordering
+
+        Test: fast/text/bidi-embedding-pop-and-push-same.html
+
+        * platform/text/BidiResolver.h:
+        (WebCore::BidiResolver::embed): Changed to only add the embedding
+        operation to a vector of pending operations.
+
+        (WebCore::BidiResolver::lowerExplicitEmbeddingLevel): Added. Moved the
+        code that used to be in the PDF case of embed() here, except the part
+        that sets the context.
+
+        (WebCore::BidiResolver::raiseExplicitEmbeddingLevel): Added. Moved the
+        code that used to be in the non-PDF case of embed() here, except the
+        part the sets the context.
+
+        (WebCore::BidiResolver::commitExplicitEmbedding): Added. Processes the
+        explicit embedding operations in the vector by creating an updated
+        context and determining the old and new embedding levels. If the levels
+        are not the same, calls {lower,raise}ExplicitEmbeddingLevel(). Always
+        sets the context to the new one.
+
+        (WebCore::BidiResolver::createBidiRunsForLine): Added calls to
+        commitExplicitEmbedding() after calling embed() and after calling
+        increment().
+
+        * rendering/bidi.cpp:
+        (WebCore::bidiFirst): Added calls to commitExplicitEmbedding() because
+        this function increments the resolver.
+
+        (WebCore::RenderBlock::skipLeadingWhitespace): Ditto.
+
+2008-10-23  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build fix. Not reviewed.
+
+        Add DNSCurl and DNSSoup to the Gtk build
+
+        * GNUmakefile.am:
+        * platform/gtk/TemporaryLinkStubs.cpp:
+        * platform/network/soup/DNSSoup.cpp: Copied from WebCore/platform/network/curl/DNSCurl.cpp.
+        (WebCore::prefetchDNS):
+
+2008-10-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Un-break the Darwin build.
+
+        * platform/graphics/cg/GraphicsContextPlatformPrivateCG.h:
+        * platform/graphics/cg/ImageCG.cpp:
+
+2008-10-23  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix forward decls to be struct instead of class.
+        https://bugs.webkit.org/show_bug.cgi?id=21838
+
+        * rendering/style/StyleRareInheritedData.h:
+        * rendering/style/StyleRareNonInheritedData.h:
+
+2008-10-23  Brent Fulgham  <bfulgham@gmail.com>
+
+        Reviewed by Oliver Hunt.
+
+        * platform/network/curl/ResourceRequest.h:  A better implementation
+          of CFURLRequest, rather than void*.  This gives better compatibility 
+          with the WebKit.idl interface.
+        (WebCore::ResourceRequest::cfURLRequest):
+
+2008-10-23  Mike Pinkerton  <pinkerton@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        PLATFORM(CHROMIUM) uses CG the same way PLATFORM(MAC) does so fix
+        ifdefs to reflect that.
+
+        * platform/graphics/cg/GraphicsContextPlatformPrivateCG.h:
+        * platform/graphics/cg/ImageCG.cpp:
+
+2008-10-23  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21833
+        Place JavaScript Debugger hooks under #if ENABLE(JAVASCRIPT_DEBUGGER).
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::InspectorController):
+        (WebCore::InspectorController::setWindowVisible):
+        (WebCore::InspectorController::windowScriptObjectAvailable):
+        (WebCore::InspectorController::close):
+        * inspector/InspectorController.h:
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+
+2008-10-23  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21817
+        Bug 21817: Manual profiler tests should be made into layout tests
+
+        -Moving the tests before diffing so that it's clear what changed.
+
+        * manual-tests/inspector/profiler-test-anonymous-event-handler.html: Removed.
+        * manual-tests/inspector/profiler-test-anonymous-function-called-from-different-contexts.html: Removed.
+        * manual-tests/inspector/profiler-test-anonymous-function-calls-built-in-functions.html: Removed.
+        * manual-tests/inspector/profiler-test-anonymous-function-calls-eval.html: Removed.
+        * manual-tests/inspector/profiler-test-apply.html: Removed.
+        * manual-tests/inspector/profiler-test-built-in-function-calls-anonymous.html: Removed.
+        * manual-tests/inspector/profiler-test-built-in-function-calls-user-defined-function.html: Removed.
+        * manual-tests/inspector/profiler-test-call-nodelist-as-function.html: Removed.
+        * manual-tests/inspector/profiler-test-calling-the-function-that-started-the-profiler-from-another-scope.html: Removed.
+        * manual-tests/inspector/profiler-test-compare-multiple-profiles.html: Removed.
+        * manual-tests/inspector/profiler-test-constructor.html: Removed.
+        * manual-tests/inspector/profiler-test-dead-time.html: Removed.
+        * manual-tests/inspector/profiler-test-deep-recursion.html: Removed.
+        * manual-tests/inspector/profiler-test-document-dot-write.html: Removed.
+        * manual-tests/inspector/profiler-test-event-handler.html: Removed.
+        * manual-tests/inspector/profiler-test-execution-context-and-eval-on-same-line.html: Removed.
+        * manual-tests/inspector/profiler-test-heavy-view.html: Removed.
+        * manual-tests/inspector/profiler-test-inline-event-handler.html: Removed.
+        * manual-tests/inspector/profiler-test-multiple-and-different-scoped-anonymous-function-calls.html: Removed.
+        * manual-tests/inspector/profiler-test-multiple-and-different-scoped-function-calls.html: Removed.
+        * manual-tests/inspector/profiler-test-multiple-frames.html: Removed.
+        * manual-tests/inspector/profiler-test-multiple-windows.html: Removed.
+        * manual-tests/inspector/profiler-test-nested-anonymous-functon.html: Removed.
+        * manual-tests/inspector/profiler-test-nested-start-and-stop-profiler.html: Removed.
+        * manual-tests/inspector/profiler-test-no-execution-context.html: Removed.
+        * manual-tests/inspector/profiler-test-one-execution-context.html: Removed.
+        * manual-tests/inspector/profiler-test-profile-calls-in-included-file.html: Removed.
+        * manual-tests/inspector/profiler-test-profiling-from-a-nested-location-but-stop-profiling-outside-the-nesting.html: Removed.
+        * manual-tests/inspector/profiler-test-profiling-from-a-nested-location.html: Removed.
+        * manual-tests/inspector/profiler-test-simple-event-call.html: Removed.
+        * manual-tests/inspector/profiler-test-simple-no-level-change.html: Removed.
+        * manual-tests/inspector/profiler-test-start-and-stop-profiler-multiple-times.html: Removed.
+        * manual-tests/inspector/profiler-test-start-and-stop-profiling-in-the-same-function.html: Removed.
+        * manual-tests/inspector/profiler-test-start-but-dont-stop-profiling.html: Removed.
+        * manual-tests/inspector/profiler-test-stop-profiling-after-setTimeout.html: Removed.
+        * manual-tests/inspector/profiler-test-stop-then-function-call.html: Removed.
+        * manual-tests/inspector/profiler-test-throw-exception-from-eval.html: Removed.
+        * manual-tests/inspector/profiler-test-two-execution-contexts.html: Removed.
+        * manual-tests/inspector/profiler-test-user-defined-function-calls-built-in-functions.html: Removed.
+        * manual-tests/inspector/profiler-test-window-dot-eval.html: Removed.
+        * manual-tests/inspector/resources/other-frame.html: Removed.
+        * manual-tests/inspector/resources/other-window.html: Removed.
+        * manual-tests/inspector/resources/profiler-test-JS-resources.js: Removed.
+
+2008-10-23  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21826
+
+        Add accessor for SecurityOrigin::m_domainWasSetInDOM.
+
+        * page/SecurityOrigin.h:
+        (WebCore::SecurityOrigin::domainWasSetInDOM):
+
+2008-10-23  Darin Adler  <darin@apple.com>
+
+        - roll out https://bugs.webkit.org/show_bug.cgi?id=21732
+
+        * bindings/js/ScheduledAction.h:
+        * inspector/InspectorController.cpp:
+        ProtectedPtr<JSValue> instead of ProtectedPtr<JSValuePtr>.
+
+2008-10-23  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build.
+
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::QtConnectionObject::execute):
+        * bridge/qt/qt_runtime.h:
+        (JSC::Bindings::QtRuntimeMethod::createStructureID):
+
+2008-10-23  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21825
+        JSDOMBinding should not blindly cast the global object to JSDOMWindow
+
+        * bindings/js/JSDOMGlobalObject.cpp:
+        * bindings/js/JSDOMGlobalObject.h:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        Added JSDOMGlobalObject, a base class to be used by both Window and worker contexts.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::getCachedDOMStructure):
+        (WebCore::cacheDOMStructure):
+        (WebCore::getCachedDOMConstructor):
+        (WebCore::cacheDOMConstructor):
+        Cast to JSDOMGlobalObject, as DOM objects live in DOM global objects.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::JSDOMWindowBase):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::mark):
+        Moved constructor and structure tracking to JSDOMGlobalObject.
+
+2008-10-23  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21787
+
+        Update postMessage to send origin = "null" for non-serializable
+        origins to match latest spec.  Merge SecurityOrigin::toString and
+        SecurityOrigin::toHTTPOrigin because they are now the same.
+
+        Test: http/tests/security/postMessage/data-url-sends-null-origin.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::outgoingOrigin):
+        (WebCore::FrameLoader::loadURL):
+        (WebCore::FrameLoader::addHTTPOriginIfNeeded):
+        (WebCore::FrameLoader::loadItem):
+        * loader/loader.cpp:
+        (WebCore::Loader::Host::servePendingRequests):
+        * page/SecurityOrigin.cpp:
+        (WebCore::SecurityOrigin::toString):
+        * page/SecurityOrigin.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::makeSimpleCrossSiteAccessRequest):
+        (WebCore::XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight):
+        (WebCore::XMLHttpRequest::handleAsynchronousPreflightResult):
+        (WebCore::XMLHttpRequest::didReceiveResponsePreflight):
+
+2008-10-22  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 21781: WebCore::Settings should have a maximum decoded image size setting
+
+        <https://bugs.webkit.org/show_bug.cgi?id=21781>
+
+        Reviewed by Antti.
+
+        No tests since there is no change in behavior.
+
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::maximumDecodedImageSize): Added.  Returns
+        WebCore::Settings::maximumDecodedImageSize() or 0 on error.
+        (WebCore::CachedImage::data): Flag an error if the image being
+        loaded is too big.
+        * loader/CachedImage.h:
+        (WebCore::CachedImage::maximumDecodedImageSize): Added declaration.
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings): Initialize m_maximumDecodedImageSize
+        to the maximum value of size_t.
+        * page/Settings.h:
+        (WebCore::Settings::setMaximumDecodedImageSize): Added method.
+        (WebCore::Settings::maximumDecodedImageSize): Ditto.
+
+2008-10-22  Mike Pinkerton  <pinkerton@chromium.org>
+
+        Reviewed by Dan Bernstein.
+        Landed and tweaked a bit by Darin Adler.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21809
+
+        Remove PLATFORM(MAC) wrapping USE(ATSUI). It's redundant and inhibits 
+        its use for PLATFORM(CHROMIUM) in the future.
+
+        * platform/graphics/SimpleFontData.h:
+
+2008-10-22  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Anders Carlsson.
+               
+        https://bugs.webkit.org/show_bug.cgi?id=19974
+        getElementsByClassName not live enough
+
+        Test: fast/dom/getElementsByClassName/015.html
+
+        * dom/StyledElement.cpp:
+        (WebCore::StyledElement::classAttributeChanged): call dispatchSubtreeModifiedEvent()
+
+2008-10-22  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21294
+          Bug 21294: Devirtualize getOwnPropertySlot()
+
+        * bindings/js/JSDOMWindowShell.h:
+        (WebCore::JSDOMWindowShell::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        (WebCore::JSInspectorCallbackWrapper::wrap): Change to use a unique structure
+        for this class rather than sharing nullProtoStructureID, which no longer exists.
+
+        * bindings/js/JSNamedNodesCollection.h:
+        (WebCore::JSNamedNodesCollection::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+        * bindings/js/JSRGBColor.h:
+        (WebCore::JSRGBColor::createStructureID): Ditto.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Added createStructureID functions for the wrappers,
+        constructors, and prototypes in any case where they override getOwnPropertySlot, without
+        HasStandardGetOwnPropertySlot.
+
+        * bridge/objc/objc_runtime.h:
+        (JSC::Bindings::ObjcFallbackObjectImp::createStructureID): Added. Returns a structure
+        without HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+        * bridge/qt/qt_runtime.h:
+        (JSC::Bindings::QtRuntimeMethod::createStructureID): Ditto.
+        * bridge/runtime_array.h:
+        (JSC::RuntimeArray::createStructureID): Ditto.
+        * bridge/runtime_method.h:
+        (JSC::RuntimeMethod::createStructureID): Ditto.
+        * bridge/runtime_object.h:
+        (JSC::RuntimeObjectImp::createStructureID): Ditto.
+
+2008-10-22  Brent Fulgham  <bfulgham@gmail.com>
+
+        Bring Windows Cairo Port's font handling in line with CG.
+        http://bugs.webkit.org/show_bug.cgi?id=21812.
+
+        Reviewed by Adam Roben.
+
+        * platform/graphics/win/FontCacheWin.cpp:
+        (WebCore::createGDIFont): Remove unnecessary special-case for Cairo
+        TrueType font search. It should match CG in all font selections.
+
+2008-10-22  Brent Fulgham  <bfulgham@gmail.com>
+
+        http://bugs.webkit.org/show_bug.cgi?id=21812.
+        Bring Windows Cairo Port's font handling in line with CG.
+
+        Reviewed by David Hyatt.
+
+        * platform/graphics/win/FontCacheWin.cpp:
+        (WebCore::createGDIFont):  Remove unnecessary special-case for Cairo TrueType font search.  It should match CG in all font selections.
+
+2008-10-22  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Adam Roben
+
+        <rdar://6261773> - autocomplete="off" doesn't work on Windows
+
+        Visual Studio makes a poor decision regarding the combination of enums and bitfields, such that a 
+        statement like "m_autocomplete = Off" followed by "return m_autocomplete == Off" would return "false" 
+        instead of the much more correct "true."
+        
+        In the past we have worked around this by declaring the bitfield member as an unsigned instead 
+        of the enum type.
+
+        For more discussion, see http://trac.webkit.org/changeset/25329
+
+        * html/HTMLInputElement.h:  Work around insane Visual Studio enum issue  *sigh*
+
+2008-10-22  Kevin McCullough  <kmccullough@apple.com>
+
+        Reviewed by Oliver Hunt and Tim Hatcher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19225
+        Bug 19225: JSProfiler: Create automated profiler tests
+        - This change exports profiles on the console object so that they can be
+        iterated over via JavaScript, and thus can be used in automated tests.
+
+        * bindings/js/JSConsoleCustom.cpp: Get the profiles and return an array
+        that JS can use.
+        (WebCore::JSConsole::profiles):
+        * inspector/InspectorController.h: Use the new typedef.
+        (WebCore::InspectorController::profiles):
+        * page/Console.cpp: Keep our own array of profile objects.
+        (WebCore::Console::profileEnd):
+        * page/Console.h: Ditto.
+        (WebCore::Console::profiles):
+        * page/Console.idl: Expose the profiles to JS.
+
+2008-10-22  David Hyatt  <hyatt@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=21775
+
+        Convert buttons over to use the new Theme API on OS X.
+
+        Reviewed by Adam Roben
+
+        * platform/LengthBox.h:
+        (WebCore::LengthBox::LengthBox):
+        * platform/Theme.cpp:
+        (WebCore::Theme::controlBorder):
+        (WebCore::Theme::controlPadding):
+        * platform/Theme.h:
+        (WebCore::Theme::controlFont):
+        (WebCore::Theme::controlSize):
+        (WebCore::Theme::minControlSize):
+        (WebCore::Theme::controlRequiresPreWhiteSpace):
+        * platform/mac/ThemeMac.h:
+        (WebCore::ThemeMac::controlRequiresPreWhiteSpace):
+        * platform/mac/ThemeMac.mm:
+        (WebCore::checkboxSize):
+        (WebCore::radioSize):
+        (WebCore::buttonSizes):
+        (WebCore::buttonMargins):
+        (WebCore::button):
+        (WebCore::paintButton):
+        (WebCore::ThemeMac::controlFont):
+        (WebCore::ThemeMac::controlSize):
+        (WebCore::ThemeMac::minControlSize):
+        (WebCore::ThemeMac::controlBorder):
+        (WebCore::ThemeMac::controlPadding):
+        (WebCore::ThemeMac::inflateControlPaintRect):
+        (WebCore::ThemeMac::paint):
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::adjustStyle):
+        (WebCore::RenderTheme::paint):
+        (WebCore::RenderTheme::controlStatesForRenderer):
+        (WebCore::RenderTheme::isDefault):
+        (WebCore::RenderTheme::adjustRadioStyle):
+        * rendering/RenderTheme.h:
+        (WebCore::RenderTheme::setRadioSize):
+        * rendering/RenderThemeMac.h:
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::adjustRepaintRect):
+        (WebCore::menuListButtonSizes):
+        (WebCore::RenderThemeMac::adjustMenuListStyle):
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::paddingBox):
+        (WebCore::InheritedFlags::setPaddingBox):
+
+2008-10-22  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        Make sure that the AtomicString that identifies a set of animation keyframes
+        stays live by keeping a copy in the WebKitCSSKeyframesRule.
+        
+        Also call styleSheetChanged() when the keyframes name changes, but
+        add an internal method that doesn't call styleSheetChanged() for use
+        during normal stylesheet parsing.
+        
+        Test: animations/change-keyframes-name.html
+
+        * css/CSSGrammar.y:
+        * css/WebKitCSSKeyframesRule.cpp:
+        (WebCore::WebKitCSSKeyframesRule::setName):
+        * css/WebKitCSSKeyframesRule.h:
+        (WebCore::WebKitCSSKeyframesRule::setNameInternal):
+
+2008-10-22  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21791
+        WebCore JS bindings should be able to use non-static hash tables for properties
+
+        Add a map for HashTables to WebCore JS client data.
+
+        This makes property access noticeably slower, so it is an opt-in. For classes that need to be
+        supported in workers in forseeable future this is not critical.
+
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::DOMObjectHashTableMap::get):
+        (WebCore::DOMObjectHashTableMap::mapFor):
+        (WebCore::getHashTableForGlobalData):
+        (WebCore::DOMObjectWrapperMap::mapFor):
+        WebCore client data is now a class that contains both a DOM wrapper map and a property hash
+        table one.
+
+        * bindings/js/JSDOMBinding.h: Added getHashTableForGlobalData() to query the hash table map.
+
+        * bindings/scripts/CodeGeneratorJS.pm: If the class has a NoStaticTables attribute, use
+        JSDOMBinding map to access its property hash tables.
+
+        * dom/MessageChannel.idl:
+        * dom/MessagePort.idl:
+        Added NoStaticTables attribute.
+
+2008-10-22  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Build failure because of missing include
+        https://bugs.webkit.org/show_bug.cgi?id=21765
+
+        Build failure fix for WebKit/GTK+; added missing
+        include (GOwnPtr.h)
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+
+2008-10-22  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Adam Roben.
+
+        Fix crashes on older GTK+ versions (2.8). gtk_widget_style_get()
+        doesn't initialize values if the requested property doesn't exist, so
+        initialize the values to the documented defaults before calling it
+        where necessary. Additionally, avoid critical warnings by not calling
+        gtk_widget_style_get() when we know the property isn't available.
+
+        Note that this is an imported source file which doesn't follow the
+        WebKit coding style.
+
+        * platform/gtk/gtk2drawing.c:
+        (moz_gtk_init):
+        (moz_gtk_button_get_inner_border):
+        (moz_gtk_combo_box_paint):
+        (moz_gtk_toolbar_separator_paint):
+        (moz_gtk_menu_separator_paint):
+        (moz_gtk_get_widget_border):
+        (moz_gtk_get_tab_scroll_arrow_size):
+        (moz_gtk_get_toolbar_separator_width):
+        (moz_gtk_get_menu_separator_height):
+
+2008-10-22  Alp Toker  <alp@nuanti.com>
+
+        Fix build for Cairo 1.2.
+
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::clipOut):
+        * platform/gtk/RenderThemeGtk.cpp:
+        (WebCore::paintMozWidget):
+
 2008-10-22  Darin Fisher  <darin@chromium.org>
 
         Reviewed by Eric Seidel.

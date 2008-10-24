@@ -29,7 +29,7 @@
 
 namespace JSC {
 
-    class JSCell : Noncopyable {
+    class JSCell : public JSValue {
         friend class CTI;
         friend class GetterSetter;
         friend class Heap;
@@ -99,7 +99,8 @@ namespace JSC {
         void* vptr() { return *reinterpret_cast<void**>(this); }
 
     private:
-        // Base implementation, but for non-object classes implements getPropertySlot.
+        // Base implementation; for non-object classes implements getPropertySlot.
+        bool fastGetOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
         virtual bool getOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
         virtual bool getOwnPropertySlot(ExecState*, unsigned propertyName, PropertySlot&);
         
@@ -111,7 +112,7 @@ namespace JSC {
     inline JSCell* asCell(JSValuePtr value)
     {
         ASSERT(!JSImmediate::isImmediate(value));
-        return reinterpret_cast<JSCell*>(value.payload());
+        return static_cast<JSCell*>(value);
     }
 
     inline JSCell::JSCell(StructureID* structureID)
@@ -166,13 +167,6 @@ namespace JSC {
 #else
         return globalData->heap.allocate(size);
 #endif
-    }
-
-    // --- JSValuePtr inlines ----------------------------
-
-    inline JSValuePtr::JSValuePtr(const JSCell* cell)
-        : m_payload(reinterpret_cast<JSValue*>(const_cast<JSCell*>(cell)))
-    {
     }
 
     // --- JSValue inlines ----------------------------

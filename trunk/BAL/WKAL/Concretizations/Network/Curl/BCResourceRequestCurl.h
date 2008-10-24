@@ -29,6 +29,8 @@
 
 #include "ResourceRequestBase.h"
 
+typedef const struct _CFURLRequest* CFURLRequestRef;
+
 namespace WKAL {
 
     struct ResourceRequest : ResourceRequestBase {
@@ -53,6 +55,9 @@ namespace WKAL {
             : ResourceRequestBase(KURL(), UseProtocolCachePolicy)
         {
         }
+
+        // Needed for compatibility.
+        CFURLRequestRef cfURLRequest() const { return 0; }
 
     private:
         friend class ResourceRequestBase;

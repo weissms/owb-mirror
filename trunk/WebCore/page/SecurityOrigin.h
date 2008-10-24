@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2007,2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,6 +54,7 @@ namespace WebCore {
         // function does not check whether newDomain is a suffix of the current
         // domain.  The caller is responsible for validating newDomain.
         void setDomainFromDOM(const String& newDomain);
+        bool domainWasSetInDOM() const { return m_domainWasSetInDOM; }
 
         String protocol() const { return m_protocol; }
         String host() const { return m_host; }
@@ -103,13 +104,8 @@ namespace WebCore {
         // representation of a SecurityOrigin is similar to a URL, except it
         // lacks a path component.  The string representation does not encode
         // the value of the SecurityOrigin's domain property.  The empty
-        // SecurityOrigin is represented with the null string.
+        // SecurityOrigin is represented with the string "null".
         String toString() const;
-
-        // Convert this SecurityOrigin into a string for use in the HTTP Origin
-        // header. This is similar to toString(), except that the empty
-        // SecurityOrigin is represented as the string "null".
-        String toHTTPOrigin() const;
 
         // Serialize the security origin for storage in the database. This format is
         // deprecated and should be used only for compatibility with old databases;

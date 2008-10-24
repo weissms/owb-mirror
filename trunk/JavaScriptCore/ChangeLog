@@ -1,3 +1,376 @@
+2008-10-24  David Kilzer  <ddkilzer@apple.com>
+
+        Rolled out r37840.
+
+        * wtf/Platform.h:
+
+2008-10-23  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21475
+        
+        Provide support for the Geolocation API
+        
+        http://dev.w3.org/geo/api/spec-source.html
+
+        * wtf/Platform.h: ENABLE_GEOLOCATION defaults to 0
+
+2008-10-23  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 21832: Fix scripts using 'new File::Temp' for Perl 5.10
+
+        <https://bugs.webkit.org/show_bug.cgi?id=21832>
+
+        Reviewed by Sam Weinig.
+
+        * pcre/dftables: Use imported tempfile() from File::Temp instead of
+        'new File::Temp' to make the script work with Perl 5.10.
+
+2008-10-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix hideous pathological case performance when looking up repatch info, bug #21727.
+
+        When repatching JIT code to optimize we look up records providing information about
+        the generated code (also used to track recsources used in linking to be later released). 
+        The lookup was being performed using a linear scan of all such records.
+
+        (1) Split up the different types of reptach information.  This means we can search them
+            separately, and in some cases should reduce their size.
+        (2) In the case of property accesses, search with a binary chop over the data.
+        (3) In the case of calls, pass a pointer to the repatch info into the relink function.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::CTI):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        (JSC::CTI::unlinkCall):
+        (JSC::CTI::linkCall):
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::~CodeBlock):
+        (JSC::CodeBlock::unlinkCallers):
+        (JSC::CodeBlock::derefStructureIDs):
+        * VM/CodeBlock.h:
+        (JSC::StructureStubInfo::StructureStubInfo):
+        (JSC::CallLinkInfo::CallLinkInfo):
+        (JSC::CallLinkInfo::setUnlinked):
+        (JSC::CallLinkInfo::isLinked):
+        (JSC::getStructureStubInfoReturnLocation):
+        (JSC::binaryChop):
+        (JSC::CodeBlock::addCaller):
+        (JSC::CodeBlock::getStubInfo):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitResolve):
+        (JSC::CodeGenerator::emitGetById):
+        (JSC::CodeGenerator::emitPutById):
+        (JSC::CodeGenerator::emitCall):
+        (JSC::CodeGenerator::emitConstruct):
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_vm_lazyLinkCall):
+
+2008-10-23  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21833
+        Place JavaScript Debugger hooks under #if ENABLE(JAVASCRIPT_DEBUGGER).
+
+        * wtf/Platform.h:
+
+2008-10-23  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 21831: Fix create_hash_table for Perl 5.10
+
+        <https://bugs.webkit.org/show_bug.cgi?id=21831>
+
+        Reviewed by Sam Weinig.
+
+        * kjs/create_hash_table: Escaped square brackets so that Perl 5.10
+        doesn't try to use @nameEntries.
+
+2008-10-23  Darin Adler  <darin@apple.com>
+
+        - roll out https://bugs.webkit.org/show_bug.cgi?id=21732
+          to remove the JSValuePtr class, to fix two problems
+
+            1) slowness under MSVC, since it doesn't handle a
+               class with a single pointer in it as efficiently
+               as a pointer
+
+            2) uninitialized pointers in Vector
+
+        * JavaScriptCore.exp: Updated.
+
+        * API/APICast.h:
+        (toRef):
+        * VM/CTI.cpp:
+        (JSC::CTI::asInteger):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::addConstant):
+        * VM/CodeGenerator.h:
+        (JSC::CodeGenerator::JSValueHashTraits::constructDeletedValue):
+        (JSC::CodeGenerator::JSValueHashTraits::isDeletedValue):
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_add):
+        (JSC::Machine::cti_op_pre_inc):
+        (JSC::Machine::cti_op_get_by_id):
+        (JSC::Machine::cti_op_get_by_id_second):
+        (JSC::Machine::cti_op_get_by_id_generic):
+        (JSC::Machine::cti_op_get_by_id_fail):
+        (JSC::Machine::cti_op_instanceof):
+        (JSC::Machine::cti_op_del_by_id):
+        (JSC::Machine::cti_op_mul):
+        (JSC::Machine::cti_op_call_NotJSFunction):
+        (JSC::Machine::cti_op_resolve):
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+        (JSC::Machine::cti_op_get_by_val):
+        (JSC::Machine::cti_op_sub):
+        (JSC::Machine::cti_op_lesseq):
+        (JSC::Machine::cti_op_negate):
+        (JSC::Machine::cti_op_resolve_base):
+        (JSC::Machine::cti_op_resolve_skip):
+        (JSC::Machine::cti_op_resolve_global):
+        (JSC::Machine::cti_op_div):
+        (JSC::Machine::cti_op_pre_dec):
+        (JSC::Machine::cti_op_not):
+        (JSC::Machine::cti_op_eq):
+        (JSC::Machine::cti_op_lshift):
+        (JSC::Machine::cti_op_bitand):
+        (JSC::Machine::cti_op_rshift):
+        (JSC::Machine::cti_op_bitnot):
+        (JSC::Machine::cti_op_mod):
+        (JSC::Machine::cti_op_less):
+        (JSC::Machine::cti_op_neq):
+        (JSC::Machine::cti_op_urshift):
+        (JSC::Machine::cti_op_bitxor):
+        (JSC::Machine::cti_op_bitor):
+        (JSC::Machine::cti_op_call_eval):
+        (JSC::Machine::cti_op_throw):
+        (JSC::Machine::cti_op_next_pname):
+        (JSC::Machine::cti_op_typeof):
+        (JSC::Machine::cti_op_is_undefined):
+        (JSC::Machine::cti_op_is_boolean):
+        (JSC::Machine::cti_op_is_number):
+        (JSC::Machine::cti_op_is_string):
+        (JSC::Machine::cti_op_is_object):
+        (JSC::Machine::cti_op_is_function):
+        (JSC::Machine::cti_op_stricteq):
+        (JSC::Machine::cti_op_nstricteq):
+        (JSC::Machine::cti_op_to_jsnumber):
+        (JSC::Machine::cti_op_in):
+        (JSC::Machine::cti_op_del_by_val):
+        (JSC::Machine::cti_vm_throw):
+        Removed calls to payload functions.
+
+        * VM/Register.h:
+        (JSC::Register::Register): Removed overload for JSCell and call
+        to payload function.
+
+        * kjs/JSCell.h: Changed JSCell to derive from JSValue again.
+        Removed JSValuePtr constructor.
+        (JSC::asCell): Changed cast from reinterpret_cast to static_cast.
+
+        * kjs/JSImmediate.h: Removed JSValuePtr class. Added typedef back.
+
+        * kjs/JSValue.h:
+        (JSC::JSValue::JSValue): Added empty protected inline constructor back.
+        (JSC::JSValue::~JSValue): Same for destructor.
+        Removed == and != operator for JSValuePtr.
+
+        * kjs/PropertySlot.h:
+        (JSC::PropertySlot::PropertySlot): Chnaged argument to const JSValue*
+        and added a const_cast.
+
+        * kjs/protect.h: Removed overloads and specialization for JSValuePtr.
+
+2008-10-22  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Really "fix" CTI mode on windows 2k3.
+
+        This adds new methods fastMallocExecutable and fastFreeExecutable
+        to wrap allocation for cti code.  This still just makes fastMalloc
+        return executable memory all the time, which will be fixed in a
+        later patch.
+
+        However in windows debug builds all executable allocations will be
+        allocated on separate executable pages, which should resolve any
+        remaining 2k3 issues.  Conveniently the 2k3 bot will now also fail
+        if there are any fastFree vs. fastFreeExecutable errors.
+
+        * ChangeLog:
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::~CodeBlock):
+        * kjs/regexp.cpp:
+        (JSC::RegExp::~RegExp):
+        * masm/X86Assembler.h:
+        (JSC::JITCodeBuffer::copy):
+        * wtf/FastMalloc.cpp:
+        (WTF::fastMallocExecutable):
+        (WTF::fastFreeExecutable):
+        (WTF::TCMallocStats::fastMallocExecutable):
+        (WTF::TCMallocStats::fastFreeExecutable):
+        * wtf/FastMalloc.h:
+
+2008-10-22  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21294
+          Bug 21294: Devirtualize getOwnPropertySlot()
+
+        A bit over 3% faster on V8 tests.
+
+        * JavascriptCore.exp: Export leak-related functions..
+
+        * API/JSCallbackConstructor.h:
+        (JSC::JSCallbackConstructor::createStructureID): Set HasStandardGetOwnPropertySlot
+        since this class doesn't override getPropertySlot.
+        * API/JSCallbackFunction.h:
+        (JSC::JSCallbackFunction::createStructureID): Ditto.
+
+        * VM/ExceptionHelpers.cpp:
+        (JSC::InterruptedExecutionError::InterruptedExecutionError): Use a structure
+        that's created just for this class instead of trying to share a single "null
+        prototype" structure.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_create_arguments_no_params): Rename
+        Arguments::ArgumentsNoParameters to Arguments::NoParameters.
+        
+        * kjs/Arguments.h: Rename the enum from Arguments::ArgumentsParameters to
+        Arguments::NoParametersType and the value from Arguments::ArgumentsNoParameters
+        to Arguments::NoParameters.
+        (JSC::Arguments::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+        (JSC::Arguments::Arguments): Added an assertion that there are no parameters.
+
+        * kjs/DatePrototype.h:
+        (JSC::DatePrototype::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+
+        * kjs/FunctionPrototype.h:
+        (JSC::FunctionPrototype::createStructureID): Set HasStandardGetOwnPropertySlot
+        since this class doesn't override getPropertySlot.
+        * kjs/InternalFunction.h:
+        (JSC::InternalFunction::createStructureID): Ditto.
+
+        * kjs/JSArray.h:
+        (JSC::JSArray::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+
+        * kjs/JSCell.h: Added declaration of fastGetOwnPropertySlot; a non-virtual
+        version that uses the structure bit to decide whether to call the virtual
+        version.
+
+        * kjs/JSFunction.h:
+        (JSC::JSFunction::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData): Initialize new structures; removed
+        nullProtoStructureID.
+        * kjs/JSGlobalData.h: Added new structures. Removed nullProtoStructureID.
+
+        * kjs/JSGlobalObject.h:
+        (JSC::JSGlobalObject::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+
+        * kjs/JSNotAnObject.h:
+        (JSC::JSNotAnObjectErrorStub::JSNotAnObjectErrorStub): Use a structure
+        that's created just for this class instead of trying to share a single "null
+        prototype" structure.
+        (JSC::JSNotAnObjectErrorStub::isNotAnObjectErrorStub): Marked this function
+        virtual for clarity and made it private since no one should call it if they
+        already have a pointer to this specific type.
+        (JSC::JSNotAnObject::JSNotAnObject): Use a structure that's created just
+        for this class instead of trying to share a single "null prototype" structure.
+        (JSC::JSNotAnObject::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+
+        * kjs/JSObject.h:
+        (JSC::JSObject::createStructureID): Added HasStandardGetOwnPropertySlot.
+        (JSC::JSObject::inlineGetOwnPropertySlot): Added. Used so we can share code
+        between getOwnPropertySlot and fastGetOwnPropertySlot.
+        (JSC::JSObject::getOwnPropertySlot): Moved so that functions are above the
+        functions that call them. Moved the guts of this function into
+        inlineGetOwnPropertySlot.
+        (JSC::JSCell::fastGetOwnPropertySlot): Added. Checks the
+        HasStandardGetOwnPropertySlot bit and if it's set, calls
+        inlineGetOwnPropertySlot, otherwise calls getOwnPropertySlot.
+        (JSC::JSObject::getPropertySlot): Changed to call fastGetOwnPropertySlot.
+        (JSC::JSValue::get): Changed to call fastGetOwnPropertySlot.
+
+        * kjs/JSWrapperObject.h: Made constructor protected to emphasize that
+        this class is only a base class and never instantiated.
+
+        * kjs/MathObject.h:
+        (JSC::MathObject::createStructureID): Added. Returns a structure without
+        HasStandardGetOwnPropertySlot since this class overrides getOwnPropertySlot.
+        * kjs/NumberConstructor.h:
+        (JSC::NumberConstructor::createStructureID): Ditto.
+        * kjs/RegExpConstructor.h:
+        (JSC::RegExpConstructor::createStructureID): Ditto.
+        * kjs/RegExpObject.h:
+        (JSC::RegExpObject::createStructureID): Ditto.
+        * kjs/StringObject.h:
+        (JSC::StringObject::createStructureID): Ditto.
+
+        * kjs/TypeInfo.h: Added HasStandardGetOwnPropertySlot flag and
+        hasStandardGetOwnPropertySlot accessor function.
+
+2008-10-22  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 21803: Fuse op_jfalse with op_eq_null and op_neq_null
+        <https://bugs.webkit.org/show_bug.cgi?id=21803>
+
+        Fuse op_jfalse with op_eq_null and op_neq_null to make the new opcodes
+        op_jeq_null and op_jneq_null.
+
+        This is a 2.6% speedup on the V8 Raytrace benchmark, and strangely also
+        a 4.7% speedup on the V8 Arguments benchmark, even though it uses
+        neither of the two new opcodes.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitJumpIfTrue):
+        (JSC::CodeGenerator::emitJumpIfFalse):
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        * VM/Opcode.h:
+
+2008-10-22  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Should not define PLATFORM(WIN,MAC,GTK) when PLATFORM(CHROMIUM) is defined
+        https://bugs.webkit.org/show_bug.cgi?id=21757
+
+        PLATFORM(CHROMIUM) implies HAVE_ACCESSIBILITY
+
+        * wtf/Platform.h:
+
+2008-10-22  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Correct opcode names in documentation.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+
 2008-10-22  Oliver Hunt <oliver@apple.com>
 
         RS=Maciej Stachowiak.

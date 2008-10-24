@@ -91,18 +91,16 @@
 #define WTF_PLATFORM_UNIX 1
 #endif
 
-/* PLATFORM(CHROMIUM) */
-#if defined(BUILDING_CHROMIUM__)
-#define WTF_PLATFORM_CHROMIUM 1
-#endif
-
 /* Operating environments */
 
+/* PLATFORM(CHROMIUM) */
 /* PLATFORM(QT) */
 /* PLATFORM(GTK) */
 /* PLATFORM(MAC) */
 /* PLATFORM(WIN) */
-#if defined(BUILDING_QT__)
+#if defined(BUILDING_CHROMIUM__)
+#define WTF_PLATFORM_CHROMIUM 1
+#elif defined(BUILDING_QT__)
 #define WTF_PLATFORM_QT 1
 
 /* PLATFORM(KDE) */
@@ -281,7 +279,7 @@
 #endif
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(WIN) || PLATFORM(GTK)
+#if PLATFORM(MAC) || PLATFORM(WIN) || PLATFORM(GTK) || PLATFORM(CHROMIUM)
 #define HAVE_ACCESSIBILITY 1
 #endif
 
@@ -327,6 +325,10 @@
 
 #if !defined(ENABLE_DATABASE)
 #define ENABLE_DATABASE 1
+#endif
+
+#if !defined(ENABLE_JAVASCRIPT_DEBUGGER)
+#define ENABLE_JAVASCRIPT_DEBUGGER 1
 #endif
 
 #if !defined(ENABLE_FTPDIR)

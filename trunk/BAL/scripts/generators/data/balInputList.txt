@@ -621,12 +621,14 @@
 ../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/Credential.h
 ../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/Credential.cpp
 ../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/network/curl/AuthenticationChallenge.h
+../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/network/curl/DNSCurl.cpp
 ../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/network/curl/ResourceError.h
 ../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/network/curl/ResourceHandleManager.h
 ../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/network/curl/ResourceHandleManager.cpp
 ../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/network/curl/ResourceRequest.h
 ../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/network/curl/ResourceResponse.h
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/AuthenticationChallenge.h
+../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/DNSSoup.cpp
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/ResourceError.h
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/ResourceHandleSoup.cpp
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/ResourceRequest.h

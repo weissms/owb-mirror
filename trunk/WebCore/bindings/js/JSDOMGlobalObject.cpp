@@ -10,10 +10,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -21,38 +21,34 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *
  */
 
 #include "config.h"
-#include "Theme.h"
+#include "JSDOMGlobalObject.h"
+
+using namespace JSC;
 
 namespace WebCore {
 
-LengthBox Theme::controlBorder(ControlPart part, const Font&, const LengthBox& zoomedBox, float zoomFactor) const
+JSDOMGlobalObject::JSDOMGlobalObject(PassRefPtr<StructureID> structure, JSDOMGlobalObject::JSDOMGlobalObjectData* data, JSObject* thisValue)
+    : JSGlobalObject(structure, data, thisValue)
 {
-    switch (part) {
-        case PushButtonPart:
-        case MenulistPart:
-        case SearchFieldPart:
-        case CheckboxPart:
-        case RadioPart:
-            return LengthBox(0);
-        default:
-            return zoomedBox;
+}
+
+void JSDOMGlobalObject::mark()
+{
+    Base::mark();
+
+    JSDOMStructureMap::iterator end = structures().end();
+    for (JSDOMStructureMap::iterator it = structures().begin(); it != end; ++it)
+        it->second->mark();
+
+    JSDOMConstructorMap::iterator end2 = constructors().end();
+    for (JSDOMConstructorMap::iterator it2 = constructors().begin(); it2 != end2; ++it2) {
+        if (!it2->second->marked())
+            it2->second->mark();
     }
 }
 
-LengthBox Theme::controlPadding(ControlPart part, const Font&, const LengthBox& zoomedBox, float zoomFactor) const
-{
-    switch (part) {
-        case MenulistPart:
-        case MenulistButtonPart:
-        case CheckboxPart:
-        case RadioPart:
-            return LengthBox(0);
-        default:
-            return zoomedBox;
-    }
-}
-
-}
+} // namespace WebCore

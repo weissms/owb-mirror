@@ -35,6 +35,7 @@
 #include "HTMLImageElement.h"
 #include "HTMLNames.h"
 #include "JSDOMCoreException.h"
+#include "JSDOMGlobalObject.h"
 #include "JSDOMWindowCustom.h"
 #include "JSEventException.h"
 #include "JSNode.h"
@@ -132,17 +133,9 @@ DOMObject::~DOMObject()
 
 #endif
 
-class DOMObjectWrapperMap : public JSGlobalData::ClientData {
+class DOMObjectWrapperMap {
 public:
-    static DOMObjectWrapperMap& mapFor(JSGlobalData& globalData)
-    {
-        JSGlobalData::ClientData* clientData = globalData.clientData;
-        if (!clientData) {
-            clientData = new DOMObjectWrapperMap;
-            globalData.clientData = clientData;
-        }
-        return *static_cast<DOMObjectWrapperMap*>(clientData);
-    }
+    static DOMObjectWrapperMap& mapFor(JSGlobalData&);
 
     DOMObject* get(void* objectHandle)
     {
@@ -163,6 +156,54 @@ public:
 private:
     HashMap<void*, DOMObject*> m_map;
 };
+
+// Map from static HashTable instances to per-GlobalData ones.
+class DOMObjectHashTableMap {
+public:
+    static DOMObjectHashTableMap& mapFor(JSGlobalData&);
+
+    const JSC::HashTable* get(const JSC::HashTable* staticTable)
+    {
+        HashMap<const JSC::HashTable*, JSC::HashTable>::iterator iter = m_map.find(staticTable);
+        if (iter != m_map.end())
+            return &iter->second;
+        return &m_map.set(staticTable, JSC::HashTable(*staticTable)).first->second;
+    }
+
+private:
+    HashMap<const JSC::HashTable*, JSC::HashTable> m_map;
+};
+
+class WebCoreJSClientData : public JSGlobalData::ClientData {
+public:
+    DOMObjectHashTableMap hashTableMap;
+    DOMObjectWrapperMap wrapperMap;
+};
+
+DOMObjectHashTableMap& DOMObjectHashTableMap::mapFor(JSGlobalData& globalData)
+{
+    JSGlobalData::ClientData* clientData = globalData.clientData;
+    if (!clientData) {
+        clientData = new WebCoreJSClientData;
+        globalData.clientData = clientData;
+    }
+    return static_cast<WebCoreJSClientData*>(clientData)->hashTableMap;
+}
+
+const JSC::HashTable* getHashTableForGlobalData(JSGlobalData& globalData, const JSC::HashTable* staticTable)
+{
+    return DOMObjectHashTableMap::mapFor(globalData).get(staticTable);
+}
+
+inline DOMObjectWrapperMap& DOMObjectWrapperMap::mapFor(JSGlobalData& globalData)
+{
+    JSGlobalData::ClientData* clientData = globalData.clientData;
+    if (!clientData) {
+        clientData = new WebCoreJSClientData;
+        globalData.clientData = clientData;
+    }
+    return static_cast<WebCoreJSClientData*>(clientData)->wrapperMap;
+}
 
 DOMObject* getCachedDOMObjectWrapper(JSGlobalData& globalData, void* objectHandle) 
 {
@@ -464,26 +505,26 @@ ExecState* execStateFromNode(Node* node)
 
 StructureID* getCachedDOMStructure(ExecState* exec, const ClassInfo* classInfo)
 {
-    JSDOMStructureMap& structures = static_cast<JSDOMWindow*>(exec->lexicalGlobalObject())->structures();
+    JSDOMStructureMap& structures = static_cast<JSDOMGlobalObject*>(exec->lexicalGlobalObject())->structures();
     return structures.get(classInfo).get();
 }
 
 StructureID* cacheDOMStructure(ExecState* exec, PassRefPtr<StructureID> structureID, const ClassInfo* classInfo)
 {
-    JSDOMStructureMap& structures = static_cast<JSDOMWindow*>(exec->lexicalGlobalObject())->structures();
+    JSDOMStructureMap& structures = static_cast<JSDOMGlobalObject*>(exec->lexicalGlobalObject())->structures();
     ASSERT(!structures.contains(classInfo));
     return structures.set(classInfo, structureID).first->second.get();
 }
 
 JSObject* getCachedDOMConstructor(ExecState* exec, const ClassInfo* classInfo)
 {
-    JSDOMConstructorMap& constructors = static_cast<JSDOMWindow*>(exec->lexicalGlobalObject())->constructors();
+    JSDOMConstructorMap& constructors = static_cast<JSDOMGlobalObject*>(exec->lexicalGlobalObject())->constructors();
     return constructors.get(classInfo);
 }
 
 void cacheDOMConstructor(ExecState* exec, const ClassInfo* classInfo, JSObject* constructor)
 {
-    JSDOMConstructorMap& constructors = static_cast<JSDOMWindow*>(exec->lexicalGlobalObject())->constructors();
+    JSDOMConstructorMap& constructors = static_cast<JSDOMGlobalObject*>(exec->lexicalGlobalObject())->constructors();
     ASSERT(!constructors.contains(classInfo));
     constructors.set(classInfo, constructor);
 }
