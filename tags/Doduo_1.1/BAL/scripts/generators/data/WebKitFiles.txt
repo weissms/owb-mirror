@@ -1,3 +1,4 @@
+JavaScriptCore/kjs/lookup.h
 JavaScriptCore/kjs/collector.cpp
 JavaScriptCore/VM/RegisterFile.cpp
 JavaScriptCore/VM/RegisterFile.h
