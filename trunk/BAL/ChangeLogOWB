@@ -1,3 +1,10 @@
+2008-10-28  Fred  <fmarmond@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        Fix memory leak ( #314 ): clean/delete the internal hash table before detroying the object
+
+        * scripts/generators/data/WebKitFiles.txt:
+
 2008-10-28  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Olivier DOLE.
