@@ -1,3 +1,11 @@
+2008-10-28  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix scroll
+
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::scrollBackingStore):
+
 2008-10-18  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

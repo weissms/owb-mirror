@@ -395,6 +395,7 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
     IntRect updateRect = clipRect;
     updateRect.intersect(scrollViewRect);
     
+#if 0
     dy = -dy;
     dx = -dx;
     
@@ -496,7 +497,9 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
         m_webView->addToDirtyRegion(m_scrollUpdateRect);
         sendExposeEvent(m_scrollUpdateRect);
     }
-    /*m_webView->addToDirtyRegion(scrollViewRect);
-    sendExposeEvent(scrollViewRect);*/
+#else
+    m_webView->addToDirtyRegion(updateRect);
+    sendExposeEvent(updateRect);
+#endif
 }
 
