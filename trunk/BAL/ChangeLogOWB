@@ -1,3 +1,22 @@
+2008-10-28  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        Ticket #313: BCFontFreetype clean-up.
+
+        - Moved variables where they are used to match WebKit's coding style.
+
+        - Moved enclosing box minimum / maximum computation into the first loop (it saves us two more iterations).
+
+        - Removed a few coding style violations.
+
+        - Removed unecessary code when filling our buffer as it was already filled with 0's (and we should not erase overlapping
+          fonts).
+
+        * WKAL/Concretizations/Fonts/Freetype/BCFontFreetype.cpp:
+        (WKAL::applyTransparency):
+        (WKAL::Font::drawGlyphs):
+
 2008-10-18  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

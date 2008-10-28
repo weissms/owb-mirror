@@ -29,9 +29,11 @@
 #include "Font.h"
 
 #include "GraphicsContext.h"
-#include "SimpleFontData.h"
 #include "SDL.h"
+#include "SimpleFontData.h"
+#include <limits.h>
 #include <ft2build.h>
+
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
@@ -47,11 +49,11 @@ static
 #endif
 SDL_Surface* applyTransparency(SDL_Surface* origin, const uint8_t alphaChannel)
 {
-     // blend is not very optimized for now, to say the least
+    // Blend is not very optimized for now, to say the least.
     SDL_Surface *final = NULL;
     Uint32 rmask, gmask, bmask, amask;
-    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
-    on the endianness (byte order) of the machine */
+    // SDL interprets each pixel as a 32-bit number, so our masks must depend
+    // on the endianness (byte order) of the machine
 #if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
@@ -114,27 +116,26 @@ FloatRect Font::selectionRectForComplexText(const TextRun& run, const IntPoint& 
 void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, const GlyphBuffer& glyphBuffer,
                       int from, int numGlyphs, const FloatPoint& point) const
 {
-    SDL_Surface *surface = context->platformContext();
-
-    // Set the text color to use for drawing.
-    Color penColor = context->fillColor();
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
-    float offset = 0;   
-    int x_offset = 0;
-    FT_Face face = font->m_font.m_face;
     FT_BitmapGlyph ftBitmapGlyph[numGlyphs];
-    FT_Glyph ftGlyph;
 
-    // glyphBoxX[i].x() = xMin for glyph #i
-    // glyphBoxX[i].y() = xMax for glyph #i
-    Vector<IntPoint> glyphBoxX;
-    glyphBoxX.resize(numGlyphs);
-    // glyphBoxY[i].x() = yMin for glyph #i
-    // glyphBoxY[i].y() = yMax for glyph #i
-    Vector<IntPoint> glyphBoxY;
-    glyphBoxY.resize(numGlyphs);
+    // glyphBoxX[i].x() = xGlyphMin for glyph #i
+    // glyphBoxX[i].y() = xGlyphMax for glyph #i
+    Vector<IntPoint> glyphBoxX(numGlyphs);
 
+    // glyphBoxY[i].x() = yGlyphMin for glyph #i
+    // glyphBoxY[i].y() = yGlyphMax for glyph #i
+    Vector<IntPoint> glyphBoxY(numGlyphs);
+
+    float offset = 0; 
+    int xMin = INT_MAX;
+    int xMax = INT_MIN;
+    int yMin = INT_MAX;
+    int yMax = INT_MIN;
+    FT_Face face = font->m_font.m_face;
     for (int i = 0; i < numGlyphs; i++) {
+        FT_Glyph ftGlyph;
+
         if (FT_Load_Glyph(face, glyphs[i], FT_LOAD_DEFAULT)) {
             printf("FT_Load_Glyph fail for face=%p with glyphs[i]=%d\n", face, glyphs[i]);
             continue; //do not handle error
@@ -156,43 +157,47 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
             FT_BBox bbox;
             FT_Glyph_Get_CBox(ftGlyph, FT_GLYPH_BBOX_GRIDFIT, &bbox);
-            glyphBoxX[i].setX(static_cast<int> (offset + DOUBLE_FROM_26_6(bbox.xMin)));
-            glyphBoxX[i].setY(static_cast<int> (offset + DOUBLE_FROM_26_6(bbox.xMax)));
-            glyphBoxY[i].setX(static_cast<int> (DOUBLE_FROM_26_6(bbox.yMin)));
-            glyphBoxY[i].setY(static_cast<int> (DOUBLE_FROM_26_6(bbox.yMax)));
+
+            // Calculate the glyph box minimum / maximum.
+            int xGlyphMin = static_cast<int>(offset + DOUBLE_FROM_26_6(bbox.xMin));
+            int xGlyphMax = static_cast<int>(offset + DOUBLE_FROM_26_6(bbox.xMax));
+            int yGlyphMin = static_cast<int>(DOUBLE_FROM_26_6(bbox.yMin));
+            int yGlyphMax = static_cast<int>(DOUBLE_FROM_26_6(bbox.yMax));
+
+            // Update the global minimum and maximum.
+            if (xGlyphMin < xMin)
+                xMin = xGlyphMin;
+            if (xGlyphMax > xMax)
+                xMax = xGlyphMax;
+            if (yGlyphMin < yMin)
+                yMin = yGlyphMin;
+            if (yGlyphMax > yMax)
+                yMax = yGlyphMax;
+
+            glyphBoxX[i].setX(xGlyphMin);
+            glyphBoxX[i].setY(xGlyphMax);
+            glyphBoxY[i].setX(yGlyphMin);
+            glyphBoxY[i].setY(yGlyphMax);
         }
         offset += glyphBuffer.advanceAt(from + i);
     }
 
-    //find the greater yMax and the lower yMin
-    int yMin = glyphBoxY[0].x();
-    int yMax = glyphBoxY[0].y();
-    for (Vector<IntPoint>::iterator it = glyphBoxY.begin(); it != glyphBoxY.end(); ++it) {
-        if (it->x() < yMin)
-            yMin = it->x();
-        if (it->y() > yMax)
-            yMax = it->y();
-    }
-    uint16_t height = yMax - yMin;
-
-    int xMin = glyphBoxX[0].x();
-    int xMax = glyphBoxX[0].y();
-    for (Vector<IntPoint>::iterator it = glyphBoxX.begin(); it != glyphBoxX.end(); ++it) {
-        if (it->x() < xMin)
-            xMin = it->x();
-        if (it->y() > xMax)
-            xMax = it->y();
-    }
-    uint16_t width = abs(xMin) + xMax;
-    
+    int x_offset = 0;
     if (glyphBoxX[0].x() < 0) {
         x_offset = glyphBoxX[0].x();
         glyphBoxX[0].setX(0);
     }
 
-    Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(width * height);
+    // Calculate the enclosing box height and width.
+    uint16_t height = yMax - yMin;
+    uint16_t width = abs(xMin) + xMax;
+    
+    Vector<unsigned>* glyphRGBABuffer = new Vector<unsigned>(width * height);
     glyphRGBABuffer->fill(0);
+
     bool isMono = (ftBitmapGlyph[0]->bitmap.pixel_mode == FT_PIXEL_MODE_MONO); 
+    // Set the text color to use for drawing.
+    Color penColor = context->fillColor();
     for (int i = 0; i < numGlyphs; i++) {
         int yOffset = height - glyphBoxY[i].y() + yMin;
         unsigned char* bitmapAddr = ftBitmapGlyph[i]->bitmap.buffer;
@@ -200,29 +205,26 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
         if (isMono) {
             unsigned pixelColor = (penColor.alpha() << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
-                unsigned char *bufferAddr = bitmapAddr;
+                unsigned char* bufferAddr = bitmapAddr;
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
                     if ((*bitmapAddr) & (1 << (7 - k % 8)))
                         (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = pixelColor;
-                    else
-                        (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = 0;
+
                     if (k > 0 && (k % 8) == 0)
                         *bitmapAddr++;
                 }
                 bitmapAddr = bufferAddr + ftBitmapGlyph[i]->bitmap.pitch;
             }
         } else {
-            for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
-                for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
+            for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++)
+                for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++)
                     (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = (static_cast<unsigned>((penColor.alpha() * *bitmapAddr++) / 255) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
-                }
-            }
         }
         FT_Done_Glyph((FT_Glyph) ftBitmapGlyph[i]);
     }
+
     SDL_Surface* img;
     Uint32 rmask, gmask, bmask, amask;
-
 
 #if !PLATFORM(AMIGAOS4) && SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
@@ -246,12 +248,12 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     sdlSrc.x = 0;
     sdlSrc.y = 0;
 
-
+    SDL_Surface* surface = context->platformContext();
     if (context->transparencyLayer() == 1.0) {
         SDL_BlitSurface(img, &sdlSrc, surface, &sdlDest);
     }
     else {
-        SDL_Surface *surfaceWithAlpha = applyTransparency(img, static_cast<int> (context->transparencyLayer() * 255));
+        SDL_Surface* surfaceWithAlpha = applyTransparency(img, static_cast<int> (context->transparencyLayer() * 255));
         SDL_BlitSurface(surfaceWithAlpha, &sdlSrc, surface, &sdlDest);
         SDL_FreeSurface(surfaceWithAlpha);
     }
@@ -260,4 +262,4 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     delete glyphRGBABuffer;
 }
 
-}
+} // namespace WKAL
