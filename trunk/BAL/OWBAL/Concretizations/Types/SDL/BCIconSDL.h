@@ -32,6 +32,8 @@
 
 #include <wtf/RefCounted.h>
 #include <wtf/Forward.h>
+#include <wtf/PassRefPtr.h>
+#include <wtf/Vector.h>
 #include "BALBase.h"
 
 namespace OWBAL {
@@ -46,6 +48,7 @@ public:
     ~Icon();
     
     static PassRefPtr<Icon> newIconForFile(const String& filename);
+    static PassRefPtr<Icon> newIconForFiles(const Vector<String>& filenames);
 
     void paint(GraphicsContext*, const IntRect&);
 

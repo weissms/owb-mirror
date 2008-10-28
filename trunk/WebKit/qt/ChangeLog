@@ -1,3 +1,71 @@
+2008-10-27  Jade Han  <jade.han@nokia.com>
+
+        Reviewed by Anders. 
+
+        Enable custom properties for Qt runtime objects in QtWebKit
+
+        https://bugs.webkit.org/show_bug.cgi?id=21813
+
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2008-10-24  Sam Weinig  <sam@webkit.org>
+
+        Another Qt build fix.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+
+2008-10-24  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=21759
+        Layering violation: FileChooser should not depend on Document/Frame/Page
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::runOpenPanel):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2008-10-24  Timothy Hatcher  <timothy@apple.com>
+
+        Stub out new InspectorClient methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21856
+
+        Reviewed by Darin Adler.
+
+        * WebCoreSupport/InspectorClientQt.cpp:
+        (WebCore::InspectorClientQt::populateSetting): Not implemented.
+        (WebCore::InspectorClientQt::storeSetting): Ditto.
+        (WebCore::InspectorClientQt::removeSetting): Ditto.
+        * WebCoreSupport/InspectorClientQt.h:
+
+2008-10-24  Darin Adler  <darin@apple.com>
+
+        - finish rolling out https://bugs.webkit.org/show_bug.cgi?id=21732
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::evaluateJavaScript): Use JSValue* instead of JSValuePtr.
+
+2008-10-23  Yael Aharon <yael.aharon@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Invalid history entries could cause a crash in QT Webkit
+
+        * Api/qwebhistory.cpp:
+        (QWebHistoryItem::originalUrl):
+        (QWebHistoryItem::url):
+        (QWebHistoryItem::title):
+        (QWebHistoryItem::lastVisited):
+        (QWebHistoryItem::icon):
+        (QWebHistoryItem::isValid):
+        * Api/qwebhistory.h:
+        * Api/qwebhistory_p.h:
+        (QWebHistoryItemPrivate::QWebHistoryItemPrivate):
+        (QWebHistoryItemPrivate::~QWebHistoryItemPrivate):
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::modified):
+
 2008-10-24  Yael Aharon <yael.aharon@nokia.com>
 
         Reviewed by Simon Hausmann.

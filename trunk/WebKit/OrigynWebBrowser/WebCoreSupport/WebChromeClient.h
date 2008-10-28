@@ -110,6 +110,8 @@ public:
                                         WebCore::ScrollbarControlState, WebCore::ScrollbarPart pressedPart, bool vertical,
                                         float value, float proportion, WebCore::ScrollbarControlPartMask);
     virtual bool paintCustomScrollCorner(WebCore::GraphicsContext*, const WebCore::FloatRect&);
+      
+    virtual void runOpenPanel(WebCore::Frame*, PassRefPtr<WebCore::FileChooser>);
 
     WebView* webView() const { return m_webView; }
 

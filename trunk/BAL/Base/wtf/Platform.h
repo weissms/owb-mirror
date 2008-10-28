@@ -370,8 +370,24 @@
 #define ENABLE_NETSCAPE_PLUGIN_API 1
 #endif
 
-#if !defined(ENABLE_SAMPLING_TOOL)
-#define ENABLE_SAMPLING_TOOL 0
+#if !defined(ENABLE_OPCODE_STATS)
+#define ENABLE_OPCODE_STATS 0
+#endif
+
+#if !defined(ENABLE_CODEBLOCK_SAMPLING)
+#define ENABLE_CODEBLOCK_SAMPLING 0
+#endif
+
+#if ENABLE(CODEBLOCK_SAMPLING) && !defined(ENABLE_OPCODE_SAMPLING)
+#define ENABLE_OPCODE_SAMPLING 1
+#endif
+
+#if !defined(ENABLE_OPCODE_SAMPLING)
+#define ENABLE_OPCODE_SAMPLING 0
+#endif
+
+#if !defined(ENABLE_GEOLOCATION)
+#define ENABLE_GEOLOCATION 0
 #endif
 
 // CTI only supports x86 at the moment, and has only been tested on Mac and Windows.

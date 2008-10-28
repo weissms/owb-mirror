@@ -40,11 +40,6 @@
 
 namespace OWBAL {
 
-void FileChooser::openFileChooser(Document* document)
-{
-    printf("FileChooser::openFileChooser\n");
-}
-
 String FileChooser::basenameForWidth(const Font& font, int width) const
 {
     printf("FileChooser::basenameForWidth\n");

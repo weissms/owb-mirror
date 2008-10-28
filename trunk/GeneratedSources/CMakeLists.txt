@@ -194,9 +194,15 @@ SET (IDL_BINDINGS
     page/Console.idl
     page/DOMSelection.idl
     page/DOMWindow.idl
+    page/Geolocation.idl
+    page/Geoposition.idl
     page/History.idl
     page/Location.idl
     page/Navigator.idl
+    #    page/PositionCallback.idl
+    page/PositionError.idl
+    page/PositionErrorCallback.idl
+    page/PositionOptions.idl
     page/Screen.idl
 
     plugins/MimeType.idl
@@ -466,14 +472,14 @@ IF (NOT WEBKIT_USE_HTML_EXTENSION)
         ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.h
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
-            COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --extraDefines \"${HTML_FEATURES}\" --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
+            COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --extraDefines \"${HTML_FEATURES}\" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
             DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
         )
     ELSE (HTML_FEATURES)
         ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/JSHTMLElementWrapperFactory.h
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
-            COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --namespace HTML --namespacePrefix xhtml --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xhtml" --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
+            COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in --factory --wrapperFactory --attrsNullNamespace --output generated_sources/WebCore/html
             DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLTagNames.in ${CMAKE_SOURCE_DIR}/WebCore/html/HTMLAttributeNames.in
         )
     ENDIF (HTML_FEATURES)
@@ -522,7 +528,7 @@ ENDIF (NOT WEBKIT_USE_HTML_EXTENSION)
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml/XMLNames.h
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml
-    COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --attrs ${CMAKE_SOURCE_DIR}/WebCore/xml/xmlattrs.in --namespace XML --cppNamespace WebCore --namespaceURI "http://www.w3.org/XML/1998/namespace" --output generated_sources/WebCore/xml
+    COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --attrs ${CMAKE_SOURCE_DIR}/WebCore/xml/xmlattrs.in --output generated_sources/WebCore/xml
     DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/xml/xmlattrs.in
 )
 
@@ -564,7 +570,7 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/Do
 IF (WEBKIT_USE_SVG)
     IF (NOT EXISTS ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/SVGNames.cpp)
         EXEC_PROGRAM (${PERL_EXECUTABLE}
-            ARGS -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/svg/svgtags.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/svg/svgattrs.in --namespace SVG --cppNamespace WebCore --namespaceURI 'http://www.w3.org/2000/svg' --factory --attrsNullNamespace --wrapperFactory --extraDefines \"${SVG_FEATURES}\" --output ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
+            ARGS -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/svg/svgtags.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/svg/svgattrs.in --factory --attrsNullNamespace --wrapperFactory --extraDefines \"${SVG_FEATURES}\" --output ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
         )
     ENDIF (NOT EXISTS ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/SVGNames.cpp)
 ENDIF (WEBKIT_USE_SVG)
@@ -580,7 +586,7 @@ ENDIF (WEBKIT_USE_SVG)
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XLinkNames.cpp
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMAND mkdir -p generated_sources/WebCore
-    COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/svg/xlinkattrs.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/svg/xlinkattrs.in --namespace XLink --cppNamespace WebCore --namespaceURI "http://www.w3.org/1999/xlink" --output generated_sources/WebCore
+    COMMAND ${PERL_EXECUTABLE} -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/svg/xlinkattrs.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/svg/xlinkattrs.in --output generated_sources/WebCore
     DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf
 )
 

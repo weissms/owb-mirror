@@ -8,6 +8,8 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSCanvasRenderingContext2DCustom.cpp
     bindings/js/JSClipboardCustom.cpp
     bindings/js/JSConsoleCustom.cpp
+    bindings/js/JSCustomPositionCallback.cpp
+    bindings/js/JSCustomPositionErrorCallback.cpp
     bindings/js/JSCustomVoidCallback.cpp
     bindings/js/JSDocumentCustom.cpp
     bindings/js/JSDocumentFragmentCustom.cpp
@@ -22,6 +24,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSEventListener.cpp
     bindings/js/JSEventTarget.cpp
     bindings/js/JSEventTargetNodeCustom.cpp
+    bindings/js/JSGeolocationCustom.cpp
     bindings/js/JSHTMLAllCollection.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
     bindings/js/JSHTMLCollectionCustom.cpp
@@ -34,7 +37,6 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSHTMLIFrameElementCustom.cpp
     bindings/js/JSHTMLInputElementCustom.cpp
     bindings/js/JSHTMLObjectElementCustom.cpp
-    bindings/js/JSHTMLOptionElementConstructor.cpp
     bindings/js/JSHTMLOptionsCollectionCustom.cpp
     bindings/js/JSHTMLSelectElementCustom.cpp
     bindings/js/JSHistoryCustom.cpp
@@ -53,6 +55,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSNodeFilterCustom.cpp
     bindings/js/JSNodeIteratorCustom.cpp
     bindings/js/JSNodeListCustom.cpp
+    bindings/js/JSOptionConstructor.cpp
     bindings/js/JSQuarantinedObjectWrapper.cpp
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginArrayCustom.cpp

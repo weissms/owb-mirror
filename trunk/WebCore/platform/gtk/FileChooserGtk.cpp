@@ -28,10 +28,7 @@
 #include "FileChooser.h"
 
 #include "CString.h"
-#include "Document.h"
 #include "FileSystem.h"
-#include "FrameView.h"
-#include "HostWindow.h"
 #include "Icon.h"
 #include "LocalizedStrings.h"
 #include "StringTruncator.h"
@@ -53,30 +50,6 @@ static bool stringByAdoptingFileSystemRepresentation(gchar* systemFilename, Stri
     return true;
 }
 
-void FileChooser::openFileChooser(Document* document)
-{
-    FrameView* view = document->view();
-    if (!view)
-        return;
-
-    GtkWidget* dialog = gtk_file_chooser_dialog_new(_("Upload File"),
-                                                    GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(view->hostWindow()->platformWindow()))),
-                                                    GTK_FILE_CHOOSER_ACTION_OPEN,
-                                                    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-                                                    GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-                                                    NULL);
-
-    // We need this protector because otherwise we can be deleted if the file upload control is detached while
-    // we're within the gtk_run_dialog call.
-    RefPtr<FileChooser> protector(this);
-    String result;
-
-    const bool acceptedDialog = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT;
-    if (acceptedDialog && stringByAdoptingFileSystemRepresentation(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)), result))
-        chooseFile(result);
-    gtk_widget_destroy(dialog);
-}
-
 String FileChooser::basenameForWidth(const Font& font, int width) const
 {
     if (width <= 0)
@@ -84,12 +57,13 @@ String FileChooser::basenameForWidth(const Font& font, int width) const
 
     String string = fileButtonNoFileSelectedLabel();
 
-    if (!m_filename.isEmpty()) {
-        gchar* systemFilename = filenameFromString(m_filename);
+    if (m_filenames.size() == 1) {
+        gchar* systemFilename = filenameFromString(m_filenames[0]);
         gchar* systemBasename = g_path_get_basename(systemFilename);
         g_free(systemFilename);
         stringByAdoptingFileSystemRepresentation(systemBasename, string);
-    }
+    } else if (m_filenames.size() > 1)
+        return StringTruncator::rightTruncate(String::number(m_filenames.size()) + " files", width, font, false);
 
     return StringTruncator::centerTruncate(string, width, font, false);
 }

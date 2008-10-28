@@ -70,7 +70,7 @@ bool CInstance::supportsInvokeDefaultMethod() const
     return _object->_class->invokeDefault;
 }
 
-JSValuePtr CInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList& args)
+JSValue* CInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList& args)
 {
     // Overloading methods are not allowed by NPObjects.  Should only be one
     // name match for a particular method.
@@ -83,7 +83,7 @@ JSValuePtr CInstance::invokeMethod(ExecState* exec, const MethodList& methodList
         return jsUndefined();
 
     unsigned count = args.size();
-    Vector<NPVariant, 128> cArgs(count);
+    Vector<NPVariant, 8> cArgs(count);
 
     unsigned i;
     for (i = 0; i < count; i++)
@@ -101,19 +101,19 @@ JSValuePtr CInstance::invokeMethod(ExecState* exec, const MethodList& methodList
     for (i = 0; i < count; i++)
         _NPN_ReleaseVariantValue(&cArgs[i]);
 
-    JSValuePtr resultValue = convertNPVariantToValue(exec, &resultVariant, _rootObject.get());
+    JSValue* resultValue = convertNPVariantToValue(exec, &resultVariant, _rootObject.get());
     _NPN_ReleaseVariantValue(&resultVariant);
     return resultValue;
 }
 
 
-JSValuePtr CInstance::invokeDefaultMethod(ExecState* exec, const ArgList& args)
+JSValue* CInstance::invokeDefaultMethod(ExecState* exec, const ArgList& args)
 {
     if (!_object->_class->invokeDefault)
         return jsUndefined();
 
     unsigned count = args.size();
-    Vector<NPVariant, 128> cArgs(count);
+    Vector<NPVariant, 8> cArgs(count);
 
     unsigned i;
     for (i = 0; i < count; i++)
@@ -130,13 +130,45 @@ JSValuePtr CInstance::invokeDefaultMethod(ExecState* exec, const ArgList& args)
     for (i = 0; i < count; i++)
         _NPN_ReleaseVariantValue(&cArgs[i]);
 
-    JSValuePtr resultValue = convertNPVariantToValue(exec, &resultVariant, _rootObject.get());
+    JSValue* resultValue = convertNPVariantToValue(exec, &resultVariant, _rootObject.get());
     _NPN_ReleaseVariantValue(&resultVariant);
     return resultValue;
 }
 
+bool CInstance::supportsConstruct() const
+{
+    return _object->_class->construct;
+}
+    
+JSValue* CInstance::invokeConstruct(ExecState* exec, const ArgList& args)
+{
+    if (!_object->_class->construct)
+        return jsUndefined();
 
-JSValuePtr CInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint) const
+    unsigned count = args.size();
+    Vector<NPVariant, 8> cArgs(count);
+
+    unsigned i;
+    for (i = 0; i < count; i++)
+        convertValueToNPVariant(exec, args.at(exec, i), &cArgs[i]);
+
+    // Invoke the 'C' method.
+    NPVariant resultVariant;
+    VOID_TO_NPVARIANT(resultVariant);
+    {
+        JSLock::DropAllLocks dropAllLocks(false);
+        _object->_class->construct(_object, cArgs.data(), count, &resultVariant);
+    }
+    
+    for (i = 0; i < count; i++)
+        _NPN_ReleaseVariantValue(&cArgs[i]);
+
+    JSValue* resultValue = convertNPVariantToValue(exec, &resultVariant, _rootObject.get());
+    _NPN_ReleaseVariantValue(&resultVariant);
+    return resultValue;
+}
+
+JSValue* CInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint) const
 {
     if (hint == PreferString)
         return stringValue(exec);
@@ -145,26 +177,26 @@ JSValuePtr CInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint)
     return valueOf(exec);
 }
 
-JSValuePtr CInstance::stringValue(ExecState* exec) const
+JSValue* CInstance::stringValue(ExecState* exec) const
 {
     char buf[1024];
     snprintf(buf, sizeof(buf), "NPObject %p, NPClass %p", _object, _object->_class);
     return jsString(exec, buf);
 }
 
-JSValuePtr CInstance::numberValue(ExecState* exec) const
+JSValue* CInstance::numberValue(ExecState* exec) const
 {
     // FIXME: Implement something sensible.
     return jsNumber(exec, 0);
 }
 
-JSValuePtr CInstance::booleanValue() const
+JSValue* CInstance::booleanValue() const
 {
     // FIXME: Implement something sensible.
     return jsBoolean(false);
 }
 
-JSValuePtr CInstance::valueOf(ExecState* exec) const 
+JSValue* CInstance::valueOf(ExecState* exec) const 
 {
     return stringValue(exec);
 }

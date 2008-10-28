@@ -103,7 +103,7 @@ public:
     /**
      * get value by evaluating java script from string
      */
-    virtual JSC::JSValuePtr valueByEvaluatingJavaScriptFromString(WebCore::String script);
+    virtual JSC::JSValue* valueByEvaluatingJavaScriptFromString(WebCore::String script);
 
     /**
      * get state
@@ -114,7 +114,7 @@ public:
     /**
      * convert jsValue to string
      */
-    static JSC::UString jsValueToString(JSC::ExecState*, JSC::JSValuePtr);
+    static JSC::UString jsValueToString(JSC::ExecState*, JSC::JSValue*);
 
 private:
 

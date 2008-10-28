@@ -47,7 +47,7 @@ class BalValuePrivate {
             JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject();
             m_exec = obj->globalExec();
         }
-        BalValuePrivate(ExecState* exec, JSValuePtr value)
+        BalValuePrivate(ExecState* exec, JSValue* value)
         {
             m_val = value;
             m_exec = exec;
@@ -80,10 +80,10 @@ class BalValuePrivate {
         void balString(WebCore::String s);
         JSObject* balObject(BalObject *obj, ExecState *exec);
 
-        JSValuePtr getValue() { return m_val; }
+        JSValue* getValue() { return m_val; }
 
     private:
-        JSValuePtr m_val;
+        JSValue* m_val;
         ExecState *m_exec;
 };
 

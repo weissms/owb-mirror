@@ -1,3 +1,76 @@
+2008-10-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=21759
+        Layering violation: FileChooser should not depend on Document/Frame/Page
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::runOpenPanel):
+
+2008-10-24  Anders Carlsson  <andersca@apple.com>
+
+        Fix Tiger build.
+        
+        * WebView/WebUIDelegate.h:
+
+2008-10-24  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/5440917> Support NPN_Construct
+        
+        Set construct.
+        
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage load]):
+
+2008-10-24  Mark Rowe  <mrowe@apple.com>
+
+        Rubber-stamped by Tim Hatcher.
+
+        <rdar://problem/6119711> Remove the dependency on Foundation's private __COCOA_FORMAL_PROTOCOLS__ define.
+
+        * Misc/EmptyProtocolDefinitions.h:
+
+2008-10-24  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        WebKit part of fix for <rdar://problem/5839256> FILE CONTROL: multi-file upload.
+
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::runOpenPanel):
+        (-[WebOpenPanelResultListener chooseFilenames:]):
+        * WebView/WebUIDelegate.h:
+
+2008-10-24  Timothy Hatcher  <timothy@apple.com>
+
+        Implement new InspectorClient methods to work with Settings.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21856
+
+        Reviewed by Darin Adler.
+
+        * WebCoreSupport/WebInspectorClient.h: Add the new methods and
+        guard the ObjC parts of the header.
+
+2008-10-24  Darin Adler  <darin@apple.com>
+
+        - finish rolling out https://bugs.webkit.org/show_bug.cgi?id=21732
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:forceUserGesture:]):
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame _convertValueToObjcValue:]):
+        (-[WebScriptCallFrame exception]):
+        (-[WebScriptCallFrame evaluateWebScript:]):
+        * WebView/WebView.mm:
+        (aeDescFromJSValue):
+        (-[WebView aeDescByEvaluatingJavaScriptFromString:]):
+        Use JSValue* instead of JSValuePtr.
+
 2008-10-24  Mark Rowe  <mrowe@apple.com>
 
         Build fix.

@@ -420,6 +420,10 @@ bool WebChromeClient::paintCustomScrollCorner(GraphicsContext* context, const Fl
     //FIXME: implement me!
     return false;
 }
+void WebChromeClient::runOpenPanel(Frame*, PassRefPtr<FileChooser> prpFileChooser)
+{
+
+}
 
 IntPoint WebChromeClient::screenToWindow(const WebCore::IntPoint& p) const 
 {

@@ -33,10 +33,10 @@
 #include "Parser.h"
 #include "PropertyNameArray.h"
 #include "RegExpObject.h"
+#include "SamplingTool.h"
 #include "debugger.h"
 #include "lexer.h"
 #include "operations.h"
-#include "SamplingTool.h"
 #include <math.h>
 #include <wtf/Assertions.h>
 #include <wtf/HashCountedSet.h>
@@ -1698,8 +1698,9 @@ ScopeNode::ScopeNode(JSGlobalData* globalData, const SourceCode& source, SourceE
         m_varStack = *varStack;
     if (funcStack)
         m_functionStack = *funcStack;
-
-    SCOPENODE_SAMPLING_notifyOfScope(globalData->machine->m_sampler);
+#if ENABLE(OPCODE_SAMPLING)
+    globalData->machine->sampler()->notifyOfScope(this);
+#endif
 }
 
 // ------------------------------ ProgramNode -----------------------------
@@ -1871,12 +1872,7 @@ Identifier* FunctionBodyNode::copyParameters()
 
 JSFunction* FuncDeclNode::makeFunction(ExecState* exec, ScopeChainNode* scopeChain)
 {
-    JSFunction* func = new (exec) JSFunction(exec, m_ident, m_body.get(), scopeChain);
-
-    JSObject* proto = constructEmptyObject(exec);
-    proto->putDirect(exec->propertyNames().constructor, func, DontEnum);
-    func->putDirect(exec->propertyNames().prototype, proto, DontDelete);
-    return func;
+    return new (exec) JSFunction(exec, m_ident, m_body.get(), scopeChain);
 }
 
 RegisterID* FuncDeclNode::emitCode(CodeGenerator&, RegisterID* dst)
@@ -1894,9 +1890,6 @@ RegisterID* FuncExprNode::emitCode(CodeGenerator& generator, RegisterID* dst)
 JSFunction* FuncExprNode::makeFunction(ExecState* exec, ScopeChainNode* scopeChain)
 {
     JSFunction* func = new (exec) JSFunction(exec, m_ident, m_body.get(), scopeChain);
-    JSObject* proto = constructEmptyObject(exec);
-    proto->putDirect(exec->propertyNames().constructor, func, DontEnum);
-    func->putDirect(exec->propertyNames().prototype, proto, DontDelete);
 
     /* 
         The Identifier in a FunctionExpression can be referenced from inside

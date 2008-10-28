@@ -2,7 +2,7 @@
 #define IconTest_h_CPPUNIT
 
 #include <cppunit/extensions/HelperMacros.h>
-#include "BCIcon.h"
+#include "Icon.h"
 class IconTestTest : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE( IconTestTest );

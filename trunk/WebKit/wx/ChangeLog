@@ -1,3 +1,52 @@
+2008-10-27  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix.
+
+        * WebKitSupport/ChromeClientWx.h:
+
+2008-10-24  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=21759
+        Layering violation: FileChooser should not depend on Document/Frame/Page
+
+        * WebKitSupport/ChromeClientWx.cpp:
+        (WebCore::ChromeClientWx::runOpenPanel):
+        * WebKitSupport/ChromeClientWx.h:
+
+2008-10-24  David Kilzer  <ddkilzer@apple.com>
+
+        Build fix.
+
+        Reviewed by Greg Bolsinga.
+
+        * WebKitSupport/InspectorClientWx.cpp:
+        (WebCore::InspectorClientWx::populateSetting): Changed
+        InspectorClient:: to InspectorClientWx::.
+        (WebCore::InspectorClientWx::storeSetting): Ditto.
+        (WebCore::InspectorClientWx::removeSetting): Ditto.
+
+2008-10-24  Timothy Hatcher  <timothy@apple.com>
+
+        Stub out new InspectorClient methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21856
+
+        Reviewed by Darin Adler.
+
+        * WebKitSupport/InspectorClientWx.cpp:
+        (WebCore::InspectorClient::populateSetting): Not implemented.
+        (WebCore::InspectorClient::storeSetting): Ditto.
+        (WebCore::InspectorClient::removeSetting): Ditto.
+        * WebKitSupport/InspectorClientWx.h:
+
+2008-10-24  Darin Adler  <darin@apple.com>
+
+        - finish rolling out https://bugs.webkit.org/show_bug.cgi?id=21732
+
+        * WebFrame.cpp: (wxWebFrame::RunScript): Use JSValue* instead of JSValuePtr.
+
 2008-10-22  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Anders Carlsson.

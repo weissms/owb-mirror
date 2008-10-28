@@ -43,7 +43,7 @@
 using namespace JSC;
 using namespace WebCore;
 
-UString WebScriptCallFrame::jsValueToString(JSC::ExecState* state, JSValuePtr jsvalue)
+UString WebScriptCallFrame::jsValueToString(JSC::ExecState* state, JSValue* jsvalue)
 {
     if (!jsvalue)
         return "undefined";
@@ -116,7 +116,7 @@ String WebScriptCallFrame::functionName()
 String WebScriptCallFrame::stringByEvaluatingJavaScriptFromString(String script)
 {
     JSLock lock(false);
-    JSValuePtr scriptExecutionResult = valueByEvaluatingJavaScriptFromString(script);
+    JSValue* scriptExecutionResult = valueByEvaluatingJavaScriptFromString(script);
     return jsValueToString(m_state, scriptExecutionResult);
 }
 
@@ -133,7 +133,7 @@ String WebScriptCallFrame::valueForVariable(String key)
 {
     Identifier identKey(m_state, key.utf8().data());
 
-    JSValuePtr jsvalue = noValue();
+    JSValue* jsvalue = noValue();
     /*ScopeChain scopeChain = m_state->scopeChain();
     for (ScopeChainIterator it = scopeChain.begin(); it != scopeChain.end() && !jsvalue; ++it)
         jsvalue = (*it)->get(m_state, identKey);*/
@@ -141,7 +141,7 @@ String WebScriptCallFrame::valueForVariable(String key)
     return jsValueToString(m_state, jsvalue);
 }
 
-JSValuePtr WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String script)
+JSValue* WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String script)
 {
 #if 0
     ExecState* state = m_state;
@@ -150,7 +150,7 @@ JSValuePtr WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String scri
     // find "eval"
     JSObject* eval = 0;
     if (state->scopeNode()) {  // "eval" won't work without context (i.e. at global scope)
-        JSValuePtr v = globObj->get(state, "eval");
+        JSValue* v = globObj->get(state, "eval");
         if (v->isObject() && asObject(v)->implementsCall())
             eval = asObject(v);
         else
@@ -158,13 +158,13 @@ JSValuePtr WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String scri
             state = globObj->globalExec();
     }
 
-    JSValuePtr savedException = state->exception();
+    JSValue* savedException = state->exception();
     state->clearException();
 
     UString code(script.utf8().data());
 
     // evaluate
-    JSValuePtr scriptExecutionResult;
+    JSValue* scriptExecutionResult;
     if (eval) {
         List args;
         args.append(jsString(code));

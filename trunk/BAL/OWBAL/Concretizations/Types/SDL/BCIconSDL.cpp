@@ -57,6 +57,13 @@ PassRefPtr<Icon> Icon::newIconForFile(const String& filename)
     return 0;
 }
 
+PassRefPtr<Icon> Icon::newIconForFiles(const Vector<String>& filenames)
+{
+    printf("Icon::newIconForFiles()\n");
+    return 0;
+}
+
+
 void Icon::paint(GraphicsContext* context, const IntRect& rect)
 {
     printf("Icon::paint()\n");

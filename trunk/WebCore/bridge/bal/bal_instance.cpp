@@ -75,7 +75,7 @@ bool BalInstance::supportsInvokeDefaultMethod() const
     return false;//m_object->_class->invokeDefault;
 }
 
-JSValuePtr BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList& args)
+JSValue* BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList, const ArgList& args)
 {
     ASSERT(methodList.size() == 1);
 
@@ -106,12 +106,12 @@ JSValuePtr BalInstance::invokeMethod(ExecState* exec, const MethodList& methodLi
 }
 
 
-JSValuePtr BalInstance::invokeDefaultMethod(ExecState* exec, const ArgList& args)
+JSValue* BalInstance::invokeDefaultMethod(ExecState* exec, const ArgList& args)
 {
     return jsUndefined();
 }
 
-JSValuePtr BalInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint) const
+JSValue* BalInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hint) const
 {
     if (hint == PreferString)
         return stringValue(exec);
@@ -120,7 +120,7 @@ JSValuePtr BalInstance::defaultValue(ExecState* exec, PreferredPrimitiveType hin
     return valueOf(exec);
 }
 
-JSValuePtr BalInstance::stringValue(ExecState* exec) const
+JSValue* BalInstance::stringValue(ExecState* exec) const
 {
     char buf[1024];
 #if COMPILER(MSVC)
@@ -131,18 +131,18 @@ JSValuePtr BalInstance::stringValue(ExecState* exec) const
     return jsString(exec, buf);
 }
 
-JSValuePtr BalInstance::numberValue(ExecState* exec) const
+JSValue* BalInstance::numberValue(ExecState* exec) const
 {
     return jsNumber(exec, 0);
 }
 
-JSValuePtr BalInstance::booleanValue() const
+JSValue* BalInstance::booleanValue() const
 {
     // FIXME: Implement something sensible.
     return jsBoolean(false);
 }
 
-JSValuePtr BalInstance::valueOf(ExecState* exec) const 
+JSValue* BalInstance::valueOf(ExecState* exec) const 
 {
     return stringValue(exec);
 }

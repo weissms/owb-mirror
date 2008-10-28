@@ -1,3 +1,307 @@
+2008-10-27  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Try to fix Windows build.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute): Provide a dummy value to the
+        HostCallRecord in CTI non-sampling builds, to silence compiler warning.
+
+2008-10-25  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Try to fix Windows build.
+
+        * VM/SamplingTool.h:
+        (JSC::SamplingTool::encodeSample): Explicitly cast bool to int, to
+        silence compiler warning.
+
+2008-10-25  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig, with Gavin Barraclough's help.
+        
+        Fixed Sampling Tool:
+            - Made CodeBlock sampling work with CTI
+            - Improved accuracy by unifying most sampling data into a single
+              32bit word, which can be written / read atomically.
+            - Split out three different #ifdefs for modularity: OPCODE_SAMPLING;
+              CODEBLOCK_SAMPLING; OPCODE_STATS.
+            - Improved reporting clarity
+            - Refactored for code clarity
+
+        * JavaScriptCore.exp: Exported another symbol.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::emitCTICall):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::emitSlowScriptCheck):
+        (JSC::CTI::compileBinaryArithOpSlowCase):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        (JSC::CTI::privateCompile):
+        * VM/CTI.h: Updated CTI codegen to use the unified SamplingTool interface
+        for encoding samples. (This required passing the current vPC to a lot
+        more functions, since the unified interface samples the current vPC.)
+        Added hooks for writing the current CodeBlock* on function entry and
+        after a function call, for the sake of the CodeBlock sampler. Removed
+        obsolete hook for clearing the current sample inside op_end. Also removed
+        the custom enum used to differentiate flavors of op_call, since the
+        OpcodeID enum works just as well. (This was important in an earlier
+        version of the patch, but now it's just cleanup.)
+
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::lineNumberForVPC):
+        * VM/CodeBlock.h: Upated for refactored #ifdefs. Changed lineNumberForVPC
+        to be robust against vPCs not recorded for exception handling, since
+        the Sampler may ask for an arbitrary vPC.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::execute):
+        (JSC::Machine::privateExecute):
+        (JSC::Machine::cti_op_call_NotJSFunction):
+        (JSC::Machine::cti_op_construct_NotJSConstruct):
+        * VM/Machine.h:
+        (JSC::Machine::setSampler):
+        (JSC::Machine::sampler):
+        (JSC::Machine::jitCodeBuffer): Upated for refactored #ifdefs. Changed
+        Machine to use SamplingTool helper objects to record movement in and
+        out of host code. This makes samples a bit more precise.
+        
+        * VM/Opcode.cpp:
+        (JSC::OpcodeStats::~OpcodeStats):
+        * VM/Opcode.h: Upated for refactored #ifdefs. Added a little more padding,
+        to accomodate our more verbose opcode names.
+
+        * VM/SamplingTool.cpp:
+        (JSC::ScopeSampleRecord::sample): Only count a sample toward our total
+        if we actually record it. This solves cases where a CodeBlock will
+        claim to have been sampled many times, with reported samples that don't
+        match.
+
+        (JSC::SamplingTool::run): Read the current sample into a Sample helper
+        object, to ensure that the data doesn't change while we're analyzing it,
+        and to help decode the data. Only access the CodeBlock sampling hash
+        table if CodeBlock sampling has been enabled, so non-CodeBlock sampling
+        runs can operate with even less overhead.
+
+        (JSC::SamplingTool::dump): I reorganized this code a lot to print the
+        most important info at the top, print as a table, annotate and document
+        the stuff I didn't understand when I started, etc.
+
+        * VM/SamplingTool.h: New helper classes, described above.
+
+        * kjs/Parser.h:
+        * kjs/Shell.cpp:
+        (runWithScripts):
+        * kjs/nodes.cpp:
+        (JSC::ScopeNode::ScopeNode): Updated for new sampling APIs.
+
+        * wtf/Platform.h: Moved sampling #defines here, since our custom is to
+        put ENABLE #defines into Platform.h. Made explicit the fact that
+        CODEBLOCK_SAMPLING depends on OPCODE_SAMPLING.
+
+2008-10-25  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        JSC Build fix, not reviewed.
+
+        * VM/CTI.cpp: add missing include stdio.h for debug builds
+
+2008-10-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Darin Adler.
+        
+        Get rid of a bonus ASSERT when using a null string as a regexp.
+        Specifically calling: RegularExpression::match() with String::empty()
+        will hit this ASSERT.
+        Chromium hits this, but I don't know of any way to make a layout test.
+
+        * pcre/pcre_exec.cpp:
+        (jsRegExpExecute):
+
+2008-10-24  Alexey Proskuryakov  <ap@webkit.org>
+
+        Suggested and rubber-stamped by Geoff Garen.
+
+        Fix a crash when opening Font Picker.
+
+        The change also hopefully fixes this bug, which I could never reproduce:
+        https://bugs.webkit.org/show_bug.cgi?id=20241
+        <rdar://problem/6290576> Safari crashes at JSValueUnprotect() when fontpicker view close
+
+        * API/JSContextRef.cpp: (JSContextGetGlobalObject): Use lexical global object instead of
+        dynamic one.
+
+2008-10-24  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Remove ScopeChainNode::bottom() and inline it into its only caller,
+        ScopeChainnode::globalObject().
+
+        * kjs/JSGlobalObject.h:
+        (JSC::ScopeChainNode::globalObject):
+        * kjs/ScopeChain.h:
+        (JSC::ScopeChain::bottom):
+
+2008-10-24  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Bug 21862: Create JSFunction prototype property lazily
+        <https://bugs.webkit.org/show_bug.cgi?id=21862>
+
+        This is a 1.5% speedup on SunSpider and a 1.4% speedup on the V8
+        benchmark suite, including a 3.8% speedup on Earley-Boyer.
+
+        * kjs/JSFunction.cpp:
+        (JSC::JSFunction::getOwnPropertySlot):
+        * kjs/nodes.cpp:
+        (JSC::FuncDeclNode::makeFunction):
+        (JSC::FuncExprNode::makeFunction):
+
+2008-10-24  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21475
+        
+        Provide support for the Geolocation API
+        
+        http://dev.w3.org/geo/api/spec-source.html
+
+        * wtf/Platform.h: ENABLE_GEOLOCATION defaults to 0
+
+2008-10-24  Darin Adler  <darin@apple.com>
+
+        - finish rolling out https://bugs.webkit.org/show_bug.cgi?id=21732
+
+        * API/APICast.h:
+        * API/JSCallbackConstructor.h:
+        * API/JSCallbackFunction.cpp:
+        * API/JSCallbackFunction.h:
+        * API/JSCallbackObject.h:
+        * API/JSCallbackObjectFunctions.h:
+        * API/JSContextRef.cpp:
+        * API/JSObjectRef.cpp:
+        * API/JSValueRef.cpp:
+        * VM/CTI.cpp:
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        * VM/CodeBlock.h:
+        * VM/CodeGenerator.cpp:
+        * VM/CodeGenerator.h:
+        * VM/ExceptionHelpers.cpp:
+        * VM/ExceptionHelpers.h:
+        * VM/JSPropertyNameIterator.cpp:
+        * VM/JSPropertyNameIterator.h:
+        * VM/Machine.cpp:
+        * VM/Machine.h:
+        * VM/Register.h:
+        * kjs/ArgList.cpp:
+        * kjs/ArgList.h:
+        * kjs/Arguments.cpp:
+        * kjs/Arguments.h:
+        * kjs/ArrayConstructor.cpp:
+        * kjs/ArrayPrototype.cpp:
+        * kjs/BooleanConstructor.cpp:
+        * kjs/BooleanConstructor.h:
+        * kjs/BooleanObject.h:
+        * kjs/BooleanPrototype.cpp:
+        * kjs/CallData.cpp:
+        * kjs/CallData.h:
+        * kjs/ConstructData.cpp:
+        * kjs/ConstructData.h:
+        * kjs/DateConstructor.cpp:
+        * kjs/DateInstance.h:
+        * kjs/DatePrototype.cpp:
+        * kjs/DatePrototype.h:
+        * kjs/DebuggerCallFrame.cpp:
+        * kjs/DebuggerCallFrame.h:
+        * kjs/ErrorConstructor.cpp:
+        * kjs/ErrorPrototype.cpp:
+        * kjs/ExecState.cpp:
+        * kjs/ExecState.h:
+        * kjs/FunctionConstructor.cpp:
+        * kjs/FunctionPrototype.cpp:
+        * kjs/FunctionPrototype.h:
+        * kjs/GetterSetter.cpp:
+        * kjs/GetterSetter.h:
+        * kjs/InternalFunction.h:
+        * kjs/JSActivation.cpp:
+        * kjs/JSActivation.h:
+        * kjs/JSArray.cpp:
+        * kjs/JSArray.h:
+        * kjs/JSCell.cpp:
+        * kjs/JSCell.h:
+        * kjs/JSFunction.cpp:
+        * kjs/JSFunction.h:
+        * kjs/JSGlobalData.h:
+        * kjs/JSGlobalObject.cpp:
+        * kjs/JSGlobalObject.h:
+        * kjs/JSGlobalObjectFunctions.cpp:
+        * kjs/JSGlobalObjectFunctions.h:
+        * kjs/JSImmediate.cpp:
+        * kjs/JSImmediate.h:
+        * kjs/JSNotAnObject.cpp:
+        * kjs/JSNotAnObject.h:
+        * kjs/JSNumberCell.cpp:
+        * kjs/JSNumberCell.h:
+        * kjs/JSObject.cpp:
+        * kjs/JSObject.h:
+        * kjs/JSStaticScopeObject.cpp:
+        * kjs/JSStaticScopeObject.h:
+        * kjs/JSString.cpp:
+        * kjs/JSString.h:
+        * kjs/JSValue.h:
+        * kjs/JSVariableObject.h:
+        * kjs/JSWrapperObject.h:
+        * kjs/MathObject.cpp:
+        * kjs/MathObject.h:
+        * kjs/NativeErrorConstructor.cpp:
+        * kjs/NumberConstructor.cpp:
+        * kjs/NumberConstructor.h:
+        * kjs/NumberObject.cpp:
+        * kjs/NumberObject.h:
+        * kjs/NumberPrototype.cpp:
+        * kjs/ObjectConstructor.cpp:
+        * kjs/ObjectPrototype.cpp:
+        * kjs/ObjectPrototype.h:
+        * kjs/PropertyMap.h:
+        * kjs/PropertySlot.cpp:
+        * kjs/PropertySlot.h:
+        * kjs/RegExpConstructor.cpp:
+        * kjs/RegExpConstructor.h:
+        * kjs/RegExpMatchesArray.h:
+        * kjs/RegExpObject.cpp:
+        * kjs/RegExpObject.h:
+        * kjs/RegExpPrototype.cpp:
+        * kjs/Shell.cpp:
+        * kjs/StringConstructor.cpp:
+        * kjs/StringObject.cpp:
+        * kjs/StringObject.h:
+        * kjs/StringObjectThatMasqueradesAsUndefined.h:
+        * kjs/StringPrototype.cpp:
+        * kjs/StructureID.cpp:
+        * kjs/StructureID.h:
+        * kjs/collector.cpp:
+        * kjs/collector.h:
+        * kjs/completion.h:
+        * kjs/grammar.y:
+        * kjs/interpreter.cpp:
+        * kjs/interpreter.h:
+        * kjs/lookup.cpp:
+        * kjs/lookup.h:
+        * kjs/nodes.h:
+        * kjs/operations.cpp:
+        * kjs/operations.h:
+        * kjs/protect.h:
+        * profiler/ProfileGenerator.cpp:
+        * profiler/Profiler.cpp:
+        * profiler/Profiler.h:
+        Use JSValue* instead of JSValuePtr.
+
 2008-10-24  David Kilzer  <ddkilzer@apple.com>
 
         Rolled out r37840.

@@ -1,3 +1,728 @@
+2008-10-27  Alexey Proskuryakov  <ap@webkit.org>
+
+        Fix non-Mac builds.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCoreSources.bkl:
+        Renamed JSHTMLOptionElementConstructor to JSOptionConstructor.
+
+2008-10-26  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21886
+        window.HTMLOptionElement == "[object HTMLElementConstructor]" instead of HTMLOptionElementConstructor
+
+        Test: fast/dom/HTMLOptionElement/option-prototype.html
+
+        We now have separate objects for window.Option and window.HTMLOptionElement - the latter
+        "constructor" cannot be used to construct anything. This matches Firefox behavior.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSDOMWindowBase.cpp:
+        (jsDOMWindowBaseOption):
+        * bindings/js/JSHTMLOptionElementConstructor.cpp: Removed.
+        * bindings/js/JSHTMLOptionElementConstructor.h: Removed.
+        * bindings/js/JSOptionConstructor.cpp: Copied from WebCore/bindings/js/JSHTMLOptionElementConstructor.cpp.
+        * bindings/js/JSOptionConstructor.h: Copied from WebCore/bindings/js/JSHTMLOptionElementConstructor.h.
+        * html/HTMLOptionElement.idl:
+        Renamed JSHTMLOptionElementConstructor to JSOptionConstructor.
+
+        * html/HTMLOptionElement.idl: Generate a constructor.
+
+2008-10-25  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Try to fix Mac debug build on the buildbot.
+
+        * platform/FileChooser.cpp:
+        (WebCore::FileChooserClient::~FileChooserClient):
+        * platform/FileChooser.h: Moved destructor to .cpp file, to avoid a
+        weak exported symbol.
+
+2008-10-25  Jade Han  <jade.han@nokia.com>
+
+        Reviewed by Anders.
+
+        Enable custom properties for Qt runtime objects in QtWebKit
+
+        https://bugs.webkit.org/show_bug.cgi?id=21813
+
+        * bridge/runtime_object.cpp:
+        (JSC::RuntimeObjectImp::getOwnPropertySlot):
+        (JSC::RuntimeObjectImp::put):
+
+2008-10-24  Sam Weinig  <sam@webkit.org>
+
+        Fix windows build.
+
+        * page/Chrome.cpp:
+        * page/Chrome.h:
+
+2008-10-24  Sam Weinig  <sam@webkit.org>
+
+        Fix Qt build.
+
+        * platform/qt/FileChooserQt.cpp:
+
+2008-10-24  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=21759
+        Layering violation: FileChooser should not depend on Document/Frame/Page
+
+        Move file choosing into WebKit ChromeClient.
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::runOpenPanel):
+        * page/Chrome.cpp:
+        (WebCore::Chrome::runOpenPanel):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * page/mac/ChromeMac.mm:
+        * platform/FileChooser.h:
+        * platform/mac/FileChooserMac.mm:
+        * platform/qt/FileChooserQt.cpp:
+        * platform/win/FileChooserWin.cpp:
+        * platform/wx/TemporaryLinkStubs.cpp:
+        * rendering/RenderFileUploadControl.cpp:
+        (WebCore::RenderFileUploadControl::click):
+
+2008-10-24  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix - add newIconForFiles stub.
+
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (Icon::newIconForFiles):
+
+2008-10-24  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        Use the CGFont metrics APIs for more accurate measurements, and tweak the y
+        value the text is drawn at (it was a couple pixels off before because wx
+        internally adds to the y value.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21853
+
+        * platform/wx/wxcode/mac/carbon/fontprops.cpp:
+        (wxFontProperties::wxFontProperties):
+        * platform/wx/wxcode/mac/carbon/non-kerned-drawing.cpp:
+        (WebCore::drawTextWithSpacing):
+
+2008-10-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Generate missing constructors and add test to prevent missing ones in the future
+        https://bugs.webkit.org/show_bug.cgi?id=21846
+
+        Test: fast/js/global-constructors.html
+
+        * css/CSSStyleSheet.idl:
+        * css/RGBColor.idl:
+        * dom/NodeIterator.idl:
+        * dom/TreeWalker.idl:
+        * xml/XPathExpression.idl:
+
+2008-10-24  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21836
+        REGRESSION: Sign-in on Fancast.com causes crash in Webkit nightly
+
+        Test: http/tests/xmlhttprequest/detaching-frame.html
+
+        * xml/XMLHttpRequest.cpp: (WebCore::XMLHttpRequest::dropProtection): Null check the window -
+        even though XHR needs a context (AKA frame) to be serviced, the frame may be disconnected
+        when dispatching the same callback that results in this function being called.
+
+2008-10-24  David Kilzer  <ddkilzer@apple.com>
+
+        Gtk build fix.
+
+        * platform/gtk/TemporaryLinkStubs.cpp:
+        (WebCore::setFocusRingColorChangeFunction): Removed in r37858.
+
+2008-10-24  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6164952> Use constant kCGInterpolationMedium in GraphicsContextCG.cpp rather than hard-coded values.
+
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::setImageInterpolationQuality):
+        (WebCore::GraphicsContext::imageInterpolationQuality):
+
+2008-10-24  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/5440917> Support NPN_Construct
+                
+        * WebCore.NPAPI.exp:
+        Export _NPN_Construct.
+        
+        * bridge/NP_jsobject.cpp:
+        (_NPN_Construct):
+        Implement this.
+        
+        * bridge/c/c_instance.cpp:
+        (JSC::Bindings::CInstance::supportsConstruct):
+        (JSC::Bindings::CInstance::invokeConstruct):
+        Have this call the appropriate NPClass method.
+        
+        * bridge/npruntime.h:
+        Add NPN_Construct.
+
+        * bridge/npruntime_impl.h:
+        Add _NPN_Construct.
+        
+        * bridge/runtime.h:
+        (JSC::Bindings::Instance::supportsConstruct):
+        (JSC::Bindings::Instance::invokeConstruct):
+        New methods.
+        
+        * bridge/runtime_object.cpp:
+        (JSC::callRuntimeConstructor):
+        Call the native instance.
+        
+        (JSC::RuntimeObjectImp::getConstructData):
+        Implement this.
+        
+        * bridge/runtime_object.h:
+        Add new method declarations.
+        
+        * plugins/gtk/PluginPackageGtk.cpp:
+        (WebCore::PluginPackage::load):
+        * plugins/qt/PluginPackageQt.cpp:
+        (WebCore::PluginPackage::load):
+        * plugins/win/PluginPackageWin.cpp:
+        (WebCore::PluginPackage::load):
+        Initialize m_pluginFuncs.construct.
+
+2008-10-24  Adele Peterson  <adele@apple.com>
+
+        Build fix.
+
+        * platform/FileChooser.h: (WebCore::FileChooserClient::~FileChooserClient):
+        * platform/graphics/mac/IconMac.mm: (WebCore::Icon::newIconForFiles):
+
+2008-10-24  Greg Bolsinga  <bolsinga@apple.com>
+
+        Fix GTK build break.
+
+        Reviewed by David Kilzer.
+
+        * GNUmakefile.am: Do not include .idl files whose generated files should not be
+        compiled.
+
+2008-10-24  David Kilzer  <ddkilzer@apple.com>
+
+        Wx build fix.
+
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (WebCore::setFocusRingColorChangeFunction): Removed in r37858.
+
+2008-10-24  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        WebCore part of fix for <rdar://problem/5839256> FILE CONTROL: multi-file upload.
+
+        This change adds support for multiple file selection in an <input type="file"> control when the "multiple" attribute is used.
+        This is consistent with the direction HTML5 will be going in the future.
+
+        The initial implementation here will show "n files" as the text next to the control when multiple files are selected.  You can view
+        the individual files in a tooltip for now.  Improvements to this control will come later.  
+
+        Web developers will be able to access the FileList from the HTMLInputElement element, where they can get a base name and a size for each file.  
+        These FileList Files can also be sent in an XMLHTTPRequest.
+
+        * manual-tests/post-multi-file-upload.html: Added.
+        * manual-tests/resources/multiFileResources: Added.
+        * manual-tests/resources/multiFileResources/post-echo-and-notify-done.cgi: Added.
+        * manual-tests/resources/multiFileResources/testFile1.html: Added.
+        * manual-tests/resources/multiFileResources/testFile2.html: Added.
+        * manual-tests/resources/multiFileResources/testFile3.html: Added.
+
+        * WebCore.base.exp: Added support to export the new "chooseFilenames" method to be used in WebKit.
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute): Add support for the multiple attribute.
+        (WebCore::HTMLInputElement::value): Added comments.  The HTML5 spec says that value shouldn't apply for the file upload control,
+        but we don't want to break the behavior for existing websites that may rely on this.
+        (WebCore::HTMLInputElement::setValue): ditto.
+        (WebCore::HTMLInputElement::setValueFromRenderer): This is no longer used for file upload controls. setFileListFromRenderer is used instead.
+        (WebCore::HTMLInputElement::setFileListFromRenderer): Added. 
+        * html/HTMLInputElement.h:
+
+        * page/Chrome.cpp: (WebCore::Chrome::setToolTip): Show a tooltip with the file name list for the multi-file upload control.
+
+        * page/DragController.cpp: (WebCore::DragController::concludeDrag): Updated to support multiple files.
+
+        * platform/FileChooser.cpp: Add support for maintaining a list of file paths that can be retrieved by the renderer.
+        (WebCore::FileChooser::FileChooser):
+        (WebCore::FileChooser::create):
+        (WebCore::FileChooser::clear):
+        (WebCore::FileChooser::chooseFile):
+        (WebCore::FileChooser::chooseFiles):
+        (WebCore::FileChooser::chooseIcon):
+        * platform/FileChooser.h:
+        (WebCore::FileChooser::filePaths):
+        (WebCore::FileChooser::allowsMultipleFiles):
+
+        * platform/graphics/Icon.h:
+        * platform/graphics/mac/IconMac.mm: (WebCore::Icon::newIconForFiles): Returns a generic icon for multiple files.
+        * platform/graphics/gtk/IconGtk.cpp: (WebCore::Icon::newIconForFiles): stubbed out.
+        * platform/graphics/qt/IconQt.cpp: (WebCore::Icon::newIconForFiles): ditto.
+        * platform/graphics/win/IconWin.cpp: (WebCore::Icon::newIconForFiles): ditto.
+
+        * platform/gtk/FileChooserGtk.cpp: (WebCore::FileChooser::basenameForWidth):  Updated to deal with new filenames vector.
+        * platform/mac/FileChooserMac.mm: (WebCore::FileChooser::basenameForWidth): ditto.
+        * platform/qt/FileChooserQt.cpp:
+        (WebCore::FileChooser::openFileChooser):
+        (WebCore::FileChooser::basenameForWidth):
+        * platform/win/FileChooserWin.cpp: (WebCore::FileChooser::basenameForWidth):
+
+        * platform/network/mac/FormDataStreamMac.mm: (WebCore::disassociateStreamWithResourceHandle):
+        Removed unnecessary assertion.  This can get hit when connectionDidFinishLoading and cancel
+        both get called for the same ResourceHandle.  This getting called twice has no negative effect.
+
+        * rendering/RenderFileUploadControl.cpp:
+        (WebCore::RenderFileUploadControl::valueChanged):  Calls setFileListFromRenderer.
+        (WebCore::RenderFileUploadControl::allowsMultipleFiles):  Added.
+        (WebCore::RenderFileUploadControl::updateFromElement):  Uses the new filenames call from FileChooser.
+        (WebCore::RenderFileUploadControl::receiveDroppedFiles):  Updated to support multiple files.
+        * rendering/RenderFileUploadControl.h:
+
+2008-10-23  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21844
+        Remove setFocusRingColorChangeFunction.
+
+        * page/Page.cpp:
+        (WebCore::Page::Page):
+        * platform/graphics/Color.h:
+        * platform/graphics/mac/ColorMac.mm:
+        (WebCore::focusRingColor):
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        * platform/graphics/win/ColorSafari.cpp:
+
+2008-10-24  David Kilzer  <ddkilzer@apple.com>
+
+        Build fix for Qt.
+
+        Reviewed by Greg.
+
+        * WebCore.pro: Added missing *.idl files.
+
+2008-10-24  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21475
+        
+        Provide support for the Geolocation API
+        
+        http://dev.w3.org/geo/api/spec-source.html
+
+        Test: geolocation/geolocation-not-implemented.html
+
+        * DerivedSources.make:
+        * GNUmakefile.am: Added Geolocation support
+        * WebCore.pro: Added Geolocation support
+        * WebCore.vcproj/WebCore.vcproj: Added Geolocation support
+        * WebCore.xcodeproj/project.pbxproj: Added Geolocation support
+        * WebCoreSources.bkl: Added Geolocation support
+        * bindings/js/JSCustomPositionCallback.cpp: Added.
+        (WebCore::JSCustomPositionCallback::JSCustomPositionCallback):
+        (WebCore::JSCustomPositionCallback::handleEvent):
+        * bindings/js/JSCustomPositionCallback.h: Added.
+        (WebCore::JSCustomPositionCallback::create):
+        * bindings/js/JSCustomPositionErrorCallback.cpp: Added.
+        (WebCore::JSCustomPositionErrorCallback::JSCustomPositionErrorCallback):
+        (WebCore::JSCustomPositionErrorCallback::handleEvent):
+        * bindings/js/JSCustomPositionErrorCallback.h: Added.
+        (WebCore::JSCustomPositionErrorCallback::create):
+        * bindings/js/JSDOMBinding.cpp: move markDOMObjectWrapper here from JSDOMWindowCustom
+        (WebCore::markDOMObjectWrapper):
+        * bindings/js/JSDOMBinding.h: move markDOMObjectWrapper here from JSDOMWindowCustom
+        * bindings/js/JSDOMWindowCustom.cpp: move markDOMObjectWrapper to JSDOMBinding
+        * bindings/js/JSGeolocationCustom.cpp: Added.
+        (WebCore::JSGeolocation::getCurrentPosition):
+        (WebCore::JSGeolocation::watchPosition):
+        * bindings/js/JSNavigatorCustom.cpp: handle marking Geolocation
+        (WebCore::JSNavigator::mark):
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        * dom/Document.h:
+        (WebCore::Document::setUsingGeolocation):
+        (WebCore::Document::usingGeolocation):
+        * loader/FrameLoader.cpp: don't add to back forward cache if using Geolocation
+        (WebCore::FrameLoader::canCachePage):
+        * page/Geolocation.cpp: Added.
+        (WebCore::Geolocation::GeoNotifier::GeoNotifier):
+        (WebCore::Geolocation::GeoNotifier::timerFired):
+        (WebCore::Geolocation::Geolocation):
+        (WebCore::Geolocation::disconnectFrame):
+        (WebCore::Geolocation::getCurrentPosition):
+        (WebCore::Geolocation::watchPosition):
+        (WebCore::Geolocation::clearWatch):
+        (WebCore::Geolocation::stopUpdatingIfEmpty):
+        (WebCore::Geolocation::sendErrorToOneShots):
+        (WebCore::Geolocation::sendErrorToWatchers):
+        (WebCore::Geolocation::sendPositionToOneShots):
+        (WebCore::Geolocation::sendPositionToWatchers):
+        (WebCore::Geolocation::handleError):
+        (WebCore::Geolocation::geolocationServicePositionChanged):
+        (WebCore::Geolocation::geolocationServiceErrorOccurred):
+        * page/Geolocation.h: Added.
+        (WebCore::Geolocation::create):
+        (WebCore::Geolocation::~Geolocation):
+        (WebCore::Geolocation::lastPosition):
+        (WebCore::Geolocation::GeoNotifier::create):
+        * page/Geolocation.idl: Added.
+        * page/Geoposition.cpp: Added.
+        (WebCore::Geoposition::toString):
+        * page/Geoposition.h: Added.
+        (WebCore::Geoposition::create):
+        (WebCore::Geoposition::latitude):
+        (WebCore::Geoposition::longitude):
+        (WebCore::Geoposition::altitude):
+        (WebCore::Geoposition::accuracy):
+        (WebCore::Geoposition::altitudeAccuracy):
+        (WebCore::Geoposition::heading):
+        (WebCore::Geoposition::velocity):
+        (WebCore::Geoposition::timestamp):
+        (WebCore::Geoposition::Geoposition):
+        * page/Geoposition.idl: Added.
+        * page/Navigator.cpp:
+        (WebCore::Navigator::disconnectFrame): disconnect Geolocation
+        (WebCore::Navigator::geolocation): accessor for Geolocation
+        * page/Navigator.h:
+        (WebCore::Navigator::optionalGeolocation): accessor for Geolocation
+        * page/Navigator.idl: accessor for Geolocation
+        * page/PositionCallback.h: Added.
+        (WebCore::PositionCallback::~PositionCallback):
+        * page/PositionCallback.idl: Added.
+        * page/PositionError.h: Added.
+        (WebCore::PositionError::):
+        (WebCore::PositionError::create):
+        (WebCore::PositionError::code):
+        (WebCore::PositionError::message):
+        (WebCore::PositionError::PositionError):
+        * page/PositionError.idl: Added.
+        * page/PositionErrorCallback.h: Added.
+        (WebCore::PositionErrorCallback::~PositionErrorCallback):
+        * page/PositionErrorCallback.idl: Added.
+        * page/PositionOptions.h: Added.
+        (WebCore::PositionOptions::create):
+        (WebCore::PositionOptions::enableHighAccuracy):
+        (WebCore::PositionOptions::setEnableHighAccuracy):
+        (WebCore::PositionOptions::timeout):
+        (WebCore::PositionOptions::setTimeout):
+        (WebCore::PositionOptions::PositionOptions):
+        * page/PositionOptions.idl: Added.
+        * platform/GeolocationService.cpp: Added.
+        (WebCore::GeolocationService::GeolocationService):
+        (WebCore::GeolocationService::positionChanged):
+        (WebCore::GeolocationService::errorOccurred):
+        * platform/GeolocationService.h: Added.
+        (WebCore::GeolocationServiceClient::~GeolocationServiceClient):
+        (WebCore::GeolocationServiceClient::geolocationServicePositionChanged):
+        (WebCore::GeolocationServiceClient::geolocationServiceErrorOccurred):
+        (WebCore::GeolocationService::~GeolocationService):
+
+2008-10-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=21818
+        
+        Add HashTraits for AtomicString so that AtomicString can be used as
+        the key for a HashMap or HashSet.
+
+        * GNUmakefile.am: add AtomicStringHash.h
+        * WebCore.vcproj/WebCore.vcproj: add AtomicStringHash.h
+        * WebCore.xcodeproj/project.pbxproj: add AtomicStringHash.h
+        * platform/text/AtomicString.h:
+        (WebCore::AtomicString::AtomicString):
+        (WebCore::AtomicString::isHashTableDeletedValue):
+            specialize DefaultHash for AtomicString to use AtomicStringHash
+        * platform/text/AtomicStringHash.h: Added.
+        * platform/text/StringImpl.cpp:
+        (WebCore::StringImpl::StringImpl):
+            compute the hash up-front for the empty string
+        * platform/text/StringImpl.h:
+        (WebCore::StringImpl::existingHash):
+            method to get the hash without a test and branch, for callers like
+            AtomicStringHash who can guarantee that the hash has already been computed.
+
+2008-10-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Sam Weinig
+
+        https://bugs.webkit.org/show_bug.cgi?id=21857
+
+        Add WebKitCSSKeyframeRule and WebKitCSSKeyframesRule to the
+        switch in _wrapCSSRule.
+        
+        * bindings/objc/DOMCSS.mm:
+        (+[DOMCSSRule _wrapCSSRule:WebCore::]):
+
+2008-10-24  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * plugins/PluginView.cpp:
+
+2008-10-24  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=21851
+          <rdar://problem/6304151> REGRESSION (r36513): Crash when removing a widget with percent height
+
+        Test: fast/replaced/percent-height-in-anonymous-block-widget.html
+
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::destroy): Copied code added to
+        RenderBox::destroy() in r36513 into this function.
+
+2008-10-24  Timothy Hatcher  <timothy@apple.com>
+
+        Add a mechanism to ask the InspectorClient for key/value setting pairs.
+        These settings can be strings, numbers, booleans or string vectors. The
+        settings are also bridged to and from JavaScript.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21856
+
+        Reviewed by Darin Adler.
+
+        * WebCore.base.exp: Expose the String CFStringRef constructor.
+        * inspector/InspectorClient.h:
+        (WebCore::InspectorClient::populateSetting): Added, pure virtual.
+        (WebCore::InspectorClient::storeSetting): Ditto.
+        (WebCore::InspectorClient::removeSetting): Ditto.
+        * inspector/InspectorController.cpp:
+        (WebCore::setting): Calls InspectorController::setting and wraps the result in script types.
+        (WebCore::setSetting): Calls InspectorController::setSetting after converting from script types.
+        (WebCore::InspectorController::InspectorController): Increment a global static
+        to track the number of live InspectorControllers.
+        (WebCore::InspectorController::~InspectorController): Decrement the global static
+        that tracks the number of live InspectorControllers. Delete the setting cache if there
+        are no more live controllers.
+        (WebCore::InspectorController::setting): Check the cache and return the setting from there,
+        otherwise make a new Setting and ask the client to populate it.
+        (WebCore::InspectorController::setSetting): Change the cache and ask the client to store it.
+        (WebCore::InspectorController::windowScriptObjectAvailable): Add setting and setSetting
+        to the InspectorController script class.
+        * inspector/InspectorController.h:
+        (WebCore::InspectorController::Setting::Setting):
+        (WebCore::InspectorController::Setting::operator=):
+        (WebCore::InspectorController::Setting::type): Return m_type.
+        (WebCore::InspectorController::Setting::string): Return m_string. Assert the type is correct.
+        (WebCore::InspectorController::Setting::stringVector): Return m_stringVector.
+        Assert the type is correct.
+        (WebCore::InspectorController::Setting::doubleValue): Return m_simpleContent.m_double.
+        Assert the type is correct.
+        (WebCore::InspectorController::Setting::integerValue): Return m_simpleContent.m_integer.
+        Assert the type is correct.
+        (WebCore::InspectorController::Setting::booleanValue): Return m_simpleContent.m_boolean.
+        Assert the type is correct.
+        (WebCore::InspectorController::Setting::set): Overloaded for each data type, sets the right
+        field and the type.
+        * loader/EmptyClients.h:
+        (WebCore::EmptyInspectorClient::populateSetting): Added, empty method.
+        (WebCore::EmptyInspectorClient::storeSetting): Ditto.
+        (WebCore::EmptyInspectorClient::removeSetting): Ditto.
+
+2008-10-24  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove some C-style casts.
+
+        * html/HTMLViewSourceDocument.cpp:
+        (WebCore::HTMLViewSourceDocument::addViewSourceToken):
+
+2008-10-24  Darin Adler  <darin@apple.com>
+
+        - finish rolling out https://bugs.webkit.org/show_bug.cgi?id=21732
+
+        * bindings/js/JSAttrCustom.cpp:
+        * bindings/js/JSCSSRuleCustom.cpp:
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        * bindings/js/JSCSSValueCustom.cpp:
+        * bindings/js/JSCanvasPixelArrayCustom.h:
+        * bindings/js/JSCanvasRenderingContext2DCustom.cpp:
+        * bindings/js/JSClipboardCustom.cpp:
+        * bindings/js/JSConsoleCustom.cpp:
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        * bindings/js/JSCustomVoidCallback.cpp:
+        * bindings/js/JSCustomVoidCallback.h:
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        * bindings/js/JSCustomXPathNSResolver.h:
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        * bindings/js/JSDOMBinding.cpp:
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        * bindings/js/JSDOMWindowCustom.h:
+        * bindings/js/JSDOMWindowShell.cpp:
+        * bindings/js/JSDOMWindowShell.h:
+        * bindings/js/JSDatabaseCustom.cpp:
+        * bindings/js/JSDedicatedWorkerCustom.cpp:
+        * bindings/js/JSDocumentCustom.cpp:
+        * bindings/js/JSElementCustom.cpp:
+        * bindings/js/JSEventCustom.cpp:
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/JSEventTarget.cpp:
+        * bindings/js/JSEventTarget.h:
+        * bindings/js/JSEventTargetBase.h:
+        * bindings/js/JSEventTargetNodeCustom.cpp:
+        * bindings/js/JSHTMLAllCollection.h:
+        * bindings/js/JSHTMLAppletElementCustom.cpp:
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        * bindings/js/JSHTMLEmbedElementCustom.cpp:
+        * bindings/js/JSHTMLFormElementCustom.cpp:
+        * bindings/js/JSHTMLFrameElementCustom.cpp:
+        * bindings/js/JSHTMLFrameSetElementCustom.cpp:
+        * bindings/js/JSHTMLIFrameElementCustom.cpp:
+        * bindings/js/JSHTMLInputElementCustom.cpp:
+        * bindings/js/JSHTMLObjectElementCustom.cpp:
+        * bindings/js/JSHTMLOptionsCollectionCustom.cpp:
+        * bindings/js/JSHTMLSelectElementCustom.cpp:
+        * bindings/js/JSHTMLSelectElementCustom.h:
+        * bindings/js/JSHistoryCustom.cpp:
+        * bindings/js/JSImageDataCustom.cpp:
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        * bindings/js/JSInspectedObjectWrapper.h:
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        * bindings/js/JSInspectorCallbackWrapper.h:
+        * bindings/js/JSJavaScriptCallFrameCustom.cpp:
+        * bindings/js/JSLocationCustom.cpp:
+        * bindings/js/JSMessagePortCustom.cpp:
+        * bindings/js/JSMimeTypeArrayCustom.cpp:
+        * bindings/js/JSNamedNodeMapCustom.cpp:
+        * bindings/js/JSNamedNodesCollection.cpp:
+        * bindings/js/JSNamedNodesCollection.h:
+        * bindings/js/JSNavigatorCustom.cpp:
+        * bindings/js/JSNodeCustom.cpp:
+        * bindings/js/JSNodeFilterCondition.cpp:
+        * bindings/js/JSNodeFilterCondition.h:
+        * bindings/js/JSNodeFilterCustom.cpp:
+        * bindings/js/JSNodeIteratorCustom.cpp:
+        * bindings/js/JSNodeListCustom.cpp:
+        * bindings/js/JSPluginArrayCustom.cpp:
+        * bindings/js/JSPluginCustom.cpp:
+        * bindings/js/JSPluginElementFunctions.cpp:
+        * bindings/js/JSPluginElementFunctions.h:
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+        * bindings/js/JSRGBColor.cpp:
+        * bindings/js/JSRGBColor.h:
+        * bindings/js/JSSQLResultSetRowListCustom.cpp:
+        * bindings/js/JSSQLTransactionCustom.cpp:
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        * bindings/js/JSSVGLengthCustom.cpp:
+        * bindings/js/JSSVGMatrixCustom.cpp:
+        * bindings/js/JSSVGPathSegCustom.cpp:
+        * bindings/js/JSSVGPathSegListCustom.cpp:
+        * bindings/js/JSSVGPointListCustom.cpp:
+        * bindings/js/JSSVGTransformListCustom.cpp:
+        * bindings/js/JSStorageCustom.cpp:
+        * bindings/js/JSStyleSheetCustom.cpp:
+        * bindings/js/JSStyleSheetListCustom.cpp:
+        * bindings/js/JSTextCustom.cpp:
+        * bindings/js/JSTreeWalkerCustom.cpp:
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        * bindings/js/JSXSLTProcessorCustom.cpp:
+        * bindings/js/ScheduledAction.cpp:
+        * bindings/js/ScheduledAction.h:
+        * bindings/js/ScriptController.cpp:
+        * bindings/js/ScriptController.h:
+        * bindings/objc/WebScriptObject.mm:
+        * bindings/objc/WebScriptObjectPrivate.h:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+        * bridge/c/c_instance.cpp:
+        * bridge/c/c_instance.h:
+        * bridge/c/c_runtime.cpp:
+        * bridge/c/c_runtime.h:
+        * bridge/c/c_utility.cpp:
+        * bridge/c/c_utility.h:
+        * bridge/jni/jni_instance.cpp:
+        * bridge/jni/jni_instance.h:
+        * bridge/jni/jni_jsobject.h:
+        * bridge/jni/jni_jsobject.mm:
+        * bridge/jni/jni_objc.mm:
+        * bridge/jni/jni_runtime.cpp:
+        * bridge/jni/jni_runtime.h:
+        * bridge/jni/jni_utility.cpp:
+        * bridge/jni/jni_utility.h:
+        * bridge/objc/WebScriptObject.h:
+        * bridge/objc/objc_class.h:
+        * bridge/objc/objc_class.mm:
+        * bridge/objc/objc_instance.h:
+        * bridge/objc/objc_instance.mm:
+        * bridge/objc/objc_runtime.h:
+        * bridge/objc/objc_runtime.mm:
+        * bridge/objc/objc_utility.h:
+        * bridge/objc/objc_utility.mm:
+        * bridge/qt/qt_class.cpp:
+        * bridge/qt/qt_class.h:
+        * bridge/qt/qt_instance.cpp:
+        * bridge/qt/qt_instance.h:
+        * bridge/qt/qt_runtime.cpp:
+        * bridge/qt/qt_runtime.h:
+        * bridge/runtime.cpp:
+        * bridge/runtime.h:
+        * bridge/runtime_array.cpp:
+        * bridge/runtime_array.h:
+        * bridge/runtime_method.cpp:
+        * bridge/runtime_method.h:
+        * bridge/runtime_object.cpp:
+        * bridge/runtime_object.h:
+        * bridge/testqtbindings.cpp:
+        * inspector/JavaScriptCallFrame.cpp:
+        * inspector/JavaScriptCallFrame.h:
+        * inspector/JavaScriptProfile.cpp:
+        * inspector/JavaScriptProfile.h:
+        * inspector/JavaScriptProfileNode.cpp:
+        * inspector/JavaScriptProfileNode.h:
+        * loader/FrameLoader.cpp:
+        * loader/FrameLoader.h:
+        * page/Console.cpp:
+        * page/Console.h:
+        * plugins/MimeTypeArray.h:
+        * plugins/Plugin.h:
+        * plugins/PluginArray.h:
+        * plugins/PluginView.cpp:
+        * xml/XMLHttpRequest.cpp:
+        Use JSValue* instead of JSValuePtr.
+
+2008-10-24  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build.
+
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtField::valueFromInstance):
+
 2008-10-24  David Kilzer  <ddkilzer@apple.com>
 
         Rolled out r37840 and r37841.

@@ -212,7 +212,7 @@ namespace JSC {
 
     class EvalCodeCache {
     public:
-        PassRefPtr<EvalNode> get(ExecState* exec, const UString& evalSource, ScopeChainNode* scopeChain, JSValuePtr& exceptionValue)
+        PassRefPtr<EvalNode> get(ExecState* exec, const UString& evalSource, ScopeChainNode* scopeChain, JSValue*& exceptionValue)
         {
             RefPtr<EvalNode> evalNode;
 
@@ -289,7 +289,7 @@ namespace JSC {
             linkedCallerList.shrink(lastPos);
         }
 
-#if !defined(NDEBUG) || ENABLE_SAMPLING_TOOL
+#if !defined(NDEBUG) || ENABLE_OPCODE_SAMPLING
         void dump(ExecState*) const;
         void printStructureIDs(const Instruction*) const;
         void printStructureID(const char* name, const Instruction*, int operand) const;
@@ -342,7 +342,7 @@ namespace JSC {
         Vector<RefPtr<FuncDeclNode> > functions;
         Vector<RefPtr<FuncExprNode> > functionExpressions;
         Vector<Register> constantRegisters;
-        Vector<JSValuePtr> unexpectedConstants;
+        Vector<JSValue*> unexpectedConstants;
         Vector<RefPtr<RegExp> > regexps;
         Vector<HandlerInfo> exceptionHandlers;
         Vector<ExpressionRangeInfo> expressionInfo;
@@ -361,7 +361,7 @@ namespace JSC {
         EvalCodeCache evalCodeCache;
 
     private:
-#if !defined(NDEBUG) || ENABLE(SAMPLING_TOOL)
+#if !defined(NDEBUG) || ENABLE(OPCODE_SAMPLING)
         void dump(ExecState*, const Vector<Instruction>::const_iterator& begin, Vector<Instruction>::const_iterator&) const;
 #endif
 

@@ -1,3 +1,49 @@
+2008-10-27  Anders Carlsson  <andersca@apple.com>
+
+        Try fixing the 64-bit build.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/TestObject.cpp:
+        (testGetProperty):
+
+2008-10-24  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        <rdar://problem/5440917> Support NPN_Construct
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (testCallback):
+        Fix a memory leak.
+        
+        (testConstruct):
+        New test method that treats it first argument as a constructor and invokes it with the rest of the arguments.
+        
+        (pluginInvoke):
+        Handle testConstruct.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/TestObject.cpp:
+        (testGetProperty):
+        Add objectPointer property.
+        
+        (testEnumerate):
+        Only enumerate the two first properties.
+        
+        (testConstruct):
+        Add a simple construct implementation that just returns the test object.
+
+2008-10-24  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 21850: svn-apply and svn-unapply should preserve patch line endings
+
+        <https://bugs.webkit.org/show_bug.cgi?id=21850>
+
+        Reviewed by Adam Roben.
+
+        * Scripts/svn-apply: Save end-of-line characters when stripping them
+        off each line of a patch so that they may be restored after
+        processing the line.
+        * Scripts/svn-unapply: Ditto.
+
 2008-10-24  David Kilzer  <ddkilzer@apple.com>
 
         Bug 21832: Fix scripts using 'new File::Temp' for Perl 5.10

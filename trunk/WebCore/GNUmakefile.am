@@ -209,9 +209,13 @@ IDL_BINDINGS += \
 	WebCore/page/Console.idl \
 	WebCore/page/DOMSelection.idl \
 	WebCore/page/DOMWindow.idl \
+	WebCore/page/Geolocation.idl \
+	WebCore/page/Geoposition.idl \
 	WebCore/page/History.idl \
 	WebCore/page/Location.idl \
 	WebCore/page/Navigator.idl \
+	WebCore/page/PositionError.idl \
+	WebCore/page/PositionOptions.idl \
 	WebCore/page/Screen.idl \
 	WebCore/plugins/MimeType.idl \
 	WebCore/plugins/MimeTypeArray.idl \
@@ -325,6 +329,10 @@ webcore_sources += \
 	WebCore/bindings/js/JSCanvasRenderingContext2DCustom.cpp \
 	WebCore/bindings/js/JSClipboardCustom.cpp \
 	WebCore/bindings/js/JSConsoleCustom.cpp \
+	WebCore/bindings/js/JSCustomPositionCallback.cpp \
+	WebCore/bindings/js/JSCustomPositionCallback.h \
+	WebCore/bindings/js/JSCustomPositionErrorCallback.cpp \
+	WebCore/bindings/js/JSCustomPositionErrorCallback.h \
 	WebCore/bindings/js/JSCustomVoidCallback.cpp \
 	WebCore/bindings/js/JSCustomVoidCallback.h \
 	WebCore/bindings/js/JSCustomXPathNSResolver.cpp \
@@ -349,6 +357,7 @@ webcore_sources += \
 	WebCore/bindings/js/JSEventTarget.h \
 	WebCore/bindings/js/JSEventTargetBase.h \
 	WebCore/bindings/js/JSEventTargetNodeCustom.cpp \
+	WebCore/bindings/js/JSGeolocationCustom.cpp \
 	WebCore/bindings/js/JSHTMLAllCollection.cpp \
 	WebCore/bindings/js/JSHTMLAllCollection.h \
 	WebCore/bindings/js/JSHTMLAppletElementCustom.cpp \
@@ -366,8 +375,6 @@ webcore_sources += \
 	WebCore/bindings/js/JSHTMLInputElementCustom.h \
 	WebCore/bindings/js/JSHTMLObjectElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLObjectElementCustom.h \
-	WebCore/bindings/js/JSHTMLOptionElementConstructor.cpp \
-	WebCore/bindings/js/JSHTMLOptionElementConstructor.h \
 	WebCore/bindings/js/JSHTMLOptionsCollectionCustom.cpp \
 	WebCore/bindings/js/JSHTMLSelectElementCustom.cpp \
 	WebCore/bindings/js/JSHTMLSelectElementCustom.h \
@@ -398,6 +405,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSNodeFilterCustom.cpp \
 	WebCore/bindings/js/JSNodeIteratorCustom.cpp \
 	WebCore/bindings/js/JSNodeListCustom.cpp \
+	WebCore/bindings/js/JSOptionConstructor.cpp \
+	WebCore/bindings/js/JSOptionConstructor.h \
 	WebCore/bindings/js/JSPluginArrayCustom.cpp \
 	WebCore/bindings/js/JSPluginCustom.cpp \
 	WebCore/bindings/js/JSPluginElementFunctions.cpp \
@@ -1190,6 +1199,10 @@ webcore_sources += \
 	WebCore/page/FrameTree.h \
 	WebCore/page/FrameView.cpp \
 	WebCore/page/FrameView.h \
+	WebCore/page/Geolocation.cpp \
+	WebCore/page/Geolocation.h \
+	WebCore/page/Geoposition.cpp \
+	WebCore/page/Geoposition.h \
 	WebCore/page/History.cpp \
 	WebCore/page/History.h \
 	WebCore/page/Location.cpp \
@@ -1202,6 +1215,10 @@ webcore_sources += \
 	WebCore/page/Page.h \
 	WebCore/page/PageGroup.cpp \
 	WebCore/page/PageGroup.h \
+	WebCore/page/PositionCallback.h \
+	WebCore/page/PositionError.h \
+	WebCore/page/PositionErrorCallback.h \
+	WebCore/page/PositionOptions.h \
 	WebCore/page/PrintContext.cpp \
 	WebCore/page/PrintContext.h \
 	WebCore/page/Screen.cpp \
@@ -1247,6 +1264,8 @@ webcore_sources += \
 	WebCore/platform/FileChooser.h \
 	WebCore/platform/FileSystem.h \
 	WebCore/platform/FloatConversion.h \
+	WebCore/platform/GeolocationService.cpp \
+	WebCore/platform/GeolocationService.h \
 	WebCore/platform/HostWindow.h \
 	WebCore/platform/KURL.cpp \
 	WebCore/platform/KURL.h \
@@ -1400,6 +1419,7 @@ webcore_sources += \
 	WebCore/platform/network/ResourceResponseBase.h \
 	WebCore/platform/text/AtomicString.cpp \
 	WebCore/platform/text/AtomicString.h \
+	WebCore/platform/text/AtomicStringHash.h \
 	WebCore/platform/text/AtomicStringImpl.h \
 	WebCore/platform/text/Base64.cpp \
 	WebCore/platform/text/Base64.h \

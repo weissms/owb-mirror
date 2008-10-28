@@ -332,6 +332,7 @@
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/network/HTTPParsers.h
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/Logging.h
 ../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/SSLKeyGenerator.h
+../../OWBAL/Skeletons/Facilities	../../../WebCore/platform/GeolocationService.h
 
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/FileChooser.h
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/FileChooser.cpp
@@ -362,6 +363,8 @@
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/Logging.h
 ../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/gtk/LoggingGtk.cpp
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/SSLKeyGenerator.h
+../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/GeolocationService.h
+../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/GeolocationService.cpp
 
 
 ../../OWBAL/Skeletons/Media	../../../WebCore/platform/graphics/MediaPlayer.h

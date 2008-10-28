@@ -23,6 +23,8 @@ LIST (APPEND PAGE_SRC
     page/Frame.cpp
     page/FrameTree.cpp
     page/FrameView.cpp
+    page/Geoposition.cpp
+    page/Geolocation.cpp
     page/History.cpp
     page/Location.cpp
     page/MouseEventWithHitTestResults.cpp

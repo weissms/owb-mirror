@@ -919,7 +919,7 @@ void Heap::setGCProtectNeedsLocking()
         m_protectedValuesMutex.set(new Mutex);
 }
 
-void Heap::protect(JSValuePtr k)
+void Heap::protect(JSValue* k)
 {
     ASSERT(k);
     ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
@@ -936,7 +936,7 @@ void Heap::protect(JSValuePtr k)
         m_protectedValuesMutex->unlock();
 }
 
-void Heap::unprotect(JSValuePtr k)
+void Heap::unprotect(JSValue* k)
 {
     ASSERT(k);
     ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
@@ -953,7 +953,7 @@ void Heap::unprotect(JSValuePtr k)
         m_protectedValuesMutex->unlock();
 }
 
-Heap* Heap::heap(JSValuePtr v)
+Heap* Heap::heap(JSValue* v)
 {
     if (JSImmediate::isImmediate(v))
         return 0;

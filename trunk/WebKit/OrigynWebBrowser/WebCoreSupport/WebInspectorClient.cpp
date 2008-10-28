@@ -105,4 +105,18 @@ void WebInspectorClient::inspectedURLChanged(const String&)
     notImplemented();
 }
 
+void WebInspectorClient::populateSetting(const WebCore::String& key, WebCore::InspectorController::Setting&)
+{
+    notImplemented();
+}
+
+void WebInspectorClient::storeSetting(const WebCore::String& key, const WebCore::InspectorController::Setting&)
+{
+    notImplemented();
+}
+
+void WebInspectorClient::removeSetting(const WebCore::String& key)
+{
+    notImplemented();
+}
 

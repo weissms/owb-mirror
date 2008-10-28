@@ -1,3 +1,34 @@
+2008-10-27  Sam Weinig  <sam@webkit.org>
+
+        Fix the Gtk build.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+
+2008-10-24  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=21759
+        Layering violation: FileChooser should not depend on Document/Frame/Page
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::runOpenPanel):
+        * WebCoreSupport/ChromeClientGtk.h:
+
+2008-10-24  Timothy Hatcher  <timothy@apple.com>
+
+        Stub out new InspectorClient methods.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21856
+
+        Reviewed by Darin Adler.
+
+        * WebCoreSupport/InspectorClientGtk.cpp:
+        (WebKit::InspectorClient::populateSetting): Not implemented.
+        (WebKit::InspectorClient::storeSetting): Ditto.
+        (WebKit::InspectorClient::removeSetting): Ditto.
+        * WebCoreSupport/InspectorClientGtk.h:
+
 2008-10-24  Alp Toker  <alp@nuanti.com>
 
         Build fix for older GTK+ versions where GTK_TYPE_TARGET_LIST isn't
