@@ -5,6 +5,7 @@ ENDIF (WEBKIT_USE_UCLIBC)
 INCLUDE (pcre/CMakeLists.txt)
 INCLUDE (API/CMakeLists.txt)
 INCLUDE (kjs/CMakeLists.txt)
+INCLUDE (runtime/CMakeLists.txt)
 INCLUDE (profiler/CMakeLists.txt)
 INCLUDE (VM/CMakeLists.txt)
     
@@ -18,10 +19,12 @@ INCLUDE_DIRECTORIES (
     ForwardingHeaders
     kjs
     pcre
+    runtime
     VM
     profiler
     #wtf
     ${CMAKE_BINARY_DIR}/generated_sources/kjs
+    ${CMAKE_BINARY_DIR}/generated_sources/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/API
     ${CMAKE_SOURCE_DIR}

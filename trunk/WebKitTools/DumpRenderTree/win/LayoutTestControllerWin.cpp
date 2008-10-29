@@ -521,6 +521,32 @@ void LayoutTestController::setSmartInsertDeleteEnabled(bool flag)
     viewEditing->setSmartInsertDeleteEnabled(flag ? TRUE : FALSE);
 }
 
+void LayoutTestController::setJavaScriptProfilingEnabled(bool flag)
+{
+    COMPtr<IWebView> webView;
+    if (FAILED(frame->webView(&webView)))
+        return;
+
+    COMPtr<IWebViewPrivate> viewPrivate;
+    if (FAILED(webView->QueryInterface(&viewPrivate)))
+        return;
+
+    COMPtr<IWebPreferences> preferences;
+    if (FAILED(webView->preferences(&preferences)))
+        return;
+
+    COMPtr<IWebPreferencesPrivate> prefsPrivate(Query, preferences);
+    if (!prefsPrivate)
+        return;
+
+    COMPtr<IWebInspector> inspector;
+    if (FAILED(viewPrivate->inspector(&inspector)))
+        return;
+
+    prefsPrivate->setDeveloperExtrasEnabled(flag);
+    inspector->setJavaScriptProfilingEnabled(flag);
+}
+
 static const CFTimeInterval waitToDumpWatchdogInterval = 10.0;
 
 static void waitUntilDoneWatchdogFired(CFRunLoopTimerRef timer, void* info)

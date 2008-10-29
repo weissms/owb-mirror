@@ -31,6 +31,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders
 )
 
@@ -50,6 +51,7 @@ IF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
     OWBLN (Cairo/BCCairoPathCairo.h WKAL 0 0)
     OWBLN (Cairo/BCGraphicsContextPlatformPrivateCairo.h WKAL 1 0)
     OWBLN (Cairo/BCImageBufferCairo.h WKAL 0 0)
+    OWBLN (Cairo/BCImageBufferDataCairo.h WKAL 0 0)
     OWBLN (Cairo/BCImageSourceCairo.h WKAL 0 0)
     OWBLN (Cairo/BCRenderPathCairo.h WKAL 0 1)
     OWBLN (Gtk/BCIntPointGtk.h WKAL 0 0)

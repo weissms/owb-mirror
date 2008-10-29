@@ -94,3 +94,92 @@ void WebInspector::detach()
         if (Page* page = m_webView->page())
             page->inspectorController()->detachWindow();
 }
+
+bool WebInspector::isDebuggingJavaScript()
+{
+    if (!m_webView)
+        return false;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return false;
+
+    return page->inspectorController()->debuggerEnabled();
+}
+
+void WebInspector::toggleDebuggingJavaScript()
+{
+    if (!m_webView)
+        return;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return;
+
+    InspectorController* inspector = page->inspectorController();
+
+    if (inspector->debuggerEnabled())
+        inspector->disableDebugger();
+    else {
+        inspector->showPanel(InspectorController::ScriptsPanel);
+        inspector->enableDebugger();
+    }
+}
+
+bool WebInspector::isProfilingJavaScript()
+{
+    if (!m_webView)
+        return false;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return false;
+
+    return page->inspectorController()->isRecordingUserInitiatedProfile();
+}
+
+void WebInspector::toggleProfilingJavaScript()
+{
+    if (!m_webView)
+        return ;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return ;
+
+    InspectorController* inspector = page->inspectorController();
+
+    if (inspector->isRecordingUserInitiatedProfile()) {
+        inspector->stopUserInitiatedProfiling();
+        inspector->showPanel(InspectorController::ProfilesPanel);
+    } else
+        inspector->startUserInitiatedProfiling();
+}
+
+bool WebInspector::isJavaScriptProfilingEnabled()
+{
+    if (!m_webView)
+        return false;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return false;
+
+    return page->inspectorController()->profilerEnabled();
+}
+
+void WebInspector::setJavaScriptProfilingEnabled(bool enabled)
+{
+    if (!m_webView)
+        return ;
+
+    Page* page = m_webView->page();
+    if (!page)
+        return ;
+
+    if (enabled)
+        page->inspectorController()->enableProfiler();
+    else
+        page->inspectorController()->disableProfiler();
+}
+

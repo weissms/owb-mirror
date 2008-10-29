@@ -88,6 +88,36 @@ public:
      */
     virtual void detach();
 
+    /**
+     * isDebuggingJavaScript
+     */
+    virtual bool isDebuggingJavaScript();
+
+    /**
+     * toggleDebuggingJavaScript
+     */
+    virtual void toggleDebuggingJavaScript();
+
+    /**
+     * isProfilingJavaScript
+     */
+    virtual bool isProfilingJavaScript();
+
+    /**
+     * toggleProfilingJavaScript
+     */
+    virtual void toggleProfilingJavaScript();
+
+    /**
+     * isJavaScriptProfilingEnabled
+     */
+    virtual bool isJavaScriptProfilingEnabled();
+
+    /**
+     * setJavaScriptProfilingEnabled
+     */
+    virtual void setJavaScriptProfilingEnabled(bool);
+
 private:
 
     /**

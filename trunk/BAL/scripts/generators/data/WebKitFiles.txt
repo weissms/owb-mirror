@@ -3,6 +3,7 @@ JavaScriptCore/kjs/collector.cpp
 JavaScriptCore/VM/RegisterFile.cpp
 JavaScriptCore/VM/RegisterFile.h
 WebCore/bindings/js/JSConsoleCustom.cpp
+WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/bridge/runtime.h

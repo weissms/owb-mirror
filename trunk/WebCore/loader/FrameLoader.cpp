@@ -86,7 +86,7 @@
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
 #include <kjs/JSLock.h>
-#include <kjs/JSObject.h>
+#include <runtime/JSObject.h>
 
 #if ENABLE(INSPECTOR)
 #include "InspectorController.h"

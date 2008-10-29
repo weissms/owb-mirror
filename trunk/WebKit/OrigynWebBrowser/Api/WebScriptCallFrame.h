@@ -41,7 +41,7 @@
 #include "BALBase.h"
 #include "PropertyNameArray.h"
 #include "PropertyNameArray.h"
-#include <kjs/JSValue.h>
+#include <JSValue.h>
 
 namespace JSC {
     class ExecState;

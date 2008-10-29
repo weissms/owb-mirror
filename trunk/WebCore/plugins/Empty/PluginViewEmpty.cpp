@@ -54,7 +54,7 @@
 #include "npruntime_impl.h"
 #include "runtime.h"
 #include "runtime_root.h"
-#include <kjs/JSValue.h>
+#include <JSValue.h>
 
 
 using JSC::ExecState;

@@ -219,3 +219,7 @@ void LayoutTestController::clearAllDatabases()
     // FIXME: implement
 }
 
+void LayoutTestController::setJavaScriptProfilingEnabled(bool)
+{
+}
+

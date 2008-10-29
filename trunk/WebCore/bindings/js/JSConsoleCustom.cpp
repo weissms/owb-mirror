@@ -28,7 +28,7 @@
 #if ENABLE(JAVASCRIPT_DEBUGGER)
 #include "JavaScriptProfile.h"
 #endif
-#include <kjs/JSArray.h>
+#include <runtime/JSArray.h>
 
 #include "Console.h"
 

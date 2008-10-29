@@ -222,6 +222,7 @@
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/Pattern.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/Pattern.cpp
 ../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/platform/graphics/cairo/PatternCairo.cpp
+../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/platform/graphics/cairo/ImageBufferData.h
 #FMD#92
 #FMD(175)
 

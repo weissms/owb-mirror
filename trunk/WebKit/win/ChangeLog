@@ -1,3 +1,60 @@
+2008-10-29  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Move ForwardingHeaders to their correct location after the creation of
+        the runtime directory in JavaScriptCore.
+
+        * WebScriptCallFrame.h:
+
+2008-10-28  Adele Peterson  <adele@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21880
+        "files" string for multifile uploads needs to be localized
+
+        * WebCoreLocalizedStrings.cpp: (multipleFileUploadText):
+
+2008-10-28  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Sam Weinig. 
+
+        * English.lproj: Removed.
+        * English.lproj/Localizable.strings: Removed.
+        * WebKit.vcproj/WebKit.vcproj: Updated to use Localizable.strings in the top directory, to share with the Mac.
+
+2008-10-28  Timothy Hatcher  <timothy@apple.com>
+
+        Add IWebInspector methods to enable the profiler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21927
+
+        <rdar://problem/6211578> Make the JavaScript profiler opt-in, so it does
+        not slow down JavaScript all the time
+
+        Reviewed by Darin Adler and Kevin McCullough.
+
+        * WebInspector.cpp:
+        (WebInspector::isJavaScriptProfilingEnabled): Added. Calls InspectorController::profilerEnabled.
+        (WebInspector::setJavaScriptProfilingEnabled): Added. Call InspectorController's disableProfiler
+        or enableProfiler methods.
+        * WebInspector.h:
+
+2008-10-27  Timothy Hatcher  <timothy@apple.com>
+
+        Rename a few methods related to attaching and detaching the debugger.
+
+        * Rename attachDebugger to enableDebugger.
+        * Rename detachDebugger to disableDebugger.
+        * Rename the debuggerAttached getter to debuggerEnabled.
+
+        Reviewed by Darin Adler.
+
+        * WebInspector.cpp:
+        (WebInspector::isDebuggingJavaScript):
+        (WebInspector::toggleDebuggingJavaScript):
+
 2008-10-27  Sam Weinig  <sam@webkit.org>
 
         Yet another windows build fix.

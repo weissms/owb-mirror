@@ -34,6 +34,7 @@ INCLUDE_DIRECTORIES (
 
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     #${CMAKE_SOURCE_DIR}/JavaScriptCore/wtf
     ${CMAKE_SOURCE_DIR}/WebCore

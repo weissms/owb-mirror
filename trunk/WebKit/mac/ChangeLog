@@ -1,3 +1,183 @@
+2008-10-29  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        <rdar://problem/5188560> REGRESSION: Spell checker doesn't clear spelling/grammar marker after error is marked as Ignored
+
+        * WebView/WebHTMLView.mm: IgnoreSpelling is now a WebCore command.  That command handles
+        calling back into WebKit to perform the cross platform work that was removed in this change.
+
+2008-10-28  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Move ForwardingHeaders to their correct location after the creation of
+        the runtime directory in JavaScriptCore.
+
+        * ForwardingHeaders/kjs/JSFunction.h: Removed.
+        * ForwardingHeaders/kjs/JSObject.h: Removed.
+        * ForwardingHeaders/kjs/JSString.h: Removed.
+        * ForwardingHeaders/kjs/JSValue.h: Removed.
+        * ForwardingHeaders/runtime: Added.
+        * ForwardingHeaders/runtime/JSFunction.h: Copied from ForwardingHeaders/kjs/JSFunction.h.
+        * ForwardingHeaders/runtime/JSObject.h: Copied from ForwardingHeaders/kjs/JSObject.h.
+        * ForwardingHeaders/runtime/JSString.h: Copied from ForwardingHeaders/kjs/JSString.h.
+        * ForwardingHeaders/runtime/JSValue.h: Copied from ForwardingHeaders/kjs/JSValue.h.
+        * WebView/WebScriptDebugDelegate.mm:
+        * WebView/WebScriptDebugger.mm:
+        * WebView/WebView.mm:
+
+2008-10-28  Adele Peterson  <adele@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21880
+        "files" string for multifile uploads needs to be localized
+
+        * WebCoreSupport/WebViewFactory.mm: (-[WebViewFactory multipleFileUploadTextForNumberOfFiles:]):
+        Added.
+
+2008-10-28  Timothy Hatcher  <timothy@apple.com>
+
+        Add WebInspector methods to enable the profiler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21927
+
+        <rdar://problem/6211578> Make the JavaScript profiler opt-in, so it does
+        not slow down JavaScript all the time
+
+        Reviewed by Darin Adler and Kevin McCullough.
+
+        * WebInspector/WebInspector.h:
+        * WebInspector/WebInspector.mm:
+        (-[WebInspector isJavaScriptProfilingEnabled]): Added. Calls InspectorController::profilerEnabled.
+        (-[WebInspector setJavaScriptProfilingEnabled:]): Added. Call InspectorController's disableProfiler
+        or enableProfiler methods.
+
+2008-10-27  Timothy Hatcher  <timothy@apple.com>
+
+        Rename a few methods related to attaching and detaching the debugger.
+
+        * Rename attachDebugger to enableDebugger.
+        * Rename detachDebugger to disableDebugger.
+        * Rename the debuggerAttached getter to debuggerEnabled.
+
+        Reviewed by Darin Adler.
+
+        * WebInspector/WebInspector.mm:
+        (-[WebInspector isDebuggingJavaScript]):
+        (-[WebInspector startDebuggingJavaScript:]):
+        (-[WebInspector stopDebuggingJavaScript:]):
+
+2008-10-27  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Use the C++ stream object for JS requests as well.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView evaluateJavaScriptPluginRequest:]):
+        (-[WebBaseNetscapePluginView destroyStream:reason:]):
+
+2008-10-27  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        Use the C++ stream object in WebBaseNetscapePluginView. Use a HashSet of RefPtrs to keep track of the streams.
+        
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::~WebNetscapePluginStream):
+        (WebNetscapePluginStream::setPlugin):
+        (WebNetscapePluginStream::startStream):
+        (WebNetscapePluginStream::destroyStream):
+        (WebNetscapePluginStream::destroyStreamWithReason):
+        (WebNetscapePluginStream::cancelLoadAndDestroyStreamWithError):
+        (WebNetscapePluginStream::deliverData):
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView stop]):
+        (-[WebBaseNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:DOMElement:]):
+        (-[WebBaseNetscapePluginView disconnectStream:]):
+        (-[WebBaseNetscapePluginView dealloc]):
+        (-[WebBaseNetscapePluginView pluginView:receivedResponse:]):
+        (-[WebBaseNetscapePluginView pluginView:receivedData:]):
+        (-[WebBaseNetscapePluginView pluginView:receivedError:]):
+        (-[WebBaseNetscapePluginView pluginViewFinishedLoading:]):
+        (-[WebBaseNetscapePluginView loadRequest:inTarget:withNotifyData:sendNotification:]):
+
+2008-10-27  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        Move code from dealloc and finalize to the WebNetscapePluginStream destructor.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::~WebNetscapePluginStream):
+        (-[WebBaseNetscapePluginStream dealloc]):
+        (-[WebBaseNetscapePluginStream finalize]):
+
+2008-10-27  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Get rid of WebNetscapePlugInStreamLoaderClient, the plug-in stream is its own client.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        (-[WebBaseNetscapePluginStream dealloc]):
+        (-[WebBaseNetscapePluginStream finalize]):
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView pluginView:receivedError:]):
+        (-[WebBaseNetscapePluginView pluginViewFinishedLoading:]):
+        (-[WebBaseNetscapePluginView evaluateJavaScriptPluginRequest:]):
+        (-[WebBaseNetscapePluginView destroyStream:reason:]):
+
+2008-10-27  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Change the Obj-C init methods to simply call WebNetscapePluginStream::create.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        (WebNetscapePluginStream::create):
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (-[WebBaseNetscapePluginStream initWithFrameLoader:]):
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        (-[WebBaseNetscapePluginStream initWithRequest:plugin:notifyData:sendNotification:]):
+
+2008-10-27  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Convert more code over to C++.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        (WebNetscapePluginStream::plugin):
+        (WebNetscapePluginStream::setRequestURL):
+        Convert to C++.
+
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::start):
+        (WebNetscapePluginStream::stop):
+        Ditto.
+        
+        (WebNetscapePluginStream::startStreamWithResponse):
+        Ditto.
+        
+        (-[WebBaseNetscapePluginStream startStreamWithResponse:]):
+        Call the C++ version.
+        
+        (-[WebBaseNetscapePluginStream impl]):
+        New accessor for the C++ class.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView pluginView:receivedData:]):
+        (-[WebBaseNetscapePluginView loadRequest:inTarget:withNotifyData:sendNotification:]):
+        (-[WebBaseNetscapePluginView destroyStream:reason:]):
+        Call the C++ methods.
+
 2008-10-27  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Dan Bernstein.

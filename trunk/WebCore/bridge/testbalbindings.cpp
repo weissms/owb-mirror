@@ -28,7 +28,7 @@
 #include "JSObject.h"
 //#include "types.h"
 #include "interpreter.h"
-#include "kjs/JSGlobalObject.h"
+#include "JSGlobalObject.h"
 #include "CString.h"
 
 #include "bal_object.h"

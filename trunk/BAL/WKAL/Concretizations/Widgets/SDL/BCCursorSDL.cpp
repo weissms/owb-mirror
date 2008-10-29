@@ -376,4 +376,17 @@ const Cursor& zoomOutCursor()
     return pointerCursor();
 }
 
+const Cursor& grabCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+const Cursor& grabbingCursor()
+{
+    BalNotImplemented();
+    return pointerCursor();
+}
+
+
 }

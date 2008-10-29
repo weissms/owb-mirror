@@ -1,3 +1,166 @@
+2008-10-29  Alp Toker  <alp@nuanti.com>
+
+        Fix GTK DRT following build breakage in r37928.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dump):
+        (runTest):
+        (main):
+
+2008-10-28  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix recently introduced double-free crashes in GTK DRT.
+
+        LayoutTestController was made ref-counted in r36606 and Mac/Win DRT
+        were updated to call ->deref() but GTK DRT was still deleting
+        gLayoutTestController manually. This patch updates GTK to match the
+        other ports and resolves the memory allocation issues.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (runTest):
+
+2008-10-28  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix GTK DRT hang when running the tests.
+
+        Update output from the DRT tool to print an additional '#EOF' to match
+        breaking changes that were made in r37434.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dump):
+
+2008-10-28  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Sam Weinig. 
+
+        Specify which Localizable.strings to update since we don't always want to update the file in the same
+        directory where we're searching for the strings to localize.
+        
+        * Scripts/extract-localizable-strings:
+        * Scripts/update-webkit-localizable-strings:
+
+2008-10-28  Timothy Hatcher  <timothy@apple.com>
+
+        Add support for enabling the profiler, so the profiling tests can continue
+        work now that the profiler is not always enabled.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21927
+
+        <rdar://problem/6211578> Make the JavaScript profiler opt-in, so it does
+        not slow down JavaScript all the time
+
+        Reviewed by Darin Adler and Kevin McCullough.
+
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj: Make the editor use spaces.
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setJavaScriptProfilingEnabledCallback): Added. Calls LayoutTestController::setJavaScriptProfilingEnabled.
+        (LayoutTestController::staticFunctions): Added setJavaScriptProfilingEnabled to the script class.
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setJavaScriptProfilingEnabled): Stubbed out with a FIXME.
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetWebViewToConsistentStateBeforeTesting): Disables the developer extras and disables the profiler.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setJavaScriptProfilingEnabled): Toggles the developer extras and profiler.
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting): Disables the developer extras and disables the profiler.
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setJavaScriptProfilingEnabled): Toggles the developer extras and profiler.
+
+2008-10-28  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Primary changes in DumpRenderTree:
+        - Ensure font smoothing is disabled (this is also called LCD anti-aliasing and
+        is different from regular font CG anti-aliasing) as font-smoothing settings
+        depends on the display and can also be changed by the user
+        - Use a new cleared buffer for each test instead of the reusing same one to
+        avoid potential result corruption across tests
+        - Can now receive the expected pixel hash as a suffix to the test path or
+        url as "path'hash"
+        - Make sure hash is computed in a endian-independent way
+        - Improve the code that sets/restores the screen color profile
+        - Make the code more cross-platformy with std::string goodness
+        - Added an "on-screen" mode where the snapshot will take into account surfaces
+        on the window (like OpenGL content): this uses the new CG APIs on 10.5 or
+        reading from the display framebuffer on 10.4. This mode is not active by
+        default for performance reason, but must be explicitly activated from the test
+        file using the new "testOnscreen()" JS API.
+
+        Primary changes in ImageDiff:
+        - Provide a new comparison algorithm that is more tolerant to "acceptable"
+        failures (i.e. very small differences in font rendering, which --threshold is
+        not really good at handling)
+        - Generate normalized intensity-only diff images
+
+        Primary changes in run-webkit-tests:
+        - Take advantage of hashes for pixel tests which makes them much faster by
+        minimizing image comparisons
+        - Removed repaint options as these should be set from within test files using
+        JS API
+        - Replaced "threshold" option in  by "tolerance" expressed in percents
+        - Added more logging when in "verbose" mode
+
+        https://bugs.webkit.org/show_bug.cgi?id=21322
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj:
+        * DumpRenderTree/ForwardingHeaders/wtf/PassRefPtr.h: Copied from JavaScriptGlue/ForwardingHeaders/wtf/PassRefPtr.h.
+        * DumpRenderTree/ForwardingHeaders/wtf/RefPtr.h: Copied from JavaScriptGlue/ForwardingHeaders/wtf/RefPtr.h.
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (testOnscreenCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::testOnscreen):
+        (LayoutTestController::setTestOnscreen):
+        (LayoutTestController::testPathOrURL):
+        (LayoutTestController::expectedPixelHash):
+        * DumpRenderTree/PixelDumpSupport.h:
+        * DumpRenderTree/cg/ImageDiffCG.cpp:
+        (strtof):
+        (releaseMallocBuffer):
+        (createDifferenceImage):
+        (imageHasAlpha):
+        (main):
+        * DumpRenderTree/cg/PixelDumpSupportCG.cpp:
+        (computeMD5HashStringForBitmapContext):
+        (dumpWebViewAsPixelsAndCompareWithExpected):
+        * DumpRenderTree/cg/PixelDumpSupportCG.h:
+        (BitmapContext::createByAdoptingBitmapAndContext):
+        (BitmapContext::~BitmapContext):
+        (BitmapContext::cgContext):
+        (BitmapContext::BitmapContext):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (shouldIgnoreWebCoreNodeLeaks):
+        (setDefaultsToConsistentValuesForTesting):
+        (crashHandler):
+        (initializeGlobalsFromCommandLineOptions):
+        (prepareConsistentTestingEnvironment):
+        (dumpRenderTree):
+        (sizeWebViewForCurrentTest):
+        (dump):
+        (runTest):
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+        (restoreMainDisplayColorProfile):
+        (setupMainDisplayColorProfile):
+        (createBitmapContextFromWebView):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (dump):
+        (runTest):
+        * DumpRenderTree/win/PixelDumpSupportWin.cpp:
+        (getBitmapContextFromWebView):
+        * Scripts/run-webkit-tests:
+
+2008-10-27  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix on Linux/GTK. Enable support for #include <JavaScriptCore/XYZ.h> style includes.
+
+        * wx/build-wxwebkit:
+
 2008-10-27  Anders Carlsson  <andersca@apple.com>
 
         Try fixing the 64-bit build.

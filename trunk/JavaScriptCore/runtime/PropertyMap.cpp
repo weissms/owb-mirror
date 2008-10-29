@@ -462,7 +462,7 @@ void PropertyMap::getEnumerablePropertyNames(PropertyNameArray& propertyNames) c
             *p++ = &m_table->entries()[i];
     }
 
-    size_t enumerableCount = p - sortedEnumerables.data(); 
+    size_t enumerableCount = p - sortedEnumerables.data();
     // Sort the entries by index.
     qsort(sortedEnumerables.data(), enumerableCount, sizeof(Entry*), comparePropertyMapEntryIndices);
     sortedEnumerables.resize(enumerableCount);

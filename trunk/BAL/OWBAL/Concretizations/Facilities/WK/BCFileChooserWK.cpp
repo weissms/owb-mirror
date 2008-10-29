@@ -80,7 +80,7 @@ void FileChooser::chooseFiles(const Vector<String>& filenames)
 
 PassRefPtr<Icon> FileChooser::chooseIcon(const String& filename)
 {
-        return Icon::newIconForFile(filename);
+    return Icon::newIconForFile(filename);
 }
 
 PassRefPtr<Icon> FileChooser::chooseIcon(Vector<String> filenames)

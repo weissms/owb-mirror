@@ -1251,12 +1251,14 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     
     [[self webView] removePluginInstanceView:self];
 
-    // To stop active streams it's necessary to invoke makeObjectsPerformSelector on a copy 
-    // of streams. This is because calling -[WebNetscapePluginStream stop] also has the side effect
-    // of removing a stream from this collection.
-    NSArray *streamsCopy = [streams copy];
-    [streamsCopy makeObjectsPerformSelector:@selector(stop)];
-    [streamsCopy release];
+    // To stop active streams it's necessary to invoke stop() on a copy 
+    // of streams. This is because calling WebNetscapePluginStream::stop() also has the side effect
+    // of removing a stream from this hash set.
+    Vector<RefPtr<WebNetscapePluginStream> > streamsCopy;
+    copyToVector(streams, streamsCopy);
+    for (size_t i = 0; i < streamsCopy.size(); i++)
+        streamsCopy[i]->stop();
+    
    
     // Stop the timers
     [self stopTimers];
@@ -1416,7 +1418,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 {
     [super initWithFrame:frame];
  
-    streams = [[NSMutableArray alloc] init];
     pendingFrameLoads = [[NSMutableDictionary alloc] init];    
     
     // load the plug-in if it is not already loaded
@@ -1471,9 +1472,9 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     }    
 }
 
-- (void)disconnectStream:(WebBaseNetscapePluginStream*)stream
+- (void)disconnectStream:(WebNetscapePluginStream*)stream
 {
-    [streams removeObjectIdenticalTo:stream];    
+    streams.remove(stream);
 }
 
 - (void)dealloc
@@ -1481,11 +1482,9 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     ASSERT(!isStarted);
 
     [sourceURL release];
-    [_manualStream release];
     [_error release];
     
     [pluginPackage release];
-    [streams release];
     [MIMEType release];
     [baseURL release];
     [pendingFrameLoads release];
@@ -1756,8 +1755,8 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 {
     ASSERT(_loadManually);
     ASSERT(!_manualStream);
-    
-    _manualStream = [[WebBaseNetscapePluginStream alloc] initWithFrameLoader:core([self webFrame])->loader()];
+
+    _manualStream = WebNetscapePluginStream::create(0, core([self webFrame])->loader());
 }
 
 - (void)pluginView:(NSView *)pluginView receivedData:(NSData *)data
@@ -1769,16 +1768,18 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     
     if (![self isStarted])
         return;
-    
-    if ([_manualStream plugin] == NULL) {
-        [_manualStream setRequestURL:[[[self dataSource] request] URL]];
-        [_manualStream setPlugin:[self plugin]];
-        ASSERT([_manualStream plugin]);
-        [_manualStream startStreamWithResponse:[[self dataSource] response]];
+
+    if (!_manualStream->plugin()) {
+
+        _manualStream->setRequestURL([[[self dataSource] request] URL]);
+        _manualStream->setPlugin([self plugin]);
+        ASSERT(_manualStream->plugin());
+        
+        _manualStream->startStreamWithResponse([[self dataSource] response]);
     }
-    
-    if ([_manualStream plugin])
-        [_manualStream receivedData:data];
+
+    if (_manualStream->plugin())
+        _manualStream->didReceiveData(0, static_cast<const char *>([data bytes]), [data length]);
 }
 
 - (void)pluginView:(NSView *)pluginView receivedError:(NSError *)error
@@ -1792,8 +1793,8 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     if (![self isStarted]) {
         return;
     }
-    
-    [_manualStream destroyStreamWithError:error];
+
+    _manualStream->destroyStreamWithError(error);
 }
 
 - (void)pluginViewFinishedLoading:(NSView *)pluginView 
@@ -1802,7 +1803,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     ASSERT(_manualStream);
     
     if ([self isStarted])
-        [_manualStream finishedLoading];
+        _manualStream->didFinishLoading(0);
 }
 
 #pragma mark NSTextInput implementation
@@ -2018,22 +2019,17 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     } else if ([result length] > 0) {
         // Don't call NPP_NewStream and other stream methods if there is no JS result to deliver. This is what Mozilla does.
         NSData *JSData = [result dataUsingEncoding:NSUTF8StringEncoding];
-        WebBaseNetscapePluginStream *stream = [[WebBaseNetscapePluginStream alloc] initWithRequest:[NSURLRequest requestWithURL:URL]
-                                                                                            plugin:plugin
-                                                                                        notifyData:[JSPluginRequest notifyData]
-                                                                                  sendNotification:[JSPluginRequest sendNotification]];
         
-        NSURLResponse *response = [[NSURLResponse alloc] initWithURL:URL 
-                                                            MIMEType:@"text/plain" 
-                                               expectedContentLength:[JSData length]
-                                                    textEncodingName:nil];
+        RefPtr<WebNetscapePluginStream> stream = WebNetscapePluginStream::create(0, [NSURLRequest requestWithURL:URL], plugin, [JSPluginRequest sendNotification], [JSPluginRequest notifyData]);
         
-        [stream startStreamWithResponse:response];
-        [response release];
+        RetainPtr<NSURLResponse> response(AdoptNS, [[NSURLResponse alloc] initWithURL:URL 
+                                                                             MIMEType:@"text/plain" 
+                                                                expectedContentLength:[JSData length]
+                                                                     textEncodingName:nil]);
         
-        [stream receivedData:JSData];
-        [stream finishedLoading];
-        [stream release];
+        stream->startStreamWithResponse(response.get());
+        stream->didReceiveData(0, static_cast<const char*>([JSData bytes]), [JSData length]);
+        stream->didFinishLoading(0);
     }
 }
 
@@ -2185,16 +2181,10 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
         [self performSelector:@selector(loadPluginRequest:) withObject:pluginRequest afterDelay:0];
         [pluginRequest release];
     } else {
-        WebBaseNetscapePluginStream *stream = [[WebBaseNetscapePluginStream alloc] initWithRequest:request 
-                                                                                            plugin:plugin 
-                                                                                        notifyData:notifyData 
-                                                                                  sendNotification:sendNotification];
-        if (!stream)
-            return NPERR_INVALID_URL;
+        RefPtr<WebNetscapePluginStream> stream = WebNetscapePluginStream::create(0, request, plugin, sendNotification, notifyData);
 
-        [streams addObject:stream];
-        [stream start];
-        [stream release];
+        streams.add(stream.get());
+        stream->start();
     }
     
     return NPERR_NO_ERROR;
@@ -2345,8 +2335,8 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
         return NPERR_INVALID_INSTANCE_ERROR;
     }
     
-    WebBaseNetscapePluginStream *browserStream = static_cast<WebBaseNetscapePluginStream *>(stream->ndata);
-    [browserStream cancelLoadAndDestroyStreamWithError:[browserStream errorForReason:reason]];
+    WebNetscapePluginStream* browserStream = static_cast<WebNetscapePluginStream*>(stream->ndata);
+    browserStream->cancelLoadAndDestroyStreamWithError(browserStream->errorForReason(reason));
     
     return NPERR_NO_ERROR;
 }

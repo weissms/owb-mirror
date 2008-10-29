@@ -624,16 +624,16 @@ MACRO (CREATE_CPP_LUT _in_FILE _out_FILE _dep_FILE)
       DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/${_in_FILE} ${CMAKE_SOURCE_DIR}/WebCore/${_dep_FILE} )
 ENDMACRO (CREATE_CPP_LUT)
 
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/ArrayPrototype.cpp generated_sources/kjs/ArrayPrototype.lut.h JavaScriptCore/kjs/ArrayPrototype.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/DatePrototype.cpp generated_sources/kjs/DatePrototype.lut.h JavaScriptCore/kjs/DatePrototype.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/ArrayPrototype.cpp generated_sources/runtime/ArrayPrototype.lut.h JavaScriptCore/runtime/ArrayPrototype.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/DatePrototype.cpp generated_sources/runtime/DatePrototype.lut.h JavaScriptCore/runtime/DatePrototype.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/keywords.table generated_sources/kjs/lexer.lut.h JavaScriptCore/kjs/lexer.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/MathObject.cpp generated_sources/kjs/MathObject.lut.h JavaScriptCore/kjs/MathObject.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/NumberObject.cpp generated_sources/kjs/NumberObject.lut.h JavaScriptCore/kjs/NumberObject.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/NumberConstructor.cpp generated_sources/kjs/NumberConstructor.lut.h JavaScriptCore/kjs/NumberConstructor.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/MathObject.cpp generated_sources/runtime/MathObject.lut.h JavaScriptCore/runtime/MathObject.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/NumberObject.cpp generated_sources/runtime/NumberObject.lut.h JavaScriptCore/runtime/NumberObject.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/NumberConstructor.cpp generated_sources/runtime/NumberConstructor.lut.h JavaScriptCore/runtime/NumberConstructor.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/RegExpObject.cpp generated_sources/kjs/RegExpObject.lut.h JavaScriptCore/kjs/RegExpObject.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/RegExpConstructor.cpp generated_sources/kjs/RegExpConstructor.lut.h JavaScriptCore/kjs/RegExpConstructor.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/StringObject.cpp generated_sources/kjs/StringObject.lut.h JavaScriptCore/kjs/StringObject.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/StringPrototype.cpp generated_sources/kjs/StringPrototype.lut.h JavaScriptCore/kjs/StringPrototype.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/StringObject.cpp generated_sources/runtime/StringObject.lut.h JavaScriptCore/runtime/StringObject.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/StringPrototype.cpp generated_sources/runtime/StringPrototype.lut.h JavaScriptCore/runtime/StringPrototype.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventListener.cpp generated_sources/WebCore/JSEventListener.lut.h WebCore/bindings/js/JSEventListener.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSDOMBinding.cpp generated_sources/WebCore/JSDOMBinding.lut.h WebCore/bindings/js/JSDOMBinding.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSPluginElementFunctions.cpp generated_sources/WebCore/JSPluginElementFunctions.lut.h WebCore/bindings/js/JSPluginElementFunctions.cpp)
@@ -678,7 +678,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/bindings
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api

@@ -51,7 +51,7 @@
 #include "runtime.h"
 #include "runtime_root.h"
 #include "ExecState.h"
-#include "kjs/JSGlobalObject.h"
+#include "JSGlobalObject.h"
 //#include "kjs_window.h"
 #include "JavaScriptCore/APICast.h"
 #include "LayoutTestController.h"

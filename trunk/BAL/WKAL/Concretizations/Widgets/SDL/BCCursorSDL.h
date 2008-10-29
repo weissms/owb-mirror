@@ -97,6 +97,8 @@ namespace WKAL {
     const Cursor& zoomOutCursor();
     const Cursor& copyCursor();
     const Cursor& noneCursor();
+    const Cursor& grabCursor();
+    const Cursor& grabbingCursor();
 
 } // namespace WebCore
 

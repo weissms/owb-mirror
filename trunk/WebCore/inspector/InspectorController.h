@@ -36,7 +36,10 @@
 #include "Console.h"
 #include "PlatformString.h"
 #include "StringHash.h"
+#include "Timer.h"
+
 #include <JavaScriptCore/JSContextRef.h>
+
 #include <wtf/HashMap.h>
 #include <wtf/HashSet.h>
 #include <wtf/Vector.h>
@@ -146,8 +149,13 @@ public:
     void close();
 
     bool isRecordingUserInitiatedProfile() const { return m_recordingUserInitiatedProfile; }
-    void startUserInitiatedProfiling();
+    void startUserInitiatedProfilingSoon();
+    void startUserInitiatedProfiling(Timer<InspectorController>* = 0);
     void stopUserInitiatedProfiling();
+
+    void enableProfiler(bool skipRecompile = false);
+    void disableProfiler();
+    bool profilerEnabled() const { return enabled() && m_profilerEnabled; }
 
     bool windowVisible();
     void setWindowVisible(bool visible = true, bool attached = false);
@@ -207,9 +215,9 @@ public:
     void closeWindow();
 
 #if ENABLE(JAVASCRIPT_DEBUGGER)
-    void startDebugging();
-    void stopDebugging();
-    bool debuggerAttached() const { return m_debuggerAttached; }
+    void enableDebugger();
+    void disableDebugger();
+    bool debuggerEnabled() const { return m_debuggerEnabled; }
 
     JavaScriptCallFrame* currentCallFrame() const;
 
@@ -298,9 +306,10 @@ private:
     JSContextRef m_scriptContext;
     bool m_windowVisible;
 #if ENABLE(JAVASCRIPT_DEBUGGER)
-    bool m_debuggerAttached;
+    bool m_debuggerEnabled;
     bool m_attachDebuggerWhenShown;
 #endif
+    bool m_profilerEnabled;
     bool m_recordingUserInitiatedProfile;
     SpecialPanels m_showAfterVisible;
     long long m_nextIdentifier;
@@ -310,6 +319,7 @@ private:
     int m_currentUserInitiatedProfileNumber;
     unsigned m_nextUserInitiatedProfileNumber;
     ConsoleMessage* m_previousMessage;
+    Timer<InspectorController> m_startProfiling;
 };
 
 } // namespace WebCore

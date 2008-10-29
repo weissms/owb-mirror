@@ -33,6 +33,7 @@
 		1AC6C8490D07638600CD3161 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC6C77F0D07589B00CD3161 /* main.cpp */; };
 		1AC6C84A0D07638600CD3161 /* PluginObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC6C7800D07589B00CD3161 /* PluginObject.cpp */; };
 		1AC6C84B0D07638600CD3161 /* TestObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC6C7810D07589B00CD3161 /* TestObject.cpp */; };
+		23BCB8900EA57623003C6289 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23BCB88F0EA57623003C6289 /* OpenGL.framework */; };
 		9340994C08540CAE007F3BC8 /* DumpRenderTreePrefix.h in Headers */ = {isa = PBXBuildFile; fileRef = 32A70AAB03705E1F00C91783 /* DumpRenderTreePrefix.h */; };
 		9340995108540CAE007F3BC8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9335435F03D75502008635CE /* WebKit.framework */; };
 		A817090008B163EF00CCB9FB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A84F608908B136DA00E9745F /* Cocoa.framework */; };
@@ -131,6 +132,7 @@
 		1AC6C77F0D07589B00CD3161 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		1AC6C7800D07589B00CD3161 /* PluginObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PluginObject.cpp; sourceTree = "<group>"; };
 		1AC6C7810D07589B00CD3161 /* TestObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestObject.cpp; sourceTree = "<group>"; };
+		23BCB88F0EA57623003C6289 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		32A70AAB03705E1F00C91783 /* DumpRenderTreePrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DumpRenderTreePrefix.h; sourceTree = "<group>"; };
 		375F09710DAC3CB600C8B4E5 /* WebKitWeightWatcher100.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = WebKitWeightWatcher100.ttf; path = fonts/WebKitWeightWatcher100.ttf; sourceTree = "<group>"; };
 		375F09720DAC3CB600C8B4E5 /* WebKitWeightWatcher200.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = WebKitWeightWatcher200.ttf; path = fonts/WebKitWeightWatcher200.ttf; sourceTree = "<group>"; };
@@ -167,7 +169,7 @@
 		BC9D90220C97472E0099A4A3 /* WorkQueue.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WorkQueue.h; sourceTree = "<group>"; };
 		BC9D90230C97472E0099A4A3 /* WorkQueueItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = WorkQueueItem.h; sourceTree = "<group>"; };
 		BCA18B210C9B014B00114369 /* GCControllerMac.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = GCControllerMac.mm; path = mac/GCControllerMac.mm; sourceTree = "<group>"; };
-		BCA18B220C9B014B00114369 /* LayoutTestControllerMac.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = LayoutTestControllerMac.mm; path = mac/LayoutTestControllerMac.mm; sourceTree = "<group>"; };
+		BCA18B220C9B014B00114369 /* LayoutTestControllerMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = LayoutTestControllerMac.mm; path = mac/LayoutTestControllerMac.mm; sourceTree = "<group>"; };
 		BCA18B250C9B015C00114369 /* WorkQueueItemMac.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = WorkQueueItemMac.mm; path = mac/WorkQueueItemMac.mm; sourceTree = "<group>"; };
 		BCA18B2F0C9B01B400114369 /* ObjCController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ObjCController.h; path = mac/ObjCController.h; sourceTree = "<group>"; };
 		BCA18B300C9B01B400114369 /* ObjCController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ObjCController.m; path = mac/ObjCController.m; sourceTree = "<group>"; };
@@ -234,6 +236,7 @@
 				A84F608A08B136DA00E9745F /* Cocoa.framework in Frameworks */,
 				A817090408B164D300CCB9FB /* JavaScriptCore.framework in Frameworks */,
 				9340995108540CAE007F3BC8 /* WebKit.framework in Frameworks */,
+				23BCB8900EA57623003C6289 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +324,7 @@
 			);
 			name = Controllers;
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		1422A2750AF6F4BD00E1A883 /* Delegates */ = {
 			isa = PBXGroup;
@@ -375,6 +379,7 @@
 				A817090308B164D300CCB9FB /* JavaScriptCore.framework */,
 				B5A752A108AF5D1F00138E45 /* QuartzCore.framework */,
 				9335435F03D75502008635CE /* WebKit.framework */,
+				23BCB88F0EA57623003C6289 /* OpenGL.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

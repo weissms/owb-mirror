@@ -10,6 +10,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/rendering/style
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CURL_INCLUDE_DIRS}
 )
 

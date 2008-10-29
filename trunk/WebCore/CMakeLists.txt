@@ -20,6 +20,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     bindings/js
     bridge
