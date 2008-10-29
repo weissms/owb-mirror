@@ -81,7 +81,7 @@ public:
     virtual ~BalObject();
     void invalidate();
     bool hasMethod(const char *name);
-    virtual WebCore::String getName() { return ""; };
+    virtual const char* getName() { return ""; };
     virtual BalValue *invoke(const char *name, Vector<BalValue *> args);
     bool hasProperty(const char *name);
     virtual BalValue *getProperty(const char *name);

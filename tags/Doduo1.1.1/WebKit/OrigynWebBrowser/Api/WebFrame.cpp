@@ -1525,7 +1525,7 @@ void WebFrame::observe(const String &topic, BalObject *obj)
     ASSERT(obj->getName() != "");
 #ifdef __BINDING_JS__    
     if (topic == "AddonRegister")
-        addToJSWindowObject(obj->getName().utf8().data(), (void *)obj);
+        addToJSWindowObject(obj->getName(), (void *)obj);
 #endif
 }
 

@@ -59,7 +59,7 @@ static ClassesByBalObject* classesByBalObject = 0;
 
 BalClass* BalClass::classForObject(BalObject* o)
 {
-    printf("classForObject o = %p name = %s\n", o, o->getName().utf8().data());
+    //printf("classForObject o = %p name = %s\n", o, o->getName().utf8().data());
     if (!classesByBalObject)
         classesByBalObject = new ClassesByBalObject;
 
