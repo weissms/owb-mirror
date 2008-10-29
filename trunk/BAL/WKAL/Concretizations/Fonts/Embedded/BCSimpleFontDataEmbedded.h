@@ -68,7 +68,9 @@ public:
 
 #if ENABLE(SVG_FONTS)
     SVGFontData* svgFontData() const { return m_svgFontData.get(); }
-    bool isSVGFont() const { return m_svgFontData; }
+    // FIXME
+    //bool isSVGFont() const { return m_svgFontData; }
+    bool isSVGFont() const { return false; }
 #else
     bool isSVGFont() const { return false; }
 #endif

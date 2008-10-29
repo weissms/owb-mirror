@@ -1,3 +1,17 @@
+2008-10-29  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Ticket #316: ASSERT(index > size) in GlyphPage::setGlyphDataForIndex on acid3 with font embedded.
+
+        Check if the bufferlength is bigger than the GlyphPage size in GlyphPage::fill. This
+        is to match other platforms and to avoid the assertion.
+
+        A nice consequence is that we win 1 point on acid3 with font embedded.
+
+        * WKAL/Concretizations/Fonts/Embedded/BCGlyphPageTreeNodeEmbedded.cpp:
+        (WKAL::GlyphPage::fill):
+
 2008-10-28  Fred  <fmarmond@pleyo.com>
 
         Reviewed by Mario Bensi.

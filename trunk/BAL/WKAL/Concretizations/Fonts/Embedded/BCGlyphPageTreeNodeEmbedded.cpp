@@ -34,6 +34,11 @@ namespace WKAL {
 
 bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned bufferLength, const SimpleFontData* fontData)
 {
+    // The bufferLength will be greater than the glyph page size if the buffer has Unicode supplementary characters.
+    // We won't support this for now.
+    if (bufferLength > GlyphPage::size)
+        return false;
+
     for (unsigned i = 0; i < bufferLength; i++)
         setGlyphDataForIndex(i, static_cast<uint8_t> (buffer[i]), fontData);
 
