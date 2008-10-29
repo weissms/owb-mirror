@@ -1,5 +1,16 @@
 2008-10-29  Julien Chaffraix  <jchaffraix@pleyo.com>
 
+        Reviewed by Olivier Dole.
+
+        Ticket #312: Integer overflow in WebCore::Font::drawGlyphs()
+
+        Add overflow checks in drawGlyph once per glyph to avoid hurting performance.
+
+        * WKAL/Concretizations/Fonts/Freetype/BCFontFreetype.cpp:
+        (WKAL::Font::drawGlyphs):
+
+2008-10-29  Julien Chaffraix  <jchaffraix@pleyo.com>
+
         Reviewed by Mario Bensi.
 
         Ticket #316: ASSERT(index > size) in GlyphPage::setGlyphDataForIndex on acid3 with font embedded.

@@ -190,7 +190,8 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
     // Calculate the enclosing box height and width.
     uint16_t height = yMax - yMin;
-    uint16_t width = abs(xMin) + xMax;
+    // FIXME: It should be xMax - xMin but with it, we would assert in acid3.
+    uint16_t width = xMin < 0 ? xMax : xMax + xMin;
     
     Vector<unsigned>* glyphRGBABuffer = new Vector<unsigned>(width * height);
     glyphRGBABuffer->fill(0);
@@ -200,15 +201,25 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     Color penColor = context->fillColor();
     for (int i = 0; i < numGlyphs; i++) {
         int yOffset = height - glyphBoxY[i].y() + yMin;
+        int baseIndex = yOffset * width + glyphBoxX[i].x();
         unsigned char* bitmapAddr = ftBitmapGlyph[i]->bitmap.buffer;
+
+        // Check for overflow.
+        // If baseIndex overflows, then lastIndex will too so it is ok to only check for overflow on lastIndex.
+        long lastIndex = baseIndex + (ftBitmapGlyph[i]->bitmap.rows - 1) * width + ftBitmapGlyph[i]->bitmap.width - 1;
+        if (baseIndex < 0 || lastIndex < 0 || lastIndex > UINT_MAX)
+            continue;
 
         if (isMono) {
             unsigned pixelColor = (penColor.alpha() << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++) {
                 unsigned char* bufferAddr = bitmapAddr;
                 for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
+                    // We can safely cast to unsigned int as we have already checked this glyph.
+                    unsigned int index = static_cast<unsigned int>(baseIndex + j * width + k);
+
                     if ((*bitmapAddr) & (1 << (7 - k % 8)))
-                        (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = pixelColor;
+                        (*glyphRGBABuffer)[index] = pixelColor;
 
                     if (k > 0 && (k % 8) == 0)
                         *bitmapAddr++;
@@ -217,8 +228,11 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
             }
         } else {
             for (int j = 0; j < ftBitmapGlyph[i]->bitmap.rows; j++)
-                for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++)
-                    (*glyphRGBABuffer)[(yOffset + j) * width + glyphBoxX[i].x() + k] = (static_cast<unsigned>((penColor.alpha() * *bitmapAddr++) / 255) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
+                for (int k = 0; k < ftBitmapGlyph[i]->bitmap.width; k++) {
+                    // We can safely cast to unsigned int as we have already checked this glyph.
+                    unsigned int index = static_cast<unsigned int>(baseIndex + j * width + k);
+                    (*glyphRGBABuffer)[index] = (static_cast<unsigned>((penColor.alpha() * *bitmapAddr++) / 255) << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
+                }
         }
         FT_Done_Glyph((FT_Glyph) ftBitmapGlyph[i]);
     }
