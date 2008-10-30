@@ -1,3 +1,19 @@
+2008-10-30  Sebastien Roret  <sroret@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+		Fix WebFrame leak when subframes are created.
+		Now all Frames are deleted by WebCore.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::WebFramePrivate::~WebFramePrivate):
+        (WebFrame::frameLoaderDestroyed):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::~WebView):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::createFrame):
+
 2008-10-28  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Olivier DOLE.

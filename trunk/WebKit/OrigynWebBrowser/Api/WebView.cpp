@@ -259,8 +259,6 @@ WebView::~WebView()
 {
     close();
     
-    if (m_mainFrame)
-        delete m_mainFrame;
     if (m_preferences)
 #if PLATFORM(AMIGAOS4)
       if (m_preferences != WebPreferences::sharedStandardPreferences())

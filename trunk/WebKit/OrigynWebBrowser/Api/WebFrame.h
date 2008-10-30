@@ -118,7 +118,7 @@ WebFrame* kit(WebCore::Frame*);
      */
 WebCore::Frame* core(WebFrame*);
 
-class WebFrame: public WebFrameLoaderClient, public OWBAL::ObserverAddons, public OWBAL::ObserverBookmarklet
+class WebFrame: public WebFrameLoaderClient, public RefCounted<WebFrame>, public OWBAL::ObserverAddons, public OWBAL::ObserverBookmarklet
 {
 public:
 

@@ -635,7 +635,8 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& URL, const Strin
     Frame* coreFrame = core(m_webFrame);
     ASSERT(coreFrame);
 
-    WebFrame* webFrame = WebFrame::createInstance();
+    RefPtr<WebFrame> webFrame = adoptRef(WebFrame::createInstance());
+    webFrame->ref();
 
     RefPtr<Frame> childFrame = webFrame->init(m_webFrame->webView(), coreFrame->page(), ownerElement);
 
@@ -643,7 +644,7 @@ PassRefPtr<Frame> WebFrameLoaderClient::createFrame(const KURL& URL, const Strin
     childFrame->tree()->setName(name);
     childFrame->init();
 
-    loadURLIntoChild(URL, referrer, webFrame);
+    loadURLIntoChild(URL, referrer, webFrame.get());
 
     // The frame's onload handler may have removed it from the document.
     if (!childFrame->tree()->parent())
