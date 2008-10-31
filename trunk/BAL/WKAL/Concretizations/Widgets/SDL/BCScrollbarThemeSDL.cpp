@@ -27,9 +27,16 @@
 #include "ScrollbarThemeSDL.h"
 
 #include "BALBase.h"
+#include "ChromeClient.h"
+#include "Frame.h"
+#include "FrameView.h"
+#include "GraphicsContext.h"
+#include "Page.h"
+#include "PlatformMouseEvent.h"
 #include "GraphicsContext.h"
 #include "Scrollbar.h"
-#include "ScrollbarSDL.h"
+#include "ScrollbarClient.h"
+#include "Settings.h"
 
 namespace WKAL {
 
@@ -43,91 +50,11 @@ ScrollbarThemeBal::~ScrollbarThemeBal()
 {
 }
 
-ScrollbarPart ScrollbarThemeBal::hitTest(Scrollbar* scrollbar, const PlatformMouseEvent& event)
-{
-    return static_cast<ScrollbarSDL*>(scrollbar)->hitTest(event);
-}
-
-bool ScrollbarThemeBal::paint(Scrollbar* scrollbar, GraphicsContext* graphicsContext, const IntRect& damageRect)
-{
-    // Create the ScrollbarControlPartMask based on the damageRect
-    ScrollbarControlPartMask scrollMask = NoPart;
-
-    IntRect backButtonPaintRect;
-    IntRect forwardButtonPaintRect;
-    if (hasButtons(scrollbar)) {
-        backButtonPaintRect = backButtonRect(scrollbar, true);
-        if (damageRect.intersects(backButtonPaintRect))
-            scrollMask |= BackButtonStartPart;
-        forwardButtonPaintRect = forwardButtonRect(scrollbar, true);
-        if (damageRect.intersects(forwardButtonPaintRect))
-            scrollMask |= ForwardButtonStartPart;
-    }
-
-    IntRect startTrackRect;
-    IntRect thumbRect;
-    IntRect endTrackRect;
-    IntRect trackPaintRect = trackRect(scrollbar, true);
-    bool thumbPresent = hasThumb(scrollbar);
-    if (thumbPresent) {
-        IntRect track = trackRect(scrollbar);
-        splitTrack(scrollbar, track, startTrackRect, thumbRect, endTrackRect);
-        if (damageRect.intersects(thumbRect)) {
-            scrollMask |= ThumbPart;
-            if (trackIsSinglePiece()) {
-                // The track is a single strip that paints under the thumb.
-                // Add both components of the track to the mask.
-                scrollMask |= BackTrackPart;
-                scrollMask |= ForwardTrackPart;
-            }
-        }
-        if (damageRect.intersects(startTrackRect))
-            scrollMask |= BackTrackPart;
-        if (damageRect.intersects(endTrackRect))
-            scrollMask |= ForwardTrackPart;
-    } else if (damageRect.intersects(trackPaintRect)) {
-        scrollMask |= BackTrackPart;
-        scrollMask |= ForwardTrackPart;
-    }
-
-    // Paint the track.
-    if ((scrollMask & ForwardTrackPart) || (scrollMask & BackTrackPart)) {
-        if (!thumbPresent || trackIsSinglePiece())
-            paintTrack(graphicsContext, scrollbar, trackPaintRect, ForwardTrackPart | BackTrackPart);
-        else {
-            if (scrollMask & BackTrackPart)
-                paintTrack(graphicsContext, scrollbar, startTrackRect, BackTrackPart);
-            if (scrollMask & ForwardTrackPart)
-                paintTrack(graphicsContext, scrollbar, endTrackRect, ForwardTrackPart);
-        }
-    }
-
-    // Paint the back and forward buttons.
-    if (scrollMask & BackButtonStartPart)
-        paintButton(graphicsContext, scrollbar, backButtonPaintRect, BackButtonStartPart);
-    if (scrollMask & ForwardButtonStartPart)
-        paintButton(graphicsContext, scrollbar, forwardButtonPaintRect, ForwardButtonStartPart);
-    
-    // Paint the thumb.
-    if (scrollMask & ThumbPart)
-        paintThumb(graphicsContext, scrollbar, thumbRect);
-
-    return true;
-}
 
 int ScrollbarThemeBal::scrollbarThickness(ScrollbarControlSize controlSize)
 {
     BalNotImplemented();
     return 11;
-    /*
-    static int size;
-    if (!size) {
-        MozGtkScrollbarMetrics metrics;
-        moz_gtk_get_scrollbar_metrics(&metrics);
-        size = metrics.slider_width;
-    }
-    return size;
-    */
 }
 
 bool ScrollbarThemeBal::hasThumb(Scrollbar* scrollbar)
@@ -135,8 +62,11 @@ bool ScrollbarThemeBal::hasThumb(Scrollbar* scrollbar)
     return thumbLength(scrollbar) > 0;
 }
 
-IntRect ScrollbarThemeBal::backButtonRect(Scrollbar* scrollbar, bool)
+IntRect ScrollbarThemeBal::backButtonRect(Scrollbar* scrollbar, ScrollbarPart part, bool)
 {
+    if (part == BackButtonEndPart)
+        return IntRect();
+
     // Our desired rect is essentially 17x17.
 
     // Our actual rect will shrink to half the available space when
@@ -150,8 +80,11 @@ IntRect ScrollbarThemeBal::backButtonRect(Scrollbar* scrollbar, bool)
                    thickness, scrollbar->height() < 2 * thickness ? scrollbar->height() / 2 : thickness);
 }
 
-IntRect ScrollbarThemeBal::forwardButtonRect(Scrollbar* scrollbar, bool)
+IntRect ScrollbarThemeBal::forwardButtonRect(Scrollbar* scrollbar, ScrollbarPart part, bool)
 {
+    if (part == ForwardButtonStartPart)
+        return IntRect();
+    
     // Our desired rect is essentially 17x17.
 
     // Our actual rect will shrink to half the available space when
@@ -180,38 +113,13 @@ IntRect ScrollbarThemeBal::trackRect(Scrollbar* scrollbar, bool)
     return IntRect(scrollbar->x(), scrollbar->y() + thickness, thickness, scrollbar->height() - 2 * thickness);
 }
 
-void ScrollbarThemeBal::splitTrack(Scrollbar* scrollbar, const IntRect& trackRect, IntRect& beforeThumbRect, IntRect& thumbRect, IntRect& afterThumbRect)
-{
-    // This function won't even get called unless we're big enough to have some combination of these three rects where at least
-    // one of them is non-empty.
-    int thickness = scrollbarThickness();
-    int thumbPos = thumbPosition(scrollbar);
-    if (scrollbar->orientation() == HorizontalScrollbar) {
-        thumbRect = IntRect(trackRect.x() + thumbPos, trackRect.y() + (trackRect.height() - thickness) / 2, thumbLength(scrollbar), thickness);
-        beforeThumbRect = IntRect(trackRect.x(), trackRect.y(), thumbPos, trackRect.height());
-        afterThumbRect = IntRect(thumbRect.x() + thumbRect.width(), trackRect.y(), trackRect.right() - thumbRect.right(), trackRect.height());
-    } else {
-        thumbRect = IntRect(trackRect.x() + (trackRect.width() - thickness) / 2, trackRect.y() + thumbPos, thickness, thumbLength(scrollbar));
-        beforeThumbRect = IntRect(trackRect.x(), trackRect.y(), trackRect.width(), thumbPos);
-        afterThumbRect = IntRect(trackRect.x(), thumbRect.y() + thumbRect.height(), trackRect.width(), trackRect.bottom() - thumbRect.bottom());
-    }
-}
-
-void ScrollbarThemeBal::paintTrack(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect, ScrollbarControlPartMask mask)
-{
-    context->save();
-    context->drawRect(rect);
-    context->fillRect(rect, Color::darkGray);
-    context->restore();
-}
-
-void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect, ScrollbarControlPartMask mask)
+void ScrollbarThemeBal::paintButton(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect, ScrollbarPart part)
 {
     context->save();
     context->drawRect(rect);
     context->fillRect(rect, Color::gray);
 
-    bool start = mask & BackButtonStartPart;
+    bool start = (part == BackButtonStartPart);
     if (start) {
         if (scrollbar->orientation() == HorizontalScrollbar) {
             context->drawLine(IntPoint(rect.right(), rect.y()), IntPoint(rect.x(), (rect.bottom() + rect.y())/2));
@@ -240,30 +148,35 @@ void ScrollbarThemeBal::paintThumb(GraphicsContext* context, Scrollbar* scrollba
     context->restore();
 }
 
-int ScrollbarThemeBal::thumbPosition(Scrollbar* scrollbar)
+
+void ScrollbarThemeBal::paintTrackBackground(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect)
 {
-    if (scrollbar->enabled())
-        return static_cast<int> (scrollbar->currentPos() * (trackLength(scrollbar) - thumbLength(scrollbar)) / scrollbar->maximum());
-    return 0;
+    // Just assume a forward track part.  We only paint the track as a single piece when there is no thumb.
+    if (!hasThumb(scrollbar))
+        paintTrackPiece(context, scrollbar, rect, ForwardTrackPart);
 }
 
-int ScrollbarThemeBal::trackLength(Scrollbar* scrollbar)
+bool ScrollbarThemeBal::invalidateOnMouseEnterExit()
 {
-    return (scrollbar->orientation() == HorizontalScrollbar) ? trackRect(scrollbar).width() : trackRect(scrollbar).height();
+    return false;
 }
 
-int ScrollbarThemeBal::thumbLength(Scrollbar* scrollbar)
+void ScrollbarThemeBal::themeChanged()
 {
-    if (!scrollbar->enabled())
-        return 0;
-    float proportion = (float)(scrollbar->visibleSize()) / scrollbar->totalSize();
-    int trackLen = trackLength(scrollbar);
-    int length = static_cast<int> (proportion * trackLen);
-    int minLength = (scrollbar->orientation() == HorizontalScrollbar) ? scrollbarThickness() : scrollbarThickness();
-    length = (length > minLength) ? length : minLength;
-    if (length > trackLen)
-        length = 0; // Once the thumb is below the track length, it just goes away (to make more room for the track).
-    return length;
 }
+
+bool ScrollbarThemeBal::shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent& evt)
+{
+    return evt.shiftKey() && evt.button() == LeftButton;
+}
+
+void ScrollbarThemeBal::paintTrackPiece(GraphicsContext* context, Scrollbar* scrollbar, const IntRect& rect, ScrollbarPart partType)
+{
+    context->save();
+    context->drawRect(rect);
+    context->fillRect(rect, Color::darkGray);
+    context->restore();
+}
+
 
 }

@@ -37,18 +37,12 @@
 #include "NotImplemented.h"
 #include "PlatformMouseEvent.h"
 #include "PlatformWheelEvent.h"
-#include "ScrollbarSDL.h"
-#include "ScrollbarTheme.h"
 #include "SDL.h"
-
-using std::max;
-using std::min;
 
 namespace WKAL {
 
 void ScrollView::setBalAdjustments(BalAdjustment* hadj, BalAdjustment* vadj)
 {
-    updateScrollbars(m_scrollOffset);
 }
 
 }

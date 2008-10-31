@@ -1,3 +1,26 @@
+2008-10-31  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE
+        Fix scrollbar paint
+
+        * WKAL/Concretizations/Widgets/CMakeLists.txt:
+        * WKAL/Concretizations/Widgets/SDL/BCScrollViewSDL.cpp:
+        (WKAL::ScrollView::setBalAdjustments):
+        * WKAL/Concretizations/Widgets/SDL/BCScrollbarSDL.cpp: Removed.
+        * WKAL/Concretizations/Widgets/SDL/BCScrollbarSDL.h: Removed.
+        * WKAL/Concretizations/Widgets/SDL/BCScrollbarThemeSDL.cpp:
+        (WKAL::ScrollbarThemeBal::scrollbarThickness):
+        (WKAL::ScrollbarThemeBal::backButtonRect):
+        (WKAL::ScrollbarThemeBal::forwardButtonRect):
+        (WKAL::ScrollbarThemeBal::paintButton):
+        (WKAL::ScrollbarThemeBal::paintTrackBackground):
+        (WKAL::ScrollbarThemeBal::invalidateOnMouseEnterExit):
+        (WKAL::ScrollbarThemeBal::themeChanged):
+        (WKAL::ScrollbarThemeBal::shouldCenterOnThumb):
+        (WKAL::ScrollbarThemeBal::paintTrackPiece):
+        * WKAL/Concretizations/Widgets/SDL/BCScrollbarThemeSDL.h:
+        (WKAL::ScrollbarThemeBal::ScrollbarThemeBal):
+
 2008-10-29  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Olivier Dole.

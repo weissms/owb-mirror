@@ -26,38 +26,35 @@
 #ifndef ScrollbarThemeBal_h
 #define ScrollbarThemeBal_h
 
-#include "ScrollbarTheme.h"
+#include "ScrollbarThemeComposite.h"
 
 namespace WKAL {
 
-class ScrollbarThemeBal : public ScrollbarTheme {
+class ScrollbarThemeBal : public ScrollbarThemeComposite {
 public:
+    ScrollbarThemeBal() {};
     virtual ~ScrollbarThemeBal();
 
-    virtual bool paint(Scrollbar*, GraphicsContext* context, const IntRect& damageRect);
     virtual int scrollbarThickness(ScrollbarControlSize = RegularScrollbar);
 
-    virtual ScrollbarPart hitTest(Scrollbar*, const PlatformMouseEvent&);
+    virtual void themeChanged();
+    
+    virtual bool invalidateOnMouseEnterExit();
+    
 protected:
     virtual bool hasButtons(Scrollbar*) { return true; }
     virtual bool hasThumb(Scrollbar*);
 
-    virtual IntRect backButtonRect(Scrollbar*, bool painting = false);
-    virtual IntRect forwardButtonRect(Scrollbar*, bool painting = false);
+    virtual IntRect backButtonRect(Scrollbar*, ScrollbarPart, bool painting = false);
+    virtual IntRect forwardButtonRect(Scrollbar*, ScrollbarPart, bool painting = false);
     virtual IntRect trackRect(Scrollbar*, bool painting = false);
 
-    virtual void splitTrack(Scrollbar*, const IntRect& track, IntRect& startTrack, IntRect& thumb, IntRect& endTrack);
+    virtual bool shouldCenterOnThumb(Scrollbar*, const PlatformMouseEvent&);
 
-    virtual bool trackIsSinglePiece() { return false; }
-
-    virtual void paintTrack(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask);
-    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarControlPartMask);
+    virtual void paintTrackBackground(GraphicsContext*, Scrollbar*, const IntRect&);
+    virtual void paintTrackPiece(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart);
+    virtual void paintButton(GraphicsContext*, Scrollbar*, const IntRect&, ScrollbarPart);
     virtual void paintThumb(GraphicsContext*, Scrollbar*, const IntRect&);
-
-private:
-    int thumbPosition(Scrollbar*);
-    int thumbLength(Scrollbar*);
-    int trackLength(Scrollbar*);
 };
 
 }
