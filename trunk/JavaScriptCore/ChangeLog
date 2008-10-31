@@ -1,3 +1,414 @@
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Speculative wxWindows build fix.
+
+        * JavaScriptCoreSources.bkl:
+        * jscore.bkl:
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Move VM/JSPropertyNameIterator.cpp and VM/JSPropertyNameIterator.h to
+        the runtime directory.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/JSPropertyNameIterator.cpp: Removed.
+        * VM/JSPropertyNameIterator.h: Removed.
+        * runtime/JSPropertyNameIterator.cpp: Copied from VM/JSPropertyNameIterator.cpp.
+        * runtime/JSPropertyNameIterator.h: Copied from VM/JSPropertyNameIterator.h.
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Speculative wxWindows build fix.
+
+        * jscore.bkl:
+
+2008-10-30  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon Homeycutt.
+
+        Explicitly default to building for only the native architecture in debug and release builds.
+
+        * Configurations/DebugRelease.xcconfig:
+
+2008-10-30  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Create a debugger directory in JavaScriptCore and move the relevant
+        files to it.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CodeBlock.cpp:
+        * VM/CodeGenerator.h:
+        * VM/Machine.cpp:
+        * debugger: Added.
+        * debugger/Debugger.cpp: Copied from kjs/debugger.cpp.
+        * debugger/Debugger.h: Copied from kjs/debugger.h.
+        * debugger/DebuggerCallFrame.cpp: Copied from kjs/DebuggerCallFrame.cpp.
+        * debugger/DebuggerCallFrame.h: Copied from kjs/DebuggerCallFrame.h.
+        * kjs/AllInOneFile.cpp:
+        * kjs/DebuggerCallFrame.cpp: Removed.
+        * kjs/DebuggerCallFrame.h: Removed.
+        * kjs/Parser.cpp:
+        * kjs/Parser.h:
+        * kjs/debugger.cpp: Removed.
+        * kjs/debugger.h: Removed.
+        * kjs/interpreter.cpp:
+        * kjs/nodes.cpp:
+        * runtime/FunctionConstructor.cpp:
+        * runtime/JSGlobalObject.cpp:
+
+2008-10-30  Benjamin K. Stuhl  <bks24@cornell.edu>
+
+        gcc 4.3.3/linux-x86 generates "suggest parentheses around && within ||"
+        warnings; add some parentheses to disambiguate things. No functional
+        changes, so no tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21973
+        Add parentheses to clean up some gcc warnings
+
+        Reviewed by Dan Bernstein.
+
+        * wtf/ASCIICType.h:
+        (WTF::isASCIIAlphanumeric):
+        (WTF::isASCIIHexDigit):
+
+2008-10-30  Kevin Lindeman  <klindeman@apple.com>
+
+        Adds ProfilerServer, which is a distributed notification listener
+        that allows starting and stopping the profiler remotely for use
+        in conjunction with the profiler's DTace probes.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21719
+
+        Reviewed by Timothy Hatcher.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData): Calls startProfilerServerIfNeeded.
+        * profiler/ProfilerServer.h: Added.
+        * profiler/ProfilerServer.mm: Added.
+        (+[ProfilerServer sharedProfileServer]):
+        (-[ProfilerServer init]):
+        (-[ProfilerServer startProfiling]):
+        (-[ProfilerServer stopProfiling]):
+        (JSC::startProfilerServerIfNeeded):
+
+2008-10-30  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix after PropertyMap and StructureID merge.
+
+        * JavaScriptCoreSources.bkl:
+
+2008-10-30  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Change the JavaScriptCore Xcode project to use relative paths for the
+        PCRE source files.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-10-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich and Geoffrey Garen.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21989
+        Merge PropertyMap and StructureID
+
+        - Move PropertyMap code into StructureID in preparation for lazily
+          creating the map on gets.
+        - Make remove with transition explicit by adding removePropertyTransition.
+        - Make the put/remove without transition explicit.
+        - Make cache invalidation part of put/remove without transition.
+
+        1% speedup on SunSpider; 0.5% speedup on v8 suite.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/identifier.h:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::removeDirect):
+        * runtime/JSObject.h:
+        (JSC::JSObject::putDirect):
+        * runtime/PropertyMap.cpp: Removed.
+        * runtime/PropertyMap.h: Removed.
+        * runtime/PropertyMapHashTable.h: Copied from runtime/PropertyMap.h.
+        * runtime/StructureID.cpp:
+        (JSC::StructureID::dumpStatistics):
+        (JSC::StructureID::StructureID):
+        (JSC::StructureID::~StructureID):
+        (JSC::StructureID::getEnumerablePropertyNames):
+        (JSC::StructureID::addPropertyTransition):
+        (JSC::StructureID::removePropertyTransition):
+        (JSC::StructureID::toDictionaryTransition):
+        (JSC::StructureID::changePrototypeTransition):
+        (JSC::StructureID::getterSetterTransition):
+        (JSC::StructureID::addPropertyWithoutTransition):
+        (JSC::StructureID::removePropertyWithoutTransition):
+        (JSC::PropertyMapStatisticsExitLogger::~PropertyMapStatisticsExitLogger):
+        (JSC::StructureID::checkConsistency):
+        (JSC::StructureID::copyPropertyTable):
+        (JSC::StructureID::get):
+        (JSC::StructureID::put):
+        (JSC::StructureID::remove):
+        (JSC::StructureID::insertIntoPropertyMapHashTable):
+        (JSC::StructureID::expandPropertyMapHashTable):
+        (JSC::StructureID::createPropertyMapHashTable):
+        (JSC::StructureID::rehashPropertyMapHashTable):
+        (JSC::comparePropertyMapEntryIndices):
+        (JSC::StructureID::getEnumerablePropertyNamesInternal):
+        * runtime/StructureID.h:
+        (JSC::StructureID::propertyStorageSize):
+        (JSC::StructureID::isEmpty):
+        (JSC::StructureID::get):
+
+2008-10-30  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 21987: CTI::putDoubleResultToJSNumberCellOrJSImmediate() hardcodes its result register
+        <https://bugs.webkit.org/show_bug.cgi?id=21987>
+
+        CTI::putDoubleResultToJSNumberCellOrJSImmediate() hardcodes its result
+        register as ecx, but it should be tempReg1, which is ecx at all of its
+        callsites.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::putDoubleResultToJSNumberCellOrJSImmediate):
+
+2008-10-30  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Bug 21985: Opcodes should use eax as their destination register whenever possible
+        <https://bugs.webkit.org/show_bug.cgi?id=21985>
+
+        Change more opcodes to use eax as the register for their final result,
+        and change calls to emitPutResult() that pass eax to rely on the default
+        value of eax.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::privateCompileMainPass):
+
+2008-10-30  Alp Toker  <alp@nuanti.com>
+
+        Build fix attempt for older gcc on the trunk-mac-intel build bot
+        (error: initializer for scalar variable requires one element).
+
+        Modify the initializer syntax slightly with an additional comma.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        (JSC::Machine::cti_op_resolve_func):
+        (JSC::Machine::cti_op_post_inc):
+        (JSC::Machine::cti_op_resolve_with_base):
+        (JSC::Machine::cti_op_post_dec):
+
+2008-10-30  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21571
+        VoidPtrPair breaks CTI on Linux
+
+        The VoidPtrPair return change made in r37457 does not work on Linux
+        since POD structs aren't passed in registers.
+
+        This patch uses a union to vectorize VoidPtrPair to a uint64_t and
+        matches Darwin/MSVC fixing CTI/WREC on Linux.
+
+        Alexey reports no measurable change in Mac performance with this fix.
+
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        (JSC::Machine::cti_op_resolve_func):
+        (JSC::Machine::cti_op_post_inc):
+        (JSC::Machine::cti_op_resolve_with_base):
+        (JSC::Machine::cti_op_post_dec):
+        * VM/Machine.h:
+        (JSC::):
+
+2008-10-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Initial work to reduce cost of JSNumberCell allocation
+
+        This does the initial work needed to bring more of number
+        allocation into CTI code directly, rather than just falling
+        back onto the slow paths if we can't guarantee that a number
+        cell can be reused.
+
+        Initial implementation only used by op_negate to make sure
+        it all works.  In a negate heavy (though not dominated) test
+        it results in a 10% win in the non-reusable cell case.
+
+        * VM/CTI.cpp:
+        (JSC::):
+        (JSC::CTI::emitAllocateNumber):
+        (JSC::CTI::emitNakedFastCall):
+        (JSC::CTI::emitArithIntToImmWithJump):
+        (JSC::CTI::privateCompileMainPass):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+        * VM/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::emitUnaryOp):
+        * VM/CodeGenerator.h:
+        (JSC::CodeGenerator::emitToJSNumber):
+        (JSC::CodeGenerator::emitTypeOf):
+        (JSC::CodeGenerator::emitGetPropertyNames):
+        * VM/Machine.cpp:
+        (JSC::Machine::privateExecute):
+        * VM/Machine.h:
+        * kjs/ResultType.h:
+        (JSC::ResultType::isReusableNumber):
+        (JSC::ResultType::toInt):
+        * kjs/nodes.cpp:
+        (JSC::UnaryOpNode::emitCode):
+        (JSC::BinaryOpNode::emitCode):
+        (JSC::EqualNode::emitCode):
+        * masm/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::negl_r):
+        (JSC::X86Assembler::xorpd_mr):
+        * runtime/JSNumberCell.h:
+        (JSC::JSNumberCell::JSNumberCell):
+
+2008-10-29  Steve Falkenburg  <sfalken@apple.com>
+
+        <rdar://problem/6326563> Crash on launch
+
+        For Windows, export explicit functions rather than exporting data for atomicallyInitializedStaticMutex.
+        
+        Exporting data from a DLL on Windows requires specifying __declspec(dllimport) in the header used by
+        callers, but __declspec(dllexport) when defined in the DLL implementation. By instead exporting
+        the explicit lock/unlock functions, we can avoid this.
+        
+        Fixes a crash on launch, since we were previously erroneously exporting atomicallyInitializedStaticMutex as a function.
+        
+        Reviewed by Darin Adler.
+
+        * wtf/Threading.h:
+        (WTF::lockAtomicallyInitializedStaticMutex):
+        (WTF::unlockAtomicallyInitializedStaticMutex):
+        * wtf/ThreadingWin.cpp:
+        (WTF::lockAtomicallyInitializedStaticMutex):
+        (WTF::unlockAtomicallyInitializedStaticMutex):
+
+2008-10-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Remove direct use of PropertyMap.
+
+        * JavaScriptCore.exp:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::mark):
+        (JSC::JSObject::put):
+        (JSC::JSObject::deleteProperty):
+        (JSC::JSObject::getPropertyAttributes):
+        (JSC::JSObject::removeDirect):
+        * runtime/JSObject.h:
+        (JSC::JSObject::getDirect):
+        (JSC::JSObject::getDirectLocation):
+        (JSC::JSObject::hasCustomProperties):
+        (JSC::JSObject::JSObject):
+        (JSC::JSObject::putDirect):
+        * runtime/PropertyMap.cpp:
+        (JSC::PropertyMap::get):
+        * runtime/PropertyMap.h:
+        (JSC::PropertyMap::isEmpty):
+        (JSC::PropertyMap::get):
+        * runtime/StructureID.cpp:
+        (JSC::StructureID::dumpStatistics):
+        * runtime/StructureID.h:
+        (JSC::StructureID::propertyStorageSize):
+        (JSC::StructureID::get):
+        (JSC::StructureID::put):
+        (JSC::StructureID::remove):
+        (JSC::StructureID::isEmpty):
+
+2008-10-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Rename and move the StructureID transition table to its own file.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/StructureID.cpp:
+        (JSC::StructureID::addPropertyTransition):
+        * runtime/StructureID.h:
+        (JSC::StructureID::):
+        * runtime/StructureIDTransitionTable.h: Copied from runtime/StructureID.h.
+        (JSC::StructureIDTransitionTableHash::hash):
+        (JSC::StructureIDTransitionTableHash::equal):
+
+2008-10-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21958
+        Pack bits in StructureID to reduce the size of each StructureID by 2 words.
+
+        * runtime/PropertyMap.h:
+        (JSC::PropertyMap::propertyMapSize):
+        * runtime/StructureID.cpp:
+        (JSC::StructureID::dumpStatistics): Add additional size statistics when dumping.
+        (JSC::StructureID::StructureID):
+        * runtime/StructureID.h:
+
+2008-10-29  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes after addition of runtime and ImageBuffer changes.
+
+        * JavaScriptCoreSources.bkl:
+        * jscore.bkl:
+
+2008-10-29  Timothy Hatcher  <timothy@apple.com>
+
+        Emit the WillExecuteStatement debugger hook before the "else" body
+        when there is no block for the "else" body. This allows breakpoints
+        on those statements in the Web Inspector.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21944
+
+        Reviewed by Maciej Stachowiak.
+
+        * kjs/nodes.cpp:
+        (JSC::IfElseNode::emitCode): Emit the WillExecuteStatement
+        debugger hook before the else node if isn't a block.
+
+2008-10-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Build fix.
+
+        * JavaScriptCore.exp: Export HashTable::deleteTable().
+
 2008-10-29  Alp Toker  <alp@nuanti.com>
 
         Fix builddir != srcdir builds after kjs -> runtime breakage. Sources

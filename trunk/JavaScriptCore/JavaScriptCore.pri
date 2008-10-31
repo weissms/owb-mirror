@@ -2,7 +2,7 @@
 VPATH += $$PWD
 
 INCLUDEPATH += tmp
-INCLUDEPATH += $$PWD $$PWD/kjs $$PWD/runtime $$PWD/wtf $$PWD/wtf/unicode $$PWD/VM $$PWD/profiler $$PWD/API $$PWD/.. \
+INCLUDEPATH += $$PWD $$PWD/kjs $$PWD/debugger $$PWD/runtime $$PWD/wtf $$PWD/wtf/unicode $$PWD/VM $$PWD/profiler $$PWD/API $$PWD/.. \
                $$PWD/ForwardingHeaders
 DEFINES += BUILDING_QT__
 
@@ -57,7 +57,7 @@ SOURCES += \
     VM/CodeBlock.cpp \
     VM/CodeGenerator.cpp \
     VM/ExceptionHelpers.cpp \
-    VM/JSPropertyNameIterator.cpp \
+    runtime/JSPropertyNameIterator.cpp \
     VM/Machine.cpp \
     VM/Opcode.cpp \
     VM/SamplingTool.cpp \
@@ -81,8 +81,8 @@ SOURCES += \
     runtime/DateInstance.cpp \
     runtime/DateMath.cpp \
     runtime/DatePrototype.cpp \
-    kjs/debugger.cpp \
-    kjs/DebuggerCallFrame.cpp \
+    debugger/Debugger.cpp \
+    debugger/DebuggerCallFrame.cpp \
     kjs/dtoa.cpp \
     runtime/Error.cpp \
     runtime/ErrorConstructor.cpp \
@@ -122,7 +122,6 @@ SOURCES += \
     runtime/ObjectPrototype.cpp \
     kjs/operations.cpp \
     kjs/Parser.cpp \
-    runtime/PropertyMap.cpp \
     kjs/PropertyNameArray.cpp \
     runtime/PropertySlot.cpp \
     runtime/PrototypeFunction.cpp \

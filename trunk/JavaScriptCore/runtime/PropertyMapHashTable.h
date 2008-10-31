@@ -18,26 +18,12 @@
  *
  */
 
-#ifndef PropertyMap_h
-#define PropertyMap_h
+#ifndef PropertyMapHashTable_h
+#define PropertyMapHashTable_h
 
-#include "PropertySlot.h"
-#include "identifier.h"
-#include <wtf/OwnArrayPtr.h>
-#include <wtf/NotFound.h>
-
-#ifndef NDEBUG
-#define DUMP_PROPERTYMAP_STATS 0
-#else
-#define DUMP_PROPERTYMAP_STATS 0
-#endif
+#include "ustring.h"
 
 namespace JSC {
-
-    class JSObject;
-    class PropertyNameArray;
-
-    typedef JSValue** PropertyStorage;
 
     struct PropertyMapEntry {
         UString::Rep* key;
@@ -86,91 +72,6 @@ namespace JSC {
         }
     };
 
-    class PropertyMap {
-    public:
-        PropertyMap();
-        ~PropertyMap();
-
-        PropertyMap& operator=(const PropertyMap&);
-
-        size_t get(const Identifier& propertyName);
-        size_t get(const Identifier& propertyName, unsigned& attributes);
-        size_t put(const Identifier& propertyName, unsigned attributes);
-        size_t remove(const Identifier& propertyName);
-
-        void getEnumerablePropertyNames(PropertyNameArray&) const;
-
-        bool isEmpty() { return !m_table; }
-        unsigned storageSize() const { return m_table ? m_table->keyCount + m_deletedOffsets.size() : 0; }
-
-        static const unsigned emptyEntryIndex = 0;
-
-    private:
-        typedef PropertyMapEntry Entry;
-        typedef PropertyMapHashTable Table;
-
-        void expand();
-        void rehash();
-        void rehash(unsigned newTableSize);
-        void createTable();
-
-        void insert(const Entry&);
-
-        void checkConsistency();
-
-        Table* m_table;
-        Vector<unsigned> m_deletedOffsets;
-    };
-
-    inline PropertyMap::PropertyMap() 
-        : m_table(0)
-    {
-    }
-
-    inline size_t PropertyMap::get(const Identifier& propertyName)
-    {
-        ASSERT(!propertyName.isNull());
-
-        if (!m_table)
-            return WTF::notFound;
-
-        UString::Rep* rep = propertyName._ustring.rep();
-
-        unsigned i = rep->computedHash();
-
-#if DUMP_PROPERTYMAP_STATS
-        ++numProbes;
-#endif
-
-        unsigned entryIndex = m_table->entryIndices[i & m_table->sizeMask];
-        if (entryIndex == emptyEntryIndex)
-            return WTF::notFound;
-
-        if (rep == m_table->entries()[entryIndex - 1].key)
-            return m_table->entries()[entryIndex - 1].offset;
-
-#if DUMP_PROPERTYMAP_STATS
-        ++numCollisions;
-#endif
-
-        unsigned k = 1 | WTF::doubleHash(rep->computedHash());
-
-        while (1) {
-            i += k;
-
-#if DUMP_PROPERTYMAP_STATS
-            ++numRehashes;
-#endif
-
-            entryIndex = m_table->entryIndices[i & m_table->sizeMask];
-            if (entryIndex == emptyEntryIndex)
-                return WTF::notFound;
-
-            if (rep == m_table->entries()[entryIndex - 1].key)
-                return m_table->entries()[entryIndex - 1].offset;
-        }
-    }
-
 } // namespace JSC
 
-#endif // PropertyMap_h
+#endif // PropertyMapHashTable_h

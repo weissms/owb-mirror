@@ -4,8 +4,6 @@ LIST (APPEND JSCORE_SRC
     kjs/Arguments.cpp
     kjs/collector.cpp
     kjs/CommonIdentifiers.cpp
-    kjs/debugger.cpp
-    kjs/DebuggerCallFrame.cpp
     kjs/dtoa.cpp
     kjs/ExecState.cpp
     kjs/GetterSetter.cpp

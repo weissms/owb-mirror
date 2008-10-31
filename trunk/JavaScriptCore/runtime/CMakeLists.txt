@@ -43,8 +43,8 @@ LIST (APPEND JSCORE_SRC
     runtime/ErrorPrototype.cpp
     runtime/NumberObject.cpp
     runtime/JSFunction.cpp
-    runtime/PropertyMap.cpp
     runtime/FunctionConstructor.cpp
     runtime/ObjectPrototype.cpp
     runtime/StringPrototype.cpp
+    runtime/JSPropertyNameIterator.cpp
 )

@@ -42,7 +42,7 @@
 #include "StringSourceProvider.h"
 
 #include <kjs/completion.h>
-#include <kjs/debugger.h>
+#include <debugger/Debugger.h>
 #include <kjs/JSLock.h>
 
 #if ENABLE(NETSCAPE_PLUGIN_API)
@@ -142,7 +142,7 @@ void ScriptController::clearWindowShell()
     gcController().garbageCollectSoon();
 }
 
-PassRefPtr<EventListener> ScriptController::createHTMLEventHandler(const String& functionName, const String& code, Node* node)
+PassRefPtr<EventListener> ScriptController::createInlineEventListener(const String& functionName, const String& code, Node* node)
 {
     initScriptIfNeeded();
     JSLock lock(false);

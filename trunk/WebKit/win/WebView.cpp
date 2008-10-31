@@ -105,7 +105,6 @@
 #include <CFNetwork/CFURLCachePriv.h>
 #include <CFNetwork/CFURLProtocolPriv.h>
 #include <CoreFoundation/CoreFoundation.h>
-#include <WebKitSystemInterface/WebKitSystemInterface.h>
 #include <wtf/HashSet.h>
 #include <dimm.h>
 #include <oleacc.h>
@@ -367,18 +366,20 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     if (s_didSetCacheModel && cacheModel == s_cacheModel)
         return;
 
-    RetainPtr<CFStringRef> cfurlCacheDirectory(AdoptCF, wkCopyFoundationCacheDirectory());
+#ifdef CFURLCacheCopySharedURLCachePresent
+    RetainPtr<CFURLCacheRef> cfurlCache(AdoptCF, CFURLCacheCopySharedURLCache());
+#else
+    RetainPtr<CFURLCacheRef> cfurlCache = CFURLCacheSharedURLCache();
+#endif
+
+    RetainPtr<CFStringRef> cfurlCacheDirectory(AdoptCF, _CFURLCacheCopyCacheDirectory(cfurlCache.get()));
     if (!cfurlCacheDirectory)
         cfurlCacheDirectory.adoptCF(WebCore::localUserSpecificStorageDirectory().createCFString());
 
-
-    CFURLCacheRef cfurlSharedCache = CFURLCacheSharedURLCache();
-
     // As a fudge factor, use 1000 instead of 1024, in case the reported byte 
     // count doesn't align exactly to a megabyte boundary.
-    //TODO : Calcul the next values
-    unsigned long long memSize = 256;
-    unsigned long long diskFreeSize = 4096;
+    unsigned long long memSize = WebMemorySize() / 1024 / 1000;
+    unsigned long long diskFreeSize = WebVolumeFreeSize(cfurlCacheDirectory.get()) / 1024 / 1000;
 
     unsigned cacheTotalCapacity = 0;
     unsigned cacheMinDeadCapacity = 0;
@@ -386,6 +387,9 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     double deadDecodedDataDeletionInterval = 0;
 
     unsigned pageCacheCapacity = 0;
+
+    CFIndex cfurlCacheMemoryCapacity = 0;
+    CFIndex cfurlCacheDiskCapacity = 0;
 
     switch (cacheModel) {
     case WebCacheModelDocumentViewer: {
@@ -406,6 +410,12 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
 
         cacheMinDeadCapacity = 0;
         cacheMaxDeadCapacity = 0;
+
+        // Foundation memory cache capacity (in bytes)
+        cfurlCacheMemoryCapacity = 0;
+
+        // Foundation disk cache capacity (in bytes)
+        cfurlCacheDiskCapacity = CFURLCacheDiskCapacity(cfurlCache.get());
 
         break;
     }
@@ -434,6 +444,26 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
 
         cacheMinDeadCapacity = cacheTotalCapacity / 8;
         cacheMaxDeadCapacity = cacheTotalCapacity / 4;
+
+        // Foundation memory cache capacity (in bytes)
+        if (memSize >= 2048)
+            cfurlCacheMemoryCapacity = 4 * 1024 * 1024;
+        else if (memSize >= 1024)
+            cfurlCacheMemoryCapacity = 2 * 1024 * 1024;
+        else if (memSize >= 512)
+            cfurlCacheMemoryCapacity = 1 * 1024 * 1024;
+        else
+            cfurlCacheMemoryCapacity =      512 * 1024; 
+
+        // Foundation disk cache capacity (in bytes)
+        if (diskFreeSize >= 16384)
+            cfurlCacheDiskCapacity = 50 * 1024 * 1024;
+        else if (diskFreeSize >= 8192)
+            cfurlCacheDiskCapacity = 40 * 1024 * 1024;
+        else if (diskFreeSize >= 4096)
+            cfurlCacheDiskCapacity = 30 * 1024 * 1024;
+        else
+            cfurlCacheDiskCapacity = 20 * 1024 * 1024;
 
         break;
     }
@@ -475,15 +505,46 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
 
         deadDecodedDataDeletionInterval = 60;
 
+        // Foundation memory cache capacity (in bytes)
+        // (These values are small because WebCore does most caching itself.)
+        if (memSize >= 1024)
+            cfurlCacheMemoryCapacity = 4 * 1024 * 1024;
+        else if (memSize >= 512)
+            cfurlCacheMemoryCapacity = 2 * 1024 * 1024;
+        else if (memSize >= 256)
+            cfurlCacheMemoryCapacity = 1 * 1024 * 1024;
+        else
+            cfurlCacheMemoryCapacity =      512 * 1024; 
+
+        // Foundation disk cache capacity (in bytes)
+        if (diskFreeSize >= 16384)
+            cfurlCacheDiskCapacity = 175 * 1024 * 1024;
+        else if (diskFreeSize >= 8192)
+            cfurlCacheDiskCapacity = 150 * 1024 * 1024;
+        else if (diskFreeSize >= 4096)
+            cfurlCacheDiskCapacity = 125 * 1024 * 1024;
+        else if (diskFreeSize >= 2048)
+            cfurlCacheDiskCapacity = 100 * 1024 * 1024;
+        else if (diskFreeSize >= 1024)
+            cfurlCacheDiskCapacity = 75 * 1024 * 1024;
+        else
+            cfurlCacheDiskCapacity = 50 * 1024 * 1024;
+
         break;
     }
     default:
         ASSERT_NOT_REACHED();
-    };
+    }
+
+    // Don't shrink a big disk cache, since that would cause churn.
+    cfurlCacheDiskCapacity = max(cfurlCacheDiskCapacity, CFURLCacheDiskCapacity(cfurlCache.get()));
 
     cache()->setCapacities(cacheMinDeadCapacity, cacheMaxDeadCapacity, cacheTotalCapacity);
     cache()->setDeadDecodedDataDeletionInterval(deadDecodedDataDeletionInterval);
     pageCache()->setCapacity(pageCacheCapacity);
+
+    CFURLCacheSetMemoryCapacity(cfurlCache.get(), cfurlCacheMemoryCapacity);
+    CFURLCacheSetDiskCapacity(cfurlCache.get(), cfurlCacheDiskCapacity);
 
     s_didSetCacheModel = true;
     s_cacheModel = cacheModel;
@@ -506,11 +567,12 @@ WebCacheModel WebView::maxCacheModelInAnyInstance()
 
     HashSet<WebView*>::iterator end = allWebViewsSet().end();
     for (HashSet<WebView*>::iterator it = allWebViewsSet().begin(); it != end; ++it) {
-        WebPreferences> pref = (*it)->preferences();
-        if (!pref)
+        COMPtr<IWebPreferences> pref;
+        if (FAILED((*it)->preferences(&pref)))
             continue;
         WebCacheModel prefCacheModel = WebCacheModelDocumentViewer;
-        prefCacheModel = pref->cacheModel();
+        if (FAILED(pref->cacheModel(&prefCacheModel)))
+            continue;
 
         cacheModel = max(cacheModel, prefCacheModel);
     }

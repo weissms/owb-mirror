@@ -6,8 +6,8 @@ Index: BAL/WKAL/Concretizations/Graphics/WK/BCGraphicsContextWK.cpp
  }
  #endif
  
--#if !PLATFORM(QT) && !PLATFORM(CAIRO)
-+#if !PLATFORM(QT) && !PLATFORM(CAIRO) && !PLATFORM(BAL)
+-#if !PLATFORM(QT) && !PLATFORM(CAIRO) && !PLATFORM(SKIA)
++#if !PLATFORM(QT) && !PLATFORM(CAIRO) && !PLATFORM(SKIA) && !PLATFORM(BAL)
  void GraphicsContext::setPlatformStrokeStyle(const StrokeStyle&)
  {
  }

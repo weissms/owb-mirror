@@ -627,6 +627,8 @@ webcore_sources += \
 	WebCore/dom/RegisteredEventListener.h \
 	WebCore/dom/ScriptElement.cpp \
 	WebCore/dom/ScriptElement.h \
+	WebCore/dom/ScriptExecutionContext.cpp \
+	WebCore/dom/ScriptExecutionContext.h \
 	WebCore/dom/SelectorNodeList.cpp \
 	WebCore/dom/SelectorNodeList.h \
 	WebCore/dom/StaticNodeList.cpp \
@@ -2951,6 +2953,17 @@ webcore_dist += \
 	WebCore/html/HTMLAttributeNames.in \
 	WebCore/xml/xmlattrs.in \
 	WebCore/xml/XPathGrammar.y
+
+# Installing web inspector files
+webcore_cppflags += -DDATA_DIR=\"${datadir}\"
+
+webinspectordir = ${datadir}/webkit-1.0/webinspector
+dist_webinspector_DATA = \
+	$(shell ls $(WebCore)/inspector/front-end/*.{js,html,css})
+
+webinspectorimagesdir = ${datadir}/webkit-1.0/webinspector/Images
+dist_webinspectorimages_DATA = \
+	$(shell ls $(WebCore)/inspector/front-end/Images/*.png)
 
 # Clean rules for WebCore
 

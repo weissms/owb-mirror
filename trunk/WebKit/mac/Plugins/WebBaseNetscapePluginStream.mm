@@ -37,7 +37,6 @@
 #import "WebNSURLExtras.h"
 #import "WebNSURLRequestExtras.h"
 #import "WebNetscapePluginPackage.h"
-#import "WebNetscapePlugInStreamLoaderClient.h"
 #import <Foundation/NSURLResponse.h>
 #import <kjs/JSLock.h>
 #import <WebCore/DocumentLoader.h>
@@ -59,15 +58,6 @@ static StreamMap& streams()
     static StreamMap staticStreams;
     return staticStreams;
 }
-
-@implementation WebBaseNetscapePluginStream
-
-#ifndef BUILDING_ON_TIGER
-+ (void)initialize
-{
-    WebCoreObjCFinalizeOnMainThread(self);
-}
-#endif
 
 NPP WebNetscapePluginStream::ownerForStream(NPStream *stream)
 {
@@ -107,21 +97,7 @@ NSError *WebNetscapePluginStream::errorForReason(NPReason reason) const
     return pluginCancelledConnectionError();
 }
 
-- (NSError *)errorForReason:(NPReason)theReason
-{
-    return _impl->errorForReason(theReason);
-}
-
-- (id)initWithFrameLoader:(FrameLoader *)frameLoader
-{
-    [super init];
-    
-    _impl = WebNetscapePluginStream::create(self, frameLoader);
-    
-    return self;
-}
-
-WebNetscapePluginStream::WebNetscapePluginStream(WebBaseNetscapePluginStream *stream, WebCore::FrameLoader* frameLoader)
+WebNetscapePluginStream::WebNetscapePluginStream(FrameLoader* frameLoader)
     : m_plugin(0)
     , m_transferMode(0)
     , m_offset(0)
@@ -133,16 +109,13 @@ WebNetscapePluginStream::WebNetscapePluginStream(WebBaseNetscapePluginStream *st
     , m_isTerminated(false)
     , m_newStreamSuccessful(false)
     , m_frameLoader(frameLoader)
-    , m_loader(0)
-    , m_request(0)
     , m_pluginFuncs(0)
     , m_deliverDataTimer(this, &WebNetscapePluginStream::deliverDataTimerFired)
-    , m_pluginStream(stream)
 {
     memset(&m_stream, 0, sizeof(NPStream));
 }
 
-WebNetscapePluginStream::WebNetscapePluginStream(WebBaseNetscapePluginStream *stream, NSURLRequest *request, NPP plugin, bool sendNotification, void* notifyData)
+WebNetscapePluginStream::WebNetscapePluginStream(NSURLRequest *request, NPP plugin, bool sendNotification, void* notifyData)
     : m_requestURL([request URL])
     , m_plugin(0)
     , m_transferMode(0)
@@ -155,11 +128,9 @@ WebNetscapePluginStream::WebNetscapePluginStream(WebBaseNetscapePluginStream *st
     , m_isTerminated(false)
     , m_newStreamSuccessful(false)
     , m_frameLoader(0)
-    , m_loader(0)
-    , m_request([request mutableCopy])
+    , m_request(AdoptNS, [request mutableCopy])
     , m_pluginFuncs(0)
     , m_deliverDataTimer(this, &WebNetscapePluginStream::deliverDataTimerFired)
-    , m_pluginStream(stream)
 {
     memset(&m_stream, 0, sizeof(NPStream));
 
@@ -176,20 +147,10 @@ WebNetscapePluginStream::WebNetscapePluginStream(WebBaseNetscapePluginStream *st
     streams().add(&m_stream, plugin);
         
     if (core([view webFrame])->loader()->shouldHideReferrer([request URL], core([view webFrame])->loader()->outgoingReferrer()))
-        [(NSMutableURLRequest *)m_request _web_setHTTPReferrer:nil];
+        [m_request.get() _web_setHTTPReferrer:nil];
     
-    m_loader = NetscapePlugInStreamLoader::create(core([view webFrame]), this).releaseRef();
+    m_loader = NetscapePlugInStreamLoader::create(core([view webFrame]), this);
     m_loader->setShouldBufferData(false);
-}
-
-- (id)initWithRequest:(NSURLRequest *)theRequest
-               plugin:(NPP)thePlugin
-           notifyData:(void *)theNotifyData 
-     sendNotification:(BOOL)flag
-{   
-    _impl = WebNetscapePluginStream::create(self, theRequest, thePlugin, flag, theNotifyData);
-    
-    return self;
 }
 
 WebNetscapePluginStream::~WebNetscapePluginStream()
@@ -202,29 +163,10 @@ WebNetscapePluginStream::~WebNetscapePluginStream()
     ASSERT(!m_path);
     ASSERT(m_fileDescriptor == -1);
     
-    if (m_loader)
-        m_loader->deref();
-    [m_request release];
-    
     free((void *)m_stream.url);
     free(m_headers);
     
     streams().remove(&m_stream);
-}
-
-- (void)dealloc
-{
-    ASSERT(_impl);
-    
-    [super dealloc];
-}
-
-- (void)finalize
-{
-    ASSERT_MAIN_THREAD();
-    ASSERT(_impl);
-        
-    [super finalize];
 }
 
 void WebNetscapePluginStream::setPlugin(NPP plugin)
@@ -315,8 +257,8 @@ void WebNetscapePluginStream::start()
     ASSERT(m_request);
     ASSERT(!m_frameLoader);
     
-    m_loader->documentLoader()->addPlugInStreamLoader(m_loader);
-    m_loader->load(m_request);    
+    m_loader->documentLoader()->addPlugInStreamLoader(m_loader.get());
+    m_loader->load(m_request.get());
 }
 
 void WebNetscapePluginStream::stop()
@@ -661,13 +603,6 @@ void WebNetscapePluginStream::didReceiveData(NetscapePlugInStreamLoader*, const 
     
     [data release];
 }
-
-- (WebNetscapePluginStream *)impl
-{
-    return _impl.get();
-}
-
-@end
 
 static NSString *CarbonPathFromPOSIXPath(NSString *posixPath)
 {

@@ -1,3 +1,21 @@
+2008-10-31  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon Homeycutt.
+
+        Explicitly default to building for only the native architecture in debug and release builds.
+
+        * DumpRenderTree/mac/Configurations/DebugRelease.xcconfig:
+
+2008-10-30  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fixed 64 bit build failure.
+
+        * DumpRenderTree/mac/PixelDumpSupportMac.mm:
+        (setupMainDisplayColorProfile):
+        (createBitmapContextFromWebView):
+
 2008-10-29  Alp Toker  <alp@nuanti.com>
 
         Fix GTK DRT following build breakage in r37928.

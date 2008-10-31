@@ -81,7 +81,13 @@ namespace JSC {
 
 #endif
 
-    struct VoidPtrPair { void* first; void* second; };
+    typedef uint64_t VoidPtrPair;
+
+    typedef union
+    {
+        struct { void* first; void* second; } s;
+        VoidPtrPair i;
+    } VoidPtrPairValue;
 #endif
 
     enum DebugHookID {
@@ -258,6 +264,8 @@ namespace JSC {
         static void SFX_CALL cti_op_put_setter(CTI_ARGS);
         static JSObject* SFX_CALL cti_op_new_error(CTI_ARGS);
         static void SFX_CALL cti_op_debug(CTI_ARGS);
+
+        static JSValue* SFX_CALL cti_allocate_number(CTI_ARGS);
 
         static JSValue* SFX_CALL cti_vm_throw(CTI_ARGS);
         static void* SFX_CALL cti_vm_compile(CTI_ARGS);

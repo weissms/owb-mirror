@@ -1,3 +1,539 @@
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Speculative wxWindows build fix.
+
+        * webcore-base.bkl:
+
+2008-10-30  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon Homeycutt.
+
+        Explicitly default to building for only the native architecture in debug and release builds.
+
+        * Configurations/DebugRelease.xcconfig:
+
+2008-10-30  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Create a debugger directory in JavaScriptCore and move the relevant
+        files to it.
+
+        * ForwardingHeaders/debugger: Added.
+        * ForwardingHeaders/debugger/Debugger.h: Copied from ForwardingHeaders/kjs/debugger.h.
+        * ForwardingHeaders/debugger/DebuggerCallFrame.h: Copied from ForwardingHeaders/kjs/DebuggerCallFrame.h.
+        * ForwardingHeaders/kjs/DebuggerCallFrame.h: Removed.
+        * ForwardingHeaders/kjs/debugger.h: Removed.
+        * WebCore.pro:
+        * bindings/js/ScriptController.cpp:
+        * inspector/JavaScriptCallFrame.cpp:
+        * inspector/JavaScriptCallFrame.h:
+        * inspector/JavaScriptDebugServer.cpp:
+        * inspector/JavaScriptDebugServer.h:
+
+2008-10-30  Tony Chang <tony@chromium.org>
+
+        Fix 2 Windows theme bugs:
+        1) Checkboxes marked readonly were rendered incorrectly
+        2) If a button has focus and is pressed, it was rendered
+           as focused rather than pressed.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21859
+
+        Reviewed by Dave Hyatt.
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::determineState):
+        (WebCore::RenderThemeWin::determineButtonState):
+
+2008-10-30  Benjamin K. Stuhl  <bks24@cornell.edu>
+
+        gcc 4.3.3/linux-x86 generates "suggest parentheses around && within ||"
+        warnings; add some parentheses to disambiguate things. No functional
+        changes, so no tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21973
+        Add parentheses to clean up some gcc warnings
+
+        Reviewed by Dan Bernstein.
+
+        * platform/graphics/Font.h:
+        (WebCore::Font::treatAsZeroWidthSpace):
+
+2008-10-30  Aaron Boodman  <aa@chromium.org>
+
+        Added an explicit dependency on HashMap.h. It was getting pulled in via
+        <kjs/identifier.h> in the case of JSC, causing errors for the Chromium port.
+
+        Reviewed by Darin Adler.
+
+        * platform/text/PlatformString.h:
+
+2008-10-30  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Sam Weinig
+
+        https://bugs.webkit.org/show_bug.cgi?id=21967
+        
+        For some platforms the GeolocationService must be suspended and resumed.
+
+        * page/Geolocation.cpp:
+        (WebCore::Geolocation::clearWatch): now uses Geolocation::hasListeners()
+        (WebCore::Geolocation::suspend): calls GeolocationService::suspend() if there are listeners
+        (WebCore::Geolocation::resume): calls GeolocationService::resume() if there are listeners
+        (WebCore::Geolocation::geolocationServicePositionChanged): now uses Geolocation::hasListeners()
+        * page/Geolocation.h:
+        (WebCore::Geolocation::hasListeners): Indicates of the Geolocation has interested GeolocationService listeners
+        * platform/GeolocationService.h:
+        (WebCore::GeolocationService::suspend): empty implementation
+        (WebCore::GeolocationService::resume): empty implementation
+
+2008-10-30  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Sam Weinig
+
+        https://bugs.webkit.org/show_bug.cgi?id=21966
+        
+        The Geolocation spec was updated on 10/27/2008. This brings WebCore up to date.
+        http://dev.w3.org/geo/api/spec-source.html
+
+        * page/Geolocation.cpp:
+        (WebCore::Geolocation::GeoNotifier::GeoNotifier): PositionOptions' timeout now unsigned
+        * page/Geoposition.cpp: velocity is now called speed
+        (WebCore::Geoposition::toString):
+        * page/Geoposition.h: velocity is now called speed
+        (WebCore::Geoposition::create):
+        (WebCore::Geoposition::speed):
+        (WebCore::Geoposition::Geoposition):
+        * page/Geoposition.idl: velocity is now called speed
+        * page/PositionOptions.h: timeout is now unsigned
+        (WebCore::PositionOptions::create):
+        (WebCore::PositionOptions::timeout):
+        (WebCore::PositionOptions::setTimeout):
+        (WebCore::PositionOptions::PositionOptions):
+        * page/PositionOptions.idl: timeout is now unsigned long
+
+2008-10-30  Justin Garcia  <justin.garcia@apple.com>
+
+        Also handle preserved newlines.
+
+        * editing/BreakBlockquoteCommand.cpp:
+        (WebCore::BreakBlockquoteCommand::doApply):
+
+2008-10-30  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        <rdar://problem/6104369> Hitting return at the end of a quoted line creates an extraneous quoted line
+
+        * editing/BreakBlockquoteCommand.cpp:
+        (WebCore::BreakBlockquoteCommand::doApply): 
+        Don't store the endingSelection() in selection, just call endingSelection() in the few places it's 
+        needed.  This function is cheap since it just returns a reference to a Selection instead of creating one.
+        Don't store an affinity.  In the one place that it was used, isLastVisiblePositionInNode(VisiblePosition(pos, affinity), topBlockquote),
+        we now use visiblePos (in order to avoid VisiblePosition creation).
+        Set pos after we delete the current selection (if there is one), and be consistent about what we set 
+        pos to.  Before, we upstream()ed it if there was a selection to delete and left it alone otherwise.  In fact...
+        ...we need to use downstream() for pos so that when a caret is at the boundary between two nodes, pos is 
+        in the first node that we want to move.  This fixes the bug, since it lets code that checks for the case 
+        where the caret is between text and a br work correctly.
+
+2008-10-30  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Fix the Qt build.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21969
+
+        * inspector/front-end/WebKit.qrc:
+        * platform/graphics/qt/ImageBufferQt.cpp:
+        (WebCore::ImageBufferData::ImageBufferData):
+        (WebCore::ImageBuffer::ImageBuffer):
+        (WebCore::ImageBuffer::context):
+        (WebCore::ImageBuffer::image):
+        (WebCore::ImageBuffer::toDataURL):
+
+2008-10-30  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+
+        More preparation for:
+        <rdar://problem/6104369> Hitting return at the end of a quoted line creates an extraneous quoted line
+
+        * editing/BreakBlockquoteCommand.cpp:
+        (WebCore::BreakBlockquoteCommand::doApply): Added comments.  Don't need to use newStartNode.  If the 
+        startNode needs to change, change it.  Afterwords, check to make sure that it hasn't left topBlockquote.  
+        This is slightly stricter than before, where we just made sure that it still had a topBlockquote.  This 
+        doesn't really fix a bug, since we can't really get into a situation where we move to a different 
+        topBlockquote, but it simplifies the code.
+
+2008-10-30  Dirk Schulze  <vbs85@gmx.de>
+
+        Reviewed by Alp Toker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21883
+        [CAIRO] globalAlpha has to be stored and restored
+
+        Cairo's globalAlpha has to be stored and reloaded on calling
+        save() and restore(). We use the power of GraphicsContextState for this.
+
+        * platform/graphics/GraphicsContextPrivate.h:
+        (WebCore::GraphicsContextState::GraphicsContextState):
+        * platform/graphics/cairo/GraphicsContextCairo.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::setAlpha):
+        (WebCore::GraphicsContext::getAlpha):
+        * platform/graphics/cairo/GraphicsContextPlatformPrivateCairo.h:
+        (WebCore::GraphicsContextPlatformPrivate::GraphicsContextPlatformPrivate):
+
+2008-10-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Rename "attachedToEventTargetNode" to "isInline".
+
+        Inline (onXXX) attributes are used not just with event target nodes, but also with Window,
+        XMLHttpRequest, MessagePort et al.
+
+        Also renamed createHTMLEventHandler() (which was a leftover from earlier isHTMLEvent ->
+        attachedToEventTargetNode rename made for SVG) to createInlineEventListener().
+        And also renamed EventTargetNode, Document and Window "eventListenerForType" methods to
+        "inlineEventListenerForType", as they work with inline listeners.
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::addEventListener):
+        (WebCore::JSDOMApplicationCache::removeEventListener):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::setOnmessage):
+        (WebCore::JSMessagePort::setOnclose):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::addEventListener):
+        (WebCore::JSXMLHttpRequest::removeEventListener):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::addEventListener):
+        (WebCore::JSXMLHttpRequestUpload::removeEventListener):
+        Pass a correct value for this argument - callers used to be confused, because they didn't
+        consider themselves event target nodes. This doesn't affect behavior however, as the only
+        difference between inline and non-inline event handlers is that the former treat
+        "return false" as "event.preventDefault()", which is not important to any of these objects.
+
+        * bindings/js/JSEventListener.cpp: (WebCore::JSLazyEventListener::parseCode):
+        Assert that isInline is true instead of checking its value, as the constructor of this class
+        always sets it to true.
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::~JSDOMWindowBase):
+        (WebCore::JSDOMWindowBase::findJSEventListener):
+        (WebCore::JSDOMWindowBase::findOrCreateJSEventListener):
+        (WebCore::JSDOMWindowBase::findJSUnprotectedEventListener):
+        (WebCore::JSDOMWindowBase::findOrCreateJSUnprotectedEventListener):
+        (WebCore::JSDOMWindowBase::jsInlineEventListeners):
+        (WebCore::JSDOMWindowBase::jsUnprotectedInlineEventListeners):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        (WebCore::JSAbstractEventListener::isInline):
+        (WebCore::JSUnprotectedEventListener::JSUnprotectedEventListener):
+        (WebCore::JSUnprotectedEventListener::~JSUnprotectedEventListener):
+        (WebCore::JSEventListener::JSEventListener):
+        (WebCore::JSEventListener::~JSEventListener):
+        (WebCore::JSLazyEventListener::parseCode):
+        * bindings/js/JSEventListener.h:
+        (WebCore::JSAbstractEventListener::JSAbstractEventListener):
+        (WebCore::JSUnprotectedEventListener::create):
+        (WebCore::JSEventListener::create):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::createInlineEventHandler):
+        * bindings/js/ScriptController.h:
+        * dom/Document.cpp:
+        (WebCore::Document::setWindowInlineEventListenerForType):
+        (WebCore::Document::windowInlineEventListenerForType):
+        (WebCore::Document::removeWindowInlineEventListenerForType):
+        (WebCore::Document::createEventListener):
+        (WebCore::Document::setWindowInlineEventListenerForTypeAndAttribute):
+        * dom/Document.h:
+        * dom/EventListener.h:
+        (WebCore::EventListener::isInline):
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::removeInlineEventListenerForType):
+        (WebCore::EventTargetNode::setInlineEventListenerForType):
+        (WebCore::EventTargetNode::setInlineEventListenerForTypeAndAttribute):
+        (WebCore::EventTargetNode::inlineEventListenerForType):
+        (WebCore::EventTargetNode::on*): (many methods)
+        (WebCore::EventTargetNode::setOn*): (many methods)
+        * dom/EventTargetNode.h:
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplacementFragment::ReplacementFragment):
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::parseMappedAttribute):
+        * html/HTMLButtonElement.cpp:
+        (WebCore::HTMLButtonElement::parseMappedAttribute):
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::parseMappedAttribute):
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::parseMappedAttribute):
+        * html/HTMLFrameElementBase.cpp:
+        (WebCore::HTMLFrameElementBase::parseMappedAttribute):
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::parseMappedAttribute):
+        * html/HTMLImageElement.cpp:
+        (WebCore::HTMLImageElement::parseMappedAttribute):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+        * html/HTMLScriptElement.cpp:
+        (WebCore::HTMLScriptElement::parseMappedAttribute):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::parseMappedAttribute):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::parseMappedAttribute):
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::mouseButtonListener):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::setInlineEventListenerForType):
+        (WebCore::DOMWindow::inlineEventListenerForType):
+        (WebCore::DOMWindow::on*): (many methods)
+        (WebCore::DOMWindow::setOn*): (many methods)
+        * page/DOMWindow.h:
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::parseMappedAttribute):
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::on*): (many methods)
+        (WebCore::SVGElementInstance::setOn*): (many methods)
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::parseMappedAttribute):
+        Rename things, as described above.
+
+2008-10-29  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed and slightly changed by Holger Freyther.
+
+        Added all the files that need to be installed for the Inspector to
+        work.
+
+        * GNUmakefile.am: Invoke the shell to get the files.
+
+2008-10-29  Andrew Scherkus  <scherkus@chromium.org>
+
+        Reviewed by Darin Adler
+
+        Add MediaPlayerPrivateChromium to MediaPlayer
+        https://bugs.webkit.org/show_bug.cgi?id=21930
+
+        * platform/graphics/MediaPlayer.cpp:
+
+2008-10-29  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Some preparation for:
+        <rdar://problem/6104369> Hitting return at the end of a quoted line creates an extraneous quoted line
+        
+        Added an early return to avoid a level of if-nesting.  No other changes.  We probably don't
+        need to rebalance whitespace before the early return but for now don't risk any change in behavior
+        I'll revisit that later.
+
+        * editing/BreakBlockquoteCommand.cpp:
+        (WebCore::BreakBlockquoteCommand::doApply):
+
+2008-10-29  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes after addition of runtime and ImageBuffer changes.
+        
+        * platform/graphics/wx/ImageBufferData.h: Added.
+        * platform/graphics/wx/ImageBufferWx.cpp:
+        (WebCore::ImageBufferData::ImageBufferData):
+        (WebCore::ImageBuffer::ImageBuffer):
+        (WebCore::ImageBuffer::context):
+        * webcore-base.bkl:
+
+2008-10-29  Brett Wilson  <brettw@chromium.org>
+
+        Reviewed by Darin Adler
+        https://bugs.webkit.org/attachment.cgi?id=24745
+
+        Allow Skia implementations to get text style changed notifications.
+
+        * platform/graphics/GraphicsContext.cpp:
+
+2008-10-29  Timothy Hatcher  <timothy@apple.com>
+
+        Add a manual test that checks breakpoints on a blockless body of
+        an "else" statement.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21944
+
+        Reviewed by Maciej Stachowiak.
+
+        * manual-tests/inspector/debugger-pause-on-else-statements.html: Added.
+
+2008-10-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21921
+        MessagePort messages are dispatched to documents that are not fully active
+
+        Covered by corrected fast/events/message-port-inactive-document.html
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent): Don't dispatch messages to contexts
+        that are not fully active.
+
+2008-10-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21922
+        Expose MessagePort global constructor
+
+        Covered by existing dumper tests.
+
+        * dom/MessagePort.idl:
+        * page/DOMWindow.idl:
+
+2008-10-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21924
+        HashTable internal index is not always deleted
+
+        * bindings/js/JSDOMBinding.cpp: (WebCore::DOMObjectHashTableMap::~DOMObjectHashTableMap):
+        Call deleteTable for HashTables that are being deleted.
+
+2008-10-28  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21923
+        Create an abstraction for script execution context
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        Added ScriptExecutionContext.{h,cpp}.
+
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::JSAudioConstructor::JSAudioConstructor):
+        * bindings/js/JSAudioConstructor.h:
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::JSImageConstructor::JSImageConstructor):
+        * bindings/js/JSImageConstructor.h:
+        * bindings/js/JSOptionConstructor.cpp:
+        (WebCore::JSOptionConstructor::JSOptionConstructor):
+        * bindings/js/JSOptionConstructor.h:
+        * bindings/js/JSXMLHttpRequestConstructor.cpp:
+        (WebCore::JSXMLHttpRequestConstructor::JSXMLHttpRequestConstructor):
+        * bindings/js/JSXMLHttpRequestConstructor.h:
+        Pass ScriptExecutionContext instead of Document to make getDOMConstructor() happy.
+        Since these objects can only work within documents now, it is immediately converted back
+        to Document.
+
+        * bindings/js/JSMessageChannelConstructor.cpp:
+        (WebCore::JSMessageChannelConstructor::JSMessageChannelConstructor):
+        (WebCore::JSMessageChannelConstructor::construct):
+        * bindings/js/JSMessageChannelConstructor.h:
+        (WebCore::JSMessageChannelConstructor::scriptExecutionContext):
+        MessageChannel needs to be supported in workers right away, so the constructor operates with
+        it directly.
+
+        * dom/ActiveDOMObject.cpp:
+        (WebCore::ActiveDOMObject::ActiveDOMObject):
+        (WebCore::ActiveDOMObject::~ActiveDOMObject):
+        (WebCore::ActiveDOMObject::contextDestroyed):
+        * dom/ActiveDOMObject.h:
+        (WebCore::ActiveDOMObject::scriptExecutionContext):
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::markActiveObjectsForContext):
+        (WebCore::markCrossHeapDependentObjectsForContext):
+        Use ScriptExecutionContext instead of Document, now that ActiveDOMObject and MessagePort
+        tracking is handled by ScriptExecutionContext.
+
+        * bindings/js/JSDOMBinding.h: (WebCore::getDOMPrototype): Moved to JSDOMGlobalObject.
+
+        * bindings/js/JSDOMGlobalObject.h:
+        (WebCore::getDOMConstructor): Moved to this file, as constructors live in JSDOMGlobalObject.
+        Also, the two-argument version that used to be in JSDOMWindowBase.cpp need to be accessible
+        to worker context implementation.
+        (WebCore::scriptExecutionContext): Added a pure virtual method to access
+        ScriptExecutionContext, implemented by subclasses.
+
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowBase.cpp: (WebCore::JSDOMWindowBase::scriptExecutionContext):
+        Implement by returning the associated document. Note that this method currently gives bogus
+        results after navigation - DOMWindow Frame reference is not zeroed out, so we get a document
+        that is currently in the frame, not the one associated with this window.
+
+        * bindings/js/JSDedicatedWorkerConstructor.cpp: Removed unnecessary include of DOMWindow.h.
+
+        * bindings/js/JSDocumentCustom.cpp: (WebCore::JSDocument::mark):
+        Call markActiveObjectsForContext() by its new name.
+
+        * dom/DedicatedWorker.cpp:
+        (WebCore::DedicatedWorker::DedicatedWorker):
+        (WebCore::DedicatedWorker::document):
+        * dom/DedicatedWorker.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::document):
+        * xml/XMLHttpRequest.h:
+        Added a document() function that upcasts ScriptExecutionContext, as these objects only work
+        within documents currently (at least for XMLHttpRequest, this will change soon though).
+
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        (WebCore::Document::~Document):
+        Moved active object and MessagePort tracking up to ScriptExecutionContext, to share code
+        with workers.
+        
+        * dom/Document.h:
+        (WebCore::Document::isDocument):
+        (WebCore::Document::refScriptExecutionContext):
+        (WebCore::Document::derefScriptExecutionContext):
+        Inherit from ScriptExecutionContext.
+
+        * dom/MessageChannel.cpp:
+        (WebCore::MessageChannel::MessageChannel):
+        * dom/MessageChannel.h:
+        (WebCore::MessageChannel::create):
+        Use ScriptExecutionContext instead of Document.
+
+        * dom/MessagePort.cpp:
+        (WebCore::CloseMessagePortTimer::CloseMessagePortTimer): Make m_port a RefPtr, because
+        MessagePort doesn't ref() itself when posting this event any more (this is a fix for an
+        unrelated issue that was causing random crashes in layout tests).
+        (WebCore::MessagePort::MessagePort):
+        (WebCore::MessagePort::~MessagePort):
+        (WebCore::MessagePort::associatedFrame):
+        (WebCore::MessagePort::clone):
+        (WebCore::MessagePort::postMessage):
+        (WebCore::MessagePort::startConversation):
+        (WebCore::MessagePort::start):
+        (WebCore::MessagePort::contextDestroyed):
+        (WebCore::MessagePort::dispatchMessages):
+        * dom/MessagePort.h:
+        (WebCore::MessagePort::create):
+        (WebCore::MessagePort::scriptExecutionContext):
+        Use ScriptExecutionContext instead of Document. This is a step toward making MessagePort
+        work in worker contexts - we need to also make some its method thread safe for cross-thread
+        messaging, and make event dispatching thread safe.
+
+        * dom/ScriptExecutionContext.cpp: Added.
+        * dom/ScriptExecutionContext.h: Added.
+        ActiveDOMObject and MessagePort tracking is moved from Document.
+        It is debatable whether ScriptExecutionContext should be a parent of Document or DOMWindow,
+        but as I'm just moving Document code, and it is Document that is the main context object
+        in our implementation currently.
+        Changing ScriptExecutionContext to be a parent of DOMWindow causes a number of bugs that
+        seem non-trivial to fix, and isn't really a part of this task.
+
 2008-10-29  Alp Toker  <alp@nuanti.com>
 
         List newly-added ImageBufferData.h in build system.

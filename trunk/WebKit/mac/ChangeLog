@@ -1,3 +1,110 @@
+2008-10-31  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Jon Homeycutt.
+
+        Explicitly default to building for only the native architecture in debug and release builds.
+
+        * Configurations/DebugRelease.xcconfig:
+
+2008-10-30  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Create a debugger directory in JavaScriptCore and move the relevant
+        files to it.
+
+        * ForwardingHeaders/debugger: Added.
+        * ForwardingHeaders/debugger/DebuggerCallFrame.h: Copied from ForwardingHeaders/kjs/DebuggerCallFrame.h.
+        * ForwardingHeaders/kjs/DebuggerCallFrame.h: Removed.
+        * WebView/WebScriptDebugDelegate.mm:
+        * WebView/WebScriptDebugger.h:
+        * WebView/WebScriptDebugger.mm:
+
+2008-10-29  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        (WebNetscapePluginStream::~WebNetscapePluginStream):
+        (WebNetscapePluginStream::start):
+
+2008-10-29  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove an unused forward class declaration.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+
+2008-10-29  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove WebBaseNetscapePluginViewInternal.h and WebBaseNetscapePluginViewPrivate.h.
+
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginViewInternal.h: Removed.
+        * Plugins/WebBaseNetscapePluginViewPrivate.h: Removed.
+        * Plugins/WebNetscapePluginEventHandler.mm:
+        * Plugins/WebNetscapePluginEventHandlerCarbon.mm:
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+        * Plugins/npapi.mm:
+        * WebView/WebHTMLView.mm:
+
+2008-10-29  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove WebNetscapePluginEmbeddedView, it adds nothing extra now. 
+        
+        Remove WebNetscapePlugInStreamLoaderClient since WebNetscapePluginStream is the client now.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebKitPluginContainerView.h:
+        * Plugins/WebNetscapePluginEmbeddedView.h: Removed.
+        * Plugins/WebNetscapePluginEmbeddedView.mm: Removed.
+        * Plugins/WebNetscapePluginEventHandler.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (NetscapePluginWidget::NetscapePluginWidget):
+        (NetscapePluginWidget::handleEvent):
+        (WebFrameLoaderClient::createPlugin):
+        * WebCoreSupport/WebNetscapePlugInStreamLoaderClient.h: Removed.
+        * WebCoreSupport/WebNetscapePlugInStreamLoaderClient.mm: Removed.
+        * WebView/WebHTMLView.mm:
+        (-[NSArray _web_makePluginViewsPerformSelector:withObject:]):
+
+2008-10-29  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove the WebBaseNetscapePluginStream Objective-C object.
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        (WebNetscapePluginStream::create):
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView pluginView:receivedResponse:]):
+        (-[WebBaseNetscapePluginView evaluateJavaScriptPluginRequest:]):
+        (-[WebBaseNetscapePluginView loadRequest:inTarget:withNotifyData:sendNotification:]):
+
+2008-10-29  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Sam Weinig
+
+        https://bugs.webkit.org/show_bug.cgi?id=21952
+        
+        Address an outstanding FIXME by removing unused SPI
+
+        * History/WebHistory.mm:
+        (-[WebHistory _addItemForURL:title:]): Fold addItem: into this method
+
+        * History/WebHistoryPrivate.h: Removed unused/unneccessary SPI
+
 2008-10-29  Justin Garcia  <justin.garcia@apple.com>
 
         Reviewed by Darin Adler.

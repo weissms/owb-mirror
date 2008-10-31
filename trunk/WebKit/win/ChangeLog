@@ -1,3 +1,47 @@
+2008-10-31  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=21986
+          <rdar://problem/6294285> adopt CFURLCopySharedURLCache
+
+        * WebView.cpp:
+        (WebView::setCacheModel): Use CFURLCopySharedURLCache if present.
+
+2008-10-30  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - export WTFReportAssertionFailureWithMessage()
+
+        * WebKit.vcproj/WebKit_debug.def:
+
+2008-10-29  Steve Falkenburg  <sfalken@apple.com>
+
+        <rdar://problem/6326563> Crash on launch
+        
+        For Windows, export explicit functions rather than exporting data for atomicallyInitializedStaticMutex.
+        
+        Exporting data from a DLL on Windows requires specifying __declspec(dllimport) in the header used by
+        callers, but __declspec(dllexport) when defined in the DLL implementation. By instead exporting
+        the explicit lock/unlock functions, we can avoid this.
+        
+        Fixes a crash on launch, since we were previously erroneously exporting atomicallyInitializedStaticMutex as a function.
+        
+        Reviewed by Darin Adler.
+
+        * WebKit.vcproj/WebKit.def:
+        * WebKit.vcproj/WebKit_debug.def:
+
+2008-10-29  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Export atomicallyInitializedStaticMutex.
+
+        Rubber-stamped by Steve Falkenburg.
+
+        * WebKit.vcproj/WebKit.def:
+        * WebKit.vcproj/WebKit_debug.def:
+
 2008-10-29  Cameron Zwarich  <zwarich@apple.com>
 
         Reviewed by Mark Rowe.

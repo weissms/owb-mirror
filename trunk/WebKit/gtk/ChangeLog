@@ -1,3 +1,79 @@
+2008-10-31  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Dave Hyatt.
+
+        Fix GIF animations. WebCore will not update animated GIFs if
+        the WebView is marked offscreen so we need to call
+        frameView->setParentVisible() when necessary like the Mac and Win
+        ports do. Regression was introduced around r37155 during the
+        HostWindow refactor.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::transitionToCommittedForNewPage):
+
+2008-10-30  Alp Toker  <alp@nuanti.com>
+
+        Rubber-stamped by Holger Freyther.
+
+        Fix typo in recently added web inspector signal. dettach -> detach.
+
+        * WebCoreSupport/InspectorClientGtk.cpp:
+        (WebKit::InspectorClient::detachWindow):
+        * webkit/webkitwebinspector.cpp:
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_class_init):
+
+2008-10-30  Alp Toker  <alp@nuanti.com>
+
+        Fix version comments for the web inspector added in r37982. Available
+        since 1.0.3, not 1.0.2.
+
+        * webkit/webkitwebinspector.cpp:
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_class_init):
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::webkit_web_settings_class_init):
+        * webkit/webkitwebview.cpp:
+
+2008-10-29  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed and slightly changed by Holger Freyther.
+
+        Implemented a new WebKitWebInspector class to provide a GObject
+        API for the Web Inspector. Also implemented InspectorClient.
+
+        * WebCoreSupport/InspectorClientGtk.cpp:
+        (WebKit::notifyWebViewDestroyed):
+        (WebKit::InspectorClient::InspectorClient):
+        (WebKit::InspectorClient::inspectorDestroyed):
+        (WebKit::InspectorClient::webViewDestroyed):
+        (WebKit::InspectorClient::createPage):
+        (WebKit::InspectorClient::showWindow):
+        (WebKit::InspectorClient::closeWindow):
+        (WebKit::InspectorClient::attachWindow):
+        (WebKit::InspectorClient::detachWindow):
+        (WebKit::InspectorClient::inspectedURLChanged):
+        * WebCoreSupport/InspectorClientGtk.h:
+        * webkit/webkit.h:
+        * webkit/webkit-marshal.list:
+        * webkit/webkitdefines.h:
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebinspector.cpp: Added.
+        (_WebKitWebInspectorPrivate::webkit_inspect_web_view_request_handled):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_class_init):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_init):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_finalize):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_set_property):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_get_property):
+        (_WebKitWebInspectorPrivate::webkit_web_inspector_set_web_view):
+        * webkit/webkitwebinspector.h: Added.
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_class_init):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_set_property):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_get_property):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_copy):
+        * webkit/webkitwebview.cpp:
+        * webkit/webkitwebview.h:
+
 2008-10-29  Michael Tross  <michael@tross.org>
 
         Reviewed by Alp Toker. Landed by Jan Alonzo.

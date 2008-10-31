@@ -33,7 +33,7 @@
 #include "CTI.h"
 #include "JSValue.h"
 #include "Machine.h"
-#include "debugger.h"
+#include "Debugger.h"
 #include <stdio.h>
 #include <wtf/StringExtras.h>
 
@@ -468,6 +468,7 @@ void CodeBlock::dump(ExecState* exec, const Vector<Instruction>::const_iterator&
         }
         case op_negate: {
             printUnaryOp(location, it, "negate");
+            ++it;
             break;
         }
         case op_add: {

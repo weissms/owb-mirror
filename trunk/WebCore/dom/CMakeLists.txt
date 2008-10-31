@@ -54,6 +54,7 @@ LIST (APPEND DOM_SRC
     dom/Range.cpp
     dom/RegisteredEventListener.cpp
     dom/ScriptElement.cpp
+    dom/ScriptExecutionContext.cpp
     dom/SelectorNodeList.cpp
     dom/StaticNodeList.cpp
     dom/StyleElement.cpp

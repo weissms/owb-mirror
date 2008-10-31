@@ -50,6 +50,9 @@ namespace WKAL {
             : textDrawingMode(cTextFill)
             , strokeStyle(SolidStroke)
             , strokeThickness(0)
+#if PLATFORM(CAIRO)
+            , globalAlpha(1.0f)
+#endif
             , strokeColorSpace(SolidColorSpace)
             , strokeColor(Color::black)
             , fillRule(RULE_NONZERO)
@@ -65,6 +68,9 @@ namespace WKAL {
         
         StrokeStyle strokeStyle;
         float strokeThickness;
+#if PLATFORM(CAIRO)
+        float globalAlpha;
+#endif
         ColorSpace strokeColorSpace;
         Color strokeColor;
         RefPtr<Gradient> strokeGradient;

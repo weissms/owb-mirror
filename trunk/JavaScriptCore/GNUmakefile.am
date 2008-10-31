@@ -2,6 +2,7 @@ javascriptcore_cppflags += \
 	-I$(srcdir)/JavaScriptCore/API \
 	-I$(srcdir)/JavaScriptCore/ForwardingHeaders \
 	-I$(srcdir)/JavaScriptCore/VM \
+	-I$(srcdir)/JavaScriptCore/debugger \
 	-I$(srcdir)/JavaScriptCore/pcre \
 	-I$(srcdir)/JavaScriptCore/profiler \
 	-I$(srcdir)/JavaScriptCore/runtime \
@@ -74,8 +75,8 @@ javascriptcore_sources += \
 	JavaScriptCore/VM/ExceptionHelpers.cpp \
 	JavaScriptCore/VM/ExceptionHelpers.h \
 	JavaScriptCore/VM/Instruction.h \
-	JavaScriptCore/VM/JSPropertyNameIterator.cpp \
-	JavaScriptCore/VM/JSPropertyNameIterator.h \
+	JavaScriptCore/runtime/JSPropertyNameIterator.cpp \
+	JavaScriptCore/runtime/JSPropertyNameIterator.h \
 	JavaScriptCore/VM/LabelID.h \
 	JavaScriptCore/VM/Machine.cpp \
 	JavaScriptCore/VM/Machine.h \
@@ -113,8 +114,8 @@ javascriptcore_sources += \
 	JavaScriptCore/kjs/Arguments.h \
 	JavaScriptCore/kjs/BatchedTransitionOptimizer.h \
 	JavaScriptCore/kjs/CollectorHeapIterator.h \
-	JavaScriptCore/kjs/DebuggerCallFrame.cpp \
-	JavaScriptCore/kjs/DebuggerCallFrame.h \
+	JavaScriptCore/debugger/DebuggerCallFrame.cpp \
+	JavaScriptCore/debugger/DebuggerCallFrame.h \
 	JavaScriptCore/kjs/ExecState.cpp \
 	JavaScriptCore/kjs/ExecState.h \
 	JavaScriptCore/kjs/InitializeThreading.cpp \
@@ -143,7 +144,7 @@ javascriptcore_sources += \
 	JavaScriptCore/kjs/collector.h \
 	JavaScriptCore/kjs/completion.h \
 	JavaScriptCore/kjs/config.h \
-	JavaScriptCore/kjs/debugger.h \
+	JavaScriptCore/debugger/Debugger.h \
 	JavaScriptCore/kjs/dtoa.h \
 	JavaScriptCore/kjs/identifier.h \
 	JavaScriptCore/kjs/interpreter.h \
@@ -218,7 +219,7 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/NumberPrototype.h \
 	JavaScriptCore/runtime/ObjectConstructor.h \
 	JavaScriptCore/runtime/ObjectPrototype.h \
-	JavaScriptCore/runtime/PropertyMap.h \
+	JavaScriptCore/runtime/PropertyMapHashTable.h \
 	JavaScriptCore/runtime/PropertySlot.h \
 	JavaScriptCore/runtime/PrototypeFunction.h \
 	JavaScriptCore/runtime/PutPropertySlot.h \
@@ -230,6 +231,7 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/StringPrototype.h \
 	JavaScriptCore/runtime/StructureID.cpp \
 	JavaScriptCore/runtime/StructureID.h \
+	JavaScriptCore/runtime/StructureIDTransitionTable.h \
 	JavaScriptCore/wrec/CharacterClassConstructor.cpp \
 	JavaScriptCore/wrec/CharacterClassConstructor.h \
 	JavaScriptCore/wrec/WREC.cpp \
@@ -322,7 +324,7 @@ javascriptcore_sources += \
 	JavaScriptCore/kjs/RegExpPrototype.cpp \
 	JavaScriptCore/kjs/ScopeChain.cpp \
 	JavaScriptCore/kjs/collector.cpp \
-	JavaScriptCore/kjs/debugger.cpp \
+	JavaScriptCore/debugger/Debugger.cpp \
 	JavaScriptCore/kjs/dtoa.cpp \
 	JavaScriptCore/kjs/identifier.cpp \
 	JavaScriptCore/kjs/interpreter.cpp \
@@ -374,7 +376,6 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/NumberPrototype.cpp \
 	JavaScriptCore/runtime/ObjectConstructor.cpp \
 	JavaScriptCore/runtime/ObjectPrototype.cpp \
-	JavaScriptCore/runtime/PropertyMap.cpp \
 	JavaScriptCore/runtime/PropertySlot.cpp \
 	JavaScriptCore/runtime/PrototypeFunction.cpp \
 	JavaScriptCore/runtime/StringConstructor.cpp \

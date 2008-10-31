@@ -1,4 +1,3 @@
-// -*- mode: c++; c-basic-offset: 4 -*-
 /*
  * Copyright (C) 2008 Apple Inc. All rights reserved.
  *
@@ -29,8 +28,10 @@
 
 #include "JSType.h"
 #include "JSValue.h"
-#include "PropertyMap.h"
+#include "PropertyMapHashTable.h"
+#include "StructureIDTransitionTable.h"
 #include "TypeInfo.h"
+#include "identifier.h"
 #include "ustring.h"
 #include <wtf/HashFunctions.h>
 #include <wtf/HashTraits.h>
@@ -40,40 +41,17 @@
 
 #define DUMP_STRUCTURE_ID_STATISTICS 0
 
+#ifndef NDEBUG
+#define DUMP_PROPERTYMAP_STATS 0
+#else
+#define DUMP_PROPERTYMAP_STATS 0
+#endif
+
 namespace JSC {
 
     class PropertyNameArray;
     class PropertyNameArrayData;
     class StructureIDChain;
-
-    struct TransitionTableHash {
-        typedef std::pair<RefPtr<UString::Rep>, unsigned> TransitionTableKey;
-        static unsigned hash(const TransitionTableKey& p)
-        {
-            return p.first->computedHash();
-        }
-
-        static bool equal(const TransitionTableKey& a, const TransitionTableKey& b)
-        {
-            return a == b;
-        }
-
-        static const bool safeToCompareToEmptyOrDeleted = true;
-    };
-
-    struct TransitionTableHashTraits {
-        typedef WTF::HashTraits<RefPtr<UString::Rep> > FirstTraits;
-        typedef WTF::GenericHashTraits<unsigned> SecondTraits;
-        typedef std::pair<FirstTraits::TraitType, SecondTraits::TraitType> TraitType;
-
-        static const bool emptyValueIsZero = FirstTraits::emptyValueIsZero && SecondTraits::emptyValueIsZero;
-        static TraitType emptyValue() { return std::make_pair(FirstTraits::emptyValue(), SecondTraits::emptyValue()); }
-
-        static const bool needsDestruction = FirstTraits::needsDestruction || SecondTraits::needsDestruction;
-
-        static void constructDeletedValue(TraitType& slot) { FirstTraits::constructDeletedValue(slot.first); }
-        static bool isDeletedValue(const TraitType& value) { return FirstTraits::isDeletedValue(value.first); }
-    };
 
     class StructureID : public RefCounted<StructureID> {
     public:
@@ -92,6 +70,7 @@ namespace JSC {
 
         static PassRefPtr<StructureID> changePrototypeTransition(StructureID*, JSValue* prototype);
         static PassRefPtr<StructureID> addPropertyTransition(StructureID*, const Identifier& propertyName, unsigned attributes, size_t& offset);
+        static PassRefPtr<StructureID> removePropertyTransition(StructureID*, const Identifier& propertyName, size_t& offset);
         static PassRefPtr<StructureID> getterSetterTransition(StructureID*);
         static PassRefPtr<StructureID> toDictionaryTransition(StructureID*);
         static PassRefPtr<StructureID> fromDictionaryTransition(StructureID*);
@@ -106,6 +85,7 @@ namespace JSC {
 
         // These should be used with caution.  
         size_t addPropertyWithoutTransition(const Identifier& propertyName, unsigned attributes);
+        size_t removePropertyWithoutTransition(const Identifier& propertyName);
         void setPrototypeWithoutTransition(JSValue* prototype) { m_prototype = prototype; }
 
         bool isDictionary() const { return m_isDictionary; }
@@ -124,56 +104,116 @@ namespace JSC {
         void setCachedPrototypeChain(PassRefPtr<StructureIDChain> cachedPrototypeChain) { m_cachedPrototypeChain = cachedPrototypeChain; }
         StructureIDChain* cachedPrototypeChain() const { return m_cachedPrototypeChain.get(); }
 
-        const PropertyMap& propertyMap() const { return m_propertyMap; }
-        PropertyMap& propertyMap() { return m_propertyMap; }
-
         void setCachedTransistionOffset(size_t offset) { m_cachedTransistionOffset = offset; }
         size_t cachedTransistionOffset() const { return m_cachedTransistionOffset; }
 
         void growPropertyStorageCapacity();
         size_t propertyStorageCapacity() const { return m_propertyStorageCapacity; }
+        size_t propertyStorageSize() const { return m_propertyTable ? m_propertyTable->keyCount + m_deletedOffsets.size() : 0; }
 
+        size_t get(const Identifier& propertyName) const;
+        size_t get(const Identifier& propertyName, unsigned& attributes) const;
         void getEnumerablePropertyNames(ExecState*, PropertyNameArray&, JSObject*);
-        void clearEnumerationCache();
 
         bool hasGetterSetterProperties() const { return m_hasGetterSetterProperties; }
         void setHasGetterSetterProperties(bool hasGetterSetterProperties) { m_hasGetterSetterProperties = hasGetterSetterProperties; }
 
-    private:
-        typedef std::pair<RefPtr<UString::Rep>, unsigned> TransitionTableKey;
-        typedef HashMap<TransitionTableKey, StructureID*, TransitionTableHash, TransitionTableHashTraits> TransitionTable;
+        bool isEmpty() const { return !m_propertyTable; }
 
+    private:
         StructureID(JSValue* prototype, const TypeInfo&);
-        
+
+        size_t put(const Identifier& propertyName, unsigned attributes);
+        size_t remove(const Identifier& propertyName);
+        void getEnumerablePropertyNamesInternal(PropertyNameArray&) const;
+
+        void expandPropertyMapHashTable();
+        void rehashPropertyMapHashTable();
+        void rehashPropertyMapHashTable(unsigned newTableSize);
+        void createPropertyMapHashTable();
+        void insertIntoPropertyMapHashTable(const PropertyMapEntry&);
+        void checkConsistency();
+
+        PropertyMapHashTable* copyPropertyTable();
+
+        void clearEnumerationCache();
+
+        static const unsigned emptyEntryIndex = 0;
+    
         static const size_t s_maxTransitionLength = 64;
 
         TypeInfo m_typeInfo;
-
-        bool m_isDictionary;
-
-        bool m_hasGetterSetterProperties;
 
         JSValue* m_prototype;
         RefPtr<StructureIDChain> m_cachedPrototypeChain;
 
         RefPtr<StructureID> m_previous;
         UString::Rep* m_nameInPrevious;
-        unsigned m_attributesInPrevious;
 
         size_t m_transitionCount;
-        bool m_usingSingleTransitionSlot;
         union {
             StructureID* singleTransition;
-            TransitionTable* table;
+            StructureIDTransitionTable* table;
         } m_transitions;
 
         RefPtr<PropertyNameArrayData> m_cachedPropertyNameArrayData;
 
-        PropertyMap m_propertyMap;
+        PropertyMapHashTable* m_propertyTable;
+        Vector<unsigned> m_deletedOffsets;
+
         size_t m_propertyStorageCapacity;
 
         size_t m_cachedTransistionOffset;
+
+        bool m_isDictionary : 1;
+        bool m_hasGetterSetterProperties : 1;
+        bool m_usingSingleTransitionSlot : 1;
+        unsigned m_attributesInPrevious : 5;
     };
+
+    inline size_t StructureID::get(const Identifier& propertyName) const
+    {
+        ASSERT(!propertyName.isNull());
+
+        if (!m_propertyTable)
+            return WTF::notFound;
+
+        UString::Rep* rep = propertyName._ustring.rep();
+
+        unsigned i = rep->computedHash();
+
+#if DUMP_PROPERTYMAP_STATS
+        ++numProbes;
+#endif
+
+        unsigned entryIndex = m_propertyTable->entryIndices[i & m_propertyTable->sizeMask];
+        if (entryIndex == emptyEntryIndex)
+            return WTF::notFound;
+
+        if (rep == m_propertyTable->entries()[entryIndex - 1].key)
+            return m_propertyTable->entries()[entryIndex - 1].offset;
+
+#if DUMP_PROPERTYMAP_STATS
+        ++numCollisions;
+#endif
+
+        unsigned k = 1 | WTF::doubleHash(rep->computedHash());
+
+        while (1) {
+            i += k;
+
+#if DUMP_PROPERTYMAP_STATS
+            ++numRehashes;
+#endif
+
+            entryIndex = m_propertyTable->entryIndices[i & m_propertyTable->sizeMask];
+            if (entryIndex == emptyEntryIndex)
+                return WTF::notFound;
+
+            if (rep == m_propertyTable->entries()[entryIndex - 1].key)
+                return m_propertyTable->entries()[entryIndex - 1].offset;
+        }
+    }
 
     class StructureIDChain : public RefCounted<StructureIDChain> {
     public:

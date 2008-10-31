@@ -4,6 +4,7 @@ ENDIF (WEBKIT_USE_UCLIBC)
 
 INCLUDE (pcre/CMakeLists.txt)
 INCLUDE (API/CMakeLists.txt)
+INCLUDE (debugger/CMakeLists.txt)
 INCLUDE (kjs/CMakeLists.txt)
 INCLUDE (runtime/CMakeLists.txt)
 INCLUDE (profiler/CMakeLists.txt)
@@ -16,6 +17,7 @@ INCLUDE_DIRECTORIES (
     bindings
     bindings/bal
     bindings/c
+    debugger
     ForwardingHeaders
     kjs
     pcre
