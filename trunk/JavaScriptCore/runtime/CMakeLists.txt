@@ -47,4 +47,8 @@ LIST (APPEND JSCORE_SRC
     runtime/ObjectPrototype.cpp
     runtime/StringPrototype.cpp
     runtime/JSPropertyNameIterator.cpp
+    runtime/RegExpConstructor.cpp
+    runtime/RegExpObject.cpp
+    runtime/RegExpPrototype.cpp
+    runtime/StructureIDChain.cpp
 )

@@ -1,3 +1,33 @@
+2008-11-03  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - WebKit/win part of <rdar://problem/6334641> Add WebView SPI for disabling document.cookie
+
+        * Interfaces/IWebViewPrivate.idl:
+        * WebView.cpp:
+        (WebView::setCookieEnabled):
+        (WebView::cookieEnabled):
+        * WebView.h:
+
+2008-10-31  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WebKit Windows part of fix for <rdar://problem/5839256> FILE CONTROL: multi-file upload.
+        https://bugs.webkit.org/show_bug.cgi?id=22008
+        
+        * WebCoreSupport/WebChromeClient.cpp: (WebChromeClient::runOpenPanel): 
+        Add support for mulitple file selection.
+
+2008-10-31  Darin Adler  <darin@apple.com>
+
+        - try to fix build
+
+        * WebView.cpp:
+        (WebView::setCacheModel): Roll out the part of my last change
+        that involved no longer using wkCopyFoundationCacheDirectory.
+
 2008-10-31  Darin Adler  <darin@apple.com>
 
         Reviewed by Sam Weinig.

@@ -14,7 +14,6 @@ LIST (APPEND JSCORE_SRC
     kjs/JSGlobalData.cpp
     kjs/JSLock.cpp
     kjs/JSStaticScopeObject.cpp
-    kjs/LabelStack.cpp
     kjs/lexer.cpp
     kjs/lookup.cpp
     kjs/nodes.cpp
@@ -23,9 +22,6 @@ LIST (APPEND JSCORE_SRC
     kjs/Parser.cpp
     kjs/PropertyNameArray.cpp
     kjs/regexp.cpp
-    kjs/RegExpConstructor.cpp
-    kjs/RegExpObject.cpp
-    kjs/RegExpPrototype.cpp
     kjs/ScopeChain.cpp
     kjs/ustring.cpp
 )

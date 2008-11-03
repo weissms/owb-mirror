@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Nikolas Zimmermann <zimmermann@kde.org>
+ * Copyright (C) 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,46 +24,50 @@
  */
 
 #include "config.h"
+#include "StructureIDChain.h"
 
-#if ENABLE(SVG)
-#include "SVGElementInstance.h"
-#include "JSSVGElementInstance.h"
+#include "JSObject.h"
+#include "StructureID.h"
+#include <wtf/RefPtr.h>
 
-#include "JSEventListener.h"
-#include "JSDOMWindow.h"
+namespace JSC {
 
-using namespace JSC;
-
-namespace WebCore {
-
-JSValue* JSSVGElementInstance::addEventListener(ExecState* exec, const ArgList& args)
+StructureIDChain::StructureIDChain(StructureID* structureID)
 {
-    JSDOMGlobalObject* globalObject = toJSDOMGlobalObject(impl()->scriptExecutionContext());
-    if (!globalObject)
-        return jsUndefined();
+    size_t size = 1;
 
-    if (RefPtr<JSEventListener> listener = globalObject->findOrCreateJSEventListener(exec, args.at(exec, 1)))
-        impl()->addEventListener(args.at(exec, 0)->toString(exec), listener.release(), args.at(exec, 2)->toBoolean(exec));
+    StructureID* tmp = structureID;
+    while (!tmp->storedPrototype()->isNull()) {
+        ++size;
+        tmp = asCell(tmp->storedPrototype())->structureID();
+    }
+    
+    m_vector.set(new RefPtr<StructureID>[size + 1]);
 
-    return jsUndefined();
+    size_t i;
+    for (i = 0; i < size - 1; ++i) {
+        m_vector[i] = structureID;
+        structureID = asObject(structureID->storedPrototype())->structureID();
+    }
+    m_vector[i] = structureID;
+    m_vector[i + 1] = 0;
 }
 
-JSValue* JSSVGElementInstance::removeEventListener(ExecState* exec, const ArgList& args)
+bool structureIDChainsAreEqual(StructureIDChain* chainA, StructureIDChain* chainB)
 {
-    JSDOMGlobalObject* globalObject = toJSDOMGlobalObject(impl()->scriptExecutionContext());
-    if (!globalObject)
-        return jsUndefined();
+    if (!chainA || !chainB)
+        return false;
 
-    if (JSEventListener* listener = globalObject->findJSEventListener(args.at(exec, 1)))
-        impl()->removeEventListener(args.at(exec, 0)->toString(exec), listener, args.at(exec, 2)->toBoolean(exec));
-
-    return jsUndefined();
+    RefPtr<StructureID>* a = chainA->head();
+    RefPtr<StructureID>* b = chainB->head();
+    while (1) {
+        if (*a != *b)
+            return false;
+        if (!*a)
+            return true;
+        a++;
+        b++;
+    }
 }
 
-void JSSVGElementInstance::pushEventHandlerScope(ExecState*, ScopeChain&) const
-{
-}
-
-}
-
-#endif
+} // namespace JSC

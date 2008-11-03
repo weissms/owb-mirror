@@ -27,6 +27,7 @@
 #ifndef MessagePort_h
 #define MessagePort_h
 
+#include "AtomicStringHash.h"
 #include "EventListener.h"
 #include "EventTarget.h"
 
@@ -67,11 +68,9 @@ namespace WebCore {
         void unentangle();
 
         void contextDestroyed();
-        ScriptExecutionContext* scriptExecutionContext() { return m_scriptExecutionContext; }
+        virtual ScriptExecutionContext* scriptExecutionContext() const { return m_scriptExecutionContext; }
 
         virtual MessagePort* toMessagePort() { return this; }
-
-        virtual Frame* associatedFrame() const;
 
         void queueCloseEvent();
         void dispatchMessages();
@@ -81,7 +80,7 @@ namespace WebCore {
         virtual bool dispatchEvent(PassRefPtr<Event>, ExceptionCode&);
 
         typedef Vector<RefPtr<EventListener> > ListenerVector;
-        typedef HashMap<AtomicStringImpl*, ListenerVector> EventListenersMap;
+        typedef HashMap<AtomicString, ListenerVector> EventListenersMap;
         EventListenersMap& eventListeners() { return m_eventListeners; }
 
         using ThreadSafeShared<MessagePort>::ref;

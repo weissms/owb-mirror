@@ -78,9 +78,9 @@ EventTargetNode::~EventTargetNode()
     m_regdListeners = 0;
 }
 
-Frame* EventTargetNode::associatedFrame() const
+ScriptExecutionContext* EventTargetNode::scriptExecutionContext() const
 {
-    return document()->frame();
+    return document();
 }
 
 void EventTargetNode::insertedIntoDocument()

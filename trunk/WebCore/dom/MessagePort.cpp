@@ -81,13 +81,6 @@ MessagePort::~MessagePort()
         m_scriptExecutionContext->destroyedMessagePort(this);
 }
 
-Frame* MessagePort::associatedFrame() const
-{
-    if (!m_scriptExecutionContext || !m_scriptExecutionContext->isDocument())
-        return 0;
-    return static_cast<Document*>(m_scriptExecutionContext)->frame();
-}
-
 PassRefPtr<MessagePort> MessagePort::clone(ScriptExecutionContext* newOwner, ExceptionCode& ec)
 {
     if (!m_entangledPort) {
@@ -259,11 +252,11 @@ void MessagePort::dispatchCloseEvent()
 
 void MessagePort::addEventListener(const AtomicString& eventType, PassRefPtr<EventListener> eventListener, bool)
 {
-    EventListenersMap::iterator iter = m_eventListeners.find(eventType.impl());
+    EventListenersMap::iterator iter = m_eventListeners.find(eventType);
     if (iter == m_eventListeners.end()) {
         ListenerVector listeners;
         listeners.append(eventListener);
-        m_eventListeners.add(eventType.impl(), listeners);
+        m_eventListeners.add(eventType, listeners);
     } else {
         ListenerVector& listeners = iter->second;
         for (ListenerVector::iterator listenerIter = listeners.begin(); listenerIter != listeners.end(); ++listenerIter) {
@@ -272,13 +265,13 @@ void MessagePort::addEventListener(const AtomicString& eventType, PassRefPtr<Eve
         }
         
         listeners.append(eventListener);
-        m_eventListeners.add(eventType.impl(), listeners);
+        m_eventListeners.add(eventType, listeners);
     }    
 }
 
 void MessagePort::removeEventListener(const AtomicString& eventType, EventListener* eventListener, bool useCapture)
 {
-    EventListenersMap::iterator iter = m_eventListeners.find(eventType.impl());
+    EventListenersMap::iterator iter = m_eventListeners.find(eventType);
     if (iter == m_eventListeners.end())
         return;
     
@@ -298,7 +291,7 @@ bool MessagePort::dispatchEvent(PassRefPtr<Event> event, ExceptionCode& ec)
         return true;
     }
     
-    ListenerVector listenersCopy = m_eventListeners.get(event->type().impl());
+    ListenerVector listenersCopy = m_eventListeners.get(event->type());
     for (ListenerVector::const_iterator listenerIter = listenersCopy.begin(); listenerIter != listenersCopy.end(); ++listenerIter) {
         event->setTarget(this);
         event->setCurrentTarget(this);

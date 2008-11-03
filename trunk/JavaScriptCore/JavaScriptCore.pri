@@ -20,8 +20,8 @@ LUT_FILES += \
     runtime/StringPrototype.cpp \
     runtime/ArrayPrototype.cpp \
     runtime/MathObject.cpp \
-    kjs/RegExpConstructor.cpp \
-    kjs/RegExpObject.cpp
+    runtime/RegExpConstructor.cpp \
+    runtime/RegExpObject.cpp
 
 KEYWORDLUT_FILES += \
     kjs/keywords.table
@@ -107,7 +107,6 @@ SOURCES += \
     runtime/JSString.cpp \
     runtime/JSValue.cpp \
     runtime/JSWrapperObject.cpp \
-    kjs/LabelStack.cpp \
     kjs/lexer.cpp \
     kjs/lookup.cpp \
     runtime/MathObject.cpp \
@@ -126,15 +125,16 @@ SOURCES += \
     runtime/PropertySlot.cpp \
     runtime/PrototypeFunction.cpp \
     kjs/regexp.cpp \
-    kjs/RegExpConstructor.cpp \
-    kjs/RegExpObject.cpp \
-    kjs/RegExpPrototype.cpp \
+    runtime/RegExpConstructor.cpp \
+    runtime/RegExpObject.cpp \
+    runtime/RegExpPrototype.cpp \
     kjs/ScopeChain.cpp \
     runtime/SmallStrings.cpp \
     runtime/StringConstructor.cpp \
     runtime/StringObject.cpp \
     runtime/StringPrototype.cpp \
     runtime/StructureID.cpp \
+    runtime/StructureIDChain.cpp \
     kjs/ustring.cpp \
     profiler/HeavyProfile.cpp \
     profiler/Profile.cpp \

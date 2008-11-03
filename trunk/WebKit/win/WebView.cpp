@@ -105,6 +105,7 @@
 #include <CFNetwork/CFURLCachePriv.h>
 #include <CFNetwork/CFURLProtocolPriv.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include <WebKitSystemInterface/WebKitSystemInterface.h> 
 #include <wtf/HashSet.h>
 #include <dimm.h>
 #include <oleacc.h>
@@ -372,7 +373,7 @@ void WebView::setCacheModel(WebCacheModel cacheModel)
     RetainPtr<CFURLCacheRef> cfurlCache = CFURLCacheSharedURLCache();
 #endif
 
-    RetainPtr<CFStringRef> cfurlCacheDirectory(AdoptCF, _CFURLCacheCopyCacheDirectory(cfurlCache.get()));
+    RetainPtr<CFStringRef> cfurlCacheDirectory(AdoptCF, wkCopyFoundationCacheDirectory());
     if (!cfurlCacheDirectory)
         cfurlCacheDirectory.adoptCF(WebCore::localUserSpecificStorageDirectory().createCFString());
 
@@ -4939,6 +4940,27 @@ HRESULT STDMETHODCALLTYPE WebView::transparent(BOOL* transparent)
         return E_POINTER;
 
     *transparent = this->transparent() ? TRUE : FALSE;
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebView::setCookieEnabled(BOOL enable)
+{
+    if (!m_page)
+        return E_FAIL;
+
+    m_page->setCookieEnabled(enable);
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebView::cookieEnabled(BOOL* enabled)
+{
+    if (!enabled)
+        return E_POINTER;
+
+    if (!m_page)
+        return E_FAIL;
+
+    *enabled = m_page->cookieEnabled();
     return S_OK;
 }
 

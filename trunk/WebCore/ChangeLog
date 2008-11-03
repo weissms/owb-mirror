@@ -1,3 +1,270 @@
+2008-11-03  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22009
+        HTML5 Video with GStreamer pulls gnome-vfs without using it
+
+        * platform/graphics/gtk/MediaPlayerPrivateGStreamer.cpp:
+        Remove gnome-vfs include.
+
+2008-11-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Be sure to check the final URLs of requested resources to make sure we
+        don't get fooled by HTTP redirects.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21963
+
+        Tests: http/tests/security/xss-DENIED-xsl-document-redirect.xml
+               http/tests/security/xss-DENIED-xsl-external-entity-redirect.xml
+
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::openFunc):
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::canRequest):
+        (WebCore::DocLoader::requestResource):
+        * loader/DocLoader.h:
+        * xml/XSLTProcessor.cpp:
+        (WebCore::docLoaderFunc):
+
+2008-11-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22001
+        AtomicStringImpl* keys of event listener maps can outlive their strings
+
+        Test: fast/events/destroyed-atomic-string.html
+
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::addEventListener):
+        (WebCore::MessagePort::removeEventListener):
+        (WebCore::MessagePort::dispatchEvent):
+        * dom/MessagePort.h:
+        * loader/appcache/DOMApplicationCache.cpp:
+        (WebCore::DOMApplicationCache::addEventListener):
+        (WebCore::DOMApplicationCache::removeEventListener):
+        (WebCore::DOMApplicationCache::dispatchEvent):
+        * loader/appcache/DOMApplicationCache.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::addEventListener):
+        (WebCore::XMLHttpRequest::removeEventListener):
+        (WebCore::XMLHttpRequest::dispatchEvent):
+        * xml/XMLHttpRequest.h:
+        * xml/XMLHttpRequestUpload.cpp:
+        (WebCore::XMLHttpRequestUpload::addEventListener):
+        (WebCore::XMLHttpRequestUpload::removeEventListener):
+        (WebCore::XMLHttpRequestUpload::dispatchEvent):
+        * xml/XMLHttpRequestUpload.h:
+        Changed EventListenersMap to use AtomicString as key (instead of AtomicStringImpl*).
+
+2008-10-31  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21998
+        Use JSDOMGlobalObject in EventListener-related bindings
+
+        * dom/MessagePort.idl: Auto-generate bindings for onclose and onmessage.
+
+        * bindings/scripts/CodeGeneratorJS.pm: Use JSDOMGlobalObject instead of JSDOMWindow in JS
+        bindings for inline event handlers.
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::addEventListener):
+        (WebCore::JSDOMApplicationCache::removeEventListener):
+        * bindings/js/JSEventTargetNodeCustom.cpp:
+        (WebCore::JSEventTargetNode::addEventListener):
+        (WebCore::JSEventTargetNode::removeEventListener):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::removeEventListener):
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::addEventListener):
+        (WebCore::JSSVGElementInstance::removeEventListener):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::addEventListener):
+        (WebCore::JSXMLHttpRequest::removeEventListener):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::addEventListener):
+        (WebCore::JSXMLHttpRequestUpload::removeEventListener):
+        Use ScriptExecutionContext and JSDOMGlobalObject in bindings.
+
+        * dom/EventTarget.h:
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::scriptExecutionContext):
+        * dom/EventTargetNode.h:
+        * dom/MessagePort.cpp:
+        * dom/MessagePort.h:
+        (WebCore::MessagePort::scriptExecutionContext):
+        * loader/appcache/DOMApplicationCache.cpp:
+        (WebCore::DOMApplicationCache::scriptExecutionContext):
+        * loader/appcache/DOMApplicationCache.h:
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::scriptExecutionContext):
+        * svg/SVGElementInstance.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::scriptExecutionContext):
+        * xml/XMLHttpRequest.h:
+        * xml/XMLHttpRequestUpload.cpp:
+        (WebCore::XMLHttpRequestUpload::scriptExecutionContext):
+        * xml/XMLHttpRequestUpload.h:
+        Remove associatedFrame() method, and provide scriptExecutionContext() where it wasn't
+        available yet.
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        Rename SourceRange.h to SourceCode.h.
+
+        * ForwardingHeaders/kjs/SourceCode.h: Copied from ForwardingHeaders/kjs/SourceRange.h.
+        * ForwardingHeaders/kjs/SourceRange.h: Removed.
+        * bindings/js/StringSourceProvider.h:
+        * bridge/NP_jsobject.cpp:
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 22019: Move JSC::Interpreter::shouldPrintExceptions() to WebCore::Console
+        <https://bugs.webkit.org/show_bug.cgi?id=22019>
+
+        * WebCore.base.exp:
+        * page/Console.cpp:
+        (WebCore::printToStandardOut):
+        (WebCore::Console::shouldPrintExceptions):
+        (WebCore::Console::setShouldPrintExceptions):
+        * page/Console.h:
+
+2008-10-31  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - WebCore part of <rdar://problem/6334641> Add WebView SPI for disabling document.cookie
+
+        * dom/Document.cpp:
+        (WebCore::Document::cookie): Added checking if cookies are disabled.
+        (WebCore::Document::setCookie): Ditto.
+        * page/Navigator.cpp:
+        (WebCore::Navigator::cookieEnabled): Ditto.
+        * page/Page.cpp:
+        (WebCore::Page::Page): Initialize m_cookieEnabled to true.
+        * page/Page.h:
+        (WebCore::Page::cookieEnabled): Added.
+        (WebCore::Page::setCookieEnabled): Added.
+
+2008-10-31  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WebCore Windows part of fix for <rdar://problem/5839256> FILE CONTROL: multi-file upload.
+        https://bugs.webkit.org/show_bug.cgi?id=22008
+
+        * platform/FileChooser.cpp: (WebCore::FileChooser::chooseIcon): 
+        Rename newIconForFile and newIconForFiles to createIconForFile and createIconForFiles.
+        * platform/graphics/Icon.h: ditto.
+        * platform/graphics/gtk/IconGtk.cpp:
+        (WebCore::Icon::createIconForFile): ditto.
+        (WebCore::Icon::createIconForFiles): ditto.
+        * platform/graphics/mac/IconMac.mm:
+        (WebCore::Icon::createIconForFile): ditto.
+        (WebCore::Icon::createIconForFiles): ditto.
+        * platform/graphics/qt/IconQt.cpp:
+        (WebCore::Icon::createIconForFile): ditto.
+        (WebCore::Icon::createIconForFiles): ditto.
+        * platform/wx/TemporaryLinkStubs.cpp:
+        (Icon::createIconForFile): ditto.
+        (Icon::createIconForFiles): ditto.
+        * platform/graphics/win/IconWin.cpp:
+        (WebCore::Icon::createIconForFile): ditto.
+        (WebCore::Icon::createIconForFiles): Add creation of an icon for multiple files.
+
+        * rendering/RenderThemeWin.cpp: (WebCore::RenderThemeWin::paintSearchFieldResultsDecoration):        
+        Improve icon creation code to match new code in Icon::createIconForFiles
+        
+2008-10-31  Timothy Hatcher  <timothy@apple.com>
+
+        Add manual tests that check breakpoints on a blockless body of "for" loops.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22004
+
+        Reviewed by Darin Adler.
+
+        * manual-tests/inspector/debugger-pause-on-for-in-statements.html: Added.
+        * manual-tests/inspector/debugger-pause-on-for-statements.html: Added.
+
+2008-10-31  Darin Adler  <darin@apple.com>
+
+        - fix build
+
+        * platform/win/WCDataObject.cpp: Added missing include of "config.h".
+
+2008-10-30  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21970
+        Make MessagePort event dispatch work in workers
+
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::JSDOMGlobalObjectData::JSDOMGlobalObjectData):
+        (WebCore::JSDOMGlobalObject::~JSDOMGlobalObject):
+        (WebCore::JSDOMGlobalObject::findJSEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSEventListener):
+        (WebCore::JSDOMGlobalObject::findJSUnprotectedEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSUnprotectedEventListener):
+        (WebCore::JSDOMGlobalObject::jsEventListeners):
+        (WebCore::JSDOMGlobalObject::jsInlineEventListeners):
+        (WebCore::JSDOMGlobalObject::jsUnprotectedEventListeners):
+        (WebCore::JSDOMGlobalObject::jsUnprotectedInlineEventListeners):
+        (WebCore::JSDOMGlobalObject::setCurrentEvent):
+        (WebCore::JSDOMGlobalObject::currentEvent):
+        (WebCore::toJSDOMGlobalObject):
+        * bindings/js/JSDOMGlobalObject.h:
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::JSDOMWindowBaseData::JSDOMWindowBaseData):
+        (WebCore::JSDOMWindowBase::~JSDOMWindowBase):
+        (WebCore::JSDOMWindowBase::clearHelperObjectProperties):
+        * bindings/js/JSDOMWindowBase.h:
+        Moved event listener tracking from JSDOMWindow to JSDOMGlobalObject.
+
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        (WebCore::JSUnprotectedEventListener::JSUnprotectedEventListener):
+        (WebCore::JSUnprotectedEventListener::~JSUnprotectedEventListener):
+        (WebCore::JSUnprotectedEventListener::globalObject):
+        (WebCore::JSUnprotectedEventListener::clearGlobalObject):
+        (WebCore::JSEventListener::JSEventListener):
+        (WebCore::JSEventListener::~JSEventListener):
+        (WebCore::JSEventListener::globalObject):
+        (WebCore::JSEventListener::clearGlobalObject):
+        (WebCore::JSLazyEventListener::JSLazyEventListener):
+        (WebCore::JSLazyEventListener::parseCode):
+        * bindings/js/JSEventListener.h:
+        (WebCore::JSUnprotectedEventListener::create):
+        (WebCore::JSEventListener::create):
+        (WebCore::JSLazyEventListener::create):
+        Changed to use JSDOMGlobalObject and ScriptExecutionContext.
+
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::startConversation):
+        (WebCore::JSMessagePort::addEventListener):
+        (WebCore::JSMessagePort::removeEventListener):
+        (WebCore::JSMessagePort::setOnmessage):
+        (WebCore::JSMessagePort::setOnclose):
+        Updated bindings to work with JSDOMGlobalObject. Next step is to make code generator emit
+        such code, and stop using a custom implementation for JSMessagePort inline event handler
+        getters and setters.
+
+        * dom/Document.cpp:
+        (WebCore::Document::virtualURL):
+        * dom/Document.h:
+        * dom/ScriptExecutionContext.h:
+        Expose url() method on ScriptExecutionContext (necessary for compiling scripts in
+        JSLazyEventListener).
+
 2008-10-31  Cameron Zwarich  <zwarich@apple.com>
 
         Not reviewed.

@@ -753,6 +753,22 @@ String WebView::standardUserAgentWithApplicationName(const String& applicationNa
 #endif
 }
 
+void WebView::setCookieEnabled(bool enable)
+{
+    if (!m_page)
+        return;
+
+    m_page->setCookieEnabled(enable);
+}
+
+bool WebView::cookieEnabled()
+{
+    if (!m_page)
+        return false;
+
+    return m_page->cookieEnabled();
+}
+
 Page* WebView::page()
 {
     return m_page;

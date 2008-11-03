@@ -61,7 +61,6 @@ Source files for JSCore.
         kjs/JSGlobalData.cpp
         kjs/JSLock.cpp
         kjs/JSStaticScopeObject.cpp
-        kjs/LabelStack.cpp
         kjs/lexer.cpp
         kjs/lookup.cpp
         kjs/nodes.cpp
@@ -70,9 +69,6 @@ Source files for JSCore.
         kjs/Parser.cpp
         kjs/PropertyNameArray.cpp
         kjs/regexp.cpp
-        kjs/RegExpConstructor.cpp
-        kjs/RegExpObject.cpp
-        kjs/RegExpPrototype.cpp
         kjs/ScopeChain.cpp
         kjs/ustring.cpp
     </set>
@@ -135,11 +131,15 @@ Source files for JSCore.
         runtime/ObjectPrototype.cpp
         runtime/PropertySlot.cpp
         runtime/PrototypeFunction.cpp
+        runtime/RegExpConstructor.cpp
+        runtime/RegExpObject.cpp
+        runtime/RegExpPrototype.cpp
         runtime/SmallStrings.cpp
         runtime/StringConstructor.cpp
         runtime/StringObject.cpp
         runtime/StringPrototype.cpp
         runtime/StructureID.cpp
+        runtime/StructureIDChain.cpp
     </set>
     <set append="1" var="JSCORE_VM_SOURCES">
         VM/CodeBlock.cpp

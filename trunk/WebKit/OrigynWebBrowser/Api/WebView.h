@@ -69,6 +69,7 @@ class WebScriptObject;
 class WebViewPrivate;
 class WebView;
 
+
     /**
      * get a webview from page
      */
@@ -996,6 +997,15 @@ public:
      */
     virtual bool defersCallbacks();
 
+    /**
+     * set whether cookies are enabled.
+     */
+    void setCookieEnabled(bool enable);
+
+    /**
+     * get whether cookies are enabled.
+     */
+    bool cookieEnabled();
 
     /**
      * get page 

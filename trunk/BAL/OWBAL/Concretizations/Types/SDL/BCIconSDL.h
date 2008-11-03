@@ -47,8 +47,8 @@ public:
     Icon();
     ~Icon();
     
-    static PassRefPtr<Icon> newIconForFile(const String& filename);
-    static PassRefPtr<Icon> newIconForFiles(const Vector<String>& filenames);
+    static PassRefPtr<Icon> createIconForFile(const String& filename);
+    static PassRefPtr<Icon> createIconForFiles(const Vector<String>& filenames);
 
     void paint(GraphicsContext*, const IntRect&);
 

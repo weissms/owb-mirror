@@ -1,3 +1,314 @@
+2008-11-03  Matt Lilek  <webkit@mattlilek.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 22042: REGRESSION(r38066): ASSERTION FAILED: source in CodeBlock
+        <https://bugs.webkit.org/show_bug.cgi?id=22042>
+
+        Rename parameter name to avoid ASSERT.
+
+        * VM/CodeBlock.h:
+        (JSC::CodeBlock::CodeBlock):
+        (JSC::ProgramCodeBlock::ProgramCodeBlock):
+        (JSC::EvalCodeBlock::EvalCodeBlock):
+
+2008-11-02  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 22035: Remove the '_' suffix on constructor parameter names for structs
+        <https://bugs.webkit.org/show_bug.cgi?id=22035>
+
+        * API/JSCallbackObject.h:
+        (JSC::JSCallbackObject::JSCallbackObjectData::JSCallbackObjectData):
+        * VM/CodeBlock.h:
+        (JSC::CodeBlock::CodeBlock):
+        (JSC::ProgramCodeBlock::ProgramCodeBlock):
+        (JSC::EvalCodeBlock::EvalCodeBlock):
+        * wrec/WREC.h:
+        (JSC::Quantifier::Quantifier):
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Geoff Garen.
+
+        Rename SourceRange.h to SourceCode.h.
+
+        * API/JSBase.cpp:
+        * GNUmakefile.am:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * VM/CodeBlock.h:
+        * kjs/SourceCode.h: Copied from kjs/SourceRange.h.
+        * kjs/SourceRange.h: Removed.
+        * kjs/grammar.y:
+        * kjs/lexer.h:
+        * kjs/nodes.cpp:
+        (JSC::ForInNode::ForInNode):
+        * kjs/nodes.h:
+        (JSC::ThrowableExpressionData::setExceptionSourceCode):
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 22019: Move JSC::Interpreter::shouldPrintExceptions() to WebCore::Console
+        <https://bugs.webkit.org/show_bug.cgi?id=22019>
+
+        The JSC::Interpreter::shouldPrintExceptions() function is not used at
+        all in JavaScriptCore, so it should be moved to WebCore::Console, its
+        only user.
+
+        * JavaScriptCore.exp:
+        * kjs/interpreter.cpp:
+        * kjs/interpreter.h:
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Remove the call to Interpreter::setShouldPrintExceptions() from the
+        GlobalObject constructor in the shell. The shouldPrintExceptions()
+        information is not used anywhere in JavaScriptCore, only in WebCore.
+
+        * kjs/Shell.cpp:
+        (GlobalObject::GlobalObject):
+
+2008-10-31  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wxMSW build fix.
+
+        * wtf/Threading.h:
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Move more files from the kjs subdirectory of JavaScriptCore to the
+        runtime subdirectory.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/RegExpConstructor.cpp: Removed.
+        * kjs/RegExpConstructor.h: Removed.
+        * kjs/RegExpMatchesArray.h: Removed.
+        * kjs/RegExpObject.cpp: Removed.
+        * kjs/RegExpObject.h: Removed.
+        * kjs/RegExpPrototype.cpp: Removed.
+        * kjs/RegExpPrototype.h: Removed.
+        * runtime/RegExpConstructor.cpp: Copied from kjs/RegExpConstructor.cpp.
+        * runtime/RegExpConstructor.h: Copied from kjs/RegExpConstructor.h.
+        * runtime/RegExpMatchesArray.h: Copied from kjs/RegExpMatchesArray.h.
+        * runtime/RegExpObject.cpp: Copied from kjs/RegExpObject.cpp.
+        * runtime/RegExpObject.h: Copied from kjs/RegExpObject.h.
+        * runtime/RegExpPrototype.cpp: Copied from kjs/RegExpPrototype.cpp.
+        * runtime/RegExpPrototype.h: Copied from kjs/RegExpPrototype.h.
+
+2008-10-31  Mark Rowe  <mrowe@apple.com>
+
+        Revert an incorrect portion of r38034.
+
+        * profiler/ProfilerServer.mm:
+
+2008-10-31  Mark Rowe  <mrowe@apple.com>
+
+        Fix the 64-bit build.
+
+        Disable strict aliasing in ProfilerServer.mm as it leads to the compiler being unhappy
+        with the common Obj-C idiom self = [super init];
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Change a header guard to match our coding style.
+
+        * kjs/InitializeThreading.h:
+
+2008-10-30  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+        
+        Fixed a small bit of https://bugs.webkit.org/show_bug.cgi?id=21962
+        AST uses way too much memory
+        
+        Removed a word from StatementNode by nixing LabelStack and turning it
+        into a compile-time data structure managed by CodeGenerator.
+        
+        v8 tests and SunSpider, run by Gavin, report no change.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.order:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/AllInOneFile.cpp:
+        * JavaScriptCoreSources.bkl: I sure hope this builds!
+        
+        * VM/CodeGenerator.cpp:
+        (JSC::CodeGenerator::CodeGenerator):
+        (JSC::CodeGenerator::newLabelScope):
+        (JSC::CodeGenerator::breakTarget):
+        (JSC::CodeGenerator::continueTarget):
+        * VM/CodeGenerator.h: Nixed the JumpContext system because it depended
+        on a LabelStack in the AST, and it was a little cumbersome on the client
+        side. Replaced with LabelScope, which tracks all break / continue
+        information in the CodeGenerator, just like we track LabelIDs and other
+        stacks of compile-time data.
+
+        * kjs/LabelScope.h: Added.
+        (JSC::LabelScope::):
+        (JSC::LabelScope::LabelScope):
+        (JSC::LabelScope::ref):
+        (JSC::LabelScope::deref):
+        (JSC::LabelScope::refCount):
+        (JSC::LabelScope::breakTarget):
+        (JSC::LabelScope::continueTarget):
+        (JSC::LabelScope::type):
+        (JSC::LabelScope::name):
+        (JSC::LabelScope::scopeDepth): Simple abstraction for holding everything
+        you might want to know about a break-able / continue-able scope.
+
+        * kjs/LabelStack.cpp: Removed.
+        * kjs/LabelStack.h: Removed.
+
+        * kjs/grammar.y: No need to push labels at parse time -- we don't store
+        LabelStacks in the AST anymore.
+
+        * kjs/nodes.cpp:
+        (JSC::DoWhileNode::emitCode):
+        (JSC::WhileNode::emitCode):
+        (JSC::ForNode::emitCode):
+        (JSC::ForInNode::emitCode):
+        (JSC::ContinueNode::emitCode):
+        (JSC::BreakNode::emitCode):
+        (JSC::SwitchNode::emitCode):
+        (JSC::LabelNode::emitCode):
+        * kjs/nodes.h:
+        (JSC::StatementNode::):
+        (JSC::LabelNode::): Use LabelScope where we used to use JumpContext.
+        Simplified a bunch of code. Touched up label-related error messages a
+        bit.
+
+        * kjs/nodes2string.cpp:
+        (JSC::LabelNode::streamTo): Updated for rename.
+
+2008-10-31  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 22005: Move StructureIDChain into its own file
+        <https://bugs.webkit.org/show_bug.cgi?id=22005>
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * runtime/StructureID.cpp:
+        * runtime/StructureID.h:
+        * runtime/StructureIDChain.cpp: Copied from runtime/StructureID.cpp.
+        * runtime/StructureIDChain.h: Copied from runtime/StructureID.h.
+
+2008-10-31  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix.
+
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj:
+
+2008-10-31  Steve Falkenburg  <sfalken@apple.com>
+
+        Build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2008-10-31  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - fix storage leak seen on buildbot
+
+        Some other cleanup too. The storage leak was caused by the fact
+        that HashTraits<CallIdentifier>::needsDestruction was false, so
+        the call identifier objects didn't get deleted.
+
+        * profiler/CallIdentifier.h:
+        
+        Added a default constructor to create empty call identifiers.
+
+        Changed the normal constructor to use const UString&
+        to avoid extra copying and reference count thrash.
+        
+        Removed the explicit copy constructor definition, since it's what
+        the compiler will automatically generate. (Rule of thumb: Either
+        you need both a custom copy constructor and a custom assignment
+        operator, or neither.)
+
+        Moved the CallIdentifier hash function out of the WTF namespace;
+        there's no reason to put it there.
+
+        Changed the CallIdentifier hash function to be a struct rather than
+        a specialization of the IntHash struct template. Having it be
+        a specialization made no sense, since CallIdentifier is not an integer,
+        and did no good.
+
+        Removed explicit definition of emptyValueIsZero in the hash traits,
+        since inheriting from GenericHashTraits already makes that false.
+
+        Removed explicit definition of emptyValue, instead relying on the
+        default constructor and GenericHashTraits.
+
+        Removed explicit definition of needsDestruction, because we want it
+        to have its default value: true, not false. This fixes the leak!
+
+        Changed constructDeletedValue and isDeletedValue to use a line number
+        of numeric_limits<unsigned>::max() to indicate a value is deleted.
+        Previously this used empty strings for the empty value and null strings
+        for the deleted value, but it's more efficient to use null for both.
+
+2008-10-31  Timothy Hatcher  <timothy@apple.com>
+
+        Emit the WillExecuteStatement debugger hook before the for loop body
+        when the statement node for the body isn't a block. This allows
+        breakpoints on those statements in the Web Inspector.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22004
+
+        Reviewed by Darin Adler.
+
+        * kjs/nodes.cpp:
+        (JSC::ForNode::emitCode): Emit the WillExecuteStatement
+        debugger hook before the statement node if isn't a block.
+        Also emit the WillExecuteStatement debugger hook for the
+        loop as the first op-code.
+        (JSC::ForInNode::emitCode): Ditto.
+
+2008-10-31  Timothy Hatcher  <timothy@apple.com>
+
+        Fixes console warnings about not having an autorelease pool.
+        Also fixes the build for Snow Leopard, by including individual
+        Foundation headers instead of Foundation.h.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21995
+
+        Reviewed by Oliver Hunt.
+
+        * profiler/ProfilerServer.mm:
+        (-[ProfilerServer init]): Create a NSAutoreleasePool and drain it.
+
 2008-10-31  Cameron Zwarich  <zwarich@apple.com>
 
         Not reviewed.

@@ -234,6 +234,7 @@
 ../../OWBAL/Skeletons/Internationalization	../../../WebCore/platform/LocalizedStrings.h
 ../../OWBAL/Skeletons/Internationalization	../../../WebCore/platform/text/AtomicString.h
 ../../OWBAL/Skeletons/Internationalization	../../../WebCore/platform/text/AtomicStringImpl.h
+../../OWBAL/Skeletons/Internationalisation	../../../WebCore/platform/text/AtomicStringHash.h
 ../../OWBAL/Skeletons/Internationalization	../../../WebCore/platform/text/Base64.h
 ../../OWBAL/Skeletons/Internationalization	../../../WebCore/platform/text/BidiContext.h
 ../../OWBAL/Skeletons/Internationalization	../../../WebCore/platform/text/BidiResolver.h
@@ -268,6 +269,7 @@
 ../../OWBAL/Concretizations/Internationalization/WK	../../../WebCore/platform/text/AtomicString.h
 ../../OWBAL/Concretizations/Internationalization/WK	../../../WebCore/platform/text/AtomicString.cpp
 ../../OWBAL/Concretizations/Internationalization/WK	../../../WebCore/platform/text/AtomicStringImpl.h
+../../OWBAL/Concretizations/Internationalization/WK	../../../WebCore/platform/text/AtomicStringHash.h
 ../../OWBAL/Concretizations/Internationalization/WK	../../../WebCore/platform/text/Base64.h
 ../../OWBAL/Concretizations/Internationalization/WK	../../../WebCore/platform/text/Base64.cpp
 ../../OWBAL/Concretizations/Internationalization/WK	../../../WebCore/platform/text/BidiContext.h

@@ -198,13 +198,6 @@ Document* XMLHttpRequest::document() const
     return static_cast<Document*>(scriptExecutionContext());
 }
 
-Frame* XMLHttpRequest::associatedFrame() const
-{
-    if (!document())
-        return 0;
-    return document()->frame();
-}
-
 XMLHttpRequest::State XMLHttpRequest::readyState() const
 {
     return m_state;
@@ -251,11 +244,11 @@ XMLHttpRequestUpload* XMLHttpRequest::upload()
 
 void XMLHttpRequest::addEventListener(const AtomicString& eventType, PassRefPtr<EventListener> eventListener, bool)
 {
-    EventListenersMap::iterator iter = m_eventListeners.find(eventType.impl());
+    EventListenersMap::iterator iter = m_eventListeners.find(eventType);
     if (iter == m_eventListeners.end()) {
         ListenerVector listeners;
         listeners.append(eventListener);
-        m_eventListeners.add(eventType.impl(), listeners);
+        m_eventListeners.add(eventType, listeners);
     } else {
         ListenerVector& listeners = iter->second;
         for (ListenerVector::iterator listenerIter = listeners.begin(); listenerIter != listeners.end(); ++listenerIter)
@@ -263,13 +256,13 @@ void XMLHttpRequest::addEventListener(const AtomicString& eventType, PassRefPtr<
                 return;
         
         listeners.append(eventListener);
-        m_eventListeners.add(eventType.impl(), listeners);
+        m_eventListeners.add(eventType, listeners);
     }
 }
 
 void XMLHttpRequest::removeEventListener(const AtomicString& eventType, EventListener* eventListener, bool)
 {
-    EventListenersMap::iterator iter = m_eventListeners.find(eventType.impl());
+    EventListenersMap::iterator iter = m_eventListeners.find(eventType);
     if (iter == m_eventListeners.end())
         return;
 
@@ -289,7 +282,7 @@ bool XMLHttpRequest::dispatchEvent(PassRefPtr<Event> evt, ExceptionCode& ec)
         return true;
     }
 
-    ListenerVector listenersCopy = m_eventListeners.get(evt->type().impl());
+    ListenerVector listenersCopy = m_eventListeners.get(evt->type());
     for (ListenerVector::const_iterator listenerIter = listenersCopy.begin(); listenerIter != listenersCopy.end(); ++listenerIter) {
         evt->setTarget(this);
         evt->setCurrentTarget(this);
@@ -1321,6 +1314,11 @@ void XMLHttpRequest::contextDestroyed()
 {
     ActiveDOMObject::contextDestroyed();
     internalAbort();
+}
+
+ScriptExecutionContext* XMLHttpRequest::scriptExecutionContext() const
+{
+    return ActiveDOMObject::scriptExecutionContext();
 }
 
 } // namespace WebCore 

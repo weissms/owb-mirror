@@ -25,16 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
-#ifndef InitializeThreading_h
-#define InitializeThreading_h
 
-namespace JSC {
+#ifndef AtomicStringHash_h
+#define AtomicStringHash_h
 
-    // This function must be called from the main thread. It is safe to call it repeatedly.
-    // Darwin is an exception to this rule: it is OK to call this function from any thread, even reentrantly.
-    void initializeThreading();
+#include "AtomicString.h"
+#include <wtf/HashTraits.h>
+
+namespace OWBAL {
+
+    struct AtomicStringHash {
+        static unsigned hash(const AtomicString& key)
+        {
+            return key.impl()->existingHash();
+        }
+
+        static bool equal(const AtomicString& a, const AtomicString& b)
+        {
+            return a == b;
+        }
+
+        static const bool safeToCompareToEmptyOrDeleted = false;
+    };
 
 }
 
-#endif // InitializeThreading_h
+namespace WTF {
+
+    // WebCore::AtomicStringHash is the default hash for AtomicString
+    template<> struct HashTraits<WebCore::AtomicString> : GenericHashTraits<WebCore::AtomicString> {
+        static const bool emptyValueIsZero = true;
+        static void constructDeletedValue(WebCore::AtomicString& slot) { new (&slot) WebCore::AtomicString(HashTableDeletedValue); }
+        static bool isDeletedValue(const WebCore::AtomicString& slot) { return slot.isHashTableDeletedValue(); }
+    };
+
+}
+
+#endif

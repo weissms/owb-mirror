@@ -123,6 +123,7 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_tabKeyCyclesThroughElements(true)
     , m_defersLoading(false)
     , m_inLowQualityInterpolationMode(false)
+    , m_cookieEnabled(true)
 #if ENABLE(INSPECTOR)
     , m_parentInspectorController(0)
 #endif

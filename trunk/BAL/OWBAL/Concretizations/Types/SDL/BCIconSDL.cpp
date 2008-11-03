@@ -51,13 +51,13 @@ Icon::~Icon()
 }
 
 
-PassRefPtr<Icon> Icon::newIconForFile(const String& filename)
+PassRefPtr<Icon> Icon::createIconForFile(const String& filename)
 {
     printf("Icon::newIconForFile()\n");
     return 0;
 }
 
-PassRefPtr<Icon> Icon::newIconForFiles(const Vector<String>& filenames)
+PassRefPtr<Icon> Icon::createIconForFiles(const Vector<String>& filenames)
 {
     printf("Icon::newIconForFiles()\n");
     return 0;
