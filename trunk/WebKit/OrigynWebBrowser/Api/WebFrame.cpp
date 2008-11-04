@@ -1530,8 +1530,8 @@ void WebFrame::addToJSWindowObject(const char* name, void *object)
     // we want to put custom properties here, so get global object directly
     JSC::JSGlobalObject* global = core(this)->script()->globalObject();
     // root must be valid! if not create it
-//    if (!root)
-//    	root = JSC::Bindings::RootObject::create(window, global);
+    if (!root)
+    	root = JSC::Bindings::RootObject::create(window, global);
     JSC::ExecState* exec = global->globalExec();
     JSC::PropertySlot pr;
 
