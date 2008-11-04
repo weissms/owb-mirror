@@ -191,8 +191,8 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     // Calculate the enclosing box height and width.
     uint16_t height = yMax - yMin;
     // FIXME: It should be xMax - xMin but with it, we would assert in acid3.
-    uint16_t width = xMin < 0 ? xMax : xMax + xMin;
-    
+    uint16_t width = xMin < 0 ? xMax + 1 : xMax + xMin;
+
     Vector<unsigned>* glyphRGBABuffer = new Vector<unsigned>(width * height);
     glyphRGBABuffer->fill(0);
 

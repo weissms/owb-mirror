@@ -49,7 +49,7 @@ Vector<char> loadResourceIntoArray(const char* name)
     fullPath += name;
     fullPath += extension;
     
-    static PassRefPtr<WebCore::SharedBuffer> buffer = WebCore::SharedBuffer::createWithContentsOfFile(fullPath);
+    RefPtr<WebCore::SharedBuffer> buffer = WebCore::SharedBuffer::createWithContentsOfFile(fullPath);
     Vector<char> array;
     if (buffer)
         array = buffer.get()->buffer();
