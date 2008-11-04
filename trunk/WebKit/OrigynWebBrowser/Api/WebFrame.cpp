@@ -88,13 +88,14 @@
 #include "runtime_object.h"
 #include "ExecState.h"
 #include "JSGlobalObject.h"
+#include "JSLock.h"
 #include "JSObject.h"
 #include "JSDOMWindowBase.h"
 #include "JSDOMWindow.h"
 #include "bal_object.h"
-#ifdef __BINDING_JS__ 
-#include "BindingJS.h" 
-#endif 
+#ifdef __BINDING_JS__
+#include "BindingJS.h"
+#endif
 
 using namespace WebCore;
 
@@ -147,7 +148,7 @@ Frame* core(const WebFrame* webFrame)
 
 class WebFrame::WebFramePrivate {
 public:
-    WebFramePrivate() 
+    WebFramePrivate()
         : frame(0)
         , webView(0)
         , m_policyFunction(0)
@@ -156,7 +157,7 @@ public:
         DS_CONSTRUCT();
     }
 
-    ~WebFramePrivate() 
+    ~WebFramePrivate()
     {
         webView = 0;
         delete m_policyListener;
@@ -178,23 +179,20 @@ WebFrame::WebFrame()
     , m_quickRedirectComing(false)
     , m_inPrintingMode(false)
     , m_pageHeight(0)
-// #ifdef __BINDING_JS__
-//     , m_bindingJS(new BindingJS())
-// #endif
 {
     DS_CONSTRUCT();
 #ifdef __BINDING_JS__
     m_bindingJS = new BindingJS(this);
 #endif
-    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(this)); 
-    OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this)); 
+    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(this));
+    OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this));
 }
 
 WebFrame::~WebFrame()
 {
     OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", static_cast<ObserverAddons*>(this));
-    OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this));  
-#ifdef __BINDING_JS__ 
+    OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(this));
+#ifdef __BINDING_JS__
     if (m_bindingJS)
         delete m_bindingJS;
     m_bindingJS = 0;
@@ -661,7 +659,7 @@ HRESULT WebFrame::searchForLabelsBeforeElement(const BSTR* labels, int cLabels, 
         return E_FAIL;
 
     String label = coreFrame->searchForLabelsBeforeElement(labelStrings, coreElement);
-    
+
     *result = SysAllocStringLen(label.characters(), label.length());
     if (label.length() && !*result)
         return E_OUTOFMEMORY;
@@ -694,7 +692,7 @@ HRESULT WebFrame::matchLabelsAgainstElement(const BSTR* labels, int cLabels, IDO
         return E_FAIL;
 
     String label = coreFrame->matchLabelsAgainstElement(labelStrings, coreElement);
-    
+
     *result = SysAllocStringLen(label.characters(), label.length());
     if (label.length() && !*result)
         return E_OUTOFMEMORY;
@@ -1112,12 +1110,12 @@ void WebFrame::windowObjectCleared()
 //     COMPtr<IWebFrameLoadDelegate> frameLoadDelegate;
 //     if (SUCCEEDED(d->webView->frameLoadDelegate(&frameLoadDelegate))) {
 //         COMPtr<IWebFrameLoadDelegate2> frameLoadDelegate2(Query, frameLoadDelegate);
-// 
+//
 //         JSContextRef context = toRef(coreFrame->scriptProxy()->globalObject()->globalExec());
 //         JSObjectRef windowObject = toRef(coreFrame->scriptProxy()->globalObject());
 //         ASSERT(windowObject);
-// 
-//         if (!frameLoadDelegate2 || 
+//
+//         if (!frameLoadDelegate2 ||
 //             FAILED(frameLoadDelegate2->didClearWindowObject(d->webView, context, windowObject, this)))
 //             frameLoadDelegate->windowScriptObjectAvailable(d->webView, context, windowObject);
 //     }
@@ -1134,7 +1132,7 @@ void WebFrame::didPerformFirstNavigation() const
         return;
 
     bool automaticallyDetectsCacheModel = preferences->automaticallyDetectsCacheModel();
-    
+
     WebCacheModel cacheModel = preferences->cacheModel();
 
     if (automaticallyDetectsCacheModel && cacheModel < WebCacheModelDocumentBrowser)
@@ -1150,7 +1148,7 @@ void WebFrame::registerForIconNotification(bool listen)
 
 /*static IntRect printerRect(HDC printDC)
 {
-    return IntRect(0, 0, 
+    return IntRect(0, 0,
                    GetDeviceCaps(printDC, PHYSICALWIDTH)  - 2 * GetDeviceCaps(printDC, PHYSICALOFFSETX),
                    GetDeviceCaps(printDC, PHYSICALHEIGHT) - 2 * GetDeviceCaps(printDC, PHYSICALOFFSETY));
 }
@@ -1243,7 +1241,7 @@ IntRect WebFrame::printerMarginRect(HDC printDC)
 const Vector<WebCore::IntRect>& WebFrame::computePageRects(HDC printDC)
 {
     ASSERT(m_inPrintingMode);
-    
+
     Frame* coreFrame = core(this);
     ASSERT(coreFrame);
     ASSERT(coreFrame->document());
@@ -1263,7 +1261,7 @@ const Vector<WebCore::IntRect>& WebFrame::computePageRects(HDC printDC)
         pageRect.height() - marginRect.y() - marginRect.bottom());
 
     computePageRectsForFrame(coreFrame, adjustedRect, headerHeight, footerHeight, 1.0,m_pageRects, m_pageHeight);
-    
+
     return m_pageRects;
 }
 
@@ -1287,7 +1285,7 @@ UINT WebFrame::getPrintedPageCount( HDC printDC)
 
     const Vector<IntRect>& pages = computePageRects(printDC);
     *pageCount = (UINT) pages.size();
-    
+
     return S_OK;
 }
 
@@ -1376,7 +1374,7 @@ void* WebFrame::spoolPages(HDC printDC, UINT startPage, UINT endPage)
         CGContextEndPage(pctx);
         CGContextRestoreGState(pctx);
     }
- 
+
     return S_OK;
 }*/
 
@@ -1514,27 +1512,34 @@ void WebFrame::observe(const String &topic, Bookmarklet *bookmarklet)
 void WebFrame::observe(const String &topic, BalObject *obj)
 {
     ASSERT(obj);
-    ASSERT(obj->getName() != "");
-#ifdef __BINDING_JS__    
-    if (topic == "AddonRegister" /*&& !m_bindingJS->isRegistered()*/)
-#else
+    ASSERT(obj->getName()[0] != '\0');
+#ifdef __BINDING_JS__
     if (topic == "AddonRegister")
+        addToJSWindowObject(obj->getName(), (void *)obj);
 #endif
-        addToJSWindowObject(obj->getName().utf8().data(), (void *)obj);
 }
 
 void WebFrame::addToJSWindowObject(const char* name, void *object)
 {
+    JSC::JSLock lock(false);
     JSDOMWindow *window = toJSDOMWindow(core(this));
     if (!window)
         return;
-    JSC::Bindings::RootObject *root = core(this)->script()->bindingRootObject();
 
-    JSC::ExecState* exec = window->globalExec();
-    JSC::JSObject *runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
+    RefPtr<JSC::Bindings::RootObject> root = core(this)->script()->bindingRootObject();
+    // we want to put custom properties here, so get global object directly
+    JSC::JSGlobalObject* global = core(this)->script()->globalObject();
+    // root must be valid! if not create it
+//    if (!root)
+//    	root = JSC::Bindings::RootObject::create(window, global);
+    JSC::ExecState* exec = global->globalExec();
+    JSC::PropertySlot pr;
 
-    JSC::PutPropertySlot prop;
-    window->put(exec, JSC::Identifier(exec, name), runtimeObject, prop);
+    if (!global->getOwnPropertySlot(exec, JSC::Identifier(exec, name), pr)) {
+        JSC::JSObject* runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
+        JSC::PutPropertySlot prop;
+        global->put(exec, JSC::Identifier(exec, name), runtimeObject, prop);
+    }
 }
 
 

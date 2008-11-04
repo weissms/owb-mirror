@@ -1,3 +1,20 @@
+2008-11-04  Sebastien Roret  <sroret@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Fix #318: RootObject asserts when null, using js binding.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::WebFramePrivate::WebFramePrivate):
+        (WebFrame::WebFramePrivate::~WebFramePrivate):
+        (WebFrame::WebFrame):
+        (WebFrame::~WebFrame):
+        (WebFrame::windowObjectCleared):
+        (WebFrame::didPerformFirstNavigation):
+        (WebFrame::observe):
+        (WebFrame::addToJSWindowObject):
+        * OrigynWebBrowser/Api/WebFrame.h:
+
 2008-10-30  Sebastien Roret  <sroret@pleyo.com>
 
         Reviewed by Mario Bensi.
