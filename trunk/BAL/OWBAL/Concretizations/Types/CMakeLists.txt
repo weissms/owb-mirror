@@ -85,6 +85,7 @@ OWBLN (WK/BCAVLTreeWK.h OWBAL/wtf 0 0)
 OWBLN (WK/BCLengthWK.h OWBAL 0 0)
 OWBLN (WK/BCLengthSizeWK.h OWBAL 0 0)
 OWBLN (WK/BCLengthBoxWK.h OWBAL 0 0)
+OWBLN (WK/BCdtoaWK.h OWBAL 0 0)
 
 OWBLN (Common/BCbal_objectCommon.h OWBAL 0 0)
 

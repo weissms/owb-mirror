@@ -30,7 +30,6 @@
 #include "Document.h"
 #include "Element.h"
 #include "Event.h"
-#include "EventNames.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
 #include "HitTestResult.h"
@@ -40,8 +39,6 @@
 using namespace std;
 
 namespace WebCore {
-
-using namespace EventNames;
 
 static HashMap<const Widget*, RenderWidget*>& widgetRendererMap()
 {
@@ -221,16 +218,14 @@ void RenderWidget::updateWidgetPosition()
     if (!m_widget)
         return;
 
-    int x;
-    int y;
-    absolutePosition(x, y);
-    x += borderLeft() + paddingLeft();
-    y += borderTop() + paddingTop();
+    // FIXME: This doesn't work correctly with transforms.
+    FloatPoint absPos = localToAbsolute();
+    absPos.move(borderLeft() + paddingLeft(), borderTop() + paddingTop());
 
     int width = m_width - borderLeft() - borderRight() - paddingLeft() - paddingRight();
     int height = m_height - borderTop() - borderBottom() - paddingTop() - paddingBottom();
 
-    IntRect newBounds(x, y, width, height);
+    IntRect newBounds(absPos.x(), absPos.y(), width, height);
     IntRect oldBounds(m_widget->frameRect());
     if (newBounds != oldBounds) {
         // The widget changed positions.  Update the frame geometry.

@@ -34,11 +34,11 @@
 #include "c_utility.h"
 #include "npruntime_impl.h"
 #include "runtime_root.h"
-#include <kjs/ArgList.h>
-#include <kjs/ExecState.h>
-#include <kjs/JSLock.h>
+#include <runtime/ArgList.h>
+#include <runtime/ExecState.h>
+#include <runtime/JSLock.h>
 #include <runtime/JSNumberCell.h>
-#include <kjs/PropertyNameArray.h>
+#include <runtime/PropertyNameArray.h>
 #include <wtf/Assertions.h>
 #include <wtf/StringExtras.h>
 #include <wtf/Vector.h>

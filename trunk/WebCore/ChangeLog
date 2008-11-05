@@ -1,3 +1,788 @@
+2008-11-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Move kjs/dtoa.h to the wtf subdirectory of JavaScriptCore.
+
+        * ForwardingHeaders/kjs/dtoa.h: Removed.
+        * ForwardingHeaders/wtf/dtoa.h: Copied from ForwardingHeaders/kjs/dtoa.h.
+        * css/CSSParser.cpp:
+        * platform/text/String.cpp:
+        * platform/text/StringImpl.cpp:
+
+2008-11-04  Jonathan Haas  <myrdred@gmail.com>
+
+        Addiitonal tweaks and patch prep by Pamela Greene <pam@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Fixed an issue which could cause memory corruption using ToT libxml.
+        See https://bugs.webkit.org/show_bug.cgi?id=15715
+
+        Test: fast/xsl/xslt-nested-stylesheets.xml
+
+        * xml/XSLImportRule.cpp:
+        (WebCore::XSLImportRule::setXSLStyleSheet): Set parent rather than owner document
+        * xml/XSLStyleSheet.cpp:
+        (WebCore::XSLStyleSheet::XSLStyleSheet): Initialize m_parentStyleSheet
+        (WebCore::XSLStyleSheet::parseString): Make all child stylesheets use parent's dictionary
+        (WebCore::XSLStyleSheet::setParentStyleSheet): Added
+        * xml/XSLStyleSheet.h: Added m_parentStyleSheet member
+
+2008-11-04  Simon Fraser  <simon.fraser@apple.com>
+
+        No review.
+
+        Improved buid fix: include MathExtras.h to get roundf on all platforms.
+
+        * platform/graphics/FloatPoint.h:
+
+2008-11-04  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by John Sullivan
+
+        Add a simple "visited" method to HistoryItem for use by global history
+
+        * WebCore.base.exp:
+
+        * history/HistoryItem.cpp:
+        (WebCore::HistoryItem::visited):  Update the title on the item, set last visited time,
+          and bump the visit count.  All things that should happen when a url is visited again!
+        * history/HistoryItem.h:
+
+2008-11-04  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Build fix. Not reviewed.
+
+        * platform/graphics/FloatPoint.h: include math.h.
+        reported by zdobersek in #webkit.
+
+2008-11-04  Darin Fisher  <darin@chromium.org>
+ 
+        Reviewed by Anders Carlsson.
+ 
+        No need to clobber all ResourceRequest fields in FrameLoader::reload()
+        https://bugs.webkit.org/show_bug.cgi?id=21949
+ 
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::reload):
+
+2008-11-04  Darin Adler  <darin@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        * storage/Database.cpp:
+        (WebCore::databaseVersionKey): Tweaked formatting.
+
+2008-11-03  Darin Adler  <darin@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22061
+          create script to check for exit-time destructors
+
+        * WebCore.xcodeproj/project.pbxproj: Added a script
+        phase that runs the check-for-exit-time-destructors script.
+
+        * html/HTMLAttributeNames.in: Removed some unused attribute names.
+
+        * html/HTMLEmbedElement.cpp:
+        (WebCore::HTMLEmbedElement::parseMappedAttribute): Removed code that
+        sets the write-only m_pluginPage.
+        * html/HTMLEmbedElement.h: Ditto.
+
+        * platform/mac/CursorMac.mm:
+        (WebCore::leakNamedCursor): Changed to return a Cursor&.
+        (WebCore::pointerCursor): Changed to leak an object to avoid an
+        exit-time destructor.
+        (WebCore::crossCursor): Ditto.
+        (WebCore::handCursor): Ditto.
+        (WebCore::moveCursor): Ditto.
+        (WebCore::verticalTextCursor): Ditto.
+        (WebCore::cellCursor): Ditto.
+        (WebCore::contextMenuCursor): Ditto.
+        (WebCore::aliasCursor): Ditto.
+        (WebCore::zoomInCursor): Ditto.
+        (WebCore::zoomOutCursor): Ditto.
+        (WebCore::copyCursor): Ditto.
+        (WebCore::noneCursor): Ditto.
+        (WebCore::progressCursor): Ditto.
+        (WebCore::noDropCursor): Ditto.
+        (WebCore::notAllowedCursor): Ditto.
+        (WebCore::iBeamCursor): Ditto.
+        (WebCore::waitCursor): Ditto.
+        (WebCore::helpCursor): Ditto.
+        (WebCore::eastResizeCursor): Ditto.
+        (WebCore::northResizeCursor): Ditto.
+        (WebCore::northEastResizeCursor): Ditto.
+        (WebCore::northWestResizeCursor): Ditto.
+        (WebCore::southResizeCursor): Ditto.
+        (WebCore::southEastResizeCursor): Ditto.
+        (WebCore::southWestResizeCursor): Ditto.
+        (WebCore::westResizeCursor): Ditto.
+        (WebCore::northSouthResizeCursor): Ditto.
+        (WebCore::eastWestResizeCursor): Ditto.
+        (WebCore::northEastSouthWestResizeCursor): Ditto.
+        (WebCore::northWestSouthEastResizeCursor): Ditto.
+        (WebCore::columnResizeCursor): Ditto.
+        (WebCore::rowResizeCursor): Ditto.
+        (WebCore::grabCursor): Ditto.
+        (WebCore::grabbingCursor): Ditto.
+
+        * storage/Database.cpp:
+        (WebCore::guidMutex): Changed to leak an object to avoid an
+        exit-time destructor. Also added a comment explaining why it's
+        thread safe.
+        (WebCore::guidToVersionMap): Ditto.
+        (WebCore::guidToDatabaseMap): Ditto.
+        (WebCore::Database::databaseInfoTableName): Ditto.
+        (WebCore::databaseVersionKey): Ditto.
+        (WebCore::Database::getVersionFromDatabase): Ditto.
+        (WebCore::Database::setVersionInDatabase): Ditto.
+        (WebCore::guidForOriginAndName): Ditto.
+        * storage/DatabaseTracker.cpp:
+        (WebCore::DatabaseTracker::tracker): Ditto.
+        (WebCore::notificationMutex): Ditto.
+        (WebCore::notificationQueue): Ditto.
+        (WebCore::DatabaseTracker::notifyDatabasesChanged): Ditto.
+
+2008-11-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=21941
+
+        Rename absolutePosition() to localToAbsolute(), and add the ability
+        to optionally take transforms into account (which will eventually be the
+        default behavior).
+
+        * WebCore.base.exp:
+        * WebCore.xcodeproj/project.pbxproj:
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::getUpperLeftCorner):
+        (WebCore::ContainerNode::getLowerRightCorner):
+        (WebCore::ContainerNode::getRect):
+        * dom/ContainerNode.h:
+        * dom/MouseRelatedEvent.cpp:
+        (WebCore::MouseRelatedEvent::receivedTarget):
+        * dom/Node.cpp:
+        (WebCore::Node::getRect):
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::layout):
+        (WebCore::SelectionController::caretRect):
+        * editing/visible_units.cpp:
+        (WebCore::previousLinePosition):
+        (WebCore::nextLinePosition):
+        * html/HTMLAnchorElement.cpp:
+        (WebCore::HTMLAnchorElement::isKeyboardFocusable):
+        (WebCore::HTMLAnchorElement::defaultEventHandler):
+        * html/HTMLAreaElement.cpp:
+        (WebCore::HTMLAreaElement::getRect):
+        * html/HTMLImageElement.cpp:
+        (WebCore::HTMLImageElement::x):
+        (WebCore::HTMLImageElement::y):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::defaultEventHandler):
+        * html/HTMLInputElement.h:
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::boundingBoxRect):
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleDrag):
+        * platform/graphics/FloatPoint.h:
+        (WebCore::roundedIntPoint):
+        * platform/graphics/IntSize.h:
+        (WebCore::IntSize::expand):
+        * rendering/LayoutState.cpp:
+        (WebCore::LayoutState::LayoutState):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::layoutBlock):
+        (WebCore::RenderBlock::paintObject):
+        (WebCore::RenderBlock::selectionGapRects):
+        (WebCore::RenderBlock::fillBlockSelectionGaps):
+        (WebCore::RenderBlock::nodeAtPoint):
+        (WebCore::RenderBlock::positionForCoordinates):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::localToAbsolute):
+        (WebCore::RenderBox::computeAbsoluteRepaintRect):
+        (WebCore::RenderBox::caretRect):
+        * rendering/RenderBox.h:
+        (WebCore::RenderBox::relativePositionOffset):
+        * rendering/RenderContainer.cpp:
+        (WebCore::RenderContainer::addLineBoxRects):
+        * rendering/RenderFlow.cpp:
+        (WebCore::RenderFlow::absoluteClippedOverflowRect):
+        (WebCore::RenderFlow::caretRect):
+        (WebCore::RenderFlow::addFocusRingRects):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateLayerPosition):
+        (WebCore::RenderLayer::convertToLayerCoords):
+        (WebCore::RenderLayer::addScrolledContentOffset):
+        (WebCore::RenderLayer::subtractScrolledContentOffset):
+        (WebCore::RenderLayer::scrollRectToVisible):
+        * rendering/RenderLayer.h:
+        (WebCore::RenderLayer::scrolledContentOffset):
+        (WebCore::RenderLayer::relativePositionOffset):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::panScroll):
+        (WebCore::RenderListBox::scrollToward):
+        * rendering/RenderListMarker.cpp:
+        (WebCore::RenderListMarker::selectionRect):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::absoluteBoundingBoxRect):
+        (WebCore::RenderObject::computeAbsoluteRepaintRect):
+        (WebCore::RenderObject::localToAbsolute):
+        (WebCore::RenderObject::addDashboardRegions):
+        (WebCore::RenderObject::absoluteContentBox):
+        (WebCore::RenderObject::absoluteOutlineBox):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::localToAbsoluteForContent):
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::updateWidgetPosition):
+        * rendering/RenderReplaced.cpp:
+        (WebCore::RenderReplaced::selectionRect):
+        * rendering/RenderSVGInlineText.cpp:
+        (WebCore::RenderSVGInlineText::computeAbsoluteRectForRange):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::absoluteRects):
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::localToAbsolute):
+        * rendering/RenderTableCell.h:
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::addLineBoxRects):
+        (WebCore::RenderText::caretRect):
+        (WebCore::RenderText::selectionRect):
+        * rendering/RenderVideo.cpp:
+        (WebCore::RenderVideo::updatePlayer):
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::localToAbsolute):
+        * rendering/RenderView.h:
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::updateWidgetPosition):
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::getScreenCTM):
+
+2008-11-03  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Add methods for getting and setting user data on History Item.
+        This change is limited to QT port only. Tests were added in
+        the patch for https://bugs.webkit.org/show_bug.cgi?id=21864.
+
+        Minor change by Simon: made the functions inline and added a missing
+        const.
+
+        * history/HistoryItem.h:
+
+2008-11-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22030
+        Make EventNames usable from multiple threads
+
+        * platform/text/AtomicString.cpp:
+        (WebCore::stringTable):
+        (WebCore::AtomicString::add):
+        (WebCore::AtomicString::remove):
+        (WebCore::AtomicString::find):
+        (WebCore::AtomicString::init):
+        * platform/text/AtomicString.h:
+        Atomic string table is now per-thread. Individual strings cannot be shared between threads,
+        so global AtomicString constants cannot be used from threads other than the main one.
+
+        * dom/EventNames.cpp:
+        (WebCore::EventNames::EventNames):
+        (WebCore::eventNames):
+        (WebCore::EventNames::init):
+        * dom/EventNames.h:
+        Made EventNames a ThreadSpecific struct. Individual event names are now accessed as
+        eventNames().fooEvent, not EventNames::fooEvent. This makes EventNames usable from all
+        threads.
+
+        * WebCore.base.exp:
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::processingUserGesture):
+        * dom/BeforeTextInsertedEvent.cpp:
+        (WebCore::BeforeTextInsertedEvent::BeforeTextInsertedEvent):
+        * dom/BeforeUnloadEvent.cpp:
+        (WebCore::BeforeUnloadEvent::BeforeUnloadEvent):
+        * dom/CharacterData.cpp:
+        (WebCore::CharacterData::dispatchModifiedEvent):
+        * dom/ContainerNode.cpp:
+        (WebCore::dispatchChildInsertionEvents):
+        (WebCore::dispatchChildRemovalEvents):
+        * dom/DedicatedWorker.cpp:
+        (WebCore::DedicatedWorker::dispatchErrorEvent):
+        * dom/Document.cpp:
+        (WebCore::Document::implicitClose):
+        (WebCore::Document::setFocusedNode):
+        (WebCore::Document::addListenerTypeIfNeeded):
+        (WebCore::Document::removeWindowInlineEventListenerForType):
+        (WebCore::Document::addWindowEventListener):
+        (WebCore::Document::removeWindowEventListener):
+        (WebCore::Document::finishedParsing):
+        * dom/EventTargetNode.cpp:
+        (WebCore::EventTargetNode::dispatchGenericEvent):
+        (WebCore::EventTargetNode::dispatchSubtreeModifiedEvent):
+        (WebCore::EventTargetNode::dispatchWindowEvent):
+        (WebCore::EventTargetNode::dispatchUIEvent):
+        (WebCore::EventTargetNode::dispatchSimulatedClick):
+        (WebCore::EventTargetNode::dispatchMouseEvent):
+        (WebCore::EventTargetNode::dispatchFocusEvent):
+        (WebCore::EventTargetNode::dispatchBlurEvent):
+        (WebCore::EventTargetNode::defaultEventHandler):
+        (WebCore::EventTargetNode::on*): (multiple methods)
+        (WebCore::EventTargetNode::setOn*): (multiple methods)
+        * dom/KeyboardEvent.cpp:
+        (WebCore::eventTypeForKeyboardEventType):
+        (WebCore::KeyboardEvent::keyCode):
+        (WebCore::KeyboardEvent::charCode):
+        * dom/MessageEvent.cpp:
+        (WebCore::MessageEvent::MessageEvent):
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::dispatchMessages):
+        (WebCore::MessagePort::dispatchCloseEvent):
+        * dom/MouseEvent.cpp:
+        (WebCore::MouseEvent::isDragEvent):
+        (WebCore::MouseEvent::toElement):
+        (WebCore::MouseEvent::fromElement):
+        * dom/OverflowEvent.cpp:
+        (WebCore::OverflowEvent::OverflowEvent):
+        * dom/TextEvent.cpp:
+        (WebCore::TextEvent::TextEvent):
+        * dom/WebKitAnimationEvent.cpp:
+        (WebCore::WebKitAnimationEvent::WebKitAnimationEvent):
+        (WebCore::WebKitAnimationEvent::~WebKitAnimationEvent):
+        (WebCore::WebKitAnimationEvent::initWebKitAnimationEvent):
+        (WebCore::WebKitAnimationEvent::animationName):
+        (WebCore::WebKitAnimationEvent::elapsedTime):
+        * dom/WebKitTransitionEvent.cpp:
+        (WebCore::WebKitTransitionEvent::WebKitTransitionEvent):
+        (WebCore::WebKitTransitionEvent::~WebKitTransitionEvent):
+        (WebCore::WebKitTransitionEvent::initWebKitTransitionEvent):
+        (WebCore::WebKitTransitionEvent::propertyName):
+        (WebCore::WebKitTransitionEvent::elapsedTime):
+        * dom/WheelEvent.cpp:
+        (WebCore::WheelEvent::WheelEvent):
+        (WebCore::WheelEvent::initWheelEvent):
+        * dom/XMLTokenizerLibxml2.cpp:
+        * dom/XMLTokenizerQt.cpp:
+        * editing/DeleteButton.cpp:
+        (WebCore::DeleteButton::defaultEventHandler):
+        * editing/EditCommand.cpp:
+        * editing/Editor.cpp:
+        (WebCore::Editor::canDHTMLCut):
+        (WebCore::Editor::canDHTMLCopy):
+        (WebCore::Editor::canDHTMLPaste):
+        (WebCore::Editor::tryDHTMLCopy):
+        (WebCore::Editor::tryDHTMLCut):
+        (WebCore::Editor::tryDHTMLPaste):
+        (WebCore::dispatchEditableContentChangedEvents):
+        * editing/ReplaceSelectionCommand.cpp:
+        (WebCore::ReplacementFragment::ReplacementFragment):
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::setFocused):
+        * html/HTMLAnchorElement.cpp:
+        (WebCore::HTMLAnchorElement::defaultEventHandler):
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::parseMappedAttribute):
+        * html/HTMLButtonElement.cpp:
+        (WebCore::HTMLButtonElement::parseMappedAttribute):
+        (WebCore::HTMLButtonElement::defaultEventHandler):
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::parseMappedAttribute):
+        * html/HTMLFormControlElement.cpp:
+        (WebCore::HTMLFormControlElement::onChange):
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::handleLocalEvents):
+        (WebCore::HTMLFormElement::prepareSubmit):
+        (WebCore::HTMLFormElement::reset):
+        (WebCore::HTMLFormElement::parseMappedAttribute):
+        * html/HTMLFrameElementBase.cpp:
+        (WebCore::HTMLFrameElementBase::parseMappedAttribute):
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::parseMappedAttribute):
+        * html/HTMLImageElement.cpp:
+        (WebCore::HTMLImageElement::parseMappedAttribute):
+        * html/HTMLImageLoader.cpp:
+        (WebCore::HTMLImageLoader::dispatchLoadEvent):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+        (WebCore::HTMLInputElement::setValueFromRenderer):
+        (WebCore::HTMLInputElement::preDispatchEventHandler):
+        (WebCore::HTMLInputElement::postDispatchEventHandler):
+        (WebCore::HTMLInputElement::defaultEventHandler):
+        (WebCore::HTMLInputElement::onSearch):
+        * html/HTMLLabelElement.cpp:
+        (WebCore::HTMLLabelElement::defaultEventHandler):
+        * html/HTMLMediaElement.cpp:
+        (WebCore::HTMLMediaElement::load):
+        (WebCore::HTMLMediaElement::mediaPlayerNetworkStateChanged):
+        (WebCore::HTMLMediaElement::setReadyState):
+        (WebCore::HTMLMediaElement::progressEventTimerFired):
+        (WebCore::HTMLMediaElement::seek):
+        (WebCore::HTMLMediaElement::setDefaultPlaybackRate):
+        (WebCore::HTMLMediaElement::setPlaybackRate):
+        (WebCore::HTMLMediaElement::play):
+        (WebCore::HTMLMediaElement::pause):
+        (WebCore::HTMLMediaElement::setVolume):
+        (WebCore::HTMLMediaElement::setMuted):
+        (WebCore::HTMLMediaElement::mediaPlayerTimeChanged):
+        (WebCore::HTMLMediaElement::documentWillBecomeInactive):
+        * html/HTMLObjectElement.cpp:
+        (WebCore::HTMLObjectElement::parseMappedAttribute):
+        * html/HTMLOptionElement.cpp:
+        * html/HTMLScriptElement.cpp:
+        (WebCore::HTMLScriptElement::parseMappedAttribute):
+        (WebCore::HTMLScriptElement::dispatchLoadEvent):
+        (WebCore::HTMLScriptElement::dispatchErrorEvent):
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::parseMappedAttribute):
+        (WebCore::HTMLSelectElement::defaultEventHandler):
+        (WebCore::HTMLSelectElement::menuListDefaultEventHandler):
+        (WebCore::HTMLSelectElement::listBoxDefaultEventHandler):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::parseMappedAttribute):
+        (WebCore::HTMLTextAreaElement::defaultEventHandler):
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::notifyFinished):
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::stopLoading):
+        (WebCore::FrameLoader::canCachePage):
+        * loader/ImageDocument.cpp:
+        (WebCore::ImageEventListener::handleEvent):
+        * loader/ImageLoader.cpp:
+        * loader/MediaDocument.cpp:
+        (WebCore::MediaDocument::defaultEventHandler):
+        * loader/appcache/DOMApplicationCache.cpp:
+        (WebCore::DOMApplicationCache::callCheckingListener):
+        (WebCore::DOMApplicationCache::callErrorListener):
+        (WebCore::DOMApplicationCache::callNoUpdateListener):
+        (WebCore::DOMApplicationCache::callDownloadingListener):
+        (WebCore::DOMApplicationCache::callProgressListener):
+        (WebCore::DOMApplicationCache::callUpdateReadyListener):
+        (WebCore::DOMApplicationCache::callCachedListener):
+        * page/AccessibilityObject.cpp:
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::mouseButtonListener):
+        * page/ContextMenuController.cpp:
+        (WebCore::ContextMenuController::handleContextMenuEvent):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::on*): (multiple methods)
+        (WebCore::DOMWindow::setOn*): (multiple methods)
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::handleMousePressEvent):
+        (WebCore::EventHandler::handleMouseDoubleClickEvent):
+        (WebCore::EventHandler::handleMouseMoveEvent):
+        (WebCore::EventHandler::handleMouseReleaseEvent):
+        (WebCore::EventHandler::updateDragAndDrop):
+        (WebCore::EventHandler::cancelDragAndDrop):
+        (WebCore::EventHandler::performDragAndDrop):
+        (WebCore::EventHandler::updateMouseEventTargetNode):
+        (WebCore::EventHandler::dispatchMouseEvent):
+        (WebCore::EventHandler::sendContextMenuEvent):
+        (WebCore::EventHandler::canMouseDownStartSelect):
+        (WebCore::EventHandler::canMouseDragExtendSelect):
+        (WebCore::EventHandler::defaultKeyboardEventHandler):
+        (WebCore::EventHandler::dragSourceMovedTo):
+        (WebCore::EventHandler::dragSourceEndedAt):
+        (WebCore::EventHandler::handleDrag):
+        (WebCore::EventHandler::handleTextInputEvent):
+        * page/FocusController.cpp:
+        * page/Frame.cpp:
+        (WebCore::Frame::sendResizeEvent):
+        (WebCore::Frame::sendScrollEvent):
+        * page/Page.cpp:
+        (WebCore::networkStateChanged):
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::updateStateMachine):
+        (WebCore::AnimationBase::animationTimerCallbackFired):
+        (WebCore::AnimationBase::primeEventTimers):
+        * page/animation/ImplicitAnimation.cpp:
+        (WebCore::ImplicitAnimation::onAnimationEnd):
+        (WebCore::ImplicitAnimation::sendTransitionEvent):
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::onAnimationStart):
+        (WebCore::KeyframeAnimation::onAnimationIteration):
+        (WebCore::KeyframeAnimation::onAnimationEnd):
+        (WebCore::KeyframeAnimation::sendAnimationEvent):
+        * page/gtk/EventHandlerGtk.cpp:
+        * page/mac/EventHandlerMac.mm:
+        (WebCore::isKeyboardOptionTab):
+        * page/mac/FrameMac.mm:
+        * page/qt/EventHandlerQt.cpp:
+        (WebCore::isKeyboardOptionTab):
+        * plugins/PluginView.cpp:
+        * plugins/gtk/PluginViewGtk.cpp:
+        * plugins/qt/PluginViewQt.cpp:
+        * plugins/win/PluginViewWin.cpp:
+        (WebCore::PluginView::handleKeyboardEvent):
+        (WebCore::PluginView::handleMouseEvent):
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlMuteButtonElement::defaultEventHandler):
+        (WebCore::MediaControlPlayButtonElement::defaultEventHandler):
+        (WebCore::MediaControlSeekButtonElement::defaultEventHandler):
+        (WebCore::MediaControlTimelineElement::defaultEventHandler):
+        (WebCore::MediaControlFullscreenButtonElement::defaultEventHandler):
+        * rendering/RenderFrameSet.cpp:
+        (WebCore::RenderFrameSet::userResize):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::scrollToOffset):
+        * rendering/RenderListBox.cpp:
+        (WebCore::RenderListBox::valueChanged):
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::forwardEvent):
+        * rendering/RenderObject.cpp:
+        * rendering/RenderSlider.cpp:
+        (WebCore::HTMLSliderThumbElement::defaultEventHandler):
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::forwardEvent):
+        (WebCore::RenderTextControl::selectionChanged):
+        * rendering/RenderWidget.cpp:
+        * rendering/TextControlInnerElements.cpp:
+        (WebCore::TextControlInnerTextElement::defaultEventHandler):
+        (WebCore::SearchFieldResultsButtonElement::defaultEventHandler):
+        (WebCore::SearchFieldCancelButtonElement::defaultEventHandler):
+        * storage/LocalStorageArea.cpp:
+        (WebCore::LocalStorageArea::dispatchStorageEvent):
+        * storage/SessionStorageArea.cpp:
+        (WebCore::SessionStorageArea::dispatchStorageEvent):
+        * svg/SVGAElement.cpp:
+        (WebCore::SVGAElement::defaultEventHandler):
+        * svg/SVGDocument.cpp:
+        (WebCore::SVGDocument::dispatchZoomEvent):
+        (WebCore::SVGDocument::dispatchScrollEvent):
+        * svg/SVGElement.cpp:
+        (WebCore::SVGElement::parseMappedAttribute):
+        (WebCore::hasLoadListener):
+        (WebCore::SVGElement::sendSVGLoadEventIfPossible):
+        * svg/SVGElementInstance.cpp:
+        (WebCore::SVGElementInstance::on*): (multiple methods)
+        (WebCore::SVGElementInstance::setOn*): (multiple methods)
+        * svg/SVGImageLoader.cpp:
+        (WebCore::SVGImageLoader::dispatchLoadEvent):
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::parseMappedAttribute):
+        * svg/SVGScriptElement.cpp:
+        (WebCore::SVGScriptElement::dispatchErrorEvent):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::dispatchReadyStateChangeEvent):
+        (WebCore::XMLHttpRequest::dispatchAbortEvent):
+        (WebCore::XMLHttpRequest::dispatchErrorEvent):
+        (WebCore::XMLHttpRequest::dispatchLoadEvent):
+        (WebCore::XMLHttpRequest::dispatchLoadStartEvent):
+        (WebCore::XMLHttpRequest::dispatchProgressEvent):
+        * xml/XMLHttpRequestUpload.cpp:
+        (WebCore::XMLHttpRequestUpload::dispatchAbortEvent):
+        (WebCore::XMLHttpRequestUpload::dispatchErrorEvent):
+        (WebCore::XMLHttpRequestUpload::dispatchLoadEvent):
+        (WebCore::XMLHttpRequestUpload::dispatchLoadStartEvent):
+        (WebCore::XMLHttpRequestUpload::dispatchProgressEvent):
+        * xml/XPathResult.cpp:
+        (WebCore::XPathResult::XPathResult):
+        (WebCore::XPathResult::~XPathResult):
+        (WebCore::XPathResult::invalidateIteratorState):
+        Access event names via eventNames() function.
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Delete unused forwarding headers.
+
+        * ForwardingHeaders/kjs/Activation.h: Removed.
+        * ForwardingHeaders/kjs/Register.h: Removed.
+        * ForwardingHeaders/kjs/RegisterID.h: Removed.
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Fix stupid typo in previous build fix.
+
+        * bindings/js/JSStorageCustom.cpp:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+
+2008-11-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Fix the build for all non-Mac platforms.
+
+        * ForwardingHeaders/kjs/PropertyNameArray.h: Removed.
+        * ForwardingHeaders/runtime/PropertyNameArray.h: Copied from ForwardingHeaders/kjs/PropertyNameArray.h.
+        * bindings/js/JSStorageCustom.cpp:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+
+2008-11-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Fix the wxWindows build.
+
+        * bridge/c/c_instance.cpp:
+
+2008-11-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Move more files into the runtime subdirectory of JavaScriptCore.
+
+        * ForwardingHeaders/kjs/ArgList.h: Removed.
+        * ForwardingHeaders/kjs/CollectorHeapIterator.h: Removed.
+        * ForwardingHeaders/kjs/ExecState.h: Removed.
+        * ForwardingHeaders/kjs/InitializeThreading.h: Removed.
+        * ForwardingHeaders/kjs/JSGlobalData.h: Removed.
+        * ForwardingHeaders/kjs/JSLock.h: Removed.
+        * ForwardingHeaders/kjs/SymbolTable.h: Removed.
+        * ForwardingHeaders/runtime/ArgList.h: Copied from ForwardingHeaders/kjs/ArgList.h.
+        * ForwardingHeaders/runtime/CollectorHeapIterator.h: Copied from ForwardingHeaders/kjs/CollectorHeapIterator.h.
+        * ForwardingHeaders/runtime/ExecState.h: Copied from ForwardingHeaders/kjs/ExecState.h.
+        * ForwardingHeaders/runtime/InitializeThreading.h: Copied from ForwardingHeaders/kjs/InitializeThreading.h.
+        * ForwardingHeaders/runtime/JSGlobalData.h: Copied from ForwardingHeaders/kjs/JSGlobalData.h.
+        * ForwardingHeaders/runtime/JSLock.h: Copied from ForwardingHeaders/kjs/JSLock.h.
+        * ForwardingHeaders/runtime/SymbolTable.h: Copied from ForwardingHeaders/kjs/SymbolTable.h.
+        * bindings/js/GCController.cpp:
+        * bindings/js/JSCustomPositionCallback.cpp:
+        * bindings/js/JSCustomPositionErrorCallback.cpp:
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        * bindings/js/JSCustomVoidCallback.cpp:
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSEventCustom.cpp:
+        * bindings/js/JSEventListener.cpp:
+        * bindings/js/JSNodeFilterCondition.cpp:
+        * bindings/js/ScheduledAction.cpp:
+        * bindings/js/ScriptController.cpp:
+        * bindings/js/ScriptControllerMac.mm:
+        * bindings/objc/WebScriptObject.mm:
+        * bridge/NP_jsobject.cpp:
+        * bridge/c/c_class.cpp:
+        * bridge/c/c_instance.cpp:
+        * bridge/c/c_runtime.cpp:
+        * bridge/c/c_utility.cpp:
+        * bridge/jni/jni_class.cpp:
+        * bridge/jni/jni_instance.cpp:
+        * bridge/jni/jni_jsobject.mm:
+        * bridge/jni/jni_objc.mm:
+        * bridge/jni/jni_runtime.cpp:
+        * bridge/jni/jni_runtime.h:
+        * bridge/jni/jni_utility.cpp:
+        * bridge/npruntime.cpp:
+        * bridge/objc/objc_instance.mm:
+        * bridge/objc/objc_runtime.mm:
+        * bridge/objc/objc_utility.mm:
+        * bridge/runtime.cpp:
+        * dom/Document.cpp:
+        * dom/Node.cpp:
+        * dom/NodeFilter.cpp:
+        * dom/NodeIterator.cpp:
+        * dom/TreeWalker.cpp:
+        * history/CachedPage.cpp:
+        * inspector/InspectorController.cpp:
+        * inspector/JavaScriptCallFrame.cpp:
+        * inspector/JavaScriptCallFrame.h:
+        * inspector/JavaScriptDebugServer.cpp:
+        * inspector/JavaScriptProfileNode.cpp:
+        * loader/FrameLoader.cpp:
+        * loader/icon/IconDatabase.cpp:
+        * page/Console.cpp:
+        * page/Page.cpp:
+        * page/mac/FrameMac.mm:
+        * plugins/PluginView.cpp:
+        * plugins/gtk/PluginViewGtk.cpp:
+        * plugins/qt/PluginViewQt.cpp:
+        * plugins/win/PluginViewWin.cpp:
+        * storage/Database.cpp:
+        * xml/XMLHttpRequest.cpp:
+
+2008-11-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Remove the forwarding header for FunctionCallProfile, because it was
+        renamed to ProfileNode in r33466.
+
+        * ForwardingHeaders/kjs/FunctionCallProfile.h: Removed.
+
+2008-11-03  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=22026
+
+        When computing the bounds of the transparency layer, we need to
+        map the clipRect through the enclosing transform.
+        
+        Test: fast/layers/opacity-transforms.html
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::transparencyClipBox):
+
+2008-11-03  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22053
+
+        Added additional support needed for the NPDrawingModelCoreAnimation drawing model. 
+
+        * bridge/npapi.h:
+
+2008-11-03  Xan Lopez  <xan@gnome.org>
+
+        Reviewed by Alp Toker.
+
+        Update parseDataUrl() function in the libsoup http backend with
+        the one from the curl backend which has recent correctness and crash
+        fixes.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::parseDataUrl):
+
+2008-11-03  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Alp Toker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22041
+        Fix CURL crashes on the test suite
+
+        Fix segfault with setDefersLoading(). Do not call into curl when we
+        don't have a CURL handle.
+
+        It is attempted to defer the loading before the load has been
+        started (no curl handle was allocated yet). If that happens then
+        just remember that. ResourceHandleManager::startJob is already taking
+        care of this and in initResourceHandle the the downloading will
+        be paused if needed.
+
+        Fixes fast/loader/simultaneous-reloads-assert.html
+
+        * platform/network/curl/ResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::setDefersLoading):
+
+2008-11-03  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Alp Toker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22041
+        Fix CURL crashes on the test suite
+
+        Do not send "no data" to WebCore in parseDataUrl().
+
+        Fixes assert on fast/tokenizer/image-empty-crash.html
+
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::parseDataUrl):
+
 2008-11-03  Xan Lopez  <xan@gnome.org>
 
         Reviewed by Holger Freyther.

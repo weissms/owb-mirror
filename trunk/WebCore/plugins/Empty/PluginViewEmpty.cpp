@@ -69,7 +69,6 @@ using namespace WTF;
 
 namespace WebCore {
 
-using namespace EventNames;
 using namespace HTMLNames;
 
 void PluginView::updatePluginWidget() const

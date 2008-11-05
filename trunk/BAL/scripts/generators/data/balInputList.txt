@@ -449,6 +449,7 @@
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/Length.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/LengthSize.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/LengthBox.h
+../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/dtoa.h
 
 
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/Deque.h
@@ -520,7 +521,8 @@
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/Length.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/LengthSize.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/LengthBox.h
-
+../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/dtoa.h
+../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/dtoa.cpp
 
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformKeyboardEvent.h
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformMouseEvent.h

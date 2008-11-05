@@ -1,3 +1,215 @@
+2008-11-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Steve Falkenburg.
+
+        Move dtoa.cpp and dtoa.h to the WTF Visual Studio project to reflect
+        their movement in the filesystem.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Move kjs/dtoa.h to the wtf subdirectory of JavaScriptCore.
+
+        * AllInOneFile.cpp:
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/dtoa.cpp: Removed.
+        * kjs/dtoa.h: Removed.
+        * wtf/dtoa.cpp: Copied from kjs/dtoa.cpp.
+        * wtf/dtoa.h: Copied from kjs/dtoa.h.
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Move kjs/config.h to the top level of JavaScriptCore.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * config.h: Copied from kjs/config.h.
+        * kjs/config.h: Removed.
+
+2008-11-04  Darin Adler  <darin@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        * wtf/ThreadingNone.cpp: Tweak formatting.
+
+2008-11-03  Darin Adler  <darin@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22061
+          create script to check for exit-time destructors
+
+        * JavaScriptCore.exp: Changed to export functions rather than
+        a global for the atomically initialized static mutex.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj: Added a script
+        phase that runs the check-for-exit-time-destructors script.
+
+        * wtf/MainThread.cpp:
+        (WTF::mainThreadFunctionQueueMutex): Changed to leak an object
+        rather than using an exit time destructor.
+        (WTF::functionQueue): Ditto.
+        * wtf/unicode/icu/CollatorICU.cpp:
+        (WTF::cachedCollatorMutex): Ditto.
+
+        * wtf/Threading.h: Changed other platforms to share the Windows
+        approach where the mutex is internal and the functions are exported.
+        * wtf/ThreadingGtk.cpp:
+        (WTF::lockAtomicallyInitializedStaticMutex): Ditto.
+        (WTF::unlockAtomicallyInitializedStaticMutex): Ditto.
+        * wtf/ThreadingNone.cpp:
+        (WTF::lockAtomicallyInitializedStaticMutex): Ditto.
+        (WTF::unlockAtomicallyInitializedStaticMutex): Ditto.
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::threadMapMutex): Changed to leak an object rather than using
+        an exit time destructor.
+        (WTF::lockAtomicallyInitializedStaticMutex): Mutex change.
+        (WTF::unlockAtomicallyInitializedStaticMutex): Ditto.
+        (WTF::threadMap): Changed to leak an object rather than using
+        an exit time destructor.
+        * wtf/ThreadingQt.cpp:
+        (WTF::lockAtomicallyInitializedStaticMutex): Mutex change.
+        (WTF::unlockAtomicallyInitializedStaticMutex): Ditto.
+        * wtf/ThreadingWin.cpp:
+        (WTF::lockAtomicallyInitializedStaticMutex): Added an assertion.
+
+2008-11-04  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Update
+        the location of JSStaticScopeObject.{cpp,h}.
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Move AllInOneFile.cpp to the top level of JavaScriptCore.
+
+        * AllInOneFile.cpp: Copied from kjs/AllInOneFile.cpp.
+        * GNUmakefile.am:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * kjs/AllInOneFile.cpp: Removed.
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Alexey Proskuryakov.
+
+        Add NodeInfo.h to the JavaScriptCore Xcode project.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-11-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Move more files into the runtime subdirectory of JavaScriptCore.
+
+        * API/JSBase.cpp:
+        * API/JSCallbackConstructor.cpp:
+        * API/JSCallbackFunction.cpp:
+        * API/JSClassRef.cpp:
+        * API/OpaqueJSString.cpp:
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * kjs/AllInOneFile.cpp:
+        * kjs/ArgList.cpp: Removed.
+        * kjs/ArgList.h: Removed.
+        * kjs/Arguments.cpp: Removed.
+        * kjs/Arguments.h: Removed.
+        * kjs/BatchedTransitionOptimizer.h: Removed.
+        * kjs/CollectorHeapIterator.h: Removed.
+        * kjs/CommonIdentifiers.cpp: Removed.
+        * kjs/CommonIdentifiers.h: Removed.
+        * kjs/ExecState.cpp: Removed.
+        * kjs/ExecState.h: Removed.
+        * kjs/GetterSetter.cpp: Removed.
+        * kjs/GetterSetter.h: Removed.
+        * kjs/InitializeThreading.cpp: Removed.
+        * kjs/InitializeThreading.h: Removed.
+        * kjs/JSActivation.cpp: Removed.
+        * kjs/JSActivation.h: Removed.
+        * kjs/JSGlobalData.cpp: Removed.
+        * kjs/JSGlobalData.h: Removed.
+        * kjs/JSLock.cpp: Removed.
+        * kjs/JSLock.h: Removed.
+        * kjs/JSStaticScopeObject.cpp: Removed.
+        * kjs/JSStaticScopeObject.h: Removed.
+        * kjs/JSType.h: Removed.
+        * kjs/PropertyNameArray.cpp: Removed.
+        * kjs/PropertyNameArray.h: Removed.
+        * kjs/ScopeChain.cpp: Removed.
+        * kjs/ScopeChain.h: Removed.
+        * kjs/ScopeChainMark.h: Removed.
+        * kjs/SymbolTable.h: Removed.
+        * kjs/Tracing.d: Removed.
+        * kjs/Tracing.h: Removed.
+        * runtime/ArgList.cpp: Copied from kjs/ArgList.cpp.
+        * runtime/ArgList.h: Copied from kjs/ArgList.h.
+        * runtime/Arguments.cpp: Copied from kjs/Arguments.cpp.
+        * runtime/Arguments.h: Copied from kjs/Arguments.h.
+        * runtime/BatchedTransitionOptimizer.h: Copied from kjs/BatchedTransitionOptimizer.h.
+        * runtime/CollectorHeapIterator.h: Copied from kjs/CollectorHeapIterator.h.
+        * runtime/CommonIdentifiers.cpp: Copied from kjs/CommonIdentifiers.cpp.
+        * runtime/CommonIdentifiers.h: Copied from kjs/CommonIdentifiers.h.
+        * runtime/ExecState.cpp: Copied from kjs/ExecState.cpp.
+        * runtime/ExecState.h: Copied from kjs/ExecState.h.
+        * runtime/GetterSetter.cpp: Copied from kjs/GetterSetter.cpp.
+        * runtime/GetterSetter.h: Copied from kjs/GetterSetter.h.
+        * runtime/InitializeThreading.cpp: Copied from kjs/InitializeThreading.cpp.
+        * runtime/InitializeThreading.h: Copied from kjs/InitializeThreading.h.
+        * runtime/JSActivation.cpp: Copied from kjs/JSActivation.cpp.
+        * runtime/JSActivation.h: Copied from kjs/JSActivation.h.
+        * runtime/JSGlobalData.cpp: Copied from kjs/JSGlobalData.cpp.
+        * runtime/JSGlobalData.h: Copied from kjs/JSGlobalData.h.
+        * runtime/JSLock.cpp: Copied from kjs/JSLock.cpp.
+        * runtime/JSLock.h: Copied from kjs/JSLock.h.
+        * runtime/JSStaticScopeObject.cpp: Copied from kjs/JSStaticScopeObject.cpp.
+        * runtime/JSStaticScopeObject.h: Copied from kjs/JSStaticScopeObject.h.
+        * runtime/JSType.h: Copied from kjs/JSType.h.
+        * runtime/PropertyNameArray.cpp: Copied from kjs/PropertyNameArray.cpp.
+        * runtime/PropertyNameArray.h: Copied from kjs/PropertyNameArray.h.
+        * runtime/ScopeChain.cpp: Copied from kjs/ScopeChain.cpp.
+        * runtime/ScopeChain.h: Copied from kjs/ScopeChain.h.
+        * runtime/ScopeChainMark.h: Copied from kjs/ScopeChainMark.h.
+        * runtime/SymbolTable.h: Copied from kjs/SymbolTable.h.
+        * runtime/Tracing.d: Copied from kjs/Tracing.d.
+        * runtime/Tracing.h: Copied from kjs/Tracing.h.
+
+2008-11-03  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Move #define to turn on dumping StructureID statistics to StructureID.cpp so that
+        turning it on does not require a full rebuild. 
+
+        * runtime/StructureID.cpp:
+        (JSC::StructureID::dumpStatistics):
+        * runtime/StructureID.h:
+
+2008-11-03  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix warning when building on Darwin without JSC_MULTIPLE_THREADS
+        enabled.
+
+        * kjs/InitializeThreading.cpp:
+
 2008-11-03  Matt Lilek  <webkit@mattlilek.com>
 
         Reviewed by Cameron Zwarich.

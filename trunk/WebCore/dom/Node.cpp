@@ -55,8 +55,8 @@
 #include "Text.h"
 #include "XMLNames.h"
 #include "htmlediting.h"
-#include <kjs/ExecState.h>
-#include <kjs/JSLock.h>
+#include <runtime/ExecState.h>
+#include <runtime/JSLock.h>
 #include <wtf/RefCountedLeakCounter.h>
 
 namespace WebCore {
@@ -409,10 +409,12 @@ bool Node::shouldUseInputMethod() const
 
 IntRect Node::getRect() const
 {
-    int _x, _y;
-    if (renderer() && renderer()->absolutePosition(_x, _y))
-        return IntRect( _x, _y, renderer()->width(), renderer()->height() + renderer()->borderTopExtra() + renderer()->borderBottomExtra());
-
+    // FIXME: broken with transforms
+    if (renderer()) {
+        FloatPoint absPos = renderer()->localToAbsolute();
+        return IntRect(roundedIntPoint(absPos),
+                       IntSize(renderer()->width(), renderer()->height() + renderer()->borderTopExtra() + renderer()->borderBottomExtra()));
+    }
     return IntRect();
 }
 

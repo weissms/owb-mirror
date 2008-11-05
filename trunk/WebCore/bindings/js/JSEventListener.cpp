@@ -25,7 +25,6 @@
 #include "DOMWindow.h"
 #include "Document.h"
 #include "Event.h"
-#include "EventNames.h"
 #include "Frame.h"
 #include "FrameLoader.h"
 #include "JSDOMWindow.h"
@@ -34,14 +33,12 @@
 #include "JSEventTargetNode.h"
 #include "ScriptController.h"
 #include <runtime/FunctionConstructor.h>
-#include <kjs/JSLock.h>
+#include <runtime/JSLock.h>
 #include <wtf/RefCountedLeakCounter.h>
 
 using namespace JSC;
 
 namespace WebCore {
-
-using namespace EventNames;
 
 ASSERT_CLASS_FITS_IN_CELL(JSAbstractEventListener)
 

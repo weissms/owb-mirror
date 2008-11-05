@@ -37,6 +37,10 @@
 #include <wtf/RefPtr.h>
 #include <wtf/Vector.h>
 
+#if PLATFORM(QT)
+#include <QVariant>
+#endif
+
 #if PLATFORM(MAC)
 #import <wtf/RetainPtr.h>
 typedef struct objc_object* id;
@@ -135,6 +139,7 @@ public:
     // This should not be called directly for HistoryItems that are already included
     // in GlobalHistory. The WebKit api for this is to use -[WebHistory setLastVisitedTimeInterval:forItem:] instead.
     void setLastVisitedTime(double);
+    void visited(const String& title, double time);
     
     bool isCurrentDocument(Document*) const;
     
@@ -146,6 +151,11 @@ public:
     // The properties will not be persisted; when the history item is removed, the properties will be lost.
     id getTransientProperty(const String&) const;
     void setTransientProperty(const String&, id);
+#endif
+
+#if PLATFORM(QT)
+    QVariant userData() const { return m_userData; }
+    void setUserData(const QVariant& userData) { m_userData = userData; }
 #endif
 
 #ifndef NDEBUG
@@ -195,6 +205,9 @@ private:
 #if PLATFORM(MAC)
     RetainPtr<id> m_viewState;
     OwnPtr<HashMap<String, RetainPtr<id> > > m_transientProperties;
+#endif
+#if PLATFORM(QT)
+    QVariant m_userData;
 #endif
 }; //class HistoryItem
 

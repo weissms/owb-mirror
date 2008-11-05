@@ -36,7 +36,7 @@
 #include <JSDOMWindow.h>
 #include <JavaScriptDebugServer.h>
 
-#include <kjs/ExecState.h>
+#include <ExecState.h>
 #include <wtf/Assertions.h>
 #include <wtf/Vector.h>
 #include DEEPSEE_INCLUDE

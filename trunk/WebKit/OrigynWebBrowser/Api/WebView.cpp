@@ -119,7 +119,6 @@
 #endif
 
 using namespace WebCore;
-using namespace WebCore::EventNames;
 using std::min;
 using std::max;
 
@@ -871,7 +870,7 @@ static const KeyPressEntry keyPressEntries[] = {
 
 const char* WebView::interpretKeyEvent(const KeyboardEvent* evt)
 {
-    ASSERT(evt->type() == keydownEvent || evt->type() == keypressEvent);
+    ASSERT(evt->type() == eventNames().keydownEvent || evt->type() == eventNames().keypressEvent);
 
     static HashMap<int, const char*>* keyDownCommandsMap = 0;
     static HashMap<int, const char*>* keyPressCommandsMap = 0;
@@ -905,7 +904,7 @@ const char* WebView::interpretKeyEvent(const KeyboardEvent* evt)
         modifiers |= AmigaKey;
 #endif
 
-    if (evt->type() == keydownEvent) {
+    if (evt->type() == eventNames().keydownEvent) {
         int mapKey = modifiers << 16 | evt->keyCode();
         return mapKey ? keyDownCommandsMap->get(mapKey) : 0;
     }

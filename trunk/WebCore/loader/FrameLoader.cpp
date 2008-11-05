@@ -85,7 +85,7 @@
 #include "XMLTokenizer.h"
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
-#include <kjs/JSLock.h>
+#include <runtime/JSLock.h>
 #include <runtime/JSObject.h>
 
 #if ENABLE(INSPECTOR)
@@ -117,7 +117,6 @@ namespace WebCore {
 using namespace SVGNames;
 #endif
 using namespace HTMLNames;
-using namespace EventNames;
 
 #if USE(LOW_BANDWIDTH_DISPLAY)
 const unsigned int cMaxPendingSourceLengthInLowBandwidthDisplay = 128 * 1024;
@@ -597,7 +596,7 @@ void FrameLoader::stopLoading(bool sendUnload)
                 Node* currentFocusedNode = m_frame->document()->focusedNode();
                 if (currentFocusedNode)
                     currentFocusedNode->aboutToUnload();
-                m_frame->document()->dispatchWindowEvent(unloadEvent, false, false);
+                m_frame->document()->dispatchWindowEvent(eventNames().unloadEvent, false, false);
                 if (m_frame->document())
                     m_frame->document()->updateRendering();
                 m_wasUnloadEventEmitted = true;
@@ -1916,7 +1915,7 @@ bool FrameLoader::canCachePage()
         && !m_containsPlugIns
         && !m_URL.protocolIs("https")
         && m_frame->document()
-        && !m_frame->document()->hasWindowEventListener(unloadEvent)
+        && !m_frame->document()->hasWindowEventListener(eventNames().unloadEvent)
 #if ENABLE(DATABASE)
         && !m_frame->document()->hasOpenDatabases()
 #endif
@@ -2443,17 +2442,17 @@ void FrameLoader::reload()
     if (!m_documentLoader)
         return;
 
-    ResourceRequest& initialRequest = m_documentLoader->request();
-    
     // If a window is created by javascript, its main frame can have an empty but non-nil URL.
     // Reloading in this case will lose the current contents (see 4151001).
-    if (initialRequest.url().isEmpty())
+    if (m_documentLoader->request().url().isEmpty())
         return;
+
+    ResourceRequest initialRequest = m_documentLoader->request();
 
     // Replace error-page URL with the URL we were trying to reach.
     KURL unreachableURL = m_documentLoader->unreachableURL();
     if (!unreachableURL.isEmpty())
-        initialRequest = ResourceRequest(unreachableURL);
+        initialRequest.setURL(unreachableURL);
     
     // Create a new document loader for the reload, this will become m_documentLoader eventually,
     // but first it has to be the "policy" document loader, and then the "provisional" document loader.

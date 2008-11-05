@@ -1,3 +1,238 @@
+2008-11-05  Dan Bernstein  <mitz@apple.com>
+
+        - Tiger build fix
+
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView stop]):
+
+2008-11-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Don't leak the CALayer.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        Make the layer a RetainPtr.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView start]):
+        
+        (-[WebBaseNetscapePluginView stop]):
+        Make sure to clear out the layer here.
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Remove the unused kjs/dtoa.h forwarding header.
+
+        * ForwardingHeaders/kjs/dtoa.h: Removed.
+
+2008-11-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        More cleanup. Make a bunch of instance variables RetainPtrs.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView visibleRect]):
+        (-[WebBaseNetscapePluginView saveAndSetNewPortStateForUpdate:]):
+        (-[WebBaseNetscapePluginView sendActivateEvent:]):
+        (-[WebBaseNetscapePluginView sendDrawRectEvent:]):
+        (-[WebBaseNetscapePluginView stopTimers]):
+        (-[WebBaseNetscapePluginView restartTimers]):
+        (-[WebBaseNetscapePluginView setHasFocus:]):
+        (-[WebBaseNetscapePluginView mouseDown:]):
+        (-[WebBaseNetscapePluginView mouseUp:]):
+        (-[WebBaseNetscapePluginView mouseEntered:]):
+        (-[WebBaseNetscapePluginView mouseExited:]):
+        (-[WebBaseNetscapePluginView handleMouseMoved:]):
+        (-[WebBaseNetscapePluginView mouseDragged:]):
+        (-[WebBaseNetscapePluginView scrollWheel:]):
+        (-[WebBaseNetscapePluginView keyUp:]):
+        (-[WebBaseNetscapePluginView keyDown:]):
+        (-[WebBaseNetscapePluginView flagsChanged:]):
+        (-[WebBaseNetscapePluginView cut:]):
+        (-[WebBaseNetscapePluginView copy:]):
+        (-[WebBaseNetscapePluginView paste:]):
+        (-[WebBaseNetscapePluginView selectAll:]):
+        (-[WebBaseNetscapePluginView didStart]):
+        (-[WebBaseNetscapePluginView start]):
+        (-[WebBaseNetscapePluginView stop]):
+        (-[WebBaseNetscapePluginView dataSource]):
+        (-[WebBaseNetscapePluginView pluginPackage]):
+        (-[WebBaseNetscapePluginView setPluginPackage:]):
+        (-[WebBaseNetscapePluginView setAttributeKeys:andValues:]):
+        (-[WebBaseNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:DOMElement:]):
+        (-[WebBaseNetscapePluginView fini]):
+        (-[WebBaseNetscapePluginView dealloc]):
+        (-[WebBaseNetscapePluginView pluginView:receivedError:]):
+        (-[WebBaseNetscapePluginView requestWithURLCString:]):
+        (-[WebBaseNetscapePluginView webFrame:didFinishLoadWithReason:]):
+        (-[WebBaseNetscapePluginView loadPluginRequest:]):
+        (-[WebBaseNetscapePluginView loadRequest:inTarget:withNotifyData:sendNotification:]):
+        (-[WebBaseNetscapePluginView userAgent]):
+        (-[WebBaseNetscapePluginView getVariable:value:]):
+        (-[WebBaseNetscapePluginView setVariable:value:]):
+        (-[WebBaseNetscapePluginView _createPlugin]):
+        (-[WebBaseNetscapePluginView _redeliverStream]):
+
+2008-11-04  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by John Sullivan
+
+        Cleanup global history a tad.  
+
+        Used to _addItemForURL always create a new item and merge it with a previous item if one existed.
+
+        It is more efficient and less complicated to update the previous item if one exists.
+
+        * History/WebHistory.mm:
+        (-[WebHistoryPrivate visitedURL:withTitle:]):
+        (-[WebHistory _visitedURL:withTitle:]):  Instead of calling the general purpose [WebHistoryPrivate addItem:]
+          with a new history item, call the new special purposed visitedURL:withTitle:
+        * History/WebHistoryInternal.h:
+
+        * History/WebHistoryItem.mm:
+        (-[WebHistoryItem _visitedWithTitle:]): Call "visited()" on the WebCore history item with the pertinent info.
+        * History/WebHistoryItemInternal.h:
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::updateGlobalHistory):
+
+2008-11-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22065
+
+        Only create the plug-in stream loader when the stream is started. 
+        
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        (WebNetscapePluginStream::start):
+
+2008-11-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=22065
+        
+        Remove some old, unused plug-in code.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView saveAndSetNewPortStateForUpdate:]):
+        (-[WebBaseNetscapePluginView start]):
+        (-[WebBaseNetscapePluginView setVariable:value:]):
+
+2008-11-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=21941
+
+        Rename absolutePosition() to localToAbsolute(), and add the ability
+        to optionally take transforms into account (which will eventually be the
+        default behavior).
+
+        * WebView/WebRenderNode.mm:
+        (copyRenderNode):
+
+2008-11-01  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22030
+        Make EventNames usable from multiple threads
+
+        * WebView/WebHTMLView.mm:
+        * WebView/WebPDFView.mm:
+        (-[WebPDFView PDFViewWillClickOnLink:withURL:]):
+        Access event names via eventNames() function.
+
+2008-11-04  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Delete a forwarding header for a file that no longer exists.
+
+        * ForwardingHeaders/kjs/string_object.h: Removed.
+
+2008-11-03  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Maciej Stachowiak.
+
+        Move more files into the runtime subdirectory of JavaScriptCore.
+
+        * ForwardingHeaders/kjs/JSLock.h: Removed.
+        * ForwardingHeaders/kjs/SymbolTable.h: Removed.
+        * ForwardingHeaders/runtime/JSLock.h: Copied from ForwardingHeaders/kjs/JSLock.h.
+        * ForwardingHeaders/runtime/SymbolTable.h: Copied from ForwardingHeaders/kjs/SymbolTable.h.
+        * Misc/WebCoreStatistics.mm:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        * Plugins/WebPluginController.mm:
+        * WebView/WebFrame.mm:
+        * WebView/WebScriptDebugDelegate.mm:
+        * WebView/WebView.mm:
+
+2008-11-03  Mark Rowe  <mrowe@apple.com>
+
+        Fix the 64-bit build.
+
+        Pull the frequently-made check for drawingModel == NPDrawingModelQuickDraw out into a
+        helper function to avoid #ifdef'ing all of the new places that this check is made.
+
+        A few other #ifdef's are moved inside functions to allow their call sites to remain #ifdef-free,
+        and we rely on the compiler to optimise out the check (which will always be false in 64-bit) instead.
+
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (isDrawingModelQuickDraw):
+        (-[WebBaseNetscapePluginView fixWindowPort]):
+        (-[WebBaseNetscapePluginView saveAndSetNewPortStateForUpdate:]):
+        (-[WebBaseNetscapePluginView sendEvent:isDrawRect:]):
+        (-[WebBaseNetscapePluginView updateAndSetWindow]):
+        (-[WebBaseNetscapePluginView start]):
+        (-[WebBaseNetscapePluginView tellQuickTimeToChill]):
+        (-[WebBaseNetscapePluginView viewWillMoveToWindow:]):
+        (-[WebBaseNetscapePluginView _viewHasMoved]):
+
+2008-11-03  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Kevin Decker.
+        
+        - fix release build (and unitialized variable for CG drawing model!)
+
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView sendEvent:isDrawRect:]): initialize portState in all code paths
+
+2008-11-03  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22053
+        
+        This patch adds initial support for the NPDrawingModelCoreAnimation drawing model. 
+                
+        * Plugins/WebBaseNetscapePluginView.h: Added _layer ivar.
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView saveAndSetNewPortStateForUpdate:]): ASSERT this is not a plug-in using NPDrawingModelCoreAnimation.
+        (-[WebBaseNetscapePluginView restorePortState:]): Ditto.
+        (-[WebBaseNetscapePluginView sendEvent:isDrawRect:]): Slightly refactored a small block of code which with the PortState.
+        Plug-ins using the NPDrawingModelCoreAnimation drawing model have no PortState. 
+        (-[WebBaseNetscapePluginView isNewWindowEqualToOldWindow]): ASSERT this is not a plug-in using NPDrawingModelCoreAnimation
+        (-[WebBaseNetscapePluginView updateAndSetWindow]):  Ditto.
+        (-[WebBaseNetscapePluginView setWindowIfNecessary]): Ditto.
+        (-[WebBaseNetscapePluginView start]): If the plug-in is a plug-in using the Core Animation model, request a layer from it.
+        (-[WebBaseNetscapePluginView drawRect:]): Return early for NPDrawingModelCoreAnimation plug-ins.
+        (-[WebBaseNetscapePluginView getVariable:value:]): Tell plug-ins running on post-Tiger systems WebKit supports
+         NPDrawingModelCoreAnimation.
+        (-[WebBaseNetscapePluginView setVariable:value:]): Added the new NPDrawingModelCoreAnimation case, which initializes drawingMode.
+        (-[WebBaseNetscapePluginView _viewHasMoved]): Reworded the conditional call to updateAndSetWindow to be specific to 
+        CoreGraphics and QuickDraw plug-ins.
+
 2008-11-03  Cameron Zwarich  <zwarich@apple.com>
 
         Reviewed by Darin Adler.
@@ -1867,7 +2102,7 @@
 
         Bring back shared JSGlobalData and implicit locking, because too many clients rely on it.
 
-        * ForwardingHeaders/kjs/JSLock.h: Added.
+        * ForwardingHeaders/runtime/JSLock.h: Added.
         * Misc/WebCoreStatistics.mm:
         (+[WebCoreStatistics javaScriptObjectsCount]):
         (+[WebCoreStatistics javaScriptGlobalObjectsCount]):
@@ -2433,7 +2668,7 @@
         Eliminate JSLock (it was already disabled, removing the stub implementaion and all
         call sites now).
 
-        * ForwardingHeaders/kjs/JSLock.h: Removed.
+        * ForwardingHeaders/runtime/JSLock.h: Removed.
         * Misc/WebCoreStatistics.mm:
         (+[WebCoreStatistics javaScriptObjectsCount]):
         (+[WebCoreStatistics javaScriptGlobalObjectsCount]):

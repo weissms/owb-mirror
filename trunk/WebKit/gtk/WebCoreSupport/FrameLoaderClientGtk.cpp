@@ -125,7 +125,7 @@ static String composeUserAgent()
 
     // WebKit Product
     // FIXME: The WebKit version is hardcoded
-    static const String webKitVersion = "525.1+";
+    static const String webKitVersion = "528.5+";
     ua += "AppleWebKit/" + webKitVersion;
     ua += " (KHTML, like Gecko, ";
     // We mention Safari since many broken sites check for it (OmniWeb does this too)
@@ -787,8 +787,8 @@ void FrameLoaderClient::transitionToCommittedForNewPage()
     if (frame->ownerRenderer())
         frame->ownerRenderer()->setWidget(frameView);
 
-    if (!frame->ownerElement())
-        return;
+    if (HTMLFrameOwnerElement* owner = frame->ownerElement())
+        frame->view()->setCanHaveScrollbars(owner->scrollingMode() != ScrollbarAlwaysOff);
 }
 
 }

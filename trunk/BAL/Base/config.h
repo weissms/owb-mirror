@@ -1,4 +1,4 @@
-#include "../../JavaScriptCore/kjs/config.h"
+#include "../../JavaScriptCore/config.h"
 
 #include "../../WebCore/config.h"
 

@@ -34,6 +34,8 @@
 #import <WebKit/WebBasePluginPackage.h>
 #import <wtf/HashMap.h>
 #import <wtf/HashSet.h>
+#import <wtf/OwnPtr.h>
+#import <wtf/RetainPtr.h>
 
 @class DOMElement;
 @class WebDataSource;
@@ -61,17 +63,20 @@ typedef struct _NPPluginTextInputFuncs NPPluginTextInputFuncs;
 
 @interface WebBaseNetscapePluginView : NSView <WebPluginManualLoader, NSTextInput>
 {
-    WebNetscapePluginPackage *pluginPackage;
+    RetainPtr<WebNetscapePluginPackage> _pluginPackage;
     
-    NSURL *sourceURL;
+    RetainPtr<NSURL> _sourceURL;
     WebFrame *_webFrame;
     
     BOOL _loadManually;
     RefPtr<WebNetscapePluginStream> _manualStream;
+#ifndef BUILDING_ON_TIGER
+    RetainPtr<CALayer> _layer;
+#endif
     unsigned _dataLengthReceived;
-    NSError *_error;
+    RetainPtr<NSError> _error;
     
-    int mode;
+    int _mode;
     
     unsigned argsCount;
     char **cAttributes;
@@ -85,18 +90,16 @@ typedef struct _NPPluginTextInputFuncs NPPluginTextInputFuncs;
     NPDrawingModel drawingModel;
     NPEventModel eventModel;
     
-
 #ifndef NP_NO_QUICKDRAW
     // This is only valid when drawingModel is NPDrawingModelQuickDraw
     GWorldPtr offscreenGWorld;
 #endif
 
-    WebNetscapePluginEventHandler *eventHandler;
+    OwnPtr<WebNetscapePluginEventHandler> _eventHandler;
     
     BOOL isStarted;
     BOOL inSetWindow;
     BOOL hasFocus;
-    BOOL isTransparent;
     BOOL isCompletelyObscured;
     BOOL shouldStopSoon;
 
@@ -106,17 +109,17 @@ typedef struct _NPPluginTextInputFuncs NPPluginTextInputFuncs;
 
     unsigned pluginFunctionCallDepth;
     
-    DOMElement *element;
+    RetainPtr<DOMElement> _element;
     
     int32 specifiedHeight;
     int32 specifiedWidth;
             
-    NSString *MIMEType;
-    NSURL *baseURL;
+    RetainPtr<NSString> _MIMEType;
+    RetainPtr<NSURL> _baseURL;
     NSTrackingRectTag trackingTag;
     
     HashSet<RefPtr<WebNetscapePluginStream> > streams;
-    NSMutableDictionary *pendingFrameLoads;
+    RetainPtr<NSMutableDictionary> _pendingFrameLoads;
     
     NPPluginTextInputFuncs *textInputFuncs;
     
@@ -164,10 +167,6 @@ typedef struct _NPPluginTextInputFuncs NPPluginTextInputFuncs;
 
 - (WebNetscapePluginPackage *)pluginPackage;
 - (void)setPluginPackage:(WebNetscapePluginPackage *)thePluginPackage;
-- (void)setMIMEType:(NSString *)theMIMEType;
-- (void)setBaseURL:(NSURL *)theBaseURL;
-- (void)setAttributeKeys:(NSArray *)keys andValues:(NSArray *)values;
-- (void)setMode:(int)theMode;
 - (void)viewWillMoveToHostWindow:(NSWindow *)hostWindow;
 - (void)viewDidMoveToHostWindow;
 - (void)disconnectStream:(WebNetscapePluginStream*)stream;

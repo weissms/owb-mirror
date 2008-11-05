@@ -36,7 +36,6 @@ using namespace std;
 
 namespace WebCore {
 
-using namespace EventNames;
 using namespace HTMLNames;
 
 HTMLImageElement::HTMLImageElement(Document* doc, HTMLFormElement* f)
@@ -122,9 +121,9 @@ void HTMLImageElement::parseMappedAttribute(MappedAttribute* attr)
     } else if (attrName == ismapAttr)
         ismap = true;
     else if (attrName == onabortAttr)
-        setInlineEventListenerForTypeAndAttribute(abortEvent, attr);
+        setInlineEventListenerForTypeAndAttribute(eventNames().abortEvent, attr);
     else if (attrName == onloadAttr)
-        setInlineEventListenerForTypeAndAttribute(loadEvent, attr);
+        setInlineEventListenerForTypeAndAttribute(eventNames().loadEvent, attr);
     else if (attrName == compositeAttr) {
         if (!parseCompositeOperator(attr->value(), m_compositeOperator))
             m_compositeOperator = CompositeSourceOver;
@@ -408,9 +407,10 @@ int HTMLImageElement::x() const
     RenderObject* r = renderer();
     if (!r)
         return 0;
-    int x, y;
-    r->absolutePosition(x, y);
-    return x;
+
+    // FIXME: This doesn't work correctly with transforms.
+    FloatPoint absPos = r->localToAbsolute();
+    return absPos.x();
 }
 
 int HTMLImageElement::y() const
@@ -418,9 +418,10 @@ int HTMLImageElement::y() const
     RenderObject* r = renderer();
     if (!r)
         return 0;
-    int x, y;
-    r->absolutePosition(x, y);
-    return y;
+
+    // FIXME: This doesn't work correctly with transforms.
+    FloatPoint absPos = r->localToAbsolute();
+    return absPos.y();
 }
 
 bool HTMLImageElement::complete() const

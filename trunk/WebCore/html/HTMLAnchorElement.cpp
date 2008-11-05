@@ -48,7 +48,6 @@
 namespace WebCore {
 
 using namespace HTMLNames;
-using namespace EventNames;
 
 HTMLAnchorElement::HTMLAnchorElement(Document* doc)
     : HTMLElement(aTag, doc)
@@ -116,9 +115,8 @@ bool HTMLAnchorElement::isKeyboardFocusable(KeyboardEvent* event) const
             return true;
 
     Vector<IntRect> rects;
-    int x, y;
-    renderer()->absolutePosition(x, y);
-    renderer()->absoluteRects(rects, x, y);
+    FloatPoint absPos = renderer()->localToAbsolute();
+    renderer()->absoluteRects(rects, absPos.x(), absPos.y());
     size_t n = rects.size();
     for (size_t i = 0; i < n; ++i)
         if (!rects[i].isEmpty())
@@ -132,13 +130,13 @@ void HTMLAnchorElement::defaultEventHandler(Event* evt)
     // React on clicks and on keypresses.
     // Don't make this KEYUP_EVENT again, it makes khtml follow links it shouldn't,
     // when pressing Enter in the combo.
-    if (isLink() && (evt->type() == clickEvent || (evt->type() == keydownEvent && focused()))) {
+    if (isLink() && (evt->type() == eventNames().clickEvent || (evt->type() == eventNames().keydownEvent && focused()))) {
         MouseEvent* e = 0;
-        if (evt->type() == clickEvent && evt->isMouseEvent())
+        if (evt->type() == eventNames().clickEvent && evt->isMouseEvent())
             e = static_cast<MouseEvent*>(evt);
 
         KeyboardEvent* k = 0;
-        if (evt->type() == keydownEvent && evt->isKeyboardEvent())
+        if (evt->type() == eventNames().keydownEvent && evt->isKeyboardEvent())
             k = static_cast<KeyboardEvent*>(evt);
 
         if (e && e->button() == RightButton) {
@@ -201,10 +199,10 @@ void HTMLAnchorElement::defaultEventHandler(Event* evt)
             if (img && img->isServerMap()) {
                 RenderImage* r = static_cast<RenderImage*>(img->renderer());
                 if (r && e) {
-                    int absx, absy;
-                    r->absolutePosition(absx, absy);
-                    int x = e->pageX() - absx;
-                    int y = e->pageY() - absy;
+                    // FIXME: broken with transforms
+                    FloatPoint absPos = r->localToAbsolute();
+                    int x = e->pageX() - absPos.x();
+                    int y = e->pageY() - absPos.y();
                     url += "?";
                     url += String::number(x);
                     url += ",";
@@ -224,12 +222,12 @@ void HTMLAnchorElement::defaultEventHandler(Event* evt)
     } else if (isLink() && isContentEditable()) {
         // This keeps track of the editable block that the selection was in (if it was in one) just before the link was clicked
         // for the LiveWhenNotFocused editable link behavior
-        if (evt->type() == mousedownEvent && evt->isMouseEvent() && static_cast<MouseEvent*>(evt)->button() != RightButton && document()->frame() && document()->frame()->selection()) {
+        if (evt->type() == eventNames().mousedownEvent && evt->isMouseEvent() && static_cast<MouseEvent*>(evt)->button() != RightButton && document()->frame() && document()->frame()->selection()) {
             MouseEvent* e = static_cast<MouseEvent*>(evt);
 
             m_rootEditableElementForSelectionOnMouseDown = document()->frame()->selection()->rootEditableElement();
             m_wasShiftKeyDownOnMouseDown = e && e->shiftKey();
-        } else if (evt->type() == mouseoverEvent) {
+        } else if (evt->type() == eventNames().mouseoverEvent) {
             // These are cleared on mouseover and not mouseout because their values are needed for drag events, but these happen
             // after mouse out events.
             m_rootEditableElementForSelectionOnMouseDown = 0;

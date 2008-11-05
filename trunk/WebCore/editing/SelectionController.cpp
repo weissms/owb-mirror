@@ -57,7 +57,6 @@
 
 namespace WebCore {
 
-using namespace EventNames;
 using namespace HTMLNames;
 
 const int NoXPosForVerticalArrowNavigation = INT_MIN;
@@ -741,9 +740,9 @@ void SelectionController::layout()
             ASSERT(pos.deepEquivalent().node()->renderer());
             m_caretRect = pos.caretRect();
 
-            int x, y;
-            pos.deepEquivalent().node()->renderer()->absolutePositionForContent(x, y);
-            m_caretPositionOnLayout = IntPoint(x, y);
+            // FIXME: broken with transforms
+            FloatPoint absPos = pos.deepEquivalent().node()->renderer()->localToAbsoluteForContent(FloatPoint());
+            m_caretPositionOnLayout = roundedIntPoint(absPos);
         }
     }
 
@@ -758,9 +757,8 @@ IntRect SelectionController::caretRect() const
     IntRect caret = m_caretRect;
 
     if (m_sel.start().node() && m_sel.start().node()->renderer()) {
-        int x, y;
-        m_sel.start().node()->renderer()->absolutePositionForContent(x, y);
-        caret.move(IntPoint(x, y) - m_caretPositionOnLayout);
+        FloatPoint absPos = m_sel.start().node()->renderer()->localToAbsoluteForContent(FloatPoint());
+        caret.move(roundedIntPoint(absPos) - m_caretPositionOnLayout);
     }
 
     return caret;
@@ -1148,7 +1146,7 @@ void SelectionController::setFocused(bool flag)
     focusedOrActiveStateChanged();
 
     if (Document* doc = m_frame->document())
-        doc->dispatchWindowEvent(flag ? focusEvent : blurEvent, false, false);
+        doc->dispatchWindowEvent(flag ? eventNames().focusEvent : eventNames().blurEvent, false, false);
 }
 
 bool SelectionController::isFocusedAndActive() const

@@ -28,7 +28,6 @@
 #include "DOMWindow.h"
 #include "Element.h"
 #include "EventListener.h"
-#include "EventNames.h"
 #include "ExceptionCode.h"
 #include "FloatRect.h"
 #include "Frame.h"
@@ -64,7 +63,7 @@
 #include "WindowFeatures.h"
 #include "htmlediting.h"
 #include <runtime/Error.h>
-#include <kjs/JSLock.h>
+#include <runtime/JSLock.h>
 #include <wtf/AlwaysInline.h>
 #include <wtf/MathExtras.h>
 
@@ -97,8 +96,6 @@ static void setJSDOMWindowBaseXSLTProcessor(ExecState*, JSObject*, JSValue*);
 #include "JSDOMWindowBase.lut.h"
 
 namespace WebCore {
-
-using namespace EventNames;
 
 static int lastUsedTimeoutId;
 

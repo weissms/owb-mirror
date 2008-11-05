@@ -37,8 +37,8 @@
 #include "runtime_root.h"
 #include <runtime/Error.h>
 #include <runtime/JSGlobalObject.h>
-#include <kjs/JSLock.h>
-#include <kjs/PropertyNameArray.h>
+#include <runtime/JSLock.h>
+#include <runtime/PropertyNameArray.h>
 #include <kjs/SourceCode.h>
 #include <kjs/completion.h>
 #include <kjs/interpreter.h>

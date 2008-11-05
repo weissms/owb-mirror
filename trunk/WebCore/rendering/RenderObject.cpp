@@ -34,7 +34,6 @@
 #include "Document.h"
 #include "Element.h"
 #include "EventHandler.h"
-#include "EventNames.h"
 #include "FloatRect.h"
 #include "Frame.h"
 #include "FrameView.h"
@@ -69,7 +68,6 @@ using namespace std;
 
 namespace WebCore {
 
-using namespace EventNames;
 using namespace HTMLNames;
 
 #ifndef NDEBUG
@@ -1715,10 +1713,10 @@ void RenderObject::absoluteRects(Vector<IntRect>& rects, int tx, int ty, bool to
 
 IntRect RenderObject::absoluteBoundingBoxRect()
 {
-    int x, y;
-    absolutePosition(x, y);
+    // FIXME: This doesn't work correctly with transforms.
+    FloatPoint absPos = localToAbsolute();
     Vector<IntRect> rects;
-    absoluteRects(rects, x, y);
+    absoluteRects(rects, absPos.x(), absPos.y());
 
     size_t n = rects.size();
     if (!n)
@@ -2016,7 +2014,7 @@ void RenderObject::computeAbsoluteRepaintRect(IntRect& rect, bool fixed)
             IntRect boxRect(0, 0, o->layer()->width(), o->layer()->height());
             int x = rect.x();
             int y = rect.y();
-            o->layer()->subtractScrollOffset(x, y); // For overflow:auto/scroll/hidden.
+            o->layer()->subtractScrolledContentOffset(x, y); // For overflow:auto/scroll/hidden.
             IntRect repaintRect(x, y, rect.width(), rect.height());
             rect = intersection(repaintRect, boxRect);
             if (rect.isEmpty())
@@ -2381,19 +2379,17 @@ IntRect RenderObject::viewRect() const
     return view()->viewRect();
 }
 
-bool RenderObject::absolutePosition(int& xPos, int& yPos, bool f) const
+FloatPoint RenderObject::localToAbsolute(FloatPoint localPoint, bool fixed, bool useTransforms) const
 {
     RenderObject* o = parent();
     if (o) {
-        o->absolutePosition(xPos, yPos, f);
-        yPos += o->borderTopExtra();
+        localPoint.move(0.0f, static_cast<float>(o->borderTopExtra()));
         if (o->hasOverflowClip())
-            o->layer()->subtractScrollOffset(xPos, yPos);
-        return true;
-    } else {
-        xPos = yPos = 0;
-        return false;
+            localPoint -= o->layer()->scrolledContentOffset();
+        return o->localToAbsolute(localPoint, fixed, useTransforms);
     }
+
+    return FloatPoint();
 }
 
 IntRect RenderObject::caretRect(InlineBox* inlineBox, int caretOffset, int* extraWidthToEndOfLine)
@@ -2942,10 +2938,9 @@ void RenderObject::addDashboardRegions(Vector<DashboardRegionValue>& regions)
             region.clip.setWidth(0);
         }
 
-        int x, y;
-        absolutePosition(x, y);
-        region.bounds.setX(x + styleRegion.offset.left().value());
-        region.bounds.setY(y + styleRegion.offset.top().value());
+        FloatPoint absPos = localToAbsolute();
+        region.bounds.setX(absPos.x() + styleRegion.offset.left().value());
+        region.bounds.setY(absPos.y() + styleRegion.offset.top().value());
 
         if (document()->frame()) {
             float pageScaleFactor = document()->frame()->page()->chrome()->scaleFactor();
@@ -3064,9 +3059,8 @@ IntRect RenderObject::contentBox() const
 IntRect RenderObject::absoluteContentBox() const
 {
     IntRect rect = contentBox();
-    int x, y;
-    absolutePositionForContent(x, y);
-    rect.move(x, y);
+    FloatPoint absPos = localToAbsoluteForContent(FloatPoint());
+    rect.move(absPos.x(), absPos.y());
     return rect;
 }
 
@@ -3098,9 +3092,8 @@ void RenderObject::adjustRectForOutlineAndShadow(IntRect& rect) const
 IntRect RenderObject::absoluteOutlineBox() const
 {
     IntRect box = borderBox();
-    int x, y;
-    absolutePosition(x, y);
-    box.move(x, y);
+    FloatPoint absPos = localToAbsolute();
+    box.move(absPos.x(), absPos.y());
     box.move(view()->layoutDelta());
     adjustRectForOutlineAndShadow(box);
     return box;

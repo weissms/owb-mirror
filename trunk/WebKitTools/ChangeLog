@@ -1,3 +1,40 @@
+2008-11-05  Simon Fraser  <simon.fraser@apple.com>
+
+        Add AccessibilityObject.o to the exclude list for the
+        check for global destructors.
+        
+        * Scripts/check-for-exit-time-destructors:
+
+2008-11-04  Darin Adler  <darin@apple.com>
+
+        * Scripts/check-for-exit-time-destructors: Fix failures seen on the
+        bot, but for some reason not on my computer.
+
+2008-11-03  Darin Adler  <darin@apple.com>
+
+        Reviewed by Tim Hatcher.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22061
+          create script to check for exit-time destructors
+
+        * Scripts/check-for-exit-time-destructors: Added.
+        Started as a copy of check-for-global-initializers.
+
+        * Scripts/check-for-global-initializers: Added code to make
+        this script rerun any time it's modified, and also to properly
+        run again after the first time it reports an error.
+
+2008-11-03  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fixed the override of the "AppleScrollBarVariant" system setting to also work with HIToolbox.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22054
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (setDefaultsToConsistentValuesForTesting):
+
 2008-11-03  Cameron Zwarich  <zwarich@apple.com>
 
         Not reviewed.

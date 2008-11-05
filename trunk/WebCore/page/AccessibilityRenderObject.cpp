@@ -75,7 +75,6 @@ using namespace std;
 
 namespace WebCore {
 
-using namespace EventNames;
 using namespace HTMLNames;
 
 AccessibilityRenderObject::AccessibilityRenderObject(RenderObject* renderer)
@@ -505,7 +504,7 @@ Element* AccessibilityRenderObject::mouseButtonListener() const
     
     // FIXME: Do the continuation search like anchorElement does
     for (EventTargetNode* elt = static_cast<EventTargetNode*>(node); elt; elt = static_cast<EventTargetNode*>(elt->parentNode())) {
-        if (elt->inlineEventListenerForType(clickEvent) || elt->inlineEventListenerForType(mousedownEvent) || elt->inlineEventListenerForType(mouseupEvent))
+        if (elt->inlineEventListenerForType(eventNames().clickEvent) || elt->inlineEventListenerForType(eventNames().mousedownEvent) || elt->inlineEventListenerForType(eventNames().mouseupEvent))
             return static_cast<Element*>(elt);
     }
     
@@ -921,9 +920,8 @@ IntRect AccessibilityRenderObject::boundingBoxRect() const
     
     // FIXME: This doesn't work correctly with transforms.
     Vector<IntRect> rects;
-    int x, y;
-    obj->absolutePosition(x, y);
-    obj->absoluteRects(rects, x, y);
+    FloatPoint absPos = obj->localToAbsolute();
+    obj->absoluteRects(rects, absPos.x(), absPos.y());
     const size_t n = rects.size();
     for (size_t i = 0; i < n; ++i) {
         IntRect r = rects[i];

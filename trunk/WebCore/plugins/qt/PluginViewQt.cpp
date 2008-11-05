@@ -37,7 +37,7 @@
 #include "npruntime_impl.h"
 #include "runtime.h"
 #include "runtime_root.h"
-#include <kjs/JSLock.h>
+#include <runtime/JSLock.h>
 #include <runtime/JSValue.h>
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
@@ -45,7 +45,6 @@
 #include "Document.h"
 #include "DocumentLoader.h"
 #include "Element.h"
-#include "EventNames.h"
 #include "FrameLoader.h"
 #include "FrameLoadRequest.h"
 #include "FrameTree.h"
@@ -74,7 +73,6 @@ using namespace WTF;
 
 namespace WebCore {
 
-using namespace EventNames;
 using namespace HTMLNames;
 
 void PluginView::updatePluginWidget() const

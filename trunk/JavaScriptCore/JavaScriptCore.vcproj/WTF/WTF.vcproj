@@ -218,6 +218,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\wtf\dtoa.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\wtf\dtoa.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\wtf\FastMalloc.cpp"
 			>
 		</File>

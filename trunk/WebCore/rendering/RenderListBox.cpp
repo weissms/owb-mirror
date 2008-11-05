@@ -58,7 +58,6 @@ using namespace std;
 
 namespace WebCore {
 
-using namespace EventNames;
 using namespace HTMLNames;
  
 const int rowSpacing = 1;
@@ -402,9 +401,8 @@ void RenderListBox::panScroll(const IntPoint& panStartMousePosition)
     const int iconRadius = 7;
     const int speedReducer = 4;
 
-    int offsetX;
-    int offsetY;
-    absolutePosition(offsetX, offsetY);
+    // FIXME: This doesn't work correctly with transforms.
+    FloatPoint absOffset = localToAbsolute();
 
     IntPoint currentMousePosition = document()->frame()->eventHandler()->currentMousePosition();
     // We need to check if the current mouse position is out of the window. When the mouse is out of the window, the position is incoherent
@@ -424,7 +422,7 @@ void RenderListBox::panScroll(const IntPoint& panStartMousePosition)
 
     if (yDelta > 0)
         //offsetY = view()->viewHeight();
-        offsetY += listHeight();
+        absOffset.move(0, listHeight());
    else if (yDelta < 0)
        yDelta--;
 
@@ -432,7 +430,7 @@ void RenderListBox::panScroll(const IntPoint& panStartMousePosition)
     yDelta /= speedReducer;
 
     IntPoint scrollPoint(0,0);
-    scrollPoint.setY(offsetY + yDelta);
+    scrollPoint.setY(absOffset.y() + yDelta);
     int newOffset = scrollToward(scrollPoint);
     if (newOffset < 0) 
         return;
@@ -445,11 +443,10 @@ void RenderListBox::panScroll(const IntPoint& panStartMousePosition)
 
 int RenderListBox::scrollToward(const IntPoint& destination)
 {
-    int rx = 0;
-    int ry = 0;
-    absolutePosition(rx, ry);
-    int offsetX = destination.x() - rx;
-    int offsetY = destination.y() - ry;
+    // FIXME: This doesn't work correctly with transforms.
+    FloatPoint absPos = localToAbsolute();
+    int offsetX = destination.x() - absPos.x();
+    int offsetY = destination.y() - absPos.y();
 
     int rows = numVisibleItems();
     int offset = m_indexOffset;
@@ -528,7 +525,7 @@ void RenderListBox::valueChanged(Scrollbar*)
         m_indexOffset = newOffset;
         repaint();
         // Fire the scroll DOM event.
-        EventTargetNodeCast(node())->dispatchEventForType(scrollEvent, false, false);
+        EventTargetNodeCast(node())->dispatchEventForType(eventNames().scrollEvent, false, false);
     }
 }
 

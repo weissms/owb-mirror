@@ -1,12 +1,22 @@
 LIST (APPEND JSCORE_SRC
+    runtime/Arguments.cpp
+    runtime/ArgList.cpp
     runtime/ErrorConstructor.cpp
     runtime/Error.cpp
     runtime/DatePrototype.cpp
     runtime/BooleanPrototype.cpp 
     runtime/CallData.cpp
+    runtime/CommonIdentifiers.cpp
     runtime/BooleanObject.cpp
+    runtime/ExecState.cpp
+    runtime/JSActivation.cpp
+    runtime/JSGlobalData.cpp
     runtime/JSGlobalObjectFunctions.cpp
+    runtime/JSLock.cpp
+    runtime/JSStaticScopeObject.cpp
+    runtime/GetterSetter.cpp
     runtime/GlobalEvalFunction.cpp
+    runtime/InitializeThreading.cpp
     runtime/InternalFunction.cpp
     runtime/DateConstructor.cpp
     runtime/ArrayConstructor.cpp
@@ -15,6 +25,7 @@ LIST (APPEND JSCORE_SRC
     runtime/BooleanConstructor.cpp
     runtime/NumberConstructor.cpp
     runtime/NativeErrorConstructor.cpp
+    runtime/PropertyNameArray.cpp
     runtime/PrototypeFunction.cpp
     runtime/JSCell.cpp
     runtime/MathObject.cpp
@@ -24,6 +35,7 @@ LIST (APPEND JSCORE_SRC
     runtime/JSArray.cpp
     runtime/StringConstructor.cpp
     runtime/ObjectConstructor.cpp
+    runtime/ScopeChain.cpp
     runtime/StructureID.cpp
     runtime/ErrorInstance.cpp
     runtime/NumberPrototype.cpp
