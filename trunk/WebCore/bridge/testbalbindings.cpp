@@ -27,7 +27,7 @@
 #include "JSValue.h"
 #include "JSObject.h"
 //#include "types.h"
-#include "interpreter.h"
+#include "Interpreter.h"
 #include "JSGlobalObject.h"
 #include "CString.h"
 

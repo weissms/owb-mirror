@@ -236,9 +236,20 @@ static TransitionVector tVectorForFunctionPointer(FunctionPointer);
         if (hasCFMHeader)
             return NO;
 #endif
+
+#if USE(PLUGIN_HOST_PROCESS)
+        NSArray *archs = [bundle executableArchitectures];
         
+        if ([archs containsObject:[NSNumber numberWithInteger:NSBundleExecutableArchitectureX86_64]])
+            pluginHostArchitecture = CPU_TYPE_X86_64;
+        else if ([archs containsObject:[NSNumber numberWithInteger:NSBundleExecutableArchitectureI386]])
+            pluginHostArchitecture = CPU_TYPE_X86;
+        else
+            return NO;
+#else
         if (![self isNativeLibraryData:data])
             return NO;
+#endif
     }
 
     if (![self getPluginInfoFromPLists] && ![self getPluginInfoFromResources])
@@ -439,9 +450,11 @@ static TransitionVector tVectorForFunctionPointer(FunctionPointer);
         browserFuncs.createobject = (NPN_CreateObjectProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_CreateObject);
         browserFuncs.retainobject = (NPN_RetainObjectProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_RetainObject);
         browserFuncs.releaseobject = (NPN_ReleaseObjectProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_ReleaseObject);
+        browserFuncs.hasmethod = (NPN_HasMethodProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_HasProperty);
         browserFuncs.invoke = (NPN_InvokeProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_Invoke);
         browserFuncs.invokeDefault = (NPN_InvokeDefaultProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_InvokeDefault);
         browserFuncs.evaluate = (NPN_EvaluateProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_Evaluate);
+        browserFuncs.hasproperty = (NPN_HasPropertyProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_HasProperty);
         browserFuncs.getproperty = (NPN_GetPropertyProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_GetProperty);
         browserFuncs.setproperty = (NPN_SetPropertyProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_SetProperty);
         browserFuncs.removeproperty = (NPN_RemovePropertyProcPtr)tVectorForFunctionPointer((FunctionPointer)_NPN_RemoveProperty);
@@ -546,9 +559,11 @@ static TransitionVector tVectorForFunctionPointer(FunctionPointer);
         browserFuncs.createobject = _NPN_CreateObject;
         browserFuncs.retainobject = _NPN_RetainObject;
         browserFuncs.releaseobject = _NPN_ReleaseObject;
+        browserFuncs.hasmethod = _NPN_HasMethod;
         browserFuncs.invoke = _NPN_Invoke;
         browserFuncs.invokeDefault = _NPN_InvokeDefault;
         browserFuncs.evaluate = _NPN_Evaluate;
+        browserFuncs.hasproperty = _NPN_HasProperty;
         browserFuncs.getproperty = _NPN_GetProperty;
         browserFuncs.setproperty = _NPN_SetProperty;
         browserFuncs.removeproperty = _NPN_RemoveProperty;

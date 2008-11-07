@@ -184,6 +184,16 @@ void AccessibilityUIElement::setSelectedTextRange(unsigned location, unsigned le
 {
 }
 
+JSStringRef AccessibilityUIElement::attributeValue(JSStringRef attribute)
+{
+    return NULL;
+}
+
+bool AccessibilityUIElement::isAttributeSettable(JSStringRef attribute)
+{
+    return false;
+}
+
 bool AccessibilityUIElement::supportsPressAction()
 {
     return false;

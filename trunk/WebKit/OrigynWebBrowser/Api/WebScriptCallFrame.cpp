@@ -29,7 +29,7 @@
 #include "config.h"
 #include "WebScriptCallFrame.h"
 
-#include <interpreter.h>
+#include <Interpreter.h>
 #include <JSGlobalObject.h>
 #include <JSLock.h>
 #include <JSValueRef.h>

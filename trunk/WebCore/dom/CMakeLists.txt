@@ -72,3 +72,11 @@ LIST (APPEND DOM_SRC
     dom/XMLTokenizer.cpp
     dom/XMLTokenizerLibxml2.cpp
 )
+
+IF (WEBKIT_USE_WORKERS)
+    LIST(APPEND DOM_SRC
+        dom/WorkerContext.cpp
+        dom/WorkerLocation.cpp
+        dom/WorkerThread.cpp
+    )
+ENDIF (WEBKIT_USE_WORKERS)

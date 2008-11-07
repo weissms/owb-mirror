@@ -3553,7 +3553,7 @@ unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& requ
         if (documentLoader()->shouldLoadResourceFromApplicationCache(newRequest, resource)) {
             if (resource) {
                 response = resource->response();
-                    data.append(resource->data()->data(), resource->data()->size());
+                data.append(resource->data()->data(), resource->data()->size());
             } else
                 error = cannotShowURLError(newRequest);
         } else 

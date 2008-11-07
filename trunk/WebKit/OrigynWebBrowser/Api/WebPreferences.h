@@ -511,6 +511,16 @@ public:
      */
     virtual bool authorAndUserStylesEnabled();
 
+    /**
+     * Enable zoom for text only.
+     */
+    virtual void setZoomsTextOnly(bool zoomsTextOnly);
+
+    /**
+     * get zoom for text only status.
+     */
+    virtual bool zoomsTextOnly();
+
     // WebPreferences
 
     // This method accesses a different preference key than developerExtrasEnabled.

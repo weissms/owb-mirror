@@ -4,9 +4,10 @@ ENDIF (WEBKIT_USE_UCLIBC)
 
 INCLUDE (pcre/CMakeLists.txt)
 INCLUDE (API/CMakeLists.txt)
+INCLUDE (bytecompiler/CMakeLists.txt)
 INCLUDE (debugger/CMakeLists.txt)
-INCLUDE (kjs/CMakeLists.txt)
 INCLUDE (runtime/CMakeLists.txt)
+INCLUDE (parser/CMakeLists.txt)
 INCLUDE (profiler/CMakeLists.txt)
 INCLUDE (VM/CMakeLists.txt)
     
@@ -17,15 +18,16 @@ INCLUDE_DIRECTORIES (
     bindings
     bindings/bal
     bindings/c
+    bytecompiler
     debugger
     ForwardingHeaders
-    kjs
+    parser
     pcre
     runtime
     VM
     profiler
     #wtf
-    ${CMAKE_BINARY_DIR}/generated_sources/kjs
+    ${CMAKE_BINARY_DIR}/generated_sources/parser
     ${CMAKE_BINARY_DIR}/generated_sources/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/API
@@ -75,73 +77,9 @@ IF (COMPILE_TESTS)
       LINK_DIRECTORIES(${SDL_LIBRARY_DIRS})
    ENDIF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
 
-   ADD_EXECUTABLE (jsc kjs/Shell.cpp)
-   
-   IF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
-      TARGET_LINK_LIBRARIES (jsc ${GTK2_LIBRARIES})
-   ELSEIF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "SDL")
-      TARGET_LINK_LIBRARIES (jsc ${SDL_LIBRARIES})
-   ENDIF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
-
-   TARGET_LINK_LIBRARIES (jsc
-        generated-sources
-        webcore-owb
-	webkit
-        bal-events
-        bal-facilities
-        bal-fonts
-        bal-graphics
-        bal-imagedecoder
-        bal-internationalization
-        bal-media
-        bal-memory
-        bal-network
-        bal-types
-        bal-widgets
-        jscore
-        ${DEEPSEE_LINK}
-        ${EXTRA_LDFLAGS}
-   )
-
-IF (WEBKIT_USE_DATABASE)
-    TARGET_LINK_LIBRARIES (jsc
-        bal-database
-    )
-ENDIF (WEBKIT_USE_DATABASE)
-
-TARGET_LINK_LIBRARIES (jsc
-        -lxslt -lz -lm -lxml2
-        ${PNG12_LIBRARIES}
-        -ljpeg
-        ${GTHREAD_LIBRARIES}
-	${XT_LIBRARIES}
-	-lreadline
-    )
-
-IF (WEBKIT_USE_HTML_EXTENSION)
-    TARGET_LINK_LIBRARIES (jsc
-        htmlext
-    )
-ENDIF (WEBKIT_USE_HTML_EXTENSION)
-
     IF (OWBAL_PLATFORM_MACPORT)
         TARGET_LINK_LIBRARIES (jscore
             ${LIBICU_LIBS}
         )
-        TARGET_LINK_LIBRARIES (jsc
-            ${LIBICU_LIBS}
-            ${DEEPSEE_LINK}
-        )
     ENDIF (OWBAL_PLATFORM_MACPORT)
-
-    ADD_CUSTOM_TARGET (kjstests
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/export_test_kjs
-        COMMAND cd KjsTests/mozilla/ && ${PERL_EXECUTABLE} mklistpage.pl > menubody.html
-        COMMAND cd KjsTests/mozilla/ && cat menuhead.html menubody.html menufoot.html > menu.html
-        COMMAND cd KjsTests/mozilla/ && SYMROOTS=${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore ./jsDriver.pl -e kjs -s ${CMAKE_CURRENT_BINARY_DIR}/jsc -f results.html
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-    ADD_DEPENDENCIES (kjstests
-        jsc
-    )
 ENDIF (COMPILE_TESTS)

@@ -1,3 +1,130 @@
+2008-11-07  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22115
+        NPN_HasPropertyUPP and NPN_HasMethodUPP entries in NPNetscapeFuncs are NULL
+        
+        Initialize the browser funcs correctly.
+        
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage load]):
+
+2008-11-06  David Kilzer  <ddkilzer@apple.com>
+
+        BUILD FIX: Backed out r38189 (and r38203) for Xcode 3.0.
+
+        Apparently older versions of gcc have issues with this patch.
+        Backing out a second time until the issues are resolved.
+
+2008-11-06  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Move the remaining files in the kjs subdirectory of JavaScriptCore to
+        a new parser subdirectory, and remove the kjs subdirectory entirely.
+
+        The header SavedBuiltins.h was removed in r32587, so it no longer needs
+        a forwarding header.
+
+        * ForwardingHeaders/kjs: Removed.
+        * ForwardingHeaders/kjs/SavedBuiltins.h: Removed.
+
+2008-11-06  David Kilzer  <ddkilzer@apple.com>
+
+        BUILD WAS NOT BROKEN: Rolling r38189 back in.
+
+        Please perform a clean build if you see crashes.
+
+2008-11-06  David Kilzer  <ddkilzer@apple.com>
+
+        BUILD FIX: Backed out r38189 since it apparently broke the world.
+
+2008-11-06  John Sullivan  <sullivan@apple.com>
+
+        Fixed problem with switching between text-only zoom and full-content zoom
+        
+        There were two booleans tracking whether zoom was text-only, one in WebCore settings
+        and one in WebViewPrivate. Fixed by eliminating the one in WebViewPrivate.
+
+        Reviewed by Adam Roben
+
+        * WebView/WebView.mm:
+        remove declaration of zoomMultiplierIsTextOnly instance variable in WebViewPrivate
+        (-[WebViewPrivate init]):
+        removed initialization of zoomMultiplierIsTextOnly
+        (-[WebView textSizeMultiplier]):
+        call [self _realZoomMultiplierIsTextOnly] instead of accessing WebViewPrivate instance variable
+        (-[WebView _setZoomMultiplier:isTextOnly:]):
+        update WebCore settings rather than WebViewPrivate instance variable
+        (-[WebView _zoomMultiplier:]):
+        call [self _realZoomMultiplierIsTextOnly] instead of accessing WebViewPrivate instance variable
+        (-[WebView _realZoomMultiplierIsTextOnly]):
+        return value from WebCore settings instead of accessing WebViewPrivate instance variable
+        (-[WebView pageSizeMultiplier]):
+        call [self _realZoomMultiplierIsTextOnly] instead of accessing WebViewPrivate instance variable
+
+2008-11-06  Greg Bolsinga  <bolsinga@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Bug 21810: Remove use of static C++ objects that are destroyed at exit time (destructors)
+        https://bugs.webkit.org/show_bug.cgi?id=21810
+
+        * History/WebBackForwardList.mm:
+        (backForwardLists): Changed to leak an object to avoid an exit-time destructor.
+        * History/WebHistoryItem.mm:
+        (historyItemWrappers): Ditto
+        * Misc/WebStringTruncator.m:
+        (fontFromNSFont): Ditto
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (streams): Ditto
+        * WebView/WebView.mm:
+        (aeDescFromJSValue): Ditto
+
+2008-11-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Keep track of which plug-in host architecture would be needed for a given plug-in package.
+        
+        * Plugins/WebNetscapePluginPackage.h:
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage _initWithPath:]):
+        * WebKitPrefix.h:
+
+2008-11-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Correct forwarding headers for files moved to the runtime subdirectory
+        of JavaScriptCore and remove unused forwarding headers.
+
+        * ForwardingHeaders/kjs/collector.h: Removed.
+        * ForwardingHeaders/kjs/identifier.h: Removed.
+        * ForwardingHeaders/kjs/interpreter.h: Removed.
+        * ForwardingHeaders/kjs/lookup.h: Removed.
+        * ForwardingHeaders/kjs/operations.h: Removed.
+        * ForwardingHeaders/kjs/protect.h: Removed.
+        * ForwardingHeaders/runtime/Interpreter.h: Copied from ForwardingHeaders/kjs/interpreter.h.
+        * WebView/WebScriptDebugDelegate.mm:
+
+2008-11-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Remove WebPlugInStreamLoaderDelegate.h
+        
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebPlugInStreamLoaderDelegate.h: Removed.
+
+2008-11-05  Dan Bernstein  <mitz@apple.com>
+
+        - Tiger build fix
+
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView stop]):
+
 2008-11-05  Dan Bernstein  <mitz@apple.com>
 
         - Tiger build fix

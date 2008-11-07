@@ -49,7 +49,7 @@
 #include "TextResourceDecoder.h"
 #include "Widget.h"
 #include "ScriptController.h"
-#include <kjs/collector.h>
+#include <runtime/Collector.h>
 #include <runtime/JSLock.h>
 #include <wtf/HashMap.h>
 #include <wtf/RefCountedLeakCounter.h>

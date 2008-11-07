@@ -35,10 +35,6 @@
 
 namespace WebCore {
 
-void PluginPackage::determineQuirks(const String& mimeType)
-{
-}
-
 bool PluginPackage::fetchInfo()
 {
     return false;

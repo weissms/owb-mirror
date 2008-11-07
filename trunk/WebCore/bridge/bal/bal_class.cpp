@@ -28,7 +28,7 @@
 
 
 #include "config.h"
-#include "identifier.h"
+#include "Identifier.h"
 
 #include "bal_class.h"
 #include "bal_instance.h"

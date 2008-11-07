@@ -106,6 +106,13 @@ IF (WEBKIT_USE_DATABASE)
     )
 ENDIF (WEBKIT_USE_DATABASE)
 
+IF (WEBKIT_USE_WORKERS)
+    LIST (APPEND BINDINGS_JS_SRC
+        bindings/js/WorkerScriptController.cpp
+        bindings/js/JSWorkerContext.cpp
+    )
+ENDIF (WEBKIT_USE_WORKERS)
+
 IF (WEBKIT_USE_SVG)
     LIST (APPEND BINDINGS_JS_SRC
         bindings/js/JSSVGLengthCustom.cpp

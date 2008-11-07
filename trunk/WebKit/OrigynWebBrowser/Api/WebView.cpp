@@ -97,7 +97,7 @@
 #include <SimpleFontData.h>
 #include <TypingCommand.h>
 
-#include <collector.h>
+#include <Collector.h>
 #include <JSCell.h>
 #include <JSValue.h>
 #include <wtf/HashSet.h>
@@ -219,7 +219,6 @@ WebView::WebView()
 , m_userAgentOverridden(false)
 , m_useBackForwardList(true)
 , m_zoomMultiplier(1.0f)
-, m_zoomMultiplierIsTextOnly(true)
 , m_mouseActivated(false)
 //, m_dragData(0)
 //, m_currentCharacterCode(0)
@@ -1202,7 +1201,7 @@ void WebView::setPageSizeMultiplier(float multiplier)
 void WebView::setZoomMultiplier(float multiplier, bool isTextOnly)
 {
     m_zoomMultiplier = multiplier;
-    m_zoomMultiplierIsTextOnly = isTextOnly;
+    m_page->settings()->setZoomsTextOnly(isTextOnly);
     if (Frame* coreFrame = core(m_mainFrame))
         coreFrame->setZoomFactor(multiplier, isTextOnly);
 }
@@ -1219,7 +1218,7 @@ float WebView::pageSizeMultiplier()
 
 float WebView::zoomMultiplier(bool isTextOnly)
 {
-    if (isTextOnly != m_zoomMultiplierIsTextOnly)
+    if (isTextOnly != m_page->settings()->zoomsTextOnly())
         return 1.0f;
     return m_zoomMultiplier;
 }
@@ -1297,26 +1296,27 @@ void WebView::resetZoom(bool isTextOnly)
 
 bool WebView::canMakeTextLarger()
 {
-    return canZoomIn(true);
+    return canZoomIn(m_page->settings()->zoomsTextOnly());
 }
 
 void WebView::makeTextLarger()
 {
-    zoomIn(true);
+    zoomIn(m_page->settings()->zoomsTextOnly());
 }
 
 bool WebView::canMakeTextSmaller()
 {
-    return canZoomOut(true);
+    return canZoomOut(m_page->settings()->zoomsTextOnly());
 }
 
 void WebView::makeTextSmaller()
 {
-    zoomOut(true);
+    zoomOut(m_page->settings()->zoomsTextOnly());
 }
 
 bool WebView::canMakeTextStandardSize()
 {
+    // Since we always reset text zoom and page zoom together, this should continue to return an answer about text zoom even if its not enabled.
     return canResetZoom(true);
 }
 
@@ -2112,6 +2112,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
 
     enabled = preferences->shouldPaintCustomScrollbars();
     settings->setShouldPaintCustomScrollbars(!!enabled);
+
+    enabled = preferences->zoomsTextOnly();
+    settings->setZoomsTextOnly(!!enabled);
 
 #if PLATFORM(AMIGAOS4)
     settings->setShowsURLsInToolTips(true);

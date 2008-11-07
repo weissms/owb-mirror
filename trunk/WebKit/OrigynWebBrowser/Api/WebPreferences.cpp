@@ -710,6 +710,16 @@ bool WebPreferences::authorAndUserStylesEnabled()
     return boolValueForKey(WebKitAuthorAndUserStylesEnabledPreferenceKey);
 }
 
+void WebPreferences::setZoomsTextOnly(bool zoomsTextOnly)
+{
+    setBoolValue(WebKitZoomsTextOnlyPreferenceKey, zoomsTextOnly);
+}
+
+bool WebPreferences::zoomsTextOnly()
+{
+    return boolValueForKey(WebKitZoomsTextOnlyPreferenceKey);
+}
+
 void WebPreferences::willAddToWebView()
 {
     ++m_numWebViews;

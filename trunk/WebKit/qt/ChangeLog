@@ -1,3 +1,32 @@
+2008-11-07  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Added a unit tests for QWebFrame::metaData().
+
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2008-11-06  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Improved documentation for QWebFrame::metaData().
+
+        * Api/qwebframe.cpp:
+
+2008-11-05  Sriram Yadavalli <sriram.yadavalli@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Added QWebFrame::metaData() to provide a way in the public API
+        to retrieve the values of the <meta> tags.
+
+        See https://bugs.webkit.org/show_bug.cgi?id=22071
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::metaData):
+        * Api/qwebframe.h:
+
 2008-11-05  Yael Aharon <yael.aharon@nokia.com>
 
         Reviewed by Simon Hausmann.

@@ -1,3 +1,510 @@
+2008-11-07  Gavin Barraclough  barraclough@apple.com
+
+        Reviewed by Oliver Hunt.
+
+        Do not make a cti_* call to perform an op_call unless either:
+        (1) The codeblock for the function body has not been generated.
+        (2) The number of arguments passed does not match the callee arity.
+
+        ~1% progression on sunspider --v8
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileOpCallInitializeCallFrame):
+        (JSC::CTI::compileOpCall):
+        (JSC::CTI::privateCompileSlowCases):
+        * VM/CTI.h:
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_JSFunction):
+        (JSC::Machine::cti_op_call_arityCheck):
+        (JSC::Machine::cti_op_construct_JSConstruct):
+        * VM/Machine.h:
+        * kjs/nodes.h:
+
+2008-11-06  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Move the remaining files in the kjs subdirectory of JavaScriptCore to
+        a new parser subdirectory, and remove the kjs subdirectory entirely.
+
+        * AllInOneFile.cpp:
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/CodeBlock.h:
+        * VM/ExceptionHelpers.cpp:
+        * VM/SamplingTool.h:
+        * bytecompiler/CodeGenerator.h:
+        * jsc.pro:
+        * jscore.bkl:
+        * kjs: Removed.
+        * kjs/NodeInfo.h: Removed.
+        * kjs/Parser.cpp: Removed.
+        * kjs/Parser.h: Removed.
+        * kjs/ResultType.h: Removed.
+        * kjs/SourceCode.h: Removed.
+        * kjs/SourceProvider.h: Removed.
+        * kjs/grammar.y: Removed.
+        * kjs/keywords.table: Removed.
+        * kjs/lexer.cpp: Removed.
+        * kjs/lexer.h: Removed.
+        * kjs/nodes.cpp: Removed.
+        * kjs/nodes.h: Removed.
+        * kjs/nodes2string.cpp: Removed.
+        * parser: Added.
+        * parser/Grammar.y: Copied from kjs/grammar.y.
+        * parser/Keywords.table: Copied from kjs/keywords.table.
+        * parser/Lexer.cpp: Copied from kjs/lexer.cpp.
+        * parser/Lexer.h: Copied from kjs/lexer.h.
+        * parser/NodeInfo.h: Copied from kjs/NodeInfo.h.
+        * parser/Nodes.cpp: Copied from kjs/nodes.cpp.
+        * parser/Nodes.h: Copied from kjs/nodes.h.
+        * parser/Parser.cpp: Copied from kjs/Parser.cpp.
+        * parser/Parser.h: Copied from kjs/Parser.h.
+        * parser/ResultType.h: Copied from kjs/ResultType.h.
+        * parser/SourceCode.h: Copied from kjs/SourceCode.h.
+        * parser/SourceProvider.h: Copied from kjs/SourceProvider.h.
+        * parser/nodes2string.cpp: Copied from kjs/nodes2string.cpp.
+        * pcre/pcre.pri:
+        * pcre/pcre_exec.cpp:
+        * runtime/FunctionConstructor.cpp:
+        * runtime/JSActivation.h:
+        * runtime/JSFunction.h:
+        * runtime/JSGlobalData.cpp:
+        * runtime/JSGlobalObjectFunctions.cpp:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::toNumber):
+        * runtime/RegExp.cpp:
+
+2008-11-06  Adam Roben  <aroben@apple.com>
+
+        Windows build fix after r38196
+
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj: Added bytecompiler/ to the
+        include path.
+
+2008-11-06  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Create a new bytecompiler subdirectory of JavaScriptCore and move some
+        relevant files to it.
+
+        * AllInOneFile.cpp:
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/CodeGenerator.cpp: Removed.
+        * VM/CodeGenerator.h: Removed.
+        * bytecompiler: Added.
+        * bytecompiler/CodeGenerator.cpp: Copied from VM/CodeGenerator.cpp.
+        * bytecompiler/CodeGenerator.h: Copied from VM/CodeGenerator.h.
+        * bytecompiler/LabelScope.h: Copied from kjs/LabelScope.h.
+        * jscore.bkl:
+        * kjs/LabelScope.h: Removed.
+
+2008-11-06  Adam Roben  <aroben@apple.com>
+
+        Windows clean build fix after r38155
+
+        Rubberstamped by Cameron Zwarich.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj: Update
+        the post-build event for the move of create_hash_table out of kjs/.
+
+2008-11-06  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22107
+
+        Bug uncovered during RVCT port in functions not used. get_lt() and
+        get_gt() takes only one argument - remove second argument where
+        applicable.
+
+        * wtf/AVLTree.h:
+        (JSC::AVLTree::remove): Remove second argument of get_lt/get_gt().
+        (JSC::AVLTree::subst): Ditto.
+
+2008-11-06  Alp Toker  <alp@nuanti.com>
+
+        Reviewed by Cameron Zwarich.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22033
+        [GTK] CTI/Linux r38064 crashes; JIT requires executable memory
+
+        Mark pages allocated by the FastMalloc mmap code path executable with
+        PROT_EXEC. This fixes crashes seen on CPUs and kernels that enforce
+        non-executable memory (like ExecShield on Fedora Linux) when the JIT
+        is enabled.
+
+        This patch does not resolve the issue on debug builds so affected
+        developers may still need to pass --disable-jit to configure.
+
+        * wtf/TCSystemAlloc.cpp:
+        (TryMmap):
+        (TryDevMem):
+        (TCMalloc_SystemRelease):
+
+2008-11-06  Peter Gal  <galpeter@inf.u-szeged.hu>
+
+        Reviewed by Cameron Zwarich.
+
+        Bug 22099: Make the Qt port build the JSC shell in the correct place
+        <https://bugs.webkit.org/show_bug.cgi?id=22099>
+
+        Adjust include paths and build destination dir for the 'jsc' executable
+        in the Qt build.
+
+        * jsc.pro:
+
+2008-11-06  Kristian Amlie  <kristian.amlie@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Implemented the block allocation on Symbian through heap allocation.
+
+        Unfortunately there is no way to allocate virtual memory. The Posix
+        layer provides mmap() but no anonymous mapping. So this is a very slow
+        solution but it should work as a start.
+
+        * runtime/Collector.cpp:
+        (JSC::allocateBlock):
+        (JSC::freeBlock):
+
+2008-11-06  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Borrow some math functions from the MSVC port to the build with the
+        RVCT compiler.
+
+        * wtf/MathExtras.h:
+        (isinf):
+        (isnan):
+        (signbit):
+
+2008-11-06  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Include strings.h for strncasecmp().
+        This is needed for compilation inside Symbian and it is also
+        confirmed by the man-page on Linux.
+
+        * runtime/DateMath.cpp:
+
+2008-11-06  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Implemented currentThreadStackBase for Symbian.
+
+        * runtime/Collector.cpp:
+        (JSC::currentThreadStackBase):
+
+2008-11-06  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        RVCT does not support tm_gmtoff field, so disable that code just like
+        for MSVC.
+
+        * runtime/DateMath.h:
+        (JSC::GregorianDateTime::GregorianDateTime):
+        (JSC::GregorianDateTime::operator tm):
+
+2008-11-06  Kristian Amlie  <kristian.amlie@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Define PLATFORM(UNIX) for S60. Effectively WebKit on S60 is compiled
+        on top of the Posix layer.
+
+        * wtf/Platform.h:
+
+2008-11-06  Norbert Leser  <norbert.leser@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Added __SYMBIAN32__ condition for defining PLATFORM(SYMBIAN).
+
+        * wtf/Platform.h:
+
+2008-11-06  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Added WINSCW compiler define for Symbian S60.
+
+        * wtf/Platform.h:
+
+2008-11-06  Kristian Amlie  <kristian.amlie@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Use the GCC defines of the WTF_ALIGN* macros for the RVCT and the
+        MINSCW compiler.
+
+        * wtf/Vector.h:
+
+2008-11-06  Kristian Amlie  <kristian.amlie@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Define capabilities of the SYMBIAN platform. Some of the system
+        headers are actually dependent on RVCT.
+
+        * wtf/Platform.h:
+
+2008-11-06  Kristian Amlie  <kristian.amlie@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Add missing stddef.h header needed for compilation in Symbian.
+
+        * runtime/Collector.h:
+
+2008-11-06  Kristian Amlie  <kristian.amlie@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Added COMPILER(RVCT) to detect the ARM RVCT compiler used in the Symbian environment.
+
+        * wtf/Platform.h:
+
+2008-11-06  Simon Hausmann  <hausmann@webkit.org>
+
+        Fix the Qt build, adjust include paths after move of jsc.pro.
+
+        * jsc.pro:
+
+2008-11-06  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Move kjs/Shell.cpp to the top level of the JavaScriptCore directory and
+        rename it to jsc.cpp to reflect the name of the binary compiled from it.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * jsc.cpp: Copied from kjs/Shell.cpp.
+        * jsc.pro:
+        * jscore.bkl:
+        * kjs/Shell.cpp: Removed.
+
+2008-11-06  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Move create_hash_table and jsc.pro out of the kjs directory and into the
+        root directory of JavaScriptCore.
+
+        * DerivedSources.make:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * create_hash_table: Copied from kjs/create_hash_table.
+        * jsc.pro: Copied from kjs/jsc.pro.
+        * kjs/create_hash_table: Removed.
+        * kjs/jsc.pro: Removed.
+        * make-generated-sources.sh:
+
+2008-11-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22094
+
+        Fix for bug where the callee incorrectly recieves the caller's lexical
+        global object as this, rather than its own.  Implementation closely
+        follows the spec, passing jsNull, checking in the callee and replacing
+        with the global object where necessary.
+
+        * VM/CTI.cpp:
+        (JSC::CTI::compileOpCall):
+        * VM/Machine.cpp:
+        (JSC::Machine::cti_op_call_NotJSFunction):
+        (JSC::Machine::cti_op_call_eval):
+        * runtime/JSCell.h:
+        (JSC::JSValue::toThisObject):
+        * runtime/JSImmediate.cpp:
+        (JSC::JSImmediate::toThisObject):
+        * runtime/JSImmediate.h:
+
+2008-11-05  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix after Operations.cpp move.
+
+        * JavaScriptCoreSources.bkl:
+
+2008-11-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Fix the build for case-sensitive build systems and wxWindows.
+
+        * JavaScriptCoreSources.bkl:
+        * kjs/create_hash_table:
+
+2008-11-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Fix the build for case-sensitive build systems.
+
+        * JavaScriptCoreSources.bkl:
+        * kjs/Shell.cpp:
+        * runtime/Interpreter.cpp:
+        * runtime/JSArray.cpp:
+
+2008-11-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        Fix the build for case-sensitive build systems.
+
+        * API/JSBase.cpp:
+        * API/JSObjectRef.cpp:
+        * runtime/CommonIdentifiers.h:
+        * runtime/Identifier.cpp:
+        * runtime/InitializeThreading.cpp:
+        * runtime/InternalFunction.h:
+        * runtime/JSString.h:
+        * runtime/Lookup.h:
+        * runtime/PropertyNameArray.h:
+        * runtime/PropertySlot.h:
+        * runtime/StructureID.cpp:
+        * runtime/StructureID.h:
+        * runtime/UString.cpp:
+
+2008-11-05  Cameron Zwarich  <zwarich@apple.com>
+
+        Rubber-stamped by Sam Weinig.
+
+        Move more files to the runtime subdirectory of JavaScriptCore.
+
+        * API/APICast.h:
+        * API/JSBase.cpp:
+        * API/JSCallbackObject.cpp:
+        * API/JSClassRef.cpp:
+        * API/JSClassRef.h:
+        * API/JSStringRefCF.cpp:
+        * API/JSValueRef.cpp:
+        * API/OpaqueJSString.cpp:
+        * API/OpaqueJSString.h:
+        * AllInOneFile.cpp:
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * VM/CodeBlock.h:
+        * VM/CodeGenerator.cpp:
+        * VM/Machine.cpp:
+        * VM/RegisterFile.h:
+        * debugger/Debugger.h:
+        * kjs/SourceProvider.h:
+        * kjs/TypeInfo.h: Removed.
+        * kjs/collector.cpp: Removed.
+        * kjs/collector.h: Removed.
+        * kjs/completion.h: Removed.
+        * kjs/create_hash_table:
+        * kjs/identifier.cpp: Removed.
+        * kjs/identifier.h: Removed.
+        * kjs/interpreter.cpp: Removed.
+        * kjs/interpreter.h: Removed.
+        * kjs/lexer.cpp:
+        * kjs/lexer.h:
+        * kjs/lookup.cpp: Removed.
+        * kjs/lookup.h: Removed.
+        * kjs/nodes.cpp:
+        * kjs/nodes.h:
+        * kjs/operations.cpp: Removed.
+        * kjs/operations.h: Removed.
+        * kjs/protect.h: Removed.
+        * kjs/regexp.cpp: Removed.
+        * kjs/regexp.h: Removed.
+        * kjs/ustring.cpp: Removed.
+        * kjs/ustring.h: Removed.
+        * pcre/pcre_exec.cpp:
+        * profiler/CallIdentifier.h:
+        * profiler/Profile.h:
+        * runtime/ArrayConstructor.cpp:
+        * runtime/ArrayPrototype.cpp:
+        * runtime/ArrayPrototype.h:
+        * runtime/Collector.cpp: Copied from kjs/collector.cpp.
+        * runtime/Collector.h: Copied from kjs/collector.h.
+        * runtime/CollectorHeapIterator.h:
+        * runtime/Completion.h: Copied from kjs/completion.h.
+        * runtime/ErrorPrototype.cpp:
+        * runtime/Identifier.cpp: Copied from kjs/identifier.cpp.
+        * runtime/Identifier.h: Copied from kjs/identifier.h.
+        * runtime/InitializeThreading.cpp:
+        * runtime/Interpreter.cpp: Copied from kjs/interpreter.cpp.
+        * runtime/Interpreter.h: Copied from kjs/interpreter.h.
+        * runtime/JSCell.h:
+        * runtime/JSGlobalData.cpp:
+        * runtime/JSGlobalData.h:
+        * runtime/JSLock.cpp:
+        * runtime/JSNumberCell.cpp:
+        * runtime/JSNumberCell.h:
+        * runtime/JSObject.cpp:
+        * runtime/JSValue.h:
+        * runtime/Lookup.cpp: Copied from kjs/lookup.cpp.
+        * runtime/Lookup.h: Copied from kjs/lookup.h.
+        * runtime/MathObject.cpp:
+        * runtime/NativeErrorPrototype.cpp:
+        * runtime/NumberPrototype.cpp:
+        * runtime/Operations.cpp: Copied from kjs/operations.cpp.
+        * runtime/Operations.h: Copied from kjs/operations.h.
+        * runtime/PropertyMapHashTable.h:
+        * runtime/Protect.h: Copied from kjs/protect.h.
+        * runtime/RegExp.cpp: Copied from kjs/regexp.cpp.
+        * runtime/RegExp.h: Copied from kjs/regexp.h.
+        * runtime/RegExpConstructor.cpp:
+        * runtime/RegExpObject.h:
+        * runtime/RegExpPrototype.cpp:
+        * runtime/SmallStrings.h:
+        * runtime/StringObjectThatMasqueradesAsUndefined.h:
+        * runtime/StructureID.cpp:
+        * runtime/StructureID.h:
+        * runtime/StructureIDTransitionTable.h:
+        * runtime/SymbolTable.h:
+        * runtime/TypeInfo.h: Copied from kjs/TypeInfo.h.
+        * runtime/UString.cpp: Copied from kjs/ustring.cpp.
+        * runtime/UString.h: Copied from kjs/ustring.h.
+        * wrec/CharacterClassConstructor.h:
+        * wrec/WREC.h:
+
+2008-11-05  Geoffrey Garen  <ggaren@apple.com>
+
+        Suggested by Darin Adler.
+        
+        Removed two copy constructors that the compiler can generate for us
+        automatically.
+
+        * VM/LabelID.h:
+        (JSC::LabelID::setLocation):
+        (JSC::LabelID::offsetFrom):
+        (JSC::LabelID::ref):
+        (JSC::LabelID::refCount):
+        * kjs/LabelScope.h:
+
+2008-11-05  Anders Carlsson  <andersca@apple.com>
+
+        Fix Snow Leopard build.
+        
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
 2008-11-05  Cameron Zwarich  <zwarich@apple.com>
 
         Rubber-stamped by Steve Falkenburg.

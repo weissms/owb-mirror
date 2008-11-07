@@ -47,8 +47,6 @@
 
 namespace WebCore {
 
-unsigned EventHandler::s_accessKeyModifiers = PlatformKeyboardEvent::AltKey;
-
 const double EventHandler::TextDragDelay = 0.0;
 
 bool EventHandler::tabsToAllControls(KeyboardEvent* event) const
@@ -132,6 +130,11 @@ bool EventHandler::passMousePressEventToScrollbar(MouseEventWithHitTestResults& 
     if (!scrollbar || !scrollbar->enabled())
         return false;
     return scrollbar->mouseDown(mev.event());
+}
+
+unsigned EventHandler::accessKeyModifiers()
+{
+    return PlatformKeyboardEvent::AltKey;
 }
 
 }

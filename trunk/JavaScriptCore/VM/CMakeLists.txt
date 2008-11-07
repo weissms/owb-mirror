@@ -1,5 +1,4 @@
 LIST (APPEND JSCORE_SRC
-    VM/CodeGenerator.cpp
     VM/CTI.cpp
     VM/Machine.cpp
     VM/Opcode.cpp

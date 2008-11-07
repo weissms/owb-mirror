@@ -108,3 +108,5 @@
 #define WebKitAuthorAndUserStylesEnabledPreferenceKey "WebKitAuthorAndUserStylesEnabled"
 
 #define WebKitPaintCustomScrollbarsPreferenceKey "WebKitPaintCustomScrollbars"
+
+#define WebKitZoomsTextOnlyPreferenceKey "WebKitZoomsTextOnly"

@@ -258,6 +258,13 @@ IF (WEBKIT_OFFLINE_WEB_APPLICATIONS)
     )
 ENDIF (WEBKIT_OFFLINE_WEB_APPLICATIONS)
 
+IF (WEBKIT_USE_WORKERS)
+    SET (IDL_BINDINGS
+        ${IDL_BINDINGS}
+        dom/WorkerLocation.idl
+    )
+ENDIF (WEBKIT_USE_WORKERS)
+
 IF (WEBKIT_USE_SVG)
     SET (IDL_BINDINGS_SVG
         svg/SVGAElement.idl
@@ -591,7 +598,7 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XLinkNa
 )
 
 
-SET (CREATE_HASH_TABLE ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs/create_hash_table)
+SET (CREATE_HASH_TABLE ${CMAKE_SOURCE_DIR}/JavaScriptCore/create_hash_table)
 
 
 MACRO (CREATE_LUT _srcs_LIST _in_FILE _out_FILE _dep_FILE)
@@ -608,13 +615,13 @@ MACRO (CREATE_LUT _srcs_LIST _in_FILE _out_FILE _dep_FILE)
 ENDMACRO (CREATE_LUT)
 
 ADD_CUSTOM_COMMAND (
-  OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/kjs/grammar.cpp ${CMAKE_BINARY_DIR}/generated_sources/kjs/grammar.h
+  OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.cpp ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.h
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/kjs
-  COMMAND ${BISON_EXECUTABLE} -d -p kjsyy ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs/grammar.y -o grammar.tab.c
-  COMMAND mv grammar.tab.c ${CMAKE_BINARY_DIR}/generated_sources/kjs/grammar.cpp
-  COMMAND mv grammar.tab.h ${CMAKE_BINARY_DIR}/generated_sources/kjs/grammar.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs/grammar.y
+  COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/parser
+  COMMAND ${BISON_EXECUTABLE} -d -p kjsyy ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser/Grammar.y -o Grammar.tab.c
+  COMMAND mv Grammar.tab.c ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.cpp
+  COMMAND mv Grammar.tab.h ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser/Grammar.y
 )
 
 
@@ -626,7 +633,7 @@ ENDMACRO (CREATE_CPP_LUT)
 
 CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/ArrayPrototype.cpp generated_sources/runtime/ArrayPrototype.lut.h JavaScriptCore/runtime/ArrayPrototype.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/DatePrototype.cpp generated_sources/runtime/DatePrototype.lut.h JavaScriptCore/runtime/DatePrototype.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/kjs/keywords.table generated_sources/kjs/lexer.lut.h JavaScriptCore/kjs/lexer.cpp)
+CREATE_LUT (GENERATED_SRC JavaScriptCore/parser/Keywords.table generated_sources/parser/Lexer.lut.h JavaScriptCore/parser/Lexer.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/MathObject.cpp generated_sources/runtime/MathObject.lut.h JavaScriptCore/runtime/MathObject.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/NumberObject.cpp generated_sources/runtime/NumberObject.lut.h JavaScriptCore/runtime/NumberObject.cpp)
 CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/NumberConstructor.cpp generated_sources/runtime/NumberConstructor.lut.h JavaScriptCore/runtime/NumberConstructor.cpp)
@@ -677,8 +684,8 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/debugger
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/
@@ -718,7 +725,7 @@ IF (WEBKIT_USE_HTML_EXTENSION)
 ENDIF (WEBKIT_USE_HTML_EXTENSION)
 
 LIST (APPEND GENERATED_SRC
-    ${CMAKE_BINARY_DIR}/generated_sources/kjs/grammar.cpp
+    ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.cpp
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/CSSGrammar.cpp
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLEntityNames.c
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html/HTMLNames.cpp

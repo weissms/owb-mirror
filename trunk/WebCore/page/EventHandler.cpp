@@ -1724,7 +1724,7 @@ static EventTargetNode* eventTargetNodeForDocument(Document* doc)
 
 bool EventHandler::handleAccessKey(const PlatformKeyboardEvent& evt)
 {
-    if ((evt.modifiers() & s_accessKeyModifiers) != s_accessKeyModifiers)
+    if (evt.modifiers() != accessKeyModifiers())
         return false;
     String key = evt.unmodifiedText();
     Element* elem = m_frame->document()->getElementByAccessKey(key.lower());

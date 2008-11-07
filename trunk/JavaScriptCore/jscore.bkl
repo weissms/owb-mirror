@@ -56,7 +56,7 @@ JavaScriptCore Bakefile project file.
         <include>$(SRCDIR)/DerivedSources/JavaScriptCore</include>
         <include>$(SRCDIR)/ForwardingHeaders</include>
         <include>$(SRCDIR)/debugger</include>
-        <include>$(SRCDIR)/kjs</include>
+        <include>$(SRCDIR)/parser</include>
         <include>$(SRCDIR)/pcre</include>
         <include>$(SRCDIR)/profiler</include>
         <include>$(SRCDIR)/runtime</include>
@@ -89,15 +89,16 @@ JavaScriptCore Bakefile project file.
         <depends>jscore</depends>
         <include>$(SRCDIR)</include>
         <include>$(WK_ROOT)/JavaScriptCore</include>
+        <include>$(WK_ROOT)/JavaScriptCore/bytecompiler</include>
         <include>$(WK_ROOT)/JavaScriptCore/debugger</include>
-        <include>$(WK_ROOT)/JavaScriptCore/kjs</include>
+        <include>$(WK_ROOT)/JavaScriptCore/parser</include>
         <include>$(WK_ROOT)/JavaScriptCore/pcre</include>
         <include>$(WK_ROOT)/JavaScriptCore/profiler</include>
         <include>$(WK_ROOT)/JavaScriptCore/runtime</include>
         <include>$(WK_ROOT)/JavaScriptCore/VM</include>
         <include>$(WK_ROOT)/JavaScriptCore/wtf</include>
         <dirname>$(WKOUTPUTDIR)</dirname>
-        <sources>$(SRCDIR)/kjs/Shell.cpp</sources>
+        <sources>$(SRCDIR)/jsc.cpp</sources>
         <if cond="FORMAT=='gnu'">
             <ldflags>$(WKOUTPUTDIR)/libjscore.a</ldflags>
         </if>
