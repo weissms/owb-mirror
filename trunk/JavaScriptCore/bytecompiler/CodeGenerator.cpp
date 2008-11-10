@@ -165,14 +165,14 @@ bool CodeGenerator::addVar(const Identifier& ident, bool isConstant, RegisterID*
 
 bool CodeGenerator::addGlobalVar(const Identifier& ident, bool isConstant, RegisterID*& r0)
 {
-    int index = m_nextGlobal;
+    int index = m_nextGlobalIndex;
     SymbolTableEntry newEntry(index, isConstant ? ReadOnly : 0);
     pair<SymbolTable::iterator, bool> result = symbolTable().add(ident.ustring().rep(), newEntry);
 
     if (!result.second)
         index = result.first->second.getIndex();
     else {
-        --m_nextGlobal;
+        --m_nextGlobalIndex;
         m_globals.append(index + m_globalVarStorageOffset);
     }
 
@@ -186,7 +186,7 @@ void CodeGenerator::allocateConstants(size_t count)
     if (!count)
         return;
     
-    m_nextConstant = m_calleeRegisters.size();
+    m_nextConstantIndex = m_calleeRegisters.size();
 
     for (size_t i = 0; i < count; ++i)
         newRegister();
@@ -204,9 +204,10 @@ CodeGenerator::CodeGenerator(ProgramNode* programNode, const Debugger* debugger,
     , m_finallyDepth(0)
     , m_dynamicScopeDepth(0)
     , m_codeType(GlobalCode)
-    , m_nextGlobal(-1)
+    , m_nextGlobalIndex(-1)
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
     , m_lastOpcodeID(op_end)
+    , m_emitNodeDepth(0)
 {
     if (m_shouldEmitDebugHooks)
         m_codeBlock->needsFullScopeChain = true;
@@ -236,7 +237,7 @@ CodeGenerator::CodeGenerator(ProgramNode* programNode, const Debugger* debugger,
     bool canOptimizeNewGlobals = symbolTable->size() + functionStack.size() + varStack.size() < registerFile->maxGlobals();
     if (canOptimizeNewGlobals) {
         // Shift new symbols so they get stored prior to existing symbols.
-        m_nextGlobal -= symbolTable->size();
+        m_nextGlobalIndex -= symbolTable->size();
 
         for (size_t i = 0; i < functionStack.size(); ++i) {
             FuncDeclNode* funcDecl = functionStack[i].get();
@@ -283,6 +284,7 @@ CodeGenerator::CodeGenerator(FunctionBodyNode* functionBody, const Debugger* deb
     , m_codeType(FunctionCode)
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
     , m_lastOpcodeID(op_end)
+    , m_emitNodeDepth(0)
 {
     if (m_shouldEmitDebugHooks)
         m_codeBlock->needsFullScopeChain = true;
@@ -307,7 +309,7 @@ CodeGenerator::CodeGenerator(FunctionBodyNode* functionBody, const Debugger* deb
     if (usesArguments)
         emitOpcode(op_create_arguments);
 
-    const Node::FunctionStack& functionStack = functionBody->functionStack();
+    const DeclarationStacks::FunctionStack& functionStack = functionBody->functionStack();
     for (size_t i = 0; i < functionStack.size(); ++i) {
         FuncDeclNode* funcDecl = functionStack[i].get();
         const Identifier& ident = funcDecl->m_ident;
@@ -315,18 +317,18 @@ CodeGenerator::CodeGenerator(FunctionBodyNode* functionBody, const Debugger* deb
         emitNewFunction(addVar(ident, false), funcDecl);
     }
 
-    const Node::VarStack& varStack = functionBody->varStack();
+    const DeclarationStacks::VarStack& varStack = functionBody->varStack();
     for (size_t i = 0; i < varStack.size(); ++i)
         addVar(varStack[i].first, varStack[i].second & DeclarationStacks::IsConstant);
 
     const Identifier* parameters = functionBody->parameters();
     size_t parameterCount = functionBody->parameterCount();
-    m_nextParameter = -RegisterFile::CallFrameHeaderSize - parameterCount - 1;
+    m_nextParameterIndex = -RegisterFile::CallFrameHeaderSize - parameterCount - 1;
     m_parameters.resize(1 + parameterCount); // reserve space for "this"
 
     // Add "this" as a parameter
-    m_thisRegister.setIndex(m_nextParameter);
-    ++m_nextParameter;
+    m_thisRegister.setIndex(m_nextParameterIndex);
+    ++m_nextParameterIndex;
     ++m_codeBlock->numParameters;
 
     if (functionBody->usesThis()) {
@@ -353,6 +355,7 @@ CodeGenerator::CodeGenerator(EvalNode* evalNode, const Debugger* debugger, const
     , m_codeType(EvalCode)
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
     , m_lastOpcodeID(op_end)
+    , m_emitNodeDepth(0)
 {
     if (m_shouldEmitDebugHooks)
         m_codeBlock->needsFullScopeChain = true;
@@ -370,15 +373,15 @@ RegisterID* CodeGenerator::addParameter(const Identifier& ident)
     RegisterID* result = 0;
     UString::Rep* rep = ident.ustring().rep();
     if (!m_functions.contains(rep)) {
-        symbolTable().set(rep, m_nextParameter);
-        RegisterID& parameter = registerFor(m_nextParameter);
-        parameter.setIndex(m_nextParameter);
+        symbolTable().set(rep, m_nextParameterIndex);
+        RegisterID& parameter = registerFor(m_nextParameterIndex);
+        parameter.setIndex(m_nextParameterIndex);
         result = &parameter;
     }
 
     // To maintain the calling convention, we have to allocate unique space for
     // each parameter, even if the parameter doesn't make it into the symbol table.
-    ++m_nextParameter;
+    ++m_nextParameterIndex;
     ++m_codeBlock->numParameters;
     return result;
 }
@@ -683,11 +686,11 @@ unsigned CodeGenerator::addConstant(const Identifier& ident)
 
 RegisterID* CodeGenerator::addConstant(JSValue* v)
 {
-    pair<JSValueMap::iterator, bool> result = m_jsValueMap.add(v, m_nextConstant);
+    pair<JSValueMap::iterator, bool> result = m_jsValueMap.add(v, m_nextConstantIndex);
     if (result.second) {
-        RegisterID& constant = m_calleeRegisters[m_nextConstant];
+        RegisterID& constant = m_calleeRegisters[m_nextConstantIndex];
         
-        ++m_nextConstant;
+        ++m_nextConstantIndex;
 
         m_codeBlock->constantRegisters.append(v);
         return &constant;
@@ -783,9 +786,9 @@ RegisterID* CodeGenerator::emitEqualityOp(OpcodeID opcode, RegisterID* dst, Regi
 
         if (src1->index() == dstIndex
             && src1->isTemporary()
-            && static_cast<unsigned>(src2->index()) < m_codeBlock->constantRegisters.size()
-            && m_codeBlock->constantRegisters[src2->index()].jsValue(m_scopeChain->globalObject()->globalExec())->isString()) {
-            const UString& value = asString(m_codeBlock->constantRegisters[src2->index()].jsValue(m_scopeChain->globalObject()->globalExec()))->value();
+            && m_codeBlock->isConstant(src2->index())
+            && m_codeBlock->constantRegisters[src2->index() - m_codeBlock->numVars].jsValue(m_scopeChain->globalObject()->globalExec())->isString()) {
+            const UString& value = asString(m_codeBlock->constantRegisters[src2->index() - m_codeBlock->numVars].jsValue(m_scopeChain->globalObject()->globalExec()))->value();
             if (value == "undefined") {
                 rewindUnaryOp();
                 emitOpcode(op_is_undefined);
@@ -1674,6 +1677,18 @@ void CodeGenerator::endSwitch(uint32_t clauseCount, RefPtr<LabelID>* labels, Exp
 
         prepareJumpTableForStringSwitch(jumpTable, switchInfo.opcodeOffset + 3, clauseCount, labels, nodes);
     }
+}
+
+RegisterID* CodeGenerator::emitThrowExpressionTooDeepException()
+{
+    // It would be nice to do an even better job of identifying exactly where the expression is.
+    // And we could make the caller pass the node pointer in, if there was some way of getting
+    // that from an arbitrary node. However, calling emitExpressionInfo without any useful data
+    // is still good enough to get us an accurate line number.
+    emitExpressionInfo(0, 0, 0);
+    RegisterID* exception = emitNewError(newTemporary(), SyntaxError, jsString(globalData(), "Expression too deep"));
+    emitThrow(exception);
+    return exception;
 }
 
 } // namespace JSC

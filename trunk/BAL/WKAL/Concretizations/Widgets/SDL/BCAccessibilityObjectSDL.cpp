@@ -31,9 +31,10 @@
 
 namespace WebCore {
 
+#if HAVE(ACCESSIBILITY)
 bool AccessibilityObject::accessibilityIgnoreAttachment() const
 {
     return false;
 }
-
+#endif
 } // namespace WebCore

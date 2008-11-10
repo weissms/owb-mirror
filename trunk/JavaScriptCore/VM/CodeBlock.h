@@ -34,6 +34,7 @@
 #include "JSGlobalObject.h"
 #include "Nodes.h"
 #include "Parser.h"
+#include "RegExp.h"
 #include "SourceCode.h"
 #include "UString.h"
 #include <wtf/RefPtr.h>
@@ -287,6 +288,11 @@ namespace JSC {
                 linkedCallerList[pos]->position = pos;
             }
             linkedCallerList.shrink(lastPos);
+        }
+
+        ALWAYS_INLINE bool isConstant(int index)
+        {
+            return index >= numVars && index < numVars + numConstants;
         }
 
 #if !defined(NDEBUG) || ENABLE_OPCODE_SAMPLING

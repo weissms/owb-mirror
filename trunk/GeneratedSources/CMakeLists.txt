@@ -615,12 +615,12 @@ MACRO (CREATE_LUT _srcs_LIST _in_FILE _out_FILE _dep_FILE)
 ENDMACRO (CREATE_LUT)
 
 ADD_CUSTOM_COMMAND (
-  OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.cpp ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.h
+  OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.cpp ${CMAKE_BINARY_DIR}/generated_sources/parser/Grammar.h
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   COMMAND mkdir -p ${CMAKE_BINARY_DIR}/generated_sources/parser
   COMMAND ${BISON_EXECUTABLE} -d -p kjsyy ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser/Grammar.y -o Grammar.tab.c
   COMMAND mv Grammar.tab.c ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.cpp
-  COMMAND mv Grammar.tab.h ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.h
+  COMMAND mv Grammar.tab.h ${CMAKE_BINARY_DIR}/generated_sources/parser/Grammar.h
   DEPENDS ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser/Grammar.y
 )
 

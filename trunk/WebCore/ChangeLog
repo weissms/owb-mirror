@@ -1,3 +1,283 @@
+2008-11-10  Tom Cooksey  <thomas.cooksey@trolltech.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Fix QtWebkit build failure on arm.
+
+        pen.widthF() is a qreal, which means it's a float on arm.
+
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::setLineDash):
+
+2008-11-10  Morten Sørvig  <msorvig@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Improve mouse wheel scolling on Qt/Cocoa.
+        Cocoa differs from Carbon (and other platforms I think) in that the
+        mouse wheel events we get have a much higher acceleration factor.
+
+        This submit switches over to scroll-per-pixel from scroll-per-line
+        for most of our scrolling views. This matches the native views
+        and works well with the increased acceleration.
+
+        * platform/qt/WheelEventQt.cpp:
+
+2008-11-09  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 19541: Null pointer in showModalDialog()
+        <https://bugs.webkit.org/show_bug.cgi?id=19541>
+
+        Add null frame->page() checks to JSDOMWindowBase::canShowModalDialog()
+        and JSDOMWindowBase::canShowModalDialogNow()C
+
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::canShowModalDialog):
+        (WebCore::canShowModalDialogNow):
+
+2008-11-09  Darin Adler  <darin@apple.com>
+
+        - try to fix Windows build
+
+        * platform/graphics/Color.cpp: For some reason MSVC doesn't follow the rules
+        about needed a separate definition for static const integer data members.
+        Until I get to the bottom of this, put the definitions inside an ifdef.
+
+2008-11-09  David Kilzer  <ddkilzer@apple.com>
+
+        BUILD FIX: Qt build broke after r38235.
+
+        Added HAVE(ACCESSIBILITY) header guards to platform implementation
+        source files.
+
+        * page/gtk/AccessibilityObjectAtk.cpp: Added HAVE(ACCESSIBILITY)
+        guards.
+        * page/gtk/AccessibilityObjectWrapperAtk.cpp: Ditto.
+        * page/qt/AccessibilityObjectQt.cpp: Ditto.
+        * page/win/AccessibilityObjectWin.cpp: Ditto.
+        * page/wx/AccessibilityObjectWx.cpp: Ditto.
+
+2008-11-09  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22104
+        Javascript URL percent encoding/decoding broken by some characters
+
+        Test: fast/loader/javascript-url-encoding-2.html
+
+        * platform/KURL.cpp: (WebCore::encodeRelativeString): Don't try to break down javascript URLs.
+
+2008-11-09  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed and tweaked by Darin Adler.
+
+        * platform/graphics/Color.cpp: Added definitions for the static data members
+        in this class. Static data members need a definition, even when they are the
+        simple integer constant kind that can be initialized in the header.
+
+2008-11-08  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Fix https://bugs.webkit.org/show_bug.cgi?id=22141
+        REGRESSION: Safari error page is not fully styled when loaded from cache
+        
+        Reset text decoder on flush so it does not pass through the BOM when it is reused.
+
+        Test: fast/encoding/css-cached-bom.html
+
+        * loader/TextResourceDecoder.cpp:
+        (WebCore::TextResourceDecoder::flush):
+
+2008-11-08  Kevin Ollivier  <kevino@theolliviers.com>
+ 
+        Reviewed by Mark Rowe.
+
+        Send URL errors to stderr rather than stdout. While debugging wx DumpRenderTree,
+        it was causing these errors to end up in the page's text representation.
+
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::ResourceHandleManager::downloadTimerCallback):
+
+2008-11-08  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fixes after addition of JSCore parser and bycompiler dirs. 
+
+        * webcore-base.bkl:
+        * webcore-wx.bkl:
+
+2008-11-08  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=21906
+        
+        Override addFocusRingRects() in RenderTextControl to avoid
+        the RenderFlow behavior of recursing on descendent renderers.
+        RenderTextControl should only ever need a simple focus rect.
+        
+        This fixes focus ring issues with transforms on text controls.
+        
+        Test: fast/transforms/transformed-focused-text-input.html
+
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::addFocusRingRects):
+        * rendering/RenderTextControl.h:
+
+2008-11-08  Dimitri Dupuis-Latour  <dupuislatour@apple.com>
+
+        Make sure the icon thumbnail width/height is at least 1px in
+        the Web Inspector's resource panel.
+
+        <rdar://problem/5988888>
+
+        Reviewed by Tim Hatcher.
+
+        * inspector/front-end/inspector.css:
+
+2008-11-08  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 22137: PLATFORM(MAC) build broken with HAVE(ACCESSIBILITY) disabled
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22137>
+
+        Reviewed by Darin Adler.
+
+        * page/AccessibilityObject.h:
+        (WebCore::AccessibilityObject::accessibilityIgnoreAttachment):
+        Provide a default implementation when HAVE(ACCESSIBILITY) is false.
+        * page/mac/AXObjectCacheMac.mm: Added HAVE(ACCESSIBILITY) guard.
+        * page/mac/AccessibilityObjectMac.mm: Ditto.
+        * page/mac/AccessibilityObjectWrapper.mm: Ditto.
+
+2008-11-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - WebCore part of adding WebPreferences for controlling databases and local storage
+
+        * WebCore.base.exp: Exported Settings::setDatabasesEnabled() and
+        Settings::setLocalStorageEnabled().
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::localStorage): Changed to return 0 if local storage
+        is disabled in settings.
+        (WebCore::DOMWindow::openDatabase): Changed to return 0 if databases
+        are disabled in settings.
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings): Initialize m_databasesEnabled and
+        m_localStorageEnabled.
+        (WebCore::Settings::setDatabasesEnabled): Added.
+        (WebCore::Settings::setLocalStorageEnabled): Added.
+        * page/Settings.h:
+        (WebCore::Settings::databasesEnabled): Added.
+        (WebCore::Settings::localStorageEnabled): Added.
+
+2008-11-07  Alp Toker  <alp@nuanti.com>
+
+        Fix build with bleeding edge GTK+ versions. GTK+ and other libraries
+        now require that only their top-level header file is included.
+
+        Patch tested and still builds fine with older GTK+ versions (back to
+        2.8).
+
+        Future WebKit GTK+ contributions are required to adhere to this
+        policy.
+
+        * platform/gtk/FileSystemGtk.cpp:
+        * platform/gtk/KeyEventGtk.cpp:
+        * platform/gtk/MouseEventGtk.cpp:
+        * platform/gtk/WheelEventGtk.cpp:
+        * platform/gtk/gtkdrawing.h:
+        * plugins/gtk/gtk2xtbin.c:
+        * plugins/gtk/gtk2xtbin.h:
+
+2008-11-07  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker
+
+        Explicitly initialize the NPDrawingModelCoreAnimation.
+
+        * bridge/npapi.h:
+
+2008-11-07  Alp Toker  <alp@nuanti.com>
+
+        autotools fix. Always use the configured perl binary (which may be
+        different to the one in $PATH) when generating sources.
+
+        * GNUmakefile.am:
+
+2008-11-07  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        https://bugs.webkit.org/show_bug.cgi?id=22122
+        
+        Use a stack-based object to simplify the pushLayoutState/popLayoutState
+        code. LayoutStateMaintainer either pushes in the constructor, or allows
+        an explicit push() later. Both cases require an explicit pop().
+
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::layoutBlock):
+        (WebCore::RenderBlock::layoutOnlyPositionedObjects):
+        * rendering/RenderContainer.cpp:
+        (WebCore::RenderContainer::layout):
+        * rendering/RenderFlexibleBox.cpp:
+        (WebCore::RenderFlexibleBox::layoutBlock):
+        * rendering/RenderTable.cpp:
+        (WebCore::RenderTable::layout):
+        * rendering/RenderTableRow.cpp:
+        (WebCore::RenderTableRow::layout):
+        * rendering/RenderTableSection.cpp:
+        (WebCore::RenderTableSection::setCellWidths):
+        (WebCore::RenderTableSection::calcRowHeight):
+        (WebCore::RenderTableSection::layoutRows):
+        * rendering/RenderView.h:
+        (WebCore::LayoutStateMaintainer::LayoutStateMaintainer):
+        (WebCore::LayoutStateMaintainer::~LayoutStateMaintainer):
+        (WebCore::LayoutStateMaintainer::pop):
+        (WebCore::LayoutStateMaintainer::push):
+        (WebCore::LayoutStateMaintainer::didPush):
+
+2008-11-07  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Fix the QtWebKit build on Mac
+
+        * platform/qt/TemporaryLinkStubs.cpp:
+        (PluginView::invalidateRect):
+
+2008-11-07  Tor Arne Vestbø  <tavestbo@trolltech.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        Don't allow Phonon's invisible video widget to keep the app running
+
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        (WebCore::MediaPlayerPrivate::MediaPlayerPrivate):
+
+2008-11-07  Henrik Hartz  <henrik.hartz@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix valgrind warning about uninitialized lastStop variable.
+
+        * platform/graphics/qt/GradientQt.cpp:
+        (WebCore::Gradient::platformGradient):
+
+2008-11-07  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix layout test brokenness following r38211.
+
+        * page/EventHandler.cpp: (WebCore::EventHandler::handleAccessKey):
+        Restore old Shift key behavior. We ignore Shift key state when matching access keys (which
+        matches neither IE nor Firefox), and this patch made WebKit behave like Firefox
+        inadvertently. This may or may not be a good thing, but it's certainly not something that
+        should change by accident.
+
 2008-11-07  Antti Koivisto  <antti@apple.com>
 
         Eh, this trivial last minute change was wrong.
