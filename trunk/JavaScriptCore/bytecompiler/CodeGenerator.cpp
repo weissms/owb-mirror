@@ -145,6 +145,27 @@ void CodeGenerator::generate()
         m_scopeNode->varStack().shrinkCapacity(0);
         m_scopeNode->functionStack().shrinkCapacity(0);
     }
+    
+    m_codeBlock->instructions.shrinkToFit();
+    m_codeBlock->globalResolveInstructions.shrinkToFit();
+    m_codeBlock->propertyAccessInstructions.shrinkToFit();
+    m_codeBlock->callLinkInfos.shrinkToFit();
+    m_codeBlock->linkedCallerList.shrinkToFit();
+
+    m_codeBlock->identifiers.shrinkToFit();
+    m_codeBlock->functions.shrinkToFit();
+    m_codeBlock->functionExpressions.shrinkToFit();
+    m_codeBlock->constantRegisters.shrinkToFit();
+    m_codeBlock->unexpectedConstants.shrinkToFit();
+    m_codeBlock->regexps.shrinkToFit();
+    m_codeBlock->exceptionHandlers.shrinkToFit();
+    m_codeBlock->expressionInfo.shrinkToFit();
+    m_codeBlock->lineInfo.shrinkToFit();
+
+    m_codeBlock->immediateSwitchJumpTables.shrinkToFit();
+    m_codeBlock->characterSwitchJumpTables.shrinkToFit();
+    m_codeBlock->stringSwitchJumpTables.shrinkToFit();
+
 }
 
 bool CodeGenerator::addVar(const Identifier& ident, bool isConstant, RegisterID*& r0)
@@ -786,7 +807,7 @@ RegisterID* CodeGenerator::emitEqualityOp(OpcodeID opcode, RegisterID* dst, Regi
 
         if (src1->index() == dstIndex
             && src1->isTemporary()
-            && m_codeBlock->isConstant(src2->index())
+            && m_codeBlock->isConstantRegisterIndex(src2->index())
             && m_codeBlock->constantRegisters[src2->index() - m_codeBlock->numVars].jsValue(m_scopeChain->globalObject()->globalExec())->isString()) {
             const UString& value = asString(m_codeBlock->constantRegisters[src2->index() - m_codeBlock->numVars].jsValue(m_scopeChain->globalObject()->globalExec()))->value();
             if (value == "undefined") {

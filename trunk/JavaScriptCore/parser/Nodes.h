@@ -90,8 +90,8 @@ namespace JSC {
 
     namespace DeclarationStacks {
         enum VarAttrs { IsConstant = 1, HasInitializer = 2 };
-        typedef Vector<std::pair<Identifier, unsigned>, 16> VarStack;
-        typedef Vector<RefPtr<FuncDeclNode>, 16> FunctionStack;
+        typedef Vector<std::pair<Identifier, unsigned> > VarStack;
+        typedef Vector<RefPtr<FuncDeclNode> > FunctionStack;
     }
 
     struct SwitchInfo {
@@ -1688,6 +1688,7 @@ namespace JSC {
         {
             ASSERT(destination.isEmpty());
             m_statements.swap(destination);
+            destination.shrinkToFit();
         }
 
     private:

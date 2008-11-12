@@ -103,7 +103,7 @@ static void networkStateChanged()
         eventTarget->dispatchEventForType(eventName, false, false);
     }
 }
-    
+
 Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, EditorClient* editorClient, DragClient* dragClient, InspectorClient* inspectorClient)
     : m_chrome(new Chrome(this, chromeClient))
     , m_dragCaretController(new SelectionController(0, true))
@@ -122,6 +122,7 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_defersLoading(false)
     , m_inLowQualityInterpolationMode(false)
     , m_cookieEnabled(true)
+    , m_mediaVolume(1)
 #if ENABLE(INSPECTOR)
     , m_parentInspectorController(0)
 #endif
@@ -388,6 +389,21 @@ bool Page::inLowQualityImageInterpolationMode() const
 void Page::setInLowQualityImageInterpolationMode(bool mode)
 {
     m_inLowQualityInterpolationMode = mode;
+}
+
+void Page::setMediaVolume(float volume)
+{
+    if (volume < 0 || volume > 1)
+        return;
+
+    if (m_mediaVolume == volume)
+        return;
+
+    m_mediaVolume = volume;
+    for (Frame* frame = mainFrame(); frame; frame = frame->tree()->traverseNext()) {
+        if (frame->document())
+            frame->document()->mediaVolumeDidChange();
+    }
 }
 
 void Page::userStyleSheetLocationChanged()

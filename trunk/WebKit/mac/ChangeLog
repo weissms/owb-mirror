@@ -1,3 +1,344 @@
+2008-11-12  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        WebKit/mac part of adding a master volume control for media elements in a WebView
+
+        * WebView/WebView.mm:
+        (-[WebView setMediaVolume:]): Added.
+        (-[WebView mediaVolume]): Added.
+        * WebView/WebViewPrivate.h:
+
+2008-11-11  Aaron Golden  <agolden@apple.com>
+
+        Bug 22134: -[WebHistoryItem dictionaryRepresentation] accesses past the end of a vector
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22134>
+
+        Reviewed by Geoff Garen.
+
+        * History/WebHistoryItem.mm:
+        (-[WebHistoryItem initFromDictionaryRepresentation:]):
+        (-[WebHistoryItem dictionaryRepresentation]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Move renewGState to the base class.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView renewGState]):
+        * Plugins/WebNetscapePluginView.mm:
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Move start, stop and all the related methods down to WebBaseNetscapePluginView.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView updateAndSetWindow]):
+        (-[WebBaseNetscapePluginView addWindowObservers]):
+        (-[WebBaseNetscapePluginView removeWindowObservers]):
+        (-[WebBaseNetscapePluginView start]):
+        (-[WebBaseNetscapePluginView stop]):
+        (-[WebBaseNetscapePluginView viewWillMoveToWindow:]):
+        (-[WebBaseNetscapePluginView viewWillMoveToSuperview:]):
+        (-[WebBaseNetscapePluginView viewDidMoveToWindow]):
+        (-[WebBaseNetscapePluginView viewWillMoveToHostWindow:]):
+        (-[WebBaseNetscapePluginView viewDidMoveToHostWindow]):
+        (-[WebBaseNetscapePluginView windowWillClose:]):
+        (-[WebBaseNetscapePluginView windowBecameKey:]):
+        (-[WebBaseNetscapePluginView windowResignedKey:]):
+        (-[WebBaseNetscapePluginView windowDidMiniaturize:]):
+        (-[WebBaseNetscapePluginView windowDidDeminiaturize:]):
+        (-[WebBaseNetscapePluginView loginWindowDidSwitchFromUser:]):
+        (-[WebBaseNetscapePluginView loginWindowDidSwitchToUser:]):
+        (-[WebBaseNetscapePluginView preferencesHaveChanged:]):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Move rightMouseDown, rightMouseUp and sendActivateEvent to the base plugin view. 
+        Add stubs for createPlugin, loadStream, shouldStop and destroyPlugin.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView windowFocusChanged:]):
+        (-[WebBaseNetscapePluginView createPlugin]):
+        (-[WebBaseNetscapePluginView loadStream]):
+        (-[WebBaseNetscapePluginView destroyPlugin]):
+        (-[WebBaseNetscapePluginView sendActivateEvent:]):
+        (-[WebBaseNetscapePluginView rightMouseDown:]):
+        (-[WebBaseNetscapePluginView rightMouseUp:]):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView windowFocusChanged:]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Factor plug-in type specific code out to three new methods, createPlugin, destroyPlugin and loadStream.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView createPlugin]):
+        (-[WebNetscapePluginView loadStream]):
+        (-[WebNetscapePluginView start]):
+        (-[WebNetscapePluginView shouldStop]):
+        (-[WebNetscapePluginView destroyPlugin]):
+        (-[WebNetscapePluginView stop]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Fix Tiger build.
+        
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage load]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Move even more code down to WebBaseNetscapePluginView, get rid of some unnecessary methods.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView focusChanged]):
+        (-[WebBaseNetscapePluginView visibleRect]):
+        (-[WebBaseNetscapePluginView acceptsFirstResponder]):
+        (-[WebBaseNetscapePluginView setHasFocus:]):
+        (-[WebBaseNetscapePluginView becomeFirstResponder]):
+        (-[WebBaseNetscapePluginView resignFirstResponder]):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView focusChanged]):
+        (-[WebNetscapePluginView tellQuickTimeToChill]):
+        (-[WebNetscapePluginView updateAndSetWindow]):
+        (-[WebNetscapePluginView start]):
+        (-[WebNetscapePluginView stop]):
+        (-[WebNetscapePluginView viewWillMoveToWindow:]):
+        (-[WebNetscapePluginView createPluginScriptableObject]):
+        (-[WebNetscapePluginView pluginView:receivedData:]):
+        (-[WebNetscapePluginView pluginView:receivedError:]):
+        (-[WebNetscapePluginView pluginViewFinishedLoading:]):
+        (-[WebNetscapePluginView inputContext]):
+        (-[WebNetscapePluginView hasMarkedText]):
+        (-[WebNetscapePluginView insertText:]):
+        (-[WebNetscapePluginView markedRange]):
+        (-[WebNetscapePluginView selectedRange]):
+        (-[WebNetscapePluginView setMarkedText:selectedRange:]):
+        (-[WebNetscapePluginView unmarkText]):
+        (-[WebNetscapePluginView validAttributesForMarkedText]):
+        (-[WebNetscapePluginView attributedSubstringFromRange:]):
+        (-[WebNetscapePluginView characterIndexForPoint:]):
+        (-[WebNetscapePluginView doCommandBySelector:]):
+        (-[WebNetscapePluginView firstRectForCharacterRange:]):
+        (-[WebNetscapePluginView _viewHasMoved]):
+        (-[WebNetscapePluginView _redeliverStream]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Move timer handling code down to WebBaseNetscapePluginView.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView stopTimers]):
+        (-[WebBaseNetscapePluginView startTimers]):
+        (-[WebBaseNetscapePluginView restartTimers]):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView stopTimers]):
+        (-[WebNetscapePluginView startTimers]):
+        (-[WebNetscapePluginView scheduleTimerWithInterval:repeat:timerFunc:]):
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _resumeNullEventsForAllNetscapePlugins]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Move a bunch of methods and ivars up to WebBaseNetscapePluginView.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView dealloc]):
+        (-[WebBaseNetscapePluginView finalize]):
+        (-[WebBaseNetscapePluginView removeTrackingRect]):
+        (-[WebBaseNetscapePluginView resetTrackingRect]):
+        (-[WebBaseNetscapePluginView dataSource]):
+        (-[WebBaseNetscapePluginView webFrame]):
+        (-[WebBaseNetscapePluginView webView]):
+        (-[WebBaseNetscapePluginView currentWindow]):
+        * Plugins/WebNetscapePluginEventHandlerCarbon.mm:
+        (WebNetscapePluginEventHandlerCarbon::windowFocusChanged):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView sendEvent:isDrawRect:]):
+        (-[WebNetscapePluginView sendActivateEvent:]):
+        (-[WebNetscapePluginView restartTimers]):
+        (-[WebNetscapePluginView setHasFocus:]):
+        (-[WebNetscapePluginView mouseDown:]):
+        (-[WebNetscapePluginView mouseUp:]):
+        (-[WebNetscapePluginView mouseEntered:]):
+        (-[WebNetscapePluginView mouseExited:]):
+        (-[WebNetscapePluginView handleMouseMoved:]):
+        (-[WebNetscapePluginView mouseDragged:]):
+        (-[WebNetscapePluginView scrollWheel:]):
+        (-[WebNetscapePluginView keyUp:]):
+        (-[WebNetscapePluginView keyDown:]):
+        (-[WebNetscapePluginView flagsChanged:]):
+        (-[WebNetscapePluginView updateAndSetWindow]):
+        (-[WebNetscapePluginView setWindowIfNecessary]):
+        (-[WebNetscapePluginView start]):
+        (-[WebNetscapePluginView stop]):
+        (-[WebNetscapePluginView isStarted]):
+        (-[WebNetscapePluginView dealloc]):
+        (-[WebNetscapePluginView finalize]):
+        (-[WebNetscapePluginView drawRect:]):
+        (-[WebNetscapePluginView windowBecameKey:]):
+        (-[WebNetscapePluginView preferencesHaveChanged:]):
+        (-[WebNetscapePluginView evaluateJavaScriptPluginRequest:]):
+        (-[WebNetscapePluginView webFrame:didFinishLoadWithReason:]):
+        (-[WebNetscapePluginView scheduleTimerWithInterval:repeat:timerFunc:]):
+        (-[WebNetscapePluginView _viewHasMoved]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker and Mark Rowe.
+
+        Add a WebHostedNetscapePluginView class.
+        
+        * Plugins/WebHostedNetscapePluginView.h: Added.
+        * Plugins/WebHostedNetscapePluginView.mm: Added.
+
+        * Plugins/WebNetscapePluginPackage.h:
+        Use the right define.
+        
+        * Plugins/WebPluginDatabase.mm:
+        (-[WebPluginDatabase removePluginInstanceViewsFor:]):
+        Check for WebBaseNetscapePluginView.
+        
+        (-[WebPluginDatabase destroyAllPluginInstanceViews]):
+        Check for WebBaseNetscapePluginView.
+        
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (NetscapePluginWidget::NetscapePluginWidget):
+        (NetscapePluginWidget::handleEvent):
+        Use WebBaseNetscapePluginView.
+        
+        (netscapePluginViewClass):
+        New function that returns the right netscape plugin view type to use.
+        
+        (WebFrameLoaderClient::createPlugin):
+        Get the right class.
+        
+        * WebKitPrefix.h:
+        Prefix the #define with WTF_.
+        
+        * WebView/WebHTMLView.mm:
+        (-[NSArray _web_makePluginViewsPerformSelector:withObject:]):
+        Check for WebBaseNetscapePluginView.
+        
+        * WebView/WebView.mm:
+        Remove an unnecessary include.
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Don't use individual ivars for each plug-in vtable function. Instead, get them from the plugin package.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:DOMElement:]):
+        * Plugins/WebNetscapePluginPackage.h:
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage load]):
+        (-[WebNetscapePluginPackage _unloadWithShutdown:]):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView sendEvent:isDrawRect:]):
+        (-[WebNetscapePluginView setWindowIfNecessary]):
+        (-[WebNetscapePluginView start]):
+        (-[WebNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:DOMElement:]):
+        (-[WebNetscapePluginView createPluginScriptableObject]):
+        (-[WebNetscapePluginView evaluateJavaScriptPluginRequest:]):
+        (-[WebNetscapePluginView webFrame:didFinishLoadWithReason:]):
+        (-[WebNetscapePluginView loadPluginRequest:]):
+        (-[WebNetscapePluginView _createPlugin]):
+        (-[WebNetscapePluginView _destroyPlugin]):
+        (-[WebNetscapePluginView _printedPluginBitmap]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+
+        Add a new WebBaseNetscapePluginView class.
+
+        * Plugins/WebBaseNetscapePluginView.h: Added.
+        * Plugins/WebBaseNetscapePluginView.mm: Added.
+        (-[WebBaseNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:DOMElement:]):
+        (-[WebBaseNetscapePluginView setAttributeKeys:andValues:]):
+        (-[WebBaseNetscapePluginView handleMouseMoved:]):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView cut:]):
+        (-[WebNetscapePluginView copy:]):
+        (-[WebNetscapePluginView paste:]):
+        (-[WebNetscapePluginView selectAll:]):
+        (-[WebNetscapePluginView start]):
+        (-[WebNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:DOMElement:]):
+
+2008-11-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam Roben.
+        
+        Rename WebBaseNetscapePluginView to WebNetscapePluginView.
+
+        * Plugins/WebBaseNetscapePluginStream.h:
+        * Plugins/WebBaseNetscapePluginStream.mm:
+        (WebNetscapePluginStream::WebNetscapePluginStream):
+        (WebNetscapePluginStream::setPlugin):
+        * Plugins/WebBaseNetscapePluginView.h: Removed.
+        * Plugins/WebBaseNetscapePluginView.mm: Removed.
+        * Plugins/WebNetscapePluginEventHandler.h:
+        (WebNetscapePluginEventHandler::WebNetscapePluginEventHandler):
+        * Plugins/WebNetscapePluginEventHandler.mm:
+        (WebNetscapePluginEventHandler::create):
+        * Plugins/WebNetscapePluginEventHandlerCarbon.h:
+        * Plugins/WebNetscapePluginEventHandlerCarbon.mm:
+        (WebNetscapePluginEventHandlerCarbon::WebNetscapePluginEventHandlerCarbon):
+        * Plugins/WebNetscapePluginEventHandlerCocoa.h:
+        * Plugins/WebNetscapePluginEventHandlerCocoa.mm:
+        (WebNetscapePluginEventHandlerCocoa::WebNetscapePluginEventHandlerCocoa):
+        * Plugins/WebNetscapePluginView.h: Copied from mac/Plugins/WebBaseNetscapePluginView.h.
+        * Plugins/WebNetscapePluginView.mm: Copied from mac/Plugins/WebBaseNetscapePluginView.mm.
+        (+[WebNetscapePluginView setCurrentPluginView:]):
+        (+[WebNetscapePluginView currentPluginView]):
+        (-[WebNetscapePluginView loadPluginRequest:]):
+        * Plugins/WebPluginDatabase.mm:
+        (-[WebPluginDatabase removePluginInstanceViewsFor:]):
+        (-[WebPluginDatabase destroyAllPluginInstanceViews]):
+        * Plugins/npapi.mm:
+        (pluginViewForInstance):
+        (NPN_MarkedTextAbandoned):
+        (NPN_MarkedTextSelectionChanged):
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (NetscapePluginWidget::NetscapePluginWidget):
+        (NetscapePluginWidget::handleEvent):
+        (WebFrameLoaderClient::createPlugin):
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _pauseNullEventsForAllNetscapePlugins]):
+        (-[WebHTMLView _resumeNullEventsForAllNetscapePlugins]):
+        (-[NSArray _web_makePluginViewsPerformSelector:withObject:]):
+        * WebView/WebView.mm:
+
 2008-11-10  Darin Adler  <darin@apple.com>
 
         Reviewed by John Sullivan.

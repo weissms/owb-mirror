@@ -1,5 +1,5 @@
-JavaScriptCore/runtime/lookup.h
-JavaScriptCore/runtime/collector.cpp
+JavaScriptCore/runtime/Lookup.h
+JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/VM/RegisterFile.cpp
 JavaScriptCore/VM/RegisterFile.h
 WebCore/bindings/js/JSConsoleCustom.cpp

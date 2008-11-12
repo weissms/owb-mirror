@@ -26,67 +26,53 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LabelID_h
-#define LabelID_h
+#ifndef EvalCodeCache_h
+#define EvalCodeCache_h
 
-#include "CodeBlock.h"
-#include "Instruction.h"
-#include <wtf/Assertions.h>
-#include <wtf/Vector.h>
-#include <limits.h>
+#include "JSGlobalObject.h"
+#include "Nodes.h"
+#include "Parser.h"
+#include "SourceCode.h"
+#include "UString.h"
+#include <wtf/HashMap.h>
+#include <wtf/RefPtr.h>
 
 namespace JSC {
 
-    class LabelID {
+    class EvalCodeCache {
     public:
-        explicit LabelID(CodeBlock* codeBlock)
-            : m_refCount(0)
-            , m_location(invalidLocation)
-            , m_codeBlock(codeBlock)
+        PassRefPtr<EvalNode> get(ExecState* exec, const UString& evalSource, ScopeChainNode* scopeChain, JSValue*& exceptionValue)
         {
-        }
+            RefPtr<EvalNode> evalNode;
 
-        void setLocation(unsigned location)
-        {
-            m_location = location;
+            if (evalSource.size() < maxCacheableSourceLength && (*scopeChain->begin())->isVariableObject())
+                evalNode = m_cacheMap.get(evalSource.rep());
 
-            unsigned size = m_unresolvedJumps.size();
-            for (unsigned i = 0; i < size; ++i) {
-                unsigned j = m_unresolvedJumps[i];
-                m_codeBlock->instructions[j].u.operand = m_location - j;
+            if (!evalNode) {
+                int errorLine;
+                UString errorMessage;
+                
+                SourceCode source = makeSource(evalSource);
+                evalNode = exec->globalData().parser->parse<EvalNode>(exec, exec->dynamicGlobalObject()->debugger(), source, &errorLine, &errorMessage);
+                if (evalNode) {
+                    if (evalSource.size() < maxCacheableSourceLength && (*scopeChain->begin())->isVariableObject() && m_cacheMap.size() < maxCacheEntries)
+                        m_cacheMap.set(evalSource.rep(), evalNode);
+                } else {
+                    exceptionValue = Error::create(exec, SyntaxError, errorMessage, errorLine, source.provider()->asID(), 0);
+                    return 0;
+                }
             }
-        }
 
-        int offsetFrom(int location) const
-        {
-            if (m_location == invalidLocation) {
-                m_unresolvedJumps.append(location);
-                return 0;
-            }
-            return m_location - location;
+            return evalNode.release();
         }
-
-        void ref() { ++m_refCount; }
-        void deref()
-        {
-            --m_refCount;
-            ASSERT(m_refCount >= 0);
-        }
-        int refCount() const { return m_refCount; }
-
-        bool isForwardLabel() const { return m_location == invalidLocation; }
 
     private:
-        typedef Vector<int, 8> JumpVector;
+        static const int maxCacheableSourceLength = 256;
+        static const int maxCacheEntries = 64;
 
-        static const unsigned invalidLocation = UINT_MAX;
-
-        int m_refCount;
-        unsigned m_location;
-        CodeBlock* m_codeBlock;
-        mutable JumpVector m_unresolvedJumps;
+        HashMap<RefPtr<UString::Rep>, RefPtr<EvalNode> > m_cacheMap;
     };
 
 } // namespace JSC
 
-#endif // LabelID_h
+#endif // EvalCodeCache_h

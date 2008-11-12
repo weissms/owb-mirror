@@ -31,7 +31,6 @@
 
 #import "DOMRangeInternal.h"
 #import "WebBackForwardListInternal.h"
-#import "WebBaseNetscapePluginView.h"
 #import "WebChromeClient.h"
 #import "WebContextMenuClient.h"
 #import "WebDOMOperationsPrivate.h"
@@ -3788,6 +3787,20 @@ static NSAppleEventDescriptor* aeDescFromJSValue(ExecState* exec, JSValue* jsVal
 - (IBAction)resetPageZoom:(id)sender
 {
     return [self _resetZoom:sender isTextOnly:NO];
+}
+
+- (void)setMediaVolume:(float)volume
+{
+    if (_private->page)
+        _private->page->setMediaVolume(volume);
+}
+
+- (float)mediaVolume
+{
+    if (!_private->page)
+        return 0;
+
+    return _private->page->mediaVolume();
 }
 
 @end

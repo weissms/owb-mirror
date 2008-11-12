@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,38 +26,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if ENABLE(NETSCAPE_PLUGIN_API)
-#import <Cocoa/Cocoa.h>
+#if USE(PLUGIN_HOST_PROCESS)
 
-#import "WebNetscapePluginPackage.h"
+#import "WebBaseNetscapePluginView.h"
 
-#import <wtf/RetainPtr.h>
-
-@class DOMElement;
-@class WebDataSource;
-@class WebFrame;
-@class WebView;
-
-@interface WebBaseNetscapePluginView : NSView
+@interface WebHostedNetscapePluginView : WebBaseNetscapePluginView
 {
-    RetainPtr<WebNetscapePluginPackage> _pluginPackage;
-    
-    WebFrame *_webFrame;
-    
-    int _mode;
-    
-    BOOL _loadManually;
-    BOOL _shouldFireTimers;
-    BOOL _isStarted;
-    BOOL _hasFocus;
-    BOOL _isCompletelyObscured;
-    
-    RetainPtr<DOMElement> _element;
-    RetainPtr<NSString> _MIMEType;
-    RetainPtr<NSURL> _baseURL;
-    RetainPtr<NSURL> _sourceURL;
-    
-    NSTrackingRectTag _trackingTag;
+    RetainPtr<NSArray> _attributeKeys;
+    RetainPtr<NSArray> _attributeValues;
 }
 
 - (id)initWithFrame:(NSRect)r
@@ -69,27 +45,7 @@
     attributeValues:(NSArray *)values
        loadManually:(BOOL)loadManually
          DOMElement:(DOMElement *)anElement;
-
-// Subclasses must override these.
-- (void)handleMouseMoved:(NSEvent *)event;
-- (void)setAttributeKeys:(NSArray *)keys andValues:(NSArray *)values;
-- (void)focusChanged;
-
-- (WebFrame *)webFrame;
-- (WebDataSource *)dataSource;
-- (WebView *)webView;
-- (NSWindow *)currentWindow;
-
-- (void)removeTrackingRect;
-- (void)resetTrackingRect;
-
-- (void)stopTimers;
-- (void)startTimers;
-- (void)restartTimers;
-
-- (void)stop;
-
 @end
 
-#endif
+#endif // USE(PLUGIN_HOST_PROCESS)
 

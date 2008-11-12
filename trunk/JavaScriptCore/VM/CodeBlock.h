@@ -30,12 +30,11 @@
 #ifndef CodeBlock_h
 #define CodeBlock_h
 
+#include "EvalCodeCache.h"
 #include "Instruction.h"
 #include "JSGlobalObject.h"
 #include "Nodes.h"
-#include "Parser.h"
 #include "RegExp.h"
-#include "SourceCode.h"
 #include "UString.h"
 #include <wtf/RefPtr.h>
 #include <wtf/Vector.h>
@@ -211,40 +210,6 @@ namespace JSC {
 #endif
     };
 
-    class EvalCodeCache {
-    public:
-        PassRefPtr<EvalNode> get(ExecState* exec, const UString& evalSource, ScopeChainNode* scopeChain, JSValue*& exceptionValue)
-        {
-            RefPtr<EvalNode> evalNode;
-
-            if (evalSource.size() < maxCacheableSourceLength && (*scopeChain->begin())->isVariableObject())
-                evalNode = cacheMap.get(evalSource.rep());
-
-            if (!evalNode) {
-                int errLine;
-                UString errMsg;
-                
-                SourceCode source = makeSource(evalSource);
-                evalNode = exec->globalData().parser->parse<EvalNode>(exec, exec->dynamicGlobalObject()->debugger(), source, &errLine, &errMsg);
-                if (evalNode) {
-                    if (evalSource.size() < maxCacheableSourceLength && (*scopeChain->begin())->isVariableObject() && cacheMap.size() < maxCacheEntries)
-                        cacheMap.set(evalSource.rep(), evalNode);
-                } else {
-                    exceptionValue = Error::create(exec, SyntaxError, errMsg, errLine, source.provider()->asID(), NULL);
-                    return 0;
-                }
-            }
-
-            return evalNode.release();
-        }
-
-    private:
-        static const int maxCacheableSourceLength = 256;
-        static const int maxCacheEntries = 64;
-
-        HashMap<RefPtr<UString::Rep>, RefPtr<EvalNode> > cacheMap;
-    };
-
     struct CodeBlock {
         CodeBlock(ScopeNode* ownerNode, CodeType codeType, PassRefPtr<SourceProvider> sourceProvider, unsigned sourceOffset)
             : ownerNode(ownerNode)
@@ -290,9 +255,14 @@ namespace JSC {
             linkedCallerList.shrink(lastPos);
         }
 
-        ALWAYS_INLINE bool isConstant(int index)
+        ALWAYS_INLINE bool isConstantRegisterIndex(int index)
         {
             return index >= numVars && index < numVars + numConstants;
+        }
+
+        ALWAYS_INLINE JSValue* getConstant(int index)
+        {
+            return constantRegisters[index - numVars].getJSValue();
         }
 
 #if !defined(NDEBUG) || ENABLE_OPCODE_SAMPLING
@@ -357,8 +327,6 @@ namespace JSC {
         Vector<SimpleJumpTable> immediateSwitchJumpTables;
         Vector<SimpleJumpTable> characterSwitchJumpTables;
         Vector<StringJumpTable> stringSwitchJumpTables;
-        
-        HashSet<unsigned, DefaultHash<unsigned>::Hash, WTF::UnsignedWithZeroKeyHashTraits<unsigned> > labels;
 
 #if ENABLE(CTI)
         HashMap<void*, unsigned> ctiReturnAddressVPCMap;

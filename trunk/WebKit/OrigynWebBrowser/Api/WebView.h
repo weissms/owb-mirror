@@ -1008,6 +1008,16 @@ public:
     bool cookieEnabled();
 
     /**
+     * set media volume
+     */
+    void setMediaVolume(float volume);
+
+    /**
+     * get media volume
+     */
+    float mediaVolume();
+
+    /**
      * get page 
      */
     WebCore::Page* page();

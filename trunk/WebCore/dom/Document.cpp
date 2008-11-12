@@ -1622,13 +1622,14 @@ void Document::setParsing(bool b)
 
 bool Document::shouldScheduleLayout()
 {
-    // We can update layout if:
-    // (a) we actually need a layout
-    // (b) our stylesheets are all loaded
-    // (c) we have a <body>
-    return (renderer() && renderer()->needsLayout() && haveStylesheetsLoaded() &&
-            documentElement() && documentElement()->renderer() &&
-            (!documentElement()->hasTagName(htmlTag) || body()));
+    // This function will only be called when FrameView thinks a layout is needed.
+    // This enforces a couple extra rules.
+    //
+    //    (a) Only schedule a layout once the stylesheets are loaded.
+    //    (b) Only schedule layout once we have a body element.
+
+    return haveStylesheetsLoaded()
+        && body() || (documentElement() && !documentElement()->hasTagName(htmlTag));
 }
 
 int Document::minimumLayoutDelay()
@@ -3139,6 +3140,23 @@ void Document::registerForDocumentActivationCallbacks(Element* e)
 void Document::unregisterForDocumentActivationCallbacks(Element* e)
 {
     m_documentActivationCallbackElements.remove(e);
+}
+
+void Document::mediaVolumeDidChange() 
+{
+    HashSet<Element*>::iterator end = m_mediaVolumeCallbackElements.end();
+    for (HashSet<Element*>::iterator i = m_mediaVolumeCallbackElements.begin(); i != end; ++i)
+        (*i)->mediaVolumeDidChange();
+}
+
+void Document::registerForMediaVolumeCallbacks(Element* e)
+{
+    m_mediaVolumeCallbackElements.add(e);
+}
+
+void Document::unregisterForMediaVolumeCallbacks(Element* e)
+{
+    m_mediaVolumeCallbackElements.remove(e);
 }
 
 void Document::setShouldCreateRenderers(bool f)

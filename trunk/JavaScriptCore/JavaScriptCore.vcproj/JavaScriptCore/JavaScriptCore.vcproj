@@ -1250,6 +1250,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\VM\EvalCodeCache.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\VM\ExceptionHelpers.cpp"
 				>
 			</File>

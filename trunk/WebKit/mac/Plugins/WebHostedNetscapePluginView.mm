@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007 Apple Inc. All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,70 +26,54 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if ENABLE(NETSCAPE_PLUGIN_API)
-#import <Cocoa/Cocoa.h>
+#if USE(PLUGIN_HOST_PROCESS)
 
-#import "WebNetscapePluginPackage.h"
+#import "WebHostedNetscapePluginView.h"
 
-#import <wtf/RetainPtr.h>
+#import "WebKitSystemInterface.h"
+#import <WebCore/WebCoreObjCExtras.h>
+#import <wtf/Assertions.h>
 
-@class DOMElement;
-@class WebDataSource;
-@class WebFrame;
-@class WebView;
+@implementation WebHostedNetscapePluginView
 
-@interface WebBaseNetscapePluginView : NSView
++ (void)initialize
 {
-    RetainPtr<WebNetscapePluginPackage> _pluginPackage;
-    
-    WebFrame *_webFrame;
-    
-    int _mode;
-    
-    BOOL _loadManually;
-    BOOL _shouldFireTimers;
-    BOOL _isStarted;
-    BOOL _hasFocus;
-    BOOL _isCompletelyObscured;
-    
-    RetainPtr<DOMElement> _element;
-    RetainPtr<NSString> _MIMEType;
-    RetainPtr<NSURL> _baseURL;
-    RetainPtr<NSURL> _sourceURL;
-    
-    NSTrackingRectTag _trackingTag;
+#ifndef BUILDING_ON_TIGER
+    WebCoreObjCFinalizeOnMainThread(self);
+#endif
+    WKSendUserChangeNotifications();
 }
 
-- (id)initWithFrame:(NSRect)r
-      pluginPackage:(WebNetscapePluginPackage *)thePluginPackage
+- (id)initWithFrame:(NSRect)frame
+      pluginPackage:(WebNetscapePluginPackage *)pluginPackage
                 URL:(NSURL *)URL
             baseURL:(NSURL *)baseURL
            MIMEType:(NSString *)MIME
       attributeKeys:(NSArray *)keys
     attributeValues:(NSArray *)values
        loadManually:(BOOL)loadManually
-         DOMElement:(DOMElement *)anElement;
+         DOMElement:(DOMElement *)element
+{
+    self = [super initWithFrame:frame pluginPackage:pluginPackage URL:URL baseURL:baseURL MIMEType:MIME attributeKeys:keys attributeValues:values loadManually:loadManually DOMElement:element];
+    if (!self)
+        return nil;
+    
+    return self;
+}    
 
-// Subclasses must override these.
-- (void)handleMouseMoved:(NSEvent *)event;
-- (void)setAttributeKeys:(NSArray *)keys andValues:(NSArray *)values;
-- (void)focusChanged;
+- (void)handleMouseMoved:(NSEvent *)event
+{
+    // FIXME: Implement.
+}
 
-- (WebFrame *)webFrame;
-- (WebDataSource *)dataSource;
-- (WebView *)webView;
-- (NSWindow *)currentWindow;
-
-- (void)removeTrackingRect;
-- (void)resetTrackingRect;
-
-- (void)stopTimers;
-- (void)startTimers;
-- (void)restartTimers;
-
-- (void)stop;
+- (void)setAttributeKeys:(NSArray *)keys andValues:(NSArray *)values
+{
+    ASSERT(!_attributeKeys && !_attributeValues);
+    
+    _attributeKeys = [keys copy];
+    _attributeValues = [values copy];
+}    
 
 @end
 
 #endif
-

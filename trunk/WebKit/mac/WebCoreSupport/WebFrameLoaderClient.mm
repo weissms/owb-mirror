@@ -56,7 +56,7 @@
 #import "WebKitLogging.h"
 #import "WebKitNSStringExtras.h"
 #import "WebNSURLExtras.h"
-#import "WebBaseNetscapePluginView.h"
+#import "WebNetscapePluginView.h"
 #import "WebNetscapePluginPackage.h"
 #import "WebNullPluginView.h"
 #import "WebPanelAuthenticationHandler.h"
@@ -111,6 +111,10 @@
 
 #if ENABLE(MAC_JAVA_BRIDGE)
 #import "WebJavaPlugIn.h"
+#endif
+
+#if USE(PLUGIN_HOST_PROCESS)
+#import "WebHostedNetscapePluginView.h"
 #endif
 
 using namespace WebCore;
@@ -1287,6 +1291,15 @@ public:
 
 #endif // ENABLE(NETSCAPE_PLUGIN_API)
 
+static Class netscapePluginViewClass()
+{
+#if USE(PLUGIN_HOST_PROCESS)
+    return [WebHostedNetscapePluginView class];
+#else
+    return [WebNetscapePluginView class];
+#endif
+}
+
 Widget* WebFrameLoaderClient::createPlugin(const IntSize& size, Element* element, const KURL& url,
     const Vector<String>& paramNames, const Vector<String>& paramValues, const String& mimeType, bool loadManually)
 {
@@ -1349,7 +1362,7 @@ Widget* WebFrameLoaderClient::createPlugin(const IntSize& size, Element* element
             
 #if ENABLE(NETSCAPE_PLUGIN_API)
         else if ([pluginPackage isKindOfClass:[WebNetscapePluginPackage class]]) {
-            WebBaseNetscapePluginView *embeddedView = [[[WebBaseNetscapePluginView alloc]
+            WebBaseNetscapePluginView *pluginView = [[[netscapePluginViewClass() alloc]
                 initWithFrame:NSMakeRect(0, 0, size.width(), size.height())
                 pluginPackage:(WebNetscapePluginPackage *)pluginPackage
                 URL:URL
@@ -1360,7 +1373,7 @@ Widget* WebFrameLoaderClient::createPlugin(const IntSize& size, Element* element
                 loadManually:loadManually
                 DOMElement:kit(element)] autorelease];
             
-            return new NetscapePluginWidget(embeddedView);
+            return new NetscapePluginWidget(pluginView);
         } 
 #endif
     } else
@@ -1398,8 +1411,8 @@ void WebFrameLoaderClient::redirectDataToPlugin(Widget* pluginWidget)
     NSView *pluginView = pluginWidget->platformWidget();
 
 #if ENABLE(NETSCAPE_PLUGIN_API)
-    if ([pluginView isKindOfClass:[WebBaseNetscapePluginView class]])
-        [representation _redirectDataToManualLoader:(WebBaseNetscapePluginView *)pluginView forPluginView:pluginView];
+    if ([pluginView isKindOfClass:[WebNetscapePluginView class]])
+        [representation _redirectDataToManualLoader:(WebNetscapePluginView *)pluginView forPluginView:pluginView];
     else {
 #else
     {
@@ -1442,7 +1455,7 @@ Widget* WebFrameLoaderClient::createJavaAppletWidget(const IntSize& size, Elemen
         } 
 #if ENABLE(NETSCAPE_PLUGIN_API)
         else if ([pluginPackage isKindOfClass:[WebNetscapePluginPackage class]]) {
-            view = [[[WebBaseNetscapePluginView alloc] initWithFrame:NSMakeRect(0, 0, size.width(), size.height())
+            view = [[[netscapePluginViewClass() alloc] initWithFrame:NSMakeRect(0, 0, size.width(), size.height())
                 pluginPackage:(WebNetscapePluginPackage *)pluginPackage
                 URL:nil
                 baseURL:baseURL

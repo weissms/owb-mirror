@@ -2146,6 +2146,7 @@ HRESULT STDMETHODCALLTYPE WebView::initWithFrame(
     sharedPreferences->willAddToWebView();
     m_preferences = sharedPreferences;
 
+    InitializeLoggingChannelsIfNecessary();
     WebKitSetWebDatabasesPathIfNecessary();
     WebKitSetApplicationCachePathIfNecessary();
     
@@ -4975,6 +4976,27 @@ HRESULT STDMETHODCALLTYPE WebView::cookieEnabled(BOOL* enabled)
         return E_FAIL;
 
     *enabled = m_page->cookieEnabled();
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebView::setMediaVolume(float volume)
+{
+    if (!m_page)
+        return E_FAIL;
+
+    m_page->setMediaVolume(volume);
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebView::mediaVolume(float* volume)
+{
+    if (!volume)
+        return E_POINTER;
+
+    if (!m_page)
+        return E_FAIL;
+
+    *volume = m_page->mediaVolume();
     return S_OK;
 }
 

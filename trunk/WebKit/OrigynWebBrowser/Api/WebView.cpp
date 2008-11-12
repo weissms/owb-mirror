@@ -2385,6 +2385,22 @@ void WebView::transparent(bool* transparent)
     *transparent = this->transparent() ? true : false;
 }
 
+void WebView::setMediaVolume(float volume)                                                        
+{                                                                                                                      
+    if (!m_page)                                                                                                       
+        return ; 
+                                                                                                                
+    m_page->setMediaVolume(volume);                                                                                    
+}                                                                                                                      
+                                                                                                                       
+float WebView::mediaVolume()
+{                                                                                                                      
+    if (!m_page)                                                                                                       
+        return 0.0;
+                                                                                                                       
+    return m_page->mediaVolume();                                                                                   
+}  
+
 void WebView::setDefersCallbacks(bool defersCallbacks)
 {
     if (!m_page)

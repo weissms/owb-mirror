@@ -3474,6 +3474,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\platform\win\LoggingWin.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\platform\win\MIMETypeRegistryWin.cpp"
 					>
 				</File>
