@@ -37,6 +37,7 @@ class IntPoint;
 class IntRect;
 class FloatPoint;
 class FloatRect;
+class FloatQuad;
 
 class AffineTransform : public WKALBase {
 public:
@@ -49,6 +50,8 @@ public:
     FloatPoint mapPoint(const FloatPoint&) const;
     IntRect mapRect(const IntRect&) const;
     FloatRect mapRect(const FloatRect&) const;
+
+    FloatQuad mapQuad(const FloatQuad&) const;
     
     bool isIdentity() const;
     

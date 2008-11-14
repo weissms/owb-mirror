@@ -27,6 +27,7 @@
 
 #include "CachedResourceClient.h"
 #include "Document.h"
+#include "FloatQuad.h"
 #include "RenderStyle.h"
 #include "ScrollTypes.h"
 #include "VisiblePosition.h"
@@ -561,7 +562,11 @@ public:
 
     // content area (box minus padding/border)
     IntRect contentBox() const;
+    // absolute coords of content area. Ignores transforms.
     IntRect absoluteContentBox() const;
+    // content rect converted to absolute coords, taking transforms into account
+    FloatQuad absoluteContentQuad() const;
+    
     int contentWidth() const { return clientWidth() - paddingLeft() - paddingRight(); }
     int contentHeight() const { return clientHeight() - paddingTop() - paddingBottom(); }
 
@@ -594,12 +599,16 @@ public:
         return localToAbsolute(localPoint, fixed, useTransforms);
     }
 
+    // Convert a local quad to an absolute quad, taking transforms into account.
+    virtual FloatQuad localToAbsoluteQuad(const FloatQuad&, bool fixed = false) const;
+
     // width and height are without margins but include paddings and borders
     virtual int width() const { return 0; }
     virtual int height() const { return 0; }
 
     virtual IntRect borderBox() const { return IntRect(0, 0, width(), height()); }
-    IntRect absoluteOutlineBox() const;
+    // Bounds of the outline box in absolute coords. Respects transforms
+    IntRect absoluteOutlineBounds() const;
 
     // The height of a block when you include normal flow overflow spillage out of the bottom
     // of the block (e.g., a <div style="height:25px"> that has a 100px tall image inside
@@ -687,7 +696,12 @@ public:
     virtual void addLineBoxRects(Vector<IntRect>&, unsigned startOffset = 0, unsigned endOffset = UINT_MAX, bool useSelectionHeight = false);
 
     virtual void absoluteRects(Vector<IntRect>&, int tx, int ty, bool topLevel = true);
-    IntRect absoluteBoundingBoxRect();
+    // FIXME: useTransforms should go away eventually
+    IntRect absoluteBoundingBoxRect(bool useTransforms = false);
+
+    // Build an array of quads in absolute coords for line boxes
+    virtual void collectAbsoluteLineBoxQuads(Vector<FloatQuad>&, unsigned startOffset = 0, unsigned endOffset = UINT_MAX, bool useSelectionHeight = false);
+    virtual void absoluteQuads(Vector<FloatQuad>&, bool topLevel = true);
 
     // the rect that will be painted if this object is passed as the paintingRoot
     IntRect paintingRootRect(IntRect& topLevelRect);

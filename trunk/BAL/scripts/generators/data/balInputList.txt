@@ -78,6 +78,7 @@
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatPoint3D.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatPoint.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatRect.h
+../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatQuad.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/FloatSize.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/GraphicsContext.h
 ../../WKAL/Skeletons/Graphics	../../../WebCore/platform/graphics/ImageBuffer.h
@@ -223,6 +224,8 @@
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/Pattern.cpp
 ../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/platform/graphics/cairo/PatternCairo.cpp
 ../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/platform/graphics/cairo/ImageBufferData.h
+../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/FloatQuad.cpp
+../../WKAL/Concretizations/Graphics/WK	../../../WebCore/platform/graphics/FloatQuad.h
 #FMD#92
 #FMD(175)
 

@@ -251,8 +251,15 @@ JSValue* functionReadline(ExecState* exec, JSObject*, JSValue*, const ArgList&)
     return jsString(exec, line.data());
 }
 
-JSValue* functionQuit(ExecState*, JSObject*, JSValue*, const ArgList&)
+JSValue* functionQuit(ExecState* exec, JSObject*, JSValue*, const ArgList&)
 {
+    {
+        JSLock lock(false);
+        JSGlobalData& globalData = exec->globalData();
+        globalData.heap.destroy();
+        globalData.deref();
+    }
+
     exit(0);
 #if !COMPILER(MSVC)
     // MSVC knows that exit(0) never returns, so it flags this return statement as unreachable.
@@ -290,10 +297,19 @@ int main(int argc, char** argv)
     QCoreApplication app(argc, argv);
 #endif
 
+    // We can't use destructors in the following code because it uses Windows
+    // Structured Exception Handling
     int res = 0;
+    JSGlobalData* globalData = JSGlobalData::create().releaseRef();
     TRY
-        res = jscmain(argc, argv, JSGlobalData::create().releaseRef());
+        res = jscmain(argc, argv, globalData);
     EXCEPT(res = 3)
+
+    JSLock::lock(false);
+    globalData->heap.destroy();
+    JSLock::unlock(false);
+
+    globalData->deref();
     return res;
 }
 

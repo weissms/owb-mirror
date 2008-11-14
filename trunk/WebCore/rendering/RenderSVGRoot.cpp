@@ -95,7 +95,7 @@ void RenderSVGRoot::layout()
     IntRect oldOutlineBox;
     bool checkForRepaint = checkForRepaintDuringLayout() && selfNeedsLayout();
     if (checkForRepaint)
-        oldOutlineBox = absoluteOutlineBox();
+        oldOutlineBox = absoluteOutlineBounds();
 
     calcWidth();
     calcHeight();
@@ -257,6 +257,12 @@ void RenderSVGRoot::absoluteRects(Vector<IntRect>& rects, int, int)
 {
     for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
         current->absoluteRects(rects, 0, 0);
+}
+
+void RenderSVGRoot::absoluteQuads(Vector<FloatQuad>& quads, bool topLevel)
+{
+    for (RenderObject* current = firstChild(); current != 0; current = current->nextSibling())
+        current->absoluteQuads(quads);
 }
 
 AffineTransform RenderSVGRoot::absoluteTransform() const

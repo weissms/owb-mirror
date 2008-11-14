@@ -237,7 +237,7 @@ void RenderSVGContainer::layout()
     bool checkForRepaint = checkForRepaintDuringLayout() && selfWillPaint();
     if (checkForRepaint) {
         oldBounds = m_absoluteBounds;
-        oldOutlineBox = absoluteOutlineBox();
+        oldOutlineBox = absoluteOutlineBounds();
     }
     
     calculateLocalTransform();
@@ -391,6 +391,11 @@ void RenderSVGContainer::addFocusRingRects(GraphicsContext* graphicsContext, int
 void RenderSVGContainer::absoluteRects(Vector<IntRect>& rects, int, int, bool)
 {
     rects.append(absoluteClippedOverflowRect());
+}
+
+void RenderSVGContainer::absoluteQuads(Vector<FloatQuad>& quads, bool topLevel)
+{
+    quads.append(absoluteClippedOverflowRect());
 }
 
 FloatRect RenderSVGContainer::relativeBBox(bool includeStroke) const

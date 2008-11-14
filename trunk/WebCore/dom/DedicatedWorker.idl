@@ -29,12 +29,12 @@ module threads {
     interface [CustomMarkFunction, Conditional=WORKERS] DedicatedWorker {
 
         // These also used for shared workers.
-        attribute [Custom] EventListener onclose;
-        attribute [Custom] EventListener onerror;
+        attribute EventListener onclose;
+        attribute EventListener onerror;
 
         // These are only for dedicated workers.
-        attribute [Custom] EventListener onmessage;
-        [Custom] MessagePort startConversation(in DOMString message);
+        attribute EventListener onmessage;
+        [Custom] MessagePort connect(in DOMString message);
         void close();
         void postMessage(in DOMString message, in [Optional] MessagePort port);
 
