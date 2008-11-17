@@ -283,7 +283,7 @@ void WebFrame::loadURL(WebCore::String url)
     String method("GET");
 
     WebMutableURLRequest* request = WebMutableURLRequest::createInstance();
-    request->initWithURL(url, (WebCore::ResourceRequestCachePolicy)WebURLRequestUseProtocolCachePolicy, 0);
+    request->initWithURL(url.stripWhiteSpace(), (WebCore::ResourceRequestCachePolicy)WebURLRequestUseProtocolCachePolicy, 0);
     request->setHTTPMethod(method);
     loadRequest(request);
     delete request;

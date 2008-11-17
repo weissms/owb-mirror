@@ -1,3 +1,12 @@
+2008-11-17  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Julien Chaffraix.
+
+        Ticket 320: fix url load when you have a space before http or https
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::loadURL): Trim leading white spaces.
+
 2008-11-04  Sebastien Roret  <sroret@pleyo.com>
 
         Reviewed by Mario Bensi.
