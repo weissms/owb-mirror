@@ -117,6 +117,10 @@ namespace WKAL {
         ContextMenuItemTagDefaultDirection,
         ContextMenuItemTagLeftToRight,
         ContextMenuItemTagRightToLeft,
+        ContextMenuItemTagTextDirectionMenu, // Text Direction sub-menu
+        ContextMenuItemTagTextDirectionDefault,
+        ContextMenuItemTagTextDirectionLeftToRight,
+        ContextMenuItemTagTextDirectionRightToLeft,
         ContextMenuItemTagPDFSinglePageScrolling,
         ContextMenuItemTagPDFFacingPagesScrolling,
         ContextMenuItemTagInspectElement,

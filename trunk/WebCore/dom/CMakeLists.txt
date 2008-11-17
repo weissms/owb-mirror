@@ -69,6 +69,8 @@ LIST (APPEND DOM_SRC
     dom/WebKitAnimationEvent.cpp
     dom/WebKitTransitionEvent.cpp
     dom/WheelEvent.cpp
+    dom/Worker.cpp
+    dom/WorkerMessagingProxy.cpp
     dom/WorkerTask.cpp
     dom/XMLTokenizer.cpp
     dom/XMLTokenizerLibxml2.cpp

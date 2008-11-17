@@ -39,7 +39,6 @@ LIST (APPEND JSCORE_SRC
     runtime/StringConstructor.cpp
     runtime/ObjectConstructor.cpp
     runtime/ScopeChain.cpp
-    runtime/StructureID.cpp
     runtime/ErrorInstance.cpp
     runtime/NumberPrototype.cpp
     runtime/ConstructData.cpp
@@ -68,6 +67,7 @@ LIST (APPEND JSCORE_SRC
     runtime/RegExpConstructor.cpp
     runtime/RegExpObject.cpp
     runtime/RegExpPrototype.cpp
-    runtime/StructureIDChain.cpp
     runtime/UString.cpp
+    runtime/StructureChain.cpp
+    runtime/Structure.cpp
 )

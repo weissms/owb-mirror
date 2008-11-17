@@ -26,10 +26,12 @@
 #ifndef WREC_h
 #define WREC_h
 
+#include <wtf/Platform.h>
+
 #if ENABLE(WREC)
 
 #include "UString.h"
-#include <masm/X86Assembler.h>
+#include "X86Assembler.h"
 #include <wtf/ASCIICType.h>
 #include <wtf/Vector.h>
 
@@ -40,12 +42,18 @@
 #endif
 
 namespace JSC {
+    class Interpreter;
+}
 
-    typedef int (*WRECFunction)(const UChar* input, unsigned start, unsigned length, int* output) WREC_CALL;
+namespace JSC { namespace WREC {
 
     class GenerateAtomFunctor;
     struct CharacterClassRange;
     struct CharacterClass;
+
+    typedef int (*CompiledRegExp)(const UChar* input, unsigned start, unsigned length, int* output) WREC_CALL;
+
+    CompiledRegExp compileRegExp(Interpreter*, const UString& pattern, unsigned* numSubpatterns_ptr, const char** error_ptr, bool ignoreCase = false, bool multiline = false);
 
     struct Quantifier {
         enum Type {
@@ -75,34 +83,27 @@ namespace JSC {
         static const unsigned noMaxSpecified = UINT_MAX;
     };
 
-    class WRECParser;
+    class Parser;
 
-    typedef Vector<X86Assembler::JmpSrc> JmpSrcVector;
-
-    class WRECGenerator {
+    class Generator {
     public:
-        WRECGenerator(WRECParser& parser, X86Assembler& jit)
+        Generator(Parser& parser, X86Assembler& assembler)
             : m_parser(parser)
-            , m_jit(jit)
+            , m_assembler(assembler)
         {
         }
 
         typedef X86Assembler::JmpSrc JmpSrc;
         typedef X86Assembler::JmpDst JmpDst;
+        typedef X86Assembler::RegisterID RegisterID;
 
         // these regs setup by the params
-        static const X86Assembler::RegisterID inputRegister = X86::eax;
-        static const X86Assembler::RegisterID currentPositionRegister = X86::edx;
-        static const X86Assembler::RegisterID lengthRegister = X86::ecx;
-        static const X86Assembler::RegisterID currentValueRegister = X86::esi;
-        static const X86Assembler::RegisterID outputRegister = X86::edi;
-        static const X86Assembler::RegisterID quantifierCountRegister = X86::ebx;
-
-        friend class GenerateAtomFunctor;
-        friend class GeneratePatternCharacterFunctor;
-        friend class GenerateCharacterClassFunctor;
-        friend class GenerateBackreferenceFunctor;
-        friend class GenerateParenthesesNonGreedyFunctor;
+        static const RegisterID inputRegister = X86::eax;
+        static const RegisterID currentPositionRegister = X86::edx;
+        static const RegisterID lengthRegister = X86::ecx;
+        static const RegisterID currentValueRegister = X86::esi;
+        static const RegisterID outputRegister = X86::edi;
+        static const RegisterID quantifierCountRegister = X86::ebx;
 
         void generateGreedyQuantifier(JmpSrcVector& failures, GenerateAtomFunctor& functor, unsigned min, unsigned max);
         void generateNonGreedyQuantifier(JmpSrcVector& failures, GenerateAtomFunctor& functor, unsigned min, unsigned max);
@@ -126,11 +127,11 @@ namespace JSC {
         void terminateDisjunction(JmpSrcVector& successes);
 
     private:
-        WRECParser& m_parser;
-        X86Assembler& m_jit;
+        Parser& m_parser;
+        X86Assembler& m_assembler;
     };
 
-    class WRECParser {
+    class Parser {
     public:
         bool m_ignoreCase;
         bool m_multiline;
@@ -146,12 +147,12 @@ namespace JSC {
             TempError_unsupportedParentheses,
         } m_err;
 
-        WRECParser(const UString& pattern, bool ignoreCase, bool multiline, X86Assembler& jit)
+        Parser(const UString& pattern, bool ignoreCase, bool multiline, X86Assembler& assembler)
             : m_ignoreCase(ignoreCase)
             , m_multiline(multiline)
             , m_numSubpatterns(0)
             , m_err(NoError)
-            , m_generator(*this, jit)
+            , m_generator(*this, assembler)
             , m_data(pattern.data())
             , m_size(pattern.size())
             , m_index(0)
@@ -245,13 +246,13 @@ namespace JSC {
         }
         
     private:
-        WRECGenerator m_generator;
+        Generator m_generator;
         const UChar* m_data;
         unsigned m_size;
         unsigned m_index;
     };
 
-} // namespace JSC
+} } // namespace JSC::WREC
 
 #endif // ENABLE(WREC)
 

@@ -186,10 +186,8 @@
 ../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/svg/graphics/cairo/SVGPaintServerGradientCairo.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGPaintServerSolid.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGPaintServerSolid.cpp
-../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/svg/graphics/cairo/SVGPaintServerSolidCairo.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGResourceClipper.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGResourceClipper.cpp
-../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/svg/graphics/cairo/SVGResourceClipperCairo.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGResourceFilter.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGResourceFilter.cpp
 ../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/svg/graphics/cairo/SVGResourceFilterCairo.cpp
@@ -453,6 +451,7 @@
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/LengthSize.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/LengthBox.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/dtoa.h
+../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/StdLibExtras.h
 
 
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/Deque.h
@@ -526,6 +525,7 @@
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/LengthBox.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/dtoa.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/dtoa.cpp
+../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/StdLibExtras.h
 
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformKeyboardEvent.h
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformMouseEvent.h

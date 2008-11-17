@@ -247,6 +247,11 @@ public:
      */
     virtual Vector<WebHistoryItem*> children();
 
+    /**
+     * lastVisitWasFailure
+     */
+    virtual bool lastVisitWasFailure();
+
     WebCore::HistoryItem* historyItem() const;
 protected:
     RefPtr<WebCore::HistoryItem> m_historyItem;

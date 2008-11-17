@@ -37,12 +37,12 @@ namespace JSC {
     };
 
     class JSArray : public JSObject {
-        friend class CTI;
+        friend class JIT;
 
     public:
-        explicit JSArray(PassRefPtr<StructureID>);
-        JSArray(PassRefPtr<StructureID>, unsigned initialLength);
-        JSArray(ExecState*, PassRefPtr<StructureID>, const ArgList& initialValues);
+        explicit JSArray(PassRefPtr<Structure>);
+        JSArray(PassRefPtr<Structure>, unsigned initialLength);
+        JSArray(ExecState*, PassRefPtr<Structure>, const ArgList& initialValues);
         virtual ~JSArray();
 
         virtual bool getOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
@@ -76,9 +76,9 @@ namespace JSC {
 
         void fillArgList(ExecState*, ArgList&);
 
-        static PassRefPtr<StructureID> createStructureID(JSValue* prototype)
+        static PassRefPtr<Structure> createStructure(JSValue* prototype)
         {
-            return StructureID::create(prototype, TypeInfo(ObjectType));
+            return Structure::create(prototype, TypeInfo(ObjectType));
         }
 
     protected:

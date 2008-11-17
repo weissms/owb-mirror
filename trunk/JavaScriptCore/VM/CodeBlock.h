@@ -73,21 +73,21 @@ namespace JSC {
 
     struct OffsetLocation {
         int32_t branchOffset;
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         void* ctiOffset;
 #endif
     };
 
     struct StructureStubInfo {
-        StructureStubInfo(unsigned opcodeIndex)
-            : opcodeIndex(opcodeIndex)
+        StructureStubInfo(unsigned bytecodeIndex)
+            : bytecodeIndex(bytecodeIndex)
             , stubRoutine(0)
             , callReturnLocation(0)
             , hotPathBegin(0)
         {
         }
     
-        unsigned opcodeIndex;
+        unsigned bytecodeIndex;
         void* stubRoutine;
         void* callReturnLocation;
         void* hotPathBegin;
@@ -103,7 +103,7 @@ namespace JSC {
         {
         }
     
-        unsigned opcodeIndex;
+        unsigned bytecodeIndex;
         void* callReturnLocation;
         void* hotPathBegin;
         void* hotPathOther;
@@ -118,6 +118,11 @@ namespace JSC {
     inline void* getStructureStubInfoReturnLocation(StructureStubInfo* structureStubInfo)
     {
         return structureStubInfo->callReturnLocation;
+    }
+
+    inline void* getCallLinkInfoReturnLocation(CallLinkInfo* callLinkInfo)
+    {
+        return callLinkInfo->callReturnLocation;
     }
 
     // Binary chop algorithm, calls valueAtPosition on pre-sorted elements in array,
@@ -159,7 +164,7 @@ namespace JSC {
     struct StringJumpTable {
         typedef HashMap<RefPtr<UString::Rep>, OffsetLocation> StringOffsetTable;
         StringOffsetTable offsetTable;
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         void* ctiDefault; // FIXME: it should not be necessary to store this.
 #endif
 
@@ -172,7 +177,7 @@ namespace JSC {
             return loc->second.branchOffset;
         }
 
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         inline void* ctiForValue(UString::Rep* value)
         {
             StringOffsetTable::const_iterator end = offsetTable.end();
@@ -188,7 +193,7 @@ namespace JSC {
         // FIXME: The two Vectors can be combind into one Vector<OffsetLocation>
         Vector<int32_t> branchOffsets;
         int32_t min;
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         Vector<void*> ctiOffsets;
         void* ctiDefault;
 #endif
@@ -200,7 +205,7 @@ namespace JSC {
                 branchOffsets[key] = offset;
         }
 
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         inline void* ctiForValue(int32_t value)
         {
             if (value >= min && static_cast<uint32_t>(value - min) < ctiOffsets.size())
@@ -214,7 +219,7 @@ namespace JSC {
         CodeBlock(ScopeNode* ownerNode, CodeType codeType, PassRefPtr<SourceProvider> sourceProvider, unsigned sourceOffset)
             : ownerNode(ownerNode)
             , globalData(0)
-#if ENABLE(CTI)
+#if ENABLE(JIT)
             , ctiCode(0)
 #endif
             , numCalleeRegisters(0)
@@ -232,7 +237,7 @@ namespace JSC {
 
         ~CodeBlock();
 
-#if ENABLE(CTI) 
+#if ENABLE(JIT) 
         void unlinkCallers();
 #endif
 
@@ -283,8 +288,8 @@ namespace JSC {
 
 #if !defined(NDEBUG) || ENABLE_OPCODE_SAMPLING
         void dump(ExecState*) const;
-        void printStructureIDs(const Instruction*) const;
-        void printStructureID(const char* name, const Instruction*, int operand) const;
+        void printStructures(const Instruction*) const;
+        void printStructure(const char* name, const Instruction*, int operand) const;
 #endif
         int expressionRangeForVPC(const Instruction*, int& divot, int& startOffset, int& endOffset);
         int lineNumberForVPC(const Instruction* vPC);
@@ -292,17 +297,22 @@ namespace JSC {
         void* nativeExceptionCodeForHandlerVPC(const Instruction* handlerVPC);
 
         void mark();
-        void refStructureIDs(Instruction* vPC) const;
-        void derefStructureIDs(Instruction* vPC) const;
+        void refStructures(Instruction* vPC) const;
+        void derefStructures(Instruction* vPC) const;
 
         StructureStubInfo& getStubInfo(void* returnAddress)
         {
             return *(binaryChop<StructureStubInfo, void*, getStructureStubInfoReturnLocation>(propertyAccessInstructions.begin(), propertyAccessInstructions.size(), returnAddress));
         }
 
+        CallLinkInfo& getCallLinkInfo(void* returnAddress)
+        {
+            return *(binaryChop<CallLinkInfo, void*, getCallLinkInfoReturnLocation>(callLinkInfos.begin(), callLinkInfos.size(), returnAddress));
+        }
+
         ScopeNode* ownerNode;
         JSGlobalData* globalData;
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         void* ctiCode;
 #endif
 
@@ -344,7 +354,7 @@ namespace JSC {
         Vector<SimpleJumpTable> characterSwitchJumpTables;
         Vector<StringJumpTable> stringSwitchJumpTables;
 
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         HashMap<void*, unsigned> ctiReturnAddressVPCMap;
 #endif
 
@@ -352,6 +362,7 @@ namespace JSC {
 
         EvalCodeCache evalCodeCache;
 
+        SymbolTable symbolTable;
     private:
 #if !defined(NDEBUG) || ENABLE(OPCODE_SAMPLING)
         void dump(ExecState*, const Vector<Instruction>::const_iterator& begin, Vector<Instruction>::const_iterator&) const;

@@ -65,6 +65,8 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSRGBColor.cpp
     bindings/js/JSTextCustom.cpp
     bindings/js/JSTreeWalkerCustom.cpp
+    bindings/js/JSWorkerConstructor.cpp
+    bindings/js/JSWorkerCustom.cpp
     bindings/js/JSXMLHttpRequestConstructor.cpp
     bindings/js/JSXMLHttpRequestCustom.cpp
     bindings/js/JSXMLHttpRequestUploadCustom.cpp

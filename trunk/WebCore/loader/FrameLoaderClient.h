@@ -30,6 +30,7 @@
 #define FrameLoaderClient_h
 
 #include "FrameLoaderTypes.h"
+#include "CachedPage.h"
 #include <wtf/Forward.h>
 #include <wtf/Platform.h>
 #include <wtf/Vector.h>
@@ -44,7 +45,6 @@ class NSView;
 namespace WebCore {
 
     class AuthenticationChallenge;
-    class CachedPage;
     class DocumentLoader;
     class Element;
     class FormState;

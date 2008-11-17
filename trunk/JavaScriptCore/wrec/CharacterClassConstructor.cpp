@@ -33,7 +33,7 @@
 
 using namespace WTF;
 
-namespace JSC {
+namespace JSC { namespace WREC {
 
 static const UChar asciiNewlines[2] = { '\n', '\r' };
 static const UChar unicodeNewlines[2] = { 0x2028, 0x2029 };
@@ -355,6 +355,6 @@ void CharacterClassConstructor::append(CharacterClass& other)
     }
 }
 
-}
+} } // namespace JSC::WREC
 
 #endif // ENABLE(WREC)

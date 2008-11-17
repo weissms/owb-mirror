@@ -27,39 +27,59 @@
 
 #if ENABLE(WORKERS)
 
-#include "JSDedicatedWorker.h"
+#include "JSWorker.h"
 
-#include "DedicatedWorker.h"
-#include "Document.h"
-#include "JSDOMWindowCustom.h"
+#include "JSDOMGlobalObject.h"
 #include "JSEventListener.h"
-#include "JSMessagePort.h"
-#include "MessagePort.h"
+#include "Worker.h"
 
 using namespace JSC;
 
 namespace WebCore {
     
-void JSDedicatedWorker::mark()
+void JSWorker::mark()
 {
     DOMObject::mark();
 
     if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(m_impl->onmessage()))
         listener->mark();
 
-    if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(m_impl->onclose()))
-        listener->mark();
-
     if (JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(m_impl->onerror()))
         listener->mark();
+
+    typedef Worker::EventListenersMap EventListenersMap;
+    typedef Worker::ListenerVector ListenerVector;
+    EventListenersMap& eventListeners = m_impl->eventListeners();
+    for (EventListenersMap::iterator mapIter = eventListeners.begin(); mapIter != eventListeners.end(); ++mapIter) {
+        for (ListenerVector::iterator vecIter = mapIter->second.begin(); vecIter != mapIter->second.end(); ++vecIter) {
+            JSUnprotectedEventListener* listener = static_cast<JSUnprotectedEventListener*>(vecIter->get());
+            listener->mark();
+        }
+    }
 }
 
-JSValue* JSDedicatedWorker::connect(ExecState* exec, const ArgList& args)
+JSValue* JSWorker::addEventListener(ExecState* exec, const ArgList& args)
 {
-    DOMWindow* window = asJSDOMWindow(exec->lexicalGlobalObject())->impl();
-    const UString& message = args.at(exec, 0)->toString(exec);
+    JSDOMGlobalObject* globalObject = toJSDOMGlobalObject(impl()->scriptExecutionContext());
+    if (!globalObject)
+        return jsUndefined();
+    RefPtr<JSUnprotectedEventListener> listener = globalObject->findOrCreateJSUnprotectedEventListener(exec, args.at(exec, 1));
+    if (!listener)
+        return jsUndefined();
+    impl()->addEventListener(args.at(exec, 0)->toString(exec), listener.release(), args.at(exec, 2)->toBoolean(exec));
+    return jsUndefined();
+}
 
-    return toJS(exec, impl()->connect(window->document(), message).get());
+JSValue* JSWorker::removeEventListener(ExecState* exec, const ArgList& args)
+{
+    JSDOMGlobalObject* globalObject = toJSDOMGlobalObject(impl()->scriptExecutionContext());
+    if (!globalObject)
+        return jsUndefined();
+    JSUnprotectedEventListener* listener = globalObject->findJSUnprotectedEventListener(exec, args.at(exec, 1));
+    if (!listener)
+        return jsUndefined();
+    impl()->removeEventListener(args.at(exec, 0)->toString(exec), listener, args.at(exec, 2)->toBoolean(exec));
+    return jsUndefined();
 }
 
 } // namespace WebCore

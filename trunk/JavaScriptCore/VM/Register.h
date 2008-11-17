@@ -59,9 +59,9 @@ namespace JSC {
         
     private:
         friend class ExecState;
-        friend class Machine;
+        friend class Interpreter;
 
-        // Only CallFrame and Machine should use these functions.
+        // Only CallFrame and Interpreter should use these functions.
 
         Register(intptr_t);
 
@@ -170,7 +170,7 @@ namespace JSC {
         getJSValue()->mark();
     }
     
-    // Machine functions
+    // Interpreter functions
 
     ALWAYS_INLINE Register::Register(Arguments* arguments)
     {

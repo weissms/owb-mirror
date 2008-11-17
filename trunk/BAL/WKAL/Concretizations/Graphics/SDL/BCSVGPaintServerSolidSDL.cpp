@@ -38,12 +38,6 @@
 
 namespace WKAL {
 
-bool SVGPaintServerSolid::setup(GraphicsContext*& context, const RenderObject* object, SVGPaintTargetType type, bool isPaintingText) const
-{
-    printf("SVGPaintServerSolid::setup\n");
-    return true;
-}
-
 } // namespace WebCore
 
 #endif

@@ -29,6 +29,7 @@
 #include "CString.h"
 #include "PlatformString.h"
 #include "TextEncoding.h"
+#include <wtf/StdLibExtras.h>
 
 #if USE(ICU_UNICODE) && !USE(BALI18N)
 #include <unicode/uidna.h>
@@ -1565,7 +1566,7 @@ String mimeTypeFromDataURL(const String& url)
 
 const KURL& blankURL()
 {
-    static KURL staticBlankURL("about:blank");
+    DEFINE_STATIC_LOCAL(KURL, staticBlankURL, ("about:blank"));
     return staticBlankURL;
 }
 

@@ -539,6 +539,14 @@ void GraphicsContext::clip(const FloatRect& rect)
     }
 }
 
+void GraphicsContext::clipPath(WindRule clipRule)
+{
+    if (paintingDisabled())
+        return;
+
+}
+
+
 void GraphicsContext::drawFocusRing(const Color& color)
 {
     if (paintingDisabled())

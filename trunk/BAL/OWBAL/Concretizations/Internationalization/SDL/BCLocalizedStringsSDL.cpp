@@ -341,4 +341,10 @@ String contextMenuItemTagWritingDirectionMenu()
     return String::fromUTF8("Writing direction context sub-menu item");
 }
 
+String contextMenuItemTagTextDirectionMenu()
+{
+    return String::fromUTF8("Text direction context sub-menu item");
+}
+
+
 }

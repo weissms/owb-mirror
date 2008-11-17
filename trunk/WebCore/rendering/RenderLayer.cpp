@@ -74,6 +74,7 @@
 #include "ScrollbarTheme.h"
 #include "SelectionController.h"
 #include "TranslateTransformOperation.h"
+#include <wtf/StdLibExtras.h>
 
 #if ENABLE(SVG)
 #include "SVGNames.h"
@@ -457,6 +458,12 @@ RenderLayer* RenderLayer::enclosingTransformedAncestor() const
     return curr;
 }
 
+IntPoint RenderLayer::absoluteToContents(const IntPoint& absolutePoint) const
+{
+    // We don't use convertToLayerCoords because it doesn't know about transforms
+    return roundedIntPoint(renderer()->absoluteToLocal(absolutePoint, false, true));
+}
+
 bool RenderLayer::requiresSlowRepaints() const
 {
     if (isTransparent() || hasReflection() || hasTransform())
@@ -804,7 +811,10 @@ void RenderLayer::scrollToOffset(int x, int y, bool updateScrollbars, bool repai
     // complicated (since it will involve testing whether our layer
     // is either occluded by another layer or clipped by an enclosing
     // layer or contains fixed backgrounds, etc.).
-    m_scrollX = x - m_scrollOriginX;
+    int newScrollX = x - m_scrollOriginX;
+    if (m_scrollY == y && m_scrollX == newScrollX)
+        return;
+    m_scrollX = newScrollX;
     m_scrollY = y;
 
     // Update the positions of our child layers.
@@ -1248,13 +1258,12 @@ int RenderLayer::horizontalScrollbarHeight() const
     return m_hBar->height();
 }
 
-IntSize RenderLayer::offsetFromResizeCorner(const IntPoint& p) const
+IntSize RenderLayer::offsetFromResizeCorner(const IntPoint& absolutePoint) const
 {
     // Currently the resize corner is always the bottom right corner
-    int x = width();
-    int y = height();
-    convertToLayerCoords(root(), x, y);
-    return p - IntPoint(x, y);
+    IntPoint bottomRight(width(), height());
+    IntPoint localPoint = absoluteToContents(absolutePoint);
+    return localPoint - bottomRight;
 }
 
 void RenderLayer::positionOverflowControls(int tx, int ty)
@@ -1515,9 +1524,7 @@ void RenderLayer::paintResizer(GraphicsContext* context, int tx, int ty, const I
     }
 
     // Paint the resizer control.
-    static RefPtr<Image> resizeCornerImage;
-    if (!resizeCornerImage)
-        resizeCornerImage = Image::loadPlatformResource("textAreaResizeCorner");
+    DEFINE_STATIC_LOCAL(RefPtr<Image>, resizeCornerImage, (Image::loadPlatformResource("textAreaResizeCorner")));
     IntPoint imagePoint(absRect.right() - resizeCornerImage->width(), absRect.bottom() - resizeCornerImage->height());
     context->drawImage(resizeCornerImage.get(), imagePoint);
 
@@ -1535,16 +1542,15 @@ void RenderLayer::paintResizer(GraphicsContext* context, int tx, int ty, const I
     }
 }
 
-bool RenderLayer::isPointInResizeControl(const IntPoint& point)
+bool RenderLayer::isPointInResizeControl(const IntPoint& absolutePoint) const
 {
     if (!m_object->hasOverflowClip() || m_object->style()->resize() == RESIZE_NONE)
         return false;
     
-    int x = 0;
-    int y = 0;
-    convertToLayerCoords(root(), x, y);
-    IntRect absBounds(x, y, m_object->width(), m_object->height());
-    return resizerCornerRect(this, absBounds).contains(point);
+    IntPoint localPoint = absoluteToContents(absolutePoint);
+
+    IntRect localBounds(0, 0, m_object->width(), m_object->height());
+    return resizerCornerRect(this, localBounds).contains(localPoint);
 }
     
 bool RenderLayer::hitTestOverflowControls(HitTestResult& result)

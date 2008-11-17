@@ -199,3 +199,9 @@ HistoryItem* WebHistoryItem::historyItem() const
 {
     return m_historyItem.get();
 }
+
+bool WebHistoryItem::lastVisitWasFailure()
+{
+    return m_historyItem->lastVisitWasFailure();
+}
+

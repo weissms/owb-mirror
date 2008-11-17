@@ -113,6 +113,7 @@ SET (IDL_BINDINGS
     dom/WebKitAnimationEvent.idl
     dom/WebKitTransitionEvent.idl
     dom/WheelEvent.idl
+    dom/Worker.idl
 
     html/CanvasGradient.idl
     html/CanvasPattern.idl

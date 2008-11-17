@@ -7,6 +7,8 @@ javascriptcore_cppflags += \
 	-I$(srcdir)/JavaScriptCore/pcre \
 	-I$(srcdir)/JavaScriptCore/profiler \
 	-I$(srcdir)/JavaScriptCore/runtime \
+	-I$(srcdir)/JavaScriptCore/wrec \
+	-I$(srcdir)/JavaScriptCore/assembler \
 	-I$(srcdir)/JavaScriptCore/wtf/unicode \
 	-I$(top_builddir)/JavaScriptCore/pcre \
 	-I$(top_builddir)/JavaScriptCore/parser \
@@ -111,7 +113,8 @@ javascriptcore_sources += \
 	JavaScriptCore/icu/unicode/utf_old.h \
 	JavaScriptCore/icu/unicode/utypes.h \
 	JavaScriptCore/icu/unicode/uversion.h \
-	JavaScriptCore/masm/X86Assembler.h \
+	JavaScriptCore/assembler/X86Assembler.h \
+	JavaScriptCore/assembler/AssemblerBuffer.h \
 	JavaScriptCore/os-win32/stdbool.h \
 	JavaScriptCore/os-win32/stdint.h \
 	JavaScriptCore/pcre/pcre.h \
@@ -149,11 +152,11 @@ javascriptcore_sources += \
 	JavaScriptCore/runtime/JSPropertyNameIterator.h \
 	JavaScriptCore/runtime/SmallStrings.cpp \
 	JavaScriptCore/runtime/SmallStrings.h \
-	JavaScriptCore/runtime/StructureID.cpp \
-	JavaScriptCore/runtime/StructureID.h \
-	JavaScriptCore/runtime/StructureIDChain.cpp \
-	JavaScriptCore/runtime/StructureIDChain.h \
-	JavaScriptCore/runtime/StructureIDTransitionTable.h \
+	JavaScriptCore/runtime/Structure.cpp \
+	JavaScriptCore/runtime/Structure.h \
+	JavaScriptCore/runtime/StructureChain.cpp \
+	JavaScriptCore/runtime/StructureChain.h \
+	JavaScriptCore/runtime/StructureTransitionTable.h \
 	JavaScriptCore/runtime/TypeInfo.h \
 	JavaScriptCore/wrec/CharacterClassConstructor.cpp \
 	JavaScriptCore/wrec/CharacterClassConstructor.h \
@@ -197,6 +200,7 @@ javascriptcore_sources += \
 	JavaScriptCore/wtf/RefPtr.h \
 	JavaScriptCore/wtf/RefPtrHashMap.h \
 	JavaScriptCore/wtf/RetainPtr.h \
+	JavaScriptCore/wtf/StdLibExtras.h \
 	JavaScriptCore/wtf/StringExtras.h \
 	JavaScriptCore/wtf/TCPackedCache.h \
 	JavaScriptCore/wtf/TCPageMap.h \

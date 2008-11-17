@@ -43,6 +43,7 @@
 #include "SystemTime.h"
 #include <runtime/InitializeThreading.h>
 #include <wtf/MainThread.h>
+#include <wtf/StdLibExtras.h>
 
 #if PLATFORM(WIN_OS)
 #include <windows.h>
@@ -380,7 +381,7 @@ static inline void loadDefaultIconRecord(IconRecord* defaultIconRecord)
         0x00, 0x00, 0x01, 0x52, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x0A, 
         0xFC, 0x80, 0x00, 0x00, 0x27, 0x10, 0x00, 0x0A, 0xFC, 0x80, 0x00, 0x00, 0x27, 0x10 };
         
-    static RefPtr<SharedBuffer> defaultIconBuffer(SharedBuffer::create(defaultIconData, sizeof(defaultIconData)));
+    DEFINE_STATIC_LOCAL(RefPtr<SharedBuffer>, defaultIconBuffer, (SharedBuffer::create(defaultIconData, sizeof(defaultIconData))));
     defaultIconRecord->setImageData(defaultIconBuffer);
 }
 #endif
@@ -850,7 +851,7 @@ String IconDatabase::databasePath() const
 
 String IconDatabase::defaultDatabaseFilename()
 {
-    static String defaultDatabaseFilename = "WebpageIcons.db";
+    DEFINE_STATIC_LOCAL(String, defaultDatabaseFilename, ("WebpageIcons.db"));
     return defaultDatabaseFilename.copy();
 }
 

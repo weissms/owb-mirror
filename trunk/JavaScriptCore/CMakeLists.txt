@@ -10,6 +10,7 @@ INCLUDE (runtime/CMakeLists.txt)
 INCLUDE (parser/CMakeLists.txt)
 INCLUDE (profiler/CMakeLists.txt)
 INCLUDE (VM/CMakeLists.txt)
+INCLUDE (wrec/CMakeLists.txt)
     
 INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/BAL/Base
@@ -26,6 +27,7 @@ INCLUDE_DIRECTORIES (
     runtime
     VM
     profiler
+    wrec
     #wtf
     ${CMAKE_BINARY_DIR}/generated_sources/parser
     ${CMAKE_BINARY_DIR}/generated_sources/runtime

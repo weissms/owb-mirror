@@ -43,7 +43,7 @@ namespace JSC {
     class FunctionBodyNode;
     class Instruction;
     class InternalFunction;
-    class JITCodeBuffer;
+    class AssemblerBuffer;
     class JSFunction;
     class JSGlobalObject;
     class ProgramNode;
@@ -51,7 +51,7 @@ namespace JSC {
     class ScopeChainNode;
     class SamplingTool;
 
-#if ENABLE(CTI)
+#if ENABLE(JIT)
 
 #if USE(CTI_ARGUMENT)
 #define CTI_ARGS void** args
@@ -101,11 +101,11 @@ namespace JSC {
 
     enum { MaxReentryDepth = 128 };
 
-    class Machine {
-        friend class CTI;
+    class Interpreter {
+        friend class JIT;
     public:
-        Machine();
-        ~Machine();
+        Interpreter();
+        ~Interpreter();
 
         void initialize(JSGlobalData*);
         
@@ -130,7 +130,7 @@ namespace JSC {
             #endif
         }
 
-        bool isOpcode(Opcode opcode);
+        bool isOpcode(Opcode);
         
         JSValue* execute(ProgramNode*, CallFrame*, ScopeChainNode*, JSObject* thisObj, JSValue** exception);
         JSValue* execute(FunctionBodyNode*, CallFrame*, JSFunction*, JSObject* thisObj, const ArgList& args, ScopeChainNode*, JSValue** exception);
@@ -168,7 +168,7 @@ namespace JSC {
         void setSampler(SamplingTool* sampler) { m_sampler = sampler; }
         SamplingTool* sampler() { return m_sampler; }
 
-#if ENABLE(CTI)
+#if ENABLE(JIT)
 
         static void SFX_CALL cti_timeout_check(CTI_ARGS);
         static void SFX_CALL cti_register_file_check(CTI_ARGS);
@@ -270,10 +270,13 @@ namespace JSC {
         static JSValue* SFX_CALL cti_allocate_number(CTI_ARGS);
 
         static JSValue* SFX_CALL cti_vm_throw(CTI_ARGS);
+        static void* SFX_CALL cti_vm_dontLazyLinkCall(CTI_ARGS);
         static void* SFX_CALL cti_vm_lazyLinkCall(CTI_ARGS);
         static JSObject* SFX_CALL cti_op_push_activation(CTI_ARGS);
         
-#endif // ENABLE(CTI)
+        AssemblerBuffer* assemblerBuffer() const { return m_assemblerBuffer.get(); }
+
+#endif // ENABLE(JIT)
 
         // Default number of ticks before a timeout check should be done.
         static const int initialTickCountThreshold = 1024;
@@ -317,24 +320,25 @@ namespace JSC {
         void tryCachePutByID(CallFrame*, CodeBlock*, Instruction*, JSValue* baseValue, const PutPropertySlot&);
         void uncachePutByID(CodeBlock*, Instruction* vPC);
         
-        bool isCallOpcode(Opcode opcode) { return opcode == getOpcode(op_call) || opcode == getOpcode(op_construct) || opcode == getOpcode(op_call_eval); }
+        bool isCallBytecode(Opcode opcode) { return opcode == getOpcode(op_call) || opcode == getOpcode(op_construct) || opcode == getOpcode(op_call_eval); }
 
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         static void throwStackOverflowPreviousFrame(CallFrame**, JSGlobalData*, void*& returnAddress);
 
         void tryCTICacheGetByID(CallFrame*, CodeBlock*, void* returnAddress, JSValue* baseValue, const Identifier& propertyName, const PropertySlot&);
         void tryCTICachePutByID(CallFrame*, CodeBlock*, void* returnAddress, JSValue* baseValue, const PutPropertySlot&);
-
-        JITCodeBuffer* jitCodeBuffer() const { return m_jitCodeBuffer.get(); }
 #endif
 
         SamplingTool* m_sampler;
 
-#if ENABLE(CTI)
+#if ENABLE(JIT)
         void* m_ctiArrayLengthTrampoline;
         void* m_ctiStringLengthTrampoline;
+        void* m_ctiVirtualCallPreLink;
+        void* m_ctiVirtualCallLink;
+        void* m_ctiVirtualCall;
 
-        OwnPtr<JITCodeBuffer> m_jitCodeBuffer;
+        OwnPtr<AssemblerBuffer> m_assemblerBuffer;
 #endif
 
         int m_reentryDepth;
