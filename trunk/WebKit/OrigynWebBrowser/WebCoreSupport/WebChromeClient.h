@@ -104,6 +104,10 @@ public:
 
     virtual void exceededDatabaseQuota(WebCore::Frame*, const WebCore::String&);
 
+#if ENABLE(DASHBOARD_SUPPORT)
+    virtual void dashboardRegionsChanged();
+#endif
+
     virtual void populateVisitedLinks();
 
     virtual bool paintCustomScrollbar(WebCore::GraphicsContext*, const WebCore::FloatRect&, WebCore::ScrollbarControlSize,

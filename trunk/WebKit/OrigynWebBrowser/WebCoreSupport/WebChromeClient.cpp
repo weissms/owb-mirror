@@ -399,6 +399,14 @@ void WebChromeClient::exceededDatabaseQuota(Frame* frame, const String& database
 #endif
 }
 
+#if ENABLE(DASHBOARD_SUPPORT)
+void WebChromeClient::dashboardRegionsChanged()
+{
+    // This option is not supported so use it at your own risk.
+    ASSERT_NOT_REACHED();
+}
+#endif
+
 void WebChromeClient::populateVisitedLinks()
 {
     WebHistory *history = WebHistory::sharedHistory();

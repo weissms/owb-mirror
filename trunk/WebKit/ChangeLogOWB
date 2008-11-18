@@ -1,3 +1,14 @@
+2008-11-18  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Drop support for Dashboard.
+
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::dashboardRegionsChanged): Added to state that we
+        have disabled Dashboard support on purpose.
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.h:
+
 2008-11-17  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Julien Chaffraix.

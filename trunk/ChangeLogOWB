@@ -1,3 +1,14 @@
+2008-11-18  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Drop support for Dashboard.
+
+        This option was added to match other ports but does not had anything for us.
+        It can also lead to build errors.
+
+        * CMakeLists.txt:
+
 2008-10-28  Fred  <fmarmond@pleyo.com>
 
         Reviewed by Mario Bensi.
