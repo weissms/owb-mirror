@@ -1,3 +1,10 @@
+2008-11-18  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        * CMakeLists.txt:
+        Fix TEST build on MAC
+
 2008-11-18  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

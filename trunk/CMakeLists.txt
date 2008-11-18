@@ -488,7 +488,7 @@ IF (OWBAL_PLATFORM_MACPORT)
             runOwbalTests 
             runWkalTests 
             wkaltests
-            jsc 
+            jscore
             PROPERTIES LINK_FLAGS "-undefined dynamic_lookup"
         )
     ENDIF (COMPILE_TESTS)
