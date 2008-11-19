@@ -3,6 +3,7 @@
  * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
  * Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
  * Copyright (C) 2008 Collabora Ltd. All rights reserved.
+ * Coypright (C) 2008 Holger Hans Peter Freyther
  *
  * All rights reserved.
  *
@@ -211,28 +212,10 @@ void FrameLoaderClientQt::transitionToCommittedForNewPage()
     ASSERT(m_frame);
     ASSERT(m_webFrame);
 
-    Page* page = m_frame->page();
-    ASSERT(page);
-
-    bool isMainFrame = m_frame == page->mainFrame();
-
-    m_frame->setView(0);
-
-    FrameView* frameView;
-    if (isMainFrame)
-        frameView = new FrameView(m_frame, m_webFrame->page()->viewportSize());
-    else
-        frameView = new FrameView(m_frame);
-
-    m_frame->setView(frameView);
-    // FrameViews are created with a ref count of 1. Release this ref since we've assigned it to frame.
-    frameView->deref();
-
-    if (m_webFrame && m_webFrame->page())
-        m_webFrame->d->updateBackground();
-
-    if (m_frame->ownerRenderer())
-        m_frame->ownerRenderer()->setWidget(frameView);
+    QBrush brush = m_webFrame->page()->palette().brush(QPalette::Base);
+    QColor backgroundColor = brush.style() == Qt::SolidPattern ? brush.color() : QColor();
+    WebCore::FrameLoaderClient::transitionToCommittedForNewPage(m_frame, m_webFrame->page()->viewportSize(),
+                                                                backgroundColor, !backgroundColor.alpha());
 }
 
 
@@ -1016,6 +999,24 @@ public:
         if (platformWidget())
             platformWidget()->update(r);
     }
+    virtual void frameRectsChanged() const
+    {
+        if (!platformWidget())
+            return;
+
+        IntRect windowRect = convertToContainingWindow(IntRect(0, 0, frameRect().width(), frameRect().height()));
+        platformWidget()->setGeometry(windowRect);
+
+        ScrollView* parentScrollView = parent();
+        if (!parentScrollView)
+            return;
+
+        ASSERT(parentScrollView->isFrameView());
+        IntRect clipRect(static_cast<FrameView*>(parentScrollView)->windowClipRect());
+        clipRect.move(-windowRect.x(), -windowRect.y());
+        clipRect.intersect(platformWidget()->rect());
+        platformWidget()->setMask(QRegion(clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height()));
+    }
 };
 
 Widget* FrameLoaderClientQt::createPlugin(const IntSize& pluginSize, Element* element, const KURL& url, const Vector<String>& paramNames,
@@ -1042,12 +1043,12 @@ Widget* FrameLoaderClientQt::createPlugin(const IntSize& pluginSize, Element* el
     QString urlStr(url.string());
     QUrl qurl = urlStr;
 
-    QObject *object = 0;
+    QObject* object = 0;
 
     if (mimeType == "application/x-qt-plugin" || mimeType == "application/x-qt-styled-widget") {
         object = m_webFrame->page()->createPlugin(classid, qurl, params, values);
 #ifndef QT_NO_STYLE_STYLESHEET
-        QWidget *widget = qobject_cast<QWidget *>(object);
+        QWidget* widget = qobject_cast<QWidget*>(object);
         if (widget && mimeType == "application/x-qt-styled-widget") {
 
             QString styleSheet = element->getAttribute("style");
@@ -1077,12 +1078,14 @@ Widget* FrameLoaderClientQt::createPlugin(const IntSize& pluginSize, Element* el
 #endif
 
         if (object) {
-            QWidget *widget = qobject_cast<QWidget *>(object);
-            QWidget *view = m_webFrame->page()->view();
+            QWidget* widget = qobject_cast<QWidget*>(object);
+            QWidget* view = m_webFrame->page()->view();
             if (widget && view) {
                 widget->setParent(view);
-                QtPluginWidget* w= new QtPluginWidget();
+                QtPluginWidget* w = new QtPluginWidget();
                 w->setPlatformWidget(widget);
+                // Make sure it's invisible until properly placed into the layout
+                w->setFrameRect(IntRect(0, 0, 0, 0));
                 return w;
             }
             // FIXME: make things work for widgetless plugins as well

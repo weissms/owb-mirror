@@ -19,10 +19,11 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/debugger
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/interpreter
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/bytecode
     bindings/js
     bridge
     bridge/c
@@ -56,6 +57,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
+    ${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml
 
     ${XML2_INCLUDE_DIRS}
     ${HTML_EXT_CFLAGS}
@@ -100,6 +102,12 @@ INCLUDE (plugins/CMakeLists.txt)
 INCLUDE (rendering/CMakeLists.txt)
 INCLUDE (storage/CMakeLists.txt)
 INCLUDE (svg/CMakeLists.txt)
+IF (WEBKIT_USE_WML)
+    INCLUDE (wml/CMakeLists.txt)
+    INCLUDE_DIRECTORIES (
+        wml
+    )
+ENDIF (WEBKIT_USE_WML)
 INCLUDE (xml/CMakeLists.txt)
 IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
     INCLUDE (inspector/CMakeLists.txt)
@@ -126,6 +134,12 @@ IF (NOT ${OWBAL_PLATFORM_GRAPHICS} STREQUAL "SDL")
         ${PLATFORM_SRC}
     )
 ENDIF (NOT ${OWBAL_PLATFORM_GRAPHICS} STREQUAL "SDL")
+
+IF (WEBKIT_USE_WML)
+    LIST (APPEND WEBCORE_SRC
+        ${WML_SRC}
+    )
+ENDIF (WEBKIT_USE_WML)
 
 INCLUDE (bindings/js/CMakeLists.txt)
 LIST (APPEND WEBCORE_SRC 

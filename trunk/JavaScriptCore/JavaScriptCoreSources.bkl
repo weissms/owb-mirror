@@ -42,7 +42,7 @@ Source files for JSCore.
         API/OpaqueJSString.cpp
     </set>
     <set append="1" var="JSCORE_BYTECOMPILER_SOURCES">
-        bytecompiler/CodeGenerator.cpp
+        bytecompiler/BytecodeGenerator.cpp
     </set>
     <set append="1" var="JSCORE_DEBUGGER_SOURCES">
         debugger/Debugger.cpp
@@ -92,7 +92,7 @@ Source files for JSCore.
         runtime/ErrorConstructor.cpp
         runtime/ErrorInstance.cpp
         runtime/ErrorPrototype.cpp
-        runtime/ExecState.cpp
+        interpreter/CallFrame.cpp
         runtime/FunctionConstructor.cpp
         runtime/FunctionPrototype.cpp
         runtime/GetterSetter.cpp
@@ -100,7 +100,7 @@ Source files for JSCore.
         runtime/Identifier.cpp
         runtime/InitializeThreading.cpp
         runtime/InternalFunction.cpp
-        runtime/Interpreter.cpp
+        runtime/Completion.cpp
         runtime/JSActivation.cpp
         runtime/JSArray.cpp
         runtime/JSCell.cpp
@@ -146,12 +146,12 @@ Source files for JSCore.
         runtime/UString.cpp
     </set>
     <set append="1" var="JSCORE_VM_SOURCES">
-        VM/CodeBlock.cpp
-        VM/ExceptionHelpers.cpp
-        VM/Machine.cpp
-        VM/Opcode.cpp
-        VM/SamplingTool.cpp
-        VM/RegisterFile.cpp
+        bytecode/CodeBlock.cpp
+        runtime/ExceptionHelpers.cpp
+        interpreter/Interpreter.cpp
+        bytecode/Opcode.cpp
+        bytecode/SamplingTool.cpp
+        interpreter/RegisterFile.cpp
     </set>
     <set append="1" var="JSCORE_WTF_SOURCES">
         wtf/Assertions.cpp

@@ -1,0 +1,3 @@
+LIST (APPEND JSCORE_SRC
+    jit/JIT.cpp
+)

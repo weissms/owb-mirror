@@ -42,6 +42,10 @@ IF (WEBKIT_USE_HTML5_VIDEO)
     SET (HTML_FEATURES ${HTML_FEATURES} ENABLE_VIDEO=1)
 ENDIF (WEBKIT_USE_HTML5_VIDEO)
 
+IF (WEBKIT_USE_WML)
+    SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} ENABLE_WML=1)
+ENDIF (WEBKIT_USE_WML)
+
 SET (IDL_BINDINGS
     ${IDL_BINDINGS}
 
@@ -549,7 +553,7 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/tokeniz
 CREATE_GENERATED_CPP_HELPER (generated_sources/WebCore/tokenizer.inl)
 
 ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheets.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheetsData.cpp
-    COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/WebCore/css/make-css-file-arrays.pl ${CMAKE_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheets.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheetsData.cpp ${CMAKE_SOURCE_DIR}/WebCore/css/html4.css ${CMAKE_SOURCE_DIR}/WebCore/css/quirks.css ${CMAKE_SOURCE_DIR}/WebCore/css/svg.css ${CMAKE_SOURCE_DIR}/WebCore/css/view-source.css
+    COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/WebCore/css/make-css-file-arrays.pl ${CMAKE_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheets.h ${CMAKE_BINARY_DIR}/generated_sources/WebCore/UserAgentStyleSheetsData.cpp ${CMAKE_SOURCE_DIR}/WebCore/css/html4.css ${CMAKE_SOURCE_DIR}/WebCore/css/quirks.css ${CMAKE_SOURCE_DIR}/WebCore/css/svg.css ${CMAKE_SOURCE_DIR}/WebCore/wml/wml.css ${CMAKE_SOURCE_DIR}/WebCore/css/view-source.css
     DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/css/html4.css ${CMAKE_SOURCE_DIR}/WebCore/css/quirks.css ${CMAKE_SOURCE_DIR}/WebCore/css/svg.css
 )
 
@@ -582,6 +586,14 @@ IF (WEBKIT_USE_SVG)
         )
     ENDIF (NOT EXISTS ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/SVGNames.cpp)
 ENDIF (WEBKIT_USE_SVG)
+
+IF (WEBKIT_USE_WML)
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml/WMLNames.cpp)
+        EXEC_PROGRAM (${PERL_EXECUTABLE}
+            ARGS -I${CMAKE_SOURCE_DIR}/WebCore/bindings/scripts ${CMAKE_SOURCE_DIR}/WebCore/dom/make_names.pl --tags ${CMAKE_SOURCE_DIR}/WebCore/wml/WMLTagNames.in --attrs ${CMAKE_SOURCE_DIR}/WebCore/wml/WMLAttributeNames.in --factory --wrapperFactory --output ${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml
+        )
+    ENDIF (NOT EXISTS ${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml/WMLNames.cpp)
+ENDIF (WEBKIT_USE_WML)
 
 
 #ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/SVGName.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/SVGElementFactory.cpp ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/SVGElementFactory.h
@@ -682,13 +694,15 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/xml
     ${CMAKE_SOURCE_DIR}/WebCore/storage
     ${CMAKE_SOURCE_DIR}/WebCore/plugins
+    ${CMAKE_SOURCE_DIR}/WebCore/wml
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/bytecode
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/debugger
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/interpreter
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api
     ${CMAKE_SOURCE_DIR}/WebKit/OrigynWebBrowser/WebCoreSupport
@@ -696,6 +710,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/xml
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
+    ${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml
     
     ${XML2_INCLUDE_DIRS}
 )
@@ -751,6 +766,14 @@ IF (WEBKIT_USE_SVG)
         ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg/SVGNames.cpp
     )
 ENDIF (WEBKIT_USE_SVG)
+
+IF (WEBKIT_USE_WML)
+    LIST (APPEND GENERATED_SRC
+        ${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml/WMLNames.cpp
+        #${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml/JSWMLElementWrapperFactory.cpp
+        ${CMAKE_BINARY_DIR}/generated_sources/WebCore/wml/WMLElementFactory.cpp
+    )
+ENDIF (WEBKIT_USE_WML)
 
 IF (BUILD_SHARED_LIBS)
     ADD_LIBRARY (generated-sources ${GENERATED_SRC})

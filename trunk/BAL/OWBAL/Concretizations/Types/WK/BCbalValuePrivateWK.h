@@ -31,7 +31,7 @@
 #define BINDINGS_BALVALUEPRIVATE_H_
 
 #include "JSValue.h"
-#include "ExecState.h"
+#include <interpreter/CallFrame.h>
 #include "bal_object.h"
 #include "PlatformString.h"
 #include "JSGlobalObject.h"

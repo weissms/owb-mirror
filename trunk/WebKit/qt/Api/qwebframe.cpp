@@ -61,7 +61,7 @@
 #include "qt_instance.h"
 #include "ScriptController.h"
 #include "JSDOMBinding.h"
-#include "ExecState.h"
+#include "CallFrame.h"
 #include "JSLock.h"
 #include "JSObject.h"
 #include "qt_runtime.h"
@@ -119,19 +119,6 @@ WebCore::Scrollbar* QWebFramePrivate::verticalScrollBar() const
     if (!frame->view())
         return 0;
     return frame->view()->verticalScrollbar();
-}
-
-void QWebFramePrivate::updateBackground()
-{
-    WebCore::FrameView *view = frame->view();
-    if (!view)
-        return;
-    QBrush brush = page->palette().brush(QPalette::Base);
-    if (brush.style() == Qt::SolidPattern) {
-        view->setBaseBackgroundColor(brush.color());
-        if (!brush.color().alpha())
-            view->setTransparent(true);
-    }
 }
 
 /*!

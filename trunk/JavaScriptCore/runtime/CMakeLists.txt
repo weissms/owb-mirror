@@ -9,7 +9,6 @@ LIST (APPEND JSCORE_SRC
     runtime/Collector.cpp
     runtime/CommonIdentifiers.cpp
     runtime/BooleanObject.cpp
-    runtime/ExecState.cpp
     runtime/JSActivation.cpp
     runtime/JSGlobalData.cpp
     runtime/JSGlobalObjectFunctions.cpp
@@ -20,7 +19,6 @@ LIST (APPEND JSCORE_SRC
     runtime/Identifier.cpp
     runtime/InitializeThreading.cpp
     runtime/InternalFunction.cpp
-    runtime/Interpreter.cpp
     runtime/DateConstructor.cpp
     runtime/ArrayConstructor.cpp
     runtime/JSGlobalObject.cpp
@@ -70,4 +68,6 @@ LIST (APPEND JSCORE_SRC
     runtime/UString.cpp
     runtime/StructureChain.cpp
     runtime/Structure.cpp
+    runtime/ExceptionHelpers.cpp
+    runtime/Completion.cpp
 )

@@ -8,7 +8,8 @@ INCLUDEPATH += $$PWD \
     $$PWD/bindings \
     $$PWD/bindings/c \
     $$PWD/wtf \
-    $$PWD/VM
+    $$PWD/jit \
+    $$PWD/bytecode
 CONFIG -= app_bundle
 DEFINES += BUILDING_QT__
 CONFIG += building-libs

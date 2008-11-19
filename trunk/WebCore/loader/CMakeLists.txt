@@ -17,6 +17,7 @@ LIST (APPEND LOADER_SRC
     loader/FTPDirectoryParser.cpp
     loader/FormState.cpp
     loader/FrameLoader.cpp
+    loader/FrameLoaderClient.cpp
     loader/loader.cpp
     loader/ImageLoader.cpp
     loader/MainResourceLoader.cpp

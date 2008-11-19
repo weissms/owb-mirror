@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="WebCore"
 	ProjectGUID="{1C16337B-ACF3-4D03-AA90-851C5B5EADA6}"
 	RootNamespace="WebCore"
@@ -2964,6 +2964,10 @@
 			</File>
 			<File
 				RelativePath="..\loader\FrameLoaderClient.h"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\FrameLoaderClient.cpp"
 				>
 			</File>
 			<File
@@ -6437,6 +6441,54 @@
 				>
 			</File>
 			<File
+				RelativePath="..\dom\Worker.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\Worker.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerContext.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerContext.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerLocation.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerLocation.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerMessagingProxy.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerMessagingProxy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerThread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\WorkerThread.h"
+				>
+			</File>
+			<File
 				RelativePath="..\dom\XMLTokenizer.cpp"
 				>
 			</File>
@@ -9641,6 +9693,14 @@
 				</File>
 				<File
 					RelativePath="..\ForwardingHeaders\bindings\runtime_root.h"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\WorkerScriptController.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\bindings\js\WorkerScriptController.h"
 					>
 				</File>
 			</Filter>

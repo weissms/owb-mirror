@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2003, 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2008 Xan Lopez <xan@gnome.org>
+ * Copyright (C) 2008 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,25 +24,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CookieJar_h
-#define CookieJar_h
+#ifndef CookieJarSoup_h
+#define CookieJarSoup_h
 
-#if USE(SOUP)
+#include "CookieJar.h"
 #include <libsoup/soup.h>
-#endif
 
 namespace WKAL {
-
-    class KURL;
-    class String;
-    class Document;
-
-    String cookies(const Document* document, const KURL&);
-    void setCookies(Document* document, const KURL&, const KURL& policyBaseURL, const String&);
-    bool cookiesEnabled(const Document* document);
-#if USE(SOUP)
-    SoupCookieJar* getCookieJar(void);
-#endif
+    SoupCookieJar* getCookieJar();
 }
 
 #endif

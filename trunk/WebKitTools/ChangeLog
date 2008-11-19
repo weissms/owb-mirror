@@ -1,3 +1,83 @@
+2008-11-19  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22337
+        Enable workers by default
+
+        * Scripts/build-webkit: Changed the default to enabled.
+
+2008-11-18  Alexey Proskuryakov  <ap@webkit.org>
+
+        Rubber-stamped by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22306
+        Disable channel messaging support
+
+        * Scripts/build-webkit: Add an option to enable channel messaging.
+
+2008-11-17  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Add --(no-)wml build flags.
+
+        * Scripts/build-webkit:
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitdirs.pm:
+
+2008-11-17  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+        
+        Try to fix gtk build.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+
+2008-11-17  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Maciej.
+
+        Pixel tests should use a default tolerance of 0.1% on Leopard and 1.0%
+        on Tiger.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22271
+
+        * Scripts/run-webkit-tests:
+
+2008-11-17  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Added new JavaScript API on LayoutController to pause a running
+        CSS transition or animation at a given time.
+
+        https://bugs.webkit.org/show_bug.cgi?id=21261
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (pauseAnimationAtTimeOnElementWithIdCallback):
+        (pauseTransitionAtTimeOnElementWithIdCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::pauseAnimationAtTimeOnElementWithId):
+        (LayoutTestController::pauseTransitionAtTimeOnElementWithId):
+
+2008-11-17  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22309>
+        Pass the remaining options to build system on Qt-port
+
+        * Scripts/build-webkit:
+        * Scripts/webkitdirs.pm:
+
 2008-11-17  Greg Bolsinga  <bolsinga@apple.com>
 
         Reviewed by Darin Adler.

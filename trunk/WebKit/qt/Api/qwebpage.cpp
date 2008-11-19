@@ -31,6 +31,7 @@
 
 #include "Frame.h"
 #include "FrameTree.h"
+#include "FrameLoader.h"
 #include "FrameLoaderClientQt.h"
 #include "FrameView.h"
 #include "ChromeClientQt.h"
@@ -220,6 +221,7 @@ QWebPagePrivate::QWebPagePrivate(QWebPage *qq)
     WebCore::InitializeLoggingChannelsIfNecessary();
     WebCore::PageGroup::setShouldTrackVisitedLinks(true);
     JSC::initializeThreading();
+    WebCore::FrameLoader::setLocalLoadPolicy(WebCore::FrameLoader::AllowLocalLoadsForLocalAndSubstituteData);
 
     chromeClient = new ChromeClientQt(q);
     contextMenuClient = new ContextMenuClientQt();
@@ -820,8 +822,12 @@ void QWebPagePrivate::leaveEvent(QEvent *ev)
 void QWebPage::setPalette(const QPalette &pal)
 {
     d->palette = pal;
-    if (d->mainFrame)
-        d->mainFrame->d->updateBackground();
+    if (!d->mainFrame || !d->mainFrame->d->frame->view())
+        return;
+
+    QBrush brush = pal.brush(QPalette::Base);
+    QColor backgroundColor = brush.style() == Qt::SolidPattern ? brush.color() : QColor();
+    QWebFramePrivate::core(d->mainFrame)->view()->updateBackgroundRecursively(backgroundColor, !backgroundColor.alpha());
 }
 
 QPalette QWebPage::palette() const

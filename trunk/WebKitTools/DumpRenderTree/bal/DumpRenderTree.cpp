@@ -50,7 +50,7 @@
 
 #include "runtime.h"
 #include "runtime_root.h"
-#include "ExecState.h"
+#include "CallFrame.h"
 #include "JSGlobalObject.h"
 //#include "kjs_window.h"
 #include "JavaScriptCore/APICast.h"

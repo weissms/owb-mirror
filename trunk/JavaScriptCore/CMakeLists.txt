@@ -4,12 +4,15 @@ ENDIF (WEBKIT_USE_UCLIBC)
 
 INCLUDE (pcre/CMakeLists.txt)
 INCLUDE (API/CMakeLists.txt)
+INCLUDE (bytecode/CMakeLists.txt)
 INCLUDE (bytecompiler/CMakeLists.txt)
 INCLUDE (debugger/CMakeLists.txt)
-INCLUDE (runtime/CMakeLists.txt)
+INCLUDE (interpreter/CMakeLists.txt)
+INCLUDE (jit/CMakeLists.txt)
 INCLUDE (parser/CMakeLists.txt)
 INCLUDE (profiler/CMakeLists.txt)
-INCLUDE (VM/CMakeLists.txt)
+INCLUDE (runtime/CMakeLists.txt)
+#INCLUDE (VM/CMakeLists.txt)
 INCLUDE (wrec/CMakeLists.txt)
     
 INCLUDE_DIRECTORIES (
@@ -19,13 +22,17 @@ INCLUDE_DIRECTORIES (
     bindings
     bindings/bal
     bindings/c
+    bytecode
     bytecompiler
     debugger
+    interpreter
+    jit
     ForwardingHeaders
+    assembler
     parser
     pcre
     runtime
-    VM
+    #VM
     profiler
     wrec
     #wtf

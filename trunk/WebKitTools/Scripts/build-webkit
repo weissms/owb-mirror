@@ -39,6 +39,7 @@ use POSIX;
 
 my $originalWorkingDirectory = getcwd();
 
+my $channelMessagingSupport = 0;
 my $databaseSupport = 1;
 my $domStorageSupport = 1;
 my $iconDatabaseSupport = 1;
@@ -53,9 +54,10 @@ my $svgFontsSupport = 1;
 my $svgAsImageSupport = 1;
 my $xpathSupport = 1;
 my $xsltSupport = 1;
+my $wmlSupport = 0;
 my $coverageSupport = 0;
 my $videoSupport = (isOSX() || isCygwin()); # Enable by default on OSX and Windows
-my $workersSupport = 0;
+my $workersSupport = (isOSX() || isCygwin()); # Enable by default on OSX and Windows
 my $showHelp = 0;
 my $clean = 0;
 my $buildUniversal = 0;
@@ -69,6 +71,7 @@ Usage: $programName [options] [options to pass to build system]
   --clean                       Cleanup the build directory
   --universal                   Build 2-way universal (PPC and Intel 32-bit)
   --64-bit                      Build 64-bit, combine with --universal to build 4-way universal
+  --[no-]channel-messaging          Toggle MessageChannel and MessagePort support (default: $channelMessagingSupport)
   --[no-]offline-web-applications   Toggle Offline Web Application Support (default : $offlineWebApplicationSupport)
   --[no-]database               Toggle Database Support (default: $databaseSupport)
   --[no-]dom-storage            Toggle DOM Storage Support (default: $domStorageSupport)
@@ -84,12 +87,14 @@ Usage: $programName [options] [options to pass to build system]
   --[no-]svg-use                Toggle SVG use element support (default: $svgUseSupport, implies SVG Support)
   --[no-]xpath                  Toggle XPath support (default: $xpathSupport)
   --[no-]xslt                   Toggle XSLT support (default: $xsltSupport)
+  --[no-]wml                    Toggle WML support (default: $wmlSupport)
   --[no-]video                  Toggle Video support (default: $videoSupport)
   --[no-]workers                Toggle Web Workers support (default: $workersSupport)
   --[no-]coverage               Toggle code coverage support (default: $coverageSupport)
 EOF
 
-GetOptions('database!' => \$databaseSupport,
+GetOptions('channel-messaging!' => \$channelMessagingSupport,
+           'database!' => \$databaseSupport,
            'dom-storage!' => \$domStorageSupport,
            'icon-database!' => \$iconDatabaseSupport,
            'offline-web-applications!' => \$offlineWebApplicationSupport,
@@ -103,6 +108,7 @@ GetOptions('database!' => \$databaseSupport,
            'svg-use!' => \$svgUseSupport,
            'xpath!' => \$xpathSupport,
            'xslt!' => \$xsltSupport,
+           'wml!' => \$wmlSupport,
            'video!' => \$videoSupport,
            'workers!' => \$workersSupport,
            'coverage!' => \$coverageSupport,
@@ -157,6 +163,7 @@ if (isWx()) {
 my $productDir = productDir();
 my @overrideFeatureDefinesOption = ();
 
+push @overrideFeatureDefinesOption, "ENABLE_CHANNEL_MESSAGING" if $channelMessagingSupport;
 push @overrideFeatureDefinesOption, "ENABLE_DATABASE" if $databaseSupport;
 push @overrideFeatureDefinesOption, "ENABLE_DOM_STORAGE" if $domStorageSupport;
 push @overrideFeatureDefinesOption, "ENABLE_ICONDATABASE" if $iconDatabaseSupport;
@@ -172,6 +179,7 @@ push @overrideFeatureDefinesOption, "ENABLE_VIDEO" if $videoSupport;
 push @overrideFeatureDefinesOption, "ENABLE_WORKERS" if $workersSupport;
 push @overrideFeatureDefinesOption, "ENABLE_XPATH" if $xpathSupport;
 push @overrideFeatureDefinesOption, "ENABLE_XSLT" if $xsltSupport;
+push @overrideFeatureDefinesOption, "ENABLE_WML" if $wmlSupport;
 my $overrideFeatureDefinesString = "FEATURE_DEFINES=" . join(" ", @overrideFeatureDefinesOption);
 
 my @coverageSupportOption = ();
@@ -229,6 +237,7 @@ if (isGtk()) {
     push @options, autotoolsFlag($svgUseSupport, "svg-use-element");
     push @options, autotoolsFlag($xpathSupport, "xpath");
     push @options, autotoolsFlag($xsltSupport, "xslt");
+    push @options, autotoolsFlag($wmlSupport, "wml");
     push @options, autotoolsFlag($videoSupport, "video");
     push @options, autotoolsFlag($workersSupport, "workers");
     push @options, autotoolsFlag($coverageSupport, "coverage");
@@ -305,7 +314,7 @@ for my $dir (@projects) {
             chdir ".." or die;
             next;
         }
-        $result = buildQMakeQtProject($dir, $clean);
+        $result = buildQMakeQtProject($dir, $clean, @ARGV);
     } elsif (isOSX()) {
         $result = system "xcodebuild", "-project", "$dir.xcodeproj", @options, $overrideFeatureDefinesString, @coverageSupportOption, @ARGV;
     } elsif (isCygwin()) {

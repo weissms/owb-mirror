@@ -124,6 +124,12 @@ OPTION (WEBKIT_USE_MULTIPLE_THREADS "Compile Webkit with multiple threads suppor
 # Use HILDON on N800
 OPTION (WEBKIT_USE_N800_HILDON "Compile Webkit with Maemo HILDON support for N8xx." OFF)
 
+#use WML
+OPTION (WEBKIT_USE_WML "Compile Webkit with wml support" OFF) 
+
+#use Squirrel Fish extrem
+OPTION (WEBKIT_USE_SQUIRREL_FISH_EXTREM "Compile Webkit with Squirrel fish extrem on X86 (EXPERIMENTAL)" OFF) 
+
 INCLUDE (CMakeListsCustomer.txt OPTIONAL)
 
 #######################################
@@ -427,6 +433,15 @@ IF (WEBKIT_USE_MULTIPLE_THREADS)
     ADD_DEFINITIONS (-DWTF_USE_MULTIPLE_THREADS=1)
     ADD_DEFINITIONS (-DHAVE_POSIX_MEMALIGN=1)
 ENDIF (WEBKIT_USE_MULTIPLE_THREADS)
+
+IF (WEBKIT_USE_WML)
+    ADD_DEFINITIONS (-DENABLE_WML)
+ENDIF (WEBKIT_USE_WML)
+
+IF (WEBKIT_USE_SQUIRREL_FISH_EXTREM)
+    ADD_DEFINITIONS (-DENABLE_JIT)
+    ADD_DEFINITIONS (-DENABLE_WREC)
+ENDIF (WEBKIT_USE_SQUIRREL_FISH_EXTREM)
 
 #######################################
 # DEEPSEE Stuff                       #

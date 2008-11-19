@@ -26,8 +26,8 @@
 #include "config.h"
 #include "Nodes.h"
 
-#include "CodeGenerator.h"
-#include "ExecState.h"
+#include "BytecodeGenerator.h"
+#include "CallFrame.h"
 #include "JSGlobalObject.h"
 #include "JSStaticScopeObject.h"
 #include "LabelScope.h"

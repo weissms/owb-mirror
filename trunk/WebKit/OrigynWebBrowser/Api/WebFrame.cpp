@@ -86,7 +86,7 @@
 #include "runtime.h"
 #include "runtime_root.h"
 #include "runtime_object.h"
-#include "ExecState.h"
+#include "CallFrame.h"
 #include "JSGlobalObject.h"
 #include "JSLock.h"
 #include "JSObject.h"

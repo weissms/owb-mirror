@@ -661,7 +661,8 @@
 ../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/ResourceResponseBase.h
 ../../WKAL/Concretizations/Network/WK	../../../WebCore/platform/network/ResourceResponseBase.cpp
 ../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/CookieJar.h
-../../WKAL/Concretizations/Network/Soup  ../../../WebCore/platform/network/soup/CookieJarSoup.cpp
+../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/CookieJarSoup.cpp
+../../WKAL/Concretizations/Network/Soup	../../../WebCore/platform/network/soup/CookieJarSoup.h
 ../../WKAL/Concretizations/Network/Curl	../../../WebCore/platform/CookieJar.h
 ../../WKAL/Concretizations/Network/Curl  ../../../WebCore/platform/network/curl/CookieJarCurl.cpp
 ../../WKAL/Concretizations/Network/WK   ../../../WebCore/platform/network/NetworkStateNotifier.h
