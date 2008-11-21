@@ -245,7 +245,10 @@ String WebFrame::name()
     if (!coreFrame)
         return String();
 
-    return coreFrame->tree()->name();
+    if (!coreFrame->document())
+        return String();
+
+    return coreFrame->loader()->documentLoader()->title();
 }
 
 WebView* WebFrame::webView()

@@ -91,6 +91,7 @@
 #include <RenderTheme.h>
 #include <ResourceHandle.h>
 #include <ResourceHandleClient.h>
+#include <ScriptValue.h> 
 #include <ScrollbarTheme.h>
 #include <SelectionController.h>
 #include <Settings.h>
@@ -1406,7 +1407,7 @@ String WebView::stringByEvaluatingJavaScriptFromString(String script)
     if (!coreFrame)
         return String();
 
-    JSC::JSValue* scriptExecutionResult = coreFrame->loader()->executeScript(script, false);
+    JSC::JSValue* scriptExecutionResult = coreFrame->loader()->executeScript(script, false).jsValue();
     if(!scriptExecutionResult)
         return String();
     else if (scriptExecutionResult->isString())

@@ -73,6 +73,7 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/PausedTimeouts.cpp
     bindings/js/ScheduledAction.cpp
     bindings/js/ScriptController.cpp
+    bindings/js/ScriptValue.cpp
 )
 
 IF (WEBKIT_ENABLE_INSPECTOR_CONTROLLER)

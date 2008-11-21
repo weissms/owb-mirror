@@ -39,11 +39,15 @@
 #import <WebCore/WebCoreObjCExtras.h>
 #import <WebCore/Document.h>
 #import <WebCore/Element.h>
+#import <WebCore/Frame.h>
+#import <WebCore/Page.h>
 #import <WebKit/DOMPrivate.h>
 #import <wtf/Assertions.h>
 
 #define LoginWindowDidSwitchFromUserNotification    @"WebLoginWindowDidSwitchFromUserNotification"
 #define LoginWindowDidSwitchToUserNotification      @"WebLoginWindowDidSwitchToUserNotification"
+
+using namespace WebCore;
 
 @implementation WebBaseNetscapePluginView
 
@@ -73,6 +77,7 @@
     _element = anElement;
     _sourceURL.adoptNS([URL copy]);
     _baseURL.adoptNS([baseURL copy]);
+    _MIMEType.adoptNS([MIME copy]);
     
     [self setAttributeKeys:keys andValues:values];
     if (loadManually)
@@ -274,8 +279,24 @@
     
     if (![[[self webView] preferences] arePlugInsEnabled])
         return;
+   
+    Frame* frame = core([self webFrame]);
+    if (!frame)
+        return;
+    Page* page = frame->page();
+    if (!page)
+        return;
     
-    if (![self createPlugin])
+    bool wasDeferring = page->defersLoading();
+    if (!wasDeferring)
+        page->setDefersLoading(true);
+
+    BOOL result = [self createPlugin];
+    
+    if (!wasDeferring)
+        page->setDefersLoading(false);
+
+    if (!result)
         return;
     
     _isStarted = YES;

@@ -901,9 +901,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 
 - (void)updateAndSetWindow
 {
-    if (drawingModel != NPDrawingModelCoreAnimation)
-        return;
-
     // A plug-in can only update if it's (1) already been started (2) isn't stopped
     // and (3) is able to draw on-screen. To meet condition (3) the plug-in must not
     // be hidden and be attached to a window. QuickDraw plug-ins are an important
@@ -912,6 +909,10 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     // NPP_SetWindow() with an empty NPWindow struct.
     if (!_isStarted)
         return;
+    
+    if (drawingModel == NPDrawingModelCoreAnimation)
+        return;
+    
 #ifdef NP_NO_QUICKDRAW
     if (![self canDraw])
         return;
@@ -924,15 +925,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 #endif // NP_NO_QUICKDRAW
     
     BOOL didLockFocus = [NSView focusView] != self && [self lockFocusIfCanDraw];
-    
-    if (drawingModel == NPDrawingModelCoreGraphics || isDrawingModelQuickDraw(drawingModel)) {
-        [self setWindowIfNecessary];
-        if (didLockFocus)
-            [self unlockFocus];
 
-        return;
-    }
-    
     PortState portState = [self saveAndSetNewPortState];
     if (portState) {
         [self setWindowIfNecessary];
@@ -1078,7 +1071,7 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
         [self willCallPlugInFunction];
         {
             JSC::JSLock::DropAllLocks dropAllLocks(false);
-            NPPluginTextInputFuncs *value;
+            NPPluginTextInputFuncs *value = 0;
             if (![_pluginPackage.get() pluginFuncs]->getvalue(plugin, NPPVpluginTextInputFuncs, &value) == NPERR_NO_ERROR && value)
                 textInputFuncs = value;
         }
@@ -2287,26 +2280,11 @@ static NPBrowserTextInputFuncs *browserTextInputFuncs()
     // NPN_New(), which creates the plug-in instance, should never be called while calling a plug-in function for that instance.
     ASSERT(pluginFunctionCallDepth == 0);
 
-    Frame* frame = core([self webFrame]);
-    if (!frame)
-        return NPERR_GENERIC_ERROR;
-    Page* page = frame->page();
-    if (!page)
-        return NPERR_GENERIC_ERROR;
-    
-    bool wasDeferring = page->defersLoading();
-    if (!wasDeferring)
-        page->setDefersLoading(true);
-    
     PluginMainThreadScheduler::scheduler().registerPlugin(plugin);
     
     [[self class] setCurrentPluginView:self];
     NPError npErr = [_pluginPackage.get() pluginFuncs]->newp((char *)[_MIMEType.get() cString], plugin, _mode, argsCount, cAttributes, cValues, NULL);
     [[self class] setCurrentPluginView:nil];
-    
-    if (!wasDeferring)
-        page->setDefersLoading(false);
-
     LOG(Plugins, "NPP_New: %d", npErr);
     return npErr;
 }

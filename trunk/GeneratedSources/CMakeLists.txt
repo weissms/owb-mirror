@@ -698,6 +698,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/bytecode
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/bytecompiler
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/debugger
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/interpreter
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders

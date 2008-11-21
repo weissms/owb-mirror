@@ -31,6 +31,7 @@
 #include "WorkerThread.h"
 
 #include "JSWorkerContext.h"
+#include "StringSourceProvider.h"
 #include "Worker.h"
 #include "WorkerContext.h"
 #include "WorkerMessagingProxy.h"
@@ -77,7 +78,7 @@ void* WorkerThread::workerThread()
     RefPtr<WorkerContext> workerContext = WorkerContext::create(KURL(m_scriptURL), this);
     WorkerScriptController* script = workerContext->script();
 
-    script->evaluate(m_scriptURL, 1, m_sourceCode);
+    script->evaluate(makeSource(m_sourceCode, m_scriptURL));
     m_messagingProxy->confirmWorkerThreadMessage(workerContext->hasPendingActivity()); // This wasn't really a message, but it counts as one for GC.
 
     while (true) {
@@ -88,7 +89,11 @@ void* WorkerThread::workerThread()
         task->performTask(workerContext.get());
     }
 
-    workerContext = 0; // Destroying the context will notify messaging proxy.
+    workerContext->clearScript();
+    ASSERT(workerContext->hasOneRef());
+    // Destroying the context will notify messaging proxy.
+    // We cannot let any objects survive past thread exit, because no other thread will run GC or otherwise destroy them.
+    workerContext = 0;
     m_threadID = 0;
 
     return 0;

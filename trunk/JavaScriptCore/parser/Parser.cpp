@@ -27,6 +27,9 @@
 #include "Lexer.h"
 #include <wtf/HashSet.h>
 #include <wtf/Vector.h>
+#include <memory>
+
+using std::auto_ptr;
 
 extern int kjsyyparse(void*);
 
@@ -61,6 +64,28 @@ void Parser::parse(JSGlobalData* globalData, int* errLine, UString* errMsg)
         *errMsg = "Parse error";
         m_sourceElements.clear();
     }
+}
+
+void Parser::reparse(JSGlobalData* globalData, FunctionBodyNode* functionBodyNode)
+{
+    ASSERT(!functionBodyNode->data());
+
+    m_source = &functionBodyNode->source();
+    parse(globalData, 0, 0);
+    ASSERT(m_sourceElements);
+    functionBodyNode->adoptData(std::auto_ptr<ScopeNodeData>(new ScopeNodeData(m_sourceElements.get(),
+                                                                               m_varDeclarations ? &m_varDeclarations->data : 0, 
+                                                                               m_funcDeclarations ? &m_funcDeclarations->data : 0,
+                                                                               m_numConstants)));
+    bool usesArguments = functionBodyNode->usesArguments();
+    functionBodyNode->setFeatures(m_features);
+    if (usesArguments && !functionBodyNode->usesArguments())
+        functionBodyNode->setUsesArguments();
+
+    m_source = 0;
+    m_sourceElements = 0;
+    m_varDeclarations = 0;
+    m_funcDeclarations = 0;
 }
 
 void Parser::didFinishParsing(SourceElements* sourceElements, ParserRefCountedData<DeclarationStacks::VarStack>* varStack, 

@@ -92,6 +92,7 @@
 #include <WebCore/RenderTheme.h>
 #include <WebCore/ResourceHandle.h>
 #include <WebCore/ResourceHandleClient.h>
+#include <WebCore/ScriptValue.h>
 #include <WebCore/ScrollbarTheme.h>
 #include <WebCore/SelectionController.h>
 #include <WebCore/Settings.h>
@@ -943,14 +944,17 @@ void WebView::paintIntoBackingStore(FrameView* frameView, HDC bitmapDC, const In
     ::ReleaseDC(m_viewWindow, dc);
 #endif
 
-    FillRect(bitmapDC, &rect, (HBRUSH)GetStockObject(WHITE_BRUSH));
+    GraphicsContext gc(bitmapDC, m_transparent);
+    gc.save();
+    if (m_transparent)
+        gc.clearRect(dirtyRect);
+    else
+        FillRect(bitmapDC, &rect, (HBRUSH)GetStockObject(WHITE_BRUSH));
     if (frameView && frameView->frame() && frameView->frame()->contentRenderer()) {
-        GraphicsContext gc(bitmapDC, m_transparent);
-        gc.save();
         gc.clip(dirtyRect);
         frameView->paint(&gc, dirtyRect);
-        gc.restore();
     }
+    gc.restore();
 }
 
 void WebView::paintIntoWindow(HDC bitmapDC, HDC windowDC, const IntRect& dirtyRect)
@@ -2662,8 +2666,8 @@ HRESULT STDMETHODCALLTYPE WebView::stringByEvaluatingJavaScriptFromString(
     if (!coreFrame)
         return E_FAIL;
 
-    JSC::JSValue* scriptExecutionResult = coreFrame->loader()->executeScript(WebCore::String(script), true);
-    if(!scriptExecutionResult)
+    JSC::JSValue* scriptExecutionResult = coreFrame->loader()->executeScript(WebCore::String(script), true).jsValue();
+    if (!scriptExecutionResult)
         return E_FAIL;
     else if (scriptExecutionResult->isString()) {
         JSLock lock(false);

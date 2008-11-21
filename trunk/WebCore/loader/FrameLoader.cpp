@@ -64,6 +64,7 @@
 #include "HistoryItem.h"
 #include "IconDatabase.h"
 #include "IconLoader.h"
+#include "JSDOMBinding.h"
 #include "Logging.h"
 #include "MIMETypeRegistry.h"
 #include "MainResourceLoader.h"
@@ -73,20 +74,21 @@
 #include "PluginData.h"
 #include "ProgressTracker.h"
 #include "RenderPart.h"
-#include "RenderWidget.h"
 #include "RenderView.h"
+#include "RenderWidget.h"
 #include "ResourceHandle.h"
 #include "ResourceRequest.h"
+#include "ScriptController.h"
+#include "ScriptValue.h"
 #include "SecurityOrigin.h"
 #include "SegmentedString.h"
 #include "Settings.h"
+#include "StringSourceProvider.h"
 #include "SystemTime.h"
 #include "TextResourceDecoder.h"
 #include "WindowFeatures.h"
 #include "XMLHttpRequest.h"
 #include "XMLTokenizer.h"
-#include "JSDOMBinding.h"
-#include "ScriptController.h"
 #include <runtime/JSLock.h>
 #include <runtime/JSObject.h>
 #include <wtf/StdLibExtras.h>
@@ -194,18 +196,6 @@ struct ScheduledRedirection {
 
 static double storedTimeOfLastCompletedLoad;
 static FrameLoader::LocalLoadPolicy localLoadPolicy = FrameLoader::AllowLocalLoadsForLocalOnly;
-
-static bool getString(JSValue* result, String& string)
-{
-    if (!result)
-        return false;
-    JSLock lock(false);
-    UString ustring;
-    if (!result->getString(ustring))
-        return false;
-    string = ustring;
-    return true;
-}
 
 bool isBackForwardLoadType(FrameLoadType type)
 {
@@ -767,10 +757,10 @@ bool FrameLoader::executeIfJavaScriptURL(const KURL& url, bool userGesture, bool
         return false;
 
     String script = decodeURLEscapeSequences(url.string().substring(strlen("javascript:")));
-    JSValue* result = executeScript(script, userGesture);
+    ScriptValue result = executeScript(script, userGesture);
 
     String scriptResult;
-    if (!getString(result, scriptResult))
+    if (!result.getString(scriptResult))
         return true;
 
     SecurityOrigin* currentSecurityOrigin = 0;
@@ -789,20 +779,20 @@ bool FrameLoader::executeIfJavaScriptURL(const KURL& url, bool userGesture, bool
     return true;
 }
 
-JSValue* FrameLoader::executeScript(const String& script, bool forceUserGesture)
+ScriptValue FrameLoader::executeScript(const String& script, bool forceUserGesture)
 {
-    return executeScript(forceUserGesture ? String() : m_URL.string(), 1, script);
+    return executeScript(makeSource(script, forceUserGesture ? String() : m_URL.string()));
 }
 
-JSValue* FrameLoader::executeScript(const String& url, int baseLine, const String& script)
+ScriptValue FrameLoader::executeScript(const SourceCode& sourceCode)
 {
     if (!m_frame->script()->isEnabled() || m_frame->script()->isPaused())
-        return noValue();
+        return ScriptValue();
 
     bool wasRunningScript = m_isRunningScript;
     m_isRunningScript = true;
 
-    JSValue* result = m_frame->script()->evaluate(url, baseLine, script);
+    ScriptValue result = m_frame->script()->evaluate(sourceCode);
 
     if (!wasRunningScript) {
         m_isRunningScript = false;

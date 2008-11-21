@@ -54,17 +54,19 @@
 #include "GraphicsContext.h"
 #include "HitTestResult.h"
 
+#include "CallFrame.h"
+#include "JSDOMBinding.h"
+#include "JSDOMWindow.h"
+#include "JSLock.h"
+#include "JSObject.h"
+#include "qt_instance.h"
+#include "qt_runtime.h"
 #include "runtime.h"
 #include "runtime_object.h"
 #include "runtime_root.h"
-#include "JSDOMWindow.h"
-#include "qt_instance.h"
 #include "ScriptController.h"
-#include "JSDOMBinding.h"
-#include "CallFrame.h"
-#include "JSLock.h"
-#include "JSObject.h"
-#include "qt_runtime.h"
+#include "ScriptValue.h"
+#include "StringSourceProvider.h"
 
 #include "wtf/HashMap.h"
 
@@ -933,7 +935,7 @@ QVariant QWebFrame::evaluateJavaScript(const QString& scriptSource)
     ScriptController *proxy = d->frame->script();
     QVariant rc;
     if (proxy) {
-        JSC::JSValue* v = proxy->evaluate(String(), 1, scriptSource);
+        JSC::JSValue* v = proxy->evaluate(makeSource(scriptSource)).jsValue();
         if (v) {
             int distance = 0;
             rc = JSC::Bindings::convertValueToQVariant(proxy->globalObject()->globalExec(), v, QMetaType::Void, &distance);

@@ -1,3 +1,100 @@
+2008-11-21  Darin Adler  <darin@apple.com>
+
+        Earlier version reviewed by Justin Garcia.
+
+        - part of fix for <rdar://problem/4108572> REGRESSION: Can't extend selection with shift-arrow in read only mode
+          Also resolves <rdar://problem/5000134>.
+
+        * WebView/WebHTMLView.mm: Removed some unused code, and made the Tiger workaround for bug 3789278
+        be Tiger-only.
+        (-[WebHTMLView resignFirstResponder]): Removed code setting unused resigningFirstResponder flag.
+        (-[WebHTMLView _wantsKeyDownForEvent:]): Added. Returns YES.
+        (-[WebHTMLView insertText:]): Don't try to insert text if the selection is not editable. We used
+        to prevent even processing the input, but that's not practical since some commands need to work
+        even in non-editable regions.
+
+2008-11-20  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Jon Honeycutt.
+
+        Move some frame/page checking code down to the base class.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView start]):
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView _createPlugin]):
+
+2008-11-19  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Test: plugins/netscape-plugin-setwindow-size-2.html
+        
+        Fix bug where NPP_SetWindow wasn't getting called for some plug-ins.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView updateAndSetWindow]):
+        Don't bail if the drawing model is not the CA drawing model. Remove some code 
+        that was doing the wrong thing.
+
+2008-11-19  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22345
+        Define ScriptValue as a thin container for a JSC::Value*.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:forceUserGesture:]):
+        * WebView/WebView.mm:
+        (-[WebView aeDescByEvaluatingJavaScriptFromString:]):
+
+2008-11-19  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/6383762> WebKit r38340 crash on key press in plugin
+        
+        Set the value to 0 before calling NPP_GetValue, in case the plug-in returns NPERR_NO_ERROR but does not 
+        update the value.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView createPlugin]):
+
+2008-11-19  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Make sure to copy the MIME type.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView initWithFrame:pluginPackage:URL:baseURL:MIMEType:attributeKeys:attributeValues:loadManually:DOMElement:]):
+
+2008-11-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        First step toward fixing <rdar://problem/6263293> WebScriptDebugDelegate
+        should use intptr_t for sourceId, not int
+        
+        Added a conditional typedef (currently disabled) to switch sourceId to
+        intptr_t in non-Tiger, non-Leopard builds.
+
+        * DefaultDelegates/WebDefaultScriptDebugDelegate.m:
+        (-[WebDefaultScriptDebugDelegate webView:didParseSource:fromURL:sourceId:forWebFrame:]):
+        (-[WebDefaultScriptDebugDelegate webView:didParseSource:baseLineNumber:fromURL:sourceId:forWebFrame:]):
+        (-[WebDefaultScriptDebugDelegate webView:didEnterCallFrame:sourceId:line:forWebFrame:]):
+        (-[WebDefaultScriptDebugDelegate webView:willExecuteStatement:sourceId:line:forWebFrame:]):
+        (-[WebDefaultScriptDebugDelegate webView:willLeaveCallFrame:sourceId:line:forWebFrame:]):
+        (-[WebDefaultScriptDebugDelegate webView:exceptionWasRaised:sourceId:line:forWebFrame:]):
+        * WebView/WebScriptDebugDelegate.h:
+        * WebView/WebScriptDebugger.mm:
+        (WebScriptDebugger::sourceParsed):
+        (WebScriptDebugger::callEvent):
+        (WebScriptDebugger::atStatement):
+        (WebScriptDebugger::returnEvent):
+        (WebScriptDebugger::exception):
+
 2008-11-19  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Mark Rowe.

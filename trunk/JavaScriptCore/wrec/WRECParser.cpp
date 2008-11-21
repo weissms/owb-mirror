@@ -570,25 +570,22 @@ bool Parser::parseTerm(JmpSrcVector& failures)
 }
 
 /*
-  interface req: CURR_POS is on stack (can be reloaded).
+  TOS holds index.
 */
 void Parser::parseDisjunction(JmpSrcVector& failures)
 {
     parseAlternative(failures);
+    if (peek() != '|')
+        return;
 
-    if (peek() == '|') {
-        JmpSrcVector successes;
+    JmpSrcVector successes;
+    do {
+        consume();
+        m_generator.terminateAlternative(successes, failures);
+        parseAlternative(failures);
+    } while (peek() == '|');
 
-        do {
-            consume();
-
-            m_generator.generateDisjunction(successes, failures);
-
-            parseAlternative(failures);
-        } while (peek() == '|');
-
-        m_generator.terminateDisjunction(successes);
-    }
+    m_generator.terminateDisjunction(successes);
 }
 
 } } // namespace JSC::WREC

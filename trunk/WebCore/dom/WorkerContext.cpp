@@ -45,7 +45,7 @@ WorkerContext::WorkerContext(const KURL& url, WorkerThread* thread)
     : m_url(url)
     , m_location(WorkerLocation::create(url))
     , m_securityOrigin(SecurityOrigin::create(url))
-    , m_script(this)
+    , m_script(new WorkerScriptController(this))
     , m_thread(thread)
 {
 }
@@ -87,6 +87,11 @@ bool WorkerContext::hasPendingActivity() const
             return true;
     }
     return false;
+}
+
+void WorkerContext::reportException(const String& errorMessage, int lineNumber, const String& sourceURL)
+{
+    m_thread->messagingProxy()->postWorkerException(errorMessage, lineNumber, sourceURL);
 }
 
 void WorkerContext::postMessage(const String& message)

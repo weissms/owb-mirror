@@ -38,6 +38,7 @@
 #include "PageGroup.h"
 #include "PausedTimeouts.h"
 #include "runtime_root.h"
+#include "ScriptValue.h"
 #include "Settings.h"
 #include "StringSourceProvider.h"
 
@@ -87,7 +88,7 @@ ScriptController::~ScriptController()
     disconnectPlatformScriptObjects();
 }
 
-JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const String& str) 
+ScriptValue ScriptController::evaluate(const JSC::SourceCode& sourceCode) 
 {
     // evaluate code. Returns the JS return value or 0
     // if there was none, an error occured or the type couldn't be converted.
@@ -99,6 +100,7 @@ JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const
     // See smart window.open policy for where this is used.
     ExecState* exec = m_windowShell->window()->globalExec();
     const String* savedSourceURL = m_sourceURL;
+    String sourceURL = sourceCode.provider()->url();
     m_sourceURL = &sourceURL;
 
     JSLock lock(false);
@@ -108,7 +110,7 @@ JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const
     m_frame->keepAlive();
 
     m_windowShell->window()->startTimeoutCheck();
-    Completion comp = JSC::evaluate(exec, exec->dynamicGlobalObject()->globalScopeChain(), makeSource(str, sourceURL, baseLine), m_windowShell);
+    Completion comp = JSC::evaluate(exec, exec->dynamicGlobalObject()->globalScopeChain(), sourceCode, m_windowShell);
     m_windowShell->window()->stopTimeoutCheck();
 
     if (comp.complType() == Normal || comp.complType() == ReturnValue) {
@@ -117,7 +119,7 @@ JSValue* ScriptController::evaluate(const String& sourceURL, int baseLine, const
     }
 
     if (comp.complType() == Throw)
-        m_frame->domWindow()->console()->reportException(exec, comp.value());
+        reportException(exec, comp.value());
 
     m_sourceURL = savedSourceURL;
     return noValue();
