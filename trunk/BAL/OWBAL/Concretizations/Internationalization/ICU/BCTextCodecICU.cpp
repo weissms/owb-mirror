@@ -35,6 +35,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/StringExtras.h>
 #include <wtf/Threading.h>
+
 #if ENABLE(WORKERS)
 #include <wtf/ThreadSpecific.h>
 #endif

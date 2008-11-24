@@ -232,6 +232,7 @@ IDL_BINDINGS += \
 
 webcore_sources += \
 	WebCore/WebCorePrefix.h \
+	WebCore/bindings/js/CachedScriptSourceProvider.h \
 	WebCore/bindings/js/GCController.cpp \
 	WebCore/bindings/js/GCController.h \
 	WebCore/bindings/js/JSAttrCustom.cpp \
@@ -1194,6 +1195,8 @@ webcore_sources += \
 	WebCore/platform/Length.h \
 	WebCore/platform/LengthBox.h \
 	WebCore/platform/LengthSize.h \
+	WebCore/platform/LinkHash.cpp \
+	WebCore/platform/LinkHash.h \
 	WebCore/platform/LocalizedStrings.h \
 	WebCore/platform/Logging.cpp \
 	WebCore/platform/Logging.h \

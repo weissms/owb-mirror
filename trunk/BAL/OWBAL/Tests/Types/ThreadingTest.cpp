@@ -1,3 +1,4 @@
+#include "Platform.h"
 #include "ThreadingTest.h"
 #ifdef ThreadingTest_h_CPPUNIT
 CPPUNIT_TEST_SUITE_REGISTRATION( ThreadingTestTest );

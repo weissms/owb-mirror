@@ -1,3 +1,458 @@
+2008-11-24  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22421
+        Added ScriptValue to Visual Studio and XCode projects.
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+
+2008-11-22  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Holger Freyther.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22426
+
+        Add WMLInstrinsicEvent/EventHandler implementation. Code not yet used.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * wml/WMLIntrinsicEvent.cpp: Added.
+        (WebCore::createTaskElement):
+        (WebCore::WMLIntrinsicEvent::WMLIntrinsicEvent):
+        * wml/WMLIntrinsicEvent.h: Added.
+        (WebCore::WMLIntrinsicEvent::create):
+        (WebCore::WMLIntrinsicEvent::createWithTask):
+        (WebCore::WMLIntrinsicEvent::taskElement):
+        * wml/WMLIntrinsicEventHandler.cpp: Added.
+        (WebCore::WMLIntrinsicEventHandler::WMLIntrinsicEventHandler):
+        (WebCore::WMLIntrinsicEventHandler::registerIntrinsicEvent):
+        (WebCore::WMLIntrinsicEventHandler::triggerIntrinsicEvent):
+        (WebCore::WMLIntrinsicEventHandler::hasIntrinsicEvent):
+        * wml/WMLIntrinsicEventHandler.h: Added.
+        (WebCore::):
+
+2008-11-22  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Holger Freyther.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22423
+
+        Add <go> stub implementation. Add complete <prev>/<refresh> and <setvar> implementation.
+        Activate code handling <setvar> registration in WMLTaskElement.
+
+        * wml/WMLGoElement.cpp: Added.
+        (WebCore::WMLGoElement::WMLGoElement):
+        (WebCore::WMLGoElement::~WMLGoElement):
+        (WebCore::WMLGoElement::parseMappedAttribute):
+        (WebCore::WMLGoElement::executeTask):
+        * wml/WMLGoElement.h: Added.
+        * wml/WMLPrevElement.cpp: Added.
+        (WebCore::WMLPrevElement::WMLPrevElement):
+        (WebCore::WMLPrevElement::~WMLPrevElement):
+        (WebCore::WMLPrevElement::executeTask):
+        * wml/WMLPrevElement.h: Added.
+        * wml/WMLRefreshElement.cpp: Added.
+        (WebCore::WMLRefreshElement::WMLRefreshElement):
+        (WebCore::WMLRefreshElement::~WMLRefreshElement):
+        (WebCore::WMLRefreshElement::executeTask):
+        * wml/WMLRefreshElement.h: Added.
+        * wml/WMLSetvarElement.cpp: Added.
+        (WebCore::WMLSetvarElement::WMLSetvarElement):
+        (WebCore::WMLSetvarElement::~WMLSetvarElement):
+        (WebCore::WMLSetvarElement::parseMappedAttribute):
+        (WebCore::WMLSetvarElement::insertedIntoDocument):
+        (WebCore::WMLSetvarElement::name):
+        (WebCore::WMLSetvarElement::value):
+        * wml/WMLSetvarElement.h: Added.
+        * wml/WMLTagNames.in:
+        * wml/WMLTaskElement.cpp:
+        (WebCore::WMLTaskElement::registerVariableSetter):
+        (WebCore::WMLTaskElement::storeVariableState):
+        * wml/WMLTaskElement.h:
+        * WebCore.xcodeproj/project.pbxproj:
+
+2008-11-22  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Not reviewed. Forgot to include WMLPageState.* in the last commit.
+
+        * wml/WMLPageState.cpp:
+        (WebCore::WMLPageState::setNeedCheckDeckAccess):
+        * wml/WMLPageState.h:
+        (WebCore::WMLPageState::storeVariables):
+
+2008-11-21  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22397
+        Worker threads are not destroyed if running a JS loop
+
+        Since the event loop is not ever entered again in this case, the fix necessarily involves
+        some shared data hackery.
+
+        * dom/WorkerThread.cpp: (WebCore::WorkerThread::stop):
+        * dom/WorkerThread.h:
+        Added a stop() method, which asks the thread to exit as soon as possible. In the future, it
+        may need to abort other kinds of synchronous processing, such as importScripts or XHR.
+
+        * bindings/js/WorkerScriptController.cpp:
+        (WebCore::WorkerScriptController::WorkerScriptController):
+        (WebCore::WorkerScriptController::evaluate):
+        (WebCore::WorkerScriptController::forbidExecution):
+        * bindings/js/WorkerScriptController.h:
+        Added a forbidExecution() method, which interrupts currently running JS, and makes any
+        future calls to evaluate() return immediately.
+
+        * dom/WorkerMessagingProxy.cpp: (WebCore::WorkerMessagingProxy::workerObjectDestroyed):
+        Call WorkerThread::stop().
+
+2008-11-21  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        Improve wx image drawing performance considerably when using wxGraphicsContext
+        by avoiding unnecessary copies and drawing.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=22404
+
+        * platform/graphics/wx/ImageWx.cpp:
+        (WebCore::BitmapImage::draw):
+        (WebCore::BitmapImage::drawPattern):
+
+
+2008-11-21  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        Implementation of AffineTransform::mapRect for wx.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=22401
+
+        * platform/graphics/wx/AffineTransformWx.cpp:
+        (WebCore::AffineTransform::mapRect):
+
+2008-11-21  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/5381788> Match NSTextView editing behavior at the end of hyperlink text
+        
+        Change link editing behavior to match TextEdit and MS Word when editing before and after 
+        a link (Pages has two caret positions at link boundaries, Thunderbird and FF behave like we 
+        used to, so it's difficult to get out of link editing mode):
+        When inserting before or after a link, always insert content outside of the link.  This
+        makes it impossible to get stuck in link editing mode, while making it slightly more 
+        difficult to edit link labels.  WebKit editors that care about this can add UI for editing 
+        link labels, like GMail and GoogleDocs have done.  We never actually had any bugs complaining
+        about how it was difficult to edit link labels at the start/end, the code was just introduced 
+        with another bug fix without much thought.
+        
+        Don't remember removed links anymore, no other editor does this and it made it 
+        difficult/impossible to get out of link editing mode.  This code was added to fix
+        <rdar://problem/4069359>, which is fixed instead by removing the styles from an 
+        enclosing anchor element from those styles that we remember when we delete content.
+
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::positionAvoidingSpecialElementBoundary):
+        * editing/CompositeEditCommand.h:
+        * editing/DeleteSelectionCommand.cpp:
+        (WebCore::removeEnclosingAnchorStyle):
+        (WebCore::DeleteSelectionCommand::saveTypingStyleState):
+        (WebCore::DeleteSelectionCommand::doApply):
+        * editing/DeleteSelectionCommand.h:
+        * editing/EditCommand.cpp:
+        (WebCore::EditCommand::apply):
+        * editing/Editor.cpp:
+        (WebCore::Editor::appliedEditing):
+        * editing/InsertTextCommand.cpp:
+        (WebCore::InsertTextCommand::prepareForTextInsertion):
+        (WebCore::InsertTextCommand::input):
+        * editing/RemoveFormatCommand.cpp:
+        (WebCore::RemoveFormatCommand::doApply):
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::setSelection):
+        * editing/SelectionController.h:
+
+2008-11-21  Alice Liu  <alice.liu@apple.com>
+
+        Rubber-stamped by Dan Bernstein.
+
+        fixed <rdar://6340771> crashing on print preview
+
+        * platform/graphics/win/GraphicsContextCGWin.cpp:
+        (WebCore::GraphicsContext::drawWindowsBitmap):
+
+2008-11-21  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Geoffrey Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22390
+        Abstract away JSC:: usage in WebCore/xml
+
+        * bindings/js/ScriptString.h: Added.
+        (WebCore::ScriptString::ScriptString):
+        (WebCore::ScriptString::operator JSC::UString):
+        (WebCore::ScriptString::isNull):
+        (WebCore::ScriptString::size):
+        (WebCore::ScriptString::operator=):
+        (WebCore::ScriptString::operator+=):
+        * inspector/InspectorController.cpp:
+        (WebCore::XMLHttpRequestResource::XMLHttpRequestResource):
+        (WebCore::InspectorResource::setXMLHttpRequestProperties):
+        (WebCore::InspectorController::resourceRetrievedByXMLHttpRequest):
+        * inspector/InspectorController.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::responseText):
+        (WebCore::XMLHttpRequest::clearResponse):
+        (WebCore::XMLHttpRequest::dropProtection):
+        (WebCore::XMLHttpRequest::didFinishLoading):
+        (WebCore::XMLHttpRequest::didReceiveData):
+        * xml/XMLHttpRequest.h:
+        (WebCore::XMLHttpRequest::setLastSendURL):
+
+2008-11-21  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Destroy script decoded data on a zero-delay timer after
+        decoding.  This means we now have no decoded script data
+        at the end of Membuster.
+
+        * loader/CachedScript.cpp:
+        (WebCore::CachedScript::CachedScript):
+        (WebCore::CachedScript::allClientsRemoved):
+        (WebCore::CachedScript::script):
+        (WebCore::CachedScript::decodedDataDeletionTimerFired):
+        * loader/CachedScript.h:
+
+2008-11-21  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=22159
+
+        RenderBox::absoluteClippedOverflowRect() needs to inflate the rect by
+        maximalOutlineSize(), since a child might have an outline which projects
+        outside the parent overflowRect().
+        
+        We also need to ensure that maximalOutlineSize() is updated early in styleDidChange,
+        so that it is valid for these repaints.
+
+        Test: fast/repaint/outline-child-repaint.html
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::styleDidChange):
+        (WebCore::RenderBox::absoluteClippedOverflowRect):
+
+2008-11-21  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk, Qt, and Wx build fix.
+
+        Add LinkHash.cpp in the build scripts.
+        Add LinkHash.h to Gtk's build script.
+
+        LinkHash.cpp/h was introduced in r38661.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCoreSources.bkl:
+
+2008-11-21  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        Third step in https://bugs.webkit.org/show_bug.cgi?id=22394
+        Be more eager in destroying script decoded data
+
+        Destroy the decoded data when all clients are removed from a CachedScript.
+
+        * loader/CachedScript.cpp:
+        (WebCore::CachedScript::allClientsRemoved):
+        * loader/CachedScript.h:
+        (WebCore::CachedScript::allClientsRemoved):
+
+2008-11-21  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        WebKit should be using Device RGB colorspace everywhere for
+        consistency.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22300
+
+        * page/mac/AccessibilityObjectWrapper.mm:
+        (CreateCGColorIfDifferent):
+        * platform/graphics/mac/ColorMac.h:
+        * platform/graphics/mac/ColorMac.mm:
+        (WebCore::nsColor):
+        (+[WebCoreControlTintObserver controlTintDidChange]):
+        * rendering/RenderThemeMac.mm:
+        (WebCore::convertNSColorToColor):
+        (WebCore::menuBackgroundColor):
+
+2008-11-20  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Bug 22388: Add JSInterfaceName to the .in files
+        https://bugs.webkit.org/show_bug.cgi?id=22388        
+
+        Add JSInterfaceName that is similar to interfaceName but
+        for the JS wrappers. JSInterfaceName is always equal to interfaceName
+        unless explicitly set.
+        
+        * dom/make_names.pl:
+        * html/HTMLTagNames.in:
+        * svg/svgtags.in:
+
+2008-11-21  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Second step in https://bugs.webkit.org/show_bug.cgi?id=22394
+        Be more eager in destroying script decoded data
+
+        Use a new CachedScriptSourceProvider to keep CachedScripts as
+        CachedScripts, even down into JSC.  This has the added benefit
+        of showing the CachedScripts as live in the Caches window.
+
+        * GNUmakefile.am:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/CachedScriptSourceProvider.h: Added.
+        (WebCore::CachedScriptSourceProvider::create):
+        (WebCore::CachedScriptSourceProvider::~CachedScriptSourceProvider):
+        (WebCore::CachedScriptSourceProvider::getRange):
+        (WebCore::CachedScriptSourceProvider::data):
+        (WebCore::CachedScriptSourceProvider::length):
+        (WebCore::CachedScriptSourceProvider::CachedScriptSourceProvider):
+        (WebCore::makeSource):
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElementData::notifyFinished):
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::notifyFinished):
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::notifyFinished):
+
+2008-11-21  Brett Wilson  <brettw@chromium.org>
+
+        Fix debug-only build bustage due to a typo in an assert, and add new
+        files to the Windows build.
+
+        * Info.plist:
+        * WebCore.vcproj/WebCore.vcproj:
+        * platform/LinkHash.h:
+        (WebCore::LinkHashHash::avoidDeletedValue):
+
+2008-11-20  Brett Wilson  <brettw@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22131
+
+        Factor out visited link hashing and types into a new file, LinkHash.
+        This also changes the hash type to 64 bits, but does not actually use
+        the extra bits yet.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkPseudoState):
+        (WebCore::CSSStyleSelector::SelectorChecker::visitedStateChanged):
+        * css/CSSStyleSelector.h:
+        (WebCore::CSSStyleSelector::visitedStateChanged):
+        * dom/Document.cpp:
+        * dom/Document.h:
+        * page/Page.cpp:
+        (WebCore::Page::visitedStateChanged):
+        * page/Page.h:
+        * page/PageGroup.cpp:
+        (WebCore::PageGroup::isLinkVisited):
+        (WebCore::PageGroup::addVisitedLink):
+        * page/PageGroup.h:
+        * platform/LinkHash.cpp: Added.
+        (WebCore::findSlashDotDotSlash):
+        (WebCore::findSlashSlash):
+        (WebCore::findSlashDotSlash):
+        (WebCore::containsColonSlashSlash):
+        (WebCore::cleanPath):
+        (WebCore::matchLetter):
+        (WebCore::needsTrailingSlash):
+        (WebCore::visitedLinkHash):
+        * platform/LinkHash.h: Added
+        (WebCore::LinkHashHash::hash):
+        (WebCore::LinkHashHash::equal):
+        (WebCore::LinkHashHash::avoidDeletedValue):
+
+2008-11-21  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        No need to use getElementsByTagNameNS() in WML documents. Revert to using getElementByTagName() again.
+
+        * wml/WMLPElement.cpp:
+        (WebCore::WMLPElement::insertedIntoDocument):
+
+2008-11-21  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fix some coding style/formatting issues in WMLAElement.
+
+        * wml/WMLAElement.cpp:
+        (WebCore::WMLAElement::parseMappedAttribute):
+        (WebCore::WMLAElement::defaultEventHandler):
+        * wml/WMLAElement.h:
+
+2008-11-21  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22399
+
+        Implement <anchor> support for WML, add WMLVariables file containing helper functions
+        for variable support, and a WMLTaskElement base class for WMLPrev/Go/RefreshElement.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::linkAttribute):
+        * rendering/HitTestResult.cpp:
+        (WebCore::HitTestResult::absoluteImageURL):
+        (WebCore::HitTestResult::absoluteLinkURL):
+        (WebCore::HitTestResult::isLiveLink):
+        * wml/WMLAnchorElement.cpp: Added.
+        (WebCore::WMLAnchorElement::WMLAnchorElement):
+        (WebCore::WMLAnchorElement::~WMLAnchorElement):
+        (WebCore::WMLAnchorElement::defaultEventHandler):
+        * wml/WMLAnchorElement.h: Added.
+        (WebCore::WMLAnchorElement::registerTask):
+        * wml/WMLTagNames.in:
+        * wml/WMLTaskElement.cpp: Added.
+        (WebCore::WMLTaskElement::WMLTaskElement):
+        (WebCore::WMLTaskElement::~WMLTaskElement):
+        (WebCore::WMLTaskElement::insertedIntoDocument):
+        (WebCore::WMLTaskElement::addVariableSetter):
+        (WebCore::WMLTaskElement::removeVariableSetter):
+        (WebCore::WMLTaskElement::storeVariableState):
+        * wml/WMLTaskElement.h: Added.
+        * wml/WMLVariables.cpp: Added.
+        (WebCore::isValidVariableCharacter):
+        (WebCore::isValidVariableReferenceCharacter):
+        (WebCore::isValidVariableName):
+        (WebCore::substituteVariableReferences):
+        * wml/WMLVariables.h: Added.
+        (WebCore::):
+
+2008-11-21  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Rubber-stamped by Alexey Proskuryakov.
+
+        Build fix when building without WORKERS on non-POSIX, non-WINDOWS
+        machine.
+
+        Spotted by Mario Bensi.
+
+        * platform/text/TextCodecICU.cpp:
+
 2008-11-21  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Geoffrey Garen.

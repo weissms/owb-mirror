@@ -660,6 +660,7 @@ CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSPluginElementFunctions.cpp gener
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSDOMWindowBase.cpp generated_sources/WebCore/JSDOMWindowBase.lut.h WebCore/bindings/js/JSDOMWindowBase.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSRGBColor.cpp generated_sources/WebCore/JSRGBColor.lut.h WebCore/bindings/js/JSRGBColor.cpp)
 CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSImageConstructor.cpp generated_sources/WebCore/JSImageConstructor.lut.h WebCore/bindings/js/JSImageConstructor.cpp)
+CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSWorkerContext.cpp generated_sources/WebCore/JSWorkerContext.lut.h WebCore/bindings/js/JSWorkerContext.cpp)
 
 # Add CXXFLAGS here
 ADD_DEFINITIONS (-include ${CMAKE_SOURCE_DIR}/BAL/Base/config.h)

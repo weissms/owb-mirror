@@ -382,7 +382,7 @@ template <HeapType heapType> ALWAYS_INLINE void* Heap::heapAllocate(size_t s)
     ASSERT(heap.operationInProgress == NoOperation);
     ASSERT(heapType == PrimaryHeap || heap.extraCost == 0);
     // FIXME: If another global variable access here doesn't hurt performance
-    // too much, we could abort() in NDEBUG builds, which could help ensure we
+    // too much, we could CRASH() in NDEBUG builds, which could help ensure we
     // don't spend any time debugging cases where we allocate inside an object's
     // deallocation code.
 
@@ -864,6 +864,13 @@ static inline void* otherThreadStackPointer(const PlatformThreadRegisters& regs)
 // end PLATFORM(DARWIN)
 #elif PLATFORM(X86) && PLATFORM(WIN_OS)
     return reinterpret_cast<void*>((uintptr_t) regs.Esp);
+#elif PLATFORM(BAL)
+    static void* stackBase = 0;
+    static size_t stackSize = 0;
+    int rc = pthread_attr_getstack(&regs, &stackBase, &stackSize);
+    (void)rc; // FIXME: Deal with error code somehow? Seems fatal.
+    ASSERT(stackBase);
+    return static_cast<char*>(stackBase) + stackSize;
 #else
 #error Need a way to get the stack pointer for another thread on this platform
 #endif
@@ -1093,7 +1100,7 @@ bool Heap::collect()
 
     ASSERT((primaryHeap.operationInProgress == NoOperation) | (numberHeap.operationInProgress == NoOperation));
     if ((primaryHeap.operationInProgress != NoOperation) | (numberHeap.operationInProgress != NoOperation))
-        abort();
+        CRASH();
 
     JAVASCRIPTCORE_GC_BEGIN();
     primaryHeap.operationInProgress = Collection;

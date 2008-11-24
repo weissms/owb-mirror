@@ -2359,6 +2359,7 @@ void JIT::privateCompileMainPass()
         case op_get_by_id_proto:
         case op_get_by_id_proto_list:
         case op_get_by_id_self:
+        case op_get_by_id_self_list:
         case op_get_string_length:
         case op_put_by_id_generic:
         case op_put_by_id_replace:
@@ -3059,7 +3060,6 @@ void JIT::privateCompile()
     ASSERT(m_jmpTable.isEmpty());
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     // Translate vPC offsets into addresses in JIT generated code, for switch tables.
     for (unsigned i = 0; i < m_switches.size(); ++i) {
@@ -3131,7 +3131,6 @@ void JIT::privateCompileGetByIdSelf(Structure* structure, size_t cachedOffset, v
     __ ret();
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     X86Assembler::link(code, failureCases1, reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_self_fail));
     X86Assembler::link(code, failureCases2, reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_self_fail));
@@ -3174,7 +3173,6 @@ void JIT::privateCompileGetByIdProto(Structure* structure, Structure* prototypeS
     JmpSrc success = __ jmp();
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     // Use the repatch information to link the failure cases back to the original slow case routine.
     void* slowCaseBegin = reinterpret_cast<char*>(info.callReturnLocation) - repatchOffsetGetByIdSlowCaseCall;
@@ -3215,7 +3213,6 @@ void JIT::privateCompileGetByIdProto(Structure* structure, Structure* prototypeS
     __ ret();
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
 #if USE(CTI_REPATCH_PIC)
     X86Assembler::link(code, failureCases1, reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_proto_list));
@@ -3234,7 +3231,36 @@ void JIT::privateCompileGetByIdProto(Structure* structure, Structure* prototypeS
 }
 
 #if USE(CTI_REPATCH_PIC)
-void JIT::privateCompileGetByIdProtoList(StructureStubInfo* stubInfo, PrototypeStructureList* prototypeStructures, int currentIndex, Structure* structure, Structure* prototypeStructure, size_t cachedOffset, CallFrame* callFrame)
+void JIT::privateCompileGetByIdSelfList(StructureStubInfo* stubInfo, PolymorphicAccessStructureList* polymorphicStructures, int currentIndex, Structure* structure, size_t cachedOffset)
+{
+    JmpSrc failureCase = checkStructure(X86::eax, structure);
+    __ movl_mr(FIELD_OFFSET(JSObject, m_propertyStorage), X86::eax, X86::eax);
+    __ movl_mr(cachedOffset * sizeof(JSValue*), X86::eax, X86::eax);
+    JmpSrc success = __ jmp();
+
+    void* code = __ executableCopy();
+    ASSERT(code);
+
+    // Use the repatch information to link the failure cases back to the original slow case routine.
+    void* lastProtoBegin = polymorphicStructures->list[currentIndex - 1].stubRoutine;
+    if (!lastProtoBegin)
+        lastProtoBegin = reinterpret_cast<char*>(stubInfo->callReturnLocation) - repatchOffsetGetByIdSlowCaseCall;
+
+    X86Assembler::link(code, failureCase, lastProtoBegin);
+
+    // On success return back to the hot patch code, at a point it will perform the store to dest for us.
+    intptr_t successDest = reinterpret_cast<intptr_t>(stubInfo->hotPathBegin) + repatchOffsetGetByIdPropertyMapOffset;
+    X86Assembler::link(code, success, reinterpret_cast<void*>(successDest));
+
+    structure->ref();
+    polymorphicStructures->list[currentIndex].set(structure, 0, cachedOffset, 0/*code*/);
+
+    // Finally repatch the jump to slow case back in the hot path to jump here instead.
+    intptr_t jmpLocation = reinterpret_cast<intptr_t>(stubInfo->hotPathBegin) + repatchOffsetGetByIdBranchToSlowCase;
+    X86Assembler::repatchBranchOffset(jmpLocation, code);
+}
+
+void JIT::privateCompileGetByIdProtoList(StructureStubInfo* stubInfo, PolymorphicAccessStructureList* prototypeStructures, int currentIndex, Structure* structure, Structure* prototypeStructure, size_t cachedOffset, CallFrame* callFrame)
 {
     // The prototype object definitely exists (if this stub exists the CodeBlock is referencing a Structure that is
     // referencing the prototype object - let's speculatively load it's table nice and early!)
@@ -3258,7 +3284,6 @@ void JIT::privateCompileGetByIdProtoList(StructureStubInfo* stubInfo, PrototypeS
     JmpSrc success = __ jmp();
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     // Use the repatch information to link the failure cases back to the original slow case routine.
     void* lastProtoBegin = prototypeStructures->list[currentIndex - 1].stubRoutine;
@@ -3288,6 +3313,7 @@ void JIT::privateCompileGetByIdChain(Structure* structure, StructureChain* chain
 
     // Check eax is an object of the right Structure.
     __ testl_i32r(JSImmediate::TagMask, X86::eax);
+    bucketsOfFail.append(__ jne());
     bucketsOfFail.append(checkStructure(X86::eax, structure));
 
     Structure* currStructure = structure;
@@ -3312,7 +3338,6 @@ void JIT::privateCompileGetByIdChain(Structure* structure, StructureChain* chain
     bucketsOfFail.append(__ jmp());
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     for (unsigned i = 0; i < bucketsOfFail.size(); ++i)
         X86Assembler::link(code, bucketsOfFail[i], reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_chain_fail));
@@ -3335,7 +3360,6 @@ void JIT::privateCompilePutByIdReplace(Structure* structure, size_t cachedOffset
     __ ret();
 
     void* code = __ executableCopy();
-    ASSERT(code);
     
     X86Assembler::link(code, failureCases1, reinterpret_cast<void*>(Interpreter::cti_op_put_by_id_fail));
     X86Assembler::link(code, failureCases2, reinterpret_cast<void*>(Interpreter::cti_op_put_by_id_fail));
@@ -3431,7 +3455,6 @@ void JIT::privateCompilePutByIdTransition(Structure* oldStructure, Structure* ne
     }
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     if (failureCases.size())
         X86Assembler::link(code, failureJump, reinterpret_cast<void*>(Interpreter::cti_op_put_by_id_fail));
@@ -3640,7 +3663,6 @@ void JIT::privateCompileCTIMachineTrampolines()
     // All trampolines constructed! copy the code, link up calls, and set the pointers on the Machine object.
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     X86Assembler::link(code, array_failureCases1, reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_array_fail));
     X86Assembler::link(code, array_failureCases2, reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_array_fail));
@@ -3675,7 +3697,7 @@ void JIT::patchGetByIdSelf(CodeBlock* codeBlock, Structure* structure, size_t ca
 
     // We don't want to repatch more than once - in future go to cti_op_get_by_id_generic.
     // Should probably go to Interpreter::cti_op_get_by_id_fail, but that doesn't do anything interesting right now.
-    ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_generic));
+    ctiRepatchCallByReturnAddress(returnAddress, reinterpret_cast<void*>(Interpreter::cti_op_get_by_id_self_fail));
 
     // Repatch the offset into the propoerty map to load from, then repatch the Structure to look for.
     X86Assembler::repatchDisplacement(reinterpret_cast<intptr_t>(info.hotPathBegin) + repatchOffsetGetByIdPropertyMapOffset, cachedOffset * sizeof(JSValue*));
@@ -3721,7 +3743,6 @@ void JIT::privateCompilePatchGetArrayLength(void* returnAddress)
     JmpSrc success = __ jmp();
 
     void* code = __ executableCopy();
-    ASSERT(code);
 
     // Use the repatch information to link the failure cases back to the original slow case routine.
     void* slowCaseBegin = reinterpret_cast<char*>(info.callReturnLocation) - repatchOffsetGetByIdSlowCaseCall;
