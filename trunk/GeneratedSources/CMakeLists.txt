@@ -46,6 +46,10 @@ IF (WEBKIT_USE_WML)
     SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} ENABLE_WML=1)
 ENDIF (WEBKIT_USE_WML)
 
+IF (WEBKIT_USE_WORKERS)
+    SET (FEATURE_DEFINES_JAVASCRIPT ${FEATURE_DEFINES_JAVASCRIPT} ENABLE_WORKERS=1)
+ENDIF (WEBKIT_USE_WORKERS)
+
 SET (IDL_BINDINGS
     ${IDL_BINDINGS}
 
@@ -614,18 +618,31 @@ ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/WebCore/XLinkNa
 SET (CREATE_HASH_TABLE ${CMAKE_SOURCE_DIR}/JavaScriptCore/create_hash_table)
 
 
-MACRO (CREATE_LUT _srcs_LIST _in_FILE _out_FILE _dep_FILE)
+MACRO (CREATE_LUT_JSC _srcs_LIST _in_FILE _out_FILE _dep_FILE)
     GET_FILENAME_COMPONENT (_baseName ${_out_FILE} PATH)
     ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/${_out_FILE}
         COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${_baseName}
-        COMMAND ${PERL_EXECUTABLE} ${CREATE_HASH_TABLE} ${CMAKE_SOURCE_DIR}/${_in_FILE} -i -n WebCore > ${CMAKE_BINARY_DIR}/${_out_FILE}
+        COMMAND ${PERL_EXECUTABLE} ${CREATE_HASH_TABLE} ${CMAKE_SOURCE_DIR}/${_in_FILE} -i > ${CMAKE_BINARY_DIR}/${_out_FILE}
         DEPENDS ${CMAKE_SOURCE_DIR}/${_in_FILE} ${CMAKE_SOURCE_DIR}/${_dep_FILE}
     )
     SET (${_srcs_LIST}
         ${${_srcs_LIST}}
         ${CMAKE_BINARY_DIR}/${_out_FILE}
     )
-ENDMACRO (CREATE_LUT)
+ENDMACRO (CREATE_LUT_JSC)
+
+MACRO (CREATE_LUT_WEBCORE _srcs_LIST _in_FILE _out_FILE _dep_FILE)
+    GET_FILENAME_COMPONENT (_baseName ${_out_FILE} PATH)
+    ADD_CUSTOM_COMMAND (OUTPUT ${CMAKE_BINARY_DIR}/${_out_FILE}
+        COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${_baseName}
+        COMMAND ${PERL_EXECUTABLE} ${CREATE_HASH_TABLE} ${CMAKE_SOURCE_DIR}/${_in_FILE} -n WebCore > ${CMAKE_BINARY_DIR}/${_out_FILE}
+        DEPENDS ${CMAKE_SOURCE_DIR}/${_in_FILE} ${CMAKE_SOURCE_DIR}/${_dep_FILE}
+    )
+    SET (${_srcs_LIST}
+        ${${_srcs_LIST}}
+        ${CMAKE_BINARY_DIR}/${_out_FILE}
+    )
+ENDMACRO (CREATE_LUT_WEBCORE)
 
 ADD_CUSTOM_COMMAND (
   OUTPUT ${CMAKE_BINARY_DIR}/generated_sources/parser/grammar.cpp ${CMAKE_BINARY_DIR}/generated_sources/parser/Grammar.h
@@ -644,23 +661,23 @@ MACRO (CREATE_CPP_LUT _in_FILE _out_FILE _dep_FILE)
       DEPENDS ${CMAKE_SOURCE_DIR}/WebCore/${_in_FILE} ${CMAKE_SOURCE_DIR}/WebCore/${_dep_FILE} )
 ENDMACRO (CREATE_CPP_LUT)
 
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/ArrayPrototype.cpp generated_sources/runtime/ArrayPrototype.lut.h JavaScriptCore/runtime/ArrayPrototype.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/DatePrototype.cpp generated_sources/runtime/DatePrototype.lut.h JavaScriptCore/runtime/DatePrototype.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/parser/Keywords.table generated_sources/parser/Lexer.lut.h JavaScriptCore/parser/Lexer.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/MathObject.cpp generated_sources/runtime/MathObject.lut.h JavaScriptCore/runtime/MathObject.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/NumberObject.cpp generated_sources/runtime/NumberObject.lut.h JavaScriptCore/runtime/NumberObject.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/NumberConstructor.cpp generated_sources/runtime/NumberConstructor.lut.h JavaScriptCore/runtime/NumberConstructor.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/RegExpObject.cpp generated_sources/runtime/RegExpObject.lut.h JavaScriptCore/runtime/RegExpObject.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/RegExpConstructor.cpp generated_sources/runtime/RegExpConstructor.lut.h JavaScriptCore/runtime/RegExpConstructor.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/StringObject.cpp generated_sources/runtime/StringObject.lut.h JavaScriptCore/runtime/StringObject.cpp)
-CREATE_LUT (GENERATED_SRC JavaScriptCore/runtime/StringPrototype.cpp generated_sources/runtime/StringPrototype.lut.h JavaScriptCore/runtime/StringPrototype.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSEventListener.cpp generated_sources/WebCore/JSEventListener.lut.h WebCore/bindings/js/JSEventListener.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSDOMBinding.cpp generated_sources/WebCore/JSDOMBinding.lut.h WebCore/bindings/js/JSDOMBinding.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSPluginElementFunctions.cpp generated_sources/WebCore/JSPluginElementFunctions.lut.h WebCore/bindings/js/JSPluginElementFunctions.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSDOMWindowBase.cpp generated_sources/WebCore/JSDOMWindowBase.lut.h WebCore/bindings/js/JSDOMWindowBase.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSRGBColor.cpp generated_sources/WebCore/JSRGBColor.lut.h WebCore/bindings/js/JSRGBColor.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSImageConstructor.cpp generated_sources/WebCore/JSImageConstructor.lut.h WebCore/bindings/js/JSImageConstructor.cpp)
-CREATE_LUT (GENERATED_SRC WebCore/bindings/js/JSWorkerContext.cpp generated_sources/WebCore/JSWorkerContext.lut.h WebCore/bindings/js/JSWorkerContext.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/ArrayPrototype.cpp generated_sources/runtime/ArrayPrototype.lut.h JavaScriptCore/runtime/ArrayPrototype.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/DatePrototype.cpp generated_sources/runtime/DatePrototype.lut.h JavaScriptCore/runtime/DatePrototype.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/parser/Keywords.table generated_sources/parser/Lexer.lut.h JavaScriptCore/parser/Lexer.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/MathObject.cpp generated_sources/runtime/MathObject.lut.h JavaScriptCore/runtime/MathObject.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/NumberObject.cpp generated_sources/runtime/NumberObject.lut.h JavaScriptCore/runtime/NumberObject.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/NumberConstructor.cpp generated_sources/runtime/NumberConstructor.lut.h JavaScriptCore/runtime/NumberConstructor.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/RegExpObject.cpp generated_sources/runtime/RegExpObject.lut.h JavaScriptCore/runtime/RegExpObject.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/RegExpConstructor.cpp generated_sources/runtime/RegExpConstructor.lut.h JavaScriptCore/runtime/RegExpConstructor.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/StringObject.cpp generated_sources/runtime/StringObject.lut.h JavaScriptCore/runtime/StringObject.cpp)
+CREATE_LUT_JSC (GENERATED_SRC JavaScriptCore/runtime/StringPrototype.cpp generated_sources/runtime/StringPrototype.lut.h JavaScriptCore/runtime/StringPrototype.cpp)
+CREATE_LUT_WEBCORE (GENERATED_SRC WebCore/bindings/js/JSEventListener.cpp generated_sources/WebCore/JSEventListener.lut.h WebCore/bindings/js/JSEventListener.cpp)
+CREATE_LUT_WEBCORE (GENERATED_SRC WebCore/bindings/js/JSDOMBinding.cpp generated_sources/WebCore/JSDOMBinding.lut.h WebCore/bindings/js/JSDOMBinding.cpp)
+CREATE_LUT_WEBCORE (GENERATED_SRC WebCore/bindings/js/JSPluginElementFunctions.cpp generated_sources/WebCore/JSPluginElementFunctions.lut.h WebCore/bindings/js/JSPluginElementFunctions.cpp)
+CREATE_LUT_WEBCORE (GENERATED_SRC WebCore/bindings/js/JSDOMWindowBase.cpp generated_sources/WebCore/JSDOMWindowBase.lut.h WebCore/bindings/js/JSDOMWindowBase.cpp)
+CREATE_LUT_WEBCORE (GENERATED_SRC WebCore/bindings/js/JSRGBColor.cpp generated_sources/WebCore/JSRGBColor.lut.h WebCore/bindings/js/JSRGBColor.cpp)
+CREATE_LUT_WEBCORE (GENERATED_SRC WebCore/bindings/js/JSImageConstructor.cpp generated_sources/WebCore/JSImageConstructor.lut.h WebCore/bindings/js/JSImageConstructor.cpp)
+CREATE_LUT_WEBCORE (GENERATED_SRC WebCore/bindings/js/JSWorkerContext.cpp generated_sources/WebCore/JSWorkerContext.lut.h WebCore/bindings/js/JSWorkerContext.cpp)
 
 # Add CXXFLAGS here
 ADD_DEFINITIONS (-include ${CMAKE_SOURCE_DIR}/BAL/Base/config.h)

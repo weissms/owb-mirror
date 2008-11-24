@@ -42,6 +42,8 @@
 
 using namespace JSC;
 
+namespace WebCore {
+
 static JSValue* jsWorkerContextPrototypeFunctionPostMessage(ExecState*, JSObject*, JSValue*, const ArgList&);
 static JSValue* jsWorkerContextPrototypeFunctionAddEventListener(ExecState*, JSObject*, JSValue*, const ArgList&);
 static JSValue* jsWorkerContextPrototypeFunctionRemoveEventListener(ExecState*, JSObject*, JSValue*, const ArgList&);
@@ -53,6 +55,8 @@ void setJSWorkerContextMessageEvent(ExecState*, JSObject*, JSValue*);
 JSValue* jsWorkerContextMessageEvent(ExecState*, const Identifier&, const PropertySlot&);
 JSValue* jsWorkerContextWorkerLocation(ExecState*, const Identifier&, const PropertySlot&);
 void setJSWorkerContextWorkerLocation(ExecState*, JSObject*, JSValue*);
+
+}
 
 /*
 @begin JSWorkerContextPrototypeTable
@@ -74,7 +78,7 @@ void setJSWorkerContextWorkerLocation(ExecState*, JSObject*, JSValue*);
 
 #include "JSWorkerContext.lut.h"
 
-using namespace WebCore;
+namespace WebCore {
 
 ASSERT_CLASS_FITS_IN_CELL(JSWorkerContext)
 
@@ -263,6 +267,6 @@ void setJSWorkerContextWorkerLocation(ExecState* exec, JSObject* thisObject, JSV
 }
 
 
-//} // namespace WebCore
+} // namespace WebCore
 
 #endif // ENABLE(WORKERS)
