@@ -133,6 +133,9 @@ OPTION (WEBKIT_USE_SQUIRREL_FISH_EXTREM "Compile Webkit with Squirrel fish extre
 #use Worker
 OPTION (WEBKIT_USE_WORKERS "Compile Webkit with workers support" OFF) 
 
+#use GEOLOCATION
+OPTION (WEBKIT_USE_GEOLOCATION "Compile Webkit with geolocation support" OFF) 
+
 INCLUDE (CMakeListsCustomer.txt OPTIONAL)
 
 #######################################
@@ -449,6 +452,10 @@ ENDIF (WEBKIT_USE_SQUIRREL_FISH_EXTREM)
 IF (WEBKIT_USE_WORKERS)
     ADD_DEFINITIONS (-DENABLE_WORKERS)
 ENDIF (WEBKIT_USE_WORKERS)
+
+IF (WEBKIT_USE_GEOLOCATION)
+    ADD_DEFINITIONS (-DENABLE_GEOLOCATION=1)
+ENDIF (WEBKIT_USE_GEOLOCATION)
 
 #######################################
 # DEEPSEE Stuff                       #

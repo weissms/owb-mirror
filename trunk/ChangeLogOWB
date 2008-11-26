@@ -1,3 +1,10 @@
+2008-11-26  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+
+        * CMakeLists.txt:
+        * GeneratedSources/CMakeLists.txt:
+
 2008-11-18  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Mario Bensi.
