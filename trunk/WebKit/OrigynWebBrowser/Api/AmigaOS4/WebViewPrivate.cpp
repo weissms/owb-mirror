@@ -415,3 +415,32 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
     sendExposeEvent(IntRect());
 }
 
+void WebView::runJavaScriptAlert(WebFrame* frame, const String& message)
+{
+    CString messageLatin1 = message.latin1();
+    Object* requester = (Object *)RequesterObject,
+                                      REQ_CharSet, 4,
+                                      REQ_TitleText, "OWB Javascript Alert",
+                                      REQ_BodyText, messageLatin1.data(),
+                                      REQ_GadgetText, "Ok",
+                                  End;
+    if (requester) {
+        struct Window* window = viewWindow()->window;
+        struct Requester dummyRequester;
+
+        if (window) {
+            IIntuition->InitRequester(&dummyRequester);
+            IIntuition->Request(&dummyRequester, window);
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, TRUE, WA_PointerDelay, TRUE, TAG_DONE);
+        }
+
+        OpenRequester(requester, window);
+
+        if (window) {
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, FALSE, TAG_DONE);
+            IIntuition->EndRequest(&dummyRequester, window);
+        }
+
+        IIntuition->DisposeObject(requester);
+    }
+}

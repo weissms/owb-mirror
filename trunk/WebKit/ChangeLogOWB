@@ -1,3 +1,24 @@
+2008-11-26  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        - Implemented runJavaScriptAlert for Gtk.
+
+        - Moved the platform code to the WebViewPrivate files.
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebView::runJavaScriptAlert):
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebView::runJavaScriptAlert):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/Api/gtk/WebViewPrivate.cpp: Added.
+        (webkit_web_view_script_dialog):
+        (WebView::runJavaScriptAlert):
+        * OrigynWebBrowser/Api/gtk/WebViewPrivate.h:
+        * OrigynWebBrowser/CMakeLists.txt:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::runJavaScriptAlert):
+
 2008-11-18  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

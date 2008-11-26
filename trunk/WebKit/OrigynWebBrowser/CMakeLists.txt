@@ -103,7 +103,7 @@ ENDIF (NOT WEBKIT_ENABLE_INSPECTOR_CONTROLLER)
 
 IF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
     LIST (APPEND WEBKIT_SRC
-#        Api/gtk/WebViewGtk.cpp
+        Api/gtk/WebViewPrivate.cpp
         Api/gtk/browserWidget.cpp
         ${CMAKE_BINARY_DIR}/generated_sources/WebKit/webkit-marshal.cpp
     )

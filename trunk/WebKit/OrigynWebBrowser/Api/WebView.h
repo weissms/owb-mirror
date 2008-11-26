@@ -1304,6 +1304,9 @@ public:
      */
     //static STDMETHODIMP AccessibleObjectFromWindow(HWND, DWORD objectID, REFIID, void** ppObject);
 
+    // Implemented by the platforms.
+    void runJavaScriptAlert(WebFrame*, const WebCore::String&);
+
 private:
 
     /**

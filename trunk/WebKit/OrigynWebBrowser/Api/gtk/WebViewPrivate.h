@@ -37,6 +37,7 @@
 #include DEEPSEE_INCLUDE
 
 class WebViewPrivate {
+
 public:
     WebViewPrivate(WebView *webView):m_webView(webView) {DS_CONSTRUCT();}
     ~WebViewPrivate() 
