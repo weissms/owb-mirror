@@ -1,3 +1,4 @@
+#include "config.h"
 #include "ImageBufferTest.h"
 #ifdef ImageBufferTest_h_CPPUNIT
 CPPUNIT_TEST_SUITE_REGISTRATION( ImageBufferTestTest );

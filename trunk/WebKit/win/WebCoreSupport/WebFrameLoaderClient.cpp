@@ -417,12 +417,13 @@ void WebFrameLoaderClient::finishedLoading(DocumentLoader* loader)
     m_hasSentResponseToPlugin = false;
 }
 
-void WebFrameLoaderClient::updateGlobalHistory(const KURL& url)
+void WebFrameLoaderClient::updateGlobalHistory()
 {
     WebHistory* history = WebHistory::sharedHistory();
     if (!history)
         return;
-    history->addItem(url, core(m_webFrame)->loader()->documentLoader()->title());                 
+    DocumentLoader* loader = core(m_webFrame)->loader()->documentLoader();
+    history->addItem(loader->urlForHistory(), loader->title(), loader->urlForHistoryReflectsFailure());                 
 }
 
 bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem*) const

@@ -1,3 +1,4 @@
+#include "config.h"
 #include "SharedBufferTest.h"
 #ifdef SharedBufferTest_h_CPPUNIT
 CPPUNIT_TEST_SUITE_REGISTRATION( SharedBufferTestTest );

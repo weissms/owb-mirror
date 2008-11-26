@@ -73,6 +73,7 @@ ENDIF (${OWBAL_PLATFORM_GRAPHICS} STREQUAL "GTK")
 IF (${WEBKIT_USE_FILESYSTEM} STREQUAL "GTK")
     OWBLN (Gtk/BCFileSystemGtk.h OWBAL 0 0)
     OWBLN (Gtk/BCguriescapeGtk.h OWBAL 0 0)
+    OWBLN (Gtk/BCGeolocationServiceGtk.h OWBAL 1 0)
 
     LIST (APPEND FACILITIES_SRC
         Gtk/BCFileSystemGtk.cpp

@@ -31,13 +31,12 @@
 #include "WorkerThread.h"
 
 #include "JSWorkerContext.h"
-#include "StringSourceProvider.h"
+#include "ScriptSourceCode.h"
+#include "ScriptValue.h"
 #include "Worker.h"
 #include "WorkerContext.h"
 #include "WorkerMessagingProxy.h"
 #include "WorkerTask.h"
-
-using namespace JSC;
 
 namespace WebCore {
 
@@ -48,7 +47,7 @@ PassRefPtr<WorkerThread> WorkerThread::create(const KURL& scriptURL, const Strin
 
 WorkerThread::WorkerThread(const KURL& scriptURL, const String& sourceCode, WorkerMessagingProxy* messagingProxy)
     : m_threadID(0)
-    , m_scriptURL(scriptURL.string().copy())
+    , m_scriptURL(scriptURL.copy())
     , m_sourceCode(sourceCode.copy())
     , m_messagingProxy(messagingProxy)
 {
@@ -75,10 +74,14 @@ void* WorkerThread::workerThreadStart(void* thread)
 
 void* WorkerThread::workerThread()
 {
-    m_workerContext = WorkerContext::create(KURL(m_scriptURL), this);
-    WorkerScriptController* script = m_workerContext->script();
+    {
+        // Mutex protection is necessary because stop() can be called before the context is fully created.
+        MutexLocker lock(m_workerContextMutex);
+        m_workerContext = WorkerContext::create(m_scriptURL, this);
+    }
 
-    script->evaluate(makeSource(m_sourceCode, m_scriptURL));
+    WorkerScriptController* script = m_workerContext->script();
+    script->evaluate(ScriptSourceCode(m_sourceCode, m_scriptURL));
     m_messagingProxy->confirmWorkerThreadMessage(m_workerContext->hasPendingActivity()); // This wasn't really a message, but it counts as one for GC.
 
     while (true) {
@@ -102,8 +105,10 @@ void* WorkerThread::workerThread()
 
 void WorkerThread::stop()
 {
+    MutexLocker lock(m_workerContextMutex);
     // Ensure that tasks are being handled by thread event loop. If script execution weren't forbidden, a while(1) loop in JS could keep the thread alive forever.
-    m_workerContext->script()->forbidExecution();
+    if (m_workerContext)
+        m_workerContext->script()->forbidExecution();
 
     // FIXME: Rudely killing the thread won't work when we allow nested workers, because they will try to post notifications of their destruction.
     m_messageQueue.kill();

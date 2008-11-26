@@ -233,3 +233,7 @@ bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(JSStringRef prop
     // FIXME: implement
 }
 
+void LayoutTestController::setSelectTrailingWhitespaceEnabled(bool)
+{
+}
+

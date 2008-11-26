@@ -4766,7 +4766,7 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
     // FIXME: the dictionary API expects the rect for the first line of selection. Passing
     // the rect for the entire selection, as we do here, positions the pop-up window near
     // the bottom of the selection rather than at the selected word.
-    NSRect rect = [self convertRect:coreFrame->selectionRect() toView:nil];
+    NSRect rect = [self convertRect:coreFrame->selectionBounds() toView:nil];
     rect.origin = [[self window] convertBaseToScreen:rect.origin];
     NSData *data = [attrString RTFFromRange:NSMakeRange(0, [attrString length]) documentAttributes:nil];
     dictionaryServiceWindowShow(data, rect, (writingDirection == NSWritingDirectionRightToLeft) ? 1 : 0);
@@ -4774,7 +4774,7 @@ static CGPoint coreGraphicsScreenPointForAppKitScreenPoint(NSPoint point)
     // The HIDictionaryWindowShow function requires the origin, in CG screen coordinates, of the first character of text in the selection.
     // FIXME 4945808: We approximate this in a way that works well when a single word is selected, and less well in some other cases
     // (but no worse than we did in Tiger)
-    NSRect rect = coreFrame->selectionRect();
+    NSRect rect = coreFrame->selectionBounds();
 
     NSDictionary *attributes = [attrString fontAttributesInRange:NSMakeRange(0,1)];
     NSFont *font = [attributes objectForKey:NSFontAttributeName];
@@ -5583,7 +5583,7 @@ static void extractUnderlines(NSAttributedString *string, Vector<CompositionUnde
 - (NSRect)selectionRect
 {
     if ([self _hasSelection])
-        return core([self _frame])->selectionRect();
+        return core([self _frame])->selectionBounds();
     return NSZeroRect;
 }
 
@@ -5619,7 +5619,7 @@ static void extractUnderlines(NSAttributedString *string, Vector<CompositionUnde
 - (NSRect)selectionImageRect
 {
     if ([self _hasSelection])
-        return core([self _frame])->selectionRect();
+        return core([self _frame])->selectionBounds();
     return NSZeroRect;
 }
 

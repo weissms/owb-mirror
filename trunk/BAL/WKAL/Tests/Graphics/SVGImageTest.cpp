@@ -1,3 +1,4 @@
+#include "config.h"
 #include "SVGImageTest.h"
 #ifdef SVGImageTest_h_CPPUNIT
 CPPUNIT_TEST_SUITE_REGISTRATION( SVGImageTestTest );

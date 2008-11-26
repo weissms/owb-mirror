@@ -1,3 +1,24 @@
+2008-11-26  Darin Fisher  <darin@chromium.org>
+
+        Fix bustage.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15643
+
+        * WebKitSupport/EditorClientWx.cpp:
+        (WebCore::EditorClientWx::isSelectTrailingWhitespaceEnabled):
+        * WebKitSupport/EditorClientWx.h:
+
+2008-11-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22470
+          remove unneeded URL argument from FrameLoaderClient::updateGlobalHistory
+
+        * WebKitSupport/FrameLoaderClientWx.cpp:
+        (WebCore::FrameLoaderClientWx::updateGlobalHistory): Remove argument.
+        * WebKitSupport/FrameLoaderClientWx.h: Ditto.
+
 2008-11-24  Kevin Watters  <kevinwatters@gmail.com>
 
         Reviewed by Kevin Ollivier.

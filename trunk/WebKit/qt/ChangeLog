@@ -1,3 +1,41 @@
+2008-11-26  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Build fix. Use WebCore::Frame::loader instead of QWebFrame
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::updateGlobalHistory):
+
+2008-11-24  Darin Fisher  <darin@chromium.org>
+
+        Fix bustage.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15643
+
+        * WebCoreSupport/EditorClientQt.cpp:
+        (WebCore::EditorClientQt::isSelectTrailingWhitespaceEnabled):
+        * WebCoreSupport/EditorClientQt.h:
+
+2008-11-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22470
+          remove unneeded URL argument from FrameLoaderClient::updateGlobalHistory
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::updateGlobalHistory): Get the URL from the
+        DocumentLoader.
+        * WebCoreSupport/FrameLoaderClientQt.h: Remove argument.
+
+2008-11-24  Darin Fisher  <darin@chromium.org>
+
+        Fix bustage.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22448
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::evaluateJavaScript):
+
 2008-11-21  Sam Weinig  <sam@webkit.org>
 
         Fix Qt build.

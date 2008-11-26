@@ -29,7 +29,7 @@
 
 namespace WebCore {
 
-class Page;
+class WMLPageState;
 class WMLSetvarElement;
 
 class WMLTaskElement : public WMLElement {
@@ -37,13 +37,15 @@ public:
     WMLTaskElement(const QualifiedName& tagName, Document*);
     virtual ~WMLTaskElement();
 
+    virtual bool isWMLTaskElement() const { return true; }
+
     virtual void insertedIntoDocument();
     virtual void executeTask(Event*) = 0;
 
     void registerVariableSetter(WMLSetvarElement*);
 
 protected:
-    void storeVariableState(Page*);
+    void storeVariableState(WMLPageState*);
 
 private:
     HashSet<WMLSetvarElement*> m_variableSetterElements;

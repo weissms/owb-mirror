@@ -1,3 +1,65 @@
+2008-11-26  Glenn Wilson  <gwilson@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15643
+
+        Added API support for the "trailing whitespace" work-around.  This includes an APIs
+        to get and set the state of this configuration variable.
+
+        * Interfaces/IWebView.idl:
+        * WebCoreSupport/WebEditorClient.cpp:
+        (WebEditorClient::selectTrailingWhitespaceEnabled):
+        * WebCoreSupport/WebEditorClient.h:
+        * WebView.cpp:
+        (WebView::WebView):
+        (WebView::setSelectTrailingWhitespaceEnabled):
+        (WebView::selectTrailingWhitespaceEnabled):
+        * WebView.h:
+
+2008-11-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22470
+          remove unneeded URL argument from FrameLoaderClient::updateGlobalHistory
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory): Get the URL from the
+        DocumentLoader, just as we do the title and the failure flag.
+        * WebCoreSupport/WebFrameLoaderClient.h: Remove argument.
+
+2008-11-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - finish https://bugs.webkit.org/show_bug.cgi?id=22295
+          track which history items are from page load failures
+
+        Last time around I did this only for the back/forward list and missed the
+        global history list.
+
+        * Interfaces/IWebHistoryItemPrivate.idl: Added setLastVisitWasFailure.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::updateGlobalHistory): Added code to check for failure
+        and pass the argument in to WebHistory.
+
+        * WebHistory.cpp: (WebHistory::addItem): Added wasFailure argument.
+        Set the flag on the newly created history item.
+        * WebHistory.h: Ditto.
+
+        * WebHistoryItem.cpp:
+        (WebHistoryItem::setLastVisitWasFailure): Added.
+        * WebHistoryItem.h: Ditto.
+
+2008-11-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix call to Frame::selectionBounds in Windows build.
+
+        * WebView.cpp:
+        (WebView::selectionRect):
+
 2008-11-24  Dimitri Glazkov  <dglazkov@chromium.org>
 
         Reviewed by Alexey Proskuryakov.

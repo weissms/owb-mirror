@@ -501,6 +501,16 @@ public:
      */
     virtual bool smartInsertDeleteEnabled();
 
+    /*
+     * setSelectTrailingWhitespaceEnabled
+     */
+    virtual void setSelectTrailingWhitespaceEnabled(bool flag);
+
+    /*
+     * isSelectTrailingWhitespaceEnabled
+     */
+    virtual bool isSelectTrailingWhitespaceEnabled();
+
     /**
      *  setContinuousSpellCheckingEnabled 
      */
@@ -1452,6 +1462,7 @@ protected:
     unsigned m_paintCount;
     bool m_hasSpellCheckerDocumentTag;
     bool m_smartInsertDeleteEnabled;
+    bool m_selectTrailingWhitespaceEnabled;
     bool m_didClose;
     bool m_hasCustomDropTarget;
     unsigned m_inIMEComposition;

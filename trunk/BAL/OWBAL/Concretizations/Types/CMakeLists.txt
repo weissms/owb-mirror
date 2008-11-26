@@ -89,6 +89,7 @@ OWBLN (WK/BCLengthBoxWK.h OWBAL 0 0)
 OWBLN (WK/BCdtoaWK.h OWBAL 0 0)
 OWBLN (WK/BCStdLibExtrasWK.h OWBAL 0 0)
 OWBLN (WK/BCLinkHashWK.h OWBAL 0 0)
+OWBLN (WK/BCPurgeableBufferWK.h OWBAL 0 0)
 
 OWBLN (Common/BCbal_objectCommon.h OWBAL 0 0)
 

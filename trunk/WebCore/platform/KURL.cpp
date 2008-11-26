@@ -320,7 +320,11 @@ KURL::KURL(const KURL& base, const String& relative)
 
 KURL::KURL(const KURL& base, const String& relative, const TextEncoding& encoding)
 {
-    init(base, relative, encoding);
+    // For UTF-{7,16,32}, we want to use UTF-8 for the query part as 
+    // we do when submitting a form. A form with GET method
+    // has its contents added to a URL as query params and it makes sense
+    // to be consistent.
+    init(base, relative, encoding.encodingForFormSubmission());
 }
 
 void KURL::init(const KURL& base, const String& relative, const TextEncoding& encoding)
@@ -511,6 +515,13 @@ void KURL::init(const KURL& base, const String& relative, const TextEncoding& en
             }
         }
     }
+}
+
+KURL KURL::copy() const
+{
+    KURL result = *this;
+    result.m_string = result.m_string.copy();
+    return result;
 }
 
 bool KURL::hasPath() const

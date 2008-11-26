@@ -23,6 +23,7 @@
 #define ScriptController_h
 
 #include "JSDOMWindowShell.h"
+#include "ScriptInstance.h"
 #include <runtime/Protect.h>
 #include <wtf/RefPtr.h>
 
@@ -40,10 +41,8 @@ struct NPObject;
 
 namespace JSC {
     class JSGlobalObject;
-    class SourceCode;
 
     namespace Bindings {
-        class Instance;
         class RootObject;
     }
 }
@@ -55,6 +54,7 @@ class EventListener;
 class HTMLPlugInElement;
 class Frame;
 class Node;
+class ScriptSourceCode;
 class ScriptValue;
 class String;
 class Widget;
@@ -79,7 +79,7 @@ public:
         return m_windowShell->window();
     }
 
-    ScriptValue evaluate(const JSC::SourceCode&);
+    ScriptValue evaluate(const ScriptSourceCode&);
 
     PassRefPtr<EventListener> createInlineEventListener(const String& functionName, const String& code, Node*);
 #if ENABLE(SVG)
@@ -109,7 +109,7 @@ public:
     void clearScriptObjects();
     void cleanupScriptObjectsForPlugin(void*);
 
-    PassRefPtr<JSC::Bindings::Instance> createScriptInstanceForWidget(Widget*);
+    PassScriptInstance createScriptInstanceForWidget(Widget*);
     JSC::Bindings::RootObject* bindingRootObject();
 
     PassRefPtr<JSC::Bindings::RootObject> createRootObject(void* nativeHandle);

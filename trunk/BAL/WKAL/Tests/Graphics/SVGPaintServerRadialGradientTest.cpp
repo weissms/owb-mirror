@@ -1,3 +1,4 @@
+#include "config.h"
 #include "SVGPaintServerRadialGradientTest.h"
 #ifdef SVGPaintServerRadialGradientTest_h_CPPUNIT
 CPPUNIT_TEST_SUITE_REGISTRATION( SVGPaintServerRadialGradientTestTest );

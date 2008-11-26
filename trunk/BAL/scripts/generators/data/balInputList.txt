@@ -369,7 +369,8 @@
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/SSLKeyGenerator.h
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/GeolocationService.h
 ../../OWBAL/Concretizations/Facilities/WK	../../../WebCore/platform/GeolocationService.cpp
-
+../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/gtk/GeolocationServiceGtk.h
+../../OWBAL/Concretizations/Facilities/Gtk	../../../WebCore/platform/gtk/GeolocationServiceGtk.cpp
 
 ../../OWBAL/Skeletons/Media	../../../WebCore/platform/graphics/MediaPlayer.h
 ../../OWBAL/Skeletons/Media	../../../WebCore/platform/graphics/gtk/MediaPlayerPrivateGStreamer.h	BIMediaPlayerPrivate.h
@@ -453,6 +454,7 @@
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/dtoa.h
 ../../OWBAL/Skeletons/Types	../../../JavaScriptCore/wtf/StdLibExtras.h
 ../../OWBAL/Skeletons/Types	../../../WebCore/platform/LinkHash.h
+../../OWBAL/Skeletons/Types	../../../WebCore/platform/PurgeableBuffer.h
 
 
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/Deque.h
@@ -529,6 +531,7 @@
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/StdLibExtras.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/LinkHash.h
 ../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/LinkHash.cpp
+../../OWBAL/Concretizations/Types/WK	../../../WebCore/platform/PurgeableBuffer.h
 
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformKeyboardEvent.h
 ../../WKAL/Skeletons/Events	../../../WebCore/platform/PlatformMouseEvent.h

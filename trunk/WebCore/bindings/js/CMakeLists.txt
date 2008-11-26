@@ -1,4 +1,5 @@
 LIST (APPEND BINDINGS_JS_SRC
+    bindings/js/DOMTimer.cpp
     bindings/js/GCController.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSAudioConstructor.cpp

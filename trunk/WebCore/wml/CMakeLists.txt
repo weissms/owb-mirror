@@ -15,4 +15,7 @@ LIST (APPEND WML_SRC
     wml/WMLIntrinsicEvent.cpp
     wml/WMLVariables.cpp
     wml/WMLTaskElement.cpp
+    wml/WMLOnEventElement.cpp
+    wml/WMLAccessElement.cpp
+    wml/WMLEventHandlingElement.cpp
 )

@@ -1,3 +1,153 @@
+2008-11-26  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Remove the unused member function JSFunction::getParameterName().
+
+        * runtime/JSFunction.cpp:
+        * runtime/JSFunction.h:
+
+2008-11-24  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Polymorpic caching for get by id chain.  Similar to the polymorphic caching already implemented
+        for self and proto accesses (implemented by allowing multiple trampolines to be JIT genertaed,
+        and linked together) - the get by id chain caching is implemented as a genericization of the
+        proto list caching, allowing cached access lists to contain a mix of proto and proto chain
+        accesses (since in JS style inheritance hierarchies you may commonly see a mix of properties
+        being overridden on the direct prototype, or higher up its prototype chain).
+
+        In order to allow this patch to compile there is a fix to appease gcc 4.2 compiler issues
+        (removing the jumps between fall-through cases in privateExecute).
+        
+        This patch also removes redundant immediate checking from the reptach code, and fixes a related
+        memory leak (failure to deallocate trampolines). 
+
+        ~2% progression on v8 tests (bulk on the win on deltablue)
+
+        * bytecode/Instruction.h:
+        (JSC::PolymorphicAccessStructureList::PolymorphicStubInfo::):
+        (JSC::PolymorphicAccessStructureList::PolymorphicStubInfo::set):
+        (JSC::PolymorphicAccessStructureList::PolymorphicAccessStructureList):
+        (JSC::PolymorphicAccessStructureList::derefStructures):
+        * interpreter/Interpreter.cpp:
+        (JSC::countPrototypeChainEntriesAndCheckForProxies):
+        (JSC::Interpreter::tryCacheGetByID):
+        (JSC::Interpreter::privateExecute):
+        (JSC::Interpreter::tryCTICacheGetByID):
+        (JSC::Interpreter::cti_op_get_by_id_self_fail):
+        (JSC::getPolymorphicAccessStructureListSlot):
+        (JSC::Interpreter::cti_op_get_by_id_proto_list):
+        * interpreter/Interpreter.h:
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+        (JSC::JIT::privateCompileGetByIdChainList):
+        (JSC::JIT::privateCompileGetByIdChain):
+        (JSC::JIT::privateCompilePatchGetArrayLength):
+        * jit/JIT.h:
+        (JSC::JIT::compileGetByIdChainList):
+
+2008-11-25  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Move the collect() call in Heap::heapAllocate() that is conditionally
+        compiled under COLLECT_ON_EVERY_ALLOCATION so that it is before we get
+        information about the heap. This was causing assertion failures for me
+        while I was reducing a bug.
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::heapAllocate):
+
+2008-11-24  Cameron Zwarich  <zwarich@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 13790: Function declarations are not treated as statements (used to affect starcraft2.com)
+        <https://bugs.webkit.org/show_bug.cgi?id=13790>
+
+        Modify the parser to treat function declarations as statements,
+        simplifying the grammar in the process. Technically, according to the
+        grammar in the ECMA spec, function declarations are not statements and
+        can not be used everywhere that statements can, but it is not worth the
+        possibility compatibility issues just to stick to the spec in this case.
+
+        * parser/Grammar.y:
+        * parser/Nodes.cpp:
+        (JSC::FuncDeclNode::emitBytecode): Avoid returning ignoredResult()
+        as a result, because it causes a crash in DoWhileNode::emitBytecode().
+
+2008-11-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Unroll the regexp matching loop by 1. 10% speedup on simple matching
+        stress test. No change on SunSpider.
+        
+        (I decided not to unroll to arbitrary levels because the returns diminsh
+        quickly.)
+
+        * wrec/WREC.cpp:
+        (JSC::WREC::compileRegExp):
+        * wrec/WRECGenerator.cpp:
+        (JSC::WREC::Generator::generateJumpIfEndOfInput):
+        (JSC::WREC::Generator::generateJumpIfNotEndOfInput):
+        * wrec/WRECGenerator.h:
+        * wrec/WRECParser.h:
+        (JSC::WREC::Parser::error):
+        (JSC::WREC::Parser::parsePattern):
+
+2008-11-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Removed some unnecessary "Generator::" prefixes.
+
+        * wrec/WRECGenerator.cpp:
+        (JSC::WREC::Generator::generateEnter):
+        (JSC::WREC::Generator::generateReturnSuccess):
+        (JSC::WREC::Generator::generateSaveIndex):
+        (JSC::WREC::Generator::generateIncrementIndex):
+        (JSC::WREC::Generator::generateLoopIfNotEndOfInput):
+        (JSC::WREC::Generator::generateReturnFailure):
+
+2008-11-24  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+        
+        Made a bunch of WREC::Parser functions private, and added an explicit
+        "reset()" function, so a parser can be reused.
+
+        * wrec/WRECParser.h:
+        (JSC::WREC::Parser::Parser):
+        (JSC::WREC::Parser::generator):
+        (JSC::WREC::Parser::ignoreCase):
+        (JSC::WREC::Parser::multiline):
+        (JSC::WREC::Parser::recordSubpattern):
+        (JSC::WREC::Parser::numSubpatterns):
+        (JSC::WREC::Parser::parsePattern):
+        (JSC::WREC::Parser::parseAlternative):
+        (JSC::WREC::Parser::reset):
+
+2008-11-24  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Camron Zwarich.
+
+        Implement repatching for get by id chain.
+        Previously the access is performed in a function stub, in the repatch form
+        the trampoline is not called to; instead the hot path is relinked to jump
+        directly to the trampoline, if it fails it will jump to the slow case.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22449
+        3% progression on deltablue.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdChain):
+
 2008-11-24  Joerg Bornemann  <joerg.bornemann@trolltech.com>
 
         Reviewed by Simon Hausmann.

@@ -1,6 +1,7 @@
 #ifndef XBMImageDecoderTest_h_CPPUNIT
 #define XBMImageDecoderTest_h_CPPUNIT
 
+#include "config.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include "BCXBMImageDecoder.h"
 class XBMImageDecoderTestTest : public CppUnit::TestFixture

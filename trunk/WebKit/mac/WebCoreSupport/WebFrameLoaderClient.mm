@@ -715,13 +715,15 @@ void WebFrameLoaderClient::finishedLoading(DocumentLoader* loader)
     [dataSource(loader) _finishedLoading];
 }
 
-void WebFrameLoaderClient::updateGlobalHistory(const KURL& url)
+void WebFrameLoaderClient::updateGlobalHistory()
 {
-    NSURL *cocoaURL = url;
-    const String& pageTitle = core(m_webFrame.get())->loader()->documentLoader()->title();
-    [[WebHistory optionalSharedHistory] _visitedURL:cocoaURL withTitle:pageTitle];
+    DocumentLoader* loader = core(m_webFrame.get())->loader()->documentLoader();
+    const KURL& url = loader->urlForHistory();
+    const String& title = loader->title();
+    bool wasFailure = loader->urlForHistoryReflectsFailure();
+    [[WebHistory optionalSharedHistory] _visitedURL:url withTitle:title wasFailure:wasFailure];
 }
- 
+
 bool WebFrameLoaderClient::shouldGoToHistoryItem(HistoryItem* item) const
 {
     WebView* view = getWebView(m_webFrame.get());

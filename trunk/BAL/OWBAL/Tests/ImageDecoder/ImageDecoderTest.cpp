@@ -1,3 +1,4 @@
+#include "config.h"
 #include "ImageDecoderTest.h"
 #ifdef ImageDecoderTest_h_CPPUNIT
 CPPUNIT_TEST_SUITE_REGISTRATION( ImageDecoderTestTest );

@@ -283,6 +283,7 @@ WebView::WebView()
 , m_topLevelParent(0)
 , m_deleteBackingStoreTimerActive(false)
 , m_transparent(false)
+, m_selectTrailingWhitespaceEnabled(false)
 {
     JSC::initializeThreading();
 
@@ -2955,7 +2956,7 @@ HRESULT STDMETHODCALLTYPE WebView::selectionRect(RECT* rc)
     WebCore::Frame* frame = m_page->focusController()->focusedOrMainFrame();
 
     if (frame) {
-        IntRect ir = enclosingIntRect(frame->selectionRect());
+        IntRect ir = enclosingIntRect(frame->selectionBounds());
         ir = frame->view()->convertToContainingWindow(ir);
         ir.move(-frame->view()->scrollOffset().width(), -frame->view()->scrollOffset().height());
         rc->left = ir.x();
@@ -3492,6 +3493,8 @@ HRESULT STDMETHODCALLTYPE WebView::setSmartInsertDeleteEnabled(
         /* [in] */ BOOL flag)
 {
     m_smartInsertDeleteEnabled = !!flag;
+    if (m_smartInsertDeleteEnabled)
+        setSelectTrailingWhitespaceEnabled(false);
     return S_OK;
 }
     
@@ -3501,7 +3504,23 @@ HRESULT STDMETHODCALLTYPE WebView::smartInsertDeleteEnabled(
     *enabled = m_smartInsertDeleteEnabled ? TRUE : FALSE;
     return S_OK;
 }
+ 
+HRESULT STDMETHODCALLTYPE WebView::setSelectTrailingWhitespaceEnabled( 
+        /* [in] */ BOOL flag)
+{
+    m_selectTrailingWhitespaceEnabled = !!flag;
+    if (m_selectTrailingWhitespaceEnabled)
+        setSmartInsertDeleteEnabled(false);
+    return S_OK;
+}
     
+HRESULT STDMETHODCALLTYPE WebView::isSelectTrailingWhitespaceEnabled( 
+        /* [retval][out] */ BOOL* enabled)
+{
+    *enabled = m_selectTrailingWhitespaceEnabled ? TRUE : FALSE;
+    return S_OK;
+}
+
 HRESULT STDMETHODCALLTYPE WebView::setContinuousSpellCheckingEnabled( 
         /* [in] */ BOOL flag)
 {

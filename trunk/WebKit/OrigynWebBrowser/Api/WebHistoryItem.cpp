@@ -205,3 +205,8 @@ bool WebHistoryItem::lastVisitWasFailure()
     return m_historyItem->lastVisitWasFailure();
 }
 
+void WebHistoryItem::setLastVisitWasFailure(bool wasFailure)
+{
+    m_historyItem->setLastVisitWasFailure(wasFailure);
+}
+

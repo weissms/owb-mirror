@@ -227,6 +227,7 @@ WebView::WebView()
 , m_paintCount(0)
 , m_hasSpellCheckerDocumentTag(false)
 , m_smartInsertDeleteEnabled(false)
+, m_selectTrailingWhitespaceEnabled(false)
 , m_didClose(false)
 , m_hasCustomDropTarget(false)
 , m_inIMEComposition(0)
@@ -1653,7 +1654,7 @@ IntRect WebView::selectionRect()
     WebCore::Frame* frame = m_page->focusController()->focusedOrMainFrame();
 
     if (frame) {
-        IntRect ir = enclosingIntRect(frame->selectionRect());
+        IntRect ir = enclosingIntRect(frame->selectionBounds());
         ir = frame->view()->convertToContainingWindow(ir);
         ir.move(-frame->view()->scrollOffset().width(), -frame->view()->scrollOffset().height());
         return ir;
@@ -1774,11 +1775,25 @@ void WebView::registerURLSchemeAsLocal(String scheme)
 void WebView::setSmartInsertDeleteEnabled(bool flag)
 {
     m_smartInsertDeleteEnabled = !!flag;
+    if (m_smartInsertDeleteEnabled)
+        setSelectTrailingWhitespaceEnabled(false);
 }
     
 bool WebView::smartInsertDeleteEnabled()
 {
     return m_smartInsertDeleteEnabled ? true : false;
+}
+
+void WebView::setSelectTrailingWhitespaceEnabled(bool flag)
+{
+    m_selectTrailingWhitespaceEnabled = !!flag;
+    if (m_selectTrailingWhitespaceEnabled)
+        setSmartInsertDeleteEnabled(false);
+}
+
+bool WebView::isSelectTrailingWhitespaceEnabled()
+{
+    return m_selectTrailingWhitespaceEnabled;
 }
 
 void WebView::setContinuousSpellCheckingEnabled(bool flag)

@@ -1,3 +1,48 @@
+2008-11-26  Darin Fisher  <darin@chromium.org>
+
+        Fix bustage.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15643
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::EditorClient::isSelectTrailingWhitespaceEnabled):
+        * WebCoreSupport/EditorClientGtk.h:
+
+2008-11-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22470
+          remove unneeded URL argument from FrameLoaderClient::updateGlobalHistory
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::updateGlobalHistory): Remove argument.
+        * WebCoreSupport/FrameLoaderClientGtk.h: Ditto.
+
+2008-11-24  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=17122
+        [GTK] Bad font default settings
+
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::webkit_web_settings_class_init):
+        Use default font size 12 instead of 10
+
+2008-11-24  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22039
+
+        Implement a semi-private function for adding a directory to
+        PluginDatabase's paths.
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::webkit_web_settings_add_extra_plugin_directory):
+
 2008-11-24  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Rubber-stamped by Sam Weinig.

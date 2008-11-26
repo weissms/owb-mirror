@@ -1,3 +1,4 @@
+#include "config.h"
 #include "GeneratedImageTest.h"
 #ifdef GeneratedImageTest_h_CPPUNIT
 CPPUNIT_TEST_SUITE_REGISTRATION( GeneratedImageTestTest );

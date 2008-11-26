@@ -24,9 +24,9 @@
 #if ENABLE(WML)
 #include "WMLTaskElement.h"
 
-#include "Page.h"
 #include "WMLAnchorElement.h"
 #include "WMLNames.h"
+#include "WMLOnEventElement.h"
 #include "WMLPageState.h"
 #include "WMLSetvarElement.h"
 
@@ -47,26 +47,20 @@ void WMLTaskElement::insertedIntoDocument()
 {
     WMLElement::insertedIntoDocument();
 
-    for (Node* parent = parentNode(); parent; parent = parent->parentNode()) {
-        /* FIXME
-        if (parent->hasTagName(doTag)) {
-            static_cast<WMLDoElement*>(parent)->registerTask(this);
-            break;
-        }
-        */
+    Node* parent = parentNode();
+    ASSERT(parent);
 
-        if (parent->hasTagName(anchorTag)) {
-            static_cast<WMLAnchorElement*>(parent)->registerTask(this);
-            break;
-        }
+    if (!parent || !parent->isWMLElement())
+        return;
 
-        /* FIXME
-        if (parent->localName() == "onevent") {
-            bindIntrinsicEventInOnevent(parent);
-            break;
-        }
-        */
-    }
+    if (parent->hasTagName(anchorTag))
+        static_cast<WMLAnchorElement*>(parent)->registerTask(this);
+/* FIXME
+    else if (parent->hasTagName(doTag))
+        static_cast<WMLDoElement*>(parent)->registerTask(this);
+*/
+    else if (parent->hasTagName(oneventTag))
+        static_cast<WMLOnEventElement*>(parent)->registerTask(this);
 }
 
 void WMLTaskElement::registerVariableSetter(WMLSetvarElement* element)
@@ -75,11 +69,9 @@ void WMLTaskElement::registerVariableSetter(WMLSetvarElement* element)
     m_variableSetterElements.add(element);
 }
 
-void WMLTaskElement::storeVariableState(Page* page)
+void WMLTaskElement::storeVariableState(WMLPageState* pageState)
 {
-    ASSERT(page);
-
-    if (m_variableSetterElements.isEmpty())
+    if (!pageState || m_variableSetterElements.isEmpty())
         return;
 
     WMLVariableMap variables;
@@ -96,9 +88,6 @@ void WMLTaskElement::storeVariableState(Page* page)
 
     if (variables.isEmpty())
         return;
-
-    WMLPageState* pageState = page->wmlPageState();
-    ASSERT(pageState);
 
     pageState->storeVariables(variables);
 }

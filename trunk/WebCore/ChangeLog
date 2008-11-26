@@ -1,3 +1,896 @@
+2008-11-26  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler and Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22469
+
+        Move the class DOMWindowTimer from JSDOMWindowBase into its own file in
+        preparation to making it work for Workers. For now, just move the code and couple
+        of global variables.
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::JSDOMWindowBase::installTimeout):
+        (WebCore::JSDOMWindowBase::pauseTimeouts):
+        (WebCore::JSDOMWindowBase::resumeTimeouts):
+        (WebCore::JSDOMWindowBase::timerFired):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/DOMTimer.cpp: Added.
+        (WebCore::DOMTimer::DOMTimer):
+        (WebCore::DOMTimer::~DOMTimer):
+        (WebCore::DOMTimer::fired):
+        * bindings/js/DOMTimer.h: Added.
+        (WebCore::DOMTimer::timeoutId):
+        (WebCore::DOMTimer::nestingLevel):
+        (WebCore::DOMTimer::setNestingLevel):
+        (WebCore::DOMTimer::action):
+        (WebCore::DOMTimer::takeAction):
+
+2008-11-25  Darin Fisher  <darin@chromium.org>
+
+        Fix bustage.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22493
+        Need to expose bridge/*.h to the WebKit build.
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-11-25  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Not reviewed. Fix build, by removing some wrong last-minute changes.
+
+        * wml/WMLIntrinsicEvent.cpp:
+        (WebCore::createTaskElement):
+        * wml/WMLOnEventElement.cpp:
+        (WebCore::WMLOnEventElement::registerTask):
+
+2008-11-25  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Geoffrey Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22493
+        Abstract away JSC:: usage in WebCore/html
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSPluginElementFunctions.cpp:
+        (WebCore::pluginInstance):
+        * bindings/js/ScriptController.h:
+        * bindings/js/ScriptControllerMac.mm:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+        * bindings/js/ScriptInstance.h: Added.
+        * html/HTMLPlugInElement.cpp:
+        (WebCore::HTMLPlugInElement::~HTMLPlugInElement):
+        (WebCore::HTMLPlugInElement::getInstance):
+        * html/HTMLPlugInElement.h:
+
+2008-11-24  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Sam Weinig.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22477
+
+        A WMLTaskElement checks wheter it's parent is an <anchor>/<do>/<onevent> element, and calls registerTask(this) on the parent.
+        Add a isWMLTaskElement() function to WMLElement, making it possible to cast to WMLTaskElement directly.
+
+        Add WMLEventHandlingElement class, inheriting from WMLElement, to serve as common base WMLTemplate/Option/CardElement,
+        centralizing the eventHandler() / createEventHandlerIfNeeded() implementation. Add a isWMLEventHandlingElement()
+        function to WMLElement, so WMLOnEventElement can create event handlers, without knowing wheter it's a
+        <template>/<option> or <card> element.
+
+        Add complete <onevent> support.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * wml/WMLCardElement.cpp:
+        (WebCore::WMLCardElement::WMLCardElement):
+        (WebCore::WMLCardElement::setActiveCardInDocument):
+        * wml/WMLCardElement.h:
+        (WebCore::WMLCardElement::isVisible):
+        (WebCore::WMLCardElement::setVisible):
+        * wml/WMLElement.h:
+        (WebCore::WMLElement::isWMLTaskElement):
+        * wml/WMLEventHandlingElement.cpp: Added.
+        (WebCore::WMLEventHandlingElement::WMLEventHandlingElement):
+        (WebCore::WMLEventHandlingElement::createEventHandlerIfNeeded):
+        * wml/WMLEventHandlingElement.h: Added.
+        (WebCore::WMLEventHandlingElement::isWMLEventHandlingElement):
+        (WebCore::WMLEventHandlingElement::eventHandler):
+        * wml/WMLOnEventElement.cpp: Added.
+        (WebCore::WMLOnEventElement::WMLOnEventElement):
+        (WebCore::WMLOnEventElement::parseMappedAttribute):
+        (WebCore::WMLOnEventElement::registerTask):
+        * wml/WMLOnEventElement.h: Added.
+        * wml/WMLSetvarElement.cpp:
+        (WebCore::WMLSetvarElement::parseMappedAttribute):
+        (WebCore::WMLSetvarElement::insertedIntoDocument):
+        * wml/WMLTagNames.in:
+        * wml/WMLTaskElement.cpp:
+        (WebCore::WMLTaskElement::insertedIntoDocument):
+        * wml/WMLTaskElement.h:
+        (WebCore::WMLTaskElement::isWMLTaskElement):
+
+2008-11-25  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        createFontCustomPlatformData() crashes if CGFontCreateWithPlatformFont() returns NULL
+
+        https://bugs.webkit.org/show_bug.cgi?id=22503
+
+        * platform/graphics/mac/FontCustomPlatformData.cpp:
+        (WebCore::createFontCustomPlatformData):
+
+2008-11-25  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Bug 22441: Bridge the gap between the generated ElementFactory and HTMLElementFactory
+        https://bugs.webkit.org/show_bug.cgi?id=22441
+
+        Element's other than HTML ones take a QualifiedName in their constructors.
+        To make HTMLElementFactory closer to the other ElementFactory, we need
+        to make them take the same arguments.
+        This patch only makes the 5 first one in HTMLElementFactory abide by that. The others
+        will go into the next patch.
+
+        * dom/Document.cpp:
+        (WebCore::Document::implicitClose):
+        * html/HTMLBaseElement.cpp:
+        (WebCore::HTMLBaseElement::HTMLBaseElement):
+        * html/HTMLBaseElement.h:
+        * html/HTMLBodyElement.cpp:
+        (WebCore::HTMLBodyElement::HTMLBodyElement):
+        * html/HTMLBodyElement.h:
+        * html/HTMLElementFactory.cpp:
+        (WebCore::htmlConstructor):
+        (WebCore::headConstructor):
+        (WebCore::bodyConstructor):
+        (WebCore::baseConstructor):
+        (WebCore::linkConstructor):
+        (WebCore::metaConstructor):
+        * html/HTMLHeadElement.cpp:
+        (WebCore::HTMLHeadElement::HTMLHeadElement):
+        * html/HTMLHeadElement.h:
+        * html/HTMLHtmlElement.cpp:
+        (WebCore::HTMLHtmlElement::HTMLHtmlElement):
+        * html/HTMLHtmlElement.h:
+        * html/HTMLLinkElement.cpp:
+        (WebCore::HTMLLinkElement::HTMLLinkElement):
+        * html/HTMLLinkElement.h:
+        * html/HTMLMetaElement.cpp:
+        (WebCore::HTMLMetaElement::HTMLMetaElement):
+        * html/HTMLMetaElement.h:
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::handleError):
+        (WebCore::HTMLParser::headCreateErrorCheck):
+        (WebCore::HTMLParser::createHead):
+        (WebCore::HTMLParser::finished):
+        * html/HTMLViewSourceDocument.cpp:
+        (WebCore::HTMLViewSourceDocument::createContainingTable):
+
+2008-11-25  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=22487
+        I was not checking for the case of 0 length keyframe lists and dereffing a null pointer.
+
+        Tests: animations/empty-keyframes.html
+               animations/fill-unset-properties.html
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::keyframeStylesForAnimation):
+
+2008-11-25  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Darin Adler
+
+        https://bugs.webkit.org/show_bug.cgi?id=22046
+
+        Fix a crash when an animation or transition end event handler
+        removes the element upon which the transition/animation is running,
+        by keeping a reference to the AnimationBase object on the stack.
+
+        Tests: animations/transform-animation-event-destroy-element.html
+               transitions/transform-transition-event-destroy-element.html
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::setChanged):
+        (WebCore::AnimationBase::updateStateMachine):
+        * page/animation/AnimationBase.h:
+        (WebCore::AnimationBase::clearRenderer):
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::clear):
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::~CompositeAnimationPrivate):
+        * page/animation/CompositeAnimation.h:
+
+2008-11-25  Kevin Ollivier  <kevino@theolliviers.com>
+
+        Better wx build fix - support PurgeableBuffer on Mac.
+
+        * platform/PurgeableBuffer.h:
+        * webcore-wx.bkl:
+
+2008-11-25  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22022
+
+        Add GeoleocationServiceGtk stubs and integrate it into the buildsystem
+
+        Add stubs for a Gtk Implementation.
+
+        * GNUmakefile.am:
+        * platform/gtk/GeolocationServiceGtk.cpp: Added.
+        (WebCore::GeolocationService::create):
+        (WebCore::GeolocationServiceGtk::GeolocationServiceGtk):
+        (WebCore::GeolocationServiceGtk::startUpdating):
+        (WebCore::GeolocationServiceGtk::stopUpdating):
+        (WebCore::GeolocationServiceGtk::suspend):
+        (WebCore::GeolocationServiceGtk::resume):
+        (WebCore::GeolocationServiceGtk::lastPosition):
+        (WebCore::GeolocationServiceGtk::lastError):
+        * platform/gtk/GeolocationServiceGtk.h: Added.
+
+2008-11-25  Kevin Ollivier  <kevino@theolliviers.com>
+
+        wx build fix - we don't support PurgeableBuffer on Leopard for now.
+        
+        * platform/PurgeableBuffer.h:
+
+2008-11-25  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=22483
+        Assertion failure in CachedResource::makePurgeable during layout tests
+        
+        Deleting SVG image can re-enter destroyDecodedData.
+
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::destroyDecodedData):
+
+2008-11-25  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22443
+        Made the PreflightResultCache thread-safe in preparation for usage of XMLHttpRequest by
+        Workers on threads.
+
+        No observable change in behavior, so no test.
+
+        * platform/text/PlatformString.h:
+        * platform/text/String.cpp:
+        (WebCore::String::substringCopy):
+        * platform/text/StringImpl.cpp:
+        (WebCore::StringImpl::substringCopy):
+        * platform/text/StringImpl.h:
+        Added the ability to copy a substring.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::PreflightResultCacheItem::PreflightResultCacheItem):
+        (WebCore::PreflightResultCache::PreflightResultCache):
+        (WebCore::PreflightResultCacheItem::addToAccessControlAllowList):
+        (WebCore::PreflightResultCacheItem::parseAccessControlAllowList):
+        (WebCore::PreflightResultCacheItem::parseAccessControlMaxAge):
+        (WebCore::PreflightResultCacheItem::parse):
+        (WebCore::PreflightResultCacheItem::allowsRequest):
+        (WebCore::PreflightResultCache::shared):
+        (WebCore::PreflightResultCache::appendEntry):
+        (WebCore::PreflightResultCache::canSkipPreflight):
+        (WebCore::XMLHttpRequest::makeCrossSiteAccessRequestWithPreflight):
+        (WebCore::XMLHttpRequest::didReceiveResponsePreflight):
+        Made the PreflightResultCache threadsafe.
+
+        (WebCore::PreflightResultCacheItem::allowsCrossSiteMethod):
+        (WebCore::PreflightResultCacheItem::allowsCrossSiteHeaders):
+        Consolidation of duplicate logic.
+
+2008-11-24  Jungshik Shin  <jshin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        For Unicode encodings other than UTF-8, use UTF-8 for
+        form submission and URL query part encoding.
+
+        See https://bugs.webkit.org/show_bug.cgi?id=21635
+
+        Tests: http/tests/misc/submit-get-in-utf16be.html
+               http/tests/misc/submit-get-in-utf16le.html
+               http/tests/misc/submit-get-in-utf32be.html
+               http/tests/misc/submit-get-in-utf32le.html
+               http/tests/misc/submit-get-in-utf7.html
+               http/tests/misc/submit-post-in-utf16be.html
+               http/tests/misc/submit-post-in-utf16le.html
+               http/tests/misc/submit-post-in-utf32be.html
+               http/tests/misc/submit-post-in-utf32le.html
+               http/tests/misc/submit-post-in-utf7.html
+               http/tests/misc/url-in-utf16be.html
+               http/tests/misc/url-in-utf16le.html
+               http/tests/misc/url-in-utf32be.html
+               http/tests/misc/url-in-utf32le.html
+               http/tests/misc/url-in-utf7.html
+ 
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::formData):
+        * loader/TextResourceDecoder.cpp:
+        (WebCore::TextResourceDecoder::setEncoding):
+        * platform/KURL.cpp:
+        (WebCore::KURL::KURL):
+        * platform/text/TextEncoding.cpp:
+        (WebCore::UTF7Encoding):
+        (WebCore::TextEncoding::isNonByteBasedEncoding):
+        (WebCore::TextEncoding::closestByteBasedEquivalent):
+        (WebCore::TextEncoding::encodingForFormSubmission):
+        * platform/text/TextEncoding.h:
+
+2008-11-24  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Bug 22441: Bridge the gap between the generated ElementFactory and HTMLElementFactory
+        https://bugs.webkit.org/show_bug.cgi?id=22441
+
+        - Make the generated ElementFactory constructors return PassRefPtr instead of raw pointers.
+
+        - Tweaked the generated files to better match our coding style.
+
+        * dom/make_names.pl:
+
+2008-11-24  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=22073
+        REGRESSION(r33544): Palace in the Sky crashes WebKit
+        
+        HTMLTokenizer::m_hasScriptsWaitingForStylesheets would still be set while
+        there were no scripts left to execute. 
+        
+        If m_hasScriptsWaitingForStylesheets becomes true during script execution
+        bail out from executing more scripts synchronously.
+
+        Test: fast/tokenizer/nested-cached-scripts-and-stylesheet.html
+
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::reset):
+        (WebCore::HTMLTokenizer::notifyFinished):
+
+2008-11-24  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Geoffrey Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22465
+        Define KURL::copy() and use it in WorkerThread.cpp
+
+        * dom/WorkerThread.cpp:
+        (WebCore::WorkerThread::WorkerThread):
+        * platform/KURL.cpp:
+        (WebCore::KURL::copy):
+        * platform/KURL.h:
+
+2008-11-24  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Sam Weinig.
+
+        Name enum values in a style guide compatible way.
+        Allow WMLIntrinsicEvent inclusion, without needing other includes.
+
+        * wml/WMLIntrinsicEvent.cpp:
+        (WebCore::createTaskElement):
+        * wml/WMLIntrinsicEvent.h:
+        * wml/WMLIntrinsicEventHandler.cpp:
+        * wml/WMLIntrinsicEventHandler.h:
+        (WebCore::):
+
+2008-11-24  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Sam Weinig.
+
+        Add wmlPageStateForDocument() helper function and use it in some places.
+
+        * wml/WMLAccessElement.cpp:
+        (WebCore::WMLAccessElement::parseMappedAttribute):
+        * wml/WMLDocument.cpp:
+        (WebCore::WMLDocument::WMLDocument):
+        (WebCore::WMLDocument::finishedParsing):
+        (WebCore::wmlPageStateForDocument):
+        * wml/WMLDocument.h:
+        * wml/WMLGoElement.cpp:
+        (WebCore::WMLGoElement::executeTask):
+        * wml/WMLPrevElement.cpp:
+        (WebCore::WMLPrevElement::executeTask):
+        * wml/WMLRefreshElement.cpp:
+        (WebCore::WMLRefreshElement::executeTask):
+        * wml/WMLTaskElement.cpp:
+        (WebCore::WMLTaskElement::storeVariableState):
+        * wml/WMLTaskElement.h:
+
+2008-11-24  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Geoff Garen and Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22214
+        Keep dead resources in memory cache in purgeable memory.
+        <rdar://problem/6333088>
+        
+        OS X 10.5 has purgeable memory kernel facility that allows marking reserved memory
+        areas as less important. Under memory pressure system can steal pages that have
+        been marked purgeable for (hopefully) better uses. This is ideal for caches.
+        
+        Only resources larger than 16KB will be moved to the purgeable memory.
+
+        * WebCore.base.exp:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * loader/Cache.cpp:
+        (WebCore::Cache::requestResource):
+        (WebCore::Cache::requestUserCSSStyleSheet):
+        (WebCore::Cache::resourceForURL):
+        (WebCore::Cache::pruneDeadResources):
+        (WebCore::Cache::TypeStatistic::addResource):
+        (WebCore::Cache::getStatistics):
+        (WebCore::Cache::dumpStats):
+        * loader/Cache.h:
+        (WebCore::Cache::TypeStatistic::TypeStatistic):
+        * loader/CachedCSSStyleSheet.cpp:
+        (WebCore::CachedCSSStyleSheet::allClientsRemoved):
+        (WebCore::CachedCSSStyleSheet::sheetText):
+        * loader/CachedCSSStyleSheet.h:
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::addClient):
+        (WebCore::CachedImage::image):
+        (WebCore::CachedImage::imageSize):
+        (WebCore::CachedImage::imageRect):
+        (WebCore::CachedImage::destroyDecodedData):
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::addClient):
+        (WebCore::CachedResource::makePurgeable):
+        (WebCore::CachedResource::isPurgeable):
+        (WebCore::CachedResource::wasPurged):
+        * loader/CachedResource.h:
+        (WebCore::CachedResource::data):
+        * loader/CachedScript.cpp:
+        (WebCore::CachedScript::allClientsRemoved):
+        (WebCore::CachedScript::script):
+        (WebCore::CachedScript::destroyDecodedData):
+        * platform/PurgeableBuffer.h: Added.
+        (WebCore::PurgeableBuffer::create):
+        (WebCore::PurgeableBuffer::size):
+        (WebCore::PurgeableBuffer::):
+        (WebCore::PurgeableBuffer::purgePriority):
+        (WebCore::PurgeableBuffer::isPurgeable):
+        (WebCore::PurgeableBuffer::~PurgeableBuffer):
+        (WebCore::PurgeableBuffer::data):
+        (WebCore::PurgeableBuffer::setPurgePriority):
+        (WebCore::PurgeableBuffer::wasPurged):
+        (WebCore::PurgeableBuffer::makePurgeable):
+        * platform/SharedBuffer.cpp:
+        (WebCore::SharedBuffer::~SharedBuffer):
+        (WebCore::SharedBuffer::adoptPurgeableBuffer):
+        (WebCore::SharedBuffer::size):
+        (WebCore::SharedBuffer::data):
+        (WebCore::SharedBuffer::append):
+        (WebCore::SharedBuffer::clear):
+        (WebCore::SharedBuffer::releasePurgeableBuffer):
+        * platform/SharedBuffer.h:
+        (WebCore::SharedBuffer::hasPurgeableBuffer):
+        * platform/cf/SharedBufferCF.cpp:
+        * platform/mac/PurgeableBufferMac.cpp: Added.
+        (WebCore::PurgeableBuffer::PurgeableBuffer):
+        (WebCore::PurgeableBuffer::~PurgeableBuffer):
+        (WebCore::PurgeableBuffer::create):
+        (WebCore::PurgeableBuffer::makePurgeable):
+        (WebCore::PurgeableBuffer::wasPurged):
+        (WebCore::PurgeableBuffer::setPurgePriority):
+        (WebCore::PurgeableBuffer::data):
+
+2008-11-24  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by George Staikos & Eric Seidel.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22430
+
+        Regenerate WML layout test results after implementing WML specific <card> handling:
+        Only the first <card> element should be visible after loading the document, others
+        can be shown by using the <go> task element.
+
+        * dom/Document.h: Make 'finishedParsing()' a virtual function.
+        * wml/WMLCardElement.cpp:
+        (WebCore::WMLCardElement::WMLCardElement):
+        (WebCore::WMLCardElement::~WMLCardElement):
+        (WebCore::WMLCardElement::createRenderer):
+        (WebCore::WMLCardElement::setActiveCardInDocument):
+        (WebCore::WMLCardElement::setVisibility):
+        * wml/WMLCardElement.h:
+        * wml/WMLDocument.cpp:
+        (WebCore::WMLDocument::finishedParsing): Execute WML specific logic after tokenzing.
+        * wml/WMLDocument.h:
+
+2008-11-24  Glenn Wilson  <gwilson@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        http://bugs.webkit.org/show_bug.cgi?id=15643
+
+        Added support for clients that wish to disable smart insert/delete
+        and enable the "trailing whitespace selection" work-around.
+
+        Tests: editing/selection/doubleclick-whitespace.html
+
+        * editing/Editor.cpp:
+        (WebCore::Editor::selectTrailingWhitespaceEnabled):
+        * editing/Editor.h:
+        * editing/Selection.cpp:
+        (WebCore::Selection::includeTrailingWhitespace):
+        * editing/Selection.h:
+        * loader/EmptyClients.h:
+        (WebCore::EmptyEditorClient::selectTrailingWhitespaceEnabled):
+        * page/EditorClient.h:
+        * page/EventHandler.cpp:
+        (WebCore::EventHandler::selectClosestWordFromMouseEvent):
+
+2008-11-24  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Not reviewed. Forgot to include WMLPageState.h in last commit.
+
+        * wml/WMLPageState.h:
+        (WebCore::WMLPageState::restrictDeckAccessToDomain):
+        (WebCore::WMLPageState::restrictDeckAccessToPath):
+
+2008-11-24  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Oliver Hunt & Eric Seidel.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22431
+
+        Implement WMLAccessElement. It just propogates two attributes values to WMLPageState.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * wml/WMLAccessElement.cpp: Added.
+        (WebCore::WMLAccessElement::WMLAccessElement):
+        (WebCore::WMLAccessElement::parseMappedAttribute):
+        * wml/WMLAccessElement.h: Added.
+        * wml/WMLTagNames.in:
+        * wml/WMLPageState.h: Rename functions.
+        (WebCore::WMLPageState::restrictDeckAccessToDomain):
+        (WebCore::WMLPageState::restrictDeckAccessToPath):
+        * wml/WMLVariables.cpp: Add new helper function.
+        (WebCore::valueContainsVariableReference):
+        * wml/WMLVariables.h:
+        (WebCore::):
+
+2008-11-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - https://bugs.webkit.org/show_bug.cgi?id=22470
+          remove unneeded URL argument from FrameLoaderClient::updateGlobalHistory
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyFrameLoaderClient::updateGlobalHistory): Remove argument.
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::updateHistoryForStandardLoad): Don't pass the URL.
+        (WebCore::FrameLoader::updateHistoryForRedirectWithLockedHistory): Ditto.
+        * loader/FrameLoaderClient.h: Remove argument.
+
+2008-11-24  Finnur Thorarinsson  <finnur.webkit@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22432
+
+        Add plumbing for tickmark support for the scrollbars. The painting code
+        for the scrollbar just needed to call paintTickmarks at the right time
+        and a default no-op implementation is provided, which the ports will
+        need to override.
+
+        * platform/ScrollbarThemeComposite.cpp:
+        (WebCore::ScrollbarThemeComposite::paint):
+        * platform/ScrollbarThemeComposite.h:
+        (WebCore::ScrollbarThemeComposite::paintTickmarks):
+
+2008-11-24  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22448
+        Create an abstraction for JSC::SourceCode
+
+        * WebCore.vcproj/WebCore.vcproj:
+        * bindings/js/CachedScriptSourceProvider.h:
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::evaluate):
+        * bindings/js/ScriptController.h:
+        * bindings/js/ScriptSourceCode.h: Added.
+        (WebCore::ScriptSourceCode::ScriptSourceCode):
+        (WebCore::ScriptSourceCode::length):
+        (WebCore::ScriptSourceCode::jsSourceCode):
+        * bindings/js/WorkerScriptController.cpp:
+        (WebCore::Workevn ScriptController::evaluate):
+        * bindings/js/WorkerScriptController.h:
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElement::insertedIntoDocument):
+        (WebCore::ScriptElement::childrenChanged):
+        (WebCore::ScriptElementData::evaluateScript):
+        (WebCore::ScriptElementData::notifyFinished):
+        * dom/ScriptElement.h:
+        * dom/WorkerThread.cpp:
+        (WebCore::WorkerThread::workerThread):
+        * dom/WorkerThread.h:
+        * dom/XMLTokenizer.cpp:
+        (WebCore::XMLTokenizer::notifyFinished):
+        * dom/XMLTokenizerLibxml2.cpp:
+        (WebCore::XMLTokenizer::endElementNs):
+        * dom/XMLTokenizerQt.cpp:
+        (WebCore::XMLTokenizer::parseEndElement):
+        * html/HTMLTokenizer.cpp:
+        (WebCore::HTMLTokenizer::scriptHandler):
+        (WebCore::HTMLTokenizer::scriptExecution):
+        (WebCore::HTMLTokenizer::notifyFinished):
+        * html/HTMLTokenizer.h:
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::executeScript):
+        * loader/FrameLoader.h:
+
+2008-11-24  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        - finish https://bugs.webkit.org/show_bug.cgi?id=22295
+          track which history items are from page load failures
+
+        * WebCore.base.exp: Exported new function.
+
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::urlForHistoryReflectsFailure): Added.
+        * loader/DocumentLoader.h: Ditto.
+
+2008-11-24  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 22461: AccessibilityListBox::doAccessibilityHitTest() signature does not match the base class
+        https://bugs.webkit.org/show_bug.cgi?id=22461
+ 
+        Changing AccessibilityListBox to use its parent's signature for hit testing
+
+        * page/AccessibilityListBox.cpp:
+        (WebCore::AccessibilityListBox::doAccessibilityHitTest):
+        * page/AccessibilityListBox.h:
+
+2008-11-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix Windows build: selectionRect() -> selectionBounds().
+
+        * page/win/FrameCGWin.cpp:
+        (WebCore::imageFromSelection):
+
+2008-11-24  Glenn Wilson  <gwilson@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        http://bugs.webkit.org/show_bug.cgi?id=18703
+        "Changing the 'size' property on a text input does not affect its length"
+
+        Text fields would not repaint themselves after having their "size" 
+        attributes modified.  This fix tells the object to recalculate its 
+        width and repaint itself when its "size" attribute is parsed.
+
+        Test: fast/js/text-field-resize.html
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::parseMappedAttribute):
+
+2008-11-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler
+
+        Followup from changes for https://bugs.webkit.org/show_bug.cgi?id=22433
+        
+        Make RenderView::selectionRect() private to cause compile-time
+        errors if someone tries to call it.
+
+        * rendering/RenderView.h:
+
+2008-11-24  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Via: https://bugs.webkit.org/show_bug.cgi?id=22433
+        
+        Rename RenderView::selectionRect() to selectionBounds(), to remove
+        longstanding ambiguity with the base class selectionRect() method.
+        Do the same on Frame for consistency with RenderView. Assert
+        that RenderView::selectionRect() is never called.
+
+        * WebCore.base.exp:
+        * editing/SelectionController.cpp:
+        (WebCore::SelectionController::focusedOrActiveStateChanged):
+        * page/DragController.cpp:
+        (WebCore::dragLocForSelectionDrag):
+        * page/Frame.cpp:
+        (WebCore::Frame::selectionBounds):
+        (WebCore::Frame::revealSelection):
+        * page/Frame.h:
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::selectionImage):
+        * rendering/RenderView.cpp:
+        (WebCore::RenderView::selectionRect):
+        (WebCore::RenderView::selectionBounds):
+        * rendering/RenderView.h:
+
+2008-11-19  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Bug 22441: Bridge the gap between the generated ElementFactory and HTMLElementFactory
+        https://bugs.webkit.org/show_bug.cgi?id=22441
+
+        - Make HTMLElementFactory::createHTMLElement take a QualifiedName instead of
+        an AtomicString.
+
+        - Updated the elements' constructors and the callers to reflect the previous change.
+
+        * dom/Document.cpp:
+        (WebCore::Document::createElement):
+        * html/HTMLDocument.cpp:
+        (WebCore::HTMLDocument::createElement):
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::cloneNode):
+        * html/HTMLElementFactory.cpp:
+        (WebCore::htmlConstructor):
+        (WebCore::headConstructor):
+        (WebCore::bodyConstructor):
+        (WebCore::baseConstructor):
+        (WebCore::linkConstructor):
+        (WebCore::metaConstructor):
+        (WebCore::styleConstructor):
+        (WebCore::titleConstructor):
+        (WebCore::frameConstructor):
+        (WebCore::framesetConstructor):
+        (WebCore::iframeConstructor):
+        (WebCore::formConstructor):
+        (WebCore::buttonConstructor):
+        (WebCore::inputConstructor):
+        (WebCore::isindexConstructor):
+        (WebCore::fieldsetConstructor):
+        (WebCore::keygenConstructor):
+        (WebCore::labelConstructor):
+        (WebCore::legendConstructor):
+        (WebCore::optgroupConstructor):
+        (WebCore::optionConstructor):
+        (WebCore::selectConstructor):
+        (WebCore::textareaConstructor):
+        (WebCore::dlConstructor):
+        (WebCore::ulConstructor):
+        (WebCore::olConstructor):
+        (WebCore::dirConstructor):
+        (WebCore::menuConstructor):
+        (WebCore::liConstructor):
+        (WebCore::blockquoteConstructor):
+        (WebCore::divConstructor):
+        (WebCore::headingConstructor):
+        (WebCore::hrConstructor):
+        (WebCore::paragraphConstructor):
+        (WebCore::preConstructor):
+        (WebCore::basefontConstructor):
+        (WebCore::fontConstructor):
+        (WebCore::modConstructor):
+        (WebCore::anchorConstructor):
+        (WebCore::imageConstructor):
+        (WebCore::mapConstructor):
+        (WebCore::areaConstructor):
+        (WebCore::canvasConstructor):
+        (WebCore::appletConstructor):
+        (WebCore::embedConstructor):
+        (WebCore::objectConstructor):
+        (WebCore::paramConstructor):
+        (WebCore::scriptConstructor):
+        (WebCore::tableConstructor):
+        (WebCore::tableCaptionConstructor):
+        (WebCore::tableColConstructor):
+        (WebCore::tableRowConstructor):
+        (WebCore::tableCellConstructor):
+        (WebCore::tableSectionConstructor):
+        (WebCore::brConstructor):
+        (WebCore::quoteConstructor):
+        (WebCore::marqueeConstructor):
+        (WebCore::audioConstructor):
+        (WebCore::videoConstructor):
+        (WebCore::sourceConstructor):
+        (WebCore::HTMLElementFactory::createHTMLElement):
+        * html/HTMLElementFactory.h:
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::getNode):
+
+2008-11-24  Brent Fulgham  <bfulgham@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22444
+
+        Correct bad default constructor for Cairo FontPlatformData so that
+        the m_scaledFont member is initialized.  Previously this would be
+        set to 0xbaadf00d, which would result in infinite loops while
+        attempting to deal with the font cache.
+
+        * platform/graphics/win/FontPlatformData.h:
+        (WebCore::FontPlatformData::FontPlatformData): Initialize m_scaledFont to 0
+
+2008-11-24  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22455
+        Add support for Worker.terminate()
+
+        Test: fast/workers/worker-terminate.html
+
+        * dom/Worker.idl:
+        * dom/Worker.cpp:
+        * dom/Worker.h:
+        Added terminate().
+
+        * dom/WorkerMessagingProxy.h: (WebCore::WorkerMessagingProxy::askedToTerminate):
+        * dom/WorkerMessagingProxy.cpp:
+        (WebCore::MessageWorkerTask::performTask): Don't dispatch messages if the worker was asked
+        to terminate (this is not mentioned in draft spec, but makes sense anyway).
+        (WebCore::WorkerMessagingProxy::WorkerMessagingProxy): The proxy now remembers if it was
+        asked to terminate in m_askedToTerminate member variable. Also, changed m_unconfirmedMessageCount
+        to only track messages that were posted to worker thread, avoiding a leak if the script
+        could not be loaded.
+        (WebCore::WorkerMessagingProxy::postMessageToWorkerContext): Return early if terminating.
+        (WebCore::WorkerMessagingProxy::workerThreadCreated): Stop the thread if already asked for.
+        (WebCore::WorkerMessagingProxy::workerContextDestroyedInternal): Even if worker context
+        was destroyed, the worker object may still be alive now, so don't delete self in this case.
+        (WebCore::WorkerMessagingProxy::terminate): Stop the thread if it was already created, or
+        remember to stop it when it is created.
+        (WebCore::WorkerMessagingProxy::reportWorkerThreadActivityInternal): Don't track activity
+        if the thread asked to stop anyway.
+        (WebCore::WorkerMessagingProxy::workerThreadHasPendingActivity): Ditto.
+
+        * dom/WorkerThread.cpp:
+        * dom/WorkerThread.h:
+        Fixed a race condition in stop().
+
+2008-11-24  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22439
+        Won't load stylesheets with filenames less than 2 characters long in xhtml.
+
+        Test: http/tests/misc/single-character-pi-stylesheet.xhtml
+
+        * dom/ProcessingInstruction.cpp: (WebCore::ProcessingInstruction::checkStyleSheet):
+        Fix up the logic.
+
+2008-11-24  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Mark Rowe.
+
+        [Gtk+] Add configure option to enable Web Workers and enable it by default
+
+        Add --enable-workers to the buildsystem (used by build-webkit) add
+        the to be build files to the GNUmakefile.am and change build-webkit
+        to enable Web Workers by default.
+
+        * GNUmakefile.am:
+
+2008-11-24  Alexey Proskuryakov  <ap@webkit.org>
+
+        Build fix (for Windows Cairo port?)
+
+        * page/DOMWindow.idl: Use ENABLE_CHANNEL_MESSAGING instead of ENABLE(CHANNEL_MESSAGING), as
+        the ENABLE macro is not available in idls.
+
 2008-11-24  Dimitri Glazkov  <dglazkov@chromium.org>
 
         Reviewed by Darin Adler.
@@ -27527,7 +28420,7 @@
 
         Reviewed by Mitzpettel
 
-        <rdar://problem/6163636> - Many images broken in Mail
+        <rdar://problem/6153432> - Many images broken in Mail
 
         This can be traced back to the preload scanner.  With that change, CachedResources are created a lot 
         sooner than before and confuse the WebArchive machinery.  

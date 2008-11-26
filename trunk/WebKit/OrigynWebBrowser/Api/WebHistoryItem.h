@@ -252,6 +252,11 @@ public:
      */
     virtual bool lastVisitWasFailure();
 
+    /*
+     * setLastVisitWasFailure
+     */
+    virtual void setLastVisitWasFailure(bool wasFailure);
+
     WebCore::HistoryItem* historyItem() const;
 protected:
     RefPtr<WebCore::HistoryItem> m_historyItem;

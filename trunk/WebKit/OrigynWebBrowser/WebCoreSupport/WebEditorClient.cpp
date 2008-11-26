@@ -214,6 +214,12 @@ bool WebEditorClient::shouldInsertText(const String& /*str*/, Range* /* replacin
     //return !!result;
 }
 
+bool WebEditorClient::isSelectTrailingWhitespaceEnabled(void)
+{
+    return m_webView->isSelectTrailingWhitespaceEnabled();
+}
+
+
 //bool WebEditorClient::shouldChangeSelectedRange(Range *currentRange, Range *toProposedRange, SelectionAffinity selectionAffinity, bool stillSelecting)
 //{ notImplemented(); return false; }
 

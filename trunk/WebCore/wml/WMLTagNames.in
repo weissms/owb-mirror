@@ -3,10 +3,12 @@ namespaceURI="http://www.wapforum.org/DTD/wml_1.1.xml"
 guardFactoryWith="ENABLE(WML)"
 
 a
+access
 anchor
 br interfaceName=WMLBRElement
 card
 go
+onevent interfaceName=WMLOnEventElement
 p
 prev
 refresh
@@ -25,7 +27,6 @@ u
 
 #if 0
 # Not yet implemented
-access
 do
 fieldset
 head
@@ -33,7 +34,6 @@ img interfaceName=WMLImageElement
 input
 meta
 noop
-onevent
 optgroup
 option
 postfield

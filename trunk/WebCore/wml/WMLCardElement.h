@@ -23,13 +23,26 @@
 #define WMLCardElement_h
 
 #if ENABLE(WML)
-#include "WMLElement.h"
+#include "WMLEventHandlingElement.h"
 
 namespace WebCore {
 
-class WMLCardElement : public WMLElement {
+class WMLCardElement : public WMLEventHandlingElement {
 public:
     WMLCardElement(const QualifiedName&, Document*);
+    virtual ~WMLCardElement();
+
+    virtual RenderObject* createRenderer(RenderArena*, RenderStyle*);
+
+    // Switch active card in document to the one specified in the URL reference (foo.wml#mycard)
+    // If the 'targetUrl' doesn't contain a reference, use the first <card> element in the document.
+    static WMLCardElement* setActiveCardInDocument(Document*, const KURL& targetUrl);
+
+private:
+    bool isVisible() const { return m_isVisible; }
+    void setVisible(bool isVisible) { m_isVisible = isVisible; }
+
+    bool m_isVisible;
 };
 
 }
