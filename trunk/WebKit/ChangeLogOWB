@@ -1,3 +1,13 @@
+2008-11-28  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Not reviewed.
+
+        Gtk build fix: add gtk/WebViewPrivate.cpp missing from the
+        previous commit.
+
+        * OrigynWebBrowser/Api/gtk/WebViewPrivate.cpp: Added.
+        (WebView::runJavaScriptAlert):
+
 2008-11-26  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
