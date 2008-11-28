@@ -1,3 +1,77 @@
+2008-11-28  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        r38825 made JSFunction::m_body private, but some inspector code in
+        WebCore sets the field. Add setters for it.
+
+        * runtime/JSFunction.h:
+        (JSC::JSFunction::setBody):
+
+2008-11-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix FIXME by adding accessor for JSFunction's m_body property.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::cti_op_call_JSFunction):
+        (JSC::Interpreter::cti_vm_dontLazyLinkCall):
+        (JSC::Interpreter::cti_vm_lazyLinkCall):
+        * profiler/Profiler.cpp:
+        (JSC::createCallIdentifierFromFunctionImp):
+        * runtime/Arguments.h:
+        (JSC::Arguments::getArgumentsData):
+        (JSC::Arguments::Arguments):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString):
+        * runtime/JSFunction.h:
+        (JSC::JSFunction::JSFunction):
+        (JSC::JSFunction::body):
+
+2008-11-27  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Remove unused member variables from ProgramNode.
+
+        * parser/Nodes.h:
+
+2008-11-27  Brent Fulgham  <bfulgham@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Enable mouse panning feaure on Windows Cairo build.
+        See http://bugs.webkit.org/show_bug.cgi?id=22525
+
+        * wtf/Platform.h: Enable mouse panning feaure on Windows Cairo build.
+
+2008-11-27  Alp Toker  <alp@nuanti.com>
+
+        Change recently introduced C++ comments in Platform.h to C comments to
+        fix the minidom build with traditional C.
+
+        Build GtkLauncher and minidom with the '-ansi' compiler flag to detect
+        API header breakage at build time.
+
+        * GNUmakefile.am:
+        * wtf/Platform.h:
+
+2008-11-27  Alp Toker  <alp@nuanti.com>
+
+        Remove C++ comment from JavaScriptCore API headers (introduced r35449).
+        Fixes build for ANSI C applications using the public API.
+
+        * API/WebKitAvailability.h:
+
+2008-11-26  Eric Seidel  <eric@webkit.org>
+
+        No review, build fix only.
+
+        Fix the JSC Chromium Mac build by adding JavaScriptCore/icu into the include path
+
+        * JavaScriptCore.scons:
+
 2008-11-26  Cameron Zwarich  <zwarich@apple.com>
 
         Reviewed by Maciej Stachowiak.

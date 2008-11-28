@@ -1,7 +1,7 @@
+JavaScriptCore/interpreter/RegisterFile.cpp
+JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/runtime/Lookup.h
 JavaScriptCore/runtime/Collector.cpp
-JavaScriptCore/VM/RegisterFile.cpp
-JavaScriptCore/VM/RegisterFile.h
 WebCore/bindings/js/JSConsoleCustom.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bridge/c/c_instance.cpp

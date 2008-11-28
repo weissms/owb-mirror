@@ -1,3 +1,154 @@
+2008-11-28  Mark Rowe  <mrowe@apple.com>
+
+        Fix the Tiger build.
+
+        mig.h does not always define __MigTypeCheck on Tiger, which leads to problems when the generated
+        code is built with -Wundef.
+
+        * Plugins/Hosted/WebKitPluginHostTypes.h:
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+
+        * Configurations/Base.xcconfig:
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Move WebHostedNetscapePluginView.{h|mm} to Plugins/Hosted.
+        
+        (-[WebHostedNetscapePluginView handleMouseMoved:]):
+        (-[WebHostedNetscapePluginView setAttributeKeys:andValues:]):
+        Fix a leak.
+        
+        (-[WebHostedNetscapePluginView createPlugin]):
+        Instantiate the plug-in, store the plug-in proxy in the _proxy ivar.
+        
+        (-[WebHostedNetscapePluginView loadStream]):
+        (-[WebHostedNetscapePluginView shouldStop]):
+        Add stubs for these.
+        
+        (-[WebHostedNetscapePluginView updateAndSetWindow]):
+        (-[WebHostedNetscapePluginView windowFocusChanged:]):
+        (-[WebHostedNetscapePluginView destroyPlugin]):
+        (-[WebHostedNetscapePluginView startTimers]):
+        (-[WebHostedNetscapePluginView stopTimers]):
+        (-[WebHostedNetscapePluginView focusChanged]):
+        (-[WebHostedNetscapePluginView windowFrameDidChange:]):
+        (-[WebHostedNetscapePluginView mouseDown:]):
+        (-[WebHostedNetscapePluginView mouseUp:]):
+        (-[WebHostedNetscapePluginView mouseDragged:]):
+        (-[WebHostedNetscapePluginView mouseEntered:]):
+        (-[WebHostedNetscapePluginView mouseExited:]):
+        Call the proxy.
+        
+        (-[WebHostedNetscapePluginView addWindowObservers]):
+        (-[WebHostedNetscapePluginView removeWindowObservers]):
+        Add/remove observers for when the window frame changes.
+        
+        * Plugins/WebHostedNetscapePluginView.h: Removed.
+        * Plugins/WebHostedNetscapePluginView.mm: Removed.
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Add the plug-in host proxy and plug-in instance proxy objects.
+
+        These are just simple objects that forward their calls to the plug-in host.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.h: Added.
+        (WebKit::NetscapePluginHostProxy::create):
+        (WebKit::NetscapePluginHostProxy::port):
+        * Plugins/Hosted/NetscapePluginHostProxy.mm: Added.
+        (WebKit::NetscapePluginHostProxy::NetscapePluginHostProxy):
+        (WebKit::NetscapePluginHostProxy::instantiatePlugin):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h: Added.
+        (WebKit::NetscapePluginInstanceProxy::create):
+        (WebKit::NetscapePluginInstanceProxy::renderContextID):
+        (WebKit::NetscapePluginInstanceProxy::useSoftwareRenderer):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm: Added.
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        (WebKit::NetscapePluginInstanceProxy::resize):
+        (WebKit::NetscapePluginInstanceProxy::destroy):
+        (WebKit::NetscapePluginInstanceProxy::focusChanged):
+        (WebKit::NetscapePluginInstanceProxy::windowFocusChanged):
+        (WebKit::NetscapePluginInstanceProxy::windowFrameChanged):
+        (WebKit::NetscapePluginInstanceProxy::startTimers):
+        (WebKit::NetscapePluginInstanceProxy::mouseEvent):
+        (WebKit::NetscapePluginInstanceProxy::stopTimers):
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein, Mark Rowe and Kevin Decker.
+
+        Add the plug-in host manager singleton.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.h: Added.
+        * Plugins/Hosted/NetscapePluginHostManager.mm: Added.
+        
+        (WebKit::NetscapePluginHostManager::hostForPackage):
+        If there's an existing host proxy available, just return it. Otherwise spawn a new plug-in host and
+        create a new plug-in host proxy from the new plug-in host port.
+        
+        (WebKit::NetscapePluginHostManager::spawnPluginHost):
+        Pass the plug-in host path and the preferred CPU type to the plug-in agent. When the plug-in host has
+        finished launching, pass it the path to the plug-in bundle.
+        
+        (WebKit::NetscapePluginHostManager::initializeVendorPort):
+        Check in with the plug-in agent and get the new plug-in vendor port back.
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        * Plugins/Hosted/WebKitPluginHostTypes.h:
+        Add copyright headers and fix the spacing around the *'s.
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        * Plugins/Hosted/WebKitPluginHost.defs:
+        Add copyright headers.
+        
+        * Plugins/Hosted/WebKitPluginHostTypes.h: Added.
+        Forgot to add this.
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Add plug-in host .defs.
+
+        * Plugins/Hosted/WebKitPluginAgent.defs: Added.
+        * Plugins/Hosted/WebKitPluginAgentReply.defs: Added.
+        * Plugins/Hosted/WebKitPluginClient.defs: Added.
+        * Plugins/Hosted/WebKitPluginHost.defs: Added.
+        * Plugins/Hosted/WebKitPluginHostTypes.defs: Added.
+
+2008-11-26  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Mark Rowe and Kevin Decker.
+
+        Minor plug-in changes.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        Add add/remove observer method declarations.
+        
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView isFlipped]):
+        Move this down from WebNetscapePluginView.
+        
+        * Plugins/WebNetscapePluginPackage.h:
+        * Plugins/WebNetscapePluginPackage.m:
+        (-[WebNetscapePluginPackage pluginHostArchitecture]):
+        Getter for the plug-in host architecture.
+        
+        * Plugins/WebNetscapePluginView.mm:
+
 2008-11-26  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Mark Rowe.

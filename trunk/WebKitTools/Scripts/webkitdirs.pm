@@ -56,6 +56,7 @@ my $osXVersion;
 my $isQt;
 my $isGtk;
 my $isWx;
+my $isChromium;
 my $forceRun64Bit;
 
 # Variables for Win32 support
@@ -90,7 +91,7 @@ sub determineBaseProductDir
 {
     return if defined $baseProductDir;
     determineSourceDir();
-    if (isOSX()) {
+    if (isAppleMacWebKit()) {
         open PRODUCT, "defaults read com.apple.Xcode PBXApplicationwideBuildSettings 2> /dev/null |" or die;
         $baseProductDir = join '', <PRODUCT>;
         close PRODUCT;
@@ -109,14 +110,14 @@ sub determineBaseProductDir
         }
     } else {
         $baseProductDir = $ENV{"WEBKITOUTPUTDIR"};
-        if (isCygwin() && $baseProductDir) {
+        if (isAppleWinWebKit() && $baseProductDir) {
             my $unixBuildPath = `cygpath --unix \"$baseProductDir\"`;
             chomp $unixBuildPath;
             $baseProductDir = $unixBuildPath;
         }
     }
 
-    if ($baseProductDir && isOSX()) {
+    if ($baseProductDir && isAppleMacWebKit()) {
         $baseProductDir =~ s|^\Q$(SRCROOT)/..\E$|$sourceDir|;
         $baseProductDir =~ s|^\Q$(SRCROOT)/../|$sourceDir/|;
         $baseProductDir =~ s|^~/|$ENV{HOME}/|;
@@ -133,7 +134,7 @@ sub determineBaseProductDir
             $baseProductDir = "$baseProductDir/$branch";
         }
 
-        @baseProductDirOption = ("SYMROOT=$baseProductDir", "OBJROOT=$baseProductDir") if (isOSX());
+        @baseProductDirOption = ("SYMROOT=$baseProductDir", "OBJROOT=$baseProductDir") if (isAppleMacWebKit());
         if (isCygwin()) {
             my $dosBuildPath = `cygpath --windows \"$baseProductDir\"`;
             chomp $dosBuildPath;
@@ -181,7 +182,7 @@ sub determineConfigurationProductDir
     return if defined $configurationProductDir;
     determineBaseProductDir();
     determineConfiguration();
-    if (isCygwin() && !isWx()) {
+    if (isAppleWinWebKit() && !isWx()) {
         $configurationProductDir = "$baseProductDir/bin";
     } else {
         $configurationProductDir = "$baseProductDir/$configuration";
@@ -270,7 +271,7 @@ sub determinePassedConfiguration
     return if $searchedForPassedConfiguration;
     $searchedForPassedConfiguration = 1;
 
-    my $isWinCairo = grep(/^--cairo-win32$/i, @ARGV);
+    my $isWinCairo = checkArgv("--cairo-win32");
 
     for my $i (0 .. $#ARGV) {
         my $opt = $ARGV[$i];
@@ -317,17 +318,17 @@ sub safariPathFromSafariBundle
 {
     my ($safariBundle) = @_;
 
-    return "$safariBundle/Contents/MacOS/Safari" if isOSX();
-    return $safariBundle if isCygwin();
+    return "$safariBundle/Contents/MacOS/Safari" if isAppleMacWebKit();
+    return $safariBundle if isAppleWinWebKit();
 }
 
 sub installedSafariPath
 {
     my $safariBundle;
 
-    if (isOSX()) {
+    if (isAppleMacWebKit()) {
         $safariBundle = "/Applications/Safari.app";
-    } elsif (isCygwin()) {
+    } elsif (isAppleWinWebKit()) {
         $safariBundle = `"$configurationProductDir/FindSafari.exe"`;
         $safariBundle =~ s/[\r\n]+$//;
         $safariBundle = `cygpath -u '$safariBundle'`;
@@ -346,34 +347,34 @@ sub safariPath
     if (!$safariBundle) {
         determineConfigurationProductDir();
         # Use Safari.app in product directory if present (good for Safari development team).
-        if (isOSX() && -d "$configurationProductDir/Safari.app") {
+        if (isAppleMacWebKit() && -d "$configurationProductDir/Safari.app") {
             $safariBundle = "$configurationProductDir/Safari.app";
-        } elsif (isCygwin() && -x "$configurationProductDir/bin/Safari.exe") {
+        } elsif (isAppleWinWebKit() && -x "$configurationProductDir/bin/Safari.exe") {
             $safariBundle = "$configurationProductDir/bin/Safari.exe";
         } else {
             return installedSafariPath();
         }
     }
     my $safariPath = safariPathFromSafariBundle($safariBundle);
-    die "Can't find executable at $safariPath.\n" if isOSX() && !-x $safariPath;
+    die "Can't find executable at $safariPath.\n" if isAppleMacWebKit() && !-x $safariPath;
     return $safariPath;
 }
 
 sub builtDylibPathForName
 {
-    my $framework = shift;
+    my $libraryName = shift;
     determineConfigurationProductDir();
-    if (isQt() or isGtk()) {
-        return "$configurationProductDir/$framework";
+    if (isQt() or isGtk() or isChromium()) {
+        return "$configurationProductDir/$libraryName";
     }
-    if (isOSX()) {
-        return "$configurationProductDir/$framework.framework/Versions/A/$framework";
+    if (isAppleMacWebKit()) {
+        return "$configurationProductDir/$libraryName.framework/Versions/A/$libraryName";
     }
-    if (isCygwin()) {
-        if ($framework eq "JavaScriptCore") {
-                return "$baseProductDir/lib/$framework.lib";
+    if (isAppleWinWebKit()) {
+        if ($libraryName eq "JavaScriptCore") {
+            return "$baseProductDir/lib/$libraryName.lib";
         } else {
-            return "$baseProductDir/$framework.intermediate/$configuration/$framework.intermediate/$framework.lib";
+            return "$baseProductDir/$libraryName.intermediate/$configuration/$libraryName.intermediate/$libraryName.lib";
         }
     }
 
@@ -385,7 +386,7 @@ sub checkFrameworks
 {
     return if isCygwin();
     my @frameworks = ("JavaScriptCore", "WebCore");
-    push(@frameworks, "WebKit") if isOSX();
+    push(@frameworks, "WebKit") if isAppleMacWebKit();
     for my $framework (@frameworks) {
         my $path = builtDylibPathForName($framework);
         die "Can't find built framework at \"$path\".\n" unless -x $path;
@@ -537,12 +538,7 @@ sub isGtk()
 sub determineIsGtk()
 {
     return if defined($isGtk);
-
-    if (checkArgv("--gtk")) {
-        $isGtk = 1;
-    } else {
-        $isGtk = 0;
-    }
+    $isGtk = checkArgv("--gtk");
 }
 
 sub isWx()
@@ -554,18 +550,25 @@ sub isWx()
 sub determineIsWx()
 {
     return if defined($isWx);
-
-    if (checkArgv("--wx")) {
-        $isWx = 1;
-    } else {
-        $isWx = 0;
-    }
+    $isWx = checkArgv("--wx");
 }
 
 # Determine if this is debian, ubuntu, linspire, or something similar.
 sub isDebianBased()
 {
     return -e "/etc/debian_version";
+}
+
+sub isChromium()
+{
+    determineIsChromium();
+    return $isChromium;
+}
+
+sub determineIsChromium()
+{
+    return if defined($isChromium);
+    $isChromium = checkArgv("--chromium");
 }
 
 sub isCygwin()
@@ -578,19 +581,26 @@ sub isDarwin()
     return ($^O eq "darwin") || 0;
 }
 
-# isOSX() only returns true for Apple's port, not for other ports that can be
-# built/run on OS X.
-sub isOSX()
+sub isAppleWebKit()
 {
-    return isDarwin() unless (isQt() or isGtk() or isWx());
-    return 0;
+    return !(isQt() or isGtk() or isWx() or isChromium());
+}
+
+sub isAppleMacWebKit()
+{
+    return isAppleWebKit() && isDarwin();
+}
+
+sub isAppleWinWebKit()
+{
+    return isAppleWebKit() && isCygwin();
 }
 
 sub determineOSXVersion()
 {
     return if $osXVersion;
 
-    if (!isOSX()) {
+    if (!isDarwin()) {
         $osXVersion = -1;
         return;
     }
@@ -613,17 +623,17 @@ sub osXVersion()
 
 sub isTiger()
 {
-    return isOSX() && osXVersion()->{"minor"} == 4;
+    return isDarwin() && osXVersion()->{"minor"} == 4;
 }
 
 sub isLeopard()
 {
-    return isOSX() && osXVersion()->{"minor"} == 5;
+    return isDarwin() && osXVersion()->{"minor"} == 5;
 }
 
 sub isSnowLeopard()
 {
-    return isOSX() && osXVersion()->{"minor"} == 6;
+    return isDarwin() && osXVersion()->{"minor"} == 6;
 }
 
 sub relativeScriptsDir()
@@ -640,7 +650,7 @@ sub launcherPath()
     my $relativeScriptsPath = relativeScriptsDir();
     if (isGtk() || isQt()) {
         return "$relativeScriptsPath/run-launcher";
-    } elsif (isOSX() || isCygwin()) {
+    } elsif (isAppleWebKit()) {
         return "$relativeScriptsPath/run-safari";
     }
 }
@@ -651,14 +661,14 @@ sub launcherName()
         return "GtkLauncher";
     } elsif (isQt()) {
         return "QtLauncher";
-    } elsif (isOSX() || isCygwin()) {
+    } elsif (isAppleWebKit()) {
         return "Safari";
     }
 }
 
 sub checkRequiredSystemConfig
 {
-    if (isOSX()) {
+    if (isDarwin()) {
         chomp(my $productVersion = `sw_vers -productVersion`);
         if ($productVersion lt "10.4") {
             print "*************************************************************\n";
@@ -757,6 +767,16 @@ sub buildVisualStudioProject
 
     print "$vcBuildPath $winProjectPath /build $config\n";
     return system $vcBuildPath, $winProjectPath, $command, $config;
+}
+
+sub buildSconsProject
+{
+    my ($project, $shouldClean) = @_;
+    print "Building from $project/$project.scons\n";
+    if ($shouldClean) {
+        return system "scons", "--clean";
+    }
+    return system "scons";
 }
 
 sub retrieveQMakespecVar
@@ -958,7 +978,7 @@ sub setPathForRunningWebKitApp
 {
     my ($env) = @_;
 
-    return unless isCygwin();
+    return unless isAppleWinWebKit();
 
     $env->{PATH} = join(':', productDir(), dirname(installedSafariPath()), $env->{PATH} || "");
 }
@@ -976,7 +996,7 @@ sub runSafari
 {
     my ($debugger) = @_;
 
-    if (isOSX()) {
+    if (isAppleMacWebKit()) {
         return system "$FindBin::Bin/gdb-safari", @ARGV if $debugger;
 
         my $productDir = productDir();
@@ -991,7 +1011,7 @@ sub runSafari
         }
     }
 
-    if (isCygwin()) {
+    if (isAppleWinWebKit()) {
         my $script = "run-webkit-nightly.cmd";
         my $result = system "cp", "$FindBin::Bin/$script", productDir();
         return $result if $result;
@@ -1015,7 +1035,7 @@ sub setRun64Bit($)
 
 sub preferredArchitecture
 {
-    return unless isOSX();
+    return unless isAppleMacWebKit();
     
     my $framework = shift;
     $framework = "WebKit" if !defined($framework);
@@ -1039,7 +1059,7 @@ sub preferredArchitecture
 
 sub exportArchPreference
 {
-    $ENV{ARCHPREFERENCE} = preferredArchitecture() if isOSX();
+    $ENV{ARCHPREFERENCE} = preferredArchitecture() if isAppleMacWebKit();
 }
 
 1;

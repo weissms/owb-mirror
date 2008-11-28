@@ -1,3 +1,386 @@
+2008-11-28  Cameron Zwarich  <zwarich@apple.com>
+
+        Not reviewed.
+
+        r38825, was committed without checking whether anything in WebCore
+        uses JSFunction::m_body. Use the appropriate getters and setters
+        instead.
+
+        * inspector/JavaScriptDebugServer.cpp:
+        (WebCore::JavaScriptDebugServer::recompileAllJSFunctions):
+
+2008-11-27  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22529
+        Crashes seen on buildbots due to trying to stop a worker thread twice
+
+        * dom/WorkerMessagingProxy.cpp: (WebCore::WorkerMessagingProxy::workerObjectDestroyed):
+        Don't try to stop the thread if it's already stopping.
+
+2008-11-27  Kent Hansen  <khansen@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Make JavaScript bindings for Qt plugin widgets work again
+        this was a regression; need to handle non-NPAPI plugins as in 4.4.
+
+        * bindings/js/ScriptControllerQt.cpp:
+        (WebCore::ScriptController::createScriptInstanceForWidget):
+
+2008-11-26  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22522
+
+        Catch WML errors (invalid variable name/reference, multiple access elements, etc)
+        while parsing the document, and stop parsing immediately and wrap the document
+        fragment in a XHTML error document, just like it's done from XML parsing errors.
+
+        Until now all card elements were hidden by default (no renderer created), and
+        WMLDocument::finishedParsing() took care of showing the right card (either the first,
+        or any named card in the document, specified by document URL reference). Change this
+        behaviour to support displaying partially parsed WML document fragments: Mark the first
+        WMLCardElement inserted into the document as visible. If the document parsing finishes
+        without problems, WMLDocument::finishedParsing() will be called, which takes care of
+        showing the desired card (common case: first card in the document, which is already
+        visible, so nothing actually has to be done). If an error occours, the document is
+        correctly rendered until the error happened - wrapped in a XHTML document.
+
+        Fixes: fast/wml/err-event-binding-conflict.wml
+               fast/wml/err-invalid-variable-name.wml
+               fast/wml/err-multi-access.wml
+               fast/wml/err-unallowed-task-in-anchor.wml
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * wml/WMLAccessElement.cpp:
+        (WebCore::WMLAccessElement::parseMappedAttribute):
+        (WebCore::WMLAccessElement::insertedIntoDocument):
+        * wml/WMLAccessElement.h:
+        * wml/WMLCardElement.cpp:
+        (WebCore::WMLCardElement::insertedIntoDocument):
+        (WebCore::WMLCardElement::setActiveCardInDocument):
+        * wml/WMLCardElement.h:
+        * wml/WMLDocument.cpp:
+        (WebCore::WMLDocument::finishedParsing):
+        * wml/WMLErrorHandling.cpp: Added.
+        (WebCore::reportWMLError):
+        * wml/WMLErrorHandling.h: Added.
+        (WebCore::):
+        * wml/WMLIntrinsicEventHandler.cpp:
+        (WebCore::WMLIntrinsicEventHandler::registerIntrinsicEvent):
+        * wml/WMLIntrinsicEventHandler.h:
+        * wml/WMLNoopElement.cpp:
+        (WebCore::WMLNoopElement::insertedIntoDocument):
+        * wml/WMLOnEventElement.cpp:
+        (WebCore::WMLOnEventElement::parseMappedAttribute):
+        (WebCore::WMLOnEventElement::registerTask):
+        * wml/WMLPageState.cpp:
+        (WebCore::WMLPageState::setNeedCheckDeckAccess):
+        * wml/WMLPageState.h:
+        * wml/WMLSetvarElement.cpp:
+        (WebCore::WMLSetvarElement::parseMappedAttribute):
+
+2008-11-26  Glenn Wilson  <gwilson@chromium.org>
+
+        Reviewed by Dan Bernstein.
+
+        Fixed bug http://bugs.webkit.org/show_bug.cgi?id=21953
+
+        This fixes the crash when the small-caps font variant is used
+        on a lower-case glyph that does not have a corresponding
+        upper-case glyph defined in the set of available fonts.
+
+        This changes Font.cpp to check if the font being used exists before trying to apply the small-caps variant.
+        
+        Test: fast/css/small-caps-crash.html
+
+        * platform/graphics/Font.cpp:
+        (WebCore::Font::glyphDataForCharacter):
+
+2008-11-26  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Oliver Hunt.
+
+        Add a new platform specific method cleanupAfterSystemDrag
+        that platforms can ue to clean up drag state after a
+        system drag.  Use this method on PLAFORM(MAC).
+        https://bugs.webkit.org/show_bug.cgi?id=21956
+
+        * ChangeLog:
+        * page/DragController.cpp:
+        (WebCore::DragController::doSystemDrag):
+        * page/DragController.h:
+        * page/gtk/DragControllerGtk.cpp:
+        (WebCore::DragController::cleanupAfterSystemDrag):
+        * page/mac/DragControllerMac.mm:
+        (WebCore::DragController::cleanupAfterSystemDrag):
+        * page/qt/DragControllerQt.cpp:
+        (WebCore::DragController::cleanupAfterSystemDrag):
+        * page/win/DragControllerWin.cpp:
+        (WebCore::DragController::cleanupAfterSystemDrag):
+        * page/wx/DragControllerWx.cpp:
+      (WebCore::DragController::cleanupAfterSystemDrag):
+
+2008-11-26  Nikolas Zimmermann  <zimmermann@kde.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix path to string logic, correctly taking closed (sub-)paths into account.
+        Code was just broken on cg, observed by Dirk Schulze.
+
+        QPainterPath doesn't seem to expose any functionality to detect closed sub paths,
+        using the elementAt() function. There might be a workaround - Dirk will investigate.
+
+        * platform/graphics/cg/PathCG.cpp:
+        (WebCore::CGPathToCFStringApplierFunction):
+        * platform/graphics/cairo/PathCairo.cpp:
+        (WebCore::Path::debugString):
+
+2008-11-26  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22519
+        Remove unnecessary include.
+
+        * dom/XMLTokenizer.cpp:
+
+2008-11-26  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add <noop> element support, completing the task element support.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * wml/WMLNoopElement.cpp: Added.
+        (WebCore::WMLNoopElement::WMLNoopElement):
+        (WebCore::WMLNoopElement::insertedIntoDocument):
+        * wml/WMLNoopElement.h: Added.
+        * wml/WMLTagNames.in: Reorganize file a bit.
+
+2008-11-26  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Bug 22441: Bridge the gap between the generated ElementFactory and HTMLElementFactory
+        https://bugs.webkit.org/show_bug.cgi?id=22441
+
+        Make more HTML elements' constructors take a QualifiedName.
+
+        * editing/DeleteButtonController.cpp:
+        (WebCore::DeleteButtonController::createDeletionUI):
+        * html/HTMLBlockquoteElement.cpp:
+        (WebCore::HTMLBlockquoteElement::HTMLBlockquoteElement):
+        * html/HTMLBlockquoteElement.h:
+        * html/HTMLButtonElement.cpp:
+        (WebCore::HTMLButtonElement::HTMLButtonElement):
+        * html/HTMLButtonElement.h:
+        * html/HTMLDListElement.cpp:
+        (WebCore::HTMLDListElement::HTMLDListElement):
+        * html/HTMLDListElement.h:
+        * html/HTMLDirectoryElement.cpp:
+        (WebCore::HTMLDirectoryElement::HTMLDirectoryElement):
+        * html/HTMLDirectoryElement.h:
+        * html/HTMLDivElement.cpp:
+        (WebCore::HTMLDivElement::HTMLDivElement):
+        * html/HTMLDivElement.h:
+        * html/HTMLElementFactory.cpp:
+        (WebCore::styleConstructor):
+        (WebCore::titleConstructor):
+        (WebCore::frameConstructor):
+        (WebCore::framesetConstructor):
+        (WebCore::iframeConstructor):
+        (WebCore::formConstructor):
+        (WebCore::buttonConstructor):
+        (WebCore::inputConstructor):
+        (WebCore::isindexConstructor):
+        (WebCore::fieldsetConstructor):
+        (WebCore::keygenConstructor):
+        (WebCore::labelConstructor):
+        (WebCore::legendConstructor):
+        (WebCore::optgroupConstructor):
+        (WebCore::optionConstructor):
+        (WebCore::selectConstructor):
+        (WebCore::textareaConstructor):
+        (WebCore::dlConstructor):
+        (WebCore::ulConstructor):
+        (WebCore::olConstructor):
+        (WebCore::dirConstructor):
+        (WebCore::menuConstructor):
+        (WebCore::liConstructor):
+        (WebCore::blockquoteConstructor):
+        (WebCore::divConstructor):
+        (WebCore::headingConstructor):
+        * html/HTMLFieldSetElement.cpp:
+        (WebCore::HTMLFieldSetElement::HTMLFieldSetElement):
+        * html/HTMLFieldSetElement.h:
+        * html/HTMLFormElement.cpp:
+        (WebCore::HTMLFormElement::HTMLFormElement):
+        * html/HTMLFormElement.h:
+        * html/HTMLFrameElement.cpp:
+        (WebCore::HTMLFrameElement::HTMLFrameElement):
+        * html/HTMLFrameElement.h:
+        * html/HTMLFrameSetElement.cpp:
+        (WebCore::HTMLFrameSetElement::HTMLFrameSetElement):
+        * html/HTMLFrameSetElement.h:
+        * html/HTMLIFrameElement.cpp:
+        (WebCore::HTMLIFrameElement::HTMLIFrameElement):
+        * html/HTMLIFrameElement.h:
+        * html/HTMLInputElement.cpp:
+        * html/HTMLInputElement.h:
+        * html/HTMLIsIndexElement.cpp:
+        (WebCore::HTMLIsIndexElement::HTMLIsIndexElement):
+        * html/HTMLIsIndexElement.h:
+        * html/HTMLKeygenElement.cpp:
+        (WebCore::HTMLKeygenElement::HTMLKeygenElement):
+        * html/HTMLKeygenElement.h:
+        * html/HTMLLIElement.cpp:
+        (WebCore::HTMLLIElement::HTMLLIElement):
+        * html/HTMLLIElement.h:
+        * html/HTMLLabelElement.cpp:
+        (WebCore::HTMLLabelElement::HTMLLabelElement):
+        * html/HTMLLabelElement.h:
+        * html/HTMLLegendElement.cpp:
+        (WebCore::HTMLLegendElement::HTMLLegendElement):
+        * html/HTMLLegendElement.h:
+        * html/HTMLMenuElement.cpp:
+        (WebCore::HTMLMenuElement::HTMLMenuElement):
+        * html/HTMLMenuElement.h:
+        * html/HTMLOListElement.cpp:
+        (WebCore::HTMLOListElement::HTMLOListElement):
+        * html/HTMLOListElement.h:
+        * html/HTMLOptGroupElement.cpp:
+        (WebCore::HTMLOptGroupElement::HTMLOptGroupElement):
+        * html/HTMLOptGroupElement.h:
+        * html/HTMLOptionElement.cpp:
+        (WebCore::HTMLOptionElement::HTMLOptionElement):
+        * html/HTMLOptionElement.h:
+        * html/HTMLParser.cpp:
+        (WebCore::HTMLParser::formCreateErrorCheck):
+        (WebCore::HTMLParser::handleIsindex):
+        * html/HTMLSelectElement.cpp:
+        * html/HTMLSelectElement.h:
+        * html/HTMLStyleElement.cpp:
+        (WebCore::HTMLStyleElement::HTMLStyleElement):
+        * html/HTMLStyleElement.h:
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::HTMLTextAreaElement):
+        * html/HTMLTextAreaElement.h:
+        * html/HTMLTitleElement.cpp:
+        (WebCore::HTMLTitleElement::HTMLTitleElement):
+        * html/HTMLTitleElement.h:
+        * html/HTMLUListElement.cpp:
+        (WebCore::HTMLUListElement::HTMLUListElement):
+        * html/HTMLUListElement.h:
+        * html/HTMLViewSourceDocument.cpp:
+        (WebCore::HTMLViewSourceDocument::createContainingTable):
+        * rendering/MediaControlElements.cpp:
+        (WebCore::MediaControlShadowRootElement::MediaControlShadowRootElement):
+        (WebCore::MediaControlInputElement::MediaControlInputElement):
+        * rendering/RenderFileUploadControl.cpp:
+        (WebCore::HTMLFileUploadInnerButtonElement::HTMLFileUploadInnerButtonElement):
+        * rendering/RenderMedia.cpp:
+        (WebCore::RenderMedia::createPanel):
+        (WebCore::RenderMedia::createTimeDisplay):
+        * rendering/RenderSlider.cpp:
+        (WebCore::HTMLSliderThumbElement::HTMLSliderThumbElement):
+        * rendering/TextControlInnerElements.cpp:
+        (WebCore::TextControlInnerElement::TextControlInnerElement):
+
+2008-11-26  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Sam Weinig.
+
+        Fix obvious problem in WMLPageState constructor, m_page was not set to the passed Page pointer.
+
+        * wml/WMLPageState.cpp:
+        (WebCore::WMLPageState::WMLPageState):
+
+2008-11-26  Matt Perry  <mpcomplete@gmail.com>
+
+        Fix Qt bustage.
+
+        See https://bugs.webkit.org/show_bug.cgi?id=22051
+
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::extraDefaultStyleSheet):
+
+2008-11-26  Matt Perry  <mpcomplete@gmail.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix https://bugs.webkit.org/show_bug.cgi?id=22051
+        Renderthemes should be able to supply additional CSS rules to the core
+        ones.
+
+        * DerivedSources.make:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::parseUASheet):
+        (WebCore::loadFullDefaultStyle):
+        (WebCore::loadSimpleDefaultStyle):
+        * css/themeWin.css: Added.
+        * css/themeWinQuirks.css: Added.
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::extraDefaultStyleSheet):
+        * platform/qt/RenderThemeQt.h:
+        * rendering/RenderTheme.cpp:
+        * rendering/RenderTheme.h:
+        (WebCore::RenderTheme::extraDefaultStyleSheet):
+        (WebCore::RenderTheme::extraQuirksStyleSheet):
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::RenderThemeWin::extraDefaultStyleSheet):
+        (WebCore::RenderThemeWin::extraQuirksStyleSheet):
+        * rendering/RenderThemeWin.h:
+
+2008-11-26  David Kilzer  <ddkilzer@apple.com>
+
+        Make CSSStyleSheet::addSubresourceURLStrings() iterative
+
+        Part of the fix for Bug 11850: Webarchive fails to save images referenced in CSS
+        <https://bugs.webkit.org/show_bug.cgi?id=11850>
+
+        Reviewed by Brady Eidson.
+
+        * css/CSSStyleSheet.cpp:
+        (WebCore::CSSStyleSheet::addSubresourceURLStrings): Switch algorithm
+        from recursive to iterative for gathering the list of all CSS
+        stylesheets referenced in @import statements.
+
+2008-11-26  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        Transformations to the context shouldn't transform the currentPath.
+        Fixed this on Qt.
+
+        [QT] GraphicsContext's currenPath can be transformed
+        https://bugs.webkit.org/show_bug.cgi?id=22163
+
+        * platform/graphics/GraphicsContextPrivate.h:
+        * platform/graphics/qt/GraphicsContextQt.cpp:
+        (WebCore::GraphicsContext::restorePlatformState):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::translate):
+        (WebCore::GraphicsContext::rotate):
+        (WebCore::GraphicsContext::scale):
+        (WebCore::GraphicsContext::concatCTM):
+
+2008-11-26  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Gtk build script minor fixes. Not reviewed.
+
+        * GNUmakefile.am:
+          - Add ScriptInstance.h (introduced in r38774) to
+        the build.
+          - Move WML and GEOLOCATION conditionals before the SVG
+        conditional to be consistent with the style of the script.
+          - Move GeolocationGtk sources to webcoregtk_sources.
+
 2008-11-26  Dmitry Titov  <dimich@chromium.org>
 
         Reviewed by Darin Adler and Eric Seidel.

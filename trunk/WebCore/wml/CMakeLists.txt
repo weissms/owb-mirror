@@ -1,21 +1,23 @@
 LIST (APPEND WML_SRC
-    wml/WMLDocument.cpp
-    wml/WMLCardElement.cpp
-    wml/WMLElement.cpp
-    wml/WMLAElement.cpp
-    wml/WMLPElement.cpp
-    wml/WMLBRElement.cpp
-    wml/WMLPageState.cpp
-    wml/WMLSetvarElement.cpp
-    wml/WMLGoElement.cpp
-    wml/WMLAnchorElement.cpp
-    wml/WMLPrevElement.cpp
-    wml/WMLIntrinsicEventHandler.cpp
-    wml/WMLRefreshElement.cpp
-    wml/WMLIntrinsicEvent.cpp
-    wml/WMLVariables.cpp
-    wml/WMLTaskElement.cpp
-    wml/WMLOnEventElement.cpp
     wml/WMLAccessElement.cpp
+    wml/WMLAElement.cpp
+    wml/WMLAnchorElement.cpp
+    wml/WMLBRElement.cpp
+    wml/WMLCardElement.cpp
+    wml/WMLDocument.cpp
+    wml/WMLElement.cpp
+    wml/WMLErrorHandling.cpp
     wml/WMLEventHandlingElement.cpp
+    wml/WMLGoElement.cpp
+    wml/WMLIntrinsicEvent.cpp
+    wml/WMLIntrinsicEventHandler.cpp
+    wml/WMLNoopElement.cpp
+    wml/WMLOnEventElement.cpp
+    wml/WMLPageState.cpp
+    wml/WMLPElement.cpp
+    wml/WMLPrevElement.cpp
+    wml/WMLRefreshElement.cpp
+    wml/WMLSetvarElement.cpp
+    wml/WMLTaskElement.cpp
+    wml/WMLVariables.cpp
 )

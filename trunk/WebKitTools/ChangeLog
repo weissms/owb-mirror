@@ -1,3 +1,92 @@
+2008-11-28  Alp Toker  <alp@nuanti.com>
+
+        Build GtkLauncher and minidom with the '-ansi' compiler flag to detect
+        API header breakage at build time.
+
+        * GNUmakefile.am:
+
+2008-11-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Nikolas Zimmermann and Mark Rowe.
+        
+        Add support for build-webkit --chromium
+        https://bugs.webkit.org/show_bug.cgi?id=22515
+        More cleanups changing isCygwin calls to isAppleWinWebKit and deploying isAppleWebKit where necessary.
+
+        * Scripts/build-dumprendertree:
+        * Scripts/build-jsc:
+        * Scripts/build-webkit:
+        * Scripts/gdb-safari:
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitdirs.pm:
+
+2008-11-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Add support for build-webkit --chromium (tested on mac)
+        https://bugs.webkit.org/show_bug.cgi?id=22515
+        Also simplified some code using checkArgv
+
+        * Scripts/build-webkit:
+        * Scripts/webkitdirs.pm:
+
+2008-11-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        More pre-work for adding a build-webkit --chromium which works on Mac and Windows
+        https://bugs.webkit.org/show_bug.cgi?id=22515
+        Change a few calls to isCygwin to isAppleWinWebKit and a few calls to isAppleMacWebKit to isDarwin
+        in preparation for having a chromium cygwin and chromium mac build
+
+        * Scripts/build-webkit:
+        * Scripts/webkitdirs.pm:
+
+2008-11-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Pre-work for getting build-webkit --chromium to work
+        https://bugs.webkit.org/show_bug.cgi?id=22515
+        Rename isOSX to isAppleMacWebKit to match what the code does, and add isChromium()
+
+        * Scripts/build-dumprendertree:
+        * Scripts/build-jsc:
+        * Scripts/build-webkit:
+        * Scripts/gdb-safari:
+        * Scripts/run-javascriptcore-tests:
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitdirs.pm:
+
+2008-11-26  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 22488: Make DRT smarter about charset encoding when post-processing webarchive content
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22488>
+
+        Reviewed by Brady Eidson.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (convertWebResourceDataToString): If an IANA charset encoding string
+        is provided, convert it to a CFStringEncoding value and then to an
+        NSStringEncoding value, else fall back to NSUTF8StringEncoding.  We
+        also nil-check dataAsString, so the worst-case scenario is that the
+        data won't be decoded to a string (versus crashing DumpRenderTree).
+
+2008-11-26  Jan Michael Alonzo  <jmalonzo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [Gtk] add/remove tests from Skipped and fix netscape plugin test
+        https://bugs.webkit.org/show_bug.cgi?id=22484
+
+        Remove print'ing to stderr
+
+        * DumpRenderTree/gtk/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (NP_Initialize):
+        (NP_Shutdown):
+
 2008-11-26  Steve Falkenburg  <sfalken@apple.com>
 
         Windows build fix.
