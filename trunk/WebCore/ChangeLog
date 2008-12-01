@@ -1,3 +1,256 @@
+2008-12-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by John Sullivan.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22510
+        Crash at WebCore::AccessibilityRenderObject::activeDescendant() on Google Reader with ARIA (22510)
+
+        A nil pointer needed to be checked
+
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::activeDescendant):
+
+2008-11-30  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22530
+        Assertion failures seen on buildbot due to uninitialized WorkerThread::m_threadID
+
+        * dom/WorkerThread.cpp:
+        (WebCore::WorkerThread::start): Protect worker startup with a mutex to ensure that this
+        function runs to completion before the thread begins execution.
+        (WebCore::WorkerThread::workerThread): Updated comments.
+        (WebCore::WorkerThread::stop): Ditto.
+        * dom/WorkerThread.h: Renamed m_workerContextMutex to m_threadCreationMutex, because it now
+        protects startup as a whole.
+
+        * storage/DatabaseThread.cpp:
+        * storage/DatabaseThread.h:
+        * storage/LocalStorageThread.cpp:
+        * storage/LocalStorageThread.h:
+        Fixed the same m_threadID problem.
+
+2008-11-29  Brent Fulgham  <bfulgham@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Remove Visual Studio project dependencies on non-redistributable
+        components in the Debug_Cairo and Release_Cairo build targets.
+        See https://bugs.webkit.org/show_bug.cgi?id=22527
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2008-11-29  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Alexey Proskuryakov.
+
+        Fix some sorting
+
+        * WebCore.xcodeproj/project.pbxproj:
+
+2008-11-28  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21063
+        NULL pointer crash in dispatchEvent(null);
+
+        Test: fast/events/dispatchEvent-crash.html
+
+        * dom/MessagePort.cpp:
+        (WebCore::MessagePort::dispatchEvent):
+        * dom/Worker.cpp:
+        (WebCore::Worker::dispatchEvent):
+        * dom/WorkerContext.cpp:
+        (WebCore::WorkerContext::dispatchEvent):
+        * loader/appcache/DOMApplicationCache.cpp:
+        (WebCore::DOMApplicationCache::dispatchEvent):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::dispatchEvent):
+        * xml/XMLHttpRequestUpload.cpp:
+        (WebCore::XMLHttpRequestUpload::dispatchEvent):
+
+2008-11-29  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        - fix https://bugs.webkit.org/show_bug.cgi?id=22454
+          <rdar://problem/6405550> REGRESSION (3.2-TOT): Crash below FontFallbackList::fontDataAt on jacobian.org
+
+        Test: http/tests/misc/font-face-in-multiple-segmented-faces.html
+
+        The crash happened because style recalculation was invoked by
+        CSSFontSelector after one CSSSegmentedFontFace had pruned its tables but
+        before another CSSSegmentedFontFace using the same CSSFontFace had done
+        so. The fix is to let all CSSSegmentedFontFaces using the CSSFontFace
+        prune their tables before telling the CSSFontSelector to recalc style.
+
+        * css/CSSFontFace.cpp:
+        (WebCore::CSSFontFace::fontLoaded):
+        * css/CSSFontSelector.cpp:
+        (WebCore::CSSFontSelector::fontLoaded):
+        * css/CSSFontSelector.h:
+        * css/CSSSegmentedFontFace.cpp:
+        (WebCore::CSSSegmentedFontFace::fontLoaded):
+
+2008-11-29  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=14968
+        document.open() erroneously returns void instead of the new Document
+
+        Test: fast/dom/HTMLDocument/document-open-return-value.html
+
+        * bindings/js/JSHTMLDocumentCustom.cpp: (WebCore::JSHTMLDocument::open):
+        Return the document on which this method was invoked, per HTML5.
+
+2008-11-28  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22550
+
+        Add <timer> element support. It provides a way to execute a task with a delay.
+        The user is notified by firing the task associated with the <card>'s ontimer attribute.
+        Only one timer element is allowed per <card> (fix wrong error message in reportWMLError)
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * wml/WMLCardElement.cpp:
+        (WebCore::WMLCardElement::WMLCardElement):
+        (WebCore::WMLCardElement::setIntrinsicEventTimer):
+        (WebCore::WMLCardElement::handleIntrinsicEventIfNeeded):
+        * wml/WMLCardElement.h:
+        * wml/WMLDoElement.cpp:
+        (WebCore::WMLDoElement::defaultEventHandler):
+        * wml/WMLErrorHandling.cpp:
+        (WebCore::reportWMLError):
+        * wml/WMLPageState.h:
+        (WebCore::WMLPageState::getVariable):
+        * wml/WMLPrevElement.cpp:
+        (WebCore::WMLPrevElement::executeTask):
+        * wml/WMLRefreshElement.cpp:
+        (WebCore::WMLRefreshElement::executeTask):
+        * wml/WMLTagNames.in:
+        * wml/WMLTimerElement.cpp: Added.
+        (WebCore::WMLTimerElement::WMLTimerElement):
+        (WebCore::WMLTimerElement::parseMappedAttribute):
+        (WebCore::WMLTimerElement::insertedIntoDocument):
+        (WebCore::WMLTimerElement::timerFired):
+        (WebCore::WMLTimerElement::start):
+        (WebCore::WMLTimerElement::stop):
+        (WebCore::WMLTimerElement::storeIntervalToPageState):
+        * wml/WMLTimerElement.h: Added.
+
+2008-11-28  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Holger Freyther.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22549
+
+        Add <do> element support. It provides a way to bind a task element to a <template>/<card> element. 
+        Changes numerous of layout tests which contain <do> elements, as they render as buttons now.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * rendering/RenderButton.cpp:
+        (WebCore::RenderButton::updateFromElement):
+        * wml/WMLCardElement.cpp:
+        (WebCore::WMLCardElement::registerDoElement):
+        * wml/WMLCardElement.h:
+        * wml/WMLDoElement.cpp: Added.
+        (WebCore::WMLDoElement::WMLDoElement):
+        (WebCore::WMLDoElement::defaultEventHandler):
+        (WebCore::WMLDoElement::parseMappedAttribute):
+        (WebCore::WMLDoElement::insertedIntoDocument):
+        (WebCore::WMLDoElement::createRenderer):
+        (WebCore::WMLDoElement::recalcStyle):
+        * wml/WMLDoElement.h: Added.
+        (WebCore::WMLDoElement::registerTask):
+        (WebCore::WMLDoElement::isActive):
+        (WebCore::WMLDoElement::label):
+        (WebCore::WMLDoElement::name):
+        (WebCore::WMLDoElement::setActive):
+        (WebCore::WMLDoElement::setNoop):
+        * wml/WMLNoopElement.cpp:
+        (WebCore::WMLNoopElement::insertedIntoDocument):
+        * wml/WMLTagNames.in:
+        * wml/WMLTaskElement.cpp:
+        (WebCore::WMLTaskElement::insertedIntoDocument):
+
+2008-11-28  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Sam Weinig.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22545
+
+        Add onenterforward/onenterbackward/ontimer support for <card> elements.
+
+        No testing possible at the moment because WMLGoElement is not yet implemented.
+        After that we can add tests covering the <card> event handling.
+
+        * wml/WMLCardElement.cpp:
+        (WebCore::WMLCardElement::WMLCardElement):
+        (WebCore::WMLCardElement::handleIntrinsicEventIfNeeded):
+        (WebCore::WMLCardElement::parseMappedAttribute):
+        (WebCore::WMLCardElement::setActiveCardInDocument):
+        * wml/WMLCardElement.h:
+        (WebCore::WMLCardElement::isNewContext):
+        (WebCore::WMLCardElement::isOrdered):
+        * wml/WMLDocument.cpp:
+        (WebCore::WMLDocument::finishedParsing):
+        * wml/WMLIntrinsicEvent.cpp:
+        (WebCore::WMLIntrinsicEvent::WMLIntrinsicEvent):
+        * wml/WMLIntrinsicEvent.h:
+        (WebCore::WMLIntrinsicEvent::create):
+
+2008-11-27  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Regression seen on QtWebKit - causes a build failure on Win using MinGW
+
+        https://bugs.webkit.org/show_bug.cgi?id=22536
+
+        * WebCore.pro:
+
+2008-11-28  Simon Hausmann  <hausmann@webkit.org>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Fix compilation and linking on Windows CE.
+
+        Use WIN_OS instead of WIN and therefore exclude determineModuleVersionFromDescription()
+        from the Windows'ish build.
+
+        Link against the newly required mmtimer.
+
+        * WebCore.pro:
+        * plugins/PluginPackage.cpp:
+
+2008-11-28  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        http://bugs.webkit.org/show_bug.cgi?id=22524
+
+        Made static initializations in XMLHttpRequest.cpp thread-safe in preparation for usage
+        of XMLHttpRequest by Workers (on threads).
+
+        No observable change in behavior, so no test.
+
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequestStaticData::XMLHttpRequestStaticData):
+        (WebCore::PreflightResultCacheItem::allowsCrossSiteMethod):
+        (WebCore::PreflightResultCacheItem::allowsCrossSiteHeaders):
+        (WebCore::PreflightResultCacheItem::allowsRequest):
+        (WebCore::createXMLHttpRequestStaticData):
+        (WebCore::initializeXMLHttpRequestStaticData):
+        (WebCore::XMLHttpRequest::XMLHttpRequest):
+        (WebCore::XMLHttpRequest::isSafeRequestHeader):
+        (WebCore::XMLHttpRequest::isOnAccessControlResponseHeaderWhitelist):
+        * xml/XMLHttpRequest.h:
+
 2008-11-28  Cameron Zwarich  <zwarich@apple.com>
 
         Not reviewed.

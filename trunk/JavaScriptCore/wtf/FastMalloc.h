@@ -50,6 +50,14 @@ namespace WTF {
 #endif
 
     void releaseFastMallocFreeMemory();
+    
+    struct FastMallocStatistics {
+        size_t heapSize;
+        size_t freeSizeInHeap;
+        size_t freeSizeInCaches;
+        size_t returnedSize;
+    };
+    FastMallocStatistics fastMallocStatistics();
 
 } // namespace WTF
 

@@ -20,4 +20,6 @@ LIST (APPEND WML_SRC
     wml/WMLSetvarElement.cpp
     wml/WMLTaskElement.cpp
     wml/WMLVariables.cpp
+    wml/WMLTimerElement.cpp
+    wml/WMLDoElement.cpp
 )

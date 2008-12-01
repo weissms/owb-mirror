@@ -1,3 +1,111 @@
+2008-12-01  Christian Dywan  <christian@twotoasts.de>
+
+        Reviewed by Holger Freyther.
+
+        http://bugs.webkit.org/show_bug.cgi?id=17122
+        [GTK] Bad font default settings
+
+        Implement a property "enforce-96-dpi" in WebKitWebSettings
+        that can be enabled to force the view to assume 96 DPI.
+
+        * webkit/webkitwebsettings.cpp:
+        (_WebKitWebSettingsPrivate::):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_class_init):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_set_property):
+        (_WebKitWebSettingsPrivate::webkit_web_settings_get_property):
+        * webkit/webkitwebview.cpp:
+
+2008-11-28  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Simplify the code. There is no reason to have code like
+        if (true) return false; which is using temporary variables.
+
+        * webkit/webkitwebview.cpp:
+
+2008-11-28  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Remove bogus null checks. The WebKitWebView own's a WebCore::Page
+        which is owning a WebCore::ChromeClient. There is no way that a
+        WebCore::ChromeClient is still around when the WebKitWebView is gone.
+
+        m_webView can only be null when a ChromeClient gets constructed with
+        a null WebKitWebView which is not allowed.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::ChromeClient):
+        (WebKit::ChromeClient::windowRect):
+        (WebKit::ChromeClient::setWindowRect):
+        (WebKit::ChromeClient::pageRect):
+        (WebKit::ChromeClient::focus):
+        (WebKit::ChromeClient::unfocus):
+        (WebKit::ChromeClient::show):
+        (WebKit::ChromeClient::setToolbarsVisible):
+        (WebKit::ChromeClient::toolbarsVisible):
+        (WebKit::ChromeClient::setStatusbarVisible):
+        (WebKit::ChromeClient::statusbarVisible):
+        (WebKit::ChromeClient::setScrollbarsVisible):
+        (WebKit::ChromeClient::setMenubarVisible):
+        (WebKit::ChromeClient::menubarVisible):
+        (WebKit::ChromeClient::canTakeFocus):
+        (WebKit::ChromeClient::repaint):
+        (WebKit::ChromeClient::scroll):
+        (WebKit::ChromeClient::platformWindow):
+
+2008-11-28  Gustavo Noronha Silva  <gns@gnome.org>
+
+        Reviewed and slightly modified by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=19130
+
+        ChromeClient::createWindow and friends need to be implemented
+
+        Code from Gustavo Noronha and Marco Barisione
+        <marco.barisione@collabora.co.uk> in this change set.
+
+        Implemented all the ChromeClient interfaces needed to have new
+        window creation functioning and exposed to client code. We
+        implemented a mirror GObject to the WindowFeatures object provided
+        by WebCore.
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::windowRect):
+        (WebKit::ChromeClient::setWindowRect):
+        (WebKit::ChromeClient::unfocus):
+        (WebKit::ChromeClient::createWindow):
+        (WebKit::ChromeClient::show):
+        (WebKit::ChromeClient::setToolbarsVisible):
+        (WebKit::ChromeClient::toolbarsVisible):
+        (WebKit::ChromeClient::setStatusbarVisible):
+        (WebKit::ChromeClient::statusbarVisible):
+        (WebKit::ChromeClient::setScrollbarsVisible):
+        (WebKit::ChromeClient::scrollbarsVisible):
+        (WebKit::ChromeClient::setMenubarVisible):
+        (WebKit::ChromeClient::menubarVisible):
+        (WebKit::ChromeClient::setResizable):
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDecidePolicyForNewWindowAction):
+        (WebKit::FrameLoaderClient::dispatchShow):
+        (WebKit::FrameLoaderClient::dispatchCreatePage):
+        * webkit/webkit.h:
+        * webkit/webkitdefines.h:
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebview.cpp:
+        * webkit/webkitwebview.h:
+        * webkit/webkitwebwindowfeatures.cpp: Added.
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_class_init):
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_init):
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_finalize):
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_set_property):
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_get_property):
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_new):
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_new_from_core_features):
+        (_WebKitWebWindowFeaturesPrivate::webkit_web_window_features_equal):
+        * webkit/webkitwebwindowfeatures.h: Added.
+
 2008-11-26  Darin Fisher  <darin@chromium.org>
 
         Fix bustage.

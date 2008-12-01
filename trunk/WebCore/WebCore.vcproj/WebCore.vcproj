@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="windows-1251"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="WebCore"
 	ProjectGUID="{1C16337B-ACF3-4D03-AA90-851C5B5EADA6}"
 	RootNamespace="WebCore"
@@ -2963,11 +2963,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\loader\FrameLoaderClient.h"
+				RelativePath="..\loader\FrameLoaderClient.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\loader\FrameLoaderClient.cpp"
+				RelativePath="..\loader\FrameLoaderClient.h"
 				>
 			</File>
 			<File
@@ -4002,10 +4002,42 @@
 					<File
 						RelativePath="..\platform\graphics\win\MediaPlayerPrivateQuickTimeWin.cpp"
 						>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\win\MediaPlayerPrivateQuickTimeWin.h"
 						>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCustomBuildTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCustomBuildTool"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\win\SimpleFontDataCGWin.cpp"
