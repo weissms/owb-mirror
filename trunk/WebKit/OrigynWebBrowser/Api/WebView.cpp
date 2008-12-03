@@ -41,7 +41,9 @@
 #include "WebChromeClient.h"
 #include "WebContextMenuClient.h"
 #include "WebDragClient.h"
+#if ENABLE(ICONDATABASE)
 #include "WebIconDatabase.h"
+#endif
 #if ENABLE(INSPECTOR)
 #include "WebInspector.h"
 #endif
@@ -530,7 +532,7 @@ void WebView::close()
     delete m_page;
     m_page = 0;
 
-#if ENABLE(ICON_DATABASE)
+#if ENABLE(ICONDATABASE)
     registerForIconNotification(false);
 #endif
     OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), this);
@@ -1110,7 +1112,7 @@ void WebView::setToolTip(const String& toolTip)
     ::SendMessage(m_toolTipHwnd, TTM_ACTIVATE, !m_toolTip.isEmpty(), 0);*/
 }
 
-#if ENABLE(ICON_DATABASE)
+#if ENABLE(ICONDATABASE)
 void WebView::notifyDidAddIcon()
 {
     dispatchDidReceiveIconFromWebFrame(m_mainFrame);
@@ -2026,7 +2028,7 @@ void WebView::stopSpeaking()
 
 void WebView::observe(const WebCore::String &topic, const WebCore::String &data, void *userData)
 {
-#if ENABLE(ICON_DATABASE)
+#if ENABLE(ICONDATABASE)
     if (topic == WebIconDatabase::iconDatabaseDidAddIconNotification())
         notifyDidAddIcon();
 #endif

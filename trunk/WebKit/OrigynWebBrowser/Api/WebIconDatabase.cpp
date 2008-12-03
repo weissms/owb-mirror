@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#if ENABLE(ICON_DATABASE)
+#if ENABLE(ICONDATABASE)
 #include "config.h"
 #include "WebIconDatabase.h"
 
@@ -37,7 +37,7 @@
 #include <Image.h>
 #include <PlatformString.h>
 #include <wtf/MainThread.h>
-#include "BCObserverService.h"
+#include "ObserverServiceData.h"
 #include DEEPSEE_INCLUDE
 
 using namespace WebCore;
@@ -161,11 +161,11 @@ WebCore::Image* WebIconDatabase::getOrCreateDefaultIconBitmap(IntSize size)
 
 //     result = new Image();
 //     result->setContainerSize(size);
-    static Image* defaultIconImage = 0;
+    static RefPtr<Image> defaultIconImage = 0;
     if (!defaultIconImage) {
         defaultIconImage = Image::loadPlatformResource("urlIcon");
     }
-    m_defaultIconMap.set(size, defaultIconImage);
+    m_defaultIconMap.set(size, defaultIconImage.get());
 
     return result;
 }
@@ -216,12 +216,12 @@ String WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification()
 
 static void postDidRemoveAllIconsNotification(WebIconDatabase* iconDB)
 {
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification(), "", iconDB);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidRemoveAllIconsNotification(), "", iconDB);
 }
 
 static void postDidAddIconNotification(const String& pageURL, WebIconDatabase* iconDB)
 {
-    OWBAL::BCObserverService::createBCObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), pageURL, iconDB);
+    OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebIconDatabase::iconDatabaseDidAddIconNotification(), pageURL, iconDB);
 }
 
 void WebIconDatabase::deliverNotifications(void*)

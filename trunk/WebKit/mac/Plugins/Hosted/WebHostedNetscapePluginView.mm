@@ -88,25 +88,28 @@ extern "C" {
 {
     ASSERT(!_proxy);
 
-    NetscapePluginHostProxy* pluginHost = NetscapePluginHostManager::shared().hostForPackage(_pluginPackage.get());
-    
-    if (!pluginHost)
-        return NO;
-
     NSString *userAgent = [[self webView] userAgentForURL:_baseURL.get()];
 
-    _proxy = pluginHost->instantiatePlugin(_MIMEType.get(), _attributeKeys.get(), _attributeValues.get(), userAgent, _sourceURL.get());
+    NSLog(@"self: %@",self);
+    _proxy = NetscapePluginHostManager::shared().instantiatePlugin(_pluginPackage.get(), self, _MIMEType.get(), _attributeKeys.get(), _attributeValues.get(), userAgent, _sourceURL.get());
     if (!_proxy) 
         return NO;
     
-    CALayer *layer = WKMakeRenderLayer(_proxy->renderContextID());
+    _pluginLayer = WKMakeRenderLayer(_proxy->renderContextID());
     self.wantsLayer = YES;
-    [self.layer addSublayer:layer];
 
     // Update the window frame.
     _proxy->windowFrameChanged([[self window] frame]);
     
     return YES;
+}
+
+- (void)setLayer:(CALayer *)newLayer
+{
+    [super setLayer:newLayer];
+    
+    if (_pluginLayer)
+        [newLayer addSublayer:_pluginLayer.get()];
 }
 
 - (void)loadStream
@@ -147,6 +150,8 @@ extern "C" {
         _proxy->destroy();
         _proxy = 0;
     }
+    
+    _pluginLayer = 0;
 }
 
 - (void)startTimers
@@ -225,6 +230,32 @@ extern "C" {
 {
     if (_isStarted && _proxy)
         _proxy->mouseEvent(self, event, NPCocoaEventMouseExited);
+}
+
+- (void)pluginHostDied
+{
+    _pluginHostDied = YES;
+
+    _pluginLayer = nil;
+    _proxy = 0;
+    
+    // No need for us to be layer backed anymore
+    self.wantsLayer = NO;
+    
+    [self setNeedsDisplay:YES];
+}
+
+
+- (void)drawRect:(NSRect)rect
+{
+    if (_proxy)
+        return;
+    
+    if (_pluginHostDied) {
+        // Fill the area with a nice red color for now.
+        [[NSColor redColor] set];
+        NSRectFill(rect);
+    }
 }
 
 @end

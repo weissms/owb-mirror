@@ -2553,6 +2553,22 @@
 				>
 			</File>
 			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\WMLElementFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\WMLElementFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\WMLNames.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\WMLNames.h"
+				>
+			</File>
+			<File
 				RelativePath="$(WebKitOutputDir)\obj\$(ProjectName)\DerivedSources\XLinkNames.cpp"
 				>
 			</File>
@@ -3898,6 +3914,22 @@
 					<File
 						RelativePath="..\platform\graphics\win\ColorSafari.cpp"
 						>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\win\FontCacheWin.cpp"
@@ -3918,6 +3950,22 @@
 					<File
 						RelativePath="..\platform\graphics\win\FontDatabase.cpp"
 						>
+						<FileConfiguration
+							Name="Debug_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_Cairo|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\platform\graphics\win\FontDatabase.h"
@@ -9910,6 +9958,194 @@
 			</File>
 			<File
 				RelativePath="..\storage\VersionChangeCallback.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="wml"
+			>
+			<File
+				RelativePath="..\wml\WMLAccessElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLAccessElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLAElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLAElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLAnchorElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLAnchorElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLBRElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLBRElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLCardElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLCardElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLDocument.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLDocument.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLDoElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLDoElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLErrorHandling.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLErrorHandling.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLEventHandlingElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLEventHandlingElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLGoElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLGoElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLIntrinsicEvent.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLIntrinsicEvent.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLIntrinsicEventHandler.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLIntrinsicEventHandler.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLNoopElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLNoopElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLOnEventElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLOnEventElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLPageState.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLPageState.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLPElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLPElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLPrevElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLPrevElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLRefreshElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLRefreshElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLSetvarElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLSetvarElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLTaskElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLTaskElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLTimerElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLTimerElement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLVariables.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\wml\WMLVariables.h"
 				>
 			</File>
 		</Filter>

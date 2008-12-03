@@ -1,3 +1,49 @@
+2008-12-03  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Kilzer.
+
+        Hack build-webkit --chromium to use Win32 python instead
+        of using the default cygwin python.  Scons + CYGWIN tries
+        to build with GCC by default, we force MSVC in our file
+        but that just results in errors from Scons.  Until we can fix
+        this latest round of errors, at least make build-webkit --chromium
+        actually "work" under CYGWIN instead of forcing users to use
+        a cmd shell directly.
+        
+        This is working around a Scons bug:
+        http://scons.tigris.org/issues/show_bug.cgi?id=2266
+
+        * Scripts/webkitdirs.pm:
+
+2008-12-01  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 22466: REGRESSION (35867): Many resources missing when saving webarchive of webkit.org
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22466>
+        <rdar://problem/6403593>
+
+        Reviewed by Brady Eidson.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (normalizeHTTPResponseHeaderFields): Added.  Normalizes Date, Etag,
+        Keep-Alive, Last-Modified and Server header fields to prevent false
+        positive test failures.
+        (convertWebResourceResponseToDictionary): Call
+        normalizeHTTPResponseHeaderFields() to noramlize HTTP response
+        header fields.
+
+2008-12-01  David D. Kilzer  <ddkilzer@webkit.org>
+
+        Bug 22559: Report builds left to test in bisect-builds (like git-bisect)
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22559>
+
+        Reviewed by Adam Roben.
+
+        * Scripts/bisect-builds: Updated status message to report the
+        maximum number of builds left to test after the current one.
+        (max): Added.
+
 2008-11-28  Alp Toker  <alp@nuanti.com>
 
         Build GtkLauncher and minidom with the '-ansi' compiler flag to detect

@@ -1,3 +1,200 @@
+2008-12-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Start processing messages sent to the client port.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        Add a map from ports to plug-in proxies. Turn the set of instances into a map from
+        pluginID to instance proxy.
+        
+        (WKPCStatusText):
+        Look up the right instance proxy and call status().
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::pluginID):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::status):
+        Implement this.
+        
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        Add the plug-in ID to StatusText.
+
+2008-12-02  Gregory Hughes  <ghughes@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 22513: ZOOM: text selection does not send correct zoom bounds
+
+        When zoomed, text selection must send the zoom bounds in flipped
+        screen coordinates.
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory accessibilityConvertScreenRect:]):
+
+2008-12-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Create a client mach port and pass it to the plug-in host.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.h:
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::hostForPackage):
+        (WebKit::NetscapePluginHostManager::spawnPluginHost):
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::NetscapePluginHostProxy):
+        * Plugins/Hosted/WebKitPluginHost.defs:
+
+2008-12-02  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Let the plug-in views know if the plug-in host crashes.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.h:
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::pluginHostDied):
+        (WebKit::NetscapePluginHostProxy::addPluginInstance):
+        (WebKit::NetscapePluginHostProxy::removePluginInstance):
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::create):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        Keep a pointer to the host proxy.
+        
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        Add the instance to the host set.
+        
+        (WebKit::NetscapePluginInstanceProxy::~NetscapePluginInstanceProxy):
+        Remove the instance form the host set.
+        
+        (WebKit::NetscapePluginInstanceProxy::pluginHostDied):
+        Tell the plug-in view that the plug-in died.
+
+        * Plugins/Hosted/WebHostedNetscapePluginView.h:
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView createPlugin]):
+        Pass the plug-in view to the instantiatePlugin.
+        
+        (-[WebHostedNetscapePluginView pluginHostDied]):
+        Handle the plug-in host crashing.
+        
+        (-[WebHostedNetscapePluginView drawRect:]):
+        Fill the plug-in view with a nice red shade if the plug-in crashes.
+
+2008-12-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Recover if the plug-in host dies and we try to instantiate another plugin before we get the port death notification
+        
+        * Plugins/Hosted/NetscapePluginHostManager.h:
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::pluginHostDied):
+        Remove the plug-in host from the map.
+        
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        NetscapePluginHostProxy is no longer refcounted.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        This is no longer refcounted. Add a set of plug-in instances (unused for now).
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::NetscapePluginHostProxy):
+        Create a death notification port.
+        
+        (WebKit::NetscapePluginHostProxy::pluginHostDied):
+        Tell the manager that we're gone and delete ourselves.
+        
+        (WebKit::NetscapePluginHostProxy::deathPortCallback):
+        New CFMachPort callback.
+
+2008-12-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Move instantiatePlugin to NetscapePluginHostManager.
+        
+        * Plugins/Hosted/NetscapePluginHostManager.h:
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView createPlugin]):
+
+2008-12-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Pass the plug-in host port directly to the instance proxy.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::instantiatePlugin):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::create):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        (WebKit::NetscapePluginInstanceProxy::resize):
+        (WebKit::NetscapePluginInstanceProxy::destroy):
+        (WebKit::NetscapePluginInstanceProxy::focusChanged):
+        (WebKit::NetscapePluginInstanceProxy::windowFocusChanged):
+        (WebKit::NetscapePluginInstanceProxy::windowFrameChanged):
+        (WebKit::NetscapePluginInstanceProxy::startTimers):
+        (WebKit::NetscapePluginInstanceProxy::mouseEvent):
+        (WebKit::NetscapePluginInstanceProxy::stopTimers):
+
+2008-12-01  Anders Carlsson  <andersca@apple.com>
+
+        Try to fix the Tiger build.
+
+        * Plugins/WebNetscapePluginView.mm:
+
+2008-12-01  Anders Carlsson  <andersca@apple.com>
+
+        Rename _layer to _pluginLayer where I forgot to do so.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView destroyPlugin]):
+        * Plugins/WebNetscapePluginView.h:
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView createPlugin]):
+        (-[WebNetscapePluginView setLayer:]):
+        (-[WebNetscapePluginView destroyPlugin]):
+
+2008-12-01  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Make sure to re-insert layers as needed so they won't be lost when the layer backed
+        view is removed from the view hierarchy.
+
+        * Plugins/Hosted/WebHostedNetscapePluginView.h:
+        Add _pluginLayer ivar.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView createPlugin]):
+        Don't add the layer here.
+        
+        (-[WebHostedNetscapePluginView setLayer:]):
+        Instead, add it here.
+        
+        (-[WebHostedNetscapePluginView destroyPlugin]):
+        Set _pluginLayer to 0.
+        
+        * Plugins/WebNetscapePluginView.mm:        
+        (-[WebNetscapePluginView createPlugin]):
+        Don't add the layer here.
+        
+        (-[WebNetscapePluginView setLayer:]):
+        Do it here.
+
 2008-12-01  Antti Koivisto  <antti@apple.com>
 
         Reviewed by Mark Rowe.

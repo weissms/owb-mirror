@@ -29,32 +29,38 @@
 #define NetscapePluginHostManager_h
 
 #import <wtf/HashMap.h>
-#import <wtf/RefPtr.h>
+#import <wtf/PassRefPtr.h>
 
+@class WebHostedNetscapePluginView;
 @class WebNetscapePluginPackage;
 
 namespace WebKit {
 
+class NetscapePluginInstanceProxy;
 class NetscapePluginHostProxy;
 
 class NetscapePluginHostManager {
 public:
     static NetscapePluginHostManager& shared();
     
-    NetscapePluginHostProxy* hostForPackage(WebNetscapePluginPackage *);
-    
+    PassRefPtr<NetscapePluginInstanceProxy> instantiatePlugin(WebNetscapePluginPackage *, WebHostedNetscapePluginView *, NSString *mimeType, NSArray *attributeKeys, NSArray *attributeValues, NSString *userAgent, NSURL *sourceURL);
+
+    void pluginHostDied(NetscapePluginHostProxy*);
+
 private:
+    NetscapePluginHostProxy* hostForPackage(WebNetscapePluginPackage *);
+
     NetscapePluginHostManager();
     ~NetscapePluginHostManager();
     
-    bool spawnPluginHost(WebNetscapePluginPackage *, mach_port_t& pluginHostPort);
+    bool spawnPluginHost(WebNetscapePluginPackage *, mach_port_t clientPort, mach_port_t& pluginHostPort);
     
     bool initializeVendorPort();
     
     mach_port_t m_pluginVendorPort;
     
     // FIXME: This should really be a HashMap of RetainPtrs, but that doesn't work right now.
-    typedef HashMap<WebNetscapePluginPackage*, RefPtr<NetscapePluginHostProxy> > PluginHostMap;
+    typedef HashMap<WebNetscapePluginPackage*, NetscapePluginHostProxy*> PluginHostMap;
     PluginHostMap m_pluginHosts;
 };
     

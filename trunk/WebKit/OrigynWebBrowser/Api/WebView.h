@@ -1223,7 +1223,7 @@ public:
      */
     void setToolTip(const WebCore::String&);
 
-#if ENABLE(ICON_DATABASE)
+#if ENABLE(ICONDATABASE)
 
     /**
      *  registerForIconNotification 

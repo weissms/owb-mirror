@@ -30,6 +30,7 @@
 #include "ActiveDOMObject.h"
 #include "Document.h"
 #include "MessagePort.h"
+#include "SecurityOrigin.h"
 #include "Timer.h"
 #include "WorkerContext.h"
 #include "WorkerTask.h"
@@ -116,6 +117,35 @@ void ScriptExecutionContext::destroyedMessagePort(MessagePort* port)
     m_messagePorts.remove(port);
 }
 
+bool ScriptExecutionContext::canSuspendActiveDOMObjects()
+{
+    HashMap<ActiveDOMObject*, void*>::iterator activeObjectsEnd = m_activeDOMObjects.end();
+    for (HashMap<ActiveDOMObject*, void*>::iterator iter = m_activeDOMObjects.begin(); iter != activeObjectsEnd; ++iter) {
+        ASSERT(iter->first->scriptExecutionContext() == this);
+        if (!iter->first->canSuspend())
+            return false;
+    }
+    return true;
+}
+
+void ScriptExecutionContext::suspendActiveDOMObjects()
+{
+    HashMap<ActiveDOMObject*, void*>::iterator activeObjectsEnd = m_activeDOMObjects.end();
+    for (HashMap<ActiveDOMObject*, void*>::iterator iter = m_activeDOMObjects.begin(); iter != activeObjectsEnd; ++iter) {
+        ASSERT(iter->first->scriptExecutionContext() == this);
+        iter->first->suspend();
+    }
+}
+
+void ScriptExecutionContext::resumeActiveDOMObjects()
+{
+    HashMap<ActiveDOMObject*, void*>::iterator activeObjectsEnd = m_activeDOMObjects.end();
+    for (HashMap<ActiveDOMObject*, void*>::iterator iter = m_activeDOMObjects.begin(); iter != activeObjectsEnd; ++iter) {
+        ASSERT(iter->first->scriptExecutionContext() == this);
+        iter->first->resume();
+    }
+}
+
 void ScriptExecutionContext::stopActiveDOMObjects()
 {
     HashMap<ActiveDOMObject*, void*>::iterator activeObjectsEnd = m_activeDOMObjects.end();
@@ -136,6 +166,11 @@ void ScriptExecutionContext::destroyedActiveDOMObject(ActiveDOMObject* object)
 {
     ASSERT(object);
     m_activeDOMObjects.remove(object);
+}
+
+void ScriptExecutionContext::setSecurityOrigin(PassRefPtr<SecurityOrigin> securityOrigin)
+{
+    m_securityOrigin = securityOrigin;
 }
 
 ScriptExecutionContext::Task::~Task()

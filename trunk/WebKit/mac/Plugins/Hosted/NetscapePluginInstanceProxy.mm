@@ -28,48 +28,71 @@
 #import "NetscapePluginInstanceProxy.h"
 
 #import "NetscapePluginHostProxy.h"
+#import "WebHostedNetscapePluginView.h"
 #import "WebKitPluginHost.h"
+#import "WebViewInternal.h"
+#import "WebUIDelegate.h"
 
 namespace WebKit {
 
-NetscapePluginInstanceProxy::NetscapePluginInstanceProxy(NetscapePluginHostProxy* pluginHost, uint32_t pluginID, uint32_t renderContextID, boolean_t useSoftwareRenderer)
-    : m_pluginHost(pluginHost)
+NetscapePluginInstanceProxy::NetscapePluginInstanceProxy(NetscapePluginHostProxy* pluginHostProxy, WebHostedNetscapePluginView *pluginView, uint32_t pluginID, uint32_t renderContextID, boolean_t useSoftwareRenderer)
+    : m_pluginHostProxy(pluginHostProxy)
+    , m_pluginView(pluginView)
     , m_pluginID(pluginID)
     , m_renderContextID(renderContextID)
     , m_useSoftwareRenderer(useSoftwareRenderer)
 {
+    ASSERT(m_pluginView);
+    
+    pluginHostProxy->addPluginInstance(this);
+}
+
+NetscapePluginInstanceProxy::~NetscapePluginInstanceProxy()
+{
+    ASSERT(!m_pluginHostProxy);
 }
 
 void NetscapePluginInstanceProxy::resize(NSRect size, NSRect clipRect)
 {
-    _WKPHResizePluginInstance(m_pluginHost->port(), m_pluginID, size.origin.x, size.origin.y, size.size.width, size.size.height);
+    _WKPHResizePluginInstance(m_pluginHostProxy->port(), m_pluginID, size.origin.x, size.origin.y, size.size.width, size.size.height);
 }
 
 void NetscapePluginInstanceProxy::destroy()
 {
-    _WKPHDestroyPluginInstance(m_pluginHost->port(), m_pluginID);
+    _WKPHDestroyPluginInstance(m_pluginHostProxy->port(), m_pluginID);
+    
+    m_pluginHostProxy->removePluginInstance(this);
+    m_pluginHostProxy = 0;
+}
+
+void NetscapePluginInstanceProxy::pluginHostDied()
+{
+    m_pluginHostProxy = 0;
+    
+    [m_pluginView pluginHostDied];
+    m_pluginView = nil;
 }
 
 void NetscapePluginInstanceProxy::focusChanged(bool hasFocus)
 {
-    _WKPHPluginInstanceFocusChanged(m_pluginHost->port(), m_pluginID, hasFocus);
+    _WKPHPluginInstanceFocusChanged(m_pluginHostProxy->port(), m_pluginID, hasFocus);
 }
 
 void NetscapePluginInstanceProxy::windowFocusChanged(bool hasFocus)
 {
-    _WKPHPluginInstanceWindowFocusChanged(m_pluginHost->port(), m_pluginID, hasFocus);
+    _WKPHPluginInstanceWindowFocusChanged(m_pluginHostProxy->port(), m_pluginID, hasFocus);
 }
 
 void NetscapePluginInstanceProxy::windowFrameChanged(NSRect frame)
 {
-    _WKPHPluginInstanceWindowFrameChanged(m_pluginHost->port(), m_pluginID, frame.origin.x, frame.origin.y, frame.size.width, frame.size.height,
+    _WKPHPluginInstanceWindowFrameChanged(m_pluginHostProxy->port(), m_pluginID, frame.origin.x, frame.origin.y, frame.size.width, frame.size.height,
                                           // FIXME: Is it always correct to pass the rect of the first screen here?
                                           NSMaxY([[[NSScreen screens] objectAtIndex:0] frame]));
 }
     
 void NetscapePluginInstanceProxy::startTimers(bool throttleTimers)
 {
-    _WKPHPluginInstanceStartTimers(m_pluginHost->port(), m_pluginID, throttleTimers);
+    _WKPHPluginInstanceStartTimers(m_pluginHostProxy->port(), m_pluginID, throttleTimers);
 }
     
 void NetscapePluginInstanceProxy::mouseEvent(NSView *pluginView, NSEvent *event, NPCocoaEventType type)
@@ -84,7 +107,7 @@ void NetscapePluginInstanceProxy::mouseEvent(NSView *pluginView, NSEvent *event,
         clickCount = [event clickCount];
     
 
-    _WKPHPluginInstanceMouseEvent(m_pluginHost->port(), m_pluginID,
+    _WKPHPluginInstanceMouseEvent(m_pluginHostProxy->port(), m_pluginID,
                                   [event timestamp],
                                   type, [event modifierFlags],
                                   pluginPoint.x, pluginPoint.y,
@@ -98,7 +121,18 @@ void NetscapePluginInstanceProxy::mouseEvent(NSView *pluginView, NSEvent *event,
 
 void NetscapePluginInstanceProxy::stopTimers()
 {
-    _WKPHPluginInstanceStopTimers(m_pluginHost->port(), m_pluginID);
+    _WKPHPluginInstanceStopTimers(m_pluginHostProxy->port(), m_pluginID);
+}
+
+void NetscapePluginInstanceProxy::status(const char* message)
+{
+    RetainPtr<CFStringRef> status(AdoptCF, CFStringCreateWithCString(NULL, message, kCFStringEncodingUTF8));
+    
+    if (!status)
+        return;
+    
+    WebView *wv = [m_pluginView webView];
+    [[wv _UIDelegateForwarder] webView:wv setStatusText:(NSString *)status.get()];
 }
 
 } // namespace WebKit

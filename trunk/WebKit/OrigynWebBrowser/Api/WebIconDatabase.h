@@ -28,7 +28,7 @@
 
 #ifndef WebIconDatabase_H
 #define WebIconDatabase_H
-#if ENABLE(ICON_DATABASE)
+#if ENABLE(ICONDATABASE)
 
 
 /**

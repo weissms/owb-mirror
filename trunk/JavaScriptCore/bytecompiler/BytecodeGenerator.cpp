@@ -242,7 +242,7 @@ BytecodeGenerator::BytecodeGenerator(ProgramNode* programNode, const Debugger* d
     m_globalVarStorageOffset = -RegisterFile::CallFrameHeaderSize - m_codeBlock->numParameters - registerFile->size();
 
     // Add previously defined symbols to bookkeeping.
-    m_globals.resize(symbolTable->size());
+    m_globals.grow(symbolTable->size());
     SymbolTable::iterator end = symbolTable->end();
     for (SymbolTable::iterator it = symbolTable->begin(); it != end; ++it)
         registerFor(it->second.getIndex()).setIndex(it->second.getIndex() + m_globalVarStorageOffset);
@@ -341,7 +341,7 @@ BytecodeGenerator::BytecodeGenerator(FunctionBodyNode* functionBody, const Debug
     const Identifier* parameters = functionBody->parameters();
     size_t parameterCount = functionBody->parameterCount();
     m_nextParameterIndex = -RegisterFile::CallFrameHeaderSize - parameterCount - 1;
-    m_parameters.resize(1 + parameterCount); // reserve space for "this"
+    m_parameters.grow(1 + parameterCount); // reserve space for "this"
 
     // Add "this" as a parameter
     m_thisRegister.setIndex(m_nextParameterIndex);
@@ -749,13 +749,11 @@ RegisterID* BytecodeGenerator::emitMove(RegisterID* dst, RegisterID* src)
     return dst;
 }
 
-RegisterID* BytecodeGenerator::emitUnaryOp(OpcodeID opcodeID, RegisterID* dst, RegisterID* src, ResultType type)
+RegisterID* BytecodeGenerator::emitUnaryOp(OpcodeID opcodeID, RegisterID* dst, RegisterID* src)
 {
     emitOpcode(opcodeID);
     instructions().append(dst->index());
     instructions().append(src->index());
-    if (opcodeID == op_negate)
-        instructions().append(type.toInt());
     return dst;
 }
 

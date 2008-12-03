@@ -1144,7 +1144,7 @@ void WebFrame::didPerformFirstNavigation() const
 
 void WebFrame::registerForIconNotification(bool listen)
 {
-#if ENABLE(ICON_DATABASE)
+#if ENABLE(ICONDATABASE)
     d->webView->registerForIconNotification(listen);
 #endif
 }

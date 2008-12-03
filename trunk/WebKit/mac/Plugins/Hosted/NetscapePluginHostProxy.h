@@ -28,28 +28,40 @@
 #ifndef NetscapePluginHostProxy_h
 #define NetscapePluginHostProxy_h
 
+#include <dispatch/dispatch.h>
+#include <wtf/HashMap.h>
+#include <wtf/RetainPtr.h>
 #include <wtf/PassRefPtr.h>
-#include <wtf/RefCounted.h>
 
 namespace WebKit {
     
 class NetscapePluginInstanceProxy;
 
-class NetscapePluginHostProxy : public RefCounted<NetscapePluginHostProxy> {
+class NetscapePluginHostProxy {
 public:
-    static PassRefPtr<NetscapePluginHostProxy> create(mach_port_t pluginHostPort)
-    {
-        return adoptRef(new NetscapePluginHostProxy(pluginHostPort));
-    }
-    
-    PassRefPtr<NetscapePluginInstanceProxy> instantiatePlugin(NSString *mimeType, NSArray *attributeKeys, NSArray *attributeValues, NSString *userAgent, NSURL *sourceURL);
+    NetscapePluginHostProxy(mach_port_t clientPort, mach_port_t pluginHostPort);
     
     mach_port_t port() const { return m_pluginHostPort; }
 
-private:
-    NetscapePluginHostProxy(mach_port_t pluginHostPort);
+    void addPluginInstance(NetscapePluginInstanceProxy*);
+    void removePluginInstance(NetscapePluginInstanceProxy*);
 
+    NetscapePluginInstanceProxy* pluginInstance(uint32_t pluginID);
+    
+private:
+    ~NetscapePluginHostProxy();
+    void pluginHostDied();
+    
+    static void deadNameNotificationCallback(CFMachPortRef port, void *msg, CFIndex size, void *info);
+
+    typedef HashMap<uint32_t, RefPtr<NetscapePluginInstanceProxy> > PluginInstanceMap;
+    PluginInstanceMap m_instances;
+    
+    mach_port_t m_clientPort;
+    dispatch_source_t m_clientPortSource;
+    
     mach_port_t m_pluginHostPort;
+    RetainPtr<CFMachPortRef> m_deadNameNotificationPort;
 };
     
 } // namespace WebKit
