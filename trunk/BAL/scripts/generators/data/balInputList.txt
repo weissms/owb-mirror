@@ -463,6 +463,7 @@
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/HashMap.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/HashSet.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/HashTable.h
+../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/HashTable.cpp
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/HashTraits.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/ListHashSet.h
 ../../OWBAL/Concretizations/Types/WK	../../../JavaScriptCore/wtf/ListRefPtr.h
