@@ -28,9 +28,12 @@
 #ifndef NetscapePluginInstanceProxy_h
 #define NetscapePluginInstanceProxy_h
 
+#include <WebCore/Timer.h>
 #include <WebKit/npapi.h>
+#include <wtf/Deque.h>
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
+#include <wtf/RetainPtr.h>
 
 @class WebHostedNetscapePluginView;
 
@@ -49,7 +52,9 @@ public:
     uint32_t pluginID() const { return m_pluginID; }
     uint32_t renderContextID() const { return m_renderContextID; }
     bool useSoftwareRenderer() const { return m_useSoftwareRenderer; }
-    
+    WebHostedNetscapePluginView *pluginView() const { return m_pluginView; }
+    NetscapePluginHostProxy* hostProxy() const { return m_pluginHostProxy; }
+
     void pluginHostDied();
     
     void resize(NSRect size, NSRect clipRect);
@@ -63,12 +68,25 @@ public:
     void stopTimers();
     
     void status(const char* message);
-
+    NPError loadURL(const char* url, const char* target, bool post, const char* postData, uint32_t postDataLength, bool postDataIsFile, bool currentEventIsUserGesture, uint32_t& requestID);
+    
 private:
+    NPError loadRequest(NSURLRequest *, const char* cTarget, bool currentEventIsUserGesture, uint32_t& streamID);
+    
+    class PluginRequest;
+    void performRequest(PluginRequest*);
+    void evaluateJavaScript(PluginRequest*);
+    
     NetscapePluginInstanceProxy(NetscapePluginHostProxy*, WebHostedNetscapePluginView *, uint32_t pluginID, uint32_t renderContextID, boolean_t useSoftwareRenderer);
 
     NetscapePluginHostProxy* m_pluginHostProxy;
     WebHostedNetscapePluginView *m_pluginView;
+
+    void requestTimerFired(WebCore::Timer<NetscapePluginInstanceProxy>*);
+    WebCore::Timer<NetscapePluginInstanceProxy> m_requestTimer;
+    Deque<PluginRequest*> m_pluginRequests;
+    
+    uint32_t m_currentRequestID;
     
     uint32_t m_pluginID;
     uint32_t m_renderContextID;

@@ -40,6 +40,7 @@
 #include "Console.h"
 #include "CookieJar.h"
 #include "DOMImplementation.h"
+#include "DOMTimer.h"
 #include "DOMWindow.h"
 #include "DocLoader.h"
 #include "DocumentFragment.h"
@@ -106,6 +107,7 @@
 #include "TextIterator.h"
 #include "TextResourceDecoder.h"
 #include "TreeWalker.h"
+#include "Timer.h"
 #include "UIEvent.h"
 #include "WebKitAnimationEvent.h"
 #include "WebKitTransitionEvent.h"
@@ -115,7 +117,9 @@
 #include "XMLTokenizer.h"
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
+#include <wtf/MainThread.h>
 #include <wtf/StdLibExtras.h>
+#include <wtf/PassRefPtr.h>
 
 #if ENABLE(DATABASE)
 #include "Database.h"
@@ -145,6 +149,7 @@
 #endif
 
 #if ENABLE(WML)
+#include "WMLDocument.h"
 #include "WMLElement.h"
 #include "WMLElementFactory.h"
 #include "WMLNames.h"
@@ -4176,6 +4181,14 @@ void Document::stopDatabases()
 
 #endif
 
+#if ENABLE(WML)
+void Document::resetWMLPageState()
+{
+    if (WMLPageState* wmlPageState = wmlPageStateForDocument(this))
+        wmlPageState->reset();
+}
+#endif
+
 void Document::attachRange(Range* range)
 {
     ASSERT(!m_ranges.contains(range));
@@ -4201,7 +4214,7 @@ HTMLCanvasElement* Document::getCSSCanvasElement(const String& name)
 {
     RefPtr<HTMLCanvasElement> result = m_cssCanvasElements.get(name).get();
     if (!result) {
-        result = new HTMLCanvasElement(this);
+        result = new HTMLCanvasElement(canvasTag, this);
         m_cssCanvasElements.set(name, result);
     }
     return result.get();
@@ -4230,10 +4243,74 @@ void Document::parseDNSPrefetchControlHeader(const String& dnsPrefetchControl)
     m_haveExplicitlyDisabledDNSPrefetch = true;
 }
 
+void Document::addTimeout(int timeoutId, DOMTimer* timer)
+{
+    ASSERT(!m_timeouts.get(timeoutId));
+    m_timeouts.set(timeoutId, timer);
+}
+
+void Document::removeTimeout(int timeoutId)
+{
+    DOMTimer* timer = m_timeouts.take(timeoutId);
+    delete timer;
+}
+
+DOMTimer* Document::findTimeout(int timeoutId)
+{
+    return m_timeouts.get(timeoutId);
+}
+
 void Document::reportException(const String& errorMessage, int lineNumber, const String& sourceURL)
 {
     if (DOMWindow* window = domWindow())
         window->console()->addMessage(JSMessageSource, ErrorMessageLevel, errorMessage, lineNumber, sourceURL);
+}
+
+class ScriptExecutionContextTaskTimer : public TimerBase {
+public:
+    ScriptExecutionContextTaskTimer(PassRefPtr<Document> context, PassRefPtr<ScriptExecutionContext::Task> task)
+        : m_context(context)
+        , m_task(task)
+    {
+    }
+
+private:
+    virtual void fired()
+    {
+        m_task->performTask(m_context.get());
+        delete this;
+    }
+
+    RefPtr<Document> m_context;
+    RefPtr<ScriptExecutionContext::Task> m_task;
+};
+
+struct PerformTaskContext {
+    PerformTaskContext(ScriptExecutionContext* scriptExecutionContext, PassRefPtr<ScriptExecutionContext::Task> task)
+        : scriptExecutionContext(scriptExecutionContext)
+        , task(task)
+    {
+    }
+
+    ScriptExecutionContext* scriptExecutionContext; // The context should exist until task execution.
+    RefPtr<ScriptExecutionContext::Task> task;
+};
+
+static void performTask(void* ctx)
+{
+    PerformTaskContext* ptctx = reinterpret_cast<PerformTaskContext*>(ctx);
+    ptctx->task->performTask(ptctx->scriptExecutionContext);
+    delete ptctx;
+}
+
+void Document::postTask(PassRefPtr<Task> task)
+{
+    if (isMainThread()) {
+        ScriptExecutionContextTaskTimer* timer = new ScriptExecutionContextTaskTimer(static_cast<Document*>(this), task);
+        timer->startOneShot(0);
+    } else {
+        callOnMainThread(performTask, new PerformTaskContext(this, task));
+    }
 }
 
 } // namespace WebCore

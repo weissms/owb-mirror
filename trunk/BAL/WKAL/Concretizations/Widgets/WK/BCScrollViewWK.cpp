@@ -696,7 +696,7 @@ void ScrollView::setParentVisible(bool visible)
     
     Widget::setParentVisible(visible);
 
-    if (!isVisible())
+    if (!isSelfVisible())
         return;
         
     HashSet<Widget*>::iterator end = m_children.end();

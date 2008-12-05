@@ -73,7 +73,6 @@ IF (OWBAL_PLATFORM_GRAPHICS STREQUAL "GTK")
         LIST (APPEND GRAPHICS_SRC
             Cairo/BCRenderPathCairo.cpp
             Cairo/BCSVGPaintServerCairo.cpp
-            Cairo/BCSVGPaintServerGradientCairo.cpp
             Cairo/BCSVGPaintServerPatternCairo.cpp
             Cairo/BCSVGResourceFilterCairo.cpp
             Cairo/BCSVGResourceMaskerCairo.cpp
@@ -122,7 +121,6 @@ ELSEIF (OWBAL_PLATFORM_GRAPHICS STREQUAL "SDL")
         LIST (APPEND GRAPHICS_SRC
             SDL/BCRenderPathSDL.cpp
             SDL/BCSVGPaintServerSDL.cpp
-            SDL/BCSVGPaintServerGradientSDL.cpp
             SDL/BCSVGPaintServerPatternSDL.cpp
             SDL/BCSVGResourceFilterSDL.cpp
             SDL/BCSVGResourceMaskerSDL.cpp

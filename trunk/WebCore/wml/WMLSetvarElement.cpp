@@ -43,8 +43,8 @@ WMLSetvarElement::~WMLSetvarElement()
 void WMLSetvarElement::parseMappedAttribute(MappedAttribute* attr)
 {
     if (attr->name() == HTMLNames::nameAttr) {
-        String name = parseValueSubstitutingVariableReferences(attr->value());
-        if (!isValidVariableName(name, true)) {
+	String name = parseValueSubstitutingVariableReferences(attr->value(), WMLErrorInvalidVariableName);
+        if (!isValidVariableName(name)) {
             reportWMLError(document(), WMLErrorInvalidVariableName);
             return;
         }
@@ -68,16 +68,6 @@ void WMLSetvarElement::insertedIntoDocument()
 
     if (static_cast<WMLElement*>(parent)->isWMLTaskElement())
         static_cast<WMLTaskElement*>(parent)->registerVariableSetter(this);
-}
-
-String WMLSetvarElement::name() const
-{
-    return m_name;
-}
-
-String WMLSetvarElement::value() const
-{
-    return m_value;
 }
 
 }

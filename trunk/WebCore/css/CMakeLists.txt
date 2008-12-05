@@ -19,7 +19,6 @@ LIST (APPEND CSS_SRC
     css/CSSFunctionValue.cpp
     css/CSSMediaRule.cpp
     css/CSSMutableStyleDeclaration.cpp
-    css/CSSNthSelector.cpp
     css/CSSPageRule.cpp
     css/CSSParser.cpp
     css/CSSParserValues.cpp
@@ -30,6 +29,7 @@ LIST (APPEND CSS_SRC
     css/CSSRuleList.cpp
     css/CSSSegmentedFontFace.cpp
     css/CSSSelector.cpp
+    css/CSSSelectorList.cpp
     css/CSSStyleDeclaration.cpp
     css/CSSStyleRule.cpp
     css/CSSStyleSelector.cpp

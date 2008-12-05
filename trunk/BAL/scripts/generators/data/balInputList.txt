@@ -183,7 +183,6 @@
 ../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/svg/graphics/cairo/SVGPaintServerPatternCairo.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGPaintServerRadialGradient.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGPaintServerRadialGradient.cpp
-../../WKAL/Concretizations/Graphics/Cairo	../../../WebCore/svg/graphics/cairo/SVGPaintServerGradientCairo.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGPaintServerSolid.h
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGPaintServerSolid.cpp
 ../../WKAL/Concretizations/Graphics/WK	../../../WebCore/svg/graphics/SVGResourceClipper.h

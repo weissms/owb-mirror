@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2007, 2008 Apple Inc. All rights reserved.
- * Copyright (C) 2008 David Smith (catfish.man@gmail.com)
+ * Copyright (C) 2005, 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,41 +26,25 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CSSNthSelector_h
-#define CSSNthSelector_h
+#if ENABLE(NETSCAPE_PLUGIN_API)
 
-#include "QualifiedName.h"
-#include "CSSSelector.h"
+@interface WebPluginRequest : NSObject
+{
+    NSURLRequest *_request;
+    NSString *_frameName;
+    void *_notifyData;
+    BOOL _didStartFromUserGesture;
+    BOOL _sendNotification;
+}
 
-namespace WebCore {
+- (id)initWithRequest:(NSURLRequest *)request frameName:(NSString *)frameName notifyData:(void *)notifyData sendNotification:(BOOL)sendNotification didStartFromUserGesture:(BOOL)currentEventIsUserGesture;
 
-    // this class represents a selector using :nth-child for a StyleRule
-    class CSSNthSelector : public CSSSelector {
-    public:
-        CSSNthSelector()
-            : m_a(0)
-            , m_b(0)
-        {
-        }
+- (NSURLRequest *)request;
+- (NSString *)frameName;
+- (void *)notifyData;
+- (BOOL)isCurrentEventUserGesture;
+- (BOOL)sendNotification;
 
-        CSSNthSelector(const QualifiedName& qName)
-            : m_a(0)
-            , m_b(0)
-        {
-        }
+@end
 
-        ~CSSNthSelector()
-        {
-        }
-        
-        bool parseNth();
-        bool matchNth(int count);
-
-    private:
-        int m_a;
-        int m_b;
-    };
-
-} // namespace WebCore
-
-#endif // CSSSelector_h
+#endif // ENABLE(NETSCAPE_PLUGIN_API)

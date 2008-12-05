@@ -80,6 +80,9 @@ static void printMessageSourceAndLevelPrefix(MessageSource source, MessageLevel 
         case HTMLMessageSource:
             sourceString = "HTML";
             break;
+        case WMLMessageSource:
+            sourceString = "WML";
+            break;
         case XMLMessageSource:
             sourceString = "XML";
             break;
@@ -165,7 +168,7 @@ void Console::addMessage(MessageSource source, MessageLevel level, const String&
     if (!page)
         return;
 
-    if (source == JSMessageSource)
+    if (source == JSMessageSource || source == WMLMessageSource)
         page->chrome()->client()->addMessageToConsole(message, lineNumber, sourceURL);
 
 #if ENABLE(INSPECTOR)

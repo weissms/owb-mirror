@@ -96,9 +96,11 @@ void Generator::generateSaveIndex()
     push(index);
 }
 
-void Generator::generateIncrementIndex()
+void Generator::generateIncrementIndex(Jump* failure)
 {
     peek(index);
+    if (failure)
+        *failure = je32(length, index);
     add32(Imm32(1), index);
     poke(index);
 }
@@ -107,13 +109,6 @@ void Generator::generateLoadCharacter(JumpList& failures)
 {
     failures.append(je32(length, index));
     load16(BaseIndex(input, index, TimesTwo), character);
-}
-
-// For the sake of end-of-line assertions, we treat one-past-the-end as if it
-// were part of the input string.
-void Generator::generateJumpIfEndOfInput(JumpList& failures)
-{
-    failures.append(je32(length, index));
 }
 
 // For the sake of end-of-line assertions, we treat one-past-the-end as if it
@@ -225,75 +220,107 @@ void Generator::generateGreedyQuantifier(JumpList& failures, GenerateAtomFunctor
     if (!max)
         return;
 
-    // comment me better!
-    JumpList newFailures;
-
-    // (0) Setup:
-    //     init repeatCount
+    // (0) Setup: save, then init repeatCount.
     push(repeatCount);
     move(Imm32(0), repeatCount);
 
-    // (1) Greedily read as many of the atom as possible
+    // (1) Greedily read as many copies of the atom as possible, then jump to (2).
+    JumpList doneReadingAtoms;
 
-    Label readMore(this);
-
-    // (1.1) Do a character class check.
-    functor.generateAtom(this, newFailures);
-    // (1.2) If we get here, successful match!
+    Label readAnAtom(this);
+    functor.generateAtom(this, doneReadingAtoms);
     add32(Imm32(1), repeatCount);
-    // (1.3) loop, unless we've read max limit.
-    if (max != Quantifier::noMaxSpecified) {
-        // if there is a limit, only loop while less than limit, otherwise fall throught to...
-        if (max != 1)
-            jne32(Imm32(max), repeatCount, readMore);
-        // ...if there is no min we need jump to the alternative test, if there is we can just fall through to it.
-        if (!min)
-            newFailures.append(jump());
-    } else
-        jump(readMore);
-    // (1.4) check enough matches to bother trying an alternative...
-    if (min) {
-        // We will fall through to here if (min && max), after the max check.
-        // First, also link a
-        newFailures.link();
-        newFailures.append(jae32(repeatCount, Imm32(min)));
+    if (max == Quantifier::noMaxSpecified)
+        jump(readAnAtom);
+    else if (max == 1)
+        doneReadingAtoms.append(jump());
+    else {
+        jne32(Imm32(max), repeatCount, readAnAtom);
+        doneReadingAtoms.append(jump());
     }
 
-    // (4) Failure case
-
+    // (5) Quantifier failed -- no more backtracking possible.
     Label quantifierFailed(this);
-    // (4.1) Restore original value of repeatCount from the stack
     pop(repeatCount);
     failures.append(jump()); 
 
-    // (3) Backtrack
-
+    // (4) Backtrack, then fall through to (2) to try again.
     Label backtrack(this);
-    // (3.1) this was preserved prior to executing the alternative
     pop(index);
-    // (3.2) check we can retry with fewer matches - backtracking fails if already at the minimum
-    je32(Imm32(min), repeatCount, quantifierFailed);
-    // (3.3) roll off one match, and retry.
     functor.backtrack(this);
     sub32(Imm32(1), repeatCount);
 
-    // (2) Try an alternative.
+    // (2) Verify that we have enough atoms.
+    doneReadingAtoms.link();
+    jl32(repeatCount, Imm32(min), quantifierFailed);
 
-    // (2.1) point to retry
-    newFailures.link();
-    // (2.2) recursively call to parseAlternative, if it falls through, success!
+    // (3) Test the rest of the alternative.
     push(index);
-    m_parser.parseAlternative(newFailures);
+    m_parser.parseAlternative(backtrack);
+
     pop();
     pop(repeatCount);
-    // (2.3) link failure cases to here.
-    newFailures.linkTo(backtrack);
 }
 
 void Generator::generatePatternCharacterSequence(JumpList& failures, int* sequence, size_t count)
 {
-    for (size_t i = 0; i < count; ++i)
+    for (size_t i = 0; i < count;) {
+        if (i < count - 1) {
+            if (generatePatternCharacterPair(failures, sequence[i], sequence[i + 1])) {
+                i += 2;
+                continue;
+            }
+        }
+
         generatePatternCharacter(failures, sequence[i]);
+        ++i;
+    }
+}
+
+bool Generator::generatePatternCharacterPair(JumpList& failures, int ch1, int ch2)
+{
+    if (m_parser.ignoreCase()) {
+        // Non-trivial case folding requires more than one test, so we can't
+        // test as a pair with an adjacent character.
+        if (!isASCII(ch1) && Unicode::toLower(ch1) != Unicode::toUpper(ch1))
+            return false;
+        if (!isASCII(ch2) && Unicode::toLower(ch2) != Unicode::toUpper(ch2))
+            return false;
+    }
+
+    // Optimistically consume 2 characters.
+    add32(Imm32(2), index);
+    failures.append(jg32(index, length));
+
+    // Load the characters we just consumed, offset -2 characters from index.
+    load32(BaseIndex(input, index, TimesTwo, -2 * 2), character);
+
+    if (m_parser.ignoreCase()) {
+        // Convert ASCII alphabet characters to upper case before testing for
+        // equality. (ASCII non-alphabet characters don't require upper-casing
+        // because they have no uppercase equivalents. Unicode characters don't
+        // require upper-casing because we only handle Unicode characters whose
+        // upper and lower cases are equal.)
+        int ch1Mask = 0;
+        if (isASCIIAlpha(ch1)) {
+            ch1 |= 32;
+            ch1Mask = 32;
+        }
+
+        int ch2Mask = 0;
+        if (isASCIIAlpha(ch2)) {
+            ch2 |= 32;
+            ch2Mask = 32;
+        }
+
+        int mask = ch1Mask | (ch2Mask << 16);
+        if (mask)
+            or32(Imm32(mask), character);
+    }
+    int pair = ch1 | (ch2 << 16);
+
+    failures.append(jne32(Imm32(pair), character));
+    return true;
 }
 
 void Generator::generatePatternCharacter(JumpList& failures, int ch)
@@ -312,7 +339,7 @@ void Generator::generatePatternCharacter(JumpList& failures, int ch)
         if (isASCIIAlpha(ch)) {
             or32(Imm32(32), character);
             ch |= 32;
-        } else if ((ch > 0x7f) && ((lower = Unicode::toLower(ch)) != (upper = Unicode::toUpper(ch)))) {
+        } else if (!isASCII(ch) && ((lower = Unicode::toLower(ch)) != (upper = Unicode::toUpper(ch)))) {
             // handle unicode case sentitive characters - branch to success on upper
             isUpper = je32(Imm32(upper), character);
             hasUpper = true;

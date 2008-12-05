@@ -186,9 +186,9 @@ namespace WebCore {
 #endif
 
 #if ENABLE(WML)
-        void setWMLPageState(RefPtr<WMLPageState>);
-        WMLPageState* wmlPageState() const;
+        WMLPageState* wmlPageState();
 #endif
+
         void setCustomHTMLTokenizerTimeDelay(double);
         bool hasCustomHTMLTokenizerTimeDelay() const { return m_customHTMLTokenizerTimeDelay != -1; }
         double customHTMLTokenizerTimeDelay() const { ASSERT(m_customHTMLTokenizerTimeDelay != -1); return m_customHTMLTokenizerTimeDelay; }
@@ -256,7 +256,7 @@ namespace WebCore {
 #endif
 
 #if ENABLE(WML)
-        RefPtr<WMLPageState> m_wmlPageState;
+        OwnPtr<WMLPageState> m_wmlPageState;
 #endif
     };
 

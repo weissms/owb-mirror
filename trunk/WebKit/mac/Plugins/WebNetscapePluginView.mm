@@ -49,6 +49,7 @@
 #import "WebNetscapePluginEventHandler.h"
 #import "WebNullPluginView.h"
 #import "WebPreferences.h"
+#import "WebPluginRequest.h"
 #import "WebViewInternal.h"
 #import "WebUIDelegatePrivate.h"
 #import <Carbon/Carbon.h>
@@ -165,24 +166,6 @@ typedef struct {
 - (NSTextInputContext *)inputContext;
 @end
 
-@interface WebPluginRequest : NSObject
-{
-    NSURLRequest *_request;
-    NSString *_frameName;
-    void *_notifyData;
-    BOOL _didStartFromUserGesture;
-    BOOL _sendNotification;
-}
-
-- (id)initWithRequest:(NSURLRequest *)request frameName:(NSString *)frameName notifyData:(void *)notifyData sendNotification:(BOOL)sendNotification didStartFromUserGesture:(BOOL)currentEventIsUserGesture;
-
-- (NSURLRequest *)request;
-- (NSString *)frameName;
-- (void *)notifyData;
-- (BOOL)isCurrentEventUserGesture;
-- (BOOL)sendNotification;
-
-@end
 
 @interface NSData (WebPluginDataExtras)
 - (BOOL)_web_startsWithBlankLine;
@@ -293,7 +276,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 
 - (PortState)saveAndSetNewPortStateForUpdate:(BOOL)forUpdate
 {
-    ASSERT(drawingModel != NPDrawingModelCoreAnimation);
     ASSERT([self currentWindow] != nil);
 
     // Use AppKit to convert view coordinates to NSWindow coordinates.
@@ -549,6 +531,12 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 
             break;
         }
+          
+        case NPDrawingModelCoreAnimation:
+            window.window = [self currentWindow];
+            // Just set the port state to a dummy value.
+            portState = (PortState)1;
+            break;
         
         default:
             ASSERT_NOT_REACHED();
@@ -566,9 +554,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 
 - (void)restorePortState:(PortState)portState
 {
-    if (drawingModel == NPDrawingModelCoreAnimation)
-        return;
-
     ASSERT([self currentWindow]);
     ASSERT(portState);
     
@@ -605,6 +590,9 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
             CGContextRestoreGState(nPort.cgPort.context);
             break;
 
+        case NPDrawingModelCoreAnimation:
+            ASSERT(portState == (PortState)1);
+            break;
         default:
             ASSERT_NOT_REACHED();
             break;
@@ -838,8 +826,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 
 - (BOOL)isNewWindowEqualToOldWindow
 {
-    ASSERT(drawingModel != NPDrawingModelCoreAnimation);
-        
     if (window.x != lastSetWindow.x)
         return NO;
     if (window.y != lastSetWindow.y)
@@ -878,6 +864,10 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
                 return NO;
         break;
                     
+        case NPDrawingModelCoreAnimation:
+          if (window.window != lastSetWindow.window)
+              return NO;
+          break;
         default:
             ASSERT_NOT_REACHED();
         break;
@@ -914,16 +904,13 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
     if (!_isStarted)
         return;
     
-    if (drawingModel == NPDrawingModelCoreAnimation)
-        return;
-    
 #ifdef NP_NO_QUICKDRAW
     if (![self canDraw])
         return;
 #else
     if (drawingModel == NPDrawingModelQuickDraw)
         [self tellQuickTimeToChill];
-    else if (![self canDraw])
+    else if (drawingModel == NPDrawingModelCoreGraphics && ![self canDraw])
         return;
     
 #endif // NP_NO_QUICKDRAW
@@ -942,8 +929,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 
 - (void)setWindowIfNecessary
 {
-    ASSERT(drawingModel != NPDrawingModelCoreAnimation);
-           
     if (!_isStarted) 
         return;
     
@@ -981,7 +966,12 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
                 LOG(Plugins, "NPP_SetWindow (CoreGraphics): %d, window=%p, context=%p, window.x:%d window.y:%d window.width:%d window.height:%d",
                 npErr, nPort.cgPort.window, nPort.cgPort.context, (int)window.x, (int)window.y, (int)window.width, (int)window.height);
             break;
-                        
+
+            case NPDrawingModelCoreAnimation:
+                LOG(Plugins, "NPP_SetWindow (CoreAnimation): %d, window=%p window.x:%d window.y:%d window.width:%d window.height:%d",
+                npErr, window.window, nPort.cgPort.context, (int)window.x, (int)window.y, (int)window.width, (int)window.height);
+            break;
+
             default:
                 ASSERT_NOT_REACHED();
             break;
@@ -1566,28 +1556,6 @@ static inline void getNPRect(const NSRect& nr, NPRect& npr)
 @end
 
 @implementation WebNetscapePluginView (WebNPPCallbacks)
-
-- (NSMutableURLRequest *)requestWithURLCString:(const char *)URLCString
-{
-    if (!URLCString)
-        return nil;
-    
-    CFStringRef string = CFStringCreateWithCString(kCFAllocatorDefault, URLCString, kCFStringEncodingISOLatin1);
-    ASSERT(string); // All strings should be representable in ISO Latin 1
-    
-    NSString *URLString = [(NSString *)string _web_stringByStrippingReturnCharacters];
-    NSURL *URL = [NSURL _web_URLWithDataAsString:URLString relativeToURL:_baseURL.get()];
-    CFRelease(string);
-    if (!URL)
-        return nil;
-
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
-    Frame* frame = core([self webFrame]);
-    if (!frame)
-        return nil;
-    [request _web_setHTTPReferrer:frame->loader()->outgoingReferrer()];
-    return request;
-}
 
 - (void)evaluateJavaScriptPluginRequest:(WebPluginRequest *)JSPluginRequest
 {
@@ -2229,53 +2197,6 @@ static NPBrowserTextInputFuncs *browserTextInputFuncs()
     
     [NSMenu popUpContextMenu:(NSMenu *)menu withEvent:currentEvent forView:self];
     return NPERR_NO_ERROR;
-}
-
-@end
-
-@implementation WebPluginRequest
-
-- (id)initWithRequest:(NSURLRequest *)request frameName:(NSString *)frameName notifyData:(void *)notifyData sendNotification:(BOOL)sendNotification didStartFromUserGesture:(BOOL)currentEventIsUserGesture
-{
-    [super init];
-    _didStartFromUserGesture = currentEventIsUserGesture;
-    _request = [request retain];
-    _frameName = [frameName retain];
-    _notifyData = notifyData;
-    _sendNotification = sendNotification;
-    return self;
-}
-
-- (void)dealloc
-{
-    [_request release];
-    [_frameName release];
-    [super dealloc];
-}
-
-- (NSURLRequest *)request
-{
-    return _request;
-}
-
-- (NSString *)frameName
-{
-    return _frameName;
-}
-
-- (BOOL)isCurrentEventUserGesture
-{
-    return _didStartFromUserGesture;
-}
-
-- (BOOL)sendNotification
-{
-    return _sendNotification;
-}
-
-- (void *)notifyData
-{
-    return _notifyData;
 }
 
 @end

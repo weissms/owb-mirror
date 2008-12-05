@@ -1,3 +1,127 @@
+2008-12-05  Stephanie Lewis  <slewis@apple.com>
+
+        Fix build.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCLoadURL):
+
+2008-12-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        More work on streams.
+        
+        * Plugins/Hosted/HostedNetscapePluginStream.h: Added.
+        (WebKit::HostedNetscapePluginStream::create):
+        * Plugins/Hosted/HostedNetscapePluginStream.mm: Added.
+        (WebKit::HostedNetscapePluginStream::HostedNetscapePluginStream):
+        (WebKit::HostedNetscapePluginStream::startStreamWithResponse):
+        (WebKit::HostedNetscapePluginStream::startStream):
+        (WebKit::HostedNetscapePluginStream::didReceiveData):
+        (WebKit::HostedNetscapePluginStream::didFinishLoading):
+        (WebKit::HostedNetscapePluginStream::didReceiveResponse):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::pluginView):
+        (WebKit::NetscapePluginInstanceProxy::hostProxy):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::PluginRequest::PluginRequest):
+        (WebKit::NetscapePluginInstanceProxy::PluginRequest::requestID):
+        (WebKit::NetscapePluginInstanceProxy::PluginRequest::request):
+        (WebKit::NetscapePluginInstanceProxy::PluginRequest::frameName):
+        (WebKit::NetscapePluginInstanceProxy::PluginRequest::didStartFromUserGesture):
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        (WebKit::NetscapePluginInstanceProxy::performRequest):
+        (WebKit::NetscapePluginInstanceProxy::evaluateJavaScript):
+        (WebKit::NetscapePluginInstanceProxy::requestTimerFired):
+        (WebKit::NetscapePluginInstanceProxy::loadRequest):
+        * Plugins/Hosted/WebKitPluginHost.defs:
+
+2008-12-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Start implementing WKPCLoadURL. Currently this has copied a lot of code from WebNetscapePluginView
+        but once we have a more complete implementation of NPStreams we can start refactoring things so that the
+        implementations can share more code.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCLoadURL):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        (WebKit::NetscapePluginInstanceProxy::loadURL):
+        (WebKit::NetscapePluginInstanceProxy::performRequest):
+        (WebKit::NetscapePluginInstanceProxy::requestTimerFired):
+        (WebKit::NetscapePluginInstanceProxy::loadRequest):
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        * Plugins/Hosted/WebKitPluginHost.defs:
+
+2008-12-04  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+        
+        Move requestWithURLCString to WebBaseNetscapePluginView.
+        
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView requestWithURLCString:]):
+        * Plugins/WebNetscapePluginView.mm:
+
+2008-12-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Move WebPluginRequest to its own file.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        * Plugins/WebPluginRequest.h: Added.
+        * Plugins/WebPluginRequest.m: Added.
+        (-[WebPluginRequest initWithRequest:frameName:notifyData:sendNotification:didStartFromUserGesture:]):
+        (-[WebPluginRequest dealloc]):
+        (-[WebPluginRequest request]):
+        (-[WebPluginRequest frameName]):
+        (-[WebPluginRequest isCurrentEventUserGesture]):
+        (-[WebPluginRequest sendNotification]):
+        (-[WebPluginRequest notifyData]):
+
+2008-12-03  Anders Carlsson  <andersca@apple.com>
+
+        Handle the CA model.
+
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView setWindowIfNecessary]):
+
+2008-12-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+        
+        <rdar://problem/6412293>
+        Call NPP_SetWindow for CA plug-ins.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView saveAndSetNewPortStateForUpdate:]):
+        (-[WebNetscapePluginView restorePortState:]):
+        (-[WebNetscapePluginView isNewWindowEqualToOldWindow]):
+        (-[WebNetscapePluginView updateAndSetWindow]):
+        (-[WebNetscapePluginView setWindowIfNecessary]):
+
+2008-12-03  Anders Carlsson  <andersca@apple.com>
+
+        Fix the release build.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::deadNameNotificationCallback):
+
+2008-12-03  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        <rdar://problem/6412234>
+        Don't crash if we can't launch the plug-in host.
+
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+
 2008-12-03  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Dan Bernstein.

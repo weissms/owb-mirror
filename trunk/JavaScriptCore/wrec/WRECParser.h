@@ -55,8 +55,8 @@ namespace JSC { namespace WREC {
             UnsupportedParentheses,
         };
 
-        Parser(const UString& pattern, bool ignoreCase, bool multiline, AssemblerBuffer* assemblerBuffer)
-            : m_generator(*this, assemblerBuffer)
+        Parser(const UString& pattern, bool ignoreCase, bool multiline)
+            : m_generator(*this)
             , m_data(pattern.data())
             , m_size(pattern.size())
             , m_ignoreCase(ignoreCase)
@@ -88,6 +88,13 @@ namespace JSC { namespace WREC {
         void parseAlternative(JumpList& failures)
         {
             while (parseTerm(failures)) { }
+        }
+
+        void parseAlternative(MacroAssembler::Label& label)
+        {
+            JumpList failures;
+            parseAlternative(failures);
+            failures.linkTo(label);
         }
 
         void parseDisjunction(JumpList& failures);
