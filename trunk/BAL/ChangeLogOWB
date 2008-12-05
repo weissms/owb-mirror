@@ -1,3 +1,11 @@
+2008-12-05  Mario Bensi  <mbensi@pleyo.com>
+
+        add defines for JIT
+
+        * OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp:
+        * scripts/patches/BCTCSystemAlloc.patch: Added.
+        * scripts/patches/index.txt:
+
 2008-11-26  Mario Bensi  <mbensi@pleyo.com>
 
         Add support Geolocation

@@ -23,6 +23,7 @@
 ../../OWBAL/Concretizations/ImageDecoder/XBM/WK/BCXBMImageDecoderWK.cpp	1:XBMImageDecoder.patch
 ../../OWBAL/Concretizations/Internationalization/WK/BCTextEncodingWK.cpp	0:TextEncoding.patch
 ../../OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp	0:TCSystemAlloc.patch
+../../OWBAL/Concretizations/Memory/WK/BCTCSystemAllocWK.cpp	0:BCTCSystemAlloc.patch
 ../../OWBAL/Concretizations/Types/Pthreads/BCThreadingPthreads.cpp	0:ThreadingPthreads.patch
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURL.patch
 ../../OWBAL/Concretizations/Types/WK/BCKURLWK.cpp	0:KURLI18N.patch
