@@ -1,3 +1,15 @@
+2008-12-08  Dan Bernstein  <mitz@apple.com>
+
+        Mac build fix.
+
+        * WebKit.xcodeproj/project.pbxproj:
+
+2008-12-05  Dan Bernstein  <mitz@apple.com>
+
+        Mac build fix.
+
+        * WebKit.xcodeproj/project.pbxproj:
+
 2008-12-05  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Sam Weinig.

@@ -2,7 +2,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders/
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/bytecode
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/interpreter
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/jit
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}

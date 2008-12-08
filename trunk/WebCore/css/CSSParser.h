@@ -214,7 +214,7 @@ namespace WebCore {
         bool m_hasFontFaceOnlyValues;
 
         Vector<String> m_variableNames;
-        Vector<RefPtr<StyleBase> > m_variableValues;
+        Vector<RefPtr<CSSValue> > m_variableValues;
 
         AtomicString m_defaultNamespace;
 

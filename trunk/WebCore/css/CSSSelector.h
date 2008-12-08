@@ -26,6 +26,7 @@
 
 #include "QualifiedName.h"
 #include <wtf/Noncopyable.h>
+#include <wtf/OwnPtr.h>
 
 namespace WebCore {
 

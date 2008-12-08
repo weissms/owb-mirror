@@ -29,7 +29,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/svg
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore/html
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/jit
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/kjs
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/ForwardingHeaders

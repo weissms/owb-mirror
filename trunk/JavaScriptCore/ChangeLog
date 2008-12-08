@@ -1,3 +1,570 @@
+2008-12-08  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Buildfix).
+
+        Fix non-WREC builds
+
+        * runtime/RegExp.cpp:
+        (JSC::RegExp::RegExp):
+
+2008-12-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Put ENABLE(ASSEMBLER) guards around use of ExecutableAllocator in global data
+
+        Correct Qt and Gtk project files
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * runtime/JSGlobalData.h:
+
+2008-12-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Add new files to other projects.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.pro:
+
+2008-12-07  Oliver Hunt  <oliver@apple.com>
+
+        Rubber stamped by Mark Rowe.
+
+        Rename ExecutableAllocatorMMAP to the more sensible ExecutableAllocatorPosix
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * jit/ExecutableAllocator.h:
+        * jit/ExecutableAllocatorPosix.cpp: Renamed from JavaScriptCore/jit/ExecutableAllocatorMMAP.cpp.
+        (JSC::ExecutableAllocator::intializePageSize):
+        (JSC::ExecutablePool::systemAlloc):
+        (JSC::ExecutablePool::systemRelease):
+
+2008-12-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich and Sam Weinig
+
+        <rdar://problem/6309878> Need more granular control over allocation of executable memory (21783)
+        <https://bugs.webkit.org/show_bug.cgi?id=21783>
+
+        Add a new allocator for use by the JIT that provides executable pages, so
+        we can get rid of the current hack that makes the entire heap executable.
+
+        1-2% progression on SunSpider-v8, 1% on SunSpider.  Reduces memory usage as well!
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.vcproj/jsc/jsc.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * assembler/AssemblerBuffer.h:
+        (JSC::AssemblerBuffer::size):
+        (JSC::AssemblerBuffer::executableCopy):
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::size):
+        (JSC::MacroAssembler::copyCode):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::size):
+        (JSC::X86Assembler::executableCopy):
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::~CodeBlock):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::executablePool):
+        (JSC::CodeBlock::setExecutablePool):
+        * bytecode/Instruction.h:
+        (JSC::PolymorphicAccessStructureList::derefStructures):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::~Interpreter):
+        * interpreter/Interpreter.h:
+        * jit/ExecutableAllocator.cpp: Added.
+        * jit/ExecutableAllocator.h: Added.
+        (JSC::ExecutablePool::create):
+        (JSC::ExecutablePool::alloc):
+        (JSC::ExecutablePool::~ExecutablePool):
+        (JSC::ExecutablePool::available):
+        (JSC::ExecutablePool::ExecutablePool):
+        (JSC::ExecutablePool::poolAllocate):
+        (JSC::ExecutableAllocator::ExecutableAllocator):
+        (JSC::ExecutableAllocator::poolForSize):
+        (JSC::ExecutablePool::sizeForAllocation):
+        * jit/ExecutableAllocatorMMAP.cpp: Added.
+        (JSC::ExecutableAllocator::intializePageSize):
+        (JSC::ExecutablePool::systemAlloc):
+        (JSC::ExecutablePool::systemRelease):
+        * jit/ExecutableAllocatorWin.cpp: Added.
+        (JSC::ExecutableAllocator::intializePageSize):
+        (JSC::ExecutablePool::systemAlloc):
+        (JSC::ExecutablePool::systemRelease):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JIT.h:
+        (JSC::JIT::compileCTIMachineTrampolines):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::privateCompilePutByIdTransition):
+        (JSC::JIT::privateCompilePatchGetArrayLength):
+        (JSC::JIT::privateCompileGetByIdSelf):
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdSelfList):
+        (JSC::JIT::privateCompileGetByIdProtoList):
+        (JSC::JIT::privateCompileGetByIdChainList):
+        (JSC::JIT::privateCompileGetByIdChain):
+        (JSC::JIT::privateCompilePutByIdReplace):
+        * parser/Nodes.cpp:
+        (JSC::RegExpNode::emitBytecode):
+        * runtime/JSGlobalData.h:
+        (JSC::JSGlobalData::poolForSize):
+        * runtime/RegExp.cpp:
+        (JSC::RegExp::RegExp):
+        (JSC::RegExp::create):
+        (JSC::RegExp::~RegExp):
+        * runtime/RegExp.h:
+        * runtime/RegExpConstructor.cpp:
+        (JSC::constructRegExp):
+        * runtime/RegExpPrototype.cpp:
+        (JSC::regExpProtoFuncCompile):
+        * runtime/StringPrototype.cpp:
+        (JSC::stringProtoFuncMatch):
+        (JSC::stringProtoFuncSearch):
+        * wrec/WREC.cpp:
+        (JSC::WREC::Generator::compileRegExp):
+        * wrec/WRECGenerator.h:
+        * wtf/FastMalloc.cpp:
+        * wtf/FastMalloc.h:
+        * wtf/TCSystemAlloc.cpp:
+        (TryMmap):
+        (TryVirtualAlloc):
+        (TryDevMem):
+        (TCMalloc_SystemRelease):
+
+2008-12-06  Sam Weinig  <sam@webkit.org>
+
+        Fix the Gtk build.
+
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::compileGetByIdHotPath):
+        (JSC::JIT::compilePutByIdHotPath):
+
+2008-12-06  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich,
+
+        Move CodeBlock constructor into the .cpp file.
+
+        Sunspider reports a .7% progression, but I can only assume this
+        is noise.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::CodeBlock):
+        * bytecode/CodeBlock.h:
+
+2008-12-06  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Split JumpTable code into its own file.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * bytecode/CodeBlock.cpp:
+        * bytecode/CodeBlock.h:
+        * bytecode/JumpTable.cpp: Copied from bytecode/CodeBlock.cpp.
+        * bytecode/JumpTable.h: Copied from bytecode/CodeBlock.h.
+
+2008-12-05  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Cameron Zwarich.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=22715
+        Encapsulate more CodeBlock members in preparation
+        of moving some of them to a rare data structure.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::locationForOffset):
+        (JSC::printConditionalJump):
+        (JSC::printGetByIdOp):
+        (JSC::printPutByIdOp):
+        (JSC::CodeBlock::printStructure):
+        (JSC::CodeBlock::printStructures):
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::~CodeBlock):
+        (JSC::CodeBlock::unlinkCallers):
+        (JSC::CodeBlock::derefStructures):
+        (JSC::CodeBlock::refStructures):
+        (JSC::CodeBlock::mark):
+        (JSC::CodeBlock::getHandlerForVPC):
+        (JSC::CodeBlock::nativeExceptionCodeForHandlerVPC):
+        (JSC::CodeBlock::lineNumberForVPC):
+        (JSC::CodeBlock::expressionRangeForVPC):
+        (JSC::CodeBlock::shrinkToFit):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::CodeBlock):
+        (JSC::CodeBlock::addCaller):
+        (JSC::CodeBlock::removeCaller):
+        (JSC::CodeBlock::isKnownNotImmediate):
+        (JSC::CodeBlock::isConstantRegisterIndex):
+        (JSC::CodeBlock::getConstant):
+        (JSC::CodeBlock::isTemporaryRegisterIndex):
+        (JSC::CodeBlock::getStubInfo):
+        (JSC::CodeBlock::getCallLinkInfo):
+        (JSC::CodeBlock::instructions):
+        (JSC::CodeBlock::setJITCode):
+        (JSC::CodeBlock::jitCode):
+        (JSC::CodeBlock::ownerNode):
+        (JSC::CodeBlock::setGlobalData):
+        (JSC::CodeBlock::setThisRegister):
+        (JSC::CodeBlock::thisRegister):
+        (JSC::CodeBlock::setNeedsFullScopeChain):
+        (JSC::CodeBlock::needsFullScopeChain):
+        (JSC::CodeBlock::setUsesEval):
+        (JSC::CodeBlock::usesEval):
+        (JSC::CodeBlock::setUsesArguments):
+        (JSC::CodeBlock::usesArguments):
+        (JSC::CodeBlock::codeType):
+        (JSC::CodeBlock::source):
+        (JSC::CodeBlock::sourceOffset):
+        (JSC::CodeBlock::addGlobalResolveInstruction):
+        (JSC::CodeBlock::numberOfPropertyAccessInstructions):
+        (JSC::CodeBlock::addPropertyAccessInstruction):
+        (JSC::CodeBlock::propertyAccessInstruction):
+        (JSC::CodeBlock::numberOfCallLinkInfos):
+        (JSC::CodeBlock::addCallLinkInfo):
+        (JSC::CodeBlock::callLinkInfo):
+        (JSC::CodeBlock::numberOfJumpTargets):
+        (JSC::CodeBlock::addJumpTarget):
+        (JSC::CodeBlock::jumpTarget):
+        (JSC::CodeBlock::lastJumpTarget):
+        (JSC::CodeBlock::numberOfExceptionHandlers):
+        (JSC::CodeBlock::addExceptionHandler):
+        (JSC::CodeBlock::exceptionHandler):
+        (JSC::CodeBlock::addExpressionInfo):
+        (JSC::CodeBlock::numberOfLineInfos):
+        (JSC::CodeBlock::addLineInfo):
+        (JSC::CodeBlock::lastLineInfo):
+        (JSC::CodeBlock::jitReturnAddressVPCMap):
+        (JSC::CodeBlock::numberOfIdentifiers):
+        (JSC::CodeBlock::addIdentifier):
+        (JSC::CodeBlock::identifier):
+        (JSC::CodeBlock::numberOfConstantRegisters):
+        (JSC::CodeBlock::addConstantRegister):
+        (JSC::CodeBlock::constantRegister):
+        (JSC::CodeBlock::addFunction):
+        (JSC::CodeBlock::function):
+        (JSC::CodeBlock::addFunctionExpression):
+        (JSC::CodeBlock::functionExpression):
+        (JSC::CodeBlock::addUnexpectedConstant):
+        (JSC::CodeBlock::unexpectedConstant):
+        (JSC::CodeBlock::addRegExp):
+        (JSC::CodeBlock::regexp):
+        (JSC::CodeBlock::symbolTable):
+        (JSC::CodeBlock::evalCodeCache):
+        New inline setters/getters.
+
+        (JSC::ProgramCodeBlock::ProgramCodeBlock):
+        (JSC::ProgramCodeBlock::~ProgramCodeBlock):
+        (JSC::ProgramCodeBlock::clearGlobalObject):
+        * bytecode/SamplingTool.cpp:
+        (JSC::ScopeSampleRecord::sample):
+        (JSC::SamplingTool::dump):
+        * bytecompiler/BytecodeGenerator.cpp:
+        * bytecompiler/BytecodeGenerator.h:
+        * bytecompiler/Label.h:
+        * interpreter/CallFrame.cpp:
+        * interpreter/Interpreter.cpp:
+        * jit/JIT.cpp:
+        * jit/JITCall.cpp:
+        * jit/JITInlineMethods.h:
+        * jit/JITPropertyAccess.cpp:
+        * parser/Nodes.cpp:
+        * runtime/Arguments.h:
+        * runtime/ExceptionHelpers.cpp:
+        * runtime/JSActivation.cpp:
+        * runtime/JSActivation.h:
+        * runtime/JSGlobalObject.cpp:
+        Change direct access to use new getter/setters.
+
+2008-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Prevent GCC4.2 from hanging when trying to compile Interpreter.cpp.
+        Added "-fno-var-tracking" compiler flag.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22704
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2008-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Ordering of branch operands in MacroAssembler in unnecessarily  inconsistent.
+
+        je, jg etc take an immediate operand as the second argument, but for the
+        equality branches (je, jne) the immediate operand was the first argument.  This
+        was unnecessarily inconsistent.  Change je, jne methods to take the immediate
+        as the second argument.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22703
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::je32):
+        (JSC::MacroAssembler::jne32):
+        * jit/JIT.cpp:
+        (JSC::JIT::compileOpStrictEq):
+        * wrec/WRECGenerator.cpp:
+        (JSC::WREC::Generator::generateEnter):
+        (JSC::WREC::Generator::generateNonGreedyQuantifier):
+        (JSC::WREC::Generator::generateGreedyQuantifier):
+        (JSC::WREC::Generator::generatePatternCharacterPair):
+        (JSC::WREC::Generator::generatePatternCharacter):
+        (JSC::WREC::Generator::generateCharacterClassInvertedRange):
+        (JSC::WREC::Generator::generateCharacterClassInverted):
+        (JSC::WREC::Generator::generateAssertionBOL):
+        (JSC::WREC::Generator::generateAssertionWordBoundary):
+
+2008-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Second tranche of porting JIT.cpp to MacroAssembler interface.
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::mul32):
+        (JSC::MacroAssembler::jl32):
+        (JSC::MacroAssembler::jnzSub32):
+        (JSC::MacroAssembler::joAdd32):
+        (JSC::MacroAssembler::joMul32):
+        (JSC::MacroAssembler::jzSub32):
+        * jit/JIT.cpp:
+        (JSC::JIT::emitSlowScriptCheck):
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitJumpIfNotJSCell):
+        (JSC::JIT::emitJumpSlowCaseIfNotJSCell):
+
+2008-12-05  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 22609: Provide a build-time choice when generating hash tables for properties of built-in DOM objects
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22609>
+        <rdar://problem/6331749>
+
+        Reviewed by Darin Adler.
+
+        Initial patch by Yosen Lin.  Adapted for ToT WebKit by David Kilzer.
+
+        Added back the code that generates a "compact" hash (instead of a
+        perfect hash) as a build-time option using the
+        ENABLE(PERFECT_HASH_SIZE) macro as defined in Lookup.h.
+
+        * create_hash_table: Rename variables to differentiate perfect hash
+        values from compact hash values.  Added back code to compute compact
+        hash tables.  Generate both hash table sizes and emit
+        conditionalized code based on ENABLE(PERFECT_HASH_SIZE).
+        * runtime/Lookup.cpp:
+        (JSC::HashTable::createTable): Added version of createTable() for
+        use with compact hash tables.
+        (JSC::HashTable::deleteTable): Updated to work with compact hash
+        tables.
+        * runtime/Lookup.h: Defined ENABLE(PERFECT_HASH_SIZE) macro here.
+        (JSC::HashEntry::initialize): Set m_next to zero when using compact
+        hash tables.
+        (JSC::HashEntry::setNext): Added for compact hash tables.
+        (JSC::HashEntry::next): Added for compact hash tables.
+        (JSC::HashTable::entry): Added version of entry() for use with
+        compact hash tables.
+        * runtime/Structure.cpp:
+        (JSC::Structure::getEnumerablePropertyNames): Updated to work with
+        compact hash tables.
+
+2008-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Remove redundant calls to JIT::emitSlowScriptCheck.
+        This is checked in the hot path, so is not needed on the slow path - and the code
+        was being planted before the start of the slow case, so was completely unreachable!
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileSlowCases):
+
+2008-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Move JIT::compileOpStrictEq to MacroAssembler interface.
+
+        The rewrite also looks like a small (<1%) performance progression.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22697
+
+        * jit/JIT.cpp:
+        (JSC::JIT::compileOpStrictEq):
+        (JSC::JIT::privateCompileSlowCases):
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitJumpIfJSCell):
+        (JSC::JIT::emitJumpSlowCaseIfJSCell):
+
+2008-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Remove m_assembler from MacroAssembler::Jump.
+        Keeping a pointer allowed for some syntactic sugar - "link()" looks nicer
+        than "link(this)".  But maintaining this doubles the size of Jump, which
+        is even more unfortunate for the JIT, since there are many large structures
+        holding JmpSrcs.  Probably best to remove it.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22693
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::Jump::Jump):
+        (JSC::MacroAssembler::Jump::link):
+        (JSC::MacroAssembler::Jump::linkTo):
+        (JSC::MacroAssembler::JumpList::link):
+        (JSC::MacroAssembler::JumpList::linkTo):
+        (JSC::MacroAssembler::jae32):
+        (JSC::MacroAssembler::je32):
+        (JSC::MacroAssembler::je16):
+        (JSC::MacroAssembler::jg32):
+        (JSC::MacroAssembler::jge32):
+        (JSC::MacroAssembler::jl32):
+        (JSC::MacroAssembler::jle32):
+        (JSC::MacroAssembler::jnePtr):
+        (JSC::MacroAssembler::jne32):
+        (JSC::MacroAssembler::jnset32):
+        (JSC::MacroAssembler::jset32):
+        (JSC::MacroAssembler::jump):
+        (JSC::MacroAssembler::jzSub32):
+        (JSC::MacroAssembler::joAdd32):
+        (JSC::MacroAssembler::call):
+        * wrec/WREC.cpp:
+        (JSC::WREC::Generator::compileRegExp):
+        * wrec/WRECGenerator.cpp:
+        (JSC::WREC::Generator::generateEnter):
+        (JSC::WREC::Generator::generateBackreferenceQuantifier):
+        (JSC::WREC::Generator::generateNonGreedyQuantifier):
+        (JSC::WREC::Generator::generateGreedyQuantifier):
+        (JSC::WREC::Generator::generatePatternCharacter):
+        (JSC::WREC::Generator::generateCharacterClassInvertedRange):
+        (JSC::WREC::Generator::generateCharacterClassInverted):
+        (JSC::WREC::Generator::generateCharacterClass):
+        (JSC::WREC::Generator::generateParenthesesAssertion):
+        (JSC::WREC::Generator::generateParenthesesInvertedAssertion):
+        (JSC::WREC::Generator::generateParenthesesNonGreedy):
+        (JSC::WREC::Generator::generateParenthesesResetTrampoline):
+        (JSC::WREC::Generator::generateAssertionBOL):
+        (JSC::WREC::Generator::generateAssertionEOL):
+        (JSC::WREC::Generator::generateAssertionWordBoundary):
+        (JSC::WREC::Generator::generateBackreference):
+        (JSC::WREC::Generator::terminateAlternative):
+        (JSC::WREC::Generator::terminateDisjunction):
+        * wrec/WRECParser.h:
+
+2008-12-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Simplify JIT generated checks for timeout code, by moving more work into the C function.
+        https://bugs.webkit.org/show_bug.cgi?id=22688
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::cti_timeout_check):
+        * interpreter/Interpreter.h:
+        * jit/JIT.cpp:
+        (JSC::JIT::emitSlowScriptCheck):
+
+2008-12-05  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Encapsulate access to jump tables in the CodeBlock in preparation
+        of moving them to a rare data structure.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::shrinkToFit):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::numberOfImmediateSwitchJumpTables):
+        (JSC::CodeBlock::addImmediateSwitchJumpTable):
+        (JSC::CodeBlock::immediateSwitchJumpTable):
+        (JSC::CodeBlock::numberOfCharacterSwitchJumpTables):
+        (JSC::CodeBlock::addCharacterSwitchJumpTable):
+        (JSC::CodeBlock::characterSwitchJumpTable):
+        (JSC::CodeBlock::numberOfStringSwitchJumpTables):
+        (JSC::CodeBlock::addStringSwitchJumpTable):
+        (JSC::CodeBlock::stringSwitchJumpTable):
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::generate):
+        (JSC::BytecodeGenerator::endSwitch):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        (JSC::Interpreter::cti_op_switch_imm):
+        (JSC::Interpreter::cti_op_switch_char):
+        (JSC::Interpreter::cti_op_switch_string):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+
+2008-12-05  Adam Roben  <aroben@apple.com>
+
+        Windows build fix after r39020
+
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::restoreArgumentReference):
+        (JSC::JIT::restoreArgumentReferenceForTrampoline):
+        Add some apparently-missing __.
+
+2008-12-04  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=22673
+        
+        Added support for the assertion (?=) and inverted assertion (?!) atoms
+        in WREC.
+
+        * wrec/WRECGenerator.cpp:
+        (JSC::WREC::Generator::generateParenthesesAssertion):
+        (JSC::WREC::Generator::generateParenthesesInvertedAssertion): Split the
+        old (unused) generateParentheses into these two functions, with more
+        limited capabilities.
+        
+        * wrec/WRECGenerator.h:
+        (JSC::WREC::Generator::): Moved an enum to the top of the class definition,
+        to match the WebKit style, and removed a defunct comment.
+
+        * wrec/WRECParser.cpp:
+        (JSC::WREC::Parser::parseParentheses):
+        (JSC::WREC::Parser::consumeParenthesesType):
+        * wrec/WRECParser.h:
+        (JSC::WREC::Parser::): Added support for parsing (?=) and (?!).
+
+2008-12-05  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Rubber-stamped by Tor Arne Vestbø.
+
+        Disable the JIT for the Qt build alltogether again, after observing
+        more miscompilations in a wider range of newer gcc versions.
+
+        * JavaScriptCore.pri:
+
+2008-12-05  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Disable the JIT for the Qt build on Linux unless gcc is >= 4.2,
+        due to miscompilations.
+
+        * JavaScriptCore.pri:
+
 2008-12-05  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Geoff Garen.

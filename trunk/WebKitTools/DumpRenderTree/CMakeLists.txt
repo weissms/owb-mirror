@@ -8,6 +8,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/generated_sources/WebCore
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/jit
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/parser
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/interpreter
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime

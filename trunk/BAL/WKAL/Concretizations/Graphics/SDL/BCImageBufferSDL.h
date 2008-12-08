@@ -28,6 +28,7 @@
 #ifndef ImageBuffer_h
 #define ImageBuffer_h
 
+#include "AffineTransform.h"
 #include "Image.h"
 #include "IntSize.h"
 #include <wtf/OwnPtr.h>
@@ -61,6 +62,8 @@ namespace WKAL {
         void putImageData(ImageData* source, const IntRect& sourceRect, const IntPoint& destPoint);
 
         String toDataURL(const String& mimeType) const;
+
+	AffineTransform baseTransform() const { return AffineTransform(); }
 
     private:
         void* m_data;

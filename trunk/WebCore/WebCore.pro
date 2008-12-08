@@ -18,6 +18,7 @@ CONFIG(QTDIR_build) {
 isEmpty(GENERATED_SOURCES_DIR):GENERATED_SOURCES_DIR = tmp
 GENERATED_SOURCES_DIR_SLASH = $$GENERATED_SOURCES_DIR/
 win32-*|wince*: GENERATED_SOURCES_DIR_SLASH ~= s|/|\|
+unix:QMAKE_PKGCONFIG_REQUIRES = QtCore QtDBus QtGui QtNetwork QtXml
 
 !CONFIG(QTDIR_build) {
      OBJECTS_DIR = tmp
@@ -443,7 +444,6 @@ SOURCES += \
     bindings/js/JSPluginElementFunctions.cpp \
     bindings/js/ScriptController.cpp \
     bindings/js/ScriptValue.cpp \
-    bindings/js/PausedTimeouts.cpp \
     bindings/js/ScheduledAction.cpp \
     bridge/NP_jsobject.cpp \
     bridge/npruntime.cpp \

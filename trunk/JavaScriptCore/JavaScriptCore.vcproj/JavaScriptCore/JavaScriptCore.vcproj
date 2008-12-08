@@ -333,6 +333,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\interpreter\CallFrame.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\interpreter\CallFrame.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\runtime\ClassInfo.h"
 				>
 			</File>
@@ -354,6 +362,10 @@
 			</File>
 			<File
 				RelativePath="..\..\runtime\CommonIdentifiers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\runtime\Completion.cpp"
 				>
 			</File>
 			<File
@@ -437,14 +449,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\interpreter\CallFrame.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\interpreter\CallFrame.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\runtime\FunctionConstructor.cpp"
 				>
 			</File>
@@ -506,10 +510,6 @@
 			</File>
 			<File
 				RelativePath="..\..\runtime\InternalFunction.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\runtime\Completion.cpp"
 				>
 			</File>
 			<File

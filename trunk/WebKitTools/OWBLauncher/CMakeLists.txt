@@ -5,7 +5,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_BINARY_DIR}/generated_link/WKAL
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/jit
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/WebCore
     ${CMAKE_SOURCE_DIR}/WebCore/bridge

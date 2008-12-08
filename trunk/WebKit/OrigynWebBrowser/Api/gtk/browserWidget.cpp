@@ -142,12 +142,12 @@ static gboolean webkit_web_view_popup_menu_handler(GtkWidget* widget)
         InlineBox* startInlineBox;
         int startCaretOffset;
         start.getInlineBoxAndOffset(DOWNSTREAM, startInlineBox, startCaretOffset);
-        IntRect startCaretRect = renderer->caretRect(startInlineBox, startCaretOffset, &extraWidthToEndOfLine);
+        IntRect startCaretRect = renderer->localCaretRect(startInlineBox, startCaretOffset, &extraWidthToEndOfLine);
 
         InlineBox* endInlineBox;
         int endCaretOffset;
         end.getInlineBoxAndOffset(UPSTREAM, endInlineBox, endCaretOffset);
-        IntRect endCaretRect = renderer->caretRect(endInlineBox, endCaretOffset);
+        IntRect endCaretRect = renderer->localCaretRect(endInlineBox, endCaretOffset);
 
         IntRect firstRect;
         if (startCaretRect.y() == endCaretRect.y())

@@ -1430,8 +1430,7 @@ bool XMLHttpRequest::canSuspend() const
 
 void XMLHttpRequest::stop()
 {
-    if (m_loader)
-        abort();
+    internalAbort();
 }
 
 void XMLHttpRequest::contextDestroyed()

@@ -1,7 +1,7 @@
 INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/rendering
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/
-    ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/jit
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
 )
 

@@ -71,7 +71,6 @@ LIST (APPEND BINDINGS_JS_SRC
     bindings/js/JSXMLHttpRequestConstructor.cpp
     bindings/js/JSXMLHttpRequestCustom.cpp
     bindings/js/JSXMLHttpRequestUploadCustom.cpp
-    bindings/js/PausedTimeouts.cpp
     bindings/js/ScheduledAction.cpp
     bindings/js/ScriptController.cpp
     bindings/js/ScriptValue.cpp

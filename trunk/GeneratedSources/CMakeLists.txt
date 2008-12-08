@@ -719,6 +719,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/WebCore/wml
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/JavaScriptCore
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/jit
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/bytecode
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/bytecompiler
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/debugger

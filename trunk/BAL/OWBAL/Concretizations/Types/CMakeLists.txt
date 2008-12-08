@@ -5,6 +5,7 @@ INCLUDE_DIRECTORIES (
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/interpreter
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/runtime
     ${CMAKE_SOURCE_DIR}/JavaScriptCore/VM
+    ${CMAKE_SOURCE_DIR}/JavaScriptCore/jit
     ${CMAKE_SOURCE_DIR}/WebCore/bridge
     ${CMAKE_SOURCE_DIR}/WebCore/bridge/bal
 )
