@@ -1,0 +1,33 @@
+if(ENABLE_WML)
+    list(APPEND WEBCORE_SRC
+        wml/WMLAElement.cpp
+        wml/WMLAccessElement.cpp
+        wml/WMLAnchorElement.cpp
+        wml/WMLBRElement.cpp
+        wml/WMLCardElement.cpp
+        wml/WMLDoElement.cpp
+        wml/WMLDocument.cpp
+        wml/WMLElement.cpp
+        wml/WMLErrorHandling.cpp
+        wml/WMLEventHandlingElement.cpp
+        wml/WMLGoElement.cpp
+	wml/WMLImageElement.cpp
+	wml/WMLImageLoader.cpp
+        wml/WMLIntrinsicEvent.cpp
+        wml/WMLIntrinsicEventHandler.cpp
+        wml/WMLNoopElement.cpp
+        wml/WMLOnEventElement.cpp
+        wml/WMLPageState.cpp
+        wml/WMLPElement.cpp
+        wml/WMLPostfieldElement.cpp
+        wml/WMLPrevElement.cpp
+        wml/WMLRefreshElement.cpp
+        wml/WMLSetvarElement.cpp
+        wml/WMLTaskElement.cpp
+	wml/WMLTemplateElement.cpp
+        wml/WMLTimerElement.cpp
+        wml/WMLVariables.cpp
+    )
+    list(APPEND IDL_SRC
+    )
+endif(ENABLE_WML)

@@ -1,0 +1,272 @@
+2008-12-15  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Olivier Dole.
+
+        * cmake/CheckNPAPI.cmake:
+        fix NPAPI Xt dependency
+
+2008-12-15  Olivier DOLE  <odole@pleyo.com>
+
+        Add .pc file for webkit-owb
+
+        * CMakeLists.txt:
+        * cmake/CheckPlatformVideoSupport.cmake:
+
+2008-12-15  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Olivier Dole.
+
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/CheckPlatformGraphics.cmake:
+        Fix GTK compilation on MacPorts (LD_FLAGS)
+
+2008-12-15  Olivier DOLE  <odole@pleyo.com>
+
+        Create a macro for Webcore generated sources.
+
+        * cmake/DefineOwbMacros.cmake:
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix last merge
+
+        * CMakeLists.txt:
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/SetCMakeVars.cmake:
+        * lastMerge.txt:
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        merge with webkit revision 39132
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Remove DeepSee.
+
+        * CMakeLists.txt:
+        * cmake/DeepSee.cmake: Removed.
+        * cmake/SetCMakeVars.cmake:
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Rename balwtf to wtf.
+
+        * CMakeLists.txt:
+        * cmake/AddJavaScriptCoreCompilerFlags.cmake:
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/SetCMakeVars.cmake:
+
+2008-12-05  Olivier DOLE  <odole@pleyo.com>
+
+        Modify source code organization.
+
+        * cmake/SetCMakeVars.cmake:
+
+2008-12-01  Olivier DOLE  <odole@pleyo.com>
+
+        Add SVG support.
+        Set a SDL build by default.
+
+        * CMakeLists.txt:
+        * cmake/AddGlobalCompilerFlags.cmake:
+        * cmake/CheckSVG.cmake: Added.
+        * cmake/SetCMakeVars.cmake:
+
+2008-11-27  Olivier DOLE  <odole@pleyo.com>
+
+        Add NPAPI support.
+        Disable HTML5 video and database support by default.
+
+        * CMakeLists.txt:
+        * cmake/AddGlobalCompilerFlags.cmake:
+        * cmake/CheckNPAPI.cmake: Added.
+        * cmake/SetCMakeVars.cmake:
+
+2008-11-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        Drop support for Dashboard.
+
+        This option was added to match other ports but does not had anything for us.
+        It can also lead to build errors.
+
+        * CMakeLists.txt:
+
+2008-11-20  Olivier DOLE  <odole@pleyo.com>
+
+        Build fix.
+        Remove "version" hack in the main cmake for macport as cmake-2.6.2 is
+        now available in macport:
+        http://www.macports.org/ports.php?by=name&substr=cmake
+
+        * CMakeLists.txt:
+
+2008-10-21  Olivier DOLE  <odole@pleyo.com>
+
+        Fix missing include for customer.
+
+        * cmake/SetCMakeVars.cmake:
+
+2008-10-21  Olivier DOLE  <odole@pleyo.com>
+
+        Clean main CMake.
+
+        * CMakeLists.txt:
+        * cmake/AddGlobalCompilerFlags.cmake: Added.
+        * cmake/CheckPlatformImageDecoder.cmake:
+
+2008-10-20  Olivier DOLE  <odole@pleyo.com>
+
+        Add an option to disable inspector.
+
+        * CMakeLists.txt:
+        * cmake/AddWebCoreCompilerFlags.cmake:
+
+2008-10-14  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+         Reviewed by Olivier Dole.
+         MacOS with MacPorts compilation (1st integration, some corner cases may fail)
+
+        * CMakeLists.txt:
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/CheckPlatformSystem.cmake:
+        * cmake/DeepSee.cmake:
+
+2008-10-09  Olivier DOLE  <odole@pleyo.com>
+
+        Add uClibc support (not tested).
+
+        * CMakeLists.txt:
+        * cmake/AddJavaScriptCoreCompilerFlags.cmake:
+        * cmake/CheckPlatformSystem.cmake: Added.
+
+2008-10-09  Olivier DOLE  <odole@pleyo.com>
+
+        Remove useless WEBCORE_LD_FLAGS variable.
+
+        * cmake/AddWebCoreCompilerFlags.cmake:
+
+2008-10-09  Olivier DOLE  <odole@pleyo.com>
+
+        Remove deprecated GeneratedSources directory.
+
+        * GeneratedSources: Removed.
+        * GeneratedSources/CMakeLists.txt: Removed.
+
+2008-10-06  Olivier DOLE  <odole@pleyo.com>
+
+        Move resources files in root directory.
+
+        * Resources: Added.
+
+2008-10-06  Olivier DOLE  <odole@pleyo.com>
+
+        Set cmake minimum version for this project to 2.6.2. It is required to
+		do a clean for owb.
+
+        * CMakeLists.txt:
+
+2008-10-04  Olivier DOLE  <odole@pleyo.com>
+
+        First clean.
+
+        * CMakeLists.txt:
+        * cmake/AddJavaScriptCoreCompilerFlags.cmake:
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/AddWebKitCompilerFlags.cmake: Added.
+        * cmake/CheckSqlite3.cmake:
+        * cmake/SetCMakeVars.cmake: Added.
+
+2008-10-04  Olivier DOLE  <odole@pleyo.com>
+
+        Fix database option.
+
+        * CMakeLists.txt:
+        * cmake/CheckSqlite3.cmake:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Fix generic internationalization compilation.
+        coding style in CMakeLists.txt
+
+        * CMakeLists.txt:
+        * cmake/CheckPlatformInternationalization.cmake:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Add an option for internationalization support.
+
+        * CMakeLists.txt:
+        * cmake/CheckPlatformInternationalization.cmake:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Quick and dirty fix for ImageDecoder checking which may break customer
+        port checking.
+
+        * CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Add option ENABLE_BENCHMARK in CMakeLists.txt
+
+        * CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Add CheckPlatformCutomer for customer ports.
+
+        * CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        Add CustomerOptions for customer ports.
+
+        * CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        rewrite cmake to get a single library and more clean and modular cmake.
+
+        * CMakeLists.txt:
+        * CMakeLists_deepseeProject.txt: Removed.
+        * cmake/AddJavaScriptCoreCompilerFlags.cmake: Added.
+        * cmake/AddWebCoreCompilerFlags.cmake: Added.
+        * cmake/CheckBaseDependencies.cmake: Added.
+        * cmake/CheckPlatformFileSystem.cmake: Added.
+        * cmake/CheckPlatformFonts.cmake: Added.
+        * cmake/CheckPlatformGraphics.cmake: Added.
+        * cmake/CheckPlatformImageDecoder.cmake: Added.
+        * cmake/CheckPlatformInternationalization.cmake: Added.
+        * cmake/CheckPlatformNetwork.cmake: Added.
+        * cmake/CheckPlatformThreads.cmake: Added.
+        * cmake/CheckPlatformTimer.cmake: Added.
+        * cmake/CheckPlatformVideoSupport.cmake: Added.
+        * cmake/CheckSqlite3.cmake: Added.
+        * cmake/CheckXSLT.cmake: Added.
+        * cmake/DeepSee.cmake: Added.
+        * cmake/DefineOwbMacros.cmake: Added.
+        * cmake/FindCairo.cmake: Removed.
+        * cmake/FindFontconfig.cmake: Removed.
+        * cmake/FindFreetype2.cmake: Removed.
+        * cmake/FindGIF.cmake: Removed.
+        * cmake/FindGSTreamer.cmake: Removed.
+        * cmake/FindGnomeVfs.cmake: Removed.
+        * cmake/FindGthread.cmake: Removed.
+        * cmake/FindGtk2.cmake: Removed.
+        * cmake/FindPNG12.cmake: Removed.
+        * cmake/FindSQLite.cmake: Removed.
+
+2008-09-11  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi <mbensi@pleyo.com>
+
+        Missing library names are not reported in ccmake
+        Ticket #291
+
+        * CMakeLists.txt: Removed ADD_LIBRARY that caused
+        a warning to be displayed (jscore is defined in both
+        IF's branches).
+
