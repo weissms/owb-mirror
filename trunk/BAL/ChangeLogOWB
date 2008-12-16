@@ -1,3 +1,35 @@
+2008-12-16  Olivier DOLE  <odole@pleyo.com>
+
+        Fix merge scripts.
+
+        * Base: Removed.
+        * Base/AmigaOS4: Removed.
+        * Base/AmigaOS4/BALTypeAmigaOS4.h: Removed.
+        * Base/BALBase.h.in: Removed.
+        * Base/CMakeLists.txt: Removed.
+        * Base/Gtk: Removed.
+        * Base/Gtk/BALTypeGtk.h: Removed.
+        * Base/NotImplemented.h: Removed.
+        * Base/SDL: Removed.
+        * Base/SDL/BALTypeSDL.h: Removed.
+        * Base/StaticConstructors.h: Removed.
+        * Base/WebKitDefines.h: Removed.
+        * Base/WebKitTypes.h: Removed.
+        * Base/config.h: Removed.
+        * Base/config.h.empty: Removed.
+        * Base/owb-config.h.in: Removed.
+        * Base/wtf: Removed.
+        * Base/wtf/AlwaysInline.h: Removed.
+        * Base/wtf/DisallowCType.h: Removed.
+        * Base/wtf/Forward.h: Removed.
+        * Base/wtf/Platform.h: Removed.
+        * Base/wtf/UnusedParam.h: Removed.
+        * CMakeLists.txt:
+        * Scripts/check.py: Added.
+        * Scripts/data/WebKitFiles.txt:
+        * Scripts/data/balInputList.txt:
+        * Scripts/merge.py:
+
 2008-12-15  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Mario Bensi.

@@ -182,13 +182,10 @@ BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGPaintServerPattern.cpp
 BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGPaintServerPatternCairo.cpp
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGPaintServerRadialGradient.h
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGPaintServerRadialGradient.cpp
-BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGPaintServerGradientCairo.cpp
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGPaintServerSolid.h
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGPaintServerSolid.cpp
-BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGPaintServerSolidCairo.cpp
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGResourceClipper.h
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGResourceClipper.cpp
-BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGResourceClipperCairo.cpp
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGResourceFilter.h
 BAL/SVG/WebCore/WK WebCore/svg/graphics/SVGResourceFilter.cpp
 BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGResourceFilterCairo.cpp
@@ -310,8 +307,6 @@ BAL/Skeletons/Facilities	WebCore/platform/FileChooser.h
 BAL/Skeletons/Facilities	WebCore/platform/FileSystem.h
 BAL/Skeletons/Facilities	WebCore/platform/Language.h
 BAL/Skeletons/Facilities	WebCore/platform/MIMETypeRegistry.h
-BAL/Skeletons/Facilities	WebCore/platform/SecurityOrigin.h
-BAL/Skeletons/Facilities	WebCore/platform/SecurityOriginHash.h
 BAL/Skeletons/Facilities	WebCore/platform/SharedTimer.h
 BAL/Skeletons/Facilities	WebCore/platform/SystemTime.h
 BAL/Skeletons/Facilities	WebCore/platform/Timer.h
@@ -333,9 +328,6 @@ BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/Language.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/MIMETypeRegistry.h
 BAL/Facilities/WebCore/WK	WebCore/platform/MIMETypeRegistry.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/MIMETypeRegistryGtk.cpp	BCMIMETypeRegistryGtk.cpp
-BAL/Facilities/WebCore/WK	WebCore/platform/SecurityOrigin.h
-BAL/Facilities/WebCore/WK	WebCore/platform/SecurityOrigin.cpp
-BAL/Facilities/WebCore/WK	WebCore/platform/SecurityOriginHash.h
 BAL/Facilities/WebCore/Gtk	WebCore/platform/SharedTimer.h
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/SharedTimerGtk.cpp	BCSharedTimerGtk.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/SystemTime.h
@@ -668,13 +660,9 @@ BAL/Skeletons/Widgets	WebCore/platform/SearchPopupMenu.h
 BAL/Skeletons/Widgets	WebCore/platform/ThemeTypes.h
 BAL/Skeletons/Widgets	WebCore/platform/Scrollbar.h
 BAL/Skeletons/Widgets	WebCore/platform/ScrollbarClient.h
-BAL/Skeletons/Widgets	WebCore/platform/WidgetClient.h
 BAL/Skeletons/Widgets	WebCore/platform/Widget.h
 BAL/Skeletons/Widgets	WebCore/platform/gtk/ClipboardGtk.h
-BAL/Skeletons/Widgets	WebCore/platform/gtk/PlatformScrollBar.h
 BAL/Skeletons/Widgets	WebCore/platform/gtk/RenderThemeGtk.h
-BAL/Skeletons/Widgets	WebCore/platform/ScrollBar.h
-BAL/Skeletons/Widgets	WebCore/platform/ScrollBarTheme.h
 BAL/Skeletons/Widgets   WebCore/platform/ScrollbarThemeComposite.h
 BAL/Skeletons/Widgets   WebCore/platform/Theme.h
 
@@ -705,17 +693,12 @@ BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/gtkdrawing.h
 BAL/Widgets/WebCore/WK	WebCore/platform/Widget.h
 BAL/Widgets/WebCore/WK	WebCore/platform/Widget.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/WidgetGtk.cpp	BCWidgetGtk.cpp
-BAL/Widgets/WebCore/WK	WebCore/platform/ScrollBar.h
-BAL/Widgets/WebCore/WK	WebCore/platform/ScrollBar.cpp
-BAL/Widgets/WebCore/WK	WebCore/platform/ScrollBarTheme.h
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.h
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/ScrollbarThemeGtk.cpp
 BAL/Widgets/WebCore/WK WebCore/platform/ScrollbarThemeComposite.h
 BAL/Widgets/WebCore/WK WebCore/platform/ScrollbarThemeComposite.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ClipboardGtk.cpp	BCClipboardGtk.cpp
-BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PlatformScrollBar.h
-BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PlatformScrollBarGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardHelper.h
@@ -732,10 +715,10 @@ BAL/Widgets/WebCore/WK  WebCore/platform/Theme.h
 BAL/Widgets/WebCore/WK  WebCore/platform/Theme.cpp
 BAL/Widgets/WebCore/WK  WebCore/platform/ScrollView.cpp
 
-BAL/Base	WebCore/platform/NotImplemented.h	NotImplemented.h
-BAL/Base	WebCore/platform/StaticConstructors.h	StaticConstructors.h
-BAL/Base/wtf	JavaScriptCore/wtf/AlwaysInline.h	AlwaysInline.h
-BAL/Base/wtf	JavaScriptCore/wtf/DisallowCType.h	DisallowCType.h
-BAL/Base/wtf	JavaScriptCore/wtf/Forward.h	Forward.h
-BAL/Base/wtf	JavaScriptCore/wtf/Platform.h	Platform.h
-BAL/Base/wtf	JavaScriptCore/wtf/UnusedParam.h	UnusedParam.h
+Base	WebCore/platform/NotImplemented.h	NotImplemented.h
+Base	WebCore/platform/StaticConstructors.h	StaticConstructors.h
+Base/wtf	JavaScriptCore/wtf/AlwaysInline.h	AlwaysInline.h
+Base/wtf	JavaScriptCore/wtf/DisallowCType.h	DisallowCType.h
+Base/wtf	JavaScriptCore/wtf/Forward.h	Forward.h
+Base/wtf	JavaScriptCore/wtf/Platform.h	Platform.h
+Base/wtf	JavaScriptCore/wtf/UnusedParam.h	UnusedParam.h

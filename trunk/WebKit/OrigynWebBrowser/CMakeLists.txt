@@ -88,14 +88,16 @@ target_link_libraries(webkit-owb LINK_INTERFACE_LIBRARIES)
 set_target_properties(webkit-owb
     PROPERTIES SOVERSION 1.0
 )
-#FIXME: Do not install all headers!!!
-file(GLOB API_HEADER Api/*.h)
-
-#TODO: create and install a .pc file for pkg-config.
-#string(REGEX REPLACE "([a-zA-Z0-9-]+)(>=*)([0-9.]*)" "\\1 \\2 \\3 , " DEPENDENCIES ${EXTERNAL_DEPENDENCIES})
+list(APPEND API_HEADER
+    Api/WebFrame.h
+    Api/WebKit.h
+    Api/WebView.h
+    ${OWB_SOURCE_DIR}/Base/WebKitDefines.h
+    ${OWB_SOURCE_DIR}/Base/WebKitTypes.h
+)
 configure_file(
-    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/webkit-owb.pc.in
-    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/webkit-owb.pc
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/webkit-owb.pc.in
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/webkit-owb.pc
     @ONLY
 )
 
@@ -104,6 +106,10 @@ install(TARGETS webkit-owb
 )
 install(FILES ${API_HEADER}
     DESTINATION include/webkit-owb
+    PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
+)
+install(FILES webkit-owb.pc
+    DESTINATION lib/pkgconfig
     PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
 )
 install(DIRECTORY ${OWB_SOURCE_DIR}/Resources/

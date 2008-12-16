@@ -8,4 +8,4 @@ Description: Web rendering library based on webkit.
 Version: @WEBKIT_VERSION@
 Requires: 
 Libs: -L${libdir} -lwebkit-owb
-Cflags: -I${includedir}
+Cflags: -DWTF_PLATFORM_@USE_GRAPHICS@ -I${includedir}/webkit-owb

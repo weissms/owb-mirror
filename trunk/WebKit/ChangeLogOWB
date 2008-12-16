@@ -1,3 +1,27 @@
+2008-12-16  Olivier DOLE  <odole@pleyo.com>
+
+        Fix high level API.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrameObserver::WebFrameObserver):
+        (WebFrameObserver::~WebFrameObserver):
+        (WebFrame::WebFrame):
+        (WebFrame::~WebFrame):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebViewObserver::WebViewObserver):
+        (WebViewObserver::~WebViewObserver):
+        (WebView::WebView):
+        (WebView::~WebView):
+        (initializeStaticObservers):
+        (WebView::close):
+        (WebView::initWithFrame):
+        (WebView::setPreferences):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/Api/webkit-owb.pc.in: Removed.
+        * OrigynWebBrowser/CMakeLists.txt:
+        * OrigynWebBrowser/webkit-owb.pc.in: Added.
+
 2008-12-16  Mario Bensi  <mbensi@pleyo.com>
 
         clean api.

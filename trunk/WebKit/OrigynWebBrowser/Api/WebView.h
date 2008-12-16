@@ -54,6 +54,7 @@ class WebPreferences;
 class WebScriptObject;
 class WebViewPrivate;
 class WebView;
+class WebViewObserver;
 
 namespace WebCore {
     class FrameView;
@@ -1449,7 +1450,8 @@ protected:
     //OwnPtr<TRACKMOUSEEVENT> m_mouseOutTracker;
 
     BalWidget* m_topLevelParent;
-    WebViewPrivate *d;
+    WebViewPrivate* d;
+    WebViewObserver* m_webViewObserver;
 };
 
 #endif

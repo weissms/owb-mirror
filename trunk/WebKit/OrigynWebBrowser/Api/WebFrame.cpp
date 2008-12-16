@@ -126,23 +126,15 @@ const float PrintingMaximumShrinkFactor = 2.0f;
 
 class WebFrameObserver : public ObserverData, public ObserverAddons, public ObserverBookmarklet {
 public:
-    static WebFrameObserver* sharedInstance();
-    void setWebFrame(WebFrame *webFrame) {m_webFrame = webFrame;}
+    WebFrameObserver(WebFrame *webFrame) : m_webFrame(webFrame) {}
+    ~WebFrameObserver() {m_webFrame = 0;}
 
     virtual void observe(const WebCore::String &topic, const WebCore::String &data, void *userData);
     virtual void observe(const String &topic, Bookmarklet *bookmarklet);
     virtual void observe(const String &topic, BalObject *obj);
 private:
-    WebFrameObserver() {}
-    ~WebFrameObserver() {m_webFrame = 0;}
     WebFrame *m_webFrame;
 };
-
-WebFrameObserver* WebFrameObserver::sharedInstance()
-{
-    static WebFrameObserver webFrameObserver;
-    return &webFrameObserver;
-}
 
 void WebFrameObserver::observe(const WebCore::String &topic, const WebCore::String &data, void *userData)
 {
@@ -225,19 +217,19 @@ WebFrame::WebFrame()
     , m_quickRedirectComing(false)
     , m_inPrintingMode(false)
     , m_pageHeight(0)
+    , m_webFrameObserver(new WebFrameObserver(this))
 {
 #ifdef __BINDING_JS__
     m_bindingJS = new BindingJS(this);
 #endif
-    WebFrameObserver::sharedInstance()->setWebFrame(this);
-    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(WebFrameObserver::sharedInstance()));
-    OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(WebFrameObserver::sharedInstance()));
+    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(m_webFrameObserver));
+    OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
 }
 
 WebFrame::~WebFrame()
 {
-    OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", static_cast<ObserverAddons*>(WebFrameObserver::sharedInstance()));
-    OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(WebFrameObserver::sharedInstance()));
+    OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", static_cast<ObserverAddons*>(m_webFrameObserver));
+    OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
 #ifdef __BINDING_JS__
     if (m_bindingJS)
         delete m_bindingJS;

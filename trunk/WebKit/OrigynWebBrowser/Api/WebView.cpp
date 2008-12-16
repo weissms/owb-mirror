@@ -135,21 +135,13 @@ WebView* kit(Page* page)
 
 class WebViewObserver : public ObserverData {
 public:
-    static WebViewObserver* sharedInstance();
-    void setWebView(WebView *webView) {m_webView = webView;}
+    WebViewObserver(WebView* webview) : m_webView(webview) {};
+    ~WebViewObserver() {m_webView = 0;}
 
     virtual void observe(const WebCore::String &topic, const WebCore::String &data, void *userData);
 private:
-    WebViewObserver() {}
-    ~WebViewObserver() {m_webView = 0;}
     WebView *m_webView;
 };
-
-WebViewObserver* WebViewObserver::sharedInstance() 
-{
-    static WebViewObserver webViewObserver;
-    return &webViewObserver;
-}
 
 void WebViewObserver::observe(const WebCore::String &topic, const WebCore::String &data, void *userData)
 {
@@ -266,14 +258,17 @@ WebView::WebView()
 //, m_closeWindowTimer(this, &WebView::closeWindowTimerFired)
 , m_topLevelParent(0)
 , d(new WebViewPrivate(this))
+, m_webViewObserver(new WebViewObserver(this))
 {
     JSC::initializeThreading();
     WebCore::InitializeLoggingChannelsIfNecessary();
 
     d->clearDirtyRegion();
 
-    WebViewObserver::sharedInstance()->setWebView(this);
     initializeStaticObservers();
+
+    OWBAL::ObserverServiceData::createObserverService()->registerObserver("PopupMenuShow", m_webViewObserver);
+    OWBAL::ObserverServiceData::createObserverService()->registerObserver("PopupMenuHide", m_webViewObserver);
 
     WebPreferences* sharedPreferences = WebPreferences::sharedStandardPreferences();
     continuousSpellCheckingEnabled = sharedPreferences->continuousSpellCheckingEnabled();
@@ -294,6 +289,8 @@ WebView::~WebView()
         delete m_downloadDelegate;
     if (d)
         delete d;
+    if (m_webViewObserver)
+        delete m_webViewObserver;
 }
 
 WebView* WebView::createInstance()
@@ -312,8 +309,6 @@ void initializeStaticObservers()
     OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), PreferencesChangedOrRemovedObserver::sharedInstance());
     OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesRemovedNotification(), PreferencesChangedOrRemovedObserver::sharedInstance());
 
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver("PopupMenuShow", WebViewObserver::sharedInstance());
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver("PopupMenuHide", WebViewObserver::sharedInstance());
 }
 
 static HashSet<WebView*>& allWebViewsSet()
@@ -528,9 +523,9 @@ void WebView::close()
 /*#if ENABLE(ICONDATABASE)
     registerForIconNotification(false);
 #endif*/
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), WebViewObserver::sharedInstance());
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuShow", WebViewObserver::sharedInstance());
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuHide", WebViewObserver::sharedInstance());
+    OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
+    OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuShow", m_webViewObserver);
+    OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuHide", m_webViewObserver);
     String identifier = m_preferences->identifier();
     if (identifier != String())
         WebPreferences::removeReferenceForIdentifier(identifier);
@@ -1019,7 +1014,7 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     initializeToolTipWindow();
     windowAncestryDidChange();
 
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), WebViewObserver::sharedInstance());
+    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
     
     m_preferences->postPreferencesChangesNotification();
 
@@ -1426,7 +1421,7 @@ void WebView::setPreferences(WebPreferences* prefs)
 
     WebPreferences *oldPrefs = m_preferences;
 
-    OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), WebViewObserver::sharedInstance());
+    OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
 
     String identifier = oldPrefs->identifier();
     oldPrefs->didRemoveFromWebView();
@@ -1436,7 +1431,7 @@ void WebView::setPreferences(WebPreferences* prefs)
 
     m_preferences = prefs;
 
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), WebViewObserver::sharedInstance());
+    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
 
     m_preferences->postPreferencesChangesNotification();
 }

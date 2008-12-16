@@ -38,7 +38,7 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
+#include "WebKitTypes.h"
 
 namespace WebCore {
     class AuthenticationChallenge;
@@ -62,6 +62,7 @@ class WebArchive;
 class WebDataSource;
 class WebFrame;
 class WebFrameLoaderClient;
+class WebFrameObserver;
 class WebFramePolicyListener;
 class WebHistory;
 class WebView;
@@ -549,6 +550,7 @@ protected:
     bool                m_quickRedirectComing;
     bool                m_inPrintingMode;
     int                 m_pageHeight;   // height of the page adjusted by margins
+    WebFrameObserver*   m_webFrameObserver;
 #ifdef __BINDING_JS__
     BindingJS *m_bindingJS;
 #endif

@@ -1,3 +1,12 @@
+2008-12-16  Olivier DOLE  <odole@pleyo.com>
+
+        move BAL/Base to root directory.
+
+        * Base: Added.
+        * Base/CMakeLists.txt:
+        * CMakeLists.txt:
+        * cmake/SetCMakeVars.cmake:
+
 2008-12-16  Mario Bensi  <mbensi@pleyo.com>
 
         remove ENABLE_BENCHMARK option.

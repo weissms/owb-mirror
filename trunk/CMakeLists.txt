@@ -57,8 +57,8 @@ set(WITH_OWB_CONFIG_DIR "$ENV{HOME}/.owb/conf/" CACHE STRING "Set configuration 
 include(CustomerOptions OPTIONAL RESULT_VARIABLE HAS_CUSTOMER)
 
 configure_file(
-    ${OWB_SOURCE_DIR}/BAL/Base/owb-config.h.in
-    ${OWB_SOURCE_DIR}/BAL/Base/owb-config.h
+    ${OWB_SOURCE_DIR}/Base/owb-config.h.in
+    ${OWB_SOURCE_DIR}/Base/owb-config.h
 )
 
 
@@ -100,6 +100,7 @@ include(AddGlobalCompilerFlags)
 include(DefineOwbMacros)
 include(SetCMakeVars)
 
+include(Base/CMakeLists.txt)
 add_subdirectory(JavaScriptCore/wtf)
 add_subdirectory(JavaScriptCore)
 add_subdirectory(WebCore)

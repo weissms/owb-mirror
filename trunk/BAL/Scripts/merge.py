@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
-import cleanOWB
 import version
 import patch
 import modification
+import cleanOWB
+import check
 import balification
 import build
 import sys
@@ -46,13 +47,16 @@ logging.basicConfig(level=logging.DEBUG,
                     filemode='w')
 
 
+if not check.checkDataIntegrity(trunkPath) :
+    print "fix all error in data files, commit and restart the merge"
+    exit(0)
 cleanOWB.clean(trunkPath)
 vl = version.getVersionLastMerge(trunkPath)
 if mergeVersion == 0 :
     vr = version.getVersionCurrentMerge()
 else :
     vr = mergeVersion
-    
+
 patch.createOWBPatch(trunkPath, vl)
 patch.createWebkitPatch(trunkPath, vl, vr)
 patch.applyWebkitPatch(trunkPath, vr)
@@ -70,3 +74,4 @@ build.configureSDL()
 build.configureGtk()
 build.configureSDLMini()
 version.registerCurrentVersion(trunkPath, vr)
+print "merge finished, please add 'merge with webkit revision " +vr+"' in your commit message"

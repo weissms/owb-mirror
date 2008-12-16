@@ -1,7 +1,7 @@
 list(APPEND BALBASE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}
-    ${OWB_SOURCE_DIR}/BAL/Base
-    ${OWB_SOURCE_DIR}/BAL/Base/wtf
+    ${OWB_SOURCE_DIR}/Base
+    ${OWB_SOURCE_DIR}/Base/wtf
 )
 list(APPEND WTF_INCLUDE_DIRS
     ${OWB_BINARY_DIR}/generated_link/BAL/wtf
