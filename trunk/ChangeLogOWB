@@ -1,3 +1,10 @@
+2008-12-16  Mario Bensi  <mbensi@pleyo.com>
+
+        remove ENABLE_BENCHMARK option.
+
+        * CMakeLists.txt:
+        * cmake/AddGlobalCompilerFlags.cmake:
+
 2008-12-15  Jean-Charles Verdié  <jcverdie@pleyo.com>
 
         Reviewed by Olivier Dole.

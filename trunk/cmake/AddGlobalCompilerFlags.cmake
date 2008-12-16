@@ -20,10 +20,6 @@ add_definitions(-DWTF_USE_CURL=1)
 #FIXME
 add_definitions(-DENABLE_NETSCAPE_PLUGIN_API=1)
 
-if(ENABLE_BENCHMARK)
-    add_definitions(-DENABLE_BENCHMARK)
-endif(ENABLE_BENCHMARK)
-
 if(ENABLE_DEBUG)
     add_definitions(-DUSE_SYSTEM_MALLOC)
 else (ENABLE_DEBUG)

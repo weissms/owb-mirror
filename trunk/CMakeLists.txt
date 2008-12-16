@@ -18,7 +18,6 @@ set(WEBKIT_VERSION 1.0)
 # Set options for compiler below.                #
 ##################################################
 
-option(ENABLE_BENCHMARK "Enable intrusive benchmark measures")
 option(ENABLE_DEBUG "Enable debug support")
 option(ENABLE_TESTS "Enable tests")
 
