@@ -1,3 +1,12 @@
+2008-12-16  Mario Bensi  <mbensi@pleyo.com>
+
+        clean api.
+
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/Api/gtk/browserWidget.cpp:
+        * OrigynWebBrowser/Api/gtk/browserWidget.h:
+
 2008-12-15  Olivier DOLE  <odole@pleyo.com>
 
         Add .pc file for webkit-owb

@@ -239,12 +239,6 @@ public:
      */
     virtual DOMElement* currentForm();
 
-    /**
-     *  globalContext
-     * @result The frame's global JavaScript execution context.  Use this method to
-        bridge between the WebKit and JavaScriptCore APIs.
-     */
-    virtual JSGlobalContextRef globalContext();
 
     /**
      * get renderTree as external representation
@@ -386,15 +380,6 @@ public:
 
     // WebFrame
 
-    /**
-     *  init WebFrame
-     */
-    WebCore::Frame* init(WebView*, WebCore::Page*, WebCore::HTMLFrameOwnerElement*);
-
-    /**
-     * get frame
-     */
-    WebCore::Frame* impl();
 
     /**
      * invalidate webframe
@@ -510,6 +495,27 @@ public:
     //virtual void observe(const const char* &topic, OWBAL::Bookmarklet* bookmarklet);
 
 protected:
+     friend WebCore::Frame* core(WebFrame*);
+     friend WebCore::Frame* core(const WebFrame*);
+     friend class WebView;
+     friend class WebFrameLoaderClient;
+
+    /**
+     *  globalContext
+     * @result The frame's global JavaScript execution context.  Use this method to
+        bridge between the WebKit and JavaScriptCore APIs.
+     */
+    virtual JSGlobalContextRef globalContext();
+
+    /**
+     *  init WebFrame
+     */
+    WebCore::Frame* init(WebView*, WebCore::Page*, WebCore::HTMLFrameOwnerElement*);
+
+    /**
+     * get frame
+     */
+    WebCore::Frame* impl();
 
     /**
      *  loadHTMLString

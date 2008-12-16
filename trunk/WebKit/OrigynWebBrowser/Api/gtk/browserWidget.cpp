@@ -124,7 +124,7 @@ static gboolean webkit_web_view_popup_menu_handler(GtkWidget* widget)
     static const int contextMenuMargin = 1;
 
     // The context menu event was generated from the keyboard, so show the context menu by the current selection.
-    Page* page = webView_s->page();
+    Page* page = core(webView_s);
     FrameView* view = page->mainFrame()->view();
     Position start = page->mainFrame()->selection()->selection().start();
     Position end = page->mainFrame()->selection()->selection().end();
@@ -252,7 +252,7 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
 {
     WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = webView_s->page()->focusController()->focusedOrMainFrame();
+    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     PlatformKeyboardEvent keyboardEvent(event);
 
     if (frame->eventHandler()->keyEvent(keyboardEvent))
@@ -317,7 +317,7 @@ static gboolean webkit_web_view_key_release_event(GtkWidget* widget, GdkEventKey
 {
     WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
-    Frame* frame = webView_s->page()->focusController()->focusedOrMainFrame();
+    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     PlatformKeyboardEvent keyboardEvent(event);
 
     if (frame->eventHandler()->keyEvent(keyboardEvent))
@@ -346,7 +346,7 @@ static gboolean webkit_web_view_button_release_event(GtkWidget* widget, GdkEvent
 {
     WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
     ////WebKitWebViewPrivate* priv = webView->priv;
-    Frame* focusedFrame = webView_s->page()->focusController()->focusedFrame();
+    Frame* focusedFrame = core(webView_s)->focusController()->focusedFrame();
 
     if (focusedFrame && focusedFrame->editor()->canEdit()) {
         GdkWindow* window = gtk_widget_get_parent_window(widget);
@@ -398,7 +398,7 @@ static gboolean webkit_web_view_focus_in_event(GtkWidget* widget, GdkEventFocus*
         WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
         Frame* frame = core(webView_s->mainFrame());
-        webView_s->page()->focusController()->setActive(frame);
+        core(webView_s)->focusController()->setActive(frame);
     }
     return GTK_WIDGET_CLASS(webkit_web_view_parent_class)->focus_in_event(widget, event);
 }
@@ -603,25 +603,25 @@ static gboolean webkit_web_view_real_console_message(WebKitWebView* webView, con
 
 static void webkit_web_view_real_select_all(WebKitWebView* webView)
 {
-    Frame* frame = webView_s->page()->focusController()->focusedOrMainFrame();
+    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("SelectAll").execute();
 }
 
 static void webkit_web_view_real_cut_clipboard(WebKitWebView* webView)
 {
-    Frame* frame = webView_s->page()->focusController()->focusedOrMainFrame();
+    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Cut").execute();
 }
 
 static void webkit_web_view_real_copy_clipboard(WebKitWebView* webView)
 {
-    Frame* frame = webView_s->page()->focusController()->focusedOrMainFrame();
+    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Copy").execute();
 }
 
 static void webkit_web_view_real_paste_clipboard(WebKitWebView* webView)
 {
-    Frame* frame = webView_s->page()->focusController()->focusedOrMainFrame();
+    Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Paste").execute();
 }
 

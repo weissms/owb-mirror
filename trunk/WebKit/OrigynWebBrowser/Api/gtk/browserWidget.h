@@ -22,7 +22,6 @@
 #define BROWSERWIDGET_h
 
 #include <gtk/gtk.h>
-#include <JavaScriptCore/JSBase.h>
 
 #include "WebKitDefines.h"
 #include "WebView.h"

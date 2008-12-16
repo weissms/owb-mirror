@@ -65,6 +65,7 @@ namespace WebCore {
     class ResourceRequest;
 }
 using namespace std;
+
     /**
      * get a webview from page
      */
@@ -791,12 +792,6 @@ public:
 
 
     /**
-     *  observe implementation
-     */
-//    virtual void observe(const WebCore::String &topic, const WebCore::String &data, void *userData);
-
-
-    /**
      *  setCustomDropTarget 
      */
     //virtual void setCustomDropTarget(DropTarget* dt);
@@ -860,16 +855,6 @@ public:
      *  unmarkAllTextMatches 
      */
     virtual void unmarkAllTextMatches();
-
-    /**
-     *  rectsForTextMatches 
-     */
-    //virtual Vector<WebCore::IntRect> rectsForTextMatches();
-
-    /**
-     *  generateSelectionImage 
-     */
-    //virtual WebCore::Image* generateSelectionImage(bool forceWhiteText);
 
     /**
      *  selectionRect 
@@ -950,11 +935,6 @@ public:
     virtual void windowAncestryDidChange();
 
     /**
-     *  paintDocumentRectToContext 
-     */
-//    virtual void paintDocumentRectToContext(WebCore::IntRect rect, PlatformGraphicsContext *pgc);
-
-    /**
      * setCustomHTMLTokenizerTimeDelay
      */
     virtual void setCustomHTMLTokenizerTimeDelay(double timeDelay);
@@ -963,11 +943,6 @@ public:
      * setCustomHTMLTokenizerChunkSize
      */
     virtual void setCustomHTMLTokenizerChunkSize(int chunkSize);
-
-    /**
-     * backingStore
-     */
-  //  virtual WebCore::Image* backingStore();
 
     /**
      * setTransparent
@@ -1009,10 +984,6 @@ public:
      */
     float mediaVolume();
 
-    /**
-     * get page 
-     */
-    WebCore::Page* page();
     
 
     /**
@@ -1091,25 +1062,6 @@ public:
      */
     void clearDirtyRegion();
 
-    /**
-     *  scrollBackingStore 
-     */
-    void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const BalRectangle& scrollViewRect, const BalRectangle& clipRect);
-
-    /**
-     *  updateBackingStore 
-     */
-    void updateBackingStore(WebCore::FrameView*, bool backingStoreCompletelyDirty = false);
-
-    /**
-     *  deleteBackingStore 
-     */
-    void deleteBackingStore();
-
-    /**
-     * repaint
-     */
-    void repaint(const WebCore::IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false);
 
     /**
      *  get frame rect 
@@ -1168,10 +1120,6 @@ public:
     const char* userAgentForKURL(const char* url);
 
 
-    /**
-     *  canHandleRequest
-     */
-    static bool canHandleRequest(const WebCore::ResourceRequest&);
 
     /**
      * setIsBeingDestroyed 
@@ -1184,15 +1132,6 @@ public:
     bool isBeingDestroyed() const { return m_isBeingDestroyed; }
 
 
-    /**
-     * interpret KeyEvent 
-     */
-    const char* interpretKeyEvent(const WebCore::KeyboardEvent*);
-
-    /**
-     * handleEditingKeyboardEvent 
-     */
-    bool handleEditingKeyboardEvent(WebCore::KeyboardEvent*);
 
     /**
      * isPainting 
@@ -1342,6 +1281,51 @@ private:
     bool active();
 
 protected:
+    friend class WebViewPrivate;
+    friend class WebChromeClient;
+    friend class WebEditorClient;
+    friend class WebFrameLoaderClient;
+    friend WebCore::Page* core(WebView*);
+
+    /**
+     *  scrollBackingStore 
+     */
+    void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const BalRectangle& scrollViewRect, const BalRectangle& clipRect);
+
+    /**
+     *  updateBackingStore 
+     */
+    void updateBackingStore(WebCore::FrameView*, bool backingStoreCompletelyDirty = false);
+
+    /**
+     *  deleteBackingStore 
+     */
+    void deleteBackingStore();
+
+    /**
+     * repaint
+     */
+    void repaint(const WebCore::IntRect&, bool contentChanged, bool immediate = false, bool repaintContentOnly = false);
+
+    /**
+     * interpret KeyEvent 
+     */
+    const char* interpretKeyEvent(const WebCore::KeyboardEvent*);
+
+    /**
+     * handleEditingKeyboardEvent 
+     */
+    bool handleEditingKeyboardEvent(WebCore::KeyboardEvent*);
+
+    /**
+     * get page 
+     */
+    WebCore::Page* page();
+
+    /**
+     *  canHandleRequest
+     */
+    static bool canHandleRequest(const WebCore::ResourceRequest&);
 
     /**
      *  getIMMContext 
