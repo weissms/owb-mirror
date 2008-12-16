@@ -34,12 +34,13 @@
 #include <PlatformString.h>
 #include <EventHandler.h>
 #include <MouseEvent.h>
+#include <NavigationAction.h>
 #include <HitTestResult.h>
 
 using namespace WebCore;
 
 WebActionPropertyBag::WebActionPropertyBag(const NavigationAction& action, Frame* frame)
-    : m_action(action) 
+    : m_action(&action) 
     , m_frame(frame)
 {
 }
@@ -65,7 +66,7 @@ WebActionPropertyBag* WebActionPropertyBag::createInstance(const NavigationActio
     return 0;
 }*/
 
-String WebActionPropertyBag::Read(String pszPropName)
+const char* WebActionPropertyBag::Read(char* pszPropName)
 {
     /*if (pszPropName == WebActionNavigationTypeKey) {
         V_VT(pVar) = VT_I4;
@@ -105,6 +106,6 @@ String WebActionPropertyBag::Read(String pszPropName)
         }
     }
     return E_INVALIDARG;*/
-    return String();
+    return "";
 }
 

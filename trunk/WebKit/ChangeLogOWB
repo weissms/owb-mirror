@@ -2,6 +2,15 @@
 
         clean api.
 
+        * OrigynWebBrowser/Api/WebActionPropertyBag.cpp:
+        (WebActionPropertyBag::WebActionPropertyBag):
+        (WebActionPropertyBag::Read):
+        * OrigynWebBrowser/Api/WebActionPropertyBag.h:
+
+2008-12-16  Mario Bensi  <mbensi@pleyo.com>
+
+        clean api.
+
         * OrigynWebBrowser/Api/WebFrame.h:
         * OrigynWebBrowser/Api/WebView.h:
         * OrigynWebBrowser/Api/gtk/browserWidget.cpp:

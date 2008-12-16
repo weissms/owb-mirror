@@ -39,9 +39,11 @@
  * - $Date$
  */
 #include "BALBase.h"
-#include <Frame.h>
-#include <Frame.h>
-#include <NavigationAction.h>
+
+namespace WebCore {
+    class Frame;
+    class NavigationAction;
+}
 
 class WebActionPropertyBag
 {
@@ -82,11 +84,11 @@ public:
      * WebCore::String s = w->Read(pName);
      * @endcode
      */
-    virtual WebCore::String Read(WebCore::String pszPropName);
+    virtual const char* Read(char* pszPropName);
 
 private:
-    WebCore::NavigationAction m_action;
-    RefPtr<WebCore::Frame> m_frame;
+    const WebCore::NavigationAction* m_action;
+    WebCore::Frame* m_frame;
 };
 
 #endif
