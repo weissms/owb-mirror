@@ -1,3 +1,9 @@
+2008-12-16  Mario Bensi  <mbensi@pleyo.com>
+
+        add jsc test
+
+        * CMakeLists.txt:
+
 2008-12-15  Olivier DOLE  <odole@pleyo.com>
 
         fix JavaScriptCore build.

@@ -88,8 +88,8 @@ add_dependencies(jsc wtf)
 ##################################################
 
 if(ENABLE_TESTS)
-    add_executable(jsc kjs/Shell.cpp)
-    target_link_libraries(jsc
+    add_executable(jshell jsc.cpp)
+    target_link_libraries(jshell
         ${KJS_LD_FLAGS}
         ${I18N_LIBRARIES}
         ${THREADS_LIBRARIES}
@@ -100,5 +100,5 @@ if(ENABLE_TESTS)
         COMMAND cd KjsTests/mozilla/ && cat menuhead.html menubody.html menufoot.html > menu.html
         COMMAND cd KjsTests/mozilla/ && SYMROOTS=${CMAKE_CURRENT_SOURCE_DIR}/JavaScriptCore ./jsDriver.pl -e kjs -s ${OWB_BINARY_DIR}/bin/jsc -f results.html
         WORKING_DIRECTORY ${OWB_BINARY_DIR})
-    add_dependencies(kjstests jsc)
+    add_dependencies(kjstests jshell)
 endif(ENABLE_TESTS)
