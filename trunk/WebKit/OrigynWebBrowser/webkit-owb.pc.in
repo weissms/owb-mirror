@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: libwebkit-owb
 Description: Web rendering library based on webkit.
 Version: @WEBKIT_VERSION@
-Requires: 
+Requires: @REQUIREMENT@
 Libs: -L${libdir} -lwebkit-owb
 Cflags: -DWTF_PLATFORM_@USE_GRAPHICS@ -I${includedir}/webkit-owb

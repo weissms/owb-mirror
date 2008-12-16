@@ -6,6 +6,8 @@ if(USE_GRAPHICS STREQUAL "GTK")
 
     set(USE_GRAPHICS_GTK TRUE)
     mark_as_advanced(USE_GRAPHICS_GTK)
+
+    set(REQUIREMENT "gtk+-2.0 >= 2.8")
 endif(USE_GRAPHICS STREQUAL "GTK")
 
 if(USE_GRAPHICS STREQUAL "SDL")
@@ -16,4 +18,6 @@ if(USE_GRAPHICS STREQUAL "SDL")
 
     set(USE_GRAPHICS_SDL TRUE)
     mark_as_advanced(USE_GRAPHICS_SDL)
+    
+    set(REQUIREMENT "sdl >= 1.2.10")
 endif(USE_GRAPHICS STREQUAL "SDL")

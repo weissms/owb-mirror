@@ -1,5 +1,11 @@
 2008-12-16  Olivier DOLE  <odole@pleyo.com>
 
+        Improve .pc file.
+
+        * OrigynWebBrowser/webkit-owb.pc.in:
+
+2008-12-16  Olivier DOLE  <odole@pleyo.com>
+
         Fix high level API.
 
         * OrigynWebBrowser/Api/WebFrame.cpp:
