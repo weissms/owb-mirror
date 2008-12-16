@@ -1,3 +1,40 @@
+2008-12-16  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Cameron Zwarich.
+
+        [GTK] Fix crash with LayoutTests/fast/loader/frame-creation-removal.html
+
+        Call WebCore::Frame::init after the frame has been given
+        a name and been added to the FrameTree of the parent.
+
+        Removing the call to init is fine as FrameLoaderClientGtk::createFrame
+        is the only user of webkit_web_frame_init_with_web_view and is already
+        calling WebCore::Frame::init.
+
+        * webkit/webkitwebframe.cpp:
+
+2008-12-13  Adam Bergkvist <adam.bergkvist@ericsson.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22779
+
+        Check for GTK version >= 2.14.0 before using gtk_test_init.
+
+        * tests/main.c:
+        (main):
+
+2008-12-13  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22039
+
+        Implement animation and transition pausing as needed by DumpRenderTree.
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebframe.cpp:
+
 2008-12-12  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Rubber-stamped by Simon Hausmann.

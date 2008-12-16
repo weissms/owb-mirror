@@ -1172,9 +1172,6 @@ CodeBlock::CodeBlock(ScopeNode* ownerNode, CodeType codeType, PassRefPtr<SourceP
     , m_numParameters(0)
     , m_ownerNode(ownerNode)
     , m_globalData(0)
-#if ENABLE(JIT)
-    , m_jitCode(0)
-#endif
     , m_needsFullScopeChain(ownerNode->needsActivation())
     , m_usesEval(ownerNode->usesEval())
     , m_codeType(codeType)
@@ -1404,6 +1401,30 @@ int CodeBlock::expressionRangeForBytecodeOffset(unsigned bytecodeOffset, int& di
     endOffset = m_expressionInfo[low - 1].endOffset;
     divot = m_expressionInfo[low - 1].divotPoint + m_sourceOffset;
     return lineNumberForBytecodeOffset(bytecodeOffset);
+}
+
+bool CodeBlock::getByIdExceptionInfoForBytecodeOffset(unsigned bytecodeOffset, OpcodeID& opcodeID)
+{
+    ASSERT(bytecodeOffset < m_instructions.size());
+
+    if (!m_getByIdExceptionInfo.size())
+        return false;
+
+    int low = 0;
+    int high = m_getByIdExceptionInfo.size();
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+        if (m_getByIdExceptionInfo[mid].bytecodeOffset <= bytecodeOffset)
+            low = mid + 1;
+        else
+            high = mid;
+    }
+
+    if (!low || m_getByIdExceptionInfo[low - 1].bytecodeOffset != bytecodeOffset)
+        return false;
+
+    opcodeID = m_getByIdExceptionInfo[low - 1].isOpConstruct ? op_construct : op_instanceof;
+    return true;
 }
 
 void CodeBlock::shrinkToFit()

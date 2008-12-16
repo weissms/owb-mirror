@@ -29,6 +29,7 @@
 #include "webkitmarshal.h"
 #include "webkitprivate.h"
 
+#include "AnimationController.h"
 #include "CString.h"
 #include "FrameLoader.h"
 #include "FrameLoaderClientGtk.h"
@@ -240,7 +241,6 @@ WebKitWebFrame* webkit_web_frame_init_with_web_view(WebKitWebView* webView, HTML
     priv->webView = webView;
     priv->client = new WebKit::FrameLoaderClient(frame);
     priv->coreFrame = Frame::create(viewPriv->corePage, element, priv->client).releaseRef();
-    priv->coreFrame->init();
 
     return frame;
 }
@@ -588,5 +588,21 @@ void webkit_web_frame_print(WebKitWebFrame*)
 }
 
 #endif
+
+bool webkit_web_frame_pause_animation(WebKitWebFrame* frame, const gchar* name, double time, const gchar* element)
+{
+    Element* coreElement = core(frame)->document()->getElementById(AtomicString(element));
+    if (!coreElement || !coreElement->renderer())
+        return false;
+    return core(frame)->animation()->pauseAnimationAtTime(coreElement->renderer(), AtomicString(name), time);
+}
+
+bool webkit_web_frame_pause_transition(WebKitWebFrame* frame, const gchar* name, double time, const gchar* element)
+{
+    Element* coreElement = core(frame)->document()->getElementById(AtomicString(element));
+    if (!coreElement || !coreElement->renderer())
+        return false;
+    return core(frame)->animation()->pauseTransitionAtTime(coreElement->renderer(), AtomicString(name), time);
+}
 
 }

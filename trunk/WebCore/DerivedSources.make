@@ -185,7 +185,6 @@ DOM_CLASSES = \
     PositionCallback \
     PositionError \
     PositionErrorCallback \
-    PositionOptions \
     ProcessingInstruction \
     ProgressEvent \
     RGBColor \
@@ -360,6 +359,7 @@ DOM_CLASSES = \
     WebKitTransitionEvent \
     WheelEvent \
     Worker \
+    WorkerContext \
     WorkerLocation \
     WorkerNavigator \
     XMLHttpRequest \
@@ -382,7 +382,7 @@ all : \
     \
     JSDOMWindowBase.lut.h \
     JSRGBColor.lut.h \
-    JSWorkerContext.lut.h \
+    JSWorkerContextBase.lut.h \
     \
     JSJavaScriptCallFrame.h \
     \

@@ -27,7 +27,7 @@
 #include "SimpleFontData.h"
 #include <wtf/MathExtras.h>
 
-#if USE(ICU_UNICODE) && !USE(BALI18N)
+#if USE(ICU_UNICODE)
 #include <unicode/unorm.h>
 #endif
 
@@ -208,7 +208,7 @@ UChar32 WidthIterator::normalizeVoicingMarks(int currentCharacter)
 {
     if (currentCharacter + 1 < m_end) {
         if (combiningClass(m_run[currentCharacter + 1]) == hiraganaKatakanaVoicingMarksCombiningClass) {
-#if USE(ICU_UNICODE) && !USE(BALI18N)
+#if USE(ICU_UNICODE)
             // Normalize into composed form using 3.2 rules.
             UChar normalizedCharacters[2] = { 0, 0 };
             UErrorCode uStatus = U_ZERO_ERROR;  

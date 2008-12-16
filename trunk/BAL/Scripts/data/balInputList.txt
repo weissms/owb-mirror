@@ -418,9 +418,6 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/Vector.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/VectorTraits.h
 BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrList.h
 BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrListImpl.h
-BAL/Skeletons/Types	WebCore/platform/DeprecatedPtrQueue.h
-BAL/Skeletons/Types	WebCore/platform/DeprecatedValueList.h
-BAL/Skeletons/Types	WebCore/platform/DeprecatedValueListImpl.h
 BAL/Skeletons/Types	WebCore/platform/KURL.h
 BAL/Skeletons/Types	WebCore/platform/KURLHash.h
 BAL/Skeletons/Types WebCore/platform/Length.h
@@ -485,10 +482,6 @@ BAL/Types/WTF	JavaScriptCore/wtf/VectorTraits.h
 BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrList.h
 BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrListImpl.h
 BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrListImpl.cpp
-BAL/Types/WebCore/WK	WebCore/platform/DeprecatedPtrQueue.h
-BAL/Types/WebCore/WK	WebCore/platform/DeprecatedValueList.h
-BAL/Types/WebCore/WK	WebCore/platform/DeprecatedValueListImpl.h
-BAL/Types/WebCore/WK	WebCore/platform/DeprecatedValueListImpl.cpp
 BAL/Types/WebCore/WK    WebCore/platform/Length.h
 BAL/Types/WebCore/WK    WebCore/platform/Length.cpp
 BAL/Types/WebCore/WK    WebCore/platform/LengthBox.h

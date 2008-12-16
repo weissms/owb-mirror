@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,29 +21,39 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *
  */
 
-#ifndef DeprecatedPtrQueue_h
-#define DeprecatedPtrQueue_h
+#ifndef JSWorkerContextBase_h
+#define JSWorkerContextBase_h
 
-#include "DeprecatedPtrList.h"
+#if ENABLE(WORKERS)
+
+#include "JSDOMGlobalObject.h"
 
 namespace WebCore {
 
-template<class T> class DeprecatedPtrQueue
-{
-public:
-    bool isEmpty() const { return list.isEmpty(); }
-    T *dequeue() { T *tmp = list.getFirst(); list.removeFirst(); return tmp; }
-    void enqueue(const T *item) { list.append (item); }
-    unsigned count() const { return list.count(); }
-    T *head() const { return list.getFirst(); }
-    DeprecatedPtrQueue<T> &operator=(const DeprecatedPtrQueue<T> &q) { list = q.list; return *this; }
+    class WorkerContext;
 
- private:
-    DeprecatedPtrList<T> list;
-};
+    class JSWorkerContextBase : public JSDOMGlobalObject {
+        typedef JSDOMGlobalObject Base;
+    public:
+        JSWorkerContextBase(PassRefPtr<JSC::Structure>, PassRefPtr<WorkerContext>);
+        virtual ~JSWorkerContextBase();
 
-}
+        virtual void put(JSC::ExecState*, const JSC::Identifier& propertyName, JSC::JSValue*, JSC::PutPropertySlot&);
+        virtual const JSC::ClassInfo* classInfo() const { return &s_info; }
+        static const JSC::ClassInfo s_info;
 
-#endif /* DeprecatedPtrQueue_h */
+        WorkerContext* impl() const { return m_impl.get(); }
+        virtual ScriptExecutionContext* scriptExecutionContext() const;
+
+    private:
+        RefPtr<WorkerContext> m_impl;
+    };
+
+} // namespace WebCore
+
+#endif // ENABLE(WORKERS)
+
+#endif // JSWorkerContextBase_h

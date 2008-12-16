@@ -45,15 +45,19 @@ class NetscapePluginHostProxy;
     
 class NetscapePluginInstanceProxy : public RefCounted<NetscapePluginInstanceProxy> {
 public:
-    static PassRefPtr<NetscapePluginInstanceProxy> create(NetscapePluginHostProxy* pluginHostProxy, WebHostedNetscapePluginView *pluginView, uint32_t pluginID, uint32_t renderContextID, boolean_t useSoftwareRenderer)
+    static PassRefPtr<NetscapePluginInstanceProxy> create(NetscapePluginHostProxy* pluginHostProxy, WebHostedNetscapePluginView *pluginView)
     {
-        return adoptRef(new NetscapePluginInstanceProxy(pluginHostProxy, pluginView, pluginID, renderContextID, useSoftwareRenderer));
+        return adoptRef(new NetscapePluginInstanceProxy(pluginHostProxy, pluginView));
     }
     ~NetscapePluginInstanceProxy();
     
     uint32_t pluginID() const { return m_pluginID; }
     uint32_t renderContextID() const { return m_renderContextID; }
+    void setRenderContextID(uint32_t renderContextID) { m_renderContextID = renderContextID; }
+    
     bool useSoftwareRenderer() const { return m_useSoftwareRenderer; }
+    void setUseSoftwareRenderer(bool useSoftwareRenderer) { m_useSoftwareRenderer = useSoftwareRenderer; }
+    
     WebHostedNetscapePluginView *pluginView() const { return m_pluginView; }
     NetscapePluginHostProxy* hostProxy() const { return m_pluginHostProxy; }
     
@@ -74,9 +78,57 @@ public:
     
     void status(const char* message);
     NPError loadURL(const char* url, const char* target, bool post, const char* postData, uint32_t postDataLength, bool postDataIsFile, bool currentEventIsUserGesture, uint32_t& requestID);
+
+    // Reply structs
+    struct Reply {
+        enum Type {
+            InstantiatePlugin
+        };
+        
+        Reply(Type type) : m_type(type) { }
+        virtual ~Reply() { }
+    
+        Type m_type;
+    };
+
+    struct InstantiatePluginReply : public Reply {
+        static const int ReplyType = InstantiatePlugin;
+        
+        InstantiatePluginReply(kern_return_t resultCode, uint32_t renderContextID, boolean_t useSoftwareRenderer)
+            : Reply(InstantiatePlugin)
+            , m_resultCode(resultCode)
+            , m_renderContextID(renderContextID)
+            , m_useSoftwareRenderer(useSoftwareRenderer)
+        {
+        }
+                 
+        kern_return_t m_resultCode;
+        uint32_t m_renderContextID;
+        boolean_t m_useSoftwareRenderer;
+    };
+
+    void setCurrentReply(Reply* reply)
+    {
+        ASSERT(!m_currentReply.get());
+        m_currentReply = std::auto_ptr<Reply>(reply);
+    }
+    
+    template <typename T>
+    std::auto_ptr<T> waitForReply()
+    {
+        m_waitingForReply = true;
+        
+        processRequestsAndWaitForReply();
+        
+        if (m_currentReply.get()) 
+            ASSERT(m_currentReply->m_type == T::ReplyType);
+        
+        m_waitingForReply = false;
+        return std::auto_ptr<T>(static_cast<T*>(m_currentReply.release()));
+    }
     
 private:
-    NetscapePluginInstanceProxy(NetscapePluginHostProxy*, WebHostedNetscapePluginView *, uint32_t pluginID, uint32_t renderContextID, boolean_t useSoftwareRenderer);
+    NetscapePluginInstanceProxy(NetscapePluginHostProxy*, WebHostedNetscapePluginView *);
 
     NPError loadRequest(NSURLRequest *, const char* cTarget, bool currentEventIsUserGesture, uint32_t& streamID);
     
@@ -85,6 +137,7 @@ private:
     void evaluateJavaScript(PluginRequest*);
     
     void stopAllStreams();
+    void processRequestsAndWaitForReply();
     
     NetscapePluginHostProxy* m_pluginHostProxy;
     WebHostedNetscapePluginView *m_pluginView;
@@ -100,6 +153,9 @@ private:
     uint32_t m_pluginID;
     uint32_t m_renderContextID;
     boolean_t m_useSoftwareRenderer;
+    
+    bool m_waitingForReply;
+    std::auto_ptr<Reply> m_currentReply;    
 };
     
 } // namespace WebKit

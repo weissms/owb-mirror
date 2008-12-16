@@ -37,6 +37,9 @@
 #include "FrameTree.h"
 #include "GCController.h"
 #include "HTMLDocument.h"
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
 #include "JSAudioConstructor.h"
 #include "JSDOMWindowCustom.h"
 #include "JSEvent.h"
@@ -65,10 +68,6 @@
 #include <runtime/JSLock.h>
 #include <wtf/AlwaysInline.h>
 #include <wtf/MathExtras.h>
-
-#if ENABLE(INSPECTOR)
-#include "InspectorController.h"
-#endif
 
 using namespace JSC;
 
@@ -631,7 +630,6 @@ String JSDOMWindowBase::crossDomainAccessErrorMessage(const JSGlobalObject* othe
 
 void JSDOMWindowBase::printErrorMessage(const String& message) const
 {
-#if ENABLE(INSPECTOR)
     if (message.isEmpty())
         return;
 
@@ -645,7 +643,7 @@ void JSDOMWindowBase::printErrorMessage(const String& message) const
     
     if (settings->privateBrowsingEnabled())
         return;
-
+#if ENABLE(INSPECTOR)
     impl()->console()->addMessage(JSMessageSource, ErrorMessageLevel, message, 1, String()); // FIXME: provide a real line number and source URL.
 #endif
 }
@@ -661,7 +659,6 @@ ExecState* JSDOMWindowBase::globalExec()
 
 bool JSDOMWindowBase::supportsProfiling() const
 {
-#if ENABLE(INSPECTOR)
     Frame* frame = impl()->frame();
     if (!frame)
         return false;
@@ -669,7 +666,7 @@ bool JSDOMWindowBase::supportsProfiling() const
     Page* page = frame->page();
     if (!page)
         return false;
-
+#if ENABLE(INSPECTOR)
     return page->inspectorController()->profilerEnabled();
 #else
     return false;

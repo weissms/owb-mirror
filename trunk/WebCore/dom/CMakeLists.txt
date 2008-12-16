@@ -126,6 +126,7 @@ if(ENABLE_WORKERS)
     )
     list(APPEND IDL_SRC
         dom/Worker.idl
+        dom/WorkerContext.idl
         dom/WorkerLocation.idl
     )
 endif(ENABLE_WORKERS)

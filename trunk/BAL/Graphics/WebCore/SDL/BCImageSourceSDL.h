@@ -50,7 +50,23 @@ public:
     ImageSource();
     ~ImageSource();
 
-    void clear();
+    // Tells the ImageSource that the Image no longer cares about decoded frame
+    // data -- at all (if |destroyAll| is true), or before frame
+    // |clearBeforeFrame| (if |destroyAll| is false).  The ImageSource should
+    // delete cached decoded data for these frames where possible to keep memory
+    // usage low.  When |destroyAll| is true, the ImageSource should also reset
+    // any local state so that decoding can begin again.
+    //
+    // Implementations that delete less than what's specified above waste
+    // memory.  Implementations that delete more may burn CPU re-decoding frames
+    // that could otherwise have been cached, or encounter errors if they're
+    // asked to decode frames they can't decode due to the loss of previous
+    // decoded frames.
+    //
+    // Callers should not call clear(false, n) and subsequently call
+    // createFrameAtIndex(m) with m < n, unless they first call clear(true).
+    // This ensures that stateful ImageSources/decoders will work properly.
+    void clear(bool destroyAll, size_t clearBeforeFrame = 0);
 
     bool initialized() const;
     

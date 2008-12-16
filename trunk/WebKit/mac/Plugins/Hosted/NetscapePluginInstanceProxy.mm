@@ -35,17 +35,22 @@
 #import "WebNSDataExtras.h"
 #import "WebNSURLExtras.h"
 #import "WebKitNSStringExtras.h"
-#import "WebKitPluginHost.h"
 #import "WebPluginRequest.h"
 #import "WebViewInternal.h"
 #import "WebUIDelegate.h"
 #import "WebUIDelegatePrivate.h"
 
+#import <mach/mach.h>
 #import <WebCore/DocumentLoader.h>
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
 #import <WebCore/FrameTree.h>
 #import <utility>
+
+extern "C" {
+#import "WebKitPluginClientServer.h"
+#import "WebKitPluginHost.h"
+}
 
 using namespace std;
 using namespace WebCore;
@@ -73,17 +78,24 @@ private:
     RetainPtr<NSString *> m_frameName;
     bool m_didStartFromUserGesture;
 };
-    
-NetscapePluginInstanceProxy::NetscapePluginInstanceProxy(NetscapePluginHostProxy* pluginHostProxy, WebHostedNetscapePluginView *pluginView, uint32_t pluginID, uint32_t renderContextID, boolean_t useSoftwareRenderer)
+
+static uint32_t pluginIDCounter;
+
+NetscapePluginInstanceProxy::NetscapePluginInstanceProxy(NetscapePluginHostProxy* pluginHostProxy, WebHostedNetscapePluginView *pluginView)
     : m_pluginHostProxy(pluginHostProxy)
     , m_pluginView(pluginView)
     , m_requestTimer(this, &NetscapePluginInstanceProxy::requestTimerFired)
     , m_currentRequestID(0)
-    , m_pluginID(pluginID)
-    , m_renderContextID(renderContextID)
-    , m_useSoftwareRenderer(useSoftwareRenderer)
+    , m_renderContextID(0)
+    , m_useSoftwareRenderer(false)
+    , m_waitingForReply(false)
 {
     ASSERT(m_pluginView);
+    
+    // Assign a plug-in ID.
+    do {
+        m_pluginID = ++pluginIDCounter;
+    } while (pluginHostProxy->pluginInstance(m_pluginID) || !m_pluginID);
     
     pluginHostProxy->addPluginInstance(this);
 }
@@ -357,7 +369,6 @@ void NetscapePluginInstanceProxy::requestTimerFired(Timer<NetscapePluginInstance
     delete request;
 }
     
-
 NPError NetscapePluginInstanceProxy::loadRequest(NSURLRequest *request, const char* cTarget, bool currentEventIsUserGesture, uint32_t& requestID)
 {
     NSURL *URL = [request URL];
@@ -419,6 +430,17 @@ NPError NetscapePluginInstanceProxy::loadRequest(NSURLRequest *request, const ch
     return NPERR_NO_ERROR;
 }
 
+void NetscapePluginInstanceProxy::processRequestsAndWaitForReply()
+{
+    while (!m_currentReply.get()) {
+        kern_return_t kr = mach_msg_server_once(WebKitPluginClient_server, WKPCWebKitPluginClient_subsystem.maxsize + MAX_TRAILER_SIZE, m_pluginHostProxy->clientPort(), 0);
+        if (kr != KERN_SUCCESS) {
+            m_currentReply.reset();
+            break;
+        }
+    }
+}
+    
 } // namespace WebKit
 
 #endif // USE(PLUGIN_HOST_PROCESS)

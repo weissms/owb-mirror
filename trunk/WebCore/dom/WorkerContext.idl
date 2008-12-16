@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2008 Apple Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -21,29 +21,41 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *
  */
 
-#ifndef DeprecatedPtrQueue_h
-#define DeprecatedPtrQueue_h
+module threads {
 
-#include "DeprecatedPtrList.h"
+    interface [
+        Conditional=WORKERS,
+        CustomGetOwnPropertySlot,
+        CustomMarkFunction,
+        ExtendsDOMGlobalObject,
+        LegacyParent=JSWorkerContextBase,
+        NoStaticTables
+    ] WorkerContext {
+#if defined(LANGUAGE_JAVASCRIPT)
+        attribute [Custom] WorkerContext self;
+#endif
 
-namespace WebCore {
+        attribute EventListener onmessage;
+        void postMessage(in DOMString message);
 
-template<class T> class DeprecatedPtrQueue
-{
-public:
-    bool isEmpty() const { return list.isEmpty(); }
-    T *dequeue() { T *tmp = list.getFirst(); list.removeFirst(); return tmp; }
-    void enqueue(const T *item) { list.append (item); }
-    unsigned count() const { return list.count(); }
-    T *head() const { return list.getFirst(); }
-    DeprecatedPtrQueue<T> &operator=(const DeprecatedPtrQueue<T> &q) { list = q.list; return *this; }
+        attribute [Replaceable] WorkerLocation location;
+        attribute [Replaceable] WorkerNavigator navigator;
+        
+        attribute MessageEventConstructor MessageEvent;
+        attribute WorkerLocationConstructor WorkerLocation;
 
- private:
-    DeprecatedPtrList<T> list;
-};
+        // EventTarget interface
+        [Custom] void addEventListener(in DOMString type, 
+                                       in EventListener listener, 
+                                       in boolean useCapture);
+        [Custom] void removeEventListener(in DOMString type, 
+                                          in EventListener listener, 
+                                          in boolean useCapture);
+        boolean dispatchEvent(in Event evt)
+            raises(EventException);
+    };
 
 }
-
-#endif /* DeprecatedPtrQueue_h */

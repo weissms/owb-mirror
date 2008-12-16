@@ -62,6 +62,25 @@ namespace JSC {
 #endif
     };
 
+#if ENABLE(JIT)
+    // The code, and the associated pool from which it was allocated.
+    struct JITCodeRef {
+        void* code;
+        RefPtr<ExecutablePool> executablePool;
+        
+        JITCodeRef()
+            : code(0)
+        {
+        }
+        
+        JITCodeRef(void* code, PassRefPtr<ExecutablePool> executablePool)
+            : code(code)
+            , executablePool(executablePool)
+        {
+        }
+    };
+#endif
+
     struct ExpressionRangeInfo {
         enum {
             MaxOffset = (1 << 7) - 1, 
@@ -76,6 +95,14 @@ namespace JSC {
     struct LineInfo {
         uint32_t instructionOffset;
         int32_t lineNumber;
+    };
+
+    // Both op_construct and op_instanceof require a use of op_get_by_id to get
+    // the prototype property from an object. The exception messages for exceptions
+    // thrown by these instances op_get_by_id need to reflect this.
+    struct GetByIdExceptionInfo {
+        unsigned bytecodeOffset : 31;
+        bool isOpConstruct : 1;
     };
 
 #if ENABLE(JIT)
@@ -227,6 +254,7 @@ namespace JSC {
         HandlerInfo* handlerForBytecodeOffset(unsigned bytecodeOffset);
         int lineNumberForBytecodeOffset(unsigned bytecodeOffset);
         int expressionRangeForBytecodeOffset(unsigned bytecodeOffset, int& divot, int& startOffset, int& endOffset);
+        bool getByIdExceptionInfoForBytecodeOffset(unsigned bytecodeOffset, OpcodeID&);
 
 #if ENABLE(JIT)
         void addCaller(CallLinkInfo* caller)
@@ -267,10 +295,9 @@ namespace JSC {
         Vector<Instruction>& instructions() { return m_instructions; }
 
 #if ENABLE(JIT)
-        void setJITCode(void* jitCode) { m_jitCode = jitCode; }
-        void* jitCode() { return m_jitCode; }
-        ExecutablePool* executablePool() { return m_executablePool.get(); }
-        void setExecutablePool(ExecutablePool* pool) { m_executablePool = pool; }
+        void setJITCode(JITCodeRef& jitCode) { m_jitCode = jitCode; }
+        void* jitCode() { return m_jitCode.code; }
+        ExecutablePool* executablePool() { return m_jitCode.executablePool.get(); }
 #endif
 
         ScopeNode* ownerNode() const { return m_ownerNode; }
@@ -302,6 +329,7 @@ namespace JSC {
         HandlerInfo& exceptionHandler(int index) { ASSERT(m_rareData); return m_rareData->m_exceptionHandlers[index]; }
 
         void addExpressionInfo(const ExpressionRangeInfo& expressionInfo) { return m_expressionInfo.append(expressionInfo); }
+        void addGetByIdExceptionInfo(const GetByIdExceptionInfo& info) { m_getByIdExceptionInfo.append(info); }
 
         size_t numberOfLineInfos() const { return m_lineInfo.size(); }
         void addLineInfo(const LineInfo& lineInfo) { return m_lineInfo.append(lineInfo); }
@@ -397,8 +425,7 @@ namespace JSC {
 
         Vector<Instruction> m_instructions;
 #if ENABLE(JIT)
-        void* m_jitCode;
-        RefPtr<ExecutablePool> m_executablePool;
+        JITCodeRef m_jitCode;
 #endif
 
         int m_thisRegister;
@@ -426,6 +453,7 @@ namespace JSC {
 
         Vector<ExpressionRangeInfo> m_expressionInfo;
         Vector<LineInfo> m_lineInfo;
+        Vector<GetByIdExceptionInfo> m_getByIdExceptionInfo;
 
 #if ENABLE(JIT)
         Vector<PC> m_pcVector;

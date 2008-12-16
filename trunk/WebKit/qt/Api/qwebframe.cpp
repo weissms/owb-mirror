@@ -33,6 +33,7 @@
 #include "FrameTree.h"
 #include "FrameView.h"
 #include "IconDatabase.h"
+#include "InspectorController.h"
 #include "Page.h"
 #include "PutPropertySlot.h"
 #include "ResourceRequest.h"
@@ -92,6 +93,18 @@ QT_BEGIN_NAMESPACE
 extern Q_GUI_EXPORT int qt_defaultDpi();
 QT_END_NAMESPACE
 
+void QWEBKIT_EXPORT qt_drt_setJavaScriptProfilingEnabled(QWebFrame* qframe, bool enabled)
+{
+    Frame* frame = QWebFramePrivate::core(qframe);
+    InspectorController* controller = frame->page()->inspectorController();
+    if (!controller)
+        return;
+    if (enabled)
+        controller->enableProfiler();
+    else
+        controller->disableProfiler();
+}
+
 void QWebFramePrivate::init(QWebFrame *qframe, WebCore::Page *webcorePage, QWebFrameData *frameData)
 {
     q = qframe;
@@ -103,9 +116,17 @@ void QWebFramePrivate::init(QWebFrame *qframe, WebCore::Page *webcorePage, QWebF
     frameLoaderClient = new FrameLoaderClientQt();
     RefPtr<Frame> newFrame = Frame::create(webcorePage, frameData->ownerElement, frameLoaderClient);
     frame = newFrame.get();
-    if (frameData->ownerElement)
-        frame->ref(); // balanced by adoptRef in FrameLoaderClientQt::createFrame
     frameLoaderClient->setFrame(qframe, frame);
+
+    // FIXME: All of the below should probably be moved over into WebCore
+    frame->tree()->setName(frameData->name);
+    if (QWebFrame* _parentFrame = parentFrame())
+        QWebFramePrivate::core(_parentFrame)->tree()->appendChild(frame);
+
+    // balanced by adoptRef in FrameLoaderClientQt::createFrame
+    if (frameData->ownerElement)
+        frame->ref();
+
     frame->init();
 }
 

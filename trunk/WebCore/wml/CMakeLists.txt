@@ -11,8 +11,8 @@ if(ENABLE_WML)
         wml/WMLErrorHandling.cpp
         wml/WMLEventHandlingElement.cpp
         wml/WMLGoElement.cpp
-	wml/WMLImageElement.cpp
-	wml/WMLImageLoader.cpp
+        wml/WMLImageElement.cpp
+        wml/WMLImageLoader.cpp
         wml/WMLIntrinsicEvent.cpp
         wml/WMLIntrinsicEventHandler.cpp
         wml/WMLNoopElement.cpp
@@ -23,8 +23,9 @@ if(ENABLE_WML)
         wml/WMLPrevElement.cpp
         wml/WMLRefreshElement.cpp
         wml/WMLSetvarElement.cpp
+        wml/WMLTableElement.cpp
         wml/WMLTaskElement.cpp
-	wml/WMLTemplateElement.cpp
+        wml/WMLTemplateElement.cpp
         wml/WMLTimerElement.cpp
         wml/WMLVariables.cpp
     )

@@ -1321,6 +1321,9 @@ void Document::clearFramePointer()
 
 void Document::removeAllEventListenersFromAllNodes()
 {
+    size_t size = m_windowEventListeners.size();
+    for (size_t i = 0; i < size; ++i)
+        m_windowEventListeners[i]->setRemoved(true);
     m_windowEventListeners.clear();
     removeAllDisconnectedNodeEventListeners();
     for (Node *n = this; n; n = n->traverseNextNode()) {
@@ -1722,6 +1725,9 @@ void Document::clear()
 
     removeChildren();
 
+    size_t size = m_windowEventListeners.size();
+    for (size_t i = 0; i < size; ++i)
+        m_windowEventListeners[i]->setRemoved(true);
     m_windowEventListeners.clear();
 }
 
@@ -2697,18 +2703,19 @@ CSSStyleDeclaration* Document::getOverrideStyle(Element*, const String&)
     return 0;
 }
 
-void Document::handleWindowEvent(Event* evt, bool useCapture)
+void Document::handleWindowEvent(Event* event, bool useCapture)
 {
     if (m_windowEventListeners.isEmpty())
         return;
         
-    // if any html event listeners are registered on the window, then dispatch them here
-    RegisteredEventListenerList listenersCopy = m_windowEventListeners;
-    RegisteredEventListenerList::iterator it = listenersCopy.begin();
-    
-    for (; it != listenersCopy.end(); ++it)
-        if ((*it)->eventType() == evt->type() && (*it)->useCapture() == useCapture && !(*it)->removed()) 
-            (*it)->listener()->handleEvent(evt, true);
+    // If any HTML event listeners are registered on the window, dispatch them here.
+    RegisteredEventListenerVector listenersCopy = m_windowEventListeners;
+    size_t size = listenersCopy.size();
+    for (size_t i = 0; i < size; ++i) {
+        RegisteredEventListener& r = *listenersCopy[i];
+        if (r.eventType() == event->type() && r.useCapture() == useCapture && !r.removed())
+            r.listener()->handleEvent(event, true);
+    }
 }
 
 void Document::setWindowInlineEventListenerForType(const AtomicString& eventType, PassRefPtr<EventListener> listener)
@@ -2721,24 +2728,27 @@ void Document::setWindowInlineEventListenerForType(const AtomicString& eventType
 
 EventListener* Document::windowInlineEventListenerForType(const AtomicString& eventType)
 {
-    RegisteredEventListenerList::iterator it = m_windowEventListeners.begin();
-    for (; it != m_windowEventListeners.end(); ++it) {
-        if ((*it)->eventType() == eventType && (*it)->listener()->isInline())
-            return (*it)->listener();
+    size_t size = m_windowEventListeners.size();
+    for (size_t i = 0; i < size; ++i) {
+        RegisteredEventListener& r = *m_windowEventListeners[i];
+        if (r.eventType() == eventType && r.listener()->isInline())
+            return r.listener();
     }
     return 0;
 }
 
 void Document::removeWindowInlineEventListenerForType(const AtomicString& eventType)
 {
-    RegisteredEventListenerList::iterator it = m_windowEventListeners.begin();
-    for (; it != m_windowEventListeners.end(); ++it) {
-        if ((*it)->eventType() == eventType && (*it)->listener()->isInline()) {
+    size_t size = m_windowEventListeners.size();
+    for (size_t i = 0; i < size; ++i) {
+        RegisteredEventListener& r = *m_windowEventListeners[i];
+        if (r.eventType() == eventType && r.listener()->isInline()) {
             if (eventType == eventNames().unloadEvent)
                 removePendingFrameUnloadEventCount();
             else if (eventType == eventNames().beforeunloadEvent)
                 removePendingFrameBeforeUnloadEventCount();
-            m_windowEventListeners.remove(it);
+            r.setRemoved(true);
+            m_windowEventListeners.remove(i);
             return;
         }
     }
@@ -2759,15 +2769,16 @@ void Document::addWindowEventListener(const AtomicString& eventType, PassRefPtr<
 
 void Document::removeWindowEventListener(const AtomicString& eventType, EventListener* listener, bool useCapture)
 {
-    RegisteredEventListenerList::iterator it = m_windowEventListeners.begin();
-    for (; it != m_windowEventListeners.end(); ++it) {
-        RegisteredEventListener& r = **it;
+    size_t size = m_windowEventListeners.size();
+    for (size_t i = 0; i < size; ++i) {
+        RegisteredEventListener& r = *m_windowEventListeners[i];
         if (r.eventType() == eventType && r.listener() == listener && r.useCapture() == useCapture) {
             if (eventType == eventNames().unloadEvent)
                 removePendingFrameUnloadEventCount();
             else if (eventType == eventNames().beforeunloadEvent)
                 removePendingFrameBeforeUnloadEventCount();
-            m_windowEventListeners.remove(it);
+            r.setRemoved(true);
+            m_windowEventListeners.remove(i);
             return;
         }
     }
@@ -2775,10 +2786,11 @@ void Document::removeWindowEventListener(const AtomicString& eventType, EventLis
 
 bool Document::hasWindowEventListener(const AtomicString& eventType)
 {
-    RegisteredEventListenerList::iterator it = m_windowEventListeners.begin();
-    for (; it != m_windowEventListeners.end(); ++it)
-        if ((*it)->eventType() == eventType)
+    size_t size = m_windowEventListeners.size();
+    for (size_t i = 0; i < size; ++i) {
+        if (m_windowEventListeners[i]->eventType() == eventType)
             return true;
+    }
     return false;
 }
 
@@ -2837,32 +2849,36 @@ void Document::removeImage(ImageLoader* image)
 {
     // Remove instances of this image from both lists.
     // Use loops because we allow multiple instances to get into the lists.
-    while (m_imageLoadEventDispatchSoonList.removeRef(image)) { }
-    while (m_imageLoadEventDispatchingList.removeRef(image)) { }
+    size_t size = m_imageLoadEventDispatchSoonList.size();
+    for (size_t i = 0; i < size; ++i) {
+        if (m_imageLoadEventDispatchSoonList[i] == image)
+            m_imageLoadEventDispatchSoonList[i] = 0;
+    }
+    size = m_imageLoadEventDispatchingList.size();
+    for (size_t i = 0; i < size; ++i) {
+        if (m_imageLoadEventDispatchingList[i] == image)
+            m_imageLoadEventDispatchingList[i] = 0;
+    }
     if (m_imageLoadEventDispatchSoonList.isEmpty())
         m_imageLoadEventTimer.stop();
 }
 
 void Document::dispatchImageLoadEventsNow()
 {
-    // need to avoid re-entering this function; if new dispatches are
+    // Need to avoid re-entering this function; if new dispatches are
     // scheduled before the parent finishes processing the list, they
-    // will set a timer and eventually be processed
+    // will set a timer and eventually be processed.
     if (!m_imageLoadEventDispatchingList.isEmpty())
         return;
 
     m_imageLoadEventTimer.stop();
-    
+
     m_imageLoadEventDispatchingList = m_imageLoadEventDispatchSoonList;
     m_imageLoadEventDispatchSoonList.clear();
-    for (DeprecatedPtrListIterator<ImageLoader> it(m_imageLoadEventDispatchingList); it.current();) {
-        ImageLoader* image = it.current();
-        // Must advance iterator *before* dispatching call.
-        // Otherwise, it might be advanced automatically if dispatching the call had a side effect
-        // of destroying the current ImageLoader, and then we would advance past the *next* item,
-        // missing one altogether.
-        ++it;
-        image->dispatchLoadEvent();
+    size_t size = m_imageLoadEventDispatchingList.size();
+    for (size_t i = 0; i < size; ++i) {
+        if (ImageLoader* image = m_imageLoadEventDispatchingList[i])
+            image->dispatchLoadEvent();
     }
     m_imageLoadEventDispatchingList.clear();
 }

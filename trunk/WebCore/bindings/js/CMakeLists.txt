@@ -6,7 +6,7 @@ create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSPluginElementFunctions.cpp 
 create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSRGBColor.cpp generated_sources/WebCore/JSRGBColor.lut.h WebCore/bindings/js/JSRGBColor.cpp)
 
 if(ENABLE_WORKERS)
-    create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSWorkerContext.cpp generated_sources/WebCore/JSWorkerContext.lut.h WebCore/bindings/js/JSWorkerContext.cpp)
+    create_lut_webcore(WEBCORE_SRC WebCore/bindings/js/JSWorkerContextBase.cpp generated_sources/WebCore/JSWorkerContextBase.lut.h WebCore/bindings/js/JSWorkerContextBase.cpp)
 endif(ENABLE_WORKERS)
 
 list(APPEND WEBCORE_SRC
@@ -138,7 +138,8 @@ endif(ENABLE_VIDEO)
 if(ENABLE_WORKERS)
     list(APPEND WEBCORE_SRC
         bindings/js/JSWorkerConstructor.cpp
-        bindings/js/JSWorkerContext.cpp
+        bindings/js/JSWorkerContextBase.cpp
+        bindings/js/JSWorkerContextCustom.cpp
         bindings/js/JSWorkerCustom.cpp
         bindings/js/WorkerScriptController.cpp
     )

@@ -52,7 +52,6 @@ list(APPEND IDL_SRC
     page/Location.idl
     page/Navigator.idl
     page/PositionError.idl
-    page/PositionOptions.idl
     page/Screen.idl
 )
 

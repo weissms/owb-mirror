@@ -204,7 +204,7 @@ STYLESHEETS_EMBED = $$PWD/css/html4.css
 DOMLUT_FILES += \
     bindings/js/JSDOMWindowBase.cpp \
     bindings/js/JSRGBColor.cpp \
-    bindings/js/JSWorkerContext.cpp
+    bindings/js/JSWorkerContextBase.cpp
 
 IDL_BINDINGS += \
     css/Counter.idl \
@@ -273,6 +273,7 @@ IDL_BINDINGS += \
     dom/WebKitTransitionEvent.idl \
     dom/WheelEvent.idl \
     dom/Worker.idl \
+    dom/WorkerContext.idl \
     dom/WorkerLocation.idl \
     html/CanvasGradient.idl \
     html/CanvasPattern.idl \
@@ -353,7 +354,6 @@ IDL_BINDINGS += \
     page/Location.idl \
     page/Navigator.idl \
     page/PositionError.idl \
-    page/PositionOptions.idl \
     page/Screen.idl \
     page/WorkerNavigator.idl \
     plugins/Plugin.idl \
@@ -820,7 +820,6 @@ SOURCES += \
     platform/ContextMenu.cpp \
     platform/text/CString.cpp \
     platform/DeprecatedPtrListImpl.cpp \
-    platform/DeprecatedValueListImpl.cpp \
     platform/DragData.cpp \
     platform/DragImage.cpp \
     platform/FileChooser.cpp \
@@ -1392,6 +1391,7 @@ contains(DEFINES, ENABLE_WML=1) {
         wml/WMLPrevElement.cpp \
         wml/WMLRefreshElement.cpp \
         wml/WMLSetvarElement.cpp \
+        wml/WMLTableElement.cpp \
         wml/WMLTaskElement.cpp \
         wml/WMLTemplateElement.cpp \
         wml/WMLTimerElement.cpp \
