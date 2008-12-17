@@ -489,7 +489,7 @@ public:
      * add to JSWindow object
      * add an balObject to extend the javascript
      */
-    void addToJSWindowObject(void *object);
+    void addToJSWindowObject(void* object);
 
     //BCObserverAddons
     /**

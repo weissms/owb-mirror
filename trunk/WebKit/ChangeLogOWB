@@ -1,5 +1,15 @@
 2008-12-17  Mario  <mbensi@pleyo.com>
 
+        remove observer addons.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::WebFrame):
+        (WebFrame::~WebFrame):
+        (WebFrame::addToJSWindowObject):
+        * OrigynWebBrowser/Api/WebFrame.h:
+
+2008-12-17  Mario  <mbensi@pleyo.com>
+
         fix addons.
 
         * OrigynWebBrowser/Api/WebFrame.cpp:

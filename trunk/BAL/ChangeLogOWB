@@ -1,5 +1,14 @@
 2008-12-17  Mario  <mbensi@pleyo.com>
 
+        remove observer addons.
+
+        * Facilities/WebCore/CMakeLists.txt:
+        * Facilities/WebCore/Common/BCObserverAddonsCommon.h: Removed.
+        * Facilities/WebCore/Common/BCObserverServiceAddonsCommon.cpp: Removed.
+        * Facilities/WebCore/Common/BCObserverServiceAddonsCommon.h: Removed.
+
+2008-12-17  Mario  <mbensi@pleyo.com>
+
         fix addons.
 
         * CMakeLists.txt:

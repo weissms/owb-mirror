@@ -82,8 +82,6 @@
 #include <ScriptController.h>
 #include <API/APICast.h>
 #include <wtf/MathExtras.h>
-#include "ObserverServiceAddons.h"
-#include "ObserverAddons.h"
 #include "ObserverServiceBookmarklet.h"
 #include "ObserverBookmarklet.h"
 #include "ObserverServiceData.h"
@@ -124,14 +122,13 @@ const float PrintingMaximumShrinkFactor = 2.0f;
 
 
 
-class WebFrameObserver : public ObserverData, public ObserverAddons, public ObserverBookmarklet {
+class WebFrameObserver : public ObserverData, public ObserverBookmarklet {
 public:
     WebFrameObserver(WebFrame *webFrame) : m_webFrame(webFrame) {}
     ~WebFrameObserver() {m_webFrame = 0;}
 
     virtual void observe(const WebCore::String &topic, const WebCore::String &data, void *userData);
     virtual void observe(const String &topic, Bookmarklet *bookmarklet);
-    virtual void observe(const String &topic, BalObject *obj);
 private:
     WebFrame *m_webFrame;
 };
@@ -146,19 +143,6 @@ void WebFrameObserver::observe(const String &topic, Bookmarklet *bookmarklet)
     if (topic == "ExecuteBookmarklet")
         m_webFrame->webView()->stringByEvaluatingJavaScriptFromString(bookmarklet->data().utf8().data());
 }
-
-void WebFrameObserver::observe(const String &topic, BalObject *obj)
-{
-    ASSERT(obj);
-    ASSERT(obj->getName()[0] != '\0');
-#if ENABLE(JS_ADDONS)
-/*    if (topic == "AddonRegister")
-        m_webFrame->addToJSWindowObject(obj->getName(), (void *)obj);*/
-#endif
-}
-
-
-
 
 
 //-----------------------------------------------------------------------------
@@ -222,13 +206,11 @@ WebFrame::WebFrame()
 #if ENABLE(JS_ADDONS)
     m_bindingJS = new BindingJS(this);
 #endif
-    OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(m_webFrameObserver));
     OWBAL::ObserverServiceBookmarklet::createObserverService()->registerObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
 }
 
 WebFrame::~WebFrame()
 {
-    OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", static_cast<ObserverAddons*>(m_webFrameObserver));
     OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
 #if ENABLE(JS_ADDONS)
     if (m_bindingJS)
@@ -1120,7 +1102,7 @@ WebView* WebFrame::webView() const
     return d->webView;
 }
 
-void WebFrame::addToJSWindowObject(void *object)
+void WebFrame::addToJSWindowObject(void* object)
 {
     JSC::JSLock lock(false);
     JSDOMWindow *window = toJSDOMWindow(core(this));

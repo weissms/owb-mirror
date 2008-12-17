@@ -3,11 +3,9 @@
 ##################################################
 
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCBookmarkletCommon.h BAL/Bookmarklet.h)
-create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverAddonsCommon.h BAL/ObserverAddons.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverBookmarkletCommon.h BAL/ObserverBookmarklet.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverCommon.h BAL/Observer.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverDataCommon.h BAL/ObserverData.h)
-create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverServiceAddonsCommon.h BAL/ObserverServiceAddons.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverServiceBookmarkletCommon.h BAL/ObserverServiceBookmarklet.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverServiceCommon.h BAL/ObserverService.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/Common/BCObserverServiceDataCommon.h BAL/ObserverServiceData.h)
