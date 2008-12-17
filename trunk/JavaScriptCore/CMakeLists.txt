@@ -54,7 +54,7 @@ include(wrec/CMakeLists.txt)
 ##################################################
 
 include_directories(
-    ${BALBASE_INCLUDE_DIRS}
+    ${BASE_INCLUDE_DIRS}
     ${WTF_INCLUDE_DIRS}
     ${BAL_INCLUDE_DIRS}
     ${JAVASCRIPTCORE_INCLUDE_DIRS}

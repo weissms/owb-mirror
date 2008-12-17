@@ -1,4 +1,4 @@
-list(APPEND BALBASE_INCLUDE_DIRS
+list(APPEND BASE_INCLUDE_DIRS
     ${OWB_SOURCE_DIR}
     ${OWB_SOURCE_DIR}/Base
     ${OWB_SOURCE_DIR}/Base/wtf
@@ -142,3 +142,4 @@ if(ENABLE_XSLT)
 endif(ENABLE_XSLT)
 
 include(SetCustomerCMakeVars OPTIONAL)
+include(SetAddonsCMakeVars OPTIONAL)

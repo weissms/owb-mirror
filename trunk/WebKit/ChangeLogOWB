@@ -1,3 +1,18 @@
+2008-12-17  Mario  <mbensi@pleyo.com>
+
+        fix addons.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrameObserver::observe):
+        (WebFrame::WebFrame):
+        (WebFrame::~WebFrame):
+        (WebFrame::addToJSWindowObject):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        (WebFrame::bindingJS):
+        * OrigynWebBrowser/CMakeLists.txt:
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::windowObjectCleared):
+
 2008-12-16  Olivier DOLE  <odole@pleyo.com>
 
         Improve .pc file.

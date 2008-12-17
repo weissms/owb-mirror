@@ -1,9 +1,5 @@
 include_directories(
-    ${BALBASE_INCLUDE_DIRS}
-    ${WTF_INCLUDE_DIRS}
-    ${BAL_INCLUDE_DIRS}
-    ${JAVASCRIPTCORE_INCLUDE_DIRS}
-    ${WEBCORE_INCLUDE_DIRS}
+    ${BASE_INCLUDE_DIRS}
     ${WEBKIT_INCLUDE_DIRS}
     ${EXTERNAL_DEPS_INCLUDE_DIRS}
 )
@@ -23,6 +19,12 @@ target_link_libraries(owb
     webkit-owb
     ${GRAPHICS_LIBRARIES}
 )
+
+if (HAS_ADDONS)
+    target_link_libraries(owb
+        bindingjs
+    )
+endif (HAS_ADDONS)
 
 # IF (WEBKIT_USE_HTML_EXTENSION)
 #     TARGET_LINK_LIBRARIES (owb

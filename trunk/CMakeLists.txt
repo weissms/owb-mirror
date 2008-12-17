@@ -8,7 +8,11 @@ project(OWB CXX C)
 
 cmake_minimum_required(VERSION 2.6.2)
 
-set(CMAKE_MODULE_PATH ${OWB_SOURCE_DIR}/cmake)
+execute_process(COMMAND ./FindCMakeModulesPath.py
+    WORKING_DIRECTORY ${OWB_SOURCE_DIR}
+    OUTPUT_VARIABLE EXTRA_MODULE_PATH
+)
+set(CMAKE_MODULE_PATH ${EXTRA_MODULE_PATH})
 set(EXECUTABLE_OUTPUT_PATH ${OWB_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${OWB_BINARY_DIR}/lib)
 
@@ -55,6 +59,7 @@ set(USE_TIMER "LINUX" CACHE STRING "Choose the timer backend, options are: GLIB 
 set(WITH_OWB_CONFIG_DIR "$ENV{HOME}/.owb/conf/" CACHE STRING "Set configuration directory for owb")
 
 include(CustomerOptions OPTIONAL RESULT_VARIABLE HAS_CUSTOMER)
+include(AddOnsOptions OPTIONAL RESULT_VARIABLE HAS_ADDONS)
 
 configure_file(
     ${OWB_SOURCE_DIR}/Base/owb-config.h.in
@@ -101,6 +106,9 @@ include(DefineOwbMacros)
 include(SetCMakeVars)
 
 include(Base/CMakeLists.txt)
+if(HAS_ADDONS)
+    add_subdirectory(AddOns)
+endif(HAS_ADDONS)
 add_subdirectory(JavaScriptCore/wtf)
 add_subdirectory(JavaScriptCore)
 add_subdirectory(WebCore)
@@ -109,3 +117,5 @@ if(HAS_CUSTOMER)
 endif(HAS_CUSTOMER)
 add_subdirectory(WebKit/OrigynWebBrowser)
 add_subdirectory(WebKitTools/OWBLauncher)
+
+include(CPack)

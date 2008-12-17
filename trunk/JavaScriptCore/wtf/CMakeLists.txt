@@ -6,7 +6,7 @@ include(${BAL_DIR}/Types/WTF/CMakeLists.txt)
 
 
 include_directories(
-    ${BALBASE_INCLUDE_DIRS}
+    ${BASE_INCLUDE_DIRS}
     ${WTF_INCLUDE_DIRS}
     ${BAL_INCLUDE_DIRS}
     ${I18N_INCLUDE_DIRS}

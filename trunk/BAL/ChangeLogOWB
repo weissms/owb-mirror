@@ -1,3 +1,9 @@
+2008-12-17  Mario  <mbensi@pleyo.com>
+
+        fix addons.
+
+        * CMakeLists.txt:
+
 2008-12-16  Olivier DOLE  <odole@pleyo.com>
 
         Fix merge scripts.

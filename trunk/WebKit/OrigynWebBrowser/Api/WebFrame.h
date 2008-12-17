@@ -67,7 +67,7 @@ class WebFramePolicyListener;
 class WebHistory;
 class WebView;
 class WebMutableURLRequest;
-#ifdef __BINDING_JS__
+#if ENABLE(JS_ADDONS)
 class BindingJS;
 #endif
 
@@ -482,11 +482,14 @@ public:
      */
     WebView* webView() const;
 
+#if ENABLE(JS_ADDONS)
+    BindingJS *bindingJS() {return m_bindingJS;}
+#endif 
     /**
      * add to JSWindow object
      * add an balObject to extend the javascript
      */
-    void addToJSWindowObject(const char* name, void *object);
+    void addToJSWindowObject(void *object);
 
     //BCObserverAddons
     /**
@@ -551,7 +554,7 @@ protected:
     bool                m_inPrintingMode;
     int                 m_pageHeight;   // height of the page adjusted by margins
     WebFrameObserver*   m_webFrameObserver;
-#ifdef __BINDING_JS__
+#if ENABLE(JS_ADDONS)
     BindingJS *m_bindingJS;
 #endif
 };

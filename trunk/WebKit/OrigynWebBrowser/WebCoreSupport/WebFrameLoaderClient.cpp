@@ -49,6 +49,9 @@
 #include "WebURLResponse.h"
 #include "WebView.h"
 
+#if ENABLE(JS_ADDONS)
+#include "BindingJS.h"
+#endif
 #include "ObserverServiceData.h"
 #ifdef __ORIGYNSUITE__
 #include "OrigynServer.h"
@@ -1160,9 +1163,9 @@ void WebFrameLoaderClient::windowObjectCleared()
 //             FAILED(frameLoadDelegate2->didClearWindowObject(d->webView, context, windowObject, this)))
 //             frameLoadDelegate->windowScriptObjectAvailable(d->webView, context, windowObject);
 //     }
-#ifdef __BINDING_JS__
-    if (m_bindingJS)
-        m_bindingJS->registerBinding();
+#if ENABLE(JS_ADDONS)
+    if (m_webFrame->bindingJS())
+        m_webFrame->bindingJS()->registerBinding();
 #endif
 }
 

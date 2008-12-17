@@ -81,3 +81,5 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 else(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Flag for Windows compiler is not implemented")
 endif(CMAKE_COMPILER_IS_GNUCXX)
+
+include(AddJSAddOnsCompilerFlags OPTIONAL)

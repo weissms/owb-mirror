@@ -100,7 +100,7 @@
 #include "JSDOMWindowBase.h"
 #include "JSDOMWindow.h"
 #include "bal_object.h"
-#ifdef __BINDING_JS__
+#if ENABLE(JS_ADDONS)
 #include "BindingJS.h"
 #endif
 
@@ -151,9 +151,9 @@ void WebFrameObserver::observe(const String &topic, BalObject *obj)
 {
     ASSERT(obj);
     ASSERT(obj->getName()[0] != '\0');
-#ifdef __BINDING_JS__
-    if (topic == "AddonRegister")
-        m_webFrame->addToJSWindowObject(obj->getName(), (void *)obj);
+#if ENABLE(JS_ADDONS)
+/*    if (topic == "AddonRegister")
+        m_webFrame->addToJSWindowObject(obj->getName(), (void *)obj);*/
 #endif
 }
 
@@ -219,7 +219,7 @@ WebFrame::WebFrame()
     , m_pageHeight(0)
     , m_webFrameObserver(new WebFrameObserver(this))
 {
-#ifdef __BINDING_JS__
+#if ENABLE(JS_ADDONS)
     m_bindingJS = new BindingJS(this);
 #endif
     OWBAL::ObserverServiceAddons::createObserverService()->registerObserver("AddonRegister", static_cast<ObserverAddons*>(m_webFrameObserver));
@@ -230,7 +230,7 @@ WebFrame::~WebFrame()
 {
     OWBAL::ObserverServiceAddons::createObserverService()->removeObserver("AddonRegister", static_cast<ObserverAddons*>(m_webFrameObserver));
     OWBAL::ObserverServiceBookmarklet::createObserverService()->removeObserver("ExecuteBookmarklet", static_cast<ObserverBookmarklet*>(m_webFrameObserver));
-#ifdef __BINDING_JS__
+#if ENABLE(JS_ADDONS)
     if (m_bindingJS)
         delete m_bindingJS;
     m_bindingJS = 0;
@@ -1120,7 +1120,7 @@ WebView* WebFrame::webView() const
     return d->webView;
 }
 
-void WebFrame::addToJSWindowObject(const char* name, void *object)
+void WebFrame::addToJSWindowObject(void *object)
 {
     JSC::JSLock lock(false);
     JSDOMWindow *window = toJSDOMWindow(core(this));
@@ -1136,10 +1136,11 @@ void WebFrame::addToJSWindowObject(const char* name, void *object)
     JSC::ExecState* exec = global->globalExec();
     JSC::PropertySlot pr;
 
-    if (!global->getOwnPropertySlot(exec, JSC::Identifier(exec, name), pr)) {
-        JSC::JSObject* runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(static_cast<BalObject*>(object), root));
+    BalObject *obj = static_cast<BalObject*>(object);
+    if (!global->getOwnPropertySlot(exec, JSC::Identifier(exec, obj->getName()), pr)) {
+        JSC::JSObject* runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(obj, root));
         JSC::PutPropertySlot prop;
-        global->put(exec, JSC::Identifier(exec, name), runtimeObject, prop);
+        global->put(exec, JSC::Identifier(exec, obj->getName()), runtimeObject, prop);
     }
 }
 

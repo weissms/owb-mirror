@@ -1,5 +1,5 @@
 include_directories(
-    ${BALBASE_INCLUDE_DIRS}
+    ${BASE_INCLUDE_DIRS}
     ${BAL_INCLUDE_DIRS}
 )
 set(BAL_DIR ../BAL)
