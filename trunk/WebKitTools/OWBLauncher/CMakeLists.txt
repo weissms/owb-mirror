@@ -1,6 +1,20 @@
+execute_process(
+    COMMAND mkdir -p include
+    WORKING_DIRECTORY ${OWB_BINARY_DIR}
+    ERROR_QUIET
+)
+set(API_INCLUDE_DIRS ${OWB_BINARY_DIR}/include)
+foreach(files ${API_HEADER})
+    get_filename_component(filename ${files} NAME)
+    configure_file(
+        ${files}
+        ${API_INCLUDE_DIRS}/${filename}
+        COPYONLY
+    )
+endforeach(files)
+
 include_directories(
-    ${BASE_INCLUDE_DIRS}
-    ${WEBKIT_INCLUDE_DIRS}
+    ${API_INCLUDE_DIRS}
     ${EXTERNAL_DEPS_INCLUDE_DIRS}
 )
 #FIXME

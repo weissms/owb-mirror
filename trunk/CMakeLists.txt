@@ -120,3 +120,4 @@ add_subdirectory(WebKit/OrigynWebBrowser)
 add_subdirectory(WebKitTools/OWBLauncher)
 
 include(CPack)
+

@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <Api/WebKit.h>
+#include <WebKit.h>
 #include "SDL.h"
 #include "signal.h"
 #include <unistd.h>

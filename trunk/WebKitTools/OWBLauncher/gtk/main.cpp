@@ -28,7 +28,7 @@
 
 #include <gtk/gtk.h>
 #include <cairo.h>
-#include <Api/WebKit.h>
+#include <WebKit.h>
 
 static GtkWidget* main_window;
 static WebView* webView = NULL;

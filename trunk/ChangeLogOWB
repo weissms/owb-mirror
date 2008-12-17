@@ -1,3 +1,10 @@
+2008-12-17  Olivier DOLE  <odole@pleyo.com>
+
+        Fix owb compilation.
+
+        * CMakeLists.txt:
+        * cmake/SetCMakeVars.cmake:
+
 2008-12-17  Mario Bensi  <mbensi@pleyo.com>
 
         add option RegExp JIT and JSC JIT.

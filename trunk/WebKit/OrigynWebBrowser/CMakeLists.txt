@@ -44,13 +44,6 @@ if(NOT ENABLE_INSPECTOR)
     )
 endif(NOT ENABLE_INSPECTOR)
 
-# IF (BINDINGS_JS_CFLAGS)
-# SET_SOURCE_FILES_PROPERTIES (
-#     ${CMAKE_CURRENT_SOURCE_DIR}/Api/WebFrame.cpp
-#     PROPERTIES COMPILE_FLAGS "${BINDINGS_JS_CFLAGS}"
-# )
-# ENDIF ( BINDINGS_JS_CFLAGS)
-
 include_directories(
     ${BASE_INCLUDE_DIRS}
     ${WTF_INCLUDE_DIRS}
@@ -77,23 +70,12 @@ target_link_libraries(webkit-owb
 
 target_link_libraries(webkit-owb LINK_INTERFACE_LIBRARIES)
 
-# TARGET_LINK_LIBRARIES (webkit
-#     ${EXTRA_LDFLAGS}
-# )
-
 ##################################################
 # webkit-owb installation.                       #
 ##################################################
 
 set_target_properties(webkit-owb
     PROPERTIES SOVERSION 1.0
-)
-list(APPEND API_HEADER
-    Api/WebFrame.h
-    Api/WebKit.h
-    Api/WebView.h
-    ${OWB_SOURCE_DIR}/Base/WebKitDefines.h
-    ${OWB_SOURCE_DIR}/Base/WebKitTypes.h
 )
 configure_file(
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/webkit-owb.pc.in
@@ -108,7 +90,7 @@ install(FILES ${API_HEADER}
     DESTINATION include/webkit-owb
     PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
 )
-install(FILES webkit-owb.pc
+install(FILES ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/webkit-owb.pc
     DESTINATION lib/pkgconfig
     PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
 )
