@@ -33,8 +33,9 @@
 
 #if USE(PTHREADS)
 
-#include <wtf/HashMap.h>
-#include <wtf/MathExtras.h>
+#include "HashMap.h"
+#include "MainThread.h"
+#include "RandomNumberSeed.h"
 
 #include <errno.h>
 #include <sys/time.h>
@@ -43,7 +44,9 @@ namespace WTF {
 
 typedef HashMap<ThreadIdentifier, pthread_t> ThreadMap;
 
+#if !PLATFORM(DARWIN)
 static Mutex* atomicallyInitializedStaticMutex;
+#endif
 
 static ThreadIdentifier mainThreadIdentifier; // More precisely, the thread that was the first to call initializeThreading().
 
@@ -58,8 +61,11 @@ void initializeThreading()
     if (!atomicallyInitializedStaticMutex) {
         atomicallyInitializedStaticMutex = new Mutex;
         threadMapMutex();
-        wtf_random_init();
+        initializeRandomNumberGenerator();
+#if !PLATFORM(DARWIN)
         mainThreadIdentifier = currentThread();
+#endif
+        initializeMainThread();
     }
 }
 

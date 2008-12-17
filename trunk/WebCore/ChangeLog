@@ -1,3 +1,121 @@
+2008-12-17  Darin Adler  <darin@apple.com>
+
+        Reviewed and landed by Cameron Zwarich.
+
+        Change the style of AtomicString::add() to match Identifier:add().
+
+        * platform/text/AtomicString.cpp:
+        (WebCore::AtomicString::add):
+
+2008-12-16  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=22827
+        <rdar://problem/6247724> RenderThemeWin buttons have weird heavy text
+
+        * rendering/RenderThemeWin.cpp:
+        (WebCore::fillFontDescription): Add version that takes a font size.
+        (WebCore::RenderThemeWin::systemFont): Use the default GUI font for control fonts, but specify the size.
+        This will match Firefox.
+
+2008-12-16  Stephanie Lewis  <slewis@apple.com>
+
+        Another build fix.
+
+        * platform/text/AtomicString.h:
+        (WebCore::AtomicString::AtomicString):
+
+2008-12-16  Stephanie Lewis  <slewis@apple.com>
+
+        Windows Build Fix.
+
+        * platform/text/AtomicString.h:
+        (WebCore::AtomicString::AtomicString):
+        (WebCore::AtomicString::createCFString):
+
+2008-12-16  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by David Hyatt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22885
+        Fix memory corruption in GIFImageDecoder.cpp with certain GIFs.
+
+        * platform/image-decoders/gif/GIFImageDecoder.cpp:
+        (WebCore::GIFImageDecoder::frameComplete):
+
+2008-12-16  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Change HTTPHeaderMap to use an AtomicString as its key.  
+        Shaves ~1MB off of the Mozilla Memory Test
+        No functionality difference    
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * inspector/InspectorController.cpp:
+        (WebCore::addHeaders):
+        * loader/appcache/ApplicationCacheStorage.cpp:
+        (WebCore::parseHeader):
+        * platform/network/HTTPHeaderMap.h:
+        * platform/network/ResourceRequestBase.cpp:
+        (WebCore::ResourceRequestBase::httpHeaderField):
+        (WebCore::ResourceRequestBase::setHTTPHeaderField):
+        (WebCore::ResourceRequestBase::addHTTPHeaderField):
+        * platform/network/ResourceRequestBase.h:
+        * platform/network/ResourceResponseBase.cpp:
+        (WebCore::ResourceResponseBase::httpHeaderField):
+        (WebCore::ResourceResponseBase::setHTTPHeaderField):
+        * platform/network/ResourceResponseBase.h:
+        * platform/text/StringHash.h:
+        (WebCore::CaseFoldingHash::hash):
+        (WebCore::CaseFoldingHash::equal):
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::isSetCookieHeader):
+        (WebCore::XMLHttpRequest::setRequestHeader):
+        (WebCore::XMLHttpRequest::setRequestHeaderInternal):
+        (WebCore::XMLHttpRequest::getRequestHeader):
+        (WebCore::XMLHttpRequest::getResponseHeader):
+        * xml/XMLHttpRequest.h:
+
+2008-12-16  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Darin Adler.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22876
+
+        Remove legacy randomNumber() functionality from HTMLFormElement, and use the new wtf/RandomNumber.h.
+        Also remove an uneeded QFileInfo include while I'm at it - there is no Qt usage in this file.
+
+        * ForwardingHeaders/wtf/RandomNumber.h: Added.
+        * html/HTMLFormElement.cpp:
+        (WebCore::getUniqueBoundaryString):
+
+2008-12-16 Yael Aharon <yael.aharon@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Qt/Win build fix
+
+        * platform/win/SystemTimeWin.cpp:
+
+2008-12-16  Kalle Vahlman  <kalle.vahlman@movial.com>
+
+        Reviewed by Holger Freyther.
+
+        [CURL] memory leak of ResouceHandles
+        http://bugs.webkit.org/show_bug.cgi?id=20777
+
+        Fix ResourceHandle ref management to be consistent and correct.
+        Original patch from Marco Barisione.
+
+        * platform/network/curl/ResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::start):
+        * platform/network/curl/ResourceHandleManager.cpp:
+        (WebCore::ResourceHandleManager::removeFromCurl):
+        (WebCore::ResourceHandleManager::add):
+        (WebCore::ResourceHandleManager::removeScheduledJob):
+
 2008-12-16  Simon Hausmann  <simon.hausmann@nokia.com>
 
         Fix the Qt build.

@@ -26,9 +26,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "owb-config.h"
-
-#include "config.h"
 #include <gtk/gtk.h>
 #include <cairo.h>
 #include <Api/WebKit.h>

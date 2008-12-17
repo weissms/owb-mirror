@@ -74,4 +74,4 @@ build.configureSDL()
 build.configureGtk()
 build.configureSDLMini()
 version.registerCurrentVersion(trunkPath, vr)
-print "merge finished, please add 'merge with webkit revision " +vr+"' in your commit message"
+print "merge finished, please add 'merge with webkit revision " +str(vr)+"' in your commit message"

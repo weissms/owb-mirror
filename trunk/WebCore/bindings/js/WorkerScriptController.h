@@ -39,7 +39,7 @@ namespace JSC {
 
 namespace WebCore {
 
-    class JSWorkerContext;
+    class JSWorkerContextBase;
     class ScriptSourceCode;
     class ScriptValue;
     class String;
@@ -50,7 +50,7 @@ namespace WebCore {
         WorkerScriptController(WorkerContext*);
         ~WorkerScriptController();
 
-        JSWorkerContext* workerContextWrapper()
+        JSWorkerContextBase* workerContextWrapper()
         {
             initScriptIfNeeded();
             return m_workerContextWrapper;
@@ -70,7 +70,7 @@ namespace WebCore {
 
         RefPtr<JSC::JSGlobalData> m_globalData;
         WorkerContext* m_workerContext;
-        JSC::ProtectedPtr<JSWorkerContext> m_workerContextWrapper;
+        JSC::ProtectedPtr<JSWorkerContextBase> m_workerContextWrapper;
 
         Mutex m_sharedDataMutex;
         bool m_executionForbidden;

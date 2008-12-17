@@ -20,11 +20,11 @@ target_link_libraries(owb
     ${GRAPHICS_LIBRARIES}
 )
 
-if (HAS_ADDONS)
+if (ENABLE_JS_ADDONS)
     target_link_libraries(owb
         bindingjs
     )
-endif (HAS_ADDONS)
+endif (ENABLE_JS_ADDONS)
 
 # IF (WEBKIT_USE_HTML_EXTENSION)
 #     TARGET_LINK_LIBRARIES (owb

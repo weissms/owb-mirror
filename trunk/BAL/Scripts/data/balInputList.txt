@@ -429,6 +429,8 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/HashFunctions.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Assertions.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/StringExtras.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/MathExtras.h
+BAL/Skeletons/Types JavaScriptCore/wtf/RandomNumberSeed.h
+BAL/Skeletons/Types JavaScriptCore/wtf/RandomNumber.h
 
 
 BAL/Types/WTF	JavaScriptCore/wtf/dtoa.cpp
@@ -502,7 +504,9 @@ BAL/Types/WTF	JavaScriptCore/wtf/StringExtras.h
 BAL/Types/WTF	JavaScriptCore/wtf/MathExtras.h
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/SharedBufferGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/KURLGtk.cpp
-
+BAL/Types/WTF   JavaScriptCore/wtf/RandomNumberSeed.h
+BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.h
+BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.cpp
 
 BAL/Skeletons/Events	WebCore/platform/PlatformKeyboardEvent.h
 BAL/Skeletons/Events	WebCore/platform/PlatformMouseEvent.h

@@ -35,6 +35,7 @@
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
 #include <wtf/RetainPtr.h>
+#include "WebKitPluginHostTypes.h"
 
 @class WebHostedNetscapePluginView;
 
@@ -73,11 +74,12 @@ public:
     void windowFrameChanged(NSRect frame);
     
     void mouseEvent(NSView *pluginView, NSEvent *, NPCocoaEventType);
+    void keyEvent(NSView *pluginView, NSEvent *, NPCocoaEventType);
     void startTimers(bool throttleTimers);
     void stopTimers();
     
     void status(const char* message);
-    NPError loadURL(const char* url, const char* target, bool post, const char* postData, uint32_t postDataLength, bool postDataIsFile, bool currentEventIsUserGesture, uint32_t& requestID);
+    NPError loadURL(const char* url, const char* target, const char* postData, uint32_t postDataLength, LoadURLFlags, uint32_t& requestID);
 
     // Reply structs
     struct Reply {
