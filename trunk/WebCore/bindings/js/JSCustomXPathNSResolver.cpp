@@ -29,7 +29,6 @@
 #if ENABLE(XPATH)
 
 #include "CString.h"
-#include "Console.h"
 #include "DOMWindow.h"
 #include "Document.h"
 #include "ExceptionCode.h"
@@ -38,6 +37,10 @@
 #include "JSDOMBinding.h"
 #include "ScriptController.h"
 #include <runtime/JSLock.h>
+
+#if ENABLE(INSPECTOR)
+#include "Console.h"
+#endif
 
 namespace WebCore {
 
@@ -88,7 +91,9 @@ String JSCustomXPathNSResolver::lookupNamespaceURI(const String& prefix)
         callType = m_customResolver->getCallData(callData);
         if (callType == CallTypeNone) {
             // FIXME: Pass actual line number and source URL.
+#if ENABLE(INSPECTOR)
             m_frame->domWindow()->console()->addMessage(JSMessageSource, ErrorMessageLevel, "XPathNSResolver does not have a lookupNamespaceURI method.", 0, String());
+#endif
             return String();
         }
         function = m_customResolver;

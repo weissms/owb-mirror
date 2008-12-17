@@ -4,6 +4,7 @@ JavaScriptCore/interpreter/RegisterFile.cpp
 JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
+WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
 WebCore/bindings/js/JSEventTarget.cpp
@@ -58,5 +59,7 @@ WebCore/plugins/PluginView.h
 WebCore/rendering/RenderObject.cpp
 WebCore/storage/Database.cpp
 WebCore/xml/XMLHttpRequest.cpp
+WebCore/xml/XSLTProcessor.cpp
+WebCore/xml/XSLStyleSheet.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
 WebKitTools/DumpRenderTree/DumpRenderTree.h

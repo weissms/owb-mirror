@@ -1,3 +1,9 @@
+2008-12-17  Olivier DOLE  <odole@pleyo.com>
+
+        Update file for merge.
+
+        * Scripts/data/WebKitFiles.txt:
+
 2008-12-17  Mario  <mbensi@pleyo.com>
 
         remove observer addons.

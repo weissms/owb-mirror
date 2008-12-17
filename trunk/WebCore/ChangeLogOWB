@@ -1,3 +1,15 @@
+2008-12-17  Olivier DOLE  <odole@pleyo.com>
+
+        Fix build when XPATH and XSLT are enabled and INSPECTOR is disabled.
+
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * xml/XSLStyleSheet.cpp:
+        (WebCore::XSLStyleSheet::parseString):
+        * xml/XSLTProcessor.cpp:
+        (WebCore::XSLTProcessor::parseErrorFunc):
+        (WebCore::docLoaderFunc):
+
 2008-12-17  Mario  <mbensi@pleyo.com>
 
         fix addons.

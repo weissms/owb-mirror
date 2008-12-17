@@ -25,7 +25,6 @@
 #if ENABLE(XSLT)
 
 #include "CString.h"
-#include "Console.h"
 #include "DOMWindow.h"
 #include "DocLoader.h"
 #include "Document.h"
@@ -41,6 +40,10 @@
 
 #if PLATFORM(MAC)
 #include "SoftLinking.h"
+#endif
+
+#if ENABLE(INSPECTOR)
+#include "Console.h"
 #endif
 
 #if PLATFORM(MAC)
@@ -143,11 +146,13 @@ bool XSLStyleSheet::parseString(const String& string, bool strict)
         xmlFreeDoc(m_stylesheetDoc);
     m_stylesheetDocTaken = false;
 
+#if ENABLE(INSPECTOR)
     Console* console = 0;
     if (Frame* frame = ownerDocument()->frame())
         console = frame->domWindow()->console();
     xmlSetStructuredErrorFunc(console, XSLTProcessor::parseErrorFunc);
     xmlSetGenericErrorFunc(console, XSLTProcessor::genericErrorFunc);
+#endif
 
     const char* buffer = reinterpret_cast<const char*>(string.characters());
     int size = string.length() * sizeof(UChar);
