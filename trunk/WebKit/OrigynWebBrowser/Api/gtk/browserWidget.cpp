@@ -250,7 +250,7 @@ static gboolean webkit_web_view_expose_event(GtkWidget* widget, GdkEventExpose* 
 
 static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* event)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+//    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
     Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     PlatformKeyboardEvent keyboardEvent(event);
@@ -269,16 +269,16 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
     // approach more like the Win and Mac ports for key handling.
     switch (event->keyval) {
     case GDK_Down:
-        view->scrollBy(IntSize(0, cMouseWheelPixelsPerLineStep));
+        view->scrollBy(IntSize(0, (int)cMouseWheelPixelsPerLineStep));
         return TRUE;
     case GDK_Up:
-        view->scrollBy(IntSize(0, -cMouseWheelPixelsPerLineStep));
+        view->scrollBy(IntSize(0, (int)-cMouseWheelPixelsPerLineStep));
         return TRUE;
     case GDK_Right:
-        view->scrollBy(IntSize(cMouseWheelPixelsPerLineStep, 0));
+        view->scrollBy(IntSize((int)cMouseWheelPixelsPerLineStep, 0));
         return TRUE;
     case GDK_Left:
-        view->scrollBy(IntSize(-cMouseWheelPixelsPerLineStep, 0));
+        view->scrollBy(IntSize((int)-cMouseWheelPixelsPerLineStep, 0));
         return TRUE;
     case GDK_Home:
         frame->selection()->modify(alteration, SelectionController::BACKWARD, DocumentBoundary, true);
@@ -315,7 +315,7 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
 
 static gboolean webkit_web_view_key_release_event(GtkWidget* widget, GdkEventKey* event)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
     Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     PlatformKeyboardEvent keyboardEvent(event);
@@ -329,7 +329,7 @@ static gboolean webkit_web_view_key_release_event(GtkWidget* widget, GdkEventKey
 
 static gboolean webkit_web_view_button_press_event(GtkWidget* widget, GdkEventButton* event)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
     Frame* frame = core(webView_s->mainFrame());
 
@@ -344,7 +344,7 @@ static gboolean webkit_web_view_button_press_event(GtkWidget* widget, GdkEventBu
 
 static gboolean webkit_web_view_button_release_event(GtkWidget* widget, GdkEventButton* event)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
     ////WebKitWebViewPrivate* priv = webView->priv;
     Frame* focusedFrame = core(webView_s)->focusController()->focusedFrame();
 
@@ -362,7 +362,7 @@ static gboolean webkit_web_view_button_release_event(GtkWidget* widget, GdkEvent
 
 static gboolean webkit_web_view_motion_event(GtkWidget* widget, GdkEventMotion* event)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
     Frame* frame = core(webView_s->mainFrame());
     return frame->eventHandler()->mouseMoved(PlatformMouseEvent(event));
@@ -370,7 +370,7 @@ static gboolean webkit_web_view_motion_event(GtkWidget* widget, GdkEventMotion* 
 
 static gboolean webkit_web_view_scroll_event(GtkWidget* widget, GdkEventScroll* event)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
     Frame* frame = core(webView_s->mainFrame());
     PlatformWheelEvent wheelEvent(event);
@@ -381,7 +381,7 @@ static void webkit_web_view_size_allocate(GtkWidget* widget, GtkAllocation* allo
 {
     GTK_WIDGET_CLASS(webkit_web_view_parent_class)->size_allocate(widget,allocation);
 
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
     Frame* frame = core(webView_s->mainFrame());
     frame->view()->resize(allocation->width, allocation->height);
@@ -395,7 +395,7 @@ static gboolean webkit_web_view_focus_in_event(GtkWidget* widget, GdkEventFocus*
     // http://bugs.webkit.org/show_bug.cgi?id=16910
     GtkWidget* toplevel = gtk_widget_get_toplevel(widget);
     if (GTK_WIDGET_TOPLEVEL(toplevel) && gtk_window_has_toplevel_focus(GTK_WINDOW(toplevel))) {
-        WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
+        //WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
         Frame* frame = core(webView_s->mainFrame());
         core(webView_s)->focusController()->setActive(frame);
@@ -436,7 +436,7 @@ static void webkit_web_view_realize(GtkWidget* widget)
     gdk_window_set_background(widget->window, &widget->style->base[GTK_WIDGET_STATE(widget)]);
 }
 
-static void webkit_web_view_set_scroll_adjustments(WebKitWebView* webView, GtkAdjustment* hadj, GtkAdjustment* vadj)
+static void webkit_web_view_set_scroll_adjustments(WebKitWebView* , GtkAdjustment* hadj, GtkAdjustment* vadj)
 {
     WebFrame *wFrame = webView_s->mainFrame();
     if (wFrame) {
@@ -458,7 +458,7 @@ static void webkit_web_view_container_add(GtkContainer* container, GtkWidget* wi
 
 static void webkit_web_view_container_remove(GtkContainer* container, GtkWidget* widget)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(container);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(container);
     ////WebKitWebViewPrivate* priv = webView->priv;
 
     if (children.contains(widget)) {
@@ -469,7 +469,7 @@ static void webkit_web_view_container_remove(GtkContainer* container, GtkWidget*
 
 static void webkit_web_view_container_forall(GtkContainer* container, gboolean, GtkCallback callback, gpointer callbackData)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(container);
+    //WebKitWebView* webView = WEBKIT_WEB_VIEW(container);
     ////WebKitWebViewPrivate* priv = webView->priv;
 
     HashSet<GtkWidget*> children = children;
@@ -595,31 +595,31 @@ static gboolean webkit_web_view_real_script_prompt(WebKitWebView* webView, WebFr
     return TRUE;
 }
 
-static gboolean webkit_web_view_real_console_message(WebKitWebView* webView, const gchar* message, unsigned int line, const gchar* sourceId)
+static gboolean webkit_web_view_real_console_message(WebKitWebView*, const gchar* message, unsigned int line, const gchar* sourceId)
 {
     g_print("console message: %s @%d: %s\n", sourceId, line, message);
     return TRUE;
 }
 
-static void webkit_web_view_real_select_all(WebKitWebView* webView)
+static void webkit_web_view_real_select_all(WebKitWebView*)
 {
     Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("SelectAll").execute();
 }
 
-static void webkit_web_view_real_cut_clipboard(WebKitWebView* webView)
+static void webkit_web_view_real_cut_clipboard(WebKitWebView*)
 {
     Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Cut").execute();
 }
 
-static void webkit_web_view_real_copy_clipboard(WebKitWebView* webView)
+static void webkit_web_view_real_copy_clipboard(WebKitWebView*)
 {
     Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Copy").execute();
 }
 
-static void webkit_web_view_real_paste_clipboard(WebKitWebView* webView)
+static void webkit_web_view_real_paste_clipboard(WebKitWebView*)
 {
     Frame* frame = core(webView_s)->focusController()->focusedOrMainFrame();
     frame->editor()->command("Paste").execute();
@@ -627,7 +627,7 @@ static void webkit_web_view_real_paste_clipboard(WebKitWebView* webView)
 
 static void webkit_web_view_finalize(GObject* object)
 {
-    WebKitWebView* webView = WEBKIT_WEB_VIEW(object);
+//    WebKitWebView* webView = WEBKIT_WEB_VIEW(object);
     webView_s = 0;
     g_object_unref(imContext);
     gtk_target_list_unref(copy_target_list);

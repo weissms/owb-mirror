@@ -1,5 +1,12 @@
 2008-12-18  Mario Bensi  <mbensi@pleyo.com>
 
+        add build part on script.
+
+        * Scripts/build.py:
+        * Scripts/merge.py:
+
+2008-12-18  Mario Bensi  <mbensi@pleyo.com>
+
         build fix on Generic internationalisation.
 
         * Fonts/WebCore/WK/BCWidthIteratorWK.cpp:

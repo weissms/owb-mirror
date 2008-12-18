@@ -1,5 +1,11 @@
 2008-12-18  Mario Bensi  <mbensi@pleyo.com>
 
+        remove warning.
+
+        * OrigynWebBrowser/Api/gtk/browserWidget.cpp:
+
+2008-12-18  Mario Bensi  <mbensi@pleyo.com>
+
         Add Origyn suite.
 
         * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
