@@ -83,3 +83,4 @@ else(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 include(AddJSAddOnsCompilerFlags OPTIONAL)
+include(AddOrigynSuiteCompilerFlags OPTIONAL)

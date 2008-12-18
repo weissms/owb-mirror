@@ -34,6 +34,12 @@ target_link_libraries(owb
     ${GRAPHICS_LIBRARIES}
 )
 
+if (ENABLE_ORIGYNSUITE)
+    target_link_libraries(owb
+        origynsuite
+    )
+endif (ENABLE_ORIGYNSUITE)
+
 # IF (WEBKIT_USE_HTML_EXTENSION)
 #     TARGET_LINK_LIBRARIES (owb
 #         htmlext

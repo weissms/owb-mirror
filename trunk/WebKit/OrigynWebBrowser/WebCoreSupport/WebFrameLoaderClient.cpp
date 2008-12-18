@@ -53,7 +53,7 @@
 #include "BindingJS.h"
 #endif
 #include "ObserverServiceData.h"
-#ifdef __ORIGYNSUITE__
+#if ENABLE(ORIGYNSUITE)
 #include "OrigynServer.h"
 #endif
 
@@ -161,7 +161,7 @@ void WebFrameLoaderClient::dispatchDidCancelAuthenticationChallenge(DocumentLoad
 
 void WebFrameLoaderClient::dispatchWillSendRequest(DocumentLoader* loader, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
 {
-#ifdef __ORIGYNSUITE__
+#if ENABLE (ORIGYNSUITE)
     OrigynServer::get()->redirectRequest(request);
 #else
     /*WebView* webView = m_webFrame->webView();
@@ -406,7 +406,7 @@ void WebFrameLoaderClient::postProgressStartedNotification()
     gettimeofday(&m_timerStart, NULL);
 #endif
 
-#ifdef __ORIGYNSUITE__
+#if ENABLE(ORIGYNSUITE)
     ResourceRequest request = core(m_webFrame)->loader()->originalRequest();
     // before each clic or new page, check if we have new infos from servers
     OrigynServer::get()->redirectRequest(request);
@@ -428,7 +428,7 @@ void WebFrameLoaderClient::postProgressFinishedNotification()
 {
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressFinishedNotification, "", m_webFrame->webView());
     
-#ifdef __ORIGYNSUITE__
+#if ENABLE(ORIGYNSUITE)
     if (OrigynServer::get()->syncNeeded())
         OrigynServer::get()->synchronize(core(m_webFrame)); // sync if they are some
 #endif

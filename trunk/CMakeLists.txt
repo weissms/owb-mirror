@@ -59,8 +59,9 @@ set(USE_TIMER "LINUX" CACHE STRING "Choose the timer backend, options are: GLIB 
 
 set(WITH_OWB_CONFIG_DIR "$ENV{HOME}/.owb/conf/" CACHE STRING "Set configuration directory for owb")
 
-include(CustomerOptions OPTIONAL RESULT_VARIABLE HAS_CUSTOMER)
 include(AddOnsOptions OPTIONAL RESULT_VARIABLE HAS_ADDONS)
+include(CustomerOptions OPTIONAL RESULT_VARIABLE HAS_CUSTOMER)
+include(OrigynSuiteOptions OPTIONAL RESULT_VARIABLE HAS_ORIGYNSUITE)
 
 configure_file(
     ${OWB_SOURCE_DIR}/Base/owb-config.h.in
@@ -110,6 +111,9 @@ include(Base/CMakeLists.txt)
 if(HAS_ADDONS)
     add_subdirectory(AddOns)
 endif(HAS_ADDONS)
+if(HAS_ORIGYNSUITE)
+    add_subdirectory(OrigynSuite)
+endif(HAS_ORIGYNSUITE)
 add_subdirectory(JavaScriptCore/wtf)
 add_subdirectory(JavaScriptCore)
 add_subdirectory(WebCore)

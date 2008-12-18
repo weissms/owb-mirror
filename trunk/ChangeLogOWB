@@ -1,3 +1,11 @@
+2008-12-18  Mario Bensi  <mbensi@pleyo.com>
+
+        add Origyn suite.
+
+        * CMakeLists.txt:
+        * cmake/AddWebCoreCompilerFlags.cmake:
+        * cmake/SetCMakeVars.cmake:
+
 2008-12-18  Olivier DOLE  <odole@pleyo.com>
 
         Fix comment for JIT options.

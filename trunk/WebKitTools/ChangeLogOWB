@@ -1,3 +1,9 @@
+2008-12-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Add Origyn suite.
+
+        * OWBLauncher/CMakeLists.txt:
+
 2008-12-18  Olivier DOLE  <odole@pleyo.com>
 
         Fix CMakeLists.txt

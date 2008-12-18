@@ -148,5 +148,7 @@ if(ENABLE_XSLT)
     )
 endif(ENABLE_XSLT)
 
-include(SetCustomerCMakeVars OPTIONAL)
 include(SetAddonsCMakeVars OPTIONAL)
+include(SetCustomerCMakeVars OPTIONAL)
+include(SetOrigynSuiteCMakeVars OPTIONAL)
+

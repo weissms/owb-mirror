@@ -1,3 +1,11 @@
+2008-12-18  Mario Bensi  <mbensi@pleyo.com>
+
+        build fix on Generic internationalisation.
+
+        * Fonts/WebCore/WK/BCWidthIteratorWK.cpp:
+        (WebCore::WidthIterator::normalizeVoicingMarks):
+        * Scripts/data/WebKitFiles.txt:
+
 2008-12-18  Olivier DOLE  <odole@pleyo.com>
 
         move BalObject in high level API.
