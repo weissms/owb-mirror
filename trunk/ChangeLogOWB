@@ -1,3 +1,11 @@
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        Add pre-configuration files to automate merge build.
+
+        * cmake/ConfigureBuildGtk.cmake: Added.
+        * cmake/ConfigureBuildSDL.cmake: Added.
+        * cmake/ConfigureBuildSDLMini.cmake: Added.
+
 2008-12-18  Mario Bensi  <mbensi@pleyo.com>
 
         add Origyn suite.
