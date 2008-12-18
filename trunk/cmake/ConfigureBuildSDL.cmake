@@ -17,13 +17,13 @@ set(ENABLE_OFFLINE_WEB_APPLICATIONS ON CACHE BOOLEAN "Enable HTML5 offline web a
 set(ENABLE_GEOLOCATION ON CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR ON CACHE BOOLEAN "Enable web inspector support" FORCE)
 
-if(ARCH STREQUAL "x86")
+if(ARCH MATCHES "i[3-6]86")
     set(ENABLE_JIT_JSC ON CACHE BOOLEAN "Enable JavascriptCore JIT compilation (for x86 only)" FORCE)
-endif(ARCH STREQUAL "x86")
+endif(ARCH MATCHES "i[3-6]86")
 
-if(ARCH MATCHES "x86*")
+if(ARCH MATCHES "[ix][3-6]*86*")
     set(ENABLE_JIT_REGEXP ON CACHE BOOLEAN "Enable RegExp JIT compilation (for x86 and x86_64 only)" FORCE)
-endif(ARCH MATCHES "x86*")
+endif(ARCH MATCHES "[ix][3-6]*86*")
 
 set(ENABLE_MULTIPLE_THREADS ON CACHE BOOLEAN "Enable multiple threads" FORCE)
 set(ENABLE_WORKERS ON CACHE BOOLEAN "Enable workers support" FORCE)

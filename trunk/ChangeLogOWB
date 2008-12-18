@@ -1,5 +1,12 @@
 2008-12-18  Olivier DOLE  <odole@pleyo.com>
 
+        Fix SDL build configuration for x86 arch.
+
+        * cmake/ConfigureBuildSDL.cmake:
+        * cmake/ConfigureBuildSDLMini.cmake:
+
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
         Add pre-configuration files to automate merge build.
 
         * cmake/ConfigureBuildGtk.cmake: Added.
