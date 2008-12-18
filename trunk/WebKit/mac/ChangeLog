@@ -1,3 +1,13 @@
+2008-12-18  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by John Sullivan.
+        
+        Add version check for shift-reload behavior.
+
+        * Misc/WebKitVersionChecks.h:
+        * WebView/WebFrame.mm:
+        (-[WebFrame reload]):
+
 2008-12-17  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Dan Bernstein.

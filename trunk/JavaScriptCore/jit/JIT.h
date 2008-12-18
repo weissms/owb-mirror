@@ -64,12 +64,12 @@
 #define ARG_id2 static_cast<Identifier*>(ARGS[2])
 #define ARG_id3 static_cast<Identifier*>(ARGS[3])
 #define ARG_id4 static_cast<Identifier*>(ARGS[4])
-#define ARG_int1 reinterpret_cast<intptr_t>(ARGS[1])
-#define ARG_int2 reinterpret_cast<intptr_t>(ARGS[2])
-#define ARG_int3 reinterpret_cast<intptr_t>(ARGS[3])
-#define ARG_int4 reinterpret_cast<intptr_t>(ARGS[4])
-#define ARG_int5 reinterpret_cast<intptr_t>(ARGS[5])
-#define ARG_int6 reinterpret_cast<intptr_t>(ARGS[6])
+#define ARG_int1 static_cast<int32_t>(reinterpret_cast<intptr_t>(ARGS[1]))
+#define ARG_int2 static_cast<int32_t>(reinterpret_cast<intptr_t>(ARGS[2]))
+#define ARG_int3 static_cast<int32_t>(reinterpret_cast<intptr_t>(ARGS[3]))
+#define ARG_int4 static_cast<int32_t>(reinterpret_cast<intptr_t>(ARGS[4]))
+#define ARG_int5 static_cast<int32_t>(reinterpret_cast<intptr_t>(ARGS[5]))
+#define ARG_int6 static_cast<int32_t>(reinterpret_cast<intptr_t>(ARGS[6]))
 #define ARG_func1 static_cast<FuncDeclNode*>(ARGS[1])
 #define ARG_funcexp1 static_cast<FuncExprNode*>(ARGS[1])
 #define ARG_regexp1 static_cast<RegExp*>(ARGS[1])
@@ -188,7 +188,13 @@ namespace JSC {
     };
 
     extern "C" {
-        JSValue* ctiTrampoline(void* code, RegisterFile*, CallFrame*, JSValue** exception, Profiler**, JSGlobalData*);
+        JSValue* ctiTrampoline(
+#if PLATFORM(X86_64)
+            // FIXME: (bug #22910) this will force all arguments onto the stack (regparm(0) does not appear to have any effect).
+            // We can allow register passing here, and move the writes of these values into the trampoline.
+            void*, void*, void*, void*, void*, void*,
+#endif
+            void* code, RegisterFile*, CallFrame*, JSValue** exception, Profiler**, JSGlobalData*);
         void ctiVMThrowTrampoline();
     };
 
@@ -200,7 +206,13 @@ namespace JSC {
         using MacroAssembler::JumpList;
         using MacroAssembler::Label;
 
+#if PLATFORM(X86_64)
+        static const RegisterID timeoutCheckRegister = X86::r12;
+        static const RegisterID callFrameRegister = X86::r13;
+#else
+        static const RegisterID timeoutCheckRegister = X86::esi;
         static const RegisterID callFrameRegister = X86::edi;
+#endif
 
         static const int repatchGetByIdDefaultStructure = -1;
         // Magic number - initial offset cannot be representable as a signed 8bit value, or the X86Assembler
@@ -303,7 +315,11 @@ namespace JSC {
 
         inline static JSValue* execute(void* code, RegisterFile* registerFile, CallFrame* callFrame, JSGlobalData* globalData, JSValue** exception)
         {
-            return ctiTrampoline(code, registerFile, callFrame, exception, Profiler::enabledProfilerReference(), globalData);
+            return ctiTrampoline(
+#if PLATFORM(X86_64)
+                0, 0, 0, 0, 0, 0,
+#endif
+                code, registerFile, callFrame, exception, Profiler::enabledProfilerReference(), globalData);
         }
 
     private:

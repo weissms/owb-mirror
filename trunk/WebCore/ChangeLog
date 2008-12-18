@@ -1,3 +1,61 @@
+2008-12-18  Nikolas Zimmermann  <nikolas.zimmermann@torchmobile.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fixes: https://bugs.webkit.org/show_bug.cgi?id=22866
+
+        wml.css is based on an older copy of html4.css. Synchronize them.
+        Remove all entries, that are irrelevant for WML.
+
+        Fix <do> appearance: should behave like HTMLs <button>.
+
+        * css/wml.css:
+
+2008-12-17  Yury Semikhatsky <yurys@google.com>
+
+        Reviewed by Timothy Hatcher.
+        Landed by Adam Barth.
+
+        Added more checks that WebInspector.panels.{resources,scripts} are
+        defined where they are accessed from other panels and WebInspector
+        (some panels are not yet supported in Chrome).
+
+        * inspector/front-end/Console.js:
+        (WebInspector.Console.prototype.addMessage):
+        (WebInspector.Console.prototype.clearMessages):
+        (WebInspector.Console.prototype.completions):
+        * inspector/front-end/ObjectPropertiesSection.js:
+        (WebInspector.ObjectPropertyTreeElement.prototype.evaluateExpression):
+        * inspector/front-end/ScriptsPanel.js:
+        (WebInspector.ScriptsPanel.prototype.get searchableViews):
+        (WebInspector.ScriptsPanel.prototype._sourceViewForScriptOrResource):
+        (WebInspector.ScriptsPanel.prototype._sourceFrameForScriptOrResource):
+        (WebInspector.ScriptsPanel.prototype._showScriptOrResource):
+        * inspector/front-end/SourceView.js:
+        (WebInspector.SourceView.prototype._addBreakpoint):
+        * inspector/front-end/inspector.js:
+        (WebInspector.addResource):
+        (WebInspector.removeResource):
+        (WebInspector.showResourceForURL):
+
+2008-12-17  Cary Clark  < caryclark@google.com>
+
+        Reviewed by Darin Adler.
+        Landed by Adam Barth.
+
+        Add ENABLE_TEXT_CARET to permit the ANDROID platform
+        to invalidate and draw the caret in a separate thread.
+
+        * page/Frame.cpp:
+        (WebCore::Frame::clearCaretRectIfNeeded): Body of
+        function does nothing if text caret is disabled.
+        (WebCore::Frame::selectionLayoutChanged): Do nothing
+        if text caret is disabled and the caret only blinked.
+        (WebCore::Frame::caretBlinkTimerFired):
+        (WebCore::Frame::paintCaret):
+        (WebCore::Frame::paintDragCaret): Body of
+        functions does nothing if text caret is disabled.
+
 2008-12-17  Darin Adler  <darin@apple.com>
 
         Reviewed and landed by Cameron Zwarich.

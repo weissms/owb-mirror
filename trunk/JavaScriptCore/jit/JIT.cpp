@@ -109,13 +109,38 @@ SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
 asm(
 ".globl " SYMBOL_STRING(ctiTrampoline) "\n"
 SYMBOL_STRING(ctiTrampoline) ":" "\n"
-    "int3" "\n"
+    "pushq %rbp" "\n"
+    "movq %rsp, %rbp" "\n"
+    "pushq %r12" "\n"
+    "pushq %r13" "\n"
+    "pushq %rbx" "\n"
+    "subq $0x38, %rsp" "\n"
+    "movq $512, %r12" "\n"
+    "movq 0x70(%rsp), %r13" "\n" // Ox70 = 0x0E * 8, 0x0E = CTI_ARGS_callFrame (see assertion above)
+    "call *0x60(%rsp)" "\n" // Ox60 = 0x0C * 8, 0x0C = CTI_ARGS_code (see assertion above)
+    "addq $0x38, %rsp" "\n"
+    "popq %rbx" "\n"
+    "popq %r13" "\n"
+    "popq %r12" "\n"
+    "popq %rbp" "\n"
+    "ret" "\n"
 );
 
 asm(
 ".globl " SYMBOL_STRING(ctiVMThrowTrampoline) "\n"
 SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
-    "int3" "\n"
+#if USE(CTI_ARGUMENT) && !USE(FAST_CALL_CTI_ARGUMENT)
+    "movq %rsp, %rdi" "\n"
+    "call " SYMBOL_STRING(_ZN3JSC11Interpreter12cti_vm_throwEPPv) "\n"
+#else
+#error "CTI_ARGUMENT configuration not supported."
+#endif
+    "addq $0x38, %rsp" "\n"
+    "popq %rbx" "\n"
+    "popq %r13" "\n"
+    "popq %r12" "\n"
+    "popq %rbp" "\n"
+    "ret" "\n"
 );
     
 #elif COMPILER(MSVC)
@@ -228,9 +253,9 @@ void JIT::compileOpStrictEq(Instruction* currentInstruction, CompileOpStrictEqTy
 
 void JIT::emitSlowScriptCheck()
 {
-    Jump skipTimeout = jnzSub32(Imm32(1), X86::esi);
+    Jump skipTimeout = jnzSub32(Imm32(1), timeoutCheckRegister);
     emitCTICall(Interpreter::cti_timeout_check);
-    move(X86::eax, X86::esi);
+    move(X86::eax, timeoutCheckRegister);
     skipTimeout.link(this);
 
     killLastResultRegister();
@@ -969,12 +994,21 @@ void JIT::privateCompileMainPass()
         case op_throw: {
             emitPutJITStubArgFromVirtualRegister(currentInstruction[1].u.operand, 1, X86::ecx);
             emitCTICall(Interpreter::cti_op_throw);
-            __ addl_ir(0x1c, X86::esp);
-            __ pop_r(X86::ebx);
-            __ pop_r(X86::edi);
-            __ pop_r(X86::esi);
-            __ pop_r(X86::ebp);
-            __ ret();
+#if PLATFORM(X86_64)
+            addPtr(Imm32(0x38), X86::esp);
+            pop(X86::ebx);
+            pop(X86::r13);
+            pop(X86::r12);
+            pop(X86::ebp);
+            ret();
+#else
+            addPtr(Imm32(0x1c), X86::esp);
+            pop(X86::ebx);
+            pop(X86::edi);
+            pop(X86::esi);
+            pop(X86::ebp);
+            ret();
+#endif
             NEXT_OPCODE(op_throw);
         }
         case op_get_pnames: {
@@ -1845,19 +1879,29 @@ void JIT::privateCompile()
     for (Vector<JSRInfo>::iterator iter = m_jsrSites.begin(); iter != m_jsrSites.end(); ++iter)
         repatchBuffer.setPtr(iter->storeLocation, repatchBuffer.addressOf(iter->target));
 
-#if ENABLE(JIT_OPTIMIZE_PROPERTY_ACCESS)
     for (unsigned i = 0; i < m_codeBlock->numberOfStructureStubInfos(); ++i) {
         StructureStubInfo& info = m_codeBlock->structureStubInfo(i);
+#if ENABLE(JIT_OPTIMIZE_PROPERTY_ACCESS)
         info.callReturnLocation = X86Assembler::getRelocatedAddress(code, m_propertyAccessCompilationInfo[i].callReturnLocation);
         info.hotPathBegin = X86Assembler::getRelocatedAddress(code, m_propertyAccessCompilationInfo[i].hotPathBegin);
-    }
+#else
+        info.callReturnLocation = 0;
+        info.hotPathBegin = 0;
 #endif
+    }
     for (unsigned i = 0; i < m_codeBlock->numberOfCallLinkInfos(); ++i) {
         CallLinkInfo& info = m_codeBlock->callLinkInfo(i);
+#if ENABLE(JIT_OPTIMIZE_CALL)
         info.callReturnLocation = X86Assembler::getRelocatedAddress(code, m_callStructureStubCompilationInfo[i].callReturnLocation);
         info.hotPathBegin = X86Assembler::getRelocatedAddress(code, m_callStructureStubCompilationInfo[i].hotPathBegin);
         info.hotPathOther = X86Assembler::getRelocatedAddress(code, m_callStructureStubCompilationInfo[i].hotPathOther);
         info.coldPathOther = X86Assembler::getRelocatedAddress(code, m_callStructureStubCompilationInfo[i].coldPathOther);
+#else
+        info.callReturnLocation = 0;
+        info.hotPathBegin = 0;
+        info.hotPathOther = 0;
+        info.coldPathOther = 0;
+#endif
     }
 
     m_codeBlock->setJITCode(codeRef);
@@ -1918,7 +1962,6 @@ void JIT::privateCompileCTIMachineTrampolines()
     X86Assembler::JmpSrc hasCodeBlock1 = __ jne();
     __ pop_r(X86::ebx);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
     X86Assembler::JmpSrc callJSFunction1 = __ call();
     emitGetJITStubArg(1, X86::ecx);
     emitGetJITStubArg(3, X86::edx);
@@ -1932,7 +1975,6 @@ void JIT::privateCompileCTIMachineTrampolines()
     emitPutJITStubArg(X86::ebx, 2);
     emitPutJITStubArg(X86::eax, 4);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
     X86Assembler::JmpSrc callArityCheck1 = __ call();
     __ movl_rr(X86::edx, callFrameRegister);
     emitGetJITStubArg(1, X86::ecx);
@@ -1945,7 +1987,6 @@ void JIT::privateCompileCTIMachineTrampolines()
     __ pop_r(X86::ebx);
     emitPutJITStubArg(X86::ebx, 2);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
     X86Assembler::JmpSrc callDontLazyLinkCall = __ call();
     __ push_r(X86::ebx);
 
@@ -1960,7 +2001,6 @@ void JIT::privateCompileCTIMachineTrampolines()
     X86Assembler::JmpSrc hasCodeBlock2 = __ jne();
     __ pop_r(X86::ebx);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
     X86Assembler::JmpSrc callJSFunction2 = __ call();
     emitGetJITStubArg(1, X86::ecx);
     emitGetJITStubArg(3, X86::edx);
@@ -1974,7 +2014,6 @@ void JIT::privateCompileCTIMachineTrampolines()
     emitPutJITStubArg(X86::ebx, 2);
     emitPutJITStubArg(X86::eax, 4);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
     X86Assembler::JmpSrc callArityCheck2 = __ call();
     __ movl_rr(X86::edx, callFrameRegister);
     emitGetJITStubArg(1, X86::ecx);
@@ -1987,7 +2026,6 @@ void JIT::privateCompileCTIMachineTrampolines()
     __ pop_r(X86::ebx);
     emitPutJITStubArg(X86::ebx, 2);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
     X86Assembler::JmpSrc callLazyLinkCall = __ call();
     __ push_r(X86::ebx);
 
@@ -1996,40 +2034,36 @@ void JIT::privateCompileCTIMachineTrampolines()
     X86Assembler::JmpDst virtualCallBegin = __ align(16);
 
     // Load the callee CodeBlock* into eax
-    __ movl_mr(FIELD_OFFSET(JSFunction, m_body), X86::ecx, X86::eax);
-    __ movl_mr(FIELD_OFFSET(FunctionBodyNode, m_code), X86::eax, X86::eax);
-    __ testl_rr(X86::eax, X86::eax);
-    X86Assembler::JmpSrc hasCodeBlock3 = __ jne();
-    __ pop_r(X86::ebx);
+    loadPtr(Address(X86::ecx, FIELD_OFFSET(JSFunction, m_body)), X86::eax);
+    loadPtr(Address(X86::eax, FIELD_OFFSET(FunctionBodyNode, m_code)), X86::eax);
+    Jump hasCodeBlock3 = jnzPtr(X86::eax);
+    pop(X86::ebx);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
-    X86Assembler::JmpSrc callJSFunction3 = __ call();
+    X86Assembler::JmpSrc callJSFunction3 = call();
     emitGetJITStubArg(1, X86::ecx);
     emitGetJITStubArg(3, X86::edx);
-    __ push_r(X86::ebx);
-    __ link(hasCodeBlock3, __ label());
+    push(X86::ebx);
+    hasCodeBlock3.link(this);
 
     // Check argCount matches callee arity.
-    __ cmpl_rm(X86::edx, FIELD_OFFSET(CodeBlock, m_numParameters), X86::eax);
-    X86Assembler::JmpSrc arityCheckOkay3 = __ je();
-    __ pop_r(X86::ebx);
+    Jump arityCheckOkay3 = je32(Address(X86::eax, FIELD_OFFSET(CodeBlock, m_numParameters)), X86::edx);
+    pop(X86::ebx);
     emitPutJITStubArg(X86::ebx, 2);
     emitPutJITStubArg(X86::eax, 4);
     restoreArgumentReference();
-    emitPutCTIParam(callFrameRegister, CTI_ARGS_callFrame);
-    X86Assembler::JmpSrc callArityCheck3 = __ call();
-    __ movl_rr(X86::edx, callFrameRegister);
+    X86Assembler::JmpSrc callArityCheck3 = call();
+    move(X86::edx, callFrameRegister);
     emitGetJITStubArg(1, X86::ecx);
     emitGetJITStubArg(3, X86::edx);
-    __ push_r(X86::ebx);
-    __ link(arityCheckOkay3, __ label());
+    push(X86::ebx);
+    arityCheckOkay3.link(this);
 
     compileOpCallInitializeCallFrame();
 
     // load ctiCode from the new codeBlock.
-    __ movl_mr(FIELD_OFFSET(CodeBlock, m_jitCode), X86::eax, X86::eax);
+    loadPtr(Address(X86::eax, FIELD_OFFSET(CodeBlock, m_jitCode)), X86::eax);
 
-    __ jmp_r(X86::eax);
+    jump(X86::eax);
 
     // All trampolines constructed! copy the code, link up calls, and set the pointers on the Machine object.
     m_interpreter->m_executablePool = m_globalData->poolForSize(__ size());

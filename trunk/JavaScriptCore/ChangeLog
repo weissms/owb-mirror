@@ -1,3 +1,106 @@
+2008-12-18  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        Fixes for Sunspider failures with the JIT enabled on x86-64.
+
+        * assembler/MacroAssembler.h:
+            Switch the order of the RegisterID & Address form of je32, to keep it consistent with jne32.
+        * jit/JIT.cpp:
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+            Port the m_ctiVirtualCall tramopline generation to use the MacroAssembler interface.
+        * jit/JITCall.cpp:
+            Fix bug in the non-optimizing code path, vptr check should have been to the memory address pointer
+            to by the register, not to the register itself.
+        * wrec/WRECGenerator.cpp:
+            See assembler/MacroAssembler.h, above.
+
+2008-12-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        print("Hello, 64-bit jitted world!");
+        Get hello-world working through the JIT, on x86-64.
+
+        * assembler/X86Assembler.h:
+            Fix encoding of opcode + RegisterID format instructions for 64-bit.
+        * interpreter/Interpreter.cpp:
+        * interpreter/Interpreter.h:
+            Make VoidPtrPair actually be a pair of void*s.
+            (Possibly should make this change for 32-bit Mac platforms, too - but won't change 32-bit behaviour in this patch).
+        * jit/JIT.cpp:
+        * jit/JIT.h:
+            Provide names for the timeoutCheckRegister & callFrameRegister on x86-64,
+            force x86-64 ctiTrampoline arguments onto the stack,
+            implement the asm trampolines for x86-64,
+            implement the restoreArgumentReference methods for x86-64 calling conventions.
+        * jit/JITCall.cpp:
+        * jit/JITInlineMethods.h:
+        * wtf/Platform.h:
+            Add switch settings to ENABLE(JIT), on PLATFORM(X86_64) (currently still disabled).
+
+2008-12-17  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Add more CodeBlock statistics.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dumpStatistics):
+
+2008-12-17  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=22897
+        <rdar://problem/6428342>
+        Look into feasibility of discarding bytecode after native codegen
+
+        Clear the bytecode Instruction vector at the end JIT generation.
+
+        Saves 4.8 MB on Membuster head.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump): Add logging for the case that someone tries
+        to dump the instructions of a CodeBlock that has had its bytecode
+        vector cleared.
+        (JSC::CodeBlock::CodeBlock): Initialize the instructionCount
+        (JSC::CodeBlock::handlerForBytecodeOffset): Use instructionCount instead
+        of the size of the instruction vector in the assertion.
+        (JSC::CodeBlock::lineNumberForBytecodeOffset): Ditto.
+        (JSC::CodeBlock::expressionRangeForBytecodeOffset): Ditto.
+        (JSC::CodeBlock::getByIdExceptionInfoForBytecodeOffset): Ditto.
+        (JSC::CodeBlock::functionRegisterForBytecodeOffset): Ditto.
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::setInstructionCount): Store the instruction vector size
+        in debug builds for assertions.
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::generate):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile): Clear the bytecode vector unless we
+        have compiled with Opcode sampling where we will continue to require it
+
+2008-12-17  Cary Clark  <caryclark@google.com>
+
+        Reviewed by Darin Adler.
+        Landed by Adam Barth.
+
+        Add ENABLE_TEXT_CARET to permit the ANDROID platform
+        to invalidate and draw the caret in a separate thread.
+
+        * wtf/Platform.h:
+        Default ENABLE_TEXT_CARET to 1.
+
+2008-12-17  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Don't use unique context group in JSGlobalContextCreate() on Tiger or Leopard, take two.
+
+        * API/JSContextRef.cpp: The previous patch that claimed to do this was making Tiger and
+        Leopard always use unique context group instead.
+
 2008-12-17  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Geoffrey Garen.
