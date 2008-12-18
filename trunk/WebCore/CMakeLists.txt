@@ -379,6 +379,7 @@ include_directories(
     ${WEBCORE_GENERATED_DIR}
     ${WEBCORE_GENERATED_DIR}/html
     ${WEBCORE_GENERATED_DIR}/xml
+    ${WEBKIT_INCLUDE_DIRS}
     ${EXTERNAL_DEPS_INCLUDE_DIRS})
 
 include(AddWebCoreCompilerFlags)

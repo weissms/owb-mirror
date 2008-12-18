@@ -1,3 +1,9 @@
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        Fix comment for JIT options.
+
+        * CMakeLists.txt:
+
 2008-12-17  Olivier DOLE  <odole@pleyo.com>
 
         Fix owb compilation.

@@ -42,7 +42,7 @@
 #define BINDINGS_BAL_RUNTIME_H_
 
 #include "runtime.h"
-#include "bal_object.h"
+#include "WebObject.h"
 
 namespace JSC {
 namespace Bindings {

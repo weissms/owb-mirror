@@ -34,7 +34,7 @@
 #include "bal_instance.h"
 #include "bal_runtime.h"
 
-#include <bal_object.h>
+#include <WebObject.h>
 #include "JSLock.h"
 
 namespace JSC {
@@ -52,19 +52,19 @@ BalClass::~BalClass()
     m_fields.clear();
 }
     
-typedef HashMap<const BalObject*, BalClass*> ClassesByBalObject;
-static ClassesByBalObject* classesByBalObject = 0;
+typedef HashMap<const WebObject*, BalClass*> ClassesByWebObject;
+static ClassesByWebObject* classesByWebObject = 0;
 
-BalClass* BalClass::classForObject(BalObject* o)
+BalClass* BalClass::classForObject(WebObject* o)
 {
-    if (!classesByBalObject)
-        classesByBalObject = new ClassesByBalObject;
+    if (!classesByWebObject)
+        classesByWebObject = new ClassesByWebObject;
 
-    const BalObject* mo = o;
-    BalClass* aClass = classesByBalObject->get(mo);
+    const WebObject* mo = o;
+    BalClass* aClass = classesByWebObject->get(mo);
     if (!aClass) {
         aClass = new BalClass();
-        classesByBalObject->set(mo, aClass);
+        classesByWebObject->set(mo, aClass);
     }
 
     return aClass;
@@ -87,7 +87,7 @@ MethodList BalClass::methodsNamed(const Identifier& identifier, Instance* instan
 
     const char *ident = identifier.ascii();
     const BalInstance* inst = static_cast<const BalInstance*>(instance);
-    BalObject* obj = inst->getObject();
+    WebObject* obj = inst->getObject();
     if( obj->hasMethod( ident ) )
     {
         Method* aMethod = new BalMethod(ident); // deleted in the CClass destructor
@@ -110,7 +110,7 @@ Field* BalClass::fieldNamed(const Identifier& identifier, Instance *instance) co
     const char *ident = identifier.ascii();
     const BalInstance* inst = static_cast<const BalInstance*>(instance);
     
-    BalObject* obj = inst->getObject();
+    WebObject* obj = inst->getObject();
     if( obj->hasProperty( ident ) )
     {
         aField = new BalField(ident); // deleted in the CClass destructor

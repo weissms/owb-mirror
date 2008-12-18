@@ -1,3 +1,12 @@
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        move BalObject in high level API.
+
+        * Types/WebCore/CMakeLists.txt:
+        * Types/WebCore/Common/BCbal_objectCommon.cpp: Removed.
+        * Types/WebCore/Common/BCbal_objectCommon.h: Removed.
+        * Types/WebCore/WK/BCbalValuePrivateWK.h: Removed.
+
 2008-12-18  Mario Bensi  <mbensi@pleyo.com>
 
         add comment in merge script and remove initial script.

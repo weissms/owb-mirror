@@ -30,18 +30,20 @@
 #ifndef BINDINGS_BAL_OBJECT_H_
 #define BINDINGS_BAL_OBJECT_H_
 
-#include "config.h"
-#include "Vector.h"
-#include "PlatformString.h"
+#include <string>
+#include <vector>
+#include "WebKitDefines.h"
 
-class BalObject;
-class BalValuePrivate;
+class WebObject;
+class WebValuePrivate;
 
-class BalValue {
+using namespace std;
+
+class WEBKIT_OWB_API WebValue {
     public:
-        BalValue();
-        BalValue(BalValuePrivate *priv);
-        ~BalValue();
+        WebValue();
+        WebValue(WebValuePrivate *priv);
+        ~WebValue();
 
         bool isUndefined() const;
         bool isNull() const;
@@ -54,8 +56,8 @@ class BalValue {
 
         bool toBoolean() const;
         double toNumber() const;
-        WebCore::String toString() const;
-        BalObject *toObject() const;
+        const char* toString() const;
+        WebObject *toObject() const;
         ///return value converted from string color (named or valued) to binary color. returns 0x0 if problem when decoding color
         unsigned int toRGBA32() const;
 
@@ -64,28 +66,28 @@ class BalValue {
         void balNaN();
         void balBoolean(bool b);
         void balNumber(double d);
-        void balString(WebCore::String s);
-        void balObject(BalObject *obj);
+        void balString(const char* s);
+        void balObject(WebObject *obj);
 
-        BalValuePrivate *d;
-        BalObject *m_obj;
+        WebValuePrivate *d;
+        WebObject *m_obj;
 };
 
 class BalClass;
 class BalMethod;
 
-class BalObject
+class WEBKIT_OWB_API WebObject
 {
 public:
-    BalObject();
-    virtual ~BalObject();
+    WebObject();
+    virtual ~WebObject();
     void invalidate();
     bool hasMethod(const char *name);
     virtual const char* getName() { return ""; };
-    virtual BalValue *invoke(const char *name, Vector<BalValue *> args);
+    virtual WebValue *invoke(const char *name, vector<WebValue *> args);
     bool hasProperty(const char *name);
-    virtual BalValue *getProperty(const char *name);
-    virtual void setProperty( const char *name, BalValue *value);
+    virtual WebValue *getProperty(const char *name);
+    virtual void setProperty( const char *name, WebValue *value);
     void addMethod(const char *);
     void removeMethod(const char *);
     void addProperty(const char *);
@@ -93,8 +95,8 @@ public:
     size_t methodCount() {return m_balMethodList.size();}
     size_t propertyCount() {return m_balPropertyList.size();}
 private:
-    Vector<const char *> m_balMethodList;
-    Vector<const char *> m_balPropertyList;
+    vector<string> m_balMethodList;
+    vector<string> m_balPropertyList;
 };
 
 #endif

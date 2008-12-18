@@ -43,7 +43,7 @@
 
 #include "runtime.h"
 
-class BalObject;
+class WebObject;
 
 namespace JSC {
 namespace Bindings {
@@ -53,7 +53,7 @@ protected:
     BalClass(){}
     
 public:
-    static BalClass* classForObject(BalObject*);
+    static BalClass* classForObject(WebObject*);
     virtual ~BalClass();
 
     virtual const char* name() const;

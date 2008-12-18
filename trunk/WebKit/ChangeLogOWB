@@ -1,3 +1,69 @@
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        Add WebObject in WebKit API.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::addToJSWindowObject):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebObject.cpp: Added.
+        (WebValue::WebValue):
+        (WebValue::~WebValue):
+        (WebValue::isUndefined):
+        (WebValue::isNull):
+        (WebValue::isUndefinedOrNull):
+        (WebValue::isBoolean):
+        (WebValue::isNumber):
+        (WebValue::isString):
+        (WebValue::isGetterSetter):
+        (WebValue::isObject):
+        (WebValue::toRGBA32):
+        (WebValue::toBoolean):
+        (WebValue::toNumber):
+        (WebValue::toString):
+        (WebValue::toObject):
+        (WebValue::balUndefined):
+        (WebValue::balNull):
+        (WebValue::balNaN):
+        (WebValue::balBoolean):
+        (WebValue::balNumber):
+        (WebValue::balString):
+        (WebValue::balObject):
+        (WebObject::WebObject):
+        (WebObject::~WebObject):
+        (WebObject::invalidate):
+        (WebObject::hasMethod):
+        (WebObject::invoke):
+        (WebObject::hasProperty):
+        (WebObject::getProperty):
+        (WebObject::setProperty):
+        (WebObject::addMethod):
+        (WebObject::removeMethod):
+        (WebObject::addProperty):
+        (WebObject::removeProperty):
+        * OrigynWebBrowser/Api/WebObject.h: Added.
+        * OrigynWebBrowser/Api/WebValuePrivate.h: Added.
+        (WebValuePrivate::WebValuePrivate):
+        (WebValuePrivate::~WebValuePrivate):
+        (WebValuePrivate::isUndefined):
+        (WebValuePrivate::isNull):
+        (WebValuePrivate::isUndefinedOrNull):
+        (WebValuePrivate::isBoolean):
+        (WebValuePrivate::isNumber):
+        (WebValuePrivate::isString):
+        (WebValuePrivate::isGetterSetter):
+        (WebValuePrivate::isObject):
+        (WebValuePrivate::toBoolean):
+        (WebValuePrivate::toNumber):
+        (WebValuePrivate::toString):
+        (WebValuePrivate::toObject):
+        (WebValuePrivate::balUndefined):
+        (WebValuePrivate::balNull):
+        (WebValuePrivate::balNaN):
+        (WebValuePrivate::balBoolean):
+        (WebValuePrivate::balNumber):
+        (WebValuePrivate::balString):
+        (WebValuePrivate::balObject):
+
 2008-12-17  Olivier DOLE  <odole@pleyo.com>
 
         Fix owb compilation.

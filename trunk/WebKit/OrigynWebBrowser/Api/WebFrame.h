@@ -107,7 +107,7 @@ WebFrame* kit(WebCore::Frame*);
      */
 WebCore::Frame* core(WebFrame*);
 
-class WebFrame
+class WEBKIT_OWB_API WebFrame
 {
 public:
 

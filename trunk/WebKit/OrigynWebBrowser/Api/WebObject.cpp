@@ -26,156 +26,155 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "bal_object.h"
-#include "balValuePrivate.h"
+#include "WebObject.h"
+#include "WebValuePrivate.h"
 #include "JSValue.h"
 #include "CString.h"
 #include "Color.h"
 
 #include <cstdio>
 
-BalValue::BalValue()
-    : d(new BalValuePrivate())
+WebValue::WebValue()
+    : d(new WebValuePrivate())
     , m_obj(0)
 {
 }
 
-BalValue::BalValue(BalValuePrivate *priv)
+WebValue::WebValue(WebValuePrivate *priv)
     : m_obj(0)
 {
     d = priv;
 }
 
-BalValue::~BalValue()
+WebValue::~WebValue()
 {
     if(d)
         delete d;
     d = 0;
 }
 
-bool BalValue::isUndefined() const
+bool WebValue::isUndefined() const
 {
     return d->isUndefined();
 }
 
-bool BalValue::isNull() const
+bool WebValue::isNull() const
 {
     return d->isNull();
 }
 
-bool BalValue::isUndefinedOrNull() const
+bool WebValue::isUndefinedOrNull() const
 {
     return d->isUndefinedOrNull();
 }
 
-bool BalValue::isBoolean() const
+bool WebValue::isBoolean() const
 {
     return d->isBoolean();
 }
 
-bool BalValue::isNumber() const
+bool WebValue::isNumber() const
 {
     return d->isNumber();
 }
 
-bool BalValue::isString() const
+bool WebValue::isString() const
 {
     return d->isString();
 }
 
-bool BalValue::isGetterSetter() const
+bool WebValue::isGetterSetter() const
 {
     return d->isGetterSetter();
 }
 
-bool BalValue::isObject() const
+bool WebValue::isObject() const
 {
     return d->isObject();
 }
 
-unsigned int BalValue::toRGBA32() const
+unsigned int WebValue::toRGBA32() const
 {
     //FIXME: remove this namespace from here! :)
     WebCore::Color   color(d->toString());
     return color.rgb();
 }
 
-bool BalValue::toBoolean() const
+bool WebValue::toBoolean() const
 {
     return d->toBoolean();
 }
 
-double BalValue::toNumber() const
+double WebValue::toNumber() const
 {
     return d->toNumber();
 }
 
-WebCore::String BalValue::toString() const
+const char* WebValue::toString() const
 {
     return d->toString();
 }
 
-BalObject *BalValue::toObject() const
+WebObject *WebValue::toObject() const
 {
     return d->toObject();
 }
 
 
-void BalValue::balUndefined()
+void WebValue::balUndefined()
 {
     d->balUndefined();
 }
 
-void BalValue::balNull()
+void WebValue::balNull()
 {
     d->balNull();
 }
 
-void BalValue::balNaN()
+void WebValue::balNaN()
 {
     d->balNaN();
 }
 
-void BalValue::balBoolean(bool b)
+void WebValue::balBoolean(bool b)
 {
     d->balBoolean(b);
 }
 
-void BalValue::balNumber(double dd)
+void WebValue::balNumber(double dd)
 {
     d->balNumber(dd);
 }
 
-void BalValue::balString(WebCore::String s)
+void WebValue::balString(const char* s)
 {
     d->balString(s);
 }
 
-void BalValue::balObject(BalObject *obj)
+void WebValue::balObject(WebObject *obj)
 {
      m_obj = obj;
 }
 
-BalObject::BalObject()
+WebObject::WebObject()
 {
 }
 
-BalObject::~BalObject()
+WebObject::~WebObject()
 {
     m_balPropertyList.clear();
     m_balMethodList.clear();
 }
 
-void BalObject::invalidate()
+void WebObject::invalidate()
 {
 }
 
-bool BalObject::hasMethod(const char *name)
+bool WebObject::hasMethod(const char *name)
 {
-    for (unsigned i=0; i<m_balMethodList.size(); i++)
-    {
-        if (!strcmp(name, m_balMethodList[i]))
-        {
+    string methodName = name;
+    for (unsigned i=0; i<m_balMethodList.size(); i++) {
+        if (methodName ==  m_balMethodList[i]) {
             return true;
             break;
         }
@@ -183,17 +182,16 @@ bool BalObject::hasMethod(const char *name)
     return false;
 }
 
-BalValue *BalObject::invoke(const char *name, Vector<BalValue *> args)
+WebValue *WebObject::invoke(const char *name, vector<WebValue *> args)
 {
     return NULL;
 }
 
-bool BalObject::hasProperty( const char *name)
+bool WebObject::hasProperty( const char *name)
 {
-    for (unsigned i = 0; i < m_balPropertyList.size(); i++)
-    {
-        if (!strcmp(name, m_balPropertyList[i]))
-        {
+    string propName = name;
+    for (unsigned i = 0; i < m_balPropertyList.size(); i++) {
+        if (propName == m_balPropertyList[i]) {
             return true;
             break;
         }
@@ -201,46 +199,46 @@ bool BalObject::hasProperty( const char *name)
     return false;
 }
 
-BalValue *BalObject::getProperty(const char *name)
+WebValue *WebObject::getProperty(const char *name)
 {
     return NULL;
 }
 
-void BalObject::setProperty(const char *name, BalValue *value)
+void WebObject::setProperty(const char *name, WebValue *value)
 {
 	printf("set property\n");
 }
 
 
-void BalObject::addMethod(const char *aMethod)
+void WebObject::addMethod(const char *aMethod)
 {
-    m_balMethodList.append(aMethod);
+    m_balMethodList.push_back(aMethod);
 }
 
-void BalObject::removeMethod(const char *aMethod)
+void WebObject::removeMethod(const char *aMethod)
 {
-    for (unsigned i=0; i<m_balMethodList.size(); i++)
-    {
-        if (!strcmp(aMethod, m_balMethodList[i]))
-        {
-            m_balMethodList.remove(i);
+    string methodName = aMethod;
+    vector<string>::iterator it;
+    for (it = m_balMethodList.begin(); it != m_balMethodList.end(); ++it) {
+        if (methodName ==  *it) {
+            m_balMethodList.erase(it);
             break;
         }
     }
 }
 
-void BalObject::addProperty(const char *aProperty)
+void WebObject::addProperty(const char *aProperty)
 {
-    m_balPropertyList.append(aProperty);
+    m_balPropertyList.push_back(aProperty);
 }
 
-void BalObject::removeProperty(const char *aProperty)
+void WebObject::removeProperty(const char *aProperty)
 {
-    for (unsigned i = 0; i<m_balPropertyList.size(); i++)
-    {
-        if (!strcmp(aProperty, m_balPropertyList[i]))
-        {
-            m_balPropertyList.remove(i);
+    string propName = aProperty;
+    vector<string>::iterator it;
+    for (it = m_balPropertyList.begin(); it != m_balPropertyList.end(); ++it) {
+        if (propName == *it) {
+            m_balPropertyList.erase(it);
             break;
         }
     }

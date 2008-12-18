@@ -31,7 +31,7 @@
 #include "runtime_object.h"
 #include "bal_runtime.h"
 #include "bal_instance.h"
-#include "balValuePrivate.h"
+#include "WebValuePrivate.h"
 #include "JSLock.h"
 
 namespace JSC {
@@ -45,8 +45,8 @@ const char* BalField::name() const
 JSValue* BalField::valueFromInstance(ExecState* exec, const Instance* inst) const
 {
     const BalInstance* instance = static_cast<const BalInstance*>(inst);
-    BalObject* obj = instance->getObject();
-    BalValue* val;
+    WebObject* obj = instance->getObject();
+    WebValue* val;
     {
         JSLock::DropAllLocks dropAllLocks(false);
         val = obj->getProperty(m_ident);
@@ -56,16 +56,17 @@ JSValue* BalField::valueFromInstance(ExecState* exec, const Instance* inst) cons
         v = val->d->balObject(val->m_obj, exec);
     else
         v = val->d->getValue();
-    delete val;
+    // FIXME
+    //delete val;
     return v;
 }
 
 void BalField::setValueToInstance(ExecState* exec, const Instance* inst, JSValue* aValue) const
 {
     const BalInstance* instance = static_cast<const BalInstance*>(inst);
-    BalObject* obj = instance->getObject();
-    BalValuePrivate *priv = new BalValuePrivate(exec, aValue);
-    BalValue *val = new BalValue(priv);
+    WebObject* obj = instance->getObject();
+    WebValuePrivate *priv = new WebValuePrivate(exec, aValue);
+    WebValue *val = new WebValue(priv);
     {
         JSLock::DropAllLocks dropAllLocks(false);
         obj->setProperty(m_ident, val);

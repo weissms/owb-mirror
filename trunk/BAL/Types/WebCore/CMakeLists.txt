@@ -25,9 +25,6 @@ create_include_link(${TYPES_DIR}/WK/BCPurgeableBufferWK.h BAL/PurgeableBuffer.h)
 create_include_link(${TYPES_DIR}/WK/BCScrollTypesWK.h BAL/ScrollTypes.h)
 create_include_link(${TYPES_DIR}/WK/BCSharedBufferWK.h BAL/SharedBuffer.h)
 create_include_link(${TYPES_DIR}/WK/BCTreeSharedWK.h BAL/TreeShared.h)
-create_include_link(${TYPES_DIR}/WK/BCbalValuePrivateWK.h BAL/balValuePrivate.h)
-
-create_include_link(${TYPES_DIR}/Common/BCbal_objectCommon.h BAL/bal_object.h)
 
 aux_source_directory(${TYPES_DIR}/WK WEBCORE_SRC)
 aux_source_directory(${TYPES_DIR}/Common WEBCORE_SRC)

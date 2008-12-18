@@ -1,3 +1,25 @@
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        Rename BalObject into WebObject.
+
+        * CMakeLists.txt:
+        * bridge/bal/bal_class.cpp:
+        (JSC::Bindings::BalClass::classForObject):
+        (JSC::Bindings::BalClass::methodsNamed):
+        (JSC::Bindings::BalClass::fieldNamed):
+        * bridge/bal/bal_class.h:
+        * bridge/bal/bal_instance.cpp:
+        (JSC::Bindings::BalInstance::BalInstance):
+        (JSC::Bindings::BalInstance::invokeMethod):
+        (JSC::Bindings::BalInstance::stringValue):
+        * bridge/bal/bal_instance.h:
+        (JSC::Bindings::BalInstance::create):
+        (JSC::Bindings::BalInstance::getObject):
+        * bridge/bal/bal_runtime.cpp:
+        (JSC::Bindings::BalField::valueFromInstance):
+        (JSC::Bindings::BalField::setValueToInstance):
+        * bridge/bal/bal_runtime.h:
+
 2008-12-17  Olivier DOLE  <odole@pleyo.com>
 
         Fix build when XPATH and XSLT are enabled and INSPECTOR is disabled.

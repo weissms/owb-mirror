@@ -44,7 +44,7 @@
 #include "runtime.h"
 #include "runtime_root.h"
 
-class BalObject;
+class WebObject;
 
 namespace JSC {
 
@@ -55,7 +55,7 @@ class BalClass;
 class BalInstance : public Instance
 {
 public:
-    static PassRefPtr<BalInstance> create(BalObject* object, PassRefPtr<RootObject> rootObject)
+    static PassRefPtr<BalInstance> create(WebObject* object, PassRefPtr<RootObject> rootObject)
     {
         return adoptRef(new BalInstance(object, rootObject));
     }
@@ -76,14 +76,14 @@ public:
     JSValue* numberValue(ExecState*) const;
     JSValue* booleanValue() const;
     
-    BalObject* getObject() const { return m_object; }
+    WebObject* getObject() const { return m_object; }
 
     virtual BindingLanguage getBindingLanguage() const { return BalLanguage; }
 private:
-    BalInstance(BalObject*, PassRefPtr<RootObject>);
+    BalInstance(WebObject*, PassRefPtr<RootObject>);
 
     mutable BalClass* m_class;
-    BalObject *m_object;
+    WebObject *m_object;
 };
 
 

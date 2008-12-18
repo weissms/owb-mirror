@@ -32,28 +32,29 @@
 
 #include "JSValue.h"
 #include <interpreter/CallFrame.h>
-#include "bal_object.h"
+#include "WebObject.h"
 #include "PlatformString.h"
+#include "CString.h"
 #include "JSGlobalObject.h"
 #include "runtime_object.h"
 #include "bal_instance.h"
 
 using namespace JSC;
-class BalValuePrivate {
+class WebValuePrivate {
     public:
-        BalValuePrivate()
+        WebValuePrivate()
         {
             PassRefPtr<JSGlobalData> sharedGlobalData = JSGlobalData::create();
             JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject();
             m_exec = obj->globalExec();
         }
-        BalValuePrivate(ExecState* exec, JSValue* value)
+        WebValuePrivate(ExecState* exec, JSValue* value)
         {
             m_val = value;
             m_exec = exec;
         }
 
-        ~BalValuePrivate()
+        ~WebValuePrivate()
         {
             m_exec = 0;
         }
@@ -69,16 +70,16 @@ class BalValuePrivate {
 
         bool toBoolean() const;
         double toNumber() const;
-        WebCore::String toString() const;
-        BalObject *toObject() const;
+        const char* toString() const;
+        WebObject *toObject() const;
 
         void balUndefined();
         void balNull();
         void balNaN();
         void balBoolean(bool b);
         void balNumber(double d);
-        void balString(WebCore::String s);
-        JSObject* balObject(BalObject *obj, ExecState *exec);
+        void balString(const char* s);
+        JSObject* balObject(WebObject *obj, ExecState *exec);
 
         JSValue* getValue() { return m_val; }
 
@@ -88,106 +89,107 @@ class BalValuePrivate {
 };
 
 
-inline bool BalValuePrivate::isUndefined() const
+inline bool WebValuePrivate::isUndefined() const
 {
     return m_val->isUndefined();
 }
 
-inline bool BalValuePrivate::isNull() const
+inline bool WebValuePrivate::isNull() const
 {
     return m_val->isNull();
 }
 
-inline bool BalValuePrivate::isUndefinedOrNull() const
+inline bool WebValuePrivate::isUndefinedOrNull() const
 {
     return m_val->isUndefinedOrNull();
 }
 
-inline bool BalValuePrivate::isBoolean() const
+inline bool WebValuePrivate::isBoolean() const
 {
     return m_val->isBoolean();
 }
 
-inline bool BalValuePrivate::isNumber() const
+inline bool WebValuePrivate::isNumber() const
 {
     return m_val->isNumber();
 }
 
-inline bool BalValuePrivate::isString() const
+inline bool WebValuePrivate::isString() const
 {
     return m_val->isString();
 }
 
-inline bool BalValuePrivate::isGetterSetter() const
+inline bool WebValuePrivate::isGetterSetter() const
 {
     return m_val->isGetterSetter();
 }
 
-inline bool BalValuePrivate::isObject() const
+inline bool WebValuePrivate::isObject() const
 {
     return m_val->isObject();
 }
 
-inline bool BalValuePrivate::toBoolean() const
+inline bool WebValuePrivate::toBoolean() const
 {
     return m_val->toBoolean(m_exec);
 }
 
-inline double BalValuePrivate::toNumber() const
+inline double WebValuePrivate::toNumber() const
 {
     return m_val->toNumber(m_exec);
 }
 
-inline WebCore::String BalValuePrivate::toString() const
+inline const char* WebValuePrivate::toString() const
 {
-    return WebCore::String(m_val->toString(m_exec));
+    WebCore::String st(m_val->toString(m_exec).data());
+    return st.utf8().data();
 }
 
-inline BalObject *BalValuePrivate::toObject() const
+inline WebObject *WebValuePrivate::toObject() const
 {
     JSObject* object = m_val->toObject(m_exec);
     if (object->classInfo() == &RuntimeObjectImp::s_info) {
         RuntimeObjectImp* imp = static_cast<RuntimeObjectImp *>(object);
         Bindings::BalInstance* instance = static_cast<Bindings::BalInstance*>(imp->getInternalInstance());
         if (instance) {
-            BalObject* obj = instance->getObject();
+            WebObject* obj = instance->getObject();
             return obj;
         }
     }
     return NULL;
 }
 
-inline void BalValuePrivate::balUndefined()
+inline void WebValuePrivate::balUndefined()
 {
     m_val = jsUndefined();
 }
 
-inline void BalValuePrivate::balNull()
+inline void WebValuePrivate::balNull()
 {
     m_val = jsNull();
 }
 
-inline void BalValuePrivate::balNaN()
+inline void WebValuePrivate::balNaN()
 {
     m_val = jsNaN(m_exec);
 }
 
-inline void BalValuePrivate::balBoolean(bool b)
+inline void WebValuePrivate::balBoolean(bool b)
 {
     m_val = jsBoolean(b);
 }
 
-inline void BalValuePrivate::balNumber(double d)
+inline void WebValuePrivate::balNumber(double d)
 {
     m_val = jsNumber(m_exec, d);
 }
 
-inline void BalValuePrivate::balString(WebCore::String s)
+inline void WebValuePrivate::balString(const char* s)
 {
     m_val = jsString(m_exec, s);
 }
 
-inline JSObject* BalValuePrivate::balObject(BalObject *obj, ExecState *exec)
+inline JSObject* WebValuePrivate::balObject(WebObject *obj, ExecState *exec)
 {
     return Bindings::Instance::createRuntimeObject(exec, Bindings::BalInstance::create(obj, Bindings::findRootObject(exec->dynamicGlobalObject())));
     //return Bindings::Instance::createRuntimeObject(Bindings::Instance::BalLanguage, obj, Bindings::findRootObject(exec->dynamicGlobalObject()));

@@ -34,12 +34,6 @@ target_link_libraries(owb
     ${GRAPHICS_LIBRARIES}
 )
 
-if (ENABLE_JS_ADDONS)
-    target_link_libraries(owb
-        bindingjs
-    )
-endif (ENABLE_JS_ADDONS)
-
 # IF (WEBKIT_USE_HTML_EXTENSION)
 #     TARGET_LINK_LIBRARIES (owb
 #         htmlext

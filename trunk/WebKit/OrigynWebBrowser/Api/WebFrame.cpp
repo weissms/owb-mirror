@@ -86,7 +86,7 @@
 #include "ObserverBookmarklet.h"
 #include "ObserverServiceData.h"
 #include "ObserverData.h"
-#include "bal_object.h"
+#include "WebObject.h"
 #include "bal_instance.h"
 #include "runtime.h"
 #include "runtime_root.h"
@@ -97,7 +97,6 @@
 #include "JSObject.h"
 #include "JSDOMWindowBase.h"
 #include "JSDOMWindow.h"
-#include "bal_object.h"
 #if ENABLE(JS_ADDONS)
 #include "BindingJS.h"
 #endif
@@ -1118,7 +1117,7 @@ void WebFrame::addToJSWindowObject(void* object)
     JSC::ExecState* exec = global->globalExec();
     JSC::PropertySlot pr;
 
-    BalObject *obj = static_cast<BalObject*>(object);
+    WebObject *obj = static_cast<WebObject*>(object);
     if (!global->getOwnPropertySlot(exec, JSC::Identifier(exec, obj->getName()), pr)) {
         JSC::JSObject* runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(obj, root));
         JSC::PutPropertySlot prop;

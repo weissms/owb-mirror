@@ -33,8 +33,8 @@
 #include "bal_runtime.h"
 #include "ArgList.h"
 
-#include "bal_object.h"
-#include "balValuePrivate.h"
+#include "WebObject.h"
+#include "WebValuePrivate.h"
 #include "wtf/HashMap.h"
 #include "ObjectPrototype.h"
 #include "JSValue.h"
@@ -44,7 +44,7 @@
 namespace JSC {
 namespace Bindings {
 
-BalInstance::BalInstance(BalObject* o, PassRefPtr<RootObject> rootObject)
+BalInstance::BalInstance(WebObject* o, PassRefPtr<RootObject> rootObject)
     : Instance(rootObject),
       m_class(0),
       m_object(o)
@@ -86,15 +86,15 @@ JSValue* BalInstance::invokeMethod(ExecState* exec, const MethodList& methodList
         return jsUndefined();
 
     unsigned count = args.size();
-    Vector<BalValue *, 128> cArgs(count);
+    vector<WebValue*> cArgs(count);
 
     unsigned i;
     for (i = 0; i < count; i++) {
-        BalValuePrivate *priv = new BalValuePrivate(exec, args.at(exec, i));
-        cArgs[i] = new BalValue(priv);
+        WebValuePrivate *priv = new WebValuePrivate(exec, args.at(exec, i));
+        cArgs[i] = new WebValue(priv);
     }
 
-    BalValue *val;
+    WebValue *val;
     {
         JSLock::DropAllLocks dropAllLocks(false);
         val = m_object->invoke(ident, cArgs);
@@ -124,9 +124,9 @@ JSValue* BalInstance::stringValue(ExecState* exec) const
 {
     char buf[1024];
 #if COMPILER(MSVC)
-    _snprintf(buf, sizeof(buf), "BalObject %p BalClass (%s)", m_object, m_class->name());
+    _snprintf(buf, sizeof(buf), "WebObject %p BalClass (%s)", m_object, m_class->name());
 #else
-    snprintf(buf, sizeof(buf), "BalObject %p BalClass (%s)", m_object, m_class->name());
+    snprintf(buf, sizeof(buf), "WebObject %p BalClass (%s)", m_object, m_class->name());
 #endif
     return jsString(exec, buf);
 }
