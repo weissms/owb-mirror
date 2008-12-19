@@ -3,6 +3,7 @@ JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/interpreter/RegisterFile.cpp
 JavaScriptCore/interpreter/RegisterFile.h
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
+JavaScriptCore/wtf/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
 JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp

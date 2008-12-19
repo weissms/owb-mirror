@@ -1,3 +1,11 @@
+2008-12-19  Mario Bensi <mbensi@pleyo.com>
+
+        fix gtk build in debug mode.
+
+        * Scripts/data/WebKitFiles.txt:
+        * Types/WTF/Gtk/BCThreadingGtk.cpp:
+        (WTF::Mutex::Mutex):
+
 2008-12-19  Mario Bensi  <mbensi@pleyo.com>
 
         Fix script for mac
