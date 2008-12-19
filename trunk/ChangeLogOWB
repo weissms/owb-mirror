@@ -1,3 +1,9 @@
+2008-12-19  Olivier DOLE  <odole@pleyo.com>
+
+        Clean in SDL types (remove comments).
+
+        * Base/SDL/BALTypeSDL.h:
+
 2008-12-18  Olivier DOLE  <odole@pleyo.com>
 
         Fix SDL build configuration for x86 arch.

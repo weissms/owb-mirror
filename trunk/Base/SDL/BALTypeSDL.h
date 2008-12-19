@@ -30,18 +30,8 @@
 #define BALType_h
 
 struct SDL_Surface;
-/*
-struct SDL_ActiveEvent;
-struct SDL_ResizeEvent;
-struct SDL_QuitEvent;
-struct SDL_UserEvent;
-struct SDL_KeyboardEvent;
-struct SDL_MouseButtonEvent;
-struct SDL_MouseMotionEvent;
-*/
 struct SDL_Color;
 struct SDL_Cursor;
-//struct SDL_Rect;
 struct FT_FaceRec_;
 struct _FcPattern;
 
@@ -49,32 +39,17 @@ namespace WKAL {
     class FloatSize;
 }
 
-/*
-typedef struct SDL_ExposeEvent BalEventExpose;
-typedef struct SDL_ResizeEvent BalResizeEvent;
-typedef struct SDL_QuitEvent BalQuitEvent;
-typedef struct SDL_UserEvent BalUserEvent;
-typedef struct SDL_KeyboardEvent BalEventKey;
-typedef struct SDL_MouseButtonEvent BalEventButton;
-typedef struct SDL_MouseMotionEvent BalEventMotion;
-typedef struct SDL_MouseButtonEvent BalEventScroll;
-*/
 typedef FT_FaceRec_ BalFontFace;
 typedef void BalFont;
 typedef struct _FcPattern BalPattern;
 typedef void BalScaledFont;
 typedef void BalDrawable;
 typedef SDL_Surface BalSurface;
-/*
-typedef struct _BalPoint{} BalPoint;
-typedef SDL_Rect BalRectangle;
-*/
 typedef void BalMenuItem;
 typedef SDL_Surface BalMenu;
 typedef void BalClipboard;
 typedef void BalTargetList;
 typedef void BalAdjustment;
-//typedef SDL_Surface BalWidget;
 typedef void BalContainer;
 typedef void BalPixbuf;
 typedef SDL_Color BalColor;

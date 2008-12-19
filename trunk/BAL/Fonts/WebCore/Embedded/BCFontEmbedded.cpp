@@ -32,8 +32,11 @@
 #include "GraphicsContext.h"
 #include "BALBase.h"
 #include "SimpleFontData.h"
-#include "SDL.h"
 #include "fonts/pixelfont.h"
+
+#if PLATFORM(SDL)
+#include "SDL.h"
+#endif
 
 namespace WKAL {
 
@@ -73,7 +76,6 @@ FloatRect Font::selectionRectForComplexText(const TextRun& run, const IntPoint& 
 void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, const GlyphBuffer& glyphBuffer,
                       int from, int numGlyphs, const FloatPoint& point) const
 {
-    SDL_Surface *surface = context->platformContext();
     // Set the text color to use for drawing.
     Color penColor = context->fillColor();
     unsigned pixelColor = (penColor.alpha() << 24) | (penColor.red() << 16) | (penColor.green() << 8) | penColor.blue();
@@ -83,21 +85,8 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     uint8_t h = fontPixel->height;
     IntRect dstRect(0, 0, w * numGlyphs , h);
 
-    Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(h * w * numGlyphs);
-    IntPoint aPoint(static_cast<uint16_t> (point.x()), static_cast<uint16_t> (point.y() - h));
-    for (int j = 0; j < h; j++) {
-        for (int i = 0; i < numGlyphs; i++) {
-            for (int k = 0; k < w; k++) {
-                uint16_t glyphOffset = glyphs[i] * h + j;
-                if (fontPixel->buffer[glyphOffset] & (1 << (w - k)))
-                    (*glyphRGBABuffer)[(j * numGlyphs * w) + k + (i * w)] = pixelColor;
-                else
-                    (*glyphRGBABuffer)[(j * numGlyphs * w) + k + (i * w)] = 0;
-            }
-        }
-    }
-
-    SDL_Surface* img;
+#if PLATFORM(SDL)
+    SDL_Surface* surface = context->platformContext();
     Uint32 rmask, gmask, bmask, amask;
     /* SDL interprets each pixel as a 32-bit number, so our masks must depend
     on the endianness (byte order) of the machine */
@@ -112,9 +101,25 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     bmask = 0x000000ff;
     amask = 0xff000000;
 #endif
-        
-    img = SDL_CreateRGBSurfaceFrom((void*)glyphRGBABuffer->data(), w * numGlyphs, h,
-                                   32, w * numGlyphs * 4, rmask, gmask, bmask, amask);
+    /* Use SWSURFACE to improve the performance of pixel level access. */
+    SDL_Surface* imgBuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, w * numGlyphs, h, 32, rmask, gmask, bmask, amask);
+    SDL_LockSurface(imgBuffer);
+    uint32_t* baseAddr = (uint32_t*) imgBuffer->pixels;
+    //Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(h * w * numGlyphs);
+    IntPoint aPoint(static_cast<uint16_t> (point.x()), static_cast<uint16_t> (point.y() - h));
+    for (int j = 0; j < h; j++) {
+        for (int i = 0; i < numGlyphs; i++) {
+            for (int k = 0; k < w; k++) {
+                uint16_t glyphOffset = glyphs[i] * h + j;
+                if (fontPixel->buffer[glyphOffset] & (1 << (w - k)))
+                    baseAddr[(j * numGlyphs * w) + k + (i * w)] = pixelColor;
+                else
+                    baseAddr[(j * numGlyphs * w) + k + (i * w)] = 0;
+            }
+        }
+    }
+    SDL_UnlockSurface(imgBuffer);
+
     SDL_Rect sdlSrc, sdlDest;
     sdlDest.x = aPoint.x() + context->origin().x();
     sdlDest.y = aPoint.y() + context->origin().y();
@@ -125,7 +130,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     sdlSrc.x = dstRect.x();
     sdlSrc.y = dstRect.y();
 
-    SDL_BlitSurface(img, &sdlSrc, surface, &sdlDest);
+    SDL_BlitSurface(imgBuffer, &sdlSrc, surface, &sdlDest);
 
     /* use SDL_Flip only if double buffering is available */
     /*if (surface->flags & SDL_DOUBLEBUF) {
@@ -134,8 +139,8 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     else {
        SDL_UpdateRect(surface, sdlDest.x + origin().width(), sdlDest.y + origin().height(), sdlDest.w, sdlDest.h);
     }*/
-    SDL_FreeSurface(img);
-    delete glyphRGBABuffer;
+    SDL_FreeSurface(imgBuffer);
+#endif //PLATFORM(SDL)
 }
 
 }

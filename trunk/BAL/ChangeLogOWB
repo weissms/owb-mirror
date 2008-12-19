@@ -1,3 +1,10 @@
+2008-12-19  Olivier DOLE  <odole@pleyo.com>
+
+        Improve drawing for embedded fonts.
+
+        * Fonts/WebCore/Embedded/BCFontEmbedded.cpp:
+        (WKAL::Font::drawGlyphs):
+
 2008-12-19  Mario Bensi <mbensi@pleyo.com>
 
         fix gtk build in debug mode.
