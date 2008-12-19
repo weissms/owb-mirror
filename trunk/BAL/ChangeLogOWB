@@ -1,3 +1,11 @@
+2008-12-18  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+
+        * Types/WTF/Pthreads/BCThreadingPthreads.cpp:
+        (WTF::initializeThreading):
+        Yet another inaccurate PLATFORM(DARWIN) without a contrary MACPORT Platform
+
 2008-12-18  Mario Bensi  <mbensi@pleyo.com>
 
         add build part on script.

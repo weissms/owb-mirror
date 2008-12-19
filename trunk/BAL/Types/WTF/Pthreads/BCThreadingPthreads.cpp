@@ -44,7 +44,7 @@ namespace WTF {
 
 typedef HashMap<ThreadIdentifier, pthread_t> ThreadMap;
 
-#if !PLATFORM(DARWIN)
+#if !PLATFORM(DARWIN) || PLATFORM(MACPORT)
 static Mutex* atomicallyInitializedStaticMutex;
 #endif
 
@@ -62,7 +62,7 @@ void initializeThreading()
         atomicallyInitializedStaticMutex = new Mutex;
         threadMapMutex();
         initializeRandomNumberGenerator();
-#if !PLATFORM(DARWIN)
+#if !PLATFORM(DARWIN) || PLATFORM(MACPORT)
         mainThreadIdentifier = currentThread();
 #endif
         initializeMainThread();
