@@ -1,0 +1,332 @@
+2008-12-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Add Origyn suite.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-12-18  Olivier DOLE  <odole@pleyo.com>
+
+        Fix CMakeLists.txt
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-12-17  Olivier DOLE  <odole@pleyo.com>
+
+        Fix owb compilation.
+
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/SDL/main.cpp:
+        * OWBLauncher/gtk/main.cpp:
+
+2008-12-17  Mario  <mbensi@pleyo.com>
+
+        fix addons.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-12-15  Olivier DOLE  <odole@pleyo.com>
+
+        fix main.cpp
+
+        * OWBLauncher/SDL/main.cpp:
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        gtk build fix
+
+        * OWBLauncher/gtk/main.cpp:
+        (main):
+
+2008-12-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier Dole.
+        build fix
+
+        * ChangeLog:
+        * OWBLauncher/SDL/main.cpp:
+        (waitEvent):
+        (main):
+        * Scripts/gdb-safari:
+        * Scripts/run-webkit-tests:
+
+2008-12-09  Olivier DOLE  <odole@pleyo.com>
+
+        Fix GTK build.
+
+        * OWBLauncher/gtk/main.cpp:
+        (main):
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Remove DeepSee.
+
+        * OWBLauncher/SDL/main.cpp:
+        (createSDLWindow):
+        (main):
+
+2008-12-08  Olivier DOLE  <odole@pleyo.com>
+
+        Fix cmake due to balwtf removal.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-12-05  Olivier DOLE  <odole@pleyo.com>
+
+        Modify source code organization.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-12-02  Olivier DOLE  <odole@pleyo.com>
+
+        Clean in #include in main.cpp
+
+        * OWBLauncher/SDL/main.cpp:
+        * OWBLauncher/gtk/main.cpp:
+
+2008-10-14  Olivier DOLE  <odole@pleyo.com>
+
+        build fix when using GNU Gold.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-10-14  Jean-Charles Verdié  <jcverdie@pleyo.com>
+
+        Reviewed by Olivier Dole.
+        MacOS with MacPorts compilation (1st integration, some corner cases may fail)
+
+        * OWBLauncher/SDL/main.cpp:
+        * OWBLauncher/gtk/main.cpp:
+
+2008-10-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        - Add 2 options to OWBLauncher to set the HTMLTokenier chunk size and
+        delay.
+
+        - Moved WebView::parseConfig call in its own option preserving the original behaviour 
+        if the option is not provided.
+
+        * OWBLauncher/SDL/main.cpp:
+        (usage): Added.
+        (main): Add a getopt loop to iterate over the options.
+
+2008-10-07  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+
+        ticket #305: OWBLauncher should quit when receiving some kernel signals
+
+        Catch SIGINT and SIGKILL and quit the main event loop (properly closing the
+        browser at the same time).
+
+        * OWBLauncher/SDL/main.cpp:
+        (signalCatcher): Removed some style violations.
+        (signalQuitCatcher): Added to catch signals that should close the browser
+        (fatal one should use signalCatcher).
+        (createSDLWindow): Moved signal handling registration in the main where it fits more,
+        removed some style violations.
+        (eventFilter): Removed some style violations.
+        (waitEvent): Ditto.
+        (main):
+
+2008-10-06  Olivier DOLE  <odole@pleyo.com>
+
+        Move resources files in root directory.
+
+        * OWBLauncher/resources: Removed.
+        * OWBLauncher/resources/missing-plugin.png: Removed.
+
+2008-10-04  Olivier DOLE  <odole@pleyo.com>
+
+        First clean.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Quick fix for AmigaOS4 main() to use webview->idle().
+
+        * OWBLauncher/AmigaOS4/main.cpp:
+        (waitEvent):
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        fix generic internationalization compilation.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-10-03  Olivier DOLE  <odole@pleyo.com>
+
+        Clean CMakeLists.txt
+        Add include for customer ports.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        Partially fix link for owb. Nonetheless link process is still
+        incorrect.
+
+        * OWBLauncher/CMakeLists.txt:
+
+2008-10-02  Olivier DOLE  <odole@pleyo.com>
+
+        fix main() to fit new cmake.
+
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/SDL/main.cpp:
+        (waitEvent):
+        * OWBLauncher/gtk/main.cpp:
+        (main):
+
+2008-09-02  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Add text zoom and and redraw menu items, reload button and more
+        settings on AmigaOS4.
+
+        * OWBLauncher/AmigaOS4/main.cpp:
+        (initAmigaConfig):
+        (initTimer):
+        (closeAmigaWindow):
+        (createAmigaWindow):
+        (waitEvent):
+        (main):
+
+2008-09-01  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        refactoring of obserserService :
+        - rename all class BCObserver* by Observer*
+        - create a observerService by type of observer
+        - propagate the changes
+
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (DumpRenderTree::DumpRenderTree):
+        (DumpRenderTree::~DumpRenderTree):
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::notifyDone):
+        (LayoutTestController::setWaitToDump):
+
+2008-08-26  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario Bensi.
+        - add a resources directory containing stuff like images to display
+        when the plugin is not detected.
+
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/resources: Added.
+        * OWBLauncher/resources/missing-plugin.png: Added.
+
+2008-08-23  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        Use native scroll bars for the main frame on AmigaOS4.
+        Add support for configuring the home and search engine URLs
+         and window size, a menu and support for multiple windows on
+         AmigaOS4.
+
+        * OWBLauncher/AmigaOS4/main.cpp:
+        (initAmigaConfig):
+        (initTimer):
+        (cleanupTimer):
+        (createAmigaWindow):
+        (closeAmigaWindow):
+        (waitEvent):
+        (main):
+
+2008-08-19  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix Ticket #238
+
+        * OWBLauncher/SDL/main.cpp:
+        (signalCatcher):
+        (createSDLWindow):
+
+2008-07-06  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+	add AmigaOS4 OWBLauncher
+
+        * OWBLauncher/AmigaOS4: Added.
+        * OWBLauncher/AmigaOS4/main.cpp: Added.
+        (createAmigaWindow):
+        (closeAmigaWindow):
+        (waitEvent):
+        (main):
+
+2008-06-20  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier Dole.
+        fix internationalization generic implementation
+
+        * DumpRenderTree/CMakeLists.txt:
+        * OWBLauncher/CMakeLists.txt:
+
+2008-06-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        fix Database
+
+        * OWBLauncher/SDL/main.cpp:
+        (waitEvent):
+
+2008-06-16  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by odole@pleyo.com
+
+        test parseConfigFile
+
+        * OWBLauncher/SDL/main.cpp:
+        (main):
+
+2008-06-13  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+
+        fix a leak on screen
+
+        * OWBLauncher/SDL/main.cpp:
+        (waitEvent):
+        (main):
+
+2008-06-12  KIMURA Masaru  <hiyuh.root@gmail.com>
+
+        Reviewed by Olivier DOLE.
+        Compilation fix for gcc-4.3.1.
+
+        * OWBLauncher/SDL/main.cpp:
+
+2008-06-12  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+
+        fix on resize
+
+        * OWBLauncher/SDL/main.cpp:
+        (createSDLWindow):
+        (waitEvent):
+        (main):
+
+2008-06-11  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+
+        add return 0 to finish the main
+
+        * OWBLauncher/SDL/main.cpp:
+        (main):
+        * OWBLauncher/gtk/main.cpp:
+        (main):
+
+2008-06-09  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by NOBODY (OOPS!).
+        closes #216: remove deprecated WEBKIT_USE_JS option
+
+        * DumpRenderTree/CMakeLists.txt:
+        * OWBLauncher/CMakeLists.txt:
+
