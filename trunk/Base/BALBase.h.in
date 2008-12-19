@@ -33,9 +33,17 @@
 #include "Platform.h"
 #include "WebKitTypes.h"
 
+#define supressNotImplementedWarning() false
 //#undef NotImplemented()
-#define NotImplemented() LOG(NotYetImplemented, "Not Implemented");
-#define BalNotImplemented() LOG(NotYetImplemented, "Not Implemented");
+#define NotImplemented() do { \
+        static bool havePrinted = false; \
+        if (!havePrinted && !supressNotImplementedWarning()) { \
+            WTFLogVerbose(__FILE__, __LINE__, WTF_PRETTY_FUNCTION, &LogNotYetImplemented, "UNIMPLEMENTED: "); \
+            havePrinted = true; \
+        } \
+    } while (0)
+
+#define BalNotImplemented() NotImplemented();
 
 #if PLATFORM(AMIGAOS4)
 #include "AmigaOS4/BALTypeAmigaOS4.h"

@@ -1,3 +1,10 @@
+2008-12-19  Mario Bensi  <mbensi@pleyo.com>
+
+        fix merge script.
+
+        * Scripts/merge.py:
+        * Scripts/patch.py:
+
 2008-12-19  Olivier DOLE  <odole@pleyo.com>
 
         Improve drawing for embedded fonts.

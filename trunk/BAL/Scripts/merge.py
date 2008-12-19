@@ -68,7 +68,7 @@ print "otherwise you have to add the file in BAL/Scripts/data/balInputList.txt"
 raw_input('press return to continue...')
 modification.getListDeleted(trunkPath)
 print "Delete files in CMakeList.txt appropriate"
-print "if the file is not in WebCore/platform, WebCore/page/gtk, WebCore/svg/graphics and JavaScriptCore/wtf, you can remove the file in the good CMakeLists.txt and check if the file is not in GeneratedSources/CMakeLists.txt."
+print "if the file is not in WebCore/platform, WebCore/page/gtk, WebCore/svg/graphics and JavaScriptCore/wtf, you can remove the file in the good CMakeLists.txt."
 print "otherwise you must remove the file in BAL/Scripts/data/balInputList.txt, remove the OWBLN associated and remove the file in Concretizations and skeletons"
 raw_input('press return to continue...')
 balification.balify(trunkPath)

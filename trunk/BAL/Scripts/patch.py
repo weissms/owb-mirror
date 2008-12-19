@@ -87,7 +87,6 @@ def createWebkitPatch(path, lastMergeVersion, currentMergeVersion) :
 	diff_text = renameHeaderPatch(diff_text, d)
         file = open(path + "/../merge/webkit-" + str(currentMergeVersion) + "-" + d + ".patch", 'w')
         file.write(diff_text)
-	logging.debug(diff_text)
         file.close() 
     logging.debug('create webKit patch done')
 
