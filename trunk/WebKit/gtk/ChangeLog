@@ -1,3 +1,23 @@
+2008-12-19  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        - stub out FrameLoaderClient::shouldUseCredentialStorage().
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::shouldUseCredentialStorage):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
+2008-12-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by John Sullivan.
+
+        Stub out FrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout()
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout):
+        * WebCoreSupport/FrameLoaderClientGtk.h:
+
 2008-12-16  Holger Hans Peter Freyther  <zecke@selfish.org>
 
         Reviewed by Cameron Zwarich.

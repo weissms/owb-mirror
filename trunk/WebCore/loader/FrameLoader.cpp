@@ -3279,6 +3279,11 @@ void FrameLoader::didFirstLayout()
     m_client->dispatchDidFirstLayout();
 }
 
+void FrameLoader::didFirstVisuallyNonEmptyLayout()
+{
+    m_client->dispatchDidFirstVisuallyNonEmptyLayout();
+}
+
 void FrameLoader::frameLoadCompleted()
 {
     m_client->frameLoadCompleted();
@@ -4855,6 +4860,11 @@ void FrameLoader::didFinishLoad(ResourceLoader* loader)
     if (Page* page = m_frame->page())
         page->progress()->completeProgress(loader->identifier());
     dispatchDidFinishLoading(loader->documentLoader(), loader->identifier());
+}
+
+bool FrameLoader::shouldUseCredentialStorage(ResourceLoader* loader)
+{
+    return m_client->shouldUseCredentialStorage(loader->documentLoader(), loader->identifier());
 }
 
 void FrameLoader::didReceiveAuthenticationChallenge(ResourceLoader* loader, const AuthenticationChallenge& currentWebChallenge)

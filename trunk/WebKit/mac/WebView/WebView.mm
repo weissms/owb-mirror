@@ -1352,6 +1352,7 @@ static inline IMP getMethod(id o, SEL s)
     cache->plugInFailedWithErrorFunc = getMethod(delegate, @selector(webView:plugInFailedWithError:dataSource:));
     cache->willCacheResponseFunc = getMethod(delegate, @selector(webView:resource:willCacheResponse:fromDataSource:));
     cache->willSendRequestFunc = getMethod(delegate, @selector(webView:resource:willSendRequest:redirectResponse:fromDataSource:));
+    cache->shouldUseCredentialStorageFunc = getMethod(delegate, @selector(webView:resource:shouldUseCredentialStorageForDataSource:));
 }
 
 WebResourceDelegateImplementationCache* WebViewGetResourceLoadDelegateImplementations(WebView *webView)
@@ -1381,6 +1382,7 @@ WebResourceDelegateImplementationCache* WebViewGetResourceLoadDelegateImplementa
     cache->didFinishDocumentLoadForFrameFunc = getMethod(delegate, @selector(webView:didFinishDocumentLoadForFrame:));
     cache->didFinishLoadForFrameFunc = getMethod(delegate, @selector(webView:didFinishLoadForFrame:));
     cache->didFirstLayoutInFrameFunc = getMethod(delegate, @selector(webView:didFirstLayoutInFrame:));
+    cache->didFirstVisuallyNonEmptyLayoutInFrameFunc = getMethod(delegate, @selector(webView:didFirstVisuallyNonEmptyLayoutInFrame:));
     cache->didHandleOnloadEventsForFrameFunc = getMethod(delegate, @selector(webView:didHandleOnloadEventsForFrame:));
     cache->didReceiveIconForFrameFunc = getMethod(delegate, @selector(webView:didReceiveIcon:forFrame:));
     cache->didReceiveServerRedirectForProvisionalLoadForFrameFunc = getMethod(delegate, @selector(webView:didReceiveServerRedirectForProvisionalLoadForFrame:));
@@ -5226,6 +5228,18 @@ id CallResourceLoadDelegate(IMP implementation, WebView *self, SEL selector, id 
 id CallResourceLoadDelegate(IMP implementation, WebView *self, SEL selector, id object1, id object2, NSInteger integer, id object3)
 {
     return CallDelegate(implementation, self, self->_private->resourceProgressDelegate, selector, object1, object2, integer, object3);
+}
+
+BOOL CallResourceLoadDelegateReturningBoolean(BOOL result, IMP implementation, WebView *self, SEL selector, id object1, id object2)
+{
+    if (!self->_private->catchesDelegateExceptions)
+        return reinterpret_cast<BOOL (*)(id, SEL, WebView *, id, id)>(objc_msgSend)(self->_private->resourceProgressDelegate, selector, self, object1, object2);
+    @try {
+        return reinterpret_cast<BOOL (*)(id, SEL, WebView *, id, id)>(objc_msgSend)(self->_private->resourceProgressDelegate, selector, self, object1, object2);
+    } @catch(id exception) {
+        ReportDiscardedDelegateException(selector, exception);
+    }
+    return result;
 }
 
 // The form delegate needs to have it's own implementation, because the first argument is never the WebView

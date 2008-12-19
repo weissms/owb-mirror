@@ -321,6 +321,19 @@ void WebFrameLoaderClient::dispatchWillSendRequest(DocumentLoader* loader, unsig
         request = (NSURLRequest *)CallResourceLoadDelegate(implementations->willSendRequestFunc, webView, @selector(webView:resource:willSendRequest:redirectResponse:fromDataSource:), [webView _objectForIdentifier:identifier], request.nsURLRequest(), redirectResponse.nsURLResponse(), dataSource(loader));
 }
 
+bool WebFrameLoaderClient::shouldUseCredentialStorage(DocumentLoader* loader, unsigned long identifier)
+{
+    WebView *webView = getWebView(m_webFrame.get());
+    WebResourceDelegateImplementationCache* implementations = WebViewGetResourceLoadDelegateImplementations(webView);
+
+    if (implementations->shouldUseCredentialStorageFunc) {
+        if (id resource = [webView _objectForIdentifier:identifier])
+            return CallResourceLoadDelegateReturningBoolean(NO, implementations->shouldUseCredentialStorageFunc, webView, @selector(webView:resource:shouldUseCredentialStorageForDataSource:), resource, dataSource(loader));
+    }
+
+    return true;
+}
+
 void WebFrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoader* loader, unsigned long identifier, const AuthenticationChallenge& challenge)
 {
     WebView *webView = getWebView(m_webFrame.get());
@@ -556,6 +569,14 @@ void WebFrameLoaderClient::dispatchDidFirstLayout()
     WebFrameLoadDelegateImplementationCache* implementations = WebViewGetFrameLoadDelegateImplementations(webView);
     if (implementations->didFirstLayoutInFrameFunc)
         CallFrameLoadDelegate(implementations->didFirstLayoutInFrameFunc, webView, @selector(webView:didFirstLayoutInFrame:), m_webFrame.get());
+}
+
+void WebFrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout()
+{
+    WebView *webView = getWebView(m_webFrame.get());
+    WebFrameLoadDelegateImplementationCache* implementations = WebViewGetFrameLoadDelegateImplementations(webView);
+    if (implementations->didFirstVisuallyNonEmptyLayoutInFrameFunc)
+        CallFrameLoadDelegate(implementations->didFirstVisuallyNonEmptyLayoutInFrameFunc, webView, @selector(webView:didFirstVisuallyNonEmptyLayoutInFrame:), m_webFrame.get());
 }
 
 Frame* WebFrameLoaderClient::dispatchCreatePage()

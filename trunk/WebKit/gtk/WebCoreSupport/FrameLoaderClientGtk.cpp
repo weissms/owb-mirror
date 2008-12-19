@@ -190,6 +190,13 @@ void FrameLoaderClient::committedLoad(DocumentLoader* loader, const char* data, 
     }
 }
 
+bool
+FrameLoaderClient::shouldUseCredentialStorage(DocumentLoader*, unsigned long  identifier)
+{
+    notImplemented();
+    return false;
+}
+
 void FrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoader*, unsigned long  identifier, const AuthenticationChallenge&)
 {
     notImplemented();
@@ -538,6 +545,11 @@ void FrameLoaderClient::dispatchDidFinishDocumentLoad()
 }
 
 void FrameLoaderClient::dispatchDidFirstLayout()
+{
+    notImplemented();
+}
+
+void FrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout()
 {
     notImplemented();
 }

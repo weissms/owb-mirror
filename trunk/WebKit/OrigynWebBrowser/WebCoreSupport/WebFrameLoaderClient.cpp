@@ -148,6 +148,18 @@ void WebFrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoa
     //challenge.sourceHandle()->receivedRequestToContinueWithoutCredential(challenge);
 }
 
+void WebFrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout()
+{
+    /*WebView* webView = m_webFrame->webView();
+    COMPtr<IWebFrameLoadDelegatePrivate> frameLoadDelegatePrivate;
+    if (SUCCEEDED(webView->frameLoadDelegatePrivate(&frameLoadDelegatePrivate)) && frameLoadDelegatePrivate) {
+        COMPtr<IWebFrameLoadDelegatePrivate2> frameLoadDelegatePrivate2(Query, frameLoadDelegatePrivate);
+        if (frameLoadDelegatePrivate2)
+            frameLoadDelegatePrivate2->didFirstVisuallyNonEmptyLayoutInFrame(webView, m_webFrame);
+    }*/
+}
+
+
 void WebFrameLoaderClient::dispatchDidCancelAuthenticationChallenge(DocumentLoader* loader, unsigned long identifier, const AuthenticationChallenge& challenge)
 {
     /*WebView* webView = m_webFrame->webView();
@@ -157,6 +169,24 @@ void WebFrameLoaderClient::dispatchDidCancelAuthenticationChallenge(DocumentLoad
 
     COMPtr<WebURLAuthenticationChallenge> webChallenge(AdoptCOM, WebURLAuthenticationChallenge::createInstance(challenge));
     resourceLoadDelegate->didCancelAuthenticationChallenge(webView, identifier, webChallenge.get(), getWebDataSource(loader));*/
+}
+
+bool WebFrameLoaderClient::shouldUseCredentialStorage(DocumentLoader* loader, unsigned long identifier)
+{
+    /*WebView* webView = m_webFrame->webView();
+    COMPtr<IWebResourceLoadDelegate> resourceLoadDelegate;
+    if (FAILED(webView->resourceLoadDelegate(&resourceLoadDelegate)))
+        return true;
+
+    COMPtr<IWebResourceLoadDelegatePrivate2> resourceLoadDelegatePrivate;
+    if (FAILED(resourceLoadDelegate->QueryInterface(IID_IWebResourceLoadDelegatePrivate2, reinterpret_cast<void**>(&resourceLoadDelegatePrivate))))
+        return true;
+
+    BOOL shouldUse;
+    if (SUCCEEDED(resourceLoadDelegatePrivate->shouldUseCredentialStorage(webView, identifier, getWebDataSource(loader), &shouldUse)))
+        return shouldUse;*/
+    
+    return true;
 }
 
 void WebFrameLoaderClient::dispatchWillSendRequest(DocumentLoader* loader, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)

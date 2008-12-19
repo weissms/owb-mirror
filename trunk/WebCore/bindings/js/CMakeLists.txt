@@ -78,6 +78,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSXMLHttpRequestCustom.cpp
     bindings/js/JSXMLHttpRequestUploadCustom.cpp
     bindings/js/ScheduledAction.cpp
+    bindings/js/ScriptCachedPageData.cpp
     bindings/js/ScriptCallFrame.cpp
     bindings/js/ScriptCallStack.cpp
     bindings/js/ScriptController.cpp

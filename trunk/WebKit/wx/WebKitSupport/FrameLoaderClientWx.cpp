@@ -330,6 +330,10 @@ void FrameLoaderClientWx::dispatchDidFirstLayout()
     notImplemented();
 }
 
+void FrameLoaderClientWx::dispatchDidFirstVisuallyNonEmptyLayout()
+{
+    notImplemented();
+}
 
 void FrameLoaderClientWx::dispatchShow()
 {
@@ -624,6 +628,12 @@ void FrameLoaderClientWx::assignIdentifierToInitialRequest(unsigned long identif
 void FrameLoaderClientWx::dispatchWillSendRequest(DocumentLoader*, unsigned long, ResourceRequest& request, const ResourceResponse& response)
 {
     notImplemented();
+}
+
+bool FrameLoaderClientWx::shouldUseCredentialStorage(DocumentLoader*, unsigned long)
+{
+    notImplemented();
+    return false;
 }
 
 void FrameLoaderClientWx::dispatchDidReceiveAuthenticationChallenge(DocumentLoader*, unsigned long, const AuthenticationChallenge&)

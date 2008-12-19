@@ -103,6 +103,24 @@ void WebFrameLoaderClient::assignIdentifierToInitialRequest(unsigned long identi
     resourceLoadDelegate->identifierForInitialRequest(webView, webURLRequest.get(), getWebDataSource(loader), identifier);
 }
 
+bool WebFrameLoaderClient::shouldUseCredentialStorage(DocumentLoader* loader, unsigned long identifier)
+{
+    WebView* webView = m_webFrame->webView();
+    COMPtr<IWebResourceLoadDelegate> resourceLoadDelegate;
+    if (FAILED(webView->resourceLoadDelegate(&resourceLoadDelegate)))
+        return true;
+
+    COMPtr<IWebResourceLoadDelegatePrivate2> resourceLoadDelegatePrivate;
+    if (FAILED(resourceLoadDelegate->QueryInterface(IID_IWebResourceLoadDelegatePrivate2, reinterpret_cast<void**>(&resourceLoadDelegatePrivate))))
+        return true;
+
+    BOOL shouldUse;
+    if (SUCCEEDED(resourceLoadDelegatePrivate->shouldUseCredentialStorage(webView, identifier, getWebDataSource(loader), &shouldUse)))
+        return shouldUse;
+
+    return true;
+}
+
 void WebFrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoader* loader, unsigned long identifier, const AuthenticationChallenge& challenge)
 {
     ASSERT(challenge.sourceHandle());
@@ -296,6 +314,17 @@ void WebFrameLoaderClient::dispatchDidFirstLayout()
     COMPtr<IWebFrameLoadDelegatePrivate> frameLoadDelegatePriv;
     if (SUCCEEDED(webView->frameLoadDelegatePrivate(&frameLoadDelegatePriv)) && frameLoadDelegatePriv)
         frameLoadDelegatePriv->didFirstLayoutInFrame(webView, m_webFrame);
+}
+
+void WebFrameLoaderClient::dispatchDidFirstVisuallyNonEmptyLayout()
+{
+    WebView* webView = m_webFrame->webView();
+    COMPtr<IWebFrameLoadDelegatePrivate> frameLoadDelegatePrivate;
+    if (SUCCEEDED(webView->frameLoadDelegatePrivate(&frameLoadDelegatePrivate)) && frameLoadDelegatePrivate) {
+        COMPtr<IWebFrameLoadDelegatePrivate2> frameLoadDelegatePrivate2(Query, frameLoadDelegatePrivate);
+        if (frameLoadDelegatePrivate2)
+            frameLoadDelegatePrivate2->didFirstVisuallyNonEmptyLayoutInFrame(webView, m_webFrame);
+    }
 }
 
 Frame* WebFrameLoaderClient::dispatchCreatePage()

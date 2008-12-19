@@ -1,18 +1,12 @@
 list(APPEND WEBCORE_SRC
-    rendering/style/Animation.cpp
-    rendering/style/AnimationList.cpp
     rendering/style/BindingURI.cpp
     rendering/style/ContentData.cpp
     rendering/style/CounterDirectives.cpp
     rendering/style/FillLayer.cpp
     rendering/style/KeyframeList.cpp
-    rendering/style/MatrixTransformOperation.cpp
     rendering/style/NinePieceImage.cpp
     rendering/style/RenderStyle.cpp
-    rendering/style/RotateTransformOperation.cpp
-    rendering/style/ScaleTransformOperation.cpp
     rendering/style/ShadowData.cpp
-    rendering/style/SkewTransformOperation.cpp
     rendering/style/StyleBackgroundData.cpp
     rendering/style/StyleBoxData.cpp
     rendering/style/StyleCachedImage.cpp
@@ -26,8 +20,6 @@ list(APPEND WEBCORE_SRC
     rendering/style/StyleSurroundData.cpp
     rendering/style/StyleTransformData.cpp
     rendering/style/StyleVisualData.cpp
-    rendering/style/TransformOperations.cpp
-    rendering/style/TranslateTransformOperation.cpp
 )
 
 if(ENABLE_SVG)

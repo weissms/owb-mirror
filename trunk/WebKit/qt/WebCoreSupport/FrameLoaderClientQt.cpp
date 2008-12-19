@@ -385,6 +385,10 @@ void FrameLoaderClientQt::dispatchDidFirstLayout()
         emit m_webFrame->initialLayoutCompleted();
 }
 
+void FrameLoaderClientQt::dispatchDidFirstVisuallyNonEmptyLayout()
+{
+    notImplemented();
+}
 
 void FrameLoaderClientQt::dispatchShow()
 {
@@ -774,6 +778,13 @@ void FrameLoaderClientQt::dispatchWillSendRequest(WebCore::DocumentLoader*, unsi
 
     // seems like the Mac code doesn't do anything here by default neither
     //qDebug() << "FrameLoaderClientQt::dispatchWillSendRequest" << request.isNull() << request.url().string`();
+}
+
+bool
+FrameLoaderClientQt::shouldUseCredentialStorage(DocumentLoader*, unsigned long)
+{
+    notImplemented();
+    return false;
 }
 
 void FrameLoaderClientQt::dispatchDidReceiveAuthenticationChallenge(DocumentLoader*, unsigned long, const AuthenticationChallenge&)
