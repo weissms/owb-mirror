@@ -138,7 +138,7 @@ add_custom_command(
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp ${WEBCORE_GENERATED_DIR}/CSSGrammar.h
-    COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}
+    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}
     COMMAND rm -f ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp.h ${WEBCORE_GENERATED_DIR}/CSSGrammar.hpp
     COMMAND ${BISON_EXECUTABLE} -d -p cssyy ${OWB_SOURCE_DIR}/WebCore/css/CSSGrammar.y -o ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp
     COMMAND touch ${WEBCORE_GENERATED_DIR}/CSSGrammar.cpp.h ${WEBCORE_GENERATED_DIR}/CSSGrammar.hpp
@@ -172,7 +172,7 @@ add_custom_command(
 
 add_custom_command(
     OUTPUT ${WEBCORE_GENERATED_DIR}/html/DocTypeStrings.cpp
-    COMMAND mkdir -p ${WEBCORE_GENERATED_DIR}/html
+    COMMAND mkdir ARGS -p ${WEBCORE_GENERATED_DIR}/html
     COMMAND echo '\#include <string.h>' > html/DocTypeStrings.cpp
     COMMAND ${GPERF_EXECUTABLE} -CEot -L ANSI-C -k \"*\" -N findDoctypeEntry -F ,PubIDInfo::eAlmostStandards,PubIDInfo::eAlmostStandards < ${OWB_SOURCE_DIR}/WebCore/html/DocTypeStrings.gperf >> html/DocTypeStrings.cpp
     WORKING_DIRECTORY ${WEBCORE_GENERATED_DIR}
@@ -385,4 +385,4 @@ include_directories(
 include(AddWebCoreCompilerFlags)
 
 add_library(webcore STATIC ${WEBCORE_SRC})
-add_dependencies(webcore kjs)
+add_dependencies(webcore jsc)
