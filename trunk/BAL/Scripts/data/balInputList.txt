@@ -87,9 +87,9 @@ BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/SkewTransformOperat
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperations.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TranslateTransformOperation.h
-BAL/Skeletons/Graphics WebCore/platform/graphics/animation/Animation.h
-BAL/Skeletons/Graphics WebCore/platform/graphics/animation/AnimationList.h
-BAL/Skeletons/Graphics WebCore/platform/graphics/animation/TimingFunction.h
+BAL/Skeletons/Graphics WebCore/platform/animation/Animation.h
+BAL/Skeletons/Graphics WebCore/platform/animation/AnimationList.h
+BAL/Skeletons/Graphics WebCore/platform/animation/TimingFunction.h
 
 BAL/Graphics/WebCore/WK	WebCore/platform/DragData.h
 BAL/Graphics/WebCore/WK	WebCore/platform/DragData.cpp
