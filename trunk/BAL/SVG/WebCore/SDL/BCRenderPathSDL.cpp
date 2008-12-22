@@ -47,19 +47,4 @@ bool RenderPath::strokeContains(const FloatPoint& point, bool requiresStroke) co
     return false;
 }
 
-FloatRect RenderPath::strokeBBox() const
-{
-    printf("RenderPath::strokeBBox\n");
-    // TODO: this implementation is naive
-
-/*    cairo_t* cr = path().platformPath()->m_cr;
-
-    double x0, x1, y0, y1;
-    cairo_stroke_extents(cr, &x0, &y0, &x1, &y1);
-    FloatRect bbox = FloatRect(x0, y0, x1 - x0, y1 - y0);
-
-    return bbox;*/
-    return FloatRect();
-}
-
 }

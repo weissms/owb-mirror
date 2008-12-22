@@ -141,6 +141,11 @@ FloatRect Path::boundingRect() const
     return FloatRect();
 }
 
+FloatRect Path::strokeBoundingRect(StrokeStyleApplier* applier)
+{
+    return FloatRect();
+}
+
 bool Path::contains(const FloatPoint& point, WindRule rule) const
 {
     //printf("Path::contains\n");

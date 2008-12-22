@@ -1,3 +1,35 @@
+2008-12-22  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Ada Chan.
+
+        - expose the new allItems() method via a new IWebHistoryPrivate
+          interface
+
+        * Interfaces/IWebHistoryPrivate.idl: Added.
+        * Interfaces/WebKit.idl: Added IWebHistoryPrivate.idl.
+        * WebHistory.cpp:
+        (WebHistory::QueryInterface): Added IWebHistoryPrivate.
+        (WebHistory::allItems):
+        * WebHistory.h:
+
+2008-12-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix.
+
+        * WebHistory.cpp:
+        (WebHistory::allItems):
+
+2008-12-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler, Adele Peterson, Brady Eidson.
+        
+        Added SPI for getting an unsorted vector of all items in history.
+        
+        * WebHistory.cpp:
+        (WebHistory::orderedItemsLastVisitedOnDay):
+        (WebHistory::allItems):
+        * WebHistory.h:
+
 2008-12-19  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Sam Weinig.

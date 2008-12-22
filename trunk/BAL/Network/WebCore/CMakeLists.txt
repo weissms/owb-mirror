@@ -6,6 +6,7 @@ create_include_link(${BAL_DIR}/Network/WebCore/WK/BCAuthenticationChallengeBaseW
 create_include_link(${BAL_DIR}/Network/WebCore/WK/BCCredentialWK.h BAL/Credential.h)
 create_include_link(${BAL_DIR}/Network/WebCore/WK/BCDNSWK.h BAL/DNS.h)
 create_include_link(${BAL_DIR}/Network/WebCore/WK/BCFormDataWK.h BAL/FormData.h)
+create_include_link(${BAL_DIR}/Network/WebCore/WK/BCFormDataBuilderWK.h BAL/FormDataBuilder.h)
 create_include_link(${BAL_DIR}/Network/WebCore/WK/BCNetworkStateNotifierWK.h BAL/NetworkStateNotifier.h)
 create_include_link(${BAL_DIR}/Network/WebCore/WK/BCProtectionSpaceWK.h BAL/ProtectionSpace.h)
 create_include_link(${BAL_DIR}/Network/WebCore/WK/BCResourceErrorBaseWK.h BAL/ResourceErrorBase.h)

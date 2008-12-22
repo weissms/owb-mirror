@@ -148,6 +148,8 @@ HRESULT STDMETHODCALLTYPE WebHistory::QueryInterface(REFIID riid, void** ppvObje
         *ppvObject = static_cast<IWebHistory*>(this);
     else if (IsEqualGUID(riid, IID_IWebHistory))
         *ppvObject = static_cast<IWebHistory*>(this);
+    else if (IsEqualGUID(riid, IID_IWebHistoryPrivate))
+        *ppvObject = static_cast<IWebHistoryPrivate*>(this);
     else
         return E_NOINTERFACE;
 
@@ -527,11 +529,33 @@ HRESULT STDMETHODCALLTYPE WebHistory::orderedItemsLastVisitedOnDay(
     *count = newCount;
     for (int i = 0; i < newCount; i++) {
         IWebHistoryItem* item = (IWebHistoryItem*)CFArrayGetValueAtIndex(entries, i);
-        if (!item)
-            return E_FAIL;
         item->AddRef();
-        items[newCount-i-1] = item; // reverse when inserting to get the list sorted oldest to newest
+        items[newCount - i - 1] = item; // reverse when inserting to get the list sorted oldest to newest
     }
+
+    return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE WebHistory::allItems( 
+    /* [out][in] */ int* count,
+    /* [out][retval] */ IWebHistoryItem** items)
+{
+    int entriesByURLCount = CFDictionaryGetCount(m_entriesByURL.get());
+
+    if (!items) {
+        *count = entriesByURLCount;
+        return S_OK;
+    }
+
+    if (*count < entriesByURLCount) {
+        *count = entriesByURLCount;
+        return E_FAIL;
+    }
+
+    *count = entriesByURLCount;
+    CFDictionaryGetKeysAndValues(m_entriesByURL.get(), 0, (const void**)items);
+    for (int i = 0; i < entriesByURLCount; i++)
+        items[i]->AddRef();
 
     return S_OK;
 }

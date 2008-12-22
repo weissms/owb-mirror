@@ -38,6 +38,7 @@ namespace WKAL {
     class FloatSize;
     class FloatRect;
     class String;
+    class StrokeStyleApplier;
 
     enum WindRule {
         RULE_NONZERO = 0,
@@ -69,6 +70,7 @@ namespace WKAL {
 
         bool contains(const FloatPoint&, WindRule rule = RULE_NONZERO) const;
         FloatRect boundingRect() const;
+	FloatRect strokeBoundingRect(StrokeStyleApplier* applier = 0);
         
         float length();
         FloatPoint pointAtLength(float length, bool& ok);

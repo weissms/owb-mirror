@@ -42,7 +42,7 @@ namespace WebCore {
 
 class WebPreferences;
 
-class WebHistory : public IWebHistory {
+class WebHistory : public IWebHistory, public IWebHistoryPrivate {
 public:
     static WebHistory* createInstance();
 private:
@@ -106,6 +106,12 @@ public:
     
     virtual HRESULT STDMETHODCALLTYPE historyAgeInDaysLimit( 
         /* [retval][out] */ int* limit);
+
+    // IWebHistoryPrivate
+
+    virtual HRESULT STDMETHODCALLTYPE allItems( 
+        /* [out][in] */ int* count,
+        /* [retval][out] */ IWebHistoryItem** items);
 
     // WebHistory
     static WebHistory* sharedHistory();
