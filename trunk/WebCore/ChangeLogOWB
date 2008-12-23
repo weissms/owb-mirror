@@ -1,3 +1,10 @@
+2008-12-23  Mario Bensi  <mbensi@pleyo.com>
+
+        fix ticket #322.
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::paintBorder):
+
 2008-12-19  Mario Bensi  <mbensi@pleyo.com>
 
         Fix parallel build for webcore.

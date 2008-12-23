@@ -58,7 +58,6 @@ WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
 WebCore/plugins/PluginView.h
-WebCore/rendering/RenderObject.cpp
 WebCore/storage/Database.cpp
 WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLTProcessor.cpp
