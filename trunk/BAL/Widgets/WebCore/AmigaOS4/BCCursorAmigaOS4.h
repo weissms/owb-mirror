@@ -35,6 +35,54 @@
 
 namespace WKAL {
 
+    enum enPointers
+    {
+        en_pointerCursor,
+        en_crossCursor,
+        en_handCursor,
+        en_moveCursor,
+        en_iBeamCursor,
+        en_waitCursor,
+        en_helpCursor,
+        en_eastResizeCursor,
+        en_northResizeCursor,
+        en_northEastResizeCursor,
+        en_northWestResizeCursor,
+        en_southResizeCursor,
+        en_southEastResizeCursor,
+        en_southWestResizeCursor,
+        en_westResizeCursor,
+        en_northSouthResizeCursor,
+        en_eastWestResizeCursor,
+        en_northEastSouthWestResizeCursor,
+        en_northWestSouthEastResizeCursor,
+        en_columnResizeCursor,
+        en_rowResizeCursor,
+        en_middlePanningCursor,
+        en_eastPanningCursor,
+        en_northPanningCursor,
+        en_northEastPanningCursor,
+        en_northWestPanningCursor,
+        en_southPanningCursor,
+        en_southEastPanningCursor,
+        en_southWestPanningCursor,
+        en_westPanningCursor,
+        en_verticalTextCursor,
+        en_cellCursor,
+        en_contextMenuCursor,
+        en_noDropCursor,
+        en_notAllowedCursor,
+        en_progressCursor,
+        en_aliasCursor,
+        en_zoomInCursor,
+        en_zoomOutCursor,
+        en_copyCursor,
+        en_noneCursor,
+        en_grabCursor,
+        en_grabbingCursor,
+        en_SIZE
+    };
+
     class Image;
     class IntPoint;
 
@@ -54,7 +102,7 @@ namespace WKAL {
         , m_data(0)
         { }
 
-        Cursor(const char*);
+        Cursor(enPointers);
         ~Cursor();
         Cursor& operator=(const Cursor&);
 
@@ -108,6 +156,8 @@ namespace WKAL {
     const Cursor& zoomOutCursor();
     const Cursor& copyCursor();
     const Cursor& noneCursor();
+    const Cursor& grabCursor();
+    const Cursor& grabbingCursor();
 
 } // namespace WebCore
 

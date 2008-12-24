@@ -178,12 +178,67 @@ static char *get_font_name_fallback(const int type, const bool bold, const bool 
     return fontname;
 }
 
+static OutlineFont *openFont(const char* family, int type, bool bold, bool italic, float &size, char* &m_fontname)
+{
+    OutlineFont *fontFace = 0;
+
+    char *fontname = get_font_name(family, type, bold, italic, &font_list);
+    if (fontname) {
+        fontFace = IDiskfont->OpenOutlineFont(fontname, &font_list, OFF_OPEN);
+        if (!fontFace)
+            free(fontname);
+    }
+    if (!fontFace) {
+        fontname = get_font_name_fallback(type, bold, italic, &font_list);
+        if (fontname)
+            fontFace = IDiskfont->OpenOutlineFont(fontname, &font_list, OFF_OPEN);
+    }
+    if (fontFace) {
+        uint32 ysizefactor = IUtility->GetTagData(OT_YSizeFactor, 0x00010001, fontFace->olf_OTagList);
+        size *= ysizefactor >> 16;
+        size /= ysizefactor & 0xFFFF;
+        size = (int)(size + 0.45);
+
+        if (size < amigaConfig.minFontSize)
+            size = amigaConfig.minFontSize;
+
+        if (amigaConfig.fontHinter >= 0 && amigaConfig.fontHinter <= 4)
+            IDiskfont->ESetInfo(&fontFace->olf_EEngine,
+                                OT_Spec + 6, amigaConfig.fontHinter,
+                                TAG_END);
+
+        if (IDiskfont->ESetInfo(&fontFace->olf_EEngine,
+                                OT_DeviceDPI, (amigaConfig.fontXDPI << 16) | amigaConfig.fontYDPI,
+                                OT_PointHeight, ((int)size) << 16,
+                                TAG_END) != OTERR_Success) {
+            IDiskfont->CloseOutlineFont(fontFace, &font_list);
+            fontFace = 0;
+        }
+        else {
+            add_to_fontlist(fontFace);
+            m_fontname = fontname;
+            fontname = 0;
+        }
+    }
+    free(fontname);
+
+    return fontFace;
+}
+
 FontPlatformData::FontPlatformData(WTF::HashTableDeletedValueType)
-    : m_fontname(hashTableDeletedFontValue())
+    : m_size(-1)
+    , m_syntheticBold(false)
+    , m_syntheticOblique(false)
+    , m_face((OutlineFont *)-1)
+    , m_fontname(hashTableDeletedFontValue())
 { }
 
 FontPlatformData::FontPlatformData()
-    : m_fontname(0)
+    : m_size(0)
+    , m_syntheticBold(false)
+    , m_syntheticOblique(false)
+    , m_face(0)
+    , m_fontname(0)
 { }
 
 FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const AtomicString& familyName)
@@ -204,55 +259,31 @@ FontPlatformData::FontPlatformData(const FontDescription& fontDescription, const
     if (m_size < amigaConfig.minFontSize)
         m_size = amigaConfig.minFontSize;
 
+    if (m_size > 256)
+        m_size = 256;
+
     int type = fontDescription.genericFamily();
     bool bold = fontDescription.weight() >= FontWeight600;
     bool italic = fontDescription.italic();
-    char *fontname = get_font_name(family, type, bold, italic, &font_list);
-    if (fontname) {
-        m_face = IDiskfont->OpenOutlineFont(fontname, &font_list, OFF_OPEN);
-        if (!m_face)
-            free(fontname);
-    }
-    if (!m_face) {
-        fontname = get_font_name_fallback(type, bold, italic, &font_list);
-        if (fontname)
-            m_face = IDiskfont->OpenOutlineFont(fontname, &font_list, OFF_OPEN);
-    }
-    if (m_face) {
-        if (IDiskfont->ESetInfo(&m_face->olf_EEngine,
-                                OT_DeviceDPI, (amigaConfig.fontXDPI << 16) | amigaConfig.fontYDPI,
-                                OT_PointHeight, ((int)(m_size + 0.5)) << 16,
-                                TAG_END) != OTERR_Success) {
-            IDiskfont->CloseOutlineFont(m_face, &font_list);
-            m_face = 0;
-        }
-        else {
-            add_to_fontlist(m_face);
-            m_fontname = fontname;
-            fontname = 0;
-        }
-    }
-    free(fontname);
+    m_face = openFont(family, type, bold, italic, m_size, m_fontname);
 }
 
 FontPlatformData::FontPlatformData(float size, bool bold, bool italic)
     : m_size(size)
-    , m_syntheticBold(bold)
-    , m_syntheticOblique(italic)
+    , m_syntheticBold(false)
+    , m_syntheticOblique(false)
     , m_fontname(0)
 {
-//    fprintf(stderr, "%s: m_size = %f %s%s\n", __PRETTY_FUNCTION__, size, bold ? "b" : "", italic ? "i" : "");
-    m_face = 0;
+    m_face = openFont(0, FontDescription::NoFamily, bold, italic, m_size, m_fontname);
 }
 
 FontPlatformData::FontPlatformData(BalFontFace* fontFace, int size, bool bold, bool italic)
     : m_size(size)
-    , m_syntheticBold(bold)
-    , m_syntheticOblique(italic)
+    , m_syntheticBold(false)
+    , m_syntheticOblique(false)
     , m_fontname(0)
 {
-    fprintf(stderr, "%s: fontFace = %p, size = %d %s%s\n", __PRETTY_FUNCTION__, fontFace, size, bold ? "b" : "", italic ? "i" : "");
-    m_face = fontFace;
+    m_face = openFont(0, FontDescription::NoFamily, bold, italic, m_size, m_fontname);
 }
 
 bool FontPlatformData::init()
@@ -305,6 +336,8 @@ bool FontPlatformData::operator==(const FontPlatformData& other) const
     if (m_face == other.m_face)
         return true;
     if (m_size == other.m_size
+     && m_syntheticBold == other.m_syntheticBold
+     && m_syntheticOblique == other.m_syntheticOblique
      && m_fontname && other.m_fontname
      && (m_fontname == other.m_fontname || !strcmp(m_fontname, other.m_fontname)))
         return true;

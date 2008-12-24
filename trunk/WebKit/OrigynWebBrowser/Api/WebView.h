@@ -1322,7 +1322,13 @@ protected:
     /**
      * get page 
      */
+#if PLATFORM(AMIGAOS4)
+public:
     WebCore::Page* page();
+protected:
+#else
+    WebCore::Page* page();
+#endif
 
     /**
      *  canHandleRequest

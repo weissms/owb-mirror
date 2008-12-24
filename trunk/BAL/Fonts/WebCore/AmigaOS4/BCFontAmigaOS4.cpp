@@ -79,17 +79,15 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
     GlyphBufferGlyph* glyphs = const_cast<GlyphBufferGlyph*>(glyphBuffer.glyphs(from));
     struct OutlineFont *face = font->m_font.m_face;
-    uint32 ysize = font->m_font.m_size + 0.5;
+    uint32 ysize = font->m_font.m_size;
 
-    double dimagewidth = 0;
-    int32 imagewidth;
+    int32 imagewidth = 0;
     uint32 onlyspaces = TRUE;
     for (int i = 0; i < numGlyphs; i++) {
         if (32 != glyphs[i])
             onlyspaces = FALSE;
-        dimagewidth += glyphBuffer.advanceAt(from + i);
+        imagewidth += glyphBuffer.advanceAt(from + i);
     }
-    imagewidth = dimagewidth + 0.5;
 
     if (onlyspaces)
        return;
@@ -97,7 +95,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
     if (imagewidth <= 0)
         return;
 
-    imagewidth += 2 * ysize;
+    imagewidth += 2 * (ysize * amigaConfig.fontXDPI / 72);
 
     Vector<unsigned> *glyphRGBABuffer = new Vector<unsigned>(imagewidth * height());
     if (!glyphRGBABuffer)
@@ -105,7 +103,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
     glyphRGBABuffer->fill(0);
 
-    double offsetinimg = 0;
+    int32 offsetinimg = 0;
     uint32 shiftleft = 0;
 
     for (int i = 0; i < numGlyphs; i++) {
@@ -161,8 +159,7 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                 continue; //do not handle error
         }
 
-#if 0 // causes wrong cursor offsets in text input
-        if (i > 0)
+        if (amigaConfig.fontKerning && i > 0)
             if (!IDiskfont->ESetInfo(&curface->olf_EEngine,
                                      OT_GlyphCode, glyphs[i -1],
                                      OT_GlyphCode2, glyphs[i],
@@ -172,13 +169,12 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
                                             OT_TextKernPair, &kern,
                                             TAG_END))
                     if (kern)
-                        offsetinimg -= kern / 65536.0 * ysize;
+                        offsetinimg -= (int)(kern / 65536.0 * ysize * amigaConfig.fontYDPI / 72);
             }
-#endif
 
         uint32 left = glyph->glm_BlackLeft;
         uint32 top = glyph->glm_BlackTop;
-        uint32 width = glyph->glm_BlackWidth;
+        int32 width = glyph->glm_BlackWidth;
         int32 gheight = glyph->glm_BlackHeight;
         int32 x0 = glyph->glm_X0;
         int32 y0 = glyph->glm_Y0;
@@ -215,12 +211,16 @@ void Font::drawGlyphs(GraphicsContext* context, const SimpleFontData* font, cons
 
         for (int32 y = 0; y < gheight ; y++) {
             uint32 top_mod_left = (y + top) * modulo + left;
-            for (uint32 x = 0; x < width; x++)
-                if (((offsetinimg + 0.5) + imgoffsetx + x < imagewidth)
-                 && ((offsetinimg + 0.5) + imgoffsetx + x >= 0)) {
+            for (int32 x = 0; x < width; x++)
+                if ((offsetinimg + imgoffsetx + x < imagewidth)
+                 && (offsetinimg + imgoffsetx + x >= 0)) {
                     uint32 a = penalpha * glyph->glm_BitMap[top_mod_left + x] / 255;
-                    if (a)
-                       (*glyphRGBABuffer)[(imgoffsety + y) * imagewidth + (offsetinimg + 0.5) + imgoffsetx + x] = (a << 24) | ((penr * a / 255) << 16) | ((peng * a / 255) << 8) | (penb * a / 255);
+                    if (a) {
+                        uint32 oldARGB = (*glyphRGBABuffer)[(imgoffsety + y) * imagewidth + offsetinimg + imgoffsetx + x];
+                        if (oldARGB)
+                            a = std::max((oldARGB >> 24), a);
+                        (*glyphRGBABuffer)[(imgoffsety + y) * imagewidth + offsetinimg + imgoffsetx + x] = (a << 24) | ((penr * a / 255) << 16) | ((peng * a / 255) << 8) | (penb * a / 255);
+                    }
                 }
         }
 

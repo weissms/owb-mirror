@@ -37,8 +37,6 @@
 #include "Platform.h"
 #include "BALBase.h"
 
-#include DEEPSEE_INCLUDE
-
 #include <proto/exec.h>
 #include <devices/timer.h>
 
@@ -131,6 +129,7 @@ void setSharedTimerFiredFunction(void (*f)())
                    timereq->Request.io_Command = TR_ADDREQUEST;
                    timereq->Time.Seconds = 1;
                    timereq->Time.Microseconds = 0;
+                   IExec->SendIO((struct IORequest *)timereq);
 
                    atexit(cleanup);
                    return;
@@ -158,8 +157,8 @@ void setSharedTimerFireTime(double fireTime)
         intervalInUS = static_cast<uint32>(interval);
     }
 
-    if (intervalInUS < 10 * 1000) // min. time 1/100 sec.
-        intervalInUS = 10 * 1000;
+    if (intervalInUS < 1)
+        intervalInUS = 1;
 
     stopSharedTimer();
 

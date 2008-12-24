@@ -475,7 +475,11 @@ public:
     /**
      * get url
      */
+#if PLATFORM(AMIGAOS4)
+     const char* url();
+#else
      const char* url() const;
+#endif
 
     /**
      * get webview
@@ -556,6 +560,10 @@ protected:
     WebFrameObserver*   m_webFrameObserver;
 #if ENABLE(JS_ADDONS)
     BindingJS *m_bindingJS;
+#endif
+#if PLATFORM(AMIGAOS4)
+    char m_title[2048];
+    char m_url[2048];
 #endif
 };
 

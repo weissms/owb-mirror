@@ -31,6 +31,8 @@
 #include "config.h"
 #include "PlatformScreen.h"
 #include "Assertions.h"
+#include "FrameView.h"
+#include "HostWindow.h"
 #include "Widget.h"
 #include <proto/intuition.h>
 #include <proto/graphics.h>
@@ -41,10 +43,14 @@ namespace WKAL {
 int screenDepth(Widget* widget)
 {
     int depth = 32;
-    if (widget->platformWidget()) {
-        Window *window = widget->platformWidget()->window;
-        if (window)
-            depth = IP96->p96GetBitMapAttr(window->WScreen->RastPort.BitMap, P96BMA_BITSPERPIXEL);
+    if (widget->isFrameView()) {
+        HostWindow *hostWindow = static_cast<FrameView*>(widget)->hostWindow();
+        BalWidget *balWidget = hostWindow ? hostWindow->platformWindow() : 0;
+        if (balWidget) {
+            Window *window = balWidget->window;
+            if (window)
+                depth = IP96->p96GetBitMapAttr(window->WScreen->RastPort.BitMap, P96BMA_BITSPERPIXEL);
+        }
     }
 
     return depth;
@@ -53,17 +59,21 @@ int screenDepth(Widget* widget)
 int screenDepthPerComponent(Widget* widget)
 {
     int depth = 8;
-    if (widget->platformWidget()) {
-        uint32 id = INVALID_ID;
-        struct DisplayInfo displayInfo;
+    if (widget->isFrameView()) {
+        HostWindow *hostWindow = static_cast<FrameView*>(widget)->hostWindow();
+        BalWidget *balWidget = hostWindow ? hostWindow->platformWindow() : 0;
+        if (balWidget) {
+            uint32 id = INVALID_ID;
+            struct DisplayInfo displayInfo;
 
-        Window *window = widget->platformWidget()->window;
-        if (window)
-            IIntuition->GetScreenAttrs(window->WScreen, SA_DisplayID, &id, TAG_DONE);
+            Window *window = balWidget->window;
+            if (window)
+                IIntuition->GetScreenAttrs(window->WScreen, SA_DisplayID, &id, TAG_DONE);
 
-        if (INVALID_ID != id
-         && IGraphics->GetDisplayInfoData(NULL, &displayInfo, sizeof(displayInfo), DTAG_DISP, id) >= 48)
-            depth = (displayInfo.RedBits + displayInfo.GreenBits + displayInfo.BlueBits) / 3;
+            if (INVALID_ID != id
+             && IGraphics->GetDisplayInfoData(NULL, &displayInfo, sizeof(displayInfo), DTAG_DISP, id) >= 48)
+                depth = (displayInfo.RedBits + displayInfo.GreenBits + displayInfo.BlueBits) / 3;
+        }
     }
 
     return depth;
@@ -78,15 +88,19 @@ FloatRect screenRect(Widget* widget)
 {
     int x = 0, y = 0, width = 800, height = 600;
 
-    if (widget->platformWidget()) {
-        Window *window = widget->platformWidget()->window;
-        if (window)
-            IIntuition->GetScreenAttrs(window->WScreen,
-                                       SA_Left,   &x,
-                                       SA_Top,    &y,
-                                       SA_Width,  &width,
-                                       SA_Height, &height,
-                                       TAG_DONE);
+    if (widget->isFrameView()) {
+        HostWindow *hostWindow = static_cast<FrameView*>(widget)->hostWindow();
+        BalWidget *balWidget = hostWindow ? hostWindow->platformWindow() : 0;
+        if (balWidget) {
+            Window *window = balWidget->window;
+            if (window)
+                IIntuition->GetScreenAttrs(window->WScreen,
+                                           SA_Left,   &x,
+                                           SA_Top,    &y,
+                                           SA_Width,  &width,
+                                           SA_Height, &height,
+                                           TAG_DONE);
+        }
     }
 
     return FloatRect(x, y, width, height);

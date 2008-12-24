@@ -1,3 +1,43 @@
+2008-12-24  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        AmigaOS port update and changes for Galekid.
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::WebViewPrivate):
+        (WebViewPrivate::fireWebKitEvents):
+        (WebViewPrivate::onExpose):
+        (WebViewPrivate::updateView):
+        (WebViewPrivate::scrollBackingStore):
+        (WebViewPrivate::runJavaScriptAlert):
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.h:
+        (WebViewPrivate::~WebViewPrivate):
+        (WebViewPrivate::createWindow):
+        (WebViewPrivate::initWithFrameView):
+        (WebViewPrivate::clearDirtyRegion):
+        (WebViewPrivate::dirtyRegion):
+        (WebViewPrivate::addToDirtyRegion):
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::name):
+        (WebFrame::url):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::scrollBackingStore):
+        (WebView::standardUserAgentWithApplicationName):
+        (WebView::setToolTip):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::createWindow):
+        (WebChromeClient::runJavaScriptConfirm):
+        (WebChromeClient::setStatusbarText):
+        * OrigynWebBrowser/WebCoreSupport/WebDragClient.cpp:
+        (WebDragClient::actionMaskForDrag):
+        (WebDragClient::dragSourceActionMaskForPoint):
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::dispatchCreatePage):
+
 2008-12-18  Mario Bensi  <mbensi@pleyo.com>
 
         remove warning.

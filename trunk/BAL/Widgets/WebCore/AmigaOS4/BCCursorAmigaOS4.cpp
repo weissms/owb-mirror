@@ -42,6 +42,54 @@
 
 namespace WKAL {
 
+static const CONST_STRPTR pointerFiles[en_SIZE][2] =
+{
+   { "PROGDIR:Resources/pointerCursor",                  0 },
+   { "PROGDIR:Resources/crossCursor",                    "ENV:Sys/def_crosspointer" },
+   { "PROGDIR:Resources/handCursor",                     "ENV:Sys/def_linkpointer" },
+   { "PROGDIR:Resources/moveCursor",                     "ENV:Sys/def_handpointer" },
+   { "PROGDIR:Resources/iBeamCursor",                    "ENV:Sys/def_textpointer" },
+   { "PROGDIR:Resources/waitCursor",                     0 },
+   { "PROGDIR:Resources/helpCursor",                     "ENV:Sys/def_helppointer" },
+   { "PROGDIR:Resources/eastResizeCursor",               "ENV:Sys/def_eastresizepointer" },
+   { "PROGDIR:Resources/northResizeCursor",              "ENV:Sys/def_northresizepointer" },
+   { "PROGDIR:Resources/northEastResizeCursor",          "ENV:Sys/def_northeastresizepointer" },
+   { "PROGDIR:Resources/northWestResizeCursor",          "ENV:Sys/def_northwestresizepointer" },
+   { "PROGDIR:Resources/southResizeCursor",              "ENV:Sys/def_southresizepointer" },
+   { "PROGDIR:Resources/southEastResizeCursor",          "ENV:Sys/def_southeastresizepointer" },
+   { "PROGDIR:Resources/southWestResizeCursor",          "ENV:Sys/def_southwestresizepointer" },
+   { "PROGDIR:Resources/westResizeCursor",               "ENV:Sys/def_westresizepointer" },
+   { "PROGDIR:Resources/northSouthResizeCursor",         "ENV:Sys/def_northsouthresizepointer" },
+   { "PROGDIR:Resources/eastWestResizeCursor",           "ENV:Sys/def_eastwestresizepointer" },
+   { "PROGDIR:Resources/northEastSouthWestResizeCursor", "ENV:Sys/def_northeastsouthwestresizepointer" },
+   { "PROGDIR:Resources/northWestSouthEastResizeCursor", "ENV:Sys/def_northwestsoutheastresizepointer" },
+   { "PROGDIR:Resources/columnResizeCursor",             "ENV:Sys/def_columnresizepointer" },
+   { "PROGDIR:Resources/rowResizeCursor",                "ENV:Sys/def_rowresizepointer" },
+   { "PROGDIR:Resources/middlePanningCursor",            0 }, // missing
+   { "PROGDIR:Resources/eastPanningCursor",              0 }, // missing
+   { "PROGDIR:Resources/northPanningCursor",             0 }, // missing
+   { "PROGDIR:Resources/northEastPanningCursor",         0 }, // missing
+   { "PROGDIR:Resources/northWestPanningCursor",         0 }, // missing
+   { "PROGDIR:Resources/southPanningCursor",             0 }, // missing
+   { "PROGDIR:Resources/southEastPanningCursor",         0 }, // missing
+   { "PROGDIR:Resources/southWestPanningCursor",         0 }, // missing
+   { "PROGDIR:Resources/westPanningCursor",              0 }, // missing
+   { "PROGDIR:Resources/verticalTextCursor",             "ENV:Sys/def_verticaltextpointer" },
+   { "PROGDIR:Resources/cellCursor",                     "ENV:Sys/def_cellpointer" },
+   { "PROGDIR:Resources/contextMenuCursor",              "ENV:Sys/def_contextmenupointer.info" },
+   { "PROGDIR:Resources/noDropCursor",                   "ENV:Sys/def_nodroppointer" },
+   { "PROGDIR:Resources/notAllowedCursor",               "ENV:Sys/def_notallowedpointer" },
+   { "PROGDIR:Resources/progressCursor",                 "ENV:Sys/def_progresspointer" },
+   { "PROGDIR:Resources/aliasCursor",                    "ENV:Sys/def_aliaspointer" },
+   { "PROGDIR:Resources/zoomInCursor",                   "ENV:Sys/def_zoominpointer" },
+   { "PROGDIR:Resources/zoomOutCursor",                  "ENV:Sys/def_zoomoutpointer" },
+   { "PROGDIR:Resources/copyCursor",                     "ENV:Sys/def_copypointer" },
+   { "PROGDIR:Resources/noneCursor",                     "ENV:Sys/def_nonepointer" },
+   { "PROGDIR:Resources/grabCursor",                     0 }, // missing
+   { "PROGDIR:Resources/grabbingCursor",                 0 }  // missing
+//   { "PROGDIR:Resources/scrollAllCursor",                "ENV:Sys/def_scrollallpointer" },
+};
+
 Cursor::Cursor(Image*, const IntPoint&)
     : m_impl(0)
     , m_dispose(false)
@@ -59,12 +107,23 @@ Cursor::Cursor(PlatformCursor c)
     fprintf(stderr, "%s (%p)\n", __PRETTY_FUNCTION__, c);
 }
 
-Cursor::Cursor(const char* name)
+Cursor::Cursor(enPointers num)
     : m_impl(0)
     , m_dispose(true)
     , m_data(0)
 {
-    DiskObject *icon = IIcon->GetIconTags(name, ICONGETA_UseFriendBitMap, TRUE, TAG_DONE);
+    DiskObject *icon = 0;
+    CONST_STRPTR name = pointerFiles[num][0];
+
+    if (name)
+        icon = IIcon->GetIconTags(name, ICONGETA_UseFriendBitMap, TRUE, TAG_DONE);
+
+    if (!icon) {
+        name = pointerFiles[num][1];
+        if (name)
+            icon = IIcon->GetIconTags(name, ICONGETA_UseFriendBitMap, TRUE, TAG_DONE);
+    }
+
     if (icon) {
         uint32 format = IDFMT_BITMAPPED;
         if (1 == IIcon->IconControl(icon, ICONCTRLA_GetImageDataFormat, &format, TAG_DONE))
@@ -145,247 +204,259 @@ Cursor& Cursor::operator=(const Cursor& other)
 
 const Cursor& pointerCursor()
 {
-    static Cursor c("PROGDIR:Resources/pointerCursor");
+    static Cursor c(en_pointerCursor);
     return c;
 }
 
 const Cursor& crossCursor()
 {
-    static Cursor c("PROGDIR:Resources/crossCursor");
+    static Cursor c(en_crossCursor);
     return c;
 }
 
 const Cursor& handCursor()
 {
-    static Cursor c("PROGDIR:Resources/handCursor");
+    static Cursor c(en_handCursor);
     return c;
 }
 
 const Cursor& moveCursor()
 {
-    static Cursor c("PROGDIR:Resources/moveCursor");
+    static Cursor c(en_moveCursor);
     return c;
 }
 
 const Cursor& iBeamCursor()
 {
-    static Cursor c("PROGDIR:Resources/iBeamCursor");
+    static Cursor c(en_iBeamCursor);
     return c;
 }
 
 const Cursor& waitCursor()
 {
-    static Cursor c("PROGDIR:Resources/waitCursor");
+    static Cursor c(en_waitCursor);
     return c;
 }
 
 const Cursor& helpCursor()
 {
-    static Cursor c("PROGDIR:Resources/helpCursor");
+    static Cursor c(en_helpCursor);
     return c;
 }
 
 const Cursor& eastResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/eastResizeCursor");
+    static Cursor c(en_eastResizeCursor);
     return c;
 }
 
 const Cursor& northResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/northResizeCursor");
+    static Cursor c(en_northResizeCursor);
     return c;
 }
 
 const Cursor& northEastResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/northEastResizeCursor");
+    static Cursor c(en_northEastResizeCursor);
     return c;
 }
 
 const Cursor& northWestResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/northWestResizeCursor");
+    static Cursor c(en_northWestResizeCursor);
     return c;
 }
 
 const Cursor& southResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/southResizeCursor");
+    static Cursor c(en_southResizeCursor);
     return c;
 }
 
 const Cursor& southEastResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/southEastResizeCursor");
+    static Cursor c(en_southEastResizeCursor);
     return c;
 }
 
 const Cursor& southWestResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/southWestResizeCursor");
+    static Cursor c(en_southWestResizeCursor);
     return c;
 }
 
 const Cursor& westResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/westResizeCursor");
+    static Cursor c(en_westResizeCursor);
     return c;
 }
 
 const Cursor& northSouthResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/northSouthResizeCursor");
+    static Cursor c(en_northSouthResizeCursor);
     return c;
 }
 
 const Cursor& eastWestResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/eastWestResizeCursor");
+    static Cursor c(en_eastWestResizeCursor);
     return c;
 }
 
 const Cursor& northEastSouthWestResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/northEastSouthWestResizeCursor");
+    static Cursor c(en_northEastSouthWestResizeCursor);
     return c;
 }
 
 const Cursor& northWestSouthEastResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/northWestSouthEastResizeCursor");
+    static Cursor c(en_northWestSouthEastResizeCursor);
     return c;
 }
 const Cursor& columnResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/columnResizeCursor");
+    static Cursor c(en_columnResizeCursor);
     return c;
 }
 
 const Cursor& rowResizeCursor()
 {
-    static Cursor c("PROGDIR:Resources/rowResizeCursor");
+    static Cursor c(en_rowResizeCursor);
     return c;
 }
 
 const Cursor& middlePanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/middlePanningCursor"); // missing
+    static Cursor c(en_middlePanningCursor);
     return c;
 }
 
 const Cursor& eastPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/eastPanningCursor"); // missing
+    static Cursor c(en_eastPanningCursor);
     return c;
 }
 
 const Cursor& northPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/northPanningCursor"); // missing
+    static Cursor c(en_northPanningCursor);
     return c;
 }
 
 const Cursor& northEastPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/northEastPanningCursor"); // missing
+    static Cursor c(en_northEastPanningCursor);
     return c;
 }
 
 const Cursor& northWestPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/northWestPanningCursor"); // missing
+    static Cursor c(en_northWestPanningCursor);
     return c;
 }
 
 const Cursor& southPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/southPanningCursor"); // missing
+    static Cursor c(en_southPanningCursor);
     return c;
 }
 
 const Cursor& southEastPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/southEastPanningCursor"); // missing
+    static Cursor c(en_southEastPanningCursor);
     return c;
 }
 
 const Cursor& southWestPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/southWestPanningCursor"); // missing
+    static Cursor c(en_southWestPanningCursor);
     return c;
 }
 
 const Cursor& westPanningCursor()
 {
-    static Cursor c("PROGDIR:Resources/westPanningCursor"); // missing
+    static Cursor c(en_westPanningCursor);
     return c;
 }
 
 const Cursor& verticalTextCursor()
 {
-    static Cursor c("PROGDIR:Resources/verticalTextCursor");
+    static Cursor c(en_verticalTextCursor);
     return c;
 }
 
 const Cursor& cellCursor()
 {
-    static Cursor c("PROGDIR:Resources/cellCursor");
+    static Cursor c(en_cellCursor);
     return c;
 }
 
 const Cursor& contextMenuCursor()
 {
-    static Cursor c("PROGDIR:Resources/contextMenuCursor");
+    static Cursor c(en_contextMenuCursor);
     return c;
 }
 
 const Cursor& noDropCursor()
 {
-    static Cursor c("PROGDIR:Resources/noDropCursor");
+    static Cursor c(en_noDropCursor);
     return c;
 }
 
 const Cursor& copyCursor()
 {
-    static Cursor c("PROGDIR:Resources/copyCursor");
+    static Cursor c(en_copyCursor);
     return c;
 }
 
 const Cursor& progressCursor()
 {
-    static Cursor c("PROGDIR:Resources/progressCursor");
+    static Cursor c(en_progressCursor);
     return c;
 }
 
 const Cursor& aliasCursor()
 {
-    static Cursor c("PROGDIR:Resources/aliasCursor");
+    static Cursor c(en_aliasCursor);
     return c;
 }
 
 const Cursor& noneCursor()
 {
-    static Cursor c("PROGDIR:Resources/noneCursor");
+    static Cursor c(en_noneCursor);
     return c;
 }
 
 const Cursor& notAllowedCursor()
 {
-    static Cursor c("PROGDIR:Resources/notAllowedCursor");
+    static Cursor c(en_notAllowedCursor);
     return c;
 }
 
 const Cursor& zoomInCursor()
 {
-    static Cursor c("PROGDIR:Resources/zoomInCursor");
+    static Cursor c(en_zoomInCursor);
     return c;
 }
 
 const Cursor& zoomOutCursor()
 {
-    static Cursor c("PROGDIR:Resources/zoomOutCursor");
+    static Cursor c(en_zoomOutCursor);
     return c;
+}
+
+const Cursor& grabCursor()
+{
+    static Cursor c(en_grabCursor);
+    return pointerCursor();
+}
+
+const Cursor& grabbingCursor()
+{
+    static Cursor c(en_grabbingCursor);
+    return pointerCursor();
 }
 
 }

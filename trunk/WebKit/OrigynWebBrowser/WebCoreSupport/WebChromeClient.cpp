@@ -125,8 +125,8 @@ Page* WebChromeClient::createWindow(Frame*, const FrameLoadRequest& frameLoadReq
     if (newWebView) {
         BalWidget *newowbwindow = createAmigaWindow(newWebView);
         if (newowbwindow) {
-            IntRect clientRect(0, 0, newowbwindow->webViewWidth, newowbwindow->webViewHeight);
-            newWebView->initWithFrame(clientRect, "", "");
+            BalRectangle clientRect = {0, 0, newowbwindow->webViewWidth, newowbwindow->webViewHeight};
+            newWebView->initWithFrame(clientRect, frameLoadRequest.frameName().utf8().data(), "");
             newWebView->setViewWindow(newowbwindow);
 
             return core(newWebView);
@@ -275,6 +275,36 @@ void WebChromeClient::runJavaScriptAlert(Frame* frame, const String& message)
 
 bool WebChromeClient::runJavaScriptConfirm(Frame *frame, const String& message)
 {
+#if PLATFORM(AMIGAOS4)
+    CString messageLatin1 = message.latin1();
+    Object *requester = (Object *)RequesterObject,
+                                      REQ_CharSet, 4,
+                                      REQ_TitleText, "OWB Javascript Confirm",
+                                      REQ_BodyText, messageLatin1.data(),
+                                      REQ_GadgetText, "Yes|No",
+                                  End;
+    if (requester) {
+        struct Window *window = m_webView->viewWindow()->window;
+        struct Requester dummyRequester;
+
+        if (window) {
+            IIntuition->InitRequester(&dummyRequester);
+            IIntuition->Request(&dummyRequester, window);
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, TRUE, WA_PointerDelay, TRUE, TAG_DONE);
+        }
+
+        uint32 result = OpenRequester(requester, window);
+
+        if (window) {
+            IIntuition->SetWindowPointer(window, WA_BusyPointer, FALSE, TAG_DONE);
+            IIntuition->EndRequest(&dummyRequester, window);
+        }
+
+        IIntuition->DisposeObject(requester);
+
+        return 1 == result;
+    }
+#endif
     printf("Javascript Confirm: %s (from frame %p), answer is 'false' by default.\n", message.utf8().data(), frame);
     return false;
 }
@@ -288,7 +318,7 @@ bool WebChromeClient::runJavaScriptPrompt(Frame *frame, const String& message, c
 void WebChromeClient::setStatusbarText(const String& statusText)
 {
 #if PLATFORM(AMIGAOS4)
-    BalWidget *widget = m_webView->viewWindow();
+    BalWidget *widget = m_webView ? m_webView->viewWindow() : 0;
     if (widget && widget->gad_status) {
         CString statusLatin1 = statusText.latin1();
         snprintf(widget->statusBarText, sizeof(widget->statusBarText), "%s", statusLatin1.data());

@@ -599,10 +599,6 @@ void WebView::clearDirtyRegion()
 
 void WebView::scrollBackingStore(FrameView* frameView, int dx, int dy, const BalRectangle& scrollViewRect, const BalRectangle& clipRect)
 {
-#if PLATFORM(AMIGAOS4)
-    //FIXME: Do this in WebViewPrivate for AmigaOS4
-    m_backingStoreDirtyRegion.move(dx, dy);
-#endif
     d->scrollBackingStore(frameView, dx, dy, scrollViewRect, clipRect);
     
 }
@@ -722,11 +718,10 @@ const char* WebView::standardUserAgentWithApplicationName(const char* applicatio
     // We use the user agent from safari to avoid the rejection from google services (google docs, gmail, etc...)
     return  "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; fr) AppleWebKit/522.11 (KHTML, like Gecko) Safari/412 OWB/Doduo";
 #elif PLATFORM(AMIGAOS4)
-//    m_userAgentStandard =  "Mozilla/5.0 (AMIGA; U; AmigaOS4 ppc; en-US) AppleWebKit/420+ (KHTML, like Gecko) Safari/412 OWB/Doduo";
     if (IExec->Data.LibBase->lib_Version < 53)
-        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
+        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.0; ppc; U; en) AppleWebKit/528.5+ (KHTML, like Gecko, Safari/528.5+)";
     else
-        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.1; PPC; U) AppleWebKit/525.1+ (KHTML, like Gecko, Safari/525.1+)";
+        return "Mozilla/5.0 (compatible; Origyn Web Browser; AmigaOS 4.1; ppc; U; en) AppleWebKit/528.5+ (KHTML, like Gecko, Safari/528.5+)";
 #else
     // NOTE: some pages don't render with this UA.
     // m_userAgentStandard = "Mozilla/5.0 (iPod; U; CPU like Mac OS X; fr) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3";
@@ -1067,8 +1062,7 @@ void WebView::setToolTip(const char* toolTip)
 
     BalWidget *widget = m_viewWindow;
     if (widget && widget->gad_status) {
-        CString toolTipLatin1 = m_toolTip.latin1();
-        snprintf(widget->toolTipText, sizeof(widget->toolTipText), "%s", toolTipLatin1.data());
+        snprintf(widget->toolTipText, sizeof(widget->toolTipText), "%s", toolTip);
         if (widget->statusBarText[0] && widget->toolTipText[0])
             snprintf(widget->statusToolTipText, sizeof(widget->statusToolTipText), "%s | %s", widget->statusBarText, widget->toolTipText);
         else

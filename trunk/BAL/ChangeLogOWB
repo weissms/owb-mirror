@@ -1,3 +1,120 @@
+2008-12-24  Joerg Strohmayer  <j_s@gmx.de>
+
+        Reviewed by Mario Bensi.
+        AmigaOS port update and changes for Galekid.
+
+        * Events/WebCore/AmigaOS4/BCEventHandlerAmigaOS4.cpp:
+        (WebCore::EventHandler::accessKeyModifiers):
+        * Facilities/WebCore/AmigaOS4/BCSharedTimerAmigaOS4.cpp:
+        (OWBAL::):
+        * Fonts/WebCore/AmigaOS4/BCFontAmigaOS4.cpp:
+        (WKAL::Font::drawGlyphs):
+        * Fonts/WebCore/AmigaOS4/BCFontPlatformDataAmigaOS4.cpp:
+        (WKAL::openFont):
+        (WKAL::FontPlatformData::FontPlatformData):
+        (WKAL::FontPlatformData::operator==):
+        * Fonts/WebCore/AmigaOS4/BCGlyphPageTreeNodeAmigaOS4.cpp:
+        (WKAL::GlyphPage::fill):
+        * Fonts/WebCore/AmigaOS4/BCSimpleFontDataAmigaOS4.cpp:
+        (WKAL::SimpleFontData::platformInit):
+        (WKAL::SimpleFontData::platformWidthForGlyph):
+        * Fonts/WebCore/AmigaOS4/BCSimpleFontDataAmigaOS4.h:
+        * Graphics/WebCore/AmigaOS4: Added.
+        * Graphics/WebCore/AmigaOS4/BCIntRectAmigaOS4.cpp: Added.
+        (WKAL::IntRect::IntRect):
+        (WKAL::IntRect::operator BalRectangle):
+        * Graphics/WebCore/AmigaOS4/BCIntRectAmigaOS4.h: Added.
+        (WKAL::IntRect::IntRect):
+        (WKAL::IntRect::location):
+        (WKAL::IntRect::size):
+        (WKAL::IntRect::setLocation):
+        (WKAL::IntRect::setSize):
+        (WKAL::IntRect::x):
+        (WKAL::IntRect::y):
+        (WKAL::IntRect::width):
+        (WKAL::IntRect::height):
+        (WKAL::IntRect::setX):
+        (WKAL::IntRect::setY):
+        (WKAL::IntRect::setWidth):
+        (WKAL::IntRect::setHeight):
+        (WKAL::IntRect::topLeft):
+        (WKAL::IntRect::topRight):
+        (WKAL::IntRect::bottomLeft):
+        (WKAL::IntRect::bottomRight):
+        (WKAL::IntRect::isEmpty):
+        (WKAL::IntRect::right):
+        (WKAL::IntRect::bottom):
+        (WKAL::IntRect::move):
+        (WKAL::IntRect::contains):
+        (WKAL::IntRect::inflateX):
+        (WKAL::IntRect::inflateY):
+        (WKAL::IntRect::inflate):
+        (WKAL::intersection):
+        (WKAL::unionRect):
+        (WKAL::operator==):
+        (WKAL::operator!=):
+        * Widgets/WebCore/AmigaOS4/BCCursorAmigaOS4.cpp:
+        (WKAL::):
+        (WKAL::Cursor::Cursor):
+        (WKAL::pointerCursor):
+        (WKAL::crossCursor):
+        (WKAL::handCursor):
+        (WKAL::moveCursor):
+        (WKAL::iBeamCursor):
+        (WKAL::waitCursor):
+        (WKAL::helpCursor):
+        (WKAL::eastResizeCursor):
+        (WKAL::northResizeCursor):
+        (WKAL::northEastResizeCursor):
+        (WKAL::northWestResizeCursor):
+        (WKAL::southResizeCursor):
+        (WKAL::southEastResizeCursor):
+        (WKAL::southWestResizeCursor):
+        (WKAL::westResizeCursor):
+        (WKAL::northSouthResizeCursor):
+        (WKAL::eastWestResizeCursor):
+        (WKAL::northEastSouthWestResizeCursor):
+        (WKAL::northWestSouthEastResizeCursor):
+        (WKAL::columnResizeCursor):
+        (WKAL::rowResizeCursor):
+        (WKAL::middlePanningCursor):
+        (WKAL::eastPanningCursor):
+        (WKAL::northPanningCursor):
+        (WKAL::northEastPanningCursor):
+        (WKAL::northWestPanningCursor):
+        (WKAL::southPanningCursor):
+        (WKAL::southEastPanningCursor):
+        (WKAL::southWestPanningCursor):
+        (WKAL::westPanningCursor):
+        (WKAL::verticalTextCursor):
+        (WKAL::cellCursor):
+        (WKAL::contextMenuCursor):
+        (WKAL::noDropCursor):
+        (WKAL::copyCursor):
+        (WKAL::progressCursor):
+        (WKAL::aliasCursor):
+        (WKAL::noneCursor):
+        (WKAL::notAllowedCursor):
+        (WKAL::zoomInCursor):
+        (WKAL::zoomOutCursor):
+        (WKAL::grabCursor):
+        (WKAL::grabbingCursor):
+        * Widgets/WebCore/AmigaOS4/BCCursorAmigaOS4.h:
+        (WKAL::):
+        * Widgets/WebCore/AmigaOS4/BCPlatformScreenAmigaOS4.cpp:
+        (WKAL::screenDepth):
+        (WKAL::screenDepthPerComponent):
+        (WKAL::screenRect):
+        * Widgets/WebCore/AmigaOS4/BCSearchPopupMenuAmigaOS4.cpp: Added.
+        (WKAL::SearchPopupMenu::SearchPopupMenu):
+        (WKAL::SearchPopupMenu::saveRecentSearches):
+        (WKAL::SearchPopupMenu::loadRecentSearches):
+        (WKAL::SearchPopupMenu::enabled):
+        * Widgets/WebCore/AmigaOS4/BCSearchPopupMenuAmigaOS4.h: Added.
+        (WKAL::SearchPopupMenu::create):
+        * Widgets/WebCore/SDL/BCWidgetSDL.cpp:
+        (WKAL::Widget::setCursor):
+
 2008-12-23  Mario Bensi  <mbensi@pleyo.com>
 
         remove RenderObject in WebKitFiles.txt.

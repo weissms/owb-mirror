@@ -92,9 +92,9 @@ void SimpleFontData::platformInit()
             m_descent = max_descent;
         }
 
-        m_lineSpacing = m_font.m_size + m_descent;
+        m_lineSpacing = m_ascent + m_descent;
 
-        m_xHeight = m_font.m_size;
+        m_xHeight = (int)(m_font.m_size * amigaConfig.fontYDPI / 72);
         if (!IDiskfont->ESetInfo(&face->olf_EEngine,
                                  OT_GlyphCode, 'x',
                                  TAG_END)) {
@@ -128,7 +128,7 @@ void SimpleFontData::platformInit()
             }
         }
 
-        m_spaceWidth = spacewidth / 65536.0 * m_font.m_size;
+        m_spaceWidth = (int)(spacewidth / 65536.0 * m_font.m_size * amigaConfig.fontXDPI / 72);
         m_lineGap = m_lineSpacing - m_ascent + m_descent;
     }
 }
@@ -191,7 +191,7 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
         if (0 == width
          && amigaConfig.unicodeFace
          && !IDiskfont->ESetInfo(&amigaConfig.unicodeFace->olf_EEngine,
-                                 OT_PointHeight, ((int)(m_font.m_size + 0.5)) << 16,
+                                 OT_PointHeight, ((int)(m_font.m_size)) << 16,
                                  OT_GlyphCode, glyph,
                                  OT_GlyphCode2, glyph,
                                  TAG_END)
@@ -239,7 +239,7 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
         }
 
         if (width > 0.1)
-           return width;
+           return (int)(width * amigaConfig.fontXDPI / 72);
     }
     return m_spaceWidth;
 }

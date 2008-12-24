@@ -84,6 +84,7 @@ public:
 
 private:
     void platformInit();
+    void platformGlyphInit();
     void platformDestroy();
     
     void commonInit();

@@ -268,7 +268,12 @@ const char* WebFrame::name()
     if (!coreFrame->document())
         return "";
 
+#if PLATFORM(AMIGAOS4)
+    strlcpy(m_title, coreFrame->loader()->documentLoader()->title().utf8().data(), sizeof(m_title));
+    return m_title;
+#else
     return coreFrame->loader()->documentLoader()->title().utf8().data();
+#endif
 }
 
 WebView* WebFrame::webView()
@@ -376,13 +381,22 @@ WebDataSource* WebFrame::provisionalDataSource()
     return getWebDataSource(coreFrame->loader()->provisionalDocumentLoader());
 }
 
+#if PLATFORM(AMIGAOS4)
+const char* WebFrame::url()
+#else
 const char* WebFrame::url() const
+#endif
 {
     Frame* coreFrame = core(this);
     if (!coreFrame)
         return "";
 
+#if PLATFORM(AMIGAOS4)
+    strlcpy(m_url, coreFrame->loader()->url().string().utf8().data(), sizeof(m_url));
+    return m_url;
+#else
     return coreFrame->loader()->url().string().utf8().data();
+#endif
 }
 
 void WebFrame::stopLoading()

@@ -27,6 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
 #include "WebViewPrivate.h"
 #include "IntRect.h"
 #include "FrameView.h"
@@ -36,10 +37,12 @@
 #include "Page.h"
 #include "EventHandler.h"
 #include "FocusController.h"
+#include <MainThread.h>
 #include <PlatformKeyboardEvent.h>
 #include <PlatformMouseEvent.h>
 #include <PlatformWheelEvent.h>
 #include "SelectionController.h"
+#include <SharedTimer.h>
 #include "Editor.h"
 #include "owb-config.h"
 #include "PopupMenu.h"
@@ -47,20 +50,33 @@
 #include "FileIO.h"
 #include "WebFrame.h"
 #include "WebView.h"
-#include DEEPSEE_INCLUDE
 
 #include <proto/graphics.h>
 #include <proto/intuition.h>
 #include <proto/layers.h>
 #include <proto/popupmenu.h>
+#include <proto/requester.h>
+#include <classes/requester.h>
+#include <reaction/reaction_macros.h>
 #include <graphics/blitattr.h>
 #include <libraries/keymap.h>
 
 using namespace WebCore;
 
+WebViewPrivate::WebViewPrivate(WebView *webView)
+    : m_webView(webView)
+    , isInitialized(false)
+{
+}
+
+void WebViewPrivate::fireWebKitEvents()
+{
+    WTF::dispatchFunctionsFromMainThread();
+    fireTimerIfNeeded();
+}
+
 void WebViewPrivate::onExpose(BalEventExpose event)
 {
-    //printf("WebViewPrivate::onExpose\n");
     Frame* frame = core(m_webView->mainFrame());
     if (!frame)
         return;
@@ -77,12 +93,12 @@ void WebViewPrivate::onExpose(BalEventExpose event)
         return;
 
     GraphicsContext ctx(widget->cr);
-    if (frame->contentRenderer() && frame->view() && !m_webView->dirtyRegion().isEmpty()) {
-        frame->view()->layoutIfNeededRecursive();
-        IntRect dirty = m_webView->dirtyRegion();
+    IntRect rect(m_webView->dirtyRegion());
+    if (frame->contentRenderer() && frame->view() && !rect.isEmpty()) {
         m_webView->clearDirtyRegion();
-        frame->view()->paint(&ctx, dirty);
-        updateView(widget, dirty);
+        frame->view()->layoutIfNeededRecursive();
+        frame->view()->paint(&ctx, rect);
+        updateView(widget, rect);
     }
 }
 
@@ -256,6 +272,7 @@ void WebViewPrivate::popupMenuHide()
     //BOOKMARKLET_INSTALL_PATH
 }
 
+
 void WebViewPrivate::popupMenuShow(void *popupInfo)
 {
     PopupMenu *pop = static_cast<PopupMenu *>(popupInfo);
@@ -309,7 +326,7 @@ void WebViewPrivate::popupMenuShow(void *popupInfo)
 
 void WebViewPrivate::updateView(BalWidget *widget, IntRect rect)
 {
-    if (!widget || !widget->window)
+    if (!widget || !widget->window || rect.isEmpty())
         return;
 
     int x = rect.x();
@@ -354,14 +371,19 @@ void WebViewPrivate::repaint(const WebCore::IntRect& windowRect, bool contentCha
 
 void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect)
 {
+    m_backingStoreDirtyRegion.move(dx, dy);
+
     BalWidget* widget = m_webView->viewWindow();
     if (!widget || !widget->window)
         return;
 
-    int x = scrollViewRect.x();
-    int y = scrollViewRect.y();
-    int width = scrollViewRect.width();
-    int height = scrollViewRect.height();
+    IntRect updateRect = clipRect;
+    updateRect.intersect(scrollViewRect);
+    
+    int x = updateRect.x();
+    int y = updateRect.y();
+    int width = updateRect.width();
+    int height = updateRect.height();
     int dirtyX = 0, dirtyY = 0, dirtyW = 0, dirtyH = 0;
 
     dx = -dx;
@@ -402,30 +424,23 @@ void WebViewPrivate::scrollBackingStore(WebCore::FrameView* view, int dx, int dy
         ILayers->InstallLayerHook(Layer, oldhook);
 
         m_webView->addToDirtyRegion(IntRect(dirtyX, dirtyY, dirtyW, dirtyH));
-#if 0
-        if (dx && hBar)
-            m_webView->addToDirtyRegion(IntRect(hBar->x(), hBar->y(), hBar->width(), hBar->height()));
-        if (dy && vBar)
-            m_webView->addToDirtyRegion(IntRect(vBar->x(), vBar->y(), vBar->width(), vBar->height()));
-#endif
     }
     else
-        m_webView->addToDirtyRegion(frameRect());
+        m_webView->addToDirtyRegion(updateRect);
 
     sendExposeEvent(IntRect());
 }
 
-void WebView::runJavaScriptAlert(WebFrame* frame, const String& message)
+void WebViewPrivate::runJavaScriptAlert(WebFrame* frame, const char* message)
 {
-    CString messageLatin1 = message.latin1();
     Object* requester = (Object *)RequesterObject,
                                       REQ_CharSet, 4,
                                       REQ_TitleText, "OWB Javascript Alert",
-                                      REQ_BodyText, messageLatin1.data(),
+                                      REQ_BodyText, message,
                                       REQ_GadgetText, "Ok",
                                   End;
     if (requester) {
-        struct Window* window = viewWindow()->window;
+        struct Window* window = m_webView->viewWindow()->window;
         struct Requester dummyRequester;
 
         if (window) {

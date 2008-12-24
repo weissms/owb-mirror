@@ -30,86 +30,70 @@
 #ifndef BALType_h
 #define BALType_h
 
-struct SDL_Surface;
-struct SDL_QuitEvent;
-struct SDL_UserEvent;
+struct _cairo;
+struct _cairo_surface;
+struct _cairo_pattern;
+struct _cairo_matrix;
 struct SDL_Color;
-struct SDL_Cursor;
-struct SDL_Rect;
 struct Window;
 struct Gadget;
 struct OutlineFont;
 struct Hook;
+struct AppIcon;
+struct BitMap;
 class WebView;
+
+namespace WebCore {
+    struct CairoPath;
+}
 
 namespace WKAL {
     class FloatSize;
 }
 
-struct AmigaOWBWindow
-{
-    struct Window *window;
-    int offsetx, offsety;
-    SDL_Surface* surface;
-    bool expose;
-    struct Gadget *gad_toolbar, *gad_vbar, *gad_hbar,
-                  *gad_url, *gad_fuelgauge, *gad_stop,
-                  *gad_back, *gad_forward;
-    struct Hook *backfill_hook;
-    struct AmigaOWBWindow *next;
-    WebView *webView;
-};
-
-struct AmigaOWBResizeEvent
-{
-    int w, h;
-};
-
 struct AmigaConfig
 {
     const char *homeURL;
     const char *searchURL;
-    int width, height;
+    int minFontSize;
+    int fontXDPI, fontYDPI;
+    const char *unicodeFontName;
+    OutlineFont *unicodeFace;
+    int windowleft, windowtop, windowwidth, windowheight;
+    bool confirmQuit;
+    const char *pubScreenName;
+    const char *bookMarkCommand;
+    const char* cookiePath;
+    bool fontKerning;
+    int fontHinter;
 };
 extern struct AmigaConfig amigaConfig;
 
-typedef struct SDL_ExposeEvent BalEventExpose;
-typedef struct AmigaOWBResizeEvent BalResizeEvent;
-typedef struct SDL_QuitEvent BalQuitEvent;
-typedef struct SDL_UserEvent BalUserEvent;
-typedef struct IntuiMessage BalEventKey;
-typedef struct IntuiMessage BalEventButton;
-typedef struct IntuiMessage BalEventMotion;
-typedef struct IntuiMessage BalEventScroll;
 typedef struct OutlineFont BalFontFace;
 typedef void BalFont;
 typedef void BalPattern;
 typedef void BalScaledFont;
 typedef void BalDrawable;
-typedef SDL_Surface BalSurface;
-typedef struct _BalPoint{} BalPoint;
-typedef SDL_Rect BalRectangle;
+typedef _cairo_surface BalSurface;
 typedef void BalMenuItem;
-typedef SDL_Surface BalMenu;
+typedef _cairo_surface BalMenu;
 typedef void BalClipboard;
 typedef void BalTargetList;
 typedef void BalAdjustment;
-typedef AmigaOWBWindow BalWidget;
 typedef void BalContainer;
 typedef void BalPixbuf;
 typedef SDL_Color BalColor;
-typedef struct _BalMatrix{} BalMatrix;
+typedef struct _cairo_matrix BalMatrix;
 
 
-typedef SDL_Surface PlatformGraphicsContext;
+typedef _cairo PlatformGraphicsContext;
 typedef BalWidget* PlatformWidget;
-typedef void* PlatformPatternPtr;
+typedef _cairo_pattern* PlatformPatternPtr;
 
 namespace WKAL {
-    typedef void* PlatformGradient;
-    typedef void* PlatformPath;
-    typedef SDL_Cursor* PlatformCursor;
-    typedef BalWidget* PlatformWidget;
+    typedef _cairo_pattern *PlatformGradient;
+    typedef WebCore::CairoPath PlatformPath;
+    typedef void* PlatformCursor;
     typedef void* DragImageRef;
     typedef void* DragDataRef;
     typedef unsigned short GlyphBufferGlyph;

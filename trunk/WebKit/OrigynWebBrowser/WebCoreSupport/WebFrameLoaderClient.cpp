@@ -372,7 +372,7 @@ Frame* WebFrameLoaderClient::dispatchCreatePage()
     if (newWebView) {
         BalWidget *newowbwindow = createAmigaWindow(newWebView);
         if (newowbwindow) {
-            IntRect clientRect(0, 0, amigaConfig.width, amigaConfig.height);
+            BalRectangle clientRect = {0, 0, newowbwindow->webViewWidth, newowbwindow->webViewHeight};
             newWebView->initWithFrame(clientRect, "", "");
             newWebView->setViewWindow(newowbwindow);
 

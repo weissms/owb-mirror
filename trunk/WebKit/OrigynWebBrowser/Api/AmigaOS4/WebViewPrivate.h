@@ -34,14 +34,12 @@
 #include "Frame.h"
 #include "BALBase.h"
 #include "cairo.h"
-#include DEEPSEE_INCLUDE
 
 class WebViewPrivate {
 public:
-    WebViewPrivate(WebView *webView):m_webView(webView), isInitialized(false) {DS_CONSTRUCT();}
+    WebViewPrivate(WebView *webView);
     ~WebViewPrivate() 
     {
-        DS_DESTRUCT();
     }
 
     void show()
@@ -62,9 +60,9 @@ public:
         return m_rect; 
     }
     
-    BalWidget *createWindow(int x, int y, int width, int height)
+    BalWidget *createWindow(BalRectangle r)
     {
-        WebCore::IntRect rect(x, y, width, height);
+        WebCore::IntRect rect(r.x, r.y, r.w, r.h);
         if(rect != m_rect)
             m_rect = rect;
     
@@ -74,6 +72,27 @@ public:
 
     void initWithFrameView(WebCore::FrameView *frameView)
     {
+        m_webView->setCustomHTMLTokenizerTimeDelay(1.0);       // seconds, default: 0.500
+        m_webView->setCustomHTMLTokenizerChunkSize(16 * 1024); // bytes, default: 4096
+    }
+
+    void clearDirtyRegion()
+    {
+        m_backingStoreDirtyRegion.setX(0);
+        m_backingStoreDirtyRegion.setY(0);
+        m_backingStoreDirtyRegion.setWidth(0);
+        m_backingStoreDirtyRegion.setHeight(0);
+    }
+
+    BalRectangle dirtyRegion()
+    {
+        BalRectangle rect = {m_backingStoreDirtyRegion.x(), m_backingStoreDirtyRegion.y(), m_backingStoreDirtyRegion.width(), m_backingStoreDirtyRegion.height()};
+        return rect;
+    }
+
+    void addToDirtyRegion(const BalRectangle& dirtyRect)
+    {
+        m_backingStoreDirtyRegion.unite(dirtyRect);
     }
 
     void onExpose(BalEventExpose event);
@@ -95,11 +114,17 @@ public:
     
     void scrollBackingStore(WebCore::FrameView*, int dx, int dy, const WebCore::IntRect& scrollViewRect, const WebCore::IntRect& clipRect);
     
+    void fireWebKitEvents();
+    void runJavaScriptAlert(WebFrame* frame, const char* message);
+    
 private:
     void updateView(BalWidget *widget, WebCore::IntRect rect);
     WebCore::IntRect m_rect;
     WebView *m_webView;
     bool isInitialized;
+
+    WebCore::IntPoint m_backingStoreSize;
+    WebCore::IntRect m_backingStoreDirtyRegion;
 };
 
 

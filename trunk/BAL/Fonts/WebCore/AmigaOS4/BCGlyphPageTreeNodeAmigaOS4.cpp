@@ -69,7 +69,7 @@ bool GlyphPage::fill(unsigned offset, unsigned length, UChar* buffer, unsigned b
             uint32 ok = FALSE;
             if (amigaConfig.unicodeFontFace
              && !IDiskfont->ESetInfo(&amigaConfig.unicodeFontFace->olf_EEngine,
-                                     OT_PointHeight, ((int)(m_font.m_size + 0.5)) << 16,
+                                     OT_PointHeight, ((int)(m_font.m_size)) << 16,
                                      OT_GlyphCode, glyphs[i],
                                      TAG_END))
              && !IDiskfont->EObtainInfo(&amigaConfig.unicodeFontFace->olf_EEngine,

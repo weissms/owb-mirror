@@ -48,6 +48,73 @@ typedef struct _BalEventScroll{} BalEventScroll;
 typedef GdkPoint BalPoint;
 typedef GdkRectangle BalRectangle;
 
+#elif PLATFORM(AMIGAOS4)
+
+#include <cairo.h>
+
+struct Window;
+struct Gadget;
+struct Hook;
+struct AppIcon;
+class WebView;
+
+struct AmigaOWBWindow
+{
+    AmigaOWBWindow* next;
+    Window* window;
+    WebView* webView;
+    int offsetx, offsety;
+    int left, top, width, height;
+    int webViewWidth, webViewHeight;
+    _cairo* cr;
+    _cairo_surface* surface;
+    void *img_back, *img_forward, *img_stop,
+         *img_search, *img_home, *img_reload,
+         *img_iconify;
+    Gadget *gad_toolbar, *gad_vbar, *gad_hbar,
+           *gad_url, *gad_fuelgauge, *gad_stop,
+           *gad_back, *gad_forward, *gad_iconify,
+           *gad_search, *gad_status, *gad_webview,
+           *gad_page, *gad_hlayout;
+    Hook* backfill_hook;
+    char title[256];
+    char url[2000];
+    char search[500];
+    char statusBarText[256];
+    char toolTipText[256];
+    char statusToolTipText[512];
+    AppIcon* appicon;
+    void* curentCursor;
+    unsigned int fuelGaugeArgs[2];
+    const char* arexxPortName;
+    bool expose;
+};
+
+typedef struct AmigaOWBWindow BalWidget;
+
+struct AmigaOWBResizeEvent
+{
+    int w, h;
+};
+
+typedef int BalEventExpose;
+typedef struct AmigaOWBResizeEvent BalResizeEvent;
+typedef int BalQuitEvent;
+typedef int BalUserEvent;
+typedef struct IntuiMessage BalEventKey;
+typedef struct IntuiMessage BalEventButton;
+typedef struct IntuiMessage BalEventMotion;
+typedef struct IntuiMessage BalEventScroll;
+
+typedef struct _BalPoint{
+    int x;
+    int y;
+} BalPoint;
+typedef struct _BalRectangle{
+    int x, y;
+    int w, h;
+} BalRectangle;
+
 #elif PLATFORM(SDL)
 
 #include <SDL.h>

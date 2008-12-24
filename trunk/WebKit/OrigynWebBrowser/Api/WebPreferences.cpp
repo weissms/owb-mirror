@@ -141,7 +141,11 @@ void WebPreferences::initializeDefaultSettings()
 
     m_privatePrefs.add(WebKitHistoryItemLimitKey, "1000");
     m_privatePrefs.add(WebKitHistoryAgeInDaysLimitKey, "7");
+#if PLATFORM(AMIGAOS4)
+    m_privatePrefs.add(WebKitIconDatabaseLocationKey, "PROGDIR:");
+#else
     m_privatePrefs.add(WebKitIconDatabaseLocationKey, "");
+#endif
     m_privatePrefs.add(WebKitIconDatabaseEnabledPreferenceKey, "1");//TRUE
     m_privatePrefs.add(WebKitFontSmoothingTypePreferenceKey, "2");
     m_privatePrefs.add(WebKitCookieStorageAcceptPolicyPreferenceKey, "2");

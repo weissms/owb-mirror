@@ -37,6 +37,7 @@
 #include "Logging.h"
 #include "RenderObject.h"
 #if PLATFORM(AMIGAOS4)
+#include "HostWindow.h"
 #include <proto/intuition.h>
 #else
 #include "SDL.h"
@@ -82,8 +83,12 @@ Cursor Widget::cursor()
 void Widget::setCursor(const Cursor& cursor)
 {
 #if PLATFORM(AMIGAOS4)
+    if (!isFrameView())
+        return;
+
     static const Cursor *waitCursorPtr = &waitCursor();
-    BalWidget *widget = platformWidget();
+    HostWindow *hostWindow = static_cast<FrameView*>(this)->hostWindow();
+    BalWidget *widget = hostWindow ? hostWindow->platformWindow() : 0;
     Window *window = widget ? widget->window : 0;
 
     if (window)
