@@ -56,13 +56,6 @@ using namespace XMLNames;
 Element::Element(const QualifiedName& tagName, Document* doc)
     : ContainerNode(doc, true)
     , m_tagName(tagName)
-    , m_isStyleAttributeValid(true)
-    , m_synchronizingStyleAttribute(false)
-#if ENABLE(SVG)
-    , m_areSVGAttributesValid(true)
-    , m_synchronizingSVGAttributes(false)
-#endif
-    , m_parsingChildrenFinished(true)
 {
 }
 
@@ -104,6 +97,11 @@ PassRefPtr<Node> Element::cloneNode(bool deep)
         cloneChildNodes(clone.get());
 
     return clone.release();
+}
+
+PassRefPtr<Element> Element::cloneElement()
+{
+    return static_pointer_cast<Element>(cloneNode(false));
 }
 
 void Element::removeAttribute(const QualifiedName& name, ExceptionCode& ec)

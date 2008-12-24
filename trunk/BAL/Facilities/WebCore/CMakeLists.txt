@@ -17,6 +17,7 @@ create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCLoggingWK.h BAL/Logging.h
 create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCMIMETypeRegistryWK.h BAL/MIMETypeRegistry.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCSSLKeyGeneratorWK.h BAL/SSLKeyGenerator.h)
 create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCTimerWK.h BAL/Timer.h)
+create_include_link(${BAL_DIR}/Facilities/WebCore/WK/BCThreadGlobalDataWK.h BAL/ThreadGlobalData.h)
 #FIXME add implementation for GTK
 create_include_link(${BAL_DIR}/Facilities/WebCore/Linux/BCFileIOLinux.h BAL/FileIO.h)
 

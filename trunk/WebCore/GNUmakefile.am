@@ -1244,6 +1244,8 @@ webcore_sources += \
 	WebCore/platform/SystemTime.h \
 	WebCore/platform/ThemeTypes.h \
 	WebCore/platform/ThreadCheck.h \
+	WebCore/platform/ThreadGlobalData.cpp \
+	WebCore/platform/ThreadGlobalData.h \
 	WebCore/platform/Timer.cpp \
 	WebCore/platform/Timer.h \
 	WebCore/platform/TreeShared.h \
@@ -2191,11 +2193,14 @@ webcore_sources += \
 	WebCore/wml/WMLElement.cpp \
 	WebCore/wml/WMLErrorHandling.cpp \
 	WebCore/wml/WMLEventHandlingElement.cpp \
+	WebCore/wml/WMLFieldSetElement.cpp \
 	WebCore/wml/WMLGoElement.cpp \
 	WebCore/wml/WMLImageElement.cpp \
 	WebCore/wml/WMLImageLoader.cpp \
+	WebCore/wml/WMLInsertedLegendElement.cpp \
 	WebCore/wml/WMLIntrinsicEvent.cpp \
 	WebCore/wml/WMLIntrinsicEventHandler.cpp \
+	WebCore/wml/WMLMetaElement.cpp \
 	WebCore/wml/WMLNoopElement.cpp \
 	WebCore/wml/WMLOnEventElement.cpp \
 	WebCore/wml/WMLPElement.cpp \

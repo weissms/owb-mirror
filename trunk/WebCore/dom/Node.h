@@ -108,7 +108,7 @@ public:
     virtual void setNodeValue(const String&, ExceptionCode&);
     virtual NodeType nodeType() const = 0;
     Node* parentNode() const { return parent(); }
-    Node* parentElement() const { return parent(); } // IE extension
+    Element* parentElement() const;
     Node* previousSibling() const { return m_previous; }
     Node* nextSibling() const { return m_next; }
     virtual PassRefPtr<NodeList> childNodes();
@@ -513,13 +513,15 @@ private:
     virtual const AtomicString& virtualPrefix() const;
     virtual const AtomicString& virtualLocalName() const;
     virtual const AtomicString& virtualNamespaceURI() const;
-    
+
+    Element* ancestorElement() const;
+
+    void appendTextContent(bool convertBRsToNewlines, StringBuilder&) const;
+
     DocPtr<Document> m_document;
     Node* m_previous;
     Node* m_next;
     RenderObject* m_renderer;
-
-    // make sure we don't use more than 16 bits here -- adding more would increase the size of all Nodes
 
     unsigned m_styleChange : 2;
     bool m_hasId : 1;
@@ -536,11 +538,27 @@ private:
     bool m_hasRareData : 1;
     const bool m_isElement : 1;
     const bool m_isContainer : 1;
-    // no bits left   
 
-    Element* ancestorElement() const;
+protected:
+    // These bits are used by the Element derived class, pulled up here so they can
+    // be stored in the same memory word as the Node bits above.
+    bool m_parsingChildrenFinished : 1;
+#if ENABLE(SVG)
+    mutable bool m_areSVGAttributesValid : 1;
+#endif
 
-    void appendTextContent(bool convertBRsToNewlines, StringBuilder&) const;
+    // These bits are used by the StyledElement derived class, and live here for the
+    // same reason as above.
+    mutable bool m_isStyleAttributeValid : 1;
+    mutable bool m_synchronizingStyleAttribute : 1;
+
+#if ENABLE(SVG)
+    // This bit is used by the SVGElement derived class, and lives here for the same
+    // reason as above.
+    mutable bool m_synchronizingSVGAttributes : 1;
+#endif
+
+    // 11 bits remaining
 };
 
 // Used in Node::addSubresourceAttributeURLs() and in addSubresourceStyleURLs()

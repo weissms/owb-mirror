@@ -116,6 +116,8 @@ public:
     virtual void removedFromDocument();
     virtual void childrenChanged(bool changedByParser = false, Node* beforeChange = 0, Node* afterChange = 0, int childCountDelta = 0);
 
+    PassRefPtr<Element> cloneElement();
+
     void normalizeAttributes();
 
     virtual bool isInputTypeHidden() const { return false; }
@@ -220,20 +222,6 @@ protected:
     ElementRareData* ensureRareData();
     
     mutable RefPtr<NamedAttrMap> namedAttrMap;
-
-    // These two bits are really used by the StyledElement subclass, but they are pulled up here in order to be shared with other
-    // Element bits.
-    mutable bool m_isStyleAttributeValid : 1;
-    mutable bool m_synchronizingStyleAttribute : 1;
-
-#if ENABLE(SVG)
-    // These bit is are used by SVGElement subclasses, and it lives here for the same reason as above.
-    mutable bool m_areSVGAttributesValid : 1;
-    mutable bool m_synchronizingSVGAttributes : 1;
-#endif
-
-private:
-    bool m_parsingChildrenFinished : 1;
 };
     
 inline bool Node::hasTagName(const QualifiedName& name) const
@@ -249,6 +237,12 @@ inline bool Node::hasAttributes() const
 inline NamedAttrMap* Node::attributes() const
 {
     return isElementNode() ? static_cast<const Element*>(this)->attributes() : 0;
+}
+
+inline Element* Node::parentElement() const
+{
+    Node* parent = parentNode();
+    return parent && parent->isElementNode() ? static_cast<Element*>(parent) : 0;
 }
 
 } //namespace

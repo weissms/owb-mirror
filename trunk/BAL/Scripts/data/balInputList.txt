@@ -337,16 +337,17 @@ BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuilder.cpp
 
 BAL/Skeletons/Facilities	WebCore/platform/FileChooser.h
 BAL/Skeletons/Facilities	WebCore/platform/FileSystem.h
+BAL/Skeletons/Facilities	WebCore/platform/FloatConversion.h
+BAL/Skeletons/Facilities    WebCore/platform/GeolocationService.h
 BAL/Skeletons/Facilities	WebCore/platform/Language.h
 BAL/Skeletons/Facilities	WebCore/platform/MIMETypeRegistry.h
 BAL/Skeletons/Facilities	WebCore/platform/SharedTimer.h
 BAL/Skeletons/Facilities	WebCore/platform/SystemTime.h
 BAL/Skeletons/Facilities	WebCore/platform/Timer.h
-BAL/Skeletons/Facilities	WebCore/platform/FloatConversion.h
+BAL/Skeletons/Facilities	WebCore/platform/ThreadGlobalData.h
 BAL/Skeletons/Facilities	WebCore/platform/network/HTTPParsers.h
 BAL/Skeletons/Facilities	WebCore/platform/Logging.h
 BAL/Skeletons/Facilities	WebCore/platform/SSLKeyGenerator.h
-BAL/Skeletons/Facilities    WebCore/platform/GeolocationService.h
 
 BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.h
 BAL/Facilities/WebCore/WK	WebCore/platform/FileChooser.cpp
@@ -381,6 +382,8 @@ BAL/Facilities/WebCore/Gtk  WebCore/platform/gtk/GeolocationServiceGtk.h
 BAL/Facilities/WebCore/Gtk  WebCore/platform/gtk/GeolocationServiceGtk.cpp
 BAL/Facilities/WebCore/WK   WebCore/platform/GeolocationService.h
 BAL/Facilities/WebCore/WK   WebCore/platform/GeolocationService.cpp
+BAL/Facilities/WebCore/WK	WebCore/platform/ThreadGlobalData.h
+BAL/Facilities/WebCore/WK	WebCore/platform/ThreadGlobalData.cpp
 
 
 BAL/Skeletons/Media	WebCore/platform/graphics/MediaPlayer.h

@@ -10,13 +10,16 @@ if(ENABLE_WML)
         wml/WMLElement.cpp
         wml/WMLErrorHandling.cpp
         wml/WMLEventHandlingElement.cpp
+        wml/WMLFieldSetElement.cpp
         wml/WMLGoElement.cpp
         wml/WMLImageElement.cpp
         wml/WMLImageLoader.cpp
+        wml/WMLInsertedLegendElement.cpp
         wml/WMLIntrinsicEvent.cpp
         wml/WMLIntrinsicEventHandler.cpp
         wml/WMLNoopElement.cpp
         wml/WMLOnEventElement.cpp
+        wml/WMLMetaElement.cpp
         wml/WMLPageState.cpp
         wml/WMLPElement.cpp
         wml/WMLPostfieldElement.cpp
