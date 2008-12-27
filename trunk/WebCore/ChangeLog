@@ -1,3 +1,125 @@
+2008-12-27  Zalan Bujtas  <zbujtas@gmail.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22999
+        Check if database thread exists.
+
+        * storage/Database.cpp:
+        (WebCore::Database::openAndVerifyVersion):
+        (WebCore::Database::markAsDeletedAndClose):
+        (WebCore::Database::tableNames):
+
+2008-12-26  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23001
+        A call to applicationCache.update() from a cached event listener should be ignored
+
+        Test: http/tests/appcache/idempotent-update.html
+
+        * loader/appcache/ApplicationCacheGroup.cpp:
+        (WebCore::ApplicationCacheGroup::checkIfLoadIsComplete): Only reset m_status after
+        dispatching events.
+
+2008-12-26  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22997
+        ASSERTION FAILED: !m_resources.contains(url) in ApplicationCache::addResource()
+
+        Tests: http/tests/appcache/top-frame-1.html
+               http/tests/appcache/top-frame-2.html
+               http/tests/appcache/top-frame-3.html
+               http/tests/appcache/top-frame-4.html
+
+        * loader/appcache/ApplicationCacheGroup.cpp: (WebCore::ApplicationCacheGroup::cacheForMainRequest):
+        Fixed one more instance of top level frame being used for caching purposes.
+
+2008-12-26  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22987
+        Fix for broken test editing/execCommand/5763082.html
+
+        * editing/CompositeEditCommand.cpp:
+        (WebCore::CompositeEditCommand::mergeIdenticalElements): Used local RefPtr to hold onto
+        function parameter across multiple calls.
+
+2008-12-25  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22993
+        Application cache shouldn't be inherited by subframes
+
+        <rdar://problem/6284708> AppCache crashes in ApplicationCacheResource::addType()
+        This crash happened because main resource for subframe was looked up in top frame's
+        appcache. If not for the spec change, it could have been fixed by preventing the load
+        altogether.
+
+        Test: http/tests/appcache/foreign-iframe-main.html
+        I intend to write additional tests for the behavior change.
+
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::shouldLoadResourceFromApplicationCache):
+        * loader/DocumentLoader.h:
+        (WebCore::DocumentLoader::applicationCache):
+        * loader/MainResourceLoader.cpp:
+        (WebCore::MainResourceLoader::load):
+        * loader/appcache/DOMApplicationCache.cpp:
+        (WebCore::DOMApplicationCache::associatedCache):
+        Removed DocumentLoader::topLevelApplicationCache(), and changed callers accordingly.
+
+        * loader/appcache/ApplicationCacheGroup.cpp:
+        (WebCore::ApplicationCacheGroup::selectCache):
+        (WebCore::ApplicationCacheGroup::selectCacheWithoutManifestURL):
+        Removed checks for the frame being top-level one, now that subframes are cached independently.
+
+2008-12-25  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6465669> Frequent !isPurgeable() assertion in WebCore::CachedResource::addClient
+        
+        Disallow turning resources that are being revalidated to purgable state.
+        
+        No test, the condition is difficult to produce in DRT.
+
+        * loader/CachedCSSStyleSheet.cpp:
+        (WebCore::CachedCSSStyleSheet::allClientsRemoved):
+        * loader/CachedImage.cpp:
+        (WebCore::CachedImage::destroyDecodedData):
+        * loader/CachedResource.cpp:
+        (WebCore::CachedResource::isSafeToMakePurgeable):
+        (WebCore::CachedResource::makePurgeable):
+        * loader/CachedResource.h:
+        * loader/CachedScript.cpp:
+        (WebCore::CachedScript::destroyDecodedData):
+
+2008-12-25  Alexey Proskuryakov  <ap@webkit.org>
+
+        Qt build fix.
+
+        * WebCore.pro: Added ThreadGlobalData.cpp.
+
+2008-12-24  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * WebCore.base.exp:  Remove a symbol from the export file now that it is no longer generated.
+
+2008-12-24  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix to find addSubresourceURL
+
+        This is needed to compile on WebKit/Gtk+
+
+        * css/CSSFontFaceSrcValue.cpp:
+
 2008-12-24  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Darin Adler.

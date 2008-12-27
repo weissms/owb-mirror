@@ -1090,5 +1090,8 @@ CString TextCodecICU::encode(const UChar* characters, size_t length, Unencodable
     return encodeComplexUserDefined(characters, length, handling);
 }
 
+ICUConverterWrapper::~ICUConverterWrapper()
+{
+}
 
 } // namespace WebCore
