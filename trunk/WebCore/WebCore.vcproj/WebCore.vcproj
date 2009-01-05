@@ -5406,6 +5406,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\css\mediaControls.css"
+				>
+			</File>
+			<File
 				RelativePath="..\css\MediaFeatureNames.cpp"
 				>
 			</File>
@@ -6062,6 +6066,38 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\RenderTextControlMultiLine.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderTextControlMultiLine.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderTextControlSingleLine.cpp"
+				>
+				<FileConfiguration
+					Name="Release_PGO|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WholeProgramOptimization="true"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderTextControlSingleLine.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\RenderTextFragment.cpp"
 				>
 			</File>
@@ -6698,6 +6734,10 @@
 			</File>
 			<File
 				RelativePath="..\dom\ExceptionCode.h"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\FormControlElement.h"
 				>
 			</File>
 			<File

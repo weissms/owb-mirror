@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  * Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
  * Copyright (C) 2008 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
@@ -807,10 +807,6 @@ void FrameLoader::cancelAndClear()
 
 void FrameLoader::clear(bool clearWindowProperties, bool clearScriptObjects)
 {
-    // FIXME: Commenting out the below line causes <http://bugs.webkit.org/show_bug.cgi?id=11212>, but putting it
-    // back causes a measurable performance regression which we will need to fix to restore the correct behavior
-    // urlsBridgeKnowsAbout.clear();
-
     m_frame->editor()->clear();
 
     if (!m_needsClear)
@@ -3392,16 +3388,6 @@ void FrameLoader::tokenizerProcessedData()
     checkCompleted();
 }
 
-void FrameLoader::didTellClientAboutLoad(const String& url)
-{
-    m_urlsClientKnowsAbout.add(url);
-}
-
-bool FrameLoader::haveToldClientAboutLoad(const String& url)
-{
-    return m_urlsClientKnowsAbout.contains(url);
-}
-
 void FrameLoader::handledOnloadEvents()
 {
     m_client->dispatchDidHandleOnloadEvents();
@@ -3594,7 +3580,6 @@ unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& requ
 
     if (error.isNull()) {
         ASSERT(!newRequest.isNull());
-        didTellClientAboutLoad(newRequest.url().string());
         
 #if ENABLE(OFFLINE_WEB_APPLICATIONS)
         ApplicationCacheResource* resource;
@@ -3604,9 +3589,25 @@ unsigned long FrameLoader::loadResourceSynchronously(const ResourceRequest& requ
                 data.append(resource->data()->data(), resource->data()->size());
             } else
                 error = cannotShowURLError(newRequest);
-        } else 
+        } else {
 #endif
             ResourceHandle::loadResourceSynchronously(newRequest, error, response, data, m_frame);
+
+#if ENABLE(OFFLINE_WEB_APPLICATIONS)
+            // If normal loading results in a redirect to a resource with another origin (indicative of a captive portal), or a 4xx or 5xx status code or equivalent,
+            // or if there were network errors (but not if the user canceled the download), then instead get, from the cache, the resource of the fallback entry
+            // corresponding to the matched namespace.
+            if ((!error.isNull() && !error.isCancellation())
+                 || response.httpStatusCode() / 100 == 4 || response.httpStatusCode() / 100 == 5
+                 || !protocolHostAndPortAreEqual(newRequest.url(), response.url())) {
+                if (documentLoader()->getApplicationCacheFallbackResource(newRequest, resource)) {
+                    response = resource->response();
+                    data.clear();
+                    data.append(resource->data()->data(), resource->data()->size());
+                }
+            }
+        }
+#endif
     }
     
     sendRemainingDelegateMessages(identifier, response, data.size(), error);
@@ -4032,11 +4033,11 @@ void FrameLoader::loadedResourceFromMemoryCache(const CachedResource* resource)
         page->inspectorController()->didLoadResourceFromMemoryCache(m_documentLoader.get(), request, response, length);
 #endif
 
-    if (!resource->sendResourceLoadCallbacks() || haveToldClientAboutLoad(resource->url()))
+    if (!resource->sendResourceLoadCallbacks() || m_documentLoader->haveToldClientAboutLoad(request.url()))
         return;
 
     if (m_client->dispatchDidLoadResourceFromMemoryCache(m_documentLoader.get(), request, response, length)) {
-        didTellClientAboutLoad(resource->url());
+        m_documentLoader->didTellClientAboutLoad(request.url());
         return;
     }
 
@@ -4045,8 +4046,6 @@ void FrameLoader::loadedResourceFromMemoryCache(const CachedResource* resource)
     ResourceRequest r(request);
     requestFromDelegate(r, identifier, error);
     sendRemainingDelegateMessages(identifier, response, length, error);
-
-    didTellClientAboutLoad(resource->url());
 }
 
 void FrameLoader::applyUserAgent(ResourceRequest& request)
@@ -5126,7 +5125,14 @@ void FrameLoader::dispatchAssignIdentifierToInitialRequest(unsigned long identif
 
 void FrameLoader::dispatchWillSendRequest(DocumentLoader* loader, unsigned long identifier, ResourceRequest& request, const ResourceResponse& redirectResponse)
 {
+    StringImpl* oldRequestURL = request.url().string().impl();
+    m_documentLoader->didTellClientAboutLoad(request.url());
+
     m_client->dispatchWillSendRequest(loader, identifier, request, redirectResponse);
+
+    // If the URL changed, then we want to put that new URL in the "did tell client" set too.
+    if (oldRequestURL != request.url().string().impl())
+        m_documentLoader->didTellClientAboutLoad(request.url());
 
 #if ENABLE(INSPECTOR)
     if (Page* page = m_frame->page())

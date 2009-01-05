@@ -121,9 +121,10 @@ if(ENABLE_SVG)
 endif(ENABLE_SVG)
 list(APPEND USER_AGENT_STYLE_SHEETS
     ${OWB_SOURCE_DIR}/WebCore/css/html4.css
+    ${OWB_SOURCE_DIR}/WebCore/css/mediaControls.css
     ${OWB_SOURCE_DIR}/WebCore/css/quirks.css
-    ${OWB_SOURCE_DIR}/WebCore/css/view-source.css
     ${OWB_SOURCE_DIR}/WebCore/css/svg.css
+    ${OWB_SOURCE_DIR}/WebCore/css/view-source.css
     ${OWB_SOURCE_DIR}/WebCore/css/wml.css
 )
 

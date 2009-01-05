@@ -1,3 +1,66 @@
+2009-01-05  David Kilzer  <ddkilzer@apple.com>
+
+        Don't install internal headers in WebKit framework
+
+        Reviewed by Darin Adler.
+
+        Since WebHTMLRepresentationInternal.h and WebTypesInternal.h are
+        no longer installed in WebKit.framework/PrivateHeaders, use the
+        special relationship of DumpRenderTree within the WebKit source
+        tree to include the internal headers through relative paths.
+        Created the concept of mac/InternalHeaders to hide the ugly
+        paths.
+
+        * DumpRenderTree/mac/Configurations/Base.xcconfig: Added
+        mac/InternalHeaders to HEADER_SEARCH_PATHS.
+        * DumpRenderTree/mac/InternalHeaders/WebKit/WebHTMLRepresentationInternal.h: Added.
+        * DumpRenderTree/mac/InternalHeaders/WebKit/WebTypesInternal.h: Added.
+
+2009-01-02  Adam Treat  <treat@kde.org>
+
+        Reviewed by George Staikos.
+
+        Add support for fixedLayoutSize to the qt DRT
+
+        * DumpRenderTree/qt/jsobjects.cpp:
+        (LayoutTestController::setFixedLayoutSize):
+        (LayoutTestController::setUseFixedLayout):
+        * DumpRenderTree/qt/jsobjects.h:
+
+2009-01-03  David D. Kilzer  <ddkilzer@webkit.org>
+
+        Bug 23091: Some webarchive http tests intermittently fail due to Connection/Keep-Alive header differences
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23091>
+
+        Reviewed by Darin Adler.
+
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (normalizeHTTPResponseHeaderFields): Remove Keep-Alive and
+        Connection headers from webarchive results.
+
+2008-12-31  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22812
+
+        Prevent TestNetscapePlugin from installing system-wide.
+
+        * GNUmakefile.am:
+
+2008-12-31  Zan Dobersek  <zandobersek@gmail.com>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22842
+
+        Move WebKitWebView's size allocation into a proper place.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (dump):
+        (runTest):
+
 2008-12-27  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Timothy Hatcher.

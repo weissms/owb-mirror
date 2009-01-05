@@ -52,6 +52,8 @@ list(APPEND WEBCORE_SRC
     rendering/RenderTableSection.cpp
     rendering/RenderText.cpp
     rendering/RenderTextControl.cpp
+    rendering/RenderTextControlMultiLine.cpp
+    rendering/RenderTextControlSingleLine.cpp
     rendering/RenderTextFragment.cpp
     rendering/RenderTheme.cpp
     rendering/RenderTreeAsText.cpp

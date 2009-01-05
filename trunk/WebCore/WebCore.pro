@@ -224,7 +224,13 @@ SVGCSSPROPERTIES = $$PWD/css/SVGCSSPropertyNames.in
 
 SVGCSSVALUES = $$PWD/css/SVGCSSValueKeywords.in
 
-STYLESHEETS_EMBED = $$PWD/css/html4.css
+STYLESHEETS_EMBED = \
+    $$PWD/css/html4.css \
+    $$PWD/css/quirks.css \
+    $$PWD/css/svg.css \
+    $$PWD/css/view-source.css \
+    $$PWD/css/wml.css \
+    $$PWD/css/mediaControls.css
 
 DOMLUT_FILES += \
     bindings/js/JSDOMWindowBase.cpp \
@@ -977,6 +983,8 @@ SOURCES += \
     rendering/RenderTableRow.cpp \
     rendering/RenderTableSection.cpp \
     rendering/RenderTextControl.cpp \
+    rendering/RenderTextControlMultiLine.cpp \
+    rendering/RenderTextControlSingleLine.cpp \
     rendering/RenderText.cpp \
     rendering/RenderTextFragment.cpp \
     rendering/RenderTheme.cpp \
@@ -1973,7 +1981,7 @@ addExtraCompiler(colordata)
 
 # GENERATOR 9:
 stylesheets.output = $$GENERATED_SOURCES_DIR/UserAgentStyleSheetsData.cpp
-stylesheets.commands = perl $$PWD/css/make-css-file-arrays.pl --preprocessor \"$${QMAKE_MOC} -E\" $$GENERATED_SOURCES_DIR/UserAgentStyleSheets.h $$GENERATED_SOURCES_DIR/UserAgentStyleSheetsData.cpp $$PWD/css/html4.css $$PWD/css/quirks.css $$PWD/css/svg.css $$PWD/css/view-source.css $$PWD/css/wml.css
+stylesheets.commands = perl $$PWD/css/make-css-file-arrays.pl --preprocessor \"$${QMAKE_MOC} -E\" $$GENERATED_SOURCES_DIR/UserAgentStyleSheets.h $$GENERATED_SOURCES_DIR/UserAgentStyleSheetsData.cpp $$PWD/css/html4.css $$PWD/css/quirks.css $$PWD/css/svg.css $$PWD/css/view-source.css $$PWD/css/wml.css $$PWD/css/mediaControls.css
 stylesheets.input = STYLESHEETS_EMBED
 stylesheets.CONFIG = target_predeps
 stylesheets.variable_out = GENERATED_SOURCES

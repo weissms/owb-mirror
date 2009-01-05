@@ -12,7 +12,7 @@ add_custom_command(
     OUTPUT ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/Grammar.cpp ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/Grammar.h
     WORKING_DIRECTORY ${OWB_BINARY_DIR}
     COMMAND mkdir -p ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore
-    COMMAND ${BISON_EXECUTABLE} -d -p kjsyy ${CMAKE_CURRENT_SOURCE_DIR}/parser/Grammar.y -o generated_sources/JavaScriptCore/Grammar.cpp 
+    COMMAND ${BISON_EXECUTABLE} -d -p jscyy ${CMAKE_CURRENT_SOURCE_DIR}/parser/Grammar.y -o generated_sources/JavaScriptCore/Grammar.cpp 
     COMMAND cat generated_sources/JavaScriptCore/Grammar.hpp > generated_sources/JavaScriptCore/Grammar.h
     COMMAND rm -f generated_sources/JavaScriptCore/Grammar.hpp bison_out.txt
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/parser/Grammar.y

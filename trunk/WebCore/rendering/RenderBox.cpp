@@ -558,7 +558,7 @@ IntSize RenderBox::calculateBackgroundSize(const FillLayer* bgLayer, int scaledW
         return bg->imageSize(this, style()->effectiveZoom());
 }
 
-void RenderBox::imageChanged(WrappedImagePtr image)
+void RenderBox::imageChanged(WrappedImagePtr image, const IntRect*)
 {
     if (isInlineFlow() ||
         style()->borderImage().image() && style()->borderImage().image()->data() == image ||
@@ -1200,14 +1200,8 @@ void RenderBox::computeAbsoluteRepaintRect(IntRect& rect, bool fixed)
         }
     }
 
-    // FIXME: This is really a hack.  If the reflection caused the repaint, we don't have to 
-    // do this (and yet we do).  If there are nested reflections, then the single static is insufficient.
-    static bool invalidatingReflection;
-    if (hasReflection() && !invalidatingReflection) {
-        invalidatingReflection = true;
-        layer()->reflection()->repaintRectangle(rect);
-        invalidatingReflection = false;
-    }
+    if (hasReflection())
+        rect.unite(reflectedRect(rect));
 
     RenderObject* o = container();
     if (!o)

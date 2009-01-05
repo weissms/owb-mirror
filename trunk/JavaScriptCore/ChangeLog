@@ -1,3 +1,618 @@
+2009-01-05  Alice Liu  <alice.liu@apple.com>
+
+        <rdar://problem/6341776> Merge m_transitionCount and m_offset in Structure.
+
+        Reviewed by Darin Adler.
+
+        * runtime/Structure.cpp:
+        (JSC::Structure::Structure): Remove m_transitionCount
+        (JSC::Structure::addPropertyTransitionToExistingStructure): No need to wait until after the assignment to offset to assert if it's notFound; move it up.
+        (JSC::Structure::addPropertyTransition): Use method for transitionCount instead of m_transitionCount. Remove line that maintains the m_transitionCount.
+        (JSC::Structure::changePrototypeTransition): Remove line that maintains the m_transitionCount.
+        (JSC::Structure::getterSetterTransition): Remove line that maintains the m_transitionCount.
+        * runtime/Structure.h:
+        Changed s_maxTransitionLength and m_offset from size_t to signed char.  m_offset will never become greater than 64 
+        because the structure transitions to a dictionary at that time.
+        (JSC::Structure::transitionCount): method to replace the data member
+
+2009-01-04  Darin Adler  <darin@apple.com>
+
+        Reviewed by David Kilzer.
+
+        Bug 15114: Provide compile-time assertions for sizeof(UChar), sizeof(DeprecatedChar), etc.
+        https://bugs.webkit.org/show_bug.cgi?id=15114
+
+        * wtf/unicode/Unicode.h: Assert size of UChar. There is no DeprecatedChar any more.
+
+2009-01-03  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Change the pcVector from storing native code pointers to storing offsets
+        from the base pointer. This will allow us to generate the pcVector on demand
+        for exceptions.
+
+        * bytecode/CodeBlock.h:
+        (JSC::PC::PC):
+        (JSC::getNativePCOffset):
+        (JSC::CodeBlock::getBytecodeIndex):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+
+2009-01-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+        
+        * runtime/ScopeChain.cpp:
+
+2009-01-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        [jsfunfuzz] unwind logic for exceptions in eval fails to account for dynamic scope external to the eval
+        https://bugs.webkit.org/show_bug.cgi?id=23078
+
+        This bug was caused by eval codeblocks being generated without accounting
+        for the depth of the scope chain they inherited.  This meant that exception
+        handlers would understate their expected scope chain depth, which in turn
+        led to incorrectly removing nodes from the scope chain.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+        (JSC::BytecodeGenerator::emitCatch):
+        * bytecompiler/BytecodeGenerator.h:
+        * interpreter/Interpreter.cpp:
+        (JSC::depth):
+        * runtime/ScopeChain.cpp:
+        (JSC::ScopeChain::localDepth):
+        * runtime/ScopeChain.h:
+        (JSC::ScopeChainNode::deref):
+        (JSC::ScopeChainNode::ref):
+
+2009-01-02  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Darin Adler.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=22699
+        Enable NodeList caching for getElementsByTagName
+
+        * wtf/HashFunctions.h: Moved the definition of PHI here and renamed to stringHashingStartValue
+
+2009-01-02  David Kilzer  <ddkilzer@apple.com>
+
+        Attempt to fix Qt Linux build after r39553
+
+        * wtf/RandomNumberSeed.h: Include <sys/time.h> for gettimeofday().
+        Include <sys/types.h> and <unistd.h> for getpid().
+
+2009-01-02  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 23081: These files are no longer part of the KDE libraries
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23081>
+
+        Reviewed by Darin Adler.
+
+        Removed "This file is part of the KDE libraries" comment from
+        source files.  Added or updated Apple copyrights as well.
+
+        * parser/Lexer.h:
+        * wtf/HashCountedSet.h:
+        * wtf/RetainPtr.h:
+        * wtf/VectorTraits.h:
+
+2009-01-02  David Kilzer  <ddkilzer@apple.com>
+
+        Bug 23080: Remove last vestiges of KJS references
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23080>
+
+        Reviewed by Darin Adler.
+
+        Also updated Apple copyright statements.
+
+        * DerivedSources.make: Changed bison "kjsyy" prefix to "jscyy".
+        * GNUmakefile.am: Ditto.
+        * JavaScriptCore.pri: Ditto.  Also changed KJSBISON to JSCBISON
+        and kjsbison to jscbison.
+
+        * JavaScriptCoreSources.bkl: Changed JSCORE_KJS_SOURCES to
+        JSCORE_JSC_SOURCES.
+        * jscore.bkl: Ditto.
+
+        * create_hash_table: Updated copyright and removed old comment.
+
+        * parser/Grammar.y: Changed "kjsyy" prefix to "jscyy" prefix.
+        * parser/Lexer.cpp: Ditto.  Also changed KJS_DEBUG_LEX to
+        JSC_DEBUG_LEX.
+        (jscyylex):
+        (JSC::Lexer::lex):
+        * parser/Parser.cpp: Ditto.
+        (JSC::Parser::parse):
+
+        * pcre/dftables: Changed "kjs_pcre_" prefix to "jsc_pcre_".
+        * pcre/pcre_compile.cpp: Ditto.
+        (getOthercaseRange):
+        (encodeUTF8):
+        (compileBranch):
+        (calculateCompiledPatternLength):
+        * pcre/pcre_exec.cpp: Ditto.
+        (matchRef):
+        (getUTF8CharAndIncrementLength):
+        (match):
+        * pcre/pcre_internal.h: Ditto.
+        (toLowerCase):
+        (flipCase):
+        (classBitmapForChar):
+        (charTypeForChar):
+        * pcre/pcre_tables.cpp: Ditto.
+        * pcre/pcre_ucp_searchfuncs.cpp: Ditto.
+        (jsc_pcre_ucp_othercase):
+        * pcre/pcre_xclass.cpp: Ditto.
+        (getUTF8CharAndAdvancePointer):
+        (jsc_pcre_xclass):
+
+        * runtime/Collector.h: Updated header guards using the
+        clean-header-guards script.
+        * runtime/CollectorHeapIterator.h: Added missing header guard.
+        * runtime/Identifier.h: Updated header guards.
+        * runtime/JSFunction.h: Fixed end-of-namespace comment.
+
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset): Renamed "kjsprint" debug function
+        to "jscprint".  Changed implementation method from
+        globalFuncKJSPrint() to globalFuncJSCPrint().
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::globalFuncJSCPrint): Renamed from globalFuncKJSPrint().
+        * runtime/JSGlobalObjectFunctions.h: Ditto.
+
+        * runtime/JSImmediate.h: Updated header guards.
+        * runtime/JSLock.h: Ditto.
+        * runtime/JSType.h: Ditto.
+        * runtime/JSWrapperObject.h: Ditto.
+        * runtime/Lookup.h: Ditto.
+        * runtime/Operations.h: Ditto.
+        * runtime/Protect.h: Ditto.
+        * runtime/RegExp.h: Ditto.
+        * runtime/UString.h: Ditto.
+
+        * tests/mozilla/js1_5/Array/regress-157652.js: Changed "KJS"
+        reference in comment to "JSC".
+
+        * wrec/CharacterClassConstructor.cpp: Change "kjs_pcre_" function
+        prefixes to "jsc_pcre_".
+        (JSC::WREC::CharacterClassConstructor::put):
+        (JSC::WREC::CharacterClassConstructor::flush):
+
+        * wtf/unicode/Unicode.h: Change "KJS_" header guard to "WTF_".
+        * wtf/unicode/icu/UnicodeIcu.h: Ditto.
+        * wtf/unicode/qt4/UnicodeQt4.h: Ditto.
+
+2009-01-02  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Make randomNumber generate 2^53 values instead of 2^32 (or 2^31 for rand() platforms)
+
+        * wtf/RandomNumber.cpp:
+        (WTF::randomNumber):
+
+2009-01-02  David Kilzer  <ddkilzer@apple.com>
+
+        Remove declaration for JSC::Identifier::initializeIdentifierThreading()
+
+        Reviewed by Alexey Proskuryakov.
+
+        * runtime/Identifier.h:
+        (JSC::Identifier::initializeIdentifierThreading): Removed
+        declaration since the implementation was removed in r34412.
+
+2009-01-01  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        String.replace does not support $& replacement metacharacter when search term is not a RegExp
+        <https://bugs.webkit.org/show_bug.cgi?id=21431>
+        <rdar://problem/6274993>
+
+        Test: fast/js/string-replace-3.html
+
+        * runtime/StringPrototype.cpp:
+        (JSC::substituteBackreferences): Added a null check here so we won't try to handle $$-$9
+        backreferences when the search term is a string, not a RegExp. Added a check for 0 so we
+        won't try to handle $0 or $00 as a backreference.
+        (JSC::stringProtoFuncReplace): Added a call to substituteBackreferences.
+
+2009-01-01  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Allow 32-bit integers to be stored in JSImmediates, on x64-bit.
+        Presently the top 32-bits of a 64-bit JSImmediate serve as a sign extension of a 31-bit
+        int stored in the low word (shifted left by one, to make room for a tag).  In the new
+        format, the top 31-bits serve as a sign extension of a 32-bit int, still shifted left by
+        one.
+
+        The new behavior is enabled using a flag in Platform.h, 'WTF_USE_ALTERNATE_JSIMMEDIATE'.
+        When this is set the constants defining the range of ints allowed to be stored as
+        JSImmediate values is extended.  The code in JSImmediate.h can safely operate on either
+        format.  This patch updates the JIT so that it can also operate with the new format.
+
+        ~2% progression on x86-64, with & without the JIT, on sunspider & v8 tests.
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::addPtr):
+        (JSC::MacroAssembler::orPtr):
+        (JSC::MacroAssembler::or32):
+        (JSC::MacroAssembler::rshiftPtr):
+        (JSC::MacroAssembler::rshift32):
+        (JSC::MacroAssembler::subPtr):
+        (JSC::MacroAssembler::xorPtr):
+        (JSC::MacroAssembler::xor32):
+        (JSC::MacroAssembler::move):
+        (JSC::MacroAssembler::compareImm64ForBranch):
+        (JSC::MacroAssembler::compareImm64ForBranchEquality):
+        (JSC::MacroAssembler::jePtr):
+        (JSC::MacroAssembler::jgePtr):
+        (JSC::MacroAssembler::jlPtr):
+        (JSC::MacroAssembler::jlePtr):
+        (JSC::MacroAssembler::jnePtr):
+        (JSC::MacroAssembler::jnzSubPtr):
+        (JSC::MacroAssembler::joAddPtr):
+        (JSC::MacroAssembler::jzSubPtr):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::addq_rr):
+        (JSC::X86Assembler::orq_ir):
+        (JSC::X86Assembler::subq_ir):
+        (JSC::X86Assembler::xorq_rr):
+        (JSC::X86Assembler::sarq_CLr):
+        (JSC::X86Assembler::sarq_i8r):
+        (JSC::X86Assembler::cmpq_ir):
+        * jit/JIT.cpp:
+        (JSC::JIT::compileOpStrictEq):
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArith_op_lshift):
+        (JSC::JIT::compileFastArithSlow_op_lshift):
+        (JSC::JIT::compileFastArith_op_rshift):
+        (JSC::JIT::compileFastArithSlow_op_rshift):
+        (JSC::JIT::compileFastArith_op_bitand):
+        (JSC::JIT::compileFastArithSlow_op_bitand):
+        (JSC::JIT::compileFastArith_op_mod):
+        (JSC::JIT::compileFastArithSlow_op_mod):
+        (JSC::JIT::compileFastArith_op_add):
+        (JSC::JIT::compileFastArithSlow_op_add):
+        (JSC::JIT::compileFastArith_op_mul):
+        (JSC::JIT::compileFastArithSlow_op_mul):
+        (JSC::JIT::compileFastArith_op_post_inc):
+        (JSC::JIT::compileFastArithSlow_op_post_inc):
+        (JSC::JIT::compileFastArith_op_post_dec):
+        (JSC::JIT::compileFastArithSlow_op_post_dec):
+        (JSC::JIT::compileFastArith_op_pre_inc):
+        (JSC::JIT::compileFastArithSlow_op_pre_inc):
+        (JSC::JIT::compileFastArith_op_pre_dec):
+        (JSC::JIT::compileFastArithSlow_op_pre_dec):
+        (JSC::JIT::compileBinaryArithOp):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::getConstantOperand):
+        (JSC::JIT::getConstantOperandImmediateInt):
+        (JSC::JIT::isOperandConstantImmediateInt):
+        (JSC::JIT::isOperandConstant31BitImmediateInt):
+        (JSC::JIT::emitFastArithDeTagImmediate):
+        (JSC::JIT::emitFastArithDeTagImmediateJumpIfZero):
+        (JSC::JIT::emitFastArithReTagImmediate):
+        (JSC::JIT::emitFastArithImmToInt):
+        (JSC::JIT::emitFastArithIntToImmNoCheck):
+        * runtime/JSImmediate.h:
+        (JSC::JSImmediate::isPositiveNumber):
+        (JSC::JSImmediate::isNegative):
+        (JSC::JSImmediate::rightShiftImmediateNumbers):
+        (JSC::JSImmediate::canDoFastAdditiveOperations):
+        (JSC::JSImmediate::makeValue):
+        (JSC::JSImmediate::makeInt):
+        (JSC::JSImmediate::makeBool):
+        (JSC::JSImmediate::intValue):
+        (JSC::JSImmediate::rawValue):
+        (JSC::JSImmediate::toBoolean):
+        (JSC::JSImmediate::from):
+        * wtf/Platform.h:
+
+2008-12-31  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Cameron Zwarich.
+
+        [jsfunfuzz] Assertion + incorrect behaviour with dynamically created local variable in a catch block
+        <https://bugs.webkit.org/show_bug.cgi?id=23063>
+
+        Eval inside a catch block attempts to use the catch block's static scope in
+        an unsafe way by attempting to add new properties to the scope.  This patch
+        fixes this issue simply by preventing the catch block from using a static
+        scope if it contains an eval.
+
+        * parser/Grammar.y:
+        * parser/Nodes.cpp:
+        (JSC::TryNode::emitBytecode):
+        * parser/Nodes.h:
+        (JSC::TryNode::):
+
+2008-12-31  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        [jsfunfuzz] Computed exception offset wrong when first instruction is attempt to resolve deleted eval
+        <https://bugs.webkit.org/show_bug.cgi?id=23062>
+
+        This was caused by the expression information for the initial resolve of
+        eval not being emitted.  If this resolve was the first instruction that
+        could throw an exception the information search would fail leading to an
+        assertion failure.  If it was not the first throwable opcode the wrong
+        expression information would used.
+
+        Fix is simply to emit the expression info.
+
+        * parser/Nodes.cpp:
+        (JSC::EvalFunctionCallNode::emitBytecode):
+
+2008-12-31  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 23054: Caching of global lookups occurs even when the global object has become a dictionary
+        <https://bugs.webkit.org/show_bug.cgi?id=23054>
+        <rdar://problem/6469905>
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::resolveGlobal): Do not cache lookup if the global
+        object has transitioned to a dictionary.
+        (JSC::Interpreter::cti_op_resolve_global): Do not cache lookup if the
+        global object has transitioned to a dictionary.
+
+2008-12-30  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <https://bugs.webkit.org/show_bug.cgi?id=23049> [jsfunfuzz] With blocks do not correctly protect their scope object
+        <rdar://problem/6469742> Crash in JSC::TypeInfo::hasStandardGetOwnPropertySlot() running jsfunfuzz
+
+        The problem that caused this was that with nodes were not correctly protecting
+        the final object that was placed in the scope chain.  We correct this by forcing
+        the use of a temporary register (which stops us relying on a local register
+        protecting the scope) and changing the behaviour of op_push_scope so that it
+        will store the final scope object.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitPushScope):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        (JSC::Interpreter::cti_op_push_scope):
+        * interpreter/Interpreter.h:
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * parser/Nodes.cpp:
+        (JSC::WithNode::emitBytecode):
+
+2008-12-30  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Sam Weinig.
+
+        Bug 23037: Parsing and reparsing disagree on automatic semicolon insertion
+        <https://bugs.webkit.org/show_bug.cgi?id=23037>
+        <rdar://problem/6467124>
+
+        Parsing and reparsing disagree about automatic semicolon insertion, so that a
+        function like
+
+        function() { a = 1, }
+
+        is parsed as being syntactically valid but gets a syntax error upon reparsing.
+        This leads to an assertion failure in Parser::reparse(). It is not that big of
+        an issue in practice, because in a Release build such a function will return
+        'undefined' when called.
+
+        In this case, we are not following the spec and it should be a syntax error.
+        However, unless there is a newline separating the ',' and the '}', WebKit would
+        not treat it as a syntax error in the past either. It would be a bit of work to
+        make the automatic semicolon insertion match the spec exactly, so this patch
+        changes it to match our past behaviour.
+
+        The problem is that even during reparsing, the Lexer adds a semicolon at the
+        end of the input, which confuses allowAutomaticSemicolon(), because it is
+        expecting either a '}', the end of input, or a terminator like a newline.
+
+        * parser/Lexer.cpp:
+        (JSC::Lexer::Lexer): Initialize m_isReparsing to false.
+        (JSC::Lexer::lex): Do not perform automatic semicolon insertion in the Lexer if
+        we are in the middle of reparsing.
+        (JSC::Lexer::clear): Set m_isReparsing to false.
+        * parser/Lexer.h:
+        (JSC::Lexer::setIsReparsing): Added.
+        * parser/Parser.cpp:
+        (JSC::Parser::reparse): Call Lexer::setIsReparsing() to notify the Lexer of
+        reparsing.
+
+2008-12-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Yet another attempt to fix Tiger.
+
+        * wtf/RandomNumber.cpp:
+        (WTF::randomNumber):
+
+2008-12-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Tiger build fix (correct this time)
+
+        * wtf/RandomNumber.cpp:
+
+2008-12-29  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Alexey Proskuryakov.
+
+        Revert r39509, because kjsyydebug is used in the generated code if YYDEBUG is 1.
+
+        * parser/Grammar.y:
+
+2008-12-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Tiger build fix.
+
+        * wtf/RandomNumber.cpp:
+
+2008-12-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        <rdar://problem/6358108> Insecure randomness in Math.random() leads to user tracking
+
+        Switch to arc4random on PLATFORM(DARWIN), this is ~1.5x slower than random(), but the
+        it is still so fast that there is no fathomable way it could be a bottleneck for anything.
+
+        randomNumber is called in two places
+          * During form submission where it is called once per form
+          * Math.random in JSC.  For this difference to show up you have to be looping on
+            a cached local copy of random, for a large (>10000) calls.
+
+        No change in SunSpider.
+
+        * wtf/RandomNumber.cpp:
+        (WTF::randomNumber):
+        * wtf/RandomNumberSeed.h:
+        (WTF::initializeRandomNumberGenerator):
+
+2008-12-29  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Rubber-stamped by Sam Weinig.
+
+        Remove unused kjsyydebug #define.
+
+        * parser/Grammar.y:
+
+2008-12-29  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt and Sam Weinig.
+
+        Bug 23029: REGRESSION (r39337): jsfunfuzz generates identical test files
+        <https://bugs.webkit.org/show_bug.cgi?id=23029>
+        <rdar://problem/6469185>
+
+        The unification of random number generation in r39337 resulted in random()
+        being initialized on Darwin, but rand() actually being used. Fix this by
+        making randomNumber() use random() instead of rand() on Darwin.
+
+        * wtf/RandomNumber.cpp:
+        (WTF::randomNumber):
+
+2008-12-29  Sam Weinig  <sam@webkit.org>
+
+        Fix buildbots.
+
+        * runtime/Structure.cpp:
+
+2008-12-29  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Patch for https://bugs.webkit.org/show_bug.cgi?id=23026
+        Move the deleted offsets vector into the PropertyMap
+
+        Saves 3 words per Structure.
+
+        * runtime/PropertyMapHashTable.h:
+        * runtime/Structure.cpp:
+        (JSC::Structure::addPropertyTransition):
+        (JSC::Structure::changePrototypeTransition):
+        (JSC::Structure::getterSetterTransition):
+        (JSC::Structure::toDictionaryTransition):
+        (JSC::Structure::fromDictionaryTransition):
+        (JSC::Structure::copyPropertyTable):
+        (JSC::Structure::put):
+        (JSC::Structure::remove):
+        (JSC::Structure::rehashPropertyMapHashTable):
+        * runtime/Structure.h:
+        (JSC::Structure::propertyStorageSize):
+
+2008-12-29  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Change code using m_body.get() as a boolean to take advantage of the 
+        implicit conversion of RefPtr to boolean.
+
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::~JSFunction):
+
+2008-12-28  Cameron Zwarich  <cwzwarich@uwaterloo.ca>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 22840: REGRESSION (r38349): Gmail doesn't load with profiling enabled
+        <https://bugs.webkit.org/show_bug.cgi?id=22840>
+        <rdar://problem/6468077>
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitNewArray): Add an assertion that the range
+        of registers passed to op_new_array is sequential.
+        (JSC::BytecodeGenerator::emitCall): Correct the relocation of registers
+        when emitting profiler hooks so that registers aren't leaked. Also, add
+        an assertion that the 'this' register is always ref'd (because it is),
+        remove the needless protection of the 'this' register when relocating,
+        and add an assertion that the range of registers passed to op_call for
+        function call arguments is sequential.
+        (JSC::BytecodeGenerator::emitConstruct): Correct the relocation of
+        registers when emitting profiler hooks so that registers aren't leaked.
+        Also, add an assertion that the range of registers passed to op_construct
+        for function call arguments is sequential.
+
+2008-12-26  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        <rdar://problem/6467376> Race condition in WTF::currentThread can lead to a thread using two different identifiers during its lifetime
+
+        If a newly-created thread calls WTF::currentThread() before WTF::createThread calls establishIdentifierForPthreadHandle
+        then more than one identifier will be used for the same thread.  We can avoid this by adding some extra synchronization
+        during thread creation that delays the execution of the thread function until the thread identifier has been set up, and
+        an assertion to catch this problem should it reappear in the future.
+
+        * wtf/Threading.cpp: Added.
+        (WTF::NewThreadContext::NewThreadContext):
+        (WTF::threadEntryPoint):
+        (WTF::createThread): Add cross-platform createThread function that delays the execution of the thread function until
+        after the thread identifier has been set up.
+        * wtf/Threading.h:
+        * wtf/ThreadingGtk.cpp:
+        (WTF::establishIdentifierForThread):
+        (WTF::createThreadInternal):
+        * wtf/ThreadingNone.cpp:
+        (WTF::createThreadInternal):
+        * wtf/ThreadingPthreads.cpp:
+        (WTF::establishIdentifierForPthreadHandle):
+        (WTF::createThreadInternal):
+        * wtf/ThreadingQt.cpp:
+        (WTF::identifierByQthreadHandle):
+        (WTF::establishIdentifierForThread):
+        (WTF::createThreadInternal):
+        * wtf/ThreadingWin.cpp:
+        (WTF::storeThreadHandleByIdentifier):
+        (WTF::createThreadInternal):
+
+        Add Threading.cpp to the build.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.pri:
+        * JavaScriptCore.scons:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+
 2008-12-27  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Alexey Proskuryakov.

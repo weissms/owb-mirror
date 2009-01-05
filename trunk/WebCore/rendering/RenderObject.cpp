@@ -2303,9 +2303,9 @@ void RenderObject::styleWillChange(RenderStyle::Diff diff, const RenderStyle* ne
                     m_style->opacity() != newStyle->opacity() ||
                     m_style->transform() != newStyle->transform())
                 layer()->repaintIncludingDescendants();
-            } else if (m_style->transform() != newStyle->transform()) {
-                // If we don't have a layer yet, but we are going to get one because of a transform change, then
-                // we need to repaint the old position of the object
+            } else if (newStyle->hasTransform() || newStyle->opacity() < 1) {
+                // If we don't have a layer yet, but we are going to get one because of transform or opacity,
+                //  then we need to repaint the old position of the object.
                 repaint();
             }
         }
@@ -3207,9 +3207,9 @@ AnimationController* RenderObject::animation() const
     return document()->frame()->animation();
 }
 
-void RenderObject::imageChanged(CachedImage* image)
+void RenderObject::imageChanged(CachedImage* image, const IntRect* rect)
 {
-    imageChanged(static_cast<WrappedImagePtr>(image));
+    imageChanged(static_cast<WrappedImagePtr>(image), rect);
 }
 
 IntRect RenderObject::reflectionBox() const
@@ -3243,6 +3243,30 @@ int RenderObject::reflectionOffset() const
     if (m_style->boxReflect()->direction() == ReflectionLeft || m_style->boxReflect()->direction() == ReflectionRight)
         return m_style->boxReflect()->offset().calcValue(borderBox().width());
     return m_style->boxReflect()->offset().calcValue(borderBox().height());
+}
+
+IntRect RenderObject::reflectedRect(const IntRect& r) const
+{
+    if (!m_style->boxReflect())
+        return IntRect();
+
+    IntRect box = borderBox();
+    IntRect result = r;
+    switch (m_style->boxReflect()->direction()) {
+        case ReflectionBelow:
+            result.setY(box.bottom() + reflectionOffset() + (box.bottom() - r.bottom()));
+            break;
+        case ReflectionAbove:
+            result.setY(box.y() - reflectionOffset() - box.height() + (box.bottom() - r.bottom()));
+            break;
+        case ReflectionLeft:
+            result.setX(box.x() - reflectionOffset() - box.width() + (box.right() - r.right()));
+            break;
+        case ReflectionRight:
+            result.setX(box.right() + reflectionOffset() + (box.right() - r.right()));
+            break;
+    }
+    return result;
 }
 
 #if ENABLE(SVG)

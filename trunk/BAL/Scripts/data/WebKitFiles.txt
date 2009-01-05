@@ -12,13 +12,13 @@ WebCore/bindings/js/JSEventTarget.cpp
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/bridge/runtime.h
-WebCore/css/CSSFontFaceSrcValue.cpp
 WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
 WebCore/css/CSSStyleSelector.cpp
 WebCore/css/CSSStyleSelector.h
 WebCore/dom/Document.cpp
 WebCore/dom/Document.h
+WebCore/editing/TextIterator.cpp
 WebCore/page/DOMWindow.cpp
 WebCore/page/DOMWindow.h
 WebCore/page/DOMWindow.idl

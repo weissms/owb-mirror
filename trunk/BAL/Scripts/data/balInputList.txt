@@ -542,6 +542,7 @@ BAL/Types/WebCore/Gtk   WebCore/platform/gtk/KURLGtk.cpp
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumberSeed.h
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.h
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/Threading.cpp
 
 BAL/Skeletons/Events	WebCore/platform/PlatformKeyboardEvent.h
 BAL/Skeletons/Events	WebCore/platform/PlatformMouseEvent.h

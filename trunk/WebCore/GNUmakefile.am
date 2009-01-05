@@ -587,6 +587,7 @@ webcore_sources += \
 	WebCore/dom/ExceptionBase.h \
 	WebCore/dom/ExceptionCode.cpp \
 	WebCore/dom/ExceptionCode.h \
+	WebCore/dom/FormControlElement.h \
 	WebCore/dom/KeyboardEvent.cpp \
 	WebCore/dom/KeyboardEvent.h \
 	WebCore/dom/MappedAttribute.cpp \
@@ -1562,6 +1563,10 @@ webcore_sources += \
 	WebCore/rendering/RenderText.h \
 	WebCore/rendering/RenderTextControl.cpp \
 	WebCore/rendering/RenderTextControl.h \
+	WebCore/rendering/RenderTextControlMultiLine.cpp \
+	WebCore/rendering/RenderTextControlMultiLine.h \
+	WebCore/rendering/RenderTextControlSingleLine.cpp \
+	WebCore/rendering/RenderTextControlSingleLine.h \
 	WebCore/rendering/RenderTextFragment.cpp \
 	WebCore/rendering/RenderTextFragment.h \
 	WebCore/rendering/RenderTheme.cpp \
@@ -2940,7 +2945,8 @@ USER_AGENT_STYLE_SHEETS = \
 	$(WebCore)/css/quirks.css \
 	$(WebCore)/css/view-source.css \
 	$(WebCore)/css/svg.css \
-	$(WebCore)/css/wml.css
+	$(WebCore)/css/wml.css \
+	$(WebCore)/css/mediaControls.css
 
 # new-style JavaScript bindings
 SCRIPTS_BINDINGS = \
@@ -3056,6 +3062,7 @@ webcore_dist += \
 	WebCore/css/view-source.css \
 	WebCore/css/svg.css \
 	WebCore/css/wml.css \
+	WebCore/css/mediaControls.css \
 	WebCore/css/CSSGrammar.y \
 	WebCore/css/CSSValueKeywords.in \
 	WebCore/css/SVGCSSPropertyNames.in \

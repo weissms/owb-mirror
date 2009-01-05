@@ -212,6 +212,7 @@ BytecodeGenerator::BytecodeGenerator(ProgramNode* programNode, const Debugger* d
     , m_thisRegister(RegisterFile::ProgramCodeThisRegister)
     , m_finallyDepth(0)
     , m_dynamicScopeDepth(0)
+    , m_baseScopeDepth(0)
     , m_codeType(GlobalCode)
     , m_nextGlobalIndex(-1)
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
@@ -292,6 +293,7 @@ BytecodeGenerator::BytecodeGenerator(FunctionBodyNode* functionBody, const Debug
     , m_codeBlock(codeBlock)
     , m_finallyDepth(0)
     , m_dynamicScopeDepth(0)
+    , m_baseScopeDepth(0)
     , m_codeType(FunctionCode)
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
     , m_lastOpcodeID(op_end)
@@ -363,12 +365,13 @@ BytecodeGenerator::BytecodeGenerator(EvalNode* evalNode, const Debugger* debugge
     , m_thisRegister(RegisterFile::ProgramCodeThisRegister)
     , m_finallyDepth(0)
     , m_dynamicScopeDepth(0)
+    , m_baseScopeDepth(scopeChain.localDepth())
     , m_codeType(EvalCode)
     , m_globalData(&scopeChain.globalObject()->globalExec()->globalData())
     , m_lastOpcodeID(op_end)
     , m_emitNodeDepth(0)
 {
-    if (m_shouldEmitDebugHooks)
+    if (m_shouldEmitDebugHooks || m_baseScopeDepth)
         m_codeBlock->setNeedsFullScopeChain(true);
 
     emitOpcode(op_enter);
@@ -1188,6 +1191,8 @@ RegisterID* BytecodeGenerator::emitNewArray(RegisterID* dst, ElementNode* elemen
         if (n->elision())
             break;
         argv.append(newTemporary());
+        // op_new_array requires the initial values to be a sequential range of registers
+        ASSERT(argv.size() == 1 || argv[argv.size() - 1]->index() == argv[argv.size() - 2]->index() + 1);
         emitNode(argv.last().get(), n->value());
     }
     emitOpcode(op_new_array);
@@ -1236,13 +1241,14 @@ RegisterID* BytecodeGenerator::emitCall(OpcodeID opcodeID, RegisterID* dst, Regi
 {
     ASSERT(opcodeID == op_call || opcodeID == op_call_eval);
     ASSERT(func->refCount());
+    ASSERT(thisRegister->refCount());
 
+    RegisterID* originalFunc = func;
     if (m_shouldEmitProfileHooks) {
         // If codegen decided to recycle func as this call's destination register,
         // we need to undo that optimization here so that func will still be around
         // for the sake of op_profile_did_call.
         if (dst == func) {
-            RefPtr<RegisterID> protect = thisRegister;
             RefPtr<RegisterID> movedThisRegister = emitMove(newTemporary(), thisRegister);
             RefPtr<RegisterID> movedFunc = emitMove(thisRegister, func);
             
@@ -1256,6 +1262,8 @@ RegisterID* BytecodeGenerator::emitCall(OpcodeID opcodeID, RegisterID* dst, Regi
     argv.append(thisRegister);
     for (ArgumentListNode* n = argumentsNode->m_listNode.get(); n; n = n->m_next.get()) {
         argv.append(newTemporary());
+        // op_call requires the arguments to be a sequential range of registers
+        ASSERT(argv[argv.size() - 1]->index() == argv[argv.size() - 2]->index() + 1);
         emitNode(argv.last().get(), n);
     }
 
@@ -1290,7 +1298,7 @@ RegisterID* BytecodeGenerator::emitCall(OpcodeID opcodeID, RegisterID* dst, Regi
         emitOpcode(op_profile_did_call);
         instructions().append(func->index());
 
-        if (dst == func) {
+        if (dst == originalFunc) {
             thisRegister->deref();
             func->deref();
         }
@@ -1321,6 +1329,7 @@ RegisterID* BytecodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, 
 {
     ASSERT(func->refCount());
 
+    RegisterID* originalFunc = func;
     if (m_shouldEmitProfileHooks) {
         // If codegen decided to recycle func as this call's destination register,
         // we need to undo that optimization here so that func will still be around
@@ -1338,6 +1347,8 @@ RegisterID* BytecodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, 
     argv.append(newTemporary()); // reserve space for "this"
     for (ArgumentListNode* n = argumentsNode ? argumentsNode->m_listNode.get() : 0; n; n = n->m_next.get()) {
         argv.append(newTemporary());
+        // op_construct requires the arguments to be a sequential range of registers
+        ASSERT(argv[argv.size() - 1]->index() == argv[argv.size() - 2]->index() + 1);
         emitNode(argv.last().get(), n);
     }
 
@@ -1378,7 +1389,7 @@ RegisterID* BytecodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, 
         emitOpcode(op_profile_did_call);
         instructions().append(func->index());
         
-        if (dst == func)
+        if (dst == originalFunc)
             func->deref();
     }
 
@@ -1387,6 +1398,7 @@ RegisterID* BytecodeGenerator::emitConstruct(RegisterID* dst, RegisterID* func, 
 
 RegisterID* BytecodeGenerator::emitPushScope(RegisterID* scope)
 {
+    ASSERT(scope->isTemporary());
     ControlFlowContext context;
     context.isFinallyBlock = false;
     m_scopeContextStack.append(context);
@@ -1579,9 +1591,9 @@ RegisterID* BytecodeGenerator::emitNextPropertyName(RegisterID* dst, RegisterID*
 RegisterID* BytecodeGenerator::emitCatch(RegisterID* targetRegister, Label* start, Label* end)
 {
 #if ENABLE(JIT)
-    HandlerInfo info = { start->offsetFrom(0), end->offsetFrom(0), instructions().size(), m_dynamicScopeDepth, 0 };
+    HandlerInfo info = { start->offsetFrom(0), end->offsetFrom(0), instructions().size(), m_dynamicScopeDepth + m_baseScopeDepth, 0 };
 #else
-    HandlerInfo info = { start->offsetFrom(0), end->offsetFrom(0), instructions().size(), m_dynamicScopeDepth };
+    HandlerInfo info = { start->offsetFrom(0), end->offsetFrom(0), instructions().size(), m_dynamicScopeDepth + m_baseScopeDepth };
 #endif
 
     m_codeBlock->addExceptionHandler(info);

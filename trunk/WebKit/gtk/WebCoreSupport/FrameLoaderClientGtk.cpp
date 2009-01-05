@@ -24,6 +24,7 @@
 
 #include "Color.h"
 #include "DocumentLoader.h"
+#include "FormState.h"
 #include "FrameLoader.h"
 #include "FrameView.h"
 #include "FrameTree.h"
@@ -250,6 +251,7 @@ void FrameLoaderClient::postProgressFinishedNotification()
 
 void FrameLoaderClient::frameLoaderDestroyed()
 {
+    webkit_web_frame_core_frame_gone(m_frame);
     g_object_unref(m_frame);
     m_frame = 0;
     delete this;
@@ -384,8 +386,8 @@ PassRefPtr<Frame> FrameLoaderClient::createFrame(const KURL& url, const String& 
     Frame* coreFrame = core(webFrame());
 
     ASSERT(core(getViewFromFrame(webFrame())) == coreFrame->page());
-    WebKitWebFrame* gtkFrame = WEBKIT_WEB_FRAME(webkit_web_frame_init_with_web_view(getViewFromFrame(webFrame()), ownerElement));
-    RefPtr<Frame> childFrame(adoptRef(core(gtkFrame)));
+
+    RefPtr<Frame> childFrame = webkit_web_frame_init_with_web_view(getViewFromFrame(webFrame()), ownerElement);
 
     coreFrame->tree()->appendChild(childFrame);
 
@@ -863,7 +865,7 @@ void FrameLoaderClient::transitionToCommittedForNewPage()
     Frame* frame = core(m_frame);
     ASSERT(frame);
 
-    WebCore::FrameLoaderClient::transitionToCommittedForNewPage(frame, size, backgroundColor, transparent);
+    WebCore::FrameLoaderClient::transitionToCommittedForNewPage(frame, size, backgroundColor, transparent, IntSize(), false);
 
     // We need to do further manipulation on the FrameView if it was the mainFrame
     if (frame != frame->page()->mainFrame())

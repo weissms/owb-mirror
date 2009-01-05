@@ -1,3 +1,86 @@
+2009-01-05  Adam Treat  <treat@kde.org>
+
+        Reviewed by George Staikos.
+
+        Make the gtk port build with the new fixedLayoutSize feature
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::transitionToCommittedForNewPage):
+
+2009-01-03  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Darin Adler.
+
+        [GTK] Fix the reference counting of WebKitWebFrames
+        
+        The ownership is the following: WebKitWebView owns a WebCore::Page.
+        WebKitWebView is creating one WebKitWebFrame which will be the
+        mainFrame of the WebCore::Page (having the reference on the Frame).
+        
+        The FrameLoaderClient has the reference of the WebKitWebFrame for
+        the main frame and also any other frame. This means when the
+        WebCore::Frame goes away the FrameLoaderClient will go away which
+        will normally remove the last reference of the WebKitWebFrame. Because
+        an API user might have g_object_ref'ed the WebKitWebFrame null
+        checks had to be added to WebKitWebFrame.
+        
+        For WebCore::Frames created by the FrameLoaderClient the ownership
+        will be passed down to the FrameTree, the WebKitWebFrame is not holding
+        a reference to the WebCore::Frame.
+        
+        Do not g_object_unref the mainFrame in the destructor of the
+        WebKitWebFrame as this will happen from within the WebCore::Page
+        destruction. Do not hold a reference to the WebCore::Frame (circle) in
+        WebKitWebFrame, add null checks as the WebCore::Frame might have gone
+        away. Do not keep track of the FrameLoaderClient in the private
+        structures as it was mostly unusued.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=21837
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::frameLoaderDestroyed):
+        (WebKit::FrameLoaderClient::createFrame):
+        * tests/main.c: Add test case.
+        (test_webkit_web_frame_create_destroy):
+        (test_webkit_web_frame_lifetime):
+        (main):
+        * webkit/webkitprivate.cpp:
+        (WebKit::core):
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebframe.cpp:
+        * webkit/webkitwebview.cpp:
+
+2009-01-02  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Unreviewed build fix.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+
+2008-12-31  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=17045
+
+        Add section information for View, Frame, Settings, HistoryItem, BackForwardList, WindowFeatures and Inspector
+
+        Add section information and informal examples for WebKitWebView,
+        WebKitWebFrame, WebKitWebSettings, WebKitWebNetworkRequest,
+        WebKitWebWindowFeatures, WebKitWebHistoryItem,
+        WebKitWebBackForwardList and WebKitWebInspector.
+
+        * docs/webkitgtk-sections.txt: Decide to not document some bits
+        * webkit/webkitnetworkrequest.cpp:
+        * webkit/webkitwebbackforwardlist.cpp:
+        * webkit/webkitwebframe.cpp:
+        * webkit/webkitwebhistoryitem.cpp:
+        * webkit/webkitwebhistoryitem.h:
+        * webkit/webkitwebinspector.cpp:
+        * webkit/webkitwebsettings.cpp:
+        * webkit/webkitwebsettings.h:
+        * webkit/webkitwebview.cpp:
+        * webkit/webkitwebwindowfeatures.cpp:
+
 2008-12-22  Xan Lopez  <xan@gnome.org>
 
         Reviewed by Holger Freyther.
