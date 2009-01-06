@@ -1,3 +1,10 @@
+2009-01-06  Mario Bensi  <mbensi@pleyo.com>
+
+        add scripts to create test
+
+        * Scripts/createTests.py: Added.
+        * Scripts/dataClass.py: Added.
+
 2008-12-24  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.
