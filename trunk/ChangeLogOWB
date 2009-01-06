@@ -1,3 +1,11 @@
+2009-01-06  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Olivier DOLE.
+        Add Unit Tests mecanism
+
+        * CMakeLists.txt:
+        * cmake/CheckCppUnit.cmake: Added.
+
 2008-12-24  Joerg Strohmayer  <j_s@gmx.de>
 
         Reviewed by Mario Bensi.

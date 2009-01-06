@@ -73,8 +73,9 @@ configure_file(
 # Check required dependencies for compilation.   #
 ##################################################
 
-include(CheckPlatformSystem)
 include(CheckBaseDependencies)
+include(CheckCppUnit)
+include(CheckPlatformSystem)
 include(CheckPlatformFileSystem)
 include(CheckPlatformFonts)
 include(CheckPlatformGraphics)
@@ -90,7 +91,6 @@ include(CheckSVG)
 include(CheckXSLT)
 
 include(CheckPlatformCustomer OPTIONAL)
-
 
 ##################################################
 # Set options for compiler below.                #

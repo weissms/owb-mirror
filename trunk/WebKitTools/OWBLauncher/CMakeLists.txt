@@ -40,6 +40,17 @@ if (ENABLE_ORIGYNSUITE)
     )
 endif (ENABLE_ORIGYNSUITE)
 
+
+if(ENABLE_TESTS)
+    add_executable(APITest Tests/APITests.cpp)
+    target_link_libraries(APITest
+        webkit-owb
+        ${GRAPHICS_LIBRARIES}
+	${CPPUNIT_LIBRARIES}
+    )
+    ADD_TEST(APITest ${OWB_BINARY_DIR}/bin/APITest)
+endif(ENABLE_TESTS)
+
 # IF (WEBKIT_USE_HTML_EXTENSION)
 #     TARGET_LINK_LIBRARIES (owb
 #         htmlext
