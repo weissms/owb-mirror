@@ -26,12 +26,12 @@
 #include "config.h"
 #include "Pattern.h"
 
-#include "AffineTransform.h"
+#include "TransformationMatrix.h"
 #include "GraphicsContext.h"
 
 namespace WKAL {
 
-PlatformPatternPtr Pattern::createPlatformPattern(const AffineTransform& patternTransform) const
+PlatformPatternPtr Pattern::createPlatformPattern(const TransformationMatrix& patternTransform) const
 {
     return 0;
 }

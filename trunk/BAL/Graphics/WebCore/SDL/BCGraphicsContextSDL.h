@@ -45,7 +45,7 @@ namespace WKAL {
     const int cMisspellingLinePatternWidth = 4;
     const int cMisspellingLinePatternGapWidth = 1;
 
-    class AffineTransform;
+    class TransformationMatrix;
     class Font;
     class Generator;
     class Gradient;
@@ -219,8 +219,8 @@ namespace WKAL {
         
         void setURLForRect(const KURL&, const IntRect&);
 
-        void concatCTM(const AffineTransform&);
-        AffineTransform getCTM() const;
+        void concatCTM(const TransformationMatrix&);
+        TransformationMatrix getCTM() const;
 
         void setUseAntialiasing(bool = true);
 

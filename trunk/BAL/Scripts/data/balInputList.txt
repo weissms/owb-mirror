@@ -78,7 +78,6 @@ BAL/Skeletons/Graphics	WebCore/platform/graphics/Generator.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/GeneratedImage.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/UnitBezier.h
 BAL/Skeletons/Graphics	WebCore/platform/graphics/Pattern.h
-BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/AffineTransform.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/IdentityTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/MatrixTransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/RotateTransformOperation.h
@@ -87,6 +86,7 @@ BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/SkewTransformOperat
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperation.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TransformOperations.h
 BAL/Skeletons/Graphics  WebCore/platform/graphics/transforms/TranslateTransformOperation.h
+BAL/Skeletons/Graphics	WebCore/platform/graphics/transforms/TransformationMatrix.h
 BAL/Skeletons/Graphics WebCore/platform/animation/Animation.h
 BAL/Skeletons/Graphics WebCore/platform/animation/AnimationList.h
 BAL/Skeletons/Graphics WebCore/platform/animation/TimingFunction.h
@@ -163,8 +163,6 @@ BAL/Graphics/WebCore/WK WebCore/platform/animation/Animation.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/animation/AnimationList.h
 BAL/Graphics/WebCore/WK WebCore/platform/animation/TimingFunction.h
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/AffineTransform.cpp
-BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/AffineTransform.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/IdentityTransformOperation.h
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/MatrixTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/MatrixTransformOperation.h
@@ -180,6 +178,8 @@ BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TransformOperations
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.cpp
 BAL/Graphics/WebCore/WK WebCore/platform/graphics/transforms/TranslateTransformOperation.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/StrokeStyleApplier.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.h
+BAL/Graphics/WebCore/WK	WebCore/platform/graphics/transforms/TransformationMatrix.cpp
 
 
 BAL/Skeletons/SVG  WebCore/svg/graphics/SVGImage.h

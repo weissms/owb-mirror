@@ -28,7 +28,7 @@
 #include "config.h"
 #include "BALBase.h"
 
-#include "AffineTransform.h"
+#include "TransformationMatrix.h"
 #include "IntRect.h"
 #include "FloatRect.h"
 #include "MathExtras.h"
@@ -36,7 +36,7 @@
 
 namespace WKAL {
 
-AffineTransform::AffineTransform()
+TransformationMatrix::TransformationMatrix()
     : m_m11(1)
     , m_m12(0)
     , m_m21(0)
@@ -46,7 +46,7 @@ AffineTransform::AffineTransform()
 {
 }
 
-AffineTransform::AffineTransform(double a, double b, double c, double d, double tx, double ty)
+TransformationMatrix::TransformationMatrix(double a, double b, double c, double d, double tx, double ty)
     : m_m11(a)
     , m_m12(b)
     , m_m21(c)
@@ -57,7 +57,7 @@ AffineTransform::AffineTransform(double a, double b, double c, double d, double 
 }
 
 
-void AffineTransform::setMatrix(double a, double b, double c, double d, double tx, double ty)
+void TransformationMatrix::setMatrix(double a, double b, double c, double d, double tx, double ty)
 {
     m_m11 = a;
     m_m12 = b;
@@ -67,14 +67,14 @@ void AffineTransform::setMatrix(double a, double b, double c, double d, double t
     m_dy = ty;
 }
 
-void AffineTransform::map(double x, double y, double *x2, double *y2) const
+void TransformationMatrix::map(double x, double y, double *x2, double *y2) const
 {
     *x2 = m_m11 * x + m_m21 * y + m_dx;
     *y2 = m_m22 * y + m_m12 * x + m_dy;
 
 }
 
-IntRect AffineTransform::mapRect(const IntRect& rect) const
+IntRect TransformationMatrix::mapRect(const IntRect& rect) const
 {
     IntRect result;
     if (m_m12 == 0.0F && m_m21 == 0.0F) {
@@ -142,7 +142,7 @@ IntRect AffineTransform::mapRect(const IntRect& rect) const
     return r;*/
 }
 
-FloatRect AffineTransform::mapRect(const FloatRect& rect) const
+FloatRect TransformationMatrix::mapRect(const FloatRect& rect) const
 {
     FloatRect result;
     if (m_m12 == 0.0F && m_m21 == 0.0F) {
@@ -202,7 +202,7 @@ FloatRect AffineTransform::mapRect(const FloatRect& rect) const
     return r;*/
 }
 
-bool AffineTransform::isIdentity() const
+bool TransformationMatrix::isIdentity() const
 {
     if ((m_m11 == 1)
     &&  (m_m12 == 0)
@@ -214,67 +214,67 @@ bool AffineTransform::isIdentity() const
 
     return false;
 }
-double AffineTransform::a() const
+double TransformationMatrix::a() const
 {
     return m_m11;
 }
 
-void AffineTransform::setA(double a)
+void TransformationMatrix::setA(double a)
 {
     setMatrix(a, b(), c(), d(), e(), f());
 }
 
-double AffineTransform::b() const
+double TransformationMatrix::b() const
 {
     return m_m12;
 }
 
-void AffineTransform::setB(double b)
+void TransformationMatrix::setB(double b)
 {
     setMatrix(a(), b, c(), d(), e(), f());
 }
 
-double AffineTransform::c() const
+double TransformationMatrix::c() const
 {
     return m_m21;
 }
 
-void AffineTransform::setC(double c)
+void TransformationMatrix::setC(double c)
 {
     setMatrix(a(), b(), c, d(), e(), f());
 }
 
-double AffineTransform::d() const
+double TransformationMatrix::d() const
 {
     return m_m22;
 }
 
-void AffineTransform::setD(double d)
+void TransformationMatrix::setD(double d)
 {
     setMatrix(a(), b(), c(), d, e(), f());
 }
 
-double AffineTransform::e() const
+double TransformationMatrix::e() const
 {
     return m_dx;
 }
 
-void AffineTransform::setE(double e)
+void TransformationMatrix::setE(double e)
 {
     setMatrix(a(), b(), c(), d(), e, f());
 }
 
-double AffineTransform::f() const
+double TransformationMatrix::f() const
 {
     return m_dy;
 }
 
-void AffineTransform::setF(double f)
+void TransformationMatrix::setF(double f)
 {
     setMatrix(a(), b(), c(), d(), e(), f);
 }
 
-void AffineTransform::reset()
+void TransformationMatrix::reset()
 {
     m_m11 = 1;
     m_m12 = 0;
@@ -284,7 +284,7 @@ void AffineTransform::reset()
     m_dy = 0;
 }
 
-AffineTransform &AffineTransform::scale(double sx, double sy)
+TransformationMatrix &TransformationMatrix::scale(double sx, double sy)
 {
     m_m11 *= sx;
     m_m12 *= sx;
@@ -296,7 +296,7 @@ AffineTransform &AffineTransform::scale(double sx, double sy)
 
 //const double deg2rad = 0.017453292519943295769;        // pi/180
 
-AffineTransform &AffineTransform::rotate(double d)
+TransformationMatrix &TransformationMatrix::rotate(double d)
 {
     double sind = 0;
     double cosd = 0;
@@ -323,7 +323,7 @@ AffineTransform &AffineTransform::rotate(double d)
     return *this;
 }
 
-AffineTransform &AffineTransform::translate(double tx, double ty)
+TransformationMatrix &TransformationMatrix::translate(double tx, double ty)
 {
     m_dx += tx*m_m11 + ty*m_m21;
     m_dy += ty*m_m22 + tx*m_m12;
@@ -331,7 +331,7 @@ AffineTransform &AffineTransform::translate(double tx, double ty)
     return *this;
 }
 
-AffineTransform &AffineTransform::shear(double sx, double sy)
+TransformationMatrix &TransformationMatrix::shear(double sx, double sy)
 {
     double tm11 = sy * m_m21;
     double tm12 = sy * m_m22;
@@ -345,19 +345,19 @@ AffineTransform &AffineTransform::shear(double sx, double sy)
     return *this;
 }
 
-double AffineTransform::det() const
+double TransformationMatrix::det() const
 {
     return m_m11 * m_m22 - m_m12 * m_m21;
 }
 
-AffineTransform AffineTransform::inverse() const
+TransformationMatrix TransformationMatrix::inverse() const
 {
     double determinant = det();
     if (determinant == 0.0)
-        return AffineTransform();
+        return TransformationMatrix();
     else {
         double dinv = 1.0 / determinant;
-        AffineTransform imatrix((m_m22 * dinv), (-m_m12 * dinv),
+        TransformationMatrix imatrix((m_m22 * dinv), (-m_m12 * dinv),
                           (-m_m21 * dinv), (m_m11 * dinv),
                           ((m_m21 * m_dy - m_m22 * m_dx) * dinv),
                           ((m_m12 * m_dx - m_m11 * m_dy) * dinv));
@@ -365,7 +365,7 @@ AffineTransform AffineTransform::inverse() const
     }
 }
 
-bool AffineTransform::operator==(const AffineTransform& at) const
+bool TransformationMatrix::operator==(const TransformationMatrix& at) const
 {
     if ((m_m11 == at.m_m11)
     &&  (m_m12 == at.m_m12)
@@ -378,7 +378,7 @@ bool AffineTransform::operator==(const AffineTransform& at) const
     return false;
 }
 
-AffineTransform& AffineTransform::operator*=(const AffineTransform& b)
+TransformationMatrix& TransformationMatrix::operator*=(const TransformationMatrix& b)
 {
     double tm11 = m_m11 * b.m_m11 + m_m12 * b.m_m21;
     double tm12 = m_m11 * b.m_m12 + m_m12 * b.m_m22;
@@ -394,15 +394,15 @@ AffineTransform& AffineTransform::operator*=(const AffineTransform& b)
     return *this;
 }
 
-AffineTransform AffineTransform::operator*(const AffineTransform& b)
+TransformationMatrix TransformationMatrix::operator*(const TransformationMatrix& b)
 {
-    AffineTransform result = *this;
+    TransformationMatrix result = *this;
     result *= b;
 
     return result;
 }
 
-AffineTransform::operator BalMatrix() const
+TransformationMatrix::operator BalMatrix() const
 {
     return m_transform;
 }

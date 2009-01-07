@@ -2120,7 +2120,7 @@ IntRect RenderBlock::fillVerticalSelectionGap(int lastTop, int lastLeft, int las
 }
 
 IntRect RenderBlock::fillLeftSelectionGap(RenderObject* selObj, int xPos, int yPos, int height, RenderBlock* rootBlock,
-                                          int blockX, int blockY, int tx, int ty, const PaintInfo* paintInfo)
+                                          int blockX, int /*blockY*/, int tx, int ty, const PaintInfo* paintInfo)
 {
     int top = yPos + ty;
     int left = blockX + max(leftSelectionOffset(rootBlock, yPos), leftSelectionOffset(rootBlock, yPos + height));
@@ -2136,7 +2136,7 @@ IntRect RenderBlock::fillLeftSelectionGap(RenderObject* selObj, int xPos, int yP
 }
 
 IntRect RenderBlock::fillRightSelectionGap(RenderObject* selObj, int xPos, int yPos, int height, RenderBlock* rootBlock,
-                                           int blockX, int blockY, int tx, int ty, const PaintInfo* paintInfo)
+                                           int blockX, int /*blockY*/, int tx, int ty, const PaintInfo* paintInfo)
 {
     int left = max(xPos + tx, blockX + max(leftSelectionOffset(rootBlock, yPos), leftSelectionOffset(rootBlock, yPos + height)));
     int top = yPos + ty;
@@ -3089,7 +3089,7 @@ void RenderBlock::addVisualOverflow(const IntRect& r)
     m_overflowHeight = max(m_overflowHeight, r.bottom());
 }
 
-bool RenderBlock::isPointInOverflowControl(HitTestResult& result, int _x, int _y, int _tx, int _ty)
+bool RenderBlock::isPointInOverflowControl(HitTestResult& result, int, int, int, int)
 {
     if (!scrollsOverflow())
         return false;
@@ -3158,11 +3158,11 @@ bool RenderBlock::nodeAtPoint(const HitTestRequest& request, HitTestResult& resu
         }
     }
 
-    // Now hit test our background.
+    // Now hit test our background
     if (!inlineFlow && (hitTestAction == HitTestBlockBackground || hitTestAction == HitTestChildBlockBackground)) {
         int topExtra = borderTopExtra();
         IntRect boundsRect(tx, ty - topExtra, m_width, m_height + topExtra + borderBottomExtra());
-        if (style()->visibility() == VISIBLE && boundsRect.contains(_x, _y)) {
+        if (visibleToHitTesting() && boundsRect.contains(_x, _y)) {
             updateHitTestResult(result, IntPoint(_x - tx, _y - ty + topExtra));
             return true;
         }

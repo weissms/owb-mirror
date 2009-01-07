@@ -45,7 +45,7 @@ public:
         return isSameType(o);
     }
 
-    virtual bool apply(AffineTransform& transform, const IntSize& borderBoxSize) const
+    virtual bool apply(TransformationMatrix& transform, const IntSize& borderBoxSize) const
     {
         return false;
     }

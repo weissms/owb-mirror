@@ -262,11 +262,8 @@ void Heap::destroy()
 
 #if ENABLE(JSC_MULTIPLE_THREADS)
     if (m_currentThreadRegistrar) {
-#ifndef NDEBUG
-        int error =
-#endif
-            pthread_key_delete(m_currentThreadRegistrar);
-        ASSERT(!error);
+        int error = pthread_key_delete(m_currentThreadRegistrar);
+        ASSERT_UNUSED(error, !error);
     }
 
     MutexLocker registeredThreadsLock(m_registeredThreadsMutex);
@@ -376,8 +373,7 @@ template <HeapType heapType> ALWAYS_INLINE void* Heap::heapAllocate(size_t s)
     CollectorHeap& heap = heapType == PrimaryHeap ? primaryHeap : numberHeap;
     ASSERT(JSLock::lockCount() > 0);
     ASSERT(JSLock::currentThreadIsHoldingLock());
-    ASSERT(s <= HeapConstants<heapType>::cellSize);
-    UNUSED_PARAM(s); // s is now only used for the above assert
+    ASSERT_UNUSED(s, s <= HeapConstants<heapType>::cellSize);
 
     ASSERT(heap.operationInProgress == NoOperation);
     ASSERT(heapType == PrimaryHeap || heap.extraCost == 0);
@@ -933,7 +929,7 @@ void Heap::setGCProtectNeedsLocking()
         m_protectedValuesMutex.set(new Mutex);
 }
 
-void Heap::protect(JSValue* k)
+void Heap::protect(JSValuePtr k)
 {
     ASSERT(k);
     ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
@@ -950,7 +946,7 @@ void Heap::protect(JSValue* k)
         m_protectedValuesMutex->unlock();
 }
 
-void Heap::unprotect(JSValue* k)
+void Heap::unprotect(JSValuePtr k)
 {
     ASSERT(k);
     ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
@@ -967,7 +963,7 @@ void Heap::unprotect(JSValue* k)
         m_protectedValuesMutex->unlock();
 }
 
-Heap* Heap::heap(JSValue* v)
+Heap* Heap::heap(JSValuePtr v)
 {
     if (JSImmediate::isImmediate(v))
         return 0;

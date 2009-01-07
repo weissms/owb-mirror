@@ -60,8 +60,7 @@ KeyframeAnimation::~KeyframeAnimation()
         updateStateMachine(AnimationStateInputEndAnimation, -1);
 }
 
-void KeyframeAnimation::animate(CompositeAnimation* animation, RenderObject* renderer, const RenderStyle* currentStyle, 
-                                    const RenderStyle* targetStyle, RefPtr<RenderStyle>& animatedStyle)
+void KeyframeAnimation::animate(CompositeAnimation*, RenderObject*, const RenderStyle*, const RenderStyle* targetStyle, RefPtr<RenderStyle>& animatedStyle)
 {
     // Fire the start timeout if needed
     fireAnimationEventsIfNeeded();
@@ -88,7 +87,7 @@ void KeyframeAnimation::animate(CompositeAnimation* animation, RenderObject* ren
     // We should cache the last pair or something.
 
     // Find the first key
-    double elapsedTime = (m_startTime > 0 || m_pauseTime > 0) ? ((!paused() ? currentTime() : m_pauseTime) - m_startTime) : 0;
+    double elapsedTime = (m_startTime > 0 || m_pauseTime > 0) ? ((!paused() ? beginAnimationUpdateTime() : m_pauseTime) - m_startTime) : 0;
     if (elapsedTime < 0)
         elapsedTime = 0;
 

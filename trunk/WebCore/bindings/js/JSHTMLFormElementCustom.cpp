@@ -34,14 +34,14 @@ using namespace JSC;
 
 namespace WebCore {
 
-bool JSHTMLFormElement::canGetItemsForName(ExecState* exec, HTMLFormElement* form, const Identifier& propertyName)
+bool JSHTMLFormElement::canGetItemsForName(ExecState*, HTMLFormElement* form, const Identifier& propertyName)
 {
     Vector<RefPtr<Node> > namedItems;
     form->getNamedElements(propertyName, namedItems);
     return namedItems.size();
 }
 
-JSValue* JSHTMLFormElement::nameGetter(ExecState* exec, const Identifier& propertyName, const PropertySlot& slot)
+JSValuePtr JSHTMLFormElement::nameGetter(ExecState* exec, const Identifier& propertyName, const PropertySlot& slot)
 {
     HTMLFormElement* form = static_cast<HTMLFormElement*>(static_cast<JSHTMLElement*>(asObject(slot.slotBase()))->impl());
     

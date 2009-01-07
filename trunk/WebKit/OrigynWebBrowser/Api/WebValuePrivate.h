@@ -48,7 +48,7 @@ class WebValuePrivate {
             JSGlobalObject* obj = new (sharedGlobalData.get()) JSGlobalObject();
             m_exec = obj->globalExec();
         }
-        WebValuePrivate(ExecState* exec, JSValue* value)
+        WebValuePrivate(ExecState* exec, JSValuePtr value)
         {
             m_val = value;
             m_exec = exec;
@@ -81,10 +81,10 @@ class WebValuePrivate {
         void balString(const char* s);
         JSObject* balObject(WebObject *obj, ExecState *exec);
 
-        JSValue* getValue() { return m_val; }
+        JSValuePtr getValue() { return m_val; }
 
     private:
-        JSValue* m_val;
+        JSValuePtr m_val;
         ExecState *m_exec;
 };
 

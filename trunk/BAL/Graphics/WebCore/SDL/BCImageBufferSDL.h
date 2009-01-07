@@ -28,7 +28,7 @@
 #ifndef ImageBuffer_h
 #define ImageBuffer_h
 
-#include "AffineTransform.h"
+#include "TransformationMatrix.h"
 #include "Image.h"
 #include "IntSize.h"
 #include <wtf/OwnPtr.h>
@@ -63,7 +63,7 @@ namespace WKAL {
 
         String toDataURL(const String& mimeType) const;
 
-	AffineTransform baseTransform() const { return AffineTransform(); }
+	TransformationMatrix baseTransform() const { return TransformationMatrix(); }
 
     private:
         void* m_data;

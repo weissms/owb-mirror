@@ -198,7 +198,7 @@ void RenderSVGContainer::setDrawsContents(bool drawsContents)
     m_drawsContents = drawsContents;
 }
 
-AffineTransform RenderSVGContainer::localTransform() const
+TransformationMatrix RenderSVGContainer::localTransform() const
 {
     return m_localTransform;
 }
@@ -209,12 +209,12 @@ bool RenderSVGContainer::requiresLayer()
     return false;
 }
 
-int RenderSVGContainer::lineHeight(bool b, bool isRootLineBox) const
+int RenderSVGContainer::lineHeight(bool, bool) const
 {
     return height() + marginTop() + marginBottom();
 }
 
-int RenderSVGContainer::baselinePosition(bool b, bool isRootLineBox) const
+int RenderSVGContainer::baselinePosition(bool, bool) const
 {
     return height() + marginTop() + marginBottom();
 }
@@ -299,7 +299,7 @@ void RenderSVGContainer::applyContentTransforms(PaintInfo& paintInfo)
         paintInfo.context->concatCTM(localTransform());
 }
 
-void RenderSVGContainer::applyAdditionalTransforms(PaintInfo& paintInfo)
+void RenderSVGContainer::applyAdditionalTransforms(PaintInfo&)
 {
     // no-op
 }
@@ -322,7 +322,7 @@ bool RenderSVGContainer::selfWillPaint() const
     return false;
 }
 
-void RenderSVGContainer::paint(PaintInfo& paintInfo, int parentX, int parentY)
+void RenderSVGContainer::paint(PaintInfo& paintInfo, int, int)
 {
     if (paintInfo.context->paintingDisabled() || !drawsContents())
         return;
@@ -358,9 +358,9 @@ void RenderSVGContainer::paint(PaintInfo& paintInfo, int parentX, int parentY)
         paintOutline(paintInfo.context, m_absoluteBounds.x(), m_absoluteBounds.y(), m_absoluteBounds.width(), m_absoluteBounds.height(), style());
 }
 
-AffineTransform RenderSVGContainer::viewportTransform() const
+TransformationMatrix RenderSVGContainer::viewportTransform() const
 {
-     return AffineTransform();
+     return TransformationMatrix();
 }
 
 IntRect RenderSVGContainer::absoluteClippedOverflowRect()
@@ -383,7 +383,7 @@ IntRect RenderSVGContainer::absoluteClippedOverflowRect()
     return enclosingIntRect(repaintRect);
 }
 
-void RenderSVGContainer::addFocusRingRects(GraphicsContext* graphicsContext, int tx, int ty)
+void RenderSVGContainer::addFocusRingRects(GraphicsContext* graphicsContext, int, int)
 {
     graphicsContext->addFocusRingRect(m_absoluteBounds);
 }
@@ -393,7 +393,7 @@ void RenderSVGContainer::absoluteRects(Vector<IntRect>& rects, int, int, bool)
     rects.append(absoluteClippedOverflowRect());
 }
 
-void RenderSVGContainer::absoluteQuads(Vector<FloatQuad>& quads, bool topLevel)
+void RenderSVGContainer::absoluteQuads(Vector<FloatQuad>& quads, bool)
 {
     quads.append(absoluteClippedOverflowRect());
 }

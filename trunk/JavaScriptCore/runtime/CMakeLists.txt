@@ -7,9 +7,11 @@ create_lut_jsc(JSC_SRC JavaScriptCore/runtime/RegExpObject.cpp generated_sources
 create_lut_jsc(JSC_SRC JavaScriptCore/runtime/StringPrototype.cpp generated_sources/JavaScriptCore/StringPrototype.lut.h JavaScriptCore/runtime/StringPrototype.cpp)
 
 list(APPEND JSC_SRC
+    runtime/ByteArray.cpp
     runtime/ExceptionHelpers.cpp
     runtime/InitializeThreading.cpp
     runtime/JSActivation.cpp
+    runtime/JSByteArray.cpp
     runtime/JSGlobalData.cpp
     runtime/JSNotAnObject.cpp
     runtime/JSPropertyNameIterator.cpp

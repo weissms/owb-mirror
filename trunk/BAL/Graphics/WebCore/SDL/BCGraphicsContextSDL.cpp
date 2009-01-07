@@ -28,7 +28,7 @@
 #include "config.h"
 #include "GraphicsContext.h"
 
-#include "AffineTransform.h"
+#include "TransformationMatrix.h"
 #include "FloatRect.h"
 #include "Font.h"
 #include "ImageBuffer.h"
@@ -71,10 +71,10 @@ GraphicsContext::~GraphicsContext()
      delete m_data;
 }
 
-AffineTransform GraphicsContext::getCTM() const
+TransformationMatrix GraphicsContext::getCTM() const
 {
     NotImplemented();
-    AffineTransform a;
+    TransformationMatrix a;
     return a;
 }
 
@@ -649,7 +649,7 @@ void GraphicsContext::setURLForRect(const KURL& link, const IntRect& destRect)
     notImplemented();
 }
 
-void GraphicsContext::concatCTM(const AffineTransform& transform)
+void GraphicsContext::concatCTM(const TransformationMatrix& transform)
 {
     NotImplemented();
 }

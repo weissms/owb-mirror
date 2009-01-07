@@ -35,7 +35,7 @@
 
 namespace WebCore {
 
-class AffineTransform;
+class TransformationMatrix;
 class AnimationController;
 class Color;
 class Document;
@@ -312,8 +312,8 @@ public:
 
     virtual FloatRect relativeBBox(bool includeStroke = true) const;
 
-    virtual AffineTransform localTransform() const;
-    virtual AffineTransform absoluteTransform() const;
+    virtual TransformationMatrix localTransform() const;
+    virtual TransformationMatrix absoluteTransform() const;
 #endif
 
     virtual bool isEditable() const;
@@ -483,11 +483,11 @@ public:
     void paintBoxShadow(GraphicsContext*, int tx, int ty, int w, int h, const RenderStyle*, bool begin = true, bool end = true);
 
     // RenderBox implements this.
-    virtual void paintBoxDecorations(PaintInfo&, int tx, int ty) { }
-    virtual void paintMask(PaintInfo&, int tx, int ty) { }
+    virtual void paintBoxDecorations(PaintInfo&, int /*tx*/, int /*ty*/) { }
+    virtual void paintMask(PaintInfo&, int /*tx*/, int /*ty*/) { }
     virtual void paintFillLayerExtended(const PaintInfo&, const Color&, const FillLayer*,
-                                        int clipy, int cliph, int tx, int ty, int width, int height,
-                                        InlineFlowBox* box = 0, CompositeOperator = CompositeSourceOver) { }
+                                        int /*clipY*/, int /*clipH*/, int /*tx*/, int /*ty*/, int /*width*/, int /*height*/,
+                                        InlineFlowBox* = 0, CompositeOperator = CompositeSourceOver) { }
 
     
     /*
@@ -885,8 +885,8 @@ public:
     virtual int previousOffset(int current) const;
     virtual int nextOffset(int current) const;
 
-    virtual void imageChanged(CachedImage* image, const IntRect* = 0);
-    virtual void imageChanged(WrappedImagePtr data, const IntRect* = 0) { };
+    virtual void imageChanged(CachedImage*, const IntRect* = 0);
+    virtual void imageChanged(WrappedImagePtr, const IntRect* = 0) { }
     virtual bool willRenderImage(CachedImage*);
 
     virtual void selectionStartEnd(int& spos, int& epos) const;
@@ -915,6 +915,8 @@ public:
 
     AnimationController* animation() const;
 
+    bool visibleToHitTesting() const { return style()->visibility() == VISIBLE && style()->pointerEvents() != PE_NONE; }
+    
 protected:
     // Overrides should call the superclass at the end
     virtual void styleWillChange(RenderStyle::Diff, const RenderStyle* newStyle);

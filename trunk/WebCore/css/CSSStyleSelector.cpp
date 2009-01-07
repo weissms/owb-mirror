@@ -1606,7 +1606,7 @@ PassRefPtr<CSSRuleList> CSSStyleSelector::styleRulesForElement(Element* e, bool 
     return m_ruleList.release();
 }
 
-PassRefPtr<CSSRuleList> CSSStyleSelector::pseudoStyleRulesForElement(Element*, const String& pseudoStyle, bool authorOnly)
+PassRefPtr<CSSRuleList> CSSStyleSelector::pseudoStyleRulesForElement(Element*, const String&, bool)
 {
     // FIXME: Implement this.
     return 0;
@@ -2424,7 +2424,7 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
     return true;
 }
 
-bool CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass(CSSSelector* sel, RenderStyle::PseudoId& dynamicPseudo) const
+bool CSSStyleSelector::SelectorChecker::checkScrollbarPseudoClass(CSSSelector* sel, RenderStyle::PseudoId&) const
 {
     RenderScrollbar* scrollbar = RenderScrollbar::scrollbarForStyleResolve();
     ScrollbarPart part = RenderScrollbar::partForStyleResolve();
@@ -2512,7 +2512,7 @@ void CSSStyleSelector::addVariables(CSSVariablesRule* variables)
     }
 }
 
-CSSValue* CSSStyleSelector::resolveVariableDependentValue(CSSVariableDependentValue* val)
+CSSValue* CSSStyleSelector::resolveVariableDependentValue(CSSVariableDependentValue*)
 {
     return 0;
 }
@@ -4995,6 +4995,14 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
     case CSSPropertyWebkitTransitionTimingFunction:
         HANDLE_TRANSITION_VALUE(timingFunction, TimingFunction, value)
         return;
+    case CSSPropertyPointerEvents:
+    {
+        HANDLE_INHERIT_AND_INITIAL(pointerEvents, PointerEvents)
+        if (!primitiveValue)
+            return;
+        m_style->setPointerEvents(*primitiveValue);
+        return;
+    }
     case CSSPropertyInvalid:
         return;
     case CSSPropertyFontStretch:
@@ -5612,14 +5620,14 @@ float CSSStyleSelector::fontSizeForKeyword(int keyword, bool quirksMode, bool fi
     return max(fontSizeFactors[keyword - CSSValueXxSmall]*mediumSize, minLogicalSize);
 }
 
-float CSSStyleSelector::largerFontSize(float size, bool quirksMode) const
+float CSSStyleSelector::largerFontSize(float size, bool) const
 {
     // FIXME: Figure out where we fall in the size ranges (xx-small to xxx-large) and scale up to
     // the next size level.  
     return size * 1.2f;
 }
 
-float CSSStyleSelector::smallerFontSize(float size, bool quirksMode) const
+float CSSStyleSelector::smallerFontSize(float size, bool) const
 {
     // FIXME: Figure out where we fall in the size ranges (xx-small to xxx-large) and scale down to
     // the next size level. 

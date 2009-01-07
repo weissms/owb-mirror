@@ -449,6 +449,10 @@ PlatformWidget WebChromeClient::platformWindow() const
         return 0;
     return m_webView;
 }
+
+void WebChromeClient::contentsSizeChanged(Frame*, const IntSize&) const
+{
+}
 // End host window methods.
 
 void WebChromeClient::mouseDidMoveOverElement(const HitTestResult& result, unsigned modifierFlags)

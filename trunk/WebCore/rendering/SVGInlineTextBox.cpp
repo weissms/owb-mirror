@@ -80,10 +80,8 @@ float SVGInlineTextBox::calculateGlyphWidth(RenderStyle* style, int offset, int 
     return style->font().floatWidth(svgTextRunForInlineTextBox(textObject()->text()->characters() + offset, 1, style, this, 0), extraCharsAvailable, charsConsumed, glyphName);
 }
 
-float SVGInlineTextBox::calculateGlyphHeight(RenderStyle* style, int offset, int extraCharsAvailable) const
+float SVGInlineTextBox::calculateGlyphHeight(RenderStyle* style, int, int) const
 {
-    ASSERT(style);
-
     // This is just a guess, and the only purpose of this function is to centralize this hack.
     // In real-life top-top-bottom scripts this won't be enough, I fear.
     return style->font().ascent() + style->font().descent();
@@ -113,7 +111,7 @@ FloatRect SVGInlineTextBox::calculateGlyphBoundaries(RenderStyle* style, int off
     FloatRect glyphRect(x1, y1, x2 - x1, y2 - y1);
 
     // Take per-character transformations into account
-    AffineTransform ctm = svgChar.characterTransform();
+    TransformationMatrix ctm = svgChar.characterTransform();
     if (!ctm.isIdentity())
         glyphRect = ctm.mapRect(glyphRect);
 
@@ -131,7 +129,7 @@ struct SVGInlineTextBoxClosestCharacterToPositionWalker {
     {
     }
 
-    void chunkPortionCallback(SVGInlineTextBox* textBox, int startOffset, const AffineTransform& chunkCtm,
+    void chunkPortionCallback(SVGInlineTextBox* textBox, int startOffset, const TransformationMatrix& chunkCtm,
                               const Vector<SVGChar>::iterator& start, const Vector<SVGChar>::iterator& end)
     {
         RenderStyle* style = textBox->textObject()->style();
@@ -198,7 +196,7 @@ struct SVGInlineTextBoxSelectionRectWalker {
     {
     }
 
-    void chunkPortionCallback(SVGInlineTextBox* textBox, int startOffset, const AffineTransform& chunkCtm,
+    void chunkPortionCallback(SVGInlineTextBox* textBox, int startOffset, const TransformationMatrix& chunkCtm,
                               const Vector<SVGChar>::iterator& start, const Vector<SVGChar>::iterator& end)
     {
         RenderStyle* style = textBox->textObject()->style();
@@ -279,21 +277,21 @@ bool SVGInlineTextBox::svgCharacterHitsPosition(int x, int y, int& offset) const
     return true;
 }
 
-int SVGInlineTextBox::offsetForPosition(int x, bool includePartialGlyphs) const
+int SVGInlineTextBox::offsetForPosition(int, bool) const
 {
     // SVG doesn't use the offset <-> position selection system. 
     ASSERT_NOT_REACHED();
     return 0;
 }
 
-int SVGInlineTextBox::positionForOffset(int offset) const
+int SVGInlineTextBox::positionForOffset(int) const
 {
     // SVG doesn't use the offset <-> position selection system. 
     ASSERT_NOT_REACHED();
     return 0;
 }
 
-bool SVGInlineTextBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int x, int y, int tx, int ty)
+bool SVGInlineTextBox::nodeAtPoint(const HitTestRequest&, HitTestResult& result, int x, int y, int tx, int ty)
 {
     ASSERT(!isLineBreak());
 
@@ -352,7 +350,7 @@ void SVGInlineTextBox::paintCharacters(RenderObject::PaintInfo& paintInfo, int t
     if (*font != paintInfo.context->font())
         paintInfo.context->setFont(*font);
 
-    AffineTransform ctm = svgChar.characterTransform();
+    TransformationMatrix ctm = svgChar.characterTransform();
     if (!ctm.isIdentity())
         paintInfo.context->concatCTM(ctm);
 
@@ -436,7 +434,7 @@ void SVGInlineTextBox::paintCharacters(RenderObject::PaintInfo& paintInfo, int t
         paintInfo.context->concatCTM(ctm.inverse());
 }
 
-void SVGInlineTextBox::paintSelection(int boxStartOffset, const SVGChar& svgChar, const UChar* chars, int length, GraphicsContext* p, RenderStyle* style, const Font* f)
+void SVGInlineTextBox::paintSelection(int boxStartOffset, const SVGChar& svgChar, const UChar*, int length, GraphicsContext* p, RenderStyle* style, const Font* f)
 {
     if (selectionState() == RenderObject::SelectionNone)
         return;
@@ -520,7 +518,7 @@ void SVGInlineTextBox::paintDecoration(ETextDecoration decoration, GraphicsConte
     context->save();
     context->beginPath();
 
-    AffineTransform ctm = svgChar.characterTransform();
+    TransformationMatrix ctm = svgChar.characterTransform();
     if (!ctm.isIdentity())
         context->concatCTM(ctm);
 

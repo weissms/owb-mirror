@@ -60,6 +60,7 @@
 #include "FrameLoader.h"
 #include "FrameTree.h"
 #include "FrameView.h"
+#include "HTMLAnchorElement.h"
 #include "HTMLBodyElement.h"
 #include "HTMLCanvasElement.h"
 #include "HTMLDocument.h"
@@ -103,6 +104,9 @@
 #include "SegmentedString.h"
 #include "SelectionController.h"
 #include "Settings.h"
+#if ENABLE(DOM_STORAGE)
+#include "StorageEvent.h"
+#endif
 #include "StyleSheetList.h"
 #include "SystemTime.h"
 #include "TextEvent.h"
@@ -1104,7 +1108,10 @@ void Document::recalcStyle(StyleChange change)
     
     if (m_inStyleRecalc)
         return; // Guard against re-entrancy. -dwh
-        
+
+    if (m_frame)
+        m_frame->animation()->beginAnimationUpdate();
+
     m_inStyleRecalc = true;
     suspendPostAttachCallbacks();
     
@@ -1169,6 +1176,9 @@ bail_out:
         m_closeAfterStyleRecalc = false;
         implicitClose();
     }
+
+    if (m_frame)
+        m_frame->animation()->endAnimationUpdate();
 }
 
 void Document::updateRendering()
@@ -2639,22 +2649,32 @@ DOMWindow* Document::domWindow() const
 
 PassRefPtr<Event> Document::createEvent(const String& eventType, ExceptionCode& ec)
 {
-    if (eventType == "UIEvents" || eventType == "UIEvent")
-        return UIEvent::create();
-    if (eventType == "MouseEvents" || eventType == "MouseEvent")
-        return MouseEvent::create();
-    if (eventType == "MutationEvents" || eventType == "MutationEvent")
-        return MutationEvent::create();
-    if (eventType == "KeyboardEvents" || eventType == "KeyboardEvent")
-        return KeyboardEvent::create();
-    if (eventType == "HTMLEvents" || eventType == "Event" || eventType == "Events")
+    if (eventType == "Event" || eventType == "Events" || eventType == "HTMLEvents")
         return Event::create();
-    if (eventType == "ProgressEvent")
-        return ProgressEvent::create();
-    if (eventType == "TextEvent")
-        return TextEvent::create();
+    if (eventType == "KeyboardEvent" || eventType == "KeyboardEvents")
+        return KeyboardEvent::create();
+    if (eventType == "MessageEvent")
+        return MessageEvent::create();
+    if (eventType == "MouseEvent" || eventType == "MouseEvents")
+        return MouseEvent::create();
+    if (eventType == "MutationEvent" || eventType == "MutationEvents")
+        return MutationEvent::create();
     if (eventType == "OverflowEvent")
         return OverflowEvent::create();
+    if (eventType == "ProgressEvent")
+        return ProgressEvent::create();
+#if ENABLE(DOM_STORAGE)
+    if (eventType == "StorageEvent")
+        return StorageEvent::create();
+#endif
+    if (eventType == "TextEvent")
+        return TextEvent::create();
+    if (eventType == "UIEvent" || eventType == "UIEvents")
+        return UIEvent::create();
+    if (eventType == "WebKitAnimationEvent")
+        return WebKitAnimationEvent::create();
+    if (eventType == "WebKitTransitionEvent")
+        return WebKitTransitionEvent::create();
     if (eventType == "WheelEvent")
         return WheelEvent::create();
 #if ENABLE(SVG)
@@ -2663,12 +2683,6 @@ PassRefPtr<Event> Document::createEvent(const String& eventType, ExceptionCode& 
     if (eventType == "SVGZoomEvents")
         return SVGZoomEvent::create();
 #endif
-    if (eventType == "MessageEvent")
-        return MessageEvent::create();
-    if (eventType == "WebKitAnimationEvent")
-        return WebKitAnimationEvent::create();
-    if (eventType == "WebKitTransitionEvent")
-        return WebKitTransitionEvent::create();
     ec = NOT_SUPPORTED_ERR;
     return 0;
 }
@@ -4349,6 +4363,29 @@ void Document::postTask(PassRefPtr<Task> task)
     } else {
         callOnMainThread(performTask, new PerformTaskContext(this, task));
     }
+}
+
+Element* Document::findAnchor(const String& name)
+{
+    if (name.isEmpty())
+        return 0;
+    if (Element* element = getElementById(name))
+        return element;
+    for (Node* node = this; node; node = node->traverseNextNode()) {
+        if (node->hasTagName(aTag)) {
+            HTMLAnchorElement* anchor = static_cast<HTMLAnchorElement*>(node);
+            if (inCompatMode()) {
+                // Quirks mode, case insensitive comparison of names.
+                if (equalIgnoringCase(anchor->name(), name))
+                    return anchor;
+            } else {
+                // Strict mode, names need to match exactly.
+                if (anchor->name() == name)
+                    return anchor;
+            }
+        }
+    }
+    return 0;
 }
 
 } // namespace WebCore

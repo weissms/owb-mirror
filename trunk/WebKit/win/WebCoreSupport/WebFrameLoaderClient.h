@@ -34,7 +34,7 @@
 #pragma warning(pop)
 
 namespace WebCore {
-    class PluginView;
+    class PluginManualLoader;
 }
 
 template <typename T> class COMPtr;
@@ -101,6 +101,8 @@ public:
     virtual WebCore::Widget* createPlugin(const WebCore::IntSize&, WebCore::Element*, const WebCore::KURL&, const Vector<WebCore::String>&, const Vector<WebCore::String>&, const WebCore::String&, bool loadManually);
     virtual void redirectDataToPlugin(WebCore::Widget* pluginWidget);
 
+    virtual bool shouldUsePluginDocument(const WebCore::String& mimeType) const;
+
 protected:
     WebFrameLoaderClient(WebFrame*);
     ~WebFrameLoaderClient();
@@ -113,8 +115,8 @@ private:
 
     WebFrame* m_webFrame;
 
-    // Points to the plugin view that data should be redirected to.
-    WebCore::PluginView* m_pluginView;
+    // Points to the manual loader that data should be redirected to.
+    WebCore::PluginManualLoader* m_manualLoader;
 
     bool m_hasSentResponseToPlugin;
 };

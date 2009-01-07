@@ -28,9 +28,9 @@
 
 #if ENABLE(SVG)
 
-#include "AffineTransform.h"
 #include "FloatRect.h"
 #include "SVGPaintServer.h"
+#include "TransformationMatrix.h"
 
 #include <memory>
 
@@ -57,8 +57,8 @@ namespace WKAL {
         ImageBuffer* tile() const;
         void setTile(std::auto_ptr<ImageBuffer>);
 
-        AffineTransform patternTransform() const;
-        void setPatternTransform(const AffineTransform&);
+        TransformationMatrix patternTransform() const;
+        void setPatternTransform(const TransformationMatrix&);
 
         virtual TextStream& externalRepresentation(TextStream&) const;
 
@@ -69,7 +69,7 @@ namespace WKAL {
         
         OwnPtr<ImageBuffer> m_tile;
         const SVGPatternElement* m_ownerElement;
-        AffineTransform m_patternTransform;
+        TransformationMatrix m_patternTransform;
         FloatRect m_patternBoundaries;
 
     };

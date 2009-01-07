@@ -319,7 +319,7 @@ bool RenderBox::nodeAtPoint(const HitTestRequest& request, HitTestResult& result
 
     // Check our bounds next. For this purpose always assume that we can only be hit in the
     // foreground phase (which is true for replaced elements like images).
-    if (style()->visibility() == VISIBLE && action == HitTestForeground && IntRect(tx, ty, m_width, m_height).contains(x, y)) {
+    if (visibleToHitTesting() && action == HitTestForeground && IntRect(tx, ty, m_width, m_height).contains(x, y)) {
         updateHitTestResult(result, IntPoint(x - tx, y - ty));
         return true;
     }
@@ -2735,7 +2735,7 @@ IntRect RenderBox::localCaretRect(InlineBox* box, int caretOffset, int* extraWid
     return rect;
 }
 
-int RenderBox::lowestPosition(bool includeOverflowInterior, bool includeSelf) const
+int RenderBox::lowestPosition(bool /*includeOverflowInterior*/, bool includeSelf) const
 {
     if (!includeSelf || !m_width)
         return 0;
@@ -2745,7 +2745,7 @@ int RenderBox::lowestPosition(bool includeOverflowInterior, bool includeSelf) co
     return bottom;
 }
 
-int RenderBox::rightmostPosition(bool includeOverflowInterior, bool includeSelf) const
+int RenderBox::rightmostPosition(bool /*includeOverflowInterior*/, bool includeSelf) const
 {
     if (!includeSelf || !m_height)
         return 0;
@@ -2755,7 +2755,7 @@ int RenderBox::rightmostPosition(bool includeOverflowInterior, bool includeSelf)
     return right;
 }
 
-int RenderBox::leftmostPosition(bool includeOverflowInterior, bool includeSelf) const
+int RenderBox::leftmostPosition(bool /*includeOverflowInterior*/, bool includeSelf) const
 {
     if (!includeSelf || !m_height)
         return m_width;

@@ -127,7 +127,7 @@ void RenderSVGImage::adjustRectsForAspectRatio(FloatRect& destRect, FloatRect& s
 
 bool RenderSVGImage::calculateLocalTransform()
 {
-    AffineTransform oldTransform = m_localTransform;
+    TransformationMatrix oldTransform = m_localTransform;
     m_localTransform = static_cast<SVGStyledTransformableElement*>(element())->animatedLocalTransform();
     return (m_localTransform != oldTransform);
 }
@@ -193,13 +193,13 @@ void RenderSVGImage::paint(PaintInfo& paintInfo, int, int)
     paintInfo.context->restore();
 }
 
-bool RenderSVGImage::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, int _x, int _y, int, int, HitTestAction hitTestAction)
+bool RenderSVGImage::nodeAtPoint(const HitTestRequest&, HitTestResult& result, int _x, int _y, int, int, HitTestAction hitTestAction)
 {
     // We only draw in the forground phase, so we only hit-test then.
     if (hitTestAction != HitTestForeground)
         return false;
 
-    PointerEventsHitRules hitRules(PointerEventsHitRules::SVG_IMAGE_HITTESTING, style()->svgStyle()->pointerEvents());
+    PointerEventsHitRules hitRules(PointerEventsHitRules::SVG_IMAGE_HITTESTING, style()->pointerEvents());
     
     bool isVisible = (style()->visibility() == VISIBLE);
     if (isVisible || !hitRules.requireVisible) {
@@ -258,7 +258,7 @@ IntRect RenderSVGImage::absoluteClippedOverflowRect()
     return m_absoluteBounds;
 }
 
-void RenderSVGImage::addFocusRingRects(GraphicsContext* graphicsContext, int tx, int ty)
+void RenderSVGImage::addFocusRingRects(GraphicsContext* graphicsContext, int, int)
 {
     // this is called from paint() after the localTransform has already been applied
     IntRect contentRect = enclosingIntRect(relativeBBox());
@@ -270,7 +270,7 @@ void RenderSVGImage::absoluteRects(Vector<IntRect>& rects, int, int, bool)
     rects.append(absoluteClippedOverflowRect());
 }
 
-void RenderSVGImage::absoluteQuads(Vector<FloatQuad>& quads, bool topLevel)
+void RenderSVGImage::absoluteQuads(Vector<FloatQuad>& quads, bool)
 {
     quads.append(FloatRect(absoluteClippedOverflowRect()));
 }

@@ -55,6 +55,7 @@
 #include "FramePrivate.h"
 #include "FrameTree.h"
 #include "FrameView.h"
+#include "HTMLAnchorElement.h"
 #include "HTMLFormElement.h"
 #include "HTMLFrameElement.h"
 #include "HTMLNames.h"
@@ -70,6 +71,7 @@
 #include "PageCache.h"
 #include "PageGroup.h"
 #include "PluginData.h"
+#include "PluginDocument.h"
 #include "ProgressTracker.h"
 #include "RenderPart.h"
 #include "RenderView.h"
@@ -930,7 +932,12 @@ void FrameLoader::begin(const KURL& url, bool dispatch, SecurityOrigin* origin)
     m_outgoingReferrer = ref.string();
     m_URL = url;
 
-    RefPtr<Document> document = DOMImplementation::createDocument(m_responseMIMEType, m_frame, m_frame->inViewSourceMode());
+    RefPtr<Document> document;
+    
+    if (!m_isDisplayingInitialEmptyDocument && m_client->shouldUsePluginDocument(m_responseMIMEType))
+        document = PluginDocument::create(m_frame);
+    else
+        document = DOMImplementation::createDocument(m_responseMIMEType, m_frame, m_frame->inViewSourceMode());
     m_frame->setDocument(document);
 
     document->setURL(m_URL);
@@ -1614,9 +1621,7 @@ bool FrameLoader::gotoAnchor(const String& name)
 
     m_frame->document()->setGotoAnchorNeededAfterStylesheetsLoad(false);
 
-    Node* anchorNode = m_frame->document()->getElementById(AtomicString(name));
-    if (!anchorNode && !name.isEmpty())
-        anchorNode = m_frame->document()->anchors()->namedItem(name, !m_frame->document()->inCompatMode());
+    Element* anchorNode = m_frame->document()->findAnchor(name);
 
 #if ENABLE(SVG)
     if (m_frame->document()->isSVGDocument()) {
@@ -1708,6 +1713,11 @@ bool FrameLoader::requestObject(RenderPart* renderer, const String& url, const A
 
 bool FrameLoader::shouldUsePlugin(const KURL& url, const String& mimeType, bool hasFallback, bool& useFallback)
 {
+    if (m_client->shouldUsePluginDocument(mimeType)) {
+        useFallback = false;
+        return true;
+    }
+
     // Allow other plug-ins to win over QuickTime because if the user has installed a plug-in that
     // can handle TIFF (which QuickTime can also handle) they probably intended to override QT.
     if (m_frame->page() && (mimeType == "image/tiff" || mimeType == "image/tif" || mimeType == "image/x-tiff")) {
@@ -3896,7 +3906,7 @@ void FrameLoader::callContinueLoadAfterNavigationPolicy(void* argument,
     loader->continueLoadAfterNavigationPolicy(request, formState, shouldContinue);
 }
 
-void FrameLoader::continueLoadAfterNavigationPolicy(const ResourceRequest& request, PassRefPtr<FormState> formState, bool shouldContinue)
+void FrameLoader::continueLoadAfterNavigationPolicy(const ResourceRequest&, PassRefPtr<FormState> formState, bool shouldContinue)
 {
     // If we loaded an alternate page to replace an unreachableURL, we'll get in here with a
     // nil policyDataSource because loading the alternate page will have passed
@@ -4817,7 +4827,7 @@ void FrameLoader::setMainDocumentError(DocumentLoader* loader, const ResourceErr
     m_client->setMainDocumentError(loader, error);
 }
 
-void FrameLoader::mainReceivedCompleteError(DocumentLoader* loader, const ResourceError& error)
+void FrameLoader::mainReceivedCompleteError(DocumentLoader* loader, const ResourceError&)
 {
     loader->setPrimaryLoadComplete(true);
     m_client->dispatchDidLoadMainResource(activeDocumentLoader());

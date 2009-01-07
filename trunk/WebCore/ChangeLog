@@ -1,3 +1,1319 @@
+2009-01-07  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6391734> SnowLeopard: Crash doing Copy Image from context menu
+        
+        Can't create an automated test case for specific contextual menu items yet and
+        a normal Copy doesn't cause a crash.
+
+        * platform/mac/PasteboardMac.mm:
+        (WebCore::fileWrapperForImage): The SharedBuffer may not have platform data.  It may,
+        for example, have a purgeable or regular buffer.
+
+2009-01-06  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Fix <https://bugs.webkit.org/show_bug.cgi?id=23157>.
+        Bug 23157: Crashes on Acid 3
+
+        * dom/Document.cpp:
+        (WebCore::Document::recalcStyle): Null-check the frame.
+
+2009-01-05  Gavin Barraclough  <baraclough@apple.com>
+
+        Rubber Stamped by Oliver Hunt.
+
+        Replace all uses of JSValue* with new wrapper class, JSValuePtr.
+        See JavaScriptCore/ChangeLog for more detailed description.
+
+        * bindings/js/JSAttrCustom.cpp:
+        (WebCore::JSAttr::setValue):
+        * bindings/js/JSCSSRuleCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclaration::nameGetter):
+        (WebCore::JSCSSStyleDeclaration::customPut):
+        * bindings/js/JSCSSValueCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSCanvasPixelArrayCustom.h:
+        (WebCore::JSCanvasPixelArray::getByIndex):
+        (WebCore::JSCanvasPixelArray::indexSetter):
+        * bindings/js/JSCanvasRenderingContext2DCustom.cpp:
+        (WebCore::toJS):
+        (WebCore::toHTMLCanvasStyle):
+        (WebCore::JSCanvasRenderingContext2D::strokeStyle):
+        (WebCore::JSCanvasRenderingContext2D::setStrokeStyle):
+        (WebCore::JSCanvasRenderingContext2D::fillStyle):
+        (WebCore::JSCanvasRenderingContext2D::setFillStyle):
+        (WebCore::JSCanvasRenderingContext2D::setFillColor):
+        (WebCore::JSCanvasRenderingContext2D::setStrokeColor):
+        (WebCore::JSCanvasRenderingContext2D::strokeRect):
+        (WebCore::JSCanvasRenderingContext2D::drawImage):
+        (WebCore::JSCanvasRenderingContext2D::drawImageFromRect):
+        (WebCore::JSCanvasRenderingContext2D::setShadow):
+        (WebCore::JSCanvasRenderingContext2D::createPattern):
+        (WebCore::JSCanvasRenderingContext2D::putImageData):
+        (WebCore::JSCanvasRenderingContext2D::fillText):
+        (WebCore::JSCanvasRenderingContext2D::strokeText):
+        * bindings/js/JSClipboardCustom.cpp:
+        (WebCore::JSClipboard::types):
+        (WebCore::JSClipboard::clearData):
+        (WebCore::JSClipboard::getData):
+        (WebCore::JSClipboard::setData):
+        (WebCore::JSClipboard::setDragImage):
+        * bindings/js/JSConsoleCustom.cpp:
+        (WebCore::JSConsole::profiles):
+        * bindings/js/JSCustomPositionCallback.cpp:
+        (WebCore::JSCustomPositionCallback::handleEvent):
+        * bindings/js/JSCustomPositionErrorCallback.cpp:
+        (WebCore::JSCustomPositionErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        (WebCore::JSCustomSQLStatementCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        (WebCore::JSCustomSQLStatementErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomVoidCallback.cpp:
+        (WebCore::JSCustomVoidCallback::handleEvent):
+        (WebCore::toVoidCallback):
+        * bindings/js/JSCustomVoidCallback.h:
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        (WebCore::JSCustomXPathNSResolver::create):
+        (WebCore::JSCustomXPathNSResolver::lookupNamespaceURI):
+        * bindings/js/JSCustomXPathNSResolver.h:
+        * bindings/js/JSDOMApplicationCacheCustom.cpp:
+        (WebCore::JSDOMApplicationCache::add):
+        (WebCore::JSDOMApplicationCache::remove):
+        (WebCore::JSDOMApplicationCache::addEventListener):
+        (WebCore::JSDOMApplicationCache::removeEventListener):
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::jsStringOrNull):
+        (WebCore::jsOwnedStringOrNull):
+        (WebCore::jsStringOrUndefined):
+        (WebCore::jsStringOrFalse):
+        (WebCore::valueToStringWithNullCheck):
+        (WebCore::valueToStringWithUndefinedOrNullCheck):
+        (WebCore::reportException):
+        (WebCore::reportCurrentException):
+        (WebCore::setDOMException):
+        (WebCore::objectToStringFunctionGetter):
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::getDOMObjectWrapper):
+        (WebCore::getDOMNodeWrapper):
+        (WebCore::toJS):
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::findJSEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSEventListener):
+        (WebCore::JSDOMGlobalObject::findJSUnprotectedEventListener):
+        (WebCore::JSDOMGlobalObject::findOrCreateJSUnprotectedEventListener):
+        * bindings/js/JSDOMGlobalObject.h:
+        * bindings/js/JSDOMWindowBase.cpp:
+        (WebCore::createWindow):
+        (WebCore::showModalDialog):
+        (jsDOMWindowBaseCrypto):
+        (jsDOMWindowBaseEvent):
+        (jsDOMWindowBaseImage):
+        (jsDOMWindowBaseMessageChannel):
+        (jsDOMWindowBaseOption):
+        (jsDOMWindowBaseXMLHttpRequest):
+        (jsDOMWindowBaseAudio):
+        (jsDOMWindowBaseWorker):
+        (jsDOMWindowBaseXSLTProcessor):
+        (setJSDOMWindowBaseEvent):
+        (setJSDOMWindowBaseAudio):
+        (setJSDOMWindowBaseImage):
+        (setJSDOMWindowBaseMessageChannel):
+        (setJSDOMWindowBaseOption):
+        (setJSDOMWindowBaseWorker):
+        (setJSDOMWindowBaseXMLHttpRequest):
+        (setJSDOMWindowBaseXSLTProcessor):
+        (WebCore::JSDOMWindowBase::childFrameGetter):
+        (WebCore::JSDOMWindowBase::indexGetter):
+        (WebCore::JSDOMWindowBase::namedItemGetter):
+        (WebCore::JSDOMWindowBase::getOwnPropertySlot):
+        (WebCore::JSDOMWindowBase::put):
+        (WebCore::JSDOMWindowBase::clear):
+        (windowProtoFuncOpen):
+        (windowProtoFuncShowModalDialog):
+        (windowProtoFuncNotImplemented):
+        (WebCore::JSDOMWindowBase::setReturnValueSlot):
+        (WebCore::JSDOMWindowBase::installTimeout):
+        (WebCore::toJS):
+        (WebCore::toJSDOMWindow):
+        * bindings/js/JSDOMWindowBase.h:
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::lookupGetter):
+        (WebCore::JSDOMWindow::lookupSetter):
+        (WebCore::JSDOMWindow::setLocation):
+        (WebCore::JSDOMWindow::postMessage):
+        (WebCore::setTimeoutOrInterval):
+        (WebCore::JSDOMWindow::setTimeout):
+        (WebCore::JSDOMWindow::clearTimeout):
+        (WebCore::JSDOMWindow::setInterval):
+        (WebCore::JSDOMWindow::clearInterval):
+        (WebCore::JSDOMWindow::atob):
+        (WebCore::JSDOMWindow::btoa):
+        (WebCore::JSDOMWindow::addEventListener):
+        (WebCore::JSDOMWindow::removeEventListener):
+        (WebCore::toDOMWindow):
+        (WebCore::nonCachingStaticCloseFunctionGetter):
+        (WebCore::nonCachingStaticBlurFunctionGetter):
+        (WebCore::nonCachingStaticFocusFunctionGetter):
+        (WebCore::nonCachingStaticPostMessageFunctionGetter):
+        * bindings/js/JSDOMWindowCustom.h:
+        (WebCore::JSDOMWindow::customPut):
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::put):
+        (WebCore::JSDOMWindowShell::putWithAttributes):
+        (WebCore::JSDOMWindowShell::lookupGetter):
+        (WebCore::JSDOMWindowShell::lookupSetter):
+        (WebCore::toJS):
+        * bindings/js/JSDOMWindowShell.h:
+        (WebCore::JSDOMWindowShell::createStructure):
+        * bindings/js/JSDatabaseCustom.cpp:
+        (WebCore::JSDatabase::changeVersion):
+        (WebCore::JSDatabase::transaction):
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::location):
+        (WebCore::JSDocument::setLocation):
+        (WebCore::toJS):
+        * bindings/js/JSElementCustom.cpp:
+        (WebCore::JSElement::setAttribute):
+        (WebCore::JSElement::setAttributeNode):
+        (WebCore::JSElement::setAttributeNS):
+        (WebCore::JSElement::setAttributeNodeNS):
+        (WebCore::toJSNewlyCreated):
+        * bindings/js/JSEventCustom.cpp:
+        (WebCore::JSEvent::clipboardData):
+        (WebCore::toJS):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSAbstractEventListener::handleEvent):
+        (WebCore::eventParameterName):
+        (WebCore::JSLazyEventListener::parseCode):
+        * bindings/js/JSEventTarget.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSEventTarget.h:
+        * bindings/js/JSEventTargetBase.h:
+        * bindings/js/JSEventTargetNodeCustom.cpp:
+        (WebCore::JSEventTargetNode::addEventListener):
+        (WebCore::JSEventTargetNode::removeEventListener):
+        * bindings/js/JSGeolocationCustom.cpp:
+        (WebCore::createPositionOptions):
+        (WebCore::JSGeolocation::getCurrentPosition):
+        (WebCore::JSGeolocation::watchPosition):
+        * bindings/js/JSHTMLAllCollection.h:
+        (WebCore::JSHTMLAllCollection::createStructure):
+        * bindings/js/JSHTMLAppletElementCustom.cpp:
+        (WebCore::JSHTMLAppletElement::customPut):
+        (WebCore::JSHTMLAppletElement::nameGetter):
+        * bindings/js/JSHTMLCollectionCustom.cpp:
+        (WebCore::getNamedItems):
+        (WebCore::callHTMLCollection):
+        (WebCore::JSHTMLCollection::nameGetter):
+        (WebCore::JSHTMLCollection::item):
+        (WebCore::JSHTMLCollection::namedItem):
+        (WebCore::toJS):
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        (WebCore::JSHTMLDocument::nameGetter):
+        (WebCore::JSHTMLDocument::all):
+        (WebCore::JSHTMLDocument::setAll):
+        (WebCore::JSHTMLDocument::open):
+        (WebCore::JSHTMLDocument::write):
+        (WebCore::JSHTMLDocument::writeln):
+        * bindings/js/JSHTMLEmbedElementCustom.cpp:
+        (WebCore::JSHTMLEmbedElement::customPut):
+        (WebCore::JSHTMLEmbedElement::nameGetter):
+        * bindings/js/JSHTMLFormElementCustom.cpp:
+        (WebCore::JSHTMLFormElement::nameGetter):
+        * bindings/js/JSHTMLFrameElementCustom.cpp:
+        (WebCore::JSHTMLFrameElement::setSrc):
+        (WebCore::JSHTMLFrameElement::setLocation):
+        * bindings/js/JSHTMLFrameSetElementCustom.cpp:
+        (WebCore::JSHTMLFrameSetElement::nameGetter):
+        * bindings/js/JSHTMLIFrameElementCustom.cpp:
+        (WebCore::JSHTMLIFrameElement::setSrc):
+        * bindings/js/JSHTMLInputElementCustom.cpp:
+        (WebCore::JSHTMLInputElement::selectionStart):
+        (WebCore::JSHTMLInputElement::selectionEnd):
+        * bindings/js/JSHTMLObjectElementCustom.cpp:
+        (WebCore::JSHTMLObjectElement::customPut):
+        (WebCore::JSHTMLObjectElement::nameGetter):
+        * bindings/js/JSHTMLOptionsCollectionCustom.cpp:
+        (WebCore::JSHTMLOptionsCollection::length):
+        (WebCore::JSHTMLOptionsCollection::setLength):
+        (WebCore::JSHTMLOptionsCollection::indexSetter):
+        (WebCore::JSHTMLOptionsCollection::add):
+        (WebCore::JSHTMLOptionsCollection::remove):
+        * bindings/js/JSHTMLSelectElementCustom.cpp:
+        (WebCore::JSHTMLSelectElement::remove):
+        (WebCore::selectIndexSetter):
+        (WebCore::JSHTMLSelectElement::indexSetter):
+        * bindings/js/JSHTMLSelectElementCustom.h:
+        * bindings/js/JSHistoryCustom.cpp:
+        (WebCore::nonCachingStaticBackFunctionGetter):
+        (WebCore::nonCachingStaticForwardFunctionGetter):
+        (WebCore::nonCachingStaticGoFunctionGetter):
+        (WebCore::JSHistory::customPut):
+        * bindings/js/JSImageDataCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSInspectedObjectWrapper.cpp:
+        (WebCore::JSInspectedObjectWrapper::wrap):
+        (WebCore::JSInspectedObjectWrapper::prepareIncomingValue):
+        * bindings/js/JSInspectedObjectWrapper.h:
+        (WebCore::JSInspectedObjectWrapper::wrapOutgoingValue):
+        * bindings/js/JSInspectorCallbackWrapper.cpp:
+        (WebCore::JSInspectorCallbackWrapper::wrap):
+        (WebCore::JSInspectorCallbackWrapper::prepareIncomingValue):
+        * bindings/js/JSInspectorCallbackWrapper.h:
+        (WebCore::JSInspectorCallbackWrapper::wrapOutgoingValue):
+        * bindings/js/JSJavaScriptCallFrameCustom.cpp:
+        (WebCore::JSJavaScriptCallFrame::evaluate):
+        (WebCore::JSJavaScriptCallFrame::thisObject):
+        (WebCore::JSJavaScriptCallFrame::type):
+        (WebCore::JSJavaScriptCallFrame::scopeChain):
+        * bindings/js/JSLocationCustom.cpp:
+        (WebCore::nonCachingStaticReplaceFunctionGetter):
+        (WebCore::nonCachingStaticReloadFunctionGetter):
+        (WebCore::nonCachingStaticAssignFunctionGetter):
+        (WebCore::JSLocation::customPut):
+        (WebCore::JSLocation::setHref):
+        (WebCore::JSLocation::setProtocol):
+        (WebCore::JSLocation::setHost):
+        (WebCore::JSLocation::setHostname):
+        (WebCore::JSLocation::setPort):
+        (WebCore::JSLocation::setPathname):
+        (WebCore::JSLocation::setSearch):
+        (WebCore::JSLocation::setHash):
+        (WebCore::JSLocation::replace):
+        (WebCore::JSLocation::reload):
+        (WebCore::JSLocation::assign):
+        (WebCore::JSLocation::toString):
+        * bindings/js/JSMessageChannelConstructor.h:
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::startConversation):
+        (WebCore::JSMessagePort::addEventListener):
+        (WebCore::JSMessagePort::removeEventListener):
+        * bindings/js/JSMimeTypeArrayCustom.cpp:
+        (WebCore::JSMimeTypeArray::nameGetter):
+        * bindings/js/JSNamedNodeMapCustom.cpp:
+        (WebCore::JSNamedNodeMap::nameGetter):
+        * bindings/js/JSNamedNodesCollection.cpp:
+        (WebCore::JSNamedNodesCollection::lengthGetter):
+        (WebCore::JSNamedNodesCollection::indexGetter):
+        * bindings/js/JSNamedNodesCollection.h:
+        (WebCore::JSNamedNodesCollection::createStructure):
+        * bindings/js/JSNavigatorCustom.cpp:
+        (WebCore::needsYouTubeQuirk):
+        (WebCore::JSNavigator::appVersion):
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::JSNode::insertBefore):
+        (WebCore::JSNode::replaceChild):
+        (WebCore::JSNode::removeChild):
+        (WebCore::JSNode::appendChild):
+        (WebCore::createWrapper):
+        (WebCore::toJSNewlyCreated):
+        (WebCore::toJS):
+        * bindings/js/JSNodeFilterCondition.cpp:
+        (WebCore::JSNodeFilterCondition::JSNodeFilterCondition):
+        (WebCore::JSNodeFilterCondition::acceptNode):
+        * bindings/js/JSNodeFilterCondition.h:
+        (WebCore::JSNodeFilterCondition::create):
+        * bindings/js/JSNodeFilterCustom.cpp:
+        (WebCore::JSNodeFilter::acceptNode):
+        (WebCore::toNodeFilter):
+        * bindings/js/JSNodeIteratorCustom.cpp:
+        (WebCore::JSNodeIterator::nextNode):
+        (WebCore::JSNodeIterator::previousNode):
+        * bindings/js/JSNodeListCustom.cpp:
+        (WebCore::callNodeList):
+        (WebCore::JSNodeList::nameGetter):
+        * bindings/js/JSPluginArrayCustom.cpp:
+        (WebCore::JSPluginArray::nameGetter):
+        * bindings/js/JSPluginCustom.cpp:
+        (WebCore::JSPlugin::nameGetter):
+        * bindings/js/JSPluginElementFunctions.cpp:
+        (WebCore::runtimeObjectGetter):
+        (WebCore::runtimeObjectPropertyGetter):
+        (WebCore::runtimeObjectCustomPut):
+        (WebCore::callPlugin):
+        * bindings/js/JSPluginElementFunctions.h:
+        * bindings/js/JSQuarantinedObjectWrapper.cpp:
+        (WebCore::JSQuarantinedObjectWrapper::asWrapper):
+        (WebCore::JSQuarantinedObjectWrapper::cachedValueGetter):
+        (WebCore::JSQuarantinedObjectWrapper::getOwnPropertySlot):
+        (WebCore::JSQuarantinedObjectWrapper::put):
+        (WebCore::JSQuarantinedObjectWrapper::construct):
+        (WebCore::JSQuarantinedObjectWrapper::hasInstance):
+        (WebCore::JSQuarantinedObjectWrapper::call):
+        * bindings/js/JSQuarantinedObjectWrapper.h:
+        (WebCore::JSQuarantinedObjectWrapper::createStructure):
+        * bindings/js/JSRGBColor.cpp:
+        (WebCore::getJSRGBColor):
+        (jsRGBColorRed):
+        (jsRGBColorGreen):
+        (jsRGBColorBlue):
+        * bindings/js/JSRGBColor.h:
+        (WebCore::JSRGBColor::createStructure):
+        * bindings/js/JSSQLResultSetRowListCustom.cpp:
+        (WebCore::JSSQLResultSetRowList::item):
+        * bindings/js/JSSQLTransactionCustom.cpp:
+        (WebCore::JSSQLTransaction::executeSql):
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::addEventListener):
+        (WebCore::JSSVGElementInstance::removeEventListener):
+        * bindings/js/JSSVGLengthCustom.cpp:
+        (WebCore::JSSVGLength::value):
+        (WebCore::JSSVGLength::convertToSpecifiedUnits):
+        * bindings/js/JSSVGMatrixCustom.cpp:
+        (WebCore::JSSVGMatrix::multiply):
+        (WebCore::JSSVGMatrix::inverse):
+        (WebCore::JSSVGMatrix::translate):
+        (WebCore::JSSVGMatrix::scale):
+        (WebCore::JSSVGMatrix::scaleNonUniform):
+        (WebCore::JSSVGMatrix::rotate):
+        (WebCore::JSSVGMatrix::rotateFromVector):
+        (WebCore::JSSVGMatrix::flipX):
+        (WebCore::JSSVGMatrix::flipY):
+        (WebCore::JSSVGMatrix::skewX):
+        (WebCore::JSSVGMatrix::skewY):
+        * bindings/js/JSSVGPathSegCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSSVGPathSegListCustom.cpp:
+        (WebCore::JSSVGPathSegList::clear):
+        (WebCore::JSSVGPathSegList::initialize):
+        (WebCore::JSSVGPathSegList::getItem):
+        (WebCore::JSSVGPathSegList::insertItemBefore):
+        (WebCore::JSSVGPathSegList::replaceItem):
+        (WebCore::JSSVGPathSegList::removeItem):
+        (WebCore::JSSVGPathSegList::appendItem):
+        * bindings/js/JSSVGPointListCustom.cpp:
+        (WebCore::finishGetter):
+        (WebCore::finishSetter):
+        (WebCore::finishSetterReadOnlyResult):
+        (WebCore::JSSVGPointList::clear):
+        (WebCore::JSSVGPointList::initialize):
+        (WebCore::JSSVGPointList::getItem):
+        (WebCore::JSSVGPointList::insertItemBefore):
+        (WebCore::JSSVGPointList::replaceItem):
+        (WebCore::JSSVGPointList::removeItem):
+        (WebCore::JSSVGPointList::appendItem):
+        * bindings/js/JSSVGTransformListCustom.cpp:
+        (WebCore::finishGetter):
+        (WebCore::finishSetter):
+        (WebCore::finishSetterReadOnlyResult):
+        (WebCore::JSSVGTransformList::clear):
+        (WebCore::JSSVGTransformList::initialize):
+        (WebCore::JSSVGTransformList::getItem):
+        (WebCore::JSSVGTransformList::insertItemBefore):
+        (WebCore::JSSVGTransformList::replaceItem):
+        (WebCore::JSSVGTransformList::removeItem):
+        (WebCore::JSSVGTransformList::appendItem):
+        * bindings/js/JSStorageCustom.cpp:
+        (WebCore::JSStorage::nameGetter):
+        (WebCore::JSStorage::deleteProperty):
+        (WebCore::JSStorage::customPut):
+        * bindings/js/JSStyleSheetCustom.cpp:
+        (WebCore::toJS):
+        * bindings/js/JSStyleSheetListCustom.cpp:
+        (WebCore::JSStyleSheetList::nameGetter):
+        * bindings/js/JSTextCustom.cpp:
+        (WebCore::toJSNewlyCreated):
+        * bindings/js/JSTreeWalkerCustom.cpp:
+        (WebCore::JSTreeWalker::parentNode):
+        (WebCore::JSTreeWalker::firstChild):
+        (WebCore::JSTreeWalker::lastChild):
+        (WebCore::JSTreeWalker::nextSibling):
+        (WebCore::JSTreeWalker::previousSibling):
+        (WebCore::JSTreeWalker::previousNode):
+        (WebCore::JSTreeWalker::nextNode):
+        * bindings/js/JSWorkerContextBase.cpp:
+        (WebCore::JSWorkerContextBase::put):
+        * bindings/js/JSWorkerContextBase.h:
+        * bindings/js/JSWorkerContextCustom.cpp:
+        (WebCore::JSWorkerContext::self):
+        (WebCore::JSWorkerContext::setSelf):
+        (WebCore::JSWorkerContext::addEventListener):
+        (WebCore::JSWorkerContext::removeEventListener):
+        * bindings/js/JSWorkerCustom.cpp:
+        (WebCore::JSWorker::addEventListener):
+        (WebCore::JSWorker::removeEventListener):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::open):
+        (WebCore::JSXMLHttpRequest::setRequestHeader):
+        (WebCore::JSXMLHttpRequest::send):
+        (WebCore::JSXMLHttpRequest::getResponseHeader):
+        (WebCore::JSXMLHttpRequest::overrideMimeType):
+        (WebCore::JSXMLHttpRequest::addEventListener):
+        (WebCore::JSXMLHttpRequest::removeEventListener):
+        (WebCore::JSXMLHttpRequest::responseText):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::addEventListener):
+        (WebCore::JSXMLHttpRequestUpload::removeEventListener):
+        * bindings/js/JSXSLTProcessorCustom.cpp:
+        (WebCore::JSXSLTProcessor::importStylesheet):
+        (WebCore::JSXSLTProcessor::transformToFragment):
+        (WebCore::JSXSLTProcessor::transformToDocument):
+        (WebCore::JSXSLTProcessor::setParameter):
+        (WebCore::JSXSLTProcessor::getParameter):
+        (WebCore::JSXSLTProcessor::removeParameter):
+        * bindings/js/ScheduledAction.cpp:
+        (WebCore::ScheduledAction::ScheduledAction):
+        (WebCore::ScheduledAction::execute):
+        * bindings/js/ScheduledAction.h:
+        * bindings/js/ScriptCallStack.cpp:
+        (WebCore::ScriptCallStack::ScriptCallStack):
+        (WebCore::ScriptCallStack::initialize):
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::createScriptObjectForPluginElement):
+        * bindings/js/ScriptValue.cpp:
+        (WebCore::ScriptValue::getString):
+        (WebCore::ScriptValue::isNull):
+        (WebCore::ScriptValue::isUndefined):
+        * bindings/js/ScriptValue.h:
+        (WebCore::ScriptValue::ScriptValue):
+        (WebCore::ScriptValue::jsValue):
+        * bindings/objc/WebScriptObject.mm:
+        (-[WebScriptObject callWebScriptMethod:withArguments:]):
+        (-[WebScriptObject evaluateWebScript:]):
+        (-[WebScriptObject valueForKey:]):
+        (-[WebScriptObject webScriptValueAtIndex:]):
+        (+[WebScriptObject _convertValueToObjcValue:originRootObject:rootObject:]):
+        * bindings/objc/WebScriptObjectPrivate.h:
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/NP_jsobject.cpp:
+        (_NPN_InvokeDefault):
+        (_NPN_Invoke):
+        (_NPN_Evaluate):
+        (_NPN_GetProperty):
+        (_NPN_HasMethod):
+        (_NPN_Construct):
+        * bridge/c/c_instance.cpp:
+        (JSC::Bindings::CInstance::invokeMethod):
+        (JSC::Bindings::CInstance::invokeDefaultMethod):
+        (JSC::Bindings::CInstance::invokeConstruct):
+        (JSC::Bindings::CInstance::defaultValue):
+        (JSC::Bindings::CInstance::stringValue):
+        (JSC::Bindings::CInstance::numberValue):
+        (JSC::Bindings::CInstance::booleanValue):
+        (JSC::Bindings::CInstance::valueOf):
+        * bridge/c/c_instance.h:
+        * bridge/c/c_runtime.cpp:
+        (JSC::Bindings::CField::valueFromInstance):
+        (JSC::Bindings::CField::setValueToInstance):
+        * bridge/c/c_runtime.h:
+        * bridge/c/c_utility.cpp:
+        (JSC::Bindings::convertValueToNPVariant):
+        (JSC::Bindings::convertNPVariantToValue):
+        * bridge/c/c_utility.h:
+        * bridge/jni/jni_instance.cpp:
+        (JavaInstance::stringValue):
+        (JavaInstance::numberValue):
+        (JavaInstance::booleanValue):
+        (JavaInstance::invokeMethod):
+        (JavaInstance::defaultValue):
+        (JavaInstance::valueOf):
+        * bridge/jni/jni_instance.h:
+        * bridge/jni/jni_jsobject.h:
+        * bridge/jni/jni_jsobject.mm:
+        (JavaJSObject::call):
+        (JavaJSObject::eval):
+        (JavaJSObject::getMember):
+        (JavaJSObject::getSlot):
+        (JavaJSObject::convertValueToJObject):
+        (JavaJSObject::convertJObjectToValue):
+        * bridge/jni/jni_objc.mm:
+        (JSC::Bindings::dispatchJNICall):
+        * bridge/jni/jni_runtime.cpp:
+        (JavaArray::convertJObjectToArray):
+        (JavaField::dispatchValueFromInstance):
+        (JavaField::valueFromInstance):
+        (JavaField::dispatchSetValueToInstance):
+        (JavaField::setValueToInstance):
+        (JavaArray::setValueAt):
+        (JavaArray::valueAt):
+        * bridge/jni/jni_runtime.h:
+        * bridge/jni/jni_utility.cpp:
+        (JSC::Bindings::convertArrayInstanceToJavaArray):
+        (JSC::Bindings::convertValueToJValue):
+        * bridge/jni/jni_utility.h:
+        * bridge/objc/WebScriptObject.h:
+        * bridge/objc/objc_class.h:
+        * bridge/objc/objc_class.mm:
+        (JSC::Bindings::ObjcClass::fallbackObject):
+        * bridge/objc/objc_instance.h:
+        * bridge/objc/objc_instance.mm:
+        (ObjcInstance::invokeMethod):
+        (ObjcInstance::invokeDefaultMethod):
+        (ObjcInstance::setValueOfUndefinedField):
+        (ObjcInstance::getValueOfUndefinedField):
+        (ObjcInstance::defaultValue):
+        (ObjcInstance::stringValue):
+        (ObjcInstance::numberValue):
+        (ObjcInstance::booleanValue):
+        (ObjcInstance::valueOf):
+        * bridge/objc/objc_runtime.h:
+        (JSC::Bindings::ObjcFallbackObjectImp::createStructure):
+        * bridge/objc/objc_runtime.mm:
+        (JSC::Bindings::ObjcField::valueFromInstance):
+        (JSC::Bindings::convertValueToObjcObject):
+        (JSC::Bindings::ObjcField::setValueToInstance):
+        (JSC::Bindings::ObjcArray::setValueAt):
+        (JSC::Bindings::ObjcArray::valueAt):
+        (JSC::Bindings::ObjcFallbackObjectImp::put):
+        (JSC::Bindings::callObjCFallbackObject):
+        (JSC::Bindings::ObjcFallbackObjectImp::defaultValue):
+        * bridge/objc/objc_utility.h:
+        * bridge/objc/objc_utility.mm:
+        (JSC::Bindings::convertValueToObjcValue):
+        (JSC::Bindings::convertNSStringToString):
+        (JSC::Bindings::convertObjcValueToValue):
+        * bridge/runtime.cpp:
+        (JSC::Bindings::Instance::getValueOfField):
+        (JSC::Bindings::Instance::setValueOfField):
+        * bridge/runtime.h:
+        (JSC::Bindings::Class::fallbackObject):
+        (JSC::Bindings::Instance::getValueOfUndefinedField):
+        (JSC::Bindings::Instance::setValueOfUndefinedField):
+        (JSC::Bindings::Instance::invokeDefaultMethod):
+        (JSC::Bindings::Instance::invokeConstruct):
+        (JSC::Bindings::Instance::valueOf):
+        * bridge/runtime_array.cpp:
+        (JSC::RuntimeArray::lengthGetter):
+        (JSC::RuntimeArray::indexGetter):
+        (JSC::RuntimeArray::put):
+        * bridge/runtime_array.h:
+        (JSC::RuntimeArray::createStructure):
+        * bridge/runtime_method.cpp:
+        (JSC::RuntimeMethod::lengthGetter):
+        (JSC::callRuntimeMethod):
+        * bridge/runtime_method.h:
+        (JSC::RuntimeMethod::createStructure):
+        * bridge/runtime_object.cpp:
+        (JSC::RuntimeObjectImp::fallbackObjectGetter):
+        (JSC::RuntimeObjectImp::fieldGetter):
+        (JSC::RuntimeObjectImp::methodGetter):
+        (JSC::RuntimeObjectImp::put):
+        (JSC::RuntimeObjectImp::defaultValue):
+        (JSC::callRuntimeObject):
+        (JSC::callRuntimeConstructor):
+        * bridge/runtime_object.h:
+        (JSC::RuntimeObjectImp::createStructure):
+        * inspector/InspectorController.cpp:
+        * inspector/JavaScriptCallFrame.cpp:
+        (WebCore::JavaScriptCallFrame::evaluate):
+        * inspector/JavaScriptCallFrame.h:
+        * inspector/JavaScriptProfile.cpp:
+        (WebCore::toJS):
+        * inspector/JavaScriptProfile.h:
+        * inspector/JavaScriptProfileNode.cpp:
+        (WebCore::toJS):
+        * inspector/JavaScriptProfileNode.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::XMLHttpRequest::dropProtection):
+
+2009-01-06  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Added new API on AnimationController::numberOfActiveAnimations() to be used by DRT.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23126
+
+        Test: animations/animation-controller-drt-api.html
+
+        * WebCore.base.exp:
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::numberOfActiveAnimations):
+        (WebCore::AnimationController::numberOfActiveAnimations):
+        * page/animation/AnimationController.h:
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::numberOfActiveAnimations):
+        (WebCore::CompositeAnimation::numberOfActiveAnimations):
+        * page/animation/CompositeAnimation.h:
+
+2009-01-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Upstream 3 more files to get the WebCore-Chromium build a bit further.
+
+        * WebCore.scons:
+        * page/chromium/AccessibilityObjectChromium.cpp: Added.
+        (WebCore::AccessibilityObject::accessibilityIgnoreAttachment):
+        * page/chromium/AccessibilityObjectWrapper.h: Added.
+        (WebCore::AccessibilityObjectWrapper::~AccessibilityObjectWrapper):
+        (WebCore::AccessibilityObjectWrapper::attached):
+        (WebCore::AccessibilityObjectWrapper::accessibilityObject):
+        (WebCore::AccessibilityObjectWrapper::AccessibilityObjectWrapper):
+        * platform/chromium/PasteboardPrivate.h: Added.
+        (WebCore::PasteboardPrivate::):
+
+2009-01-06  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Tests: animations/simultaneous-start-left.html
+               animations/simultaneous-start-transform.html
+
+        Fixed https://bugs.webkit.org/show_bug.cgi?id=22870
+ 
+        I added calls beginAnimationUpdate() and endAnimationUpdate() calls
+        to AnimationController. These are called by Document at the start
+        and end of the recalcStyle cycle. Right now, I'm just using the 
+        beginAnimationUpdate() method to reset an animation time value.
+        The first time the animation time is accessed after this reset I set
+        it to the currentTime. So all animations in that cycle get the same
+        start time. 
+
+        The test cases checked in test this, but in the case of the 'left'
+        test it actually doesn't make any difference in most cases. This is
+        because values are clamped to whole pixels, so the start times would 
+        have to be pretty far off for the test to fail using the old
+        currentTime() model. Still, under really heavy load, it's possible for
+        the test to fail without these changes.
+
+        The 'transform' test is another story. It animates to the full resolution
+        of a floating point number, so the test fails miserably without this
+        fix.
+
+        * dom/Document.cpp:
+        (WebCore::Document::recalcStyle):
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::updateStateMachine):
+        (WebCore::AnimationBase::fireAnimationEventsIfNeeded):
+        (WebCore::AnimationBase::willNeedService):
+        (WebCore::AnimationBase::progress):
+        (WebCore::AnimationBase::goIntoEndingOrLoopingState):
+        (WebCore::AnimationBase::beginAnimationUpdateTime):
+        * page/animation/AnimationBase.h:
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::beginAnimationUpdateTime):
+        (WebCore::AnimationControllerPrivate::setBeginAnimationUpdateTime):
+        (WebCore::AnimationControllerPrivate::AnimationControllerPrivate):
+        (WebCore::AnimationController::updateAnimations):
+        (WebCore::AnimationController::beginAnimationUpdateTime):
+        (WebCore::AnimationController::beginAnimationUpdate):
+        (WebCore::AnimationController::endAnimationUpdate):
+        * page/animation/AnimationController.h:
+        * page/animation/KeyframeAnimation.cpp:
+        (WebCore::KeyframeAnimation::animate):
+
+2009-01-06  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Bug 22858: Simplify make_names.pl code for avoiding multiple definitions or inclusions
+        https://bugs.webkit.org/show_bug.cgi?id=22858
+
+        I had introduced an awkward situation using hasCustomJSWrapper and
+        sometimes boolean parameter in order to ensure JS wrapper generated once
+        or header included once.
+
+        Simplified the code by using a %seenTag hash to detect multiple definitions
+        or inclusions and skipping it.
+
+        Also cleaned up a bit make_names.pl by using more explicit names and moving
+        code to where it belongs.
+
+        * dom/make_names.pl:
+        * html/HTMLTagNames.in: Necessary changes that were not detected by
+        the previous syntax but will be required for autogenerating HTMLElementFactory.
+
+2009-01-06  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add a way for frame loader clients to always create a PluginDocument, regardless of 
+        the real document MIME type.
+        
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::begin):
+        (WebCore::FrameLoader::shouldUsePlugin):
+        * loader/FrameLoaderClient.h:
+        (WebCore::FrameLoaderClient::shouldUsePluginDocument):
+
+2009-01-06  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Dave Hyatt.
+
+        Extend Media Queries to cover transitions,
+        animations, transform-2d and transform-3d
+        http://webkit.org/specs/MediaQueriesExtensions.html
+        Note that the implementation uses -webkit- prefixes
+        even though the spec doesn't have them.
+        https://bugs.webkit.org/show_bug.cgi?id=22494
+
+        Tests: fast/media/mq-animation.html
+               fast/media/mq-transform-01.html
+               fast/media/mq-transform-02.html
+               fast/media/mq-transform-03.html
+               fast/media/mq-transform-04.html
+               fast/media/mq-transition.html
+
+        * css/MediaFeatureNames.h:
+        * css/MediaQueryEvaluator.cpp:
+        (WebCore::animationMediaFeatureEval):
+        (WebCore::transitionMediaFeatureEval):
+        (WebCore::transform_2dMediaFeatureEval):
+        (WebCore::transform_3dMediaFeatureEval):
+
+2009-01-06  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Bring the Chromium-WebCore build closer to building
+        by upstreaming PlatformWidget.h add adding the JSC
+        plugin bridge files to the build.
+
+        * WebCore.scons:
+        * platform/chromium/PlatformWidget.h: Added.
+
+2009-01-06  Eric Seidel  <eric@webkit.org>
+
+        Build fix only, no review.
+
+        Bring the Chromium-WebCore build back closer to building
+        by adding files from recent commits.
+
+        * WebCore.scons:
+
+2009-01-06  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6474973> REGRESSION: PLT ~2% slower due to 39465 (consolidate thread data)
+
+        I could not reproduce the slowdown on my PowerPC test machine, but the change should bring
+        performance back.
+
+        * platform/ThreadGlobalData.cpp: (WebCore::threadGlobalData): Don't use AtomicallyInitializedStatic.
+        Prior to r39465, it was only used for cached converters, which was necessary because the
+        first access to ICU or TEC one could happen on a secondary thread, but now they are all
+        initialized from ThreadGlobalData constructor.
+
+2009-01-06  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Darin Adler.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=23129
+        Devirtualize Node::childNodes().
+
+2009-01-06  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Unreviewed build fix.
+
+        Fix the Qt build with Qt 4.4.x, the HTTP-only cookie support was
+        added in Qt 4.5.
+
+        * platform/qt/CookieJarQt.cpp:
+        (WebCore::setCookies):
+        (WebCore::cookies):
+
+2009-01-06  Zalan Bujtas  <zbujtas@gmail.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23133
+        Fix SVG disabled build. Move 'pointer-events' from SVGCSSPropertyNames.in to
+        CSSPropertyNames.in and move PointerEvents functions out of #if ENABLE(SVG)
+
+        NOTE: Property name fixes landed as part of r39648.
+
+        * css/CSSPrimitiveValueMappings.h:
+        (WebCore::CSSPrimitiveValue::CSSPrimitiveValue):
+        (WebCore::CSSPrimitiveValue::operator EPointerEvents):
+        * css/CSSPropertyNames.in:
+        * css/SVGCSSPropertyNames.in:
+
+2009-01-06  David Kilzer  <ddkilzer@apple.com>
+
+        BUILD FIX (r39634): Fix build for non-SVG builds (Wx)
+
+        * css/CSSPropertyNames.in: Added 'pointer-events'.
+        * css/SVGCSSPropertyNames.in: Commented out pointer-events
+        since it's now a plain CSS property.
+
+2009-01-06  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Lars Knoll.
+
+        Added support for HTTP-only cookies to the Qt build.
+
+        * platform/qt/CookieJarQt.cpp:
+        (WebCore::setCookies): Don't set HTTP-only cookies through the DOM.
+        (WebCore::cookies): Don't return HTTP-only cookies to the DOM.
+
+2009-01-05  David Smith  <catfish.man@gmail.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23084
+        Avoid redundant AtomicString conversions
+
+        * dom/Node.cpp: Create an AtomicString early to avoid converting twice
+        (WebCore::Node::getElementsByTagNameNS):
+        * dom/QualifiedName.h: Use the appropriate AtomicString constructor instead of converting from a String
+
+2009-01-05  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dave Hyatt
+
+        https://bugs.webkit.org/show_bug.cgi?id=22985
+        
+        Add an assertion that clip rects are being used when painting with the same
+        rootLayer that they were computed with.
+        
+        Fix two issues detected by the assertion:
+
+        RenderLayer::updateClipRects() should not unconditionally update the clip rects
+        on its parent, but stop when reaching rootLayer (just like calculateClipRects()).
+        
+        We need to pass the temporaryClipRects flag down through reflection painting
+        to handle the case of nested reflections.
+        
+        Also use temporary clip rects in RenderTreeAsText, since that code does not
+        reset the painting root for transformed layers, so cached clip rects will not
+        match those used for painting.
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::RenderLayer):
+        (WebCore::RenderLayer::paintLayer):
+        (WebCore::RenderLayer::updateClipRects):
+        (WebCore::RenderLayer::clearClipRects):
+        * rendering/RenderLayer.h:
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::writeLayers):
+
+2009-01-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Fix the Qt build
+
+        * platform/graphics/qt/AffineTransformQt.cpp:
+        (WebCore::TransformationMatrix::TransformationMatrix):
+
+2009-01-05  Mark Rowe  <mrowe@apple.com>
+
+        Fix the build some more.
+
+        * platform/graphics/cairo/AffineTransformCairo.cpp:
+        (WebCore::TransformationMatrix::TransformationMatrix):
+
+2009-01-05  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Fix Cairo/Gtk build
+
+        * platform/graphics/cairo/ImageBufferCairo.cpp:
+        (WebCore::ImageBuffer::putImageData):
+
+2009-01-05  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Rename AffineTransform to TransformationMatrix in
+        preparation for future enhancements (non-affine matrices)
+
+        https://bugs.webkit.org/show_bug.cgi?id=22943
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        * platform/graphics/transforms/AffineTransform.cpp: Removed.
+        * platform/graphics/transforms/AffineTransform.h: Removed.
+        * platform/graphics/transforms/TransformationMatrix.cpp: Copied from WebCore/platform/graphics/transforms/AffineTransform.cpp.
+        * platform/graphics/transforms/TransformationMatrix.h: Copied from WebCore/platform/graphics/transforms/AffineTransform.h.
+        * lots of other files with s/AffineTransform/TransformationMatrix/g
+
+2008-01-05  Dean Jackson  <dino@apple.com>
+
+        Reviewed by David Hyatt.
+
+        Implement 'pointer-events' for HTML content. This involved
+        adding a new value 'auto' which behaves as 'visiblePainted'
+        in SVG content. 
+        
+        Moved the property out of the SVG CSS code and into
+        the general CSS (both parsing and RenderStyle). 
+        
+        Changes to the hit testing functionality of the Render tree,
+        specifically the nodeAtPoint methods. Where they used to 
+        test for visibility, they now use a helper function defined
+        on base classes (RenderObject and InlineBox) that checks both
+        visibility and pointer-events.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=11395
+
+        Tests: fast/events/pointer-events-2.html
+               fast/events/pointer-events.html
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::):
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        * css/CSSPrimitiveValueMappings.h:
+        (WebCore::CSSPrimitiveValue::CSSPrimitiveValue):
+        (WebCore::CSSPrimitiveValue::operator EPointerEvents):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        * css/SVGCSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getSVGPropertyCSSValue):
+        * css/SVGCSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applySVGProperty):
+        * manual-tests/pointer-events.html: Added.
+        * rendering/EllipsisBox.cpp:
+        (WebCore::EllipsisBox::nodeAtPoint):
+        * rendering/InlineBox.h:
+        (WebCore::InlineBox::visibleToHitTesting):
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::nodeAtPoint):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::InlineTextBox::nodeAtPoint):
+        * rendering/PointerEventsHitRules.cpp:
+        (WebCore::PointerEventsHitRules::PointerEventsHitRules):
+        * rendering/PointerEventsHitRules.h:
+        (WebCore::PointerEventsHitRules::):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::nodeAtPoint):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::nodeAtPoint):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::visibleToHitTesting):
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::nodeAtPoint):
+        * rendering/RenderSVGImage.cpp:
+        (WebCore::RenderSVGImage::nodeAtPoint):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::nodeAtPoint):
+        * rendering/RootInlineBox.cpp:
+        (WebCore::RootInlineBox::nodeAtPoint):
+        * rendering/TextControlInnerElements.cpp:
+        (WebCore::SearchFieldCancelButtonElement::defaultEventHandler):
+        * rendering/style/RenderStyle.h:
+        (WebCore::):
+        (WebCore::InheritedFlags::setBitDefaults):
+        (WebCore::InheritedFlags::pointerEvents):
+        (WebCore::InheritedFlags::setPointerEvents):
+        (WebCore::InheritedFlags::initialPointerEvents):
+        * rendering/style/RenderStyleConstants.h:
+        (WebCore::):
+        * rendering/style/SVGRenderStyle.h:
+        (WebCore::SVGRenderStyle::InheritedFlags::operator==):
+        (WebCore::SVGRenderStyle::setBitDefaults):
+        * rendering/style/SVGRenderStyleDefs.h:
+        * css/CSSValueKeywords.in:
+        * css/SVGCSSValueKeywords.in:
+
+2009-01-05  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Fix Cairo/Gtk build
+
+        * platform/graphics/cairo/ImageBufferCairo.cpp:
+        (WebCore::ImageBuffer::getImageData):
+
+2009-01-05  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        CanvasPixelArray performance is too slow 
+        <https://bugs.webkit.org/show_bug.cgi?id=23123>
+
+        Remove the WebCore CanvasPixelArray implementation and replace
+        CPA usage with JSC::ByteArray.  Replace the JSCanvasPixelArray
+        wrapper with an explicitly instantiated JSByteArray put on the
+        JSImageData object as an ordinary ReadOnly, DontDelete property.
+
+        * DerivedSources.make:
+        * ForwardingHeaders/runtime/ByteArray.h: Added.
+        * ForwardingHeaders/runtime/JSByteArray.h: Added.
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSCanvasPixelArrayCustom.h: Removed.
+        * bindings/js/JSImageDataCustom.cpp:
+        (WebCore::toJS):
+        * html/CanvasPixelArray.cpp: Removed.
+        * html/CanvasPixelArray.h: Removed.
+        * html/CanvasPixelArray.idl: Removed.
+        * html/CanvasRenderingContext2D.cpp:
+        (WebCore::createEmptyImageData):
+        * html/ImageData.cpp:
+        (WebCore::ImageData::ImageData):
+        * html/ImageData.h:
+        (WebCore::ImageData::data):
+        * html/ImageData.idl:
+        * platform/graphics/cg/ImageBufferCG.cpp:
+        (WebCore::ImageBuffer::getImageData):
+        (WebCore::ImageBuffer::putImageData):
+
+2009-01-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Add notification for contentsSizeChanged which the Qt API will
+        introduce.
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::contentsSizeChanged):
+        * page/Chrome.cpp:
+        (WebCore::Chrome::contentsSizeChanged):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::setContentsSize):
+        * page/FrameView.h:
+        * platform/HostWindow.h:
+        * platform/ScrollView.h:
+
+2009-01-05  Anders Carlsson  <andersca@apple.com>
+
+        Build fix.
+        
+        * plugins/PluginView.h:
+        (WebCore::PluginManualLoader::~PluginManualLoader):
+
+2009-01-05  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Kevin Decker.
+        
+        Add an abstract PluginManualLoader class and make PluginView inherit from it. 
+        
+        Add some error checking that currently exists in WebKit (but not for long!)
+        
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::didReceiveResponse):
+        (WebCore::PluginView::didReceiveData):
+        (WebCore::PluginView::didFinishLoading):
+        (WebCore::PluginView::didFail):
+        * plugins/PluginView.h:
+
+2009-01-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Fixes FrameView to respect the state of scrollbarmode when it is explicitly
+        set programatically via a webkit API.
+
+        * loader/FrameLoaderClient.cpp:
+        (WebCore::FrameLoaderClient::transitionToCommittedForNewPage):
+        * loader/FrameLoaderClient.h:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::initScrollbars):
+        (WebCore::FrameView::updateDefaultScrollbarState):
+        * page/FrameView.h:
+
+2009-01-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Bug 23109: REGRESSION: Backwards search in a long document matches incorrectly
+        https://bugs.webkit.org/show_bug.cgi?id=23109
+
+        Test: fast/text/find-backwards.html
+
+        * editing/TextIterator.cpp:
+        (WebCore::SearchBuffer::append): Fix incorrect size passed to memcpy.
+        (WebCore::SearchBuffer::search): Handle case where we have an empty buffer but
+        we're at a break; must not try to search because ICU will give us an error.
+        Fix incorrect size passed to memcpy and memmove.
+        (WebCore::findPlainText): Fix case where we found a match and need to search
+        again because we want to find the last match. We need to try again without
+        adding any more text or handling the break before moving on.
+
+2009-01-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Fix the Qt build
+
+        * bridge/runtime_object.cpp:
+        (JSC::RuntimeObjectImp::put):
+
+2009-01-05  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Fix platforms that don't have Workers enabled.
+
+        * platform/ThreadGlobalData.cpp: (WebCore::threadGlobalData): Create ThreadGlobalData in
+        two stages, so that EventNames constructor can access the just-created atomic string table.
+        This matches what happens in ThreadSpecific case.
+
+2009-01-05  Alexey Proskuryakov  <ap@webkit.org>
+
+        Suggested by Dave Levin.
+
+        Mac release build fix.
+
+        * WebCore.base.exp: Remove ThreadGlobalData::eventNames(), which is now inline.
+
+2009-01-05  Darin Adler  <darin@apple.com>
+
+        * dom/Document.cpp: Fix build. Oops again.
+
+2009-01-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Fix hang whenever following an anchor.
+
+        * dom/Document.cpp:
+        (WebCore::Document::findAnchor): Oops!
+
+2009-01-05  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23073
+        <rdar://problem/6471129> Workers crash on Windows Release builds
+
+        * platform/ThreadGlobalData.cpp: (WebCore::ThreadGlobalData::ThreadGlobalData):
+        * platform/ThreadGlobalData.h: (WebCore::ThreadGlobalData::eventNames):
+        Now that ThreadSpecific sets up the pointer before invoking data constructor, we can
+        initialize EventNames right away.
+
+2009-01-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Bug 23106: HTMLFormCollection::namedItem ignores caseSensitive argument
+        https://bugs.webkit.org/show_bug.cgi?id=23106
+
+        This led me to a bunch of dead code. It turns out that HTML collections
+        were carrying the case-insensitive code just so they could be used to
+        find anchors, something we can do more simply and efficiently without
+        creating a DOM HTMLCollection object.
+
+        No behavior change. Just adding a new function findAnchor function and
+        removing some dead code.
+
+        * dom/Document.cpp:
+        (WebCore::Document::findAnchor): Added.
+        * dom/Document.h: Ditto.
+
+        * html/HTMLAnchorElement.cpp:
+        (WebCore::HTMLAnchorElement::accessKey): Take and return AtomicString
+        references for better efficiency.
+        (WebCore::HTMLAnchorElement::setAccessKey): Ditto.
+        (WebCore::HTMLAnchorElement::charset): Ditto.
+        (WebCore::HTMLAnchorElement::setCharset): Ditto.
+        (WebCore::HTMLAnchorElement::coords): Ditto.
+        (WebCore::HTMLAnchorElement::setCoords): Ditto.
+        (WebCore::HTMLAnchorElement::setHref): Ditto.
+        (WebCore::HTMLAnchorElement::hreflang): Ditto.
+        (WebCore::HTMLAnchorElement::setHreflang): Ditto.
+        (WebCore::HTMLAnchorElement::name): Ditto.
+        (WebCore::HTMLAnchorElement::setName): Ditto.
+        (WebCore::HTMLAnchorElement::rel): Ditto.
+        (WebCore::HTMLAnchorElement::setRel): Ditto.
+        (WebCore::HTMLAnchorElement::rev): Ditto.
+        (WebCore::HTMLAnchorElement::setRev): Ditto.
+        (WebCore::HTMLAnchorElement::shape): Ditto.
+        (WebCore::HTMLAnchorElement::setShape): Ditto.
+        (WebCore::HTMLAnchorElement::setTarget): Ditto.
+        (WebCore::HTMLAnchorElement::type): Ditto.
+        (WebCore::HTMLAnchorElement::setType): Ditto.
+        * html/HTMLAnchorElement.h: Ditto.
+
+        * html/HTMLCollection.cpp:
+        (WebCore::HTMLCollection::checkForNameMatch): Changed argument to an
+        AtomicString and removed the caseSensitive boolean, since we're now always
+        case sensitive.
+        (WebCore::HTMLCollection::namedItem): Ditto.
+        (WebCore::HTMLCollection::nextNamedItem): Ditto.
+        * html/HTMLCollection.h: Ditto.
+        * html/HTMLFormCollection.cpp:
+        (WebCore::HTMLFormCollection::getNamedItem): Ditto.
+        (WebCore::HTMLFormCollection::getNamedFormItem): Ditto.
+        (WebCore::HTMLFormCollection::nextNamedItemInternal): Ditto.
+        (WebCore::HTMLFormCollection::namedItem): Ditto.
+        (WebCore::HTMLFormCollection::nextNamedItem): Ditto.
+        * html/HTMLFormCollection.h: Ditto.
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::namedItem): Ditto.
+        * html/HTMLSelectElement.h: Ditto.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::gotoAnchor): Use the new findAnchor function.
+        * page/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::internalLinkElement): Ditto.
+
+2009-01-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Bug 23104: minor mistakes in init functions for animation and transition events
+        https://bugs.webkit.org/show_bug.cgi?id=23104
+
+        Test: fast/events/init-events.html
+
+        Also fixed two StorageEvent problems the test case uncovered:
+
+            Made document.createEvent("StorageEvent") work.
+            Allow null values for StorageEvent.oldValue and StorageEvent.newValue.
+
+        * dom/Document.cpp:
+        (WebCore::Document::createEvent): Sorted alphabetically by the name of the event
+        class. Added StorageEvent.
+
+        * dom/UIEvent.idl: Fixed typo in a comment.
+
+        * dom/WebKitAnimationEvent.cpp:
+        (WebCore::WebKitAnimationEvent::initWebKitAnimationEvent): Use all the arguments.
+        * dom/WebKitTransitionEvent.cpp:
+        (WebCore::WebKitTransitionEvent::initWebKitTransitionEvent): Ditto.
+
+        * storage/StorageEvent.idl: Use the ConvertNullToNullString keyword on the
+        arguments to initStorageEvent so it can create events with null values for the
+        oldValue and newValue, just like the real storage events. Note that the properties
+        already had ConvertNullStringTo=Null, so this is just the other half of that.
+
+2009-01-05  Darin Adler  <darin@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Bug 23102: turn on unused parameter warnings in WebCore
+        https://bugs.webkit.org/show_bug.cgi?id=23102
+
+        First step: Fix the simple cases where we can just remove an argument name.
+        Also made a few more things protected and private.
+
+        * many files
+
+2009-01-05  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23115
+        Create a version of ASSERT for use with otherwise unused variables
+
+        * loader/appcache/ApplicationCacheStorage.cpp:
+        (WebCore::ApplicationCacheStorage::verifySchemaVersion): Use the new ASSERT_UNUSED macro.
+
+2009-01-05  Alexey Proskuryakov  <ap@webkit.org>
+
+        Non-Mac build fix.
+
+        * loader/appcache/ApplicationCacheStorage.cpp: Include wtf/StringExtras.h for snprintf.
+
+2009-01-05  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Remove unnecessary methods from EmptyFrameLoaderClient
+
+        * loader/EmptyClients.h:
+
 2009-01-05  Alexey Proskuryakov  <ap@webkit.org>
 
         Reviewed by Darin Adler.
@@ -17,6 +1333,7 @@
 
         Reviewed by Oliver Hunt.
 
+        https://bugs.webkit.org/show_bug.cgi?id=23084
         Avoid redundant AtomicString conversions
 
         * dom/Node.cpp:
@@ -93,7 +1410,7 @@
         * bindings/objc/DOMHTML.mm:
         (-[DOMHTMLSelectElement _activateItemAtIndex:]): Implemented this.
 
-2009-01-04  Adam Treat  <treat@kde.org>
+2009-01-04  Adam Treat  <adam.treat@torchmobile.com>
 
         Reviewed by George Staikos.
 

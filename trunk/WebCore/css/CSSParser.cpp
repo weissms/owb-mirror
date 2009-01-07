@@ -1398,6 +1398,14 @@ bool CSSParser::parseValue(int propId, bool important)
         else // Always parse this property in strict mode, since it would be ambiguous otherwise when used in the 'columns' shorthand property.
             valid_primitive = validUnit(value, FLength, true);
         break;
+    case CSSPropertyPointerEvents:
+        // none | visiblePainted | visibleFill | visibleStroke | visible |
+        // painted | fill | stroke | auto | all | inherit
+        if (id == CSSValueVisible || id == CSSValueNone || id == CSSValueAll || id == CSSValueAuto ||
+            (id >= CSSValueVisiblepainted && id <= CSSValueStroke))
+            valid_primitive = true;
+        break;
+            
     // End of CSS3 properties
 
     // Apple specific properties.  These will never be standardized and are purely to
@@ -4578,23 +4586,37 @@ CSSRule* CSSParser::createFontFaceRule()
     return result;
 }
 
+#if !ENABLE(CSS_VARIABLES)
+
+CSSRule* CSSParser::createVariablesRule(MediaList*, bool)
+{
+    return 0;
+}
+
+bool CSSParser::addVariable(const CSSParserString&, CSSParserValueList*)
+{
+    return false;
+}
+
+bool CSSParser::addVariableDeclarationBlock(const CSSParserString&)
+{
+    return false;
+}
+
+#else
+
 CSSRule* CSSParser::createVariablesRule(MediaList* mediaList, bool variablesKeyword)
 {
-#if ENABLE(CSS_VARIABLES)
     RefPtr<CSSVariablesRule> rule = CSSVariablesRule::create(m_styleSheet, mediaList, variablesKeyword);
     rule->setDeclaration(CSSVariablesDeclaration::create(rule.get(), m_variableNames, m_variableValues));
     clearVariables();    
     CSSRule* result = rule.get();
     m_parsedStyleObjects.append(rule.release());
     return result;
-#else
-    return 0;
-#endif
 }
 
 bool CSSParser::addVariable(const CSSParserString& name, CSSParserValueList* valueList)
 {
-#if ENABLE(CSS_VARIABLES)
     if (checkForVariables(valueList)) {
         delete valueList;
         return false;
@@ -4602,23 +4624,20 @@ bool CSSParser::addVariable(const CSSParserString& name, CSSParserValueList* val
     m_variableNames.append(String(name));
     m_variableValues.append(CSSValueList::createFromParserValueList(valueList));
     return true;
-#else
-    return false;
-#endif
 }
 
-bool CSSParser::addVariableDeclarationBlock(const CSSParserString& name)
+bool CSSParser::addVariableDeclarationBlock(const CSSParserString&)
 {
 // FIXME: Disabling declarations as variable values for now since they no longer have a common base class with CSSValues.
-#if ENABLE(CSS_VARIABLES) && 0
+#if 0
     m_variableNames.append(String(name));
     m_variableValues.append(CSSMutableStyleDeclaration::create(0, m_parsedProperties, m_numParsedProperties));
     clearProperties();
-    return true;
-#else
-    return false;
 #endif
+    return true;
 }
+
+#endif
 
 void CSSParser::clearVariables()
 {

@@ -101,6 +101,11 @@ PlatformWidget Chrome::platformWindow() const
     return m_client->platformWindow();
 }
 
+void Chrome::contentsSizeChanged(Frame* frame, const IntSize& size) const
+{
+    m_client->contentsSizeChanged(frame, size);
+}
+
 void Chrome::setWindowRect(const FloatRect& rect) const
 {
     m_client->setWindowRect(rect);
@@ -441,8 +446,8 @@ void ChromeClient::enableSuddenTermination()
 }
 
 bool ChromeClient::paintCustomScrollbar(GraphicsContext*, const FloatRect&, ScrollbarControlSize, 
-                                        ScrollbarControlState, ScrollbarPart, bool vertical,
-                                        float value, float proportion, ScrollbarControlPartMask)
+                                        ScrollbarControlState, ScrollbarPart, bool,
+                                        float, float, ScrollbarControlPartMask)
 {
     return false;
 }

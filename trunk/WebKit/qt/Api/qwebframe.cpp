@@ -605,12 +605,16 @@ void QWebFrame::setScrollBarPolicy(Qt::Orientation orientation, Qt::ScrollBarPol
 
     if (orientation == Qt::Horizontal) {
         d->horizontalScrollBarPolicy = policy;
-        if (d->frame->view())
+        if (d->frame->view()) {
             d->frame->view()->setHorizontalScrollbarMode((ScrollbarMode)policy);
+            d->frame->view()->updateDefaultScrollbarState();
+        }
     } else {
         d->verticalScrollBarPolicy = policy;
-        if (d->frame->view())
+        if (d->frame->view()) {
             d->frame->view()->setVerticalScrollbarMode((ScrollbarMode)policy);
+            d->frame->view()->updateDefaultScrollbarState();
+        }
     }
 }
 
@@ -830,6 +834,8 @@ QRect QWebFrame::geometry() const
 /*!
     \property QWebFrame::contentsSize
     \brief the size of the contents in this frame
+
+    \sa contentsSizeChanged
 */
 QSize QWebFrame::contentsSize() const
 {
@@ -1044,6 +1050,15 @@ QWebFrame* QWebFramePrivate::kit(WebCore::Frame* coreFrame)
 */
 
 /*!
+  \fn void QWebFrame::contentsSizeChanged(const QSize &size)
+  \since 4.6
+
+  This signal is emitted when the frame's contents size changes.
+
+  \sa contentsSize()
+*/
+
+/*!
     \class QWebHitTestResult
     \since 4.4
     \brief The QWebHitTestResult class provides information about the web
@@ -1178,7 +1193,7 @@ QRect QWebHitTestResult::boundingRect() const
 }
 
 /*!
-    \since 4.5
+    \since 4.6
     Returns the rect of the smallest enclosing block element.
 */
 QRect QWebHitTestResult::enclosingBlock() const

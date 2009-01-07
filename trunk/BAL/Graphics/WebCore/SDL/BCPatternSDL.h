@@ -33,7 +33,7 @@
 #include "BALBase.h"
 
 namespace WKAL {
-    class AffineTransform;
+    class TransformationMatrix;
     class Image;
 
     class Pattern : public RefCounted<Pattern> {
@@ -46,7 +46,7 @@ namespace WKAL {
         
         Image* tileImage() const { return m_tileImage.get(); }
 
-        PlatformPatternPtr createPlatformPattern(const AffineTransform& patternTransform) const;
+        PlatformPatternPtr createPlatformPattern(const TransformationMatrix& patternTransform) const;
 
     private:
         Pattern(Image*, bool repeatX, bool repeatY);

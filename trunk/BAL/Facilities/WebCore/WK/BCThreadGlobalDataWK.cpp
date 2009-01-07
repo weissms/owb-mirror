@@ -52,10 +52,16 @@ ThreadGlobalData& threadGlobalData()
     // FIXME: Workers are not necessarily the only feature that make per-thread global data necessary.
     // We need to check for e.g. database objects manipulating strings on secondary threads.
 #if ENABLE(WORKERS)
-    AtomicallyInitializedStatic(ThreadSpecific<ThreadGlobalData>*, threadGlobalData = new ThreadSpecific<ThreadGlobalData>);
+    // ThreadGlobalData is used on main thread before it could possibly be used on secondary ones, so there is no need for synchronization here.
+    static ThreadSpecific<ThreadGlobalData>* threadGlobalData = new ThreadSpecific<ThreadGlobalData>;
     return **threadGlobalData;
 #else
-    static ThreadGlobalData* staticData = new ThreadGlobalData;
+    static ThreadGlobalData* staticData;
+    if (!staticData) {
+        staticData = static_cast<ThreadGlobalData*>(fastMalloc(sizeof(ThreadGlobalData)));
+        // ThreadGlobalData constructor indirectly uses staticData, so we need to set up the memory before invoking it.
+        new (staticData) ThreadGlobalData;
+    }
     return *staticData;
 #endif
 }
@@ -63,7 +69,7 @@ ThreadGlobalData& threadGlobalData()
 ThreadGlobalData::ThreadGlobalData()
     : m_emptyString(new StringImpl)
     , m_atomicStringTable(new HashSet<StringImpl*>)
-    , m_eventNames(0)
+    , m_eventNames(new EventNames)
 #if USE(ICU_UNICODE)
     , m_cachedConverterICU(new ICUConverterWrapper)
 #endif
@@ -87,14 +93,6 @@ ThreadGlobalData::~ThreadGlobalData()
 
     ASSERT(isMainThread() || m_emptyString->hasOneRef()); // We intentionally don't clean up static data on application quit, so there will be many strings remaining on the main thread.
     delete m_emptyString;
-}
-
-EventNames& ThreadGlobalData::eventNames()
-{
-    // m_eventNames cannot be initialized in constructor, as that would cause recursion.
-    if (!m_eventNames)
-        m_eventNames = new EventNames;
-    return *m_eventNames;
 }
 
 } // namespace WebCore

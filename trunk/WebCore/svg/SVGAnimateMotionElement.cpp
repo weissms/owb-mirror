@@ -147,7 +147,7 @@ void SVGAnimateMotionElement::resetToBaseValue(const String&)
     if (!hasValidTarget())
         return;
     SVGElement* target = targetElement();
-    AffineTransform* transform = target->supplementalTransform();
+    TransformationMatrix* transform = target->supplementalTransform();
     if (!transform)
         return;
     transform->reset();
@@ -169,12 +169,12 @@ bool SVGAnimateMotionElement::calculateFromAndByValues(const String& fromString,
     return true;
 }
 
-void SVGAnimateMotionElement::calculateAnimatedValue(float percentage, unsigned repeat, SVGSMILElement*)
+void SVGAnimateMotionElement::calculateAnimatedValue(float percentage, unsigned, SVGSMILElement*)
 {
     SVGElement* target = targetElement();
     if (!target)
         return;
-    AffineTransform* transform = target->supplementalTransform();
+    TransformationMatrix* transform = target->supplementalTransform();
     if (!transform)
         return;
     
@@ -218,8 +218,8 @@ void SVGAnimateMotionElement::applyResultsToTarget()
     for (HashSet<SVGElementInstance*>::iterator it = instances.begin(); it != end; ++it) {
         SVGElement* shadowTreeElement = (*it)->shadowTreeElement();
         ASSERT(shadowTreeElement);
-        AffineTransform* transform = shadowTreeElement->supplementalTransform();
-        AffineTransform* t = targetElement->supplementalTransform();
+        TransformationMatrix* transform = shadowTreeElement->supplementalTransform();
+        TransformationMatrix* t = targetElement->supplementalTransform();
         transform->setMatrix(t->a(), t->b(), t->c(), t->d(), t->e(), t->f());
         if (shadowTreeElement->renderer())
             shadowTreeElement->renderer()->setNeedsLayout(true);

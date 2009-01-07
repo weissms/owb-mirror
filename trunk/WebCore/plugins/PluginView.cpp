@@ -71,6 +71,7 @@ using JSC::ExecState;
 using JSC::JSLock;
 using JSC::JSObject;
 using JSC::JSValue;
+using JSC::JSValuePtr;
 using JSC::UString;
 
 using std::min;
@@ -204,7 +205,7 @@ static char* createUTF8String(const String& str)
     return result;
 }
 
-static bool getString(ScriptController* proxy, JSValue* result, String& string)
+static bool getString(ScriptController* proxy, JSValuePtr result, String& string)
 {
     if (!proxy || !result || result->isUndefined())
         return false;
@@ -259,7 +260,7 @@ void PluginView::performRequest(PluginRequest* request)
     
     // Executing a script can cause the plugin view to be destroyed, so we keep a reference to the parent frame.
     RefPtr<Frame> parentFrame = m_parentFrame;
-    JSValue* result = m_parentFrame->loader()->executeScript(jsString, request->shouldAllowPopups()).jsValue();
+    JSValuePtr result = m_parentFrame->loader()->executeScript(jsString, request->shouldAllowPopups()).jsValue();
 
     if (targetFrameName.isNull()) {
         String resultString;
@@ -596,6 +597,9 @@ PluginView::PluginView(Frame* parentFrame, const IntSize& size, PluginPackage* p
 
 void PluginView::didReceiveResponse(const ResourceResponse& response)
 {
+    if (m_status != PluginStatusLoadedSuccessfully)
+        return;
+
     ASSERT(m_loadManually);
     ASSERT(!m_manualStream);
 
@@ -607,6 +611,9 @@ void PluginView::didReceiveResponse(const ResourceResponse& response)
 
 void PluginView::didReceiveData(const char* data, int length)
 {
+    if (m_status != PluginStatusLoadedSuccessfully)
+        return;
+
     ASSERT(m_loadManually);
     ASSERT(m_manualStream);
     
@@ -615,6 +622,9 @@ void PluginView::didReceiveData(const char* data, int length)
 
 void PluginView::didFinishLoading()
 {
+    if (m_status != PluginStatusLoadedSuccessfully)
+        return;
+
     ASSERT(m_loadManually);
     ASSERT(m_manualStream);
 
@@ -623,6 +633,9 @@ void PluginView::didFinishLoading()
 
 void PluginView::didFail(const ResourceError& error)
 {
+    if (m_status != PluginStatusLoadedSuccessfully)
+        return;
+
     ASSERT(m_loadManually);
     ASSERT(m_manualStream);
 

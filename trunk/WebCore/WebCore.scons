@@ -188,7 +188,6 @@ sources['editing'] = [
     'editing/visible_units.cpp',
     'editing/VisiblePosition.cpp',
     'editing/WrapContentsInDummySpanCommand.cpp',
-    'editing/wx/EditorWx.cpp'
 ]
 sources['history'] = [
     'history/BackForwardList.cpp',
@@ -199,7 +198,6 @@ sources['history'] = [
 sources['html'] = [
     'html/CanvasGradient.cpp',
     'html/CanvasPattern.cpp',
-    'html/CanvasPixelArray.cpp',
     'html/CanvasRenderingContext2D.cpp',
     'html/CanvasStyle.cpp',
     'html/File.cpp',
@@ -397,6 +395,9 @@ sources['page/animation'] = [
     'page/animation/CompositeAnimation.cpp',
     'page/animation/ImplicitAnimation.cpp',
     'page/animation/KeyframeAnimation.cpp',
+]
+sources['page/chromium'] = [
+    'page/chromium/AccessibilityObjectChromium.cpp',
 ]
 # platform/ sources are in a separate section below
 # and may eventually be moved to another file
@@ -693,6 +694,21 @@ sources['bindings/js'] = [
     "bindings/js/ScriptValue.cpp",
     "bindings/js/WorkerScriptController.cpp",
 ]
+sources['bridge'] = [
+    'bridge/NP_jsobject.cpp',
+    'bridge/npruntime.cpp',
+    'bridge/runtime.cpp',
+    'bridge/runtime_array.cpp',
+    'bridge/runtime_method.cpp',
+    'bridge/runtime_object.cpp',
+    'bridge/runtime_root.cpp',
+]
+sources['bridge/c'] = [
+    'bridge/c/c_class.cpp',
+    'bridge/c/c_instance.cpp',
+    'bridge/c/c_runtime.cpp',
+    'bridge/c/c_utility.cpp',
+]
 
 # Platform-specific sources, including common files
 # These may eventually move to a separate sources file
@@ -717,6 +733,10 @@ sources['platform'] = [
     'platform/Timer.cpp',
     'platform/Widget.cpp'
 ]
+sources['platform/animation'] = [
+    'platform/animation/Animation.cpp',
+    'platform/animation/AnimationList.cpp',
+]
 sources['platform/sql'] = [
     'platform/sql/SQLiteAuthorizer.cpp',
     'platform/sql/SQLiteDatabase.cpp',
@@ -725,7 +745,6 @@ sources['platform/sql'] = [
     'platform/sql/SQLValue.cpp'
 ]
 sources['platform/graphics'] = [
-    'platform/graphics/AffineTransform.cpp',
     'platform/graphics/BitmapImage.cpp',
     'platform/graphics/Color.cpp',
     'platform/graphics/FloatPoint.cpp',
@@ -755,6 +774,15 @@ sources['platform/graphics'] = [
     'platform/graphics/SimpleFontData.cpp',
     'platform/graphics/StringTruncator.cpp',
     'platform/graphics/WidthIterator.cpp',
+]
+sources['platform/graphics/transforms'] = [
+    'platform/graphics/transforms/MatrixTransformOperation.cpp',
+    'platform/graphics/transforms/RotateTransformOperation.cpp',
+    'platform/graphics/transforms/ScaleTransformOperation.cpp',
+    'platform/graphics/transforms/SkewTransformOperation.cpp',
+    'platform/graphics/transforms/TransformOperations.cpp',
+    'platform/graphics/transforms/TransformationMatrix.cpp',
+    'platform/graphics/transforms/TranslateTransformOperation.cpp',
 ]
 sources['platform/network'] = [
     'platform/network/AuthenticationChallengeBase.cpp',

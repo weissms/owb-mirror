@@ -30,6 +30,7 @@
 #define FrameLoaderClient_h
 
 #include "FrameLoaderTypes.h"
+#include "ScrollTypes.h"
 #include <wtf/Forward.h>
 #include <wtf/Platform.h>
 #include <wtf/Vector.h>
@@ -209,8 +210,11 @@ namespace WebCore {
         virtual NSCachedURLResponse* willCacheResponse(DocumentLoader*, unsigned long identifier, NSCachedURLResponse*) const = 0;
 #endif
 
+        virtual bool shouldUsePluginDocument(const String& mimeType) const { return false; }
+
     protected:
-        static void transitionToCommittedForNewPage(Frame*, const IntSize&, const Color&, bool, const IntSize &, bool);
+        static void transitionToCommittedForNewPage(Frame*, const IntSize&, const Color&, bool, const IntSize &, bool,
+                                                    ScrollbarMode = ScrollbarAuto, ScrollbarMode = ScrollbarAuto);
     };
 
 } // namespace WebCore

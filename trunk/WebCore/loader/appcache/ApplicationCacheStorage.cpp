@@ -31,12 +31,13 @@
 #include "ApplicationCache.h"
 #include "ApplicationCacheGroup.h"
 #include "ApplicationCacheResource.h"
-#include "FileSystem.h"
 #include "CString.h"
+#include "FileSystem.h"
 #include "KURL.h"
 #include "SQLiteStatement.h"
 #include "SQLiteTransaction.h"
 #include <wtf/StdLibExtras.h>
+#include <wtf/StringExtras.h>
 
 using namespace std;
 
@@ -314,8 +315,7 @@ void ApplicationCacheStorage::verifySchemaVersion()
 
     char userVersionSQL[32];
     int numBytes = snprintf(userVersionSQL, sizeof(userVersionSQL), "PRAGMA user_version=%d", schemaVersion);
-    if (static_cast<int>(sizeof(userVersionSQL)) < numBytes)
-        ASSERT_NOT_REACHED();
+    ASSERT_UNUSED(numBytes, static_cast<int>(sizeof(userVersionSQL)) >= numBytes);
 
     SQLiteStatement statement(m_database, userVersionSQL);
     if (statement.prepare() != SQLResultOk)
