@@ -1,3 +1,25 @@
+2009-01-08  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        - Split the APITests into a one for WebView (WebViewTests.cpp) and one for WebFrame (WebFrameTests.cpp).
+
+        - Corrected some coding style issues.
+
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/Tests/APITests.cpp: Removed.
+        * OWBLauncher/Tests/WebFrameTests.cpp: Copied from WebKitTools/OWBLauncher/Tests/APITests.cpp.
+        (WebFrameTest::setUp):
+        (WebFrameTest::tearDown):
+        (WebFrameTest::testInitialValue): Test the WebFrame initial values.
+        (main):
+        * OWBLauncher/Tests/WebViewTests.cpp: Copied from WebKitTools/OWBLauncher/Tests/APITests.cpp.
+        (WebViewTest::setUp):
+        (WebViewTest::tearDown):
+        (WebViewTest::testInitialValue): Test the WebView initial values.
+        (WebViewTest::testInitWithFrame): Test initWithFrame method.
+        (main):
+
 2009-01-06  Mario Bensi  <mbensi@pleyo.com>
 
         Reviewed by Oliver DOLE.

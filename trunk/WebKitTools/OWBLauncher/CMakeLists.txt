@@ -42,13 +42,21 @@ endif (ENABLE_ORIGYNSUITE)
 
 
 if(ENABLE_TESTS)
-    add_executable(APITest Tests/APITests.cpp)
-    target_link_libraries(APITest
+    add_executable(WebViewTests Tests/WebViewTests.cpp)
+    target_link_libraries(WebViewTests
         webkit-owb
         ${GRAPHICS_LIBRARIES}
 	${CPPUNIT_LIBRARIES}
     )
-    ADD_TEST(APITest ${OWB_BINARY_DIR}/bin/APITest)
+    ADD_TEST(WebViewTests ${OWB_BINARY_DIR}/bin/WebViewTests)
+
+    add_executable(WebFrameTests Tests/WebFrameTests.cpp)
+    target_link_libraries(WebFrameTests
+        webkit-owb
+        ${GRAPHICS_LIBRARIES}
+	${CPPUNIT_LIBRARIES}
+    )
+    ADD_TEST(WebFrameTests ${OWB_BINARY_DIR}/bin/WebFrameTests)
 endif(ENABLE_TESTS)
 
 # IF (WEBKIT_USE_HTML_EXTENSION)
