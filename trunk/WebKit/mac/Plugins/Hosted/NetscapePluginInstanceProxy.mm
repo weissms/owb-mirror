@@ -45,6 +45,8 @@
 #import <WebCore/Frame.h>
 #import <WebCore/FrameLoader.h>
 #import <WebCore/FrameTree.h>
+#import <WebCore/ScriptController.h>
+#import <WebCore/ScriptValue.h>
 #import <utility>
 
 extern "C" {
@@ -52,6 +54,7 @@ extern "C" {
 #import "WebKitPluginHost.h"
 }
 
+using namespace JSC;
 using namespace std;
 using namespace WebCore;
 
@@ -89,6 +92,7 @@ NetscapePluginInstanceProxy::NetscapePluginInstanceProxy(NetscapePluginHostProxy
     , m_renderContextID(0)
     , m_useSoftwareRenderer(false)
     , m_waitingForReply(false)
+    , m_objectIDCounter(0)
 {
     ASSERT(m_pluginView);
     
@@ -123,6 +127,10 @@ void NetscapePluginInstanceProxy::destroy()
     stopAllStreams();
     
     _WKPHDestroyPluginInstance(m_pluginHostProxy->port(), m_pluginID);
+    
+    // Clear the object map, this will cause any outstanding JS objects that the plug-in had a reference to 
+    // to go away when the next garbage collection takes place.
+    m_objects.clear();
     
     m_pluginHostProxy->removePluginInstance(this);
     m_pluginHostProxy = 0;
@@ -448,6 +456,52 @@ void NetscapePluginInstanceProxy::processRequestsAndWaitForReply()
             break;
         }
     }
+}
+    
+uint32_t NetscapePluginInstanceProxy::idForObject(JSC::JSObject* object)
+{
+    uint32_t objectID = 0;
+    
+    // Assign a plug-in ID.
+    do {
+        objectID = ++m_objectIDCounter;
+    } while (!m_objectIDCounter || m_objectIDCounter == static_cast<uint32_t>(-1) || m_objects.contains(objectID));
+    
+    m_objects.set(objectID, object);
+    
+    return objectID;
+}
+
+// NPRuntime support
+bool NetscapePluginInstanceProxy::getWindowNPObject(uint32_t& objectID)
+{
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
+    
+    if (!frame->script()->isEnabled())
+        objectID = 0;
+    else
+        objectID = idForObject(frame->script()->windowShell()->window());
+        
+    return true;
+}
+    
+void NetscapePluginInstanceProxy::releaseObject(uint32_t objectID)
+{
+    m_objects.remove(objectID);
+}
+ 
+JSC::JSValuePtr NetscapePluginInstanceProxy::evaluate(uint32_t objectID, const String& script)
+{
+    if (!m_objects.contains(objectID))
+        return JSValuePtr();
+
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return JSValuePtr();
+    
+    return frame->loader()->executeScript(script).jsValue();
 }
     
 } // namespace WebKit

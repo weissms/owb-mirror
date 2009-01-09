@@ -87,7 +87,7 @@ CONFIG(QTDIR_build) {
 
 # turn on database support if any of the dependent features are turned on
 !contains(DEFINES, ENABLE_DATABASE=1) {
-  contains(DEFINES, ENABLE_ICONDATABASE=1)|(DEFINES, ENABLE_DOM_STORAGE=1)|(DEFINES, ENABLE_OFFLINE_WEB_APPLICATIONS=1) {
+  contains(DEFINES, ENABLE_ICONDATABASE=1)|contains(DEFINES, ENABLE_DOM_STORAGE=1)|contains(DEFINES, ENABLE_OFFLINE_WEB_APPLICATIONS=1) {
     DEFINES += ENABLE_DATABASE=1
   }
 }
@@ -271,6 +271,7 @@ IDL_BINDINGS += \
     dom/DocumentType.idl \
     dom/DOMCoreException.idl \
     dom/DOMImplementation.idl \
+    dom/DOMStringList.idl \
     dom/Element.idl \
     dom/Entity.idl \
     dom/EntityReference.idl \
@@ -416,6 +417,7 @@ SOURCES += \
     bindings/js/JSDocumentCustom.cpp \
     bindings/js/JSDocumentFragmentCustom.cpp \
     bindings/js/JSDOMGlobalObject.cpp \
+    bindings/js/JSDOMStringListCustom.cpp \
     bindings/js/JSDOMWindowBase.cpp \
     bindings/js/JSDOMWindowCustom.cpp \
     bindings/js/JSDOMWindowShell.cpp \
@@ -565,6 +567,7 @@ SOURCES += \
     dom/DocumentFragment.cpp \
     dom/DocumentType.cpp \
     dom/DOMImplementation.cpp \
+    dom/DOMStringList.cpp \
     dom/DynamicNodeList.cpp \
     dom/EditingText.cpp \
     dom/Element.cpp \
@@ -604,6 +607,7 @@ SOURCES += \
     dom/ScriptExecutionContext.cpp \
     dom/SelectorNodeList.cpp \
     dom/StaticNodeList.cpp \
+    dom/StaticStringList.cpp \
     dom/StyledElement.cpp \
     dom/StyleElement.cpp \
     dom/TagNodeList.cpp \
@@ -1045,10 +1049,6 @@ HEADERS += \
     $$PWD/platform/qt/QWebPopup.h \
     $$PWD/platform/qt/MenuEventProxy.h \
     $$PWD/platform/qt/SharedTimerQt.h \
-    $$PWD/../WebKit/qt/Api/qwebframe.h \
-    $$PWD/../WebKit/qt/Api/qwebpage.h \
-    $$PWD/../WebKit/qt/Api/qwebview.h \
-    $$PWD/../WebKit/qt/Api/qwebhistoryinterface.h \
     $$PWD/../WebKit/qt/Api/qwebpluginfactory.h \
     $$PWD/../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.h \
     $$PWD/platform/network/qt/QNetworkReplyHandler.h \
@@ -1071,7 +1071,7 @@ SOURCES += \
     page/qt/DragControllerQt.cpp \
     page/qt/EventHandlerQt.cpp \
     page/qt/FrameQt.cpp \
-    platform/graphics/qt/AffineTransformQt.cpp \
+    platform/graphics/qt/TransformationMatrixQt.cpp \
     platform/graphics/qt/ColorQt.cpp \
     platform/graphics/qt/FontQt.cpp \
     platform/graphics/qt/FontQt43.cpp \
@@ -1199,6 +1199,7 @@ contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
             INCLUDEPATH += platform/mac
             # Note: XP_MACOSX is defined in npapi.h
         } else {
+            !embedded: CONFIG += x11
             SOURCES += \
                 plugins/qt/PluginPackageQt.cpp \
                 plugins/qt/PluginViewQt.cpp
@@ -1996,9 +1997,10 @@ xpathbison.dependency_type = TYPE_C
 xpathbison.variable_out = GENERATED_SOURCES
 addExtraCompilerWithHeader(xpathbison)
 
+include($$PWD/../WebKit/qt/Api/headers.pri)
+HEADERS += $$WEBKIT_API_HEADERS
 !CONFIG(QTDIR_build) {
     target.path = $$[QT_INSTALL_LIBS]
-    include($$PWD/../WebKit/qt/Api/headers.pri)
     headers.files = $$WEBKIT_API_HEADERS
     headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
     prf.files = $$PWD/../WebKit/qt/Api/qtwebkit.prf

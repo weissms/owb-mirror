@@ -1,3 +1,76 @@
+2009-01-09  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        - WebPreferences changes to support Core Graphics native glyph drawing
+
+        * Interfaces/IWebPreferencesPrivate.idl: Added font smoothing contrast
+        getter and setter.
+        * WebPreferenceKeysPrivate.h: Added
+        WebKitFontSmoothingContrastPreferenceKey.
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings): Initialized
+        WebKitFontSmoothingContrastPreferenceKey to 2.
+        (WebPreferences::setFloatValue): Added.
+        (WebPreferences::setFontSmoothing): Changed to map
+        FontSmoothingTypeWindows to FontSmoothingTypeMedium.
+        (WebPreferences::fontSmoothingContrast): Added.
+        (WebPreferences::setFontSmoothingContrast): Added. Calls
+        wkSetFontSmoothingContrast().
+        * WebPreferences.h:
+
+2009-01-08  Steve Falkenburg  <sfalken@apple.com>
+
+        <rdar://problem/6474244> REGRESSION(39561-39603): Heap corruption when saving passwords?
+        
+        Reviewed by Adam Roben.
+
+        * WebView.cpp:
+        (WebViewWndProc): Hold a ref to the WebView inside the WNDPROC, since it could go away in an event handler.
+
+2009-01-07  Jon Honeycutt  <jhoneycutt@apple.com>
+
+        Fix a crash with querying a WebView for its global history item when
+        its associated Page has no global history item.
+
+        Reviewed by Dan Bernstein.
+
+        * WebView.cpp:
+        (WebView::globalHistoryItem): If the Page has no global history item,
+        report 0.
+
+2009-01-06  Adam Roben  <aroben@apple.com>
+
+        Fix Bug 22262: Clicking close ("X") button in docked Web Inspector
+        clears Web Inspector but doesn't close it
+
+        <https://bugs.webkit.org/show_bug.cgi?id=22262>
+        <rdar://problem/6371873>
+
+        Reviewed by Darin Adler.
+
+        * WebCoreSupport/WebInspectorClient.cpp:
+        (WebInspectorClient::WebInspectorClient): Initialize new member.
+        (WebInspectorClient::showWindow): Moved code from here to
+        showWindowWithoutNotifications.
+        (WebInspectorClient::closeWindow): Moved code from here to
+        closeWindowWithoutNotifications.
+
+        (WebInspectorClient::attachWindow):
+        (WebInspectorClient::detachWindow):
+        Record whether or not we should be attached, then close and reopen the
+        window without notifying the InspectorController. Code that was in
+        these functions moved to showWindowWithoutNotifications and
+        closeWindowWithoutNotifications, respectively.
+
+        (WebInspectorClient::closeWindowWithoutNotifications): Added. Code
+        came from closeWindow and detachWindow.
+        (WebInspectorClient::showWindowWithoutNotifications): Added. Code came
+        from showWindow and attachWindow.
+
+        * WebCoreSupport/WebInspectorClient.h: Added
+        {close,show}WindowWithoutNotifications and m_shouldAttachWhenShown.
+
 2009-01-05  Adam Treat  <treat@kde.org>
 
         Reviewed by George Staikos.

@@ -684,6 +684,21 @@ int QWebFrame::scrollBarMinimum(Qt::Orientation orientation) const
 }
 
 /*!
+  \since 4.6
+  Returns the geometry for the scrollbar with orientation \a orientation.
+
+  If the scrollbar does not exist an empty rect is returned.
+*/
+QRect QWebFrame::scrollBarGeometry(Qt::Orientation orientation) const
+{
+    Scrollbar *sb;
+    sb = (orientation == Qt::Horizontal) ? d->horizontalScrollBar() : d->verticalScrollBar();
+    if (sb)
+        return sb->frameRect();
+    return QRect();
+}
+
+/*!
   \since 4.5
   Scrolls the frame \a dx pixels to the right and \a dy pixels downward. Both
   \a dx and \a dy may be negative.
@@ -964,7 +979,7 @@ QVariant QWebFrame::evaluateJavaScript(const QString& scriptSource)
     ScriptController *proxy = d->frame->script();
     QVariant rc;
     if (proxy) {
-        JSC::JSValue* v = proxy->evaluate(ScriptSourceCode(scriptSource)).jsValue();
+        JSC::JSValuePtr v = proxy->evaluate(ScriptSourceCode(scriptSource)).jsValue();
         if (v) {
             int distance = 0;
             rc = JSC::Bindings::convertValueToQVariant(proxy->globalObject()->globalExec(), v, QMetaType::Void, &distance);
@@ -1079,6 +1094,7 @@ QWebHitTestResult::QWebHitTestResult(QWebHitTestResultPrivate *priv)
 QWebHitTestResultPrivate::QWebHitTestResultPrivate(const WebCore::HitTestResult &hitTest)
     : isContentEditable(false)
     , isContentSelected(false)
+    , isScrollBar(false)
 {
     if (!hitTest.innerNode())
         return;
@@ -1104,6 +1120,7 @@ QWebHitTestResultPrivate::QWebHitTestResultPrivate(const WebCore::HitTestResult 
 
     isContentEditable = hitTest.isContentEditable();
     isContentSelected = hitTest.isSelected();
+    isScrollBar = hitTest.scrollbar();
 
     if (innerNonSharedNode && innerNonSharedNode->document()
         && innerNonSharedNode->document()->frame())
@@ -1314,3 +1331,13 @@ QWebFrame *QWebHitTestResult::frame() const
     return d->frame;
 }
 
+/*!
+    \since 4.6
+    Returns true if the test includes a scrollbar.
+*/
+bool QWebHitTestResult::isScrollBar() const
+{
+    if (!d)
+        return false;
+    return d->isScrollBar;
+}

@@ -293,6 +293,12 @@ QWebSettings *QWebSettings::globalSettings()
         only the text or all content.
     \value PrintElementBackgrounds Specifies whether the background color and images
         are also drawn when the page is printed.
+    \value OfflineStorageDatabaseEnabled Specifies whether support for the HTML 5
+        offline storage feature is enabled or not.
+    \value OfflineWebApplicationCacheEnabled Specifies whether support for the HTML 5
+        web application cache feature is enabled or not.
+    \value LocalStorageDatabaseEnabled Specifies whether support for the HTML 5
+        local storage feature is enabled or not.
 */
 
 /*!
@@ -302,9 +308,8 @@ QWebSettings::QWebSettings()
     : d(new QWebSettingsPrivate)
 {
     // Initialize our global defaults
-    // changing any of those will likely break the LayoutTests
-    d->fontSizes.insert(QWebSettings::MinimumFontSize, 5);
-    d->fontSizes.insert(QWebSettings::MinimumLogicalFontSize, 5);
+    d->fontSizes.insert(QWebSettings::MinimumFontSize, 0);
+    d->fontSizes.insert(QWebSettings::MinimumLogicalFontSize, 0);
     d->fontSizes.insert(QWebSettings::DefaultFontSize, 14);
     d->fontSizes.insert(QWebSettings::DefaultFixedFontSize, 14);
     d->fontFamilies.insert(QWebSettings::StandardFont, QLatin1String("Arial"));
@@ -634,6 +639,8 @@ void QWebSettings::resetAttribute(WebAttribute attr)
 }
 
 /*!
+    \since 4.5
+
     Sets the path for HTML5 offline storage to \a path.
 
     \a path must point to an existing directory where the databases are stored.
@@ -650,6 +657,8 @@ void QWebSettings::setOfflineStoragePath(const QString& path)
 }
 
 /*!
+    \since 4.5
+
     Returns the path of the HTML5 offline storage or an empty string if the
     feature is disabled.
 
@@ -664,17 +673,30 @@ QString QWebSettings::offlineStoragePath()
 #endif
 }
 
+/*!
+    \since 4.5
+
+    Sets the value of the default quota for new offline storage databases
+    to \a maximumSize.
+*/
 void QWebSettings::setOfflineStorageDefaultQuota(qint64 maximumSize)
 {
     QWebSettings::globalSettings()->d->offlineStorageDefaultQuota = maximumSize;
 }
 
+/*!
+    \since 4.5
+
+    Returns the value of the default quota for new offline storage databases.
+*/
 qint64 QWebSettings::offlineStorageDefaultQuota()
 {
     return QWebSettings::globalSettings()->d->offlineStorageDefaultQuota;
 }
 
 /*!
+    \since 4.5
+
     Sets the path for HTML5 offline web application cache storage to \a path.
 
     \a path must point to an existing directory where the cache is stored.
@@ -691,6 +713,8 @@ void QWebSettings::setOfflineWebApplicationCachePath(const QString& path)
 }
 
 /*!
+    \since 4.5
+
     Returns the path of the HTML5 offline web application cache storage
     or an empty string if the feature is disabled.
 
@@ -706,6 +730,8 @@ QString QWebSettings::offlineWebApplicationCachePath()
 }
 
 /*!
+    \since 4.5
+
     Sets the path for HTML5 local storage databases to \a path.
 
     \a path must point to an existing directory where the cache is stored.
@@ -722,6 +748,8 @@ void QWebSettings::setLocalStorageDatabasePath(const QString& path)
 }
 
 /*!
+    \since 4.5
+
     Returns the path for HTML5 local storage databases
     or an empty string if the feature is disabled.
 

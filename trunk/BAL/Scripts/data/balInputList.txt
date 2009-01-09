@@ -98,7 +98,7 @@ BAL/Graphics/WebCore/Gtk	WebCore/platform/gtk/DragDataGtk.cpp	BCDragDataGtk.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/DragImage.h
 BAL/Graphics/WebCore/WK	WebCore/platform/DragImage.cpp
 BAL/Graphics/WebCore/Gtk	WebCore/platform/gtk/DragImageGtk.cpp	BCDragImageGtk.cpp
-BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/AffineTransformCairo.cpp
+BAL/Graphics/WebCore/Cairo	WebCore/platform/graphics/cairo/TransformationMatrixCairo.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/BitmapImage.h
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/BitmapImage.cpp
 BAL/Graphics/WebCore/WK	WebCore/platform/graphics/Color.h

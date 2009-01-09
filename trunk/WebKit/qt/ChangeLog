@@ -1,3 +1,90 @@
+2009-01-09  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Remove qwebnetworkinterface.h from WEBKIT_API_HEADERS as it's not
+        public Qt 4.4/4.5 API.
+
+        * Api/headers.pri:
+
+2009-01-09  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Unreviewed Qt build fix, remove qcookiejar.h from the API headers and
+        therefore HEADERS. It's not part of the API and it moc shouldn't be
+        called on it.
+
+        * Api/headers.pri:
+
+2009-01-09  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Rubber-stamped by Tor Arne Vestbø.
+
+        Remove files not present anymore from the WEBKIT_API_HEADERS variable.
+
+        * Api/headers.pri:
+
+2009-01-08  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by Simon Hausmann.
+
+        Don't set the minimumFontSize and minimumLogicalFontSize as these are
+        just for accessibility and should be left up to the client application.
+
+        * Api/qwebsettings.cpp:
+        (QWebSettings::QWebSettings):
+
+2009-01-08  Kavindra Palaraja  <kdpalara@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Small fixes to the API documentation, missing 4.5 tags and
+        undocumented parameters.
+
+        * Api/qwebhistory.cpp:
+        * Api/qwebpage.cpp:
+        * Api/qwebsettings.cpp:
+
+2009-01-07  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Add Qt API to QWebHitTestResult::isScrollBar method
+
+        * Api/qwebframe.cpp:
+        (QWebHitTestResultPrivate::QWebHitTestResultPrivate):
+        (QWebHitTestResult::isScrollBar):
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        (QWebHitTestResultPrivate::QWebHitTestResultPrivate):
+
+2009-01-07  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Add Qt API for QWebFrame::scrollBarGeometry method
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::scrollBarGeometry):
+        * Api/qwebframe.h:
+
+2009-01-07  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by George Staikos.
+
+        Fix unused variable warnings
+
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (TestPage::createWindow):
+
+2009-01-07  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        Qt build fix after r39670.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::evaluateJavaScript):
+
 2009-01-05  Adam Treat  <treat@kde.org>
 
         Reviewed by George Staikos.

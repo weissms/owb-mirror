@@ -1,3 +1,271 @@
+2009-01-09  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Encode immediates in the low word of JSValuePtrs, on x86-64.
+
+        On 32-bit platforms a JSValuePtr may represent a 31-bit signed integer.
+        On 64-bit platforms, if USE(ALTERNATE_JSIMMEDIATE) is defined, a full
+        32-bit integer may be stored in an immediate.
+        
+        Presently USE(ALTERNATE_JSIMMEDIATE) uses the same encoding as the default
+        immediate format - the value is left shifted by one, so a one bit tag can
+        be added to indicate the value is an immediate.  However this means that
+        values must be commonly be detagged (by right shifting by one) before
+        arithmetic operations can be performed on immediates.  This patch modifies
+        the formattting so the the high bits of the immediate mark values as being
+        integer.
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::not32):
+        (JSC::MacroAssembler::orPtr):
+        (JSC::MacroAssembler::zeroExtend32ToPtr):
+        (JSC::MacroAssembler::jaePtr):
+        (JSC::MacroAssembler::jbPtr):
+        (JSC::MacroAssembler::jnzPtr):
+        (JSC::MacroAssembler::jzPtr):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::notl_r):
+        (JSC::X86Assembler::testq_i32r):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArith_op_lshift):
+        (JSC::JIT::compileFastArith_op_rshift):
+        (JSC::JIT::compileFastArith_op_bitand):
+        (JSC::JIT::compileFastArithSlow_op_bitand):
+        (JSC::JIT::compileFastArith_op_mod):
+        (JSC::JIT::compileFastArithSlow_op_mod):
+        (JSC::JIT::compileFastArith_op_add):
+        (JSC::JIT::compileFastArith_op_mul):
+        (JSC::JIT::compileFastArith_op_post_inc):
+        (JSC::JIT::compileFastArith_op_post_dec):
+        (JSC::JIT::compileFastArith_op_pre_inc):
+        (JSC::JIT::compileFastArith_op_pre_dec):
+        (JSC::JIT::putDoubleResultToJSNumberCellOrJSImmediate):
+        (JSC::JIT::compileBinaryArithOp):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallSlowCase):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitJumpIfJSCell):
+        (JSC::JIT::emitJumpIfNotJSCell):
+        (JSC::JIT::emitJumpIfImmNum):
+        (JSC::JIT::emitJumpSlowCaseIfNotImmNum):
+        (JSC::JIT::emitJumpSlowCaseIfNotImmNums):
+        (JSC::JIT::emitFastArithDeTagImmediate):
+        (JSC::JIT::emitFastArithDeTagImmediateJumpIfZero):
+        (JSC::JIT::emitFastArithReTagImmediate):
+        (JSC::JIT::emitFastArithImmToInt):
+        (JSC::JIT::emitFastArithIntToImmNoCheck):
+        (JSC::JIT::emitTagAsBoolImmediate):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::resizePropertyStorage):
+        (JSC::JIT::privateCompilePutByIdTransition):
+        (JSC::JIT::privateCompilePatchGetArrayLength):
+        (JSC::JIT::privateCompileGetByIdSelf):
+        (JSC::JIT::privateCompileGetByIdProto):
+        (JSC::JIT::privateCompileGetByIdChain):
+        (JSC::JIT::privateCompilePutByIdReplace):
+        * runtime/JSImmediate.h:
+        (JSC::JSImmediate::isNumber):
+        (JSC::JSImmediate::isPositiveNumber):
+        (JSC::JSImmediate::areBothImmediateNumbers):
+        (JSC::JSImmediate::xorImmediateNumbers):
+        (JSC::JSImmediate::rightShiftImmediateNumbers):
+        (JSC::JSImmediate::canDoFastAdditiveOperations):
+        (JSC::JSImmediate::addImmediateNumbers):
+        (JSC::JSImmediate::subImmediateNumbers):
+        (JSC::JSImmediate::makeInt):
+        (JSC::JSImmediate::toBoolean):
+        * wtf/Platform.h:
+
+2009-01-08  Sam Weinig  <sam@webkit.org>
+
+        Revert r39720. It broke Interpreted mode.
+
+2009-01-08  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=23197
+        Delay creating the PCVector until an exception is thrown
+        Part of <rdar://problem/6469060>
+        Don't store exception information for a CodeBlock until first exception is thrown
+
+        - Change the process for re-parsing/re-generating bytecode for exception information
+          to use data from the original CodeBlock (offsets of GlobalResolve instructions) to
+          aid in creating an identical instruction stream on re-parse, instead of padding
+          interchangeable opcodes, which would result in different JITed code.
+        - Fix bug where the wrong ScopeChainNode was used when re-parsing/regenerating from
+          within some odd modified scope chains.
+        - Lazily create the pcVector by re-JITing the regenerated CodeBlock and stealing the
+          the pcVector from it.
+
+        Saves ~2MB on Membuster head.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::reparseForExceptionInfoIfNecessary):
+        (JSC::CodeBlock::hasGlobalResolveInstructionAtBytecodeOffset):
+        (JSC::CodeBlock::hasGlobalResolveInfoAtBytecodeOffset):
+        * bytecode/CodeBlock.h:
+        (JSC::JITCodeRef::JITCodeRef):
+        (JSC::GlobalResolveInfo::GlobalResolveInfo):
+        (JSC::CodeBlock::getBytecodeIndex):
+        (JSC::CodeBlock::addGlobalResolveInstruction):
+        (JSC::CodeBlock::addGlobalResolveInfo):
+        (JSC::CodeBlock::addFunctionRegisterInfo):
+        (JSC::CodeBlock::hasExceptionInfo):
+        (JSC::CodeBlock::pcVector):
+        (JSC::EvalCodeBlock::EvalCodeBlock):
+        (JSC::EvalCodeBlock::baseScopeDepth):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+        (JSC::BytecodeGenerator::emitResolve):
+        (JSC::BytecodeGenerator::emitGetScopedVar):
+        * bytecompiler/BytecodeGenerator.h:
+        (JSC::BytecodeGenerator::setRegeneratingForExceptionInfo):
+        * interpreter/Interpreter.cpp:
+        (JSC::bytecodeOffsetForPC):
+        (JSC::Interpreter::unwindCallFrame):
+        (JSC::Interpreter::privateExecute):
+        (JSC::Interpreter::retrieveLastCaller):
+        (JSC::Interpreter::cti_op_instanceof):
+        (JSC::Interpreter::cti_op_call_NotJSFunction):
+        (JSC::Interpreter::cti_op_resolve):
+        (JSC::Interpreter::cti_op_construct_NotJSConstruct):
+        (JSC::Interpreter::cti_op_resolve_func):
+        (JSC::Interpreter::cti_op_resolve_skip):
+        (JSC::Interpreter::cti_op_resolve_global):
+        (JSC::Interpreter::cti_op_resolve_with_base):
+        (JSC::Interpreter::cti_op_throw):
+        (JSC::Interpreter::cti_op_in):
+        (JSC::Interpreter::cti_vm_throw):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompile):
+        * parser/Nodes.cpp:
+        (JSC::EvalNode::generateBytecode):
+        (JSC::EvalNode::bytecodeForExceptionInfoReparse):
+        (JSC::FunctionBodyNode::bytecodeForExceptionInfoReparse):
+        * parser/Nodes.h:
+
+2009-01-08  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Add Win32 implementation of ThreadSpecific.
+        https://bugs.webkit.org/show_bug.cgi?id=22614
+
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * wtf/ThreadSpecific.h:
+        (WTF::ThreadSpecific::ThreadSpecific):
+        (WTF::ThreadSpecific::~ThreadSpecific):
+        (WTF::ThreadSpecific::get):
+        (WTF::ThreadSpecific::set):
+        (WTF::ThreadSpecific::destroy):
+        * wtf/ThreadSpecificWin.cpp: Added.
+        (WTF::ThreadSpecificThreadExit):
+        * wtf/ThreadingWin.cpp:
+        (WTF::wtfThreadEntryPoint):
+
+2009-01-08  Justin McPherson <justin.mcpherson@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix compilation with Qt on NetBSD.
+
+        * runtime/Collector.cpp:
+        (JSC::currentThreadStackBase): Use PLATFORM(NETBSD) to enter the
+        code path to retrieve the stack base using pthread_attr_get_np.
+        The PTHREAD_NP_H define is not used because the header file does
+        not exist on NetBSD, but the function is declared nevertheless.
+        * wtf/Platform.h: Introduce WTF_PLATFORM_NETBSD.
+
+2009-01-07  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        <rdar://problem/6469060> Don't store exception information for a CodeBlock until first exception is thrown
+
+        Don't initially store exception information (lineNumber/expressionRange/getByIdExcecptionInfo)
+        in CodeBlocks blocks.  Instead, re-parse for the data on demand and cache it then.
+
+        One important change that was needed to make this work was to pad op_get_global_var with nops to
+        be the same length as op_resolve_global, since one could be replaced for the other on re-parsing,
+        and we want to keep the offsets bytecode offsets the same.
+
+        1.3MB improvement on Membuster head.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump): Update op_get_global_var to account for the padding.
+        (JSC::CodeBlock::dumpStatistics): Add more statistic dumping.
+        (JSC::CodeBlock::CodeBlock): Initialize m_exceptionInfo.
+        (JSC::CodeBlock::reparseForExceptionInfoIfNecessary): Re-parses the CodeBlocks
+        associated SourceCode and steals the ExceptionInfo from it.
+        (JSC::CodeBlock::lineNumberForBytecodeOffset): Creates the exception info on demand.
+        (JSC::CodeBlock::expressionRangeForBytecodeOffset): Ditto.
+        (JSC::CodeBlock::getByIdExceptionInfoForBytecodeOffset): Ditto.
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::numberOfExceptionHandlers): Updated to account for m_exceptionInfo indirection.
+        (JSC::CodeBlock::addExceptionHandler): Ditto.
+        (JSC::CodeBlock::exceptionHandler): Ditto.
+        (JSC::CodeBlock::clearExceptionInfo): Ditto.
+        (JSC::CodeBlock::addExpressionInfo): Ditto.
+        (JSC::CodeBlock::addGetByIdExceptionInfo): Ditto.
+        (JSC::CodeBlock::numberOfLineInfos): Ditto.
+        (JSC::CodeBlock::addLineInfo): Ditto.
+        (JSC::CodeBlock::lastLineInfo): Ditto.
+
+        * bytecode/Opcode.h: Change length of op_get_global_var to match op_resolve_global.
+
+        * bytecode/SamplingTool.cpp:
+        (JSC::SamplingTool::dump): Add comment indicating why it is okay not to pass a CallFrame.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::generate): Clear the exception info after generation for Function and Eval
+        Code when not in regenerate for exception info mode.
+        (JSC::BytecodeGenerator::BytecodeGenerator): Initialize m_regeneratingForExceptionInfo to false.
+        (JSC::BytecodeGenerator::emitGetScopedVar): Pad op_get_global_var with 2 nops.
+        * bytecompiler/BytecodeGenerator.h:
+        (JSC::BytecodeGenerator::setRegeneratingForExcpeptionInfo): Added.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::throwException): Pass the CallFrame to exception info accessors.
+        (JSC::Interpreter::privateExecute): Ditto.
+        (JSC::Interpreter::retrieveLastCaller): Ditto.
+        (JSC::Interpreter::cti_op_new_error): Ditto.
+
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass): Pass the current bytecode offset instead of hard coding the
+        line number, the stub will do the accessing if it gets called.
+
+        * parser/Nodes.cpp:
+        (JSC::ProgramNode::emitBytecode): Moved.
+        (JSC::ProgramNode::generateBytecode): Moved.
+        (JSC::EvalNode::create): Moved.
+        (JSC::EvalNode::bytecodeForExceptionInfoReparse): Added.
+        (JSC::FunctionBodyNode::generateBytecode): Rename reparse to reparseInPlace.
+        (JSC::FunctionBodyNode::bytecodeForExceptionInfoReparse): Addded.
+
+        * parser/Nodes.h:
+        (JSC::ScopeNode::features): Added getter.
+        * parser/Parser.cpp:
+        (JSC::Parser::reparseInPlace): Renamed from reparse.
+        * parser/Parser.h:
+        (JSC::Parser::reparse): Added. Re-parses the passed in Node into
+        a new Node.
+        * runtime/ExceptionHelpers.cpp:
+        (JSC::createUndefinedVariableError): Pass along CallFrame.
+        (JSC::createInvalidParamError): Ditto.
+        (JSC::createNotAConstructorError): Ditto.
+        (JSC::createNotAFunctionError): Ditto.
+        (JSC::createNotAnObjectError): Ditto.
+
 2009-01-07  Gavin Barraclough  <baraclough@apple.com>
 
         Reviewed by Maciej Stachowiak.

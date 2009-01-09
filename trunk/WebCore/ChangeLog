@@ -1,3 +1,779 @@
+2009-01-09  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Fix qmake warning about missing test function, a contains() call was
+        missing.
+
+        * WebCore.pro:
+
+2009-01-09  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Rubber-stamped by Tor Arne Vestbø.
+
+        Add the Qt API headers to HEADERS, too, for improved completion in IDEs.
+
+        * WebCore.pro:
+
+2009-01-09  David Levin  <levin@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23199
+
+        Fix deref's of string happening on two different threads.
+
+        No observable change in behavior, so no test.  However, there are asserts
+        being added for https://bugs.webkit.org/show_bug.cgi?id=23175 which
+        will detect this issue while running the normal worker tests.
+
+        * dom/WorkerThread.cpp:
+        (WebCore::WorkerThreadStartupData::create):
+        (WebCore::WorkerThreadStartupData::WorkerThreadStartupData):
+        (WebCore::WorkerThread::WorkerThread):
+        (WebCore::WorkerThread::workerThread):
+        * dom/WorkerThread.h:
+
+2009-01-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adam Roben.
+
+        - use native glyph support in Core Graphics when available
+
+        * platform/graphics/win/FontCGWin.cpp:
+        (WebCore::Font::drawGlyphs): Changed to use drawGDIGlyphs() only if
+        native glyph support is not available or stroking is required. Changed
+        to pass the font's useGDI() flag to wkSetCGContextFontRenderingStyle to
+        request the use of native glyphs.
+        * platform/graphics/win/FontCustomPlatformData.cpp:
+        (WebCore::FontCustomPlatformData::fontPlatformData): Added a call to
+        wkSetFontPlatformInfo to attach the LOGFONT to the CGFont.
+        * platform/graphics/win/FontPlatformDataCGWin.cpp:
+        (WebCore::FontPlatformData::platformDataInit): Ditto.
+
+2009-01-08  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22929
+        Fix memory regression when decoding large animated GIFs.
+
+        * platform/graphics/cg/ImageSourceCG.cpp:
+        (WebCore::ImageSource::clear):
+
+2009-01-08  Scott Violet  <sky@chromium.org>
+
+        Reviewed by Eric Seidel (and Adam Barth).
+
+        Fix Images to return their file extension
+        http://code.google.com/p/chromium/issues/detail?id=5827
+
+        * platform/graphics/skia/ImageSourceSkia.cpp:
+        (WebCore::ImageSource::filenameExtension):
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add PathSkia and PatternSkia implementations to WebCore
+        https://bugs.webkit.org/show_bug.cgi?id=23200
+
+        * platform/graphics/skia/PathSkia.cpp: Added.
+        (WebCore::Path::Path):
+        (WebCore::Path::~Path):
+        (WebCore::Path::operator=):
+        (WebCore::Path::isEmpty):
+        (WebCore::Path::contains):
+        (WebCore::Path::translate):
+        (WebCore::Path::boundingRect):
+        (WebCore::Path::moveTo):
+        (WebCore::Path::addLineTo):
+        (WebCore::Path::addQuadCurveTo):
+        (WebCore::Path::addBezierCurveTo):
+        (WebCore::Path::addArcTo):
+        (WebCore::Path::closeSubpath):
+        (WebCore::Path::addArc):
+        (WebCore::Path::addRect):
+        (WebCore::Path::addEllipse):
+        (WebCore::Path::clear):
+        (WebCore::convertPathPoints):
+        (WebCore::Path::apply):
+        (WebCore::Path::transform):
+        (WebCore::Path::debugString):
+        (WebCore::boundingBoxForCurrentStroke):
+        (WebCore::Path::strokeBoundingRect):
+        * platform/graphics/skia/PatternSkia.cpp: Added.
+        (WebCore::shaderRule):
+        (WebCore::Pattern::createPlatformPattern):
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add ImageSourceSkia to platform/graphics/skia
+        https://bugs.webkit.org/show_bug.cgi?id=23200
+        
+        ImageSourceSkia is mostly a hack to support our
+        ICO decoder model.  See ImageSourceSkia.h for more
+        explanation.  Eventually we'd like to make our ICO
+        decoder lazy.
+
+        * platform/graphics/ImageSource.h: mark m_decoder as protected
+        * platform/graphics/skia/ImageSourceSkia.cpp: Added.
+        (WebCore::createDecoder):
+        (WebCore::ImageSource::ImageSource):
+        (WebCore::ImageSource::~ImageSource):
+        (WebCore::ImageSource::clear):
+        (WebCore::ImageSource::initialized):
+        (WebCore::ImageSource::setData):
+        (WebCore::ImageSource::isSizeAvailable):
+        (WebCore::ImageSource::size):
+        (WebCore::ImageSource::frameSizeAtIndex):
+        (WebCore::ImageSource::repetitionCount):
+        (WebCore::ImageSource::frameCount):
+        (WebCore::ImageSource::createFrameAtIndex):
+        (WebCore::ImageSource::frameIsCompleteAtIndex):
+        (WebCore::ImageSource::frameDurationAtIndex):
+        (WebCore::ImageSource::frameHasAlphaAtIndex):
+        (WebCore::ImageSourceSkia::setData):
+        (WebCore::ImageSource::filenameExtension):
+        * platform/graphics/skia/ImageSourceSkia.h: Added.
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add NativeImageSkia (PlatformImagePtr) to platform/graphics/skia
+        https://bugs.webkit.org/show_bug.cgi?id=23200
+
+        * platform/graphics/skia/NativeImageSkia.cpp: Added.
+        (NativeImageSkia::NativeImageSkia):
+        (NativeImageSkia::decodedSize):
+        (NativeImageSkia::hasResizedBitmap):
+        (NativeImageSkia::resizedBitmap):
+        (NativeImageSkia::shouldCacheResampling):
+        * platform/graphics/skia/NativeImageSkia.h: Added.
+        (NativeImageSkia::setDataComplete):
+        (NativeImageSkia::isDataComplete):
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add ImageBufferSkia and ImageSkia files.
+        https://bugs.webkit.org/show_bug.cgi?id=23200
+        For now we've left BitmapImage and BitmapImageSingleFrameSkia
+        implementations in the ImageSkia file (like ImageCG has), but
+        we intend to break them out into their own files.
+
+        * platform/graphics/skia/ImageBufferSkia.cpp: Added.
+        (WebCore::ImageBufferData::ImageBufferData):
+        (WebCore::ImageBuffer::ImageBuffer):
+        (WebCore::ImageBuffer::~ImageBuffer):
+        (WebCore::ImageBuffer::context):
+        (WebCore::ImageBuffer::image):
+        (WebCore::ImageBuffer::getImageData):
+        (WebCore::ImageBuffer::putImageData):
+        (WebCore::ImageBuffer::toDataURL):
+        * platform/graphics/skia/ImageSkia.cpp: Added.
+        (WebCore::):
+        (WebCore::FrameData::clear):
+        (WebCore::Image::loadPlatformResource):
+        (WebCore::Image::drawPattern):
+        (WebCore::BitmapImage::initPlatformData):
+        (WebCore::BitmapImage::invalidatePlatformData):
+        (WebCore::BitmapImage::checkForSolidColor):
+        (WebCore::BitmapImage::draw):
+        (WebCore::BitmapImageSingleFrameSkia::draw):
+        (WebCore::BitmapImageSingleFrameSkia::create):
+
+2009-01-08  James Robinson  <jamesr@google.com>
+
+        Reviewed by Mark Rowe.
+        Landed by Pamela Greene.
+
+        WebCore::Event::timeStamp() is a simple accessor and should be const
+
+        https://bugs.webkit.org/show_bug.cgi?id=23176
+
+        * dom/Event.h:
+        (WebCore::Event::timeStamp):
+
+2009-01-08  Antti Koivisto  <antti@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix <rdar://problem/6467206> 
+        Resources loaded from the memory cache do not get correctly inserted into the DocLoader resource map (22994)
+        
+        Use CachedResourceHandle in document resource map so resources get updated correctly when using
+        using cache validation conditionals.
+
+        * loader/Cache.cpp:
+        (WebCore::Cache::evict):
+        * loader/DocLoader.cpp:
+        (WebCore::DocLoader::~DocLoader):
+        (WebCore::DocLoader::requestResource):
+        (WebCore::DocLoader::setAutoLoadImages):
+        (WebCore::DocLoader::removeCachedResource):
+        * loader/DocLoader.h:
+        (WebCore::DocLoader::cachedResource):
+        (WebCore::DocLoader::allCachedResources):
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::getSubresources):
+        * loader/ImageLoader.cpp:
+        (WebCore::ImageLoader::updateFromElement):
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add a cleaned-up GraphicsContextSkia implementation to WebKit.
+        https://bugs.webkit.org/show_bug.cgi?id=23191
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp: Added.
+        (WebCore::):
+        (WebCore::GraphicsContext::GraphicsContext):
+        (WebCore::GraphicsContext::~GraphicsContext):
+        (WebCore::GraphicsContext::platformContext):
+        (WebCore::GraphicsContext::savePlatformState):
+        (WebCore::GraphicsContext::restorePlatformState):
+        (WebCore::GraphicsContext::beginTransparencyLayer):
+        (WebCore::GraphicsContext::endTransparencyLayer):
+        (WebCore::GraphicsContext::addInnerRoundedRectClip):
+        (WebCore::GraphicsContext::addPath):
+        (WebCore::GraphicsContext::beginPath):
+        (WebCore::GraphicsContext::clearPlatformShadow):
+        (WebCore::GraphicsContext::clearRect):
+        (WebCore::GraphicsContext::clip):
+        (WebCore::GraphicsContext::clipOut):
+        (WebCore::GraphicsContext::clipOutEllipseInRect):
+        (WebCore::GraphicsContext::clipPath):
+        (WebCore::GraphicsContext::clipToImageBuffer):
+        (WebCore::GraphicsContext::concatCTM):
+        (WebCore::GraphicsContext::drawConvexPolygon):
+        (WebCore::GraphicsContext::drawEllipse):
+        (WebCore::GraphicsContext::drawFocusRing):
+        (WebCore::GraphicsContext::drawLine):
+        (WebCore::GraphicsContext::drawLineForMisspellingOrBadGrammar):
+        (WebCore::GraphicsContext::drawLineForText):
+        (WebCore::GraphicsContext::drawRect):
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::fillRoundedRect):
+        (WebCore::GraphicsContext::getCTM):
+        (WebCore::GraphicsContext::roundToDevicePixels):
+        (WebCore::GraphicsContext::scale):
+        (WebCore::GraphicsContext::setAlpha):
+        (WebCore::GraphicsContext::setCompositeOperation):
+        (WebCore::GraphicsContext::setImageInterpolationQuality):
+        (WebCore::GraphicsContext::setLineCap):
+        (WebCore::GraphicsContext::setLineDash):
+        (WebCore::GraphicsContext::setLineJoin):
+        (WebCore::GraphicsContext::setMiterLimit):
+        (WebCore::GraphicsContext::setPlatformFillColor):
+        (WebCore::GraphicsContext::setPlatformShadow):
+        (WebCore::GraphicsContext::setPlatformStrokeColor):
+        (WebCore::GraphicsContext::setPlatformStrokeStyle):
+        (WebCore::GraphicsContext::setPlatformStrokeThickness):
+        (WebCore::GraphicsContext::setPlatformTextDrawingMode):
+        (WebCore::GraphicsContext::setURLForRect):
+        (WebCore::GraphicsContext::setUseAntialiasing):
+        (WebCore::GraphicsContext::strokeArc):
+        (WebCore::GraphicsContext::strokePath):
+        (WebCore::GraphicsContext::strokeRect):
+        (WebCore::GraphicsContext::rotate):
+        (WebCore::GraphicsContext::translate):
+
+2009-01-08  David Hyatt  <hyatt@apple.com>
+
+        Fix for <rdar://problem/6465682> REGRESSION: In Mail, can't force a message to auto scroll.
+
+        Make scrollRectIntoViewRecursively call out to the HostWindow to continue the recursive scroll for
+        any scrollable views that may contain a WebView.  Does nothing on platforms other than the Mac, but
+        might eventually be of interest to other platforms.
+
+        Reviewed by Oliver Hunt
+
+        * WebCore.base.exp:
+        * page/Chrome.cpp:
+        (WebCore::Chrome::scrollRectIntoView):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        (WebCore::ChromeClient::scrollRectIntoView):
+        * platform/HostWindow.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::scrollRectIntoViewRecursively):
+
+2009-01-08  Adam Treat  <adam.treat@torchmobile.com>
+
+        Reviewed by David Hyatt.
+
+        No need to make this part of HostWindow and moreover HostWindow should
+        not have any reference to non-platform parts of WebCore.
+
+        * page/Chrome.h:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::setContentsSize):
+        * platform/HostWindow.h:
+
+2009-01-08  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Simplify Mac interfaces for drawing media controller elements
+
+        <rdar://problem/6293969>
+
+        * WebCore.base.exp: update for changed WebKitSystemInterface media controller functions
+
+        * platform/mac/WebCoreSystemInterface.h: Ditto
+        * platform/mac/WebCoreSystemInterface.mm: Ditto
+
+        * rendering/MediaControlElements.h:
+        (WebCore::): Add MediaControlElements enum
+
+        * rendering/RenderThemeMac.mm:
+        (WebCore::RenderThemeMac::paintMediaFullscreenButton):  update for changed WebKitSystemInterface
+        media controller functions
+        (WebCore::RenderThemeMac::paintMediaMuteButton): Ditto
+        (WebCore::RenderThemeMac::paintMediaPlayButton): Ditto
+        (WebCore::RenderThemeMac::paintMediaSeekBackButton): Ditto
+        (WebCore::RenderThemeMac::paintMediaSeekForwardButton): Ditto
+        (WebCore::RenderThemeMac::paintMediaSliderTrack): Ditto
+        (WebCore::RenderThemeMac::paintMediaSliderThumb): Ditto
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add two more files for platform/graphics/skia.
+        https://bugs.webkit.org/show_bug.cgi?id=23191
+
+        * platform/graphics/skia/GradientSkia.cpp: Added.
+        (WebCore::Gradient::platformDestroy):
+        (WebCore::F2B):
+        (WebCore::makeSkColor):
+        (WebCore::totalStopsNeeded):
+        (WebCore::fillStops):
+        (WebCore::compareStops):
+        (WebCore::Gradient::platformGradient):
+        (WebCore::Gradient::fill):
+        * platform/graphics/skia/GraphicsContextPlatformPrivate.h: Copied from WebCore/bindings/js/ScriptValue.h.
+        (WebCore::GraphicsContextPlatformPrivate::GraphicsContextPlatformPrivate):
+        (WebCore::GraphicsContextPlatformPrivate::context):
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Commit the right files this time!  (Instead of the ugly unfixed ones.)
+        https://bugs.webkit.org/show_bug.cgi?id=23191
+
+        * platform/graphics/skia/BitmapImageSingleFrameSkia.h:
+        * platform/graphics/skia/FloatPointSkia.cpp:
+        * platform/graphics/skia/FloatRectSkia.cpp:
+        * platform/graphics/skia/IntPointSkia.cpp:
+        * platform/graphics/skia/IntRectSkia.cpp:
+        (WebCore::IntRect::operator SkRect):
+        * platform/graphics/skia/SkiaUtils.cpp:
+        (WebCore::):
+        (WebCore::WebCoreCompositeToSkiaComposite):
+        (WebCore::SkPMColorToWebCoreColor):
+        (WebCore::IntersectRectAndRegion):
+        (WebCore::ClipRectToCanvas):
+        (WebCore::SkPathContainsPoint):
+        (WebCore::scratchContext):
+        * platform/graphics/skia/SkiaUtils.h:
+        (WebCore::WebCoreFloatToSkScalar):
+        (WebCore::WebCoreDoubleToSkScalar):
+
+2009-01-08  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Add the first few files from platform/graphics/skia
+        https://bugs.webkit.org/show_bug.cgi?id=23191
+
+        These are all pretty simple.
+        Eventually BitmapImageSingleFrameSkia might grow a .cpp file, for now it's just a header.
+        SkiaUtils needs to die, but that can come later, no need to block up-streaming now.
+
+        * platform/graphics/skia/BitmapImageSingleFrameSkia.h: Added.
+        (WebCore::BitmapImageSingleFrameSkia::isBitmapImage):
+        (WebCore::BitmapImageSingleFrameSkia::size):
+        (WebCore::BitmapImageSingleFrameSkia::destroyDecodedData):
+        (WebCore::BitmapImageSingleFrameSkia::decodedSize):
+        (WebCore::BitmapImageSingleFrameSkia::nativeImageForCurrentFrame):
+        (WebCore::BitmapImageSingleFrameSkia::BitmapImageSingleFrameSkia):
+        * platform/graphics/skia/FloatPointSkia.cpp: Copied from WebCore/platform/graphics/mac/FloatPointMac.mm.
+        (WebCore::FloatPoint::FloatPoint):
+        (WebCore::FloatPoint::operator SkPoint):
+        * platform/graphics/skia/FloatRectSkia.cpp: Copied from WebCore/platform/graphics/qt/IntRectQt.cpp.
+        (WebCore::FloatRect::FloatRect):
+        (WebCore::FloatRect::operator SkRect):
+        * platform/graphics/skia/IntPointSkia.cpp: Copied from WebCore/platform/graphics/win/IntPointWin.cpp.
+        (WebCore::IntPoint::IntPoint):
+        (WebCore::IntPoint::operator SkIPoint):
+        (WebCore::IntPoint::operator SkPoint):
+        * platform/graphics/skia/IntRectSkia.cpp: Copied from WebCore/platform/graphics/qt/IntRectQt.cpp.
+        (WebCore::IntRect::operator SkIRect):
+        (WebCore::IntRect::operator SkRect):
+        (WebCore::IntRect::IntRect):
+        * platform/graphics/skia/SkiaUtils.cpp: Added.
+        (WebCore::WebCorePointToSkiaPoint):
+        (WebCore::WebCoreRectToSkiaRect):
+        (WebCore::):
+        (WebCore::WebCoreCompositeToSkiaComposite):
+        (WebCore::InvScaleByte):
+        (WebCore::SkPMColorToColor):
+        (WebCore::SkPMColorToWebCoreColor):
+        (WebCore::IntersectRectAndRegion):
+        (WebCore::ClipRectToCanvas):
+        (WebCore::SkPathContainsPoint):
+        (WebCore::scratchContext):
+        * platform/graphics/skia/SkiaUtils.h: Added.
+        (WebCore::WebCoreFloatToSkScalar):
+        (WebCore::WebCoreDoubleToSkScalar):
+
+2009-01-08  Pierre-Olivier Latour  <pol@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Fixed CSS Transitions with zero-duration but non-zero-delay not starting or ending properly.
+
+        Also updated AnimationController::numberOfActiveAnimations() which now returns the number of "active" animations,
+        instead of simply the "running" ones.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23177
+
+        Tests: transitions/zero-duration-with-non-zero-delay-end.html
+               transitions/zero-duration-with-non-zero-delay-start.html
+
+        * page/animation/AnimationBase.cpp:
+        (WebCore::AnimationBase::fireAnimationEventsIfNeeded):
+        * page/animation/AnimationController.cpp:
+        (WebCore::AnimationControllerPrivate::animationTimerFired):
+        * page/animation/CompositeAnimation.cpp:
+        (WebCore::CompositeAnimationPrivate::numberOfActiveAnimations):
+
+2009-01-08  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        <rdar://problem/6477501> Repro crash loading HTML5 AppCache manifest directly
+
+        The crash happened whenever a cached resource was downloaded, as opposed to used directly.
+
+        No test, as downloading cannot be tested automatically.
+
+        * loader/MainResourceLoader.cpp: (WebCore::MainResourceLoader::continueAfterContentPolicy):
+        Cancel downloads that do not have an associated ResourceHandle, such as downloads from the
+        application cache. Activity window shows "The URL can't be shown", and the frame remains empty.
+
+2009-01-08  Justin McPherson <justin.mcpherson@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix the Qt build on older X11 systems with special X paths.
+
+        * WebCore.pro: Use the x11 qmake config to pull in extra paths
+        needed for NPAPI.
+
+2009-01-08  Adam Roben  <aroben@apple.com>
+
+        Windows build fix after r39699
+
+        * DerivedSources.cpp: Added JSDOMStringList.cpp.
+
+2009-01-08  Kent Hansen  <khansen@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix copy & paste of images in the Qt port.
+
+        Store the QPixmap itself in the mimedata, not a QPixmap* converted to bool.
+
+        * platform/qt/ClipboardQt.cpp:
+        (WebCore::ClipboardQt::declareAndWriteDragImage):
+
+2009-01-08  Hiroyuki Ikezoe  <poincare@ikezoe.net>
+
+        Reviewed by Holger Freyther.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23127
+
+        Invoke pango_coverage_get with each Unicode character.
+
+        * platform/graphics/gtk/SimpleFontDataPango.cpp:
+        (WebCore::SimpleFontData::containsCharacters):
+
+2009-01-07  Alexey Proskuryakov  <ap@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Part one of 
+        https://bugs.webkit.org/show_bug.cgi?id=23165
+        Add support for application cache dynamic entries
+
+        Test: http/tests/appcache/dynamic-entries-no-cache.html
+
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * WebCoreSources.bkl:
+        Added new files.
+
+        * bindings/js/JSDOMApplicationCacheCustom.cpp: (WebCore::JSDOMApplicationCache::hasItem):
+        Added binding for hasItem(). Like other DOMApplicationCache methods, it needs to be custom
+        to resolve relative URLs correctly.
+
+        * bindings/js/JSDOMStringListCustom.cpp: Added.
+        * dom/DOMStringList.cpp: Added.
+        * dom/DOMStringList.h: Added.
+        * dom/DOMStringList.idl: Added.
+        Added an implementation of DOM 3 Core DOMStringList interface, which is returned by
+        DOMApplicationCache items attribute.
+
+        * dom/StaticStringList.cpp: Added.
+        * dom/StaticStringList.h: Added.
+        An implementation of DOMStringList that makes a snapshot (for DOMApplicationCache, this
+        matches Firefox, as the spec doesn't say whether the returned list should be live or not).
+
+        * loader/appcache/ApplicationCache.h: Added a list of pending dynamic entry actions, to be
+        used in the near future.
+
+        * loader/appcache/DOMApplicationCache.idl: Updated for spec changes. Instead of length 
+        attribute and item(), we now have an items attribute that returns a DOMStringList, and a
+        hasItem convenience method.
+
+        * loader/appcache/DOMApplicationCache.cpp:
+        (WebCore::DOMApplicationCache::items):
+        (WebCore::DOMApplicationCache::hasItem):
+        * loader/appcache/DOMApplicationCache.h:
+        Added implementations of items attribute and hasItem() (note that underlying ApplicationCache
+        methods are still unimplemented though).
+
+        * page/DOMWindow.idl: Expose a DOMStringList global constructor.
+
+2009-01-07  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23122
+
+        This completes the removal of dependencies on WebKit from the platform code
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::getDelayValue):
+        (WebCore::getDurationValue):
+        (WebCore::getTimingFunctionValue):
+        (WebCore::CSSComputedStyleDeclaration::getPropertyCSSValue):
+        * css/CSSHelper.h:
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::mapAnimationDelay):
+        (WebCore::CSSStyleSelector::mapAnimationDirection):
+        (WebCore::CSSStyleSelector::mapAnimationDuration):
+        (WebCore::CSSStyleSelector::mapAnimationIterationCount):
+        (WebCore::CSSStyleSelector::mapAnimationName):
+        (WebCore::CSSStyleSelector::mapAnimationPlayState):
+        (WebCore::CSSStyleSelector::mapAnimationProperty):
+        (WebCore::CSSStyleSelector::mapAnimationTimingFunction):
+        * platform/animation/Animation.cpp:
+        (WebCore::Animation::Animation):
+        * platform/animation/Animation.h:
+        (WebCore::Animation::initialAnimationDelay):
+        (WebCore::Animation::initialAnimationDirection):
+        (WebCore::Animation::initialAnimationDuration):
+        (WebCore::Animation::initialAnimationIterationCount):
+        (WebCore::Animation::initialAnimationName):
+        (WebCore::Animation::initialAnimationPlayState):
+        (WebCore::Animation::initialAnimationProperty):
+        (WebCore::Animation::initialAnimationTimingFunction):
+        * rendering/style/RenderStyle.h:
+
+2008-01-07  Peter Kasting  <pkasting@google.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22929
+
+        Fix errors while decoding GIFs by not calling setData() repeatedly
+        when it's not necessary.  Pushes the responsibility for calling
+        setData() after clear() into the ImageSource which presumably knows
+        better than BitmapImage what needs to be done.
+
+        NOTE: The above bug is mainly about a memory regression, which this
+        patch does not fix.
+
+        * platform/graphics/BitmapImage.cpp:
+        (WebCore::BitmapImage::destroyDecodedData):
+        * platform/graphics/ImageSource.h:
+        * platform/graphics/cairo/ImageSourceCairo.cpp:
+        (WebCore::ImageSource::clear):
+        * platform/graphics/cg/ImageSourceCG.cpp:
+        (WebCore::ImageSource::clear):
+        * platform/graphics/qt/ImageSourceQt.cpp:
+        (WebCore::ImageSource::~ImageSource):
+        (WebCore::ImageSource::clear):
+        * platform/graphics/wx/ImageSourceWx.cpp:
+        (WebCore::ImageSource::~ImageSource):
+        (WebCore::ImageSource::clear):
+
+2009-01-07  Justin Garcia  <justin.garcia@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/6355786> Find fails for queries that contain a line break
+
+        * editing/TextIterator.cpp:
+        (WebCore::findPlainText): Allow find with queries that contain newlines.
+
+2009-01-07  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Allow removal of inline shorthand properties for
+        animation, transition and transform origin. Also
+        add getter for shorthand animation property.
+
+        https://bugs.webkit.org/show_bug.cgi?id=22605
+
+        Test: fast/css/transform-inline-style-remove.html
+
+        * css/CSSMutableStyleDeclaration.cpp:
+        (WebCore::CSSMutableStyleDeclaration::getPropertyValue):
+            Getter for animation property shorthand
+        (WebCore::initShorthandMap):
+            Adds initialisation for transform-origin, animation and transition
+
+2009-01-07  Benjamin Otte  <otte@gnome.org>
+
+        Reviewed by Holger Freyther.
+
+        * platform/network/ResourceHandleInternal.h:
+        (WebCore::ResourceHandleInternal::ResourceHandleInternal):
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::ResourceHandleInternal::~ResourceHandleInternal):
+        (WebCore::parseDataUrl):
+        (WebCore::ResourceHandle::startData): keep track of the idle handler
+        we add and remove it in the destructor
+
+2009-01-07  Dean Jackson  <dino@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Finish renaming of AffineTransform to TransformationMatrix, this
+        time ensuring that the platform implementations get the correct
+        name. Also, clean up some whitespace cruft in old content.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23151
+
+        * GNUmakefile.am:
+        * WebCore.pro:
+        * WebCore.scons:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/graphics/cairo/AffineTransformCairo.cpp: Removed.
+        * platform/graphics/cairo/TransformationMatrixCairo.cpp: Copied from WebCore/platform/graphics/cairo/AffineTransformCairo.cpp.
+        * platform/graphics/cg/AffineTransformCG.cpp: Removed.
+        * platform/graphics/cg/TransformationMatrixCG.cpp: Copied from WebCore/platform/graphics/cg/AffineTransformCG.cpp.
+        * platform/graphics/qt/AffineTransformQt.cpp: Removed.
+        * platform/graphics/qt/TransformationMatrixQt.cpp: Copied from WebCore/platform/graphics/qt/AffineTransformQt.cpp.
+        * platform/graphics/transforms/TransformationMatrix.cpp:
+        * platform/graphics/transforms/TransformationMatrix.h:
+        * platform/graphics/wx/AffineTransformWx.cpp: Removed.
+        * platform/graphics/wx/TransformationMatrixWx.cpp: Copied from WebCore/platform/graphics/wx/AffineTransformWx.cpp.
+        * webcore-wx.bkl:
+
+2009-01-07  Anders Carlsson  <andersca@apple.com>
+
+        Another build fix.
+        
+        * WebCore.LP64.exp:
+
+2008-12-16  David Hyatt  <hyatt@apple.com>
+
+        Make Safari RSS behave nicely with full page zoom.  Need to add a new value to enable resetting of zoom
+        back to the document-level default.
+
+        Reviewed by Darin Adler
+
+        * css/CSSParser.cpp:
+        (WebCore::CSSParser::parseValue):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        * css/CSSValueKeywords.in:
+
+2009-01-07  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 23160: add setMemoryCacheClientCallsEnabled SPI so Safari can be faster with activity window closed
+        https://bugs.webkit.org/show_bug.cgi?id=23160
+
+        * WebCore.base.exp: Added Page::setMemoryCacheClientCallsEnabled.
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::didLoadResourceFromMemoryCache): Updated to take a CachedResource
+        so that there's no extra work the caller has to do when the inspector is disabled.
+        * inspector/InspectorController.h: Ditto.
+
+        * loader/DocumentLoader.h: Added recordMemoryCacheLoadForFutureClientNotification,
+        takeMemoryCacheLoadsForClientNotification, and m_resourcesLoadedFromMemoryCacheForClientNotification.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::loadedResourceFromMemoryCache): Streamlined code so less work is done when
+        there's no inspector or client call needed. Added code to check areMemoryCacheClientCallsEnabled
+        and if it's false, use recordMemoryCacheLoadForFutureClientNotification.
+        (WebCore::FrameLoader::tellClientAboutPastMemoryCacheLoads): Added.
+        * loader/FrameLoader.h: Ditto.
+
+        * page/Page.cpp:
+        (WebCore::Page::Page): Initialize m_areMemoryCacheClientCallsEnabled to be compatible with old behavior.
+        (WebCore::Page::setMemoryCacheClientCallsEnabled): Added.
+        * page/Page.h: Added setMemoryCacheClientCallsEnabled, areMemoryCacheClientCallsEnabled,
+        and m_areMemoryCacheClientCallsEnabled.
+
+2009-01-07  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        Qt build fix after r39670.
+
+        * bridge/qt/qt_class.cpp:
+        (JSC::Bindings::QtClass::fallbackObject):
+        * bridge/qt/qt_class.h:
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtInstance::mark):
+        (JSC::Bindings::QtInstance::invokeMethod):
+        (JSC::Bindings::QtInstance::defaultValue):
+        (JSC::Bindings::QtInstance::stringValue):
+        (JSC::Bindings::QtInstance::numberValue):
+        (JSC::Bindings::QtInstance::booleanValue):
+        (JSC::Bindings::QtInstance::valueOf):
+        (JSC::Bindings::QtField::valueFromInstance):
+        (JSC::Bindings::QtField::setValueToInstance):
+        * bridge/qt/qt_instance.h:
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::valueRealType):
+        (JSC::Bindings::convertValueToQVariant):
+        (JSC::Bindings::convertQVariantToValue):
+        (JSC::Bindings::findMethodIndex):
+        (JSC::Bindings::QtRuntimeMetaMethod::call):
+        (JSC::Bindings::QtRuntimeMetaMethod::lengthGetter):
+        (JSC::Bindings::QtRuntimeMetaMethod::connectGetter):
+        (JSC::Bindings::QtRuntimeMetaMethod::disconnectGetter):
+        (JSC::Bindings::QtRuntimeConnectionMethod::call):
+        (JSC::Bindings::QtRuntimeConnectionMethod::lengthGetter):
+        (JSC::Bindings::::setValueAt):
+        (JSC::Bindings::::valueAt):
+        * bridge/qt/qt_runtime.h:
+        (JSC::Bindings::QtRuntimeMethod::createStructure):
+
 2009-01-07  Justin Garcia  <justin.garcia@apple.com>
 
         Reviewed by Oliver Hunt.
