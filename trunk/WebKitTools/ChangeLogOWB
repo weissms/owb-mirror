@@ -1,3 +1,11 @@
+2009-01-09  Mario Bensi  <mbensi@pleyo.com>
+
+        add example on progressNotification
+
+        * OWBLauncher/SDL/main.cpp:
+        (progressNotification):
+        (main):
+
 2009-01-08  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

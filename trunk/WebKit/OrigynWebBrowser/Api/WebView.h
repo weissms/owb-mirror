@@ -41,6 +41,8 @@
 #include "WebKitTypes.h"
 #include <string>
 
+typedef void (*notifyProgressFunction)();
+
 class DefaultDownloadDelegate;
 class DefaultPolicyDelegate;
 class DOMDocument;
@@ -384,6 +386,11 @@ public:
      * @discussion The group name for this WebView.
      */
     virtual const char* groupName();
+
+    /**
+     *  register the notify function
+     **/
+    virtual void registerOnNotifyProgress(notifyProgressFunction f) { m_f = f;}
 
     /**
      *  estimatedProgress 
@@ -1331,6 +1338,11 @@ protected:
 #endif
 
     /**
+     * notifyProgress
+     **/
+    void notifyProgress() { m_f(); }
+
+    /**
      *  canHandleRequest
      */
     static bool canHandleRequest(const WebCore::ResourceRequest&);
@@ -1459,6 +1471,7 @@ protected:
     BalWidget* m_topLevelParent;
     WebViewPrivate* d;
     WebViewObserver* m_webViewObserver;
+    notifyProgressFunction m_f;
 };
 
 #endif

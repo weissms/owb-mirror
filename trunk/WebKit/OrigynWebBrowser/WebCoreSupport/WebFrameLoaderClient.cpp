@@ -452,6 +452,7 @@ void WebFrameLoaderClient::postProgressStartedNotification()
 void WebFrameLoaderClient::postProgressEstimateChangedNotification()
 {
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressEstimateChangedNotification, "", m_webFrame->webView());
+    m_webFrame->webView()->notifyProgress();
 }
 
 void WebFrameLoaderClient::postProgressFinishedNotification()

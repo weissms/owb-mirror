@@ -33,7 +33,6 @@
 
 using namespace WebCore;
 static WebView* webView;
-static bool isExposed = false;
 static SDL_Surface* s_screen = NULL;
 static bool quit = false;
 
@@ -188,6 +187,12 @@ void usage()
     printf("owb [-c tokenizerChunkSize -d tokenizerDelay -f configFile] [url_to_load]\n");
 }
 
+void progressNotification()
+{
+    printf("progress : %d \n", int(webView->estimatedProgress() * 100));
+}
+
+
 int main (int argc, char* argv[])
 {
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
@@ -249,7 +254,8 @@ int main (int argc, char* argv[])
 
     webView->setViewWindow(s_screen);
 
- 
+
+    webView->registerOnNotifyProgress(progressNotification);
     char* uri = (char*) (argc > 0 ? argv[0] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
 
