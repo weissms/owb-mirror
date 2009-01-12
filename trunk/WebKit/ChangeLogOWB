@@ -1,3 +1,21 @@
+2009-01-12  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        - Corrected some crashes in the WebView destructor.
+
+        - Removed a leak in WebFrame.
+
+        - Made the test pass by duplicating the string returned by WebView::groupName()
+          and WebFrame::name(). Added a warning to both headers about that.
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::name):
+        * OrigynWebBrowser/Api/WebFrame.h:
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::groupName):
+        * OrigynWebBrowser/Api/WebView.h:
+
 2009-01-09  Mario Bensi  <mbensi@pleyo.com>
 
         add callback on progressNotification.

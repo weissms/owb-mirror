@@ -272,7 +272,12 @@ const char* WebFrame::name()
     strlcpy(m_title, coreFrame->loader()->documentLoader()->title().utf8().data(), sizeof(m_title));
     return m_title;
 #else
-    return coreFrame->loader()->documentLoader()->title().utf8().data();
+    const AtomicString& frameName = coreFrame->tree()->name();
+    if (!frameName.isEmpty())
+        return strdup(frameName.string().utf8().data());
+
+    const CString& frameTitle = coreFrame->loader()->documentLoader()->title().utf8();
+    return strdup(frameTitle.data());
 #endif
 }
 

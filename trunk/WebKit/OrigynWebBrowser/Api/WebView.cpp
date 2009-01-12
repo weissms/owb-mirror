@@ -1656,7 +1656,10 @@ const char* WebView::groupName()
 {
     if (!m_page)
         return "";
-    return m_page->groupName().utf8().data();
+
+    // We need to duplicate the translated string.
+    CString groupName = m_page->groupName().utf8();
+    return strdup(groupName.data());
 }
     
 double WebView::estimatedProgress()

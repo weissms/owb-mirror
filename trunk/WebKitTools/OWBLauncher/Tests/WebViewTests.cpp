@@ -26,6 +26,7 @@ protected:
         WebView* view = WebView::createInstance();
         CPPUNIT_ASSERT(view);
         CPPUNIT_ASSERT(!view->mainFrame());
+        delete view;
     }
 
     void testInitWithFrame()
@@ -37,6 +38,9 @@ protected:
         view->initWithFrame(dummyRectangle, foobarFrame, foobarGroup);
         CPPUNIT_ASSERT(!strncmp(foobarGroup, view->groupName(), strlen(foobarGroup)));
         CPPUNIT_ASSERT(!strncmp(foobarFrame, view->mainFrame()->name(), strlen(foobarFrame)));
+        delete foobarGroup;
+        delete foobarFrame;
+        delete view;
     }
 
 };

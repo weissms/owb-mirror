@@ -132,6 +132,7 @@ public:
 
     /**
      * @result The frame name.
+       @discussion *** The string returned by this method is duplicated with strdup so it is up to the caller to free it ***
      */
     virtual const char* name();
 

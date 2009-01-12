@@ -26,6 +26,7 @@ protected:
         CPPUNIT_ASSERT(frame);
         CPPUNIT_ASSERT(!frame->webView());
         CPPUNIT_ASSERT(!frame->parentFrame());
+        delete frame;
     }
 
 };

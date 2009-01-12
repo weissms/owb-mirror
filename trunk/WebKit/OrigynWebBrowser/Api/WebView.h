@@ -377,13 +377,14 @@ public:
     /**
      *  setGroupName 
      * @param groupName The name of the group for this WebView.
-        @discussion JavaScript may access named frames within the same group.
+       @discussion JavaScript may access named frames within the same group.
      */
     virtual void setGroupName(const char*);
 
     /**
      *  groupName 
      * @discussion The group name for this WebView.
+                   *** The string returned by this method is duplicated with strdup so it is up to the caller to free it ***
      */
     virtual const char* groupName();
 

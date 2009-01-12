@@ -1,3 +1,15 @@
+2009-01-12  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        - Made all the test pass without leaking the WebView and the WebFrame!
+
+        * OWBLauncher/Tests/WebFrameTests.cpp:
+        (WebFrameTest::testInitialValue):
+        * OWBLauncher/Tests/WebViewTests.cpp:
+        (WebViewTest::testInitialValue):
+        (WebViewTest::testInitWithFrame):
+
 2009-01-09  Mario Bensi  <mbensi@pleyo.com>
 
         add example on progressNotification
