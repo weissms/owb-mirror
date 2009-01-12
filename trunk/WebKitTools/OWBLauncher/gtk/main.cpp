@@ -50,6 +50,10 @@ static GtkWidget* create_window ()
     return window;
 }
 
+void progressNotification()
+{
+    printf("progress : %d \n", int(webView->estimatedProgress() * 100));
+}
 
 int main (int argc, char* argv[])
 {
@@ -70,6 +74,7 @@ int main (int argc, char* argv[])
     gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (view));
     gtk_container_add (GTK_CONTAINER (main_window), scrolled_window);
 
+    webView->registerOnNotifyProgress(progressNotification);
     gchar* uri = (gchar*) (argc > 1 ? argv[1] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
 

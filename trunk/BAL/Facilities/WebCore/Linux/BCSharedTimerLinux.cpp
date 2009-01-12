@@ -28,7 +28,7 @@
 #include "config.h"
 #include "SharedTimer.h"
 
-#include "SystemTime.h"
+#include "CurrentTime.h"
 #include <wtf/Assertions.h>
 #include <assert.h>
 #include <signal.h>

@@ -59,12 +59,17 @@ Vector<char> loadResourceIntoArray(const char* name)
 
 namespace WKAL {
 
-void FrameData::clear()
+bool FrameData::clear(bool clearMetadata)
 {
+    if (clearMetadata)
+        m_haveMetadata = false;
+
     if (m_frame) {
         SDL_FreeSurface(m_frame);
         m_frame = 0;
+        return true;
     }
+    return false;
 }
 
 BitmapImage::BitmapImage(BalSurface* surface, ImageObserver* observer)

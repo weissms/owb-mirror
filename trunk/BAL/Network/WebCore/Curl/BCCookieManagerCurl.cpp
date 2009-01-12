@@ -28,7 +28,7 @@
 #include "CookieManager.h"
 
 #include "Logging.h"
-#include "SystemTime.h"
+#include "CurrentTime.h"
 
 #if ENABLE(DATABASE)
 #include "SQLiteStatement.h"

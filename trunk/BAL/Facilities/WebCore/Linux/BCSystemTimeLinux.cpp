@@ -29,19 +29,9 @@
 #include "SystemTime.h"
 #include "NotImplemented.h"
 
-#include <sys/time.h>
 #include <float.h>
 
 namespace OWBAL {
-
-double currentTime()
-{
-  struct timeval aTimeval;
-  struct timezone aTimezone;
-
-  gettimeofday( &aTimeval, &aTimezone );
-  return (double)aTimeval.tv_sec + (double)(aTimeval.tv_usec / 1000000.0 );
-}
 
 float userIdleTime() 
 { 

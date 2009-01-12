@@ -1,7 +1,6 @@
 /*
- * Copyright (C) 2005 Apple Computer, Inc.  All rights reserved.
- *           (C) 2006 Alexander Kellett <lypanov@kde.org>
- *               2006 Rob Buis <buis@kde.org>
+ * Copyright (C) 2007 Apple Inc.  All rights reserved.
+ * Copyright (C) 2008 Google, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,46 +24,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include "config.h"
+#ifndef AuthenticationChallenge_h
+#define AuthenticationChallenge_h
 
-#if ENABLE(SVG)
-#include "RenderPath.h"
-
-#include <ApplicationServices/ApplicationServices.h>
-#include "CgSupport.h"
-#include "GraphicsContext.h"
-#include "SVGPaintServer.h"
-#include "SVGRenderStyle.h"
-#include "SVGStyledElement.h"
-#include <wtf/Assertions.h>
+#include "AuthenticationChallengeBase.h"
+#include "ResourceHandle.h"
+#include <wtf/RefPtr.h>
 
 namespace WebCore {
 
-bool RenderPath::strokeContains(const FloatPoint& point, bool requiresStroke) const
-{
-    if (path().isEmpty())
-        return false;
+    class ResourceHandle;
 
-    if (requiresStroke && !SVGPaintServer::strokePaintServer(style(), this))
-        return false;
+    class AuthenticationChallenge : public AuthenticationChallengeBase {
+    public:
+        AuthenticationChallenge() {}
+        AuthenticationChallenge(const ProtectionSpace&, const Credential& proposedCredential, unsigned previousFailureCount, const ResourceResponse&, const ResourceError&);
 
-    CGMutablePathRef cgPath = path().platformPath();
-    
-    CGContextRef context = scratchContext();
-    CGContextSaveGState(context);
-    
-    CGContextBeginPath(context);
-    CGContextAddPath(context, cgPath);
+        ResourceHandle* sourceHandle() const { return m_sourceHandle.get(); }
 
-    GraphicsContext gc(context);
-    applyStrokeStyleToContext(&gc, style(), this);
+    private:
+        friend class AuthenticationChallengeBase;
+        static bool platformCompare(const AuthenticationChallenge&, const AuthenticationChallenge&);
 
-    bool hitSuccess = CGContextPathContainsPoint(context, point, kCGPathStroke);
-    CGContextRestoreGState(context);
-    
-    return hitSuccess;
-}
+        RefPtr<ResourceHandle> m_sourceHandle;
+    };
 
-}
+} // namespace WebCore
 
-#endif // ENABLE(SVG)
+#endif

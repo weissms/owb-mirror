@@ -25,26 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "config.h"
-#include "RenderPath.h"
+#include "FileSystem.h"
 
-#include "SVGPaintServer.h"
+#include "NotImplemented.h"
+#include "PlatformString.h"
 
-#include <cstdio>
+namespace OWBAL {
 
-namespace WebCore {
-
-bool RenderPath::strokeContains(const FloatPoint& point, bool requiresStroke) const
+Vector<String> listDirectory(const String& path, const String& filter)
 {
-    printf("RenderPath::strokeContains\n");
-    if (requiresStroke && !SVGPaintServer::strokePaintServer(style(), this))
-        return false;
-
-/*    cairo_t* cr = path().platformPath()->m_cr;
-
-    // TODO: set stroke properties
-    return cairo_in_stroke(cr, point.x(), point.y());*/
-    return false;
+    Vector<String> entries;
+    notImplemented();
+    return entries;
 }
 
 }

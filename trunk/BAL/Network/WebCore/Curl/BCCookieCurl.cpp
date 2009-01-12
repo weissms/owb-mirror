@@ -28,7 +28,7 @@
 
 #include "CString.h"
 #include "Logging.h"
-#include "SystemTime.h"
+#include "CurrentTime.h"
 
 #include <curl/curl.h>
 

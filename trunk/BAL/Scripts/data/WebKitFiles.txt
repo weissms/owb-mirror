@@ -9,6 +9,7 @@ WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
 WebCore/bindings/js/JSDOMWindowCustom.cpp
 WebCore/bindings/js/JSEventTarget.cpp
+WebCore/bindings/js/ScheduledAction.cpp
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/runtime.cpp
 WebCore/bridge/runtime.h
@@ -42,7 +43,6 @@ WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
 WebCore/platform/graphics/cairo/ImageSourceCairo.cpp BAL/Graphics/WebCore/Cairo/BCImageSourceCairo.cpp
 WebCore/platform/graphics/GraphicsContext.cpp BAL/Graphics/WebCore/WK/BCGraphicsContextWK.cpp
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
-WebCore/platform/gtk/SystemTimeLinux.cpp BAL/Facilities/WebCore/Linux/BCSystemTimeLinux.cpp
 WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp BAL/ImageDecoder/WebCore/BMP/WK/BCBMPImageDecoderWK.cpp
 WebCore/platform/image-decoders/gif/GIFImageDecoder.cpp BAL/ImageDecoder/WebCore/GIF/WK/BCGIFImageDecoderWK.cpp
 WebCore/platform/image-decoders/gif/GIFImageReader.cpp BAL/ImageDecoder/WebCore/GIF/WK/BCGIFImageReaderWK.cpp

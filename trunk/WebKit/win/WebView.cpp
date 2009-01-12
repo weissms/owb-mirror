@@ -1606,17 +1606,7 @@ bool WebView::keyPress(WPARAM charCode, LPARAM keyData, bool systemKeyDown)
     // IE does not dispatch keypress event for WM_SYSCHAR.
     if (systemKeyDown)
         return frame->eventHandler()->handleAccessKey(keyEvent);
-    if (frame->eventHandler()->keyEvent(keyEvent))
-        return true;
-
-    // Need to scroll the page if space is hit.
-    if (charCode == ' ') {
-        ScrollDirection direction = keyEvent.shiftKey() ? ScrollUp : ScrollDown;
-        if (!frame->eventHandler()->scrollOverflow(direction, ScrollByPage))
-            frame->view()->scroll(direction, ScrollByPage);
-        return true;
-    }
-    return false;
+    return frame->eventHandler()->keyEvent(keyEvent);
 }
 
 bool WebView::inResizer(LPARAM lParam)
@@ -5154,6 +5144,12 @@ STDMETHODIMP WebView::AccessibleObjectFromWindow(HWND hwnd, DWORD objectID, REFI
     if (!procPtr)
         return E_FAIL;
     return procPtr(hwnd, objectID, riid, ppObject);
+}
+
+HRESULT WebView::setMemoryCacheDelegateCallsEnabled(BOOL enabled)
+{
+    m_page->setMemoryCacheClientCallsEnabled(enabled);
+    return S_OK;
 }
 
 class EnumTextMatches : public IEnumTextMatches

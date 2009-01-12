@@ -30,15 +30,16 @@
 #define Path_h
 
 #include "BALBase.h"
+#include <algorithm>
 
 namespace WKAL {
 
-    class TransformationMatrix;
     class FloatPoint;
-    class FloatSize;
     class FloatRect;
+    class FloatSize;
     class String;
     class StrokeStyleApplier;
+    class TransformationMatrix;
 
     enum WindRule {
         RULE_NONZERO = 0,
@@ -58,7 +59,7 @@ namespace WKAL {
         FloatPoint* points;
     };
 
-    typedef void (*PathApplierFunction) (void* info, const PathElement*);
+    typedef void (*PathApplierFunction)(void* info, const PathElement*);
 
     class Path : public WKALBase {
     public:
@@ -68,9 +69,12 @@ namespace WKAL {
         Path(const Path&);
         Path& operator=(const Path&);
 
+        void swap(Path& other) { std::swap(m_path, other.m_path); }
+
         bool contains(const FloatPoint&, WindRule rule = RULE_NONZERO) const;
+        bool strokeContains(StrokeStyleApplier*, const FloatPoint&) const;
         FloatRect boundingRect() const;
-	FloatRect strokeBoundingRect(StrokeStyleApplier* applier = 0);
+        FloatRect strokeBoundingRect(StrokeStyleApplier* = 0);
         
         float length();
         FloatPoint pointAtLength(float length, bool& ok);

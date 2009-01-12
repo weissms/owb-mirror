@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2008 Brent Fulgham <bfulgham@gmail.com>. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,10 +10,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -23,28 +23,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef CgSupport_h
-#define CgSupport_h
+#include "config.h"
+#include "WebKitDLL.h"
+#include "WebCookieManager.h"
 
-#if ENABLE(SVG)
+#include "NotImplemented.h"
 
-#include <ApplicationServices/ApplicationServices.h>
-#include "GraphicsTypes.h"
+using namespace WebCore;
 
-namespace WebCore {
+// IWebCookieManager -------------------------------------------------------
 
-typedef struct CGPath *CGMutablePathRef;
-
-class Path;
-class FloatRect;
-class RenderStyle;
-class RenderObject;
-class GraphicsContext;
-
-CGContextRef scratchContext();
-FloatRect strokeBoundingBox(const Path& path, RenderStyle*, const RenderObject*);
-
+HRESULT STDMETHODCALLTYPE WebCookieManager::cookieStorage( 
+    /* [retval][out] */ CFHTTPCookieStorageRef* storage)
+{
+   notImplemented();
+   return E_FAIL;
 }
 
-#endif // ENABLE(SVG)
-#endif // !CgSupport_h
+HRESULT STDMETHODCALLTYPE WebCookieManager::setCookieStorage( 
+    /* [in] */ CFHTTPCookieStorageRef storage)
+{
+   notImplemented();
+   return E_FAIL;
+}

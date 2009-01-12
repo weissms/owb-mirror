@@ -364,9 +364,7 @@ BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/MIMETypeRegistryGtk.cpp	BCMIMETy
 BAL/Facilities/WebCore/Gtk	WebCore/platform/SharedTimer.h
 BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/SharedTimerGtk.cpp	BCSharedTimerGtk.cpp
 BAL/Facilities/WebCore/Gtk	WebCore/platform/SystemTime.h
-BAL/Facilities/WebCore/Gtk	WebCore/platform/gtk/SystemTimeGtk.cpp	BCSystemTimeGtk.cpp
 BAL/Facilities/WebCore/Linux	WebCore/platform/SystemTime.h
-BAL/Facilities/WebCore/Linux	WebCore/platform/gtk/SystemTimeLinux.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/Timer.h
 BAL/Facilities/WebCore/WK	WebCore/platform/Timer.cpp
 BAL/Facilities/WebCore/WK	WebCore/platform/FloatConversion.h
@@ -416,6 +414,7 @@ BAL/Memory/WTF	JavaScriptCore/wtf/FastMalloc.cpp
 BAL/Memory/WTF	JavaScriptCore/wtf/TCSystemAlloc.cpp
 BAL/Memory/WTF	JavaScriptCore/wtf/TCSystemAlloc.h
 
+BAL/Skeletons/Types	JavaScriptCore/wtf/CurrentTime.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Deque.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/HashCountedSet.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/HashIterators.h
@@ -432,6 +431,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/NotFound.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/OwnArrayPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/OwnPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/PassRefPtr.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefCounted.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefCountedLeakCounter.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/RefPtr.h
@@ -468,6 +468,8 @@ BAL/Skeletons/Types JavaScriptCore/wtf/RandomNumberSeed.h
 BAL/Skeletons/Types JavaScriptCore/wtf/RandomNumber.h
 
 
+BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.h
 BAL/Types/WTF	JavaScriptCore/wtf/dtoa.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/dtoa.h
 BAL/Types/WTF	JavaScriptCore/wtf/Deque.h
@@ -488,6 +490,7 @@ BAL/Types/WTF	JavaScriptCore/wtf/NotFound.h
 BAL/Types/WTF	JavaScriptCore/wtf/OwnArrayPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/OwnPtr.h
 BAL/Types/WTF	JavaScriptCore/wtf/PassRefPtr.h
+BAL/Types/WTF	JavaScriptCore/wtf/PtrAndFlags.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCounted.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.h
 BAL/Types/WTF	JavaScriptCore/wtf/RefCountedLeakCounter.cpp

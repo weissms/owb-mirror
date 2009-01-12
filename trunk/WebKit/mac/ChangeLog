@@ -1,3 +1,60 @@
+2009-01-12  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23207
+        Moved currentTime() to from WebCore to WTF.
+
+        * WebView/WebFrame.mm: a different header file included.
+
+2009-01-10  Darin Adler  <darin@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/5845089> REGRESSION (r30044): Mail custom stationery missing images
+        because of change to -[HTMLObjectElement data]
+
+        * WebView/WebView.mm:
+        (-[WebView _commonInitializationWithFrameName:groupName:usesDocumentViews:]): Added a thread
+        violation check because I saw this being done off the main thread while testing Mail, and it
+        caused problems. Put all the one time initialization under a single guard to make things just
+        a little faster other times, and to make it clearer which things are one-time. Added a call to
+        the new patchMailRemoveAttributesMethod function.
+        (-[WebView initWithFrame:frameName:groupName:]): Added a thread violation check here too,
+        because I assumed it would be slightly better to have a public method name in the violation
+        message. This calls commonInitialization later, so it will hit that one eventually.
+        (objectElementDataAttribute): Added. Just returns the value of the "data" attribute.
+        (recursivelyRemoveMailAttributes): Added. Patch to an internal Mail method that in turn patches
+        a WebKit method and removes the patch again on the way out.
+        (patchMailRemoveAttributesMethod): Added. On Leopard only, checks the Mail version, and then
+        applies the patch that fixes this bug.
+
+2009-01-09  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        - fixed <rdar://problem/6234347> Add/change conditional key
+          bindings for changing paragraph- and character-level writing
+          direction (to match NSTextView)
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView validateUserInterfaceItemWithoutDelegate:]): Added
+        code to validate makeBaseWritingDirectionLeftToRight: and
+        makeBaseWritingDirectionRightToLeft:.
+        (writingDirectionKeyBindingsEnabled): Changed this function to
+        always return YES, except on Tiger and Leopard.
+        (-[WebHTMLView makeBaseWritingDirectionLeftToRight:]): Renamed
+        changeBaseWritingDirectionToLTR: to this.
+        (-[WebHTMLView makeBaseWritingDirectionRightToLeft:]): Renamed
+        changeBaseWritingDirectionToRTL: to this.
+        (-[WebHTMLView changeBaseWritingDirectionToLTR:]): Now calls
+        makeBaseWritingDirectionLeftToRight:.
+        (-[WebHTMLView changeBaseWritingDirectionToRTL:]): Now calls
+        makeBaseWritingDirectionRightToLeft:.
+        * WebView/WebView.mm: Added makeBaseWritingDirectionLeftToRight
+        and makeBaseWritingDirectionRightToLeft to
+        FOR_EACH_RESPONDER_SELECTOR.
+
 2009-01-09  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Sam Weinig.

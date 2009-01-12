@@ -1,6 +1,351 @@
+2009-01-11  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23245
+
+        Add initializeThreading to key places in JS API to ensure that
+        UString is properly initialized.
+
+        * API/JSContextRef.cpp:
+        (JSContextGroupCreate):
+        (JSGlobalContextCreate):
+        * API/JSObjectRef.cpp:
+        (JSClassCreate):
+        * API/JSStringRef.cpp:
+        (JSStringCreateWithCharacters):
+        (JSStringCreateWithUTF8CString):
+        * API/JSStringRefCF.cpp:
+        (JSStringCreateWithCFString):
+
+2009-01-11  David Levin  <levin@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23175
+
+        Separate out BaseString information from UString::Rep and make all baseString access go through
+        a member function, so that it may be used for something else (in the future) in the BaseString
+        case.
+
+        * runtime/SmallStrings.cpp:
+        (JSC::SmallStringsStorage::rep):
+        (JSC::SmallStringsStorage::SmallStringsStorage):
+        (JSC::SmallStrings::SmallStrings):
+        (JSC::SmallStrings::mark):
+        Adjust to account for the changes in UString and put the UString in place in
+        SmallStringsStorage to aid in locality of reference among the UChar[] and UString::Rep's.
+
+        * runtime/SmallStrings.h:
+        * runtime/UString.cpp:
+        (JSC::initializeStaticBaseString):
+        (JSC::initializeUString):
+        (JSC::UString::Rep::create):
+        (JSC::UString::Rep::destroy):
+        (JSC::UString::Rep::checkConsistency):
+        (JSC::expandCapacity):
+        (JSC::UString::expandPreCapacity):
+        (JSC::concatenate):
+        (JSC::UString::append):
+        (JSC::UString::operator=):
+        * runtime/UString.h:
+        (JSC::UString::Rep::baseIsSelf):
+        (JSC::UString::Rep::setBaseString):
+        (JSC::UString::Rep::baseString):
+        (JSC::UString::Rep::):
+        (JSC::UString::Rep::null):
+        (JSC::UString::Rep::empty):
+        (JSC::UString::Rep::data):
+        (JSC::UString::cost):
+        Separate out the items out used by base strings from those used in Rep's that only
+        point to base strings.  (This potentially saves 24 bytes per Rep.)
+
+2009-01-11  Darin Adler  <darin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Bug 23239: improve handling of unused arguments in JavaScriptCore
+        https://bugs.webkit.org/show_bug.cgi?id=23239
+
+        * runtime/DatePrototype.cpp: Moved LocaleDateTimeFormat enum outside #if
+        so we can use this on all platforms. Changed valueOf to share the same
+        function with getTime, since the contents of the two are identical. Removed
+        a FIXME since the idea isn't really specific enough or helpful enough to
+        need to sit here in the source code.
+        (JSC::formatLocaleDate): Changed the Mac version of this function to take
+        the same arguments as the non-Mac version so the caller doesn't have to
+        special-case the two platforms. Also made the formatString array be const;
+        before the characters were, but the array was a modifiable global variable.
+        (JSC::dateProtoFuncToLocaleString): Changed to call the new unified
+        version of formatLocaleDate and remove the ifdef.
+        (JSC::dateProtoFuncToLocaleDateString): Ditto.
+        (JSC::dateProtoFuncToLocaleTimeString): Ditto.
+
+        * runtime/JSNotAnObject.cpp:
+        (JSC::JSNotAnObject::toObject): Use the new ASSERT_UNUSED instead of the
+        old UNUSED_PARAM.
+
+        * runtime/RegExp.cpp:
+        (JSC::RegExp::RegExp): Changed to only use UNUSED_PARAM when the parameter
+        is actually unused.
+
+        * wtf/TCSystemAlloc.cpp:
+        (TCMalloc_SystemRelease): Changed to only use UNUSED_PARAM when the parameter
+        is actually unused.
+        (TCMalloc_SystemCommit): Changed to omit the argument names instead of using
+        UNUSED_PARAM.
+
+2009-01-11  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Fix the build (whoops)
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::cti_op_get_by_val):
+
+2009-01-11  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Darin Adler and Anders Carlsson
+
+        Bug 23128: get/put_by_val need to respecialise in the face of ByteArray
+
+        Restructure the code slightly, and add comments per Darin's suggestions
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::cti_op_get_by_val):
+        (JSC::Interpreter::cti_op_get_by_val_byte_array):
+        (JSC::Interpreter::cti_op_put_by_val):
+        (JSC::Interpreter::cti_op_put_by_val_byte_array):
+
+2009-01-11  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Whoops, I accidentally removed an exception check from fast the
+        fast path for string indexing when i originally landed the
+        byte array logic.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::cti_op_get_by_val):
+
+2009-01-11  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Bug 23128: get/put_by_val need to respecialise in the face of ByteArray
+        <https://bugs.webkit.org/show_bug.cgi?id=23128>
+
+        Fairly simple patch, add specialised versions of cti_op_get/put_by_val
+        that assume ByteArray, thus avoiding a few branches in the case of bytearray
+        manipulation.
+
+        No effect on SunSpider.  15% win on the original testcase.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::cti_op_get_by_val):
+        (JSC::Interpreter::cti_op_get_by_val_byte_array):
+        (JSC::Interpreter::cti_op_put_by_val):
+        (JSC::Interpreter::cti_op_put_by_val_byte_array):
+        * interpreter/Interpreter.h:
+
+2009-01-11  Alexey Proskuryakov  <ap@webkit.org>
+
+        Try to fix Windows build.
+
+        * wtf/CurrentTime.cpp: Added a definition of msPerSecond (previously, this code was in
+        DateMath.cpp, with constant definition in DateTime.h)
+
+2009-01-11  Alexey Proskuryakov  <ap@webkit.org>
+
+        Try to fix Windows build.
+
+        * wtf/CurrentTime.cpp: Include <sys/types.h> and <sys/timeb.h>, as MSDN says to.
+
+2009-01-11  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23207
+        Moved currentTime() to from WebCore to WTF.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.exp: added export for WTF::currentTime()
+        * JavaScriptCore.pri:
+        * JavaScriptCore.scons:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * JavaScriptCoreSources.bkl:
+        * runtime/DateMath.cpp:
+        (JSC::getCurrentUTCTimeWithMicroseconds): This function had another implementation of currentTime(), essentially. Now uses WTF version.
+        * wtf/CurrentTime.cpp: Added.
+        (WTF::currentTime):
+        (WTF::highResUpTime):
+        (WTF::lowResUTCTime):
+        (WTF::qpcAvailable):
+        * wtf/CurrentTime.h: Added.
+
 2009-01-09  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Oliver Hunt.
+
+        Stage two of converting JSValue from a pointer to a class type.
+        Remove the class JSValue.  The functionallity has been transitioned
+        into the wrapper class type JSValuePtr.
+
+        The last stage will be to rename JSValuePtr to JSValue, remove the
+        overloaded -> operator, and switch operations on JSValuePtrs from
+        using '->' to use '.' instead.
+
+        * API/APICast.h:
+        * JavaScriptCore.exp:
+        * runtime/JSCell.h:
+        (JSC::asCell):
+        (JSC::JSValuePtr::asCell):
+        (JSC::JSValuePtr::isNumber):
+        (JSC::JSValuePtr::isString):
+        (JSC::JSValuePtr::isGetterSetter):
+        (JSC::JSValuePtr::isObject):
+        (JSC::JSValuePtr::getNumber):
+        (JSC::JSValuePtr::getString):
+        (JSC::JSValuePtr::getObject):
+        (JSC::JSValuePtr::getCallData):
+        (JSC::JSValuePtr::getConstructData):
+        (JSC::JSValuePtr::getUInt32):
+        (JSC::JSValuePtr::getTruncatedInt32):
+        (JSC::JSValuePtr::getTruncatedUInt32):
+        (JSC::JSValuePtr::mark):
+        (JSC::JSValuePtr::marked):
+        (JSC::JSValuePtr::toPrimitive):
+        (JSC::JSValuePtr::getPrimitiveNumber):
+        (JSC::JSValuePtr::toBoolean):
+        (JSC::JSValuePtr::toNumber):
+        (JSC::JSValuePtr::toString):
+        (JSC::JSValuePtr::toObject):
+        (JSC::JSValuePtr::toThisObject):
+        (JSC::JSValuePtr::needsThisConversion):
+        (JSC::JSValuePtr::toThisString):
+        (JSC::JSValuePtr::getJSNumber):
+        * runtime/JSImmediate.h:
+        (JSC::JSValuePtr::isUndefined):
+        (JSC::JSValuePtr::isNull):
+        (JSC::JSValuePtr::isUndefinedOrNull):
+        (JSC::JSValuePtr::isBoolean):
+        (JSC::JSValuePtr::getBoolean):
+        (JSC::JSValuePtr::toInt32):
+        (JSC::JSValuePtr::toUInt32):
+        * runtime/JSNumberCell.h:
+        (JSC::JSValuePtr::uncheckedGetNumber):
+        (JSC::JSValuePtr::toJSNumber):
+        * runtime/JSObject.h:
+        (JSC::JSValuePtr::isObject):
+        (JSC::JSValuePtr::get):
+        (JSC::JSValuePtr::put):
+        * runtime/JSString.h:
+        (JSC::JSValuePtr::toThisJSString):
+        * runtime/JSValue.cpp:
+        (JSC::JSValuePtr::toInteger):
+        (JSC::JSValuePtr::toIntegerPreserveNaN):
+        (JSC::JSValuePtr::toInt32SlowCase):
+        (JSC::JSValuePtr::toUInt32SlowCase):
+        * runtime/JSValue.h:
+        (JSC::JSValuePtr::makeImmediate):
+        (JSC::JSValuePtr::immediateValue):
+        (JSC::JSValuePtr::JSValuePtr):
+        (JSC::JSValuePtr::operator->):
+        (JSC::JSValuePtr::operator bool):
+        (JSC::JSValuePtr::operator==):
+        (JSC::JSValuePtr::operator!=):
+        (JSC::JSValuePtr::encode):
+        (JSC::JSValuePtr::decode):
+        (JSC::JSValuePtr::toFloat):
+        (JSC::JSValuePtr::asValue):
+        (JSC::operator==):
+        (JSC::operator!=):
+
+2009-01-09  David Levin  <levin@chromium.org>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23175
+
+        Adjustment to previous patch.  Remove call to initilizeThreading from JSGlobalCreate
+        and fix jsc.cpp instead.
+
+        * jsc.cpp:
+        (main):
+        (jscmain):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::create):
+
+2009-01-09  Sam Weinig  <sam@webkit.org>
+
+        Roll r39720 back in with a working interpreted mode.
+
+2009-01-09  David Levin  <levin@chromium.org>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23175
+
+        Added a template to make the pointer and flags combination
+        in UString more readable and less error prone.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        Added PtrAndFlags.h (and sorted the xcode project file).
+
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::add):
+        (JSC::Identifier::addSlowCase):
+        * runtime/InitializeThreading.cpp:
+        (JSC::initializeThreadingOnce):
+        Made the init threading initialize the UString globals.  Before
+        these were initilized using {} but that became harder due to the
+        addition of this tempalte class.
+
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::create):
+        * runtime/PropertyNameArray.cpp:
+        (JSC::PropertyNameArray::add):
+        * runtime/UString.cpp:
+        (JSC::initializeStaticBaseString):
+        (JSC::initializeUString):
+        (JSC::UString::Rep::create):
+        (JSC::UString::Rep::createFromUTF8):
+        (JSC::createRep):
+        (JSC::UString::UString):
+        (JSC::concatenate):
+        (JSC::UString::operator=):
+        (JSC::UString::makeNull):
+        (JSC::UString::nullRep):
+        * runtime/UString.h:
+        (JSC::UString::Rep::identifierTable):
+        (JSC::UString::Rep::setIdentifierTable):
+        (JSC::UString::Rep::isStatic):
+        (JSC::UString::Rep::setStatic):
+        (JSC::UString::Rep::):
+        (JSC::UString::Rep::null):
+        (JSC::UString::Rep::empty):
+        (JSC::UString::isNull):
+        (JSC::UString::null):
+        (JSC::UString::UString):
+
+        * wtf/PtrAndFlags.h: Added.
+        (WTF::PtrAndFlags::PtrAndFlags):
+        (WTF::PtrAndFlags::isFlagSet):
+        (WTF::PtrAndFlags::setFlag):
+        (WTF::PtrAndFlags::clearFlag):
+        (WTF::PtrAndFlags::get):
+        (WTF::PtrAndFlags::set):
+        A simple way to layer together a pointer and 2 flags.  It relies on the pointer being 4 byte aligned,
+        which should happen for all allocators (due to aligning pointers, int's, etc. on 4 byte boundaries).
+
+2009-01-08  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by -O-l-i-v-e-r- -H-u-n-t- Sam Weinig (sorry, Sam!).
 
         Encode immediates in the low word of JSValuePtrs, on x86-64.
 
@@ -266,7 +611,7 @@
         (JSC::createNotAFunctionError): Ditto.
         (JSC::createNotAnObjectError): Ditto.
 
-2009-01-07  Gavin Barraclough  <baraclough@apple.com>
+2009-01-06  Gavin Barraclough  <baraclough@apple.com>
 
         Reviewed by Maciej Stachowiak.
 
@@ -1358,7 +1703,7 @@
         (TCMalloc_SystemRelease):
         Use it in some places that used other idioms for this purpose.
 
-2009-01-05  Alice Liu  <alice.liu@apple.com>
+2009-01-04  Alice Liu  <alice.liu@apple.com>
 
         <rdar://problem/6341776> Merge m_transitionCount and m_offset in Structure.
 
@@ -1973,7 +2318,7 @@
         * JavaScriptCore.xcodeproj/project.pbxproj:
         * JavaScriptCoreSources.bkl:
 
-2008-12-27  Sam Weinig  <sam@webkit.org>
+2008-12-26  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Alexey Proskuryakov.
 
@@ -1981,7 +2326,7 @@
 
         * runtime/Structure.h: Remove mutableTypeInfo.
 
-2008-12-24  Gavin Barraclough  <barraclough@apple.com>
+2008-12-22  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Oliver Hunt.
 
@@ -2224,7 +2569,7 @@
 
         * wtf/Platform.h:
 
-2008-12-19  Gavin Barraclough  <barraclough@apple.com>
+2008-12-18  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Sam Weinig.
 
@@ -2439,7 +2784,7 @@
         (JSC::Interpreter::cti_op_get_by_id_self_fail):
         (JSC::Interpreter::cti_op_get_by_id_proto_list):
 
-2008-12-18  Gavin Barraclough  <barraclough@apple.com>
+2008-12-17  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by Cameron Zwarich.
 
@@ -2542,7 +2887,7 @@
         * API/JSContextRef.cpp: The previous patch that claimed to do this was making Tiger and
         Leopard always use unique context group instead.
 
-2008-12-17  Sam Weinig  <sam@webkit.org>
+2008-12-16  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Geoffrey Garen.
 
@@ -2761,7 +3106,7 @@
 
         * JavaScriptCore.pri:
 
-2008-12-16  Mark Rowe  <mrowe@apple.com>
+2008-12-15  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Cameron Zwarich.
 
@@ -3645,7 +3990,7 @@
         * jit/JIT.cpp:
         (JSC::JIT::privateCompile): Reserve exact capacity and fill the pcVector.
 
-2008-12-10  Geoffrey Garen  <ggaren@apple.com>
+2008-12-09  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Oliver Hunt.
 
@@ -3801,7 +4146,7 @@
         (JSC::JIT::privateCompileMainPass):
         (JSC::JIT::privateCompileSlowCases):
 
-2008-12-09  Geoffrey Garen  <ggaren@apple.com>
+2008-12-08  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Oliver Hunt.
         
@@ -21257,7 +21602,7 @@
 
         * wtf/Platform.h:
 
-2008-09-10  Sam Weinig  <sam@webkit.org>
+2008-09-09  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Mark Rowe.
 

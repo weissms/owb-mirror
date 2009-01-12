@@ -1,7 +1,6 @@
 /*
- * Copyright (C) 2006 Dirk Mueller <mueller@kde.org>
- *
- * All rights reserved.
+ * Copyright (C) 2006 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2008 Google, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,25 +21,31 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#include "config.h"
-#include "SystemTime.h"
+#ifndef ResourceError_h
+#define ResourceError_h
 
-#include <sys/time.h>
+#include "ResourceErrorBase.h"
 
 namespace WebCore {
 
-double currentTime()
-{
-    struct timeval tv;
-    struct timezone tz;
+    class ResourceError : public ResourceErrorBase {
+    public:
+        ResourceError()
+        {
+        }
 
-    gettimeofday(&tv, &tz);
-    return (double)tv.tv_sec + (double)(tv.tv_usec / 1000000.0);
-}
+        ResourceError(const String& domain, int errorCode, const String& failingURL, const String& localizedDescription)
+            : ResourceErrorBase(domain, errorCode, failingURL, localizedDescription)
+        {
+        }
 
-}
+    private:
+        friend class ResourceErrorBase;
+    };
 
-// vim: ts=4 sw=4 et
+} // namespace WebCore
+
+#endif

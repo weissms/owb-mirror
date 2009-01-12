@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2006 George Staikos <staikos@kde.org>
- *
- * All rights reserved.
+ * Copyright (C) 2008 Brent Fulgham <bfulgham@gmail.com>. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,67 +23,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef SharedTimerQt_h
-#define SharedTimerQt_h
+#include "config.h"
+#include "WebKitDLL.h"
+#include <initguid.h>
+#include "WebURLAuthenticationChallengeSender.h"
 
-#include "SharedTimerQt.h"
-#include "SystemTime.h"
+#include "COMPtr.h"
+#include "NotImplemented.h"
+#include "WebKit.h"
+#include "WebURLAuthenticationChallenge.h"
+#include "WebURLCredential.h"
 
-#include <QTimer>
-#include <QCoreApplication>
+#pragma warning(push, 0)
+#include <WebCore/ResourceHandle.h>
+#pragma warning(pop)
 
-namespace WebCore {
+using namespace WebCore;
 
-class SharedTimerQt : public QTimer {
-Q_OBJECT
-protected:
-    SharedTimerQt()
-        : QTimer()
-        , m_timerFunction(0)
-    {
-        connect(this, SIGNAL(timeout()), this, SLOT(fire()));
-        setSingleShot(true);
-    }
+// IWebURLAuthenticationChallengeSender -------------------------------------------------------------------
 
-    ~SharedTimerQt()
-    {
-    }
-
-public:
-    static void cleanup()
-    {
-        if (s_self->isActive())
-            s_self->fire();
-
-        delete s_self;
-        s_self = 0;
-    }
-
-    static SharedTimerQt* inst()
-    {
-        if (!s_self) {
-            s_self = new SharedTimerQt();
-            qAddPostRoutine(SharedTimerQt::cleanup);
-        }
-
-        return s_self;
-    }
-
-    void (*m_timerFunction)();
-
-public Q_SLOTS:
-    void fire()
-    {
-        if (m_timerFunction)
-            (m_timerFunction)();
-    }
-
-private:
-    static SharedTimerQt* s_self;
-};
-
+HRESULT STDMETHODCALLTYPE WebURLAuthenticationChallengeSender::cancelAuthenticationChallenge(
+        /* [in] */ IWebURLAuthenticationChallenge* challenge)
+{
+    notImplemented();
+    return E_FAIL;
 }
 
-#endif
+HRESULT STDMETHODCALLTYPE WebURLAuthenticationChallengeSender::continueWithoutCredentialForAuthenticationChallenge(
+        /* [in] */ IWebURLAuthenticationChallenge* challenge)
+{
+    notImplemented();
+    return E_FAIL;
+}
 
-// vim: ts=4 sw=4 et
+HRESULT STDMETHODCALLTYPE WebURLAuthenticationChallengeSender::useCredential(
+        /* [in] */ IWebURLCredential* credential, 
+        /* [in] */ IWebURLAuthenticationChallenge* challenge)
+{
+    notImplemented();
+    return E_FAIL;
+}

@@ -54,13 +54,10 @@
 #include "npruntime_impl.h"
 #include "runtime.h"
 #include "runtime_root.h"
-#include <JSValue.h>
-
 
 using JSC::ExecState;
 using JSC::Interpreter;
 using JSC::JSObject;
-using JSC::JSValue;
 using JSC::UString;
 
 using std::min;

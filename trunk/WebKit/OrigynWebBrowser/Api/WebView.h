@@ -992,6 +992,10 @@ public:
      */
     float mediaVolume();
 
+    /**
+     * enable memory cache delegate calls
+     */
+    void setMemoryCacheDelegateCallsEnabled(bool enabled);
     
 
     /**

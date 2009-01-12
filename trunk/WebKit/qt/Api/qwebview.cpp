@@ -156,7 +156,6 @@ QWebView::QWebView(QWidget *parent)
 {
     d = new QWebViewPrivate(this);
 
-    setAttribute(Qt::WA_OpaquePaintEvent);
 #if !defined(Q_WS_QWS)
     setAttribute(Qt::WA_InputMethodEnabled);
 #endif
@@ -241,6 +240,7 @@ void QWebView::setPage(QWebPage *page)
         connect(d->page, SIGNAL(microFocusChanged()),
                 this, SLOT(updateMicroFocus()));
     }
+    setAttribute(Qt::WA_OpaquePaintEvent, d->page);
     update();
 }
 
@@ -549,6 +549,8 @@ bool QWebView::event(QEvent *e)
     if (d->page) {
 #ifndef QT_NO_CONTEXTMENU
         if (e->type() == QEvent::ContextMenu) {
+            if (!isEnabled())
+                return false;
             QContextMenuEvent *event = static_cast<QContextMenuEvent *>(e);
             if (d->page->swallowContextMenuEvent(event)) {
                 e->accept();

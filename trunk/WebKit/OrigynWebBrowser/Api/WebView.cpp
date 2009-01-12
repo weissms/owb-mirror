@@ -2391,6 +2391,11 @@ float WebView::mediaVolume()
     return m_page->mediaVolume();                                                                                   
 }  
 
+void WebView::setMemoryCacheDelegateCallsEnabled(bool enabled)
+{
+    m_page->setMemoryCacheClientCallsEnabled(enabled);
+}
+
 void WebView::setDefersCallbacks(bool defersCallbacks)
 {
     if (!m_page)

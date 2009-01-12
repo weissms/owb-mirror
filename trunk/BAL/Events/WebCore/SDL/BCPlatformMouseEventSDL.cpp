@@ -29,7 +29,7 @@
 #include "config.h"
 #include "PlatformMouseEvent.h"
 
-#include "SystemTime.h"
+#include "CurrentTime.h"
 #include "Assertions.h"
 #include "SDL.h"
 
@@ -41,7 +41,7 @@ namespace WKAL {
 PlatformMouseEvent::PlatformMouseEvent(BalEventButton* event)
 {
     //printf("PlatformMouseEvent eventbutton x=%d y=%d\n", (int)event->x, (int)event->y);
-    m_timestamp = WebCore::currentTime();
+    m_timestamp = WTF::currentTime();
     m_position = IntPoint((int)event->x, (int)event->y);
     m_globalPosition = IntPoint((int)event->x, (int)event->y);
     SDLMod mod = SDL_GetModState();
@@ -71,7 +71,7 @@ PlatformMouseEvent::PlatformMouseEvent(BalEventButton* event)
 
 PlatformMouseEvent::PlatformMouseEvent(BalEventMotion* motion)
 {
-    m_timestamp = WebCore::currentTime();;
+    m_timestamp = WTF::currentTime();;
     m_position = IntPoint((int)motion->x, (int)motion->y);
     m_globalPosition = IntPoint((int)motion->xrel, (int)motion->yrel);
     SDLMod mod = SDL_GetModState();
