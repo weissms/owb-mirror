@@ -507,19 +507,22 @@ void WebView::close()
     printf("\txblDocs: count=%d - size=%d - liveSize=%d - decodedSize=%d\n", stats.xblDocs.count, stats.xblDocs.size, stats.xblDocs.liveSize, stats.xblDocs.decodedSize);
 #endif
 #endif
-    //Purge page cache
-    //The easiest way to do that is to disable page cache
-    if (m_preferences->usesPageCache())
+    // Purge page cache
+    // The easiest way to do that is to disable page cache
+    // The preferences or the page can be null.
+    if (m_preferences && m_preferences->usesPageCache() && m_page)
         m_page->settings()->setUsesPageCache(false);
     
     removeFromAllWebViewsSet();
 
-    Frame* frame = m_page->mainFrame();
-    if (frame)
-        frame->loader()->detachFromParent();
+    if (m_page) {
+        Frame* frame = m_page->mainFrame();
+        if (frame)
+            frame->loader()->detachFromParent();
 
-    delete m_page;
-    m_page = 0;
+        delete m_page;
+        m_page = 0;
+    }
 
 /*#if ENABLE(ICONDATABASE)
     registerForIconNotification(false);
@@ -527,12 +530,13 @@ void WebView::close()
     OWBAL::ObserverServiceData::createObserverService()->removeObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
     OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuShow", m_webViewObserver);
     OWBAL::ObserverServiceData::createObserverService()->removeObserver("PopupMenuHide", m_webViewObserver);
-    String identifier = m_preferences->identifier();
+    const String& identifier = m_preferences ? m_preferences->identifier() : String();
     if (identifier != String())
         WebPreferences::removeReferenceForIdentifier(identifier);
 
     WebPreferences* preferences = m_preferences;
-    preferences->didRemoveFromWebView();
+    if (preferences)
+        preferences->didRemoveFromWebView();
 
     deleteBackingStore();
 }

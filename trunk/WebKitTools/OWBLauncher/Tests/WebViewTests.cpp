@@ -36,10 +36,12 @@ protected:
         const char* foobarGroup = "foobarGroup";
         const char* foobarFrame = "foobarFrame";
         view->initWithFrame(dummyRectangle, foobarFrame, foobarGroup);
-        CPPUNIT_ASSERT(!strncmp(foobarGroup, view->groupName(), strlen(foobarGroup)));
-        CPPUNIT_ASSERT(!strncmp(foobarFrame, view->mainFrame()->name(), strlen(foobarFrame)));
-        delete foobarGroup;
-        delete foobarFrame;
+        const char* groupName = view->groupName();
+        const char* frameName = view->mainFrame()->name();
+        CPPUNIT_ASSERT(!strncmp(foobarGroup, groupName, strlen(foobarGroup)));
+        CPPUNIT_ASSERT(!strncmp(foobarFrame, frameName, strlen(foobarFrame)));
+        delete groupName;
+        delete frameName;
         delete view;
     }
 
