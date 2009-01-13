@@ -1,3 +1,11 @@
+2009-01-13  Mario Bensi  <mbensi@pleyo.com>
+
+        Add initialisation and test for notifyProgress pointer
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView):
+        * OrigynWebBrowser/Api/WebView.h:
+
 2009-01-12  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

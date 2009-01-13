@@ -1345,7 +1345,7 @@ protected:
     /**
      * notifyProgress
      **/
-    void notifyProgress() { m_f(); }
+    void notifyProgress() { if (m_f) m_f(); }
 
     /**
      *  canHandleRequest

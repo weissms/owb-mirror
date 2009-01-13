@@ -259,6 +259,7 @@ WebView::WebView()
 , m_topLevelParent(0)
 , d(new WebViewPrivate(this))
 , m_webViewObserver(new WebViewObserver(this))
+, m_f(0)
 {
     JSC::initializeThreading();
     WebCore::InitializeLoggingChannelsIfNecessary();
