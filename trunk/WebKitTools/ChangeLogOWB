@@ -2,6 +2,18 @@
 
         Reviewed by Sebastien Roret.
 
+        Add more tests for the WebView.
+
+        * OWBLauncher/Tests/WebViewTests.cpp:
+        (WebViewTest::testInitialValue):
+        (WebViewTest::testInitWithFrame):
+        (WebViewTest::testMainFrameTitle):
+        (WebViewTest::testUserAgentString):
+
+2009-01-13  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
         Forgot those changes in the previous commit which solve more
         crashes.
 

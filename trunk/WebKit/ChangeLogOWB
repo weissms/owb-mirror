@@ -2,6 +2,16 @@
 
         Reviewed by Sebastien Roret.
 
+        Correct a crash when calling focusedFrame when the page
+        was not set.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::focusedFrame):
+
+2009-01-13  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Sebastien Roret.
+
         Forgot those changes in the previous commit which solve more
         crashes.
 

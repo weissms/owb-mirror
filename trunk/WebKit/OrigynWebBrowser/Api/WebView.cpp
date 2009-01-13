@@ -1142,8 +1142,11 @@ WebFrame* WebView::mainFrame()
     return m_mainFrame;
 }
 
-WebFrame *WebView::focusedFrame()
+WebFrame* WebView::focusedFrame()
 {
+    if (!m_page)
+        return 0;
+
     Frame* f = m_page->focusController()->focusedFrame();
     if (!f)
         return 0;

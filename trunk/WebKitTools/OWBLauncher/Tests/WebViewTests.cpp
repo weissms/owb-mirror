@@ -14,6 +14,7 @@ class WebViewTest : public CPPUNIT_NS::TestCase
     CPPUNIT_TEST_SUITE(WebViewTest);
     CPPUNIT_TEST(testInitialValue);
     CPPUNIT_TEST(testInitWithFrame);
+    CPPUNIT_TEST(testUserAgentString);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -26,6 +27,9 @@ protected:
         WebView* view = WebView::createInstance();
         CPPUNIT_ASSERT(view);
         CPPUNIT_ASSERT(!view->mainFrame());
+        CPPUNIT_ASSERT(!view->focusedFrame());
+        CPPUNIT_ASSERT(!view->downloadDelegate());
+        CPPUNIT_ASSERT(!view->policyDelegate());
         delete view;
     }
 
@@ -36,6 +40,7 @@ protected:
         const char* foobarGroup = "foobarGroup";
         const char* foobarFrame = "foobarFrame";
         view->initWithFrame(dummyRectangle, foobarFrame, foobarGroup);
+        CPPUNIT_ASSERT(view->mainFrame());
         const char* groupName = view->groupName();
         const char* frameName = view->mainFrame()->name();
         CPPUNIT_ASSERT(!strncmp(foobarGroup, groupName, strlen(foobarGroup)));
@@ -45,6 +50,17 @@ protected:
         delete view;
     }
 
+    // FIXME: We cannot test delegate settings for now because the headers does
+    // only include the WebFrame and the WebView information.
+
+    void testUserAgentString()
+    {
+        WebView* view = WebView::createInstance();
+        const char* foobarUA = "foobarUA";
+        view->setApplicationNameForUserAgent(foobarUA);
+        CPPUNIT_ASSERT(!strncmp(foobarUA, view->applicationNameForUserAgent(), strlen(foobarUA)));
+        delete view;
+    }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(WebViewTest);
