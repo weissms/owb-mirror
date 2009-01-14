@@ -135,7 +135,7 @@ int WebHistory::historyAgeInDaysLimit()
 }
 
 
-void WebHistory::addItem(const KURL& url, const String& title, bool wasFailure)
+void WebHistory::addItem(const KURL& url, const String& title, const WebCore::String& httpMethod, bool wasFailure)
 {
 }
 

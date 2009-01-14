@@ -1,3 +1,161 @@
+2009-01-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Add a bunch of methods to WebKitPluginClient.defs, and implement them.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::fromUTF8WithLatin1Fallback):
+        If the length isn't specified, get it by calling strlen.
+        
+        (WKPCEvaluate):
+        Evaluate doesn't take any arguments.
+        
+        (WKPCGetIntIdentifier):
+        Call _NPN_GetIntIdentifier.
+        
+        (identifierFromServerIdentifier):
+        New helper function that returns a JSC Identifier from an NPIdentifier.
+        
+        (WKPCInvoke):
+        Call identifierFromServerIdentifier.
+        
+        (WKPCRemoveProperty):
+        (WKPCHasProperty):
+        (WKPCHasMethod):
+        Call NetscapePluginInstanceProxy.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::removeProperty):
+        (WebKit::NetscapePluginInstanceProxy::hasProperty):
+        (WebKit::NetscapePluginInstanceProxy::hasMethod):
+
+        * Plugins/Hosted/WebKitPluginClient.defs:
+        Add new definitions.
+
+2009-01-13  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+
+        * WebView/WebView.mm:
+        (-[WebView _initWithArguments:]):
+
+2009-01-13  Timothy Hatcher  <timothy@apple.com>
+
+        Adds a workaround for the flip4mac installer plugin decoding a WebView from a NIB on a secondary thread.
+
+        <rdar://problem/6489788> New WebKit thread checks break installation of flip4mac (thread violation)
+
+        Reviewed by Darin Adler.
+
+        * Misc/WebKitVersionChecks.h: Add WEBKIT_FIRST_VERSION_WITHOUT_WEBVIEW_INIT_THREAD_WORKAROUND.
+        * Misc/WebNSObjectExtras.h: Add _webkit_performSelectorOnMainThread:withObject:.
+        * Misc/WebNSObjectExtras.mm:
+        (-[NSObject _webkit_performSelectorWithArguments:]): Renamed from _webkit_getPropertyWithArguments.
+        Passes the optional object to the selector.
+        (-[NSObject _webkit_performSelectorOnMainThread:withObject:]): Renamed from _webkit_getPropertyOnMainThread:.
+        Put the optional object into the arguments dictionary.
+        (-[NSObject _webkit_getPropertyOnMainThread:]): Call _webkit_performSelectorOnMainThread with a nil object.
+        * WebView/WebResource.mm:
+        (-[WebResource _ignoreWhenUnarchiving]): Use _cmd instead of making the selector again.
+        (-[WebResource _initWithData:URL:MIMEType:textEncodingName:frameName:response:copyData:]): Use the new
+        _webkit_performSelectorOnMainThread:withObject: method instead of performSelectorOnMainThread.
+        * WebView/WebView.mm:
+        (-[WebView _initWithArguments:]): Added. Pulls arguments out of the dictionary and calls the right init method.
+        (needsWebViewInitThreadWorkaround): Checks if the thead is not the main thread and if we are in the Installer bundle.
+        (-[WebView initWithFrame:frameName:groupName:]): Call needsWebViewInitThreadWorkaround and use _webkit_performSelectorOnMainThread
+        to call _initWithArguments: passing the frame, frameName and groupName.
+        (-[WebView initWithCoder:]): Ditto, except pass the coder to _initWithArguments:.
+
+2009-01-12  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Deprecate JSValuePtr::getNumber() - two ways to get a number should  be enough.
+
+        * WebView/WebView.mm:
+        (aeDescFromJSValue):
+
+2009-01-12  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Darin Adler
+
+        <rdar://problem/6468274> - Track Non-get requests in global history
+
+        * History/WebHistory.mm:
+        (-[WebHistory _visitedURL:withTitle:method:wasFailure:]):
+        * History/WebHistoryInternal.h:
+
+        * History/WebHistoryItem.mm:
+        (-[WebHistoryItem initFromDictionaryRepresentation:]):
+        (-[WebHistoryItem dictionaryRepresentation]):
+        (-[WebHistoryItem _lastVisitWasHTTPNonGet]):
+        * History/WebHistoryItemPrivate.h:
+
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::updateGlobalHistory): Only pass the method through if it was an HTTP load
+
+2009-01-12  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Move marshalling into NetscapePluginInstanceProxy.
+        
+        Add support for marshallin strings.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCEvaluate):
+        (WKPCInvoke):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::evaluate):
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        (WebKit::NetscapePluginInstanceProxy::marshalValue):
+        * Plugins/Hosted/WebKitPluginHostTypes.h:
+
+2009-01-12  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Implement WKPCInvoke.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCEvaluate):
+        (WKPCInvoke):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::idForObject):
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        * Plugins/Hosted/WebKitPluginClient.defs:
+
+2009-01-12  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Move marshalling code to NetscapePluginInstanceProxy. Add support for marshalling JS objects.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCEvaluate):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::marshalValue):
+        * Plugins/Hosted/WebKitPluginHostTypes.h:
+
+2009-01-12  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 22861: Turn the FontCache into a singleton
+        https://bugs.webkit.org/show_bug.cgi?id=22861
+
+        * Misc/WebCoreStatistics.mm:
+        (+[WebCoreStatistics cachedFontDataCount]):
+        (+[WebCoreStatistics cachedFontDataInactiveCount]):
+        (+[WebCoreStatistics purgeInactiveFontData]):
+        Redirected all the static calls to the global FontCache
+        instance.
+
 2009-01-12  Dmitry Titov  <dimich@chromium.org>
 
         Reviewed by Darin Adler.

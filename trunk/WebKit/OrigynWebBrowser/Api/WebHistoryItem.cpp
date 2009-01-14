@@ -207,3 +207,13 @@ void WebHistoryItem::setLastVisitWasFailure(bool wasFailure)
     m_historyItem->setLastVisitWasFailure(wasFailure);
 }
 
+bool WebHistoryItem::lastVisitWasHTTPNonGet() const
+{
+    return m_historyItem->lastVisitWasHTTPNonGet();
+}
+
+void WebHistoryItem::setLastVisitWasHTTPNonGet(bool wasHttpNonGet)
+{
+    m_historyItem->setLastVisitWasHTTPNonGet(wasHttpNonGet);
+}
+

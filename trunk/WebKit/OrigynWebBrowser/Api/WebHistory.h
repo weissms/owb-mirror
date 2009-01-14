@@ -181,7 +181,7 @@ public:
        @method addItem adds an Item to History
        @param[in]: URL and Name to save
      */
-    void addItem(const WebCore::KURL&, const WebCore::String& title, bool wasFailure);
+    void addItem(const WebCore::KURL&, const WebCore::String& title, const WebCore::String& httpMethod, bool wasFailure);
 
     /**
      * @method adds a PageGroup to history

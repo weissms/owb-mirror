@@ -43,7 +43,12 @@ enum LoadURLFlags {
 };
     
 enum ValueType {
-    VoidValueType = 0,
+    VoidValueType,
+    NullValueType,
+    BoolValueType,
+    DoubleValueType,
+    StringValueType,
+    ObjectValueType
 };
 
 #endif // WebKitPluginHostTypes_h

@@ -257,6 +257,16 @@ public:
      */
     virtual void setLastVisitWasFailure(bool wasFailure);
 
+    /**
+     * lastVisitWasHTTPNonGet
+     */
+    virtual bool lastVisitWasHTTPNonGet() const;
+
+    /**
+     * setLastVisitWasHTTPNonGet
+     */
+    virtual void setLastVisitWasHTTPNonGet(bool wasHttpNonGet);
+
     WebCore::HistoryItem* historyItem() const;
 protected:
     RefPtr<WebCore::HistoryItem> m_historyItem;

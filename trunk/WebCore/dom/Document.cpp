@@ -103,9 +103,6 @@
 #include "SegmentedString.h"
 #include "SelectionController.h"
 #include "Settings.h"
-#if ENABLE(DOM_STORAGE)
-#include "StorageEvent.h"
-#endif
 #include "StyleSheetList.h"
 #include "TextEvent.h"
 #include "TextIterator.h"
@@ -130,6 +127,10 @@
 #if ENABLE(DATABASE)
 #include "Database.h"
 #include "DatabaseThread.h"
+#endif
+
+#if ENABLE(DOM_STORAGE)
+#include "StorageEvent.h"
 #endif
 
 #if ENABLE(XPATH)

@@ -47,6 +47,7 @@
 #import <WebCore/FrameTree.h>
 #import <WebCore/ScriptController.h>
 #import <WebCore/ScriptValue.h>
+#include <runtime/JSLock.h>
 #import <utility>
 
 extern "C" {
@@ -462,7 +463,7 @@ uint32_t NetscapePluginInstanceProxy::idForObject(JSC::JSObject* object)
 {
     uint32_t objectID = 0;
     
-    // Assign a plug-in ID.
+    // Assign an object ID.
     do {
         objectID = ++m_objectIDCounter;
     } while (!m_objectIDCounter || m_objectIDCounter == static_cast<uint32_t>(-1) || m_objects.contains(objectID));
@@ -492,18 +493,187 @@ void NetscapePluginInstanceProxy::releaseObject(uint32_t objectID)
     m_objects.remove(objectID);
 }
  
-JSC::JSValuePtr NetscapePluginInstanceProxy::evaluate(uint32_t objectID, const String& script)
+bool NetscapePluginInstanceProxy::evaluate(uint32_t objectID, const String& script, data_t& resultData, mach_msg_type_number_t& resultLength)
 {
+    resultData = 0;
+    resultLength = 0;
+
     if (!m_objects.contains(objectID))
-        return JSValuePtr();
+        return false;
 
     Frame* frame = core([m_pluginView webFrame]);
     if (!frame)
-        return JSValuePtr();
+        return false;
     
-    return frame->loader()->executeScript(script).jsValue();
+    ExecState* exec = frame->script()->globalObject()->globalExec();
+    JSValuePtr value = frame->loader()->executeScript(script).jsValue();
+    
+    marshalValue(exec, value, resultData, resultLength);
+    return true;
+}
+
+bool NetscapePluginInstanceProxy::invoke(uint32_t objectID, const Identifier& methodName, data_t& resultData, mach_msg_type_number_t& resultLength)
+{
+    resultData = 0;
+    resultLength = 0;
+    
+    JSObject* object = m_objects.get(objectID);
+    if (!object)
+        return false;
+    
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
+    
+    ExecState* exec = frame->script()->globalObject()->globalExec();
+    JSLock lock(false);
+    JSValuePtr function = object->get(exec, methodName);
+    CallData callData;
+    CallType callType = function->getCallData(callData);
+    if (callType == CallTypeNone)
+        return false;
+    
+    // Call the function object
+    ArgList argList;
+    
+    ProtectedPtr<JSGlobalObject> globalObject = frame->script()->globalObject();
+    globalObject->startTimeoutCheck();
+    JSValuePtr value = call(exec, function, callType, callData, object, argList);
+    globalObject->stopTimeoutCheck();
+    
+    exec->clearException();
+    
+    marshalValue(exec, value, resultData, resultLength);
+    return true;
+}
+
+bool NetscapePluginInstanceProxy::removeProperty(uint32_t objectID, const JSC::Identifier& propertyName)
+{
+    JSObject* object = m_objects.get(objectID);
+    if (!object)
+        return false;
+    
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
+
+    ExecState* exec = frame->script()->globalObject()->globalExec();
+    if (!object->hasProperty(exec, propertyName)) {
+        exec->clearException();
+        return false;
+    }
+    
+    JSLock lock(false);
+    object->deleteProperty(exec, propertyName);
+    exec->clearException();    
+    return true;
 }
     
+bool NetscapePluginInstanceProxy::removeProperty(uint32_t objectID, unsigned propertyName)
+{
+    JSObject* object = m_objects.get(objectID);
+    if (!object)
+        return false;
+    
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
+    
+    ExecState* exec = frame->script()->globalObject()->globalExec();
+    if (!object->hasProperty(exec, propertyName)) {
+        exec->clearException();
+        return false;
+    }
+    
+    JSLock lock(false);
+    object->deleteProperty(exec, propertyName);
+    exec->clearException();    
+    return true;
+}
+
+bool NetscapePluginInstanceProxy::hasProperty(uint32_t objectID, const JSC::Identifier& propertyName)
+{
+    JSObject* object = m_objects.get(objectID);
+    if (!object)
+        return false;
+    
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
+    
+    ExecState* exec = frame->script()->globalObject()->globalExec();
+    bool result = object->hasProperty(exec, propertyName);
+    exec->clearException();
+    
+    return result;
+}
+
+bool NetscapePluginInstanceProxy::hasProperty(uint32_t objectID, unsigned propertyName)
+{
+    JSObject* object = m_objects.get(objectID);
+    if (!object)
+        return false;
+    
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
+    
+    ExecState* exec = frame->script()->globalObject()->globalExec();
+    bool result = object->hasProperty(exec, propertyName);
+    exec->clearException();
+    
+    return result;
+}
+    
+bool NetscapePluginInstanceProxy::hasMethod(uint32_t objectID, const JSC::Identifier& methodName)
+{
+    JSObject* object = m_objects.get(objectID);
+    if (!object)
+        return false;
+
+    Frame* frame = core([m_pluginView webFrame]);
+    if (!frame)
+        return false;
+    
+    ExecState* exec = frame->script()->globalObject()->globalExec();
+    JSLock lock(false);
+    JSValuePtr func = object->get(exec, methodName);
+    exec->clearException();
+    return !func->isUndefined();
+}
+
+void NetscapePluginInstanceProxy::marshalValue(ExecState* exec, JSValuePtr value, data_t& resultData, mach_msg_type_number_t& resultLength)
+{
+    RetainPtr<NSMutableArray*> array(AdoptNS, [[NSMutableArray alloc] init]);
+    
+    JSLock lock(false);
+
+    if (value->isString()) {
+        [array.get() addObject:[NSNumber numberWithInt:StringValueType]];
+        
+        [array.get() addObject:String(value->toString(exec))];
+    } else if (value->isNumber()) {
+    } else if (value->isBoolean()) {
+    } else if (value->isNull()) {
+    } else if (value->isObject()) {
+        [array.get() addObject:[NSNumber numberWithInt:ObjectValueType]];
+        
+        uint32_t objectID = idForObject(asObject(value));
+        
+        [array.get() addObject:[NSNumber numberWithInt:objectID]];
+    } else {
+        [array.get() addObject:[NSNumber numberWithInt:VoidValueType]];
+    }
+
+    RetainPtr<NSData*> data = [NSPropertyListSerialization dataFromPropertyList:array.get() format:NSPropertyListBinaryFormat_v1_0 errorDescription:0];
+    ASSERT(data);
+    
+    resultLength = [data.get() length];
+    mig_allocate(reinterpret_cast<vm_address_t*>(&resultData), resultLength);
+    
+    memcpy(resultData, [data.get() bytes], resultLength);
+}
+
 } // namespace WebKit
 
 #endif // USE(PLUGIN_HOST_PROCESS)

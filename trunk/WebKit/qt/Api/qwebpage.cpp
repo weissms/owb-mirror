@@ -102,6 +102,16 @@ void QWEBKIT_EXPORT qt_drt_run(bool b)
     QWebPagePrivate::drtRun = b;
 }
 
+void QWEBKIT_EXPORT qt_webpage_setGroupName(QWebPage* page, const QString& groupName)
+{
+    page->handle()->page->setGroupName(groupName);
+}
+
+QString QWEBKIT_EXPORT qt_webpage_groupName(QWebPage* page)
+{
+    return page->handle()->page->groupName();
+}
+
 // Lookup table mapping QWebPage::WebActions to the associated Editor commands
 static const char* editorCommandWebActions[] = 
 {
@@ -457,6 +467,18 @@ void QWebPagePrivate::updateAction(QWebPage::WebAction action)
             // those two are handled by QUndoStack
             break;
 #endif // QT_NO_UNDOSTACK
+        case QWebPage::MoveToNextChar:
+        case QWebPage::MoveToPreviousChar:
+        case QWebPage::MoveToNextWord:
+        case QWebPage::MoveToPreviousWord:
+        case QWebPage::MoveToNextLine:
+        case QWebPage::MoveToPreviousLine:
+        case QWebPage::MoveToStartOfLine:
+        case QWebPage::MoveToEndOfLine:
+        case QWebPage::MoveToStartOfBlock:
+        case QWebPage::MoveToEndOfBlock:
+        case QWebPage::MoveToStartOfDocument:
+        case QWebPage::MoveToEndOfDocument:
         case QWebPage::ToggleBold:
         case QWebPage::ToggleItalic:
         case QWebPage::ToggleUnderline:
@@ -491,6 +513,18 @@ void QWebPagePrivate::updateEditorActions()
     updateAction(QWebPage::ToggleBold);
     updateAction(QWebPage::ToggleItalic);
     updateAction(QWebPage::ToggleUnderline);
+    updateAction(QWebPage::MoveToNextChar);
+    updateAction(QWebPage::MoveToPreviousChar);
+    updateAction(QWebPage::MoveToNextWord);
+    updateAction(QWebPage::MoveToPreviousWord);
+    updateAction(QWebPage::MoveToNextLine);
+    updateAction(QWebPage::MoveToPreviousLine);
+    updateAction(QWebPage::MoveToStartOfLine);
+    updateAction(QWebPage::MoveToEndOfLine);
+    updateAction(QWebPage::MoveToStartOfBlock);
+    updateAction(QWebPage::MoveToEndOfBlock);
+    updateAction(QWebPage::MoveToStartOfDocument);
+    updateAction(QWebPage::MoveToEndOfDocument);
 }
 
 void QWebPagePrivate::timerEvent(QTimerEvent *ev)
@@ -1663,17 +1697,41 @@ QAction *QWebPage::action(WebAction action) const
         }
 #endif // QT_NO_UNDOSTACK
         case MoveToNextChar:
+            text = tr("Move the cursor to the next character");
+            break;
         case MoveToPreviousChar:
+            text = tr("Move the cursor to the previous character");
+            break;
         case MoveToNextWord:
+            text = tr("Move the cursor to the next word");
+            break;
         case MoveToPreviousWord:
+            text = tr("Move the cursor to the previous word");
+            break;
         case MoveToNextLine:
+            text = tr("Move the cursor to the next line");
+            break;
         case MoveToPreviousLine:
+            text = tr("Move the cursor to the previous line");
+            break;
         case MoveToStartOfLine:
+            text = tr("Move the cursor to the start of the line");
+            break;
         case MoveToEndOfLine:
+            text = tr("Move the cursor to the end of the line");
+            break;
         case MoveToStartOfBlock:
+            text = tr("Move the cursor to the start of the block");
+            break;
         case MoveToEndOfBlock:
+            text = tr("Move the cursor to the end of the block");
+            break;
         case MoveToStartOfDocument:
+            text = tr("Move the cursor to the start of the document");
+            break;
         case MoveToEndOfDocument:
+            text = tr("Move the cursor to the end of the document");
+            break;
         case SelectNextChar:
         case SelectPreviousChar:
         case SelectNextWord:
@@ -2651,5 +2709,9 @@ quint64 QWebPage::bytesReceived() const {
   This signal is emitted when the load of \a frame is finished and the application may now update its state accordingly.
 */
 
+/*!
+  \fn QWebPagePrivate* QWebPage::handle() const
+  \internal
+*/
 
 #include "moc_qwebpage.cpp"

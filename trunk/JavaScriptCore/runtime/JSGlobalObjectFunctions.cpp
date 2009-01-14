@@ -299,12 +299,14 @@ JSValuePtr globalFuncParseInt(ExecState* exec, JSObject*, JSValuePtr, const ArgL
     int32_t radix = args.at(exec, 1)->toInt32(exec);
 
     if (value->isNumber() && (radix == 0 || radix == 10)) {
-        if (JSImmediate::isImmediate(value))
+        if (value->isInt32Fast())
             return value;
         double d = value->uncheckedGetNumber();
-        if (!isfinite(d))
-            return JSImmediate::zeroImmediate();
-        return jsNumber(exec, floor(d));
+        if (isfinite(d))
+            return jsNumber(exec, floor(d));
+        if (isnan(d))
+            return jsNaN(&exec->globalData());
+        return js0();
     }
 
     return jsNumber(exec, parseInt(value->toString(exec), radix));

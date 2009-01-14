@@ -1,3 +1,26 @@
+2009-01-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add NPRuntime test.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (testNPRuntime):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (NPP_GetValue):
+
+2009-01-12  Mark Rowe  <mrowe@apple.com>
+
+        Use the modern spelling of WebKit.
+
+        * Scripts/find-extra-includes:
+        * Scripts/report-include-statistics:
+        * Scripts/run-webkit-app:
+        * Scripts/svn-unapply:
+        * Scripts/update-webkit:
+
 2009-01-12  Darin Adler  <darin@apple.com>
 
         * Scripts/make-js-test-wrappers: Updated so it won't overwrite tests in the svg/dom

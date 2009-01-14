@@ -51,8 +51,11 @@ using namespace WebCore;
 
 namespace WebKit {
 
-static String fromUTF8WithLatin1Fallback(const char* data, int length)
+static String fromUTF8WithLatin1Fallback(const char* data, int length = -1)
 {
+    if (length == -1)
+        length = strlen(data);
+    
     String result = String::fromUTF8(data, length);
     
     if (result.isNull())
@@ -269,57 +272,128 @@ kern_return_t WKPCReleaseObject(mach_port_t clientPort, uint32_t pluginID, uint3
     return KERN_SUCCESS;
 }
 
-static RetainPtr<CFDataRef> marshalValue(JSValuePtr value)
-{
-    RetainPtr<NSMutableArray*> array(AdoptNS, [[NSMutableArray alloc] init]);
-    
-    if (value->isString()) {
-    } else if (value->isNumber()) {
-    } else if (value->isBoolean()) {
-    } else if (value->isNull()) {
-    } else if (value->isObject()) {
-    } else {
-        [array.get() addObject:[NSNumber numberWithInt:VoidValueType]];
-    }
-    
-    return (CFDataRef)[NSPropertyListSerialization dataFromPropertyList:array.get() format:NSPropertyListBinaryFormat_v1_0 errorDescription:0];
-}
-
 kern_return_t WKPCEvaluate(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID, data_t scriptData, mach_msg_type_number_t scriptLength,
-                           data_t arguments, mach_msg_type_number_t argumentsCnt, boolean_t *returnValue, data_t *resultData, mach_msg_type_number_t *resultLength)
+                           boolean_t *returnValue, data_t *resultData, mach_msg_type_number_t *resultLength)
 {
     NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
     if (!hostProxy)
         return KERN_FAILURE;
     
     NetscapePluginInstanceProxy* instanceProxy = hostProxy->pluginInstance(pluginID);
-    
-    String script = fromUTF8WithLatin1Fallback(scriptData, scriptLength);
+    if (!instanceProxy)
+        return KERN_FAILURE;
 
-    // FIXME: Demarshal the arguments and pass them to evaluate.
-    JSValuePtr result = instanceProxy->evaluate(objectID, script);
-    if (!result) {
-        *returnValue = false;
-        *resultData = 0;
-        *resultLength = 0;
-    } else {
-        *returnValue = true;
-        RetainPtr<CFDataRef> data = marshalValue(result);
-        
-        *resultLength = CFDataGetLength(data.get());
-        mig_allocate(reinterpret_cast<vm_address_t*>(resultData), *resultLength);
-        
-        memcpy(*resultData, CFDataGetBytePtr(data.get()), *resultLength);
-    }
+    String script = fromUTF8WithLatin1Fallback(scriptData, scriptLength);
+    *returnValue = instanceProxy->evaluate(objectID, script, *resultData, *resultLength);
     
     return KERN_SUCCESS;
 }
 
-kern_return_t WKPCGetStringIdentifier(mach_port_t clientPort, data_t name, mach_msg_type_number_t nameCnt, uint64_t *identifier)
+kern_return_t WKPCGetStringIdentifier(mach_port_t clientPort, data_t name, mach_msg_type_number_t nameCnt, uint64_t* identifier)
 {
     COMPILE_ASSERT(sizeof(*identifier) == sizeof(NPIdentifier), identifier_sizes);
     
     *identifier = reinterpret_cast<uint64_t>(_NPN_GetStringIdentifier(name));
+    return KERN_SUCCESS;
+}
+
+kern_return_t WKPCGetIntIdentifier(mach_port_t clientPort, int32_t value, uint64_t* identifier)
+{
+    COMPILE_ASSERT(sizeof(*identifier) == sizeof(NPIdentifier), identifier_sizes);
+    
+    *identifier = reinterpret_cast<uint64_t>(_NPN_GetIntIdentifier(value));
+    return KERN_SUCCESS;
+}
+
+static Identifier identifierFromServerIdentifier(uint64_t serverIdentifier)
+{
+    NPIdentifier identifier = reinterpret_cast<NPIdentifier>(serverIdentifier);
+    ASSERT(_NPN_IdentifierIsString(identifier));
+    
+    String s = fromUTF8WithLatin1Fallback(_NPN_UTF8FromIdentifier(identifier));
+    
+    return Identifier(JSDOMWindow::commonJSGlobalData(), s);
+}
+
+kern_return_t WKPCInvoke(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID, uint64_t identifier,
+                         data_t arguments, mach_msg_type_number_t argumentsCnt, 
+                         boolean_t *returnValue, data_t* resultData, mach_msg_type_number_t* resultLength)
+{
+    NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
+    if (!hostProxy)
+        return KERN_FAILURE;
+    
+    NetscapePluginInstanceProxy* instanceProxy = hostProxy->pluginInstance(pluginID);
+    if (!instanceProxy)
+        return KERN_FAILURE;
+
+    Identifier methodNameIdentifier = identifierFromServerIdentifier(identifier);
+    
+    // FIXME: Demarshal the arguments and pass them to invoke.
+    *returnValue = instanceProxy->invoke(objectID, methodNameIdentifier, *resultData, *resultLength);
+    
+    return KERN_SUCCESS;
+}
+
+kern_return_t WKPCRemoveProperty(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID, uint64_t identifier, boolean_t *returnValue)
+{
+    NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
+    if (!hostProxy)
+        return KERN_FAILURE;
+    
+    NetscapePluginInstanceProxy* instanceProxy = hostProxy->pluginInstance(pluginID);
+    if (!instanceProxy)
+        return KERN_FAILURE;
+    
+    NPIdentifier npIdentifier = reinterpret_cast<NPIdentifier>(identifier);
+    if (_NPN_IdentifierIsString(npIdentifier)) {
+        const NPUTF8* propertyName = _NPN_UTF8FromIdentifier(npIdentifier);
+        String propertyNameString = fromUTF8WithLatin1Fallback(propertyName);
+        
+        Identifier propertyNameIdentifier = identifierFromServerIdentifier(identifier);        
+        *returnValue = instanceProxy->removeProperty(objectID, propertyNameIdentifier);
+    } else 
+        *returnValue = instanceProxy->removeProperty(objectID, _NPN_IntFromIdentifier(npIdentifier));
+    
+    return KERN_SUCCESS;
+}
+
+kern_return_t WKPCHasProperty(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID, uint64_t identifier, boolean_t *returnValue)
+{
+    NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
+    if (!hostProxy)
+        return KERN_FAILURE;
+    
+    NetscapePluginInstanceProxy* instanceProxy = hostProxy->pluginInstance(pluginID);
+    if (!instanceProxy)
+        return KERN_FAILURE;
+    
+    NPIdentifier npIdentifier = reinterpret_cast<NPIdentifier>(identifier);
+    if (_NPN_IdentifierIsString(npIdentifier)) {
+        const NPUTF8* propertyName = _NPN_UTF8FromIdentifier(npIdentifier);
+        String propertyNameString = fromUTF8WithLatin1Fallback(propertyName);
+        
+        Identifier propertyNameIdentifier = identifierFromServerIdentifier(identifier);        
+        *returnValue = instanceProxy->hasProperty(objectID, propertyNameIdentifier);
+    } else 
+        *returnValue = instanceProxy->hasProperty(objectID, _NPN_IntFromIdentifier(npIdentifier));
+    
+    return KERN_SUCCESS;
+}
+
+kern_return_t WKPCHasMethod(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID, uint64_t identifier, boolean_t *returnValue)
+{
+    NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
+    if (!hostProxy)
+        return KERN_FAILURE;
+    
+    NetscapePluginInstanceProxy* instanceProxy = hostProxy->pluginInstance(pluginID);
+    if (!instanceProxy)
+        return KERN_FAILURE;
+    
+    Identifier methodNameIdentifier = identifierFromServerIdentifier(identifier);        
+    *returnValue = instanceProxy->hasMethod(objectID, methodNameIdentifier);
+
     return KERN_SUCCESS;
 }
 
