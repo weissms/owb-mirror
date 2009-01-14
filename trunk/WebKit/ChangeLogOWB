@@ -1,6 +1,6 @@
 2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
 
-        Reviewed by NOBODY (OOPS!).
+        Reviewed by Mario Bensi.
 
         Move more initializations into the constructor.
 
