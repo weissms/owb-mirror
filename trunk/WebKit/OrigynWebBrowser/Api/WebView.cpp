@@ -231,35 +231,35 @@ enum {
 bool WebView::s_allowSiteSpecificHacks = false;
 
 WebView::WebView()
-: /*m_hostWindow(0)
-,*/ m_viewWindow(0)
-, m_mainFrame(0)
-, m_page(0)
-, m_policyDelegate(0)
-, m_downloadDelegate(0)
-, m_preferences(0)
-, m_userAgentOverridden(false)
-, m_useBackForwardList(true)
-, m_zoomMultiplier(1.0f)
-, m_mouseActivated(false)
-//, m_dragData(0)
-//, m_currentCharacterCode(0)
-, m_isBeingDestroyed(false)
-, m_paintCount(0)
-, m_hasSpellCheckerDocumentTag(false)
-, m_smartInsertDeleteEnabled(false)
-, m_selectTrailingWhitespaceEnabled(false)
-, m_didClose(false)
-, m_hasCustomDropTarget(false)
-, m_inIMEComposition(0)
-, m_toolTipHwnd(0)
-, m_deleteBackingStoreTimerActive(false)
-, m_transparent(false)
-//, m_closeWindowTimer(this, &WebView::closeWindowTimerFired)
-, m_topLevelParent(0)
-, d(new WebViewPrivate(this))
-, m_webViewObserver(new WebViewObserver(this))
-, m_f(0)
+    : /*m_hostWindow(0)
+    ,*/ m_viewWindow(0)
+    , m_mainFrame(0)
+    , m_policyDelegate(0)
+    , m_downloadDelegate(0)
+    , m_preferences(0)
+    , m_userAgentOverridden(false)
+    , m_useBackForwardList(true)
+    , m_zoomMultiplier(1.0f)
+    , m_mouseActivated(false)
+    // , m_dragData(0)
+    // , m_currentCharacterCode(0)
+    , m_isBeingDestroyed(false)
+    , m_paintCount(0)
+    , m_hasSpellCheckerDocumentTag(false)
+    , m_smartInsertDeleteEnabled(false)
+    , m_selectTrailingWhitespaceEnabled(false)
+    , m_didClose(false)
+    , m_hasCustomDropTarget(false)
+    , m_inIMEComposition(0)
+    , m_toolTipHwnd(0)
+    , m_deleteBackingStoreTimerActive(false)
+    , m_transparent(false)
+    , m_isInitialized(false)
+    // , m_closeWindowTimer(this, &WebView::closeWindowTimerFired)
+    , m_topLevelParent(0)
+    , d(new WebViewPrivate(this))
+    , m_webViewObserver(new WebViewObserver(this))
+    , m_f(0)
 {
     JSC::initializeThreading();
     WebCore::InitializeLoggingChannelsIfNecessary();
@@ -275,6 +275,13 @@ WebView::WebView()
     continuousSpellCheckingEnabled = sharedPreferences->continuousSpellCheckingEnabled();
     grammarCheckingEnabled = sharedPreferences->grammarCheckingEnabled();
 
+#if ENABLE(INSPECTOR)
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
+#else
+    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0);
+#endif
+    m_mainFrame = WebFrame::createInstance();
+    m_mainFrame->init(this, m_page, 0);
 }
 
 WebView::~WebView()
@@ -302,7 +309,7 @@ WebView* WebView::createInstance()
 
 void initializeStaticObservers()
 {
-    static bool initialized;
+    static bool initialized = false;
     if (initialized)
         return;
     initialized = true;
@@ -509,20 +516,18 @@ void WebView::close()
 #endif
     // Purge page cache
     // The easiest way to do that is to disable page cache
-    // The preferences or the page can be null.
-    if (m_preferences && m_preferences->usesPageCache() && m_page)
+    // The preferences can be null.
+    if (m_preferences && m_preferences->usesPageCache())
         m_page->settings()->setUsesPageCache(false);
     
     removeFromAllWebViewsSet();
 
-    if (m_page) {
-        Frame* frame = m_page->mainFrame();
-        if (frame)
-            frame->loader()->detachFromParent();
+    Frame* frame = m_page->mainFrame();
+    if (frame)
+        frame->loader()->detachFromParent();
 
-        delete m_page;
-        m_page = 0;
-    }
+    delete m_page;
+    m_page = 0;
 
 /*#if ENABLE(ICONDATABASE)
     registerForIconNotification(false);
@@ -975,8 +980,10 @@ void WebView::setMIMETypesShownAsHTML(const char* /*mimeTypes*/, int /*cMimeType
 
 void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const char* groupName)
 {
-    if (m_page)
+    if (m_isInitialized)
         return;
+
+    m_isInitialized = true;
 
     if(!m_viewWindow)
         m_viewWindow = d->createWindow(frame);
@@ -987,22 +994,15 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     sharedPreferences->willAddToWebView();
     m_preferences = sharedPreferences;
 
-#if ENABLE(INSPECTOR)
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
-#else
-    m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), 0);
-#endif
+    RefPtr<Frame> coreFrame = core(m_mainFrame);
 
-    WebFrame* webFrame = WebFrame::createInstance();
-    RefPtr<Frame> coreFrame = webFrame->init(this, m_page, 0);
-    m_mainFrame = webFrame;
     //webFrame->Release(); // The WebFrame is owned by the Frame, so release our reference to it.
 
     coreFrame->tree()->setName(frameName);
     coreFrame->init();
     setGroupName(groupName);
 
-    WebCore::FrameView * frameView = core(webFrame)->view();
+    WebCore::FrameView* frameView = coreFrame->view();
     d->initWithFrameView(frameView);
 
 #if ENABLE(DATABASE)
@@ -1019,7 +1019,6 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
     m_preferences->postPreferencesChangesNotification();
 
     setSmartInsertDeleteEnabled(true);
-
 }
 
 /*static bool initCommonControls()
@@ -1144,9 +1143,6 @@ WebFrame* WebView::mainFrame()
 
 WebFrame* WebView::focusedFrame()
 {
-    if (!m_page)
-        return 0;
-
     Frame* f = m_page->focusController()->focusedFrame();
     if (!f)
         return 0;
@@ -1655,16 +1651,11 @@ BalRectangle WebView::selectionRect()
 
 void WebView::setGroupName(const char* groupName)
 {
-    if (!m_page)
-        return ;
     m_page->setGroupName(groupName);
 }
     
 const char* WebView::groupName()
 {
-    if (!m_page)
-        return "";
-
     // We need to duplicate the translated string.
     CString groupName = m_page->groupName().utf8();
     return strdup(groupName.data());

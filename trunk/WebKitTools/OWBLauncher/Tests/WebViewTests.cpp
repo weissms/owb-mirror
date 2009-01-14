@@ -26,7 +26,7 @@ protected:
     {
         WebView* view = WebView::createInstance();
         CPPUNIT_ASSERT(view);
-        CPPUNIT_ASSERT(!view->mainFrame());
+        CPPUNIT_ASSERT(view->mainFrame());
         CPPUNIT_ASSERT(!view->focusedFrame());
         CPPUNIT_ASSERT(!view->downloadDelegate());
         CPPUNIT_ASSERT(!view->policyDelegate());

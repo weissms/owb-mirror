@@ -1,3 +1,29 @@
+2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Make sure that the Page has the same lifespan as the WebView by initializing
+        it in the constructor.
+
+        This was a hidden assertion throughtout the code in the WebView
+        that was discovered with the recent unit tests.
+        I added a bool m_isInitialized to avoid initializing several time the
+        WebView (previously this was a check on the Page).
+
+        Also to avoid a crash in the unit test, I had also to set the mainFrame.
+
+        Reverted the null-check I had just added as they are no longer needed.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView):
+        (initializeStaticObservers):
+        (WebView::close):
+        (WebView::initWithFrame):
+        (WebView::focusedFrame):
+        (WebView::setGroupName):
+        (WebView::groupName):
+        * OrigynWebBrowser/Api/WebView.h:
+
 2009-01-13  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Sebastien Roret.

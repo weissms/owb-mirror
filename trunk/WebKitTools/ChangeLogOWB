@@ -1,3 +1,12 @@
+2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Updated tests to reflect that a WebView now has a mainFrame when constructed.
+
+        * OWBLauncher/Tests/WebViewTests.cpp:
+        (WebViewTest::testInitialValue):
+
 2009-01-13  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Sebastien Roret.

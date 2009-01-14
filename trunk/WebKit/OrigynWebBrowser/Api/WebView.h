@@ -1467,6 +1467,7 @@ protected:
     bool m_deleteBackingStoreTimerActive;
 
     bool m_transparent;
+    bool m_isInitialized;
 
     static bool s_allowSiteSpecificHacks;
 
