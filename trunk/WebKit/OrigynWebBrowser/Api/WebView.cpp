@@ -274,6 +274,8 @@ WebView::WebView()
     WebPreferences* sharedPreferences = WebPreferences::sharedStandardPreferences();
     continuousSpellCheckingEnabled = sharedPreferences->continuousSpellCheckingEnabled();
     grammarCheckingEnabled = sharedPreferences->grammarCheckingEnabled();
+    sharedPreferences->willAddToWebView();
+    m_preferences = sharedPreferences;
 
 #if ENABLE(INSPECTOR)
     m_page = new Page(new WebChromeClient(this), new WebContextMenuClient(this), new WebEditorClient(this), new WebDragClient(this), new WebInspectorClient(this));
@@ -282,6 +284,26 @@ WebView::WebView()
 #endif
     m_mainFrame = WebFrame::createInstance();
     m_mainFrame->init(this, m_page, 0);
+
+    RefPtr<Frame> coreFrame = core(m_mainFrame);
+    coreFrame->init();
+    WebCore::FrameView* frameView = coreFrame->view();
+    d->initWithFrameView(frameView);
+
+#if ENABLE(DATABASE)
+    WebKitSetWebDatabasesPathIfNecessary();
+#endif
+
+    addToAllWebViewsSet();
+
+    initializeToolTipWindow();
+    windowAncestryDidChange();
+
+    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
+    
+    m_preferences->postPreferencesChangesNotification();
+
+    setSmartInsertDeleteEnabled(true);
 }
 
 WebView::~WebView()
@@ -985,40 +1007,13 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
 
     m_isInitialized = true;
 
-    if(!m_viewWindow)
+    if (!m_viewWindow)
         m_viewWindow = d->createWindow(frame);
     else
         d->setFrameRect(frame);
 
-    WebPreferences* sharedPreferences = WebPreferences::sharedStandardPreferences();
-    sharedPreferences->willAddToWebView();
-    m_preferences = sharedPreferences;
-
-    RefPtr<Frame> coreFrame = core(m_mainFrame);
-
-    //webFrame->Release(); // The WebFrame is owned by the Frame, so release our reference to it.
-
-    coreFrame->tree()->setName(frameName);
-    coreFrame->init();
     setGroupName(groupName);
-
-    WebCore::FrameView* frameView = coreFrame->view();
-    d->initWithFrameView(frameView);
-
-#if ENABLE(DATABASE)
-    WebKitSetWebDatabasesPathIfNecessary();
-#endif
-
-    addToAllWebViewsSet();
-
-    initializeToolTipWindow();
-    windowAncestryDidChange();
-
-    OWBAL::ObserverServiceData::createObserverService()->registerObserver(WebPreferences::webPreferencesChangedNotification(), m_webViewObserver);
-    
-    m_preferences->postPreferencesChangesNotification();
-
-    setSmartInsertDeleteEnabled(true);
+    core(m_mainFrame)->tree()->setName(frameName);
 }
 
 /*static bool initCommonControls()

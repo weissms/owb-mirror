@@ -1,5 +1,15 @@
 2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
 
+        Reviewed by NOBODY (OOPS!).
+
+        Move more initializations into the constructor.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView):
+        (WebView::initWithFrame):
+
+2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
+
         Reviewed by Mario Bensi.
 
         Make sure that the Page has the same lifespan as the WebView by initializing
