@@ -1,3 +1,9 @@
+2009-01-14  Mario Bensi  <mbensi@pleyo.com>
+
+        sort balInputList.
+
+        * Scripts/data/balInputList.txt:
+
 2009-01-06  Mario Bensi  <mbensi@pleyo.com>
 
         add scripts to create test
