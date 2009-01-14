@@ -244,16 +244,15 @@ int main (int argc, char* argv[])
 
     SDL_Rect rect = webView->frameRect();
     if (rect.w == 0 || rect.h == 0) {
-        s_screen = createSDLWindow(800, 600);
-        SDL_Rect clientRect = {0, 0, 800, 600};
-        webView->initWithFrame(clientRect, NULL, NULL);
-    } else {
-        s_screen = createSDLWindow(rect.w, rect.h);
-        webView->initWithFrame(rect, NULL, NULL);
+        // The rectangle was not initialized so
+        // default to a 800 x 600 rect.
+        rect.w = 800;
+        rect.h = 600;
     }
 
+    s_screen = createSDLWindow(rect.w, rect.h);
     webView->setViewWindow(s_screen);
-
+    webView->initWithFrame(rect, NULL, NULL);
 
     webView->registerOnNotifyProgress(progressNotification);
     char* uri = (char*) (argc > 0 ? argv[0] : "http://www.google.com/");

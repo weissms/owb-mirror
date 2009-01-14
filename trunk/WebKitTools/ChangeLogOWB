@@ -2,6 +2,16 @@
 
         Reviewed by Mario Bensi.
 
+        Re-order WebView initialization to use the s_screen surface
+        during initWithFrame and share more code.
+
+        * OWBLauncher/SDL/main.cpp:
+        (main):
+
+2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Updated tests to reflect that a WebView now has a mainFrame when constructed.
 
         * OWBLauncher/Tests/WebViewTests.cpp:
