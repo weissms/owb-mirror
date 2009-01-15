@@ -296,16 +296,10 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
         webView_s->goForward();
         return true;
     case GDK_F3:
-        if (webView_s->canZoomPageIn()) {
-            webView_s->zoomPageIn();
-            //webView_s->makeTextLarger();
-        }
+        webView_s->zoomPageIn();
         return true;
     case GDK_F4:
-        if (webView_s->canZoomPageOut()) {
-            webView_s->zoomPageOut();
-            //webView_s->makeTextSmaller();
-        }
+        webView_s->zoomPageOut();
         return true;
     }
 

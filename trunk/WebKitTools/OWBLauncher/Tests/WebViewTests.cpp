@@ -83,16 +83,19 @@ protected:
         WebView* view = WebView::createInstance();
         CPPUNIT_ASSERT(view->pageSizeMultiplier() == 1.0f);
         const float newMultiplier = 2.33f;
-        view->setPageSizeMultiplier(newMultiplier);
+        // The value is not truncated so it should return true.
+        CPPUNIT_ASSERT(view->setPageSizeMultiplier(newMultiplier));
         CPPUNIT_ASSERT(view->pageSizeMultiplier() == newMultiplier);
         // Test setting the zoom above the maximum threshold.
         const float hugeMultiplier = 10000.0f;
-        view->setPageSizeMultiplier(hugeMultiplier);
-        CPPUNIT_ASSERT(view->pageSizeMultiplier() == 3.0f);
+        // The value is truncated so it should return false.
+        CPPUNIT_ASSERT(!view->setPageSizeMultiplier(hugeMultiplier));
+        CPPUNIT_ASSERT(view->pageSizeMultiplier() == cMaximumZoomMultiplier);
         // Test setting the zoom below the minimum threshold.
         const float tinyMultiplier = 0.005f;
-        view->setPageSizeMultiplier(tinyMultiplier);
-        CPPUNIT_ASSERT(view->pageSizeMultiplier() == 0.5f);
+        // The value is truncated so it should return false.
+        CPPUNIT_ASSERT(!view->setPageSizeMultiplier(tinyMultiplier));
+        CPPUNIT_ASSERT(view->pageSizeMultiplier() == cMinimumZoomMultiplier);
         delete view;
     }
 
@@ -101,16 +104,16 @@ protected:
         WebView* view = WebView::createInstance();
         CPPUNIT_ASSERT(view->pageSizeMultiplier() == 1.0f);
         const float newMultiplier = 2.33f;
-        view->setTextSizeMultiplier(newMultiplier);
+        CPPUNIT_ASSERT(view->setTextSizeMultiplier(newMultiplier));
         CPPUNIT_ASSERT(view->textSizeMultiplier() == newMultiplier);
         // Test setting the zoom above the maximum threshold.
-        const float hugeMultiplier = 0.005f;
-        view->setTextSizeMultiplier(hugeMultiplier);
-        CPPUNIT_ASSERT(view->textSizeMultiplier() == 3.0f);
+        const float hugeMultiplier = 10000.0f;
+        CPPUNIT_ASSERT(!view->setTextSizeMultiplier(hugeMultiplier));
+        CPPUNIT_ASSERT(view->textSizeMultiplier() == cMaximumZoomMultiplier);
         // Test setting the zoom below the minimum threshold.
         const float tinyMultiplier = 0.005f;
-        view->setTextSizeMultiplier(tinyMultiplier);
-        CPPUNIT_ASSERT(view->textSizeMultiplier() == 0.5f);
+        CPPUNIT_ASSERT(!view->setTextSizeMultiplier(tinyMultiplier));
+        CPPUNIT_ASSERT(view->textSizeMultiplier() == cMinimumZoomMultiplier);
         delete view;
     }
 };

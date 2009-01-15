@@ -177,12 +177,10 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
             return;
         }
         case RAWKEY_F3:
-            if (m_webView->canZoomPageIn())
-                m_webView->zoomPageIn();
+            m_webView->zoomPageIn();
             return;
         case RAWKEY_F4:
-            if (m_webView->canZoomPageOut())
-                m_webView->zoomPageOut();
+            m_webView->zoomPageOut();
             return;
         }
     }

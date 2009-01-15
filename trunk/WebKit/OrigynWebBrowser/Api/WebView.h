@@ -69,21 +69,40 @@ namespace WebCore {
 }
 using namespace std;
 
-    /**
-     * get a webview from page
-     */
+/**
+  * get a webview from page
+  */
 WebView* kit(WebCore::Page*);
 
-    /**
-     * get page from a webview
-     */
+/**
+  * get page from a webview
+  */
 WebCore::Page* core(WebView*);
 
 
+/**
+  * cMinimumZoomMultiplier is the minimum zoom multiplier that can be set using the
+  * different zoom methods (setPageSizeMultiplier, setTextSizeMultiplier, zoomIn, zoomOut...). Providing
+  * a value below this threshold will be rounded up to this value.
+  */
+static const float cMinimumZoomMultiplier = 0.5f;
+
+/**
+  * cMaximumZoomMultiplier is the maximum zoom multiplier that can be set using the
+  * different zoom methods (setPageSizeMultiplier, setTextSizeMultiplier, zoomIn, zoomOut...). Providing
+  * a value above this threshold will be rounded down to this value.
+  */
+static const float cMaximumZoomMultiplier = 3.0f;
+
+/**
+  * When using zoomIn or zoomOut, this will be the current zoom multiplier / divisor.
+  */
+static const float cZoomMultiplierRatio = 1.2f;
 
 #define WebViewProgressStartedNotification "WebProgressStartedNotification"
 #define WebViewProgressEstimateChangedNotification "WebProgressEstimateChangedNotification"
 #define WebViewProgressFinishedNotification "WebProgressFinishedNotification"
+
 
 class MouseEventPrivate;
 
@@ -226,10 +245,11 @@ public:
 
     /**
      *  setTextSizeMultiplier 
-     * Change the size of the text rendering in views managed by this webView.
-        @param multiplier A fractional percentage value, 1.0 is 100%.
+     *  Change the size of the text rendering in views managed by this webView.
+     *  @param multiplier A fractional percentage value, 1.0 is 100%.
+     *  @result Returns true if the zoom was set as-is, false if was rounded. 
      */
-    virtual void setTextSizeMultiplier(float multiplier);
+    virtual bool setTextSizeMultiplier(float multiplier);
 
     /**
      *  textSizeMultiplier 
@@ -584,37 +604,31 @@ public:
 
     /**
      *  setPageSizeMultiplier 
-     * @abstract Set a zoom factor for all views managed by this webView.
-        @param multiplier A fractional percentage value, 1.0 is 100%.
+     *  @abstract Set a zoom factor for all views managed by this webView.
+     *  @param multiplier A fractional percentage value, 1.0 is 100%. The multiplier should be in the
+     *                    range [ cMinimumZoomMultipler; cMaximumZoomMultiplier ] otherwise setting the
+     *                    zoom will be rounded to stay in the interval.
+     *  @result Returns true if the zoom was set as-is, false if was rounded. 
      */
-    virtual void setPageSizeMultiplier(float multiplier);
+    virtual bool setPageSizeMultiplier(float multiplier);
 
     /**
      *  pageSizeMultiplier 
-     * @result The page size multipler.
+     *  @result The page size multipler.
      */
     virtual float pageSizeMultiplier();
 
+    /**
+     *  zoomPageIn
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
+     */
+    virtual bool zoomPageIn();
 
     /**
-     *  canZoomPageIn 
+     *  zoomPageOut
+     *  @result Returns true if the zoom was set as-is, false if was rounded. 
      */
-    virtual bool canZoomPageIn();
-
-    /**
-     *  zoomPageIn 
-     */
-    virtual void zoomPageIn();
-
-    /**
-     *  canZoomPageOut 
-     */
-    virtual bool canZoomPageOut();
-
-    /**
-     *  zoomPageOut 
-     */
-    virtual void zoomPageOut();
+    virtual bool zoomPageOut();
 
     /**
      *  canResetPageZoom 
@@ -628,24 +642,16 @@ public:
 
 
     /**
-     *  canMakeTextLarger 
+     *  makeTextLarger
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
      */
-    virtual bool canMakeTextLarger();
+    virtual bool makeTextLarger();
 
     /**
-     *  makeTextLarger 
+     *  makeTextSmaller
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
      */
-    virtual void makeTextLarger();
-
-    /**
-     *  canMakeTextSmaller 
-     */
-    virtual bool canMakeTextSmaller();
-
-    /**
-     *  makeTextSmaller 
-     */
-    virtual void makeTextSmaller();
+    virtual bool makeTextSmaller();
 
     /**
      *  canMakeTextStandardSize 
@@ -1249,9 +1255,10 @@ public:
 private:
 
     /**
-     *  setZoomMultiplier 
+     *  setZoomMultiplier
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
      */
-    void setZoomMultiplier(float multiplier, bool isTextOnly);
+    bool setZoomMultiplier(float multiplier, bool isTextOnly);
 
     /**
      *  zoomMultiplier 
@@ -1259,24 +1266,16 @@ private:
     float zoomMultiplier(bool isTextOnly);
 
     /**
-     *  canZoomIn 
+     *  zoomIn
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
      */
-    bool canZoomIn(bool isTextOnly);
+    bool zoomIn(bool isTextOnly);
 
     /**
-     *  zoomIn 
+     *  zoomOut
+     *  @result Returns true if the zoom was set as-is, false if was rounded.
      */
-    void zoomIn(bool isTextOnly);
-
-    /**
-     *  canZoomOut 
-     */
-    bool canZoomOut(bool isTextOnly);
-
-    /**
-     *  zoomOut 
-     */
-    void zoomOut(bool isTextOnly);
+    bool zoomOut(bool isTextOnly);
 
     /**
      *  canResetZoom 

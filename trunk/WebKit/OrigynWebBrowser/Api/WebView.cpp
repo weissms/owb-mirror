@@ -1171,22 +1171,34 @@ bool WebView::goToBackForwardItem(WebHistoryItem* item)
     return true;
 }
 
-void WebView::setTextSizeMultiplier(float multiplier)
+bool WebView::setTextSizeMultiplier(float multiplier)
 {
-    setZoomMultiplier(multiplier, true);
+    return setZoomMultiplier(multiplier, true);
 }
 
-void WebView::setPageSizeMultiplier(float multiplier)
+bool WebView::setPageSizeMultiplier(float multiplier)
 {
-    setZoomMultiplier(multiplier, false);
+    return setZoomMultiplier(multiplier, false);
 }
 
-void WebView::setZoomMultiplier(float multiplier, bool isTextOnly)
+bool WebView::setZoomMultiplier(float multiplier, bool isTextOnly)
 {
+    // Check if we need to round the value.
+    bool hasRounded = false;
+    if (multiplier < cMinimumZoomMultiplier) {
+        multiplier = cMinimumZoomMultiplier;
+        hasRounded = true;
+    } else if (multiplier > cMaximumZoomMultiplier) {
+        multiplier = cMaximumZoomMultiplier;
+        hasRounded = true;
+    }
+
     m_zoomMultiplier = multiplier;
     m_page->settings()->setZoomsTextOnly(isTextOnly);
     if (Frame* coreFrame = core(m_mainFrame))
         coreFrame->setZoomFactor(multiplier, isTextOnly);
+
+    return !hasRounded;
 }
 
 float WebView::textSizeMultiplier()
@@ -1206,53 +1218,24 @@ float WebView::zoomMultiplier(bool isTextOnly)
     return m_zoomMultiplier;
 }
 
-// FIXME: This code should move into WebCore so it can be shared by all the WebKits.
-#define MinimumZoomMultiplier   0.5f
-#define MaximumZoomMultiplier   3.0f
-#define ZoomMultiplierRatio     1.2f
-
-bool WebView::canZoomIn(bool isTextOnly)
+bool WebView::zoomIn(bool isTextOnly)
 {
-    return zoomMultiplier(isTextOnly) * ZoomMultiplierRatio < MaximumZoomMultiplier;
+    return setZoomMultiplier(zoomMultiplier(isTextOnly) * cZoomMultiplierRatio, isTextOnly);
 }
 
-bool WebView::canZoomOut(bool isTextOnly)
+bool WebView::zoomOut(bool isTextOnly)
 {
-    return zoomMultiplier(isTextOnly) / ZoomMultiplierRatio > MinimumZoomMultiplier;
+    return setZoomMultiplier(zoomMultiplier(isTextOnly) / cZoomMultiplierRatio, isTextOnly);
 }
 
-void WebView::zoomIn(bool isTextOnly)
+bool WebView::zoomPageIn()
 {
-    if (!canZoomIn(isTextOnly))
-        return ;
-    setZoomMultiplier(zoomMultiplier(isTextOnly) * ZoomMultiplierRatio, isTextOnly);
+    return zoomIn(false);
 }
 
-void WebView::zoomOut(bool isTextOnly)
+bool WebView::zoomPageOut()
 {
-    if (!canZoomOut(isTextOnly))
-        return ;
-    setZoomMultiplier(zoomMultiplier(isTextOnly) / ZoomMultiplierRatio, isTextOnly);
-}
-
-bool WebView::canZoomPageIn()
-{
-    return canZoomIn(false);
-}
-
-void WebView::zoomPageIn()
-{
-    zoomIn(false);
-}
-
-bool WebView::canZoomPageOut()
-{
-    return canZoomOut(false);
-}
-
-void WebView::zoomPageOut()
-{
-    zoomOut(false);
+    return zoomOut(false);
 }
 
 bool WebView::canResetZoom(bool isTextOnly)
@@ -1277,24 +1260,14 @@ void WebView::resetZoom(bool isTextOnly)
     setZoomMultiplier(1.0f, isTextOnly);
 }
 
-bool WebView::canMakeTextLarger()
+bool WebView::makeTextLarger()
 {
-    return canZoomIn(m_page->settings()->zoomsTextOnly());
+    return zoomIn(m_page->settings()->zoomsTextOnly());
 }
 
-void WebView::makeTextLarger()
+bool WebView::makeTextSmaller()
 {
-    zoomIn(m_page->settings()->zoomsTextOnly());
-}
-
-bool WebView::canMakeTextSmaller()
-{
-    return canZoomOut(m_page->settings()->zoomsTextOnly());
-}
-
-void WebView::makeTextSmaller()
-{
-    zoomOut(m_page->settings()->zoomsTextOnly());
+    return zoomOut(m_page->settings()->zoomsTextOnly());
 }
 
 bool WebView::canMakeTextStandardSize()

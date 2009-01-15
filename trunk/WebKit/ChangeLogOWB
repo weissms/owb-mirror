@@ -2,6 +2,41 @@
 
         Reviewed by Mario Bensi.
 
+        Zoom code refactoring:
+
+            * Removed canZoom* methods.
+
+            * Fully implement the thresholds' checks (the test uncovered
+              some missing checks): now we round the zoom value to fit
+              the minimum and maximum values.
+
+            * Exported the minimum, maximum and increase zoom value.
+
+            * Changed methods that uses the zoom to return a boolean
+              that states whether a rounding occurred.
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown): Removed canZoom* usage.
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown): Ditto.
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::setTextSizeMultiplier):
+        (WebView::setPageSizeMultiplier):
+        (WebView::setZoomMultiplier):
+        (WebView::zoomIn):
+        (WebView::zoomOut):
+        (WebView::zoomPageIn):
+        (WebView::zoomPageOut):
+        (WebView::makeTextLarger):
+        (WebView::makeTextSmaller):
+        * OrigynWebBrowser/Api/WebView.h:
+        * OrigynWebBrowser/Api/gtk/browserWidget.cpp: Removed canZoom*
+        usage.
+
+2009-01-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Avoid leaking the sharedStandardPreferences.
 
         Also added a method to create a WebPreferences filled 
