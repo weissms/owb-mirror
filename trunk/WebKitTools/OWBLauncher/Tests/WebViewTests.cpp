@@ -15,6 +15,9 @@ class WebViewTest : public CPPUNIT_NS::TestCase
     CPPUNIT_TEST(testInitialValue);
     CPPUNIT_TEST(testInitWithFrame);
     CPPUNIT_TEST(testUserAgentString);
+    CPPUNIT_TEST(testSetGroupName);
+    CPPUNIT_TEST(testPageSizeMultiplier);
+    CPPUNIT_TEST(testTextSizeMultiplier);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -59,6 +62,55 @@ protected:
         const char* foobarUA = "foobarUA";
         view->setApplicationNameForUserAgent(foobarUA);
         CPPUNIT_ASSERT(!strncmp(foobarUA, view->applicationNameForUserAgent(), strlen(foobarUA)));
+        delete view;
+    }
+
+    void testSetGroupName()
+    {
+        WebView* view = WebView::createInstance();
+        BalRectangle dummyRectangle;
+        view->initWithFrame(dummyRectangle, "", "");
+        const char* foobarGroup = "foobarGroup";
+        view->setGroupName(foobarGroup);
+        const char* groupName = view->groupName();
+        CPPUNIT_ASSERT(!strncmp(foobarGroup, groupName, strlen(foobarGroup)));
+        delete groupName;
+        delete view;
+    }
+
+    void testPageSizeMultiplier()
+    {
+        WebView* view = WebView::createInstance();
+        CPPUNIT_ASSERT(view->pageSizeMultiplier() == 1.0f);
+        const float newMultiplier = 2.33f;
+        view->setPageSizeMultiplier(newMultiplier);
+        CPPUNIT_ASSERT(view->pageSizeMultiplier() == newMultiplier);
+        // Test setting the zoom above the maximum threshold.
+        const float hugeMultiplier = 10000.0f;
+        view->setPageSizeMultiplier(hugeMultiplier);
+        CPPUNIT_ASSERT(view->pageSizeMultiplier() == 3.0f);
+        // Test setting the zoom below the minimum threshold.
+        const float tinyMultiplier = 0.005f;
+        view->setPageSizeMultiplier(tinyMultiplier);
+        CPPUNIT_ASSERT(view->pageSizeMultiplier() == 0.5f);
+        delete view;
+    }
+
+    void testTextSizeMultiplier()
+    {
+        WebView* view = WebView::createInstance();
+        CPPUNIT_ASSERT(view->pageSizeMultiplier() == 1.0f);
+        const float newMultiplier = 2.33f;
+        view->setTextSizeMultiplier(newMultiplier);
+        CPPUNIT_ASSERT(view->textSizeMultiplier() == newMultiplier);
+        // Test setting the zoom above the maximum threshold.
+        const float hugeMultiplier = 0.005f;
+        view->setTextSizeMultiplier(hugeMultiplier);
+        CPPUNIT_ASSERT(view->textSizeMultiplier() == 3.0f);
+        // Test setting the zoom below the minimum threshold.
+        const float tinyMultiplier = 0.005f;
+        view->setTextSizeMultiplier(tinyMultiplier);
+        CPPUNIT_ASSERT(view->textSizeMultiplier() == 0.5f);
         delete view;
     }
 };

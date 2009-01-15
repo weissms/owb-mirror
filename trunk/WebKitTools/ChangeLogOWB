@@ -1,3 +1,15 @@
+2009-01-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add 3 new unit tests to check that setting the group name
+        and the zoom works as expected.
+        
+        * OWBLauncher/Tests/WebViewTests.cpp:
+        (WebViewTest::testSetGroupName):
+        (WebViewTest::testPageSizeMultiplier):
+        (WebViewTest::testTextSizeMultiplier):
+
 2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
