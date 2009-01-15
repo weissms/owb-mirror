@@ -47,14 +47,8 @@ static HashMap<WebCore::String, WebPreferences*> webPreferencesInstances;
 
 WebPreferences* WebPreferences::sharedStandardPreferences()
 {
-    static WebPreferences* standardPreferences;
-    if (!standardPreferences) {
-        standardPreferences = WebPreferences::createInstance();
-        standardPreferences->setAutosaves(true);
-        standardPreferences->load();
-    }
-
-    return standardPreferences;
+    static WebPreferences standardPreferences = *WebPreferences::createInitializedInstance();
+    return &standardPreferences;
 }
 
 WebPreferences::WebPreferences()
@@ -68,10 +62,17 @@ WebPreferences::~WebPreferences()
 {
 }
 
-WebPreferences* WebPreferences::createInstance()
+WebPreferences* WebPreferences::createInitializedInstance()
 {
     WebPreferences* instance = new WebPreferences();
+    instance->setAutosaves(true);
+    instance->load();
     return instance;
+}
+
+WebPreferences* WebPreferences::createInstance()
+{
+    return new WebPreferences();
 }
 
 void WebPreferences::postPreferencesChangesNotification()

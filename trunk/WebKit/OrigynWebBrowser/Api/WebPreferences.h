@@ -70,9 +70,15 @@ class WebPreferences {
 public:
 
     /**
-     * create an new instance of WebPreferences
+     * Create an new instance of WebPreferences
      */
     static WebPreferences* createInstance();
+
+    /**
+     * Create an new instance of WebPreferences
+     * that is filled with default values.
+     */
+    static WebPreferences* createInitializedInstance();
 
     /**
      * WebPreferences destructor

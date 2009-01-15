@@ -1,3 +1,18 @@
+2009-01-15  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Avoid leaking the sharedStandardPreferences.
+
+        Also added a method to create a WebPreferences filled 
+        with default values.
+
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::sharedStandardPreferences):
+        (WebPreferences::createInitializedInstance):
+        (WebPreferences::createInstance):
+        * OrigynWebBrowser/Api/WebPreferences.h:
+
 2009-01-14  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
