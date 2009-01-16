@@ -13,6 +13,7 @@ class WebFrameTest : public CPPUNIT_NS::TestCase
 {
     CPPUNIT_TEST_SUITE(WebFrameTest);
     CPPUNIT_TEST(testInitialValue);
+    CPPUNIT_TEST(testWebViewWebFrame);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -29,6 +30,21 @@ protected:
         delete frame;
     }
 
+    void testWebViewWebFrame()
+    {
+        WebView* webView = WebView::createInstance();
+        BalRectangle dummyRect;
+        const char* foobarFrameName = "foobarFrame";
+        webView->initWithFrame(dummyRect, foobarFrameName, "");
+        WebFrame* webFrame = webView->mainFrame();
+        CPPUNIT_ASSERT(webFrame->webView() == webView);
+        const char* webFrameName = webFrame->name();
+        CPPUNIT_ASSERT(!strncmp(foobarFrameName, webFrameName, strlen(foobarFrameName)));
+        WebFrame* foundFrame = webFrame->findFrameNamed(foobarFrameName);
+        CPPUNIT_ASSERT(foundFrame == webFrame);
+        delete webFrameName;
+        delete webView;
+    }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(WebFrameTest);

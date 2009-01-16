@@ -1,3 +1,12 @@
+2009-01-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add some test for the WebView's WebFrame.
+
+        * OWBLauncher/Tests/WebFrameTests.cpp:
+        (WebFrameTest::testWebViewWebFrame):
+
 2009-01-15  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
