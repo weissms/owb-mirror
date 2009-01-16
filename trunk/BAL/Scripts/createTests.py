@@ -19,10 +19,14 @@ def createTest(path) :
     list = getSkeletonList(path)
     for l in list :
     	tab = l.split()
-	print tab[1]
-        print createDestFile(tab)
-	print dataClass.className(tab[1])
-        print ""
+	contentList = dataClass.cleanContent(tab[1])
+	classNameList = dataClass.classNameList(contentList)
+	for className in classNameList :
+            print tab[1]
+            print createDestFile(tab)
+	    print className
+	    print dataClass.publicMethodList(contentList, className)
+            print ""
 
 trunkPath = os.getcwd()
 createTest(trunkPath)
