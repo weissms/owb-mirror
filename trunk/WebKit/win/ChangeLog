@@ -1,3 +1,53 @@
+2009-01-16  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=21799
+        <rdar://problem/6310684> Crash in dumpFramesAsText() when running http/tests/security/cross-origin-xsl-BLOCKED.html
+        
+        Return S_OK or E_FAIL based on the result from CreateInstance.
+        This was causing DumpRenderTree to not realize it had just gotten a null documentElement.
+        
+        * DOMCoreClasses.cpp: Made all functions that return the result of CreateInstance consistent.
+        (DOMNode::parentNode):
+        (DOMNode::ownerDocument):
+        (DOMNodeList::item):
+        (DOMDocument::documentElement):
+        (DOMDocument::createElement):
+        (DOMDocument::getElementsByTagName):
+        (DOMDocument::getElementsByTagNameNS):
+        (DOMDocument::getElementById):
+        (DOMDocument::getComputedStyle):
+        (DOMDocument::createEvent):
+        (DOMElement::style):
+
+2009-01-14  Adele Peterson  <adele@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=23335
+        <rdar://problem/6247650> Update <input type="search"> for RenderThemeWin
+        
+        Added artwork.
+        
+        * WebKit.vcproj/WebKit.rc:
+        * WebKit.vcproj/WebKit.vcproj:
+        * WebKit.vcproj/resource.h:
+        * WebKit.vcproj/searchCancel.png: Added.
+        * WebKit.vcproj/searchCancelPressed.png: Added.
+        * WebKit.vcproj/searchMagnifier.png: Added.
+        * WebKit.vcproj/searchMagnifierResults.png: Added.
+        * WebKitDLL.cpp:(loadResourceIntoBuffer):
+
+2009-01-14  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - update copyright
+
+        * WebKit.resources/Info.plist:
+        * WebKit.vcproj/WebKit.rc:
+
 2009-01-14  Steve Falkenburg  <sfalken@apple.com>
 
         Build fix.

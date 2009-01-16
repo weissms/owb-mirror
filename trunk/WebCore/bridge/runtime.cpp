@@ -34,10 +34,6 @@
 #include "qt_instance.h"
 #endif
 
-#if PLATFORM(BAL)
-#include "bal_instance.h"
-#endif
-
 namespace JSC { namespace Bindings {
 
 Array::Array(PassRefPtr<RootObject> rootObject)
@@ -92,33 +88,11 @@ void Instance::setValueOfField(ExecState* exec, const Field* aField, JSValuePtr 
     aField->setValueToInstance(exec, this, aValue);
 }
 
-RuntimeObjectImp* Instance::createRuntimeObject(ExecState *exec, PassRefPtr<Instance> instance)
+RuntimeObjectImp* Instance::createRuntimeObject(ExecState* exec)
 {
-#if PLATFORM(QT)
-    if (instance->getBindingLanguage() == QtLanguage)
-	return QtInstance::getRuntimeObject(exec, static_cast<QtInstance*>(instance.get()));
-#endif
-#if PLATFORM(BAL)
-    if (instance->getBindingLanguage() == BalLanguage)
-        return new (exec) RuntimeObjectImp(exec, static_cast<BalInstance*>(instance.get()));
-#endif
     JSLock lock(false);
-
-    return new (exec) RuntimeObjectImp(exec, instance);
-}
-
-Instance* Instance::getInstance(JSObject* object, BindingLanguage language)
-{
-    if (!object)
-        return 0;
-    if (!object->inherits(&RuntimeObjectImp::s_info))
-        return 0;
-    Instance* instance = static_cast<RuntimeObjectImp*>(object)->getInternalInstance();
-    if (!instance)
-        return 0;
-    if (instance->getBindingLanguage() != language)
-        return 0;
-    return instance;
+    
+    return new (exec) RuntimeObjectImp(exec, this);
 }
 
 RootObject* Instance::rootObject() const 

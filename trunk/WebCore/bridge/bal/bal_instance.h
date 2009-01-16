@@ -77,7 +77,8 @@ public:
     JSValuePtr booleanValue() const; 
     WebObject* getObject() const { return m_object; }
 
-    virtual BindingLanguage getBindingLanguage() const { return BalLanguage; }
+    static PassRefPtr<BalInstance> getBalInstance(WebObject*, PassRefPtr<RootObject>);
+    virtual RuntimeObjectImp* createRuntimeObject(ExecState*);
 private:
     BalInstance(WebObject*, PassRefPtr<RootObject>);
 

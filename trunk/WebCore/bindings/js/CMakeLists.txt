@@ -75,6 +75,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSStyleSheetListCustom.cpp
     bindings/js/JSTextCustom.cpp
     bindings/js/JSTreeWalkerCustom.cpp
+    bindings/js/JSWebKitCSSMatrixConstructor.cpp
     bindings/js/JSXMLHttpRequestConstructor.cpp
     bindings/js/JSXMLHttpRequestCustom.cpp
     bindings/js/JSXMLHttpRequestUploadCustom.cpp

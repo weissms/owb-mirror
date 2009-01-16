@@ -479,6 +479,23 @@ void QWebPagePrivate::updateAction(QWebPage::WebAction action)
         case QWebPage::MoveToEndOfBlock:
         case QWebPage::MoveToStartOfDocument:
         case QWebPage::MoveToEndOfDocument:
+        case QWebPage::SelectNextChar:
+        case QWebPage::SelectPreviousChar:
+        case QWebPage::SelectNextWord:
+        case QWebPage::SelectPreviousWord:
+        case QWebPage::SelectNextLine:
+        case QWebPage::SelectPreviousLine:
+        case QWebPage::SelectStartOfLine:
+        case QWebPage::SelectEndOfLine:
+        case QWebPage::SelectStartOfBlock:
+        case QWebPage::SelectEndOfBlock:
+        case QWebPage::SelectStartOfDocument:
+        case QWebPage::SelectEndOfDocument:
+        case QWebPage::DeleteStartOfWord:
+        case QWebPage::DeleteEndOfWord:
+        case QWebPage::SetTextDirectionDefault:
+        case QWebPage::SetTextDirectionLeftToRight:
+        case QWebPage::SetTextDirectionRightToLeft:
         case QWebPage::ToggleBold:
         case QWebPage::ToggleItalic:
         case QWebPage::ToggleUnderline:
@@ -510,9 +527,6 @@ void QWebPagePrivate::updateEditorActions()
     updateAction(QWebPage::Cut);
     updateAction(QWebPage::Copy);
     updateAction(QWebPage::Paste);
-    updateAction(QWebPage::ToggleBold);
-    updateAction(QWebPage::ToggleItalic);
-    updateAction(QWebPage::ToggleUnderline);
     updateAction(QWebPage::MoveToNextChar);
     updateAction(QWebPage::MoveToPreviousChar);
     updateAction(QWebPage::MoveToNextWord);
@@ -525,6 +539,26 @@ void QWebPagePrivate::updateEditorActions()
     updateAction(QWebPage::MoveToEndOfBlock);
     updateAction(QWebPage::MoveToStartOfDocument);
     updateAction(QWebPage::MoveToEndOfDocument);
+    updateAction(QWebPage::SelectNextChar);
+    updateAction(QWebPage::SelectPreviousChar);
+    updateAction(QWebPage::SelectNextWord);
+    updateAction(QWebPage::SelectPreviousWord);
+    updateAction(QWebPage::SelectNextLine);
+    updateAction(QWebPage::SelectPreviousLine);
+    updateAction(QWebPage::SelectStartOfLine);
+    updateAction(QWebPage::SelectEndOfLine);
+    updateAction(QWebPage::SelectStartOfBlock);
+    updateAction(QWebPage::SelectEndOfBlock);
+    updateAction(QWebPage::SelectStartOfDocument);
+    updateAction(QWebPage::SelectEndOfDocument);
+    updateAction(QWebPage::DeleteStartOfWord);
+    updateAction(QWebPage::DeleteEndOfWord);
+    updateAction(QWebPage::SetTextDirectionDefault);
+    updateAction(QWebPage::SetTextDirectionLeftToRight);
+    updateAction(QWebPage::SetTextDirectionRightToLeft);
+    updateAction(QWebPage::ToggleBold);
+    updateAction(QWebPage::ToggleItalic);
+    updateAction(QWebPage::ToggleUnderline);
 }
 
 void QWebPagePrivate::timerEvent(QTimerEvent *ev)
@@ -559,7 +593,11 @@ void QWebPagePrivate::mousePressEvent(QMouseEvent *ev)
         return;
     }
 
-    bool accepted = frame->eventHandler()->handleMousePressEvent(PlatformMouseEvent(ev, 1));
+    bool accepted = false;
+    PlatformMouseEvent mev(ev, 1);
+    // ignore the event if we can't map Qt's mouse buttons to WebCore::MouseButton
+    if (mev.button() != NoButton)
+        accepted = frame->eventHandler()->handleMousePressEvent(mev);
     ev->setAccepted(accepted);
 }
 
@@ -569,7 +607,11 @@ void QWebPagePrivate::mouseDoubleClickEvent(QMouseEvent *ev)
     if (!frame->view())
         return;
 
-    bool accepted = frame->eventHandler()->handleMousePressEvent(PlatformMouseEvent(ev, 2));
+    bool accepted = false;
+    PlatformMouseEvent mev(ev, 2);
+    // ignore the event if we can't map Qt's mouse buttons to WebCore::MouseButton
+    if (mev.button() != NoButton)
+        accepted = frame->eventHandler()->handleMousePressEvent(mev);
     ev->setAccepted(accepted);
 
     tripleClickTimer.start(QApplication::doubleClickInterval(), q);
@@ -582,7 +624,11 @@ void QWebPagePrivate::mouseTripleClickEvent(QMouseEvent *ev)
     if (!frame->view())
         return;
 
-    bool accepted = frame->eventHandler()->handleMousePressEvent(PlatformMouseEvent(ev, 3));
+    bool accepted = false;
+    PlatformMouseEvent mev(ev, 3);
+    // ignore the event if we can't map Qt's mouse buttons to WebCore::MouseButton
+    if (mev.button() != NoButton)
+        accepted = frame->eventHandler()->handleMousePressEvent(mev);
     ev->setAccepted(accepted);
 }
 
@@ -592,7 +638,11 @@ void QWebPagePrivate::mouseReleaseEvent(QMouseEvent *ev)
     if (!frame->view())
         return;
 
-    bool accepted = frame->eventHandler()->handleMouseReleaseEvent(PlatformMouseEvent(ev, 0));
+    bool accepted = false;
+    PlatformMouseEvent mev(ev, 0);
+    // ignore the event if we can't map Qt's mouse buttons to WebCore::MouseButton
+    if (mev.button() != NoButton)
+        accepted = frame->eventHandler()->handleMouseReleaseEvent(mev);
     ev->setAccepted(accepted);
 
 #ifndef QT_NO_CLIPBOARD
@@ -1733,20 +1783,47 @@ QAction *QWebPage::action(WebAction action) const
             text = tr("Move the cursor to the end of the document");
             break;
         case SelectNextChar:
+            text = tr("Select to the next character");
+            break;
         case SelectPreviousChar:
+            text = tr("Select to the previous character");
+            break;
         case SelectNextWord:
+            text = tr("Select to the next word");
+            break;
         case SelectPreviousWord:
+            text = tr("Select to the previous word");
+            break;
         case SelectNextLine:
+            text = tr("Select to the next line");
+            break;
         case SelectPreviousLine:
+            text = tr("Select to the previous line");
+            break;
         case SelectStartOfLine:
+            text = tr("Select to the start of the line");
+            break;
         case SelectEndOfLine:
+            text = tr("Select to the end of the line");
+            break;
         case SelectStartOfBlock:
+            text = tr("Select to the start of the block");
+            break;
         case SelectEndOfBlock:
+            text = tr("Select to the end of the block");
+            break;
         case SelectStartOfDocument:
+            text = tr("Select to the start of the documeht");
+            break;
         case SelectEndOfDocument:
+            text = tr("Select to the end of the document");
+            break;
         case DeleteStartOfWord:
+            text = tr("Delete to the start of the word");
+            break;
         case DeleteEndOfWord:
-            break; // ####
+            text = tr("Delete to the end of the word");
+            break;
 
         case SetTextDirectionDefault:
             text = contextMenuItemTagDefaultDirection();

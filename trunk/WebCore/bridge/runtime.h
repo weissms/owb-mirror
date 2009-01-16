@@ -78,29 +78,10 @@ typedef void (*KJSDidExecuteFunctionPtr)(ExecState*, JSObject* rootObject);
 
 class Instance : public RefCounted<Instance> {
 public:
-    typedef enum {
-#if ENABLE(MAC_JAVA_BRIDGE)
-        JavaLanguage,
-#endif
-#if PLATFORM(MAC)
-        ObjectiveCLanguage,
-#endif
-        CLanguage
-#if PLATFORM(QT)
-        , QtLanguage
-#endif
-#if PLATFORM(BAL) || PLATFORM(GTK)
-        , BalLanguage
-#endif
-    } BindingLanguage;
-
     Instance(PassRefPtr<RootObject>);
 
     static void setDidExecuteFunction(KJSDidExecuteFunctionPtr func);
     static KJSDidExecuteFunctionPtr didExecuteFunction();
-
-    static RuntimeObjectImp* createRuntimeObject(ExecState*, PassRefPtr<Instance>);
-    static Instance* getInstance(JSObject*, BindingLanguage);
 
     // These functions are called before and after the main entry points into
     // the native implementations.  They can be used to establish and cleanup
@@ -109,6 +90,7 @@ public:
     void end();
     
     virtual Class *getClass() const = 0;
+    virtual RuntimeObjectImp* createRuntimeObject(ExecState*);
     
     virtual JSValuePtr getValueOfField(ExecState*, const Field*) const;
     virtual JSValuePtr getValueOfUndefinedField(ExecState*, const Identifier&) const { return jsUndefined(); }
@@ -134,7 +116,8 @@ public:
     
     virtual ~Instance();
 
-    virtual BindingLanguage getBindingLanguage() const = 0;
+    virtual bool getOwnPropertySlot(JSObject*, ExecState*, const Identifier&, PropertySlot&) { return false; }
+    virtual void put(JSObject*, ExecState*, const Identifier&, JSValuePtr, PutPropertySlot&) { }
 
 protected:
     virtual void virtualBegin() { }

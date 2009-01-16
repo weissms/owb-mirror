@@ -36,6 +36,9 @@
 #include "WebObject.h"
 #include "WebValuePrivate.h"
 #include "wtf/HashMap.h"
+#include "JSDOMBinding.h"
+
+#include "JSGlobalObject.h"
 #include "ObjectPrototype.h"
 #include "JSValue.h"
 #include "JSLock.h"
@@ -43,6 +46,57 @@
 
 namespace JSC {
 namespace Bindings {
+
+class BalRuntimeObjectImp : public RuntimeObjectImp {
+public:
+    BalRuntimeObjectImp(ExecState*, PassRefPtr<Instance>);
+    ~BalRuntimeObjectImp();
+    virtual void invalidate();
+
+    static const ClassInfo s_info;
+
+    virtual void mark()
+    {
+/*        BalInstance* instance = static_cast<BalInstance*>(getInternalInstance());
+        if (instance)
+            instance->mark();*/
+        RuntimeObjectImp::mark();
+    }
+
+protected:
+    void removeFromCache();
+
+private:
+    virtual const ClassInfo* classInfo() const { return &s_info; }
+};
+
+const ClassInfo BalRuntimeObjectImp::s_info = { "BalRuntimeObject", &RuntimeObjectImp::s_info, 0, 0 };
+
+BalRuntimeObjectImp::BalRuntimeObjectImp(ExecState* exec, PassRefPtr<Instance> instance)
+    : RuntimeObjectImp(exec, WebCore::getDOMStructure<BalRuntimeObjectImp>(exec), instance)
+{
+}
+
+BalRuntimeObjectImp::~BalRuntimeObjectImp()
+{
+    removeFromCache();
+}
+
+void BalRuntimeObjectImp::invalidate()
+{
+    removeFromCache();
+    RuntimeObjectImp::invalidate();
+}
+
+void BalRuntimeObjectImp::removeFromCache()
+{
+/*    JSLock lock(false);
+    QtInstance* key = cachedObjects.key(this);
+    if (key)
+        cachedObjects.remove(key);*/
+}
+
+
 
 BalInstance::BalInstance(WebObject* o, PassRefPtr<RootObject> rootObject)
     : Instance(rootObject),
@@ -172,6 +226,30 @@ void BalInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray
     // FIXME: This should really call NPN_MemFree but that's in WebKit
     free(identifiers);*/
 }
+
+RuntimeObjectImp* BalInstance::createRuntimeObject(ExecState* exec)
+{
+    JSLock lock(false);
+    RuntimeObjectImp* ret = new (exec) BalRuntimeObjectImp(exec, this);
+    return ret;
+}
+
+
+PassRefPtr<BalInstance> BalInstance::getBalInstance(WebObject* o, PassRefPtr<RootObject> rootObject)
+{
+    JSLock lock(false);
+
+/*    foreach(QtInstance* instance, cachedInstances.values(o)) {
+        if (instance->rootObject() == rootObject)
+            return instance;
+    }*/
+
+    RefPtr<BalInstance> ret = BalInstance::create(o, rootObject);
+//    cachedInstances.insert(o, ret.get());
+
+    return ret.release();
+}
+
 
 }
 }

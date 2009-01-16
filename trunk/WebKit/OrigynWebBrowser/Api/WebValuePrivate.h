@@ -191,8 +191,8 @@ inline void WebValuePrivate::balString(const char* s)
 
 inline JSObject* WebValuePrivate::balObject(WebObject *obj, ExecState *exec)
 {
-    return Bindings::Instance::createRuntimeObject(exec, Bindings::BalInstance::create(obj, Bindings::findRootObject(exec->dynamicGlobalObject())));
-    //return Bindings::Instance::createRuntimeObject(Bindings::Instance::BalLanguage, obj, Bindings::findRootObject(exec->dynamicGlobalObject()));
+    return JSC::Bindings::BalInstance::getBalInstance(obj, Bindings::findRootObject(exec->dynamicGlobalObject()))->createRuntimeObject(exec);
+    //return Bindings::Instance::createRuntimeObject(exec, Bindings::BalInstance::create(obj, Bindings::findRootObject(exec->dynamicGlobalObject())));
 }
 
 #endif

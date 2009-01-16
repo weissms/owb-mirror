@@ -1138,7 +1138,7 @@ void WebFrame::addToJSWindowObject(void* object)
 
     WebObject *obj = static_cast<WebObject*>(object);
     if (!global->getOwnPropertySlot(exec, JSC::Identifier(exec, obj->getName()), pr)) {
-        JSC::JSObject* runtimeObject = JSC::Bindings::Instance::createRuntimeObject(exec, JSC::Bindings::BalInstance::create(obj, root));
+	JSC::JSObject* runtimeObject = JSC::Bindings::BalInstance::getBalInstance(obj, root)->createRuntimeObject(exec);
         JSC::PutPropertySlot prop;
         global->put(exec, JSC::Identifier(exec, obj->getName()), runtimeObject, prop);
     }

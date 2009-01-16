@@ -1,3 +1,86 @@
+2009-01-16  Brady Eidson  <beidson@apple.com>
+
+        Reviewed by Dan Bernstein
+
+        Fix problem where a URL visited as non-GET once is flagged as non-GET forever.
+
+        * History/WebHistory.mm:
+        (-[WebHistory _visitedURL:withTitle:method:wasFailure:]): Always update the HTTPNonGet
+          flag for all loads with an HTTP Method
+
+2009-01-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Implement InvokeDefault, Construct, GetProperty and SetProperty.
+        
+        Fully implement marshalValue.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCInvokeDefault):
+        (WKPCConstruct):
+        (WKPCGetProperty):
+        (WKPCSetProperty):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::evaluate):
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        (WebKit::NetscapePluginInstanceProxy::invokeDefault):
+        (WebKit::NetscapePluginInstanceProxy::construct):
+        (WebKit::NetscapePluginInstanceProxy::getProperty):
+        (WebKit::NetscapePluginInstanceProxy::setProperty):
+        (WebKit::NetscapePluginInstanceProxy::marshalValue):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValue):
+        * Plugins/Hosted/WebKitPluginClient.defs:
+
+2009-01-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Demarshal arguments and pass them to the JS call.
+        
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCInvoke):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::invoke):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValueFromArray):
+        (WebKit::NetscapePluginInstanceProxy::demarshalValues):
+
+2009-01-14  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        <rdar://problem/6496520> REGRESSION: In Mail, a crash occurs when attempting to display a mail message
+
+        Move WebArchive and WebResource to use the same approach for initializing themselves on the main thread
+        that WebView uses.
+
+        * WebView/WebArchive.mm:
+        (-[WebArchive initWithMainResource:subresources:subframeArchives:]): Use _webkit_performSelectorOnMainThread:withObject:.
+        (-[WebArchive _initWithArguments:]):
+        * WebView/WebResource.mm:
+        (-[WebResource _initWithArguments:]): Unbox the BOOL argument.
+
+2009-01-14  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix crash I ran into while printing. I was unable to reproduce it, but also,
+        it's clear there's no guarantee that the frame will be non-zero in this case,
+        so it seems fine to check it.
+
+        * WebView/WebHTMLView.mm: (-[WebHTMLView reapplyStyles]): Check frame for zero
+        and don't do anything with it if it's zero.
+
+2009-01-14  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        - update copyright
+
+        * Info.plist:
+
 2009-01-14  Anders Carlsson  <andersca@apple.com>
 
         Reviewed by Darin Adler.

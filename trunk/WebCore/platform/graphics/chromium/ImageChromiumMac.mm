@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Google Inc. All rights reserved.
+ * Copyright (c) 2008, 2009, Google Inc. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,42 +28,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "GraphicsContext.h"
-#include "PlatformContextSkia.h"
-#include "RenderPath.h"
-#include "SkiaUtils.h"
-#include "SkPaint.h"
-#include "SkPath.h"
-#include "SVGPaintServer.h"
+// A wrapper around Uniscribe that provides a reasonable API.
 
-#if ENABLE(SVG)
+#include "config.h"
+#include "BitmapImage.h"
+
+#include "ChromiumBridge.h"
+#include "Image.h"
 
 namespace WebCore {
 
-bool RenderPath::strokeContains(const FloatPoint& point, bool requiresStroke) const
+PassRefPtr<Image> Image::loadPlatformResource(const char* name)
 {
-    if (path().isEmpty())
-        return false;
-
-    if (requiresStroke && !SVGPaintServer::strokePaintServer(style(), this))
-        return false;
-
-    GraphicsContext* scratch = scratchContext();
-    scratch->save();
-    applyStrokeStyleToContext(scratch, style(), this);
-
-    SkPaint paint;
-    scratch->platformContext()->setupPaintForStroking(&paint, 0, 0);
-    SkPath strokePath;
-    paint.getFillPath(*path().platformPath(), &strokePath);
-    bool contains = SkPathContainsPoint(&strokePath, point,
-                                        SkPath::kWinding_FillType);
-
-    scratch->restore();
-    return contains;
+    return ChromiumBridge::loadPlatformImageResource(name);
 }
 
+// FIXME: These are temporary stubs, we need real implementations which
+// may come in the form of ImageChromium.cpp.  The Windows Chromium
+// implementation is currently in ImageSkia.cpp.
+ 
+void BitmapImage::initPlatformData()
+{
 }
 
-#endif // ENABLE(SVG)
+void BitmapImage::invalidatePlatformData()
+{
+}
+
+}  // namespace WebCore

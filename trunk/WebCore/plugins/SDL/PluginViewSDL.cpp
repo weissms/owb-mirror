@@ -349,11 +349,11 @@ void PluginView::init()
     }
 
     if (m_plugin->pluginFuncs()->getvalue) {
-        PluginView::setCurrentPluginView(this);
+        /*PluginView::setCurrentPluginView(this);
         setCallingPlugin(true);
         m_plugin->pluginFuncs()->getvalue(m_instance, NPPVpluginNeedsXEmbed, &m_needsXEmbed);
         setCallingPlugin(false);
-        PluginView::setCurrentPluginView(0);
+        PluginView::setCurrentPluginView(0);*/
     }
 
     if (m_isWindowed)

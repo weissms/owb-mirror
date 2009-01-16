@@ -46,12 +46,13 @@ namespace JSC {
     class CommonIdentifiers;
     class Heap;
     class IdentifierTable;
+    class Interpreter;
     class JSGlobalObject;
     class JSObject;
     class Lexer;
-    class Interpreter;
     class Parser;
     class ParserRefCounted;
+    class ScopeNode;
     class Structure;
     class UString;
     struct HashTable;
@@ -91,7 +92,9 @@ namespace JSC {
         RefPtr<Structure> stringStructure;
         RefPtr<Structure> notAnObjectErrorStubStructure;
         RefPtr<Structure> notAnObjectStructure;
+#if !USE(ALTERNATE_JSIMMEDIATE)
         RefPtr<Structure> numberStructure;
+#endif
 
         IdentifierTable* identifierTable;
         CommonIdentifiers* propertyNames;
@@ -119,6 +122,8 @@ namespace JSC {
         ClientData* clientData;
 
         HashSet<JSObject*> arrayVisitedElements;
+
+        ScopeNode* scopeNodeBeingReparsed;
 
         Heap heap;
 #if ENABLE(ASSEMBLER)

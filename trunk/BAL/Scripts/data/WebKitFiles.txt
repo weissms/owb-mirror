@@ -11,8 +11,6 @@ WebCore/bindings/js/JSDOMWindowCustom.cpp
 WebCore/bindings/js/JSEventTarget.cpp
 WebCore/bindings/js/ScheduledAction.cpp
 WebCore/bridge/c/c_instance.cpp
-WebCore/bridge/runtime.cpp
-WebCore/bridge/runtime.h
 WebCore/css/CSSParser.cpp
 WebCore/css/CSSParser.h
 WebCore/css/CSSStyleSelector.cpp

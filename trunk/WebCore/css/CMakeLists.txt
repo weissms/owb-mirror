@@ -54,6 +54,7 @@ list(APPEND WEBCORE_SRC
     css/StyleSheetList.cpp
     css/WebKitCSSKeyframeRule.cpp
     css/WebKitCSSKeyframesRule.cpp
+    css/WebKitCSSMatrix.cpp
     css/WebKitCSSTransformValue.cpp
 )
 
@@ -88,5 +89,6 @@ list(APPEND IDL_SRC
     css/StyleSheetList.idl
     css/WebKitCSSKeyframeRule.idl
     css/WebKitCSSKeyframesRule.idl
+    css/WebKitCSSMatrix.idl
     css/WebKitCSSTransformValue.idl
 )

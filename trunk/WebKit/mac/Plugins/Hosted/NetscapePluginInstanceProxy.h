@@ -86,11 +86,16 @@ public:
     // NPRuntime
     bool getWindowNPObject(uint32_t& objectID);
     void releaseObject(uint32_t objectID);
-    void marshalValue(JSC::ExecState* exec, JSC::JSValuePtr value, data_t& resultData, mach_msg_type_number_t& resultLength);
     
     bool evaluate(uint32_t objectID, const WebCore::String& script, data_t& resultData, mach_msg_type_number_t& resultLength);
-    bool invoke(uint32_t objectID, const JSC::Identifier& methodName, data_t& resultData, mach_msg_type_number_t& resultLength);
+    bool invoke(uint32_t objectID, const JSC::Identifier& methodName, data_t argumentsData, mach_msg_type_number_t argumentsLength, data_t& resultData, mach_msg_type_number_t& resultLength);
+    bool invokeDefault(uint32_t objectID, data_t argumentsData, mach_msg_type_number_t argumentsLength, data_t& resultData, mach_msg_type_number_t& resultLength);
+    bool construct(uint32_t objectID, data_t argumentsData, mach_msg_type_number_t argumentsLength, data_t& resultData, mach_msg_type_number_t& resultLength);
     
+    bool getProperty(uint32_t objectID, const JSC::Identifier& propertyName, data_t &resultData, mach_msg_type_number_t& resultLength);
+    bool getProperty(uint32_t objectID, unsigned propertyName, data_t &resultData, mach_msg_type_number_t& resultLength);    
+    bool setProperty(uint32_t objectID, const JSC::Identifier& propertyName, data_t valueData, mach_msg_type_number_t valueLength);
+    bool setProperty(uint32_t objectID, unsigned propertyName, data_t valueData, mach_msg_type_number_t valueLength);
     bool removeProperty(uint32_t objectID, const JSC::Identifier& propertyName);
     bool removeProperty(uint32_t objectID, unsigned propertyName);
     bool hasProperty(uint32_t objectID, const JSC::Identifier& propertyName);
@@ -180,7 +185,11 @@ private:
     
     // NPRuntime
     uint32_t idForObject(JSC::JSObject*);
-    
+    void marshalValue(JSC::ExecState*, JSC::JSValuePtr value, data_t& resultData, mach_msg_type_number_t& resultLength);
+    bool demarshalValueFromArray(JSC::ExecState*, NSArray *array, NSUInteger& index, JSC::JSValuePtr& result);
+    void demarshalValues(JSC::ExecState*, data_t valuesData, mach_msg_type_number_t valuesLength, JSC::ArgList& result);
+    JSC::JSValuePtr demarshalValue(JSC::ExecState*, data_t valueData, mach_msg_type_number_t valueLength);
+
     uint32_t m_objectIDCounter;
     typedef HashMap<uint32_t, JSC::ProtectedPtr<JSC::JSObject> > ObjectMap;
     ObjectMap m_objects;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -264,6 +264,19 @@ void LayoutTestController::setCustomPolicyDelegate(bool setDelegate, bool permis
         webView->setPolicyDelegate(policyDelegate);
     } else
         webView->setPolicyDelegate(NULL);
+}
+
+void LayoutTestController::setIconDatabaseEnabled(bool iconDatabaseEnabled)
+{
+    // See also <rdar://problem/6480108>
+    COMPtr<IWebIconDatabase> iconDatabase;
+    COMPtr<IWebIconDatabase> tmpIconDatabase;
+    if (FAILED(CoCreateInstance(CLSID_WebIconDatabase, 0, CLSCTX_ALL, IID_IWebIconDatabase, (void**)&tmpIconDatabase)))
+        return;
+    if (FAILED(tmpIconDatabase->sharedIconDatabase(&iconDatabase)))
+        return;
+
+    iconDatabase->setEnabled(iconDatabaseEnabled);
 }
 
 void LayoutTestController::setMainFrameIsFirstResponder(bool flag)

@@ -22,13 +22,14 @@
 #include "Collector.h"
 
 #include "ArgList.h"
-#include "CollectorHeapIterator.h"
 #include "CallFrame.h"
+#include "CollectorHeapIterator.h"
+#include "Interpreter.h"
 #include "JSGlobalObject.h"
 #include "JSLock.h"
 #include "JSString.h"
 #include "JSValue.h"
-#include "Interpreter.h"
+#include "Nodes.h"
 #include "Tracing.h"
 #include <algorithm>
 #include <setjmp.h>
@@ -76,7 +77,6 @@
 
 #define DEBUG_COLLECTOR 0
 #define COLLECT_ON_EVERY_ALLOCATION 0
-
 
 #if HAVE(UCLIBC)
 extern "C" {
@@ -284,6 +284,10 @@ static NEVER_INLINE CollectorBlock* allocateBlock()
     vm_address_t address = 0;
     // FIXME: tag the region as a JavaScriptCore heap when we get a registered VM tag: <rdar://problem/6054788>.
     vm_map(current_task(), &address, BLOCK_SIZE, BLOCK_OFFSET_MASK, VM_FLAGS_ANYWHERE, MEMORY_OBJECT_NULL, 0, FALSE, VM_PROT_DEFAULT, VM_PROT_DEFAULT, VM_INHERIT_DEFAULT);
+#elif PLATFORM(SYMBIAN)
+    // no memory map in symbian, need to hack with fastMalloc
+    void* address = fastMalloc(BLOCK_SIZE);
+    memset(reinterpret_cast<void*>(address), 0, BLOCK_SIZE);
 #elif PLATFORM(WIN_OS)
      // windows virtual address granularity is naturally 64k
     LPVOID address = VirtualAlloc(NULL, BLOCK_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -330,6 +334,8 @@ static void freeBlock(CollectorBlock* block)
 {
 #if PLATFORM(DARWIN)    
     vm_deallocate(current_task(), reinterpret_cast<vm_address_t>(block), BLOCK_SIZE);
+#elif PLATFORM(SYMBIAN)
+    fastFree(block);
 #elif PLATFORM(WIN_OS)
     VirtualFree(block, 0, MEM_RELEASE);
 #elif HAVE(POSIX_MEMALIGN) || PLATFORM(AMIGAOS4)
@@ -534,10 +540,10 @@ static inline void* currentThreadStackBase()
         // e.g. on FreeBSD 5.4, neundorf@kde.org
         pthread_attr_get_np(thread, &sattr);
 #elif HAVE(UCLIBC)
-	void* stack = pthread_getattr_np(thread, &sattr);
-	pthread_attr_destroy(&sattr);
-	stackThread = thread;
-	return stack;
+       void* stack = pthread_getattr_np(thread, &sattr);
+       pthread_attr_destroy(&sattr);
+       stackThread = thread;
+       return stack;
 #else
         // FIXME: this function is non-portable; other POSIX systems may have different np alternatives
         pthread_getattr_np(thread, &sattr);
@@ -551,6 +557,15 @@ static inline void* currentThreadStackBase()
 #endif
     }
     return static_cast<char*>(stackBase) + stackSize;
+#elif PLATFORM(SYMBIAN)
+    static void* stackBase = 0;
+    if (stackBase == 0) {
+        TThreadStackInfo info;
+        RThread thread;
+        thread.StackInfo(info);
+        stackBase = (void*)info.iBase;
+    }
+    return (void*)stackBase;
 #elif PLATFORM(AMIGAOS4)
     return (void*)IExec->FindTask(NULL)->tc_SPUpper;
 #elif PLATFORM(BAL)
@@ -1112,6 +1127,8 @@ bool Heap::collect()
         m_globalData->exception->mark();
     m_globalData->interpreter->registerFile().markCallFrames(this);
     m_globalData->smallStrings.mark();
+    if (m_globalData->scopeNodeBeingReparsed)
+        m_globalData->scopeNodeBeingReparsed->mark();
 
     JAVASCRIPTCORE_GC_MARKED();
 
@@ -1128,7 +1145,7 @@ bool Heap::collect()
 
 size_t Heap::objectCount() 
 {
-    return primaryHeap.numLiveObjects + numberHeap.numLiveObjects; 
+    return primaryHeap.numLiveObjects + numberHeap.numLiveObjects - m_globalData->smallStrings.count(); 
 }
 
 template <HeapType heapType> 
