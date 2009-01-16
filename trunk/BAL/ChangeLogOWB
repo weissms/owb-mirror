@@ -1,3 +1,11 @@
+2009-01-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Rubber-stamped by Mario Bensi.
+
+        * Scripts/patch.py: Correct a minor bug in createOWBWebKitPatch
+          that would break the created patch (this was a recurring issue
+          with the last merge).
+
 2009-01-14  Mario Bensi  <mbensi@pleyo.com>
 
         sort balInputList.
