@@ -296,9 +296,12 @@ static gboolean webkit_web_view_key_press_event(GtkWidget* widget, GdkEventKey* 
         webView_s->goForward();
         return true;
     case GDK_F3:
+        // We ignore the return value as we are not interested
+        // in whether the zoom occurred.
         webView_s->zoomPageIn();
         return true;
     case GDK_F4:
+        // Same comment as above.
         webView_s->zoomPageOut();
         return true;
     }

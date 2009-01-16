@@ -1,3 +1,16 @@
+2009-01-16  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Rubber-stamped by Mario Bensi.
+
+        Add some comments after the zoom refactoring (those were mentioned
+        during the review but I forgot to add them).
+
+        * OrigynWebBrowser/Api/AmigaOS4/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown):
+        * OrigynWebBrowser/Api/SDL/WebViewPrivate.cpp:
+        (WebViewPrivate::onKeyDown):
+        * OrigynWebBrowser/Api/gtk/browserWidget.cpp:
+
 2009-01-15  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

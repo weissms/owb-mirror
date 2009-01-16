@@ -177,9 +177,12 @@ void WebViewPrivate::onKeyDown(BalEventKey event)
             return;
         }
         case RAWKEY_F3:
+            // We ignore the return value as we are not interested
+            // in whether the zoom occurred.
             m_webView->zoomPageIn();
             return;
         case RAWKEY_F4:
+            // Same comment as above.
             m_webView->zoomPageOut();
             return;
         }
