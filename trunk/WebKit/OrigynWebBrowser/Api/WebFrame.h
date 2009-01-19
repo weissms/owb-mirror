@@ -474,7 +474,8 @@ public:
 
 
     /**
-     * get url
+     * Get the frame url
+     * @discussion: the returned string should be freed by the caller or it will leaks.
      */
 #if PLATFORM(AMIGAOS4)
      const char* url();

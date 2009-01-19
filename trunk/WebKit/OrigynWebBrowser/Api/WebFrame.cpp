@@ -394,13 +394,13 @@ const char* WebFrame::url() const
 {
     Frame* coreFrame = core(this);
     if (!coreFrame)
-        return "";
+        return strdup("");
 
 #if PLATFORM(AMIGAOS4)
     strlcpy(m_url, coreFrame->loader()->url().string().utf8().data(), sizeof(m_url));
     return m_url;
 #else
-    return coreFrame->loader()->url().string().utf8().data();
+    return strdup(coreFrame->loader()->url().string().utf8().data());
 #endif
 }
 

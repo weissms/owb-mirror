@@ -1,3 +1,21 @@
+2009-01-19  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Add some dynamic events using an event loop.
+        For the moment, it is only available on SDL.
+
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/Tests/WebViewTestsSDL.cpp:
+        (createSDLWindow): Helper method.
+        (waitEventUntilLoaded): Implement the event loop but
+        quit as soon as the page is loaded.
+        (WebViewTestSDL::setUp):
+        (WebViewTestSDL::tearDown):
+        (WebViewTestSDL::WebViewLoadURL): Test that WebFrame::url()
+        works correctly.
+        (main):
+
 2009-01-16  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

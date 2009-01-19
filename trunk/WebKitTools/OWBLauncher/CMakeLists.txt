@@ -46,7 +46,7 @@ if(ENABLE_TESTS)
     target_link_libraries(WebViewTests
         webkit-owb
         ${GRAPHICS_LIBRARIES}
-	${CPPUNIT_LIBRARIES}
+        ${CPPUNIT_LIBRARIES}
     )
     ADD_TEST(WebViewTests ${OWB_BINARY_DIR}/bin/WebViewTests)
 
@@ -54,9 +54,20 @@ if(ENABLE_TESTS)
     target_link_libraries(WebFrameTests
         webkit-owb
         ${GRAPHICS_LIBRARIES}
-	${CPPUNIT_LIBRARIES}
+        ${CPPUNIT_LIBRARIES}
     )
     ADD_TEST(WebFrameTests ${OWB_BINARY_DIR}/bin/WebFrameTests)
+
+    if(USE_GRAPHICS_SDL)
+        ADD_TEST(WebViewTestsSDL ${OWB_BINARY_DIR}/bin/WebViewTestsSDL)
+
+        add_executable(WebViewTestsSDL Tests/WebViewTestsSDL.cpp)
+        target_link_libraries(WebViewTestsSDL
+            webkit-owb
+            ${GRAPHICS_LIBRARIES}
+            ${CPPUNIT_LIBRARIES}
+        )
+    endif(USE_GRAPHICS_SDL)
 endif(ENABLE_TESTS)
 
 # IF (WEBKIT_USE_HTML_EXTENSION)
