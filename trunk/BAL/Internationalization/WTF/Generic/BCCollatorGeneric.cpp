@@ -37,6 +37,9 @@
 namespace WTF {
 
 Collator::Collator(const char* locale)
+: m_collator(0)
+, m_locale(locale ? strdup(locale) : 0)
+, m_lowerFirst(false)
 {
 }
 
