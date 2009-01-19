@@ -1037,6 +1037,30 @@ profiler/TreeProfile.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/profiler/TreeProfile.cpp.s
 .PHONY : profiler/TreeProfile.cpp.s
 
+runtime/ByteArray.o: runtime/ByteArray.cpp.o
+.PHONY : runtime/ByteArray.o
+
+# target to build an object file
+runtime/ByteArray.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/runtime/ByteArray.cpp.o
+.PHONY : runtime/ByteArray.cpp.o
+
+runtime/ByteArray.i: runtime/ByteArray.cpp.i
+.PHONY : runtime/ByteArray.i
+
+# target to preprocess a source file
+runtime/ByteArray.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/runtime/ByteArray.cpp.i
+.PHONY : runtime/ByteArray.cpp.i
+
+runtime/ByteArray.s: runtime/ByteArray.cpp.s
+.PHONY : runtime/ByteArray.s
+
+# target to generate assembly for a file
+runtime/ByteArray.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/runtime/ByteArray.cpp.s
+.PHONY : runtime/ByteArray.cpp.s
+
 runtime/ExceptionHelpers.o: runtime/ExceptionHelpers.cpp.o
 .PHONY : runtime/ExceptionHelpers.o
 
@@ -1108,6 +1132,30 @@ runtime/JSActivation.s: runtime/JSActivation.cpp.s
 runtime/JSActivation.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/runtime/JSActivation.cpp.s
 .PHONY : runtime/JSActivation.cpp.s
+
+runtime/JSByteArray.o: runtime/JSByteArray.cpp.o
+.PHONY : runtime/JSByteArray.o
+
+# target to build an object file
+runtime/JSByteArray.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/runtime/JSByteArray.cpp.o
+.PHONY : runtime/JSByteArray.cpp.o
+
+runtime/JSByteArray.i: runtime/JSByteArray.cpp.i
+.PHONY : runtime/JSByteArray.i
+
+# target to preprocess a source file
+runtime/JSByteArray.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/runtime/JSByteArray.cpp.i
+.PHONY : runtime/JSByteArray.cpp.i
+
+runtime/JSByteArray.s: runtime/JSByteArray.cpp.s
+.PHONY : runtime/JSByteArray.s
+
+# target to generate assembly for a file
+runtime/JSByteArray.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f JavaScriptCore/CMakeFiles/jsc.dir/build.make JavaScriptCore/CMakeFiles/jsc.dir/runtime/JSByteArray.cpp.s
+.PHONY : runtime/JSByteArray.cpp.s
 
 runtime/JSGlobalData.o: runtime/JSGlobalData.cpp.o
 .PHONY : runtime/JSGlobalData.o
@@ -1520,6 +1568,9 @@ help:
 	@echo "... profiler/TreeProfile.o"
 	@echo "... profiler/TreeProfile.i"
 	@echo "... profiler/TreeProfile.s"
+	@echo "... runtime/ByteArray.o"
+	@echo "... runtime/ByteArray.i"
+	@echo "... runtime/ByteArray.s"
 	@echo "... runtime/ExceptionHelpers.o"
 	@echo "... runtime/ExceptionHelpers.i"
 	@echo "... runtime/ExceptionHelpers.s"
@@ -1529,6 +1580,9 @@ help:
 	@echo "... runtime/JSActivation.o"
 	@echo "... runtime/JSActivation.i"
 	@echo "... runtime/JSActivation.s"
+	@echo "... runtime/JSByteArray.o"
+	@echo "... runtime/JSByteArray.i"
+	@echo "... runtime/JSByteArray.s"
 	@echo "... runtime/JSGlobalData.o"
 	@echo "... runtime/JSGlobalData.i"
 	@echo "... runtime/JSGlobalData.s"

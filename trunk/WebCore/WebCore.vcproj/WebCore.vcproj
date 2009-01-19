@@ -2739,10 +2739,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\page\FramePrivate.h"
-				>
-			</File>
-			<File
 				RelativePath="..\page\FrameTree.cpp"
 				>
 			</File>
@@ -4537,6 +4533,14 @@
 					</File>
 					<File
 						RelativePath="..\platform\graphics\transforms\SkewTransformOperation.h"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\transforms\TransformationMatrix.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\platform\graphics\transforms\TransformationMatrix.h"
 						>
 					</File>
 					<File

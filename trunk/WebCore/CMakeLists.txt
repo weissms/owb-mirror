@@ -123,10 +123,32 @@ list(APPEND USER_AGENT_STYLE_SHEETS
     ${OWB_SOURCE_DIR}/WebCore/css/html4.css
     ${OWB_SOURCE_DIR}/WebCore/css/mediaControls.css
     ${OWB_SOURCE_DIR}/WebCore/css/quirks.css
-    ${OWB_SOURCE_DIR}/WebCore/css/svg.css
     ${OWB_SOURCE_DIR}/WebCore/css/view-source.css
+)
+
+if(ENABLE_SVG)
+list(APPEND USER_AGENT_STYLE_SHEETS
+    ${OWB_SOURCE_DIR}/WebCore/css/svg.css
+)
+endif(ENABLE_SVG)
+
+if(ENABLE_WML)
+list(APPEND USER_AGENT_STYLE_SHEETS
     ${OWB_SOURCE_DIR}/WebCore/css/wml.css
 )
+endif(ENABLE_WML)
+
+if(ENABLE_VIDEO)
+    if(APPLE)
+        list(APPEND USER_AGENT_STYLE_SHEETS
+            ${OWB_SOURCE_DIR}/WebCore/css/mediaControls.css
+        )
+    else(APPLE)
+        list(APPEND USER_AGENT_STYLE_SHEETS
+            ${OWB_SOURCE_DIR}/WebCore/css/mediaControlsQT.css
+        )
+    endif(APPLE)
+endif(ENABLE_VIDEO)
 
 set(WEBCORE_GENERATED_DIR ${OWB_BINARY_DIR}/generated_sources/WebCore)
 add_custom_command(

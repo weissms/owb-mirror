@@ -485,6 +485,30 @@ __/BAL/Facilities/WebCore/SDL/BCFileChooserSDL.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Facilities/WebCore/SDL/BCFileChooserSDL.cpp.s
 .PHONY : __/BAL/Facilities/WebCore/SDL/BCFileChooserSDL.cpp.s
 
+__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.o: __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.o
+.PHONY : __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.o
+
+# target to build an object file
+__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.o
+.PHONY : __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.o
+
+__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.i: __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.i
+.PHONY : __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.i
+
+# target to preprocess a source file
+__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.i
+.PHONY : __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.i
+
+__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.s: __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.s
+.PHONY : __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.s
+
+# target to generate assembly for a file
+__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.s
+.PHONY : __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.cpp.s
+
 __/BAL/Facilities/WebCore/SDL/BCLanguageSDL.o: __/BAL/Facilities/WebCore/SDL/BCLanguageSDL.cpp.o
 .PHONY : __/BAL/Facilities/WebCore/SDL/BCLanguageSDL.o
 
@@ -1205,30 +1229,6 @@ __/BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp.s
 .PHONY : __/BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp.s
 
-__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.o: __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.o
-.PHONY : __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.o
-
-# target to build an object file
-__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.o:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.o
-.PHONY : __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.o
-
-__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.i: __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.i
-.PHONY : __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.i
-
-# target to preprocess a source file
-__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.i:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.i
-.PHONY : __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.i
-
-__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.s: __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.s
-.PHONY : __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.s
-
-# target to generate assembly for a file
-__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.s:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.s
-.PHONY : __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.cpp.s
-
 __/BAL/Graphics/WebCore/SDL/BCColorSDL.o: __/BAL/Graphics/WebCore/SDL/BCColorSDL.cpp.o
 .PHONY : __/BAL/Graphics/WebCore/SDL/BCColorSDL.o
 
@@ -1517,29 +1517,29 @@ __/BAL/Graphics/WebCore/SDL/BCPatternSDL.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/SDL/BCPatternSDL.cpp.s
 .PHONY : __/BAL/Graphics/WebCore/SDL/BCPatternSDL.cpp.s
 
-__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.o: __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.o
-.PHONY : __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.o
+__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.o: __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.o
+.PHONY : __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.o
 
 # target to build an object file
-__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.o:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.o
-.PHONY : __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.o
+__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.o
+.PHONY : __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.o
 
-__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.i: __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.i
-.PHONY : __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.i
+__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.i: __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.i
+.PHONY : __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.i
 
 # target to preprocess a source file
-__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.i:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.i
-.PHONY : __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.i
+__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.i
+.PHONY : __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.i
 
-__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.s: __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.s
-.PHONY : __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.s
+__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.s: __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.s
+.PHONY : __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.s
 
 # target to generate assembly for a file
-__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.s:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.s
-.PHONY : __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.cpp.s
+__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.s
+.PHONY : __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.cpp.s
 
 __/BAL/Graphics/WebCore/WK/BCAnimationListWK.o: __/BAL/Graphics/WebCore/WK/BCAnimationListWK.cpp.o
 .PHONY : __/BAL/Graphics/WebCore/WK/BCAnimationListWK.o
@@ -2164,6 +2164,30 @@ __/BAL/Graphics/WebCore/WK/BCTransformOperationsWK.s: __/BAL/Graphics/WebCore/WK
 __/BAL/Graphics/WebCore/WK/BCTransformOperationsWK.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/WK/BCTransformOperationsWK.cpp.s
 .PHONY : __/BAL/Graphics/WebCore/WK/BCTransformOperationsWK.cpp.s
+
+__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.o: __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.o
+.PHONY : __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.o
+
+# target to build an object file
+__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.o
+.PHONY : __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.o
+
+__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.i: __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.i
+.PHONY : __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.i
+
+# target to preprocess a source file
+__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.i
+.PHONY : __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.i
+
+__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.s: __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.s
+.PHONY : __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.s
+
+# target to generate assembly for a file
+__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.s
+.PHONY : __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.cpp.s
 
 __/BAL/Graphics/WebCore/WK/BCTranslateTransformOperationWK.o: __/BAL/Graphics/WebCore/WK/BCTranslateTransformOperationWK.cpp.o
 .PHONY : __/BAL/Graphics/WebCore/WK/BCTranslateTransformOperationWK.o
@@ -4661,30 +4685,6 @@ __/generated_sources/WebCore/JSCanvasPattern.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSCanvasPattern.cpp.s
 .PHONY : __/generated_sources/WebCore/JSCanvasPattern.cpp.s
 
-__/generated_sources/WebCore/JSCanvasPixelArray.o: __/generated_sources/WebCore/JSCanvasPixelArray.cpp.o
-.PHONY : __/generated_sources/WebCore/JSCanvasPixelArray.o
-
-# target to build an object file
-__/generated_sources/WebCore/JSCanvasPixelArray.cpp.o:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSCanvasPixelArray.cpp.o
-.PHONY : __/generated_sources/WebCore/JSCanvasPixelArray.cpp.o
-
-__/generated_sources/WebCore/JSCanvasPixelArray.i: __/generated_sources/WebCore/JSCanvasPixelArray.cpp.i
-.PHONY : __/generated_sources/WebCore/JSCanvasPixelArray.i
-
-# target to preprocess a source file
-__/generated_sources/WebCore/JSCanvasPixelArray.cpp.i:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSCanvasPixelArray.cpp.i
-.PHONY : __/generated_sources/WebCore/JSCanvasPixelArray.cpp.i
-
-__/generated_sources/WebCore/JSCanvasPixelArray.s: __/generated_sources/WebCore/JSCanvasPixelArray.cpp.s
-.PHONY : __/generated_sources/WebCore/JSCanvasPixelArray.s
-
-# target to generate assembly for a file
-__/generated_sources/WebCore/JSCanvasPixelArray.cpp.s:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSCanvasPixelArray.cpp.s
-.PHONY : __/generated_sources/WebCore/JSCanvasPixelArray.cpp.s
-
 __/generated_sources/WebCore/JSCanvasRenderingContext2D.o: __/generated_sources/WebCore/JSCanvasRenderingContext2D.cpp.o
 .PHONY : __/generated_sources/WebCore/JSCanvasRenderingContext2D.o
 
@@ -4900,6 +4900,30 @@ __/generated_sources/WebCore/JSDOMSelection.s: __/generated_sources/WebCore/JSDO
 __/generated_sources/WebCore/JSDOMSelection.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSDOMSelection.cpp.s
 .PHONY : __/generated_sources/WebCore/JSDOMSelection.cpp.s
+
+__/generated_sources/WebCore/JSDOMStringList.o: __/generated_sources/WebCore/JSDOMStringList.cpp.o
+.PHONY : __/generated_sources/WebCore/JSDOMStringList.o
+
+# target to build an object file
+__/generated_sources/WebCore/JSDOMStringList.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSDOMStringList.cpp.o
+.PHONY : __/generated_sources/WebCore/JSDOMStringList.cpp.o
+
+__/generated_sources/WebCore/JSDOMStringList.i: __/generated_sources/WebCore/JSDOMStringList.cpp.i
+.PHONY : __/generated_sources/WebCore/JSDOMStringList.i
+
+# target to preprocess a source file
+__/generated_sources/WebCore/JSDOMStringList.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSDOMStringList.cpp.i
+.PHONY : __/generated_sources/WebCore/JSDOMStringList.cpp.i
+
+__/generated_sources/WebCore/JSDOMStringList.s: __/generated_sources/WebCore/JSDOMStringList.cpp.s
+.PHONY : __/generated_sources/WebCore/JSDOMStringList.s
+
+# target to generate assembly for a file
+__/generated_sources/WebCore/JSDOMStringList.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSDOMStringList.cpp.s
+.PHONY : __/generated_sources/WebCore/JSDOMStringList.cpp.s
 
 __/generated_sources/WebCore/JSDOMWindow.o: __/generated_sources/WebCore/JSDOMWindow.cpp.o
 .PHONY : __/generated_sources/WebCore/JSDOMWindow.o
@@ -7613,6 +7637,30 @@ __/generated_sources/WebCore/JSWebKitCSSKeyframesRule.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSWebKitCSSKeyframesRule.cpp.s
 .PHONY : __/generated_sources/WebCore/JSWebKitCSSKeyframesRule.cpp.s
 
+__/generated_sources/WebCore/JSWebKitCSSMatrix.o: __/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.o
+.PHONY : __/generated_sources/WebCore/JSWebKitCSSMatrix.o
+
+# target to build an object file
+__/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.o
+.PHONY : __/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.o
+
+__/generated_sources/WebCore/JSWebKitCSSMatrix.i: __/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.i
+.PHONY : __/generated_sources/WebCore/JSWebKitCSSMatrix.i
+
+# target to preprocess a source file
+__/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.i
+.PHONY : __/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.i
+
+__/generated_sources/WebCore/JSWebKitCSSMatrix.s: __/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.s
+.PHONY : __/generated_sources/WebCore/JSWebKitCSSMatrix.s
+
+# target to generate assembly for a file
+__/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/__/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.s
+.PHONY : __/generated_sources/WebCore/JSWebKitCSSMatrix.cpp.s
+
 __/generated_sources/WebCore/JSWebKitCSSTransformValue.o: __/generated_sources/WebCore/JSWebKitCSSTransformValue.cpp.o
 .PHONY : __/generated_sources/WebCore/JSWebKitCSSTransformValue.o
 
@@ -8236,6 +8284,30 @@ bindings/js/JSDOMGlobalObject.s: bindings/js/JSDOMGlobalObject.cpp.s
 bindings/js/JSDOMGlobalObject.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSDOMGlobalObject.cpp.s
 .PHONY : bindings/js/JSDOMGlobalObject.cpp.s
+
+bindings/js/JSDOMStringListCustom.o: bindings/js/JSDOMStringListCustom.cpp.o
+.PHONY : bindings/js/JSDOMStringListCustom.o
+
+# target to build an object file
+bindings/js/JSDOMStringListCustom.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSDOMStringListCustom.cpp.o
+.PHONY : bindings/js/JSDOMStringListCustom.cpp.o
+
+bindings/js/JSDOMStringListCustom.i: bindings/js/JSDOMStringListCustom.cpp.i
+.PHONY : bindings/js/JSDOMStringListCustom.i
+
+# target to preprocess a source file
+bindings/js/JSDOMStringListCustom.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSDOMStringListCustom.cpp.i
+.PHONY : bindings/js/JSDOMStringListCustom.cpp.i
+
+bindings/js/JSDOMStringListCustom.s: bindings/js/JSDOMStringListCustom.cpp.s
+.PHONY : bindings/js/JSDOMStringListCustom.s
+
+# target to generate assembly for a file
+bindings/js/JSDOMStringListCustom.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSDOMStringListCustom.cpp.s
+.PHONY : bindings/js/JSDOMStringListCustom.cpp.s
 
 bindings/js/JSDOMWindowBase.o: bindings/js/JSDOMWindowBase.cpp.o
 .PHONY : bindings/js/JSDOMWindowBase.o
@@ -9460,6 +9532,30 @@ bindings/js/JSTreeWalkerCustom.s: bindings/js/JSTreeWalkerCustom.cpp.s
 bindings/js/JSTreeWalkerCustom.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSTreeWalkerCustom.cpp.s
 .PHONY : bindings/js/JSTreeWalkerCustom.cpp.s
+
+bindings/js/JSWebKitCSSMatrixConstructor.o: bindings/js/JSWebKitCSSMatrixConstructor.cpp.o
+.PHONY : bindings/js/JSWebKitCSSMatrixConstructor.o
+
+# target to build an object file
+bindings/js/JSWebKitCSSMatrixConstructor.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSWebKitCSSMatrixConstructor.cpp.o
+.PHONY : bindings/js/JSWebKitCSSMatrixConstructor.cpp.o
+
+bindings/js/JSWebKitCSSMatrixConstructor.i: bindings/js/JSWebKitCSSMatrixConstructor.cpp.i
+.PHONY : bindings/js/JSWebKitCSSMatrixConstructor.i
+
+# target to preprocess a source file
+bindings/js/JSWebKitCSSMatrixConstructor.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSWebKitCSSMatrixConstructor.cpp.i
+.PHONY : bindings/js/JSWebKitCSSMatrixConstructor.cpp.i
+
+bindings/js/JSWebKitCSSMatrixConstructor.s: bindings/js/JSWebKitCSSMatrixConstructor.cpp.s
+.PHONY : bindings/js/JSWebKitCSSMatrixConstructor.s
+
+# target to generate assembly for a file
+bindings/js/JSWebKitCSSMatrixConstructor.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/bindings/js/JSWebKitCSSMatrixConstructor.cpp.s
+.PHONY : bindings/js/JSWebKitCSSMatrixConstructor.cpp.s
 
 bindings/js/JSXMLHttpRequestConstructor.o: bindings/js/JSXMLHttpRequestConstructor.cpp.o
 .PHONY : bindings/js/JSXMLHttpRequestConstructor.o
@@ -11357,6 +11453,30 @@ css/WebKitCSSKeyframesRule.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/css/WebKitCSSKeyframesRule.cpp.s
 .PHONY : css/WebKitCSSKeyframesRule.cpp.s
 
+css/WebKitCSSMatrix.o: css/WebKitCSSMatrix.cpp.o
+.PHONY : css/WebKitCSSMatrix.o
+
+# target to build an object file
+css/WebKitCSSMatrix.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/css/WebKitCSSMatrix.cpp.o
+.PHONY : css/WebKitCSSMatrix.cpp.o
+
+css/WebKitCSSMatrix.i: css/WebKitCSSMatrix.cpp.i
+.PHONY : css/WebKitCSSMatrix.i
+
+# target to preprocess a source file
+css/WebKitCSSMatrix.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/css/WebKitCSSMatrix.cpp.i
+.PHONY : css/WebKitCSSMatrix.cpp.i
+
+css/WebKitCSSMatrix.s: css/WebKitCSSMatrix.cpp.s
+.PHONY : css/WebKitCSSMatrix.s
+
+# target to generate assembly for a file
+css/WebKitCSSMatrix.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/css/WebKitCSSMatrix.cpp.s
+.PHONY : css/WebKitCSSMatrix.cpp.s
+
 css/WebKitCSSTransformValue.o: css/WebKitCSSTransformValue.cpp.o
 .PHONY : css/WebKitCSSTransformValue.o
 
@@ -11764,6 +11884,30 @@ dom/DOMImplementation.s: dom/DOMImplementation.cpp.s
 dom/DOMImplementation.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/DOMImplementation.cpp.s
 .PHONY : dom/DOMImplementation.cpp.s
+
+dom/DOMStringList.o: dom/DOMStringList.cpp.o
+.PHONY : dom/DOMStringList.o
+
+# target to build an object file
+dom/DOMStringList.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/DOMStringList.cpp.o
+.PHONY : dom/DOMStringList.cpp.o
+
+dom/DOMStringList.i: dom/DOMStringList.cpp.i
+.PHONY : dom/DOMStringList.i
+
+# target to preprocess a source file
+dom/DOMStringList.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/DOMStringList.cpp.i
+.PHONY : dom/DOMStringList.cpp.i
+
+dom/DOMStringList.s: dom/DOMStringList.cpp.s
+.PHONY : dom/DOMStringList.s
+
+# target to generate assembly for a file
+dom/DOMStringList.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/DOMStringList.cpp.s
+.PHONY : dom/DOMStringList.cpp.s
 
 dom/Document.o: dom/Document.cpp.o
 .PHONY : dom/Document.o
@@ -12772,6 +12916,30 @@ dom/StaticNodeList.s: dom/StaticNodeList.cpp.s
 dom/StaticNodeList.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/StaticNodeList.cpp.s
 .PHONY : dom/StaticNodeList.cpp.s
+
+dom/StaticStringList.o: dom/StaticStringList.cpp.o
+.PHONY : dom/StaticStringList.o
+
+# target to build an object file
+dom/StaticStringList.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/StaticStringList.cpp.o
+.PHONY : dom/StaticStringList.cpp.o
+
+dom/StaticStringList.i: dom/StaticStringList.cpp.i
+.PHONY : dom/StaticStringList.i
+
+# target to preprocess a source file
+dom/StaticStringList.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/StaticStringList.cpp.i
+.PHONY : dom/StaticStringList.cpp.i
+
+dom/StaticStringList.s: dom/StaticStringList.cpp.s
+.PHONY : dom/StaticStringList.s
+
+# target to generate assembly for a file
+dom/StaticStringList.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/dom/StaticStringList.cpp.s
+.PHONY : dom/StaticStringList.cpp.s
 
 dom/StyleElement.o: dom/StyleElement.cpp.o
 .PHONY : dom/StyleElement.o
@@ -14380,30 +14548,6 @@ html/CanvasPattern.s: html/CanvasPattern.cpp.s
 html/CanvasPattern.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/html/CanvasPattern.cpp.s
 .PHONY : html/CanvasPattern.cpp.s
-
-html/CanvasPixelArray.o: html/CanvasPixelArray.cpp.o
-.PHONY : html/CanvasPixelArray.o
-
-# target to build an object file
-html/CanvasPixelArray.cpp.o:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/html/CanvasPixelArray.cpp.o
-.PHONY : html/CanvasPixelArray.cpp.o
-
-html/CanvasPixelArray.i: html/CanvasPixelArray.cpp.i
-.PHONY : html/CanvasPixelArray.i
-
-# target to preprocess a source file
-html/CanvasPixelArray.cpp.i:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/html/CanvasPixelArray.cpp.i
-.PHONY : html/CanvasPixelArray.cpp.i
-
-html/CanvasPixelArray.s: html/CanvasPixelArray.cpp.s
-.PHONY : html/CanvasPixelArray.s
-
-# target to generate assembly for a file
-html/CanvasPixelArray.cpp.s:
-	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/html/CanvasPixelArray.cpp.s
-.PHONY : html/CanvasPixelArray.cpp.s
 
 html/CanvasRenderingContext2D.o: html/CanvasRenderingContext2D.cpp.o
 .PHONY : html/CanvasRenderingContext2D.o
@@ -19829,6 +19973,54 @@ rendering/RenderTextControl.cpp.s:
 	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/rendering/RenderTextControl.cpp.s
 .PHONY : rendering/RenderTextControl.cpp.s
 
+rendering/RenderTextControlMultiLine.o: rendering/RenderTextControlMultiLine.cpp.o
+.PHONY : rendering/RenderTextControlMultiLine.o
+
+# target to build an object file
+rendering/RenderTextControlMultiLine.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/rendering/RenderTextControlMultiLine.cpp.o
+.PHONY : rendering/RenderTextControlMultiLine.cpp.o
+
+rendering/RenderTextControlMultiLine.i: rendering/RenderTextControlMultiLine.cpp.i
+.PHONY : rendering/RenderTextControlMultiLine.i
+
+# target to preprocess a source file
+rendering/RenderTextControlMultiLine.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/rendering/RenderTextControlMultiLine.cpp.i
+.PHONY : rendering/RenderTextControlMultiLine.cpp.i
+
+rendering/RenderTextControlMultiLine.s: rendering/RenderTextControlMultiLine.cpp.s
+.PHONY : rendering/RenderTextControlMultiLine.s
+
+# target to generate assembly for a file
+rendering/RenderTextControlMultiLine.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/rendering/RenderTextControlMultiLine.cpp.s
+.PHONY : rendering/RenderTextControlMultiLine.cpp.s
+
+rendering/RenderTextControlSingleLine.o: rendering/RenderTextControlSingleLine.cpp.o
+.PHONY : rendering/RenderTextControlSingleLine.o
+
+# target to build an object file
+rendering/RenderTextControlSingleLine.cpp.o:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/rendering/RenderTextControlSingleLine.cpp.o
+.PHONY : rendering/RenderTextControlSingleLine.cpp.o
+
+rendering/RenderTextControlSingleLine.i: rendering/RenderTextControlSingleLine.cpp.i
+.PHONY : rendering/RenderTextControlSingleLine.i
+
+# target to preprocess a source file
+rendering/RenderTextControlSingleLine.cpp.i:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/rendering/RenderTextControlSingleLine.cpp.i
+.PHONY : rendering/RenderTextControlSingleLine.cpp.i
+
+rendering/RenderTextControlSingleLine.s: rendering/RenderTextControlSingleLine.cpp.s
+.PHONY : rendering/RenderTextControlSingleLine.s
+
+# target to generate assembly for a file
+rendering/RenderTextControlSingleLine.cpp.s:
+	cd /home/developer/trunk && $(MAKE) -f WebCore/CMakeFiles/webcore.dir/build.make WebCore/CMakeFiles/webcore.dir/rendering/RenderTextControlSingleLine.cpp.s
+.PHONY : rendering/RenderTextControlSingleLine.cpp.s
+
 rendering/RenderTextFragment.o: rendering/RenderTextFragment.cpp.o
 .PHONY : rendering/RenderTextFragment.o
 
@@ -20723,6 +20915,9 @@ help:
 	@echo "... __/BAL/Facilities/WebCore/SDL/BCFileChooserSDL.o"
 	@echo "... __/BAL/Facilities/WebCore/SDL/BCFileChooserSDL.i"
 	@echo "... __/BAL/Facilities/WebCore/SDL/BCFileChooserSDL.s"
+	@echo "... __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.o"
+	@echo "... __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.i"
+	@echo "... __/BAL/Facilities/WebCore/SDL/BCFileSystemSDL.s"
 	@echo "... __/BAL/Facilities/WebCore/SDL/BCLanguageSDL.o"
 	@echo "... __/BAL/Facilities/WebCore/SDL/BCLanguageSDL.i"
 	@echo "... __/BAL/Facilities/WebCore/SDL/BCLanguageSDL.s"
@@ -20813,9 +21008,6 @@ help:
 	@echo "... __/BAL/Fonts/WebCore/WK/BCWidthIteratorWK.o"
 	@echo "... __/BAL/Fonts/WebCore/WK/BCWidthIteratorWK.i"
 	@echo "... __/BAL/Fonts/WebCore/WK/BCWidthIteratorWK.s"
-	@echo "... __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.o"
-	@echo "... __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.i"
-	@echo "... __/BAL/Graphics/WebCore/SDL/BCAffineTransformSDL.s"
 	@echo "... __/BAL/Graphics/WebCore/SDL/BCColorSDL.o"
 	@echo "... __/BAL/Graphics/WebCore/SDL/BCColorSDL.i"
 	@echo "... __/BAL/Graphics/WebCore/SDL/BCColorSDL.s"
@@ -20852,9 +21044,9 @@ help:
 	@echo "... __/BAL/Graphics/WebCore/SDL/BCPatternSDL.o"
 	@echo "... __/BAL/Graphics/WebCore/SDL/BCPatternSDL.i"
 	@echo "... __/BAL/Graphics/WebCore/SDL/BCPatternSDL.s"
-	@echo "... __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.o"
-	@echo "... __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.i"
-	@echo "... __/BAL/Graphics/WebCore/WK/BCAffineTransformWK.s"
+	@echo "... __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.o"
+	@echo "... __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.i"
+	@echo "... __/BAL/Graphics/WebCore/SDL/BCTransformationMatrixSDL.s"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCAnimationListWK.o"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCAnimationListWK.i"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCAnimationListWK.s"
@@ -20933,6 +21125,9 @@ help:
 	@echo "... __/BAL/Graphics/WebCore/WK/BCTransformOperationsWK.o"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCTransformOperationsWK.i"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCTransformOperationsWK.s"
+	@echo "... __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.o"
+	@echo "... __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.i"
+	@echo "... __/BAL/Graphics/WebCore/WK/BCTransformationMatrixWK.s"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCTranslateTransformOperationWK.o"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCTranslateTransformOperationWK.i"
 	@echo "... __/BAL/Graphics/WebCore/WK/BCTranslateTransformOperationWK.s"
@@ -21245,9 +21440,6 @@ help:
 	@echo "... __/generated_sources/WebCore/JSCanvasPattern.o"
 	@echo "... __/generated_sources/WebCore/JSCanvasPattern.i"
 	@echo "... __/generated_sources/WebCore/JSCanvasPattern.s"
-	@echo "... __/generated_sources/WebCore/JSCanvasPixelArray.o"
-	@echo "... __/generated_sources/WebCore/JSCanvasPixelArray.i"
-	@echo "... __/generated_sources/WebCore/JSCanvasPixelArray.s"
 	@echo "... __/generated_sources/WebCore/JSCanvasRenderingContext2D.o"
 	@echo "... __/generated_sources/WebCore/JSCanvasRenderingContext2D.i"
 	@echo "... __/generated_sources/WebCore/JSCanvasRenderingContext2D.s"
@@ -21275,6 +21467,9 @@ help:
 	@echo "... __/generated_sources/WebCore/JSDOMSelection.o"
 	@echo "... __/generated_sources/WebCore/JSDOMSelection.i"
 	@echo "... __/generated_sources/WebCore/JSDOMSelection.s"
+	@echo "... __/generated_sources/WebCore/JSDOMStringList.o"
+	@echo "... __/generated_sources/WebCore/JSDOMStringList.i"
+	@echo "... __/generated_sources/WebCore/JSDOMStringList.s"
 	@echo "... __/generated_sources/WebCore/JSDOMWindow.o"
 	@echo "... __/generated_sources/WebCore/JSDOMWindow.i"
 	@echo "... __/generated_sources/WebCore/JSDOMWindow.s"
@@ -21614,6 +21809,9 @@ help:
 	@echo "... __/generated_sources/WebCore/JSWebKitCSSKeyframesRule.o"
 	@echo "... __/generated_sources/WebCore/JSWebKitCSSKeyframesRule.i"
 	@echo "... __/generated_sources/WebCore/JSWebKitCSSKeyframesRule.s"
+	@echo "... __/generated_sources/WebCore/JSWebKitCSSMatrix.o"
+	@echo "... __/generated_sources/WebCore/JSWebKitCSSMatrix.i"
+	@echo "... __/generated_sources/WebCore/JSWebKitCSSMatrix.s"
 	@echo "... __/generated_sources/WebCore/JSWebKitCSSTransformValue.o"
 	@echo "... __/generated_sources/WebCore/JSWebKitCSSTransformValue.i"
 	@echo "... __/generated_sources/WebCore/JSWebKitCSSTransformValue.s"
@@ -21692,6 +21890,9 @@ help:
 	@echo "... bindings/js/JSDOMGlobalObject.o"
 	@echo "... bindings/js/JSDOMGlobalObject.i"
 	@echo "... bindings/js/JSDOMGlobalObject.s"
+	@echo "... bindings/js/JSDOMStringListCustom.o"
+	@echo "... bindings/js/JSDOMStringListCustom.i"
+	@echo "... bindings/js/JSDOMStringListCustom.s"
 	@echo "... bindings/js/JSDOMWindowBase.o"
 	@echo "... bindings/js/JSDOMWindowBase.i"
 	@echo "... bindings/js/JSDOMWindowBase.s"
@@ -21845,6 +22046,9 @@ help:
 	@echo "... bindings/js/JSTreeWalkerCustom.o"
 	@echo "... bindings/js/JSTreeWalkerCustom.i"
 	@echo "... bindings/js/JSTreeWalkerCustom.s"
+	@echo "... bindings/js/JSWebKitCSSMatrixConstructor.o"
+	@echo "... bindings/js/JSWebKitCSSMatrixConstructor.i"
+	@echo "... bindings/js/JSWebKitCSSMatrixConstructor.s"
 	@echo "... bindings/js/JSXMLHttpRequestConstructor.o"
 	@echo "... bindings/js/JSXMLHttpRequestConstructor.i"
 	@echo "... bindings/js/JSXMLHttpRequestConstructor.s"
@@ -22082,6 +22286,9 @@ help:
 	@echo "... css/WebKitCSSKeyframesRule.o"
 	@echo "... css/WebKitCSSKeyframesRule.i"
 	@echo "... css/WebKitCSSKeyframesRule.s"
+	@echo "... css/WebKitCSSMatrix.o"
+	@echo "... css/WebKitCSSMatrix.i"
+	@echo "... css/WebKitCSSMatrix.s"
 	@echo "... css/WebKitCSSTransformValue.o"
 	@echo "... css/WebKitCSSTransformValue.i"
 	@echo "... css/WebKitCSSTransformValue.s"
@@ -22133,6 +22340,9 @@ help:
 	@echo "... dom/DOMImplementation.o"
 	@echo "... dom/DOMImplementation.i"
 	@echo "... dom/DOMImplementation.s"
+	@echo "... dom/DOMStringList.o"
+	@echo "... dom/DOMStringList.i"
+	@echo "... dom/DOMStringList.s"
 	@echo "... dom/Document.o"
 	@echo "... dom/Document.i"
 	@echo "... dom/Document.s"
@@ -22259,6 +22469,9 @@ help:
 	@echo "... dom/StaticNodeList.o"
 	@echo "... dom/StaticNodeList.i"
 	@echo "... dom/StaticNodeList.s"
+	@echo "... dom/StaticStringList.o"
+	@echo "... dom/StaticStringList.i"
+	@echo "... dom/StaticStringList.s"
 	@echo "... dom/StyleElement.o"
 	@echo "... dom/StyleElement.i"
 	@echo "... dom/StyleElement.s"
@@ -22460,9 +22673,6 @@ help:
 	@echo "... html/CanvasPattern.o"
 	@echo "... html/CanvasPattern.i"
 	@echo "... html/CanvasPattern.s"
-	@echo "... html/CanvasPixelArray.o"
-	@echo "... html/CanvasPixelArray.i"
-	@echo "... html/CanvasPixelArray.s"
 	@echo "... html/CanvasRenderingContext2D.o"
 	@echo "... html/CanvasRenderingContext2D.i"
 	@echo "... html/CanvasRenderingContext2D.s"
@@ -23141,6 +23351,12 @@ help:
 	@echo "... rendering/RenderTextControl.o"
 	@echo "... rendering/RenderTextControl.i"
 	@echo "... rendering/RenderTextControl.s"
+	@echo "... rendering/RenderTextControlMultiLine.o"
+	@echo "... rendering/RenderTextControlMultiLine.i"
+	@echo "... rendering/RenderTextControlMultiLine.s"
+	@echo "... rendering/RenderTextControlSingleLine.o"
+	@echo "... rendering/RenderTextControlSingleLine.i"
+	@echo "... rendering/RenderTextControlSingleLine.s"
 	@echo "... rendering/RenderTextFragment.o"
 	@echo "... rendering/RenderTextFragment.i"
 	@echo "... rendering/RenderTextFragment.s"

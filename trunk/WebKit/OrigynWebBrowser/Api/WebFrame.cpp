@@ -510,9 +510,7 @@ const char* WebFrame::selectedString()
     if (!coreFrame)
         return "";
 
-    String text = coreFrame->selectedText();
-    text.replace('\\', coreFrame->backslashAsCurrencySymbol());
-
+    String text = coreFrame->displayStringModifiedByEncoding(coreFrame->selectedText());
     return text.utf8().data();
 }
 

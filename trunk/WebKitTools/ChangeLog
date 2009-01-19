@@ -1,3 +1,34 @@
+2009-01-19  Gabor Loki  <loki@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        * Scripts/webkitdirs.pm: Added '--makeargs' parameter which can pass additional
+        parameters to make command in QMake projects.
+
+2009-01-16  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Add AX methods to retrieve the parent of an element.
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (parentElementCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::parentElement):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::parentElement):
+
+2009-01-16  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Set the count to the right number of elements.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/TestObject.cpp:
+        (testEnumerate):
+
 2009-01-16  David Kilzer  <ddkilzer@apple.com>
 
         BUILD FIX: Use COM API on Windows in LayoutTestController::setIconDatabaseEnabled()

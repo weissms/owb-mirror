@@ -1,7 +1,8 @@
 import os
-import pysvn
-import shutil
 import logging
+import pysvn
+import re
+import shutil
 
 def createOWBPatch(url, rev) :
     logging.debug('createOWBPatch')
@@ -42,9 +43,9 @@ def createOWBWebKitPatch(url, file):
     patch = open(url + "/../merge/patches/" + f + ".patch", 'r')
     content = patch.read()
     patch.close()
-    content = content.replace("^---", "Index: " + file +"\n===================================================================\n---")
-    content = content.replace("^--- " + url + "/../merge/files/" + f, "--- " + file)
-    content = content.replace("^+++ " + url + "/" + file, "+++ " + file)
+    content = content.replace("---", "Index: " + file +"\n===================================================================\n---", 1)
+    content = content.replace("--- " + url + "/../merge/files/" + f, "--- " + file, 1)
+    content = content.replace("+++ " + url + "/" + file, "+++ " + file, 1)
     patch = open(url + "/../merge/patches/" + f + ".patch", 'w')
     patch.write(content)
     patch.close()

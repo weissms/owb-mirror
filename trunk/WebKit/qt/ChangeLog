@@ -1,3 +1,47 @@
+2009-01-19  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        [Qt] Increase popup focus delay time to a sensible 500 ms.
+
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2009-01-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+         Reviewed by Adam Roben.
+
+         [Qt] Prevent crash if plugin data is NULL.
+
+         * WebCoreSupport/FrameLoaderClientQt.cpp: NULL check.
+         (WebCore::FrameLoaderClientQt::objectContentType):
+
+2009-01-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        [Qt] Per-line cursor movement tests depend on platform-specific font
+        metrics. Remove them to avoid test failures on different platforms.
+
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::cursorMovements):
+
+2009-01-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Rubber-stamped by Simon Hausmann.
+
+        http://www.qtsoftware.com/developer/task-tracker/index_html?id=219344&method=entry
+
+        [Qt] API documentation for QWebPage::WebAction enum.
+
+        * Api/qwebpage.cpp:
+
+2009-01-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
+
+        Another attempt at fixing the Qt build.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::addToJavaScriptWindowObject):
+
 2009-01-16  Ariya Hidayat  <ariya.hidayat@trolltech.com>
 
         Reviewed by Tor Arne Vestbø.

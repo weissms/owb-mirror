@@ -1,3 +1,104 @@
+2009-01-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        On x86-64 jit, cache JSImmedate::TagMask & JSImmedate::TagTypeNumber in
+        registers, save reloading them every time they're used.
+
+        Draws x86-64 jit performance close to that of i386 jit.
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::subPtr):
+        (JSC::MacroAssembler::jnzPtr):
+        (JSC::MacroAssembler::jzPtr):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileBinaryArithOpSlowCase):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitJumpIfJSCell):
+        (JSC::JIT::emitJumpIfNotJSCell):
+        (JSC::JIT::emitJumpIfImmediateNumber):
+        (JSC::JIT::emitJumpIfNotImmediateNumber):
+        (JSC::JIT::emitJumpIfImmediateInteger):
+        (JSC::JIT::emitJumpIfNotImmediateInteger):
+        (JSC::JIT::emitFastArithIntToImmNoCheck):
+
+2009-01-16  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add support to x86-64 JIT for inline double precision arithmetic ops.
+        +5/6% on x86-64, JIT enabled, sunspider.
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::addPtr):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::movq_rr):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::compileFastArith_op_pre_inc):
+        (JSC::JIT::compileBinaryArithOp):
+        (JSC::JIT::compileBinaryArithOpSlowCase):
+        (JSC::JIT::compileFastArith_op_add):
+        (JSC::JIT::compileFastArithSlow_op_add):
+        (JSC::JIT::compileFastArith_op_mul):
+        (JSC::JIT::compileFastArithSlow_op_mul):
+        (JSC::JIT::compileFastArith_op_sub):
+        (JSC::JIT::compileFastArithSlow_op_sub):
+        * parser/ResultType.h:
+        (JSC::ResultType::isReusable):
+        (JSC::ResultType::isInt32):
+        (JSC::ResultType::definitelyIsNumber):
+        (JSC::ResultType::mightBeNumber):
+        (JSC::ResultType::isNotNumber):
+        (JSC::ResultType::unknownType):
+
+2009-01-16  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Fixes for SamplingTool.
+
+        https://bugs.webkit.org/show_bug.cgi?id=23390
+
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::storePtr):
+        * bytecode/SamplingTool.cpp:
+        (JSC::SamplingTool::run):
+        (JSC::SamplingTool::dump):
+        * bytecode/SamplingTool.h:
+        (JSC::SamplingTool::encodeSample):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompile):
+        * jit/JIT.h:
+        (JSC::JIT::samplingToolTrackCodeBlock):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCall):
+        (JSC::JIT::compileOpCallSlowCase):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitCTICall_internal):
+
+2009-01-16  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Fixed <rdar://problem/6452301> REGRESSION: Latest WebKit nightlies
+        turn "c" into "" when stripping \\c_ character
+
+        * wrec/WRECParser.cpp:
+        (JSC::WREC::Parser::consumeEscape): Mimic a Firefox quirk when parsing
+        control escapes inside character classes.
+
+2009-01-16  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * wrec/WRECParser.cpp:
+        (JSC::WREC::Parser::parseParentheses): Removed unreachable code.
+
 2009-01-16  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Cameron Zwarich.

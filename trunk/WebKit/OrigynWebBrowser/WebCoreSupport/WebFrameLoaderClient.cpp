@@ -59,6 +59,7 @@
 
 #include <CachedPage.h>
 #include <DocumentLoader.h>
+#include <Frame.h>
 #include <FrameLoader.h>
 #include <FrameTree.h>
 #include <FrameView.h>

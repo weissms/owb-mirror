@@ -93,9 +93,6 @@ namespace WKAL {
        
         PlatformGraphicsContext* platformContext() const;
 
-        const Font& font() const;
-        void setFont(const Font&);
-        
         float strokeThickness() const;
         void setStrokeThickness(float);
         StrokeStyle strokeStyle() const;
@@ -115,9 +112,12 @@ namespace WKAL {
         void setFillGradient(PassRefPtr<Gradient>);
         void setShadowsIgnoreTransforms(bool);
 
+        void setShouldAntialias(bool);
+        bool shouldAntialias() const;
+       
         void save();
         void restore();
-        
+
         // These draw methods will do both stroking and filling.
         void drawRect(const IntRect&);
         void drawLine(const IntPoint&, const IntPoint&);
@@ -162,16 +162,16 @@ namespace WKAL {
         void clipOut(const IntRect&);
         void clipOutEllipseInRect(const IntRect&);
         void clipOutRoundedRect(const IntRect&, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight);
-	void clipPath(WindRule);
+        void clipPath(WindRule);
 
         void clipToImageBuffer(const FloatRect&, const ImageBuffer*);
 
         int textDrawingMode();
         void setTextDrawingMode(int);
 
-        void drawText(const TextRun&, const IntPoint&, int from = 0, int to = -1);
-        void drawBidiText(const TextRun&, const FloatPoint&);
-        void drawHighlightForText(const TextRun&, const IntPoint&, int h, const Color& backgroundColor, int from = 0, int to = -1);
+        void drawText(const Font&, const TextRun&, const IntPoint&, int from = 0, int to = -1);
+        void drawBidiText(const Font&, const TextRun&, const FloatPoint&);
+        void drawHighlightForText(const Font&, const TextRun&, const IntPoint&, int h, const Color& backgroundColor, int from = 0, int to = -1);
 
         FloatRect roundToDevicePixels(const FloatRect&);
         
@@ -222,8 +222,6 @@ namespace WKAL {
         void concatCTM(const TransformationMatrix&);
         TransformationMatrix getCTM() const;
 
-        void setUseAntialiasing(bool = true);
-
         void setBalExposeEvent(BalEventExpose*);
         BalDrawable* balDrawable() const;
         BalEventExpose* balExposeEvent() const;
@@ -245,6 +243,8 @@ namespace WKAL {
         void setPlatformFillColor(const Color&);
         void setPlatformFillPattern(Pattern*);
         void setPlatformFillGradient(Gradient*);
+
+        void setPlatformShouldAntialias(bool b);
 
         void setPlatformShadow(const IntSize&, int blur, const Color&);
         void clearPlatformShadow();

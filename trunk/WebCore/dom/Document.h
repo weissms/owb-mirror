@@ -33,6 +33,7 @@
 #include "HTMLFormElement.h"
 #include "ScriptExecutionContext.h"
 #include "StringHash.h"
+#include "TextResourceDecoder.h"
 #include "Timer.h"
 #include <wtf/HashCountedSet.h>
 #include <wtf/ListHashSet.h>
@@ -214,7 +215,14 @@ public:
 
     DOMImplementation* implementation() const;
     virtual void childrenChanged(bool changedByParser = false, Node* beforeChange = 0, Node* afterChange = 0, int childCountDelta = 0);
-    Element* documentElement() const;
+    
+    Element* documentElement() const
+    {
+        if (!m_documentElement)
+            cacheDocumentElement();
+        return m_documentElement.get();
+    }
+    
     virtual PassRefPtr<Element> createElement(const AtomicString& tagName, ExceptionCode&);
     PassRefPtr<DocumentFragment> createDocumentFragment ();
     PassRefPtr<Text> createTextNode(const String& data);
@@ -361,6 +369,8 @@ public:
     void setUsesFirstLineRules(bool b) { m_usesFirstLineRules = b; }
     bool usesFirstLetterRules() const { return m_usesFirstLetterRules; }
     void setUsesFirstLetterRules(bool b) { m_usesFirstLetterRules = b; }
+    bool usesBeforeAfterRules() const { return m_usesBeforeAfterRules; }
+    void setUsesBeforeAfterRules(bool b) { m_usesBeforeAfterRules = b; }
 
     // Machinery for saving and restoring state when you leave and then go back to a page.
     void registerFormElementWithState(HTMLFormControlElementWithState* e) { m_formElementsWithState.add(e); }
@@ -895,6 +905,7 @@ private:
     bool m_usesSiblingRules;
     bool m_usesFirstLineRules;
     bool m_usesFirstLetterRules;
+    bool m_usesBeforeAfterRules;
     bool m_gotoAnchorNeededAfterStylesheetsLoad;
     bool m_isDNSPrefetchEnabled;
     bool m_haveExplicitlyDisabledDNSPrefetch;
@@ -947,7 +958,7 @@ private:
     String m_contentLanguage;
 
 public:
-    bool inPageCache();
+    bool inPageCache() const { return m_inPageCache; }
     void setInPageCache(bool flag);
     
     // Elements can register themselves for the "documentWillBecomeInactive()" and  
@@ -967,7 +978,20 @@ public:
     void setDecoder(PassRefPtr<TextResourceDecoder>);
     TextResourceDecoder* decoder() const { return m_decoder.get(); }
 
-    UChar backslashAsCurrencySymbol() const;
+    String displayStringModifiedByEncoding(const String& str) const {
+        if (m_decoder)
+            return m_decoder->encoding().displayString(str.impl());
+        return str;
+    }
+    PassRefPtr<StringImpl> displayStringModifiedByEncoding(PassRefPtr<StringImpl> str) const {
+        if (m_decoder)
+            return m_decoder->encoding().displayString(str);
+        return str;
+    }
+    void displayBufferModifiedByEncoding(UChar* buffer, unsigned len) const {
+        if (m_decoder)
+            m_decoder->encoding().displayBuffer(buffer, len);
+    }
 
     // Quirk for the benefit of Apple's Dictionary application.
     void setFrameElementsShouldIgnoreScrolling(bool ignore) { m_frameElementsShouldIgnoreScrolling = ignore; }
@@ -1028,6 +1052,8 @@ private:
     void imageLoadEventTimerFired(Timer<Document>*);
     void updateFocusAppearanceTimerFired(Timer<Document>*);
     void updateBaseURL();
+
+    void cacheDocumentElement() const;
 
     RenderObject* m_savedRenderer;
     int m_secureForms;
