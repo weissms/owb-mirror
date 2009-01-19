@@ -1,6 +1,7 @@
 2009-01-19  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.
+        fix crash on http://www.visibone.com//javascript/unittests.html
 
         * Internationalization/WTF/Generic/BCCollatorGeneric.cpp:
         (WTF::Collator::Collator):
