@@ -2,6 +2,20 @@
 
         Reviewed by Mario Bensi.
 
+        - Added a new method setName.
+
+        - Corrected some potential double free issue (forgot to strdup the empty string
+          which was shown by the regression test).
+
+        * OrigynWebBrowser/Api/WebFrame.cpp:
+        (WebFrame::name):
+        (WebFrame::setName):
+        * OrigynWebBrowser/Api/WebFrame.h:
+
+2009-01-19  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Modify WebFrame::url() to strdup the returned string.
 
         * OrigynWebBrowser/Api/WebFrame.cpp:

@@ -263,10 +263,10 @@ const char* WebFrame::name()
 {
     Frame* coreFrame = core(this);
     if (!coreFrame)
-        return "";
+        return strdup("");
 
     if (!coreFrame->document())
-        return "";
+        return strdup("");
 
 #if PLATFORM(AMIGAOS4)
     strlcpy(m_title, coreFrame->loader()->documentLoader()->title().utf8().data(), sizeof(m_title));
@@ -279,6 +279,17 @@ const char* WebFrame::name()
     const CString& frameTitle = coreFrame->loader()->documentLoader()->title().utf8();
     return strdup(frameTitle.data());
 #endif
+}
+
+void WebFrame::setName(const char* frameName)
+{
+    Frame* coreFrame = core(this);
+    // FIXME: we should have a way of knowing it is too early to set the frame name
+    // because the WebFrame was not initialized.
+    if (!coreFrame)
+        return;
+
+    coreFrame->tree()->setName(frameName);
 }
 
 WebView* WebFrame::webView()

@@ -137,9 +137,18 @@ public:
     virtual const char* name();
 
     /**
+     * setName
+     * @description set the WebFrame's name
+     * @param frameName the new WebFrame's name
+     * @discussion The frame needs to have been initialize throught the WebView
+     *             for this method to work.
+     */
+    virtual void setName(const char* frameName);
+
+    /**
      * @result Returns the WebView for the document that includes this frame.
      */
-    virtual WebView *webView();
+    virtual WebView* webView();
 
     /**
      * Returns the DOM document of the frame.
@@ -151,7 +160,7 @@ public:
      *  loadRequest
      * @param request The web request to load.
      */
-    virtual void loadRequest(WebMutableURLRequest *request);
+    virtual void loadRequest(WebMutableURLRequest* request);
 
     /**
      *  loadURL

@@ -1013,7 +1013,7 @@ void WebView::initWithFrame(BalRectangle& frame, const char* frameName, const ch
         d->setFrameRect(frame);
 
     setGroupName(groupName);
-    core(m_mainFrame)->tree()->setName(frameName);
+    m_mainFrame->setName(frameName);
 }
 
 /*static bool initCommonControls()

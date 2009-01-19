@@ -2,6 +2,16 @@
 
         Reviewed by Mario Bensi.
 
+        Added some test for the new method WebFrame::setName.
+
+        * OWBLauncher/Tests/WebFrameTests.cpp:
+        (WebFrameTest::testSettingWebFrameName):
+        (WebFrameTest::testSettingWebViewWebFrameName):
+
+2009-01-19  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Add some dynamic events using an event loop.
         For the moment, it is only available on SDL.
 
@@ -454,6 +464,16 @@
         (main):
 
 2008-06-13  Mario Bensi  <mbensi@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Added some test for the new method WebFrame::setName.
+
+        * OWBLauncher/Tests/WebFrameTests.cpp:
+        (WebFrameTest::testSettingWebFrameName):
+        (WebFrameTest::testSettingWebViewWebFrameName):
+
+2009-01-16  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by NOBODY (OOPS!).
 

@@ -14,6 +14,8 @@ class WebFrameTest : public CPPUNIT_NS::TestCase
     CPPUNIT_TEST_SUITE(WebFrameTest);
     CPPUNIT_TEST(testInitialValue);
     CPPUNIT_TEST(testWebViewWebFrame);
+    CPPUNIT_TEST(testSettingWebFrameName);
+    CPPUNIT_TEST(testSettingWebViewWebFrameName);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -42,6 +44,35 @@ protected:
         CPPUNIT_ASSERT(!strncmp(foobarFrameName, webFrameName, strlen(foobarFrameName)));
         WebFrame* foundFrame = webFrame->findFrameNamed(foobarFrameName);
         CPPUNIT_ASSERT(foundFrame == webFrame);
+        delete webFrameName;
+        delete webView;
+    }
+
+    void testSettingWebFrameName()
+    {
+        WebFrame* webFrame = WebFrame::createInstance();
+        const char* foobarFrameName = "foorbarFrame";
+        webFrame->setName(foobarFrameName);
+        const char* webFrameName = webFrame->name();
+        // FIXME: This one fails because the WebFrame has no associated Frame.
+        CPPUNIT_ASSERT(!strncmp("", webFrameName, 1));
+        delete webFrameName;
+        delete webFrame;
+    }
+
+    void testSettingWebViewWebFrameName()
+    {
+        WebView* webView = WebView::createInstance();
+        BalRectangle dummyRect;
+        webView->initWithFrame(dummyRect, "", "");
+        WebFrame* webFrame = webView->mainFrame();
+        const char* webFrameName = webFrame->name();
+        CPPUNIT_ASSERT(!strncmp("", webFrameName, 1));
+        const char* foobarFrameName = "foobarFrame";
+        webFrame->setName(foobarFrameName);
+        delete webFrameName;
+        webFrameName = webFrame->name();
+        CPPUNIT_ASSERT(!strncmp(foobarFrameName, webFrameName, strlen(foobarFrameName)));
         delete webFrameName;
         delete webView;
     }
