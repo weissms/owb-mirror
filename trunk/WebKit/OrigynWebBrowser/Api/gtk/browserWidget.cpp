@@ -224,26 +224,62 @@ static void webkit_web_view_set_property(GObject* object, guint prop_id, const G
     }*/
 }
 
+static bool shouldCoalesce(GdkRectangle rect, GdkRectangle* rects, int count)
+{
+    const int cRectThreshold = 10;
+    const float cWastedSpaceThreshold = 0.75f;
+    bool useUnionedRect = (count <= 1) || (count > cRectThreshold);
+    if (!useUnionedRect) {
+        // Attempt to guess whether or not we should use the unioned rect or the individual rects.
+        // We do this by computing the percentage of "wasted space" in the union.  If that wasted space
+        // is too large, then we will do individual rect painting instead.
+        float unionPixels = (rect.width * rect.height);
+        float singlePixels = 0;
+        for (int i = 0; i < count; ++i)
+            singlePixels += rects[i].width * rects[i].height;
+        float wastedSpace = 1 - (singlePixels / unionPixels);
+        if (wastedSpace <= cWastedSpaceThreshold)
+            useUnionedRect = true;
+    }
+    return useUnionedRect;
+}
+
 static gboolean webkit_web_view_expose_event(GtkWidget* widget, GdkEventExpose* event)
 {
     Frame* frame = core(webView_s->mainFrame());
-    GdkRectangle clip;
-    gdk_region_get_clipbox(event->region, &clip);
-    cairo_t* cr = gdk_cairo_create(event->window);
-    GraphicsContext ctx(cr);
-    ctx.setGdkExposeEvent(event);
     if (frame->contentRenderer() && frame->view()) {
         frame->view()->layoutIfNeededRecursive();
 
-/*        if (webView_s->getTransparent()) {
-            cairo_save(cr);
-            cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
-            cairo_paint(cr);
-            cairo_restore(cr);
-        }*/
-        frame->view()->paint(&ctx, clip);
+        cairo_t* cr = gdk_cairo_create(event->window);
+        GraphicsContext ctx(cr);
+        cairo_destroy(cr);
+        ctx.setGdkExposeEvent(event);
+
+        GOwnPtr<GdkRectangle> rects;
+        int rectCount;
+        gdk_region_get_rectangles(event->region, &rects.outPtr(), &rectCount);
+
+        // Avoid recursing into the render tree excessively
+        bool coalesce = shouldCoalesce(event->area, rects.get(), rectCount);
+
+        if (coalesce) {
+            IntRect rect = event->area;
+            ctx.clip(rect);
+            if (webView_s->transparent())
+                ctx.clearRect(rect);
+            frame->view()->paint(&ctx, rect);
+        } else {
+            for (int i = 0; i < rectCount; i++) {
+                IntRect rect = rects.get()[i];
+                ctx.save();
+                ctx.clip(rect);
+                if (webView_s->transparent())
+                    ctx.clearRect(rect);
+                frame->view()->paint(&ctx, rect);
+                ctx.restore();
+            }
+        }
     }
-    cairo_destroy(cr);
 
     return false;
 }

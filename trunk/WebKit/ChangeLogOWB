@@ -1,3 +1,11 @@
+2009-01-20  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        Fix gtk high level API to reach 100% on acid3.
+
+        * OrigynWebBrowser/Api/gtk/browserWidget.cpp:
+
 2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.
