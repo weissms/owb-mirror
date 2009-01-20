@@ -2,6 +2,39 @@
 
         Reviewed by Mario Bensi.
 
+        - Added some test for the WebNotificationDelegate.
+
+        - Modified the SDL & gtk main to use it instead of a callback.
+
+        * OWBLauncher/SDL/main.cpp:
+        (MainWebNotificationDelegate::MainWebNotificationDelegate):
+        (MainWebNotificationDelegate::~MainWebNotificationDelegate):
+        (MainWebNotificationDelegate::startLoadNotification):
+        (MainWebNotificationDelegate::progressNotification):
+        (MainWebNotificationDelegate::finishedLoadNotification): WebNotificationDelegate
+        implementation.
+        (main):
+        * OWBLauncher/gtk/main.cpp:
+        (MainWebNotificationDelegate::MainWebNotificationDelegate):
+        (MainWebNotificationDelegate::~MainWebNotificationDelegate):
+        (MainWebNotificationDelegate::startLoadNotification):
+        (MainWebNotificationDelegate::progressNotification):
+        (MainWebNotificationDelegate::finishedLoadNotification): Ditto.
+        (main):
+
+        * OWBLauncher/Tests/WebViewTestsSDL.cpp:
+        (TestNotificationDelegate::TestNotificationDelegate):
+        (TestNotificationDelegate::~TestNotificationDelegate):
+        (TestNotificationDelegate::startLoadNotification):
+        (TestNotificationDelegate::progressNotification):
+        (TestNotificationDelegate::finishedLoadNotification):
+        (WebViewTestSDL::WebViewLoadURL):
+        (WebViewTestSDL::WebViewNotifiers):
+
+2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
         Remove -owb scripts to ease contribution as well as
         maintenance (the forked ones were not merge with the
         one from WebKit on a regular basis).

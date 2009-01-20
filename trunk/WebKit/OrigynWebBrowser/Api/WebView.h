@@ -41,8 +41,6 @@
 #include "WebKitTypes.h"
 #include <string>
 
-typedef void (*notifyProgressFunction)();
-
 class DefaultDownloadDelegate;
 class DefaultPolicyDelegate;
 class DOMDocument;
@@ -52,6 +50,7 @@ class WebElementPropertyBag;
 class WebFrame;
 class WebHistoryItem;
 class WebMutableURLRequest;
+class WebNotificationDelegate;
 class WebPreferences;
 class WebScriptObject;
 class WebViewPrivate;
@@ -177,25 +176,37 @@ public:
     virtual void setDownloadDelegate(DefaultDownloadDelegate *d);
 
     /**
-     * downloadDelegate 
-     * Return the WebView's WebDownloadDelegate.
-        @result The WebView's WebDownloadDelegate.
+     *  downloadDelegate 
+     *  Return the WebView's WebDownloadDelegate.
+     *  @result The WebView's WebDownloadDelegate.
      */
-    virtual DefaultDownloadDelegate *downloadDelegate();
+    virtual DefaultDownloadDelegate* downloadDelegate();
 
     /**
      *  setPolicyDelegate 
-     * Set the WebView's WebPolicyDelegate delegate.
-        @param delegate The WebPolicyDelegate to set as the delegate.
+     *  Set the WebView's WebPolicyDelegate delegate.
+     *  @param delegate The WebPolicyDelegate to set as the delegate.
      */
-    virtual void setPolicyDelegate(DefaultPolicyDelegate *d);
+    virtual void setPolicyDelegate(DefaultPolicyDelegate* d);
 
     /**
-     * policyDelegate 
-     * Return the WebView's WebPolicyDelegate.
-        @result The WebView's WebPolicyDelegate.
+     *  policyDelegate 
+     *  Return the WebView's WebPolicyDelegate.
+     *  @result The WebView's WebPolicyDelegate.
      */
-    virtual DefaultPolicyDelegate *policyDelegate();
+    virtual DefaultPolicyDelegate* policyDelegate();
+
+    /**
+     *  setWebNotificationDelegate
+     *  Set the WebView's WebNotificationDelegate.
+     */
+    virtual void setWebNotificationDelegate(WebNotificationDelegate*);
+
+    /**
+     *  webNotificationDelegate
+     *  get the WebView's WebNotificationDelegate.
+     */
+    WebNotificationDelegate* webNotificationDelegate();
 
     /**
      * mainFrame 
@@ -407,11 +418,6 @@ public:
                    *** The string returned by this method is duplicated with strdup so it is up to the caller to free it ***
      */
     virtual const char* groupName();
-
-    /**
-     *  register the notify function
-     **/
-    virtual void registerOnNotifyProgress(notifyProgressFunction f) { m_f = f;}
 
     /**
      *  estimatedProgress 
@@ -1342,11 +1348,6 @@ protected:
 #endif
 
     /**
-     * notifyProgress
-     **/
-    void notifyProgress() { if (m_f) m_f(); }
-
-    /**
      *  canHandleRequest
      */
     static bool canHandleRequest(const WebCore::ResourceRequest&);
@@ -1438,6 +1439,7 @@ protected:
 
     DefaultPolicyDelegate* m_policyDelegate;
     DefaultDownloadDelegate* m_downloadDelegate;
+    WebNotificationDelegate* m_webNotificationDelegate;
     WebPreferences* m_preferences;
 
     bool m_userAgentOverridden;
@@ -1476,7 +1478,6 @@ protected:
     BalWidget* m_topLevelParent;
     WebViewPrivate* d;
     WebViewObserver* m_webViewObserver;
-    notifyProgressFunction m_f;
 };
 
 #endif

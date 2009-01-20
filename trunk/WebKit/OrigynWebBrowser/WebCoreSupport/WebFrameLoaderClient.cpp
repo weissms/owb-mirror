@@ -41,6 +41,7 @@
 #include "WebHistory.h"
 #include "WebHistoryItem.h"
 #include "WebMutableURLRequest.h"
+#include "WebNotificationDelegate.h"
 #include "WebPreferences.h"
 #if ENABLE(INSPECTOR)
 #include "WebScriptDebugServer.h"
@@ -448,18 +449,26 @@ void WebFrameLoaderClient::postProgressStartedNotification()
 
 
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressStartedNotification, "", m_webFrame->webView());
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->startLoadNotification(m_webFrame);
 }
 
 void WebFrameLoaderClient::postProgressEstimateChangedNotification()
 {
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressEstimateChangedNotification, "", m_webFrame->webView());
-    m_webFrame->webView()->notifyProgress();
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->progressNotification(m_webFrame);
 }
 
 void WebFrameLoaderClient::postProgressFinishedNotification()
 {
     OWBAL::ObserverServiceData::createObserverService()->notifyObserver(WebViewProgressFinishedNotification, "", m_webFrame->webView());
-    
+    WebNotificationDelegate* webNotificationDelegate = m_webFrame->webView()->webNotificationDelegate();
+    if (webNotificationDelegate)
+        webNotificationDelegate->finishedLoadNotification(m_webFrame);
+
 #if ENABLE(ORIGYNSUITE)
     if (OrigynServer::get()->syncNeeded())
         OrigynServer::get()->synchronize(core(m_webFrame)); // sync if they are some

@@ -50,10 +50,30 @@ static GtkWidget* create_window ()
     return window;
 }
 
-void progressNotification()
+class MainWebNotificationDelegate : public WebNotificationDelegate
 {
-    printf("progress : %d \n", int(webView->estimatedProgress() * 100));
-}
+public:
+    MainWebNotificationDelegate()
+    {
+    }
+
+    ~MainWebNotificationDelegate()
+    {
+    }
+
+    virtual void startLoadNotification(WebFrame*)
+    {
+    }
+
+    virtual void progressNotification(WebFrame* webFrame)
+    {
+        printf("progress : %d \n", int(webFrame->webView()->estimatedProgress() * 100));
+    }
+
+    virtual void finishedLoadNotification(WebFrame*)
+    {
+    }
+};
 
 int main (int argc, char* argv[])
 {
@@ -74,7 +94,8 @@ int main (int argc, char* argv[])
     gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (view));
     gtk_container_add (GTK_CONTAINER (main_window), scrolled_window);
 
-    webView->registerOnNotifyProgress(progressNotification);
+    MainWebNotificationDelegate* mainWebNotificationDelegate = new MainWebNotificationDelegate();
+    webView->setWebNotificationDelegate(mainWebNotificationDelegate);
     gchar* uri = (gchar*) (argc > 1 ? argv[1] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
 

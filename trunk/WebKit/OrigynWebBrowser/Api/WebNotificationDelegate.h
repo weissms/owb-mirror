@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Pleyo.  All rights reserved.
+ * Copyright (C) 2009 Pleyo.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,12 +26,35 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef WebKit_h
-#define WebKit_h
+#ifndef WebNotificationDelegate_h
+#define WebNotificationDelegate_h
 
-#include <WebFrame.h>
-#include <WebView.h>
+class WebFrame;
 
-#include <WebNotificationDelegate.h>
+class WebNotificationDelegate {
 
-#endif //WebKit_h
+public:
+    virtual ~WebNotificationDelegate() { }
+
+    /**
+     * startLoadNotification: called when a frame starts loading its resources.
+     * @discussion: This is called for each frame so it can be called several
+     *              time for the same WebView.
+     */
+    virtual void startLoadNotification(WebFrame*) = 0;
+
+    /**
+     * progressNotification: called by the WebView each time there was progress in loading the page
+     * @discussion: This can be called several time for the same WebView::estimateProgress.
+     */
+    virtual void progressNotification(WebFrame*) = 0;
+
+    /**
+     * finishedLoadNotification: called when a frame has finished loading its resources.
+     * @discussion: This is called for each frame so it can be called several
+     *              time for the same WebView.
+     */
+    virtual void finishedLoadNotification(WebFrame*) = 0;
+};
+
+#endif // WebNotificationDelegate_h

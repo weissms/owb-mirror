@@ -1,3 +1,33 @@
+2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        - Removed the C-callback from the WebView and introduced a
+          new delegate (WebNotificationDelegate) instead.
+
+        * OrigynWebBrowser/Api/WebKit.h: Added an include for
+        WebNotificationDelegate.h.
+        * OrigynWebBrowser/Api/WebNotificationDelegate.h: Added.
+        (WebNotificationDelegate::~WebNotificationDelegate):
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::WebView): Initialize the m_webNotificationDelegate
+        to zero.
+        (WebView::~WebView): Delete the m_webNotificationDelegate
+        if set.
+        (WebView::setWebNotificationDelegate): WebNotificationDelegate
+        setter.
+        (WebView::webNotificationDelegate): WebNotificationDelegate
+        getter.
+        * OrigynWebBrowser/Api/WebView.h: Added the previous methods
+        as well as added / removed the appropriate attributes.
+
+        * OrigynWebBrowser/WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::postProgressStartedNotification):
+        (WebFrameLoaderClient::postProgressEstimateChangedNotification):
+        (WebFrameLoaderClient::postProgressFinishedNotification): Changed
+        all this method to call the WebView's WebNotificationDelegate if
+        set.
+
 2009-01-19  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

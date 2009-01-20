@@ -236,6 +236,7 @@ WebView::WebView()
     , m_mainFrame(0)
     , m_policyDelegate(0)
     , m_downloadDelegate(0)
+    , m_webNotificationDelegate(0)
     , m_preferences(0)
     , m_userAgentOverridden(false)
     , m_useBackForwardList(true)
@@ -259,7 +260,6 @@ WebView::WebView()
     , m_topLevelParent(0)
     , d(new WebViewPrivate(this))
     , m_webViewObserver(new WebViewObserver(this))
-    , m_f(0)
 {
     JSC::initializeThreading();
     WebCore::InitializeLoggingChannelsIfNecessary();
@@ -317,6 +317,8 @@ WebView::~WebView()
         m_policyDelegate = 0;
     if (m_downloadDelegate)
         delete m_downloadDelegate;
+    if (m_webNotificationDelegate)
+        delete m_webNotificationDelegate;
     if (d)
         delete d;
     if (m_webViewObserver)
@@ -1129,6 +1131,16 @@ void WebView::setPolicyDelegate(DefaultPolicyDelegate* d)
 DefaultPolicyDelegate* WebView::policyDelegate()
 {
     return m_policyDelegate;
+}
+
+void WebView::setWebNotificationDelegate(WebNotificationDelegate* notificationDelegate)
+{
+    m_webNotificationDelegate = notificationDelegate;
+}
+
+WebNotificationDelegate* WebView::webNotificationDelegate()
+{
+    return m_webNotificationDelegate;
 }
 
 WebFrame* WebView::mainFrame()

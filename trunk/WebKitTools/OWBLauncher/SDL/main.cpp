@@ -187,10 +187,31 @@ void usage()
     printf("owb [-c tokenizerChunkSize -d tokenizerDelay -f configFile] [url_to_load]\n");
 }
 
-void progressNotification()
+// Used to print the notifications.
+class MainWebNotificationDelegate : public WebNotificationDelegate
 {
-    printf("progress : %d \n", int(webView->estimatedProgress() * 100));
-}
+public:
+    MainWebNotificationDelegate()
+    {
+    }
+
+    ~MainWebNotificationDelegate()
+    {
+    }
+
+    virtual void startLoadNotification(WebFrame*)
+    {
+    }
+
+    virtual void progressNotification(WebFrame* webFrame)
+    {
+        printf("progress : %d \n", int(webFrame->webView()->estimatedProgress() * 100));
+    }
+
+    virtual void finishedLoadNotification(WebFrame*)
+    {
+    }
+};
 
 
 int main (int argc, char* argv[])
@@ -254,7 +275,8 @@ int main (int argc, char* argv[])
     webView->setViewWindow(s_screen);
     webView->initWithFrame(rect, NULL, NULL);
 
-    webView->registerOnNotifyProgress(progressNotification);
+    MainWebNotificationDelegate* mainWebNotificationDelegate = new MainWebNotificationDelegate();
+    webView->setWebNotificationDelegate(mainWebNotificationDelegate);
     char* uri = (char*) (argc > 0 ? argv[0] : "http://www.google.com/");
     webView->mainFrame()->loadURL(uri);
 

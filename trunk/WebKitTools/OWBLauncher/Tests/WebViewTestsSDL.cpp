@@ -148,6 +148,45 @@ static void waitEventUntilLoaded()
     }
 }
 
+// Custom WebNotificationDelegate
+class TestNotificationDelegate : public WebNotificationDelegate {
+public:
+    TestNotificationDelegate()
+        : m_seenStartLoadNotification(false)
+        , m_seenLastProgressNotification(false)
+        , m_seenFinishedLoadNotification(false)
+    {
+    }
+
+    ~TestNotificationDelegate()
+    {
+    }
+
+    virtual void startLoadNotification(WebFrame*)
+    {
+        m_seenStartLoadNotification = true;
+    }
+
+    virtual void progressNotification(WebFrame* webFrame)
+    {
+        double progress = webFrame->webView()->estimatedProgress();
+        CPPUNIT_ASSERT(progress >= 0 && progress <= 1);
+        if (progress == 1)
+            m_seenLastProgressNotification = true;
+    }
+
+    virtual void finishedLoadNotification(WebFrame*)
+    {
+        m_seenFinishedLoadNotification = true;
+    }
+
+    bool m_seenStartLoadNotification;
+    bool m_seenLastProgressNotification;
+    bool m_seenFinishedLoadNotification;
+};
+
+static const char* googleFr = "http://www.google.fr";
+
 class WebViewTestSDL : public CPPUNIT_NS::TestCase 
 {
     CPPUNIT_TEST_SUITE(WebViewTestSDL);
@@ -172,13 +211,25 @@ public:
 protected:
    void WebViewLoadURL()
    {
-       const char* googleFr = "http://www.google.fr";
        webView->mainFrame()->loadURL(googleFr);
        waitEventUntilLoaded();
        const char* url = webView->mainFrame()->url();
        CPPUNIT_ASSERT(!strncmp(googleFr, url, strlen(googleFr)));
    }
 
+   void WebViewNotifiers()
+   {
+       TestNotificationDelegate* testNotificationDelegate = new TestNotificationDelegate();
+       webView->setWebNotificationDelegate(testNotificationDelegate);
+       webView->mainFrame()->loadURL(googleFr);
+       waitEventUntilLoaded();
+       CPPUNIT_ASSERT(testNotificationDelegate->m_seenStartLoadNotification);
+       CPPUNIT_ASSERT(testNotificationDelegate->m_seenLastProgressNotification);
+       CPPUNIT_ASSERT(testNotificationDelegate->m_seenFinishedLoadNotification);
+       // Clear the WebNotificationDelegate.
+       webView->setWebNotificationDelegate(0);
+       delete testNotificationDelegate;
+   }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(WebViewTestSDL);
