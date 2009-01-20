@@ -1,3 +1,19 @@
+2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Remove -owb scripts to ease contribution as well as
+        maintenance (the forked ones were not merge with the
+        one from WebKit on a regular basis).
+
+        * Scripts/prepare-ChangeLog:
+        * Scripts/prepare-ChangeLog-owb: Removed.
+        * Scripts/resolve-ChangeLogs:
+        * Scripts/resolve-ChangeLogsOWB: Removed.
+        * Scripts/svn-apply:
+        * Scripts/svn-apply-owb: Removed.
+        * Scripts/svn-unapply:
+
 2009-01-19  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

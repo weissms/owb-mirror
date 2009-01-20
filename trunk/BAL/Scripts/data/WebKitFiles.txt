@@ -63,3 +63,7 @@ WebCore/xml/XSLTProcessor.cpp
 WebCore/xml/XSLStyleSheet.cpp
 WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
 WebKitTools/DumpRenderTree/DumpRenderTree.h
+WebkitTools/Scripts/prepare-ChangeLog
+WebKitTools/Scripts/resolve-ChangeLogs
+WebKitTools/Scripts/svn-apply
+WebKitTools/Scripts/svn-unapply

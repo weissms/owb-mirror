@@ -26,7 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Merge and resolve ChangeLog conflicts for svn and git repositories
+# Merge and resolve ChangeLogOWB conflicts for svn and git repositories
 
 use strict;
 
@@ -69,10 +69,10 @@ my $getOptionsResult = GetOptions(
 my @changeLogFiles = removeChangeLogArguments();
 
 if (scalar(@ARGV) > 0) {
-    print STDERR "ERROR: Files listed on command-line that are not ChangeLogs.\n";
+    print STDERR "ERROR: Files listed on command-line that are not ChangeLogOWBs.\n";
     undef $getOptionsResult;
 } elsif (!defined $fixMerged && scalar(@changeLogFiles) == 0) {
-    print STDERR "ERROR: No ChangeLog files listed on command-line.\n";
+    print STDERR "ERROR: No ChangeLogOWB files listed on command-line.\n";
     undef $getOptionsResult;
 } elsif (defined $fixMerged && !isGit()) {
     print STDERR "ERROR: --fix-merged may only be used with a git repository\n";
@@ -82,8 +82,8 @@ if (scalar(@ARGV) > 0) {
 sub usageAndExit()
 {
     print STDERR <<__END__;
-Usage: @{[ basename($0) ]} [options] path/to/ChangeLog [path/to/another/ChangeLog ...]
-  -f|--fix-merged [revision-range] fix git-merged ChangeLog entries; if a revision-range
+Usage: @{[ basename($0) ]} [options] path/to/ChangeLogOWB [path/to/another/ChangeLogOWB ...]
+  -f|--fix-merged [revision-range] fix git-merged ChangeLogOWB entries; if a revision-range
                                    is specified, run git filter-branch on the range
   -h|--help                        show this help message
   -w|--[no-]warnings               show or suppress warnings (default: show warnings)
@@ -186,9 +186,9 @@ sub conflictFiles($)
 }
 
 sub findChangeLog($) {
-    return $_[0] if basename($_[0]) eq "ChangeLog";
+    return $_[0] if basename($_[0]) eq "ChangeLogOWB";
 
-    my $file = File::Spec->catfile($_[0], "ChangeLog");
+    my $file = File::Spec->catfile($_[0], "ChangeLogOWB");
     return $file if -d $_[0] and -e $file;
 
     return undef;
@@ -260,7 +260,7 @@ sub fixMergedChangeLogs($;@)
     }
 
     my @changeLogs = grep { defined $_ } map { findChangeLog($_) } @changedFiles;
-    die "No changed ChangeLog files in $revisionRange" if scalar(@changeLogs) < 1;
+    die "No changed ChangeLogOWB files in $revisionRange" if scalar(@changeLogs) < 1;
 
     system("$GIT filter-branch --tree-filter 'PREVIOUS_COMMIT=\`$GIT rev-parse \$GIT_COMMIT^\` && MAPPED_PREVIOUS_COMMIT=\`map \$PREVIOUS_COMMIT\` $0 -f \"" . join('" "', @changeLogs) . "\"' $revisionRange");
 

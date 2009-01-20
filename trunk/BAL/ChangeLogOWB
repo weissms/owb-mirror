@@ -1,3 +1,11 @@
+2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Added the modified scripts.
+
+        * Scripts/data/WebKitFiles.txt:
+
 2009-01-19  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario Bensi.

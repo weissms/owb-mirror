@@ -249,28 +249,28 @@ foreach my $file (sort keys %function_lists) {
         $prefix =~ s-/[^/]+/?$-/- or $prefix = "";
         $has_log = $has_log{$prefix};
         if (!defined $has_log) {
-            $has_log = -f "${prefix}ChangeLog";
+            $has_log = -f "${prefix}ChangeLogOWB";
             $has_log{$prefix} = $has_log;
         }
         last if $has_log;
     }
     if (!$has_log) {
-        print STDERR "No ChangeLog found for $file.\n";
+        print STDERR "No ChangeLogOWB found for $file.\n";
     } else {
         push @{$files{$prefix}}, $file;
     }
 }
 
-# Get the latest ChangeLog files from svn.
+# Get the latest ChangeLogOWB files from svn.
 my @logs = ();
 foreach my $prefix (sort keys %files) {
-    push @logs, File::Spec->catfile($prefix || ".", "ChangeLog");
+    push @logs, File::Spec->catfile($prefix || ".", "ChangeLogOWB");
 }
 
 if (@logs && $updateChangeLogs && $isSVN) {
-    print STDERR "  Running 'svn update' to update ChangeLog files.\n";
+    print STDERR "  Running 'svn update' to update ChangeLogOWB files.\n";
     open ERRORS, "-|", $SVN, "update", @logs
-        or die "The svn update of ChangeLog files failed: $!.\n";
+        or die "The svn update of ChangeLogOWB files failed: $!.\n";
     my @conflictedChangeLogs;
     while (my $line = <ERRORS>) {
         print STDERR "    ", $line;
@@ -279,7 +279,7 @@ if (@logs && $updateChangeLogs && $isSVN) {
     close ERRORS;
 
     if (@conflictedChangeLogs) {
-        print STDERR "  Attempting to merge conflicted ChangeLogs.\n";
+        print STDERR "  Attempting to merge conflicted ChangeLogOWBs.\n";
         my $resolveChangeLogsPath = File::Spec->catfile(dirname($0), "resolve-ChangeLogs");
         open RESOLVE, "-|", $resolveChangeLogsPath, "--no-warnings", @conflictedChangeLogs
             or die "Could not open resolve-ChangeLogs script: $!.\n";
@@ -290,7 +290,7 @@ if (@logs && $updateChangeLogs && $isSVN) {
 
 # Write out a new ChangeLog file.
 foreach my $prefix (sort keys %files) {
-    my $changeLogPath = File::Spec->catfile($prefix || ".", "ChangeLog");
+    my $changeLogPath = File::Spec->catfile($prefix || ".", "ChangeLogOWB");
     print STDERR "  Editing the ${changeLogPath} file.\n";
     open OLD_CHANGE_LOG, ${changeLogPath} or die "Could not open ${changeLogPath} file: $!.\n";
     # It's less efficient to read the whole thing into memory than it would be
@@ -324,7 +324,7 @@ foreach my $prefix (sort keys %files) {
 
 # Write out another diff.
 if ($spewDiff && @changed_files) {
-    print STDERR "  Running diff to help you write the ChangeLog entries.\n";
+    print STDERR "  Running diff to help you write the ChangeLogOWB entries.\n";
     local $/ = undef; # local slurp mode
     open DIFF, "-|", createPatchCommand($changed_files_string) or die "The diff failed: $!.\n";
     print <DIFF>;
@@ -333,7 +333,7 @@ if ($spewDiff && @changed_files) {
 
 # Open ChangeLogs.
 if ($openChangeLogs && @logs) {
-    print STDERR "  Opening the edited ChangeLog files.\n";
+    print STDERR "  Opening the edited ChangeLogOWB files.\n";
     my $editor = $ENV{"CHANGE_LOG_EDIT_APPLICATION"};
     if ($editor) {
         system "open", "-a", $editor, @logs;
@@ -1248,11 +1248,11 @@ sub generateFileList(\@\@\%)
                        && $supportedTestExtensions{lc($1)}
                        && !scalar(grep(/^resources$/i, @components));
             }
-            push @{$changedFiles}, $file if $components[$#components] ne "ChangeLog";
+            push @{$changedFiles}, $file if $components[$#components] ne "ChangeLogOWB";
         } elsif (isConflictStatus($status)) {
             push @{$conflictFiles}, $file;
         }
-        if (basename($file) ne "ChangeLog") {
+        if (basename($file) ne "ChangeLogOWB") {
             my $description = statusDescription($status, $original);
             $functionLists->{$file} = $description if defined $description;
         }
