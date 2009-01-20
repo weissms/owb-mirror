@@ -1,5 +1,13 @@
 2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
 
+        Rubber-stamped by Mario Bensi.
+
+        Fix typo in my previous commit.
+
+        * Scripts/data/WebKitFiles.txt:
+
+2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
+
         Reviewed by Mario Bensi.
 
         Added the modified scripts.
