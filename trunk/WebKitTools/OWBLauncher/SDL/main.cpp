@@ -294,6 +294,7 @@ int main (int argc, char* argv[])
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
     SDL_Quit();
 
+    delete mainWebNotificationDelegate;
     delete webView;
     return 0;
 }

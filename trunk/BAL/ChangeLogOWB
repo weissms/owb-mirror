@@ -2,6 +2,19 @@
 
         Reviewed by Mario BENSI.
 
+        fix bug #321 (drag fix).
+
+        * Events/WebCore/SDL/BCEventHandlerSDL.cpp:
+        (WebCore::EventHandler::createDraggingClipboard):
+        * Widgets/WebCore/SDL/BCClipboardSDL.cpp:
+        (WKAL::Editor::newGeneralClipboard):
+        * Widgets/WebCore/SDL/BCClipboardSDL.h:
+        (WKAL::ClipboardBal::create):
+
+2009-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
         Fix bug #325 (build fix).
 
         * SVG/WebCore/WK/BCSVGImageWK.cpp:

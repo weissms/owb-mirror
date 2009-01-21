@@ -1,3 +1,13 @@
+2009-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        Fix a release crash at exit due to WebNotificationDelegate.
+
+        * OrigynWebBrowser/Api/WebView.cpp:
+        (WebView::~WebView):
+        * OrigynWebBrowser/Api/WebView.h:
+
 2009-01-20  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.

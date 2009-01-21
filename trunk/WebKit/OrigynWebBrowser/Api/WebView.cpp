@@ -318,7 +318,7 @@ WebView::~WebView()
     if (m_downloadDelegate)
         delete m_downloadDelegate;
     if (m_webNotificationDelegate)
-        delete m_webNotificationDelegate;
+        m_webNotificationDelegate = 0;
     if (d)
         delete d;
     if (m_webViewObserver)

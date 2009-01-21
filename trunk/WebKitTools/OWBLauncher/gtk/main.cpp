@@ -113,6 +113,7 @@ int main (int argc, char* argv[])
     gtk_widget_show_all (main_window);
     gtk_main ();
 
+    delete mainWebNotificationDelegate;
     delete webView;
     return 0;
 }

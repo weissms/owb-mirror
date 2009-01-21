@@ -1,3 +1,14 @@
+2009-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        Delete WebNotificationDelegate instance in main.
+
+        * OWBLauncher/SDL/main.cpp:
+        (main):
+        * OWBLauncher/gtk/main.cpp:
+        (main):
+
 2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Reviewed by Mario Bensi.

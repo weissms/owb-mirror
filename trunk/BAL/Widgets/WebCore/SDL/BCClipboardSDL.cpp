@@ -40,7 +40,7 @@ namespace WKAL {
 PassRefPtr<Clipboard> Editor::newGeneralClipboard(ClipboardAccessPolicy policy)
 {
     printf("Editor::newGeneralClipboard\n");
-    return new ClipboardBal(policy, false);
+    return ClipboardBal::create(policy, false);
 }
 
 ClipboardBal::ClipboardBal(ClipboardAccessPolicy policy, bool forDragging)

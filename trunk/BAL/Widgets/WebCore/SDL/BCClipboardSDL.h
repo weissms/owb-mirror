@@ -38,10 +38,13 @@ namespace WKAL {
 
     // State available during IE's events for drag and drop and copy/paste
     // Created from the EventHandlerGtk to be used by the dom
-    class ClipboardBal : public Clipboard, public WKALBase {
+    class ClipboardBal : public Clipboard {
     public:
-        ClipboardBal(ClipboardAccessPolicy, bool);
-        ~ClipboardBal();
+        static PassRefPtr<ClipboardBal> create(ClipboardAccessPolicy policy, bool isForDragging)
+        {
+            return adoptRef(new ClipboardBal(policy, isForDragging));
+        }
+        virtual ~ClipboardBal();
 
 
         void clearData(const String&);
@@ -62,6 +65,8 @@ namespace WKAL {
         virtual void writeRange(Range*, Frame*);
 
         virtual bool hasData();
+    private:
+        ClipboardBal(ClipboardAccessPolicy, bool);
     };
 }
 
