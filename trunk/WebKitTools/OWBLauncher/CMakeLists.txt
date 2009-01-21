@@ -59,15 +59,20 @@ if(ENABLE_TESTS)
     ADD_TEST(WebFrameTests ${OWB_BINARY_DIR}/bin/WebFrameTests)
 
     if(USE_GRAPHICS_SDL)
-        ADD_TEST(WebViewTestsSDL ${OWB_BINARY_DIR}/bin/WebViewTestsSDL)
-
-        add_executable(WebViewTestsSDL Tests/WebViewTestsSDL.cpp)
-        target_link_libraries(WebViewTestsSDL
-            webkit-owb
-            ${GRAPHICS_LIBRARIES}
-            ${CPPUNIT_LIBRARIES}
-        )
+        add_executable(WebViewPlatformTestsCommon Tests/SDL/WebViewPlatformTests.cpp Tests/WebViewPlatformTestsCommon.cpp)
     endif(USE_GRAPHICS_SDL)
+
+    if(USE_GRAPHICS_GTK)
+        add_executable(WebViewPlatformTestsCommon Tests/Gtk/WebViewPlatformTests.cpp Tests/WebViewPlatformTestsCommon.cpp)
+    endif(USE_GRAPHICS_GTK)
+
+    target_link_libraries(WebViewPlatformTestsCommon
+        webkit-owb
+        ${GRAPHICS_LIBRARIES}
+        ${CPPUNIT_LIBRARIES}
+    )
+    ADD_TEST(WebViewPlatformTestsCommon ${OWB_BINARY_DIR}/bin/WebViewPlatformTestsCommon)
+
 endif(ENABLE_TESTS)
 
 # IF (WEBKIT_USE_HTML_EXTENSION)

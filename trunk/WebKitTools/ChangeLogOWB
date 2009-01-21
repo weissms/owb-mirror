@@ -1,3 +1,25 @@
+2009-01-21  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Mario Bensi.
+
+        Split the platform specific part in the test using an
+        event loop so that we can share the test between SDL
+        and Gtk.
+
+        * OWBLauncher/CMakeLists.txt:
+        * OWBLauncher/Tests/Gtk: Added.
+        * OWBLauncher/Tests/Gtk/WebViewPlatformTests.cpp: Added.
+        (waitEventUntilLoaded): Event loop.
+        (createPlatformWebView): Platform set-up.
+        * OWBLauncher/Tests/SDL: Added.
+        * OWBLauncher/Tests/SDL/WebViewPlatformTests.cpp: Added.
+        (createSDLWindow):
+        (waitEventUntilLoaded):
+        (createPlatformWebView):
+        * OWBLauncher/Tests/WebViewPlatformTestsCommon.cpp: Copied from WebKitTools/OWBLauncher/Tests/WebViewTestsSDL.cpp.
+        (WebViewTestSDL::setUp):
+        * OWBLauncher/Tests/WebViewPlatformTestsCommon.h: Added.
+
 2009-01-21  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.
