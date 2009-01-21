@@ -136,7 +136,7 @@ def applyOWBPatch(path) :
     list = os.listdir(path + "/../merge/patches/bal")
     for file in list : 
 	logging.debug('apply webkit patch : ' + path + "/../merge/patches/bal/" + file)
-        os.system(path + "/WebKitTools/Scripts/svn-apply-owb " + path + "/../merge/patches/bal/" + file)
+        os.system(path + "/WebKitTools/Scripts/svn-apply " + path + "/../merge/patches/bal/" + file)
     if change :
         os.chdir(current)
     logging.debug('apply owb patch done')

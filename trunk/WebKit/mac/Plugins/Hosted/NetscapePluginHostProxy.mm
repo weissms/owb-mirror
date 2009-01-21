@@ -226,6 +226,20 @@ kern_return_t WKPCInvalidateRect(mach_port_t clientPort, uint32_t pluginID, doub
     return KERN_SUCCESS;
 }
 
+kern_return_t WKPCGetScriptableNPObjectReply(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID)
+{
+    NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
+    if (!hostProxy)
+        return KERN_FAILURE;
+    
+    NetscapePluginInstanceProxy* instanceProxy = hostProxy->pluginInstance(pluginID);
+    if (!instanceProxy)
+        return KERN_FAILURE;
+
+    instanceProxy->setCurrentReply(new NetscapePluginInstanceProxy::GetScriptableNPObjectReply(objectID));
+    return KERN_SUCCESS;
+}
+
 kern_return_t WKPCInstantiatePluginReply(mach_port_t clientPort, uint32_t pluginID, kern_return_t result, uint32_t renderContextID, boolean_t useSoftwareRenderer)
 {
     NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
@@ -272,8 +286,7 @@ kern_return_t WKPCReleaseObject(mach_port_t clientPort, uint32_t pluginID, uint3
     return KERN_SUCCESS;
 }
 
-kern_return_t WKPCEvaluate(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID, data_t scriptData, mach_msg_type_number_t scriptLength,
-                           boolean_t*returnValue, data_t* resultData, mach_msg_type_number_t* resultLength)
+kern_return_t WKPCEvaluate(mach_port_t clientPort, uint32_t pluginID, uint32_t objectID, data_t scriptData, mach_msg_type_number_t scriptLength)
 {
     NetscapePluginHostProxy* hostProxy = pluginProxyMap().get(clientPort);
     if (!hostProxy)
@@ -284,8 +297,15 @@ kern_return_t WKPCEvaluate(mach_port_t clientPort, uint32_t pluginID, uint32_t o
         return KERN_FAILURE;
 
     String script = fromUTF8WithLatin1Fallback(scriptData, scriptLength);
-    *returnValue = instanceProxy->evaluate(objectID, script, *resultData, *resultLength);
     
+    data_t resultData;
+    mach_msg_type_number_t resultLength;
+    
+    boolean_t returnValue = instanceProxy->evaluate(objectID, script, resultData, resultLength);
+    
+    _WKPHEvaluateReply(hostProxy->port(), instanceProxy->pluginID(), returnValue, resultData, resultLength);
+    mig_deallocate(reinterpret_cast<vm_address_t>(resultData), resultLength);
+        
     return KERN_SUCCESS;
 }
 

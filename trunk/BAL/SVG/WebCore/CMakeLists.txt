@@ -29,7 +29,6 @@ if(ENABLE_SVG)
     endif(USE_GRAPHICS_GTK)
     
     if(USE_GRAPHICS_SDL)
-        create_include_link(${BAL_DIR}/SVG/WebCore/SDL/BCSVGPaintServerPatternSDL.h BAL/SVGPaintServerPattern.h)
         create_include_link(${BAL_DIR}/SVG/WebCore/SDL/BCSVGPaintServerSolidSDL.h BAL/SVGPaintServerSolid.h)
 
         aux_source_directory(${BAL_DIR}/SVG/WebCore/SDL WEBCORE_SRC)

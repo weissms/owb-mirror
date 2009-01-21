@@ -47,15 +47,15 @@ UString WebScriptCallFrame::jsValueToString(JSC::ExecState* state, JSValuePtr js
     if (!jsvalue)
         return "undefined";
 
-    if (jsvalue->isString())
-        return jsvalue->getString();
-    else if (jsvalue->isNumber())
-        return UString::from(jsvalue->uncheckedGetNumber());
-    else if (jsvalue->isBoolean())
-        return jsvalue->getBoolean() ? "True" : "False";
-    else if (jsvalue->isObject()) {
-        jsvalue = jsvalue->getObject()->defaultValue(state, PreferString);
-        return jsvalue->getString();
+    if (jsvalue.isString())
+        return jsvalue.getString();
+    else if (jsvalue.isNumber())
+        return UString::from(jsvalue.uncheckedGetNumber());
+    else if (jsvalue.isBoolean())
+        return jsvalue.getBoolean() ? "True" : "False";
+    else if (jsvalue.isObject()) {
+        jsvalue = jsvalue.getObject()->defaultValue(state, PreferString);
+        return jsvalue.getString();
     }
 
     return "undefined";
@@ -148,7 +148,7 @@ JSValuePtr WebScriptCallFrame::valueByEvaluatingJavaScriptFromString(String scri
     JSObject* eval = 0;
     if (state->scopeNode()) {  // "eval" won't work without context (i.e. at global scope)
         JSValuePtr v = globObj->get(state, "eval");
-        if (v->isObject() && asObject(v)->implementsCall())
+        if (v.isObject() && asObject(v)->implementsCall())
             eval = asObject(v);
         else
             // no "eval" - fallback operates on global exec state

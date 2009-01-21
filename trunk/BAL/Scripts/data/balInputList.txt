@@ -524,7 +524,6 @@ BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceMarker.h
 BAL/Skeletons/SVG  WebCore/svg/graphics/SVGResourceMasker.h
 
 BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGPaintServerCairo.cpp
-BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGPaintServerPatternCairo.cpp
 BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGResourceFilterCairo.cpp
 BAL/SVG/WebCore/Cairo  WebCore/svg/graphics/cairo/SVGResourceMaskerCairo.cpp
 BAL/SVG/WebCore/WK WebCore/platform/graphics/filters/FEBlend.cpp
@@ -566,6 +565,7 @@ BAL/Skeletons/Types	JavaScriptCore/wtf/ASCIICType.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/AVLTree.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Assertions.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/CurrentTime.h
+BAL/Skeletons/Types	JavaScriptCore/wtf/ByteArray.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/Deque.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/GetPtr.h
 BAL/Skeletons/Types	JavaScriptCore/wtf/HashCountedSet.h
@@ -619,6 +619,8 @@ BAL/Types/WTF	JavaScriptCore/wtf/ASCIICType.h
 BAL/Types/WTF	JavaScriptCore/wtf/AVLTree.h
 BAL/Types/WTF	JavaScriptCore/wtf/Assertions.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/Assertions.h
+BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/ByteArray.h
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/CurrentTime.h
 BAL/Types/WTF	JavaScriptCore/wtf/Deque.h

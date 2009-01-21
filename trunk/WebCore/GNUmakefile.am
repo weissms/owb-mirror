@@ -452,6 +452,8 @@ webcore_sources += \
 	WebCore/css/CSSPrimitiveValueMappings.h \
 	WebCore/css/CSSProperty.cpp \
 	WebCore/css/CSSProperty.h \
+	WebCore/css/CSSPropertyLonghand.cpp \
+	WebCore/css/CSSPropertyLonghand.h \
 	WebCore/css/CSSQuirkPrimitiveValue.h \
 	WebCore/css/CSSReflectValue.cpp \
 	WebCore/css/CSSReflectValue.h \
@@ -594,7 +596,10 @@ webcore_sources += \
 	WebCore/dom/ExceptionBase.h \
 	WebCore/dom/ExceptionCode.cpp \
 	WebCore/dom/ExceptionCode.h \
+	WebCore/dom/FormControlElement.cpp \
 	WebCore/dom/FormControlElement.h \
+	WebCore/dom/InputElement.cpp \
+	WebCore/dom/InputElement.h \
 	WebCore/dom/KeyboardEvent.cpp \
 	WebCore/dom/KeyboardEvent.h \
 	WebCore/dom/MappedAttribute.cpp \
@@ -1136,7 +1141,6 @@ webcore_sources += \
 	WebCore/page/Frame.cpp \
 	WebCore/page/Frame.h \
 	WebCore/page/FrameLoadRequest.h \
-	WebCore/page/FramePrivate.h \
 	WebCore/page/FrameTree.cpp \
 	WebCore/page/FrameTree.h \
 	WebCore/page/FrameView.cpp \
@@ -2163,6 +2167,7 @@ webcore_sources += \
 	WebCore/bindings/js/JSWorkerCustom.cpp \
 	WebCore/bindings/js/WorkerScriptController.cpp \
 	WebCore/bindings/js/WorkerScriptController.h \
+	WebCore/dom/GenericWorkerTask.h \
 	WebCore/dom/Worker.cpp \
 	WebCore/dom/Worker.h \
 	WebCore/dom/WorkerContext.cpp \
@@ -2208,6 +2213,7 @@ webcore_sources += \
 	WebCore/wml/WMLGoElement.cpp \
 	WebCore/wml/WMLImageElement.cpp \
 	WebCore/wml/WMLImageLoader.cpp \
+	WebCore/wml/WMLInputElement.cpp \
 	WebCore/wml/WMLInsertedLegendElement.cpp \
 	WebCore/wml/WMLIntrinsicEvent.cpp \
 	WebCore/wml/WMLIntrinsicEventHandler.cpp \
@@ -2834,7 +2840,6 @@ webcore_sources += \
 
 webcoregtk_sources += \
 	WebCore/svg/graphics/cairo/SVGPaintServerCairo.cpp \
-	WebCore/svg/graphics/cairo/SVGPaintServerPatternCairo.cpp \
 	WebCore/svg/graphics/cairo/SVGResourceFilterCairo.cpp \
 	WebCore/svg/graphics/cairo/SVGResourceMaskerCairo.cpp
 

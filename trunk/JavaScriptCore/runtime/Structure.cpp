@@ -136,7 +136,7 @@ Structure::Structure(JSValuePtr prototype, const TypeInfo& typeInfo)
     , m_attributesInPrevious(0)
 {
     ASSERT(m_prototype);
-    ASSERT(m_prototype->isObject() || m_prototype->isNull());
+    ASSERT(m_prototype.isObject() || m_prototype.isNull());
 
     m_transitions.singleTransition = 0;
 
@@ -178,6 +178,8 @@ Structure::~Structure()
             if (UString::Rep* key = m_propertyTable->entries()[i].key)
                 key->deref();
         }
+
+        delete m_propertyTable->deletedOffsets;
         fastFree(m_propertyTable);
     }
 
@@ -320,7 +322,7 @@ void Structure::getEnumerablePropertyNames(ExecState* exec, PropertyNameArray& p
         }
     }
 
-    if (m_prototype->isObject())
+    if (m_prototype.isObject())
         asObject(m_prototype)->getPropertyNames(exec, propertyNames);
 
     if (shouldCache) {
@@ -540,7 +542,7 @@ StructureChain* Structure::createCachedPrototypeChain()
     ASSERT(!m_cachedPrototypeChain);
 
     JSValuePtr prototype = storedPrototype();
-    if (!prototype->isCell())
+    if (!prototype.isCell())
         return 0;
 
     RefPtr<StructureChain> chain = StructureChain::create(asObject(prototype)->structure());

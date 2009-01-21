@@ -14,6 +14,7 @@ if(ENABLE_WML)
         wml/WMLGoElement.cpp
         wml/WMLImageElement.cpp
         wml/WMLImageLoader.cpp
+        wml/WMLInputElement.cpp
         wml/WMLInsertedLegendElement.cpp
         wml/WMLIntrinsicEvent.cpp
         wml/WMLIntrinsicEventHandler.cpp

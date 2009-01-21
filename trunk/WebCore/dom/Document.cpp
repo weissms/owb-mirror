@@ -38,6 +38,7 @@
 #include "Comment.h"
 #if ENABLE(INSPECTOR)
 #include "Console.h"
+#include "InspectorController.h"
 #endif
 #include "CookieJar.h"
 #include "DOMImplementation.h"
@@ -4301,6 +4302,31 @@ void Document::reportException(const String& errorMessage, int lineNumber, const
 #if ENABLE(INSPECTOR)
     if (DOMWindow* window = domWindow())
         window->console()->addMessage(JSMessageSource, ErrorMessageLevel, errorMessage, lineNumber, sourceURL);
+#endif
+}
+
+void Document::addMessage(MessageDestination destination, MessageSource source, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
+{
+#if ENABLE(INSPECTOR)
+    switch (destination) {
+    case InspectorControllerDestination:
+        if (page())
+            page()->inspectorController()->addMessageToConsole(source, level, message, lineNumber, sourceURL);
+        return;
+    case ConsoleDestination:
+        if (DOMWindow* window = domWindow())
+            window->console()->addMessage(source, level, message, lineNumber, sourceURL);
+        return;
+    }
+    ASSERT_NOT_REACHED();
+#endif
+}
+
+void Document::resourceRetrievedByXMLHttpRequest(unsigned long identifier, const ScriptString& sourceString)
+{
+#if ENABLE(INSPECTOR)
+    if (page())
+        page()->inspectorController()->resourceRetrievedByXMLHttpRequest(identifier, sourceString);
 #endif
 }
 

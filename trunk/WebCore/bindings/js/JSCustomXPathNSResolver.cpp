@@ -48,10 +48,10 @@ using namespace JSC;
 
 PassRefPtr<JSCustomXPathNSResolver> JSCustomXPathNSResolver::create(JSC::ExecState* exec, JSC::JSValuePtr value)
 {
-    if (value->isUndefinedOrNull())
+    if (value.isUndefinedOrNull())
         return 0;
 
-    JSObject* resolverObject = value->getObject();
+    JSObject* resolverObject = value.getObject();
     if (!resolverObject) {
         setDOMException(exec, TYPE_MISMATCH_ERR);
         return 0;
@@ -86,7 +86,7 @@ String JSCustomXPathNSResolver::lookupNamespaceURI(const String& prefix)
         
     JSValuePtr function = m_customResolver->get(exec, Identifier(exec, "lookupNamespaceURI"));
     CallData callData;
-    CallType callType = function->getCallData(callData);
+    CallType callType = function.getCallData(callData);
     if (callType == CallTypeNone) {
         callType = m_customResolver->getCallData(callData);
         if (callType == CallTypeNone) {
@@ -112,8 +112,8 @@ String JSCustomXPathNSResolver::lookupNamespaceURI(const String& prefix)
     if (exec->hadException())
         reportCurrentException(exec);
     else {
-        if (!retval->isUndefinedOrNull())
-            result = retval->toString(exec);
+        if (!retval.isUndefinedOrNull())
+            result = retval.toString(exec);
     }
 
     Document::updateDocumentsRendering();

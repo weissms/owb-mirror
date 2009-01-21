@@ -1,3 +1,23 @@
+2009-01-21  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Gavin Barraclough.
+
+        Remove temporary operator-> from JSValuePtr.
+
+        * WebScriptCallFrame.cpp:
+        (WebScriptCallFrame::jsValueToString):
+        * WebView.cpp:
+        (WebView::stringByEvaluatingJavaScriptFromString):
+
+2009-01-19  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * DOMCoreClasses.cpp: Replaced "using namespace WebCore" with
+        individual using directives for each type we need from that namespace,
+        to avoid conflicts between DOMObject and WebCore::DOMObject.
+        (DOMElement::font): Added a now-needed WebCore::.
+
 2009-01-19  Steve Falkenburg  <sfalken@apple.com>
 
         Build fix.

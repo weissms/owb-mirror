@@ -91,63 +91,63 @@ class WebValuePrivate {
 
 inline bool WebValuePrivate::isUndefined() const
 {
-    return m_val->isUndefined();
+    return m_val.isUndefined();
 }
 
 inline bool WebValuePrivate::isNull() const
 {
-    return m_val->isNull();
+    return m_val.isNull();
 }
 
 inline bool WebValuePrivate::isUndefinedOrNull() const
 {
-    return m_val->isUndefinedOrNull();
+    return m_val.isUndefinedOrNull();
 }
 
 inline bool WebValuePrivate::isBoolean() const
 {
-    return m_val->isBoolean();
+    return m_val.isBoolean();
 }
 
 inline bool WebValuePrivate::isNumber() const
 {
-    return m_val->isNumber();
+    return m_val.isNumber();
 }
 
 inline bool WebValuePrivate::isString() const
 {
-    return m_val->isString();
+    return m_val.isString();
 }
 
 inline bool WebValuePrivate::isGetterSetter() const
 {
-    return m_val->isGetterSetter();
+    return m_val.isGetterSetter();
 }
 
 inline bool WebValuePrivate::isObject() const
 {
-    return m_val->isObject();
+    return m_val.isObject();
 }
 
 inline bool WebValuePrivate::toBoolean() const
 {
-    return m_val->toBoolean(m_exec);
+    return m_val.toBoolean(m_exec);
 }
 
 inline double WebValuePrivate::toNumber() const
 {
-    return m_val->toNumber(m_exec);
+    return m_val.toNumber(m_exec);
 }
 
 inline const char* WebValuePrivate::toString() const
 {
-    WebCore::String st(m_val->toString(m_exec).data());
+    WebCore::String st(m_val.toString(m_exec).data());
     return st.utf8().data();
 }
 
 inline WebObject *WebValuePrivate::toObject() const
 {
-    JSObject* object = m_val->toObject(m_exec);
+    JSObject* object = m_val.toObject(m_exec);
     if (object->classInfo() == &RuntimeObjectImp::s_info) {
         RuntimeObjectImp* imp = static_cast<RuntimeObjectImp *>(object);
         Bindings::BalInstance* instance = static_cast<Bindings::BalInstance*>(imp->getInternalInstance());
