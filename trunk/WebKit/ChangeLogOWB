@@ -1,3 +1,11 @@
+2009-01-21  Julien Chaffraix  <jchaffraix@pleyo.com>
+
+        Reviewed by Olivier Dole.
+
+        Tweak the WebView's documentation.
+
+        * OrigynWebBrowser/Api/WebView.h:
+
 2009-01-21  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.

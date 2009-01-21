@@ -169,11 +169,12 @@ public:
 
     /**
      *  setDownloadDelegate 
-     * Set the WebView's WebDownloadDelegate.
-        @discussion The download delegate is retained by WebDownload when any downloads are in progress. It is up to the application to take care of the correct deletion of the DefaultDownloadDelegate pointer.
-        @param delegate The WebDownloadDelegate to set as the download delegate.
+     *  Set the WebView's WebDownloadDelegate.
+     *  @discussion The download delegate is retained by WebDownload when any downloads are in progress.
+     *              It is up to the application to take care of the correct deletion of the DefaultDownloadDelegate pointer.
+     *  @param delegate The WebDownloadDelegate to set as the download delegate.
      */
-    virtual void setDownloadDelegate(DefaultDownloadDelegate *d);
+    virtual void setDownloadDelegate(DefaultDownloadDelegate* d);
 
     /**
      *  downloadDelegate 
@@ -198,7 +199,7 @@ public:
 
     /**
      *  setWebNotificationDelegate
-     *  Set the WebView's WebNotificationDelegate.
+     *  Set the WebView's WebNotificationDelegate. It is up to the application to take care of the correct deletion of the DefaultDownloadDelegate pointer.
      */
     virtual void setWebNotificationDelegate(WebNotificationDelegate*);
 
