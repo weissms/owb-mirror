@@ -23,12 +23,15 @@
 #if ENABLE(WML)
 #include "WMLErrorHandling.h"
 
-#include "Console.h"
 #include "CString.h"
 #include "Frame.h"
 #include "Document.h"
 #include "DOMWindow.h"
 #include "XMLTokenizer.h"
+
+#if ENABLE(INSPECTOR)
+#include "Console.h"
+#endif
 
 namespace WebCore {
 
@@ -48,6 +51,7 @@ void reportWMLError(Document* doc, WMLErrorCode error)
             return;
 
         tokenizer->handleError(XMLTokenizer::fatal, errorMessage.latin1().data(), tokenizer->lineNumber(), tokenizer->columnNumber());
+#if ENABLE(INSPECTOR)
     } else {
         Frame* frame = doc->frame();
         if (!frame)
@@ -62,6 +66,7 @@ void reportWMLError(Document* doc, WMLErrorCode error)
             return;
 
         console->addMessage(WMLMessageSource, ErrorMessageLevel, errorMessage, 0, String());
+#endif
     }
 }
 

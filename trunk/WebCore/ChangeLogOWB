@@ -1,3 +1,16 @@
+2009-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        Fix bug #325 (build fix).
+
+        * loader/EmptyClients.h:
+        * svg/SVGDocumentExtensions.cpp:
+        (WebCore::SVGDocumentExtensions::reportWarning):
+        (WebCore::SVGDocumentExtensions::reportError):
+        * wml/WMLErrorHandling.cpp:
+        (WebCore::reportWMLError):
+
 2008-12-23  Mario Bensi  <mbensi@pleyo.com>
 
         fix ticket #322.

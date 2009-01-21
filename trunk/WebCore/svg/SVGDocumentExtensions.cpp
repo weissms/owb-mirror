@@ -27,7 +27,6 @@
 #include "SVGDocumentExtensions.h"
 
 #include "AtomicString.h"
-#include "Console.h"
 #include "DOMWindow.h"
 #include "Document.h"
 #include "EventListener.h"
@@ -38,6 +37,10 @@
 #include "SMILTimeContainer.h"
 #include "XMLTokenizer.h"
 #include "ScriptController.h"
+
+#if ENABLE(INSPECTOR)
+#include "Console.h"
+#endif
 
 namespace WebCore {
 
@@ -88,14 +91,18 @@ void SVGDocumentExtensions::unpauseAnimations()
 
 void SVGDocumentExtensions::reportWarning(const String& message)
 {
+#if ENABLE(INSPECTOR)
     if (Frame* frame = m_doc->frame())
         frame->domWindow()->console()->addMessage(JSMessageSource, ErrorMessageLevel, "Warning: " + message, m_doc->tokenizer() ? m_doc->tokenizer()->lineNumber() : 1, String());
+#endif
 }
 
 void SVGDocumentExtensions::reportError(const String& message)
 {
+#if ENABLE(INSPECTOR)
     if (Frame* frame = m_doc->frame())
         frame->domWindow()->console()->addMessage(JSMessageSource, ErrorMessageLevel, "Error: " + message, m_doc->tokenizer() ? m_doc->tokenizer()->lineNumber() : 1, String());
+#endif
 }
 
 void SVGDocumentExtensions::addPendingResource(const AtomicString& id, SVGStyledElement* obj)

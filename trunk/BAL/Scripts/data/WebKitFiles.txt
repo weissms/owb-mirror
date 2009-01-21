@@ -28,6 +28,7 @@ WebCore/html/HTMLParser.cpp
 WebCore/inspector/InspectorController.cpp
 WebCore/loader/CachedFont.cpp
 WebCore/loader/DocLoader.cpp
+WebCore/loader/EmptyClients.h
 WebCore/loader/FrameLoader.cpp
 WebCore/page/AccessibilityObject.cpp
 WebCore/page/AccessibilityObject.h
@@ -58,6 +59,9 @@ WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTex
 WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
 WebCore/plugins/PluginView.h
 WebCore/storage/Database.cpp
+WebCore/svg/graphics/SVGImage.cpp BAL/SVG/WebCore/WK/BCSVGImageWK.cpp
+WebCore/svg/SVGDocumentExtensions.cpp
+WebCore/wml/WMLErrorHandling.cpp
 WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLTProcessor.cpp
 WebCore/xml/XSLStyleSheet.cpp

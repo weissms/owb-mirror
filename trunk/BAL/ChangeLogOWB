@@ -1,3 +1,13 @@
+2009-01-21  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        Fix bug #325 (build fix).
+
+        * SVG/WebCore/WK/BCSVGImageWK.cpp:
+        (WebCore::SVGImage::dataChanged):
+        * Scripts/data/WebKitFiles.txt:
+
 2009-01-20  Julien Chaffraix  <jchaffraix@pleyo.com>
 
         Rubber-stamped by Mario Bensi.

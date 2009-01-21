@@ -35,9 +35,12 @@
 #include "FocusDirection.h"
 #include "FloatRect.h"
 #include "FrameLoaderClient.h"
-#include "InspectorClient.h"
 #include "ResourceError.h"
 #include "SharedBuffer.h"
+
+#if ENABLE(INSPECTOR)
+#include "InspectorClient.h"
+#endif
 
 /*
  This file holds empty Client stubs for use by WebCore.
@@ -381,6 +384,7 @@ public:
     virtual void dragControllerDestroyed() { }
 };
 
+#if ENABLE(INSPECTOR)
 class EmptyInspectorClient : public InspectorClient {
 public:
     virtual ~EmptyInspectorClient() { }
@@ -407,6 +411,7 @@ public:
     virtual void storeSetting(const String&, const InspectorController::Setting&) { }
     virtual void removeSetting(const String&) { }
 };
+#endif
 
 }
 

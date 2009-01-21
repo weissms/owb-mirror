@@ -224,13 +224,19 @@ bool SVGImage::dataChanged(bool allDataReceived)
         static EditorClient* dummyEditorClient = new EmptyEditorClient;
         static ContextMenuClient* dummyContextMenuClient = new EmptyContextMenuClient;
         static DragClient* dummyDragClient = new EmptyDragClient;
+#if ENABLE(INSPECTOR)
         static InspectorClient* dummyInspectorClient = new EmptyInspectorClient;
+#endif
 
         m_chromeClient.set(new SVGImageChromeClient(this));
         
         // FIXME: If this SVG ends up loading itself, we'll leak this Frame (and associated DOM & render trees).
         // The Cache code does not know about CachedImages holding Frames and won't know to break the cycle.
+#if ENABLE(INSPECTOR)
         m_page.set(new Page(m_chromeClient.get(), dummyContextMenuClient, dummyEditorClient, dummyDragClient, dummyInspectorClient));
+#else
+        m_page.set(new Page(m_chromeClient.get(), dummyContextMenuClient, dummyEditorClient, dummyDragClient, 0));
+#endif
         m_page->settings()->setJavaScriptEnabled(false);
         m_page->settings()->setPluginsEnabled(false);
 
