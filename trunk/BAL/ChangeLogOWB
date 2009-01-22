@@ -1,3 +1,12 @@
+2009-01-22  Olivier DOLE  <odole@pleyo.com>
+
+        Reviewed by Mario BENSI.
+
+        fix bug #326 (use standard type).
+
+        * Fonts/WebCore/Freetype/BCFontPlatformDataFreetype.cpp:
+        (WKAL::FontPlatformData::FontPlatformData):
+
 2009-01-21  Olivier DOLE  <odole@pleyo.com>
 
         Reviewed by Mario BENSI.
