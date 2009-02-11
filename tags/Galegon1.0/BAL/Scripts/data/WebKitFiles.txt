@@ -1,0 +1,82 @@
+JavaScriptCore/AllInOneFile.cpp
+JavaScriptCore/runtime/Collector.cpp
+JavaScriptCore/interpreter/RegisterFile.cpp
+JavaScriptCore/interpreter/RegisterFile.h
+JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
+JavaScriptCore/wtf/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
+JavaScriptCore/wtf/ThreadingPthreads.cpp BAL/Types/WTF/Pthreads/BCThreadingPthreads.cpp
+WebCore/bindings/js/JSCustomXPathNSResolver.cpp
+WebCore/bindings/js/JSDOMWindowBase.cpp
+WebCore/bindings/js/JSDOMWindowCustom.cpp
+WebCore/bindings/js/ScheduledAction.cpp
+WebCore/bridge/c/c_instance.cpp
+WebCore/bridge/runtime.cpp
+WebCore/css/CSSParser.cpp
+WebCore/css/CSSParser.h
+WebCore/css/CSSStyleSelector.cpp
+WebCore/css/CSSStyleSelector.h
+WebCore/dom/Document.cpp
+WebCore/dom/Document.h
+WebCore/editing/TextIterator.cpp
+WebCore/page/DOMWindow.cpp
+WebCore/page/DOMWindow.h
+WebCore/page/DOMWindow.idl
+WebCore/html/CanvasStyle.cpp
+WebCore/html/HTMLDocument.cpp
+WebCore/html/HTMLElementFactory.cpp
+WebCore/html/HTMLParser.cpp
+WebCore/inspector/InspectorController.cpp
+WebCore/loader/CachedFont.cpp
+WebCore/loader/DocLoader.cpp
+WebCore/loader/EmptyClients.h
+WebCore/loader/FrameLoader.cpp
+WebCore/page/AccessibilityObject.cpp
+WebCore/page/AccessibilityObject.h
+WebCore/page/Chrome.cpp
+WebCore/page/Console.cpp
+WebCore/page/ContextMenuController.cpp
+WebCore/page/gtk/FrameGtk.cpp BAL/Widgets/WebCore/Gtk/BCFrameGtk.cpp
+WebCore/page/Page.cpp
+WebCore/page/Page.h
+WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
+WebCore/platform/graphics/cairo/ImageSourceCairo.cpp BAL/Graphics/WebCore/Cairo/BCImageSourceCairo.cpp
+WebCore/platform/graphics/GraphicsContext.cpp BAL/Graphics/WebCore/WK/BCGraphicsContextWK.cpp
+WebCore/platform/graphics/qt/FontPlatformDataQt.cpp BAL/Fonts/WebCore/Qt/BCFontPlatformDataQt.cpp
+WebCore/platform/graphics/qt/ImageQt.cpp BAL/Graphics/WebCore/Qt/BCImageQt.cpp
+WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
+WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.cpp
+WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
+WebCore/platform/image-decoders/bmp/BMPImageDecoder.cpp BAL/ImageDecoder/WebCore/BMP/WK/BCBMPImageDecoderWK.cpp
+WebCore/platform/image-decoders/gif/GIFImageDecoder.cpp BAL/ImageDecoder/WebCore/GIF/WK/BCGIFImageDecoderWK.cpp
+WebCore/platform/image-decoders/gif/GIFImageReader.cpp BAL/ImageDecoder/WebCore/GIF/WK/BCGIFImageReaderWK.cpp
+WebCore/platform/image-decoders/ico/ICOImageDecoder.cpp BAL/ImageDecoder/WebCore/ICO/WK/BCICOImageDecoderWK.cpp
+WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.cpp BAL/ImageDecoder/WebCore/JPEG/WK/BCJPEGImageDecoderWK.cpp
+WebCore/platform/image-decoders/png/PNGImageDecoder.cpp BAL/ImageDecoder/WebCore/PNG/WK/BCPNGImageDecoderWK.cpp
+WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp BAL/ImageDecoder/WebCore/XBM/WK/BCXBMImageDecoderWK.cpp
+WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
+WebCore/platform/Logging.cpp BAL/Facilities/WebCore/WK/BCLoggingWK.cpp
+WebCore/platform/Logging.h BAL/Facilities/WebCore/WK/BCLoggingWK.h
+WebCore/platform/network/qt/QNetworkReplyHandler.h BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.h
+WebCore/platform/network/qt/QNetworkReplyHandler.cpp BAL/Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp
+WebCore/platform/network/qt/ResourceHandleQt.cpp BAL/Network/WebCore/Qt/BCResourceHandleQt.cpp
+WebCore/platform/posix/FileSystemPOSIX.cpp BAL/Facilities/WebCore/Posix/BCFileSystemPosix.cpp
+WebCore/platform/PurgeableBuffer.h BAL/Types/WebCore/WK/BCPurgeableBufferWK.h
+WebCore/platform/qt/CookieJarQt.cpp BAL/Network/WebCore/Qt/BCCookieJarQt.cpp
+WebCore/platform/qt/RenderThemeQt.cpp BAL/Widgets/WebCore/Qt/BCRenderThemeQt.cpp
+WebCore/platform/qt/WidgetQt.cpp BAL/Widgets/WebCore/Qt/BCWidgetQt.cpp
+WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
+WebCore/platform/Widget.h BAL/Widgets/WebCore/WK/BCWidgetWK.h
+WebCore/plugins/PluginView.h
+WebCore/storage/Database.cpp
+WebCore/svg/graphics/SVGImage.cpp BAL/SVG/WebCore/WK/BCSVGImageWK.cpp
+WebCore/svg/SVGDocumentExtensions.cpp
+WebCore/wml/WMLErrorHandling.cpp
+WebCore/xml/XMLHttpRequest.cpp
+WebCore/xml/XSLTProcessor.cpp
+WebCore/xml/XSLStyleSheet.cpp
+WebKit/gtk/WebCoreSupport/PasteboardHelperGtk.cpp BAL/Widgets/WebCore/Gtk/PasteboardHelperGtk.cpp
+WebKitTools/DumpRenderTree/DumpRenderTree.h
+WebKitTools/Scripts/prepare-ChangeLog
+WebKitTools/Scripts/resolve-ChangeLogs
+WebKitTools/Scripts/svn-apply
+WebKitTools/Scripts/svn-unapply
