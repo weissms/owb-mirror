@@ -45,7 +45,14 @@
 #include <QDebug>
 #include <QCoreApplication>
 
-static QNetworkAccessManager s_accessManager;
+static QNetworkAccessManager *s_accessManager = 0;
+
+static QNetworkAccessManager* createAccessManager()
+{
+    if (!s_accessManager)
+        s_accessManager = new QNetworkAccessManager();
+    return s_accessManager;
+}
 
 namespace WebCore {
 
@@ -355,7 +362,7 @@ void QNetworkReplyHandler::start()
 #if 0
     QNetworkAccessManager* manager = d->m_frame->page()->networkAccessManager();
 #else
-    QNetworkAccessManager* manager = &s_accessManager;
+    QNetworkAccessManager* manager = createAccessManager();
 #endif
 
     const QUrl url = m_request.url();

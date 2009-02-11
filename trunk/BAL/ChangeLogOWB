@@ -1,3 +1,11 @@
+2009-02-11  Mario Bensi  <mbensi@pleyo.com>
+
+        Fix crash on exit on qt port.
+
+        * Network/WebCore/Qt/BCQNetworkReplyHandlerQt.cpp:
+        (createAccessManager):
+        (WebCore::QNetworkReplyHandler::start):
+
 2009-02-10  Mario Bensi  <mbensi@pleyo.com>
 
         Hack to fix the ticket #309
